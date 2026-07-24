@@ -242,6 +242,38 @@ def _block_functions(cube_id: int, cells: list[int]) -> list[str]:
     return fns
 
 
+_SSSES_PILLARS = ("security", "stability", "scalability", "efficiency", "succinctness")
+
+
+def section_ssses(cube_id: int, fns: list[str], *, duration_ms: float = 0.0,
+                  row_count: int = 0, loc: int = 0) -> dict:
+    """SSSES score (0-100 per pillar) for ONE building block, from REAL per-block signals:
+    Efficiency + Succinctness come from a genuine measurement when provided (section-scoped
+    replay throughput + actual source LOC); the rest from the block's real function set.
+    Pure + deterministic: same inputs → same scores. `measured` flags when real metrics fed it.
+    """
+    j = " ".join(fns).lower()
+    sensitive = any(k in j for k in ("auth", "pii", "secret", "token", "password", "scrub"))
+    security = 80 if sensitive else 96                       # sensitive code = more scrutiny
+    stability = min(100, 84 + (16 if any(("hash" in f or "verify" in f or "replay" in f) for f in fns) else 0))
+    scalability = min(100, 80 + (20 if any(k in j for k in ("batch", "stream", "aggregate", "bulk", "borda", "scale")) else 0))
+    if duration_ms > 0 and row_count > 0:                    # REAL throughput → efficiency
+        rps = row_count / (duration_ms / 1000.0)
+        efficiency = max(40, min(100, round(52 + 12 * math.log10(max(1.0, rps)))))
+    else:
+        efficiency = max(55, 100 - max(0, len(fns) - 1) * 8)
+    succinctness = max(50, 100 - loc // 12) if loc else max(60, 100 - max(0, len(fns) - 2) * 6)
+    measured = bool(duration_ms > 0 and row_count > 0)
+    notes = [
+        f"{len(fns)} live fn(s)" + (f" · {loc} LOC" if loc else ""),
+        "handles sensitive data" if sensitive else "no secret surface",
+        (f"measured {row_count} rows in {duration_ms:.0f}ms" if measured else "efficiency estimated (run to measure)"),
+    ]
+    return {p: v for p, v in zip(_SSSES_PILLARS, (security, stability, scalability, efficiency, succinctness))} | {
+        "measured": measured, "notes": notes,
+    }
+
+
 def sections_for(cube_id: int, count: int = 4) -> list[dict]:
     """Sections for a cube at the requested granularity (any count 2..27), each with
     its highlight sets, a decimal `code` (``{cube}.{k+1}`` — e.g. ``2.1 … 2.8``), and

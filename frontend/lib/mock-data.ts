@@ -823,7 +823,7 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     const _DEF: Record<number, number> = { 1: 6, 2: 8, 3: 7, 4: 8, 5: 7, 6: 7, 7: 8, 8: 7, 9: 8 };
     return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ cube_id: Number(id), name: c.name, harness_available: true, default_sections: _DEF[Number(id)] ?? 4 })) };
   }
-  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit|source)$/);
+  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit|source|section-metrics)$/);
   if (!m) return undefined;
   const id = Number(m[1]);
   const action = m[2];
@@ -831,6 +831,29 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
   if (method === "GET" && action === "contract") {
     const count = _SIM_ALLOWED_COUNTS.includes(Number(qs.get("sections"))) ? Number(qs.get("sections")) : 4;
     return { cube_id: id, name: cube.name, io_contract: cube.io, sections: _mockSections(id, count) };
+  }
+  if (method === "GET" && action === "section-metrics") {
+    // SP: real-per-block metrics + SSSES (deterministic mock mirroring section_ssses).
+    const _DEF2: Record<number, number> = { 1: 6, 2: 8, 3: 7, 4: 8, 5: 7, 6: 7, 7: 8, 8: 7, 9: 8 };
+    const cnt = _SIM_ALLOWED_COUNTS.includes(Number(qs.get("sections"))) ? Number(qs.get("sections")) : (_DEF2[id] ?? 4);
+    const key = qs.get("section") || "";
+    const blk = _mockSections(id, cnt).find((s) => s.key === key);
+    if (!blk) return { __status: 400 };
+    const fns: string[] = blk.functions || [];
+    const j = fns.join(" ").toLowerCase();
+    const dur = 30 + fns.length * 7, rows = 300, loc = fns.length * 14;
+    const sensitive = ["auth", "pii", "secret", "token", "password", "scrub"].some((k) => j.includes(k));
+    const rps = rows / (dur / 1000);
+    const ssses = {
+      security: sensitive ? 80 : 96,
+      stability: Math.min(100, 84 + (fns.some((f) => /hash|verify|replay/.test(f)) ? 16 : 0)),
+      scalability: Math.min(100, 80 + (["batch", "stream", "aggregate", "bulk", "borda", "scale"].some((k) => j.includes(k)) ? 20 : 0)),
+      efficiency: Math.max(40, Math.min(100, Math.round(52 + 12 * Math.log10(Math.max(1, rps))))),
+      succinctness: Math.max(50, 100 - Math.floor(loc / 12)),
+      measured: true,
+      notes: [`${fns.length} live fn(s) · ${loc} LOC`, sensitive ? "handles sensitive data" : "no secret surface", `measured ${rows} rows in ${dur}ms`],
+    };
+    return { cube_id: id, section: key, code: blk.code, functions: fns, duration_ms: dur, row_count: rows, loc, replay_hash: _mockHash(`replay:${id}:${key}`), ssses };
   }
   if (method === "GET" && action === "source") {
     // FX-B: LIVE source (representative real snippets under MOCK_MODE; the real backend

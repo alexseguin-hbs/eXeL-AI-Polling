@@ -214,6 +214,36 @@ class TestDecimalCodesAndFoundationalBase:
             assert any(cell // 9 == 0 for cell in secs[0]["highlight"]["9"])
 
 
+class TestSectionSSSES:
+    """SP — per-block SSSES from real signals (5 pillars 0-100, deterministic)."""
+
+    def test_five_pillars_in_range(self):
+        from app.cubes.cube10_simulation.sections import _SSSES_PILLARS, section_ssses
+        for c in ALL_CUBES:
+            for s in sections_for(c, sections_for.__defaults__[0]):  # default 4
+                r = section_ssses(c, s["functions"])
+                assert set(_SSSES_PILLARS) <= set(r)
+                assert all(0 <= r[p] <= 100 for p in _SSSES_PILLARS)
+                assert r["notes"] and "measured" in r
+
+    def test_measured_flag_and_real_efficiency(self):
+        from app.cubes.cube10_simulation.sections import section_ssses
+        est = section_ssses(2, ["validate_text_input"])                       # no metrics
+        meas = section_ssses(2, ["validate_text_input"], duration_ms=50.0, row_count=5000, loc=40)
+        assert est["measured"] is False and meas["measured"] is True
+        assert meas["efficiency"] >= est["efficiency"]                        # high throughput scores well
+
+    def test_deterministic(self):
+        from app.cubes.cube10_simulation.sections import section_ssses
+        a = section_ssses(7, ["aggregate_rankings"], duration_ms=42.0, row_count=300, loc=25)
+        b = section_ssses(7, ["aggregate_rankings"], duration_ms=42.0, row_count=300, loc=25)
+        assert a == b
+
+    def test_sensitive_code_scores_lower_security(self):
+        from app.cubes.cube10_simulation.sections import section_ssses
+        assert section_ssses(2, ["scrub_pii"])["security"] < section_ssses(2, ["get_response_count"])["security"]
+
+
 class TestSectionsFor:
     def test_sections_for_carries_per_level_highlight(self):
         secs = sections_for(5)

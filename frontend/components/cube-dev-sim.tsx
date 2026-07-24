@@ -35,6 +35,7 @@ type Contract = {
   sections?: Section[];
 };
 type SourceBlock = { name: string; section: string; resolved: boolean; path: string | null; source: string | null };
+type SecMetrics = { duration_ms: number; row_count: number; loc: number; ssses: { security: number; stability: number; scalability: number; efficiency: number; succinctness: number; measured?: boolean; notes?: string[] } };
 type Verdict = { equivalent: boolean; compare_passed: boolean; faster: boolean; overall_passed: boolean };
 type SubmitResult = {
   baseline: { metrics?: Record<string, number>; determinism_signature?: string };
@@ -76,6 +77,7 @@ export function CubeDevSim() {
   const [contract, setContract] = useState<Contract | null>(null);
   const [sectionKey, setSectionKey] = useState<string | null>(null);
   const [liveBlocks, setLiveBlocks] = useState<SourceBlock[]>([]);
+  const [secMetrics, setSecMetrics] = useState<SecMetrics | null>(null);   // SP: real per-block metrics + SSSES
   const [candidate, setCandidate] = useState("");
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -146,6 +148,17 @@ export function CubeDevSim() {
   // Decimal code per block index (1.1…1.N) — labels each block in the exploded view.
   const sectionCodes = useMemo(() => sections.map((s, i) => s.code ?? `${i + 1}`), [sections]);
   const curated = !!sectionKey && /^[A-D]$/.test(sectionKey);   // Fn·4 view = editable source
+
+  // SP: fetch REAL per-block metrics + SSSES for the selected block (section-scoped replay
+  // duration + rows + source LOC → 5-pillar qualification). Reruns when the block changes.
+  useEffect(() => {
+    if (!sel || !sectionKey) { setSecMetrics(null); return; }
+    let alive = true;
+    api.get<SecMetrics>(`/sim/cube/${sel}/section-metrics?section=${sectionKey}&sections=${nSections}`)
+      .then((d) => { if (alive) setSecMetrics(d); })
+      .catch(() => { if (alive) setSecMetrics(null); });
+    return () => { alive = false; };
+  }, [sel, sectionKey, nSections]);
 
   // FX-B: fetch the REAL live source for the selected section (backend inspect.getsource,
   // whitelisted to app/cubes/**) so the LIVE panel shows the running code — not a
@@ -346,6 +359,36 @@ export function CubeDevSim() {
             {col(t("cube10.sim.functions"), activeSection?.io?.functions ?? activeSection?.functions ?? contract.io_contract.functions, AI)}
             {col(t("cube10.sim.output"), activeSection?.io?.outputs ?? contract.io_contract.outputs, HI)}
           </div>
+
+          {/* SP: per-block SSSES qualification (real metrics — section replay + LOC). The
+              Vision-2525 qualification bar for THIS building block. */}
+          {secMetrics && (
+            <div className="rounded-xl border bg-card p-3">
+              <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                <span className="font-semibold" style={{ color: AI }}>{t("cube10.sim.ssses")} · <b style={{ color: SI }}>{activeSection?.code}</b></span>
+                <span className="font-mono">
+                  {secMetrics.ssses.measured ? `${secMetrics.row_count} rows · ${secMetrics.duration_ms.toFixed(0)}ms · ${secMetrics.loc} LOC` : `${secMetrics.loc} LOC`}
+                </span>
+              </div>
+              <div className="grid grid-cols-5 gap-1.5">
+                {([
+                  ["cube10.sim.ssses_security", secMetrics.ssses.security],
+                  ["cube10.sim.ssses_stability", secMetrics.ssses.stability],
+                  ["cube10.sim.ssses_scalability", secMetrics.ssses.scalability],
+                  ["cube10.sim.ssses_efficiency", secMetrics.ssses.efficiency],
+                  ["cube10.sim.ssses_succinctness", secMetrics.ssses.succinctness],
+                ] as const).map(([k, v]) => {
+                  const c = v >= 90 ? GOOD : v >= 70 ? SI : "#ff6b7a";
+                  return (
+                    <div key={k} className="rounded-lg border p-1.5 text-center" style={{ borderColor: `${c}55` }}>
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t(k)}</div>
+                      <div className="text-sm font-bold" style={{ color: c }}>{v}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* LIVE ↔ YOUR VERSION code (maximizable) */}
           <div className={maxCode ? "fixed inset-0 z-50 bg-background p-4 pt-12" : ""}>

@@ -588,6 +588,44 @@ async def sim_cube_source(cube_id: int, section: str | None = None):
             "blocks": _resolve_cube_sources(cube_id, section)}
 
 
+@router.get("/sim/cube/{cube_id}/section-metrics")
+async def sim_cube_section_metrics(cube_id: int, section: str, sections: int = 0):
+    """REAL per-block metrics + SSSES for ONE building block (SP): measure the block via its
+    section-scoped replay (real duration_ms + row_count) and its actual source LOC, then score
+    the 5 SSSES pillars. Read-only + deterministic — the Vision-2525 qualification bar per block."""
+    if cube_id < 1 or cube_id > 9:
+        raise HTTPException(status_code=400, detail="cube_id must be 1-9")
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404, detail=f"Cube {cube_id} has no harness yet.")
+    from app.cubes.cube10_simulation.sections import (
+        ALLOWED_SECTION_COUNTS, section_ssses, sections_for,
+    )
+    from app.cubes.cube10_simulation.saved_use_cases import SavedUseCaseManager, replay_against_dataset
+
+    count = sections if sections in ALLOWED_SECTION_COUNTS else _default_sections(cube_id)
+    blk = next((s for s in sections_for(cube_id, count) if s["key"] == section), None)
+    if not blk:
+        raise HTTPException(status_code=400, detail=f"unknown section {section!r} at {count} blocks")
+    fns = blk.get("functions", [])
+    # REAL source LOC for this block's functions (from the whitelisted live source).
+    resolved = {b["name"]: b for b in _resolve_cube_sources(cube_id, None) if b.get("resolved") and b.get("source")}
+    loc = sum(len((resolved[f]["source"] or "").splitlines()) for f in fns if f in resolved)
+    # REAL per-block duration + row_count via the section-scoped replay.
+    dur, rows, rhash = 0.0, 0, ""
+    try:
+        mgr = SavedUseCaseManager()
+        case = mgr.get_case("demo") or mgr.demo
+        rep = await replay_against_dataset(case, cube_id, function_name="", section=section)
+        dur = float(rep.get("duration_ms", 0.0)); rows = int(rep.get("row_count", 0)); rhash = rep.get("replay_hash", "")
+    except Exception:  # replay unavailable offline → SSSES falls back to static signals
+        pass
+    return {
+        "cube_id": cube_id, "section": section, "code": blk.get("code"), "functions": fns,
+        "duration_ms": dur, "row_count": rows, "loc": loc, "replay_hash": rhash,
+        "ssses": section_ssses(cube_id, fns, duration_ms=dur, row_count=rows, loc=loc),
+    }
+
+
 @router.post("/sim/cube/{cube_id}/run")
 async def sim_cube_run(
     cube_id: int,

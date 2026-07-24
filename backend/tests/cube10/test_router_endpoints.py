@@ -311,6 +311,31 @@ class TestEveryCubeAndBlockIO:
         assert [s["code"] for s in secs] == [f"{cube_id}.{k + 1}" for k in range(live_n)]
 
 
+class TestSimSectionMetrics:
+    """SP — GET /sim/cube/{id}/section-metrics returns real per-block metrics + SSSES."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 7])
+    async def test_section_metrics_shape(self, client, cube_id):
+        # Use the first section key at the cube's Live·N.
+        cubes = (await client.get("/api/v1/sim/cubes")).json()["cubes"]
+        live_n = next(c["default_sections"] for c in cubes if c["cube_id"] == cube_id)
+        secs = (await client.get(f"/api/v1/sim/cube/{cube_id}/contract?sections={live_n}")).json()["sections"]
+        key = secs[0]["key"]
+        r = await client.get(f"/api/v1/sim/cube/{cube_id}/section-metrics?section={key}&sections={live_n}")
+        assert r.status_code == 200
+        b = r.json()
+        assert b["section"] == key and b["functions"]
+        ss = b["ssses"]
+        assert set(("security", "stability", "scalability", "efficiency", "succinctness")) <= set(ss)
+        assert all(0 <= ss[p] <= 100 for p in ("security", "stability", "scalability", "efficiency", "succinctness"))
+
+    @pytest.mark.asyncio
+    async def test_bad_section_returns_400(self, client):
+        r = await client.get("/api/v1/sim/cube/2/section-metrics?section=ZZ&sections=8")
+        assert r.status_code == 400
+
+
 class TestSimCubeReplayRoute:
     """GET /sim/cube/{id}/replay — beat the WHOLE cube or ONE building block (section)."""
 
