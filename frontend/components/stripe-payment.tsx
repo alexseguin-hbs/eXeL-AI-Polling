@@ -9,6 +9,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { api } from "@/lib/api";
+import { startDonation } from "@/lib/donate";
 import { useLexicon } from "@/lib/lexicon-context";
 import { STRIPE_PUBLISHABLE_KEY, MODERATOR_MIN_FEE_CENTS } from "@/lib/constants";
 
@@ -283,20 +284,20 @@ export function DonationPrompt({
     setLoading(true);
     setError("");
     try {
-      // Anonymous hosted-Checkout path — no session lookup, so it works on demo/closed
+      // Edge Checkout (/api/donate) — no session lookup, so it works on demo/closed
       // sessions (the old /payments/donate PaymentIntent 404'd with "Session not found").
       const here = typeof window !== "undefined" ? window.location.href : "";
-      const result = await api.post<{ checkout_url?: string }>("/payments/divinity-donate", {
-        amount_cents: amount,
+      const url = await startDonation({
+        amountCents: amount,
         label: `eXeL AI Polling — Session ${shortCode}`,
         description: "Support this session & the SoI Governance platform",
-        success_url: here,
-        cancel_url: here,
+        successUrl: here,
+        cancelUrl: here,
       });
-      if (result?.checkout_url) {
-        window.location.href = result.checkout_url; // real Stripe hosted Checkout
+      if (url) {
+        window.location.href = url; // live Stripe hosted Checkout
       } else {
-        setDemoDone(true); // demo mode (no backend/Stripe) — acknowledge, don't error
+        setDemoDone(true); // no Stripe key configured yet — acknowledge, don't error
         setLoading(false);
       }
     } catch (e) {

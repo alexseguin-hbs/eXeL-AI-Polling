@@ -10,7 +10,7 @@
  */
 import { useState } from "react";
 import { Heart, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { startDonation } from "@/lib/donate";
 import { useLexicon } from "@/lib/lexicon-context";
 
 const PRESETS_CENTS = [111, 333, 999, 2525]; // $1.11 · $3.33 · $9.99 · $25.25
@@ -49,17 +49,17 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
     setError("");
     try {
       const here = typeof window !== "undefined" ? window.location.href : "";
-      const result = await api.post<{ checkout_url?: string }>("/payments/divinity-donate", {
-        amount_cents: amount,
+      const url = await startDonation({
+        amountCents: amount,
         label: "eXeL AI Polling — Community Contribution",
         description: "Support the SoI Governance platform",
-        success_url: here,
-        cancel_url: here,
+        successUrl: here,
+        cancelUrl: here,
       });
-      if (result?.checkout_url) {
-        window.location.href = result.checkout_url; // real Stripe hosted Checkout
+      if (url) {
+        window.location.href = url; // live Stripe hosted Checkout
       } else {
-        // Demo mode (no backend/Stripe) — acknowledge instead of erroring.
+        // No Stripe key configured yet — acknowledge instead of erroring.
         setDemoDone(true);
         setLoading(false);
       }

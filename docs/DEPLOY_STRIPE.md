@@ -18,10 +18,34 @@ The backend **prefers the restricted key (RAK) over the unrestricted secret key*
 (`app/cubes/cube8_tokens/stripe_config.resolve_secret_key`), per Stripe's "migrate to RAKs"
 recommendation. Set either; the RAK wins when both are present.
 
-## Frontend (Cloudflare Pages → Settings → Environment variables)
+## FASTEST PATH TO LIVE DONATIONS — edge function (no separate backend)
+
+Donations run through a Cloudflare **Pages Function** at `/api/donate`
+(`frontend/functions/api/donate.js`) that creates the Stripe Checkout server-side at the
+edge. This works on the existing `workers.dev` deployment with **no FastAPI backend**.
+
+**One step to go live** — in the Cloudflare Pages project → **Settings → Environment
+variables → Production**, add an **encrypted** variable (this is a Pages *secret*, stored by
+Cloudflare, never in the repo):
 
 ```
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = pk_live_…      # browser-safe; read by frontend/lib/constants.ts
+STRIPE_RESTRICTED_KEY = rk_live_…     # preferred — the RAK must have "Checkout Sessions: write"
+# or, if the RAK lacks that scope:
+STRIPE_SECRET_KEY     = sk_live_…
+```
+
+Redeploy (or it picks up on next deploy). Then the ♡ Donate popup and results prompt
+redirect to a **real Stripe Checkout** — a live $1.11 works immediately. No key → the popup
+shows the graceful "demo" acknowledgement instead of erroring.
+
+Optional overrides: `STRIPE_SUCCESS_URL`, `STRIPE_CANCEL_URL`.
+
+## Frontend build var (Cloudflare Pages → Settings → Environment variables)
+
+```
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = pk_live_…      # browser-safe; only needed for the
+                                                     # embedded Elements flow, NOT the edge
+                                                     # redirect donate (which is server-side)
 ```
 
 ## Backend (host/VPS environment or secrets vault — never the repo)
