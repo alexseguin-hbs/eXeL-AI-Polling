@@ -82,7 +82,6 @@ export function CubeDevSim() {
   const [err, setErr] = useState("");
   const [maxCode, setMaxCode] = useState<"" | "split" | "live" | "yours">("");
   const [voxelMax, setVoxelMax] = useState(false);
-  const [secCount, setSecCount] = useState(4);   // FX-G granularity: 3 | 4 | 9 | 27
   const [exploded, setExploded] = useState(false);
   const [verdictVote, setVerdictVote] = useState<"pass" | "revise" | "block">("pass");
   const [seconds, setSeconds] = useState(15 * 60);
@@ -115,17 +114,12 @@ export function CubeDevSim() {
   }, []);
 
   const pick = useCallback((id: number) => {
-    // Default to the cube's REAL code-unit count (its LIVE code needed to run SIM),
-    // not a fixed 4 (operator: "use reality, do not default to 4").
+    // Always open at the cube's REAL LIVE-code sections (no granularity switching —
+    // operator: "we are going off LIVE CODE now").
     const def = cubes.find((c) => c.cube_id === id)?.default_sections ?? 4;
-    setSel(id); setErr(""); setSecCount(def); setExploded(false);
+    setSel(id); setErr(""); setExploded(false);
     void loadContract(id, def);
   }, [cubes, loadContract]);
-
-  const changeCount = useCallback((n: number) => {
-    setSecCount(n);
-    if (sel) void loadContract(sel, n);
-  }, [sel, loadContract]);
 
   const sections = contract?.sections ?? [];
   const activeSection = sections.find((s) => s.key === sectionKey) ?? null;
@@ -141,6 +135,8 @@ export function CubeDevSim() {
     sections.forEach((s, i) => (s.highlight?.[String(FULL)] ?? []).forEach((c) => { arr[c] = i; }));
     return arr;
   }, [sections]);
+  // Decimal code per block index (1.1…1.N) — labels each block in the exploded view.
+  const sectionCodes = useMemo(() => sections.map((s, i) => s.code ?? `${i + 1}`), [sections]);
   const curated = !!sectionKey && /^[A-D]$/.test(sectionKey);   // Fn·4 view = editable source
 
   // FX-B: fetch the REAL live source for the selected section (backend inspect.getsource,
@@ -246,10 +242,11 @@ export function CubeDevSim() {
 
       {contract && (
         <>
-          {/* Section strip — one chip per section at the chosen granularity. Pick one →
-              the voxel lights that whole COHERENT block. Compact for many blocks. */}
+          {/* LIVE-code section strip — one chip per REAL live-code building block (the
+              cube's own functions). Pick one → the voxel lights that block. The decimal
+              code (1.1…) is the sole identifier; the real function name rides beside it. */}
           <div className="flex flex-wrap items-center gap-1.5 rounded-xl border bg-card p-3">
-            <span className="mr-1 text-xs font-semibold text-muted-foreground">{t("cube10.sim.level")}</span>
+            <span className="mr-1 text-xs font-semibold text-muted-foreground">{t("cube10.sim.live_sections")}</span>
             {sections.map((s, i) => (
               <button key={s.key} onClick={() => { setSectionKey(s.key); setResult(null); setCandidate(""); }}
                 data-sim-section={s.key} data-sim-level={i + 1}
@@ -257,7 +254,7 @@ export function CubeDevSim() {
                   sectionKey === s.key ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                 style={sectionKey === s.key ? { background: SI, borderColor: SI } : undefined}>
                 <span className="font-mono font-bold">{s.code ?? `${i + 1}·${s.key}`}</span>
-                {nSections <= 9 && <span className="opacity-80">{s.label}</span>}
+                {nSections <= 9 && <span className="font-mono opacity-80">{s.functions?.[0] ?? s.label}</span>}
               </button>
             ))}
           </div>
@@ -265,9 +262,9 @@ export function CubeDevSim() {
           {/* The 3×3×3 is ALWAYS a wireframe outline; the selected block's mini-cubes
               fill solid (ON), the rest stay outline (OFF). Rotate by dragging; Explode
               separates the blocks; ⤢ pops out. Reuses the R-Core camera. */}
-          <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4">
-            <div className="relative" data-sim-voxel={sel ?? ""}>
-              <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} exploded={exploded} px={200} />
+          <div className="flex flex-wrap items-center justify-center gap-4 rounded-xl border bg-card p-4">
+            <div className="relative mx-auto" data-sim-voxel={sel ?? ""}>
+              <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} codes={sectionCodes} exploded={exploded} px={200} />
               <button onClick={() => setVoxelMax(true)} title="Pop out & rotate"
                 className="absolute right-1 top-1 rounded border bg-background/80 p-1 text-muted-foreground backdrop-blur hover:text-primary">
                 <Maximize2 className="h-3.5 w-3.5" />
@@ -275,25 +272,17 @@ export function CubeDevSim() {
             </div>
             <div className="min-w-[180px] flex-1">
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
-              {/* Granularity + Explode — how many building blocks the 27 mini-cubes group into. */}
+              {/* LIVE code only — no granularity switching. The blocks ARE the cube's real
+                  live-code sections; Explode separates them, assemble snaps back. */}
               <div className="mt-2 flex flex-wrap items-center gap-1">
-                {(() => {
-                  const liveN = cubes.find((c) => c.cube_id === sel)?.default_sections ?? 4;
-                  const opts = [liveN, 2, 3, 4, 6, 9, 27].filter((n, i, a) => a.indexOf(n) === i);
-                  return opts.map((n) => (
-                    <button key={n} onClick={() => changeCount(n)} disabled={busy === "contract"}
-                      className={`rounded border px-2 py-0.5 font-mono text-[11px] transition ${secCount === n ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
-                      style={secCount === n ? { background: AI, borderColor: AI } : undefined}>
-                      {n === liveN ? `Live·${n}` : n === 4 ? "Fn·4" : String(n)}</button>
-                  ));
-                })()}
                 <button onClick={() => setExploded((e) => !e)} title="Explode / assemble the blocks"
-                  className={`ml-1 rounded border px-2 py-0.5 text-[11px] transition ${exploded ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`rounded border px-2 py-0.5 text-[11px] transition ${exploded ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                   style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                27 mini-cubes · {nSections} {secCount === 4 ? "sections" : "blocks"} · selected{" "}
-                <b style={{ color: SI }}>{activeSection?.code ?? activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} cubes ON.
+                {nSections} LIVE-code blocks · selected{" "}
+                <b style={{ color: SI }}>{activeSection?.code ?? activeSection?.key}</b>
+                {" "}<span className="font-mono">{activeSection?.functions?.[0] ?? activeSection?.label}</span> — {litCells.size} cubes ON.
               </p>
               <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · Explode separates the blocks.</p>
             </div>
@@ -312,7 +301,7 @@ export function CubeDevSim() {
                   <X className="mr-1 inline h-3 w-3" />Exit</button>
               </div>
               <div className="flex-1">
-                <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} exploded={exploded} px={0} fill />
+                <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} codes={sectionCodes} exploded={exploded} px={0} fill />
               </div>
             </div>
           )}
@@ -481,8 +470,8 @@ export function CubeDevSim() {
 // Vision-2525 R-Core camera. Reuses the voxel-house pattern (preserve-3d + perspective +
 // rotateX(pitch)/rotateZ(bearing)). Lit blocks glow (SI); the rest read as a dim lattice
 // so the whole 3×3×3 identity fingerprint is visible while the worked section stands out.
-function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill = false }: {
-  lit: Set<number>; blockOf: number[]; nSections: number; exploded?: boolean; px?: number; fill?: boolean;
+function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px = 200, fill = false }: {
+  lit: Set<number>; blockOf: number[]; nSections: number; codes?: string[]; exploded?: boolean; px?: number; fill?: boolean;
 }) {
   const cam = useRCoreGestures({
     initialBearing: -0.6, initialPitch: 60, initialZoom: 1, touchOrbit: true, pan: false,
@@ -497,7 +486,7 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
   // bright; the other blocks show in their own color, dimmer (so all distinct blocks
   // read at a glance). Exploded → each block moves as a RIGID group along its centroid
   // direction (blocks stay together, clear spacing between them). Memoized (not per-frame).
-  const blocks = useMemo<ReactNode[]>(() => {
+  const scene = useMemo(() => {
     const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
     const face = (t: string, w: number, h: number, hex: string, alpha: string): CSSProperties =>
       ({ ...at(t), width: w, height: h, border: `1px solid ${hex}`, background: `${hex}${alpha}` });
@@ -526,7 +515,9 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
       const r = 0.85 + 0.5 * (idx / Math.max(1, keys.length - 1));   // per-index radius spread
       dir[k] = [dx * r, dy * r, dz * r];
     });
-    const exStep = fill ? step * 3.0 : step * 2.4;   // much more spacing between blocks (FX-M)
+    // Modest spacing so the exploded assembly stays COMPACT and reads as cubes (not an
+    // elongated sprawl): blocks part just enough to see the seams between them.
+    const exStep = fill ? step * 1.9 : step * 1.5;
     const out: ReactNode[] = [];
     for (let i = 0; i < 27; i++) {
       const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
@@ -551,16 +542,33 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
         </div>,
       );
     }
-    return out;
-  }, [lit, blockOf, nSections, exploded, cell, step, fill]);
+    // Per-block label anchors (block centroid + its explode offset) → each block gets its
+    // decimal code (1.1…) floating at its center in the exploded view.
+    const anchors = keys.map((k) => {
+      const s = sums[k], d = dir[k] ?? [0, 0, 0];
+      const cx = s[0] / s[3] - 1, cy = s[1] / s[3] - 1, cz = s[2] / s[3] - 1;
+      return { code: codes[k] ?? `${k + 1}`, x: cx * step + d[0] * exStep, y: cy * step + d[1] * exStep, z: cz * step + d[2] * exStep };
+    });
+    return { cubes: out, anchors };
+  }, [lit, blockOf, nSections, codes, exploded, cell, step, fill]);
   return (
     <div className="relative touch-none select-none overflow-hidden rounded-lg"
       style={{ width: fill ? "100%" : px, height: fill ? "100%" : px, minWidth: fill ? undefined : px }}
       {...cam.handlers} onPointerLeave={cam.handlers.onPointerUp}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 55%",
-        transform: `perspective(900px) rotateX(${pitch}deg) scale(${(exploded ? 0.5 : 0.9) * zoom})` }}>
+        transform: `perspective(900px) rotateX(${pitch}deg) scale(${(exploded ? 0.62 : 0.9) * zoom})` }}>
         <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad)` }}>
-          {blocks}
+          {scene.cubes}
+          {/* Exploded: each block's decimal code (1.1…) billboarded at its center so you
+              can identify every building block. Counter-rotate to face the viewer. */}
+          {exploded && scene.anchors.map((a, i) => (
+            <div key={`lbl-${i}`} style={{
+              position: "absolute", left: "50%", top: "50%",
+              transform: `translate(-50%,-50%) translate3d(${a.x}px,${a.y}px,${a.z}px) rotateZ(${-bearing}rad) rotateX(${-pitch}deg)`,
+              font: "700 10px ui-monospace, monospace", color: "#fff",
+              background: "rgba(0,0,0,0.6)", padding: "1px 4px", borderRadius: 4, whiteSpace: "nowrap", pointerEvents: "none",
+            }}>{a.code}</div>
+          ))}
         </div>
       </div>
     </div>
