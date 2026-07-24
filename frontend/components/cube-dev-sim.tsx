@@ -16,7 +16,7 @@
  * highlight[level]) — one source, no drift. Reuses the 3/6/9 dial concept from the
  * live theme viz. i18n (§7) routes the strings through t().
  */
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Boxes, Loader2, Play, GitCommitHorizontal, Maximize2, X, Check, Pencil, Ban, Flag, Clock,
 } from "lucide-react";
@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useRCoreGestures } from "@/components/architect-2525/use-rcore-gestures";
+import { runSimPlay, type PlayStep } from "@/lib/sim-play";
 
 type CubeInfo = { cube_id: number; name: string; harness_available: boolean; default_sections?: number };
 type SectionIO = { inputs: string[]; functions: string[]; outputs: string[] };
@@ -85,6 +86,13 @@ export function CubeDevSim() {
   const [exploded, setExploded] = useState(false);
   const [verdictVote, setVerdictVote] = useState<"pass" | "revise" | "block">("pass");
   const [seconds, setSeconds] = useState(15 * 60);
+  const [play, setPlay] = useState<PlayStep | null>(null);   // Demo Play narration banner
+  const playing = useRef(false);
+  const startDemo = useCallback(() => {
+    if (playing.current) { playing.current = false; setPlay(null); return; }
+    playing.current = true;
+    void runSimPlay(setPlay, () => !playing.current).finally(() => { playing.current = false; });
+  }, []);
 
   // Timer starts on open, counts down; ♡ = ceil(active minutes), ◬ = ♡×5, 웃 = $/7.25.
   useEffect(() => {
@@ -200,6 +208,22 @@ export function CubeDevSim() {
   // Check In / Submit / Feedback controls always scroll clear of it (FX-C).
   return (
     <div className="mx-auto w-full max-w-4xl space-y-4 p-4 pb-48">
+      {/* Demo Play narration banner — fixed above the music HUD; tinted by tier. */}
+      {play && (
+        <div className="fixed inset-x-0 bottom-28 z-40 mx-auto max-w-2xl px-4">
+          <div className="flex items-start gap-2 rounded-xl border p-3 text-sm shadow-lg backdrop-blur"
+            style={{
+              background: "rgba(10,22,40,0.92)",
+              borderColor: play.tier === "manual" ? GOOD : play.tier === "semi" ? SI : play.tier === "auto" ? HI : AI,
+              color: "#e8eefc",
+            }}>
+            <Play className="mt-0.5 h-4 w-4 shrink-0"
+              style={{ color: play.tier === "manual" ? GOOD : play.tier === "semi" ? SI : play.tier === "auto" ? HI : AI }} />
+            <span className="flex-1">{play.text}</span>
+            <button onClick={startDemo} className="shrink-0 rounded border px-1.5 text-xs text-muted-foreground hover:text-foreground">✕</button>
+          </div>
+        </div>
+      )}
       {/* Top bar — title · timer · ♡웃◬ HUD */}
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card p-3">
         <div className="flex items-center gap-2">
@@ -208,6 +232,11 @@ export function CubeDevSim() {
             <h2 className="text-sm font-semibold leading-tight">{t("cube10.sim.wb_title")}</h2>
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("cube10.sim.wb_subtitle")}</p>
           </div>
+          <button onClick={startDemo} title={t("cube10.sim.demo_play")}
+            className="ml-1 flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition"
+            style={play ? { background: HI, borderColor: HI, color: "#0a1628" } : { color: AI, borderColor: `${AI}66` }}>
+            <Play className="h-3 w-3" />{t("cube10.sim.demo_play")}
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 rounded-lg border px-2 py-1 font-mono text-sm">

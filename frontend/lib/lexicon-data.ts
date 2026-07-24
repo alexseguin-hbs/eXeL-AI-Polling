@@ -837,6 +837,7 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.sim.tier_locked", englishDefault: "earned next", context: "Locked tier badge — unlocked after Manual is aligned", cubeId: 10 },
   { key: "cube10.sim.tier_note", englishDefault: "same check-in → simulate → compare → decide engine; agents plug in after Manual is aligned", context: "Tier ladder explanation", cubeId: 10 },
   { key: "cube10.sim.live_sections", englishDefault: "LIVE code", context: "Section strip label — the cube's real live-code building blocks", cubeId: 10 },
+  { key: "cube10.sim.demo_play", englishDefault: "Demo Play", context: "Button that runs the guided splash walkthrough of the workbench", cubeId: 10 },
   { key: "cube10.feedback.title", englishDefault: "Improvement Feedback", context: "Feedback section heading", cubeId: 10 },
   { key: "cube10.feedback.system_prompt", englishDefault: "How can we improve this cube?", context: "System-prompted feedback", cubeId: 10 },
   { key: "cube10.feedback.submit", englishDefault: "Submit Improvement", context: "Submit button", cubeId: 10 },
