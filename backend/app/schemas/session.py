@@ -54,6 +54,10 @@ class SessionCreate(BaseModel):
     # Appearance — cascades to all session participants
     theme_id: ThemeIdType = "exel-cyan"
     custom_accent_color: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
+    # API-first scope — pin this session to a Project → Differentiator → Specification
+    # scope (canonical scope ref, e.g. "project/{pid}/differentiator/{did}"); downstream
+    # data inherits it. Null = standalone/unscoped session.
+    scope_ref: str | None = Field(None, max_length=255)
 
 
 class SessionUpdate(BaseModel):
@@ -142,6 +146,7 @@ class SessionRead(BaseModel):
     join_url: str | None
     theme_id: str = "exel-cyan"
     custom_accent_color: str | None = None
+    scope_ref: str | None = None
     is_paid: bool
     opened_at: datetime | None
     closed_at: datetime | None

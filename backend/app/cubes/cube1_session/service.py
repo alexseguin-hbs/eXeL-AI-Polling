@@ -211,12 +211,24 @@ async def create_session(
     polling_mode_type: str = "live_interactive",
     static_poll_duration_days: int | None = None,
     timer_display_mode: str = "flex",
+    # API-first scope this session (and its downstream data) inherits
+    scope_ref: str | None = None,
 ) -> Session:
     """Create a new session with short_code, join_url, and QR.
 
     If a seed is provided, generates a deterministic UUID5 session ID.
     Re-creating with the same seed+title returns the existing session (idempotent).
+
+    `scope_ref`, when provided, pins the session to a Project → Differentiator →
+    Specification scope (validated canonical form); all downstream data inherits it.
     """
+    if scope_ref is not None:
+        from app.core.scoping import parse_scope_ref
+
+        try:
+            parse_scope_ref(scope_ref)  # raises ValueError on a malformed / level-skipping ref
+        except ValueError as exc:
+            raise ValueError(f"invalid scope_ref: {exc}")
     effective_seed = seed or settings.session_seed
 
     # Deterministic ID when seed is provided
@@ -269,6 +281,7 @@ async def create_session(
         polling_mode_type=polling_mode_type,
         static_poll_duration_days=static_poll_duration_days,
         timer_display_mode=timer_display_mode,
+        scope_ref=scope_ref,
     )
     if session_id:
         kwargs["id"] = session_id

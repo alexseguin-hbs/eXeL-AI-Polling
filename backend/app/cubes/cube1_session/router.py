@@ -184,10 +184,11 @@ async def create_session(
 ):
     """CRS-01: Moderator creates a new polling session. Per-IP ceiling (SSSES Security) — additive
     anti-abuse cap mirroring the join endpoint's limiter; moderators create far fewer than 30 sessions/min."""
-    session = await service.create_session(
-        db,
-        title=payload.title,
-        created_by=user.user_id,
+    try:
+        session = await service.create_session(
+            db,
+            title=payload.title,
+            created_by=user.user_id,
         description=payload.description,
         anonymity_mode=payload.anonymity_mode,
         cycle_mode=payload.cycle_mode,
@@ -212,7 +213,10 @@ async def create_session(
         polling_mode_type=payload.polling_mode_type,
         static_poll_duration_days=payload.static_poll_duration_days,
         timer_display_mode=payload.timer_display_mode,
-    )
+        scope_ref=payload.scope_ref,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     return await _return_session(db, session)
 
 

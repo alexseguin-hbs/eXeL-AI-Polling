@@ -117,6 +117,11 @@ class Session(Base):
     theme2_voting_level: Mapped[str] = mapped_column(String(20), default="theme2_9")
     theme01_category: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
+    # API-first scoping — the Project → Differentiator → Specification scope this session
+    # (and all its downstream data) inherits, as a canonical scope ref
+    # (e.g. "project/{pid}/differentiator/{did}"). Null = unscoped (standalone session).
+    scope_ref: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+
     # Live feed
     live_feed_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
