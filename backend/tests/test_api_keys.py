@@ -163,3 +163,50 @@ class TestRouter:
             assert r.status_code == 400
         finally:
             _clear()
+
+
+class TestResolvePrincipal:
+    """The additive dual-auth resolver: API key OR JWT → principal (get_current_user unchanged)."""
+
+    @pytest.mark.asyncio
+    async def test_api_key_resolves_to_org_principal(self):
+        from app.core import auth
+
+        key = ApiKey(org_id="org-42", name="k", key_prefix="exel_x", key_hash="h",
+                     is_active=True, created_by="u", scopes="sessions:write,rankings:read")
+        with patch.object(auth, "_dev_mode", False), \
+             patch("app.core.api_key_service.authenticate_api_key", new=AsyncMock(return_value=key)):
+            p = await auth.resolve_principal(f"{API_KEY_PREFIX}live", AsyncMock())
+        assert p.user_id == "org-42" and p.role == "api_key"
+        assert p.permissions == ["sessions:write", "rankings:read"]
+
+    @pytest.mark.asyncio
+    async def test_invalid_api_key_401(self):
+        from fastapi import HTTPException
+        from app.core import auth
+
+        with patch.object(auth, "_dev_mode", False), \
+             patch("app.core.api_key_service.authenticate_api_key", new=AsyncMock(return_value=None)):
+            with pytest.raises(HTTPException) as ei:
+                await auth.resolve_principal(f"{API_KEY_PREFIX}bad", AsyncMock())
+        assert ei.value.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_non_key_token_falls_back_to_jwt(self):
+        from app.core import auth
+
+        sentinel = CurrentUser(user_id="jwt-user", email=None, role="user", permissions=[])
+        with patch.object(auth, "_dev_mode", False), \
+             patch("app.core.auth._decode_token", new=AsyncMock(return_value=sentinel)):
+            p = await auth.resolve_principal("a.jwt.token", AsyncMock())
+        assert p is sentinel   # non-exel_ token → JWT path
+
+    @pytest.mark.asyncio
+    async def test_missing_token_401(self):
+        from fastapi import HTTPException
+        from app.core import auth
+
+        with patch.object(auth, "_dev_mode", False):
+            with pytest.raises(HTTPException) as ei:
+                await auth.resolve_principal(None, AsyncMock())
+        assert ei.value.status_code == 401

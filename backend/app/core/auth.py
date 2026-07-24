@@ -5,8 +5,10 @@ import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.dependencies import get_db
 
 _dev_mode = not settings.auth0_domain
 
@@ -134,3 +136,52 @@ async def get_optional_current_user(
         return await _decode_token(credentials.credentials)
     except (JWTError, Exception):
         return None
+
+
+async def resolve_principal(token: str | None, db) -> CurrentUser:
+    """Pure resolver: a per-org API key (`exel_` prefix) OR an Auth0 JWT → a principal.
+
+    Kept db-injected + import-light so it is unit-testable without FastAPI. In dev mode
+    (no Auth0) returns a mock moderator, matching get_current_user.
+    """
+    if _dev_mode:
+        return CurrentUser(
+            user_id="dev-moderator-001", email="dev@exel-ai.com",
+            role="moderator", permissions=["create:sessions", "manage:sessions"],
+        )
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing authorization token",
+        )
+    from app.models.api_key import API_KEY_PREFIX
+
+    if token.startswith(API_KEY_PREFIX):
+        from app.core.api_key_service import authenticate_api_key
+
+        key = await authenticate_api_key(db, token)
+        if key is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or revoked API key",
+            )
+        scopes = [s for s in (key.scopes or "*").split(",") if s]
+        return CurrentUser(user_id=key.org_id, email=None, role="api_key", permissions=scopes)
+    try:
+        return await _decode_token(token)
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {e}",
+        )
+
+
+async def get_current_principal(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: "AsyncSession" = Depends(get_db),  # noqa: F821 — imported below
+) -> CurrentUser:
+    """Authenticate a request by EITHER a per-org API key OR an Auth0 JWT.
+
+    Additive to `get_current_user` (which stays JWT-only) — the API-first surface: an
+    embedding consumer sends `Authorization: Bearer exel_<key>` and is resolved to a
+    principal scoped to their org (`user_id` = key.org_id, role "api_key", permissions =
+    the key's scopes). Anything not `exel_`-prefixed falls back to JWT validation.
+    """
+    return await resolve_principal(credentials.credentials if credentials else None, db)
