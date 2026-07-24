@@ -14,6 +14,7 @@ from app.models.question import Question
 from app.models.ranking import AggregatedRanking, GovernanceOverride, Ranking
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
+from app.models.scoping import Differentiator, Project, Specification
 from app.models.session import Session
 from app.models.simulation_run import SimulationRun
 from app.models.stt_provider import STTProviderConfig
@@ -35,12 +36,14 @@ __all__ = [
     "CQSScore",
     "DeploymentLog",
     "DesiredOutcome",
+    "Differentiator",
     "GovernanceOverride",
     "Participant",
     "PaymentTransaction",
     "PipelineTrigger",
     "ProductFeedback",
     "ProfanityFilter",
+    "Project",
     "Question",
     "AggregatedRanking",
     "Ranking",
@@ -48,6 +51,7 @@ __all__ = [
     "ResponseSummary",
     "Session",
     "SimulationRun",
+    "Specification",
     "STTProviderConfig",
     "SubmissionVote",
     "TextResponse",
