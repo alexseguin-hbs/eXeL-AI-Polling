@@ -20,6 +20,7 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
   const [amount, setAmount] = useState(333);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [demoDone, setDemoDone] = useState(false);
 
   if (!open) return null;
 
@@ -32,7 +33,7 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
     setError("");
     try {
       const here = typeof window !== "undefined" ? window.location.href : "";
-      const result = await api.post<{ checkout_url: string }>("/payments/divinity-donate", {
+      const result = await api.post<{ checkout_url?: string }>("/payments/divinity-donate", {
         amount_cents: amount,
         label: "eXeL AI Polling — Community Contribution",
         description: "Support the SoI Governance platform",
@@ -40,9 +41,10 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
         cancel_url: here,
       });
       if (result?.checkout_url) {
-        window.location.href = result.checkout_url;
+        window.location.href = result.checkout_url; // real Stripe hosted Checkout
       } else {
-        setError("Could not start checkout");
+        // Demo mode (no backend/Stripe) — acknowledge instead of erroring.
+        setDemoDone(true);
         setLoading(false);
       }
     } catch (e) {
@@ -75,6 +77,19 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
           <Heart className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold">{t("cube8.donate.title")}</h2>
         </div>
+
+        {demoDone ? (
+          <div className="py-4">
+            <p className="text-sm text-foreground">{t("cube8.donate.demo_thanks")}</p>
+            <button
+              onClick={onClose}
+              className="mt-4 w-full rounded-lg border border-input px-4 py-2.5 text-sm font-medium hover:bg-accent"
+            >
+              {t("cube8.donate.close")}
+            </button>
+          </div>
+        ) : (
+        <>
         <p className="mb-4 text-sm text-muted-foreground">{t("cube8.donate.subtitle")}</p>
 
         <div className="mb-3 grid grid-cols-2 gap-2">
@@ -116,6 +131,8 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
           {loading ? "…" : `${t("cube8.donate.continue")} · $${(amount / 100).toFixed(2)}`}
         </button>
         <p className="mt-3 text-center text-[11px] text-muted-foreground">{t("cube8.donate.secure_note")}</p>
+        </>
+        )}
       </div>
     </div>
   );

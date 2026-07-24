@@ -604,6 +604,7 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.donate.continue", englishDefault: "Continue to secure checkout", context: "Donate modal submit button", cubeId: 8 },
   { key: "cube8.donate.close", englishDefault: "Close", context: "Donate modal close button", cubeId: 8 },
   { key: "cube8.donate.secure_note", englishDefault: "Payments are processed securely by Stripe.", context: "Donate modal security note", cubeId: 8 },
+  { key: "cube8.donate.demo_thanks", englishDefault: "This is a demo preview — donations run on the live deployment. Thank you for your support! ♡", context: "Donate modal demo-mode acknowledgement", cubeId: 8 },
   // Payment (Cube 8)
   { key: "cube8.payment.session_payment", englishDefault: "Session Payment", context: "Moderator checkout heading", cubeId: 8 },
   { key: "cube8.payment.minimum_fee_desc", englishDefault: "Minimum $11.11 USD to create this session. Your participants join free.", context: "Moderator checkout description", cubeId: 8 },

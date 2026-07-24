@@ -1000,6 +1000,20 @@ export async function handleMockRequest<T>(
     if (simRes !== undefined) return simRes as T;
   }
 
+  // ── Payments (Cube 8) ──────────────────────────────────────────────────────
+  // MOCK_MODE (default deploy) has no backend + no Stripe. Return graceful demo
+  // responses so donate UIs show a friendly "demo" state instead of a misleading
+  // "Session not found" 404. Real Checkout runs when NEXT_PUBLIC_MOCK_MODE=false.
+  if (method === "POST" && (path === "/payments/divinity-donate" || path === "/payments/donate")) {
+    const amt = Number((body as Record<string, unknown>)?.amount_cents) || 0;
+    // Empty checkout_url/client_secret signals "demo — no real charge" to the caller.
+    return { checkout_url: "", checkout_id: "mock_demo", client_secret: "", amount_cents: amt, mock: true } as T;
+  }
+  const costEstMatch = path.match(/^\/sessions\/[^/]+\/cost-estimate$/);
+  if (method === "GET" && costEstMatch) {
+    return { estimated_cost_cents: 0, currency: "USD", mock: true } as T;
+  }
+
   // GET /sessions (list) — reset 3 default test polls on every dashboard load
   if (method === "GET" && path === "/sessions") {
     resetDefaultSessions();

@@ -262,9 +262,9 @@ export function DonationPrompt({
 }: PaymentProps & { onDismiss?: () => void }) {
   const { t } = useLexicon();
   const [amount, setAmount] = useState(333); // $3.33 default
-  const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [demoDone, setDemoDone] = useState(false);
   const [estimate, setEstimate] = useState<CostEstimate | null>(null);
 
   useEffect(() => {
@@ -282,15 +282,22 @@ export function DonationPrompt({
     setLoading(true);
     setError("");
     try {
-      const result = await api.post<{ client_secret: string }>(
-        "/payments/donate",
-        {
-          session_id: sessionId,
-          participant_id: participantId || null,
-          amount_cents: amount,
-        }
-      );
-      setClientSecret(result.client_secret);
+      // Anonymous hosted-Checkout path — no session lookup, so it works on demo/closed
+      // sessions (the old /payments/donate PaymentIntent 404'd with "Session not found").
+      const here = typeof window !== "undefined" ? window.location.href : "";
+      const result = await api.post<{ checkout_url?: string }>("/payments/divinity-donate", {
+        amount_cents: amount,
+        label: `eXeL AI Polling — Session ${shortCode}`,
+        description: "Support this session & the SoI Governance platform",
+        success_url: here,
+        cancel_url: here,
+      });
+      if (result?.checkout_url) {
+        window.location.href = result.checkout_url; // real Stripe hosted Checkout
+      } else {
+        setDemoDone(true); // demo mode (no backend/Stripe) — acknowledge, don't error
+        setLoading(false);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
       setLoading(false);
@@ -308,16 +315,17 @@ export function DonationPrompt({
     </div>
   );
 
-  if (clientSecret) {
+  if (demoDone) {
     return (
       <Overlay>
-        <h3 className="font-semibold text-lg">{t("cube8.donation.complete")}</h3>
-        <Elements
-          stripe={stripePromise}
-          options={{ clientSecret, appearance: { theme: "night" } }}
+        <h3 className="font-semibold text-lg">{t("cube8.donation.thank_you")}</h3>
+        <p className="text-sm text-muted-foreground">{t("cube8.donate.demo_thanks")}</p>
+        <button
+          onClick={onDismiss}
+          className="w-full rounded-md border border-input px-4 py-2 text-sm hover:bg-accent"
         >
-          <CostSplitForm onSuccess={onSuccess} amountCents={amount} />
-        </Elements>
+          {t("cube8.donate.close")}
+        </button>
       </Overlay>
     );
   }
