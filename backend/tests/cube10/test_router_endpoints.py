@@ -336,6 +336,29 @@ class TestSimSectionMetrics:
         assert r.status_code == 400
 
 
+class TestSimAiCouncilScaffold:
+    """SA — GET /sim/cube/{id}/ai-council returns the DISABLED Semi/Full-Auto scaffold."""
+
+    @pytest.mark.asyncio
+    async def test_ai_council_disabled_scaffold(self, client):
+        cubes = (await client.get("/api/v1/sim/cubes")).json()["cubes"]
+        live_n = next(c["default_sections"] for c in cubes if c["cube_id"] == 1)
+        secs = (await client.get(f"/api/v1/sim/cube/1/contract?sections={live_n}")).json()["sections"]
+        key = secs[0]["key"]
+        r = await client.get(f"/api/v1/sim/cube/1/ai-council?section={key}&sections={live_n}")
+        assert r.status_code == 200
+        b = r.json()
+        assert b["enabled"] is False           # demo + scaffold only
+        assert b["active_tier"] == "manual"
+        assert len(b["variants"]) >= 1
+        assert all("council" in v for v in b["variants"])
+
+    @pytest.mark.asyncio
+    async def test_ai_council_bad_section_400(self, client):
+        r = await client.get("/api/v1/sim/cube/2/ai-council?section=ZZ&sections=8")
+        assert r.status_code == 400
+
+
 class TestSimCubeReplayRoute:
     """GET /sim/cube/{id}/replay — beat the WHOLE cube or ONE building block (section)."""
 

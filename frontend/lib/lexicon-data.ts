@@ -847,6 +847,8 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.sim.aggregator", englishDefault: "Community Aggregator (eXeL AI polling)", context: "Heading — a proven win becomes a rankable item in community polling", cubeId: 10 },
   { key: "cube10.sim.aggregator_pending", englishDefault: "queued for community vote", context: "Status: this proven win is awaiting community prioritization", cubeId: 10 },
   { key: "cube10.sim.aggregator_note", englishDefault: "Proven wins are ranked by the community (Cube 7) to prioritize which cube improvements ship next.", context: "Explains the aggregator loop — SIM produces rankable items for platform governance", cubeId: 10 },
+  { key: "cube10.sim.council_preview", englishDefault: "Semi-Auto preview — AI-proposed variants", context: "Collapsible: what ② Semi-Auto would propose for the selected block (scaffold)", cubeId: 10 },
+  { key: "cube10.sim.council_note", englishDefault: "Scaffold only — AI proposes, a 12-lens council reviews (Thor holds a SAFE veto), a human selects. Runs on the same backbone; disabled until Manual is aligned.", context: "Explains the Semi-Auto scaffold — demo surface, no autonomous swap", cubeId: 10 },
   { key: "cube10.feedback.title", englishDefault: "Improvement Feedback", context: "Feedback section heading", cubeId: 10 },
   { key: "cube10.feedback.system_prompt", englishDefault: "How can we improve this cube?", context: "System-prompted feedback", cubeId: 10 },
   { key: "cube10.feedback.submit", englishDefault: "Submit Improvement", context: "Submit button", cubeId: 10 },

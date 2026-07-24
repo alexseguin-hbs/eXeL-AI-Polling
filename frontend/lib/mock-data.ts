@@ -823,7 +823,7 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     const _DEF: Record<number, number> = { 1: 6, 2: 8, 3: 7, 4: 8, 5: 7, 6: 7, 7: 8, 8: 7, 9: 8 };
     return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ cube_id: Number(id), name: c.name, harness_available: true, default_sections: _DEF[Number(id)] ?? 4 })) };
   }
-  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit|source|section-metrics)$/);
+  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit|source|section-metrics|ai-council)$/);
   if (!m) return undefined;
   const id = Number(m[1]);
   const action = m[2];
@@ -854,6 +854,40 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
       notes: [`${fns.length} live fn(s) · ${loc} LOC`, sensitive ? "handles sensitive data" : "no secret surface", `measured ${rows} rows in ${dur}ms`],
     };
     return { cube_id: id, section: key, code: blk.code, functions: fns, duration_ms: dur, row_count: rows, loc, replay_hash: _mockHash(`replay:${id}:${key}`), ssses };
+  }
+  if (method === "GET" && action === "ai-council") {
+    // SA: Semi/Full-Auto SCAFFOLD (DISABLED) — mirrors backend agents.ai_council. Deterministic
+    // proposed variants + 12-lens SAFE/RECOMMENDED. enabled stays false (demo + scaffold only).
+    const _DEF4: Record<number, number> = { 1: 6, 2: 8, 3: 7, 4: 8, 5: 7, 6: 7, 7: 8, 8: 7, 9: 8 };
+    const cnt = _SIM_ALLOWED_COUNTS.includes(Number(qs.get("sections"))) ? Number(qs.get("sections")) : (_DEF4[id] ?? 4);
+    const key = qs.get("section") || "";
+    const blk = _mockSections(id, cnt).find((s) => s.key === key);
+    if (!blk) return { __status: 400 };
+    const fns: string[] = blk.functions || [];
+    const fn0 = fns[0] || `cube${id}`;
+    const STRAT: [string, string][] = [
+      ["batch", "Batch the row-by-row calls in this block into one vectorized pass."],
+      ["memoize", "Memoize the block's deterministic sub-results (cache repeated work)."],
+      ["stream", "Stream/incremental-update instead of recomputing the block whole."],
+    ];
+    const detPct = (seed: string, lo: number, hi: number) => {
+      const h = Math.abs(_mockHash(seed).split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0));
+      return lo + (h % (hi - lo + 1));
+    };
+    const variants = STRAT.map(([strat, desc]) => {
+      const proj = detPct(`${id}:${key}:${strat}:${fn0}`, 6, 22);
+      const lenses = 12;
+      const approvals = 6 + detPct(`${id}:${key}:${strat}:appr`, 0, 6);
+      const safe = detPct(`${id}:${key}:${strat}:Thor`, 0, 100) >= 62;
+      const recommended = safe && approvals >= 8 && proj >= 10;
+      return { id: `${key}~${strat}`, strategy: strat, description: desc, target_fn: fn0,
+        projected_efficiency_pct: proj, source: "scaffold",
+        council: { safe, recommended, approvals, lenses } };
+    });
+    return { cube_id: id, section: key, enabled: false, provider_available: false,
+      tier_ladder: ["manual", "semi", "automated"], active_tier: "manual",
+      variants, recommended: variants.filter((v) => v.council.recommended),
+      note: "Semi/Full-Auto scaffolded on the same backbone; DISABLED until Manual aligned." };
   }
   if (method === "GET" && action === "source") {
     // FX-B: LIVE source (representative real snippets under MOCK_MODE; the real backend

@@ -706,6 +706,28 @@ async def sim_cube_challenge(
     )
 
 
+@router.get("/sim/cube/{cube_id}/ai-council")
+async def sim_cube_ai_council(cube_id: int, section: str, sections: int = 0):
+    """SEMI/FULL-AUTO SCAFFOLD (DISABLED) — the AI council proposes candidate variants for
+    a block + a 12-lens SAFE+RECOMMENDED verdict on the SAME backbone (decide_swap tiers).
+
+    Read-only, deterministic, offline-safe. `enabled` stays False until the operator both
+    configures a BYOK provider key AND confirms Manual aligned — no autonomous swap runs
+    here. This is the demo/design surface for the Manual→Semi→Auto ladder."""
+    if cube_id < 1 or cube_id > 9:
+        raise HTTPException(status_code=400, detail="cube_id must be 1-9")
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404, detail=f"Cube {cube_id} has no harness yet.")
+    from app.cubes.cube10_simulation.agents import ai_council
+    from app.cubes.cube10_simulation.sections import ALLOWED_SECTION_COUNTS, sections_for
+
+    count = sections if sections in ALLOWED_SECTION_COUNTS else _default_sections(cube_id)
+    blk = next((s for s in sections_for(cube_id, count) if s["key"] == section), None)
+    if not blk:
+        raise HTTPException(status_code=400, detail=f"unknown section {section!r} at {count} blocks")
+    return ai_council(cube_id, section, blk.get("functions", []))
+
+
 @router.get("/sim/cube/{cube_id}/replay")
 async def sim_cube_replay(
     cube_id: int,

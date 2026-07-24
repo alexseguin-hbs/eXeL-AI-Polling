@@ -36,6 +36,8 @@ type Contract = {
 };
 type SourceBlock = { name: string; section: string; resolved: boolean; path: string | null; source: string | null };
 type SecMetrics = { duration_ms: number; row_count: number; loc: number; ssses: { security: number; stability: number; scalability: number; efficiency: number; succinctness: number; measured?: boolean; notes?: string[] } };
+type CouncilVariant = { id: string; strategy: string; description: string; projected_efficiency_pct: number; council: { safe: boolean; recommended: boolean; approvals: number; lenses: number } };
+type AiCouncil = { enabled: boolean; provider_available: boolean; variants: CouncilVariant[] };
 type Verdict = { equivalent: boolean; compare_passed: boolean; faster: boolean; overall_passed: boolean };
 type SubmitResult = {
   baseline: { metrics?: Record<string, number>; determinism_signature?: string };
@@ -78,6 +80,8 @@ export function CubeDevSim() {
   const [sectionKey, setSectionKey] = useState<string | null>(null);
   const [liveBlocks, setLiveBlocks] = useState<SourceBlock[]>([]);
   const [secMetrics, setSecMetrics] = useState<SecMetrics | null>(null);   // SP: real per-block metrics + SSSES
+  const [council, setCouncil] = useState<AiCouncil | null>(null);          // SA: Semi/Auto scaffold (DISABLED)
+  const [showCouncil, setShowCouncil] = useState(false);
   const [candidate, setCandidate] = useState("");
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -157,6 +161,18 @@ export function CubeDevSim() {
     api.get<SecMetrics>(`/sim/cube/${sel}/section-metrics?section=${sectionKey}&sections=${nSections}`)
       .then((d) => { if (alive) setSecMetrics(d); })
       .catch(() => { if (alive) setSecMetrics(null); });
+    return () => { alive = false; };
+  }, [sel, sectionKey, nSections]);
+
+  // SA: fetch the Semi/Auto scaffold for the selected block (DISABLED demo surface).
+  // Shows what ② Semi-Auto would propose (AI variants + 12-lens SAFE/RECOMMENDED) on the
+  // SAME backbone — no autonomous swap runs; enabled stays false until Manual is aligned.
+  useEffect(() => {
+    if (!sel || !sectionKey) { setCouncil(null); return; }
+    let alive = true;
+    api.get<AiCouncil>(`/sim/cube/${sel}/ai-council?section=${sectionKey}&sections=${nSections}`)
+      .then((d) => { if (alive) setCouncil(d); })
+      .catch(() => { if (alive) setCouncil(null); });
     return () => { alive = false; };
   }, [sel, sectionKey, nSections]);
 
@@ -453,6 +469,36 @@ export function CubeDevSim() {
               ))}
             </div>
             <p className="mt-1.5 text-[10px] text-muted-foreground/70">{t("cube10.sim.tier_note")}</p>
+            {/* SA — ② Semi-Auto preview (scaffold, DISABLED). Shows what the AI council would
+                propose for the selected block on the SAME backbone; no autonomous swap runs. */}
+            {sectionKey && council && council.variants.length > 0 && (
+              <div className="mt-2 border-t pt-2">
+                <button onClick={() => setShowCouncil((v) => !v)}
+                  className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: SI }}>
+                  <span>② {t("cube10.sim.council_preview")}</span>
+                  <span className="rounded px-1 py-0.5 text-[8px] uppercase tracking-wide" style={{ background: `${SI}22`, color: SI }}>
+                    {t("cube10.sim.tier_locked")}
+                  </span>
+                  <span className="text-muted-foreground">{showCouncil ? "▾" : "▸"}</span>
+                </button>
+                {showCouncil && (
+                  <div className="mt-1.5 space-y-1.5">
+                    {council.variants.map((v) => (
+                      <div key={v.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded border px-2 py-1 text-[11px]"
+                        style={{ borderColor: v.council.recommended ? `${GOOD}55` : `${SI}22`, opacity: 0.85 }}>
+                        <span className="font-mono font-semibold" style={{ color: SI }}>{v.strategy}</span>
+                        <span className="text-muted-foreground">{v.description}</span>
+                        <span className="ml-auto font-mono" style={{ color: GOOD }}>~+{v.projected_efficiency_pct}%</span>
+                        <span className="font-mono text-[9px]" style={{ color: v.council.safe ? GOOD : "#ff5d6c" }}>
+                          {v.council.safe ? "SAFE" : "VETO"} · {v.council.recommended ? "REC" : "—"} · {v.council.approvals}/{v.council.lenses}
+                        </span>
+                      </div>
+                    ))}
+                    <p className="text-[9px] text-muted-foreground/70">{t("cube10.sim.council_note")}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Two distinct actions: Check In → Submit to Simulate */}
