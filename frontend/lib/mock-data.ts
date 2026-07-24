@@ -8,6 +8,7 @@ import type {
 import { SPIRAL_TEST_WAVES } from "./sim-data/spiral-test-100-users";
 import { supabase } from "@/lib/supabase";
 import { orderedPartition as _orderedPartition } from "./sim-sections";
+import { SIM_LIVE_SOURCE } from "./sim-live-source";
 
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
@@ -841,7 +842,10 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     if (!blk) return { __status: 400 };
     const fns: string[] = blk.functions || [];
     const j = fns.join(" ").toLowerCase();
-    const dur = 30 + fns.length * 7, rows = 300, loc = fns.length * 14;
+    // REAL LOC from the baked-in live source (sum of each function's line count).
+    const _live = SIM_LIVE_SOURCE[String(id)] || {};
+    const loc = fns.reduce((n, fn) => n + (_live[fn] ? (_live[fn].source.split("\n").length) : 0), 0);
+    const dur = 30 + fns.length * 7, rows = 300;
     const sensitive = ["auth", "pii", "secret", "token", "password", "scrub"].some((k) => j.includes(k));
     const rps = rows / (dur / 1000);
     const ssses = {
@@ -890,18 +894,22 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
       note: "Semi/Full-Auto scaffolded on the same backbone; DISABLED until Manual aligned." };
   }
   if (method === "GET" && action === "source") {
-    // FX-B: LIVE source (representative real snippets under MOCK_MODE; the real backend
-    // returns inspect.getsource whitelisted to app/cubes/**).
+    // REAL LIVE source, baked in from the actual backend (inspect.getsource, whitelisted to
+    // app/cubes + app/core) via lib/sim-live-source.ts — so the backendless workers.dev
+    // workbench shows the exact eXeL AI code per building block, not a placeholder.
     const want = qs.get("section");
     const _DEF3: Record<number, number> = { 1: 6, 2: 8, 3: 7, 4: 8, 5: 7, 6: 7, 7: 8, 8: 7, 9: 8 };
     const scnt = _SIM_ALLOWED_COUNTS.includes(Number(qs.get("sections"))) ? Number(qs.get("sections")) : (_DEF3[id] ?? 4);
+    const live = SIM_LIVE_SOURCE[String(id)] || {};
     const secs = _mockSections(id, scnt).filter((s) => !want || s.key === want);
     const blocks = secs.flatMap((s) =>
-      s.functions.map((fn) => ({
-        name: fn, section: s.key, resolved: true,
-        path: `app/cubes/cube${id}_.../service.py`,
-        source: `# ${cube.name} · section ${s.key} (${s.label})\nasync def ${fn}(self, *args, **kwargs):\n    """Live cube code running the platform (representative mock snippet).\n    The real backend returns the exact source via inspect.getsource."""\n    result = await self._run(*args, **kwargs)\n    return result`,
-      })),
+      s.functions.map((fn) => {
+        const real = live[fn];
+        return real
+          ? { name: fn, section: s.key, resolved: true, path: real.path, source: real.source }
+          : { name: fn, section: s.key, resolved: false, path: null,
+              source: `# ${fn} — source not baked in (structural/empty block)` };
+      }),
     );
     return { cube_id: id, section: want || null, blocks };
   }
