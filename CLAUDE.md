@@ -428,7 +428,7 @@ Track and optimize for:
 - **No postMessage API** — planned for iframe communication
 - **No API key management** — currently Auth0 JWT only; per-org API keys planned
 - **Scoping tables — IMPLEMENTED** — Project/Differentiator/Specification DB models (`app/models/scoping.py`, org-isolated, cascade subtree) + CRUD service (`app/core/scoping_service.py`) + REST API (`app/core/scoping_router.py`, `/api/v1/scoping/...`) + scope-ref helpers (`app/core/scoping.py`). Org isolation is v1 per-user (`user_id` as `org_id`) until a first-class org claim lands. **Session inheritance wired:** `Session.scope_ref` (nullable, indexed) is set at creation (`SessionCreate.scope_ref`, validated via `parse_scope_ref`, 400 on malformed) and surfaced in `SessionRead` — Level-1 sessions inherit a Project/Differentiator/Specification scope; downstream data inherits via `session_id`.
-- **No webhooks** — async event callbacks planned but not implemented
+- **Webhooks — IMPLEMENTED** — HMAC-signed, SSRF-guarded, metered (0.99 ◬/delivery) callbacks (`app/cubes/cube5_gateway/webhook_service.py` + `WebhookSubscription`/`WebhookDelivery` models). Register/list endpoints under `/api/v1/.../sessions/{id}/webhooks`. All 5 declared events fire from their producers: `themes_ready` (Cube 6), `ranking_complete` (Cube 7), `session_closed` (Cube 1), `payment_received` (Cube 8), `export_ready` (Cube 9) — fan-out locked by `tests/cube5/test_webhook_fanout.py` (completeness test asserts no dead event). Remaining: background delivery queue + retry backoff (v1 fires inline, fire-and-forget).
 - **No usage metering** — billing/usage tracking not yet built
 
 ### Embed Roadmap (3 Modes — Planned)
