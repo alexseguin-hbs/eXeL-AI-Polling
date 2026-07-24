@@ -15,6 +15,38 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.usage_record import USAGE_METRICS, UsageRecord
 
+# Billing price list — SoI ◬ tokens per unit of each metric (the monetization anchor;
+# CLAUDE.md: cost estimated from # users × # responses × AI processing). Deterministic +
+# config-overridable later. webhook_delivery matches the 0.99 ◬/delivery convention.
+USAGE_PRICES: dict[str, float] = {
+    "api_call": 0.01,
+    "ai_inference": 0.50,
+    "webhook_delivery": 0.99,
+    "export": 2.00,
+    "response_processed": 0.10,
+}
+# ◬ → USD conversion for the human-readable estimate (config-overridable).
+TOKEN_USD_RATE = 0.001
+
+
+def estimate_cost(by_metric: dict[str, dict]) -> dict:
+    """Turn a per-metric usage summary into a billable ◬ + USD estimate. Pure: price table
+    is authoritative (quantity × unit price), so it never double-counts recorded cost_tokens."""
+    per: dict[str, dict] = {}
+    total_tokens = 0.0
+    for metric, price in USAGE_PRICES.items():
+        qty = int(by_metric.get(metric, {}).get("quantity", 0))
+        tokens = round(qty * price, 4)
+        per[metric] = {"quantity": qty, "unit_price_tokens": price, "cost_tokens": tokens}
+        total_tokens += tokens
+    total_tokens = round(total_tokens, 4)
+    return {
+        "by_metric": per,
+        "billable_tokens": total_tokens,
+        "estimated_usd": round(total_tokens * TOKEN_USD_RATE, 4),
+        "token_usd_rate": TOKEN_USD_RATE,
+    }
+
 
 async def record_usage(
     db: AsyncSession, *, org_id: str, metric: str, quantity: int = 1,
@@ -69,4 +101,7 @@ async def summarize_usage(
         "by_metric": by_metric,
         "total_quantity": total_qty,
         "total_cost_tokens": round(total_tokens, 4),
+        # Billable estimate from the authoritative price table (◬ + USD) — the monetization
+        # anchor a billing consumer reads; independent of recorded cost_tokens (no double-count).
+        "cost": estimate_cost(by_metric),
     }

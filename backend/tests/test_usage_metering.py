@@ -68,6 +68,35 @@ class TestSummarize:
         assert out["total_quantity"] == 0 and out["total_cost_tokens"] == 0.0
         assert all(v == {"quantity": 0, "cost_tokens": 0.0} for v in out["by_metric"].values())
 
+    @pytest.mark.asyncio
+    async def test_summary_carries_billable_cost(self):
+        # ai_inference 10 × 0.50 ◬ = 5.0 ◬ = $0.005 (price table, not recorded cost_tokens)
+        db = self._db_rows([("ai_inference", 10, 0.0)])
+        out = await svc.summarize_usage(db, org_id="o")
+        cost = out["cost"]
+        assert cost["by_metric"]["ai_inference"]["cost_tokens"] == 5.0
+        assert cost["billable_tokens"] == 5.0
+        assert cost["estimated_usd"] == round(5.0 * svc.TOKEN_USD_RATE, 4)
+
+
+class TestEstimateCost:
+    def test_price_table_is_authoritative(self):
+        # Two metrics priced independently of any recorded cost_tokens; totals sum.
+        out = svc.estimate_cost({
+            "api_call": {"quantity": 100},        # 100 × 0.01 = 1.0
+            "webhook_delivery": {"quantity": 3},  #   3 × 0.99 = 2.97
+        })
+        assert out["by_metric"]["api_call"]["cost_tokens"] == 1.0
+        assert out["by_metric"]["webhook_delivery"]["cost_tokens"] == 2.97
+        assert out["billable_tokens"] == 3.97
+        assert out["token_usd_rate"] == svc.TOKEN_USD_RATE
+
+    def test_every_priced_metric_present_and_zeroed(self):
+        out = svc.estimate_cost({})
+        assert set(out["by_metric"]) == set(svc.USAGE_PRICES)
+        assert out["billable_tokens"] == 0.0 and out["estimated_usd"] == 0.0
+        assert all(v["cost_tokens"] == 0.0 for v in out["by_metric"].values())
+
 
 # ── Router ──────────────────────────────────────────────────────────────
 def _as(role):
