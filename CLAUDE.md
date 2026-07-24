@@ -458,7 +458,7 @@ Track and optimize for:
 | Cube | Status | SSSES | Tests | CRS | Open Tasks |
 |------|--------|:---:|-------|-----|------------|
 | 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
-| 2 Text | **~94% SSSES** | **94** | 66 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
+| 2 Text | **~95% SSSES** | **95** | 68 | CRS-05→08 | Phase 3 DONE — profanity DB errors degrade gracefully (stale-cache→empty, submission never blocks); bounded LRU cache shipped (C2-5) |
 | 3 Voice | ~88% | **88** | 110 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
 | 4 Collector | ~87% | **87** | 43 | CRS-09→10 | C4-1→C4-2 (includes cross-cube tests) |
 | 5 Gateway | ~90% | **90** | 67 | CRS-09→11 | C5-1 RESOLVED, C5-3 RESOLVED, C5-4 RESOLVED |

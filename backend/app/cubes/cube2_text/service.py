@@ -236,22 +236,34 @@ async def detect_profanity(
         filters = cached[1]
         _profanity_query_cache.move_to_end(language_code)  # mark most-recently-used
     else:
-        result = await db.execute(
-            select(ProfanityFilter).where(
-                ProfanityFilter.language_code == language_code,
-                ProfanityFilter.is_active.is_(True),
+        try:
+            result = await db.execute(
+                select(ProfanityFilter).where(
+                    ProfanityFilter.language_code == language_code,
+                    ProfanityFilter.is_active.is_(True),
+                )
             )
-        )
-        raw_filters = list(result.scalars().all())
-        filters = [
-            {"id": str(pf.id), "pattern": pf.pattern, "severity": pf.severity, "replacement": pf.replacement}
-            for pf in raw_filters
-        ]
-        # Evict least-recently-used entry if the query cache is at capacity (O(1)).
-        if language_code not in _profanity_query_cache and len(_profanity_query_cache) >= _PROFANITY_QUERY_CACHE_MAX:
-            _profanity_query_cache.popitem(last=False)
-        _profanity_query_cache[language_code] = (now, filters)
-        _profanity_query_cache.move_to_end(language_code)
+            raw_filters = list(result.scalars().all())
+            filters = [
+                {"id": str(pf.id), "pattern": pf.pattern, "severity": pf.severity, "replacement": pf.replacement}
+                for pf in raw_filters
+            ]
+            # Evict least-recently-used entry if the query cache is at capacity (O(1)).
+            if language_code not in _profanity_query_cache and len(_profanity_query_cache) >= _PROFANITY_QUERY_CACHE_MAX:
+                _profanity_query_cache.popitem(last=False)
+            _profanity_query_cache[language_code] = (now, filters)
+            _profanity_query_cache.move_to_end(language_code)
+        except Exception as exc:  # noqa: BLE001 — graceful degradation, submission must not block
+            # DB unavailable: profanity is non-blocking (submission always goes through).
+            # Fall back to the last cached filter set even if its TTL expired — stale filtering
+            # beats none; if there's no cache at all, filter nothing this call.
+            filters = cached[1] if cached else []
+            logger.warning(
+                "cube2.profanity_filter.db_error",
+                language_code=language_code,
+                error=str(exc),
+                degraded_to="stale_cache" if cached else "empty",
+            )
 
     matches: list[dict] = []
     for pf in filters:
