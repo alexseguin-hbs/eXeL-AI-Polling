@@ -25,10 +25,20 @@ def _is_production() -> bool:
 
 
 def resolve_secret_key() -> str:
-    """Effective secret key: live in production (if set), else test; fall back to whichever exists."""
-    if _is_production() and settings.stripe_live_secret_key:
-        return settings.stripe_live_secret_key
-    return settings.stripe_secret_key or settings.stripe_live_secret_key or ""
+    """Effective server-side API key, resolved from the ENVIRONMENT only (never the repo).
+
+    Prefers a RESTRICTED key (RAK, `rk_…`) over the unrestricted secret key within each mode —
+    Stripe's own recommendation ("migrate secret key usage to RAKs") to limit blast radius if a
+    key leaks. Uses live keys in production, test keys otherwise, and falls back across modes so a
+    single configured key always works.
+    """
+    live = (settings.stripe_live_restricted_key, settings.stripe_live_secret_key)
+    test = (settings.stripe_restricted_key, settings.stripe_secret_key)
+    order = (live + test) if _is_production() else (test + live)
+    for key in order:
+        if key:
+            return key
+    return ""
 
 
 def resolve_publishable_key() -> str:

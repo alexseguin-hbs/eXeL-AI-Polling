@@ -18,14 +18,16 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.cubes.cube8_tokens.stripe_config import resolve_secret_key
 from app.models.payment import PaymentTransaction
 from app.models.session import Session
 from app.models.participant import Participant
 
 logger = logging.getLogger(__name__)
 
-# Configure Stripe with secret key
-stripe.api_key = settings.stripe_secret_key
+# Configure Stripe from the ENVIRONMENT-resolved key (prefers restricted/RAK + live in
+# production; never a repo-committed key). Single source of truth = stripe_config.resolve_secret_key.
+stripe.api_key = resolve_secret_key()
 
 # Minimum Moderator fee in cents ($11.11)
 MODERATOR_MIN_FEE_CENTS = 1111

@@ -14,12 +14,15 @@ from app.cubes.cube8_tokens import stripe_config as sc
 _SK_TEST = "sk_test_" + "A" * 40
 _SK_LIVE = "sk_live_" + "B" * 40
 _PK_TEST = "pk_test_" + "C" * 40
+_RK_TEST = "rk_test_" + "D" * 40
+_RK_LIVE = "rk_live_" + "E" * 40
 
 
 @pytest.fixture(autouse=True)
 def _clear_keys(monkeypatch):
     for attr in ("stripe_secret_key", "stripe_publishable_key", "stripe_live_secret_key",
-                 "stripe_live_publishable_key", "stripe_webhook_secret"):
+                 "stripe_live_publishable_key", "stripe_webhook_secret",
+                 "stripe_restricted_key", "stripe_live_restricted_key"):
         monkeypatch.setattr(settings, attr, "", raising=False)
     monkeypatch.setattr(settings, "environment", "development", raising=False)
 
@@ -51,6 +54,22 @@ class TestResolve:
 
     def test_unconfigured(self):
         assert sc.resolve_secret_key() == "" and not sc.stripe_configured()
+
+    def test_prefers_restricted_over_secret(self, monkeypatch):
+        # Stripe guidance: prefer a RAK over the unrestricted secret key (same mode).
+        monkeypatch.setattr(settings, "stripe_secret_key", _SK_TEST)
+        monkeypatch.setattr(settings, "stripe_restricted_key", _RK_TEST)
+        assert sc.resolve_secret_key() == _RK_TEST
+
+    def test_live_restricted_preferred_in_production(self, monkeypatch):
+        monkeypatch.setattr(settings, "stripe_live_secret_key", _SK_LIVE)
+        monkeypatch.setattr(settings, "stripe_live_restricted_key", _RK_LIVE)
+        monkeypatch.setattr(settings, "stripe_restricted_key", _RK_TEST)
+        # dev → test RAK wins even when live keys exist
+        assert sc.resolve_secret_key() == _RK_TEST
+        # production → live RAK wins over the live secret key
+        monkeypatch.setattr(settings, "environment", "production")
+        assert sc.resolve_secret_key() == _RK_LIVE
 
 
 class TestStatusNoLeak:
