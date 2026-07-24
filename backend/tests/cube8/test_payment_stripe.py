@@ -471,6 +471,33 @@ class TestDivinityDonation:
             assert metadata["transaction_type"] == "divinity_guide_donation"
 
     @pytest.mark.asyncio
+    async def test_custom_label_brands_checkout(self):
+        """Universal donate: caller-supplied label/description brand the Checkout line item."""
+        mock_checkout = MagicMock()
+        mock_checkout.id = "cs_lbl"
+        mock_checkout.url = "https://stripe.com/lbl"
+        with patch("stripe.checkout.Session.create", return_value=mock_checkout) as mock_create:
+            await create_divinity_donation_checkout(
+                amount_cents=111,
+                label="eXeL AI Polling — Community Contribution",
+                description="Support the SoI Governance platform",
+            )
+            product = mock_create.call_args[1]["line_items"][0]["price_data"]["product_data"]
+            assert product["name"] == "eXeL AI Polling — Community Contribution"
+            assert product["description"] == "Support the SoI Governance platform"
+
+    @pytest.mark.asyncio
+    async def test_default_label_preserved(self):
+        """Backward-compat: with no label, the Divinity Guide wording is unchanged."""
+        mock_checkout = MagicMock()
+        mock_checkout.id = "cs_dl"
+        mock_checkout.url = "https://stripe.com/dl"
+        with patch("stripe.checkout.Session.create", return_value=mock_checkout) as mock_create:
+            await create_divinity_donation_checkout(amount_cents=333)
+            product = mock_create.call_args[1]["line_items"][0]["price_data"]["product_data"]
+            assert product["name"] == "The Divinity Guide — Sacred Contribution"
+
+    @pytest.mark.asyncio
     async def test_product_name(self):
         """Christo: Product name is 'The Divinity Guide — Sacred Contribution'."""
         mock_checkout = MagicMock()

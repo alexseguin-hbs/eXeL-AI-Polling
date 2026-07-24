@@ -219,6 +219,8 @@ class DivinityDonationRequest(BaseModel):
     amount_cents: int = 333
     success_url: str = ""
     cancel_url: str = ""
+    label: str = "The Divinity Guide — Sacred Contribution"
+    description: str = "The Return to Wholeness and Living Divinity"
 
 
 @router.post("/payments/divinity-donate")
@@ -226,12 +228,18 @@ async def create_divinity_donation(
     payload: DivinityDonationRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Create Stripe Checkout for Divinity Guide donation (no auth — anonymous)."""
+    """Create an anonymous Stripe Checkout for a voluntary donation (no auth).
+
+    The universal donate path used by both the site-wide navbar button and the Divinity
+    Guide; `label`/`description` brand the Checkout line item.
+    """
     return await payment_service.create_divinity_donation_checkout(
         db=db,
         amount_cents=payload.amount_cents,
         success_url=payload.success_url,
         cancel_url=payload.cancel_url,
+        label=payload.label,
+        description=payload.description,
     )
 
 

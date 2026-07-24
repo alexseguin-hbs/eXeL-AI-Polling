@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -297,9 +297,20 @@ export function DonationPrompt({
     }
   };
 
+  // Popup overlay — the donation prompt is NEVER embedded inline in page content; it always
+  // floats as a dismissible modal so results stay clean and anyone can donate as they desire.
+  const Overlay = ({ children }: { children: ReactNode }) => (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onDismiss} />
+      <div className="relative w-full max-w-sm space-y-4 rounded-2xl border border-border bg-card p-6 shadow-2xl">
+        {children}
+      </div>
+    </div>
+  );
+
   if (clientSecret) {
     return (
-      <div className="space-y-4 p-4 rounded-lg border border-border bg-card">
+      <Overlay>
         <h3 className="font-semibold text-lg">{t("cube8.donation.complete")}</h3>
         <Elements
           stripe={stripePromise}
@@ -307,12 +318,12 @@ export function DonationPrompt({
         >
           <CostSplitForm onSuccess={onSuccess} amountCents={amount} />
         </Elements>
-      </div>
+      </Overlay>
     );
   }
 
   return (
-    <div className="space-y-4 p-4 rounded-lg border border-border bg-card">
+    <Overlay>
       <h3 className="font-semibold text-lg">{t("cube8.donation.support_this_session")}</h3>
       <p className="text-sm text-muted-foreground">
         {t("cube8.donation.results_ready")}
@@ -371,7 +382,7 @@ export function DonationPrompt({
           </button>
         )}
       </div>
-    </div>
+    </Overlay>
   );
 }
 

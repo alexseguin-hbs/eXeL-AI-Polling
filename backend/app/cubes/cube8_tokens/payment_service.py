@@ -452,12 +452,15 @@ async def create_divinity_donation_checkout(
     amount_cents: int = 333,
     success_url: str = "",
     cancel_url: str = "",
+    label: str = "The Divinity Guide — Sacred Contribution",
+    description: str = "The Return to Wholeness and Living Divinity",
 ) -> dict:
-    """Create Stripe Checkout for Divinity Guide donation.
+    """Create an anonymous Stripe Checkout for a voluntary donation.
 
-    Anonymous — no auth required. User can adjust amount.
-    Minimum $0.50. Default $3.33.
-    Records PaymentTransaction so webhook can award HI tokens.
+    No auth, no session — the universal "anyone can donate anytime" path (navbar donate
+    button + Divinity Guide). Caller may override `label`/`description` to brand the
+    Checkout line item (defaults keep the Divinity Guide wording). Minimum $0.50, default
+    $3.33. Records a PaymentTransaction so the webhook can award HI tokens.
     """
     if amount_cents < 50:
         raise HTTPException(
@@ -472,8 +475,8 @@ async def create_divinity_donation_checkout(
                 "currency": "usd",
                 "unit_amount": amount_cents,
                 "product_data": {
-                    "name": "The Divinity Guide — Sacred Contribution",
-                    "description": "The Return to Wholeness and Living Divinity",
+                    "name": label,
+                    "description": description,
                 },
             },
             "quantity": 1,

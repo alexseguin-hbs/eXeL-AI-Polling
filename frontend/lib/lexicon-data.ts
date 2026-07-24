@@ -596,6 +596,14 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.donation.estimated_cost", englishDefault: "Estimated session cost", context: "Cost estimate prefix", cubeId: 8 },
   { key: "cube8.donation.thank_you", englishDefault: "Thank you!", context: "Donation success toast title", cubeId: 8 },
   { key: "cube8.donation.thank_you_desc", englishDefault: "Your donation supports the platform.", context: "Donation success toast description", cubeId: 8 },
+  // Universal donate (navbar button + popup — anyone can donate anytime)
+  { key: "cube8.donate.nav_button", englishDefault: "Donate", context: "Persistent navbar donate button label", cubeId: 8 },
+  { key: "cube8.donate.title", englishDefault: "Support eXeL AI", context: "Universal donate modal heading", cubeId: 8 },
+  { key: "cube8.donate.subtitle", englishDefault: "Give what you feel it's worth — every contribution keeps the platform free for everyone.", context: "Universal donate modal subtitle", cubeId: 8 },
+  { key: "cube8.donate.custom", englishDefault: "Custom amount", context: "Custom donation amount label", cubeId: 8 },
+  { key: "cube8.donate.continue", englishDefault: "Continue to secure checkout", context: "Donate modal submit button", cubeId: 8 },
+  { key: "cube8.donate.close", englishDefault: "Close", context: "Donate modal close button", cubeId: 8 },
+  { key: "cube8.donate.secure_note", englishDefault: "Payments are processed securely by Stripe.", context: "Donate modal security note", cubeId: 8 },
   // Payment (Cube 8)
   { key: "cube8.payment.session_payment", englishDefault: "Session Payment", context: "Moderator checkout heading", cubeId: 8 },
   { key: "cube8.payment.minimum_fee_desc", englishDefault: "Minimum $11.11 USD to create this session. Your participants join free.", context: "Moderator checkout description", cubeId: 8 },

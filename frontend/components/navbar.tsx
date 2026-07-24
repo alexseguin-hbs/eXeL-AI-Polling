@@ -1,8 +1,9 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings, Code, Globe, Sparkles } from "lucide-react";
+import { LogOut, User, Menu, Settings, Code, Globe, Sparkles, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DonateModal } from "@/components/donate-modal";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { SoISection } from "@/components/soi-section";
@@ -26,6 +27,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [soiOpen, setSoiOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [donateOpen, setDonateOpen] = useState(false);
   const { t, activeLocale, setActiveLocale, languages, romanizationEnabled, setRomanizationEnabled } = useLexicon();
   const { currentTheme } = useTheme();
 
@@ -80,6 +82,19 @@ export function Navbar({ sessionTitle }: NavbarProps) {
           )}
 
           <div className="ml-auto flex items-center gap-2">
+            {/* Persistent Donate — every page, any user (anonymous OK). Opens a popup,
+                never embedded inline, so anyone can donate as they desire, anytime. */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDonateOpen(true)}
+              title={t("cube8.donate.title")}
+              className="flex items-center gap-1 text-primary hover:text-primary hover:bg-primary/10"
+            >
+              <Heart className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs font-medium">{t("cube8.donate.nav_button")}</span>
+            </Button>
+
             <TokenHUD />
 
             {/* Language selector — visible only when NOT authenticated (visitors + pollers) */}
@@ -265,6 +280,9 @@ export function Navbar({ sessionTitle }: NavbarProps) {
         userEmail={user?.email}
         isPollingUser={!isAuthenticated}
       />
+
+      {/* Universal donate popup — anyone, anytime, from any page */}
+      <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
 
       {/* API & SDK Panel — Developer access for Lead/Developer/Admin */}
       {apiSdkOpen && (
