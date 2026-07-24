@@ -862,11 +862,23 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
       ? { tier, decision: "swap", reason: "human approved the swap", tally: null }
       : { tier, decision: "hold", reason: "awaiting human approval", tally: null };
     const rsig = _mockHash(`replay:${id}:${b.section || "cube"}`);
+    // Parity+efficiency proof (mirror challenge_loop.compute_optimization): the mock
+    // candidate is a real ~11% win → the candidate cube renders ~11% smaller than Live.
+    const candMs = 345;                               // 388 → 345 ≈ 11% faster
+    const improvement = (metrics.wall_time_ms - candMs) / metrics.wall_time_ms;
+    const passed = verdict.overall_passed;
+    const cubeScale = passed && improvement > 0 ? Math.max(0.5, Math.min(1, 1 - improvement)) : 1.0;
     return {
       cube_id: id, section: b.section ?? null, level: b.level ?? 9,
       baseline: { metrics, determinism_signature: sig },
-      candidate: { metrics: { ...metrics, wall_time_ms: 365 }, determinism_signature: sig },
+      candidate: { metrics: { ...metrics, wall_time_ms: candMs }, determinism_signature: sig },
       verdict, decision,
+      optimization: {
+        optimization_pct: Math.round(improvement * 1000) / 10,
+        win: passed && improvement >= 0.10,
+        cube_scale: Math.round(cubeScale * 1000) / 1000,
+        live_scale: 1.0, basis: "duration_ms", threshold_pct: 10.0,
+      },
       replay: { replay_hash: rsig, scope: b.section ? "block" : "cube", section_label: b.section ? (_SIM_SECTIONS[b.section] || b.section) : "whole cube" },
       validation: { validators: 0, required: 3, state: "pending_validation" },
     };

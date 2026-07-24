@@ -42,6 +42,7 @@ type SubmitResult = {
   decision: { decision: string; reason: string; tier: string };
   replay: { replay_hash: string; scope: string; section_label?: string };
   validation: { validators: number; required: number; state: string };
+  optimization?: { optimization_pct: number; win: boolean; cube_scale: number; live_scale?: number; basis?: string; threshold_pct?: number };
 };
 
 // Code sections partition the 27 voxels; each is labelled by a decimal code
@@ -386,6 +387,40 @@ export function CubeDevSim() {
                 {metricCol("LIVE (baseline)", result.baseline)}
                 {metricCol("YOUR VERSION", result.candidate)}
               </div>
+              {/* Parity+efficiency proof — LIVE vs candidate cube: on a ≥10% win the
+                  candidate renders that % SMALLER than Live (8×8×8 replaces 10×10×10). */}
+              {result.optimization && (() => {
+                const o = result.optimization!;
+                const smallerPct = Math.round((1 - o.cube_scale) * 100);
+                return (
+                  <div className="rounded-lg border p-3" style={{ borderColor: o.win ? `${GOOD}66` : `${AI}33` }}>
+                    <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                      <b style={{ color: o.win ? GOOD : SI }}>
+                        {o.win ? "⬢ WIN" : "PARITY"} · {o.optimization_pct >= 0 ? "+" : ""}{o.optimization_pct}% efficiency
+                      </b>
+                      <span className="text-muted-foreground">
+                        {o.win
+                          ? `candidate cube ${smallerPct}% smaller — same output, less compute`
+                          : `beat LIVE by ≥${o.threshold_pct ?? 10}% to earn a smaller cube (8×8×8 for 10×10×10)`}
+                      </span>
+                    </div>
+                    <div className="flex items-end justify-center gap-8">
+                      <div className="text-center">
+                        <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} px={120} />
+                        <div className="mt-1 text-[10px] text-muted-foreground">LIVE · 100%</div>
+                      </div>
+                      <div className="text-center">
+                        <div style={{ transform: `scale(${o.cube_scale})`, transformOrigin: "center bottom", width: 120, height: 120 }}>
+                          <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} px={120} />
+                        </div>
+                        <div className="mt-1 text-[10px]" style={{ color: o.win ? GOOD : undefined }}>
+                          YOURS · {Math.round(o.cube_scale * 100)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
               <div className="text-sm">
                 <b style={{ color: result.decision.decision === "swap" ? GOOD : result.decision.decision === "hold" ? SI : "#ff5d6c" }}>
                   {result.decision.decision.toUpperCase()} · {result.decision.tier}
