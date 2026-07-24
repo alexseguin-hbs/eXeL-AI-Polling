@@ -30,6 +30,9 @@ BASES = {
     "dallas":      (32.7767, -96.7970, 100),
     "fortworth":   (32.7555, -97.3308, 100),
     "austin":      (30.2672, -97.7431, 100),
+    # Paris AOR — 10 km radius of Place des Victoires, centre 1 rue du Mail (75002).
+    # Full street tiers + Seine waterways/water polygons.
+    "paris":       (48.86678, 2.34186, 11),
 }
 # Large-radius metros: only the highest-order roads (motorway/trunk/primary) + coarse
 # simplify so 100 km tiles stay phone-sized (~2-4 MB). Secondary+ would balloon to 10 MB+.

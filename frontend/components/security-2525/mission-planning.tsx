@@ -116,6 +116,18 @@ const TX_CAPITOL: Building = {
   door: [0, -55],
 };
 
+// Place des Victoires — circular royal plaza (Paris 2e). 3D landmark: the ~40 m-radius
+// ring plaza with the central equestrian monument of Louis XIV modelled as the dome.
+const PLACE_DES_VICTOIRES: Building = {
+  label: "PLACE DES VICTOIRES",
+  ref: [48.86648, 2.34068],
+  footprint: [
+    [40, 0], [35, 20], [20, 35], [0, 40], [-20, 35], [-35, 20],
+    [-40, 0], [-35, -20], [-20, -35], [0, -40], [20, -35], [35, -20],
+  ],
+  dome: [0, 0, 6], // central Louis XIV equestrian monument
+};
+
 /** Window ticks along the exterior faces ("if you feel ambitious"). */
 function capitolWindows(): [number, number][] {
   const w: [number, number][] = [];
@@ -240,6 +252,14 @@ const AOS: Ao[] = [
     landmarks: [{ name: "FORT WORTH", lat: 32.7555, lon: -97.3308 }], buildings: [] },
   { key: "austin", name: "AUSTIN · TX METRO (100km)", center: [30.2672, -97.7431], halfKm: 100, osm: "austin",
     landmarks: [{ name: "DOWNTOWN AUSTIN", lat: 30.2672, lon: -97.7431 }], buildings: [] },
+  // Paris AOR — 10 km radius of Place des Victoires, centre = 1 rue du Mail (75002).
+  // Streets + Seine waterways from OSM (osm-paris.json); Place des Victoires as 3D landmark.
+  { key: "paris", name: "PLACE DES VICTOIRES · PARIS FR (10km)", center: [48.86678, 2.34186], halfKm: 10, osm: "paris",
+    landmarks: [
+      { name: "PLACE DES VICTOIRES", lat: 48.86648, lon: 2.34068 },
+      { name: "1 RUE DU MAIL", lat: 48.86678, lon: 2.34186 },
+    ],
+    buildings: [PLACE_DES_VICTOIRES] },
 ];
 
 // ── Major metro areas (≥1M metropolitan population) — geo context labels ──────
@@ -519,6 +539,7 @@ const DEM_INDEX: { key: string; bbox: [number, number, number, number] }[] = [
   { key: "floridastate", bbox: [-87.7, 24.3, -79.9, 31.1] },
   { key: "washington", bbox: [-124.9, 45.5, -116.9, 49.1] },
   { key: "texas", bbox: [-106.7, 25.8, -93.4, 36.6] },
+  { key: "paris", bbox: [2.18, 48.76, 2.51, 48.97] }, // 10km AOR around Place des Victoires (GEBCO land + Seine)
 ];
 const demArea = (b: [number, number, number, number]) => (b[2] - b[0]) * (b[3] - b[1]);
 /** Finest DEM tile fully covering the view; else the coarsest tile over its centre. */

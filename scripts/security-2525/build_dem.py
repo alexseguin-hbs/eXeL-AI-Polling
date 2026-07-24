@@ -39,6 +39,8 @@ REGIONS = {
     "dallas":      (31.87, -97.83, 33.68, -95.76, 56, 56),
     "fortworth":   (31.85, -98.37, 33.66, -96.29, 56, 56),
     "austin":      (29.36, -98.78, 31.17, -96.70, 56, 56),
+    # Paris AOR — 10 km radius of Place des Victoires (GEBCO land + Seine channel)
+    "paris":       (48.76, 2.18, 48.97, 2.51, 48, 48),
 }
 
 
