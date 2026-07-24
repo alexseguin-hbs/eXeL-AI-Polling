@@ -859,7 +859,9 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     // FX-B: LIVE source (representative real snippets under MOCK_MODE; the real backend
     // returns inspect.getsource whitelisted to app/cubes/**).
     const want = qs.get("section");
-    const secs = _mockSections(id).filter((s) => !want || s.key === want);
+    const _DEF3: Record<number, number> = { 1: 6, 2: 8, 3: 7, 4: 8, 5: 7, 6: 7, 7: 8, 8: 7, 9: 8 };
+    const scnt = _SIM_ALLOWED_COUNTS.includes(Number(qs.get("sections"))) ? Number(qs.get("sections")) : (_DEF3[id] ?? 4);
+    const secs = _mockSections(id, scnt).filter((s) => !want || s.key === want);
     const blocks = secs.flatMap((s) =>
       s.functions.map((fn) => ({
         name: fn, section: s.key, resolved: true,

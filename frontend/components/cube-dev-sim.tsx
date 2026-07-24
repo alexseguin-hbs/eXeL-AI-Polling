@@ -147,7 +147,7 @@ export function CubeDevSim() {
   }, [sections]);
   // Decimal code per block index (1.1…1.N) — labels each block in the exploded view.
   const sectionCodes = useMemo(() => sections.map((s, i) => s.code ?? `${i + 1}`), [sections]);
-  const curated = !!sectionKey && /^[A-D]$/.test(sectionKey);   // Fn·4 view = editable source
+  const curated = !!sectionKey;   // every block now resolves REAL live source → editable
 
   // SP: fetch REAL per-block metrics + SSSES for the selected block (section-scoped replay
   // duration + rows + source LOC → 5-pillar qualification). Reruns when the block changes.
@@ -164,11 +164,11 @@ export function CubeDevSim() {
   // whitelisted to app/cubes/**) so the LIVE panel shows the running code — not a
   // placeholder. Prefill YOUR VERSION from it when empty, so the Dev edits from real code.
   useEffect(() => {
-    // LIVE source is per curated function section (A-D). In block view (B1..BN) a block
-    // spans functions, so we skip the fetch and show the block's function list instead.
-    if (!sel || !sectionKey || !curated) { setLiveBlocks([]); return; }
+    // REAL live source for the selected block — works for curated A-D AND the LIVE·N block
+    // keys (B1…BN) so every decimal block shows the actual code running on the platform.
+    if (!sel || !sectionKey) { setLiveBlocks([]); return; }
     let alive = true;
-    api.get<{ blocks: SourceBlock[] }>(`/sim/cube/${sel}/source?section=${sectionKey}`)
+    api.get<{ blocks: SourceBlock[] }>(`/sim/cube/${sel}/source?section=${sectionKey}&sections=${nSections}`)
       .then((d) => {
         if (!alive) return;
         const blocks = d.blocks ?? [];
@@ -178,7 +178,7 @@ export function CubeDevSim() {
       })
       .catch(() => { if (alive) setLiveBlocks([]); });
     return () => { alive = false; };
-  }, [sel, sectionKey]);
+  }, [sel, sectionKey, nSections]);
 
   const liveSource = useMemo(() => {
     const src = composeLive(liveBlocks);
@@ -296,7 +296,7 @@ export function CubeDevSim() {
                   sectionKey === s.key ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                 style={sectionKey === s.key ? { background: SI, borderColor: SI } : undefined}>
                 <span className="font-mono font-bold">{s.code ?? `${i + 1}·${s.key}`}</span>
-                {nSections <= 9 && <span className="font-mono opacity-80">{s.functions?.[0] ?? s.label}</span>}
+                {nSections <= 9 && s.functions?.[0] && <span className="font-mono opacity-80">{s.functions[0]}</span>}
               </button>
             ))}
           </div>
@@ -328,7 +328,7 @@ export function CubeDevSim() {
               <p className="mt-2 text-xs text-muted-foreground">
                 {nSections} LIVE-code blocks · selected{" "}
                 <b style={{ color: SI }}>{activeSection?.code ?? activeSection?.key}</b>
-                {" "}<span className="font-mono">{activeSection?.functions?.[0] ?? activeSection?.label}</span> — {litCells.size} cubes ON.
+                {activeSection?.functions?.[0] ? <> <span className="font-mono">{activeSection.functions[0]}</span></> : null} — {litCells.size} cubes ON.
               </p>
               <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · Explode separates the blocks.</p>
             </div>
@@ -591,9 +591,9 @@ function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px
       const r = 0.85 + 0.5 * (idx / Math.max(1, keys.length - 1));   // per-index radius spread
       dir[k] = [dx * r, dy * r, dz * r];
     });
-    // Modest spacing so the exploded assembly stays COMPACT and reads as cubes (not an
-    // elongated sprawl): blocks part just enough to see the seams between them.
-    const exStep = fill ? step * 1.9 : step * 1.5;
+    // Generous RADIAL spacing (operator: like a case exploded view) — every block flies
+    // outward from the cube's center with a wide gap, while each block stays a solid cube.
+    const exStep = fill ? step * 3.4 : step * 2.8;
     const out: ReactNode[] = [];
     for (let i = 0; i < 27; i++) {
       const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
@@ -606,7 +606,7 @@ function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px
       // voxel · show each building block"). The three face brightnesses (top>side>far)
       // give each cube its 3D shading; the SELECTED block is brightest, the others are
       // dimmer but still fully solid cubes (never flat squares).
-      const [tA, sA, s2A, op] = on ? ["ee", "bb", "99", 1] : ["82", "5a", "3e", 0.92];
+      const [tA, sA, s2A, op] = on ? ["ff", "dd", "bb", 1] : ["2e", "1e", "14", 0.42];
       out.push(
         <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: op }}>
           <div style={face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, hex, tA)} />
@@ -632,7 +632,7 @@ function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px
       style={{ width: fill ? "100%" : px, height: fill ? "100%" : px, minWidth: fill ? undefined : px }}
       {...cam.handlers} onPointerLeave={cam.handlers.onPointerUp}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 55%",
-        transform: `perspective(900px) rotateX(${pitch}deg) scale(${(exploded ? 0.62 : 0.9) * zoom})` }}>
+        transform: `perspective(900px) rotateX(${pitch}deg) scale(${(exploded ? 0.46 : 0.9) * zoom})` }}>
         <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad)` }}>
           {scene.cubes}
           {/* Exploded: each block's decimal code (1.1…) billboarded at its center so you

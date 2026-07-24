@@ -810,7 +810,7 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.sim.metric_outcome", englishDefault: "Outcome Metrics", context: "Outcome metric category", cubeId: 10 },
   { key: "cube10.sim.dataset", englishDefault: "Replay Dataset", context: "Dataset selector label", cubeId: 10 },
   { key: "cube10.sim.wb_title", englishDefault: "Cube Simulation Workbench", context: "Manual SIM workbench title", cubeId: 10 },
-  { key: "cube10.sim.wb_subtitle", englishDefault: "Manual Vision • 2525", context: "Workbench subtitle", cubeId: 10 },
+  { key: "cube10.sim.wb_subtitle", englishDefault: "VISION • 2525 ••• Manual Mode", context: "Workbench subtitle", cubeId: 10 },
   { key: "cube10.sim.level", englishDefault: "Level", context: "3/6/9 level dial label", cubeId: 10 },
   { key: "cube10.sim.pick_cube", englishDefault: "Cubes 1–9 · pick one", context: "Cube selector hint", cubeId: 10 },
   { key: "cube10.sim.input", englishDefault: "Input", context: "I/O column — input", cubeId: 10 },

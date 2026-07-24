@@ -573,19 +573,57 @@ def _resolve_cube_sources(cube_id: int, section: str | None) -> list[dict]:
     return blocks
 
 
+@lru_cache(maxsize=256)
+def _resolve_named_sources(cube_id: int, names: tuple[str, ...], section_label: str) -> list[dict]:
+    """Resolve REAL source for an explicit function list (used for LIVE·N block keys, whose
+    functions come from sections_for). Same whitelist + exact/prefix match as the curated path."""
+    import inspect
+
+    exact: dict[str, object] = {}
+    pool: list[tuple[str, object]] = []
+    for name, obj in _iter_cube_callables(cube_id):
+        try:
+            src_file = inspect.getsourcefile(obj) or ""
+        except Exception:  # noqa: BLE001
+            continue
+        if not _source_allowed(src_file):
+            continue
+        exact.setdefault(name, obj)
+        pool.append((name, obj))
+    blocks: list[dict] = []
+    for fn in names:
+        obj = exact.get(fn) or next((o for nm, o in pool if nm.startswith(fn)), None)
+        block = {"name": fn, "section": section_label, "resolved": False, "path": None, "source": None}
+        if obj is not None:
+            try:
+                path = inspect.getsourcefile(obj) or ""
+                rel = path[path.index("app/"):] if "app/" in path else path
+                block.update(resolved=True, path=rel, source=inspect.getsource(obj)[:_SOURCE_MAX])
+            except Exception:  # noqa: BLE001
+                pass
+        blocks.append(block)
+    return blocks
+
+
 @router.get("/sim/cube/{cube_id}/source")
-async def sim_cube_source(cube_id: int, section: str | None = None):
-    """Read-only LIVE source for a cube's section functions — the real code running
-    the platform, so the workbench LIVE panel is not a placeholder. inspect.getsource,
-    whitelisted to app/cubes/** (never secrets/env, never write)."""
-    from app.cubes.cube10_simulation.sections import SECTION_KEYS
+async def sim_cube_source(cube_id: int, section: str | None = None, sections: int = 0):
+    """Read-only LIVE source for a cube's block — the REAL code from this platform running
+    live (inspect.getsource, whitelisted to app/cubes + app/core minus secrets). Works for
+    the curated A-D keys AND the LIVE·N block keys (B1…BN) so every decimal block shows its
+    actual source, not a placeholder."""
+    from app.cubes.cube10_simulation.sections import ALLOWED_SECTION_COUNTS, SECTION_KEYS, sections_for
 
     if cube_id < 1 or cube_id > 9:
         raise HTTPException(status_code=400, detail="cube_id must be 1-9")
-    if section is not None and section not in SECTION_KEYS:
-        raise HTTPException(status_code=400, detail=f"section must be one of {SECTION_KEYS} or omitted")
+    if section is None or section in SECTION_KEYS:
+        return {"cube_id": cube_id, "section": section, "blocks": _resolve_cube_sources(cube_id, section)}
+    # LIVE·N block key (B\d+): resolve the block's real functions to their live source.
+    count = sections if sections in ALLOWED_SECTION_COUNTS else _default_sections(cube_id)
+    blk = next((s for s in sections_for(cube_id, count) if s["key"] == section), None)
+    if not blk:
+        raise HTTPException(status_code=400, detail=f"unknown section {section!r} at {count} blocks")
     return {"cube_id": cube_id, "section": section,
-            "blocks": _resolve_cube_sources(cube_id, section)}
+            "blocks": _resolve_named_sources(cube_id, tuple(blk["functions"]), section)}
 
 
 @router.get("/sim/cube/{cube_id}/section-metrics")
