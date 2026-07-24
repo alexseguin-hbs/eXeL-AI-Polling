@@ -513,7 +513,10 @@ def tally_votes(
     total_weight = approve_weight + reject_weight
     approval_percent = approve_weight / total_weight if total_weight > 0 else 0.0
 
-    quorum_met = len(votes) >= (total_token_holders * MIN_QUORUM_PERCENT)
+    # Anti-sybil: an empty electorate can NEVER meet quorum. Without this guard
+    # `len(votes) >= 0` is trivially true when total_token_holders <= 0, so a single
+    # vote (or a fabricated one) would falsely pass quorum with no legitimate holders.
+    quorum_met = total_token_holders > 0 and len(votes) >= (total_token_holders * MIN_QUORUM_PERCENT)
     supermajority_met = approval_percent >= SUPERMAJORITY_THRESHOLD
 
     if quorum_met and supermajority_met:
