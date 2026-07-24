@@ -365,6 +365,31 @@ export function CubeDevSim() {
             </div>
           </div>
 
+          {/* One backbone · three autonomy tiers — Manual is live; Semi/Auto plug agents
+              into the SAME check-in→simulate→compare→decide engine once Manual is aligned. */}
+          <div className="rounded-xl border p-3" style={{ borderColor: `${AI}33` }}>
+            <div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t("cube10.sim.tier_backbone")}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { n: "①", label: t("cube10.sim.tier_manual"), active: true, color: GOOD },
+                { n: "②", label: t("cube10.sim.tier_semi"), active: false, color: SI },
+                { n: "③", label: t("cube10.sim.tier_auto"), active: false, color: HI },
+              ].map((tr) => (
+                <div key={tr.n} className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs"
+                  style={tr.active
+                    ? { background: `${tr.color}22`, borderColor: tr.color, color: tr.color }
+                    : { opacity: 0.5 }}>
+                  <span className="font-mono font-bold">{tr.n}</span>
+                  <span className="font-semibold">{tr.label}</span>
+                  <span className="text-[9px] uppercase tracking-wide">
+                    {tr.active ? t("cube10.sim.tier_active") : t("cube10.sim.tier_locked")}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[10px] text-muted-foreground/70">{t("cube10.sim.tier_note")}</p>
+          </div>
+
           {/* Two distinct actions: Check In → Submit to Simulate */}
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={checkIn} disabled={busy === "checkin"} variant="outline" className="gap-2">
