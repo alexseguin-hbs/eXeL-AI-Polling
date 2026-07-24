@@ -1,6 +1,7 @@
 """Import all models for Alembic discovery and SQLAlchemy auto-create."""
 
 from app.models.ai_cost_log import AICostLog
+from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
 from app.models.code_submission import Challenge, CodeSubmission, DeploymentLog, SubmissionVote
 from app.models.cqs_score import CQSScore
@@ -30,6 +31,7 @@ from app.models.webhook import WebhookDelivery, WebhookSubscription
 
 __all__ = [
     "AICostLog",
+    "ApiKey",
     "AuditLog",
     "Challenge",
     "CodeSubmission",
