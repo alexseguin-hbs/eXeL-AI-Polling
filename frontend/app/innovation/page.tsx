@@ -12,7 +12,8 @@ import { useMemo, useState, useEffect } from "react";
 import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
-  type Project,
+  timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart,
+  type Project, type TimeUnit,
 } from "@/lib/innovation-data";
 
 const CODE = "369963";
@@ -135,6 +136,7 @@ function Board() {
         {/* Selected project detail */}
         <section className="space-y-4">
           <ProjectDetail p={sel} />
+          <TimeEngine p={sel} />
           <GateCube p={sel} />
           <Differentiators p={sel} />
         </section>
@@ -228,6 +230,65 @@ function ProjectDetail({ p }: { p: Project }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Time engine (CRS-85→88): start date → schedule → month/week/day/hour/min, with ± bands
+// that tighten by gate and widen with the commercial+technical risk profile.
+function TimeEngine({ p }: { p: Project }) {
+  const [startISO, setStartISO] = useState("2026-01-05");
+  const [unit, setUnit] = useState<TimeUnit>("month");
+  const r = timeReadout(p, startISO, unit);
+  const band = Math.round(toleranceBand(p) * 100);
+  const fmtTime = (v: number) => (unit === "minute" || unit === "hour" ? Math.round(v).toLocaleString() : v.toFixed(unit === "month" ? 1 : 0));
+  const fmtUsd0 = (v: number) => `$${(v / 1e6).toFixed(2)}M`;
+  const sched = scheduleFromStart(p, startISO);
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Time engine · remaining to launch</h3>
+        <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{band}% @ {p.gate}</span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <label className="text-[11px] text-slate-400">Start
+          <input type="date" value={startISO} onChange={(e) => setStartISO(e.target.value)}
+            className="ml-2 rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100" />
+        </label>
+        <div className="ml-auto flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
+          {TIME_UNITS.map((u) => (
+            <button key={u} onClick={() => setUnit(u)}
+              className={`px-2.5 py-1 font-mono capitalize ${unit === u ? "bg-cyan-500 text-[#06202a]" : "text-slate-300 hover:bg-slate-800"}`}>
+              {UNIT_LABEL[u]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <Band label={`Time (${UNIT_LABEL[unit]})`} value={fmtTime(r.time.value)} lo={fmtTime(r.time.lo)} hi={fmtTime(r.time.hi)} />
+        <Band label="Cost remaining" value={fmtUsd0(r.cost.value)} lo={fmtUsd0(r.cost.lo)} hi={fmtUsd0(r.cost.hi)} />
+        <Band label="Finish (± days)" value={`${r.scheduleDays.value}d`} lo={`${r.scheduleDays.lo}d`} hi={`${r.scheduleDays.hi}d`} />
+      </div>
+
+      <div className="mt-2 flex justify-between text-[11px] text-slate-500">
+        <span>Cost of time <b className="text-cyan-300">${r.costPerMinUsd.toFixed(2)}/min</b></span>
+        <span>1st revenue <b className="text-slate-300">{r.firstRevenueISO}</b> (derived)</span>
+      </div>
+      <div className="mt-1 text-[10px] text-slate-600">
+        {sched.rows.map((g) => `${g.gate} ${g.endISO.slice(2)}`).join(" · ")}
+      </div>
+    </div>
+  );
+}
+
+function Band({ label, value, lo, hi }: { label: string; value: string; lo: string; hi: string }) {
+  return (
+    <div className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
+      <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
+      <div className="text-sm font-semibold tabular-nums">{value}</div>
+      <div className="text-[10px] tabular-nums text-amber-300/80">{lo} – {hi}</div>
     </div>
   );
 }

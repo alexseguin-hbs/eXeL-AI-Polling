@@ -67,6 +67,76 @@ export const DEMO_PROJECTS: Project[] = [
   { id: "PRJ-12", name: "Quantum-Secure Comms", division: "Software", manager: "T. Cho", category: "New Platform", gate: "G1", confidence: 1, techRisk: 0.7, commRisk: 0.5, nreK: 7600, fullRev10yM: 300, doNothing10yM: 5, firstRevenue: "2030-Q1", criticalPath: true, humanLoad: 0.68, ai: 0.5, si: 0.3, hi: 0.2, predictions: 72 },
 ];
 
+// ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
+// Time is the master variable (R-CORE §4): everything below is derived from a start date +
+// the gate-duration profile. Date of first revenue is NEVER typed — it falls out of the plan.
+export const WORKDAY_HOURS = 8;
+export const WORKDAYS_PER_MONTH = 21;
+export type TimeUnit = "month" | "week" | "day" | "hour" | "minute";
+export const TIME_UNITS: TimeUnit[] = ["month", "week", "day", "hour", "minute"];
+
+// Working days per gate (~9-month program across G1–G7; the R-CORE demo shape).
+export const GATE_WORKDAYS: Record<Gate, number> = { G1: 32, G2: 32, G3: 42, G4: 32, G5: 21, G6: 16, G7: 14 };
+// Workdays expressed in a unit (21 workdays/mo · 5/wk · 8h/day · 480min/day).
+export function workdaysInUnit(workdays: number, unit: TimeUnit): number {
+  switch (unit) {
+    case "month": return workdays / WORKDAYS_PER_MONTH;
+    case "week": return workdays / 5;
+    case "day": return workdays;
+    case "hour": return workdays * WORKDAY_HOURS;
+    case "minute": return workdays * WORKDAY_HOURS * 60;
+  }
+}
+export const UNIT_LABEL: Record<TimeUnit, string> = { month: "mo", week: "wk", day: "d", hour: "h", minute: "min" };
+
+// Tolerance band by gate — ±50% at Concept tightening to ±5% at Launch (AMTS ladder), WIDENED
+// by the project's commercial + technical risk profile (CRS-86). Higher risk → wider band.
+const BASE_BAND: Record<Gate, number> = { G1: 0.5, G2: 0.4, G3: 0.3, G4: 0.2, G5: 0.1, G6: 0.05, G7: 0.05 };
+export function toleranceBand(p: Project): number {
+  const riskMult = 1 + (p.techRisk + p.commRisk) / 2; // 1.0 (no risk) → 2.0 (max)
+  return Math.min(0.6, BASE_BAND[p.gate] * riskMult);
+}
+
+// Full plan from a start date: per-gate calendar boundaries + derived first-revenue date.
+export function scheduleFromStart(p: Project, startISO: string) {
+  const start = new Date(startISO + "T00:00:00");
+  const cal = (wd: number) => Math.round(wd * 7 / 5); // workdays → calendar days (5-day week)
+  const rows: { gate: Gate; startISO: string; endISO: string; workdays: number }[] = [];
+  let cursor = new Date(start);
+  for (const g of GATES) {
+    const wd = GATE_WORKDAYS[g];
+    const s = new Date(cursor);
+    cursor = new Date(cursor.getTime() + cal(wd) * 86400000);
+    rows.push({ gate: g, startISO: iso(s), endISO: iso(cursor), workdays: wd });
+  }
+  const launch = rows.find((r) => r.gate === "G6")!; // first revenue at Launch (G6) end
+  return { rows, firstRevenueISO: launch.endISO, totalWorkdays: GATES.reduce((s, g) => s + GATE_WORKDAYS[g], 0) };
+}
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+// Remaining-to-launch readout at a chosen unit, with ± bands on time · cost · schedule.
+export function timeReadout(p: Project, startISO: string, unit: TimeUnit) {
+  const sched = scheduleFromStart(p, startISO);
+  const gi = GATES.indexOf(p.gate);
+  const remWorkdays = GATES.slice(gi).reduce((s, g) => s + GATE_WORKDAYS[g], 0); // current gate → G7
+  const burnPerWorkdayUsd = (p.nreK * 1000) / sched.totalWorkdays;
+  const costPerMinUsd = burnPerWorkdayUsd / (WORKDAY_HOURS * 60);
+  const band = toleranceBand(p);
+  const timeVal = workdaysInUnit(remWorkdays, unit);
+  const costRemainUsd = burnPerWorkdayUsd * remWorkdays;
+  const calDaysRemain = Math.round(remWorkdays * 7 / 5);
+  return {
+    unit, band,
+    firstRevenueISO: sched.firstRevenueISO,
+    time: { value: timeVal, lo: timeVal * (1 - band), hi: timeVal * (1 + band) },
+    cost: { value: costRemainUsd, lo: costRemainUsd * (1 - band), hi: costRemainUsd * (1 + band) },
+    scheduleDays: { value: calDaysRemain, lo: Math.round(calDaysRemain * (1 - band)), hi: Math.round(calDaysRemain * (1 + band)) },
+    costPerMinUsd,
+    remWorkdays,
+    totalWorkdays: sched.totalWorkdays,
+  };
+}
+
 // ── STACK: rank order → cumulative NRE → funding line (CRS-42/43/71) ─────────────────────
 export function stackWithBudget(order: Project[], availableK_: number) {
   let cum = 0, lineIndex = order.length;
