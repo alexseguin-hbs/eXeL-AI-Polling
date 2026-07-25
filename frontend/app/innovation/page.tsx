@@ -17,7 +17,7 @@ import {
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
-  scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW,
+  scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW, rackByLevel,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -89,6 +89,14 @@ function Board() {
     next.splice(to, 0, moved);
     setOrder(next);
   };
+  // Level-aware Rack & Stack: high-level rollup (BU/SBU/PG/Alpha) for decisions · Product #
+  // = working project stack (drag/select → deep dive) · Material # = BOM. Metrics always
+  // stay bound to the project (derived from r.p), so arrows/drag carry NPV/REV/NRE with it.
+  const [stackLevel, setStackLevel] = useState<HierKey>("sbu");
+  const [drill, setDrill] = useState<{ level: HierKey; value: string } | null>(null);
+  const isGroupLevel = stackLevel === "bu" || stackLevel === "sbu" || stackLevel === "pgroup" || stackLevel === "alpha";
+  const groupRows = useMemo(() => rackByLevel(order, stackLevel), [order, stackLevel]);
+  const drilled = drill && stackLevel === "product" ? order.filter((p) => hierOf(p)[drill.level] === drill.value) : null;
 
   const fundedRows = rows.filter((r) => r.funded);
   const portfolioNpv = fundedRows.reduce((s, r) => s + npvM(r.p), 0);
@@ -128,36 +136,129 @@ function Board() {
 
       {view === "portfolio" && (<>
       <div className="grid gap-4 p-5 lg:grid-cols-[1.6fr_1fr]">
-        {/* STACK table */}
+        {/* STACK table — level-aware Rack & Stack */}
         <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800">
-            <h2 className="text-sm font-semibold">Stack · drag priority across the funding line</h2>
-            <span className="text-[11px] text-slate-500">above line = funded · below = unfunded</span>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
+            <h2 className="text-sm font-semibold">
+              Rack &amp; Stack · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
+            </h2>
+            {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
+            <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
+              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Prod Grp"], ["alpha", "Alpha"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
+                <button key={lv} onClick={() => { setStackLevel(lv); setDrill(null); }}
+                  className={`px-2 py-1 ${stackLevel === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+              ))}
+            </div>
           </div>
+
+          {drill && stackLevel === "product" && (
+            <div className="flex items-center gap-2 px-4 py-1.5 text-[11px] text-cyan-300 bg-cyan-500/5 border-b border-slate-800">
+              Drilled: {drill.level.toUpperCase()} = {drill.value}
+              <button onClick={() => setDrill(null)} className="rounded border border-slate-700 px-1.5 hover:bg-slate-800">✕ clear</button>
+            </div>
+          )}
+
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
-                  <th className="w-6"></th>
-                  <th className="px-2 py-2 text-left">#</th>
-                  <th className="px-2 py-2 text-left">Project</th>
-                  <th className="px-2 py-2 text-center">Gate</th>
-                  <th className="px-2 py-2 text-center">Conf</th>
-                  <th className="px-2 py-2 text-right">NRE</th>
-                  <th className="px-2 py-2 text-right">P-wt Rev</th>
-                  <th className="px-2 py-2 text-right">NPV</th>
-                  <th className="px-2 py-2 text-right">Cum</th>
-                  <th className="px-2 py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <RowFrag key={r.p.id} r={r} i={i} showLine={i === lineIndex} selId={selId}
-                    onSelect={setSelId} onUp={() => move(i, -1)} onDown={() => move(i, 1)} last={i === rows.length - 1} avail={avail}
-                    dragging={dragIdx === i} onDragStartRow={() => setDragIdx(i)} onDropRow={() => { reorder(dragIdx, i); setDragIdx(null); }} />
-                ))}
-              </tbody>
-            </table>
+            {isGroupLevel && (() => {
+              const st = stackWithBudget(groupRows.map((g) => ({ nreK: g.nreK } as unknown as Project)), avail);
+              return (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                      <th className="px-2 py-2 text-left">#</th>
+                      <th className="px-2 py-2 text-left">{HIER_LEVELS.find((h) => h.key === stackLevel)?.label}</th>
+                      <th className="px-2 py-2 text-center"># Proj</th>
+                      <th className="px-2 py-2 text-right">NRE</th>
+                      <th className="px-2 py-2 text-right">P-wt Rev</th>
+                      <th className="px-2 py-2 text-right">NPV</th>
+                      <th className="px-2 py-2 text-right">Cum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupRows.map((g, i) => (
+                      <React.Fragment key={g.key}>
+                        {i === st.lineIndex && (
+                          <tr><td colSpan={7} className="px-2 py-0.5">
+                            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
+                              <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(avail)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
+                            </div></td></tr>
+                        )}
+                        <tr onClick={() => { setDrill({ level: stackLevel, value: g.key }); setStackLevel("product"); }}
+                          className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/40 ${st.rows[i]?.funded ? "" : "opacity-70"}`} title="Drill to projects">
+                          <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
+                          <td className="px-2 py-2 font-medium">{g.key} <span className="text-[10px] text-slate-500">↳ drill</span></td>
+                          <td className="px-2 py-2 text-center tabular-nums text-slate-400">{g.count}</td>
+                          <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(g.nreK)}</td>
+                          <td className="px-2 py-2 text-right tabular-nums">{usd(g.weightedRevM)}</td>
+                          <td className={`px-2 py-2 text-right tabular-nums font-semibold ${g.npvM >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(g.npvM)}</td>
+                          <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(st.rows[i]?.cumK ?? 0)}</td>
+                        </tr>
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              );
+            })()}
+
+            {stackLevel === "product" && (() => {
+              const src = drilled ?? order;
+              const st = drilled ? stackWithBudget(src, avail) : { rows, lineIndex };
+              const canDrag = !drilled;
+              return (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                      <th className="w-6"></th>
+                      <th className="px-2 py-2 text-left">#</th>
+                      <th className="px-2 py-2 text-left">Project #</th>
+                      <th className="px-2 py-2 text-center">Gate</th>
+                      <th className="px-2 py-2 text-center">Conf</th>
+                      <th className="px-2 py-2 text-right">NRE</th>
+                      <th className="px-2 py-2 text-right">P-wt Rev</th>
+                      <th className="px-2 py-2 text-right">NPV</th>
+                      <th className="px-2 py-2 text-right">Cum</th>
+                      <th className="px-2 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {st.rows.map((r, i) => (
+                      <RowFrag key={r.p.id} r={r} i={i} showLine={i === st.lineIndex} selId={selId}
+                        onSelect={setSelId} onUp={canDrag ? () => move(i, -1) : undefined} onDown={canDrag ? () => move(i, 1) : undefined}
+                        last={i === st.rows.length - 1} avail={avail} canDrag={canDrag}
+                        dragging={dragIdx === i} onDragStartRow={() => setDragIdx(i)} onDropRow={() => { reorder(dragIdx, i); setDragIdx(null); }} />
+                    ))}
+                  </tbody>
+                </table>
+              );
+            })()}
+
+            {stackLevel === "material" && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                    <th className="px-2 py-2 text-left">Material # (BOM)</th>
+                    <th className="px-2 py-2 text-left">Product #</th>
+                    <th className="px-2 py-2 text-left">Project</th>
+                    <th className="px-2 py-2 text-left">Product Group</th>
+                    <th className="px-2 py-2 text-right">NRE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {order.map((p) => (
+                    <tr key={p.id} onClick={() => setSelId(p.id)} className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/40 ${selId === p.id ? "bg-cyan-500/10" : ""}`}>
+                      <td className="px-2 py-2 font-mono text-slate-200">{hierOf(p).material}</td>
+                      <td className="px-2 py-2 font-mono text-slate-400">{hierOf(p).product}</td>
+                      <td className="px-2 py-2 text-slate-300">{p.name}</td>
+                      <td className="px-2 py-2 font-mono text-slate-500">{hierOf(p).pgroup}</td>
+                      <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(p.nreK)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+          <div className="px-4 py-1.5 text-[10px] text-slate-500 border-t border-slate-800">
+            {isGroupLevel ? "Decision roll-up · click a row to drill to its projects" : stackLevel === "product" ? "Working stack · drag ⠿ or ▲▼ to reprioritize — NPV/REV/NRE follow the project · click → financials + Stage-Gate deep dive" : "BOM · components & assemblies · click → project deep dive"}
           </div>
         </section>
 
@@ -204,10 +305,10 @@ function Kpi({ label, value, tone }: { label: string; value: string; tone?: "goo
   );
 }
 
-function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, dragging, onDragStartRow, onDropRow }: {
+function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, dragging, onDragStartRow, onDropRow, canDrag = true }: {
   r: ReturnType<typeof stackWithBudget>["rows"][number]; i: number; showLine: boolean;
-  selId: string; onSelect: (id: string) => void; onUp: () => void; onDown: () => void; last: boolean; avail: number;
-  dragging: boolean; onDragStartRow: () => void; onDropRow: () => void;
+  selId: string; onSelect: (id: string) => void; onUp?: () => void; onDown?: () => void; last: boolean; avail: number;
+  dragging: boolean; onDragStartRow: () => void; onDropRow: () => void; canDrag?: boolean;
 }) {
   const { p, cumK, funded } = r;
   return (
@@ -225,13 +326,13 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
       )}
       <tr
         onClick={() => onSelect(p.id)}
-        draggable
-        onDragStart={onDragStartRow}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => { e.preventDefault(); onDropRow(); }}
+        draggable={canDrag}
+        onDragStart={canDrag ? onDragStartRow : undefined}
+        onDragOver={canDrag ? (e) => e.preventDefault() : undefined}
+        onDrop={canDrag ? (e) => { e.preventDefault(); onDropRow(); } : undefined}
         className={`cursor-pointer border-b border-slate-900 ${selId === p.id ? "bg-cyan-500/10" : "hover:bg-slate-800/40"} ${funded ? "" : "opacity-70"} ${dragging ? "opacity-40" : ""}`}
       >
-        <td className="w-6 text-center align-middle text-slate-600 cursor-grab active:cursor-grabbing select-none" title="Drag to reprioritize">⠿</td>
+        <td className="w-6 text-center align-middle text-slate-600 select-none" title={canDrag ? "Drag to reprioritize" : ""}>{canDrag ? <span className="cursor-grab active:cursor-grabbing">⠿</span> : ""}</td>
         <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
         <td className="px-2 py-2">
           <div className="flex items-center gap-2">
@@ -249,8 +350,10 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
         <td className={`px-2 py-2 text-right tabular-nums font-semibold ${npvM(p) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(npvM(p))}</td>
         <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(cumK)}</td>
         <td className="px-2 py-2 text-right whitespace-nowrap">
-          <button onClick={(e) => { e.stopPropagation(); onUp(); }} disabled={i === 0} className="px-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20">▲</button>
-          <button onClick={(e) => { e.stopPropagation(); onDown(); }} disabled={last} className="px-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20">▼</button>
+          {canDrag ? (<>
+            <button onClick={(e) => { e.stopPropagation(); onUp?.(); }} disabled={i === 0} className="px-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20">▲</button>
+            <button onClick={(e) => { e.stopPropagation(); onDown?.(); }} disabled={last} className="px-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20">▼</button>
+          </>) : <span className="text-slate-700 text-[10px]">·</span>}
         </td>
       </tr>
     </>

@@ -72,7 +72,7 @@ import {
   hierOf, hierValues, filterByHier, DEMO_PROJECTS,
   riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
   SBU_BASE, companyBaseM, lobBaseM, companyRollup, sayDo, execOf, briefOf,
-  buBaseM, scopeBaseM, GATE_DELIVERABLES, GATES as GATE_LIST,
+  buBaseM, scopeBaseM, GATE_DELIVERABLES, GATES as GATE_LIST, rackByLevel,
 } from "../lib/innovation-data.ts";
 
 // ── hierarchy: Company → BU → SBU → Product Group, cascading + filter ──
@@ -97,6 +97,13 @@ ok(cr.bus.every((b) => b.sbus.length >= 1 && b.sbus.every((s) => s.groups.length
 // ── minimum deliverables per gate (AIML gate-deliverables) ──
 ok(GATE_LIST.every((g) => GATE_DELIVERABLES[g] && GATE_DELIVERABLES[g].length >= 1), "every gate G1–G7 has ≥1 min deliverable");
 ok(GATE_DELIVERABLES.G1.includes("Executive Summary") && GATE_DELIVERABLES.G7.includes("End-of-Life Strategy"), "Concept + Retire deliverables match the AIML slide");
+
+// ── level-aware Rack & Stack: aggregate to any hierarchy tier, sorted by NPV, sums preserved ──
+const rackSbu = rackByLevel(DEMO_PROJECTS, "sbu");
+ok(rackSbu.length === 3, "rackByLevel SBU → 3 rows");
+ok(rackSbu.every((r, i) => i === 0 || rackSbu[i - 1].npvM >= r.npvM), "rack rows sorted by NPV desc");
+ok(Math.abs(rackSbu.reduce((s, r) => s + r.count, 0) - DEMO_PROJECTS.length) < 1e-9, "rack SBU counts sum to portfolio");
+ok(rackByLevel(DEMO_PROJECTS, "bu").length === 2 && rackByLevel(DEMO_PROJECTS, "material").length === DEMO_PROJECTS.length, "rack BU=2, Material# = one per project (BOM)");
 // ── growth model base override anchors the do-nothing baseline ──
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 300 })[0].doNothing === 300, "baseOverrideM anchors year-0 do-nothing");
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 0 })[0].doNothing === 0, "grey jump-off settable to zero (per-project)");

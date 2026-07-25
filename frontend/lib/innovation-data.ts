@@ -368,21 +368,22 @@ export const lobBaseM = (v: string) => (v === "All" || v === COMPANY_NAME ? comp
 
 // Per-project node path — BU → SBU (SBU-1/2/3) → Product Group (PG-1…9) → Alpha → Product → Material.
 export const PROJECT_HIER: Record<string, HierPath> = {
-  "PRJ-01": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-1", alpha: "Cooled Cores", product: "TC-G5", material: "TC-G5-FPA" },
-  "PRJ-02": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-2", alpha: "Fusion Modules", product: "EF-AI", material: "EF-AI-SOM" },
-  "PRJ-03": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-3", alpha: "Littoral", product: "ML-RDR", material: "ML-RDR-TRX" },
-  "PRJ-04": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-1", alpha: "Effectors", product: "CUAS-EF", material: "CUAS-EF-WHD" },
-  "PRJ-05": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-4", alpha: "Cloud", product: "SOI-GOV", material: "SOI-GOV-SVC" },
-  "PRJ-06": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-5", alpha: "Portable", product: "HH-MS", material: "HH-MS-SENS" },
-  "PRJ-07": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-7", alpha: "Telescopes", product: "SP-OPT", material: "SP-OPT-MIR" },
-  "PRJ-08": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-6", alpha: "Modernization", product: "GS-MOD", material: "GS-MOD-SW" },
-  "PRJ-09": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-8", alpha: "NextGen", product: "CC-NG", material: "CC-NG-STIRL" },
-  "PRJ-10": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-4", alpha: "Marketplace", product: "AUT-SDK", material: "AUT-SDK-PKG" },
-  "PRJ-11": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-9", alpha: "EOL", product: "LEG-BR", material: "LEG-BR-KIT" },
-  "PRJ-12": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-7", alpha: "Quantum", product: "QS-COM", material: "QS-COM-QKD" },
-  "PRJ-13": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-5", alpha: "VR/XR", product: "IMX-RH", material: "IMX-RH-HMD" },
-  "PRJ-14": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-2", alpha: "MUM-T", product: "MUMT-STE", material: "MUMT-STE-LNK" },
-  "PRJ-15": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-8", alpha: "Self-Replication", product: "ORB-SWM", material: "ORB-SWM-NODE" },
+  // Product Group = 2-digit code · Alpha Group = 3-digit code · Product # = sold-to-customer · Material # = BOM line.
+  "PRJ-01": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-101", product: "TC-G5", material: "TC-G5-FPA" },
+  "PRJ-02": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-102", product: "EF-AI", material: "EF-AI-SOM" },
+  "PRJ-03": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-03", alpha: "AG-103", product: "ML-RDR", material: "ML-RDR-TRX" },
+  "PRJ-04": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-104", product: "CUAS-EF", material: "CUAS-EF-WHD" },
+  "PRJ-05": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-105", product: "SOI-GOV", material: "SOI-GOV-SVC" },
+  "PRJ-06": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-106", product: "HH-MS", material: "HH-MS-SENS" },
+  "PRJ-07": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-107", product: "SP-OPT", material: "SP-OPT-MIR" },
+  "PRJ-08": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-06", alpha: "AG-108", product: "GS-MOD", material: "GS-MOD-SW" },
+  "PRJ-09": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-109", product: "CC-NG", material: "CC-NG-STIRL" },
+  "PRJ-10": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-110", product: "AUT-SDK", material: "AUT-SDK-PKG" },
+  "PRJ-11": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-09", alpha: "AG-111", product: "LEG-BR", material: "LEG-BR-KIT" },
+  "PRJ-12": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-112", product: "QS-COM", material: "QS-COM-QKD" },
+  "PRJ-13": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-113", product: "IMX-RH", material: "IMX-RH-HMD" },
+  "PRJ-14": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-114", product: "MUMT-STE", material: "MUMT-STE-LNK" },
+  "PRJ-15": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-115", product: "ORB-SWM", material: "ORB-SWM-NODE" },
 };
 export const hierOf = (p: Project): HierPath =>
   PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
@@ -411,6 +412,22 @@ export function companyRollup(projects: Project[]): { company: RollupNode; bus: 
   const company: RollupNode = { name: COMPANY_NAME, baseM: companyBaseM(), spendK: bus.reduce((s, b) => s + b.spendK, 0), npvM: bus.reduce((s, b) => s + b.npvM, 0), count: projects.length };
   return { company, bus };
 }
+// Level-aware Rack & Stack: aggregate the portfolio to a hierarchy level (BU/SBU/Product
+// Group/Alpha Group) for high-level decisions + financial rollups. Sorted by NPV desc.
+export interface RackRow { key: string; nreK: number; weightedRevM: number; incRevM: number; npvM: number; count: number }
+export function rackByLevel(projects: Project[], level: HierKey): RackRow[] {
+  const map = new Map<string, RackRow>();
+  for (const p of projects) {
+    const k = hierOf(p)[level];
+    const r = map.get(k) ?? { key: k, nreK: 0, weightedRevM: 0, incRevM: 0, npvM: 0, count: 0 };
+    r.nreK += p.nreK; r.weightedRevM += weightedRevM(p); r.incRevM += incrementalRevM(p); r.npvM += npvM(p); r.count += 1;
+    map.set(k, r);
+  }
+  return Array.from(map.values()).sort((a, b) => b.npvM - a.npvM);
+}
+// The three decision levels the tool is designed for (BU · SBU · Product Group).
+export const DECISION_LEVELS: HierKey[] = ["bu", "sbu", "pgroup"];
+
 // Distinct values present at a level, respecting an optional parent filter (cascading).
 export function hierValues(projects: Project[], level: HierKey, parent?: { level: HierKey; value: string }): string[] {
   const scoped = parent ? projects.filter((p) => hierOf(p)[parent.level] === parent.value) : projects;
