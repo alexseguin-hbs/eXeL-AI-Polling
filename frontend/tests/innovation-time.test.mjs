@@ -67,5 +67,40 @@ ok(gm[5].target > gm[0].target, "target grows YoY");
 ok(gm.every((r) => r.remaining >= 0), "remaining-to-target never negative");
 ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
 
+/* ---------------- Rack & Stack 2525: hierarchy + crowd-sourced risk register ---------------- */
+import {
+  hierOf, hierValues, filterByHier, DEMO_PROJECTS,
+  riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
+} from "../lib/innovation-data.ts";
+
+// ── hierarchy: 6-level path, cascading values, filter ──
+const h1 = hierOf(DEMO_PROJECTS[0]);
+ok(!!h1.bu && !!h1.sbu && !!h1.material, "hierOf returns a full BU→Material path");
+ok(hierValues(DEMO_PROJECTS, "bu").length >= 2, "multiple BUs present");
+const sbusOfSaaS = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "Software & SaaS" });
+ok(sbusOfSaaS.length >= 2 && !sbusOfSaaS.includes("Airborne ISR"), "cascading SBU values respect BU parent");
+ok(filterByHier(DEMO_PROJECTS, "bu", "Space").every((p) => hierOf(p).bu === "Space"), "filterByHier scopes to BU");
+ok(filterByHier(DEMO_PROJECTS, "bu", "All").length === DEMO_PROJECTS.length, "filterByHier All = passthrough");
+
+// ── risk scoring: severity×likelihood, status collapses exposure, votes lift priority ──
+const rOpen = { severity: 4, likelihood: 4, status: "open", votes: 0 };
+const rMit = { ...rOpen, status: "mitigated" };
+ok(riskScore(rOpen) === 16, "riskScore = severity × likelihood");
+ok(riskExposure(rMit) < riskExposure(rOpen), "mitigated status collapses exposure");
+ok(riskPriority({ ...rOpen, votes: 30 }) > riskPriority(rOpen), "community votes lift priority");
+ok(riskBand({ severity: 5, likelihood: 5 }) === "critical", "5×5 = critical band");
+ok(riskBand({ severity: 1, likelihood: 2 }) === "low", "2 = low band");
+
+// ── rollup: retired fraction rises as risks are mitigated ──
+const roll = riskRollup(DEMO_RISKS, "PRJ-01");
+ok(roll.count >= 1 && roll.rawExposure > 0, "rollup finds project risks + raw exposure");
+ok(roll.retired >= 0 && roll.retired <= 1, "retired fraction within [0,1]");
+
+// ── growth model Revenue Options: new-product-only < full R&S incremental ──
+const full = gm2(DEMO_PROJECTS, { years: 3, revMode: "full" });
+const newOnly = gm2(DEMO_PROJECTS, { years: 3, revMode: "new" });
+ok(newOnly[2].weighted < full[2].weighted, "Revenue Option 'new' scales NPI below 'full'");
+ok(full.length === 3, "growth model honors # Years = 3");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

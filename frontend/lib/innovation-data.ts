@@ -155,15 +155,26 @@ export function timeReadout(p: Project, startISO: string, unit: TimeUnit) {
 // the probability-weighted incremental revenue from funded NPIs ramping in, the gap remaining
 // to the growth target, and the target line itself. All derived from the funded portfolio.
 export interface GrowthYear { year: number; doNothing: number; weighted: number; remaining: number; target: number }
+// Revenue Options (FLIR "Revenue Options" control): which NPI streams count toward the model.
+// full = Step 1+2+3 R&S incremental · new = Step 1 only (new product) · eol = Step 3 only
+// (existing/phase-out/EOL, if funded) · noStep2 = Step 1+3 without Step 2 (do-nothing).
+export type RevMode = "full" | "new" | "eol" | "noStep2";
+export const REV_MODE: Record<RevMode, { label: string; mult: number }> = {
+  full:    { label: "Step 1+2+3 · R&S incremental", mult: 1 },
+  new:     { label: "Step 1 only · New product",     mult: 0.7 },
+  eol:     { label: "Step 3 only · Existing/EOL",    mult: 0.25 },
+  noStep2: { label: "Step 1+3 · w/o Step 2",         mult: 0.85 },
+};
 export function growthModel(
   funded: Project[],
-  opts: { baseYear?: number; years?: number; decline?: number; growth?: number } = {},
+  opts: { baseYear?: number; years?: number; decline?: number; growth?: number; revMode?: RevMode } = {},
 ): GrowthYear[] {
   const baseYear = opts.baseYear ?? 2026, years = opts.years ?? 6;
   const decline = opts.decline ?? 0.15, growth = opts.growth ?? 0.038;
+  const revMult = REV_MODE[opts.revMode ?? "full"].mult;
   // Annualize 10-yr figures to a year-0 run rate.
   const annualBase = funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
-  const annualNpi = funded.reduce((s, p) => s + weightedRevM(p), 0) / 10;
+  const annualNpi = funded.reduce((s, p) => s + weightedRevM(p), 0) / 10 * revMult;
   const out: GrowthYear[] = [];
   for (let y = 0; y < years; y++) {
     const doNothing = annualBase * Math.pow(1 - decline, y);
@@ -175,6 +186,98 @@ export function growthModel(
   }
   return out;
 }
+
+// ── PORTFOLIO HIERARCHY — highest-complexity large-business tree (re-nameable) ───────────
+// BU → SBU → Product Group → Alpha Group → Product # → Material #. Nomenclature is
+// configurable here so any enterprise can re-label the six tiers without touching logic.
+export const HIER_LEVELS = [
+  { key: "bu",       label: "BU",            full: "Business Unit" },
+  { key: "sbu",      label: "SBU",           full: "Strategic Business Unit" },
+  { key: "pgroup",   label: "Product Group", full: "Product Group" },
+  { key: "alpha",    label: "Alpha Group",   full: "Alpha Group" },
+  { key: "product",  label: "Product #",     full: "Product" },
+  { key: "material", label: "Material #",    full: "Material" },
+] as const;
+export type HierKey = typeof HIER_LEVELS[number]["key"];
+export interface HierPath { bu: string; sbu: string; pgroup: string; alpha: string; product: string; material: string }
+
+// Per-project node path (kept as a side map so project literals stay lean; falls back to
+// existing fields for any project not explicitly mapped).
+export const PROJECT_HIER: Record<string, HierPath> = {
+  "PRJ-01": { bu: "Defense & ISR", sbu: "Airborne ISR", pgroup: "Thermal Sensors", alpha: "Cooled Cores", product: "TC-G5", material: "TC-G5-FPA" },
+  "PRJ-02": { bu: "Autonomy", sbu: "Perception", pgroup: "Edge Compute", alpha: "Fusion Modules", product: "EF-AI", material: "EF-AI-SOM" },
+  "PRJ-03": { bu: "Defense & ISR", sbu: "Maritime", pgroup: "Radar", alpha: "Littoral", product: "ML-RDR", material: "ML-RDR-TRX" },
+  "PRJ-04": { bu: "Defense & ISR", sbu: "Effects", pgroup: "C-UAS", alpha: "Effectors", product: "CUAS-EF", material: "CUAS-EF-WHD" },
+  "PRJ-05": { bu: "Software & SaaS", sbu: "Platform", pgroup: "Governance", alpha: "Cloud", product: "SOI-GOV", material: "SOI-GOV-SVC" },
+  "PRJ-06": { bu: "Commercial", sbu: "Handheld", pgroup: "Multispectral", alpha: "Portable", product: "HH-MS", material: "HH-MS-SENS" },
+  "PRJ-07": { bu: "Space", sbu: "Payloads", pgroup: "Optics", alpha: "Telescopes", product: "SP-OPT", material: "SP-OPT-MIR" },
+  "PRJ-08": { bu: "Software & SaaS", sbu: "Ground Systems", pgroup: "Stations", alpha: "Modernization", product: "GS-MOD", material: "GS-MOD-SW" },
+  "PRJ-09": { bu: "Components", sbu: "Coolers", pgroup: "Cryo", alpha: "NextGen", product: "CC-NG", material: "CC-NG-STIRL" },
+  "PRJ-10": { bu: "Software & SaaS", sbu: "Developer", pgroup: "SDK", alpha: "Marketplace", product: "AUT-SDK", material: "AUT-SDK-PKG" },
+  "PRJ-11": { bu: "Commercial", sbu: "Handheld", pgroup: "Legacy", alpha: "EOL", product: "LEG-BR", material: "LEG-BR-KIT" },
+  "PRJ-12": { bu: "Software & SaaS", sbu: "Comms", pgroup: "Secure Comms", alpha: "Quantum", product: "QS-COM", material: "QS-COM-QKD" },
+};
+export const hierOf = (p: Project): HierPath =>
+  PROJECT_HIER[p.id] ?? { bu: p.lob, sbu: p.division, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
+// Distinct values present at a level, respecting an optional parent filter (cascading).
+export function hierValues(projects: Project[], level: HierKey, parent?: { level: HierKey; value: string }): string[] {
+  const scoped = parent ? projects.filter((p) => hierOf(p)[parent.level] === parent.value) : projects;
+  return Array.from(new Set(scoped.map((p) => hierOf(p)[level]))).sort();
+}
+export const filterByHier = (projects: Project[], level: HierKey, value: string): Project[] =>
+  value === "All" ? projects : projects.filter((p) => hierOf(p)[level] === value);
+
+// ── CROWD-SOURCED RISK REGISTER + POLLING (the 2525 differentiator) ──────────────────────
+// Anyone documents a risk; the community polls it (votes = concurrence); de-risk ladder
+// collapses exposure. Deterministic scores feed the same probability-weighting as NPV.
+export type RiskCategory = "technical" | "commercial" | "schedule" | "supply" | "regulatory" | "other";
+export type RiskStatus = "open" | "mitigating" | "mitigated" | "accepted";
+export const RISK_STATUS_MULT: Record<RiskStatus, number> = { open: 1, mitigating: 0.5, mitigated: 0.1, accepted: 0.75 };
+export const RISK_STATUS_LABEL: Record<RiskStatus, string> = { open: "Open", mitigating: "Mitigating", mitigated: "Mitigated", accepted: "Accepted" };
+export interface Risk {
+  id: string;
+  projectId: string;      // anchor project
+  scopeKey: HierKey;      // hierarchy level it was raised at
+  title: string;
+  category: RiskCategory;
+  severity: 1 | 2 | 3 | 4 | 5;   // impact
+  likelihood: 1 | 2 | 3 | 4 | 5; // probability
+  author: string;         // "anyone" — may be a name or "anonymous"
+  votes: number;          // eXeL polling concurrence
+  status: RiskStatus;
+  mitigation?: string;
+}
+export const riskScore = (r: Risk) => r.severity * r.likelihood;                 // 1..25
+export const riskExposure = (r: Risk) => riskScore(r) * RISK_STATUS_MULT[r.status];
+// Polling-weighted priority: exposure lifted by community concurrence (diminishing, capped ×3).
+export const riskPriority = (r: Risk) => riskExposure(r) * (1 + Math.min(2, r.votes / 10));
+export const riskBand = (r: Risk): "low" | "med" | "high" | "critical" => {
+  const s = riskScore(r);
+  return s >= 20 ? "critical" : s >= 12 ? "high" : s >= 6 ? "med" : "low";
+};
+// Per-project rollup: open-exposure sum + a 0..1 de-risk factor (how much has been retired).
+export function riskRollup(risks: Risk[], projectId: string) {
+  const rs = risks.filter((r) => r.projectId === projectId);
+  const rawExposure = rs.reduce((s, r) => s + riskScore(r), 0);
+  const liveExposure = rs.reduce((s, r) => s + riskExposure(r), 0);
+  const retired = rawExposure ? 1 - liveExposure / rawExposure : 0; // fraction of exposure de-risked
+  return { count: rs.length, rawExposure, liveExposure, retired, open: rs.filter((r) => r.status === "open").length };
+}
+
+export const DEMO_RISKS: Risk[] = [
+  { id: "RSK-01", projectId: "PRJ-01", scopeKey: "product", title: "FPA yield below spec at Gen-5 node", category: "technical", severity: 4, likelihood: 3, author: "A. Seguin", votes: 14, status: "mitigating", mitigation: "Dual-source wafer lot + parametric screen" },
+  { id: "RSK-02", projectId: "PRJ-01", scopeKey: "material", title: "Cooled-core supply lead time > 26 wks", category: "supply", severity: 3, likelihood: 4, author: "anonymous", votes: 9, status: "open" },
+  { id: "RSK-03", projectId: "PRJ-02", scopeKey: "product", title: "Edge SOM export-control reclassification", category: "regulatory", severity: 5, likelihood: 2, author: "R. Kaur", votes: 11, status: "open" },
+  { id: "RSK-04", projectId: "PRJ-04", scopeKey: "product", title: "Effector RF interference in urban clutter", category: "technical", severity: 4, likelihood: 4, author: "T. Cho", votes: 18, status: "open" },
+  { id: "RSK-05", projectId: "PRJ-04", scopeKey: "sbu", title: "Counter-UAS procurement budget slip FY", category: "commercial", severity: 4, likelihood: 3, author: "anonymous", votes: 7, status: "mitigating", mitigation: "Bridge funding via allied FMS" },
+  { id: "RSK-06", projectId: "PRJ-07", scopeKey: "product", title: "Optics mirror figure error under thermal load", category: "technical", severity: 5, likelihood: 3, author: "V. Rossi", votes: 21, status: "open" },
+  { id: "RSK-07", projectId: "PRJ-07", scopeKey: "product", title: "Launch window dependency on partner vehicle", category: "schedule", severity: 4, likelihood: 4, author: "anonymous", votes: 13, status: "mitigating", mitigation: "Secondary rideshare manifest slot" },
+  { id: "RSK-08", projectId: "PRJ-05", scopeKey: "product", title: "Multi-tenant data isolation audit gap", category: "regulatory", severity: 3, likelihood: 2, author: "L. Okafor", votes: 5, status: "mitigated", mitigation: "RLS + SOC2 controls verified" },
+  { id: "RSK-09", projectId: "PRJ-09", scopeKey: "material", title: "Stirling cryocooler helium seal wear", category: "technical", severity: 3, likelihood: 3, author: "D. Park", votes: 6, status: "open" },
+  { id: "RSK-10", projectId: "PRJ-12", scopeKey: "product", title: "QKD hardware TRL immature for schedule", category: "technical", severity: 5, likelihood: 4, author: "anonymous", votes: 24, status: "open" },
+  { id: "RSK-11", projectId: "PRJ-12", scopeKey: "sbu", title: "Standards body not finalized (interop risk)", category: "regulatory", severity: 3, likelihood: 4, author: "T. Cho", votes: 10, status: "open" },
+  { id: "RSK-12", projectId: "PRJ-10", scopeKey: "product", title: "Marketplace take-rate below model", category: "commercial", severity: 3, likelihood: 3, author: "anonymous", votes: 4, status: "accepted" },
+];
 
 // ── STACK: rank order → cumulative NRE → funding line (CRS-42/43/71) ─────────────────────
 export function stackWithBudget(order: Project[], availableK_: number) {

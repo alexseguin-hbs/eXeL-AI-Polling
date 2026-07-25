@@ -13,8 +13,10 @@ import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart,
-  growthModel, RISK_LABEL,
-  type Project, type TimeUnit,
+  growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
+  REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
+  RISK_STATUS_LABEL,
+  type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
 const CODE = "369963";
@@ -64,6 +66,7 @@ function Board() {
     [...DEMO_PROJECTS].sort((a, b) => npvM(b) - npvM(a))
   );
   const [selId, setSelId] = useState(order[0].id);
+  const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
   const avail = availableK(DEMO_BUDGET);
   const { rows, lineIndex } = useMemo(() => stackWithBudget(order, avail), [order, avail]);
   const sel = order.find((p) => p.id === selId) ?? order[0];
@@ -136,11 +139,16 @@ function Board() {
 
         {/* Selected project detail */}
         <section className="space-y-4">
-          <ProjectDetail p={sel} />
+          <ProjectDetail p={sel} risks={risks} />
           <TimeEngine p={sel} />
           <GateCube p={sel} />
           <Differentiators p={sel} />
         </section>
+      </div>
+
+      {/* Crowd-sourced Risk Register — anyone documents, the community polls, the team de-risks */}
+      <div className="px-5 pb-4">
+        <RiskRegister risks={risks} setRisks={setRisks} projects={order} selId={selId} onSelect={setSelId} />
       </div>
 
       {/* Portfolio Growth Model — the signature Rack & Stack chart */}
@@ -218,10 +226,11 @@ function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   return <span className={`rounded px-1.5 py-0.5 text-[11px] font-mono ${c}`}>{label} {RISK_LABEL[level]}</span>;
 }
 
-function ProjectDetail({ p }: { p: Project }) {
+function ProjectDetail({ p, risks }: { p: Project; risks: Risk[] }) {
   const band = GATE_BAND[p.gate];
   const captured = Math.round(pSuccess(p) * 100);
   const upside = Math.round(upsideFraction(p) * 100);
+  const roll = riskRollup(risks, p.id);
   const metrics: [string, string][] = [
     ["NPV", usd(npvM(p))], ["IRR", `${irrPct(p)}%`], ["Rev/NRE", `${revOverNre(p).toFixed(1)}×`],
     ["Rev captured", `${captured}%`], ["Upside", `${upside}%`], ["P-wt revenue", usd(weightedRevM(p))],
@@ -239,8 +248,18 @@ function ProjectDetail({ p }: { p: Project }) {
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
         <RiskPill label="Tech" level={p.tech} />
         <RiskPill label="Comm" level={p.comm} />
-        <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-slate-300">{p.lob}</span>
+        <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-slate-300">{hierOf(p).bu} › {hierOf(p).sbu}</span>
         <span className="ml-auto">P(success) = {Math.round(pSuccess(p) * 100)}% → {captured}% captured · {upside}% upside</span>
+      </div>
+      {/* Live crowd-sourced risk rollup for this project */}
+      <div className="mt-2 flex items-center gap-2 text-[11px]">
+        <span className="text-slate-500">Risk register:</span>
+        <span className="text-slate-300">{roll.count} risk{roll.count === 1 ? "" : "s"}</span>
+        <span className="text-slate-600">·</span>
+        <span className={roll.open ? "text-rose-300" : "text-emerald-300"}>{roll.open} open</span>
+        <span className="text-slate-600">·</span>
+        <span className="text-slate-300">exposure {Math.round(roll.liveExposure)}/{roll.rawExposure}</span>
+        <span className="ml-auto text-emerald-400">{Math.round(roll.retired * 100)}% de-risked</span>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {metrics.map(([l, v]) => (
@@ -378,62 +397,236 @@ function Differentiators({ p }: { p: Project }) {
   );
 }
 
-// Growth Model (CRS-69): stacked do-nothing + weighted NPI + remaining-to-target, target line.
-// LOB filter — see how each line of business stacks against revenue + the growth-rate target.
+// Growth Model (CRS-69) — the signature Rack & Stack chart, now with the full FLIR control set:
+// BU→SBU hierarchy filter, # Years (1/3/10), Targeted Growth Rate, YoY Do-Nothing decline,
+// Revenue Options (which NPI steps count), Show/Hide baseline, 4-series legend.
 function GrowthModelChart({ funded }: { funded: Project[] }) {
-  const [lob, setLob] = useState("All");
-  const lobs = useMemo(() => ["All", ...Array.from(new Set(funded.map((p) => p.lob))).sort()], [funded]);
-  const scoped = lob === "All" ? funded : funded.filter((p) => p.lob === lob);
-  const rows = growthModel(scoped);
+  const [bu, setBu] = useState("All");
+  const [sbu, setSbu] = useState("All");
+  const [years, setYears] = useState(3);
+  const [growthPct, setGrowthPct] = useState("3.8");
+  const [declinePct, setDeclinePct] = useState("15.1");
+  const [revMode, setRevMode] = useState<RevMode>("full");
+  const [showBaseline, setShowBaseline] = useState(true);
+
+  const bus = useMemo(() => ["All", ...hierValues(funded, "bu")], [funded]);
+  const sbus = useMemo(() => ["All", ...hierValues(funded, "sbu", bu === "All" ? undefined : { level: "bu", value: bu })], [funded, bu]);
+  const scoped = useMemo(() => {
+    let s = filterByHier(funded, "bu", bu);
+    s = filterByHier(s, "sbu", sbu);
+    return s;
+  }, [funded, bu, sbu]);
+
+  const growth = (parseFloat(growthPct) || 0) / 100;
+  const decline = (parseFloat(declinePct) || 0) / 100;
+  const rows = growthModel(scoped, { years, growth, decline, revMode, baseYear: 2026 });
   const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
-  const max = Math.max(...rows.map((r) => Math.max(r.target, r.doNothing + r.weighted + r.remaining))) * 1.1 || 1;
+  const stackOf = (r: (typeof rows)[number]) => (showBaseline ? r.doNothing : 0) + r.weighted + r.remaining;
+  const max = Math.max(...rows.map((r) => Math.max(r.target, stackOf(r))), 1) * 1.1;
   const pw = (W - L - R) / rows.length;
   const y = (v: number) => H - B - (v / max) * (H - B - T);
-  const growthPct = ((Math.pow(rows[rows.length - 1].target / (rows[0].target || 1), 1 / Math.max(1, rows.length - 1)) - 1) * 100).toFixed(1);
+  const cagr = ((Math.pow((rows[rows.length - 1]?.target || 1) / (rows[0]?.target || 1), 1 / Math.max(1, rows.length - 1)) - 1) * 100).toFixed(1);
+
+  const selStyle = "rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500";
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">Growth Model · Do-Nothing + Rack-&-Stack NPIs</h3>
-        <div className="flex items-center gap-3">
-          <label className="text-[11px] text-slate-400">LOB
-            <select value={lob} onChange={(e) => setLob(e.target.value)}
-              className="ml-1.5 rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500">
-              {lobs.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </label>
-          <span className="text-[11px] text-slate-500">target CAGR ~{growthPct}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
+        <h3 className="text-sm font-semibold">Growth Model · Do-Nothing Scenario with Rack &amp; Stack NPIs</h3>
+        <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
+      </div>
+
+      {/* Hierarchy scope (BU → SBU) — cascading, re-nameable levels */}
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
+        <label>{HIER_LEVELS[0].label}
+          <select value={bu} onChange={(e) => { setBu(e.target.value); setSbu("All"); }} className={`ml-1.5 ${selStyle}`}>
+            {bus.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </label>
+        <label>{HIER_LEVELS[1].label}
+          <select value={sbu} onChange={(e) => setSbu(e.target.value)} className={`ml-1.5 ${selStyle}`}>
+            {sbus.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </label>
+        {/* # Years */}
+        <div className="ml-auto flex overflow-hidden rounded-md border border-slate-700">
+          {[1, 3, 10].map((yv) => (
+            <button key={yv} onClick={() => setYears(yv)}
+              className={`px-2.5 py-1 font-mono ${years === yv ? "bg-cyan-500 text-[#06202a]" : "text-slate-300 hover:bg-slate-800"}`}>{yv}yr</button>
+          ))}
         </div>
       </div>
+
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
           <line key={f} x1={L} y1={y(max * f)} x2={W - R} y2={y(max * f)} stroke="rgba(148,163,184,.12)" />
         ))}
         {rows.map((r, i) => {
           const x = L + i * pw + pw * 0.18, bw = pw * 0.64;
-          const dnH = (H - B) - y(r.doNothing);
-          const wY = y(r.doNothing + r.weighted), rY = y(r.doNothing + r.weighted + r.remaining);
+          const base = showBaseline ? r.doNothing : 0;
+          const dnH = (H - B) - y(base);
+          const wY = y(base + r.weighted), rY = y(base + r.weighted + r.remaining);
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9">
-              <rect x={x} y={y(r.doNothing)} width={bw} height={Math.max(0, dnH)} fill="#64748b" opacity="0.7" />
-              <rect x={x} y={wY} width={bw} height={Math.max(0, y(r.doNothing) - wY)} fill="#34d399" />
+              {showBaseline && <rect x={x} y={y(base)} width={bw} height={Math.max(0, dnH)} fill="#64748b" opacity="0.7" />}
+              <rect x={x} y={wY} width={bw} height={Math.max(0, y(base) - wY)} fill="#34d399" />
               <rect x={x} y={rY} width={bw} height={Math.max(0, wY - rY)} fill="#fbbf24" opacity="0.9" />
               <text x={x + bw / 2} y={H - B + 12} textAnchor="middle" fill="#64748b">{r.year}</text>
-              <text x={x + bw / 2} y={rY - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(r.doNothing + r.weighted + r.remaining)}</text>
+              <text x={x + bw / 2} y={rY - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(stackOf(r))}</text>
             </g>
           );
         })}
-        <polyline
-          points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")}
-          fill="none" stroke="#e2e8f0" strokeWidth="1.4"
-        />
+        <polyline points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />
         {rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
       </svg>
+
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b" }} />do-nothing (YoY decline)</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />probability-weighted NPI</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />remaining to target</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />growth target</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b" }} />Do-Nothing baseline (YoY decline)</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />Weighted NPI revenue</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />Remaining NPI to target (risk)</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />Growth target</span>
       </div>
+
+      {/* Adjustable rates + revenue options (FLIR control parity) */}
+      <div className="mt-3 flex flex-wrap items-end gap-3 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
+        <label>Targeted Growth %
+          <input type="text" inputMode="decimal" value={growthPct} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setGrowthPct(e.target.value)}
+            className={`ml-1.5 w-16 ${selStyle} tabular-nums`} />
+        </label>
+        <label>YoY Do-Nothing % (decline)
+          <input type="text" inputMode="decimal" value={declinePct} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setDeclinePct(e.target.value)}
+            className={`ml-1.5 w-16 ${selStyle} tabular-nums`} />
+        </label>
+        <label>Revenue Options
+          <select value={revMode} onChange={(e) => setRevMode(e.target.value as RevMode)} className={`ml-1.5 ${selStyle}`}>
+            {(Object.keys(REV_MODE) as RevMode[]).map((m) => <option key={m} value={m}>{REV_MODE[m].label}</option>)}
+          </select>
+        </label>
+        <label className="flex items-center gap-1.5">
+          <input type="checkbox" checked={showBaseline} onChange={(e) => setShowBaseline(e.target.checked)} className="accent-cyan-500" />
+          Show baseline
+        </label>
+      </div>
+    </div>
+  );
+}
+
+// Crowd-sourced Risk Register — anyone documents a risk, the community polls it (votes),
+// the team de-risks it (status ladder). The 2525 differentiator vs. a static risk cell.
+const RISK_CATS: RiskCategory[] = ["technical", "commercial", "schedule", "supply", "regulatory", "other"];
+const RISK_STATUS_ORDER: RiskStatus[] = ["open", "mitigating", "mitigated", "accepted"];
+const bandColor: Record<string, string> = {
+  low: "bg-slate-700 text-slate-200", med: "bg-amber-500/20 text-amber-300",
+  high: "bg-orange-500/25 text-orange-300", critical: "bg-rose-500/25 text-rose-300",
+};
+const statusColor: Record<RiskStatus, string> = {
+  open: "text-rose-300", mitigating: "text-amber-300", mitigated: "text-emerald-300", accepted: "text-slate-400",
+};
+
+function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
+  risks: Risk[]; setRisks: (r: Risk[]) => void; projects: Project[]; selId: string; onSelect: (id: string) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [cat, setCat] = useState<RiskCategory>("technical");
+  const [sev, setSev] = useState(3);
+  const [like, setLike] = useState(3);
+  const [pid, setPid] = useState(selId);
+  const ranked = useMemo(() => [...risks].sort((a, b) => riskPriority(b) - riskPriority(a)), [risks]);
+  const nameOf = (id: string) => projects.find((p) => p.id === id)?.name ?? id;
+
+  const add = () => {
+    if (!title.trim()) return;
+    const n = risks.length + 1;
+    const risk: Risk = {
+      id: `RSK-${String(n).padStart(2, "0")}-${Math.round(sev * like)}`,
+      projectId: pid, scopeKey: "product", title: title.trim(), category: cat,
+      severity: sev as Risk["severity"], likelihood: like as Risk["likelihood"],
+      author: "you", votes: 1, status: "open",
+    };
+    setRisks([risk, ...risks]);
+    setTitle("");
+  };
+  const upvote = (id: string) => setRisks(risks.map((r) => r.id === id ? { ...r, votes: r.votes + 1 } : r));
+  const cycle = (id: string) => setRisks(risks.map((r) => {
+    if (r.id !== id) return r;
+    const i = RISK_STATUS_ORDER.indexOf(r.status);
+    return { ...r, status: RISK_STATUS_ORDER[(i + 1) % RISK_STATUS_ORDER.length] };
+  }));
+
+  const sel = `rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500`;
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">Risk Register · documented by anyone, ranked by the community</h2>
+        <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">eXeL AI Polling · de-risk together</span>
+      </div>
+
+      {/* Add-a-risk form — anyone can document */}
+      <div className="mt-3 flex flex-wrap items-end gap-2 text-[11px] text-slate-400">
+        <label className="flex-1 min-w-[180px]">Risk
+          <input value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()}
+            placeholder="Describe a risk anyone should know about…" className={`mt-0.5 block w-full ${sel}`} />
+        </label>
+        <label>Project
+          <select value={pid} onChange={(e) => setPid(e.target.value)} className={`ml-1.5 ${sel}`}>
+            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </label>
+        <label>Type
+          <select value={cat} onChange={(e) => setCat(e.target.value as RiskCategory)} className={`ml-1.5 ${sel}`}>
+            {RISK_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <label>Sev
+          <select value={sev} onChange={(e) => setSev(+e.target.value)} className={`ml-1.5 ${sel}`}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</select>
+        </label>
+        <label>Like
+          <select value={like} onChange={(e) => setLike(+e.target.value)} className={`ml-1.5 ${sel}`}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</select>
+        </label>
+        <button onClick={add} disabled={!title.trim()} className="rounded-md bg-cyan-500 px-3 py-1.5 font-semibold text-[#06202a] hover:bg-cyan-400 disabled:opacity-30">+ Add</button>
+      </div>
+
+      {/* Ranked risk list */}
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+              <th className="px-2 py-1.5 text-left">Risk</th>
+              <th className="px-2 py-1.5 text-left">Project</th>
+              <th className="px-2 py-1.5 text-center">S×L</th>
+              <th className="px-2 py-1.5 text-center">Status</th>
+              <th className="px-2 py-1.5 text-right">Priority</th>
+              <th className="px-2 py-1.5 text-center">Votes</th>
+              <th className="px-2 py-1.5"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {ranked.map((r) => (
+              <tr key={r.id} onClick={() => onSelect(r.projectId)}
+                className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/40 ${selId === r.projectId ? "bg-cyan-500/5" : ""}`}>
+                <td className="px-2 py-1.5">
+                  <div className="leading-tight">{r.title}</div>
+                  <div className="text-[10px] text-slate-500">{r.category} · by {r.author}{r.mitigation ? ` · ${r.mitigation}` : ""}</div>
+                </td>
+                <td className="px-2 py-1.5 text-[11px] text-slate-400">{nameOf(r.projectId)}</td>
+                <td className="px-2 py-1.5 text-center">
+                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${bandColor[riskBand(r)]}`}>{r.severity}×{r.likelihood}={riskScore(r)}</span>
+                </td>
+                <td className="px-2 py-1.5 text-center">
+                  <button onClick={(e) => { e.stopPropagation(); cycle(r.id); }} className={`text-[11px] font-medium ${statusColor[r.status]} hover:underline`}>{RISK_STATUS_LABEL[r.status]} ↻</button>
+                </td>
+                <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-slate-200">{Math.round(riskPriority(r))}</td>
+                <td className="px-2 py-1.5 text-center tabular-nums text-slate-300">{r.votes}</td>
+                <td className="px-2 py-1.5 text-right">
+                  <button onClick={(e) => { e.stopPropagation(); upvote(r.id); }} className="rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-cyan-300 hover:bg-cyan-500/10" title="Poll: I agree this is a risk">▲ vote</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-[11px] text-slate-500">
+        Priority = severity × likelihood × status × community concurrence (votes). Cycle status to de-risk — exposure collapses as the team mitigates. Mitigated pays = materialized (CRS-81→84).
+      </p>
     </div>
   );
 }
