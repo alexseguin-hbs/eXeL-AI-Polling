@@ -72,24 +72,31 @@ import {
   hierOf, hierValues, filterByHier, DEMO_PROJECTS,
   riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
   SBU_BASE, companyBaseM, lobBaseM, companyRollup, sayDo, execOf, briefOf,
+  buBaseM, scopeBaseM, GATE_DELIVERABLES, GATES as GATE_LIST,
 } from "../lib/innovation-data.ts";
 
-// ── hierarchy: Company → LOB (SBU) → Product Group, cascading + filter ──
+// ── hierarchy: Company → BU → SBU → Product Group, cascading + filter ──
 const h1 = hierOf(DEMO_PROJECTS[0]);
-ok(!!h1.bu && !!h1.sbu && !!h1.material, "hierOf returns a full LOB→Material path");
-ok(hierValues(DEMO_PROJECTS, "bu").length === 3, "exactly 3 LOBs (SBU-1/2/3)");
-const pgsOfSbu1 = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "SBU-1" });
-ok(pgsOfSbu1.every((pg) => ["PG-1", "PG-2", "PG-3"].includes(pg)), "cascading Product Groups respect LOB parent");
-ok(filterByHier(DEMO_PROJECTS, "bu", "SBU-3").every((p) => hierOf(p).bu === "SBU-3"), "filterByHier scopes to LOB");
+ok(!!h1.bu && !!h1.sbu && !!h1.pgroup && !!h1.material, "hierOf returns full BU→SBU→PG→Material path");
+ok(hierValues(DEMO_PROJECTS, "bu").length === 2, "exactly 2 BUs");
+ok(hierValues(DEMO_PROJECTS, "sbu").length === 3, "exactly 3 SBUs (SBU-1/2/3)");
+const sbusOfMS = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "Mission Systems" });
+ok(sbusOfMS.includes("SBU-1") && sbusOfMS.includes("SBU-2") && !sbusOfMS.includes("SBU-3"), "cascading SBUs respect BU parent");
+ok(filterByHier(DEMO_PROJECTS, "sbu", "SBU-3").every((p) => hierOf(p).sbu === "SBU-3"), "filterByHier scopes to SBU");
 ok(filterByHier(DEMO_PROJECTS, "bu", "All").length === DEMO_PROJECTS.length, "filterByHier All = passthrough");
 
-// ── LOB base revenue + company rollup (operator: 300 / 100 / 300 → 700M) ──
-ok(SBU_BASE["SBU-1"] === 300 && SBU_BASE["SBU-2"] === 100 && SBU_BASE["SBU-3"] === 300, "LOB base revenues 300/100/300");
-ok(companyBaseM() === 700, "company base = Σ LOB = 700M");
-ok(lobBaseM("SBU-2") === 100 && lobBaseM("All") === 700, "lobBaseM: LOB and company (All)");
+// ── SBU base revenue + BU/Company rollup (operator: 300/100/300 → BU 400+300 → 700M) ──
+ok(SBU_BASE["SBU-1"] === 300 && SBU_BASE["SBU-2"] === 100 && SBU_BASE["SBU-3"] === 300, "SBU base revenues 300/100/300");
+ok(companyBaseM() === 700, "company base = Σ SBU = 700M");
+ok(buBaseM("Mission Systems") === 400 && buBaseM("Advanced Programs") === 300, "BU base = Σ its SBUs");
+ok(scopeBaseM("All", "All") === 700 && scopeBaseM("Mission Systems", "All") === 400 && scopeBaseM("x", "SBU-2") === 100, "scopeBaseM: Company/BU/SBU");
 const cr = companyRollup(DEMO_PROJECTS);
-ok(cr.lobs.length === 3 && cr.company.count === DEMO_PROJECTS.length, "rollup: 3 LOBs, company counts all projects");
-ok(cr.lobs.every((l) => l.groups.length >= 1), "each LOB rolls up ≥1 Product Group");
+ok(cr.bus.length === 2 && cr.company.count === DEMO_PROJECTS.length, "rollup: 2 BUs, company counts all projects");
+ok(cr.bus.every((b) => b.sbus.length >= 1 && b.sbus.every((s) => s.groups.length >= 1)), "BU → SBU → Product Group nesting");
+
+// ── minimum deliverables per gate (AIML gate-deliverables) ──
+ok(GATE_LIST.every((g) => GATE_DELIVERABLES[g] && GATE_DELIVERABLES[g].length >= 1), "every gate G1–G7 has ≥1 min deliverable");
+ok(GATE_DELIVERABLES.G1.includes("Executive Summary") && GATE_DELIVERABLES.G7.includes("End-of-Life Strategy"), "Concept + Retire deliverables match the AIML slide");
 // ── growth model base override anchors the do-nothing baseline ──
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 300 })[0].doNothing === 300, "baseOverrideM anchors year-0 do-nothing");
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 0 })[0].doNothing === 0, "grey jump-off settable to zero (per-project)");

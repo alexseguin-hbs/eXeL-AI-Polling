@@ -17,6 +17,7 @@ import {
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
+  scopeBaseM, GATE_DELIVERABLES,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -438,6 +439,15 @@ function GateCube({ p }: { p: Project }) {
         ))}
       </div>
       <div className="mt-2 text-[11px] text-slate-500">Layers = gate bands · lit = approved (append-only event fold, CRS-76/78)</div>
+      {/* Minimum PM deliverables at the current gate (AIML gate-deliverables) */}
+      <div className="mt-3 border-t border-slate-800 pt-2">
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">Min deliverables · {GATE_STAGE[p.gate]} ({p.gate})</div>
+        <ul className="mt-1 flex flex-wrap gap-1.5">
+          {GATE_DELIVERABLES[p.gate].map((d) => (
+            <li key={d} className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] text-slate-300">✓ {d}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -488,31 +498,36 @@ const GATE_DIAMONDS = ["G1", "G2", "G3", "G4", "G5", "G6", "G7"] as const;
 function GrowthModelChart({ funded }: { funded: Project[] }) {
   const [bu, setBu] = useState("All");
   const [sbu, setSbu] = useState("All");
+  const [pg, setPg] = useState("All");
   const [years, setYears] = useState(3);
   const [growthPct, setGrowthPct] = useState("3.8");
   const [declinePct, setDeclinePct] = useState("15.1");
   const [revMode, setRevMode] = useState<RevMode>("full");
   const [showBaseline, setShowBaseline] = useState(true);
-  // LOB base revenue ($M) — enterable; defaults to the selected LOB (SBU-1/2/3) or company sum.
+  // SBU base revenue ($M) — enterable; defaults to scope (SBU → SBU base · BU → Σ SBUs · Company → 700).
   const [baseStr, setBaseStr] = useState(String(companyBaseM()));
-  useEffect(() => { setBaseStr(String(lobBaseM(bu))); }, [bu]);
-  // View level (max-UX switcher): Company → LOB/SBU → Product Group. Drives the scope dropdowns.
-  const [level, setLevel] = useState<"company" | "lob" | "pg">("company");
+  useEffect(() => { setBaseStr(String(scopeBaseM(bu, sbu))); }, [bu, sbu]);
+  // View level (max-UX switcher): Company → BU → SBU → Product Group. Drives the scope dropdowns.
+  const [level, setLevel] = useState<"company" | "bu" | "sbu" | "pg">("company");
   const [hover, setHover] = useState<number | null>(null);
-  const setLevelScope = (lv: "company" | "lob" | "pg") => {
+  const firstBu = () => hierValues(funded, "bu")[0] ?? "All";
+  const setLevelScope = (lv: "company" | "bu" | "sbu" | "pg") => {
     setLevel(lv);
-    if (lv === "company") { setBu("All"); setSbu("All"); }
-    else if (lv === "lob") { setSbu("All"); if (bu === "All") setBu(hierValues(funded, "bu")[0] ?? "All"); }
-    else { if (bu === "All") setBu(hierValues(funded, "bu")[0] ?? "All"); }
+    if (lv === "company") { setBu("All"); setSbu("All"); setPg("All"); }
+    else if (lv === "bu") { setSbu("All"); setPg("All"); if (bu === "All") setBu(firstBu()); }
+    else if (lv === "sbu") { setPg("All"); if (bu === "All") setBu(firstBu()); }
+    else { if (bu === "All") setBu(firstBu()); }
   };
 
   const bus = useMemo(() => ["All", ...hierValues(funded, "bu")], [funded]);
   const sbus = useMemo(() => ["All", ...hierValues(funded, "sbu", bu === "All" ? undefined : { level: "bu", value: bu })], [funded, bu]);
+  const pgs = useMemo(() => ["All", ...hierValues(funded, "pgroup", sbu === "All" ? undefined : { level: "sbu", value: sbu })], [funded, sbu]);
   const scoped = useMemo(() => {
     let s = filterByHier(funded, "bu", bu);
     s = filterByHier(s, "sbu", sbu);
+    s = filterByHier(s, "pgroup", pg);
     return s;
-  }, [funded, bu, sbu]);
+  }, [funded, bu, sbu, pg]);
 
   const growth = (parseFloat(growthPct) || 0) / 100;
   const decline = (parseFloat(declinePct) || 0) / 100;
@@ -533,25 +548,32 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
         <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
       </div>
 
-      {/* View-level switcher (max UX): Company → LOB/SBU → Product Group, + cascading scope */}
+      {/* View-level switcher (max UX): Company → BU → SBU → Product Group, + cascading scope */}
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["company", "Company"], ["lob", "LOB / SBU"], ["pg", "Product Group"]] as const).map(([lv, lbl]) => (
+          {([["company", "Company"], ["bu", "BU"], ["sbu", "SBU"], ["pg", "Product Group"]] as const).map(([lv, lbl]) => (
             <button key={lv} onClick={() => setLevelScope(lv)}
               className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
         </div>
         {level !== "company" && (
-          <label>{HIER_LEVELS[0].label}
-            <select value={bu} onChange={(e) => { setBu(e.target.value); setSbu("All"); }} className={`ml-1.5 ${selStyle}`}>
+          <label>BU
+            <select value={bu} onChange={(e) => { setBu(e.target.value); setSbu("All"); setPg("All"); }} className={`ml-1.5 ${selStyle}`}>
               {bus.filter((o) => o !== "All").map((o) => <option key={o} value={o}>{o}</option>)}
             </select>
           </label>
         )}
-        {level === "pg" && (
-          <label>{HIER_LEVELS[1].label}
-            <select value={sbu} onChange={(e) => setSbu(e.target.value)} className={`ml-1.5 ${selStyle}`}>
+        {(level === "sbu" || level === "pg") && (
+          <label>SBU
+            <select value={sbu} onChange={(e) => { setSbu(e.target.value); setPg("All"); }} className={`ml-1.5 ${selStyle}`}>
               {sbus.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </label>
+        )}
+        {level === "pg" && (
+          <label>Product Group
+            <select value={pg} onChange={(e) => setPg(e.target.value)} className={`ml-1.5 ${selStyle}`}>
+              {pgs.map((o) => <option key={o} value={o}>{o}</option>)}
             </select>
           </label>
         )}
@@ -716,8 +738,8 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
 
   return (
     <div className="space-y-4">
-      {/* Company → LOB → Product Group rollup (base revenue · spend · NPV) */}
-      <DashCard title="Rollup · Company → LOB → Product Group" tag="Company">
+      {/* Company → BU → SBU → Product Group rollup (base revenue · spend · NPV) */}
+      <DashCard title="Rollup · Company → BU → SBU → Product Group" tag="Company">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -737,30 +759,41 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
                 <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(roll.company.npvM)}</td>
                 <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{roll.company.count}</td>
               </tr>
-              {roll.lobs.map((lob) => (
-                <React.Fragment key={lob.name}>
-                  <tr className="border-b border-slate-900 bg-slate-900/30">
-                    <td className="px-2 py-1.5 pl-5 font-medium">▸ {lob.name} <span className="text-[10px] text-slate-500">(LOB)</span></td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-emerald-300">${lob.baseM}M</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{kM(lob.spendK)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(lob.npvM)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{lob.count}</td>
+              {roll.bus.map((bu) => (
+                <React.Fragment key={bu.name}>
+                  <tr className="border-b border-slate-900 bg-slate-900/40">
+                    <td className="px-2 py-1.5 pl-4 font-semibold text-slate-100">▸ {bu.name} <span className="text-[10px] text-slate-500">(BU)</span></td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-emerald-300">${bu.baseM}M</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{kM(bu.spendK)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(bu.npvM)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{bu.count}</td>
                   </tr>
-                  {lob.groups.map((g) => (
-                    <tr key={g.name} className="border-b border-slate-900/50 text-[12px]">
-                      <td className="px-2 py-1 pl-9 text-slate-400">· {g.name} <span className="text-[10px] text-slate-600">(Product Group)</span></td>
-                      <td className="px-2 py-1 text-right text-slate-600">—</td>
-                      <td className="px-2 py-1 text-right tabular-nums text-slate-400">{kM(g.spendK)}</td>
-                      <td className="px-2 py-1 text-right tabular-nums text-slate-400">{usd(g.npvM)}</td>
-                      <td className="px-2 py-1 text-right tabular-nums text-slate-500">{g.count}</td>
-                    </tr>
+                  {bu.sbus.map((sbu) => (
+                    <React.Fragment key={sbu.name}>
+                      <tr className="border-b border-slate-900 bg-slate-900/20">
+                        <td className="px-2 py-1 pl-8 font-medium">· {sbu.name} <span className="text-[10px] text-slate-500">(SBU)</span></td>
+                        <td className="px-2 py-1 text-right tabular-nums text-emerald-300">${sbu.baseM}M</td>
+                        <td className="px-2 py-1 text-right tabular-nums text-slate-300">{kM(sbu.spendK)}</td>
+                        <td className="px-2 py-1 text-right tabular-nums text-emerald-400">{usd(sbu.npvM)}</td>
+                        <td className="px-2 py-1 text-right tabular-nums text-slate-400">{sbu.count}</td>
+                      </tr>
+                      {sbu.groups.map((g) => (
+                        <tr key={g.name} className="border-b border-slate-900/50 text-[12px]">
+                          <td className="px-2 py-1 pl-12 text-slate-400">– {g.name} <span className="text-[10px] text-slate-600">(PG)</span></td>
+                          <td className="px-2 py-1 text-right text-slate-600">—</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-slate-400">{kM(g.spendK)}</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-slate-400">{usd(g.npvM)}</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-slate-500">{g.count}</td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </React.Fragment>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-[10px] text-slate-500">Base revenue anchors the do-nothing growth model per LOB (enter it in Growth Model). Company = Σ LOB base.</p>
+        <p className="mt-2 text-[10px] text-slate-500">Base revenue anchors the do-nothing growth model per SBU. BU = Σ its SBUs · Company = Σ all BUs (700M).</p>
       </DashCard>
 
       {/* Top Dashboard — FLIR R&D VIEW KPIs */}

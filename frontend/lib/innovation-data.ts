@@ -10,6 +10,16 @@ export const GATE_BAND: Record<Gate, number> = { G1: 0.6, G2: 0.6, G3: 0.4, G4: 
 export const GATE_STAGE: Record<Gate, string> = {
   G1: "Concept", G2: "Plan", G3: "Develop", G4: "Develop", G5: "Qualify", G6: "Launch", G7: "Sustain",
 };
+// Minimum Product-Management deliverables per gate (AIML "Gate Deliverables" — reviews & approvals).
+export const GATE_DELIVERABLES: Record<Gate, string[]> = {
+  G1: ["Executive Summary", "Financial — Return", "Customer CONOPS", "Customer Problem", "Product Summary"],
+  G2: ["Customer Workflow", "Competition + Value", "User Stories — Highlights", "Financials by Year", "Prelim Feedback"],
+  G3: ["Go-To-Market", "Risk Highlights"],
+  G4: ["Go-To-Market (refined)", "Risk burn-down"],
+  G5: ["Resourcing", "BETA Feedback"],
+  G6: ["Market Performance"],
+  G7: ["Post-Launch Dev", "End-of-Life Strategy"],
+};
 
 // Risk model (operator default): probability weight = P(tech) × P(comm), each from a discrete
 // risk level. Low = 90% · Med = 60% · High = 30% probability of success. So Low/Low captures
@@ -273,63 +283,78 @@ export function growthModel(
 }
 
 // ── PORTFOLIO HIERARCHY — highest-complexity large-business tree (re-nameable) ───────────
-// BU → SBU → Product Group → Alpha Group → Product # → Material #. Nomenclature is
-// configurable here so any enterprise can re-label the six tiers without touching logic.
-// Rollup chain (operator): Company → LOB (Strategic Business Unit) → Product Group → …
-// `bu` carries the LOB/SBU, `sbu` carries the Product Group. Re-nameable via labels.
+// Company → BU → SBU → Product Group → Alpha Group → Product # → Material # (BOM).
+// `bu` = Business Unit, `sbu` = Strategic Business Unit (carries base revenue), `pgroup` =
+// Product Group, `alpha` = Alpha Group, `product` = Product #, `material` = Material # (BOM).
 export const HIER_LEVELS = [
-  { key: "bu",       label: "LOB",           full: "Line of Business (SBU)" },
-  { key: "sbu",      label: "Product Group", full: "Product Group" },
-  { key: "pgroup",   label: "Alpha Group",   full: "Alpha Group" },
-  { key: "alpha",    label: "Program",       full: "Program" },
+  { key: "bu",       label: "BU",            full: "Business Unit" },
+  { key: "sbu",      label: "SBU",           full: "Strategic Business Unit" },
+  { key: "pgroup",   label: "Product Group", full: "Product Group" },
+  { key: "alpha",    label: "Alpha Group",   full: "Alpha Group" },
   { key: "product",  label: "Product #",     full: "Product" },
-  { key: "material", label: "Material #",    full: "Material" },
+  { key: "material", label: "Material #",    full: "Material (BOM line)" },
 ] as const;
 export type HierKey = typeof HIER_LEVELS[number]["key"];
 export interface HierPath { bu: string; sbu: string; pgroup: string; alpha: string; product: string; material: string }
 
-export const COMPANY_NAME = "Company (All LOBs)";
-// LOB base revenue ($M) — the do-nothing anchor the operator enters per SBU/LOB.
+export const COMPANY_NAME = "Company (All BUs)";
+// SBU base revenue ($M) — the do-nothing anchor the operator enters per SBU.
 export const SBU_BASE: Record<string, number> = { "SBU-1": 300, "SBU-2": 100, "SBU-3": 300 };
+// Each SBU rolls up to a BU (Business Unit).
+export const BU_OF_SBU: Record<string, string> = { "SBU-1": "Mission Systems", "SBU-2": "Mission Systems", "SBU-3": "Advanced Programs" };
 export const companyBaseM = () => Object.values(SBU_BASE).reduce((s, v) => s + v, 0); // 700
-export const lobBaseM = (lob: string) => (lob === "All" || lob === COMPANY_NAME ? companyBaseM() : SBU_BASE[lob] ?? 0);
+export const sbuBaseM = (sbu: string) => SBU_BASE[sbu] ?? 0;
+export const buBaseM = (bu: string) => Object.entries(SBU_BASE).filter(([s]) => BU_OF_SBU[s] === bu).reduce((a, [, v]) => a + v, 0);
+// Base for the current Growth-Model scope (Company / BU / SBU).
+export const scopeBaseM = (bu: string, sbu: string) =>
+  sbu && sbu !== "All" ? sbuBaseM(sbu) : bu && bu !== "All" ? buBaseM(bu) : companyBaseM();
+// Back-compat alias (older callers passed the revenue-bearing unit).
+export const lobBaseM = (v: string) => (v === "All" || v === COMPANY_NAME ? companyBaseM() : SBU_BASE[v] ?? buBaseM(v));
 
-// Per-project node path — 3 LOBs (SBU-1/2/3) × Product Groups PG-1…PG-9 (3 per SBU).
+// Per-project node path — BU → SBU (SBU-1/2/3) → Product Group (PG-1…9) → Alpha → Product → Material.
 export const PROJECT_HIER: Record<string, HierPath> = {
-  "PRJ-01": { bu: "SBU-1", sbu: "PG-1", pgroup: "Thermal Sensors", alpha: "Cooled Cores", product: "TC-G5", material: "TC-G5-FPA" },
-  "PRJ-02": { bu: "SBU-1", sbu: "PG-2", pgroup: "Edge Compute", alpha: "Fusion Modules", product: "EF-AI", material: "EF-AI-SOM" },
-  "PRJ-03": { bu: "SBU-1", sbu: "PG-3", pgroup: "Radar", alpha: "Littoral", product: "ML-RDR", material: "ML-RDR-TRX" },
-  "PRJ-04": { bu: "SBU-1", sbu: "PG-1", pgroup: "C-UAS", alpha: "Effectors", product: "CUAS-EF", material: "CUAS-EF-WHD" },
-  "PRJ-05": { bu: "SBU-2", sbu: "PG-4", pgroup: "Governance", alpha: "Cloud", product: "SOI-GOV", material: "SOI-GOV-SVC" },
-  "PRJ-06": { bu: "SBU-2", sbu: "PG-5", pgroup: "Multispectral", alpha: "Portable", product: "HH-MS", material: "HH-MS-SENS" },
-  "PRJ-07": { bu: "SBU-3", sbu: "PG-7", pgroup: "Optics", alpha: "Telescopes", product: "SP-OPT", material: "SP-OPT-MIR" },
-  "PRJ-08": { bu: "SBU-2", sbu: "PG-6", pgroup: "Stations", alpha: "Modernization", product: "GS-MOD", material: "GS-MOD-SW" },
-  "PRJ-09": { bu: "SBU-3", sbu: "PG-8", pgroup: "Cryo", alpha: "NextGen", product: "CC-NG", material: "CC-NG-STIRL" },
-  "PRJ-10": { bu: "SBU-2", sbu: "PG-4", pgroup: "SDK", alpha: "Marketplace", product: "AUT-SDK", material: "AUT-SDK-PKG" },
-  "PRJ-11": { bu: "SBU-3", sbu: "PG-9", pgroup: "Legacy", alpha: "EOL", product: "LEG-BR", material: "LEG-BR-KIT" },
-  "PRJ-12": { bu: "SBU-3", sbu: "PG-7", pgroup: "Secure Comms", alpha: "Quantum", product: "QS-COM", material: "QS-COM-QKD" },
-  "PRJ-13": { bu: "SBU-2", sbu: "PG-5", pgroup: "Immersive Training", alpha: "VR/XR", product: "IMX-RH", material: "IMX-RH-HMD" },
-  "PRJ-14": { bu: "SBU-1", sbu: "PG-2", pgroup: "Teaming", alpha: "MUM-T", product: "MUMT-STE", material: "MUMT-STE-LNK" },
-  "PRJ-15": { bu: "SBU-3", sbu: "PG-8", pgroup: "Orbital Autonomy", alpha: "Self-Replication", product: "ORB-SWM", material: "ORB-SWM-NODE" },
+  "PRJ-01": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-1", alpha: "Cooled Cores", product: "TC-G5", material: "TC-G5-FPA" },
+  "PRJ-02": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-2", alpha: "Fusion Modules", product: "EF-AI", material: "EF-AI-SOM" },
+  "PRJ-03": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-3", alpha: "Littoral", product: "ML-RDR", material: "ML-RDR-TRX" },
+  "PRJ-04": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-1", alpha: "Effectors", product: "CUAS-EF", material: "CUAS-EF-WHD" },
+  "PRJ-05": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-4", alpha: "Cloud", product: "SOI-GOV", material: "SOI-GOV-SVC" },
+  "PRJ-06": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-5", alpha: "Portable", product: "HH-MS", material: "HH-MS-SENS" },
+  "PRJ-07": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-7", alpha: "Telescopes", product: "SP-OPT", material: "SP-OPT-MIR" },
+  "PRJ-08": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-6", alpha: "Modernization", product: "GS-MOD", material: "GS-MOD-SW" },
+  "PRJ-09": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-8", alpha: "NextGen", product: "CC-NG", material: "CC-NG-STIRL" },
+  "PRJ-10": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-4", alpha: "Marketplace", product: "AUT-SDK", material: "AUT-SDK-PKG" },
+  "PRJ-11": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-9", alpha: "EOL", product: "LEG-BR", material: "LEG-BR-KIT" },
+  "PRJ-12": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-7", alpha: "Quantum", product: "QS-COM", material: "QS-COM-QKD" },
+  "PRJ-13": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-5", alpha: "VR/XR", product: "IMX-RH", material: "IMX-RH-HMD" },
+  "PRJ-14": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-2", alpha: "MUM-T", product: "MUMT-STE", material: "MUMT-STE-LNK" },
+  "PRJ-15": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-8", alpha: "Self-Replication", product: "ORB-SWM", material: "ORB-SWM-NODE" },
 };
 export const hierOf = (p: Project): HierPath =>
-  PROJECT_HIER[p.id] ?? { bu: p.lob, sbu: p.division, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
+  PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
 
-// Company → LOB → Product Group rollup: base revenue + funded NRE spend + NPV per node.
+// Company → BU → SBU → Product Group rollup: base revenue + funded NRE spend + NPV per node.
 export interface RollupNode { name: string; baseM: number; spendK: number; npvM: number; count: number }
-export function companyRollup(projects: Project[]): { company: RollupNode; lobs: (RollupNode & { groups: RollupNode[] })[] } {
-  const lobNames = Array.from(new Set(projects.map((p) => hierOf(p).bu))).sort();
-  const lobs = lobNames.map((lob) => {
-    const inLob = projects.filter((p) => hierOf(p).bu === lob);
-    const pgNames = Array.from(new Set(inLob.map((p) => hierOf(p).sbu))).sort();
-    const groups = pgNames.map((pg) => {
-      const inPg = inLob.filter((p) => hierOf(p).sbu === pg);
-      return { name: pg, baseM: 0, spendK: inPg.reduce((s, p) => s + p.nreK, 0), npvM: inPg.reduce((s, p) => s + npvM(p), 0), count: inPg.length };
+export interface SbuNode extends RollupNode { groups: RollupNode[] }
+export interface BuNode extends RollupNode { sbus: SbuNode[] }
+export function companyRollup(projects: Project[]): { company: RollupNode; bus: BuNode[] } {
+  const sum = (ps: Project[]) => ({ spendK: ps.reduce((s, p) => s + p.nreK, 0), npvM: ps.reduce((s, p) => s + npvM(p), 0), count: ps.length });
+  const buNames = Array.from(new Set(projects.map((p) => hierOf(p).bu))).sort();
+  const bus: BuNode[] = buNames.map((bu) => {
+    const inBu = projects.filter((p) => hierOf(p).bu === bu);
+    const sbuNames = Array.from(new Set(inBu.map((p) => hierOf(p).sbu))).sort();
+    const sbus: SbuNode[] = sbuNames.map((sbu) => {
+      const inSbu = inBu.filter((p) => hierOf(p).sbu === sbu);
+      const pgNames = Array.from(new Set(inSbu.map((p) => hierOf(p).pgroup))).sort();
+      const groups = pgNames.map((pg) => {
+        const inPg = inSbu.filter((p) => hierOf(p).pgroup === pg);
+        return { name: pg, baseM: 0, ...sum(inPg) };
+      });
+      return { name: sbu, baseM: sbuBaseM(sbu), ...sum(inSbu), groups };
     });
-    return { name: lob, baseM: lobBaseM(lob), spendK: inLob.reduce((s, p) => s + p.nreK, 0), npvM: inLob.reduce((s, p) => s + npvM(p), 0), count: inLob.length, groups };
+    return { name: bu, baseM: buBaseM(bu), ...sum(inBu), sbus };
   });
-  const company: RollupNode = { name: COMPANY_NAME, baseM: companyBaseM(), spendK: lobs.reduce((s, l) => s + l.spendK, 0), npvM: lobs.reduce((s, l) => s + l.npvM, 0), count: projects.length };
-  return { company, lobs };
+  const company: RollupNode = { name: COMPANY_NAME, baseM: companyBaseM(), spendK: bus.reduce((s, b) => s + b.spendK, 0), npvM: bus.reduce((s, b) => s + b.npvM, 0), count: projects.length };
+  return { company, bus };
 }
 // Distinct values present at a level, respecting an optional parent filter (cascading).
 export function hierValues(projects: Project[], level: HierKey, parent?: { level: HierKey; value: string }): string[] {
