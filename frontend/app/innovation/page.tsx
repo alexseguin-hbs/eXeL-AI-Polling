@@ -97,6 +97,14 @@ function Board() {
   const isGroupLevel = stackLevel === "bu" || stackLevel === "sbu" || stackLevel === "pgroup" || stackLevel === "alpha";
   const groupRows = useMemo(() => rackByLevel(order, stackLevel), [order, stackLevel]);
   const drilled = drill && stackLevel === "product" ? order.filter((p) => hierOf(p)[drill.level] === drill.value) : null;
+  // Breadcrumb ancestry (Company › BU › SBU › …) for the drilled node — clickable to navigate up.
+  const HIER_ORDER: HierKey[] = ["bu", "sbu", "pgroup", "alpha"];
+  const drillPath = drill && stackLevel === "product" ? (() => {
+    const p0 = order.find((p) => hierOf(p)[drill.level] === drill.value);
+    if (!p0) return [] as { level: HierKey; value: string }[];
+    const h = hierOf(p0);
+    return HIER_ORDER.slice(0, HIER_ORDER.indexOf(drill.level) + 1).map((lv) => ({ level: lv, value: h[lv] }));
+  })() : [];
 
   const fundedRows = rows.filter((r) => r.funded);
   const portfolioNpv = fundedRows.reduce((s, r) => s + npvM(r.p), 0);
@@ -152,9 +160,18 @@ function Board() {
           </div>
 
           {drill && stackLevel === "product" && (
-            <div className="flex items-center gap-2 px-4 py-1.5 text-[11px] text-cyan-300 bg-cyan-500/5 border-b border-slate-800">
-              Drilled: {drill.level.toUpperCase()} = {drill.value}
-              <button onClick={() => setDrill(null)} className="rounded border border-slate-700 px-1.5 hover:bg-slate-800">✕ clear</button>
+            <div className="flex flex-wrap items-center gap-1 px-4 py-1.5 text-[11px] bg-cyan-500/5 border-b border-slate-800">
+              <button onClick={() => { setDrill(null); setStackLevel("bu"); }} className="text-slate-400 hover:text-cyan-300">Company</button>
+              {drillPath.map((seg, i) => (
+                <span key={seg.level} className="flex items-center gap-1">
+                  <span className="text-slate-600">›</span>
+                  <button onClick={() => setDrill({ level: seg.level, value: seg.value })}
+                    className={i === drillPath.length - 1 ? "text-cyan-300 font-semibold" : "text-slate-400 hover:text-cyan-300"}>
+                    {seg.value}<span className="text-[9px] text-slate-600"> {seg.level.toUpperCase()}</span>
+                  </button>
+                </span>
+              ))}
+              <button onClick={() => { setDrill(null); }} className="ml-2 rounded border border-slate-700 px-1.5 text-slate-400 hover:bg-slate-800">✕ all projects</button>
             </div>
           )}
 
