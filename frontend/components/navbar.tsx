@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings, Code, Globe, Sparkles, Heart } from "lucide-react";
+import { LogOut, User, Menu, Settings, Code, Globe, Sparkles, Heart, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DonateModal } from "@/components/donate-modal";
 import { ExelWordmark } from "@/components/exel-wordmark";
@@ -82,6 +82,16 @@ export function Navbar({ sessionTitle }: NavbarProps) {
           )}
 
           <div className="ml-auto flex items-center gap-2">
+            {/* Project Innovation — Vision 2525 Rack & Stack (access-gated preview). */}
+            <a
+              href="/innovation"
+              title="Project Innovation — Vision 2525 (access-gated)"
+              className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-amber-500 hover:bg-amber-500/10"
+            >
+              <Rocket className="h-4 w-4" />
+              <span className="hidden sm:inline">Innovation</span>
+            </a>
+
             {/* Persistent Donate — every page, any user (anonymous OK). Opens a popup,
                 never embedded inline, so anyone can donate as they desire, anytime. */}
             <Button
