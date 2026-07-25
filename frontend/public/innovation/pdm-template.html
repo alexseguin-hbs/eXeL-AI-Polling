@@ -141,6 +141,45 @@ svg{display:block;width:100%;height:auto}
     <div class="kv">STAGE&nbsp;<b class="acc">G4 QUALIFY</b></div>
   </div>
 
+  <!-- ============ EXECUTIVE SUMMARY ============ -->
+  <div class="exec">
+    <div class="ex">
+      <h4>EXECUTIVE SUMMARY</h4>
+      <div class="fnd">Above the line · G4 Qualify · <b>2.0 months ahead</b> of the G2-locked baseline. 16/27 cells approved; tracking to Approval-to-Ship.</div>
+      <div class="row"><span>3-Yr NPV</span><span class="pos">$21.4M</span></div>
+      <div class="row"><span>IRR · Payback</span><span>28.6% · 2.4 yr</span></div>
+      <div class="row"><span>First revenue</span><span>Q3-27 <span style="color:var(--dim)">(derived)</span></span></div>
+    </div>
+    <div class="ex">
+      <h4>COMMERCIAL RISK · <span class="wrn">MED</span></h4>
+      <ul>
+        <li>Distributor terms unsigned by L−60 — delays open-for-orders</li>
+        <li>ITAR classification re-review on the export variant</li>
+      </ul>
+      <div class="row"><span>Open exposure</span><span class="wrn">2 open · 230 ◬ staked</span></div>
+    </div>
+    <div class="ex">
+      <h4>TECHNICAL RISK · <span class="pos">LOW–MED</span></h4>
+      <ul>
+        <li>Focal-plane yield <b>mitigated</b> — dual-source wafer lot, adopted G3</li>
+        <li>Thermal calibration fixture single-point in Mfg</li>
+      </ul>
+      <div class="row"><span>Top risk</span><span class="pos">mitigated (paid)</span></div>
+    </div>
+    <div class="ex">
+      <h4>PROJECT UPSIDE</h4>
+      <div class="row"><span>Burn avoided</span><span class="pos">$2.00M</span></div>
+      <div class="row"><span>Revenue pulled forward</span><span class="pos">~2 mo · larger half</span></div>
+      <div class="fnd">Upside = value created by beating the locked baseline. Burn avoided is budgeted-and-unspent; the revenue tail moved left is typically the bigger number.</div>
+    </div>
+    <div class="ex">
+      <h4>PROJECT INCENTIVES</h4>
+      <div class="row"><span>Reward pool</span><span style="color:var(--mag)">$2.00M</span></div>
+      <div class="row"><span>Trigger</span><span>upside realized</span></div>
+      <div class="fnd">Paid when a team beats its projection — 6 weeks planned, 5 delivered — with a <b>critical-path multiplier</b> when that early output unblocks a downstream team. Funded from budgeted-unspent burn: no net cash cost to the sponsor.</div>
+    </div>
+  </div>
+
   <!-- ============ GATE RAIL ============ -->
   <div class="rail">
     <div class="railtop">
@@ -173,9 +212,9 @@ svg{display:block;width:100%;height:auto}
     <div class="m"><div class="lb">BURN AVOIDED</div>
       <div class="vl pos" id="burnAv">$2.00M</div>
       <div class="sb">budgeted, not spent</div></div>
-    <div class="m"><div class="lb">INCENTIVE POOL</div>
+    <div class="m"><div class="lb">PROJECT INCENTIVES</div>
       <div class="vl" style="color:var(--mag)" id="pool">$2.00M</div>
-      <div class="sb">11.1% of program / mo early</div></div>
+      <div class="sb">reward pool · 11.1% of program / mo early</div></div>
   </div>
 
   <!-- ============ LEVER ============ -->
@@ -249,6 +288,19 @@ svg{display:block;width:100%;height:auto}
       <div class="note" id="depNote">Node size by NPV · border green above the line, red below ·
         edges carry slip. A date change here shows its blast radius before it is committed.</div>
     </div>
+  </div>
+
+  <!-- ============ INTELLIGENCE LOAD ============ -->
+  <div class="card" style="margin-top:12px">
+    <div class="ct"><span>INTELLIGENCE LOAD — AI · SI · HI · BURNOUT GUARD</span><span class="r">HI CAP 70%</span></div>
+    <div id="loads"></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--cyan)"></i>AI — Artificial</span>
+      <span><i class="sw" style="background:var(--amber)"></i>SI — Shared Intent</span>
+      <span><i class="sw" style="background:var(--mag)"></i>HI — Human</span>
+      <span><i class="sw" style="background:var(--coral)"></i>burnout cap (70% HI)</span>
+    </div>
+    <div class="note"><b>Upside earned above the human-load cap is withheld pending review</b> — the guard is enforcing, not advisory. Shared-Intent work (polls / team consensus) offloads human load without being pure automation, so a team that converts individual effort into shared decision lowers its burnout exposure.</div>
   </div>
 
   <div class="foot">
@@ -418,6 +470,28 @@ function apply(){
 }
 lever.addEventListener('input',apply);
 apply();
+
+/* ---------------- intelligence load — AI · SI · HI · burnout guard ---------------- */
+const LOADS=[
+  ['Sensor Core',   0.40,0.30,0.30],
+  ['Autonomy',      0.38,0.24,0.38],
+  ['Effects',       0.30,0.22,0.48],
+  ['Space Optics',  0.18,0.10,0.72],   // over the 70% HI cap → guard fires
+  ['Software',      0.55,0.28,0.17]
+];
+document.getElementById('loads').innerHTML = LOADS.map(([nm,ai,si,hi])=>{
+  const over = hi>0.70;
+  return `<div class="ld">
+    <div class="ldtop"><span>${nm}${over?' · <b style="color:var(--coral)">GUARD — upside withheld</b>':''}</span>
+      <b>AI ${Math.round(ai*100)} · SI ${Math.round(si*100)} · HI ${Math.round(hi*100)}%</b></div>
+    <div class="track">
+      <i style="width:${ai*100}%;background:var(--cyan)"></i>
+      <i style="width:${si*100}%;background:var(--amber)"></i>
+      <i style="width:${hi*100}%;background:${over?'var(--coral)':'var(--mag)'}"></i>
+    </div>
+    <div class="cap"><b style="left:70%"></b></div>
+  </div>`;
+}).join('');
 document.getElementById('stamp').textContent =
   new Date().toISOString().slice(0,10).replace(/-/g,'.') + ' · GATE G4 · BASELINE LOCKED G2';
 </script>
