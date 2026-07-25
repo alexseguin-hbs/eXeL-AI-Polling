@@ -71,16 +71,27 @@ ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
 import {
   hierOf, hierValues, filterByHier, DEMO_PROJECTS,
   riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
+  SBU_BASE, companyBaseM, lobBaseM, companyRollup,
 } from "../lib/innovation-data.ts";
 
-// ── hierarchy: 6-level path, cascading values, filter ──
+// ── hierarchy: Company → LOB (SBU) → Product Group, cascading + filter ──
 const h1 = hierOf(DEMO_PROJECTS[0]);
-ok(!!h1.bu && !!h1.sbu && !!h1.material, "hierOf returns a full BU→Material path");
-ok(hierValues(DEMO_PROJECTS, "bu").length >= 2, "multiple BUs present");
-const sbusOfSaaS = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "Software & SaaS" });
-ok(sbusOfSaaS.length >= 2 && !sbusOfSaaS.includes("Airborne ISR"), "cascading SBU values respect BU parent");
-ok(filterByHier(DEMO_PROJECTS, "bu", "Space").every((p) => hierOf(p).bu === "Space"), "filterByHier scopes to BU");
+ok(!!h1.bu && !!h1.sbu && !!h1.material, "hierOf returns a full LOB→Material path");
+ok(hierValues(DEMO_PROJECTS, "bu").length === 3, "exactly 3 LOBs (SBU-1/2/3)");
+const pgsOfSbu1 = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "SBU-1" });
+ok(pgsOfSbu1.every((pg) => ["PG-1", "PG-2", "PG-3"].includes(pg)), "cascading Product Groups respect LOB parent");
+ok(filterByHier(DEMO_PROJECTS, "bu", "SBU-3").every((p) => hierOf(p).bu === "SBU-3"), "filterByHier scopes to LOB");
 ok(filterByHier(DEMO_PROJECTS, "bu", "All").length === DEMO_PROJECTS.length, "filterByHier All = passthrough");
+
+// ── LOB base revenue + company rollup (operator: 300 / 100 / 300 → 700M) ──
+ok(SBU_BASE["SBU-1"] === 300 && SBU_BASE["SBU-2"] === 100 && SBU_BASE["SBU-3"] === 300, "LOB base revenues 300/100/300");
+ok(companyBaseM() === 700, "company base = Σ LOB = 700M");
+ok(lobBaseM("SBU-2") === 100 && lobBaseM("All") === 700, "lobBaseM: LOB and company (All)");
+const cr = companyRollup(DEMO_PROJECTS);
+ok(cr.lobs.length === 3 && cr.company.count === DEMO_PROJECTS.length, "rollup: 3 LOBs, company counts all projects");
+ok(cr.lobs.every((l) => l.groups.length >= 1), "each LOB rolls up ≥1 Product Group");
+// ── growth model base override anchors the do-nothing baseline ──
+ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 300 })[0].doNothing === 300, "baseOverrideM anchors year-0 do-nothing");
 
 // ── risk scoring: severity×likelihood, status collapses exposure, votes lift priority ──
 const rOpen = { severity: 4, likelihood: 4, status: "open", votes: 0 };

@@ -66,18 +66,18 @@ export const availableK = (b: DivisionBudget) => b.totalK - b.allocatedK; // CRS
 export const DEMO_BUDGET: DivisionBudget = { division: "ALL DIVISIONS", totalK: 42000, allocatedK: 6000 };
 
 export const DEMO_PROJECTS: Project[] = [
-  { id: "PRJ-01", name: "Thermal Core Gen-5 Sensor", division: "ISR", lob: "Defense & ISR", manager: "A. Seguin", category: "New Platform", gate: "G4", confidence: 4, tech: "low", comm: "low", nreK: 8200, fullRev10yM: 210, doNothing10yM: 60, firstRevenue: "2026-Q4", criticalPath: true, humanLoad: 0.62, ai: 0.4, si: 0.3, hi: 0.3, predictions: 41 },
-  { id: "PRJ-02", name: "Edge Fusion AI Module", division: "Autonomy", lob: "Autonomy", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5400, fullRev10yM: 155, doNothing10yM: 30, firstRevenue: "2027-Q1", criticalPath: true, humanLoad: 0.74, ai: 0.55, si: 0.25, hi: 0.2, predictions: 33 },
-  { id: "PRJ-03", name: "Maritime Littoral Radar", division: "ISR", lob: "Defense & ISR", manager: "M. Devlin", category: "Sustaining+", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 6100, fullRev10yM: 140, doNothing10yM: 55, firstRevenue: "2026-Q3", criticalPath: false, humanLoad: 0.48, ai: 0.3, si: 0.35, hi: 0.35, predictions: 22 },
-  { id: "PRJ-04", name: "Counter-UAS Effector", division: "Effects", lob: "Defense & ISR", manager: "T. Cho", category: "New Platform", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 9300, fullRev10yM: 260, doNothing10yM: 20, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.81, ai: 0.35, si: 0.3, hi: 0.35, predictions: 57 },
-  { id: "PRJ-05", name: "SoI Governance Cloud", division: "Software", lob: "Software & SaaS", manager: "L. Okafor", category: "New Product", gate: "G4", confidence: 3, tech: "med", comm: "low", nreK: 4200, fullRev10yM: 180, doNothing10yM: 25, firstRevenue: "2026-Q4", criticalPath: false, humanLoad: 0.55, ai: 0.6, si: 0.25, hi: 0.15, predictions: 29 },
-  { id: "PRJ-06", name: "Handheld Multispectral", division: "Handheld", lob: "Commercial", manager: "P. Nilsson", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 3600, fullRev10yM: 95, doNothing10yM: 40, firstRevenue: "2027-Q2", criticalPath: false, humanLoad: 0.44, ai: 0.3, si: 0.3, hi: 0.4, predictions: 18 },
-  { id: "PRJ-07", name: "Space Payload Optics", division: "Space", lob: "Space", manager: "V. Rossi", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 12500, fullRev10yM: 340, doNothing10yM: 10, firstRevenue: "2029-Q1", criticalPath: true, humanLoad: 0.7, ai: 0.45, si: 0.3, hi: 0.25, predictions: 63 },
-  { id: "PRJ-08", name: "Ground Station Modernization", division: "Software", lob: "Software & SaaS", manager: "S. Haddad", category: "Sustaining", gate: "G6", confidence: 4, tech: "low", comm: "low", nreK: 2100, fullRev10yM: 70, doNothing10yM: 45, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.38, ai: 0.25, si: 0.4, hi: 0.35, predictions: 11 },
-  { id: "PRJ-09", name: "Cryo-Cooler Next-Gen", division: "Components", lob: "Components", manager: "D. Park", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 4800, fullRev10yM: 120, doNothing10yM: 38, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.6, ai: 0.3, si: 0.35, hi: 0.35, predictions: 26 },
-  { id: "PRJ-10", name: "Autonomy SDK & Marketplace", division: "Software", lob: "Software & SaaS", manager: "R. Kaur", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 3900, fullRev10yM: 130, doNothing10yM: 15, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.65, si: 0.2, hi: 0.15, predictions: 34 },
-  { id: "PRJ-11", name: "Legacy Sensor EOL Bridge", division: "Handheld", lob: "Commercial", manager: "M. Devlin", category: "Phase-out", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 1400, fullRev10yM: 40, doNothing10yM: 35, firstRevenue: "2026-Q1", criticalPath: false, humanLoad: 0.3, ai: 0.2, si: 0.4, hi: 0.4, predictions: 8 },
-  { id: "PRJ-12", name: "Quantum-Secure Comms", division: "Software", lob: "Software & SaaS", manager: "T. Cho", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 7600, fullRev10yM: 300, doNothing10yM: 5, firstRevenue: "2030-Q1", criticalPath: true, humanLoad: 0.68, ai: 0.5, si: 0.3, hi: 0.2, predictions: 72 },
+  { id: "PRJ-01", name: "SAR Imaging Payload Gen-5", division: "ISR Payloads", lob: "SBU-1", manager: "A. Seguin", category: "New Platform", gate: "G4", confidence: 4, tech: "low", comm: "low", nreK: 8200, fullRev10yM: 210, doNothing10yM: 60, firstRevenue: "2026-Q4", criticalPath: true, humanLoad: 0.62, ai: 0.4, si: 0.3, hi: 0.3, predictions: 41 },
+  { id: "PRJ-02", name: "Hivemind Swarm Fusion AI", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5400, fullRev10yM: 155, doNothing10yM: 30, firstRevenue: "2027-Q1", criticalPath: true, humanLoad: 0.74, ai: 0.55, si: 0.25, hi: 0.2, predictions: 33 },
+  { id: "PRJ-03", name: "Maritime ISR Drone Radar", division: "Maritime ISR", lob: "SBU-1", manager: "M. Devlin", category: "Sustaining+", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 6100, fullRev10yM: 140, doNothing10yM: 55, firstRevenue: "2026-Q3", criticalPath: false, humanLoad: 0.48, ai: 0.3, si: 0.35, hi: 0.35, predictions: 22 },
+  { id: "PRJ-04", name: "Counter-UAS Loitering Effector", division: "Effects", lob: "SBU-1", manager: "T. Cho", category: "New Platform", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 9300, fullRev10yM: 260, doNothing10yM: 20, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.81, ai: 0.35, si: 0.3, hi: 0.35, predictions: 57 },
+  { id: "PRJ-05", name: "Swarm Command & Control Cloud", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G4", confidence: 3, tech: "med", comm: "low", nreK: 4200, fullRev10yM: 180, doNothing10yM: 25, firstRevenue: "2026-Q4", criticalPath: false, humanLoad: 0.55, ai: 0.6, si: 0.25, hi: 0.15, predictions: 29 },
+  { id: "PRJ-06", name: "Handheld Multispectral ISR Sensor", division: "Handheld", lob: "SBU-2", manager: "P. Nilsson", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 3600, fullRev10yM: 95, doNothing10yM: 40, firstRevenue: "2027-Q2", criticalPath: false, humanLoad: 0.44, ai: 0.3, si: 0.3, hi: 0.4, predictions: 18 },
+  { id: "PRJ-07", name: "Space-Based SAR Constellation", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 12500, fullRev10yM: 340, doNothing10yM: 10, firstRevenue: "2029-Q1", criticalPath: true, humanLoad: 0.7, ai: 0.45, si: 0.3, hi: 0.25, predictions: 63 },
+  { id: "PRJ-08", name: "Ground Control Station Modernization", division: "Ground Systems", lob: "SBU-2", manager: "S. Haddad", category: "Sustaining", gate: "G6", confidence: 4, tech: "low", comm: "low", nreK: 2100, fullRev10yM: 70, doNothing10yM: 45, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.38, ai: 0.25, si: 0.4, hi: 0.35, predictions: 11 },
+  { id: "PRJ-09", name: "EO/IR Gimbal Sensor Next-Gen", division: "Sensors", lob: "SBU-3", manager: "D. Park", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 4800, fullRev10yM: 120, doNothing10yM: 38, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.6, ai: 0.3, si: 0.35, hi: 0.35, predictions: 26 },
+  { id: "PRJ-10", name: "Autonomy SDK & Swarm Marketplace", division: "Developer", lob: "SBU-2", manager: "R. Kaur", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 3900, fullRev10yM: 130, doNothing10yM: 15, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.65, si: 0.2, hi: 0.15, predictions: 34 },
+  { id: "PRJ-11", name: "Legacy ISR Sensor EOL Bridge", division: "Sensors", lob: "SBU-3", manager: "M. Devlin", category: "Phase-out", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 1400, fullRev10yM: 40, doNothing10yM: 35, firstRevenue: "2026-Q1", criticalPath: false, humanLoad: 0.3, ai: 0.2, si: 0.4, hi: 0.4, predictions: 8 },
+  { id: "PRJ-12", name: "Resilient PNT-Denied Datalink", division: "Comms", lob: "SBU-3", manager: "T. Cho", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 7600, fullRev10yM: 300, doNothing10yM: 5, firstRevenue: "2030-Q1", criticalPath: true, humanLoad: 0.68, ai: 0.5, si: 0.3, hi: 0.2, predictions: 72 },
 ];
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
@@ -167,13 +167,13 @@ export const REV_MODE: Record<RevMode, { label: string; mult: number }> = {
 };
 export function growthModel(
   funded: Project[],
-  opts: { baseYear?: number; years?: number; decline?: number; growth?: number; revMode?: RevMode } = {},
+  opts: { baseYear?: number; years?: number; decline?: number; growth?: number; revMode?: RevMode; baseOverrideM?: number } = {},
 ): GrowthYear[] {
   const baseYear = opts.baseYear ?? 2026, years = opts.years ?? 6;
   const decline = opts.decline ?? 0.15, growth = opts.growth ?? 0.038;
   const revMult = REV_MODE[opts.revMode ?? "full"].mult;
-  // Annualize 10-yr figures to a year-0 run rate.
-  const annualBase = funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
+  // Year-0 run rate: enterable LOB/company base revenue ($M) overrides the summed do-nothing.
+  const annualBase = opts.baseOverrideM != null ? opts.baseOverrideM : funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
   const annualNpi = funded.reduce((s, p) => s + weightedRevM(p), 0) / 10 * revMult;
   const out: GrowthYear[] = [];
   for (let y = 0; y < years; y++) {
@@ -190,35 +190,59 @@ export function growthModel(
 // ── PORTFOLIO HIERARCHY — highest-complexity large-business tree (re-nameable) ───────────
 // BU → SBU → Product Group → Alpha Group → Product # → Material #. Nomenclature is
 // configurable here so any enterprise can re-label the six tiers without touching logic.
+// Rollup chain (operator): Company → LOB (Strategic Business Unit) → Product Group → …
+// `bu` carries the LOB/SBU, `sbu` carries the Product Group. Re-nameable via labels.
 export const HIER_LEVELS = [
-  { key: "bu",       label: "BU",            full: "Business Unit" },
-  { key: "sbu",      label: "SBU",           full: "Strategic Business Unit" },
-  { key: "pgroup",   label: "Product Group", full: "Product Group" },
-  { key: "alpha",    label: "Alpha Group",   full: "Alpha Group" },
+  { key: "bu",       label: "LOB",           full: "Line of Business (SBU)" },
+  { key: "sbu",      label: "Product Group", full: "Product Group" },
+  { key: "pgroup",   label: "Alpha Group",   full: "Alpha Group" },
+  { key: "alpha",    label: "Program",       full: "Program" },
   { key: "product",  label: "Product #",     full: "Product" },
   { key: "material", label: "Material #",    full: "Material" },
 ] as const;
 export type HierKey = typeof HIER_LEVELS[number]["key"];
 export interface HierPath { bu: string; sbu: string; pgroup: string; alpha: string; product: string; material: string }
 
-// Per-project node path (kept as a side map so project literals stay lean; falls back to
-// existing fields for any project not explicitly mapped).
+export const COMPANY_NAME = "Company (All LOBs)";
+// LOB base revenue ($M) — the do-nothing anchor the operator enters per SBU/LOB.
+export const SBU_BASE: Record<string, number> = { "SBU-1": 300, "SBU-2": 100, "SBU-3": 300 };
+export const companyBaseM = () => Object.values(SBU_BASE).reduce((s, v) => s + v, 0); // 700
+export const lobBaseM = (lob: string) => (lob === "All" || lob === COMPANY_NAME ? companyBaseM() : SBU_BASE[lob] ?? 0);
+
+// Per-project node path — 3 LOBs (SBU-1/2/3) × Product Groups PG-1…PG-9 (3 per SBU).
 export const PROJECT_HIER: Record<string, HierPath> = {
-  "PRJ-01": { bu: "Defense & ISR", sbu: "Airborne ISR", pgroup: "Thermal Sensors", alpha: "Cooled Cores", product: "TC-G5", material: "TC-G5-FPA" },
-  "PRJ-02": { bu: "Autonomy", sbu: "Perception", pgroup: "Edge Compute", alpha: "Fusion Modules", product: "EF-AI", material: "EF-AI-SOM" },
-  "PRJ-03": { bu: "Defense & ISR", sbu: "Maritime", pgroup: "Radar", alpha: "Littoral", product: "ML-RDR", material: "ML-RDR-TRX" },
-  "PRJ-04": { bu: "Defense & ISR", sbu: "Effects", pgroup: "C-UAS", alpha: "Effectors", product: "CUAS-EF", material: "CUAS-EF-WHD" },
-  "PRJ-05": { bu: "Software & SaaS", sbu: "Platform", pgroup: "Governance", alpha: "Cloud", product: "SOI-GOV", material: "SOI-GOV-SVC" },
-  "PRJ-06": { bu: "Commercial", sbu: "Handheld", pgroup: "Multispectral", alpha: "Portable", product: "HH-MS", material: "HH-MS-SENS" },
-  "PRJ-07": { bu: "Space", sbu: "Payloads", pgroup: "Optics", alpha: "Telescopes", product: "SP-OPT", material: "SP-OPT-MIR" },
-  "PRJ-08": { bu: "Software & SaaS", sbu: "Ground Systems", pgroup: "Stations", alpha: "Modernization", product: "GS-MOD", material: "GS-MOD-SW" },
-  "PRJ-09": { bu: "Components", sbu: "Coolers", pgroup: "Cryo", alpha: "NextGen", product: "CC-NG", material: "CC-NG-STIRL" },
-  "PRJ-10": { bu: "Software & SaaS", sbu: "Developer", pgroup: "SDK", alpha: "Marketplace", product: "AUT-SDK", material: "AUT-SDK-PKG" },
-  "PRJ-11": { bu: "Commercial", sbu: "Handheld", pgroup: "Legacy", alpha: "EOL", product: "LEG-BR", material: "LEG-BR-KIT" },
-  "PRJ-12": { bu: "Software & SaaS", sbu: "Comms", pgroup: "Secure Comms", alpha: "Quantum", product: "QS-COM", material: "QS-COM-QKD" },
+  "PRJ-01": { bu: "SBU-1", sbu: "PG-1", pgroup: "Thermal Sensors", alpha: "Cooled Cores", product: "TC-G5", material: "TC-G5-FPA" },
+  "PRJ-02": { bu: "SBU-1", sbu: "PG-2", pgroup: "Edge Compute", alpha: "Fusion Modules", product: "EF-AI", material: "EF-AI-SOM" },
+  "PRJ-03": { bu: "SBU-1", sbu: "PG-3", pgroup: "Radar", alpha: "Littoral", product: "ML-RDR", material: "ML-RDR-TRX" },
+  "PRJ-04": { bu: "SBU-1", sbu: "PG-1", pgroup: "C-UAS", alpha: "Effectors", product: "CUAS-EF", material: "CUAS-EF-WHD" },
+  "PRJ-05": { bu: "SBU-2", sbu: "PG-4", pgroup: "Governance", alpha: "Cloud", product: "SOI-GOV", material: "SOI-GOV-SVC" },
+  "PRJ-06": { bu: "SBU-2", sbu: "PG-5", pgroup: "Multispectral", alpha: "Portable", product: "HH-MS", material: "HH-MS-SENS" },
+  "PRJ-07": { bu: "SBU-3", sbu: "PG-7", pgroup: "Optics", alpha: "Telescopes", product: "SP-OPT", material: "SP-OPT-MIR" },
+  "PRJ-08": { bu: "SBU-2", sbu: "PG-6", pgroup: "Stations", alpha: "Modernization", product: "GS-MOD", material: "GS-MOD-SW" },
+  "PRJ-09": { bu: "SBU-3", sbu: "PG-8", pgroup: "Cryo", alpha: "NextGen", product: "CC-NG", material: "CC-NG-STIRL" },
+  "PRJ-10": { bu: "SBU-2", sbu: "PG-4", pgroup: "SDK", alpha: "Marketplace", product: "AUT-SDK", material: "AUT-SDK-PKG" },
+  "PRJ-11": { bu: "SBU-3", sbu: "PG-9", pgroup: "Legacy", alpha: "EOL", product: "LEG-BR", material: "LEG-BR-KIT" },
+  "PRJ-12": { bu: "SBU-3", sbu: "PG-7", pgroup: "Secure Comms", alpha: "Quantum", product: "QS-COM", material: "QS-COM-QKD" },
 };
 export const hierOf = (p: Project): HierPath =>
   PROJECT_HIER[p.id] ?? { bu: p.lob, sbu: p.division, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
+
+// Company → LOB → Product Group rollup: base revenue + funded NRE spend + NPV per node.
+export interface RollupNode { name: string; baseM: number; spendK: number; npvM: number; count: number }
+export function companyRollup(projects: Project[]): { company: RollupNode; lobs: (RollupNode & { groups: RollupNode[] })[] } {
+  const lobNames = Array.from(new Set(projects.map((p) => hierOf(p).bu))).sort();
+  const lobs = lobNames.map((lob) => {
+    const inLob = projects.filter((p) => hierOf(p).bu === lob);
+    const pgNames = Array.from(new Set(inLob.map((p) => hierOf(p).sbu))).sort();
+    const groups = pgNames.map((pg) => {
+      const inPg = inLob.filter((p) => hierOf(p).sbu === pg);
+      return { name: pg, baseM: 0, spendK: inPg.reduce((s, p) => s + p.nreK, 0), npvM: inPg.reduce((s, p) => s + npvM(p), 0), count: inPg.length };
+    });
+    return { name: lob, baseM: lobBaseM(lob), spendK: inLob.reduce((s, p) => s + p.nreK, 0), npvM: inLob.reduce((s, p) => s + npvM(p), 0), count: inLob.length, groups };
+  });
+  const company: RollupNode = { name: COMPANY_NAME, baseM: companyBaseM(), spendK: lobs.reduce((s, l) => s + l.spendK, 0), npvM: lobs.reduce((s, l) => s + l.npvM, 0), count: projects.length };
+  return { company, lobs };
+}
 // Distinct values present at a level, respecting an optional parent filter (cascading).
 export function hierValues(projects: Project[], level: HierKey, parent?: { level: HierKey; value: string }): string[] {
   const scoped = parent ? projects.filter((p) => hierOf(p)[parent.level] === parent.value) : projects;
@@ -278,6 +302,64 @@ export const DEMO_RISKS: Risk[] = [
   { id: "RSK-11", projectId: "PRJ-12", scopeKey: "sbu", title: "Standards body not finalized (interop risk)", category: "regulatory", severity: 3, likelihood: 4, author: "T. Cho", votes: 10, status: "open" },
   { id: "RSK-12", projectId: "PRJ-10", scopeKey: "product", title: "Marketplace take-rate below model", category: "commercial", severity: 3, likelihood: 3, author: "anonymous", votes: 4, status: "accepted" },
 ];
+
+// ── DASHBOARD AGGREGATIONS (Rack & Stack: Top / Division / Cost / ROI / Pipeline) ────────
+// All pure + deterministic — derived from the funded/selected project set.
+export interface SpendSlice { name: string; spendK: number; count: number; revM: number }
+export function spendBy(projects: Project[], pick: (p: Project) => string): SpendSlice[] {
+  const map = new Map<string, SpendSlice>();
+  for (const p of projects) {
+    const name = pick(p);
+    const s = map.get(name) ?? { name, spendK: 0, count: 0, revM: 0 };
+    s.spendK += p.nreK; s.count += 1; s.revM += incrementalRevM(p);
+    map.set(name, s);
+  }
+  return Array.from(map.values()).sort((a, b) => b.spendK - a.spendK);
+}
+export const spendByBU = (ps: Project[]) => spendBy(ps, (p) => hierOf(p).bu);
+export const spendByCategory = (ps: Project[]) => spendBy(ps, (p) => p.category);
+
+// R&D efficiency = portfolio NPV per $ of NRE (10-yr op contribution intensity).
+export const rdEfficiency = (ps: Project[]) => {
+  const nreM = ps.reduce((s, p) => s + p.nreK, 0) / 1000;
+  return nreM ? ps.reduce((s, p) => s + npvM(p), 0) / nreM : 0;
+};
+
+// Cost Dashboard: expense split (Labor / Subcontractor / Material / Other) from total NRE.
+export const COST_SPLIT = { labor: 0.55, subcontractor: 0.2, material: 0.15, other: 0.1 } as const;
+export function costSplit(projects: Project[]) {
+  const totalK = projects.reduce((s, p) => s + p.nreK, 0);
+  return { totalK, labor: totalK * COST_SPLIT.labor, subcontractor: totalK * COST_SPLIT.subcontractor, material: totalK * COST_SPLIT.material, other: totalK * COST_SPLIT.other };
+}
+
+// ROI Summary: New Product / Do-Nothing / EOL / Incremental / probability-weighted ($M).
+export function roiSummary(projects: Project[]) {
+  const newProductM = projects.reduce((s, p) => s + p.fullRev10yM, 0);
+  const doNothingM = projects.reduce((s, p) => s + p.doNothing10yM, 0);
+  const eolM = projects.filter((p) => /phase|eol|legacy|sustain/i.test(p.category)).reduce((s, p) => s + p.doNothing10yM, 0);
+  const incrementalM = projects.reduce((s, p) => s + incrementalRevM(p), 0);
+  const weightedM = projects.reduce((s, p) => s + weightedRevM(p), 0);
+  return { newProductM, doNothingM, eolM, incrementalM, weightedM };
+}
+
+// Pipeline by Gate: dev-type color + spend + count per gate (G1..G7).
+export type DevType = "sustaining" | "prestudy" | "enhance" | "newmarket";
+export const DEV_TYPE: Record<DevType, { label: string; color: string }> = {
+  prestudy:  { label: "Pre-study / Research", color: "#fb923c" },  // orange
+  enhance:   { label: "Enhance / NextGen",    color: "#38bdf8" },  // blue
+  newmarket: { label: "New Mkt / Vertical",   color: "#34d399" },  // green
+  sustaining:{ label: "Sustaining",           color: "#a78bfa" },  // purple
+};
+export const devTypeOf = (p: Project): DevType =>
+  /phase|legacy|sustain/i.test(p.category) ? "sustaining"
+    : /platform/i.test(p.category) ? "newmarket"
+    : p.gate === "G1" ? "prestudy" : "enhance";
+export function pipelineByGate(projects: Project[]) {
+  return GATES.map((g) => {
+    const ps = projects.filter((p) => p.gate === g);
+    return { gate: g, stage: GATE_STAGE[g], count: ps.length, spendK: ps.reduce((s, p) => s + p.nreK, 0), projects: ps };
+  });
+}
 
 // ── STACK: rank order → cumulative NRE → funding line (CRS-42/43/71) ─────────────────────
 export function stackWithBudget(order: Project[], availableK_: number) {

@@ -58,7 +58,7 @@ export function HomeLauncher() {
 
   const domains: CubeDomain[] = [
     { id: "polling", code: "POLLING", name: "eXeL AI POLLING", tagline: "Govern at the Speed of Thought", color: currentTheme.swatch || "#19C8CF", unlocked: true, onEnter: () => dismiss(true) },
-    { id: "innovation", code: "INNOVATION", name: "INNOVATION PROJECT", tagline: "Ideate · Prototype · Ship", color: "#c084fc", unlocked: false },
+    { id: "innovation", code: "INNOVATION", name: "INNOVATION PROJECT", tagline: "Ideate · Prototype · Ship", color: "#c084fc", unlocked: true, onEnter: () => { dismiss(); router.push("/innovation"); } },
     { id: "brainstorm", code: "BRAINSTORM", name: "SOLUTION BRAINSTORM", tagline: "Explore · Diverge · Converge", color: "#f59e0b", unlocked: false },
   ];
 

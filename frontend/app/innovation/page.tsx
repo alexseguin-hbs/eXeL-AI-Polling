@@ -8,14 +8,15 @@
  *
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
-import { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart,
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
-  RISK_STATUS_LABEL,
+  RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
+  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -67,6 +68,7 @@ function Board() {
   );
   const [selId, setSelId] = useState(order[0].id);
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
+  const [view, setView] = useState<"portfolio" | "dashboards">("portfolio");
   const avail = availableK(DEMO_BUDGET);
   const { rows, lineIndex } = useMemo(() => stackWithBudget(order, avail), [order, avail]);
   const sel = order.find((p) => p.id === selId) ?? order[0];
@@ -76,6 +78,14 @@ function Board() {
     if (j < 0 || j >= order.length) return;
     const next = [...order];
     [next[i], next[j]] = [next[j], next[i]];
+    setOrder(next);
+  };
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const reorder = (from: number | null, to: number) => {
+    if (from == null || from === to || from < 0 || to < 0) return;
+    const next = [...order];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
     setOrder(next);
   };
 
@@ -105,6 +115,17 @@ function Board() {
         </div>
       </header>
 
+      {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
+      <nav className="flex gap-1 border-b border-slate-800 px-5">
+        {([["portfolio", "Portfolio · Rack & Stack"], ["dashboards", "Dashboards · ROI Visuals"]] as const).map(([v, label]) => (
+          <button key={v} onClick={() => setView(v)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {view === "portfolio" && (<>
       <div className="grid gap-4 p-5 lg:grid-cols-[1.6fr_1fr]">
         {/* STACK table */}
         <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
@@ -116,6 +137,7 @@ function Board() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                  <th className="w-6"></th>
                   <th className="px-2 py-2 text-left">#</th>
                   <th className="px-2 py-2 text-left">Project</th>
                   <th className="px-2 py-2 text-center">Gate</th>
@@ -130,7 +152,8 @@ function Board() {
               <tbody>
                 {rows.map((r, i) => (
                   <RowFrag key={r.p.id} r={r} i={i} showLine={i === lineIndex} selId={selId}
-                    onSelect={setSelId} onUp={() => move(i, -1)} onDown={() => move(i, 1)} last={i === rows.length - 1} avail={avail} />
+                    onSelect={setSelId} onUp={() => move(i, -1)} onDown={() => move(i, 1)} last={i === rows.length - 1} avail={avail}
+                    dragging={dragIdx === i} onDragStartRow={() => setDragIdx(i)} onDropRow={() => { reorder(dragIdx, i); setDragIdx(null); }} />
                 ))}
               </tbody>
             </table>
@@ -155,6 +178,13 @@ function Board() {
       <div className="px-5 pb-2">
         <GrowthModelChart funded={fundedRows.map((r) => r.p)} />
       </div>
+      </>)}
+
+      {view === "dashboards" && (
+        <div className="p-5">
+          <Dashboards projects={order} funded={fundedRows.map((r) => r.p)} onSelect={(id) => { setSelId(id); setView("portfolio"); }} />
+        </div>
+      )}
 
       <footer className="px-5 pb-8 text-[11px] text-slate-500">
         Demo portfolio · figures derived (CRS-52/53/67), never entered. Series 9 (CRS-75→93) is the differentiator vs. classic rack-and-stack.
@@ -173,16 +203,17 @@ function Kpi({ label, value, tone }: { label: string; value: string; tone?: "goo
   );
 }
 
-function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail }: {
+function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, dragging, onDragStartRow, onDropRow }: {
   r: ReturnType<typeof stackWithBudget>["rows"][number]; i: number; showLine: boolean;
   selId: string; onSelect: (id: string) => void; onUp: () => void; onDown: () => void; last: boolean; avail: number;
+  dragging: boolean; onDragStartRow: () => void; onDropRow: () => void;
 }) {
   const { p, cumK, funded } = r;
   return (
     <>
       {showLine && (
         <tr>
-          <td colSpan={9} className="px-2 py-0.5">
+          <td colSpan={10} className="px-2 py-0.5">
             <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
               <span className="h-px flex-1 bg-amber-500/60" />
               Funding line · {k(avail)} R&amp;D
@@ -193,8 +224,13 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail }:
       )}
       <tr
         onClick={() => onSelect(p.id)}
-        className={`cursor-pointer border-b border-slate-900 ${selId === p.id ? "bg-cyan-500/10" : "hover:bg-slate-800/40"} ${funded ? "" : "opacity-70"}`}
+        draggable
+        onDragStart={onDragStartRow}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); onDropRow(); }}
+        className={`cursor-pointer border-b border-slate-900 ${selId === p.id ? "bg-cyan-500/10" : "hover:bg-slate-800/40"} ${funded ? "" : "opacity-70"} ${dragging ? "opacity-40" : ""}`}
       >
+        <td className="w-6 text-center align-middle text-slate-600 cursor-grab active:cursor-grabbing select-none" title="Drag to reprioritize">⠿</td>
         <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
         <td className="px-2 py-2">
           <div className="flex items-center gap-2">
@@ -339,8 +375,8 @@ function GateCube({ p }: { p: Project }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Gate cube · {filled}/27 deliverables</h3>
-        <span className="text-[11px] text-slate-500">stage &amp; blocker readable from the cube alone</span>
+        <h3 className="text-sm font-semibold">Gate progression · {filled}/27 deliverables</h3>
+        <span className="text-[11px] text-slate-500">G1–G7 · 27 cells · source of record</span>
       </div>
       <div className="mt-3 flex gap-4">
         {layers.map((L) => (
@@ -408,6 +444,9 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
   const [declinePct, setDeclinePct] = useState("15.1");
   const [revMode, setRevMode] = useState<RevMode>("full");
   const [showBaseline, setShowBaseline] = useState(true);
+  // LOB base revenue ($M) — enterable; defaults to the selected LOB (SBU-1/2/3) or company sum.
+  const [baseStr, setBaseStr] = useState(String(companyBaseM()));
+  useEffect(() => { setBaseStr(String(lobBaseM(bu))); }, [bu]);
 
   const bus = useMemo(() => ["All", ...hierValues(funded, "bu")], [funded]);
   const sbus = useMemo(() => ["All", ...hierValues(funded, "sbu", bu === "All" ? undefined : { level: "bu", value: bu })], [funded, bu]);
@@ -419,7 +458,8 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
 
   const growth = (parseFloat(growthPct) || 0) / 100;
   const decline = (parseFloat(declinePct) || 0) / 100;
-  const rows = growthModel(scoped, { years, growth, decline, revMode, baseYear: 2026 });
+  const baseM = parseFloat(baseStr) || 0;
+  const rows = growthModel(scoped, { years, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM });
   const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
   const stackOf = (r: (typeof rows)[number]) => (showBaseline ? r.doNothing : 0) + r.weighted + r.remaining;
   const max = Math.max(...rows.map((r) => Math.max(r.target, stackOf(r))), 1) * 1.1;
@@ -480,14 +520,18 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
       </svg>
 
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b" }} />Do-Nothing baseline (YoY decline)</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />Weighted NPI revenue</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />Remaining NPI to target (risk)</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b" }} />Do-Nothing baseline (grey — set 0 for per-project)</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />REV · probability-weighted</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />Upside · risk-weighted</span>
         <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />Growth target</span>
       </div>
 
       {/* Adjustable rates + revenue options (FLIR control parity) */}
       <div className="mt-3 flex flex-wrap items-end gap-3 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
+        <label>Base revenue $M ({bu === "All" ? "Company" : bu})
+          <input type="text" inputMode="decimal" value={baseStr} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setBaseStr(e.target.value)}
+            className={`ml-1.5 w-20 ${selStyle} tabular-nums`} />
+        </label>
         <label>Targeted Growth %
           <input type="text" inputMode="decimal" value={growthPct} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setGrowthPct(e.target.value)}
             className={`ml-1.5 w-16 ${selStyle} tabular-nums`} />
@@ -506,6 +550,194 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
           Show baseline
         </label>
       </div>
+    </div>
+  );
+}
+
+// ── DASHBOARDS (ROI Visuals) — Rack & Stack dashboards, themed eXeL AI Polling ───────────
+function StatTile({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "cyan" | "green" | "amber" | "violet" }) {
+  const c = tone === "green" ? "text-emerald-400" : tone === "amber" ? "text-amber-300" : tone === "violet" ? "text-violet-300" : "text-cyan-300";
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-3.5">
+      <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
+      <div className={`mt-1 text-xl font-semibold tabular-nums ${c}`}>{value}</div>
+      {sub && <div className="text-[11px] text-slate-500 mt-0.5">{sub}</div>}
+    </div>
+  );
+}
+// Horizontal bar list — one coherent mark style across every dashboard.
+function HBars({ rows, fmt }: { rows: { name: string; value: number; color?: string; sub?: string }[]; fmt: (v: number) => string }) {
+  const max = Math.max(...rows.map((r) => r.value), 1);
+  return (
+    <div className="space-y-1.5">
+      {rows.map((r) => (
+        <div key={r.name} className="flex items-center gap-2 text-[12px]">
+          <div className="w-32 shrink-0 truncate text-slate-300" title={r.name}>{r.name}</div>
+          <div className="relative h-4 flex-1 rounded bg-[#0b0f14] overflow-hidden">
+            <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${(r.value / max) * 100}%`, background: r.color || "#19c8cf", opacity: 0.85 }} />
+          </div>
+          <div className="w-20 shrink-0 text-right tabular-nums text-slate-200">{fmt(r.value)}</div>
+          {r.sub && <div className="w-10 shrink-0 text-right text-[10px] text-slate-500">{r.sub}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+function DashCard({ title, tag, children }: { title: string; tag?: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold">{title}</h3>
+        {tag && <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">{tag}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
+  const npvTotal = funded.reduce((s, p) => s + npvM(p), 0);
+  const incrTotal = funded.reduce((s, p) => s + incrementalRevM(p), 0);
+  const wtdTotal = funded.reduce((s, p) => s + weightedRevM(p), 0);
+  const eff = rdEfficiency(funded);
+  const byBU = spendByBU(projects);
+  const byCat = spendByCategory(projects);
+  const cost = costSplit(projects);
+  const roi = roiSummary(funded);
+  const pipe = pipelineByGate(projects);
+  const maxGateSpend = Math.max(...pipe.map((g) => g.spendK), 1);
+
+  const costRows = [
+    { name: "Labor", value: cost.labor, color: "#19c8cf" },
+    { name: "Subcontractor", value: cost.subcontractor, color: "#a78bfa" },
+    { name: "Material", value: cost.material, color: "#fbbf24" },
+    { name: "Other", value: cost.other, color: "#64748b" },
+  ];
+  const roiRows = [
+    { name: "New Product (rev)", value: roi.newProductM, color: "#34d399" },
+    { name: "Do-Nothing base", value: roi.doNothingM, color: "#64748b" },
+    { name: "End-of-Life", value: roi.eolM, color: "#fb923c" },
+    { name: "Incremental", value: roi.incrementalM, color: "#19c8cf" },
+    { name: "Prob-weighted", value: roi.weightedM, color: "#c084fc" },
+  ];
+  const kM = (v: number) => `$${(v / 1000).toFixed(1)}M`;
+  const roll = companyRollup(projects);
+
+  return (
+    <div className="space-y-4">
+      {/* Company → LOB → Product Group rollup (base revenue · spend · NPV) */}
+      <DashCard title="Rollup · Company → LOB → Product Group" tag="Company">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                <th className="px-2 py-1.5 text-left">Node</th>
+                <th className="px-2 py-1.5 text-right">Base rev</th>
+                <th className="px-2 py-1.5 text-right">NRE spend</th>
+                <th className="px-2 py-1.5 text-right">NPV</th>
+                <th className="px-2 py-1.5 text-right">Projects</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-slate-800 font-semibold">
+                <td className="px-2 py-1.5 text-cyan-300">◱ {roll.company.name}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums text-emerald-300">${roll.company.baseM}M</td>
+                <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{kM(roll.company.spendK)}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(roll.company.npvM)}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{roll.company.count}</td>
+              </tr>
+              {roll.lobs.map((lob) => (
+                <React.Fragment key={lob.name}>
+                  <tr className="border-b border-slate-900 bg-slate-900/30">
+                    <td className="px-2 py-1.5 pl-5 font-medium">▸ {lob.name} <span className="text-[10px] text-slate-500">(LOB)</span></td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-emerald-300">${lob.baseM}M</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{kM(lob.spendK)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(lob.npvM)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{lob.count}</td>
+                  </tr>
+                  {lob.groups.map((g) => (
+                    <tr key={g.name} className="border-b border-slate-900/50 text-[12px]">
+                      <td className="px-2 py-1 pl-9 text-slate-400">· {g.name} <span className="text-[10px] text-slate-600">(Product Group)</span></td>
+                      <td className="px-2 py-1 text-right text-slate-600">—</td>
+                      <td className="px-2 py-1 text-right tabular-nums text-slate-400">{kM(g.spendK)}</td>
+                      <td className="px-2 py-1 text-right tabular-nums text-slate-400">{usd(g.npvM)}</td>
+                      <td className="px-2 py-1 text-right tabular-nums text-slate-500">{g.count}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">Base revenue anchors the do-nothing growth model per LOB (enter it in Growth Model). Company = Σ LOB base.</p>
+      </DashCard>
+
+      {/* Top Dashboard — FLIR R&D VIEW KPIs */}
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+        <StatTile label="Projects" value={`${projects.length}`} sub={`${funded.length} funded`} />
+        <StatTile label="R&D efficiency" value={`${eff.toFixed(2)}×`} sub="NPV per $ NRE" tone="green" />
+        <StatTile label="10yr Op Contribution" value={usd(npvTotal)} sub="funded NPV" tone="green" />
+        <StatTile label="Incremental rev" value={usd(incrTotal)} sub="10yr, funded" tone="cyan" />
+        <StatTile label="Prob-weighted rev" value={usd(wtdTotal)} sub="risk-adjusted" tone="violet" />
+        <StatTile label="Total NRE" value={kM(cost.totalK)} sub="all projects" tone="amber" />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Division / BU Dashboard */}
+        <DashCard title="Spend by Business Unit" tag="Division">
+          <HBars rows={byBU.map((s) => ({ name: s.name, value: s.spendK, sub: `${s.count}` }))} fmt={kM} />
+          <p className="mt-2 text-[10px] text-slate-500">Bar = NRE spend · right count = # projects in the BU.</p>
+        </DashCard>
+
+        {/* Spend by Category */}
+        <DashCard title="Spend by Category" tag="Top">
+          <HBars rows={byCat.map((s) => ({ name: s.name, value: s.spendK, color: "#38bdf8", sub: `${s.count}` }))} fmt={kM} />
+        </DashCard>
+
+        {/* Cost Dashboard */}
+        <DashCard title="Cost Dashboard · expense split" tag="Cost">
+          <HBars rows={costRows} fmt={kM} />
+          <p className="mt-2 text-[10px] text-slate-500">Labor / Subcontractor / Material / Other — split of {kM(cost.totalK)} total NRE.</p>
+        </DashCard>
+
+        {/* ROI Summary */}
+        <DashCard title="ROI Summary" tag="ROI Visuals">
+          <HBars rows={roiRows} fmt={usd} />
+          <p className="mt-2 text-[10px] text-slate-500">New / Do-Nothing / EOL / Incremental, then probability-weighted (technical × commercial risk).</p>
+        </DashCard>
+      </div>
+
+      {/* Pipeline by Gate */}
+      <DashCard title="Pipeline by Gate" tag="Unofficial Framework">
+        <div className="grid grid-cols-7 gap-2">
+          {pipe.map((g) => (
+            <div key={g.gate} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-center">
+              <div className="text-[11px] font-mono text-slate-300">{g.gate}</div>
+              <div className="text-[9px] text-slate-500 mb-1.5 truncate" title={g.stage}>{g.stage}</div>
+              <div className="mx-auto flex h-16 w-full items-end justify-center">
+                <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: "#19c8cf", opacity: 0.8 }} />
+              </div>
+              <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
+              <div className="text-[10px] text-slate-500">{g.count} proj</div>
+            </div>
+          ))}
+        </div>
+        {/* Dev-type legend + colored chips per project */}
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
+          {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
+            <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
+          ))}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {projects.map((p) => (
+            <button key={p.id} onClick={() => onSelect(p.id)}
+              className="rounded px-2 py-0.5 text-[10px] font-medium text-[#06202a] hover:opacity-90"
+              style={{ background: DEV_TYPE[devTypeOf(p)].color }} title={`${p.name} · ${p.gate}`}>
+              {p.id}
+            </button>
+          ))}
+        </div>
+      </DashCard>
     </div>
   );
 }
