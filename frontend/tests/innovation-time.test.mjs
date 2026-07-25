@@ -73,6 +73,7 @@ import {
   riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
   SBU_BASE, companyBaseM, lobBaseM, companyRollup, sayDo, execOf, briefOf,
   buBaseM, scopeBaseM, GATE_DELIVERABLES, GATES as GATE_LIST, rackByLevel, projectRevSeries,
+  bomOf, bomStdCost, bomExtended, productionCost,
 } from "../lib/innovation-data.ts";
 
 // ── hierarchy: Company → BU → SBU → Product Group, cascading + filter ──
@@ -114,6 +115,14 @@ ok(sNone[9].oldDecline < sNone[0].oldDecline, "old product line declines without
 ok(sNone.every((r) => r.newRamp === 0), "no-innovation scenario has zero new-product revenue");
 ok(sFund.reduce((s, r) => s + r.newRamp, 0) > 0 && Math.abs(sFund.reduce((s, r) => s + r.newRamp, 0) - P01.fullRev10yM) < 1, "funded new-product ramp sums to 10-yr new revenue");
 ok(sFund[5].total > sNone[5].total, "with new product beats no-innovation total");
+
+// ── BOM per Product #: Material #s + standard cost (Labor/Material/Machining/Other) roll up ──
+const bom = bomOf(P01);
+ok(bom.length >= 3, "Product # has a multi-line BOM (Material #s)");
+ok(bom.every((l) => bomStdCost(l) === l.labor + l.matl + l.machining + l.other), "std cost = Labor+Material+Machining+Other");
+ok(Math.abs(productionCost(P01) - bom.reduce((s, l) => s + bomExtended(l), 0)) < 1e-9, "production cost = Σ extended BOM lines");
+ok(bom.some((l) => l.kind === "assembly") && bom.some((l) => l.kind === "component"), "BOM has components + assemblies");
+ok(JSON.stringify(bomOf(P01)) === JSON.stringify(bomOf(P01)), "BOM deterministic");
 // ── growth model base override anchors the do-nothing baseline ──
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 300 })[0].doNothing === 300, "baseOverrideM anchors year-0 do-nothing");
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 0 })[0].doNothing === 0, "grey jump-off settable to zero (per-project)");

@@ -215,6 +215,32 @@ export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: 
   return out;
 }
 
+// Bill of Materials (BOM) per Product # — the Material #s that make up the product, each with
+// a standard-cost breakdown (Labor · Material · Machining · Other) and quantity. Deterministic
+// from the project so estimated production cost rolls up the same way every render.
+export interface BomLine { material: string; desc: string; kind: "component" | "assembly"; qty: number; labor: number; matl: number; machining: number; other: number }
+export const bomStdCost = (l: BomLine) => l.labor + l.matl + l.machining + l.other; // unit standard cost $
+export const bomExtended = (l: BomLine) => bomStdCost(l) * l.qty;                    // extended $ (qty × std)
+export function bomOf(p: Project): BomLine[] {
+  const pre = hierOf(p).product; // e.g. TC-G5
+  const n = idNum(p.id);
+  const s = (k: number) => ((n * 37 + k * 101) % 50) + 10; // 10..59 deterministic
+  return [
+    { material: `${pre}-FPA`, desc: "Focal-plane / core", kind: "component", qty: 1, labor: s(1) * 8, matl: s(2) * 40, machining: s(3) * 12, other: s(4) * 4 },
+    { material: `${pre}-OPT`, desc: "Optics / lens assy", kind: "component", qty: 1, labor: s(5) * 6, matl: s(6) * 25, machining: s(7) * 18, other: s(8) * 3 },
+    { material: `${pre}-PCB`, desc: "Processing PCB", kind: "component", qty: 2, labor: s(9) * 5, matl: s(10) * 20, machining: s(11) * 6, other: s(12) * 2 },
+    { material: `${pre}-HSG`, desc: "Housing / chassis", kind: "component", qty: 1, labor: s(13) * 4, matl: s(14) * 15, machining: s(15) * 22, other: s(16) * 3 },
+    { material: `${pre}-ASSY`, desc: "Final assembly + test", kind: "assembly", qty: 1, labor: s(17) * 20, matl: s(18) * 5, machining: s(19) * 8, other: s(20) * 10 },
+  ];
+}
+// Estimated per-unit production (standard) cost of a Product # = Σ extended BOM lines.
+export const productionCost = (p: Project) => bomOf(p).reduce((sum, l) => sum + bomExtended(l), 0);
+export function bomCostSplit(p: Project) {
+  const lines = bomOf(p);
+  const acc = (f: (l: BomLine) => number) => lines.reduce((s, l) => s + f(l) * l.qty, 0);
+  return { labor: acc((l) => l.labor), matl: acc((l) => l.matl), machining: acc((l) => l.machining), other: acc((l) => l.other), total: productionCost(p) };
+}
+
 // Say/Do ratio — did we deliver what we said (>1 = beat the plan). Demo model from
 // confidence, risk profile, and critical-path; at Launch this binds to real actuals in the
 // business systems (schedule/cost/scope) so the tool tracks Say/Do end-to-end.

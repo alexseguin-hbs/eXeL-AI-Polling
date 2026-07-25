@@ -18,6 +18,7 @@ import {
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
   scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW, rackByLevel, projectRevSeries,
+  bomOf, bomStdCost, bomExtended, productionCost,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -152,7 +153,7 @@ function Board() {
             </h2>
             {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
             <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
-              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Prod Grp"], ["alpha", "Alpha"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
+              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "PdG"], ["alpha", "AG"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
                 <button key={lv} onClick={() => { setStackLevel(lv); setDrill(null); }}
                   className={`px-2 py-1 ${stackLevel === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
               ))}
@@ -201,7 +202,7 @@ function Board() {
                             </div></td></tr>
                         )}
                         <tr onClick={() => { setDrill({ level: stackLevel, value: g.key }); setStackLevel("product"); }}
-                          className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/40 ${st.rows[i]?.funded ? "" : "opacity-70"}`} title="Drill to projects">
+                          className={`cursor-pointer border-b border-slate-900 hover:bg-cyan-500/10 hover:ring-1 hover:ring-inset hover:ring-cyan-500/30 ${st.rows[i]?.funded ? "" : "opacity-70"}`} title="Drill to projects">
                           <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
                           <td className="px-2 py-2 font-medium">{g.key} <span className="text-[10px] text-slate-500">↳ drill</span></td>
                           <td className="px-2 py-2 text-center tabular-nums text-slate-400">{g.count}</td>
@@ -254,22 +255,44 @@ function Board() {
                 <thead>
                   <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
                     <th className="px-2 py-2 text-left">Material # (BOM)</th>
-                    <th className="px-2 py-2 text-left">Product #</th>
-                    <th className="px-2 py-2 text-left">Project</th>
-                    <th className="px-2 py-2 text-left">Product Group</th>
-                    <th className="px-2 py-2 text-right">NRE</th>
+                    <th className="px-2 py-2 text-left">Description</th>
+                    <th className="px-2 py-2 text-center">Qty</th>
+                    <th className="px-2 py-2 text-right">Labor</th>
+                    <th className="px-2 py-2 text-right">Material</th>
+                    <th className="px-2 py-2 text-right">Machining</th>
+                    <th className="px-2 py-2 text-right">Other</th>
+                    <th className="px-2 py-2 text-right">Std cost</th>
+                    <th className="px-2 py-2 text-right">Extended</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {order.map((p) => (
-                    <tr key={p.id} onClick={() => setSelId(p.id)} className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/40 ${selId === p.id ? "bg-cyan-500/10" : ""}`}>
-                      <td className="px-2 py-2 font-mono text-slate-200">{hierOf(p).material}</td>
-                      <td className="px-2 py-2 font-mono text-slate-400">{hierOf(p).product}</td>
-                      <td className="px-2 py-2 text-slate-300">{p.name}</td>
-                      <td className="px-2 py-2 font-mono text-slate-500">{hierOf(p).pgroup}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(p.nreK)}</td>
-                    </tr>
-                  ))}
+                  {(drilled ?? order).map((p) => {
+                    const lines = bomOf(p);
+                    return (
+                      <React.Fragment key={p.id}>
+                        {/* Product # header — estimated per-unit production (standard) cost */}
+                        <tr onClick={() => setSelId(p.id)} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${selId === p.id ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
+                          <td className="px-2 py-1.5 font-mono font-semibold text-cyan-300">{hierOf(p).product}</td>
+                          <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· {hierOf(p).pgroup} · {lines.length} materials</span></td>
+                          <td className="px-2 py-1.5 text-right text-[10px] uppercase tracking-wider text-slate-500">Prod cost →</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-emerald-400">${Math.round(productionCost(p)).toLocaleString()}</td>
+                        </tr>
+                        {lines.map((l) => (
+                          <tr key={l.material} className="border-b border-slate-900/50 text-[12px]">
+                            <td className="px-2 py-1 pl-5 font-mono text-slate-300">{l.material}</td>
+                            <td className="px-2 py-1 text-slate-400">{l.desc} <span className={`ml-1 rounded px-1 text-[9px] ${l.kind === "assembly" ? "bg-violet-500/20 text-violet-300" : "bg-slate-800 text-slate-500"}`}>{l.kind}</span></td>
+                            <td className="px-2 py-1 text-center tabular-nums text-slate-400">{l.qty}</td>
+                            <td className="px-2 py-1 text-right tabular-nums text-slate-400">${l.labor}</td>
+                            <td className="px-2 py-1 text-right tabular-nums text-slate-400">${l.matl}</td>
+                            <td className="px-2 py-1 text-right tabular-nums text-slate-400">${l.machining}</td>
+                            <td className="px-2 py-1 text-right tabular-nums text-slate-500">${l.other}</td>
+                            <td className="px-2 py-1 text-right tabular-nums text-slate-200">${bomStdCost(l)}</td>
+                            <td className="px-2 py-1 text-right tabular-nums text-slate-300">${bomExtended(l).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
