@@ -7,19 +7,74 @@ export type Gate = "G1" | "G2" | "G3" | "G4" | "G5" | "G6" | "G7";
 export const GATES: Gate[] = ["G1", "G2", "G3", "G4", "G5", "G6", "G7"];
 // Stage tolerance bands (CRS-86): ±% by phase, tightening gate over gate.
 export const GATE_BAND: Record<Gate, number> = { G1: 0.6, G2: 0.6, G3: 0.4, G4: 0.2, G5: 0.1, G6: 0.05, G7: 0.05 };
+// Development stages per the AMTS "Product Portfolio Review — Overview By Stage" (gate at each stage end).
 export const GATE_STAGE: Record<Gate, string> = {
-  G1: "Concept", G2: "Plan", G3: "Develop", G4: "Develop", G5: "Qualify", G6: "Launch", G7: "Sustain",
+  G1: "Concept", G2: "Plan", G3: "Develop", G4: "Qualify", G5: "Launch", G6: "Maximize", G7: "Retire / EOL",
 };
-// Minimum Product-Management deliverables per gate (AIML "Gate Deliverables" — reviews & approvals).
-export const GATE_DELIVERABLES: Record<Gate, string[]> = {
-  G1: ["Executive Summary", "Financial — Return", "Customer CONOPS", "Customer Problem", "Product Summary"],
-  G2: ["Customer Workflow", "Competition + Value", "User Stories — Highlights", "Financials by Year", "Prelim Feedback"],
-  G3: ["Go-To-Market", "Risk Highlights"],
-  G4: ["Go-To-Market (refined)", "Risk burn-down"],
-  G5: ["Resourcing", "BETA Feedback"],
-  G6: ["Market Performance"],
-  G7: ["Post-Launch Dev", "End-of-Life Strategy"],
+// Minimum deliverables required at each gate to de-risk development (AMTS S1–S18 matrix):
+// slide # · description · summary, plus the Must-Have / Recommended preparation & alignment docs.
+// Financial — Return (S3) is the 3rd-most-important slide (priority: 3).
+export interface GateDeliverable { slide: string; name: string; summary: string; priority?: number }
+export interface GateReview { deliverables: GateDeliverable[]; mustHave: string[]; recommended: string[] }
+export const GATE_REVIEW: Record<Gate, GateReview> = {
+  G1: {
+    deliverables: [
+      { slide: "S1–S2", name: "Executive Summary", summary: "2-slide overview" },
+      { slide: "S3", name: "Financial — Return", summary: "Profile: NPV + IRR", priority: 3 },
+      { slide: "S4", name: "Customer CONOPS — Applications", summary: "Mission Needs" },
+      { slide: "S5", name: "Customer Problem", summary: "Statement — Outcomes" },
+      { slide: "S6", name: "Product Summary", summary: "Customer Segment 1" },
+    ],
+    mustHave: ["Market Needs Documentation", "Business Case Documentation", "Alignment meeting: S1–S6"],
+    recommended: [],
+  },
+  G2: {
+    deliverables: [
+      { slide: "S7", name: "Customer Workflow", summary: "By Persona" },
+      { slide: "S8", name: "Competition + Value", summary: "Value Prop v NBA" },
+      { slide: "S9", name: "User Stories — Highlights", summary: "By Persona" },
+      { slide: "S10", name: "Financials by Year", summary: "Cost + Revenues", priority: 3 },
+      { slide: "S11", name: "Prelim Feedback", summary: "Validation + Plans" },
+    ],
+    mustHave: ["Product Description Documentation", "Alignment meeting: S6–S11"],
+    recommended: [],
+  },
+  G3: {
+    deliverables: [
+      { slide: "S12", name: "Go-To-Market", summary: "Strategy Alignment" },
+      { slide: "S13", name: "Risk Highlights", summary: "Tech + Commercial" },
+    ],
+    mustHave: ["Roadmap Documentation", "Alignment meeting: S12–S13"],
+    recommended: ["Manufacturing Strategy Documentation", "Supply Chain Risk Assessment"],
+  },
+  G4: {
+    deliverables: [
+      { slide: "S14", name: "Resourcing", summary: "Functional Alignment" },
+      { slide: "S15", name: "BETA Feedback", summary: "Pre-Launch VOCs" },
+    ],
+    mustHave: ["Marketing Strategy Documentation"],
+    recommended: [],
+  },
+  G5: {
+    deliverables: [{ slide: "S16", name: "Market Performance", summary: "Say / Do Metrics" }],
+    mustHave: [],
+    recommended: ["Performance Tracking w/ Finance + BD", "Performance Tracking w/ Mfg/Ops"],
+  },
+  G6: {
+    deliverables: [{ slide: "S17", name: "Post-Launch Dev", summary: "VOC + Priorities" }],
+    mustHave: [],
+    recommended: ["Performance Tracking w/ Finance + BD", "Performance Tracking w/ Mfg/Ops"],
+  },
+  G7: {
+    deliverables: [{ slide: "S18", name: "End-of-Life Strategy", summary: "Org Alignment" }],
+    mustHave: [],
+    recommended: ["Performance Tracking w/ Finance + BD"],
+  },
 };
+// Back-compat: flat name list per gate (derived from the review matrix).
+export const GATE_DELIVERABLES: Record<Gate, string[]> = Object.fromEntries(
+  GATES.map((g) => [g, GATE_REVIEW[g].deliverables.map((d) => d.name)]),
+) as Record<Gate, string[]>;
 
 // Risk model (operator default): probability weight = P(tech) × P(comm), each from a discrete
 // risk level. Low = 90% · Med = 60% · High = 30% probability of success. So Low/Low captures

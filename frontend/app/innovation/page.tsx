@@ -17,7 +17,7 @@ import {
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
-  scopeBaseM, GATE_DELIVERABLES,
+  scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -439,14 +439,24 @@ function GateCube({ p }: { p: Project }) {
         ))}
       </div>
       <div className="mt-2 text-[11px] text-slate-500">Layers = gate bands · lit = approved (append-only event fold, CRS-76/78)</div>
-      {/* Minimum PM deliverables at the current gate (AIML gate-deliverables) */}
+      {/* Minimum deliverables required at this gate to de-risk (AMTS S1–S18 matrix) */}
       <div className="mt-3 border-t border-slate-800 pt-2">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Min deliverables · {GATE_STAGE[p.gate]} ({p.gate})</div>
-        <ul className="mt-1 flex flex-wrap gap-1.5">
-          {GATE_DELIVERABLES[p.gate].map((d) => (
-            <li key={d} className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] text-slate-300">✓ {d}</li>
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">Min deliverables to de-risk · {GATE_STAGE[p.gate]} ({p.gate})</div>
+        <ul className="mt-1 space-y-0.5">
+          {GATE_REVIEW[p.gate].deliverables.map((d) => (
+            <li key={d.slide} className="flex items-baseline gap-2 text-[11px]">
+              <span className="font-mono text-slate-500 w-10 shrink-0">{d.slide}</span>
+              <span className={`text-slate-200 ${d.priority ? "text-amber-300 font-medium" : ""}`}>{d.name}{d.priority === 3 ? " ★3rd" : ""}</span>
+              <span className="text-slate-500">· {d.summary}</span>
+            </li>
           ))}
         </ul>
+        {GATE_REVIEW[p.gate].mustHave.length > 0 && (
+          <div className="mt-1.5 text-[11px]"><span className="text-emerald-400 font-medium">Must have:</span> <span className="text-slate-400">{GATE_REVIEW[p.gate].mustHave.join(" · ")}</span></div>
+        )}
+        {GATE_REVIEW[p.gate].recommended.length > 0 && (
+          <div className="mt-0.5 text-[11px]"><span className="text-slate-500 font-medium">Recommended:</span> <span className="text-slate-600">{GATE_REVIEW[p.gate].recommended.join(" · ")}</span></div>
+        )}
       </div>
     </div>
   );
@@ -708,6 +718,65 @@ function DashCard({ title, tag, children }: { title: string; tag?: string; child
   );
 }
 
+// Financial Map — R&D Spend (cost) vs Risk-Weighted Revenue per project, with an Upside toggle.
+// The 3rd-most-important view (Financial): where each project sits on cost-vs-return.
+function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (id: string) => void }) {
+  const [mode, setMode] = useState<"rw" | "upside">("rw");
+  const [hover, setHover] = useState<string | null>(null);
+  const W = 720, H = 300, L = 46, B = 34, T = 16, R = 16;
+  const xOf = (p: Project) => p.nreK / 1000; // $M R&D spend
+  const yOf = (p: Project) => (mode === "rw" ? weightedRevM(p) : incrementalRevM(p));
+  const maxX = Math.max(...projects.map(xOf), 1) * 1.1;
+  const maxY = Math.max(...projects.map(yOf), 1) * 1.1;
+  const px = (v: number) => L + (v / maxX) * (W - L - R);
+  const py = (v: number) => H - B - (v / maxY) * (H - B - T);
+  const rOf = (p: Project) => Math.max(4, Math.min(20, Math.sqrt(Math.max(1, npvM(p))) * 2));
+  const usdM = (v: number) => `$${v.toFixed(0)}M`;
+  return (
+    <DashCard title="Financial Map · R&D Spend vs Risk-Weighted Revenue" tag="Financial ★">
+      <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
+        <div className="flex overflow-hidden rounded-md border border-slate-700">
+          {([["rw", "Risk-weighted"], ["upside", "Upside (unweighted)"]] as const).map(([m, lbl]) => (
+            <button key={m} onClick={() => setMode(m)}
+              className={`px-2.5 py-1 ${mode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          ))}
+        </div>
+        <span className="text-[10px] text-slate-500">bubble size = NPV · color = dev-type · top-left = high return / low cost</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
+        {/* sweet-spot shading (low cost, high return) */}
+        <rect x={L} y={T} width={(W - L - R) * 0.4} height={(H - B - T) * 0.5} fill="rgba(52,211,153,.06)" />
+        {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+          <g key={f}>
+            <line x1={L} y1={py(maxY * f)} x2={W - R} y2={py(maxY * f)} stroke="rgba(148,163,184,.1)" />
+            <text x={L - 4} y={py(maxY * f) + 3} textAnchor="end" fontSize="8" fill="#64748b" fontFamily="ui-monospace, monospace">{Math.round(maxY * f)}</text>
+          </g>
+        ))}
+        {[0, 0.5, 1].map((f) => (
+          <text key={f} x={px(maxX * f)} y={H - B + 12} textAnchor="middle" fontSize="8" fill="#64748b" fontFamily="ui-monospace, monospace">${Math.round(maxX * f)}M</text>
+        ))}
+        <text x={(L + W - R) / 2} y={H - 2} textAnchor="middle" fontSize="9" fill="#94a3b8">R&amp;D Spend (NRE $M) →</text>
+        <text x={12} y={(T + H - B) / 2} textAnchor="middle" fontSize="9" fill="#94a3b8" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>{mode === "rw" ? "Risk-Weighted Revenue $M ↑" : "Upside Revenue $M ↑"}</text>
+        {projects.map((p) => {
+          const cx = px(xOf(p)), cy = py(yOf(p)), on = hover === p.id;
+          return (
+            <g key={p.id} onMouseEnter={() => setHover(p.id)} onMouseLeave={() => setHover(null)} onClick={() => onSelect(p.id)} style={{ cursor: "pointer" }}>
+              <title>{p.name} · spend {usdM(xOf(p))} · {mode === "rw" ? "risk-wt" : "upside"} rev {usdM(yOf(p))} · NPV {usdM(npvM(p))}</title>
+              <circle cx={cx} cy={cy} r={rOf(p)} fill={DEV_TYPE[devTypeOf(p)].color} opacity={on ? 0.95 : 0.6} stroke={on ? "#e2e8f0" : "none"} strokeWidth="1.2" />
+              <text x={cx} y={cy + 2.5} textAnchor="middle" fontSize="7.5" fill="#06202a" fontWeight="700" fontFamily="ui-monospace, monospace">{p.id.replace("PRJ-", "")}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
+        {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
+          <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
+        ))}
+      </div>
+    </DashCard>
+  );
+}
+
 function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
   const npvTotal = funded.reduce((s, p) => s + npvM(p), 0);
   const incrTotal = funded.reduce((s, p) => s + incrementalRevM(p), 0);
@@ -738,6 +807,9 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
 
   return (
     <div className="space-y-4">
+      {/* Financial Map — R&D spend vs risk-weighted revenue (Financial = 3rd-most-important) */}
+      <FinancialMap projects={projects} onSelect={onSelect} />
+
       {/* Company → BU → SBU → Product Group rollup (base revenue · spend · NPV) */}
       <DashCard title="Rollup · Company → BU → SBU → Product Group" tag="Company">
         <div className="overflow-x-auto">
