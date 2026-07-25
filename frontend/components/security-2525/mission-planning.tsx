@@ -260,6 +260,15 @@ const AOS: Ao[] = [
       { name: "1 RUE DU MAIL", lat: 48.86678, lon: 2.34186 },
     ],
     buildings: [PLACE_DES_VICTOIRES] },
+  // Paris wide AO — 100 km Île-de-France, same centre (1 rue du Mail). MAJOR network only
+  // (Périphérique/A86/Francilienne rings + autoroute radials + Seine/Marne/Oise), TX-metro method.
+  { key: "paris100", name: "PARIS · ÎLE-DE-FRANCE (100km)", center: [48.86678, 2.34186], halfKm: 100, osm: "paris100",
+    landmarks: [
+      { name: "PLACE DES VICTOIRES", lat: 48.86648, lon: 2.34068 },
+      { name: "VERSAILLES", lat: 48.8049, lon: 2.1204 },
+      { name: "SAINT-DENIS", lat: 48.9362, lon: 2.3574 },
+    ],
+    buildings: [] },
 ];
 
 // ── Major metro areas (≥1M metropolitan population) — geo context labels ──────
@@ -540,6 +549,7 @@ const DEM_INDEX: { key: string; bbox: [number, number, number, number] }[] = [
   { key: "washington", bbox: [-124.9, 45.5, -116.9, 49.1] },
   { key: "texas", bbox: [-106.7, 25.8, -93.4, 36.6] },
   { key: "paris", bbox: [2.18, 48.76, 2.51, 48.97] }, // 10km AOR around Place des Victoires (GEBCO land + Seine)
+  { key: "paris100", bbox: [0.95, 47.95, 3.72, 49.78] }, // 100km Île-de-France (Paris basin + Seine/Marne/Oise)
 ];
 const demArea = (b: [number, number, number, number]) => (b[2] - b[0]) * (b[3] - b[1]);
 /** Finest DEM tile fully covering the view; else the coarsest tile over its centre. */
