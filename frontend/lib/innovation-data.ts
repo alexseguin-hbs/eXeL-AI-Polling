@@ -59,6 +59,21 @@ export const irrPct = (p: Project) => {
 // 27-cell gate cube fill (CRS-79/80): deliverables approved so far, by gate progression.
 export const cubeFilled = (p: Project) => Math.round((GATES.indexOf(p.gate) + 1) / GATES.length * 27);
 
+// Say/Do ratio — did we deliver what we said (>1 = beat the plan). Demo model from
+// confidence, risk profile, and critical-path; at Launch this binds to real actuals in the
+// business systems (schedule/cost/scope) so the tool tracks Say/Do end-to-end.
+export function sayDo(p: Project) {
+  const conf = (p.confidence - 2.5) * 0.06;
+  const riskDrag = ((riskNum(p.tech) + riskNum(p.comm)) / 2) * 0.25;
+  const cp = p.criticalPath ? 0.03 : 0;
+  const clamp = (v: number) => +Math.max(0.6, Math.min(1.4, v)).toFixed(2);
+  return {
+    schedule: clamp(1 + conf - riskDrag + cp), // planned duration ÷ actual
+    budget: clamp(1 + conf - riskDrag * 0.8),  // planned $ ÷ actual
+    time: clamp(1 + conf - riskDrag - 0.02),   // planned active-time ÷ actual
+  };
+}
+
 export interface DivisionBudget { division: string; totalK: number; allocatedK: number; }
 export const availableK = (b: DivisionBudget) => b.totalK - b.allocatedK; // CRS-70
 
@@ -78,6 +93,11 @@ export const DEMO_PROJECTS: Project[] = [
   { id: "PRJ-10", name: "Autonomy SDK & Swarm Marketplace", division: "Developer", lob: "SBU-2", manager: "R. Kaur", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 3900, fullRev10yM: 130, doNothing10yM: 15, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.65, si: 0.2, hi: 0.15, predictions: 34 },
   { id: "PRJ-11", name: "Legacy ISR Sensor EOL Bridge", division: "Sensors", lob: "SBU-3", manager: "M. Devlin", category: "Phase-out", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 1400, fullRev10yM: 40, doNothing10yM: 35, firstRevenue: "2026-Q1", criticalPath: false, humanLoad: 0.3, ai: 0.2, si: 0.4, hi: 0.4, predictions: 8 },
   { id: "PRJ-12", name: "Resilient PNT-Denied Datalink", division: "Comms", lob: "SBU-3", manager: "T. Cho", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 7600, fullRev10yM: 300, doNothing10yM: 5, firstRevenue: "2030-Q1", criticalPath: true, humanLoad: 0.68, ai: 0.5, si: 0.3, hi: 0.2, predictions: 72 },
+  // Forward-looking flexibility (AI/ML · VR/XR · MUM-T · autonomous space) — Intelligent
+  // Adaptation · Operational Synergy · Precision Execution.
+  { id: "PRJ-13", name: "Immersive VR/XR Mission Rehearsal", division: "Training AI", lob: "SBU-2", manager: "S. Haddad", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 3200, fullRev10yM: 110, doNothing10yM: 12, firstRevenue: "2027-Q2", criticalPath: false, humanLoad: 0.5, ai: 0.5, si: 0.3, hi: 0.2, predictions: 19 },
+  { id: "PRJ-14", name: "Manned-Unmanned Teaming (MUM-T) Suite", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 8800, fullRev10yM: 290, doNothing10yM: 8, firstRevenue: "2028-Q3", criticalPath: true, humanLoad: 0.72, ai: 0.5, si: 0.3, hi: 0.2, predictions: 48 },
+  { id: "PRJ-15", name: "Orbital Self-Replicating Sensor Swarm", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "high", nreK: 14000, fullRev10yM: 520, doNothing10yM: 0, firstRevenue: "2031-Q1", criticalPath: false, humanLoad: 0.66, ai: 0.6, si: 0.25, hi: 0.15, predictions: 88 },
 ];
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
@@ -223,6 +243,9 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-10": { bu: "SBU-2", sbu: "PG-4", pgroup: "SDK", alpha: "Marketplace", product: "AUT-SDK", material: "AUT-SDK-PKG" },
   "PRJ-11": { bu: "SBU-3", sbu: "PG-9", pgroup: "Legacy", alpha: "EOL", product: "LEG-BR", material: "LEG-BR-KIT" },
   "PRJ-12": { bu: "SBU-3", sbu: "PG-7", pgroup: "Secure Comms", alpha: "Quantum", product: "QS-COM", material: "QS-COM-QKD" },
+  "PRJ-13": { bu: "SBU-2", sbu: "PG-5", pgroup: "Immersive Training", alpha: "VR/XR", product: "IMX-RH", material: "IMX-RH-HMD" },
+  "PRJ-14": { bu: "SBU-1", sbu: "PG-2", pgroup: "Teaming", alpha: "MUM-T", product: "MUMT-STE", material: "MUMT-STE-LNK" },
+  "PRJ-15": { bu: "SBU-3", sbu: "PG-8", pgroup: "Orbital Autonomy", alpha: "Self-Replication", product: "ORB-SWM", material: "ORB-SWM-NODE" },
 };
 export const hierOf = (p: Project): HierPath =>
   PROJECT_HIER[p.id] ?? { bu: p.lob, sbu: p.division, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };

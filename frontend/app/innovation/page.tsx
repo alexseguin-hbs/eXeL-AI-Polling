@@ -16,7 +16,7 @@ import {
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
-  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME,
+  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -315,6 +315,7 @@ function TimeEngine({ p }: { p: Project }) {
   const [startISO, setStartISO] = useState("2026-01-05");
   const [unit, setUnit] = useState<TimeUnit>("month");
   const r = timeReadout(p, startISO, unit);
+  const sd = sayDo(p);
   const band = Math.round(toleranceBand(p) * 100);
   const fmtTime = (v: number) => (unit === "minute" || unit === "hour" ? Math.round(v).toLocaleString() : v.toFixed(unit === "month" ? 1 : 0));
   const fmtUsd0 = (v: number) => `$${(v / 1e6).toFixed(2)}M`;
@@ -353,6 +354,20 @@ function TimeEngine({ p }: { p: Project }) {
       </div>
       <div className="mt-1 text-[10px] text-slate-600">
         {sched.rows.map((g) => `${g.gate} ${g.endISO.slice(2)}`).join(" · ")}
+      </div>
+      {/* Say / Do ratio — planned vs delivered on Time · Schedule · Budget (binds to actuals at Launch) */}
+      <div className="mt-3 border-t border-slate-800 pt-2">
+        <div className="flex items-center justify-between text-[11px] text-slate-400">
+          <span>Say / Do ratio</span><span className="text-[10px] text-slate-600">planned ÷ delivered · &gt;1.0 beats plan</span>
+        </div>
+        <div className="mt-1 grid grid-cols-3 gap-2">
+          {([["Time", sd.time], ["Schedule", sd.schedule], ["Budget", sd.budget]] as const).map(([lbl, v]) => (
+            <div key={lbl} className="rounded-lg bg-[#0b0f14] px-2.5 py-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-slate-500">{lbl}</div>
+              <div className={`text-sm font-semibold tabular-nums ${v >= 1 ? "text-emerald-400" : "text-rose-400"}`}>{v.toFixed(2)}×</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -436,6 +451,7 @@ function Differentiators({ p }: { p: Project }) {
 // Growth Model (CRS-69) — the signature Rack & Stack chart, now with the full FLIR control set:
 // BU→SBU hierarchy filter, # Years (1/3/10), Targeted Growth Rate, YoY Do-Nothing decline,
 // Revenue Options (which NPI steps count), Show/Hide baseline, 4-series legend.
+const GATE_DIAMONDS = ["G1", "G2", "G3", "G4", "G5", "G6", "G7"] as const;
 function GrowthModelChart({ funded }: { funded: Project[] }) {
   const [bu, setBu] = useState("All");
   const [sbu, setSbu] = useState("All");
@@ -447,6 +463,15 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
   // LOB base revenue ($M) — enterable; defaults to the selected LOB (SBU-1/2/3) or company sum.
   const [baseStr, setBaseStr] = useState(String(companyBaseM()));
   useEffect(() => { setBaseStr(String(lobBaseM(bu))); }, [bu]);
+  // View level (max-UX switcher): Company → LOB/SBU → Product Group. Drives the scope dropdowns.
+  const [level, setLevel] = useState<"company" | "lob" | "pg">("company");
+  const [hover, setHover] = useState<number | null>(null);
+  const setLevelScope = (lv: "company" | "lob" | "pg") => {
+    setLevel(lv);
+    if (lv === "company") { setBu("All"); setSbu("All"); }
+    else if (lv === "lob") { setSbu("All"); if (bu === "All") setBu(hierValues(funded, "bu")[0] ?? "All"); }
+    else { if (bu === "All") setBu(hierValues(funded, "bu")[0] ?? "All"); }
+  };
 
   const bus = useMemo(() => ["All", ...hierValues(funded, "bu")], [funded]);
   const sbus = useMemo(() => ["All", ...hierValues(funded, "sbu", bu === "All" ? undefined : { level: "bu", value: bu })], [funded, bu]);
@@ -475,18 +500,28 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
         <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
       </div>
 
-      {/* Hierarchy scope (BU → SBU) — cascading, re-nameable levels */}
+      {/* View-level switcher (max UX): Company → LOB/SBU → Product Group, + cascading scope */}
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
-        <label>{HIER_LEVELS[0].label}
-          <select value={bu} onChange={(e) => { setBu(e.target.value); setSbu("All"); }} className={`ml-1.5 ${selStyle}`}>
-            {bus.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-        </label>
-        <label>{HIER_LEVELS[1].label}
-          <select value={sbu} onChange={(e) => setSbu(e.target.value)} className={`ml-1.5 ${selStyle}`}>
-            {sbus.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-        </label>
+        <div className="flex overflow-hidden rounded-md border border-slate-700">
+          {([["company", "Company"], ["lob", "LOB / SBU"], ["pg", "Product Group"]] as const).map(([lv, lbl]) => (
+            <button key={lv} onClick={() => setLevelScope(lv)}
+              className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          ))}
+        </div>
+        {level !== "company" && (
+          <label>{HIER_LEVELS[0].label}
+            <select value={bu} onChange={(e) => { setBu(e.target.value); setSbu("All"); }} className={`ml-1.5 ${selStyle}`}>
+              {bus.filter((o) => o !== "All").map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </label>
+        )}
+        {level === "pg" && (
+          <label>{HIER_LEVELS[1].label}
+            <select value={sbu} onChange={(e) => setSbu(e.target.value)} className={`ml-1.5 ${selStyle}`}>
+              {sbus.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </label>
+        )}
         {/* # Years */}
         <div className="ml-auto flex overflow-hidden rounded-md border border-slate-700">
           {[1, 3, 10].map((yv) => (
@@ -505,18 +540,41 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
           const base = showBaseline ? r.doNothing : 0;
           const dnH = (H - B) - y(base);
           const wY = y(base + r.weighted), rY = y(base + r.weighted + r.remaining);
+          const on = hover === i;
+          const dim = hover != null && !on ? 0.35 : 1;
+          const cx = x + bw / 2;
+          const lbl = (yy: number, v: number, fill: string) => v > 0.5 ? <text x={cx} y={yy} textAnchor="middle" fill={fill} fontSize="9" fontWeight="700">{Math.round(v)}</text> : null;
           return (
-            <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9">
-              {showBaseline && <rect x={x} y={y(base)} width={bw} height={Math.max(0, dnH)} fill="#64748b" opacity="0.7" />}
-              <rect x={x} y={wY} width={bw} height={Math.max(0, y(base) - wY)} fill="#34d399" />
-              <rect x={x} y={rY} width={bw} height={Math.max(0, wY - rY)} fill="#fbbf24" opacity="0.9" />
-              <text x={x + bw / 2} y={H - B + 12} textAnchor="middle" fill="#64748b">{r.year}</text>
-              <text x={x + bw / 2} y={rY - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(stackOf(r))}</text>
+            <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
+              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
+              <title>{r.year}: do-nothing {Math.round(base)} · REV {Math.round(r.weighted)} · upside {Math.round(r.remaining)} · target {Math.round(r.target)}</title>
+              {/* invisible hit area so hover works over the whole column */}
+              <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
+              {showBaseline && <rect x={x} y={y(base)} width={bw} height={Math.max(0, dnH)} fill="#64748b" opacity={on ? 0.95 : 0.7} />}
+              <rect x={x} y={wY} width={bw} height={Math.max(0, y(base) - wY)} fill="#34d399" opacity={on ? 1 : 0.9} />
+              <rect x={x} y={rY} width={bw} height={Math.max(0, wY - rY)} fill="#fbbf24" opacity={on ? 1 : 0.9} />
+              <text x={cx} y={H - B + 12} textAnchor="middle" fill={on ? "#e2e8f0" : "#64748b"}>{r.year}</text>
+              <text x={cx} y={rY - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(stackOf(r))}</text>
+              {/* On hover: reveal grey / green / orange segment numbers in-place */}
+              {on && showBaseline && lbl(y(base) + dnH / 2 + 3, base, "#cbd5e1")}
+              {on && lbl((wY + y(base)) / 2 + 3, r.weighted, "#06281f")}
+              {on && lbl((rY + wY) / 2 + 3, r.remaining, "#3a2a06")}
             </g>
           );
         })}
         <polyline points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />
         {rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
+        {/* Gate cadence — MIL-STD-2525 hostile (red) diamonds between the bars, G1..G7 */}
+        {GATE_DIAMONDS.map((g, i) => {
+          const gx = L + ((i + 0.5) / GATE_DIAMONDS.length) * (W - L - R);
+          const gy = T - 8;
+          return (
+            <g key={g} fontFamily="ui-monospace, monospace">
+              <rect x={gx - 4} y={gy - 4} width="8" height="8" transform={`rotate(45 ${gx} ${gy})`} fill="#ef4444" stroke="#fca5a5" strokeWidth="0.6" />
+              <text x={gx} y={gy - 7} textAnchor="middle" fill="#fca5a5" fontSize="7">{g}</text>
+            </g>
+          );
+        })}
       </svg>
 
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">

@@ -71,7 +71,7 @@ ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
 import {
   hierOf, hierValues, filterByHier, DEMO_PROJECTS,
   riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
-  SBU_BASE, companyBaseM, lobBaseM, companyRollup,
+  SBU_BASE, companyBaseM, lobBaseM, companyRollup, sayDo,
 } from "../lib/innovation-data.ts";
 
 // ── hierarchy: Company → LOB (SBU) → Product Group, cascading + filter ──
@@ -92,6 +92,14 @@ ok(cr.lobs.length === 3 && cr.company.count === DEMO_PROJECTS.length, "rollup: 3
 ok(cr.lobs.every((l) => l.groups.length >= 1), "each LOB rolls up ≥1 Product Group");
 // ── growth model base override anchors the do-nothing baseline ──
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 300 })[0].doNothing === 300, "baseOverrideM anchors year-0 do-nothing");
+ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 0 })[0].doNothing === 0, "grey jump-off settable to zero (per-project)");
+
+// ── Say/Do ratio (planned ÷ delivered): high-confidence low-risk beats plan; clamped ──
+const sdHi = sayDo(P({ confidence: 4, tech: "low", comm: "low", criticalPath: true }));
+const sdLo = sayDo(P({ confidence: 1, tech: "high", comm: "high" }));
+ok(sdHi.schedule >= 1 && sdHi.budget >= 1, "high-confidence low-risk Say/Do ≥ 1.0");
+ok(sdLo.schedule < 1, "low-confidence high-risk Say/Do < 1.0");
+ok([sdHi, sdLo].every((s) => s.time >= 0.6 && s.time <= 1.4), "Say/Do clamped to [0.6, 1.4]");
 
 // ── risk scoring: severity×likelihood, status collapses exposure, votes lift priority ──
 const rOpen = { severity: 4, likelihood: 4, status: "open", votes: 0 };
