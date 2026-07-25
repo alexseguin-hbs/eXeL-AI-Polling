@@ -73,6 +73,7 @@ export async function onRequest(context) {
   form.set("line_items[0][price_data][unit_amount]", String(amount));
   form.set("line_items[0][price_data][product_data][name]", label);
   form.set("line_items[0][price_data][product_data][description]", description);
+  form.set("submit_type", "donate"); // Stripe shows a "Donate" button + framing (v2525 handoff)
   form.set("success_url", successUrl);
   form.set("cancel_url", cancelUrl);
   form.set("metadata[transaction_type]", "donation");
@@ -85,6 +86,8 @@ export async function onRequest(context) {
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/x-www-form-urlencoded",
+        // Idempotency: a double-tap on mobile won't create two sessions (v2525 handoff).
+        "Idempotency-Key": crypto.randomUUID(),
       },
       body: form.toString(),
     });
