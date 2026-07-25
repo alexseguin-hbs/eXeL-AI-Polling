@@ -18,7 +18,7 @@ import {
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
   scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW, rackByLevel, projectRevSeries,
-  bomOf, bomStdCost, bomExtended, productionCost,
+  bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -153,7 +153,7 @@ function Board() {
             </h2>
             {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
             <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
-              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "PdG"], ["alpha", "AG"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
+              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["alpha", "Alpha Cd"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
                 <button key={lv} onClick={() => { setStackLevel(lv); setDrill(null); }}
                   className={`px-2 py-1 ${stackLevel === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
               ))}
@@ -753,7 +753,7 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
       {/* View-level switcher (max UX): Company → BU → SBU → Product Group, + cascading scope */}
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["company", "Company"], ["bu", "BU"], ["sbu", "SBU"], ["pg", "Product Group"]] as const).map(([lv, lbl]) => (
+          {([["company", "Company"], ["bu", "BU"], ["sbu", "SBU"], ["pg", "Alpha Group"]] as const).map(([lv, lbl]) => (
             <button key={lv} onClick={() => setLevelScope(lv)}
               className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
@@ -1026,7 +1026,7 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
               {roll.bus.map((bu) => (
                 <React.Fragment key={bu.name}>
                   <tr className="border-b border-slate-900 bg-slate-900/40">
-                    <td className="px-2 py-1.5 pl-4 font-semibold text-slate-100">▸ {bu.name} <span className="text-[10px] text-slate-500">(BU)</span></td>
+                    <td className="px-2 py-1.5 pl-4 font-semibold text-slate-100">▸ {bu.name} <span className="text-[10px] text-slate-500">{BU_LABEL[bu.name] ?? "BU"}</span></td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-emerald-300">${bu.baseM}M</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{kM(bu.spendK)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(bu.npvM)}</td>
@@ -1035,7 +1035,7 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
                   {bu.sbus.map((sbu) => (
                     <React.Fragment key={sbu.name}>
                       <tr className="border-b border-slate-900 bg-slate-900/20">
-                        <td className="px-2 py-1 pl-8 font-medium">· {sbu.name} <span className="text-[10px] text-slate-500">(SBU)</span></td>
+                        <td className="px-2 py-1 pl-8 font-medium">· {sbu.name} <span className="text-[10px] text-slate-500">{SBU_LABEL[sbu.name] ?? "SBU"}</span></td>
                         <td className="px-2 py-1 text-right tabular-nums text-emerald-300">${sbu.baseM}M</td>
                         <td className="px-2 py-1 text-right tabular-nums text-slate-300">{kM(sbu.spendK)}</td>
                         <td className="px-2 py-1 text-right tabular-nums text-emerald-400">{usd(sbu.npvM)}</td>

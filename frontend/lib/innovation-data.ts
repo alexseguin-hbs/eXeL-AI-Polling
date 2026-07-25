@@ -402,21 +402,26 @@ export function growthModel(
 // `bu` = Business Unit, `sbu` = Strategic Business Unit (carries base revenue), `pgroup` =
 // Product Group, `alpha` = Alpha Group, `product` = Product #, `material` = Material # (BOM).
 export const HIER_LEVELS = [
-  { key: "bu",       label: "BU",            full: "Business Unit" },
-  { key: "sbu",      label: "SBU",           full: "Strategic Business Unit" },
-  { key: "pgroup",   label: "Product Group", full: "Product Group" },
-  { key: "alpha",    label: "Alpha Group",   full: "Alpha Group" },
-  { key: "product",  label: "Product #",     full: "Product" },
-  { key: "material", label: "Material #",    full: "Material (BOM line)" },
+  { key: "bu",       label: "BU",          full: "Business Unit (2-letter)" },
+  { key: "sbu",      label: "SBU",         full: "Strategic Business Unit (3-letter)" },
+  { key: "pgroup",   label: "Alpha Group", full: "Alpha Group (alphanumeric)" },
+  { key: "alpha",    label: "Alpha Code",  full: "Alpha Code (4-char)" },
+  { key: "product",  label: "Product #",   full: "Product (7xxxx)" },
+  { key: "material", label: "Material #",  full: "Material (7xxxx-yyy)" },
 ] as const;
 export type HierKey = typeof HIER_LEVELS[number]["key"];
 export interface HierPath { bu: string; sbu: string; pgroup: string; alpha: string; product: string; material: string }
 
 export const COMPANY_NAME = "Company (All BUs)";
-// SBU base revenue ($M) — the do-nothing anchor the operator enters per SBU.
-export const SBU_BASE: Record<string, number> = { "SBU-1": 300, "SBU-2": 100, "SBU-3": 300 };
-// Each SBU rolls up to a BU (Business Unit).
-export const BU_OF_SBU: Record<string, string> = { "SBU-1": "Mission Systems", "SBU-2": "Mission Systems", "SBU-3": "Advanced Programs" };
+// BU (2-letter) — aka LOB. SBU (3-letter) rolls up to a BU. Codes + human labels.
+export const BU_LABEL: Record<string, string> = { MS: "Mission System", DS: "Drone Swarm", AP: "Advanced Programs" };
+export const SBU_LABEL: Record<string, string> = {
+  MSP: "MS Planning", MSE: "MS Engagement", DSI: "DS ISR", DSE: "DS EW", DSC: "DS Control",
+  AP1: "AP Group 1", AP2: "AP Group 2", AP3: "AP Group 3",
+};
+// SBU base revenue ($M) — the do-nothing anchor per SBU (Σ = 700M company).
+export const SBU_BASE: Record<string, number> = { MSP: 150, MSE: 150, DSI: 100, DSE: 60, DSC: 40, AP1: 70, AP2: 80, AP3: 50 };
+export const BU_OF_SBU: Record<string, string> = { MSP: "MS", MSE: "MS", DSI: "DS", DSE: "DS", DSC: "DS", AP1: "AP", AP2: "AP", AP3: "AP" };
 export const companyBaseM = () => Object.values(SBU_BASE).reduce((s, v) => s + v, 0); // 700
 export const sbuBaseM = (sbu: string) => SBU_BASE[sbu] ?? 0;
 export const buBaseM = (bu: string) => Object.entries(SBU_BASE).filter(([s]) => BU_OF_SBU[s] === bu).reduce((a, [, v]) => a + v, 0);
@@ -431,21 +436,21 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   // Number scheme: Product # = 7xxxx (5-digit) · Material # = 7xxxx-yyy (product + variant model).
   // BOM lines: 1xxxxxx raw purchased · 3xxxxx partial assembly · 5xxxxx complete assembly.
   // Product Group = 2-digit · Alpha Group = 3-digit.
-  "PRJ-01": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-101", product: "70001", material: "70001-001" },
-  "PRJ-02": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-102", product: "70002", material: "70002-001" },
-  "PRJ-03": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-03", alpha: "AG-103", product: "70003", material: "70003-001" },
-  "PRJ-04": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-104", product: "70004", material: "70004-001" },
-  "PRJ-05": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-105", product: "70005", material: "70005-001" },
-  "PRJ-06": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-106", product: "70006", material: "70006-001" },
-  "PRJ-07": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-107", product: "70007", material: "70007-001" },
-  "PRJ-08": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-06", alpha: "AG-108", product: "70008", material: "70008-001" },
-  "PRJ-09": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-109", product: "70009", material: "70009-001" },
-  "PRJ-10": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-110", product: "70010", material: "70010-001" },
-  "PRJ-11": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-09", alpha: "AG-111", product: "70011", material: "70011-001" },
-  "PRJ-12": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-112", product: "70012", material: "70012-001" },
-  "PRJ-13": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-113", product: "70013", material: "70013-001" },
-  "PRJ-14": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-114", product: "70014", material: "70014-001" },
-  "PRJ-15": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-115", product: "70015", material: "70015-001" },
+  "PRJ-01": { bu: "MS", sbu: "MSP", pgroup: "AB1", alpha: "AA1D", product: "70001", material: "70001-001" },
+  "PRJ-02": { bu: "DS", sbu: "DSI", pgroup: "CD1", alpha: "CA2X", product: "70002", material: "70002-001" },
+  "PRJ-03": { bu: "MS", sbu: "MSE", pgroup: "AB2", alpha: "AB3M", product: "70003", material: "70003-001" },
+  "PRJ-04": { bu: "DS", sbu: "DSE", pgroup: "DE1", alpha: "DE1W", product: "70004", material: "70004-001" },
+  "PRJ-05": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1C", product: "70005", material: "70005-001" },
+  "PRJ-06": { bu: "MS", sbu: "MSP", pgroup: "AB1", alpha: "AB1H", product: "70006", material: "70006-001" },
+  "PRJ-07": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1S", product: "70007", material: "70007-001" },
+  "PRJ-08": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1G", product: "70008", material: "70008-001" },
+  "PRJ-09": { bu: "MS", sbu: "MSE", pgroup: "AB2", alpha: "AB2G", product: "70009", material: "70009-001" },
+  "PRJ-10": { bu: "DS", sbu: "DSI", pgroup: "CD1", alpha: "CD1K", product: "70010", material: "70010-001" },
+  "PRJ-11": { bu: "AP", sbu: "AP3", pgroup: "AP3", alpha: "AP3L", product: "70011", material: "70011-001" },
+  "PRJ-12": { bu: "AP", sbu: "AP2", pgroup: "AP2", alpha: "AP2Q", product: "70012", material: "70012-001" },
+  "PRJ-13": { bu: "DS", sbu: "DSC", pgroup: "DC2", alpha: "DC2V", product: "70013", material: "70013-001" },
+  "PRJ-14": { bu: "DS", sbu: "DSE", pgroup: "DE2", alpha: "DE2M", product: "70014", material: "70014-001" },
+  "PRJ-15": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1O", product: "70015", material: "70015-001" },
 };
 export const hierOf = (p: Project): HierPath =>
   PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };

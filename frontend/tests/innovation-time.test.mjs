@@ -79,20 +79,22 @@ import {
 // ── hierarchy: Company → BU → SBU → Product Group, cascading + filter ──
 const h1 = hierOf(DEMO_PROJECTS[0]);
 ok(!!h1.bu && !!h1.sbu && !!h1.pgroup && !!h1.material, "hierOf returns full BU→SBU→PG→Material path");
-ok(hierValues(DEMO_PROJECTS, "bu").length === 2, "exactly 2 BUs");
-ok(hierValues(DEMO_PROJECTS, "sbu").length === 3, "exactly 3 SBUs (SBU-1/2/3)");
-const sbusOfMS = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "Mission Systems" });
-ok(sbusOfMS.includes("SBU-1") && sbusOfMS.includes("SBU-2") && !sbusOfMS.includes("SBU-3"), "cascading SBUs respect BU parent");
-ok(filterByHier(DEMO_PROJECTS, "sbu", "SBU-3").every((p) => hierOf(p).sbu === "SBU-3"), "filterByHier scopes to SBU");
+ok(hierValues(DEMO_PROJECTS, "bu").length === 3, "3 BUs (MS/DS/AP)");
+ok(hierValues(DEMO_PROJECTS, "sbu").length === 8, "8 SBUs (MSP/MSE·DSI/DSE/DSC·AP1/AP2/AP3)");
+const sbusOfMS = hierValues(DEMO_PROJECTS, "sbu", { level: "bu", value: "MS" });
+ok(sbusOfMS.includes("MSP") && sbusOfMS.includes("MSE") && !sbusOfMS.includes("DSI"), "cascading SBUs respect BU parent");
+ok(filterByHier(DEMO_PROJECTS, "sbu", "DSC").every((p) => hierOf(p).sbu === "DSC"), "filterByHier scopes to SBU");
 ok(filterByHier(DEMO_PROJECTS, "bu", "All").length === DEMO_PROJECTS.length, "filterByHier All = passthrough");
+// codes: BU 2-letter, SBU 3-letter, Alpha Group alphanumeric, Alpha Code 4-char
+ok(DEMO_PROJECTS.every((p) => hierOf(p).bu.length === 2 && hierOf(p).sbu.length === 3 && hierOf(p).alpha.length === 4), "BU=2-letter · SBU=3-letter · Alpha Code=4-char");
 
-// ── SBU base revenue + BU/Company rollup (operator: 300/100/300 → BU 400+300 → 700M) ──
-ok(SBU_BASE["SBU-1"] === 300 && SBU_BASE["SBU-2"] === 100 && SBU_BASE["SBU-3"] === 300, "SBU base revenues 300/100/300");
+// ── SBU base revenue + BU/Company rollup (Σ SBU = 700M; BU = Σ its SBUs) ──
+ok(SBU_BASE.MSP === 150 && SBU_BASE.DSI === 100 && SBU_BASE.AP2 === 80, "SBU base revenues set per SBU");
 ok(companyBaseM() === 700, "company base = Σ SBU = 700M");
-ok(buBaseM("Mission Systems") === 400 && buBaseM("Advanced Programs") === 300, "BU base = Σ its SBUs");
-ok(scopeBaseM("All", "All") === 700 && scopeBaseM("Mission Systems", "All") === 400 && scopeBaseM("x", "SBU-2") === 100, "scopeBaseM: Company/BU/SBU");
+ok(buBaseM("MS") === 300 && buBaseM("DS") === 200 && buBaseM("AP") === 200, "BU base = Σ its SBUs (MS 300 · DS 200 · AP 200)");
+ok(scopeBaseM("All", "All") === 700 && scopeBaseM("MS", "All") === 300 && scopeBaseM("x", "MSP") === 150, "scopeBaseM: Company/BU/SBU");
 const cr = companyRollup(DEMO_PROJECTS);
-ok(cr.bus.length === 2 && cr.company.count === DEMO_PROJECTS.length, "rollup: 2 BUs, company counts all projects");
+ok(cr.bus.length === 3 && cr.company.count === DEMO_PROJECTS.length, "rollup: 3 BUs, company counts all projects");
 ok(cr.bus.every((b) => b.sbus.length >= 1 && b.sbus.every((s) => s.groups.length >= 1)), "BU → SBU → Product Group nesting");
 
 // ── minimum deliverables per gate (AIML gate-deliverables) ──
@@ -101,10 +103,10 @@ ok(GATE_DELIVERABLES.G1.includes("Executive Summary") && GATE_DELIVERABLES.G7.in
 
 // ── level-aware Rack & Stack: aggregate to any hierarchy tier, sorted by NPV, sums preserved ──
 const rackSbu = rackByLevel(DEMO_PROJECTS, "sbu");
-ok(rackSbu.length === 3, "rackByLevel SBU → 3 rows");
+ok(rackSbu.length === 8, "rackByLevel SBU → 8 rows");
 ok(rackSbu.every((r, i) => i === 0 || rackSbu[i - 1].npvM >= r.npvM), "rack rows sorted by NPV desc");
 ok(Math.abs(rackSbu.reduce((s, r) => s + r.count, 0) - DEMO_PROJECTS.length) < 1e-9, "rack SBU counts sum to portfolio");
-ok(rackByLevel(DEMO_PROJECTS, "bu").length === 2 && rackByLevel(DEMO_PROJECTS, "material").length === DEMO_PROJECTS.length, "rack BU=2, Material# = one per project (BOM)");
+ok(rackByLevel(DEMO_PROJECTS, "bu").length === 3 && rackByLevel(DEMO_PROJECTS, "material").length === DEMO_PROJECTS.length, "rack BU=3, Material# = one per project (BOM)");
 
 // ── aging-portfolio financial model: old line declines (no innovation); new product ramps if funded ──
 const P01 = DEMO_PROJECTS.find((p) => p.id === "PRJ-01");
