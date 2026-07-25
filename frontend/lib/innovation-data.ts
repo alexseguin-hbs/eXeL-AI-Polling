@@ -83,6 +83,47 @@ export const PROJECT_BRIEF: Record<string, ProjectBrief> = {
 export const briefOf = (p: Project): ProjectBrief =>
   PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${p.confidence}/4`] };
 
+// AMTS Product-Management-Summary exec fields (Functional Leads · COGS/MSRP/Margin ·
+// Customer/Program-of-Record · Franchise Pursuits · Intra-BU dependencies). Derived
+// deterministically from the project so the one-pager is complete without a giant literal.
+const ENG_POOL = ["K. Ito", "N. Costa", "J. Meyer", "D. Singh", "P. Roux", "E. Vance"];
+const BD_POOL = ["G. Marsh", "L. Fournier", "R. Adler", "M. Boone", "S. Aziz", "C. Webb"];
+const idNum = (id: string) => parseInt(id.replace(/\D/g, ""), 10) || 0;
+export function customerOf(p: Project): string {
+  const d = `${p.division} ${p.name}`.toLowerCase();
+  if (/space|radar|sar/.test(d)) return "DoD / USSF";
+  if (/autonomy|teaming|mum-t/.test(d)) return "DoD / DIU";
+  if (/effect|c-uas|counter/.test(d)) return "US Army RCCTO";
+  if (/handheld|sensor/.test(d)) return "USMC + Allied FMS";
+  if (/software|developer|comms|training|autonomy sw/.test(d)) return "DoD / JADC2";
+  return "DoD / Program of Record";
+}
+export interface ProjectExec {
+  productMgr: string; projectEng: string; bdLead: string;
+  cogsK: number; msrpK: number; marginPct: number;
+  customer: string;
+  pursuits: { name: string; award: string; valueM: number }[];
+  intraDeps: string[];
+}
+export function execOf(p: Project): ProjectExec {
+  const n = idNum(p.id);
+  const marginPct = Math.round((0.72 - riskNum(p.tech) * 0.15 - riskNum(p.comm) * 0.1) * 100);
+  const msrpK = Math.round(50 + p.fullRev10yM * 0.4);
+  const cogsK = Math.round(msrpK * (1 - marginPct / 100));
+  return {
+    productMgr: p.manager,
+    projectEng: ENG_POOL[n % ENG_POOL.length],
+    bdLead: BD_POOL[n % BD_POOL.length],
+    cogsK, msrpK, marginPct,
+    customer: customerOf(p),
+    pursuits: [
+      { name: `${p.division} PoR`, award: p.firstRevenue, valueM: Math.round(p.fullRev10yM * 0.3) },
+      { name: "Allied FMS", award: "TBD", valueM: Math.round(p.fullRev10yM * 0.15) },
+    ],
+    intraDeps: p.criticalPath ? ["Shared autonomy stack", "Common GCS"] : ["Common test harness"],
+  };
+}
+
 // Say/Do ratio — did we deliver what we said (>1 = beat the plan). Demo model from
 // confidence, risk profile, and critical-path; at Launch this binds to real actuals in the
 // business systems (schedule/cost/scope) so the tool tracks Say/Do end-to-end.

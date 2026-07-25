@@ -16,7 +16,7 @@ import {
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
-  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf,
+  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -268,6 +268,7 @@ function ProjectDetail({ p, risks }: { p: Project; risks: Risk[] }) {
   const upside = Math.round(upsideFraction(p) * 100);
   const roll = riskRollup(risks, p.id);
   const brief = briefOf(p);
+  const ex = execOf(p);
   const metrics: [string, string][] = [
     ["NPV", usd(npvM(p))], ["IRR", `${irrPct(p)}%`], ["Rev/NRE", `${revOverNre(p).toFixed(1)}×`],
     ["Rev captured", `${captured}%`], ["Upside", `${upside}%`], ["P-wt revenue", usd(weightedRevM(p))],
@@ -305,6 +306,26 @@ function ProjectDetail({ p, risks }: { p: Project; risks: Risk[] }) {
             <div className="text-sm font-semibold tabular-nums">{v}</div>
           </div>
         ))}
+      </div>
+      {/* AMTS Product-Management-Summary exec fields — Functional Leads · COGS/MSRP/Margin · Customer */}
+      <div className="mt-3 border-t border-slate-800 pt-3 text-[11px]">
+        <div className="grid grid-cols-3 gap-2">
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Product Mgr</div><div className="text-slate-200">{ex.productMgr}</div></div>
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Project Eng</div><div className="text-slate-200">{ex.projectEng}</div></div>
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">BD / Sales</div><div className="text-slate-200">{ex.bdLead}</div></div>
+        </div>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">COGS</div><div className="tabular-nums text-slate-200">${ex.cogsK}k</div></div>
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">MSRP</div><div className="tabular-nums text-slate-200">${ex.msrpK}k</div></div>
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Margin</div><div className="tabular-nums text-emerald-400">{ex.marginPct}%</div></div>
+          <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Customer</div><div className="text-cyan-300">{ex.customer}</div></div>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400">
+          <span className="text-[10px] uppercase tracking-wider text-slate-500">Pursuits:</span>
+          {ex.pursuits.map((pu) => <span key={pu.name} className="rounded bg-slate-800 px-1.5 py-0.5">{pu.name} · {usd(pu.valueM)} · {pu.award}</span>)}
+          <span className="text-[10px] uppercase tracking-wider text-slate-500 ml-1">Intra-BU:</span>
+          <span className="text-slate-400">{ex.intraDeps.join(" · ")}</span>
+        </div>
       </div>
       {/* AMTS One-Page Summary — Needs · Outcomes · Solution · Evidence */}
       <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3">

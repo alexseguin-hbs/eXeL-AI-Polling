@@ -71,7 +71,7 @@ ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
 import {
   hierOf, hierValues, filterByHier, DEMO_PROJECTS,
   riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
-  SBU_BASE, companyBaseM, lobBaseM, companyRollup, sayDo,
+  SBU_BASE, companyBaseM, lobBaseM, companyRollup, sayDo, execOf, briefOf,
 } from "../lib/innovation-data.ts";
 
 // ── hierarchy: Company → LOB (SBU) → Product Group, cascading + filter ──
@@ -100,6 +100,10 @@ const sdLo = sayDo(P({ confidence: 1, tech: "high", comm: "high" }));
 ok(sdHi.schedule >= 1 && sdHi.budget >= 1, "high-confidence low-risk Say/Do ≥ 1.0");
 ok(sdLo.schedule < 1, "low-confidence high-risk Say/Do < 1.0");
 ok([sdHi, sdLo].every((s) => s.time >= 0.6 && s.time <= 1.4), "Say/Do clamped to [0.6, 1.4]");
+
+// ── AMTS exec one-pager: brief + exec fields present for every project ──
+ok(DEMO_PROJECTS.every((p) => briefOf(p).needs.length && briefOf(p).evidence.length), "every project has an AMTS brief (Needs…Evidence)");
+ok(DEMO_PROJECTS.every((p) => { const e = execOf(p); return e.marginPct > 0 && e.marginPct <= 100 && !!e.customer && e.pursuits.length >= 1; }), "every project has AMTS exec fields (margin/customer/pursuits)");
 
 // ── risk scoring: severity×likelihood, status collapses exposure, votes lift priority ──
 const rOpen = { severity: 4, likelihood: 4, status: "open", votes: 0 };
