@@ -218,19 +218,27 @@ export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: 
 // Bill of Materials (BOM) per Product # — the Material #s that make up the product, each with
 // a standard-cost breakdown (Labor · Material · Machining · Other) and quantity. Deterministic
 // from the project so estimated production cost rolls up the same way every render.
-export interface BomLine { material: string; desc: string; kind: "component" | "assembly"; qty: number; labor: number; matl: number; machining: number; other: number }
+// Material-number class from the prefix digit: 1=raw purchased · 3=partial assembly ·
+// 5=complete assembly · 7=product (7xxxx-yyy). Drives the BOM badge + roll-up level.
+export type MatClass = "raw" | "partial" | "complete" | "product";
+export const MAT_CLASS_LABEL: Record<MatClass, string> = { raw: "Raw purchased", partial: "Partial assembly", complete: "Complete assembly", product: "Product / variant" };
+export const matClass = (num: string): MatClass =>
+  num.startsWith("1") ? "raw" : num.startsWith("3") ? "partial" : num.startsWith("5") ? "complete" : "product";
+export interface BomLine { material: string; desc: string; kind: MatClass; qty: number; labor: number; matl: number; machining: number; other: number }
 export const bomStdCost = (l: BomLine) => l.labor + l.matl + l.machining + l.other; // unit standard cost $
 export const bomExtended = (l: BomLine) => bomStdCost(l) * l.qty;                    // extended $ (qty × std)
 export function bomOf(p: Project): BomLine[] {
-  const pre = hierOf(p).product; // e.g. TC-G5
   const n = idNum(p.id);
   const s = (k: number) => ((n * 37 + k * 101) % 50) + 10; // 10..59 deterministic
+  const raw = (k: number) => `1${String(n * 20 + k).padStart(6, "0")}`;     // 1xxxxxx raw purchased
+  const partial = (k: number) => `3${String(n * 20 + k).padStart(5, "0")}`; // 3xxxxx partial assembly
+  const complete = (k: number) => `5${String(n * 20 + k).padStart(5, "0")}`;// 5xxxxx complete assembly
   return [
-    { material: `${pre}-FPA`, desc: "Focal-plane / core", kind: "component", qty: 1, labor: s(1) * 8, matl: s(2) * 40, machining: s(3) * 12, other: s(4) * 4 },
-    { material: `${pre}-OPT`, desc: "Optics / lens assy", kind: "component", qty: 1, labor: s(5) * 6, matl: s(6) * 25, machining: s(7) * 18, other: s(8) * 3 },
-    { material: `${pre}-PCB`, desc: "Processing PCB", kind: "component", qty: 2, labor: s(9) * 5, matl: s(10) * 20, machining: s(11) * 6, other: s(12) * 2 },
-    { material: `${pre}-HSG`, desc: "Housing / chassis", kind: "component", qty: 1, labor: s(13) * 4, matl: s(14) * 15, machining: s(15) * 22, other: s(16) * 3 },
-    { material: `${pre}-ASSY`, desc: "Final assembly + test", kind: "assembly", qty: 1, labor: s(17) * 20, matl: s(18) * 5, machining: s(19) * 8, other: s(20) * 10 },
+    { material: raw(1), desc: "Focal-plane / core", kind: "raw", qty: 1, labor: s(1) * 8, matl: s(2) * 40, machining: s(3) * 12, other: s(4) * 4 },
+    { material: raw(2), desc: "Processing PCB", kind: "raw", qty: 2, labor: s(9) * 5, matl: s(10) * 20, machining: s(11) * 6, other: s(12) * 2 },
+    { material: raw(3), desc: "Housing / chassis", kind: "raw", qty: 1, labor: s(13) * 4, matl: s(14) * 15, machining: s(15) * 22, other: s(16) * 3 },
+    { material: partial(1), desc: "Optics / lens sub-assembly", kind: "partial", qty: 1, labor: s(5) * 6, matl: s(6) * 25, machining: s(7) * 18, other: s(8) * 3 },
+    { material: complete(1), desc: "Final assembly + test", kind: "complete", qty: 1, labor: s(17) * 20, matl: s(18) * 5, machining: s(19) * 8, other: s(20) * 10 },
   ];
 }
 // Estimated per-unit production (standard) cost of a Product # = Σ extended BOM lines.
@@ -420,22 +428,24 @@ export const lobBaseM = (v: string) => (v === "All" || v === COMPANY_NAME ? comp
 
 // Per-project node path — BU → SBU (SBU-1/2/3) → Product Group (PG-1…9) → Alpha → Product → Material.
 export const PROJECT_HIER: Record<string, HierPath> = {
-  // Product Group = 2-digit code · Alpha Group = 3-digit code · Product # = sold-to-customer · Material # = BOM line.
-  "PRJ-01": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-101", product: "TC-G5", material: "TC-G5-FPA" },
-  "PRJ-02": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-102", product: "EF-AI", material: "EF-AI-SOM" },
-  "PRJ-03": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-03", alpha: "AG-103", product: "ML-RDR", material: "ML-RDR-TRX" },
-  "PRJ-04": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-104", product: "CUAS-EF", material: "CUAS-EF-WHD" },
-  "PRJ-05": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-105", product: "SOI-GOV", material: "SOI-GOV-SVC" },
-  "PRJ-06": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-106", product: "HH-MS", material: "HH-MS-SENS" },
-  "PRJ-07": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-107", product: "SP-OPT", material: "SP-OPT-MIR" },
-  "PRJ-08": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-06", alpha: "AG-108", product: "GS-MOD", material: "GS-MOD-SW" },
-  "PRJ-09": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-109", product: "CC-NG", material: "CC-NG-STIRL" },
-  "PRJ-10": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-110", product: "AUT-SDK", material: "AUT-SDK-PKG" },
-  "PRJ-11": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-09", alpha: "AG-111", product: "LEG-BR", material: "LEG-BR-KIT" },
-  "PRJ-12": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-112", product: "QS-COM", material: "QS-COM-QKD" },
-  "PRJ-13": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-113", product: "IMX-RH", material: "IMX-RH-HMD" },
-  "PRJ-14": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-114", product: "MUMT-STE", material: "MUMT-STE-LNK" },
-  "PRJ-15": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-115", product: "ORB-SWM", material: "ORB-SWM-NODE" },
+  // Number scheme: Product # = 7xxxx (5-digit) · Material # = 7xxxx-yyy (product + variant model).
+  // BOM lines: 1xxxxxx raw purchased · 3xxxxx partial assembly · 5xxxxx complete assembly.
+  // Product Group = 2-digit · Alpha Group = 3-digit.
+  "PRJ-01": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-101", product: "70001", material: "70001-001" },
+  "PRJ-02": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-102", product: "70002", material: "70002-001" },
+  "PRJ-03": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-03", alpha: "AG-103", product: "70003", material: "70003-001" },
+  "PRJ-04": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-01", alpha: "AG-104", product: "70004", material: "70004-001" },
+  "PRJ-05": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-105", product: "70005", material: "70005-001" },
+  "PRJ-06": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-106", product: "70006", material: "70006-001" },
+  "PRJ-07": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-107", product: "70007", material: "70007-001" },
+  "PRJ-08": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-06", alpha: "AG-108", product: "70008", material: "70008-001" },
+  "PRJ-09": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-109", product: "70009", material: "70009-001" },
+  "PRJ-10": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-04", alpha: "AG-110", product: "70010", material: "70010-001" },
+  "PRJ-11": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-09", alpha: "AG-111", product: "70011", material: "70011-001" },
+  "PRJ-12": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-07", alpha: "AG-112", product: "70012", material: "70012-001" },
+  "PRJ-13": { bu: "Mission Systems", sbu: "SBU-2", pgroup: "PG-05", alpha: "AG-113", product: "70013", material: "70013-001" },
+  "PRJ-14": { bu: "Mission Systems", sbu: "SBU-1", pgroup: "PG-02", alpha: "AG-114", product: "70014", material: "70014-001" },
+  "PRJ-15": { bu: "Advanced Programs", sbu: "SBU-3", pgroup: "PG-08", alpha: "AG-115", product: "70015", material: "70015-001" },
 };
 export const hierOf = (p: Project): HierPath =>
   PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };

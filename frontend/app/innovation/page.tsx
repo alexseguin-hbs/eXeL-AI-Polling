@@ -273,14 +273,14 @@ function Board() {
                         {/* Product # header — estimated per-unit production (standard) cost */}
                         <tr onClick={() => setSelId(p.id)} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${selId === p.id ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
                           <td className="px-2 py-1.5 font-mono font-semibold text-cyan-300">{hierOf(p).product}</td>
-                          <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· {hierOf(p).pgroup} · {lines.length} materials</span></td>
+                          <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· Material {hierOf(p).material} · {hierOf(p).pgroup} · {lines.length} lines</span></td>
                           <td className="px-2 py-1.5 text-right text-[10px] uppercase tracking-wider text-slate-500">Prod cost →</td>
                           <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-emerald-400">${Math.round(productionCost(p)).toLocaleString()}</td>
                         </tr>
                         {lines.map((l) => (
                           <tr key={l.material} className="border-b border-slate-900/50 text-[12px]">
                             <td className="px-2 py-1 pl-5 font-mono text-slate-300">{l.material}</td>
-                            <td className="px-2 py-1 text-slate-400">{l.desc} <span className={`ml-1 rounded px-1 text-[9px] ${l.kind === "assembly" ? "bg-violet-500/20 text-violet-300" : "bg-slate-800 text-slate-500"}`}>{l.kind}</span></td>
+                            <td className="px-2 py-1 text-slate-400">{l.desc} <span className={`ml-1 rounded px-1 text-[9px] ${l.kind === "complete" ? "bg-violet-500/20 text-violet-300" : l.kind === "partial" ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-500"}`}>{l.kind === "raw" ? "1·raw" : l.kind === "partial" ? "3·partial" : "5·complete"}</span></td>
                             <td className="px-2 py-1 text-center tabular-nums text-slate-400">{l.qty}</td>
                             <td className="px-2 py-1 text-right tabular-nums text-slate-400">${l.labor}</td>
                             <td className="px-2 py-1 text-right tabular-nums text-slate-400">${l.matl}</td>

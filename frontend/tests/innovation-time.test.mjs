@@ -121,7 +121,13 @@ const bom = bomOf(P01);
 ok(bom.length >= 3, "Product # has a multi-line BOM (Material #s)");
 ok(bom.every((l) => bomStdCost(l) === l.labor + l.matl + l.machining + l.other), "std cost = Labor+Material+Machining+Other");
 ok(Math.abs(productionCost(P01) - bom.reduce((s, l) => s + bomExtended(l), 0)) < 1e-9, "production cost = Σ extended BOM lines");
-ok(bom.some((l) => l.kind === "assembly") && bom.some((l) => l.kind === "component"), "BOM has components + assemblies");
+ok(bom.some((l) => l.kind === "raw") && bom.some((l) => l.kind === "partial") && bom.some((l) => l.kind === "complete"), "BOM has raw + partial + complete lines");
+// number scheme: raw 1xxxxxx · partial 3xxxxx · complete 5xxxxx · product 7xxxx-yyy
+ok(bom.filter((l) => l.kind === "raw").every((l) => l.material.startsWith("1")), "raw purchased # start with 1");
+ok(bom.filter((l) => l.kind === "partial").every((l) => l.material.startsWith("3")), "partial assembly # start with 3");
+ok(bom.filter((l) => l.kind === "complete").every((l) => l.material.startsWith("5")), "complete assembly # start with 5");
+ok(hierOf(P01).product.startsWith("7") && hierOf(P01).product.length === 5, "Product # = 7xxxx (5-digit)");
+ok(/^7\d{4}-\d{3}$/.test(hierOf(P01).material), "Material # = 7xxxx-yyy (product + variant)");
 ok(JSON.stringify(bomOf(P01)) === JSON.stringify(bomOf(P01)), "BOM deterministic");
 // ── growth model base override anchors the do-nothing baseline ──
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 300 })[0].doNothing === 300, "baseOverrideM anchors year-0 do-nothing");
