@@ -169,7 +169,11 @@ if (fs.existsSync(PAGE_TSX)) {
       fail("DIVINITY_TRANSLATIONS map not found in page.tsx");
       break;
     }
-    const mapBlock = pageContent.slice(mapStart, mapStart + 5000);
+    // Bound the block to the DIVINITY_TRANSLATIONS declaration (up to the next
+    // top-level const) — a fixed window truncated the map and hid later languages.
+    const afterMap = pageContent.slice(mapStart);
+    const mapEnd = afterMap.indexOf("\nconst ", 1);
+    const mapBlock = mapEnd === -1 ? afterMap : afterMap.slice(0, mapEnd);
     if (!pattern.test(mapBlock)) {
       fail(`DIVINITY_TRANSLATIONS missing entry for "${code}"`);
     }

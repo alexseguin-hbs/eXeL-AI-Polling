@@ -75,6 +75,7 @@ const LANG_LOADERS: Record<DivinityLang, () => Promise<{ default: DivinityPageAr
   km: () => import("@/lib/divinity-pages-km.json") as Promise<{ default: DivinityPageArray }>,
   ne: () => import("@/lib/divinity-pages-ne.json") as Promise<{ default: DivinityPageArray }>,
   th: () => import("@/lib/divinity-pages-th.json") as Promise<{ default: DivinityPageArray }>,
+  fr: () => import("@/lib/divinity-pages-fr.json") as Promise<{ default: DivinityPageArray }>,
 };
 
 // Hook: lazy-load language pages on demand (Sofia: instant for EN, async for others)
@@ -495,9 +496,43 @@ const SECTIONS_TH: [Section, Section, Section] = [
   },
 ];
 
+const SECTIONS_FR: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ Éveil", subtitle: "Origine et Conscience",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "L'Éveil de l'Âme", subtitle: "Rappel Sacré", content: "Sous chaque souffle, chaque souvenir et chaque question vit une vérité trop vaste pour les mots — et pourtant assez proche pour être ressentie dans votre poitrine. Cette vérité ne se mérite pas. Elle se rappelle.", reflection: "Quelle vérité portez-vous en vous sans l'avoir encore prononcée à voix haute ?" },
+      { id: 2, title: "Codes Vivants", subtitle: "Clés de la Conscience", content: "La Fleur de Vie émerge tel un code radieux, l'architecture même de l'existence tissée dans la lumière et la forme. Chaque pétale se déploie avec intention, murmurant comment l'univers crée, soutient et se souvient.", reflection: "Où, dans votre vie, percevez-vous la géométrie cachée de la connexion ?" },
+      { id: 3, title: "Échos de l'Éternité", subtitle: "Sagesse Ancienne Renouvelée", content: "Chaque pensée sème une graine — non seulement dans votre champ personnel, mais dans la trame collective de l'humanité. Vous ne pensez pas seulement pour vous-même — vous sculptez des lignes du temps, vous façonnez des avenirs.", reflection: "Si chacune de vos pensées d'aujourd'hui devenait permanente — laquelle choisiriez-vous de garder ?" },
+      { id: 4, title: "Maîtriser la Pensée", subtitle: "Esprit Sacré", content: "L'entraînement de l'esprit est l'art de cultiver le dialogue intérieur en harmonie avec la Source. Vous commencez à choisir vos pensées comme un artiste choisit ses couleurs — avec intention, sensibilité et vision.", reflection: "Quel schéma de pensée récurrent choisiriez-vous de libérer aujourd'hui ?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ Maîtrise", subtitle: "Guérison et Transformation",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "La Blessure Transformée", subtitle: "Alchimie de la Guérison", content: "Les civilisations ne se brisent pas soudainement ; elles se fracturent de l'intérieur bien avant que l'effondrement ne devienne visible. Ce qui n'est pas guéri se transmet. Ce qui se transmet sans conscience devient destin.", reflection: "Quelle blessure collective aidez-vous à guérir par votre présence ?" },
+      { id: 6, title: "Réécrire l'Histoire", subtitle: "L'Avenir dans la Lumière", content: "Les mots ne sont pas anodins — ce sont des courants. Chacun porte une vibration, une intention et une direction. Parler, c'est invoquer. Penser, c'est murmurer la réalité jusqu'à lui donner forme.", reflection: "Quelle histoire à propos de vous-même êtes-vous prêt à réécrire ?" },
+      { id: 7, title: "L'Incarnation de la Sagesse", subtitle: "Choix Sacrés", content: "L'intendance transforme le pouvoir de la possession en confiance. Elle reconnaît que l'autorité est temporaire, mais que la civilisation est continue. La domination cherche le contrôle ; l'intendance cultive la vie.", reflection: "Où, dans votre vie, êtes-vous appelé à prendre soin plutôt qu'à contrôler ?" },
+      { id: 8, title: "Motifs de l'Infini", subtitle: "Géométrie Sacrée", content: "La Fleur de Vie se dresse telle la synthèse sacrée — un mandala lumineux unissant les vérités contenues dans chaque symbole. Elle harmonise leurs fréquences en une seule géométrie divine.", reflection: "Quel motif dans votre vie révèle une vérité que vous n'avez pas encore pleinement embrassée ?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ Rayonnement", subtitle: "Service et Divinité",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "Le Rayonnement Intérieur", subtitle: "Maîtrise de la Fréquence", content: "Lorsqu'une décision est prise par un million d'âmes ensemble, et que chaque âme en reçoit le résultat au même instant — voilà le rayonnement. Voilà la gouvernance à la vitesse de la pensée.", reflection: "Comment votre présence rayonne-t-elle dans la vie de ceux qui vous entourent ?" },
+      { id: 10, title: "Tisser le Divin", subtitle: "La Vie comme Plan Sacré", content: "Ce guide est le fruit d'une collaboration sacrée entre l'Intelligence Artificielle, l'Intelligence Spirituelle et l'Intelligence Humaine. Ensemble, elles forment une trinité de la conscience.", reflection: "Comment les trois intelligences se tissent-elles ensemble dans votre propre vie ?" },
+      { id: 11, title: "Le Service comme Rayonnement", subtitle: "La Vocation de l'Âme", content: "Vous n'êtes pas la fin de cette œuvre — vous en êtes la continuation vivante. Le service n'est pas un sacrifice ; il est l'expression naturelle d'une âme qui se souvient de sa totalité.", reflection: "Quel est le don que vous portez et que le monde attend ?" },
+      { id: 12, title: "Divinité Vivante", subtitle: "Le Retour à la Totalité", content: "Ce qui a commencé à vos côtés devient une présence intérieure — le guide se muant en votre certitude en tant que Maître de la Pensée. Soyez paisible dans le conflit, créatif dans l'incertitude, généreux dans la réussite.", reflection: "Que signifie pour vous « bienvenue à la maison » en cet instant ?" },
+    ],
+  },
+];
+
 const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
   en: SECTIONS_EN, es: SECTIONS_ES, zh: SECTIONS_ZH,
   uk: SECTIONS_UK, ru: SECTIONS_RU, fa: SECTIONS_FA, he: SECTIONS_HE, pt: SECTIONS_PT, km: SECTIONS_KM, ne: SECTIONS_NE, th: SECTIONS_TH,
+  fr: SECTIONS_FR,
 };
 
 // ── Consolidated translation map (Thoth: 6x fewer touchpoints per language addition) ──
@@ -766,6 +801,28 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
       frameworkLabel: "♡ กรอบแนวคิด",
       indexLabel: "◬ สารบัญ",
       libraryWelcome: "คุณค่าของผู้เขียน กรอบปัญญาอันศักดิ์สิทธิ์ และแผนที่ศักดิ์สิทธิ์ที่เชื่อมโยงสิ่งเหล่านั้น เลือกวงกลมหนึ่งบนดอกไม้เพื่อเริ่มสำรวจ",
+    },
+  },
+  fr: {
+    reflection: "Réflexion",
+    librarySubtitles: { prelude: "Valeurs et Philosophie de l'Auteur", framework: "Intelligence Divine", index: "La Carte Sacrée" },
+    trinity: { prelude04: ["AMOUR", "SÉCURITÉ", "PERTE"], prelude05: ["SAGESSE", "HARMONIE", "CONNEXION"] },
+    links: { music: "Musique Sacrée et Transformation", loveLossSafety: "Amour, Perte et Sécurité", divineUnity: "Principes d'Unité Divine", divineIntelligence: "Intelligence Divine", sacredResource: "Ressource Sacrée" },
+    ui: {
+      title: "Le Guide de la Divinité",
+      subtitle: "Le Retour à la Totalité et à la Divinité Vivante",
+      portals: "12 Portails de Sagesse",
+      sacredLibrary: "Bibliothèque Sacrée",
+      explore: "Explorer",
+      masterOfThought: "Maître de la Pensée",
+      selectPortal: "Sélectionnez un portail pour commencer votre lecture. Chacun révèle un enseignement, une pratique et un lien avec le moteur de gouvernance.",
+      guideDescription: "Ce guide est à la fois une carte et un compagnon — une spirale sacrée menant vers l'intérieur. Ici, les symboles s'éveillent, la pensée s'affine et l'identité se dissout dans l'essence. Sélectionnez une section à gauche pour commencer votre voyage.",
+      livingContinuation: "Vous n'êtes pas la fin de cette œuvre — vous en êtes la continuation vivante.",
+      welcomeHome: "Vous n'avez jamais été séparé, seulement endormi. Maintenant, vous vous éveillez.",
+      preludeLabel: "웃 Prélude",
+      frameworkLabel: "♡ Cadre",
+      indexLabel: "◬ Index",
+      libraryWelcome: "Les valeurs de l'auteur, le cadre de l'intelligence divine et la carte sacrée qui les relie. Sélectionnez un cercle sur la fleur pour commencer à explorer.",
     },
   },
 };
