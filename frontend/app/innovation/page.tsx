@@ -11,9 +11,9 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
-  pSuccess, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
+  pSuccess, upsideFraction, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart,
-  growthModel,
+  growthModel, RISK_LABEL,
   type Project, type TimeUnit,
 } from "@/lib/innovation-data";
 
@@ -212,12 +212,19 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail }:
   );
 }
 
+// Risk-level pill: colour by level (low=emerald, med=amber, high=rose).
+function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
+  const c = level === "low" ? "bg-emerald-500/15 text-emerald-300" : level === "med" ? "bg-amber-500/15 text-amber-300" : "bg-rose-500/15 text-rose-300";
+  return <span className={`rounded px-1.5 py-0.5 text-[11px] font-mono ${c}`}>{label} {RISK_LABEL[level]}</span>;
+}
+
 function ProjectDetail({ p }: { p: Project }) {
   const band = GATE_BAND[p.gate];
+  const captured = Math.round(pSuccess(p) * 100);
+  const upside = Math.round(upsideFraction(p) * 100);
   const metrics: [string, string][] = [
     ["NPV", usd(npvM(p))], ["IRR", `${irrPct(p)}%`], ["Rev/NRE", `${revOverNre(p).toFixed(1)}×`],
-    ["P(success)", `${Math.round(pSuccess(p) * 100)}%`], ["Incremental", usd(incrementalRevM(p))],
-    ["P-wt revenue", usd(weightedRevM(p))],
+    ["Rev captured", `${captured}%`], ["Upside", `${upside}%`], ["P-wt revenue", usd(weightedRevM(p))],
   ];
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
@@ -227,6 +234,13 @@ function ProjectDetail({ p }: { p: Project }) {
           <div className="text-[11px] text-slate-500">{p.division} · {p.manager} · {GATE_STAGE[p.gate]} ({p.gate}) · 1st rev {p.firstRevenue}</div>
         </div>
         <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{Math.round(band * 100)}% band</span>
+      </div>
+      {/* Tech × Comm risk → revenue captured / upside (operator default model) */}
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+        <RiskPill label="Tech" level={p.tech} />
+        <RiskPill label="Comm" level={p.comm} />
+        <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-slate-300">{p.lob}</span>
+        <span className="ml-auto">P(success) = {Math.round(pSuccess(p) * 100)}% → {captured}% captured · {upside}% upside</span>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {metrics.map(([l, v]) => (
@@ -365,8 +379,12 @@ function Differentiators({ p }: { p: Project }) {
 }
 
 // Growth Model (CRS-69): stacked do-nothing + weighted NPI + remaining-to-target, target line.
+// LOB filter — see how each line of business stacks against revenue + the growth-rate target.
 function GrowthModelChart({ funded }: { funded: Project[] }) {
-  const rows = growthModel(funded);
+  const [lob, setLob] = useState("All");
+  const lobs = useMemo(() => ["All", ...Array.from(new Set(funded.map((p) => p.lob))).sort()], [funded]);
+  const scoped = lob === "All" ? funded : funded.filter((p) => p.lob === lob);
+  const rows = growthModel(scoped);
   const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
   const max = Math.max(...rows.map((r) => Math.max(r.target, r.doNothing + r.weighted + r.remaining))) * 1.1 || 1;
   const pw = (W - L - R) / rows.length;
@@ -374,9 +392,17 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
   const growthPct = ((Math.pow(rows[rows.length - 1].target / (rows[0].target || 1), 1 / Math.max(1, rows.length - 1)) - 1) * 100).toFixed(1);
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">Growth Model · Do-Nothing + Rack-&-Stack NPIs</h3>
-        <span className="text-[11px] text-slate-500">target CAGR ~{growthPct}% · funded portfolio</span>
+        <div className="flex items-center gap-3">
+          <label className="text-[11px] text-slate-400">LOB
+            <select value={lob} onChange={(e) => setLob(e.target.value)}
+              className="ml-1.5 rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500">
+              {lobs.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </label>
+          <span className="text-[11px] text-slate-500">target CAGR ~{growthPct}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
+        </div>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (

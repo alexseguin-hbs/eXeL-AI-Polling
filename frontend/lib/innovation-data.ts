@@ -11,6 +11,17 @@ export const GATE_STAGE: Record<Gate, string> = {
   G1: "Concept", G2: "Plan", G3: "Develop", G4: "Develop", G5: "Qualify", G6: "Launch", G7: "Sustain",
 };
 
+// Risk model (operator default): probability weight = P(tech) × P(comm), each from a discrete
+// risk level. Low = 90% · Med = 60% · High = 30% probability of success. So Low/Low captures
+// 0.9×0.9 = 81% of revenue (19% upside); High/High captures 0.3×0.3 = 9% (91% upside).
+export type RiskLevel = "low" | "med" | "high";
+export const RISK_P: Record<RiskLevel, number> = { low: 0.9, med: 0.6, high: 0.3 };
+export const riskNum = (l: RiskLevel) => 1 - RISK_P[l]; // probability of failure (for tolerance band)
+export const RISK_LABEL: Record<RiskLevel, string> = { low: "Low", med: "Med", high: "High" };
+
+// Every project rolls up to a Line of Business (LOB) — the growth-model / stack filter axis.
+export const LOBS = ["Defense & ISR", "Autonomy", "Software & SaaS", "Commercial", "Space", "Components"] as const;
+
 export interface Project {
   id: string;
   name: string;
@@ -19,8 +30,9 @@ export interface Project {
   category: string;
   gate: Gate;                 // last completed gate → derives stage (CRS-56, never user-set)
   confidence: 1 | 2 | 3 | 4;  // reviewer-set (CRS-38)
-  techRisk: number;           // 0..1 (probability of technical success = 1-techRisk)
-  commRisk: number;           // 0..1
+  tech: RiskLevel;            // technical risk → success prob RISK_P[tech]
+  comm: RiskLevel;            // commercial risk → success prob RISK_P[comm]
+  lob: string;                // line of business (portfolio roll-up + growth-model filter)
   nreK: number;               // non-recurring engineering $K (CRS-47)
   fullRev10yM: number;        // 10-yr new-product revenue $M (CRS-49)
   doNothing10yM: number;      // do-nothing baseline $M (CRS-50)
@@ -33,7 +45,8 @@ export interface Project {
 
 // ── Calculators (all derived, never stored — CRS-52/53/67) ──────────────────────────────
 export const incrementalRevM = (p: Project) => Math.max(0, p.fullRev10yM - p.doNothing10yM);
-export const pSuccess = (p: Project) => (1 - p.techRisk) * (1 - p.commRisk); // probability weight (CRS-53)
+export const pSuccess = (p: Project) => RISK_P[p.tech] * RISK_P[p.comm]; // Tech×Comm weight (CRS-53)
+export const upsideFraction = (p: Project) => 1 - pSuccess(p);           // unrealized potential
 export const weightedRevM = (p: Project) => incrementalRevM(p) * pSuccess(p);
 // Simplified 10-yr NPV: weighted incremental revenue margin (~35%) discounted, less NRE. Demo model.
 export const npvM = (p: Project) => weightedRevM(p) * 0.35 * 0.78 - p.nreK / 1000;
@@ -53,18 +66,18 @@ export const availableK = (b: DivisionBudget) => b.totalK - b.allocatedK; // CRS
 export const DEMO_BUDGET: DivisionBudget = { division: "ALL DIVISIONS", totalK: 42000, allocatedK: 6000 };
 
 export const DEMO_PROJECTS: Project[] = [
-  { id: "PRJ-01", name: "Thermal Core Gen-5 Sensor", division: "ISR", manager: "A. Seguin", category: "New Platform", gate: "G4", confidence: 4, techRisk: 0.2, commRisk: 0.15, nreK: 8200, fullRev10yM: 210, doNothing10yM: 60, firstRevenue: "2026-Q4", criticalPath: true, humanLoad: 0.62, ai: 0.4, si: 0.3, hi: 0.3, predictions: 41 },
-  { id: "PRJ-02", name: "Edge Fusion AI Module", division: "Autonomy", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, techRisk: 0.35, commRisk: 0.2, nreK: 5400, fullRev10yM: 155, doNothing10yM: 30, firstRevenue: "2027-Q1", criticalPath: true, humanLoad: 0.74, ai: 0.55, si: 0.25, hi: 0.2, predictions: 33 },
-  { id: "PRJ-03", name: "Maritime Littoral Radar", division: "ISR", manager: "M. Devlin", category: "Sustaining+", gate: "G5", confidence: 4, techRisk: 0.15, commRisk: 0.25, nreK: 6100, fullRev10yM: 140, doNothing10yM: 55, firstRevenue: "2026-Q3", criticalPath: false, humanLoad: 0.48, ai: 0.3, si: 0.35, hi: 0.35, predictions: 22 },
-  { id: "PRJ-04", name: "Counter-UAS Effector", division: "Effects", manager: "T. Cho", category: "New Platform", gate: "G2", confidence: 2, techRisk: 0.5, commRisk: 0.35, nreK: 9300, fullRev10yM: 260, doNothing10yM: 20, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.81, ai: 0.35, si: 0.3, hi: 0.35, predictions: 57 },
-  { id: "PRJ-05", name: "SoI Governance Cloud", division: "Software", manager: "L. Okafor", category: "New Product", gate: "G4", confidence: 3, techRisk: 0.3, commRisk: 0.2, nreK: 4200, fullRev10yM: 180, doNothing10yM: 25, firstRevenue: "2026-Q4", criticalPath: false, humanLoad: 0.55, ai: 0.6, si: 0.25, hi: 0.15, predictions: 29 },
-  { id: "PRJ-06", name: "Handheld Multispectral", division: "Handheld", manager: "P. Nilsson", category: "New Product", gate: "G3", confidence: 3, techRisk: 0.28, commRisk: 0.3, nreK: 3600, fullRev10yM: 95, doNothing10yM: 40, firstRevenue: "2027-Q2", criticalPath: false, humanLoad: 0.44, ai: 0.3, si: 0.3, hi: 0.4, predictions: 18 },
-  { id: "PRJ-07", name: "Space Payload Optics", division: "Space", manager: "V. Rossi", category: "New Platform", gate: "G2", confidence: 2, techRisk: 0.55, commRisk: 0.3, nreK: 12500, fullRev10yM: 340, doNothing10yM: 10, firstRevenue: "2029-Q1", criticalPath: true, humanLoad: 0.7, ai: 0.45, si: 0.3, hi: 0.25, predictions: 63 },
-  { id: "PRJ-08", name: "Ground Station Modernization", division: "Software", manager: "S. Haddad", category: "Sustaining", gate: "G6", confidence: 4, techRisk: 0.1, commRisk: 0.15, nreK: 2100, fullRev10yM: 70, doNothing10yM: 45, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.38, ai: 0.25, si: 0.4, hi: 0.35, predictions: 11 },
-  { id: "PRJ-09", name: "Cryo-Cooler Next-Gen", division: "Components", manager: "D. Park", category: "New Product", gate: "G3", confidence: 3, techRisk: 0.32, commRisk: 0.22, nreK: 4800, fullRev10yM: 120, doNothing10yM: 38, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.6, ai: 0.3, si: 0.35, hi: 0.35, predictions: 26 },
-  { id: "PRJ-10", name: "Autonomy SDK & Marketplace", division: "Software", manager: "R. Kaur", category: "New Product", gate: "G2", confidence: 2, techRisk: 0.45, commRisk: 0.4, nreK: 3900, fullRev10yM: 130, doNothing10yM: 15, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.65, si: 0.2, hi: 0.15, predictions: 34 },
-  { id: "PRJ-11", name: "Legacy Sensor EOL Bridge", division: "Handheld", manager: "M. Devlin", category: "Phase-out", gate: "G5", confidence: 4, techRisk: 0.12, commRisk: 0.18, nreK: 1400, fullRev10yM: 40, doNothing10yM: 35, firstRevenue: "2026-Q1", criticalPath: false, humanLoad: 0.3, ai: 0.2, si: 0.4, hi: 0.4, predictions: 8 },
-  { id: "PRJ-12", name: "Quantum-Secure Comms", division: "Software", manager: "T. Cho", category: "New Platform", gate: "G1", confidence: 1, techRisk: 0.7, commRisk: 0.5, nreK: 7600, fullRev10yM: 300, doNothing10yM: 5, firstRevenue: "2030-Q1", criticalPath: true, humanLoad: 0.68, ai: 0.5, si: 0.3, hi: 0.2, predictions: 72 },
+  { id: "PRJ-01", name: "Thermal Core Gen-5 Sensor", division: "ISR", lob: "Defense & ISR", manager: "A. Seguin", category: "New Platform", gate: "G4", confidence: 4, tech: "low", comm: "low", nreK: 8200, fullRev10yM: 210, doNothing10yM: 60, firstRevenue: "2026-Q4", criticalPath: true, humanLoad: 0.62, ai: 0.4, si: 0.3, hi: 0.3, predictions: 41 },
+  { id: "PRJ-02", name: "Edge Fusion AI Module", division: "Autonomy", lob: "Autonomy", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5400, fullRev10yM: 155, doNothing10yM: 30, firstRevenue: "2027-Q1", criticalPath: true, humanLoad: 0.74, ai: 0.55, si: 0.25, hi: 0.2, predictions: 33 },
+  { id: "PRJ-03", name: "Maritime Littoral Radar", division: "ISR", lob: "Defense & ISR", manager: "M. Devlin", category: "Sustaining+", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 6100, fullRev10yM: 140, doNothing10yM: 55, firstRevenue: "2026-Q3", criticalPath: false, humanLoad: 0.48, ai: 0.3, si: 0.35, hi: 0.35, predictions: 22 },
+  { id: "PRJ-04", name: "Counter-UAS Effector", division: "Effects", lob: "Defense & ISR", manager: "T. Cho", category: "New Platform", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 9300, fullRev10yM: 260, doNothing10yM: 20, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.81, ai: 0.35, si: 0.3, hi: 0.35, predictions: 57 },
+  { id: "PRJ-05", name: "SoI Governance Cloud", division: "Software", lob: "Software & SaaS", manager: "L. Okafor", category: "New Product", gate: "G4", confidence: 3, tech: "med", comm: "low", nreK: 4200, fullRev10yM: 180, doNothing10yM: 25, firstRevenue: "2026-Q4", criticalPath: false, humanLoad: 0.55, ai: 0.6, si: 0.25, hi: 0.15, predictions: 29 },
+  { id: "PRJ-06", name: "Handheld Multispectral", division: "Handheld", lob: "Commercial", manager: "P. Nilsson", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 3600, fullRev10yM: 95, doNothing10yM: 40, firstRevenue: "2027-Q2", criticalPath: false, humanLoad: 0.44, ai: 0.3, si: 0.3, hi: 0.4, predictions: 18 },
+  { id: "PRJ-07", name: "Space Payload Optics", division: "Space", lob: "Space", manager: "V. Rossi", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 12500, fullRev10yM: 340, doNothing10yM: 10, firstRevenue: "2029-Q1", criticalPath: true, humanLoad: 0.7, ai: 0.45, si: 0.3, hi: 0.25, predictions: 63 },
+  { id: "PRJ-08", name: "Ground Station Modernization", division: "Software", lob: "Software & SaaS", manager: "S. Haddad", category: "Sustaining", gate: "G6", confidence: 4, tech: "low", comm: "low", nreK: 2100, fullRev10yM: 70, doNothing10yM: 45, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.38, ai: 0.25, si: 0.4, hi: 0.35, predictions: 11 },
+  { id: "PRJ-09", name: "Cryo-Cooler Next-Gen", division: "Components", lob: "Components", manager: "D. Park", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 4800, fullRev10yM: 120, doNothing10yM: 38, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.6, ai: 0.3, si: 0.35, hi: 0.35, predictions: 26 },
+  { id: "PRJ-10", name: "Autonomy SDK & Marketplace", division: "Software", lob: "Software & SaaS", manager: "R. Kaur", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 3900, fullRev10yM: 130, doNothing10yM: 15, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.65, si: 0.2, hi: 0.15, predictions: 34 },
+  { id: "PRJ-11", name: "Legacy Sensor EOL Bridge", division: "Handheld", lob: "Commercial", manager: "M. Devlin", category: "Phase-out", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 1400, fullRev10yM: 40, doNothing10yM: 35, firstRevenue: "2026-Q1", criticalPath: false, humanLoad: 0.3, ai: 0.2, si: 0.4, hi: 0.4, predictions: 8 },
+  { id: "PRJ-12", name: "Quantum-Secure Comms", division: "Software", lob: "Software & SaaS", manager: "T. Cho", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 7600, fullRev10yM: 300, doNothing10yM: 5, firstRevenue: "2030-Q1", criticalPath: true, humanLoad: 0.68, ai: 0.5, si: 0.3, hi: 0.2, predictions: 72 },
 ];
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
@@ -93,7 +106,7 @@ export const UNIT_LABEL: Record<TimeUnit, string> = { month: "mo", week: "wk", d
 // by the project's commercial + technical risk profile (CRS-86). Higher risk → wider band.
 const BASE_BAND: Record<Gate, number> = { G1: 0.5, G2: 0.4, G3: 0.3, G4: 0.2, G5: 0.1, G6: 0.05, G7: 0.05 };
 export function toleranceBand(p: Project): number {
-  const riskMult = 1 + (p.techRisk + p.commRisk) / 2; // 1.0 (no risk) → 2.0 (max)
+  const riskMult = 1 + (riskNum(p.tech) + riskNum(p.comm)) / 2; // Low→1.1 … High→1.7
   return Math.min(0.6, BASE_BAND[p.gate] * riskMult);
 }
 
