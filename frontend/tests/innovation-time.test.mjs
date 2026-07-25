@@ -49,5 +49,14 @@ ok(day.costPerMinUsd > 0, "cost of time $/min positive");
 // cost remaining for a G1 project (whole program ahead) ≈ nre
 ok(Math.abs(day.cost.value - 9_000_000) < 5000, "G1 cost remaining ≈ full NRE");
 
+/* ---------------- growth model (CRS-69) ---------------- */
+import { growthModel } from "../lib/innovation-data.ts";
+const gm = growthModel([P({ doNothing10yM: 600, techRisk: 0.2, commRisk: 0.2, fullRev10yM: 200 })], { years: 6, growth: 0.038, decline: 0.15 });
+ok(gm.length === 6, "growth model spans 6 years");
+ok(gm[0].doNothing > gm[5].doNothing, "do-nothing declines YoY");
+ok(gm[5].target > gm[0].target, "target grows YoY");
+ok(gm.every((r) => r.remaining >= 0), "remaining-to-target never negative");
+ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

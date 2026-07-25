@@ -13,6 +13,7 @@ import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart,
+  growthModel,
   type Project, type TimeUnit,
 } from "@/lib/innovation-data";
 
@@ -140,6 +141,11 @@ function Board() {
           <GateCube p={sel} />
           <Differentiators p={sel} />
         </section>
+      </div>
+
+      {/* Portfolio Growth Model — the signature Rack & Stack chart */}
+      <div className="px-5 pb-2">
+        <GrowthModelChart funded={fundedRows.map((r) => r.p)} />
       </div>
 
       <footer className="px-5 pb-8 text-[11px] text-slate-500">
@@ -354,6 +360,54 @@ function Differentiators({ p }: { p: Project }) {
         <Row l="Human load" v={`${Math.round(p.humanLoad * 100)}%`} tone={guard ? "bad" : "ok"} />
         {guard && <p className="mt-1 text-[11px] text-rose-400">⚠ Burnout guard active — upside withheld pending review.</p>}
       </Card>
+    </div>
+  );
+}
+
+// Growth Model (CRS-69): stacked do-nothing + weighted NPI + remaining-to-target, target line.
+function GrowthModelChart({ funded }: { funded: Project[] }) {
+  const rows = growthModel(funded);
+  const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
+  const max = Math.max(...rows.map((r) => Math.max(r.target, r.doNothing + r.weighted + r.remaining))) * 1.1 || 1;
+  const pw = (W - L - R) / rows.length;
+  const y = (v: number) => H - B - (v / max) * (H - B - T);
+  const growthPct = ((Math.pow(rows[rows.length - 1].target / (rows[0].target || 1), 1 / Math.max(1, rows.length - 1)) - 1) * 100).toFixed(1);
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Growth Model · Do-Nothing + Rack-&-Stack NPIs</h3>
+        <span className="text-[11px] text-slate-500">target CAGR ~{growthPct}% · funded portfolio</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
+        {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+          <line key={f} x1={L} y1={y(max * f)} x2={W - R} y2={y(max * f)} stroke="rgba(148,163,184,.12)" />
+        ))}
+        {rows.map((r, i) => {
+          const x = L + i * pw + pw * 0.18, bw = pw * 0.64;
+          const dnH = (H - B) - y(r.doNothing);
+          const wY = y(r.doNothing + r.weighted), rY = y(r.doNothing + r.weighted + r.remaining);
+          return (
+            <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9">
+              <rect x={x} y={y(r.doNothing)} width={bw} height={Math.max(0, dnH)} fill="#64748b" opacity="0.7" />
+              <rect x={x} y={wY} width={bw} height={Math.max(0, y(r.doNothing) - wY)} fill="#34d399" />
+              <rect x={x} y={rY} width={bw} height={Math.max(0, wY - rY)} fill="#fbbf24" opacity="0.9" />
+              <text x={x + bw / 2} y={H - B + 12} textAnchor="middle" fill="#64748b">{r.year}</text>
+              <text x={x + bw / 2} y={rY - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(r.doNothing + r.weighted + r.remaining)}</text>
+            </g>
+          );
+        })}
+        <polyline
+          points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")}
+          fill="none" stroke="#e2e8f0" strokeWidth="1.4"
+        />
+        {rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
+      </svg>
+      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b" }} />do-nothing (YoY decline)</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />probability-weighted NPI</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />remaining to target</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />growth target</span>
+      </div>
     </div>
   );
 }

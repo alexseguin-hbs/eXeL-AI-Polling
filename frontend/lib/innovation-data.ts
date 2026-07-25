@@ -137,6 +137,32 @@ export function timeReadout(p: Project, startISO: string, unit: TimeUnit) {
   };
 }
 
+// ── GROWTH MODEL (CRS-69) — Do-Nothing decline + weighted NPI + remaining-to-target ──────
+// The signature Rack-&-Stack chart: a base revenue that declines YoY with no new launches,
+// the probability-weighted incremental revenue from funded NPIs ramping in, the gap remaining
+// to the growth target, and the target line itself. All derived from the funded portfolio.
+export interface GrowthYear { year: number; doNothing: number; weighted: number; remaining: number; target: number }
+export function growthModel(
+  funded: Project[],
+  opts: { baseYear?: number; years?: number; decline?: number; growth?: number } = {},
+): GrowthYear[] {
+  const baseYear = opts.baseYear ?? 2026, years = opts.years ?? 6;
+  const decline = opts.decline ?? 0.15, growth = opts.growth ?? 0.038;
+  // Annualize 10-yr figures to a year-0 run rate.
+  const annualBase = funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
+  const annualNpi = funded.reduce((s, p) => s + weightedRevM(p), 0) / 10;
+  const out: GrowthYear[] = [];
+  for (let y = 0; y < years; y++) {
+    const doNothing = annualBase * Math.pow(1 - decline, y);
+    const ramp = Math.min(1, years <= 2 ? 1 : y / (years - 2)); // NPI ramps in over the horizon
+    const weighted = annualNpi * ramp;
+    const target = annualBase * Math.pow(1 + growth, y);
+    const remaining = Math.max(0, target - doNothing - weighted);
+    out.push({ year: baseYear + y, doNothing, weighted, remaining, target });
+  }
+  return out;
+}
+
 // ── STACK: rank order → cumulative NRE → funding line (CRS-42/43/71) ─────────────────────
 export function stackWithBudget(order: Project[], availableK_: number) {
   let cum = 0, lineIndex = order.length;
