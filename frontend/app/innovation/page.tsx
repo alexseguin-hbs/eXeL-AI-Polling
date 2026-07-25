@@ -16,7 +16,7 @@ import {
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
-  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo,
+  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
 } from "@/lib/innovation-data";
 
@@ -267,6 +267,7 @@ function ProjectDetail({ p, risks }: { p: Project; risks: Risk[] }) {
   const captured = Math.round(pSuccess(p) * 100);
   const upside = Math.round(upsideFraction(p) * 100);
   const roll = riskRollup(risks, p.id);
+  const brief = briefOf(p);
   const metrics: [string, string][] = [
     ["NPV", usd(npvM(p))], ["IRR", `${irrPct(p)}%`], ["Rev/NRE", `${revOverNre(p).toFixed(1)}×`],
     ["Rev captured", `${captured}%`], ["Upside", `${upside}%`], ["P-wt revenue", usd(weightedRevM(p))],
@@ -302,6 +303,17 @@ function ProjectDetail({ p, risks }: { p: Project; risks: Risk[] }) {
           <div key={l} className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
             <div className="text-[10px] uppercase tracking-wider text-slate-500">{l}</div>
             <div className="text-sm font-semibold tabular-nums">{v}</div>
+          </div>
+        ))}
+      </div>
+      {/* AMTS One-Page Summary — Needs · Outcomes · Solution · Evidence */}
+      <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3">
+        {([["Needs", brief.needs, "#fb7185"], ["Outcomes", brief.outcomes, "#34d399"], ["Solution", brief.solution, "#19c8cf"], ["Evidence", brief.evidence, "#fbbf24"]] as const).map(([title, items, color]) => (
+          <div key={title} className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
+            <div className="text-[10px] uppercase tracking-wider font-mono" style={{ color }}>{title}</div>
+            <ul className="mt-1 space-y-0.5">
+              {items.map((it, i) => <li key={i} className="text-[11px] leading-snug text-slate-300">· {it}</li>)}
+            </ul>
           </div>
         ))}
       </div>
