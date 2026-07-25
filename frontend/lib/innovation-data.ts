@@ -189,6 +189,32 @@ export function execOf(p: Project): ProjectExec {
   };
 }
 
+// Per-project financial projection (operator methodology): for an aging portfolio we ALWAYS
+// model the old product line WITHOUT innovation — a declining curve (Do-Nothing / Step 2) —
+// so we can see what goes away. When a next-gen project is funded we overlay the NEW product
+// revenue ramp (Step 1) on top of that decline. Net = the story of decline replaced by growth.
+export interface RevYear { year: number; oldDecline: number; newRamp: number; total: number }
+export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: number; decline?: number; funded?: boolean } = {}): RevYear[] {
+  const years = opts.years ?? 10, d = opts.decline ?? 0.15, baseYear = opts.baseYear ?? 2026;
+  const funded = opts.funded ?? true;
+  // Old line: declining geometric series whose 10-yr sum ≈ doNothing10yM (what erodes with no innovation).
+  const denom = d > 0 ? (1 - Math.pow(1 - d, years)) / d : years;
+  const oldStart = denom > 0 ? p.doNothing10yM / denom : 0;
+  // New product: ramps in over ~3 yrs to a plateau; series sum ≈ fullRev10yM (only if funded/launched).
+  const rampYears = Math.min(3, years);
+  const w: number[] = [];
+  for (let y = 0; y < years; y++) w.push(Math.min(1, (y + 1) / (rampYears + 1)));
+  const wSum = w.reduce((a, b) => a + b, 0) || 1;
+  const newUnit = funded ? p.fullRev10yM / wSum : 0;
+  const out: RevYear[] = [];
+  for (let y = 0; y < years; y++) {
+    const oldDecline = oldStart * Math.pow(1 - d, y);
+    const newRamp = newUnit * w[y];
+    out.push({ year: baseYear + y, oldDecline, newRamp, total: oldDecline + newRamp });
+  }
+  return out;
+}
+
 // Say/Do ratio — did we deliver what we said (>1 = beat the plan). Demo model from
 // confidence, risk profile, and critical-path; at Launch this binds to real actuals in the
 // business systems (schedule/cost/scope) so the tool tracks Say/Do end-to-end.

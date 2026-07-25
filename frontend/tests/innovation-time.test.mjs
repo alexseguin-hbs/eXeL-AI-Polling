@@ -72,7 +72,7 @@ import {
   hierOf, hierValues, filterByHier, DEMO_PROJECTS,
   riskScore, riskExposure, riskPriority, riskBand, riskRollup, DEMO_RISKS, growthModel as gm2,
   SBU_BASE, companyBaseM, lobBaseM, companyRollup, sayDo, execOf, briefOf,
-  buBaseM, scopeBaseM, GATE_DELIVERABLES, GATES as GATE_LIST, rackByLevel,
+  buBaseM, scopeBaseM, GATE_DELIVERABLES, GATES as GATE_LIST, rackByLevel, projectRevSeries,
 } from "../lib/innovation-data.ts";
 
 // ── hierarchy: Company → BU → SBU → Product Group, cascading + filter ──
@@ -104,6 +104,16 @@ ok(rackSbu.length === 3, "rackByLevel SBU → 3 rows");
 ok(rackSbu.every((r, i) => i === 0 || rackSbu[i - 1].npvM >= r.npvM), "rack rows sorted by NPV desc");
 ok(Math.abs(rackSbu.reduce((s, r) => s + r.count, 0) - DEMO_PROJECTS.length) < 1e-9, "rack SBU counts sum to portfolio");
 ok(rackByLevel(DEMO_PROJECTS, "bu").length === 2 && rackByLevel(DEMO_PROJECTS, "material").length === DEMO_PROJECTS.length, "rack BU=2, Material# = one per project (BOM)");
+
+// ── aging-portfolio financial model: old line declines (no innovation); new product ramps if funded ──
+const P01 = DEMO_PROJECTS.find((p) => p.id === "PRJ-01");
+const sFund = projectRevSeries(P01, { years: 10, funded: true });
+const sNone = projectRevSeries(P01, { years: 10, funded: false });
+ok(sFund.length === 10, "projectRevSeries → 10-year projection");
+ok(sNone[9].oldDecline < sNone[0].oldDecline, "old product line declines without innovation");
+ok(sNone.every((r) => r.newRamp === 0), "no-innovation scenario has zero new-product revenue");
+ok(sFund.reduce((s, r) => s + r.newRamp, 0) > 0 && Math.abs(sFund.reduce((s, r) => s + r.newRamp, 0) - P01.fullRev10yM) < 1, "funded new-product ramp sums to 10-yr new revenue");
+ok(sFund[5].total > sNone[5].total, "with new product beats no-innovation total");
 // ── growth model base override anchors the do-nothing baseline ──
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 300 })[0].doNothing === 300, "baseOverrideM anchors year-0 do-nothing");
 ok(gm2(DEMO_PROJECTS, { years: 1, baseOverrideM: 0 })[0].doNothing === 0, "grey jump-off settable to zero (per-project)");
