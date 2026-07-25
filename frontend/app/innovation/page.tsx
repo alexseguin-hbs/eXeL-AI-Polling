@@ -86,6 +86,12 @@ function Board() {
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · CRS-36→93</div>
           <h1 className="text-lg font-semibold">Project Innovation — Rack &amp; Stack</h1>
         </div>
+        <a
+          href="/innovation/pdm-template.html" target="_blank" rel="noopener"
+          className="rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10"
+        >
+          R-Core Project Template ↗
+        </a>
         <div className="ml-auto flex gap-5 text-right">
           <Kpi label="R&D available" value={k(avail)} />
           <Kpi label="Funded NRE" value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />

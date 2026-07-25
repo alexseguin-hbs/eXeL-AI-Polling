@@ -1,0 +1,139 @@
+<!-- explode-slider.html — markup + CSS + wiring.
+     Drop the markup inside the simulation overlay, above the transport row.
+     If the celestial-2525 / security-2525 tilt slider already exists as a
+     component, keep its class names and delete the CSS block below — the
+     structure here matches a standard range input, so it should swap cleanly. -->
+
+<div class="xl-explode" data-explode>
+  <label class="xl-explode__label" for="explode-range">
+    <span class="xl-explode__end">ASSEMBLED</span>
+    <span class="xl-explode__readout" data-readout>3×3×3</span>
+    <span class="xl-explode__end">EXPLODED</span>
+  </label>
+
+  <input
+    id="explode-range"
+    class="xl-explode__range"
+    type="range"
+    min="0" max="100" value="0" step="1"
+    aria-label="Explode view — assembled to fully separated"
+    aria-valuetext="Assembled, 3 by 3 by 3"
+  />
+</div>
+
+<style>
+  .xl-explode {
+    /* Portrait: full width above the transport controls, thumb-reachable. */
+    width: min(100%, 34rem);
+    margin: 0 auto;
+    padding: 0.75rem 1.25rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .xl-explode__label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    color: rgba(255, 120, 232, 0.62);
+  }
+
+  .xl-explode__readout {
+    color: #ff4fd8;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .xl-explode__range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 44px;              /* full-height hit target, invisible track padding */
+    background: transparent;
+    margin: 0;
+    display: block;
+  }
+
+  /* Track */
+  .xl-explode__range::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22d3ee 0%, #ff4fd8 55%, #fbbf24 100%);
+    box-shadow: 0 0 12px rgba(255, 79, 216, 0.45);
+  }
+  .xl-explode__range::-moz-range-track {
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22d3ee 0%, #ff4fd8 55%, #fbbf24 100%);
+  }
+
+  /* Thumb — 28px visual, sitting in a 44px touch row */
+  .xl-explode__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    margin-top: -12.5px;
+    border-radius: 50%;
+    background: #0a0212;
+    border: 2px solid #ff4fd8;
+    box-shadow: 0 0 0 4px rgba(255, 79, 216, 0.16), 0 0 18px rgba(255, 79, 216, 0.7);
+    cursor: grab;
+  }
+  .xl-explode__range::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #0a0212;
+    border: 2px solid #ff4fd8;
+    box-shadow: 0 0 0 4px rgba(255, 79, 216, 0.16), 0 0 18px rgba(255, 79, 216, 0.7);
+    cursor: grab;
+  }
+
+  .xl-explode__range:active::-webkit-slider-thumb { cursor: grabbing; }
+
+  /* Visible keyboard focus — arrow keys step the explode 1% at a time. */
+  .xl-explode__range:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid #fbbf24;
+    outline-offset: 3px;
+  }
+  .xl-explode__range:focus-visible::-moz-range-thumb {
+    outline: 2px solid #fbbf24;
+    outline-offset: 3px;
+  }
+
+  /* Landscape / wider: sit inline, narrower. */
+  @media (orientation: landscape) and (min-width: 40rem) {
+    .xl-explode { width: 26rem; padding-bottom: 0.5rem; }
+  }
+</style>
+
+<script type="module">
+  import { createExplodeView } from './explode-view.js';
+
+  const mount = document.querySelector('#cube-canvas');   // your canvas container
+  const range = document.querySelector('#explode-range');
+  const readout = document.querySelector('[data-readout]');
+
+  const view = createExplodeView({ mount });
+
+  function apply() {
+    const t = Number(range.value) / 100;
+    view.setExplode(t);
+
+    // Readout doubles as the accessible value text.
+    const text =
+      t === 0 ? '3×3×3'
+      : t >= 0.995 ? 'SEPARATED'
+      : `${Math.round(t * 100)}% OPEN`;
+    readout.textContent = text;
+    range.setAttribute('aria-valuetext', text);
+  }
+
+  range.addEventListener('input', apply);
+  apply();
+</script>

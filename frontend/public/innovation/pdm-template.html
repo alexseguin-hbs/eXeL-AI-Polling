@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R-Core Project Template — eXeL AI</title>
+<style>
+:root{
+  --bg:#05100E; --panel:#0A1A17; --panel2:#081512;
+  --line:rgba(0,229,212,.16); --line2:rgba(0,229,212,.07);
+  --cyan:#00E5D4; --mag:#FF3FA4; --amber:#FFB020; --coral:#FF6B5B; --green:#3DD68C;
+  --tx:#DCEDE9; --mut:#6E8B85; --dim:#3E5C56;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --disp:system-ui,-apple-system,"Segoe UI",Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--disp);
+     font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1400px;margin:0 auto;padding:14px}
+
+/* ---- header band ---- */
+.hdr{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+     border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel)}
+.pname{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;padding:3px 8px;
+     border-radius:999px;border:1px solid var(--cyan);color:var(--cyan)}
+.tag.mag{border-color:var(--mag);color:var(--mag)}
+.spacer{flex:1}
+.kv{font-family:var(--mono);font-size:11px;color:var(--mut);white-space:nowrap}
+.kv b{color:var(--tx);font-weight:600}
+
+/* ---- gate rail : the signature ---- */
+.rail{margin-top:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px}
+.railtop{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.railttl{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--mut)}
+.gates{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.g{border:1px solid var(--line2);border-radius:7px;padding:8px 6px;text-align:center;position:relative;
+   background:var(--panel2);transition:.25s}
+.g.done{border-color:rgba(61,214,140,.5);background:rgba(61,214,140,.07)}
+.g.now{border-color:var(--cyan);background:rgba(0,229,212,.1);
+       box-shadow:0 0 0 1px var(--cyan),0 0 22px rgba(0,229,212,.22)}
+.g .gid{font-family:var(--mono);font-size:13px;font-weight:700}
+.g.done .gid{color:var(--green)} .g.now .gid{color:var(--cyan)} .g .gid{color:var(--dim)}
+.g .gnm{font-size:10px;color:var(--mut);margin-top:1px}
+.cells{display:flex;gap:2px;justify-content:center;margin-top:7px}
+.c{width:7px;height:7px;border-radius:1.5px;background:rgba(255,255,255,.06)}
+.c.on{background:var(--green)} .c.wip{background:var(--cyan)} .c.risk{background:var(--amber)}
+
+/* ---- MoT strip ---- */
+.mot{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+     margin-top:14px;background:var(--line2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.m{background:var(--panel);padding:11px 13px}
+.m .lb{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;color:var(--mut)}
+.m .vl{font-family:var(--mono);font-size:21px;font-weight:700;margin-top:3px;letter-spacing:-.02em}
+.m .sb{font-size:10.5px;color:var(--mut);margin-top:1px}
+.pos{color:var(--green)} .neg{color:var(--coral)} .acc{color:var(--cyan)} .wrn{color:var(--amber)}
+
+/* ---- grid ---- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.grid3{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:900px){.grid,.grid3{grid-template-columns:1fr}.gates{grid-template-columns:repeat(4,1fr)}}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:13px}
+.ct{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--mut);
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ct .r{color:var(--dim)}
+
+/* ---- lever ---- */
+.lever{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:140px;height:34px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:9px;
+  background:linear-gradient(90deg,var(--coral),var(--amber) 45%,var(--green))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-9.5px;
+  border-radius:50%;background:#05100E;border:2px solid var(--cyan);box-shadow:0 0 14px rgba(0,229,212,.6)}
+input[type=range]::-moz-range-track{height:3px;border-radius:9px;background:var(--cyan)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#05100E;border:2px solid var(--cyan)}
+
+/* ---- tables ---- */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--mut);
+   text-align:left;padding:5px 6px;border-bottom:1px solid var(--line)}
+td{padding:5px 6px;border-bottom:1px solid var(--line2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.mono{font-family:var(--mono);font-size:11px}
+.pill{font-family:var(--mono);font-size:9px;padding:1.5px 6px;border-radius:999px;white-space:nowrap}
+.p-hi{background:rgba(255,107,91,.16);color:var(--coral)}
+.p-md{background:rgba(255,176,32,.16);color:var(--amber)}
+.p-lo{background:rgba(61,214,140,.14);color:var(--green)}
+.p-tech{background:rgba(0,229,212,.13);color:var(--cyan)}
+.p-comm{background:rgba(255,63,164,.14);color:var(--mag)}
+
+/* ---- readiness ---- */
+.rd{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line2)}
+.rd:last-child{border-bottom:0}
+.rd .nm{flex:1;font-size:12px}
+.rd .sys{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.bar{width:74px;height:5px;border-radius:9px;background:rgba(255,255,255,.07);overflow:hidden;flex:none}
+.bar i{display:block;height:100%;border-radius:9px}
+.pct{font-family:var(--mono);font-size:10px;width:32px;text-align:right;color:var(--mut)}
+
+svg{display:block;width:100%;height:auto}
+
+/* ---- executive summary ---- */
+.exec{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:1px;
+      background:var(--line2);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px}
+.ex{background:var(--panel);padding:12px 13px}
+.ex h4{margin:0 0 8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--cyan);font-weight:600}
+.ex .row{display:flex;justify-content:space-between;gap:8px;padding:2.5px 0;font-size:12px}
+.ex .row span:last-child{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.ex ul{margin:0;padding-left:14px;font-size:11.5px;color:var(--tx)}
+.ex ul li{margin:3px 0}
+.ex .fnd{font-size:11.5px;border-left:2px solid var(--amber);padding-left:8px;margin:6px 0;color:var(--tx)}
+
+/* ---- intelligence load ---- */
+.ld{margin:7px 0}
+.ldtop{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px}
+.ldtop b{font-family:var(--mono);font-size:11px}
+.track{height:7px;border-radius:9px;background:rgba(255,255,255,.06);overflow:hidden;display:flex}
+.track i{display:block;height:100%}
+.cap{position:relative;height:7px;margin-top:-7px;pointer-events:none}
+.cap b{position:absolute;top:-2px;width:2px;height:11px;background:var(--coral);border-radius:1px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:9.5px;color:var(--mut);margin-top:8px}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.note{font-size:11px;color:var(--mut);margin-top:9px;line-height:1.5}
+.foot{margin-top:14px;font-family:var(--mono);font-size:9.5px;color:var(--dim);
+      display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HEADER ============ -->
+  <div class="hdr">
+    <div class="pname">BOSON&nbsp;R-CORE&nbsp;III</div>
+    <span class="tag">R-CORE</span>
+    <span class="tag mag">ABOVE THE LINE</span>
+    <div class="spacer"></div>
+    <div class="kv">PROJ&nbsp;<b>RC-0347</b></div>
+    <div class="kv">3-YR NPV&nbsp;<b>$21.4M</b></div>
+    <div class="kv">IRR&nbsp;<b>28.6%</b></div>
+    <div class="kv">1ST REV&nbsp;<b id="firstRev">Q3-27</b></div>
+    <div class="kv">STAGE&nbsp;<b class="acc">G4 QUALIFY</b></div>
+  </div>
+
+  <!-- ============ GATE RAIL ============ -->
+  <div class="rail">
+    <div class="railtop">
+      <div class="railttl">G1 — G7 PROGRESSION · 27 CELLS · SOURCE OF RECORD</div>
+      <div class="railttl"><span id="cellCount">16</span>/27 CELLS APPROVED</div>
+    </div>
+    <div class="gates" id="gates"></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--green)"></i>approved</span>
+      <span><i class="sw" style="background:var(--cyan)"></i>in flight</span>
+      <span><i class="sw" style="background:var(--amber)"></i>blocked on approver</span>
+      <span><i class="sw" style="background:rgba(255,255,255,.1)"></i>locked</span>
+    </div>
+  </div>
+
+  <!-- ============ MoT ============ -->
+  <div class="mot">
+    <div class="m"><div class="lb">MoT · PORTFOLIO</div>
+      <div class="vl acc">$99.21<span style="font-size:12px;color:var(--mut)">/min</span></div>
+      <div class="sb">$9M ÷ 9 mo · 21d · 8h</div></div>
+    <div class="m"><div class="lb">MoT · THIS PROJECT</div>
+      <div class="vl">$11.02<span style="font-size:12px;color:var(--mut)">/min</span></div>
+      <div class="sb">burn only — excl. displacement</div></div>
+    <div class="m"><div class="lb">G4 DECISION OPEN</div>
+      <div class="vl wrn" id="openCost">$0</div>
+      <div class="sb" id="openTime">awaiting Mfg Ops approver</div></div>
+    <div class="m"><div class="lb">SCHEDULE vs BASELINE</div>
+      <div class="vl pos" id="schedVal">−2.0 mo</div>
+      <div class="sb">baseline locked at G2 · immutable</div></div>
+    <div class="m"><div class="lb">BURN AVOIDED</div>
+      <div class="vl pos" id="burnAv">$2.00M</div>
+      <div class="sb">budgeted, not spent</div></div>
+    <div class="m"><div class="lb">INCENTIVE POOL</div>
+      <div class="vl" style="color:var(--mag)" id="pool">$2.00M</div>
+      <div class="sb">11.1% of program / mo early</div></div>
+  </div>
+
+  <!-- ============ LEVER ============ -->
+  <div class="card" style="margin-top:12px">
+    <div class="ct"><span>ACCELERATION LEVER — MONTHS EARLY vs LOCKED BASELINE</span>
+      <span class="r" id="leverRead">2.0 MONTHS EARLY</span></div>
+    <div class="lever">
+      <span class="mono" style="color:var(--coral)">−1 LATE</span>
+      <input type="range" id="lever" min="-10" max="30" value="20" step="1">
+      <span class="mono" style="color:var(--green)">+3 EARLY</span>
+    </div>
+    <div class="note" id="leverNote"></div>
+  </div>
+
+  <!-- ============ RACK & STACK + READINESS ============ -->
+  <div class="grid3">
+    <div class="card">
+      <div class="ct"><span>RACK &amp; STACK — GROWTH MODEL</span><span class="r" id="rsRate">GROWTH 3.8%</span></div>
+      <svg id="rs" viewBox="0 0 720 260" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend">
+        <span><i class="sw" style="background:#8A8F8D"></i>do-nothing baseline (YoY decline)</span>
+        <span><i class="sw" style="background:var(--green)"></i>probability-weighted NPI</span>
+        <span><i class="sw" style="background:var(--amber)"></i>remaining to full ABL</span>
+        <span><i class="sw" style="background:var(--tx)"></i>target</span>
+      </div>
+      <div class="note">Moving the lever shifts the revenue curve left or right in whole months.
+        Date of first revenue is derived from the launch item's stop time — it is never typed in.</div>
+    </div>
+
+    <div class="card">
+      <div class="ct"><span>LAUNCH READINESS — COM COST + ERP MASTER DATA</span><span class="r" id="rdOverall">72%</span></div>
+      <div id="readiness"></div>
+      <div class="note">Every element is a gate deliverable with its own cell, not a launch-week scramble.
+        Anything under 100% at G6 blocks Approval&nbsp;to&nbsp;Ship.</div>
+    </div>
+  </div>
+
+  <!-- ============ RISK ============ -->
+  <div class="grid">
+    <div class="card">
+      <div class="ct"><span>RISK MARKET — OPEN PREDICTIONS</span><span class="r">ANYONE MAY SUBMIT</span></div>
+      <table>
+        <thead><tr><th>Risk</th><th>By</th><th>Lead</th><th>Stake</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>Boson focal-plane yield drops below 68% at volume<br>
+              <span class="mono" style="color:var(--dim)">→ CM: dual-source wafer lot, adopted G3</span></td>
+              <td><span class="pill p-tech">TECH</span></td><td class="mono">3 gates</td>
+              <td class="mono">120 ◬</td><td><span class="pill p-lo">MITIGATED</span></td></tr>
+          <tr><td>Distributor terms unsigned by L−60, delays open&nbsp;for&nbsp;orders</td>
+              <td><span class="pill p-comm">COMM</span></td><td class="mono">2 gates</td>
+              <td class="mono">80 ◬</td><td><span class="pill p-md">OPEN</span></td></tr>
+          <tr><td>ITAR classification re-review on export variant</td>
+              <td><span class="pill p-comm">COMM</span></td><td class="mono">2 gates</td>
+              <td class="mono">150 ◬</td><td><span class="pill p-hi">OPEN</span></td></tr>
+          <tr><td>Thermal calibration fixture is single-point in Mfg</td>
+              <td><span class="pill p-tech">TECH</span></td><td class="mono">1 gate</td>
+              <td class="mono">40 ◬</td><td><span class="pill p-md">OPEN</span></td></tr>
+          <tr><td>Standard cost set before supplier PN freeze</td>
+              <td><span class="pill p-tech">TECH</span></td><td class="mono">1 gate</td>
+              <td class="mono">60 ◬</td><td><span class="pill p-lo">NOT BORNE OUT</span></td></tr>
+        </tbody>
+      </table>
+      <div class="note"><b>MITIGATED pays the same as MATERIALIZED.</b> Without that, the people who
+        prevent the failure score zero and the incentive trains everyone to predict doom on projects
+        nobody will fix.</div>
+    </div>
+
+    <div class="card">
+      <div class="ct"><span>DEPENDENCY TREE — PRIMARY AT BOTTOM</span><span class="r">9 R-CORE PROJECTS</span></div>
+      <svg id="dep" viewBox="0 0 480 300" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="note" id="depNote">Node size by NPV · border green above the line, red below ·
+        edges carry slip. A date change here shows its blast radius before it is committed.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>eXeL AI · R-CORE PORTFOLIO · MOCKUP — NOT LIVE DATA</span>
+    <span id="stamp"></span>
+  </div>
+</div>
+
+<script>
+/* ---------------- constants from the workbook ---------------- */
+const PROGRAM = 9e6, BASE_MONTHS = 9, PROJECTS = 9;
+const BURN_MO = PROGRAM / BASE_MONTHS;          // $1.0M / month
+const POOL_RATE = 0.1111;                        // target: $1M on $9M per month early
+const MIN_RATE  = 0.10;
+
+const money = v => (Math.abs(v) >= 1e6)
+  ? '$' + (v/1e6).toFixed(2) + 'M'
+  : '$' + Math.round(v).toLocaleString();
+
+/* ---------------- gate rail ---------------- */
+const GATES = [
+  {id:'G1', nm:'Concept',  cells:4, state:'done'},
+  {id:'G2', nm:'Plan',     cells:4, state:'done'},
+  {id:'G3', nm:'Develop',  cells:4, state:'done'},
+  {id:'G4', nm:'Qualify',  cells:4, state:'now',  fill:['on','on','wip','risk']},
+  {id:'G5', nm:'Launch',   cells:4, state:''},
+  {id:'G6', nm:'Maximize', cells:4, state:''},
+  {id:'G7', nm:'Retire',   cells:3, state:''}
+];
+document.getElementById('gates').innerHTML = GATES.map(g=>{
+  const cells = [...Array(g.cells)].map((_,i)=>{
+    let cls = g.state==='done' ? 'on' : (g.fill ? g.fill[i] : '');
+    return `<span class="c ${cls}"></span>`;
+  }).join('');
+  return `<div class="g ${g.state}">
+      <div class="gid">${g.id}</div><div class="gnm">${g.nm}</div>
+      <div class="cells">${cells}</div></div>`;
+}).join('');
+
+/* ---------------- launch readiness ---------------- */
+const READY = [
+  ['Material master (finished good)','SAP MM',100],
+  ['Bill of materials — released','SAP PP',100],
+  ['Standard cost estimate','SAP CO',88],
+  ['COM COST — full commercial build-up','COST',76],
+  ['WBS element + cost centre','SAP PS',100],
+  ['Price list / MSRP by region','SAP SD',64],
+  ['Supplier part numbers frozen','SAP MM',92],
+  ['HTS / ECCN classification','TRADE',45],
+  ['Planned lead time + safety stock','SAP MRP',70],
+  ['Service part + warranty reserve','SAP CS',38],
+  ['Revenue recognition treatment','SAP FI',55],
+  ['Quality inspection plan','SAP QM',80]
+];
+const col = p => p>=95 ? 'var(--green)' : p>=65 ? 'var(--cyan)' : p>=45 ? 'var(--amber)' : 'var(--coral)';
+document.getElementById('readiness').innerHTML = READY.map(([n,s,p])=>`
+  <div class="rd"><span class="nm">${n}</span><span class="sys">${s}</span>
+    <span class="bar"><i style="width:${p}%;background:${col(p)}"></i></span>
+    <span class="pct">${p}%</span></div>`).join('');
+document.getElementById('rdOverall').textContent =
+  Math.round(READY.reduce((a,r)=>a+r[2],0)/READY.length) + '% READY';
+
+/* ---------------- rack & stack ---------------- */
+function drawRS(shift){
+  const yrs = [2026,2027,2028,2029,2030,2031];
+  const base = [273,232,197,168,143,121];        // do-nothing decline
+  const wt   = [0,68,107,112,99,100];            // probability weighted
+  const rem  = [0,41,60,91,98,110];              // remaining to full ABL
+  const tgt  = [273,283,294,305,317,329];
+  const W=720,H=260,L=34,B=34,T=16,R=8;
+  const max=430, pw=(W-L-R)/yrs.length;
+  const y = v => H-B-(v/max)*(H-B-T);
+  let s=`<g font-family="ui-monospace,monospace" font-size="9" fill="#6E8B85">`;
+  [0,100,200,300,400].forEach(v=>{
+    s+=`<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="rgba(0,229,212,.07)"/>
+        <text x="4" y="${y(v)+3}">${v}</text>`;
+  });
+  yrs.forEach((yr,i)=>{
+    const x=L+i*pw+pw*0.17, bw=pw*0.66;
+    // shift pulls the NPI stack forward by whole months -> scale the year's contribution
+    const k = Math.max(0, Math.min(1.6, 1 + shift/12));
+    const w2=wt[i]*k, r2=rem[i]*k;
+    const hb=(H-B)-y(base[i]);
+    s+=`<rect x="${x}" y="${y(base[i])}" width="${bw}" height="${hb}" fill="#8A8F8D" opacity=".75"/>`;
+    s+=`<rect x="${x}" y="${y(base[i]+w2)}" width="${bw}" height="${y(base[i])-y(base[i]+w2)}" fill="#3DD68C"/>`;
+    s+=`<rect x="${x}" y="${y(base[i]+w2+r2)}" width="${bw}" height="${y(base[i]+w2)-y(base[i]+w2+r2)}" fill="#FFB020" opacity=".9"/>`;
+    s+=`<text x="${x+bw/2}" y="${H-B+13}" text-anchor="middle">${yr}</text>`;
+    s+=`<text x="${x+bw/2}" y="${y(base[i]+w2+r2)-5}" text-anchor="middle" fill="#DCEDE9" font-size="9">${Math.round(base[i]+w2+r2)}</text>`;
+  });
+  let pts=yrs.map((_,i)=>`${L+i*pw+pw*0.5},${y(tgt[i])}`).join(' ');
+  s+=`<polyline points="${pts}" fill="none" stroke="#DCEDE9" stroke-width="1.4"/>`;
+  yrs.forEach((_,i)=>{s+=`<circle cx="${L+i*pw+pw*0.5}" cy="${y(tgt[i])}" r="2.6" fill="#DCEDE9"/>`;});
+  s+=`</g>`;
+  document.getElementById('rs').innerHTML=s;
+}
+
+/* ---------------- dependency tree ---------------- */
+(function drawDep(){
+  const N=[
+    {id:'RC-0347',x:240,y:38,r:26,abl:1,lbl:'BOSON R-CORE III'},
+    {id:'RC-0351',x:110,y:96,r:17,abl:1,lbl:'EXX CORE'},
+    {id:'RC-0362',x:360,y:96,r:15,abl:0,lbl:'SPECTRUM SW'},
+    {id:'RC-0355',x:190,y:158,r:13,abl:1,lbl:'AI/ML NNTC'},
+    {id:'RC-0358',x:320,y:158,r:12,abl:0,lbl:'BLACK BODY'},
+    {id:'RC-0341',x:240,y:238,r:22,abl:1,lbl:'LEPTON PLATFORM'},
+    {id:'RC-0339',x:96,y:238,r:14,abl:1,lbl:'FPA SUPPLY'},
+    {id:'RC-0366',x:396,y:238,r:12,abl:0,lbl:'CERT / TRADE'}
+  ];
+  const E=[['RC-0347','RC-0351'],['RC-0347','RC-0362'],['RC-0351','RC-0355'],
+           ['RC-0362','RC-0358'],['RC-0355','RC-0341'],['RC-0358','RC-0341'],
+           ['RC-0351','RC-0339'],['RC-0362','RC-0366'],['RC-0341','RC-0339']];
+  const at=i=>N.find(n=>n.id===i);
+  let s='';
+  E.forEach(([a,b])=>{const A=at(a),B=at(b);
+    s+=`<line x1="${A.x}" y1="${A.y+A.r}" x2="${B.x}" y2="${B.y-B.r}"
+         stroke="rgba(220,237,233,.22)" stroke-width="1" marker-end="url(#ar)"/>`;});
+  N.forEach(n=>{
+    s+=`<circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="rgba(255,176,32,.20)"
+         stroke="${n.abl?'#3DD68C':'#FF6B5B'}" stroke-width="1.6"/>`;
+    s+=`<text x="${n.x}" y="${n.y+n.r+11}" text-anchor="middle" font-family="ui-monospace,monospace"
+         font-size="7.5" fill="#6E8B85">${n.lbl}</text>`;
+  });
+  document.getElementById('dep').innerHTML=
+    `<defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="2.4" orient="auto">
+      <path d="M0,0 L0,4.8 L6,2.4 z" fill="rgba(220,237,233,.4)"/></marker></defs>
+     <text x="240" y="284" text-anchor="middle" font-family="ui-monospace,monospace"
+      font-size="8" fill="#3E5C56">PRIMARY DEPENDENCIES ↓</text>${s}`;
+})();
+
+/* ---------------- lever ---------------- */
+const lever=document.getElementById('lever');
+function apply(){
+  const early = lever.value/10;                      // months early (neg = late)
+  const burn  = BURN_MO*early;
+  const pool  = Math.max(0, PROGRAM*POOL_RATE*early);
+  const poolMin = Math.max(0, PROGRAM*MIN_RATE*early);
+
+  document.getElementById('leverRead').textContent =
+    (early>=0? early.toFixed(1)+' MONTHS EARLY' : Math.abs(early).toFixed(1)+' MONTHS LATE');
+  const sv=document.getElementById('schedVal');
+  sv.textContent=(early>=0?'−':'+')+Math.abs(early).toFixed(1)+' mo';
+  sv.className='vl '+(early>=0?'pos':'neg');
+  const ba=document.getElementById('burnAv');
+  ba.textContent=money(burn); ba.className='vl '+(burn>=0?'pos':'neg');
+  document.getElementById('pool').textContent = money(pool);
+
+  // first revenue date shifts with the schedule
+  const q=['Q1','Q2','Q3','Q4']; let idx=2+Math.round(-early); let yr=27;
+  while(idx<0){idx+=4;yr--;} while(idx>3){idx-=4;yr++;}
+  document.getElementById('firstRev').textContent=q[idx]+'-'+yr;
+
+  // open-decision accrual, at $/min
+  const mins = 4*24*60;                              // decision open 4 days
+  document.getElementById('openCost').textContent = money(11.02*mins);
+  document.getElementById('openTime').textContent = '4d 0h open · Mfg Ops approver';
+
+  document.getElementById('leverNote').innerHTML = early<=0
+    ? `Late delivery: the pool is zero and burn is <b>${money(-burn)}</b> over budget. Downstream financials move right.`
+    : `Pool at target rate <b>${money(pool)}</b> · floor at 10% <b>${money(poolMin)}</b> · burn avoided
+       <b>${money(burn)}</b>. The pool is funded entirely from budgeted-and-unspent burn, so it costs
+       the sponsor nothing on a cash basis — the sponsor's return is the <b>${early.toFixed(1)} months of
+       revenue pulled forward</b>, which the pool does not touch.
+       <br><span style="color:var(--amber)">At the target rate the pool consumes the burn saving almost
+       exactly ($1.9998M of $2.00M at 2 months). If you want the program to also bank cash from
+       acceleration, the rate has to sit below 11.1% — that is a decision, not an oversight.</span>`;
+  drawRS(early);
+}
+lever.addEventListener('input',apply);
+apply();
+document.getElementById('stamp').textContent =
+  new Date().toISOString().slice(0,10).replace(/-/g,'.') + ' · GATE G4 · BASELINE LOCKED G2';
+</script>
+</body>
+</html>
