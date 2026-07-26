@@ -256,7 +256,7 @@ function Board() {
       </nav>
 
       {view === "portfolio" && (<>
-      <div className={`grid gap-4 p-5 ${detailMax ? "grid-cols-1" : "lg:grid-cols-[1.6fr_1fr]"}`}>
+      <div className="grid gap-4 p-5 lg:grid-cols-[1.6fr_1fr]">
         {/* STACK table — level-aware Rack & Stack */}
         <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
@@ -416,7 +416,7 @@ function Board() {
 
         {/* Selected project detail */}
         <section className="space-y-4">
-          <ProjectDetail p={sel} risks={risks} setup={setup} maximized={detailMax} onToggleMax={() => setDetailMax((m) => !m)}
+          <ProjectDetail p={sel} risks={risks} setup={setup} maximized={false} onToggleMax={() => setDetailMax(true)}
             onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
             onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           <TimeEngine p={sel} />
@@ -475,6 +475,17 @@ function Board() {
       {view === "setup" && (
         <div className="p-5">
           <BusinessSetup />
+        </div>
+      )}
+
+      {/* Full-screen deep-dive overlay (⤢ maximize) */}
+      {detailMax && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={() => setDetailMax(false)}>
+          <div className="mx-auto max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <ProjectDetail p={sel} risks={risks} setup={setup} maximized onToggleMax={() => setDetailMax(false)}
+              onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
+              onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
+          </div>
         </div>
       )}
 
