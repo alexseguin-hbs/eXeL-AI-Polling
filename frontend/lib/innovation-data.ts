@@ -495,7 +495,10 @@ export const hierOf = (p: Project): HierPath => {
 export interface RollupNode { name: string; baseM: number; spendK: number; npvM: number; count: number }
 export interface SbuNode extends RollupNode { groups: RollupNode[] }
 export interface BuNode extends RollupNode { sbus: SbuNode[] }
-export function companyRollup(projects: Project[]): { company: RollupNode; bus: BuNode[] } {
+// Optional `sbuBase` lets the admin Business-Setup base revenue flow through: BU + Company base
+// are then summed from the SBUs actually present (self-consistent), not the seed constants.
+export function companyRollup(projects: Project[], opts: { sbuBase?: (code: string) => number } = {}): { company: RollupNode; bus: BuNode[] } {
+  const sbuBase = opts.sbuBase ?? sbuBaseM;
   const sum = (ps: Project[]) => ({ spendK: ps.reduce((s, p) => s + p.nreK, 0), npvM: ps.reduce((s, p) => s + npvM(p), 0), count: ps.length });
   const buNames = Array.from(new Set(projects.map((p) => hierOf(p).bu))).sort();
   const bus: BuNode[] = buNames.map((bu) => {
@@ -508,11 +511,12 @@ export function companyRollup(projects: Project[]): { company: RollupNode; bus: 
         const inPg = inSbu.filter((p) => hierOf(p).pgroup === pg);
         return { name: pg, baseM: 0, ...sum(inPg) };
       });
-      return { name: sbu, baseM: sbuBaseM(sbu), ...sum(inSbu), groups };
+      return { name: sbu, baseM: sbuBase(sbu), ...sum(inSbu), groups };
     });
-    return { name: bu, baseM: buBaseM(bu), ...sum(inBu), sbus };
+    const buBase = sbus.reduce((s, x) => s + x.baseM, 0);
+    return { name: bu, baseM: buBase, ...sum(inBu), sbus };
   });
-  const company: RollupNode = { name: COMPANY_NAME, baseM: companyBaseM(), spendK: bus.reduce((s, b) => s + b.spendK, 0), npvM: bus.reduce((s, b) => s + b.npvM, 0), count: projects.length };
+  const company: RollupNode = { name: COMPANY_NAME, baseM: bus.reduce((s, b) => s + b.baseM, 0), spendK: bus.reduce((s, b) => s + b.spendK, 0), npvM: bus.reduce((s, b) => s + b.npvM, 0), count: projects.length };
   return { company, bus };
 }
 // Level-aware Rack & Stack: aggregate the portfolio to a hierarchy level (BU/SBU/Product

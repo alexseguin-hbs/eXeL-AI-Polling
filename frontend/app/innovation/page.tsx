@@ -1352,8 +1352,15 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
   const [revMode, setRevMode] = useState<RevMode>("full");
   const [showBaseline, setShowBaseline] = useState(true);
   // SBU base revenue ($M) — enterable; defaults to scope (SBU → SBU base · BU → Σ SBUs · Company → 700).
+  // Base revenue anchors on the admin Business-Setup SBU base (one source of truth), scope-aware.
+  const bizSetup = loadBizSetup();
+  const scopeBase = (b: string, s: string) => {
+    if (s && s !== "All") return bizSetup.sbu.find((n) => n.code === s)?.baseM ?? scopeBaseM(b, s);
+    if (b && b !== "All") { const v = bizSetup.sbu.filter((n) => n.parent === b).reduce((a, n) => a + (n.baseM ?? 0), 0); return v || scopeBaseM(b, s); }
+    const all = bizSetup.sbu.reduce((a, n) => a + (n.baseM ?? 0), 0); return all || companyBaseM();
+  };
   const [baseStr, setBaseStr] = useState(String(companyBaseM()));
-  useEffect(() => { setBaseStr(String(scopeBaseM(bu, sbu))); }, [bu, sbu]);
+  useEffect(() => { setBaseStr(String(scopeBase(bu, sbu))); }, [bu, sbu]); // eslint-disable-line react-hooks/exhaustive-deps
   // View level (max-UX switcher): Company → BU → SBU → Product Group. Drives the scope dropdowns.
   const [level, setLevel] = useState<"company" | "bu" | "sbu" | "pg">("company");
   const [hover, setHover] = useState<number | null>(null);
@@ -1630,7 +1637,12 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
     { name: "Upside · at-risk to 100%", value: Math.max(0, roi.incrementalM - roi.weightedM), color: "#fbbf24" },
   ];
   const kM = (v: number) => `$${(v / 1000).toFixed(1)}M`;
-  const roll = companyRollup(projects);
+  // Admin Business-Setup drives labels + base revenue (one source of truth for the rollup).
+  const bizSetup = loadBizSetup();
+  const sbuBaseOf = (c: string) => bizSetup.sbu.find((n) => n.code === c)?.baseM ?? 0;
+  const buLabelOf = (c: string) => bizSetup.bu.find((n) => n.code === c)?.label ?? BU_LABEL[c] ?? "BU";
+  const sbuLabelOf = (c: string) => bizSetup.sbu.find((n) => n.code === c)?.label ?? SBU_LABEL[c] ?? "SBU";
+  const roll = companyRollup(projects, { sbuBase: sbuBaseOf });
 
   return (
     <div className="space-y-4">
@@ -1661,7 +1673,7 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
               {roll.bus.map((bu) => (
                 <React.Fragment key={bu.name}>
                   <tr className="border-b border-slate-900 bg-slate-900/40">
-                    <td className="px-2 py-1.5 pl-4 font-semibold text-slate-100">▸ {bu.name} <span className="text-[10px] text-slate-500">{BU_LABEL[bu.name] ?? "BU"}</span></td>
+                    <td className="px-2 py-1.5 pl-4 font-semibold text-slate-100">▸ {bu.name} <span className="text-[10px] text-slate-500">{buLabelOf(bu.name)}</span></td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-emerald-300">${bu.baseM}M</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{kM(bu.spendK)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(bu.npvM)}</td>
@@ -1670,7 +1682,7 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
                   {bu.sbus.map((sbu) => (
                     <React.Fragment key={sbu.name}>
                       <tr className="border-b border-slate-900 bg-slate-900/20">
-                        <td className="px-2 py-1 pl-8 font-medium">· {sbu.name} <span className="text-[10px] text-slate-500">{SBU_LABEL[sbu.name] ?? "SBU"}</span></td>
+                        <td className="px-2 py-1 pl-8 font-medium">· {sbu.name} <span className="text-[10px] text-slate-500">{sbuLabelOf(sbu.name)}</span></td>
                         <td className="px-2 py-1 text-right tabular-nums text-emerald-300">${sbu.baseM}M</td>
                         <td className="px-2 py-1 text-right tabular-nums text-slate-300">{kM(sbu.spendK)}</td>
                         <td className="px-2 py-1 text-right tabular-nums text-emerald-400">{usd(sbu.npvM)}</td>

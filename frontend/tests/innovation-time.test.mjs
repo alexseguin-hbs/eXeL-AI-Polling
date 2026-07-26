@@ -96,6 +96,10 @@ ok(scopeBaseM("All", "All") === 700 && scopeBaseM("MS", "All") === 300 && scopeB
 const cr = companyRollup(DEMO_PROJECTS);
 ok(cr.bus.length === 3 && cr.company.count === DEMO_PROJECTS.length, "rollup: 3 BUs, company counts all projects");
 ok(cr.bus.every((b) => b.sbus.length >= 1 && b.sbus.every((s) => s.groups.length >= 1)), "BU → SBU → Product Group nesting");
+// admin Business-Setup base revenue flows through: BU + Company base sum from the SBUs present
+const crAdmin = companyRollup(DEMO_PROJECTS, { sbuBase: () => 10 });
+ok(crAdmin.bus.every((b) => b.baseM === b.sbus.length * 10), "companyRollup sbuBase flows into BU base");
+ok(crAdmin.company.baseM === crAdmin.bus.reduce((s, b) => s + b.baseM, 0), "company base = Σ BU base (admin-driven)");
 
 // ── minimum deliverables per gate (AIML gate-deliverables) ──
 ok(GATE_LIST.every((g) => GATE_DELIVERABLES[g] && GATE_DELIVERABLES[g].length >= 1), "every gate G1–G7 has ≥1 min deliverable");
