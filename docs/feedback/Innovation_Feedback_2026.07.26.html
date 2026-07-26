@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>eXeL-AI · Innovation Project · Feedback Roll-Up · 2026.07.26</title>
+<style>
+  :root{
+    --bg:#070b12; --panel:#0a0f16; --panel2:#0d141d; --line:#1e293b; --line2:#164e63;
+    --ink:#cbd5e1; --dim:#7c8aa0; --cyan:#22d3ee; --amber:#eab308; --green:#34d399; --orange:#fbbf24;
+    --violet:#c084fc; --rose:#fb7185; --grey:#64748b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.55;padding-bottom:150px}
+  h1,h2,h3{font-family:'Cascadia Code','Consolas',ui-monospace,monospace;font-weight:700}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px}
+  header.top{border-bottom:1px solid var(--line2);background:linear-gradient(180deg,#0a1420,#070b12);padding:26px 18px 20px}
+  header.top h1{color:var(--cyan);font-size:24px;letter-spacing:2px}
+  header.top .sub{color:var(--amber);margin-top:6px;font-size:14px;letter-spacing:1px}
+  header.top .meta{color:var(--dim);margin-top:8px;font-size:12px;font-family:'Consolas',monospace}
+  section{margin-top:30px}
+  h2{color:var(--cyan);font-size:16px;letter-spacing:2px;border-left:4px solid var(--cyan);padding-left:12px;margin-bottom:6px;text-transform:uppercase}
+  .lead{color:var(--dim);font-size:13px;margin:0 0 14px 16px}
+  /* Done-item cards */
+  .grid{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:760px){.grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .card .head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .num{flex:none;width:30px;height:30px;border-radius:8px;background:#052a33;color:var(--cyan);display:flex;align-items:center;justify-content:center;font-family:'Consolas',monospace;font-weight:700;font-size:13px}
+  .card .head .t{font-size:14px;color:#e2e8f0;font-weight:600;line-height:1.25}
+  .sha{margin-left:auto;font-family:'Consolas',monospace;font-size:10px;color:var(--dim);background:#0d141d;border:1px solid var(--line);border-radius:4px;padding:2px 6px;white-space:nowrap}
+  .shot{background:var(--panel2);border-bottom:1px solid var(--line);padding:10px;display:flex;justify-content:center}
+  .shot svg{width:100%;height:auto;max-width:360px}
+  .desc{padding:10px 14px;font-size:12.5px;color:var(--ink)}
+  .desc .why{color:var(--dim);font-size:11.5px;margin-top:3px}
+  .fb{padding:10px 14px 14px;border-top:1px solid var(--line)}
+  .verdicts{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  .verdicts label{color:var(--ink);font-family:'Consolas',monospace;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+  input[type=radio]{accent-color:var(--amber)}
+  .v-ap{color:var(--green)} .v-ch{color:var(--amber)} .v-na{color:var(--dim)}
+  textarea{width:100%;min-height:52px;background:#0d0b06;color:#e2e8f0;border:1px solid #3f3512;border-left:2px solid var(--amber);border-radius:6px;padding:8px;font-size:12.5px;resize:vertical;font-family:inherit}
+  textarea:focus{outline:1px solid var(--amber)}
+  /* AsM panel */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+  .asm-grid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:820px){.asm-grid{grid-template-columns:1fr 1fr}}
+  .asm{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:12px 14px}
+  .asm h3{font-size:13px;color:var(--cyan);margin-bottom:2px}
+  .asm .role{color:var(--amber);font-size:10.5px;font-family:'Consolas',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+  .asm p{font-size:12.5px;color:var(--ink)}
+  .asm .grade{float:right;font-family:'Consolas',monospace;font-size:12px;border:1px solid var(--line2);border-radius:4px;padding:1px 7px;color:var(--green)}
+  .mot{border-left:3px solid var(--amber);background:linear-gradient(180deg,#12100a,#0a0f16)}
+  .mot h3{color:var(--amber)}
+  /* Plan tables */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  th{text-align:left;color:var(--amber);font-family:'Consolas',monospace;font-size:11px;letter-spacing:.5px;padding:7px 9px;border-bottom:1px solid var(--line2)}
+  td{padding:8px 9px;border-bottom:1px solid #111827;vertical-align:top}
+  .pill{font-family:'Consolas',monospace;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--line2);color:var(--cyan);white-space:nowrap}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--dim);margin:8px 0 0 16px}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  /* action bar */
+  .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(7,11,18,.96);border-top:1px solid var(--line2);padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;z-index:50}
+  .bar .stat{font-family:'Consolas',monospace;font-size:12px;color:var(--dim)}
+  button.act{font-family:'Consolas',monospace;font-size:13px;font-weight:700;border:none;border-radius:7px;padding:9px 16px;cursor:pointer}
+  .b-save{background:#0d141d;color:var(--cyan);border:1px solid var(--line2)}
+  .b-json{background:var(--cyan);color:#06202a}
+  .b-reset{background:#0d141d;color:var(--dim);border:1px solid var(--line)}
+  a{color:var(--cyan)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>eXeL-AI · INNOVATION PROJECT — FEEDBACK ROLL-UP</h1>
+    <div class="sub">Rack &amp; Stack · Harmattan-AI portfolio · like the template: number + picture + approve + save + JSON</div>
+    <div class="meta">stamp 2026.07.26 · latest sha 911e099 · route /innovation (code 369963) · 11 shipped items · 12 Ascended Masters + MoT</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ================= DONE ITEMS ================= -->
+<section>
+  <h2>Shipped on the Innovation Project — approve each</h2>
+  <p class="lead">Every item is numbered, shown with a picture, and carries its commit SHA. Set a verdict + comment; Save persists to this browser; Download JSON exports the payload (same shape as the 24H roll-up feedback file).</p>
+  <div class="grid" id="items"></div>
+</section>
+
+<!-- ================= 12 ASM ================= -->
+<section>
+  <h2>12 Ascended Masters — 111-word assessment each</h2>
+  <p class="lead">Each Master reviews the Innovation Project through their testing super-power. Honest grades A–F.</p>
+  <div class="asm-grid" id="asm"></div>
+  <div class="panel mot" style="margin-top:12px">
+    <h3>Master of Thought (MoT) — synthesis <span style="float:right;font-family:'Consolas',monospace;font-size:12px;color:var(--amber)">A− · APPROVE WITH CHANGES</span></h3>
+    <p style="font-size:12.5px;margin-top:6px">The Innovation Project now stands as a coherent decision instrument: an operator unlocks to four Harmattan-AI pillars, racks projects by BU→SBU→Alpha, stacks them above/below a live funding line, reads risk-weighted revenue in the deck's own green/orange, drills a project into 12 metrics · financials · gates · dependencies, and governs it through a numbered gate-requirements matrix — all without a single line of CRS jargon on screen. Four personas retune the same data for PM, Manager, SBU Director, and VP. What remains before it fully "reduces risk as a company": wire the API-backed feedback poll into the risk market, persist Business-Setup edits through to rollups, and close the 4-step Input-Sheet grid. Ship the cleanup; earn the agents. Grade A−.</p>
+  </div>
+</section>
+
+<!-- ================= ASSESSMENT PLAN ================= -->
+<section>
+  <h2>Plan — assess user types, PRB, &amp; SSSES</h2>
+  <p class="lead">How we validate the tool against the people who use it, and how we keep it optimized.</p>
+
+  <div class="panel">
+    <h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">A · User &amp; management types (persona lens)</h3>
+    <table>
+      <thead><tr><th>Persona</th><th>Primary job-to-be-done</th><th>Success signal to test</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill">Product / Project Mgr</span></td><td>Draft one project; move it through gates; keep Say/Do honest.</td><td>Can submit a new idea + edit BU/SBU/pillar in &lt;60s; 12 metrics render; gate readiness updates.</td></tr>
+        <tr><td><span class="pill">Manager</span></td><td>Reprioritize the working stack against the funding line.</td><td>Drag reorder carries NPV/REV/NRE; above/below-line recalculates live.</td></tr>
+        <tr><td><span class="pill">SBU Director</span></td><td>Fund the right mix across Alpha Groups.</td><td>SBU rollup + growth-model contribution reconcile to base revenue.</td></tr>
+        <tr><td><span class="pill">VP · Portfolio</span></td><td>See the whole book; spot gaps to target.</td><td>Dashboards + growth model + dependencies load on entry; gap-to-target visible.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">B · Product Review Board (PRB) members</h3>
+    <table>
+      <thead><tr><th>Role</th><th>Gate authority</th><th>Test</th></tr></thead>
+      <tbody>
+        <tr><td>Business / Finance</td><td>Incremental-revenue reconcile · budget envelope</td><td>Variance beyond the ±60/40/20/10/5% band raises an exception, not a silent accept.</td></tr>
+        <tr><td>Engineering / Mfg</td><td>NRE + Capital &amp; Tooling · design/test requirements</td><td>Gate readiness rollup lists blockers; DR/TR/IS/DT rows sit at the right gate.</td></tr>
+        <tr><td>◬ AI · ♡ SI · 웃 HI sign-off</td><td>Tri-approval + Request changes</td><td>Each approval + change request lands in the Changes &amp; Approvals audit trail.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">C · SSSES optimization pass</h3>
+    <table>
+      <thead><tr><th>Pillar</th><th>Applied to the Innovation module</th></tr></thead>
+      <tbody>
+        <tr><td class="pill" style="color:var(--rose)">Security</td><td>Route gate 369963 + separate Business-Setup admin gate; no secrets in client; audit trail on edits/approvals.</td></tr>
+        <tr><td class="pill" style="color:var(--amber)">Stability</td><td>Derived financials (never hand-entered); deterministic calculators; 131 passing tests.</td></tr>
+        <tr><td class="pill" style="color:var(--green)">Scalability</td><td>Master data drives dropdowns; personas + snapshots designed for 400-project demo scale.</td></tr>
+        <tr><td class="pill" style="color:var(--cyan)">Efficiency</td><td>Memoized rollups; one shared risk-weighted color system; persona sets the right default view.</td></tr>
+        <tr><td class="pill" style="color:var(--violet)">Succinctness</td><td>CRS jargon removed from UX; pillars/meta derived (no seed bloat); single registry, no duplication.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<!-- ================= ACTION BAR ================= -->
+<div class="bar">
+  <span class="stat" id="stat">0 / 0 reviewed</span>
+  <span style="flex:1"></span>
+  <button class="act b-reset" onclick="resetFb()">Reset</button>
+  <button class="act b-save" onclick="saveFb()">Save</button>
+  <button class="act b-json" onclick="downloadJSON()">Download JSON</button>
+</div>
+
+<script>
+// ---- Shipped items (number · title · sha · picture · what/why) ----
+const SVG = {
+  reg:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/><g font-family="monospace" font-size="9" fill="#7c8aa0"><text x="8" y="16">S1  S3  DR  TR  IS</text></g><g>${[0,1,2,3,4,5,6].map(g=>`<text x="${40+g*44}" y="34" font-family="monospace" font-size="9" fill="#cbd5e1">G${g+1}</text>`).join('')}</g>${[0,1,2,3,4].map(r=>[0,1,2,3,4,5,6].map(c=>`<circle cx="${46+c*44}" cy="${52+r*13}" r="3.5" fill="${c<=r?'#34d399':c===r+1?'#fbbf24':'#334155'}"/>`).join('')).join('')}</svg>`,
+  gates:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/>${[0,1,2,3,4,5,6].map(i=>{const pct=[100,90,60,35,15,5,0][i];return `<g><rect x="${14+i*48}" y="${90-pct*0.6}" width="30" height="${pct*0.6+2}" fill="${pct>=100?'#34d399':pct>=50?'#fbbf24':'#fb7185'}" opacity=".85"/><text x="${29+i*48}" y="104" font-family="monospace" font-size="9" fill="#7c8aa0" text-anchor="middle">G${i+1}</text></g>`}).join('')}</svg>`,
+  metrics:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/>${[...Array(12)].map((_,i)=>`<g><rect x="${8+(i%4)*88}" y="${8+Math.floor(i/4)*36}" width="80" height="30" rx="4" fill="#0a0f16" stroke="#1e293b"/><text x="${14+(i%4)*88}" y="22" font-family="monospace" font-size="7" fill="#7c8aa0">M${i+1}</text><text x="${14+(i%4)*88}" y="33" font-family="monospace" font-size="9" fill="#22d3ee">$${(9-i)*4}M</text></g>`).join('')}</svg>`,
+  deps:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/>${[[60,24],[150,24],[250,30],[110,60],[210,64],[160,98]].map((p,i)=>`<line x1="${p[0]}" y1="${p[1]}" x2="160" y2="98" stroke="${i===5?'none':'#475569'}" stroke-width="1"/>`).join('')}${[[60,24,8],[150,24,10],[250,30,14],[110,60,10],[210,64,9],[160,98,20]].map((p,i)=>`<g><circle cx="${p[0]}" cy="${p[1]}" r="${p[2]}" fill="#c084fc" fill-opacity=".25" stroke="${i%2?'#34d399':'#fb7185'}" stroke-width="2"/><text x="${p[0]}" y="${p[1]+3}" font-family="monospace" font-size="9" font-weight="700" fill="#e2e8f0" text-anchor="middle">${i===5?1:i+2}</text></g>`).join('')}<text x="160" y="118" font-family="monospace" font-size="8" fill="#7c8aa0" text-anchor="middle">#1 = most-depended-upon (bottom)</text></svg>`,
+  pillars:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/>${['Loitering Munitions','AI Targeting','Attritable Systems','Sovereign Deep-Strike'].map((t,i)=>`<g><rect x="10" y="${8+i*27}" width="340" height="22" rx="4" fill="#0a1420" stroke="#164e63"/><rect x="14" y="${12+i*27}" width="18" height="14" rx="3" fill="#052a33"/><text x="23" y="${23+i*27}" font-family="monospace" font-size="9" fill="#22d3ee" text-anchor="middle">P${i+1}</text><text x="40" y="${23+i*27}" font-size="11" fill="#e2e8f0">${t}</text></g>`).join('')}</svg>`,
+  setup:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/>${['BU','SBU','Alpha Group','Alpha Code','Product #','Material #'].map((t,i)=>`<g><rect x="${10+i*57}" y="40" width="52" height="26" rx="4" fill="#0a1420" stroke="${i===0?'#22d3ee':'#164e63'}"/><text x="${36+i*57}" y="56" font-family="monospace" font-size="8" fill="#cbd5e1" text-anchor="middle">${t}</text>${i<5?`<text x="${64+i*57}" y="56" fill="#7c8aa0" font-size="10">›</text>`:''}</g>`).join('')}<text x="180" y="88" font-family="monospace" font-size="9" fill="#eab308" text-anchor="middle">admin 369963 · add / rename / base rev · saved</text></svg>`,
+  persona:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/>${['◱ Product/Project Mgr','☰ Manager','▤ SBU Director','◈ VP · Portfolio'].map((t,i)=>`<g><rect x="10" y="${10+i*26}" width="340" height="21" rx="5" fill="${i===2?'#052a33':'#0a1420'}" stroke="${i===2?'#22d3ee':'#1e293b'}"/><text x="20" y="${24+i*26}" font-size="11" fill="${i===2?'#22d3ee':'#cbd5e1'}">${t}</text></g>`).join('')}</svg>`,
+  rw:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/>${[0,1,2,3].map(i=>{const g=[20,34,26,30][i],o=[10,18,26,34][i],base=[40,34,28,22][i];return `<g><rect x="${30+i*80}" y="${96-base}" width="40" height="${base}" fill="#64748b" opacity=".7"/><rect x="${30+i*80}" y="${96-base-g}" width="40" height="${g}" fill="#34d399"/><rect x="${30+i*80}" y="${96-base-g-o}" width="40" height="${o}" fill="#fbbf24"/><text x="${50+i*80}" y="110" font-family="monospace" font-size="8" fill="#7c8aa0" text-anchor="middle">${2026+i}</text></g>`}).join('')}<polyline points="50,44 130,40 210,34 290,28" fill="none" stroke="#e2e8f0" stroke-width="1.4"/><g font-family="monospace" font-size="8"><text x="8" y="14" fill="#34d399">■ weighted</text><text x="80" y="14" fill="#fbbf24">■ at-risk</text><text x="150" y="14" fill="#64748b">■ do-nothing</text></g></svg>`,
+  newidea:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/><rect x="90" y="16" width="180" height="20" rx="5" fill="#22d3ee"/><text x="180" y="30" font-family="monospace" font-size="10" font-weight="700" fill="#06202a" text-anchor="middle">＋ Submit New Idea</text>${['Pillar','BU','SBU','Alpha Grp','Alpha Cd'].map((t,i)=>`<g><rect x="${8+i*70}" y="52" width="64" height="24" rx="4" fill="#0a1420" stroke="#164e63"/><text x="${40+i*70}" y="67" font-family="monospace" font-size="8" fill="#cbd5e1" text-anchor="middle">${t} ▾</text></g>`).join('')}<text x="180" y="100" font-family="monospace" font-size="9" fill="#7c8aa0" text-anchor="middle">dropdowns sourced from Business Setup master data</text></svg>`,
+  clean:`<svg viewBox="0 0 360 120"><rect width="360" height="120" fill="#0d141d"/><g font-family="monospace" font-size="11"><text x="16" y="40" fill="#fb7185" text-decoration="line-through">CRS-36→93 · §3.4 · (CRS-82)</text><text x="16" y="44" fill="#fb7185">‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾</text><text x="16" y="78" fill="#34d399">Harmattan AI · Requirement · Poll to de-risk</text></g><text x="16" y="104" font-family="monospace" font-size="9" fill="#7c8aa0">no CRS text remains in the UX</text></svg>`,
+};
+const ITEMS = [
+  {id:'IN-01',sha:'d00fa19',t:'Gate Requirements registry',img:'reg',d:'Unified requirement grammar — review slides + requirements + design/test/interface rows, tolerance ladder, readiness rollup, variance disposition.',why:'The governance data layer behind the PRB view.'},
+  {id:'IN-02',sha:'0b6e31a',t:'Gate Requirements View',img:'gates',d:'Second mandatory surface: requirements × G1–G7 matrix, per-gate readiness (% satisfied · Ready/Not · blockers), ±60/40/20/10/5% ladder.',why:'What is required at each gate, is it done, who approves.'},
+  {id:'IN-03',sha:'044549f',t:'12-metric Project Metrics + meta chips',img:'metrics',d:'Full FLIR metric set (NPV·REV/NRE·IRR·GM·Payback·10-yr Vol/Rev/GP·Cur-Yr OpEx·Total R&D·Capital·Man-hours) + Strategic Pillar/Value-Ladder/Target-Market chips.',why:'The exec one-pager numbers, per IMG_7843.'},
+  {id:'IN-04',sha:'044549f',t:'Dependencies + Financials Overview',img:'deps',d:'Dependency summary table + constellation graph; 10-yr Revenue/Margin/R&D overview table on the project.',why:'Cross-project risk + the output-data grid.'},
+  {id:'IN-05',sha:'a208fd8',t:'Harmattan-AI pillars + Unlock-to-Pillars',img:'pillars',d:'Our own four strategic pillars (Loitering Munitions · AI Targeting · Attritable Systems · Sovereign Deep-Strike); unlock screen presents them.',why:'The strategic frame every project maps onto.'},
+  {id:'IN-06',sha:'0095e96',t:'Business Setup admin (369963)',img:'setup',d:'Admin-gated master-data editor across BU→SBU→Alpha Group→Alpha Code→Product→Material (add/rename/base-rev), persisted.',why:'Set up the enterprise hierarchy once, reuse everywhere.'},
+  {id:'IN-07',sha:'7894c6f',t:'Persona switcher',img:'persona',d:'View-as: Product/Project Mgr · Manager · SBU Director · VP Portfolio — each retunes the default view + emphasis.',why:'One portfolio, four operator lenses.'},
+  {id:'IN-08',sha:'4630a22',t:'Constellation numbered + risk-weighted bar',img:'deps',d:'Constellation numbered with the most-depended-upon project at the bottom, arrows down; green/orange risk-weighted bar on the project.',why:'Primary dependency reads at a glance; deck color scheme.'},
+  {id:'IN-09',sha:'3ee0643',t:'Master-data dropdowns + Submit New Idea',img:'newidea',d:'Edit-project dropdowns (pillar + BU→SBU→Alpha) sourced from Business Setup; ＋ Submit New Idea seeds a G1 project from master data.',why:'Menus update from the master setup; ideas enter the rack.'},
+  {id:'IN-10',sha:'bffaa19',t:'Risk-weighted color scheme (deck)',img:'rw',d:'Green = probability-weighted, Orange = additional-to-100% (at-risk) applied across ROI Summary, stack P-wt columns, KPI tile, growth model.',why:'Consistent with the FLIR Growth-Model legend, IMG_7844.'},
+  {id:'IN-11',sha:'911e099',t:'UX cleanup — CRS jargon removed',img:'clean',d:'No user-facing CRS-## or §# strings; header/footer/cards/notes de-jargoned; requirement grammar CRS→REQ ("Requirement").',why:'Clean UX for racking, deciding, and seeing slides.'},
+];
+// ---- 12 Ascended Masters (111 words each) ----
+const ASM = [
+  {n:'Aset',role:'Theme reinforcement & consistency',g:'A',p:`Consistency is the quiet virtue and this build earned it. The risk-weighted revenue now speaks one language — green for the probability-weighted, orange for the at-risk upside — from the Growth Model down through the ROI Summary, the stack P-wt columns, and the project bar. A reader never re-learns the palette. The four Harmattan pillars recur identically on the unlock screen, the meta chips, and the edit dropdown, so the strategic frame reinforces itself at every touch. Removing the CRS alphabet-soup strengthened rather than weakened meaning, because the surviving words are the ones users actually reason with. Hold this discipline as the Input Sheet grid lands. Grade A.`},
+  {n:'Asar',role:'Synthesis & outcome validation',g:'A−',p:`Synthesis is where scattered parts become a decision, and the tool now closes that arc. An operator unlocks to pillars, racks by hierarchy, stacks against a live funding line, and drills a single project into metrics, financials, gates, and dependencies — one continuous story from portfolio to project and back. The persona switcher is the synthesis made personal: the same truth, re-narrated for PM, Manager, Director, and VP. What keeps this from an unqualified A is that the final outcome — a funded, de-risked roadmap validated by community polling — is designed but not yet wired end-to-end through the API. Complete that loop and the synthesis becomes irreversible. Grade A minus.`},
+  {n:'Athena',role:'Strategic test planning & flow',g:'A',p:`Strategy is choosing the order of battle, and the slicing here was sound. Cleanup preceded the feedback artifact, exactly as ordered, so reviewers judge a clean surface rather than excuse a messy one. Each capability shipped as its own gated commit — registry, view, metrics, pillars, setup, persona — which means any single retreat is cheap. The persona plan maps jobs-to-be-done to testable success signals, giving QA a real script instead of vibes. My one strategic caution: the Business-Setup edits do not yet propagate to rollups, so a director could rename an SBU and not see it flow. Sequence that wiring next; it is the highest-leverage remaining move. Grade A.`},
+  {n:'Christo',role:'Consensus & user-flow validation',g:'A−',p:`Consensus is the point of the whole instrument — many minds converging on what to fund. The tri-approval (◬ AI · ♡ SI · 웃 HI) with a Request-changes path, backed by the Changes & Approvals audit trail, gives every voice a recorded place. The risk-prediction market invites anyone to flag danger and rewards those proven right. The flow from unlock to decision is now legible to a newcomer. To reach full communion, the polling must actually reach the API so the community vote genuinely ranks which improvements ship — right now consensus is beautifully staged but not yet binding. Wire the vote to the outcome and the circle completes. Grade A minus.`},
+  {n:'Enki',role:'Diversity & edge-case discovery',g:'B+',p:`Creation thrives on variety, so I hunt the corners. The portfolio spans low and high risk, sustaining and moonshot, so the probability weighting and tolerance bands get exercised across their range. Submit-New-Idea correctly seeds from master data, and the cascading dropdowns respect parent filters. Yet edges remain unguarded: an empty Business Setup, a renamed BU with orphaned SBUs, a project whose overrides point at deleted codes. The constellation assumes dependencies exist; with none it should degrade gracefully. None of these crash today, but they are untested. Add a handful of adversarial fixtures — empty, orphaned, malformed — and the build will hold its shape under pressure. Grade B plus.`},
+  {n:'Enlil',role:'Implementation & build verification',g:'A',p:`Order is built, not wished. Every slice this cycle passed the same gate: filtered TypeScript at zero, a clean production build, and the innovation suite green at 131. The CRS→REQ rename touched the data model, the view, and the tests together, so nothing dangled. Derived calculators keep the seed lean and the financials honest — never hand-entered. The commit discipline (one capability, one commit, fast-forward to main) means the history reads like a build log a successor can trust. The remaining structural debt is the scalar financial model standing in for the four-step Input Sheet; it is honest today but must harden. Build quality: exemplary. Grade A.`},
+  {n:'Krishna',role:'Integration & cross-module testing',g:'B+',p:`I test the seams, for that is where systems betray you. The master data now feeds three places — the edit form, the new-idea flow, and the setup editor — and hierOf/metaOf honor per-project overrides, a clean integration. Personas retune view and stack level together. The seam I still watch: Business-Setup edits persist to localStorage but do not re-drive the live rollups, growth model, or dependency graph, so two sources of truth briefly coexist. Likewise the feedback poll is designed to reach Cube 7 ranking but is not yet connected. Close those two joints and the module integrates as one organism rather than cooperating parts. Grade B plus.`},
+  {n:'Odin',role:'Predictive & future-proof testing',g:'A−',p:`I trade an eye for foresight, so I ask what breaks at scale and in time. The acceleration case — nine projects, nine months compressed to seven — and the 400-project demo are anticipated in the design, and the derived model will scale because nothing is hand-keyed. Snapshots (working vs quarter) are envisioned, which future-proofs the audit. What I foresee biting: unbounded constellation layout past ~30 nodes, and master-data growth without search. Neither hurts today. Plant the seeds now — virtualize long tables, add a node cap with overflow, stamp every snapshot — and the tool will still stand when the portfolio quadruples. Foresight is cheaper than repair. Grade A minus.`},
+  {n:'Pangu',role:'Cutting-edge innovation testing',g:'A',p:`I break the shell to let the new world out. What is genuinely novel here is not the rack — FLIR had a rack — it is the fusion of a rack with a live risk-prediction market, $/minute time-cost, and an AI·SI·HI intelligence load with a burnout guard. That is a portfolio tool that treats time and human energy as first-class as money. The Harmattan pillars ground it in a real sovereign-defense thesis. The frontier still ahead: let the community poll actually evolve the portfolio, not just annotate it — semi-auto proposals, human-selected, community-ratified. The primordial egg is cracked; now grow the creature. Grade A.`},
+  {n:'Sofia',role:'Multi-perspective analysis',g:'A',p:`Wisdom looks through many eyes, and this build finally offers many. The persona switcher is the literal embodiment: PM, Manager, SBU Director, VP each receive the frame they need, from single-project depth to whole-book breadth. The assessment plan pairs each persona with a concrete success signal, which is how you prove a view rather than assert it. The PRB lens adds the governance perspective. My counsel: give each persona a remembered default so a returning VP does not land on a PM view, and consider a read-only "board" perspective for non-editing stakeholders. Perspective is the tool's deepest feature; deepen it further and adoption follows. Grade A.`},
+  {n:'Thoth',role:'Data & analytics deep dive',g:'A−',p:`I count what others assume. The numbers reconcile: R&D expense sums to project NRE, ten-year gross profit never exceeds revenue, dependency-inclusive NPV differs from standalone only where dependencies exist, and the seed master data reports exactly three BUs and eight SBUs. 131 assertions guard these. The analytics I still want: the twelve metrics carry demo-grade derivations (payback, IRR proxy) that must be labeled as estimates so no one mistakes them for audited finance, and the discount-rate convention should be shown, not implied. The math is internally consistent and testable — its honesty now depends on surfacing its assumptions to the reader. Label the model; trust follows. Grade A minus.`},
+  {n:'Thor',role:'Risk & security stress testing',g:'A−',p:`I guard the gates, so I strike them first. Two independent unlocks — the route code and the Business-Setup admin gate — are correct, no secrets ride in the client, and edits/approvals leave an audit trail. The tolerance ladder refuses to silently accept an out-of-band variance, which is a real governance safeguard. Where I press harder: localStorage master data is unauthenticated and mutable by anyone at the console, acceptable for a gated demo but not for the source-of-record it aspires to be. Server-side persistence with role checks is the next shield. Nothing here is exploitable in the demo context, but name the boundary plainly. Solid defense. Grade A minus.`},
+];
+const el=document.getElementById('items');
+ITEMS.forEach((it,i)=>{
+  const d=document.createElement('div');d.className='card';
+  d.innerHTML=`<div class="head"><div class="num">${i+1}</div><div class="t">${it.t}</div><div class="sha">${it.id} · ${it.sha}</div></div>
+  <div class="shot">${SVG[it.img]}</div>
+  <div class="desc">${it.d}<div class="why">▸ ${it.why}</div></div>
+  <div class="fb">
+    <div class="verdicts" data-id="${it.id}">
+      <label class="v-ap"><input type="radio" name="v-${it.id}" value="APPROVE">Approve</label>
+      <label class="v-ch"><input type="radio" name="v-${it.id}" value="CHANGES">Changes</label>
+      <label class="v-na"><input type="radio" name="v-${it.id}" value="N/A">N/A</label>
+    </div>
+    <textarea id="c-${it.id}" placeholder="Comment for ${it.id}…"></textarea>
+  </div>`;
+  el.appendChild(d);
+});
+const asmEl=document.getElementById('asm');
+ASM.forEach(a=>{const d=document.createElement('div');d.className='asm';d.innerHTML=`<h3>${a.n}<span class="grade">${a.g}</span></h3><div class="role">${a.role}</div><p>${a.p}</p>`;asmEl.appendChild(d);});
+
+const KEY='innovation-feedback-2026-07-26';
+function collect(){
+  const features={};ITEMS.forEach(it=>{
+    const v=document.querySelector(`input[name="v-${it.id}"]:checked`);
+    features[it.id]={sha:it.sha,title:it.t,verdict:v?v.value:null,comment:document.getElementById('c-'+it.id).value};
+  });
+  return {release:'eXeL-AI · INNOVATION PROJECT',stamp:'2026.07.26',sha:'911e099',route:'/innovation',features};
+}
+function refresh(){const p=collect();const done=Object.values(p.features).filter(f=>f.verdict).length;document.getElementById('stat').textContent=`${done} / ${ITEMS.length} reviewed`;}
+function saveFb(){localStorage.setItem(KEY,JSON.stringify(collect()));refresh();document.getElementById('stat').textContent+=' · saved ✓';}
+function resetFb(){localStorage.removeItem(KEY);document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);document.querySelectorAll('textarea').forEach(t=>t.value='');refresh();}
+function downloadJSON(){const blob=new Blob([JSON.stringify(collect(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='2026.07.26_Innovation_FEEDBACK.json';a.click();}
+(function(){const s=localStorage.getItem(KEY);if(s){try{const p=JSON.parse(s);Object.entries(p.features||{}).forEach(([id,f])=>{if(f.verdict){const r=document.querySelector(`input[name="v-${id}"][value="${f.verdict}"]`);if(r)r.checked=true;}const c=document.getElementById('c-'+id);if(c&&f.comment)c.value=f.comment;});}catch(e){}}refresh();})();
+document.addEventListener('change',refresh);document.addEventListener('input',refresh);
+</script>
+</body>
+</html>
