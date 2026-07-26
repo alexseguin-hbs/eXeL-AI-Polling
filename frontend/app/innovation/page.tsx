@@ -132,7 +132,7 @@ function Board() {
       nreK: 1000, fullRev10yM: 50, doNothing10yM: 0, firstRevenue: "2028-Q1",
       criticalPath: false, humanLoad: 0.4, ai: 0.4, si: 0.3, hi: 0.3, predictions: 0,
       bu: setup.bu[0]?.code, sbu: setup.sbu[0]?.code, pgroup: setup.pgroup[0]?.code,
-      alpha: setup.alpha[0]?.code, initiative: STRATEGIC_INITIATIVES[0],
+      alpha: setup.alpha[0]?.code, initiative: loadPillars()[0]?.name ?? STRATEGIC_INITIATIVES[0],
     };
     setOrder((o) => [np, ...o]);
     setSelId(id); setView("portfolio"); setStackLevel("product");
@@ -734,7 +734,7 @@ function ProjectDetail({ p, risks, setup, onEdit, onApprove }: {
           {/* Master-data dropdowns — options come from Business Setup (BU/SBU/Alpha…) + pillars */}
           <label className="col-span-2 sm:col-span-3">Strategic Pillar
             <select value={dv("initiative") ?? metaOf(p).initiative} onChange={(e) => setD("initiative", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
-              {STRATEGIC_INITIATIVES.map((s) => <option key={s} value={s}>{s}</option>)}
+              {loadPillars().map((pl) => <option key={pl.name} value={pl.name}>{pl.name}</option>)}
             </select>
           </label>
           <label>BU
@@ -1129,6 +1129,17 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
 // Code→Product→Material. Seeds from the live portfolio; edits persist to localStorage.
 const BIZ_KEY = "innovation-biz-setup";
 const ADMIN_KEY = "innovation-admin";
+const PILLAR_KEY = "innovation-pillars";
+// Strategic pillars are admin-editable (Business Setup) — seeded from the code defaults and
+// persisted; the edit-project + new-idea pillar dropdowns read from here.
+type PillarDef = { name: string; desc: string };
+function loadPillars(): PillarDef[] {
+  if (typeof window !== "undefined") {
+    const s = window.localStorage.getItem(PILLAR_KEY);
+    if (s) { try { const p = JSON.parse(s) as PillarDef[]; if (Array.isArray(p) && p.length) return p; } catch { /* seed */ } }
+  }
+  return STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] }));
+}
 // Shared master-data loader — reads the admin Business Setup (localStorage) or falls back to
 // the seed. Powers the edit-project + Submit-New-Idea dropdowns so BU/SBU/Alpha changes flow.
 function loadBizSetup(): BizSetup {
@@ -1144,12 +1155,15 @@ function BusinessSetup() {
   const [err, setErr] = useState(false);
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
   const [tier, setTier] = useState<BizTier>("bu");
+  const [pillars, setPillars] = useState<PillarDef[]>(() => STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] })));
   useEffect(() => {
     setAdmin(sessionStorage.getItem(ADMIN_KEY) === "1");
     const saved = localStorage.getItem(BIZ_KEY);
     if (saved) { try { setSetup(JSON.parse(saved)); } catch { /* keep seed */ } }
+    setPillars(loadPillars());
   }, []);
   const persist = (next: BizSetup) => { setSetup(next); localStorage.setItem(BIZ_KEY, JSON.stringify(next)); };
+  const persistPillars = (next: PillarDef[]) => { setPillars(next); localStorage.setItem(PILLAR_KEY, JSON.stringify(next)); };
   const unlock = () => (pw === CODE ? (sessionStorage.setItem(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
 
   if (!admin) {
@@ -1193,6 +1207,25 @@ function BusinessSetup() {
           <button onClick={() => { sessionStorage.removeItem(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
         </div>
       </div>
+
+      {/* Strategic pillars editor — the four (or more) pillars every project maps onto */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Strategic Pillars <span className="text-[11px] text-slate-500">({pillars.length}) — drive the project pillar dropdown</span></h2>
+          <button onClick={() => persistPillars([...pillars, { name: `Pillar ${pillars.length + 1}`, desc: "" }])} className="rounded bg-cyan-500/90 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">+ Add pillar</button>
+        </div>
+        <div className="mt-2 space-y-1.5">
+          {pillars.map((pl, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              <span className="flex h-6 w-8 items-center justify-center rounded bg-cyan-500/15 text-[10px] font-mono text-cyan-300">P{i + 1}</span>
+              <input value={pl.name} onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={`w-56 ${inp}`} />
+              <input value={pl.desc} onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} placeholder="one-line description" className={`flex-1 min-w-[200px] ${inp}`} />
+              <button onClick={() => persistPillars(pillars.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">Renaming a pillar updates the edit-project + Submit-New-Idea dropdowns. Existing projects keep their stored pillar until re-selected.</p>
+      </section>
 
       {/* Tier tabs */}
       <div className="flex flex-wrap gap-1">
@@ -1871,9 +1904,10 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">Risk Register · documented by anyone, ranked by the community</h2>
-        <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">eXeL AI Polling · de-risk together</span>
+        <h2 className="text-sm font-semibold">Risk Register · eXeL AI feedback session</h2>
+        <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">Identify · Concur · De-risk</span>
       </div>
+      <p className="mt-1 text-[11px] text-slate-500">Anyone identifies a risk; the team gives internal feedback by concurring (poll) — priority = severity × likelihood × status × concurrence. Actioned + correct predictions earn ♡ / 웃 / ◬ rewards.</p>
 
       {/* Add-a-risk form — anyone can document */}
       <div className="mt-3 flex flex-wrap items-end gap-2 text-[11px] text-slate-400">
@@ -1897,7 +1931,7 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
         <label>Like
           <select value={like} onChange={(e) => setLike(+e.target.value)} className={`ml-1.5 ${sel}`}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</select>
         </label>
-        <button onClick={add} disabled={!title.trim()} className="rounded-md bg-cyan-500 px-3 py-1.5 font-semibold text-[#06202a] hover:bg-cyan-400 disabled:opacity-30">+ Add</button>
+        <button onClick={add} disabled={!title.trim()} className="rounded-md bg-cyan-500 px-3 py-1.5 font-semibold text-[#06202a] hover:bg-cyan-400 disabled:opacity-30">+ Identify risk</button>
       </div>
 
       {/* Ranked risk list */}
@@ -1910,7 +1944,7 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
               <th className="px-2 py-1.5 text-center">S×L</th>
               <th className="px-2 py-1.5 text-center">Status</th>
               <th className="px-2 py-1.5 text-right">Priority</th>
-              <th className="px-2 py-1.5 text-center">Votes</th>
+              <th className="px-2 py-1.5 text-center">Concur</th>
               <th className="px-2 py-1.5"></th>
             </tr>
           </thead>
@@ -1932,7 +1966,7 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
                 <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-slate-200">{Math.round(riskPriority(r))}</td>
                 <td className="px-2 py-1.5 text-center tabular-nums text-slate-300">{r.votes}</td>
                 <td className="px-2 py-1.5 text-right">
-                  <button onClick={(e) => { e.stopPropagation(); upvote(r.id); }} className="rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-cyan-300 hover:bg-cyan-500/10" title="Poll: I agree this is a risk">▲ vote</button>
+                  <button onClick={(e) => { e.stopPropagation(); upvote(r.id); }} className="rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-cyan-300 hover:bg-cyan-500/10" title="Feedback: I concur this is a risk">▲ concur</button>
                 </td>
               </tr>
             ))}
