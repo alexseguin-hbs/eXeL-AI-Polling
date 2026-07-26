@@ -20,6 +20,10 @@ export type CubeDomain = {
   tagline: string;
   color: string;       // hex accent
   unlocked: boolean;
+  // Locked visual (lock badge + dim glyph) but STILL clickable — routes to the domain's own
+  // unlock gate (e.g. Innovation → /innovation code entry). Distinct from a hard-locked tile
+  // (no onEnter) which stays non-interactive.
+  enterWhenLocked?: boolean;
   onEnter?: () => void;
 };
 
@@ -81,7 +85,8 @@ export function CubeLauncher({
 
       <div className={`grid grid-cols-1 ${cols} gap-4 px-6 max-w-4xl w-full`}>
         {domains.map((d) => {
-          const clickable = d.unlocked && !!d.onEnter;
+          const clickable = !!d.onEnter && (d.unlocked || d.enterWhenLocked);
+          const lockedEnter = clickable && !d.unlocked; // clickable, but shows the lock + "Unlock →"
           return (
             <button
               key={d.id}
@@ -113,7 +118,7 @@ export function CubeLauncher({
                 className="mt-1 text-[10px] font-semibold uppercase tracking-wider"
                 style={{ color: clickable ? d.color : undefined }}
               >
-                {clickable ? "Enter →" : "Locked"}
+                {lockedEnter ? "🔓 Unlock →" : clickable ? "Enter →" : "Locked"}
               </span>
             </button>
           );
