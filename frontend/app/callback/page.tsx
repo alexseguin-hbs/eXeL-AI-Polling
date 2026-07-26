@@ -17,7 +17,9 @@ export default function CallbackPage() {
     if (!isLoading && isAuthenticated) {
       // Wire up token getter for API calls
       setTokenGetter(getAccessTokenSilently);
-      router.replace("/dashboard/");
+      // Land on the workspace selector (mode of operation) BEFORE polling — the moderator
+      // chooses Polling (→ /dashboard) or Innovation (key → /innovation) there.
+      router.replace("/workspace/");
     }
   }, [isLoading, isAuthenticated, getAccessTokenSilently, router]);
 
