@@ -23,6 +23,7 @@ import {
   TOLERANCE_LADDER, REQ_TYPE_LABEL, REQ_STATUS_LABEL,
   metaOf, financialMetrics, financialsOverview,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
+  STRATEGIC_INITIATIVES, PILLAR_DESC,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge,
 } from "@/lib/innovation-data";
@@ -46,22 +47,40 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
   const submit = () => (pw === CODE ? onUnlock() : setErr(true));
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0b0f14] text-slate-100 p-6">
-      <div className="w-full max-w-sm rounded-2xl border border-cyan-500/20 bg-[#111820] p-7 shadow-2xl">
-        <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525</div>
-        <h1 className="mt-1 text-xl font-semibold">Project Innovation — Unlock</h1>
-        <p className="mt-2 text-sm text-slate-400">Access-gated preview. Enter the code to open the portfolio workbench.</p>
-        <input
-          type="password" inputMode="numeric" value={pw} autoFocus
-          onChange={(e) => { setPw(e.target.value); setErr(false); }}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Access code"
-          className="mt-4 w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2.5 text-center tracking-[0.4em] font-mono text-lg outline-none focus:border-cyan-500"
-        />
-        {err && <p className="mt-2 text-sm text-rose-400">Incorrect code.</p>}
-        <button onClick={submit} className="mt-4 w-full rounded-lg bg-cyan-500 px-4 py-2.5 font-semibold text-[#06202a] hover:bg-cyan-400">
-          Unlock
-        </button>
-        <p className="mt-3 text-center text-[11px] text-slate-500">Gated until full test sign-off.</p>
+      <div className="w-full max-w-3xl grid gap-5 md:grid-cols-[1fr_1.1fr] items-center">
+        {/* Unlock card */}
+        <div className="w-full rounded-2xl border border-cyan-500/20 bg-[#111820] p-7 shadow-2xl">
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
+          <h1 className="mt-1 text-xl font-semibold">Project Innovation — Unlock to Pillars</h1>
+          <p className="mt-2 text-sm text-slate-400">Access-gated preview. Enter the code to open the Rack &amp; Stack portfolio across the four strategic pillars.</p>
+          <input
+            type="password" inputMode="numeric" value={pw} autoFocus
+            onChange={(e) => { setPw(e.target.value); setErr(false); }}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            placeholder="Access code"
+            className="mt-4 w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2.5 text-center tracking-[0.4em] font-mono text-lg outline-none focus:border-cyan-500"
+          />
+          {err && <p className="mt-2 text-sm text-rose-400">Incorrect code.</p>}
+          <button onClick={submit} className="mt-4 w-full rounded-lg bg-cyan-500 px-4 py-2.5 font-semibold text-[#06202a] hover:bg-cyan-400">
+            Unlock
+          </button>
+          <p className="mt-3 text-center text-[11px] text-slate-500">Same code unlocks Business Setup (master data) inside the tool.</p>
+        </div>
+        {/* The four strategic pillars (Harmattan-AI focus) */}
+        <div className="w-full">
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">Four Strategic Pillars</div>
+          <div className="mt-2 grid gap-2">
+            {STRATEGIC_INITIATIVES.map((pillar, i) => (
+              <div key={pillar} className="rounded-xl border border-slate-800 bg-[#0e141b] p-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500/15 text-[11px] font-mono text-cyan-300">P{i + 1}</span>
+                  <span className="text-sm font-semibold text-slate-100">{pillar}</span>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-400">{PILLAR_DESC[pillar]}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

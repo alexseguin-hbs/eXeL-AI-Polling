@@ -632,13 +632,25 @@ export function stackWithBudget(order: Project[], availableK_: number) {
   return { rows, lineIndex };
 }
 
-// ── PROJECT META (FLIR deck §2.1) — 4 Strategic Initiatives + Value Ladder + Target Market ─
-// The FLIR "Project INPUTS: Initiatives & Dependencies (3/3)" surface: select one of 4
-// initiatives, a value-ladder position + impact, target market, and competitive position.
-// Derived deterministically from the project (matches execOf/briefOf) so the seed stays lean;
-// a real deploy captures these as editable fields.
-export const STRATEGIC_INITIATIVES = ["Sensor Leadership", "Unmanned & Autonomous Applications", "Airborne ISR", "Decision Support"] as const;
+// ── STRATEGIC PILLARS (our own — Harmattan-AI-focused) + Project META (FLIR §2.1) ─────────
+// Four strategic pillars, themed to the Harmattan-AI mission (AI-enabled loitering munitions,
+// mass-producible attritable autonomy, sovereign deep-strike + ISR). This is the eXeL analogue
+// of FLIR's "4 Initiatives" — every project selects one. Meta also carries value-ladder
+// position + impact, target market, and competitive position (derived deterministically).
+export const STRATEGIC_INITIATIVES = [
+  "Autonomous Loitering Munitions",
+  "AI Targeting & Terminal Autonomy",
+  "Mass-Producible Attritable Systems",
+  "Sovereign Deep-Strike & ISR",
+] as const;
 export type StrategicInitiative = typeof STRATEGIC_INITIATIVES[number];
+// Pillar one-liners for the unlock screen + lens (the "why" behind each initiative).
+export const PILLAR_DESC: Record<StrategicInitiative, string> = {
+  "Autonomous Loitering Munitions": "One-way effectors & counter-UAS — loiter, positively ID, then strike.",
+  "AI Targeting & Terminal Autonomy": "On-board AI: detect · track · terminal guidance in GPS/EW-denied fights.",
+  "Mass-Producible Attritable Systems": "Low-cost, high-rate, software-defined attritable platforms at scale.",
+  "Sovereign Deep-Strike & ISR": "Sovereign long-range ISR + strike with assured, interoperable datalink.",
+};
 export const VALUE_LADDER = ["Commodity", "Product", "Solution", "Platform", "Ecosystem"] as const;
 export const VALUE_IMPACT = ["Incremental", "Sustaining", "Differentiating", "Transformational"] as const;
 export const COMPETITIVE_POSITIONS = ["Leader", "Challenger", "Fast Follower", "Niche"] as const;
@@ -649,10 +661,10 @@ export interface ProjectMeta {
 export function metaOf(p: Project): ProjectMeta {
   const d = `${p.division} ${p.name} ${p.category}`.toLowerCase();
   const initiative: StrategicInitiative =
-    /autonomy|swarm|teaming|mum-t|sdk|marketplace/.test(d) ? "Unmanned & Autonomous Applications"
-      : /sar|space|radar|isr payload|maritime|gimbal|eo\/ir/.test(d) ? "Airborne ISR"
-      : /c2|command|control|cloud|training|software|gcs|datalink|comms/.test(d) ? "Decision Support"
-      : "Sensor Leadership";
+    /effect|counter|loiter|strike|munition/.test(d) ? "Autonomous Loitering Munitions"
+      : /\bai\b|autonomy|swarm|teaming|mum-t|fusion|hivemind|targeting|c2|command|control/.test(d) ? "AI Targeting & Terminal Autonomy"
+      : /sdk|marketplace|cloud|software|handheld|gcs|modern|bridge|eol|legacy/.test(d) ? "Mass-Producible Attritable Systems"
+      : "Sovereign Deep-Strike & ISR";
   const valueLadder = /platform/.test(d) ? "Platform" : /sdk|marketplace|cloud/.test(d) ? "Ecosystem"
     : /sustain|phase|legacy|eol|bridge/.test(d) ? "Product" : "Solution";
   const valueImpact = p.confidence <= 2 && (p.tech === "high" || p.comm === "high") ? "Transformational"

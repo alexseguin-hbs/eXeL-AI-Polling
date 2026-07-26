@@ -222,9 +222,10 @@ import {
 } from "../lib/innovation-data.ts";
 
 // meta (§2.1): 4 strategic initiatives + value ladder + target market + competitive, derived for every project
-ok(STRATEGIC_INITIATIVES.length === 4, "exactly 4 strategic initiatives (Sensor Leadership · Unmanned & Autonomous · Airborne ISR · Decision Support)");
+ok(STRATEGIC_INITIATIVES.length === 4, "exactly 4 Harmattan-AI strategic pillars (Loitering Munitions · AI Targeting · Attritable Systems · Sovereign Deep-Strike)");
 ok(DEMO_PROJECTS.every((p) => { const m = metaOf(p); return STRATEGIC_INITIATIVES.includes(m.initiative) && VALUE_LADDER.includes(m.valueLadder) && COMPETITIVE_POSITIONS.includes(m.competitive) && !!m.targetMarket && !!m.valueImpact; }), "every project derives a full meta set (initiative/ladder/impact/market/competitive)");
-ok(metaOf(DEMO_PROJECTS.find((p) => p.id === "PRJ-02")).initiative === "Unmanned & Autonomous Applications", "swarm-AI project → Unmanned & Autonomous initiative");
+ok(metaOf(DEMO_PROJECTS.find((p) => p.id === "PRJ-02")).initiative === "AI Targeting & Terminal Autonomy", "swarm-fusion-AI project → AI Targeting & Terminal Autonomy pillar");
+ok(metaOf(DEMO_PROJECTS.find((p) => p.id === "PRJ-04")).initiative === "Autonomous Loitering Munitions", "counter-UAS effector → Autonomous Loitering Munitions pillar");
 ok(JSON.stringify(metaOf(DEMO_PROJECTS[0])) === JSON.stringify(metaOf(DEMO_PROJECTS[0])), "metaOf deterministic");
 
 // 12-metric Project Metrics card set (§2.4 / IMG_7843)
