@@ -31,6 +31,15 @@ import {
 
 const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
+
+// Persona lens (12-AsM usability) — the same portfolio seen through four operator roles.
+type Persona = "pm" | "mgr" | "sbu" | "vp";
+const PERSONAS: { key: Persona; label: string; glyph: string; lens: string; view: "portfolio" | "gates" | "dashboards" | "setup"; level?: HierKey }[] = [
+  { key: "pm",  label: "Product / Project Mgr", glyph: "◱", lens: "Deep-dive one project — gates, 12 metrics, financials, risks, Say/Do.", view: "portfolio", level: "product" },
+  { key: "mgr", label: "Manager",               glyph: "☰", lens: "Your projects above/below the funding line — reprioritize the working stack.", view: "portfolio", level: "product" },
+  { key: "sbu", label: "SBU Director",          glyph: "▤", lens: "SBU rollup + funding decisions across Alpha Groups.", view: "portfolio", level: "sbu" },
+  { key: "vp",  label: "VP · Portfolio",        glyph: "◈", lens: "Whole-portfolio dashboards, growth model, dependencies, gate readiness.", view: "dashboards" },
+];
 const usd = (m: number) => `$${m.toFixed(1)}M`;
 const k = (n: number) => `$${(n / 1000).toFixed(1)}M`;
 
@@ -96,6 +105,7 @@ function Board() {
   const [selId, setSelId] = useState(order[0].id);
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
+  const [persona, setPersona] = useState<Persona>("sbu");
   // Change + approval activity log (edits and gate approvals) — the audit summary.
   const [activity, setActivity] = useState<{ id: number; kind: "edit" | "approve" | "reject"; project: string; text: string; by: string }[]>([]);
   const log = (kind: "edit" | "approve" | "reject", project: string, text: string, by: string) =>
@@ -167,11 +177,27 @@ function Board() {
         </div>
       </header>
 
+      {/* Persona lens (12-AsM usability) — reframe the same portfolio by operator role */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 bg-[#0c1219] px-5 py-2">
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">View as</span>
+        <div className="flex flex-wrap gap-1">
+          {PERSONAS.map((pp) => (
+            <button key={pp.key}
+              onClick={() => { setPersona(pp.key); setView(pp.view); if (pp.level) setStackLevel(pp.level); setDrill(null); }}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium ${persona === pp.key ? "bg-cyan-500 text-[#06202a]" : "border border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
+              <span className="mr-1">{pp.glyph}</span>{pp.label}
+            </button>
+          ))}
+        </div>
+        <span className="ml-auto text-[11px] text-slate-400 hidden sm:block">{PERSONAS.find((pp) => pp.key === persona)!.lens}</span>
+      </div>
+      <p className="border-b border-slate-800 bg-[#0c1219] px-5 pb-2 text-[11px] text-slate-400 sm:hidden">{PERSONAS.find((pp) => pp.key === persona)!.lens}</p>
+
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
-      <nav className="flex gap-1 border-b border-slate-800 px-5">
+      <nav className="flex gap-1 border-b border-slate-800 px-5 overflow-x-auto">
         {([["portfolio", "Portfolio · Rack & Stack"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"], ["setup", "⚙ Business Setup"]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
+            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
             {label}
           </button>
         ))}
