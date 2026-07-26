@@ -3,7 +3,7 @@
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/innovation-time.test.mjs
 import {
   scheduleFromStart, timeReadout, toleranceBand, workdaysInUnit, GATES, GATE_WORKDAYS,
-  pSuccess, upsideFraction, RISK_P,
+  pSuccess, upsideFraction, RISK_P, SCHEDULE_FALLBACK_START,
 } from "../lib/innovation-data.ts";
 
 let pass = 0, fail = 0;
@@ -30,6 +30,19 @@ ok(s.rows.length === 7, "schedule has 7 gates");
 ok(s.rows.every((r, i) => i === 0 || r.startISO >= s.rows[i - 1].startISO), "gate dates monotonic");
 ok(s.firstRevenueISO === s.rows.find((r) => r.gate === "G6").endISO, "first revenue = G6 end (derived)");
 ok(s.totalWorkdays === GATES.reduce((a, g) => a + GATE_WORKDAYS[g], 0), "total workdays sums gate profile");
+
+// ── determinism: UTC-anchored parse → dates are viewer-invariant (not TZ-shifted) ─────────
+// (Before the fix, a local-time parse serialized via toISOString() shifted every date a day
+//  for viewers east of UTC — breaking the CLAUDE.md "identical inputs → identical output" rule.)
+ok(scheduleFromStart(P(), "2026-01-05").rows[0].startISO === "2026-01-05", "start date round-trips UTC (no TZ off-by-one)");
+ok(/^\d{4}-\d{2}-\d{2}$/.test(s.firstRevenueISO), "firstRevenueISO is a clean ISO date");
+ok(JSON.stringify(scheduleFromStart(P(), "2028-07-01").rows) === JSON.stringify(scheduleFromStart(P(), "2028-07-01").rows), "schedule deterministic for a fixed start");
+
+// ── crash guard: empty / malformed start date falls back deterministically (no RangeError) ─
+ok(scheduleFromStart(P(), "").rows.length === 7, "empty start date does not crash — 7 gate rows");
+ok(scheduleFromStart(P(), "").rows[0].startISO === SCHEDULE_FALLBACK_START, "empty start falls back to the fixed default start");
+ok(scheduleFromStart(P(), "not-a-date").rows[0].startISO === SCHEDULE_FALLBACK_START, "malformed start falls back to the fixed default start");
+ok(timeReadout(P(), "", "day").cost.value > 0, "timeReadout survives an empty start date (no crash)");
 
 // ── risk model: P(success) = P(tech) × P(comm); Low=.9 Med=.6 High=.3 ────────────────────
 ok(near(RISK_P.low, 0.9) && near(RISK_P.med, 0.6) && near(RISK_P.high, 0.3), "risk probabilities Low/Med/High = .9/.6/.3");

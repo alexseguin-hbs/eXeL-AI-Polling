@@ -344,8 +344,14 @@ export const riskAdjustedWorkdays = (p: Project) =>
   Math.round(GATES.reduce((s, g) => s + GATE_WORKDAYS[g], 0) * (1 + riskContingency(p) * 0.5));         // schedule ↑ with risk (half-weighted)
 
 // Full plan from a start date: per-gate calendar boundaries + derived first-revenue date.
+export const SCHEDULE_FALLBACK_START = "2026-01-05"; // deterministic default when the input is empty/malformed
 export function scheduleFromStart(p: Project, startISO: string) {
-  const start = new Date(startISO + "T00:00:00");
+  // Parse as UTC (…"Z") so the derived dates are viewer-invariant — iso() emits UTC, so a bare
+  // "T00:00:00" (local) would shift every gate/first-revenue date a day for viewers east of UTC,
+  // breaking the determinism guarantee. Empty/partial input (cleared <input type=date>) would make
+  // an Invalid Date whose toISOString() throws + crashes the page — fall back to a fixed start.
+  let start = new Date(startISO + "T00:00:00Z");
+  if (isNaN(start.getTime())) start = new Date(SCHEDULE_FALLBACK_START + "T00:00:00Z");
   const cal = (wd: number) => Math.round(wd * 7 / 5); // workdays → calendar days (5-day week)
   const rows: { gate: Gate; startISO: string; endISO: string; workdays: number }[] = [];
   let cursor = new Date(start);
