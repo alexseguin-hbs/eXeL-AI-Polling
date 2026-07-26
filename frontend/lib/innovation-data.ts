@@ -335,6 +335,14 @@ export function toleranceBand(p: Project): number {
   return Math.min(0.6, BASE_BAND[p.gate] * riskMult);
 }
 
+// Risk contingency (Tech × Commercial) — 0.10 (Low/Low) … 0.70 (High/High). Cost and schedule
+// grow with risk; upside (the unrealized potential) is already 1 − P(success). So a riskier
+// project shows higher expected NRE, a longer schedule, and a larger orange upside band.
+export const riskContingency = (p: Project) => +(((riskNum(p.tech) + riskNum(p.comm)) / 2)).toFixed(2);
+export const riskAdjustedNreK = (p: Project) => Math.round(p.nreK * (1 + riskContingency(p)));         // cost ↑ with risk
+export const riskAdjustedWorkdays = (p: Project) =>
+  Math.round(GATES.reduce((s, g) => s + GATE_WORKDAYS[g], 0) * (1 + riskContingency(p) * 0.5));         // schedule ↑ with risk (half-weighted)
+
 // Full plan from a start date: per-gate calendar boundaries + derived first-revenue date.
 export function scheduleFromStart(p: Project, startISO: string) {
   const start = new Date(startISO + "T00:00:00");

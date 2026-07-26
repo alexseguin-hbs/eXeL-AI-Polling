@@ -13,6 +13,7 @@ import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
+  riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
@@ -879,6 +880,18 @@ function TimeEngine({ p }: { p: Project }) {
         <span>Cost of time <b className="text-cyan-300">${r.costPerMinUsd.toFixed(2)}/min</b></span>
         <span>1st revenue <b className="text-slate-300">{r.firstRevenueISO}</b> (derived)</span>
       </div>
+      {/* Risk-adjusted cost · schedule · upside — all move with the tech × commercial risk */}
+      <div className="mt-2 rounded-lg border border-amber-500/20 bg-[#0b0f14] p-2.5">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-slate-500">
+          <span>Risk-adjusted (Tech {RISK_LABEL[p.tech]} × Comm {RISK_LABEL[p.comm]})</span>
+          <span className="text-amber-300">+{Math.round(riskContingency(p) * 100)}% contingency</span>
+        </div>
+        <div className="mt-1 grid grid-cols-3 gap-2 text-[11px]">
+          <div><div className="text-[10px] text-slate-500">Cost (NRE)</div><div className="tabular-nums text-slate-200">{k(p.nreK)} → <b className="text-amber-300">{k(riskAdjustedNreK(p))}</b></div></div>
+          <div><div className="text-[10px] text-slate-500">Schedule</div><div className="tabular-nums text-slate-200">{riskAdjustedWorkdays(p)}wd <span className="text-slate-500">(+risk)</span></div></div>
+          <div><div className="text-[10px] text-slate-500">Upside (at-risk)</div><div className="tabular-nums text-amber-300">{Math.round(upsideFraction(p) * 100)}%</div></div>
+        </div>
+      </div>
       <div className="mt-1 text-[10px] text-slate-600">
         {sched.rows.map((g) => `${g.gate} ${g.endISO.slice(2)}`).join(" · ")}
       </div>
@@ -1319,10 +1332,9 @@ function Differentiators({ p }: { p: Project }) {
   );
 }
 
-// Growth Model (CRS-69) — the signature Rack & Stack chart, now with the full FLIR control set:
-// BU→SBU hierarchy filter, # Years (1/3/10), Targeted Growth Rate, YoY Do-Nothing decline,
-// Revenue Options (which NPI steps count), Show/Hide baseline, 4-series legend.
-const GATE_DIAMONDS = ["G1", "G2", "G3", "G4", "G5", "G6", "G7"] as const;
+// Growth Model — the signature Rack & Stack chart: BU→SBU hierarchy filter, # Years (1/3/10),
+// Targeted Growth Rate, YoY Do-Nothing decline, Revenue Options, Show/Hide baseline, 4-series legend.
+// (Gate cadence lives on the per-project gate overview, not here.)
 function GrowthModelChart({ funded }: { funded: Project[] }) {
   const [bu, setBu] = useState("All");
   const [sbu, setSbu] = useState("All");
@@ -1756,6 +1768,16 @@ const BU_COLOR: Record<string, string> = { MS: "#19c8cf", DS: "#c084fc", AP: "#f
 function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; deps: DepEdge[]; onSelect: (id: string) => void }) {
   const summary = dependencySummary(projects, deps);
   const kM = (v: number) => `$${v.toFixed(1)}M`;
+  // Bubble size is selectable (deck: NPV · Year-1 Rev · 3-Year Rev · 10-Year Rev).
+  const [sizeMode, setSizeMode] = useState<"npv" | "y1" | "y3" | "y10">("npv");
+  const sizeVal = (p: Project) => {
+    if (sizeMode === "npv") return Math.abs(npvM(p));
+    const s = projectRevSeries(p, { years: 10, funded: true });
+    if (sizeMode === "y1") return s[0].total;
+    if (sizeMode === "y3") return s.slice(0, 3).reduce((a, r) => a + r.total, 0);
+    return p.fullRev10yM;
+  };
+  const SIZE_LABEL: Record<string, string> = { npv: "NPV", y1: "Year-1 Rev", y3: "3-Year Rev", y10: "10-Year Rev" };
   // Constellation layout (FLIR §4.3): layered by in-degree so the MOST-depended-upon project
   // (the primary dependency) sinks to the BOTTOM and arrows point down to it. Nodes numbered
   // by dependent-rank (#1 = most depended-upon). Bubble ∝ √NPV.
@@ -1769,16 +1791,27 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
   const W = 640, H = 400, T = 34, Bm = 42;
   const layerY = (li: number) => (nL <= 1 ? (T + H - Bm) / 2 : T + (li / (nL - 1)) * (H - T - Bm));
   const pos = new Map<string, { x: number; y: number; r: number }>();
-  const maxNpv = Math.max(...withDeps.map((p) => Math.abs(npvM(p))), 1);
+  const maxSize = Math.max(...withDeps.map((p) => sizeVal(p)), 1);
   degVals.forEach((_, li) => {
     const nodes = withDeps.filter((p) => layerOf(p.id) === li).sort((a, b) => npvM(b) - npvM(a));
     nodes.forEach((p, j) => {
       const x = nodes.length === 1 ? W / 2 : 46 + (j / (nodes.length - 1)) * (W - 92);
-      pos.set(p.id, { x, y: layerY(li), r: 7 + 15 * Math.sqrt(Math.abs(npvM(p)) / maxNpv) });
+      pos.set(p.id, { x, y: layerY(li), r: 7 + 15 * Math.sqrt(Math.max(0, sizeVal(p)) / maxSize) });
     });
   });
   return (
     <DashCard title="Dependencies · Summary + Constellation" tag="Cross-project">
+      {/* Bubble-size selector (deck: NPV · Year-1 · 3-Year · 10-Year) */}
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">Bubble size</span>
+        <div className="flex overflow-hidden rounded-md border border-slate-700">
+          {(["npv", "y1", "y3", "y10"] as const).map((m) => (
+            <button key={m} onClick={() => setSizeMode(m)}
+              className={`px-2 py-1 ${sizeMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{SIZE_LABEL[m]}</button>
+          ))}
+        </div>
+        <span className="ml-auto text-[10px] text-slate-500">Gravity: most-depended-upon sinks to the bottom</span>
+      </div>
       {/* Constellation graph */}
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 520, height: "auto" }}>

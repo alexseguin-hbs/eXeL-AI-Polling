@@ -266,5 +266,13 @@ ok(biz.pgroup.every((g) => biz.sbu.some((s) => s.code === g.parent)), "every Alp
 ok(biz.material.every((m) => biz.product.some((pr) => pr.code === m.parent)), "every Material # parent resolves to a Product #");
 ok(JSON.stringify(seedBizSetup(DEMO_PROJECTS)) === JSON.stringify(biz), "seedBizSetup deterministic");
 
+/* ---------------- Risk-adjusted cost + schedule (tech × commercial) ---------------- */
+import { riskContingency, riskAdjustedNreK, riskAdjustedWorkdays } from "../lib/innovation-data.ts";
+const rcLow = P({ tech: "low", comm: "low", nreK: 1000 });
+const rcHigh = P({ tech: "high", comm: "high", nreK: 1000 });
+ok(riskContingency(rcHigh) > riskContingency(rcLow), "risk contingency rises with tech × commercial risk");
+ok(riskAdjustedNreK(rcLow) >= 1000 && riskAdjustedNreK(rcHigh) > riskAdjustedNreK(rcLow), "risk-adjusted cost grows with risk");
+ok(riskAdjustedWorkdays(rcHigh) > riskAdjustedWorkdays(rcLow), "risk-adjusted schedule longer for riskier project");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
