@@ -106,6 +106,9 @@ function Board() {
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
   const [persona, setPersona] = useState<Persona>("sbu");
+  // Optimization cadence — legacy prioritization was quarterly; this tool enables monthly now,
+  // weekly next. Drives how often the stack is re-optimized / snapshotted.
+  const [cadence, setCadence] = useState<"Q" | "M" | "W">("M");
   // Master data (BU/SBU/Alpha…) for the edit + new-idea dropdowns; reloads when leaving Setup.
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
   useEffect(() => { setSetup(loadBizSetup()); }, [view]);
@@ -158,7 +161,9 @@ function Board() {
   // stay bound to the project (derived from r.p), so arrows/drag carry NPV/REV/NRE with it.
   const [stackLevel, setStackLevel] = useState<HierKey>("sbu");
   const [drill, setDrill] = useState<{ level: HierKey; value: string } | null>(null);
-  const isGroupLevel = stackLevel === "bu" || stackLevel === "sbu" || stackLevel === "pgroup" || stackLevel === "alpha";
+  // Rack & Stack decisions + access rights are by BU · SBU · Alpha Group (Alpha Code is not a
+  // decision level — it's only a project attribute). Product # = working stack · Material # = BOM.
+  const isGroupLevel = stackLevel === "bu" || stackLevel === "sbu" || stackLevel === "pgroup";
   const groupRows = useMemo(() => rackByLevel(order, stackLevel), [order, stackLevel]);
   const drilled = drill && stackLevel === "product" ? order.filter((p) => hierOf(p)[drill.level] === drill.value) : null;
   // Breadcrumb ancestry (Company › BU › SBU › …) for the drilled node — clickable to navigate up.
@@ -212,9 +217,21 @@ function Board() {
             </button>
           ))}
         </div>
-        <span className="ml-auto text-[11px] text-slate-400 hidden sm:block">{PERSONAS.find((pp) => pp.key === persona)!.lens}</span>
+        {/* Optimization cadence — quarterly (legacy) → monthly (now) → weekly (next) */}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-[10px] uppercase tracking-wider text-slate-500">Optimize</span>
+          <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
+            {([["Q", "Quarterly"], ["M", "Monthly"], ["W", "Weekly"]] as const).map(([c, lbl]) => (
+              <button key={c} onClick={() => setCadence(c)}
+                className={`px-2 py-1 ${cadence === c ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+            ))}
+          </div>
+        </div>
       </div>
-      <p className="border-b border-slate-800 bg-[#0c1219] px-5 pb-2 text-[11px] text-slate-400 sm:hidden">{PERSONAS.find((pp) => pp.key === persona)!.lens}</p>
+      <p className="border-b border-slate-800 bg-[#0c1219] px-5 pb-2 text-[11px] text-slate-400">
+        <span className="hidden sm:inline">{PERSONAS.find((pp) => pp.key === persona)!.lens} · </span>
+        Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : "weekly"}</b> · time is money — cost shown in $/min on each project · AI + HI now, SI polling next.
+      </p>
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
       <nav className="flex gap-1 border-b border-slate-800 px-5 overflow-x-auto">
@@ -236,7 +253,7 @@ function Board() {
             </h2>
             {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
             <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
-              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["alpha", "Alpha Cd"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
+              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
                 <button key={lv} onClick={() => { setStackLevel(lv); setDrill(null); }}
                   className={`px-2 py-1 ${stackLevel === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
               ))}
@@ -882,15 +899,19 @@ function Band({ label, value, lo, hi }: { label: string; value: string; lo: stri
   );
 }
 
-// 3×3×3 gate cube (CRS-79/80): 27 cells fill as deliverables approve.
+// Gate progression cube — lit cells = approved deliverables (append-only). No fixed "27"
+// count shown; instead we surface the slides completed so far and the slides needed next.
 function GateCube({ p }: { p: Project }) {
   const filled = cubeFilled(p);
   const layers = [0, 1, 2];
+  const gi = GATES.indexOf(p.gate);
+  const nextGate = GATES[gi + 1];                 // undefined once at the final gate
+  const review = GATE_REVIEW[nextGate ?? p.gate]; // slides for the next gate (or the final gate)
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Gate progression · {filled}/27 deliverables</h3>
-        <span className="text-[11px] text-slate-500">G1–G7 · 27 cells · source of record</span>
+        <h3 className="text-sm font-semibold">Gate progression · {p.gate} {GATE_STAGE[p.gate]}</h3>
+        <span className="text-[11px] text-slate-500">gate {gi + 1} of {GATES.length} · source of record</span>
       </div>
       <div className="mt-3 flex gap-4">
         {layers.map((L) => (
@@ -904,11 +925,24 @@ function GateCube({ p }: { p: Project }) {
         ))}
       </div>
       <div className="mt-2 text-[11px] text-slate-500">Layers = gate bands · lit = approved (append-only)</div>
-      {/* Minimum deliverables required at this gate to de-risk (AMTS S1–S18 matrix) */}
+      {/* Completed — past slide-deck requirements by gate (the deep-dive summary) */}
       <div className="mt-3 border-t border-slate-800 pt-2">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Min deliverables to de-risk · {GATE_STAGE[p.gate]} ({p.gate})</div>
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">Completed · past slide requirements by gate</div>
+        <div className="mt-1 flex flex-wrap gap-1">
+          {GATES.slice(0, gi + 1).map((g) => (
+            <span key={g} className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-300" title={GATE_REVIEW[g].deliverables.map((d) => `${d.slide} ${d.name}`).join(" · ")}>
+              {g} {GATE_STAGE[g]} ✓ <span className="text-slate-500">{GATE_REVIEW[g].deliverables.map((d) => d.slide).join("·")}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+      {/* What's needed for the next gate approval */}
+      <div className="mt-3 border-t border-slate-800 pt-2">
+        <div className="text-[10px] uppercase tracking-wider text-amber-400">
+          {nextGate ? `Slides needed for next gate · ${GATE_STAGE[nextGate]} (${nextGate})` : `Final gate · ${GATE_STAGE[p.gate]} (${p.gate})`}
+        </div>
         <ul className="mt-1 space-y-0.5">
-          {GATE_REVIEW[p.gate].deliverables.map((d) => (
+          {review.deliverables.map((d) => (
             <li key={d.slide} className="flex items-baseline gap-2 text-[11px]">
               <span className="font-mono text-slate-500 w-10 shrink-0">{d.slide}</span>
               <span className={`text-slate-200 ${d.priority ? "text-amber-300 font-medium" : ""}`}>{d.name}{d.priority === 3 ? " ★3rd" : ""}</span>
@@ -916,11 +950,11 @@ function GateCube({ p }: { p: Project }) {
             </li>
           ))}
         </ul>
-        {GATE_REVIEW[p.gate].mustHave.length > 0 && (
-          <div className="mt-1.5 text-[11px]"><span className="text-emerald-400 font-medium">Must have:</span> <span className="text-slate-400">{GATE_REVIEW[p.gate].mustHave.join(" · ")}</span></div>
+        {review.mustHave.length > 0 && (
+          <div className="mt-1.5 text-[11px]"><span className="text-emerald-400 font-medium">Must have:</span> <span className="text-slate-400">{review.mustHave.join(" · ")}</span></div>
         )}
-        {GATE_REVIEW[p.gate].recommended.length > 0 && (
-          <div className="mt-0.5 text-[11px]"><span className="text-slate-500 font-medium">Recommended:</span> <span className="text-slate-600">{GATE_REVIEW[p.gate].recommended.join(" · ")}</span></div>
+        {review.recommended.length > 0 && (
+          <div className="mt-0.5 text-[11px]"><span className="text-slate-500 font-medium">Recommended:</span> <span className="text-slate-600">{review.recommended.join(" · ")}</span></div>
         )}
       </div>
     </div>
