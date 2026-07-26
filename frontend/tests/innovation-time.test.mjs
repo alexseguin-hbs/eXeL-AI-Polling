@@ -214,5 +214,44 @@ ok(near(vBad.deltaPct, 0.4) && vBad.exceeds === true, "beyond-band variance rais
 ok(gateVariance(0, 50, "G1").exceeds === true, "growth from a zero prior raises an exception");
 ok(gateVariance(0, 0, "G1").exceeds === false, "zero-to-zero is not an exception");
 
+/* ---------------- Deck gaps: meta · 12 metrics · financials overview · dependencies ---------------- */
+import {
+  STRATEGIC_INITIATIVES, VALUE_LADDER, COMPETITIVE_POSITIONS, metaOf,
+  financialMetrics, financialsOverview,
+  DEMO_DEPS, dependsOn, dependentsOf, dependencySummary,
+} from "../lib/innovation-data.ts";
+
+// meta (§2.1): 4 strategic initiatives + value ladder + target market + competitive, derived for every project
+ok(STRATEGIC_INITIATIVES.length === 4, "exactly 4 strategic initiatives (Sensor Leadership · Unmanned & Autonomous · Airborne ISR · Decision Support)");
+ok(DEMO_PROJECTS.every((p) => { const m = metaOf(p); return STRATEGIC_INITIATIVES.includes(m.initiative) && VALUE_LADDER.includes(m.valueLadder) && COMPETITIVE_POSITIONS.includes(m.competitive) && !!m.targetMarket && !!m.valueImpact; }), "every project derives a full meta set (initiative/ladder/impact/market/competitive)");
+ok(metaOf(DEMO_PROJECTS.find((p) => p.id === "PRJ-02")).initiative === "Unmanned & Autonomous Applications", "swarm-AI project → Unmanned & Autonomous initiative");
+ok(JSON.stringify(metaOf(DEMO_PROJECTS[0])) === JSON.stringify(metaOf(DEMO_PROJECTS[0])), "metaOf deterministic");
+
+// 12-metric Project Metrics card set (§2.4 / IMG_7843)
+const fm = financialMetrics(DEMO_PROJECTS.find((p) => p.id === "PRJ-01"));
+ok(["npvM", "revOverNre", "irrPct", "grossMarginPct", "paybackYears", "vol10y", "rev10yM", "grossProfit10yM", "curYearOpexK", "totalRdOpexK", "capitalK", "manHours"].every((k2) => k2 in fm), "financialMetrics returns all 12 metrics");
+ok(fm.totalRdOpexK === DEMO_PROJECTS.find((p) => p.id === "PRJ-01").nreK, "Total R&D Op Expense = project NRE");
+ok(fm.capitalK < fm.totalRdOpexK && fm.curYearOpexK < fm.totalRdOpexK, "capital + current-year opex are fractions of total R&D");
+ok(fm.grossProfit10yM > 0 && fm.grossProfit10yM <= fm.rev10yM, "10-yr gross profit ≤ 10-yr revenue");
+ok(fm.grossMarginPct > 0 && fm.grossMarginPct <= 100 && fm.manHours > 0 && fm.vol10y > 0, "margin %, man-hours, volume all positive & bounded");
+ok(fm.paybackYears >= 0, "payback years non-negative");
+
+// financials overview (§2.3): per-year revenue / margin / R&D, R&D front-loaded
+const ov = financialsOverview(DEMO_PROJECTS.find((p) => p.id === "PRJ-01"), { years: 10 });
+ok(ov.length === 10, "financials overview spans 10 years");
+ok(ov[0].rdK > 0 && ov[9].rdK === 0, "R&D expense front-loaded (spent early, zero by year 10)");
+ok(ov.every((r) => r.marginM <= r.revM + 1e-6), "yearly margin ≤ revenue");
+ok(Math.abs(ov.reduce((s, r) => s + r.rdK, 0) - DEMO_PROJECTS.find((p) => p.id === "PRJ-01").nreK) < 2, "R&D expense sums to project NRE");
+
+// dependencies (§4): edges + summary + both origins
+ok(DEMO_DEPS.length >= 8 && DEMO_DEPS.every((e) => e.from !== e.to && e.risks.length >= 1), "dependency edges are non-self, risk-typed");
+ok(dependsOn(DEMO_DEPS, "PRJ-02").length >= 1, "PRJ-02 declares dependencies (assigned by manager)");
+ok(dependentsOf(DEMO_DEPS, "PRJ-05").length >= 1, "PRJ-05 has dependents (assigned by others)");
+const depSum = dependencySummary(DEMO_PROJECTS, DEMO_DEPS);
+ok(depSum.length === DEMO_PROJECTS.length, "dependency summary covers every project");
+ok(depSum.every((r, i) => i === 0 || depSum[i - 1].npvWithDepsM >= r.npvWithDepsM), "dependency summary sorted by NPV-with-deps desc");
+ok(depSum.some((r) => r.npvWithDepsM !== r.npvM), "NPV-with-dependencies differs from standalone NPV for dependent projects");
+ok(depSum.find((r) => r.id === "PRJ-05").dependents >= 1, "summary counts dependents");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

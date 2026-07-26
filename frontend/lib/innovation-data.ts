@@ -632,6 +632,116 @@ export function stackWithBudget(order: Project[], availableK_: number) {
   return { rows, lineIndex };
 }
 
+// ── PROJECT META (FLIR deck §2.1) — 4 Strategic Initiatives + Value Ladder + Target Market ─
+// The FLIR "Project INPUTS: Initiatives & Dependencies (3/3)" surface: select one of 4
+// initiatives, a value-ladder position + impact, target market, and competitive position.
+// Derived deterministically from the project (matches execOf/briefOf) so the seed stays lean;
+// a real deploy captures these as editable fields.
+export const STRATEGIC_INITIATIVES = ["Sensor Leadership", "Unmanned & Autonomous Applications", "Airborne ISR", "Decision Support"] as const;
+export type StrategicInitiative = typeof STRATEGIC_INITIATIVES[number];
+export const VALUE_LADDER = ["Commodity", "Product", "Solution", "Platform", "Ecosystem"] as const;
+export const VALUE_IMPACT = ["Incremental", "Sustaining", "Differentiating", "Transformational"] as const;
+export const COMPETITIVE_POSITIONS = ["Leader", "Challenger", "Fast Follower", "Niche"] as const;
+export interface ProjectMeta {
+  initiative: StrategicInitiative; targetMarket: string; valueLadder: string;
+  valueImpact: string; competitive: string;
+}
+export function metaOf(p: Project): ProjectMeta {
+  const d = `${p.division} ${p.name} ${p.category}`.toLowerCase();
+  const initiative: StrategicInitiative =
+    /autonomy|swarm|teaming|mum-t|sdk|marketplace/.test(d) ? "Unmanned & Autonomous Applications"
+      : /sar|space|radar|isr payload|maritime|gimbal|eo\/ir/.test(d) ? "Airborne ISR"
+      : /c2|command|control|cloud|training|software|gcs|datalink|comms/.test(d) ? "Decision Support"
+      : "Sensor Leadership";
+  const valueLadder = /platform/.test(d) ? "Platform" : /sdk|marketplace|cloud/.test(d) ? "Ecosystem"
+    : /sustain|phase|legacy|eol|bridge/.test(d) ? "Product" : "Solution";
+  const valueImpact = p.confidence <= 2 && (p.tech === "high" || p.comm === "high") ? "Transformational"
+    : /platform|next-gen|gen-5/.test(d) ? "Differentiating"
+    : /sustain|phase|legacy|eol|bridge/.test(d) ? "Sustaining" : "Incremental";
+  const competitive = p.confidence >= 4 ? "Leader" : p.confidence === 3 ? "Challenger"
+    : incrementalRevM(p) > 200 ? "Fast Follower" : "Niche";
+  return { initiative, targetMarket: customerOf(p), valueLadder, valueImpact, competitive };
+}
+
+// ── PROJECT METRICS card set (FLIR deck §2.4 / IMG_7843 "Project Metrics") — 12 metrics ────
+// NPV · REV/NRE · IRR · Gross Margin · Payback · 10-Yr Vol · 10-Yr Rev · 10-Yr Gross Profit ·
+// Current-Year Op Expense · Total R&D Op Expense · Capital · Man-Hours Estimate. Each derived
+// deterministically from the project so the card set is complete without new stored inputs.
+const BLENDED_LABOR_RATE_USD = 150;          // $/hr blended engineering rate (man-hour basis)
+export const RD_LABOR_FRAC = 0.55, RD_CAPITAL_FRAC = 0.15, RD_CURYEAR_FRAC = 0.35;
+export interface FinMetrics {
+  npvM: number; revOverNre: number; irrPct: number; grossMarginPct: number; paybackYears: number;
+  vol10y: number; rev10yM: number; grossProfit10yM: number;
+  curYearOpexK: number; totalRdOpexK: number; capitalK: number; manHours: number;
+}
+export function financialMetrics(p: Project): FinMetrics {
+  const marginPct = execOf(p).marginPct;
+  const rev10yM = p.fullRev10yM;
+  const grossProfit10yM = rev10yM * (marginPct / 100);
+  const annualMarginM = weightedRevM(p) * (marginPct / 100) / 10;    // weighted annual margin
+  const paybackYears = annualMarginM > 0 ? +((p.nreK / 1000) / annualMarginM).toFixed(1) : 0;
+  const vol10y = Math.round((rev10yM * 1000) / Math.max(1, execOf(p).msrpK)); // units = rev / MSRP
+  return {
+    npvM: +npvM(p).toFixed(1), revOverNre: +revOverNre(p).toFixed(1), irrPct: irrPct(p),
+    grossMarginPct: marginPct, paybackYears, vol10y, rev10yM, grossProfit10yM: +grossProfit10yM.toFixed(1),
+    curYearOpexK: Math.round(p.nreK * RD_CURYEAR_FRAC), totalRdOpexK: p.nreK,
+    capitalK: Math.round(p.nreK * RD_CAPITAL_FRAC),
+    manHours: Math.round((p.nreK * 1000 * RD_LABOR_FRAC) / BLENDED_LABOR_RATE_USD),
+  };
+}
+
+// ── PROJECT FINANCIALS OVERVIEW (FLIR deck §2.3) — yearly Revenue / Margin / R&D expense ────
+// The "Project Financials Overview" output grid: per-year revenue (old decline + new ramp),
+// gross margin $, and R&D expense (NRE front-loaded over the program), plus a Totals column.
+export interface FinOverviewRow { year: number; revM: number; marginM: number; rdK: number }
+export function financialsOverview(p: Project, opts: { years?: number; funded?: boolean } = {}): FinOverviewRow[] {
+  const years = opts.years ?? 10, funded = opts.funded ?? true;
+  const marginPct = execOf(p).marginPct / 100;
+  const series = projectRevSeries(p, { years, funded });
+  // R&D spend front-loaded over the first ~3 years (NRE burns before revenue matures).
+  const rdYears = Math.min(3, years);
+  return series.map((r, i) => ({
+    year: r.year, revM: +r.total.toFixed(1), marginM: +(r.total * marginPct).toFixed(1),
+    rdK: i < rdYears ? Math.round(p.nreK / rdYears) : 0,
+  }));
+}
+
+// ── DEPENDENCIES (FLIR deck §4) — directed edges + summary + constellation helpers ─────────
+// Edge A → B means "B's risk affects A's success" (assigned-by-manager). Both origins retained:
+// dependsOn (I declared) and dependentsOf (declared on me). Risk types propagate.
+export type DepRisk = "technical" | "commercial" | "schedule";
+export interface DepEdge { from: string; to: string; risks: DepRisk[]; critical: boolean; acknowledged: boolean }
+export const DEMO_DEPS: DepEdge[] = [
+  { from: "PRJ-01", to: "PRJ-09", risks: ["technical"], critical: true, acknowledged: true },   // SAR payload ← EO/IR core
+  { from: "PRJ-02", to: "PRJ-05", risks: ["technical", "schedule"], critical: true, acknowledged: true },  // swarm AI ← C2 cloud
+  { from: "PRJ-02", to: "PRJ-10", risks: ["commercial"], critical: false, acknowledged: false },
+  { from: "PRJ-04", to: "PRJ-02", risks: ["technical"], critical: true, acknowledged: true },   // effector ← swarm fusion
+  { from: "PRJ-05", to: "PRJ-08", risks: ["schedule"], critical: false, acknowledged: true },   // C2 cloud ← GCS
+  { from: "PRJ-07", to: "PRJ-18", risks: ["schedule", "commercial"], critical: true, acknowledged: false }, // space SAR ← ground segment
+  { from: "PRJ-14", to: "PRJ-02", risks: ["technical"], critical: true, acknowledged: true },   // MUM-T ← swarm fusion
+  { from: "PRJ-14", to: "PRJ-05", risks: ["schedule"], critical: false, acknowledged: false },
+  { from: "PRJ-12", to: "PRJ-05", risks: ["technical", "schedule"], critical: true, acknowledged: false }, // datalink ← C2 cloud
+  { from: "PRJ-16", to: "PRJ-01", risks: ["technical"], critical: false, acknowledged: true },  // SAR variant ← SAR Gen-5
+  { from: "PRJ-15", to: "PRJ-07", risks: ["technical", "commercial"], critical: false, acknowledged: false }, // self-replicating ← space SAR
+];
+export const dependsOn = (deps: DepEdge[], id: string) => deps.filter((e) => e.from === id);      // I declared
+export const dependentsOf = (deps: DepEdge[], id: string) => deps.filter((e) => e.to === id);      // declared on me
+// Dependency summary row (§4.2): NPV, above/below line, NPV incl. dependencies, dep counts.
+export interface DepSummaryRow { id: string; name: string; division: string; npvM: number; deps: number; dependents: number; npvWithDepsM: number; critical: boolean }
+export function dependencySummary(projects: Project[], deps: DepEdge[]): DepSummaryRow[] {
+  return projects.map((p) => {
+    const mine = dependsOn(deps, p.id);
+    const on = dependentsOf(deps, p.id);
+    // NPV-with-dependencies rolls the NPV of everything this project leans on into its own.
+    const depNpv = mine.reduce((s, e) => s + (npvM(projects.find((q) => q.id === e.to) ?? p)), 0);
+    return {
+      id: p.id, name: p.name, division: p.division, npvM: +npvM(p).toFixed(1),
+      deps: mine.length, dependents: on.length, npvWithDepsM: +(npvM(p) + depNpv).toFixed(1),
+      critical: mine.some((e) => e.critical) || on.some((e) => e.critical),
+    };
+  }).sort((a, b) => b.npvWithDepsM - a.npvWithDepsM);
+}
+
 // ── GATE REQUIREMENTS REGISTRY (SPEC §3) — the governance-facing second surface ───────────
 // One unified registry of what is required at each gate, folding three sources into a single
 // grammar (§3.1): (1) the S1–S18 review deliverables (derived from GATE_REVIEW, no duplication),
