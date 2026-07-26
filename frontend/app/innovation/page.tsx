@@ -2236,6 +2236,10 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
   const [sev, setSev] = useState(3);
   const [like, setLike] = useState(3);
   const [pid, setPid] = useState(selId);
+  // Track the selected project: when the operator selects another project elsewhere, default the
+  // Identify-risk form to it (the dropdown still allows manual override). Mirrors ProjectDetail's
+  // [p.id] reset — fixes the stale default that logged risks against the previously-selected project.
+  useEffect(() => { setPid(selId); }, [selId]);
   const ranked = useMemo(() => [...risks].sort((a, b) => riskPriority(b) - riskPriority(a)), [risks]);
   const nameOf = (id: string) => projects.find((p) => p.id === id)?.name ?? id;
 

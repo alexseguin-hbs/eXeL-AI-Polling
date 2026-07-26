@@ -301,6 +301,22 @@ ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).bu).length === 3, "intellige
 ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).sbu).length === 8, "intelligence load by SBU → 8 rows");
 ok(intelligenceLoad(DEMO_PROJECTS, (p) => p.id).length === DEMO_PROJECTS.length, "intelligence load by project → one row each");
 
+/* ---------------- Rack & Stack funding line: stackWithBudget (CRS-42/43/71) ---------------- */
+import { stackWithBudget } from "../lib/innovation-data.ts";
+const stOrder = [P({ id: "A", nreK: 1000 }), P({ id: "B", nreK: 2000 }), P({ id: "C", nreK: 3000 })];
+const stAll = stackWithBudget(stOrder, 6000);
+ok(stAll.rows.length === 3 && stAll.rows.every((r) => r.funded), "all projects funded when budget = total NRE");
+ok(stAll.lineIndex === 3, "funding line sits past the last row when everything is funded");
+ok(stAll.rows.map((r) => r.cumK).join(",") === "1000,3000,6000", "cumulative NRE accumulates in rank order");
+ok(stAll.rows[2].remainingK === 0, "remaining budget = available − cumulative (0 at the exact line)");
+const stPartial = stackWithBudget(stOrder, 2999);
+ok(stPartial.rows[0].funded && !stPartial.rows[1].funded && !stPartial.rows[2].funded, "projects above the line funded, below the line not");
+ok(stPartial.lineIndex === 1, "lineIndex = first project whose cumulative NRE exceeds the budget");
+ok(stPartial.rows[1].remainingK < 0, "remaining goes negative once past the funding line");
+const stNone = stackWithBudget(stOrder, 500);
+ok(!stNone.rows[0].funded && stNone.lineIndex === 0, "nothing funded when budget < first project NRE (line at 0)");
+ok(stackWithBudget([], 1000).lineIndex === 0, "empty stack → lineIndex 0, no crash");
+
 /* ---------------- Executive slide: two-bullet summary (AMTS overview one-pager) ---------------- */
 import { execSummaryBullets } from "../lib/innovation-data.ts";
 const eb = execSummaryBullets(DEMO_PROJECTS.find((p) => p.id === "PRJ-01"));
