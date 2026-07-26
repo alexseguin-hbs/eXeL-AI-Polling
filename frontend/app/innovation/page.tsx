@@ -290,7 +290,7 @@ function Board() {
                           <td className="px-2 py-2 font-medium">{g.key} <span className="text-[10px] text-slate-500">↳ drill</span></td>
                           <td className="px-2 py-2 text-center tabular-nums text-slate-400">{g.count}</td>
                           <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(g.nreK)}</td>
-                          <td className="px-2 py-2 text-right tabular-nums">{usd(g.weightedRevM)}</td>
+                          <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={g.weightedRevM} incremental={g.incRevM} /></td>
                           <td className={`px-2 py-2 text-right tabular-nums font-semibold ${g.npvM >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(g.npvM)}</td>
                           <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(st.rows[i]?.cumK ?? 0)}</td>
                         </tr>
@@ -507,7 +507,7 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
         <td className="px-2 py-2 text-center"><span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono">{p.gate}</span></td>
         <td className="px-2 py-2 text-center tabular-nums">{"●".repeat(p.confidence)}<span className="text-slate-700">{"●".repeat(4 - p.confidence)}</span></td>
         <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(p.nreK)}</td>
-        <td className="px-2 py-2 text-right tabular-nums">{usd(weightedRevM(p))}</td>
+        <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={weightedRevM(p)} incremental={incrementalRevM(p)} /></td>
         <td className={`px-2 py-2 text-right tabular-nums font-semibold ${npvM(p) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(npvM(p))}</td>
         <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(cumK)}</td>
         <td className="px-2 py-2 text-right whitespace-nowrap">
@@ -613,6 +613,22 @@ function RiskWeightedBar({ p }: { p: Project }) {
         <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />REV · probability-weighted {usd(wt)}</span>
         <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />Upside · risk {usd(up)}</span>
       </div>
+    </div>
+  );
+}
+
+// Compact P-wt Rev table cell — number + a thin green(probability-weighted)/orange(at-risk
+// upside) split bar, the deck's risk-weighted-revenue color scheme at rack scale.
+function PwtCell({ weighted, incremental }: { weighted: number; incremental: number }) {
+  const wPct = incremental > 0 ? Math.min(100, (weighted / incremental) * 100) : 0;
+  const up = Math.max(0, incremental - weighted);
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      <span className="tabular-nums">{usd(weighted)}</span>
+      <span className="flex h-1 w-14 overflow-hidden rounded-full bg-[#0b0f14]" title={`weighted ${usd(weighted)} · at-risk upside ${usd(up)}`}>
+        <span className="bg-[#34d399]" style={{ width: `${wPct}%` }} />
+        <span className="bg-[#fbbf24]" style={{ width: `${100 - wPct}%` }} />
+      </span>
     </div>
   );
 }
@@ -1493,7 +1509,8 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
     { name: "Do-Nothing base", value: roi.doNothingM, color: "#64748b" },
     { name: "End-of-Life", value: roi.eolM, color: "#fb923c" },
     { name: "Incremental", value: roi.incrementalM, color: "#19c8cf" },
-    { name: "Prob-weighted", value: roi.weightedM, color: "#c084fc" },
+    { name: "REV · probability-weighted", value: roi.weightedM, color: "#34d399" },
+    { name: "Upside · at-risk to 100%", value: Math.max(0, roi.incrementalM - roi.weightedM), color: "#fbbf24" },
   ];
   const kM = (v: number) => `$${(v / 1000).toFixed(1)}M`;
   const roll = companyRollup(projects);
@@ -1567,7 +1584,7 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
         <StatTile label="R&D efficiency" value={`${eff.toFixed(2)}×`} sub="NPV per $ NRE" tone="green" />
         <StatTile label="10yr Op Contribution" value={usd(npvTotal)} sub="funded NPV" tone="green" />
         <StatTile label="Incremental rev" value={usd(incrTotal)} sub="10yr, funded" tone="cyan" />
-        <StatTile label="Prob-weighted rev" value={usd(wtdTotal)} sub="risk-adjusted" tone="violet" />
+        <StatTile label="Prob-weighted rev" value={usd(wtdTotal)} sub="risk-adjusted" tone="green" />
         <StatTile label="Total NRE" value={kM(cost.totalK)} sub="all projects" tone="amber" />
       </div>
 
