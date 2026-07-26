@@ -1034,6 +1034,39 @@ function GateCube({ p }: { p: Project }) {
   );
 }
 
+// Expand a requirement into its ACTUAL detail — the live financials/metrics behind it, pulled
+// from the SAME model that drives the rack, growth model, and metric cards (one platform for
+// presentation + analysis). Slide info is the key: each row opens into the real numbers.
+function reqDetailRows(req: { id: string; type: string }, p: Project): [string, string][] {
+  const fm = financialMetrics(p), ex = execOf(p), m = metaOf(p), h = hierOf(p);
+  const rows: [string, string][] = [];
+  switch (req.id) {
+    case "REQ-47": rows.push(["NRE cost", k(p.nreK)], ["Risk-adjusted", k(riskAdjustedNreK(p))], ["Man-hours", fm.manHours.toLocaleString()], ["Capital", k(fm.capitalK)]); break;
+    case "REQ-49": rows.push(["10-yr revenue", usd(p.fullRev10yM)], ["MSRP", `$${ex.msrpK}k`], ["COGS", `$${ex.cogsK}k`], ["Gross margin", `${ex.marginPct}%`], ["10-yr volume", fm.vol10y.toLocaleString()]); break;
+    case "REQ-50": rows.push(["Do-Nothing 10-yr", usd(p.doNothing10yM)], ["Note", "price + volume decline; may not reach 0"]); break;
+    case "REQ-51": rows.push(["Existing line", usd(p.doNothing10yM)], ["Rule", "phase-out ≤ 3 yrs → terminal zero"]); break;
+    case "REQ-52": rows.push(["Incremental", usd(incrementalRevM(p))], ["Probability-weighted", usd(weightedRevM(p))], ["Upside (at-risk)", `${Math.round(upsideFraction(p) * 100)}%`]); break;
+    case "REQ-38": rows.push(["Model confidence", `${p.confidence}/4`]); break;
+    case "REQ-53": rows.push(["Technical risk", RISK_LABEL[p.tech]], ["Commercial risk", RISK_LABEL[p.comm]], ["Contingency", `+${Math.round(riskContingency(p) * 100)}%`], ["NPV", usd(fm.npvM)], ["IRR", `${fm.irrPct}%`]); break;
+    case "REQ-54": rows.push(["Strategic pillar", m.initiative]); break;
+    case "REQ-55": rows.push(["Value ladder", m.valueLadder], ["Impact", m.valueImpact], ["Competitive", m.competitive]); break;
+    case "REQ-89": rows.push(["Dependencies declared", String(dependsOn(DEMO_DEPS, p.id).length)]); break;
+    case "REQ-90": rows.push(["Acknowledged by others", String(dependentsOf(DEMO_DEPS, p.id).length)]); break;
+    case "REQ-71": rows.push(["Product #", h.product], ["Material #", h.material], ["Hierarchy", `${h.bu} › ${h.sbu} › ${h.pgroup} › ${h.alpha}`]); break;
+    case "REQ-42": rows.push(["Payback", `${fm.paybackYears} yr`], ["REV/NRE", `${fm.revOverNre.toFixed(1)}×`]); break;
+    case "REQ-69": rows.push(["Growth contribution (wtd)", usd(weightedRevM(p))], ["10-yr gross profit", usd(fm.grossProfit10yM)]); break;
+    case "REQ-56": rows.push(["Customer / PoR", ex.customer], ["Pursuits", ex.pursuits.map((x) => x.name).join(" · ")], ["Target market", m.targetMarket]); break;
+    case "REQ-48": rows.push(["Capital & Tooling", k(fm.capitalK)], ["Total R&D", k(fm.totalRdOpexK)]); break;
+    default: break;
+  }
+  if (req.type === "S") {
+    let st = "not started";
+    try { st = (JSON.parse((typeof window !== "undefined" && localStorage.getItem("innovation-slides")) || "{}") as Record<string, string>)[`${p.id}|${req.id}`] || "not started"; } catch { /* none */ }
+    rows.push(["Slide input status", st]);
+  }
+  return rows;
+}
+
 // ── GATE REQUIREMENTS VIEW (SPEC §3) — the governance-facing surface ──────────────────────
 // Requirements × gates matrix (§3.1), per-gate readiness rollup (§3.5), and the estimate
 // tolerance ladder (§3.4). Status is derived from the selected project's gate progression.
@@ -1053,6 +1086,8 @@ const REQ_TYPE_CHIP: Record<string, string> = {
 function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]; sel: Project; onSelect: (id: string) => void }) {
   const readiness = useMemo(() => gateReadinessAll(sel), [sel]);
   const gateIdx = GATES.indexOf(sel.gate);
+  const [open, setOpen] = useState<Set<string>>(() => new Set());
+  const toggle = (id: string) => setOpen((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   return (
     <div className="space-y-4">
       {/* Project selector + context */}
@@ -1120,9 +1155,12 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
               {GATE_REQUIREMENTS.map((req) => {
                 const status = requirementStatus(req, sel);
                 const earliest = GATES.indexOf(req.earliestGate);
+                const isOpen = open.has(req.id);
+                const detail = isOpen ? reqDetailRows(req, sel) : [];
                 return (
-                  <tr key={req.id} className="border-b border-slate-900 hover:bg-slate-800/30">
-                    <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}>{req.id}</td>
+                  <React.Fragment key={req.id}>
+                  <tr onClick={() => toggle(req.id)} className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 ${isOpen ? "bg-slate-800/40" : ""}`} title="Expand into actual detail">
+                    <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{req.id}</td>
                     <td className="px-2 py-1.5">
                       <div className="text-[13px] text-slate-200 leading-tight">{req.title}</div>
                       <div className="text-[10px] text-slate-500">{req.verification}{req.parentId && req.parentId !== req.id ? ` · ↳ ${req.parentId}` : ""}</div>
@@ -1130,7 +1168,6 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                     <td className="px-2 py-1.5 text-center text-[11px] tabular-nums text-slate-400">±{Math.round(req.band * 100)}%</td>
                     {GATES.map((g, gi) => {
                       if (gi < earliest) return <td key={g} className="px-1.5 py-1.5 text-center text-slate-800">·</td>;
-                      // required at this gate onward; color by the selected project's progression
                       const cellState = gi < gateIdx + 1 ? "done" : gi === gateIdx + 1 ? "next" : "future";
                       const dot = cellState === "done" ? "bg-emerald-400" : cellState === "next" ? "bg-amber-400" : "bg-slate-600";
                       const ring = gi === earliest ? "ring-1 ring-cyan-500/40" : "";
@@ -1140,6 +1177,24 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                       <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${REQ_STATUS_CHIP[status]}`}>{REQ_STATUS_LABEL[status]}</span>
                     </td>
                   </tr>
+                  {isOpen && (
+                    <tr className="border-b border-slate-900 bg-[#0b0f14]">
+                      <td colSpan={3 + GATES.length + 1} className="px-4 py-3">
+                        <div className="text-[10px] uppercase tracking-wider text-cyan-400">Actual detail · {sel.name}</div>
+                        <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1.5 text-[11px]">
+                          {detail.map(([l, v]) => (
+                            <span key={l} className="inline-flex flex-col">
+                              <span className="text-[9px] uppercase tracking-wider text-slate-500">{l}</span>
+                              <span className="tabular-nums text-slate-100">{v}</span>
+                            </span>
+                          ))}
+                          {detail.length === 0 && <span className="text-slate-500">{req.verification} · required by {req.earliestGate} · ±{Math.round(req.band * 100)}% band · {REQ_STATUS_LABEL[status]}</span>}
+                        </div>
+                        <div className="mt-2 text-[10px] text-slate-500">Verification: {req.verification} · first required at {req.earliestGate} · figures derived from the live project model (same source as the rack, growth model, and metric cards).</div>
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                 );
               })}
             </tbody>
