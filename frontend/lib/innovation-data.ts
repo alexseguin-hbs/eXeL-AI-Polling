@@ -288,6 +288,10 @@ export const DEMO_PROJECTS: Project[] = [
   { id: "PRJ-13", name: "Immersive VR/XR Mission Rehearsal", division: "Training AI", lob: "SBU-2", manager: "S. Haddad", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 3200, fullRev10yM: 110, doNothing10yM: 12, firstRevenue: "2027-Q2", criticalPath: false, humanLoad: 0.5, ai: 0.5, si: 0.3, hi: 0.2, predictions: 19 },
   { id: "PRJ-14", name: "Manned-Unmanned Teaming (MUM-T) Suite", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 8800, fullRev10yM: 290, doNothing10yM: 8, firstRevenue: "2028-Q3", criticalPath: true, humanLoad: 0.72, ai: 0.5, si: 0.3, hi: 0.2, predictions: 48 },
   { id: "PRJ-15", name: "Orbital Self-Replicating Sensor Swarm", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "high", nreK: 14000, fullRev10yM: 520, doNothing10yM: 0, firstRevenue: "2031-Q1", criticalPath: false, humanLoad: 0.66, ai: 0.6, si: 0.25, hi: 0.15, predictions: 88 },
+  // Products beneath existing Alpha Codes (multiple products per Alpha Code / variant next-gen).
+  { id: "PRJ-16", name: "SAR Imaging Payload Variant-B", division: "ISR Payloads", lob: "SBU-1", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 3, tech: "med", comm: "low", nreK: 4600, fullRev10yM: 130, doNothing10yM: 20, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.4, si: 0.3, hi: 0.3, predictions: 21 },
+  { id: "PRJ-17", name: "Swarm ISR Sensor Pod", division: "Autonomy", lob: "SBU-2", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 3400, fullRev10yM: 100, doNothing10yM: 14, firstRevenue: "2027-Q1", criticalPath: false, humanLoad: 0.55, ai: 0.5, si: 0.3, hi: 0.2, predictions: 17 },
+  { id: "PRJ-18", name: "Space SAR Ground Segment", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 5200, fullRev10yM: 160, doNothing10yM: 12, firstRevenue: "2028-Q4", criticalPath: false, humanLoad: 0.52, ai: 0.4, si: 0.3, hi: 0.3, predictions: 24 },
 ];
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
@@ -451,6 +455,9 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-13": { bu: "DS", sbu: "DSC", pgroup: "DC2", alpha: "DC2V", product: "70013", material: "70013-001" },
   "PRJ-14": { bu: "DS", sbu: "DSE", pgroup: "DE2", alpha: "DE2M", product: "70014", material: "70014-001" },
   "PRJ-15": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1O", product: "70015", material: "70015-001" },
+  "PRJ-16": { bu: "MS", sbu: "MSP", pgroup: "AB1", alpha: "AA1D", product: "70016", material: "70016-001" },
+  "PRJ-17": { bu: "DS", sbu: "DSI", pgroup: "CD1", alpha: "CA2X", product: "70017", material: "70017-001" },
+  "PRJ-18": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1S", product: "70018", material: "70018-001" },
 };
 export const hierOf = (p: Project): HierPath =>
   PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };

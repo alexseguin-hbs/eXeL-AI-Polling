@@ -12,7 +12,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
-  timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart,
+  timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
@@ -71,6 +71,15 @@ function Board() {
   const [selId, setSelId] = useState(order[0].id);
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
   const [view, setView] = useState<"portfolio" | "dashboards">("portfolio");
+  // Change + approval activity log (edits and gate approvals) — the audit summary.
+  const [activity, setActivity] = useState<{ id: number; kind: "edit" | "approve" | "reject"; project: string; text: string; by: string }[]>([]);
+  const log = (kind: "edit" | "approve" | "reject", project: string, text: string, by: string) =>
+    setActivity((a) => [{ id: a.length + 1, kind, project, text, by }, ...a]);
+  const applyEdit = (id: string, patch: Partial<Project>, changes: string[]) => {
+    const proj = order.find((p) => p.id === id);
+    setOrder((o) => o.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    changes.forEach((c) => log("edit", proj?.name ?? id, c, "you"));
+  };
   const avail = availableK(DEMO_BUDGET);
   const { rows, lineIndex } = useMemo(() => stackWithBudget(order, avail), [order, avail]);
   const sel = order.find((p) => p.id === selId) ?? order[0];
@@ -304,7 +313,9 @@ function Board() {
 
         {/* Selected project detail */}
         <section className="space-y-4">
-          <ProjectDetail p={sel} risks={risks} />
+          <ProjectDetail p={sel} risks={risks}
+            onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
+            onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           <TimeEngine p={sel} />
           <GateCube p={sel} />
           <Differentiators p={sel} />
@@ -314,6 +325,30 @@ function Board() {
       {/* Crowd-sourced Risk Register — anyone documents, the community polls, the team de-risks */}
       <div className="px-5 pb-4">
         <RiskRegister risks={risks} setRisks={setRisks} projects={order} selId={selId} onSelect={setSelId} />
+      </div>
+
+      {/* Changes & Approvals summary — the audit trail of edits + gate approvals */}
+      <div className="px-5 pb-4">
+        <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold">Changes &amp; Approvals · summary</h2>
+            <span className="text-[11px] text-slate-500">{activity.filter((a) => a.kind === "edit").length} edits · {activity.filter((a) => a.kind === "approve").length} approvals · {activity.filter((a) => a.kind === "reject").length} change-requests</span>
+          </div>
+          {activity.length === 0 ? (
+            <p className="mt-2 text-[11px] text-slate-500">No changes yet — edit a project (✎) or approve a gate to build the audit trail.</p>
+          ) : (
+            <ul className="mt-2 max-h-52 overflow-y-auto divide-y divide-slate-900">
+              {activity.map((a) => (
+                <li key={a.id} className="flex items-baseline gap-2 py-1 text-[12px]">
+                  <span className={`w-14 shrink-0 text-[10px] font-mono uppercase ${a.kind === "approve" ? "text-emerald-400" : a.kind === "reject" ? "text-rose-400" : "text-cyan-300"}`}>{a.kind === "approve" ? "✓ apprv" : a.kind === "reject" ? "✕ chg-req" : "✎ edit"}</span>
+                  <span className="text-slate-300">{a.project}</span>
+                  <span className="text-slate-500">— {a.text}</span>
+                  <span className="ml-auto text-[10px] text-slate-600">by {a.by}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* Portfolio Growth Model — the signature Rack & Stack chart */}
@@ -453,7 +488,24 @@ function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   return <span className={`rounded px-1.5 py-0.5 text-[11px] font-mono ${c}`}>{label} {RISK_LABEL[level]}</span>;
 }
 
-function ProjectDetail({ p, risks }: { p: Project; risks: Risk[] }) {
+function ProjectDetail({ p, risks, onEdit, onApprove }: {
+  p: Project; risks: Risk[];
+  onEdit: (patch: Partial<Project>, changes: string[]) => void;
+  onApprove: (kind: "approve" | "reject", by: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Partial<Project>>({});
+  useEffect(() => { setDraft({}); setEditing(false); }, [p.id]);
+  const dv = <K extends keyof Project>(k: K): Project[K] => (draft[k] !== undefined ? (draft[k] as Project[K]) : p[k]);
+  const setD = <K extends keyof Project>(k: K, v: Project[K]) => setDraft((d) => ({ ...d, [k]: v }));
+  const saveEdit = () => {
+    const patch = draft;
+    const changes: string[] = [];
+    (Object.keys(patch) as (keyof Project)[]).forEach((k) => { if (patch[k] !== undefined && patch[k] !== p[k]) changes.push(`${String(k)}: ${p[k]} → ${patch[k]}`); });
+    if (changes.length) onEdit(patch, changes);
+    setDraft({}); setEditing(false);
+  };
+  const editStyle = "rounded border border-slate-700 bg-[#0b0f14] px-1.5 py-0.5 text-xs text-slate-100 outline-none focus:border-cyan-500";
   const band = GATE_BAND[p.gate];
   const captured = Math.round(pSuccess(p) * 100);
   const upside = Math.round(upsideFraction(p) * 100);
@@ -473,6 +525,31 @@ function ProjectDetail({ p, risks }: { p: Project; risks: Risk[] }) {
         </div>
         <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{Math.round(band * 100)}% band</span>
       </div>
+
+      {/* Edit + Approvals bar */}
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+        <button onClick={() => setEditing((e) => !e)} className={`rounded border px-2 py-0.5 ${editing ? "border-cyan-500 text-cyan-300 bg-cyan-500/10" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{editing ? "✕ Cancel" : "✎ Edit"}</button>
+        {editing && <button onClick={saveEdit} className="rounded bg-cyan-500 px-2 py-0.5 font-semibold text-[#06202a] hover:bg-cyan-400">Save</button>}
+        <span className="ml-auto text-[10px] uppercase tracking-wider text-slate-500">Gate approval:</span>
+        {([["◬", "AI"], ["♡", "SI"], ["웃", "HI"]] as const).map(([g, by]) => (
+          <button key={by} onClick={() => onApprove("approve", `${g} ${by}`)} title={`Approve as ${by}`}
+            className="rounded border border-emerald-600/40 px-1.5 py-0.5 text-emerald-300 hover:bg-emerald-500/10">{g} approve</button>
+        ))}
+        <button onClick={() => onApprove("reject", "you")} className="rounded border border-rose-600/40 px-1.5 py-0.5 text-rose-300 hover:bg-rose-500/10">Request changes</button>
+      </div>
+
+      {/* Editable key fields */}
+      {editing && (
+        <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-2.5 text-[11px] text-slate-400 sm:grid-cols-3">
+          <label className="col-span-2 sm:col-span-3">Name<input value={dv("name")} onChange={(e) => setD("name", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`} /></label>
+          <label>NRE $K<input type="text" inputMode="numeric" value={String(dv("nreK"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("nreK", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
+          <label>New rev 10yr $M<input type="text" inputMode="numeric" value={String(dv("fullRev10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("fullRev10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
+          <label>Do-nothing 10yr $M<input type="text" inputMode="numeric" value={String(dv("doNothing10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("doNothing10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
+          <label>Gate<select value={dv("gate")} onChange={(e) => setD("gate", e.target.value as Project["gate"])} className={`mt-0.5 block w-full ${editStyle}`}>{GATES.map((g) => <option key={g} value={g}>{g} {GATE_STAGE[g]}</option>)}</select></label>
+          <label>Tech risk<select value={dv("tech")} onChange={(e) => setD("tech", e.target.value as Project["tech"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+          <label>Comm risk<select value={dv("comm")} onChange={(e) => setD("comm", e.target.value as Project["comm"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+        </div>
+      )}
       {/* Tech × Comm risk → revenue captured / upside (operator default model) */}
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
         <RiskPill label="Tech" level={p.tech} />
