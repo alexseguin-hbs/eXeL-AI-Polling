@@ -572,6 +572,28 @@ function FinancialsOverviewTable({ p }: { p: Project }) {
   );
 }
 
+// Risk-weighted revenue split — green (probability-weighted REV) + orange (at-risk upside),
+// the exact Growth-Model color scheme (grey/green/orange) applied at the project level.
+function RiskWeightedBar({ p }: { p: Project }) {
+  const inc = incrementalRevM(p), wt = weightedRevM(p), up = Math.max(0, inc - wt);
+  const wPct = inc > 0 ? (wt / inc) * 100 : 0;
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-slate-500">
+        <span>Risk-weighted revenue</span><span className="text-slate-400 tabular-nums">{usd(inc)} incremental</span>
+      </div>
+      <div className="mt-1 flex h-4 overflow-hidden rounded bg-[#0b0f14]">
+        <span className="bg-[#34d399]" style={{ width: `${wPct}%` }} title={`Probability-weighted ${usd(wt)}`} />
+        <span className="bg-[#fbbf24]" style={{ width: `${100 - wPct}%` }} title={`At-risk upside ${usd(up)}`} />
+      </div>
+      <div className="mt-1 flex flex-wrap gap-x-3 text-[10px] text-slate-500">
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />REV · probability-weighted {usd(wt)}</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />Upside · risk {usd(up)}</span>
+      </div>
+    </div>
+  );
+}
+
 // Risk-level pill: colour by level (low=emerald, med=amber, high=rose).
 function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   const c = level === "low" ? "bg-emerald-500/15 text-emerald-300" : level === "med" ? "bg-amber-500/15 text-amber-300" : "bg-rose-500/15 text-rose-300";
@@ -680,6 +702,8 @@ function ProjectDetail({ p, risks, onEdit, onApprove }: {
           </div>
         ))}
       </div>
+      {/* Risk-weighted revenue — green (probability-weighted) + orange (at-risk upside) per deck */}
+      <RiskWeightedBar p={p} />
       {/* Per-project financial projection — aging line decline + new-product ramp (operator methodology) */}
       <ProjectRevChart p={p} />
       {/* Project Financials Overview (FLIR §2.3) — yearly Revenue / Margin / R&D expense */}
@@ -1559,14 +1583,26 @@ const BU_COLOR: Record<string, string> = { MS: "#19c8cf", DS: "#c084fc", AP: "#f
 function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; deps: DepEdge[]; onSelect: (id: string) => void }) {
   const summary = dependencySummary(projects, deps);
   const kM = (v: number) => `$${v.toFixed(1)}M`;
-  // Constellation layout: projects on a circle, deterministic by index; bubble ∝ √NPV.
+  // Constellation layout (FLIR §4.3): layered by in-degree so the MOST-depended-upon project
+  // (the primary dependency) sinks to the BOTTOM and arrows point down to it. Nodes numbered
+  // by dependent-rank (#1 = most depended-upon). Bubble ∝ √NPV.
   const withDeps = projects.filter((p) => dependsOn(deps, p.id).length || dependentsOf(deps, p.id).length);
-  const W = 640, H = 380, cx = W / 2, cy = H / 2, R = 150;
+  const inDeg = (id: string) => dependentsOf(deps, id).length;
+  const ranked = [...withDeps].sort((a, b) => inDeg(b.id) - inDeg(a.id) || npvM(b) - npvM(a));
+  const rankOf = new Map(ranked.map((p, i) => [p.id, i + 1]));           // #1 = most depended-upon
+  const degVals = Array.from(new Set(withDeps.map((p) => inDeg(p.id)))).sort((a, b) => a - b); // asc → top→bottom
+  const layerOf = (id: string) => degVals.indexOf(inDeg(id));            // 0 = fewest dependents (top)
+  const nL = degVals.length;
+  const W = 640, H = 400, T = 34, Bm = 42;
+  const layerY = (li: number) => (nL <= 1 ? (T + H - Bm) / 2 : T + (li / (nL - 1)) * (H - T - Bm));
   const pos = new Map<string, { x: number; y: number; r: number }>();
   const maxNpv = Math.max(...withDeps.map((p) => Math.abs(npvM(p))), 1);
-  withDeps.forEach((p, i) => {
-    const a = (i / withDeps.length) * Math.PI * 2 - Math.PI / 2;
-    pos.set(p.id, { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a), r: 8 + 16 * Math.sqrt(Math.abs(npvM(p)) / maxNpv) });
+  degVals.forEach((_, li) => {
+    const nodes = withDeps.filter((p) => layerOf(p.id) === li).sort((a, b) => npvM(b) - npvM(a));
+    nodes.forEach((p, j) => {
+      const x = nodes.length === 1 ? W / 2 : 46 + (j / (nodes.length - 1)) * (W - 92);
+      pos.set(p.id, { x, y: layerY(li), r: 7 + 15 * Math.sqrt(Math.abs(npvM(p)) / maxNpv) });
+    });
   });
   return (
     <DashCard title="Dependencies · Summary + Constellation" tag="§4">
@@ -1586,17 +1622,21 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
           {withDeps.map((p) => {
             const pt = pos.get(p.id)!;
             const above = npvM(p) >= 0;
+            const rank = rankOf.get(p.id)!;
+            const deg = inDeg(p.id);
             return (
               <g key={p.id} className="cursor-pointer" onClick={() => onSelect(p.id)}>
                 <circle cx={pt.x} cy={pt.y} r={pt.r} fill={BU_COLOR[hierOf(p).bu] ?? "#38bdf8"} fillOpacity={0.25} stroke={above ? "#34d399" : "#fb7185"} strokeWidth={2} />
-                <text x={pt.x} y={pt.y - pt.r - 3} textAnchor="middle" fontSize="9" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{hierOf(p).bu}·{p.id.slice(-2)}</text>
-                <text x={pt.x} y={pt.y + 3} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="ui-monospace, monospace">{usd(npvM(p))}</text>
+                <text x={pt.x} y={pt.y + 3.5} textAnchor="middle" fontSize="11" fontWeight="700" fill="#e2e8f0" fontFamily="ui-monospace, monospace">{rank}</text>
+                <text x={pt.x} y={pt.y - pt.r - 3} textAnchor="middle" fontSize="9" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{hierOf(p).bu}·{p.id.slice(-2)}{deg ? ` ·${deg}↓` : ""}</text>
+                <text x={pt.x} y={pt.y + pt.r + 9} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="ui-monospace, monospace">{usd(npvM(p))}</text>
               </g>
             );
           })}
         </svg>
       </div>
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
+        <span className="text-slate-400"><b>#1 = most-depended-upon (bottom)</b> · arrows point down · ·N↓ = dependents</span>
         <span>bubble ∝ NPV</span>
         <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-emerald-400" />above line</span>
         <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-rose-400" />below line</span>
