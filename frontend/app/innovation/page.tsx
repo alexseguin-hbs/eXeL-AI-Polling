@@ -3,7 +3,7 @@
 /**
  * PROJECT INNOVATION — Vision • 2525  (CRS-36 → CRS-93)
  * Rack & Stack portfolio (registry + prioritization + funding line + live budget) plus the
- * Series-9 differentiators: 3×3×3 gate cube, risk-prediction market, Project Upside pool,
+ * differentiators: gate progression by review slide, risk-prediction market, Project Upside pool,
  * $/min cost of elapsed time, and AI·SI·HI intelligence load with a burnout guard.
  *
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
@@ -11,14 +11,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
-  pSuccess, upsideFraction, npvM, irrPct, revOverNre, cubeFilled, GATE_BAND, GATE_STAGE,
+  pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
-  scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW, rackByLevel, projectRevSeries,
+  scopeBaseM, GATE_REVIEW, rackByLevel, projectRevSeries,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
@@ -1164,12 +1164,10 @@ const SLIDE_PILL: Record<string, string> = {
 };
 const SLIDE_TXT: Record<string, string> = { "": "+ input", drafted: "drafted", submitted: "submitted", approved: "approved ✓" };
 
-// Gate progression cube — lit cells = approved deliverables (append-only). No fixed "27"
-// count shown; instead we surface the slides completed so far and the slides needed next,
-// each an editable slide input the operator sets to drive the next-gate decision.
+// Gate progression — measured by review-slide progression across gates G1–G7 (no fixed
+// stage-count reference). We surface the review slides completed so far and the slides needed
+// next, each an editable gate-feedback input the operator sets to drive the next-gate decision.
 function GateCube({ p }: { p: Project }) {
-  const filled = cubeFilled(p);
-  const layers = [0, 1, 2];
   const gi = GATES.indexOf(p.gate);
   const nextGate = GATES[gi + 1];                 // undefined once at the final gate
   const review = GATE_REVIEW[nextGate ?? p.gate]; // slides for the next gate (or the final gate)
@@ -1184,30 +1182,31 @@ function GateCube({ p }: { p: Project }) {
     return upd;
   });
   const readyCount = review.deliverables.filter((d) => slideStatus(d.slide) === "approved").length;
+  const allSlides = GATES.flatMap((g) => GATE_REVIEW[g].deliverables.map((d) => d.slide));
+  const approvedSlides = allSlides.filter((s) => slideStatus(s) === "approved").length;
+  const pctSlides = allSlides.length ? Math.round((approvedSlides / allSlides.length) * 100) : 0;
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Gate progression · {p.gate} {GATE_STAGE[p.gate]}</h3>
         <span className="text-[11px] text-slate-500">gate {gi + 1} of {GATES.length} · source of record</span>
       </div>
-      <div className="mt-3 flex gap-4">
-        {layers.map((L) => (
-          <div key={L} className="grid grid-cols-3 gap-1" style={{ transform: "perspective(320px) rotateX(52deg) rotateZ(-45deg)" }}>
-            {Array.from({ length: 9 }).map((_, c) => {
-              const idx = L * 9 + c;
-              const on = idx < filled;
-              return <div key={c} className={`h-5 w-5 rounded-[3px] border ${on ? "bg-cyan-400/80 border-cyan-300" : "bg-slate-800/40 border-slate-700"}`} />;
-            })}
-          </div>
-        ))}
+      {/* Review-slide progression across gates G1–G7 (approved review slides / total) */}
+      <div className="mt-3">
+        <div className="flex items-center justify-between text-[10px] text-slate-500">
+          <span className="uppercase tracking-wider">Review-slide progression · G1–G7</span>
+          <span className="font-mono text-slate-300">{approvedSlides}/{allSlides.length} slides approved</span>
+        </div>
+        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="h-full bg-cyan-400" style={{ width: `${pctSlides}%` }} />
+        </div>
       </div>
-      <div className="mt-2 text-[11px] text-slate-500">Layers = gate bands · lit = approved (append-only)</div>
-      {/* Completed — past slide-deck requirements by gate (the deep-dive summary) */}
+      {/* Completed — review slides by gate (codes only) */}
       <div className="mt-3 border-t border-slate-800 pt-2">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Completed · past slide requirements by gate</div>
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">Completed · review slides by gate</div>
         <div className="mt-1 flex flex-wrap gap-1">
           {GATES.slice(0, gi + 1).map((g) => (
-            <span key={g} className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-300" title={GATE_REVIEW[g].deliverables.map((d) => `${d.slide} ${d.name}`).join(" · ")}>
+            <span key={g} className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-300" title={`${g} review slides: ${GATE_REVIEW[g].deliverables.map((d) => d.slide).join(", ")}`}>
               {g} {GATE_STAGE[g]} ✓ <span className="text-slate-500">{GATE_REVIEW[g].deliverables.map((d) => d.slide).join("·")}</span>
             </span>
           ))}
@@ -1227,19 +1226,13 @@ function GateCube({ p }: { p: Project }) {
             return (
               <li key={d.slide} className="flex items-center gap-2 text-[11px]">
                 <span className="font-mono text-slate-500 w-10 shrink-0">{d.slide}</span>
-                <span className={`flex-1 truncate ${d.priority ? "text-amber-300 font-medium" : "text-slate-200"}`} title={`${d.name} · ${d.summary}`}>{d.name}{d.priority === 3 ? " ★3rd" : ""}</span>
-                <button onClick={() => cycleSlide(d.slide)} title="Cycle slide input status"
+                <span className="flex-1 truncate text-slate-200">Gate {nextGate ?? p.gate} review slide</span>
+                <button onClick={() => cycleSlide(d.slide)} title="Cycle gate-feedback status"
                   className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
               </li>
             );
           })}
         </ul>
-        {review.mustHave.length > 0 && (
-          <div className="mt-1.5 text-[11px]"><span className="text-emerald-400 font-medium">Must have:</span> <span className="text-slate-400">{review.mustHave.join(" · ")}</span></div>
-        )}
-        {review.recommended.length > 0 && (
-          <div className="mt-0.5 text-[11px]"><span className="text-slate-500 font-medium">Recommended:</span> <span className="text-slate-600">{review.recommended.join(" · ")}</span></div>
-        )}
       </div>
     </div>
   );
@@ -1387,8 +1380,8 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                   <tr onClick={() => toggle(req.id)} className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 ${isOpen ? "bg-slate-800/40" : ""}`} title="Expand into actual detail">
                     <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{dispReqId(req.id)}</td>
                     <td className="px-2 py-1.5">
-                      <div className="text-[13px] text-slate-200 leading-tight">{req.title}</div>
-                      <div className="text-[10px] text-slate-500"><span className="font-mono text-cyan-400/80">Gate {req.earliestGate}</span> · {req.verification}</div>
+                      <div className="text-[13px] text-slate-200 leading-tight">Gate {req.earliestGate} review slide</div>
+                      <div className="text-[10px] text-slate-500"><span className="font-mono text-cyan-400/80">Gate {req.earliestGate}</span> · gate review</div>
                     </td>
                     <td className="px-2 py-1.5 text-center text-[11px] tabular-nums text-slate-400">±{Math.round(req.band * 100)}%</td>
                     {GATES.map((g, gi) => {
@@ -1419,9 +1412,9 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                               <span className="tabular-nums text-slate-100">{v}</span>
                             </span>
                           ))}
-                          {detail.length === 0 && <span className="text-slate-500">{req.verification} · required by {req.earliestGate} · ±{Math.round(req.band * 100)}% band · {REQ_STATUS_LABEL[status]}</span>}
+                          {detail.length === 0 && <span className="text-slate-500">Reviewed at {req.earliestGate} · ±{Math.round(req.band * 100)}% band · {REQ_STATUS_LABEL[status]}</span>}
                         </div>
-                        <div className="mt-2 text-[10px] text-slate-500">Verification: {req.verification} · first required at {req.earliestGate} · figures derived from the live project model (same source as the rack, growth model, and metric cards).</div>
+                        <div className="mt-2 text-[10px] text-slate-500">Reviewed at Gate {req.earliestGate} · figures derived from the live project model (same source as the rack, growth model, and metric cards).</div>
                       </td>
                     </tr>
                   )}

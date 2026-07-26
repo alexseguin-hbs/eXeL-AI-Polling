@@ -126,8 +126,6 @@ export const irrPct = (p: Project) => {
   const r = npvM(p) / Math.max(0.05, p.nreK / 1000);
   return Math.max(-20, Math.min(90, Math.round(8 + r * 6)));
 };
-// 27-cell gate cube fill (CRS-79/80): deliverables approved so far, by gate progression.
-export const cubeFilled = (p: Project) => Math.round((GATES.indexOf(p.gate) + 1) / GATES.length * 27);
 
 // Project brief — AMTS One-Page-Summary structure (Needs · Outcomes · Solution · Evidence).
 // Concise, drone/ISR/autonomy-themed per Intelligent Adaptation · Operational Synergy ·
