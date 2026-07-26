@@ -910,14 +910,38 @@ function Band({ label, value, lo, hi }: { label: string; value: string; lo: stri
   );
 }
 
+// S# slide inputs — per-project, per-slide status the operator sets in-tool (decision input).
+// Cycles Not-started → Drafted → Submitted → Approved; persisted; drives the next-gate readiness.
+const SLIDE_KEY = "innovation-slides";
+const SLIDE_STATES = ["", "drafted", "submitted", "approved"] as const;
+const SLIDE_PILL: Record<string, string> = {
+  "": "border-slate-700 text-slate-500 hover:bg-slate-800",
+  drafted: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+  submitted: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+  approved: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+};
+const SLIDE_TXT: Record<string, string> = { "": "+ input", drafted: "drafted", submitted: "submitted", approved: "approved ✓" };
+
 // Gate progression cube — lit cells = approved deliverables (append-only). No fixed "27"
-// count shown; instead we surface the slides completed so far and the slides needed next.
+// count shown; instead we surface the slides completed so far and the slides needed next,
+// each an editable slide input the operator sets to drive the next-gate decision.
 function GateCube({ p }: { p: Project }) {
   const filled = cubeFilled(p);
   const layers = [0, 1, 2];
   const gi = GATES.indexOf(p.gate);
   const nextGate = GATES[gi + 1];                 // undefined once at the final gate
   const review = GATE_REVIEW[nextGate ?? p.gate]; // slides for the next gate (or the final gate)
+  const [slides, setSlides] = useState<Record<string, string>>({});
+  useEffect(() => { try { setSlides(JSON.parse(localStorage.getItem(SLIDE_KEY) || "{}")); } catch { /* none */ } }, []);
+  const slideStatus = (s: string) => slides[`${p.id}|${s}`] || "";
+  const cycleSlide = (s: string) => setSlides((prev) => {
+    const k = `${p.id}|${s}`, cur = prev[k] || "";
+    const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
+    const upd = { ...prev, [k]: next };
+    localStorage.setItem(SLIDE_KEY, JSON.stringify(upd));
+    return upd;
+  });
+  const readyCount = review.deliverables.filter((d) => slideStatus(d.slide) === "approved").length;
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex items-center justify-between">
@@ -947,19 +971,26 @@ function GateCube({ p }: { p: Project }) {
           ))}
         </div>
       </div>
-      {/* What's needed for the next gate approval */}
+      {/* What's needed for the next gate approval — each slide is an editable input */}
       <div className="mt-3 border-t border-slate-800 pt-2">
-        <div className="text-[10px] uppercase tracking-wider text-amber-400">
-          {nextGate ? `Slides needed for next gate · ${GATE_STAGE[nextGate]} (${nextGate})` : `Final gate · ${GATE_STAGE[p.gate]} (${p.gate})`}
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] uppercase tracking-wider text-amber-400">
+            {nextGate ? `Slides needed for next gate · ${GATE_STAGE[nextGate]} (${nextGate})` : `Final gate · ${GATE_STAGE[p.gate]} (${p.gate})`}
+          </div>
+          <span className={`text-[10px] font-mono ${readyCount === review.deliverables.length ? "text-emerald-400" : "text-slate-500"}`}>{readyCount}/{review.deliverables.length} approved</span>
         </div>
-        <ul className="mt-1 space-y-0.5">
-          {review.deliverables.map((d) => (
-            <li key={d.slide} className="flex items-baseline gap-2 text-[11px]">
-              <span className="font-mono text-slate-500 w-10 shrink-0">{d.slide}</span>
-              <span className={`text-slate-200 ${d.priority ? "text-amber-300 font-medium" : ""}`}>{d.name}{d.priority === 3 ? " ★3rd" : ""}</span>
-              <span className="text-slate-500">· {d.summary}</span>
-            </li>
-          ))}
+        <ul className="mt-1 space-y-1">
+          {review.deliverables.map((d) => {
+            const st = slideStatus(d.slide);
+            return (
+              <li key={d.slide} className="flex items-center gap-2 text-[11px]">
+                <span className="font-mono text-slate-500 w-10 shrink-0">{d.slide}</span>
+                <span className={`flex-1 truncate ${d.priority ? "text-amber-300 font-medium" : "text-slate-200"}`} title={`${d.name} · ${d.summary}`}>{d.name}{d.priority === 3 ? " ★3rd" : ""}</span>
+                <button onClick={() => cycleSlide(d.slide)} title="Cycle slide input status"
+                  className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
+              </li>
+            );
+          })}
         </ul>
         {review.mustHave.length > 0 && (
           <div className="mt-1.5 text-[11px]"><span className="text-emerald-400 font-medium">Must have:</span> <span className="text-slate-400">{review.mustHave.join(" · ")}</span></div>
