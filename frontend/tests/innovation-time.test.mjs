@@ -189,6 +189,16 @@ import {
   gateVariance, TOLERANCE_LADDER, REQ_SATISFIED, GATES as GATE_G,
 } from "../lib/innovation-data.ts";
 
+// confidence is now a 5-point scale (operator: "5 bullets not 4") — every project 1..5
+ok(DEMO_PROJECTS.every((p) => p.confidence >= 1 && p.confidence <= 5), "model confidence within the 5-point scale");
+ok(DEMO_PROJECTS.some((p) => p.confidence === 5), "top-tier projects reach a full 5/5 confidence");
+
+// the Gate Requirements view surfaces ONLY the S1–S18 slide rows (R-##/DR/TR/IS/DT/DC removed from the tool)
+const sOnly = GATE_REQUIREMENTS.filter((r) => r.type === "S");
+ok(sOnly.length === GATE_G.reduce((a, g) => a + GATE_DELIVERABLES[g].length, 0), "S-slide rows = one per gate deliverable across G1–G7");
+ok(sOnly.every((r) => GATE_G.includes(r.earliestGate)), "every gate slide maps to a gate G1–G7");
+ok(GATE_G.every((g) => sOnly.some((r) => r.earliestGate === g)), "every gate G1–G7 has at least one review slide");
+
 // registry unifies the three sources (§3.1): S-slides + CRS rows + DR/TR/IS/DT/DC derivatives
 ok(GATE_REQUIREMENTS.length >= 25, "unified registry has all requirement rows");
 ok(GATE_REQUIREMENTS.some((r) => r.type === "S") && GATE_REQUIREMENTS.some((r) => r.type === "REQ"), "registry folds S-slides + requirement rows");

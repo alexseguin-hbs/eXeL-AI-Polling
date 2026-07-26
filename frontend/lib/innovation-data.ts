@@ -94,7 +94,7 @@ export interface Project {
   manager: string;
   category: string;
   gate: Gate;                 // last completed gate → derives stage (CRS-56, never user-set)
-  confidence: 1 | 2 | 3 | 4;  // reviewer-set (CRS-38)
+  confidence: 1 | 2 | 3 | 4 | 5;  // reviewer-set model confidence, 5-point scale (CRS-38)
   tech: RiskLevel;            // technical risk → success prob RISK_P[tech]
   comm: RiskLevel;            // commercial risk → success prob RISK_P[comm]
   lob: string;                // line of business (portfolio roll-up + growth-model filter)
@@ -151,7 +151,7 @@ export const PROJECT_BRIEF: Record<string, ProjectBrief> = {
   "PRJ-15": { needs: ["Scale space ISR beyond launch-mass limits", "Sustain the constellation in-situ"], outcomes: ["Self-replicating nodes from space resources", "Persistent, growing sensor mesh"], solution: ["Autonomous fabrication + swarm control", "Ethical / space-debris guardrails"], evidence: ["Concept sims validate self-replication", "Moonshot — high/high risk, G1"] },
 };
 export const briefOf = (p: Project): ProjectBrief =>
-  PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${p.confidence}/4`] };
+  PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${p.confidence}/5`] };
 
 // AMTS Product-Management-Summary exec fields (Functional Leads · COGS/MSRP/Margin ·
 // Customer/Program-of-Record · Franchise Pursuits · Intra-BU dependencies). Derived
@@ -276,17 +276,17 @@ export const availableK = (b: DivisionBudget) => b.totalK - b.allocatedK; // CRS
 export const DEMO_BUDGET: DivisionBudget = { division: "ALL DIVISIONS", totalK: 42000, allocatedK: 6000 };
 
 export const DEMO_PROJECTS: Project[] = [
-  { id: "PRJ-01", name: "SAR Imaging Payload Gen-5", division: "ISR Payloads", lob: "SBU-1", manager: "A. Seguin", category: "New Platform", gate: "G4", confidence: 4, tech: "low", comm: "low", nreK: 8200, fullRev10yM: 210, doNothing10yM: 60, firstRevenue: "2026-Q4", criticalPath: true, humanLoad: 0.62, ai: 0.4, si: 0.3, hi: 0.3, predictions: 41 },
+  { id: "PRJ-01", name: "SAR Imaging Payload Gen-5", division: "ISR Payloads", lob: "SBU-1", manager: "A. Seguin", category: "New Platform", gate: "G4", confidence: 5, tech: "low", comm: "low", nreK: 8200, fullRev10yM: 210, doNothing10yM: 60, firstRevenue: "2026-Q4", criticalPath: true, humanLoad: 0.62, ai: 0.4, si: 0.3, hi: 0.3, predictions: 41 },
   { id: "PRJ-02", name: "Hivemind Swarm Fusion AI", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5400, fullRev10yM: 155, doNothing10yM: 30, firstRevenue: "2027-Q1", criticalPath: true, humanLoad: 0.74, ai: 0.55, si: 0.25, hi: 0.2, predictions: 33 },
-  { id: "PRJ-03", name: "Maritime ISR Drone Radar", division: "Maritime ISR", lob: "SBU-1", manager: "M. Devlin", category: "Sustaining+", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 6100, fullRev10yM: 140, doNothing10yM: 55, firstRevenue: "2026-Q3", criticalPath: false, humanLoad: 0.48, ai: 0.3, si: 0.35, hi: 0.35, predictions: 22 },
+  { id: "PRJ-03", name: "Maritime ISR Drone Radar", division: "Maritime ISR", lob: "SBU-1", manager: "M. Devlin", category: "Sustaining+", gate: "G5", confidence: 5, tech: "low", comm: "low", nreK: 6100, fullRev10yM: 140, doNothing10yM: 55, firstRevenue: "2026-Q3", criticalPath: false, humanLoad: 0.48, ai: 0.3, si: 0.35, hi: 0.35, predictions: 22 },
   { id: "PRJ-04", name: "Counter-UAS Loitering Effector", division: "Effects", lob: "SBU-1", manager: "T. Cho", category: "New Platform", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 9300, fullRev10yM: 260, doNothing10yM: 20, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.81, ai: 0.35, si: 0.3, hi: 0.35, predictions: 57 },
   { id: "PRJ-05", name: "Swarm Command & Control Cloud", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G4", confidence: 3, tech: "med", comm: "low", nreK: 4200, fullRev10yM: 180, doNothing10yM: 25, firstRevenue: "2026-Q4", criticalPath: false, humanLoad: 0.55, ai: 0.6, si: 0.25, hi: 0.15, predictions: 29 },
   { id: "PRJ-06", name: "Handheld Multispectral ISR Sensor", division: "Handheld", lob: "SBU-2", manager: "P. Nilsson", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 3600, fullRev10yM: 95, doNothing10yM: 40, firstRevenue: "2027-Q2", criticalPath: false, humanLoad: 0.44, ai: 0.3, si: 0.3, hi: 0.4, predictions: 18 },
   { id: "PRJ-07", name: "Space-Based SAR Constellation", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 12500, fullRev10yM: 340, doNothing10yM: 10, firstRevenue: "2029-Q1", criticalPath: true, humanLoad: 0.7, ai: 0.45, si: 0.3, hi: 0.25, predictions: 63 },
-  { id: "PRJ-08", name: "Ground Control Station Modernization", division: "Ground Systems", lob: "SBU-2", manager: "S. Haddad", category: "Sustaining", gate: "G6", confidence: 4, tech: "low", comm: "low", nreK: 2100, fullRev10yM: 70, doNothing10yM: 45, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.38, ai: 0.25, si: 0.4, hi: 0.35, predictions: 11 },
+  { id: "PRJ-08", name: "Ground Control Station Modernization", division: "Ground Systems", lob: "SBU-2", manager: "S. Haddad", category: "Sustaining", gate: "G6", confidence: 5, tech: "low", comm: "low", nreK: 2100, fullRev10yM: 70, doNothing10yM: 45, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.38, ai: 0.25, si: 0.4, hi: 0.35, predictions: 11 },
   { id: "PRJ-09", name: "EO/IR Gimbal Sensor Next-Gen", division: "Sensors", lob: "SBU-3", manager: "D. Park", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 4800, fullRev10yM: 120, doNothing10yM: 38, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.6, ai: 0.3, si: 0.35, hi: 0.35, predictions: 26 },
   { id: "PRJ-10", name: "Autonomy SDK & Swarm Marketplace", division: "Developer", lob: "SBU-2", manager: "R. Kaur", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 3900, fullRev10yM: 130, doNothing10yM: 15, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.65, si: 0.2, hi: 0.15, predictions: 34 },
-  { id: "PRJ-11", name: "Legacy ISR Sensor EOL Bridge", division: "Sensors", lob: "SBU-3", manager: "M. Devlin", category: "Phase-out", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 1400, fullRev10yM: 40, doNothing10yM: 35, firstRevenue: "2026-Q1", criticalPath: false, humanLoad: 0.3, ai: 0.2, si: 0.4, hi: 0.4, predictions: 8 },
+  { id: "PRJ-11", name: "Legacy ISR Sensor EOL Bridge", division: "Sensors", lob: "SBU-3", manager: "M. Devlin", category: "Phase-out", gate: "G5", confidence: 5, tech: "low", comm: "low", nreK: 1400, fullRev10yM: 40, doNothing10yM: 35, firstRevenue: "2026-Q1", criticalPath: false, humanLoad: 0.3, ai: 0.2, si: 0.4, hi: 0.4, predictions: 8 },
   { id: "PRJ-12", name: "Resilient PNT-Denied Datalink", division: "Comms", lob: "SBU-3", manager: "T. Cho", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 7600, fullRev10yM: 300, doNothing10yM: 5, firstRevenue: "2030-Q1", criticalPath: true, humanLoad: 0.68, ai: 0.5, si: 0.3, hi: 0.2, predictions: 72 },
   // Forward-looking flexibility (AI/ML · VR/XR · MUM-T · autonomous space) — Intelligent
   // Adaptation · Operational Synergy · Precision Execution.
@@ -903,7 +903,7 @@ const RS_REQUIREMENTS: GateRequirement[] = [
   { id: "REQ-50", parentId: "REQ-50", type: "REQ", title: "Step 2 Do-Nothing scenario entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Required before funding decision" },
   { id: "REQ-51", parentId: "REQ-50", type: "REQ", title: "Step 3 EOL / Phase-Out plan entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Phase-out ≤ 3 yrs, terminal-zero check" },
   { id: "REQ-52", parentId: "REQ-52", type: "REQ", title: "Incremental Revenue reconciled with Finance", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Finance reviewer sign-off" },
-  { id: "REQ-38", parentId: "REQ-38", type: "REQ", title: "Model Confidence Level assigned (1–4)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Named reviewers required" },
+  { id: "REQ-38", parentId: "REQ-38", type: "REQ", title: "Model Confidence Level assigned (1–5)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Named reviewers required" },
   { id: "REQ-53", parentId: "REQ-53", type: "REQ", title: "Technical + Commercial risk rated", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Drives probability weighting" },
   { id: "REQ-54", parentId: "REQ-54", type: "REQ", title: "Strategic Initiative assigned (or None + rationale)", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Single-select from initiative list" },
   { id: "REQ-55", parentId: "REQ-55", type: "REQ", title: "Value Ladder position + impact", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "PRB review" },

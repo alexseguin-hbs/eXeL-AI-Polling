@@ -21,7 +21,7 @@ import {
   scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW, rackByLevel, projectRevSeries,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
-  TOLERANCE_LADDER, REQ_TYPE_LABEL, REQ_STATUS_LABEL,
+  TOLERANCE_LADDER, REQ_STATUS_LABEL,
   metaOf, financialMetrics, financialsOverview, execSummaryBullets,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
@@ -556,7 +556,7 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
           </div>
         </td>
         <td className="px-2 py-2 text-center"><span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono">{p.gate}</span></td>
-        <td className="px-2 py-2 text-center tabular-nums">{"●".repeat(p.confidence)}<span className="text-slate-700">{"●".repeat(4 - p.confidence)}</span></td>
+        <td className="px-2 py-2 text-center tabular-nums" title={`Model confidence ${p.confidence}/5`}>{"●".repeat(p.confidence)}<span className="text-slate-700">{"●".repeat(5 - p.confidence)}</span></td>
         <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(p.nreK)}</td>
         <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={weightedRevM(p)} incremental={incrementalRevM(p)} /></td>
         <td className={`px-2 py-2 text-right tabular-nums font-semibold ${npvM(p) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(npvM(p))}</td>
@@ -1257,7 +1257,7 @@ function reqDetailRows(req: { id: string; type: string }, p: Project): [string, 
     case "REQ-50": rows.push(["Do-Nothing 10-yr", usd(p.doNothing10yM)], ["Note", "price + volume decline; may not reach 0"]); break;
     case "REQ-51": rows.push(["Existing line", usd(p.doNothing10yM)], ["Rule", "phase-out ≤ 3 yrs → terminal zero"]); break;
     case "REQ-52": rows.push(["Incremental", usd(incrementalRevM(p))], ["Probability-weighted", usd(weightedRevM(p))], ["Upside (at-risk)", `${Math.round(upsideFraction(p) * 100)}%`]); break;
-    case "REQ-38": rows.push(["Model confidence", `${p.confidence}/4`]); break;
+    case "REQ-38": rows.push(["Model confidence", `${p.confidence}/5`]); break;
     case "REQ-53": rows.push(["Technical risk", RISK_LABEL[p.tech]], ["Commercial risk", RISK_LABEL[p.comm]], ["Contingency", `+${Math.round(riskContingency(p) * 100)}%`], ["NPV", usd(fm.npvM)], ["IRR", `${fm.irrPct}%`]); break;
     case "REQ-54": rows.push(["Strategic pillar", m.initiative]); break;
     case "REQ-55": rows.push(["Value ladder", m.valueLadder], ["Impact", m.valueImpact], ["Competitive", m.competitive]); break;
@@ -1301,6 +1301,21 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
   const gateIdx = GATES.indexOf(sel.gate);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const toggle = (id: string) => setOpen((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  // The registry surfaces ONLY the S1–S18 gate review slides (one per gate G1–G7). The platform's
+  // own requirement rows (R-##) and design-traceability items are tracked on the platform, not in
+  // this PdM/PgM gate tool. Per-slide gate feedback is set here and shares the SLIDE_KEY store with
+  // the Gate-progression cube, so a slide's status stays in sync across both surfaces.
+  const sRows = useMemo(() => GATE_REQUIREMENTS.filter((r) => r.type === "S"), []);
+  const [slides, setSlides] = useState<Record<string, string>>({});
+  useEffect(() => { try { setSlides(JSON.parse(lsGet(SLIDE_KEY) || "{}")); } catch { /* none */ } }, []);
+  const slideStatus = (id: string) => slides[`${sel.id}|${id}`] || "";
+  const cycleSlide = (id: string) => setSlides((prev) => {
+    const k = `${sel.id}|${id}`, cur = prev[k] || "";
+    const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
+    const upd = { ...prev, [k]: next };
+    lsSet(SLIDE_KEY, JSON.stringify(upd));
+    return upd;
+  });
   return (
     <div className="space-y-4">
       {/* Project selector + context */}
@@ -1346,26 +1361,23 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
       {/* §3.1 Requirements × gates matrix — rows = requirements, columns = G1–G7 */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
-          <h2 className="text-sm font-semibold">Requirement registry · {GATE_REQUIREMENTS.length} rows</h2>
-          <div className="flex flex-wrap gap-2 text-[10px]">
-            {(["S", "REQ", "DR", "TR", "IS", "DT", "DC"] as const).map((t) => (
-              <span key={t} className={REQ_TYPE_CHIP[t]}>{t === "REQ" ? REQ_TYPE_LABEL[t] : <>{t}<span className="text-slate-600"> {REQ_TYPE_LABEL[t]}</span></>}</span>
-            ))}
-          </div>
+          <h2 className="text-sm font-semibold">Gate review slides · S1–S18 · {sRows.length} across G1–G7</h2>
+          <div className="text-[10px] text-slate-500">Each slide is reviewed at its gate — set your gate feedback per slide.</div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
-                <th className="px-3 py-2 text-left font-medium">ID</th>
-                <th className="px-2 py-2 text-left font-medium">Requirement</th>
+                <th className="px-3 py-2 text-left font-medium">Slide</th>
+                <th className="px-2 py-2 text-left font-medium">Review deliverable</th>
                 <th className="px-2 py-2 text-center font-medium">Band</th>
                 {GATES.map((g) => <th key={g} className="px-1.5 py-2 text-center font-mono font-medium">{g}</th>)}
                 <th className="px-2 py-2 text-right font-medium">Status</th>
+                <th className="px-2 py-2 text-right font-medium">Gate feedback</th>
               </tr>
             </thead>
             <tbody>
-              {GATE_REQUIREMENTS.map((req) => {
+              {sRows.map((req) => {
                 const status = requirementStatus(req, sel);
                 const earliest = GATES.indexOf(req.earliestGate);
                 const isOpen = open.has(req.id);
@@ -1376,7 +1388,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                     <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{dispReqId(req.id)}</td>
                     <td className="px-2 py-1.5">
                       <div className="text-[13px] text-slate-200 leading-tight">{req.title}</div>
-                      <div className="text-[10px] text-slate-500">{req.verification}{req.parentId && req.parentId !== req.id ? ` · ↳ ${dispReqId(req.parentId)}` : ""}</div>
+                      <div className="text-[10px] text-slate-500"><span className="font-mono text-cyan-400/80">Gate {req.earliestGate}</span> · {req.verification}</div>
                     </td>
                     <td className="px-2 py-1.5 text-center text-[11px] tabular-nums text-slate-400">±{Math.round(req.band * 100)}%</td>
                     {GATES.map((g, gi) => {
@@ -1389,10 +1401,16 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                     <td className="px-2 py-1.5 text-right">
                       <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${REQ_STATUS_CHIP[status]}`}>{REQ_STATUS_LABEL[status]}</span>
                     </td>
+                    <td className="px-2 py-1.5 text-right">
+                      {(() => { const st = slideStatus(req.id); return (
+                        <button onClick={(e) => { e.stopPropagation(); cycleSlide(req.id); }} title={`Gate ${req.earliestGate} feedback for ${req.id} — click to advance`}
+                          className={`rounded border px-1.5 py-0.5 text-[10px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
+                      ); })()}
+                    </td>
                   </tr>
                   {isOpen && (
                     <tr className="border-b border-slate-900 bg-[#0b0f14]">
-                      <td colSpan={3 + GATES.length + 1} className="px-4 py-3">
+                      <td colSpan={3 + GATES.length + 2} className="px-4 py-3">
                         <div className="text-[10px] uppercase tracking-wider text-cyan-400">Actual detail · {sel.name}</div>
                         <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1.5 text-[11px]">
                           {detail.map(([l, v]) => (
