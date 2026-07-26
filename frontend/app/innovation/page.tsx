@@ -112,6 +112,16 @@ function Board() {
   // Master data (BU/SBU/Alpha…) for the edit + new-idea dropdowns; reloads when leaving Setup.
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
   useEffect(() => { setSetup(loadBizSetup()); }, [view]);
+  // Remembered defaults — a returning VP lands on the VP lens, not a PM view (usability).
+  useEffect(() => {
+    const sp = localStorage.getItem("innovation-persona") as Persona | null;
+    const sc = localStorage.getItem("innovation-cadence") as "Q" | "M" | "W" | null;
+    if (sc) setCadence(sc);
+    const pp = PERSONAS.find((x) => x.key === sp);
+    if (pp) { setPersona(pp.key); setView(pp.view); if (pp.level) setStackLevel(pp.level); }
+  }, []);
+  useEffect(() => { localStorage.setItem("innovation-persona", persona); }, [persona]);
+  useEffect(() => { localStorage.setItem("innovation-cadence", cadence); }, [cadence]);
   // Submit a new idea → a fresh Project seeded from the master data, opened for edit.
   const submitIdea = () => {
     const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
@@ -784,6 +794,7 @@ function ProjectDetail({ p, risks, setup, onEdit, onApprove }: {
           </div>
         ))}
       </div>
+      <p className="mt-1 text-[10px] text-slate-500">Payback &amp; IRR are model estimates · NPV discounted ~5%/yr over 10 yr · margins post-overhead — confirm with Finance before gate sign-off.</p>
       {/* Risk-weighted revenue — green (probability-weighted) + orange (at-risk upside) per deck */}
       <RiskWeightedBar p={p} />
       {/* Per-project financial projection — aging line decline + new-product ramp (operator methodology) */}
