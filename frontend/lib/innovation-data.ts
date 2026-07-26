@@ -297,6 +297,12 @@ export const DEMO_PROJECTS: Project[] = [
   { id: "PRJ-16", name: "SAR Imaging Payload Variant-B", division: "ISR Payloads", lob: "SBU-1", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 3, tech: "med", comm: "low", nreK: 4600, fullRev10yM: 130, doNothing10yM: 20, firstRevenue: "2027-Q3", criticalPath: false, humanLoad: 0.5, ai: 0.4, si: 0.3, hi: 0.3, predictions: 21 },
   { id: "PRJ-17", name: "Swarm ISR Sensor Pod", division: "Autonomy", lob: "SBU-2", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 3400, fullRev10yM: 100, doNothing10yM: 14, firstRevenue: "2027-Q1", criticalPath: false, humanLoad: 0.55, ai: 0.5, si: 0.3, hi: 0.2, predictions: 17 },
   { id: "PRJ-18", name: "Space SAR Ground Segment", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G2", confidence: 2, tech: "med", comm: "med", nreK: 5200, fullRev10yM: 160, doNothing10yM: 12, firstRevenue: "2028-Q4", criticalPath: false, humanLoad: 0.52, ai: 0.4, si: 0.3, hi: 0.3, predictions: 24 },
+  // UAS Situational-Awareness teaming opportunities (Medium + Large UAS) — from the UAS SA paper:
+  // XR pilot training/mastery (LVC), AI dogfight/RL agents, commander decision-speed SA, Group 1/3/5 teaming.
+  { id: "PRJ-19", name: "XR Pilot Training & Mastery Suite (LVC)", division: "Training AI", lob: "SBU-2", manager: "S. Haddad", category: "New Product", gate: "G2", confidence: 3, tech: "med", comm: "low", nreK: 4200, fullRev10yM: 145, doNothing10yM: 12, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.5, si: 0.3, hi: 0.2, predictions: 20 },
+  { id: "PRJ-20", name: "AI Dogfight RL Agent (MUM-T)", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 9800, fullRev10yM: 320, doNothing10yM: 5, firstRevenue: "2029-Q2", criticalPath: true, humanLoad: 0.72, ai: 0.62, si: 0.23, hi: 0.15, predictions: 58 },
+  { id: "PRJ-21", name: "Commander Decision-Speed SA Engine", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5200, fullRev10yM: 190, doNothing10yM: 20, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.58, ai: 0.6, si: 0.25, hi: 0.15, predictions: 33 },
+  { id: "PRJ-22", name: "Group 1/3/5 Multi-UAS Teaming Fabric", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 8600, fullRev10yM: 300, doNothing10yM: 8, firstRevenue: "2028-Q4", criticalPath: true, humanLoad: 0.68, ai: 0.55, si: 0.3, hi: 0.15, predictions: 44 },
 ];
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
@@ -463,6 +469,10 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-16": { bu: "MS", sbu: "MSP", pgroup: "AB1", alpha: "AA1D", product: "70016", material: "70016-001" },
   "PRJ-17": { bu: "DS", sbu: "DSI", pgroup: "CD1", alpha: "CA2X", product: "70017", material: "70017-001" },
   "PRJ-18": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1S", product: "70018", material: "70018-001" },
+  "PRJ-19": { bu: "DS", sbu: "DSC", pgroup: "DC2", alpha: "DC2V", product: "70019", material: "70019-001" },
+  "PRJ-20": { bu: "DS", sbu: "DSE", pgroup: "DE2", alpha: "DE2M", product: "70020", material: "70020-001" },
+  "PRJ-21": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1C", product: "70021", material: "70021-001" },
+  "PRJ-22": { bu: "DS", sbu: "DSE", pgroup: "DE1", alpha: "DE1W", product: "70022", material: "70022-001" },
 };
 export const hierOf = (p: Project): HierPath => {
   const base = PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
