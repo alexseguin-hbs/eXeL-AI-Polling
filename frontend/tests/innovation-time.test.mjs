@@ -278,5 +278,15 @@ ok(riskContingency(rcHigh) > riskContingency(rcLow), "risk contingency rises wit
 ok(riskAdjustedNreK(rcLow) >= 1000 && riskAdjustedNreK(rcHigh) > riskAdjustedNreK(rcLow), "risk-adjusted cost grows with risk");
 ok(riskAdjustedWorkdays(rcHigh) > riskAdjustedWorkdays(rcLow), "risk-adjusted schedule longer for riskier project");
 
+/* ---------------- Intelligence Load by strategic pillar / hierarchy level ---------------- */
+import { intelligenceLoad } from "../lib/innovation-data.ts";
+const ilPillar = intelligenceLoad(DEMO_PROJECTS, (p) => metaOf(p).initiative);
+ok(ilPillar.length >= 1 && ilPillar.length <= STRATEGIC_INITIATIVES.length, "intelligence load groups into strategic-pillar categories");
+ok(ilPillar.every((r) => r.ai >= 0 && r.si >= 0 && r.hi >= 0 && r.count >= 1), "each pillar row carries mean AI/SI/HI + count");
+ok(ilPillar.every((r) => Math.abs(r.ai + r.si + r.hi - 1) < 0.2), "AI+SI+HI mix ≈ 1 per group");
+ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).bu).length === 3, "intelligence load by BU → 3 rows");
+ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).sbu).length === 8, "intelligence load by SBU → 8 rows");
+ok(intelligenceLoad(DEMO_PROJECTS, (p) => p.id).length === DEMO_PROJECTS.length, "intelligence load by project → one row each");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

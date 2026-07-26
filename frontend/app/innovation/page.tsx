@@ -17,7 +17,7 @@ import {
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
-  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
+  pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW, rackByLevel, projectRevSeries,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
@@ -1842,9 +1842,51 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
         </div>
       </DashCard>
 
+      {/* Intelligence Load — AI·SI·HI by strategic pillar / BU / SBU / Alpha Group / Project */}
+      <IntelligenceLoadPanel projects={projects} />
+
       {/* Dependencies — Summary table + Constellation graph (FLIR §4) */}
       <DependencyPanel projects={projects} deps={DEMO_DEPS} onSelect={onSelect} />
     </div>
+  );
+}
+
+// Intelligence Load (AI · SI · HI) by strategic pillar (new pillar categories) — also viewable
+// per BU / SBU / Alpha Group / Project. AI cyan · SI amber · HI violet; humanLoad burnout flag.
+function IntelligenceLoadPanel({ projects }: { projects: Project[] }) {
+  const [group, setGroup] = useState<"pillar" | "bu" | "sbu" | "pgroup" | "project">("pillar");
+  const keyFn = (p: Project) => group === "pillar" ? metaOf(p).initiative : group === "project" ? p.name : hierOf(p)[group as HierKey];
+  const rows = intelligenceLoad(projects, keyFn);
+  const GROUPS = [["pillar", "Strategic Pillar"], ["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Group"], ["project", "Project"]] as const;
+  return (
+    <DashCard title="Intelligence Load · AI · SI · HI" tag="by category">
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">Group by</span>
+        <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700">
+          {GROUPS.map(([g, lbl]) => (
+            <button key={g} onClick={() => setGroup(g)}
+              className={`px-2 py-1 ${group === g ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          ))}
+        </div>
+        <span className="ml-auto text-[10px]"><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-cyan-500" />AI <i className="mx-1 inline-block h-2 w-2 rounded-sm bg-amber-400" />SI <i className="mx-1 inline-block h-2 w-2 rounded-sm bg-violet-400" />HI</span>
+      </div>
+      <div className="space-y-2">
+        {rows.map((r) => (
+          <div key={r.name}>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-200 truncate">{r.name} <span className="text-slate-500">· {r.count}</span></span>
+              <span className="font-mono text-slate-400">AI {Math.round(r.ai * 100)} · SI {Math.round(r.si * 100)} · HI {Math.round(r.hi * 100)}{r.humanLoad > 0.7 ? " · ⚠ burnout" : ""}</span>
+            </div>
+            <div className="mt-1 flex h-3 overflow-hidden rounded-full bg-[#0b0f14]">
+              <span className="bg-cyan-500" style={{ width: `${r.ai * 100}%` }} />
+              <span className="bg-amber-400" style={{ width: `${r.si * 100}%` }} />
+              <span className="bg-violet-400" style={{ width: `${r.hi * 100}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[10px] text-slate-500">Pillar-specific categories by default; switch to BU / SBU / Alpha Group / Project. Mix is the mean across the group; ⚠ flags mean human load &gt; 70%.</p>
+    </DashCard>
   );
 }
 

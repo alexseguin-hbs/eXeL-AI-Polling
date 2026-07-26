@@ -611,6 +611,23 @@ export function spendBy(projects: Project[], pick: (p: Project) => string): Spen
 export const spendByBU = (ps: Project[]) => spendBy(ps, (p) => hierOf(p).bu);
 export const spendByCategory = (ps: Project[]) => spendBy(ps, (p) => p.category);
 
+// Intelligence Load (AI · SI · HI) aggregated by any category key — default is the strategic
+// pillar (new pillar-specific categories), but the same rollup serves BU / SBU / Alpha Group /
+// Project. Values are the mean mix across the group (each project's ai+si+hi ≈ 1).
+export interface IntelLoadRow { name: string; ai: number; si: number; hi: number; count: number; humanLoad: number }
+export function intelligenceLoad(projects: Project[], key: (p: Project) => string): IntelLoadRow[] {
+  const map = new Map<string, { ai: number; si: number; hi: number; hl: number; count: number }>();
+  for (const p of projects) {
+    const k = key(p) || "—";
+    const r = map.get(k) ?? { ai: 0, si: 0, hi: 0, hl: 0, count: 0 };
+    r.ai += p.ai; r.si += p.si; r.hi += p.hi; r.hl += p.humanLoad; r.count += 1;
+    map.set(k, r);
+  }
+  return Array.from(map.entries())
+    .map(([name, r]) => ({ name, ai: r.ai / r.count, si: r.si / r.count, hi: r.hi / r.count, humanLoad: r.hl / r.count, count: r.count }))
+    .sort((a, b) => b.count - a.count);
+}
+
 // R&D efficiency = portfolio NPV per $ of NRE (10-yr op contribution intensity).
 export const rdEfficiency = (ps: Project[]) => {
   const nreM = ps.reduce((s, p) => s + p.nreK, 0) / 1000;
