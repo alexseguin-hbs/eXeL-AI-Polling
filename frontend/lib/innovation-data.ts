@@ -756,6 +756,20 @@ export function metaOf(p: Project): ProjectMeta {
   return { initiative, targetMarket: customerOf(p), valueLadder, valueImpact, competitive };
 }
 
+// Executive-slide two-bullet Project Summary (AMTS overview one-pager parity — IMG_7825/7826).
+// Exactly TWO bullets derived from the live model: (1) what the project IS, (2) the dated
+// business case. Pure + deterministic so the executive slide never hand-enters prose.
+const execUsd = (m: number) => `$${m.toFixed(1)}M`;
+export function execSummaryBullets(p: Project): [string, string] {
+  const m = metaOf(p);
+  const brief = briefOf(p);
+  const solution = brief.solution[0] ?? `develop ${p.name}`;
+  const captured = Math.round(pSuccess(p) * 100);
+  const what = `${p.name} is a ${m.valueLadder}-tier ${p.category} in ${p.division}, on the ${m.initiative} pillar — ${solution}.`;
+  const caseLine = `By ${p.firstRevenue} it targets ${execUsd(incrementalRevM(p))} incremental 10-yr revenue (${captured}% probability-weighted = ${execUsd(weightedRevM(p))}), ${execUsd(npvM(p))} NPV at ${irrPct(p)}% IRR — now at ${GATE_STAGE[p.gate]} (${p.gate}).`;
+  return [what, caseLine];
+}
+
 // ── PROJECT METRICS card set (FLIR deck §2.4 / IMG_7843 "Project Metrics") — 12 metrics ────
 // NPV · REV/NRE · IRR · Gross Margin · Payback · 10-Yr Vol · 10-Yr Rev · 10-Yr Gross Profit ·
 // Current-Year Op Expense · Total R&D Op Expense · Capital · Man-Hours Estimate. Each derived

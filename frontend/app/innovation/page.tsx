@@ -22,7 +22,7 @@ import {
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_TYPE_LABEL, REQ_STATUS_LABEL,
-  metaOf, financialMetrics, financialsOverview,
+  metaOf, financialMetrics, financialsOverview, execSummaryBullets,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
@@ -685,6 +685,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   onApprove: (kind: "approve" | "reject", by: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const [showExec, setShowExec] = useState(false);
   const [draft, setDraft] = useState<Partial<Project>>({});
   useEffect(() => { setDraft({}); setEditing(false); }, [p.id]);
   const dv = <K extends keyof Project>(k: K): Project[K] => (draft[k] !== undefined ? (draft[k] as Project[K]) : p[k]);
@@ -720,6 +721,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
           <div className="text-[11px] text-slate-500">{p.division} · {p.manager} · {GATE_STAGE[p.gate]} ({p.gate}) · 1st rev {p.firstRevenue}</div>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowExec((s) => !s)} title="Expandable executive slide (2-screen swipe overview)"
+            className={`rounded border px-2 py-0.5 text-[11px] ${showExec ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>▤ Exec slide</button>
           <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{Math.round(band * 100)}% band</span>
           {onToggleMax && (
             <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize deep-dive"}
@@ -739,6 +742,9 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
         ))}
         <button onClick={() => onApprove("reject", "you")} className="rounded border border-rose-600/40 px-1.5 py-0.5 text-rose-300 hover:bg-rose-500/10">Request changes</button>
       </div>
+
+      {/* Expandable executive slide — 2-screen swipe overview (AMTS best-in-class one-pager) */}
+      {showExec && <div className="mt-3"><ExecutiveSlide p={p} risks={risks} /></div>}
 
       {/* Editable key fields */}
       {editing && (
@@ -850,6 +856,197 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
             </ul>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Executive slide — an expandable, best-in-class overview one-pager (AMTS parity, IMG_7825/7826).
+// Two swipeable screens: ① OVERVIEW (two-bullet summary · strategy/value · market) → right-swipe →
+// ② DETAIL (objectives · dependencies · critical issues & risks · cost actuals-vs-forecast). Every
+// number is sourced from the SAME live model that drives the rack — one platform for presentation
+// + analysis. Swipe on touch, or use ‹ › / the dots on desktop.
+function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
+  const [screen, setScreen] = useState(0);            // 0 = overview · 1 = detail
+  const touchX = React.useRef<number | null>(null);
+  const go = (n: number) => setScreen(Math.max(0, Math.min(1, n)));
+  const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    if (Math.abs(dx) > 40) go(screen + (dx < 0 ? 1 : -1)); // swipe left → next, right → prev
+    touchX.current = null;
+  };
+
+  const bullets = execSummaryBullets(p);
+  const m = metaOf(p), ex = execOf(p), brief = briefOf(p), fm = financialMetrics(p), h = hierOf(p);
+  const captured = Math.round(pSuccess(p) * 100);
+  const roll = riskRollup(risks, p.id);
+  const myRisks = risks.filter((r) => r.projectId === p.id).sort((a, b) => riskPriority(b) - riskPriority(a));
+  const deps = dependsOn(DEMO_DEPS, p.id), dependents = dependentsOf(DEMO_DEPS, p.id);
+  const fin = financialsOverview(p).filter((_, i) => i < 6);        // R&D actuals-vs-forecast window
+  const maxRd = Math.max(1, ...fin.map((f) => f.rdK));
+  const gi = GATES.indexOf(p.gate);
+  const nextGate = GATES[gi + 1];
+  const nextReview = GATE_REVIEW[nextGate ?? p.gate];
+  const dt = DEV_TYPE[devTypeOf(p)];
+
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <div className="rounded bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-300">{children}</div>
+  );
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      {/* Slide header band — PROJECT NAME · tags · financials (AMTS header) */}
+      <div className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-bold tracking-wide text-slate-100">{p.name}</h3>
+            <span className="rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider" style={{ borderColor: dt.color, color: dt.color }}>{dt.label}</span>
+            <span className="rounded-full border border-cyan-500/40 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-cyan-300">{m.initiative}</span>
+          </div>
+          <div className="mt-1 text-[11px] text-slate-500">{h.bu} › {h.sbu} › {h.pgroup} · {ex.customer} · {GATE_STAGE[p.gate]} ({p.gate})</div>
+        </div>
+        <div className="flex gap-4 text-right">
+          <div><div className="text-[9px] uppercase tracking-wider text-slate-500">1st Rev</div><div className="text-xs font-mono text-slate-200">{p.firstRevenue}</div></div>
+          <div><div className="text-[9px] uppercase tracking-wider text-slate-500">3-Yr NPV</div><div className="text-xs font-mono text-emerald-400">{usd(fm.npvM)}</div></div>
+          <div><div className="text-[9px] uppercase tracking-wider text-slate-500">IRR</div><div className="text-xs font-mono text-slate-200">{fm.irrPct}%</div></div>
+        </div>
+      </div>
+
+      {/* Two-screen swipe carousel */}
+      <div className="mt-3 overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div className="flex transition-transform duration-300 ease-out" style={{ width: "200%", transform: `translateX(-${screen * 50}%)` }}>
+          {/* ── Screen ① OVERVIEW ─────────────────────────────────────────────── */}
+          <div className="w-1/2 shrink-0 pr-1.5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {/* Project Overview — the two-bullet summary (the flagship "two bullet") */}
+              <div className="space-y-1.5">
+                <SectionTitle>Project Overview</SectionTitle>
+                <ul className="space-y-2">
+                  {bullets.map((b, i) => (
+                    <li key={i} className="flex gap-2 text-[12px] leading-snug text-slate-200">
+                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {/* Product Strategy / Value Proposition */}
+              <div className="space-y-1.5">
+                <SectionTitle>Strategy · Value Proposition</SectionTitle>
+                <div className="flex flex-wrap gap-1.5 text-[10px]">
+                  <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300">▦ {m.valueLadder}</span>
+                  <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300">↗ {m.valueImpact}</span>
+                  <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300">⚑ {m.competitive}</span>
+                </div>
+                <ul className="mt-1 space-y-0.5">
+                  {brief.solution.slice(0, 3).map((s, i) => <li key={i} className="text-[11px] leading-snug text-slate-300">· {s}</li>)}
+                </ul>
+              </div>
+              {/* Market Opportunity — customer + franchise pursuits */}
+              <div className="space-y-1.5">
+                <SectionTitle>Market Opportunity</SectionTitle>
+                <div className="text-[11px] text-slate-400">Customer / PoR · <span className="text-cyan-300">{ex.customer}</span> · target {m.targetMarket}</div>
+                <ul className="space-y-0.5">
+                  {ex.pursuits.map((pu) => (
+                    <li key={pu.name} className="flex items-center justify-between gap-2 text-[11px]">
+                      <span className="truncate text-slate-300">{pu.name}</span>
+                      <span className="shrink-0 font-mono tabular-nums text-slate-400">{usd(pu.valueM)} · {pu.award}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {/* Portfolio Positioning — margin + risk-weighted capture */}
+              <div className="space-y-1.5">
+                <SectionTitle>Portfolio Positioning</SectionTitle>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Gross margin</div><div className="font-mono tabular-nums text-emerald-400">{ex.marginPct}%</div></div>
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Rev captured</div><div className="font-mono tabular-nums text-slate-200">{captured}%</div></div>
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">10-Yr revenue</div><div className="font-mono tabular-nums text-slate-200">{usd(fm.rev10yM)}</div></div>
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Payback</div><div className="font-mono tabular-nums text-slate-200">{fm.paybackYears} yr</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Screen ② DETAIL ───────────────────────────────────────────────── */}
+          <div className="w-1/2 shrink-0 pl-1.5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {/* Objectives — near-term + beyond, from outcomes */}
+              <div className="space-y-1.5">
+                <SectionTitle>Objectives</SectionTitle>
+                <ul className="space-y-0.5">
+                  {brief.outcomes.slice(0, 3).map((o, i) => <li key={i} className="text-[11px] leading-snug text-slate-300">· {o}</li>)}
+                </ul>
+                <div className="mt-1 text-[10px] text-amber-400">Next gate · {nextGate ? `${GATE_STAGE[nextGate]} (${nextGate})` : `Final (${p.gate})`} · {nextReview.deliverables.length} slide{nextReview.deliverables.length === 1 ? "" : "s"}</div>
+              </div>
+              {/* Dependencies — intra-BU + declared/acknowledged counts */}
+              <div className="space-y-1.5">
+                <SectionTitle>Dependencies</SectionTitle>
+                <div className="text-[11px] text-slate-400">Depends on <span className="text-slate-200">{deps.length}</span> · relied on by <span className="text-slate-200">{dependents.length}</span></div>
+                <ul className="space-y-0.5">
+                  {ex.intraDeps.map((d) => <li key={d} className="text-[11px] leading-snug text-slate-300">· {d}</li>)}
+                  {deps.some((e) => e.critical) && <li className="text-[11px] text-rose-300">· ⚠ on the critical path</li>}
+                </ul>
+              </div>
+              {/* Critical Issues & Risks — top by polling-weighted priority */}
+              <div className="space-y-1.5">
+                <SectionTitle>Critical Issues &amp; Risks</SectionTitle>
+                {myRisks.length === 0 ? (
+                  <p className="text-[11px] text-slate-500">No risks logged — raise one in the Risk Register.</p>
+                ) : (
+                  <ul className="space-y-1">
+                    {myRisks.slice(0, 4).map((r) => {
+                      const band = riskBand(r);
+                      const tone = band === "critical" ? "text-rose-400" : band === "high" ? "text-amber-400" : band === "med" ? "text-sky-300" : "text-slate-400";
+                      return (
+                        <li key={r.id} className="flex items-start gap-2 text-[11px] leading-snug">
+                          <span className={`mt-0.5 shrink-0 font-mono text-[9px] uppercase ${tone}`}>{band}</span>
+                          <span className="flex-1 text-slate-300">{r.title}</span>
+                          <span className="shrink-0 text-slate-500">{RISK_STATUS_LABEL[r.status]}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <div className="text-[10px] text-emerald-400">{Math.round(roll.retired * 100)}% de-risked · {roll.open} open</div>
+              </div>
+              {/* Project Cost — R&D actuals vs forecast (mini bar series) */}
+              <div className="space-y-1.5">
+                <SectionTitle>Cost · R&amp;D Actuals vs Forecast</SectionTitle>
+                <div className="flex items-end gap-1" style={{ height: 56 }}>
+                  {fin.map((f, i) => (
+                    <div key={f.year} className="flex flex-1 flex-col items-center justify-end gap-0.5">
+                      <div className="w-full rounded-t" title={`${f.year} · ${k(f.rdK)}`}
+                        style={{ height: `${Math.max(2, (f.rdK / maxRd) * 44)}px`, background: i === 0 ? "#19c8cf" : "#334155" }} />
+                      <div className="text-[8px] tabular-nums text-slate-500">{String(f.year).slice(2)}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-500">
+                  <span><span className="text-cyan-300">▮</span> actual (yr 1)</span>
+                  <span>Total R&amp;D {k(fm.totalRdOpexK)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Swipe controls — ‹ › + dots (screen ① ↔ ②) */}
+      <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-2">
+        <button onClick={() => go(screen - 1)} disabled={screen === 0}
+          className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 disabled:opacity-30 enabled:hover:bg-slate-800">‹ Overview</button>
+        <div className="flex items-center gap-2">
+          {[0, 1].map((i) => (
+            <button key={i} onClick={() => go(i)} aria-label={`screen ${i + 1}`}
+              className={`h-2 w-2 rounded-full ${screen === i ? "bg-cyan-400" : "bg-slate-700 hover:bg-slate-600"}`} />
+          ))}
+          <span className="ml-1 text-[10px] text-slate-500">{screen === 0 ? "① Overview" : "② Detail"} · swipe →</span>
+        </div>
+        <button onClick={() => go(screen + 1)} disabled={screen === 1}
+          className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 disabled:opacity-30 enabled:hover:bg-slate-800">Detail ›</button>
       </div>
     </div>
   );

@@ -288,5 +288,15 @@ ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).bu).length === 3, "intellige
 ok(intelligenceLoad(DEMO_PROJECTS, (p) => hierOf(p).sbu).length === 8, "intelligence load by SBU → 8 rows");
 ok(intelligenceLoad(DEMO_PROJECTS, (p) => p.id).length === DEMO_PROJECTS.length, "intelligence load by project → one row each");
 
+/* ---------------- Executive slide: two-bullet summary (AMTS overview one-pager) ---------------- */
+import { execSummaryBullets } from "../lib/innovation-data.ts";
+const eb = execSummaryBullets(DEMO_PROJECTS.find((p) => p.id === "PRJ-01"));
+ok(Array.isArray(eb) && eb.length === 2, "execSummaryBullets returns exactly two bullets");
+ok(eb.every((b) => typeof b === "string" && b.length > 0), "both executive bullets are non-empty");
+ok(eb[0].includes("SAR Imaging Payload Gen-5") && eb[0].includes("Sovereign Deep-Strike & ISR"), "bullet 1 names the project + its strategic pillar");
+ok(/\$\d/.test(eb[1]) && /%/.test(eb[1]) && eb[1].includes("2026-Q4"), "bullet 2 carries the dated business case (revenue $, IRR %, first-revenue)");
+ok(DEMO_PROJECTS.every((p) => execSummaryBullets(p).length === 2), "every project derives a two-bullet executive summary");
+ok(JSON.stringify(execSummaryBullets(DEMO_PROJECTS[0])) === JSON.stringify(execSummaryBullets(DEMO_PROJECTS[0])), "execSummaryBullets deterministic");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
