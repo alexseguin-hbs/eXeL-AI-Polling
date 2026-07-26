@@ -24,8 +24,9 @@ import {
   metaOf, financialMetrics, financialsOverview,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
+  seedBizSetup, BIZ_TIERS,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
-  type ReqStatus, type DepEdge,
+  type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup,
 } from "@/lib/innovation-data";
 
 const CODE = "369963";
@@ -94,7 +95,7 @@ function Board() {
   );
   const [selId, setSelId] = useState(order[0].id);
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
-  const [view, setView] = useState<"portfolio" | "gates" | "dashboards">("portfolio");
+  const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
   // Change + approval activity log (edits and gate approvals) — the audit summary.
   const [activity, setActivity] = useState<{ id: number; kind: "edit" | "approve" | "reject"; project: string; text: string; by: string }[]>([]);
   const log = (kind: "edit" | "approve" | "reject", project: string, text: string, by: string) =>
@@ -168,7 +169,7 @@ function Board() {
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
       <nav className="flex gap-1 border-b border-slate-800 px-5">
-        {([["portfolio", "Portfolio · Rack & Stack"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"]] as const).map(([v, label]) => (
+        {([["portfolio", "Portfolio · Rack & Stack"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"], ["setup", "⚙ Business Setup"]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
             {label}
@@ -390,6 +391,12 @@ function Board() {
       {view === "dashboards" && (
         <div className="p-5">
           <Dashboards projects={order} funded={fundedRows.map((r) => r.p)} onSelect={(id) => { setSelId(id); setView("portfolio"); }} />
+        </div>
+      )}
+
+      {view === "setup" && (
+        <div className="p-5">
+          <BusinessSetup />
         </div>
       )}
 
@@ -922,6 +929,119 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
           <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600" />required (future gate)</span>
           <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600 ring-1 ring-cyan-500/40" />first required at this gate</span>
         </div>
+      </section>
+    </div>
+  );
+}
+
+// ── BUSINESS SETUP (master data admin) — unlock 369963 → set up BU→SBU→Alpha Group→Alpha
+// Code→Product→Material. Seeds from the live portfolio; edits persist to localStorage.
+const BIZ_KEY = "innovation-biz-setup";
+const ADMIN_KEY = "innovation-admin";
+function BusinessSetup() {
+  const [admin, setAdmin] = useState(false);
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState(false);
+  const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
+  const [tier, setTier] = useState<BizTier>("bu");
+  useEffect(() => {
+    setAdmin(sessionStorage.getItem(ADMIN_KEY) === "1");
+    const saved = localStorage.getItem(BIZ_KEY);
+    if (saved) { try { setSetup(JSON.parse(saved)); } catch { /* keep seed */ } }
+  }, []);
+  const persist = (next: BizSetup) => { setSetup(next); localStorage.setItem(BIZ_KEY, JSON.stringify(next)); };
+  const unlock = () => (pw === CODE ? (sessionStorage.setItem(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
+
+  if (!admin) {
+    return (
+      <div className="mx-auto max-w-sm rounded-2xl border border-amber-500/30 bg-[#111820] p-6">
+        <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">Admin · Master Business Setup</div>
+        <h2 className="mt-1 text-lg font-semibold">Business Setup — Admin Unlock</h2>
+        <p className="mt-2 text-sm text-slate-400">Enter the admin code to set up the master hierarchy: BU · SBU · Alpha Group · Alpha Code · Product · Material.</p>
+        <input type="password" inputMode="numeric" value={pw} autoFocus
+          onChange={(e) => { setPw(e.target.value); setErr(false); }} onKeyDown={(e) => e.key === "Enter" && unlock()}
+          placeholder="Admin code" className="mt-4 w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2.5 text-center tracking-[0.4em] font-mono text-lg outline-none focus:border-amber-500" />
+        {err && <p className="mt-2 text-sm text-rose-400">Incorrect code.</p>}
+        <button onClick={unlock} className="mt-4 w-full rounded-lg bg-amber-500 px-4 py-2.5 font-semibold text-[#06202a] hover:bg-amber-400">Unlock Business Setup</button>
+      </div>
+    );
+  }
+
+  const tierMeta = BIZ_TIERS.find((t) => t.key === tier)!;
+  const parentTier = tierMeta.parent;
+  const rows = setup[tier];
+  const parentRows = parentTier ? setup[parentTier] : [];
+  const setRows = (next: BizNode[]) => persist({ ...setup, [tier]: next });
+  const updateRow = (i: number, patch: Partial<BizNode>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const addRow = () => setRows([...rows, { code: `NEW${rows.length + 1}`, label: "New " + tierMeta.label, parent: parentRows[0]?.code, baseM: tier === "sbu" ? 0 : undefined }]);
+  const delRow = (i: number) => setRows(rows.filter((_, j) => j !== i));
+  const resetSeed = () => persist(seedBizSetup(DEMO_PROJECTS));
+  const inp = "rounded border border-slate-700 bg-[#0b0f14] px-1.5 py-0.5 text-xs text-slate-100 outline-none focus:border-cyan-500";
+  const totalBase = setup.sbu.reduce((s, n) => s + (n.baseM ?? 0), 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">Master Business Setup · Admin</div>
+          <input value={setup.company} onChange={(e) => persist({ ...setup, company: e.target.value })}
+            className="mt-0.5 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-lg font-semibold text-slate-100 outline-none focus:border-cyan-500" />
+        </div>
+        <div className="ml-auto flex items-center gap-2 text-[11px]">
+          <span className="text-slate-500">Σ SBU base <b className="text-emerald-300">${totalBase}M</b></span>
+          <button onClick={resetSeed} className="rounded border border-slate-700 px-2 py-1 text-slate-300 hover:bg-slate-800">Reset to seed</button>
+          <button onClick={() => { sessionStorage.removeItem(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
+        </div>
+      </div>
+
+      {/* Tier tabs */}
+      <div className="flex flex-wrap gap-1">
+        {BIZ_TIERS.map((t) => (
+          <button key={t.key} onClick={() => setTier(t.key)}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium ${tier === t.key ? "bg-cyan-500 text-[#06202a]" : "border border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
+            {t.label} <span className="opacity-60">({setup[t.key].length})</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Editable tier table */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800">
+          <h2 className="text-sm font-semibold">{tierMeta.label} <span className="text-[11px] text-slate-500">{parentTier ? `→ under ${BIZ_TIERS.find((t) => t.key === parentTier)!.label}` : "top of hierarchy"}</span></h2>
+          <button onClick={addRow} className="rounded bg-cyan-500/90 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">+ Add {tierMeta.label}</button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+                <th className="px-3 py-2 text-left">Code</th>
+                <th className="px-2 py-2 text-left">Label</th>
+                {parentTier && <th className="px-2 py-2 text-left">{BIZ_TIERS.find((t) => t.key === parentTier)!.label}</th>}
+                {tier === "sbu" && <th className="px-2 py-2 text-right">Base $M</th>}
+                <th className="px-2 py-2 text-right">·</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className="border-b border-slate-900">
+                  <td className="px-3 py-1.5"><input value={r.code} onChange={(e) => updateRow(i, { code: e.target.value })} className={`w-24 font-mono ${inp}`} /></td>
+                  <td className="px-2 py-1.5"><input value={r.label} onChange={(e) => updateRow(i, { label: e.target.value })} className={`w-full ${inp}`} /></td>
+                  {parentTier && (
+                    <td className="px-2 py-1.5">
+                      <select value={r.parent ?? ""} onChange={(e) => updateRow(i, { parent: e.target.value })} className={inp}>
+                        <option value="">—</option>
+                        {parentRows.map((pr) => <option key={pr.code} value={pr.code}>{pr.code}</option>)}
+                      </select>
+                    </td>
+                  )}
+                  {tier === "sbu" && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="numeric" value={String(r.baseM ?? 0)} onChange={(e) => /^\d*$/.test(e.target.value) && updateRow(i, { baseM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
+                  <td className="px-2 py-1.5 text-right"><button onClick={() => delRow(i)} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Master data persists in this browser. Codes: BU 2-letter · SBU 3-letter · Alpha Group alphanumeric · Alpha Code 4-char · Product 7xxxx · Material 7xxxx-yyy. Base revenue on the SBU anchors the growth model.</p>
       </section>
     </div>
   );

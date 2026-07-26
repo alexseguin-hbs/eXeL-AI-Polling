@@ -254,5 +254,17 @@ ok(depSum.every((r, i) => i === 0 || depSum[i - 1].npvWithDepsM >= r.npvWithDeps
 ok(depSum.some((r) => r.npvWithDepsM !== r.npvM), "NPV-with-dependencies differs from standalone NPV for dependent projects");
 ok(depSum.find((r) => r.id === "PRJ-05").dependents >= 1, "summary counts dependents");
 
+/* ---------------- Business Setup (master data) ---------------- */
+import { seedBizSetup, BIZ_TIERS } from "../lib/innovation-data.ts";
+const biz = seedBizSetup(DEMO_PROJECTS);
+ok(BIZ_TIERS.length === 6 && BIZ_TIERS[0].key === "bu" && BIZ_TIERS[5].key === "material", "6 master tiers BU→…→Material");
+ok(biz.bu.length === 3 && biz.sbu.length === 8, "seed master data: 3 BU · 8 SBU");
+ok(biz.product.length === DEMO_PROJECTS.length, "one Product # per project in master data");
+ok(biz.sbu.every((s) => s.parent && s.baseM !== undefined), "SBU nodes carry parent BU + base revenue");
+ok(biz.sbu.every((s) => biz.bu.some((b) => b.code === s.parent)), "every SBU parent resolves to a BU");
+ok(biz.pgroup.every((g) => biz.sbu.some((s) => s.code === g.parent)), "every Alpha Group parent resolves to an SBU");
+ok(biz.material.every((m) => biz.product.some((pr) => pr.code === m.parent)), "every Material # parent resolves to a Product #");
+ok(JSON.stringify(seedBizSetup(DEMO_PROJECTS)) === JSON.stringify(biz), "seedBizSetup deterministic");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

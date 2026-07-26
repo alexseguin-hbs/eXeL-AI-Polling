@@ -620,6 +620,36 @@ export function pipelineByGate(projects: Project[]) {
   });
 }
 
+// ── BUSINESS SETUP (master data) — admin-editable BU→SBU→Alpha Group→Alpha Code→Product→Material.
+// The "master business setup" admin (unlock 369963) manages the org hierarchy as first-class
+// data. seedBizSetup derives the current master lists from the live portfolio so the editor
+// opens pre-populated; the admin then adds/renames/removes entries (persisted client-side).
+export type BizTier = "bu" | "sbu" | "pgroup" | "alpha" | "product" | "material";
+export const BIZ_TIERS: { key: BizTier; label: string; parent?: BizTier }[] = [
+  { key: "bu", label: "Business Unit" },
+  { key: "sbu", label: "Strategic Business Unit", parent: "bu" },
+  { key: "pgroup", label: "Alpha Group", parent: "sbu" },
+  { key: "alpha", label: "Alpha Code", parent: "pgroup" },
+  { key: "product", label: "Product #", parent: "alpha" },
+  { key: "material", label: "Material #", parent: "product" },
+];
+export interface BizNode { code: string; label: string; parent?: string; baseM?: number }
+export type BizSetup = { company: string } & Record<BizTier, BizNode[]>;
+export function seedBizSetup(projects: Project[]): BizSetup {
+  const uniq = (arr: BizNode[]) => Array.from(new Map(arr.map((n) => [n.code, n])).values()).sort((a, b) => a.code.localeCompare(b.code));
+  const bu: BizNode[] = [], sbu: BizNode[] = [], pgroup: BizNode[] = [], alpha: BizNode[] = [], product: BizNode[] = [], material: BizNode[] = [];
+  for (const p of projects) {
+    const h = hierOf(p);
+    bu.push({ code: h.bu, label: BU_LABEL[h.bu] ?? h.bu });
+    sbu.push({ code: h.sbu, label: SBU_LABEL[h.sbu] ?? h.sbu, parent: h.bu, baseM: SBU_BASE[h.sbu] ?? 0 });
+    pgroup.push({ code: h.pgroup, label: h.pgroup, parent: h.sbu });
+    alpha.push({ code: h.alpha, label: h.alpha, parent: h.pgroup });
+    product.push({ code: h.product, label: p.name, parent: h.alpha });
+    material.push({ code: h.material, label: `${p.name} variant`, parent: h.product });
+  }
+  return { company: COMPANY_NAME, bu: uniq(bu), sbu: uniq(sbu), pgroup: uniq(pgroup), alpha: uniq(alpha), product: uniq(product), material: uniq(material) };
+}
+
 // ── STACK: rank order → cumulative NRE → funding line (CRS-42/43/71) ─────────────────────
 export function stackWithBudget(order: Project[], availableK_: number) {
   let cum = 0, lineIndex = order.length;
