@@ -76,17 +76,17 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
           </button>
           <p className="mt-3 text-center text-[11px] text-slate-500">Same code unlocks Business Setup (master data) inside the tool.</p>
         </div>
-        {/* The four strategic pillars (Harmattan-AI focus) */}
+        {/* Strategic pillars — admin-editable in Business Setup (loadPillars) */}
         <div className="w-full">
-          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">Four Strategic Pillars</div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">Strategic Pillars</div>
           <div className="mt-2 grid gap-2">
-            {STRATEGIC_INITIATIVES.map((pillar, i) => (
-              <div key={pillar} className="rounded-xl border border-slate-800 bg-[#0e141b] p-3">
+            {loadPillars().map((pillar, i) => (
+              <div key={pillar.name} className="rounded-xl border border-slate-800 bg-[#0e141b] p-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500/15 text-[11px] font-mono text-cyan-300">P{i + 1}</span>
-                  <span className="text-sm font-semibold text-slate-100">{pillar}</span>
+                  <span className="text-sm font-semibold text-slate-100">{pillar.name}</span>
                 </div>
-                <p className="mt-1 text-[11px] text-slate-400">{PILLAR_DESC[pillar]}</p>
+                <p className="mt-1 text-[11px] text-slate-400">{pillar.desc}</p>
               </div>
             ))}
           </div>
@@ -785,7 +785,7 @@ function ProjectDetail({ p, risks, setup, onEdit, onApprove }: {
         <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Target market">◈ {meta.targetMarket}</span>
       </div>
       {/* Project Metrics — full 12-metric FLIR card set (§2.4 / IMG_7843) */}
-      <div className="mt-3 text-[10px] uppercase tracking-wider text-slate-500">Project Metrics · FLIR set</div>
+      <div className="mt-3 text-[10px] uppercase tracking-wider text-slate-500">Project Metrics · 12-metric set</div>
       <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-4">
         {metrics.map(([l, v]) => (
           <div key={l} className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
@@ -1447,17 +1447,6 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
         })}
         <polyline points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />
         {rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
-        {/* Gate cadence — MIL-STD-2525 hostile (red) diamonds between the bars, G1..G7 */}
-        {GATE_DIAMONDS.map((g, i) => {
-          const gx = L + ((i + 0.5) / GATE_DIAMONDS.length) * (W - L - R);
-          const gy = T - 8;
-          return (
-            <g key={g} fontFamily="ui-monospace, monospace">
-              <rect x={gx - 4} y={gy - 4} width="8" height="8" transform={`rotate(45 ${gx} ${gy})`} fill="#ef4444" stroke="#fca5a5" strokeWidth="0.6" />
-              <text x={gx} y={gy - 7} textAnchor="middle" fill="#fca5a5" fontSize="7">{g}</text>
-            </g>
-          );
-        })}
       </svg>
 
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
