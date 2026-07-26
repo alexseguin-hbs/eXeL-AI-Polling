@@ -19,7 +19,10 @@ import {
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf,
   scopeBaseM, GATE_DELIVERABLES, GATE_REVIEW, rackByLevel, projectRevSeries,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
+  GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
+  TOLERANCE_LADDER, REQ_TYPE_LABEL, REQ_STATUS_LABEL,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
+  type ReqStatus,
 } from "@/lib/innovation-data";
 
 const CODE = "369963";
@@ -70,7 +73,7 @@ function Board() {
   );
   const [selId, setSelId] = useState(order[0].id);
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
-  const [view, setView] = useState<"portfolio" | "dashboards">("portfolio");
+  const [view, setView] = useState<"portfolio" | "gates" | "dashboards">("portfolio");
   // Change + approval activity log (edits and gate approvals) — the audit summary.
   const [activity, setActivity] = useState<{ id: number; kind: "edit" | "approve" | "reject"; project: string; text: string; by: string }[]>([]);
   const log = (kind: "edit" | "approve" | "reject", project: string, text: string, by: string) =>
@@ -144,7 +147,7 @@ function Board() {
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
       <nav className="flex gap-1 border-b border-slate-800 px-5">
-        {([["portfolio", "Portfolio · Rack & Stack"], ["dashboards", "Dashboards · ROI Visuals"]] as const).map(([v, label]) => (
+        {([["portfolio", "Portfolio · Rack & Stack"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
             {label}
@@ -356,6 +359,12 @@ function Board() {
         <GrowthModelChart funded={fundedRows.map((r) => r.p)} />
       </div>
       </>)}
+
+      {view === "gates" && (
+        <div className="p-5">
+          <GateRequirementsView projects={order} sel={sel} onSelect={setSelId} />
+        </div>
+      )}
 
       {view === "dashboards" && (
         <div className="p-5">
@@ -727,6 +736,128 @@ function GateCube({ p }: { p: Project }) {
           <div className="mt-0.5 text-[11px]"><span className="text-slate-500 font-medium">Recommended:</span> <span className="text-slate-600">{GATE_REVIEW[p.gate].recommended.join(" · ")}</span></div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── GATE REQUIREMENTS VIEW (SPEC §3) — the governance-facing surface ──────────────────────
+// Requirements × gates matrix (§3.1), per-gate readiness rollup (§3.5), and the estimate
+// tolerance ladder (§3.4). Status is derived from the selected project's gate progression.
+const REQ_STATUS_CHIP: Record<ReqStatus, string> = {
+  approved: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  in_work: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+  submitted: "bg-sky-500/15 text-sky-300 border-sky-500/30",
+  not_started: "bg-slate-700/30 text-slate-400 border-slate-700",
+  waived: "bg-violet-500/15 text-violet-300 border-violet-500/30",
+  na: "bg-slate-800/40 text-slate-500 border-slate-800",
+};
+const REQ_TYPE_CHIP: Record<string, string> = {
+  S: "text-cyan-300", CRS: "text-emerald-300", DR: "text-sky-300",
+  TR: "text-amber-300", IS: "text-violet-300", DT: "text-rose-300", DC: "text-slate-300",
+};
+
+function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]; sel: Project; onSelect: (id: string) => void }) {
+  const readiness = useMemo(() => gateReadinessAll(sel), [sel]);
+  const gateIdx = GATES.indexOf(sel.gate);
+  return (
+    <div className="space-y-4">
+      {/* Project selector + context */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="text-sm text-slate-400">Gate governance for</div>
+        <select
+          value={sel.id} onChange={(e) => onSelect(e.target.value)}
+          className="rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-1.5 text-sm text-slate-100 outline-none focus:border-cyan-500"
+        >
+          {projects.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.gate}</option>)}
+        </select>
+        <span className="text-[11px] text-slate-500">Last completed gate <span className="font-mono text-slate-300">{sel.gate}</span> → stage <span className="text-slate-300">{GATE_STAGE[sel.gate]}</span></span>
+      </div>
+
+      {/* §3.5 Gate readiness rollup — % satisfied · Ready/Not · blocking count · band */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <h2 className="text-sm font-semibold">Gate readiness · % requirements satisfied</h2>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+          {readiness.map((r, i) => {
+            const state = i < gateIdx ? "done" : i === gateIdx ? "current" : "future";
+            const barColor = r.ready ? "bg-emerald-500" : r.pct >= 50 ? "bg-amber-500" : "bg-rose-500";
+            return (
+              <div key={r.gate} className={`rounded-lg border p-2.5 ${state === "current" ? "border-cyan-500/50 bg-cyan-500/5" : "border-slate-800 bg-[#0b0f14]"}`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-slate-300">{r.gate}</span>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500">±{Math.round(TOLERANCE_LADDER[r.gate] * 100)}%</span>
+                </div>
+                <div className="mt-0.5 text-[10px] text-slate-500 truncate">{r.stage}</div>
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div className={`h-full ${barColor}`} style={{ width: `${r.pct}%` }} />
+                </div>
+                <div className="mt-1 flex items-center justify-between text-[10px]">
+                  <span className="tabular-nums text-slate-400">{r.satisfied}/{r.required}</span>
+                  <span className={r.ready ? "text-emerald-400 font-medium" : "text-rose-400"}>{r.ready ? "Ready" : `${r.blocking.length} open`}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-[11px] text-slate-500">Tolerance ladder (§3.4): ±60/40/20/10/5% — tightens gate over gate; a gate-to-gate move beyond the band raises a variance exception for PRB disposition.</p>
+      </section>
+
+      {/* §3.1 Requirements × gates matrix — rows = requirements, columns = G1–G7 */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
+          <h2 className="text-sm font-semibold">Requirement registry · {GATE_REQUIREMENTS.length} rows</h2>
+          <div className="flex flex-wrap gap-2 text-[10px]">
+            {(["S", "CRS", "DR", "TR", "IS", "DT", "DC"] as const).map((t) => (
+              <span key={t} className={REQ_TYPE_CHIP[t]}>{t}<span className="text-slate-600"> {REQ_TYPE_LABEL[t]}</span></span>
+            ))}
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+                <th className="px-3 py-2 text-left font-medium">ID</th>
+                <th className="px-2 py-2 text-left font-medium">Requirement</th>
+                <th className="px-2 py-2 text-center font-medium">Band</th>
+                {GATES.map((g) => <th key={g} className="px-1.5 py-2 text-center font-mono font-medium">{g}</th>)}
+                <th className="px-2 py-2 text-right font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {GATE_REQUIREMENTS.map((req) => {
+                const status = requirementStatus(req, sel);
+                const earliest = GATES.indexOf(req.earliestGate);
+                return (
+                  <tr key={req.id} className="border-b border-slate-900 hover:bg-slate-800/30">
+                    <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}>{req.id}</td>
+                    <td className="px-2 py-1.5">
+                      <div className="text-[13px] text-slate-200 leading-tight">{req.title}</div>
+                      <div className="text-[10px] text-slate-500">{req.verification}{req.parentId && req.parentId !== req.id ? ` · ↳ ${req.parentId}` : ""}</div>
+                    </td>
+                    <td className="px-2 py-1.5 text-center text-[11px] tabular-nums text-slate-400">±{Math.round(req.band * 100)}%</td>
+                    {GATES.map((g, gi) => {
+                      if (gi < earliest) return <td key={g} className="px-1.5 py-1.5 text-center text-slate-800">·</td>;
+                      // required at this gate onward; color by the selected project's progression
+                      const cellState = gi < gateIdx + 1 ? "done" : gi === gateIdx + 1 ? "next" : "future";
+                      const dot = cellState === "done" ? "bg-emerald-400" : cellState === "next" ? "bg-amber-400" : "bg-slate-600";
+                      const ring = gi === earliest ? "ring-1 ring-cyan-500/40" : "";
+                      return <td key={g} className="px-1.5 py-1.5 text-center"><span className={`inline-block h-2.5 w-2.5 rounded-full ${dot} ${ring}`} title={gi === earliest ? "first required here" : "required"} /></td>;
+                    })}
+                    <td className="px-2 py-1.5 text-right">
+                      <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${REQ_STATUS_CHIP[status]}`}>{REQ_STATUS_LABEL[status]}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-emerald-400" />satisfied (gate complete)</span>
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />in work (next gate)</span>
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600" />required (future gate)</span>
+          <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-600 ring-1 ring-cyan-500/40" />first required at this gate</span>
+        </div>
+      </section>
     </div>
   );
 }
