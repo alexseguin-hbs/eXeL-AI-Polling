@@ -107,6 +107,7 @@ function Board() {
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
   const [persona, setPersona] = useState<Persona>("sbu");
+  const [detailMax, setDetailMax] = useState(false); // maximize the selected-project deep dive full-width
   // Optimization cadence — legacy prioritization was quarterly; this tool enables monthly now,
   // weekly next. Drives how often the stack is re-optimized / snapshotted.
   const [cadence, setCadence] = useState<"Q" | "M" | "W">("M");
@@ -255,7 +256,7 @@ function Board() {
       </nav>
 
       {view === "portfolio" && (<>
-      <div className="grid gap-4 p-5 lg:grid-cols-[1.6fr_1fr]">
+      <div className={`grid gap-4 p-5 ${detailMax ? "grid-cols-1" : "lg:grid-cols-[1.6fr_1fr]"}`}>
         {/* STACK table — level-aware Rack & Stack */}
         <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
@@ -415,7 +416,7 @@ function Board() {
 
         {/* Selected project detail */}
         <section className="space-y-4">
-          <ProjectDetail p={sel} risks={risks} setup={setup}
+          <ProjectDetail p={sel} risks={risks} setup={setup} maximized={detailMax} onToggleMax={() => setDetailMax((m) => !m)}
             onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
             onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           <TimeEngine p={sel} />
@@ -667,8 +668,8 @@ function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   return <span className={`rounded px-1.5 py-0.5 text-[11px] font-mono ${c}`}>{label} {RISK_LABEL[level]}</span>;
 }
 
-function ProjectDetail({ p, risks, setup, onEdit, onApprove }: {
-  p: Project; risks: Risk[]; setup: BizSetup;
+function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onApprove }: {
+  p: Project; risks: Risk[]; setup: BizSetup; maximized?: boolean; onToggleMax?: () => void;
   onEdit: (patch: Partial<Project>, changes: string[]) => void;
   onApprove: (kind: "approve" | "reject", by: string) => void;
 }) {
@@ -707,7 +708,13 @@ function ProjectDetail({ p, risks, setup, onEdit, onApprove }: {
           <h3 className="font-semibold">{p.name}</h3>
           <div className="text-[11px] text-slate-500">{p.division} · {p.manager} · {GATE_STAGE[p.gate]} ({p.gate}) · 1st rev {p.firstRevenue}</div>
         </div>
-        <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{Math.round(band * 100)}% band</span>
+        <div className="flex items-center gap-2">
+          <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{Math.round(band * 100)}% band</span>
+          {onToggleMax && (
+            <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize deep-dive"}
+              className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">{maximized ? "⤡" : "⤢"}</button>
+          )}
+        </div>
       </div>
 
       {/* Edit + Approvals bar */}
