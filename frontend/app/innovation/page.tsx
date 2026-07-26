@@ -21,8 +21,10 @@ import {
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_TYPE_LABEL, REQ_STATUS_LABEL,
+  metaOf, financialMetrics, financialsOverview,
+  DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
-  type ReqStatus,
+  type ReqStatus, type DepEdge,
 } from "@/lib/innovation-data";
 
 const CODE = "369963";
@@ -491,6 +493,33 @@ function ProjectRevChart({ p }: { p: Project }) {
   );
 }
 
+// Project Financials Overview (FLIR §2.3) — read-only yearly Revenue / Margin / R&D + Totals.
+function FinancialsOverviewTable({ p }: { p: Project }) {
+  const rows = financialsOverview(p, { years: 10, funded: true });
+  const tot = rows.reduce((a, r) => ({ revM: a.revM + r.revM, marginM: a.marginM + r.marginM, rdK: a.rdK + r.rdK }), { revM: 0, marginM: 0, rdK: 0 });
+  return (
+    <div className="mt-3 border-t border-slate-800 pt-3">
+      <div className="text-[10px] uppercase tracking-wider text-slate-500">Project Financials Overview · 10-yr (Revenue · Margin · R&D)</div>
+      <div className="mt-1 overflow-x-auto">
+        <table className="w-full min-w-[520px] text-[11px] tabular-nums">
+          <thead>
+            <tr className="text-slate-500">
+              <th className="px-1 py-0.5 text-left font-medium">$M</th>
+              {rows.map((r) => <th key={r.year} className="px-1 py-0.5 text-right font-mono">{String(r.year).slice(2)}</th>)}
+              <th className="px-1 py-0.5 text-right font-medium text-slate-300">Σ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td className="px-1 py-0.5 text-slate-400">Revenue</td>{rows.map((r) => <td key={r.year} className="px-1 py-0.5 text-right text-slate-300">{r.revM.toFixed(0)}</td>)}<td className="px-1 py-0.5 text-right font-semibold text-slate-100">{tot.revM.toFixed(0)}</td></tr>
+            <tr><td className="px-1 py-0.5 text-slate-400">Margin</td>{rows.map((r) => <td key={r.year} className="px-1 py-0.5 text-right text-emerald-400/90">{r.marginM.toFixed(0)}</td>)}<td className="px-1 py-0.5 text-right font-semibold text-emerald-400">{tot.marginM.toFixed(0)}</td></tr>
+            <tr><td className="px-1 py-0.5 text-slate-400">R&amp;D $k</td>{rows.map((r) => <td key={r.year} className="px-1 py-0.5 text-right text-amber-300/80">{r.rdK ? (r.rdK / 1000).toFixed(1) + "M" : "–"}</td>)}<td className="px-1 py-0.5 text-right font-semibold text-amber-300">{(tot.rdK / 1000).toFixed(1)}M</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // Risk-level pill: colour by level (low=emerald, med=amber, high=rose).
 function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   const c = level === "low" ? "bg-emerald-500/15 text-emerald-300" : level === "med" ? "bg-amber-500/15 text-amber-300" : "bg-rose-500/15 text-rose-300";
@@ -521,9 +550,14 @@ function ProjectDetail({ p, risks, onEdit, onApprove }: {
   const roll = riskRollup(risks, p.id);
   const brief = briefOf(p);
   const ex = execOf(p);
+  const meta = metaOf(p);
+  const fm = financialMetrics(p);
+  // Full FLIR "Project Metrics" card set (12) — IMG_7843 / spec §2.4.
   const metrics: [string, string][] = [
-    ["NPV", usd(npvM(p))], ["IRR", `${irrPct(p)}%`], ["Rev/NRE", `${revOverNre(p).toFixed(1)}×`],
-    ["Rev captured", `${captured}%`], ["Upside", `${upside}%`], ["P-wt revenue", usd(weightedRevM(p))],
+    ["NPV", usd(fm.npvM)], ["REV/NRE", `${fm.revOverNre.toFixed(1)}×`], ["IRR", `${fm.irrPct}%`],
+    ["Gross Margin", `${fm.grossMarginPct}%`], ["Payback", `${fm.paybackYears} yr`], ["10-Yr Volume", fm.vol10y.toLocaleString()],
+    ["10-Yr Revenue", usd(fm.rev10yM)], ["10-Yr Gross Profit", usd(fm.grossProfit10yM)], ["Cur-Yr Op Expense", k(fm.curYearOpexK)],
+    ["Total R&D Op Ex", k(fm.totalRdOpexK)], ["Capital", k(fm.capitalK)], ["Man Hours", `${(fm.manHours / 1000).toFixed(1)}k`],
   ];
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
@@ -576,16 +610,28 @@ function ProjectDetail({ p, risks, onEdit, onApprove }: {
         <span className="text-slate-300">exposure {Math.round(roll.liveExposure)}/{roll.rawExposure}</span>
         <span className="ml-auto text-emerald-400">{Math.round(roll.retired * 100)}% de-risked</span>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      {/* Meta Data (FLIR §2.1 / IMG_7843): Strategic Initiative · Value Ladder · Target Market · Competitive */}
+      <div className="mt-3 flex flex-wrap gap-1.5 text-[10px]">
+        <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300" title="Strategic Initiative">◎ {meta.initiative}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Value Ladder position">▦ {meta.valueLadder}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Value Ladder impact">↗ {meta.valueImpact}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Competitive position">⚑ {meta.competitive}</span>
+        <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Target market">◈ {meta.targetMarket}</span>
+      </div>
+      {/* Project Metrics — full 12-metric FLIR card set (§2.4 / IMG_7843) */}
+      <div className="mt-3 text-[10px] uppercase tracking-wider text-slate-500">Project Metrics · FLIR set</div>
+      <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-4">
         {metrics.map(([l, v]) => (
           <div key={l} className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500">{l}</div>
+            <div className="text-[10px] uppercase tracking-wider text-slate-500 truncate" title={l}>{l}</div>
             <div className="text-sm font-semibold tabular-nums">{v}</div>
           </div>
         ))}
       </div>
       {/* Per-project financial projection — aging line decline + new-product ramp (operator methodology) */}
       <ProjectRevChart p={p} />
+      {/* Project Financials Overview (FLIR §2.3) — yearly Revenue / Margin / R&D expense */}
+      <FinancialsOverviewTable p={p} />
       {/* AMTS Product-Management-Summary exec fields — Functional Leads · COGS/MSRP/Margin · Customer */}
       <div className="mt-3 border-t border-slate-800 pt-3 text-[11px]">
         <div className="grid grid-cols-3 gap-2">
@@ -1334,7 +1380,92 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
           ))}
         </div>
       </DashCard>
+
+      {/* Dependencies — Summary table + Constellation graph (FLIR §4) */}
+      <DependencyPanel projects={projects} deps={DEMO_DEPS} onSelect={onSelect} />
     </div>
+  );
+}
+
+// Dependencies (FLIR §4) — Summary table (§4.2) + Constellation graph (§4.3). Directed edge
+// A→B = "B's risk affects A's success". Bubble ∝ NPV · border green above-line / red below ·
+// fill by BU · arrows point to the primary (bottom) dependency.
+const BU_COLOR: Record<string, string> = { MS: "#19c8cf", DS: "#c084fc", AP: "#fbbf24" };
+function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; deps: DepEdge[]; onSelect: (id: string) => void }) {
+  const summary = dependencySummary(projects, deps);
+  const kM = (v: number) => `$${v.toFixed(1)}M`;
+  // Constellation layout: projects on a circle, deterministic by index; bubble ∝ √NPV.
+  const withDeps = projects.filter((p) => dependsOn(deps, p.id).length || dependentsOf(deps, p.id).length);
+  const W = 640, H = 380, cx = W / 2, cy = H / 2, R = 150;
+  const pos = new Map<string, { x: number; y: number; r: number }>();
+  const maxNpv = Math.max(...withDeps.map((p) => Math.abs(npvM(p))), 1);
+  withDeps.forEach((p, i) => {
+    const a = (i / withDeps.length) * Math.PI * 2 - Math.PI / 2;
+    pos.set(p.id, { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a), r: 8 + 16 * Math.sqrt(Math.abs(npvM(p)) / maxNpv) });
+  });
+  return (
+    <DashCard title="Dependencies · Summary + Constellation" tag="§4">
+      {/* Constellation graph */}
+      <div className="overflow-x-auto">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 520, height: "auto" }}>
+          <defs>
+            <marker id="dep-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#64748b" />
+            </marker>
+          </defs>
+          {deps.map((e, i) => {
+            const a = pos.get(e.from), b = pos.get(e.to);
+            if (!a || !b) return null;
+            return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={e.critical ? "#fb7185" : "#475569"} strokeWidth={e.critical ? 1.6 : 1} strokeDasharray={e.acknowledged ? "" : "4 3"} markerEnd="url(#dep-arrow)" opacity={0.7} />;
+          })}
+          {withDeps.map((p) => {
+            const pt = pos.get(p.id)!;
+            const above = npvM(p) >= 0;
+            return (
+              <g key={p.id} className="cursor-pointer" onClick={() => onSelect(p.id)}>
+                <circle cx={pt.x} cy={pt.y} r={pt.r} fill={BU_COLOR[hierOf(p).bu] ?? "#38bdf8"} fillOpacity={0.25} stroke={above ? "#34d399" : "#fb7185"} strokeWidth={2} />
+                <text x={pt.x} y={pt.y - pt.r - 3} textAnchor="middle" fontSize="9" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{hierOf(p).bu}·{p.id.slice(-2)}</text>
+                <text x={pt.x} y={pt.y + 3} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="ui-monospace, monospace">{usd(npvM(p))}</text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
+        <span>bubble ∝ NPV</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-emerald-400" />above line</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-rose-400" />below line</span>
+        <span><span className="mr-1 text-rose-400">──</span>critical</span>
+        <span><span className="mr-1 text-slate-500">– –</span>unacknowledged</span>
+        {(["MS", "DS", "AP"] as const).map((b) => <span key={b}><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: BU_COLOR[b] }} />{b}</span>)}
+      </div>
+      {/* Summary table (§4.2) */}
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
+          <thead>
+            <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+              <th className="px-2 py-1.5 text-left">Project</th>
+              <th className="px-2 py-1.5 text-right">NPV</th>
+              <th className="px-2 py-1.5 text-right">NPV w/ deps</th>
+              <th className="px-2 py-1.5 text-center"># deps →</th>
+              <th className="px-2 py-1.5 text-center"># dependents ←</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summary.filter((r) => r.deps || r.dependents).map((r) => (
+              <tr key={r.id} onClick={() => onSelect(r.id)} className="cursor-pointer border-b border-slate-900 hover:bg-slate-800/40">
+                <td className="px-2 py-1.5"><span className="font-medium">{r.name}</span> {r.critical && <span className="ml-1 text-[10px] text-rose-400">⚡crit</span>}<div className="text-[10px] text-slate-500">{r.division}</div></td>
+                <td className={`px-2 py-1.5 text-right tabular-nums ${r.npvM >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{kM(r.npvM)}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-cyan-300">{kM(r.npvWithDepsM)}</td>
+                <td className="px-2 py-1.5 text-center tabular-nums text-slate-300">{r.deps || "–"}</td>
+                <td className="px-2 py-1.5 text-center tabular-nums text-slate-300">{r.dependents || "–"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-[10px] text-slate-500">Arrow A→B: B&apos;s risk affects A. NPV-with-deps rolls the NPV a project leans on into its own — a below-line dependency drags an above-line project.</p>
+    </DashCard>
   );
 }
 
