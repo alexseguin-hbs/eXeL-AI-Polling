@@ -914,11 +914,14 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
         </div>
       </div>
 
-      {/* Two-screen swipe carousel */}
-      <div className="mt-3 overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* Two-screen swipe carousel — touch swipe + ← → keyboard (a11y), ARIA carousel semantics */}
+      <div className="mt-3 overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+        role="group" aria-roledescription="carousel" aria-label="Executive slide — overview and detail"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "ArrowRight") { go(screen + 1); e.preventDefault(); } else if (e.key === "ArrowLeft") { go(screen - 1); e.preventDefault(); } }}>
         <div className="flex transition-transform duration-300 ease-out" style={{ width: "200%", transform: `translateX(-${screen * 50}%)` }}>
           {/* ── Screen ① OVERVIEW ─────────────────────────────────────────────── */}
-          <div className="w-1/2 shrink-0 pr-1.5">
+          <div className="w-1/2 shrink-0 pr-1.5" role="group" aria-roledescription="slide" aria-label="① Overview" aria-hidden={screen !== 0}>
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Project Overview — the two-bullet summary (the flagship "two bullet") */}
               <div className="space-y-1.5">
@@ -971,7 +974,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
           </div>
 
           {/* ── Screen ② DETAIL ───────────────────────────────────────────────── */}
-          <div className="w-1/2 shrink-0 pl-1.5">
+          <div className="w-1/2 shrink-0 pl-1.5" role="group" aria-roledescription="slide" aria-label="② Detail" aria-hidden={screen !== 1}>
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Objectives — near-term + beyond, from outcomes */}
               <div className="space-y-1.5">
