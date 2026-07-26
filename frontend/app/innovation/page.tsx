@@ -44,10 +44,21 @@ const PERSONAS: { key: Persona; label: string; glyph: string; lens: string; view
 const usd = (m: number) => `$${m.toFixed(1)}M`;
 const k = (n: number) => `$${(n / 1000).toFixed(1)}M`;
 
+// Safe storage — a sandboxed iframe (the <exel-polling> embed) or Safari "Block All Cookies" /
+// private mode throws SecurityError on bare localStorage/sessionStorage ACCESS (not just write),
+// which would crash the Gate render (loadPillars runs inline). These degrade to null-read /
+// no-op-write so the tool never crashes when storage is unavailable, and behave identically
+// when it works. Embed-ready + resilient (SSSES Security/Stability).
+const lsGet = (key: string): string | null => { try { return typeof window !== "undefined" ? window.localStorage.getItem(key) : null; } catch { return null; } };
+const lsSet = (key: string, val: string) => { try { if (typeof window !== "undefined") window.localStorage.setItem(key, val); } catch { /* storage unavailable */ } };
+const ssGet = (key: string): string | null => { try { return typeof window !== "undefined" ? window.sessionStorage.getItem(key) : null; } catch { return null; } };
+const ssSet = (key: string, val: string) => { try { if (typeof window !== "undefined") window.sessionStorage.setItem(key, val); } catch { /* storage unavailable */ } };
+const ssDel = (key: string) => { try { if (typeof window !== "undefined") window.sessionStorage.removeItem(key); } catch { /* storage unavailable */ } };
+
 export default function InnovationPage() {
   const [unlocked, setUnlocked] = useState(false);
-  useEffect(() => { setUnlocked(sessionStorage.getItem(SS_KEY) === "1"); }, []);
-  if (!unlocked) return <Gate onUnlock={() => { sessionStorage.setItem(SS_KEY, "1"); setUnlocked(true); }} />;
+  useEffect(() => { setUnlocked(ssGet(SS_KEY) === "1"); }, []);
+  if (!unlocked) return <Gate onUnlock={() => { ssSet(SS_KEY, "1"); setUnlocked(true); }} />;
   return <Board />;
 }
 
@@ -116,14 +127,14 @@ function Board() {
   useEffect(() => { setSetup(loadBizSetup()); }, [view]);
   // Remembered defaults — a returning VP lands on the VP lens, not a PM view (usability).
   useEffect(() => {
-    const sp = localStorage.getItem("innovation-persona") as Persona | null;
-    const sc = localStorage.getItem("innovation-cadence") as "Q" | "M" | "W" | null;
+    const sp = lsGet("innovation-persona") as Persona | null;
+    const sc = lsGet("innovation-cadence") as "Q" | "M" | "W" | null;
     if (sc) setCadence(sc);
     const pp = PERSONAS.find((x) => x.key === sp);
     if (pp) { setPersona(pp.key); setView(pp.view); if (pp.level) setStackLevel(pp.level); }
   }, []);
-  useEffect(() => { localStorage.setItem("innovation-persona", persona); }, [persona]);
-  useEffect(() => { localStorage.setItem("innovation-cadence", cadence); }, [cadence]);
+  useEffect(() => { lsSet("innovation-persona", persona); }, [persona]);
+  useEffect(() => { lsSet("innovation-cadence", cadence); }, [cadence]);
   // Submit a new idea → a fresh Project seeded from the master data, opened for edit.
   const submitIdea = () => {
     const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
@@ -1163,13 +1174,13 @@ function GateCube({ p }: { p: Project }) {
   const nextGate = GATES[gi + 1];                 // undefined once at the final gate
   const review = GATE_REVIEW[nextGate ?? p.gate]; // slides for the next gate (or the final gate)
   const [slides, setSlides] = useState<Record<string, string>>({});
-  useEffect(() => { try { setSlides(JSON.parse(localStorage.getItem(SLIDE_KEY) || "{}")); } catch { /* none */ } }, []);
+  useEffect(() => { try { setSlides(JSON.parse(lsGet(SLIDE_KEY) || "{}")); } catch { /* none */ } }, []);
   const slideStatus = (s: string) => slides[`${p.id}|${s}`] || "";
   const cycleSlide = (s: string) => setSlides((prev) => {
     const k = `${p.id}|${s}`, cur = prev[k] || "";
     const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
     const upd = { ...prev, [k]: next };
-    localStorage.setItem(SLIDE_KEY, JSON.stringify(upd));
+    lsSet(SLIDE_KEY, JSON.stringify(upd));
     return upd;
   });
   const readyCount = review.deliverables.filter((d) => slideStatus(d.slide) === "approved").length;
@@ -1261,7 +1272,7 @@ function reqDetailRows(req: { id: string; type: string }, p: Project): [string, 
   }
   if (req.type === "S") {
     let st = "not started";
-    try { st = (JSON.parse((typeof window !== "undefined" && localStorage.getItem("innovation-slides")) || "{}") as Record<string, string>)[`${p.id}|${req.id}`] || "not started"; } catch { /* none */ }
+    try { st = (JSON.parse(lsGet("innovation-slides") || "{}") as Record<string, string>)[`${p.id}|${req.id}`] || "not started"; } catch { /* none */ }
     rows.push(["Slide input status", st]);
   }
   return rows;
@@ -1422,19 +1433,15 @@ const PILLAR_KEY = "innovation-pillars";
 // persisted; the edit-project + new-idea pillar dropdowns read from here.
 type PillarDef = { name: string; desc: string };
 function loadPillars(): PillarDef[] {
-  if (typeof window !== "undefined") {
-    const s = window.localStorage.getItem(PILLAR_KEY);
-    if (s) { try { const p = JSON.parse(s) as PillarDef[]; if (Array.isArray(p) && p.length) return p; } catch { /* seed */ } }
-  }
+  const s = lsGet(PILLAR_KEY);
+  if (s) { try { const p = JSON.parse(s) as PillarDef[]; if (Array.isArray(p) && p.length) return p; } catch { /* seed */ } }
   return STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] }));
 }
 // Shared master-data loader — reads the admin Business Setup (localStorage) or falls back to
 // the seed. Powers the edit-project + Submit-New-Idea dropdowns so BU/SBU/Alpha changes flow.
 function loadBizSetup(): BizSetup {
-  if (typeof window !== "undefined") {
-    const saved = window.localStorage.getItem(BIZ_KEY);
-    if (saved) { try { return JSON.parse(saved) as BizSetup; } catch { /* fall through to seed */ } }
-  }
+  const saved = lsGet(BIZ_KEY);
+  if (saved) { try { return JSON.parse(saved) as BizSetup; } catch { /* fall through to seed */ } }
   return seedBizSetup(DEMO_PROJECTS);
 }
 function BusinessSetup() {
@@ -1445,14 +1452,14 @@ function BusinessSetup() {
   const [tier, setTier] = useState<BizTier>("bu");
   const [pillars, setPillars] = useState<PillarDef[]>(() => STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] })));
   useEffect(() => {
-    setAdmin(sessionStorage.getItem(ADMIN_KEY) === "1");
-    const saved = localStorage.getItem(BIZ_KEY);
+    setAdmin(ssGet(ADMIN_KEY) === "1");
+    const saved = lsGet(BIZ_KEY);
     if (saved) { try { setSetup(JSON.parse(saved)); } catch { /* keep seed */ } }
     setPillars(loadPillars());
   }, []);
-  const persist = (next: BizSetup) => { setSetup(next); localStorage.setItem(BIZ_KEY, JSON.stringify(next)); };
-  const persistPillars = (next: PillarDef[]) => { setPillars(next); localStorage.setItem(PILLAR_KEY, JSON.stringify(next)); };
-  const unlock = () => (pw === CODE ? (sessionStorage.setItem(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
+  const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
+  const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
+  const unlock = () => (pw === CODE ? (ssSet(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
 
   if (!admin) {
     return (
@@ -1492,7 +1499,7 @@ function BusinessSetup() {
         <div className="ml-auto flex items-center gap-2 text-[11px]">
           <span className="text-slate-500">Σ SBU base <b className="text-emerald-300">${totalBase}M</b></span>
           <button onClick={resetSeed} className="rounded border border-slate-700 px-2 py-1 text-slate-300 hover:bg-slate-800">Reset to seed</button>
-          <button onClick={() => { sessionStorage.removeItem(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
+          <button onClick={() => { ssDel(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
         </div>
       </div>
 
