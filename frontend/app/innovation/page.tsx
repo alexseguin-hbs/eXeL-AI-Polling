@@ -106,6 +106,25 @@ function Board() {
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
   const [persona, setPersona] = useState<Persona>("sbu");
+  // Master data (BU/SBU/Alpha…) for the edit + new-idea dropdowns; reloads when leaving Setup.
+  const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
+  useEffect(() => { setSetup(loadBizSetup()); }, [view]);
+  // Submit a new idea → a fresh Project seeded from the master data, opened for edit.
+  const submitIdea = () => {
+    const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
+    const id = `PRJ-${String(maxN + 1).padStart(2, "0")}`;
+    const np: Project = {
+      id, name: "New Idea", division: "New", manager: "you", category: "New Product",
+      gate: "G1", confidence: 2, tech: "med", comm: "med", lob: setup.sbu[0]?.code ?? "SBU-1",
+      nreK: 1000, fullRev10yM: 50, doNothing10yM: 0, firstRevenue: "2028-Q1",
+      criticalPath: false, humanLoad: 0.4, ai: 0.4, si: 0.3, hi: 0.3, predictions: 0,
+      bu: setup.bu[0]?.code, sbu: setup.sbu[0]?.code, pgroup: setup.pgroup[0]?.code,
+      alpha: setup.alpha[0]?.code, initiative: STRATEGIC_INITIATIVES[0],
+    };
+    setOrder((o) => [np, ...o]);
+    setSelId(id); setView("portfolio"); setStackLevel("product");
+    log("edit", np.name, "submitted new idea (G1)", "you");
+  };
   // Change + approval activity log (edits and gate approvals) — the audit summary.
   const [activity, setActivity] = useState<{ id: number; kind: "edit" | "approve" | "reject"; project: string; text: string; by: string }[]>([]);
   const log = (kind: "edit" | "approve" | "reject", project: string, text: string, by: string) =>
@@ -169,6 +188,10 @@ function Board() {
         >
           R-Core Project Template ↗
         </a>
+        <button onClick={submitIdea}
+          className="rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
+          ＋ Submit New Idea
+        </button>
         <div className="ml-auto flex gap-5 text-right">
           <Kpi label="R&D available" value={k(avail)} />
           <Kpi label="Funded NRE" value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
@@ -364,7 +387,7 @@ function Board() {
 
         {/* Selected project detail */}
         <section className="space-y-4">
-          <ProjectDetail p={sel} risks={risks}
+          <ProjectDetail p={sel} risks={risks} setup={setup}
             onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
             onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           <TimeEngine p={sel} />
@@ -600,8 +623,8 @@ function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   return <span className={`rounded px-1.5 py-0.5 text-[11px] font-mono ${c}`}>{label} {RISK_LABEL[level]}</span>;
 }
 
-function ProjectDetail({ p, risks, onEdit, onApprove }: {
-  p: Project; risks: Risk[];
+function ProjectDetail({ p, risks, setup, onEdit, onApprove }: {
+  p: Project; risks: Risk[]; setup: BizSetup;
   onEdit: (patch: Partial<Project>, changes: string[]) => void;
   onApprove: (kind: "approve" | "reject", by: string) => void;
 }) {
@@ -665,6 +688,32 @@ function ProjectDetail({ p, risks, onEdit, onApprove }: {
           <label>Gate<select value={dv("gate")} onChange={(e) => setD("gate", e.target.value as Project["gate"])} className={`mt-0.5 block w-full ${editStyle}`}>{GATES.map((g) => <option key={g} value={g}>{g} {GATE_STAGE[g]}</option>)}</select></label>
           <label>Tech risk<select value={dv("tech")} onChange={(e) => setD("tech", e.target.value as Project["tech"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
           <label>Comm risk<select value={dv("comm")} onChange={(e) => setD("comm", e.target.value as Project["comm"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+          {/* Master-data dropdowns — options come from Business Setup (BU/SBU/Alpha…) + pillars */}
+          <label className="col-span-2 sm:col-span-3">Strategic Pillar
+            <select value={dv("initiative") ?? metaOf(p).initiative} onChange={(e) => setD("initiative", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
+              {STRATEGIC_INITIATIVES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label>BU
+            <select value={dv("bu") ?? hierOf(p).bu} onChange={(e) => setD("bu", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
+              {setup.bu.map((n) => <option key={n.code} value={n.code}>{n.code} · {n.label}</option>)}
+            </select>
+          </label>
+          <label>SBU
+            <select value={dv("sbu") ?? hierOf(p).sbu} onChange={(e) => setD("sbu", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
+              {setup.sbu.filter((s) => s.parent === (dv("bu") ?? hierOf(p).bu)).map((n) => <option key={n.code} value={n.code}>{n.code} · {n.label}</option>)}
+            </select>
+          </label>
+          <label>Alpha Group
+            <select value={dv("pgroup") ?? hierOf(p).pgroup} onChange={(e) => setD("pgroup", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
+              {setup.pgroup.filter((g) => g.parent === (dv("sbu") ?? hierOf(p).sbu)).map((n) => <option key={n.code} value={n.code}>{n.code}</option>)}
+            </select>
+          </label>
+          <label>Alpha Code
+            <select value={dv("alpha") ?? hierOf(p).alpha} onChange={(e) => setD("alpha", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
+              {setup.alpha.filter((a) => a.parent === (dv("pgroup") ?? hierOf(p).pgroup)).map((n) => <option key={n.code} value={n.code}>{n.code}</option>)}
+            </select>
+          </label>
         </div>
       )}
       {/* Tech × Comm risk → revenue captured / upside (operator default model) */}
@@ -988,6 +1037,15 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
 // Code→Product→Material. Seeds from the live portfolio; edits persist to localStorage.
 const BIZ_KEY = "innovation-biz-setup";
 const ADMIN_KEY = "innovation-admin";
+// Shared master-data loader — reads the admin Business Setup (localStorage) or falls back to
+// the seed. Powers the edit-project + Submit-New-Idea dropdowns so BU/SBU/Alpha changes flow.
+function loadBizSetup(): BizSetup {
+  if (typeof window !== "undefined") {
+    const saved = window.localStorage.getItem(BIZ_KEY);
+    if (saved) { try { return JSON.parse(saved) as BizSetup; } catch { /* fall through to seed */ } }
+  }
+  return seedBizSetup(DEMO_PROJECTS);
+}
 function BusinessSetup() {
   const [admin, setAdmin] = useState(false);
   const [pw, setPw] = useState("");

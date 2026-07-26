@@ -106,6 +106,11 @@ export interface Project {
   humanLoad: number;          // 0..1 sustained human-intelligence load (CRS-93 burnout guard)
   ai: number; si: number; hi: number; // intelligence contribution mix (sums ~1)
   predictions: number;        // open risk-market predictions against the project (CRS-81)
+  // Optional master-data overrides — set via project edit / Submit-New-Idea. When present they
+  // win over the PROJECT_HIER seed (hierOf) and the derived pillar (metaOf), so edits to the
+  // Business-Setup hierarchy flow through the whole tool.
+  bu?: string; sbu?: string; pgroup?: string; alpha?: string; product?: string; material?: string;
+  initiative?: string;
 }
 
 // ── Calculators (all derived, never stored — CRS-52/53/67) ──────────────────────────────
@@ -459,8 +464,14 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-17": { bu: "DS", sbu: "DSI", pgroup: "CD1", alpha: "CA2X", product: "70017", material: "70017-001" },
   "PRJ-18": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1S", product: "70018", material: "70018-001" },
 };
-export const hierOf = (p: Project): HierPath =>
-  PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
+export const hierOf = (p: Project): HierPath => {
+  const base = PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
+  // Optional per-project overrides (from edit / Submit-New-Idea) win over the seed.
+  return {
+    bu: p.bu ?? base.bu, sbu: p.sbu ?? base.sbu, pgroup: p.pgroup ?? base.pgroup,
+    alpha: p.alpha ?? base.alpha, product: p.product ?? base.product, material: p.material ?? base.material,
+  };
+};
 
 // Company → BU → SBU → Product Group rollup: base revenue + funded NRE spend + NPV per node.
 export interface RollupNode { name: string; baseM: number; spendK: number; npvM: number; count: number }
@@ -691,10 +702,11 @@ export interface ProjectMeta {
 export function metaOf(p: Project): ProjectMeta {
   const d = `${p.division} ${p.name} ${p.category}`.toLowerCase();
   const initiative: StrategicInitiative =
-    /effect|counter|loiter|strike|munition/.test(d) ? "Autonomous Loitering Munitions"
+    (p.initiative && (STRATEGIC_INITIATIVES as readonly string[]).includes(p.initiative) ? (p.initiative as StrategicInitiative) : null) ??
+    (/effect|counter|loiter|strike|munition/.test(d) ? "Autonomous Loitering Munitions"
       : /\bai\b|autonomy|swarm|teaming|mum-t|fusion|hivemind|targeting|c2|command|control/.test(d) ? "AI Targeting & Terminal Autonomy"
       : /sdk|marketplace|cloud|software|handheld|gcs|modern|bridge|eol|legacy/.test(d) ? "Mass-Producible Attritable Systems"
-      : "Sovereign Deep-Strike & ISR";
+      : "Sovereign Deep-Strike & ISR");
   const valueLadder = /platform/.test(d) ? "Platform" : /sdk|marketplace|cloud/.test(d) ? "Ecosystem"
     : /sustain|phase|legacy|eol|bridge/.test(d) ? "Product" : "Solution";
   const valueImpact = p.confidence <= 2 && (p.tech === "high" || p.comm === "high") ? "Transformational"
