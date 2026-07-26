@@ -846,7 +846,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
           <div key={title} className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
             <div className="text-[10px] uppercase tracking-wider font-mono" style={{ color }}>{title}</div>
             <ul className="mt-1 space-y-0.5">
-              {items.map((it, i) => <li key={i} className="text-[11px] leading-snug text-slate-300">· {it}</li>)}
+              {items.slice(0, 5).map((it, i) => <li key={i} className="text-[11px] leading-snug text-slate-300">· {it}</li>)}
             </ul>
           </div>
         ))}
@@ -1082,6 +1082,8 @@ const REQ_TYPE_CHIP: Record<string, string> = {
   S: "text-cyan-300", REQ: "text-emerald-300", DR: "text-sky-300",
   TR: "text-amber-300", IS: "text-violet-300", DT: "text-rose-300", DC: "text-slate-300",
 };
+// No "REQ" jargon in the UX — requirement IDs render as R-## (S/DR/IS/DC/TR/DT keep their codes).
+const dispReqId = (id: string) => (id.startsWith("REQ-") ? "R-" + id.slice(4) : id);
 
 function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]; sel: Project; onSelect: (id: string) => void }) {
   const readiness = useMemo(() => gateReadinessAll(sel), [sel]);
@@ -1136,7 +1138,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
           <h2 className="text-sm font-semibold">Requirement registry · {GATE_REQUIREMENTS.length} rows</h2>
           <div className="flex flex-wrap gap-2 text-[10px]">
             {(["S", "REQ", "DR", "TR", "IS", "DT", "DC"] as const).map((t) => (
-              <span key={t} className={REQ_TYPE_CHIP[t]}>{t}<span className="text-slate-600"> {REQ_TYPE_LABEL[t]}</span></span>
+              <span key={t} className={REQ_TYPE_CHIP[t]}>{t === "REQ" ? REQ_TYPE_LABEL[t] : <>{t}<span className="text-slate-600"> {REQ_TYPE_LABEL[t]}</span></>}</span>
             ))}
           </div>
         </div>
@@ -1160,10 +1162,10 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                 return (
                   <React.Fragment key={req.id}>
                   <tr onClick={() => toggle(req.id)} className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 ${isOpen ? "bg-slate-800/40" : ""}`} title="Expand into actual detail">
-                    <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{req.id}</td>
+                    <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{dispReqId(req.id)}</td>
                     <td className="px-2 py-1.5">
                       <div className="text-[13px] text-slate-200 leading-tight">{req.title}</div>
-                      <div className="text-[10px] text-slate-500">{req.verification}{req.parentId && req.parentId !== req.id ? ` · ↳ ${req.parentId}` : ""}</div>
+                      <div className="text-[10px] text-slate-500">{req.verification}{req.parentId && req.parentId !== req.id ? ` · ↳ ${dispReqId(req.parentId)}` : ""}</div>
                     </td>
                     <td className="px-2 py-1.5 text-center text-[11px] tabular-nums text-slate-400">±{Math.round(req.band * 100)}%</td>
                     {GATES.map((g, gi) => {
