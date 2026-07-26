@@ -166,5 +166,53 @@ const newOnly = gm2(DEMO_PROJECTS, { years: 3, revMode: "new" });
 ok(newOnly[2].weighted < full[2].weighted, "Revenue Option 'new' scales NPI below 'full'");
 ok(full.length === 3, "growth model honors # Years = 3");
 
+/* ---------------- Gate Requirements registry (SPEC §3) ---------------- */
+import {
+  GATE_REQUIREMENTS, requirementsAt, requirementStatus, gateReadiness, gateReadinessAll,
+  gateVariance, TOLERANCE_LADDER, REQ_SATISFIED, GATES as GATE_G,
+} from "../lib/innovation-data.ts";
+
+// registry unifies the three sources (§3.1): S-slides + CRS rows + DR/TR/IS/DT/DC derivatives
+ok(GATE_REQUIREMENTS.length >= 25, "unified registry has all requirement rows");
+ok(GATE_REQUIREMENTS.some((r) => r.type === "S") && GATE_REQUIREMENTS.some((r) => r.type === "CRS"), "registry folds S-slides + CRS rows");
+ok(["DR", "TR", "IS", "DT", "DC"].every((t) => GATE_REQUIREMENTS.some((r) => r.type === t)), "registry carries DR/TR/IS/DT/DC traceability rows");
+ok(GATE_REQUIREMENTS.every((r) => !!r.id && !!r.title && !!r.verification && GATE_G.includes(r.earliestGate)), "every requirement has id/title/verification/earliestGate");
+
+// tolerance ladder §3.4 — ±60/40/20/10/5% tightening gate over gate
+ok(TOLERANCE_LADDER.G1 === 0.6 && TOLERANCE_LADDER.G2 === 0.4 && TOLERANCE_LADDER.G3 === 0.2 && TOLERANCE_LADDER.G5 === 0.05, "tolerance ladder ±60/40/20/…/5%");
+ok(GATE_G.every((g, i) => i === 0 || TOLERANCE_LADDER[GATE_G[i - 1]] >= TOLERANCE_LADDER[g]), "tolerance band tightens (never widens) gate over gate");
+ok(GATE_REQUIREMENTS.every((r) => r.band === TOLERANCE_LADDER[r.earliestGate]), "requirement band matches ladder at its earliest gate");
+
+// requirementsAt is cumulative (earliest ≤ gate) and grows monotonically
+ok(requirementsAt("G1").length >= 1, "G1 has required rows");
+ok(requirementsAt("G7").length === GATE_REQUIREMENTS.length, "by G7 every requirement is required");
+ok(GATE_G.every((g, i) => i === 0 || requirementsAt(g).length >= requirementsAt(GATE_G[i - 1]).length), "requirement count is cumulative by gate");
+
+// per-project status derived from gate progression (approved ≤ done, in_work = next, else not_started)
+const G3proj = P({ gate: "G3" });
+const doneReq = GATE_REQUIREMENTS.find((r) => r.earliestGate === "G2");
+const nextReq = GATE_REQUIREMENTS.find((r) => r.earliestGate === "G4");
+const farReq = GATE_REQUIREMENTS.find((r) => r.earliestGate === "G6");
+ok(requirementStatus(doneReq, G3proj) === "approved", "requirement at a completed gate reads Approved");
+ok(requirementStatus(nextReq, G3proj) === "in_work", "requirement at the next gate reads In Work");
+ok(requirementStatus(farReq, G3proj) === "not_started", "requirement beyond next gate reads Not Started");
+
+// gate readiness rollup §3.5 — % satisfied, blocking list, single verdict
+const rdyG1 = gateReadiness(G3proj, "G1");
+ok(rdyG1.ready === true && rdyG1.blocking.length === 0, "a completed gate is Ready with no blockers");
+const rdyG5 = gateReadiness(G3proj, "G5");
+ok(rdyG5.ready === false && rdyG5.blocking.length > 0, "a future gate is Not Ready with blockers");
+ok(rdyG5.pct >= 0 && rdyG5.pct <= 100 && rdyG5.satisfied <= rdyG5.required, "readiness pct/satisfied within bounds");
+ok(gateReadinessAll(G3proj).length === 7, "gateReadinessAll covers G1–G7");
+ok(REQ_SATISFIED.includes("approved") && REQ_SATISFIED.includes("waived") && REQ_SATISFIED.includes("na"), "satisfied statuses = approved/waived/na");
+
+// estimate-tolerance variance disposition §3.4 — beyond band raises an exception
+const vOk = gateVariance(100, 110, "G3");   // +10% within ±20% band
+const vBad = gateVariance(100, 140, "G3");  // +40% beyond ±20% band
+ok(near(vOk.deltaPct, 0.1) && vOk.exceeds === false, "within-band variance is accepted");
+ok(near(vBad.deltaPct, 0.4) && vBad.exceeds === true, "beyond-band variance raises an exception");
+ok(gateVariance(0, 50, "G1").exceeds === true, "growth from a zero prior raises an exception");
+ok(gateVariance(0, 0, "G1").exceeds === false, "zero-to-zero is not an exception");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

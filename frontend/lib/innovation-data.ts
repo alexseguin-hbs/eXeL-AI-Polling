@@ -631,3 +631,115 @@ export function stackWithBudget(order: Project[], availableK_: number) {
   });
   return { rows, lineIndex };
 }
+
+// ── GATE REQUIREMENTS REGISTRY (SPEC §3) — the governance-facing second surface ───────────
+// One unified registry of what is required at each gate, folding three sources into a single
+// grammar (§3.1): (1) the S1–S18 review deliverables (derived from GATE_REVIEW, no duplication),
+// (2) the Rack & Stack financial/meta rows that must be gated (§3.3), and (3) the CRS /
+// DR / TR / IS / DT / DC traceability items. Pure + deterministic; per-project status is
+// derived from gate progression so the matrix renders without persistence (edits ride the
+// in-session activity log, matching the rest of the module).
+export type ReqType = "S" | "CRS" | "DR" | "TR" | "IS" | "DT" | "DC";
+export const REQ_TYPE_LABEL: Record<ReqType, string> = {
+  S: "Review slide", CRS: "Requirement", DR: "Design req", TR: "Test req", IS: "Interface spec", DT: "Design test", DC: "Design constraint",
+};
+export type ReqStatus = "not_started" | "in_work" | "submitted" | "approved" | "waived" | "na";
+export const REQ_STATUS_LABEL: Record<ReqStatus, string> = {
+  not_started: "Not Started", in_work: "In Work", submitted: "Submitted", approved: "Approved", waived: "Waived", na: "N/A",
+};
+// A status counts as satisfying a gate when it no longer blocks (approved / waived / N/A).
+export const REQ_SATISFIED: ReqStatus[] = ["approved", "waived", "na"];
+
+export interface GateRequirement {
+  id: string;             // stable ID in the source grammar (e.g. "S3", "CRS-49", "DR-07")
+  parentId?: string;      // parent CRS-## for CRS children / derivatives
+  type: ReqType;
+  title: string;
+  earliestGate: Gate;     // gate by which it must first be satisfied (then re-verified onward)
+  band: number;           // estimate-tolerance band applicable at the earliest gate (§3.4)
+  verification: string;   // verification method
+}
+
+// Estimate tolerance ladder (§3.4, ±60/40/20/10/5%) — tightens gate over gate. Distinct from
+// GATE_BAND (which the time engine widens by project risk); this is the governance-view ladder.
+export const TOLERANCE_LADDER: Record<Gate, number> = { G1: 0.6, G2: 0.4, G3: 0.2, G4: 0.1, G5: 0.05, G6: 0.05, G7: 0.05 };
+
+// (1) S1–S18 review deliverables, one requirement per slide, at the gate that owns it.
+const S_REQUIREMENTS: GateRequirement[] = GATES.flatMap((g) =>
+  GATE_REVIEW[g].deliverables.map((d) => ({
+    id: d.slide, type: "S" as ReqType, title: `${d.name} — ${d.summary}`,
+    earliestGate: g, band: TOLERANCE_LADDER[g], verification: "PRB review of slide",
+  })),
+);
+
+// (2) Rack & Stack gated requirement rows (§3.3) — the financial model + meta are governed
+// objects, not free-form fields. Each anchors to the CRS that owns the underlying datum.
+const RS_REQUIREMENTS: GateRequirement[] = [
+  { id: "CRS-47", parentId: "CRS-47", type: "CRS", title: "Step 1a NRE cost model complete", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Finance review vs. Project #" },
+  { id: "CRS-49", parentId: "CRS-49", type: "CRS", title: "Step 1b New Product projections complete", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Units/MSRP/discount/COGS present" },
+  { id: "CRS-50", parentId: "CRS-50", type: "CRS", title: "Step 2 Do-Nothing scenario entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Required before funding decision" },
+  { id: "CRS-51", parentId: "CRS-50", type: "CRS", title: "Step 3 EOL / Phase-Out plan entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Phase-out ≤ 3 yrs, terminal-zero check" },
+  { id: "CRS-52", parentId: "CRS-52", type: "CRS", title: "Incremental Revenue reconciled with Finance", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Finance reviewer sign-off" },
+  { id: "CRS-38", parentId: "CRS-38", type: "CRS", title: "Model Confidence Level assigned (1–4)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Named reviewers required" },
+  { id: "CRS-53", parentId: "CRS-53", type: "CRS", title: "Technical + Commercial risk rated", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Drives probability weighting" },
+  { id: "CRS-54", parentId: "CRS-54", type: "CRS", title: "Strategic Initiative assigned (or None + rationale)", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Single-select from initiative list" },
+  { id: "CRS-55", parentId: "CRS-55", type: "CRS", title: "Value Ladder position + impact", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "PRB review" },
+  { id: "CRS-89", parentId: "CRS-89", type: "CRS", title: "Dependencies declared (assigned by manager)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Manager declaration" },
+  { id: "CRS-90", parentId: "CRS-89", type: "CRS", title: "Dependencies acknowledged (assigned by others)", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Receiving PM acknowledgement" },
+  { id: "CRS-71", parentId: "CRS-71", type: "CRS", title: "Project # / WBS elements created", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Enables actuals tracking" },
+  { id: "CRS-42", parentId: "CRS-42", type: "CRS", title: "Above/Below-line stack position ratified", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "PRB / quarter-close snapshot" },
+  { id: "CRS-69", parentId: "CRS-69", type: "CRS", title: "Growth Model contribution validated", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "NPI bar reconciles to Division target" },
+  { id: "CRS-56", parentId: "CRS-56", type: "CRS", title: "Business Case artifacts (AMTS) set", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "TAM/SAM/Target + model present" },
+  { id: "CRS-48", parentId: "CRS-47", type: "CRS", title: "Capital & Tooling aligned to capital submission", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Capital submission cross-check" },
+];
+
+// (3) Traceability derivatives (§3.2) — DR/TR/IS/DT/DC linked up to a CRS, down to evidence.
+const TRACE_REQUIREMENTS: GateRequirement[] = [
+  { id: "DR-01", parentId: "CRS-47", type: "DR", title: "Design requirement: SWaP envelope defined", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Design review" },
+  { id: "IS-01", parentId: "CRS-89", type: "IS", title: "Interface spec: GCS / datalink ICD baselined", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "ICD sign-off" },
+  { id: "DC-01", parentId: "CRS-53", type: "DC", title: "Design constraint: MIL-STD environmental limits", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Constraint trace" },
+  { id: "TR-01", parentId: "CRS-56", type: "TR", title: "Test requirement: qualification test plan approved", earliestGate: "G4", band: TOLERANCE_LADDER.G4, verification: "Test readiness review" },
+  { id: "DT-01", parentId: "CRS-56", type: "DT", title: "Design test: BETA/VOC field trial executed", earliestGate: "G4", band: TOLERANCE_LADDER.G4, verification: "Field-trial records" },
+];
+
+// The unified registry (§3.1). Order: review slides, then R&S gated rows, then traceability.
+export const GATE_REQUIREMENTS: GateRequirement[] = [...S_REQUIREMENTS, ...RS_REQUIREMENTS, ...TRACE_REQUIREMENTS];
+
+// Requirements that must be satisfied by a given gate (earliest ≤ gate) — the matrix column.
+export const requirementsAt = (gate: Gate): GateRequirement[] =>
+  GATE_REQUIREMENTS.filter((r) => GATES.indexOf(r.earliestGate) <= GATES.indexOf(gate));
+
+// Per-project requirement status, derived from gate progression (§2.5 stage is derived, never
+// user-set): a requirement whose earliest gate is completed reads Approved; the next gate's are
+// In Work; anything further out is Not Started. A real deploy overlays persisted approvals.
+export function requirementStatus(req: GateRequirement, p: Project): ReqStatus {
+  const done = GATES.indexOf(p.gate);             // last completed gate
+  const need = GATES.indexOf(req.earliestGate);
+  if (need <= done) return "approved";
+  if (need === done + 1) return "in_work";
+  return "not_started";
+}
+
+// Gate readiness rollup (§3.5): % satisfied, blocking list, single Ready/Not-Ready verdict.
+export interface GateReadiness { gate: Gate; stage: string; required: number; satisfied: number; pct: number; blocking: string[]; ready: boolean }
+export function gateReadiness(p: Project, gate: Gate): GateReadiness {
+  const reqs = requirementsAt(gate);
+  const graded = reqs.map((r) => ({ id: r.id, s: requirementStatus(r, p) }));
+  const satisfied = graded.filter((g) => REQ_SATISFIED.includes(g.s)).length;
+  const blocking = graded.filter((g) => !REQ_SATISFIED.includes(g.s)).map((g) => g.id);
+  return {
+    gate, stage: GATE_STAGE[gate], required: reqs.length, satisfied,
+    pct: reqs.length ? Math.round((satisfied / reqs.length) * 100) : 100,
+    blocking, ready: blocking.length === 0,
+  };
+}
+export const gateReadinessAll = (p: Project): GateReadiness[] => GATES.map((g) => gateReadiness(p, g));
+
+// Estimate-tolerance variance disposition (§3.4): a gate-to-gate move beyond the band raises a
+// variance exception requiring PRB disposition — it is not silently accepted.
+export interface Variance { prior: number; current: number; deltaPct: number; band: number; exceeds: boolean }
+export function gateVariance(prior: number, current: number, gate: Gate): Variance {
+  const band = TOLERANCE_LADDER[gate];
+  const deltaPct = prior !== 0 ? (current - prior) / Math.abs(prior) : (current === 0 ? 0 : 1);
+  return { prior, current, deltaPct, band, exceeds: Math.abs(deltaPct) > band };
+}
