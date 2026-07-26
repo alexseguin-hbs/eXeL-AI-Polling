@@ -803,9 +803,9 @@ export function dependencySummary(projects: Project[], deps: DepEdge[]): DepSumm
 // DR / TR / IS / DT / DC traceability items. Pure + deterministic; per-project status is
 // derived from gate progression so the matrix renders without persistence (edits ride the
 // in-session activity log, matching the rest of the module).
-export type ReqType = "S" | "CRS" | "DR" | "TR" | "IS" | "DT" | "DC";
+export type ReqType = "S" | "REQ" | "DR" | "TR" | "IS" | "DT" | "DC";
 export const REQ_TYPE_LABEL: Record<ReqType, string> = {
-  S: "Review slide", CRS: "Requirement", DR: "Design req", TR: "Test req", IS: "Interface spec", DT: "Design test", DC: "Design constraint",
+  S: "Review slide", REQ: "Requirement", DR: "Design req", TR: "Test req", IS: "Interface spec", DT: "Design test", DC: "Design constraint",
 };
 export type ReqStatus = "not_started" | "in_work" | "submitted" | "approved" | "waived" | "na";
 export const REQ_STATUS_LABEL: Record<ReqStatus, string> = {
@@ -815,7 +815,7 @@ export const REQ_STATUS_LABEL: Record<ReqStatus, string> = {
 export const REQ_SATISFIED: ReqStatus[] = ["approved", "waived", "na"];
 
 export interface GateRequirement {
-  id: string;             // stable ID in the source grammar (e.g. "S3", "CRS-49", "DR-07")
+  id: string;             // stable ID in the source grammar (e.g. "S3", "REQ-49", "DR-07")
   parentId?: string;      // parent CRS-## for CRS children / derivatives
   type: ReqType;
   title: string;
@@ -839,31 +839,31 @@ const S_REQUIREMENTS: GateRequirement[] = GATES.flatMap((g) =>
 // (2) Rack & Stack gated requirement rows (§3.3) — the financial model + meta are governed
 // objects, not free-form fields. Each anchors to the CRS that owns the underlying datum.
 const RS_REQUIREMENTS: GateRequirement[] = [
-  { id: "CRS-47", parentId: "CRS-47", type: "CRS", title: "Step 1a NRE cost model complete", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Finance review vs. Project #" },
-  { id: "CRS-49", parentId: "CRS-49", type: "CRS", title: "Step 1b New Product projections complete", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Units/MSRP/discount/COGS present" },
-  { id: "CRS-50", parentId: "CRS-50", type: "CRS", title: "Step 2 Do-Nothing scenario entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Required before funding decision" },
-  { id: "CRS-51", parentId: "CRS-50", type: "CRS", title: "Step 3 EOL / Phase-Out plan entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Phase-out ≤ 3 yrs, terminal-zero check" },
-  { id: "CRS-52", parentId: "CRS-52", type: "CRS", title: "Incremental Revenue reconciled with Finance", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Finance reviewer sign-off" },
-  { id: "CRS-38", parentId: "CRS-38", type: "CRS", title: "Model Confidence Level assigned (1–4)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Named reviewers required" },
-  { id: "CRS-53", parentId: "CRS-53", type: "CRS", title: "Technical + Commercial risk rated", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Drives probability weighting" },
-  { id: "CRS-54", parentId: "CRS-54", type: "CRS", title: "Strategic Initiative assigned (or None + rationale)", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Single-select from initiative list" },
-  { id: "CRS-55", parentId: "CRS-55", type: "CRS", title: "Value Ladder position + impact", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "PRB review" },
-  { id: "CRS-89", parentId: "CRS-89", type: "CRS", title: "Dependencies declared (assigned by manager)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Manager declaration" },
-  { id: "CRS-90", parentId: "CRS-89", type: "CRS", title: "Dependencies acknowledged (assigned by others)", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Receiving PM acknowledgement" },
-  { id: "CRS-71", parentId: "CRS-71", type: "CRS", title: "Project # / WBS elements created", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Enables actuals tracking" },
-  { id: "CRS-42", parentId: "CRS-42", type: "CRS", title: "Above/Below-line stack position ratified", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "PRB / quarter-close snapshot" },
-  { id: "CRS-69", parentId: "CRS-69", type: "CRS", title: "Growth Model contribution validated", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "NPI bar reconciles to Division target" },
-  { id: "CRS-56", parentId: "CRS-56", type: "CRS", title: "Business Case artifacts (AMTS) set", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "TAM/SAM/Target + model present" },
-  { id: "CRS-48", parentId: "CRS-47", type: "CRS", title: "Capital & Tooling aligned to capital submission", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Capital submission cross-check" },
+  { id: "REQ-47", parentId: "REQ-47", type: "REQ", title: "Step 1a NRE cost model complete", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Finance review vs. Project #" },
+  { id: "REQ-49", parentId: "REQ-49", type: "REQ", title: "Step 1b New Product projections complete", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Units/MSRP/discount/COGS present" },
+  { id: "REQ-50", parentId: "REQ-50", type: "REQ", title: "Step 2 Do-Nothing scenario entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Required before funding decision" },
+  { id: "REQ-51", parentId: "REQ-50", type: "REQ", title: "Step 3 EOL / Phase-Out plan entered", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Phase-out ≤ 3 yrs, terminal-zero check" },
+  { id: "REQ-52", parentId: "REQ-52", type: "REQ", title: "Incremental Revenue reconciled with Finance", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Finance reviewer sign-off" },
+  { id: "REQ-38", parentId: "REQ-38", type: "REQ", title: "Model Confidence Level assigned (1–4)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Named reviewers required" },
+  { id: "REQ-53", parentId: "REQ-53", type: "REQ", title: "Technical + Commercial risk rated", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Drives probability weighting" },
+  { id: "REQ-54", parentId: "REQ-54", type: "REQ", title: "Strategic Initiative assigned (or None + rationale)", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "Single-select from initiative list" },
+  { id: "REQ-55", parentId: "REQ-55", type: "REQ", title: "Value Ladder position + impact", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "PRB review" },
+  { id: "REQ-89", parentId: "REQ-89", type: "REQ", title: "Dependencies declared (assigned by manager)", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Manager declaration" },
+  { id: "REQ-90", parentId: "REQ-89", type: "REQ", title: "Dependencies acknowledged (assigned by others)", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Receiving PM acknowledgement" },
+  { id: "REQ-71", parentId: "REQ-71", type: "REQ", title: "Project # / WBS elements created", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Enables actuals tracking" },
+  { id: "REQ-42", parentId: "REQ-42", type: "REQ", title: "Above/Below-line stack position ratified", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "PRB / quarter-close snapshot" },
+  { id: "REQ-69", parentId: "REQ-69", type: "REQ", title: "Growth Model contribution validated", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "NPI bar reconciles to Division target" },
+  { id: "REQ-56", parentId: "REQ-56", type: "REQ", title: "Business Case artifacts (AMTS) set", earliestGate: "G1", band: TOLERANCE_LADDER.G1, verification: "TAM/SAM/Target + model present" },
+  { id: "REQ-48", parentId: "REQ-47", type: "REQ", title: "Capital & Tooling aligned to capital submission", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Capital submission cross-check" },
 ];
 
 // (3) Traceability derivatives (§3.2) — DR/TR/IS/DT/DC linked up to a CRS, down to evidence.
 const TRACE_REQUIREMENTS: GateRequirement[] = [
-  { id: "DR-01", parentId: "CRS-47", type: "DR", title: "Design requirement: SWaP envelope defined", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Design review" },
-  { id: "IS-01", parentId: "CRS-89", type: "IS", title: "Interface spec: GCS / datalink ICD baselined", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "ICD sign-off" },
-  { id: "DC-01", parentId: "CRS-53", type: "DC", title: "Design constraint: MIL-STD environmental limits", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Constraint trace" },
-  { id: "TR-01", parentId: "CRS-56", type: "TR", title: "Test requirement: qualification test plan approved", earliestGate: "G4", band: TOLERANCE_LADDER.G4, verification: "Test readiness review" },
-  { id: "DT-01", parentId: "CRS-56", type: "DT", title: "Design test: BETA/VOC field trial executed", earliestGate: "G4", band: TOLERANCE_LADDER.G4, verification: "Field-trial records" },
+  { id: "DR-01", parentId: "REQ-47", type: "DR", title: "Design requirement: SWaP envelope defined", earliestGate: "G2", band: TOLERANCE_LADDER.G2, verification: "Design review" },
+  { id: "IS-01", parentId: "REQ-89", type: "IS", title: "Interface spec: GCS / datalink ICD baselined", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "ICD sign-off" },
+  { id: "DC-01", parentId: "REQ-53", type: "DC", title: "Design constraint: MIL-STD environmental limits", earliestGate: "G3", band: TOLERANCE_LADDER.G3, verification: "Constraint trace" },
+  { id: "TR-01", parentId: "REQ-56", type: "TR", title: "Test requirement: qualification test plan approved", earliestGate: "G4", band: TOLERANCE_LADDER.G4, verification: "Test readiness review" },
+  { id: "DT-01", parentId: "REQ-56", type: "DT", title: "Design test: BETA/VOC field trial executed", earliestGate: "G4", band: TOLERANCE_LADDER.G4, verification: "Field-trial records" },
 ];
 
 // The unified registry (§3.1). Order: review slides, then R&S gated rows, then traceability.

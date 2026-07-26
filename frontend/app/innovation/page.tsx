@@ -179,7 +179,7 @@ function Board() {
       {/* Header */}
       <header className="border-b border-slate-800 px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         <div>
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · CRS-36→93</div>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
           <h1 className="text-lg font-semibold">Project Innovation — Rack &amp; Stack</h1>
         </div>
         <a
@@ -450,7 +450,7 @@ function Board() {
       )}
 
       <footer className="px-5 pb-8 text-[11px] text-slate-500">
-        Demo portfolio · figures derived (CRS-52/53/67), never entered. Series 9 (CRS-75→93) is the differentiator vs. classic rack-and-stack.
+        Demo portfolio · financials are derived from the inputs, never hand-entered. Reprioritize the stack, gate projects, and poll feedback to de-risk the roadmap.
       </footer>
     </div>
   );
@@ -903,7 +903,7 @@ function GateCube({ p }: { p: Project }) {
           </div>
         ))}
       </div>
-      <div className="mt-2 text-[11px] text-slate-500">Layers = gate bands · lit = approved (append-only event fold, CRS-76/78)</div>
+      <div className="mt-2 text-[11px] text-slate-500">Layers = gate bands · lit = approved (append-only)</div>
       {/* Minimum deliverables required at this gate to de-risk (AMTS S1–S18 matrix) */}
       <div className="mt-3 border-t border-slate-800 pt-2">
         <div className="text-[10px] uppercase tracking-wider text-slate-500">Min deliverables to de-risk · {GATE_STAGE[p.gate]} ({p.gate})</div>
@@ -939,7 +939,7 @@ const REQ_STATUS_CHIP: Record<ReqStatus, string> = {
   na: "bg-slate-800/40 text-slate-500 border-slate-800",
 };
 const REQ_TYPE_CHIP: Record<string, string> = {
-  S: "text-cyan-300", CRS: "text-emerald-300", DR: "text-sky-300",
+  S: "text-cyan-300", REQ: "text-emerald-300", DR: "text-sky-300",
   TR: "text-amber-300", IS: "text-violet-300", DT: "text-rose-300", DC: "text-slate-300",
 };
 
@@ -985,7 +985,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
             );
           })}
         </div>
-        <p className="mt-2 text-[11px] text-slate-500">Tolerance ladder (§3.4): ±60/40/20/10/5% — tightens gate over gate; a gate-to-gate move beyond the band raises a variance exception for PRB disposition.</p>
+        <p className="mt-2 text-[11px] text-slate-500">Tolerance ladder ±60/40/20/10/5% — tightens gate over gate; a gate-to-gate move beyond the band raises a variance exception for PRB disposition.</p>
       </section>
 
       {/* §3.1 Requirements × gates matrix — rows = requirements, columns = G1–G7 */}
@@ -993,7 +993,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
           <h2 className="text-sm font-semibold">Requirement registry · {GATE_REQUIREMENTS.length} rows</h2>
           <div className="flex flex-wrap gap-2 text-[10px]">
-            {(["S", "CRS", "DR", "TR", "IS", "DT", "DC"] as const).map((t) => (
+            {(["S", "REQ", "DR", "TR", "IS", "DT", "DC"] as const).map((t) => (
               <span key={t} className={REQ_TYPE_CHIP[t]}>{t}<span className="text-slate-600"> {REQ_TYPE_LABEL[t]}</span></span>
             ))}
           </div>
@@ -1180,21 +1180,21 @@ function Differentiators({ p }: { p: Project }) {
   return (
     <div className="space-y-4">
       {/* Risk market */}
-      <Card title="Risk-prediction market" tag="CRS-81→84">
+      <Card title="Risk-prediction market" tag="Poll to de-risk">
         <Row l="Open predictions" v={`${p.predictions}`} />
         <Row l="Mitigated payout" v="= materialized" good />
         <Row l="Roles enforced" v="predictor ≠ actioner ≠ resolver" />
-        <p className="mt-1 text-[11px] text-slate-500">Any user may predict; themed at 1M/60s, deterministic (CRS-82).</p>
+        <p className="mt-1 text-[11px] text-slate-500">Anyone may submit a risk prediction; rewards accrue to predictions that prove correct and get actioned.</p>
       </Card>
       {/* Upside pool + $/min */}
-      <Card title="Project Upside pool" tag="CRS-88/91/92">
+      <Card title="Project Upside pool" tag="Time = money">
         <Row l="Pool @ 1 mo early" v={usd(upsidePoolM)} good />
         <Row l="Cost of time" v={`$${burnPerMinUsd.toFixed(2)}/min`} />
         <Row l="Critical-path" v={p.criticalPath ? "multiplier ×" : "base rate"} tone={p.criticalPath ? "good" : undefined} />
-        <p className="mt-1 text-[11px] text-slate-500">Baseline locked at G2 by an approver outside the team (CRS-90).</p>
+        <p className="mt-1 text-[11px] text-slate-500">Baseline locked at G2 by an approver outside the team.</p>
       </Card>
       {/* Intelligence load */}
-      <Card title="Intelligence load · AI · SI · HI" tag="CRS-93">
+      <Card title="Intelligence load · AI · SI · HI" tag="Burnout guard">
         <div className="mt-1 flex h-3 overflow-hidden rounded-full">
           <span className="bg-cyan-500" style={{ width: `${p.ai * 100}%` }} title="AI" />
           <span className="bg-amber-400" style={{ width: `${p.si * 100}%` }} title="SI" />
@@ -1680,7 +1680,7 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
     });
   });
   return (
-    <DashCard title="Dependencies · Summary + Constellation" tag="§4">
+    <DashCard title="Dependencies · Summary + Constellation" tag="Cross-project">
       {/* Constellation graph */}
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 520, height: "auto" }}>
@@ -1864,7 +1864,7 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
         </table>
       </div>
       <p className="mt-2 text-[11px] text-slate-500">
-        Priority = severity × likelihood × status × community concurrence (votes). Cycle status to de-risk — exposure collapses as the team mitigates. Mitigated pays = materialized (CRS-81→84).
+        Priority = severity × likelihood × status × community concurrence (votes). Cycle status to de-risk — exposure collapses as the team mitigates.
       </p>
     </div>
   );
