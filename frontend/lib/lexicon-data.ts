@@ -1304,7 +1304,7 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.cadence.D", englishDefault: "Daily", context: "Innovation cadence: daily (SoI speed-of-thought)", cubeId: 60 },
   { key: "innovation.tab.gates", englishDefault: "Gate Requirements", context: "Innovation view tab: gates", cubeId: 60 },
   { key: "innovation.tab.dashboards", englishDefault: "Dashboards · ROI Visuals", context: "Innovation view tab: dashboards", cubeId: 60 },
-  { key: "innovation.tab.setup", englishDefault: "⚙ Business Setup", context: "Innovation view tab: business setup", cubeId: 60 },
+  { key: "innovation.tab.setup", englishDefault: "Business Setup", context: "Innovation view tab: business setup (gear icon rendered separately — Security-2525 MP Settings glyph)", cubeId: 60 },
   { key: "innovation.setup.close", englishDefault: "Done", context: "Innovation Business Setup close/exit button (returns to main view)", cubeId: 60 },
   { key: "innovation.detail.back", englishDefault: "Back to list", context: "Innovation project-detail portrait: return to the stack list", cubeId: 60 },
   // Scope filter (BU · SBU · Alpha Group multi-select)

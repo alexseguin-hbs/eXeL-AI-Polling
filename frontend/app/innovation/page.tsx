@@ -40,6 +40,7 @@ import {
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
+import { Settings } from "lucide-react"; // same settings gear used by Security-2525 Mission Planning (MP)
 
 const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
@@ -562,7 +563,9 @@ function Board() {
         {([["portfolio", stackName], ["gates", t("innovation.tab.gates")], ["dashboards", t("innovation.tab.dashboards")], ["setup", t("innovation.tab.setup")]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
-            {label}
+            {v === "setup"
+              ? <span className="inline-flex items-center gap-1.5"><Settings className="h-4 w-4 shrink-0" aria-hidden="true" />{label}</span>
+              : label}
           </button>
         ))}
       </nav>
