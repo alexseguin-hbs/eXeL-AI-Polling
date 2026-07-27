@@ -131,7 +131,10 @@ export interface Project {
 }
 /** A single differentiator in the Value Equation — scored for customer importance and performance vs the NBA. */
 export interface ValueDriver { name: string; importance: number; ourScore: number; nbaScore: number }
-export interface SegmentValueProp { segment: string; prop: string }
+// Per-needs-segment value prop — a first-class reusable object (Bridge Slice 7 · Enki): segment name,
+// the pain it removes, the quantified outcome, and a confidence flag. pain/outcome/confidence optional
+// for back-compat with existing 2-field seeds.
+export interface SegmentValueProp { segment: string; prop: string; pain?: string; outcome?: string; confidence?: 1 | 2 | 3 | 4 | 5 }
 
 // ── Calculators (all derived, never stored — CRS-52/53/67) ──────────────────────────────
 export const incrementalRevM = (p: Project) => Math.max(0, p.fullRev10yM - p.doNothing10yM);

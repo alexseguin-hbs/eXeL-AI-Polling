@@ -1363,6 +1363,14 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.exec.claim", englishDefault: "Customer-facing claim", context: "Exec pipeline per-segment claim label", cubeId: 60 },
   { key: "innovation.exec.dealStage", englishDefault: "Deal stage", context: "Exec pipeline deal-stage label", cubeId: 60 },
   { key: "innovation.exec.internalHidden", englishDefault: "Internal cost-of-time & IRB commentary hidden for external showings", context: "Exec customer-ready note", cubeId: 60 },
+  // Segments first-class + persona (Slice 7)
+  { key: "innovation.seg.pain", englishDefault: "Pain removed", context: "Segment value-prop: pain removed field", cubeId: 60 },
+  { key: "innovation.seg.outcome", englishDefault: "Quantified outcome", context: "Segment value-prop: quantified outcome field", cubeId: 60 },
+  { key: "innovation.seg.confidence", englishDefault: "Confidence", context: "Segment value-prop: confidence flag", cubeId: 60 },
+  { key: "innovation.seg.library", englishDefault: "Segment Library", context: "Business Setup segment-library editor heading", cubeId: 60 },
+  { key: "innovation.seg.libraryHint", englishDefault: "Recurring buyer needs — reused across projects when authoring value props.", context: "Segment library helper", cubeId: 60 },
+  { key: "innovation.seg.addSeg", englishDefault: "＋ Add need", context: "Segment library add button", cubeId: 60 },
+  { key: "innovation.persona.anotherLens", englishDefault: "See in another lens", context: "Persona quick-switch to next lens", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

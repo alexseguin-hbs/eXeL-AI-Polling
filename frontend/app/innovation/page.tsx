@@ -41,8 +41,17 @@ const SS_KEY = "innovation-unlocked";
 // the tool's editable master data. Kept as literals so the store stays decoupled from the loaders below.
 const CONFIG_KEYS = [
   "innovation-pillars", "innovation-biz-setup", "innovation-review-board",
-  "innovation-stack-name", "innovation-dogtag-highlights",
+  "innovation-stack-name", "innovation-dogtag-highlights", "innovation-segment-library",
 ];
+// Segment library (Slice 7) — a cross-project taxonomy of recurring buyer needs, admin-editable, so one
+// team's discovered segment seeds another's value prop. Persisted with the config bundle (→ Supabase).
+const SEGLIB_KEY = "innovation-segment-library";
+const DEFAULT_SEGLIB = ["Air Force · ISR", "Army · Fires", "Navy · Maritime", "USMC · Expeditionary", "SOF · Direct Action", "Allied / FMS"];
+function loadSegLib(): string[] {
+  const s = lsGet(SEGLIB_KEY);
+  if (s) { try { const a = JSON.parse(s) as string[]; if (Array.isArray(a)) return a.filter((x) => typeof x === "string"); } catch { /* default */ } }
+  return DEFAULT_SEGLIB;
+}
 
 // Persona lens (12-AsM usability) — the same portfolio seen through four operator roles.
 type Persona = "pm" | "mgr" | "sbu" | "vp";
@@ -340,6 +349,10 @@ function Board() {
               <span className="mr-1">{pp.glyph}</span>{t(`innovation.persona.${pp.key}.label`)}
             </button>
           ))}
+          {/* See in another lens (Slice 7 · G2) — cycle to the next persona in one motion */}
+          <button title={t("innovation.persona.anotherLens")}
+            onClick={() => { const idx = PERSONAS.findIndex((x) => x.key === persona); const nx = PERSONAS[(idx + 1) % PERSONAS.length]; setPersona(nx.key); setView(nx.view); if (nx.level) setStackLevel(nx.level); setDrill(null); }}
+            className="rounded-md border border-cyan-500/40 px-2 py-1 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">↔ {t("innovation.persona.anotherLens")}</button>
         </div>
         {/* Optimization cadence — quarterly (legacy) → monthly (now) → weekly (next) */}
         <div className="ml-auto flex items-center gap-2">
@@ -964,6 +977,7 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
   const [nba, setNba] = useState("");
   const [segments, setSegments] = useState<SegmentValueProp[]>([]);
   const [drivers, setDrivers] = useState<ValueDriver[]>([]);
+  const segLib = loadSegLib(); // Slice 7 — recurring buyer-need taxonomy for the segment datalist
   const inp = "w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500";
   // Best-in-class HI value prop requires BOTH the master statement and the Next Best Alternative.
   const canCreate = name.trim().length > 0 && valueProp.trim().length > 0 && nba.trim().length > 0;
@@ -1008,11 +1022,21 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
         </div>
         <div className="mt-1.5 space-y-1.5">
           {segments.length === 0 && <p className="text-[11px] text-slate-600">Add a value prop per needs-based segment (e.g. by mission, buyer, or use case) — recommended for stronger BD/Sales targeting.</p>}
+          <datalist id="seg-library">{segLib.map((sg) => <option key={sg} value={sg} />)}</datalist>
           {segments.map((s, i) => (
-            <div key={i} className="flex gap-1.5">
-              <input value={s.segment} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, segment: e.target.value } : x))} placeholder="Segment" className={`w-32 shrink-0 ${inp} py-1.5 text-xs`} />
-              <input value={s.prop} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, prop: e.target.value } : x))} placeholder="Value prop for this segment" className={`flex-1 ${inp} py-1.5 text-xs`} />
-              <button onClick={() => setSegments((a) => a.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
+            <div key={i} className="rounded-lg border border-slate-800 p-1.5">
+              <div className="flex gap-1.5">
+                <input list="seg-library" value={s.segment} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, segment: e.target.value } : x))} placeholder="Segment (from library or new)" className={`w-40 shrink-0 ${inp} py-1.5 text-xs`} />
+                <input value={s.prop} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, prop: e.target.value } : x))} placeholder="Value prop for this segment" className={`flex-1 ${inp} py-1.5 text-xs`} />
+                <select value={s.confidence ?? ""} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, confidence: (e.target.value ? Number(e.target.value) : undefined) as SegmentValueProp["confidence"] } : x))} title={t("innovation.seg.confidence")} className={`w-14 shrink-0 ${inp} py-1.5 text-xs`}>
+                  <option value="">c?</option>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>c{n}</option>)}
+                </select>
+                <button onClick={() => setSegments((a) => a.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
+              </div>
+              <div className="mt-1 flex gap-1.5">
+                <input value={s.pain ?? ""} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, pain: e.target.value } : x))} placeholder={t("innovation.seg.pain")} className={`flex-1 ${inp} py-1 text-[11px]`} />
+                <input value={s.outcome ?? ""} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, outcome: e.target.value } : x))} placeholder={t("innovation.seg.outcome")} className={`flex-1 ${inp} py-1 text-[11px]`} />
+              </div>
             </div>
           ))}
         </div>
@@ -1252,7 +1276,11 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
         {p.segmentValueProps && p.segmentValueProps.length > 0 ? (
           <ul className="mt-2 space-y-0.5">
             {p.segmentValueProps.map((s, i) => (
-              <li key={i} className="text-[11px] leading-snug text-slate-400"><span className="font-mono text-slate-500">{s.segment || "Segment"}:</span> {s.prop}</li>
+              <li key={i} className="text-[11px] leading-snug text-slate-400">
+                <span className="font-mono text-slate-500">{s.segment || "Segment"}:</span> {s.prop}
+                {s.confidence ? <span className="ml-1 text-[9px] text-cyan-400">c{s.confidence}</span> : null}
+                {(s.pain || s.outcome) && <span className="block pl-3 text-[10px] text-slate-500">{s.pain ? `pain: ${s.pain}` : ""}{s.pain && s.outcome ? " · " : ""}{s.outcome ? `outcome: ${s.outcome}` : ""}</span>}
+              </li>
             ))}
           </ul>
         ) : (
@@ -2157,6 +2185,8 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
   const [board, setBoard] = useState(DEFAULT_REVIEW_BOARD);
   const [stackName, setStackName] = useState(DEFAULT_STACK_NAME);
   const [dogtag, setDogtag] = useState<string[]>(DEFAULT_DOGTAG);
+  const [segLib, setSegLib] = useState<string[]>(DEFAULT_SEGLIB);
+  const { t } = useLexicon();
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
     const saved = lsGet(BIZ_KEY);
@@ -2165,8 +2195,10 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
     setBoard(loadReviewBoard());
     setStackName(loadStackName());
     setDogtag(loadDogtag());
+    setSegLib(loadSegLib());
   }, []);
   const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
+  const persistSegLib = (next: string[]) => { setSegLib(next); lsSet(SEGLIB_KEY, JSON.stringify(next)); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
   const persistBoard = (next: string) => { setBoard(next); lsSet(REVIEW_BOARD_KEY, next); };
   const persistStackName = (next: string) => { setStackName(next); lsSet(STACK_NAME_KEY, next); onRename?.(next); };
@@ -2232,6 +2264,23 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
           ))}
         </div>
         <p className="mt-2 text-[10px] text-slate-500">Renaming a pillar updates the edit-project + Submit-New-Idea dropdowns. Existing projects keep their stored pillar until re-selected.</p>
+      </section>
+
+      {/* Segment library (Slice 7) — reusable buyer-need taxonomy for authoring per-segment value props */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">{t("innovation.seg.library")} <span className="text-[11px] text-slate-500">({segLib.length})</span></h2>
+          <button onClick={() => persistSegLib([...segLib, ""])} className="rounded bg-cyan-500/90 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">{t("innovation.seg.addSeg")}</button>
+        </div>
+        <p className="mt-1 text-[10px] text-slate-500">{t("innovation.seg.libraryHint")}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {segLib.map((sg, i) => (
+            <div key={i} className="flex items-center gap-1 rounded-lg border border-slate-800 px-1.5 py-1">
+              <input value={sg} onChange={(e) => persistSegLib(segLib.map((x, j) => j === i ? e.target.value : x))} placeholder="buyer need" className={`w-40 ${inp} py-1 text-xs`} />
+              <button onClick={() => persistSegLib(segLib.filter((_, j) => j !== i))} className="rounded px-1 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Module name — label for the prioritize-and-fund workflow (formerly "Rack & Stack") */}
