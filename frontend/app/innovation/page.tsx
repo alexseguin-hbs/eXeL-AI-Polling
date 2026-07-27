@@ -36,6 +36,7 @@ import {
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
+  makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, type AuditEntry, type AuditKind,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
@@ -251,6 +252,7 @@ function Board() {
   // (per-needs-segment value props recommended) — value prop is a must-have at creation (CRS-56).
   const [newIdeaOpen, setNewIdeaOpen] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const createIdea = (fields: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[]; drivers: ValueDriver[] }) => {
     const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
     const id = `PRJ-${String(maxN + 1).padStart(2, "0")}`;
@@ -276,9 +278,27 @@ function Board() {
     setNewIdeaOpen(false);
   };
   // Change + approval activity log (edits and gate approvals) — the audit summary.
-  const [activity, setActivity] = useState<{ id: number; kind: "edit" | "approve" | "reject"; project: string; text: string; by: string }[]>([]);
-  const log = (kind: "edit" | "approve" | "reject", project: string, text: string, by: string) =>
-    setActivity((a) => [{ id: a.length + 1, kind, project, text, by }, ...a]);
+  // Funding & approval AUDIT TRAIL (Slice 6) — append-only, timestamped, PERSISTED (localStorage + debounced
+  // cloud "audit"), hydrated with union-merge-by-id so history survives reload and never clobbers cloud entries.
+  const [activity, setActivity] = useState<AuditEntry[]>([]);
+  const AUDIT_KEY = "innovation-audit";
+  const _auditTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    try { const raw = lsGet(AUDIT_KEY); if (raw) setActivity(JSON.parse(raw)); } catch { /* keep empty */ }
+    void loadState<AuditEntry[]>("audit").then((cloud) => { if (Array.isArray(cloud)) setActivity((cur) => mergeAudit(cur, cloud)); });
+  }, []);
+  const pushAudit = (entries: AuditEntry[]) => {
+    if (!entries.length) return;
+    setActivity((a) => {
+      const next = mergeAudit(entries, a);
+      try { lsSet(AUDIT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      if (_auditTimer.current) clearTimeout(_auditTimer.current);
+      _auditTimer.current = setTimeout(() => { void saveState("audit", next); }, 800);
+      return next;
+    });
+  };
+  const log = (kind: AuditKind, project: string, text: string, by: string, extra?: { projectId?: string; field?: string; from?: string; to?: string }) =>
+    pushAudit([makeAuditEntry({ ts: new Date().toISOString(), kind, project, field: extra?.field ?? scrubText(text, 160), from: extra?.from, to: extra?.to, projectId: extra?.projectId, by })]);
   const applyEdit = (id: string, patch: Partial<Project>, changes: string[]) => {
     const proj = order.find((p) => p.id === id);
     setOrder((o) => o.map((p) => (p.id === id ? { ...p, ...patch } : p)));
@@ -366,6 +386,22 @@ function Board() {
   const fundedRows = useMemo(() => rows.filter((r) => r.funded), [rows]);
   const portfolioNpv = useMemo(() => fundedRows.reduce((s, r) => s + npvM(r.p), 0), [fundedRows]);
   const fundedNre = useMemo(() => fundedRows.reduce((s, r) => s + r.p.nreK, 0), [fundedRows]);
+  // Capture funding decisions (fund/defund) from ONE diff of the derived funded set vs a ref snapshot —
+  // covers reorder + arrows + scenario + edits with no double-emit. Skips the mount-time first render.
+  const _prevFunded = useRef<string[] | null>(null);
+  useEffect(() => {
+    const ids = fundedRows.map((r) => r.p.id);
+    if (_prevFunded.current === null) { _prevFunded.current = ids; return; }
+    const diffs = diffFundedSets(_prevFunded.current, ids, (id) => order.find((p) => p.id === id)?.name ?? id, new Date().toISOString(), me);
+    _prevFunded.current = ids;
+    pushAudit(diffs);
+  }, [fundedRows]);
+  // Capture R&D scenario changes (skip the mount-time fire).
+  const _scenarioMounted = useRef(false);
+  useEffect(() => {
+    if (!_scenarioMounted.current) { _scenarioMounted.current = true; return; }
+    log("scenario", "Portfolio", `scenario → ${scenario}`, me, { to: scenario });
+  }, [scenario]);
   // Admin-configurable module name (formerly "Rack & Stack") — held in state so an admin rename
   // hot-swaps the tab/title/header instantly (no reload), seeded from the persisted value.
   const [stackName, setStackName] = useState<string>(() => loadStackName());
@@ -746,25 +782,21 @@ function Board() {
         <RiskRegister risks={risks} setRisks={setRisks} projects={scoped} selId={selId} onSelect={setSelId} />
       </div>
 
-      {/* Changes & Approvals summary — the audit trail of edits + gate approvals */}
+      {/* Funding & Approval history — the append-only, timestamped, PERSISTED audit trail (Slice 6) */}
       <div className="px-5 pb-4">
         <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">Changes &amp; Approvals · summary</h2>
-            <span className="text-[11px] text-slate-500">{activity.filter((a) => a.kind === "edit").length} edits · {activity.filter((a) => a.kind === "approve").length} approvals · {activity.filter((a) => a.kind === "reject").length} change-requests</span>
+            <h2 className="text-sm font-semibold">{t("innovation.audit.title")}</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-slate-500">{(() => { const s = summarizeAudit(activity); return `${(s.fund ?? 0) + (s.defund ?? 0)} funding · ${s.approve ?? 0} approvals · ${s.edit ?? 0} edits · ${s.budget ?? 0} budget`; })()}</span>
+              <button onClick={() => setHistoryOpen(true)} className="rounded border border-cyan-500/40 px-2 py-0.5 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/10">{t("innovation.audit.open")}</button>
+            </div>
           </div>
           {activity.length === 0 ? (
-            <p className="mt-2 text-[11px] text-slate-500">No changes yet — edit a project (✎) or approve a gate to build the audit trail.</p>
+            <p className="mt-2 text-[11px] text-slate-500">{t("innovation.audit.empty")}</p>
           ) : (
             <ul className="mt-2 max-h-52 overflow-y-auto divide-y divide-slate-900">
-              {activity.map((a) => (
-                <li key={a.id} className="flex items-baseline gap-2 py-1 text-[12px]">
-                  <span className={`w-14 shrink-0 text-[10px] font-mono uppercase ${a.kind === "approve" ? "text-emerald-400" : a.kind === "reject" ? "text-rose-400" : "text-cyan-300"}`}>{a.kind === "approve" ? "✓ apprv" : a.kind === "reject" ? "✕ chg-req" : "✎ edit"}</span>
-                  <span className="text-slate-300">{a.project}</span>
-                  <span className="text-slate-500">— {a.text}</span>
-                  <span className="ml-auto text-[10px] text-slate-600">by {a.by}</span>
-                </li>
-              ))}
+              {activity.slice(0, 40).map((a) => (<AuditRow key={a.id} a={a} />))}
             </ul>
           )}
         </div>
@@ -800,6 +832,9 @@ function Board() {
 
       {/* R-Core Project Template — in-app pop-out (was a new-tab link); embeds the standalone template doc */}
       {templateOpen && <TemplateModal onClose={() => setTemplateOpen(false)} />}
+
+      {/* Funding & Approval History pop-out (Slice 6) — the full append-only, timestamped audit trail */}
+      {historyOpen && <HistoryModal activity={activity} onClose={() => setHistoryOpen(false)} />}
 
       {/* Budget popup — per-SBU / per-Alpha-Group budget incl. unfunded projects */}
       {budgetOpen && <BudgetModal projects={scoped} fundedIds={new Set(fundedRows.map((r) => r.p.id))} availK={avail} budgetOverrideK={budgetOverrideK} onSetBudget={setNodeBudget} canEditBudget={can(myRole, "editBudget")} onClose={() => setBudgetOpen(false)} />}
@@ -1308,6 +1343,68 @@ function TeamRoles({ projectId, members, me, onChange }: { projectId: string; me
 
 // R-Core Project Template — in-app pop-out (replaces the old new-tab link). Embeds the standalone
 // template doc in a sandboxed iframe. Same modal idiom as NewIdeaModal/BudgetModal + Escape/focus (a11y).
+// Audit trail (Slice 6) — one append-only funding/approval entry, colored by kind.
+const AUDIT_TONE: Record<AuditKind, string> = {
+  fund: "bg-emerald-500/15 text-emerald-300",
+  defund: "bg-rose-500/15 text-rose-300",
+  approve: "bg-cyan-500/15 text-cyan-300",
+  reject: "bg-amber-500/15 text-amber-300",
+  edit: "bg-slate-500/15 text-slate-300",
+  scenario: "bg-violet-500/15 text-violet-300",
+  budget: "bg-sky-500/15 text-sky-300",
+};
+function AuditRow({ a }: { a: AuditEntry }) {
+  return (
+    <li className="flex items-start gap-2 py-1.5 text-[11px]">
+      <span className={`mt-px shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${AUDIT_TONE[a.kind] ?? "bg-slate-500/15 text-slate-300"}`}>{a.kind}</span>
+      <span className="min-w-0 flex-1 break-words text-slate-400">{fmtAuditEntry(a)}</span>
+    </li>
+  );
+}
+// Funding & Approval History pop-out — shared modal idiom (backdrop tap-close · ✕ · Escape · focus-trap ·
+// return-focus), scroll, filter by kind. Reads the live in-session + persisted audit trail.
+function HistoryModal({ activity, onClose }: { activity: AuditEntry[]; onClose: () => void }) {
+  const { t } = useLexicon();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const [kindFilter, setKindFilter] = useState<AuditKind | "all">("all");
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); prev?.focus?.(); };
+  }, [onClose]);
+  const kinds: (AuditKind | "all")[] = ["all", "fund", "defund", "approve", "reject", "budget", "scenario", "edit"];
+  const s = summarizeAudit(activity);
+  const shown = kindFilter === "all" ? activity : activity.filter((a) => a.kind === kindFilter);
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.audit.title")}>
+      <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-4 py-2.5">
+          <h2 className="text-sm font-semibold text-slate-100">{t("innovation.audit.title")}</h2>
+          <button ref={closeRef} onClick={onClose} aria-label={t("innovation.template.close")} title={t("innovation.template.close")}
+            className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20">✕ {t("innovation.template.close")}</button>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-slate-800 px-4 py-2">
+          {kinds.map((k) => (
+            <button key={k} onClick={() => setKindFilter(k)}
+              className={`rounded border px-2 py-1 text-[11px] ${kindFilter === k ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}>
+              {k === "all" ? t("innovation.audit.all") : k}{k !== "all" && s[k] ? ` (${s[k]})` : ""}
+            </button>
+          ))}
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+          {shown.length === 0 ? (
+            <p className="mt-2 text-[11px] text-slate-500">{t("innovation.audit.empty")}</p>
+          ) : (
+            <ul className="divide-y divide-slate-900">{shown.map((a) => (<AuditRow key={a.id} a={a} />))}</ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TemplateModal({ onClose }: { onClose: () => void }) {
   const { t } = useLexicon();
   const closeRef = useRef<HTMLButtonElement>(null);

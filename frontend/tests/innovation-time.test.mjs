@@ -621,5 +621,26 @@ ok(scrubText("ab ".repeat(80), 64).length === 64, "scrubText caps length");
 ok(scrubText("jane@example.com") === "jane@example.com", "scrubText leaves a normal ref intact");
 ok(scrubText("a") === scrubText("a"), "scrubText deterministic");
 
+/* ---------------- Funding & approval AUDIT TRAIL (Slice 6) ---------------- */
+import { makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry } from "../lib/innovation-data.ts";
+{
+  const ts = "2026-07-27T12:00:00.000Z";
+  const e1 = makeAuditEntry({ ts, kind: "edit", projectId: "P-1", project: "Alpha", field: "nreK", from: "100", to: "200", by: "u1" });
+  ok(makeAuditEntry({ ts, kind: "edit", projectId: "P-1", project: "Alpha", field: "nreK", from: "100", to: "200", by: "u1" }).id === e1.id, "makeAuditEntry id is content-stable/deterministic");
+  ok(makeAuditEntry({ ts, kind: "edit", projectId: "P-1", field: "npv", from: "1", to: "2", by: "u1" }).id !== e1.id, "different content → different id");
+  const a = [e1], b = [makeAuditEntry({ ts: "2026-07-27T13:00:00.000Z", kind: "approve", projectId: "P-1", project: "Alpha", by: "u2" })];
+  const m1 = mergeAudit(a, b), m2 = mergeAudit(b, a);
+  ok(m1.length === 2 && new Set(m1.map((x) => x.id)).size === 2, "mergeAudit unions (no dup)");
+  ok(JSON.stringify(new Set(m1.map((x) => x.id))) === JSON.stringify(new Set(m2.map((x) => x.id))), "mergeAudit order-independent by id set");
+  ok(mergeAudit(a, a).length === 1, "mergeAudit dedups identical entries");
+  ok(m1[0].ts >= m1[1].ts, "mergeAudit newest-first");
+  ok(mergeAudit(Array.from({ length: 20 }, (_, i) => makeAuditEntry({ ts: `2026-07-27T00:00:${String(i).padStart(2, "0")}.000Z`, kind: "edit", projectId: `P-${i}`, by: "u" })), [], 5).length === 5, "mergeAudit honors the size cap");
+  const diff = diffFundedSets(["A", "B"], ["B", "C"], (id) => id, ts, "u1");
+  ok(diff.length === 2 && diff.some((d) => d.kind === "fund" && d.projectId === "C") && diff.some((d) => d.kind === "defund" && d.projectId === "A"), "diffFundedSets yields fund(C) + defund(A)");
+  ok(diffFundedSets(["A"], ["A"], (id) => id, ts, "u1").length === 0, "diffFundedSets no-op on identical sets");
+  ok(summarizeAudit(m1).approve === 1 && summarizeAudit(m1).edit === 1, "summarizeAudit counts by kind");
+  ok(typeof fmtAuditEntry(e1) === "string" && fmtAuditEntry(e1).includes("Alpha"), "fmtAuditEntry renders a human line");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

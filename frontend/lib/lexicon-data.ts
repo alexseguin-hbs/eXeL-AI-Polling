@@ -1328,6 +1328,11 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.role.editor", englishDefault: "Editor", context: "Project role: editor", cubeId: 60 },
   { key: "innovation.role.approver", englishDefault: "Approver", context: "Project role: approver", cubeId: 60 },
   { key: "innovation.role.lead", englishDefault: "Project Lead", context: "Project role: lead", cubeId: 60 },
+  // Funding & approval audit trail (Slice 6)
+  { key: "innovation.audit.title", englishDefault: "Funding & approval history", context: "Innovation audit trail section + pop-out title", cubeId: 60 },
+  { key: "innovation.audit.open", englishDefault: "History ↗", context: "Innovation audit trail: open the full history pop-out", cubeId: 60 },
+  { key: "innovation.audit.empty", englishDefault: "No decisions logged yet — fund a project, approve a gate, or edit a field.", context: "Innovation audit trail: empty state", cubeId: 60 },
+  { key: "innovation.audit.all", englishDefault: "All", context: "Innovation audit trail: show all kinds filter", cubeId: 60 },
   // Team & roles (Slice 5)
   { key: "innovation.team.title", englishDefault: "Team & roles", context: "Innovation per-project membership panel title", cubeId: 60 },
   { key: "innovation.team.you", englishDefault: "Your role", context: "Innovation team panel: current user's role label", cubeId: 60 },

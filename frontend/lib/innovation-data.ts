@@ -733,6 +733,48 @@ export function isLastLead(members: MembershipMap, projectId: string, userRef: s
   return leads.length === 1 && leads[0].userRef === userRef;
 }
 
+// ── Funding & approval AUDIT TRAIL (Slice 6) — append-only, timestamped, content-stable id ────────
+// Every funding/budget/edit/approval decision becomes an immutable, timestamped record so decisions made
+// fast in a $/min world stay defensible. Pure + deterministic (ts + by injected; id is a content hash, never
+// array.length). Persisted append-only; hydration union-merges by id so cloud history is never dropped.
+export type AuditKind = "edit" | "approve" | "reject" | "fund" | "defund" | "scenario" | "budget";
+export interface AuditEntry {
+  id: string; ts: string; kind: AuditKind;
+  projectId?: string; project?: string; field?: string; from?: string; to?: string; by: string;
+}
+function hashStr(s: string): string { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+/** Build an audit entry with a CONTENT-STABLE id (ts+kind+project+field+from+to+by) — never array.length. */
+export function makeAuditEntry(partial: Omit<AuditEntry, "id">): AuditEntry {
+  const id = `${partial.ts}-${hashStr([partial.kind, partial.projectId ?? "", partial.field ?? "", partial.from ?? "", partial.to ?? "", partial.by].join("|"))}`;
+  return { id, ...partial };
+}
+/** Union-merge two audit arrays, dedup by id, newest-first, capped. Order-independent by id set. */
+export function mergeAudit(a: AuditEntry[], b: AuditEntry[], cap = 500): AuditEntry[] {
+  const map = new Map<string, AuditEntry>();
+  for (const e of [...a, ...b]) map.set(e.id, e);
+  return Array.from(map.values()).sort((x, y) => y.ts.localeCompare(x.ts)).slice(0, cap);
+}
+/** Diff two funded-id sets → fund/defund entries (deterministic; ts + by injected). */
+export function diffFundedSets(prevIds: string[], nextIds: string[], nameOf: (id: string) => string, ts: string, by: string): AuditEntry[] {
+  const prev = new Set(prevIds), next = new Set(nextIds), out: AuditEntry[] = [];
+  for (const id of nextIds) if (!prev.has(id)) out.push(makeAuditEntry({ ts, kind: "fund", projectId: id, project: nameOf(id), by }));
+  for (const id of prevIds) if (!next.has(id)) out.push(makeAuditEntry({ ts, kind: "defund", projectId: id, project: nameOf(id), by }));
+  return out;
+}
+export function summarizeAudit(entries: AuditEntry[]): Record<string, number> {
+  const s: Record<string, number> = {};
+  for (const e of entries) s[e.kind] = (s[e.kind] ?? 0) + 1;
+  return s;
+}
+/** Human one-line rendering of an audit entry (deterministic). */
+export function fmtAuditEntry(e: AuditEntry): string {
+  const when = e.ts.slice(0, 16).replace("T", " ");
+  const what = e.kind === "fund" ? "funded" : e.kind === "defund" ? "de-funded" : e.kind === "approve" ? "approved"
+    : e.kind === "reject" ? "changes requested" : e.kind === "scenario" ? `scenario → ${e.to}`
+    : e.kind === "budget" ? `budget ${e.field ?? ""} ${e.from ?? ""}→${e.to ?? ""}` : `${e.field ?? ""}: ${e.from ?? ""}→${e.to ?? ""}`;
+  return `${when} · ${e.project ?? ""} · ${what} · ${e.by}`;
+}
+
 // Re-optimization cadence ladder (Vision•2525 · SoI): legacy quarterly → the tool enables monthly now →
 // weekly → daily as the System of Intelligence tightens the funding/schedule loop toward the speed of thought.
 export type Cadence = "Q" | "M" | "W" | "D";
