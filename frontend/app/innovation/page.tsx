@@ -1274,7 +1274,7 @@ function TeamRoles({ projectId, members, me, onChange }: { projectId: string; me
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">{t("innovation.team.title")}</h2>
-        <span className="text-[11px] text-slate-500">{t("innovation.team.you")}: <b className="text-cyan-300">{ROLE_LABEL[myRole]}</b></span>
+        <span className="text-[11px] text-slate-500">{t("innovation.team.you")}: <b className="text-cyan-300">{t(`innovation.role.${myRole}`)}</b></span>
       </div>
       {list.length === 0 && <p className="mt-2 text-[11px] text-slate-500">{t("innovation.team.none")}</p>}
       {list.length > 0 && (
@@ -1283,7 +1283,7 @@ function TeamRoles({ projectId, members, me, onChange }: { projectId: string; me
             <li key={m.userRef} className="flex items-center gap-2 py-1.5 text-[12px]">
               <span className="min-w-0 flex-1 truncate font-mono text-slate-300" title={m.userRef}>{m.userRef === me ? `${m.userRef} (you)` : m.userRef}</span>
               <select value={m.role} disabled={!canManage} aria-label={`Role for ${m.userRef}`} onChange={(e) => updateRole(m.userRef, e.target.value as ProjectRole)} className={`${sel} disabled:opacity-50`}>
-                {PROJECT_ROLES.map((r) => <option key={r} value={r} disabled={r !== "lead" && isLastLead(members, projectId, m.userRef)}>{ROLE_LABEL[r]}</option>)}
+                {PROJECT_ROLES.map((r) => <option key={r} value={r} disabled={r !== "lead" && isLastLead(members, projectId, m.userRef)}>{t(`innovation.role.${r}`)}</option>)}
               </select>
               {canManage && <button onClick={() => removeMember(m.userRef)} disabled={isLastLead(members, projectId, m.userRef)} aria-label={`Remove ${m.userRef}`} title={isLastLead(members, projectId, m.userRef) ? "Can't remove the last Lead" : "Remove"} className="rounded border border-slate-700 px-1.5 py-1 text-[11px] text-slate-400 hover:bg-slate-800 disabled:opacity-40">✕</button>}
             </li>
@@ -1294,7 +1294,7 @@ function TeamRoles({ projectId, members, me, onChange }: { projectId: string; me
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <input value={newRef} onChange={(e) => setNewRef(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addMember()} placeholder={t("innovation.team.refPlaceholder")} aria-label={t("innovation.team.add")} className={`${sel} min-w-0 flex-1`} />
           <select value={newRole} aria-label="New member role" onChange={(e) => setNewRole(e.target.value as ProjectRole)} className={sel}>
-            {PROJECT_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+            {PROJECT_ROLES.map((r) => <option key={r} value={r}>{t(`innovation.role.${r}`)}</option>)}
           </select>
           <button onClick={addMember} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20">＋ {t("innovation.team.add")}</button>
         </div>
@@ -1586,25 +1586,25 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                         <div className={`h-full ${barTone}`} style={{ width: `${pct}%` }} />
                       </div>
                       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
-                        <span className="text-slate-500">Budget</span>
+                        <span className="text-slate-500">{t("innovation.alloc.budget")}</span>
                         <span className="text-right">
                           {canEditBudget ? (
-                            <input type="text" inputMode="numeric" defaultValue={String(Math.round(n.budgetK))} aria-label={`Budget for ${n.code} in $K`}
+                            <input type="text" inputMode="numeric" defaultValue={String(Math.round(n.budgetK))} aria-label={`${t("innovation.alloc.budget")} ${n.code} ($K)`}
                               onBlur={(e) => { const v = +e.target.value; if (/^\d+$/.test(e.target.value)) onSetBudget(level, n.code, v); }}
-                              className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+                              className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1 py-1 text-right tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
                           ) : <span className="tabular-nums text-slate-200">{k(n.budgetK)}</span>}
-                          {budgetOverrideK(level, n.code) != null && <button onClick={() => onSetBudget(level, n.code, null)} title="Reset to default share" className="ml-1 text-[9px] text-slate-500 hover:text-cyan-300">↺</button>}
+                          {budgetOverrideK(level, n.code) != null && <button onClick={() => onSetBudget(level, n.code, null)} title={t("innovation.alloc.reset")} aria-label={`${t("innovation.alloc.reset")} · ${n.code}`} className="ml-1 text-[11px] text-slate-500 hover:text-cyan-300">↺</button>}
                         </span>
-                        <span className="text-slate-500">Allocated</span><span className="text-right tabular-nums text-slate-300">{k(n.allocatedK)}</span>
-                        <span className="text-cyan-400">◆ Upside</span><span className="text-right tabular-nums text-cyan-300">{k(n.upsideK)}</span>
-                        {n.overK > 0 && (<><span className="text-rose-400">Over</span><span className="text-right tabular-nums text-rose-300">{k(n.overK)}</span></>)}
-                        <span className="text-slate-500" title="Live burn of the funded projects at this node">$/min</span><span className="text-right tabular-nums text-amber-300">{fmtPerMin(n.perMinUsd)}</span>
+                        <span className="text-slate-500">{t("innovation.alloc.allocated")}</span><span className="text-right tabular-nums text-slate-300">{k(n.allocatedK)}</span>
+                        <span className="text-cyan-400">◆ {t("innovation.alloc.upside")}</span><span className="text-right tabular-nums text-cyan-300">{k(n.upsideK)}</span>
+                        {n.overK > 0 && (<><span className="text-rose-400">{t("innovation.alloc.over")}</span><span className="text-right tabular-nums text-rose-300">{k(n.overK)}</span></>)}
+                        <span className="text-slate-500" title="Live burn of the funded projects at this node">{t("innovation.alloc.perMin")}</span><span className="text-right tabular-nums text-amber-300">{fmtPerMin(n.perMinUsd)}</span>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              {!canEditBudget && <p className="mt-2 text-[9px] text-slate-600">Only a Project Lead can change a node’s budget.</p>}
+              {!canEditBudget && <p className="mt-2 text-[9px] text-slate-600">{t("innovation.alloc.leadOnly")}</p>}
             </div>
           );
         })()}
@@ -3776,6 +3776,7 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
 }
 
 function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; onSelect: (id: string) => void }) {
+  const { t } = useLexicon();
   const fundedSet = new Set(funded.map((p) => p.id));
   const buAlloc = nodeAllocation(projects, "bu", (id) => fundedSet.has(id), availK, budgetOverrideK);
   const npvTotal = funded.reduce((s, p) => s + npvM(p), 0);
@@ -3828,10 +3829,10 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { p
                   <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
                 </div>
                 <div className="flex flex-wrap justify-between gap-x-3 text-[10px] tabular-nums">
-                  <span className="text-slate-500">Budget <b className="text-slate-300">{kM(n.budgetK)}</b></span>
-                  <span className="text-slate-500">Alloc <b className="text-slate-300">{kM(n.allocatedK)}</b></span>
-                  <span className="text-cyan-400">◆ Upside <b className="text-cyan-300">{kM(n.upsideK)}</b></span>
-                  {n.overK > 0 && <span className="text-rose-400">Over <b className="text-rose-300">{kM(n.overK)}</b></span>}
+                  <span className="text-slate-500">{t("innovation.alloc.budget")} <b className="text-slate-300">{kM(n.budgetK)}</b></span>
+                  <span className="text-slate-500">{t("innovation.alloc.allocatedShort")} <b className="text-slate-300">{kM(n.allocatedK)}</b></span>
+                  <span className="text-cyan-400">◆ {t("innovation.alloc.upside")} <b className="text-cyan-300">{kM(n.upsideK)}</b></span>
+                  {n.overK > 0 && <span className="text-rose-400">{t("innovation.alloc.over")} <b className="text-rose-300">{kM(n.overK)}</b></span>}
                 </div>
               </div>
             );
