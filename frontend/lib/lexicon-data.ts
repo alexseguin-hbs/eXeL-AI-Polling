@@ -1386,6 +1386,24 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.consistency.ok", englishDefault: "Consistent", context: "Consistency badge — no gaps", cubeId: 60 },
   { key: "innovation.consistency.gaps", englishDefault: "Consistency gaps", context: "Consistency badge — gaps found", cubeId: 60 },
   { key: "innovation.export.outcomeBrief", englishDefault: "Outcome brief", context: "Outcome-brief export button", cubeId: 60 },
+  // Digital slide show (S1–S18) — editable HI inputs + AI version toggle
+  { key: "innovation.slides.title", englishDefault: "Digital slide show", context: "Slide-show modal title", cubeId: 60 },
+  { key: "innovation.slides.open", englishDefault: "Open slide show", context: "Open the S1–S18 slide show", cubeId: 60 },
+  { key: "innovation.slides.openThis", englishDefault: "Open this slide", context: "Open the slide show at this slide", cubeId: 60 },
+  { key: "innovation.slides.authored", englishDefault: "authored", context: "Slide-show progress: slides authored", cubeId: 60 },
+  { key: "innovation.slides.hi", englishDefault: "HI", context: "Slide-show human-input lens label", cubeId: 60 },
+  { key: "innovation.slides.ai", englishDefault: "AI", context: "Slide-show AI-version lens label", cubeId: 60 },
+  { key: "innovation.slides.hiHint", englishDefault: "Your human input — evidence, insight, judgment.", context: "Slide-show HI textarea helper", cubeId: 60 },
+  { key: "innovation.slides.aiHint", englishDefault: "AI draft from the project model — use to fill gaps.", context: "Slide-show AI-version helper", cubeId: 60 },
+  { key: "innovation.slides.useAi", englishDefault: "Use AI draft", context: "Copy the AI draft into the HI input", cubeId: 60 },
+  { key: "innovation.slides.prev", englishDefault: "Prev", context: "Slide-show previous button", cubeId: 60 },
+  { key: "innovation.slides.next", englishDefault: "Next", context: "Slide-show next button", cubeId: 60 },
+  // Generic gate comments + countermeasures (solved per gate)
+  { key: "innovation.notes.title", englishDefault: "Gate comments + countermeasures", context: "Gate notes panel title", cubeId: 60 },
+  { key: "innovation.notes.solved", englishDefault: "Solved per gate", context: "Gate notes: countermeasures resolved at each gate", cubeId: 60 },
+  { key: "innovation.notes.sub", englishDefault: "The recurring review-board concern at each gate and the standard countermeasure that clears it.", context: "Gate notes subtitle", cubeId: 60 },
+  { key: "innovation.notes.risk", englishDefault: "Risk", context: "Gate notes: risk label", cubeId: 60 },
+  { key: "innovation.notes.cm", englishDefault: "Countermeasure", context: "Gate notes: countermeasure label", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

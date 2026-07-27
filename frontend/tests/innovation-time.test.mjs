@@ -431,5 +431,23 @@ ok(BUDGET_SCENARIOS.map((s) => s.m).join(",") === "66,77,88", "budget scenarios 
 ok(scenarioAvailK("base") === 77000 && scenarioAvailK("conservative") === 66000 && scenarioAvailK("growth") === 88000, "scenarioAvailK returns $K for each scenario (base=77M)");
 ok(scenarioAvailK("bogus") === 77000, "scenarioAvailK falls back to Base ($77M) for an unknown scenario");
 
+/* ---------------- Gate notes (generic comments + countermeasures, solved per gate) ---------------- */
+import { GATE_NOTES, GATES as GATES_N } from "../lib/innovation-data.ts";
+ok(GATES_N.every((g) => !!GATE_NOTES[g] && typeof GATE_NOTES[g].comment === "string" && GATE_NOTES[g].comment.length > 0), "GATE_NOTES has a comment for every gate G1–G7");
+ok(GATES_N.every((g) => GATE_NOTES[g].countermeasures.length >= 1), "GATE_NOTES has ≥1 countermeasure per gate");
+ok(GATES_N.every((g) => GATE_NOTES[g].countermeasures.every((c) => c.solved === true && c.risk && c.countermeasure)), "every countermeasure is solved and carries risk + countermeasure text");
+
+/* ---------------- Digital slide show (S1–S18) — HI hint + AI version ---------------- */
+import { SLIDES, slideDef, slideHintOf, aiSlideOf } from "../lib/innovation-data.ts";
+ok(SLIDES.length === 17, "SLIDES enumerates the 17 review deliverables spanning S1–S18 (S1–S2 combined)");
+ok(SLIDES[0].slide === "S1–S2" && SLIDES[SLIDES.length - 1].slide === "S18", "SLIDES run S1–S2 → S18 in gate order");
+ok(SLIDES.every((s) => !!s.slide && !!s.name && !!s.summary && GATES_N.includes(s.gate)), "every slide carries slide/name/summary/gate");
+ok(slideDef("S3")?.name === "Financial — Return", "slideDef resolves S3 to Financial — Return");
+ok(slideHintOf("S8").includes("Competition"), "slideHintOf surfaces the slide name in the HI prompt");
+ok(SLIDES.every((s) => aiSlideOf(P0, s.slide).length > 20), "aiSlideOf drafts a non-trivial AI version for every slide");
+ok(aiSlideOf(P0, "S3").includes("NPV") && aiSlideOf(P0, "S3").includes("IRR"), "aiSlideOf(S3) pulls real financials (NPV + IRR)");
+ok(aiSlideOf(P0, "S3") === aiSlideOf(P0, "S3"), "aiSlideOf is deterministic (identical inputs → identical draft)");
+ok(aiSlideOf(P0, "S8").includes("NBA") || aiSlideOf(P0, "S8").toLowerCase().includes("competitive"), "aiSlideOf(S8) frames value vs the NBA");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

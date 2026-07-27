@@ -21,7 +21,7 @@ import {
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
-  scopeBaseM, GATE_REVIEW, rackByLevel, projectRevSeries,
+  scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
@@ -32,7 +32,7 @@ import {
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
-  type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
+  type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
 
@@ -1904,6 +1904,11 @@ const SLIDE_PILL: Record<string, string> = {
   approved: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
 };
 const SLIDE_TXT: Record<string, string> = { "": "+ input", drafted: "drafted", submitted: "submitted", approved: "approved ✓" };
+// Per-slide HUMAN (HI) content the operator writes in the digital slide show — persisted per
+// `${p.id}|${slide}` (localStorage-first + best-effort Supabase). The AI rendition (aiSlideOf) fills any
+// gap so a slide is never blank; the per-slide HI⇄AI toggle mirrors the value-prop pattern (view-only key).
+const SLIDE_HI_KEY = "innovation-slide-hi";
+const SLIDE_LENS_KEY = "innovation-slide-lens"; // per-slide "HI"|"AI" view preference
 
 // Gate/IRB upgrade (Slice 4) — tri-lens sign-off + ledger + per-gate confidence. localStorage-first with
 // best-effort Supabase write-through (matches the Slice-0 store). Keyed by `${id}|${gate}[|lens]`.
@@ -1956,8 +1961,10 @@ function GateCube({ p }: { p: Project }) {
   const allSlides = GATES.flatMap((g) => GATE_REVIEW[g].deliverables.map((d) => d.slide));
   const approvedSlides = allSlides.filter((s) => slideStatus(s) === "approved").length;
   const board = loadReviewBoard();
+  const [deck, setDeck] = useState<{ open: boolean; slide?: string }>({ open: false });
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      {deck.open && <SlideShowModal p={p} startSlide={deck.slide} onClose={() => setDeck({ open: false })} />}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Gate progression · {p.gate} {GATE_STAGE[p.gate]}</h3>
         <span className="text-[11px] text-slate-500">gate {gi + 1} of {GATES.length} · source of record</span>
@@ -1980,9 +1987,13 @@ function GateCube({ p }: { p: Project }) {
       </div>
       {/* Deliverables S1–S18 across gates G1–G7 — tap a slide to cycle its IRB gate feedback */}
       <div className="mt-3">
-        <div className="flex items-center justify-between text-[10px] text-slate-500">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
           <span className="uppercase tracking-wider">Deliverables · S1–S18 · {board} gate feedback</span>
-          <span className="font-mono text-slate-300">{approvedSlides}/{allSlides.length} approved</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setDeck({ open: true, slide: review.deliverables[0]?.slide })}
+              className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300 hover:bg-cyan-500/20">▶ {t("innovation.slides.open")}</button>
+            <span className="font-mono text-slate-300">{approvedSlides}/{allSlides.length} approved</span>
+          </div>
         </div>
         <div className="mt-2 space-y-1.5">
           {GATES.map((g, ci) => {
@@ -2045,6 +2056,120 @@ function GateCube({ p }: { p: Project }) {
   );
 }
 
+// Digital slide show (S1–S18) — the in-platform gate deck for one project. Each slide carries the
+// editable HUMAN (HI) input the operator writes, plus a deterministic AI rendition (aiSlideOf) drafted
+// from the project's own model so a slide is never blank ("in case there are potentially missing").
+// Per-slide HI⇄AI toggle mirrors the value-prop pattern; status pill shares SLIDE_KEY with the matrix.
+function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: string; onClose: () => void }) {
+  const { t } = useLexicon();
+  const start = Math.max(0, SLIDES.findIndex((s) => s.slide === startSlide));
+  const [idx, setIdx] = useState(start < 0 ? 0 : start);
+  const [hi, setHi] = useState<Record<string, string>>({});
+  const [lens, setLens] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<Record<string, string>>({});
+  useEffect(() => { setHi(readStore(SLIDE_HI_KEY)); setLens(readStore(SLIDE_LENS_KEY)); setStatus(readStore(SLIDE_KEY)); }, []);
+  const slide = SLIDES[idx];
+  const key = `${p.id}|${slide.slide}`;
+  const hiText = hi[key] ?? "";
+  const activeLens = (lens[key] as "HI" | "AI") || "HI";
+  const ai = useMemo(() => aiSlideOf(p, slide.slide), [p, slide.slide]);
+  const st = status[key] || "";
+  const setHiText = (v: string) => setHi((prev) => { const u = { ...prev, [key]: v }; writeStore(SLIDE_HI_KEY, "slide-hi", u); return u; });
+  const setLensFor = (v: "HI" | "AI") => setLens((prev) => { const u = { ...prev, [key]: v }; writeStore(SLIDE_LENS_KEY, "slide-lens", u); return u; });
+  const cycleStatus = () => setStatus((prev) => {
+    const cur = prev[key] || "";
+    const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
+    const u = { ...prev, [key]: next }; writeStore(SLIDE_KEY, "slides", u); return u;
+  });
+  const useAiDraft = () => { setHiText(hiText.trim() ? `${hiText.trim()}\n\n${ai}` : ai); setLensFor("HI"); };
+  const go = (d: number) => setIdx((i) => Math.min(SLIDES.length - 1, Math.max(0, i + d)));
+  const authored = SLIDES.filter((s) => (hi[`${p.id}|${s.slide}`] ?? "").trim().length > 0).length;
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.slides.title")}>
+      <div className="mx-auto max-w-2xl rounded-xl border border-slate-800 bg-[#0e141b] p-4 sm:p-5" onClick={(e) => e.stopPropagation()}>
+        {/* Header — project + deck progress + close */}
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="truncate text-sm font-semibold">{t("innovation.slides.title")} · <span className="text-slate-300">{p.name}</span></h2>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline text-[10px] text-slate-500 tabular-nums">{authored}/{SLIDES.length} {t("innovation.slides.authored")}</span>
+            <button onClick={onClose} aria-label="Close" className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">✕</button>
+          </div>
+        </div>
+
+        {/* Slide strip — jump to any S# (color = authored / AI-only / empty) */}
+        <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
+          {SLIDES.map((s, i) => {
+            const has = (hi[`${p.id}|${s.slide}`] ?? "").trim().length > 0;
+            const cls = i === idx ? "border-cyan-500 bg-cyan-500/15 text-cyan-200"
+              : has ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+              : "border-slate-700 text-slate-500 hover:bg-slate-800";
+            return (
+              <button key={s.slide} onClick={() => setIdx(i)} title={`${s.slide} · ${s.name} (Gate ${s.gate})`} aria-label={`Go to slide ${s.slide} ${s.name}`}
+                className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${cls}`}>{s.slide}</button>
+            );
+          })}
+        </div>
+
+        {/* Current slide card */}
+        <div className="mt-3 rounded-xl border border-slate-800 bg-[#0b0f14] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-cyan-400">{slide.slide} · {slide.gate} {GATE_STAGE[slide.gate]}</div>
+              <h3 className="text-base font-semibold leading-tight text-slate-100">{slide.name}</h3>
+              <div className="text-[11px] text-slate-500">{slide.summary}</div>
+            </div>
+            {/* Per-slide HI⇄AI lens toggle */}
+            <div className="flex overflow-hidden rounded-lg border border-slate-700 text-[11px]">
+              <button onClick={() => setLensFor("HI")} aria-pressed={activeLens === "HI"}
+                className={`px-2 py-1 font-semibold ${activeLens === "HI" ? "bg-violet-500/20 text-violet-200" : "text-slate-400 hover:bg-slate-800"}`}>웃 {t("innovation.slides.hi")}</button>
+              <button onClick={() => setLensFor("AI")} aria-pressed={activeLens === "AI"}
+                className={`px-2 py-1 font-semibold ${activeLens === "AI" ? "bg-cyan-500/20 text-cyan-200" : "text-slate-400 hover:bg-slate-800"}`}>◬ {t("innovation.slides.ai")}</button>
+            </div>
+          </div>
+
+          {/* Body — HI editable textarea, or the AI draft (read-only, with "use as draft") */}
+          {activeLens === "HI" ? (
+            <div className="mt-3">
+              <textarea value={hiText} onChange={(e) => setHiText(e.target.value)} rows={6}
+                aria-label={`${slide.name} human input`}
+                placeholder={slideHintOf(slide.slide)}
+                className="w-full resize-y rounded-lg border border-slate-700 bg-[#0e141b] px-3 py-2 text-[13px] leading-relaxed text-slate-100 outline-none focus:border-cyan-500" />
+              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                <span>{t("innovation.slides.hiHint")}</span>
+                <button onClick={useAiDraft} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 font-medium text-cyan-300 hover:bg-cyan-500/20">◬ {t("innovation.slides.useAi")}</button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3">
+              <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.04] px-3 py-2.5 text-[13px] leading-relaxed text-slate-200">{ai}</div>
+              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                <span>◬ {t("innovation.slides.aiHint")}</span>
+                <button onClick={useAiDraft} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 font-medium text-cyan-300 hover:bg-cyan-500/20">{t("innovation.slides.useAi")}</button>
+              </div>
+              {hiText.trim() && <div className="mt-2 rounded-lg border border-violet-500/20 bg-violet-500/[0.04] px-3 py-2 text-[12px] leading-relaxed text-slate-300"><span className="text-[10px] uppercase tracking-wider text-violet-300">웃 {t("innovation.slides.hi")}</span><br />{hiText}</div>}
+            </div>
+          )}
+
+          {/* Status cycle (shared with the matrix) */}
+          <div className="mt-3 flex items-center justify-between">
+            <button onClick={cycleStatus} title="Cycle gate feedback: not-started → drafted → submitted → approved"
+              className={`rounded border px-2 py-0.5 text-[11px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
+            <span className="text-[10px] text-slate-500 tabular-nums">{idx + 1} / {SLIDES.length}</span>
+          </div>
+        </div>
+
+        {/* Prev / Next */}
+        <div className="mt-4 flex items-center justify-between">
+          <button onClick={() => go(-1)} disabled={idx === 0}
+            className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40">← {t("innovation.slides.prev")}</button>
+          <button onClick={() => go(1)} disabled={idx === SLIDES.length - 1}
+            className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40">{t("innovation.slides.next")} →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Expand a requirement into its ACTUAL detail — the live financials/metrics behind it, pulled
 // from the SAME model that drives the rack, growth model, and metric cards (one platform for
 // presentation + analysis). Slide info is the key: each row opens into the real numbers.
@@ -2096,7 +2221,62 @@ const REQ_TYPE_CHIP: Record<string, string> = {
 // No "REQ" jargon in the UX — requirement IDs render as R-## (S/DR/IS/DC/TR/DT keep their codes).
 const dispReqId = (id: string) => (id.startsWith("REQ-") ? "R-" + id.slice(4) : id);
 
+// Generic gate comments + countermeasures (GATE_NOTES) — the recurring IRB concern at each gate and the
+// standard countermeasure that clears it, every one marked "solved per gate". Collapsible per gate; the
+// project's decision gate (next gate) opens by default so the board sees what it must clear next.
+function GateNotesPanel({ sel }: { sel: Project }) {
+  const { t } = useLexicon();
+  const gi = GATES.indexOf(sel.gate);
+  const decGate = GATES[gi + 1] ?? sel.gate; // the gate under review
+  const [open, setOpen] = useState<Set<Gate>>(() => new Set<Gate>([decGate]));
+  const toggle = (g: Gate) => setOpen((s) => { const n = new Set(s); n.has(g) ? n.delete(g) : n.add(g); return n; });
+  return (
+    <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">{t("innovation.notes.title")}</h2>
+        <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">✓ {t("innovation.notes.solved")}</span>
+      </div>
+      <p className="mt-1 text-[11px] text-slate-500">{t("innovation.notes.sub")}</p>
+      <div className="mt-3 space-y-1.5">
+        {GATES.map((g, i) => {
+          const note = GATE_NOTES[g];
+          const isOpen = open.has(g);
+          const state = i < gi ? "done" : i === gi + 1 ? "next" : i === gi ? "current" : "future";
+          const badge = state === "next" ? "border-amber-500/40 text-amber-300" : state === "current" ? "border-cyan-500/40 text-cyan-300" : state === "done" ? "border-emerald-500/30 text-emerald-300" : "border-slate-700 text-slate-500";
+          return (
+            <div key={g} className="rounded-lg border border-slate-800 bg-[#0b0f14]">
+              <button onClick={() => toggle(g)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800/30" aria-expanded={isOpen}>
+                <span className="text-slate-500">{isOpen ? "▾" : "▸"}</span>
+                <span className={`rounded border px-1.5 py-0.5 text-[10px] font-mono ${badge}`}>{g}</span>
+                <span className="text-xs font-medium text-slate-300">{GATE_STAGE[g]}</span>
+                <span className="ml-auto text-[10px] tabular-nums text-emerald-400">{note.countermeasures.length} ✓</span>
+              </button>
+              {isOpen && (
+                <div className="border-t border-slate-800 px-3 py-2.5">
+                  <p className="text-[12px] leading-relaxed text-slate-400">{note.comment}</p>
+                  <div className="mt-2 space-y-1.5">
+                    {note.countermeasures.map((cm, j) => (
+                      <div key={j} className="flex items-start gap-2 rounded-md bg-[#0e141b] px-2.5 py-1.5">
+                        <span className={`mt-0.5 shrink-0 rounded px-1 text-[10px] font-semibold ${cm.solved ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}>{cm.solved ? "✓" : "○"}</span>
+                        <div className="min-w-0">
+                          <div className="text-[11px] text-rose-300/90">{t("innovation.notes.risk")}: <span className="text-slate-300">{cm.risk}</span></div>
+                          <div className="text-[11px] text-emerald-300/90">{t("innovation.notes.cm")}: <span className="text-slate-300">{cm.countermeasure}</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]; sel: Project; onSelect: (id: string) => void }) {
+  const { t } = useLexicon();
   const readiness = useMemo(() => gateReadinessAll(sel), [sel]);
   const gateIdx = GATES.indexOf(sel.gate);
   const [open, setOpen] = useState<Set<string>>(() => new Set());
@@ -2117,8 +2297,11 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
     lsSet(SLIDE_KEY, JSON.stringify(upd));
     return upd;
   });
+  // Digital slide show — open at S1 (header) or at a specific slide (from a matrix row).
+  const [deck, setDeck] = useState<{ open: boolean; slide?: string }>({ open: false });
   return (
     <div className="space-y-4">
+      {deck.open && <SlideShowModal p={sel} startSlide={deck.slide} onClose={() => setDeck({ open: false })} />}
       {/* Project selector + context */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="text-sm text-slate-400">Gate governance for</div>
@@ -2129,6 +2312,8 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
           {projects.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.gate}</option>)}
         </select>
         <span className="text-[11px] text-slate-500">Last completed gate <span className="font-mono text-slate-300">{sel.gate}</span> → stage <span className="text-slate-300">{GATE_STAGE[sel.gate]}</span></span>
+        <button onClick={() => setDeck({ open: true })}
+          className="ml-auto rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">▶ {t("innovation.slides.open")}</button>
       </div>
 
       {/* §3.5 Gate readiness rollup — % satisfied · Ready/Not · blocking count · band */}
@@ -2160,6 +2345,9 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
         <p className="mt-2 text-[11px] text-slate-500">Tolerance ladder ±60/40/20/10/5% — tightens gate over gate; a gate-to-gate move beyond the band raises a variance exception for PRB disposition.</p>
       </section>
 
+      {/* Generic gate comments + countermeasures (solved per gate) */}
+      <GateNotesPanel sel={sel} />
+
       {/* §3.1 Requirements × gates matrix — rows = requirements, columns = G1–G7 */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
@@ -2189,8 +2377,12 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                   <tr onClick={() => toggle(req.id)} className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 ${isOpen ? "bg-slate-800/40" : ""}`} title="Expand into actual detail">
                     <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{dispReqId(req.id)}</td>
                     <td className="px-2 py-1.5">
-                      <div className="text-[13px] text-slate-200 leading-tight">Gate {req.earliestGate} review slide</div>
-                      <div className="text-[10px] text-slate-500"><span className="font-mono text-cyan-400/80">Gate {req.earliestGate}</span> · {board} review</div>
+                      {(() => { const d = slideDef(req.id); return (
+                        <>
+                          <div className="text-[13px] text-slate-200 leading-tight">{d ? d.name : req.title}</div>
+                          <div className="text-[10px] text-slate-500">{d ? <>{d.summary} · </> : null}<span className="font-mono text-cyan-400/80">Gate {req.earliestGate}</span> · {board} review</div>
+                        </>
+                      ); })()}
                     </td>
                     <td className="px-2 py-1.5 text-center text-[11px] tabular-nums text-slate-400">±{Math.round(req.band * 100)}%</td>
                     {GATES.map((g, gi) => {
@@ -2223,7 +2415,11 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                           ))}
                           {detail.length === 0 && <span className="text-slate-500">Reviewed at {req.earliestGate} · ±{Math.round(req.band * 100)}% band · {REQ_STATUS_LABEL[status]}</span>}
                         </div>
-                        <div className="mt-2 text-[10px] text-slate-500">Reviewed at Gate {req.earliestGate} · figures derived from the live project model (same source as the rack, growth model, and metric cards).</div>
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-[10px] text-slate-500">Reviewed at Gate {req.earliestGate} · figures derived from the live project model (same source as the rack, growth model, and metric cards).</span>
+                          <button onClick={(e) => { e.stopPropagation(); setDeck({ open: true, slide: req.id }); }}
+                            className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300 hover:bg-cyan-500/20">▶ {t("innovation.slides.openThis")}</button>
+                        </div>
                       </td>
                     </tr>
                   )}

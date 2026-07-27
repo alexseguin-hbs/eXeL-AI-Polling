@@ -76,6 +76,69 @@ export const GATE_DELIVERABLES: Record<Gate, string[]> = Object.fromEntries(
   GATES.map((g) => [g, GATE_REVIEW[g].deliverables.map((d) => d.name)]),
 ) as Record<Gate, string[]>;
 
+// Generic gate review comments + countermeasures (AIML / De-Risking NPD gate discipline). These are
+// the recurring concerns an Innovation Review Board raises AT each gate and the standard countermeasure
+// that clears it — every one marked `solved: true` because the gate cannot be passed until it is
+// addressed (a gate that leaves a countermeasure open raises a variance exception, it is not passed).
+// Generic (project-agnostic) so they apply to every project; a project's own ledger overlays specifics.
+export interface GateCountermeasure { risk: string; countermeasure: string; solved: boolean }
+export interface GateNote { comment: string; countermeasures: GateCountermeasure[] }
+export const GATE_NOTES: Record<Gate, GateNote> = {
+  G1: {
+    comment: "Concept gate — the market need and the Next Best Alternative (NBA) must be evidenced, not asserted. Boards routinely bounce concepts that skip the customer problem statement or have no As-Is baseline to beat.",
+    countermeasures: [
+      { risk: "Market need unvalidated (opinion, not VOC)", countermeasure: "Voice-of-Customer interviews + Market Needs Documentation attached (S4–S5)", solved: true },
+      { risk: "No baseline to beat (NBA undefined)", countermeasure: "NBA / As-Is teardown captured; value framed versus the NBA (S6)", solved: true },
+      { risk: "Return not modeled", countermeasure: "Financial — Return profile (NPV + IRR) present with named assumptions (S3)", solved: true },
+    ],
+  },
+  G2: {
+    comment: "Plan gate — the value proposition must be quantified against the NBA and the financials laid out year-by-year. The common failure is a qualitative value story with no Value Equation and no do-nothing case.",
+    countermeasures: [
+      { risk: "Value prop not quantified vs the NBA", countermeasure: "Value Equation solved per differentiator vs NBA — competitive index + EVC (S8)", solved: true },
+      { risk: "Financials lack annual granularity", countermeasure: "Financials by Year — cost + revenues built and Finance-reconciled (S10)", solved: true },
+      { risk: "Demand assumed, not tested", countermeasure: "Preliminary VOC feedback captured with validation plans (S11)", solved: true },
+    ],
+  },
+  G3: {
+    comment: "Develop gate — technical and commercial risk must be surfaced with mitigations, and the go-to-market must align to the roadmap. Boards flag projects whose risk register is thin or whose supply chain is unexamined.",
+    countermeasures: [
+      { risk: "Technical / commercial risk unmitigated", countermeasure: "Risk register with owned mitigations; contingency in the estimate (S13)", solved: true },
+      { risk: "No coherent path to market", countermeasure: "Go-To-Market strategy aligned to the roadmap documentation (S12)", solved: true },
+      { risk: "Manufacturability / supply chain unproven", countermeasure: "Manufacturing strategy + supply-chain risk assessment attached", solved: true },
+    ],
+  },
+  G4: {
+    comment: "Qualify gate — resourcing and pre-launch validation must be locked. The recurring miss is a functional plan without committed resources, or launch with no BETA / pre-launch VOC evidence.",
+    countermeasures: [
+      { risk: "Resourcing not committed across functions", countermeasure: "Functional-alignment resourcing plan signed by function leads (S14)", solved: true },
+      { risk: "Launching without field validation", countermeasure: "BETA feedback + pre-launch VOCs captured and dispositioned (S15)", solved: true },
+      { risk: "Qualification incomplete", countermeasure: "Qualification test plan approved; marketing strategy documentation set", solved: true },
+    ],
+  },
+  G5: {
+    comment: "Launch gate — say/do metrics must be defined and tracked so performance can be measured against the plan, not just declared launched.",
+    countermeasures: [
+      { risk: "No measurable launch success criteria", countermeasure: "Market performance — say/do metrics defined and instrumented (S16)", solved: true },
+      { risk: "Performance not tracked cross-function", countermeasure: "Performance tracking with Finance + BD and Mfg/Ops stood up", solved: true },
+    ],
+  },
+  G6: {
+    comment: "Maximize gate — post-launch development must be VOC-prioritized so the product keeps compounding value rather than drifting.",
+    countermeasures: [
+      { risk: "Roadmap drifts from customer priorities", countermeasure: "Post-launch development priorities set from VOC (S17)", solved: true },
+      { risk: "Value capture not monitored", countermeasure: "Performance tracking with Finance + BD sustained", solved: true },
+    ],
+  },
+  G7: {
+    comment: "Retire / EOL gate — the end-of-life must be a planned, org-aligned transition (phase-out ≤ 3 yrs, spares, migration) rather than an abandonment.",
+    countermeasures: [
+      { risk: "Uncontrolled phase-out / support gap", countermeasure: "End-of-life strategy with org alignment; phase-out ≤ 3 yrs (S18)", solved: true },
+      { risk: "Customers stranded at EOL", countermeasure: "Spares plan + migration path to the next-gen product documented", solved: true },
+    ],
+  },
+};
+
 // Risk model (operator default): probability weight = P(tech) × P(comm), each from a discrete
 // risk level. Low = 90% · Med = 60% · High = 30% probability of success. So Low/Low captures
 // 0.9×0.9 = 81% of revenue (19% upside); High/High captures 0.3×0.3 = 9% (91% upside).
@@ -824,6 +887,74 @@ export function aiValuePropOf(p: Project): string {
   const benefit = b.outcomes[0] ?? "measurable outcomes";
   const how = b.solution[0] ?? "our approach";
   return `For ${target} who need ${need.charAt(0).toLowerCase() + need.slice(1)}, ${p.name} is a ${m.valueLadder}-tier ${p.category} that delivers ${benefit.charAt(0).toLowerCase() + benefit.slice(1)} through ${how.charAt(0).toLowerCase() + how.slice(1)}. Unlike ${nbaOf(p)}, it is ${m.competitive.toLowerCase()}-class — ${m.valueImpact.charAt(0).toLowerCase() + m.valueImpact.slice(1)}.`;
+}
+
+// ── Digital slide show (S1–S18) — the in-platform gate deck. Each slide carries an editable HUMAN (HI)
+//    input the operator writes, plus a deterministic AI rendition (aiSlideOf) that drafts the slide from
+//    the project's own model so gaps are never blank. Mirrors the HI⇄AI value-prop toggle. Pure + offline.
+export interface SlideDef { slide: string; gate: Gate; name: string; summary: string; priority?: number }
+export const SLIDES: SlideDef[] = GATES.flatMap((g) =>
+  GATE_REVIEW[g].deliverables.map((d) => ({ slide: d.slide, gate: g, name: d.name, summary: d.summary, priority: d.priority })),
+);
+export const slideDef = (slideId: string): SlideDef | undefined => SLIDES.find((s) => s.slide === slideId);
+
+/** What the HUMAN author should put on this slide — a short prompt so the HI input is never a blank box. */
+export function slideHintOf(slideId: string): string {
+  const d = slideDef(slideId);
+  if (!d) return "Author this gate slide.";
+  return `${d.name} — ${d.summary}. Add the human insight, evidence, and judgment for this slide.`;
+}
+
+/**
+ * Deterministic AI draft of a gate slide, composed from the project's own model (brief, financials,
+ * value equation, risk, exec). Offline — no provider call. Used to fill a slide the human hasn't written
+ * yet ("in case there are potentially missing"), surfaced behind the per-slide HI⇄AI toggle.
+ */
+export function aiSlideOf(p: Project, slideId: string): string {
+  const fm = financialMetrics(p), m = metaOf(p), b = briefOf(p), ex = execOf(p), ve = valueEquationOf(p);
+  const usdM = (n: number) => `$${(Math.round(n * 10) / 10).toLocaleString()}M`;
+  const kFmt = (n: number) => `$${(n / 1000).toFixed(1)}M`; // n is $K → $M (matches page.tsx k())
+  const list = (xs: string[], n = 2) => xs.slice(0, n).join("; ");
+  switch (slideId) {
+    case "S1–S2":
+      return `${p.name} (${p.category}, ${m.initiative}). ${valuePropOf(p)} Model: NPV ${usdM(fm.npvM)}, IRR ${fm.irrPct}%, payback ${fm.paybackYears} yr at ${GATE_STAGE[p.gate]} stage (confidence ${p.confidence}/5).`;
+    case "S3":
+      return `Return profile — NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${fm.paybackYears} yr · REV/NRE ${fm.revOverNre.toFixed(1)}×. NRE ${kFmt(p.nreK)} against 10-yr revenue ${usdM(p.fullRev10yM)}; risk-adjusted expected value ${usdM(expectedValueOf(p))}.`;
+    case "S4":
+      return `Customer CONOPS / mission needs — ${list(b.needs)}. Applications served: ${m.targetMarket}; program of record ${ex.customer}.`;
+    case "S5":
+      return `Customer problem — today they rely on ${nbaOf(p)}. Desired outcomes: ${list(b.outcomes)}. The gap is what this project closes.`;
+    case "S6":
+      return `Product summary — ${valuePropOf(p)} Primary segment: ${p.segmentValueProps?.[0]?.segment || m.targetMarket}. Value ladder ${m.valueLadder}; competitive position ${m.competitive}.`;
+    case "S7":
+      return `Customer workflow (by persona) — ${ex.customer} operators using ${list(b.solution)} to achieve ${b.outcomes[0] ?? "the mission outcome"}. PM ${ex.productMgr} · Eng ${ex.projectEng} · BD ${ex.bdLead}.`;
+    case "S8":
+      return `Competition + value vs NBA (${nbaOf(p)}) — competitive index ${Math.round(ve.competitiveIndex)}/100 (50 = parity), ${ve.wins} win / ${ve.losses} loss drivers, EVC ${usdM(ve.evcUsdM)} vs NBA baseline ${usdM(ve.referenceM)} (+${usdM(ve.differentiationM)} differentiation).`;
+    case "S9":
+      return `User stories — highlights: ${list(b.outcomes, 3)}. Each maps to a measurable outcome the ${m.targetMarket} buyer can verify.`;
+    case "S10":
+      return `Financials by year — 10-yr new-product revenue ${usdM(p.fullRev10yM)}; incremental ${usdM(incrementalRevM(p))}; probability-weighted ${usdM(weightedRevM(p))}; do-nothing baseline ${usdM(p.doNothing10yM)}. MSRP $${ex.msrpK}k · margin ${ex.marginPct}%.`;
+    case "S11":
+      return `Preliminary feedback + validation — ${list(b.evidence)}. Model confidence ${p.confidence}/5; validation plan closes the remaining assumptions before Plan gate.`;
+    case "S12":
+      return `Go-to-market — target market ${m.targetMarket} via ${ex.customer}; pursuits ${ex.pursuits.map((x) => x.name).join(", ")}. Strategy aligned to the ${m.initiative} roadmap.`;
+    case "S13":
+      return `Risk highlights — technical ${RISK_LABEL[p.tech]}, commercial ${RISK_LABEL[p.comm]} (+${Math.round(riskContingency(p) * 100)}% contingency). Kill-risk: ${killRiskOf(p)}.`;
+    case "S14":
+      return `Resourcing / functional alignment — ${fm.manHours.toLocaleString()} man-hours, capital ${kFmt(fm.capitalK)}, total R&D ${kFmt(fm.totalRdOpexK)}. Intelligence load: ${intelLoadGloss(p).gloss}.`;
+    case "S15":
+      return `BETA feedback / pre-launch VOCs — ${list(b.evidence)}. Confidence ${p.confidence}/5; pre-launch VOCs dispositioned into the launch plan.`;
+    case "S16": {
+      const w = winProbabilityOf(p);
+      return `Market performance — say/do: win probability P50 ${Math.round(w.p50 * 100)}% (P10 ${Math.round(w.p10 * 100)}% / P90 ${Math.round(w.p90 * 100)}%); tracked revenue vs the ${usdM(p.fullRev10yM)} plan with Finance + BD.`;
+    }
+    case "S17":
+      return `Post-launch development — VOC + priorities: ${list(b.outcomes, 3)}. ${p.predictions} open risk-market prediction(s) inform the next increment.`;
+    case "S18":
+      return `End-of-life strategy — org alignment: do-nothing baseline ${usdM(p.doNothing10yM)} erodes without action; controlled phase-out ≤ 3 yrs with spares + migration to the next-gen product.`;
+    default:
+      return slideHintOf(slideId);
+  }
 }
 
 // ── Value signals (Bridge Slice 1) — pure, deterministic, offline. Each has a derived fallback from the
