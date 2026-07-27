@@ -465,5 +465,15 @@ ok(DEMO_PROJECTS.every((p) => typeof p.killRisk === "string" && p.killRisk.lengt
 ok(DEMO_PROJECTS.every((p) => valueEquationOf(p).evcUsdM >= valueEquationOf(p).referenceM * 0.5), "value equation resolves to a sane EVC for every populated project");
 ok(DEMO_PROJECTS.every((p) => (p.segmentValueProps?.length ?? 0) >= 1), "every project ships a lead needs-segment value prop");
 
+/* ---------------- Optimized BU/SBU mix (rebalanced — no single BU dominates) ---------------- */
+{
+  const buCounts = DEMO_PROJECTS.reduce((m, p) => { const b = hierOf(p).bu; m[b] = (m[b] || 0) + 1; return m; }, {});
+  ok(Object.keys(buCounts).length === 3, "portfolio still spans exactly 3 BUs after rebalance");
+  ok(Object.values(buCounts).every((n) => n >= 5), "every BU carries >=5 projects (no starved BU)");
+  ok(Math.max(...Object.values(buCounts)) <= DEMO_PROJECTS.length / 2, "no single BU holds more than half the portfolio (balanced mix)");
+  ok(filterByHier(DEMO_PROJECTS, "sbu", "DSC").length >= 1, "DSC SBU stays populated after the rebalance");
+  ok(DEMO_PROJECTS.every((p) => hierOf(p).bu.length === 2 && hierOf(p).sbu.length === 3 && hierOf(p).alpha.length === 4), "BU 2-char · SBU 3-char · Alpha 4-char invariants hold");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
