@@ -649,7 +649,7 @@ function Board() {
             onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
             onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           <TimeEngine p={sel} />
-          <GateCube p={sel} />
+          <GateCube p={sel} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
           <Differentiators p={sel} />
         </section>
       </div>
@@ -691,7 +691,7 @@ function Board() {
 
       {view === "gates" && (
         <div className="p-5">
-          <GateRequirementsView projects={order} sel={sel} onSelect={setSelId} />
+          <GateRequirementsView projects={order} sel={sel} onSelect={setSelId} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
         </div>
       )}
 
@@ -2039,7 +2039,7 @@ const writeStore = (key: string, name: string, obj: Record<string, string>) => {
 // Gate progression — measured by review-slide progression across gates G1–G7 (no fixed
 // stage-count reference). We surface the review slides completed so far and the slides needed
 // next, each an editable gate-feedback input the operator sets to drive the next-gate decision.
-function GateCube({ p }: { p: Project }) {
+function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Partial<Project>, changes: string[]) => void }) {
   const { t } = useLexicon();
   const gi = GATES.indexOf(p.gate);
   const nextGate = GATES[gi + 1];                 // undefined once at the final gate
@@ -2080,7 +2080,7 @@ function GateCube({ p }: { p: Project }) {
   const [deck, setDeck] = useState<{ open: boolean; slide?: string }>({ open: false });
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-      {deck.open && <SlideShowModal p={p} startSlide={deck.slide} onClose={() => { setDeck({ open: false }); setSlides(readStore(SLIDE_KEY)); }} />}
+      {deck.open && <SlideShowModal p={p} startSlide={deck.slide} onEditSource={onEditSource} onClose={() => { setDeck({ open: false }); setSlides(readStore(SLIDE_KEY)); }} />}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Gate progression · {p.gate} {GATE_STAGE[p.gate]}</h3>
         <span className="text-[11px] text-slate-500">gate {gi + 1} of {GATES.length} · source of record</span>
@@ -2180,13 +2180,14 @@ function GateCube({ p }: { p: Project }) {
 // fields inherit until overridden. Gate readiness = filled required ÷ total required. Present mode renders
 // the same fields as a full deck. This is the digital presentation: concept → slide detail → execution (WBS
 // cost + schedule, S10/S14) → BOM at launch (S16) → validated G1→G7.
-function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: string; onClose: () => void }) {
+function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; startSlide?: string; onClose: () => void; onEditSource?: (patch: Partial<Project>, changes: string[]) => void }) {
   const { t } = useLexicon();
   const start = Math.max(0, SLIDE_SCHEMA.findIndex((s) => s.code === startSlide));
   const [idx, setIdx] = useState(start < 0 ? 0 : start);
   const [bags, setBags] = useState<Record<string, ProjFieldBag>>({});
   const [status, setStatus] = useState<Record<string, string>>({});
   const [present, setPresent] = useState(false);
+  const [srcOpen, setSrcOpen] = useState(false); // "edit source record" panel (single source of truth)
   useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); }, []);
   const spec = SLIDE_SCHEMA[idx];
   const bag = bags[p.id] || {};
@@ -2414,6 +2415,41 @@ function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: s
                 className={`shrink-0 rounded border px-2 py-0.5 text-[11px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
             </div>
 
+            {/* Edit source record — SINGLE SOURCE OF TRUTH. The linked fields on this slide (financials, BOM)
+                are derived from the project record; editing the raw drivers here updates every surface at once
+                (rack, budget buckets, dog-tag, deck) — no duplicate copies, no conflicts. */}
+            {onEditSource && spec.fields.some((f) => f.linked) && (() => {
+              const numEdit = (label: string, key: "nreK" | "fullRev10yM" | "doNothing10yM", suffix: string) => (
+                <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}
+                  <div className="flex items-center gap-1"><input type="text" inputMode="numeric" defaultValue={String(p[key])} onBlur={(e) => { const v = +e.target.value; if (/^\d+$/.test(e.target.value) && v !== p[key]) onEditSource({ [key]: v } as Partial<Project>, [`${label} → ${v}`]); }} className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" /><span className="text-slate-600">{suffix}</span></div>
+                </label>
+              );
+              const riskEdit = (label: string, key: "tech" | "comm") => (
+                <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}
+                  <select defaultValue={p[key]} onChange={(e) => onEditSource({ [key]: e.target.value } as Partial<Project>, [`${label} → ${e.target.value}`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500"><option value="low">Low</option><option value="med">Med</option><option value="high">High</option></select>
+                </label>
+              );
+              return (
+                <div className="mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.03]">
+                  <button onClick={() => setSrcOpen((v) => !v)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/5">
+                    <span>{srcOpen ? "▾" : "▸"}</span>◈ Edit source record <span className="font-normal text-slate-500">— one edit updates every surface (no duplicate sources)</span>
+                  </button>
+                  {srcOpen && (
+                    <div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-3">
+                      {numEdit("R&D / NRE", "nreK", "$K")}
+                      {numEdit("New rev 10-yr", "fullRev10yM", "$M")}
+                      {numEdit("Do-nothing 10-yr", "doNothing10yM", "$M")}
+                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence
+                        <select defaultValue={String(p.confidence)} onChange={(e) => onEditSource({ confidence: +e.target.value as Project["confidence"] }, [`Confidence → ${e.target.value}`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500">{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}/5</option>)}</select>
+                      </label>
+                      {riskEdit("Tech risk", "tech")}
+                      {riskEdit("Comm risk", "comm")}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <div className="mt-3 divide-y divide-slate-800">
               {spec.fields.map((f) => {
                 const c = cellOf(spec.code, f.id);
@@ -2563,7 +2599,7 @@ function GateNotesPanel({ sel }: { sel: Project }) {
   );
 }
 
-function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]; sel: Project; onSelect: (id: string) => void }) {
+function GateRequirementsView({ projects, sel, onSelect, onEditSource }: { projects: Project[]; sel: Project; onSelect: (id: string) => void; onEditSource?: (patch: Partial<Project>, changes: string[]) => void }) {
   const { t } = useLexicon();
   const readiness = useMemo(() => gateReadinessAll(sel), [sel]);
   const gateIdx = GATES.indexOf(sel.gate);
@@ -2589,7 +2625,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
   const [deck, setDeck] = useState<{ open: boolean; slide?: string }>({ open: false });
   return (
     <div className="space-y-4">
-      {deck.open && <SlideShowModal p={sel} startSlide={deck.slide} onClose={() => { setDeck({ open: false }); setSlides(readStore(SLIDE_KEY)); }} />}
+      {deck.open && <SlideShowModal p={sel} startSlide={deck.slide} onEditSource={onEditSource} onClose={() => { setDeck({ open: false }); setSlides(readStore(SLIDE_KEY)); }} />}
       {/* Project selector + context */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="text-sm text-slate-400">Gate governance for</div>
