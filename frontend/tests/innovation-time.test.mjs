@@ -659,5 +659,27 @@ import { makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEnt
   ok(typeof fmtAuditEntry(e1) === "string" && fmtAuditEntry(e1).includes("Alpha"), "fmtAuditEntry renders a human line");
 }
 
+/* ---------------- Audit TIMELINE scrubber (play-bar) ---------------- */
+import { auditTimeline, isMajorAudit, MAJOR_AUDIT_KINDS } from "../lib/innovation-data.ts";
+{
+  ok(isMajorAudit("approve") && isMajorAudit("fund") && isMajorAudit("budget"), "approve/fund/budget are MAJOR (red dot)");
+  ok(!isMajorAudit("edit") && !isMajorAudit("scenario"), "edit/scenario are minor (grey tick)");
+  ok(MAJOR_AUDIT_KINDS.length === 5, "5 major kinds");
+  ok(auditTimeline([]).length === 0, "auditTimeline empty → empty");
+  const mk = (ts, kind) => makeAuditEntry({ ts, kind, projectId: "P", by: "u" });
+  const tl = auditTimeline([
+    mk("2026-07-27T14:00:00.000Z", "approve"),
+    mk("2026-07-27T10:00:00.000Z", "edit"),
+    mk("2026-07-27T12:00:00.000Z", "budget"),
+  ]);
+  ok(tl.length === 3, "auditTimeline keeps every entry");
+  ok(tl[0].t === 0 && tl[2].t === 1, "auditTimeline normalizes oldest→0, newest→1");
+  ok(tl[0].entry.kind === "edit" && tl[2].entry.kind === "approve", "auditTimeline sorts ascending by time");
+  ok(Math.abs(tl[1].t - 0.5) < 1e-9, "auditTimeline positions the mid entry proportionally");
+  ok(tl[2].major === true && tl[0].major === false, "auditTimeline flags major vs minor");
+  const same = auditTimeline([mk("2026-07-27T10:00:00.000Z", "edit"), mk("2026-07-27T10:00:00.000Z", "fund")]);
+  ok(same[0].t === 0 && same[1].t === 1, "auditTimeline even-spaces when timestamps collapse to one instant");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

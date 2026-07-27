@@ -1340,6 +1340,10 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.audit.open", englishDefault: "History ↗", context: "Innovation audit trail: open the full history pop-out", cubeId: 60 },
   { key: "innovation.audit.empty", englishDefault: "No decisions logged yet — fund a project, approve a gate, or edit a field.", context: "Innovation audit trail: empty state", cubeId: 60 },
   { key: "innovation.audit.all", englishDefault: "All", context: "Innovation audit trail: show all kinds filter", cubeId: 60 },
+  { key: "innovation.audit.timeline", englishDefault: "Change timeline", context: "Innovation audit trail: time scrubber slider label", cubeId: 60 },
+  { key: "innovation.audit.play", englishDefault: "Play through changes", context: "Innovation audit timeline: play button", cubeId: 60 },
+  { key: "innovation.audit.pause", englishDefault: "Pause", context: "Innovation audit timeline: pause button", cubeId: 60 },
+  { key: "innovation.audit.major", englishDefault: "Major change", context: "Innovation audit timeline: red-dot legend (approvals, funding, budget)", cubeId: 60 },
   // Team & roles (Slice 5)
   { key: "innovation.team.title", englishDefault: "Team & roles", context: "Innovation per-project membership panel title", cubeId: 60 },
   { key: "innovation.team.you", englishDefault: "Your role", context: "Innovation team panel: current user's role label", cubeId: 60 },

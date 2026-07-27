@@ -787,6 +787,26 @@ export function summarizeAudit(entries: AuditEntry[]): Record<string, number> {
   for (const e of entries) s[e.kind] = (s[e.kind] ?? 0) + 1;
   return s;
 }
+// MAJOR audit kinds = the changes that get a RED dot on the approval timeline (approvals, funding shifts,
+// budget moves). Minor kinds (edit/scenario) are small grey ticks. Single source for the timeline's emphasis.
+export const MAJOR_AUDIT_KINDS: AuditKind[] = ["approve", "reject", "fund", "defund", "budget"];
+export function isMajorAudit(kind: AuditKind): boolean { return MAJOR_AUDIT_KINDS.includes(kind); }
+export interface TimelinePoint { entry: AuditEntry; t: number; major: boolean; }
+/** Lay the audit trail on a normalized [0..1] time axis (oldest→newest) for the scrubber/play-bar. Deterministic:
+ * positions come from the entries' own ISO timestamps (Date.parse of a fixed string, never the clock). Falls back
+ * to even index spacing when all timestamps collapse to one instant or fail to parse. */
+export function auditTimeline(entries: AuditEntry[]): TimelinePoint[] {
+  if (entries.length === 0) return [];
+  const asc = [...entries].sort((a, b) => a.ts.localeCompare(b.ts));
+  const times = asc.map((e) => Date.parse(e.ts));
+  const valid = times.every((n) => Number.isFinite(n));
+  const span = times[times.length - 1] - times[0];
+  return asc.map((e, i) => ({
+    entry: e,
+    t: valid && span > 0 ? (times[i] - times[0]) / span : (asc.length > 1 ? i / (asc.length - 1) : 0),
+    major: isMajorAudit(e.kind),
+  }));
+}
 /** Human one-line rendering of an audit entry (deterministic). */
 export function fmtAuditEntry(e: AuditEntry): string {
   const when = e.ts.slice(0, 16).replace("T", " ");

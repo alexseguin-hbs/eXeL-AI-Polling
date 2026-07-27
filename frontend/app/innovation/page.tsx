@@ -36,7 +36,7 @@ import {
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
-  makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, type AuditEntry, type AuditKind,
+  makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
@@ -1390,12 +1390,69 @@ const AUDIT_TONE: Record<AuditKind, string> = {
   scenario: "bg-violet-500/15 text-violet-300",
   budget: "bg-sky-500/15 text-sky-300",
 };
-function AuditRow({ a }: { a: AuditEntry }) {
+function AuditRow({ a, selected, refCb }: { a: AuditEntry; selected?: boolean; refCb?: (el: HTMLLIElement | null) => void }) {
   return (
-    <li className="flex items-start gap-2 py-1.5 text-[11px]">
+    <li ref={refCb} className={`flex items-start gap-2 py-1.5 text-[11px] ${selected ? "rounded bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/40" : ""}`}>
       <span className={`mt-px shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${AUDIT_TONE[a.kind] ?? "bg-slate-500/15 text-slate-300"}`}>{a.kind}</span>
       <span className="min-w-0 flex-1 break-words text-slate-400">{fmtAuditEntry(a)}</span>
     </li>
+  );
+}
+// Approval TIMELINE scrubber — a play-bar laying the audit trail on a time axis (oldest→newest). MAJOR changes
+// (approvals, funding shifts, budget moves) are RED dots; minor edits are small grey ticks. Drag the bar to scrub,
+// tap a dot to jump, ▶ to play through. Selecting a point highlights + scrolls the matching row below.
+function HistoryTimeline({ points, selId, onSelect }: { points: TimelinePoint[]; selId: string | null; onSelect: (id: string) => void }) {
+  const { t } = useLexicon();
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const selIdx = Math.max(0, points.findIndex((p) => p.entry.id === selId));
+  useEffect(() => {
+    if (!playing) return;
+    if (points.length === 0 || selIdx >= points.length - 1) { setPlaying(false); return; }
+    const id = setTimeout(() => onSelect(points[Math.min(points.length - 1, selIdx + 1)].entry.id), 900);
+    return () => clearTimeout(id);
+  }, [playing, selIdx, points, onSelect]);
+  const pickNearest = (clientX: number) => {
+    const el = trackRef.current; if (!el || points.length === 0) return;
+    const r = el.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    let best = points[0], bd = Infinity;
+    for (const p of points) { const d = Math.abs(p.t - x); if (d < bd) { bd = d; best = p; } }
+    onSelect(best.entry.id);
+  };
+  const onDown = (e: React.PointerEvent) => {
+    e.preventDefault(); pickNearest(e.clientX);
+    const move = (ev: PointerEvent) => pickNearest(ev.clientX);
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+  };
+  if (points.length === 0) return null;
+  const selT = points[selIdx]?.t ?? 0;
+  const majorN = points.filter((p) => p.major).length;
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <button onClick={() => setPlaying((v) => !v)} aria-label={playing ? t("innovation.audit.pause") : t("innovation.audit.play")}
+          title={playing ? t("innovation.audit.pause") : t("innovation.audit.play")}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20">{playing ? "⏸" : "▶"}</button>
+        <div ref={trackRef} onPointerDown={onDown} role="slider" aria-label={t("innovation.audit.timeline")}
+          aria-valuemin={0} aria-valuemax={points.length - 1} aria-valuenow={selIdx}
+          className="relative h-8 flex-1 cursor-pointer touch-none select-none">
+          <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-slate-700" />
+          <div className="absolute top-1/2 h-px -translate-y-1/2 bg-cyan-500/50" style={{ left: 0, width: `${selT * 100}%` }} />
+          {points.map((p) => (
+            <button key={p.entry.id} tabIndex={-1} onClick={(e) => { e.stopPropagation(); onSelect(p.entry.id); }}
+              title={fmtAuditEntry(p.entry)} style={{ left: `${p.t * 100}%` }}
+              className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full ${p.major ? "h-3 w-3 bg-rose-500 ring-1 ring-rose-300/60" : "h-1.5 w-1.5 bg-slate-500"} ${p.entry.id === selId ? "ring-2 ring-cyan-300" : ""}`} />
+          ))}
+          <div className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-cyan-400" style={{ left: `${selT * 100}%` }} />
+        </div>
+      </div>
+      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px] text-slate-500">
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-rose-500 align-middle" />{t("innovation.audit.major")} · {majorN}</span>
+        <span className="min-w-0 flex-1 truncate text-right text-slate-400">{points[selIdx] ? fmtAuditEntry(points[selIdx].entry) : ""}</span>
+      </div>
+    </div>
   );
 }
 // Funding & Approval History pop-out — shared modal idiom (backdrop tap-close · ✕ · Escape · focus-trap ·
@@ -1407,6 +1464,16 @@ function HistoryModal({ activity, onClose }: { activity: AuditEntry[]; onClose: 
   const kinds: (AuditKind | "all")[] = ["all", "fund", "defund", "approve", "reject", "budget", "scenario", "edit"];
   const s = summarizeAudit(activity);
   const shown = kindFilter === "all" ? activity : activity.filter((a) => a.kind === kindFilter);
+  // Timeline scrubber (ascending) + selection synced to the list below.
+  const points = useMemo(() => auditTimeline(shown), [shown]);
+  const [selId, setSelId] = useState<string | null>(null);
+  const rowRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  // Default the playhead to the latest change whenever the shown set changes and the current pick fell out.
+  useEffect(() => {
+    if (points.length === 0) { setSelId(null); return; }
+    if (!selId || !points.some((p) => p.entry.id === selId)) setSelId(points[points.length - 1].entry.id);
+  }, [points, selId]);
+  useEffect(() => { if (selId && rowRefs.current[selId]) scrollToEl(rowRefs.current[selId]); }, [selId]);
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.audit.title")}>
       <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
@@ -1423,11 +1490,18 @@ function HistoryModal({ activity, onClose }: { activity: AuditEntry[]; onClose: 
             </button>
           ))}
         </div>
+        {points.length > 0 && (
+          <div className="shrink-0 border-b border-slate-800 px-4 py-2.5">
+            <HistoryTimeline points={points} selId={selId} onSelect={setSelId} />
+          </div>
+        )}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
           {shown.length === 0 ? (
             <p className="mt-2 text-[11px] text-slate-500">{t("innovation.audit.empty")}</p>
           ) : (
-            <ul className="divide-y divide-slate-900">{shown.map((a) => (<AuditRow key={a.id} a={a} />))}</ul>
+            <ul className="divide-y divide-slate-900">{shown.map((a) => (
+              <AuditRow key={a.id} a={a} selected={a.id === selId} refCb={(el) => { rowRefs.current[a.id] = el; }} />
+            ))}</ul>
           )}
         </div>
       </div>
