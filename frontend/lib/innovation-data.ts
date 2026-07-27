@@ -233,6 +233,13 @@ export const PROJECT_BRIEF: Record<string, ProjectBrief> = {
   "PRJ-13": { needs: ["Rehearse on current mission data", "Compress prep timelines"], outcomes: ["Operational twins from live ISR", "Faster skill mastery"], solution: ["VR/XR twins + AI scenario generation", "Post-mission review loop"], evidence: ["Immersive rehearsal improves readiness", "Reuses live UAS/UGS feeds"] },
   "PRJ-14": { needs: ["Fuse human judgment + machine speed", "Team crewed + uncrewed across domains"], outcomes: ["One synchronized rhythm", "High-risk roles to unmanned"], solution: ["MUM-T links + AI decision support", "XR common picture"], evidence: ["Teaming trials increase flexibility", "High tech risk, early gate"] },
   "PRJ-15": { needs: ["Scale space ISR beyond launch-mass limits", "Sustain the constellation in-situ"], outcomes: ["Self-replicating nodes from space resources", "Persistent, growing sensor mesh"], solution: ["Autonomous fabrication + swarm control", "Ethical / space-debris guardrails"], evidence: ["Concept sims validate self-replication", "Moonshot — high/high risk, G1"] },
+  "PRJ-16": { needs: ["Gen-5 SAR quality on Group-2 UAS", "Lower unit + integration cost"], outcomes: ["Sub-metre SAR in a smaller aperture", "Franchise reuse of the AI SAR core"], solution: ["De-scoped aperture + shared AI SAR former", "Common GCS + calibration line"], evidence: ["Bench proves resolution at reduced aperture", "Reuses PRJ-01 production tooling"] },
+  "PRJ-17": { needs: ["Collective ISR across many small nodes", "Graceful degradation on node loss"], outcomes: ["Distributed-aperture sensing beats single node", "Self-forming coverage over the AO"], solution: ["Distributed-aperture fusion pod", "Swarm-formed sensing grid"], evidence: ["Sim: distributed aperture beats single sensor", "Cohesion holds after node attrition"] },
+  "PRJ-18": { needs: ["Exploit space-SAR downlink at scale", "Tip-and-cue product generation"], outcomes: ["Automated exploitation keeps pace", "Products flow to tactical sensors"], solution: ["Automated ground exploitation pipeline", "Open tasking + dissemination APIs"], evidence: ["Throughput matches constellation downlink", "APIs interoperate with tactical TOC"] },
+  "PRJ-19": { needs: ["Aircrew mastery beyond scarce sim time", "Scenario breadth vs live-fly cost"], outcomes: ["LVC rehearsal accelerates mastery", "Skill transfers to live-fly"], solution: ["Live-Virtual-Constructive XR suite", "Reuses live ISR feeds for scenarios"], evidence: ["LVC transfer measured to live performance", "Cost/hour far below live-fly"] },
+  "PRJ-20": { needs: ["Air-combat autonomy at machine tempo", "Loyal-wingman within commander intent"], outcomes: ["WVR maneuvering beyond human tempo", "Adaptive play vs scripted autopilot"], solution: ["Reinforcement-learning dogfight agent", "MUM-T loyal-wingman integration"], evidence: ["RL agent wins vs scripted baselines in sim", "HITL bounds constrain the envelope"] },
+  "PRJ-21": { needs: ["Compress the commander OODA loop", "Prioritized, trusted, actionable insight"], outcomes: ["Decisions in minutes, not tens of minutes", "Fused feeds → ranked actions"], solution: ["Decision-speed SA fusion engine", "Explainable prioritization for HITL trust"], evidence: ["Decision-cycle time cut in exercise", "Commanders act on the ranked insight"] },
+  "PRJ-22": { needs: ["Team Group 1/3/5 UAS as one force", "Cross-vendor teaming under one intent"], outcomes: ["Cross-group teaming under commander intent", "Mixed-vendor UAS on one fabric"], solution: ["Open multi-UAS teaming fabric", "Single-intent tasking across echelons"], evidence: ["Cross-group teaming demonstrated in sim", "Fabric interoperates across UAS types"] },
 };
 export const briefOf = (p: Project): ProjectBrief =>
   PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${p.confidence}/5`] };
@@ -370,7 +377,7 @@ export const scenarioAvailK = (key: BudgetScenario): number =>
 // ── Demo portfolio (seed; a real deploy loads from the platform event log) ───────────────
 export const DEMO_BUDGET: DivisionBudget = { division: "ALL DIVISIONS", totalK: 42000, allocatedK: 6000 };
 
-export const DEMO_PROJECTS: Project[] = [
+const DEMO_PROJECTS_BASE: Project[] = [
   { id: "PRJ-01", name: "SAR Imaging Payload Gen-5", division: "ISR Payloads", lob: "SBU-1", manager: "A. Seguin", category: "New Platform", gate: "G4", confidence: 5, tech: "low", comm: "low", nreK: 8200, fullRev10yM: 210, doNothing10yM: 60, firstRevenue: "2026-Q4", criticalPath: true, humanLoad: 0.62, ai: 0.4, si: 0.3, hi: 0.3, predictions: 41 },
   { id: "PRJ-02", name: "Hivemind Swarm Fusion AI", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5400, fullRev10yM: 155, doNothing10yM: 30, firstRevenue: "2027-Q1", criticalPath: true, humanLoad: 0.74, ai: 0.55, si: 0.25, hi: 0.2, predictions: 33 },
   { id: "PRJ-03", name: "Maritime ISR Drone Radar", division: "Maritime ISR", lob: "SBU-1", manager: "M. Devlin", category: "Sustaining+", gate: "G5", confidence: 5, tech: "low", comm: "low", nreK: 6100, fullRev10yM: 140, doNothing10yM: 55, firstRevenue: "2026-Q3", criticalPath: false, humanLoad: 0.48, ai: 0.3, si: 0.35, hi: 0.35, predictions: 22 },
@@ -399,6 +406,173 @@ export const DEMO_PROJECTS: Project[] = [
   { id: "PRJ-21", name: "Commander Decision-Speed SA Engine", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5200, fullRev10yM: 190, doNothing10yM: 20, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.58, ai: 0.6, si: 0.25, hi: 0.15, predictions: 33 },
   { id: "PRJ-22", name: "Group 1/3/5 Multi-UAS Teaming Fabric", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 8600, fullRev10yM: 300, doNothing10yM: 8, firstRevenue: "2028-Q4", criticalPath: true, humanLoad: 0.68, ai: 0.55, si: 0.3, hi: 0.15, predictions: 44 },
 ];
+
+// Realistic simulated intelligence per project (Tom Sant NOSE-informed value prop + the competitive Next
+// Best Alternative + a scored Value Equation vs that NBA + the kill-risk + a lead needs-segment). Grounded
+// in up-and-coming defense drone-swarm / autonomous-ISR capabilities (OODA-loop compression, sensor fusion,
+// MUM-T, counter-UAS, PNT-denied ops, space SAR). Merged into DEMO_PROJECTS so every project ships populated.
+type ProjectIntel = Pick<Project, "valueProp" | "nextBestAlternative" | "valueDrivers" | "killRisk" | "segmentValueProps">;
+const d = (name: string, importance: number, ourScore: number, nbaScore: number): ValueDriver => ({ name, importance, ourScore, nbaScore });
+const PROJECT_INTEL: Record<string, ProjectIntel> = {
+  "PRJ-01": {
+    valueProp: "For ISR mission planners who need all-weather, GPS-denied imaging, SAR Imaging Payload Gen-5 is a Group-3 SWaP-constrained radar that delivers sub-0.3 m day/night, cloud-penetrating imagery and cross-cues to effects in seconds. Unlike podded EO/IR that goes blind in weather, it is leader-class — on-board AI SAR forming turns raw returns into targets at the edge.",
+    nextBestAlternative: "Legacy podded EO/IR ISR (weather- and night-limited, ground-station exploitation only)",
+    valueDrivers: [d("All-weather / GPS-denied imaging", 1.0, 0.93, 0.35), d("On-board AI SAR forming (edge targets)", 0.9, 0.9, 0.4), d("SWaP fit on Group-3 UAS", 0.8, 0.82, 0.55)],
+    killRisk: "Focal-plane yield holds at production volume on the dual-source wafer lot",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "Persistent, weather-proof SAR revisit that cross-cues to strike inside the decision cycle.", confidence: 5, pain: "EO/IR blind at night/weather", outcome: "sensor-to-decision in seconds" }],
+  },
+  "PRJ-02": {
+    valueProp: "For UAS operators fighting under jamming, Hivemind Swarm Fusion AI is an edge-autonomy stack that keeps a multi-UAS swarm self-synchronizing and mission-capable after attrition — decentralized execution within commander intent. Unlike single-operator-per-air-vehicle control, it collapses operator load and survives comms denial.",
+    nextBestAlternative: "One-operator-per-UAS manual control with a datalink-dependent GCS",
+    valueDrivers: [d("Comms-denied swarm cohesion", 1.0, 0.88, 0.3), d("Operator-load reduction (1-to-many)", 0.95, 0.85, 0.35), d("Role re-assignment on node loss", 0.85, 0.82, 0.45)],
+    killRisk: "Decentralized tasking holds cohesion past 30% attrition in a contested EMS",
+    segmentValueProps: [{ segment: "SOF · Direct Action", prop: "One operator commands a resilient swarm that re-tasks itself when nodes drop.", confidence: 3, pain: "operator overload under jamming", outcome: "swarm holds intent after attrition" }],
+  },
+  "PRJ-03": {
+    valueProp: "For maritime domain-awareness cells, Maritime ISR Drone Radar detects low-RCS threats over sea clutter and holds persistent wide-area track from one Group-3 platform — feeding the TOC a common picture the legacy patrol cadence cannot.",
+    nextBestAlternative: "Crewed maritime patrol sorties + shipborne radar with coverage gaps",
+    valueDrivers: [d("Low-RCS littoral detection in clutter", 0.95, 0.85, 0.5), d("Persistent wide-area revisit", 0.85, 0.83, 0.55), d("Sensor-grid fusion to the TOC", 0.8, 0.8, 0.5)],
+    killRisk: "Adaptive clutter rejection sustains track at operational sea states",
+    segmentValueProps: [{ segment: "Navy · Maritime", prop: "One platform, persistent low-RCS track over sea clutter into the common picture.", confidence: 5 }],
+  },
+  "PRJ-04": {
+    valueProp: "For force-protection cells facing cheap drone swarms, the Counter-UAS Loitering Effector layers gun-cheap defeat with a loitering effector for consequence — positive-ID before engage — so an exchange-ratio that today favors the attacker flips to the defender.",
+    nextBestAlternative: "Kinetic guns + jammers alone (poor exchange ratio vs saturation)",
+    valueDrivers: [d("Favorable cost-exchange vs saturation", 1.0, 0.86, 0.3), d("Positive-ID before engage (MIL-STD-2525)", 0.9, 0.84, 0.5), d("Layered gun + effector kill web", 0.85, 0.82, 0.45)],
+    killRisk: "Per-defeat cost stays below the threat's per-drone cost at scale",
+    segmentValueProps: [{ segment: "Army · Fires", prop: "Defeat saturation swarms at a cost ratio that finally favors the defender.", confidence: 2 }],
+  },
+  "PRJ-05": {
+    valueProp: "For JADC2 fires and effects cells, Swarm Command & Control Cloud fuses air/land/sea into one picture with a single engagement authority and rapid cross-domain re-task — replacing stovepiped, screen-swivel C2 with software-speed synchronization.",
+    nextBestAlternative: "Stovepiped, single-domain C2 consoles requiring manual screen-swivel",
+    valueDrivers: [d("One multi-domain picture + authority", 1.0, 0.87, 0.4), d("Rapid cross-domain re-task", 0.9, 0.85, 0.45), d("Open IBCS/JADC2 links", 0.8, 0.8, 0.55)],
+    killRisk: "Cross-service data rights and links are granted for the fused picture",
+    segmentValueProps: [{ segment: "USMC · Expeditionary", prop: "Air-land-sea in one picture with a single engagement authority.", confidence: 3 }],
+  },
+  "PRJ-06": {
+    valueProp: "For dismounted teams, the Handheld Multispectral ISR Sensor speeds edge threat recognition with AI hints and cross-cues to higher echelon — field-rugged optics that shorten the ID timeline the current binocular-plus-radio workflow cannot.",
+    nextBestAlternative: "Standard-issue binoculars/thermal monocular + voice reporting",
+    valueDrivers: [d("Faster dismounted target ID", 0.9, 0.82, 0.5), d("AI cueing + cross-echelon feed", 0.85, 0.8, 0.45), d("MIL-rugged, low-SWaP form", 0.8, 0.83, 0.6)],
+    killRisk: "AI cueing improves ID timelines without unacceptable false-alarm load",
+    segmentValueProps: [{ segment: "USMC · Expeditionary", prop: "Faster, AI-cued threat ID at the edge, cross-cued up the chain.", confidence: 3 }],
+  },
+  "PRJ-07": {
+    valueProp: "For national ISR tasking, the Space-Based SAR Constellation denies the adversary weather and night sanctuary with persistent overhead SAR revisit and tip-and-cue to tactical sensors — coverage a tactical-only fleet cannot sustain.",
+    nextBestAlternative: "Airborne-only ISR + commercial EO imagery with revisit gaps",
+    valueDrivers: [d("Persistent overhead SAR revisit", 1.0, 0.85, 0.4), d("Tip-and-cue to tactical sensors", 0.9, 0.82, 0.45), d("Deny weather/night sanctuary", 0.85, 0.84, 0.5)],
+    killRisk: "On-orbit SAR-forming optics hold figure under thermal load at scale",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "Global, revisit-dense SAR that tips tactical sensors day, night, and weather.", confidence: 2 }],
+  },
+  "PRJ-08": {
+    valueProp: "For mixed-fleet UAS units, Ground Control Station Modernization puts one open-architecture GCS across platforms with an XR interface, cutting sustainment and training burden versus today's one-GCS-per-type sprawl.",
+    nextBestAlternative: "Per-platform proprietary GCS variants (high training + sustainment cost)",
+    valueDrivers: [d("One GCS across platforms", 0.9, 0.86, 0.45), d("Lower operator cognitive load (XR)", 0.8, 0.8, 0.5), d("Open architecture / low migration risk", 0.75, 0.83, 0.55)],
+    killRisk: "Open-architecture migration certifies across the fielded fleet on schedule",
+    segmentValueProps: [{ segment: "Army · Fires", prop: "One open GCS across the fleet — less training, less sustainment.", confidence: 5 }],
+  },
+  "PRJ-09": {
+    valueProp: "For Group 2-3 platforms in degraded visual environments, the EO/IR Gimbal Sensor Next-Gen gives longer standoff and sharper track with a cooled core and AI-assisted detection — outperforming the legacy gimbal it replaces.",
+    nextBestAlternative: "Legacy uncooled EO/IR gimbal with manual detection",
+    valueDrivers: [d("Longer standoff / sharper track", 0.9, 0.85, 0.55), d("AI-assisted detection in DVE", 0.85, 0.82, 0.45), d("Cross-sensor cueing", 0.75, 0.8, 0.5)],
+    killRisk: "Seal-wear on the cooled core is mitigated for the fielded duty cycle",
+    segmentValueProps: [{ segment: "Army · Fires", prop: "See first and further in degraded visual environments.", confidence: 3 }],
+  },
+  "PRJ-10": {
+    valueProp: "For integrators who want autonomy without vendor lock, the Autonomy SDK & Swarm Marketplace is a typed SDK + vetted-behavior marketplace that onboards new capability fast and earns recurring platform revenue — an ecosystem the closed stacks can't match.",
+    nextBestAlternative: "Single-vendor closed autonomy stack (slow onboarding, lock-in)",
+    valueDrivers: [d("No vendor lock (open SDK)", 0.95, 0.88, 0.3), d("Faster capability onboarding", 0.85, 0.84, 0.45), d("Recurring marketplace revenue", 0.8, 0.8, 0.35)],
+    killRisk: "Developer take-rate and certification throughput hit the adoption model",
+    segmentValueProps: [{ segment: "Allied / FMS", prop: "Onboard vetted autonomy behaviors fast — no vendor lock.", confidence: 2 }],
+  },
+  "PRJ-11": {
+    valueProp: "For programs sustaining fielded sensors to end-of-life, the Legacy ISR Sensor EOL Bridge preserves ISR continuity through a controlled phase-out and a clean migration path to Gen-5 — avoiding the capability gap a hard cutover creates.",
+    nextBestAlternative: "Hard cutover to next-gen (capability gap + spares cliff)",
+    valueDrivers: [d("ISR continuity during transition", 0.85, 0.86, 0.5), d("Controlled ≤3-yr phase-out", 0.75, 0.82, 0.55), d("Migration path to Gen-5", 0.7, 0.8, 0.5)],
+    killRisk: "Spares + bridge kit sustain fielded units through the phase-out window",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "No ISR gap while you transition to Gen-5.", confidence: 5 }],
+  },
+  "PRJ-12": {
+    valueProp: "For forces operating in contested EMS, the Resilient PNT-Denied Datalink holds link and PNT continuity without GPS via a resilient waveform (QKD option) — where standard datalinks and GPS simply fail.",
+    nextBestAlternative: "Standard GPS + conventional tactical datalink (fails under EW/jamming)",
+    valueDrivers: [d("Hold link in contested EMS", 1.0, 0.84, 0.25), d("PNT continuity without GPS", 0.95, 0.82, 0.3), d("Standards-aligned interop", 0.8, 0.8, 0.5)],
+    killRisk: "Resilient waveform holds link in EW-chamber tests at operational range",
+    segmentValueProps: [{ segment: "SOF · Direct Action", prop: "Assured comms and PNT when GPS and standard links are denied.", confidence: 1 }],
+  },
+  "PRJ-13": {
+    valueProp: "For readiness cells, Immersive VR/XR Mission Rehearsal turns live ISR into operational twins and AI-generated scenarios — compressing prep timelines and building mastery the slide-and-brief workflow cannot.",
+    nextBestAlternative: "Static slide briefs + limited live-fly rehearsal",
+    valueDrivers: [d("Rehearse on current mission data", 0.9, 0.85, 0.4), d("AI scenario generation", 0.8, 0.82, 0.45), d("Compressed prep timelines", 0.8, 0.83, 0.5)],
+    killRisk: "Operational twins from live ISR measurably improve readiness scores",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "Rehearse on real mission data; master faster.", confidence: 3 }],
+  },
+  "PRJ-14": {
+    valueProp: "For crewed-uncrewed operations, the Manned-Unmanned Teaming (MUM-T) Suite fuses human judgment with machine speed across domains — pushing high-risk roles to unmanned and holding one synchronized rhythm the current voice-coordinated teaming can't.",
+    nextBestAlternative: "Voice-coordinated manned + separately-controlled unmanned assets",
+    valueDrivers: [d("One synchronized crewed/uncrewed rhythm", 1.0, 0.85, 0.35), d("High-risk roles to unmanned", 0.9, 0.83, 0.4), d("AI decision support + XR picture", 0.85, 0.82, 0.45)],
+    killRisk: "MUM-T links + AI decision support certify for teamed employment",
+    segmentValueProps: [{ segment: "Army · Fires", prop: "Team crewed and uncrewed at machine speed; keep humans on the hard calls.", confidence: 2 }],
+  },
+  "PRJ-15": {
+    valueProp: "For persistent space ISR beyond launch-mass limits, the Orbital Self-Replicating Sensor Swarm fabricates and sustains nodes in-situ for a growing sensor mesh — a moonshot that breaks the one-launch-one-payload ceiling.",
+    nextBestAlternative: "Conventional launch-mass-limited satellites (fixed constellation size)",
+    valueDrivers: [d("Scale ISR beyond launch mass", 1.0, 0.8, 0.2), d("In-situ self-replication / sustainment", 0.95, 0.78, 0.25), d("Persistent, growing sensor mesh", 0.85, 0.8, 0.35)],
+    killRisk: "In-space fabrication + debris guardrails prove out beyond concept sims",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "A sensor mesh that grows itself in orbit.", confidence: 1 }],
+  },
+  "PRJ-16": {
+    valueProp: "For cost-sensitive ISR buyers, SAR Imaging Payload Variant-B brings Gen-5 SAR performance to a smaller, lower-cost aperture — extending the franchise into Group-2 platforms the flagship payload is too large to serve.",
+    nextBestAlternative: "Up-porting the full Gen-5 payload (too heavy/costly for Group-2)",
+    valueDrivers: [d("Gen-5 SAR at Group-2 SWaP/cost", 0.9, 0.84, 0.45), d("Franchise reuse (shared AI core)", 0.8, 0.85, 0.5), d("Lower unit cost", 0.8, 0.82, 0.55)],
+    killRisk: "The de-scoped aperture holds enough resolution for the target missions",
+    segmentValueProps: [{ segment: "Allied / FMS", prop: "Gen-5 SAR quality in a Group-2 budget and form factor.", confidence: 3 }],
+  },
+  "PRJ-17": {
+    valueProp: "For swarm operators, the Swarm ISR Sensor Pod is a shared, self-forming ISR aperture across many small nodes — collective sensing that outperforms any single node the current one-sensor-per-drone approach fields.",
+    nextBestAlternative: "Independent single-sensor drones with no collective fusion",
+    valueDrivers: [d("Collective (distributed-aperture) sensing", 0.95, 0.85, 0.4), d("Self-forming across nodes", 0.85, 0.82, 0.45), d("Graceful degradation on node loss", 0.8, 0.8, 0.5)],
+    killRisk: "Distributed-aperture fusion beats single-node sensing at fielded spacing",
+    segmentValueProps: [{ segment: "SOF · Direct Action", prop: "The swarm is the sensor — collective ISR that degrades gracefully.", confidence: 3 }],
+  },
+  "PRJ-18": {
+    valueProp: "For space-SAR operators, the Space SAR Ground Segment turns raw downlink into exploited, tip-and-cue-ready products at scale — the exploitation bottleneck the constellation's value depends on.",
+    nextBestAlternative: "Manual/legacy ground exploitation that can't keep pace with downlink",
+    valueDrivers: [d("Automated exploitation at downlink scale", 0.95, 0.84, 0.4), d("Tip-and-cue product generation", 0.85, 0.82, 0.45), d("Open tasking/dissemination APIs", 0.8, 0.8, 0.5)],
+    killRisk: "Ground exploitation throughput keeps pace with constellation downlink",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "Turn space-SAR downlink into tip-and-cue products at scale.", confidence: 2 }],
+  },
+  "PRJ-19": {
+    valueProp: "For aircrew readiness, the XR Pilot Training & Mastery Suite (LVC) blends live-virtual-constructive rehearsal so pilots master mission profiles faster than the sim-time-limited status quo.",
+    nextBestAlternative: "Limited full-motion sim time + live-fly hours (scarce, costly)",
+    valueDrivers: [d("LVC mastery acceleration", 0.9, 0.84, 0.45), d("Scenario breadth vs live-fly cost", 0.85, 0.82, 0.5), d("Reuses live ISR feeds", 0.75, 0.8, 0.5)],
+    killRisk: "LVC rehearsal transfers measurably to live-fly performance",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "Master mission profiles in LVC before you burn live-fly hours.", confidence: 3 }],
+  },
+  "PRJ-20": {
+    valueProp: "For air-combat autonomy, the AI Dogfight RL Agent (MUM-T) flies within-visual-range engagements at machine reaction speed as a loyal-wingman behavior — beyond-human tempo the scripted-autopilot alternative can't reach.",
+    nextBestAlternative: "Scripted/rule-based autopilot behaviors (predictable, human-tempo)",
+    valueDrivers: [d("Machine-tempo WVR maneuvering", 1.0, 0.83, 0.3), d("Loyal-wingman MUM-T integration", 0.9, 0.82, 0.4), d("Adaptive RL vs scripted play", 0.85, 0.8, 0.35)],
+    killRisk: "RL agent generalizes safely beyond its training envelope with HITL bounds",
+    segmentValueProps: [{ segment: "Air Force · ISR", prop: "A loyal-wingman that fights at machine tempo under human command.", confidence: 1 }],
+  },
+  "PRJ-21": {
+    valueProp: "For commanders, the Commander Decision-Speed SA Engine compresses the OODA loop — turning fused sensor feeds into prioritized, actionable insight so decisions land in minutes, not the tens-of-minutes the manual COP demands.",
+    nextBestAlternative: "Manual common-operating-picture assembly + staff analysis",
+    valueDrivers: [d("OODA-loop / decision-speed compression", 1.0, 0.86, 0.4), d("Prioritized, actionable insight", 0.9, 0.84, 0.45), d("Fusion across sensor feeds", 0.85, 0.82, 0.5)],
+    killRisk: "Prioritization is trusted enough that commanders act on it under time pressure",
+    segmentValueProps: [{ segment: "Army · Fires", prop: "Decisions in minutes: fused feeds to prioritized action.", confidence: 3 }],
+  },
+  "PRJ-22": {
+    valueProp: "For multi-echelon UAS operations, the Group 1/3/5 Multi-UAS Teaming Fabric lets small, medium, and large UAS team as one force under commander intent — cross-group teaming the per-group stovepipes can't deliver.",
+    nextBestAlternative: "Per-group, per-vendor UAS control with no cross-group teaming",
+    valueDrivers: [d("Cross-Group (1/3/5) teaming", 1.0, 0.84, 0.3), d("Single intent across echelons", 0.9, 0.82, 0.4), d("Open teaming fabric / interop", 0.85, 0.8, 0.45)],
+    killRisk: "Cross-group teaming certifies across mixed-vendor UAS on one fabric",
+    segmentValueProps: [{ segment: "SOF · Direct Action", prop: "Small, medium, and large UAS fight as one force under one intent.", confidence: 2 }],
+  },
+};
+
+// Every project ships with populated intel merged over the base (explicit fields still win; a project
+// without an intel entry falls back to the deterministic derived engine, so nothing ever blanks).
+export const DEMO_PROJECTS: Project[] = DEMO_PROJECTS_BASE.map((p) => ({ ...p, ...(PROJECT_INTEL[p.id] ?? {}) }));
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
 // Time is the master variable (R-CORE §4): everything below is derived from a start date +

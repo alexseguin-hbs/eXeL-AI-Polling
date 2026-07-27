@@ -456,5 +456,14 @@ ok(fmFn({ ...P0, fullRev10yM: 10, doNothing10yM: 10 }).paybackYears === Infinity
 // aiSlideOf locale-pinned + deterministic (no locale drift on the persisted draft)
 ok(aiSlideOf(P0, "S10") === aiSlideOf(P0, "S10"), "aiSlideOf(S10 financials) is deterministic (en-US pinned)");
 
+/* ---------------- Realistic simulated intel — every project populated (NOSE + value equation vs NBA) ---------------- */
+ok(DEMO_PROJECTS.every((p) => typeof p.valueProp === "string" && p.valueProp.length > 40), "every project ships an explicit realistic value proposition");
+ok(DEMO_PROJECTS.every((p) => typeof p.nextBestAlternative === "string" && p.nextBestAlternative.length > 8), "every project ships an explicit Next Best Alternative");
+ok(DEMO_PROJECTS.every((p) => Array.isArray(p.valueDrivers) && p.valueDrivers.length >= 3), "every project ships ≥3 scored Value-Equation drivers vs the NBA");
+ok(DEMO_PROJECTS.every((p) => p.valueDrivers.every((d) => d.importance >= 0 && d.importance <= 1 && d.ourScore >= 0 && d.ourScore <= 1 && d.nbaScore >= 0 && d.nbaScore <= 1)), "all authored driver scores are within [0,1] (math is valid)");
+ok(DEMO_PROJECTS.every((p) => typeof p.killRisk === "string" && p.killRisk.length > 8), "every project ships an explicit kill-risk");
+ok(DEMO_PROJECTS.every((p) => valueEquationOf(p).evcUsdM >= valueEquationOf(p).referenceM * 0.5), "value equation resolves to a sane EVC for every populated project");
+ok(DEMO_PROJECTS.every((p) => (p.segmentValueProps?.length ?? 0) >= 1), "every project ships a lead needs-segment value prop");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
