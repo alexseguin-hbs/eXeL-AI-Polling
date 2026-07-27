@@ -35,7 +35,7 @@ import {
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
-  can, roleOf, isLastLead, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
+  can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
@@ -1257,7 +1257,7 @@ function TeamRoles({ projectId, members, me, onChange }: { projectId: string; me
   const [newRole, setNewRole] = useState<ProjectRole>("viewer");
   const setList = (next: ProjectMember[]) => onChange({ ...members, [projectId]: next });
   const addMember = () => {
-    const ref = newRef.trim();
+    const ref = scrubText(newRef, 64); // scrub secrets + cap before it lands in the shared blob (Thor)
     if (!ref) return;
     const base = list.length ? list : [{ userRef: me, role: "lead" as ProjectRole }]; // seed owner as Lead
     if (base.some((m) => m.userRef === ref)) return;

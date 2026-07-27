@@ -612,5 +612,14 @@ import { scopeByHier, hierValues as hv2 } from "../lib/innovation-data.ts";
   ok(scopeByHier(DEMO_PROJECTS, { bu: [oneBu], sbu: [], pgroup: [] }).length === buFiltered.length, "scopeByHier deterministic for same input");
 }
 
+/* ---------------- scrubText — no secrets/PII into shared blobs (P3 Security) ---------------- */
+import { scrubText } from "../lib/innovation-data.ts";
+ok(scrubText("sk_live_ABCDEF1234567890").includes("[redacted]"), "scrubText redacts Stripe-style secret keys");
+ok(!/[A-Za-z0-9_-]{40,}/.test(scrubText("tok_" + "a".repeat(50))), "scrubText redacts long opaque tokens");
+ok(scrubText("  Jane   Doe  ") === "Jane Doe", "scrubText collapses whitespace + trims");
+ok(scrubText("ab ".repeat(80), 64).length === 64, "scrubText caps length");
+ok(scrubText("jane@example.com") === "jane@example.com", "scrubText leaves a normal ref intact");
+ok(scrubText("a") === scrubText("a"), "scrubText deterministic");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

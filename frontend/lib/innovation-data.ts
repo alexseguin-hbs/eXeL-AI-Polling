@@ -703,6 +703,17 @@ export function can(role: ProjectRole | null | undefined, action: PermAction): b
   return ROLE_RANK[role] >= ROLE_RANK[ACTION_MIN_ROLE[action]];
 }
 
+// Scrub free-text before it is persisted to a shared blob (Thor): drop anything resembling a live secret/token,
+// collapse whitespace, and cap length — so member refs / notes can never leak keys or unbounded PII. Pure + tested.
+export function scrubText(s: string, max = 120): string {
+  return (s || "")
+    .replace(/\b(sk|rk|pk)_(live|test)_[A-Za-z0-9]+/g, "[redacted]")   // Stripe-style keys
+    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, "[redacted]")                    // long opaque tokens
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
+}
+
 export interface ProjectMember { userRef: string; role: ProjectRole }
 // Membership map keyed by projectId. userRef is a stable id-shaped token (from ownerKey()), never a display
 // name, so the eventual ownerKey()→auth.uid() migration can remap identity without rewriting history.
