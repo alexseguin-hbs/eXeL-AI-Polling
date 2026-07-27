@@ -227,6 +227,7 @@ function Board() {
   const fundedRows = rows.filter((r) => r.funded);
   const portfolioNpv = fundedRows.reduce((s, r) => s + npvM(r.p), 0);
   const fundedNre = fundedRows.reduce((s, r) => s + r.p.nreK, 0);
+  const stackName = loadStackName(); // admin-configurable module name (formerly "Rack & Stack")
 
   return (
     <div className="min-h-screen bg-[#0b0f14] text-slate-100">
@@ -234,7 +235,7 @@ function Board() {
       <header className="border-b border-slate-800 px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         <div>
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
-          <h1 className="text-lg font-semibold">Project Innovation — Portfolio Prioritization</h1>
+          <h1 className="text-lg font-semibold">Project Innovation — {stackName}</h1>
         </div>
         <a
           href="/innovation/pdm-template.html" target="_blank" rel="noopener"
@@ -287,7 +288,7 @@ function Board() {
         {([["portfolio", "Portfolio Prioritization"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"], ["setup", "⚙ Business Setup"]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
-            {label}
+            {v === "portfolio" ? stackName : label}
           </button>
         ))}
       </nav>
@@ -298,7 +299,7 @@ function Board() {
         <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
             <h2 className="text-sm font-semibold">
-              Portfolio Prioritization · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
+              {stackName} · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
             </h2>
             {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
             <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
@@ -1470,6 +1471,12 @@ const REVIEW_BOARD_KEY = "innovation-review-board";
 const DEFAULT_REVIEW_BOARD = "IRB";
 const REVIEW_BOARD_PRESETS = ["IRB", "PRB", "IPT"]; // Innovation Review Board · Product Review Board · Integrated Product Team
 function loadReviewBoard(): string { return (lsGet(REVIEW_BOARD_KEY) || DEFAULT_REVIEW_BOARD).trim() || DEFAULT_REVIEW_BOARD; }
+// The portfolio-prioritization module name (formerly "Rack & Stack") — admin-configurable so
+// each org can label the prioritize-and-fund workflow in its own vocabulary. Persisted.
+const STACK_NAME_KEY = "innovation-stack-name";
+const DEFAULT_STACK_NAME = "Portfolio Prioritization";
+const STACK_NAME_PRESETS = ["Portfolio Prioritization", "Prioritize & Fund", "Portfolio Balancer", "Funding Line", "Priority Board"];
+function loadStackName(): string { return (lsGet(STACK_NAME_KEY) || DEFAULT_STACK_NAME).trim() || DEFAULT_STACK_NAME; }
 function BusinessSetup() {
   const [admin, setAdmin] = useState(false);
   const [pw, setPw] = useState("");
@@ -1478,16 +1485,19 @@ function BusinessSetup() {
   const [tier, setTier] = useState<BizTier>("bu");
   const [pillars, setPillars] = useState<PillarDef[]>(() => STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] })));
   const [board, setBoard] = useState(DEFAULT_REVIEW_BOARD);
+  const [stackName, setStackName] = useState(DEFAULT_STACK_NAME);
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
     const saved = lsGet(BIZ_KEY);
     if (saved) { try { setSetup(JSON.parse(saved)); } catch { /* keep seed */ } }
     setPillars(loadPillars());
     setBoard(loadReviewBoard());
+    setStackName(loadStackName());
   }, []);
   const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
   const persistBoard = (next: string) => { setBoard(next); lsSet(REVIEW_BOARD_KEY, next); };
+  const persistStackName = (next: string) => { setStackName(next); lsSet(STACK_NAME_KEY, next); };
   const unlock = () => (pw === CODE ? (ssSet(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
 
   if (!admin) {
@@ -1549,6 +1559,21 @@ function BusinessSetup() {
           ))}
         </div>
         <p className="mt-2 text-[10px] text-slate-500">Renaming a pillar updates the edit-project + Submit-New-Idea dropdowns. Existing projects keep their stored pillar until re-selected.</p>
+      </section>
+
+      {/* Module name — label for the prioritize-and-fund workflow (formerly "Rack & Stack") */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <h2 className="text-sm font-semibold">Prioritization Module Name <span className="text-[11px] text-slate-500">— the tab, page title &amp; section header</span></h2>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {STACK_NAME_PRESETS.map((n) => (
+            <button key={n} onClick={() => persistStackName(n)}
+              className={`rounded border px-2.5 py-1 text-xs ${stackName === n ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{n}</button>
+          ))}
+          <span className="text-[11px] text-slate-500">or</span>
+          <input value={stackName} onChange={(e) => persistStackName(e.target.value)} maxLength={32}
+            placeholder="Custom name" className={`w-44 ${inp}`} />
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">Default <b className="text-cyan-300">Portfolio Prioritization</b>. Renaming here relabels the module across the tool (tab · title · section header).</p>
       </section>
 
       {/* Review board — the body that gives per-slide gate feedback (default IRB) */}
