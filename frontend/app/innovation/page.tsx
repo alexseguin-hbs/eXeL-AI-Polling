@@ -84,6 +84,21 @@ const PERSONAS: { key: Persona; label: string; glyph: string; lens: string; view
 ];
 const usd = (m: number) => `$${m.toFixed(1)}M`;
 const k = (n: number) => `$${(n / 1000).toFixed(1)}M`;
+// Shared $/min burn formatter (hoisted — was duplicated across the buckets/allocation/dashboard surfaces).
+const fmtPerMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
+// Raw project-category string → the project-type (DEV_TYPE) color, so category surfaces read from ONE palette
+// (Spiral: was a hardcoded #38bdf8). Mirrors devTypeOf's category regex (gate isn't available at the category level).
+const categoryColor = (cat: string): string =>
+  /phase|legacy|sustain/i.test(cat) ? DEV_TYPE.sustaining.color
+    : /platform/i.test(cat) ? DEV_TYPE.newmarket.color
+    : /research|study|concept/i.test(cat) ? DEV_TYPE.prestudy.color
+    : DEV_TYPE.enhance.color;
+// Respect reduced-motion for programmatic scrolls (a11y). Falls back to instant when the user opts out.
+const scrollToEl = (el: Element | null) => {
+  if (!el) return;
+  const smooth = typeof window !== "undefined" && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+};
 // Payback display — a non-finite / non-positive value means the project never recovers its NRE; render
 // an em-dash rather than a misleading "0 yr" that reads as the best payback (council: Thoth/Enki).
 const payb = (y: number) => (Number.isFinite(y) && y > 0 ? `${y} yr` : "—");
@@ -175,7 +190,7 @@ function Board() {
     setDetailOpen(true);
     // Portrait/narrow: bring the detail pane into view (landscape already shows it side-by-side).
     if (typeof window !== "undefined" && window.matchMedia?.("(orientation: portrait)").matches) {
-      requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      requestAnimationFrame(() => scrollToEl(detailRef.current));
     }
   };
   // Roles / project membership (Slice 5). `me` = stable per-browser identity token (ownerKey → auth.uid later).
@@ -712,7 +727,7 @@ function Board() {
 
         {/* Selected project detail — portrait: hidden until a project is tapped (top/bottom split); landscape: always shown right */}
         <section ref={detailRef} className={`${detailOpen ? "block" : "hidden"} w-full space-y-4 landscape:block landscape:w-[42%] landscape:shrink-0`}>
-          <button onClick={() => { setDetailOpen(false); stackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+          <button onClick={() => { setDetailOpen(false); scrollToEl(stackRef.current); }}
             className="flex w-full items-center gap-1 rounded-lg border border-slate-700 bg-[#0e141b] px-3 py-2 text-[12px] font-medium text-slate-300 hover:bg-slate-800 landscape:hidden">
             ‹ {t("innovation.detail.back")}
           </button>
@@ -1507,7 +1522,6 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
             Innovation: time is money). A project sits in exactly one bucket, set by the global funding line. */}
         {(level === "bu" || level === "sbu" || level === "pgroup") && (() => {
           const buckets = fundingBuckets(projects, level, (id) => fundedIds.has(id));
-          const perMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
           const cell = (title: string, tone: "ok" | "bad", a: typeof buckets[number]["funded"]) => (
             <div className={`rounded-md border p-2 ${tone === "ok" ? "border-emerald-500/30 bg-emerald-500/[0.05]" : "border-rose-500/30 bg-rose-500/[0.05]"}`}>
               <div className="flex items-center justify-between">
@@ -1518,7 +1532,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                 <span className="text-slate-500">NRE</span><span className="text-right tabular-nums text-slate-200">{k(a.nreK)}</span>
                 <span className="text-slate-500">NPV</span><span className={`text-right tabular-nums ${a.npvM >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{usd(a.npvM)}</span>
                 <span className="text-slate-500">P-wt rev</span><span className="text-right tabular-nums text-slate-300">{usd(a.pwRevM)}</span>
-                <span className="text-slate-500" title="Live burn — NRE spread across the program schedule">$/min</span><span className="text-right tabular-nums text-amber-300">{perMin(a.perMinUsd)}</span>
+                <span className="text-slate-500" title="Live burn — NRE spread across the program schedule">$/min</span><span className="text-right tabular-nums text-amber-300">{fmtPerMin(a.perMinUsd)}</span>
               </div>
             </div>
           );
@@ -1551,7 +1565,6 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
           const alloc = nodeAllocation(projects, level, (id) => fundedIds.has(id), availK, budgetOverrideK);
           const totUpsideK = alloc.reduce((s, n) => s + n.upsideK, 0);
           const totOverK = alloc.reduce((s, n) => s + n.overK, 0);
-          const perMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
           return (
             <div className="border-b border-slate-800 px-4 py-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -1584,7 +1597,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                         <span className="text-slate-500">Allocated</span><span className="text-right tabular-nums text-slate-300">{k(n.allocatedK)}</span>
                         <span className="text-cyan-400">◆ Upside</span><span className="text-right tabular-nums text-cyan-300">{k(n.upsideK)}</span>
                         {n.overK > 0 && (<><span className="text-rose-400">Over</span><span className="text-right tabular-nums text-rose-300">{k(n.overK)}</span></>)}
-                        <span className="text-slate-500" title="Live burn of the funded projects at this node">$/min</span><span className="text-right tabular-nums text-amber-300">{perMin(n.perMinUsd)}</span>
+                        <span className="text-slate-500" title="Live burn of the funded projects at this node">$/min</span><span className="text-right tabular-nums text-amber-300">{fmtPerMin(n.perMinUsd)}</span>
                       </div>
                     </div>
                   );
@@ -3795,7 +3808,6 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { p
   const sbuLabelOf = (c: string) => bizSetup.sbu.find((n) => n.code === c)?.label ?? SBU_LABEL[c] ?? "SBU";
   const roll = companyRollup(projects, { sbuBase: sbuBaseOf });
 
-  const allocPerMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
   return (
     <div className="space-y-4">
       {/* Allocation & UPSIDE per BU — always-on metric: budget → allocated → unallocated (upside) + $/min.
@@ -3809,7 +3821,7 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { p
               <div key={n.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
                 <div className="mb-1 flex items-baseline justify-between">
                   <span className="text-xs font-semibold text-slate-100">{n.code} <span className="font-normal text-slate-500">{n.label}</span></span>
-                  <span className="text-[10px] tabular-nums text-amber-300">{allocPerMin(n.perMinUsd)}</span>
+                  <span className="text-[10px] tabular-nums text-amber-300">{fmtPerMin(n.perMinUsd)}</span>
                 </div>
                 <div className="mb-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800" title={`${n.utilPct}% of budget allocated`}>
                   <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
@@ -3906,7 +3918,7 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { p
 
         {/* Spend by Category */}
         <DashCard title="Spend by Category" tag="Top">
-          <HBars rows={byCat.map((s) => ({ name: s.name, value: s.spendK, color: "#38bdf8", sub: `${s.count}` }))} fmt={kM} />
+          <HBars rows={byCat.map((s) => ({ name: s.name, value: s.spendK, color: categoryColor(s.name), sub: `${s.count}` }))} fmt={kM} />
         </DashCard>
 
         {/* Cost Dashboard */}
