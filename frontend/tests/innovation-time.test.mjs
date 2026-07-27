@@ -439,8 +439,8 @@ ok(GATES_N.every((g) => GATE_NOTES[g].countermeasures.every((c) => c.solved === 
 
 /* ---------------- Digital slide show (S1–S18) — HI hint + AI version ---------------- */
 import { SLIDES, slideDef, slideHintOf, aiSlideOf } from "../lib/innovation-data.ts";
-ok(SLIDES.length === 17, "SLIDES enumerates the 17 review deliverables spanning S1–S18 (S1–S2 combined)");
-ok(SLIDES[0].slide === "S1–S2" && SLIDES[SLIDES.length - 1].slide === "S18", "SLIDES run S1–S2 → S18 in gate order");
+ok(SLIDES.length === 18, "SLIDES enumerates the 18 review deliverables spanning S1–S18 (S1 exec summary + S2 project overview separate)");
+ok(SLIDES[0].slide === "S1" && SLIDES[1].slide === "S2" && SLIDES[SLIDES.length - 1].slide === "S18", "SLIDES run S1 → S2 → S18 in gate order (S1 and S2 are separate deliverables)");
 ok(SLIDES.every((s) => !!s.slide && !!s.name && !!s.summary && GATES_N.includes(s.gate)), "every slide carries slide/name/summary/gate");
 ok(slideDef("S3")?.name === "Financial — Return", "slideDef resolves S3 to Financial — Return");
 ok(slideHintOf("S8").includes("Competition"), "slideHintOf surfaces the slide name in the HI prompt");
@@ -477,8 +477,8 @@ ok(DEMO_PROJECTS.every((p) => (p.segmentValueProps?.length ?? 0) >= 1), "every p
 
 /* ---------------- S1–S18 field spec (schema-driven slide authoring) ---------------- */
 import { SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField } from "../lib/innovation-data.ts";
-ok(SLIDE_SCHEMA.length === 17, "SLIDE_SCHEMA enumerates the 17 review slides spanning S1–S18 (S1–S2 combined)");
-ok(SLIDE_SCHEMA[0].code === "S1–S2" && SLIDE_SCHEMA[SLIDE_SCHEMA.length - 1].code === "S18", "schema runs S1–S2 → S18 in gate order");
+ok(SLIDE_SCHEMA.length === 18, "SLIDE_SCHEMA enumerates the 18 review slides spanning S1–S18 (S1 + S2 separate)");
+ok(SLIDE_SCHEMA[0].code === "S1" && SLIDE_SCHEMA[1].code === "S2" && SLIDE_SCHEMA[SLIDE_SCHEMA.length - 1].code === "S18", "schema runs S1 → S2 → S18 in gate order");
 ok(SLIDE_SCHEMA.every((s) => s.fields.length > 0 && s.source && GATES_N.includes(s.gate)), "every slide carries typed fields + a source + a valid gate");
 ok(SLIDE_SCHEMA.every((s) => s.fields.every((f) => f.id && f.name && f.kind)), "every field has id + name + kind");
 ok(SLIDE_SCHEMA.some((s) => s.fields.some((f) => f.req)), "the spec flags required fields (drives gate readiness)");
@@ -489,7 +489,12 @@ ok(slideSpec("S6").fields.find((f) => f.id === "problem").mirror === "S5.problem
   ok(prof && typeof prof === "object" && !Array.isArray(prof) && prof.npv && prof.irr, "S3 profile is linked live from the financial record (NPV + IRR)");
   const rev = linkedSlideField(P0, "S3", "revtable");
   ok(Array.isArray(rev) && rev.length >= 1 && rev[0].length === 3, "S3 revenue table is linked (Year / Revenue / Margin rows)");
-  ok(linkedSlideField(P0, "S1–S2", "oneline") === null, "non-linked fields return null from the linked resolver");
+  ok(linkedSlideField(P0, "S1", "oneline") === null, "non-linked fields return null from the linked resolver");
+  // S2 = Project Overview one-pager: linked profile + upside-accelerator metrics live from the record
+  const s2prof = linkedSlideField(P0, "S2", "profile");
+  ok(s2prof && typeof s2prof === "object" && !Array.isArray(s2prof) && s2prof.npv && s2prof.irr, "S2 Project Overview profile is linked live (NPV + IRR)");
+  const s2accel = linkedSlideField(P0, "S2", "accel");
+  ok(s2accel && typeof s2accel === "object" && "spend" in s2accel && "months" in s2accel && "revFwd" in s2accel, "S2 upside accelerator lever is linked live (spend / months / revFwd)");
 }
 // deterministic per-field AI drafts
 ok(aiSlideField(P0, "S8", "vprop") === aiSlideField(P0, "S8", "vprop"), "aiSlideField is deterministic");
@@ -524,6 +529,13 @@ ok(CADENCE_PER_YEAR.D > CADENCE_PER_YEAR.W && CADENCE_PER_YEAR.W > CADENCE_PER_Y
   }
 }
 import { fundingBuckets } from "../lib/innovation-data.ts";
+
+/* ---------------- Upside spending accelerator lever (per-project intake, single source of truth) ---------------- */
+import { upsideAccelOf } from "../lib/innovation-data.ts";
+ok(DEMO_PROJECTS.every((p) => { const ua = upsideAccelOf(p); return ua.accelK > 0 && ua.months >= 0 && ua.months <= 6 && ua.revFwdM >= 0; }), "upsideAccelOf yields a bounded accelerator (accelK>0, 0≤months≤6, revFwd≥0) for every project");
+ok(upsideAccelOf({ ...P0, upsideAccelK: 500 }).accelK === 500, "upsideAccelOf honors an explicit per-project intake override");
+ok(upsideAccelOf({ ...P0, upsideAccelK: undefined }).accelK === Math.round(P0.nreK * 0.15), "upsideAccelOf defaults to 15% of NRE when no intake is set");
+ok(upsideAccelOf(P0).revFwdM === upsideAccelOf(P0).revFwdM, "upsideAccelOf is deterministic (single source of truth)");
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

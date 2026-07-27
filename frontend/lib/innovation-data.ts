@@ -19,7 +19,8 @@ export interface GateReview { deliverables: GateDeliverable[]; mustHave: string[
 export const GATE_REVIEW: Record<Gate, GateReview> = {
   G1: {
     deliverables: [
-      { slide: "S1–S2", name: "Executive Summary", summary: "2-slide overview" },
+      { slide: "S1", name: "Executive Summary", summary: "Crisp one-slide" },
+      { slide: "S2", name: "Project Overview", summary: "Template one-pager" },
       { slide: "S3", name: "Financial — Return", summary: "Profile: NPV + IRR", priority: 3 },
       { slide: "S4", name: "Customer CONOPS — Applications", summary: "Mission Needs" },
       { slide: "S5", name: "Customer Problem", summary: "Statement — Outcomes" },
@@ -191,6 +192,7 @@ export interface Project {
   relPerformance?: number;            // Thoth — relative performance vs the NBA (0–1, engineering)
   winP50?: number;                    // Odin — median commercial adoption / BD win probability (0–1)
   valueDrivers?: ValueDriver[];       // Slice 1B — the Value Equation: per-differentiator scoring vs the NBA
+  upsideAccelK?: number;              // Upside spending accelerator lever — extra $K that pulls schedule/revenue forward (per-project intake)
 }
 /** A single differentiator in the Value Equation — scored for customer importance and performance vs the NBA. */
 export interface ValueDriver { name: string; importance: number; ourScore: number; nbaScore: number }
@@ -664,6 +666,17 @@ export function timeReadout(p: Project, startISO: string, unit: TimeUnit) {
 export const TOTAL_PROGRAM_WORKDAYS = GATES.reduce((s, g) => s + GATE_WORKDAYS[g], 0);
 export const costPerMinuteOf = (p: Project): number => (p.nreK * 1000) / TOTAL_PROGRAM_WORKDAYS / (WORKDAY_HOURS * 60);
 
+// Upside spending accelerator lever (per-project intake) — extra $ deployed to pull schedule + revenue
+// forward (the "Project Upside" $/min lever). Default intake = 15% of NRE; months pulled forward scale with
+// the accelerator/NRE ratio (capped ~6 mo); revenue moved left ≈ incremental rev × pulled-forward fraction.
+export interface UpsideAccel { accelK: number; months: number; revFwdM: number }
+export function upsideAccelOf(p: Project): UpsideAccel {
+  const accelK = typeof p.upsideAccelK === "number" ? p.upsideAccelK : Math.round(p.nreK * 0.15);
+  const months = Math.min(6, Math.round((accelK / Math.max(1, p.nreK)) * 6 * 10) / 10);
+  const revFwdM = +(incrementalRevM(p) * (months / 24)).toFixed(1); // ~ up to a quarter of incremental pulled left
+  return { accelK, months, revFwdM };
+}
+
 // Re-optimization cadence ladder (Vision•2525 · SoI): legacy quarterly → the tool enables monthly now →
 // weekly → daily as the System of Intelligence tightens the funding/schedule loop toward the speed of thought.
 export type Cadence = "Q" | "M" | "W" | "D";
@@ -1132,8 +1145,12 @@ export function aiSlideOf(p: Project, slideId: string): string {
   const payb = (y: number) => (Number.isFinite(y) && y > 0 ? `${y} yr` : "no payback");
   const list = (xs: string[], n = 2) => xs.slice(0, n).join("; ");
   switch (slideId) {
-    case "S1–S2":
-      return `${p.name} (${p.category}, ${m.initiative}). ${valuePropOf(p)} Model: NPV ${usdM(fm.npvM)}, IRR ${fm.irrPct}%, payback ${payb(fm.paybackYears)} at ${GATE_STAGE[p.gate]} stage (confidence ${p.confidence}/5).`;
+    case "S1":
+      return `${p.name} (${p.category}, ${m.initiative}). ${valuePropOf(p)} Recommendation: advance ${p.gate} — modeled NPV ${usdM(fm.npvM)}, IRR ${fm.irrPct}%, first revenue ${p.firstRevenue}.`;
+    case "S2": {
+      const ua = upsideAccelOf(p);
+      return `${p.name} overview — ${GATE_STAGE[p.gate]} (${p.gate}), confidence ${p.confidence}/5. Return: NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${payb(fm.paybackYears)}. Upside accelerator: ${kFmt(ua.accelK)} pulls ~${ua.months} mo forward (${usdM(ua.revFwdM)} revenue moved left).`;
+    }
     case "S3":
       return `Return profile — NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${payb(fm.paybackYears)} · REV/NRE ${fm.revOverNre.toFixed(1)}×. NRE ${kFmt(p.nreK)} against 10-yr revenue ${usdM(p.fullRev10yM)}; risk-adjusted expected value ${usdM(expectedValueOf(p))}.`;
     case "S4":
@@ -1188,14 +1205,20 @@ export interface SlideField {
 }
 export interface SlideSpec { code: string; gate: Gate; stage: string; source: string; supplemental?: string[]; fields: SlideField[] }
 export const SLIDE_SCHEMA: SlideSpec[] = [
-  { code: "S1–S2", gate: "G1", stage: "Concept", source: "Market Needs + Business Case", supplemental: ["Market Landscape & Needs"], fields: [
+  // S1 — crisp Executive Summary (consolidated to the essentials: what/why/who/ask).
+  { code: "S1", gate: "G1", stage: "Concept", source: "Market Needs + Business Case", supplemental: ["Market Landscape & Needs"], fields: [
     { id: "oneline", name: "Product in one sentence", kind: "text", req: true, hint: "What it is and who it's for — no adjectives." },
     { id: "valueprop", name: "Key value proposition", kind: "text", req: true },
     { id: "segment", name: "Target segment / customer", kind: "text", req: true },
+    { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
+  // S2 — Project Overview: the project-template one-pager (linked return profile + roadmap/status/risks) plus
+  //      the Upside spending-accelerator lever intake (extra $ that pulls the schedule/revenue forward).
+  { code: "S2", gate: "G1", stage: "Concept", source: "Business Case", supplemental: ["Business Case"], fields: [
+    { id: "profile", name: "Return profile", kind: "metrics", linked: true, items: [ { k: "npv", label: "3-Yr NPV" }, { k: "irr", label: "IRR" }, { k: "payback", label: "Payback" }, { k: "rev1", label: "1st revenue" }, { k: "stage", label: "Stage" } ] },
+    { id: "accel", name: "Upside spending accelerator lever", kind: "metrics", linked: true, items: [ { k: "spend", label: "Accelerator $" }, { k: "months", label: "Pulled fwd" }, { k: "revFwd", label: "Rev moved left" } ] },
     { id: "status", name: "Stage / status", kind: "text" },
     { id: "roadmap", name: "Roadmap snapshot", kind: "list" },
-    { id: "toprisks", name: "Top risks or dependencies", kind: "list" },
-    { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
+    { id: "toprisks", name: "Top risks or dependencies", kind: "list" } ] },
   { code: "S3", gate: "G1", stage: "Concept", source: "Business Case · linked to project financials", fields: [
     { id: "profile", name: "Return profile", kind: "metrics", linked: true, items: [ { k: "npv", label: "3-Yr NPV" }, { k: "irr", label: "IRR" }, { k: "payback", label: "Payback" }, { k: "rev1", label: "1st revenue" }, { k: "tech", label: "Technical risk" }, { k: "comm", label: "Commercial risk" } ] },
     { id: "revtable", name: "Revenue + margin by year", kind: "table", linked: true, cols: ["Year", "Revenue", "Margin"] },
@@ -1278,8 +1301,12 @@ export type SlideFieldValue = string | string[] | string[][] | Record<string, st
 export function linkedSlideField(p: Project, code: string, fieldId: string): SlideFieldValue {
   const fm = financialMetrics(p);
   const money = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
-  if (code === "S3" && fieldId === "profile")
-    return { npv: money(fm.npvM), irr: `${fm.irrPct}%`, payback: Number.isFinite(fm.paybackYears) && fm.paybackYears > 0 ? `${fm.paybackYears} yr` : "—", rev1: p.firstRevenue, tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm] };
+  const profile = () => ({ npv: money(fm.npvM), irr: `${fm.irrPct}%`, payback: Number.isFinite(fm.paybackYears) && fm.paybackYears > 0 ? `${fm.paybackYears} yr` : "—", rev1: p.firstRevenue, tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm], stage: `${GATE_STAGE[p.gate]} (${p.gate})` });
+  if ((code === "S3" || code === "S2") && fieldId === "profile") return profile();
+  if (code === "S2" && fieldId === "accel") {
+    const ua = upsideAccelOf(p);
+    return { spend: `$${(ua.accelK / 1000).toFixed(1)}M`, months: `${ua.months} mo`, revFwd: money(ua.revFwdM) };
+  }
   if (code === "S3" && fieldId === "revtable")
     return financialsOverview(p, { years: 3, funded: true }).map((r) => [`${r.year}`, money(r.revM), money(r.marginM)]);
   if (code === "S16" && fieldId === "bom") {
@@ -1297,13 +1324,13 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
   const pct = (n: number) => `${Math.round(n * 100)}`;
   const key = `${code}.${fieldId}`;
   switch (key) {
-    case "S1–S2.oneline": return `${p.name}: ${(b.outcomes[0] ?? "field the capability").toLowerCase()} for ${m.targetMarket}.`;
-    case "S1–S2.valueprop": return valuePropOf(p);
-    case "S1–S2.segment": return `${p.segmentValueProps?.[0]?.segment || m.targetMarket} · ${ex.customer}`;
-    case "S1–S2.status": return `${GATE_STAGE[p.gate]} (${p.gate}) · confidence ${p.confidence}/5`;
-    case "S1–S2.roadmap": return b.solution.slice(0, 3);
-    case "S1–S2.toprisks": return [killRiskOf(p), p.criticalPath ? "On the cross-project critical path" : `Commercial risk ${RISK_LABEL[p.comm]}`];
-    case "S1–S2.ask": return `Approve ${p.gate} with the ${p.firstRevenue} first-revenue date and the modeled ${money(fm.npvM)} NPV / ${fm.irrPct}% IRR return profile.`;
+    case "S1.oneline": return `${p.name}: ${(b.outcomes[0] ?? "field the capability").toLowerCase()} for ${m.targetMarket}.`;
+    case "S1.valueprop": return valuePropOf(p);
+    case "S1.segment": return `${p.segmentValueProps?.[0]?.segment || m.targetMarket} · ${ex.customer}`;
+    case "S1.ask": return `Approve ${p.gate} with the ${p.firstRevenue} first-revenue date and the modeled ${money(fm.npvM)} NPV / ${fm.irrPct}% IRR return profile.`;
+    case "S2.status": return `${GATE_STAGE[p.gate]} (${p.gate}) · confidence ${p.confidence}/5`;
+    case "S2.roadmap": return b.solution.slice(0, 3);
+    case "S2.toprisks": return [killRiskOf(p), p.criticalPath ? "On the cross-project critical path" : `Commercial risk ${RISK_LABEL[p.comm]}`];
     case "S4.conops": return b.needs.concat(b.outcomes).slice(0, 5);
     case "S4.future": return b.solution.slice(0, 2);
     case "S5.problem": return `Today, ${m.targetMarket} rely on ${nbaOf(p)} — which cannot meet ${(b.needs[0] ?? "the mission need").toLowerCase()}.`;

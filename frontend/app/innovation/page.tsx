@@ -24,7 +24,7 @@ import {
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField,
   type SlideField, type SlideSpec, type SlideFieldValue,
-  buBuckets, fundingBuckets, costPerMinuteOf, type BuBucket, type FundingBucket,
+  buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, type BuBucket, type FundingBucket,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
@@ -2419,11 +2419,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
                 are derived from the project record; editing the raw drivers here updates every surface at once
                 (rack, budget buckets, dog-tag, deck) — no duplicate copies, no conflicts. */}
             {onEditSource && spec.fields.some((f) => f.linked) && (() => {
-              const numEdit = (label: string, key: "nreK" | "fullRev10yM" | "doNothing10yM", suffix: string) => (
+              const numEdit = (label: string, key: "nreK" | "fullRev10yM" | "doNothing10yM" | "upsideAccelK", suffix: string) => {
+                const cur = (p[key] ?? (key === "upsideAccelK" ? upsideAccelOf(p).accelK : 0)) as number;
+                return (
                 <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}
-                  <div className="flex items-center gap-1"><input type="text" inputMode="numeric" defaultValue={String(p[key])} onBlur={(e) => { const v = +e.target.value; if (/^\d+$/.test(e.target.value) && v !== p[key]) onEditSource({ [key]: v } as Partial<Project>, [`${label} → ${v}`]); }} className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" /><span className="text-slate-600">{suffix}</span></div>
+                  <div className="flex items-center gap-1"><input type="text" inputMode="numeric" defaultValue={String(cur)} onBlur={(e) => { const v = +e.target.value; if (/^\d+$/.test(e.target.value) && v !== cur) onEditSource({ [key]: v } as Partial<Project>, [`${label} → ${v}`]); }} className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" /><span className="text-slate-600">{suffix}</span></div>
                 </label>
-              );
+                );
+              };
               const riskEdit = (label: string, key: "tech" | "comm") => (
                 <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}
                   <select defaultValue={p[key]} onChange={(e) => onEditSource({ [key]: e.target.value } as Partial<Project>, [`${label} → ${e.target.value}`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500"><option value="low">Low</option><option value="med">Med</option><option value="high">High</option></select>
@@ -2444,6 +2447,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
                       </label>
                       {riskEdit("Tech risk", "tech")}
                       {riskEdit("Comm risk", "comm")}
+                      {numEdit("Upside accel", "upsideAccelK", "$K")}
                     </div>
                   )}
                 </div>
