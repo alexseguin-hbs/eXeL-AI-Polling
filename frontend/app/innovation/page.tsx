@@ -85,6 +85,9 @@ const PERSONAS: { key: Persona; label: string; glyph: string; lens: string; view
 ];
 const usd = (m: number) => `$${m.toFixed(1)}M`;
 const k = (n: number) => `$${(n / 1000).toFixed(1)}M`;
+// Shared data-viz palette (single source, Spiral) — named tokens used by charts/bars/scatter so no surface
+// re-introduces a stray hex. Trinity-aligned: AI cyan · SI sunset · HI violet, plus semantic accents.
+const VIZ = { cyan: "#19c8cf", violet: "#c084fc", amber: "#fbbf24", rose: "#fb7185", emerald: "#34d399", sunset: "#f7b955", hiViolet: "#a78bfa", slate: "#334155" } as const;
 // Shared $/min burn formatter (hoisted — was duplicated across the buckets/allocation/dashboard surfaces).
 const fmtPerMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
 // Raw project-category string → the project-type (DEV_TYPE) color, so category surfaces read from ONE palette
@@ -3793,7 +3796,7 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
   const [picked, setPicked] = useState<string | null>(null);
   const pipe = pipelineByGate(projects);
   const maxGateSpend = Math.max(...pipe.map((g) => g.spendK), 1);
-  const kM = (v: number) => `$${(v / 1000).toFixed(1)}M`;
+  const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`)
   const fundedIds = useMemo(() => new Set(funded.map((p) => p.id)), [funded]);
   const pickedP = picked ? projects.find((p) => p.id === picked) : null;
   // In max mode a click previews the dog-tag; otherwise it opens the Project details.
@@ -3914,7 +3917,7 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { p
     { name: "REV · probability-weighted", value: roi.weightedM, color: "#34d399" },
     { name: "Upside · at-risk to 100%", value: Math.max(0, roi.incrementalM - roi.weightedM), color: "#fbbf24" },
   ];
-  const kM = (v: number) => `$${(v / 1000).toFixed(1)}M`;
+  const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`)
   // Admin Business-Setup drives labels + base revenue (one source of truth for the rollup).
   const bizSetup = loadBizSetup();
   const sbuBaseOf = (c: string) => bizSetup.sbu.find((n) => n.code === c)?.baseM ?? 0;
@@ -4102,19 +4105,19 @@ function IntelligenceLoadPanel({ projects }: { projects: Project[] }) {
 // Dependencies (FLIR §4) — Summary table (§4.2) + Constellation graph (§4.3). Directed edge
 // A→B = "B's risk affects A's success". Bubble ∝ NPV · border green above-line / red below ·
 // fill by BU · arrows point to the primary (bottom) dependency.
-const BU_COLOR: Record<string, string> = { MS: "#19c8cf", DS: "#c084fc", AP: "#fbbf24" };
+const BU_COLOR: Record<string, string> = { MS: VIZ.cyan, DS: VIZ.violet, AP: VIZ.amber };
 function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; deps: DepEdge[]; onSelect: (id: string) => void }) {
   const { t } = useLexicon();
   const summary = dependencySummary(projects, deps);
-  const kM = (v: number) => `$${v.toFixed(1)}M`;
+  const kM = usd; // $M — single source (was a redundant re-impl of the global `usd`)
   // Bubble size is selectable (deck: NPV · Year-1 Rev · 3-Year Rev · 10-Year Rev).
   const [sizeMode, setSizeMode] = useState<"npv" | "y1" | "y3" | "y10">("npv");
   // Node color-mode (Slice 5) — funding · risk · value-contribution · Intelligence-Load overlay.
   const [colorMode, setColorMode] = useState<"funding" | "risk" | "value" | "load">("funding");
   const nodeStroke = (p: Project): string => {
-    if (colorMode === "risk") { const r = riskBandOf(p); const w = [r.technical, r.commercial, r.dependency]; return w.includes("High") ? "#fb7185" : w.includes("Med") ? "#fbbf24" : "#34d399"; }
+    if (colorMode === "risk") { const r = riskBandOf(p); const w = [r.technical, r.commercial, r.dependency]; return w.includes("High") ? VIZ.rose : w.includes("Med") ? VIZ.amber : VIZ.emerald; }
     if (colorMode === "value") { const ci = valueEquationOf(p).competitiveIndex; return ci >= 60 ? "#34d399" : ci >= 40 ? "#94a3b8" : "#fb7185"; }
-    if (colorMode === "load") { const m = Math.max(p.ai, p.si, p.hi); return m === p.ai ? "#19c8cf" : m === p.si ? "#f7b955" : "#a78bfa"; }
+    if (colorMode === "load") { const m = Math.max(p.ai, p.si, p.hi); return m === p.ai ? VIZ.cyan : m === p.si ? VIZ.sunset : VIZ.hiViolet; }
     return npvM(p) >= 0 ? "#34d399" : "#fb7185"; // funding
   };
   // Risk-propagation (Slice 5) — a node inherits an amber halo when any project it depends on carries an open (high) risk.
@@ -4192,7 +4195,7 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
             return (
               <g key={p.id} className="cursor-pointer" onClick={() => onSelect(p.id)}>
                 {halo && <circle cx={pt.x} cy={pt.y} r={pt.r + 3.5} fill="none" stroke="#fbbf24" strokeWidth={1.5} strokeDasharray="2 2" opacity={0.8} />}
-                <circle cx={pt.x} cy={pt.y} r={pt.r} fill={BU_COLOR[hierOf(p).bu] ?? "#38bdf8"} fillOpacity={0.25} stroke={stroke} strokeWidth={sw} />
+                <circle cx={pt.x} cy={pt.y} r={pt.r} fill={BU_COLOR[hierOf(p).bu] ?? VIZ.cyan} fillOpacity={0.25} stroke={stroke} strokeWidth={sw} />
                 <text x={pt.x} y={pt.y + 3.5} textAnchor="middle" fontSize="11" fontWeight="700" fill="#e2e8f0" fontFamily="ui-monospace, monospace">{rank}</text>
                 <text x={pt.x} y={pt.y - pt.r - 3} textAnchor="middle" fontSize="9" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{hierOf(p).bu}·{p.id.slice(-2)}{deg ? ` ·${deg}↓` : ""}</text>
                 <text x={pt.x} y={pt.y + pt.r + 9} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="ui-monospace, monospace">{usd(npvM(p))}</text>
