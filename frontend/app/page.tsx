@@ -54,25 +54,6 @@ export default function LandingPage() {
   const [customLabels, setCustomLabels] = useState<[string, string, string] | null>(null);
   const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
   const [pickerOpen, setPickerOpen] = useState(false);
-  // Center the SECURITY-2525 link at the MIDPOINT of the gap between the Give Feedback button (bottom-left)
-  // and the eXeL AI badge (bottom-right) — not viewport centre, since the Give Feedback pill is wider.
-  // Recomputes on resize / rotate so it stays proportional on phone AND landscape. Falls back to null
-  // (viewport centre) if the icons aren't mounted yet.
-  const [secLeft, setSecLeft] = useState<number | null>(null);
-  useEffect(() => {
-    const place = () => {
-      const fb = document.querySelector("[data-feedback-fab]")?.getBoundingClientRect();
-      const ex = document.querySelector("[data-exel-badge]")?.getBoundingClientRect();
-      if (fb && ex && ex.left > fb.right) setSecLeft((fb.right + ex.left) / 2);
-      else setSecLeft(null);
-    };
-    place();
-    const raf = requestAnimationFrame(place); // badges mount after this page paints
-    window.addEventListener("resize", place);
-    window.addEventListener("orientationchange", place);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", place); window.removeEventListener("orientationchange", place); };
-  }, []);
-
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const resolvedLabels: [string, string, string] = [t(currentPreset.keys[0]), t(currentPreset.keys[1]), t(currentPreset.keys[2])];
   // Custom mode: show user-typed words if edited, otherwise show translated placeholders
@@ -97,10 +78,9 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      {/* pb-28 reserves clearance for the fixed bottom badges (Feedback · SECURITY-2525 · eXeL AI) so they no
-          longer cover the last content — the Trinity emblem / feature cards (#164, Thought Master IMG_7482). The
-          badges stay fixed + reachable app-wide; only the homepage content is padded above them. */}
-      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-36">
+      {/* Feedback · eXeL AI now live in the global in-flow site footer (below), and SECURITY-2525 is an in-flow
+          link at the end of this content — so no fixed-badge clearance padding is needed anymore. */}
+      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-12">
         {/* Hero */}
         <div className="flex flex-col items-center gap-6 text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
@@ -307,14 +287,14 @@ export default function LandingPage() {
             <a href="/dashboard/">{t("shared.landing.facilitator_button")}</a>
           </Button>
         </div>
+        {/* DIRECT access to SECURITY-2525 — now an in-flow link at the end of the page content (no longer a
+            fixed floating pill). NOT Easter-egg gated; lands on the PLANNING tab. Feedback + eXeL AI sit in the
+            global site footer below. */}
+        <a href="/main/Security-2525/"
+          className="mt-10 rounded-full border bg-background/85 px-3 py-1 font-mono text-xs text-muted-foreground transition-colors hover:text-primary hover:bg-background/95">
+          SECURITY-2525
+        </a>
       </main>
-      {/* DIRECT access to SECURITY-2525 — bottom-centre, between the Give Feedback button (bottom-left)
-          and the eXeL AI badge (bottom-right). NOT Easter-egg gated; lands on the PLANNING tab. */}
-      <a href="/main/Security-2525/"
-        className={`fixed bottom-6 z-50 -translate-x-1/2 rounded-full border bg-background/85 px-3 py-1 font-mono text-xs text-muted-foreground backdrop-blur transition-colors hover:text-primary hover:bg-background/95 ${secLeft == null ? "left-1/2" : ""}`}
-        style={secLeft == null ? undefined : { left: secLeft }}>
-        SECURITY-2525
-      </a>
       {/* CELESTIAL-2525 is now reached ONLY via the hidden easter-egg link on the "Trinity Framework" title
           (below the white trinity emblem) — no visible footer link. A little gift for the curious. */}
     </div>

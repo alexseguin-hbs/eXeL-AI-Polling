@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider, useTheme } from "@/lib/theme-context";
@@ -8,6 +8,7 @@ import { LexiconProvider } from "@/lib/lexicon-context";
 import { TimerProvider } from "@/lib/timer-context";
 import { EasterEggProvider } from "@/lib/easter-egg-context";
 import { FeedbackWidget } from "@/components/feedback-widget";
+import { PoweredBadge } from "@/components/powered-badge";
 import { HomeLauncher } from "@/components/home-launcher";
 import {
   AUTH0_DOMAIN,
@@ -32,8 +33,13 @@ function ThemeAuthSync({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-/** Detects current screen from URL pathname for feedback context. */
-function GlobalFeedback() {
+/**
+ * In-flow site footer (all routes) — the Feedback trigger + eXeL AI badge live here,
+ * at the bottom of the page, instead of floating fixed over content (operator ask).
+ * The eXeL-AI easter-egg (music/portal) still activates from the badge and, when in
+ * Simulation Mode, PoweredBadge renders its own fixed overlay — untouched by docking.
+ */
+function SiteFooter() {
   // Use window.location since this runs client-side only
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   const screen = path.startsWith("/dashboard")
@@ -47,7 +53,14 @@ function GlobalFeedback() {
     : path === "/"
     ? "landing"
     : "other";
-  return <FeedbackWidget screen={screen} />;
+  return (
+    <footer className="w-full border-t border-border/40 bg-background/60">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+        <FeedbackWidget screen={screen} docked />
+        <Suspense><PoweredBadge docked /></Suspense>
+      </div>
+    </footer>
+  );
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -60,7 +73,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <EasterEggProvider>
               {children}
               <Toaster />
-              <GlobalFeedback />
+              <SiteFooter />
             </EasterEggProvider>
           </TimerProvider>
         </LexiconProvider>
@@ -87,7 +100,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 {children}
                 <HomeLauncher />
                 <Toaster />
-              <GlobalFeedback />
+              <SiteFooter />
               </EasterEggProvider>
             </TimerProvider>
           </LexiconProvider>

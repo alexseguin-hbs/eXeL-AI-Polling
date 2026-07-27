@@ -122,6 +122,13 @@
   animation: badge-blink 2.5s ease-in-out infinite;
 }
 
+/* Respect reduced-motion — no blinking for users who opt out (a11y). */
+@media (prefers-reduced-motion: reduce) {
+  .badge-blink {
+    animation: none;
+  }
+}
+
 /* SVG circle hover effect */
 .flower-circle-interactive {
   cursor: pointer;

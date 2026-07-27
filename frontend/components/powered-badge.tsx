@@ -301,7 +301,7 @@ function SimulationOverlay() {
   );
 }
 
-export function PoweredBadge() {
+export function PoweredBadge({ docked = false }: { docked?: boolean } = {}) {
   const { simulationMode, easterEggUnlocked, enterSimulationMode, visionView } =
     useEasterEgg();
   const { currentTheme } = useTheme();
@@ -347,8 +347,9 @@ export function PoweredBadge() {
   // Badge color follows the active theme (defaults to AI Cyan when not authenticated)
   const badgeColor = currentTheme.swatch;
 
+  // docked = rendered in the in-flow page footer (not floating); otherwise the legacy fixed corner.
   return (
-    <div data-exel-badge className="fixed bottom-6 right-6 z-50">
+    <div data-exel-badge className={docked ? "" : "fixed bottom-6 right-6 z-50"}>
       <button
         onClick={() => {
           if (easterEggUnlocked) {

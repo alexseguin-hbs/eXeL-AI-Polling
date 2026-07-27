@@ -1,7 +1,5 @@
 import "./globals.css";
-import { Suspense } from "react";
 import { Providers } from "@/components/providers";
-import { PoweredBadge } from "@/components/powered-badge";
 
 export const metadata = {
   title: "eXeL AI Polling",
@@ -26,13 +24,9 @@ export default function RootLayout({
             &nbsp;&nbsp;|&nbsp;&nbsp;
             Time:&nbsp;<span className="text-zinc-200">{process.env.NEXT_PUBLIC_BUILD_TIME ?? '—'}</span>
           </div>
-          {/* pb-20 clears the fixed eXeL AI badge (bottom-6 right-6) on all pages */}
-          <div className="pb-20">
-            {children}
-          </div>
-          <Suspense>
-            <PoweredBadge />
-          </Suspense>
+          {/* Feedback + eXeL AI now live in an in-flow footer at the bottom of every page
+              (rendered by Providers → SiteFooter), no longer fixed-floating over content. */}
+          {children}
         </Providers>
       </body>
     </html>

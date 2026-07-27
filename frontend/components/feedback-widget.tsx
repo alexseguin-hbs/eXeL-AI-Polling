@@ -20,12 +20,14 @@ interface FeedbackWidgetProps {
   screen: string; // landing | join | polling | results | dashboard | settings | ranking | sim
   sessionId?: string;
   position?: "bottom-left" | "bottom-right";
+  docked?: boolean; // render the trigger in-flow (page footer) instead of a fixed corner
 }
 
 export function FeedbackWidget({
   screen,
   sessionId,
   position = "bottom-left",
+  docked = false,
 }: FeedbackWidgetProps) {
   const { t } = useLexicon();
   const [open, setOpen] = useState(false);
@@ -95,12 +97,12 @@ export function FeedbackWidget({
 
   return (
     <>
-      {/* Floating trigger button */}
+      {/* Trigger button — fixed corner by default; in-flow when docked in the page footer */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
           data-feedback-fab
-          className={`fixed bottom-6 ${posClass} z-40 flex h-8 w-fit items-center justify-center gap-1 rounded-full bg-primary px-3 text-primary-foreground text-xs font-medium shadow-md hover:opacity-90 transition-opacity`}
+          className={`${docked ? "" : `fixed bottom-6 ${posClass} z-40`} flex h-8 w-fit items-center justify-center gap-1 rounded-full bg-primary px-3 text-primary-foreground text-xs font-medium shadow-md hover:opacity-90 transition-opacity`}
           title={t("shared.feedback.button")}
         >
           {/* Icon dropped so the pill width matches the eXeL AI badge → the SECURITY-2525 link centres between them. */}
