@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HI · SI · AI — Innovation Project productivity & cost leverage · 2026.07.27</title>
+<style>
+  :root{
+    --bg:#0b0f14; --card:#0e141b; --card2:#0c1219; --line:#1e293b; --ink:#e2e8f0; --dim:#94a3b8; --faint:#64748b;
+    --ai:#19c8cf; --si:#f7b955; --hi:#a78bfa; --ok:#34d399; --warn:#f59e0b; --rose:#fb7185;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-text-size-adjust:100%;}
+  .wrap{max-width:1000px;margin:0 auto;padding:28px 18px 72px;}
+  header.top{border:1px solid var(--line);border-radius:16px;
+    background:radial-gradient(120% 140% at 0% 0%,#101a24,#0b0f14 60%);padding:24px;}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);}
+  h1{margin:8px 0 6px;font-size:23px;line-height:1.2;text-wrap:balance;}
+  .sub{color:var(--dim);font-size:13px;}
+  .glyphs{margin-top:12px;display:flex;flex-wrap:wrap;gap:14px;font-size:13px;}
+  .glyphs b{font-weight:600;} .g-ai{color:var(--ai);} .g-si{color:var(--si);} .g-hi{color:var(--hi);}
+  .disclaimer{margin-top:14px;font-size:12.5px;color:#cbd5e1;border-left:2px solid var(--warn);
+    padding:6px 0 6px 12px;background:linear-gradient(90deg,#f59e0b12,transparent);}
+  h2{margin:34px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);}
+  h2 .n{color:var(--faint);font-variant-numeric:tabular-nums;margin-right:8px;}
+  .lead{color:var(--faint);font-size:12.5px;margin:0 0 14px;}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+  @media(min-width:680px){.grid.two{grid-template-columns:1fr 1fr;} .grid.three{grid-template-columns:repeat(3,1fr);}}
+  .card{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:16px 18px;}
+  .card h3{margin:0 0 2px;font-size:14px;}
+  .card .who{color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.08em;}
+  .big{font-size:30px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;margin:8px 0 2px;}
+  .big.ai{color:var(--ai);} .big.si{color:var(--si);} .big.hi{color:var(--hi);} .big.ok{color:var(--ok);}
+  .cap{font-size:11.5px;color:var(--dim);}
+  table{width:100%;border-collapse:collapse;font-size:13px;overflow:hidden;border-radius:12px;border:1px solid var(--line);}
+  th{text-align:left;background:var(--card2);color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;padding:9px 12px;}
+  td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top;}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .mono{font-family:var(--mono);}
+  .pill{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600;}
+  .pill.meas{background:#19c8cf14;border:1px solid #19c8cf33;color:var(--ai);}
+  .pill.est{background:#f59e0b14;border:1px solid #f59e0b33;color:var(--warn);}
+  .over{background:#a78bfa10;border:1px dashed #a78bfa55;border-radius:8px;padding:8px 10px;font-size:12px;color:#cbd5e1;margin-top:10px;}
+  /* cost bars */
+  .bars{margin-top:8px;overflow-x:auto;}
+  .barrow{display:flex;align-items:center;gap:10px;margin:10px 0;min-width:420px;}
+  .barrow .lbl{width:150px;flex-shrink:0;font-size:12.5px;color:var(--ink);}
+  .barrow .track{flex:1;height:26px;background:#0c1219;border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative;}
+  .barrow .fill{height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:12px;font-weight:700;color:#06202a;white-space:nowrap;}
+  .fill.trad{background:linear-gradient(90deg,#fb718599,#fb7185);}
+  .fill.soi{background:linear-gradient(90deg,#19c8cf,#34d399);}
+  .method{font-size:11.5px;color:var(--faint);margin-top:8px;line-height:1.7;}
+  ul.tight{margin:8px 0 0;padding-left:18px;} ul.tight li{margin:4px 0;font-size:13px;color:#cbd5e1;}
+  .trin{display:grid;grid-template-columns:1fr;gap:10px;} @media(min-width:680px){.trin{grid-template-columns:repeat(3,1fr);}}
+  .trin .t{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card);}
+  .trin .t .h{font-size:22px;} .trin .t .k{font-weight:700;margin:4px 0 2px;} .trin .t .d{font-size:12.5px;color:var(--dim);}
+  footer{margin-top:38px;color:var(--faint);font-size:11.5px;text-align:center;line-height:1.9;border-top:1px solid var(--line);padding-top:18px;}
+</style></head>
+<body><div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">eXeL-AI · Vision • 2525 · Innovation Project (Portfolio Prioritization)</div>
+    <h1>The power of an HI + SI + AI team — measured</h1>
+    <div class="sub">What one operator (Human Intelligence) directing a 12-Master council (Shared Intent) and AI execution built in three days — and what it would have taken the traditional way. 2026-07-27.</div>
+    <div class="glyphs">
+      <b class="g-ai">◬ A.I.</b> execution &nbsp;·&nbsp; <b class="g-si">♡ S.I.</b> the 12-AsM council (shared-intent review) &nbsp;·&nbsp; <b class="g-hi">웃 H.I.</b> operator direction, judgment, taste
+    </div>
+    <div class="disclaimer"><b>These are estimates, not invoices.</b> Every figure below states its method and a range. Inputs marked <span class="pill meas">measured</span> come from <span class="mono">git log</span> over the Innovation files; everything else is <span class="pill est">estimate</span>. The operator can substitute their real hours in the marked cell and the leverage recomputes.</div>
+  </header>
+
+  <!-- 1 · MEASURED -->
+  <h2><span class="n">01</span>What was actually built <span class="pill meas">measured</span></h2>
+  <p class="lead">From git history over <span class="mono">app/innovation/page.tsx</span>, <span class="mono">lib/innovation-data.ts</span>, <span class="mono">lib/innovation-store.ts</span>, the test suite, the lexicon group, and Supabase migration 028.</p>
+  <div class="grid three">
+    <div class="card"><div class="who">Elapsed</div><div class="big ai">3 days</div><div class="cap">Jul 25 · 26 · 27, 2026</div></div>
+    <div class="card"><div class="who">Gated commits</div><div class="big">73<span style="font-size:15px;color:var(--faint)"> core · 107 total</span></div><div class="cap">each tsc-clean · build-compiled · tests green</div></div>
+    <div class="card"><div class="who">Net production code</div><div class="big">5,548<span style="font-size:15px;color:var(--faint)"> LOC</span></div><div class="cap">+6,425 / −877 across the surfaces</div></div>
+  </div>
+  <div style="height:12px"></div>
+  <table>
+    <thead><tr><th>Shipped capability (novel PdM tool)</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Financial engine — NPV / IRR / payback, risk-weighted revenue, do-nothing decline, growth model, rack &amp; stack funding line</td><td class="mono">innovation-data.ts</td></tr>
+      <tr><td>Value Equation vs the competitive NBA — EVC waterfall, competitive index, per-driver win/parity/loss</td><td class="mono">valueEquation · ValueEquationPanel</td></tr>
+      <tr><td>Gate governance — G1–G7 stage-gate, S1–S18 review deck, tri-lens sign-off, gate comments + countermeasures, digital slide show (HI⇄AI)</td><td class="mono">GateCube · SlideShowModal</td></tr>
+      <tr><td>Dependency constellation, exec slide + BD pipeline, budget popup + 3 funding scenarios, 3 BUs / 22 projects</td><td class="mono">page.tsx</td></tr>
+      <tr><td>Supabase persistence + RLS, 34-language lexicon adoption, 239 automated tests</td><td class="mono">innovation-store.ts · migration 028 · tests</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 2 · HI TIME -->
+  <h2><span class="n">02</span>Human (HI) time invested</h2>
+  <p class="lead">Anchored on commit-bracketed active engagement — the floor, since it excludes thinking before the first commit of a session and after the last.</p>
+  <div class="grid three">
+    <div class="card"><div class="who">Measured floor <span class="pill meas">measured</span></div><div class="big hi">~10.2 h</div><div class="cap">Σ first→last commit per session: 172 + 248 + 189 min over 3 days</div></div>
+    <div class="card"><div class="who">Full-engagement estimate <span class="pill est">estimate</span></div><div class="big hi">~13 h</div><div class="cap">range 10–16 h (+15–55% for direction, review, decisions between commits)</div></div>
+    <div class="card"><div class="who">Per shipped commit</div><div class="big">~11 min</div><div class="cap">of operator time per gated, verified change</div></div>
+  </div>
+  <div class="over"><b>웃 Operator override:</b> replace the ~13 h estimate with your real total (design calls, reading, decisions, off-keyboard thinking) — the cost leverage below recomputes from it. Method: full-engagement = commit-bracketed floor × 1.15–1.55.</div>
+
+  <!-- 3 · TRADITIONAL EQUIVALENT -->
+  <h2><span class="n">03</span>Equivalent traditional dev-team effort <span class="pill est">estimate</span></h2>
+  <p class="lead">Two independent cross-checks, then a blended range. A conventional build would still need discovery, the financial/value model, i18n, Supabase, and a test suite.</p>
+  <div class="grid two">
+    <div class="card">
+      <h3>Cross-check A — code volume</h3>
+      <div class="cap">Polished, tested, production React/TS ships ~40–60 net LOC / developer-day (design + review + test + iteration included, COCOMO-family).</div>
+      <div class="big">18–28 <span style="font-size:15px;color:var(--faint)">person-weeks</span></div>
+      <div class="cap">5,548 net LOC ÷ 40–60 LOC/day ≈ 92–139 dev-days</div>
+    </div>
+    <div class="card">
+      <h3>Cross-check B — feature scope</h3>
+      <div class="cap">A novel PdM portfolio tool (financial engine, Value Equation, gate governance, dependency graph, Supabase + RLS, 34-lang i18n, 239 tests, slide show) — a 2–3 person team.</div>
+      <div class="big">16–36 <span style="font-size:15px;color:var(--faint)">person-weeks</span></div>
+      <div class="cap">≈ 8–12 calendar weeks for a 2–3 person team</div>
+    </div>
+  </div>
+  <div style="height:12px"></div>
+  <div class="card">
+    <div class="who">Blended equivalent</div>
+    <div class="big ok">~24 person-weeks &nbsp;<span style="font-size:15px;color:var(--faint)">(≈ 6 person-months · range 16–36)</span></div>
+    <div class="cap">vs. ~13 hours of HI direction → <b style="color:var(--ok)">41–141× fewer human-hours</b> (conservative→optimistic), and weeks-of-calendar compressed into days.</div>
+  </div>
+
+  <!-- 4 · COST -->
+  <h2><span class="n">04</span>Cost comparison <span class="pill est">estimate</span></h2>
+  <p class="lead">Traditional = blended loaded senior full-stack $100–160/hr × the effort above. SoI = operator hours × loaded PdM/eng rate ($150/hr) + AI subscription/token cost for the engagement.</p>
+  <div class="card">
+    <div class="bars">
+      <div class="barrow">
+        <div class="lbl">Traditional build</div>
+        <div class="track"><div class="fill trad" style="width:100%">~$125k &nbsp;(range $64k–$230k)</div></div>
+      </div>
+      <div class="barrow">
+        <div class="lbl">웃 HI + ♡ SI + ◬ AI</div>
+        <div class="track"><div class="fill soi" style="width:1.8%;min-width:130px">~$2.2k</div></div>
+      </div>
+    </div>
+    <div class="grid three" style="margin-top:14px">
+      <div class="card" style="background:var(--card2)"><div class="who">Leverage</div><div class="big ok">~58×</div><div class="cap">cheaper than the traditional anchor</div></div>
+      <div class="card" style="background:var(--card2)"><div class="who">Cost reduction</div><div class="big ok">~98%</div><div class="cap">$125k → ~$2.2k</div></div>
+      <div class="card" style="background:var(--card2)"><div class="who">SoI cost breakdown</div><div class="big hi" style="font-size:20px">~$1.9k HI<span style="color:var(--ai)"> + ~$250 AI</span></div><div class="cap">~13 h × $150 + Claude Code tokens ($100–400)</div></div>
+    </div>
+    <div class="method">Method: traditional anchor = 24 person-weeks × 40 h × $130/hr. Ranges carry the 16–36 pw and $100–160/hr bounds. SoI anchor = 13 h × $150 + $250 AI. Figures are indicative of order-of-magnitude leverage, not a quote.</div>
+  </div>
+
+  <!-- 5 · TRINITY -->
+  <h2><span class="n">05</span>Why it works — the SoI Trinity</h2>
+  <p class="lead">The leverage is not "AI wrote code fast." It is three intelligences composed: judgment sets direction, a shared-intent council catches what one mind misses, and AI executes at the speed of thought.</p>
+  <div class="trin">
+    <div class="t"><div class="h g-hi">웃</div><div class="k">Human Intelligence</div><div class="d">The operator: what to build, for whom, and what "good" means. ~13 h of direction, taste, and go/no-go judgment — the scarce input the whole system multiplies.</div></div>
+    <div class="t"><div class="h g-si">♡</div><div class="k">Shared Intent</div><div class="d">The 12 Ascended Masters council + MoT — a shared-intent review that stress-tests each change through 12 lenses (security, math, a11y, mobile, edge cases) before it ships.</div></div>
+    <div class="t"><div class="h g-ai">◬</div><div class="k">Artificial Intelligence</div><div class="d">Execution: writing, testing, gating, and committing — 73 verified commits and 239 tests in three days, each tsc-clean and build-compiled.</div></div>
+  </div>
+
+  <footer>
+    Estimates with stated method + ranges — not exact figures. Measured inputs from <span class="mono">git log</span>; numbers regenerate from
+    <span class="mono">docs/feedback/build_hi_si_ai_value_2026.07.27.mjs</span>.<br>
+    HI ~13 h &nbsp;·&nbsp; Traditional ~24 person-weeks (~$125k) &nbsp;·&nbsp; SoI ~$2.2k &nbsp;·&nbsp; ~58× cheaper &nbsp;·&nbsp; 41–141× fewer human-hours.<br>
+    “Where Shared Intention moves at the Speed of Thought.”
+  </footer>
+</div></body></html>
