@@ -1319,6 +1319,10 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.veq.parity", englishDefault: "Parity", context: "Value Equation verdict: parity", cubeId: 60 },
   { key: "innovation.veq.loss", englishDefault: "Loss", context: "Value Equation verdict: loss", cubeId: 60 },
   { key: "innovation.veq.driverPlaceholder", englishDefault: "e.g. All-weather range", context: "Value Equation driver-name placeholder", cubeId: 60 },
+  { key: "innovation.veq.waterfall", englishDefault: "Value waterfall vs NBA", context: "Value Equation waterfall chart title", cubeId: 60 },
+  { key: "innovation.veq.baseline", englishDefault: "NBA baseline", context: "Value Equation waterfall: NBA baseline bar", cubeId: 60 },
+  { key: "innovation.veq.customerValue", englishDefault: "Customer Value", context: "Value Equation waterfall: customer value (EVC) bar", cubeId: 60 },
+  { key: "innovation.veq.valueCreation", englishDefault: "Value Creation", context: "Value Equation waterfall: value-creation callout", cubeId: 60 },
   // Dog-tag faces (Slice 2)
   { key: "innovation.dogtag.bizFace", englishDefault: "Business", context: "Dog-tag business face toggle", cubeId: 60 },
   { key: "innovation.dogtag.engFace", englishDefault: "Engineering", context: "Dog-tag engineering face toggle", cubeId: 60 },

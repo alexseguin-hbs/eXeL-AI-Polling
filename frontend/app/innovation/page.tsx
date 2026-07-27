@@ -970,6 +970,48 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
         </div>
       )}
 
+      {/* Value waterfall vs NBA (deck parity — MASS-AI/Ecospheres): grey NBA baseline → green/red driver steps
+          → blue Customer Value (EVC). Cumulative. Deterministic from the solver result. */}
+      {eq.perDriver.length > 0 && (() => {
+        const bars = [
+          { label: t("innovation.veq.baseline"), kind: "base" as const, from: 0, to: eq.referenceM },
+          ...eq.perDriver.reduce<{ acc: number; rows: { label: string; kind: "up" | "down"; from: number; to: number; delta: number }[] }>((s, d) => {
+            const from = s.acc, to = s.acc + d.weighted;
+            s.rows.push({ label: d.name || "Driver", kind: d.weighted >= 0 ? "up" : "down", from: Math.min(from, to), to: Math.max(from, to), delta: d.weighted });
+            s.acc = to; return s;
+          }, { acc: eq.referenceM, rows: [] }).rows,
+          { label: t("innovation.veq.customerValue"), kind: "total" as const, from: 0, to: eq.evcUsdM },
+        ];
+        const max = Math.max(1, eq.referenceM, eq.evcUsdM, ...bars.map((b) => b.to));
+        const W = 320, H = 90, n = bars.length, bw = (W / n) * 0.72, gap = (W / n) * 0.28;
+        const y = (v: number) => H - (v / max) * H;
+        const fill = (k: string) => (k === "base" ? "#64748b" : k === "total" ? "#3b82f6" : k === "up" ? "#34d399" : "#fb7185");
+        return (
+          <div className="mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-slate-400">{t("innovation.veq.waterfall")}</span>
+              <span className="text-[10px] text-slate-400">{t("innovation.veq.valueCreation")} <b className="tabular-nums text-emerald-300">${eq.differentiationM.toFixed(0)}M</b></span>
+            </div>
+            <div className="mt-1 overflow-x-auto">
+              <svg viewBox={`0 0 ${W} ${H + 26}`} className="w-full" style={{ minWidth: 300, height: "auto" }} role="img" aria-label="Value waterfall vs NBA">
+                {bars.map((b, i) => {
+                  const x = i * (W / n) + gap / 2;
+                  const yTop = y(b.to), h = Math.max(1.5, y(b.from) - y(b.to));
+                  return (
+                    <g key={i}>
+                      {i > 0 && i < n && <line x1={x - gap / 2} y1={y(bars[i - 1].to)} x2={x} y2={y(bars[i - 1].to)} stroke="#334155" strokeWidth={0.75} strokeDasharray="2 2" />}
+                      <rect x={x} y={yTop} width={bw} height={h} fill={fill(b.kind)} rx={1.5} />
+                      <text x={x + bw / 2} y={yTop - 2} textAnchor="middle" fontSize="7" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{b.kind === "up" || b.kind === "down" ? `${(b as { delta: number }).delta >= 0 ? "+" : ""}${(b as { delta: number }).delta.toFixed(0)}` : b.to.toFixed(0)}</text>
+                      <text x={x + bw / 2} y={H + 8} textAnchor="middle" fontSize="6" fill="#64748b" fontFamily="ui-sans-serif" transform={`rotate(30 ${x + bw / 2} ${H + 8})`}>{b.label.length > 12 ? b.label.slice(0, 11) + "…" : b.label}</text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2">
         <div className="flex items-center gap-4 text-[11px]">
           <span className="text-slate-400">{t("innovation.veq.index")} <b className="tabular-nums text-amber-300">{Math.round(eq.competitiveIndex)}</b>/100</span>
@@ -1116,8 +1158,9 @@ function downloadOutcomeBrief(p: Project) {
 
 function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fundedIds: Set<string>; onClose: () => void }) {
   const { t } = useLexicon();
-  const [level, setLevel] = useState<"sbu" | "pgroup">("sbu");
+  const [level, setLevel] = useState<"sbu" | "pgroup" | "bu">("sbu");
   const [open, setOpen] = useState<Set<string>>(() => new Set());
+  const levelLabel = level === "sbu" ? "SBU" : level === "pgroup" ? "Alpha Group" : "BU";
   const groups = useMemo(() => {
     const map = new Map<string, Project[]>();
     for (const p of projects) { const key = hierOf(p)[level]; (map.get(key) ?? map.set(key, []).get(key)!).push(p); }
@@ -1143,11 +1186,11 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
       <div className="mx-auto max-w-3xl rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
-          <h2 className="text-sm font-semibold">Budget by {level === "sbu" ? "SBU" : "Alpha Group"} <span className="text-[11px] text-slate-500">— funded + unfunded</span></h2>
+          <h2 className="text-sm font-semibold">Budget by {levelLabel} <span className="text-[11px] text-slate-500">— funded + unfunded</span></h2>
           <div className="flex items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
-              {(["sbu", "pgroup"] as const).map((lv) => (
-                <button key={lv} onClick={() => setLevel(lv)} className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lv === "sbu" ? "SBU" : "Alpha Grp"}</button>
+              {([["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["bu", "BU"]] as const).map(([lv, lbl]) => (
+                <button key={lv} onClick={() => setLevel(lv)} className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
               ))}
             </div>
             <button onClick={onClose} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">✕</button>
@@ -1898,6 +1941,22 @@ function GateCube({ p }: { p: Project }) {
         <h3 className="text-sm font-semibold">Gate progression · {p.gate} {GATE_STAGE[p.gate]}</h3>
         <span className="text-[11px] text-slate-500">gate {gi + 1} of {GATES.length} · source of record</span>
       </div>
+      {/* G1 → G7 on ONE line (deck parity — Robust Stage-Gate) — the stage strip; detail rows below. */}
+      <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
+        {GATES.map((g, ci) => {
+          const state = ci < gi ? "done" : ci === gi ? "current" : ci === gi + 1 ? "next" : "future";
+          const cls = state === "current" ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200"
+            : state === "done" ? "border-emerald-500/40 bg-emerald-500/[0.06] text-emerald-300"
+            : state === "next" ? "border-amber-500/40 bg-amber-500/[0.06] text-amber-300"
+            : "border-slate-800 text-slate-500";
+          return (
+            <div key={g} className={`min-w-[64px] flex-1 shrink-0 rounded border px-1 py-1 text-center ${cls}`} title={`${g} · ${GATE_STAGE[g]}`}>
+              <div className="text-[11px] font-mono font-semibold">{g}{state === "done" || state === "current" ? " ✓" : ""}</div>
+              <div className="truncate text-[8px] uppercase tracking-wider">{GATE_STAGE[g]}</div>
+            </div>
+          );
+        })}
+      </div>
       {/* Deliverables S1–S18 across gates G1–G7 — tap a slide to cycle its IRB gate feedback */}
       <div className="mt-3">
         <div className="flex items-center justify-between text-[10px] text-slate-500">
@@ -2053,13 +2112,14 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
 
       {/* §3.5 Gate readiness rollup — % satisfied · Ready/Not · blocking count · band */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-        <h2 className="text-sm font-semibold">Gate readiness · % requirements satisfied</h2>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        <h2 className="text-sm font-semibold">Gate readiness · % requirements satisfied <span className="text-[11px] text-slate-500">· G1 → G7 one line</span></h2>
+        {/* G1–G7 on a single line (deck parity — Robust Stage-Gate) — horizontal scroll on narrow screens. */}
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {readiness.map((r, i) => {
             const state = i < gateIdx ? "done" : i === gateIdx ? "current" : "future";
             const barColor = r.ready ? "bg-emerald-500" : r.pct >= 50 ? "bg-amber-500" : "bg-rose-500";
             return (
-              <div key={r.gate} className={`rounded-lg border p-2.5 ${state === "current" ? "border-cyan-500/50 bg-cyan-500/5" : "border-slate-800 bg-[#0b0f14]"}`}>
+              <div key={r.gate} className={`min-w-[104px] flex-1 shrink-0 rounded-lg border p-2.5 ${state === "current" ? "border-cyan-500/50 bg-cyan-500/5" : "border-slate-800 bg-[#0b0f14]"}`}>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs text-slate-300">{r.gate}</span>
                   <span className="text-[9px] uppercase tracking-wider text-slate-500">±{Math.round(TOLERANCE_LADDER[r.gate] * 100)}%</span>
