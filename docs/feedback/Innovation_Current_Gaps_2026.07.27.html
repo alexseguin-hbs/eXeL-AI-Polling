@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Innovation · current-state gaps report · 2026.07.27</title>
+<style>
+  :root{ --bg:#0b0f14; --card:#0e141b; --card2:#0c1219; --line:#1e293b; --ink:#e2e8f0; --dim:#94a3b8; --faint:#64748b;
+         --ai:#19c8cf; --si:#f7b955; --hi:#a78bfa; --ok:#34d399; --warn:#f59e0b; --rose:#fb7185; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1060px;margin:0 auto;padding:28px 18px 64px;}
+  header.top{border:1px solid var(--line);border-radius:16px;background:radial-gradient(120% 140% at 0 0,#101a24,#0b0f14 60%);padding:24px;}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);}
+  h1{margin:8px 0 6px;font-size:22px;line-height:1.25;text-wrap:balance;}
+  .sub{color:var(--dim);font-size:13px;}
+  .kpis{margin-top:14px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;} @media(min-width:640px){.kpis{grid-template-columns:repeat(4,1fr);}}
+  .kpi{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:9px 11px;}
+  .kpi .n{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;} .kpi .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);}
+  h2{margin:32px 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);}
+  table{width:100%;border-collapse:collapse;font-size:13px;overflow:hidden;border-radius:12px;border:1px solid var(--line);}
+  th{text-align:left;background:var(--card2);color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;padding:9px 11px;}
+  td{padding:9px 11px;border-top:1px solid var(--line);vertical-align:top;}
+  td.p,th.p{white-space:nowrap;font-family:var(--mono);}
+  .tag{display:inline-block;border-radius:5px;padding:1px 7px;font-size:10.5px;font-weight:600;font-family:var(--mono);}
+  .done{background:#34d39915;border:1px solid #34d39944;color:var(--ok);}
+  .p1{background:#19c8cf14;border:1px solid #19c8cf55;color:var(--ai);}
+  .p2{background:#8b6bff18;border:1px solid #a78bfa55;color:var(--hi);}
+  .p3{background:#f59e0b12;border:1px solid #f59e0b44;color:var(--warn);}
+  .hi{background:#fb718515;border:1px solid #fb718544;color:var(--rose);}
+  .med{background:#f59e0b12;border:1px solid #f59e0b33;color:var(--warn);}
+  .low{background:#334155;border:1px solid #475569;color:var(--dim);}
+  code{font-family:var(--mono);color:var(--ai);font-size:12px;}
+  footer{margin-top:34px;color:var(--faint);font-size:11.5px;text-align:center;line-height:1.85;border-top:1px solid var(--line);padding-top:18px;}
+</style></head>
+<body><div class="wrap">
+  <header class="top">
+    <div class="eyebrow">eXeL-AI · Vision • 2525 · Innovation — current-state gaps report</div>
+    <h1>What's shipped, and the honest gaps that remain</h1>
+    <div class="sub">A single-source-of-truth, $/min System of Innovation. Snapshot at commit-time, 2026-07-27. Gaps are ranked by the MoT queue; nothing here is hidden.</div>
+    <div class="kpis">
+      <div class="kpi"><div class="n ok">✓ core</div><div class="l">decision core shipped</div></div>
+      <div class="kpi"><div class="n">284</div><div class="l">tests passing</div></div>
+      <div class="kpi"><div class="n">0</div><div class="l">tsc / build errors</div></div>
+      <div class="kpi"><div class="n">12</div><div class="l">open gaps tracked</div></div>
+    </div>
+  </header>
+
+  <h2>Shipped (this fine-tune arc) ✓</h2>
+  <table>
+    <thead><tr><th>Capability</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td>Fixed-height app-shell rails + full-width (phone-portrait / PC-landscape)</td><td><span class="tag done">done</span></td></tr>
+      <tr><td>Full-screen Present mode (Fullscreen API, tap/arrow/swipe) + live financial charts (S3/S14)</td><td><span class="tag done">done</span></td></tr>
+      <tr><td>Field-level S1–S18 authoring (typed fields · HI⇄AI per field · linked · mirror)</td><td><span class="tag done">done</span></td></tr>
+      <tr><td>Funded/unfunded buckets + live $/min at <b>BU · SBU · Alpha Group</b>; cadence Q→M→W→D</td><td><span class="tag done">done</span></td></tr>
+      <tr><td>Edit source record from slides → one edit updates every surface (single source of truth)</td><td><span class="tag done">done</span></td></tr>
+      <tr><td>22 projects populated (value prop · NOSE · value equation vs NBA); balanced BU/SBU mix</td><td><span class="tag done">done</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Gap A — build queue (ranked, MoT)</h2>
+  <table>
+    <thead><tr><th class="p">Pri</th><th>Gap</th><th>Impact</th></tr></thead>
+    <tbody>
+      <tr><td class="p"><span class="tag p1">P1</span></td><td>$/min on the main rack/stack rows</td><td>$/min lives on the buckets + detail card + deck, but not yet on each per-project stack row where the funding line is dragged.</td></tr>
+      <tr><td class="p"><span class="tag p2">P2</span></td><td>FG1–FG7 end-of-gate feedback + S18 approval history + gaps→counter-measures→filled log</td><td>Gate sign-off exists per decision gate, but there's no captured feedback record per approval and no S18 history/audit of raised-vs-closed gaps (your Gate-Review-History / PRB-Approvals slides).</td></tr>
+      <tr><td class="p"><span class="tag p3">P3</span></td><td>Deck change playback mode</td><td>Edits persist, but you can't yet replay a deck's evolution to review/adjust changes.</td></tr>
+      <tr><td class="p"><span class="tag low">P4</span></td><td>Lead "select my section → prioritize to my admin budget" flow</td><td>Mostly delivered by the per-level buckets; the formal admin-budget-scoped lead workflow isn't its own surface yet.</td></tr>
+      <tr><td class="p"><span class="tag low">P5</span></td><td>Language lexicon (34 languages)</td><td>Operator-deferred until fine-tuning is done. New field content (SLIDE_SCHEMA prose, aiSlideField, GATE_NOTES) is English-only.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Gap B — single-source-of-truth coverage (what's editable at source vs still derived-only)</h2>
+  <table>
+    <thead><tr><th>Source datum</th><th>Editable from slide?</th></tr></thead>
+    <tbody>
+      <tr><td>R&D/NRE · new-rev-10yr · do-nothing-10yr · confidence · tech/comm risk → drives NPV/IRR/payback/$/min</td><td><span class="tag done">✓ editable</span> (Edit source record panel)</td></tr>
+      <tr><td>MSRP / COGS / margin %, per-year revenue shape</td><td><span class="tag med">derived-only</span> — computed from the above; not yet directly editable</td></tr>
+      <tr><td>BOM lines (S16) · WBS element granularity</td><td><span class="tag med">derived-only</span> — generated; the linked table is read; no per-line source edit yet</td></tr>
+      <tr><td>Hierarchy (BU/SBU/Alpha/Product/Material)</td><td><span class="tag low">edited elsewhere</span> — Business Setup, not the slide (by design)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Gap C — correctness / governance residuals (12-AsM council, still open)</h2>
+  <table>
+    <thead><tr><th>Sev</th><th>Residual</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag hi">high</span></td><td>Supabase <code>innovation_state</code> RLS gates on owner-key presence, not identity — cross-tenant read/overwrite until the accounts milestone lands. <b>Do not enter sensitive portfolio data yet.</b></td></tr>
+      <tr><td><span class="tag med">med</span></td><td>Same project's tolerance band renders different numbers across dog-tag / matrix / time-engine — one governance ladder not yet unified (changes a displayed number → sign-off).</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>"Risk-adjusted expected value" double-applies success probability (pSuccess²) — semantics need an operator decision.</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>First revenue is modeled at G6 (Maximize) while G5 is Launch — label/semantics need the canonical launch gate decided.</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>GATE_NOTES shows every countermeasure "solved per gate" on early-stage projects — reframe to standard-playbook or wire to gate progress.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Gap D — feature-completeness + ops</h2>
+  <table>
+    <thead><tr><th>Gap</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>"+ Add field" custom fields (field-spec <code>custom</code>)</td><td>Schema is fixed; the storage shape supports custom fields but the add-field UI isn't wired.</td></tr>
+      <tr><td>Cadence Q→M→W→D drives an actual re-optimization snapshot</td><td>Today it's a persisted label; real scheduled snapshotting / SoI polling loop is future.</td></tr>
+      <tr><td>Cost actuals-vs-forecast (IMG_7912) uses real actuals</td><td>Charts render forecast/model; a live actuals series (bars vs forecast line) needs an actuals source.</td></tr>
+      <tr><td>Present mode add-custom-field + S13/S8 visual polish</td><td>Present is full-screen + live financials; risk-highlights and value-equation get further visual polish next.</td></tr>
+      <tr><td>Supabase migration 028 applied in the deployed env</td><td>Config/edits round-trip once applied; graceful (local-only) until then.</td></tr>
+      <tr><td>Live <code>workers.dev</code> visual verification</td><td>Can't be fetched from the build environment (proxy 403) — operator hard-refreshes <code>/innovation</code> (369963) to confirm each deploy.</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    12 open gaps tracked · decision core shipped (BU/SBU/Alpha funded/unfunded + $/min + Q→D + single-source edit).<br>
+    All decision metrics are R-Core pure helpers · tsc 0 · tests 284 · build compiled · FF main.<br>
+    “Where Shared Intention moves at the Speed of Thought.”
+  </footer>
+</div></body></html>
