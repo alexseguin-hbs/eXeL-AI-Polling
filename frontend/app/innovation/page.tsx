@@ -227,7 +227,9 @@ function Board() {
   const fundedRows = rows.filter((r) => r.funded);
   const portfolioNpv = fundedRows.reduce((s, r) => s + npvM(r.p), 0);
   const fundedNre = fundedRows.reduce((s, r) => s + r.p.nreK, 0);
-  const stackName = loadStackName(); // admin-configurable module name (formerly "Rack & Stack")
+  // Admin-configurable module name (formerly "Rack & Stack") — held in state so an admin rename
+  // hot-swaps the tab/title/header instantly (no reload), seeded from the persisted value.
+  const [stackName, setStackName] = useState<string>(() => loadStackName());
 
   return (
     <div className="min-h-screen bg-[#0b0f14] text-slate-100">
@@ -513,7 +515,7 @@ function Board() {
 
       {view === "setup" && (
         <div className="p-5">
-          <BusinessSetup />
+          <BusinessSetup onRename={setStackName} />
         </div>
       )}
 
@@ -1477,7 +1479,7 @@ const STACK_NAME_KEY = "innovation-stack-name";
 const DEFAULT_STACK_NAME = "Portfolio Prioritization";
 const STACK_NAME_PRESETS = ["Portfolio Prioritization", "Prioritize & Fund", "Portfolio Balancer", "Funding Line", "Priority Board"];
 function loadStackName(): string { return (lsGet(STACK_NAME_KEY) || DEFAULT_STACK_NAME).trim() || DEFAULT_STACK_NAME; }
-function BusinessSetup() {
+function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
   const [admin, setAdmin] = useState(false);
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
@@ -1497,7 +1499,7 @@ function BusinessSetup() {
   const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
   const persistBoard = (next: string) => { setBoard(next); lsSet(REVIEW_BOARD_KEY, next); };
-  const persistStackName = (next: string) => { setStackName(next); lsSet(STACK_NAME_KEY, next); };
+  const persistStackName = (next: string) => { setStackName(next); lsSet(STACK_NAME_KEY, next); onRename?.(next); };
   const unlock = () => (pw === CODE ? (ssSet(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
 
   if (!admin) {
