@@ -704,7 +704,7 @@ function Board() {
 
       {view === "setup" && (
         <div className="p-5">
-          <BusinessSetup onRename={setStackName} />
+          <BusinessSetup onRename={setStackName} onClose={() => setView("portfolio")} />
         </div>
       )}
       </div>{/* end scroll rail */}
@@ -2834,7 +2834,7 @@ function loadDogtag(): string[] {
   if (s) { try { const a = JSON.parse(s) as string[]; if (Array.isArray(a) && a.length) return a.filter((kk) => DOGTAG_METRICS.some((m) => m.key === kk)); } catch { /* default */ } }
   return DEFAULT_DOGTAG;
 }
-function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
+function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => void; onClose?: () => void }) {
   const [admin, setAdmin] = useState(false);
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
@@ -2870,7 +2870,10 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
   if (!admin) {
     return (
       <div className="mx-auto max-w-sm rounded-2xl border border-amber-500/30 bg-[#111820] p-6">
-        <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">Admin · Master Business Setup</div>
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">Admin · Master Business Setup</div>
+          {onClose && <button onClick={onClose} aria-label={t("innovation.setup.close")} title={t("innovation.setup.close")} className="shrink-0 rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400 hover:bg-slate-800">✕ {t("innovation.setup.close")}</button>}
+        </div>
         <h2 className="mt-1 text-lg font-semibold">Business Setup — Admin Unlock</h2>
         <p className="mt-2 text-sm text-slate-400">Enter the admin code to set up the master hierarchy: BU · SBU · Alpha Group · Alpha Code · Product · Material.</p>
         <input type="password" inputMode="numeric" value={pw} autoFocus
@@ -2906,6 +2909,7 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
           <span className="text-slate-500">Σ SBU base <b className="text-emerald-300">${totalBase}M</b></span>
           <button onClick={resetSeed} className="rounded border border-slate-700 px-2 py-1 text-slate-300 hover:bg-slate-800">Reset to seed</button>
           <button onClick={() => { ssDel(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
+          {onClose && <button onClick={onClose} aria-label={t("innovation.setup.close")} title={t("innovation.setup.close")} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 font-medium text-cyan-300 hover:bg-cyan-500/20">✕ {t("innovation.setup.close")}</button>}
         </div>
       </div>
 
