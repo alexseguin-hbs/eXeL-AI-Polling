@@ -363,9 +363,9 @@ function Board() {
     return HIER_ORDER.slice(0, HIER_ORDER.indexOf(drill.level) + 1).map((lv) => ({ level: lv, value: h[lv] }));
   })() : [];
 
-  const fundedRows = rows.filter((r) => r.funded);
-  const portfolioNpv = fundedRows.reduce((s, r) => s + npvM(r.p), 0);
-  const fundedNre = fundedRows.reduce((s, r) => s + r.p.nreK, 0);
+  const fundedRows = useMemo(() => rows.filter((r) => r.funded), [rows]);
+  const portfolioNpv = useMemo(() => fundedRows.reduce((s, r) => s + npvM(r.p), 0), [fundedRows]);
+  const fundedNre = useMemo(() => fundedRows.reduce((s, r) => s + r.p.nreK, 0), [fundedRows]);
   // Admin-configurable module name (formerly "Rack & Stack") — held in state so an admin rename
   // hot-swaps the tab/title/header instantly (no reload), seeded from the persisted value.
   const [stackName, setStackName] = useState<string>(() => loadStackName());
@@ -1476,6 +1476,9 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
   const [level, setLevel] = useState<"bu" | "sbu" | "pgroup">("bu");
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const levelLabel = level === "sbu" ? "SBU" : level === "pgroup" ? "Alpha Group" : "BU";
+  // Memoized so the (potentially large) bucket + allocation computations don't re-run on every modal render.
+  const buckets = useMemo(() => fundingBuckets(projects, level, (id) => fundedIds.has(id)), [projects, level, fundedIds]);
+  const alloc = useMemo(() => nodeAllocation(projects, level, (id) => fundedIds.has(id), availK, budgetOverrideK), [projects, level, fundedIds, availK, budgetOverrideK]);
   const groups = useMemo(() => {
     const map = new Map<string, Project[]>();
     for (const p of projects) { const key = hierOf(p)[level]; (map.get(key) ?? map.set(key, []).get(key)!).push(p); }
@@ -1521,7 +1524,6 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
             BU → 3×2 = 6 buckets; SBU / Alpha Group scale the same way. $/min = live burn (System of
             Innovation: time is money). A project sits in exactly one bucket, set by the global funding line. */}
         {(level === "bu" || level === "sbu" || level === "pgroup") && (() => {
-          const buckets = fundingBuckets(projects, level, (id) => fundedIds.has(id));
           const cell = (title: string, tone: "ok" | "bad", a: typeof buckets[number]["funded"]) => (
             <div className={`rounded-md border p-2 ${tone === "ok" ? "border-emerald-500/30 bg-emerald-500/[0.05]" : "border-rose-500/30 bg-rose-500/[0.05]"}`}>
               <div className="flex items-center justify-between">
@@ -1562,7 +1564,6 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
         {/* Allocation & UPSIDE — per node: financial-spend budget (editable), allocated (funded NRE), and the
             UPSIDE bucket = unallocated funds. The R&D envelope is split across nodes; a Lead can pin any budget. */}
         {(() => {
-          const alloc = nodeAllocation(projects, level, (id) => fundedIds.has(id), availK, budgetOverrideK);
           const totUpsideK = alloc.reduce((s, n) => s + n.upsideK, 0);
           const totOverK = alloc.reduce((s, n) => s + n.overK, 0);
           return (

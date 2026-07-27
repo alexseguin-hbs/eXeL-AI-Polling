@@ -800,10 +800,35 @@ export function nodeAllocation(
   projects: Project[], level: HierKey, isFunded: (id: string) => boolean, availK: number,
   budgetOverrideK?: (level: HierKey, code: string) => number | undefined,
 ): NodeAllocation[] {
+  const company = companyBaseM() || 1;
+  // Precompute pgroup default budgets in ONE pass over projects (was O(nodes×n) via per-node defaultBudgetK).
+  let pgBudget: Record<string, number> | null = null;
+  if (level === "pgroup") {
+    const pgToSbu: Record<string, string> = {}, pgDemand: Record<string, number> = {}, sbuDemand: Record<string, number> = {};
+    for (const p of projects) {
+      const h = hierOf(p);
+      pgToSbu[h.pgroup] = h.sbu;
+      pgDemand[h.pgroup] = (pgDemand[h.pgroup] ?? 0) + p.nreK;
+      sbuDemand[h.sbu] = (sbuDemand[h.sbu] ?? 0) + p.nreK;
+    }
+    const sbuPgCount: Record<string, number> = {};
+    for (const pg of Object.keys(pgToSbu)) sbuPgCount[pgToSbu[pg]] = (sbuPgCount[pgToSbu[pg]] ?? 0) + 1;
+    pgBudget = {};
+    for (const pg of Object.keys(pgToSbu)) {
+      const sbu = pgToSbu[pg];
+      const sbuBudgetK = Math.round(availK * ((SBU_BASE[sbu] ?? 0) / company));
+      const tot = sbuDemand[sbu] ?? 0;
+      pgBudget[pg] = tot > 0 ? Math.round(sbuBudgetK * ((pgDemand[pg] ?? 0) / tot)) : Math.round(sbuBudgetK / (sbuPgCount[sbu] || 1));
+    }
+  }
+  const defBudget = (code: string): number =>
+    level === "bu" ? Math.round(availK * (buBaseM(code) / company))
+      : level === "sbu" ? Math.round(availK * ((SBU_BASE[code] ?? 0) / company))
+      : level === "pgroup" ? (pgBudget?.[code] ?? 0) : 0;
   return fundingBuckets(projects, level, isFunded).map((b) => {
     const allocatedK = Math.round(b.funded.nreK);
     const ov = budgetOverrideK?.(level, b.code);
-    const budgetK = ov != null && Number.isFinite(ov) && ov >= 0 ? Math.round(ov) : defaultBudgetK(projects, level, b.code, availK);
+    const budgetK = ov != null && Number.isFinite(ov) && ov >= 0 ? Math.round(ov) : defBudget(b.code);
     const upsideK = Math.max(0, budgetK - allocatedK);
     const overK = Math.max(0, allocatedK - budgetK);
     const utilPct = budgetK > 0 ? Math.round((allocatedK / budgetK) * 100) : allocatedK > 0 ? 100 : 0;
