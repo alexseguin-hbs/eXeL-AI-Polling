@@ -2866,10 +2866,21 @@ function IntelligenceLoadPanel({ projects }: { projects: Project[] }) {
 // fill by BU · arrows point to the primary (bottom) dependency.
 const BU_COLOR: Record<string, string> = { MS: "#19c8cf", DS: "#c084fc", AP: "#fbbf24" };
 function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; deps: DepEdge[]; onSelect: (id: string) => void }) {
+  const { t } = useLexicon();
   const summary = dependencySummary(projects, deps);
   const kM = (v: number) => `$${v.toFixed(1)}M`;
   // Bubble size is selectable (deck: NPV · Year-1 Rev · 3-Year Rev · 10-Year Rev).
   const [sizeMode, setSizeMode] = useState<"npv" | "y1" | "y3" | "y10">("npv");
+  // Node color-mode (Slice 5) — funding · risk · value-contribution · Intelligence-Load overlay.
+  const [colorMode, setColorMode] = useState<"funding" | "risk" | "value" | "load">("funding");
+  const nodeStroke = (p: Project): string => {
+    if (colorMode === "risk") { const r = riskBandOf(p); const w = [r.technical, r.commercial, r.dependency]; return w.includes("High") ? "#fb7185" : w.includes("Med") ? "#fbbf24" : "#34d399"; }
+    if (colorMode === "value") { const ci = valueEquationOf(p).competitiveIndex; return ci >= 60 ? "#34d399" : ci >= 40 ? "#94a3b8" : "#fb7185"; }
+    if (colorMode === "load") { const m = Math.max(p.ai, p.si, p.hi); return m === p.ai ? "#19c8cf" : m === p.si ? "#f7b955" : "#a78bfa"; }
+    return npvM(p) >= 0 ? "#34d399" : "#fb7185"; // funding
+  };
+  // Risk-propagation (Slice 5) — a node inherits an amber halo when any project it depends on carries an open (high) risk.
+  const inheritsRisk = (p: Project): boolean => dependsOn(deps, p.id).some((e) => { const up = projects.find((x) => x.id === e.to); return !!up && (up.tech === "high" || up.comm === "high"); });
   const sizeVal = (p: Project) => {
     if (sizeMode === "npv") return Math.abs(npvM(p));
     const s = projectRevSeries(p, { years: 10, funded: true });
@@ -2910,6 +2921,13 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
               className={`px-2 py-1 ${sizeMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{SIZE_LABEL[m]}</button>
           ))}
         </div>
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.dep.colorBy")}</span>
+        <div className="flex overflow-hidden rounded-md border border-slate-700">
+          {(["funding", "risk", "value", "load"] as const).map((m) => (
+            <button key={m} onClick={() => setColorMode(m)}
+              className={`px-2 py-1 ${colorMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{t(`innovation.dep.${m}`)}</button>
+          ))}
+        </div>
         <span className="ml-auto text-[10px] text-slate-500">Gravity: most-depended-upon sinks to the bottom</span>
       </div>
       {/* Constellation graph */}
@@ -2927,12 +2945,16 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
           })}
           {withDeps.map((p) => {
             const pt = pos.get(p.id)!;
-            const above = npvM(p) >= 0;
             const rank = rankOf.get(p.id)!;
             const deg = inDeg(p.id);
+            const stroke = nodeStroke(p);
+            const segs = p.segmentValueProps?.length ?? 0;      // segment-aware node thickness (Slice 5)
+            const sw = 2 + Math.min(4, segs);
+            const halo = inheritsRisk(p);
             return (
               <g key={p.id} className="cursor-pointer" onClick={() => onSelect(p.id)}>
-                <circle cx={pt.x} cy={pt.y} r={pt.r} fill={BU_COLOR[hierOf(p).bu] ?? "#38bdf8"} fillOpacity={0.25} stroke={above ? "#34d399" : "#fb7185"} strokeWidth={2} />
+                {halo && <circle cx={pt.x} cy={pt.y} r={pt.r + 3.5} fill="none" stroke="#fbbf24" strokeWidth={1.5} strokeDasharray="2 2" opacity={0.8} />}
+                <circle cx={pt.x} cy={pt.y} r={pt.r} fill={BU_COLOR[hierOf(p).bu] ?? "#38bdf8"} fillOpacity={0.25} stroke={stroke} strokeWidth={sw} />
                 <text x={pt.x} y={pt.y + 3.5} textAnchor="middle" fontSize="11" fontWeight="700" fill="#e2e8f0" fontFamily="ui-monospace, monospace">{rank}</text>
                 <text x={pt.x} y={pt.y - pt.r - 3} textAnchor="middle" fontSize="9" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{hierOf(p).bu}·{p.id.slice(-2)}{deg ? ` ·${deg}↓` : ""}</text>
                 <text x={pt.x} y={pt.y + pt.r + 9} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="ui-monospace, monospace">{usd(npvM(p))}</text>
@@ -2948,6 +2970,8 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
         <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-rose-400" />below line</span>
         <span><span className="mr-1 text-rose-400">──</span>critical</span>
         <span><span className="mr-1 text-slate-500">– –</span>unacknowledged</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-amber-400" />{t("innovation.dep.haloNote")}</span>
+        <span>thicker ring = more segments served</span>
         {(["MS", "DS", "AP"] as const).map((b) => <span key={b}><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: BU_COLOR[b] }} />{b}</span>)}
       </div>
       {/* Summary table (§4.2) */}

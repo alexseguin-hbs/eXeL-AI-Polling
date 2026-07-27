@@ -1347,6 +1347,13 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.gate.ledgerPlaceholder", englishDefault: "What was proven, what value moved, which risks cleared or remain…", context: "Gate ledger textarea placeholder", cubeId: 60 },
   { key: "innovation.gate.handoff", englishDefault: "Handoff-ready", context: "Handoff-readiness badge (ready)", cubeId: 60 },
   { key: "innovation.gate.handoffGaps", englishDefault: "Handoff gaps", context: "Handoff-readiness badge (gaps remain)", cubeId: 60 },
+  // Dependency constellation (Slice 5)
+  { key: "innovation.dep.colorBy", englishDefault: "Color by", context: "Constellation node color-mode selector", cubeId: 60 },
+  { key: "innovation.dep.funding", englishDefault: "Funding", context: "Constellation color mode: funding status", cubeId: 60 },
+  { key: "innovation.dep.risk", englishDefault: "Risk", context: "Constellation color mode: risk band", cubeId: 60 },
+  { key: "innovation.dep.value", englishDefault: "Value", context: "Constellation color mode: value contribution", cubeId: 60 },
+  { key: "innovation.dep.load", englishDefault: "AI·SI·HI", context: "Constellation color mode: intelligence load", cubeId: 60 },
+  { key: "innovation.dep.haloNote", englishDefault: "amber halo = inherits an upstream open risk", context: "Constellation risk-propagation halo legend", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────
