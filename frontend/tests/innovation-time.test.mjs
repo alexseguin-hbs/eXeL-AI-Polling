@@ -692,6 +692,19 @@ import { auditTimeline, isMajorAudit, MAJOR_AUDIT_KINDS } from "../lib/innovatio
   const ivas = DEMO_PROJECTS.find((p) => p.id === "PRJ-23");
   ok(!!ivas && /IVAS/.test(ivas.name) && ivas.nreK === 18000, "IVAS example project present ($18M ROM)");
   ok(!!ivas && ivas.segmentValueProps.some((s) => /Field Operatives|Officers|Joint Force/.test(s.segment)), "IVAS captures role-based UX segments");
+  const node = DEMO_PROJECTS.find((p) => p.id === "PRJ-24");
+  ok(!!node && /Swarm C2/.test(node.name), "Swarm C2 Edge Node example present");
+  ok(!!node && node.valueDrivers.some((d) => /edge C2 continuity/i.test(d.name)), "Swarm C2 node captures comms-degraded edge C2 driver");
+}
+
+/* ---------------- Partial multi-document intake resolves WHOLE (derived-fallback engine) ---------------- */
+{
+  // A node presented only PARTIALLY (one document set a few fields; drivers/segments/brief absent) must still
+  // render complete — briefOf + derivedDriversOf synthesize the gaps, so a two-document merge never blanks.
+  const partial = { ...DEMO_PROJECTS[0], id: "TEST-PARTIAL", name: "Swarm C2 (partial doc)", valueProp: undefined, nextBestAlternative: undefined, valueDrivers: undefined, segmentValueProps: undefined };
+  const b = briefOf(partial);
+  ok(b.needs.length > 0 && b.outcomes.length > 0 && b.solution.length > 0 && b.evidence.length > 0, "briefOf yields a full 4-section brief for a partial project");
+  ok(derivedDriversOf(partial).length >= 1, "derivedDriversOf yields ≥1 driver when none were provided");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

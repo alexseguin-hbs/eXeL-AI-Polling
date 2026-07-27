@@ -243,6 +243,7 @@ export const PROJECT_BRIEF: Record<string, ProjectBrief> = {
   "PRJ-21": { needs: ["Compress the commander OODA loop", "Prioritized, trusted, actionable insight"], outcomes: ["Decisions in minutes, not tens of minutes", "Fused feeds → ranked actions"], solution: ["Decision-speed SA fusion engine", "Explainable prioritization for HITL trust"], evidence: ["Decision-cycle time cut in exercise", "Commanders act on the ranked insight"] },
   "PRJ-22": { needs: ["Team Group 1/3/5 UAS as one force", "Cross-vendor teaming under one intent"], outcomes: ["Cross-group teaming under commander intent", "Mixed-vendor UAS on one fabric"], solution: ["Open multi-UAS teaming fabric", "Single-intent tasking across echelons"], evidence: ["Cross-group teaming demonstrated in sim", "Fabric interoperates across UAS types"] },
   "PRJ-23": { needs: ["One IVAS common operating picture across UGV/UAS/aircraft feeds", "Real-time edge decision support that reduces operator cognitive load"], outcomes: ["Sensor-to-decision-to-effect compressed inside the OODA loop", "In-app escalations + JADC2-ready engagement approvals"], solution: ["Edge AI/CV fusion + digital-twin mission planning on IVAS", "Fit-for-purpose AI/ML packages downloadable per sensor"], evidence: ["Phase-1 multi-drone mission → real-time 3D output (Cesium/Unreal 5)", "MVP1.0→3.0 across 4 phases · $18M ROM · JADC2 integration"] },
+  "PRJ-24": { needs: ["Command a UAS/UGV swarm forward of reliable cloud reachback", "Keep JADC2 escalations + engagement approvals moving when the link is degraded"], outcomes: ["Decision loop stays alive at the edge (comms-degraded C2)", "Auditable in-app approvals under commander intent"], solution: ["Ruggedized edge-compute node (Mimic / Universal Controller class)", "On-node sensor fusion + decentralized swarm tasking"], evidence: ["Edge autopilot + ATAK / Kägwerks integration in prior IVAS phases", "Concept synthesized from two partial source documents into one full node spec"] },
 };
 export const briefOf = (p: Project): ProjectBrief =>
   PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${p.confidence}/5`] };
@@ -412,6 +413,11 @@ const DEMO_PROJECTS_BASE: Project[] = [
   // edge-AI platform ecosystem: fuses UGV/UAS/aircraft feeds into one IVAS COP with digital-twin mission planning,
   // in-app escalations + JADC2 engagement approvals. $18M ROM across 4 phases (KO+6/9/12/18 mo, 5→20 FTE).
   { id: "PRJ-23", name: "AI/ML Software & Integration — Army IVAS", division: "Autonomy SW", lob: "SBU-2", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 3, tech: "high", comm: "med", nreK: 18000, fullRev10yM: 280, doNothing10yM: 10, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.7, ai: 0.55, si: 0.25, hi: 0.2, predictions: 46 },
+  // Swarm C2 EDGE NODE — synthesized from the two eXeL AI documents that present it only PARTIALLY (the strategy
+  // deck: edge compute · Mimic/Universal Controller · JADC2 control stations · decentralized autonomy; the project
+  // description: UGV/UAS/heavy-lift teaming · edge neural nets · modular SWaP/TOPS compute · In-App escalations).
+  // The tool merges partial coverage + the derived-fallback engine, so a multi-document node still resolves whole.
+  { id: "PRJ-24", name: "Swarm C2 Edge Node", division: "Autonomy SW", lob: "SBU-2", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 3, tech: "high", comm: "med", nreK: 6800, fullRev10yM: 175, doNothing10yM: 12, firstRevenue: "2028-Q1", criticalPath: true, humanLoad: 0.6, ai: 0.55, si: 0.3, hi: 0.15, predictions: 31 },
 ];
 
 // Realistic simulated intelligence per project (Tom Sant NOSE-informed value prop + the competitive Next
@@ -587,6 +593,19 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
       { segment: "Field Operatives", prop: "Edge AI cuts cognitive load — real-time decisions, risk assessments, and action appropriate to the situation.", pain: "cognitive overload under fire", outcome: "act at the edge in real time", confidence: 3 },
       { segment: "Officers", prop: "Trusted, real-time fused data for situational awareness and decision-making.", pain: "stale, stovepiped COP", outcome: "one trusted real-time picture", confidence: 3 },
       { segment: "Joint Force Commanders", prop: "Precision execution with reduced risk to mission, force, and defense assets.", pain: "risk to force in complex engagements", outcome: "precision effects, lower risk", confidence: 3 },
+    ],
+  },
+  // Swarm C2 Edge Node — HI inputs assembled from the TWO partial documents + domain synthesis: the edge/node
+  // counterpart to the cloud C2 (PRJ-05), keeping command-and-control alive forward of reliable reachback.
+  "PRJ-24": {
+    valueProp: "For fires and effects cells operating forward of reliable reachback, the Swarm C2 Edge Node runs command-and-control on-platform — a ruggedized edge-compute node (Mimic / Universal Controller class) that fuses UGV, UAS and aircraft feeds, tasks a swarm under commander intent, and pushes in-app JADC2 escalations and engagement approvals even when the link to the cloud C2 is degraded. Unlike a reachback-dependent ground station, it keeps the decision loop alive at the edge.",
+    nextBestAlternative: "Reachback-dependent cloud/ground C2 station (stalls or fails when the link to the rear is degraded)",
+    valueDrivers: [d("Comms-degraded edge C2 continuity", 1.0, 0.88, 0.35), d("On-node sensor fusion → COP", 0.92, 0.85, 0.45), d("In-app JADC2 escalation / approval", 0.88, 0.84, 0.4), d("Fit-for-purpose SWaP / TOPS compute", 0.82, 0.83, 0.5)],
+    killRisk: "Fit-for-purpose edge compute holds swarm-tasking latency + AI inference inside the node's SWaP/TOPS and thermal budget in a contested EMS",
+    segmentValueProps: [
+      { segment: "Army · Fires", prop: "Command the swarm from the edge when reachback is denied — approvals stay in-app.", pain: "C2 dies when the rear link drops", outcome: "decision loop survives at the edge", confidence: 3 },
+      { segment: "SOF · Direct Action", prop: "A carryable C2 node that keeps tasking and approvals alive forward of the network.", pain: "no C2 beyond reachback", outcome: "self-contained forward C2", confidence: 2 },
+      { segment: "Joint Force Commanders", prop: "Decentralized execution under intent with auditable JADC2 approvals.", pain: "un-auditable edge decisions", outcome: "intent-bound, auditable approvals", confidence: 3 },
     ],
   },
 };
@@ -1048,6 +1067,7 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-21": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1C", product: "70021", material: "70021-001" },
   "PRJ-22": { bu: "DS", sbu: "DSE", pgroup: "DE1", alpha: "DE1W", product: "70022", material: "70022-001" },
   "PRJ-23": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1J", product: "70023", material: "70023-001" },
+  "PRJ-24": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1K", product: "70024", material: "70024-001" },
 };
 export const hierOf = (p: Project): HierPath => {
   const base = PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
