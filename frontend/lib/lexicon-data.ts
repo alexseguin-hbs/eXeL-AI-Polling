@@ -1302,6 +1302,10 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.tab.dashboards", englishDefault: "Dashboards · ROI Visuals", context: "Innovation view tab: dashboards", cubeId: 60 },
   { key: "innovation.tab.setup", englishDefault: "⚙ Business Setup", context: "Innovation view tab: business setup", cubeId: 60 },
   { key: "innovation.stack.budget", englishDefault: "$ Budget", context: "Innovation budget-popup open button", cubeId: 60 },
+  { key: "innovation.scenario.label", englishDefault: "R&D scenario", context: "R&D budget scenario selector label", cubeId: 60 },
+  { key: "innovation.scenario.conservative", englishDefault: "Conservative", context: "R&D budget scenario: conservative", cubeId: 60 },
+  { key: "innovation.scenario.base", englishDefault: "Base", context: "R&D budget scenario: base", cubeId: 60 },
+  { key: "innovation.scenario.growth", englishDefault: "Growth", context: "R&D budget scenario: growth", cubeId: 60 },
   // Value Equation tool (Slice 1B) — create the value prop against the competitive NBA
   { key: "innovation.veq.title", englishDefault: "Value Equation", context: "Value Equation tool title", cubeId: 60 },
   { key: "innovation.veq.subtitle", englishDefault: "Score each differentiator against the Next Best Alternative", context: "Value Equation tool subtitle", cubeId: 60 },

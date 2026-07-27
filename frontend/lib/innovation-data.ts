@@ -293,6 +293,17 @@ export function sayDo(p: Project) {
 export interface DivisionBudget { division: string; totalK: number; allocatedK: number; }
 export const availableK = (b: DivisionBudget) => b.totalK - b.allocatedK; // CRS-70
 
+// R&D budget scenarios (operator) — the available R&D that sets the funding line. Base is the $77M plan;
+// Conservative ($66M) and Growth ($88M) let the PdM/PgM re-balance the stack under each envelope.
+export const BUDGET_SCENARIOS = [
+  { key: "conservative", label: "Conservative", m: 66 },
+  { key: "base", label: "Base", m: 77 },
+  { key: "growth", label: "Growth", m: 88 },
+] as const;
+export type BudgetScenario = (typeof BUDGET_SCENARIOS)[number]["key"];
+export const scenarioAvailK = (key: BudgetScenario): number =>
+  (BUDGET_SCENARIOS.find((s) => s.key === key) ?? BUDGET_SCENARIOS[1]).m * 1000;
+
 // ── Demo portfolio (seed; a real deploy loads from the platform event log) ───────────────
 export const DEMO_BUDGET: DivisionBudget = { division: "ALL DIVISIONS", totalK: 42000, allocatedK: 6000 };
 
@@ -918,9 +929,28 @@ export function valueEquation(drivers: ValueDriver[], addressableRevM: number): 
   return { perDriver, competitiveIndex, evcUsdM: referenceM + differentiationM, referenceM, differentiationM, wins, losses };
 }
 
-/** Convenience: solve a project's Value Equation against its addressable (incremental) revenue. */
+/**
+ * Derived value drivers (Bridge · backfill) — every project gets a populated Value Equation vs its NBA even
+ * before anyone hand-scores drivers, so the waterfall/index are never blank across all BUs and projects.
+ * Built deterministically from the project's brief (solution lines) + confidence + competitive position.
+ */
+export function derivedDriversOf(p: Project): ValueDriver[] {
+  const b = briefOf(p);
+  const base = relPerformanceOf(p), imp0 = custImportanceOf(p);
+  const names = (b.solution.length ? b.solution : [`${p.name} capability`]).slice(0, 3);
+  return names.map((name, i) => ({
+    name: name.length > 40 ? name.slice(0, 38) + "…" : name,
+    importance: clamp01(imp0 + 0.05 - 0.08 * i),
+    ourScore: clamp01(base + 0.08 - 0.06 * i),
+    nbaScore: clamp01(base - (0.35 - 0.05 * i)),
+  }));
+}
+
+/** Convenience: solve a project's Value Equation against its addressable (incremental) revenue. Falls back
+ *  to derived drivers when none are hand-scored, so the equation is populated for every project. */
 export function valueEquationOf(p: Project): ValueEquationResult {
-  return valueEquation(p.valueDrivers ?? [], incrementalRevM(p));
+  const drivers = p.valueDrivers && p.valueDrivers.length ? p.valueDrivers : derivedDriversOf(p);
+  return valueEquation(drivers, incrementalRevM(p));
 }
 
 /**

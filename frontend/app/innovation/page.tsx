@@ -12,7 +12,8 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState } from "@/lib/innovation-store";
 import {
-  DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
+  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM,
+  BUDGET_SCENARIOS, scenarioAvailK, derivedDriversOf, type BudgetScenario,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
@@ -210,7 +211,11 @@ function Board() {
     setOrder((o) => o.map((p) => (p.id === id ? { ...p, ...patch } : p)));
     changes.forEach((c) => log("edit", proj?.name ?? id, c, "you"));
   };
-  const avail = availableK(DEMO_BUDGET);
+  // R&D budget scenario (operator) — Conservative $66M · Base $77M · Growth $88M sets the funding line.
+  const [scenario, setScenario] = useState<BudgetScenario>("base");
+  useEffect(() => { const s = lsGet("innovation-scenario") as BudgetScenario | null; if (s && BUDGET_SCENARIOS.some((x) => x.key === s)) setScenario(s); }, []);
+  useEffect(() => { lsSet("innovation-scenario", scenario); }, [scenario]);
+  const avail = scenarioAvailK(scenario);
   const { rows, lineIndex } = useMemo(() => stackWithBudget(order, avail), [order, avail]);
   const sel = order.find((p) => p.id === selId) ?? order[0];
 
@@ -330,6 +335,8 @@ function Board() {
 
   return (
     <div className="min-h-screen bg-[#0b0f14] text-slate-100">
+    {/* Consistent max-width band (phone → desktop) — every section shares these bounds; full-bleed bg behind. */}
+    <div className="mx-auto w-full max-w-[1600px]">
       {/* Header */}
       <header className="border-b border-slate-800 px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         <div>
@@ -346,7 +353,19 @@ function Board() {
           className="rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
           {t("innovation.header.newIdea")}
         </button>
-        <div className="ml-auto flex gap-5 text-right">
+        {/* R&D budget scenario — Conservative $66M · Base $77M · Growth $88M (sets the funding line) */}
+        <div className="ml-auto flex flex-col items-end gap-1">
+          <span className="text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}</span>
+          <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
+            {BUDGET_SCENARIOS.map((s) => (
+              <button key={s.key} onClick={() => setScenario(s.key)} title={`$${s.m}M R&D`}
+                className={`px-2 py-1 ${scenario === s.key ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>
+                {t(`innovation.scenario.${s.key}`)} <span className="tabular-nums opacity-80">${s.m}M</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex gap-5 text-right">
           <Kpi label={t("innovation.kpi.rdAvailable")} value={k(avail)} />
           <Kpi label={t("innovation.kpi.fundedNre")} value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
           <Kpi label={t("innovation.kpi.fundedProjects")} value={`${fundedRows.length}/${order.length}`} />
@@ -684,6 +703,7 @@ function Board() {
       <footer className="px-5 pb-8 text-[11px] text-slate-500">
         Demo portfolio · financials are derived from the inputs, never hand-entered. Reprioritize the stack, gate projects, and poll feedback to de-risk the roadmap.
       </footer>
+    </div>
     </div>
   );
 }
@@ -1285,8 +1305,9 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   const [draft, setDraft] = useState<Partial<Project>>({});
   const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
   const [veqOpen, setVeqOpen] = useState(false); // Value Equation editor (re-openable, Slice 1B)
-  const [veqDrivers, setVeqDrivers] = useState<ValueDriver[]>(p.valueDrivers ?? []);
-  useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); setVeqDrivers(p.valueDrivers ?? []); setVeqOpen(false); }, [p.id, p.valuePropSource, p.valueDrivers]);
+  // Backfill: seed from derived drivers when none are hand-scored, so the waterfall is populated for every project.
+  const [veqDrivers, setVeqDrivers] = useState<ValueDriver[]>(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
+  useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); setVeqDrivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); setVeqOpen(false); }, [p.id, p.valuePropSource, p.valueDrivers]);
   const dv = <K extends keyof Project>(k: K): Project[K] => (draft[k] !== undefined ? (draft[k] as Project[K]) : p[k]);
   const setD = <K extends keyof Project>(k: K, v: Project[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const saveEdit = () => {

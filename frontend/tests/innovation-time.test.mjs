@@ -403,7 +403,8 @@ ok(evcHi > evcLo, "valueEquation: EVC is monotonic increasing in our score");
 ok(winDriver.competitiveIndex >= 0 && winDriver.competitiveIndex <= 100, "valueEquation: competitive index clamped to [0,100]");
 ok(valueEquationOf(DEMO_PROJECTS[0]).competitiveIndex >= 0, "valueEquationOf resolves for a real project (addressable = incremental rev)");
 ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "All-weather range", importance: 1, ourScore: 0.9, nbaScore: 0.3 }] }).includes("All-weather range"), "valuePropFromEquation names the winning driver vs the NBA");
-ok(valuePropFromEquation({ ...P0, valueDrivers: [] }).includes("Unlike"), "valuePropFromEquation falls back to the derived AI value prop when no driver wins");
+ok(valuePropFromEquation({ ...P0, valueDrivers: [] }).length > 0, "valuePropFromEquation resolves even with no stored drivers (derived backfill populates winners)");
+ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "z", importance: 1, ourScore: 0.1, nbaScore: 0.9 }] }).includes("Unlike"), "valuePropFromEquation falls back to the derived AI value prop when the (stored) drivers do not win");
 
 /* ---------------- Gate/IRB — expected value + handoff readiness (Slice 4) ---------------- */
 import { expectedValueOf, handoffReadiness, npvM } from "../lib/innovation-data.ts";
@@ -419,6 +420,16 @@ import { consistencyCheck } from "../lib/innovation-data.ts";
 ok(consistencyCheck({ ...P0, valueProp: "vp", nextBestAlternative: "nba", valueDrivers: [{ name: "d", importance: 1, ourScore: 0.9, nbaScore: 0.2 }], segmentValueProps: [{ segment: "s", prop: "p" }] }).ok, "consistencyCheck: full spine (vp+nba+drivers+segments, winning) → ok");
 ok(consistencyCheck({ ...P0, valueProp: "", nextBestAlternative: "", valueDrivers: [], segmentValueProps: [] }).issues.length >= 4, "consistencyCheck: empty spine flags ≥4 issues");
 ok(consistencyCheck({ ...P0, valueProp: "", nextBestAlternative: "", valueDrivers: [], segmentValueProps: [] }).ok === false, "consistencyCheck: gaps → not ok");
+
+/* ---------------- Backfill drivers + budget scenarios (optimization round) ---------------- */
+import { derivedDriversOf, BUDGET_SCENARIOS, scenarioAvailK } from "../lib/innovation-data.ts";
+ok(DEMO_PROJECTS.every((p) => derivedDriversOf(p).length > 0), "derivedDriversOf backfills ≥1 driver for every project (all BUs)");
+ok(DEMO_PROJECTS.every((p) => derivedDriversOf(p).every((d) => d.importance >= 0 && d.importance <= 1 && d.ourScore >= 0 && d.ourScore <= 1 && d.nbaScore >= 0 && d.nbaScore <= 1)), "derived driver scores are all within [0,1]");
+ok(DEMO_PROJECTS.every((p) => valueEquationOf(p).perDriver.length > 0), "valueEquationOf is populated (waterfall backfilled) for every project even with no stored drivers");
+ok(valueEquationOf({ ...P0, valueDrivers: [{ name: "x", importance: 1, ourScore: 0.9, nbaScore: 0.2 }] }).perDriver.length === 1, "stored drivers still take precedence over the derived backfill");
+ok(BUDGET_SCENARIOS.map((s) => s.m).join(",") === "66,77,88", "budget scenarios are Conservative 66 · Base 77 · Growth 88 ($M)");
+ok(scenarioAvailK("base") === 77000 && scenarioAvailK("conservative") === 66000 && scenarioAvailK("growth") === 88000, "scenarioAvailK returns $K for each scenario (base=77M)");
+ok(scenarioAvailK("bogus") === 77000, "scenarioAvailK falls back to Base ($77M) for an unknown scenario");
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
