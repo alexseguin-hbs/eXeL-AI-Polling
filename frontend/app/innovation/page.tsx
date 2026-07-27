@@ -1032,20 +1032,40 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
               <span className="text-[10px] text-slate-400">{t("innovation.veq.valueCreation")} <b className="tabular-nums text-emerald-300">${eq.differentiationM.toFixed(0)}M</b></span>
             </div>
             <div className="mt-1 overflow-x-auto">
-              <svg viewBox={`0 0 ${W} ${H + 26}`} className="w-full" style={{ minWidth: 300, height: "auto" }} role="img" aria-label="Value waterfall vs NBA">
+              <svg viewBox={`0 0 ${W} ${H + 34}`} className="w-full" style={{ minWidth: 320, height: "auto" }} role="img" aria-label="Value waterfall vs NBA">
                 {bars.map((b, i) => {
                   const x = i * (W / n) + gap / 2;
                   const yTop = y(b.to), h = Math.max(1.5, y(b.from) - y(b.to));
+                  // Horizontal, two-line wrapped label (no rotation → legible); full name in <title> + the legend below.
+                  const words = b.label.split(/\s+/);
+                  const lines: string[] = []; let cur = "";
+                  const CPL = 12; // chars per line that fit under a bar
+                  for (const w of words) { if ((cur + " " + w).trim().length > CPL && cur) { lines.push(cur); cur = w; } else { cur = (cur + " " + w).trim(); } if (lines.length === 2) break; }
+                  if (cur && lines.length < 2) lines.push(cur);
+                  if (lines.length === 2 && words.join(" ").length > lines.join(" ").length) lines[1] = lines[1].slice(0, CPL - 1) + "…";
                   return (
                     <g key={i}>
+                      <title>{b.label}</title>
                       {i > 0 && i < n && <line x1={x - gap / 2} y1={y(bars[i - 1].to)} x2={x} y2={y(bars[i - 1].to)} stroke="#334155" strokeWidth={0.75} strokeDasharray="2 2" />}
                       <rect x={x} y={yTop} width={bw} height={h} fill={fill(b.kind)} rx={1.5} />
-                      <text x={x + bw / 2} y={yTop - 2} textAnchor="middle" fontSize="7" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{b.kind === "up" || b.kind === "down" ? `${(b as { delta: number }).delta >= 0 ? "+" : ""}${(b as { delta: number }).delta.toFixed(0)}` : b.to.toFixed(0)}</text>
-                      <text x={x + bw / 2} y={H + 8} textAnchor="middle" fontSize="6" fill="#64748b" fontFamily="ui-sans-serif" transform={`rotate(30 ${x + bw / 2} ${H + 8})`}>{b.label.length > 12 ? b.label.slice(0, 11) + "…" : b.label}</text>
+                      <text x={x + bw / 2} y={yTop - 2} textAnchor="middle" fontSize="7.5" fill="#e2e8f0" fontWeight="700" fontFamily="ui-monospace, monospace">{b.kind === "up" || b.kind === "down" ? `${(b as { delta: number }).delta >= 0 ? "+" : ""}${(b as { delta: number }).delta.toFixed(0)}` : b.to.toFixed(0)}</text>
+                      {lines.map((ln, li) => (
+                        <text key={li} x={x + bw / 2} y={H + 10 + li * 9} textAnchor="middle" fontSize="7" fill="#94a3b8" fontFamily="ui-sans-serif">{ln}</text>
+                      ))}
                     </g>
                   );
                 })}
               </svg>
+            </div>
+            {/* Full-text legend — guarantees every label is legible even when the bar label wraps */}
+            <div className="mt-2 grid grid-cols-1 gap-0.5 sm:grid-cols-2">
+              {bars.map((b, i) => (
+                <div key={i} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <span className="inline-block h-2 w-2 shrink-0 rounded-sm" style={{ background: fill(b.kind) }} />
+                  <span className="truncate text-slate-300" title={b.label}>{b.label}</span>
+                  <span className="ml-auto shrink-0 tabular-nums text-slate-500">{b.kind === "up" || b.kind === "down" ? `${(b as { delta: number }).delta >= 0 ? "+" : ""}$${(b as { delta: number }).delta.toFixed(0)}M` : `$${b.to.toFixed(0)}M`}</span>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -1201,7 +1221,7 @@ function downloadOutcomeBrief(p: Project) {
 
 function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fundedIds: Set<string>; onClose: () => void }) {
   const { t } = useLexicon();
-  const [level, setLevel] = useState<"sbu" | "pgroup" | "bu">("sbu");
+  const [level, setLevel] = useState<"bu" | "sbu" | "pgroup">("bu");
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const levelLabel = level === "sbu" ? "SBU" : level === "pgroup" ? "Alpha Group" : "BU";
   const groups = useMemo(() => {
@@ -1232,7 +1252,7 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
           <h2 className="text-sm font-semibold">Budget by {levelLabel} <span className="text-[11px] text-slate-500">— funded + unfunded</span></h2>
           <div className="flex items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
-              {([["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["bu", "BU"]] as const).map(([lv, lbl]) => (
+              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"]] as const).map(([lv, lbl]) => (
                 <button key={lv} onClick={() => setLevel(lv)} className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
               ))}
             </div>
@@ -1249,7 +1269,7 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-[#0e141b]">
               <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
-                <th className="px-3 py-2 text-left">{level === "sbu" ? "SBU" : "Alpha Group"}</th>
+                <th className="px-3 py-2 text-left">{levelLabel}</th>
                 <th className="px-2 py-2 text-center">Projects</th>
                 <th className="px-2 py-2 text-right">Spend (R&amp;D)</th>
                 <th className="px-2 py-2 text-right">Funded</th>
@@ -2512,6 +2532,8 @@ function loadBizSetup(): BizSetup {
 const REVIEW_BOARD_KEY = "innovation-review-board";
 const DEFAULT_REVIEW_BOARD = "IRB";
 const REVIEW_BOARD_PRESETS = ["IRB", "PRB", "IPT"]; // Innovation Review Board · Product Review Board · Integrated Product Team
+const REVIEW_BOARD_FULL: Record<string, string> = { IRB: "Innovation Review Board", PRB: "Product Review Board", IPT: "Integrated Product Team" };
+const boardFull = (b: string): string => REVIEW_BOARD_FULL[b] ?? "custom review body";
 function loadReviewBoard(): string { return (lsGet(REVIEW_BOARD_KEY) || DEFAULT_REVIEW_BOARD).trim() || DEFAULT_REVIEW_BOARD; }
 // The portfolio-prioritization module name (formerly "Rack & Stack") — admin-configurable so
 // each org can label the prioritize-and-fund workflow in its own vocabulary. Persisted.
@@ -2719,7 +2741,7 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
           <input value={board} onChange={(e) => persistBoard(e.target.value.toUpperCase())} maxLength={8}
             placeholder="Custom" className={`w-28 text-center uppercase ${inp}`} />
         </div>
-        <p className="mt-2 text-[10px] text-slate-500">Default <b className="text-cyan-300">IRB</b> (Innovation Review Board). Selecting one here relabels the gate-feedback attribution everywhere in the tool.</p>
+        <p className="mt-2 text-[10px] text-slate-500">Active: <b className="text-cyan-300">{board}</b> ({boardFull(board)}). Selecting one here relabels the gate-feedback attribution everywhere in the tool. Default is IRB (Innovation Review Board).</p>
       </section>
 
       {/* Tier tabs */}
@@ -2861,7 +2883,9 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
   const growth = (parseFloat(growthPct) || 0) / 100;
   const decline = (parseFloat(declinePct) || 0) / 100;
   const baseM = parseFloat(baseStr) || 0;
-  const rows = growthModel(scoped, { years, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM });
+  // CAGR visualization needs the base year PLUS the horizon: a 1-yr CAGR spans 2 columns (2026→2027),
+  // 3-yr → 4, 10-yr → 11. So render years+1 columns; CAGR below divides by (rows.length−1) = the horizon.
+  const rows = growthModel(scoped, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM });
   const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
   const stackOf = (r: (typeof rows)[number]) => (showBaseline ? r.doNothing : 0) + r.weighted + r.remaining;
   const max = Math.max(...rows.map((r) => Math.max(r.target, stackOf(r))), 1) * 1.1;
