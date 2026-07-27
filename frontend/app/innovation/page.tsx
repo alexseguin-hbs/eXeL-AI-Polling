@@ -10,7 +10,7 @@
  */
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
-import { saveState, loadState } from "@/lib/innovation-store";
+import { saveState, loadState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM,
   BUDGET_SCENARIOS, scenarioAvailK, derivedDriversOf, type BudgetScenario,
@@ -35,6 +35,7 @@ import {
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
+  can, roleOf, isLastLead, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
@@ -177,6 +178,23 @@ function Board() {
       requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
   };
+  // Roles / project membership (Slice 5). `me` = stable per-browser identity token (ownerKey → auth.uid later).
+  // Self-asserted UX gating, not a security boundary (accounts/RLS pending). Persist localStorage + cloud "members".
+  const [me] = useState(() => (typeof window !== "undefined" ? ownerKey() : "anon"));
+  const [members, setMembers] = useState<MembershipMap>({});
+  const MEMBERS_KEY = "innovation-members";
+  useEffect(() => {
+    try { const raw = localStorage.getItem(MEMBERS_KEY); if (raw) setMembers(JSON.parse(raw)); } catch { /* keep empty */ }
+    void loadState<MembershipMap>("members").then((cloud) => { if (cloud && typeof cloud === "object") setMembers((cur) => (Object.keys(cur).length ? cur : cloud)); });
+  }, []);
+  const _memTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const persistMembers = (next: MembershipMap) => {
+    setMembers(next);
+    try { localStorage.setItem(MEMBERS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    if (_memTimer.current) clearTimeout(_memTimer.current);
+    _memTimer.current = setTimeout(() => { void saveState("members", next); }, 800);
+  };
+  const myRole = roleOf(members, selId, me);
   // Optimization cadence — legacy prioritization was quarterly; this tool enables monthly now,
   // weekly next. Drives how often the stack is re-optimized / snapshotted.
   const [cadence, setCadence] = useState<"Q" | "M" | "W" | "D">("M");
@@ -672,6 +690,7 @@ function Board() {
           <TimeEngine p={sel} />
           <GateCube p={sel} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
           <Differentiators p={sel} />
+          <TeamRoles projectId={sel.id} members={members} me={me} onChange={persistMembers} />
         </section>
       </div>
 
@@ -1116,6 +1135,67 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+// Team & roles panel (Slice 5) — add members to a project as Viewer / Editor / Approver / Project Lead.
+// Roles authorize writes across the tool via the pure can() helper. Only a Lead may manage membership;
+// the last Lead can't be demoted/removed (self-lockout guard). No members ⇒ the viewer is the implicit Lead.
+function TeamRoles({ projectId, members, me, onChange }: { projectId: string; members: MembershipMap; me: string; onChange: (m: MembershipMap) => void }) {
+  const { t } = useLexicon();
+  const list = members[projectId] ?? [];
+  const myRole = roleOf(members, projectId, me);
+  const canManage = myRole === "lead";
+  const [newRef, setNewRef] = useState("");
+  const [newRole, setNewRole] = useState<ProjectRole>("viewer");
+  const setList = (next: ProjectMember[]) => onChange({ ...members, [projectId]: next });
+  const addMember = () => {
+    const ref = newRef.trim();
+    if (!ref) return;
+    const base = list.length ? list : [{ userRef: me, role: "lead" as ProjectRole }]; // seed owner as Lead
+    if (base.some((m) => m.userRef === ref)) return;
+    setList([...base, { userRef: ref, role: newRole }]);
+    setNewRef("");
+  };
+  const updateRole = (ref: string, role: ProjectRole) => {
+    if (role !== "lead" && isLastLead(members, projectId, ref)) return;
+    setList(list.map((m) => (m.userRef === ref ? { ...m, role } : m)));
+  };
+  const removeMember = (ref: string) => { if (!isLastLead(members, projectId, ref)) setList(list.filter((m) => m.userRef !== ref)); };
+  const sel = "rounded border border-slate-700 bg-[#0b0f14] px-1.5 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500";
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">{t("innovation.team.title")}</h2>
+        <span className="text-[11px] text-slate-500">{t("innovation.team.you")}: <b className="text-cyan-300">{ROLE_LABEL[myRole]}</b></span>
+      </div>
+      {list.length === 0 && <p className="mt-2 text-[11px] text-slate-500">{t("innovation.team.none")}</p>}
+      {list.length > 0 && (
+        <ul className="mt-2 divide-y divide-slate-900">
+          {list.map((m) => (
+            <li key={m.userRef} className="flex items-center gap-2 py-1.5 text-[12px]">
+              <span className="min-w-0 flex-1 truncate font-mono text-slate-300" title={m.userRef}>{m.userRef === me ? `${m.userRef} (you)` : m.userRef}</span>
+              <select value={m.role} disabled={!canManage} aria-label={`Role for ${m.userRef}`} onChange={(e) => updateRole(m.userRef, e.target.value as ProjectRole)} className={`${sel} disabled:opacity-50`}>
+                {PROJECT_ROLES.map((r) => <option key={r} value={r} disabled={r !== "lead" && isLastLead(members, projectId, m.userRef)}>{ROLE_LABEL[r]}</option>)}
+              </select>
+              {canManage && <button onClick={() => removeMember(m.userRef)} disabled={isLastLead(members, projectId, m.userRef)} aria-label={`Remove ${m.userRef}`} title={isLastLead(members, projectId, m.userRef) ? "Can't remove the last Lead" : "Remove"} className="rounded border border-slate-700 px-1.5 py-1 text-[11px] text-slate-400 hover:bg-slate-800 disabled:opacity-40">✕</button>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {canManage ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input value={newRef} onChange={(e) => setNewRef(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addMember()} placeholder={t("innovation.team.refPlaceholder")} aria-label={t("innovation.team.add")} className={`${sel} min-w-0 flex-1`} />
+          <select value={newRole} aria-label="New member role" onChange={(e) => setNewRole(e.target.value as ProjectRole)} className={sel}>
+            {PROJECT_ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+          </select>
+          <button onClick={addMember} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20">＋ {t("innovation.team.add")}</button>
+        </div>
+      ) : (
+        <p className="mt-2 text-[10px] text-slate-600">{t("innovation.team.leadOnly")}</p>
+      )}
+      <p className="mt-2 text-[9px] text-slate-600">{t("innovation.team.gatingNote")}</p>
     </div>
   );
 }

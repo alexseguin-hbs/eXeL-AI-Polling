@@ -537,5 +537,27 @@ ok(upsideAccelOf({ ...P0, upsideAccelK: 500 }).accelK === 500, "upsideAccelOf ho
 ok(upsideAccelOf({ ...P0, upsideAccelK: undefined }).accelK === Math.round(P0.nreK * 0.15), "upsideAccelOf defaults to 15% of NRE when no intake is set");
 ok(upsideAccelOf(P0).revFwdM === upsideAccelOf(P0).revFwdM, "upsideAccelOf is deterministic (single source of truth)");
 
+/* ---------------- Roles / membership + pure can() permission helper (Slice 5) ---------------- */
+import { can, roleOf, isLastLead, ROLE_RANK, PROJECT_ROLES } from "../lib/innovation-data.ts";
+// viewer = read-only (no write action authorized)
+ok(["reorder","editSource","editGateStatus","signoff","approve","editBudget","comment","recommend"].every((a) => !can("viewer", a)), "viewer authorizes no write actions (read-only)");
+// editor = edit/comment/recommend/gate-status/reorder, but NOT sign-off/approve/budget
+ok(can("editor","editSource") && can("editor","comment") && can("editor","recommend") && can("editor","editGateStatus") && can("editor","reorder"), "editor authorizes edit/comment/recommend/gate-status/reorder");
+ok(!can("editor","signoff") && !can("editor","approve") && !can("editor","editBudget"), "editor cannot sign-off, approve, or edit budget");
+// approver adds sign-off + approve, still not budget
+ok(can("approver","signoff") && can("approver","approve") && !can("approver","editBudget"), "approver adds sign-off + approve but not budget");
+// lead can do everything
+ok(["reorder","editSource","editGateStatus","signoff","approve","editBudget","comment","recommend"].every((a) => can("lead", a)), "lead authorizes every action");
+ok(!can(null, "comment") && !can(undefined, "comment"), "no role authorizes nothing");
+ok(ROLE_RANK.viewer < ROLE_RANK.editor && ROLE_RANK.editor < ROLE_RANK.approver && ROLE_RANK.approver < ROLE_RANK.lead, "role rank strictly increases viewer→lead");
+ok(PROJECT_ROLES.length === 4, "four project roles");
+// roleOf: no members ⇒ implicit owner Lead; known member gets their role; unknown gets viewer
+ok(roleOf({}, "P-1", "u1") === "lead", "no members ⇒ implicit owner is Lead (never bricks the tool)");
+ok(roleOf({ "P-1": [{ userRef: "u1", role: "editor" }] }, "P-1", "u1") === "editor", "roleOf returns a member's assigned role");
+ok(roleOf({ "P-1": [{ userRef: "u1", role: "lead" }] }, "P-1", "u2") === "viewer", "a non-member on a populated project is viewer");
+// last-lead guard
+ok(isLastLead({ "P-1": [{ userRef: "u1", role: "lead" }, { userRef: "u2", role: "editor" }] }, "P-1", "u1"), "isLastLead true when only one lead remains");
+ok(!isLastLead({ "P-1": [{ userRef: "u1", role: "lead" }, { userRef: "u2", role: "lead" }] }, "P-1", "u1"), "isLastLead false when another lead exists");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

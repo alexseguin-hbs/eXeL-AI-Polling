@@ -677,6 +677,51 @@ export function upsideAccelOf(p: Project): UpsideAccel {
   return { accelK, months, revFwdM };
 }
 
+// ── Roles / project membership + permissions (Slice 5) ───────────────────────────────────────────
+// A member is added to a project as one of four roles. Roles authorize WRITES; the persona lens
+// (PM/Mgr/SBU/VP) is only a display choice. IMPORTANT: with per-browser owner isolation and no accounts
+// yet, this is self-asserted UX gating, NOT a security boundary — real enforcement lands with accounts/RLS.
+export type ProjectRole = "viewer" | "editor" | "approver" | "lead";
+export const PROJECT_ROLES: ProjectRole[] = ["viewer", "editor", "approver", "lead"];
+export const ROLE_LABEL: Record<ProjectRole, string> = { viewer: "Viewer", editor: "Editor", approver: "Approver", lead: "Project Lead" };
+export const ROLE_RANK: Record<ProjectRole, number> = { viewer: 0, editor: 1, approver: 2, lead: 3 };
+
+// Every gated write action in the tool. One source of truth reused by every surface (Slices 6/7/8 + edits).
+export type PermAction =
+  | "reorder" | "editSource" | "editGateStatus" | "signoff" | "approve" | "editBudget" | "comment" | "recommend";
+
+// Minimum role required for each action. viewer=read-only; editor edits + comments/recommends;
+// approver adds gate sign-off/approve; lead can do everything (incl. reprioritize + budget).
+const ACTION_MIN_ROLE: Record<PermAction, ProjectRole> = {
+  comment: "editor", recommend: "editor", editSource: "editor", editGateStatus: "editor",
+  reorder: "editor", signoff: "approver", approve: "approver", editBudget: "lead",
+};
+
+/** Pure, deterministic permission check — does this role authorize this action? (single source of truth) */
+export function can(role: ProjectRole | null | undefined, action: PermAction): boolean {
+  if (!role) return false;
+  return ROLE_RANK[role] >= ROLE_RANK[ACTION_MIN_ROLE[action]];
+}
+
+export interface ProjectMember { userRef: string; role: ProjectRole }
+// Membership map keyed by projectId. userRef is a stable id-shaped token (from ownerKey()), never a display
+// name, so the eventual ownerKey()→auth.uid() migration can remap identity without rewriting history.
+export type MembershipMap = Record<string, ProjectMember[]>;
+
+/** Resolve a user's effective role on a project. No members ⇒ implicit owner = Lead (never brick the tool). */
+export function roleOf(members: MembershipMap, projectId: string, userRef: string): ProjectRole {
+  const list = members[projectId];
+  if (!list || list.length === 0) return "lead"; // implicit owner
+  const m = list.find((x) => x.userRef === userRef);
+  return m ? m.role : "viewer";
+}
+
+/** Would removing/demoting this member strip the project of its LAST lead? (guard against self-lockout) */
+export function isLastLead(members: MembershipMap, projectId: string, userRef: string): boolean {
+  const leads = (members[projectId] ?? []).filter((m) => m.role === "lead");
+  return leads.length === 1 && leads[0].userRef === userRef;
+}
+
 // Re-optimization cadence ladder (Vision•2525 · SoI): legacy quarterly → the tool enables monthly now →
 // weekly → daily as the System of Intelligence tightens the funding/schedule loop toward the speed of thought.
 export type Cadence = "Q" | "M" | "W" | "D";
