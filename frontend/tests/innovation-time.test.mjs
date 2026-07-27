@@ -414,5 +414,11 @@ ok(expectedValueOf({ ...P0, nreK: P0.nreK }, 2) === expectedValueOf(P0, 1), "exp
 ok(handoffReadiness({ ...P0, valueProp: "vp", segmentValueProps: [{ segment: "s", prop: "p" }], valueDrivers: [{ name: "d", importance: 1, ourScore: 1, nbaScore: 0 }] }).ready, "handoffReadiness: value prop + segment + delta → ready");
 ok(!handoffReadiness({ ...P0, valueProp: "", segmentValueProps: [], valueDrivers: [], fullRev10yM: 0, doNothing10yM: 0, nreK: 999999 }).ready, "handoffReadiness: missing artifacts → not ready");
 
+/* ---------------- Consistency check (Slice 8) ---------------- */
+import { consistencyCheck } from "../lib/innovation-data.ts";
+ok(consistencyCheck({ ...P0, valueProp: "vp", nextBestAlternative: "nba", valueDrivers: [{ name: "d", importance: 1, ourScore: 0.9, nbaScore: 0.2 }], segmentValueProps: [{ segment: "s", prop: "p" }] }).ok, "consistencyCheck: full spine (vp+nba+drivers+segments, winning) → ok");
+ok(consistencyCheck({ ...P0, valueProp: "", nextBestAlternative: "", valueDrivers: [], segmentValueProps: [] }).issues.length >= 4, "consistencyCheck: empty spine flags ≥4 issues");
+ok(consistencyCheck({ ...P0, valueProp: "", nextBestAlternative: "", valueDrivers: [], segmentValueProps: [] }).ok === false, "consistencyCheck: gaps → not ok");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

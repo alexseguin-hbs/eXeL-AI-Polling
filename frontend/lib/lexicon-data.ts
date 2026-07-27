@@ -1371,6 +1371,13 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.seg.libraryHint", englishDefault: "Recurring buyer needs — reused across projects when authoring value props.", context: "Segment library helper", cubeId: 60 },
   { key: "innovation.seg.addSeg", englishDefault: "＋ Add need", context: "Segment library add button", cubeId: 60 },
   { key: "innovation.persona.anotherLens", englishDefault: "See in another lens", context: "Persona quick-switch to next lens", cubeId: 60 },
+  // Glossary · consistency · exports (Slice 8)
+  { key: "innovation.glossary.title", englishDefault: "Shared Glossary", context: "Business Setup glossary editor heading", cubeId: 60 },
+  { key: "innovation.glossary.hint", englishDefault: "One versioned definition per term — the shared vocabulary cited across every surface.", context: "Glossary helper", cubeId: 60 },
+  { key: "innovation.glossary.addTerm", englishDefault: "＋ Add term", context: "Glossary add-term button", cubeId: 60 },
+  { key: "innovation.consistency.ok", englishDefault: "Consistent", context: "Consistency badge — no gaps", cubeId: 60 },
+  { key: "innovation.consistency.gaps", englishDefault: "Consistency gaps", context: "Consistency badge — gaps found", cubeId: 60 },
+  { key: "innovation.export.outcomeBrief", englishDefault: "Outcome brief", context: "Outcome-brief export button", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

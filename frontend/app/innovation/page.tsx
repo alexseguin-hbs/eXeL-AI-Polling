@@ -27,7 +27,7 @@ import {
   metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
   valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
   valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf, killRiskOf,
-  expectedValueOf, handoffReadiness,
+  expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
@@ -42,7 +42,23 @@ const SS_KEY = "innovation-unlocked";
 const CONFIG_KEYS = [
   "innovation-pillars", "innovation-biz-setup", "innovation-review-board",
   "innovation-stack-name", "innovation-dogtag-highlights", "innovation-segment-library",
+  "innovation-glossary",
 ];
+// Shared glossary (Slice 8) — one versioned definition per metric/term, admin-editable, cited across the
+// tool. Persisted with the config bundle (→ Supabase). Keeps engineer/business/BD vocabulary aligned.
+const GLOSSARY_KEY = "innovation-glossary";
+const DEFAULT_GLOSSARY: Record<string, string> = {
+  "NBA": "Next Best Alternative — the current competitive alternative or As-Is solution the customer uses today.",
+  "EVC": "Economic Value to Customer — the NBA reference value plus our differentiation value vs the NBA.",
+  "Value Equation": "importance × (our score − NBA score) × addressable revenue, summed across differentiators.",
+  "$/min cost-of-time": "Burn rate of elapsed development time; NRE spread across the remaining schedule.",
+  "Intelligence Load": "The AI · SI · HI mix of a project — machine, shared-intent, and human effort shares.",
+};
+function loadGlossary(): Record<string, string> {
+  const s = lsGet(GLOSSARY_KEY);
+  if (s) { try { const o = JSON.parse(s); if (o && typeof o === "object") return o as Record<string, string>; } catch { /* default */ } }
+  return DEFAULT_GLOSSARY;
+}
 // Segment library (Slice 7) — a cross-project taxonomy of recurring buyer needs, admin-editable, so one
 // team's discovered segment seeds another's value prop. Persisted with the config bundle (→ Supabase).
 const SEGLIB_KEY = "innovation-segment-library";
@@ -1075,6 +1091,29 @@ function downloadBdPacket(p: Project) {
   URL.revokeObjectURL(url);
 }
 
+// Outcome brief (Slice 8) — a fuller shareable brief than the BD packet: value prop + value drivers vs the
+// NBA + Intelligence-Load read + gate + funding. Client-side text download; deterministic/offline.
+function downloadOutcomeBrief(p: Project) {
+  if (typeof document === "undefined") return;
+  const fm = financialMetrics(p); const eq = valueEquationOf(p); const il = intelLoadGloss(p);
+  const drivers = (p.valueDrivers ?? []).map((d) => `  · ${d.name}: ours ${Math.round(d.ourScore * 100)} vs NBA ${Math.round(d.nbaScore * 100)} (importance ${Math.round(d.importance * 100)})`).join("\n") || "  (no drivers scored)";
+  const segs = (p.segmentValueProps ?? []).map((s) => `  · ${s.segment}: ${s.prop}`).join("\n") || "  (no segments)";
+  const lines = [
+    `OUTCOME BRIEF — ${p.name}`,
+    `SBU ${hierOf(p).sbu} · ${GATE_STAGE[p.gate]} (${p.gate}) · Launch ${p.firstRevenue}`,
+    ``, `VALUE PROPOSITION`, valuePropOf(p),
+    ``, `NEXT BEST ALTERNATIVE`, nbaOf(p),
+    ``, `VALUE EQUATION vs NBA — index ${Math.round(eq.competitiveIndex)}/100 · EVC ~$${eq.evcUsdM.toFixed(0)}M`, drivers,
+    ``, `NEEDS SEGMENTS`, segs,
+    ``, `INTELLIGENCE LOAD`, `AI ${Math.round(p.ai * 100)} · SI ${Math.round(p.si * 100)} · HI ${Math.round(p.hi * 100)} — ${il.gloss}`,
+    ``, `ECONOMICS`, `NPV ${usd(fm.npvM)} · IRR ${fm.irrPct}% · Payback ${fm.paybackYears} yr · 10-Yr Rev ${usd(fm.rev10yM)} · R&D ${k(p.nreK)}`,
+    ``, `KEY RISK`, killRiskOf(p),
+  ].join("\n");
+  const url = URL.createObjectURL(new Blob([lines], { type: "text/plain" }));
+  const a = document.createElement("a"); a.href = url; a.download = `outcome-brief-${p.id}.txt`; a.click();
+  URL.revokeObjectURL(url);
+}
+
 function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fundedIds: Set<string>; onClose: () => void }) {
   const { t } = useLexicon();
   const [level, setLevel] = useState<"sbu" | "pgroup">("sbu");
@@ -1234,6 +1273,16 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
       <div className="mb-3"><DogTag p={p} /></div>
+      {/* Consistency badge + outcome-brief export (Slice 8) */}
+      {(() => { const c = consistencyCheck(p); return (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <span className={`rounded px-2 py-0.5 text-[10px] font-medium ${c.ok ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}
+            title={c.ok ? "value prop · NBA · drivers · segments aligned" : c.issues.join(" · ")}>
+            {c.ok ? `✓ ${t("innovation.consistency.ok")}` : `⚠ ${t("innovation.consistency.gaps")} (${c.issues.length})`}
+          </span>
+          <button onClick={() => downloadOutcomeBrief(p)} className="rounded border border-cyan-500/40 px-2 py-0.5 text-[10px] font-medium text-cyan-300 hover:bg-cyan-500/10">⬇ {t("innovation.export.outcomeBrief")}</button>
+        </div>
+      ); })()}
       {/* Value proposition — HI master (must-have) with a HI⇄AI toggle, the Next Best Alternative,
           and per-needs-segment props (recommended). AI rendition is minted at submission. */}
       <div className="mb-3 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-3">
@@ -2186,6 +2235,7 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
   const [stackName, setStackName] = useState(DEFAULT_STACK_NAME);
   const [dogtag, setDogtag] = useState<string[]>(DEFAULT_DOGTAG);
   const [segLib, setSegLib] = useState<string[]>(DEFAULT_SEGLIB);
+  const [glossary, setGlossary] = useState<[string, string][]>(Object.entries(DEFAULT_GLOSSARY));
   const { t } = useLexicon();
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
@@ -2196,9 +2246,11 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
     setStackName(loadStackName());
     setDogtag(loadDogtag());
     setSegLib(loadSegLib());
+    setGlossary(Object.entries(loadGlossary()));
   }, []);
   const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
   const persistSegLib = (next: string[]) => { setSegLib(next); lsSet(SEGLIB_KEY, JSON.stringify(next)); };
+  const persistGlossary = (next: [string, string][]) => { setGlossary(next); lsSet(GLOSSARY_KEY, JSON.stringify(Object.fromEntries(next.filter(([k2]) => k2.trim())))); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
   const persistBoard = (next: string) => { setBoard(next); lsSet(REVIEW_BOARD_KEY, next); };
   const persistStackName = (next: string) => { setStackName(next); lsSet(STACK_NAME_KEY, next); onRename?.(next); };
@@ -2278,6 +2330,24 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
             <div key={i} className="flex items-center gap-1 rounded-lg border border-slate-800 px-1.5 py-1">
               <input value={sg} onChange={(e) => persistSegLib(segLib.map((x, j) => j === i ? e.target.value : x))} placeholder="buyer need" className={`w-40 ${inp} py-1 text-xs`} />
               <button onClick={() => persistSegLib(segLib.filter((_, j) => j !== i))} className="rounded px-1 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Shared glossary (Slice 8) — one versioned definition per term, cited across the tool */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">{t("innovation.glossary.title")} <span className="text-[11px] text-slate-500">({glossary.length})</span></h2>
+          <button onClick={() => persistGlossary([...glossary, ["", ""]])} className="rounded bg-cyan-500/90 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">{t("innovation.glossary.addTerm")}</button>
+        </div>
+        <p className="mt-1 text-[10px] text-slate-500">{t("innovation.glossary.hint")}</p>
+        <div className="mt-2 space-y-1.5">
+          {glossary.map(([term, def], i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              <input value={term} onChange={(e) => persistGlossary(glossary.map((x, j) => j === i ? [e.target.value, x[1]] : x))} placeholder="term" className={`w-40 ${inp}`} />
+              <input value={def} onChange={(e) => persistGlossary(glossary.map((x, j) => j === i ? [x[0], e.target.value] : x))} placeholder="definition" className={`flex-1 min-w-[220px] ${inp}`} />
+              <button onClick={() => persistGlossary(glossary.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
             </div>
           ))}
         </div>

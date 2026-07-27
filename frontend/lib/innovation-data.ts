@@ -946,6 +946,20 @@ export function handoffReadiness(p: Project): { valueProp: boolean; segment: boo
 }
 
 /**
+ * Consistency check (Slice 8 · Aset) — flags where a project's spine has diverged/gaps so the badge is
+ * actionable. Pure; returns the list of issues + an ok flag (empty issues = consistent).
+ */
+export function consistencyCheck(p: Project): { issues: string[]; ok: boolean } {
+  const issues: string[] = [];
+  if (!(p.valueProp && p.valueProp.trim())) issues.push("Missing master value proposition");
+  if (!(p.nextBestAlternative && p.nextBestAlternative.trim())) issues.push("Missing Next Best Alternative");
+  if ((p.valueDrivers?.length ?? 0) === 0) issues.push("No Value-Equation drivers vs the NBA");
+  if ((p.segmentValueProps?.length ?? 0) === 0) issues.push("No per-needs-segment value props");
+  if (valueEquationOf(p).losses > valueEquationOf(p).wins) issues.push("Loses to the NBA on more drivers than it wins");
+  return { issues, ok: issues.length === 0 };
+}
+
+/**
  * Compose a best-in-class master value proposition from the Value Equation — the winning drivers vs the NBA.
  * "For <target>, <name> beats <NBA> on <top win drivers> — <EVC>-tier economic value." Falls back to the
  * derived aiValuePropOf when no driver wins, so it never returns an empty string.
