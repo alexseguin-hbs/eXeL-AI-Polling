@@ -2190,6 +2190,17 @@ function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: s
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [present]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Present mode → real OS full-screen (operator: "full-screen stage"). Best-effort; exits on leave.
+  useEffect(() => {
+    if (!present || typeof document === "undefined") return;
+    const el = document.documentElement;
+    el.requestFullscreen?.().catch(() => {});
+    return () => { if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {}); };
+  }, [present]);
+  // Swipe nav on the stage (touch).
+  const touchX = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0]?.clientX ?? null; };
+  const onTouchEnd = (e: React.TouchEvent) => { if (touchX.current == null) return; const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); touchX.current = null; };
 
   // ---- field editors (edit-mode) ----
   const inputCls = "w-full rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[13px] text-slate-100 outline-none focus:border-cyan-500";
@@ -2205,7 +2216,8 @@ function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: s
       const rows = v as string[][];
       return <div className="overflow-x-auto"><table className="w-full text-[12px]"><tbody>{rows.map((r, ri) => <tr key={ri} className="border-b border-slate-900">{r.map((c, ci) => <td key={ci} className="px-2 py-1 tabular-nums text-emerald-300">{c}</td>)}</tr>)}</tbody></table></div>;
     }
-    // chart / other linked → compact note from the model
+    // chart → live financial mini-chart from the project record (import project financials)
+    if (f.kind === "chart") return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-2"><div className="mb-1 text-[10px] text-emerald-300/80">◈ Live from the project record</div><MiniFinChart kind={spec.code} /></div>;
     return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] px-3 py-2 text-[12px] text-emerald-300/90">◈ Live from the project record — {f.name} is derived, not typed.</div>;
   }
   function FieldEditor({ f }: { f: SlideField }) {
@@ -2228,16 +2240,91 @@ function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: s
   }
 
   // ---- present-mode field renderer (read effective value) ----
-  function PresentField({ sp, f }: { sp: SlideSpec; f: SlideField }) {
-    const v = effective(sp, f); if (fieldEmpty(v)) return null;
+  // Financial mini-chart drawn LIVE from the project record (import project financials). S3 = R&D spend
+  // vs revenue vs margin by year (grouped bars); S14 = combined resource needs ($/yr). Deterministic SVG.
+  function MiniFinChart({ kind, big }: { kind: string; big?: boolean }) {
+    const fo = financialsOverview(p, { years: 6, funded: true });
+    const series = kind === "S14"
+      ? [{ label: "Resource $ (R&D)", color: "#a78bfa", vals: fo.map((r) => r.rdK / 1000) }]
+      : [
+          { label: "Revenue", color: "#34d399", vals: fo.map((r) => r.revM) },
+          { label: "Margin", color: "#f7b955", vals: fo.map((r) => r.marginM) },
+          { label: "R&D", color: "#64748b", vals: fo.map((r) => r.rdK / 1000) },
+        ];
+    const max = Math.max(1, ...series.flatMap((s) => s.vals)) * 1.12;
+    const W = 320, H = big ? 150 : 96, L = 4, B = 16, T = 6, n = fo.length, ns = series.length;
+    const gw = (W - L) / n, bw = Math.max(3, (gw * 0.7) / ns);
+    const y = (val: number) => H - B - (val / max) * (H - B - T);
     return (
+      <div>
+        <div className="mb-1 flex flex-wrap gap-x-3 gap-y-0.5">
+          {series.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "auto" }} role="img" aria-label={`${kind} financials by year`}>
+          {[0.25, 0.5, 0.75, 1].map((fr) => <line key={fr} x1={L} y1={y(max * fr)} x2={W} y2={y(max * fr)} stroke="rgba(148,163,184,.1)" />)}
+          {fo.map((r, i) => (
+            <g key={r.year}>
+              {series.map((s, si) => { const x = L + i * gw + gw * 0.15 + si * bw; const yy = y(s.vals[i]); return <rect key={si} x={x} y={yy} width={bw - 1} height={Math.max(0, H - B - yy)} fill={s.color} rx={1} />; })}
+              <text x={L + i * gw + gw / 2} y={H - 4} textAnchor="middle" fontSize="8" fill="#64748b" fontFamily="ui-monospace, monospace">{r.year}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    );
+  }
+  function PresentField({ sp, f, big }: { sp: SlideSpec; f: SlideField; big?: boolean }) {
+    if (f.kind === "chart" && f.linked) return (
       <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-3">
+        <div className="mb-1.5 text-[9px] uppercase tracking-[0.16em] text-slate-500">{f.name} · ◈ live</div>
+        <MiniFinChart kind={sp.code} big={big} />
+      </div>
+    );
+    const v = effective(sp, f); if (fieldEmpty(v)) return null;
+    const isVp = /valueprop|vprop|desc/i.test(f.id) || f.name.toLowerCase().includes("value prop");
+    return (
+      <div className={`rounded-lg border ${isVp ? "border-cyan-500/30 bg-cyan-500/[0.05]" : "border-slate-800 bg-[#0b0f14]"} p-3`}>
         <div className="mb-1.5 text-[9px] uppercase tracking-[0.16em] text-slate-500">{f.name}{f.linked ? " · ◈ live" : ""}</div>
-        {(f.kind === "text" || f.kind === "longtext") && <p className="m-0 text-[15px] leading-relaxed text-slate-100">{v as string}</p>}
+        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}>{v as string}</p>}
         {f.kind === "attach" && <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>}
-        {f.kind === "list" && <ul className="m-0 list-disc pl-5 text-[14px] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
-        {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[18px] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
-        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <div className="overflow-x-auto"><table className="w-full text-[13px]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div>}
+        {f.kind === "list" && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
+        {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[clamp(18px,2.2vw,30px)] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
+        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div>}
+      </div>
+    );
+  }
+
+  // PRESENT MODE — full-screen stage (operator: "full-screen stage + live financials"). Tap zones + arrows +
+  // swipe; big responsive type; financial fields render live from the project record; value prop is featured.
+  if (present) {
+    const anyContent = spec.fields.some((f) => !fieldEmpty(effective(spec, f)) || (f.kind === "chart" && f.linked));
+    return (
+      <div className="fixed inset-0 z-[60] flex flex-col bg-[#04070c] text-slate-100" role="dialog" aria-modal="true"
+        onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {/* tap zones for prev/next (edges) */}
+        <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[1] w-[16%] cursor-w-resize bg-transparent" />
+        <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[1] w-[16%] cursor-e-resize bg-transparent" />
+        {/* stage controls */}
+        <div className="absolute right-3 top-3 z-10 flex gap-2">
+          <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
+          <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
+        </div>
+        <div className="flex flex-1 flex-col overflow-hidden px-[clamp(20px,4vw,64px)] py-[clamp(16px,3vw,40px)]">
+          <div className="flex items-baseline gap-3 border-b border-slate-800 pb-[clamp(10px,1.6vw,20px)]">
+            <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.code} · {spec.gate} {spec.stage.toUpperCase()}</span>
+            <h2 className="text-[clamp(22px,3.4vw,44px)] font-semibold tracking-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h2>
+          </div>
+          <div className="mt-[clamp(14px,2.4vw,28px)] grid flex-1 content-start gap-[clamp(12px,1.6vw,22px)] overflow-y-auto sm:grid-cols-2">
+            {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
+            {!anyContent && <p className="text-[clamp(14px,1.6vw,20px)] italic text-slate-500">Nothing authored on this slide yet — tap Edit to add content.</p>}
+          </div>
+          <div className="mt-[clamp(12px,2vw,22px)] flex items-center gap-3 border-t border-slate-800 pt-[clamp(10px,1.6vw,18px)]">
+            <span className="font-mono text-[11px] tracking-wider text-slate-500">{p.name}</span>
+            <div className="flex flex-1 gap-1">
+              {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-1 flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
+            </div>
+            <span className="font-mono text-[11px] tabular-nums text-slate-500">{idx + 1}/{SLIDE_SCHEMA.length}</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -2270,23 +2357,8 @@ function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: s
           })}
         </div>
 
-        {present ? (
-          /* PRESENT MODE — the slide as a deck */
-          <div className="mt-3 rounded-xl border border-slate-800 bg-[#0b0f14] p-4 sm:p-6">
-            <div className="flex items-baseline gap-3 border-b border-slate-800 pb-3">
-              <span className="font-mono text-[11px] tracking-[0.14em] text-cyan-400">{spec.code} · {spec.gate} {spec.stage.toUpperCase()}</span>
-              <h3 className="text-xl font-semibold tracking-tight text-slate-100 sm:text-2xl">{slideDef(spec.code)?.name ?? spec.code}</h3>
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} />)}
-              {spec.fields.every((f) => fieldEmpty(effective(spec, f))) && <p className="text-[13px] italic text-slate-500">Nothing authored on this slide yet — switch to Edit.</p>}
-            </div>
-            <div className="mt-4 flex items-center gap-1 border-t border-slate-800 pt-3">
-              {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-1 flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
-            </div>
-          </div>
-        ) : (
-          /* EDIT MODE — field-level authoring */
+        {/* EDIT MODE — field-level authoring (Present renders as a full-screen stage via early return above) */}
+        {(
           <div className="mt-3 rounded-xl border border-slate-800 bg-[#0b0f14] p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
