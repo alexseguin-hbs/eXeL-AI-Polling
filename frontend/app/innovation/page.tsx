@@ -1184,55 +1184,39 @@ function GateCube({ p }: { p: Project }) {
   const readyCount = review.deliverables.filter((d) => slideStatus(d.slide) === "approved").length;
   const allSlides = GATES.flatMap((g) => GATE_REVIEW[g].deliverables.map((d) => d.slide));
   const approvedSlides = allSlides.filter((s) => slideStatus(s) === "approved").length;
-  const pctSlides = allSlides.length ? Math.round((approvedSlides / allSlides.length) * 100) : 0;
+  const board = loadReviewBoard();
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Gate progression · {p.gate} {GATE_STAGE[p.gate]}</h3>
         <span className="text-[11px] text-slate-500">gate {gi + 1} of {GATES.length} · source of record</span>
       </div>
-      {/* Review-slide progression across gates G1–G7 (approved review slides / total) */}
+      {/* Deliverables S1–S18 across gates G1–G7 — tap a slide to cycle its IRB gate feedback */}
       <div className="mt-3">
         <div className="flex items-center justify-between text-[10px] text-slate-500">
-          <span className="uppercase tracking-wider">Review-slide progression · G1–G7</span>
-          <span className="font-mono text-slate-300">{approvedSlides}/{allSlides.length} slides approved</span>
+          <span className="uppercase tracking-wider">Deliverables · S1–S18 · {board} gate feedback</span>
+          <span className="font-mono text-slate-300">{approvedSlides}/{allSlides.length} approved</span>
         </div>
-        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800">
-          <div className="h-full bg-cyan-400" style={{ width: `${pctSlides}%` }} />
-        </div>
-      </div>
-      {/* Completed — review slides by gate (codes only) */}
-      <div className="mt-3 border-t border-slate-800 pt-2">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Completed · review slides by gate</div>
-        <div className="mt-1 flex flex-wrap gap-1">
-          {GATES.slice(0, gi + 1).map((g) => (
-            <span key={g} className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-300" title={`${g} review slides: ${GATE_REVIEW[g].deliverables.map((d) => d.slide).join(", ")}`}>
-              {g} {GATE_STAGE[g]} ✓ <span className="text-slate-500">{GATE_REVIEW[g].deliverables.map((d) => d.slide).join("·")}</span>
-            </span>
-          ))}
-        </div>
-      </div>
-      {/* What's needed for the next gate approval — each slide is an editable input */}
-      <div className="mt-3 border-t border-slate-800 pt-2">
-        <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-wider text-amber-400">
-            {nextGate ? `Slides needed for next gate · ${GATE_STAGE[nextGate]} (${nextGate})` : `Final gate · ${GATE_STAGE[p.gate]} (${p.gate})`}
-          </div>
-          <span className={`text-[10px] font-mono ${readyCount === review.deliverables.length ? "text-emerald-400" : "text-slate-500"}`}>{readyCount}/{review.deliverables.length} approved</span>
-        </div>
-        <ul className="mt-1 space-y-1">
-          {review.deliverables.map((d) => {
-            const st = slideStatus(d.slide);
+        <div className="mt-2 space-y-1.5">
+          {GATES.map((g, ci) => {
+            const state = ci < gi ? "done" : ci === gi ? "current" : ci === gi + 1 ? "next" : "future";
+            const gateColor = state === "next" ? "text-amber-300" : state === "current" ? "text-cyan-300" : state === "done" ? "text-emerald-300" : "text-slate-500";
             return (
-              <li key={d.slide} className="flex items-center gap-2 text-[11px]">
-                <span className="font-mono text-slate-500 w-10 shrink-0">{d.slide}</span>
-                <span className="flex-1 truncate text-slate-200">Gate {nextGate ?? p.gate} review slide</span>
-                <button onClick={() => cycleSlide(d.slide)} title="Cycle gate-feedback status"
-                  className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
-              </li>
+              <div key={g} className="flex flex-wrap items-center gap-1.5">
+                <span className={`w-24 shrink-0 text-[10px] font-mono ${gateColor}`}>{g} {GATE_STAGE[g]}{state === "done" || state === "current" ? " ✓" : ""}</span>
+                {GATE_REVIEW[g].deliverables.map((d) => {
+                  const st = slideStatus(d.slide);
+                  return (
+                    <button key={d.slide} onClick={() => cycleSlide(d.slide)}
+                      title={`${d.slide} · Gate ${g} · ${board} gate feedback: ${SLIDE_TXT[st]} — tap to advance`}
+                      className={`rounded border px-1.5 py-0.5 text-[10px] font-mono ${SLIDE_PILL[st]}`}>{d.slide}{st === "approved" ? " ✓" : ""}</button>
+                  );
+                })}
+              </div>
             );
           })}
-        </ul>
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">Tap a slide to cycle its {board} (Innovation Review Board) gate feedback{nextGate ? ` · next gate ${nextGate} ${GATE_STAGE[nextGate]} · ${readyCount}/${review.deliverables.length} approved` : " · final gate"}.</p>
       </div>
     </div>
   );
@@ -1299,6 +1283,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
   // this PdM/PgM gate tool. Per-slide gate feedback is set here and shares the SLIDE_KEY store with
   // the Gate-progression cube, so a slide's status stays in sync across both surfaces.
   const sRows = useMemo(() => GATE_REQUIREMENTS.filter((r) => r.type === "S"), []);
+  const board = loadReviewBoard();
   const [slides, setSlides] = useState<Record<string, string>>({});
   useEffect(() => { try { setSlides(JSON.parse(lsGet(SLIDE_KEY) || "{}")); } catch { /* none */ } }, []);
   const slideStatus = (id: string) => slides[`${sel.id}|${id}`] || "";
@@ -1355,7 +1340,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
           <h2 className="text-sm font-semibold">Gate review slides · S1–S18 · {sRows.length} across G1–G7</h2>
-          <div className="text-[10px] text-slate-500">Each slide is reviewed at its gate — set your gate feedback per slide.</div>
+          <div className="text-[10px] text-slate-500">Each slide is reviewed at its gate — set your {board} gate feedback per slide.</div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
@@ -1366,7 +1351,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                 <th className="px-2 py-2 text-center font-medium">Band</th>
                 {GATES.map((g) => <th key={g} className="px-1.5 py-2 text-center font-mono font-medium">{g}</th>)}
                 <th className="px-2 py-2 text-right font-medium">Status</th>
-                <th className="px-2 py-2 text-right font-medium">Gate feedback</th>
+                <th className="px-2 py-2 text-right font-medium">{board} feedback</th>
               </tr>
             </thead>
             <tbody>
@@ -1381,7 +1366,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                     <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{dispReqId(req.id)}</td>
                     <td className="px-2 py-1.5">
                       <div className="text-[13px] text-slate-200 leading-tight">Gate {req.earliestGate} review slide</div>
-                      <div className="text-[10px] text-slate-500"><span className="font-mono text-cyan-400/80">Gate {req.earliestGate}</span> · gate review</div>
+                      <div className="text-[10px] text-slate-500"><span className="font-mono text-cyan-400/80">Gate {req.earliestGate}</span> · {board} review</div>
                     </td>
                     <td className="px-2 py-1.5 text-center text-[11px] tabular-nums text-slate-400">±{Math.round(req.band * 100)}%</td>
                     {GATES.map((g, gi) => {
@@ -1396,7 +1381,7 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                     </td>
                     <td className="px-2 py-1.5 text-right">
                       {(() => { const st = slideStatus(req.id); return (
-                        <button onClick={(e) => { e.stopPropagation(); cycleSlide(req.id); }} title={`Gate ${req.earliestGate} feedback for ${req.id} — click to advance`}
+                        <button onClick={(e) => { e.stopPropagation(); cycleSlide(req.id); }} title={`${board} gate feedback for ${req.id} (Gate ${req.earliestGate}) — click to advance`}
                           className={`rounded border px-1.5 py-0.5 text-[10px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
                       ); })()}
                     </td>
@@ -1455,6 +1440,12 @@ function loadBizSetup(): BizSetup {
   if (saved) { try { return JSON.parse(saved) as BizSetup; } catch { /* fall through to seed */ } }
   return seedBizSetup(DEMO_PROJECTS);
 }
+// Review board that gives per-slide gate feedback. Default IRB (Innovation Review Board);
+// admin-selectable/editable in Business Setup. Persisted so every gate-feedback surface agrees.
+const REVIEW_BOARD_KEY = "innovation-review-board";
+const DEFAULT_REVIEW_BOARD = "IRB";
+const REVIEW_BOARD_PRESETS = ["IRB", "PRB", "IPT"]; // Innovation Review Board · Product Review Board · Integrated Product Team
+function loadReviewBoard(): string { return (lsGet(REVIEW_BOARD_KEY) || DEFAULT_REVIEW_BOARD).trim() || DEFAULT_REVIEW_BOARD; }
 function BusinessSetup() {
   const [admin, setAdmin] = useState(false);
   const [pw, setPw] = useState("");
@@ -1462,14 +1453,17 @@ function BusinessSetup() {
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
   const [tier, setTier] = useState<BizTier>("bu");
   const [pillars, setPillars] = useState<PillarDef[]>(() => STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] })));
+  const [board, setBoard] = useState(DEFAULT_REVIEW_BOARD);
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
     const saved = lsGet(BIZ_KEY);
     if (saved) { try { setSetup(JSON.parse(saved)); } catch { /* keep seed */ } }
     setPillars(loadPillars());
+    setBoard(loadReviewBoard());
   }, []);
   const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
+  const persistBoard = (next: string) => { setBoard(next); lsSet(REVIEW_BOARD_KEY, next); };
   const unlock = () => (pw === CODE ? (ssSet(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
 
   if (!admin) {
@@ -1531,6 +1525,21 @@ function BusinessSetup() {
           ))}
         </div>
         <p className="mt-2 text-[10px] text-slate-500">Renaming a pillar updates the edit-project + Submit-New-Idea dropdowns. Existing projects keep their stored pillar until re-selected.</p>
+      </section>
+
+      {/* Review board — the body that gives per-slide gate feedback (default IRB) */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <h2 className="text-sm font-semibold">Review Board <span className="text-[11px] text-slate-500">— gives per-slide gate feedback across G1–G7</span></h2>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {REVIEW_BOARD_PRESETS.map((b) => (
+            <button key={b} onClick={() => persistBoard(b)}
+              className={`rounded border px-2.5 py-1 text-xs font-mono ${board === b ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{b}</button>
+          ))}
+          <span className="text-[11px] text-slate-500">or</span>
+          <input value={board} onChange={(e) => persistBoard(e.target.value.toUpperCase())} maxLength={8}
+            placeholder="Custom" className={`w-28 text-center uppercase ${inp}`} />
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">Default <b className="text-cyan-300">IRB</b> (Innovation Review Board). Selecting one here relabels the gate-feedback attribution everywhere in the tool.</p>
       </section>
 
       {/* Tier tabs */}
