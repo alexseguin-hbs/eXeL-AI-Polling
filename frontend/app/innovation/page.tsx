@@ -184,13 +184,14 @@ function Board() {
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
   const [persona, setPersona] = useState<Persona>("sbu");
   const [detailMax, setDetailMax] = useState(false); // maximize the selected-project deep dive full-width
-  // a11y — Escape closes the full-screen deep-dive overlay (parity with the dialog modals).
+  const [portfolioMax, setPortfolioMax] = useState(false); // expand the Rack & Stack card to full screen (phone: see all columns)
+  // a11y — Escape closes the full-screen overlays (parity with the dialog modals).
   useEffect(() => {
-    if (!detailMax) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setDetailMax(false); };
+    if (!detailMax && !portfolioMax) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setDetailMax(false); setPortfolioMax(false); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [detailMax]);
+  }, [detailMax, portfolioMax]);
   // Responsive project detail (Slice 4): landscape = list left / detail right; portrait = list top /
   // detail bottom, revealed on tap so a phone user can actually reach the details.
   const [detailOpen, setDetailOpen] = useState(false);
@@ -572,13 +573,19 @@ function Board() {
       {/* Orientation-aware split: landscape = list LEFT / detail RIGHT · portrait = list TOP / detail BOTTOM
           (revealed on tap so phone users can reach the details). */}
       <div className="flex flex-col gap-4 p-5 landscape:flex-row landscape:items-start">
-        {/* STACK table — level-aware Rack & Stack */}
-        <section ref={stackRef} className="w-full rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden landscape:flex-1 landscape:min-w-0">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
+        {/* STACK table — level-aware Rack & Stack. Maximizes to full screen so a phone can see every column. */}
+        <section ref={stackRef} className={portfolioMax
+          ? "fixed inset-0 z-[60] flex flex-col border-0 rounded-none bg-[#0e141b] overflow-hidden"
+          : "w-full rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden landscape:flex-1 landscape:min-w-0"}>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800 shrink-0">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold">
                 {stackName} · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
               </h2>
+              <button onClick={() => setPortfolioMax((v) => !v)}
+                aria-label={portfolioMax ? t("innovation.max.restore") : t("innovation.max.expand")}
+                title={portfolioMax ? t("innovation.max.restore") : t("innovation.max.expand")}
+                className="rounded-md border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 hover:bg-slate-800">{portfolioMax ? "⤡" : "⤢"}</button>
               <button onClick={() => setBudgetOpen(true)} title="Budget by SBU / Alpha Group — incl. unfunded"
                 className="rounded-md border border-emerald-500/40 px-2 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/10">{t("innovation.stack.budget")}</button>
               {stackLevel === "product" && (
@@ -619,7 +626,7 @@ function Board() {
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          <div className={portfolioMax ? "flex-1 min-h-0 overflow-auto" : "overflow-x-auto"}>
             {isGroupLevel && (() => {
               const st = stackWithBudget(groupRows.map((g) => ({ nreK: g.nreK } as unknown as Project)), avail);
               return (

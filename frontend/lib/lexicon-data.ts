@@ -1328,6 +1328,9 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.role.editor", englishDefault: "Editor", context: "Project role: editor", cubeId: 60 },
   { key: "innovation.role.approver", englishDefault: "Approver", context: "Project role: approver", cubeId: 60 },
   { key: "innovation.role.lead", englishDefault: "Project Lead", context: "Project role: lead", cubeId: 60 },
+  // Portfolio Prioritization maximize (full-screen expand)
+  { key: "innovation.max.expand", englishDefault: "Expand to full screen", context: "Innovation portfolio card maximize button", cubeId: 60 },
+  { key: "innovation.max.restore", englishDefault: "Restore", context: "Innovation portfolio card restore-from-maximize button", cubeId: 60 },
   // New-idea + Budget modal (P3 i18n)
   { key: "innovation.newidea.title", englishDefault: "Submit New Idea", context: "Innovation new-idea modal title", cubeId: 60 },
   { key: "innovation.budget.title", englishDefault: "Budget by {level}", context: "Innovation budget modal title ({level} = BU/SBU/Alpha Group)", cubeId: 60 },
