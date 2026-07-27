@@ -559,5 +559,29 @@ ok(roleOf({ "P-1": [{ userRef: "u1", role: "lead" }] }, "P-1", "u2") === "viewer
 ok(isLastLead({ "P-1": [{ userRef: "u1", role: "lead" }, { userRef: "u2", role: "editor" }] }, "P-1", "u1"), "isLastLead true when only one lead remains");
 ok(!isLastLead({ "P-1": [{ userRef: "u1", role: "lead" }, { userRef: "u2", role: "lead" }] }, "P-1", "u1"), "isLastLead false when another lead exists");
 
+/* ---------------- Node allocation + UPSIDE (unallocated funds) per BU/SBU/Alpha Group (A1) ---------------- */
+import { nodeAllocation, defaultBudgetK } from "../lib/innovation-data.ts";
+{
+  const availK = scenarioAvailK("base");
+  const funded = new Set(DEMO_PROJECTS.slice(0, 11).map((p) => p.id));
+  for (const level of ["bu", "sbu", "pgroup"]) {
+    const alloc = nodeAllocation(DEMO_PROJECTS, level, (id) => funded.has(id), availK);
+    ok(alloc.length >= 1, `nodeAllocation returns nodes at ${level}`);
+    ok(alloc.every((n) => n.upsideK === Math.max(0, n.budgetK - n.allocatedK)), `${level}: upside = max(0, budget − allocated) (unallocated bucket)`);
+    ok(alloc.every((n) => n.overK === Math.max(0, n.allocatedK - n.budgetK)), `${level}: over = max(0, allocated − budget)`);
+    ok(alloc.every((n) => n.upsideK >= 0 && n.overK >= 0 && n.utilPct >= 0), `${level}: allocation figures are non-negative`);
+    ok(alloc.every((n) => !(n.upsideK > 0 && n.overK > 0)), `${level}: a node is never both under- and over-allocated`);
+  }
+  // Budgets sum to ~the R&D envelope at each level (revenue-base split), so upside is a real slice of dry powder.
+  const buBudgets = nodeAllocation(DEMO_PROJECTS, "bu", (id) => funded.has(id), availK).reduce((s, n) => s + n.budgetK, 0);
+  ok(Math.abs(buBudgets - availK) <= 5, "BU-level default budgets sum to the R&D envelope (±rounding)");
+  const sbuBudgets = nodeAllocation(DEMO_PROJECTS, "sbu", (id) => funded.has(id), availK).reduce((s, n) => s + n.budgetK, 0);
+  ok(Math.abs(sbuBudgets - availK) <= 10, "SBU-level default budgets sum to the R&D envelope (±rounding)");
+  // Override pins a node budget (lead sets financial spend for a node)
+  const over = nodeAllocation(DEMO_PROJECTS, "bu", (id) => funded.has(id), availK, (lvl, code) => (lvl === "bu" && code === "MS" ? 99000 : undefined));
+  ok(over.find((n) => n.code === "MS")?.budgetK === 99000, "budget override pins a node's financial spend");
+  ok(defaultBudgetK(DEMO_PROJECTS, "bu", "MS", availK) === defaultBudgetK(DEMO_PROJECTS, "bu", "MS", availK), "defaultBudgetK is deterministic");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

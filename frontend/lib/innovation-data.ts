@@ -755,6 +755,62 @@ export function fundingBuckets(projects: Project[], level: HierKey, isFunded: (i
 /** BU-level convenience (the headline 3-BU × funded/unfunded = 6-bucket view). */
 export const buBuckets = (projects: Project[], isFunded: (id: string) => boolean): FundingBucket[] => fundingBuckets(projects, "bu", isFunded);
 
+// ── Node allocation & UPSIDE (unallocated funds) — per BU · SBU · Alpha Group ─────────────────────
+// The R&D envelope (scenario available $) is split across nodes by revenue-base share, so every node
+// carries: budget (its share of the R&D cap) · allocated (Σ funded NRE) · UPSIDE = unallocated funds
+// (budget − allocated) · over (overcommit). Budgets sum to the envelope at each level, so "upside" is a
+// real bucket of dry powder the lead can deploy. Pure + deterministic; reuses fundingBuckets (one source).
+export interface NodeAllocation {
+  code: string; label: string;
+  budgetK: number; allocatedK: number; upsideK: number; overK: number;
+  utilPct: number; fundedCount: number; unfundedCount: number; perMinUsd: number;
+}
+
+/** Default budget ($K) for a node = its revenue-base share of the R&D envelope (availK). Alpha Groups
+ *  split their parent SBU's slice by NRE demand (equal split when a group has no demand yet). Deterministic. */
+export function defaultBudgetK(projects: Project[], level: HierKey, code: string, availK: number): number {
+  const company = companyBaseM() || 1;
+  if (level === "bu") return Math.round(availK * (buBaseM(code) / company));
+  if (level === "sbu") return Math.round(availK * ((SBU_BASE[code] ?? 0) / company));
+  if (level === "pgroup") {
+    let parentSbu = "";
+    const demand: Record<string, number> = {};
+    for (const p of projects) {
+      const h = hierOf(p);
+      if (h.pgroup === code && !parentSbu) parentSbu = h.sbu;
+    }
+    if (!parentSbu) return 0;
+    for (const p of projects) {
+      const h = hierOf(p);
+      if (h.sbu !== parentSbu) continue;
+      demand[h.pgroup] = (demand[h.pgroup] ?? 0) + p.nreK;
+    }
+    const sbuBudgetK = Math.round(availK * ((SBU_BASE[parentSbu] ?? 0) / company));
+    const total = Object.values(demand).reduce((s, v) => s + v, 0);
+    const groups = Object.keys(demand).length || 1;
+    if (total > 0) return Math.round(sbuBudgetK * ((demand[code] ?? 0) / total));
+    return Math.round(sbuBudgetK / groups);
+  }
+  return 0;
+}
+
+/** Per-node allocation with the UPSIDE (unallocated) bucket. `availK` = the R&D envelope (scenario $K).
+ *  `budgetOverrideK` lets a lead pin a node's budget (else the default share is used). */
+export function nodeAllocation(
+  projects: Project[], level: HierKey, isFunded: (id: string) => boolean, availK: number,
+  budgetOverrideK?: (level: HierKey, code: string) => number | undefined,
+): NodeAllocation[] {
+  return fundingBuckets(projects, level, isFunded).map((b) => {
+    const allocatedK = Math.round(b.funded.nreK);
+    const ov = budgetOverrideK?.(level, b.code);
+    const budgetK = ov != null && Number.isFinite(ov) && ov >= 0 ? Math.round(ov) : defaultBudgetK(projects, level, b.code, availK);
+    const upsideK = Math.max(0, budgetK - allocatedK);
+    const overK = Math.max(0, allocatedK - budgetK);
+    const utilPct = budgetK > 0 ? Math.round((allocatedK / budgetK) * 100) : allocatedK > 0 ? 100 : 0;
+    return { code: b.code, label: b.label, budgetK, allocatedK, upsideK, overK, utilPct, fundedCount: b.funded.count, unfundedCount: b.unfunded.count, perMinUsd: b.funded.perMinUsd };
+  });
+}
+
 // ── GROWTH MODEL (CRS-69) — Do-Nothing decline + weighted NPI + remaining-to-target ──────
 // The signature Rack-&-Stack chart: a base revenue that declines YoY with no new launches,
 // the probability-weighted incremental revenue from funded NPIs ramping in, the gap remaining
