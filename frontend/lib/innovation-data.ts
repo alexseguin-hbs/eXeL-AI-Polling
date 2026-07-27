@@ -111,7 +111,12 @@ export interface Project {
   // Business-Setup hierarchy flow through the whole tool.
   bu?: string; sbu?: string; pgroup?: string; alpha?: string; product?: string; material?: string;
   initiative?: string;
+  // Value proposition (CRS-56 · Value Assessment): the MASTER value prop is a must-have at project
+  // creation; per-needs-based-segment value props are recommended (a project can serve many segments).
+  valueProp?: string;
+  segmentValueProps?: SegmentValueProp[];
 }
+export interface SegmentValueProp { segment: string; prop: string }
 
 // ── Calculators (all derived, never stored — CRS-52/53/67) ──────────────────────────────
 export const incrementalRevM = (p: Project) => Math.max(0, p.fullRev10yM - p.doNothing10yM);
@@ -758,6 +763,15 @@ export function metaOf(p: Project): ProjectMeta {
   const competitive = p.confidence >= 4 ? "Leader" : p.confidence === 3 ? "Challenger"
     : incrementalRevM(p) > 200 ? "Fast Follower" : "Niche";
   return { initiative, targetMarket: customerOf(p), valueLadder, valueImpact, competitive };
+}
+
+// Master value proposition — the required one-liner every project must carry (falls back to a
+// derived statement for legacy/seed projects so display never blanks). Per-segment value props
+// are the recommended deepening (SegmentValueProp[]), served from p.segmentValueProps.
+export function valuePropOf(p: Project): string {
+  if (p.valueProp && p.valueProp.trim()) return p.valueProp.trim();
+  const b = briefOf(p), m = metaOf(p);
+  return `${p.name}: ${b.outcomes[0] ?? "field the capability"} via ${b.solution[0] ?? "our approach"} — ${m.valueLadder}-tier, ${m.competitive} vs the next-best alternative for ${m.targetMarket}.`;
 }
 
 // Executive-slide two-bullet Project Summary (AMTS overview one-pager parity — IMG_7825/7826).

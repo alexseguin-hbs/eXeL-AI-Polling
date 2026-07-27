@@ -337,5 +337,11 @@ ok(/\$\d/.test(eb[1]) && /%/.test(eb[1]) && eb[1].includes("2026-Q4"), "bullet 2
 ok(DEMO_PROJECTS.every((p) => execSummaryBullets(p).length === 2), "every project derives a two-bullet executive summary");
 ok(JSON.stringify(execSummaryBullets(DEMO_PROJECTS[0])) === JSON.stringify(execSummaryBullets(DEMO_PROJECTS[0])), "execSummaryBullets deterministic");
 
+/* ---------------- Value proposition (must-have at creation) ---------------- */
+import { valuePropOf } from "../lib/innovation-data.ts";
+ok(DEMO_PROJECTS.every((p) => valuePropOf(p).trim().length > 0), "every project resolves a value proposition (derived fallback for seeds)");
+ok(valuePropOf({ ...DEMO_PROJECTS[0], valueProp: "  Custom master VP  " }) === "Custom master VP", "explicit master value prop wins over the derived fallback (trimmed)");
+ok(valuePropOf({ ...DEMO_PROJECTS[0], valueProp: "" }) === valuePropOf({ ...DEMO_PROJECTS[0], valueProp: undefined }), "blank value prop falls back to the derived statement");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

@@ -22,12 +22,12 @@ import {
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
-  metaOf, financialMetrics, financialsOverview, execSummaryBullets,
+  metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
   type Project, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
-  type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup,
+  type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
 
 const CODE = "369963";
@@ -136,20 +136,26 @@ function Board() {
   useEffect(() => { lsSet("innovation-persona", persona); }, [persona]);
   useEffect(() => { lsSet("innovation-cadence", cadence); }, [cadence]);
   // Submit a new idea → a fresh Project seeded from the master data, opened for edit.
-  const submitIdea = () => {
+  // New-idea creation now runs through a modal that REQUIRES a master value proposition
+  // (per-needs-segment value props recommended) — value prop is a must-have at creation (CRS-56).
+  const [newIdeaOpen, setNewIdeaOpen] = useState(false);
+  const createIdea = (fields: { name: string; valueProp: string; segments: SegmentValueProp[] }) => {
     const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
     const id = `PRJ-${String(maxN + 1).padStart(2, "0")}`;
     const np: Project = {
-      id, name: "New Idea", division: "New", manager: "you", category: "New Product",
+      id, name: fields.name.trim() || "New Idea", division: "New", manager: "you", category: "New Product",
       gate: "G1", confidence: 2, tech: "med", comm: "med", lob: setup.sbu[0]?.code ?? "SBU-1",
       nreK: 1000, fullRev10yM: 50, doNothing10yM: 0, firstRevenue: "2028-Q1",
       criticalPath: false, humanLoad: 0.4, ai: 0.4, si: 0.3, hi: 0.3, predictions: 0,
       bu: setup.bu[0]?.code, sbu: setup.sbu[0]?.code, pgroup: setup.pgroup[0]?.code,
       alpha: setup.alpha[0]?.code, initiative: loadPillars()[0]?.name ?? STRATEGIC_INITIATIVES[0],
+      valueProp: fields.valueProp.trim(),
+      segmentValueProps: fields.segments.filter((s) => s.prop.trim() && s.segment.trim()),
     };
     setOrder((o) => [np, ...o]);
     setSelId(id); setView("portfolio"); setStackLevel("product");
-    log("edit", np.name, "submitted new idea (G1)", "you");
+    log("edit", np.name, `submitted new idea (G1) · value prop set${np.segmentValueProps?.length ? ` · ${np.segmentValueProps.length} segment(s)` : ""}`, "you");
+    setNewIdeaOpen(false);
   };
   // Change + approval activity log (edits and gate approvals) — the audit summary.
   const [activity, setActivity] = useState<{ id: number; kind: "edit" | "approve" | "reject"; project: string; text: string; by: string }[]>([]);
@@ -248,7 +254,7 @@ function Board() {
         >
           R-Core Project Template ↗
         </a>
-        <button onClick={submitIdea}
+        <button onClick={() => setNewIdeaOpen(true)}
           className="rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
           ＋ Submit New Idea
         </button>
@@ -566,6 +572,9 @@ function Board() {
         </div>
       )}
 
+      {/* New-idea modal — value proposition is a must-have at creation */}
+      {newIdeaOpen && <NewIdeaModal onCreate={createIdea} onClose={() => setNewIdeaOpen(false)} />}
+
       {/* Budget popup — per-SBU / per-Alpha-Group budget incl. unfunded projects */}
       {budgetOpen && <BudgetModal projects={order} fundedIds={new Set(fundedRows.map((r) => r.p.id))} onClose={() => setBudgetOpen(false)} />}
 
@@ -790,6 +799,56 @@ function DogTag({ p }: { p: Project }) {
   );
 }
 
+// New-idea modal — a project cannot be created without a MASTER value proposition (must-have);
+// per-needs-based-segment value props are recommended (add as many as apply).
+function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; valueProp: string; segments: SegmentValueProp[] }) => void; onClose: () => void }) {
+  const [name, setName] = useState("");
+  const [valueProp, setValueProp] = useState("");
+  const [segments, setSegments] = useState<SegmentValueProp[]>([]);
+  const inp = "w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500";
+  const canCreate = name.trim().length > 0 && valueProp.trim().length > 0;
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
+      <div className="mx-auto max-w-lg rounded-xl border border-slate-800 bg-[#0e141b] p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Submit New Idea</h2>
+          <button onClick={onClose} className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">✕</button>
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">A value proposition is required to create a project — it&apos;s how Innovation, Business, and BD/Sales align from day one.</p>
+
+        <label className="mt-4 block text-[11px] uppercase tracking-wider text-slate-400">Project name</label>
+        <input value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder="e.g. Next-Gen ISR Sensor" className={`mt-1 ${inp}`} />
+
+        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">Master value proposition <span className="text-rose-400">· required</span></label>
+        <textarea value={valueProp} onChange={(e) => setValueProp(e.target.value)} rows={3}
+          placeholder="For [customer], who [need], this [product] delivers [outcome / quantified value] unlike [next-best alternative]." className={`mt-1 resize-y ${inp}`} />
+
+        <div className="mt-3 flex items-center justify-between">
+          <label className="text-[11px] uppercase tracking-wider text-slate-400">Per-segment value props <span className="text-slate-500">· recommended</span></label>
+          <button onClick={() => setSegments((s) => [...s, { segment: "", prop: "" }])} className="rounded bg-cyan-500/90 px-2 py-0.5 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">+ Add segment</button>
+        </div>
+        <div className="mt-1.5 space-y-1.5">
+          {segments.length === 0 && <p className="text-[11px] text-slate-600">Add a value prop per needs-based segment (e.g. by mission, buyer, or use case) — recommended for stronger BD/Sales targeting.</p>}
+          {segments.map((s, i) => (
+            <div key={i} className="flex gap-1.5">
+              <input value={s.segment} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, segment: e.target.value } : x))} placeholder="Segment" className={`w-32 shrink-0 ${inp} py-1.5 text-xs`} />
+              <input value={s.prop} onChange={(e) => setSegments((a) => a.map((x, j) => j === i ? { ...x, prop: e.target.value } : x))} placeholder="Value prop for this segment" className={`flex-1 ${inp} py-1.5 text-xs`} />
+              <button onClick={() => setSegments((a) => a.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button onClick={onClose} className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
+          <button onClick={() => canCreate && onCreate({ name, valueProp, segments })} disabled={!canCreate}
+            className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40">Create project</button>
+        </div>
+        {!canCreate && <p className="mt-1.5 text-right text-[10px] text-slate-500">Name + master value proposition required.</p>}
+      </div>
+    </div>
+  );
+}
+
 // Budget popup — all budget for an SBU or Alpha Group, key metrics INCLUDING unfunded projects.
 function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fundedIds: Set<string>; onClose: () => void }) {
   const [level, setLevel] = useState<"sbu" | "pgroup">("sbu");
@@ -926,6 +985,20 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
       <div className="mb-3"><DogTag p={p} /></div>
+      {/* Value proposition — master (must-have) + per-needs-segment (recommended) */}
+      <div className="mb-3 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-3">
+        <div className="text-[10px] uppercase tracking-wider text-cyan-400">Value proposition</div>
+        <p className="mt-1 text-[12px] leading-snug text-slate-200">{valuePropOf(p)}</p>
+        {p.segmentValueProps && p.segmentValueProps.length > 0 ? (
+          <ul className="mt-2 space-y-0.5">
+            {p.segmentValueProps.map((s, i) => (
+              <li key={i} className="text-[11px] leading-snug text-slate-400"><span className="font-mono text-slate-500">{s.segment || "Segment"}:</span> {s.prop}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1.5 text-[10px] text-slate-500">Recommended: add per-needs-based-segment value props to sharpen BD/Sales targeting.</p>
+        )}
+      </div>
       <div className="flex items-start justify-between">
         <div>
           <h3 className="font-semibold">{p.name}</h3>
