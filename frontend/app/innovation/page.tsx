@@ -352,9 +352,12 @@ function Board() {
   }, [view]);
 
   return (
-    <div className="min-h-screen bg-[#0b0f14] text-slate-100">
+    // Fixed-height app shell (Architect-2525 rails pattern): the workspace fills the viewport, the header/
+    // persona/tabs stay fixed, and the active view scrolls internally. w-full + flex-col guarantees every
+    // section shares the full band width on phone-portrait AND PC-landscape (no collapsed header).
+    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#0b0f14] text-slate-100">
     {/* Consistent max-width band (phone → desktop) — every section shares these bounds; full-bleed bg behind. */}
-    <div className="mx-auto w-full max-w-[1600px]">
+    <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col">
       {/* Header */}
       <header className="border-b border-slate-800 px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         <div>
@@ -433,6 +436,8 @@ function Board() {
         ))}
       </nav>
 
+      {/* Scroll rail — the only scrolling region; header/persona/tabs above stay fixed (app-shell) */}
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
       {view === "portfolio" && (<>
       <div className="grid gap-4 p-5 lg:grid-cols-[1.6fr_1fr]">
         {/* STACK table — level-aware Rack & Stack */}
@@ -700,6 +705,7 @@ function Board() {
           <BusinessSetup onRename={setStackName} />
         </div>
       )}
+      </div>{/* end scroll rail */}
 
       {/* New-idea modal — value proposition is a must-have at creation */}
       {newIdeaOpen && <NewIdeaModal onCreate={createIdea} onClose={() => setNewIdeaOpen(false)} />}
