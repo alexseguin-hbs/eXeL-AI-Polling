@@ -8,7 +8,7 @@
  *
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
@@ -74,7 +74,7 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
         <div className="w-full rounded-2xl border border-cyan-500/20 bg-[#111820] p-7 shadow-2xl">
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
           <h1 className="mt-1 text-xl font-semibold">Project Innovation — Unlock to Pillars</h1>
-          <p className="mt-2 text-sm text-slate-400">Access-gated preview. Enter the code to open the Rack &amp; Stack portfolio across the four strategic pillars.</p>
+          <p className="mt-2 text-sm text-slate-400">Access-gated preview. Enter the code to open the portfolio-prioritization board across the four strategic pillars.</p>
           <input
             type="password" inputMode="numeric" value={pw} autoFocus
             onChange={(e) => { setPw(e.target.value); setErr(false); }}
@@ -172,13 +172,39 @@ function Board() {
     setOrder(next);
   };
   const [dragIdx, setDragIdx] = useState<number | null>(null);
-  const reorder = (from: number | null, to: number) => {
-    if (from == null || from === to || from < 0 || to < 0) return;
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  const overIdxRef = useRef<number | null>(null);
+  const setOver = (n: number | null) => { overIdxRef.current = n; setOverIdx(n); };
+  const reorder = (from: number | null, to: number | null) => {
+    if (from == null || to == null || from === to || from < 0 || to < 0) return;
     const next = [...order];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
     setOrder(next);
   };
+  // Cross-device drag: pointer-based (works on mouse AND touch, unlike native HTML5 DnD which
+  // never fires on touch). Grab the ⠿ handle → drag over a row → drop to reprioritize.
+  const startRowDrag = (from: number) => (e: React.PointerEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragIdx(from); setOver(from);
+    const onMove = (ev: PointerEvent) => {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
+      const row = el?.closest("[data-stack-row]") as HTMLElement | null;
+      const to = row ? Number(row.getAttribute("data-stack-row")) : null;
+      if (to != null && Number.isInteger(to)) setOver(to);
+    };
+    const onUp = () => {
+      reorder(from, overIdxRef.current);
+      setDragIdx(null); setOver(null);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+  // Material # / BOM: default rolled up (product summary only); expand a product to show its BOM build.
+  const [bomOpen, setBomOpen] = useState<Set<string>>(() => new Set());
+  const toggleBom = (id: string) => setBomOpen((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   // Level-aware Rack & Stack: high-level rollup (BU/SBU/PG/Alpha) for decisions · Product #
   // = working project stack (drag/select → deep dive) · Material # = BOM. Metrics always
   // stay bound to the project (derived from r.p), so arrows/drag carry NPV/REV/NRE with it.
@@ -208,7 +234,7 @@ function Board() {
       <header className="border-b border-slate-800 px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         <div>
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
-          <h1 className="text-lg font-semibold">Project Innovation — Rack &amp; Stack</h1>
+          <h1 className="text-lg font-semibold">Project Innovation — Portfolio Prioritization</h1>
         </div>
         <a
           href="/innovation/pdm-template.html" target="_blank" rel="noopener"
@@ -258,7 +284,7 @@ function Board() {
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
       <nav className="flex gap-1 border-b border-slate-800 px-5 overflow-x-auto">
-        {([["portfolio", "Portfolio · Rack & Stack"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"], ["setup", "⚙ Business Setup"]] as const).map(([v, label]) => (
+        {([["portfolio", "Portfolio Prioritization"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"], ["setup", "⚙ Business Setup"]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
             {label}
@@ -272,7 +298,7 @@ function Board() {
         <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
             <h2 className="text-sm font-semibold">
-              Rack &amp; Stack · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
+              Portfolio Prioritization · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
             </h2>
             {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
             <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
@@ -366,7 +392,7 @@ function Board() {
                       <RowFrag key={r.p.id} r={r} i={i} showLine={i === st.lineIndex} selId={selId}
                         onSelect={setSelId} onUp={canDrag ? () => move(i, -1) : undefined} onDown={canDrag ? () => move(i, 1) : undefined}
                         last={i === st.rows.length - 1} avail={avail} canDrag={canDrag}
-                        dragging={dragIdx === i} onDragStartRow={() => setDragIdx(i)} onDropRow={() => { reorder(dragIdx, i); setDragIdx(null); }} />
+                        dragging={dragIdx === i} over={overIdx === i && dragIdx !== i} onGripDown={canDrag ? startRowDrag(i) : undefined} />
                     ))}
                   </tbody>
                 </table>
@@ -391,16 +417,17 @@ function Board() {
                 <tbody>
                   {(drilled ?? order).map((p) => {
                     const lines = bomOf(p);
+                    const open = bomOpen.has(p.id);
                     return (
                       <React.Fragment key={p.id}>
-                        {/* Product # header — estimated per-unit production (standard) cost */}
-                        <tr onClick={() => setSelId(p.id)} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${selId === p.id ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
-                          <td className="px-2 py-1.5 font-mono font-semibold text-cyan-300">{hierOf(p).product}</td>
-                          <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· Material {hierOf(p).material} · {hierOf(p).pgroup} · {lines.length} lines</span></td>
+                        {/* Product # header (rolled-up by default) — click to expand the BOM build */}
+                        <tr onClick={() => { toggleBom(p.id); setSelId(p.id); }} title={open ? "Collapse BOM build" : "Expand BOM build"} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${selId === p.id ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
+                          <td className="px-2 py-1.5 font-mono font-semibold text-cyan-300"><span className="mr-1 text-slate-500">{open ? "▾" : "▸"}</span>{hierOf(p).product}</td>
+                          <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· Material {hierOf(p).material} · {hierOf(p).pgroup} · {lines.length} lines{open ? "" : " · tap to expand BOM"}</span></td>
                           <td className="px-2 py-1.5 text-right text-[10px] uppercase tracking-wider text-slate-500">Prod cost →</td>
                           <td className="px-2 py-1.5 text-right tabular-nums font-semibold text-emerald-400">${Math.round(productionCost(p)).toLocaleString()}</td>
                         </tr>
-                        {lines.map((l) => (
+                        {open && lines.map((l) => (
                           <tr key={l.material} className="border-b border-slate-900/50 text-[12px]">
                             <td className="px-2 py-1 pl-5 font-mono text-slate-300">{l.material}</td>
                             <td className="px-2 py-1 text-slate-400">{l.desc} <span className={`ml-1 rounded px-1 text-[9px] ${l.kind === "complete" ? "bg-violet-500/20 text-violet-300" : l.kind === "partial" ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-500"}`}>{l.kind === "raw" ? "1·raw" : l.kind === "partial" ? "3·partial" : "5·complete"}</span></td>
@@ -517,10 +544,10 @@ function Kpi({ label, value, tone }: { label: string; value: string; tone?: "goo
   );
 }
 
-function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, dragging, onDragStartRow, onDropRow, canDrag = true }: {
+function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, dragging, over, onGripDown, canDrag = true }: {
   r: ReturnType<typeof stackWithBudget>["rows"][number]; i: number; showLine: boolean;
   selId: string; onSelect: (id: string) => void; onUp?: () => void; onDown?: () => void; last: boolean; avail: number;
-  dragging: boolean; onDragStartRow: () => void; onDropRow: () => void; canDrag?: boolean;
+  dragging: boolean; over?: boolean; onGripDown?: (e: React.PointerEvent) => void; canDrag?: boolean;
 }) {
   const { p, cumK, funded } = r;
   return (
@@ -538,13 +565,10 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
       )}
       <tr
         onClick={() => onSelect(p.id)}
-        draggable={canDrag}
-        onDragStart={canDrag ? onDragStartRow : undefined}
-        onDragOver={canDrag ? (e) => e.preventDefault() : undefined}
-        onDrop={canDrag ? (e) => { e.preventDefault(); onDropRow(); } : undefined}
-        className={`cursor-pointer border-b border-slate-900 ${selId === p.id ? "bg-cyan-500/10" : "hover:bg-slate-800/40"} ${funded ? "" : "opacity-70"} ${dragging ? "opacity-40" : ""}`}
+        data-stack-row={i}
+        className={`cursor-pointer border-b border-slate-900 ${over ? "border-t-2 border-t-cyan-400" : ""} ${selId === p.id ? "bg-cyan-500/10" : "hover:bg-slate-800/40"} ${funded ? "" : "opacity-70"} ${dragging ? "opacity-40" : ""}`}
       >
-        <td className="w-6 text-center align-middle text-slate-600 select-none" title={canDrag ? "Drag to reprioritize" : ""}>{canDrag ? <span className="cursor-grab active:cursor-grabbing">⠿</span> : ""}</td>
+        <td className="w-6 text-center align-middle text-slate-600 select-none">{canDrag ? <span onPointerDown={onGripDown} style={{ touchAction: "none" }} title="Drag to reprioritize" className="inline-block cursor-grab px-1 py-2 active:cursor-grabbing">⠿</span> : ""}</td>
         <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
         <td className="px-2 py-2">
           <div className="flex items-center gap-2">
@@ -562,10 +586,10 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
         <td className={`px-2 py-2 text-right tabular-nums font-semibold ${npvM(p) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(npvM(p))}</td>
         <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(cumK)}</td>
         <td className="px-2 py-2 text-right whitespace-nowrap">
-          {canDrag ? (<>
-            <button onClick={(e) => { e.stopPropagation(); onUp?.(); }} disabled={i === 0} className="px-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20">▲</button>
-            <button onClick={(e) => { e.stopPropagation(); onDown?.(); }} disabled={last} className="px-1 text-slate-400 hover:text-cyan-300 disabled:opacity-20">▼</button>
-          </>) : <span className="text-slate-700 text-[10px]">·</span>}
+          {canDrag ? (<span className="inline-flex gap-0.5">
+            <button onClick={(e) => { e.stopPropagation(); onUp?.(); }} disabled={i === 0} title="Move up" className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▲</button>
+            <button onClick={(e) => { e.stopPropagation(); onDown?.(); }} disabled={last} title="Move down" className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▼</button>
+          </span>) : <span className="text-slate-700 text-[10px]">·</span>}
         </td>
       </tr>
     </>
@@ -1693,7 +1717,7 @@ function GrowthModelChart({ funded }: { funded: Project[] }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">Growth Model · Do-Nothing Scenario with Rack &amp; Stack NPIs</h3>
+        <h3 className="text-sm font-semibold">Growth Model · Do-Nothing Scenario with Portfolio NPIs</h3>
         <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
       </div>
 
