@@ -987,28 +987,27 @@ function DogTag({ p }: { p: Project }) {
     { label: t("innovation.dogtag.risk"), val: `${rb.technical[0]}/${rb.commercial[0]}/${rb.dependency[0]}` },
   ];
   return (
-    <div className="relative flex items-stretch overflow-hidden rounded-xl border-2 bg-[#0b0f14]" style={{ borderColor: dt.color }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}`}>
-      {/* SBU — fixed, vertical left */}
-      <div className="flex items-center justify-center px-1" style={{ background: `${dt.color}22` }}>
-        <span className="text-[10px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: dt.color }}>{h.sbu}</span>
+    <div className="relative mx-auto flex max-w-sm items-stretch overflow-hidden rounded-lg border-2 bg-[#0b0f14]" style={{ borderColor: dt.color }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}\n${valuePropOf(p)}`}>
+      {/* SBU — fixed, vertical left (locked to the project title) */}
+      <div className="flex shrink-0 items-center justify-center px-0.5" style={{ background: `${dt.color}22` }}>
+        <span className="text-[9px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: dt.color }}>{h.sbu}</span>
       </div>
-      {/* Center — name + highlights (business face = configured metrics · engineering face = deps/load/readiness) */}
-      <div className="flex-1 px-3 py-2 text-center">
-        <div className="truncate text-sm font-semibold text-slate-100">{p.name}</div>
-        <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-0.5 text-[11px]">
+      {/* Center — name TOP + compact one-per-line highlights (biz = configured metrics · eng = deps/load/readiness) */}
+      <div className="min-w-0 flex-1 px-2 py-1.5 text-center">
+        <div className="truncate text-[13px] font-bold leading-tight text-slate-100">{p.name}</div>
+        <div className="mt-0.5 flex flex-col items-center gap-0 text-[10px] leading-tight">
           {face === "biz"
-            ? metrics.map((m) => (<span key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></span>))
-            : engMetrics.map((m) => (<span key={m.label}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val}</b></span>))}
+            ? metrics.map((m) => (<div key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></div>))
+            : engMetrics.map((m) => (<div key={m.label}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val}</b></div>))}
         </div>
-        <div className="mt-0.5 truncate text-[10px] italic text-slate-500" title={valuePropOf(p)}>{valuePropOf(p)}</div>
-        <button onClick={() => setFace((f) => (f === "biz" ? "eng" : "biz"))} title={t("innovation.dogtag.flip")}
-          className="mt-0.5 text-[9px] uppercase tracking-wider text-slate-600 hover:text-cyan-400">
+        <button onClick={() => setFace((f) => (f === "biz" ? "eng" : "biz"))} title={t("innovation.dogtag.flip")} aria-label={t("innovation.dogtag.flip")}
+          className="mt-0.5 text-[8px] uppercase tracking-wider text-slate-600 hover:text-cyan-400">
           {face === "biz" ? `⇄ ${t("innovation.dogtag.engFace")}` : `⇄ ${t("innovation.dogtag.bizFace")}`}
         </button>
       </div>
-      {/* Launch date — fixed, vertical right */}
-      <div className="flex items-center justify-center bg-slate-800/50 px-1">
-        <span className="text-[10px] font-mono tracking-wider text-slate-400" style={{ writingMode: "vertical-rl" }}>{p.firstRevenue}</span>
+      {/* Launch date — fixed, vertical right (locked to the project title) */}
+      <div className="flex shrink-0 items-center justify-center bg-slate-800/50 px-0.5">
+        <span className="text-[9px] font-mono tracking-wider text-slate-400" style={{ writingMode: "vertical-rl" }}>{p.firstRevenue}</span>
       </div>
     </div>
   );
