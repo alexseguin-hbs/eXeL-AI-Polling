@@ -1319,6 +1319,14 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.veq.parity", englishDefault: "Parity", context: "Value Equation verdict: parity", cubeId: 60 },
   { key: "innovation.veq.loss", englishDefault: "Loss", context: "Value Equation verdict: loss", cubeId: 60 },
   { key: "innovation.veq.driverPlaceholder", englishDefault: "e.g. All-weather range", context: "Value Equation driver-name placeholder", cubeId: 60 },
+  // Dog-tag faces (Slice 2)
+  { key: "innovation.dogtag.bizFace", englishDefault: "Business", context: "Dog-tag business face toggle", cubeId: 60 },
+  { key: "innovation.dogtag.engFace", englishDefault: "Engineering", context: "Dog-tag engineering face toggle", cubeId: 60 },
+  { key: "innovation.dogtag.flip", englishDefault: "Flip engineering ⇄ business face", context: "Dog-tag face flip tooltip", cubeId: 60 },
+  { key: "innovation.dogtag.load", englishDefault: "AI·SI·HI", context: "Dog-tag engineer metric: intelligence load", cubeId: 60 },
+  { key: "innovation.dogtag.hiload", englishDefault: "HI Load", context: "Dog-tag engineer metric: human load", cubeId: 60 },
+  { key: "innovation.dogtag.confidence", englishDefault: "Confidence", context: "Dog-tag engineer metric: reviewer confidence", cubeId: 60 },
+  { key: "innovation.dogtag.risk", englishDefault: "Risk T/C/D", context: "Dog-tag engineer metric: risk band", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

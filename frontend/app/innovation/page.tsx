@@ -25,7 +25,8 @@ import {
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
   metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
-  valueEquation, valuePropFromEquation, type ValueDriver,
+  valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
+  valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
@@ -834,23 +835,38 @@ function PwtCell({ weighted, incremental }: { weighted: number; incremental: num
 // Dog-tag project summary card (FLIR transparency board parity): name TOP · SBU vertical LEFT ·
 // launch date vertical RIGHT (all fixed) · admin-configurable highlight metrics in the middle.
 function DogTag({ p }: { p: Project }) {
+  const { t } = useLexicon();
   const h = hierOf(p);
   const dt = DEV_TYPE[devTypeOf(p)];
+  const [face, setFace] = useState<"biz" | "eng">("biz"); // Slice 2 — engineer ⇄ business face flip
   const metrics = loadDogtag().map((kk) => DOGTAG_METRICS.find((m) => m.key === kk)).filter(Boolean) as typeof DOGTAG_METRICS;
+  // Engineering face — deps/load/readiness read (on-project data), vs the business highlight metrics.
+  const rb = riskBandOf(p);
+  const engMetrics: { label: string; val: string }[] = [
+    { label: t("innovation.dogtag.load"), val: `${Math.round(p.ai * 100)}/${Math.round(p.si * 100)}/${Math.round(p.hi * 100)}` },
+    { label: t("innovation.dogtag.hiload"), val: `${Math.round(p.humanLoad * 100)}%` },
+    { label: t("innovation.dogtag.confidence"), val: `${p.confidence}/5` },
+    { label: t("innovation.dogtag.risk"), val: `${rb.technical[0]}/${rb.commercial[0]}/${rb.dependency[0]}` },
+  ];
   return (
-    <div className="flex items-stretch overflow-hidden rounded-xl border-2 bg-[#0b0f14]" style={{ borderColor: dt.color }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}`}>
+    <div className="relative flex items-stretch overflow-hidden rounded-xl border-2 bg-[#0b0f14]" style={{ borderColor: dt.color }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}`}>
       {/* SBU — fixed, vertical left */}
       <div className="flex items-center justify-center px-1" style={{ background: `${dt.color}22` }}>
         <span className="text-[10px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: dt.color }}>{h.sbu}</span>
       </div>
-      {/* Center — name + configurable highlights */}
+      {/* Center — name + highlights (business face = configured metrics · engineering face = deps/load/readiness) */}
       <div className="flex-1 px-3 py-2 text-center">
         <div className="truncate text-sm font-semibold text-slate-100">{p.name}</div>
         <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-0.5 text-[11px]">
-          {metrics.map((m) => (
-            <span key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></span>
-          ))}
+          {face === "biz"
+            ? metrics.map((m) => (<span key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></span>))
+            : engMetrics.map((m) => (<span key={m.label}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val}</b></span>))}
         </div>
+        <div className="mt-0.5 truncate text-[10px] italic text-slate-500" title={valuePropOf(p)}>{valuePropOf(p)}</div>
+        <button onClick={() => setFace((f) => (f === "biz" ? "eng" : "biz"))} title={t("innovation.dogtag.flip")}
+          className="mt-0.5 text-[9px] uppercase tracking-wider text-slate-600 hover:text-cyan-400">
+          {face === "biz" ? `⇄ ${t("innovation.dogtag.engFace")}` : `⇄ ${t("innovation.dogtag.bizFace")}`}
+        </button>
       </div>
       {/* Launch date — fixed, vertical right */}
       <div className="flex items-center justify-center bg-slate-800/50 px-1">
@@ -1945,6 +1961,14 @@ const DOGTAG_METRICS: { key: string; label: string; val: (p: Project) => string 
   { key: "payback", label: "Payback", val: (p) => `${financialMetrics(p).paybackYears} yr` },
   { key: "margin", label: "Gross Margin", val: (p) => `${execOf(p).marginPct}%` },
   { key: "tenyr", label: "10-Yr Revenue", val: (p) => usd(p.fullRev10yM) },
+  // Bridge Slice 2 — new configurable highlight metrics (council asks). Compute identically wherever shown.
+  { key: "vpd", label: "Value / $", val: (p) => `${valuePerDollarOf(p).toFixed(1)}×` },
+  { key: "winp", label: "Win P50", val: (p) => `${Math.round(winProbabilityOf(p).p50 * 100)}%` },
+  { key: "vindex", label: "Value Index", val: (p) => usd(valueIndexOf(p)) },
+  { key: "diffindex", label: "Diff Index", val: (p) => `${Math.round(valueEquationOf(p).competitiveIndex)}/100` },
+  { key: "riskband", label: "Risk Band", val: (p) => { const r = riskBandOf(p); return `${r.technical[0]}/${r.commercial[0]}/${r.dependency[0]}`; } },
+  { key: "cpb", label: "Cost / Buyer", val: (p) => k(costPerServedBuyerOf(p, Math.max(1, p.segmentValueProps?.length ?? 1)) / 1000) },
+  { key: "nba", label: "Next Best Alt", val: (p) => { const s = nbaOf(p); return s.length > 26 ? s.slice(0, 24) + "…" : s; } },
 ];
 const DOGTAG_KEY = "innovation-dogtag-highlights";
 const DEFAULT_DOGTAG = ["remaining", "npv", "rev"]; // matches the reference board
