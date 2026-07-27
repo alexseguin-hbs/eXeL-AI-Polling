@@ -2172,6 +2172,107 @@ function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (
   );
 }
 
+// Pipeline by Gate — gate-spend columns + a PRIORITY-ORDERED project list, maximizable to full
+// screen. Clicking a project shows its dog-tag (in max mode) and opens the full Project details.
+function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
+  const [maxed, setMaxed] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  const pipe = pipelineByGate(projects);
+  const maxGateSpend = Math.max(...pipe.map((g) => g.spendK), 1);
+  const kM = (v: number) => `$${(v / 1000).toFixed(1)}M`;
+  const fundedIds = useMemo(() => new Set(funded.map((p) => p.id)), [funded]);
+  const pickedP = picked ? projects.find((p) => p.id === picked) : null;
+  // In max mode a click previews the dog-tag; otherwise it opens the Project details.
+  const clickProject = (id: string) => (maxed ? setPicked(id) : onSelect(id));
+
+  const body = (
+    <>
+      <div className="grid grid-cols-7 gap-2">
+        {pipe.map((g) => (
+          <div key={g.gate} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-center">
+            <div className="text-[11px] font-mono text-slate-300">{g.gate}</div>
+            <div className="text-[9px] text-slate-500 mb-1.5 truncate" title={g.stage}>{g.stage}</div>
+            <div className="mx-auto flex h-16 w-full items-end justify-center">
+              <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: "#19c8cf", opacity: 0.8 }} />
+            </div>
+            <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
+            <div className="text-[10px] text-slate-500">{g.count} proj</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
+        {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
+          <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {projects.map((p) => (
+          <button key={p.id} onClick={() => clickProject(p.id)}
+            className={`rounded px-2 py-0.5 text-[10px] font-medium text-[#06202a] hover:opacity-90 ${picked === p.id ? "ring-2 ring-white/70" : ""}`}
+            style={{ background: DEV_TYPE[devTypeOf(p)].color }} title={`${p.name} · ${p.gate}`}>{p.id}</button>
+        ))}
+      </div>
+
+      {/* Dog-tag preview of the picked project (max mode) + jump to full details */}
+      {maxed && pickedP && (
+        <div className="mt-3 rounded-lg border border-cyan-500/30 bg-[#0b0f14] p-3">
+          <DogTag p={pickedP} />
+          <button onClick={() => onSelect(pickedP.id)} className="mt-2 rounded-md bg-cyan-500 px-3 py-1.5 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Open full Project details →</button>
+        </div>
+      )}
+
+      {/* Priority-ordered project list (funding-stack order) */}
+      <div className="mt-4 border-t border-slate-800 pt-3">
+        <div className="mb-1.5 text-[10px] uppercase tracking-wider text-slate-500">Projects · priority order · {maxed ? "tap to preview" : "tap to open details"}</div>
+        <ol className="grid gap-1 sm:grid-cols-2">
+          {projects.map((p, i) => {
+            const fu = fundedIds.has(p.id);
+            return (
+              <li key={p.id}>
+                <button onClick={() => clickProject(p.id)}
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[12px] hover:bg-slate-800/50 ${picked === p.id ? "bg-cyan-500/10 ring-1 ring-cyan-500/40" : ""}`}>
+                  <span className="w-5 shrink-0 text-right tabular-nums text-slate-500">{i + 1}</span>
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${fu ? "bg-emerald-500" : "bg-rose-500"}`} title={fu ? "funded" : "not funded"} />
+                  <span className="font-mono text-[10px] text-slate-400">{p.id}</span>
+                  <span className="min-w-0 flex-1 truncate text-slate-200">{p.name}</span>
+                  <span className="shrink-0 font-mono text-[10px] text-slate-500">{p.gate}</span>
+                  <span className={`shrink-0 w-16 text-right tabular-nums ${npvM(p) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(npvM(p))}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+    </>
+  );
+
+  if (maxed) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6">
+        <div className="mx-auto max-w-5xl rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold">Pipeline by Gate <span className="ml-1 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">Unofficial Framework</span></h3>
+            <button onClick={() => setMaxed(false)} title="Minimize" className="rounded border border-slate-700 px-2 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">⤡ Minimize</button>
+          </div>
+          {body}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold">Pipeline by Gate</h3>
+        <div className="flex items-center gap-2">
+          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">Unofficial Framework</span>
+          <button onClick={() => setMaxed(true)} title="Maximize" className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">⤢</button>
+        </div>
+      </div>
+      {body}
+    </div>
+  );
+}
+
 function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
   const npvTotal = funded.reduce((s, p) => s + npvM(p), 0);
   const incrTotal = funded.reduce((s, p) => s + incrementalRevM(p), 0);
@@ -2181,8 +2282,6 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
   const byCat = spendByCategory(projects);
   const cost = costSplit(projects);
   const roi = roiSummary(funded);
-  const pipe = pipelineByGate(projects);
-  const maxGateSpend = Math.max(...pipe.map((g) => g.spendK), 1);
 
   const costRows = [
     { name: "Labor", value: cost.labor, color: "#19c8cf" },
@@ -2304,37 +2403,8 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
         </DashCard>
       </div>
 
-      {/* Pipeline by Gate */}
-      <DashCard title="Pipeline by Gate" tag="Unofficial Framework">
-        <div className="grid grid-cols-7 gap-2">
-          {pipe.map((g) => (
-            <div key={g.gate} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-center">
-              <div className="text-[11px] font-mono text-slate-300">{g.gate}</div>
-              <div className="text-[9px] text-slate-500 mb-1.5 truncate" title={g.stage}>{g.stage}</div>
-              <div className="mx-auto flex h-16 w-full items-end justify-center">
-                <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: "#19c8cf", opacity: 0.8 }} />
-              </div>
-              <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
-              <div className="text-[10px] text-slate-500">{g.count} proj</div>
-            </div>
-          ))}
-        </div>
-        {/* Dev-type legend + colored chips per project */}
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
-          {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
-            <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
-          ))}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {projects.map((p) => (
-            <button key={p.id} onClick={() => onSelect(p.id)}
-              className="rounded px-2 py-0.5 text-[10px] font-medium text-[#06202a] hover:opacity-90"
-              style={{ background: DEV_TYPE[devTypeOf(p)].color }} title={`${p.name} · ${p.gate}`}>
-              {p.id}
-            </button>
-          ))}
-        </div>
-      </DashCard>
+      {/* Pipeline by Gate — maximizable, with priority-ordered project list + dog-tag preview */}
+      <PipelineByGate projects={projects} funded={funded} onSelect={onSelect} />
 
       {/* Intelligence Load — AI·SI·HI by strategic pillar / BU / SBU / Alpha Group / Project */}
       <IntelligenceLoadPanel projects={projects} />
