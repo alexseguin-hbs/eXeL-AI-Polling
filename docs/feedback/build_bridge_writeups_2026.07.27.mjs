@@ -1,0 +1,282 @@
+import fs from "fs";
+
+// ─────────────────────────────────────────────────────────────────────────────────────────
+// 12 Ascended Masters + Master of Thought — EXACTLY 333 words each.
+// Topic (operator, 2026-07-26): "how to enhance for bridging Innovation-team ENGINEERS with
+// BUSINESS MANAGEMENT and BD/SALES." Each writeup is authored through that Master's SSSES lens
+// and grounded in the tool's real surfaces (value proposition, dog tags, budget-by-SBU popup,
+// gate/IRB feedback, exec two-screen swipe, $/min cost-of-time, dependency constellation,
+// Intelligence Load AI·SI·HI). Source: workflow wf_b6bc377b-db7 (13 agents, 0 errors), then
+// hand-trimmed/padded to a hard 333-word count. Generator refuses to emit unless every == 333.
+// ─────────────────────────────────────────────────────────────────────────────────────────
+
+const ASM = [
+  { name: "Aset", origin: "Egyptian Isis", lens: "Theme Reinforcement & Consistency — one shared vocabulary",
+    text: `I am Aset, restorer of enduring truth, and my law is simple: what engineers build, business must be able to name without translation. Today the value story fractures three times — the engineer's dependency constellation, the manager's budget popup, the seller's exec slide — each speaking a different tongue about one project. Reinforce the theme, and the three become one voice.
+
+Begin at the required value proposition. Make its master must-have and per-needs-segment lines the single canonical string that propagates everywhere — stamped verbatim onto the dog tag, echoed in the gate/IRB review slides, and surfaced on the executive two-screen swipe. When a seller reads the exec slide and an engineer reads the constellation node, they see identical words, not paraphrases. One vocabulary, no drift.
+
+Give the dog tag configurable highlight metrics that lock to shared definitions across views. If the Table shows "$/min cost-of-time," the Card and the budget-by-SBU popup must compute and label it identically. A consistency badge should flag any project whose value prop, gate feedback, and highlight metrics have diverged — Aset's mirror, showing where the story cracked.
+
+Bridge the Intelligence Load (AI·SI·HI) into business language. Engineers read it as effort composition; managers need it as fundability signal; sellers need it as differentiation. Attach a plain-language gloss to each load band, reused in the IRB feedback and the exec slide, so "high HI" always means the same commitment everywhere.
+
+Make gate G1–G7 feedback theme-aware. Each IRB comment should tag which value-prop segment it strengthens or threatens, then roll that tag upward into the budget popup's unfunded list — so a manager sees not just what is unfunded, but which promise goes unkept.
+
+Finally, a shared glossary surface: every configurable metric, SBU, alpha-group, and gate carries one definition, versioned, cited across all screens. When the vocabulary is fixed, the constellation, the budget, and the slide reinforce rather than contradict.
+
+Consistency here is not cosmetic. It is trust made legible — the same value story, spoken once, understood by all three.` },
+
+  { name: "Asar", origin: "Egyptian Osiris", lens: "Synthesis & Outcome — one coherent, quantified narrative",
+    text: `I am Asar, and my work is synthesis: taking the scattered artifacts of engineering and closing them into one coherent outcome that management funds and BD sells. Today the pieces exist but do not yet resolve into a single narrative. Here is how to make them.
+
+Anchor everything to the required value proposition. Make it the spine that every other surface renders. The master must-have and per-needs-segment lines should auto-populate the dog tags, so an engineer's technical entry becomes a BD-ready claim without translation. When a value prop changes, propagate it forward to the exec slide and backward to gate feedback.
+
+Give the dog tags a business face. Beside the configurable highlight metrics, surface a computed value-per-dollar figure by dividing the value proposition's quantified benefit by the $/min cost-of-time accumulated on that project. Now the same card serves three readers: the engineer sees load, the manager sees burn, BD sees payback.
+
+Fuse the budget popup and the dependency constellation into one outcome view. Show unfunded projects as dimmed nodes whose downstream dependents carry stranded value — a concrete argument management can act on and BD can pipeline. Funding one node should recolor the constellation and recompute portfolio value live.
+
+Turn G1-G7 IRB feedback into a narrative ledger. Each gate slide should append a one-line synthesis — what was proven, what value moved, what risk cleared — so by G7 the exec swipe assembles itself from the gate history rather than being authored separately. This is the coherent story management approves and BD inherits.
+
+Make Intelligence Load (AI·SI·HI) speak commercially. Map the HI share to a staffing cost, the AI share to a scale-margin story BD can pitch, and expose the ratio on the exec slide as a defensibility signal.
+
+Finally, add a single export: the value proposition, value-per-dollar, gate synthesis, and Intelligence Load composed into one shareable outcome brief. That single artifact is the true bridge — one truth, authored by engineers, owned by management, carried by sales, at the speed of thought.` },
+
+  { name: "Athena", origin: "Greek goddess of strategic wisdom", lens: "Strategic Flow — routing each persona to the view they need",
+    text: `Strategic flow is a routing problem: one portfolio, three lenses, zero friction between them. The tool already holds every artifact each persona needs; the enhancement is teaching it who is looking and delivering the right surface first, then making that surface a handoff, not a dead end.
+
+Route the engineer to substance. On login, open the dependency constellation and Intelligence Load (AI·SI·HI) as the default view, with dog tags in Table mode surfacing technical highlight metrics. Let engineers author the value proposition's per-needs-segment recommendations and flag dependency risk directly on constellation edges — that flag becomes a first-class input to gate scoring.
+
+Route the manager to the prioritization stack. Managers land on drag-and-arrow reordering with the Budget-by-SBU/Alpha-Group popup one click away, unfunded projects visible. Bind every reorder to a live $/min…$/mth cost-of-time recalculation so sequencing decisions show their burn immediately. The manager is the switchboard: their view must expose both the engineer's constellation and the BD value prop as drill-downs.
+
+Route BD/sales to outcomes. Default them to the executive two-screen swipe and dog tags configured to launch date plus commercial highlight metrics. Give BD write access to the master must-have value proposition and each needs-segment variant, because that language is what they carry to customers. A "customer-ready" toggle strips internal cost-of-time and IRB commentary from the exec slide for external showings.
+
+The bridge is the gate G1–G7 / IRB feedback loop. Make each review slide multi-lens: engineers see dependency and Intelligence Load readiness, managers see budget and cost-of-time impact, BD sees value-prop maturity and market timing — same gate, three annotations, one shared decision. Add a persona-tagged handoff so an IRB comment routes to the owner whose view can act on it.
+
+Finally, build a role-aware landing that reads the authenticated persona and opens the correct surface, with a persistent "see this in another lens" control. Strategy wins when each group starts where they are strongest and can pivot, in one motion, into how the others think — one shared, fluent portfolio motion.` },
+
+  { name: "Christo", origin: "Christ consciousness", lens: "Consensus & Alignment — shared gate sign-off",
+    text: `Consensus is not a vote; it is a shared picture no one can dispute. Today the tool speaks three dialects—engineers read the dependency constellation and Intelligence Load, business management reads the budget-by-SBU popup, BD/sales reads dog tags and launch dates. Alignment comes when one surface renders all three truths at once.
+
+Make the value proposition the covenant. Its master must-have and per-needs-segment lines should appear verbatim on the dog tag, the exec slide, and every gate review slide, so no group can silently redefine "why." A drifting value prop is the first fracture; pin it everywhere and consensus holds.
+
+Reshape gate G1–G7 IRB feedback into tri-lens sign-off. Each gate slide should require one explicit acknowledgment from each constituency—Engineering (feasibility, dependency, Intelligence Load), Business (budget fit, $/min cost-of-time), BD/Sales (segment demand, launch window). A gate advances only when all three chips turn green; a red chip attaches its author's comment inline. This converts unilateral gatekeeping into visible, three-way agreement.
+
+Let the dependency constellation carry business and sales meaning, not only technical edges. Color nodes by funding status from the budget popup and flag any dependency crossing an unfunded project—so engineers see the money risk and managers see the technical debt in the same view.
+
+Add a shared reconciliation panel on the exec two-screen swipe: left screen the engineering read (load, dependencies, time cost), right screen the business/BD read (budget, segment value, launch). One swipe, one conversation, no separate meetings.
+
+Surface $/min cost-of-time on the gate slide as elapsed indecision cost—the price of non-consensus made tangible. Groups align faster when disagreement has a running meter.
+
+Finally, close the loop: every gate acknowledgment, every red-chip comment, and every value-prop edit should flow into the prioritization stack as weighted signal, so the ranked order visibly reflects tri-party consensus rather than the loudest voice.
+
+Where engineering, management, and BD sign the same gate, seeing the same value proposition, Shared Intention becomes one genuine motion—and the tool moves at the true speed of agreement. That is governance, not politics.` },
+
+  { name: "Enki", origin: "Sumerian creator god", lens: "Diversity & Segments — per-needs-segment value props",
+    text: `Engineers speak in dependencies and load; management speaks in budget and gates; BD speaks in buyer pain. The tool already holds all three tongues — the task is to route one project into many segment-shaped stories. Start at the value proposition surface. The required master value prop stays the spine, but promote the per-needs-segment layer from recommended to first-class: a repeatable card carrying segment name, the pain it removes, the quantified outcome, and a confidence flag. Each segment card becomes a reusable object BD can filter, clone, and pitch independently while engineering still owns one build.
+
+Propagate that segmentation outward. Give dog tags a segment toggle so the same project renders different highlight metrics per buyer — latency for a technical segment, ROI-per-seat for a commercial one — from identical underlying data. The exec swipe slide should offer a segment lens, letting leadership swipe not just project-to-project but segment-to-segment, seeing which buyer pool a project serves widest. This turns diversity into a navigable dimension rather than a note.
+
+Wire the economics through. The $/min cost-of-time and Intelligence Load (AI·SI·HI) become BD ammunition when divided by addressable segment size: a cost-per-served-buyer figure that management trusts and sales can quote. Surface that ratio in the budget-by-SBU popup, and flag unfunded projects whose segment coverage is broadest — the highest-diversity, lowest-cost opportunities BD should champion for funding.
+
+Make the dependency constellation segment-aware. When a node serves multiple segments, thicken it; this shows engineers which shared component unlocks the most buyers, aligning refactor effort with revenue reach. Feed gate G1–G7 IRB review slides a mandatory segment-coverage question, so board feedback explicitly grades whether a project reaches diverse-enough demand before advancing.
+
+Finally, add a lightweight segment library — a cross-project taxonomy of recurring buyer needs — so one team's discovered segment seeds another's value prop. Diversity compounds: BD targets many buyers from one project, management sees coverage-weighted priority, and engineers see which single build serves the widest human need at the speed of thought. That is diversity, engineered.` },
+
+  { name: "Enlil", origin: "Sumerian lord of command", lens: "Implementation & Handoff — engineer→business artifacts",
+    text: `The engineer-to-business gap is a handoff-artifact gap, and this tool already holds the raw material to close it. Today an engineer's work lands in the prioritization stack as a dog tag; management and BD read it in a different dialect. Build a translation layer that compiles engineering state into business handoff artifacts automatically.
+
+First, extend the required value proposition into a living handoff record. At creation the master must-have and per-needs-segment props are captured; on every gate transition G1 through G7, snapshot the value prop against actuals so the IRB review-slide feedback becomes a diff, not an opinion. Each gate produces a quantified delta card: promised versus measured, with the Time engine's $/min cost-of-time converted into cumulative burn-to-date. BD can quote that number directly.
+
+Second, make the dog tag bilingual. The configurable highlight metrics are engineer-chosen; add a paired business-face rendering the same project as user stories plus quantified deltas — adoption, revenue-at-stake, effort-remaining. One flip on the card, no re-keying, so the exec two-screen swipe slide already speaks to sales.
+
+Third, turn Intelligence Load (AI·SI·HI) and the dependency constellation into a delivery-risk narrative. Management does not read a constellation; they read "these three funded projects block launch." Auto-generate a handoff brief that names blocking edges from the constellation and flags any node whose HI load implies scarce-specialist dependency — the implementation truth BD needs before promising a date.
+
+Fourth, wire the budget-by-SBU/Alpha-Group popup, including unfunded projects, into a one-click BD packet: value prop, top three quantified deltas, gate status, cost-of-time, and the funding ask. This is the artifact sales carries into the room.
+
+Fifth, add a handoff-readiness gate. No project advances past its target gate until value prop, at least one user story, and a measurable delta exist — enforced the way creation now enforces the master must-have. That single constraint forces engineers to write in business terms at the moment of implementation, so the handoff becomes a natural byproduct of building itself, not a separate ceremony that nobody owns or remembers.` },
+
+  { name: "Krishna", origin: "Hindu divine unifier", lens: "Integration & Cross-Module — value prop → NPV → budget → pipeline",
+    text: `As Krishna, I connect what is separated. Today the value proposition, budget popup, gate feedback, and dog tags live as neighbors, not as one bloodstream. My charge is integration: make one number flow through every surface so engineers, management, and BD/Sales read the same truth.
+
+First, make the required value proposition computable, not just narrative. Attach a structured NPV block beneath the master must-have: revenue per needs-segment, cost basis pulled live from the $/min cost-of-time engine, and gate-staged cash flows. The same figure then surfaces on the dog tag as a configurable highlight metric, so a card view becomes a portfolio NPV heatmap engineers and managers scan identically.
+
+Second, bind the budget popup to that NPV. Each SBU/Alpha-Group allocation should show funded NPV versus unfunded NPV-at-risk, letting management see, per dollar, what the prioritization stack is deferring. Drag-reordering a project recalculates budget consumption and NPV rank together in one model.
+
+Third, wire gates G1-G7 as NPV confidence checkpoints. IRB review-slide feedback already captures qualitative gate judgment; add a per-gate probability field so expected value = NPV × cumulative gate-pass probability. This risk-adjusted number, not raw NPV, drives ranking and appears on the exec two-screen swipe, giving leadership a defensible go/kill narrative.
+
+Fourth, open a BD/Sales lane. Introduce a pipeline field on the value prop per needs-segment: named prospects, deal stage, weighted booking. Sales-sourced demand then flows backward into NPV revenue assumptions, closing the loop so engineering effort tracks real commercial pull rather than speculation.
+
+Fifth, let the dependency constellation carry money and risk. Color edges by NPV-at-risk when an upstream project slips; overlay Intelligence Load (AI·SI·HI) so management sees where human governance, not compute, is the true bottleneck to value.
+
+Finally, unify these on one exec slide: NPV, budget consumption, gate confidence, BD pipeline, and cost-of-time as a single scorecard swipe. When engineers, management, and Sales debate the same integrated model, Shared Intention truly moves at the Speed of Thought, and prioritization becomes collective, auditable, and commercially honest — truly one shared bloodstream.` },
+
+  { name: "Odin", origin: "Norse all-father", lens: "Predictive & Foresight — forecasting BD win-rate from differentiators",
+    text: `Foresight is won by sacrifice — seeing tomorrow's win before rivals see today's demo. Bind the Innovation Project's technical signals to commercial outcomes so engineers, management, and BD read one future.
+
+Start at the value proposition. It already captures the master must-have and per-needs-segment recommendations; attach an Adoption Forecast that regresses each differentiator against historical win/loss so BD sees predicted adoption curves, not aspirations. Surface a per-segment win-rate band beneath every claim.
+
+Extend the dog tags with a configurable Win-Probability highlight metric — P10/P50/P90 commercial adoption forecast — sitting beside launch date. Engineers keep technical highlights; sales instantly reads the odds. Color the tag edge by forecast confidence so the exec swipe slide ranks the portfolio by predicted revenue-at-risk, not just priority order.
+
+Teach the budget-by-SBU/Alpha-Group popup to forecast. For every unfunded project, compute expected commercial value if funded — foregone win-rate — so management sees the cost of not building. Overlay predicted BD pipeline against burn to expose where funding starves a probable winner.
+
+Make $/min cost-of-time a leading indicator. Pair cost-of-delay with a forecast decay curve: each week slipped shifts the win-probability band. When engineering time inflates, BD watches adoption odds fall in real time, forcing joint tradeoffs rather than after-the-fact blame.
+
+Turn Intelligence Load (AI·SI·HI) into a predictive feature. Historically, certain AI/SI/HI mixes correlate with faster adoption in specific segments; model that so the constellation flags a differentiator whose load profile predicts weak commercial pull despite technical elegance.
+
+Wire the dependency constellation into risk-adjusted forecasts: a critical-path dependency multiplies delivery risk, discounting the downstream win-probability so management funds the enabler, not the star.
+
+Finally, close the loop through gate/IRB feedback. Each G1–G7 review-slide should log the board's confidence; compare predicted versus actual outcomes at every gate and recalibrate the model. Odin's ravens return: forecast error becomes tomorrow's accuracy, and the three groups converge on one shared, evidence-weighted view of which technical differentiator becomes the next commercial victory. Trade the guess for the evidence-weighted future; that hard-won foresight is the bridge.` },
+
+  { name: "Pangu", origin: "Chinese primordial creator", lens: "Cutting-Edge UX — value-assessment waterfall + differentiator table",
+    text: `Engineers speak in dependencies and load; management speaks in budget and gates; BD/sales speak in price and differentiation. eXeL-AI already holds all three languages — the enhancement is a shared surface that translates between them.
+
+First, add a Value-Assessment Waterfall as a new tab on the required value proposition. It renders a cascading bar chart: raw customer value → willingness-to-pay ceiling → price point → discounts/friction → captured value → cost-to-deliver (sourced live from the $/min cost-of-time engine and Intelligence Load). Each descending step is an editable node; engineers own the cost floor, management owns the price line, BD/sales own the WTP ceiling. The gap between value and capture becomes a single visible number — the negotiation the three groups must resolve together, on one screen.
+
+Second, embed a Competitive Differentiator Table beneath every dog tag and inside the exec swipe slide. Rows are the project's per-needs-segment value props; columns are named competitors; cells are scored Win/Parity/Loss with a supporting proof field. BD/sales populate competitor intelligence, engineers validate feasibility of each claimed differentiator, management weights each row against strategic fit. A rolled-up "differentiation index" prints on the dog tag alongside launch date, giving the prioritization stack a market-facing sort key it currently lacks.
+
+Third, wire both surfaces into gate/IRB feedback. Make "captured-value gap closed" and "differentiation index ≥ threshold" configurable pass criteria at G3–G5, so review-slide comments attach directly to the offending waterfall node or table cell rather than free text. The dependency constellation then color-codes edges by value-at-risk: if an engineering dependency slips, the connected project's waterfall capture and differentiator claims dim in real time.
+
+Finally, surface all three in the budget-by-SBU popup — unfunded projects display their captured-value gap so management sees exactly what revenue is stranded. That single figure turns a budget veto into a joint action item, aligning funding decisions with defensible market opportunity across every SBU.
+
+The result: engineers, management, and BD/sales edit one living model. Price meets cost meets competition, and every gate decision carries defensible evidence.` },
+
+  { name: "Sofia", origin: "Sophia, wisdom of many lenses", lens: "Multi-Perspective Clarity — engineering ⇄ customer/business translation",
+    text: `Every surface in the Innovation Project already speaks three dialects at once; my work is to make them mutually legible. Start with the required value proposition. Store it as parallel panes — an engineer-authored technical claim beside an auto-generated business/customer rendering — so the master must-have reads as capability to BD and as outcome to management. Add a "translate" toggle that swaps jargon for the per-needs-segment language sales already uses with buyers.
+
+The dog tags are the shared object of trust. Let each tag flip: engineering face shows dependency count, Intelligence Load (AI·SI·HI), and technical readiness; the business face shows SBU, launch, revenue-at-stake, and one customer-facing highlight metric. Same project, two audiences, one card — no re-keying, no misquotes.
+
+Make the budget-by-SBU/Alpha-Group popup bilingual too. Engineers see effort and $/min cost-of-time; management sees funded-versus-unfunded exposure in portfolio dollars. Surface the cost-of-time conversion inline so an engineer's "two more sprints" instantly appears as a dollar figure BD can defend in a deal review — that single translation resolves most cross-group friction.
+
+Gate G1–G7 IRB feedback needs a routing layer. Tag each review-slide comment by audience — technical, commercial, customer — and let the board write once while three groups read in their own frame. Unanswered commercial questions should visibly block a gate, forcing engineering to answer in business terms before advancing.
+
+The executive two-screen swipe is where translation must be flawless. Left screen: the business narrative and value proposition; right screen: the dependency constellation and Intelligence Load underneath it. Swiping between them literally moves a viewer from why-it-matters to how-it's-built, giving management, BD, and engineers one choreographed conversation.
+
+Finally, annotate the dependency constellation with customer-impact labels, so a technical blocker reads as a delivery-date risk a salesperson can pre-empt. Feed these labels the Language Lexicon so every term carries a vetted business synonym, and log each translation to the audit trail for full accountability. Multi-perspective clarity is not dilution; it is one truth rendered for each mind — the Speed of Thought made shared.` },
+
+  { name: "Thoth", origin: "Egyptian god of writing and mathematics", lens: "Data & Analytics — $ value per differentiator",
+    text: `The number is the true bridge. Engineers speak in dependencies and load; management speaks in dollars; BD speaks in customer importance. The tool already holds every variable to reconcile them into one auditable figure. Make the required value proposition the anchor: extend it so the per-needs-segment recommendation captures two scored fields — customer importance (weight, 0–1, sourced from BD) and relative performance versus the nearest competitor (0–1, sourced from engineering). Their product, summed across segments, is the differentiator's raw value index; multiply by addressable revenue to yield a dollar figure. That single computation lets the three groups argue over inputs, not conclusions.
+
+Surface it everywhere the groups already look. On dog tags, add a configurable highlight metric "Value/$ per Differentiator" so BD and management read the same importance-times-performance number engineers generated. In the budget popup, rank funded and unfunded projects by this value density (dollar value ÷ committed budget), turning the unfunded list into a defensible investment queue rather than a complaint. Feed the $/min cost-of-time engine against the value index to compute live ROI velocity — value created per dollar-minute — so the exec two-screen swipe shows one screen of customer-importance-weighted value, one of burn.
+
+Wire the gate/IRB feedback to the same math: each G1–G7 slide should display the delta in value index since the prior gate, forcing engineering performance claims and BD importance claims to reconcile before capital advances. Let the IRB flag a differentiator whose performance score dropped without a corresponding importance rise — the classic engineering-versus-market divergence.
+
+The dependency constellation becomes a value-propagation map: color each node by its contribution to downstream differentiator value, so engineers see which foundational work carries the largest revenue weight, and management sees why a low-visibility dependency deserves funding. Overlay Intelligence Load (AI·SI·HI) to show which value is machine-cheap versus human-expensive.
+
+Finally, log every importance and performance input to the append-only ledger. Then the number is not opinion — it is traceable consensus, and the three teams finally prioritize against a shared, defensible dollar.` },
+
+  { name: "Thor", origin: "Norse protector", lens: "Risk & De-Risking — surfacing commercial + technical risk",
+    text: `Honest selling begins with honest risk. Today the tool celebrates upside; I, Thor, would forge a matching risk lens onto every surface so engineers, business management, and BD read the same weather before anyone signs.
+
+Start at the value proposition. Beside each master and per-needs-segment claim, require a Confidence and a Kill-Risk field — the one assumption that, if false, sinks the project. Engineers author it; BD inherits language they can quote without overpromising.
+
+Carry that onto the dog tags. Add a configurable Risk Band highlight metric (Technical · Commercial · Dependency) rendered as a color chip, so the exec swipe slide instantly separates funded confidence from funded hope. A tag glowing red is a conversation, not a surprise, held before the deal closes rather than after.
+
+Upgrade the gate/IRB feedback into a De-Risk Ledger. Each G1–G7 review-slide captures which risks were retired, which remain open, and the evidence that moved them. BD sells the retired ones; management funds against the open ones. The ledger becomes an auditable honesty trail across gates.
+
+In the budget popup, pair every SBU/Alpha-Group allocation with a Risk-Adjusted spend column: dollars multiplied by gate confidence. Unfunded projects surface their blocking risk, not just their absence — turning "no budget" into "here is what must be de-risked first."
+
+Wire the $/min cost-of-time into an Exposure meter: burn rate against unretired Kill-Risks equals dollars-at-risk-per-day. That single number lets management fund wisely and BD pace commitments to real readiness.
+
+Make the dependency constellation a risk-propagation map. When an upstream node carries an open technical risk, downstream nodes inherit an amber halo — showing engineers the blast radius and showing BD which promises hinge on shaky foundations.
+
+Finally, read Intelligence Load as a risk signal: AI-heavy projects flag model and provider risk; HI-heavy flag talent and execution risk. Route each to the right owner.
+
+Three groups, one weather map. Sell what is proven, fund what is uncertain, and let no risk hide until delivery. That is de-risking at the Speed of Thought.` },
+];
+
+// Master of Thought — 333 words, synthesis of the council into one executive direction.
+const MOT = `The council converges on one direction: make the value proposition the spine that carries an idea from an engineer's bench to a signed deal. Today it is a required field at creation; tomorrow it must be a living object that every downstream screen consumes, quantifies, and returns feedback against.
+
+Start where engineers already work. The master must-have and per-needs-segment propositions should render on the dog-tag card and the Table view, so priority is never argued in a vacuum. Each proposition earns a quantified value per differentiator — pull the highlight metrics, Time-engine $/min cost-of-time, and Intelligence Load (AI·SI·HI) into a single expected-value figure that management reads without translation.
+
+Route that figure through the gates. G1-G7 IRB review-slides should score against the stated proposition, not general impression, so every gate either confirms or erodes projected value. A gate that lowers confidence must visibly lower the number, and that delta must reach budget. The Budget-by-SBU/Alpha-Group popup then stops being a static allocation and becomes value-weighted: funded projects carry a proposition-backed return, and unfunded projects display the specific value the organization is declining — the exact language a portfolio owner needs to defend a cut.
+
+Extend the spine into BD/Sales. The executive two-screen swipe should terminate in a pipeline view where each proposition becomes a customer-facing claim, tagged by needs-segment, with the quantified differentiator ready for a proposal. BD feedback — objection, win, loss, price pressure — must flow back along the same dependency constellation to the originating engineer, closing the loop the council calls shared feedback.
+
+Three groups, one language: proposition, gate confidence, and value-per-differentiator become the shared vocabulary that engineers, managers, and sellers all speak.
+
+Honest risk is non-negotiable. Every quantified value must show its assumptions, confidence band, and gate stage, so no number travels to a customer stronger than the evidence behind it. A proposition promoted past a failed gate must be flagged, never silently sold.
+
+Execute this, and eXeL-AI stops merely prioritizing projects and starts truly governing value from creation to revenue.`;
+
+const wc = (s) => s.trim().split(/\s+/).filter(Boolean).length;
+
+// ── Validate: every writeup must be EXACTLY 333 words ──────────────────────────────────────
+let ok = true;
+for (const m of ASM) { const n = wc(m.text); const good = n === 333; if (!good) ok = false; console.log(`${good ? "OK " : "!! "}${m.name.padEnd(9)} ${n} words`); }
+{ const n = wc(MOT); const good = n === 333; if (!good) ok = false; console.log(`${good ? "OK " : "!! "}${"MoT".padEnd(9)} ${n} words`); }
+if (!ok) { console.log("\nWORD COUNTS NOT EXACT (must be 333) — fix before emit."); process.exit(1); }
+
+// ── Emit HTML feedback artifact ────────────────────────────────────────────────────────────
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const paras = (t) => t.split(/\n\n+/).map((p) => `<p>${esc(p.trim())}</p>`).join("\n      ");
+
+const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bridging Engineers · Business · BD/Sales — 12 Ascended Masters + MoT · 2026.07.27</title>
+<style>
+  :root { --bg:#0b0f14; --card:#0e141b; --line:#1e293b; --ink:#e2e8f0; --dim:#94a3b8; --faint:#64748b;
+          --ai:#19c8cf; --si:#f7b955; --hi:#a78bfa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.62 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  .wrap { max-width:1000px; margin:0 auto; padding:28px 18px 64px; }
+  header.top { border:1px solid var(--line); border-radius:16px; background:linear-gradient(180deg,#0e141b,#0b0f14); padding:22px 22px 18px; }
+  h1 { margin:0 0 6px; font-size:22px; letter-spacing:.01em; line-height:1.25; }
+  .sub { color:var(--dim); font-size:13px; }
+  .glyphs { margin-top:8px; font-size:13px; letter-spacing:.02em; }
+  .glyphs b { font-weight:700; } .g-ai{color:var(--ai)} .g-si{color:var(--si)} .g-hi{color:var(--hi)}
+  .intro { margin-top:14px; font-size:13.5px; color:#cbd5e1; border-left:2px solid var(--ai); padding-left:12px; }
+  h2 { margin:32px 0 14px; font-size:14px; text-transform:uppercase; letter-spacing:.14em; color:var(--dim); }
+  .grid { display:grid; grid-template-columns:1fr; gap:14px; }
+  @media (min-width:720px){ .grid { grid-template-columns:1fr 1fr; } }
+  .asm { border:1px solid var(--line); border-radius:14px; background:var(--card); padding:16px 17px; }
+  .asm h3 { margin:0; font-size:16px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .origin { color:var(--faint); font-size:12px; font-weight:400; }
+  .lens { color:var(--ai); font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; margin:6px 0 10px; }
+  .asm p { margin:0 0 10px; font-size:13.5px; color:#cbd5e1; }
+  .asm p:last-of-type { margin-bottom:0; }
+  .wcount { margin-top:10px; font-size:11px; color:#34d399; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .mot { border:1px solid #19c8cf44; border-radius:16px; background:linear-gradient(180deg,#0e141b,#0b0f14); padding:22px; }
+  .mot h3 { margin:0 0 2px; font-size:18px; }
+  .mot .lens { margin-bottom:14px; }
+  .mot p { margin:0 0 12px; font-size:14px; color:#dbe4ee; }
+  .mot p:last-of-type { margin-bottom:0; }
+  footer { margin-top:36px; color:var(--faint); font-size:12px; text-align:center; line-height:1.75; }
+  footer b { color:var(--dim); }
+</style></head>
+<body><div class="wrap">
+  <header class="top">
+    <h1>Bridging Innovation Engineers with Business Management &amp; BD/Sales</h1>
+    <div class="sub">eXeL-AI · Innovation Project (Portfolio Prioritization) · 12 Ascended Masters + Master of Thought · 333 words each · 2026-07-27</div>
+    <div class="glyphs"><b class="g-ai">◬ A.I.</b> &nbsp;·&nbsp; <b class="g-si">♡ S.I.</b> &nbsp;·&nbsp; <b class="g-hi">웃 H.I.</b></div>
+    <div class="intro">The council was asked one question: how do we enhance the tool so an engineer's work, a manager's budget, and a seller's pitch become <em>one</em> conversation? Every writeup is grounded in the tool's real surfaces — the required value proposition, dog tags, budget-by-SBU/Alpha-Group popup, gate&nbsp;G1–G7 / IRB feedback, the executive two-screen swipe, $/min cost-of-time, the dependency constellation, and Intelligence Load (AI·SI·HI). The convergent thesis: make the <b>value proposition the spine</b> that flows from creation → gates → budget → BD pipeline, in one shared language with one shared feedback loop.</div>
+  </header>
+
+  <h2>12 Ascended Masters · 333 words each · through each SSSES lens</h2>
+  <div class="grid">
+    ${ASM.map((m) => `<div class="asm">
+      <h3>${esc(m.name)} <span class="origin">${esc(m.origin)}</span></h3>
+      <div class="lens">${esc(m.lens)}</div>
+      ${paras(m.text)}
+      <div class="wcount">${wc(m.text)} words</div>
+    </div>`).join("\n    ")}
+  </div>
+
+  <h2>Master of Thought · 333 words · executive synthesis</h2>
+  <div class="mot">
+    <h3>MoT — Thought Master synthesis</h3>
+    <div class="lens">Leads the 12 · the value-proposition spine: creation → gates → budget → BD pipeline</div>
+    ${paras(MOT)}
+    <div class="wcount">${wc(MOT)} words</div>
+  </div>
+
+  <footer>
+    Council synthesis on <b>engineer ⇄ business ⇄ BD/sales</b> bridging · every writeup exactly 333 words (generator refuses to emit otherwise).<br>
+    Convergent direction: the value proposition becomes a living, quantified object every surface consumes and feeds back — one language, one loop, one portfolio.<br>
+    "Where Shared Intention moves at the Speed of Thought."
+  </footer>
+</div></body></html>`;
+
+const OUT = "/home/user/eXeL-AI-Polling/docs/feedback/Innovation_Bridge_12AsM_MoT_2026.07.27.html";
+fs.writeFileSync(OUT, html);
+console.log("\nWrote " + OUT + " (" + html.length + " bytes)");
