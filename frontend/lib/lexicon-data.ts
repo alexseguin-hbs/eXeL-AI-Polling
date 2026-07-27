@@ -1277,7 +1277,8 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.gate.codeNote", englishDefault: "Same code unlocks Business Setup (master data) inside the tool.", context: "Innovation unlock-gate note", cubeId: 60 },
   { key: "innovation.gate.pillars", englishDefault: "Strategic Pillars", context: "Innovation strategic-pillars heading", cubeId: 60 },
   // Header + KPIs
-  { key: "innovation.header.template", englishDefault: "R-Core Project Template ↗", context: "Innovation header template link", cubeId: 60 },
+  { key: "innovation.header.title", englishDefault: "System of Innovation", context: "Innovation app title (post-unlock header)", cubeId: 60 },
+  { key: "innovation.header.template", englishDefault: "R-Core Project Template", context: "Innovation header template button (opens in-app pop-out)", cubeId: 60 },
   { key: "innovation.header.newIdea", englishDefault: "＋ Submit New Idea", context: "Innovation submit-new-idea button", cubeId: 60 },
   { key: "innovation.kpi.rdAvailable", englishDefault: "R&D available", context: "Innovation KPI: R&D available", cubeId: 60 },
   { key: "innovation.kpi.fundedNre", englishDefault: "Funded NRE", context: "Innovation KPI: funded NRE", cubeId: 60 },

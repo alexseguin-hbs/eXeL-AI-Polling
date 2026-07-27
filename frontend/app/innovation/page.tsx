@@ -363,7 +363,8 @@ function Board() {
       <header className="border-b border-slate-800 px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         <div>
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
-          <h1 className="text-lg font-semibold">Project Innovation — {stackName}</h1>
+          <h1 className="text-lg font-semibold">{t("innovation.header.title")}</h1>
+          <div className="text-[11px] text-slate-500">{stackName}</div>
         </div>
         <a
           href="/innovation/pdm-template.html" target="_blank" rel="noopener"
@@ -2670,7 +2671,7 @@ function GateRequirementsView({ projects, sel, onSelect, onEditSource }: { proje
             );
           })}
         </div>
-        <p className="mt-2 text-[11px] text-slate-500">Tolerance ladder ±60/40/20/10/5% — tightens gate over gate; a gate-to-gate move beyond the band raises a variance exception for PRB disposition.</p>
+        <p className="mt-2 text-[11px] text-slate-500">Tolerance ladder ±60/40/20/10/5% — tightens gate over gate; a gate-to-gate move beyond the band raises a variance exception for {board} disposition ({boardFull(board)} — the review meeting where prioritization begins).</p>
       </section>
 
       {/* Generic gate comments + countermeasures (solved per gate) */}
