@@ -1263,6 +1263,47 @@ const experiences: TranslationEntry[] = [
   { key: "experiences.card.vig8.blurb", englishDefault: "Simulation & LVC benefits: Live-Virtual-Constructive (Vignette 0008).", context: "Vignette card blurb: Simulation & LVC", cubeId: 50 },
 ];
 
+// Innovation Project (Portfolio Prioritization, /innovation) — the PdM/PgM portfolio-prioritization
+// tool. Adopting t() here so the whole route localizes across all languages (fallback chain:
+// translation → English → key). Slice 0 seats the chrome; each Bridge slice adds its own keys.
+const innovation: TranslationEntry[] = [
+  // Unlock gate
+  { key: "innovation.gate.eyebrow", englishDefault: "Vision • 2525 · Harmattan AI", context: "Innovation unlock-gate eyebrow", cubeId: 60 },
+  { key: "innovation.gate.title", englishDefault: "Project Innovation — Unlock to Pillars", context: "Innovation unlock-gate title", cubeId: 60 },
+  { key: "innovation.gate.blurb", englishDefault: "Access-gated preview. Enter the code to open the portfolio-prioritization board across the four strategic pillars.", context: "Innovation unlock-gate blurb", cubeId: 60 },
+  { key: "innovation.gate.codePlaceholder", englishDefault: "Access code", context: "Innovation unlock-gate code input placeholder", cubeId: 60 },
+  { key: "innovation.gate.incorrect", englishDefault: "Incorrect code.", context: "Innovation unlock-gate error", cubeId: 60 },
+  { key: "innovation.gate.unlock", englishDefault: "Unlock", context: "Innovation unlock-gate button", cubeId: 60 },
+  { key: "innovation.gate.codeNote", englishDefault: "Same code unlocks Business Setup (master data) inside the tool.", context: "Innovation unlock-gate note", cubeId: 60 },
+  { key: "innovation.gate.pillars", englishDefault: "Strategic Pillars", context: "Innovation strategic-pillars heading", cubeId: 60 },
+  // Header + KPIs
+  { key: "innovation.header.template", englishDefault: "R-Core Project Template ↗", context: "Innovation header template link", cubeId: 60 },
+  { key: "innovation.header.newIdea", englishDefault: "＋ Submit New Idea", context: "Innovation submit-new-idea button", cubeId: 60 },
+  { key: "innovation.kpi.rdAvailable", englishDefault: "R&D available", context: "Innovation KPI: R&D available", cubeId: 60 },
+  { key: "innovation.kpi.fundedNre", englishDefault: "Funded NRE", context: "Innovation KPI: funded NRE", cubeId: 60 },
+  { key: "innovation.kpi.fundedProjects", englishDefault: "Funded projects", context: "Innovation KPI: funded projects", cubeId: 60 },
+  { key: "innovation.kpi.portfolioNpv", englishDefault: "Portfolio NPV", context: "Innovation KPI: portfolio NPV", cubeId: 60 },
+  // Persona lens
+  { key: "innovation.persona.viewAs", englishDefault: "View as", context: "Innovation persona-switcher label", cubeId: 60 },
+  { key: "innovation.persona.pm.label", englishDefault: "Product / Project Mgr", context: "Innovation persona label: PM", cubeId: 60 },
+  { key: "innovation.persona.pm.lens", englishDefault: "Deep-dive one project — gates, 12 metrics, financials, risks, Say/Do.", context: "Innovation persona lens: PM", cubeId: 60 },
+  { key: "innovation.persona.mgr.label", englishDefault: "Manager", context: "Innovation persona label: Manager", cubeId: 60 },
+  { key: "innovation.persona.mgr.lens", englishDefault: "Your projects above/below the funding line — reprioritize the working stack.", context: "Innovation persona lens: Manager", cubeId: 60 },
+  { key: "innovation.persona.sbu.label", englishDefault: "SBU Director", context: "Innovation persona label: SBU Director", cubeId: 60 },
+  { key: "innovation.persona.sbu.lens", englishDefault: "SBU rollup + funding decisions across Alpha Groups.", context: "Innovation persona lens: SBU Director", cubeId: 60 },
+  { key: "innovation.persona.vp.label", englishDefault: "VP · Portfolio", context: "Innovation persona label: VP", cubeId: 60 },
+  { key: "innovation.persona.vp.lens", englishDefault: "Whole-portfolio dashboards, growth model, dependencies, gate readiness.", context: "Innovation persona lens: VP", cubeId: 60 },
+  // Cadence + tabs + stack controls
+  { key: "innovation.cadence.optimize", englishDefault: "Optimize", context: "Innovation optimization-cadence label", cubeId: 60 },
+  { key: "innovation.cadence.Q", englishDefault: "Quarterly", context: "Innovation cadence: quarterly", cubeId: 60 },
+  { key: "innovation.cadence.M", englishDefault: "Monthly", context: "Innovation cadence: monthly", cubeId: 60 },
+  { key: "innovation.cadence.W", englishDefault: "Weekly", context: "Innovation cadence: weekly", cubeId: 60 },
+  { key: "innovation.tab.gates", englishDefault: "Gate Requirements", context: "Innovation view tab: gates", cubeId: 60 },
+  { key: "innovation.tab.dashboards", englishDefault: "Dashboards · ROI Visuals", context: "Innovation view tab: dashboards", cubeId: 60 },
+  { key: "innovation.tab.setup", englishDefault: "⚙ Business Setup", context: "Innovation view tab: business setup", cubeId: 60 },
+  { key: "innovation.stack.budget", englishDefault: "$ Budget", context: "Innovation budget-popup open button", cubeId: 60 },
+];
+
 // ─── Aggregated cube groups ──────────────────────────────────────
 
 export const CUBE_GROUPS: CubeGroup[] = [
@@ -1281,6 +1322,7 @@ export const CUBE_GROUPS: CubeGroup[] = [
   { cubeId: 30, label: "Celestial-2525 — Sky Reader", keys: celestial },
   { cubeId: 40, label: "Vision-2525 — R-CORE Shared UX", keys: vision2525 },
   { cubeId: 50, label: "Experiences — Portfolio", keys: experiences },
+  { cubeId: 60, label: "Innovation — Portfolio Prioritization", keys: innovation },
 ];
 
 /** Flat lookup: key → TranslationEntry (for English defaults + context) */

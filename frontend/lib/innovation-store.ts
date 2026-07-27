@@ -1,0 +1,100 @@
+/**
+ * INNOVATION PROJECT · Supabase persistence (Portfolio Prioritization)
+ * ===================================================================
+ * Promotes the Innovation tool's config + per-project edits from device-local (localStorage) to durable /
+ * cross-device (Supabase). localStorage stays the fast local rung; Supabase is the durable rung — the same
+ * ladder as `architect-saved-files.ts`. Every call is best-effort and NEVER throws: no Supabase env → client
+ * `null` → no-op; a missing table or offline → graceful degrade to local-only (nothing breaks before the
+ * migration is applied). The UI is never blocked by the network.
+ *
+ * Storage model: one row per (owner_key, name). `name` is a namespace the caller chooses — e.g. "config"
+ * (the admin bundle: pillars · board · stack name · dog-tag highlights · biz-setup · glossary · segment
+ * library), or a per-project namespace ("signoff" · "ledger" · "drivers" · "edits"). Each payload is a JSON
+ * blob, so new slices add a namespace or a key WITHOUT a schema change.
+ *
+ * Ownership: `ownerKey()` — a persisted per-browser UUID today (`innovation.ownerId`); swaps to the
+ * authenticated user id in ONE place when accounts land (mirrors architect `ownerKey`).
+ *
+ * Supabase table (optional — supabase/migrations/028_innovation_state.sql):
+ *   innovation_state(id uuid pk, owner_key text, name text, payload jsonb, updated_at, UNIQUE(owner_key,name))
+ */
+import { supabase } from "./supabase";
+
+const TABLE = "innovation_state";
+
+export type CloudStatus = "idle" | "saving" | "saved" | "offline" | "error";
+
+/** Per-browser owner id (persisted). Swap to the logged-in user id HERE when accounts land. */
+export function ownerKey(): string {
+  try {
+    let id = localStorage.getItem("innovation.ownerId");
+    if (!id) { id = randomId(); localStorage.setItem("innovation.ownerId", id); }
+    return id;
+  } catch {
+    return "anon";
+  }
+}
+
+function randomId(): string {
+  try {
+    const c = (globalThis as { crypto?: Crypto }).crypto;
+    if (c?.randomUUID) return c.randomUUID();
+    if (c?.getRandomValues) {
+      const a = new Uint8Array(16);
+      c.getRandomValues(a);
+      return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+    }
+  } catch { /* fall through */ }
+  return "own-" + Date.now().toString(36);
+}
+
+/** True when a Supabase client is configured (env present). Callers no-op when false. */
+export function cloudEnabled(): boolean {
+  return !!supabase;
+}
+
+// PERF — skip a cloud write whose CONTENT is byte-identical to the last one saved for that name, so idle
+// re-renders don't re-upload. Mirrors the architect hash guard.
+const lastHash: Record<string, string> = {};
+function contentHash(v: unknown): string {
+  const s = JSON.stringify(v);
+  let h = 5381; for (let i = 0; i < s.length; i++) h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0;
+  return `${h.toString(36)}:${s.length}`;
+}
+
+/** Best-effort push of a namespaced payload to Supabase. Never throws. Returns the resulting CloudStatus. */
+export async function saveState(name: string, payload: unknown): Promise<CloudStatus> {
+  if (!supabase) return "offline";
+  const h = contentHash(payload);
+  if (lastHash[name] === h) return "saved"; // unchanged → no network write
+  try {
+    const { error } = await supabase.from(TABLE).upsert(
+      { owner_key: ownerKey(), name, payload, updated_at: new Date().toISOString() },
+      { onConflict: "owner_key,name" },
+    );
+    if (!error) { lastHash[name] = h; return "saved"; }
+    // A missing table (pre-migration) is expected → report as local-only, not an error the user must act on.
+    const msg = `${(error as { code?: string }).code ?? ""} ${error.message ?? ""}`.toLowerCase();
+    if (/42p01|pgrst205|does not exist|could not find|schema cache/.test(msg)) return "offline";
+    return "error";
+  } catch {
+    return "error";
+  }
+}
+
+/** Best-effort load of a namespaced payload for this owner. Returns null on any failure / no row / no client. */
+export async function loadState<T = unknown>(name: string): Promise<T | null> {
+  if (!supabase) return null;
+  try {
+    const { data } = await supabase
+      .from(TABLE)
+      .select("payload")
+      .eq("owner_key", ownerKey())
+      .eq("name", name)
+      .maybeSingle();
+    const payload = (data as { payload?: unknown } | null)?.payload;
+    return payload == null ? null : (payload as T);
+  } catch {
+    return null;
+  }
+}

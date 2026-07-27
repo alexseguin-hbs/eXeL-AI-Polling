@@ -354,5 +354,13 @@ ok(aiValuePropOf(DEMO_PROJECTS[0]) === aiValuePropOf(DEMO_PROJECTS[0]), "AI rend
 ok(aiValuePropOf({ ...DEMO_PROJECTS[0], valuePropAI: "  Minted AI VP  " }) === "Minted AI VP", "stored AI rendition (minted at submission) wins over derived (trimmed)");
 ok(aiValuePropOf({ ...DEMO_PROJECTS[0], nextBestAlternative: "Rival System X" }).includes("Unlike Rival System X"), "AI rendition contrasts against the Next Best Alternative");
 
+/* ---------------- Lexicon adoption (Slice 0 · i18n foundation) ---------------- */
+import { CUBE_GROUPS } from "../lib/lexicon-data.ts";
+const innovGroup = CUBE_GROUPS.find((g) => g.cubeId === 60);
+ok(!!innovGroup, "innovation lexicon group (cubeId 60) is registered in CUBE_GROUPS");
+ok((innovGroup?.keys.length ?? 0) >= 25, "innovation lexicon group carries the Slice-0 chrome keys (>=25)");
+ok(innovGroup?.keys.every((k) => k.key.startsWith("innovation.") && k.englishDefault.trim().length > 0) ?? false, "every innovation key is namespaced 'innovation.*' with a non-empty English default");
+ok(new Set(innovGroup?.keys.map((k) => k.key)).size === (innovGroup?.keys.length ?? -1), "innovation lexicon keys are unique (no dup key)");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

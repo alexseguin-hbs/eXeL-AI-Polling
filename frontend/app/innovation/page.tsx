@@ -9,6 +9,8 @@
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useLexicon } from "@/lib/lexicon-context";
+import { saveState, loadState } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, DEMO_BUDGET, availableK, stackWithBudget, incrementalRevM, weightedRevM,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
@@ -32,6 +34,12 @@ import {
 
 const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
+// Admin config bundle mirrored to Supabase (Slice 0) — the persisted localStorage keys that make up
+// the tool's editable master data. Kept as literals so the store stays decoupled from the loaders below.
+const CONFIG_KEYS = [
+  "innovation-pillars", "innovation-biz-setup", "innovation-review-board",
+  "innovation-stack-name", "innovation-dogtag-highlights",
+];
 
 // Persona lens (12-AsM usability) — the same portfolio seen through four operator roles.
 type Persona = "pm" | "mgr" | "sbu" | "vp";
@@ -64,6 +72,7 @@ export default function InnovationPage() {
 
 // ── Access gate ──────────────────────────────────────────────────────────────────────────
 function Gate({ onUnlock }: { onUnlock: () => void }) {
+  const { t } = useLexicon();
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
   const submit = () => (pw === CODE ? onUnlock() : setErr(true));
@@ -72,25 +81,25 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
       <div className="w-full max-w-3xl grid gap-5 md:grid-cols-[1fr_1.1fr] items-center">
         {/* Unlock card */}
         <div className="w-full rounded-2xl border border-cyan-500/20 bg-[#111820] p-7 shadow-2xl">
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
-          <h1 className="mt-1 text-xl font-semibold">Project Innovation — Unlock to Pillars</h1>
-          <p className="mt-2 text-sm text-slate-400">Access-gated preview. Enter the code to open the portfolio-prioritization board across the four strategic pillars.</p>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">{t("innovation.gate.eyebrow")}</div>
+          <h1 className="mt-1 text-xl font-semibold">{t("innovation.gate.title")}</h1>
+          <p className="mt-2 text-sm text-slate-400">{t("innovation.gate.blurb")}</p>
           <input
             type="password" inputMode="numeric" value={pw} autoFocus
             onChange={(e) => { setPw(e.target.value); setErr(false); }}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Access code"
+            placeholder={t("innovation.gate.codePlaceholder")}
             className="mt-4 w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2.5 text-center tracking-[0.4em] font-mono text-lg outline-none focus:border-cyan-500"
           />
-          {err && <p className="mt-2 text-sm text-rose-400">Incorrect code.</p>}
+          {err && <p className="mt-2 text-sm text-rose-400">{t("innovation.gate.incorrect")}</p>}
           <button onClick={submit} className="mt-4 w-full rounded-lg bg-cyan-500 px-4 py-2.5 font-semibold text-[#06202a] hover:bg-cyan-400">
-            Unlock
+            {t("innovation.gate.unlock")}
           </button>
-          <p className="mt-3 text-center text-[11px] text-slate-500">Same code unlocks Business Setup (master data) inside the tool.</p>
+          <p className="mt-3 text-center text-[11px] text-slate-500">{t("innovation.gate.codeNote")}</p>
         </div>
         {/* Strategic pillars — admin-editable in Business Setup (loadPillars) */}
         <div className="w-full">
-          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">Strategic Pillars</div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">{t("innovation.gate.pillars")}</div>
           <div className="mt-2 grid gap-2">
             {loadPillars().map((pillar, i) => (
               <div key={pillar.name} className="rounded-xl border border-slate-800 bg-[#0e141b] p-3">
@@ -110,6 +119,7 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
 
 // ── Portfolio workbench ─────────────────────────────────────────────────────────────────
 function Board() {
+  const { t } = useLexicon();
   // Default rank: by weighted NPV desc (a sane starting stack; user then drags).
   const [order, setOrder] = useState<Project[]>(
     [...DEMO_PROJECTS].sort((a, b) => npvM(b) - npvM(a))
@@ -245,6 +255,36 @@ function Board() {
   // hot-swaps the tab/title/header instantly (no reload), seeded from the persisted value.
   const [stackName, setStackName] = useState<string>(() => loadStackName());
 
+  // Supabase persistence (Slice 0) — the admin config bundle rounds-trips to the cloud so it survives a
+  // cache-clear and reloads on the same owner elsewhere. localStorage is the fast/offline rung; Supabase
+  // the durable rung. Best-effort + never blocks: no env / no table → local-only. On mount, hydrate cloud
+  // → localStorage, then refresh the derived config state. Config keys are the tool's persisted admin data.
+  const cloudHydrated = useRef(false);
+  useEffect(() => {
+    if (cloudHydrated.current) return;
+    cloudHydrated.current = true;
+    (async () => {
+      const bundle = await loadState<Record<string, string>>("config");
+      if (bundle && typeof bundle === "object") {
+        for (const [key, raw] of Object.entries(bundle)) {
+          if (CONFIG_KEYS.includes(key) && typeof raw === "string") lsSet(key, raw);
+        }
+        setSetup(loadBizSetup()); setStackName(loadStackName());
+      }
+    })();
+  }, []);
+  // Push the admin config bundle to the cloud whenever the operator leaves Business Setup (where edits
+  // happen). Reads the persisted localStorage config keys and upserts them as one blob. Best-effort.
+  const prevView = useRef(view);
+  useEffect(() => {
+    if (prevView.current === "setup" && view !== "setup") {
+      const bundle: Record<string, string> = {};
+      for (const key of CONFIG_KEYS) { const raw = lsGet(key); if (raw != null) bundle[key] = raw; }
+      void saveState("config", bundle);
+    }
+    prevView.current = view;
+  }, [view]);
+
   return (
     <div className="min-h-screen bg-[#0b0f14] text-slate-100">
       {/* Header */}
@@ -257,54 +297,54 @@ function Board() {
           href="/innovation/pdm-template.html" target="_blank" rel="noopener"
           className="rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10"
         >
-          R-Core Project Template ↗
+          {t("innovation.header.template")}
         </a>
         <button onClick={() => setNewIdeaOpen(true)}
           className="rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
-          ＋ Submit New Idea
+          {t("innovation.header.newIdea")}
         </button>
         <div className="ml-auto flex gap-5 text-right">
-          <Kpi label="R&D available" value={k(avail)} />
-          <Kpi label="Funded NRE" value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
-          <Kpi label="Funded projects" value={`${fundedRows.length}/${order.length}`} />
-          <Kpi label="Portfolio NPV" value={usd(portfolioNpv)} tone="good" />
+          <Kpi label={t("innovation.kpi.rdAvailable")} value={k(avail)} />
+          <Kpi label={t("innovation.kpi.fundedNre")} value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
+          <Kpi label={t("innovation.kpi.fundedProjects")} value={`${fundedRows.length}/${order.length}`} />
+          <Kpi label={t("innovation.kpi.portfolioNpv")} value={usd(portfolioNpv)} tone="good" />
         </div>
       </header>
 
       {/* Persona lens (12-AsM usability) — reframe the same portfolio by operator role */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 bg-[#0c1219] px-5 py-2">
-        <span className="text-[10px] uppercase tracking-wider text-slate-500">View as</span>
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.persona.viewAs")}</span>
         <div className="flex flex-wrap gap-1">
           {PERSONAS.map((pp) => (
             <button key={pp.key}
               onClick={() => { setPersona(pp.key); setView(pp.view); if (pp.level) setStackLevel(pp.level); setDrill(null); }}
               className={`rounded-md px-2.5 py-1 text-xs font-medium ${persona === pp.key ? "bg-cyan-500 text-[#06202a]" : "border border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
-              <span className="mr-1">{pp.glyph}</span>{pp.label}
+              <span className="mr-1">{pp.glyph}</span>{t(`innovation.persona.${pp.key}.label`)}
             </button>
           ))}
         </div>
         {/* Optimization cadence — quarterly (legacy) → monthly (now) → weekly (next) */}
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-wider text-slate-500">Optimize</span>
+          <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.cadence.optimize")}</span>
           <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
-            {([["Q", "Quarterly"], ["M", "Monthly"], ["W", "Weekly"]] as const).map(([c, lbl]) => (
+            {(["Q", "M", "W"] as const).map((c) => (
               <button key={c} onClick={() => setCadence(c)}
-                className={`px-2 py-1 ${cadence === c ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+                className={`px-2 py-1 ${cadence === c ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{t(`innovation.cadence.${c}`)}</button>
             ))}
           </div>
         </div>
       </div>
       <p className="border-b border-slate-800 bg-[#0c1219] px-5 pb-2 text-[11px] text-slate-400">
-        <span className="hidden sm:inline">{PERSONAS.find((pp) => pp.key === persona)!.lens} · </span>
+        <span className="hidden sm:inline">{t(`innovation.persona.${persona}.lens`)} · </span>
         Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : "weekly"}</b> · time is money — cost shown in $/min on each project · AI + HI now, SI polling next.
       </p>
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
       <nav className="flex gap-1 border-b border-slate-800 px-5 overflow-x-auto">
-        {([["portfolio", "Portfolio Prioritization"], ["gates", "Gate Requirements"], ["dashboards", "Dashboards · ROI Visuals"], ["setup", "⚙ Business Setup"]] as const).map(([v, label]) => (
+        {([["portfolio", stackName], ["gates", t("innovation.tab.gates")], ["dashboards", t("innovation.tab.dashboards")], ["setup", t("innovation.tab.setup")]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
-            {v === "portfolio" ? stackName : label}
+            {label}
           </button>
         ))}
       </nav>
@@ -319,7 +359,7 @@ function Board() {
                 {stackName} · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
               </h2>
               <button onClick={() => setBudgetOpen(true)} title="Budget by SBU / Alpha Group — incl. unfunded"
-                className="rounded-md border border-emerald-500/40 px-2 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/10">$ Budget</button>
+                className="rounded-md border border-emerald-500/40 px-2 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/10">{t("innovation.stack.budget")}</button>
               {stackLevel === "product" && (
                 <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]" title="Working-stack row layout">
                   {([["table", "▤ Table"], ["cards", "▦ Cards"]] as const).map(([m, lbl]) => (
