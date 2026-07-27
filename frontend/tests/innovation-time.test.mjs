@@ -362,5 +362,31 @@ ok((innovGroup?.keys.length ?? 0) >= 25, "innovation lexicon group carries the S
 ok(innovGroup?.keys.every((k) => k.key.startsWith("innovation.") && k.englishDefault.trim().length > 0) ?? false, "every innovation key is namespaced 'innovation.*' with a non-empty English default");
 ok(new Set(innovGroup?.keys.map((k) => k.key)).size === (innovGroup?.keys.length ?? -1), "innovation lexicon keys are unique (no dup key)");
 
+/* ---------------- Value signals (Slice 1) — pure, deterministic, derived fallbacks ---------------- */
+import {
+  custImportanceOf, relPerformanceOf, valueIndexOf, valuePerDollarOf, winProbabilityOf,
+  killRiskOf, riskBandOf, costPerServedBuyerOf, intelLoadGloss,
+} from "../lib/innovation-data.ts";
+const P0 = DEMO_PROJECTS[0];
+ok(DEMO_PROJECTS.every((p) => custImportanceOf(p) >= 0 && custImportanceOf(p) <= 1), "custImportanceOf in [0,1] for all (confidence fallback)");
+ok(custImportanceOf({ ...P0, custImportance: 0.9 }) === 0.9, "explicit custImportance wins");
+ok(DEMO_PROJECTS.every((p) => relPerformanceOf(p) >= 0 && relPerformanceOf(p) <= 1), "relPerformanceOf in [0,1] for all (competitive fallback)");
+ok(relPerformanceOf({ ...P0, relPerformance: 0.7 }) === 0.7, "explicit relPerformance wins");
+ok(DEMO_PROJECTS.every((p) => valueIndexOf(p) >= 0), "valueIndexOf ≥ 0 for all (importance×performance×incremental rev)");
+ok(valueIndexOf({ ...P0, custImportance: 0, relPerformance: 1 }) === 0, "valueIndexOf is 0 when importance is 0");
+ok(DEMO_PROJECTS.every((p) => Number.isFinite(valuePerDollarOf(p))), "valuePerDollarOf finite for all");
+const wp = winProbabilityOf(P0);
+ok(wp.p10 <= wp.p50 && wp.p50 <= wp.p90, "winProbability band ordered p10 ≤ p50 ≤ p90");
+ok([wp.p10, wp.p50, wp.p90].every((x) => x >= 0 && x <= 1), "winProbability band within [0,1]");
+ok(winProbabilityOf({ ...P0, winP50: 0.5 }).p50 === 0.5, "explicit winP50 wins as the median");
+ok(killRiskOf({ ...P0, killRisk: "  Vendor lock  " }) === "Vendor lock", "killRiskOf: explicit field wins (trimmed)");
+ok(killRiskOf({ ...P0, killRisk: undefined }).length > 0, "killRiskOf: derived kill-risk is non-empty");
+ok(riskBandOf({ ...P0, criticalPath: true }).dependency === "High", "riskBandOf: critical-path project reads Dependency High");
+ok(["Low", "Med", "High"].includes(riskBandOf(P0).technical), "riskBandOf: technical band is a Low/Med/High label");
+ok(costPerServedBuyerOf(P0, 4) < costPerServedBuyerOf(P0, 1), "costPerServedBuyerOf falls as served segments rise");
+ok(costPerServedBuyerOf(P0, 0) === costPerServedBuyerOf(P0, 1), "costPerServedBuyerOf floors the divisor at 1 (no divide-by-zero)");
+const glossHi = intelLoadGloss({ ...P0, ai: 0.1, si: 0.1, hi: 0.8 });
+ok(glossHi.dominant === "HI" && glossHi.gloss.length > 0, "intelLoadGloss: dominant band = max share, gloss non-empty");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

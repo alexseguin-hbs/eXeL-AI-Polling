@@ -121,6 +121,12 @@ export interface Project {
   segmentValueProps?: SegmentValueProp[];
   valuePropAI?: string;               // AI-generated rendition, minted at submission (HI⇄AI toggle)
   valuePropSource?: "HI" | "AI";      // active view for the value-prop toggle (default HI)
+  // Value signals (Bridge Slice 1) — optional structured inputs; all have derived fallbacks so seeds
+  // never blank (mirror the valueProp/nba pattern). Feed dog-tag metrics, budget, gates, exec slide.
+  killRisk?: string;                  // Thor — the one assumption that, if false, sinks the project
+  custImportance?: number;            // Thoth — customer importance of the differentiator (0–1, BD)
+  relPerformance?: number;            // Thoth — relative performance vs the NBA (0–1, engineering)
+  winP50?: number;                    // Odin — median commercial adoption / BD win probability (0–1)
 }
 export interface SegmentValueProp { segment: string; prop: string }
 
@@ -802,6 +808,67 @@ export function aiValuePropOf(p: Project): string {
   const how = b.solution[0] ?? "our approach";
   return `For ${target} who need ${need.charAt(0).toLowerCase() + need.slice(1)}, ${p.name} is a ${m.valueLadder}-tier ${p.category} that delivers ${benefit.charAt(0).toLowerCase() + benefit.slice(1)} through ${how.charAt(0).toLowerCase() + how.slice(1)}. Unlike ${nbaOf(p)}, it is ${m.competitive.toLowerCase()}-class — ${m.valueImpact.charAt(0).toLowerCase() + m.valueImpact.slice(1)}.`;
 }
+
+// ── Value signals (Bridge Slice 1) — pure, deterministic, offline. Each has a derived fallback from the
+//    existing engine so seeds never blank. These feed the dog-tag metrics, budget popup, gates, and exec slide.
+
+/** Derived customer importance (0–1) — BD's weight; falls back to reviewer confidence (1–5 → 0.2–1.0). */
+export function custImportanceOf(p: Project): number {
+  if (typeof p.custImportance === "number") return clamp01(p.custImportance);
+  return clamp01(p.confidence / 5);
+}
+/** Derived relative performance vs the NBA (0–1) — engineering's score; falls back to competitive position. */
+export function relPerformanceOf(p: Project): number {
+  if (typeof p.relPerformance === "number") return clamp01(p.relPerformance);
+  const c = metaOf(p).competitive; // Leader | Challenger | Fast Follower | Niche
+  return c === "Leader" ? 0.85 : c === "Challenger" ? 0.65 : c === "Fast Follower" ? 0.45 : 0.55;
+}
+/** Thoth's value index ($M) = customer importance × relative performance × addressable (incremental) revenue. */
+export function valueIndexOf(p: Project): number {
+  return custImportanceOf(p) * relPerformanceOf(p) * incrementalRevM(p);
+}
+/** Value per R&D dollar — NPV ($) returned per $ of NRE. >1 means NPV exceeds the non-recurring spend. */
+export function valuePerDollarOf(p: Project): number {
+  return (npvM(p) * 1_000_000) / Math.max(1, p.nreK * 1000);
+}
+/** Commercial adoption / BD win probability band {p10,p50,p90} (0–1). p50 from winP50 or pSuccess×confidence. */
+export function winProbabilityOf(p: Project): { p10: number; p50: number; p90: number } {
+  const p50 = typeof p.winP50 === "number" ? clamp01(p.winP50)
+    : clamp01(pSuccess(p) * (0.6 + 0.08 * p.confidence)); // confidence 1..5 → 0.68..1.0 multiplier
+  const spread = 0.18 * (1 - p50 * 0.5); // wider band for lower-confidence forecasts
+  return { p10: clamp01(p50 - spread), p50, p90: clamp01(p50 + spread) };
+}
+/** Kill-risk — the one assumption that sinks the project. Field or derived from the dominant risk driver. */
+export function killRiskOf(p: Project): string {
+  if (p.killRisk && p.killRisk.trim()) return p.killRisk.trim();
+  const techWorse = riskNum(p.tech) >= riskNum(p.comm);
+  const lvl = techWorse ? p.tech : p.comm;
+  const dim = techWorse ? "the core technology matures on schedule" : "the commercial demand materializes at the modeled price";
+  return `${RISK_LABEL[lvl]} risk that ${dim}`;
+}
+/** Risk band per lens — Technical · Commercial · Dependency (each "Low|Med|High"), for the dog-tag chip. */
+export function riskBandOf(p: Project): { technical: string; commercial: string; dependency: string } {
+  const band = (lvl: RiskLevel) => RISK_LABEL[lvl];
+  return { technical: band(p.tech), commercial: band(p.comm), dependency: p.criticalPath ? "High" : "Low" };
+}
+/** Cost per served buyer-segment — dev cost ($) spread across the addressable needs-segments (min 1). */
+export function costPerServedBuyerOf(p: Project, segments: number): number {
+  return (p.nreK * 1000) / Math.max(1, segments);
+}
+/** Intelligence-Load (AI·SI·HI) plain-language gloss — dominant band → a business risk/funding read. */
+export function intelLoadGloss(p: Project): { dominant: "AI" | "SI" | "HI"; gloss: string } {
+  const entries: [("AI" | "SI" | "HI"), number][] = [["AI", p.ai], ["SI", p.si], ["HI", p.hi]];
+  entries.sort((a, b) => b[1] - a[1]);
+  const dominant = entries[0][0];
+  const gloss = dominant === "AI"
+    ? "AI-heavy — scale-margin story for BD; watch model/provider risk"
+    : dominant === "SI"
+    ? "SI-heavy — shared-intent/community pull; strong adoption signal"
+    : "HI-heavy — scarce-specialist effort; talent + execution risk to fund";
+  return { dominant, gloss };
+}
+
+const clamp01 = (n: number) => (Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0);
 
 // Executive-slide two-bullet Project Summary (AMTS overview one-pager parity — IMG_7825/7826).
 // Exactly TWO bullets derived from the live model: (1) what the project IS, (2) the dated
