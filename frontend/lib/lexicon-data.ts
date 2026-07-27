@@ -1306,6 +1306,7 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.tab.dashboards", englishDefault: "Dashboards · ROI Visuals", context: "Innovation view tab: dashboards", cubeId: 60 },
   { key: "innovation.tab.setup", englishDefault: "⚙ Business Setup", context: "Innovation view tab: business setup", cubeId: 60 },
   { key: "innovation.setup.close", englishDefault: "Done", context: "Innovation Business Setup close/exit button (returns to main view)", cubeId: 60 },
+  { key: "innovation.detail.back", englishDefault: "Back to list", context: "Innovation project-detail portrait: return to the stack list", cubeId: 60 },
   { key: "innovation.stack.budget", englishDefault: "$ Budget", context: "Innovation budget-popup open button", cubeId: 60 },
   { key: "innovation.scenario.label", englishDefault: "R&D scenario", context: "R&D budget scenario selector label", cubeId: 60 },
   { key: "innovation.scenario.conservative", englishDefault: "Conservative", context: "R&D budget scenario: conservative", cubeId: 60 },

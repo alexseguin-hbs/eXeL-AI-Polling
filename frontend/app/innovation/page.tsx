@@ -164,6 +164,19 @@ function Board() {
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
   const [persona, setPersona] = useState<Persona>("sbu");
   const [detailMax, setDetailMax] = useState(false); // maximize the selected-project deep dive full-width
+  // Responsive project detail (Slice 4): landscape = list left / detail right; portrait = list top /
+  // detail bottom, revealed on tap so a phone user can actually reach the details.
+  const [detailOpen, setDetailOpen] = useState(false);
+  const detailRef = useRef<HTMLElement>(null);
+  const stackRef = useRef<HTMLElement>(null);
+  const selectProject = (id: string) => {
+    setSelId(id);
+    setDetailOpen(true);
+    // Portrait/narrow: bring the detail pane into view (landscape already shows it side-by-side).
+    if (typeof window !== "undefined" && window.matchMedia?.("(orientation: portrait)").matches) {
+      requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
+  };
   // Optimization cadence — legacy prioritization was quarterly; this tool enables monthly now,
   // weekly next. Drives how often the stack is re-optimized / snapshotted.
   const [cadence, setCadence] = useState<"Q" | "M" | "W" | "D">("M");
@@ -205,7 +218,7 @@ function Board() {
     // via the HI⇄AI toggle to spark quality ideas — deterministic + offline (no provider call).
     np.valuePropAI = aiValuePropOf(np);
     setOrder((o) => [np, ...o]);
-    setSelId(id); setView("portfolio"); setStackLevel("product");
+    selectProject(id); setView("portfolio"); setStackLevel("product");
     log("edit", np.name, `submitted new idea (G1) · HI value prop + NBA set · AI version minted${np.segmentValueProps?.length ? ` · ${np.segmentValueProps.length} segment(s)` : ""}`, "you");
     setNewIdeaOpen(false);
   };
@@ -442,9 +455,11 @@ function Board() {
       {/* Scroll rail — the only scrolling region; header/persona/tabs above stay fixed (app-shell) */}
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
       {view === "portfolio" && (<>
-      <div className="grid gap-4 p-5 lg:grid-cols-[1.6fr_1fr]">
+      {/* Orientation-aware split: landscape = list LEFT / detail RIGHT · portrait = list TOP / detail BOTTOM
+          (revealed on tap so phone users can reach the details). */}
+      <div className="flex flex-col gap-4 p-5 landscape:flex-row landscape:items-start">
         {/* STACK table — level-aware Rack & Stack */}
-        <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
+        <section ref={stackRef} className="w-full rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden landscape:flex-1 landscape:min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold">
@@ -546,7 +561,7 @@ function Board() {
                               <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(avail)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
                             </div>
                           )}
-                          <div data-stack-row={i} onClick={() => setSelId(p.id)}
+                          <div data-stack-row={i} onClick={() => selectProject(p.id)}
                             className={`flex items-center gap-2 rounded-lg ${dragIdx === i ? "opacity-40" : ""} ${!r.funded ? "opacity-70" : ""} ${overIdx === i && dragIdx !== i ? "ring-1 ring-cyan-400" : selId === p.id ? "ring-1 ring-cyan-500/60" : ""}`}>
                             {canDrag && <span onPointerDown={startRowDrag(i)} style={{ touchAction: "none" }} title="Drag to reprioritize" className="cursor-grab px-0.5 text-slate-600 active:cursor-grabbing">⠿</span>}
                             <span className="w-5 shrink-0 text-center text-[11px] tabular-nums text-slate-500">{i + 1}</span>
@@ -583,7 +598,7 @@ function Board() {
                   <tbody>
                     {st.rows.map((r, i) => (
                       <RowFrag key={r.p.id} r={r} i={i} showLine={i === st.lineIndex} selId={selId}
-                        onSelect={setSelId} onUp={canDrag ? () => move(i, -1) : undefined} onDown={canDrag ? () => move(i, 1) : undefined}
+                        onSelect={selectProject} onUp={canDrag ? () => move(i, -1) : undefined} onDown={canDrag ? () => move(i, 1) : undefined}
                         last={i === st.rows.length - 1} avail={avail} canDrag={canDrag}
                         dragging={dragIdx === i} over={overIdx === i && dragIdx !== i} onGripDown={canDrag ? startRowDrag(i) : undefined} />
                     ))}
@@ -614,7 +629,7 @@ function Board() {
                     return (
                       <React.Fragment key={p.id}>
                         {/* Product # header (rolled-up by default) — click to expand the BOM build */}
-                        <tr onClick={() => { toggleBom(p.id); setSelId(p.id); }} title={open ? "Collapse BOM build" : "Expand BOM build"} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${selId === p.id ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
+                        <tr onClick={() => { toggleBom(p.id); selectProject(p.id); }} title={open ? "Collapse BOM build" : "Expand BOM build"} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${selId === p.id ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
                           <td className="px-2 py-1.5 font-mono font-semibold text-cyan-300"><span className="mr-1 text-slate-500">{open ? "▾" : "▸"}</span>{hierOf(p).product}</td>
                           <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· Material {hierOf(p).material} · {hierOf(p).pgroup} · {lines.length} lines{open ? "" : " · tap to expand BOM"}</span></td>
                           <td className="px-2 py-1.5 text-right text-[10px] uppercase tracking-wider text-slate-500">Prod cost →</td>
@@ -645,8 +660,12 @@ function Board() {
           </div>
         </section>
 
-        {/* Selected project detail */}
-        <section className="space-y-4">
+        {/* Selected project detail — portrait: hidden until a project is tapped (top/bottom split); landscape: always shown right */}
+        <section ref={detailRef} className={`${detailOpen ? "block" : "hidden"} w-full space-y-4 landscape:block landscape:w-[42%] landscape:shrink-0`}>
+          <button onClick={() => { setDetailOpen(false); stackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+            className="flex w-full items-center gap-1 rounded-lg border border-slate-700 bg-[#0e141b] px-3 py-2 text-[12px] font-medium text-slate-300 hover:bg-slate-800 landscape:hidden">
+            ‹ {t("innovation.detail.back")}
+          </button>
           <ProjectDetail p={sel} risks={risks} setup={setup} maximized={false} onToggleMax={() => setDetailMax(true)}
             onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
             onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
@@ -699,7 +718,7 @@ function Board() {
 
       {view === "dashboards" && (
         <div className="p-5">
-          <Dashboards projects={order} funded={fundedRows.map((r) => r.p)} onSelect={(id) => { setSelId(id); setView("portfolio"); }} />
+          <Dashboards projects={order} funded={fundedRows.map((r) => r.p)} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
         </div>
       )}
 
