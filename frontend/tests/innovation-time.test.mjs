@@ -583,5 +583,15 @@ import { nodeAllocation, defaultBudgetK } from "../lib/innovation-data.ts";
   ok(defaultBudgetK(DEMO_PROJECTS, "bu", "MS", availK) === defaultBudgetK(DEMO_PROJECTS, "bu", "MS", availK), "defaultBudgetK is deterministic");
 }
 
+/* ---------------- Strategic-pillar color (InnovationTag highlight) — P1 ---------------- */
+import { pillarColorOf, PILLAR_COLOR } from "../lib/innovation-data.ts";
+ok(STRATEGIC_INITIATIVES.every((n) => pillarColorOf(n) === PILLAR_COLOR[n]), "pillarColorOf returns the Trinity default for each of the 4 pillars");
+ok(pillarColorOf(STRATEGIC_INITIATIVES[0]) === "#19c8cf", "1st pillar default = AI cyan (Trinity)");
+ok(pillarColorOf("Autonomous Loitering Munitions", [{ name: "Autonomous Loitering Munitions", color: "#123456" }]) === "#123456", "pillarColorOf honors a PillarDef.color override");
+ok(/^#[0-9a-fA-F]{3,8}$/.test(pillarColorOf("Some Custom Admin Pillar")), "unknown pillar resolves to a valid hex (hashed fallback)");
+ok(pillarColorOf("Some Custom Admin Pillar") === pillarColorOf("Some Custom Admin Pillar"), "hashed fallback is deterministic");
+ok(pillarColorOf("Autonomous Loitering Munitions", [{ name: "Autonomous Loitering Munitions", color: "nope" }]) === PILLAR_COLOR["Autonomous Loitering Munitions"], "an invalid override falls back to the default map");
+ok(DEMO_PROJECTS.every((p) => /^#[0-9a-fA-F]{3,8}$/.test(pillarColorOf(metaOf(p).initiative))), "every seed project resolves to a valid pillar hex");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

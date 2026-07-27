@@ -28,7 +28,7 @@ import {
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
-  metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
+  metaOf, pillarColorOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
   valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
   valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf, killRiskOf,
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
@@ -975,7 +975,9 @@ function PwtCell({ weighted, incremental }: { weighted: number; incremental: num
 function DogTag({ p }: { p: Project }) {
   const { t } = useLexicon();
   const h = hierOf(p);
-  const dt = DEV_TYPE[devTypeOf(p)];
+  const dt = DEV_TYPE[devTypeOf(p)]; // project TYPE (orange/blue/green/purple) — a distinct cue (the ● dot)
+  const pillar = metaOf(p).initiative;
+  const pillarColor = pillarColorOf(pillar, loadPillars()); // highlight/border = Strategic Innovation Pillar
   const [face, setFace] = useState<"biz" | "eng">("biz"); // Slice 2 — engineer ⇄ business face flip
   const metrics = loadDogtag().map((kk) => DOGTAG_METRICS.find((m) => m.key === kk)).filter(Boolean) as typeof DOGTAG_METRICS;
   // Engineering face — deps/load/readiness read (on-project data), vs the business highlight metrics.
@@ -987,14 +989,17 @@ function DogTag({ p }: { p: Project }) {
     { label: t("innovation.dogtag.risk"), val: `${rb.technical[0]}/${rb.commercial[0]}/${rb.dependency[0]}` },
   ];
   return (
-    <div className="relative mx-auto flex max-w-sm items-stretch overflow-hidden rounded-lg border-2 bg-[#0b0f14]" style={{ borderColor: dt.color }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}\n${valuePropOf(p)}`}>
-      {/* SBU — fixed, vertical left (locked to the project title) */}
-      <div className="flex shrink-0 items-center justify-center px-0.5" style={{ background: `${dt.color}22` }}>
-        <span className="text-[9px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: dt.color }}>{h.sbu}</span>
+    <div className="relative mx-auto flex max-w-sm items-stretch overflow-hidden rounded-lg border-2 bg-[#0b0f14]" style={{ borderColor: pillarColor }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}\nPillar: ${pillar} · Type: ${dt.label}\n${valuePropOf(p)}`}>
+      {/* SBU — fixed, vertical left (locked to the project title); tinted by the pillar (highlight) */}
+      <div className="flex shrink-0 items-center justify-center px-0.5" style={{ background: `${pillarColor}22` }}>
+        <span className="text-[9px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: pillarColor }}>{h.sbu}</span>
       </div>
       {/* Center — name TOP + compact one-per-line highlights (biz = configured metrics · eng = deps/load/readiness) */}
       <div className="min-w-0 flex-1 px-2 py-1.5 text-center">
-        <div className="truncate text-[13px] font-bold leading-tight text-slate-100">{p.name}</div>
+        <div className="flex items-center justify-center gap-1 truncate text-[13px] font-bold leading-tight text-slate-100">
+          <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: dt.color }} title={`Project type: ${dt.label}`} aria-label={`Project type: ${dt.label}`} />
+          <span className="truncate">{p.name}</span>
+        </div>
         <div className="mt-0.5 flex flex-col items-center gap-0 text-[10px] leading-tight">
           {face === "biz"
             ? metrics.map((m) => (<div key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></div>))
@@ -2982,7 +2987,7 @@ const ADMIN_KEY = "innovation-admin";
 const PILLAR_KEY = "innovation-pillars";
 // Strategic pillars are admin-editable (Business Setup) — seeded from the code defaults and
 // persisted; the edit-project + new-idea pillar dropdowns read from here.
-type PillarDef = { name: string; desc: string };
+type PillarDef = { name: string; desc: string; color?: string };
 function loadPillars(): PillarDef[] {
   const s = lsGet(PILLAR_KEY);
   if (s) { try { const p = JSON.parse(s) as PillarDef[]; if (Array.isArray(p) && p.length) return p; } catch { /* seed */ } }
@@ -3126,9 +3131,16 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
         <div className="mt-2 space-y-1.5">
           {pillars.map((pl, i) => (
             <div key={i} className="flex flex-wrap items-center gap-2">
-              <span className="flex h-6 w-8 items-center justify-center rounded bg-cyan-500/15 text-[10px] font-mono text-cyan-300">P{i + 1}</span>
+              <span className="flex h-6 w-8 items-center justify-center rounded text-[10px] font-mono" style={{ background: `${pillarColorOf(pl.name, pillars)}22`, color: pillarColorOf(pl.name, pillars) }}>P{i + 1}</span>
               <input value={pl.name} onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={`w-56 ${inp}`} />
               <input value={pl.desc} onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} placeholder="one-line description" className={`flex-1 min-w-[200px] ${inp}`} />
+              {/* Pillar color — the InnovationTag highlight. Trinity defaults; custom picker (same method as Settings' custom color). */}
+              <label className="flex items-center gap-1 text-[10px] text-slate-500" title="Strategic pillar color — the InnovationTag highlight">
+                <input type="color" value={pl.color ?? pillarColorOf(pl.name, pillars)} aria-label={`Color for ${pl.name}`}
+                  onChange={(e) => persistPillars(pillars.map((x, j) => j === i ? { ...x, color: e.target.value } : x))}
+                  className="h-6 w-8 cursor-pointer rounded border border-slate-700 bg-transparent p-0" />
+                {pl.color && <button onClick={() => persistPillars(pillars.map((x, j) => j === i ? { ...x, color: undefined } : x))} title="Reset to Trinity default" aria-label={`Reset color for ${pl.name}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
+              </label>
               <button onClick={() => persistPillars(pillars.filter((_, j) => j !== i))} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button>
             </div>
           ))}

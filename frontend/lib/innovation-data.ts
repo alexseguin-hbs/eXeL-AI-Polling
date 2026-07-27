@@ -1159,6 +1159,27 @@ export const PILLAR_DESC: Record<StrategicInitiative, string> = {
   "Mass-Producible Attritable Systems": "Low-cost, high-rate, software-defined attritable platforms at scale.",
   "Sovereign Deep-Strike & ISR": "Sovereign long-range ISR + strike with assured, interoperable datalink.",
 };
+// Strategic-pillar COLOR (the InnovationTag highlight/border). Defaults start from the SoI Trinity palette
+// (AI cyan · SI sunset · HI violet) + a 4th distinct hue. Admin can override per pillar (PillarDef.color).
+// Distinct from the project-type palette (DEV_TYPE orange/blue/green/purple), which stays a separate cue.
+export const PILLAR_COLOR: Record<string, string> = {
+  "Autonomous Loitering Munitions": "#19c8cf",  // AI cyan
+  "AI Targeting & Terminal Autonomy": "#f7b955", // SI sunset
+  "Mass-Producible Attritable Systems": "#a78bfa", // HI violet
+  "Sovereign Deep-Strike & ISR": "#fb7185",      // rose (4th)
+};
+// Deterministic fallback palette for admin-added pillars with no explicit color (stable by name hash).
+const PILLAR_FALLBACK = ["#22d3ee", "#facc15", "#c084fc", "#f472b6", "#4ade80", "#60a5fa", "#fb923c", "#2dd4bf"];
+/** Pure, deterministic pillar→color. Precedence: explicit PillarDef.color → default map → name-hashed fallback. */
+export function pillarColorOf(name: string, pillars?: { name: string; color?: string }[]): string {
+  const override = pillars?.find((p) => p.name === name)?.color;
+  if (override && /^#[0-9a-fA-F]{3,8}$/.test(override)) return override;
+  if (PILLAR_COLOR[name]) return PILLAR_COLOR[name];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return PILLAR_FALLBACK[Math.abs(h) % PILLAR_FALLBACK.length];
+}
+
 export const VALUE_LADDER = ["Commodity", "Product", "Solution", "Platform", "Ecosystem"] as const;
 export const VALUE_IMPACT = ["Incremental", "Sustaining", "Differentiating", "Transformational"] as const;
 export const COMPETITIVE_POSITIONS = ["Leader", "Challenger", "Fast Follower", "Niche"] as const;
