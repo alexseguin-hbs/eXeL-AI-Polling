@@ -658,6 +658,37 @@ export function timeReadout(p: Project, startISO: string, unit: TimeUnit) {
   };
 }
 
+// ── $/min System of Innovation (R-Core reuse) — time carries a live cost. Date-independent + deterministic,
+//    so any surface (dog-tag, stack, BU buckets, present deck) reads one number. NRE spread across the fixed
+//    program workday total → $ burned per elapsed minute. This is the "$/min innovation world" unit.
+export const TOTAL_PROGRAM_WORKDAYS = GATES.reduce((s, g) => s + GATE_WORKDAYS[g], 0);
+export const costPerMinuteOf = (p: Project): number => (p.nreK * 1000) / TOTAL_PROGRAM_WORKDAYS / (WORKDAY_HOURS * 60);
+
+// Re-optimization cadence ladder (Vision•2525 · SoI): legacy quarterly → the tool enables monthly now →
+// weekly → daily as the System of Intelligence tightens the funding/schedule loop toward the speed of thought.
+export type Cadence = "Q" | "M" | "W" | "D";
+export const CADENCE_ORDER: Cadence[] = ["Q", "M", "W", "D"];
+export const CADENCE_PER_YEAR: Record<Cadence, number> = { Q: 4, M: 12, W: 52, D: 260 }; // decision cycles / yr (D = workdays)
+
+// ── BU funding buckets (real-time decision core) — every project lands in exactly one of 6 buckets:
+//    for each of the 3 BUs, a FUNDED bucket and an UNFUNDED bucket (above/below the funding line). Pure +
+//    reusable so the budget popup, dashboards, and rollups all read the same decision surface.
+export interface BucketAgg { count: number; nreK: number; npvM: number; pwRevM: number; perMinUsd: number; ids: string[] }
+export interface BuBucket { bu: string; label: string; funded: BucketAgg; unfunded: BucketAgg }
+const emptyAgg = (): BucketAgg => ({ count: 0, nreK: 0, npvM: 0, pwRevM: 0, perMinUsd: 0, ids: [] });
+const addToAgg = (a: BucketAgg, p: Project) => { a.count++; a.nreK += p.nreK; a.npvM += npvM(p); a.pwRevM += weightedRevM(p); a.perMinUsd += costPerMinuteOf(p); a.ids.push(p.id); };
+export function buBuckets(projects: Project[], isFunded: (id: string) => boolean): BuBucket[] {
+  const map = new Map<string, BuBucket>();
+  for (const p of projects) {
+    const bu = hierOf(p).bu;
+    let b = map.get(bu);
+    if (!b) { b = { bu, label: BU_LABEL[bu] ?? bu, funded: emptyAgg(), unfunded: emptyAgg() }; map.set(bu, b); }
+    addToAgg(isFunded(p.id) ? b.funded : b.unfunded, p);
+  }
+  // Stable order: highest total NPV BU first (decision priority).
+  return Array.from(map.values()).sort((a, b) => (b.funded.npvM + b.unfunded.npvM) - (a.funded.npvM + a.unfunded.npvM));
+}
+
 // ── GROWTH MODEL (CRS-69) — Do-Nothing decline + weighted NPI + remaining-to-target ──────
 // The signature Rack-&-Stack chart: a base revenue that declines YoY with no new launches,
 // the probability-weighted incremental revenue from funded NPIs ramping in, the gap remaining

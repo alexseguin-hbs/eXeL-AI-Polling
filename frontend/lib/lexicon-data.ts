@@ -1298,6 +1298,7 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.cadence.Q", englishDefault: "Quarterly", context: "Innovation cadence: quarterly", cubeId: 60 },
   { key: "innovation.cadence.M", englishDefault: "Monthly", context: "Innovation cadence: monthly", cubeId: 60 },
   { key: "innovation.cadence.W", englishDefault: "Weekly", context: "Innovation cadence: weekly", cubeId: 60 },
+  { key: "innovation.cadence.D", englishDefault: "Daily", context: "Innovation cadence: daily (SoI speed-of-thought)", cubeId: 60 },
   { key: "innovation.tab.gates", englishDefault: "Gate Requirements", context: "Innovation view tab: gates", cubeId: 60 },
   { key: "innovation.tab.dashboards", englishDefault: "Dashboards · ROI Visuals", context: "Innovation view tab: dashboards", cubeId: 60 },
   { key: "innovation.tab.setup", englishDefault: "⚙ Business Setup", context: "Innovation view tab: business setup", cubeId: 60 },

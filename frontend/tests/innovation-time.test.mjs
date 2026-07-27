@@ -496,5 +496,23 @@ ok(aiSlideField(P0, "S8", "vprop") === aiSlideField(P0, "S8", "vprop"), "aiSlide
 ok(typeof aiSlideField(P0, "S8", "vprop") === "string" && aiSlideField(P0, "S8", "vprop").length > 20, "aiSlideField(S8 value prop) drafts real content");
 ok(Array.isArray(aiSlideField(P0, "S8", "diffs")), "aiSlideField(S8 value equation) drafts a table from the value equation");
 
+/* ---------------- $/min System of Innovation + BU funding buckets (real-time decision core, R-Core reuse) ---------------- */
+import { costPerMinuteOf, buBuckets, TOTAL_PROGRAM_WORKDAYS, CADENCE_ORDER, CADENCE_PER_YEAR } from "../lib/innovation-data.ts";
+ok(TOTAL_PROGRAM_WORKDAYS > 0, "TOTAL_PROGRAM_WORKDAYS is the fixed program schedule total");
+ok(DEMO_PROJECTS.every((p) => costPerMinuteOf(p) > 0 && Number.isFinite(costPerMinuteOf(p))), "costPerMinuteOf is a positive finite $/min burn for every project");
+ok(costPerMinuteOf({ ...P0, nreK: P0.nreK * 2 }) > costPerMinuteOf(P0), "costPerMinuteOf scales with NRE (more spend → higher burn)");
+ok(CADENCE_ORDER.join("") === "QMWD", "cadence ladder is Quarterly → Monthly → Weekly → Daily");
+ok(CADENCE_PER_YEAR.D > CADENCE_PER_YEAR.W && CADENCE_PER_YEAR.W > CADENCE_PER_YEAR.Q, "cadence decision-cycles/yr tighten Q→D");
+{
+  const funded = new Set(DEMO_PROJECTS.slice(0, 10).map((p) => p.id));
+  const buckets = buBuckets(DEMO_PROJECTS, (id) => funded.has(id));
+  ok(buckets.length === 3, "buBuckets returns one entry per BU (3 BUs → 3 rows, each carrying funded + unfunded)");
+  const totalInBuckets = buckets.reduce((s, b) => s + b.funded.count + b.unfunded.count, 0);
+  ok(totalInBuckets === DEMO_PROJECTS.length, "every project lands in exactly one of the 6 buckets (Σ funded+unfunded = portfolio)");
+  const fundedCount = buckets.reduce((s, b) => s + b.funded.count, 0);
+  ok(fundedCount === funded.size, "funded buckets hold exactly the funded projects");
+  ok(buckets.every((b) => b.funded.perMinUsd >= 0 && b.unfunded.perMinUsd >= 0), "each bucket carries a $/min burn aggregate");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

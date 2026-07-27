@@ -24,6 +24,7 @@ import {
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField,
   type SlideField, type SlideSpec, type SlideFieldValue,
+  buBuckets, costPerMinuteOf, type BuBucket,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
@@ -165,14 +166,14 @@ function Board() {
   const [detailMax, setDetailMax] = useState(false); // maximize the selected-project deep dive full-width
   // Optimization cadence — legacy prioritization was quarterly; this tool enables monthly now,
   // weekly next. Drives how often the stack is re-optimized / snapshotted.
-  const [cadence, setCadence] = useState<"Q" | "M" | "W">("M");
+  const [cadence, setCadence] = useState<"Q" | "M" | "W" | "D">("M");
   // Master data (BU/SBU/Alpha…) for the edit + new-idea dropdowns; reloads when leaving Setup.
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
   useEffect(() => { setSetup(loadBizSetup()); }, [view]);
   // Remembered defaults — a returning VP lands on the VP lens, not a PM view (usability).
   useEffect(() => {
     const sp = lsGet("innovation-persona") as Persona | null;
-    const sc = lsGet("innovation-cadence") as "Q" | "M" | "W" | null;
+    const sc = lsGet("innovation-cadence") as "Q" | "M" | "W" | "D" | null;
     if (sc) setCadence(sc);
     const pp = PERSONAS.find((x) => x.key === sp);
     if (pp) { setPersona(pp.key); setView(pp.view); if (pp.level) setStackLevel(pp.level); }
@@ -414,8 +415,8 @@ function Board() {
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.cadence.optimize")}</span>
           <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
-            {(["Q", "M", "W"] as const).map((c) => (
-              <button key={c} onClick={() => setCadence(c)}
+            {(["Q", "M", "W", "D"] as const).map((c) => (
+              <button key={c} onClick={() => setCadence(c)} title={c === "D" ? "Daily — System of Intelligence, speed of thought" : undefined}
                 className={`px-2 py-1 ${cadence === c ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{t(`innovation.cadence.${c}`)}</button>
             ))}
           </div>
@@ -423,7 +424,7 @@ function Board() {
       </div>
       <p className="border-b border-slate-800 bg-[#0c1219] px-5 pb-2 text-[11px] text-slate-400">
         <span className="hidden sm:inline">{t(`innovation.persona.${persona}.lens`)} · </span>
-        Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : "weekly"}</b> · time is money — cost shown in $/min on each project · AI + HI now, SI polling next.
+        Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : cadence === "W" ? "weekly" : "daily"}</b> · time is money — cost shown in $/min on each project · AI + HI now, SI polling next.
       </p>
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
@@ -1273,6 +1274,48 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
           <span>Not funded <b className="tabular-nums text-rose-400">{k(tot.unfundedK)}</b> · {tot.n - tot.funded}</span>
           <span>{t("innovation.budget.riskAdjSpend")} <b className="tabular-nums text-amber-300">{k(tot.riskAdjK)}</b></span>
         </div>
+        {/* Real-time decision core — 6 funding buckets: each BU × {funded, unfunded}. $/min burn (System of
+            Innovation: time is money). A project sits in exactly one bucket, set by the global funding line. */}
+        {level === "bu" && (() => {
+          const buckets = buBuckets(projects, (id) => fundedIds.has(id));
+          const perMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
+          const cell = (title: string, tone: "ok" | "bad", a: typeof buckets[number]["funded"]) => (
+            <div className={`rounded-md border p-2 ${tone === "ok" ? "border-emerald-500/30 bg-emerald-500/[0.05]" : "border-rose-500/30 bg-rose-500/[0.05]"}`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] font-semibold uppercase tracking-wider ${tone === "ok" ? "text-emerald-300" : "text-rose-300"}`}>{title}</span>
+                <span className="text-[10px] tabular-nums text-slate-400">{a.count} proj</span>
+              </div>
+              <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                <span className="text-slate-500">NRE</span><span className="text-right tabular-nums text-slate-200">{k(a.nreK)}</span>
+                <span className="text-slate-500">NPV</span><span className={`text-right tabular-nums ${a.npvM >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{usd(a.npvM)}</span>
+                <span className="text-slate-500">P-wt rev</span><span className="text-right tabular-nums text-slate-300">{usd(a.pwRevM)}</span>
+                <span className="text-slate-500" title="Live burn — NRE spread across the program schedule">$/min</span><span className="text-right tabular-nums text-amber-300">{perMin(a.perMinUsd)}</span>
+              </div>
+            </div>
+          );
+          return (
+            <div className="border-b border-slate-800 px-4 py-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {buckets.length} BUs × funded / unfunded · live $/min burn</span>
+                <span className="text-[10px] text-slate-500">a project sits in one bucket, set by the funding line</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {buckets.map((b) => (
+                  <div key={b.bu} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
+                    <div className="mb-1.5 flex items-baseline justify-between">
+                      <span className="text-xs font-semibold text-slate-100">{b.bu}</span>
+                      <span className="text-[9px] text-slate-500">{b.label}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {cell("Funded", "ok", b.funded)}
+                      {cell("Unfunded", "bad", b.unfunded)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
         <div className="max-h-[70vh] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-[#0e141b]">
