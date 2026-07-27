@@ -1411,9 +1411,12 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
 // number is sourced from the SAME live model that drives the rack — one platform for presentation
 // + analysis. Swipe on touch, or use ‹ › / the dots on desktop.
 function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
-  const [screen, setScreen] = useState(0);            // 0 = overview · 1 = detail
+  const { t } = useLexicon();
+  const [screen, setScreen] = useState(0);            // 0 = overview · 1 = detail · 2 = BD pipeline
+  const [custReady, setCustReady] = useState(false);  // Slice 6 — strip internal cost/IRB for external showings
+  const NSCREENS = 3;
   const touchX = React.useRef<number | null>(null);
-  const go = (n: number) => setScreen(Math.max(0, Math.min(1, n)));
+  const go = (n: number) => setScreen(Math.max(0, Math.min(NSCREENS - 1, n)));
   const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (touchX.current == null) return;
@@ -1421,6 +1424,11 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
     if (Math.abs(dx) > 40) go(screen + (dx < 0 ? 1 : -1)); // swipe left → next, right → prev
     touchX.current = null;
   };
+  const eq = valueEquationOf(p);
+  const scorecard: [string, string][] = [
+    ["NPV", usd(npvM(p))], ["Val/$", `${valuePerDollarOf(p).toFixed(1)}×`], ["Win P50", `${Math.round(winProbabilityOf(p).p50 * 100)}%`],
+    ["EVC", `$${eq.evcUsdM.toFixed(0)}M`], ["Pipeline", `${p.segmentValueProps?.length ?? 0} seg`],
+  ];
 
   const bullets = execSummaryBullets(p);
   const m = metaOf(p), ex = execOf(p), brief = briefOf(p), fm = financialMetrics(p), h = hierOf(p);
@@ -1451,11 +1459,23 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
           </div>
           <div className="mt-1 text-[11px] text-slate-500">{h.bu} › {h.sbu} › {h.pgroup} · {ex.customer} · {GATE_STAGE[p.gate]} ({p.gate})</div>
         </div>
-        <div className="flex gap-4 text-right">
+        <div className="flex items-start gap-4 text-right">
           <div><div className="text-[9px] uppercase tracking-wider text-slate-500">1st Rev</div><div className="text-xs font-mono text-slate-200">{p.firstRevenue}</div></div>
           <div><div className="text-[9px] uppercase tracking-wider text-slate-500">3-Yr NPV</div><div className="text-xs font-mono text-emerald-400">{usd(fm.npvM)}</div></div>
           <div><div className="text-[9px] uppercase tracking-wider text-slate-500">IRR</div><div className="text-xs font-mono text-slate-200">{fm.irrPct}%</div></div>
+          <button onClick={() => setCustReady((v) => !v)} title={t("innovation.exec.internalHidden")}
+            className={`rounded border px-2 py-1 text-[10px] font-medium ${custReady ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}>
+            {custReady ? "◉" : "○"} {t("innovation.exec.customerReady")}
+          </button>
         </div>
+      </div>
+      {/* Scorecard strip (Slice 6) — NPV · Val/$ · Win P50 · EVC · pipeline at a glance */}
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-slate-800 bg-[#0b0f14] px-3 py-1.5">
+        <span className="text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.exec.scorecard")}</span>
+        {scorecard.map(([label, val]) => (
+          <span key={label} className="text-[11px]"><span className="text-slate-500">{label}</span> <b className="tabular-nums text-slate-200">{val}</b></span>
+        ))}
+        <span className="ml-auto text-[11px]"><span className="text-slate-500">vs NBA</span> <b className="tabular-nums text-amber-300">{Math.round(eq.competitiveIndex)}/100</b></span>
       </div>
 
       {/* Two-screen swipe carousel — touch swipe + ← → keyboard (a11y), ARIA carousel semantics */}
@@ -1463,9 +1483,9 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
         role="group" aria-roledescription="carousel" aria-label="Executive slide — overview and detail"
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === "ArrowRight") { go(screen + 1); e.preventDefault(); } else if (e.key === "ArrowLeft") { go(screen - 1); e.preventDefault(); } }}>
-        <div className="flex transition-transform duration-300 ease-out" style={{ width: "200%", transform: `translateX(-${screen * 50}%)` }}>
+        <div className="flex transition-transform duration-300 ease-out" style={{ width: "300%", transform: `translateX(-${screen * (100 / 3)}%)` }}>
           {/* ── Screen ① OVERVIEW ─────────────────────────────────────────────── */}
-          <div className="w-1/2 shrink-0 pr-1.5" role="group" aria-roledescription="slide" aria-label="① Overview" aria-hidden={screen !== 0}>
+          <div className="w-1/3 shrink-0 pr-1.5" role="group" aria-roledescription="slide" aria-label="① Overview" aria-hidden={screen !== 0}>
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Project Overview — the two-bullet summary (the flagship "two bullet") */}
               <div className="space-y-1.5">
@@ -1515,10 +1535,21 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
                 </div>
               </div>
             </div>
+            {/* Reconciliation two-read (Slice 6) — engineering read | business/BD read, one shared picture */}
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-lg border border-violet-500/25 bg-violet-500/[0.04] p-2">
+                <div className="text-[9px] uppercase tracking-wider text-violet-300">웃 {t("innovation.exec.engRead")}</div>
+                <div className="mt-1 text-[11px] leading-snug text-slate-300">AI·SI·HI {Math.round(p.ai * 100)}/{Math.round(p.si * 100)}/{Math.round(p.hi * 100)} · HI load {Math.round(p.humanLoad * 100)}% · deps {deps.length}↓ · risk {riskBandOf(p).technical}/{riskBandOf(p).commercial}</div>
+              </div>
+              <div className="rounded-lg border border-cyan-500/25 bg-cyan-500/[0.04] p-2">
+                <div className="text-[9px] uppercase tracking-wider text-cyan-300">◬ {t("innovation.exec.bizRead")}</div>
+                <div className="mt-1 text-[11px] leading-snug text-slate-300">{h.sbu} · launch {p.firstRevenue} · NPV {usd(npvM(p))} · EVC ${eq.evcUsdM.toFixed(0)}M · {Math.round(eq.competitiveIndex)}/100 vs NBA</div>
+              </div>
+            </div>
           </div>
 
           {/* ── Screen ② DETAIL ───────────────────────────────────────────────── */}
-          <div className="w-1/2 shrink-0 pl-1.5" role="group" aria-roledescription="slide" aria-label="② Detail" aria-hidden={screen !== 1}>
+          <div className="w-1/3 shrink-0 px-1.5" role="group" aria-roledescription="slide" aria-label="② Detail" aria-hidden={screen !== 1}>
             <div className="grid gap-3 sm:grid-cols-2">
               {/* Objectives — near-term + beyond, from outcomes */}
               <div className="space-y-1.5">
@@ -1537,7 +1568,10 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
                   {deps.some((e) => e.critical) && <li className="text-[11px] text-rose-300">· ⚠ on the critical path</li>}
                 </ul>
               </div>
-              {/* Critical Issues & Risks — top by polling-weighted priority */}
+              {/* Critical Issues & Risks — internal; hidden in customer-ready (external) mode */}
+              {custReady ? (
+                <div className="sm:col-span-2 rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-[10px] text-slate-500">{t("innovation.exec.internalHidden")}</div>
+              ) : (<>
               <div className="space-y-1.5">
                 <SectionTitle>Critical Issues &amp; Risks</SectionTitle>
                 {myRisks.length === 0 ? (
@@ -1576,24 +1610,53 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
                   <span>Total R&amp;D {k(fm.totalRdOpexK)}</span>
                 </div>
               </div>
+              </>)}
+            </div>
+          </div>
+
+          {/* ── Screen ③ BD PIPELINE (Slice 6) — per-segment customer-facing claims vs the NBA ─────── */}
+          <div className="w-1/3 shrink-0 pl-1.5" role="group" aria-roledescription="slide" aria-label="③ BD Pipeline" aria-hidden={screen !== 2}>
+            <div className="space-y-2">
+              <SectionTitle>{t("innovation.exec.pipeline")} · {t("innovation.exec.claim")} vs NBA</SectionTitle>
+              {(p.segmentValueProps?.length ?? 0) === 0 ? (
+                <p className="text-[11px] text-slate-500">Add per-needs-segment value props (in the value-prop creator) to build the BD pipeline view.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {p.segmentValueProps!.map((s, i) => {
+                    const stages = ["Prospect", "Qualify", "Propose", "Commit"] as const; // deterministic per-index deal stage
+                    return (
+                      <li key={i} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">{s.segment || `Segment ${i + 1}`}</span>
+                          <span className="rounded border border-slate-700 px-1.5 py-0.5 text-[9px] text-slate-400">{t("innovation.exec.dealStage")}: {stages[i % stages.length]}</span>
+                        </div>
+                        <p className="mt-1 text-[11px] leading-snug text-slate-300">{s.prop}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <div className="rounded-lg border border-amber-500/25 bg-amber-500/[0.04] p-2 text-[11px] text-slate-300">
+                Beats <b className="text-amber-300">{nbaOf(p)}</b> — {Math.round(eq.competitiveIndex)}/100 · EVC ${eq.evcUsdM.toFixed(0)}M. BD feedback (win/loss/objection) flows back to the originating engineer via the activity log.
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Swipe controls — ‹ › + dots (screen ① ↔ ②) */}
+      {/* Swipe controls — ‹ › + dots (① Overview · ② Detail · ③ BD Pipeline) */}
       <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-2">
         <button onClick={() => go(screen - 1)} disabled={screen === 0}
-          className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 disabled:opacity-30 enabled:hover:bg-slate-800">‹ Overview</button>
+          className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 disabled:opacity-30 enabled:hover:bg-slate-800">‹ Prev</button>
         <div className="flex items-center gap-2">
-          {[0, 1].map((i) => (
+          {[0, 1, 2].map((i) => (
             <button key={i} onClick={() => go(i)} aria-label={`screen ${i + 1}`}
               className={`h-2 w-2 rounded-full ${screen === i ? "bg-cyan-400" : "bg-slate-700 hover:bg-slate-600"}`} />
           ))}
-          <span className="ml-1 text-[10px] text-slate-500">{screen === 0 ? "① Overview" : "② Detail"} · swipe →</span>
+          <span className="ml-1 text-[10px] text-slate-500">{screen === 0 ? "① Overview" : screen === 1 ? "② Detail" : "③ BD Pipeline"} · swipe →</span>
         </div>
-        <button onClick={() => go(screen + 1)} disabled={screen === 1}
-          className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 disabled:opacity-30 enabled:hover:bg-slate-800">Detail ›</button>
+        <button onClick={() => go(screen + 1)} disabled={screen === NSCREENS - 1}
+          className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 disabled:opacity-30 enabled:hover:bg-slate-800">Next ›</button>
       </div>
     </div>
   );

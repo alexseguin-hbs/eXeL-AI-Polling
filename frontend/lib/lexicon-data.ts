@@ -1354,6 +1354,15 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.dep.value", englishDefault: "Value", context: "Constellation color mode: value contribution", cubeId: 60 },
   { key: "innovation.dep.load", englishDefault: "AI·SI·HI", context: "Constellation color mode: intelligence load", cubeId: 60 },
   { key: "innovation.dep.haloNote", englishDefault: "amber halo = inherits an upstream open risk", context: "Constellation risk-propagation halo legend", cubeId: 60 },
+  // Executive slide (Slice 6)
+  { key: "innovation.exec.customerReady", englishDefault: "Customer-ready", context: "Exec slide customer-ready (external) toggle", cubeId: 60 },
+  { key: "innovation.exec.engRead", englishDefault: "Engineering read", context: "Exec reconciliation: engineering column", cubeId: 60 },
+  { key: "innovation.exec.bizRead", englishDefault: "Business / BD read", context: "Exec reconciliation: business/BD column", cubeId: 60 },
+  { key: "innovation.exec.scorecard", englishDefault: "Scorecard", context: "Exec scorecard strip label", cubeId: 60 },
+  { key: "innovation.exec.pipeline", englishDefault: "BD Pipeline", context: "Exec BD pipeline screen title", cubeId: 60 },
+  { key: "innovation.exec.claim", englishDefault: "Customer-facing claim", context: "Exec pipeline per-segment claim label", cubeId: 60 },
+  { key: "innovation.exec.dealStage", englishDefault: "Deal stage", context: "Exec pipeline deal-stage label", cubeId: 60 },
+  { key: "innovation.exec.internalHidden", englishDefault: "Internal cost-of-time & IRB commentary hidden for external showings", context: "Exec customer-ready note", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────
