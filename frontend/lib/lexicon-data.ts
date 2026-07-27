@@ -1327,6 +1327,13 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.dogtag.hiload", englishDefault: "HI Load", context: "Dog-tag engineer metric: human load", cubeId: 60 },
   { key: "innovation.dogtag.confidence", englishDefault: "Confidence", context: "Dog-tag engineer metric: reviewer confidence", cubeId: 60 },
   { key: "innovation.dogtag.risk", englishDefault: "Risk T/C/D", context: "Dog-tag engineer metric: risk band", cubeId: 60 },
+  // Budget popup (Slice 3)
+  { key: "innovation.budget.unfundedNpv", englishDefault: "Unfunded NPV @ risk", context: "Budget column: unfunded NPV at risk", cubeId: 60 },
+  { key: "innovation.budget.valueDensity", englishDefault: "Value / $", context: "Budget column: value density (NPV per R&D $)", cubeId: 60 },
+  { key: "innovation.budget.riskAdjSpend", englishDefault: "Risk-adjusted spend", context: "Budget totals: risk-adjusted spend", cubeId: 60 },
+  { key: "innovation.budget.bdPacket", englishDefault: "BD packet", context: "Budget per-project BD-packet download button", cubeId: 60 },
+  { key: "innovation.budget.gap", englishDefault: "value gap", context: "Budget unfunded captured-value gap chip", cubeId: 60 },
+  { key: "innovation.budget.evIfFunded", englishDefault: "EV if funded", context: "Budget unfunded expected-value-if-funded chip", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

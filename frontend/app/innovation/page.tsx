@@ -26,7 +26,7 @@ import {
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
   metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
   valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
-  valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf,
+  valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf, killRiskOf,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
@@ -1030,7 +1030,28 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
 }
 
 // Budget popup — all budget for an SBU or Alpha Group, key metrics INCLUDING unfunded projects.
+// BD packet — a one-click, client-side brief a seller carries into the room (Slice 3). Deterministic,
+// offline (Blob download). Value prop · NBA + competitive index/EVC · top metrics · key risk · funding ask.
+function downloadBdPacket(p: Project) {
+  if (typeof document === "undefined") return;
+  const fm = financialMetrics(p); const eq = valueEquationOf(p);
+  const lines = [
+    `BD PACKET — ${p.name}`,
+    `SBU ${hierOf(p).sbu}  ·  ${GATE_STAGE[p.gate]} (${p.gate})  ·  Launch ${p.firstRevenue}`,
+    ``, `VALUE PROPOSITION`, valuePropOf(p),
+    ``, `NEXT BEST ALTERNATIVE`, nbaOf(p),
+    `Competitive index vs NBA: ${Math.round(eq.competitiveIndex)}/100  ·  EVC ~$${eq.evcUsdM.toFixed(0)}M`,
+    ``, `TOP METRICS`, `NPV ${usd(fm.npvM)}  ·  IRR ${fm.irrPct}%  ·  Payback ${fm.paybackYears} yr  ·  10-Yr Rev ${usd(fm.rev10yM)}`,
+    ``, `KEY RISK`, killRiskOf(p),
+    ``, `FUNDING ASK`, `R&D (NRE): ${k(p.nreK)}`,
+  ].join("\n");
+  const url = URL.createObjectURL(new Blob([lines], { type: "text/plain" }));
+  const a = document.createElement("a"); a.href = url; a.download = `BD-packet-${p.id}.txt`; a.click();
+  URL.revokeObjectURL(url);
+}
+
 function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fundedIds: Set<string>; onClose: () => void }) {
+  const { t } = useLexicon();
   const [level, setLevel] = useState<"sbu" | "pgroup">("sbu");
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const groups = useMemo(() => {
@@ -1046,10 +1067,13 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
         unfundedSpendK: unfunded.reduce((s, p) => s + p.nreK, 0),
         npv: ps.reduce((s, p) => s + npvM(p), 0),
         wrev: ps.reduce((s, p) => s + weightedRevM(p), 0),
+        unfundedNpv: unfunded.reduce((s, p) => s + npvM(p), 0),                       // NPV @ risk (below the line)
+        valueDensity: ps.reduce((s, p) => s + p.nreK, 0) > 0 ? ps.reduce((s, p) => s + npvM(p), 0) / (ps.reduce((s, p) => s + p.nreK, 0) / 1000) : 0, // NPV$M ÷ spend$M
+        riskAdjK: ps.reduce((s, p) => s + p.nreK * pSuccess(p), 0),                   // spend × gate-pass probability
       };
     }).sort((a, b) => b.npv - a.npv);
   }, [projects, level, fundedIds]);
-  const tot = { spendK: groups.reduce((s, g) => s + g.spendK, 0), fundedK: groups.reduce((s, g) => s + g.fundedSpendK, 0), unfundedK: groups.reduce((s, g) => s + g.unfundedSpendK, 0), n: projects.length, funded: fundedIds.size };
+  const tot = { spendK: groups.reduce((s, g) => s + g.spendK, 0), fundedK: groups.reduce((s, g) => s + g.fundedSpendK, 0), unfundedK: groups.reduce((s, g) => s + g.unfundedSpendK, 0), riskAdjK: groups.reduce((s, g) => s + g.riskAdjK, 0), n: projects.length, funded: fundedIds.size };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
@@ -1069,6 +1093,7 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
           <span>Total R&amp;D spend <b className="tabular-nums text-slate-200">{k(tot.spendK)}</b></span>
           <span>Funded <b className="tabular-nums text-emerald-400">{k(tot.fundedK)}</b> · {tot.funded}/{tot.n}</span>
           <span>Not funded <b className="tabular-nums text-rose-400">{k(tot.unfundedK)}</b> · {tot.n - tot.funded}</span>
+          <span>{t("innovation.budget.riskAdjSpend")} <b className="tabular-nums text-amber-300">{k(tot.riskAdjK)}</b></span>
         </div>
         <div className="max-h-[70vh] overflow-y-auto">
           <table className="w-full text-sm">
@@ -1080,6 +1105,8 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
                 <th className="px-2 py-2 text-right">Funded</th>
                 <th className="px-2 py-2 text-right">Not funded</th>
                 <th className="px-2 py-2 text-right">NPV</th>
+                <th className="px-2 py-2 text-right" title="Unfunded NPV at risk (below the funding line)">@Risk</th>
+                <th className="px-2 py-2 text-right" title="Value density — NPV $M per R&amp;D $M">Val/$</th>
                 <th className="px-2 py-2 text-right">P-wt Rev</th>
               </tr>
             </thead>
@@ -1095,16 +1122,29 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
                       <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{g.funded.length} · {k(g.fundedSpendK)}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums text-rose-400">{g.unfunded.length} · {k(g.unfundedSpendK)}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums text-slate-200">{usd(g.npv)}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-rose-400">{usd(g.unfundedNpv)}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-amber-300">{g.valueDensity.toFixed(1)}×</td>
                       <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{usd(g.wrev)}</td>
                     </tr>
                     {isOpen && g.ps.map((p) => {
                       const isFunded = fundedIds.has(p.id);
                       return (
                         <tr key={p.id} className="border-b border-slate-900/50 text-[12px]">
-                          <td className="px-3 py-1 pl-6 text-slate-300" colSpan={2}><span className={`mr-1.5 inline-block h-2 w-2 rounded-full ${isFunded ? "bg-emerald-500" : "bg-rose-500"}`} />{p.name}</td>
+                          <td className="px-3 py-1 pl-6 text-slate-300" colSpan={2}>
+                            <span className={`mr-1.5 inline-block h-2 w-2 rounded-full ${isFunded ? "bg-emerald-500" : "bg-rose-500"}`} />{p.name}
+                            <button onClick={(e) => { e.stopPropagation(); downloadBdPacket(p); }} title={t("innovation.budget.bdPacket")}
+                              className="ml-2 rounded border border-cyan-500/40 px-1 py-0 text-[9px] font-medium text-cyan-300 hover:bg-cyan-500/10">⬇ {t("innovation.budget.bdPacket")}</button>
+                            {!isFunded && (
+                              <span className="ml-2 text-[9px] text-slate-500">
+                                {t("innovation.budget.gap")} <b className="tabular-nums text-amber-400">{usd(Math.max(0, incrementalRevM(p) - weightedRevM(p)))}</b> · {t("innovation.budget.evIfFunded")} <b className="tabular-nums text-emerald-400/80">{usd(Math.max(0, npvM(p)))}</b>
+                              </span>
+                            )}
+                          </td>
                           <td className="px-2 py-1 text-right tabular-nums text-slate-400">{k(p.nreK)}</td>
                           <td className="px-2 py-1 text-right text-[10px] uppercase tracking-wider" colSpan={2}><span className={isFunded ? "text-emerald-400" : "text-rose-400"}>{isFunded ? "funded" : "not funded"}</span></td>
                           <td className="px-2 py-1 text-right tabular-nums text-slate-300">{usd(npvM(p))}</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-rose-400/70">{isFunded ? "" : usd(npvM(p))}</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-amber-300/70" title="Cost per served buyer-segment">{k(costPerServedBuyerOf(p, Math.max(1, p.segmentValueProps?.length ?? 1)) / 1000)}</td>
                           <td className="px-2 py-1 text-right tabular-nums text-slate-400">{usd(weightedRevM(p))}</td>
                         </tr>
                       );
