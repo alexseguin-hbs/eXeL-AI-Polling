@@ -513,6 +513,17 @@ ok(CADENCE_PER_YEAR.D > CADENCE_PER_YEAR.W && CADENCE_PER_YEAR.W > CADENCE_PER_Y
   ok(fundedCount === funded.size, "funded buckets hold exactly the funded projects");
   ok(buckets.every((b) => b.funded.perMinUsd >= 0 && b.unfunded.perMinUsd >= 0), "each bucket carries a $/min burn aggregate");
 }
+// Same funded/unfunded + $/min logic generalizes to SBU and Alpha Group (operator: apply to SBU/Alpha too)
+{
+  const funded = new Set(DEMO_PROJECTS.slice(0, 11).map((p) => p.id));
+  for (const level of ["bu", "sbu", "pgroup"]) {
+    const bk = fundingBuckets(DEMO_PROJECTS, level, (id) => funded.has(id));
+    ok(bk.length >= 1, `fundingBuckets works at ${level}`);
+    ok(bk.reduce((s, b) => s + b.funded.count + b.unfunded.count, 0) === DEMO_PROJECTS.length, `every project lands in one ${level} bucket (Σ = portfolio)`);
+    ok(bk.reduce((s, b) => s + b.funded.count, 0) === funded.size, `funded count exact at ${level}`);
+  }
+}
+import { fundingBuckets } from "../lib/innovation-data.ts";
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

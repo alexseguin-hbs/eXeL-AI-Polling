@@ -670,24 +670,32 @@ export type Cadence = "Q" | "M" | "W" | "D";
 export const CADENCE_ORDER: Cadence[] = ["Q", "M", "W", "D"];
 export const CADENCE_PER_YEAR: Record<Cadence, number> = { Q: 4, M: 12, W: 52, D: 260 }; // decision cycles / yr (D = workdays)
 
-// ── BU funding buckets (real-time decision core) — every project lands in exactly one of 6 buckets:
-//    for each of the 3 BUs, a FUNDED bucket and an UNFUNDED bucket (above/below the funding line). Pure +
-//    reusable so the budget popup, dashboards, and rollups all read the same decision surface.
+// ── Funding buckets (real-time decision core) — at ANY hierarchy level (BU · SBU · Alpha Group) every
+//    project lands in exactly ONE of two buckets per node: FUNDED or UNFUNDED (above/below the funding
+//    line). N nodes × 2 buckets. Pure + reusable (R-Core) so the budget popup, dashboards, and rollups all
+//    read the same decision surface at whatever level the lead is responsible for. $/min = live burn.
 export interface BucketAgg { count: number; nreK: number; npvM: number; pwRevM: number; perMinUsd: number; ids: string[] }
-export interface BuBucket { bu: string; label: string; funded: BucketAgg; unfunded: BucketAgg }
+export interface FundingBucket { code: string; label: string; funded: BucketAgg; unfunded: BucketAgg }
+/** Back-compat alias — a BU-level bucket. */
+export type BuBucket = FundingBucket;
 const emptyAgg = (): BucketAgg => ({ count: 0, nreK: 0, npvM: 0, pwRevM: 0, perMinUsd: 0, ids: [] });
 const addToAgg = (a: BucketAgg, p: Project) => { a.count++; a.nreK += p.nreK; a.npvM += npvM(p); a.pwRevM += weightedRevM(p); a.perMinUsd += costPerMinuteOf(p); a.ids.push(p.id); };
-export function buBuckets(projects: Project[], isFunded: (id: string) => boolean): BuBucket[] {
-  const map = new Map<string, BuBucket>();
+const bucketLabel = (level: HierKey, code: string): string =>
+  level === "bu" ? (BU_LABEL[code] ?? code) : level === "sbu" ? (SBU_LABEL[code] ?? code) : code;
+/** Funded/unfunded buckets grouped at the given hierarchy level (bu | sbu | pgroup/Alpha Group | …). */
+export function fundingBuckets(projects: Project[], level: HierKey, isFunded: (id: string) => boolean): FundingBucket[] {
+  const map = new Map<string, FundingBucket>();
   for (const p of projects) {
-    const bu = hierOf(p).bu;
-    let b = map.get(bu);
-    if (!b) { b = { bu, label: BU_LABEL[bu] ?? bu, funded: emptyAgg(), unfunded: emptyAgg() }; map.set(bu, b); }
+    const code = hierOf(p)[level];
+    let b = map.get(code);
+    if (!b) { b = { code, label: bucketLabel(level, code), funded: emptyAgg(), unfunded: emptyAgg() }; map.set(code, b); }
     addToAgg(isFunded(p.id) ? b.funded : b.unfunded, p);
   }
-  // Stable order: highest total NPV BU first (decision priority).
+  // Stable order: highest total NPV node first (decision priority).
   return Array.from(map.values()).sort((a, b) => (b.funded.npvM + b.unfunded.npvM) - (a.funded.npvM + a.unfunded.npvM));
 }
+/** BU-level convenience (the headline 3-BU × funded/unfunded = 6-bucket view). */
+export const buBuckets = (projects: Project[], isFunded: (id: string) => boolean): FundingBucket[] => fundingBuckets(projects, "bu", isFunded);
 
 // ── GROWTH MODEL (CRS-69) — Do-Nothing decline + weighted NPI + remaining-to-target ──────
 // The signature Rack-&-Stack chart: a base revenue that declines YoY with no new launches,

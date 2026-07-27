@@ -24,7 +24,7 @@ import {
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField,
   type SlideField, type SlideSpec, type SlideFieldValue,
-  buBuckets, costPerMinuteOf, type BuBucket,
+  buBuckets, fundingBuckets, costPerMinuteOf, type BuBucket, type FundingBucket,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
@@ -1274,10 +1274,11 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
           <span>Not funded <b className="tabular-nums text-rose-400">{k(tot.unfundedK)}</b> · {tot.n - tot.funded}</span>
           <span>{t("innovation.budget.riskAdjSpend")} <b className="tabular-nums text-amber-300">{k(tot.riskAdjK)}</b></span>
         </div>
-        {/* Real-time decision core — 6 funding buckets: each BU × {funded, unfunded}. $/min burn (System of
+        {/* Real-time decision core — funding buckets at the selected level: each node × {funded, unfunded}.
+            BU → 3×2 = 6 buckets; SBU / Alpha Group scale the same way. $/min = live burn (System of
             Innovation: time is money). A project sits in exactly one bucket, set by the global funding line. */}
-        {level === "bu" && (() => {
-          const buckets = buBuckets(projects, (id) => fundedIds.has(id));
+        {(level === "bu" || level === "sbu" || level === "pgroup") && (() => {
+          const buckets = fundingBuckets(projects, level, (id) => fundedIds.has(id));
           const perMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
           const cell = (title: string, tone: "ok" | "bad", a: typeof buckets[number]["funded"]) => (
             <div className={`rounded-md border p-2 ${tone === "ok" ? "border-emerald-500/30 bg-emerald-500/[0.05]" : "border-rose-500/30 bg-rose-500/[0.05]"}`}>
@@ -1296,14 +1297,14 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
           return (
             <div className="border-b border-slate-800 px-4 py-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {buckets.length} BUs × funded / unfunded · live $/min burn</span>
+                <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {buckets.length} {levelLabel}{buckets.length === 1 ? "" : "s"} × funded / unfunded · live $/min burn</span>
                 <span className="text-[10px] text-slate-500">a project sits in one bucket, set by the funding line</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {buckets.map((b) => (
-                  <div key={b.bu} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
+                  <div key={b.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
                     <div className="mb-1.5 flex items-baseline justify-between">
-                      <span className="text-xs font-semibold text-slate-100">{b.bu}</span>
+                      <span className="text-xs font-semibold text-slate-100">{b.code}</span>
                       <span className="text-[9px] text-slate-500">{b.label}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
