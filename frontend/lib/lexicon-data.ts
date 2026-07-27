@@ -1334,6 +1334,19 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.budget.bdPacket", englishDefault: "BD packet", context: "Budget per-project BD-packet download button", cubeId: 60 },
   { key: "innovation.budget.gap", englishDefault: "value gap", context: "Budget unfunded captured-value gap chip", cubeId: 60 },
   { key: "innovation.budget.evIfFunded", englishDefault: "EV if funded", context: "Budget unfunded expected-value-if-funded chip", cubeId: 60 },
+  // Gate / IRB upgrade (Slice 4)
+  { key: "innovation.gate.signoff", englishDefault: "Tri-lens sign-off", context: "Gate tri-lens sign-off heading", cubeId: 60 },
+  { key: "innovation.gate.eng", englishDefault: "Engineering", context: "Gate sign-off lens: engineering", cubeId: 60 },
+  { key: "innovation.gate.biz", englishDefault: "Business", context: "Gate sign-off lens: business", cubeId: 60 },
+  { key: "innovation.gate.bd", englishDefault: "BD/Sales", context: "Gate sign-off lens: BD/sales", cubeId: 60 },
+  { key: "innovation.gate.ready", englishDefault: "Gate ready", context: "Gate ready (all three lenses green)", cubeId: 60 },
+  { key: "innovation.gate.notReady", englishDefault: "Awaiting sign-off", context: "Gate not ready", cubeId: 60 },
+  { key: "innovation.gate.confidence", englishDefault: "Gate confidence", context: "Gate board confidence slider label", cubeId: 60 },
+  { key: "innovation.gate.ev", englishDefault: "Expected value", context: "Gate expected value (NPV × confidence)", cubeId: 60 },
+  { key: "innovation.gate.ledger", englishDefault: "Gate ledger — proven · value moved · risk cleared/open", context: "Gate narrative/de-risk ledger label", cubeId: 60 },
+  { key: "innovation.gate.ledgerPlaceholder", englishDefault: "What was proven, what value moved, which risks cleared or remain…", context: "Gate ledger textarea placeholder", cubeId: 60 },
+  { key: "innovation.gate.handoff", englishDefault: "Handoff-ready", context: "Handoff-readiness badge (ready)", cubeId: 60 },
+  { key: "innovation.gate.handoffGaps", englishDefault: "Handoff gaps", context: "Handoff-readiness badge (gaps remain)", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

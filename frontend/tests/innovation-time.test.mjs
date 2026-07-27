@@ -405,5 +405,14 @@ ok(valueEquationOf(DEMO_PROJECTS[0]).competitiveIndex >= 0, "valueEquationOf res
 ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "All-weather range", importance: 1, ourScore: 0.9, nbaScore: 0.3 }] }).includes("All-weather range"), "valuePropFromEquation names the winning driver vs the NBA");
 ok(valuePropFromEquation({ ...P0, valueDrivers: [] }).includes("Unlike"), "valuePropFromEquation falls back to the derived AI value prop when no driver wins");
 
+/* ---------------- Gate/IRB — expected value + handoff readiness (Slice 4) ---------------- */
+import { expectedValueOf, handoffReadiness, npvM } from "../lib/innovation-data.ts";
+ok(Math.abs(expectedValueOf(P0, 1) - npvM(P0)) < 1e-9, "expectedValueOf at prob=1 equals NPV");
+ok(expectedValueOf(P0, 0) === 0, "expectedValueOf at prob=0 is 0");
+ok(expectedValueOf(P0, 0.5) <= expectedValueOf(P0, 0.9), "expectedValueOf is monotonic in confidence");
+ok(expectedValueOf({ ...P0, nreK: P0.nreK }, 2) === expectedValueOf(P0, 1), "expectedValueOf clamps confidence to [0,1]");
+ok(handoffReadiness({ ...P0, valueProp: "vp", segmentValueProps: [{ segment: "s", prop: "p" }], valueDrivers: [{ name: "d", importance: 1, ourScore: 1, nbaScore: 0 }] }).ready, "handoffReadiness: value prop + segment + delta → ready");
+ok(!handoffReadiness({ ...P0, valueProp: "", segmentValueProps: [], valueDrivers: [], fullRev10yM: 0, doNothing10yM: 0, nreK: 999999 }).ready, "handoffReadiness: missing artifacts → not ready");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

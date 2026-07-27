@@ -27,6 +27,7 @@ import {
   metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
   valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
   valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf, killRiskOf,
+  expectedValueOf, handoffReadiness,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
@@ -1700,14 +1701,44 @@ const SLIDE_PILL: Record<string, string> = {
 };
 const SLIDE_TXT: Record<string, string> = { "": "+ input", drafted: "drafted", submitted: "submitted", approved: "approved ✓" };
 
+// Gate/IRB upgrade (Slice 4) — tri-lens sign-off + ledger + per-gate confidence. localStorage-first with
+// best-effort Supabase write-through (matches the Slice-0 store). Keyed by `${id}|${gate}[|lens]`.
+const SIGNOFF_KEY = "innovation-signoff";
+const LEDGER_KEY = "innovation-ledger";
+const GATECONF_KEY = "innovation-gateconf";
+const SIGNOFF_STATES = ["", "green", "red"] as const; // pending → signed → blocked
+type SignoffState = (typeof SIGNOFF_STATES)[number];
+const readStore = (key: string): Record<string, string> => { try { return JSON.parse(lsGet(key) || "{}"); } catch { return {}; } };
+const writeStore = (key: string, name: string, obj: Record<string, string>) => { lsSet(key, JSON.stringify(obj)); void saveState(name, obj); };
+
 // Gate progression — measured by review-slide progression across gates G1–G7 (no fixed
 // stage-count reference). We surface the review slides completed so far and the slides needed
 // next, each an editable gate-feedback input the operator sets to drive the next-gate decision.
 function GateCube({ p }: { p: Project }) {
+  const { t } = useLexicon();
   const gi = GATES.indexOf(p.gate);
   const nextGate = GATES[gi + 1];                 // undefined once at the final gate
-  const review = GATE_REVIEW[nextGate ?? p.gate]; // slides for the next gate (or the final gate)
+  const decGate = nextGate ?? p.gate;             // the gate under review (decision gate)
+  const review = GATE_REVIEW[decGate];            // slides for the next gate (or the final gate)
   const [slides, setSlides] = useState<Record<string, string>>({});
+  // Tri-lens sign-off + ledger + per-gate confidence (Slice 4) — localStorage-first, best-effort cloud.
+  const [signoff, setSignoff] = useState<Record<string, string>>({});
+  const [ledger, setLedger] = useState<Record<string, string>>({});
+  const [gconf, setGconf] = useState<Record<string, string>>({});
+  useEffect(() => { setSignoff(readStore(SIGNOFF_KEY)); setLedger(readStore(LEDGER_KEY)); setGconf(readStore(GATECONF_KEY)); }, []);
+  const LENSES = [["eng", t("innovation.gate.eng")], ["biz", t("innovation.gate.biz")], ["bd", t("innovation.gate.bd")]] as const;
+  const soState = (lens: string): SignoffState => (signoff[`${p.id}|${decGate}|${lens}`] as SignoffState) || "";
+  const cycleSo = (lens: string) => setSignoff((prev) => {
+    const key = `${p.id}|${decGate}|${lens}`, cur = (prev[key] as SignoffState) || "";
+    const next = SIGNOFF_STATES[(SIGNOFF_STATES.indexOf(cur) + 1) % SIGNOFF_STATES.length];
+    const upd = { ...prev, [key]: next }; writeStore(SIGNOFF_KEY, "signoff", upd); return upd;
+  });
+  const gateReady = LENSES.every(([l]) => soState(l) === "green");
+  const confVal = Number(gconf[`${p.id}|${decGate}`] ?? "") || pSuccess(p);
+  const setConf = (v: number) => setGconf((prev) => { const upd = { ...prev, [`${p.id}|${decGate}`]: String(v) }; writeStore(GATECONF_KEY, "gateconf", upd); return upd; });
+  const ledgerText = ledger[`${p.id}|${decGate}`] ?? "";
+  const setLedgerText = (v: string) => setLedger((prev) => { const upd = { ...prev, [`${p.id}|${decGate}`]: v }; writeStore(LEDGER_KEY, "ledger", upd); return upd; });
+  const hand = handoffReadiness(p);
   useEffect(() => { try { setSlides(JSON.parse(lsGet(SLIDE_KEY) || "{}")); } catch { /* none */ } }, []);
   const slideStatus = (s: string) => slides[`${p.id}|${s}`] || "";
   const cycleSlide = (s: string) => setSlides((prev) => {
@@ -1753,6 +1784,42 @@ function GateCube({ p }: { p: Project }) {
           })}
         </div>
         <p className="mt-2 text-[10px] text-slate-500">Tap a slide to cycle its {board} (Innovation Review Board) gate feedback{nextGate ? ` · next gate ${nextGate} ${GATE_STAGE[nextGate]} · ${readyCount}/${review.deliverables.length} approved` : " · final gate"}.</p>
+      </div>
+
+      {/* Tri-lens sign-off + confidence→EV + de-risk ledger + handoff-readiness (Slice 4) for the decision gate */}
+      <div className="mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[10px] uppercase tracking-wider text-slate-400">{t("innovation.gate.signoff")} · {decGate} {GATE_STAGE[decGate]}</span>
+          <span className={`rounded px-2 py-0.5 text-[10px] font-semibold ${gateReady ? "bg-emerald-500/15 text-emerald-300" : "bg-slate-700/40 text-slate-400"}`}>{gateReady ? `✓ ${t("innovation.gate.ready")}` : t("innovation.gate.notReady")}</span>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {LENSES.map(([lens, label]) => {
+            const st = soState(lens);
+            const cls = st === "green" ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : st === "red" ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-slate-700 text-slate-400 hover:bg-slate-800";
+            return (
+              <button key={lens} onClick={() => cycleSo(lens)} title="Tap to cycle: pending → signed → blocked"
+                className={`rounded border px-2 py-0.5 text-[11px] font-medium ${cls}`}>
+                {st === "green" ? "✓ " : st === "red" ? "✕ " : "○ "}{label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <label className="flex items-center gap-2 text-[10px] text-slate-400">
+            {t("innovation.gate.confidence")}
+            <input type="range" min={0} max={1} step={0.05} value={confVal} onChange={(e) => setConf(+e.target.value)} className="w-24 accent-cyan-500" />
+            <span className="tabular-nums text-slate-300">{Math.round(confVal * 100)}%</span>
+          </label>
+          <span className="text-[10px] text-slate-400">{t("innovation.gate.ev")} <b className="tabular-nums text-cyan-300">{usd(expectedValueOf(p, confVal))}</b></span>
+          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${hand.ready ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}
+            title={`value prop ${hand.valueProp ? "✓" : "✕"} · segment ${hand.segment ? "✓" : "✕"} · measurable delta ${hand.delta ? "✓" : "✕"}`}>
+            {hand.ready ? `✓ ${t("innovation.gate.handoff")}` : `⚠ ${t("innovation.gate.handoffGaps")}`}
+          </span>
+        </div>
+        <textarea value={ledgerText} onChange={(e) => setLedgerText(e.target.value)} rows={2}
+          placeholder={t("innovation.gate.ledgerPlaceholder")}
+          className="mt-2 w-full resize-y rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500" />
+        <p className="mt-0.5 text-[9px] text-slate-600">{t("innovation.gate.ledger")}</p>
       </div>
     </div>
   );

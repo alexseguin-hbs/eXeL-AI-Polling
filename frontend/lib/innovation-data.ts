@@ -921,6 +921,28 @@ export function valueEquationOf(p: Project): ValueEquationResult {
 }
 
 /**
+ * Risk-adjusted expected value ($M) at a gate (Bridge Slice 4) = NPV × cumulative gate-pass probability.
+ * `prob` is the board's confidence (0–1) that the project clears its remaining gates; falls back to the
+ * modeled pSuccess when not supplied. Deterministic; clamps prob to [0,1].
+ */
+export function expectedValueOf(p: Project, prob?: number): number {
+  const pr = typeof prob === "number" ? clamp01(prob) : pSuccess(p);
+  return npvM(p) * pr;
+}
+
+/**
+ * Handoff-readiness (Slice 4 · Enlil) — a project is handoff-ready when it carries the artifacts a
+ * business/BD reader needs: a value proposition, at least one needs-segment, and a measurable delta
+ * (value drivers scored OR a positive NPV). Returns the flags + a boolean so the badge is explainable.
+ */
+export function handoffReadiness(p: Project): { valueProp: boolean; segment: boolean; delta: boolean; ready: boolean } {
+  const valueProp = !!(p.valueProp && p.valueProp.trim());
+  const segment = (p.segmentValueProps?.length ?? 0) > 0;
+  const delta = (p.valueDrivers?.length ?? 0) > 0 || npvM(p) > 0;
+  return { valueProp, segment, delta, ready: valueProp && segment && delta };
+}
+
+/**
  * Compose a best-in-class master value proposition from the Value Equation — the winning drivers vs the NBA.
  * "For <target>, <name> beats <NBA> on <top win drivers> — <EVC>-tier economic value." Falls back to the
  * derived aiValuePropOf when no driver wins, so it never returns an empty string.
