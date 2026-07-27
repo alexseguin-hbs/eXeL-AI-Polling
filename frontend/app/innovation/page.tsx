@@ -184,6 +184,7 @@ function Board() {
   // New-idea creation now runs through a modal that REQUIRES a master value proposition
   // (per-needs-segment value props recommended) — value prop is a must-have at creation (CRS-56).
   const [newIdeaOpen, setNewIdeaOpen] = useState(false);
+  const [templateOpen, setTemplateOpen] = useState(false);
   const createIdea = (fields: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[]; drivers: ValueDriver[] }) => {
     const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
     const id = `PRJ-${String(maxN + 1).padStart(2, "0")}`;
@@ -366,12 +367,12 @@ function Board() {
           <h1 className="text-lg font-semibold">{t("innovation.header.title")}</h1>
           <div className="text-[11px] text-slate-500">{stackName}</div>
         </div>
-        <a
-          href="/innovation/pdm-template.html" target="_blank" rel="noopener"
+        <button
+          onClick={() => setTemplateOpen(true)}
           className="rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10"
         >
           {t("innovation.header.template")}
-        </a>
+        </button>
         <button onClick={() => setNewIdeaOpen(true)}
           className="rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
           {t("innovation.header.newIdea")}
@@ -711,6 +712,9 @@ function Board() {
 
       {/* New-idea modal — value proposition is a must-have at creation */}
       {newIdeaOpen && <NewIdeaModal onCreate={createIdea} onClose={() => setNewIdeaOpen(false)} />}
+
+      {/* R-Core Project Template — in-app pop-out (was a new-tab link); embeds the standalone template doc */}
+      {templateOpen && <TemplateModal onClose={() => setTemplateOpen(false)} />}
 
       {/* Budget popup — per-SBU / per-Alpha-Group budget incl. unfunded projects */}
       {budgetOpen && <BudgetModal projects={order} fundedIds={new Set(fundedRows.map((r) => r.p.id))} onClose={() => setBudgetOpen(false)} />}
@@ -1092,6 +1096,39 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
             {t("innovation.veq.generate")}
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// R-Core Project Template — in-app pop-out (replaces the old new-tab link). Embeds the standalone
+// template doc in a sandboxed iframe. Same modal idiom as NewIdeaModal/BudgetModal + Escape/focus (a11y).
+function TemplateModal({ onClose }: { onClose: () => void }) {
+  const { t } = useLexicon();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); prev?.focus?.(); };
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="R-Core Project Template">
+      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-4 py-2.5">
+          <h2 className="text-sm font-semibold text-slate-100">{t("innovation.header.template")}</h2>
+          <div className="flex items-center gap-2">
+            <a href="/innovation/pdm-template.html" target="_blank" rel="noopener"
+              className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400 hover:bg-slate-800">{t("innovation.template.newTab")}</a>
+            <button ref={closeRef} onClick={onClose} aria-label={t("innovation.template.close")} title={t("innovation.template.close")}
+              className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20">✕ {t("innovation.template.close")}</button>
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-hidden p-2">
+          <iframe src="/innovation/pdm-template.html" sandbox="allow-same-origin" loading="lazy"
+            title={t("innovation.header.template")} className="h-full w-full rounded-lg border-0 bg-white" />
+        </div>
       </div>
     </div>
   );

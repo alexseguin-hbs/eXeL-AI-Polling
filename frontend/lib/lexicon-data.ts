@@ -1279,6 +1279,8 @@ const innovation: TranslationEntry[] = [
   // Header + KPIs
   { key: "innovation.header.title", englishDefault: "System of Innovation", context: "Innovation app title (post-unlock header)", cubeId: 60 },
   { key: "innovation.header.template", englishDefault: "R-Core Project Template", context: "Innovation header template button (opens in-app pop-out)", cubeId: 60 },
+  { key: "innovation.template.close", englishDefault: "Close", context: "Innovation template pop-out close button", cubeId: 60 },
+  { key: "innovation.template.newTab", englishDefault: "Open in new tab ↗", context: "Innovation template pop-out: open standalone doc in a new tab", cubeId: 60 },
   { key: "innovation.header.newIdea", englishDefault: "＋ Submit New Idea", context: "Innovation submit-new-idea button", cubeId: 60 },
   { key: "innovation.kpi.rdAvailable", englishDefault: "R&D available", context: "Innovation KPI: R&D available", cubeId: 60 },
   { key: "innovation.kpi.fundedNre", englishDefault: "Funded NRE", context: "Innovation KPI: funded NRE", cubeId: 60 },
