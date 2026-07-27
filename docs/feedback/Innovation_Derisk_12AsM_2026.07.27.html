@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Innovation Project — 12 Ascended Masters + MoT derisk council · 2026.07.27</title>
+<style>
+  :root{ --bg:#0b0f14; --card:#0e141b; --card2:#0c1219; --line:#1e293b; --ink:#e2e8f0; --dim:#94a3b8; --faint:#64748b;
+         --ai:#19c8cf; --si:#f7b955; --hi:#a78bfa; --ok:#34d399; --warn:#f59e0b; --rose:#fb7185; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 18px 64px;}
+  header.top{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#0e141b,#0b0f14);padding:22px;}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);}
+  h1{margin:8px 0 6px;font-size:22px;line-height:1.25;text-wrap:balance;}
+  .sub{color:var(--dim);font-size:13px;}
+  .intro{margin-top:14px;font-size:13.5px;color:#cbd5e1;border-left:2px solid var(--ok);padding-left:12px;}
+  h2{margin:32px 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);}
+  .grades{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;} @media(min-width:640px){.grades{grid-template-columns:repeat(4,1fr);}}
+  .gr{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:9px 11px;display:flex;align-items:center;justify-content:space-between;}
+  .gr .m{font-size:12.5px;color:#cbd5e1;} .gr .g{font-family:var(--mono);font-weight:700;font-size:15px;}
+  .g.A{color:var(--ok)} .g.B{color:var(--ai)} .g.C{color:var(--warn)} .g.D,.g.F{color:var(--rose)}
+  table{width:100%;border-collapse:collapse;font-size:13px;overflow:hidden;border-radius:12px;border:1px solid var(--line);}
+  th{text-align:left;background:var(--card2);color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;padding:9px 11px;}
+  td{padding:9px 11px;border-top:1px solid var(--line);vertical-align:top;}
+  .tag{display:inline-block;border-radius:5px;padding:1px 7px;font-size:10.5px;font-weight:600;font-family:var(--mono);}
+  .tag.done{background:#34d39915;border:1px solid #34d39944;color:var(--ok);}
+  .tag.def{background:#f59e0b12;border:1px solid #f59e0b33;color:var(--warn);}
+  .tag.hi{background:#fb718515;border:1px solid #fb718544;color:var(--rose);}
+  .tag.med{background:#f59e0b12;border:1px solid #f59e0b33;color:var(--warn);}
+  .tag.low{background:#334155;border:1px solid #475569;color:var(--dim);}
+  .mono{font-family:var(--mono);color:var(--ai);font-size:11.5px;}
+  .direction{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:14px 16px;font-size:13.5px;color:#cbd5e1;}
+  .direction b{color:var(--ink);}
+  footer{margin-top:34px;color:var(--faint);font-size:12px;text-align:center;line-height:1.8;border-top:1px solid var(--line);padding-top:18px;}
+</style></head>
+<body><div class="wrap">
+  <header class="top">
+    <div class="eyebrow">eXeL-AI · Vision • 2525 · Innovation Project · derisk council</div>
+    <h1>12 Ascended Masters + MoT — derisk review of the Innovation Project</h1>
+    <div class="sub">A 13-agent shared-intent (♡ S.I.) council reviewed the shipped tool against 12 SSSES/derisk lenses; MoT ranked findings into apply-now vs defer. 2026-07-27.</div>
+    <div class="intro">The council ran as a workflow over the real surfaces (<span class="mono">page.tsx</span>, <span class="mono">innovation-data.ts</span>, <span class="mono">innovation-store.ts</span>, migration 028) and returned <b>59 findings</b>. MoT's read: <b>the pure-model and render tiers are hardened</b> (clamps, Invalid-Date fallbacks, escape-by-default rendering, zero <span class="mono">dangerouslySetInnerHTML</span>) — <b>the cracks are in the new persistence/a11y layer</b>. Per operator lock, all <b>12 safe, verified, additive fixes were applied automatically</b> (each filtered-tsc 0 · build compiled · tests 239→242); the 9 items that change a displayed number, restyle UI, or need the accounts milestone are <b>reported, not applied</b> (CLAUDE.md rules 6/8).</div>
+  </header>
+
+  <h2>Master grades (derisk lens)</h2>
+  <div class="grades">
+    <div class="gr"><span class="m">Thor · Security</span><span class="g C">C</span></div>
+    <div class="gr"><span class="m">Enlil · Build</span><span class="g B">B</span></div>
+    <div class="gr"><span class="m">Thoth · Data/math</span><span class="g B">B</span></div>
+    <div class="gr"><span class="m">Sofia · Clarity/i18n</span><span class="g C">C</span></div>
+    <div class="gr"><span class="m">Athena · Flow</span><span class="g B">B</span></div>
+    <div class="gr"><span class="m">Aset · Consistency</span><span class="g C">C</span></div>
+    <div class="gr"><span class="m">Asar · Synthesis</span><span class="g B">B</span></div>
+    <div class="gr"><span class="m">Krishna · Integration</span><span class="g C">C</span></div>
+    <div class="gr"><span class="m">Odin · Future-proof</span><span class="g B">B</span></div>
+    <div class="gr"><span class="m">Enki · Edge cases</span><span class="g B">B</span></div>
+    <div class="gr"><span class="m">Pangu · Mobile</span><span class="g B">B</span></div>
+    <div class="gr"><span class="m">Christo · a11y</span><span class="g C">C</span></div>
+  </div>
+
+  <h2>MoT direction</h2>
+  <div class="direction">The hardened tiers are real and were not touched. <b>Apply the additive, no-visible-change fixes now</b> — debounce cloud writes, unify the three slide-status write paths, re-hydrate on modal close, guarded cloud read-back, keyboard + ARIA on the deck, payback/locale/format correctness. <b>Defer</b> everything that changes a displayed number, reframes a badge, or needs accounts (RLS isolation, tolerance-band unification, EV/first-revenue semantics, content i18n) — report, don't silently apply. <b>Enter no sensitive portfolio data until DB-level owner isolation lands.</b></div>
+
+  <h2>Applied now — 12 safe, verified fixes ✓</h2>
+  <table>
+    <thead><tr><th>Fix</th><th>Area</th><th>Flagged by</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag done">✓</span> Debounce cloud writes (~800ms) so a textarea doesn't re-upload the blob per keystroke</td><td class="mono">writeStore</td><td>Thor·Krishna·Odin</td></tr>
+      <tr><td><span class="tag done">✓</span> Route both matrix slide-status handlers through <span class="mono">writeStore</span> (were localStorage-only → cloud drift)</td><td class="mono">cycleSlide ×2</td><td>Aset·Krishna·Odin·Enki</td></tr>
+      <tr><td><span class="tag done">✓</span> Re-hydrate slide state on deck close so launcher pills aren't stale</td><td class="mono">onClose ×2</td><td>Aset·Krishna</td></tr>
+      <tr><td><span class="tag done">✓</span> Guarded cloud read-back of the 6 write-only namespaces (fill-if-empty, never clobber local)</td><td class="mono">mount hydration</td><td>Odin·Krishna</td></tr>
+      <tr><td><span class="tag done">✓</span> Slide-show keyboard: Escape closes · ←/→ page · focus enters dialog</td><td class="mono">SlideShowModal</td><td>Christo</td></tr>
+      <tr><td><span class="tag done">✓</span> Payback returns Infinity → renders “—” when a project never recovers NRE (was misleading “0 yr”)</td><td class="mono">financialMetrics</td><td>Thoth·Enki</td></tr>
+      <tr><td><span class="tag done">✓</span> Pin en-US in <span class="mono">aiSlideOf</span> so the persisted AI draft is locale-deterministic</td><td class="mono">usdM</td><td>Enlil·Aset·Asar</td></tr>
+      <tr><td><span class="tag done">✓</span> maxLength on the slide-HI + de-risk ledger textareas (bound blob growth)</td><td class="mono">textareas</td><td>Thor</td></tr>
+      <tr><td><span class="tag done">✓</span> ARIA: tri-lens chips speak state · value sliders named + valuetext · matrix rows keyboard-operable</td><td class="mono">sign-off · sliders · matrix</td><td>Christo·Sofia</td></tr>
+      <tr><td><span class="tag done">✓</span> Outcome brief lists drivers from the same (derived-fallback) source as its index/EVC</td><td class="mono">downloadOutcomeBrief</td><td>Asar</td></tr>
+      <tr><td><span class="tag done">✓</span> Value-Equation driver grid wrapped in <span class="mono">overflow-x-auto</span> (320px guard)</td><td class="mono">ValueEquationPanel</td><td>Pangu·Christo</td></tr>
+      <tr><td><span class="tag done">✓</span> Nits: <span class="mono">SLIDE_KEY</span> constant in reqDetailRows · “R&amp;D $M” label (cells render $M) · hoist eq in consistencyCheck</td><td class="mono">page + data</td><td>Enlil·Thoth</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Deferred — reported, not applied (rules 6/8 or accounts milestone)</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Why deferred</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag def">defer</span> innovation_state RLS gates on <span class="mono">owner_key</span> presence, not identity — cross-tenant read/overwrite</td><td>Needs the accounts milestone (<span class="mono">owner_key = auth.uid()</span>). <b>Do not enter sensitive data until it lands.</b></td></tr>
+      <tr><td><span class="tag def">defer</span> Same project's tolerance band renders 3 different numbers across surfaces</td><td>Changes a displayed number → operator sign-off (pick one governance ladder).</td></tr>
+      <tr><td><span class="tag def">defer</span> “Risk-adjusted expected value” double-applies success probability (pSuccess²)</td><td>Semantic decision on gate-pass vs pSuccess; changes a number.</td></tr>
+      <tr><td><span class="tag def">defer</span> First revenue modeled at G6 (Maximize) while G5 is Launch</td><td>Changes displayed dates + a locked test; needs a canonical-gate decision.</td></tr>
+      <tr><td><span class="tag def">defer</span> GateNotesPanel shows every countermeasure “solved” on early-stage projects</td><td>Reframe label (“standard playbook”) or wire to gate progress — both change UI.</td></tr>
+      <tr><td><span class="tag def">defer</span> Panel content (GATE_NOTES prose, aiSlideOf corpus, slide hints) is English-only</td><td>Systemic i18n pass; conflicts with the deterministic-English default.</td></tr>
+      <tr><td><span class="tag def">defer</span> Whole-blob last-write-wins on concurrent multi-device edits</td><td>Needs per-key granularity / updated_at merge — same family as the RLS swap.</td></tr>
+      <tr><td><span class="tag def">defer</span> New tap-to-cycle pills / budget table below 44px touch target at 375px</td><td>Visibly changes density/layout the operator didn't ask to change (rule 6).</td></tr>
+      <tr><td><span class="tag def">defer</span> consistencyCheck/handoffReadiness key off raw drivers → “No drivers” on seeds</td><td>Changes an on-screen badge's wording/behavior (rule 6).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Residual risk after the applied fixes</h2>
+  <table>
+    <thead><tr><th>Sev</th><th>Residual risk</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag hi">high</span></td><td>Cross-tenant RLS exposure of <span class="mono">innovation_state</span> until DB-level owner isolation (accounts) lands.</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>Tolerance band renders 3 different numbers across surfaces until one governance ladder is chosen.</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>Board-facing “risk-adjusted expected value” double-applies probability (sign-off gated).</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>First-revenue gate mislabel (G6 vs G5) remains until the canonical launch gate is decided.</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>Concurrent multi-device edits clobber via whole-blob last-write-wins until the real-store milestone.</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>Panel prose (GATE_NOTES / aiSlideOf) English-only in all locales; only labels + ARIA are lexicon-routed.</td></tr>
+      <tr><td><span class="tag med">med</span></td><td>GateNotesPanel presents future-gate countermeasures as “solved” on early-stage projects (sign-off gated).</td></tr>
+      <tr><td><span class="tag low">low</span></td><td>New tap-to-cycle controls below 44px + budget table can squish at 375px until layout sign-off.</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    13-agent council (12 AsM + MoT) · 59 findings · 12 applied (additive, gated) · 9 deferred · 8 residual tracked.<br>
+    Applied fixes: filtered-tsc 0 · build compiled · innovation-time 239 → 242 · FF main + branch pushed.<br>
+    “Where Shared Intention moves at the Speed of Thought.”
+  </footer>
+</div></body></html>

@@ -912,14 +912,17 @@ export function slideHintOf(slideId: string): string {
  */
 export function aiSlideOf(p: Project, slideId: string): string {
   const fm = financialMetrics(p), m = metaOf(p), b = briefOf(p), ex = execOf(p), ve = valueEquationOf(p);
-  const usdM = (n: number) => `$${(Math.round(n * 10) / 10).toLocaleString()}M`;
+  // Pin en-US so the draft is deterministic regardless of the viewer's locale (locked identical-inputs
+  // guarantee — otherwise a persisted "use as draft" would vary by device locale).
+  const usdM = (n: number) => `$${(Math.round(n * 10) / 10).toLocaleString("en-US")}M`;
   const kFmt = (n: number) => `$${(n / 1000).toFixed(1)}M`; // n is $K → $M (matches page.tsx k())
+  const payb = (y: number) => (Number.isFinite(y) && y > 0 ? `${y} yr` : "no payback");
   const list = (xs: string[], n = 2) => xs.slice(0, n).join("; ");
   switch (slideId) {
     case "S1–S2":
-      return `${p.name} (${p.category}, ${m.initiative}). ${valuePropOf(p)} Model: NPV ${usdM(fm.npvM)}, IRR ${fm.irrPct}%, payback ${fm.paybackYears} yr at ${GATE_STAGE[p.gate]} stage (confidence ${p.confidence}/5).`;
+      return `${p.name} (${p.category}, ${m.initiative}). ${valuePropOf(p)} Model: NPV ${usdM(fm.npvM)}, IRR ${fm.irrPct}%, payback ${payb(fm.paybackYears)} at ${GATE_STAGE[p.gate]} stage (confidence ${p.confidence}/5).`;
     case "S3":
-      return `Return profile — NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${fm.paybackYears} yr · REV/NRE ${fm.revOverNre.toFixed(1)}×. NRE ${kFmt(p.nreK)} against 10-yr revenue ${usdM(p.fullRev10yM)}; risk-adjusted expected value ${usdM(expectedValueOf(p))}.`;
+      return `Return profile — NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${payb(fm.paybackYears)} · REV/NRE ${fm.revOverNre.toFixed(1)}×. NRE ${kFmt(p.nreK)} against 10-yr revenue ${usdM(p.fullRev10yM)}; risk-adjusted expected value ${usdM(expectedValueOf(p))}.`;
     case "S4":
       return `Customer CONOPS / mission needs — ${list(b.needs)}. Applications served: ${m.targetMarket}; program of record ${ex.customer}.`;
     case "S5":
@@ -1116,7 +1119,8 @@ export function consistencyCheck(p: Project): { issues: string[]; ok: boolean } 
   if (!(p.nextBestAlternative && p.nextBestAlternative.trim())) issues.push("Missing Next Best Alternative");
   if ((p.valueDrivers?.length ?? 0) === 0) issues.push("No Value-Equation drivers vs the NBA");
   if ((p.segmentValueProps?.length ?? 0) === 0) issues.push("No per-needs-segment value props");
-  if (valueEquationOf(p).losses > valueEquationOf(p).wins) issues.push("Loses to the NBA on more drivers than it wins");
+  const eq = valueEquationOf(p);
+  if (eq.losses > eq.wins) issues.push("Loses to the NBA on more drivers than it wins");
   return { issues, ok: issues.length === 0 };
 }
 
@@ -1164,7 +1168,9 @@ export function financialMetrics(p: Project): FinMetrics {
   const rev10yM = p.fullRev10yM;
   const grossProfit10yM = rev10yM * (marginPct / 100);
   const annualMarginM = weightedRevM(p) * (marginPct / 100) / 10;    // weighted annual margin
-  const paybackYears = annualMarginM > 0 ? +((p.nreK / 1000) / annualMarginM).toFixed(1) : 0;
+  // Never-pays-back sentinel: when the weighted annual margin is ≤0 the project does not recover its
+  // NRE — return Infinity (rendered "—") rather than a misleading "0 yr" that reads as the best payback.
+  const paybackYears = annualMarginM > 0 ? +((p.nreK / 1000) / annualMarginM).toFixed(1) : Infinity;
   const vol10y = Math.round((rev10yM * 1000) / Math.max(1, execOf(p).msrpK)); // units = rev / MSRP
   return {
     npvM: +npvM(p).toFixed(1), revOverNre: +revOverNre(p).toFixed(1), irrPct: irrPct(p),

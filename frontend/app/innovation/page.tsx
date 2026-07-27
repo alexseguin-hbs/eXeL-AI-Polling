@@ -80,6 +80,9 @@ const PERSONAS: { key: Persona; label: string; glyph: string; lens: string; view
 ];
 const usd = (m: number) => `$${m.toFixed(1)}M`;
 const k = (n: number) => `$${(n / 1000).toFixed(1)}M`;
+// Payback display — a non-finite / non-positive value means the project never recovers its NRE; render
+// an em-dash rather than a misleading "0 yr" that reads as the best payback (council: Thoth/Enki).
+const payb = (y: number) => (Number.isFinite(y) && y > 0 ? `${y} yr` : "—");
 
 // Safe storage — a sandboxed iframe (the <exel-polling> embed) or Safari "Block All Cookies" /
 // private mode throws SecurityError on bare localStorage/sessionStorage ACCESS (not just write),
@@ -310,6 +313,19 @@ function Board() {
       const saved = await loadState<Project[]>("projects");
       if (Array.isArray(saved) && saved.length > 0 && saved.every((p) => p && typeof p.id === "string")) {
         setOrder(saved); setSelId(saved[0].id);
+      }
+      // De-risk (council · Odin/Krishna): restore the per-project slide/gate namespaces that are written to
+      // the cloud but were never read back — seed localStorage ONLY where the local key is absent/empty, so a
+      // fresher local edit is never clobbered (guarded fill-if-empty; components re-read via readStore).
+      const CLOUD_NS: [string, string][] = [
+        ["slides", SLIDE_KEY], ["signoff", SIGNOFF_KEY], ["ledger", LEDGER_KEY],
+        ["gateconf", GATECONF_KEY], ["slide-hi", SLIDE_HI_KEY], ["slide-lens", SLIDE_LENS_KEY],
+      ];
+      for (const [name, lsKey] of CLOUD_NS) {
+        const local = lsGet(lsKey);
+        if (local && local !== "{}") continue; // keep fresher local edits
+        const cloud = await loadState<Record<string, string>>(name);
+        if (cloud && typeof cloud === "object" && Object.keys(cloud).length > 0) lsSet(lsKey, JSON.stringify(cloud));
       }
       projectsHydrated.current = true;
     })();
@@ -836,7 +852,7 @@ function FinancialsOverviewTable({ p }: { p: Project }) {
           <tbody>
             <tr><td className="px-1 py-0.5 text-slate-400">Revenue</td>{rows.map((r) => <td key={r.year} className="px-1 py-0.5 text-right text-slate-300">{r.revM.toFixed(0)}</td>)}<td className="px-1 py-0.5 text-right font-semibold text-slate-100">{tot.revM.toFixed(0)}</td></tr>
             <tr><td className="px-1 py-0.5 text-slate-400">Margin</td>{rows.map((r) => <td key={r.year} className="px-1 py-0.5 text-right text-emerald-400/90">{r.marginM.toFixed(0)}</td>)}<td className="px-1 py-0.5 text-right font-semibold text-emerald-400">{tot.marginM.toFixed(0)}</td></tr>
-            <tr><td className="px-1 py-0.5 text-slate-400">R&amp;D $k</td>{rows.map((r) => <td key={r.year} className="px-1 py-0.5 text-right text-amber-300/80">{r.rdK ? (r.rdK / 1000).toFixed(1) + "M" : "–"}</td>)}<td className="px-1 py-0.5 text-right font-semibold text-amber-300">{(tot.rdK / 1000).toFixed(1)}M</td></tr>
+            <tr><td className="px-1 py-0.5 text-slate-400">R&amp;D $M</td>{rows.map((r) => <td key={r.year} className="px-1 py-0.5 text-right text-amber-300/80">{r.rdK ? (r.rdK / 1000).toFixed(1) + "M" : "–"}</td>)}<td className="px-1 py-0.5 text-right font-semibold text-amber-300">{(tot.rdK / 1000).toFixed(1)}M</td></tr>
           </tbody>
         </table>
       </div>
@@ -955,7 +971,7 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
       {drivers.length === 0 ? (
         <p className="mt-2 text-[11px] text-slate-600">{t("innovation.veq.empty")}</p>
       ) : (
-        <div className="mt-2 space-y-1.5">
+        <div className="mt-2 space-y-1.5 overflow-x-auto">
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 text-[9px] uppercase tracking-wider text-slate-500">
             <span>{t("innovation.veq.colDriver")}</span><span className="w-16 text-center">{t("innovation.veq.colImportance")}</span>
             <span className="w-16 text-center">{t("innovation.veq.colOurs")}</span><span className="w-16 text-center">{t("innovation.veq.colNba")}</span><span className="w-12 text-right">{t("innovation.veq.colVerdict")}</span>
@@ -969,15 +985,18 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
                   <input value={d.name} onChange={(e) => set(i, { name: e.target.value })} placeholder={t("innovation.veq.driverPlaceholder")} className={`w-full ${inp}`} />
                 </div>
                 <label className="flex w-16 flex-col items-center" title="Customer importance">
-                  <input type="range" min={0} max={1} step={0.05} value={d.importance} onChange={(e) => set(i, { importance: +e.target.value })} className="w-16 accent-amber-500" />
+                  <input type="range" min={0} max={1} step={0.05} value={d.importance} onChange={(e) => set(i, { importance: +e.target.value })} className="w-16 accent-amber-500"
+                    aria-label={`${d.name || `Driver ${i + 1}`} customer importance`} aria-valuetext={`${pct(d.importance)}%`} />
                   <span className="text-[9px] tabular-nums text-slate-500">{pct(d.importance)}</span>
                 </label>
                 <label className="flex w-16 flex-col items-center" title="Our performance">
-                  <input type="range" min={0} max={1} step={0.05} value={d.ourScore} onChange={(e) => set(i, { ourScore: +e.target.value })} className="w-16 accent-emerald-500" />
+                  <input type="range" min={0} max={1} step={0.05} value={d.ourScore} onChange={(e) => set(i, { ourScore: +e.target.value })} className="w-16 accent-emerald-500"
+                    aria-label={`${d.name || `Driver ${i + 1}`} our performance`} aria-valuetext={`${pct(d.ourScore)}%`} />
                   <span className="text-[9px] tabular-nums text-emerald-500/80">{pct(d.ourScore)}</span>
                 </label>
                 <label className="flex w-16 flex-col items-center" title="NBA performance">
-                  <input type="range" min={0} max={1} step={0.05} value={d.nbaScore} onChange={(e) => set(i, { nbaScore: +e.target.value })} className="w-16 accent-slate-500" />
+                  <input type="range" min={0} max={1} step={0.05} value={d.nbaScore} onChange={(e) => set(i, { nbaScore: +e.target.value })} className="w-16 accent-slate-500"
+                    aria-label={`${d.name || `Driver ${i + 1}`} NBA performance`} aria-valuetext={`${pct(d.nbaScore)}%`} />
                   <span className="text-[9px] tabular-nums text-slate-500">{pct(d.nbaScore)}</span>
                 </label>
                 <div className="flex w-12 items-center justify-end gap-1">
@@ -1144,7 +1163,7 @@ function downloadBdPacket(p: Project) {
     ``, `VALUE PROPOSITION`, valuePropOf(p),
     ``, `NEXT BEST ALTERNATIVE`, nbaOf(p),
     `Competitive index vs NBA: ${Math.round(eq.competitiveIndex)}/100  ·  EVC ~$${eq.evcUsdM.toFixed(0)}M`,
-    ``, `TOP METRICS`, `NPV ${usd(fm.npvM)}  ·  IRR ${fm.irrPct}%  ·  Payback ${fm.paybackYears} yr  ·  10-Yr Rev ${usd(fm.rev10yM)}`,
+    ``, `TOP METRICS`, `NPV ${usd(fm.npvM)}  ·  IRR ${fm.irrPct}%  ·  Payback ${payb(fm.paybackYears)}  ·  10-Yr Rev ${usd(fm.rev10yM)}`,
     ``, `KEY RISK`, killRiskOf(p),
     ``, `FUNDING ASK`, `R&D (NRE): ${k(p.nreK)}`,
   ].join("\n");
@@ -1158,7 +1177,11 @@ function downloadBdPacket(p: Project) {
 function downloadOutcomeBrief(p: Project) {
   if (typeof document === "undefined") return;
   const fm = financialMetrics(p); const eq = valueEquationOf(p); const il = intelLoadGloss(p);
-  const drivers = (p.valueDrivers ?? []).map((d) => `  · ${d.name}: ours ${Math.round(d.ourScore * 100)} vs NBA ${Math.round(d.nbaScore * 100)} (importance ${Math.round(d.importance * 100)})`).join("\n") || "  (no drivers scored)";
+  // Council (Asar): list drivers from the SAME source the competitive index/EVC use (derived fallback when
+  // none are hand-scored), so the brief never shows an index above "(no drivers scored)".
+  const hasScored = (p.valueDrivers?.length ?? 0) > 0;
+  const driverRows = hasScored ? p.valueDrivers! : derivedDriversOf(p);
+  const drivers = driverRows.map((d) => `  · ${d.name}: ours ${Math.round(d.ourScore * 100)} vs NBA ${Math.round(d.nbaScore * 100)} (importance ${Math.round(d.importance * 100)})${hasScored ? "" : " (auto-derived)"}`).join("\n") || "  (no drivers scored)";
   const segs = (p.segmentValueProps ?? []).map((s) => `  · ${s.segment}: ${s.prop}`).join("\n") || "  (no segments)";
   const lines = [
     `OUTCOME BRIEF — ${p.name}`,
@@ -1168,7 +1191,7 @@ function downloadOutcomeBrief(p: Project) {
     ``, `VALUE EQUATION vs NBA — index ${Math.round(eq.competitiveIndex)}/100 · EVC ~$${eq.evcUsdM.toFixed(0)}M`, drivers,
     ``, `NEEDS SEGMENTS`, segs,
     ``, `INTELLIGENCE LOAD`, `AI ${Math.round(p.ai * 100)} · SI ${Math.round(p.si * 100)} · HI ${Math.round(p.hi * 100)} — ${il.gloss}`,
-    ``, `ECONOMICS`, `NPV ${usd(fm.npvM)} · IRR ${fm.irrPct}% · Payback ${fm.paybackYears} yr · 10-Yr Rev ${usd(fm.rev10yM)} · R&D ${k(p.nreK)}`,
+    ``, `ECONOMICS`, `NPV ${usd(fm.npvM)} · IRR ${fm.irrPct}% · Payback ${payb(fm.paybackYears)} · 10-Yr Rev ${usd(fm.rev10yM)} · R&D ${k(p.nreK)}`,
     ``, `KEY RISK`, killRiskOf(p),
   ].join("\n");
   const url = URL.createObjectURL(new Blob([lines], { type: "text/plain" }));
@@ -1329,7 +1352,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   // Full FLIR "Project Metrics" card set (12) — IMG_7843 / spec §2.4.
   const metrics: [string, string][] = [
     ["NPV", usd(fm.npvM)], ["REV/NRE", `${fm.revOverNre.toFixed(1)}×`], ["IRR", `${fm.irrPct}%`],
-    ["Gross Margin", `${fm.grossMarginPct}%`], ["Payback", `${fm.paybackYears} yr`], ["10-Yr Volume", fm.vol10y.toLocaleString()],
+    ["Gross Margin", `${fm.grossMarginPct}%`], ["Payback", `${payb(fm.paybackYears)}`], ["10-Yr Volume", fm.vol10y.toLocaleString()],
     ["10-Yr Revenue", usd(fm.rev10yM)], ["10-Yr Gross Profit", usd(fm.grossProfit10yM)], ["Cur-Yr Op Expense", k(fm.curYearOpexK)],
     ["Total R&D Op Ex", k(fm.totalRdOpexK)], ["Capital", k(fm.capitalK)], ["Man Hours", `${(fm.manHours / 1000).toFixed(1)}k`],
   ];
@@ -1672,7 +1695,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
                   <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Gross margin</div><div className="font-mono tabular-nums text-emerald-400">{ex.marginPct}%</div></div>
                   <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Rev captured</div><div className="font-mono tabular-nums text-slate-200">{captured}%</div></div>
                   <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">10-Yr revenue</div><div className="font-mono tabular-nums text-slate-200">{usd(fm.rev10yM)}</div></div>
-                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Payback</div><div className="font-mono tabular-nums text-slate-200">{fm.paybackYears} yr</div></div>
+                  <div className="rounded bg-[#0b0f14] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">Payback</div><div className="font-mono tabular-nums text-slate-200">{payb(fm.paybackYears)}</div></div>
                 </div>
               </div>
             </div>
@@ -1918,7 +1941,14 @@ const GATECONF_KEY = "innovation-gateconf";
 const SIGNOFF_STATES = ["", "green", "red"] as const; // pending → signed → blocked
 type SignoffState = (typeof SIGNOFF_STATES)[number];
 const readStore = (key: string): Record<string, string> => { try { return JSON.parse(lsGet(key) || "{}"); } catch { return {}; } };
-const writeStore = (key: string, name: string, obj: Record<string, string>) => { lsSet(key, JSON.stringify(obj)); void saveState(name, obj); };
+// localStorage write is instant; the cloud write is debounced per-name (~800ms trailing) so a textarea
+// edit doesn't re-upload the whole blob per keystroke (council: Thor/Krishna/Odin). Mirrors the projects push.
+const _cloudTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+const writeStore = (key: string, name: string, obj: Record<string, string>) => {
+  lsSet(key, JSON.stringify(obj));
+  if (_cloudTimers[name]) clearTimeout(_cloudTimers[name]);
+  _cloudTimers[name] = setTimeout(() => { void saveState(name, obj); }, 800);
+};
 
 // Gate progression — measured by review-slide progression across gates G1–G7 (no fixed
 // stage-count reference). We surface the review slides completed so far and the slides needed
@@ -1954,7 +1984,7 @@ function GateCube({ p }: { p: Project }) {
     const k = `${p.id}|${s}`, cur = prev[k] || "";
     const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
     const upd = { ...prev, [k]: next };
-    lsSet(SLIDE_KEY, JSON.stringify(upd));
+    writeStore(SLIDE_KEY, "slides", upd);
     return upd;
   });
   const readyCount = review.deliverables.filter((d) => slideStatus(d.slide) === "approved").length;
@@ -1964,7 +1994,7 @@ function GateCube({ p }: { p: Project }) {
   const [deck, setDeck] = useState<{ open: boolean; slide?: string }>({ open: false });
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-      {deck.open && <SlideShowModal p={p} startSlide={deck.slide} onClose={() => setDeck({ open: false })} />}
+      {deck.open && <SlideShowModal p={p} startSlide={deck.slide} onClose={() => { setDeck({ open: false }); setSlides(readStore(SLIDE_KEY)); }} />}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Gate progression · {p.gate} {GATE_STAGE[p.gate]}</h3>
         <span className="text-[11px] text-slate-500">gate {gi + 1} of {GATES.length} · source of record</span>
@@ -2029,6 +2059,7 @@ function GateCube({ p }: { p: Project }) {
             const cls = st === "green" ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : st === "red" ? "border-rose-500/50 bg-rose-500/10 text-rose-300" : "border-slate-700 text-slate-400 hover:bg-slate-800";
             return (
               <button key={lens} onClick={() => cycleSo(lens)} title="Tap to cycle: pending → signed → blocked"
+                aria-label={`${label} sign-off: ${st === "green" ? "signed" : st === "red" ? "blocked" : "pending"} — tap to cycle`}
                 className={`rounded border px-2 py-0.5 text-[11px] font-medium ${cls}`}>
                 {st === "green" ? "✓ " : st === "red" ? "✕ " : "○ "}{label}
               </button>
@@ -2047,7 +2078,7 @@ function GateCube({ p }: { p: Project }) {
             {hand.ready ? `✓ ${t("innovation.gate.handoff")}` : `⚠ ${t("innovation.gate.handoffGaps")}`}
           </span>
         </div>
-        <textarea value={ledgerText} onChange={(e) => setLedgerText(e.target.value)} rows={2}
+        <textarea value={ledgerText} onChange={(e) => setLedgerText(e.target.value)} rows={2} maxLength={4000}
           placeholder={t("innovation.gate.ledgerPlaceholder")}
           className="mt-2 w-full resize-y rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500" />
         <p className="mt-0.5 text-[9px] text-slate-600">{t("innovation.gate.ledger")}</p>
@@ -2084,9 +2115,23 @@ function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: s
   const useAiDraft = () => { setHiText(hiText.trim() ? `${hiText.trim()}\n\n${ai}` : ai); setLensFor("HI"); };
   const go = (d: number) => setIdx((i) => Math.min(SLIDES.length - 1, Math.max(0, i + d)));
   const authored = SLIDES.filter((s) => (hi[`${p.id}|${s.slide}`] ?? "").trim().length > 0).length;
+  // Keyboard support (council · Christo): Escape closes, ArrowLeft/Right page (unless typing in the textarea);
+  // move focus into the dialog on open so keyboard/SR users land inside it. Additive — no visual change.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    dialogRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (e.key === "Escape") { e.preventDefault(); onClose(); }
+      else if (e.key === "ArrowLeft" && tag !== "TEXTAREA") { e.preventDefault(); go(-1); }
+      else if (e.key === "ArrowRight" && tag !== "TEXTAREA") { e.preventDefault(); go(1); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.slides.title")}>
-      <div className="mx-auto max-w-2xl rounded-xl border border-slate-800 bg-[#0e141b] p-4 sm:p-5" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} tabIndex={-1} className="mx-auto max-w-2xl rounded-xl border border-slate-800 bg-[#0e141b] p-4 sm:p-5 outline-none" onClick={(e) => e.stopPropagation()}>
         {/* Header — project + deck progress + close */}
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-sm font-semibold">{t("innovation.slides.title")} · <span className="text-slate-300">{p.name}</span></h2>
@@ -2130,7 +2175,7 @@ function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: s
           {/* Body — HI editable textarea, or the AI draft (read-only, with "use as draft") */}
           {activeLens === "HI" ? (
             <div className="mt-3">
-              <textarea value={hiText} onChange={(e) => setHiText(e.target.value)} rows={6}
+              <textarea value={hiText} onChange={(e) => setHiText(e.target.value)} rows={6} maxLength={4000}
                 aria-label={`${slide.name} human input`}
                 placeholder={slideHintOf(slide.slide)}
                 className="w-full resize-y rounded-lg border border-slate-700 bg-[#0e141b] px-3 py-2 text-[13px] leading-relaxed text-slate-100 outline-none focus:border-cyan-500" />
@@ -2189,7 +2234,7 @@ function reqDetailRows(req: { id: string; type: string }, p: Project): [string, 
     case "REQ-89": rows.push(["Dependencies declared", String(dependsOn(DEMO_DEPS, p.id).length)]); break;
     case "REQ-90": rows.push(["Acknowledged by others", String(dependentsOf(DEMO_DEPS, p.id).length)]); break;
     case "REQ-71": rows.push(["Product #", h.product], ["Material #", h.material], ["Hierarchy", `${h.bu} › ${h.sbu} › ${h.pgroup} › ${h.alpha}`]); break;
-    case "REQ-42": rows.push(["Payback", `${fm.paybackYears} yr`], ["REV/NRE", `${fm.revOverNre.toFixed(1)}×`]); break;
+    case "REQ-42": rows.push(["Payback", `${payb(fm.paybackYears)}`], ["REV/NRE", `${fm.revOverNre.toFixed(1)}×`]); break;
     case "REQ-69": rows.push(["Growth contribution (wtd)", usd(weightedRevM(p))], ["10-yr gross profit", usd(fm.grossProfit10yM)]); break;
     case "REQ-56": rows.push(["Customer / PoR", ex.customer], ["Pursuits", ex.pursuits.map((x) => x.name).join(" · ")], ["Target market", m.targetMarket]); break;
     case "REQ-48": rows.push(["Capital & Tooling", k(fm.capitalK)], ["Total R&D", k(fm.totalRdOpexK)]); break;
@@ -2197,7 +2242,7 @@ function reqDetailRows(req: { id: string; type: string }, p: Project): [string, 
   }
   if (req.type === "S") {
     let st = "not started";
-    try { st = (JSON.parse(lsGet("innovation-slides") || "{}") as Record<string, string>)[`${p.id}|${req.id}`] || "not started"; } catch { /* none */ }
+    try { st = (JSON.parse(lsGet(SLIDE_KEY) || "{}") as Record<string, string>)[`${p.id}|${req.id}`] || "not started"; } catch { /* none */ }
     rows.push(["Slide input status", st]);
   }
   return rows;
@@ -2294,14 +2339,14 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
     const k = `${sel.id}|${id}`, cur = prev[k] || "";
     const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
     const upd = { ...prev, [k]: next };
-    lsSet(SLIDE_KEY, JSON.stringify(upd));
+    writeStore(SLIDE_KEY, "slides", upd);
     return upd;
   });
   // Digital slide show — open at S1 (header) or at a specific slide (from a matrix row).
   const [deck, setDeck] = useState<{ open: boolean; slide?: string }>({ open: false });
   return (
     <div className="space-y-4">
-      {deck.open && <SlideShowModal p={sel} startSlide={deck.slide} onClose={() => setDeck({ open: false })} />}
+      {deck.open && <SlideShowModal p={sel} startSlide={deck.slide} onClose={() => { setDeck({ open: false }); setSlides(readStore(SLIDE_KEY)); }} />}
       {/* Project selector + context */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="text-sm text-slate-400">Gate governance for</div>
@@ -2374,7 +2419,9 @@ function GateRequirementsView({ projects, sel, onSelect }: { projects: Project[]
                 const detail = isOpen ? reqDetailRows(req, sel) : [];
                 return (
                   <React.Fragment key={req.id}>
-                  <tr onClick={() => toggle(req.id)} className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 ${isOpen ? "bg-slate-800/40" : ""}`} title="Expand into actual detail">
+                  <tr onClick={() => toggle(req.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(req.id); } }}
+                    role="button" tabIndex={0} aria-expanded={isOpen} aria-label={`${slideDef(req.id)?.name ?? dispReqId(req.id)} — expand detail`}
+                    className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/30 focus:bg-slate-800/40 focus:outline-none ${isOpen ? "bg-slate-800/40" : ""}`} title="Expand into actual detail">
                     <td className={`px-3 py-1.5 font-mono text-[11px] ${REQ_TYPE_CHIP[req.type]}`}><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{dispReqId(req.id)}</td>
                     <td className="px-2 py-1.5">
                       {(() => { const d = slideDef(req.id); return (
@@ -2482,7 +2529,7 @@ const DOGTAG_METRICS: { key: string; label: string; val: (p: Project) => string 
   { key: "rev", label: "Cur-Yr Revenue", val: (p) => usd(projectRevSeries(p)[0]?.total ?? 0) },
   { key: "wrev", label: "P-wt Rev", val: (p) => usd(weightedRevM(p)) },
   { key: "irr", label: "IRR", val: (p) => `${irrPct(p)}%` },
-  { key: "payback", label: "Payback", val: (p) => `${financialMetrics(p).paybackYears} yr` },
+  { key: "payback", label: "Payback", val: (p) => `${payb(financialMetrics(p).paybackYears)}` },
   { key: "margin", label: "Gross Margin", val: (p) => `${execOf(p).marginPct}%` },
   { key: "tenyr", label: "10-Yr Revenue", val: (p) => usd(p.fullRev10yM) },
   // Bridge Slice 2 — new configurable highlight metrics (council asks). Compute identically wherever shown.

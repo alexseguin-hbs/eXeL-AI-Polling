@@ -449,5 +449,12 @@ ok(aiSlideOf(P0, "S3").includes("NPV") && aiSlideOf(P0, "S3").includes("IRR"), "
 ok(aiSlideOf(P0, "S3") === aiSlideOf(P0, "S3"), "aiSlideOf is deterministic (identical inputs → identical draft)");
 ok(aiSlideOf(P0, "S8").includes("NBA") || aiSlideOf(P0, "S8").toLowerCase().includes("competitive"), "aiSlideOf(S8) frames value vs the NBA");
 
+/* ---------------- Derisk council fixes (12-AsM + MoT) ---------------- */
+import { financialMetrics as fmFn } from "../lib/innovation-data.ts";
+ok(Number.isFinite(fmFn(P0).paybackYears) && fmFn(P0).paybackYears > 0, "payback is a finite positive number for a healthy seed project");
+ok(fmFn({ ...P0, fullRev10yM: 10, doNothing10yM: 10 }).paybackYears === Infinity, "payback returns Infinity (→ rendered '—') when the project never recovers its NRE (no incremental margin)");
+// aiSlideOf locale-pinned + deterministic (no locale drift on the persisted draft)
+ok(aiSlideOf(P0, "S10") === aiSlideOf(P0, "S10"), "aiSlideOf(S10 financials) is deterministic (en-US pinned)");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
