@@ -24,7 +24,7 @@ import {
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField,
   type SlideField, type SlideSpec, type SlideFieldValue,
-  buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, type BuBucket, type FundingBucket,
+  buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
@@ -195,6 +195,26 @@ function Board() {
     _memTimer.current = setTimeout(() => { void saveState("members", next); }, 800);
   };
   const myRole = roleOf(members, selId, me);
+  // Node budgets (Allocation pass) — per-node financial-spend cap keyed `${level}:${code}` ($K). Overrides the
+  // default R&D-envelope share; drives the per-node UPSIDE (unallocated) bucket. Persist local + cloud "node-budgets".
+  const [nodeBudgets, setNodeBudgets] = useState<Record<string, number>>({});
+  const NODE_BUDGETS_KEY = "innovation-node-budgets";
+  useEffect(() => {
+    try { const raw = localStorage.getItem(NODE_BUDGETS_KEY); if (raw) setNodeBudgets(JSON.parse(raw)); } catch { /* keep empty */ }
+    void loadState<Record<string, number>>("node-budgets").then((cloud) => { if (cloud && typeof cloud === "object") setNodeBudgets((cur) => (Object.keys(cur).length ? cur : cloud)); });
+  }, []);
+  const _nbTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setNodeBudget = (level: string, code: string, budgetK: number | null) => {
+    setNodeBudgets((cur) => {
+      const next = { ...cur };
+      if (budgetK == null) delete next[`${level}:${code}`]; else next[`${level}:${code}`] = Math.max(0, Math.round(budgetK));
+      try { localStorage.setItem(NODE_BUDGETS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      if (_nbTimer.current) clearTimeout(_nbTimer.current);
+      _nbTimer.current = setTimeout(() => { void saveState("node-budgets", next); }, 800);
+      return next;
+    });
+  };
+  const budgetOverrideK = (level: HierKey, code: string): number | undefined => nodeBudgets[`${level}:${code}`];
   // Optimization cadence — legacy prioritization was quarterly; this tool enables monthly now,
   // weekly next. Drives how often the stack is re-optimized / snapshotted.
   const [cadence, setCadence] = useState<"Q" | "M" | "W" | "D">("M");
@@ -755,7 +775,7 @@ function Board() {
       {templateOpen && <TemplateModal onClose={() => setTemplateOpen(false)} />}
 
       {/* Budget popup — per-SBU / per-Alpha-Group budget incl. unfunded projects */}
-      {budgetOpen && <BudgetModal projects={order} fundedIds={new Set(fundedRows.map((r) => r.p.id))} onClose={() => setBudgetOpen(false)} />}
+      {budgetOpen && <BudgetModal projects={order} fundedIds={new Set(fundedRows.map((r) => r.p.id))} availK={avail} budgetOverrideK={budgetOverrideK} onSetBudget={setNodeBudget} canEditBudget={can(myRole, "editBudget")} onClose={() => setBudgetOpen(false)} />}
 
       {/* Full-screen deep-dive overlay (⤢ maximize) */}
       {detailMax && (
@@ -1365,7 +1385,7 @@ function downloadOutcomeBrief(p: Project) {
   URL.revokeObjectURL(url);
 }
 
-function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fundedIds: Set<string>; onClose: () => void }) {
+function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget, canEditBudget, onClose }: { projects: Project[]; fundedIds: Set<string>; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; onSetBudget: (level: string, code: string, budgetK: number | null) => void; canEditBudget: boolean; onClose: () => void }) {
   const { t } = useLexicon();
   const [level, setLevel] = useState<"bu" | "sbu" | "pgroup">("bu");
   const [open, setOpen] = useState<Set<string>>(() => new Set());
@@ -1451,6 +1471,55 @@ function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fu
                   </div>
                 ))}
               </div>
+            </div>
+          );
+        })()}
+        {/* Allocation & UPSIDE — per node: financial-spend budget (editable), allocated (funded NRE), and the
+            UPSIDE bucket = unallocated funds. The R&D envelope is split across nodes; a Lead can pin any budget. */}
+        {(() => {
+          const alloc = nodeAllocation(projects, level, (id) => fundedIds.has(id), availK, budgetOverrideK);
+          const totUpsideK = alloc.reduce((s, n) => s + n.upsideK, 0);
+          const totOverK = alloc.reduce((s, n) => s + n.overK, 0);
+          const perMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
+          return (
+            <div className="border-b border-slate-800 px-4 py-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[10px] uppercase tracking-wider text-slate-500">Allocation &amp; upside · {levelLabel} · budget → allocated → unallocated (upside)</span>
+                <span className="text-[10px] text-slate-400">Σ upside <b className="tabular-nums text-cyan-300">{k(totUpsideK)}</b>{totOverK > 0 && <> · Σ over <b className="tabular-nums text-rose-300">{k(totOverK)}</b></>}</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {alloc.map((n) => {
+                  const pct = Math.min(100, n.utilPct);
+                  const barTone = n.overK > 0 ? "bg-rose-500" : n.utilPct >= 90 ? "bg-amber-500" : "bg-emerald-500";
+                  return (
+                    <div key={n.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
+                      <div className="mb-1 flex items-baseline justify-between">
+                        <span className="text-xs font-semibold text-slate-100">{n.code}</span>
+                        <span className="text-[9px] text-slate-500 truncate">{n.label}</span>
+                      </div>
+                      <div className="mb-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800" title={`${n.utilPct}% of budget allocated`}>
+                        <div className={`h-full ${barTone}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                        <span className="text-slate-500">Budget</span>
+                        <span className="text-right">
+                          {canEditBudget ? (
+                            <input type="text" inputMode="numeric" defaultValue={String(Math.round(n.budgetK))} aria-label={`Budget for ${n.code} in $K`}
+                              onBlur={(e) => { const v = +e.target.value; if (/^\d+$/.test(e.target.value)) onSetBudget(level, n.code, v); }}
+                              className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+                          ) : <span className="tabular-nums text-slate-200">{k(n.budgetK)}</span>}
+                          {budgetOverrideK(level, n.code) != null && <button onClick={() => onSetBudget(level, n.code, null)} title="Reset to default share" className="ml-1 text-[9px] text-slate-500 hover:text-cyan-300">↺</button>}
+                        </span>
+                        <span className="text-slate-500">Allocated</span><span className="text-right tabular-nums text-slate-300">{k(n.allocatedK)}</span>
+                        <span className="text-cyan-400">◆ Upside</span><span className="text-right tabular-nums text-cyan-300">{k(n.upsideK)}</span>
+                        {n.overK > 0 && (<><span className="text-rose-400">Over</span><span className="text-right tabular-nums text-rose-300">{k(n.overK)}</span></>)}
+                        <span className="text-slate-500" title="Live burn of the funded projects at this node">$/min</span><span className="text-right tabular-nums text-amber-300">{perMin(n.perMinUsd)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {!canEditBudget && <p className="mt-2 text-[9px] text-slate-600">Only a Project Lead can change a node’s budget.</p>}
             </div>
           );
         })()}
