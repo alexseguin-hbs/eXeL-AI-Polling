@@ -242,6 +242,7 @@ export const PROJECT_BRIEF: Record<string, ProjectBrief> = {
   "PRJ-20": { needs: ["Air-combat autonomy at machine tempo", "Loyal-wingman within commander intent"], outcomes: ["WVR maneuvering beyond human tempo", "Adaptive play vs scripted autopilot"], solution: ["Reinforcement-learning dogfight agent", "MUM-T loyal-wingman integration"], evidence: ["RL agent wins vs scripted baselines in sim", "HITL bounds constrain the envelope"] },
   "PRJ-21": { needs: ["Compress the commander OODA loop", "Prioritized, trusted, actionable insight"], outcomes: ["Decisions in minutes, not tens of minutes", "Fused feeds → ranked actions"], solution: ["Decision-speed SA fusion engine", "Explainable prioritization for HITL trust"], evidence: ["Decision-cycle time cut in exercise", "Commanders act on the ranked insight"] },
   "PRJ-22": { needs: ["Team Group 1/3/5 UAS as one force", "Cross-vendor teaming under one intent"], outcomes: ["Cross-group teaming under commander intent", "Mixed-vendor UAS on one fabric"], solution: ["Open multi-UAS teaming fabric", "Single-intent tasking across echelons"], evidence: ["Cross-group teaming demonstrated in sim", "Fabric interoperates across UAS types"] },
+  "PRJ-23": { needs: ["One IVAS common operating picture across UGV/UAS/aircraft feeds", "Real-time edge decision support that reduces operator cognitive load"], outcomes: ["Sensor-to-decision-to-effect compressed inside the OODA loop", "In-app escalations + JADC2-ready engagement approvals"], solution: ["Edge AI/CV fusion + digital-twin mission planning on IVAS", "Fit-for-purpose AI/ML packages downloadable per sensor"], evidence: ["Phase-1 multi-drone mission → real-time 3D output (Cesium/Unreal 5)", "MVP1.0→3.0 across 4 phases · $18M ROM · JADC2 integration"] },
 };
 export const briefOf = (p: Project): ProjectBrief =>
   PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${p.confidence}/5`] };
@@ -407,6 +408,10 @@ const DEMO_PROJECTS_BASE: Project[] = [
   { id: "PRJ-20", name: "AI Dogfight RL Agent (MUM-T)", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 9800, fullRev10yM: 320, doNothing10yM: 5, firstRevenue: "2029-Q2", criticalPath: true, humanLoad: 0.72, ai: 0.62, si: 0.23, hi: 0.15, predictions: 58 },
   { id: "PRJ-21", name: "Commander Decision-Speed SA Engine", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5200, fullRev10yM: 190, doNothing10yM: 20, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.58, ai: 0.6, si: 0.25, hi: 0.15, predictions: 33 },
   { id: "PRJ-22", name: "Group 1/3/5 Multi-UAS Teaming Fabric", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 8600, fullRev10yM: 300, doNothing10yM: 8, firstRevenue: "2028-Q4", criticalPath: true, humanLoad: 0.68, ai: 0.55, si: 0.3, hi: 0.15, predictions: 44 },
+  // Real project example (A. Seguin, eXeL AI Strategy) — AI/ML Software & Integration for Army IVAS. Multi-domain
+  // edge-AI platform ecosystem: fuses UGV/UAS/aircraft feeds into one IVAS COP with digital-twin mission planning,
+  // in-app escalations + JADC2 engagement approvals. $18M ROM across 4 phases (KO+6/9/12/18 mo, 5→20 FTE).
+  { id: "PRJ-23", name: "AI/ML Software & Integration — Army IVAS", division: "Autonomy SW", lob: "SBU-2", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 3, tech: "high", comm: "med", nreK: 18000, fullRev10yM: 280, doNothing10yM: 10, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.7, ai: 0.55, si: 0.25, hi: 0.2, predictions: 46 },
 ];
 
 // Realistic simulated intelligence per project (Tom Sant NOSE-informed value prop + the competitive Next
@@ -569,6 +574,20 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
     valueDrivers: [d("Cross-Group (1/3/5) teaming", 1.0, 0.84, 0.3), d("Single intent across echelons", 0.9, 0.82, 0.4), d("Open teaming fabric / interop", 0.85, 0.8, 0.45)],
     killRisk: "Cross-group teaming certifies across mixed-vendor UAS on one fabric",
     segmentValueProps: [{ segment: "SOF · Direct Action", prop: "Small, medium, and large UAS fight as one force under one intent.", confidence: 2 }],
+  },
+  // Real project example (A. Seguin) — HI inputs captured from the eXeL AI Strategy / IVAS project description.
+  // The value prop, NBA, drivers and role-based segments encode WHO the UX serves (field operatives, officers,
+  // joint-force commanders) and the pain each removes — the "elements of UX" the moderator asked to capture.
+  "PRJ-23": {
+    valueProp: "For multi-domain forces — field operatives, officers, and joint-force commanders — AI/ML Software & Integration (Army IVAS) is an edge-AI platform ecosystem that fuses UGV, UAS and aircraft sensor feeds into one IVAS common operating picture, with digital-twin mission planning, in-app escalations, and JADC2-ready engagement approvals. Unlike Palantir TITAN-class rear analytics or manual operator-per-feed workflows, it puts real-time risk assessment and decision support at the edge — cutting operator cognitive load and compressing sensor-to-decision-to-effect.",
+    nextBestAlternative: "Palantir TITAN-class rear analytics + manual, operator-per-feed IVAS workflows (no edge fusion, no in-app approvals)",
+    valueDrivers: [d("Risk Assessment Quality", 1.0, 0.9, 0.5), d("Speed to Decision (OODA compression)", 0.95, 0.88, 0.45), d("Speed to Effect", 0.9, 0.86, 0.4), d("Operator cognitive-load reduction (edge HITL)", 0.85, 0.87, 0.4)],
+    killRisk: "Edge sensor-fusion + fit-for-purpose AI/ML packages certify for JADC2 engagement approval inside the SWaP and latency budget",
+    segmentValueProps: [
+      { segment: "Field Operatives", prop: "Edge AI cuts cognitive load — real-time decisions, risk assessments, and action appropriate to the situation.", pain: "cognitive overload under fire", outcome: "act at the edge in real time", confidence: 3 },
+      { segment: "Officers", prop: "Trusted, real-time fused data for situational awareness and decision-making.", pain: "stale, stovepiped COP", outcome: "one trusted real-time picture", confidence: 3 },
+      { segment: "Joint Force Commanders", prop: "Precision execution with reduced risk to mission, force, and defense assets.", pain: "risk to force in complex engagements", outcome: "precision effects, lower risk", confidence: 3 },
+    ],
   },
 };
 
@@ -1028,6 +1047,7 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-20": { bu: "DS", sbu: "DSE", pgroup: "DE2", alpha: "DE2M", product: "70020", material: "70020-001" },
   "PRJ-21": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1C", product: "70021", material: "70021-001" },
   "PRJ-22": { bu: "DS", sbu: "DSE", pgroup: "DE1", alpha: "DE1W", product: "70022", material: "70022-001" },
+  "PRJ-23": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1J", product: "70023", material: "70023-001" },
 };
 export const hierOf = (p: Project): HierPath => {
   const base = PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };

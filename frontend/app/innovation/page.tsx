@@ -826,10 +826,14 @@ function Board() {
         </div>
       </div>
 
-      {/* Portfolio Growth Model — the signature Rack & Stack chart */}
-      <div className="px-5 pb-2">
-        <GrowthModelChart funded={fundedRows.map((r) => r.p)} />
-      </div>
+      {/* Portfolio Growth Model — the signature Rack & Stack chart. Baseline financials live at the BU / SBU /
+          Alpha Group roll-up (Business Setup), so this projection only shows at those decision levels — not at
+          Alpha Code / Product # / Material # and below, where there is no baseline to age against. */}
+      {isGroupLevel && (
+        <div className="px-5 pb-2">
+          <GrowthModelChart funded={fundedRows.map((r) => r.p)} />
+        </div>
+      )}
       </>)}
 
       {view === "gates" && (

@@ -681,5 +681,18 @@ import { auditTimeline, isMajorAudit, MAJOR_AUDIT_KINDS } from "../lib/innovatio
   ok(same[0].t === 0 && same[1].t === 1, "auditTimeline even-spaces when timestamps collapse to one instant");
 }
 
+/* ---------------- HI inputs complete for EVERY project (no blank value prop / NBA / drivers / segments) ---------------- */
+{
+  const incomplete = DEMO_PROJECTS.filter((p) =>
+    !(p.valueProp && p.valueProp.trim().length > 20) ||
+    !(p.nextBestAlternative && p.nextBestAlternative.trim().length > 5) ||
+    !(Array.isArray(p.valueDrivers) && p.valueDrivers.length >= 1) ||
+    !(Array.isArray(p.segmentValueProps) && p.segmentValueProps.length >= 1));
+  ok(incomplete.length === 0, `every project has complete HI inputs (valueProp+NBA+drivers+segments) — ${incomplete.map((p) => p.id).join(",") || "all complete"}`);
+  const ivas = DEMO_PROJECTS.find((p) => p.id === "PRJ-23");
+  ok(!!ivas && /IVAS/.test(ivas.name) && ivas.nreK === 18000, "IVAS example project present ($18M ROM)");
+  ok(!!ivas && ivas.segmentValueProps.some((s) => /Field Operatives|Officers|Joint Force/.test(s.segment)), "IVAS captures role-based UX segments");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
