@@ -205,6 +205,7 @@ function Board() {
   // Material # / BOM: default rolled up (product summary only); expand a product to show its BOM build.
   const [bomOpen, setBomOpen] = useState<Set<string>>(() => new Set());
   const toggleBom = (id: string) => setBomOpen((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const [budgetOpen, setBudgetOpen] = useState(false);
   // Level-aware Rack & Stack: high-level rollup (BU/SBU/PG/Alpha) for decisions · Product #
   // = working project stack (drag/select → deep dive) · Material # = BOM. Metrics always
   // stay bound to the project (derived from r.p), so arrows/drag carry NPV/REV/NRE with it.
@@ -300,9 +301,13 @@ function Board() {
         {/* STACK table — level-aware Rack & Stack */}
         <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
-            <h2 className="text-sm font-semibold">
-              {stackName} · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold">
+                {stackName} · {stackLevel === "product" ? "drag priority across the funding line" : isGroupLevel ? "roll-up for decisions" : "bill of materials"}
+              </h2>
+              <button onClick={() => setBudgetOpen(true)} title="Budget by SBU / Alpha Group — incl. unfunded"
+                className="rounded-md border border-emerald-500/40 px-2 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/10">$ Budget</button>
+            </div>
             {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
             <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
               {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
@@ -519,6 +524,9 @@ function Board() {
         </div>
       )}
 
+      {/* Budget popup — per-SBU / per-Alpha-Group budget incl. unfunded projects */}
+      {budgetOpen && <BudgetModal projects={order} fundedIds={new Set(fundedRows.map((r) => r.p.id))} onClose={() => setBudgetOpen(false)} />}
+
       {/* Full-screen deep-dive overlay (⤢ maximize) */}
       {detailMax && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={() => setDetailMax(false)}>
@@ -711,6 +719,127 @@ function PwtCell({ weighted, incremental }: { weighted: number; incremental: num
   );
 }
 
+// Dog-tag project summary card (FLIR transparency board parity): name TOP · SBU vertical LEFT ·
+// launch date vertical RIGHT (all fixed) · admin-configurable highlight metrics in the middle.
+function DogTag({ p }: { p: Project }) {
+  const h = hierOf(p);
+  const dt = DEV_TYPE[devTypeOf(p)];
+  const metrics = loadDogtag().map((kk) => DOGTAG_METRICS.find((m) => m.key === kk)).filter(Boolean) as typeof DOGTAG_METRICS;
+  return (
+    <div className="flex items-stretch overflow-hidden rounded-xl border-2 bg-[#0b0f14]" style={{ borderColor: dt.color }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}`}>
+      {/* SBU — fixed, vertical left */}
+      <div className="flex items-center justify-center px-1" style={{ background: `${dt.color}22` }}>
+        <span className="text-[10px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: dt.color }}>{h.sbu}</span>
+      </div>
+      {/* Center — name + configurable highlights */}
+      <div className="flex-1 px-3 py-2 text-center">
+        <div className="truncate text-sm font-semibold text-slate-100">{p.name}</div>
+        <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-0.5 text-[11px]">
+          {metrics.map((m) => (
+            <span key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></span>
+          ))}
+        </div>
+      </div>
+      {/* Launch date — fixed, vertical right */}
+      <div className="flex items-center justify-center bg-slate-800/50 px-1">
+        <span className="text-[10px] font-mono tracking-wider text-slate-400" style={{ writingMode: "vertical-rl" }}>{p.firstRevenue}</span>
+      </div>
+    </div>
+  );
+}
+
+// Budget popup — all budget for an SBU or Alpha Group, key metrics INCLUDING unfunded projects.
+function BudgetModal({ projects, fundedIds, onClose }: { projects: Project[]; fundedIds: Set<string>; onClose: () => void }) {
+  const [level, setLevel] = useState<"sbu" | "pgroup">("sbu");
+  const [open, setOpen] = useState<Set<string>>(() => new Set());
+  const groups = useMemo(() => {
+    const map = new Map<string, Project[]>();
+    for (const p of projects) { const key = hierOf(p)[level]; (map.get(key) ?? map.set(key, []).get(key)!).push(p); }
+    return Array.from(map.entries()).map(([key, ps]) => {
+      const funded = ps.filter((p) => fundedIds.has(p.id));
+      const unfunded = ps.filter((p) => !fundedIds.has(p.id));
+      return {
+        key, ps, funded, unfunded,
+        spendK: ps.reduce((s, p) => s + p.nreK, 0),
+        fundedSpendK: funded.reduce((s, p) => s + p.nreK, 0),
+        unfundedSpendK: unfunded.reduce((s, p) => s + p.nreK, 0),
+        npv: ps.reduce((s, p) => s + npvM(p), 0),
+        wrev: ps.reduce((s, p) => s + weightedRevM(p), 0),
+      };
+    }).sort((a, b) => b.npv - a.npv);
+  }, [projects, level, fundedIds]);
+  const tot = { spendK: groups.reduce((s, g) => s + g.spendK, 0), fundedK: groups.reduce((s, g) => s + g.fundedSpendK, 0), unfundedK: groups.reduce((s, g) => s + g.unfundedSpendK, 0), n: projects.length, funded: fundedIds.size };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
+      <div className="mx-auto max-w-3xl rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
+          <h2 className="text-sm font-semibold">Budget by {level === "sbu" ? "SBU" : "Alpha Group"} <span className="text-[11px] text-slate-500">— funded + unfunded</span></h2>
+          <div className="flex items-center gap-2">
+            <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
+              {(["sbu", "pgroup"] as const).map((lv) => (
+                <button key={lv} onClick={() => setLevel(lv)} className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lv === "sbu" ? "SBU" : "Alpha Grp"}</button>
+              ))}
+            </div>
+            <button onClick={onClose} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">✕</button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 px-4 py-2 text-[11px] text-slate-400 border-b border-slate-800">
+          <span>Total R&amp;D spend <b className="tabular-nums text-slate-200">{k(tot.spendK)}</b></span>
+          <span>Funded <b className="tabular-nums text-emerald-400">{k(tot.fundedK)}</b> · {tot.funded}/{tot.n}</span>
+          <span>Not funded <b className="tabular-nums text-rose-400">{k(tot.unfundedK)}</b> · {tot.n - tot.funded}</span>
+        </div>
+        <div className="max-h-[70vh] overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-[#0e141b]">
+              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+                <th className="px-3 py-2 text-left">{level === "sbu" ? "SBU" : "Alpha Group"}</th>
+                <th className="px-2 py-2 text-center">Projects</th>
+                <th className="px-2 py-2 text-right">Spend (R&amp;D)</th>
+                <th className="px-2 py-2 text-right">Funded</th>
+                <th className="px-2 py-2 text-right">Not funded</th>
+                <th className="px-2 py-2 text-right">NPV</th>
+                <th className="px-2 py-2 text-right">P-wt Rev</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map((g) => {
+                const isOpen = open.has(g.key);
+                return (
+                  <React.Fragment key={g.key}>
+                    <tr onClick={() => setOpen((s) => { const n = new Set(s); n.has(g.key) ? n.delete(g.key) : n.add(g.key); return n; })} className="cursor-pointer border-b border-slate-900 hover:bg-slate-800/30">
+                      <td className="px-3 py-1.5 font-mono text-cyan-300"><span className="mr-1 text-slate-500">{isOpen ? "▾" : "▸"}</span>{g.key}{level === "sbu" && SBU_LABEL[g.key] ? <span className="ml-1 text-[10px] text-slate-500">{SBU_LABEL[g.key]}</span> : ""}</td>
+                      <td className="px-2 py-1.5 text-center tabular-nums text-slate-300">{g.ps.length}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-slate-200">{k(g.spendK)}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{g.funded.length} · {k(g.fundedSpendK)}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-rose-400">{g.unfunded.length} · {k(g.unfundedSpendK)}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-slate-200">{usd(g.npv)}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{usd(g.wrev)}</td>
+                    </tr>
+                    {isOpen && g.ps.map((p) => {
+                      const isFunded = fundedIds.has(p.id);
+                      return (
+                        <tr key={p.id} className="border-b border-slate-900/50 text-[12px]">
+                          <td className="px-3 py-1 pl-6 text-slate-300" colSpan={2}><span className={`mr-1.5 inline-block h-2 w-2 rounded-full ${isFunded ? "bg-emerald-500" : "bg-rose-500"}`} />{p.name}</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-slate-400">{k(p.nreK)}</td>
+                          <td className="px-2 py-1 text-right text-[10px] uppercase tracking-wider" colSpan={2}><span className={isFunded ? "text-emerald-400" : "text-rose-400"}>{isFunded ? "funded" : "not funded"}</span></td>
+                          <td className="px-2 py-1 text-right tabular-nums text-slate-300">{usd(npvM(p))}</td>
+                          <td className="px-2 py-1 text-right tabular-nums text-slate-400">{usd(weightedRevM(p))}</td>
+                        </tr>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Funded vs not-funded is set by the global funding line (Σ R&amp;D ≤ available). Balance budgets by reprioritizing the stack — unfunded projects fall below the line.</p>
+      </div>
+    </div>
+  );
+}
+
 // Risk-level pill: colour by level (low=emerald, med=amber, high=rose).
 function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   const c = level === "low" ? "bg-emerald-500/15 text-emerald-300" : level === "med" ? "bg-amber-500/15 text-amber-300" : "bg-rose-500/15 text-rose-300";
@@ -753,6 +882,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   ];
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
+      <div className="mb-3"><DogTag p={p} /></div>
       <div className="flex items-start justify-between">
         <div>
           <h3 className="font-semibold">{p.name}</h3>
@@ -1479,6 +1610,27 @@ const STACK_NAME_KEY = "innovation-stack-name";
 const DEFAULT_STACK_NAME = "Portfolio Prioritization";
 const STACK_NAME_PRESETS = ["Portfolio Prioritization", "Prioritize & Fund", "Portfolio Balancer", "Funding Line", "Priority Board"];
 function loadStackName(): string { return (lsGet(STACK_NAME_KEY) || DEFAULT_STACK_NAME).trim() || DEFAULT_STACK_NAME; }
+
+// ── Dog-tag project summary (FLIR transparency board, IMG_7871/7872) ──────────────────────
+// A project renders as a "dog tag": name on TOP, SBU vertical on the LEFT, launch date vertical
+// on the RIGHT (all three fixed), and a set of admin-CONFIGURABLE highlight metrics in the middle.
+const DOGTAG_METRICS: { key: string; label: string; val: (p: Project) => string }[] = [
+  { key: "remaining", label: "Remaining FY Spend", val: (p) => k(p.nreK) },
+  { key: "npv", label: "NPV", val: (p) => usd(npvM(p)) },
+  { key: "rev", label: "Cur-Yr Revenue", val: (p) => usd(projectRevSeries(p)[0]?.total ?? 0) },
+  { key: "wrev", label: "P-wt Rev", val: (p) => usd(weightedRevM(p)) },
+  { key: "irr", label: "IRR", val: (p) => `${irrPct(p)}%` },
+  { key: "payback", label: "Payback", val: (p) => `${financialMetrics(p).paybackYears} yr` },
+  { key: "margin", label: "Gross Margin", val: (p) => `${execOf(p).marginPct}%` },
+  { key: "tenyr", label: "10-Yr Revenue", val: (p) => usd(p.fullRev10yM) },
+];
+const DOGTAG_KEY = "innovation-dogtag-highlights";
+const DEFAULT_DOGTAG = ["remaining", "npv", "rev"]; // matches the reference board
+function loadDogtag(): string[] {
+  const s = lsGet(DOGTAG_KEY);
+  if (s) { try { const a = JSON.parse(s) as string[]; if (Array.isArray(a) && a.length) return a.filter((kk) => DOGTAG_METRICS.some((m) => m.key === kk)); } catch { /* default */ } }
+  return DEFAULT_DOGTAG;
+}
 function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
   const [admin, setAdmin] = useState(false);
   const [pw, setPw] = useState("");
@@ -1488,6 +1640,7 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
   const [pillars, setPillars] = useState<PillarDef[]>(() => STRATEGIC_INITIATIVES.map((n) => ({ name: n, desc: PILLAR_DESC[n] })));
   const [board, setBoard] = useState(DEFAULT_REVIEW_BOARD);
   const [stackName, setStackName] = useState(DEFAULT_STACK_NAME);
+  const [dogtag, setDogtag] = useState<string[]>(DEFAULT_DOGTAG);
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
     const saved = lsGet(BIZ_KEY);
@@ -1495,11 +1648,13 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
     setPillars(loadPillars());
     setBoard(loadReviewBoard());
     setStackName(loadStackName());
+    setDogtag(loadDogtag());
   }, []);
   const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
   const persistBoard = (next: string) => { setBoard(next); lsSet(REVIEW_BOARD_KEY, next); };
   const persistStackName = (next: string) => { setStackName(next); lsSet(STACK_NAME_KEY, next); onRename?.(next); };
+  const persistDogtag = (next: string[]) => { const v = next.length ? next : DEFAULT_DOGTAG; setDogtag(v); lsSet(DOGTAG_KEY, JSON.stringify(v)); };
   const unlock = () => (pw === CODE ? (ssSet(ADMIN_KEY, "1"), setAdmin(true)) : setErr(true));
 
   if (!admin) {
@@ -1576,6 +1731,21 @@ function BusinessSetup({ onRename }: { onRename?: (name: string) => void }) {
             placeholder="Custom name" className={`w-44 ${inp}`} />
         </div>
         <p className="mt-2 text-[10px] text-slate-500">Default <b className="text-cyan-300">Portfolio Prioritization</b>. Renaming here relabels the module across the tool (tab · title · section header).</p>
+      </section>
+
+      {/* Dog-tag highlights — which metrics show on each project's summary card */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <h2 className="text-sm font-semibold">Project Summary Highlights <span className="text-[11px] text-slate-500">— dog-tag middle metrics (SBU left · name top · launch date right are fixed)</span></h2>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {DOGTAG_METRICS.map((m) => {
+            const on = dogtag.includes(m.key);
+            return (
+              <button key={m.key} onClick={() => persistDogtag(on ? dogtag.filter((kk) => kk !== m.key) : [...dogtag, m.key])}
+                className={`rounded border px-2.5 py-1 text-xs ${on ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{on ? "✓ " : ""}{m.label}</button>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">Toggle which key metrics appear on each project&apos;s dog-tag summary. Default: Remaining FY Spend · NPV · Cur-Yr Revenue.</p>
       </section>
 
       {/* Review board — the body that gives per-slide gate feedback (default IRB) */}
