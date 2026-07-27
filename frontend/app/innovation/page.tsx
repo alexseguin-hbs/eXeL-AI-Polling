@@ -757,7 +757,7 @@ function Board() {
 
       {view === "dashboards" && (
         <div className="p-5">
-          <Dashboards projects={order} funded={fundedRows.map((r) => r.p)} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
+          <Dashboards projects={order} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
         </div>
       )}
 
@@ -3683,7 +3683,9 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
   );
 }
 
-function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
+function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; onSelect: (id: string) => void }) {
+  const fundedSet = new Set(funded.map((p) => p.id));
+  const buAlloc = nodeAllocation(projects, "bu", (id) => fundedSet.has(id), availK, budgetOverrideK);
   const npvTotal = funded.reduce((s, p) => s + npvM(p), 0);
   const incrTotal = funded.reduce((s, p) => s + incrementalRevM(p), 0);
   const wtdTotal = funded.reduce((s, p) => s + weightedRevM(p), 0);
@@ -3715,8 +3717,37 @@ function Dashboards({ projects, funded, onSelect }: { projects: Project[]; funde
   const sbuLabelOf = (c: string) => bizSetup.sbu.find((n) => n.code === c)?.label ?? SBU_LABEL[c] ?? "SBU";
   const roll = companyRollup(projects, { sbuBase: sbuBaseOf });
 
+  const allocPerMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
   return (
     <div className="space-y-4">
+      {/* Allocation & UPSIDE per BU — always-on metric: budget → allocated → unallocated (upside) + $/min.
+          The full editable per-node view (SBU / Alpha Group too) is in the Budget popup. */}
+      <DashCard title="Allocation & upside · by BU" tag="Spend">
+        <div className="grid gap-2 sm:grid-cols-3">
+          {buAlloc.map((n) => {
+            const pct = Math.min(100, n.utilPct);
+            const tone = n.overK > 0 ? "bg-rose-500" : n.utilPct >= 90 ? "bg-amber-500" : "bg-emerald-500";
+            return (
+              <div key={n.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
+                <div className="mb-1 flex items-baseline justify-between">
+                  <span className="text-xs font-semibold text-slate-100">{n.code} <span className="font-normal text-slate-500">{n.label}</span></span>
+                  <span className="text-[10px] tabular-nums text-amber-300">{allocPerMin(n.perMinUsd)}</span>
+                </div>
+                <div className="mb-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800" title={`${n.utilPct}% of budget allocated`}>
+                  <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
+                </div>
+                <div className="flex flex-wrap justify-between gap-x-3 text-[10px] tabular-nums">
+                  <span className="text-slate-500">Budget <b className="text-slate-300">{kM(n.budgetK)}</b></span>
+                  <span className="text-slate-500">Alloc <b className="text-slate-300">{kM(n.allocatedK)}</b></span>
+                  <span className="text-cyan-400">◆ Upside <b className="text-cyan-300">{kM(n.upsideK)}</b></span>
+                  {n.overK > 0 && <span className="text-rose-400">Over <b className="text-rose-300">{kM(n.overK)}</b></span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </DashCard>
+
       {/* Financial Map — R&D spend vs risk-weighted revenue (Financial = 3rd-most-important) */}
       <FinancialMap projects={projects} onSelect={onSelect} />
 
