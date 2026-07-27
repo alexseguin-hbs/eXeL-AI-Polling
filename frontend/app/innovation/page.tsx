@@ -1234,6 +1234,10 @@ function TimeEngine({ p }: { p: Project }) {
   const band = Math.round(toleranceBand(p) * 100);
   const fmtTime = (v: number) => (unit === "minute" || unit === "hour" ? Math.round(v).toLocaleString() : v.toFixed(unit === "month" ? 1 : 0));
   const fmtUsd0 = (v: number) => `$${(v / 1e6).toFixed(2)}M`;
+  // Cost-of-time rate follows the Mo/Wk/D/H/Min selector: cost ÷ time-in-that-unit ($/mo … $/min).
+  const RATE_WORD: Record<TimeUnit, string> = { month: "mth", week: "week", day: "day", hour: "hr", minute: "min" };
+  const costPerUnit = r.time.value > 0 ? r.cost.value / r.time.value : r.costPerMinUsd;
+  const fmtRate = (v: number) => (v >= 1e6 ? `$${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(1)}k` : `$${v.toFixed(2)}`);
   const sched = scheduleFromStart(p, startISO);
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
@@ -1264,7 +1268,7 @@ function TimeEngine({ p }: { p: Project }) {
       </div>
 
       <div className="mt-2 flex justify-between text-[11px] text-slate-500">
-        <span>Cost of time <b className="text-cyan-300">${r.costPerMinUsd.toFixed(2)}/min</b></span>
+        <span>Cost of time <b className="text-cyan-300">{fmtRate(costPerUnit)}/{RATE_WORD[unit]}</b></span>
         <span>1st revenue <b className="text-slate-300">{r.firstRevenueISO}</b> (derived)</span>
       </div>
       {/* Risk-adjusted cost · schedule · upside — all move with the tech × commercial risk */}
