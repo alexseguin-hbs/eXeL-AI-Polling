@@ -621,6 +621,23 @@ ok(scrubText("ab ".repeat(80), 64).length === 64, "scrubText caps length");
 ok(scrubText("jane@example.com") === "jane@example.com", "scrubText leaves a normal ref intact");
 ok(scrubText("a") === scrubText("a"), "scrubText deterministic");
 
+/* ---------------- redactSecrets / scrubDeep — cloud-write choke point (P3 Security net-new) ---------------- */
+import { redactSecrets, scrubDeep } from "../lib/innovation-data.ts";
+ok(redactSecrets("key sk_live_ABCDEF1234567890 here").includes("[redacted]"), "redactSecrets strips Stripe-style keys");
+ok(!/[A-Za-z0-9_-]{40,}/.test(redactSecrets("tok_" + "a".repeat(50))), "redactSecrets strips long opaque tokens");
+ok(redactSecrets("Line 1\nLine 2\n  indented") === "Line 1\nLine 2\n  indented", "redactSecrets preserves prose whitespace/newlines");
+ok(redactSecrets("ab ".repeat(2000)).length === 4000, "redactSecrets caps at generous 4000");
+ok(redactSecrets("A short value prop.") === "A short value prop.", "redactSecrets leaves normal prose intact");
+{
+  const blob = { valueProp: "beats sk_live_DEADBEEF12345678 rivals", nested: { note: "tok_" + "b".repeat(50) }, list: ["ok", "sk_test_ABCDEFGHIJKLMNOP"], num: 42, flag: true };
+  const safe = scrubDeep(blob);
+  ok(safe.valueProp.includes("[redacted]") && !safe.valueProp.includes("sk_live"), "scrubDeep redacts nested string field");
+  ok(!/[A-Za-z0-9_-]{40,}/.test(safe.nested.note), "scrubDeep recurses into nested objects");
+  ok(safe.list[1].includes("[redacted]") && safe.list[0] === "ok", "scrubDeep recurses into arrays");
+  ok(safe.num === 42 && safe.flag === true, "scrubDeep leaves non-strings untouched");
+  ok(blob.valueProp.includes("sk_live"), "scrubDeep does not mutate the input");
+}
+
 /* ---------------- Funding & approval AUDIT TRAIL (Slice 6) ---------------- */
 import { makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry } from "../lib/innovation-data.ts";
 {

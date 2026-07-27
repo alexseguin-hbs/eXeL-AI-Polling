@@ -713,6 +713,27 @@ export function scrubText(s: string, max = 120): string {
     .trim()
     .slice(0, max);
 }
+/** Redact secret-like tokens from free text WITHOUT collapsing whitespace or hard-trimming — for persisting
+ * user PROSE (value props, ledgers, slides) to the shared cloud blob. Multi-line formatting survives; only
+ * secrets/opaque tokens are stripped and a generous cap guards against runaway blobs. */
+export function redactSecrets(s: string, max = 4000): string {
+  return (s || "")
+    .replace(/\b(sk|rk|pk)_(live|test)_[A-Za-z0-9]+/g, "[redacted]")   // Stripe-style keys
+    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, "[redacted]")                    // long opaque tokens
+    .slice(0, max);
+}
+/** Deep-copy a JSON-serializable value, redacting secret-like tokens from EVERY string. Applied at the cloud-
+ * write choke point so no API key / token can reach the shared blob, without mangling legitimate content. */
+export function scrubDeep<T>(v: T): T {
+  if (typeof v === "string") return redactSecrets(v) as unknown as T;
+  if (Array.isArray(v)) return v.map((x) => scrubDeep(x)) as unknown as T;
+  if (v && typeof v === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) out[k] = scrubDeep(val);
+    return out as unknown as T;
+  }
+  return v;
+}
 
 export interface ProjectMember { userRef: string; role: ProjectRole }
 // Membership map keyed by projectId. userRef is a stable id-shaped token (from ownerKey()), never a display

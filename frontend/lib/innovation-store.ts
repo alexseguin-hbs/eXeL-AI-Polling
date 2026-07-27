@@ -19,6 +19,7 @@
  *   innovation_state(id uuid pk, owner_key text, name text, payload jsonb, updated_at, UNIQUE(owner_key,name))
  */
 import { supabase } from "./supabase";
+import { scrubDeep } from "./innovation-data";
 
 const TABLE = "innovation_state";
 
@@ -67,9 +68,13 @@ export async function saveState(name: string, payload: unknown): Promise<CloudSt
   if (!supabase) return "offline";
   const h = contentHash(payload);
   if (lastHash[name] === h) return "saved"; // unchanged → no network write
+  // SECURITY — redact secret-like tokens from every persisted string at this single cloud-write choke point,
+  // so no API key / token can land in the shared blob regardless of which field the caller wrote. Prose
+  // survives (redaction-only; no whitespace collapse). Hash is on the raw payload so change-detection is stable.
+  const safe = scrubDeep(payload);
   try {
     const { error } = await supabase.from(TABLE).upsert(
-      { owner_key: ownerKey(), name, payload, updated_at: new Date().toISOString() },
+      { owner_key: ownerKey(), name, payload: safe, updated_at: new Date().toISOString() },
       { onConflict: "owner_key,name" },
     );
     if (!error) { lastHash[name] = h; return "saved"; }

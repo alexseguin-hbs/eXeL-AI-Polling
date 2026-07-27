@@ -234,9 +234,16 @@ function Board() {
   // Optimization cadence — legacy prioritization was quarterly; this tool enables monthly now,
   // weekly next. Drives how often the stack is re-optimized / snapshotted.
   const [cadence, setCadence] = useState<"Q" | "M" | "W" | "D">("M");
-  // Master data (BU/SBU/Alpha…) for the edit + new-idea dropdowns; reloads when leaving Setup.
+  // Master data (BU/SBU/Alpha…) for the edit + new-idea dropdowns; reloads ONLY when LEAVING Setup (not on
+  // every tab switch — spurious localStorage re-read + full state replace on each navigation, Stability).
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
-  useEffect(() => { setSetup(loadBizSetup()); }, [view]);
+  const _prevViewForSetup = useRef<typeof view | null>(null);
+  useEffect(() => {
+    // Hydrate from the localStorage rung once on mount; thereafter re-read ONLY when LEAVING Setup — not on
+    // every tab switch (the prior [view] dep re-read localStorage + full-replaced state on each navigation).
+    if (_prevViewForSetup.current === null || (_prevViewForSetup.current === "setup" && view !== "setup")) setSetup(loadBizSetup());
+    _prevViewForSetup.current = view;
+  }, [view]);
   // Remembered defaults — a returning VP lands on the VP lens, not a PM view (usability).
   useEffect(() => {
     const sp = lsGet("innovation-persona") as Persona | null;
