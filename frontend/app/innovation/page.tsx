@@ -22,7 +22,7 @@ import {
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
-  metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf,
+  metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
@@ -139,7 +139,7 @@ function Board() {
   // New-idea creation now runs through a modal that REQUIRES a master value proposition
   // (per-needs-segment value props recommended) — value prop is a must-have at creation (CRS-56).
   const [newIdeaOpen, setNewIdeaOpen] = useState(false);
-  const createIdea = (fields: { name: string; valueProp: string; segments: SegmentValueProp[] }) => {
+  const createIdea = (fields: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[] }) => {
     const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
     const id = `PRJ-${String(maxN + 1).padStart(2, "0")}`;
     const np: Project = {
@@ -150,11 +150,16 @@ function Board() {
       bu: setup.bu[0]?.code, sbu: setup.sbu[0]?.code, pgroup: setup.pgroup[0]?.code,
       alpha: setup.alpha[0]?.code, initiative: loadPillars()[0]?.name ?? STRATEGIC_INITIATIVES[0],
       valueProp: fields.valueProp.trim(),
+      nextBestAlternative: fields.nba.trim(),
       segmentValueProps: fields.segments.filter((s) => s.prop.trim() && s.segment.trim()),
+      valuePropSource: "HI",
     };
+    // Mint the AI rendition at submission (HI is done first) so an AI-improved version is available
+    // via the HI⇄AI toggle to spark quality ideas — deterministic + offline (no provider call).
+    np.valuePropAI = aiValuePropOf(np);
     setOrder((o) => [np, ...o]);
     setSelId(id); setView("portfolio"); setStackLevel("product");
-    log("edit", np.name, `submitted new idea (G1) · value prop set${np.segmentValueProps?.length ? ` · ${np.segmentValueProps.length} segment(s)` : ""}`, "you");
+    log("edit", np.name, `submitted new idea (G1) · HI value prop + NBA set · AI version minted${np.segmentValueProps?.length ? ` · ${np.segmentValueProps.length} segment(s)` : ""}`, "you");
     setNewIdeaOpen(false);
   };
   // Change + approval activity log (edits and gate approvals) — the audit summary.
@@ -801,27 +806,34 @@ function DogTag({ p }: { p: Project }) {
 
 // New-idea modal — a project cannot be created without a MASTER value proposition (must-have);
 // per-needs-based-segment value props are recommended (add as many as apply).
-function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; valueProp: string; segments: SegmentValueProp[] }) => void; onClose: () => void }) {
+function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[] }) => void; onClose: () => void }) {
   const [name, setName] = useState("");
   const [valueProp, setValueProp] = useState("");
+  const [nba, setNba] = useState("");
   const [segments, setSegments] = useState<SegmentValueProp[]>([]);
   const inp = "w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500";
-  const canCreate = name.trim().length > 0 && valueProp.trim().length > 0;
+  // Best-in-class HI value prop requires BOTH the master statement and the Next Best Alternative.
+  const canCreate = name.trim().length > 0 && valueProp.trim().length > 0 && nba.trim().length > 0;
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
       <div className="mx-auto max-w-lg rounded-xl border border-slate-800 bg-[#0e141b] p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Submit New Idea</h2>
+          <h2 className="text-sm font-semibold">Submit New Idea <span className="ml-1 rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-violet-300">웃 HI</span></h2>
           <button onClick={onClose} className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">✕</button>
         </div>
-        <p className="mt-1 text-[11px] text-slate-500">A value proposition is required to create a project — it&apos;s how Innovation, Business, and BD/Sales align from day one.</p>
+        <p className="mt-1 text-[11px] text-slate-500">Author the best-in-class <b className="text-slate-300">human (HI)</b> value proposition. On submit, an <b className="text-cyan-300">AI (◬) rendition</b> is minted so improvement ideas surface via the HI⇄AI toggle. It&apos;s how Innovation, Business, and BD/Sales align from day one.</p>
 
         <label className="mt-4 block text-[11px] uppercase tracking-wider text-slate-400">Project name</label>
         <input value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder="e.g. Next-Gen ISR Sensor" className={`mt-1 ${inp}`} />
 
-        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">Master value proposition <span className="text-rose-400">· required</span></label>
+        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">Master value proposition <span className="text-rose-400">· required · HI</span></label>
         <textarea value={valueProp} onChange={(e) => setValueProp(e.target.value)} rows={3}
-          placeholder="For [customer], who [need], this [product] delivers [outcome / quantified value] unlike [next-best alternative]." className={`mt-1 resize-y ${inp}`} />
+          placeholder="For [customer] who [need], [product] is a [category] that [key benefit / quantified value]." className={`mt-1 resize-y ${inp}`} />
+
+        <label className="mt-3 block text-[11px] uppercase tracking-wider text-slate-400">Next Best Alternative (NBA) <span className="text-rose-400">· required</span></label>
+        <textarea value={nba} onChange={(e) => setNba(e.target.value)} rows={2}
+          placeholder="The current competitive alternative or As-Is solution the customer uses today — what we must beat." className={`mt-1 resize-y ${inp}`} />
+        <p className="mt-1 text-[10px] text-slate-500">Understand customer needs <em>versus the Next Best Alternative</em> — the As-Is / competitive option the value prop must out-perform.</p>
 
         <div className="mt-3 flex items-center justify-between">
           <label className="text-[11px] uppercase tracking-wider text-slate-400">Per-segment value props <span className="text-slate-500">· recommended</span></label>
@@ -838,12 +850,14 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
           ))}
         </div>
 
+        <p className="mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] px-3 py-2 text-[10px] leading-snug text-slate-500">Customer Pain Points and the Customer Problem Statement are early-Concept (G1) Market-Needs deliverables — a <b className="text-slate-400">separate recommended workflow</b>, not required to submit a value proposition here.</p>
+
         <div className="mt-5 flex items-center justify-end gap-2">
           <button onClick={onClose} className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
-          <button onClick={() => canCreate && onCreate({ name, valueProp, segments })} disabled={!canCreate}
+          <button onClick={() => canCreate && onCreate({ name, valueProp, nba, segments })} disabled={!canCreate}
             className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40">Create project</button>
         </div>
-        {!canCreate && <p className="mt-1.5 text-right text-[10px] text-slate-500">Name + master value proposition required.</p>}
+        {!canCreate && <p className="mt-1.5 text-right text-[10px] text-slate-500">Name + master value proposition + Next Best Alternative required.</p>}
       </div>
     </div>
   );
@@ -955,7 +969,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   const [editing, setEditing] = useState(false);
   const [showExec, setShowExec] = useState(false);
   const [draft, setDraft] = useState<Partial<Project>>({});
-  useEffect(() => { setDraft({}); setEditing(false); }, [p.id]);
+  const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
+  useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); }, [p.id, p.valuePropSource]);
   const dv = <K extends keyof Project>(k: K): Project[K] => (draft[k] !== undefined ? (draft[k] as Project[K]) : p[k]);
   const setD = <K extends keyof Project>(k: K, v: Project[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const saveEdit = () => {
@@ -985,10 +1000,27 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
       <div className="mb-3"><DogTag p={p} /></div>
-      {/* Value proposition — master (must-have) + per-needs-segment (recommended) */}
+      {/* Value proposition — HI master (must-have) with a HI⇄AI toggle, the Next Best Alternative,
+          and per-needs-segment props (recommended). AI rendition is minted at submission. */}
       <div className="mb-3 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-3">
-        <div className="text-[10px] uppercase tracking-wider text-cyan-400">Value proposition</div>
-        <p className="mt-1 text-[12px] leading-snug text-slate-200">{valuePropOf(p)}</p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-[10px] uppercase tracking-wider text-cyan-400">Value proposition</div>
+          <div className="flex overflow-hidden rounded-md border border-slate-700 text-[10px]" title="Toggle the best-in-class human (HI) version vs the AI-generated rendition">
+            {(["HI", "AI"] as const).map((v) => (
+              <button key={v} onClick={() => setVpView(v)}
+                className={`px-2 py-0.5 font-semibold ${vpView === v ? (v === "HI" ? "bg-violet-500 text-white" : "bg-cyan-500 text-[#06202a]") : "text-slate-400 hover:bg-slate-800"}`}>
+                {v === "HI" ? "웃 HI" : "◬ AI"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="mt-1 text-[12px] leading-snug text-slate-200">{vpView === "AI" ? aiValuePropOf(p) : valuePropOf(p)}</p>
+        {vpView === "AI" && <p className="mt-1 text-[9px] uppercase tracking-wider text-cyan-500/70">AI rendition · authored to spark improvement of the human version</p>}
+        {/* Next Best Alternative — the current competitive alternative / As-Is solution to beat */}
+        <div className="mt-2 rounded border border-amber-500/20 bg-amber-500/[0.04] px-2 py-1.5">
+          <span className="text-[9px] uppercase tracking-wider text-amber-400/90">Next Best Alternative</span>
+          <p className="text-[11px] leading-snug text-slate-300">{nbaOf(p)}</p>
+        </div>
         {p.segmentValueProps && p.segmentValueProps.length > 0 ? (
           <ul className="mt-2 space-y-0.5">
             {p.segmentValueProps.map((s, i) => (

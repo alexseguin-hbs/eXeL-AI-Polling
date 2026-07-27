@@ -343,5 +343,16 @@ ok(DEMO_PROJECTS.every((p) => valuePropOf(p).trim().length > 0), "every project 
 ok(valuePropOf({ ...DEMO_PROJECTS[0], valueProp: "  Custom master VP  " }) === "Custom master VP", "explicit master value prop wins over the derived fallback (trimmed)");
 ok(valuePropOf({ ...DEMO_PROJECTS[0], valueProp: "" }) === valuePropOf({ ...DEMO_PROJECTS[0], valueProp: undefined }), "blank value prop falls back to the derived statement");
 
+/* ---------------- Next Best Alternative (required) + AI rendition (HI⇄AI) ---------------- */
+import { nbaOf, aiValuePropOf } from "../lib/innovation-data.ts";
+ok(DEMO_PROJECTS.every((p) => nbaOf(p).trim().length > 0), "every project resolves a Next Best Alternative (derived As-Is fallback for seeds)");
+ok(nbaOf({ ...DEMO_PROJECTS[0], nextBestAlternative: "  Legacy pod + manual review  " }) === "Legacy pod + manual review", "explicit NBA wins over the derived As-Is (trimmed)");
+ok(nbaOf({ ...DEMO_PROJECTS[0], nextBestAlternative: "" }) === nbaOf({ ...DEMO_PROJECTS[0], nextBestAlternative: undefined }), "blank NBA falls back to the derived As-Is statement");
+ok(valuePropOf({ ...DEMO_PROJECTS[0], valueProp: undefined, nextBestAlternative: "Rival System X" }).includes("Rival System X"), "derived value prop weaves in the explicit NBA");
+ok(DEMO_PROJECTS.every((p) => aiValuePropOf(p).trim().length > 0), "every project resolves an AI value-prop rendition (deterministic, offline)");
+ok(aiValuePropOf(DEMO_PROJECTS[0]) === aiValuePropOf(DEMO_PROJECTS[0]), "AI rendition is deterministic (same input → same output)");
+ok(aiValuePropOf({ ...DEMO_PROJECTS[0], valuePropAI: "  Minted AI VP  " }) === "Minted AI VP", "stored AI rendition (minted at submission) wins over derived (trimmed)");
+ok(aiValuePropOf({ ...DEMO_PROJECTS[0], nextBestAlternative: "Rival System X" }).includes("Unlike Rival System X"), "AI rendition contrasts against the Next Best Alternative");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

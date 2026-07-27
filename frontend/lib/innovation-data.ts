@@ -111,10 +111,16 @@ export interface Project {
   // Business-Setup hierarchy flow through the whole tool.
   bu?: string; sbu?: string; pgroup?: string; alpha?: string; product?: string; material?: string;
   initiative?: string;
-  // Value proposition (CRS-56 · Value Assessment): the MASTER value prop is a must-have at project
-  // creation; per-needs-based-segment value props are recommended (a project can serve many segments).
-  valueProp?: string;
+  // Value proposition (CRS-56 · Value Assessment): the MASTER value prop is the best-in-class HUMAN
+  // (HI) statement — a must-have at project creation; per-needs-based-segment value props are
+  // recommended (a project can serve many segments). The Next Best Alternative (NBA) — the current
+  // competitive alternative or As-Is solution the customer uses today — is also required at creation
+  // (De-Risking NPD: "Understand Customer Needs versus Next Best Alternative" at Concept G1).
+  valueProp?: string;                 // HI master value proposition (best-in-class, human-authored)
+  nextBestAlternative?: string;       // NBA — current competitive alternative / As-Is solution (required)
   segmentValueProps?: SegmentValueProp[];
+  valuePropAI?: string;               // AI-generated rendition, minted at submission (HI⇄AI toggle)
+  valuePropSource?: "HI" | "AI";      // active view for the value-prop toggle (default HI)
 }
 export interface SegmentValueProp { segment: string; prop: string }
 
@@ -771,7 +777,30 @@ export function metaOf(p: Project): ProjectMeta {
 export function valuePropOf(p: Project): string {
   if (p.valueProp && p.valueProp.trim()) return p.valueProp.trim();
   const b = briefOf(p), m = metaOf(p);
-  return `${p.name}: ${b.outcomes[0] ?? "field the capability"} via ${b.solution[0] ?? "our approach"} — ${m.valueLadder}-tier, ${m.competitive} vs the next-best alternative for ${m.targetMarket}.`;
+  return `${p.name}: ${b.outcomes[0] ?? "field the capability"} via ${b.solution[0] ?? "our approach"} — ${m.valueLadder}-tier, ${m.competitive} vs ${nbaOf(p)} for ${m.targetMarket}.`;
+}
+
+// Next Best Alternative (NBA) — the current competitive alternative or As-Is solution the customer
+// uses today (De-Risking NPD "versus Next Best Alternative"). Falls back to a derived As-Is phrase
+// so display never blanks for legacy/seed projects.
+export function nbaOf(p: Project): string {
+  if (p.nextBestAlternative && p.nextBestAlternative.trim()) return p.nextBestAlternative.trim();
+  const b = briefOf(p);
+  return `the As-Is approach to ${b.needs[0] ?? `${p.name} capability`}`;
+}
+
+// AI rendition of the value proposition — minted at submission once the HI version is authored, so
+// AI-generated ideas can improve quality via the HI⇄AI toggle. Deterministic + offline (no provider
+// call): composes a best-in-class positioning statement (Geoffrey-Moore form) from the HUMAN master
+// value prop, the NBA, and the derived signals — an alternative rendering that sparks improvement.
+export function aiValuePropOf(p: Project): string {
+  if (p.valuePropAI && p.valuePropAI.trim()) return p.valuePropAI.trim();
+  const b = briefOf(p), m = metaOf(p);
+  const target = p.segmentValueProps?.[0]?.segment?.trim() || m.targetMarket;
+  const need = b.needs[0] ?? `${p.name} capability`;
+  const benefit = b.outcomes[0] ?? "measurable outcomes";
+  const how = b.solution[0] ?? "our approach";
+  return `For ${target} who need ${need.charAt(0).toLowerCase() + need.slice(1)}, ${p.name} is a ${m.valueLadder}-tier ${p.category} that delivers ${benefit.charAt(0).toLowerCase() + benefit.slice(1)} through ${how.charAt(0).toLowerCase() + how.slice(1)}. Unlike ${nbaOf(p)}, it is ${m.competitive.toLowerCase()}-class — ${m.valueImpact.charAt(0).toLowerCase() + m.valueImpact.slice(1)}.`;
 }
 
 // Executive-slide two-bullet Project Summary (AMTS overview one-pager parity — IMG_7825/7826).
