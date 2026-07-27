@@ -127,7 +127,10 @@ export interface Project {
   custImportance?: number;            // Thoth — customer importance of the differentiator (0–1, BD)
   relPerformance?: number;            // Thoth — relative performance vs the NBA (0–1, engineering)
   winP50?: number;                    // Odin — median commercial adoption / BD win probability (0–1)
+  valueDrivers?: ValueDriver[];       // Slice 1B — the Value Equation: per-differentiator scoring vs the NBA
 }
+/** A single differentiator in the Value Equation — scored for customer importance and performance vs the NBA. */
+export interface ValueDriver { name: string; importance: number; ourScore: number; nbaScore: number }
 export interface SegmentValueProp { segment: string; prop: string }
 
 // ── Calculators (all derived, never stored — CRS-52/53/67) ──────────────────────────────
@@ -869,6 +872,67 @@ export function intelLoadGloss(p: Project): { dominant: "AI" | "SI" | "HI"; glos
 }
 
 const clamp01 = (n: number) => (Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0);
+
+// ── Value Equation (Bridge Slice 1B) — create the value prop by scoring each differentiator against the
+//    competitive Next Best Alternative. Economic Value to Customer (EVC) vs the NBA. Pure + deterministic.
+
+export type DriverVerdict = "win" | "parity" | "loss";
+export interface ValueEquationRow { name: string; importance: number; deltaVsNba: number; weighted: number; verdict: DriverVerdict }
+export interface ValueEquationResult {
+  perDriver: ValueEquationRow[];
+  competitiveIndex: number; // 0–100 · 50 = parity with the NBA · >50 = we out-perform (importance-weighted)
+  evcUsdM: number;          // Economic Value to Customer ($M) = NBA reference + differentiation value
+  referenceM: number;       // the value the NBA / As-Is already delivers (baseline)
+  differentiationM: number; // Σ importance × (ourScore − nbaScore) × addressable revenue
+  wins: number; losses: number;
+}
+
+/**
+ * Solve the Value Equation for a set of drivers against an addressable revenue ($M).
+ * EVC = reference (NBA baseline) + Σ importance × (ourScore − nbaScore) × addressableRevenue.
+ * competitiveIndex = 50 + 50 × (importance-weighted mean of ourScore − nbaScore) → clamped 0–100.
+ * Empty/degenerate input → parity (index 50, EVC = reference = addressable revenue). Never throws.
+ */
+export function valueEquation(drivers: ValueDriver[], addressableRevM: number): ValueEquationResult {
+  const rev = Number.isFinite(addressableRevM) && addressableRevM > 0 ? addressableRevM : 0;
+  const clean = (drivers ?? []).filter((d) => d && d.name != null);
+  const referenceM = rev;
+  if (clean.length === 0) {
+    return { perDriver: [], competitiveIndex: 50, evcUsdM: referenceM, referenceM, differentiationM: 0, wins: 0, losses: 0 };
+  }
+  let wSum = 0, wDelta = 0, differentiationM = 0, wins = 0, losses = 0;
+  const perDriver: ValueEquationRow[] = clean.map((d) => {
+    const imp = clamp01(d.importance), ours = clamp01(d.ourScore), nba = clamp01(d.nbaScore);
+    const deltaVsNba = ours - nba;
+    const weighted = imp * deltaVsNba * rev; // $M this driver adds vs the NBA
+    wSum += imp; wDelta += imp * deltaVsNba; differentiationM += weighted;
+    const verdict: DriverVerdict = deltaVsNba > 0.1 ? "win" : deltaVsNba < -0.1 ? "loss" : "parity";
+    if (verdict === "win") wins++; else if (verdict === "loss") losses++;
+    return { name: d.name || "Driver", importance: imp, deltaVsNba, weighted, verdict };
+  });
+  const meanDelta = wSum > 0 ? wDelta / wSum : 0; // importance-weighted mean advantage vs NBA (−1..1)
+  const competitiveIndex = Math.max(0, Math.min(100, 50 + 50 * meanDelta));
+  return { perDriver, competitiveIndex, evcUsdM: referenceM + differentiationM, referenceM, differentiationM, wins, losses };
+}
+
+/** Convenience: solve a project's Value Equation against its addressable (incremental) revenue. */
+export function valueEquationOf(p: Project): ValueEquationResult {
+  return valueEquation(p.valueDrivers ?? [], incrementalRevM(p));
+}
+
+/**
+ * Compose a best-in-class master value proposition from the Value Equation — the winning drivers vs the NBA.
+ * "For <target>, <name> beats <NBA> on <top win drivers> — <EVC>-tier economic value." Falls back to the
+ * derived aiValuePropOf when no driver wins, so it never returns an empty string.
+ */
+export function valuePropFromEquation(p: Project): string {
+  const eq = valueEquationOf(p);
+  const winners = eq.perDriver.filter((d) => d.verdict === "win").sort((a, b) => b.weighted - a.weighted).slice(0, 3).map((d) => d.name);
+  if (winners.length === 0) return aiValuePropOf(p);
+  const m = metaOf(p);
+  const list = winners.length === 1 ? winners[0] : winners.slice(0, -1).join(", ") + " and " + winners[winners.length - 1];
+  return `For ${m.targetMarket}, ${p.name} beats ${nbaOf(p)} on ${list} — ~$${eq.evcUsdM.toFixed(0)}M economic value to the customer (${Math.round(eq.competitiveIndex)}/100 vs the next-best alternative).`;
+}
 
 // Executive-slide two-bullet Project Summary (AMTS overview one-pager parity — IMG_7825/7826).
 // Exactly TWO bullets derived from the live model: (1) what the project IS, (2) the dated

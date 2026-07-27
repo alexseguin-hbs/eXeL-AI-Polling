@@ -388,5 +388,22 @@ ok(costPerServedBuyerOf(P0, 0) === costPerServedBuyerOf(P0, 1), "costPerServedBu
 const glossHi = intelLoadGloss({ ...P0, ai: 0.1, si: 0.1, hi: 0.8 });
 ok(glossHi.dominant === "HI" && glossHi.gloss.length > 0, "intelLoadGloss: dominant band = max share, gloss non-empty");
 
+/* ---------------- Value Equation (Slice 1B) — create the value prop vs the competitive NBA ---------------- */
+import { valueEquation, valueEquationOf, valuePropFromEquation } from "../lib/innovation-data.ts";
+const empty = valueEquation([], 100);
+ok(empty.competitiveIndex === 50 && empty.evcUsdM === 100 && empty.wins === 0, "valueEquation: empty drivers → parity index 50, EVC = reference, 0 wins");
+const winDriver = valueEquation([{ name: "Range", importance: 1, ourScore: 0.9, nbaScore: 0.3 }], 100);
+ok(winDriver.perDriver[0].verdict === "win", "valueEquation: ours ≫ NBA → win verdict");
+ok(winDriver.competitiveIndex > 50 && winDriver.evcUsdM > 100, "valueEquation: a win lifts competitive index >50 and EVC above the NBA reference");
+const lossDriver = valueEquation([{ name: "Cost", importance: 1, ourScore: 0.2, nbaScore: 0.8 }], 100);
+ok(lossDriver.perDriver[0].verdict === "loss" && lossDriver.competitiveIndex < 50, "valueEquation: ours ≪ NBA → loss verdict, index <50");
+const evcLo = valueEquation([{ name: "X", importance: 1, ourScore: 0.5, nbaScore: 0.4 }], 100).evcUsdM;
+const evcHi = valueEquation([{ name: "X", importance: 1, ourScore: 0.9, nbaScore: 0.4 }], 100).evcUsdM;
+ok(evcHi > evcLo, "valueEquation: EVC is monotonic increasing in our score");
+ok(winDriver.competitiveIndex >= 0 && winDriver.competitiveIndex <= 100, "valueEquation: competitive index clamped to [0,100]");
+ok(valueEquationOf(DEMO_PROJECTS[0]).competitiveIndex >= 0, "valueEquationOf resolves for a real project (addressable = incremental rev)");
+ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "All-weather range", importance: 1, ourScore: 0.9, nbaScore: 0.3 }] }).includes("All-weather range"), "valuePropFromEquation names the winning driver vs the NBA");
+ok(valuePropFromEquation({ ...P0, valueDrivers: [] }).includes("Unlike"), "valuePropFromEquation falls back to the derived AI value prop when no driver wins");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

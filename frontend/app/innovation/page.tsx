@@ -25,6 +25,7 @@ import {
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
   metaOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
+  valueEquation, valuePropFromEquation, type ValueDriver,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS,
@@ -149,7 +150,7 @@ function Board() {
   // New-idea creation now runs through a modal that REQUIRES a master value proposition
   // (per-needs-segment value props recommended) — value prop is a must-have at creation (CRS-56).
   const [newIdeaOpen, setNewIdeaOpen] = useState(false);
-  const createIdea = (fields: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[] }) => {
+  const createIdea = (fields: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[]; drivers: ValueDriver[] }) => {
     const maxN = order.reduce((m, p) => Math.max(m, parseInt(p.id.replace(/\D/g, ""), 10) || 0), 0);
     const id = `PRJ-${String(maxN + 1).padStart(2, "0")}`;
     const np: Project = {
@@ -162,6 +163,7 @@ function Board() {
       valueProp: fields.valueProp.trim(),
       nextBestAlternative: fields.nba.trim(),
       segmentValueProps: fields.segments.filter((s) => s.prop.trim() && s.segment.trim()),
+      valueDrivers: fields.drivers.filter((d) => d.name.trim()),
       valuePropSource: "HI",
     };
     // Mint the AI rendition at submission (HI is done first) so an AI-improved version is available
@@ -271,8 +273,22 @@ function Board() {
         }
         setSetup(loadBizSetup()); setStackName(loadStackName());
       }
+      // Per-project edits (new ideas, value drivers, gate/field edits) — durable + cross-device. Cloud is
+      // the source of truth once the operator has saved anything; first load with no cloud keeps the seeds.
+      const saved = await loadState<Project[]>("projects");
+      if (Array.isArray(saved) && saved.length > 0 && saved.every((p) => p && typeof p.id === "string")) {
+        setOrder(saved); setSelId(saved[0].id);
+      }
+      projectsHydrated.current = true;
     })();
   }, []);
+  // Debounced best-effort push of the working project set (new ideas + edits + value drivers) to the cloud.
+  const projectsHydrated = useRef(false);
+  useEffect(() => {
+    if (!projectsHydrated.current) return; // don't overwrite the cloud with seeds before hydration completes
+    const id = setTimeout(() => { void saveState("projects", order); }, 800);
+    return () => clearTimeout(id);
+  }, [order]);
   // Push the admin config bundle to the cloud whenever the operator leaves Business Setup (where edits
   // happen). Reads the persisted localStorage config keys and upserts them as one blob. Best-effort.
   const prevView = useRef(view);
@@ -846,14 +862,103 @@ function DogTag({ p }: { p: Project }) {
 
 // New-idea modal — a project cannot be created without a MASTER value proposition (must-have);
 // per-needs-based-segment value props are recommended (add as many as apply).
-function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[] }) => void; onClose: () => void }) {
+// Value Equation panel (Slice 1B) — create the value prop by scoring each differentiator against the
+// competitive NBA. importance × (our score − NBA score) × addressable revenue → EVC + competitive index.
+// Primary authoring path in NewIdeaModal; re-openable in ProjectDetail. Deterministic (lib valueEquation).
+function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGenerate }: {
+  drivers: ValueDriver[]; onChange: (d: ValueDriver[]) => void; nbaLabel: string; addressableRevM: number; onGenerate?: () => void;
+}) {
+  const { t } = useLexicon();
+  const eq = valueEquation(drivers, addressableRevM);
+  const set = (i: number, patch: Partial<ValueDriver>) => onChange(drivers.map((d, j) => (j === i ? { ...d, ...patch } : d)));
+  const add = () => onChange([...drivers, { name: "", importance: 0.6, ourScore: 0.7, nbaScore: 0.4 }]);
+  const del = (i: number) => onChange(drivers.filter((_, j) => j !== i));
+  const vColor = (v: string) => (v === "win" ? "text-emerald-400" : v === "loss" ? "text-rose-400" : "text-slate-400");
+  const vLabel = (v: string) => (v === "win" ? t("innovation.veq.win") : v === "loss" ? t("innovation.veq.loss") : t("innovation.veq.parity"));
+  const inp = "rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500";
+  return (
+    <div className="rounded-lg border border-amber-500/25 bg-amber-500/[0.03] p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-amber-400/90">{t("innovation.veq.title")}</div>
+          <div className="text-[10px] text-slate-500">{t("innovation.veq.subtitle")}{nbaLabel ? ` — ${nbaLabel}` : ""}</div>
+        </div>
+        <button onClick={add} className="rounded bg-amber-500/90 px-2 py-0.5 text-[11px] font-semibold text-[#2a1a06] hover:bg-amber-400">{t("innovation.veq.addDriver")}</button>
+      </div>
+
+      {drivers.length === 0 ? (
+        <p className="mt-2 text-[11px] text-slate-600">{t("innovation.veq.empty")}</p>
+      ) : (
+        <div className="mt-2 space-y-1.5">
+          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 text-[9px] uppercase tracking-wider text-slate-500">
+            <span>{t("innovation.veq.colDriver")}</span><span className="w-16 text-center">{t("innovation.veq.colImportance")}</span>
+            <span className="w-16 text-center">{t("innovation.veq.colOurs")}</span><span className="w-16 text-center">{t("innovation.veq.colNba")}</span><span className="w-12 text-right">{t("innovation.veq.colVerdict")}</span>
+          </div>
+          {drivers.map((d, i) => {
+            const row = eq.perDriver[i];
+            const pct = (n: number) => `${Math.round(n * 100)}`;
+            return (
+              <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <input value={d.name} onChange={(e) => set(i, { name: e.target.value })} placeholder={t("innovation.veq.driverPlaceholder")} className={`w-full ${inp}`} />
+                </div>
+                <label className="flex w-16 flex-col items-center" title="Customer importance">
+                  <input type="range" min={0} max={1} step={0.05} value={d.importance} onChange={(e) => set(i, { importance: +e.target.value })} className="w-16 accent-amber-500" />
+                  <span className="text-[9px] tabular-nums text-slate-500">{pct(d.importance)}</span>
+                </label>
+                <label className="flex w-16 flex-col items-center" title="Our performance">
+                  <input type="range" min={0} max={1} step={0.05} value={d.ourScore} onChange={(e) => set(i, { ourScore: +e.target.value })} className="w-16 accent-emerald-500" />
+                  <span className="text-[9px] tabular-nums text-emerald-500/80">{pct(d.ourScore)}</span>
+                </label>
+                <label className="flex w-16 flex-col items-center" title="NBA performance">
+                  <input type="range" min={0} max={1} step={0.05} value={d.nbaScore} onChange={(e) => set(i, { nbaScore: +e.target.value })} className="w-16 accent-slate-500" />
+                  <span className="text-[9px] tabular-nums text-slate-500">{pct(d.nbaScore)}</span>
+                </label>
+                <div className="flex w-12 items-center justify-end gap-1">
+                  <span className={`text-[10px] font-semibold ${vColor(row?.verdict ?? "parity")}`}>{vLabel(row?.verdict ?? "parity")}</span>
+                  <button onClick={() => del(i)} className="rounded px-1 text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2">
+        <div className="flex items-center gap-4 text-[11px]">
+          <span className="text-slate-400">{t("innovation.veq.index")} <b className="tabular-nums text-amber-300">{Math.round(eq.competitiveIndex)}</b>/100</span>
+          <span className="text-slate-400">{t("innovation.veq.evc")} <b className="tabular-nums text-emerald-300">${eq.evcUsdM.toFixed(0)}M</b></span>
+        </div>
+        {onGenerate && (
+          <button onClick={onGenerate} disabled={eq.wins === 0}
+            className="rounded-md border border-cyan-500/40 px-2.5 py-1 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-40">
+            {t("innovation.veq.generate")}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; valueProp: string; nba: string; segments: SegmentValueProp[]; drivers: ValueDriver[] }) => void; onClose: () => void }) {
+  const { t } = useLexicon();
   const [name, setName] = useState("");
   const [valueProp, setValueProp] = useState("");
   const [nba, setNba] = useState("");
   const [segments, setSegments] = useState<SegmentValueProp[]>([]);
+  const [drivers, setDrivers] = useState<ValueDriver[]>([]);
   const inp = "w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500";
   // Best-in-class HI value prop requires BOTH the master statement and the Next Best Alternative.
   const canCreate = name.trim().length > 0 && valueProp.trim().length > 0 && nba.trim().length > 0;
+  // Generate the master value prop from the Value Equation's winning drivers vs the NBA (still hand-editable).
+  const generateFromEquation = () => {
+    const eq = valueEquation(drivers, 50); // seed-idea default addressable rev ($50M) until financials are set
+    const winners = eq.perDriver.filter((d) => d.verdict === "win").sort((a, b) => b.weighted - a.weighted).slice(0, 3).map((d) => d.name).filter(Boolean);
+    if (winners.length === 0) return;
+    const list = winners.length === 1 ? winners[0] : winners.slice(0, -1).join(", ") + " and " + winners[winners.length - 1];
+    const who = name.trim() || "our customers";
+    setValueProp(`For ${who}, this beats ${nba.trim() || "the next-best alternative"} on ${list} — ~$${eq.evcUsdM.toFixed(0)}M economic value to the customer (${Math.round(eq.competitiveIndex)}/100 vs the NBA).`);
+  };
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
       <div className="mx-auto max-w-lg rounded-xl border border-slate-800 bg-[#0e141b] p-5" onClick={(e) => e.stopPropagation()}>
@@ -875,6 +980,11 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
           placeholder="The current competitive alternative or As-Is solution the customer uses today — what we must beat." className={`mt-1 resize-y ${inp}`} />
         <p className="mt-1 text-[10px] text-slate-500">Understand customer needs <em>versus the Next Best Alternative</em> — the As-Is / competitive option the value prop must out-perform.</p>
 
+        {/* Value Equation — the primary authoring path: score each differentiator vs the NBA, then generate. */}
+        <div className="mt-3">
+          <ValueEquationPanel drivers={drivers} onChange={setDrivers} nbaLabel={nba.trim()} addressableRevM={50} onGenerate={generateFromEquation} />
+        </div>
+
         <div className="mt-3 flex items-center justify-between">
           <label className="text-[11px] uppercase tracking-wider text-slate-400">Per-segment value props <span className="text-slate-500">· recommended</span></label>
           <button onClick={() => setSegments((s) => [...s, { segment: "", prop: "" }])} className="rounded bg-cyan-500/90 px-2 py-0.5 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">+ Add segment</button>
@@ -894,7 +1004,7 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
 
         <div className="mt-5 flex items-center justify-end gap-2">
           <button onClick={onClose} className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
-          <button onClick={() => canCreate && onCreate({ name, valueProp, nba, segments })} disabled={!canCreate}
+          <button onClick={() => canCreate && onCreate({ name, valueProp, nba, segments, drivers })} disabled={!canCreate}
             className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40">Create project</button>
         </div>
         {!canCreate && <p className="mt-1.5 text-right text-[10px] text-slate-500">Name + master value proposition + Next Best Alternative required.</p>}
@@ -1007,10 +1117,13 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   onApprove: (kind: "approve" | "reject", by: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const { t } = useLexicon();
   const [showExec, setShowExec] = useState(false);
   const [draft, setDraft] = useState<Partial<Project>>({});
   const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
-  useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); }, [p.id, p.valuePropSource]);
+  const [veqOpen, setVeqOpen] = useState(false); // Value Equation editor (re-openable, Slice 1B)
+  const [veqDrivers, setVeqDrivers] = useState<ValueDriver[]>(p.valueDrivers ?? []);
+  useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); setVeqDrivers(p.valueDrivers ?? []); setVeqOpen(false); }, [p.id, p.valuePropSource, p.valueDrivers]);
   const dv = <K extends keyof Project>(k: K): Project[K] => (draft[k] !== undefined ? (draft[k] as Project[K]) : p[k]);
   const setD = <K extends keyof Project>(k: K, v: Project[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const saveEdit = () => {
@@ -1057,10 +1170,28 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
         <p className="mt-1 text-[12px] leading-snug text-slate-200">{vpView === "AI" ? aiValuePropOf(p) : valuePropOf(p)}</p>
         {vpView === "AI" && <p className="mt-1 text-[9px] uppercase tracking-wider text-cyan-500/70">AI rendition · authored to spark improvement of the human version</p>}
         {/* Next Best Alternative — the current competitive alternative / As-Is solution to beat */}
-        <div className="mt-2 rounded border border-amber-500/20 bg-amber-500/[0.04] px-2 py-1.5">
-          <span className="text-[9px] uppercase tracking-wider text-amber-400/90">Next Best Alternative</span>
-          <p className="text-[11px] leading-snug text-slate-300">{nbaOf(p)}</p>
+        <div className="mt-2 flex items-center justify-between gap-2 rounded border border-amber-500/20 bg-amber-500/[0.04] px-2 py-1.5">
+          <div>
+            <span className="text-[9px] uppercase tracking-wider text-amber-400/90">Next Best Alternative</span>
+            <p className="text-[11px] leading-snug text-slate-300">{nbaOf(p)}</p>
+          </div>
+          <button onClick={() => setVeqOpen((o) => !o)}
+            className="shrink-0 rounded border border-amber-500/40 px-2 py-0.5 text-[10px] font-medium text-amber-300 hover:bg-amber-500/10">
+            {veqOpen ? "✕" : "◇"} {t("innovation.veq.title")}
+          </button>
         </div>
+        {veqOpen && (
+          <div className="mt-2">
+            <ValueEquationPanel
+              drivers={veqDrivers} onChange={setVeqDrivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
+              onGenerate={() => onEdit({ valueDrivers: veqDrivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: veqDrivers }), valuePropSource: "HI" }, ["value prop generated from Value Equation vs NBA"])}
+            />
+            <div className="mt-1.5 flex justify-end">
+              <button onClick={() => onEdit({ valueDrivers: veqDrivers }, [`value drivers: ${veqDrivers.length} vs NBA`])}
+                className="rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Save drivers</button>
+            </div>
+          </div>
+        )}
         {p.segmentValueProps && p.segmentValueProps.length > 0 ? (
           <ul className="mt-2 space-y-0.5">
             {p.segmentValueProps.map((s, i) => (

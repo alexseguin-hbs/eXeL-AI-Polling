@@ -1302,6 +1302,23 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.tab.dashboards", englishDefault: "Dashboards · ROI Visuals", context: "Innovation view tab: dashboards", cubeId: 60 },
   { key: "innovation.tab.setup", englishDefault: "⚙ Business Setup", context: "Innovation view tab: business setup", cubeId: 60 },
   { key: "innovation.stack.budget", englishDefault: "$ Budget", context: "Innovation budget-popup open button", cubeId: 60 },
+  // Value Equation tool (Slice 1B) — create the value prop against the competitive NBA
+  { key: "innovation.veq.title", englishDefault: "Value Equation", context: "Value Equation tool title", cubeId: 60 },
+  { key: "innovation.veq.subtitle", englishDefault: "Score each differentiator against the Next Best Alternative", context: "Value Equation tool subtitle", cubeId: 60 },
+  { key: "innovation.veq.addDriver", englishDefault: "＋ Add differentiator", context: "Value Equation add-driver button", cubeId: 60 },
+  { key: "innovation.veq.colDriver", englishDefault: "Differentiator", context: "Value Equation column: driver name", cubeId: 60 },
+  { key: "innovation.veq.colImportance", englishDefault: "Importance", context: "Value Equation column: customer importance", cubeId: 60 },
+  { key: "innovation.veq.colOurs", englishDefault: "Ours", context: "Value Equation column: our score", cubeId: 60 },
+  { key: "innovation.veq.colNba", englishDefault: "NBA", context: "Value Equation column: next-best-alternative score", cubeId: 60 },
+  { key: "innovation.veq.colVerdict", englishDefault: "vs NBA", context: "Value Equation column: win/parity/loss verdict", cubeId: 60 },
+  { key: "innovation.veq.index", englishDefault: "Competitive index", context: "Value Equation competitive index readout", cubeId: 60 },
+  { key: "innovation.veq.evc", englishDefault: "Economic value to customer", context: "Value Equation EVC readout", cubeId: 60 },
+  { key: "innovation.veq.generate", englishDefault: "Generate value prop from equation", context: "Value Equation generate-value-prop button", cubeId: 60 },
+  { key: "innovation.veq.empty", englishDefault: "Add the differentiators that beat the Next Best Alternative — importance × (our score − NBA score) = value.", context: "Value Equation empty-state helper", cubeId: 60 },
+  { key: "innovation.veq.win", englishDefault: "Win", context: "Value Equation verdict: win", cubeId: 60 },
+  { key: "innovation.veq.parity", englishDefault: "Parity", context: "Value Equation verdict: parity", cubeId: 60 },
+  { key: "innovation.veq.loss", englishDefault: "Loss", context: "Value Equation verdict: loss", cubeId: 60 },
+  { key: "innovation.veq.driverPlaceholder", englishDefault: "e.g. All-weather range", context: "Value Equation driver-name placeholder", cubeId: 60 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────
