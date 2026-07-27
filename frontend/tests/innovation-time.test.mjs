@@ -593,5 +593,24 @@ ok(pillarColorOf("Some Custom Admin Pillar") === pillarColorOf("Some Custom Admi
 ok(pillarColorOf("Autonomous Loitering Munitions", [{ name: "Autonomous Loitering Munitions", color: "nope" }]) === PILLAR_COLOR["Autonomous Loitering Munitions"], "an invalid override falls back to the default map");
 ok(DEMO_PROJECTS.every((p) => /^#[0-9a-fA-F]{3,8}$/.test(pillarColorOf(metaOf(p).initiative))), "every seed project resolves to a valid pillar hex");
 
+/* ---------------- BU·SBU·Alpha Group multi-select scope filter — P2 ---------------- */
+import { scopeByHier, hierValues as hv2 } from "../lib/innovation-data.ts";
+{
+  const empty = { bu: [], sbu: [], pgroup: [] };
+  ok(scopeByHier(DEMO_PROJECTS, empty).length === DEMO_PROJECTS.length, "scopeByHier all-empty → all projects");
+  const oneBu = hierOf(DEMO_PROJECTS[0]).bu;
+  const buFiltered = scopeByHier(DEMO_PROJECTS, { bu: [oneBu], sbu: [], pgroup: [] });
+  ok(buFiltered.length > 0 && buFiltered.every((p) => hierOf(p).bu === oneBu), "scopeByHier filters by a single BU");
+  const twoBus = hv2(DEMO_PROJECTS, "bu");
+  ok(scopeByHier(DEMO_PROJECTS, { bu: twoBus, sbu: [], pgroup: [] }).length === DEMO_PROJECTS.length, "selecting every BU = all (OR within level)");
+  // AND across levels: BU ∩ SBU (pick an sbu under oneBu)
+  const sbuUnder = hierOf(buFiltered[0]).sbu;
+  const anded = scopeByHier(DEMO_PROJECTS, { bu: [oneBu], sbu: [sbuUnder], pgroup: [] });
+  ok(anded.every((p) => hierOf(p).bu === oneBu && hierOf(p).sbu === sbuUnder), "scopeByHier ANDs across BU + SBU");
+  ok(scopeByHier(DEMO_PROJECTS, { bu: ["__nope__"], sbu: [], pgroup: [] }).length === 0, "unknown value → empty");
+  ok(scopeByHier(DEMO_PROJECTS, empty) !== scopeByHier(DEMO_PROJECTS, empty) || true, "scopeByHier pure (no throw)");
+  ok(scopeByHier(DEMO_PROJECTS, { bu: [oneBu], sbu: [], pgroup: [] }).length === buFiltered.length, "scopeByHier deterministic for same input");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

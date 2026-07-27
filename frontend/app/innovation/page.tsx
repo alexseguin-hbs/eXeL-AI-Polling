@@ -17,7 +17,7 @@ import {
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
-  growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, hierOf,
+  growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, scopeByHier, hierOf, type HierSel,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
@@ -274,8 +274,16 @@ function Board() {
   useEffect(() => { const s = lsGet("innovation-scenario") as BudgetScenario | null; if (s && BUDGET_SCENARIOS.some((x) => x.key === s)) setScenario(s); }, []);
   useEffect(() => { lsSet("innovation-scenario", scenario); }, [scenario]);
   const avail = scenarioAvailK(scenario);
-  const { rows, lineIndex } = useMemo(() => stackWithBudget(order, avail), [order, avail]);
-  const sel = order.find((p) => p.id === selId) ?? order[0];
+  // Scope filter (P2) — BU · SBU · Alpha Group multi-select, available to ALL personas. `scoped` is the single
+  // choke point between `order` and every consumer (rows/rack/drill/dashboards/budget/risk/gates). Drag still
+  // operates on the full `order`; drag is disabled while a filter is active (see canDrag) to avoid index drift.
+  const [hierFilter, setHierFilter] = useState<HierSel>({ bu: [], sbu: [], pgroup: [] });
+  useEffect(() => { try { const raw = lsGet("innovation-hier-filter"); if (raw) setHierFilter(JSON.parse(raw)); } catch { /* keep empty */ } }, []);
+  useEffect(() => { lsSet("innovation-hier-filter", JSON.stringify(hierFilter)); }, [hierFilter]);
+  const filterActive = hierFilter.bu.length + hierFilter.sbu.length + hierFilter.pgroup.length > 0;
+  const scoped = useMemo(() => scopeByHier(order, hierFilter), [order, hierFilter]);
+  const { rows, lineIndex } = useMemo(() => stackWithBudget(scoped, avail), [scoped, avail]);
+  const sel = order.find((p) => p.id === selId) ?? scoped[0] ?? order[0];
 
   const move = (i: number, d: -1 | 1) => {
     const j = i + d;
@@ -329,8 +337,8 @@ function Board() {
   // Rack & Stack decisions + access rights are by BU · SBU · Alpha Group (Alpha Code is not a
   // decision level — it's only a project attribute). Product # = working stack · Material # = BOM.
   const isGroupLevel = stackLevel === "bu" || stackLevel === "sbu" || stackLevel === "pgroup";
-  const groupRows = useMemo(() => rackByLevel(order, stackLevel), [order, stackLevel]);
-  const drilled = drill && stackLevel === "product" ? order.filter((p) => hierOf(p)[drill.level] === drill.value) : null;
+  const groupRows = useMemo(() => rackByLevel(scoped, stackLevel), [scoped, stackLevel]);
+  const drilled = drill && stackLevel === "product" ? scoped.filter((p) => hierOf(p)[drill.level] === drill.value) : (filterActive ? scoped : null);
   // Breadcrumb ancestry (Company › BU › SBU › …) for the drilled node — clickable to navigate up.
   const HIER_ORDER: HierKey[] = ["bu", "sbu", "pgroup", "alpha"];
   const drillPath = drill && stackLevel === "product" ? (() => {
@@ -514,12 +522,16 @@ function Board() {
                 </div>
               )}
             </div>
-            {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
-            <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
-              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
-                <button key={lv} onClick={() => { setStackLevel(lv); setDrill(null); }}
-                  className={`px-2 py-1 ${stackLevel === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Scope filter — BU · SBU · Alpha Group multi-select (one or many), for ALL personas */}
+              <ScopeFilter projects={order} sel={hierFilter} onChange={setHierFilter} />
+              {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
+              <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
+                {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"], ["product", "Product #"], ["material", "Material #"]] as const).map(([lv, lbl]) => (
+                  <button key={lv} onClick={() => { setStackLevel(lv); setDrill(null); }}
+                    className={`px-2 py-1 ${stackLevel === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -584,7 +596,7 @@ function Board() {
             {stackLevel === "product" && (() => {
               const src = drilled ?? order;
               const st = drilled ? stackWithBudget(src, avail) : { rows, lineIndex };
-              const canDrag = !drilled;
+              const canDrag = !drilled && !filterActive;
               // CARDS mode — FLIR dog-tag kanban rows (SBU left · name top · launch right · highlights),
               // with the same drag + arrows + funding line as the table.
               if (rowMode === "cards") {
@@ -716,7 +728,7 @@ function Board() {
 
       {/* Crowd-sourced Risk Register — anyone documents, the community polls, the team de-risks */}
       <div className="px-5 pb-4">
-        <RiskRegister risks={risks} setRisks={setRisks} projects={order} selId={selId} onSelect={setSelId} />
+        <RiskRegister risks={risks} setRisks={setRisks} projects={scoped} selId={selId} onSelect={setSelId} />
       </div>
 
       {/* Changes & Approvals summary — the audit trail of edits + gate approvals */}
@@ -751,13 +763,13 @@ function Board() {
 
       {view === "gates" && (
         <div className="p-5">
-          <GateRequirementsView projects={order} sel={sel} onSelect={setSelId} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
+          <GateRequirementsView projects={scoped} sel={sel} onSelect={setSelId} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
         </div>
       )}
 
       {view === "dashboards" && (
         <div className="p-5">
-          <Dashboards projects={order} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
+          <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
         </div>
       )}
 
@@ -775,7 +787,7 @@ function Board() {
       {templateOpen && <TemplateModal onClose={() => setTemplateOpen(false)} />}
 
       {/* Budget popup — per-SBU / per-Alpha-Group budget incl. unfunded projects */}
-      {budgetOpen && <BudgetModal projects={order} fundedIds={new Set(fundedRows.map((r) => r.p.id))} availK={avail} budgetOverrideK={budgetOverrideK} onSetBudget={setNodeBudget} canEditBudget={can(myRole, "editBudget")} onClose={() => setBudgetOpen(false)} />}
+      {budgetOpen && <BudgetModal projects={scoped} fundedIds={new Set(fundedRows.map((r) => r.p.id))} availK={avail} budgetOverrideK={budgetOverrideK} onSetBudget={setNodeBudget} canEditBudget={can(myRole, "editBudget")} onClose={() => setBudgetOpen(false)} />}
 
       {/* Full-screen deep-dive overlay (⤢ maximize) */}
       {detailMax && (
@@ -972,6 +984,61 @@ function PwtCell({ weighted, incremental }: { weighted: number; incremental: num
 
 // Dog-tag project summary card (FLIR transparency board parity): name TOP · SBU vertical LEFT ·
 // launch date vertical RIGHT (all fixed) · admin-configurable highlight metrics in the middle.
+// Scope filter (P2) — one compact "Scope ▾" dropdown with THREE multi-select groups (BU · SBU · Alpha Group),
+// each one-or-many. Options cascade (SBU scoped by chosen BUs, Alpha by chosen SBUs). Available to every persona.
+function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: HierSel; onChange: (s: HierSel) => void }) {
+  const { t } = useLexicon();
+  const [open, setOpen] = useState(false);
+  const count = sel.bu.length + sel.sbu.length + sel.pgroup.length;
+  const buOpts = hierValues(projects, "bu");
+  const sbuOpts = Array.from(new Set(projects.filter((p) => !sel.bu.length || sel.bu.includes(hierOf(p).bu)).map((p) => hierOf(p).sbu))).sort();
+  const pgOpts = Array.from(new Set(projects.filter((p) => (!sel.bu.length || sel.bu.includes(hierOf(p).bu)) && (!sel.sbu.length || sel.sbu.includes(hierOf(p).sbu))).map((p) => hierOf(p).pgroup))).sort();
+  const toggle = (lvl: keyof HierSel, v: string) => {
+    const cur = sel[lvl]; const next = cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v];
+    onChange({ ...sel, [lvl]: next });
+  };
+  const group = (lvl: keyof HierSel, label: string, opts: string[]) => (
+    <div className="mb-2">
+      <div className="mb-1 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
+        <button onClick={() => onChange({ ...sel, [lvl]: [] })} className="text-[10px] text-slate-500 hover:text-cyan-300">{t("innovation.scope.all")}</button>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {opts.map((o) => {
+          const on = sel[lvl].includes(o);
+          return (
+            <button key={o} onClick={() => toggle(lvl, o)} aria-pressed={on}
+              className={`rounded border px-1.5 py-0.5 text-[11px] ${on ? "border-cyan-500 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{o}</button>
+          );
+        })}
+        {opts.length === 0 && <span className="text-[10px] text-slate-600">—</span>}
+      </div>
+    </div>
+  );
+  return (
+    <div className="relative">
+      <button onClick={() => setOpen((v) => !v)} aria-expanded={open} title={t("innovation.scope.label")}
+        className={`flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] ${count ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
+        ⧉ {count ? t("innovation.scope.n").replace("{n}", String(count)) : `${t("innovation.scope.label")}: ${t("innovation.scope.allShort")}`} <span className="text-slate-500">▾</span>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute z-50 mt-1 max-h-[60vh] w-64 overflow-y-auto rounded-lg border border-slate-700 bg-[#0e141b] p-3 shadow-2xl">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-slate-200">{t("innovation.scope.label")}</span>
+              <button onClick={() => onChange({ bu: [], sbu: [], pgroup: [] })} className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:bg-slate-800">{t("innovation.scope.clear")}</button>
+            </div>
+            {group("bu", "BU", buOpts)}
+            {group("sbu", "SBU", sbuOpts)}
+            {group("pgroup", t("innovation.scope.alpha"), pgOpts)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function DogTag({ p }: { p: Project }) {
   const { t } = useLexicon();
   const h = hierOf(p);

@@ -971,6 +971,19 @@ export function hierValues(projects: Project[], level: HierKey, parent?: { level
 export const filterByHier = (projects: Project[], level: HierKey, value: string): Project[] =>
   value === "All" ? projects : projects.filter((p) => hierOf(p)[level] === value);
 
+// Multi-select scope filter across BU · SBU · Alpha Group (pgroup). Each level is OR-within / AND-across;
+// an empty set for a level = no constraint at that level (all-empty ⇒ all projects). Pure + deterministic;
+// `hierOf(p)` computed once per project (efficiency). Available to every persona (the filter isn't persona-gated).
+export interface HierSel { bu: string[]; sbu: string[]; pgroup: string[] }
+export function scopeByHier(projects: Project[], sel: HierSel): Project[] {
+  const bu = new Set(sel.bu), sbu = new Set(sel.sbu), pg = new Set(sel.pgroup);
+  if (!bu.size && !sbu.size && !pg.size) return projects;
+  return projects.filter((p) => {
+    const h = hierOf(p);
+    return (!bu.size || bu.has(h.bu)) && (!sbu.size || sbu.has(h.sbu)) && (!pg.size || pg.has(h.pgroup));
+  });
+}
+
 // ── CROWD-SOURCED RISK REGISTER + POLLING (the 2525 differentiator) ──────────────────────
 // Anyone documents a risk; the community polls it (votes = concurrence); de-risk ladder
 // collapses exposure. Deterministic scores feed the same probability-weighting as NPV.

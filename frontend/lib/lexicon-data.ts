@@ -1307,6 +1307,13 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.tab.setup", englishDefault: "⚙ Business Setup", context: "Innovation view tab: business setup", cubeId: 60 },
   { key: "innovation.setup.close", englishDefault: "Done", context: "Innovation Business Setup close/exit button (returns to main view)", cubeId: 60 },
   { key: "innovation.detail.back", englishDefault: "Back to list", context: "Innovation project-detail portrait: return to the stack list", cubeId: 60 },
+  // Scope filter (BU · SBU · Alpha Group multi-select)
+  { key: "innovation.scope.label", englishDefault: "Scope", context: "Innovation BU/SBU/Alpha scope filter button", cubeId: 60 },
+  { key: "innovation.scope.allShort", englishDefault: "All", context: "Innovation scope filter: nothing selected (all)", cubeId: 60 },
+  { key: "innovation.scope.all", englishDefault: "All", context: "Innovation scope filter: clear one group", cubeId: 60 },
+  { key: "innovation.scope.clear", englishDefault: "Clear all", context: "Innovation scope filter: clear every group", cubeId: 60 },
+  { key: "innovation.scope.alpha", englishDefault: "Alpha Group", context: "Innovation scope filter: Alpha Group group label", cubeId: 60 },
+  { key: "innovation.scope.n", englishDefault: "Scope · {n}", context: "Innovation scope filter: N filters active (n = count)", cubeId: 60 },
   // Team & roles (Slice 5)
   { key: "innovation.team.title", englishDefault: "Team & roles", context: "Innovation per-project membership panel title", cubeId: 60 },
   { key: "innovation.team.you", englishDefault: "Your role", context: "Innovation team panel: current user's role label", cubeId: 60 },
