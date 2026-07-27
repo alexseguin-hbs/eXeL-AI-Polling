@@ -206,6 +206,8 @@ function Board() {
   const [bomOpen, setBomOpen] = useState<Set<string>>(() => new Set());
   const toggleBom = (id: string) => setBomOpen((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const [budgetOpen, setBudgetOpen] = useState(false);
+  // Working-stack row rendering: "table" (default) or "cards" (FLIR dog-tag kanban style).
+  const [rowMode, setRowMode] = useState<"table" | "cards">("table");
   // Level-aware Rack & Stack: high-level rollup (BU/SBU/PG/Alpha) for decisions · Product #
   // = working project stack (drag/select → deep dive) · Material # = BOM. Metrics always
   // stay bound to the project (derived from r.p), so arrows/drag carry NPV/REV/NRE with it.
@@ -307,6 +309,14 @@ function Board() {
               </h2>
               <button onClick={() => setBudgetOpen(true)} title="Budget by SBU / Alpha Group — incl. unfunded"
                 className="rounded-md border border-emerald-500/40 px-2 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/10">$ Budget</button>
+              {stackLevel === "product" && (
+                <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]" title="Working-stack row layout">
+                  {([["table", "▤ Table"], ["cards", "▦ Cards"]] as const).map(([m, lbl]) => (
+                    <button key={m} onClick={() => setRowMode(m)}
+                      className={`px-2 py-0.5 ${rowMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+                  ))}
+                </div>
+              )}
             </div>
             {/* Top level toggle: BU · SBU · Product Group · Alpha Group · Product # · Material # */}
             <div className="flex flex-wrap overflow-hidden rounded-md border border-slate-700 text-[11px]">
@@ -379,6 +389,38 @@ function Board() {
               const src = drilled ?? order;
               const st = drilled ? stackWithBudget(src, avail) : { rows, lineIndex };
               const canDrag = !drilled;
+              // CARDS mode — FLIR dog-tag kanban rows (SBU left · name top · launch right · highlights),
+              // with the same drag + arrows + funding line as the table.
+              if (rowMode === "cards") {
+                return (
+                  <div className="space-y-2 p-3">
+                    {st.rows.map((r, i) => {
+                      const p = r.p, last = i === st.rows.length - 1;
+                      return (
+                        <React.Fragment key={p.id}>
+                          {i === st.lineIndex && (
+                            <div className="flex items-center gap-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-amber-400">
+                              <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(avail)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
+                            </div>
+                          )}
+                          <div data-stack-row={i} onClick={() => setSelId(p.id)}
+                            className={`flex items-center gap-2 rounded-lg ${dragIdx === i ? "opacity-40" : ""} ${!r.funded ? "opacity-70" : ""} ${overIdx === i && dragIdx !== i ? "ring-1 ring-cyan-400" : selId === p.id ? "ring-1 ring-cyan-500/60" : ""}`}>
+                            {canDrag && <span onPointerDown={startRowDrag(i)} style={{ touchAction: "none" }} title="Drag to reprioritize" className="cursor-grab px-0.5 text-slate-600 active:cursor-grabbing">⠿</span>}
+                            <span className="w-5 shrink-0 text-center text-[11px] tabular-nums text-slate-500">{i + 1}</span>
+                            <div className="min-w-0 flex-1"><DogTag p={p} /></div>
+                            {canDrag && (
+                              <span className="flex flex-col">
+                                <button onClick={(e) => { e.stopPropagation(); move(i, -1); }} disabled={i === 0} title="Move up" className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▲</button>
+                                <button onClick={(e) => { e.stopPropagation(); move(i, 1); }} disabled={last} title="Move down" className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-20">▼</button>
+                              </span>
+                            )}
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                );
+              }
               return (
                 <table className="w-full text-sm">
                   <thead>
