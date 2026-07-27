@@ -22,6 +22,8 @@ import {
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
+  SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField,
+  type SlideField, type SlideSpec, type SlideFieldValue,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
@@ -1952,6 +1954,20 @@ const SLIDE_TXT: Record<string, string> = { "": "+ input", drafted: "drafted", s
 // gap so a slide is never blank; the per-slide HI⇄AI toggle mirrors the value-prop pattern (view-only key).
 const SLIDE_HI_KEY = "innovation-slide-hi";
 const SLIDE_LENS_KEY = "innovation-slide-lens"; // per-slide "HI"|"AI" view preference
+// Field-level slide authoring (S1–S18 field spec) — batched per project: bag[projId][code][fieldId] =
+// { hi, ai, mode }. One write per slide change, not eighteen. localStorage-first + best-effort Supabase.
+const SLIDE_FIELDS_KEY = "innovation-slide-fields";
+type FieldCell = { hi: SlideFieldValue; ai: SlideFieldValue; mode: "hi" | "ai" };
+type ProjFieldBag = Record<string, Record<string, FieldCell>>; // code -> fieldId -> cell
+const readFieldBags = (): Record<string, ProjFieldBag> => { try { return JSON.parse(lsGet(SLIDE_FIELDS_KEY) || "{}"); } catch { return {}; } };
+const writeFieldBags = (obj: Record<string, ProjFieldBag>) => { lsSet(SLIDE_FIELDS_KEY, JSON.stringify(obj)); void saveState("slide-fields", obj as unknown as Record<string, string>); };
+const fieldEmpty = (v: SlideFieldValue): boolean => {
+  if (v == null) return true;
+  if (typeof v === "string") return !v.trim();
+  if (Array.isArray(v)) return (v as unknown[]).filter((r) => Array.isArray(r) ? (r as string[]).some((c) => c && c.trim()) : (r && String(r).trim())).length === 0;
+  if (typeof v === "object") return Object.values(v).every((x) => !x || !String(x).trim());
+  return false;
+};
 
 // Gate/IRB upgrade (Slice 4) — tri-lens sign-off + ledger + per-gate confidence. localStorage-first with
 // best-effort Supabase write-through (matches the Slice-0 store). Keyed by `${id}|${gate}[|lens]`.
@@ -2107,127 +2123,212 @@ function GateCube({ p }: { p: Project }) {
   );
 }
 
-// Digital slide show (S1–S18) — the in-platform gate deck for one project. Each slide carries the
-// editable HUMAN (HI) input the operator writes, plus a deterministic AI rendition (aiSlideOf) drafted
-// from the project's own model so a slide is never blank ("in case there are potentially missing").
-// Per-slide HI⇄AI toggle mirrors the value-prop pattern; status pill shares SLIDE_KEY with the matrix.
+// Digital slide show (S1–S18) — the schema-driven, FIELD-LEVEL gate deck for one project. Each slide is a
+// set of typed fields (text · longtext · list · table · metrics · attach · chart) per the S1–S18 field spec.
+// Every non-linked field carries an HI value + an AI draft toggled per field; `linked` fields read live from
+// the project financial/BOM record (never typed twice → the deck can't disagree with the gate); `mirror`
+// fields inherit until overridden. Gate readiness = filled required ÷ total required. Present mode renders
+// the same fields as a full deck. This is the digital presentation: concept → slide detail → execution (WBS
+// cost + schedule, S10/S14) → BOM at launch (S16) → validated G1→G7.
 function SlideShowModal({ p, startSlide, onClose }: { p: Project; startSlide?: string; onClose: () => void }) {
   const { t } = useLexicon();
-  const start = Math.max(0, SLIDES.findIndex((s) => s.slide === startSlide));
+  const start = Math.max(0, SLIDE_SCHEMA.findIndex((s) => s.code === startSlide));
   const [idx, setIdx] = useState(start < 0 ? 0 : start);
-  const [hi, setHi] = useState<Record<string, string>>({});
-  const [lens, setLens] = useState<Record<string, string>>({});
+  const [bags, setBags] = useState<Record<string, ProjFieldBag>>({});
   const [status, setStatus] = useState<Record<string, string>>({});
-  useEffect(() => { setHi(readStore(SLIDE_HI_KEY)); setLens(readStore(SLIDE_LENS_KEY)); setStatus(readStore(SLIDE_KEY)); }, []);
-  const slide = SLIDES[idx];
-  const key = `${p.id}|${slide.slide}`;
-  const hiText = hi[key] ?? "";
-  const activeLens = (lens[key] as "HI" | "AI") || "HI";
-  const ai = useMemo(() => aiSlideOf(p, slide.slide), [p, slide.slide]);
-  const st = status[key] || "";
-  const setHiText = (v: string) => setHi((prev) => { const u = { ...prev, [key]: v }; writeStore(SLIDE_HI_KEY, "slide-hi", u); return u; });
-  const setLensFor = (v: "HI" | "AI") => setLens((prev) => { const u = { ...prev, [key]: v }; writeStore(SLIDE_LENS_KEY, "slide-lens", u); return u; });
-  const cycleStatus = () => setStatus((prev) => {
-    const cur = prev[key] || "";
-    const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
-    const u = { ...prev, [key]: next }; writeStore(SLIDE_KEY, "slides", u); return u;
+  const [present, setPresent] = useState(false);
+  useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); }, []);
+  const spec = SLIDE_SCHEMA[idx];
+  const bag = bags[p.id] || {};
+  const cellOf = (code: string, fid: string): FieldCell => bag[code]?.[fid] ?? { hi: null, ai: null, mode: "hi" };
+  const aiFor = (code: string, fid: string): SlideFieldValue => aiSlideField(p, code, fid);
+  // Effective value for display + present: linked → live record; else the active-mode slot (AI slot falls back
+  // to the deterministic AI draft); empty + mirror → inherit the referenced slide's field.
+  const effective = (sp: SlideSpec, f: SlideField): SlideFieldValue => {
+    if (f.linked) return linkedSlideField(p, sp.code, f.id);
+    const c = cellOf(sp.code, f.id);
+    const v = c.mode === "ai" ? (fieldEmpty(c.ai) ? aiFor(sp.code, f.id) : c.ai) : c.hi;
+    if (fieldEmpty(v) && f.mirror) {
+      const [mc, mf] = f.mirror.split(".");
+      const ms = slideSpec(mc); const mff = ms?.fields.find((x) => x.id === mf);
+      if (ms && mff) return effective(ms, mff);
+    }
+    return v;
+  };
+  const writeCell = (code: string, fid: string, patch: Partial<FieldCell>) => setBags((prev) => {
+    const nb = { ...prev }; const pb = { ...(nb[p.id] || {}) }; const cb = { ...(pb[code] || {}) };
+    const baseCell: FieldCell = cb[fid] ?? { hi: null, ai: null, mode: "hi" };
+    cb[fid] = { ...baseCell, ...patch };
+    pb[code] = cb; nb[p.id] = pb; writeFieldBags(nb); return nb;
   });
-  const useAiDraft = () => { setHiText(hiText.trim() ? `${hiText.trim()}\n\n${ai}` : ai); setLensFor("HI"); };
-  const go = (d: number) => setIdx((i) => Math.min(SLIDES.length - 1, Math.max(0, i + d)));
-  const authored = SLIDES.filter((s) => (hi[`${p.id}|${s.slide}`] ?? "").trim().length > 0).length;
-  // Keyboard support (council · Christo): Escape closes, ArrowLeft/Right page (unless typing in the textarea);
-  // move focus into the dialog on open so keyboard/SR users land inside it. Additive — no visual change.
+  const setActive = (code: string, fid: string, v: SlideFieldValue) => { const c = cellOf(code, fid); writeCell(code, fid, c.mode === "ai" ? { ai: v } : { hi: v }); };
+  const setMode = (code: string, fid: string, mode: "hi" | "ai") => writeCell(code, fid, { mode });
+  const fillOf = (sp: SlideSpec) => { const req = sp.fields.filter((f) => f.req); const base = req.length ? req : sp.fields; if (!base.length) return 1; return base.filter((f) => !fieldEmpty(effective(sp, f))).length / base.length; };
+  const st = status[`${p.id}|${spec.code}`] || "";
+  const cycleStatus = () => setStatus((prev) => {
+    const kk = `${p.id}|${spec.code}`, cur = prev[kk] || "";
+    const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
+    const u = { ...prev, [kk]: next }; writeStore(SLIDE_KEY, "slides", u); return u;
+  });
+  const go = (d: number) => setIdx((i) => Math.min(SLIDE_SCHEMA.length - 1, Math.max(0, i + d)));
+  const deckPct = Math.round((SLIDE_SCHEMA.reduce((a, s) => a + fillOf(s), 0) / SLIDE_SCHEMA.length) * 100);
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     dialogRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      if (e.key === "Escape") { e.preventDefault(); onClose(); }
-      else if (e.key === "ArrowLeft" && tag !== "TEXTAREA") { e.preventDefault(); go(-1); }
-      else if (e.key === "ArrowRight" && tag !== "TEXTAREA") { e.preventDefault(); go(1); }
+      const tag = (e.target as HTMLElement | null)?.tagName; const typing = tag === "TEXTAREA" || tag === "INPUT";
+      if (e.key === "Escape") { e.preventDefault(); present ? setPresent(false) : onClose(); }
+      else if (e.key === "ArrowLeft" && !typing) { e.preventDefault(); go(-1); }
+      else if (e.key === "ArrowRight" && !typing) { e.preventDefault(); go(1); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [present]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---- field editors (edit-mode) ----
+  const inputCls = "w-full rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[13px] text-slate-100 outline-none focus:border-cyan-500";
+  function LinkedField({ f }: { f: SlideField }) {
+    const v = linkedSlideField(p, spec.code, f.id);
+    if (f.kind === "metrics" && v && !Array.isArray(v) && typeof v === "object") {
+      const rec = v as Record<string, string>;
+      return <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">{(f.items ?? []).map((m) => (
+        <div key={m.k} className="rounded-lg border border-emerald-500/25 bg-emerald-500/[0.04] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div><div className="text-[13px] font-semibold tabular-nums text-emerald-300">{rec[m.k] ?? "—"}</div></div>
+      ))}</div>;
+    }
+    if (Array.isArray(v)) {
+      const rows = v as string[][];
+      return <div className="overflow-x-auto"><table className="w-full text-[12px]"><tbody>{rows.map((r, ri) => <tr key={ri} className="border-b border-slate-900">{r.map((c, ci) => <td key={ci} className="px-2 py-1 tabular-nums text-emerald-300">{c}</td>)}</tr>)}</tbody></table></div>;
+    }
+    // chart / other linked → compact note from the model
+    return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] px-3 py-2 text-[12px] text-emerald-300/90">◈ Live from the project record — {f.name} is derived, not typed.</div>;
+  }
+  function FieldEditor({ f }: { f: SlideField }) {
+    if (f.linked) return <LinkedField f={f} />;
+    const c = cellOf(spec.code, f.id);
+    const v = c.mode === "ai" ? (fieldEmpty(c.ai) ? aiFor(spec.code, f.id) : c.ai) : c.hi;
+    if (f.kind === "text") return <input className={inputCls} value={(v as string) || ""} placeholder={f.mirror ? `Inherits from ${f.mirror}` : "Type here"} onChange={(e) => setActive(spec.code, f.id, e.target.value)} />;
+    if (f.kind === "longtext") return <textarea rows={3} maxLength={4000} className={`${inputCls} resize-y leading-relaxed`} value={(v as string) || ""} placeholder={f.mirror ? `Inherits from ${f.mirror}` : "Evidence, insight, judgment."} onChange={(e) => setActive(spec.code, f.id, e.target.value)} />;
+    if (f.kind === "attach") { const s = (v as string) || ""; return <div className="flex flex-wrap items-center gap-2"><span className="rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[12px] text-slate-400">{s || "No file yet"}</span><button onClick={() => setActive(spec.code, f.id, `${f.id}-${spec.code.toLowerCase()}.png`)} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-300 hover:bg-cyan-500/20">+ Attach</button></div>; }
+    if (f.kind === "metrics") { const rec = ((v as Record<string, string>) || {}); return <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">{(f.items ?? []).map((m) => (
+      <label key={m.k} className="rounded-lg border border-slate-700 bg-[#0e141b] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div><input className="w-full bg-transparent text-[14px] font-semibold text-slate-100 outline-none" value={rec[m.k] || ""} placeholder="—" onChange={(e) => setActive(spec.code, f.id, { ...rec, [m.k]: e.target.value })} /></label>
+    ))}</div>; }
+    if (f.kind === "list") { const rows = ((v as string[])?.length ? (v as string[]) : [""]); return <div className="space-y-1.5">{rows.map((r, i) => (
+      <div key={i} className="flex items-center gap-1.5">{f.ordered && <span className="w-4 shrink-0 text-right text-[10px] text-slate-500">{i + 1}</span>}<input className={inputCls} value={r} placeholder="Add a point" onChange={(e) => { const nr = [...rows]; nr[i] = e.target.value; setActive(spec.code, f.id, nr); }} /><button onClick={() => { const nr = rows.filter((_, j) => j !== i); setActive(spec.code, f.id, nr.length ? nr : [""]); }} className="shrink-0 rounded border border-slate-700 px-2 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove">×</button></div>
+    ))}<button onClick={() => setActive(spec.code, f.id, [...rows, ""])} className="rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add point</button></div>; }
+    if (f.kind === "table") { const cols = f.cols ?? []; const rows = ((v as string[][])?.length ? (v as string[][]) : [cols.map(() => "")]); return <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[12px]"><thead><tr>{cols.map((c) => <th key={c} className="px-1 pb-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}<th /></tr></thead><tbody>{rows.map((r, ri) => (
+      <tr key={ri}>{cols.map((c, ci) => <td key={ci} className="px-0.5 pb-1"><input className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" value={r[ci] || ""} placeholder={c} onChange={(e) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = e.target.value; setActive(spec.code, f.id, nr); }} /></td>)}<td className="pb-1"><button onClick={() => { const nr = rows.filter((_, j) => j !== ri); setActive(spec.code, f.id, nr.length ? nr : [cols.map(() => "")]); }} className="rounded border border-slate-700 px-1.5 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove row">×</button></td></tr>
+    ))}</tbody></table><button onClick={() => setActive(spec.code, f.id, [...rows, cols.map(() => "")])} className="mt-1 rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add row</button></div>; }
+    return null;
+  }
+
+  // ---- present-mode field renderer (read effective value) ----
+  function PresentField({ sp, f }: { sp: SlideSpec; f: SlideField }) {
+    const v = effective(sp, f); if (fieldEmpty(v)) return null;
+    return (
+      <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-3">
+        <div className="mb-1.5 text-[9px] uppercase tracking-[0.16em] text-slate-500">{f.name}{f.linked ? " · ◈ live" : ""}</div>
+        {(f.kind === "text" || f.kind === "longtext") && <p className="m-0 text-[15px] leading-relaxed text-slate-100">{v as string}</p>}
+        {f.kind === "attach" && <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>}
+        {f.kind === "list" && <ul className="m-0 list-disc pl-5 text-[14px] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
+        {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[18px] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
+        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <div className="overflow-x-auto"><table className="w-full text-[13px]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div>}
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.slides.title")}>
-      <div ref={dialogRef} tabIndex={-1} className="mx-auto max-w-2xl rounded-xl border border-slate-800 bg-[#0e141b] p-4 sm:p-5 outline-none" onClick={(e) => e.stopPropagation()}>
-        {/* Header — project + deck progress + close */}
+      <div ref={dialogRef} tabIndex={-1} className="mx-auto max-w-3xl rounded-xl border border-slate-800 bg-[#0e141b] p-4 sm:p-5 outline-none" onClick={(e) => e.stopPropagation()}>
+        {/* Header — project + deck progress + present + close */}
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-sm font-semibold">{t("innovation.slides.title")} · <span className="text-slate-300">{p.name}</span></h2>
           <div className="flex items-center gap-2">
-            <span className="hidden sm:inline text-[10px] text-slate-500 tabular-nums">{authored}/{SLIDES.length} {t("innovation.slides.authored")}</span>
+            <span className="hidden sm:inline text-[10px] text-slate-500 tabular-nums">{deckPct}% authored</span>
+            <button onClick={() => setPresent((v) => !v)} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/20">{present ? "✎ Edit" : "▶ Present"}</button>
             <button onClick={onClose} aria-label="Close" className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">✕</button>
           </div>
         </div>
 
-        {/* Slide strip — jump to any S# (color = authored / AI-only / empty) */}
+        {/* Slide strip — jump to any S# (fill bar = required-field completion) */}
         <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
-          {SLIDES.map((s, i) => {
-            const has = (hi[`${p.id}|${s.slide}`] ?? "").trim().length > 0;
+          {SLIDE_SCHEMA.map((s, i) => {
+            const pctF = Math.round(fillOf(s) * 100);
             const cls = i === idx ? "border-cyan-500 bg-cyan-500/15 text-cyan-200"
-              : has ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+              : pctF >= 100 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+              : pctF > 0 ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
               : "border-slate-700 text-slate-500 hover:bg-slate-800";
             return (
-              <button key={s.slide} onClick={() => setIdx(i)} title={`${s.slide} · ${s.name} (Gate ${s.gate})`} aria-label={`Go to slide ${s.slide} ${s.name}`}
-                className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${cls}`}>{s.slide}</button>
+              <button key={s.code} onClick={() => setIdx(i)} title={`${s.code} · ${s.gate} ${s.stage} · ${pctF}% required filled`} aria-label={`Go to slide ${s.code}`}
+                className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${cls}`}>{s.code}</button>
             );
           })}
         </div>
 
-        {/* Current slide card */}
-        <div className="mt-3 rounded-xl border border-slate-800 bg-[#0b0f14] p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-cyan-400">{slide.slide} · {slide.gate} {GATE_STAGE[slide.gate]}</div>
-              <h3 className="text-base font-semibold leading-tight text-slate-100">{slide.name}</h3>
-              <div className="text-[11px] text-slate-500">{slide.summary}</div>
+        {present ? (
+          /* PRESENT MODE — the slide as a deck */
+          <div className="mt-3 rounded-xl border border-slate-800 bg-[#0b0f14] p-4 sm:p-6">
+            <div className="flex items-baseline gap-3 border-b border-slate-800 pb-3">
+              <span className="font-mono text-[11px] tracking-[0.14em] text-cyan-400">{spec.code} · {spec.gate} {spec.stage.toUpperCase()}</span>
+              <h3 className="text-xl font-semibold tracking-tight text-slate-100 sm:text-2xl">{slideDef(spec.code)?.name ?? spec.code}</h3>
             </div>
-            {/* Per-slide HI⇄AI lens toggle */}
-            <div className="flex overflow-hidden rounded-lg border border-slate-700 text-[11px]">
-              <button onClick={() => setLensFor("HI")} aria-pressed={activeLens === "HI"}
-                className={`px-2 py-1 font-semibold ${activeLens === "HI" ? "bg-violet-500/20 text-violet-200" : "text-slate-400 hover:bg-slate-800"}`}>웃 {t("innovation.slides.hi")}</button>
-              <button onClick={() => setLensFor("AI")} aria-pressed={activeLens === "AI"}
-                className={`px-2 py-1 font-semibold ${activeLens === "AI" ? "bg-cyan-500/20 text-cyan-200" : "text-slate-400 hover:bg-slate-800"}`}>◬ {t("innovation.slides.ai")}</button>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} />)}
+              {spec.fields.every((f) => fieldEmpty(effective(spec, f))) && <p className="text-[13px] italic text-slate-500">Nothing authored on this slide yet — switch to Edit.</p>}
+            </div>
+            <div className="mt-4 flex items-center gap-1 border-t border-slate-800 pt-3">
+              {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-1 flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
             </div>
           </div>
-
-          {/* Body — HI editable textarea, or the AI draft (read-only, with "use as draft") */}
-          {activeLens === "HI" ? (
-            <div className="mt-3">
-              <textarea value={hiText} onChange={(e) => setHiText(e.target.value)} rows={6} maxLength={4000}
-                aria-label={`${slide.name} human input`}
-                placeholder={slideHintOf(slide.slide)}
-                className="w-full resize-y rounded-lg border border-slate-700 bg-[#0e141b] px-3 py-2 text-[13px] leading-relaxed text-slate-100 outline-none focus:border-cyan-500" />
-              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
-                <span>{t("innovation.slides.hiHint")}</span>
-                <button onClick={useAiDraft} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 font-medium text-cyan-300 hover:bg-cyan-500/20">◬ {t("innovation.slides.useAi")}</button>
+        ) : (
+          /* EDIT MODE — field-level authoring */
+          <div className="mt-3 rounded-xl border border-slate-800 bg-[#0b0f14] p-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-wider text-cyan-400">{spec.code} · {spec.gate} {spec.stage}</div>
+                <h3 className="text-base font-semibold leading-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h3>
+                <div className="text-[11px] text-slate-500">Source: {spec.source}{spec.supplemental ? ` · supplemental: ${spec.supplemental.join(", ")}` : ""}</div>
               </div>
+              <button onClick={cycleStatus} title="Cycle gate feedback: not-started → drafted → submitted → approved"
+                className={`shrink-0 rounded border px-2 py-0.5 text-[11px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
             </div>
-          ) : (
-            <div className="mt-3">
-              <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.04] px-3 py-2.5 text-[13px] leading-relaxed text-slate-200">{ai}</div>
-              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
-                <span>◬ {t("innovation.slides.aiHint")}</span>
-                <button onClick={useAiDraft} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 font-medium text-cyan-300 hover:bg-cyan-500/20">{t("innovation.slides.useAi")}</button>
-              </div>
-              {hiText.trim() && <div className="mt-2 rounded-lg border border-violet-500/20 bg-violet-500/[0.04] px-3 py-2 text-[12px] leading-relaxed text-slate-300"><span className="text-[10px] uppercase tracking-wider text-violet-300">웃 {t("innovation.slides.hi")}</span><br />{hiText}</div>}
-            </div>
-          )}
 
-          {/* Status cycle (shared with the matrix) */}
-          <div className="mt-3 flex items-center justify-between">
-            <button onClick={cycleStatus} title="Cycle gate feedback: not-started → drafted → submitted → approved"
-              className={`rounded border px-2 py-0.5 text-[11px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
-            <span className="text-[10px] text-slate-500 tabular-nums">{idx + 1} / {SLIDES.length}</span>
+            <div className="mt-3 divide-y divide-slate-800">
+              {spec.fields.map((f) => {
+                const c = cellOf(spec.code, f.id);
+                return (
+                  <div key={f.id} className="py-3">
+                    <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                      <span className="text-[12px] font-semibold text-slate-200">{f.name}</span>
+                      {f.req && <span className="rounded bg-amber-500/15 px-1 text-[9px] font-mono tracking-wider text-amber-300">REQUIRED</span>}
+                      {f.linked && <span className="rounded bg-emerald-500/15 px-1 text-[9px] font-mono tracking-wider text-emerald-300">◈ LIVE FROM PROJECT</span>}
+                      {f.mirror && <span className="rounded bg-violet-500/15 px-1 text-[9px] font-mono tracking-wider text-violet-300">◈ MIRRORS {f.mirror}</span>}
+                      <span className="flex-1" />
+                      {!f.linked && (
+                        <div className="flex overflow-hidden rounded border border-slate-700 text-[10px]">
+                          <button onClick={() => setMode(spec.code, f.id, "hi")} aria-pressed={c.mode !== "ai"} className={`px-1.5 py-0.5 font-mono ${c.mode !== "ai" ? "bg-violet-500/20 text-violet-200" : "text-slate-500 hover:bg-slate-800"}`}>웃 HI</button>
+                          <button onClick={() => setMode(spec.code, f.id, "ai")} aria-pressed={c.mode === "ai"} className={`px-1.5 py-0.5 font-mono ${c.mode === "ai" ? "bg-cyan-500/20 text-cyan-200" : "text-slate-500 hover:bg-slate-800"}`}>◬ AI</button>
+                        </div>
+                      )}
+                    </div>
+                    {f.hint && <div className="mb-1.5 text-[10px] text-slate-500">{f.hint}</div>}
+                    <FieldEditor f={f} />
+                    {!f.linked && c.mode === "ai" && !fieldEmpty(aiFor(spec.code, f.id)) && (
+                      <button onClick={() => { writeCell(spec.code, f.id, { hi: aiFor(spec.code, f.id), mode: "hi" }); }}
+                        className="mt-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300 hover:bg-cyan-500/20">◬ {t("innovation.slides.useAi")}</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Prev / Next */}
         <div className="mt-4 flex items-center justify-between">
           <button onClick={() => go(-1)} disabled={idx === 0}
             className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40">← {t("innovation.slides.prev")}</button>
-          <button onClick={() => go(1)} disabled={idx === SLIDES.length - 1}
+          <span className="text-[10px] text-slate-500 tabular-nums">{idx + 1} / {SLIDE_SCHEMA.length}</span>
+          <button onClick={() => go(1)} disabled={idx === SLIDE_SCHEMA.length - 1}
             className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40">{t("innovation.slides.next")} →</button>
         </div>
       </div>

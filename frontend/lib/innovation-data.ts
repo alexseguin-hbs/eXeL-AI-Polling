@@ -1134,6 +1134,176 @@ export function aiSlideOf(p: Project, slideId: string): string {
   }
 }
 
+// ── S1–S18 FIELD SPEC (the contract the editor + the presentation renderer both read) ─────────────────
+// Every review slide, every field, typed + flagged. `linked` reads live from the project record (never
+// typed twice — keeps the deck and the gate decision from disagreeing); `mirror` inherits another slide's
+// field until overridden; every non-linked field carries an HI value and an AI draft toggled per field.
+// This is the digital deck that carries concept → slide detail → execution (WBS cost + schedule) → BOM at
+// launch, validated G1→G7. Field kinds: text · longtext · list · table · metrics · attach · chart.
+export type SlideFieldKind = "text" | "longtext" | "list" | "table" | "metrics" | "attach" | "chart";
+export interface SlideMetricItem { k: string; label: string }
+export interface SlideField {
+  id: string; name: string; kind: SlideFieldKind;
+  req?: boolean; linked?: boolean; mirror?: string; ordered?: boolean;
+  cols?: string[]; items?: SlideMetricItem[]; hint?: string;
+}
+export interface SlideSpec { code: string; gate: Gate; stage: string; source: string; supplemental?: string[]; fields: SlideField[] }
+export const SLIDE_SCHEMA: SlideSpec[] = [
+  { code: "S1–S2", gate: "G1", stage: "Concept", source: "Market Needs + Business Case", supplemental: ["Market Landscape & Needs"], fields: [
+    { id: "oneline", name: "Product in one sentence", kind: "text", req: true, hint: "What it is and who it's for — no adjectives." },
+    { id: "valueprop", name: "Key value proposition", kind: "text", req: true },
+    { id: "segment", name: "Target segment / customer", kind: "text", req: true },
+    { id: "status", name: "Stage / status", kind: "text" },
+    { id: "roadmap", name: "Roadmap snapshot", kind: "list" },
+    { id: "toprisks", name: "Top risks or dependencies", kind: "list" },
+    { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
+  { code: "S3", gate: "G1", stage: "Concept", source: "Business Case · linked to project financials", fields: [
+    { id: "profile", name: "Return profile", kind: "metrics", linked: true, items: [ { k: "npv", label: "3-Yr NPV" }, { k: "irr", label: "IRR" }, { k: "payback", label: "Payback" }, { k: "rev1", label: "1st revenue" }, { k: "tech", label: "Technical risk" }, { k: "comm", label: "Commercial risk" } ] },
+    { id: "revtable", name: "Revenue + margin by year", kind: "table", linked: true, cols: ["Year", "Revenue", "Margin"] },
+    { id: "rdchart", name: "R&D spend vs revenue vs margin", kind: "chart", linked: true },
+    { id: "fincomment", name: "Financial comments", kind: "list", hint: "Assumptions a reviewer would otherwise have to ask about." } ] },
+  { code: "S4", gate: "G1", stage: "Concept", source: "Market Needs", supplemental: ["Market Landscape & Needs"], fields: [
+    { id: "conops", name: "Operational concept, in order", kind: "list", req: true, ordered: true },
+    { id: "future", name: "Future capabilities", kind: "list" },
+    { id: "visual", name: "Mission diagram", kind: "attach" } ] },
+  { code: "S5", gate: "G1", stage: "Concept", source: "Market Needs", supplemental: ["Market Landscape & Needs"], fields: [
+    { id: "problem", name: "Problem statement", kind: "longtext", req: true },
+    { id: "outcomes", name: "Customer outcomes", kind: "list", req: true },
+    { id: "whys", name: "Customer why's", kind: "list", req: true },
+    { id: "statusquo", name: "Problems with the status quo", kind: "list", req: true } ] },
+  { code: "S6", gate: "G1", stage: "Concept", source: "Business Case", supplemental: ["Business Case"], fields: [
+    { id: "desc", name: "Single-sentence overview", kind: "text", req: true },
+    { id: "problem", name: "Problem statement", kind: "longtext", mirror: "S5.problem" },
+    { id: "conops", name: "CONOPS + applications", kind: "list", mirror: "S4.conops" },
+    { id: "image", name: "Product image", kind: "attach" } ] },
+  { code: "S7", gate: "G2", stage: "Plan", source: "Market Needs", fields: [
+    { id: "personas", name: "Personas and what they want", kind: "table", req: true, cols: ["Persona", "Wants…"] },
+    { id: "flow", name: "Customer + decision work-flow", kind: "attach" },
+    { id: "desired", name: "Desired outcome", kind: "longtext" } ] },
+  { code: "S8", gate: "G2", stage: "Plan", source: "Business Case", fields: [
+    { id: "nba", name: "Next best alternative (NBA)", kind: "text", req: true, hint: "The As-Is option this must out-perform." },
+    { id: "diffs", name: "Value equation", kind: "table", req: true, cols: ["Differentiator", "Importance", "Ours", "NBA", "Value $"], hint: "importance × (our score − NBA score) = value. Same maths as the submit-idea form." },
+    { id: "vprop", name: "Primary customer value proposition", kind: "longtext", req: true },
+    { id: "capture", name: "Value creation + capture", kind: "metrics", items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "index", label: "Competitive index" } ] },
+    { id: "benefits", name: "Key customer benefits", kind: "list" },
+    { id: "features", name: "Key technical features", kind: "list" } ] },
+  { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
+    { id: "stories", name: "High-priority user stories", kind: "table", req: true, cols: ["Persona", "As a… I want… so that…", "Req ID"], hint: "Req ID follows CRS-##.IN.SRS.### so the story survives into the matrix." } ] },
+  { code: "S10", gate: "G2", stage: "Plan", source: "Business Case · annual forecast required at Plan", fields: [
+    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"] },
+    { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, cols: ["Scenario", "L-1", "Launch", "Yr 2", "Yr 3"] },
+    { id: "conf", name: "Confidence", kind: "metrics", items: [ { k: "tech", label: "Technical" }, { k: "comm", label: "Commercial" } ] } ] },
+  { code: "S11", gate: "G2", stage: "Plan", source: "UXD validation", fields: [
+    { id: "voc", name: "Early validation — UXD", kind: "table", req: true, cols: ["# customers", "Differentiator", "VOC learnings", "Pivot / Pursue / Pass"] },
+    { id: "exp", name: "Planned experiments", kind: "table", cols: ["Exp #", "Assumption to test", "Success criteria", "Result"] },
+    { id: "comments", name: "Comments", kind: "list" } ] },
+  { code: "S12", gate: "G3", stage: "Develop", source: "Marketing Strategy", fields: [
+    { id: "l90", name: "L-90 · draft launch plan", kind: "list" },
+    { id: "l60", name: "L-60 · align & execute", kind: "list" },
+    { id: "l30", name: "L-30 · final deliverables", kind: "list" },
+    { id: "l0", name: "Launch & optimize", kind: "list" } ] },
+  { code: "S13", gate: "G3", stage: "Develop", source: "Business Case", fields: [
+    { id: "tech", name: "Technical risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
+    { id: "comm", name: "Commercial risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
+    { id: "deps", name: "Dependencies — internal IRAD / CRAD", kind: "list" } ] },
+  { code: "S14", gate: "G4", stage: "Qualify", source: "Roadmap", fields: [
+    { id: "fte", name: "FTE # by function", kind: "table", req: true, cols: ["Function", "Yr 1", "Yr 2", "Yr 3", "Yr 4"] },
+    { id: "ftedollar", name: "FTE $ estimate", kind: "table", cols: ["Function", "Yr 1", "Yr 2", "Yr 3"] },
+    { id: "reschart", name: "Combined resource needs", kind: "chart", linked: true },
+    { id: "notes", name: "Alignment notes", kind: "list" } ] },
+  { code: "S15", gate: "G4", stage: "Qualify", source: "BETA Test Plan", fields: [
+    { id: "voc", name: "Pre-launch BETA VOC", kind: "table", req: true, cols: ["# customers", "Differentiator", "VOC learnings", "Pivot / Pursue / Pass"] },
+    { id: "prio", name: "Development priorities", kind: "table", cols: ["Priority", "Feature enhancement", "Method + timing"] },
+    { id: "impact", name: "Impact to business case / pricing", kind: "longtext" } ] },
+  { code: "S16", gate: "G5", stage: "Launch", source: "Performance tracking", fields: [
+    { id: "saydo", name: "Say / Do metrics", kind: "table", req: true, cols: ["Metric", "Reference stage", "Target", "Actual"] },
+    { id: "bom", name: "BOM linkage at launch (WBS → Material #)", kind: "table", linked: true, cols: ["WBS / part", "Material #", "Std cost"] },
+    { id: "plc", name: "Product life cycle dates", kind: "table", cols: ["PLC stage", "Estimated date"] },
+    { id: "risks", name: "Performance risks", kind: "list" },
+    { id: "counter", name: "Counter measures + next steps", kind: "list" } ] },
+  { code: "S17", gate: "G6", stage: "Maximize", source: "Performance tracking", fields: [
+    { id: "voc", name: "Post-launch VOC", kind: "table", cols: ["# customers", "Differentiator", "VOC learnings", "Pivot / Pursue / Pass"] },
+    { id: "prio", name: "Development priorities", kind: "table", cols: ["Priority", "Feature enhancement", "Timing"] },
+    { id: "obs", name: "Market performance observations", kind: "list" } ] },
+  { code: "S18", gate: "G7", stage: "Retire / EOL", source: "End-of-Life Plan", fields: [
+    { id: "e120", name: "EOL-120 · draft plan", kind: "list" },
+    { id: "e90", name: "EOL-90 · align & execute", kind: "list" },
+    { id: "e60", name: "EOL-60 · final deliverables", kind: "list" },
+    { id: "e0", name: "End of life · communication + execution", kind: "list" } ] },
+];
+export const slideSpec = (code: string): SlideSpec | undefined => SLIDE_SCHEMA.find((s) => s.code === code);
+
+export type SlideFieldValue = string | string[] | string[][] | Record<string, string> | null;
+
+/** Linked field value — read live from the project record so the deck can never disagree with the gate. */
+export function linkedSlideField(p: Project, code: string, fieldId: string): SlideFieldValue {
+  const fm = financialMetrics(p);
+  const money = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
+  if (code === "S3" && fieldId === "profile")
+    return { npv: money(fm.npvM), irr: `${fm.irrPct}%`, payback: Number.isFinite(fm.paybackYears) && fm.paybackYears > 0 ? `${fm.paybackYears} yr` : "—", rev1: p.firstRevenue, tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm] };
+  if (code === "S3" && fieldId === "revtable")
+    return financialsOverview(p, { years: 3, funded: true }).map((r) => [`${r.year}`, money(r.revM), money(r.marginM)]);
+  if (code === "S16" && fieldId === "bom") {
+    try { return bomOf(p).slice(0, 6).map((b) => [b.desc, b.material, `$${bomStdCost(b).toLocaleString("en-US")}`]); }
+    catch { return [[`${p.name} assembly`, hierOf(p).material, `$${Math.round(p.nreK * 50).toLocaleString("en-US")}`]]; }
+  }
+  return null;
+}
+
+/** Deterministic AI draft for a single slide field, composed from the project's own model. Fills a gap the
+ *  human hasn't authored ("in case there are potentially missing") — mirrors the HI⇄AI value-prop pattern. */
+export function aiSlideField(p: Project, code: string, fieldId: string): SlideFieldValue {
+  const b = briefOf(p), m = metaOf(p), ex = execOf(p), ve = valueEquationOf(p), fm = financialMetrics(p);
+  const money = (n: number) => `$${(Math.round(n * 10) / 10).toLocaleString("en-US")}M`;
+  const pct = (n: number) => `${Math.round(n * 100)}`;
+  const key = `${code}.${fieldId}`;
+  switch (key) {
+    case "S1–S2.oneline": return `${p.name}: ${(b.outcomes[0] ?? "field the capability").toLowerCase()} for ${m.targetMarket}.`;
+    case "S1–S2.valueprop": return valuePropOf(p);
+    case "S1–S2.segment": return `${p.segmentValueProps?.[0]?.segment || m.targetMarket} · ${ex.customer}`;
+    case "S1–S2.status": return `${GATE_STAGE[p.gate]} (${p.gate}) · confidence ${p.confidence}/5`;
+    case "S1–S2.roadmap": return b.solution.slice(0, 3);
+    case "S1–S2.toprisks": return [killRiskOf(p), p.criticalPath ? "On the cross-project critical path" : `Commercial risk ${RISK_LABEL[p.comm]}`];
+    case "S1–S2.ask": return `Approve ${p.gate} with the ${p.firstRevenue} first-revenue date and the modeled ${money(fm.npvM)} NPV / ${fm.irrPct}% IRR return profile.`;
+    case "S4.conops": return b.needs.concat(b.outcomes).slice(0, 5);
+    case "S4.future": return b.solution.slice(0, 2);
+    case "S5.problem": return `Today, ${m.targetMarket} rely on ${nbaOf(p)} — which cannot meet ${(b.needs[0] ?? "the mission need").toLowerCase()}.`;
+    case "S5.outcomes": return b.outcomes;
+    case "S5.whys": return b.needs;
+    case "S5.statusquo": return [`${nbaOf(p)} leaves a capability gap`, ...b.evidence.slice(0, 1)];
+    case "S6.desc": return valuePropOf(p);
+    case "S8.nba": return nbaOf(p);
+    case "S8.diffs": return ve.perDriver.map((d) => [d.name, pct(d.importance), pct((d.deltaVsNba + 1) / 2 + 0.0), "", money(d.weighted)]);
+    case "S8.vprop": return valuePropOf(p);
+    case "S8.capture": return { creation: money(ve.differentiationM), capture: "50%", index: `${Math.round(ve.competitiveIndex)}/100` };
+    case "S8.benefits": return b.outcomes;
+    case "S8.features": return b.solution;
+    case "S7.personas": return [[m.targetMarket, b.needs[0] ?? "the capability"], [ex.customer, b.outcomes[0] ?? "the outcome"]];
+    case "S7.desired": return b.outcomes[0] ?? "";
+    case "S9.stories": return b.outcomes.slice(0, 3).map((o, i) => [m.targetMarket, `As an operator I want ${o.toLowerCase()} so that the mission succeeds`, `CRS-56.IN.SRS.${String(i + 1).padStart(3, "0")}`]);
+    case "S10.spend": {
+      const rd = fm.totalRdOpexK; const perYr = Math.round(rd / 3);
+      return [1, 2, 3].map((y) => [`Yr ${y}`, `$${Math.round(perYr * 0.55)}k`, `$${Math.round(perYr * 0.25)}k`, `$${Math.round(perYr * 0.12)}k`, `$${Math.round(perYr * 0.08)}k`]);
+    }
+    case "S10.scenarios": {
+      const inc = incrementalRevM(p), dn = p.doNothing10yM / 10;
+      return [["Do nothing", money(dn), money(dn * 0.85), money(dn * 0.72), money(dn * 0.61)], ["New product", "$0M", money(inc * 0.15), money(inc * 0.35), money(inc * 0.55)], ["Combined", money(dn), money(dn * 0.85 + inc * 0.15), money(dn * 0.72 + inc * 0.35), money(dn * 0.61 + inc * 0.55)]];
+    }
+    case "S10.conf": return { tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm] };
+    case "S13.tech": return [[RISK_LABEL[p.tech], b.evidence.find((e) => /risk|mitigat/i.test(e)) ?? "Core technology maturity", "Dual-source + early qual"]];
+    case "S13.comm": return [[RISK_LABEL[p.comm], killRiskOf(p), "VOC validation + phased commitments"]];
+    case "S14.fte": {
+      const fte = Math.max(1, Math.round(fm.manHours / 1800));
+      return [["R&D", `${fte}`, `${Math.round(fte * 0.8)}`, `${Math.round(fte * 0.5)}`, `${Math.round(fte * 0.3)}`], ["Mfg Ops / Supply", `${Math.round(fte * 0.3)}`, `${Math.round(fte * 0.5)}`, `${Math.round(fte * 0.6)}`, `${Math.round(fte * 0.6)}`]];
+    }
+    case "S16.saydo": {
+      const w = winProbabilityOf(p);
+      return [["Revenue", GATE_STAGE[p.gate], money(p.fullRev10yM), "—"], ["Win probability", "Plan", `${Math.round(w.p50 * 100)}%`, "—"]];
+    }
+    default: return null;
+  }
+}
+
 // ── Value signals (Bridge Slice 1) — pure, deterministic, offline. Each has a derived fallback from the
 //    existing engine so seeds never blank. These feed the dog-tag metrics, budget popup, gates, and exec slide.
 

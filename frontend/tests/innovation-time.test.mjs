@@ -475,5 +475,26 @@ ok(DEMO_PROJECTS.every((p) => (p.segmentValueProps?.length ?? 0) >= 1), "every p
   ok(DEMO_PROJECTS.every((p) => hierOf(p).bu.length === 2 && hierOf(p).sbu.length === 3 && hierOf(p).alpha.length === 4), "BU 2-char · SBU 3-char · Alpha 4-char invariants hold");
 }
 
+/* ---------------- S1–S18 field spec (schema-driven slide authoring) ---------------- */
+import { SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField } from "../lib/innovation-data.ts";
+ok(SLIDE_SCHEMA.length === 17, "SLIDE_SCHEMA enumerates the 17 review slides spanning S1–S18 (S1–S2 combined)");
+ok(SLIDE_SCHEMA[0].code === "S1–S2" && SLIDE_SCHEMA[SLIDE_SCHEMA.length - 1].code === "S18", "schema runs S1–S2 → S18 in gate order");
+ok(SLIDE_SCHEMA.every((s) => s.fields.length > 0 && s.source && GATES_N.includes(s.gate)), "every slide carries typed fields + a source + a valid gate");
+ok(SLIDE_SCHEMA.every((s) => s.fields.every((f) => f.id && f.name && f.kind)), "every field has id + name + kind");
+ok(SLIDE_SCHEMA.some((s) => s.fields.some((f) => f.req)), "the spec flags required fields (drives gate readiness)");
+ok(slideSpec("S6").fields.find((f) => f.id === "problem").mirror === "S5.problem", "S6 problem mirrors S5.problem");
+// linked fields read live from the project record (never typed twice)
+{
+  const prof = linkedSlideField(P0, "S3", "profile");
+  ok(prof && typeof prof === "object" && !Array.isArray(prof) && prof.npv && prof.irr, "S3 profile is linked live from the financial record (NPV + IRR)");
+  const rev = linkedSlideField(P0, "S3", "revtable");
+  ok(Array.isArray(rev) && rev.length >= 1 && rev[0].length === 3, "S3 revenue table is linked (Year / Revenue / Margin rows)");
+  ok(linkedSlideField(P0, "S1–S2", "oneline") === null, "non-linked fields return null from the linked resolver");
+}
+// deterministic per-field AI drafts
+ok(aiSlideField(P0, "S8", "vprop") === aiSlideField(P0, "S8", "vprop"), "aiSlideField is deterministic");
+ok(typeof aiSlideField(P0, "S8", "vprop") === "string" && aiSlideField(P0, "S8", "vprop").length > 20, "aiSlideField(S8 value prop) drafts real content");
+ok(Array.isArray(aiSlideField(P0, "S8", "diffs")), "aiSlideField(S8 value equation) drafts a table from the value equation");
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
