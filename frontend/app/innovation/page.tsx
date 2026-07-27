@@ -181,6 +181,13 @@ function Board() {
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
   const [persona, setPersona] = useState<Persona>("sbu");
   const [detailMax, setDetailMax] = useState(false); // maximize the selected-project deep dive full-width
+  // a11y — Escape closes the full-screen deep-dive overlay (parity with the dialog modals).
+  useEffect(() => {
+    if (!detailMax) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setDetailMax(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [detailMax]);
   // Responsive project detail (Slice 4): landscape = list left / detail right; portrait = list top /
   // detail bottom, revealed on tap so a phone user can actually reach the details.
   const [detailOpen, setDetailOpen] = useState(false);
@@ -848,7 +855,7 @@ function Board() {
 
       {/* Full-screen deep-dive overlay (⤢ maximize) */}
       {detailMax && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={() => setDetailMax(false)}>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={() => setDetailMax(false)} role="dialog" aria-modal="true" aria-label={sel?.name ?? "Project detail"}>
           <div className="mx-auto max-w-4xl" onClick={(e) => e.stopPropagation()}>
             <ProjectDetail p={sel} risks={risks} setup={setup} maximized onToggleMax={() => setDetailMax(false)}
               onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
@@ -1350,6 +1357,19 @@ function TeamRoles({ projectId, members, me, onChange }: { projectId: string; me
 
 // R-Core Project Template — in-app pop-out (replaces the old new-tab link). Embeds the standalone
 // template doc in a sandboxed iframe. Same modal idiom as NewIdeaModal/BudgetModal + Escape/focus (a11y).
+// Shared modal a11y — Escape-to-close + focus the close control on open + return focus on unmount. ONE source
+// for dialog dismiss/focus behavior (Template · History · NewIdea · Budget). Returns a ref for the ✕ button.
+function useModalDismiss(onClose: () => void) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); prev?.focus?.(); };
+  }, [onClose]);
+  return closeRef;
+}
 // Audit trail (Slice 6) — one append-only funding/approval entry, colored by kind.
 const AUDIT_TONE: Record<AuditKind, string> = {
   fund: "bg-emerald-500/15 text-emerald-300",
@@ -1372,15 +1392,8 @@ function AuditRow({ a }: { a: AuditEntry }) {
 // return-focus), scroll, filter by kind. Reads the live in-session + persisted audit trail.
 function HistoryModal({ activity, onClose }: { activity: AuditEntry[]; onClose: () => void }) {
   const { t } = useLexicon();
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useModalDismiss(onClose);
   const [kindFilter, setKindFilter] = useState<AuditKind | "all">("all");
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => { window.removeEventListener("keydown", onKey); prev?.focus?.(); };
-  }, [onClose]);
   const kinds: (AuditKind | "all")[] = ["all", "fund", "defund", "approve", "reject", "budget", "scenario", "edit"];
   const s = summarizeAudit(activity);
   const shown = kindFilter === "all" ? activity : activity.filter((a) => a.kind === kindFilter);
@@ -1414,14 +1427,7 @@ function HistoryModal({ activity, onClose }: { activity: AuditEntry[]; onClose: 
 
 function TemplateModal({ onClose }: { onClose: () => void }) {
   const { t } = useLexicon();
-  const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => { window.removeEventListener("keydown", onKey); prev?.focus?.(); };
-  }, [onClose]);
+  const closeRef = useModalDismiss(onClose);
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="R-Core Project Template">
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
@@ -1451,6 +1457,7 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
   const [segments, setSegments] = useState<SegmentValueProp[]>([]);
   const [drivers, setDrivers] = useState<ValueDriver[]>([]);
   const segLib = loadSegLib(); // Slice 7 — recurring buyer-need taxonomy for the segment datalist
+  const closeRef = useModalDismiss(onClose); // shared a11y: Escape-to-close + focus + return-focus
   const inp = "w-full rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500";
   // Best-in-class HI value prop requires BOTH the master statement and the Next Best Alternative.
   const canCreate = name.trim().length > 0 && valueProp.trim().length > 0 && nba.trim().length > 0;
@@ -1464,11 +1471,11 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
     setValueProp(`For ${who}, this beats ${nba.trim() || "the next-best alternative"} on ${list} — ~$${eq.evcUsdM.toFixed(0)}M economic value to the customer (${Math.round(eq.competitiveIndex)}/100 vs the NBA).`);
   };
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.newidea.title")}>
       <div className="mx-auto max-w-lg rounded-xl border border-slate-800 bg-[#0e141b] p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Submit New Idea <span className="ml-1 rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-violet-300">웃 HI</span></h2>
-          <button onClick={onClose} className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">✕</button>
+          <h2 className="text-sm font-semibold">{t("innovation.newidea.title")} <span className="ml-1 rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-violet-300">웃 HI</span></h2>
+          <button ref={closeRef} onClick={onClose} aria-label={t("innovation.template.close")} title={t("innovation.template.close")} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">✕</button>
         </div>
         <p className="mt-1 text-[11px] text-slate-500">Author the best-in-class <b className="text-slate-300">human (HI)</b> value proposition. On submit, an <b className="text-cyan-300">AI (◬) rendition</b> is minted so improvement ideas surface via the HI⇄AI toggle. It&apos;s how Innovation, Business, and BD/Sales align from day one.</p>
 
@@ -1577,9 +1584,10 @@ function downloadOutcomeBrief(p: Project) {
 
 function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget, canEditBudget, onClose }: { projects: Project[]; fundedIds: Set<string>; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; onSetBudget: (level: string, code: string, budgetK: number | null) => void; canEditBudget: boolean; onClose: () => void }) {
   const { t } = useLexicon();
+  const closeRef = useModalDismiss(onClose); // shared a11y: Escape-to-close + focus + return-focus
   const [level, setLevel] = useState<"bu" | "sbu" | "pgroup">("bu");
   const [open, setOpen] = useState<Set<string>>(() => new Set());
-  const levelLabel = level === "sbu" ? "SBU" : level === "pgroup" ? "Alpha Group" : "BU";
+  const levelLabel = level === "sbu" ? "SBU" : level === "pgroup" ? t("innovation.scope.alpha") : "BU";
   // Memoized so the (potentially large) bucket + allocation computations don't re-run on every modal render.
   const buckets = useMemo(() => fundingBuckets(projects, level, (id) => fundedIds.has(id)), [projects, level, fundedIds]);
   const alloc = useMemo(() => nodeAllocation(projects, level, (id) => fundedIds.has(id), availK, budgetOverrideK), [projects, level, fundedIds, availK, budgetOverrideK]);
@@ -1605,17 +1613,17 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
   const tot = { spendK: groups.reduce((s, g) => s + g.spendK, 0), fundedK: groups.reduce((s, g) => s + g.fundedSpendK, 0), unfundedK: groups.reduce((s, g) => s + g.unfundedSpendK, 0), riskAdjK: groups.reduce((s, g) => s + g.riskAdjK, 0), n: projects.length, funded: fundedIds.size };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose}>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.budget.title").replace("{level}", levelLabel)}>
       <div className="mx-auto max-w-3xl rounded-xl border border-slate-800 bg-[#0e141b]" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
-          <h2 className="text-sm font-semibold">Budget by {levelLabel} <span className="text-[11px] text-slate-500">— funded + unfunded</span></h2>
+          <h2 className="text-sm font-semibold">{t("innovation.budget.title").replace("{level}", levelLabel)} <span className="text-[11px] text-slate-500">— {t("innovation.budget.fundedUnfunded")}</span></h2>
           <div className="flex items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
-              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", "Alpha Grp"]] as const).map(([lv, lbl]) => (
+              {([["bu", "BU"], ["sbu", "SBU"], ["pgroup", t("innovation.scope.alpha")]] as const).map(([lv, lbl]) => (
                 <button key={lv} onClick={() => setLevel(lv)} className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
               ))}
             </div>
-            <button onClick={onClose} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">✕</button>
+            <button ref={closeRef} onClick={onClose} aria-label={t("innovation.template.close")} title={t("innovation.template.close")} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">✕</button>
           </div>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-1 px-4 py-2 text-[11px] text-slate-400 border-b border-slate-800">

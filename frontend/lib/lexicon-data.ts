@@ -1328,6 +1328,10 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.role.editor", englishDefault: "Editor", context: "Project role: editor", cubeId: 60 },
   { key: "innovation.role.approver", englishDefault: "Approver", context: "Project role: approver", cubeId: 60 },
   { key: "innovation.role.lead", englishDefault: "Project Lead", context: "Project role: lead", cubeId: 60 },
+  // New-idea + Budget modal (P3 i18n)
+  { key: "innovation.newidea.title", englishDefault: "Submit New Idea", context: "Innovation new-idea modal title", cubeId: 60 },
+  { key: "innovation.budget.title", englishDefault: "Budget by {level}", context: "Innovation budget modal title ({level} = BU/SBU/Alpha Group)", cubeId: 60 },
+  { key: "innovation.budget.fundedUnfunded", englishDefault: "funded + unfunded", context: "Innovation budget modal subtitle", cubeId: 60 },
   // Funding & approval audit trail (Slice 6)
   { key: "innovation.audit.title", englishDefault: "Funding & approval history", context: "Innovation audit trail section + pop-out title", cubeId: 60 },
   { key: "innovation.audit.open", englishDefault: "History ↗", context: "Innovation audit trail: open the full history pop-out", cubeId: 60 },
