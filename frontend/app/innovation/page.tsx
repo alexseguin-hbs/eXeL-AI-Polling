@@ -525,12 +525,13 @@ function Board() {
             </select>
           </label>
         </div>
-        {/* KPI strip — full width; 2-up on phone, 4 across the whole band on landscape/desktop (operator) */}
-        <div className="grid grid-cols-2 gap-3 border-t border-slate-800/60 pt-2.5 sm:grid-cols-4">
+        {/* KPI strip — full width; 2-up on phone, on landscape/desktop spread edge-to-edge with Portfolio NPV
+            pushed all the way to the right (operator). */}
+        <div className="grid grid-cols-2 gap-3 border-t border-slate-800/60 pt-2.5 sm:flex sm:justify-between sm:gap-4">
           <Kpi label={t("innovation.kpi.rdAvailable")} value={k(avail)} />
           <Kpi label={t("innovation.kpi.fundedNre")} value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
           <Kpi label={t("innovation.kpi.fundedProjects")} value={`${fundedRows.length}/${order.length}`} />
-          <Kpi label={t("innovation.kpi.portfolioNpv")} value={usd(portfolioNpv)} tone="good" />
+          <Kpi label={t("innovation.kpi.portfolioNpv")} value={usd(portfolioNpv)} tone="good" align="right" />
         </div>
       </header>
 
@@ -911,10 +912,10 @@ function Board() {
   );
 }
 
-function Kpi({ label, value, tone }: { label: string; value: string; tone?: "good" | "ok" | "bad" }) {
+function Kpi({ label, value, tone, align }: { label: string; value: string; tone?: "good" | "ok" | "bad"; align?: "right" }) {
   const c = tone === "good" ? "text-emerald-400" : tone === "bad" ? "text-rose-400" : "text-slate-100";
   return (
-    <div>
+    <div className={align === "right" ? "sm:text-right" : ""}>
       <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
       <div className={`text-base font-semibold tabular-nums ${c}`}>{value}</div>
     </div>
@@ -2396,7 +2397,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
       </div>
       {/* AMTS One-Page Summary — Needs · Outcomes · Solution · Evidence */}
       <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-3">
-        {([["Needs", brief.needs, "#fb7185"], ["Outcomes", brief.outcomes, "#34d399"], ["Solution", brief.solution, "#19c8cf"], ["Evidence", brief.evidence, "#fbbf24"]] as const).map(([title, items, color]) => (
+        {/* SoI Trinity colours (operator): Needs=Red · Outcomes=Sunset · Solution=Cyan · Evidence=Violet */}
+        {([["Needs", brief.needs, "#f87171"], ["Outcomes", brief.outcomes, "#f7b955"], ["Solution", brief.solution, "#22d3ee"], ["Evidence", brief.evidence, "#a78bfa"]] as const).map(([title, items, color]) => (
           <div key={title} className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
             <div className="text-[10px] uppercase tracking-wider font-mono" style={{ color }}>{title}</div>
             <ul className="mt-1 space-y-0.5">
