@@ -38,6 +38,8 @@ import {
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   changeSummaryRows, reviewApprovalRows,
+  makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelta, isSubstantial, finSnapOf, buildDemoVersionSeed,
+  type SlideVersion,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
@@ -2573,6 +2575,10 @@ const writeFieldBags = (obj: Record<string, ProjFieldBag>) => { lsSet(SLIDE_FIEL
 // CS + RA closeout slides read LIVE governance from the same stores Board() writes (audit trail + membership).
 const readAudit = (): AuditEntry[] => { try { const a = JSON.parse(lsGet("innovation-audit") || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
 const readMembers = (): MembershipMap => { try { const m = JSON.parse(lsGet("innovation-members") || "{}"); return m && typeof m === "object" ? m : {}; } catch { return {}; } };
+// Per-slide VERSION HISTORY store (append-and-merge; never overwrite) — powers the replay scrubber + CS trail.
+const SLIDE_VERSIONS_KEY = "innovation-slide-versions";
+const readVersions = (): Record<string, SlideVersion[]> => { try { const v = JSON.parse(lsGet(SLIDE_VERSIONS_KEY) || "{}"); return v && typeof v === "object" ? v : {}; } catch { return {}; } };
+const writeVersions = (obj: Record<string, SlideVersion[]>) => { lsSet(SLIDE_VERSIONS_KEY, JSON.stringify(obj)); void saveState("slide-versions", obj as unknown as Record<string, string>); };
 const fieldEmpty = (v: SlideFieldValue): boolean => {
   if (v == null) return true;
   if (typeof v === "string") return !v.trim();
@@ -2754,8 +2760,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   const [presentSrc, setPresentSrc] = useState<"set" | "hi" | "ai">("set");
   // Live governance snapshot for the CS + RA closeout slides (hydrated on mount alongside the field bag).
   const [gov, setGov] = useState<{ activity: AuditEntry[]; members: MembershipMap; board: string }>({ activity: [], members: {}, board: "IRB" });
+  // Per-slide VERSION HISTORY for this project (persisted + demo seed), + replay scrubber state.
+  const [versions, setVersions] = useState<SlideVersion[]>([]);
+  const [showReplay, setShowReplay] = useState(false);
+  const [vIdx, setVIdx] = useState(0);
   const [srcOpen, setSrcOpen] = useState(false); // "edit source record" panel (single source of truth)
-  useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); setGov({ activity: readAudit(), members: readMembers(), board: loadReviewBoard() }); }, []);
+  useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); setGov({ activity: readAudit(), members: readMembers(), board: loadReviewBoard() }); setVersions(mergeSlideVersions(readVersions()[p.id] ?? [], buildDemoVersionSeed(p))); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const spec = SLIDE_SCHEMA[idx];
   const bag = bags[p.id] || {};
   // Fall back to the 12-AsM authored seed when the user hasn't authored a cell: seeded HI shows by default;
@@ -2793,11 +2803,31 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   const setMode = (code: string, fid: string, mode: "hi" | "ai") => writeCell(code, fid, { mode });
   const fillOf = (sp: SlideSpec) => { const req = sp.fields.filter((f) => f.req); const base = req.length ? req : sp.fields; if (!base.length) return 1; return base.filter((f) => !fieldEmpty(effective(sp, f))).length / base.length; };
   const st = status[`${p.id}|${spec.code}`] || "";
+  // Capture a durable version snapshot of the CURRENT slide (fields + financial snapshot). Deterministic id;
+  // ts injected here (UI layer). Substantial = ≥10% quantified move vs the prior version → manager-approval flag.
+  const captureVersion = (vstatus: SlideVersion["status"], comment: string, by = "웃 HI") => {
+    const fields: SlideVersion["fields"] = {};
+    for (const f of spec.fields) {
+      if (f.linked || f.kind === "chart" || f.kind === "attach") continue;
+      const c = cellOf(spec.code, f.id); fields[f.id] = { hi: c.hi, ai: c.ai, mode: c.mode };
+    }
+    const fin = finSnapOf(p);
+    const prior = [...versions].filter((v) => v.slide === spec.code).sort((a, b) => b.ts.localeCompare(a.ts))[0];
+    const substantial = prior ? isSubstantial(versionDelta(prior.fin, fin)) : false;
+    const v = makeSlideVersion({ ts: new Date().toISOString(), projectId: p.id, slide: spec.code, gate: p.gate, by, status: vstatus, comment, substantial, fields, fin });
+    const next = mergeSlideVersions(versions, [v]);
+    setVersions(next);
+    const all = readVersions(); all[p.id] = next; writeVersions(all);
+    return substantial;
+  };
   const cycleStatus = () => setStatus((prev) => {
     const kk = `${p.id}|${spec.code}`, cur = prev[kk] || "";
     const next = SLIDE_STATES[(SLIDE_STATES.indexOf(cur as (typeof SLIDE_STATES)[number]) + 1) % SLIDE_STATES.length];
-    const u = { ...prev, [kk]: next }; writeStore(SLIDE_KEY, "slides", u); return u;
+    const u = { ...prev, [kk]: next }; writeStore(SLIDE_KEY, "slides", u);
+    if (next === "approved") captureVersion("approved", "Approved at gate — baseline locked."); // auto-save approved versions
+    return u;
   });
+  const slideVersions = versions.filter((v) => v.slide === spec.code).sort((a, b) => a.ts.localeCompare(b.ts)); // oldest→newest
   const go = (d: number) => setIdx((i) => Math.min(SLIDE_SCHEMA.length - 1, Math.max(0, i + d)));
   const deckPct = Math.round((SLIDE_SCHEMA.reduce((a, s) => a + fillOf(s), 0) / SLIDE_SCHEMA.length) * 100);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -3109,6 +3139,64 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
                   </div>
                 );
               })}
+            </div>
+
+            {/* Version history + replay — save a version (comment), scrub prior versions gate-to-gate, and see
+                financial + risk progression over time. A ≥10% quantified change flags manager (Lead) approval. */}
+            <div className="mt-3 rounded-lg border border-slate-800 bg-[#0e141b]">
+              <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+                <button onClick={() => { setShowReplay((v) => !v); setVIdx(Math.max(0, slideVersions.length - 1)); }}
+                  className="rounded border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-slate-800">🕑 {showReplay ? "Hide" : "History / Replay"} <span className="tabular-nums text-slate-500">({slideVersions.length})</span></button>
+                <input id="ver-comment" placeholder="Comment for this version…" className="min-w-0 flex-1 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500" />
+                <button onClick={() => { const el = document.getElementById("ver-comment") as HTMLInputElement | null; const c = (el?.value || "").trim() || "Working update saved."; const sub = captureVersion("submitted", c, p.manager); if (el) el.value = ""; setShowReplay(true); setVIdx(slideVersions.length); if (sub) alert("Substantial change (≥10%) — this version needs Lead approval before it becomes the baseline."); }}
+                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20">📌 Save version</button>
+              </div>
+              {showReplay && (slideVersions.length === 0 ? (
+                <div className="px-3 pb-3 text-[11px] italic text-slate-500">No versions yet — save one, or approve the slide, to start the history.</div>
+              ) : (() => {
+                const sel = slideVersions[Math.min(vIdx, slideVersions.length - 1)];
+                const pts = slideVersionTimeline(slideVersions);
+                const fin = sel.fin;
+                return (
+                  <div className="border-t border-slate-800 px-3 py-2">
+                    {/* scrubber */}
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => setVIdx((i) => Math.max(0, i - 1))} disabled={vIdx <= 0} className="rounded border border-slate-700 px-1.5 text-slate-300 disabled:opacity-30">‹</button>
+                      <div className="relative h-6 flex-1">
+                        <div className="absolute inset-x-0 top-1/2 h-px bg-slate-700" />
+                        {pts.map((pt, i) => (
+                          <button key={pt.version.id} onClick={() => setVIdx(i)} title={`${pt.version.gate} · ${pt.version.status}`}
+                            className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${i === Math.min(vIdx, slideVersions.length - 1) ? "ring-2 ring-cyan-400" : ""} ${pt.approved ? "bg-emerald-400" : pt.version.substantial ? "bg-amber-400" : "bg-slate-500"}`}
+                            style={{ left: `${pt.t * 100}%` }} aria-label={`Version ${i + 1}`} />
+                        ))}
+                      </div>
+                      <button onClick={() => setVIdx((i) => Math.min(slideVersions.length - 1, i + 1))} disabled={vIdx >= slideVersions.length - 1} className="rounded border border-slate-700 px-1.5 text-slate-300 disabled:opacity-30">›</button>
+                      <span className="text-[10px] tabular-nums text-slate-500">{Math.min(vIdx, slideVersions.length - 1) + 1}/{slideVersions.length}</span>
+                    </div>
+                    {/* selected version detail */}
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                      <span className="font-mono text-cyan-400">{sel.gate}</span>
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${sel.status === "approved" ? "bg-emerald-500/15 text-emerald-300" : sel.status === "change-pending" ? "bg-amber-500/15 text-amber-300" : "bg-slate-700 text-slate-300"}`}>{sel.status || "draft"}</span>
+                      <span className="text-slate-400">{sel.ts.slice(0, 10)}</span>
+                      <span className="text-slate-500">· {sel.by}</span>
+                    </div>
+                    {sel.comment && <p className="mt-1 text-[12px] italic text-slate-300">“{sel.comment}”</p>}
+                    {/* financials progression at this version */}
+                    <div className="mt-2 grid grid-cols-4 gap-1.5">
+                      {([["NRE", `$${fin.nreK}k`], ["10-yr Rev", `$${fin.revM}M`], ["Margin", `$${fin.marginM}M`], ["NPV", `$${fin.npvM}M`]] as const).map(([lbl, val]) => (
+                        <div key={lbl} className="rounded border border-slate-700 px-1.5 py-1"><div className="text-[13px] font-semibold tabular-nums text-slate-100">{val}</div><div className="text-[8px] uppercase tracking-wider text-slate-500">{lbl}</div></div>
+                      ))}
+                    </div>
+                    {sel.substantial && sel.status !== "approved" && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200">
+                        <span>▲ Substantial change (≥10%) — critical parties (Engineering · Commercial · Business) notified; Lead approval required.</span>
+                        <button onClick={() => { captureVersion("approved", "Lead approved substantial change; baseline updated.", "웃 HI (Lead)"); setVIdx(slideVersions.length); }}
+                          className="rounded border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-200 hover:bg-emerald-500/25">웃 Lead approve</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })())}
             </div>
           </div>
         )}

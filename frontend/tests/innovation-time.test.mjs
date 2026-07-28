@@ -801,6 +801,36 @@ import { slidesForProject, nextGate, SLIDE_SEED, changeSummaryRows, reviewApprov
     `S3 chart renders horizon+1 (${h}-Yr → ${h + 1} year points)`);
 }
 
+/* ---------------- G4 — slide version history + replay backbone ---------------- */
+import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelta, isSubstantial, finSnapOf, buildDemoVersionSeed, SUBSTANTIAL_THRESHOLD } from "../lib/innovation-data.ts";
+{
+  const P = DEMO_PROJECTS.find((p) => p.id === "PRJ-01");
+  const fin0 = finSnapOf(P);
+  ok(typeof fin0.nreK === "number" && typeof fin0.npvM === "number", "finSnapOf returns a numeric financial snapshot");
+  const mk = (ts, status) => makeSlideVersion({ ts, projectId: "PRJ-01", slide: "S1", gate: "G1", by: "웃 HI", status, comment: "", fields: { oneline: { hi: "a", ai: "b", mode: "hi" } }, fin: fin0 });
+  const v1 = mk("2026-01-01T00:00:00Z", "drafted"), v1b = mk("2026-01-01T00:00:00Z", "drafted");
+  ok(v1.id === v1b.id, "makeSlideVersion id is content-stable (deterministic)");
+  const v2 = mk("2026-02-01T00:00:00Z", "approved");
+  const merged = mergeSlideVersions([v1, v2], [v1]);
+  ok(merged.length === 2, "mergeSlideVersions dedups by id");
+  ok(merged[0].ts >= merged[1].ts, "mergeSlideVersions is newest-first");
+  const tl = slideVersionTimeline([v1, v2]);
+  ok(tl.length === 2 && tl[0].t === 0 && tl[1].t === 1, "slideVersionTimeline normalizes oldest→newest [0..1]");
+  ok(tl[1].approved === true, "timeline flags approved versions");
+  // versionDelta / isSubstantial — 10% boundary
+  const base = { nreK: 1000, revM: 100, marginM: 40, npvM: 50 };
+  ok(Math.abs(versionDelta(base, { ...base, nreK: 1100 }) - 0.10) < 1e-9, "versionDelta = max fractional move (10% NRE)");
+  ok(isSubstantial(0.10) && isSubstantial(0.2) && !isSubstantial(0.099), `isSubstantial at the ${SUBSTANTIAL_THRESHOLD * 100}% threshold`);
+  ok(versionDelta(base, base) === 0, "no change → zero delta");
+  // demo synthetic history — non-empty + ordered + shows financial progression
+  const seed = buildDemoVersionSeed(P);
+  ok(seed.length >= 3, "buildDemoVersionSeed seeds a light history for demo projects");
+  const s1 = seed.filter((v) => v.slide === "S1").sort((a, b) => a.ts.localeCompare(b.ts));
+  ok(s1.length === 3 && s1[0].status === "drafted" && s1[2].status === "approved", "demo S1 history runs drafted → submitted → approved");
+  ok(s1[0].fin.npvM < s1[2].fin.npvM, "demo financials progress upward over versions");
+  ok(buildDemoVersionSeed(DEMO_PROJECTS.find((p) => p.id === "PRJ-24")).length === 0, "non-demo projects start with empty history");
+}
+
 /* ---------------- SoI Calendar engine (integer 13-week basis · Gregorian default · Perihelion anchor) ---------------- */
 import { CALENDARS, DEFAULT_CALENDAR, activeCalendar, calMinutes, soiYearStartUTC } from "../lib/soi-calendar.ts";
 {

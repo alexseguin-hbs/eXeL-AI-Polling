@@ -879,6 +879,86 @@ export function fmtAuditEntry(e: AuditEntry): string {
   return `${when} · ${e.project ?? ""} · ${what} · ${e.by}`;
 }
 
+// ── Slide VERSION HISTORY + REPLAY (operator: see a slide's versions gate-to-gate, replay the progression over
+//    time with comments; same for financials + risks). Approved versions auto-save; a ≥10% quantified change vs
+//    the last approved version is "substantial" → the PdM/PgM must push to the Lead for click-approval, and the
+//    functional areas (Engineering / Commercial / Business) are notified. Pure — `ts` is always injected. ──────
+export type SlideVersionStatus = "" | "drafted" | "submitted" | "approved" | "change-pending";
+export interface SlideFinSnap { nreK: number; revM: number; marginM: number; npvM: number }
+export interface SlideVersion {
+  id: string; ts: string; projectId: string; slide: string; gate: Gate; by: string;
+  status: SlideVersionStatus; comment?: string; substantial?: boolean;
+  fields: Record<string, SlideSeedCell & { mode?: "hi" | "ai" }>;
+  fin: SlideFinSnap;
+}
+/** Version with a CONTENT-STABLE id (ts + project + slide + status + by + fields hash) — never array.length. */
+export function makeSlideVersion(partial: Omit<SlideVersion, "id">): SlideVersion {
+  const id = `${partial.ts}-${hashStr([partial.projectId, partial.slide, partial.status, partial.by, JSON.stringify(partial.fields)].join("|"))}`;
+  return { id, ...partial };
+}
+/** Union-merge two version arrays, dedup by id, newest-first, capped. Order-independent by id set. */
+export function mergeSlideVersions(a: SlideVersion[], b: SlideVersion[], cap = 200): SlideVersion[] {
+  const map = new Map<string, SlideVersion>();
+  for (const v of [...a, ...b]) map.set(v.id, v);
+  return Array.from(map.values()).sort((x, y) => y.ts.localeCompare(x.ts)).slice(0, cap);
+}
+export interface SlideVersionPoint { version: SlideVersion; t: number; approved: boolean }
+/** Lay one slide's versions on a normalized [0..1] axis (oldest→newest) for the replay scrubber. Deterministic. */
+export function slideVersionTimeline(vs: SlideVersion[]): SlideVersionPoint[] {
+  if (vs.length === 0) return [];
+  const asc = [...vs].sort((a, b) => a.ts.localeCompare(b.ts));
+  const times = asc.map((v) => Date.parse(v.ts));
+  const valid = times.every((n) => Number.isFinite(n));
+  const span = times[times.length - 1] - times[0];
+  return asc.map((v, i) => ({ version: v, t: valid && span > 0 ? (times[i] - times[0]) / span : (asc.length > 1 ? i / (asc.length - 1) : 0), approved: v.status === "approved" }));
+}
+/** Max fractional delta across the financial snapshot (the "substantial change" measure). Deterministic. */
+export function versionDelta(prev: SlideFinSnap, next: SlideFinSnap): number {
+  let max = 0;
+  for (const k of ["nreK", "revM", "marginM", "npvM"] as (keyof SlideFinSnap)[]) {
+    const a = prev[k], b = next[k];
+    if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+    const base = Math.abs(a) > 1e-9 ? Math.abs(a) : Math.abs(b);
+    if (base < 1e-9) continue;
+    max = Math.max(max, Math.abs(b - a) / base);
+  }
+  return max;
+}
+export const SUBSTANTIAL_THRESHOLD = 0.10; // ≥10% quantified move → manager (Lead) click-approval required
+export function isSubstantial(delta: number): boolean { return delta >= SUBSTANTIAL_THRESHOLD; }
+/** Financial snapshot captured with each slide version (for the financials-over-time replay). */
+export function finSnapOf(p: Project): SlideFinSnap {
+  const fm = financialMetrics(p);
+  return { nreK: p.nreK, revM: +p.fullRev10yM.toFixed(1), marginM: +(p.fullRev10yM * (execOf(p).marginPct / 100)).toFixed(1), npvM: fm.npvM };
+}
+// Light synthetic version history (fixed injected timestamps + committed seed content) so the replay scrubber
+// shows gate-to-gate progression out of the box. Deterministic — merged in at hydration for a few demo projects.
+const DEMO_VERSION_TS = ["2026-01-06T09:00:00Z", "2026-02-10T09:00:00Z", "2026-03-17T09:00:00Z"];
+export function buildDemoVersionSeed(p: Project): SlideVersion[] {
+  if (!["PRJ-01", "PRJ-04", "PRJ-12"].includes(p.id)) return [];
+  const base = finSnapOf(p);
+  const scale = (k: number): SlideFinSnap => ({ nreK: Math.round(base.nreK * k), revM: +(base.revM * k).toFixed(1), marginM: +(base.marginM * k).toFixed(1), npvM: +(base.npvM * k).toFixed(1) });
+  const stages: [SlideVersionStatus, number, string, string][] = [
+    ["drafted", 0.8, "Initial draft at Concept gate.", p.manager],
+    ["submitted", 0.95, "Refined for review — scope + financials firmed up.", p.manager],
+    ["approved", 1.0, "Approved at gate; baseline locked.", "웃 HI"],
+  ];
+  const out: SlideVersion[] = [];
+  for (const code of slidesForProject(p).filter((c) => ["S1", "S3"].includes(c))) {
+    const spec = slideSpec(code); if (!spec) continue;
+    stages.forEach(([status, k, comment, by], i) => {
+      const fields: Record<string, SlideSeedCell & { mode?: "hi" | "ai" }> = {};
+      for (const fd of spec.fields) {
+        if (fd.linked || fd.kind === "chart" || fd.kind === "attach") continue;
+        const seeded = SLIDE_SEED[p.id]?.[code]?.[fd.id];
+        if (seeded) fields[fd.id] = { hi: seeded.hi, ai: seeded.ai, mode: "hi" };
+      }
+      out.push(makeSlideVersion({ ts: DEMO_VERSION_TS[i], projectId: p.id, slide: code, gate: p.gate, by, status, comment, substantial: i === 1, fields, fin: scale(k) }));
+    });
+  }
+  return out;
+}
+
 // Re-optimization cadence ladder (Vision•2525 · SoI): legacy quarterly → the tool enables monthly now →
 // weekly → daily as the System of Intelligence tightens the funding/schedule loop toward the speed of thought.
 export type Cadence = "Q" | "M" | "W" | "D";
@@ -1673,7 +1753,9 @@ export function reviewApprovalRows(activity: AuditEntry[], members: MembershipMa
 // below). Consumed by SlideShowModal.cellOf as the default when the user hasn't authored a field.
 export type SlideSeedCell = { hi: SlideFieldValue; ai: SlideFieldValue };
 export type SlideSeed = Record<string, Record<string, Record<string, SlideSeedCell>>>;
-export { SLIDE_SEED } from "./innovation-slide-seed";
+// Import as a LOCAL binding (so buildDemoVersionSeed can read it) AND re-export for consumers.
+import { SLIDE_SEED } from "./innovation-slide-seed";
+export { SLIDE_SEED };
 
 export type SlideFieldValue = string | string[] | string[][] | Record<string, string> | null;
 
