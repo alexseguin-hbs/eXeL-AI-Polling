@@ -4343,9 +4343,16 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const [declinePct, setDeclinePct] = useState("15.1");
   const [revMode] = useState<RevMode>("full"); // revenue mode fixed to full; band pills carry the view choice now
   const [showBaseline, setShowBaseline] = useState(true);
-  // Growth-model band view (operator): the chart is a Manager-and-above decision surface, so Revenue is the
-  // preselected/highlighted default (the Rev pill lights on load); Mgn is one click away.
-  const [band, setBand] = useState<"incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol">("rev");
+  // Growth-model band view (operator, Manager-and-above decision surface). Two composable controls:
+  //   • metric: Rev (default) or Mgn         • incr (Incremental modifier): default ON
+  // So the chart OPENS on Incremental Rev with BOTH "Rev" and "Incremental" highlighted. Selecting Mgn keeps
+  // Incremental on → Incremental Mgn; toggling Incremental off → Full Rev / Full Mgn. Step 1/2/3 is a separate
+  // do-nothing-component view that overrides the metric while active.
+  const [metric, setMetric] = useState<"rev" | "mgn">("rev");
+  const [incr, setIncr] = useState(true);
+  const [step, setStep] = useState<null | "new" | "decline" | "eol">(null);
+  const band: "incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol" =
+    step ?? (incr ? (metric === "rev" ? "incremental" : "incmgn") : metric);
   // Split-by dimension (operator): stack the bar by hierarchy child (default/highlighted), strategic pillar
   // (admin colors), or Risk (risk-weighted vs at-risk upside). Charts show FUNDED (above-line) projects only —
   // for management-and-above decision-making — so there is no separate Funded split.
@@ -4485,11 +4492,12 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
-        {/* Only two financial selectors on top (operator IMG_8078): Rev · Mgn. */}
+        {/* Two financial selectors on top (operator IMG_8078): Rev · Mgn. These set the METRIC and clear any
+            Step view; the Incremental modifier below composes with them. */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
           {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
-            <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
-              className={`px-2.5 py-1 ${band === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+            <button key={k} onClick={() => { setMetric(k); setStep(null); }} aria-pressed={metric === k && !step}
+              className={`px-2.5 py-1 ${metric === k && !step ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
         </div>
         {/* Split-by: hierarchy child (default) · strategic pillar (admin colors) · Risk (risk-weighted vs upside).
@@ -4578,13 +4586,17 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         )) : <span className="italic text-slate-600">no projects in scope</span>}
       </div>
 
-      {/* Band view: Incremental Rev (Step 1 − Step 2 + Step 3) + Incremental Mgn, or one component (operator) */}
-      {/* Below the chart: Incremental, then the do-nothing Step 1/2/3 components (Rev/Mgn are the top selectors). */}
+      {/* Incremental modifier — composes with the Rev/Mgn metric (Rev → Incremental Rev, Mgn → Incremental Mgn).
+          Defaults ON for Manager-and-above, so the chart opens on Incremental Rev. Then the do-nothing Step
+          1/2/3 components (a separate view that overrides the metric while active). */}
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-        {(["incremental", "new", "decline", "eol"] as const).map((k) => (
-          <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
-            className={`rounded border px-2 py-0.5 ${band === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
-            style={band === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
+        <button onClick={() => { setIncr((o) => !o); setStep(null); }} aria-pressed={incr && !step}
+          className={`rounded border px-2 py-0.5 ${incr && !step ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
+          style={incr && !step ? { background: BAND.incremental.color } : undefined}>Incremental</button>
+        {(["new", "decline", "eol"] as const).map((k) => (
+          <button key={k} onClick={() => setStep((s) => (s === k ? null : k))} aria-pressed={step === k}
+            className={`rounded border px-2 py-0.5 ${step === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
+            style={step === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
         ))}
         <span className="ml-1 text-slate-500"><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />Growth target</span>
       </div>

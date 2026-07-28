@@ -17,10 +17,12 @@ import { useLexicon } from "@/lib/lexicon-context";
 // Print-to-PDF at US Letter (8.5×11 portrait). Chrome (nav + interactive buttons) is hidden via
 // `.exp-noprint`; the dark theme is kept exact so the saved PDF matches the on-screen page.
 const PRINT_CSS = `
+.exp-printonly { display: none; }
 @media print {
   @page { size: 8.5in 11in portrait; margin: 0.5in; }
   html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #0a0f16 !important; }
   .exp-noprint { display: none !important; }
+  .exp-printonly { display: block !important; }
 }`;
 
 export function ExperiencesLanding({ basePath }: { basePath: string }) {
@@ -101,30 +103,32 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
             </button>
           </div>
 
-          <div className="exp-noprint flex flex-wrap items-center justify-center gap-2.5">
-            <Link
-              href={docsPath}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-            >
-              {t("experiences.landing.open")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            {/* Download this page as an 8.5×11 PDF (file: Resume.Digital_A.Seguin_2026) */}
-            <button
-              type="button"
-              onClick={downloadPdf}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-primary/60 hover:text-primary"
-            >
-              <Download className="h-4 w-4" />
-              {t("experiences.egg.pdf.download")}
-            </button>
-          </div>
+          <Link
+            href={docsPath}
+            className="exp-noprint inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+          >
+            {t("experiences.landing.open")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
-        {/* Subtle provenance line — the governance-engine note, kept quiet; it prints onto the PDF */}
-        <p className="mt-8 max-w-md text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground/55">
-          {t("experiences.landing.footer")}
-        </p>
+        {/* Download symbol before the (hidden) provenance line. On screen you see just the quiet download
+            affordance; the governance-engine line is hidden and prints onto the 8.5×11 PDF. */}
+        <div className="mt-8 text-center">
+          <button
+            type="button"
+            onClick={downloadPdf}
+            title="Download PDF"
+            aria-label="Download PDF — Resume.Digital_A.Seguin_2026"
+            className="exp-noprint inline-flex items-center gap-1.5 text-[11px] italic text-muted-foreground/55 transition hover:text-primary"
+          >
+            <Download className="h-3.5 w-3.5" />
+            {t("experiences.egg.pdf.download")}
+          </button>
+          <p className="exp-printonly mx-auto max-w-md text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground">
+            {t("experiences.landing.footer")}
+          </p>
+        </div>
       </main>
     </div>
   );
