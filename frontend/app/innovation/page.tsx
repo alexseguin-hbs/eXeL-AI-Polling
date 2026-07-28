@@ -498,7 +498,7 @@ function Board() {
       <header className="border-b border-slate-800 px-5 py-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
+            <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI · SoI-2525</div>
             <h1 className="text-lg font-semibold">{t("innovation.header.title")}</h1>
             <div className="text-[11px] text-slate-500">{stackName}</div>
           </div>
@@ -3324,7 +3324,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
             {/* Edit source record — SINGLE SOURCE OF TRUTH. The linked fields on this slide (financials, BOM)
                 are derived from the project record; editing the raw drivers here updates every surface at once
                 (rack, budget buckets, dog-tag, deck) — no duplicate copies, no conflicts. */}
-            {onEditSource && spec.fields.some((f) => f.linked) && (() => {
+            {onEditSource && (spec.fields.some((f) => f.linked) || Object.prototype.hasOwnProperty.call(FIN_FIELDS, spec.code)) && (() => {
               const numEdit = (label: string, key: "nreK" | "fullRev10yM" | "doNothing10yM" | "upsideAccelK", suffix: string) => {
                 const cur = (p[key] ?? (key === "upsideAccelK" ? upsideAccelOf(p).accelK : 0)) as number;
                 return (
@@ -4340,8 +4340,8 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
             </g>
           );
         })}
-        <polyline points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />
-        {rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
+        {showBaseline && <polyline points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />}
+        {showBaseline && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
       </svg>
 
       {/* Band view: Incremental (1−2+3) default, or one component (operator) */}
@@ -4398,7 +4398,7 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
         </label>
         <label className="flex items-center gap-1.5">
           <input type="checkbox" checked={showBaseline} onChange={(e) => setShowBaseline(e.target.checked)} className="accent-cyan-500" />
-          Show baseline
+          Show target line
         </label>
       </div>
     </div>

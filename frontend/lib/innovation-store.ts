@@ -1,7 +1,9 @@
 /**
- * INNOVATION PROJECT · Supabase persistence (Portfolio Prioritization)
- * ===================================================================
- * Promotes the Innovation tool's config + per-project edits from device-local (localStorage) to durable /
+ * SoI-2525 (System of Innovation) · Supabase persistence
+ * =====================================================
+ * The section of the site formerly labelled "Innovation / Portfolio Prioritization" is referenced as
+ * **SoI-2525** going forward.
+ * Promotes the SoI-2525 tool's config + per-project edits from device-local (localStorage) to durable /
  * cross-device (Supabase). localStorage stays the fast local rung; Supabase is the durable rung — the same
  * ladder as `architect-saved-files.ts`. Every call is best-effort and NEVER throws: no Supabase env → client
  * `null` → no-op; a missing table or offline → graceful degrade to local-only (nothing breaks before the
@@ -101,5 +103,43 @@ export async function loadState<T = unknown>(name: string): Promise<T | null> {
     return payload == null ? null : (payload as T);
   } catch {
     return null;
+  }
+}
+
+// SSSES · Scalability + Efficiency — hydrate EVERY namespace in ONE round-trip instead of N per-name selects.
+// The SoI-2525 deck reads ~8 namespaces on mount (config · members · node-budgets · audit · projects ·
+// slide-fields · slide-versions · scenarios); a single query cuts mount latency and DB load ~8×. Best-effort:
+// returns {} on no client / any failure, so hydrate degrades to the local (localStorage) rung. Never throws.
+export async function loadAllState(names?: string[]): Promise<Record<string, unknown>> {
+  if (!supabase) return {};
+  try {
+    let q = supabase.from(TABLE).select("name,payload").eq("owner_key", ownerKey());
+    if (names && names.length) q = q.in("name", names);
+    const { data } = await q;
+    const out: Record<string, unknown> = {};
+    for (const row of (data as { name?: string; payload?: unknown }[] | null) ?? []) {
+      if (row?.name != null && row.payload != null) out[row.name] = row.payload;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// SSSES · completeness — a namespace the caller retires (e.g. a per-project blob whose project was removed)
+// should be able to drop its durable row, not just its local copy. Best-effort; never throws. Pairs with the
+// DELETE RLS policy (migration 029). Also clears the content-hash guard so a later re-save of the same name
+// isn't skipped as "unchanged".
+export async function deleteState(name: string): Promise<CloudStatus> {
+  delete lastHash[name];
+  if (!supabase) return "offline";
+  try {
+    const { error } = await supabase.from(TABLE).delete().eq("owner_key", ownerKey()).eq("name", name);
+    if (!error) return "saved";
+    const msg = `${(error as { code?: string }).code ?? ""} ${error.message ?? ""}`.toLowerCase();
+    if (/42p01|pgrst205|does not exist|could not find|schema cache/.test(msg)) return "offline";
+    return "error";
+  } catch {
+    return "error";
   }
 }
