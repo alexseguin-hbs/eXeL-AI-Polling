@@ -10,7 +10,7 @@
  */
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
-import { saveState, loadState, ownerKey } from "@/lib/innovation-store";
+import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario,
@@ -439,7 +439,14 @@ function Board() {
     if (cloudHydrated.current) return;
     cloudHydrated.current = true;
     (async () => {
-      const bundle = await loadState<Record<string, string>>("config");
+      // SSSES Efficiency (SoI-2525) — hydrate the whole namespace set in ONE round-trip (loadAllState) instead
+      // of ~8 sequential per-name selects; identical fill-if-empty semantics, far lower mount latency.
+      const CLOUD_NS: [string, string][] = [
+        ["slides", SLIDE_KEY], ["signoff", SIGNOFF_KEY], ["ledger", LEDGER_KEY],
+        ["gateconf", GATECONF_KEY], ["slide-hi", SLIDE_HI_KEY], ["slide-lens", SLIDE_LENS_KEY],
+      ];
+      const cloud = await loadAllState(["config", "projects", ...CLOUD_NS.map(([n]) => n)]);
+      const bundle = cloud["config"] as Record<string, string> | undefined;
       if (bundle && typeof bundle === "object") {
         for (const [key, raw] of Object.entries(bundle)) {
           if (CONFIG_KEYS.includes(key) && typeof raw === "string") lsSet(key, raw);
@@ -448,22 +455,17 @@ function Board() {
       }
       // Per-project edits (new ideas, value drivers, gate/field edits) — durable + cross-device. Cloud is
       // the source of truth once the operator has saved anything; first load with no cloud keeps the seeds.
-      const saved = await loadState<Project[]>("projects");
+      const saved = cloud["projects"] as Project[] | undefined;
       if (Array.isArray(saved) && saved.length > 0 && saved.every((p) => p && typeof p.id === "string")) {
         setOrder(saved); setSelId(saved[0].id);
       }
-      // De-risk (council · Odin/Krishna): restore the per-project slide/gate namespaces that are written to
-      // the cloud but were never read back — seed localStorage ONLY where the local key is absent/empty, so a
-      // fresher local edit is never clobbered (guarded fill-if-empty; components re-read via readStore).
-      const CLOUD_NS: [string, string][] = [
-        ["slides", SLIDE_KEY], ["signoff", SIGNOFF_KEY], ["ledger", LEDGER_KEY],
-        ["gateconf", GATECONF_KEY], ["slide-hi", SLIDE_HI_KEY], ["slide-lens", SLIDE_LENS_KEY],
-      ];
+      // De-risk (council · Odin/Krishna): restore the per-project slide/gate namespaces — seed localStorage ONLY
+      // where the local key is absent/empty, so a fresher local edit is never clobbered (guarded fill-if-empty).
       for (const [name, lsKey] of CLOUD_NS) {
         const local = lsGet(lsKey);
         if (local && local !== "{}") continue; // keep fresher local edits
-        const cloud = await loadState<Record<string, string>>(name);
-        if (cloud && typeof cloud === "object" && Object.keys(cloud).length > 0) lsSet(lsKey, JSON.stringify(cloud));
+        const c = cloud[name] as Record<string, string> | undefined;
+        if (c && typeof c === "object" && Object.keys(c).length > 0) lsSet(lsKey, JSON.stringify(c));
       }
       projectsHydrated.current = true;
     })();
