@@ -3684,7 +3684,9 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
   const parentRows = parentTier ? setup[parentTier] : [];
   const setRows = (next: BizNode[]) => persist({ ...setup, [tier]: next });
   const updateRow = (i: number, patch: Partial<BizNode>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
-  const addRow = () => setRows([...rows, { code: `NEW${rows.length + 1}`, label: "New " + tierMeta.label, parent: parentRows[0]?.code, baseM: tier === "sbu" ? 0 : undefined }]);
+  // Grey baseline revenue ($M) is settable at BU · SBU · Alpha Group (pgroup) — operator.
+  const baseTier = tier === "bu" || tier === "sbu" || tier === "pgroup";
+  const addRow = () => setRows([...rows, { code: `NEW${rows.length + 1}`, label: "New " + tierMeta.label, parent: parentRows[0]?.code, baseM: baseTier ? 0 : undefined }]);
   const delRow = (i: number) => setRows(rows.filter((_, j) => j !== i));
   const resetSeed = () => persist(seedBizSetup(DEMO_PROJECTS));
   const inp = "rounded border border-slate-700 bg-[#0b0f14] px-1.5 py-0.5 text-xs text-slate-100 outline-none focus:border-cyan-500";
@@ -3835,7 +3837,7 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
                 <th className="px-3 py-2 text-left">Code</th>
                 <th className="px-2 py-2 text-left">Label</th>
                 {parentTier && <th className="px-2 py-2 text-left">{BIZ_TIERS.find((t) => t.key === parentTier)!.label}</th>}
-                {tier === "sbu" && <th className="px-2 py-2 text-right">Base $M</th>}
+                {baseTier && <th className="px-2 py-2 text-right">Base $M</th>}
                 <th className="px-2 py-2 text-right">·</th>
               </tr>
             </thead>
@@ -3852,7 +3854,7 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
                       </select>
                     </td>
                   )}
-                  {tier === "sbu" && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="numeric" value={String(r.baseM ?? 0)} onChange={(e) => /^\d*$/.test(e.target.value) && updateRow(i, { baseM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
+                  {baseTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="numeric" value={String(r.baseM ?? 0)} onChange={(e) => /^\d*$/.test(e.target.value) && updateRow(i, { baseM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
                   <td className="px-2 py-1.5 text-right"><button onClick={() => delRow(i)} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button></td>
                 </tr>
               ))}
@@ -3915,16 +3917,19 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
   const [declinePct, setDeclinePct] = useState("15.1");
   const [revMode, setRevMode] = useState<RevMode>("full");
   const [showBaseline, setShowBaseline] = useState(true);
-  // SBU base revenue ($M) — enterable; defaults to scope (SBU → SBU base · BU → Σ SBUs · Company → 700).
-  // Base revenue anchors on the admin Business-Setup SBU base (one source of truth), scope-aware.
+  // Growth-model band view (operator): Incremental (orange, New−Decline+EOL) by default; or one component.
+  const [band, setBand] = useState<"incremental" | "new" | "decline" | "eol">("incremental");
+  // Grey baseline revenue ($M) — enterable; anchored on the admin Business-Setup base, settable at BU · SBU ·
+  // Alpha Group (a direct override at the selected level wins; else roll up SBU → company). One source of truth.
   const bizSetup = loadBizSetup();
-  const scopeBase = (b: string, s: string) => {
+  const scopeBase = (b: string, s: string, g: string) => {
+    if (g && g !== "All") { const pv = bizSetup.pgroup?.find((n) => n.code === g)?.baseM; if (pv) return pv; }
     if (s && s !== "All") return bizSetup.sbu.find((n) => n.code === s)?.baseM ?? scopeBaseM(b, s);
-    if (b && b !== "All") { const v = bizSetup.sbu.filter((n) => n.parent === b).reduce((a, n) => a + (n.baseM ?? 0), 0); return v || scopeBaseM(b, s); }
+    if (b && b !== "All") { const bv = bizSetup.bu?.find((n) => n.code === b)?.baseM; if (bv) return bv; const v = bizSetup.sbu.filter((n) => n.parent === b).reduce((a, n) => a + (n.baseM ?? 0), 0); return v || scopeBaseM(b, s); }
     const all = bizSetup.sbu.reduce((a, n) => a + (n.baseM ?? 0), 0); return all || companyBaseM();
   };
   const [baseStr, setBaseStr] = useState(String(companyBaseM()));
-  useEffect(() => { setBaseStr(String(scopeBase(bu, sbu))); }, [bu, sbu]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setBaseStr(String(scopeBase(bu, sbu, pg))); }, [bu, sbu, pg]); // eslint-disable-line react-hooks/exhaustive-deps
   // View level (max-UX switcher): Company → BU → SBU → Product Group. Drives the scope dropdowns.
   const [level, setLevel] = useState<"company" | "bu" | "sbu" | "pg">("company");
   const [hover, setHover] = useState<number | null>(null);
@@ -3954,10 +3959,14 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
   // 3-yr → 4, 10-yr → 11. So render years+1 columns; CAGR below divides by (rows.length−1) = the horizon.
   const rows = growthModel(scoped, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM });
   const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
-  const stackOf = (r: (typeof rows)[number]) => (showBaseline ? r.doNothing : 0) + r.weighted + r.remaining;
-  const max = Math.max(...rows.map((r) => Math.max(r.target, stackOf(r))), 1) * 1.1;
+  // Operator model: the selected band is a single series. Incremental (orange) = New − Decline + EOL; or view one.
+  const BAND = { incremental: { key: "incremental", label: "Incremental (1−2+3)", color: "#fbbf24" }, new: { key: "new", label: "1 · New (Next-Gen)", color: "#34d399" }, decline: { key: "decline", label: "2 · Decline if unfunded", color: "#fb7185" }, eol: { key: "eol", label: "3 · EOL (Prior-Gen)", color: "#a78bfa" } } as const;
+  const seriesVal = (r: (typeof rows)[number]) => band === "incremental" ? r.incremental : band === "new" ? r.newRev : band === "decline" ? r.declineRev : r.eolRev;
+  const vals = rows.map(seriesVal);
+  const max = Math.max(...rows.map((r) => r.target), ...vals, 1) * 1.1;
+  const minV = Math.min(0, ...vals) * 1.1;
   const pw = (W - L - R) / rows.length;
-  const y = (v: number) => H - B - (v / max) * (H - B - T);
+  const y = (v: number) => H - B - ((v - minV) / (max - minV)) * (H - B - T);
   const cagr = ((Math.pow((rows[rows.length - 1]?.target || 1) / (rows[0]?.target || 1), 1 / Math.max(1, rows.length - 1)) - 1) * 100).toFixed(1);
 
   const selStyle = "rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500";
@@ -4010,30 +4019,21 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
           <line key={f} x1={L} y1={y(max * f)} x2={W - R} y2={y(max * f)} stroke="rgba(148,163,184,.12)" />
         ))}
+        <line x1={L} y1={y(0)} x2={W - R} y2={y(0)} stroke="rgba(148,163,184,.35)" />
         {rows.map((r, i) => {
           const x = L + i * pw + pw * 0.18, bw = pw * 0.64;
-          const base = showBaseline ? r.doNothing : 0;
-          const dnH = (H - B) - y(base);
-          const wY = y(base + r.weighted), rY = y(base + r.weighted + r.remaining);
+          const v = seriesVal(r), yv = y(v), y0 = y(0);
           const on = hover === i;
           const dim = hover != null && !on ? 0.35 : 1;
           const cx = x + bw / 2;
-          const lbl = (yy: number, v: number, fill: string) => v > 0.5 ? <text x={cx} y={yy} textAnchor="middle" fill={fill} fontSize="9" fontWeight="700">{Math.round(v)}</text> : null;
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
-              <title>{r.year}: do-nothing {Math.round(base)} · REV {Math.round(r.weighted)} · upside {Math.round(r.remaining)} · target {Math.round(r.target)}</title>
-              {/* invisible hit area so hover works over the whole column */}
+              <title>{r.year} — {BAND[band].label}: {Math.round(v)} (New {Math.round(r.newRev)} − Decline {Math.round(r.declineRev)} + EOL {Math.round(r.eolRev)}) · target {Math.round(r.target)}</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
-              {showBaseline && <rect x={x} y={y(base)} width={bw} height={Math.max(0, dnH)} fill="#64748b" opacity={on ? 0.95 : 0.7} />}
-              <rect x={x} y={wY} width={bw} height={Math.max(0, y(base) - wY)} fill="#34d399" opacity={on ? 1 : 0.9} />
-              <rect x={x} y={rY} width={bw} height={Math.max(0, wY - rY)} fill="#fbbf24" opacity={on ? 1 : 0.9} />
+              <rect x={x} y={Math.min(yv, y0)} width={bw} height={Math.max(0, Math.abs(yv - y0))} fill={BAND[band].color} rx={1} opacity={on ? 1 : 0.9} />
               <text x={cx} y={H - B + 12} textAnchor="middle" fill={on ? "#e2e8f0" : "#64748b"}>{r.year}</text>
-              <text x={cx} y={rY - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(stackOf(r))}</text>
-              {/* On hover: reveal grey / green / orange segment numbers in-place */}
-              {on && showBaseline && lbl(y(base) + dnH / 2 + 3, base, "#cbd5e1")}
-              {on && lbl((wY + y(base)) / 2 + 3, r.weighted, "#06281f")}
-              {on && lbl((rY + wY) / 2 + 3, r.remaining, "#3a2a06")}
+              <text x={cx} y={(v >= 0 ? yv : yv + 12) - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(v)}</text>
             </g>
           );
         })}
@@ -4041,11 +4041,14 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
         {rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
       </svg>
 
-      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b" }} />Do-Nothing baseline (grey — set 0 for per-project)</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />REV · probability-weighted</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />Upside · risk-weighted</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />Growth target</span>
+      {/* Band view: Incremental (1−2+3) default, or one component (operator) */}
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
+        {(["incremental", "new", "decline", "eol"] as const).map((k) => (
+          <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
+            className={`rounded border px-2 py-0.5 ${band === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
+            style={band === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
+        ))}
+        <span className="ml-1 text-slate-500"><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />Growth target</span>
       </div>
 
       {/* Adjustable rates + revenue options (FLIR control parity) */}

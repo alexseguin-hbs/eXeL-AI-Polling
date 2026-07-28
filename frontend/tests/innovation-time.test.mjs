@@ -79,6 +79,11 @@ ok(gm[0].doNothing > gm[5].doNothing, "do-nothing declines YoY");
 ok(gm[5].target > gm[0].target, "target grows YoY");
 ok(gm.every((r) => r.remaining >= 0), "remaining-to-target never negative");
 ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
+// H2 — the three operator components + Incremental summation (1 − 2 + 3)
+ok(gm.every((r) => Math.abs(r.incremental - (r.newRev - r.declineRev + r.eolRev)) < 1e-9), "incremental = New − Decline + EOL");
+ok(gm.every((r) => r.newRev >= 0 && r.declineRev >= 0 && r.eolRev >= 0), "growth components are non-negative");
+ok(gm[0].declineRev === 0 && gm[5].declineRev > gm[0].declineRev, "decline-if-unfunded grows from zero at year 0");
+ok(gm[0].newRev === gm[0].weighted, "New band = probability-weighted next-gen ramp");
 
 /* ---------------- Rack & Stack 2525: hierarchy + crowd-sourced risk register ---------------- */
 import {
@@ -270,6 +275,12 @@ ok(ov.length === 10, "financials overview spans 10 years");
 ok(ov[0].rdK > 0 && ov[9].rdK === 0, "R&D expense front-loaded (spent early, zero by year 10)");
 ok(ov.every((r) => r.marginM <= r.revM + 1e-6), "yearly margin ≤ revenue");
 ok(Math.abs(ov.reduce((s, r) => s + r.rdK, 0) - DEMO_PROJECTS.find((p) => p.id === "PRJ-01").nreK) < 2, "R&D expense sums to project NRE");
+// H2 margin double-check — existing-year Mgn = Rev × the ONE margin % source (no double-applied margin; only
+// 1-decimal display rounding differs). Guards against a second/independent margin factor drifting Rev vs Mgn.
+{
+  const mp = execOf(DEMO_PROJECTS.find((p) => p.id === "PRJ-01")).marginPct / 100;
+  ok(ov.filter((r) => r.revM > 0).every((r) => Math.abs(r.marginM - r.revM * mp) <= 0.15), "existing-year Mgn = Rev × one margin % (within rounding)");
+}
 
 // dependencies (§4): edges + summary + both origins
 ok(DEMO_DEPS.length >= 8 && DEMO_DEPS.every((e) => e.from !== e.to && e.risks.length >= 1), "dependency edges are non-self, risk-typed");

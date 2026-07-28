@@ -1077,7 +1077,13 @@ export function nodeAllocation(
 // The signature Rack-&-Stack chart: a base revenue that declines YoY with no new launches,
 // the probability-weighted incremental revenue from funded NPIs ramping in, the gap remaining
 // to the growth target, and the target line itself. All derived from the funded portfolio.
-export interface GrowthYear { year: number; doNothing: number; weighted: number; remaining: number; target: number }
+// Growth-model row. Legacy stack fields (doNothing/weighted/remaining/target) retained; the operator's three
+// revenue components + their summation are added alongside: newRev (Next-Gen) − declineRev (decline-if-unfunded)
+// + eolRev (prior-gen EOL tail) = incremental (shown as the orange "Incremental Revenue" band, view "1−2+3").
+export interface GrowthYear {
+  year: number; doNothing: number; weighted: number; remaining: number; target: number;
+  newRev: number; declineRev: number; eolRev: number; incremental: number;
+}
 // Revenue Options (FLIR "Revenue Options" control): which NPI streams count toward the model.
 // full = Step 1+2+3 R&S incremental · new = Step 1 only (new product) · eol = Step 3 only
 // (existing/phase-out/EOL, if funded) · noStep2 = Step 1+3 without Step 2 (do-nothing).
@@ -1105,10 +1111,17 @@ export function growthModel(
     const weighted = annualNpi * ramp;
     const target = annualBase * Math.pow(1 + growth, y);
     const remaining = Math.max(0, target - doNothing - weighted);
-    out.push({ year: baseYear + y, doNothing, weighted, remaining, target });
+    // Operator's three components (single source — no second do-nothing computation): (1) New = next-gen ramp,
+    // (2) Decline = revenue eroded vs base if unfunded, (3) EOL = prior-gen tail (quarter of the existing line).
+    const newRev = weighted;
+    const declineRev = Math.max(0, annualBase - doNothing);
+    const eolRev = doNothing * EOL_FRACTION;
+    const incremental = newRev - declineRev + eolRev; // "1 − 2 + 3" → Incremental Revenue (orange)
+    out.push({ year: baseYear + y, doNothing, weighted, remaining, target, newRev, declineRev, eolRev, incremental });
   }
   return out;
 }
+export const EOL_FRACTION = 0.25; // prior-gen EOL tail as a share of the existing (do-nothing) line
 
 // ── PORTFOLIO HIERARCHY — highest-complexity large-business tree (re-nameable) ───────────
 // Company → BU → SBU → Product Group → Alpha Group → Product # → Material # (BOM).
