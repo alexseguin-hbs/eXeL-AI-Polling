@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { MessageSquarePlus, Camera, X, Send, Loader2 } from "lucide-react";
+import { MessageSquarePlus, Camera, Scissors, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -37,9 +37,27 @@ export function FeedbackWidget({
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Open file picker for screenshot upload — no desktop capture (privacy)
+  // Open file picker for screenshot upload
   const captureScreenshot = useCallback(() => {
     fileInputRef.current?.click();
+  }, []);
+
+  // Built-in snip — user-initiated screen capture (getDisplayMedia). Grabs one frame → PNG. Falls back to the file
+  // picker where the API is unavailable/denied. Always user-gestured; nothing captured without an explicit click.
+  const snip = useCallback(async () => {
+    const md = navigator.mediaDevices as (MediaDevices & { getDisplayMedia?: (c: unknown) => Promise<MediaStream> }) | undefined;
+    if (!md?.getDisplayMedia) { fileInputRef.current?.click(); return; }
+    try {
+      const stream = await md.getDisplayMedia({ video: { displaySurface: "browser" }, audio: false });
+      const vid = document.createElement("video");
+      vid.srcObject = stream; vid.muted = true; await vid.play();
+      await new Promise((r) => setTimeout(r, 180));
+      const c = document.createElement("canvas"); c.width = vid.videoWidth || 1280; c.height = vid.videoHeight || 720;
+      c.getContext("2d")?.drawImage(vid, 0, 0, c.width, c.height);
+      stream.getTracks().forEach((t) => t.stop());
+      setScreenshot(c.toDataURL("image/png"));
+      toast({ title: "Snip captured — crop before sending if needed" });
+    } catch { /* cancelled / denied — no-op */ }
   }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,11 +83,24 @@ export function FeedbackWidget({
         ? "tablet"
         : "desktop";
 
+      // Auto-capture the page context so any feedback carries where/when it came from — the operator
+      // wanted "the system captures the page and details of page" without the user typing it.
+      const ctx = [
+        `Path: ${typeof location !== "undefined" ? location.pathname + location.search : "n/a"}`,
+        `Page: ${typeof document !== "undefined" ? document.title : "n/a"}`,
+        `Viewport: ${typeof window !== "undefined" ? `${window.innerWidth}×${window.innerHeight}` : "n/a"}`,
+        `At: ${new Date().toISOString()}`,
+      ].join(" · ");
+
       await api.post("/feedback", {
         session_id: sessionId || null,
-        feedback_text: screenshot
-          ? `${text.trim()}\n\n[Screenshot attached: ${screenshot.length} bytes]`
-          : text.trim(),
+        feedback_text: [
+          text.trim(),
+          screenshot ? `[Screenshot attached: ${screenshot.length} bytes]` : null,
+          `[Context] ${ctx}`,
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
         screen,
         category,
         device_type: deviceType,
@@ -188,16 +219,28 @@ export function FeedbackWidget({
 
             {/* Actions */}
             <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-2 text-xs"
-                onClick={captureScreenshot}
-                title="Capture or upload screenshot"
-              >
-                <Camera className="h-3.5 w-3.5 mr-1" />
-                Screenshot
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={snip}
+                  title="Snip a region of the screen (built-in)"
+                >
+                  <Scissors className="h-3.5 w-3.5 mr-1" />
+                  Snip
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={captureScreenshot}
+                  title="Upload a screenshot image"
+                >
+                  <Camera className="h-3.5 w-3.5 mr-1" />
+                  Upload
+                </Button>
+              </div>
 
               <Button
                 size="sm"

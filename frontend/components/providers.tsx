@@ -57,6 +57,14 @@ function SiteFooter() {
     <footer className="w-full border-t border-border/40 bg-background/60">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <FeedbackWidget screen={screen} docked />
+        {/* SECURITY-2525 lives on the footer line with Feedback + eXeL AI, tool-wide (operator ask). */}
+        <a
+          href="/main/Security-2525/"
+          className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
+          title="SECURITY-2525"
+        >
+          SECURITY-2525
+        </a>
         <Suspense><PoweredBadge docked /></Suspense>
       </div>
     </footer>

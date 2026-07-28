@@ -287,13 +287,8 @@ export default function LandingPage() {
             <a href="/dashboard/">{t("shared.landing.facilitator_button")}</a>
           </Button>
         </div>
-        {/* DIRECT access to SECURITY-2525 — now an in-flow link at the end of the page content (no longer a
-            fixed floating pill). NOT Easter-egg gated; lands on the PLANNING tab. Feedback + eXeL AI sit in the
-            global site footer below. */}
-        <a href="/main/Security-2525/"
-          className="mt-10 rounded-full border bg-background/85 px-3 py-1 font-mono text-xs text-muted-foreground transition-colors hover:text-primary hover:bg-background/95">
-          SECURITY-2525
-        </a>
+        {/* SECURITY-2525 now lives on the global site footer line (with Feedback + eXeL AI), tool-wide —
+            so the homepage no longer carries its own in-flow pill (removed to avoid a duplicate). */}
       </main>
       {/* CELESTIAL-2525 is now reached ONLY via the hidden easter-egg link on the "Trinity Framework" title
           (below the white trinity emblem) — no visible footer link. A little gift for the curious. */}
