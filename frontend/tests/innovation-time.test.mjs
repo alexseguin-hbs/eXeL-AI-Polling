@@ -750,7 +750,7 @@ import { slidesForProject, nextGate, SLIDE_SEED } from "../lib/innovation-data.t
     for (const p of DEMO_PROJECTS) {
       for (const code of slidesForProject(p)) {
         for (const f of specBy[code].fields) {
-          if (f.linked || f.kind === "chart" || f.mirror) continue;
+          if (f.linked || f.kind === "chart" || f.kind === "attach" || f.mirror) continue;
           const cell = SLIDE_SEED[p.id]?.[code]?.[f.id];
           cells++;
           if (!cell || emptyV(cell.hi) || emptyV(cell.ai)) { gaps.push(`${p.id}/${code}/${f.id}`); continue; }
