@@ -231,12 +231,12 @@ function Card({ item }: { item: Item }) {
                   <img src={item.image.src} alt={t(item.image.altKey)} className="block h-auto w-full" />
                 </button>
               )}
-              {/* Build / Value stats — under the image, before the demo toggle */}
+              {/* Build / Value stats — under the image, before the demo toggle (label + value on one line each) */}
               {item.stats && item.stats.length > 0 && (
-                <div className="mt-3 grid gap-x-4 gap-y-2 rounded-lg border border-border/60 bg-background/40 p-3 sm:grid-cols-2">
+                <div className="mt-3 space-y-1.5 rounded-lg border border-border/60 bg-background/40 p-3">
                   {item.stats.map((s) => (
-                    <div key={s.valueKey} className="flex flex-col">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">{t(s.labelKey)}</span>
+                    <div key={s.valueKey} className="flex items-baseline gap-2">
+                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-primary">{t(s.labelKey)}</span>
                       <span className="text-[13px] font-medium text-foreground">{t(s.valueKey)}</span>
                     </div>
                   ))}
