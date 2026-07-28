@@ -10,7 +10,7 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles, TrendingUp, KeyRound } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles, TrendingUp, KeyRound, X } from "lucide-react";
 import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
 
@@ -178,8 +178,10 @@ function Card({ item }: { item: Item }) {
   const { t } = useLexicon();
   const [open, setOpen] = useState(item.defaultOpen ?? false);
   const [showCode, setShowCode] = useState(false); // gated demo reveal: code hidden until opt-in
+  const [zoom, setZoom] = useState(false); // full-screen image lightbox
   const Icon = item.icon ?? (item.kind === "pdf" ? FileText : item.kind === "video" ? Play : ExternalLink);
   return (
+    <>
     <div className="rounded-xl border border-border/60 bg-card">
       <div className="flex items-start gap-3 p-4">
         {/* open link — LEFT */}
@@ -214,12 +216,17 @@ function Card({ item }: { item: Item }) {
           {open && (
             <div className="mt-3">
               <p className="text-[13px] leading-relaxed text-muted-foreground">{t(item.blurbKey)}</p>
-              {/* Inline image — shown under the text by default (no toggle) */}
+              {/* Inline image — shown under the text by default; click opens it full-screen */}
               {item.image && (
-                <a href={item.href} target="_blank" rel="noopener noreferrer" className="mt-3 block overflow-hidden rounded-lg border border-primary/20">
+                <button
+                  type="button"
+                  onClick={() => setZoom(true)}
+                  aria-label={`${t(item.image.altKey)} — view full screen`}
+                  className="mt-3 block w-full cursor-zoom-in overflow-hidden rounded-lg border border-primary/20"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.image.src} alt={t(item.image.altKey)} className="block h-auto w-full" />
-                </a>
+                </button>
               )}
               {item.kind === "pdf" && (
                 <div className="mt-3 flex items-center gap-2">
@@ -285,20 +292,11 @@ function Card({ item }: { item: Item }) {
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showCode ? "rotate-180" : ""}`} />
                   </button>
                   {showCode && (
-                    <div className="mt-2 rounded-lg border border-primary/25 bg-primary/5 p-2.5">
-                      <div className="mb-2 flex items-center gap-1.5 text-[12px] text-foreground">
-                        <KeyRound className="h-3.5 w-3.5 shrink-0 text-primary" />
+                    <div className="mt-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5">
+                      <div className="flex items-center gap-2 font-mono text-sm font-semibold tracking-wide text-foreground">
+                        <KeyRound className="h-4 w-4 shrink-0 text-primary" />
                         <span>{t(item.demo.codeKey)}</span>
                       </div>
-                      <a
-                        href={item.demo.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        {t(item.demo.openKey)}
-                      </a>
                     </div>
                   )}
                 </div>
@@ -319,6 +317,28 @@ function Card({ item }: { item: Item }) {
         </button>
       </div>
     </div>
+
+    {/* Full-screen image lightbox — click anywhere (or ✕) to close */}
+    {zoom && item.image && (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+        onClick={() => setZoom(false)}
+        role="dialog"
+        aria-modal="true"
+      >
+        <button
+          type="button"
+          onClick={() => setZoom(false)}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={item.image.src} alt={t(item.image.altKey)} className="max-h-full max-w-full object-contain" />
+      </div>
+    )}
+    </>
   );
 }
 
