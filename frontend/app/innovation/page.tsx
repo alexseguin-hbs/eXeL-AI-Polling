@@ -34,7 +34,7 @@ import {
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
-  seedBizSetup, BIZ_TIERS,
+  seedBizSetup, BIZ_TIERS, fmtPerCadence, CADENCE_UNIT, type Cadence,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
@@ -80,17 +80,15 @@ function loadSegLib(): string[] {
 type Persona = "pm" | "mgr" | "sbu" | "vp";
 const PERSONAS: { key: Persona; label: string; glyph: string; lens: string; view: "portfolio" | "gates" | "dashboards" | "setup"; level?: HierKey }[] = [
   { key: "pm",  label: "Product / Project Mgr", glyph: "◱", lens: "Deep-dive one project — gates, 12 metrics, financials, risks, Say/Do.", view: "portfolio", level: "product" },
-  { key: "mgr", label: "Manager",               glyph: "☰", lens: "Your projects above/below the funding line — reprioritize the working stack.", view: "portfolio", level: "product" },
-  { key: "sbu", label: "SBU Director",          glyph: "▤", lens: "SBU rollup + funding decisions across Alpha Groups.", view: "portfolio", level: "sbu" },
-  { key: "vp",  label: "VP · Portfolio",        glyph: "◈", lens: "Whole-portfolio dashboards, growth model, dependencies, gate readiness.", view: "dashboards" },
+  { key: "mgr", label: "Manager",               glyph: "☰", lens: "Alpha-Group rollup — funding decisions across your projects, financial projection on top.", view: "portfolio", level: "pgroup" },
+  { key: "sbu", label: "SBU Director",          glyph: "▤", lens: "SBU rollup + funding decisions across Alpha Groups — financial projection on top.", view: "portfolio", level: "sbu" },
+  { key: "vp",  label: "VP · Portfolio",        glyph: "◈", lens: "Whole-portfolio (BU) rollup — financial projection on top, growth model, dependencies, gate readiness.", view: "portfolio", level: "bu" },
 ];
 const usd = (m: number) => `$${m.toFixed(1)}M`;
 const k = (n: number) => `$${(n / 1000).toFixed(1)}M`;
 // Shared data-viz palette (single source, Spiral) — named tokens used by charts/bars/scatter so no surface
 // re-introduces a stray hex. Trinity-aligned: AI cyan · SI sunset · HI violet, plus semantic accents.
 const VIZ = { cyan: "#19c8cf", violet: "#c084fc", amber: "#fbbf24", rose: "#fb7185", emerald: "#34d399", sunset: "#f7b955", hiViolet: "#a78bfa", slate: "#334155" } as const;
-// Shared $/min burn formatter (hoisted — was duplicated across the buckets/allocation/dashboard surfaces).
-const fmtPerMin = (n: number) => (n >= 1 ? `$${Math.round(n).toLocaleString()}/min` : n > 0 ? `$${n.toFixed(2)}/min` : "$0/min");
 // Raw project-category string → the project-type (DEV_TYPE) color, so category surfaces read from ONE palette
 // (Spiral: was a hardcoded #38bdf8). Mirrors devTypeOf's category regex (gate isn't available at the category level).
 const categoryColor = (cat: string): string =>
@@ -526,36 +524,32 @@ function Board() {
         </div>
       </header>
 
-      {/* Persona lens (12-AsM usability) — reframe the same portfolio by operator role */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 bg-[#0c1219] px-5 py-2">
-        <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.persona.viewAs")}</span>
-        <div className="flex flex-wrap gap-1">
-          {PERSONAS.map((pp) => (
-            <button key={pp.key}
-              onClick={() => { setPersona(pp.key); setView(pp.view); if (pp.level) setStackLevel(pp.level); setDrill(null); }}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium ${persona === pp.key ? "bg-cyan-500 text-[#06202a]" : "border border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
-              <span className="mr-1">{pp.glyph}</span>{t(`innovation.persona.${pp.key}.label`)}
-            </button>
-          ))}
-          {/* See in another lens (Slice 7 · G2) — cycle to the next persona in one motion */}
-          <button title={t("innovation.persona.anotherLens")}
-            onClick={() => { const idx = PERSONAS.findIndex((x) => x.key === persona); const nx = PERSONAS[(idx + 1) % PERSONAS.length]; setPersona(nx.key); setView(nx.view); if (nx.level) setStackLevel(nx.level); setDrill(null); }}
-            className="rounded-md border border-cyan-500/40 px-2 py-1 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">↔ {t("innovation.persona.anotherLens")}</button>
-        </div>
-        {/* Optimization cadence — quarterly (legacy) → monthly (now) → weekly (next) */}
-        <div className="ml-auto flex items-center gap-2">
+      {/* Persona lens + optimize cadence — ONE row of dropdowns (operator: "one row for View as and Optimize"). */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-800 bg-[#0c1219] px-5 py-2">
+        <label className="flex items-center gap-2">
+          <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.persona.viewAs")}</span>
+          <select value={persona} aria-label={t("innovation.persona.viewAs")}
+            onChange={(e) => { const pp = PERSONAS.find((x) => x.key === (e.target.value as Persona)); if (!pp) return; setPersona(pp.key); setView(pp.view); if (pp.level) setStackLevel(pp.level); setDrill(null); }}
+            className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500">
+            {PERSONAS.map((pp) => <option key={pp.key} value={pp.key}>{pp.glyph} {t(`innovation.persona.${pp.key}.label`)}</option>)}
+          </select>
+        </label>
+        {/* See in another lens — cycle to the next persona in one motion (kept as a quick shortcut). */}
+        <button title={t("innovation.persona.anotherLens")}
+          onClick={() => { const idx = PERSONAS.findIndex((x) => x.key === persona); const nx = PERSONAS[(idx + 1) % PERSONAS.length]; setPersona(nx.key); setView(nx.view); if (nx.level) setStackLevel(nx.level); setDrill(null); }}
+          className="rounded-md border border-cyan-500/40 px-2 py-1 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">↔ {t("innovation.persona.anotherLens")}</button>
+        <label className="ml-auto flex items-center gap-2">
           <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.cadence.optimize")}</span>
-          <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
-            {(["Q", "M", "W", "D"] as const).map((c) => (
-              <button key={c} onClick={() => setCadence(c)} title={c === "D" ? "Daily — System of Intelligence, speed of thought" : undefined}
-                className={`px-2 py-1 ${cadence === c ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{t(`innovation.cadence.${c}`)}</button>
-            ))}
-          </div>
-        </div>
+          <select value={cadence} aria-label={t("innovation.cadence.optimize")}
+            onChange={(e) => setCadence(e.target.value as "Q" | "M" | "W" | "D")}
+            className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500">
+            {(["Q", "M", "W", "D"] as const).map((c) => <option key={c} value={c}>{t(`innovation.cadence.${c}`)}</option>)}
+          </select>
+        </label>
       </div>
       <p className="border-b border-slate-800 bg-[#0c1219] px-5 pb-2 text-[11px] text-slate-400">
         <span className="hidden sm:inline">{t(`innovation.persona.${persona}.lens`)} · </span>
-        Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : cadence === "W" ? "weekly" : "daily"}</b> · time is money — cost shown in $/min on each project · AI + HI now, SI polling next.
+        Re-optimizing <b className="text-cyan-300">{cadence === "Q" ? "quarterly" : cadence === "M" ? "monthly" : cadence === "W" ? "weekly" : "daily"}</b> · time is money — cost shown in <b className="text-cyan-300">$/{CADENCE_UNIT[cadence].short}</b> on each project · AI + HI now, SI polling next.
       </p>
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
@@ -573,6 +567,14 @@ function Board() {
       {/* Scroll rail — the only scrolling region; header/persona/tabs above stay fixed (app-shell) */}
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
       {view === "portfolio" && (<>
+      {/* Portfolio Growth Model — the signature financial projection. Baseline financials live at the BU / SBU /
+          Alpha Group roll-up (Business Setup), so it shows ON TOP whenever a roll-up level is selected (Manager /
+          SBU Director / VP) — not at Alpha Code / Product # / Material #, where there is no baseline to age against. */}
+      {isGroupLevel && (
+        <div className="px-5 pt-4 pb-1">
+          <GrowthModelChart funded={fundedRows.map((r) => r.p)} cadence={cadence} />
+        </div>
+      )}
       {/* Orientation-aware split: landscape = list LEFT / detail RIGHT · portrait = list TOP / detail BOTTOM
           (revealed on tap so phone users can reach the details). */}
       <div className="flex flex-col gap-4 p-5 landscape:flex-row landscape:items-start">
@@ -799,7 +801,7 @@ function Board() {
             onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           <TimeEngine p={sel} />
           <GateCube p={sel} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
-          <Differentiators p={sel} />
+          <Differentiators p={sel} cadence={cadence} />
           <TeamRoles projectId={sel.id} members={members} me={me} onChange={persistMembers} />
         </section>
       </div>
@@ -828,15 +830,6 @@ function Board() {
           )}
         </div>
       </div>
-
-      {/* Portfolio Growth Model — the signature Rack & Stack chart. Baseline financials live at the BU / SBU /
-          Alpha Group roll-up (Business Setup), so this projection only shows at those decision levels — not at
-          Alpha Code / Product # / Material # and below, where there is no baseline to age against. */}
-      {isGroupLevel && (
-        <div className="px-5 pb-2">
-          <GrowthModelChart funded={fundedRows.map((r) => r.p)} />
-        </div>
-      )}
       </>)}
 
       {view === "gates" && (
@@ -847,7 +840,7 @@ function Board() {
 
       {view === "dashboards" && (
         <div className="p-5">
-          <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
+          <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} cadence={cadence} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
         </div>
       )}
 
@@ -868,7 +861,7 @@ function Board() {
       {historyOpen && <HistoryModal activity={activity} onClose={() => setHistoryOpen(false)} />}
 
       {/* Budget popup — per-SBU / per-Alpha-Group budget incl. unfunded projects */}
-      {budgetOpen && <BudgetModal projects={scoped} fundedIds={new Set(fundedRows.map((r) => r.p.id))} availK={avail} budgetOverrideK={budgetOverrideK} onSetBudget={setNodeBudget} canEditBudget={can(myRole, "editBudget")} onClose={() => setBudgetOpen(false)} />}
+      {budgetOpen && <BudgetModal projects={scoped} fundedIds={new Set(fundedRows.map((r) => r.p.id))} availK={avail} budgetOverrideK={budgetOverrideK} onSetBudget={setNodeBudget} canEditBudget={can(myRole, "editBudget")} cadence={cadence} onClose={() => setBudgetOpen(false)} />}
 
       {/* Full-screen deep-dive overlay (⤢ maximize) */}
       {detailMax && (
@@ -1673,7 +1666,7 @@ function downloadOutcomeBrief(p: Project) {
   URL.revokeObjectURL(url);
 }
 
-function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget, canEditBudget, onClose }: { projects: Project[]; fundedIds: Set<string>; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; onSetBudget: (level: string, code: string, budgetK: number | null) => void; canEditBudget: boolean; onClose: () => void }) {
+function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget, canEditBudget, cadence = "M", onClose }: { projects: Project[]; fundedIds: Set<string>; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; onSetBudget: (level: string, code: string, budgetK: number | null) => void; canEditBudget: boolean; cadence?: Cadence; onClose: () => void }) {
   const { t } = useLexicon();
   const closeRef = useModalDismiss(onClose); // shared a11y: Escape-to-close + focus + return-focus
   const [level, setLevel] = useState<"bu" | "sbu" | "pgroup">("bu");
@@ -1737,14 +1730,14 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                 <span className="text-slate-500">NRE</span><span className="text-right tabular-nums text-slate-200">{k(a.nreK)}</span>
                 <span className="text-slate-500">NPV</span><span className={`text-right tabular-nums ${a.npvM >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{usd(a.npvM)}</span>
                 <span className="text-slate-500">P-wt rev</span><span className="text-right tabular-nums text-slate-300">{usd(a.pwRevM)}</span>
-                <span className="text-slate-500" title="Live burn — NRE spread across the program schedule">$/min</span><span className="text-right tabular-nums text-amber-300">{fmtPerMin(a.perMinUsd)}</span>
+                <span className="text-slate-500" title="Live burn — NRE spread across the program schedule">$/{CADENCE_UNIT[cadence].short}</span><span className="text-right tabular-nums text-amber-300">{fmtPerCadence(a.perMinUsd, cadence)}</span>
               </div>
             </div>
           );
           return (
             <div className="border-b border-slate-800 px-4 py-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {buckets.length} {levelLabel}{buckets.length === 1 ? "" : "s"} × funded / unfunded · live $/min burn</span>
+                <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {buckets.length} {levelLabel}{buckets.length === 1 ? "" : "s"} × funded / unfunded · live $/{CADENCE_UNIT[cadence].short} burn</span>
                 <span className="text-[10px] text-slate-500">a project sits in one bucket, set by the funding line</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -1801,7 +1794,7 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                         <span className="text-slate-500">{t("innovation.alloc.allocated")}</span><span className="text-right tabular-nums text-slate-300">{k(n.allocatedK)}</span>
                         <span className="text-cyan-400">◆ {t("innovation.alloc.upside")}</span><span className="text-right tabular-nums text-cyan-300">{k(n.upsideK)}</span>
                         {n.overK > 0 && (<><span className="text-rose-400">{t("innovation.alloc.over")}</span><span className="text-right tabular-nums text-rose-300">{k(n.overK)}</span></>)}
-                        <span className="text-slate-500" title="Live burn of the funded projects at this node">{t("innovation.alloc.perMin")}</span><span className="text-right tabular-nums text-amber-300">{fmtPerMin(n.perMinUsd)}</span>
+                        <span className="text-slate-500" title="Live burn of the funded projects at this node">$/{CADENCE_UNIT[cadence].short}</span><span className="text-right tabular-nums text-amber-300">{fmtPerCadence(n.perMinUsd, cadence)}</span>
                       </div>
                     </div>
                   );
@@ -2681,6 +2674,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   const [bags, setBags] = useState<Record<string, ProjFieldBag>>({});
   const [status, setStatus] = useState<Record<string, string>>({});
   const [present, setPresent] = useState(false);
+  // Present-mode live source override (operator): flip the WHOLE deck between the human baseline and the enhanced
+  // AI while presenting, or honor each field's own per-field choice ("set"). Edit mode always uses per-field mode.
+  const [presentSrc, setPresentSrc] = useState<"set" | "hi" | "ai">("set");
   const [srcOpen, setSrcOpen] = useState(false); // "edit source record" panel (single source of truth)
   useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); }, []);
   const spec = SLIDE_SCHEMA[idx];
@@ -2689,14 +2685,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   const aiFor = (code: string, fid: string): SlideFieldValue => aiSlideField(p, code, fid);
   // Effective value for display + present: linked → live record; else the active-mode slot (AI slot falls back
   // to the deterministic AI draft); empty + mirror → inherit the referenced slide's field.
-  const effective = (sp: SlideSpec, f: SlideField): SlideFieldValue => {
+  const effective = (sp: SlideSpec, f: SlideField, srcOverride?: "set" | "hi" | "ai"): SlideFieldValue => {
     if (f.linked) return linkedSlideField(p, sp.code, f.id);
     const c = cellOf(sp.code, f.id);
-    const v = c.mode === "ai" ? (fieldEmpty(c.ai) ? aiFor(sp.code, f.id) : c.ai) : c.hi;
+    // Present-mode override (As-set → per-field mode; HI/AI → force that slot); edit mode passes nothing.
+    const m = srcOverride && srcOverride !== "set" ? srcOverride : c.mode;
+    const v = m === "ai" ? (fieldEmpty(c.ai) ? aiFor(sp.code, f.id) : c.ai) : c.hi;
     if (fieldEmpty(v) && f.mirror) {
       const [mc, mf] = f.mirror.split(".");
       const ms = slideSpec(mc); const mff = ms?.fields.find((x) => x.id === mf);
-      if (ms && mff) return effective(ms, mff);
+      if (ms && mff) return effective(ms, mff, srcOverride);
     }
     return v;
   };
@@ -2818,7 +2816,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <MiniFinChart kind={sp.code} big={big} />
       </div>
     );
-    const v = effective(sp, f); if (fieldEmpty(v)) return null;
+    const v = effective(sp, f, presentSrc); if (fieldEmpty(v)) return null;
     const isVp = /valueprop|vprop|desc/i.test(f.id) || f.name.toLowerCase().includes("value prop");
     return (
       <div className={`rounded-lg border ${isVp ? "border-cyan-500/30 bg-cyan-500/[0.05]" : "border-slate-800 bg-[#0b0f14]"} p-3`}>
@@ -2835,7 +2833,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   // PRESENT MODE — full-screen stage (operator: "full-screen stage + live financials"). Tap zones + arrows +
   // swipe; big responsive type; financial fields render live from the project record; value prop is featured.
   if (present) {
-    const anyContent = spec.fields.some((f) => !fieldEmpty(effective(spec, f)) || (f.kind === "chart" && f.linked));
+    const anyContent = spec.fields.some((f) => !fieldEmpty(effective(spec, f, presentSrc)) || (f.kind === "chart" && f.linked));
     return (
       <div className="fixed inset-0 z-[60] flex flex-col bg-[#04070c] text-slate-100" role="dialog" aria-modal="true"
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -2843,7 +2841,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[1] w-[16%] cursor-w-resize bg-transparent" />
         <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[1] w-[16%] cursor-e-resize bg-transparent" />
         {/* stage controls */}
-        <div className="absolute right-3 top-3 z-10 flex gap-2">
+        <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+          {/* Live source override — flip the whole deck between the human baseline and the enhanced AI, or honor
+              each field's own choice ("As set"). */}
+          <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("innovation.present.src")}>
+            {([["set", t("innovation.present.src.set")], ["hi", `웃 ${t("innovation.slides.hi")}`], ["ai", `◬ ${t("innovation.slides.ai")}`]] as const).map(([k, lbl]) => (
+              <button key={k} onClick={() => setPresentSrc(k)} aria-pressed={presentSrc === k}
+                className={`px-2.5 py-1.5 ${presentSrc === k ? (k === "hi" ? "bg-violet-500/25 text-violet-100" : k === "ai" ? "bg-cyan-500/25 text-cyan-100" : "bg-slate-600/40 text-slate-100") : "text-slate-400 hover:bg-slate-800"}`}>{lbl}</button>
+            ))}
+          </div>
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
@@ -3565,11 +3571,10 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
   );
 }
 
-function Differentiators({ p }: { p: Project }) {
+function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }) {
   const monthsEarly = 1.0;
   const programValueM = weightedRevM(p) * 0.35;
   const upsidePoolM = programValueM * 0.111 * monthsEarly;  // CRS-91 ~11.1%/month early
-  const burnPerMinUsd = (p.nreK * 1000) / (18 * 30 * 24 * 60); // NRE burn over ~18 mo, $/min
   const guard = p.humanLoad > 0.7;                              // CRS-93 burnout guard
   return (
     <div className="space-y-4">
@@ -3583,7 +3588,7 @@ function Differentiators({ p }: { p: Project }) {
       {/* Upside pool + $/min */}
       <Card title="Project Upside pool" tag="Time = money">
         <Row l="Pool @ 1 mo early" v={usd(upsidePoolM)} good />
-        <Row l="Cost of time" v={`$${burnPerMinUsd.toFixed(2)}/min`} />
+        <Row l="Cost of time" v={fmtPerCadence(costPerMinuteOf(p), cadence)} />
         <Row l="Critical-path" v={p.criticalPath ? "multiplier ×" : "base rate"} tone={p.criticalPath ? "good" : undefined} />
         <p className="mt-1 text-[11px] text-slate-500">Baseline locked at G2 by an approver outside the team.</p>
       </Card>
@@ -3607,7 +3612,7 @@ function Differentiators({ p }: { p: Project }) {
 // Growth Model — the signature Rack & Stack chart: BU→SBU hierarchy filter, # Years (1/3/10),
 // Targeted Growth Rate, YoY Do-Nothing decline, Revenue Options, Show/Hide baseline, 4-series legend.
 // (Gate cadence lives on the per-project gate overview, not here.)
-function GrowthModelChart({ funded }: { funded: Project[] }) {
+function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadence?: Cadence }) {
   const [bu, setBu] = useState("All");
   const [sbu, setSbu] = useState("All");
   const [pg, setPg] = useState("All");
@@ -3978,7 +3983,7 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
   );
 }
 
-function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; onSelect: (id: string) => void }) {
+function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; cadence?: Cadence; onSelect: (id: string) => void }) {
   const { t } = useLexicon();
   const fundedSet = new Set(funded.map((p) => p.id));
   const buAlloc = nodeAllocation(projects, "bu", (id) => fundedSet.has(id), availK, budgetOverrideK);
@@ -4026,7 +4031,7 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, onSelect }: { p
               <div key={n.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
                 <div className="mb-1 flex items-baseline justify-between">
                   <span className="text-xs font-semibold text-slate-100">{n.code} <span className="font-normal text-slate-500">{n.label}</span></span>
-                  <span className="text-[10px] tabular-nums text-amber-300">{fmtPerMin(n.perMinUsd)}</span>
+                  <span className="text-[10px] tabular-nums text-amber-300">{fmtPerCadence(n.perMinUsd, cadence)}</span>
                 </div>
                 <div className="mb-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800" title={`${n.utilPct}% of budget allocated`}>
                   <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />

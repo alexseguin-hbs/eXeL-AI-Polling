@@ -1291,11 +1291,11 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.persona.pm.label", englishDefault: "Product / Project Mgr", context: "Innovation persona label: PM", cubeId: 60 },
   { key: "innovation.persona.pm.lens", englishDefault: "Deep-dive one project — gates, 12 metrics, financials, risks, Say/Do.", context: "Innovation persona lens: PM", cubeId: 60 },
   { key: "innovation.persona.mgr.label", englishDefault: "Manager", context: "Innovation persona label: Manager", cubeId: 60 },
-  { key: "innovation.persona.mgr.lens", englishDefault: "Your projects above/below the funding line — reprioritize the working stack.", context: "Innovation persona lens: Manager", cubeId: 60 },
+  { key: "innovation.persona.mgr.lens", englishDefault: "Alpha-Group rollup — funding decisions across your projects, financial projection on top.", context: "Innovation persona lens: Manager", cubeId: 60 },
   { key: "innovation.persona.sbu.label", englishDefault: "SBU Director", context: "Innovation persona label: SBU Director", cubeId: 60 },
   { key: "innovation.persona.sbu.lens", englishDefault: "SBU rollup + funding decisions across Alpha Groups.", context: "Innovation persona lens: SBU Director", cubeId: 60 },
   { key: "innovation.persona.vp.label", englishDefault: "VP · Portfolio", context: "Innovation persona label: VP", cubeId: 60 },
-  { key: "innovation.persona.vp.lens", englishDefault: "Whole-portfolio dashboards, growth model, dependencies, gate readiness.", context: "Innovation persona lens: VP", cubeId: 60 },
+  { key: "innovation.persona.vp.lens", englishDefault: "Whole-portfolio (BU) rollup — financial projection on top, growth model, dependencies, gate readiness.", context: "Innovation persona lens: VP", cubeId: 60 },
   // Cadence + tabs + stack controls
   { key: "innovation.cadence.optimize", englishDefault: "Optimize", context: "Innovation optimization-cadence label", cubeId: 60 },
   { key: "innovation.cadence.Q", englishDefault: "Quarterly", context: "Innovation cadence: quarterly", cubeId: 60 },
@@ -1449,6 +1449,8 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.slides.useAi", englishDefault: "Use AI draft", context: "Copy the AI draft into the HI input", cubeId: 60 },
   { key: "innovation.slides.prev", englishDefault: "Prev", context: "Slide-show previous button", cubeId: 60 },
   { key: "innovation.slides.next", englishDefault: "Next", context: "Slide-show next button", cubeId: 60 },
+  { key: "innovation.present.src", englishDefault: "Show", context: "Present-mode source override group label (As-set / HI / AI)", cubeId: 60 },
+  { key: "innovation.present.src.set", englishDefault: "As set", context: "Present-mode source override: honor each field's own HI/AI choice", cubeId: 60 },
   // Generic gate comments + countermeasures (solved per gate)
   { key: "innovation.notes.title", englishDefault: "Gate comments + countermeasures", context: "Gate notes panel title", cubeId: 60 },
   { key: "innovation.notes.solved", englishDefault: "Solved per gate", context: "Gate notes: countermeasures resolved at each gate", cubeId: 60 },

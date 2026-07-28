@@ -707,5 +707,21 @@ import { auditTimeline, isMajorAudit, MAJOR_AUDIT_KINDS } from "../lib/innovatio
   ok(derivedDriversOf(partial).length >= 1, "derivedDriversOf yields ≥1 driver when none were provided");
 }
 
+/* ---------------- Cadence-driven $ unit (Optimize → $/period) ---------------- */
+import { CADENCE_UNIT, fmtPerCadence } from "../lib/innovation-data.ts";
+{
+  ok(["Q", "M", "W", "D"].every((c) => CADENCE_UNIT[c]), "CADENCE_UNIT has all 4 cadences");
+  ok(CADENCE_UNIT.M.short === "mo" && CADENCE_UNIT.W.short === "wk" && CADENCE_UNIT.D.short === "day" && CADENCE_UNIT.Q.short === "qtr", "cadence short units mo/wk/day/qtr");
+  // working-minute multipliers scale D→W→M→Q strictly increasing
+  ok(CADENCE_UNIT.D.perMinMult < CADENCE_UNIT.W.perMinMult && CADENCE_UNIT.W.perMinMult < CADENCE_UNIT.M.perMinMult && CADENCE_UNIT.M.perMinMult < CADENCE_UNIT.Q.perMinMult, "perMinMult increases D<W<M<Q");
+  ok(fmtPerCadence(1, "M").endsWith("/mo"), "fmtPerCadence suffixes /mo for Monthly");
+  ok(fmtPerCadence(1, "W").endsWith("/wk"), "fmtPerCadence suffixes /wk for Weekly");
+  ok(fmtPerCadence(1, "D").endsWith("/day"), "fmtPerCadence suffixes /day for Daily");
+  ok(fmtPerCadence(0, "M") === "$0/mo", "fmtPerCadence handles zero");
+  // month burn = perMin × 21 workdays × 8h × 60 = ×10080; $10/min → $100,800/mo → compact $100k/mo
+  ok(fmtPerCadence(10, "M") === "$101k/mo", "fmtPerCadence scales + compacts ($10/min → $101k/mo)");
+  ok(fmtPerCadence(1, "M") === fmtPerCadence(1, "M"), "fmtPerCadence deterministic");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

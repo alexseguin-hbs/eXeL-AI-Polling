@@ -704,6 +704,26 @@ export function timeReadout(p: Project, startISO: string, unit: TimeUnit) {
 export const TOTAL_PROGRAM_WORKDAYS = GATES.reduce((s, g) => s + GATE_WORKDAYS[g], 0);
 export const costPerMinuteOf = (p: Project): number => (p.nreK * 1000) / TOTAL_PROGRAM_WORKDAYS / (WORKDAY_HOURS * 60);
 
+// Optimize cadence → burn-rate display unit. The burn ($/min) follows the Optimize cadence: re-optimize monthly
+// → cost shown per MONTH, weekly → per WEEK, etc. perMinMult = WORKING minutes per period (same basis as
+// costPerMinuteOf, which is dollars per working minute), so scaling is consistent. Deterministic.
+// (Cadence type is declared with the cadence ladder further below.)
+export const CADENCE_UNIT: Record<Cadence, { word: string; short: string; perMinMult: number }> = {
+  Q: { word: "quarter", short: "qtr", perMinMult: WORKDAYS_PER_MONTH * 3 * WORKDAY_HOURS * 60 }, // 63 workdays
+  M: { word: "month",   short: "mo",  perMinMult: WORKDAYS_PER_MONTH * WORKDAY_HOURS * 60 },     // 21 workdays
+  W: { word: "week",    short: "wk",  perMinMult: 5 * WORKDAY_HOURS * 60 },                       // 5 workdays
+  D: { word: "day",     short: "day", perMinMult: WORKDAY_HOURS * 60 },                           // 1 workday
+};
+/** Format a per-working-minute burn as $/period for the chosen cadence (compact $ + "/mo|wk|qtr|day"). */
+export function fmtPerCadence(perMinUsd: number, c: Cadence): string {
+  const s = CADENCE_UNIT[c].short;
+  const v = perMinUsd * CADENCE_UNIT[c].perMinMult;
+  if (!(v > 0)) return `$0/${s}`;
+  if (v >= 1e6) return `$${(v / 1e6).toFixed(v >= 1e7 ? 0 : 1)}M/${s}`;
+  if (v >= 1e3) return `$${(v / 1e3).toFixed(0)}k/${s}`;
+  return `$${Math.round(v).toLocaleString()}/${s}`;
+}
+
 // Upside spending accelerator lever (per-project intake) — extra $ deployed to pull schedule + revenue
 // forward (the "Project Upside" $/min lever). Default intake = 15% of NRE; months pulled forward scale with
 // the accelerator/NRE ratio (capped ~6 mo); revenue moved left ≈ incremental rev × pulled-forward fraction.
