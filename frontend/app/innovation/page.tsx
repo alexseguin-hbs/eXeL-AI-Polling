@@ -790,7 +790,7 @@ function Board() {
                     return (
                       <React.Fragment key={p.id}>
                         {/* Product # header (rolled-up by default) — click to expand the BOM build */}
-                        <tr onClick={() => { toggleBom(p.id); selectProject(p.id); }} title={open ? "Collapse BOM build" : "Expand BOM build"} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${selId === p.id ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
+                        <tr onClick={() => toggleBom(p.id)} title={open ? "Collapse BOM build" : "Expand BOM build"} className={`cursor-pointer border-b border-slate-800 bg-slate-900/40 ${open ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
                           <td className="px-2 py-1.5 font-mono font-semibold text-cyan-300"><span className="mr-1 text-slate-500">{open ? "▾" : "▸"}</span>{hierOf(p).product}</td>
                           <td className="px-2 py-1.5 text-slate-300" colSpan={6}>{p.name} <span className="text-[10px] text-slate-500">· Material {hierOf(p).material} · {hierOf(p).pgroup} · {lines.length} lines{open ? "" : " · tap to expand BOM"}</span></td>
                           <td className="px-2 py-1.5 text-right text-[10px] uppercase tracking-wider text-slate-500">Prod cost →</td>
@@ -817,7 +817,7 @@ function Board() {
             )}
           </div>
           <div className="px-4 py-1.5 text-[10px] text-slate-500 border-t border-slate-800">
-            {isGroupLevel ? "Decision roll-up · click a row to drill to its projects" : stackLevel === "product" ? "Working stack · drag ⠿ or ▲▼ to reprioritize — NPV/REV/NRE follow the project · click → financials + Stage-Gate deep dive" : "BOM · components & assemblies · click → project deep dive"}
+            {isGroupLevel ? "Decision roll-up · click a row to drill to its projects" : stackLevel === "product" ? "Working stack · drag ⠿ or ▲▼ to reprioritize — NPV/REV/NRE follow the project · click → financials + Stage-Gate deep dive" : "BOM · components & assemblies · tap a Product # to expand its material roll-up in place"}
           </div>
         </section>
 
