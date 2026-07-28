@@ -439,8 +439,8 @@ ok(GATES_N.every((g) => GATE_NOTES[g].countermeasures.every((c) => c.solved === 
 
 /* ---------------- Digital slide show (S1–S18) — HI hint + AI version ---------------- */
 import { SLIDES, slideDef, slideHintOf, aiSlideOf } from "../lib/innovation-data.ts";
-ok(SLIDES.length === 18, "SLIDES enumerates the 18 review deliverables spanning S1–S18 (S1 exec summary + S2 project overview separate)");
-ok(SLIDES[0].slide === "S1" && SLIDES[1].slide === "S2" && SLIDES[SLIDES.length - 1].slide === "S18", "SLIDES run S1 → S2 → S18 in gate order (S1 and S2 are separate deliverables)");
+ok(SLIDES.length === 20, "SLIDES = 18 review deliverables (S1–S18) + 2 closeout slides (CS, RA)");
+ok(SLIDES[0].slide === "S1" && SLIDES[1].slide === "S2" && SLIDES[17].slide === "S18" && SLIDES[18].slide === "CS" && SLIDES[19].slide === "RA", "SLIDES run S1 → S18 in gate order, then CS + RA closeouts");
 ok(SLIDES.every((s) => !!s.slide && !!s.name && !!s.summary && GATES_N.includes(s.gate)), "every slide carries slide/name/summary/gate");
 ok(slideDef("S3")?.name === "Financial — Return", "slideDef resolves S3 to Financial — Return");
 ok(slideHintOf("S8").includes("Competition"), "slideHintOf surfaces the slide name in the HI prompt");
@@ -477,8 +477,9 @@ ok(DEMO_PROJECTS.every((p) => (p.segmentValueProps?.length ?? 0) >= 1), "every p
 
 /* ---------------- S1–S18 field spec (schema-driven slide authoring) ---------------- */
 import { SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField } from "../lib/innovation-data.ts";
-ok(SLIDE_SCHEMA.length === 18, "SLIDE_SCHEMA enumerates the 18 review slides spanning S1–S18 (S1 + S2 separate)");
-ok(SLIDE_SCHEMA[0].code === "S1" && SLIDE_SCHEMA[1].code === "S2" && SLIDE_SCHEMA[SLIDE_SCHEMA.length - 1].code === "S18", "schema runs S1 → S2 → S18 in gate order");
+ok(SLIDE_SCHEMA.length === 20, "SLIDE_SCHEMA = 18 review slides (S1–S18) + 2 closeout slides (CS, RA)");
+ok(SLIDE_SCHEMA[0].code === "S1" && SLIDE_SCHEMA[1].code === "S2" && SLIDE_SCHEMA[17].code === "S18" && SLIDE_SCHEMA[18].code === "CS" && SLIDE_SCHEMA[19].code === "RA", "schema runs S1 → S18 then CS + RA");
+ok(slideSpec("CS").fields.every((f) => f.linked) && slideSpec("RA").fields.every((f) => f.linked), "CS + RA fields are all linked (live governance, no authoring)");
 ok(SLIDE_SCHEMA.every((s) => s.fields.length > 0 && s.source && GATES_N.includes(s.gate)), "every slide carries typed fields + a source + a valid gate");
 ok(SLIDE_SCHEMA.every((s) => s.fields.every((f) => f.id && f.name && f.kind)), "every field has id + name + kind");
 ok(SLIDE_SCHEMA.some((s) => s.fields.some((f) => f.req)), "the spec flags required fields (drives gate readiness)");
@@ -731,7 +732,7 @@ import { CADENCE_UNIT, fmtPerCadence } from "../lib/innovation-data.ts";
 }
 
 /* ---------------- Slice E — slidesForProject + 12-AsM SLIDE_SEED (HI + enhanced AI) ---------------- */
-import { slidesForProject, nextGate, SLIDE_SEED } from "../lib/innovation-data.ts";
+import { slidesForProject, nextGate, SLIDE_SEED, changeSummaryRows, reviewApprovalRows } from "../lib/innovation-data.ts";
 {
   ok(nextGate("G2") === "G3" && nextGate("G7") === "G7", "nextGate advances and clamps at G7");
   const p4 = DEMO_PROJECTS.find((p) => p.id === "PRJ-04"); // G2
@@ -741,6 +742,22 @@ import { slidesForProject, nextGate, SLIDE_SEED } from "../lib/innovation-data.t
   ok(SLIDE_SCHEMA.filter((s) => s.gate === "G3").every((s) => sset.includes(s.code)), "slidesForProject includes next-gate slides");
   ok(new Set(sset).size === sset.length, "slidesForProject de-dups");
   ok(!sset.includes("S16") && !sset.includes("S18"), "slidesForProject excludes far-gate slides");
+  ok(sset.includes("CS") && sset.includes("RA"), "slidesForProject always includes the CS + RA closeouts");
+  ok(sset[sset.length - 2] === "CS" && sset[sset.length - 1] === "RA", "CS + RA are the last two slides in the deck");
+  ok(DEMO_PROJECTS.every((p) => { const s = slidesForProject(p); return s.includes("CS") && s.includes("RA"); }), "every project ships CS + RA");
+  // CS + RA live-governance row builders (pure — consume already-timestamped audit + membership)
+  const act = [
+    { id: "a1", ts: "2026-02-01T00:00:00Z", kind: "approve", projectId: "PRJ-04", by: "◬ AI" },
+    { id: "a2", ts: "2026-01-01T00:00:00Z", kind: "edit", projectId: "PRJ-04", field: "nreK", from: "100", to: "120", by: "you" },
+    { id: "a3", ts: "2026-01-01T00:00:00Z", kind: "edit", projectId: "PRJ-99", by: "x" },
+  ];
+  const cs = changeSummaryRows(act, "PRJ-04");
+  ok(cs.length === 2 && cs.every((r) => r.length === 3), "changeSummaryRows filters to the project as [When, Change, By]");
+  ok(cs[0][1].includes("100 → 120") || cs[1][1].includes("100 → 120"), "CS shows the from→to delta");
+  const ra = reviewApprovalRows(act, { "PRJ-04": [{ userRef: "J. Doe", role: "approver" }] }, "PRJ-04", "A. Seguin", "IRB");
+  ok(ra[0][0] === "Product Manager" && ra[0][1] === "A. Seguin", "RA leads with the PdM (title + name)");
+  ok(ra.some((r) => r[0] === "Approver" && r[1] === "J. Doe"), "RA lists assigned team roles with title + name");
+  ok(ra.some((r) => r[2] === "Approved ✓"), "RA surfaces board approve decisions");
   // Seed coverage (active once the 12-AsM seed is populated): every in-scope non-linked field has non-empty
   // hi AND ai, with ai a genuine enhancement (ai ≠ hi). Skipped while SLIDE_SEED is empty (scaffold only).
   const emptyV = (v) => v == null || (typeof v === "string" && !v.trim()) || (Array.isArray(v) && v.length === 0) || (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0);

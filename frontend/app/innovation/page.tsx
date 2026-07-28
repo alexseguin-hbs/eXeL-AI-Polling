@@ -37,6 +37,7 @@ import {
   seedBizSetup, BIZ_TIERS, fmtPerCadence, CADENCE_UNIT, type Cadence,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
+  changeSummaryRows, reviewApprovalRows,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
@@ -2569,6 +2570,9 @@ type FieldCell = { hi: SlideFieldValue; ai: SlideFieldValue; mode: "hi" | "ai" }
 type ProjFieldBag = Record<string, Record<string, FieldCell>>; // code -> fieldId -> cell
 const readFieldBags = (): Record<string, ProjFieldBag> => { try { return JSON.parse(lsGet(SLIDE_FIELDS_KEY) || "{}"); } catch { return {}; } };
 const writeFieldBags = (obj: Record<string, ProjFieldBag>) => { lsSet(SLIDE_FIELDS_KEY, JSON.stringify(obj)); void saveState("slide-fields", obj as unknown as Record<string, string>); };
+// CS + RA closeout slides read LIVE governance from the same stores Board() writes (audit trail + membership).
+const readAudit = (): AuditEntry[] => { try { const a = JSON.parse(lsGet("innovation-audit") || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
+const readMembers = (): MembershipMap => { try { const m = JSON.parse(lsGet("innovation-members") || "{}"); return m && typeof m === "object" ? m : {}; } catch { return {}; } };
 const fieldEmpty = (v: SlideFieldValue): boolean => {
   if (v == null) return true;
   if (typeof v === "string") return !v.trim();
@@ -2748,8 +2752,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   // Present-mode live source override (operator): flip the WHOLE deck between the human baseline and the enhanced
   // AI while presenting, or honor each field's own per-field choice ("set"). Edit mode always uses per-field mode.
   const [presentSrc, setPresentSrc] = useState<"set" | "hi" | "ai">("set");
+  // Live governance snapshot for the CS + RA closeout slides (hydrated on mount alongside the field bag).
+  const [gov, setGov] = useState<{ activity: AuditEntry[]; members: MembershipMap; board: string }>({ activity: [], members: {}, board: "IRB" });
   const [srcOpen, setSrcOpen] = useState(false); // "edit source record" panel (single source of truth)
-  useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); }, []);
+  useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); setGov({ activity: readAudit(), members: readMembers(), board: loadReviewBoard() }); }, []);
   const spec = SLIDE_SCHEMA[idx];
   const bag = bags[p.id] || {};
   // Fall back to the 12-AsM authored seed when the user hasn't authored a cell: seeded HI shows by default;
@@ -2759,7 +2765,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   // Effective value for display + present: linked → live record; else the active-mode slot (AI slot falls back
   // to the deterministic AI draft); empty + mirror → inherit the referenced slide's field.
   const effective = (sp: SlideSpec, f: SlideField, srcOverride?: "set" | "hi" | "ai"): SlideFieldValue => {
-    if (f.linked) return linkedSlideField(p, sp.code, f.id);
+    if (f.linked) {
+      // CS + RA resolve from LIVE governance data (audit trail + membership + review board) — never authored.
+      if (sp.code === "CS" && f.id === "changes") return changeSummaryRows(gov.activity, p.id, p.name);
+      if (sp.code === "RA" && f.id === "approvals") return reviewApprovalRows(gov.activity, gov.members, p.id, p.manager, gov.board);
+      if (sp.code === "RA" && f.id === "board") return `${boardFull(gov.board)} (${gov.board})`;
+      return linkedSlideField(p, sp.code, f.id);
+    }
     const c = cellOf(sp.code, f.id);
     // Present-mode override (As-set → per-field mode; HI/AI → force that slot); edit mode passes nothing.
     const m = srcOverride && srcOverride !== "set" ? srcOverride : c.mode;
@@ -2815,7 +2827,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   // ---- field editors (edit-mode) ----
   const inputCls = "w-full rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[13px] text-slate-100 outline-none focus:border-cyan-500";
   function LinkedField({ f }: { f: SlideField }) {
-    const v = linkedSlideField(p, spec.code, f.id);
+    const v = effective(spec, f); // routes CS/RA to live governance, others to linkedSlideField
     if (f.kind === "metrics" && v && !Array.isArray(v) && typeof v === "object") {
       const rec = v as Record<string, string>;
       return <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">{(f.items ?? []).map((m) => (

@@ -1438,9 +1438,16 @@ export function aiValuePropOf(p: Project): string {
 //    input the operator writes, plus a deterministic AI rendition (aiSlideOf) that drafts the slide from
 //    the project's own model so gaps are never blank. Mirrors the HI⇄AI value-prop toggle. Pure + offline.
 export interface SlideDef { slide: string; gate: Gate; name: string; summary: string; priority?: number }
-export const SLIDES: SlideDef[] = GATES.flatMap((g) =>
-  GATE_REVIEW[g].deliverables.map((d) => ({ slide: d.slide, gate: g, name: d.name, summary: d.summary, priority: d.priority })),
-);
+// Closeout slides carry names/summaries for slideDef WITHOUT entering GATE_REVIEW (so they add no gate
+// requirement rows) — they are live-governance components of every gate review, not deliverables.
+export const CLOSEOUT_SLIDES: SlideDef[] = [
+  { slide: "CS", gate: "G7", name: "Change Summary", summary: "Version + approval history" },
+  { slide: "RA", gate: "G7", name: "Review & Approvals", summary: "Board sign-off — title + name" },
+];
+export const SLIDES: SlideDef[] = [
+  ...GATES.flatMap((g) => GATE_REVIEW[g].deliverables.map((d) => ({ slide: d.slide, gate: g, name: d.name, summary: d.summary, priority: d.priority }))),
+  ...CLOSEOUT_SLIDES,
+];
 export const slideDef = (slideId: string): SlideDef | undefined => SLIDES.find((s) => s.slide === slideId);
 
 /** What the HUMAN author should put on this slide — a short prompt so the HI input is never a blank box. */
@@ -1611,6 +1618,12 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "e90", name: "EOL-90 · align & execute", kind: "list" },
     { id: "e60", name: "EOL-60 · final deliverables", kind: "list" },
     { id: "e0", name: "End of life · communication + execution", kind: "list" } ] },
+  // Closeout slides — present at EVERY gate review, resolved LIVE from governance (never authored HI/AI).
+  { code: "CS", gate: "G7", stage: "Gate Review", source: "Governance change/approval ledger", fields: [
+    { id: "changes", name: "Change summary", kind: "table", linked: true, cols: ["When", "Change", "By"] } ] },
+  { code: "RA", gate: "G7", stage: "Gate Review", source: "Review board sign-off", fields: [
+    { id: "approvals", name: "Review & approvals", kind: "table", linked: true, cols: ["Title", "Name", "Decision"] },
+    { id: "board", name: "Review body", kind: "text", linked: true } ] },
 ];
 export const slideSpec = (code: string): SlideSpec | undefined => SLIDE_SCHEMA.find((s) => s.code === code);
 
@@ -1622,7 +1635,31 @@ export function slidesForProject(p: Project): string[] {
   const ng = nextGate(p.gate);
   const codes = new Set<string>(["S1", "S2", "S3"]);
   for (const s of SLIDE_SCHEMA) if (s.gate === p.gate || s.gate === ng) codes.add(s.code);
+  codes.add("CS"); codes.add("RA"); // closeout slides ship on EVERY gate review (live governance)
   return SLIDE_SCHEMA.filter((s) => codes.has(s.code)).map((s) => s.code);
+}
+
+// ── CS / RA closeout slides — live governance rows (pure; consume already-timestamped audit + membership,
+//    so no clock read here — the SoI "inject ts" rule holds). ────────────────────────────────────────────
+const fmtWhen = (ts: string): string => (ts && ts.length >= 10 ? ts.slice(0, 10) : ts || "—");
+const changeLabel = (e: AuditEntry): string => {
+  const what = e.field || e.kind;
+  const move = e.from && e.to ? ` (${e.from} → ${e.to})` : e.to ? ` → ${e.to}` : "";
+  return `${e.kind}: ${what}${move}`;
+};
+/** CS — a project's change/approval history as [When, Change, By] rows (audit trail is already newest-first). */
+export function changeSummaryRows(activity: AuditEntry[], projectId: string, projectName?: string): string[][] {
+  return activity
+    .filter((e) => e.projectId === projectId || (!!projectName && e.project === projectName))
+    .map((e) => [fmtWhen(e.ts), changeLabel(e), e.by || "—"]);
+}
+/** RA — review & approvals as [Title, Name, Decision] rows: PdM + assigned team roles + board decisions. */
+export function reviewApprovalRows(activity: AuditEntry[], members: MembershipMap, projectId: string, manager: string, board: string): string[][] {
+  const rows: string[][] = [["Product Manager", manager || "—", "Owner"]];
+  for (const mem of members[projectId] ?? []) rows.push([ROLE_LABEL[mem.role], mem.userRef, "Assigned"]);
+  for (const e of activity.filter((e) => e.projectId === projectId && (e.kind === "approve" || e.kind === "reject")))
+    rows.push([`${board} decision`, e.by || "—", e.kind === "approve" ? "Approved ✓" : "Changes requested"]);
+  return rows;
 }
 // 12-AsM authored slide content seed (S1–S3 + stage + next gate · non-linked fields). Each cell carries BOTH
 // a human baseline (hi) and an ENHANCED, more-comprehensive AI superset built off the hi (ai). Static committed
