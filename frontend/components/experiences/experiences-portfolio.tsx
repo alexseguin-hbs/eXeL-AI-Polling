@@ -10,15 +10,17 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles, TrendingUp, KeyRound, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles, TrendingUp, KeyRound } from "lucide-react";
 import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
 
 type CardKind = "pdf" | "link" | "video";
 type Secret = { labelKey: string; view: string; download: string };
-// A gated live-demo reveal (SoI-2525): the access code stays hidden until the visitor opts in.
+// A gated live-demo reveal (System of Innovation): the access code stays hidden until the visitor opts in.
 type Demo = { labelKey: string; codeKey: string; openKey: string; href: string };
-type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo };
+// An inline image shown under the card text by default (no toggle).
+type CardImage = { src: string; altKey: string };
+type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo; image?: CardImage; defaultOpen?: boolean };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -37,8 +39,9 @@ const WRITEUPS: Item[] = [
     blurbKey: "experiences.card.writeup2.blurb",
     href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
   },
-  // SoI-2525 — the portfolio-optimization tool built on this platform. The open-link icon and the demo both
-  // land on the live deck; the access code (369963) is revealed only when the visitor opts into the demo.
+  // Portfolio Optimization — the System of Innovation tool built on this platform. Default-open so the
+  // vision image shows under the text; the open-link icon and demo land on the live deck; the access
+  // code (369963) is revealed only when the visitor opts into the demo.
   {
     kind: "link",
     icon: TrendingUp,
@@ -46,6 +49,8 @@ const WRITEUPS: Item[] = [
     badgeKey: "experiences.egg.soi.badge",
     blurbKey: "experiences.egg.soi.blurb",
     href: "/main/SoI-2525/",
+    defaultOpen: true,
+    image: { src: "/experiences/innovate-speed-of-thought.png", altKey: "experiences.egg.poster.alt" },
     demo: {
       labelKey: "experiences.egg.soi.demoLabel",
       codeKey: "experiences.egg.soi.demoCode",
@@ -170,8 +175,8 @@ function SectionHead({ icon, eyebrowKey, titleKey, introKey }: { icon: React.Rea
 // (upper right). The blurb and PDF actions stay indented under the header when expanded.
 function Card({ item }: { item: Item }) {
   const { t } = useLexicon();
-  const [open, setOpen] = useState(false);
-  const [showCode, setShowCode] = useState(false); // gated demo reveal (SoI-2525): code hidden until opt-in
+  const [open, setOpen] = useState(item.defaultOpen ?? false);
+  const [showCode, setShowCode] = useState(false); // gated demo reveal: code hidden until opt-in
   const Icon = item.icon ?? (item.kind === "pdf" ? FileText : item.kind === "video" ? Play : ExternalLink);
   return (
     <div className="rounded-xl border border-border/60 bg-card">
@@ -198,6 +203,13 @@ function Card({ item }: { item: Item }) {
           {open && (
             <div className="mt-3">
               <p className="text-[13px] leading-relaxed text-muted-foreground">{t(item.blurbKey)}</p>
+              {/* Inline image — shown under the text by default (no toggle) */}
+              {item.image && (
+                <a href={item.href} target="_blank" rel="noopener noreferrer" className="mt-3 block overflow-hidden rounded-lg border border-primary/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.image.src} alt={t(item.image.altKey)} className="block h-auto w-full" />
+                </a>
+              )}
               {item.kind === "pdf" && (
                 <div className="mt-3 flex items-center gap-2">
                   <a
@@ -335,45 +347,6 @@ function VideoVignettes() {
   );
 }
 
-// Expandable vision poster — a labeled bar that reveals the full "Innovate at the Speed of Thought"
-// image on click, and minimizes on a second click (operator ask). Default minimized so it never
-// dominates the section.
-function PosterExpandable() {
-  const { t } = useLexicon();
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="mb-5 overflow-hidden rounded-xl border border-primary/25 bg-primary/5">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="group flex w-full items-center gap-3 p-3 text-left"
-      >
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-          <ImageIcon className="h-4 w-4" />
-        </span>
-        <span className="min-w-0 flex-1 text-[13px] font-medium text-foreground">{t("experiences.egg.poster.label")}</span>
-        <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          aria-label={t("experiences.egg.poster.label")}
-          className="block w-full border-t border-primary/20"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/experiences/innovate-speed-of-thought.png"
-            alt={t("experiences.egg.poster.alt")}
-            className="block h-auto w-full"
-          />
-        </button>
-      )}
-    </div>
-  );
-}
-
 export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
   const { t } = useLexicon();
   return (
@@ -410,8 +383,6 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
             titleKey="experiences.sec.writeups.title"
             introKey="experiences.sec.writeups.intro"
           />
-          {/* Vision poster — expandable, default minimized */}
-          <PosterExpandable />
           <div className="grid gap-3 sm:grid-cols-2">
             {WRITEUPS.map((c) => (
               <Card key={c.href} item={c} />
