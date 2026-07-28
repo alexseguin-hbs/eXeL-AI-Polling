@@ -3912,6 +3912,56 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
         <p className="mt-2 text-[10px] text-slate-500">Active: <b className="text-cyan-300">{board}</b> ({boardFull(board)}). Selecting one here relabels the gate-feedback attribution everywhere in the tool. Default is IRB (Innovation Review Board).</p>
       </section>
 
+      {/* Hierarchy overview — BU › SBU › Alpha Group nesting (operator: admin must show the hierarchy).
+          Live view from the master data; edit codes / labels / parents / base $M in the tier tables below. */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <h2 className="text-sm font-semibold">Hierarchy <span className="text-[11px] text-slate-500">— BU › SBU › Alpha Group</span></h2>
+        <div className="mt-2 space-y-2">
+          {setup.bu.map((bu) => {
+            const sbus = setup.sbu.filter((s) => s.parent === bu.code);
+            const buBase = sbus.reduce((s, x) => s + (x.baseM ?? 0), 0);
+            return (
+              <div key={bu.code} className="overflow-hidden rounded-lg border border-slate-800 bg-[#0b0f14]">
+                <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 bg-slate-900/50 px-3 py-1.5">
+                  <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-cyan-300">BU</span>
+                  <span className="font-mono text-sm font-semibold text-slate-100">{bu.code}</span>
+                  <span className="text-xs text-slate-400">{bu.label}</span>
+                  <span className="text-[10px] text-slate-500">· {sbus.length} SBU</span>
+                  {buBase > 0 && <span className="ml-auto text-[11px] tabular-nums text-emerald-300">${buBase}M base</span>}
+                </div>
+                <div className="space-y-1 p-2">
+                  {sbus.length ? sbus.map((s) => {
+                    const pgs = setup.pgroup.filter((g) => g.parent === s.code);
+                    return (
+                      <div key={s.code} className="rounded border border-slate-800/70 bg-[#0e141b]">
+                        <div className="flex flex-wrap items-center gap-2 px-2 py-1">
+                          <span className="ml-2 text-slate-600">↳</span>
+                          <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-violet-300">SBU</span>
+                          <span className="font-mono text-[13px] text-slate-100">{s.code}</span>
+                          <span className="text-[11px] text-slate-400">{s.label}</span>
+                          {(s.baseM ?? 0) > 0 && <span className="ml-auto text-[11px] tabular-nums text-emerald-300">${s.baseM}M</span>}
+                        </div>
+                        <div className="flex flex-wrap gap-1 px-2 pb-1.5 pl-9">
+                          {pgs.length ? pgs.map((g) => (
+                            <span key={g.code} className="flex items-center gap-1 rounded border border-slate-800 bg-[#0b0f14] px-1.5 py-0.5 text-[10px]">
+                              <span className="rounded bg-amber-500/15 px-1 font-mono font-semibold uppercase text-amber-300">AG</span>
+                              <span className="font-mono text-slate-200">{g.code}</span>
+                              {g.label !== g.code && <span className="text-slate-500">{g.label}</span>}
+                              {(g.baseM ?? 0) > 0 && <span className="tabular-nums text-emerald-300/80">${g.baseM}M</span>}
+                            </span>
+                          )) : <span className="text-[10px] italic text-slate-600">no Alpha Groups</span>}
+                        </div>
+                      </div>
+                    );
+                  }) : <span className="block px-2 py-1 text-[10px] italic text-slate-600">no SBUs under this BU</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-[10px] text-slate-500">Live view of the master hierarchy — <b className="text-cyan-300">BU</b> › <b className="text-violet-300">SBU</b> › <b className="text-amber-300">Alpha Group</b>. Edit codes, labels, parents &amp; base $M in the tier tables below.</p>
+      </section>
+
       {/* Tier tabs */}
       <div className="flex flex-wrap gap-1">
         {BIZ_TIERS.map((t) => (
