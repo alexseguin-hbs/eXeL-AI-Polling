@@ -1261,7 +1261,7 @@ function ProjectRevChart({ p }: { p: Project }) {
           return (
             <g key={r.year}>
               <title>{r.year}: risk-weighted {Math.round(rw[i])}{mode === "full" ? ` · full ${Math.round(full[i])}` : ""} $M</title>
-              {mode === "full" && <rect x={x} y={yUp} width={w} height={Math.max(0, upH)} fill="#34d399" opacity="0.32" />}
+              {mode === "full" && <rect x={x} y={yUp} width={w} height={Math.max(0, upH)} fill="#fbbf24" />}
               <rect x={x} y={yRw} width={w} height={Math.max(0, rwh)} fill="#34d399" />
               {i % 3 === 0 && <text x={x + w / 2} y={H - 4} textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="ui-monospace, monospace">{String(r.year).slice(2)}</text>}
             </g>
@@ -1270,7 +1270,7 @@ function ProjectRevChart({ p }: { p: Project }) {
       </svg>
       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
         <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />Risk-weighted (tech×comm {Math.round(pw * 100)}%)</span>
-        {mode === "full" && <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399", opacity: 0.32 }} />at-risk upside</span>}
+        {mode === "full" && <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />at-risk upside</span>}
         <span className="ml-auto text-slate-400">RW {usd(totRw)} · Full {usd(totFull)}</span>
       </div>
     </div>
@@ -4362,9 +4362,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
-        {/* Rev / Mgn quick toggle (operator) */}
+        {/* Revenue-family selectors on top (operator IMG_8071): Rev · Mgn · Incremental Rev · Incremental Mgn. */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
+          {([["rev", "Rev"], ["mgn", "Mgn"], ["incremental", "Inc Rev"], ["incmgn", "Inc Mgn"]] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
               className={`px-2.5 py-1 ${band === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
@@ -4455,8 +4455,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       </div>
 
       {/* Band view: Incremental Rev (Step 1 − Step 2 + Step 3) + Incremental Mgn, or one component (operator) */}
+      {/* Only the do-nothing Step 1/2/3 components sit below the chart (Rev/Mgn/Incremental are top selectors). */}
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-        {(["rev", "mgn", "incremental", "incmgn", "new", "decline", "eol"] as const).map((k) => (
+        {(["new", "decline", "eol"] as const).map((k) => (
           <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
             className={`rounded border px-2 py-0.5 ${band === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
             style={band === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
