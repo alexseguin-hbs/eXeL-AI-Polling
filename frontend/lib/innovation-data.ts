@@ -740,10 +740,36 @@ const EXISTING_OVERRIDE: Record<string, Partial<Project>> = {
   "PRJ-01": { existingRevM: 33, existingDecline: { toM: 11, overYears: 5, zeroAfterYear: 5 } },
   "PRJ-11": { existingRevM: 11, existingDecline: { toM: 0, overYears: 10, zeroAfterYear: 10 } },
 };
+// ── Thoth's per-project RevPlan baseline (H45, MoT-overseen) — a Detailed QTY·ASP·COGS plan on EVERY project so
+// the per-project Detailed editor is never blank. Back-solved to reconcile EXACTLY to each project's existing
+// `fullRev10yM` + `execOf().marginPct`, so no headline number moves (revenue invariant: qty×aspK = fullRev10yM×100;
+// margin invariant: unitCogsK = aspK×(1−margin)). Annual unit volumes are Thoth's entered assumptions by archetype
+// (space very-low / hardware low / attritable + software high); ASP·COGS are derived to hold the invariants.
+const REVPLAN_QTY: Record<string, number> = {
+  "PRJ-01": 60, "PRJ-02": 300, "PRJ-03": 55, "PRJ-04": 350, "PRJ-05": 250, "PRJ-06": 120,
+  "PRJ-07": 8, "PRJ-08": 45, "PRJ-09": 90, "PRJ-10": 600, "PRJ-11": 50, "PRJ-12": 140,
+  "PRJ-13": 400, "PRJ-14": 120, "PRJ-15": 12, "PRJ-16": 55, "PRJ-17": 110, "PRJ-18": 40,
+  "PRJ-19": 350, "PRJ-20": 200, "PRJ-21": 300, "PRJ-22": 180, "PRJ-23": 250, "PRJ-24": 220,
+};
+function revPlanProfileFor(p: Project): Pick<RevPlan, "profile" | "growthPctQ" | "rampQuarters"> {
+  const isNew = p.category === "New Platform" || p.category === "New Product";
+  if ((p.gate === "G1" || p.gate === "G2") && isNew) return { profile: "ramp", rampQuarters: 10 }; // pre-revenue NPI
+  if (p.gate === "G3" && isNew) return { profile: "growth", growthPctQ: 4 };                        // scaling
+  return { profile: "linear" };                                                                     // sustaining/EOL/launched
+}
+/** Detailed baseline reconciled to fullRev10yM + execOf margin (Thoth entry · MoT invariant). aspK/unitCogsK are
+ *  exact floats (UI formats to whole $K); total == fullRev10yM and Detailed margin === execOf(p).marginPct. */
+export function revPlanBaseline(p: Project): RevPlan {
+  const qty = REVPLAN_QTY[p.id] ?? Math.max(1, Math.round(p.fullRev10yM));
+  const aspK = (p.fullRev10yM * 100) / qty;                  // qty × aspK = fullRev10yM × 100  → 10-yr total == fullRev10yM
+  const unitCogsK = aspK * (1 - execOf(p).marginPct / 100);  // (aspK − unitCogsK)/aspK == marginPct/100
+  return { entryMode: "detailed", qty, aspK, unitCogsK, ...revPlanProfileFor(p) };
+}
 export const DEMO_PROJECTS: Project[] = DEMO_PROJECTS_BASE.map((p) => {
   const merged = { ...p, ...(PROJECT_INTEL[p.id] ?? {}) };
   const ov = EXISTING_OVERRIDE[p.id];
-  return ov ? { ...merged, ...ov } : { ...merged, doNothing10yM: 0 };
+  const withOv = ov ? { ...merged, ...ov } : { ...merged, doNothing10yM: 0 };
+  return { ...withOv, revPlan: withOv.revPlan ?? revPlanBaseline(withOv) };
 });
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────

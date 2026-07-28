@@ -1151,5 +1151,22 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials } from 
   ok(pm.revRwPerMin <= pm.revFullPerMin + 1e-9 && Number.isFinite(pm.costPerMin) && Number.isFinite(pm.marginPerMin), "$/min: risk-weighted ≤ full; cost/margin finite");
 }
 
+// H45 — Thoth's per-project RevPlan baseline: EVERY project ships a Detailed plan that reconciles EXACTLY to its
+// fullRev10yM + execOf margin (so no headline number moves; MoT invariant).
+{
+  ok(DEMO_PROJECTS.every((p) => p.revPlan && p.revPlan.entryMode === "detailed"), "all 24 projects have a Detailed RevPlan baseline");
+  ok(DEMO_PROJECTS.every((p) => (p.revPlan.qty ?? 0) > 0 && (p.revPlan.aspK ?? 0) > 0 && (p.revPlan.unitCogsK ?? 0) >= 0), "every baseline has qty·aspK·unitCogsK set");
+  // Revenue invariant: Detailed 10-yr total == fullRev10yM (±0.01 $M — exact by construction, float slack only).
+  const revBad = DEMO_PROJECTS.filter((p) => Math.abs(revPlanFullM(p, p.revPlan) - p.fullRev10yM) > 0.01);
+  ok(revBad.length === 0, `revPlanFullM == fullRev10yM for all 24 (off: ${revBad.map((p) => p.id).join(",") || "none"})`);
+  // Margin invariant: Detailed margin rounds back to execOf(p).marginPct for all 24.
+  const marBad = DEMO_PROJECTS.filter((p) => revPlanQuarters(p, p.revPlan)[0].margin === 0 ? false
+    : Math.round((revPlanQuarters(p, p.revPlan)[0].margin / revPlanQuarters(p, p.revPlan)[0].rev) * 100) !== execOf(p).marginPct);
+  ok(marBad.length === 0, `Detailed margin == execOf().marginPct for all 24 (off: ${marBad.map((p) => p.id).join(",") || "none"})`);
+  // QTY×ASP identity + 40-quarter sum == annual total, per project.
+  ok(DEMO_PROJECTS.every((p) => Math.abs((p.revPlan.qty * p.revPlan.aspK / 1000) * 10 - p.fullRev10yM) < 0.01), "qty×aspK/1000×10 == fullRev10yM (all 24)");
+  ok(DEMO_PROJECTS.every((p) => revPlanQuarters(p, p.revPlan).length === 40), "every RevPlan yields 40 quarters");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
