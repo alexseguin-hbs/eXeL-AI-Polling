@@ -1219,6 +1219,33 @@ export const scopeBaseM = (bu: string, sbu: string) =>
 // Back-compat alias (older callers passed the revenue-bearing unit).
 export const lobBaseM = (v: string) => (v === "All" || v === COMPANY_NAME ? companyBaseM() : SBU_BASE[v] ?? buBaseM(v));
 
+// ── Tier-seed reads (H39) — the ONE path both the tier table and the Growth Model use to read a scoped node's
+// seeded base-year Revenue / Margin $ / Growth %. Precedence: exact node at the deepest selection → roll up the
+// selected BU's children → company sum. A "field" picks which BizNode number to read. Pure over a BizSetup. ────
+type BizFinField = "revM" | "marginM" | "growthPct";
+export function scopeSeed(setup: { bu: BizNode[]; sbu: BizNode[]; pgroup: BizNode[]; alpha: BizNode[] }, field: BizFinField, bu: string, sbu: string, pg: string): number {
+  const pick = (arr: BizNode[], code: string) => arr.find((n) => n.code === code)?.[field];
+  if (pg && pg !== "All") { const v = pick(setup.pgroup, pg); if (v != null) return v; }
+  if (sbu && sbu !== "All") { const v = pick(setup.sbu, sbu); if (v != null) return v; }
+  if (bu && bu !== "All") {
+    const v = pick(setup.bu, bu); if (v != null) return v;
+    if (field === "growthPct") return BU_SEED_GROWTH[bu] ?? 0; // rate doesn't sum — fall back to the seed rate
+    return setup.sbu.filter((n) => n.parent === bu).reduce((a, n) => a + (n[field] ?? 0), 0);
+  }
+  if (field === "growthPct") { const rows = setup.bu.map((n) => n.growthPct ?? 0).filter((x) => x > 0); return rows.length ? rows.reduce((a, b) => a + b, 0) / rows.length : 0; }
+  return setup.bu.reduce((a, n) => a + (n[field] ?? 0), 0);
+}
+/** Actual 10-yr CAGR of a BU's combined funded revenue (Σ project total revenue series). Target vs actual banner. */
+export function buCagrPct(projects: Project[], bu: string, opts: { years?: number } = {}): number {
+  const years = opts.years ?? 10;
+  const inBu = projects.filter((p) => hierOf(p).bu === bu);
+  if (!inBu.length) return 0;
+  const series = inBu.map((p) => projectRevSeries(p, { years, funded: true }));
+  const yr = (y: number) => series.reduce((s, rs) => s + (rs[y]?.total ?? 0), 0);
+  const first = Math.max(yr(0), 0.01), last = Math.max(yr(years - 1), first, 0.01);
+  return years > 1 ? (Math.pow(last / first, 1 / (years - 1)) - 1) * 100 : 0;
+}
+
 // Per-project node path — BU → SBU (SBU-1/2/3) → Product Group (PG-1…9) → Alpha → Product → Material.
 export const PROJECT_HIER: Record<string, HierPath> = {
   // Number scheme: Product # = 7xxxx (5-digit) · Material # = 7xxxx-yyy (product + variant model).

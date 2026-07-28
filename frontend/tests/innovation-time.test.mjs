@@ -1081,5 +1081,21 @@ import { BU_SEED_REV, BU_SEED_GROWTH } from "../lib/innovation-data.ts";
   ok(legacy.every((n) => n.revM === undefined) && legacy.length === 3, "legacy BizNodes without P&L fields remain valid");
 }
 
+// H39 — Growth Model reads tier seeds via scopeSeed; per-BU CAGR banner (target seed vs actual rollup).
+import { scopeSeed, buCagrPct } from "../lib/innovation-data.ts";
+{
+  const setup = seedBizSetup(DEMO_PROJECTS);
+  ok(scopeSeed(setup, "revM", "DS", "All", "All") === 99, "scopeSeed revM @ DU=DS reads the seeded base-year Rev (99)");
+  ok(scopeSeed(setup, "growthPct", "MS", "All", "All") === 33, "scopeSeed growthPct @ MS reads the seeded rate (33)");
+  ok(scopeSeed(setup, "growthPct", "AP", "All", "All") === 44, "scopeSeed growthPct @ AP reads the seeded rate (44)");
+  // Company-scope revenue rolls up across BUs (99+33+11 = 143).
+  ok(Math.abs(scopeSeed(setup, "revM", "All", "All", "All") - 143) <= 1, "scopeSeed revM @ Company sums the BU base-year Revenue (143)");
+  // A single SBU reads its own seeded revM (a share of its BU).
+  const anySbu = setup.sbu.find((n) => n.parent === "DS");
+  ok(anySbu && scopeSeed(setup, "revM", "DS", anySbu.code, "All") === anySbu.revM, "scopeSeed revM @ a single SBU reads that SBU's seed");
+  // buCagrPct returns a finite CAGR for each BU; 10-yr horizon.
+  for (const b of ["DS", "MS", "AP"]) ok(Number.isFinite(buCagrPct(DEMO_PROJECTS, b, { years: 10 })), `buCagrPct(${b}) is finite`);
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

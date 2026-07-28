@@ -12,7 +12,7 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
-  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf,
+  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -4268,8 +4268,14 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
     if (b && b !== "All") { const bv = bizSetup.bu?.find((n) => n.code === b)?.baseM; if (bv) return bv; const v = bizSetup.sbu.filter((n) => n.parent === b).reduce((a, n) => a + (n.baseM ?? 0), 0); return v || scopeBaseM(b, s); }
     const all = bizSetup.sbu.reduce((a, n) => a + (n.baseM ?? 0), 0); return all || companyBaseM();
   };
+  // H39: the baseline seeds from the tier-seeded base-year Revenue (revM) when present, else the do-nothing base;
+  // the target line's growth seeds from the tier Growth Rate (growthPct); Margin $ reads from the tier seed.
+  const scopeRev = scopeSeed(bizSetup, "revM", selBu, selSbu, selPg);
+  const scopeGrowth = scopeSeed(bizSetup, "growthPct", selBu, selSbu, selPg);
+  const scopeMargin = scopeSeed(bizSetup, "marginM", selBu, selSbu, selPg);
   const [baseStr, setBaseStr] = useState(String(companyBaseM()));
-  useEffect(() => { setBaseStr(String(scopeBase(selBu, selSbu, selPg))); }, [selBu, selSbu, selPg]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setBaseStr(String(scopeRev > 0 ? scopeRev : scopeBase(selBu, selSbu, selPg))); }, [selBu, selSbu, selPg]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (scopeGrowth > 0) setGrowthPct(String(scopeGrowth)); }, [selBu, selSbu, selPg]); // eslint-disable-line react-hooks/exhaustive-deps
   const [hover, setHover] = useState<number | null>(null);
   const scoped = funded; // already scoped by the page-level ScopeFilter (hierFilter)
 
@@ -4309,7 +4315,25 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">Growth Model · Do-Nothing Scenario with Portfolio NPIs</h3>
-        <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
+        <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · Margin ${Math.round(scopeMargin)}M · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
+      </div>
+
+      {/* Per-BU CAGR banner (operator, upper-right scrollable) — target (seeded Growth %) vs actual (rollup). */}
+      <div className="mt-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1 text-[10px]">
+        <span className="shrink-0 font-semibold uppercase tracking-wider text-slate-500">CAGR</span>
+        {(["DS", "MS", "AP"] as const).map((b) => {
+          const tgt = scopeSeed(bizSetup, "growthPct", b, "All", "All");
+          const act = buCagrPct(funded, b, { years: 10 });
+          const onTrack = act >= tgt - 3;
+          return (
+            <span key={b} className="inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5" style={{ borderColor: `${BU_COLOR[b]}55` }}>
+              <i className="inline-block h-2 w-2 rounded-sm" style={{ background: BU_COLOR[b] }} />
+              <b className="font-mono" style={{ color: BU_COLOR[b] }}>{b}</b>
+              <span className="text-slate-400">tgt {Math.round(tgt)}%</span>
+              <span className={onTrack ? "text-emerald-300" : "text-rose-300"}>act {Math.round(act)}%</span>
+            </span>
+          );
+        })}
       </div>
 
       {/* Scope breadcrumb (Christo) — the chart follows the ONE page-level Scope filter; no separate cascade. */}
