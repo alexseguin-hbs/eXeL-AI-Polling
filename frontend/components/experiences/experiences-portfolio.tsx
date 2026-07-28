@@ -10,13 +10,15 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles, TrendingUp, KeyRound, Image as ImageIcon } from "lucide-react";
 import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
 
 type CardKind = "pdf" | "link" | "video";
 type Secret = { labelKey: string; view: string; download: string };
-type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon; secret?: Secret };
+// A gated live-demo reveal (SoI-2525): the access code stays hidden until the visitor opts in.
+type Demo = { labelKey: string; codeKey: string; openKey: string; href: string };
+type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -34,6 +36,22 @@ const WRITEUPS: Item[] = [
     badgeKey: "experiences.card.writeup2.badge",
     blurbKey: "experiences.card.writeup2.blurb",
     href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
+  },
+  // SoI-2525 — the portfolio-optimization tool built on this platform. The open-link icon and the demo both
+  // land on the live deck; the access code (369963) is revealed only when the visitor opts into the demo.
+  {
+    kind: "link",
+    icon: TrendingUp,
+    titleKey: "experiences.egg.soi.title",
+    badgeKey: "experiences.egg.soi.badge",
+    blurbKey: "experiences.egg.soi.blurb",
+    href: "/main/SoI-2525/",
+    demo: {
+      labelKey: "experiences.egg.soi.demoLabel",
+      codeKey: "experiences.egg.soi.demoCode",
+      openKey: "experiences.egg.soi.demoOpen",
+      href: "/main/SoI-2525/",
+    },
   },
 ];
 
@@ -153,6 +171,7 @@ function SectionHead({ icon, eyebrowKey, titleKey, introKey }: { icon: React.Rea
 function Card({ item }: { item: Item }) {
   const { t } = useLexicon();
   const [open, setOpen] = useState(false);
+  const [showCode, setShowCode] = useState(false); // gated demo reveal (SoI-2525): code hidden until opt-in
   const Icon = item.icon ?? (item.kind === "pdf" ? FileText : item.kind === "video" ? Play : ExternalLink);
   return (
     <div className="rounded-xl border border-border/60 bg-card">
@@ -228,6 +247,37 @@ function Card({ item }: { item: Item }) {
                   </div>
                 </div>
               )}
+              {/* Gated live-demo reveal (SoI-2525) — the access code stays hidden until the visitor opts in */}
+              {item.demo && (
+                <div className="mt-3">
+                  {!showCode ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowCode(true)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" />
+                      {t(item.demo.labelKey)}
+                    </button>
+                  ) : (
+                    <div className="rounded-lg border border-primary/25 bg-primary/5 p-2.5">
+                      <div className="mb-2 flex items-center gap-1.5 text-[12px] text-foreground">
+                        <KeyRound className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span>{t(item.demo.codeKey)}</span>
+                      </div>
+                      <a
+                        href={item.demo.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        {t(item.demo.openKey)}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -285,6 +335,45 @@ function VideoVignettes() {
   );
 }
 
+// Expandable vision poster — a labeled bar that reveals the full "Innovate at the Speed of Thought"
+// image on click, and minimizes on a second click (operator ask). Default minimized so it never
+// dominates the section.
+function PosterExpandable() {
+  const { t } = useLexicon();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-5 overflow-hidden rounded-xl border border-primary/25 bg-primary/5">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="group flex w-full items-center gap-3 p-3 text-left"
+      >
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+          <ImageIcon className="h-4 w-4" />
+        </span>
+        <span className="min-w-0 flex-1 text-[13px] font-medium text-foreground">{t("experiences.egg.poster.label")}</span>
+        <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label={t("experiences.egg.poster.label")}
+          className="block w-full border-t border-primary/20"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/experiences/innovate-speed-of-thought.png"
+            alt={t("experiences.egg.poster.alt")}
+            className="block h-auto w-full"
+          />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
   const { t } = useLexicon();
   return (
@@ -321,6 +410,8 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
             titleKey="experiences.sec.writeups.title"
             introKey="experiences.sec.writeups.intro"
           />
+          {/* Vision poster — expandable, default minimized */}
+          <PosterExpandable />
           <div className="grid gap-3 sm:grid-cols-2">
             {WRITEUPS.map((c) => (
               <Card key={c.href} item={c} />
