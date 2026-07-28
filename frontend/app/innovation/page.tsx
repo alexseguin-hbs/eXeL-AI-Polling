@@ -44,6 +44,7 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
 import { Settings } from "lucide-react"; // same settings gear used by Security-2525 Mission Planning (MP)
+import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 
 const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
@@ -3919,6 +3920,11 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
   const [showBaseline, setShowBaseline] = useState(true);
   // Growth-model band view (operator): Incremental (orange, New−Decline+EOL) by default; or one component.
   const [band, setBand] = useState<"incremental" | "new" | "decline" | "eol">("incremental");
+  // MoT time-spread (operator, global deck lens): spread scoped cost/rev/margin totals to $/min over a chosen
+  // window — 91-day (SoI) / 365-day / user-defined — persisted deck-wide. Linearized (even) for less lumpiness.
+  const [spreadKey, setSpreadKey] = useState<SpreadKey>(() => (lsGet("innovation-spread") as SpreadKey) || "q91");
+  const [spreadCustom, setSpreadCustom] = useState("120");
+  useEffect(() => { lsSet("innovation-spread", spreadKey); }, [spreadKey]);
   // Grey baseline revenue ($M) — enterable; anchored on the admin Business-Setup base, settable at BU · SBU ·
   // Alpha Group (a direct override at the selected level wins; else roll up SBU → company). One source of truth.
   const bizSetup = loadBizSetup();
@@ -4050,6 +4056,29 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
         ))}
         <span className="ml-1 text-slate-500"><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />Growth target</span>
       </div>
+
+      {/* MoT time-spread (operator) — scoped cost/rev/margin totals spread to $/min over 91-day / 365-day / custom */}
+      {(() => {
+        const days = spreadDaysOf(spreadKey, parseInt(spreadCustom, 10) || 120);
+        const costUsd = scoped.reduce((s, p) => s + p.nreK * 1000, 0);          // total NRE (cost)
+        const revUsd = scoped.reduce((s, p) => s + (p.fullRev10yM * 1e6) / 10, 0); // annualized revenue
+        const marginUsd = scoped.reduce((s, p) => s + (p.fullRev10yM * 1e6 / 10) * (execOf(p).marginPct / 100), 0);
+        const perMin = (v: number) => { const m = spreadPerMin(v, days); return m >= 1000 ? `$${(m / 1000).toFixed(1)}k/min` : `$${m.toFixed(2)}/min`; };
+        return (
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-slate-800 bg-[#0b0f14] px-2.5 py-1.5 text-[10px] text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-cyan-400">MoT $/min</span>
+            <div className="flex overflow-hidden rounded border border-slate-700">
+              {SPREAD_BASES.map((b) => <button key={b.key} onClick={() => setSpreadKey(b.key)} aria-pressed={spreadKey === b.key} className={`px-1.5 py-0.5 ${spreadKey === b.key ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>{b.days}d</button>)}
+              <button onClick={() => setSpreadKey("custom")} aria-pressed={spreadKey === "custom"} className={`px-1.5 py-0.5 ${spreadKey === "custom" ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>custom</button>
+            </div>
+            {spreadKey === "custom" && <input type="text" inputMode="numeric" value={spreadCustom} onChange={(e) => /^\d*$/.test(e.target.value) && setSpreadCustom(e.target.value)} className={`w-14 ${selStyle} tabular-nums`} aria-label="Custom days" />}
+            <span>Cost <b className="text-rose-300 tabular-nums">{perMin(costUsd)}</b></span>
+            <span>Rev <b className="text-emerald-300 tabular-nums">{perMin(revUsd)}</b></span>
+            <span>Margin <b className="text-amber-300 tabular-nums">{perMin(marginUsd)}</b></span>
+            <span className="text-slate-600">· linearized over {days}d</span>
+          </div>
+        );
+      })()}
 
       {/* Adjustable rates + revenue options (FLIR control parity) */}
       <div className="mt-3 flex flex-wrap items-end gap-3 border-t border-slate-800 pt-3 text-[11px] text-slate-400">

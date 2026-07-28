@@ -51,6 +51,22 @@ export function calMinutes(cadence: Cadence, cal: CalendarSystem = activeCalenda
   return days * MINUTES_PER_DAY;
 }
 
+// ── MoT time-spread (operator) — the live chart takes a TOTAL (cost / revenue / margin) and spreads it evenly
+//    across a chosen window down to $/min: 91-day (SoI quarter, default), 365-day (annual), or a user-defined
+//    number of days. Linearizing (even spread) removes lumpiness. Deterministic; no clock read. ───────────────
+export type SpreadKey = "q91" | "y365" | "custom";
+export const SPREAD_BASES: { key: SpreadKey; label: string; days: number }[] = [
+  { key: "q91", label: "91-day · SoI quarter", days: 91 },
+  { key: "y365", label: "365-day · annual", days: 365 },
+];
+/** Days in a spread basis (custom → the supplied window; falls back to 91). */
+export const spreadDaysOf = (key: SpreadKey, customDays?: number): number =>
+  key === "custom" ? Math.max(1, customDays ?? 91) : (SPREAD_BASES.find((b) => b.key === key)?.days ?? 91);
+/** Spread a total value evenly across `days` and express it per elapsed minute ($/min). Deterministic. */
+export const spreadPerMin = (total: number, days: number): number => (days > 0 ? total / (days * MINUTES_PER_DAY) : 0);
+/** Linearize a lumpy per-period series to its even average — reduces lumpiness, conserves the total. */
+export const linearize = (vals: number[]): number[] => { if (!vals.length) return vals; const avg = vals.reduce((a, b) => a + b, 0) / vals.length; return vals.map(() => avg); };
+
 // Perihelion anchors (UTC) — seed table; CONFIRM ANNUALLY with NASA/ESA. Source: Celestial-2525 ephemeris.
 export const PERIHELION_UTC: Record<number, string> = {
   2024: "2024-01-03T00:39Z",

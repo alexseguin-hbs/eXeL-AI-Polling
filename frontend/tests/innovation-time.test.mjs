@@ -812,6 +812,20 @@ import { slidesForProject, nextGate, SLIDE_SEED, changeSummaryRows, reviewApprov
     `S3 chart renders horizon+1 (${h}-Yr → ${h + 1} year points)`);
 }
 
+/* ---------------- H3 — MoT time-spread (cost/rev/margin → $/min) ---------------- */
+import { spreadPerMin, spreadDaysOf, linearize, SPREAD_BASES } from "../lib/soi-calendar.ts";
+{
+  ok(SPREAD_BASES.some((b) => b.days === 91) && SPREAD_BASES.some((b) => b.days === 365), "spread bases include 91-day (SoI) + 365-day");
+  ok(spreadDaysOf("q91") === 91 && spreadDaysOf("y365") === 365 && spreadDaysOf("custom", 120) === 120, "spreadDaysOf maps presets + custom");
+  const totalUsd = 1_000_000;
+  const perMin91 = spreadPerMin(totalUsd, 91), perMin365 = spreadPerMin(totalUsd, 365);
+  ok(Math.abs(perMin91 - totalUsd / (91 * 1440)) < 1e-9, "spreadPerMin = total / (days × 1440 min)");
+  ok(Math.abs(perMin91 / perMin365 - 365 / 91) < 1e-9, "91-day $/min is ~4× the 365-day $/min (same total)");
+  const lin = linearize([0, 0, 120, 0]);
+  ok(lin.every((v) => Math.abs(v - 30) < 1e-9), "linearize spreads a lumpy series to its even average");
+  ok(Math.abs(lin.reduce((a, b) => a + b, 0) - 120) < 1e-9, "linearize conserves the total");
+}
+
 /* ---------------- G4 — slide version history + replay backbone ---------------- */
 import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelta, isSubstantial, finSnapOf, buildDemoVersionSeed, SUBSTANTIAL_THRESHOLD } from "../lib/innovation-data.ts";
 {
