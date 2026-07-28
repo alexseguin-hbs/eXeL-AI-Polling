@@ -39,9 +39,8 @@ const WRITEUPS: Item[] = [
     blurbKey: "experiences.card.writeup2.blurb",
     href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
   },
-  // Portfolio Optimization — the System of Innovation tool built on this platform. Default-open so the
-  // vision image shows under the text; the open-link icon and demo land on the live deck; the access
-  // code (369963) is revealed only when the visitor opts into the demo.
+  // Portfolio Optimization — the System of Innovation tool built on this platform. Defaults COLLAPSED;
+  // expanding reveals the blurb, vision image, and a gated demo (Open SoI-2525 + access code 369963).
   {
     kind: "link",
     icon: TrendingUp,
@@ -49,8 +48,6 @@ const WRITEUPS: Item[] = [
     badgeKey: "experiences.egg.soi.badge",
     blurbKey: "experiences.egg.soi.blurb",
     href: "/main/SoI-2525/",
-    tagKey: "experiences.egg.soi.framework",
-    defaultOpen: true,
     image: { src: "/experiences/innovate-speed-of-thought.png", altKey: "experiences.egg.poster.alt" },
     demo: {
       labelKey: "experiences.egg.soi.demoLabel",
@@ -293,7 +290,17 @@ function Card({ item }: { item: Item }) {
                   </button>
                   {showCode && (
                     <div className="mt-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5">
-                      <div className="flex items-center gap-2 font-mono text-sm font-semibold tracking-wide text-foreground">
+                      {/* Link to open the tool, then the access code directly under it */}
+                      <a
+                        href={item.demo.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        {t(item.demo.openKey)}
+                      </a>
+                      <div className="mt-2 flex items-center gap-2 font-mono text-sm font-semibold tracking-wide text-foreground">
                         <KeyRound className="h-4 w-4 shrink-0 text-primary" />
                         <span>{t(item.demo.codeKey)}</span>
                       </div>
