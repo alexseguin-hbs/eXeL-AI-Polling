@@ -1879,6 +1879,27 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
   }
 }
 
+// ── Slide-title optimization (operator: "title optimization per HI") ─────────────────────────────────────────
+// The deck's big title is an OPTIMIZED, content-derived headline (the human-authored value for HI, the enhanced
+// superset for AI) that flips with the As-set/HI/AI toggle — not the generic schema name. HEADLINE_FIELD names
+// the field whose content best titles each slide; slides without a text-headline field fall back to the schema
+// name. Deterministic (pure string reduction; no clock/random).
+export const HEADLINE_FIELD: Record<string, string> = {
+  S1: "valueprop", S5: "problem", S6: "desc", S7: "desired", S8: "vprop", S15: "impact",
+};
+/** Headline-ify any field value into a concise title: first item (lists), first sentence, trimmed + clipped.
+ *  Returns "" when there is nothing usable so the caller falls back to the generic slide name. */
+export function optimizeSlideTitle(raw: SlideFieldValue): string {
+  let s = "";
+  if (typeof raw === "string") s = raw;
+  else if (Array.isArray(raw)) { const first = raw.find((x) => typeof x === "string" && (x as string).trim()); s = typeof first === "string" ? first : ""; }
+  s = s.trim();
+  if (!s) return "";
+  const cut = s.search(/\.\s|\.$/); // first sentence only
+  s = (cut >= 0 ? s.slice(0, cut) : s).replace(/[\s;,]+$/, "").trim();
+  return s.length > 64 ? s.slice(0, 63).trimEnd() + "…" : s;
+}
+
 // ── Value signals (Bridge Slice 1) — pure, deterministic, offline. Each has a derived fallback from the
 //    existing engine so seeds never blank. These feed the dog-tag metrics, budget popup, gates, and exec slide.
 

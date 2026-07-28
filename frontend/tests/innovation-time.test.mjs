@@ -893,5 +893,23 @@ import { CALENDARS, DEFAULT_CALENDAR, activeCalendar, calMinutes, soiYearStartUT
   ok(typeof soiYearStartUTC(2025) === "string" && soiYearStartUTC(1900) === null, "Perihelion anchor table (confirm annually w/ NASA)");
 }
 
+/* ---------------- Slide-title optimization per HI/AI (H8) — optimized headline flips with source ---------------- */
+import { HEADLINE_FIELD, optimizeSlideTitle } from "../lib/innovation-data.ts";
+{
+  // Pure reducer: first sentence, trimmed, clipped; list → first non-empty item; empty → "" (caller falls back).
+  ok(optimizeSlideTitle("A crisp headline. Then more detail.") === "A crisp headline", "optimizeSlideTitle keeps only the first sentence");
+  ok(optimizeSlideTitle(["First bullet.", "Second bullet."]) === "First bullet", "optimizeSlideTitle titles from the first list item");
+  ok(optimizeSlideTitle("") === "" && optimizeSlideTitle([]) === "" && optimizeSlideTitle(null) === "", "optimizeSlideTitle empty → '' (fallback to generic name)");
+  const long = "x".repeat(120);
+  ok(optimizeSlideTitle(long).length <= 64 && optimizeSlideTitle(long).endsWith("…"), "optimizeSlideTitle clips long titles to ≤64 + ellipsis");
+  // HEADLINE_FIELD only names real fields on their slide (so the header can resolve them).
+  for (const [code, fid] of Object.entries(HEADLINE_FIELD)) {
+    ok(slideSpec(code)?.fields.some((f) => f.id === fid), `HEADLINE_FIELD[${code}] = "${fid}" is a real field on ${code}`);
+  }
+  // AI-source title is a genuine, non-empty superset for a mapped slide (S8 value prop).
+  const s8ai = optimizeSlideTitle(aiSlideField(DEMO_PROJECTS[0], "S8", "vprop"));
+  ok(typeof s8ai === "string" && s8ai.length > 0, "optimizeSlideTitle(AI S8.vprop) yields a non-empty AI headline");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

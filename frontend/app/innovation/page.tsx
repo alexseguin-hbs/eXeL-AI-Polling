@@ -22,7 +22,7 @@ import {
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
-  SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
+  SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED, HEADLINE_FIELD, optimizeSlideTitle,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
@@ -3089,6 +3089,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   // swipe; big responsive type; financial fields render live from the project record; value prop is featured.
   if (present) {
     const anyContent = spec.fields.some((f) => !fieldEmpty(effective(spec, f, presentSrc)) || (f.kind === "chart" && f.linked));
+    // Title optimization per HI/AI — the big title is an optimized, content-derived headline (HI = human text,
+    // AI = enhanced superset) that flips with the As-set/HI/AI toggle; the generic slide name becomes a kicker.
+    const genName = slideDef(spec.code)?.name ?? spec.code;
+    const hField = HEADLINE_FIELD[spec.code] ? spec.fields.find((f) => f.id === HEADLINE_FIELD[spec.code]) : undefined;
+    const optTitle = hField ? optimizeSlideTitle(effective(spec, hField, presentSrc)) : "";
+    const deckTitle = optTitle || genName;
+    const showKicker = !!optTitle && optTitle.toLowerCase() !== genName.toLowerCase();
     return (
       <div className="fixed inset-0 z-[60] flex flex-col bg-[#04070c] text-slate-100" role="dialog" aria-modal="true"
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -3117,7 +3124,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
                 <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
                 <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[clamp(7px,0.9vw,9px)] font-semibold uppercase tracking-wider text-amber-300 whitespace-nowrap">Req: {spec.stage}+</span>
               </div>
-              <h2 className="flex-1 text-center text-[clamp(20px,3.4vw,44px)] font-semibold tracking-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h2>
+              <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+                {showKicker && <span className="text-[clamp(8px,0.95vw,11px)] font-semibold uppercase tracking-[0.18em] text-slate-500">{genName}</span>}
+                <h2 className="text-[clamp(20px,3.4vw,44px)] font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance">{deckTitle}</h2>
+              </div>
               <span className="shrink-0 self-start font-mono text-[clamp(11px,1.4vw,17px)] font-semibold tracking-[0.14em] text-cyan-400">{spec.code}</span>
             </div>
             {/* Business · Project # · Source subheader */}
