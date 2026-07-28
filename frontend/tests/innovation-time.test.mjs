@@ -944,5 +944,27 @@ import { HEADLINE_FIELD, optimizeSlideTitle } from "../lib/innovation-data.ts";
   ok(typeof s8ai === "string" && s8ai.length > 0, "optimizeSlideTitle(AI S8.vprop) yields a non-empty AI headline");
 }
 
+/* ---------------- MoT gate timeline (H15) — estimated dates that SLIDE when the start date changes ---------------- */
+import { gateScheduleOf, defaultStartISO, addDaysISO, isoToDays, PHASE_DAYS } from "../lib/innovation-data.ts";
+{
+  const sched = gateScheduleOf(P0);
+  ok(sched.length === 7 && sched[0].gate === "G1" && sched[6].gate === "G7", "gate schedule covers G1..G7");
+  // Each gate is one MoT phase (91 days) after the previous — deterministic spacing.
+  ok(sched.every((s, i) => i === 0 || isoToDays(s.startISO) - isoToDays(sched[i - 1].startISO) === PHASE_DAYS), "gates spaced exactly one MoT phase (91 days) apart");
+  // current/done derive from the project's last-completed gate (P0 = G4 → Qualify), not the clock.
+  const cur = sched.find((s) => s.current);
+  ok(cur && cur.gate === P0.gate, "current gate stop matches the project's gate");
+  ok(sched.filter((s) => s.done).length === 3, "gates before the current one are marked done (G1-G3 for a G4 project)");
+  // Changing the start date SLIDES every gate by the same delta (MoT framework).
+  const base = defaultStartISO(P0);
+  const shifted = gateScheduleOf(P0, { startISO: addDaysISO(base, 60) });
+  ok(shifted.every((s, i) => isoToDays(s.startISO) - isoToDays(sched[i].startISO) === 60), "shifting the start slides ALL gate dates by the same 60 days");
+  // Default start lands Launch (G5) on the first-revenue quarter (4 phases after start).
+  ok(isoToDays(sched[4].startISO) === isoToDays(P0.firstRevenue), "default schedule lands G5 (Launch) on first-revenue");
+  // p.startDate override is honored + deterministic.
+  const fixed = gateScheduleOf({ ...P0, startDate: "2027-03-01" });
+  ok(fixed[0].startISO === "2027-03-01" && gateScheduleOf({ ...P0, startDate: "2027-03-01" })[0].startISO === "2027-03-01", "explicit p.startDate anchors G1 (deterministic)");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

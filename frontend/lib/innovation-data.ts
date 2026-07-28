@@ -13,6 +13,42 @@ export const GATE_BAND: Record<Gate, number> = { G1: 0.6, G2: 0.6, G3: 0.4, G4: 
 export const GATE_STAGE: Record<Gate, string> = {
   G1: "Concept", G2: "Plan", G3: "Develop", G4: "Qualify", G5: "Launch", G6: "Maximize", G7: "Retire / EOL",
 };
+// ── MoT gate timeline (operator: estimated project timelines that SLIDE when the start date changes) ─────────
+// Pure, deterministic date math on ISO strings (Date.UTC — no clock read). The program START anchors G1; each
+// gate is spaced by an MoT phase (default one SoI 91-day quarter). Change the start → every gate date slides.
+const MS_DAY = 86400000;
+/** Parse "YYYY-MM-DD" or "YYYY-Qn" to a UTC epoch-day integer (deterministic; no clock). */
+export function isoToDays(s: string): number {
+  const q = /^(\d{4})-Q([1-4])$/.exec(s);
+  if (q) return Math.round(Date.UTC(+q[1], (+q[2] - 1) * 3, 1) / MS_DAY);
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (d) return Math.round(Date.UTC(+d[1], +d[2] - 1, +d[3]) / MS_DAY);
+  return Math.round(Date.UTC(2026, 0, 1) / MS_DAY); // safe fallback
+}
+/** Epoch-day integer → "YYYY-MM-DD". */
+export function daysToISO(n: number): string {
+  const dt = new Date(n * MS_DAY);
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+}
+export const addDaysISO = (iso: string, days: number): string => daysToISO(isoToDays(iso) + Math.round(days));
+export const PHASE_DAYS = 91; // one SoI quarter (13 weeks) per gate phase — the MoT default cadence.
+export interface GateStop { gate: Gate; stage: string; startISO: string; endISO: string; done: boolean; current: boolean }
+/** Default program start so the LAUNCH gate (G5) lands on the project's first-revenue date (4 phases earlier). */
+export const defaultStartISO = (p: Project, phaseDays = PHASE_DAYS): string => addDaysISO(p.firstRevenue, -4 * phaseDays);
+/** G1..G7 schedule anchored on the program start (p.startDate ?? default). Changing the start slides every gate;
+ *  `done`/`current` are derived from the project's last-completed gate (p.gate), not the clock. Deterministic. */
+export function gateScheduleOf(p: Project, opts: { startISO?: string; phaseDays?: number } = {}): GateStop[] {
+  const phaseDays = opts.phaseDays ?? PHASE_DAYS;
+  const start = opts.startISO ?? p.startDate ?? defaultStartISO(p, phaseDays);
+  const curIdx = GATES.indexOf(p.gate);
+  return GATES.map((g, i) => ({
+    gate: g, stage: GATE_STAGE[g],
+    startISO: addDaysISO(start, i * phaseDays),
+    endISO: addDaysISO(start, (i + 1) * phaseDays),
+    done: i < curIdx, current: i === curIdx,
+  }));
+}
+
 // Minimum deliverables required at each gate to de-risk development (AMTS S1–S18 matrix):
 // slide # · description · summary, plus the Must-Have / Recommended preparation & alignment docs.
 // Financial — Return (S3) is the 3rd-most-important slide (priority: 3).
@@ -177,6 +213,8 @@ export interface Project {
   // Business-Setup hierarchy flow through the whole tool.
   bu?: string; sbu?: string; pgroup?: string; alpha?: string; product?: string; material?: string;
   initiative?: string;
+  startDate?: string;                 // program start (ISO YYYY-MM-DD) — anchors the MoT gate timeline; when
+                                      // changed, every gate date slides accordingly (gateScheduleOf).
   // Value proposition (CRS-56 · Value Assessment): the MASTER value prop is the best-in-class HUMAN
   // (HI) statement — a must-have at project creation; per-needs-based-segment value props are
   // recommended (a project can serve many segments). The Next Best Alternative (NBA) — the current

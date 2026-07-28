@@ -16,6 +16,7 @@ import {
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
+  gateScheduleOf, defaultStartISO, addDaysISO, PHASE_DAYS, type GateStop,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, scopeByHier, hierOf, type HierSel,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
@@ -1004,6 +1005,29 @@ function ChartFrame({ children, label }: { children: React.ReactNode; label?: st
         className="absolute right-1 top-1 z-[2] rounded border border-slate-700 bg-[#0b0f14]/85 px-1.5 py-0.5 text-[11px] text-slate-300 hover:bg-slate-800">{max ? "⤡" : "⤢"}</button>
       {max && label && <div className="mb-2 pr-8 text-[clamp(13px,1.6vw,18px)] font-semibold text-slate-100">{label}</div>}
       <div className={max ? "flex min-h-0 flex-1 flex-col justify-center" : ""}>{children}</div>
+    </div>
+  );
+}
+
+// MoT gate timeline — G1..G7 stops with estimated dates. Anchored on the program start (p.startDate or the
+// default that lands Launch on first-revenue); when the start changes, every gate date slides. Done gates fill
+// emerald, the current gate pulses cyan, future gates stay slate. Horizontal-scrolls on phone, full width on PC.
+function GateTimeline({ p }: { p: Project }) {
+  const stops = gateScheduleOf(p);
+  const fmt = (iso: string) => { const d = new Date(iso + "T00:00:00Z"); return `${d.toLocaleString("en-US", { month: "short", timeZone: "UTC" })} ${d.getUTCFullYear()}`; };
+  return (
+    <div className="overflow-x-auto pb-1">
+      <div className="flex min-w-[600px] items-start">
+        {stops.map((s, i) => (
+          <div key={s.gate} className="relative flex flex-1 flex-col items-center px-1 text-center">
+            {i < stops.length - 1 && <div className={`absolute left-1/2 top-[7px] -z-0 h-0.5 w-full ${s.done ? "bg-emerald-500/50" : "bg-slate-700"}`} />}
+            <div className={`relative z-[1] h-3.5 w-3.5 rounded-full border-2 ${s.current ? "border-cyan-300 bg-cyan-400 ring-2 ring-cyan-400/30" : s.done ? "border-emerald-500 bg-emerald-500" : "border-slate-600 bg-[#0b0f14]"}`} />
+            <div className={`mt-1 font-mono text-[11px] font-semibold ${s.current ? "text-cyan-300" : s.done ? "text-emerald-300" : "text-slate-400"}`}>{s.gate}</div>
+            <div className="text-[9px] leading-tight text-slate-400">{s.stage}</div>
+            <div className="mt-0.5 text-[9px] tabular-nums text-slate-500">{fmt(s.startISO)}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -3189,6 +3213,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
             </div>
           </div>
           <div className="mt-[clamp(14px,2.4vw,28px)] grid flex-1 content-start gap-[clamp(12px,1.6vw,22px)] overflow-y-auto sm:grid-cols-2">
+            {/* MoT gate timeline (S2 · Project Overview) — estimated dates that slide when the start date changes. */}
+            {spec.code === "S2" && (
+              <div className="overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] sm:col-span-2">
+                <div className="flex items-center gap-1.5 bg-cyan-500/10 px-3 py-1.5 text-cyan-300">
+                  <span aria-hidden className="text-[12px] leading-none">🗓</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">Program timeline · MoT gate schedule · ◈ live</span>
+                </div>
+                <div className="p-3"><GateTimeline p={p} /><SourceLink source="Program start (source record)" /></div>
+              </div>
+            )}
             {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
             {!anyContent && <p className="text-[clamp(14px,1.6vw,20px)] italic text-slate-500">Nothing authored on this slide yet — tap Edit to add content.</p>}
           </div>
@@ -3281,6 +3315,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
                       {riskEdit("Tech risk", "tech")}
                       {riskEdit("Comm risk", "comm")}
                       {numEdit("Upside accel", "upsideAccelK", "$K")}
+                      {/* Program start — anchors the MoT gate timeline; changing it slides EVERY gate date. */}
+                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program start (MoT — slides all gates)
+                        <input type="date" defaultValue={p.startDate ?? defaultStartISO(p)} onChange={(e) => e.target.value && onEditSource({ startDate: e.target.value }, [`Program start → ${e.target.value} (timeline slid)`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
+                      </label>
                     </div>
                   )}
                 </div>
