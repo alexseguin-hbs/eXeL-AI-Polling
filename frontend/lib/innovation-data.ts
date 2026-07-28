@@ -1500,15 +1500,26 @@ export const BIZ_TIERS: { key: BizTier; label: string; parent?: BizTier }[] = [
   { key: "product", label: "Product #", parent: "alpha" },
   { key: "material", label: "Material #", parent: "product" },
 ];
-export interface BizNode { code: string; label: string; desc?: string; parent?: string; baseM?: number }
+// A hierarchy node. `baseM` = grey do-nothing anchor (existing). H38 adds the seeded P&L trio — base-year
+// Revenue (revM), Margin $ (marginM), and Growth Rate % (growthPct) — plus an optional Trinity `color` (BU only,
+// inherited by children). ALL new fields are optional so a validated loader tolerates old persisted setups.
+export interface BizNode { code: string; label: string; desc?: string; parent?: string; baseM?: number; revM?: number; marginM?: number; growthPct?: number; color?: string }
 export type BizSetup = { company: string } & Record<BizTier, BizNode[]>;
+// Base-year seeds per BU (operator IMG_8045/8049): DS anchors $99M @ 77% CAGR, MS $33M @ 33%, AP $11M @ 44%.
+// Seeded down to the SBU tier (Rev split by SBU do-nothing share, Growth inherited); deeper tiers edit in-app.
+export const BU_SEED_REV: Record<string, number> = { DS: 99, MS: 33, AP: 11 };
+export const BU_SEED_GROWTH: Record<string, number> = { DS: 77, MS: 33, AP: 44 };
+const SEED_MARGIN_FRAC = 0.4; // demo gross-margin fraction → seeds Margin $ from base-year Revenue
 export function seedBizSetup(projects: Project[]): BizSetup {
   const uniq = (arr: BizNode[]) => Array.from(new Map(arr.map((n) => [n.code, n])).values()).sort((a, b) => a.code.localeCompare(b.code));
   const bu: BizNode[] = [], sbu: BizNode[] = [], pgroup: BizNode[] = [], alpha: BizNode[] = [], product: BizNode[] = [], material: BizNode[] = [];
   for (const p of projects) {
     const h = hierOf(p);
-    bu.push({ code: h.bu, label: BU_LABEL[h.bu] ?? h.bu });
-    sbu.push({ code: h.sbu, label: SBU_LABEL[h.sbu] ?? h.sbu, parent: h.bu, baseM: SBU_BASE[h.sbu] ?? 0 });
+    const buRev = BU_SEED_REV[h.bu] ?? 0, buGrowth = BU_SEED_GROWTH[h.bu] ?? 0;
+    const sbuShare = buBaseM(h.bu) > 0 ? (SBU_BASE[h.sbu] ?? 0) / buBaseM(h.bu) : 0;
+    const sbuRev = Math.round(buRev * sbuShare * 10) / 10;
+    bu.push({ code: h.bu, label: BU_LABEL[h.bu] ?? h.bu, revM: buRev, marginM: Math.round(buRev * SEED_MARGIN_FRAC * 10) / 10, growthPct: buGrowth, color: BU_COLOR[h.bu] });
+    sbu.push({ code: h.sbu, label: SBU_LABEL[h.sbu] ?? h.sbu, parent: h.bu, baseM: SBU_BASE[h.sbu] ?? 0, revM: sbuRev, marginM: Math.round(sbuRev * SEED_MARGIN_FRAC * 10) / 10, growthPct: buGrowth });
     pgroup.push({ code: h.pgroup, label: h.pgroup, parent: h.sbu });
     alpha.push({ code: h.alpha, label: h.alpha, parent: h.pgroup });
     product.push({ code: h.product, label: p.name, parent: h.alpha });

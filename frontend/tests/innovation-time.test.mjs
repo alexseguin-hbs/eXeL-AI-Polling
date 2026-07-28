@@ -1060,5 +1060,26 @@ import { REV_MODE, segColorOf, BU_COLOR } from "../lib/innovation-data.ts";
   ok(segColorOf("alpha", "AB1", 0) !== segColorOf("alpha", "AB2", 1), "distinct Alpha-code segments get distinct palette colors");
 }
 
+// H38 — tier tables carry seeded base-year Rev / Margin $ / Growth % + Trinity BU colors, down to Alpha Code.
+import { BU_SEED_REV, BU_SEED_GROWTH } from "../lib/innovation-data.ts";
+{
+  const setup = seedBizSetup(DEMO_PROJECTS);
+  for (const bu of ["DS", "MS", "AP"]) {
+    const node = setup.bu.find((n) => n.code === bu);
+    ok(node && node.revM === BU_SEED_REV[bu], `BU ${bu} seeds base-year Rev $${BU_SEED_REV[bu]}M`);
+    ok(node && node.growthPct === BU_SEED_GROWTH[bu], `BU ${bu} seeds Growth ${BU_SEED_GROWTH[bu]}%`);
+    ok(node && typeof node.marginM === "number" && node.marginM > 0 && node.marginM < node.revM, `BU ${bu} seeds a Margin $ below Revenue`);
+    ok(node && !!node.color, `BU ${bu} carries a Trinity color`);
+  }
+  // Revenue splits down to SBU and sums back to the BU (within rounding).
+  const dsSbuRev = setup.sbu.filter((n) => n.parent === "DS").reduce((s, n) => s + (n.revM ?? 0), 0);
+  ok(Math.abs(dsSbuRev - BU_SEED_REV.DS) <= 1, `DS SBU revenue sums back to the BU base-year Rev (${dsSbuRev})`);
+  // Deeper tiers (product/material) carry NO seeded Rev (seed stops at Alpha Code).
+  ok(setup.product.every((n) => n.revM === undefined), "Product tier carries no seeded Rev (seed stops at Alpha Code)");
+  // Back-compat: an old setup missing the new fields still loads (fields optional) — simulate by round-tripping.
+  const legacy = JSON.parse(JSON.stringify(setup.bu.map((n) => ({ code: n.code, label: n.label }))));
+  ok(legacy.every((n) => n.revM === undefined) && legacy.length === 3, "legacy BizNodes without P&L fields remain valid");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

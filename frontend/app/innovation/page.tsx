@@ -35,7 +35,7 @@ import {
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf, constellationLayout,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
-  seedBizSetup, BIZ_TIERS, fmtPerCadence, CADENCE_UNIT, type Cadence,
+  seedBizSetup, BIZ_TIERS, BU_COLOR, fmtPerCadence, CADENCE_UNIT, type Cadence,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   changeSummaryRows, reviewApprovalRows,
@@ -3969,6 +3969,15 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
   const updateRow = (i: number, patch: Partial<BizNode>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   // Grey baseline revenue ($M) is settable at BU · SBU · Alpha Group (pgroup) — operator.
   const baseTier = tier === "bu" || tier === "sbu" || tier === "pgroup";
+  // P&L seeds (base-year Rev · Margin $ · Growth %) are entered down to the Alpha Code tier only (operator).
+  const finTier = tier === "bu" || tier === "sbu" || tier === "pgroup" || tier === "alpha";
+  // Trinity BU color for a row — BU uses its own; children inherit their ancestor BU's color (walk parent chain).
+  const buCodeOf = (tk: BizTier, code: string): string => {
+    let t = tk, c = code;
+    while (t !== "bu") { const meta = BIZ_TIERS.find((x) => x.key === t); const pk = meta?.parent; const node = setup[t].find((n) => n.code === c); if (!pk || !node?.parent) break; c = node.parent; t = pk; }
+    return c;
+  };
+  const rowColor = (r: BizNode): string => BU_COLOR[buCodeOf(tier, r.code)] ?? "#334155";
   const addRow = () => setRows([...rows, { code: `NEW${rows.length + 1}`, label: "New " + tierMeta.label, parent: parentRows[0]?.code, baseM: baseTier ? 0 : undefined }]);
   const delRow = (i: number) => setRows(rows.filter((_, j) => j !== i));
   const resetSeed = () => persist(seedBizSetup(DEMO_PROJECTS));
@@ -4153,13 +4162,16 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
                 <th className="px-2 py-2 text-left">Description</th>
                 {parentTier && <th className="px-2 py-2 text-left">{BIZ_TIERS.find((t) => t.key === parentTier)!.label}</th>}
                 {baseTier && <th className="px-2 py-2 text-right">Base $M</th>}
+                {finTier && <th className="px-2 py-2 text-right">Rev $M</th>}
+                {finTier && <th className="px-2 py-2 text-right">Margin $M</th>}
+                {finTier && <th className="px-2 py-2 text-right">Growth %</th>}
                 <th className="px-2 py-2 text-right">·</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r, i) => (
                 <tr key={i} className="border-b border-slate-900">
-                  <td className="px-3 py-1.5"><input value={r.code} onChange={(e) => updateRow(i, { code: e.target.value })} className={`w-24 font-mono ${inp}`} /></td>
+                  <td className="py-1.5 pl-2 pr-3" style={{ borderLeft: `3px solid ${rowColor(r)}` }}><input value={r.code} onChange={(e) => updateRow(i, { code: e.target.value })} className={`w-24 font-mono ${inp}`} title={`BU ${buCodeOf(tier, r.code)}`} /></td>
                   <td className="px-2 py-1.5"><input value={r.label} onChange={(e) => updateRow(i, { label: e.target.value })} className={`w-full ${inp}`} /></td>
                   <td className="px-2 py-1.5"><input value={r.desc ?? ""} onChange={(e) => updateRow(i, { desc: e.target.value })} placeholder="Full description" className={`w-full min-w-[180px] ${inp}`} /></td>
                   {parentTier && (
@@ -4171,13 +4183,16 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
                     </td>
                   )}
                   {baseTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="numeric" value={String(r.baseM ?? 0)} onChange={(e) => /^\d*$/.test(e.target.value) && updateRow(i, { baseM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
+                  {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.revM ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { revM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
+                  {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.marginM ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { marginM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
+                  {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.growthPct ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { growthPct: +e.target.value })} className={`w-14 text-right tabular-nums ${inp}`} /></td>}
                   <td className="px-2 py-1.5 text-right"><button onClick={() => delRow(i)} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete">✕</button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Master data persists in this browser. Codes: BU 2-letter · SBU 3-letter · Alpha Group alphanumeric · Alpha Code 4-char · Product 7xxxx · Material 7xxxx-yyy. Base revenue on the SBU anchors the growth model.</p>
+        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Master data persists in this browser. Codes: BU 2-letter · SBU 3-letter · Alpha Group alphanumeric · Alpha Code 4-char · Product 7xxxx · Material 7xxxx-yyy. Base-year Rev · Margin $ · Growth % seed the Growth Model down to the Alpha Code tier; each BU carries a Trinity color its children inherit (left bar).</p>
       </section>
     </div>
   );
@@ -4829,8 +4844,7 @@ function IntelligenceLoadPanel({ projects }: { projects: Project[] }) {
 
 // Dependencies (FLIR §4) — Summary table (§4.2) + Constellation graph (§4.3). Directed edge
 // A→B = "B's risk affects A's success". Bubble ∝ NPV · border green above-line / red below ·
-// fill by BU · arrows point to the primary (bottom) dependency.
-const BU_COLOR: Record<string, string> = { MS: VIZ.cyan, DS: VIZ.violet, AP: VIZ.amber };
+// fill by BU (shared Trinity BU_COLOR from innovation-data — one color source) · arrows point to the primary dep.
 function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; deps: DepEdge[]; onSelect: (id: string) => void }) {
   const { t } = useLexicon();
   const summary = dependencySummary(projects, deps);
