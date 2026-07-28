@@ -185,6 +185,12 @@ export type RiskLevel = "low" | "med" | "high";
 export const RISK_P: Record<RiskLevel, number> = { low: 0.9, med: 0.6, high: 0.3 };
 export const riskNum = (l: RiskLevel) => 1 - RISK_P[l]; // probability of failure (for tolerance band)
 export const RISK_LABEL: Record<RiskLevel, string> = { low: "Low", med: "Med", high: "High" };
+// S13 risk-table status derived from the row's risk Level (deterministic): High→Open, Med→Mitigating, Low→Mitigated.
+// Keeps every project's Risk Highlights showing a Status consistent with its level. Pure; no clock/random.
+export const riskLevelStatus = (level: string): string => {
+  const l = (level || "").trim().toLowerCase();
+  return l.startsWith("h") ? "Open" : l.startsWith("l") ? "Mitigated" : "Mitigating";
+};
 
 // Every project rolls up to a Line of Business (LOB) — the growth-model / stack filter axis.
 export const LOBS = ["Defense & ISR", "Autonomy", "Software & SaaS", "Commercial", "Space", "Components"] as const;
@@ -1754,9 +1760,9 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
   // S13 — Risk Summary split three ways (operator): Technical (engineering), Commercial (BD/Sales), and
   // Business (everything else — funding, schedule, org, supply, regulatory, IP).
   { code: "S13", gate: "G3", stage: "Develop", source: "Business Case", fields: [
-    { id: "tech", name: "Technical risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
-    { id: "comm", name: "Commercial risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
-    { id: "biz", name: "Business risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
+    { id: "tech", name: "Technical risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure", "Status"] },
+    { id: "comm", name: "Commercial risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure", "Status"] },
+    { id: "biz", name: "Business risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure", "Status"] },
     { id: "deps", name: "Dependencies — internal IRAD / CRAD", kind: "list" } ] },
   { code: "S14", gate: "G4", stage: "Qualify", source: "Roadmap", fields: [
     { id: "fte", name: "FTE # by function", kind: "table", req: true, cols: ["Function", "Yr 1", "Yr 2", "Yr 3", "Yr 4"], hint: "Resource needs per Year (roll to Quarter via SoI/MoT cadence: quarter = 13 weeks)." },
@@ -1911,14 +1917,14 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
       return [["Do nothing", money(dn), money(dn * 0.85), money(dn * 0.72), money(dn * 0.61)], ["New product", "$0M", money(inc * 0.15), money(inc * 0.35), money(inc * 0.55)], ["Combined", money(dn), money(dn * 0.85 + inc * 0.15), money(dn * 0.72 + inc * 0.35), money(dn * 0.61 + inc * 0.55)]];
     }
     case "S10.conf": return { tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm] };
-    case "S13.tech": return [[RISK_LABEL[p.tech], b.evidence.find((e) => /risk|mitigat/i.test(e)) ?? "Core technology maturity", "Dual-source + early qual"]];
-    case "S13.comm": return [[RISK_LABEL[p.comm], killRiskOf(p), "VOC validation + phased commitments"]];
+    case "S13.tech": return [[RISK_LABEL[p.tech], b.evidence.find((e) => /risk|mitigat/i.test(e)) ?? "Core technology maturity", "Dual-source + early qual", riskLevelStatus(RISK_LABEL[p.tech])]];
+    case "S13.comm": return [[RISK_LABEL[p.comm], killRiskOf(p), "VOC validation + phased commitments", riskLevelStatus(RISK_LABEL[p.comm])]];
     case "S13.biz": {
       const lvl = p.confidence >= 4 ? "Low" : p.confidence === 3 ? "Med" : "High";
       return [
-        [lvl, "Funding continuity across gates", "Phase-gated releases + portfolio reserve"],
-        [lvl, `Schedule vs ${p.firstRevenue} first-revenue commit`, "Critical-path buffer + upside accelerator"],
-        ["Med", "Talent / org bandwidth + supply base", "Cross-trained team + qualified second source"],
+        [lvl, "Funding continuity across gates", "Phase-gated releases + portfolio reserve", riskLevelStatus(lvl)],
+        [lvl, `Schedule vs ${p.firstRevenue} first-revenue commit`, "Critical-path buffer + upside accelerator", riskLevelStatus(lvl)],
+        ["Med", "Talent / org bandwidth + supply base", "Cross-trained team + qualified second source", riskLevelStatus("Med")],
       ];
     }
     case "S14.fte": {

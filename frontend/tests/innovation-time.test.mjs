@@ -989,5 +989,31 @@ import { gateScheduleOf, defaultStartISO, addDaysISO, isoToDays, PHASE_DAYS } fr
   ok(aiGaps === 0, `AI content present on every required in-scope field (0 gaps of ${checked})`);
 }
 
+/* ---------------- S13 risk-table STATUS for all projects (H26) ---------------- */
+import { riskLevelStatus } from "../lib/innovation-data.ts";
+{
+  ok(riskLevelStatus("High") === "Open" && riskLevelStatus("Low") === "Mitigated" && riskLevelStatus("Med") === "Mitigating", "riskLevelStatus maps High→Open · Med→Mitigating · Low→Mitigated");
+  for (const fid of ["tech", "comm", "biz"]) {
+    const f = slideSpec("S13").fields.find((x) => x.id === fid);
+    ok(f && f.cols[f.cols.length - 1] === "Status", `S13.${fid} table has a Status column`);
+    const rows = aiSlideField(DEMO_PROJECTS[0], "S13", fid);
+    ok(Array.isArray(rows) && rows.every((r) => r.length === 4 && String(r[3] ?? "").trim()), `aiSlideField S13.${fid} rows are 4-wide with a status`);
+  }
+  // Every project's seeded S13 rows (HI + AI) are 4-wide with a non-empty status.
+  let checked = 0, gaps = 0;
+  for (const p of DEMO_PROJECTS) {
+    const s13 = SLIDE_SEED[p.id]?.S13; if (!s13) continue;
+    for (const fid of ["tech", "comm", "biz"]) {
+      for (const slot of ["hi", "ai"]) {
+        const v = s13[fid]?.[slot];
+        if (!Array.isArray(v)) continue;
+        for (const r of v) { checked++; if (!(Array.isArray(r) && r.length === 4 && String(r[3] ?? "").trim())) gaps++; }
+      }
+    }
+  }
+  ok(checked > 50, `S13 status coverage swept ${checked} seeded rows across projects`);
+  ok(gaps === 0, `every seeded S13 row carries a status (0 gaps of ${checked})`);
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
