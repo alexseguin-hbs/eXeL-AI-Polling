@@ -4404,29 +4404,44 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const pillarKey = (p: Project) => metaOf(p).initiative;
   const inScope = splitBy === "pillar" && pillarSel.size ? scoped.filter((p) => pillarSel.has(pillarKey(p))) : scoped;
   const segLabel = splitBy === "risk" ? "Risk" : splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code";
-  const keyOf = (p: Project) => (splitBy === "pillar" ? pillarKey(p) : hierOf(p)[childLevel]);
-  const scopeIncr = inScope.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
+  const scopeIncrAll = scoped.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
   const tierNodes: BizNode[] = bizSetup[childLevel as BizTier] ?? [];
-  // Blended risk weight (tech×comm success) over the scope — the green risk-weighted share; upside = 1 − it.
-  const riskFrac = (() => { const inc = inScope.reduce((s, p) => s + incrementalRevM(p), 0); return inc > 0 ? inScope.reduce((s, p) => s + weightedRevM(p), 0) / inc : 0.5; })();
-  const mkRiskSeg = (code: string, color: string, share: number) => ({ code, color, seed: scopeRev * share, g: scopeGrowth / 100, gm: growthModel(inScope, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) });
-  // Each segment GROWS from its seeded base-year Revenue at its tier CAGR (funded-only scope).
-  type Seg = { code: string; color: string; seed: number; g: number; gm: (typeof rows) };
+  // Blended risk weight (tech×comm success) over the FUNDED scope — green risk-weighted share; upside = 1 − it.
+  const riskFrac = (() => { const inc = scoped.reduce((s, p) => s + incrementalRevM(p), 0); return inc > 0 ? scoped.reduce((s, p) => s + weightedRevM(p), 0) / inc : 0.5; })();
+  // ── ONE canonical per-year revenue for the FUNDED scope, from the hierarchy tier seeds (H38/H39 single source
+  //    of truth). EVERY split (Hierarchy · Pillar · Risk) re-slices THIS same series, so all three show identical
+  //    yearly totals — the split only changes how the one bar is partitioned, never its height.
+  const childCodes = Array.from(new Set(scoped.map((p) => hierOf(p)[childLevel]))).sort();
+  const nodeInfo = childCodes.map((code) => {
+    const sp = scoped.filter((p) => hierOf(p)[childLevel] === code);
+    const share = sp.reduce((a, p) => a + incrementalRevM(p), 0) / scopeIncrAll;
+    const node = tierNodes.find((n) => n.code === code);
+    return { code, sp, share, seed: node?.revM ?? scopeRev * share, g: (node?.growthPct ?? scopeGrowth) / 100 };
+  });
+  const scopeRevSeries = rows.map((_, i) => nodeInfo.reduce((s, n) => s + n.seed * Math.pow(1 + n.g, i), 0));
+  // Each segment carries its own per-year revenue series `revAt` (+ base-year `base` for Incremental). Hierarchy
+  // uses the true per-node tier compounding; Pillar / Risk take a proportional slice of the ONE canonical series,
+  // so every split's stack sums to the same total as Hierarchy for every year.
+  type Seg = { code: string; color: string; revAt: (i: number) => number; base: number; gm: (typeof rows) };
+  const gmOpts = (over: number) => ({ years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: over } as const);
   const segments: Seg[] = splitBy === "risk"
-    ? [mkRiskSeg("Risk-weighted", "#34d399", riskFrac), mkRiskSeg("At-risk upside", "#fbbf24", 1 - riskFrac)]
-    : Array.from(new Set(inScope.map(keyOf))).sort().map((code, idx): Seg => {
-      const sp = inScope.filter((p) => keyOf(p) === code);
-      const share = sp.reduce((s, p) => s + incrementalRevM(p), 0) / scopeIncr;
-      const node = splitBy === "pillar" ? undefined : tierNodes.find((n) => n.code === code);
-      const seed = node?.revM ?? scopeRev * share;                    // seeded base-year revenue (tier) or proportional
-      const g = (node?.growthPct ?? scopeGrowth) / 100;               // seeded growth rate (tier) or scope growth
-      const color = splitBy === "pillar" ? pillarColorOf(code, pillarDefs) : segColorOf(childLevel, code, idx);
-      return { code, color, seed, g, gm: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
-    });
-  // Value of a segment in a given year for the active band — grow at the tier CAGR from the seeded base year.
+    ? ([["Risk-weighted", "#34d399", riskFrac], ["At-risk upside", "#fbbf24", 1 - riskFrac]] as const).map(([code, color, frac]): Seg => ({
+        code, color, revAt: (i: number) => frac * scopeRevSeries[i], base: frac * scopeRevSeries[0], gm: growthModel(scoped, gmOpts(baseM * frac)),
+      }))
+    : splitBy === "pillar"
+    ? Array.from(new Set(inScope.map(pillarKey))).sort().map((code): Seg => {
+        const sp = scoped.filter((p) => pillarKey(p) === code);
+        const share = sp.reduce((a, p) => a + incrementalRevM(p), 0) / scopeIncrAll;
+        return { code, color: pillarColorOf(code, pillarDefs), revAt: (i: number) => share * scopeRevSeries[i], base: share * scopeRevSeries[0], gm: growthModel(sp, gmOpts(baseM * share)) };
+      })
+    : nodeInfo.map((n, idx): Seg => ({
+        code: n.code, color: segColorOf(childLevel, n.code, idx),
+        revAt: (i: number) => n.seed * Math.pow(1 + n.g, i), base: n.seed, gm: growthModel(n.sp, gmOpts(baseM * n.share)),
+      }));
+  // Value of a segment in a given year for the active band — its revenue series, transformed per band.
   const segVal = (seg: Seg, i: number) => {
-    const rev = seg.seed * Math.pow(1 + seg.g, i);
-    return band === "rev" ? rev : band === "mgn" ? rev * marginFrac : band === "incremental" ? rev - seg.seed : band === "incmgn" ? (rev - seg.seed) * marginFrac : band === "new" ? seg.gm[i].newRev : band === "decline" ? -seg.gm[i].declineRev : seg.gm[i].eolRev;
+    const rev = seg.revAt(i);
+    return band === "rev" ? rev : band === "mgn" ? rev * marginFrac : band === "incremental" ? rev - seg.base : band === "incmgn" ? (rev - seg.base) * marginFrac : band === "new" ? seg.gm[i].newRev : band === "decline" ? -seg.gm[i].declineRev : seg.gm[i].eolRev;
   };
   const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, segVal(g, i)), 0));
   const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, segVal(g, i)), 0));
