@@ -1236,7 +1236,7 @@ const experiences: TranslationEntry[] = [
   { key: "experiences.egg.soi.valueVal", englishDefault: "~$22K · comparable custom build", context: "Portfolio Optimization stat value — estimated value", cubeId: 50 },
   { key: "experiences.egg.soi.demoLabel", englishDefault: "Interested? View the live demo", context: "Portfolio Optimization card: reveal toggle for the gated demo access code", cubeId: 50 },
   { key: "experiences.egg.soi.demoCode", englishDefault: "Access Code: 369963", context: "Portfolio Optimization card: gated demo access code (simplified)", cubeId: 50 },
-  { key: "experiences.egg.soi.demoOpen", englishDefault: "Open SoI-2525", context: "Portfolio Optimization card: open-tool link label", cubeId: 50 },
+  { key: "experiences.egg.soi.demoOpen", englishDefault: "Open System of Innovation", context: "Portfolio Optimization card: open-tool link label", cubeId: 50 },
   // Vision poster — expandable in the Presentation section.
   { key: "experiences.egg.poster.label", englishDefault: "Innovate at the Speed of Thought — the vision on one page", context: "Expandable poster toggle label in the Presentation section", cubeId: 50 },
   { key: "experiences.egg.poster.alt", englishDefault: "Innovate at the Speed of Thought — Vision 2525, Humanity's Coordination Framework poster", context: "Alt text for the Vision 2525 poster image", cubeId: 50 },

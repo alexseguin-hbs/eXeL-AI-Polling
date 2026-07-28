@@ -306,18 +306,18 @@ function Card({ item }: { item: Item }) {
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showCode ? "rotate-180" : ""}`} />
                   </button>
                   {showCode && (
-                    <div className="mt-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5">
-                      {/* Link to open the tool, then the access code directly under it */}
+                    <div className="mt-2 rounded-lg border border-primary/25 bg-primary/5 p-3">
+                      {/* Full-width open link, then the access code centered directly under it */}
                       <a
                         href={item.demo.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
                       >
-                        <ExternalLink className="h-3.5 w-3.5" />
+                        <ExternalLink className="h-4 w-4" />
                         {t(item.demo.openKey)}
                       </a>
-                      <div className="mt-2 flex items-center gap-2 font-mono text-sm font-semibold tracking-wide text-foreground">
+                      <div className="mt-2 flex items-center justify-center gap-2 text-sm font-semibold text-foreground">
                         <KeyRound className="h-4 w-4 shrink-0 text-primary" />
                         <span>{t(item.demo.codeKey)}</span>
                       </div>
