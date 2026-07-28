@@ -580,7 +580,7 @@ function Board() {
           SBU Director / VP) — not at Alpha Code / Product # / Material #, where there is no baseline to age against. */}
       {isGroupLevel && (
         <div className="px-5 pt-4 pb-1">
-          <GrowthModelChart funded={fundedRows.map((r) => r.p)} cadence={cadence} hierFilter={hierFilter} />
+          <GrowthModelChart funded={fundedRows.map((r) => r.p)} cadence={cadence} hierFilter={hierFilter} allProjects={order} onScope={setHierFilter} />
         </div>
       )}
       {/* Orientation-aware split: landscape = list LEFT / detail RIGHT · portrait = list TOP / detail BOTTOM
@@ -4239,14 +4239,14 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
 // Growth Model — the signature Rack & Stack chart: BU→SBU hierarchy filter, # Years (1/3/10),
 // Targeted Growth Rate, YoY Do-Nothing decline, Revenue Options, Show/Hide baseline, 4-series legend.
 // (Gate cadence lives on the per-project gate overview, not here.)
-function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Project[]; cadence?: Cadence; hierFilter: HierSel }) {
+function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onScope }: { funded: Project[]; cadence?: Cadence; hierFilter: HierSel; allProjects: Project[]; onScope: (s: HierSel) => void }) {
   const [years, setYears] = useState(3);
   const [growthPct, setGrowthPct] = useState("3.8");
   const [declinePct, setDeclinePct] = useState("15.1");
   const [revMode, setRevMode] = useState<RevMode>("full");
   const [showBaseline, setShowBaseline] = useState(true);
   // Growth-model band view (operator): Incremental (orange, New−Decline+EOL) by default; or one component.
-  const [band, setBand] = useState<"incremental" | "incmgn" | "new" | "decline" | "eol">("incremental");
+  const [band, setBand] = useState<"incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol">("incremental");
   // Split-by dimension (operator): stack the bar by hierarchy child (default) or by strategic pillar (admin colors).
   const [splitBy, setSplitBy] = useState<"hier" | "pillar">("hier");
   const [pillarSel, setPillarSel] = useState<Set<string>>(new Set()); // multi-select (pillar mode only; empty = all)
@@ -4292,30 +4292,36 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
   // Operator chart math: Incremental Rev = Step 1 (New) − Step 2 (Decline) + Step 3 (EOL). Incremental Mgn =
   // Incremental Rev × the blended gross margin (single source = execOf().marginPct across the funded set).
   const marginFrac = blendedMarginFrac(funded);
-  const BAND = { incremental: { key: "incremental", label: "Incremental Rev (1−2+3)", color: "#fbbf24" }, incmgn: { key: "incmgn", label: "Incremental Mgn", color: "#f7b955" }, new: { key: "new", label: "Step 1 · New (Next-Gen)", color: "#34d399" }, decline: { key: "decline", label: "Step 2 · Decline if unfunded", color: "#fb7185" }, eol: { key: "eol", label: "Step 3 · EOL (Prior-Gen)", color: "#a78bfa" } } as const;
-  // Decline-if-unfunded is a revenue LOSS → render it on the NEGATIVE y-axis (below zero) with negative numbers.
-  const seriesVal = (r: (typeof rows)[number]) => band === "incremental" ? r.incremental : band === "incmgn" ? r.incremental * marginFrac : band === "new" ? r.newRev : band === "decline" ? -r.declineRev : r.eolRev;
-  // Drill-down stacking (operator): split the scope's bar into its CHILD nodes — Company→BUs, BU→SBUs,
-  // SBU→Alpha Codes — grouped straight from the already-scoped funded set. Each segment runs the growth model
-  // on its own projects with a proportional slice of the scope base, so the stack sums back to the scope total.
+  // Bands: Full Revenue / Margin $ (grow at the tier CAGR — always POSITIVE, operator), the growth-above-base-year
+  // Incremental Rev / Incremental Mgn (POSITIVE by construction), and the do-nothing Step 1/2/3 components.
+  const BAND = { incremental: { key: "incremental", label: "Incremental Rev", color: "#fbbf24" }, incmgn: { key: "incmgn", label: "Incremental Mgn", color: "#f7b955" }, rev: { key: "rev", label: "Full Revenue", color: "#38bdf8" }, mgn: { key: "mgn", label: "Margin $", color: "#34d399" }, new: { key: "new", label: "Step 1 · New (Next-Gen)", color: "#34d399" }, decline: { key: "decline", label: "Step 2 · Decline if unfunded", color: "#fb7185" }, eol: { key: "eol", label: "Step 3 · EOL (Prior-Gen)", color: "#a78bfa" } } as const;
+  // Drill-down stacking: split the scope's bar into its CHILD nodes — Company→BUs, BU→SBUs, SBU→Alpha Codes (or
+  // strategic pillars in pillar mode). Each segment GROWS from its seeded base-year Revenue at its tier CAGR, so
+  // Full Revenue / Incremental / Margin are all positive; Step 1/2/3 still come from the do-nothing growth model.
   const childLevel: HierKey = selBu === "All" ? "bu" : selSbu === "All" ? "sbu" : "alpha";
-  // Split-by (operator IMG_8051): stack by hierarchy child (default) OR by strategic pillar. Pillar mode groups
-  // the scope by metaOf().initiative and colors each segment with the ADMIN pillar color (pillarColorOf), with an
-  // optional multi-select to view one/more pillars alone. Pillar set is derived at render (N pillars, not fixed).
   const pillarDefs = loadPillars();
   const pillarKey = (p: Project) => metaOf(p).initiative;
   const inScope = splitBy === "pillar" && pillarSel.size ? scoped.filter((p) => pillarSel.has(pillarKey(p))) : scoped;
   const segLabel = splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code";
   const keyOf = (p: Project) => (splitBy === "pillar" ? pillarKey(p) : hierOf(p)[childLevel]);
   const scopeIncr = inScope.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
+  const tierNodes: BizNode[] = bizSetup[childLevel as BizTier] ?? [];
   const segments = Array.from(new Set(inScope.map(keyOf))).sort().map((code, idx) => {
     const sp = inScope.filter((p) => keyOf(p) === code);
     const share = sp.reduce((s, p) => s + incrementalRevM(p), 0) / scopeIncr;
+    const node = splitBy === "pillar" ? undefined : tierNodes.find((n) => n.code === code);
+    const seed = node?.revM ?? scopeRev * share;                    // seeded base-year revenue (tier) or proportional
+    const g = (node?.growthPct ?? scopeGrowth) / 100;               // seeded growth rate (tier) or scope growth
     const color = splitBy === "pillar" ? pillarColorOf(code, pillarDefs) : segColorOf(childLevel, code, idx);
-    return { code, color, rows: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
+    return { code, color, seed, g, gm: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
   });
-  const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, seriesVal(g.rows[i])), 0));
-  const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, seriesVal(g.rows[i])), 0));
+  // Value of a segment in a given year for the active band. Rev/Incremental/Margin grow at the tier CAGR (positive).
+  const segVal = (seg: (typeof segments)[number], i: number) => {
+    const rev = seg.seed * Math.pow(1 + seg.g, i);
+    return band === "rev" ? rev : band === "mgn" ? rev * marginFrac : band === "incremental" ? rev - seg.seed : band === "incmgn" ? (rev - seg.seed) * marginFrac : band === "new" ? seg.gm[i].newRev : band === "decline" ? -seg.gm[i].declineRev : seg.gm[i].eolRev;
+  };
+  const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, segVal(g, i)), 0));
+  const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, segVal(g, i)), 0));
   const max = Math.max(...rows.map((r) => r.target), ...stackPos, 1) * 1.1;
   const minV = Math.min(0, ...stackNeg) * 1.1;
   const pw = (W - L - R) / rows.length;
@@ -4348,9 +4354,17 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
         })}
       </div>
 
-      {/* Scope breadcrumb (Christo) — the chart follows the ONE page-level Scope filter; no separate cascade. */}
+      {/* Scope selector ON the chart (operator) — the ONE standard ScopeFilter, cross-filtering the whole view. */}
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
+        <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
+        {/* Rev / Mgn quick toggle (operator) */}
+        <div className="flex overflow-hidden rounded-md border border-slate-700">
+          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
+            <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
+              className={`px-2.5 py-1 ${band === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          ))}
+        </div>
         {/* Split-by: hierarchy child (default) or strategic pillar (admin colors) */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
           {([["hier", "Hierarchy"], ["pillar", "Pillar"]] as const).map(([k, lbl]) => (
@@ -4404,10 +4418,10 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
-              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(seriesVal(g.rows[i]))}`).join(" · ")} · target {Math.round(r.target)}</title>
+              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · target {Math.round(r.target)}</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
               {segments.map((g) => {
-                const v = seriesVal(g.rows[i]); if (!v) return null;
+                const v = segVal(g, i); if (!v) return null;
                 const from = v >= 0 ? posAcc : negAcc; const to = from + v;
                 if (v >= 0) posAcc = to; else negAcc = to;
                 const yA = y(from), yB = y(to);
@@ -4432,7 +4446,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
 
       {/* Band view: Incremental Rev (Step 1 − Step 2 + Step 3) + Incremental Mgn, or one component (operator) */}
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-        {(["incremental", "incmgn", "new", "decline", "eol"] as const).map((k) => (
+        {(["rev", "mgn", "incremental", "incmgn", "new", "decline", "eol"] as const).map((k) => (
           <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
             className={`rounded border px-2 py-0.5 ${band === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
             style={band === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
