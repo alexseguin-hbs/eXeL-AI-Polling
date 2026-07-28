@@ -12,7 +12,7 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
-  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac,
+  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -4271,9 +4271,20 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
   const BAND = { incremental: { key: "incremental", label: "Incremental Rev (1−2+3)", color: "#fbbf24" }, incmgn: { key: "incmgn", label: "Incremental Mgn", color: "#f7b955" }, new: { key: "new", label: "Step 1 · New (Next-Gen)", color: "#34d399" }, decline: { key: "decline", label: "Step 2 · Decline if unfunded", color: "#fb7185" }, eol: { key: "eol", label: "Step 3 · EOL (Prior-Gen)", color: "#a78bfa" } } as const;
   // Decline-if-unfunded is a revenue LOSS → render it on the NEGATIVE y-axis (below zero) with negative numbers.
   const seriesVal = (r: (typeof rows)[number]) => band === "incremental" ? r.incremental : band === "incmgn" ? r.incremental * marginFrac : band === "new" ? r.newRev : band === "decline" ? -r.declineRev : r.eolRev;
-  const vals = rows.map(seriesVal);
-  const max = Math.max(...rows.map((r) => r.target), ...vals, 1) * 1.1;
-  const minV = Math.min(0, ...vals) * 1.1;
+  // Drill-down stacking (operator): split the scope's bar into its CHILD nodes — Company→BUs, BU→SBUs,
+  // SBU→Alpha Codes — grouped straight from the already-scoped funded set. Each segment runs the growth model
+  // on its own projects with a proportional slice of the scope base, so the stack sums back to the scope total.
+  const childLevel: HierKey = selBu === "All" ? "bu" : selSbu === "All" ? "sbu" : "alpha";
+  const scopeIncr = scoped.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
+  const segments = Array.from(new Set(scoped.map((p) => hierOf(p)[childLevel]))).sort().map((code, idx) => {
+    const sp = scoped.filter((p) => hierOf(p)[childLevel] === code);
+    const share = sp.reduce((s, p) => s + incrementalRevM(p), 0) / scopeIncr;
+    return { code, color: segColorOf(childLevel, code, idx), rows: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
+  });
+  const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, seriesVal(g.rows[i])), 0));
+  const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, seriesVal(g.rows[i])), 0));
+  const max = Math.max(...rows.map((r) => r.target), ...stackPos, 1) * 1.1;
+  const minV = Math.min(0, ...stackNeg) * 1.1;
   const pw = (W - L - R) / rows.length;
   const y = (v: number) => H - B - ((v - minV) / (max - minV)) * (H - B - T);
   const cagr = ((Math.pow((rows[rows.length - 1]?.target || 1) / (rows[0]?.target || 1), 1 / Math.max(1, rows.length - 1)) - 1) * 100).toFixed(1);
@@ -4305,24 +4316,42 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
         <line x1={L} y1={y(0)} x2={W - R} y2={y(0)} stroke="rgba(148,163,184,.35)" />
         {rows.map((r, i) => {
           const x = L + i * pw + pw * 0.18, bw = pw * 0.64;
-          const v = seriesVal(r), yv = y(v), y0 = y(0);
           const on = hover === i;
           const dim = hover != null && !on ? 0.35 : 1;
           const cx = x + bw / 2;
+          const y0 = y(0);
+          const net = stackPos[i] + stackNeg[i]; // net of positive + negative segments (= scope band value)
+          const topY = y(Math.max(0.0001, stackPos[i])); // label just above the tallest positive stack
+          // Stack each child segment: positives up from 0, negatives (Step-2 decline) down from 0.
+          let posAcc = 0, negAcc = 0;
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
-              <title>{r.year} — {BAND[band].label}: {Math.round(v)} · Incremental Rev = Step 1 New {Math.round(r.newRev)} − Step 2 Decline {Math.round(r.declineRev)} + Step 3 EOL {Math.round(r.eolRev)} = {Math.round(r.incremental)}; Incremental Mgn = Incremental Rev × {Math.round(marginFrac * 100)}% = {Math.round(r.incremental * marginFrac)} · target {Math.round(r.target)}</title>
+              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(seriesVal(g.rows[i]))}`).join(" · ")} · target {Math.round(r.target)}</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
-              <rect x={x} y={Math.min(yv, y0)} width={bw} height={Math.max(0, Math.abs(yv - y0))} fill={BAND[band].color} rx={1} opacity={on ? 1 : 0.9} />
+              {segments.map((g) => {
+                const v = seriesVal(g.rows[i]); if (!v) return null;
+                const from = v >= 0 ? posAcc : negAcc; const to = from + v;
+                if (v >= 0) posAcc = to; else negAcc = to;
+                const yA = y(from), yB = y(to);
+                return <rect key={g.code} x={x} y={Math.min(yA, yB)} width={bw} height={Math.max(0, Math.abs(yA - yB))} fill={g.color} rx={1} opacity={on ? 1 : 0.9} stroke="#0e141b" strokeWidth={0.5} />;
+              })}
               <text x={cx} y={H - B + 12} textAnchor="middle" fill={on ? "#e2e8f0" : "#64748b"}>{r.year}</text>
-              <text x={cx} y={(v >= 0 ? yv : yv + 12) - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(v)}</text>
+              <text x={cx} y={(net >= 0 ? topY : y0 + 12) - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(net)}</text>
             </g>
           );
         })}
         {showBaseline && <polyline points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />}
         {showBaseline && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
       </svg>
+
+      {/* Stacked-segment legend — the child nodes of the current scope (Company→BUs, BU→SBUs, SBU→Alpha Codes). */}
+      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+        <span className="font-semibold uppercase tracking-wider text-slate-500">{childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code"}</span>
+        {segments.length ? segments.map((g) => (
+          <span key={g.code} className="inline-flex items-center gap-1"><i className="inline-block h-2 w-2 rounded-sm" style={{ background: g.color }} /><span className="font-mono">{g.code}</span></span>
+        )) : <span className="italic text-slate-600">no projects in scope</span>}
+      </div>
 
       {/* Band view: Incremental Rev (Step 1 − Step 2 + Step 3) + Incremental Mgn, or one component (operator) */}
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">

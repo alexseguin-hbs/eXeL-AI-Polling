@@ -1050,5 +1050,15 @@ import { scenarioNodeBudgets } from "../lib/innovation-data.ts";
   ok(topBudget === topNre, "highest-NRE SBU receives the largest scenario budget (weighted)");
 }
 
+// H35 — Growth Model stacked bar: dropdown label reads the 1−2+3 math; segment colors are stable + Trinity-BU.
+import { REV_MODE, segColorOf, BU_COLOR } from "../lib/innovation-data.ts";
+{
+  ok(/incremental/i.test(REV_MODE.full.label), `REV_MODE.full label reads Incremental: "${REV_MODE.full.label}"`);
+  ok(REV_MODE.full.label.includes("1") && REV_MODE.full.label.includes("2") && REV_MODE.full.label.includes("3"), "REV_MODE.full label spells Step 1 − 2 + 3");
+  ok(segColorOf("bu", "DS", 0) === BU_COLOR.DS && segColorOf("bu", "MS", 1) === BU_COLOR.MS && segColorOf("bu", "AP", 2) === BU_COLOR.AP, "BU segments use the Trinity BU colors");
+  ok(segColorOf("sbu", "MSP", 0) === segColorOf("sbu", "MSP", 0), "segColorOf is deterministic for a given index");
+  ok(segColorOf("alpha", "AB1", 0) !== segColorOf("alpha", "AB2", 1), "distinct Alpha-code segments get distinct palette colors");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

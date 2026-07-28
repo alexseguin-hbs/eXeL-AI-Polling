@@ -1140,7 +1140,7 @@ export interface GrowthYear {
 // (existing/phase-out/EOL, if funded) · noStep2 = Step 1+3 without Step 2 (do-nothing).
 export type RevMode = "full" | "new" | "eol" | "noStep2";
 export const REV_MODE: Record<RevMode, { label: string; mult: number }> = {
-  full:    { label: "Step 1+2+3 · R&S incremental", mult: 1 },
+  full:    { label: "Step 1 − 2 + 3 · Incremental", mult: 1 },
   new:     { label: "Step 1 only · New product",     mult: 0.7 },
   eol:     { label: "Step 3 only · Existing/EOL",    mult: 0.25 },
   noStep2: { label: "Step 1+3 · w/o Step 2",         mult: 0.85 },
@@ -1192,6 +1192,17 @@ export interface HierPath { bu: string; sbu: string; pgroup: string; alpha: stri
 export const COMPANY_NAME = "Company (All BUs)";
 // BU (2-letter) — aka LOB. SBU (3-letter) rolls up to a BU. Codes + human labels.
 export const BU_LABEL: Record<string, string> = { MS: "Mission System", DS: "Drone Swarm", AP: "Advanced Programs" };
+// Trinity color per BU (SoI: AI cyan · SI sunset · HI violet) — the ONE hierarchy color source shared by the
+// stacked bar, the tier-table BU vertical line, and the per-BU CAGR banner (Aset: no per-surface color drift).
+export const BU_COLOR: Record<string, string> = { DS: "#22d3ee", MS: "#f7b955", AP: "#a78bfa" };
+const SEG_PALETTE = ["#22d3ee", "#f7b955", "#a78bfa", "#34d399", "#fb7185", "#60a5fa", "#facc15", "#f472b6", "#4ade80", "#c084fc"];
+export const hashHsl = (s: string): string => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return `hsl(${h % 360} 68% 62%)`; };
+/** Distinct color for a stacked-bar segment: BU segments use the Trinity BU color; deeper levels use a stable
+ *  categorical palette (so many SBUs/Alpha codes under one BU stay distinguishable). `idx` = segment order. */
+export const segColorOf = (level: HierKey, code: string, idx: number): string =>
+  level === "bu" ? (BU_COLOR[code] ?? SEG_PALETTE[idx % SEG_PALETTE.length]) : SEG_PALETTE[idx % SEG_PALETTE.length];
+/** BU-inherited color for a hierarchy node (tier-table vertical line): a child reads as its BU's Trinity color. */
+export const nodeBuColorOf = (buCode: string): string => BU_COLOR[buCode] ?? hashHsl(buCode);
 export const SBU_LABEL: Record<string, string> = {
   MSP: "MS Planning", MSE: "MS Engagement", DSI: "DS ISR", DSE: "DS EW", DSC: "DS Control",
   AP1: "AP Group 1", AP2: "AP Group 2", AP3: "AP Group 3",
