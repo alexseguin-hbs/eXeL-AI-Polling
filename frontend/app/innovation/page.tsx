@@ -490,39 +490,40 @@ function Board() {
   }, [view]);
 
   return (
-    // Fixed-height app shell (Architect-2525 rails pattern): the workspace fills the viewport, the header/
-    // persona/tabs stay fixed, and the active view scrolls internally. w-full + flex-col guarantees every
-    // section shares the full band width on phone-portrait AND PC-landscape (no collapsed header).
-    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#0b0f14] text-slate-100">
+    // Ease-of-viewing (operator): on phone/tablet (portrait + landscape) the whole PAGE scrolls so nothing —
+    // including the bottom controls — is ever clipped by a fixed height; on desktop (lg+) keep the fixed
+    // app-shell with an internal scroll rail. Mirrors the Architect-2525 / Security-2525 responsive pattern.
+    <div className="flex min-h-[100dvh] w-full flex-col bg-[#0b0f14] text-slate-100 lg:h-[100dvh] lg:overflow-hidden">
     {/* Consistent max-width band (phone → desktop) — every section shares these bounds; full-bleed bg behind. */}
-    <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col lg:min-h-0 lg:flex-1">
       {/* Header */}
       <header className="border-b border-slate-800 px-5 py-4 flex flex-col gap-3">
-        <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
+        {/* Row 1: eyebrow (left) lines up with Template + New Idea tabs (right) — operator alignment */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI · SoI-2525</div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setTemplateOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">
+              <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t("innovation.header.template")}
+            </button>
+            <button onClick={() => setNewIdeaOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
+              <Lightbulb className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t("innovation.header.newIdea")}
+            </button>
+          </div>
+        </div>
+        {/* Row 2: System of Innovation title (left) lines up with the R&D Scenario dropdown (right) — operator */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI · SoI-2525</div>
-            <h1 className="text-lg font-semibold">{t("innovation.header.title")}</h1>
+            <h1 className="text-lg font-semibold leading-tight">{t("innovation.header.title")}</h1>
             <div className="text-[11px] text-slate-500">{stackName}</div>
           </div>
-          {/* Upper-right: Template + New Idea (with icons) on TOP, R&D Scenario BELOW with extra space (operator) */}
-          <div className="ml-auto flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
-              <button onClick={() => setTemplateOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">
-                <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t("innovation.header.template")}
-              </button>
-              <button onClick={() => setNewIdeaOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
-                <Lightbulb className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t("innovation.header.newIdea")}
-              </button>
-            </div>
-            <label className="mt-1.5 flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}
-              <select value={scenario} onChange={(e) => setScenario(e.target.value as BudgetScenario)} title="R&D budget scenario (sets the funding line)"
-                className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] normal-case tracking-normal text-slate-100 outline-none focus:border-cyan-500">
-                {scenarios.map((s) => <option key={s.key} value={s.key}>{s.label} · ${s.m}M</option>)}
-              </select>
-            </label>
-          </div>
+          <label className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}
+            <select value={scenario} onChange={(e) => setScenario(e.target.value as BudgetScenario)} title="R&D budget scenario (sets the funding line)"
+              className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] normal-case tracking-normal text-slate-100 outline-none focus:border-cyan-500">
+              {scenarios.map((s) => <option key={s.key} value={s.key}>{s.label} · ${s.m}M</option>)}
+            </select>
+          </label>
         </div>
         {/* KPI strip — full width; 2-up on phone, 4 across the whole band on landscape/desktop (operator) */}
         <div className="grid grid-cols-2 gap-3 border-t border-slate-800/60 pt-2.5 sm:grid-cols-4">
@@ -570,7 +571,7 @@ function Board() {
       </nav>
 
       {/* Scroll rail — the only scrolling region; header/persona/tabs above stay fixed (app-shell) */}
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="overflow-x-hidden lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       {view === "portfolio" && (<>
       {/* Portfolio Growth Model — the signature financial projection. Baseline financials live at the BU / SBU /
           Alpha Group roll-up (Business Setup), so it shows ON TOP whenever a roll-up level is selected (Manager /
@@ -3234,26 +3235,27 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
-        {/* Top padding reserves a strip so the As-set/HI/AI + Edit + Exit controls (top-right) never cover the title. */}
-        <div className="flex flex-1 flex-col overflow-hidden px-[clamp(20px,4vw,64px)] pb-[clamp(16px,3vw,40px)] pt-[clamp(56px,9vw,72px)]">
-          <div className="border-b border-slate-800 pb-[clamp(10px,1.6vw,20px)]">
-            {/* One line: gate·stage (cyan, left) · title (centered) · slide code (cyan, right) */}
-            <div className="flex items-start gap-2">
-              <span className="shrink-0 self-start font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
-              <div className="flex min-w-0 flex-1 flex-col items-center text-center">
+        {/* Top padding clears the As-set/HI/AI + Edit + Exit controls (top-right) + Req badge (top-left);
+            tightened so the title sits higher and landscape/portrait keep more room for content + bottom strip. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-[clamp(16px,3.5vw,56px)] pb-[clamp(10px,2vw,28px)] pt-[clamp(48px,6vw,60px)]">
+          <div className="border-b border-slate-800 pb-[clamp(6px,1.2vw,14px)]">
+            {/* One line: gate·stage (cyan, left) · title (TRUE-centered via equal 1fr side cols) · slide code (right) */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2">
+              <span className="min-w-0 justify-self-start font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
+              <div className="flex min-w-0 flex-col items-center text-center">
                 {showKicker && <span className="text-[clamp(8px,0.95vw,11px)] font-semibold uppercase tracking-[0.18em] text-slate-500">{genName}</span>}
                 <h2 className="text-[clamp(20px,3.4vw,44px)] font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance">{deckTitle}</h2>
               </div>
-              <span className="shrink-0 self-start font-mono text-[clamp(11px,1.4vw,17px)] font-semibold tracking-[0.14em] text-cyan-400">{spec.code}</span>
+              <span className="min-w-0 justify-self-end font-mono text-[clamp(11px,1.4vw,17px)] font-semibold tracking-[0.14em] text-cyan-400">{spec.code}</span>
             </div>
             {/* Business · Project # · Source subheader */}
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[clamp(10px,1.1vw,13px)] text-slate-500">
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[clamp(10px,1.1vw,13px)] text-slate-500">
               <span>Business: <span className="text-slate-300">{p.division}</span></span>
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
               <span>Source: <span className="text-slate-300">{spec.source}</span></span>
             </div>
           </div>
-          <div className="mt-[clamp(14px,2.4vw,28px)] grid flex-1 content-start gap-[clamp(12px,1.6vw,22px)] overflow-y-auto sm:grid-cols-2">
+          <div className="mt-[clamp(8px,1.4vw,16px)] grid min-h-0 flex-1 content-start gap-[clamp(10px,1.4vw,18px)] overflow-y-auto sm:grid-cols-2">
             {/* MoT gate timeline (S2 · Project Overview) — estimated dates that slide when the start date changes. */}
             {spec.code === "S2" && (
               <div className="overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] sm:col-span-2">
@@ -3267,8 +3269,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
             {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
             {!anyContent && <p className="text-[clamp(14px,1.6vw,20px)] italic text-slate-500">Nothing authored on this slide yet — tap Edit to add content.</p>}
           </div>
-          <div className="mt-[clamp(12px,2vw,22px)] flex items-center gap-3 border-t border-slate-800 pt-[clamp(10px,1.6vw,18px)]">
-            <span className="font-mono text-[11px] tracking-wider text-slate-500">{p.name}</span>
+          <div className="mt-[clamp(8px,1.4vw,16px)] flex shrink-0 items-center gap-3 border-t border-slate-800 pt-[clamp(8px,1.2vw,14px)]">
+            <span className="truncate font-mono text-[11px] tracking-wider text-slate-500">{p.name}</span>
             <div className="flex flex-1 gap-1">
               {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-1 flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
             </div>
