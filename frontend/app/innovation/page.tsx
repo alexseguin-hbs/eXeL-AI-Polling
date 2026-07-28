@@ -3082,7 +3082,32 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     const v = c.mode === "ai" ? (fieldEmpty(c.ai) ? aiFor(spec.code, f.id) : c.ai) : c.hi;
     if (f.kind === "text") return <input className={inputCls} value={(v as string) || ""} placeholder={f.mirror ? `Inherits from ${f.mirror}` : "Type here"} onChange={(e) => setActive(spec.code, f.id, e.target.value)} />;
     if (f.kind === "longtext") return <textarea rows={3} maxLength={4000} className={`${inputCls} resize-y leading-relaxed`} value={(v as string) || ""} placeholder={f.mirror ? `Inherits from ${f.mirror}` : "Evidence, insight, judgment."} onChange={(e) => setActive(spec.code, f.id, e.target.value)} />;
-    if (f.kind === "attach") { const s = (v as string) || ""; return <div className="flex flex-wrap items-center gap-2"><span className="rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[12px] text-slate-400">{s || "No file yet"}</span><button onClick={() => setActive(spec.code, f.id, `${f.id}-${spec.code.toLowerCase()}.png`)} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-300 hover:bg-cyan-500/20">+ Attach</button></div>; }
+    if (f.kind === "attach") {
+      const s = (v as string) || "";
+      const isImg = s.startsWith("data:image");
+      // Upload an image (stored inline as a data URI so it persists local + cloud, no external host). For CONOPS
+      // this becomes the slide's hero visual; author the 6–10 step labels below to match it. ~2.5 MB soft cap.
+      const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]; if (!file) return;
+        if (file.size > 2_500_000) { alert("Image is over 2.5 MB — please use a smaller file."); e.target.value = ""; return; }
+        const reader = new FileReader();
+        reader.onload = () => setActive(spec.code, f.id, String(reader.result));
+        reader.readAsDataURL(file);
+        e.target.value = "";
+      };
+      return (
+        <div className="flex flex-wrap items-center gap-2">
+          {isImg
+            ? <img src={s} alt={f.name} className="h-16 w-auto rounded border border-slate-700 object-cover" />
+            : <span className="rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[12px] text-slate-400">{s || "No image yet"}</span>}
+          <label className="cursor-pointer rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-300 hover:bg-cyan-500/20">
+            {isImg ? "Replace image" : "⬆ Upload image"}
+            <input type="file" accept="image/*" className="hidden" onChange={onFile} />
+          </label>
+          {s && <button onClick={() => setActive(spec.code, f.id, "")} className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-500 hover:border-rose-500/50 hover:text-rose-300">Clear</button>}
+        </div>
+      );
+    }
     if (f.kind === "metrics") { const rec = ((v as Record<string, string>) || {}); return <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">{(f.items ?? []).map((m) => (
       <label key={m.k} className="rounded-lg border border-slate-700 bg-[#0e141b] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div><input className="w-full bg-transparent text-[14px] font-semibold text-slate-100 outline-none" value={rec[m.k] || ""} placeholder="—" onChange={(e) => setActive(spec.code, f.id, { ...rec, [m.k]: e.target.value })} /></label>
     ))}</div>; }
@@ -3169,6 +3194,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
       </div>
     );
     const v = effective(sp, f, presentSrc); if (fieldEmpty(v)) return null;
+    // On CONOPS slides the FIRST attach (visual/image) is shown as the hero inside the steps view — don't
+    // render it again as a standalone card.
+    const heroAttachId = sp.fields.find((x) => x.kind === "attach")?.id;
+    if (f.kind === "attach" && sp.fields.some((x) => x.id === "conops") && f.id === heroAttachId) return null;
     const isVp = /valueprop|vprop|desc/i.test(f.id) || f.name.toLowerCase().includes("value prop");
     // CONOPS (operational concept) renders as a numbered step-flow — 6–10 ordered steps, each an image-tiled
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
@@ -3178,17 +3207,24 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <Banner />
         <div className="p-3">
         {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}>{v as string}</p>}
-        {f.kind === "attach" && <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>}
+        {f.kind === "attach" && (typeof v === "string" && v.startsWith("data:image")
+          ? <img src={v} alt={f.name} className="max-h-[40vh] w-auto rounded border border-slate-700 object-contain" />
+          : <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>)}
         {f.kind === "list" && isConops && (() => {
           // Single-slide CONOPS (operator): ONE hero visual + the ordered steps — stacked below in PORTRAIT,
-          // side-by-side in LANDSCAPE. Generative wireframe (deterministic; external image APIs unavailable here).
+          // side-by-side in LANDSCAPE. Hero = the UPLOADED image if one exists (attach field), else the
+          // deterministic generative wireframe. Author 6–10 step labels below to match the image.
           const steps = (v as string[]).filter((x) => x && x.trim());
+          const attachF = sp.fields.find((x) => x.kind === "attach");
+          const heroImg = attachF ? effective(sp, attachF, presentSrc) : null;
+          const hasImg = typeof heroImg === "string" && heroImg.startsWith("data:image");
           return (
             <div className="flex flex-col gap-3 landscape:flex-row landscape:items-start">
               <div className="landscape:w-1/2 landscape:shrink-0">
                 <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-slate-700 bg-gradient-to-br from-cyan-500/[0.06] to-slate-900/60">
-                  <ConopsWireframe seed={`${sp.code}:hero:${p.id}`} />
-                  <span className="absolute bottom-1 right-1.5 text-[7px] font-mono uppercase tracking-wider text-cyan-300/50">wireframe · generative</span>
+                  {hasImg
+                    ? <img src={heroImg as string} alt={`${sp.code} CONOPS`} className="h-full w-full object-contain" />
+                    : <><ConopsWireframe seed={`${sp.code}:hero:${p.id}`} /><span className="absolute bottom-1 right-1.5 text-[7px] font-mono uppercase tracking-wider text-cyan-300/50">wireframe · generative</span></>}
                 </div>
               </div>
               <ol className="m-0 flex-1 list-none space-y-1.5 p-0 landscape:w-1/2">
