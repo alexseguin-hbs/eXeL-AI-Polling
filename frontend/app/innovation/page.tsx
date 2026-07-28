@@ -409,6 +409,7 @@ function Board() {
   })() : [];
 
   const fundedRows = useMemo(() => rows.filter((r) => r.funded), [rows]);
+  const unfundedRows = useMemo(() => rows.filter((r) => !r.funded), [rows]);
   const portfolioNpv = useMemo(() => fundedRows.reduce((s, r) => s + npvM(r.p), 0), [fundedRows]);
   const fundedNre = useMemo(() => fundedRows.reduce((s, r) => s + r.p.nreK, 0), [fundedRows]);
   // Capture funding decisions (fund/defund) from ONE diff of the derived funded set vs a ref snapshot —
@@ -580,7 +581,7 @@ function Board() {
           SBU Director / VP) — not at Alpha Code / Product # / Material #, where there is no baseline to age against. */}
       {isGroupLevel && (
         <div className="px-5 pt-4 pb-1">
-          <GrowthModelChart funded={fundedRows.map((r) => r.p)} cadence={cadence} hierFilter={hierFilter} allProjects={order} onScope={setHierFilter} />
+          <GrowthModelChart funded={fundedRows.map((r) => r.p)} unfunded={unfundedRows.map((r) => r.p)} cadence={cadence} hierFilter={hierFilter} allProjects={order} onScope={setHierFilter} />
         </div>
       )}
       {/* Orientation-aware split: landscape = list LEFT / detail RIGHT · portrait = list TOP / detail BOTTOM
@@ -4239,7 +4240,7 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
 // Growth Model — the signature Rack & Stack chart: on-chart Scope filter, Rev/Mgn/Incremental selectors (top),
 // # Years (1/3/10), Targeted Growth Rate, YoY Do-Nothing decline, Show/Hide baseline, Step 1/2/3 components.
 // (Gate cadence lives on the per-project gate overview, not here.)
-function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onScope }: { funded: Project[]; cadence?: Cadence; hierFilter: HierSel; allProjects: Project[]; onScope: (s: HierSel) => void }) {
+function GrowthModelChart({ funded, unfunded = [], cadence = "M", hierFilter, allProjects, onScope }: { funded: Project[]; unfunded?: Project[]; cadence?: Cadence; hierFilter: HierSel; allProjects: Project[]; onScope: (s: HierSel) => void }) {
   const [years, setYears] = useState(3);
   const [growthPct, setGrowthPct] = useState("3.8");
   const [declinePct, setDeclinePct] = useState("15.1");
@@ -4249,7 +4250,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const [band, setBand] = useState<"incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol">("incremental");
   // Split-by dimension (operator): stack the bar by hierarchy child (default), strategic pillar (admin colors), or
   // Risk (risk-weighted vs at-risk upside — Full Financials split green/orange).
-  const [splitBy, setSplitBy] = useState<"hier" | "pillar" | "risk">("hier");
+  const [splitBy, setSplitBy] = useState<"hier" | "pillar" | "risk" | "funded">("hier");
   const [pillarSel, setPillarSel] = useState<Set<string>>(new Set()); // multi-select (pillar mode only; empty = all)
   // MoT time-spread (operator, global deck lens): spread scoped cost/rev/margin totals to $/min over a chosen
   // window — 91-day (SoI) / 365-day / user-defined — persisted deck-wide. Linearized (even) for less lumpiness.
@@ -4310,9 +4311,24 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // Blended risk weight (tech×comm success) over the scope — the green risk-weighted share; upside = 1 − it.
   const riskFrac = (() => { const inc = inScope.reduce((s, p) => s + incrementalRevM(p), 0); return inc > 0 ? inScope.reduce((s, p) => s + weightedRevM(p), 0) / inc : 0.5; })();
   const mkRiskSeg = (code: string, color: string, share: number) => ({ code, color, seed: scopeRev * share, g: scopeGrowth / 100, gm: growthModel(inScope, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) });
-  const segments = splitBy === "risk"
+  // Funded above / unfunded below (operator IMG_8061/8063) — project-level revenue rolled up per child node; funded
+  // stacks up, unfunded (the revenue left on the table) stacks down, faded. A `series` (per-year $M) overrides the
+  // tier-growth formula for these segments.
+  type Seg = { code: string; color: string; seed: number; g: number; gm: (typeof rows); series?: number[]; faded?: boolean };
+  const projRev = (set: Project[], code: string, sign: number): number[] => {
+    const sp = set.filter((p) => hierOf(p)[childLevel] === code);
+    return rows.map((_, i) => sign * sp.reduce((s, p) => s + (projectRevSeries(p, { years: years + 1, funded: true })[i]?.total ?? 0), 0));
+  };
+  const segments: Seg[] = splitBy === "risk"
     ? [mkRiskSeg("Risk-weighted", "#34d399", riskFrac), mkRiskSeg("At-risk upside", "#fbbf24", 1 - riskFrac)]
-    : Array.from(new Set(inScope.map(keyOf))).sort().map((code, idx) => {
+    : splitBy === "funded"
+    ? (() => {
+        const codes = Array.from(new Set([...funded, ...unfunded].map((p) => hierOf(p)[childLevel]))).sort();
+        const up = codes.map((code, idx): Seg => ({ code, color: segColorOf(childLevel, code, idx), seed: 0, g: 0, gm: rows, series: projRev(funded, code, 1) }));
+        const down = codes.map((code, idx): Seg => ({ code: `${code} · unfunded`, color: segColorOf(childLevel, code, idx), seed: 0, g: 0, gm: rows, series: projRev(unfunded, code, -1), faded: true }));
+        return [...up, ...down];
+      })()
+    : Array.from(new Set(inScope.map(keyOf))).sort().map((code, idx): Seg => {
       const sp = inScope.filter((p) => keyOf(p) === code);
       const share = sp.reduce((s, p) => s + incrementalRevM(p), 0) / scopeIncr;
       const node = splitBy === "pillar" ? undefined : tierNodes.find((n) => n.code === code);
@@ -4321,8 +4337,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       const color = splitBy === "pillar" ? pillarColorOf(code, pillarDefs) : segColorOf(childLevel, code, idx);
       return { code, color, seed, g, gm: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
     });
-  // Value of a segment in a given year for the active band. Rev/Incremental/Margin grow at the tier CAGR (positive).
-  const segVal = (seg: (typeof segments)[number], i: number) => {
+  // Value of a segment in a given year for the active band. `series` (funded mode) wins; else grow at the tier CAGR.
+  const segVal = (seg: Seg, i: number) => {
+    if (seg.series) return (band === "mgn" || band === "incmgn") ? seg.series[i] * marginFrac : seg.series[i];
     const rev = seg.seed * Math.pow(1 + seg.g, i);
     return band === "rev" ? rev : band === "mgn" ? rev * marginFrac : band === "incremental" ? rev - seg.seed : band === "incmgn" ? (rev - seg.seed) * marginFrac : band === "new" ? seg.gm[i].newRev : band === "decline" ? -seg.gm[i].declineRev : seg.gm[i].eolRev;
   };
@@ -4377,7 +4394,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         </div>
         {/* Split-by: hierarchy child (default) · strategic pillar (admin colors) · Risk (risk-weighted vs upside) */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["hier", "Hierarchy"], ["pillar", "Pillar"], ["risk", "Risk"]] as const).map(([k, lbl]) => (
+          {([["hier", "Hierarchy"], ["pillar", "Pillar"], ["risk", "Risk"], ["funded", "Funded"]] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setSplitBy(k)} aria-pressed={splitBy === k}
               className={`px-2.5 py-1 ${splitBy === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
@@ -4441,7 +4458,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
                 const from = v >= 0 ? posAcc : negAcc; const to = from + v;
                 if (v >= 0) posAcc = to; else negAcc = to;
                 const yA = y(from), yB = y(to);
-                return <rect key={g.code} x={x} y={Math.min(yA, yB)} width={bw} height={Math.max(0, Math.abs(yA - yB))} fill={g.color} rx={1} opacity={on ? 1 : 0.9} stroke="#0e141b" strokeWidth={0.5} />;
+                return <rect key={g.code} x={x} y={Math.min(yA, yB)} width={bw} height={Math.max(0, Math.abs(yA - yB))} fill={g.color} rx={1} opacity={g.faded ? (on ? 0.55 : 0.4) : (on ? 1 : 0.9)} stroke="#0e141b" strokeWidth={0.5} />;
               })}
               <text x={cx} y={H - B + 12} textAnchor="middle" fill={on ? "#e2e8f0" : "#64748b"}>{r.year}</text>
               <text x={cx} y={(net >= 0 ? topY : y0 + 12) - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(net)}</text>
