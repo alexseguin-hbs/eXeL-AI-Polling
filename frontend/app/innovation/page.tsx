@@ -13,7 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM,
-  BUDGET_SCENARIOS, scenarioAvailK, derivedDriversOf, type BudgetScenario,
+  BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
@@ -255,7 +255,7 @@ function Board() {
   useEffect(() => {
     // Hydrate from the localStorage rung once on mount; thereafter re-read ONLY when LEAVING Setup — not on
     // every tab switch (the prior [view] dep re-read localStorage + full-replaced state on each navigation).
-    if (_prevViewForSetup.current === null || (_prevViewForSetup.current === "setup" && view !== "setup")) setSetup(loadBizSetup());
+    if (_prevViewForSetup.current === null || (_prevViewForSetup.current === "setup" && view !== "setup")) { setSetup(loadBizSetup()); setScenarios(loadScenarios()); }
     _prevViewForSetup.current = view;
   }, [view]);
   // Remembered defaults — a returning VP lands on the VP lens, not a PM view (usability).
@@ -329,7 +329,9 @@ function Board() {
   const [scenario, setScenario] = useState<BudgetScenario>("base");
   useEffect(() => { const s = lsGet("innovation-scenario") as BudgetScenario | null; if (s && BUDGET_SCENARIOS.some((x) => x.key === s)) setScenario(s); }, []);
   useEffect(() => { lsSet("innovation-scenario", scenario); }, [scenario]);
-  const avail = scenarioAvailK(scenario);
+  // R&D scenarios (name + $M) are admin-editable in Business Setup; re-read when leaving setup (below). avail = configured $M.
+  const [scenarios, setScenarios] = useState<ScenarioCfg[]>(() => loadScenarios());
+  const avail = (scenarios.find((s) => s.key === scenario)?.m ?? scenarioMOf(scenario)) * 1000;
   // Scope filter (P2) — BU · SBU · Alpha Group multi-select, available to ALL personas. `scoped` is the single
   // choke point between `order` and every consumer (rows/rack/drill/dashboards/budget/risk/gates). Drag still
   // operates on the full `order`; drag is disabled while a filter is active (see canDrag) to avoid index drift.
@@ -508,18 +510,13 @@ function Board() {
           className="rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
           {t("innovation.header.newIdea")}
         </button>
-        {/* R&D budget scenario — Conservative $66M · Base $77M · Growth $88M (sets the funding line) */}
-        <div className="ml-auto flex flex-col items-end gap-1">
-          <span className="text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}</span>
-          <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px]">
-            {BUDGET_SCENARIOS.map((s) => (
-              <button key={s.key} onClick={() => setScenario(s.key)} title={`$${s.m}M R&D`}
-                className={`px-2 py-1 ${scenario === s.key ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>
-                {t(`innovation.scenario.${s.key}`)} <span className="tabular-nums opacity-80">${s.m}M</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* R&D budget scenario — upper-right dropdown; names + $M are admin-editable in Business Setup (operator) */}
+        <label className="ml-auto flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}
+          <select value={scenario} onChange={(e) => setScenario(e.target.value as BudgetScenario)} title="R&D budget scenario (sets the funding line)"
+            className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] normal-case tracking-normal text-slate-100 outline-none focus:border-cyan-500">
+            {scenarios.map((s) => <option key={s.key} value={s.key}>{s.label} · ${s.m}M</option>)}
+          </select>
+        </label>
         <div className="flex gap-5 text-right">
           <Kpi label={t("innovation.kpi.rdAvailable")} value={k(avail)} />
           <Kpi label={t("innovation.kpi.fundedNre")} value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
@@ -3585,6 +3582,15 @@ function loadBizSetup(): BizSetup {
   if (saved) { try { return JSON.parse(saved) as BizSetup; } catch { /* fall through to seed */ } }
   return seedBizSetup(DEMO_PROJECTS);
 }
+// R&D budget scenarios — admin-editable NAME + $M (operator), persisted in Business Setup; seeded from defaults.
+type ScenarioCfg = { key: BudgetScenario; label: string; m: number };
+const SCEN_KEY = "innovation-scenarios";
+function loadScenarios(): ScenarioCfg[] {
+  try { const s = lsGet(SCEN_KEY); if (s) { const a = JSON.parse(s); if (Array.isArray(a) && a.length) return a as ScenarioCfg[]; } } catch { /* seed */ }
+  return BUDGET_SCENARIOS.map((s) => ({ key: s.key, label: s.label, m: s.m }));
+}
+const saveScenarios = (a: ScenarioCfg[]) => { lsSet(SCEN_KEY, JSON.stringify(a)); void saveState("scenarios", a as unknown as Record<string, string>); };
+const scenarioMOf = (scen: BudgetScenario) => loadScenarios().find((s) => s.key === scen)?.m ?? 77;
 // Review board that gives per-slide gate feedback. Default IRB (Innovation Review Board);
 // admin-selectable/editable in Business Setup. Persisted so every gate-feedback surface agrees.
 const REVIEW_BOARD_KEY = "innovation-review-board";
@@ -3640,12 +3646,14 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
   const [dogtag, setDogtag] = useState<string[]>(DEFAULT_DOGTAG);
   const [segLib, setSegLib] = useState<string[]>(DEFAULT_SEGLIB);
   const [glossary, setGlossary] = useState<[string, string][]>(Object.entries(DEFAULT_GLOSSARY));
+  const [scenarios, setScenarios] = useState<ScenarioCfg[]>(() => loadScenarios());
   const { t } = useLexicon();
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
     const saved = lsGet(BIZ_KEY);
     if (saved) { try { setSetup(JSON.parse(saved)); } catch { /* keep seed */ } }
     setPillars(loadPillars());
+    setScenarios(loadScenarios());
     setBoard(loadReviewBoard());
     setStackName(loadStackName());
     setDogtag(loadDogtag());
@@ -3706,6 +3714,23 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
           <button onClick={resetSeed} className="rounded border border-slate-700 px-2 py-1 text-slate-300 hover:bg-slate-800">Reset to seed</button>
           <button onClick={() => { ssDel(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
           {onClose && <button onClick={onClose} aria-label={t("innovation.setup.close")} title={t("innovation.setup.close")} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 font-medium text-cyan-300 hover:bg-cyan-500/20">✕ {t("innovation.setup.close")}</button>}
+        </div>
+      </div>
+
+      {/* R&D budget scenarios — editable NAME + $M (operator); drives the portfolio dropdown + funding line */}
+      <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-3">
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-cyan-400">R&D Budget Scenarios</div>
+        <div className="flex flex-wrap gap-3">
+          {scenarios.map((s, i) => (
+            <div key={s.key} className="flex items-center gap-1.5 rounded border border-slate-700 px-2 py-1.5">
+              <input value={s.label} onChange={(e) => { const next = scenarios.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setScenarios(next); saveScenarios(next); }}
+                className="w-28 rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" aria-label={`${s.key} name`} />
+              <span className="text-slate-500">$</span>
+              <input type="text" inputMode="numeric" value={String(s.m)} onChange={(e) => { if (!/^\d*$/.test(e.target.value)) return; const next = scenarios.map((x, j) => j === i ? { ...x, m: +e.target.value } : x); setScenarios(next); saveScenarios(next); }}
+                className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-right text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" aria-label={`${s.key} $M`} />
+              <span className="text-slate-500">M</span>
+            </div>
+          ))}
         </div>
       </div>
 
