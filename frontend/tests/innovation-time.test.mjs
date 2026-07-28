@@ -966,5 +966,28 @@ import { gateScheduleOf, defaultStartISO, addDaysISO, isoToDays, PHASE_DAYS } fr
   ok(fixed[0].startISO === "2027-03-01" && gateScheduleOf({ ...P0, startDate: "2027-03-01" })[0].startISO === "2027-03-01", "explicit p.startDate anchors G1 (deterministic)");
 }
 
+/* ---------------- HI + AI content coverage (H17): every required in-scope field of every project ---------------- */
+{
+  const emptyVal = (v) => v == null || (typeof v === "string" && !v.trim())
+    || (Array.isArray(v) && v.every((x) => Array.isArray(x) ? x.every((c) => !String(c ?? "").trim()) : !String(x ?? "").trim()))
+    || (typeof v === "object" && !Array.isArray(v) && Object.values(v).every((c) => !String(c ?? "").trim()));
+  let hiGaps = 0, aiGaps = 0, checked = 0;
+  for (const p of DEMO_PROJECTS) {
+    for (const code of slidesForProject(p)) {
+      const spec = slideSpec(code); if (!spec) continue;
+      for (const f of spec.fields) {
+        if (f.linked || f.mirror || !f.req) continue; // linked/mirror resolve live; only required authored fields
+        checked++;
+        const seed = SLIDE_SEED[p.id]?.[code]?.[f.id];
+        if (emptyVal(seed?.hi)) hiGaps++;
+        if (emptyVal(seed?.ai ?? aiSlideField(p, code, f.id))) aiGaps++;
+      }
+    }
+  }
+  ok(checked > 200, `content coverage swept ${checked} required in-scope fields across all ${DEMO_PROJECTS.length} projects`);
+  ok(hiGaps === 0, `HI content present on every required in-scope field (0 gaps of ${checked})`);
+  ok(aiGaps === 0, `AI content present on every required in-scope field (0 gaps of ${checked})`);
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
