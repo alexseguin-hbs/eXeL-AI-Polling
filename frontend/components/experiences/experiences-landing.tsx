@@ -101,21 +101,18 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
           </Link>
         </div>
 
-        {/* PDF download link (icon + text), FOLLOWED BY the visible governance provenance line. The link is a
-            real one-page 8.5×11 PDF file named Resume.Digital_A.Seguin_2026. */}
-        <div className="mt-8 flex flex-col items-center gap-2">
+        {/* The governance provenance line IS the download link — a download symbol precedes the text (no
+            "Download PDF" words). Clicking it saves the one-page 8.5×11 PDF Resume.Digital_A.Seguin_2026. */}
+        <div className="mt-8 text-center">
           <a
             href={RESUME_PDF}
             download="Resume.Digital_A.Seguin_2026.pdf"
             title="Download PDF — Resume.Digital_A.Seguin_2026"
-            className="exp-noprint inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/60 hover:text-primary"
+            className="mx-auto inline-flex max-w-md items-center justify-center gap-1.5 text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground/70 transition hover:text-primary"
           >
-            <Download className="h-4 w-4" />
-            {t("experiences.egg.pdf.download")}
-          </a>
-          <p className="max-w-md text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground/70">
+            <Download className="h-3.5 w-3.5 shrink-0" />
             {t("experiences.landing.footer")}
-          </p>
+          </a>
         </div>
       </main>
     </div>

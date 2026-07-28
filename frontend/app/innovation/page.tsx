@@ -4492,20 +4492,20 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
-        {/* Two financial selectors on top (operator IMG_8078): Rev · Mgn. These set the METRIC and clear any
-            Step view; the Incremental modifier below composes with them. */}
-        <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
-            <button key={k} onClick={() => { setMetric(k); setStep(null); }} aria-pressed={metric === k && !step}
-              className={`px-2.5 py-1 ${metric === k && !step ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
-          ))}
-        </div>
         {/* Split-by: hierarchy child (default) · strategic pillar (admin colors) · Risk (risk-weighted vs upside).
             Funded-only — the chart counts above-line projects only, so there is no separate Funded split. */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
           {([["hier", "Hierarchy"], ["pillar", "Pillar"], ["risk", "Risk"]] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setSplitBy(k)} aria-pressed={splitBy === k}
               className={`px-2.5 py-1 ${splitBy === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          ))}
+        </div>
+        {/* Financial metric selectors — placed AFTER (to the right of) the split-by toggle (operator IMG_8129):
+            Rev · Mgn. These set the METRIC and clear any Step view; the Incremental modifier below composes. */}
+        <div className="flex overflow-hidden rounded-md border border-slate-700">
+          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
+            <button key={k} onClick={() => { setMetric(k); setStep(null); }} aria-pressed={metric === k && !step}
+              className={`px-2.5 py-1 ${metric === k && !step ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
         </div>
         {/* # Years */}
