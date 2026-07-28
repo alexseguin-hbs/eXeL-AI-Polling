@@ -14,32 +14,21 @@ import { SITE_URL } from "@/lib/atlantis-package";
 import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
 
-// Print-to-PDF at US Letter (8.5×11 portrait). Chrome (nav + interactive buttons) is hidden via
-// `.exp-noprint`; the dark theme is kept exact so the saved PDF matches the on-screen page.
+// Pre-rendered one-page US-Letter (8.5×11) PDF of this résumé, served statically so the download is a
+// real file with an exact name — reliable on every device (mobile Safari included), unlike print-to-PDF.
+const RESUME_PDF = "/experiences/Resume.Digital_A.Seguin_2026.pdf";
+// Ctrl/⌘-P still yields a clean page: hide chrome, keep Letter size + exact colors.
 const PRINT_CSS = `
-.exp-printonly { display: none; }
 @media print {
   @page { size: 8.5in 11in portrait; margin: 0.5in; }
   html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #0a0f16 !important; }
   .exp-noprint { display: none !important; }
-  .exp-printonly { display: block !important; }
 }`;
 
 export function ExperiencesLanding({ basePath }: { basePath: string }) {
   const { t } = useLexicon();
   const docsPath = `${basePath}/docs`;
   const [copied, setCopied] = useState(false);
-
-  // Download this page as an 8.5×11 PDF. The browser's print-to-PDF defaults the filename to
-  // document.title, so we set it to the résumé label for the save dialog, then restore it.
-  const downloadPdf = () => {
-    if (typeof window === "undefined") return;
-    const prev = document.title;
-    document.title = "Resume.Digital_A.Seguin_2026";
-    const restore = () => { document.title = prev; window.removeEventListener("afterprint", restore); };
-    window.addEventListener("afterprint", restore);
-    window.print();
-  };
 
   // QR encodes the ABSOLUTE production URL (not window.location.origin) so anyone who
   // scans it — on any device, from any host — lands on the live portfolio docs page.
@@ -112,20 +101,19 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
           </Link>
         </div>
 
-        {/* Download symbol before the (hidden) provenance line. On screen you see just the quiet download
-            affordance; the governance-engine line is hidden and prints onto the 8.5×11 PDF. */}
-        <div className="mt-8 text-center">
-          <button
-            type="button"
-            onClick={downloadPdf}
-            title="Download PDF"
-            aria-label="Download PDF — Resume.Digital_A.Seguin_2026"
-            className="exp-noprint inline-flex items-center gap-1.5 text-[11px] italic text-muted-foreground/55 transition hover:text-primary"
+        {/* PDF download link (icon + text), FOLLOWED BY the visible governance provenance line. The link is a
+            real one-page 8.5×11 PDF file named Resume.Digital_A.Seguin_2026. */}
+        <div className="mt-8 flex flex-col items-center gap-2">
+          <a
+            href={RESUME_PDF}
+            download="Resume.Digital_A.Seguin_2026.pdf"
+            title="Download PDF — Resume.Digital_A.Seguin_2026"
+            className="exp-noprint inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/60 hover:text-primary"
           >
-            <Download className="h-3.5 w-3.5" />
+            <Download className="h-4 w-4" />
             {t("experiences.egg.pdf.download")}
-          </button>
-          <p className="exp-printonly mx-auto max-w-md text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground">
+          </a>
+          <p className="max-w-md text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground/70">
             {t("experiences.landing.footer")}
           </p>
         </div>
