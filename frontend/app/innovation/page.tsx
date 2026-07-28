@@ -940,6 +940,24 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
   );
 }
 
+// Per-section banner accent (AMTS deck parity) — a colored header bar + icon per slide field, keyed by the
+// field's role (value / concern / flow / money / governance / default). Pure + deterministic.
+function sectionAccent(code: string, f: SlideField): { icon: string; bar: string; ring: string } {
+  const id = f.id.toLowerCase(), name = f.name.toLowerCase();
+  const has = (re: RegExp) => re.test(id) || re.test(name);
+  if (code === "CS" || code === "RA" || has(/approv|sign|review|change|member|role/))
+    return { icon: "✔", bar: "bg-indigo-500/20 text-indigo-100", ring: "border-indigo-500/30" };
+  if (has(/valueprop|vprop|value prop|desc|oneline|overview|ask|benefit/))
+    return { icon: "◆", bar: "bg-cyan-500/20 text-cyan-100", ring: "border-cyan-500/30" };
+  if (has(/risk|problem|concern|statusquo|counter|toprisk|dep|nba/))
+    return { icon: "▲", bar: "bg-rose-500/20 text-rose-100", ring: "border-rose-500/30" };
+  if (has(/conops|roadmap|workflow|persona|stor|flow|future|outcome|why|voc|experiment|l90|l60|l30|l0|e120|e90|e60|e0|launch|prio/))
+    return { icon: "→", bar: "bg-violet-500/20 text-violet-100", ring: "border-violet-500/30" };
+  if (f.kind === "chart" || f.kind === "metrics" || has(/profile|rev|margin|financ|spend|scenario|saydo|capture|fte|fincomment|plc|bom|accel|conf|resource/))
+    return { icon: "$", bar: "bg-emerald-500/15 text-emerald-100", ring: "border-emerald-500/25" };
+  return { icon: "▪", bar: "bg-sky-500/15 text-sky-100", ring: "border-slate-700" };
+}
+
 // S3 Business-Case cash chart (AMTS deck parity). Top-level so its horizon `useState` keeps a stable identity.
 // R&D / NRE is a NEGATIVE flow (below the zero baseline), Revenue + Margin are positive bars, and cumulative
 // CASH FLOW (Σ margin − R&D) is a line. The horizon toggle renders horizon+1 year columns so a CAGR measured
@@ -2869,10 +2887,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     );
   }
   function PresentField({ sp, f, big }: { sp: SlideSpec; f: SlideField; big?: boolean }) {
+    const acc = sectionAccent(sp.code, f);
+    // Colored banner header (icon + section name) matching the reference deck, wrapping every field card.
+    const Banner = () => (
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 ${acc.bar}`}>
+        <span aria-hidden className="text-[12px] leading-none">{acc.icon}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">{f.name}{f.linked ? " · ◈ live" : ""}</span>
+      </div>
+    );
     if (f.kind === "chart" && f.linked) return (
-      <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-3">
-        <div className="mb-1.5 text-[9px] uppercase tracking-[0.16em] text-slate-500">{f.name} · ◈ live</div>
-        <MiniFinChart kind={sp.code} big={big} />
+      <div className={`overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14]`}>
+        <Banner />
+        <div className="p-3"><MiniFinChart kind={sp.code} big={big} /></div>
       </div>
     );
     const v = effective(sp, f, presentSrc); if (fieldEmpty(v)) return null;
@@ -2881,8 +2907,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
     return (
-      <div className={`rounded-lg border ${isVp ? "border-cyan-500/30 bg-cyan-500/[0.05]" : "border-slate-800 bg-[#0b0f14]"} p-3 ${isConops ? "sm:col-span-2" : ""}`}>
-        <div className="mb-1.5 text-[9px] uppercase tracking-[0.16em] text-slate-500">{f.name}{f.linked ? " · ◈ live" : ""}</div>
+      <div className={`overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "sm:col-span-2" : ""}`}>
+        <Banner />
+        <div className="p-3">
         {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}>{v as string}</p>}
         {f.kind === "attach" && <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>}
         {f.kind === "list" && isConops && (
@@ -2901,6 +2928,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         {f.kind === "list" && !isConops && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
         {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[clamp(18px,2.2vw,30px)] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
         {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div>}
+        </div>
       </div>
     );
   }
@@ -2929,9 +2957,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
         <div className="flex flex-1 flex-col overflow-hidden px-[clamp(20px,4vw,64px)] py-[clamp(16px,3vw,40px)]">
-          <div className="flex items-baseline gap-3 border-b border-slate-800 pb-[clamp(10px,1.6vw,20px)]">
-            <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.code} · {spec.gate} {spec.stage.toUpperCase()}</span>
-            <h2 className="text-[clamp(22px,3.4vw,44px)] font-semibold tracking-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h2>
+          <div className="border-b border-slate-800 pb-[clamp(10px,1.6vw,20px)]">
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.code} · {spec.gate} {spec.stage.toUpperCase()}</span>
+              <h2 className="text-[clamp(22px,3.4vw,44px)] font-semibold tracking-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h2>
+            </div>
+            {/* Business · Project # · Slide · Source subheader + REQUIRED-stage badge (AMTS deck parity) */}
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[clamp(10px,1.1vw,13px)] text-slate-500">
+              <span>Business: <span className="text-slate-300">{p.division}</span></span>
+              <span>Project #: <span className="text-slate-300">{p.id}</span></span>
+              <span>Slide <span className="text-slate-300 tabular-nums">{idx + 1}</span></span>
+              <span>Source: <span className="text-slate-300">{spec.source}</span></span>
+              <span className="ml-auto rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">Required: {spec.stage} and above</span>
+            </div>
           </div>
           <div className="mt-[clamp(14px,2.4vw,28px)] grid flex-1 content-start gap-[clamp(12px,1.6vw,22px)] overflow-y-auto sm:grid-cols-2">
             {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
