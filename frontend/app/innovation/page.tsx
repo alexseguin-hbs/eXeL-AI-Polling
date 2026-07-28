@@ -659,7 +659,7 @@ function Board() {
                   <tr onClick={() => { setDrill({ level: stackLevel, value: g.key }); setStackLevel("product"); }}
                     className={`cursor-pointer border-b border-slate-900 hover:bg-cyan-500/10 hover:ring-1 hover:ring-inset hover:ring-cyan-500/30 ${st.rows[i]?.funded ? "" : "opacity-70"}`} title="Drill to projects">
                     <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
-                    <td className={`px-2 py-2 font-medium ${indent ? "pl-6" : ""}`}>{indent && <span className="mr-1 text-slate-600">↳</span>}{g.key} <span className="text-[10px] text-slate-500">↳ drill</span></td>
+                    <td className={`px-2 py-2 font-medium ${indent ? "pl-6" : ""}`}>{indent && <span className="mr-1 text-slate-600">↳</span>}{g.key}</td>
                     <td className="px-2 py-2 text-center tabular-nums text-slate-400">{g.count}</td>
                     <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(g.nreK)}</td>
                     <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={g.weightedRevM} incremental={g.incRevM} /></td>
