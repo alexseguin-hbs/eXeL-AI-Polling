@@ -12,7 +12,7 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
-  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM,
+  DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -4271,7 +4271,7 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
   const [revMode, setRevMode] = useState<RevMode>("full");
   const [showBaseline, setShowBaseline] = useState(true);
   // Growth-model band view (operator): Incremental (orange, New−Decline+EOL) by default; or one component.
-  const [band, setBand] = useState<"incremental" | "new" | "decline" | "eol">("incremental");
+  const [band, setBand] = useState<"incremental" | "incmgn" | "new" | "decline" | "eol">("incremental");
   // MoT time-spread (operator, global deck lens): spread scoped cost/rev/margin totals to $/min over a chosen
   // window — 91-day (SoI) / 365-day / user-defined — persisted deck-wide. Linearized (even) for less lumpiness.
   const [spreadKey, setSpreadKey] = useState<SpreadKey>(() => (lsGet("innovation-spread") as SpreadKey) || "q91");
@@ -4317,10 +4317,12 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
   // 3-yr → 4, 10-yr → 11. So render years+1 columns; CAGR below divides by (rows.length−1) = the horizon.
   const rows = growthModel(scoped, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM });
   const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
-  // Operator model: the selected band is a single series. Incremental (orange) = New − Decline + EOL; or view one.
-  const BAND = { incremental: { key: "incremental", label: "Incremental (1−2+3)", color: "#fbbf24" }, new: { key: "new", label: "1 · New (Next-Gen)", color: "#34d399" }, decline: { key: "decline", label: "2 · Decline if unfunded", color: "#fb7185" }, eol: { key: "eol", label: "3 · EOL (Prior-Gen)", color: "#a78bfa" } } as const;
+  // Operator chart math: Incremental Rev = Step 1 (New) − Step 2 (Decline) + Step 3 (EOL). Incremental Mgn =
+  // Incremental Rev × the blended gross margin (single source = execOf().marginPct across the funded set).
+  const marginFrac = blendedMarginFrac(funded);
+  const BAND = { incremental: { key: "incremental", label: "Incremental Rev (1−2+3)", color: "#fbbf24" }, incmgn: { key: "incmgn", label: "Incremental Mgn", color: "#f7b955" }, new: { key: "new", label: "Step 1 · New (Next-Gen)", color: "#34d399" }, decline: { key: "decline", label: "Step 2 · Decline if unfunded", color: "#fb7185" }, eol: { key: "eol", label: "Step 3 · EOL (Prior-Gen)", color: "#a78bfa" } } as const;
   // Decline-if-unfunded is a revenue LOSS → render it on the NEGATIVE y-axis (below zero) with negative numbers.
-  const seriesVal = (r: (typeof rows)[number]) => band === "incremental" ? r.incremental : band === "new" ? r.newRev : band === "decline" ? -r.declineRev : r.eolRev;
+  const seriesVal = (r: (typeof rows)[number]) => band === "incremental" ? r.incremental : band === "incmgn" ? r.incremental * marginFrac : band === "new" ? r.newRev : band === "decline" ? -r.declineRev : r.eolRev;
   const vals = rows.map(seriesVal);
   const max = Math.max(...rows.map((r) => r.target), ...vals, 1) * 1.1;
   const minV = Math.min(0, ...vals) * 1.1;
@@ -4388,7 +4390,7 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
-              <title>{r.year} — {BAND[band].label}: {Math.round(v)} (New {Math.round(r.newRev)} − Decline {Math.round(r.declineRev)} + EOL {Math.round(r.eolRev)}) · target {Math.round(r.target)}</title>
+              <title>{r.year} — {BAND[band].label}: {Math.round(v)} · Incremental Rev = Step 1 New {Math.round(r.newRev)} − Step 2 Decline {Math.round(r.declineRev)} + Step 3 EOL {Math.round(r.eolRev)} = {Math.round(r.incremental)}; Incremental Mgn = Incremental Rev × {Math.round(marginFrac * 100)}% = {Math.round(r.incremental * marginFrac)} · target {Math.round(r.target)}</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
               <rect x={x} y={Math.min(yv, y0)} width={bw} height={Math.max(0, Math.abs(yv - y0))} fill={BAND[band].color} rx={1} opacity={on ? 1 : 0.9} />
               <text x={cx} y={H - B + 12} textAnchor="middle" fill={on ? "#e2e8f0" : "#64748b"}>{r.year}</text>
@@ -4400,9 +4402,9 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
         {showBaseline && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
       </svg>
 
-      {/* Band view: Incremental (1−2+3) default, or one component (operator) */}
+      {/* Band view: Incremental Rev (Step 1 − Step 2 + Step 3) + Incremental Mgn, or one component (operator) */}
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-        {(["incremental", "new", "decline", "eol"] as const).map((k) => (
+        {(["incremental", "incmgn", "new", "decline", "eol"] as const).map((k) => (
           <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
             className={`rounded border px-2 py-0.5 ${band === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
             style={band === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>

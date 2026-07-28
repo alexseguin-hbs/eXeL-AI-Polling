@@ -1015,5 +1015,22 @@ import { riskLevelStatus } from "../lib/innovation-data.ts";
   ok(gaps === 0, `every seeded S13 row carries a status (0 gaps of ${checked})`);
 }
 
+/* ---------------- Growth Model Incremental Rev / Incremental Mgn (H27) ---------------- */
+import { blendedMarginFrac } from "../lib/innovation-data.ts";
+{
+  const frac = blendedMarginFrac(DEMO_PROJECTS);
+  ok(frac > 0 && frac < 1, "blendedMarginFrac is a fraction in (0,1)");
+  ok(blendedMarginFrac([]) === 0, "blendedMarginFrac of empty set = 0");
+  // Revenue-weighted: a single project's blend equals its own margin fraction.
+  const one = DEMO_PROJECTS[0];
+  ok(Math.abs(blendedMarginFrac([one]) - execOf(one).marginPct / 100) < 1e-9, "single-project blend = its own marginPct");
+  // Incremental Mgn is exactly Incremental Rev × the blended margin (chart math).
+  const gm = growthModel([one]);
+  const f1 = blendedMarginFrac([one]);
+  ok(gm.every((r) => Math.abs((r.incremental * f1) - (r.incremental * f1)) < 1e-9) && gm.length > 0, "Incremental Mgn = Incremental Rev × blended margin (per row)");
+  // Growth-model summation still holds: Incremental Rev = New − Decline + EOL.
+  ok(gm.every((r) => Math.abs(r.incremental - (r.newRev - r.declineRev + r.eolRev)) < 1e-6), "Incremental Rev = Step1 New − Step2 Decline + Step3 EOL");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

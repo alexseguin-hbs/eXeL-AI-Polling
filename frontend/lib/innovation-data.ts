@@ -252,6 +252,13 @@ export const incrementalRevM = (p: Project) => Math.max(0, p.fullRev10yM - p.doN
 export const pSuccess = (p: Project) => RISK_P[p.tech] * RISK_P[p.comm]; // Tech×Comm weight (CRS-53)
 export const upsideFraction = (p: Project) => 1 - pSuccess(p);           // unrealized potential
 export const weightedRevM = (p: Project) => incrementalRevM(p) * pSuccess(p);
+// Blended gross-margin fraction (0..1) across a set — revenue-weighted mean of the ONE margin source
+// (execOf().marginPct). Used by the Growth Model's "Incremental Mgn" band (= Incremental Rev × this). Pure.
+export const blendedMarginFrac = (projects: Project[]): number => {
+  let rev = 0, mgn = 0;
+  for (const p of projects) { const r = Math.max(0, p.fullRev10yM); rev += r; mgn += r * (execOf(p).marginPct / 100); }
+  return rev > 0 ? mgn / rev : 0;
+};
 // Simplified 10-yr NPV: weighted incremental revenue margin (~35%) discounted, less NRE. Demo model.
 export const npvM = (p: Project) => weightedRevM(p) * 0.35 * 0.78 - p.nreK / 1000;
 export const revOverNre = (p: Project) => (p.nreK ? (incrementalRevM(p) * 1000) / p.nreK : 0);
