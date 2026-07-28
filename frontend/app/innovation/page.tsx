@@ -46,6 +46,7 @@ import {
 } from "@/lib/innovation-data";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
+import { loadImageLibrary, addToImageLibrary, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool
 
 const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
@@ -3084,44 +3085,63 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     if (f.kind === "chart") return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-2"><div className="mb-1 text-[10px] text-emerald-300/80">◈ Live from the project record</div><ChartFrame label={f.name}><MiniFinChart kind={spec.code} /></ChartFrame></div>;
     return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] px-3 py-2 text-[12px] text-emerald-300/90">◈ Live from the project record — {f.name} is derived, not typed.</div>;
   }
+  // Attach/image editor (operator: "Customer CONOPS" + Light-Codex shared library). Three ways to set the image:
+  // UPLOAD (inline data URI, ~2.5 MB cap) · PASTE a URL (BYOK/provider) · PICK from the shared image library
+  // (populated here + by the Light-Codex tool). Uploads/pastes also add to the library so other slides can reuse.
+  function AttachEditor({ f }: { f: SlideField }) {
+    const c = cellOf(spec.code, f.id);
+    const val = c.mode === "ai" ? (fieldEmpty(c.ai) ? aiFor(spec.code, f.id) : c.ai) : c.hi;
+    const s = (val as string) || "";
+    const isImg = isImageSrc(s);
+    const [libOpen, setLibOpen] = useState(false);
+    const [lib, setLib] = useState<LibImage[]>([]);
+    useEffect(() => { if (libOpen) setLib(loadImageLibrary()); }, [libOpen]);
+    const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]; if (!file) return;
+      if (file.size > 2_500_000) { alert("Image is over 2.5 MB — please use a smaller file."); e.target.value = ""; return; }
+      const reader = new FileReader();
+      reader.onload = () => { const src = String(reader.result); setActive(spec.code, f.id, src); addToImageLibrary(f.name, src); };
+      reader.readAsDataURL(file); e.target.value = "";
+    };
+    return (
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center gap-2">
+          {isImg
+            ? <img src={s} alt={f.name} className="h-16 w-auto rounded border border-slate-700 object-cover" />
+            : <span className="rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[12px] text-slate-400">{s || "No image yet"}</span>}
+          <label className="cursor-pointer rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-300 hover:bg-cyan-500/20">
+            {isImg ? "Replace image" : "⬆ Upload image"}
+            <input type="file" accept="image/*" className="hidden" onChange={onFile} />
+          </label>
+          <button onClick={() => setLibOpen((v) => !v)} className="rounded border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-[11px] text-violet-200 hover:bg-violet-500/20">◫ Library</button>
+          {s && <button onClick={() => setActive(spec.code, f.id, "")} className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-500 hover:border-rose-500/50 hover:text-rose-300">Clear</button>}
+        </div>
+        <input type="url" inputMode="url" defaultValue={/^https?:\/\//i.test(s) ? s : ""} placeholder="…or paste an image URL (BYOK / provider)"
+          onBlur={(e) => { const u = e.target.value.trim(); if (u && u !== s) { setActive(spec.code, f.id, u); addToImageLibrary(f.name, u); } }}
+          className={`${inputCls} text-[12px]`} />
+        {libOpen && (
+          <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
+            <div className="mb-1 text-[10px] text-slate-500">Shared image library — uploaded here + from the Light Codex tool. Tap to use.</div>
+            {lib.length ? (
+              <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+                {lib.map((im, i) => (
+                  <button key={i} onClick={() => { setActive(spec.code, f.id, im.src); setLibOpen(false); }} title={im.name}
+                    className="overflow-hidden rounded border border-slate-700 hover:border-cyan-500"><img src={im.src} alt={im.name} className="aspect-video w-full object-cover" /></button>
+                ))}
+              </div>
+            ) : <div className="text-[10px] italic text-slate-600">Library empty — upload here or in the Light Codex tool.</div>}
+          </div>
+        )}
+      </div>
+    );
+  }
   function FieldEditor({ f }: { f: SlideField }) {
     if (f.linked) return <LinkedField f={f} />;
     const c = cellOf(spec.code, f.id);
     const v = c.mode === "ai" ? (fieldEmpty(c.ai) ? aiFor(spec.code, f.id) : c.ai) : c.hi;
     if (f.kind === "text") return <input className={inputCls} value={(v as string) || ""} placeholder={f.mirror ? `Inherits from ${f.mirror}` : "Type here"} onChange={(e) => setActive(spec.code, f.id, e.target.value)} />;
     if (f.kind === "longtext") return <textarea rows={3} maxLength={4000} className={`${inputCls} resize-y leading-relaxed`} value={(v as string) || ""} placeholder={f.mirror ? `Inherits from ${f.mirror}` : "Evidence, insight, judgment."} onChange={(e) => setActive(spec.code, f.id, e.target.value)} />;
-    if (f.kind === "attach") {
-      const s = (v as string) || "";
-      const isImg = isImageSrc(s);
-      // TWO image sources (operator BYOK): (1) UPLOAD → inline data URI (persists local+cloud, no external host);
-      // (2) PASTE an image URL (BYOK / provider output). Either becomes the CONOPS hero; the wireframe stays the
-      // deterministic fallback when neither is set. ~2.5 MB soft cap on uploads.
-      const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]; if (!file) return;
-        if (file.size > 2_500_000) { alert("Image is over 2.5 MB — please use a smaller file."); e.target.value = ""; return; }
-        const reader = new FileReader();
-        reader.onload = () => setActive(spec.code, f.id, String(reader.result));
-        reader.readAsDataURL(file);
-        e.target.value = "";
-      };
-      return (
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            {isImg
-              ? <img src={s} alt={f.name} className="h-16 w-auto rounded border border-slate-700 object-cover" />
-              : <span className="rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[12px] text-slate-400">{s || "No image yet"}</span>}
-            <label className="cursor-pointer rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-300 hover:bg-cyan-500/20">
-              {isImg ? "Replace image" : "⬆ Upload image"}
-              <input type="file" accept="image/*" className="hidden" onChange={onFile} />
-            </label>
-            {s && <button onClick={() => setActive(spec.code, f.id, "")} className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-500 hover:border-rose-500/50 hover:text-rose-300">Clear</button>}
-          </div>
-          <input type="url" inputMode="url" defaultValue={/^https?:\/\//i.test(s) ? s : ""} placeholder="…or paste an image URL (BYOK / provider)"
-            onBlur={(e) => { const u = e.target.value.trim(); if (u && u !== s) setActive(spec.code, f.id, u); }}
-            className={`${inputCls} text-[12px]`} />
-        </div>
-      );
-    }
+    if (f.kind === "attach") return <AttachEditor f={f} />;
     if (f.kind === "metrics") { const rec = ((v as Record<string, string>) || {}); return <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">{(f.items ?? []).map((m) => (
       <label key={m.k} className="rounded-lg border border-slate-700 bg-[#0e141b] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div><input className="w-full bg-transparent text-[14px] font-semibold text-slate-100 outline-none" value={rec[m.k] || ""} placeholder="—" onChange={(e) => setActive(spec.code, f.id, { ...rec, [m.k]: e.target.value })} /></label>
     ))}</div>; }

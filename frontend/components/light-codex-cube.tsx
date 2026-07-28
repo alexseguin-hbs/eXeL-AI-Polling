@@ -20,6 +20,7 @@ import {
   type Style, type BlockSize, type DecodeResult,
 } from "@/lib/light-codex";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { addToImageLibrary } from "@/lib/image-library"; // share the loaded image into the SoI-2525 CONOPS pool
 
 // File → ImageData (via an offscreen canvas).
 async function fileToImageData(file: File): Promise<ImageData> {
@@ -216,6 +217,12 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40">
               <Download className="h-4 w-4" /> {busy ? "Signing…" : "Sign & download PNG"}
             </button>
+            {srcData && (
+              <button onClick={() => { const c = imageDataToCanvas(srcData); addToImageLibrary(srcName ?? "light-codex", c.toDataURL("image/png")); }}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-xs text-muted-foreground hover:bg-accent/30">
+                ◫ Add to SoI-2525 CONOPS library
+              </button>
+            )}
             <p className="text-center text-[10px] text-muted-foreground/70">Keep it PNG — JPEG shifts colors and breaks decoding.</p>
             <div ref={previewRef} className="flex justify-center" />
           </div>

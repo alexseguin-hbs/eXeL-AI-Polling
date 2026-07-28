@@ -1723,7 +1723,7 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
   { code: "S4", gate: "G1", stage: "Concept", source: "Market Needs", supplemental: ["Market Landscape & Needs"], fields: [
     { id: "conops", name: "Operational concept, in order", kind: "list", req: true, ordered: true, hint: "6–10 ordered steps — each renders as an image-tiled step card in Present." },
     { id: "future", name: "Future capabilities", kind: "list" },
-    { id: "visual", name: "Mission diagram", kind: "attach" } ] },
+    { id: "visual", name: "Customer CONOPS diagram", kind: "attach" } ] },
   { code: "S5", gate: "G1", stage: "Concept", source: "Market Needs", supplemental: ["Market Landscape & Needs"], fields: [
     { id: "problem", name: "Problem statement", kind: "longtext", req: true, hint: "2–3 tight sentences — the customer's problem in their words." },
     { id: "outcomes", name: "Customer outcomes", kind: "list", req: true, hint: "2–3 bullets — the outcomes the customer is buying." },
