@@ -1125,5 +1125,31 @@ import { existingCurve as existingCurve40 } from "../lib/innovation-data.ts";
   ok(DEMO_PROJECTS.filter((p) => !p.existingDecline).every((p) => p.doNothing10yM === 0), "non-hardware projects are new-revenue only (doNothing10yM = 0)");
 }
 
+// H41 — per-quarter RevPlan (QTY·ASP·COGS) + profiles + $/min surfaces.
+import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials } from "../lib/innovation-data.ts";
+{
+  const p = DEMO_PROJECTS[0];
+  // High-Level: 40 quarters that sum to the plan's fullRev10yM.
+  const hi = revPlanQuarters(p, { entryMode: "highlevel", profile: "linear", fullRev10yM: 200, marginPct: 40 });
+  ok(hi.length === 40, "revPlanQuarters returns 40 quarters");
+  ok(Math.abs(hi.reduce((s, q) => s + q.rev, 0) - 200) < 0.5, `High-Level quarters sum to fullRev10yM (${hi.reduce((s, q) => s + q.rev, 0).toFixed(1)})`);
+  ok(Math.abs(hi[0].margin - hi[0].rev * 0.4) < 1e-6, "margin = rev × marginPct");
+  // Detailed: revenue = QTY×ASP; margin = (ASP−COGS)/ASP; fullRev := Σ.
+  const det = { entryMode: "detailed", profile: "linear", qty: 100, aspK: 50, unitCogsK: 30 };
+  const dq = revPlanQuarters(p, det);
+  ok(Math.abs(revPlanFullM(p, det) - (100 * 50 / 1000) * 10) < 0.5, "Detailed fullRev = QTY×ASP/1000 × 10y");
+  ok(Math.abs(dq[0].margin / dq[0].rev - (50 - 30) / 50) < 1e-6, "Detailed margin fraction = (ASP−COGS)/ASP");
+  // Profiles: weights sum to 1; growth rises; ramp reaches plateau; manual normalizes.
+  for (const pr of ["linear", "growth", "ramp", "manual"]) {
+    const w = profileWeights(pr, 40, { growthPctQ: 3, rampQuarters: 8, manualQ: Array.from({ length: 40 }, (_, i) => i + 1) });
+    ok(Math.abs(w.reduce((a, b) => a + b, 0) - 1) < 1e-9, `${pr} weights sum to 1`);
+  }
+  ok(profileWeights("growth", 40, { growthPctQ: 5 })[39] > profileWeights("growth", 40, { growthPctQ: 5 })[0], "growth profile rises over quarters");
+  ok(profileWeights("ramp", 40, { rampQuarters: 8 })[20] === profileWeights("ramp", 40, { rampQuarters: 8 })[8], "ramp profile plateaus after rampQuarters");
+  // $/min: risk-weighted ≤ full; all finite.
+  const pm = perMinFinancials(DEMO_PROJECTS, 91);
+  ok(pm.revRwPerMin <= pm.revFullPerMin + 1e-9 && Number.isFinite(pm.costPerMin) && Number.isFinite(pm.marginPerMin), "$/min: risk-weighted ≤ full; cost/margin finite");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

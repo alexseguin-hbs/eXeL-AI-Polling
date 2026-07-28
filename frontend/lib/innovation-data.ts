@@ -387,6 +387,55 @@ export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: 
   return out;
 }
 
+// ── Per-quarter Revenue Plan (H41) — QTY · ASP · COGS build-up with an entry mode + a shaping profile. Pure,
+// deterministic (no clock/random). Detailed mode derives revenue = QTY×ASP and margin = (ASP−COGS)/ASP; High-Level
+// mode takes Revenue + Margin directly. Either way the 40-quarter series sums to the annual `fullRev10yM` total, so
+// the annual roll-up (and the L155 newRamp≈fullRev10yM contract) stays intact. ────────────────────────────────
+export type RevProfile = "linear" | "growth" | "ramp" | "manual";
+export interface RevPlan {
+  entryMode: "highlevel" | "detailed";
+  profile: RevProfile;
+  fullRev10yM?: number;  // High-Level: total 10-yr new revenue ($M) — defaults to p.fullRev10yM
+  marginPct?: number;    // High-Level: gross margin % — defaults to execOf(p).marginPct
+  qty?: number;          // Detailed: units per year at plateau
+  aspK?: number;         // Detailed: average selling price ($K/unit)
+  unitCogsK?: number;    // Detailed: unit cost of goods sold ($K/unit)
+  growthPctQ?: number;   // "growth" profile: compounding % per quarter
+  rampQuarters?: number; // "ramp" profile: quarters to reach plateau
+  manualQ?: number[];    // "manual" profile: explicit per-quarter weights (any length; normalized)
+}
+/** n normalized weights (Σ=1) shaping how the total spreads across quarters. */
+export function profileWeights(profile: RevProfile, n: number, o: { growthPctQ?: number; rampQuarters?: number; manualQ?: number[] } = {}): number[] {
+  let raw: number[];
+  if (profile === "manual" && o.manualQ && o.manualQ.length) raw = Array.from({ length: n }, (_, i) => Math.max(0, o.manualQ![i] ?? 0));
+  else if (profile === "growth") { const g = 1 + (o.growthPctQ ?? 0) / 100; raw = Array.from({ length: n }, (_, i) => Math.pow(g, i)); }
+  else if (profile === "ramp") { const rq = Math.max(1, o.rampQuarters ?? 8); raw = Array.from({ length: n }, (_, i) => Math.min(1, (i + 1) / rq)); }
+  else raw = Array.from({ length: n }, () => 1); // linear
+  const s = raw.reduce((a, b) => a + b, 0) || 1;
+  return raw.map((v) => v / s);
+}
+export interface RevQuarter { q: number; year: number; rev: number; margin: number }
+/** 40-quarter revenue + margin ($M) for a project under a plan. Detailed derives the total from QTY×ASP over 10y. */
+export function revPlanQuarters(p: Project, plan: RevPlan, opts: { baseYear?: number } = {}): RevQuarter[] {
+  const n = 40, baseYear = opts.baseYear ?? 2026;
+  const detailed = plan.entryMode === "detailed";
+  const total = detailed ? ((plan.qty ?? 0) * (plan.aspK ?? 0) / 1000) * 10 : (plan.fullRev10yM ?? p.fullRev10yM); // $M over 10y
+  const marginPct = detailed ? ((plan.aspK ?? 0) > 0 ? Math.round(((plan.aspK! - (plan.unitCogsK ?? 0)) / plan.aspK!) * 100) : 0) : (plan.marginPct ?? execOf(p).marginPct);
+  const w = profileWeights(plan.profile, n, plan);
+  return w.map((wt, i) => { const rev = total * wt; return { q: i, year: baseYear + Math.floor(i / 4), rev, margin: rev * marginPct / 100 }; });
+}
+/** Derived 10-yr new-revenue total from a Detailed plan (= Σ quarters) so it can feed `fullRev10yM`. */
+export const revPlanFullM = (p: Project, plan: RevPlan): number => revPlanQuarters(p, plan).reduce((s, q) => s + q.rev, 0);
+/** Portfolio $/min financials (H41): risk-weighted vs full revenue, cost (NRE) and margin, spread over `days`. */
+export function perMinFinancials(projects: Project[], days: number): { costPerMin: number; revFullPerMin: number; revRwPerMin: number; marginPerMin: number } {
+  const costUsd = projects.reduce((s, p) => s + p.nreK * 1000, 0);
+  const revFullUsd = projects.reduce((s, p) => s + (p.fullRev10yM * 1e6) / 10, 0);
+  const revRwUsd = projects.reduce((s, p) => s + (p.fullRev10yM * 1e6 / 10) * pSuccess(p), 0);
+  const marginUsd = projects.reduce((s, p) => s + (p.fullRev10yM * 1e6 / 10) * (execOf(p).marginPct / 100), 0);
+  const pm = (v: number) => (days > 0 ? v / (days * 1440) : 0);
+  return { costPerMin: pm(costUsd), revFullPerMin: pm(revFullUsd), revRwPerMin: pm(revRwUsd), marginPerMin: pm(marginUsd) };
+}
+
 // Bill of Materials (BOM) per Product # — the Material #s that make up the product, each with
 // a standard-cost breakdown (Labor · Material · Machining · Other) and quantity. Deterministic
 // from the project so estimated production cost rolls up the same way every render.
