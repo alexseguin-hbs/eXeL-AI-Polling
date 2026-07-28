@@ -23,7 +23,7 @@ import {
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, rackGroupedByParent, projectRevSeries,
-  SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED, HEADLINE_FIELD, optimizeSlideTitle,
+  SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
@@ -3261,16 +3261,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   // swipe; big responsive type; financial fields render live from the project record; value prop is featured.
   if (present) {
     const anyContent = spec.fields.some((f) => !fieldEmpty(effective(spec, f, presentSrc)) || (f.kind === "chart" && f.linked));
-    // Title optimization per HI/AI — the big title is an optimized, content-derived headline (HI = human text,
-    // Operator: USE ORIGINAL HEADERS — the main title is the canonical slide name (Customer Problem · Product
-    // Summary · Customer Workflow · Competition + Value · …). The HI/AI content-optimized headline is kept as a
-    // small muted subtitle beneath (flips with the As-set/HI/AI toggle) so the optimization survives without
-    // replacing the header.
-    const genName = slideDef(spec.code)?.name ?? spec.code;
-    const hField = HEADLINE_FIELD[spec.code] ? spec.fields.find((f) => f.id === HEADLINE_FIELD[spec.code]) : undefined;
-    const optTitle = hField ? optimizeSlideTitle(effective(spec, hField, presentSrc)) : "";
-    const deckTitle = genName;
-    const subtitle = optTitle && optTitle.toLowerCase() !== genName.toLowerCase() ? optTitle : "";
+    // Operator: USE ORIGINAL HEADERS, identical format project→project — the title is ALWAYS the canonical slide
+    // name (Executive Summary · Customer Problem · Product Summary · Customer Workflow · Competition + Value · …),
+    // large white, centered between gate·stage (left) and slide code (right). No per-project subtitle/variation.
+    const deckTitle = slideDef(spec.code)?.name ?? spec.code;
     return (
       <div className="fixed inset-0 z-[60] flex flex-col bg-[#04070c] text-slate-100" role="dialog" aria-modal="true"
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -3303,12 +3297,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
               <span className="min-w-0 justify-self-start font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
               <div className="flex min-w-0 flex-col items-center text-center">
                 <h2 className="text-[clamp(20px,3.4vw,44px)] font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance">{deckTitle}</h2>
-                {subtitle && <span className="mt-0.5 text-[clamp(9px,1.1vw,13px)] italic text-slate-400 text-balance">{subtitle}</span>}
               </div>
               <span className="min-w-0 justify-self-end font-mono text-[clamp(11px,1.4vw,17px)] font-semibold tracking-[0.14em] text-cyan-400">{spec.code}</span>
             </div>
-            {/* Business · Project # · Source subheader */}
-            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[clamp(10px,1.1vw,13px)] text-slate-500">
+            {/* Business · Project # · Source subheader — left-justified (operator) */}
+            <div className="mt-1 flex flex-wrap items-center justify-start gap-x-3 gap-y-0.5 text-[clamp(10px,1.1vw,13px)] text-slate-500">
               <span>Business: <span className="text-slate-300">{p.division}</span></span>
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
               <span>Source: <span className="text-slate-300">{spec.source}</span></span>
