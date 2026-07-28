@@ -430,9 +430,9 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
               href="mailto:explore@eXeL-AI.com"
               aria-label="Email explore@eXeL-AI.com"
               title="explore@eXeL-AI.com"
-              className="text-primary/70 transition hover:text-primary"
+              className="inline-flex items-center text-[11px] leading-none text-primary/70 transition hover:text-primary"
             >
-              <Mail className="h-4 w-4" />
+              <Mail className="h-[1em] w-[1em]" />
             </a>
           </div>
           <h1 className="text-balance text-2xl font-semibold leading-tight sm:text-3xl">
