@@ -534,10 +534,6 @@ function Board() {
             {PERSONAS.map((pp) => <option key={pp.key} value={pp.key}>{pp.glyph} {t(`innovation.persona.${pp.key}.label`)}</option>)}
           </select>
         </label>
-        {/* See in another lens — cycle to the next persona in one motion (kept as a quick shortcut). */}
-        <button title={t("innovation.persona.anotherLens")}
-          onClick={() => { const idx = PERSONAS.findIndex((x) => x.key === persona); const nx = PERSONAS[(idx + 1) % PERSONAS.length]; setPersona(nx.key); setView(nx.view); if (nx.level) setStackLevel(nx.level); setDrill(null); }}
-          className="rounded-md border border-cyan-500/40 px-2 py-1 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">↔ {t("innovation.persona.anotherLens")}</button>
         <label className="ml-auto flex items-center gap-2">
           <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.cadence.optimize")}</span>
           <select value={cadence} aria-label={t("innovation.cadence.optimize")}
