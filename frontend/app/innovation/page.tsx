@@ -4236,8 +4236,8 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
   );
 }
 
-// Growth Model — the signature Rack & Stack chart: BU→SBU hierarchy filter, # Years (1/3/10),
-// Targeted Growth Rate, YoY Do-Nothing decline, Revenue Options, Show/Hide baseline, 4-series legend.
+// Growth Model — the signature Rack & Stack chart: on-chart Scope filter, Rev/Mgn/Incremental selectors (top),
+// # Years (1/3/10), Targeted Growth Rate, YoY Do-Nothing decline, Show/Hide baseline, Step 1/2/3 components.
 // (Gate cadence lives on the per-project gate overview, not here.)
 function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onScope }: { funded: Project[]; cadence?: Cadence; hierFilter: HierSel; allProjects: Project[]; onScope: (s: HierSel) => void }) {
   const [years, setYears] = useState(3);

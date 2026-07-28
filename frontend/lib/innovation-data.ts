@@ -239,6 +239,11 @@ export interface Project {
   winP50?: number;                    // Odin — median commercial adoption / BD win probability (0–1)
   valueDrivers?: ValueDriver[];       // Slice 1B — the Value Equation: per-differentiator scoring vs the NBA
   upsideAccelK?: number;              // Upside spending accelerator lever — extra $K that pulls schedule/revenue forward (per-project intake)
+  // Existing / EOL revenue (H40) — MOST projects are new-revenue only (no existing line). Only the two hardware
+  // franchises carry a declining existing line: SAR ($33M→$11M over 5y, $0 after) and Legacy EOL Bridge ($11M→$0
+  // by yr11). When `existingDecline` is set, projectRevSeries uses this curve instead of the doNothing geometric.
+  existingRevM?: number;              // base-year existing revenue ($M)
+  existingDecline?: { toM: number; overYears: number; zeroAfterYear: number };
 }
 /** A single differentiator in the Value Equation — scored for customer importance and performance vs the NBA. */
 export interface ValueDriver { name: string; importance: number; ourScore: number; nbaScore: number }
@@ -346,11 +351,25 @@ export function execOf(p: Project): ProjectExec {
 // model the old product line WITHOUT innovation — a declining curve (Do-Nothing / Step 2) —
 // so we can see what goes away. When a next-gen project is funded we overlay the NEW product
 // revenue ramp (Step 1) on top of that decline. Net = the story of decline replaced by growth.
+// Existing/EOL revenue curve (H40) — linear from base-year `existingRevM` to `toM` over `overYears`, plateau at
+// `toM`, then $0 once past `zeroAfterYear`. Only SAR + Legacy define `existingDecline`; everyone else → all zeros.
+export function existingCurve(p: Project, years: number): number[] {
+  const spec = p.existingDecline;
+  if (!spec) return Array.from({ length: years }, () => 0);
+  const start = p.existingRevM ?? 0;
+  return Array.from({ length: years }, (_, y) => {
+    if (y > spec.zeroAfterYear) return 0;
+    if (y >= spec.overYears) return spec.toM;
+    return Math.max(0, start + (spec.toM - start) * (y / spec.overYears));
+  });
+}
 export interface RevYear { year: number; oldDecline: number; newRamp: number; total: number }
 export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: number; decline?: number; funded?: boolean } = {}): RevYear[] {
   const years = opts.years ?? 10, d = opts.decline ?? 0.15, baseYear = opts.baseYear ?? 2026;
   const funded = opts.funded ?? true;
-  // Old line: declining geometric series whose 10-yr sum ≈ doNothing10yM (what erodes with no innovation).
+  // Old line: an explicit existing/EOL curve when set (SAR/Legacy), else a declining geometric series whose
+  // 10-yr sum ≈ doNothing10yM (what erodes with no innovation).
+  const existing = p.existingDecline ? existingCurve(p, years) : null;
   const denom = d > 0 ? (1 - Math.pow(1 - d, years)) / d : years;
   const oldStart = denom > 0 ? p.doNothing10yM / denom : 0;
   // New product: ramps in over ~3 yrs to a plateau; series sum ≈ fullRev10yM (only if funded/launched).
@@ -361,7 +380,7 @@ export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: 
   const newUnit = funded ? p.fullRev10yM / wSum : 0;
   const out: RevYear[] = [];
   for (let y = 0; y < years; y++) {
-    const oldDecline = oldStart * Math.pow(1 - d, y);
+    const oldDecline = existing ? existing[y] : oldStart * Math.pow(1 - d, y);
     const newRamp = newUnit * w[y];
     out.push({ year: baseYear + y, oldDecline, newRamp, total: oldDecline + newRamp });
   }
@@ -665,7 +684,17 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
 
 // Every project ships with populated intel merged over the base (explicit fields still win; a project
 // without an intel entry falls back to the deterministic derived engine, so nothing ever blanks).
-export const DEMO_PROJECTS: Project[] = DEMO_PROJECTS_BASE.map((p) => ({ ...p, ...(PROJECT_INTEL[p.id] ?? {}) }));
+// H40 — only the two hardware franchises carry an existing/EOL revenue line; every other project is new-revenue
+// only (do-nothing baseline zeroed). SAR (PRJ-01): $33M→$11M over 5y, $0 yrs 6–10. Legacy (PRJ-11): $11M→$0 by yr11.
+const EXISTING_OVERRIDE: Record<string, Partial<Project>> = {
+  "PRJ-01": { existingRevM: 33, existingDecline: { toM: 11, overYears: 5, zeroAfterYear: 5 } },
+  "PRJ-11": { existingRevM: 11, existingDecline: { toM: 0, overYears: 10, zeroAfterYear: 10 } },
+};
+export const DEMO_PROJECTS: Project[] = DEMO_PROJECTS_BASE.map((p) => {
+  const merged = { ...p, ...(PROJECT_INTEL[p.id] ?? {}) };
+  const ov = EXISTING_OVERRIDE[p.id];
+  return ov ? { ...merged, ...ov } : { ...merged, doNothing10yM: 0 };
+});
 
 // ── TIME ENGINE (CRS-85→88) — start date → schedule → month/week/day/hour/min ────────────
 // Time is the master variable (R-CORE §4): everything below is derived from a start date +

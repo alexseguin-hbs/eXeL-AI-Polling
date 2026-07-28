@@ -1108,5 +1108,22 @@ import { metaOf as metaOf36, pillarColorOf as pillarColorOf36, STRATEGIC_INITIAT
   ok(SI36.every((n) => /^#|^hsl/.test(pillarColorOf36(n))), "pillarColorOf returns a color for each seeded pillar");
 }
 
+// H40 — existing/EOL revenue only on the two hardware franchises (SAR, Legacy); everyone else new-revenue only.
+import { existingCurve as existingCurve40 } from "../lib/innovation-data.ts";
+{
+  const withExisting = DEMO_PROJECTS.filter((p) => p.existingDecline);
+  ok(withExisting.length === 2, `exactly 2 projects carry existing revenue (got ${withExisting.length})`);
+  const sar = DEMO_PROJECTS.find((p) => p.id === "PRJ-01");
+  const legacy = DEMO_PROJECTS.find((p) => p.id === "PRJ-11");
+  ok(sar && sar.existingRevM === 33 && legacy && legacy.existingRevM === 11, "SAR seeds $33M, Legacy seeds $11M existing revenue");
+  const sc = existingCurve40(sar, 10);
+  ok(Math.round(sc[0]) === 33 && Math.round(sc[5]) === 11 && sc[6] === 0, `SAR curve: yr0 33 · yr5 11 · yr6 0 (${sc.map(Math.round).join(",")})`);
+  const lc = existingCurve40(legacy, 12);
+  ok(Math.round(lc[0]) === 11 && lc[10] === 0 && lc[11] === 0, `Legacy curve: yr0 11 · yr10 0 · yr11 0`);
+  ok(sc[9] < sc[0], "SAR existing line declines (yr9 < yr0)"); // preserves the monotone-decline contract
+  // Every other project has a zeroed do-nothing (new-revenue only).
+  ok(DEMO_PROJECTS.filter((p) => !p.existingDecline).every((p) => p.doNothing10yM === 0), "non-hardware projects are new-revenue only (doNothing10yM = 0)");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
