@@ -3102,6 +3102,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         {/* tap zones for prev/next (edges) */}
         <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[1] w-[16%] cursor-w-resize bg-transparent" />
         <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[1] w-[16%] cursor-e-resize bg-transparent" />
+        {/* REQUIRED badge — upper-left, same top line as the As-set/HI/AI + Edit + Exit controls (operator). */}
+        <div className="absolute left-3 top-3 z-10 flex items-center">
+          <span className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-300 whitespace-nowrap">Req: {spec.stage}+</span>
+        </div>
         {/* stage controls */}
         <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
           {/* Live source override — flip the whole deck between the human baseline and the enhanced AI, or honor
@@ -3120,10 +3124,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           <div className="border-b border-slate-800 pb-[clamp(10px,1.6vw,20px)]">
             {/* One line: gate·stage (cyan, left) · title (centered) · slide code (cyan, right) */}
             <div className="flex items-start gap-2">
-              <div className="flex shrink-0 flex-col items-start gap-1">
-                <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
-                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[clamp(7px,0.9vw,9px)] font-semibold uppercase tracking-wider text-amber-300 whitespace-nowrap">Req: {spec.stage}+</span>
-              </div>
+              <span className="shrink-0 self-start font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
               <div className="flex min-w-0 flex-1 flex-col items-center text-center">
                 {showKicker && <span className="text-[clamp(8px,0.95vw,11px)] font-semibold uppercase tracking-[0.18em] text-slate-500">{genName}</span>}
                 <h2 className="text-[clamp(20px,3.4vw,44px)] font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance">{deckTitle}</h2>
