@@ -2889,7 +2889,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
           {SLIDE_SCHEMA.map((s, i) => {
             const pctF = Math.round(fillOf(s) * 100);
+            // S1 = slight-blue anchor highlight; S2/S3 keep the same purple shade (violet) — operator spec.
             const cls = i === idx ? "border-cyan-500 bg-cyan-500/15 text-cyan-200"
+              : s.code === "S1" ? "border-sky-500/40 bg-sky-500/10 text-sky-300"
+              : s.code === "S2" || s.code === "S3" ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
               : pctF >= 100 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
               : pctF > 0 ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
               : "border-slate-700 text-slate-500 hover:bg-slate-800";
