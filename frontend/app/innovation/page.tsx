@@ -986,6 +986,7 @@ function ChartFrame({ children, label }: { children: React.ReactNode; label?: st
 // over `horizon` years spans `horizon+1` points on the chart (3-Yr→4 · 5-Yr→6 · 10-Yr→11).
 function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
   const [horizon, setHorizon] = useState(3);
+  const [view, setView] = useState<"chart" | "table">("chart");
   const fo = financialsOverview(p, { years: horizon + 1, funded: true });
   let run = 0;
   const cash = fo.map((r) => (run += r.marginM - r.rdK / 1000)); // cumulative net cash ($M)
@@ -1009,11 +1010,44 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
         <div className="flex flex-wrap gap-x-3 gap-y-0.5">
           {legend.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
         </div>
-        <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label="CAGR horizon">
-          {[3, 5, 10].map((h) => <button key={h} onClick={() => setHorizon(h)} aria-pressed={horizon === h}
-            className={`px-1.5 py-0.5 ${horizon === h ? "bg-cyan-500 font-semibold text-[#06202a]" : "text-slate-400 hover:bg-slate-800"}`}>{h}-Yr</button>)}
+        <div className="flex items-center gap-1">
+          <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label="View mode">
+            {(["chart", "table"] as const).map((v) => <button key={v} onClick={() => setView(v)} aria-pressed={view === v}
+              className={`px-1.5 py-0.5 capitalize ${view === v ? "bg-cyan-500 font-semibold text-[#06202a]" : "text-slate-400 hover:bg-slate-800"}`}>{v}</button>)}
+          </div>
+          <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label="CAGR horizon">
+            {[3, 5, 10].map((h) => <button key={h} onClick={() => setHorizon(h)} aria-pressed={horizon === h}
+              className={`px-1.5 py-0.5 ${horizon === h ? "bg-cyan-500 font-semibold text-[#06202a]" : "text-slate-400 hover:bg-slate-800"}`}>{h}-Yr</button>)}
+          </div>
         </div>
       </div>
+      {view === "table" ? (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-right font-mono text-[10px] tabular-nums">
+            <thead>
+              <tr className="text-slate-400">
+                <th className="sticky left-0 z-[1] bg-[#0b0f14] px-1 py-0.5 text-left font-medium">$M</th>
+                {fo.map((r) => <th key={r.year} className="px-1 py-0.5 font-medium">{r.year}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {([
+                { label: "Revenue", color: "#34d399", vals: fo.map((r) => r.revM) },
+                { label: "Margin", color: "#f7b955", vals: fo.map((r) => r.marginM) },
+                { label: "R&D / NRE", color: "#f87171", vals: fo.map((r) => -r.rdK / 1000) },
+                { label: "Cash flow", color: "#38bdf8", vals: cash },
+              ]).map((row) => (
+                <tr key={row.label} className="border-t border-slate-800/70">
+                  <td className="sticky left-0 z-[1] whitespace-nowrap bg-[#0b0f14] px-1 py-0.5 text-left text-slate-300">
+                    <span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: row.color }} />{row.label}
+                  </td>
+                  {row.vals.map((v, i) => <td key={i} className={`px-1 py-0.5 ${v < 0 ? "text-rose-400" : "text-slate-200"}`}>{v < 0 ? `(${Math.abs(v).toFixed(1)})` : v.toFixed(1)}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "auto" }} role="img" aria-label={`S3 cash flow, ${horizon}-year horizon`}>
         {[0.5, 1].map((fr) => <line key={`p${fr}`} x1={L} y1={yVal(posMax * fr / 1.14)} x2={W} y2={yVal(posMax * fr / 1.14)} stroke="rgba(148,163,184,.09)" />)}
         <line key="neg" x1={L} y1={yVal(-negMax / 1.14)} x2={W} y2={yVal(-negMax / 1.14)} stroke="rgba(148,163,184,.09)" />
@@ -1033,6 +1067,7 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
         <polyline fill="none" stroke="#38bdf8" strokeWidth={1.6} points={cash.map((c, i) => `${cx(i)},${yVal(c)}`).join(" ")} />
         {cash.map((c, i) => <circle key={i} cx={cx(i)} cy={yVal(c)} r={2} fill="#38bdf8" />)}
       </svg>
+      )}
     </div>
   );
 }
@@ -3076,17 +3111,20 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         {/* Top padding reserves a strip so the As-set/HI/AI + Edit + Exit controls (top-right) never cover the title. */}
         <div className="flex flex-1 flex-col overflow-hidden px-[clamp(20px,4vw,64px)] pb-[clamp(16px,3vw,40px)] pt-[clamp(56px,9vw,72px)]">
           <div className="border-b border-slate-800 pb-[clamp(10px,1.6vw,20px)]">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.code} · {spec.gate} {spec.stage.toUpperCase()}</span>
-              <h2 className="text-[clamp(22px,3.4vw,44px)] font-semibold tracking-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h2>
+            {/* One line: gate·stage (cyan, left) · title (centered) · slide code (cyan, right) */}
+            <div className="flex items-start gap-2">
+              <div className="flex shrink-0 flex-col items-start gap-1">
+                <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
+                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[clamp(7px,0.9vw,9px)] font-semibold uppercase tracking-wider text-amber-300 whitespace-nowrap">Req: {spec.stage}+</span>
+              </div>
+              <h2 className="flex-1 text-center text-[clamp(20px,3.4vw,44px)] font-semibold tracking-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h2>
+              <span className="shrink-0 self-start font-mono text-[clamp(11px,1.4vw,17px)] font-semibold tracking-[0.14em] text-cyan-400">{spec.code}</span>
             </div>
-            {/* Business · Project # · Slide · Source subheader + REQUIRED-stage badge (AMTS deck parity) */}
+            {/* Business · Project # · Source subheader */}
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[clamp(10px,1.1vw,13px)] text-slate-500">
               <span>Business: <span className="text-slate-300">{p.division}</span></span>
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
-              <span>Slide <span className="text-slate-300 tabular-nums">{idx + 1}</span></span>
               <span>Source: <span className="text-slate-300">{spec.source}</span></span>
-              <span className="ml-auto rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">Required: {spec.stage} and above</span>
             </div>
           </div>
           <div className="mt-[clamp(14px,2.4vw,28px)] grid flex-1 content-start gap-[clamp(12px,1.6vw,22px)] overflow-y-auto sm:grid-cols-2">
@@ -3992,7 +4030,8 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
   const W = 720, H = 240, L = 34, B = 26, T = 26, R = 10;
   // Operator model: the selected band is a single series. Incremental (orange) = New − Decline + EOL; or view one.
   const BAND = { incremental: { key: "incremental", label: "Incremental (1−2+3)", color: "#fbbf24" }, new: { key: "new", label: "1 · New (Next-Gen)", color: "#34d399" }, decline: { key: "decline", label: "2 · Decline if unfunded", color: "#fb7185" }, eol: { key: "eol", label: "3 · EOL (Prior-Gen)", color: "#a78bfa" } } as const;
-  const seriesVal = (r: (typeof rows)[number]) => band === "incremental" ? r.incremental : band === "new" ? r.newRev : band === "decline" ? r.declineRev : r.eolRev;
+  // Decline-if-unfunded is a revenue LOSS → render it on the NEGATIVE y-axis (below zero) with negative numbers.
+  const seriesVal = (r: (typeof rows)[number]) => band === "incremental" ? r.incremental : band === "new" ? r.newRev : band === "decline" ? -r.declineRev : r.eolRev;
   const vals = rows.map(seriesVal);
   const max = Math.max(...rows.map((r) => r.target), ...vals, 1) * 1.1;
   const minV = Math.min(0, ...vals) * 1.1;
@@ -4091,7 +4130,7 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
         const perMin = (v: number) => { const m = spreadPerMin(v, days); return m >= 1000 ? `$${(m / 1000).toFixed(1)}k/min` : `$${m.toFixed(2)}/min`; };
         return (
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-slate-800 bg-[#0b0f14] px-2.5 py-1.5 text-[10px] text-slate-400">
-            <span className="font-semibold uppercase tracking-wider text-cyan-400">MoT $/min</span>
+            <span className="font-semibold tracking-wider text-cyan-400">MoT $/min</span>
             <div className="flex overflow-hidden rounded border border-slate-700">
               {SPREAD_BASES.map((b) => <button key={b.key} onClick={() => setSpreadKey(b.key)} aria-pressed={spreadKey === b.key} className={`px-1.5 py-0.5 ${spreadKey === b.key ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>{b.days}d</button>)}
               <button onClick={() => setSpreadKey("custom")} aria-pressed={spreadKey === "custom"} className={`px-1.5 py-0.5 ${spreadKey === "custom" ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>custom</button>
