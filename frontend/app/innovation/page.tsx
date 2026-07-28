@@ -3719,7 +3719,9 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
   const [segLib, setSegLib] = useState<string[]>(DEFAULT_SEGLIB);
   const [glossary, setGlossary] = useState<[string, string][]>(Object.entries(DEFAULT_GLOSSARY));
   const [scenarios, setScenarios] = useState<ScenarioCfg[]>(() => loadScenarios());
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set()); // collapsed hierarchy nodes (BU/SBU codes)
   const { t } = useLexicon();
+  const toggleNode = (code: string) => setCollapsed((prev) => { const n = new Set(prev); n.has(code) ? n.delete(code) : n.add(code); return n; });
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
     const saved = lsGet(BIZ_KEY);
@@ -3765,6 +3767,16 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
   const parentRows = parentTier ? setup[parentTier] : [];
   const setRows = (next: BizNode[]) => persist({ ...setup, [tier]: next });
   const updateRow = (i: number, patch: Partial<BizNode>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  // Tier-agnostic node ops for the interactive hierarchy tree (create/edit/delete any tier in place).
+  const baseTiers: BizTier[] = ["bu", "sbu", "pgroup"];
+  const addNode = (tk: BizTier, parentCode?: string) => {
+    const list = setup[tk]; const meta = BIZ_TIERS.find((x) => x.key === tk)!;
+    const node: BizNode = { code: `NEW${list.length + 1}`, label: `New ${meta.label}`, parent: parentCode, baseM: baseTiers.includes(tk) ? 0 : undefined };
+    persist({ ...setup, [tk]: [...list, node] });
+    if (tk !== "pgroup" && parentCode) setCollapsed((prev) => { const n = new Set(prev); n.delete(parentCode); return n; }); // reveal the new child
+  };
+  const updateNode = (tk: BizTier, idx: number, patch: Partial<BizNode>) => persist({ ...setup, [tk]: setup[tk].map((n, j) => (j === idx ? { ...n, ...patch } : n)) });
+  const delNode = (tk: BizTier, idx: number) => persist({ ...setup, [tk]: setup[tk].filter((_, j) => j !== idx) });
   // Grey baseline revenue ($M) is settable at BU · SBU · Alpha Group (pgroup) — operator.
   const baseTier = tier === "bu" || tier === "sbu" || tier === "pgroup";
   const addRow = () => setRows([...rows, { code: `NEW${rows.length + 1}`, label: "New " + tierMeta.label, parent: parentRows[0]?.code, baseM: baseTier ? 0 : undefined }]);
@@ -3912,54 +3924,85 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
         <p className="mt-2 text-[10px] text-slate-500">Active: <b className="text-cyan-300">{board}</b> ({boardFull(board)}). Selecting one here relabels the gate-feedback attribution everywhere in the tool. Default is IRB (Innovation Review Board).</p>
       </section>
 
-      {/* Hierarchy overview — BU › SBU › Alpha Group nesting (operator: admin must show the hierarchy).
-          Live view from the master data; edit codes / labels / parents / base $M in the tier tables below. */}
+      {/* Hierarchy overview — expandable, inline-editable BU › SBU › Alpha Group tree (operator: expandable +
+          easier to review & create, with full descriptions). Create/rename/describe any tier right here. */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-        <h2 className="text-sm font-semibold">Hierarchy <span className="text-[11px] text-slate-500">— BU › SBU › Alpha Group</span></h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">Hierarchy <span className="text-[11px] text-slate-500">— <b className="text-cyan-300">BU</b> › <b className="text-violet-300">SBU</b> › <b className="text-amber-300">Alpha Group</b> · expand to edit + describe</span></h2>
+          <div className="flex items-center gap-1.5 text-[11px]">
+            <button onClick={() => setCollapsed(new Set())} className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:bg-slate-800">Expand all</button>
+            <button onClick={() => setCollapsed(new Set([...setup.bu.map((b) => b.code), ...setup.sbu.map((s) => s.code)]))} className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:bg-slate-800">Collapse all</button>
+            <button onClick={() => addNode("bu")} className="rounded bg-cyan-500/90 px-2 py-0.5 font-semibold text-[#06202a] hover:bg-cyan-400">+ BU</button>
+          </div>
+        </div>
         <div className="mt-2 space-y-2">
           {setup.bu.map((bu) => {
+            const buIdx = setup.bu.indexOf(bu);
             const sbus = setup.sbu.filter((s) => s.parent === bu.code);
             const buBase = sbus.reduce((s, x) => s + (x.baseM ?? 0), 0);
+            const buOpen = !collapsed.has(bu.code);
             return (
-              <div key={bu.code} className="overflow-hidden rounded-lg border border-slate-800 bg-[#0b0f14]">
-                <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 bg-slate-900/50 px-3 py-1.5">
+              <div key={buIdx} className="overflow-hidden rounded-lg border border-slate-800 bg-[#0b0f14]">
+                <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 bg-slate-900/50 px-2 py-1.5">
+                  <button onClick={() => toggleNode(bu.code)} aria-label={buOpen ? "Collapse" : "Expand"} aria-expanded={buOpen} className="w-4 text-slate-400 hover:text-cyan-300">{buOpen ? "▾" : "▸"}</button>
                   <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-cyan-300">BU</span>
-                  <span className="font-mono text-sm font-semibold text-slate-100">{bu.code}</span>
-                  <span className="text-xs text-slate-400">{bu.label}</span>
+                  <input value={bu.code} onChange={(e) => updateNode("bu", buIdx, { code: e.target.value })} className={`w-20 font-mono font-semibold ${inp}`} aria-label="BU code" />
+                  <input value={bu.label} onChange={(e) => updateNode("bu", buIdx, { label: e.target.value })} className={`w-40 ${inp}`} aria-label="BU label" />
                   <span className="text-[10px] text-slate-500">· {sbus.length} SBU</span>
-                  {buBase > 0 && <span className="ml-auto text-[11px] tabular-nums text-emerald-300">${buBase}M base</span>}
+                  {buBase > 0 && <span className="text-[11px] tabular-nums text-emerald-300">Σ ${buBase}M</span>}
+                  <div className="ml-auto flex items-center gap-1">
+                    <button onClick={() => addNode("sbu", bu.code)} className="rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-200 hover:bg-violet-500/20">+ SBU</button>
+                    <button onClick={() => delNode("bu", buIdx)} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete BU">✕</button>
+                  </div>
+                  <input value={bu.desc ?? ""} onChange={(e) => updateNode("bu", buIdx, { desc: e.target.value })} placeholder="Full description — what this Business Unit covers" className={`w-full ${inp}`} aria-label="BU description" />
                 </div>
-                <div className="space-y-1 p-2">
-                  {sbus.length ? sbus.map((s) => {
-                    const pgs = setup.pgroup.filter((g) => g.parent === s.code);
-                    return (
-                      <div key={s.code} className="rounded border border-slate-800/70 bg-[#0e141b]">
-                        <div className="flex flex-wrap items-center gap-2 px-2 py-1">
-                          <span className="ml-2 text-slate-600">↳</span>
-                          <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-violet-300">SBU</span>
-                          <span className="font-mono text-[13px] text-slate-100">{s.code}</span>
-                          <span className="text-[11px] text-slate-400">{s.label}</span>
-                          {(s.baseM ?? 0) > 0 && <span className="ml-auto text-[11px] tabular-nums text-emerald-300">${s.baseM}M</span>}
+                {buOpen && (
+                  <div className="space-y-1 p-2">
+                    {sbus.length ? sbus.map((s) => {
+                      const sIdx = setup.sbu.indexOf(s);
+                      const pgs = setup.pgroup.filter((g) => g.parent === s.code);
+                      const sOpen = !collapsed.has(s.code);
+                      return (
+                        <div key={sIdx} className="rounded border border-slate-800/70 bg-[#0e141b]">
+                          <div className="flex flex-wrap items-center gap-2 px-2 py-1">
+                            <button onClick={() => toggleNode(s.code)} aria-label={sOpen ? "Collapse" : "Expand"} aria-expanded={sOpen} className="ml-2 w-4 text-slate-500 hover:text-violet-300">{sOpen ? "▾" : "▸"}</button>
+                            <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-violet-300">SBU</span>
+                            <input value={s.code} onChange={(e) => updateNode("sbu", sIdx, { code: e.target.value })} className={`w-20 font-mono ${inp}`} aria-label="SBU code" />
+                            <input value={s.label} onChange={(e) => updateNode("sbu", sIdx, { label: e.target.value })} className={`w-36 ${inp}`} aria-label="SBU label" />
+                            <label className="flex items-center gap-1 text-[10px] text-slate-500">$<input type="text" inputMode="numeric" value={String(s.baseM ?? 0)} onChange={(e) => /^\d*$/.test(e.target.value) && updateNode("sbu", sIdx, { baseM: +e.target.value })} className={`w-14 text-right tabular-nums ${inp}`} aria-label="SBU base $M" />M</label>
+                            <div className="ml-auto flex items-center gap-1">
+                              <button onClick={() => addNode("pgroup", s.code)} className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-200 hover:bg-amber-500/20">+ Alpha Grp</button>
+                              <button onClick={() => delNode("sbu", sIdx)} className="rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete SBU">✕</button>
+                            </div>
+                            <input value={s.desc ?? ""} onChange={(e) => updateNode("sbu", sIdx, { desc: e.target.value })} placeholder="Full description — what this SBU covers" className={`w-full ${inp}`} aria-label="SBU description" />
+                          </div>
+                          {sOpen && (
+                            <div className="space-y-1 px-2 pb-1.5 pl-9">
+                              {pgs.length ? pgs.map((g) => {
+                                const gIdx = setup.pgroup.indexOf(g);
+                                return (
+                                  <div key={gIdx} className="flex flex-wrap items-center gap-1.5 rounded border border-slate-800 bg-[#0b0f14] px-2 py-1">
+                                    <span className="rounded bg-amber-500/15 px-1 text-[10px] font-mono font-semibold uppercase text-amber-300">AG</span>
+                                    <input value={g.code} onChange={(e) => updateNode("pgroup", gIdx, { code: e.target.value })} className={`w-24 font-mono ${inp}`} aria-label="Alpha Group code" />
+                                    <input value={g.label} onChange={(e) => updateNode("pgroup", gIdx, { label: e.target.value })} className={`w-32 ${inp}`} aria-label="Alpha Group label" />
+                                    <label className="flex items-center gap-1 text-[10px] text-slate-500">$<input type="text" inputMode="numeric" value={String(g.baseM ?? 0)} onChange={(e) => /^\d*$/.test(e.target.value) && updateNode("pgroup", gIdx, { baseM: +e.target.value })} className={`w-14 text-right tabular-nums ${inp}`} aria-label="Alpha Group base $M" />M</label>
+                                    <button onClick={() => delNode("pgroup", gIdx)} className="ml-auto rounded px-1.5 text-rose-400 hover:bg-rose-500/10" title="Delete Alpha Group">✕</button>
+                                    <input value={g.desc ?? ""} onChange={(e) => updateNode("pgroup", gIdx, { desc: e.target.value })} placeholder="Full description — what this Alpha Group covers" className={`w-full ${inp}`} aria-label="Alpha Group description" />
+                                  </div>
+                                );
+                              }) : <button onClick={() => addNode("pgroup", s.code)} className="text-[10px] italic text-slate-500 hover:text-amber-300">+ add the first Alpha Group</button>}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex flex-wrap gap-1 px-2 pb-1.5 pl-9">
-                          {pgs.length ? pgs.map((g) => (
-                            <span key={g.code} className="flex items-center gap-1 rounded border border-slate-800 bg-[#0b0f14] px-1.5 py-0.5 text-[10px]">
-                              <span className="rounded bg-amber-500/15 px-1 font-mono font-semibold uppercase text-amber-300">AG</span>
-                              <span className="font-mono text-slate-200">{g.code}</span>
-                              {g.label !== g.code && <span className="text-slate-500">{g.label}</span>}
-                              {(g.baseM ?? 0) > 0 && <span className="tabular-nums text-emerald-300/80">${g.baseM}M</span>}
-                            </span>
-                          )) : <span className="text-[10px] italic text-slate-600">no Alpha Groups</span>}
-                        </div>
-                      </div>
-                    );
-                  }) : <span className="block px-2 py-1 text-[10px] italic text-slate-600">no SBUs under this BU</span>}
-                </div>
+                      );
+                    }) : <button onClick={() => addNode("sbu", bu.code)} className="block px-2 py-1 text-[10px] italic text-slate-500 hover:text-violet-300">+ add the first SBU under this BU</button>}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-        <p className="mt-2 text-[10px] text-slate-500">Live view of the master hierarchy — <b className="text-cyan-300">BU</b> › <b className="text-violet-300">SBU</b> › <b className="text-amber-300">Alpha Group</b>. Edit codes, labels, parents &amp; base $M in the tier tables below.</p>
+        <p className="mt-2 text-[10px] text-slate-500">Expand a <b className="text-cyan-300">BU</b> to add/edit its <b className="text-violet-300">SBUs</b>, expand an SBU to add/edit its <b className="text-amber-300">Alpha Groups</b>. Every level takes a full description. Deeper tiers (Alpha Code · Product · Material) edit in the tier tables below.</p>
       </section>
 
       {/* Tier tabs */}
@@ -3984,6 +4027,7 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
               <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
                 <th className="px-3 py-2 text-left">Code</th>
                 <th className="px-2 py-2 text-left">Label</th>
+                <th className="px-2 py-2 text-left">Description</th>
                 {parentTier && <th className="px-2 py-2 text-left">{BIZ_TIERS.find((t) => t.key === parentTier)!.label}</th>}
                 {baseTier && <th className="px-2 py-2 text-right">Base $M</th>}
                 <th className="px-2 py-2 text-right">·</th>
@@ -3994,6 +4038,7 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
                 <tr key={i} className="border-b border-slate-900">
                   <td className="px-3 py-1.5"><input value={r.code} onChange={(e) => updateRow(i, { code: e.target.value })} className={`w-24 font-mono ${inp}`} /></td>
                   <td className="px-2 py-1.5"><input value={r.label} onChange={(e) => updateRow(i, { label: e.target.value })} className={`w-full ${inp}`} /></td>
+                  <td className="px-2 py-1.5"><input value={r.desc ?? ""} onChange={(e) => updateRow(i, { desc: e.target.value })} placeholder="Full description" className={`w-full min-w-[180px] ${inp}`} /></td>
                   {parentTier && (
                     <td className="px-2 py-1.5">
                       <select value={r.parent ?? ""} onChange={(e) => updateRow(i, { parent: e.target.value })} className={inp}>

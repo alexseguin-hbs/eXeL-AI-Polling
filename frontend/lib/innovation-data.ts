@@ -1427,7 +1427,7 @@ export const BIZ_TIERS: { key: BizTier; label: string; parent?: BizTier }[] = [
   { key: "product", label: "Product #", parent: "alpha" },
   { key: "material", label: "Material #", parent: "product" },
 ];
-export interface BizNode { code: string; label: string; parent?: string; baseM?: number }
+export interface BizNode { code: string; label: string; desc?: string; parent?: string; baseM?: number }
 export type BizSetup = { company: string } & Record<BizTier, BizNode[]>;
 export function seedBizSetup(projects: Project[]): BizSetup {
   const uniq = (arr: BizNode[]) => Array.from(new Map(arr.map((n) => [n.code, n])).values()).sort((a, b) => a.code.localeCompare(b.code));
