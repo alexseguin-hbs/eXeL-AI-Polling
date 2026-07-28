@@ -10,7 +10,7 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles, TrendingUp, KeyRound, X } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles, TrendingUp, KeyRound, X, Mail } from "lucide-react";
 import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
 
@@ -423,7 +423,17 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         {/* Intro — centered masthead: name (largest), eyebrow, headline, then the summary */}
         <div className="text-center">
           <p className="mb-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">{t("experiences.name")}</p>
-          <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">{t("experiences.work.eyebrow")}</p>
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">{t("experiences.work.eyebrow")}</p>
+            <a
+              href="mailto:explore@eXeL-AI.com"
+              aria-label="Email explore@eXeL-AI.com"
+              title="explore@eXeL-AI.com"
+              className="text-primary/70 transition hover:text-primary"
+            >
+              <Mail className="h-4 w-4" />
+            </a>
+          </div>
           <h1 className="text-balance text-2xl font-semibold leading-tight sm:text-3xl">
             {t("experiences.work.h1")}
           </h1>
