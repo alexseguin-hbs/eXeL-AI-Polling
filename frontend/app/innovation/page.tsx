@@ -3066,6 +3066,22 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
       </div>
     );
   }
+  // SINGLE SOURCE OF TRUTH — R&D/NRE, financials and resource planning all derive from the project record
+  // (financialMetrics/financialsOverview read p.nreK; S10 spend + S14 resources trace to the same number).
+  // Every financial/resource field carries a direct icon-link to edit that ONE record; edits propagate to
+  // every derived surface in real time via React state (no duplicate sources anywhere).
+  const FIN_FIELDS: Record<string, string[]> = {
+    S2: ["profile", "accel"], S3: ["profile", "revtable", "rdchart", "fincomment"],
+    S10: ["spend", "scenarios", "conf"], S14: ["fte", "ftedollar", "reschart", "notes"],
+  };
+  const isFinField = (code: string, fid: string) => (FIN_FIELDS[code] ?? []).includes(fid);
+  const SourceLink = ({ source }: { source?: string }) => (
+    <button onClick={() => { setPresent(false); setSrcOpen(true); }}
+      title="Edit the single source of truth — R&D/NRE, financials & resource planning. Updates everywhere in real time."
+      className="mt-2 inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20">
+      <span aria-hidden>◈</span> Edit source{source ? `: ${source}` : ""} <span aria-hidden>→</span>
+    </button>
+  );
   function PresentField({ sp, f, big }: { sp: SlideSpec; f: SlideField; big?: boolean }) {
     const acc = sectionAccent(sp.code, f);
     // Colored banner header (icon + section name) matching the reference deck, wrapping every field card.
@@ -3080,11 +3096,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <Banner />
         <div className="p-3"><ChartFrame label={f.name}>
           <MiniFinChart kind={sp.code} big={big} />
-          {/* Direct link to source — jumps to the single source-of-truth record that feeds this chart/table. */}
-          <button onClick={() => { setPresent(false); setSrcOpen(true); }} title="Open the source record that feeds this chart"
-            className="mt-2 inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20">
-            ◈ Source: {sp.source} <span aria-hidden>→</span>
-          </button>
+          {/* Direct link to the single source of truth that feeds this chart/table. */}
+          <SourceLink source={sp.source} />
         </ChartFrame></div>
       </div>
     );
@@ -3115,6 +3128,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         {f.kind === "list" && !isConops && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
         {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[clamp(18px,2.2vw,30px)] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
         {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}><div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[clamp(12px,1.2vw,16px)] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div></ChartFrame>}
+        {/* Single source of truth — direct icon-link to edit the one R&D/NRE + financials + resource record. */}
+        {isFinField(sp.code, f.id) && <SourceLink source={sp.source} />}
         </div>
       </div>
     );

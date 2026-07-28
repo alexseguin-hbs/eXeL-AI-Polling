@@ -482,6 +482,24 @@ ok(fmFn({ ...P0, fullRev10yM: 10, doNothing10yM: 10 }).paybackYears === Infinity
 // aiSlideOf locale-pinned + deterministic (no locale drift on the persisted draft)
 ok(aiSlideOf(P0, "S10") === aiSlideOf(P0, "S10"), "aiSlideOf(S10 financials) is deterministic (en-US pinned)");
 
+/* ---------------- Single source of truth (H14): R&D/NRE + financials + resources all derive from p.nreK ---------------- */
+{
+  const fm = fmFn(P0);
+  ok(fm.totalRdOpexK === P0.nreK, "financialMetrics.totalRdOpexK IS the project R&D/NRE (single source)");
+  const fo = financialsOverview(P0, { years: 10, funded: true });
+  const rdSum = Math.round(fo.reduce((s, r) => s + r.rdK, 0));
+  ok(Math.abs(rdSum - P0.nreK) <= fo.filter((r) => r.rdK > 0).length, "financialsOverview R&D spread sums back to p.nreK (no second source, rounding only)");
+  // Editing the ONE source (nreK) moves every derived surface — no stale/duplicate copies.
+  const bumped = { ...P0, nreK: P0.nreK * 2 };
+  ok(fmFn(bumped).totalRdOpexK === P0.nreK * 2, "doubling p.nreK doubles the derived R&D metric (real-time single source)");
+  ok(fmFn(bumped).manHours > fm.manHours, "resource planning (man-hours) tracks the same R&D/NRE source");
+  // S10 R&D-spend + S14 resources AI drafts trace to the same financialMetrics number (not an independent figure).
+  const s10 = aiSlideField(P0, "S10", "spend");
+  ok(Array.isArray(s10) && s10.length === 3, "S10 R&D spend-by-year derives from the financial source (3 WBS years)");
+  const s14 = aiSlideField(P0, "S14", "fte");
+  ok(Array.isArray(s14) && s14.length >= 1, "S14 resource plan derives from the same man-hours source");
+}
+
 /* ---------------- Realistic simulated intel — every project populated (NOSE + value equation vs NBA) ---------------- */
 ok(DEMO_PROJECTS.every((p) => typeof p.valueProp === "string" && p.valueProp.length > 40), "every project ships an explicit realistic value proposition");
 ok(DEMO_PROJECTS.every((p) => typeof p.nextBestAlternative === "string" && p.nextBestAlternative.length > 8), "every project ships an explicit Next Best Alternative");
