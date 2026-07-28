@@ -761,7 +761,25 @@ import { slidesForProject, nextGate, SLIDE_SEED } from "../lib/innovation-data.t
     ok(gaps.length === 0, `SLIDE_SEED covers every in-scope non-linked field (hi+ai) — ${gaps.length ? gaps.slice(0, 8).join(", ") + (gaps.length > 8 ? ` +${gaps.length - 8}` : "") : cells + " cells"}`);
     ok(notEnhanced === 0, `SLIDE_SEED ai differs from hi on every cell (${notEnhanced} identical)`);
     ok(typeof SLIDE_SEED["PRJ-23"]?.["S1"]?.["oneline"]?.hi === "string", "IVAS S1 one-liner seeded");
+
+    // S4 CONOPS — 6–10 ordered HI steps (operator floor), with the enhanced AI a genuine superset (ai ≥ hi).
+    const conopsCells = DEMO_PROJECTS
+      .map((p) => SLIDE_SEED[p.id]?.["S4"]?.["conops"])
+      .filter((c) => Array.isArray(c?.hi));
+    ok(conopsCells.length > 0, "at least one in-scope S4 CONOPS is seeded");
+    ok(conopsCells.every((c) => c.hi.length >= 6 && c.hi.length <= 10), "S4 CONOPS HI has 6–10 ordered steps");
+    ok(conopsCells.every((c) => c.ai.length >= c.hi.length), "S4 CONOPS AI is a superset (≥ HI step count)");
+
+    // S5 customer problem statement — 2–3 bullets per list section (outcomes/whys/statusquo).
+    const s5Lists = DEMO_PROJECTS.flatMap((p) => ["outcomes", "whys", "statusquo"]
+      .map((fid) => SLIDE_SEED[p.id]?.["S5"]?.[fid]).filter((c) => Array.isArray(c?.hi)));
+    ok(s5Lists.length > 0, "at least one in-scope S5 list section is seeded");
+    ok(s5Lists.every((c) => c.hi.length >= 2), "S5 sections carry ≥2 bullets (HI)");
   }
+
+  // S3 cash chart contract — a `horizon`-year CAGR spans `horizon+1` year points (3→4, 5→6, 10→11).
+  for (const h of [3, 5, 10]) ok(financialsOverview(DEMO_PROJECTS[0], { years: h + 1, funded: true }).length === h + 1,
+    `S3 chart renders horizon+1 (${h}-Yr → ${h + 1} year points)`);
 }
 
 /* ---------------- SoI Calendar engine (integer 13-week basis · Gregorian default · Perihelion anchor) ---------------- */

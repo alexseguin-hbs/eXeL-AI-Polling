@@ -1541,17 +1541,17 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
   { code: "S3", gate: "G1", stage: "Concept", source: "Business Case · linked to project financials", fields: [
     { id: "profile", name: "Return profile", kind: "metrics", linked: true, items: [ { k: "npv", label: "3-Yr NPV" }, { k: "irr", label: "IRR" }, { k: "payback", label: "Payback" }, { k: "rev1", label: "1st revenue" }, { k: "tech", label: "Technical risk" }, { k: "comm", label: "Commercial risk" } ] },
     { id: "revtable", name: "Revenue + margin by year", kind: "table", linked: true, cols: ["Year", "Revenue", "Margin"] },
-    { id: "rdchart", name: "R&D spend vs revenue vs margin", kind: "chart", linked: true },
+    { id: "rdchart", name: "Cash flow — R&D/NRE (out) vs revenue & margin", kind: "chart", linked: true },
     { id: "fincomment", name: "Financial comments", kind: "list", hint: "Assumptions a reviewer would otherwise have to ask about." } ] },
   { code: "S4", gate: "G1", stage: "Concept", source: "Market Needs", supplemental: ["Market Landscape & Needs"], fields: [
-    { id: "conops", name: "Operational concept, in order", kind: "list", req: true, ordered: true },
+    { id: "conops", name: "Operational concept, in order", kind: "list", req: true, ordered: true, hint: "6–10 ordered steps — each renders as an image-tiled step card in Present." },
     { id: "future", name: "Future capabilities", kind: "list" },
     { id: "visual", name: "Mission diagram", kind: "attach" } ] },
   { code: "S5", gate: "G1", stage: "Concept", source: "Market Needs", supplemental: ["Market Landscape & Needs"], fields: [
-    { id: "problem", name: "Problem statement", kind: "longtext", req: true },
-    { id: "outcomes", name: "Customer outcomes", kind: "list", req: true },
-    { id: "whys", name: "Customer why's", kind: "list", req: true },
-    { id: "statusquo", name: "Problems with the status quo", kind: "list", req: true } ] },
+    { id: "problem", name: "Problem statement", kind: "longtext", req: true, hint: "2–3 tight sentences — the customer's problem in their words." },
+    { id: "outcomes", name: "Customer outcomes", kind: "list", req: true, hint: "2–3 bullets — the outcomes the customer is buying." },
+    { id: "whys", name: "Customer why's", kind: "list", req: true, hint: "2–3 bullets — why they act now." },
+    { id: "statusquo", name: "Problems with the status quo", kind: "list", req: true, hint: "2–3 bullets — what today's As-Is costs them." } ] },
   { code: "S6", gate: "G1", stage: "Concept", source: "Business Case", supplemental: ["Business Case"], fields: [
     { id: "desc", name: "Single-sentence overview", kind: "text", req: true },
     { id: "problem", name: "Problem statement", kind: "longtext", mirror: "S5.problem" },

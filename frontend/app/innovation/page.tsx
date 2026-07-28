@@ -940,6 +940,63 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
   );
 }
 
+// S3 Business-Case cash chart (AMTS deck parity). Top-level so its horizon `useState` keeps a stable identity.
+// R&D / NRE is a NEGATIVE flow (below the zero baseline), Revenue + Margin are positive bars, and cumulative
+// CASH FLOW (Σ margin − R&D) is a line. The horizon toggle renders horizon+1 year columns so a CAGR measured
+// over `horizon` years spans `horizon+1` points on the chart (3-Yr→4 · 5-Yr→6 · 10-Yr→11).
+function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
+  const [horizon, setHorizon] = useState(3);
+  const fo = financialsOverview(p, { years: horizon + 1, funded: true });
+  let run = 0;
+  const cash = fo.map((r) => (run += r.marginM - r.rdK / 1000)); // cumulative net cash ($M)
+  const posMax = Math.max(1, ...fo.map((r) => Math.max(r.revM, r.marginM)), ...cash.filter((c) => c > 0)) * 1.14;
+  const negMax = Math.max(1, ...fo.map((r) => r.rdK / 1000), ...cash.filter((c) => c < 0).map((c) => -c)) * 1.14;
+  const W = 320, H = big ? 168 : 108, L = 6, B = 16, T = 8, n = fo.length;
+  const gw = (W - L) / n;
+  const zeroY = T + (H - B - T) * (posMax / (posMax + negMax)); // split point between positive/negative bands
+  const yVal = (v: number) => (v >= 0 ? zeroY - (v / posMax) * (zeroY - T) : zeroY + (-v / negMax) * (H - B - zeroY));
+  const bw = Math.max(3, (gw * 0.6) / 2);
+  const cx = (i: number) => L + i * gw + gw / 2;
+  const legend = [
+    { label: "Revenue", color: "#34d399" },
+    { label: "Margin", color: "#f7b955" },
+    { label: "R&D / NRE", color: "#f87171" },
+    { label: "Cash flow", color: "#38bdf8" },
+  ];
+  return (
+    <div>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-1">
+        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+          {legend.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
+        </div>
+        <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label="CAGR horizon">
+          {[3, 5, 10].map((h) => <button key={h} onClick={() => setHorizon(h)} aria-pressed={horizon === h}
+            className={`px-1.5 py-0.5 ${horizon === h ? "bg-cyan-500 font-semibold text-[#06202a]" : "text-slate-400 hover:bg-slate-800"}`}>{h}-Yr</button>)}
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "auto" }} role="img" aria-label={`S3 cash flow, ${horizon}-year horizon`}>
+        {[0.5, 1].map((fr) => <line key={`p${fr}`} x1={L} y1={yVal(posMax * fr / 1.14)} x2={W} y2={yVal(posMax * fr / 1.14)} stroke="rgba(148,163,184,.09)" />)}
+        <line key="neg" x1={L} y1={yVal(-negMax / 1.14)} x2={W} y2={yVal(-negMax / 1.14)} stroke="rgba(148,163,184,.09)" />
+        <line x1={L} y1={zeroY} x2={W} y2={zeroY} stroke="rgba(148,163,184,.4)" />
+        {fo.map((r, i) => {
+          const bx = L + i * gw + gw * 0.16;
+          const rev = yVal(r.revM), mar = yVal(r.marginM), rd = yVal(-r.rdK / 1000);
+          return (
+            <g key={r.year}>
+              <rect x={bx} y={rev} width={bw - 1} height={Math.max(0, zeroY - rev)} fill="#34d399" rx={1} />
+              <rect x={bx + bw} y={mar} width={bw - 1} height={Math.max(0, zeroY - mar)} fill="#f7b955" rx={1} />
+              <rect x={bx + bw * 0.35} y={zeroY} width={bw * 1.3} height={Math.max(0, rd - zeroY)} fill="#f87171" rx={1} opacity={0.9} />
+              <text x={cx(i)} y={H - 3} textAnchor="middle" fontSize="8" fill="#64748b" fontFamily="ui-monospace, monospace">{r.year}</text>
+            </g>
+          );
+        })}
+        <polyline fill="none" stroke="#38bdf8" strokeWidth={1.6} points={cash.map((c, i) => `${cx(i)},${yVal(c)}`).join(" ")} />
+        {cash.map((c, i) => <circle key={i} cx={cx(i)} cy={yVal(c)} r={2} fill="#38bdf8" />)}
+      </svg>
+    </div>
+  );
+}
+
 // Per-project financial projection — old product line declining (no innovation) + new product
 // ramp when funded. The operator methodology for aging-portfolio financials.
 function ProjectRevChart({ p }: { p: Project }) {
@@ -2778,6 +2835,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   // Financial mini-chart drawn LIVE from the project record (import project financials). S3 = R&D spend
   // vs revenue vs margin by year (grouped bars); S14 = combined resource needs ($/yr). Deterministic SVG.
   function MiniFinChart({ kind, big }: { kind: string; big?: boolean }) {
+    // S3 — Business-Case cash chart (AMTS deck parity): R&D / NRE renders as a NEGATIVE flow (money out, below
+    // zero), Revenue + Margin above zero, and cumulative CASH FLOW as a line. Horizon toggle renders horizon+1
+    // year points so a CAGR spanning `horizon` years reads across `horizon+1` columns (3-Yr→4, 5-Yr→6, 10-Yr→11).
+    if (kind === "S3") return <S3CashChart p={p} big={big} />;
     const fo = financialsOverview(p, { years: 6, funded: true });
     const series = kind === "S14"
       ? [{ label: "Resource $ (R&D)", color: "#a78bfa", vals: fo.map((r) => r.rdK / 1000) }]
@@ -2816,12 +2877,28 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     );
     const v = effective(sp, f, presentSrc); if (fieldEmpty(v)) return null;
     const isVp = /valueprop|vprop|desc/i.test(f.id) || f.name.toLowerCase().includes("value prop");
+    // CONOPS (operational concept) renders as a numbered step-flow — 6–10 ordered steps, each an image-tiled
+    // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
+    const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
     return (
-      <div className={`rounded-lg border ${isVp ? "border-cyan-500/30 bg-cyan-500/[0.05]" : "border-slate-800 bg-[#0b0f14]"} p-3`}>
+      <div className={`rounded-lg border ${isVp ? "border-cyan-500/30 bg-cyan-500/[0.05]" : "border-slate-800 bg-[#0b0f14]"} p-3 ${isConops ? "sm:col-span-2" : ""}`}>
         <div className="mb-1.5 text-[9px] uppercase tracking-[0.16em] text-slate-500">{f.name}{f.linked ? " · ◈ live" : ""}</div>
         {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}>{v as string}</p>}
         {f.kind === "attach" && <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>}
-        {f.kind === "list" && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
+        {f.kind === "list" && isConops && (
+          <ol className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">
+            {(v as string[]).filter((x) => x && x.trim()).map((x, i) => (
+              <li key={i} className="flex flex-col overflow-hidden rounded-lg border border-slate-700 bg-[#0e141b]">
+                <div className="relative flex aspect-[16/9] items-center justify-center bg-gradient-to-br from-cyan-500/10 to-slate-800/40 text-slate-600">
+                  <span className="text-[26px]" aria-hidden>◧</span>
+                  <span className="absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500 text-[13px] font-bold tabular-nums text-[#06202a]">{i + 1}</span>
+                </div>
+                <p className="m-0 p-2 text-[clamp(12px,1.15vw,15px)] leading-snug text-slate-100">{x}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+        {f.kind === "list" && !isConops && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
         {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[clamp(18px,2.2vw,30px)] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
         {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div>}
       </div>
