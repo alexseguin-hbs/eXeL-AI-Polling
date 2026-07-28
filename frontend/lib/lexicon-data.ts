@@ -1240,6 +1240,8 @@ const experiences: TranslationEntry[] = [
   // Vision poster — expandable in the Presentation section.
   { key: "experiences.egg.poster.label", englishDefault: "Innovate at the Speed of Thought — the vision on one page", context: "Expandable poster toggle label in the Presentation section", cubeId: 50 },
   { key: "experiences.egg.poster.alt", englishDefault: "Innovate at the Speed of Thought — Vision 2525, Humanity's Coordination Framework poster", context: "Alt text for the Vision 2525 poster image", cubeId: 50 },
+  // Landing digital-résumé PDF export (English-only by design; egg.* is exempt from the 33-language coverage tests).
+  { key: "experiences.egg.pdf.download", englishDefault: "Download PDF", context: "Landing: download this page as an 8.5×11 PDF (file: Resume.Digital_A.Seguin_2026)", cubeId: 50 },
   { key: "experiences.card.ip2.title", englishDefault: "Apple US 2024/0107160 A1", context: "Card title: Apple citation patent", cubeId: 50 },
   { key: "experiences.card.ip2.badge", englishDefault: "Apple citation", context: "Card badge: Apple citation patent", cubeId: 50 },
   { key: "experiences.card.ip2.blurb", englishDefault: "One of the Apple patents that cites the work above; the citation, in Apple's own words.", context: "Card blurb: Apple citation patent", cubeId: 50 },

@@ -9,15 +9,35 @@
 import { useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { ArrowLeft, ArrowRight, Copy, Check, QrCode } from "lucide-react";
+import { ArrowLeft, ArrowRight, Copy, Check, QrCode, Download } from "lucide-react";
 import { SITE_URL } from "@/lib/atlantis-package";
 import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
+
+// Print-to-PDF at US Letter (8.5×11 portrait). Chrome (nav + interactive buttons) is hidden via
+// `.exp-noprint`; the dark theme is kept exact so the saved PDF matches the on-screen page.
+const PRINT_CSS = `
+@media print {
+  @page { size: 8.5in 11in portrait; margin: 0.5in; }
+  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #0a0f16 !important; }
+  .exp-noprint { display: none !important; }
+}`;
 
 export function ExperiencesLanding({ basePath }: { basePath: string }) {
   const { t } = useLexicon();
   const docsPath = `${basePath}/docs`;
   const [copied, setCopied] = useState(false);
+
+  // Download this page as an 8.5×11 PDF. The browser's print-to-PDF defaults the filename to
+  // document.title, so we set it to the résumé label for the save dialog, then restore it.
+  const downloadPdf = () => {
+    if (typeof window === "undefined") return;
+    const prev = document.title;
+    document.title = "Resume.Digital_A.Seguin_2026";
+    const restore = () => { document.title = prev; window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print();
+  };
 
   // QR encodes the ABSOLUTE production URL (not window.location.origin) so anyone who
   // scans it — on any device, from any host — lands on the live portfolio docs page.
@@ -35,7 +55,8 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="flex items-center justify-between border-b border-border/50 px-4 py-3">
+      <style>{PRINT_CSS}</style>
+      <header className="exp-noprint flex items-center justify-between border-b border-border/50 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" />
           eXeL AI
@@ -74,22 +95,34 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
               onClick={copyLink}
               aria-label={copied ? t("experiences.copied") : t("experiences.copyLink")}
               title={copied ? t("experiences.copied") : t("experiences.copyLink")}
-              className="shrink-0 rounded p-1 text-muted-foreground transition hover:text-primary"
+              className="exp-noprint shrink-0 rounded p-1 text-muted-foreground transition hover:text-primary"
             >
               {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
 
-          <Link
-            href={docsPath}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            {t("experiences.landing.open")}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="exp-noprint flex flex-wrap items-center justify-center gap-2.5">
+            <Link
+              href={docsPath}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            >
+              {t("experiences.landing.open")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            {/* Download this page as an 8.5×11 PDF (file: Resume.Digital_A.Seguin_2026) */}
+            <button
+              type="button"
+              onClick={downloadPdf}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-primary/60 hover:text-primary"
+            >
+              <Download className="h-4 w-4" />
+              {t("experiences.egg.pdf.download")}
+            </button>
+          </div>
         </div>
 
-        <p className="mt-8 max-w-md text-balance text-center text-xs leading-relaxed text-muted-foreground/80">
+        {/* Subtle provenance line — the governance-engine note, kept quiet; it prints onto the PDF */}
+        <p className="mt-8 max-w-md text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground/55">
           {t("experiences.landing.footer")}
         </p>
       </main>
