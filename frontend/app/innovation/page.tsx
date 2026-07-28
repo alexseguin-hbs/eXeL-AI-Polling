@@ -500,7 +500,7 @@ function Board() {
       <header className="border-b border-slate-800 px-5 py-4 flex flex-col gap-3">
         {/* Row 1: eyebrow (left) lines up with Template + New Idea tabs (right) — operator alignment */}
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI · SoI-2525</div>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
           <div className="flex items-center gap-2">
             <button onClick={() => setTemplateOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">
@@ -1006,8 +1006,10 @@ function ChartFrame({ children, label }: { children: React.ReactNode; label?: st
     <div className={max ? "fixed inset-0 z-[70] flex flex-col overflow-auto bg-[#0b0f14] p-[clamp(12px,3vw,32px)]" : "relative"}>
       <button onClick={() => setMax((v) => !v)} aria-label={max ? "Restore" : "Full screen"} title={max ? "Restore" : "Full screen"}
         className="absolute right-1 top-1 z-[2] rounded border border-slate-700 bg-[#0b0f14]/85 px-1.5 py-0.5 text-[11px] text-slate-300 hover:bg-slate-800">{max ? "⤡" : "⤢"}</button>
-      {max && label && <div className="mb-2 pr-8 text-[clamp(13px,1.6vw,18px)] font-semibold text-slate-100">{label}</div>}
-      <div className={max ? "flex min-h-0 flex-1 flex-col justify-center" : ""}>{children}</div>
+      {max && label && <div className="mb-2 shrink-0 pr-8 text-[clamp(13px,1.6vw,18px)] font-semibold text-slate-100">{label}</div>}
+      {/* Top-aligned (not justify-center) so a tall table/chart scrolls from the top instead of clipping — the
+          outer container is overflow-auto, so both axes scroll and every number is reachable + readable. */}
+      <div className={max ? "flex min-h-0 w-full flex-1 flex-col overflow-auto" : ""}>{children}</div>
     </div>
   );
 }
@@ -3177,20 +3179,29 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <div className="p-3">
         {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}>{v as string}</p>}
         {f.kind === "attach" && <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>}
-        {f.kind === "list" && isConops && (
-          <ol className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">
-            {(v as string[]).filter((x) => x && x.trim()).map((x, i) => (
-              <li key={i} className="flex flex-col overflow-hidden rounded-lg border border-slate-700 bg-[#0e141b]">
-                <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-cyan-500/[0.06] to-slate-900/60">
-                  <ConopsWireframe seed={`${sp.code}:${i}:${x}`} />
-                  <span className="absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500 text-[13px] font-bold tabular-nums text-[#06202a]">{i + 1}</span>
+        {f.kind === "list" && isConops && (() => {
+          // Single-slide CONOPS (operator): ONE hero visual + the ordered steps — stacked below in PORTRAIT,
+          // side-by-side in LANDSCAPE. Generative wireframe (deterministic; external image APIs unavailable here).
+          const steps = (v as string[]).filter((x) => x && x.trim());
+          return (
+            <div className="flex flex-col gap-3 landscape:flex-row landscape:items-start">
+              <div className="landscape:w-1/2 landscape:shrink-0">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-slate-700 bg-gradient-to-br from-cyan-500/[0.06] to-slate-900/60">
+                  <ConopsWireframe seed={`${sp.code}:hero:${p.id}`} />
                   <span className="absolute bottom-1 right-1.5 text-[7px] font-mono uppercase tracking-wider text-cyan-300/50">wireframe · generative</span>
                 </div>
-                <p className="m-0 p-2 text-[clamp(12px,1.15vw,15px)] leading-snug text-slate-100">{x}</p>
-              </li>
-            ))}
-          </ol>
-        )}
+              </div>
+              <ol className="m-0 flex-1 list-none space-y-1.5 p-0 landscape:w-1/2">
+                {steps.map((x, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-cyan-500 text-[13px] font-bold tabular-nums text-[#06202a]">{i + 1}</span>
+                    <p className="m-0 text-[clamp(13px,1.4vw,18px)] leading-snug text-slate-100">{x}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          );
+        })()}
         {f.kind === "list" && !isConops && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
         {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[clamp(18px,2.2vw,30px)] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
         {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}><div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[clamp(12px,1.2vw,16px)] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div></ChartFrame>}
