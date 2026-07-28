@@ -718,8 +718,15 @@ import { CADENCE_UNIT, fmtPerCadence } from "../lib/innovation-data.ts";
   ok(fmtPerCadence(1, "W").endsWith("/wk"), "fmtPerCadence suffixes /wk for Weekly");
   ok(fmtPerCadence(1, "D").endsWith("/day"), "fmtPerCadence suffixes /day for Daily");
   ok(fmtPerCadence(0, "M") === "$0/mo", "fmtPerCadence handles zero");
-  // month burn = perMin × 21 workdays × 8h × 60 = ×10080; $10/min → $100,800/mo → compact $100k/mo
-  ok(fmtPerCadence(10, "M") === "$101k/mo", "fmtPerCadence scales + compacts ($10/min → $101k/mo)");
+  // Calendar-minute basis (SoI $/min framework): month burn = perMin × CADENCE_UNIT.M.perMinMult (elapsed
+  // calendar minutes/month). Derive the expected string from the active calendar so it's basis-independent.
+  {
+    const v = 10 * CADENCE_UNIT.M.perMinMult;
+    const exp = v >= 1e6 ? `$${(v / 1e6).toFixed(v >= 1e7 ? 0 : 1)}M/mo` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}k/mo` : `$${Math.round(v).toLocaleString()}/mo`;
+    ok(fmtPerCadence(10, "M") === exp, "fmtPerCadence scales by calendar minutes/month + compacts");
+  }
+  ok(CADENCE_UNIT.D.perMinMult === 1440, "day = 1440 elapsed calendar minutes (24h, not an 8h workday)");
+  ok(CADENCE_UNIT.W.perMinMult === 7 * 1440, "week = 7 × 1440 elapsed calendar minutes");
   ok(fmtPerCadence(1, "M") === fmtPerCadence(1, "M"), "fmtPerCadence deterministic");
 }
 
@@ -755,6 +762,19 @@ import { slidesForProject, nextGate, SLIDE_SEED } from "../lib/innovation-data.t
     ok(notEnhanced === 0, `SLIDE_SEED ai differs from hi on every cell (${notEnhanced} identical)`);
     ok(typeof SLIDE_SEED["PRJ-23"]?.["S1"]?.["oneline"]?.hi === "string", "IVAS S1 one-liner seeded");
   }
+}
+
+/* ---------------- SoI Calendar engine (integer 13-week basis · Gregorian default · Perihelion anchor) ---------------- */
+import { CALENDARS, DEFAULT_CALENDAR, activeCalendar, calMinutes, soiYearStartUTC } from "../lib/soi-calendar.ts";
+{
+  ok(DEFAULT_CALENDAR === "gregorian" && activeCalendar().id === "gregorian", "engine defaults to regular (Gregorian)");
+  ok(!!CALENDARS.gregorian && !!CALENDARS.soi91, "both calendars available (gregorian + soi91)");
+  // SoI clean basis: 91-day quarter = exactly 13 weeks; 4×91 = 364 grid + 1 intercalary day.
+  ok(CALENDARS.soi91.quarterDays === 91 && CALENDARS.soi91.quarterDays / CALENDARS.soi91.weekDays === 13, "SoI quarter = 91 days = 13 weeks exactly");
+  ok(CALENDARS.soi91.quarterDays * 4 === 364 && CALENDARS.soi91.intercalary === 1, "SoI year = 364-day grid + 1 intercalary day");
+  ok(calMinutes("D") === 1440 && calMinutes("W") === 10080, "calMinutes: day 1440, week 10080 (elapsed calendar)");
+  ok(calMinutes("Q", CALENDARS.soi91) === 91 * 1440, "calMinutes honors a passed calendar (SoI quarter = 91×1440)");
+  ok(typeof soiYearStartUTC(2025) === "string" && soiYearStartUTC(1900) === null, "Perihelion anchor table (confirm annually w/ NASA)");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
