@@ -961,6 +961,27 @@ function sectionAccent(code: string, f: SlideField): { icon: string; bar: string
   return { icon: "▪", bar: "bg-sky-500/15 text-sky-100", ring: "border-slate-700" };
 }
 
+// ChartFrame — wraps any chart/financial so it can expand to full-screen and minimize back to slide view
+// (operator). Reuses the deck's `fixed inset-0` maximize idiom; ⤢/⤡ toggle + Esc-to-restore (capture-phase so
+// it closes the chart before the modal's own Esc). Renders inline until maximized.
+function ChartFrame({ children, label }: { children: React.ReactNode; label?: string }) {
+  const [max, setMax] = useState(false);
+  useEffect(() => {
+    if (!max) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setMax(false); } };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [max]);
+  return (
+    <div className={max ? "fixed inset-0 z-[70] flex flex-col overflow-auto bg-[#0b0f14] p-[clamp(12px,3vw,32px)]" : "relative"}>
+      <button onClick={() => setMax((v) => !v)} aria-label={max ? "Restore" : "Full screen"} title={max ? "Restore" : "Full screen"}
+        className="absolute right-1 top-1 z-[2] rounded border border-slate-700 bg-[#0b0f14]/85 px-1.5 py-0.5 text-[11px] text-slate-300 hover:bg-slate-800">{max ? "⤡" : "⤢"}</button>
+      {max && label && <div className="mb-2 pr-8 text-[clamp(13px,1.6vw,18px)] font-semibold text-slate-100">{label}</div>}
+      <div className={max ? "flex min-h-0 flex-1 flex-col justify-center" : ""}>{children}</div>
+    </div>
+  );
+}
+
 // S3 Business-Case cash chart (AMTS deck parity). Top-level so its horizon `useState` keeps a stable identity.
 // R&D / NRE is a NEGATIVE flow (below the zero baseline), Revenue + Margin are positive bars, and cumulative
 // CASH FLOW (Σ margin − R&D) is a line. The horizon toggle renders horizon+1 year columns so a CAGR measured
@@ -2923,8 +2944,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
       const rows = v as string[][];
       return <div className="overflow-x-auto"><table className="w-full text-[12px]"><tbody>{rows.map((r, ri) => <tr key={ri} className="border-b border-slate-900">{r.map((c, ci) => <td key={ci} className="px-2 py-1 tabular-nums text-emerald-300">{c}</td>)}</tr>)}</tbody></table></div>;
     }
-    // chart → live financial mini-chart from the project record (import project financials)
-    if (f.kind === "chart") return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-2"><div className="mb-1 text-[10px] text-emerald-300/80">◈ Live from the project record</div><MiniFinChart kind={spec.code} /></div>;
+    // chart → live financial mini-chart from the project record (import project financials); maximizable
+    if (f.kind === "chart") return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-2"><div className="mb-1 text-[10px] text-emerald-300/80">◈ Live from the project record</div><ChartFrame label={f.name}><MiniFinChart kind={spec.code} /></ChartFrame></div>;
     return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] px-3 py-2 text-[12px] text-emerald-300/90">◈ Live from the project record — {f.name} is derived, not typed.</div>;
   }
   function FieldEditor({ f }: { f: SlideField }) {
@@ -2940,7 +2961,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     if (f.kind === "list") { const rows = ((v as string[])?.length ? (v as string[]) : [""]); return <div className="space-y-1.5">{rows.map((r, i) => (
       <div key={i} className="flex items-center gap-1.5">{f.ordered && <span className="w-4 shrink-0 text-right text-[10px] text-slate-500">{i + 1}</span>}<input className={inputCls} value={r} placeholder="Add a point" onChange={(e) => { const nr = [...rows]; nr[i] = e.target.value; setActive(spec.code, f.id, nr); }} /><button onClick={() => { const nr = rows.filter((_, j) => j !== i); setActive(spec.code, f.id, nr.length ? nr : [""]); }} className="shrink-0 rounded border border-slate-700 px-2 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove">×</button></div>
     ))}<button onClick={() => setActive(spec.code, f.id, [...rows, ""])} className="rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add point</button></div>; }
-    if (f.kind === "table") { const cols = f.cols ?? []; const rows = ((v as string[][])?.length ? (v as string[][]) : [cols.map(() => "")]); return <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[12px]"><thead><tr>{cols.map((c) => <th key={c} className="px-1 pb-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}<th /></tr></thead><tbody>{rows.map((r, ri) => (
+    if (f.kind === "table") { const cols = f.cols ?? []; const rows = ((v as string[][])?.length ? (v as string[][]) : [cols.map(() => "")]); return <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[12px]"><thead><tr>{cols.map((c) => <th key={c} className="px-1 pb-1 text-left text-[12px] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}<th /></tr></thead><tbody>{rows.map((r, ri) => (
       <tr key={ri}>{cols.map((c, ci) => <td key={ci} className="px-0.5 pb-1"><input className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" value={r[ci] || ""} placeholder={c} onChange={(e) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = e.target.value; setActive(spec.code, f.id, nr); }} /></td>)}<td className="pb-1"><button onClick={() => { const nr = rows.filter((_, j) => j !== ri); setActive(spec.code, f.id, nr.length ? nr : [cols.map(() => "")]); }} className="rounded border border-slate-700 px-1.5 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove row">×</button></td></tr>
     ))}</tbody></table><button onClick={() => setActive(spec.code, f.id, [...rows, cols.map(() => "")])} className="mt-1 rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add row</button></div>; }
     return null;
@@ -2994,9 +3015,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
       </div>
     );
     if (f.kind === "chart" && f.linked) return (
-      <div className={`overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14]`}>
+      <div className={`overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] sm:col-span-2`}>
         <Banner />
-        <div className="p-3"><MiniFinChart kind={sp.code} big={big} /></div>
+        <div className="p-3"><ChartFrame label={f.name}><MiniFinChart kind={sp.code} big={big} /></ChartFrame></div>
       </div>
     );
     const v = effective(sp, f, presentSrc); if (fieldEmpty(v)) return null;
@@ -3025,7 +3046,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         )}
         {f.kind === "list" && !isConops && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
         {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[clamp(18px,2.2vw,30px)] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
-        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[9px] uppercase tracking-wider text-slate-500">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div>}
+        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}><div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[clamp(12px,1.2vw,16px)] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => <tr key={ri} className="border-t border-slate-800">{r.map((c, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{c || "—"}</td>)}</tr>)}</tbody></table></div></ChartFrame>}
         </div>
       </div>
     );
@@ -3054,9 +3075,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
-        <div className="flex flex-1 flex-col overflow-hidden px-[clamp(20px,4vw,64px)] py-[clamp(16px,3vw,40px)]">
+        {/* Top padding reserves a strip so the As-set/HI/AI + Edit + Exit controls (top-right) never cover the title. */}
+        <div className="flex flex-1 flex-col overflow-hidden px-[clamp(20px,4vw,64px)] pb-[clamp(16px,3vw,40px)] pt-[clamp(56px,9vw,72px)]">
           <div className="border-b border-slate-800 pb-[clamp(10px,1.6vw,20px)]">
-            <div className="flex items-baseline gap-3">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.code} · {spec.gate} {spec.stage.toUpperCase()}</span>
               <h2 className="text-[clamp(22px,3.4vw,44px)] font-semibold tracking-tight text-slate-100">{slideDef(spec.code)?.name ?? spec.code}</h2>
             </div>
