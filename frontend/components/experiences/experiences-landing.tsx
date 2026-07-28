@@ -110,7 +110,7 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
             title="Download PDF — Resume.Digital_A.Seguin_2026"
             className="mx-auto inline-flex max-w-md items-center justify-center gap-1.5 text-balance text-center text-[11px] italic leading-relaxed text-muted-foreground/70 transition hover:text-primary"
           >
-            <Download className="h-3.5 w-3.5 shrink-0" />
+            <Download className="exp-noprint h-3.5 w-3.5 shrink-0" />
             {t("experiences.landing.footer")}
           </a>
         </div>
