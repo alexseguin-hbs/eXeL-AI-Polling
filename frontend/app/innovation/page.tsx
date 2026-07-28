@@ -19,7 +19,7 @@ import {
   gateScheduleOf, defaultStartISO, addDaysISO, PHASE_DAYS, type GateStop,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
   growthModel, RISK_LABEL, HIER_LEVELS, hierValues, scopeByHier, hierOf, type HierSel,
-  REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
+  DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, rackGroupedByParent, projectRevSeries,
@@ -4243,7 +4243,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const [years, setYears] = useState(3);
   const [growthPct, setGrowthPct] = useState("3.8");
   const [declinePct, setDeclinePct] = useState("15.1");
-  const [revMode, setRevMode] = useState<RevMode>("full");
+  const [revMode] = useState<RevMode>("full"); // revenue mode fixed to full; band pills carry the view choice now
   const [showBaseline, setShowBaseline] = useState(true);
   // Growth-model band view (operator): Incremental (orange, New−Decline+EOL) by default; or one component.
   const [band, setBand] = useState<"incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol">("incremental");
@@ -4322,7 +4322,11 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   };
   const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, segVal(g, i)), 0));
   const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, segVal(g, i)), 0));
-  const max = Math.max(...rows.map((r) => r.target), ...stackPos, 1) * 1.1;
+  // Right-axis Growth line (operator): starts at the TOP of the base-year bar and grows at the target rate, so the
+  // line visibly rises from the first bar. Its per-year value = base-year bar top × (1+growth)^y.
+  const baseTop = stackPos[0] || Math.max(1, baseM);
+  const targetLine = rows.map((_, i) => baseTop * Math.pow(1 + growth, i));
+  const max = Math.max(...targetLine, ...stackPos, 1) * 1.1;
   const minV = Math.min(0, ...stackNeg) * 1.1;
   const pw = (W - L - R) / rows.length;
   const y = (v: number) => H - B - ((v - minV) / (max - minV)) * (H - B - T);
@@ -4401,9 +4405,15 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       )}
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
+        {/* Left axis = financials ($M); right axis = Growth (the target line, base-year-anchored). */}
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
-          <line key={f} x1={L} y1={y(max * f)} x2={W - R} y2={y(max * f)} stroke="rgba(148,163,184,.12)" />
+          <g key={f} fontFamily="ui-monospace, monospace" fontSize="8">
+            <line x1={L} y1={y(max * f)} x2={W - R} y2={y(max * f)} stroke="rgba(148,163,184,.12)" />
+            <text x={L - 3} y={y(max * f) + 3} textAnchor="end" fill="#64748b">${Math.round(max * f)}</text>
+          </g>
         ))}
+        <text x={4} y={T - 8} fill="#64748b" fontSize="8" fontFamily="ui-monospace, monospace">$M</text>
+        <text x={W - R + 2} y={T - 8} fill="#94a3b8" fontSize="8" fontFamily="ui-monospace, monospace" textAnchor="end">Growth →</text>
         <line x1={L} y1={y(0)} x2={W - R} y2={y(0)} stroke="rgba(148,163,184,.35)" />
         {rows.map((r, i) => {
           const x = L + i * pw + pw * 0.18, bw = pw * 0.64;
@@ -4418,7 +4428,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
-              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · target {Math.round(r.target)}</title>
+              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · target Rev ${Math.round(targetLine[i])}M · growth {growthPct}%/yr</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
               {segments.map((g) => {
                 const v = segVal(g, i); if (!v) return null;
@@ -4432,8 +4442,8 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
             </g>
           );
         })}
-        {showBaseline && <polyline points={rows.map((r, i) => `${L + i * pw + pw * 0.5},${y(r.target)}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />}
-        {showBaseline && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(r.target)} r="2.6" fill="#e2e8f0" />)}
+        {showBaseline && <polyline points={rows.map((_, i) => `${L + i * pw + pw * 0.5},${y(targetLine[i])}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />}
+        {showBaseline && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(targetLine[i])} r="2.6" fill="#e2e8f0" />)}
       </svg>
 
       {/* Stacked-segment legend — the child nodes of the current scope (Company→BUs, BU→SBUs, SBU→Alpha Codes). */}
@@ -4490,11 +4500,6 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         <label>YoY Do-Nothing % (decline)
           <input type="text" inputMode="decimal" value={declinePct} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setDeclinePct(e.target.value)}
             className={`ml-1.5 w-16 ${selStyle} tabular-nums`} />
-        </label>
-        <label>Revenue Options
-          <select value={revMode} onChange={(e) => setRevMode(e.target.value as RevMode)} className={`ml-1.5 ${selStyle}`}>
-            {(Object.keys(REV_MODE) as RevMode[]).map((m) => <option key={m} value={m}>{REV_MODE[m].label}</option>)}
-          </select>
         </label>
         <label className="flex items-center gap-1.5">
           <input type="checkbox" checked={showBaseline} onChange={(e) => setShowBaseline(e.target.checked)} className="accent-cyan-500" />
