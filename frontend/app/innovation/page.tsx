@@ -991,6 +991,9 @@ function sectionAccent(code: string, f: SlideField): { icon: string; bar: string
   return { icon: "▪", bar: "bg-sky-500/15 text-sky-100", ring: "border-slate-700" };
 }
 
+// A field value is a renderable image when it's an uploaded data URI OR a pasted/BYOK http(s) image URL.
+const isImageSrc = (s: unknown): s is string => typeof s === "string" && (s.startsWith("data:image") || /^https?:\/\/\S+/i.test(s));
+
 // ChartFrame — wraps any chart/financial so it can expand to full-screen and minimize back to slide view
 // (operator). Reuses the deck's `fixed inset-0` maximize idiom; ⤢/⤡ toggle + Esc-to-restore (capture-phase so
 // it closes the chart before the modal's own Esc). Renders inline until maximized.
@@ -3084,9 +3087,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     if (f.kind === "longtext") return <textarea rows={3} maxLength={4000} className={`${inputCls} resize-y leading-relaxed`} value={(v as string) || ""} placeholder={f.mirror ? `Inherits from ${f.mirror}` : "Evidence, insight, judgment."} onChange={(e) => setActive(spec.code, f.id, e.target.value)} />;
     if (f.kind === "attach") {
       const s = (v as string) || "";
-      const isImg = s.startsWith("data:image");
-      // Upload an image (stored inline as a data URI so it persists local + cloud, no external host). For CONOPS
-      // this becomes the slide's hero visual; author the 6–10 step labels below to match it. ~2.5 MB soft cap.
+      const isImg = isImageSrc(s);
+      // TWO image sources (operator BYOK): (1) UPLOAD → inline data URI (persists local+cloud, no external host);
+      // (2) PASTE an image URL (BYOK / provider output). Either becomes the CONOPS hero; the wireframe stays the
+      // deterministic fallback when neither is set. ~2.5 MB soft cap on uploads.
       const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]; if (!file) return;
         if (file.size > 2_500_000) { alert("Image is over 2.5 MB — please use a smaller file."); e.target.value = ""; return; }
@@ -3096,15 +3100,20 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         e.target.value = "";
       };
       return (
-        <div className="flex flex-wrap items-center gap-2">
-          {isImg
-            ? <img src={s} alt={f.name} className="h-16 w-auto rounded border border-slate-700 object-cover" />
-            : <span className="rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[12px] text-slate-400">{s || "No image yet"}</span>}
-          <label className="cursor-pointer rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-300 hover:bg-cyan-500/20">
-            {isImg ? "Replace image" : "⬆ Upload image"}
-            <input type="file" accept="image/*" className="hidden" onChange={onFile} />
-          </label>
-          {s && <button onClick={() => setActive(spec.code, f.id, "")} className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-500 hover:border-rose-500/50 hover:text-rose-300">Clear</button>}
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            {isImg
+              ? <img src={s} alt={f.name} className="h-16 w-auto rounded border border-slate-700 object-cover" />
+              : <span className="rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[12px] text-slate-400">{s || "No image yet"}</span>}
+            <label className="cursor-pointer rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-300 hover:bg-cyan-500/20">
+              {isImg ? "Replace image" : "⬆ Upload image"}
+              <input type="file" accept="image/*" className="hidden" onChange={onFile} />
+            </label>
+            {s && <button onClick={() => setActive(spec.code, f.id, "")} className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-500 hover:border-rose-500/50 hover:text-rose-300">Clear</button>}
+          </div>
+          <input type="url" inputMode="url" defaultValue={/^https?:\/\//i.test(s) ? s : ""} placeholder="…or paste an image URL (BYOK / provider)"
+            onBlur={(e) => { const u = e.target.value.trim(); if (u && u !== s) setActive(spec.code, f.id, u); }}
+            className={`${inputCls} text-[12px]`} />
         </div>
       );
     }
@@ -3207,9 +3216,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <Banner />
         <div className="p-3">
         {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}>{v as string}</p>}
-        {f.kind === "attach" && (typeof v === "string" && v.startsWith("data:image")
+        {f.kind === "attach" && (isImageSrc(v)
           ? <img src={v} alt={f.name} className="max-h-[40vh] w-auto rounded border border-slate-700 object-contain" />
-          : <p className="m-0 text-[13px] text-slate-300">◧ {v as string}</p>)}
+          : <p className="m-0 text-[13px] text-slate-300">◧ {typeof v === "string" ? v : ""}</p>)}
         {f.kind === "list" && isConops && (() => {
           // Single-slide CONOPS (operator): ONE hero visual + the ordered steps — stacked below in PORTRAIT,
           // side-by-side in LANDSCAPE. Hero = the UPLOADED image if one exists (attach field), else the
@@ -3217,7 +3226,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           const steps = (v as string[]).filter((x) => x && x.trim());
           const attachF = sp.fields.find((x) => x.kind === "attach");
           const heroImg = attachF ? effective(sp, attachF, presentSrc) : null;
-          const hasImg = typeof heroImg === "string" && heroImg.startsWith("data:image");
+          const hasImg = isImageSrc(heroImg);
           return (
             <div className="flex flex-col gap-3 landscape:flex-row landscape:items-start">
               <div className="landscape:w-1/2 landscape:shrink-0">
@@ -3253,12 +3262,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   if (present) {
     const anyContent = spec.fields.some((f) => !fieldEmpty(effective(spec, f, presentSrc)) || (f.kind === "chart" && f.linked));
     // Title optimization per HI/AI — the big title is an optimized, content-derived headline (HI = human text,
-    // AI = enhanced superset) that flips with the As-set/HI/AI toggle; the generic slide name becomes a kicker.
+    // Operator: USE ORIGINAL HEADERS — the main title is the canonical slide name (Customer Problem · Product
+    // Summary · Customer Workflow · Competition + Value · …). The HI/AI content-optimized headline is kept as a
+    // small muted subtitle beneath (flips with the As-set/HI/AI toggle) so the optimization survives without
+    // replacing the header.
     const genName = slideDef(spec.code)?.name ?? spec.code;
     const hField = HEADLINE_FIELD[spec.code] ? spec.fields.find((f) => f.id === HEADLINE_FIELD[spec.code]) : undefined;
     const optTitle = hField ? optimizeSlideTitle(effective(spec, hField, presentSrc)) : "";
-    const deckTitle = optTitle || genName;
-    const showKicker = !!optTitle && optTitle.toLowerCase() !== genName.toLowerCase();
+    const deckTitle = genName;
+    const subtitle = optTitle && optTitle.toLowerCase() !== genName.toLowerCase() ? optTitle : "";
     return (
       <div className="fixed inset-0 z-[60] flex flex-col bg-[#04070c] text-slate-100" role="dialog" aria-modal="true"
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -3290,8 +3302,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
             <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2">
               <span className="min-w-0 justify-self-start font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
               <div className="flex min-w-0 flex-col items-center text-center">
-                {showKicker && <span className="text-[clamp(8px,0.95vw,11px)] font-semibold uppercase tracking-[0.18em] text-slate-500">{genName}</span>}
                 <h2 className="text-[clamp(20px,3.4vw,44px)] font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance">{deckTitle}</h2>
+                {subtitle && <span className="mt-0.5 text-[clamp(9px,1.1vw,13px)] italic text-slate-400 text-balance">{subtitle}</span>}
               </div>
               <span className="min-w-0 justify-self-end font-mono text-[clamp(11px,1.4vw,17px)] font-semibold tracking-[0.14em] text-cyan-400">{spec.code}</span>
             </div>
