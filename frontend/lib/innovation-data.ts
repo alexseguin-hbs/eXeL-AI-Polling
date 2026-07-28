@@ -1559,11 +1559,14 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "outcomes", name: "Customer outcomes", kind: "list", req: true, hint: "2–3 bullets — the outcomes the customer is buying." },
     { id: "whys", name: "Customer why's", kind: "list", req: true, hint: "2–3 bullets — why they act now." },
     { id: "statusquo", name: "Problems with the status quo", kind: "list", req: true, hint: "2–3 bullets — what today's As-Is costs them." } ] },
+  // S6 — Product Summary: a REDUCTION of the concepts so far (operator). One-sentence overview + two reduced
+  // 3-bullet sections (problem, CONOPS/applications) + two flanking product images.
   { code: "S6", gate: "G1", stage: "Concept", source: "Business Case", supplemental: ["Business Case"], fields: [
-    { id: "desc", name: "Single-sentence overview", kind: "text", req: true },
-    { id: "problem", name: "Problem statement", kind: "longtext", mirror: "S5.problem" },
-    { id: "conops", name: "CONOPS + applications", kind: "list", mirror: "S4.conops" },
-    { id: "image", name: "Product image", kind: "attach" } ] },
+    { id: "desc", name: "Single-sentence overview", kind: "text", req: true, hint: "One sentence, ~19 words — what it is and who it's for." },
+    { id: "problem", name: "Problem statement", kind: "list", req: true, hint: "3 bullets, 12–19 words each — the customer problem, reduced." },
+    { id: "conops", name: "CONOPS + applications", kind: "list", req: true, hint: "3 bullets, 12–19 words each — how it's used, reduced." },
+    { id: "image", name: "Product image (left)", kind: "attach" },
+    { id: "image2", name: "Product image (right)", kind: "attach" } ] },
   { code: "S7", gate: "G2", stage: "Plan", source: "Market Needs", fields: [
     { id: "personas", name: "Personas and what they want", kind: "table", req: true, cols: ["Persona", "Wants…"] },
     { id: "flow", name: "Customer + decision work-flow", kind: "attach" },
@@ -1590,9 +1593,12 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "l60", name: "L-60 · align & execute", kind: "list" },
     { id: "l30", name: "L-30 · final deliverables", kind: "list" },
     { id: "l0", name: "Launch & optimize", kind: "list" } ] },
+  // S13 — Risk Summary split three ways (operator): Technical (engineering), Commercial (BD/Sales), and
+  // Business (everything else — funding, schedule, org, supply, regulatory, IP).
   { code: "S13", gate: "G3", stage: "Develop", source: "Business Case", fields: [
     { id: "tech", name: "Technical risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
     { id: "comm", name: "Commercial risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
+    { id: "biz", name: "Business risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
     { id: "deps", name: "Dependencies — internal IRAD / CRAD", kind: "list" } ] },
   { code: "S14", gate: "G4", stage: "Qualify", source: "Roadmap", fields: [
     { id: "fte", name: "FTE # by function", kind: "table", req: true, cols: ["Function", "Yr 1", "Yr 2", "Yr 3", "Yr 4"] },
@@ -1712,6 +1718,12 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S5.whys": return b.needs;
     case "S5.statusquo": return [`${nbaOf(p)} leaves a capability gap`, ...b.evidence.slice(0, 1)];
     case "S6.desc": return valuePropOf(p);
+    case "S6.problem": return [
+      `${m.targetMarket} still rely on ${nbaOf(p)}, which cannot meet ${(b.needs[0] ?? "the mission need").toLowerCase()}.`,
+      `${b.outcomes[0] ?? "The required outcome"} stays out of reach, capping mission effectiveness today.`,
+      "Every deferred cycle widens the capability gap competitors are already closing.",
+    ];
+    case "S6.conops": return b.needs.concat(b.outcomes).slice(0, 3);
     case "S8.nba": return nbaOf(p);
     case "S8.diffs": return ve.perDriver.map((d) => [d.name, pct(d.importance), pct((d.deltaVsNba + 1) / 2 + 0.0), "", money(d.weighted)]);
     case "S8.vprop": return valuePropOf(p);
@@ -1732,6 +1744,14 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S10.conf": return { tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm] };
     case "S13.tech": return [[RISK_LABEL[p.tech], b.evidence.find((e) => /risk|mitigat/i.test(e)) ?? "Core technology maturity", "Dual-source + early qual"]];
     case "S13.comm": return [[RISK_LABEL[p.comm], killRiskOf(p), "VOC validation + phased commitments"]];
+    case "S13.biz": {
+      const lvl = p.confidence >= 4 ? "Low" : p.confidence === 3 ? "Med" : "High";
+      return [
+        [lvl, "Funding continuity across gates", "Phase-gated releases + portfolio reserve"],
+        [lvl, `Schedule vs ${p.firstRevenue} first-revenue commit`, "Critical-path buffer + upside accelerator"],
+        ["Med", "Talent / org bandwidth + supply base", "Cross-trained team + qualified second source"],
+      ];
+    }
     case "S14.fte": {
       const fte = Math.max(1, Math.round(fm.manHours / 1800));
       return [["R&D", `${fte}`, `${Math.round(fte * 0.8)}`, `${Math.round(fte * 0.5)}`, `${Math.round(fte * 0.3)}`], ["Mfg Ops / Supply", `${Math.round(fte * 0.3)}`, `${Math.round(fte * 0.5)}`, `${Math.round(fte * 0.6)}`, `${Math.round(fte * 0.6)}`]];

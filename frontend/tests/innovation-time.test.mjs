@@ -483,7 +483,9 @@ ok(slideSpec("CS").fields.every((f) => f.linked) && slideSpec("RA").fields.every
 ok(SLIDE_SCHEMA.every((s) => s.fields.length > 0 && s.source && GATES_N.includes(s.gate)), "every slide carries typed fields + a source + a valid gate");
 ok(SLIDE_SCHEMA.every((s) => s.fields.every((f) => f.id && f.name && f.kind)), "every field has id + name + kind");
 ok(SLIDE_SCHEMA.some((s) => s.fields.some((f) => f.req)), "the spec flags required fields (drives gate readiness)");
-ok(slideSpec("S6").fields.find((f) => f.id === "problem").mirror === "S5.problem", "S6 problem mirrors S5.problem");
+ok(slideSpec("S6").fields.find((f) => f.id === "problem").kind === "list" && !slideSpec("S6").fields.find((f) => f.id === "problem").mirror, "S6 problem is a reduced authored list (de-mirrored)");
+ok(slideSpec("S13").fields.some((f) => f.id === "biz"), "S13 carries a third Business risk lens (Tech + Commercial + Business)");
+ok(slideSpec("S6").fields.filter((f) => f.kind === "attach").length === 2, "S6 carries two flanking product images");
 // linked fields read live from the project record (never typed twice)
 {
   const prof = linkedSlideField(P0, "S3", "profile");
