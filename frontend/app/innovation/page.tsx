@@ -4368,9 +4368,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
-        {/* Revenue-family selectors on top (operator IMG_8071): Rev · Mgn · Incremental Rev · Incremental Mgn. */}
+        {/* Only two financial selectors on top (operator IMG_8078): Rev · Mgn. */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["rev", "Rev"], ["mgn", "Mgn"], ["incremental", "Inc Rev"], ["incmgn", "Inc Mgn"]] as const).map(([k, lbl]) => (
+          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
               className={`px-2.5 py-1 ${band === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
@@ -4461,9 +4461,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
       </div>
 
       {/* Band view: Incremental Rev (Step 1 − Step 2 + Step 3) + Incremental Mgn, or one component (operator) */}
-      {/* Only the do-nothing Step 1/2/3 components sit below the chart (Rev/Mgn/Incremental are top selectors). */}
+      {/* Below the chart: Incremental, then the do-nothing Step 1/2/3 components (Rev/Mgn are the top selectors). */}
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-        {(["new", "decline", "eol"] as const).map((k) => (
+        {(["incremental", "new", "decline", "eol"] as const).map((k) => (
           <button key={k} onClick={() => setBand(k)} aria-pressed={band === k}
             className={`rounded border px-2 py-0.5 ${band === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
             style={band === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
