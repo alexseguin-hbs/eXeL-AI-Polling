@@ -244,6 +244,7 @@ export interface Project {
   // by yr11). When `existingDecline` is set, projectRevSeries uses this curve instead of the doNothing geometric.
   existingRevM?: number;              // base-year existing revenue ($M)
   existingDecline?: { toM: number; overYears: number; zeroAfterYear: number };
+  revPlan?: RevPlan;                  // H42 — per-project QTY·ASP·COGS build-up + profile (High-Level ↔ Detailed)
 }
 /** A single differentiator in the Value Equation — scored for customer importance and performance vs the NBA. */
 export interface ValueDriver { name: string; importance: number; ourScore: number; nbaScore: number }

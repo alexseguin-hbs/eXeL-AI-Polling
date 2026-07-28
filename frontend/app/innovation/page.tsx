@@ -13,6 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
+  revPlanQuarters, revPlanFullM, perMinFinancials, type RevPlan,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -1274,6 +1275,16 @@ function ProjectRevChart({ p }: { p: Project }) {
         {mode === "full" && <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#fbbf24" }} />at-risk upside</span>}
         <span className="ml-auto text-slate-400">RW {usd(totRw)} · Full {usd(totFull)}</span>
       </div>
+      {/* H42 — $/min (91-day MoT spread): risk-weighted vs full revenue · cost (NRE) · margin. */}
+      {(() => { const m = perMinFinancials([p], 91); const fmt = (v: number) => v >= 1000 ? `$${(v / 1000).toFixed(1)}k/min` : `$${v.toFixed(2)}/min`; return (
+        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
+          <span className="font-semibold tracking-wider text-cyan-400">$/min</span>
+          <span>RW Rev <b className="tabular-nums text-emerald-300">{fmt(m.revRwPerMin)}</b></span>
+          <span>Full Rev <b className="tabular-nums text-emerald-300/80">{fmt(m.revFullPerMin)}</b></span>
+          <span>Cost <b className="tabular-nums text-rose-300">{fmt(m.costPerMin)}</b></span>
+          <span>Margin <b className="tabular-nums text-amber-300">{fmt(m.marginPerMin)}</b></span>
+        </div>
+      ); })()}
     </div>
   );
 }
@@ -3457,6 +3468,37 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program start (MoT — slides all gates)
                         <input type="date" defaultValue={p.startDate ?? defaultStartISO(p)} onChange={(e) => e.target.value && onEditSource({ startDate: e.target.value }, [`Program start → ${e.target.value} (timeline slid)`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
                       </label>
+                      {/* H42 — per-project Revenue Plan: High-Level (Rev+Margin, above) ↔ Detailed (QTY·ASP·COGS), with a
+                          profile (linear/growth/ramp/manual). Detailed derives fullRev10yM = Σ quarters so every chart follows. */}
+                      {(() => {
+                        const plan: RevPlan = p.revPlan ?? { entryMode: "highlevel", profile: "linear" };
+                        const setPlan = (patch: Partial<RevPlan>) => { const next = { ...plan, ...patch }; const extra = next.entryMode === "detailed" ? { fullRev10yM: Math.round(revPlanFullM(p, next)) } : {}; onEditSource({ revPlan: next, ...extra }, [`Rev plan → ${next.entryMode}·${next.profile}`]); };
+                        const inp = "rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500";
+                        return (
+                          <div className="col-span-2 mt-1 rounded-lg border border-slate-800 bg-[#0b0f14] p-2 sm:col-span-3">
+                            <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+                              <span className="font-semibold uppercase tracking-wider text-slate-500">Revenue plan</span>
+                              <div className="flex overflow-hidden rounded border border-slate-700">
+                                {(["highlevel", "detailed"] as const).map((m) => <button key={m} onClick={() => setPlan({ entryMode: m })} className={`px-2 py-0.5 ${plan.entryMode === m ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>{m === "highlevel" ? "High-Level" : "Detailed"}</button>)}
+                              </div>
+                              <select defaultValue={plan.profile} onChange={(e) => setPlan({ profile: e.target.value as RevPlan["profile"] })} className={inp}>
+                                {["linear", "growth", "ramp", "manual"].map((pr) => <option key={pr} value={pr}>{pr}</option>)}
+                              </select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                              {plan.entryMode === "detailed" ? <>
+                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Qty/yr<input type="text" inputMode="numeric" defaultValue={String(plan.qty ?? 0)} onBlur={(e) => setPlan({ qty: +e.target.value || 0 })} className={inp} /></label>
+                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">ASP $K<input type="text" inputMode="numeric" defaultValue={String(plan.aspK ?? 0)} onBlur={(e) => setPlan({ aspK: +e.target.value || 0 })} className={inp} /></label>
+                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Unit COGS $K<input type="text" inputMode="numeric" defaultValue={String(plan.unitCogsK ?? 0)} onBlur={(e) => setPlan({ unitCogsK: +e.target.value || 0 })} className={inp} /></label>
+                                <div className="flex flex-col justify-end text-[9px] text-slate-500">Rev·Mgn<div className="tabular-nums text-emerald-400">${Math.round(revPlanFullM(p, plan))}M · {(plan.aspK ?? 0) > 0 ? Math.round(((plan.aspK! - (plan.unitCogsK ?? 0)) / plan.aspK!) * 100) : 0}%</div></div>
+                              </> : <div className="col-span-2 text-[9px] text-slate-500 sm:col-span-4">High-Level uses <b className="text-slate-300">New rev 10-yr</b> + margin above; the profile shapes the per-quarter ramp.</div>}
+                              {plan.profile === "growth" && <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Growth %/qtr<input type="text" inputMode="decimal" defaultValue={String(plan.growthPctQ ?? 0)} onBlur={(e) => setPlan({ growthPctQ: +e.target.value || 0 })} className={inp} /></label>}
+                              {plan.profile === "ramp" && <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Ramp qtrs<input type="text" inputMode="numeric" defaultValue={String(plan.rampQuarters ?? 8)} onBlur={(e) => setPlan({ rampQuarters: +e.target.value || 8 })} className={inp} /></label>}
+                            </div>
+                            {plan.profile === "manual" && <label className="mt-1.5 flex flex-col gap-0.5 text-[9px] text-slate-500">Manual per-quarter weights (comma-separated)<textarea defaultValue={(plan.manualQ ?? []).join(",")} onBlur={(e) => setPlan({ manualQ: e.target.value.split(",").map((v) => +v.trim() || 0).filter((_, i) => i < 40) })} rows={2} className={`${inp} font-mono`} placeholder="e.g. 1,1,2,2,3,3,…" /></label>}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
