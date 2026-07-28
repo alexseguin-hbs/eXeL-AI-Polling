@@ -1238,7 +1238,7 @@ function ProjectRevChart({ p }: { p: Project }) {
   const full = rows.map((r) => r.total);
   const rw = full.map((v) => v * pw);
   const W = 340, H = 120, B = 16, T = 8;
-  const max = Math.max(...(mode === "full" ? full : rw), 1) * 1.1;
+  const max = Math.max(...full, 1) * 1.1; // always scale to Full Revenue so Risk-Weighted green sits where it would under the orange upside
   const bw = (W - 8) / rows.length;
   const hy = (v: number) => (v / max) * (H - B - T);
   const totFull = full.reduce((a, b) => a + b, 0), totRw = rw.reduce((a, b) => a + b, 0);
