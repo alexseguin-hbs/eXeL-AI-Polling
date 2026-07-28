@@ -18,7 +18,7 @@ import {
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   gateScheduleOf, defaultStartISO, addDaysISO, PHASE_DAYS, type GateStop,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
-  growthModel, RISK_LABEL, HIER_LEVELS, hierValues, filterByHier, scopeByHier, hierOf, type HierSel,
+  growthModel, RISK_LABEL, HIER_LEVELS, hierValues, scopeByHier, hierOf, type HierSel,
   REV_MODE, DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
@@ -580,7 +580,7 @@ function Board() {
           SBU Director / VP) — not at Alpha Code / Product # / Material #, where there is no baseline to age against. */}
       {isGroupLevel && (
         <div className="px-5 pt-4 pb-1">
-          <GrowthModelChart funded={fundedRows.map((r) => r.p)} cadence={cadence} />
+          <GrowthModelChart funded={fundedRows.map((r) => r.p)} cadence={cadence} hierFilter={hierFilter} />
         </div>
       )}
       {/* Orientation-aware split: landscape = list LEFT / detail RIGHT · portrait = list TOP / detail BOTTOM
@@ -4224,10 +4224,7 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
 // Growth Model — the signature Rack & Stack chart: BU→SBU hierarchy filter, # Years (1/3/10),
 // Targeted Growth Rate, YoY Do-Nothing decline, Revenue Options, Show/Hide baseline, 4-series legend.
 // (Gate cadence lives on the per-project gate overview, not here.)
-function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadence?: Cadence }) {
-  const [bu, setBu] = useState("All");
-  const [sbu, setSbu] = useState("All");
-  const [pg, setPg] = useState("All");
+function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Project[]; cadence?: Cadence; hierFilter: HierSel }) {
   const [years, setYears] = useState(3);
   const [growthPct, setGrowthPct] = useState("3.8");
   const [declinePct, setDeclinePct] = useState("15.1");
@@ -4240,6 +4237,13 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
   const [spreadKey, setSpreadKey] = useState<SpreadKey>(() => (lsGet("innovation-spread") as SpreadKey) || "q91");
   const [spreadCustom, setSpreadCustom] = useState("120");
   useEffect(() => { lsSet("innovation-spread", spreadKey); }, [spreadKey]);
+  // ONE selector (operator): the chart reads the page-level Scope filter (ScopeFilter) — NO separate cascade.
+  // `funded` arrives already scoped by hierFilter; derive the single-node scope only for the base-revenue anchor
+  // + the breadcrumb (a single selection at a level → that node; 0 or many → treat as "All" at that level).
+  const selBu = hierFilter.bu.length === 1 ? hierFilter.bu[0] : "All";
+  const selSbu = hierFilter.sbu.length === 1 ? hierFilter.sbu[0] : "All";
+  const selPg = hierFilter.pgroup.length === 1 ? hierFilter.pgroup[0] : "All";
+  const scopeLabel = selPg !== "All" ? `${selBu} › ${selSbu} › ${selPg}` : selSbu !== "All" ? `${selBu} › ${selSbu}` : selBu !== "All" ? selBu : "Company";
   // Grey baseline revenue ($M) — enterable; anchored on the admin Business-Setup base, settable at BU · SBU ·
   // Alpha Group (a direct override at the selected level wins; else roll up SBU → company). One source of truth.
   const bizSetup = loadBizSetup();
@@ -4250,28 +4254,9 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
     const all = bizSetup.sbu.reduce((a, n) => a + (n.baseM ?? 0), 0); return all || companyBaseM();
   };
   const [baseStr, setBaseStr] = useState(String(companyBaseM()));
-  useEffect(() => { setBaseStr(String(scopeBase(bu, sbu, pg))); }, [bu, sbu, pg]); // eslint-disable-line react-hooks/exhaustive-deps
-  // View level (max-UX switcher): Company → BU → SBU → Product Group. Drives the scope dropdowns.
-  const [level, setLevel] = useState<"company" | "bu" | "sbu" | "pg">("company");
+  useEffect(() => { setBaseStr(String(scopeBase(selBu, selSbu, selPg))); }, [selBu, selSbu, selPg]); // eslint-disable-line react-hooks/exhaustive-deps
   const [hover, setHover] = useState<number | null>(null);
-  const firstBu = () => hierValues(funded, "bu")[0] ?? "All";
-  const setLevelScope = (lv: "company" | "bu" | "sbu" | "pg") => {
-    setLevel(lv);
-    if (lv === "company") { setBu("All"); setSbu("All"); setPg("All"); }
-    else if (lv === "bu") { setSbu("All"); setPg("All"); if (bu === "All") setBu(firstBu()); }
-    else if (lv === "sbu") { setPg("All"); if (bu === "All") setBu(firstBu()); }
-    else { if (bu === "All") setBu(firstBu()); }
-  };
-
-  const bus = useMemo(() => ["All", ...hierValues(funded, "bu")], [funded]);
-  const sbus = useMemo(() => ["All", ...hierValues(funded, "sbu", bu === "All" ? undefined : { level: "bu", value: bu })], [funded, bu]);
-  const pgs = useMemo(() => ["All", ...hierValues(funded, "pgroup", sbu === "All" ? undefined : { level: "sbu", value: sbu })], [funded, sbu]);
-  const scoped = useMemo(() => {
-    let s = filterByHier(funded, "bu", bu);
-    s = filterByHier(s, "sbu", sbu);
-    s = filterByHier(s, "pgroup", pg);
-    return s;
-  }, [funded, bu, sbu, pg]);
+  const scoped = funded; // already scoped by the page-level ScopeFilter (hierFilter)
 
   const growth = (parseFloat(growthPct) || 0) / 100;
   const decline = (parseFloat(declinePct) || 0) / 100;
@@ -4301,35 +4286,9 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
         <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
       </div>
 
-      {/* View-level switcher (max UX): Company → BU → SBU → Product Group, + cascading scope */}
+      {/* Scope breadcrumb (Christo) — the chart follows the ONE page-level Scope filter; no separate cascade. */}
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
-        <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["company", "Company"], ["bu", "BU"], ["sbu", "SBU"], ["pg", "Alpha Group"]] as const).map(([lv, lbl]) => (
-            <button key={lv} onClick={() => setLevelScope(lv)}
-              className={`px-2.5 py-1 ${level === lv ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
-          ))}
-        </div>
-        {level !== "company" && (
-          <label>BU
-            <select value={bu} onChange={(e) => { setBu(e.target.value); setSbu("All"); setPg("All"); }} className={`ml-1.5 ${selStyle}`}>
-              {bus.filter((o) => o !== "All").map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </label>
-        )}
-        {(level === "sbu" || level === "pg") && (
-          <label>SBU
-            <select value={sbu} onChange={(e) => { setSbu(e.target.value); setPg("All"); }} className={`ml-1.5 ${selStyle}`}>
-              {sbus.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </label>
-        )}
-        {level === "pg" && (
-          <label>Product Group
-            <select value={pg} onChange={(e) => setPg(e.target.value)} className={`ml-1.5 ${selStyle}`}>
-              {pgs.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </label>
-        )}
+        <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
         {/* # Years */}
         <div className="ml-auto flex overflow-hidden rounded-md border border-slate-700">
           {[1, 3, 10].map((yv) => (
@@ -4400,7 +4359,7 @@ function GrowthModelChart({ funded, cadence = "M" }: { funded: Project[]; cadenc
 
       {/* Adjustable rates + revenue options (FLIR control parity) */}
       <div className="mt-3 flex flex-wrap items-end gap-3 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
-        <label>Base revenue $M ({bu === "All" ? "Company" : bu})
+        <label>Base revenue $M ({selBu === "All" ? "Company" : selBu})
           <input type="text" inputMode="decimal" value={baseStr} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setBaseStr(e.target.value)}
             className={`ml-1.5 w-20 ${selStyle} tabular-nums`} />
         </label>
