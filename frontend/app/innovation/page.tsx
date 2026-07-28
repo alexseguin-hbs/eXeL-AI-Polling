@@ -46,7 +46,7 @@ import {
 } from "@/lib/innovation-data";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
-import { loadImageLibrary, addToImageLibrary, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool
+import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
 
 const CODE = "369963";
 const SS_KEY = "innovation-unlocked";
@@ -3096,12 +3096,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     const [libOpen, setLibOpen] = useState(false);
     const [lib, setLib] = useState<LibImage[]>([]);
     useEffect(() => { if (libOpen) setLib(loadImageLibrary()); }, [libOpen]);
-    const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Provenance stamp (Project · Date · Time · Name) — becomes the hidden Light-Codex message + the library tags.
+    const nowStamp = () => { const d = new Date(); return { date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`, time: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` }; };
+    const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]; if (!file) return;
       if (file.size > 2_500_000) { alert("Image is over 2.5 MB — please use a smaller file."); e.target.value = ""; return; }
-      const reader = new FileReader();
-      reader.onload = () => { const src = String(reader.result); setActive(spec.code, f.id, src); addToImageLibrary(f.name, src); };
-      reader.readAsDataURL(file); e.target.value = "";
+      e.target.value = "";
+      const { date, time } = nowStamp();
+      const who = p.manager || "operator";
+      // Transparent Light-Codex signing (1×1 double helix) — hidden provenance message; user never sees Light Codex.
+      const src = await signedDataURL(file, `${p.id} ${p.name} | ${date} ${time} | ${who}`);
+      if (!src) return;
+      setActive(spec.code, f.id, src);
+      addToImageLibrary(file.name || f.name, src, { project: `${p.id} ${p.name}`, date, time, who });
     };
     return (
       <div className="space-y-1.5">
@@ -3117,16 +3124,26 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           {s && <button onClick={() => setActive(spec.code, f.id, "")} className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-500 hover:border-rose-500/50 hover:text-rose-300">Clear</button>}
         </div>
         <input type="url" inputMode="url" defaultValue={/^https?:\/\//i.test(s) ? s : ""} placeholder="…or paste an image URL (BYOK / provider)"
-          onBlur={(e) => { const u = e.target.value.trim(); if (u && u !== s) { setActive(spec.code, f.id, u); addToImageLibrary(f.name, u); } }}
+          onBlur={(e) => { const u = e.target.value.trim(); if (u && u !== s) { const { date, time } = nowStamp(); setActive(spec.code, f.id, u); addToImageLibrary(f.name, u, { project: `${p.id} ${p.name}`, date, time, who: p.manager || "operator" }); } }}
           className={`${inputCls} text-[12px]`} />
         {libOpen && (
           <div className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
-            <div className="mb-1 text-[10px] text-slate-500">Shared image library — uploaded here + from the Light Codex tool. Tap to use.</div>
+            <div className="mb-1.5 text-[10px] text-slate-500">Image library — each stamped Project · Date · Time · Name. Tap to use · ✕ to delete.</div>
             {lib.length ? (
-              <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                 {lib.map((im, i) => (
-                  <button key={i} onClick={() => { setActive(spec.code, f.id, im.src); setLibOpen(false); }} title={im.name}
-                    className="overflow-hidden rounded border border-slate-700 hover:border-cyan-500"><img src={im.src} alt={im.name} className="aspect-video w-full object-cover" /></button>
+                  <div key={i} className="relative overflow-hidden rounded border border-slate-700 hover:border-cyan-500">
+                    <button onClick={() => { setActive(spec.code, f.id, im.src); setLibOpen(false); }} title={im.name} className="block w-full">
+                      <img src={im.src} alt={im.name} className="aspect-video w-full object-cover" />
+                      <div className="px-1.5 py-1 text-left text-[8px] leading-tight text-slate-400">
+                        <div className="truncate text-slate-300">{im.name}</div>
+                        <div className="truncate">{im.project ?? "—"}</div>
+                        <div className="truncate">{[im.date, im.time].filter(Boolean).join(" ")}{im.who ? ` · ${im.who}` : ""}</div>
+                      </div>
+                    </button>
+                    <button onClick={() => setLib(removeFromImageLibrary(im.src))} aria-label="Delete image" title="Delete from library"
+                      className="absolute right-0.5 top-0.5 rounded bg-[#0b0f14]/85 px-1 text-[10px] text-rose-300 hover:bg-rose-500/20">✕</button>
+                  </div>
                 ))}
               </div>
             ) : <div className="text-[10px] italic text-slate-600">Library empty — upload here or in the Light Codex tool.</div>}

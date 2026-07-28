@@ -218,7 +218,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
               <Download className="h-4 w-4" /> {busy ? "Signing…" : "Sign & download PNG"}
             </button>
             {srcData && (
-              <button onClick={() => { const c = imageDataToCanvas(srcData); addToImageLibrary(srcName ?? "light-codex", c.toDataURL("image/png")); }}
+              <button onClick={() => { const c = imageDataToCanvas(srcData); const d = new Date(); addToImageLibrary(srcName ?? "light-codex", c.toDataURL("image/png"), { project: "Light Codex", date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`, time: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`, who: "operator" }); }}
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-xs text-muted-foreground hover:bg-accent/30">
                 ◫ Add to SoI-2525 CONOPS library
               </button>
