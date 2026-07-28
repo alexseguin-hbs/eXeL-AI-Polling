@@ -20,7 +20,7 @@ type Secret = { labelKey: string; view: string; download: string };
 type Demo = { labelKey: string; codeKey: string; openKey: string; href: string };
 // An inline image shown under the card text by default (no toggle).
 type CardImage = { src: string; altKey: string };
-type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo; image?: CardImage; defaultOpen?: boolean };
+type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; tagKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo; image?: CardImage; defaultOpen?: boolean };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -49,6 +49,7 @@ const WRITEUPS: Item[] = [
     badgeKey: "experiences.egg.soi.badge",
     blurbKey: "experiences.egg.soi.blurb",
     href: "/main/SoI-2525/",
+    tagKey: "experiences.egg.soi.framework",
     defaultOpen: true,
     image: { src: "/experiences/innovate-speed-of-thought.png", altKey: "experiences.egg.poster.alt" },
     demo: {
@@ -195,10 +196,20 @@ function Card({ item }: { item: Item }) {
         {/* header + badge (+ expanded blurb) stay under the header */}
         <div className="min-w-0 flex-1">
           <div className="truncate font-medium">{t(item.titleKey)}</div>
-          {item.badgeKey && (
-            <span className="mt-1 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-              {t(item.badgeKey)}
-            </span>
+          {(item.badgeKey || item.tagKey) && (
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              {item.badgeKey && (
+                <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  {t(item.badgeKey)}
+                </span>
+              )}
+              {/* Blue framework tag pill */}
+              {item.tagKey && (
+                <span className="inline-flex w-fit rounded-full border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-[11px] font-medium text-blue-300">
+                  {t(item.tagKey)}
+                </span>
+              )}
+            </div>
           )}
           {open && (
             <div className="mt-3">
@@ -259,20 +270,22 @@ function Card({ item }: { item: Item }) {
                   </div>
                 </div>
               )}
-              {/* Gated live-demo reveal (SoI-2525) — the access code stays hidden until the visitor opts in */}
+              {/* Gated live-demo reveal — the access code is MINIMIZED by default; this toggle reveals it
+                  and can collapse it again (click once to show, again to hide). */}
               {item.demo && (
                 <div className="mt-3">
-                  {!showCode ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowCode(true)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
-                    >
-                      <KeyRound className="h-3.5 w-3.5" />
-                      {t(item.demo.labelKey)}
-                    </button>
-                  ) : (
-                    <div className="rounded-lg border border-primary/25 bg-primary/5 p-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowCode((o) => !o)}
+                    aria-expanded={showCode}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                  >
+                    <KeyRound className="h-3.5 w-3.5" />
+                    {t(item.demo.labelKey)}
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showCode ? "rotate-180" : ""}`} />
+                  </button>
+                  {showCode && (
+                    <div className="mt-2 rounded-lg border border-primary/25 bg-primary/5 p-2.5">
                       <div className="mb-2 flex items-center gap-1.5 text-[12px] text-foreground">
                         <KeyRound className="h-3.5 w-3.5 shrink-0 text-primary" />
                         <span>{t(item.demo.codeKey)}</span>

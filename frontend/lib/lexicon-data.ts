@@ -1233,6 +1233,7 @@ const experiences: TranslationEntry[] = [
   { key: "experiences.egg.soi.demoLabel", englishDefault: "Interested? View the live demo", context: "Portfolio Optimization card: reveal toggle for the gated demo access code", cubeId: 50 },
   { key: "experiences.egg.soi.demoCode", englishDefault: "Access code 369963 — open the System of Innovation deck and enter it to explore the live portfolio.", context: "Portfolio Optimization card: gated demo access code hint", cubeId: 50 },
   { key: "experiences.egg.soi.demoOpen", englishDefault: "Open System of Innovation", context: "Portfolio Optimization card: open-tool button label", cubeId: 50 },
+  { key: "experiences.egg.soi.framework", englishDefault: "SoI Framework", context: "Portfolio Optimization card: blue framework tag pill", cubeId: 50 },
   // Vision poster — expandable in the Presentation section.
   { key: "experiences.egg.poster.label", englishDefault: "Innovate at the Speed of Thought — the vision on one page", context: "Expandable poster toggle label in the Presentation section", cubeId: 50 },
   { key: "experiences.egg.poster.alt", englishDefault: "Innovate at the Speed of Thought — Vision 2525, Humanity's Coordination Framework poster", context: "Alt text for the Vision 2525 poster image", cubeId: 50 },
