@@ -234,11 +234,11 @@ function Card({ item }: { item: Item }) {
               {/* Build / Value stats — under the image, before the demo toggle. Exactly one line each
                   (label + value inline, no wrap). */}
               {item.stats && item.stats.length > 0 && (
-                <div className="mt-3 space-y-1 overflow-x-auto rounded-lg border border-border/60 bg-background/40 px-3 py-2.5">
+                <div className="mt-3 space-y-1 rounded-lg border border-border/60 bg-background/40 px-3 py-2.5">
                   {item.stats.map((s) => (
                     <div key={s.valueKey} className="flex items-baseline gap-2 whitespace-nowrap">
                       <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-primary">{t(s.labelKey)}</span>
-                      <span className="text-[12px] font-medium text-foreground">{t(s.valueKey)}</span>
+                      <span className="text-[13px] font-medium text-foreground">{t(s.valueKey)}</span>
                     </div>
                   ))}
                 </div>

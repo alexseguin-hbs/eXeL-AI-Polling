@@ -1233,7 +1233,7 @@ const experiences: TranslationEntry[] = [
   { key: "experiences.egg.soi.buildLabel", englishDefault: "Build", context: "Portfolio Optimization stat label — build effort", cubeId: 50 },
   { key: "experiences.egg.soi.buildVal", englishDefault: "~8 hrs · AI-directed coding", context: "Portfolio Optimization stat value — build effort", cubeId: 50 },
   { key: "experiences.egg.soi.valueLabel", englishDefault: "Value", context: "Portfolio Optimization stat label — estimated value", cubeId: 50 },
-  { key: "experiences.egg.soi.valueVal", englishDefault: "~$22K · comparable custom build", context: "Portfolio Optimization stat value — estimated value", cubeId: 50 },
+  { key: "experiences.egg.soi.valueVal", englishDefault: "~$22K · custom build", context: "Portfolio Optimization stat value — estimated value", cubeId: 50 },
   { key: "experiences.egg.soi.demoLabel", englishDefault: "Interested? View the live demo", context: "Portfolio Optimization card: reveal toggle for the gated demo access code", cubeId: 50 },
   { key: "experiences.egg.soi.demoCode", englishDefault: "Access Code: 369963", context: "Portfolio Optimization card: gated demo access code (simplified)", cubeId: 50 },
   { key: "experiences.egg.soi.demoOpen", englishDefault: "Open System of Innovation", context: "Portfolio Optimization card: open-tool link label", cubeId: 50 },
