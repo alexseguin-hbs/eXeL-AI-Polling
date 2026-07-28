@@ -4247,8 +4247,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const [showBaseline, setShowBaseline] = useState(true);
   // Growth-model band view (operator): Incremental (orange, New−Decline+EOL) by default; or one component.
   const [band, setBand] = useState<"incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol">("incremental");
-  // Split-by dimension (operator): stack the bar by hierarchy child (default) or by strategic pillar (admin colors).
-  const [splitBy, setSplitBy] = useState<"hier" | "pillar">("hier");
+  // Split-by dimension (operator): stack the bar by hierarchy child (default), strategic pillar (admin colors), or
+  // Risk (risk-weighted vs at-risk upside — Full Financials split green/orange).
+  const [splitBy, setSplitBy] = useState<"hier" | "pillar" | "risk">("hier");
   const [pillarSel, setPillarSel] = useState<Set<string>>(new Set()); // multi-select (pillar mode only; empty = all)
   // MoT time-spread (operator, global deck lens): spread scoped cost/rev/margin totals to $/min over a chosen
   // window — 91-day (SoI) / 365-day / user-defined — persisted deck-wide. Linearized (even) for less lumpiness.
@@ -4302,19 +4303,24 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const pillarDefs = loadPillars();
   const pillarKey = (p: Project) => metaOf(p).initiative;
   const inScope = splitBy === "pillar" && pillarSel.size ? scoped.filter((p) => pillarSel.has(pillarKey(p))) : scoped;
-  const segLabel = splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code";
+  const segLabel = splitBy === "risk" ? "Risk" : splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code";
   const keyOf = (p: Project) => (splitBy === "pillar" ? pillarKey(p) : hierOf(p)[childLevel]);
   const scopeIncr = inScope.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
   const tierNodes: BizNode[] = bizSetup[childLevel as BizTier] ?? [];
-  const segments = Array.from(new Set(inScope.map(keyOf))).sort().map((code, idx) => {
-    const sp = inScope.filter((p) => keyOf(p) === code);
-    const share = sp.reduce((s, p) => s + incrementalRevM(p), 0) / scopeIncr;
-    const node = splitBy === "pillar" ? undefined : tierNodes.find((n) => n.code === code);
-    const seed = node?.revM ?? scopeRev * share;                    // seeded base-year revenue (tier) or proportional
-    const g = (node?.growthPct ?? scopeGrowth) / 100;               // seeded growth rate (tier) or scope growth
-    const color = splitBy === "pillar" ? pillarColorOf(code, pillarDefs) : segColorOf(childLevel, code, idx);
-    return { code, color, seed, g, gm: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
-  });
+  // Blended risk weight (tech×comm success) over the scope — the green risk-weighted share; upside = 1 − it.
+  const riskFrac = (() => { const inc = inScope.reduce((s, p) => s + incrementalRevM(p), 0); return inc > 0 ? inScope.reduce((s, p) => s + weightedRevM(p), 0) / inc : 0.5; })();
+  const mkRiskSeg = (code: string, color: string, share: number) => ({ code, color, seed: scopeRev * share, g: scopeGrowth / 100, gm: growthModel(inScope, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) });
+  const segments = splitBy === "risk"
+    ? [mkRiskSeg("Risk-weighted", "#34d399", riskFrac), mkRiskSeg("At-risk upside", "#fbbf24", 1 - riskFrac)]
+    : Array.from(new Set(inScope.map(keyOf))).sort().map((code, idx) => {
+      const sp = inScope.filter((p) => keyOf(p) === code);
+      const share = sp.reduce((s, p) => s + incrementalRevM(p), 0) / scopeIncr;
+      const node = splitBy === "pillar" ? undefined : tierNodes.find((n) => n.code === code);
+      const seed = node?.revM ?? scopeRev * share;                    // seeded base-year revenue (tier) or proportional
+      const g = (node?.growthPct ?? scopeGrowth) / 100;               // seeded growth rate (tier) or scope growth
+      const color = splitBy === "pillar" ? pillarColorOf(code, pillarDefs) : segColorOf(childLevel, code, idx);
+      return { code, color, seed, g, gm: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
+    });
   // Value of a segment in a given year for the active band. Rev/Incremental/Margin grow at the tier CAGR (positive).
   const segVal = (seg: (typeof segments)[number], i: number) => {
     const rev = seg.seed * Math.pow(1 + seg.g, i);
@@ -4369,9 +4375,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
               className={`px-2.5 py-1 ${band === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
         </div>
-        {/* Split-by: hierarchy child (default) or strategic pillar (admin colors) */}
+        {/* Split-by: hierarchy child (default) · strategic pillar (admin colors) · Risk (risk-weighted vs upside) */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["hier", "Hierarchy"], ["pillar", "Pillar"]] as const).map(([k, lbl]) => (
+          {([["hier", "Hierarchy"], ["pillar", "Pillar"], ["risk", "Risk"]] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setSplitBy(k)} aria-pressed={splitBy === k}
               className={`px-2.5 py-1 ${splitBy === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
