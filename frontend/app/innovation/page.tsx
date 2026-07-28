@@ -43,7 +43,7 @@ import {
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
-import { Settings } from "lucide-react"; // same settings gear used by Security-2525 Mission Planning (MP)
+import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 
 const CODE = "369963";
@@ -494,30 +494,35 @@ function Board() {
     {/* Consistent max-width band (phone → desktop) — every section shares these bounds; full-bleed bg behind. */}
     <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col">
       {/* Header */}
-      <header className="border-b border-slate-800 px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-        <div>
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
-          <h1 className="text-lg font-semibold">{t("innovation.header.title")}</h1>
-          <div className="text-[11px] text-slate-500">{stackName}</div>
+      <header className="border-b border-slate-800 px-5 py-4 flex flex-col gap-3">
+        <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
+          <div>
+            <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
+            <h1 className="text-lg font-semibold">{t("innovation.header.title")}</h1>
+            <div className="text-[11px] text-slate-500">{stackName}</div>
+          </div>
+          {/* Upper-right: Template + New Idea (with icons) on TOP, R&D Scenario BELOW with extra space (operator) */}
+          <div className="ml-auto flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <button onClick={() => setTemplateOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">
+                <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t("innovation.header.template")}
+              </button>
+              <button onClick={() => setNewIdeaOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
+                <Lightbulb className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t("innovation.header.newIdea")}
+              </button>
+            </div>
+            <label className="mt-1.5 flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}
+              <select value={scenario} onChange={(e) => setScenario(e.target.value as BudgetScenario)} title="R&D budget scenario (sets the funding line)"
+                className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] normal-case tracking-normal text-slate-100 outline-none focus:border-cyan-500">
+                {scenarios.map((s) => <option key={s.key} value={s.key}>{s.label} · ${s.m}M</option>)}
+              </select>
+            </label>
+          </div>
         </div>
-        <button
-          onClick={() => setTemplateOpen(true)}
-          className="rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10"
-        >
-          {t("innovation.header.template")}
-        </button>
-        <button onClick={() => setNewIdeaOpen(true)}
-          className="rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
-          {t("innovation.header.newIdea")}
-        </button>
-        {/* R&D budget scenario — upper-right dropdown; names + $M are admin-editable in Business Setup (operator) */}
-        <label className="ml-auto flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-slate-500">{t("innovation.scenario.label")}
-          <select value={scenario} onChange={(e) => setScenario(e.target.value as BudgetScenario)} title="R&D budget scenario (sets the funding line)"
-            className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] normal-case tracking-normal text-slate-100 outline-none focus:border-cyan-500">
-            {scenarios.map((s) => <option key={s.key} value={s.key}>{s.label} · ${s.m}M</option>)}
-          </select>
-        </label>
-        <div className="flex gap-5 text-right">
+        {/* KPI strip — full width; 2-up on phone, 4 across the whole band on landscape/desktop (operator) */}
+        <div className="grid grid-cols-2 gap-3 border-t border-slate-800/60 pt-2.5 sm:grid-cols-4">
           <Kpi label={t("innovation.kpi.rdAvailable")} value={k(avail)} />
           <Kpi label={t("innovation.kpi.fundedNre")} value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
           <Kpi label={t("innovation.kpi.fundedProjects")} value={`${fundedRows.length}/${order.length}`} />
@@ -3073,7 +3078,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     if (f.kind === "chart" && f.linked) return (
       <div className={`overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] sm:col-span-2`}>
         <Banner />
-        <div className="p-3"><ChartFrame label={f.name}><MiniFinChart kind={sp.code} big={big} /></ChartFrame></div>
+        <div className="p-3"><ChartFrame label={f.name}>
+          <MiniFinChart kind={sp.code} big={big} />
+          {/* Direct link to source — jumps to the single source-of-truth record that feeds this chart/table. */}
+          <button onClick={() => { setPresent(false); setSrcOpen(true); }} title="Open the source record that feeds this chart"
+            className="mt-2 inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20">
+            ◈ Source: {sp.source} <span aria-hidden>→</span>
+          </button>
+        </ChartFrame></div>
       </div>
     );
     const v = effective(sp, f, presentSrc); if (fieldEmpty(v)) return null;
@@ -3127,7 +3139,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
         <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[1] w-[16%] cursor-e-resize bg-transparent" />
         {/* REQUIRED badge — upper-left, same top line as the As-set/HI/AI + Edit + Exit controls (operator). */}
         <div className="absolute left-3 top-3 z-10 flex items-center">
-          <span className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-300 whitespace-nowrap">Req: {spec.stage}+</span>
+          <span className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-semibold tracking-wide text-amber-300 whitespace-nowrap">Req: {spec.stage}+</span>
         </div>
         {/* stage controls */}
         <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
