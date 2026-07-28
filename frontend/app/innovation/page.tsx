@@ -1032,6 +1032,44 @@ function GateTimeline({ p }: { p: Project }) {
   );
 }
 
+// CONOPS wireframe — a GENERATIVE schematic drawn procedurally from the step text (operator: "wireframe
+// generative, not chatgpt images"). Deterministic: a string-seeded PRNG places system boxes, actor nodes and
+// arrowed connectors inside a system envelope — same step text → same wireframe. Pure SVG, no external assets.
+function ConopsWireframe({ seed }: { seed: string }) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 16777619); }
+  const rand = () => { h += 0x6d2b79f5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const W = 160, H = 90, P = 8;
+  const n = 3 + Math.floor(rand() * 3); // 3–5 nodes
+  const cols = n <= 3 ? n : Math.ceil(n / 2), rows = Math.ceil(n / cols);
+  const cw = (W - 2 * P) / cols, ch = (H - 2 * P) / rows;
+  type Node = { x: number; y: number; w: number; h: number; shape: "box" | "node" | "sat" };
+  const nodes: Node[] = Array.from({ length: n }, (_, i) => {
+    const c = i % cols, r = Math.floor(i / cols);
+    const jx = (rand() - 0.5) * cw * 0.18, jy = (rand() - 0.5) * ch * 0.18;
+    const bw = cw * (0.5 + rand() * 0.18), bh = ch * (0.42 + rand() * 0.18);
+    const cx = P + c * cw + (cw - bw) / 2 + jx, cy = P + r * ch + (ch - bh) / 2 + jy;
+    const shape: Node["shape"] = i === 0 ? "sat" : rand() > 0.55 ? "node" : "box";
+    return { x: cx, y: cy, w: bw, h: bh, shape };
+  });
+  const cxy = (nd: Node) => [nd.x + nd.w / 2, nd.y + nd.h / 2] as const;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Generative CONOPS wireframe">
+      <defs><marker id={`ar-${Math.floor(h % 100000)}`} markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#38bdf8" opacity="0.7" /></marker></defs>
+      <rect x={3} y={3} width={W - 6} height={H - 6} rx={4} fill="none" stroke="rgba(56,189,248,.18)" strokeWidth="0.8" strokeDasharray="3 3" />
+      {nodes.slice(1).map((nd, i) => { const [x1, y1] = cxy(nodes[i]); const [x2, y2] = cxy(nd); return (
+        <line key={`l${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#38bdf8" strokeWidth="0.8" opacity="0.5" markerEnd={`url(#ar-${Math.floor(h % 100000)})`} />
+      ); })}
+      {nodes.map((nd, i) => {
+        const [cx, cy] = cxy(nd);
+        if (nd.shape === "sat") return <g key={i}><circle cx={cx} cy={cy} r={Math.min(nd.w, nd.h) / 2.6} fill="rgba(52,211,153,.10)" stroke="#34d399" strokeWidth="0.9" /><line x1={cx - nd.w / 2} y1={cy} x2={cx - nd.w / 2 - 4} y2={cy - 3} stroke="#34d399" strokeWidth="0.8" /><line x1={cx + nd.w / 2} y1={cy} x2={cx + nd.w / 2 + 4} y2={cy - 3} stroke="#34d399" strokeWidth="0.8" /></g>;
+        if (nd.shape === "node") return <circle key={i} cx={cx} cy={cy} r={Math.min(nd.w, nd.h) / 2.4} fill="rgba(148,163,184,.06)" stroke="#94a3b8" strokeWidth="0.9" />;
+        return <g key={i}><rect x={nd.x} y={nd.y} width={nd.w} height={nd.h} rx={2} fill="rgba(148,163,184,.05)" stroke="#cbd5e1" strokeWidth="0.9" /><line x1={nd.x + 3} y1={nd.y + nd.h * 0.38} x2={nd.x + nd.w - 3} y2={nd.y + nd.h * 0.38} stroke="#64748b" strokeWidth="0.7" /><line x1={nd.x + 3} y1={nd.y + nd.h * 0.62} x2={nd.x + nd.w * 0.7} y2={nd.y + nd.h * 0.62} stroke="#64748b" strokeWidth="0.7" /></g>;
+      })}
+    </svg>
+  );
+}
+
 // S3 Business-Case cash chart (AMTS deck parity). Top-level so its horizon `useState` keeps a stable identity.
 // R&D / NRE is a NEGATIVE flow (below the zero baseline), Revenue + Margin are positive bars, and cumulative
 // CASH FLOW (Σ margin − R&D) is a line. The horizon toggle renders horizon+1 year columns so a CAGR measured
@@ -3140,9 +3178,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           <ol className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {(v as string[]).filter((x) => x && x.trim()).map((x, i) => (
               <li key={i} className="flex flex-col overflow-hidden rounded-lg border border-slate-700 bg-[#0e141b]">
-                <div className="relative flex aspect-[16/9] items-center justify-center bg-gradient-to-br from-cyan-500/10 to-slate-800/40 text-slate-600">
-                  <span className="text-[26px]" aria-hidden>◧</span>
+                <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-cyan-500/[0.06] to-slate-900/60">
+                  <ConopsWireframe seed={`${sp.code}:${i}:${x}`} />
                   <span className="absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500 text-[13px] font-bold tabular-nums text-[#06202a]">{i + 1}</span>
+                  <span className="absolute bottom-1 right-1.5 text-[7px] font-mono uppercase tracking-wider text-cyan-300/50">wireframe · generative</span>
                 </div>
                 <p className="m-0 p-2 text-[clamp(12px,1.15vw,15px)] leading-snug text-slate-100">{x}</p>
               </li>
