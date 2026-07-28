@@ -22,7 +22,7 @@ import {
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
-  SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField,
+  SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
@@ -2681,7 +2681,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); }, []);
   const spec = SLIDE_SCHEMA[idx];
   const bag = bags[p.id] || {};
-  const cellOf = (code: string, fid: string): FieldCell => bag[code]?.[fid] ?? { hi: null, ai: null, mode: "hi" };
+  // Fall back to the 12-AsM authored seed when the user hasn't authored a cell: seeded HI shows by default;
+  // flipping to AI (per-field or the present toggle) shows the enhanced seeded AI. User edits (writeCell) win.
+  const cellOf = (code: string, fid: string): FieldCell => bag[code]?.[fid] ?? { hi: SLIDE_SEED[p.id]?.[code]?.[fid]?.hi ?? null, ai: SLIDE_SEED[p.id]?.[code]?.[fid]?.ai ?? null, mode: "hi" };
   const aiFor = (code: string, fid: string): SlideFieldValue => aiSlideField(p, code, fid);
   // Effective value for display + present: linked → live record; else the active-mode slot (AI slot falls back
   // to the deterministic AI draft); empty + mirror → inherit the referenced slide's field.

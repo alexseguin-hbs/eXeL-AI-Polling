@@ -723,5 +723,39 @@ import { CADENCE_UNIT, fmtPerCadence } from "../lib/innovation-data.ts";
   ok(fmtPerCadence(1, "M") === fmtPerCadence(1, "M"), "fmtPerCadence deterministic");
 }
 
+/* ---------------- Slice E — slidesForProject + 12-AsM SLIDE_SEED (HI + enhanced AI) ---------------- */
+import { slidesForProject, nextGate, SLIDE_SEED } from "../lib/innovation-data.ts";
+{
+  ok(nextGate("G2") === "G3" && nextGate("G7") === "G7", "nextGate advances and clamps at G7");
+  const p4 = DEMO_PROJECTS.find((p) => p.id === "PRJ-04"); // G2
+  const sset = slidesForProject(p4);
+  ok(["S1", "S2", "S3"].every((c) => sset.includes(c)), "slidesForProject always includes S1–S3");
+  ok(SLIDE_SCHEMA.filter((s) => s.gate === "G2").every((s) => sset.includes(s.code)), "slidesForProject includes current-gate slides");
+  ok(SLIDE_SCHEMA.filter((s) => s.gate === "G3").every((s) => sset.includes(s.code)), "slidesForProject includes next-gate slides");
+  ok(new Set(sset).size === sset.length, "slidesForProject de-dups");
+  ok(!sset.includes("S16") && !sset.includes("S18"), "slidesForProject excludes far-gate slides");
+  // Seed coverage (active once the 12-AsM seed is populated): every in-scope non-linked field has non-empty
+  // hi AND ai, with ai a genuine enhancement (ai ≠ hi). Skipped while SLIDE_SEED is empty (scaffold only).
+  const emptyV = (v) => v == null || (typeof v === "string" && !v.trim()) || (Array.isArray(v) && v.length === 0) || (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0);
+  if (Object.keys(SLIDE_SEED).length) {
+    const specBy = Object.fromEntries(SLIDE_SCHEMA.map((s) => [s.code, s]));
+    let cells = 0, gaps = [], notEnhanced = 0;
+    for (const p of DEMO_PROJECTS) {
+      for (const code of slidesForProject(p)) {
+        for (const f of specBy[code].fields) {
+          if (f.linked || f.kind === "chart" || f.mirror) continue;
+          const cell = SLIDE_SEED[p.id]?.[code]?.[f.id];
+          cells++;
+          if (!cell || emptyV(cell.hi) || emptyV(cell.ai)) { gaps.push(`${p.id}/${code}/${f.id}`); continue; }
+          if (JSON.stringify(cell.ai) === JSON.stringify(cell.hi)) notEnhanced++;
+        }
+      }
+    }
+    ok(gaps.length === 0, `SLIDE_SEED covers every in-scope non-linked field (hi+ai) — ${gaps.length ? gaps.slice(0, 8).join(", ") + (gaps.length > 8 ? ` +${gaps.length - 8}` : "") : cells + " cells"}`);
+    ok(notEnhanced === 0, `SLIDE_SEED ai differs from hi on every cell (${notEnhanced} identical)`);
+    ok(typeof SLIDE_SEED["PRJ-23"]?.["S1"]?.["oneline"]?.hi === "string", "IVAS S1 one-liner seeded");
+  }
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

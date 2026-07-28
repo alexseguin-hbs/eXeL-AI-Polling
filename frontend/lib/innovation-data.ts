@@ -1609,6 +1609,24 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
 ];
 export const slideSpec = (code: string): SlideSpec | undefined => SLIDE_SCHEMA.find((s) => s.code === code);
 
+// Gate that follows `g` (clamps at the last gate). Deterministic.
+export const nextGate = (g: Gate): Gate => GATES[Math.min(GATES.length - 1, GATES.indexOf(g) + 1)];
+// Slides a project should ship populated: the always-needed exec/overview/financials (S1–S3) plus the slides
+// for the project's CURRENT stage (its gate) and its NEXT gate. Deterministic, de-duplicated, schema order.
+export function slidesForProject(p: Project): string[] {
+  const ng = nextGate(p.gate);
+  const codes = new Set<string>(["S1", "S2", "S3"]);
+  for (const s of SLIDE_SCHEMA) if (s.gate === p.gate || s.gate === ng) codes.add(s.code);
+  return SLIDE_SCHEMA.filter((s) => codes.has(s.code)).map((s) => s.code);
+}
+// 12-AsM authored slide content seed (S1–S3 + stage + next gate · non-linked fields). Each cell carries BOTH
+// a human baseline (hi) and an ENHANCED, more-comprehensive AI superset built off the hi (ai). Static committed
+// constant → runtime stays deterministic. Populated by the 12-agent Ascended-Masters workflow (see SLIDE_SEED_DATA
+// below). Consumed by SlideShowModal.cellOf as the default when the user hasn't authored a field.
+export type SlideSeedCell = { hi: SlideFieldValue; ai: SlideFieldValue };
+export type SlideSeed = Record<string, Record<string, Record<string, SlideSeedCell>>>;
+export { SLIDE_SEED } from "./innovation-slide-seed";
+
 export type SlideFieldValue = string | string[] | string[][] | Record<string, string> | null;
 
 /** Linked field value — read live from the project record so the deck can never disagree with the gate. */
