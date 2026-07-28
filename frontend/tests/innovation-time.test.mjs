@@ -831,6 +831,20 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   ok(buildDemoVersionSeed(DEMO_PROJECTS.find((p) => p.id === "PRJ-24")).length === 0, "non-demo projects start with empty history");
 }
 
+/* ---------------- G5 — S16 PLC classifier + S8 value chart field ---------------- */
+import { plcStageOf } from "../lib/innovation-data.ts";
+{
+  ok(plcStageOf(-2).stage === "PLC-4" && plcStageOf(-2).label === "Decline", "negative CAGR → PLC-4 Decline");
+  ok(plcStageOf(0).stage === "PLC-3" && plcStageOf(3).stage === "PLC-3", "0–3% CAGR → PLC-3 Mature (boundary inclusive)");
+  ok(plcStageOf(3.01).stage === "PLC-2" && plcStageOf(15).stage === "PLC-2", "3–15% CAGR → PLC-2 Growth");
+  ok(plcStageOf(25).stage === "PLC-1", ">15% CAGR → PLC-1 Introduction");
+  // S8 gains a linked value chart field (waterfall + WTP positioning)
+  ok(slideSpec("S8").fields.some((f) => f.id === "valuechart" && f.kind === "chart" && f.linked), "S8 carries a linked value chart field");
+  // S16 AI draft surfaces the PLC classification
+  const s16plc = aiSlideField(DEMO_PROJECTS[0], "S16", "plc");
+  ok(Array.isArray(s16plc) && s16plc.some((r) => /PLC-3/.test(r[0])), "aiSlideField S16.plc lists the PLC ladder");
+}
+
 /* ---------------- SoI Calendar engine (integer 13-week basis · Gregorian default · Perihelion anchor) ---------------- */
 import { CALENDARS, DEFAULT_CALENDAR, activeCalendar, calMinutes, soiYearStartUTC } from "../lib/soi-calendar.ts";
 {

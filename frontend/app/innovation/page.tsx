@@ -1018,6 +1018,61 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
   );
 }
 
+// S8 Competition + Value Prop (AMTS deck parity, operator: BOTH visuals) — a value creation/capture WATERFALL
+// (NBA baseline → per-driver up/down steps → EVC total) AND a WTP price-performance POSITIONING strip
+// (competitors + NBA + our system on a Low→High axis). Deterministic SVG from the value equation.
+function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
+  const ve = valueEquationOf(p);
+  const steps = ve.perDriver.slice(0, 6);
+  const W = 320, H = big ? 150 : 120, L = 6, T = 8, B = 16;
+  let run = ve.referenceM;
+  const seq: { label: string; from: number; to: number; kind: "base" | "up" | "down" | "total" }[] = [{ label: "NBA", from: 0, to: ve.referenceM, kind: "base" }];
+  for (const d of steps) { const from = run; run += d.weighted; seq.push({ label: d.name, from, to: run, kind: d.weighted >= 0 ? "up" : "down" }); }
+  seq.push({ label: "EVC", from: 0, to: run, kind: "total" });
+  const max = Math.max(1, ...seq.map((s) => Math.max(s.from, s.to))) * 1.1;
+  const n = seq.length, gw = (W - L) / n, bw = Math.max(4, gw * 0.6);
+  const y = (v: number) => H - B - (v / max) * (H - B - T);
+  const fill = (k: string) => (k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : "#3b82f6");
+  // WTP positioning — Low→High price-performance; markers deterministic from the competitive index.
+  const ci = Math.max(0, Math.min(1, ve.competitiveIndex / 100));
+  const markers = [{ label: "NBA", x: 0.5, c: "#64748b" }, { label: "Comp A", x: 0.34, c: "#94a3b8" }, { label: "Comp B", x: 0.62, c: "#94a3b8" }, { label: p.name.split(" ")[0], x: ci, c: "#3b82f6" }];
+  return (
+    <div className="space-y-2">
+      <div>
+        <div className="mb-1 flex flex-wrap gap-x-3 text-[10px] text-slate-400">
+          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#64748b]" />NBA baseline</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#34d399]" />Value creation</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#fb7185]" />Give-back</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#3b82f6]" />EVC</span>
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "auto" }} role="img" aria-label="S8 value creation / capture waterfall">
+          {[0.25, 0.5, 0.75, 1].map((f) => <line key={f} x1={L} y1={y(max * f / 1.1)} x2={W} y2={y(max * f / 1.1)} stroke="rgba(148,163,184,.09)" />)}
+          {seq.map((s, i) => { const top = y(Math.max(s.from, s.to)), bot = y(Math.min(s.from, s.to)); const x = L + i * gw + (gw - bw) / 2; return (
+            <g key={i}>
+              <rect x={x} y={top} width={bw} height={Math.max(1.5, bot - top)} fill={fill(s.kind)} rx={1} />
+              <text x={x + bw / 2} y={H - 4} textAnchor="middle" fontSize="6.5" fill="#64748b">{s.label.length > 8 ? s.label.slice(0, 8) : s.label}</text>
+            </g>
+          ); })}
+        </svg>
+      </div>
+      <div>
+        <div className="mb-1 text-[10px] text-slate-400">Willingness-to-pay · price-performance positioning</div>
+        <div className="relative h-9 rounded border border-slate-800 bg-[#0e141b]">
+          <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
+          {markers.map((m) => (
+            <div key={m.label} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${6 + m.x * 88}%` }}>
+              <div className="mx-auto h-2.5 w-2.5 rounded-full" style={{ background: m.c }} />
+              <div className="mt-0.5 whitespace-nowrap text-[7px] text-slate-400">{m.label}</div>
+            </div>
+          ))}
+          <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>
+          <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Per-project financial projection — old product line declining (no innovation) + new product
 // ramp when funded. The operator methodology for aging-portfolio financials.
 function ProjectRevChart({ p }: { p: Project }) {
@@ -2899,6 +2954,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     // zero), Revenue + Margin above zero, and cumulative CASH FLOW as a line. Horizon toggle renders horizon+1
     // year points so a CAGR spanning `horizon` years reads across `horizon+1` columns (3-Yr→4, 5-Yr→6, 10-Yr→11).
     if (kind === "S3") return <S3CashChart p={p} big={big} />;
+    if (kind === "S8") return <S8ValueChart p={p} big={big} />;
     const fo = financialsOverview(p, { years: 6, funded: true });
     const series = kind === "S14"
       ? [{ label: "Resource $ (R&D)", color: "#a78bfa", vals: fo.map((r) => r.rdK / 1000) }]

@@ -1656,12 +1656,13 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "diffs", name: "Value equation", kind: "table", req: true, cols: ["Differentiator", "Importance", "Ours", "NBA", "Value $"], hint: "importance × (our score − NBA score) = value. Same maths as the submit-idea form." },
     { id: "vprop", name: "Primary customer value proposition", kind: "longtext", req: true },
     { id: "capture", name: "Value creation + capture", kind: "metrics", items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "index", label: "Competitive index" } ] },
+    { id: "valuechart", name: "Value waterfall + WTP positioning", kind: "chart", linked: true },
     { id: "benefits", name: "Key customer benefits", kind: "list" },
     { id: "features", name: "Key technical features", kind: "list" } ] },
   { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
     { id: "stories", name: "High-priority user stories", kind: "table", req: true, cols: ["Persona", "As a… I want… so that…", "Req ID"], hint: "Req ID follows CRS-##.IN.SRS.### so the story survives into the matrix." } ] },
   { code: "S10", gate: "G2", stage: "Plan", source: "Business Case · annual forecast required at Plan", fields: [
-    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"] },
+    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "10a: annual at Plan; 10b: monthly at Develop — SoI/MoT cadence (month = quarter/3)." },
     { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, cols: ["Scenario", "L-1", "Launch", "Yr 2", "Yr 3"] },
     { id: "conf", name: "Confidence", kind: "metrics", items: [ { k: "tech", label: "Technical" }, { k: "comm", label: "Commercial" } ] } ] },
   { code: "S11", gate: "G2", stage: "Plan", source: "UXD validation", fields: [
@@ -1681,7 +1682,7 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "biz", name: "Business risks", kind: "table", req: true, cols: ["Level", "Topic", "Counter measure"] },
     { id: "deps", name: "Dependencies — internal IRAD / CRAD", kind: "list" } ] },
   { code: "S14", gate: "G4", stage: "Qualify", source: "Roadmap", fields: [
-    { id: "fte", name: "FTE # by function", kind: "table", req: true, cols: ["Function", "Yr 1", "Yr 2", "Yr 3", "Yr 4"] },
+    { id: "fte", name: "FTE # by function", kind: "table", req: true, cols: ["Function", "Yr 1", "Yr 2", "Yr 3", "Yr 4"], hint: "Resource needs per Year (roll to Quarter via SoI/MoT cadence: quarter = 13 weeks)." },
     { id: "ftedollar", name: "FTE $ estimate", kind: "table", cols: ["Function", "Yr 1", "Yr 2", "Yr 3"] },
     { id: "reschart", name: "Combined resource needs", kind: "chart", linked: true },
     { id: "notes", name: "Alignment notes", kind: "list" } ] },
@@ -1753,6 +1754,15 @@ export function reviewApprovalRows(activity: AuditEntry[], members: MembershipMa
 // below). Consumed by SlideShowModal.cellOf as the default when the user hasn't authored a field.
 export type SlideSeedCell = { hi: SlideFieldValue; ai: SlideFieldValue };
 export type SlideSeed = Record<string, Record<string, Record<string, SlideSeedCell>>>;
+// S16 Product Life Cycle stage from CAGR (operator: PLC-3 mature at 0–3% CAGR, negative = PLC-4). Deterministic.
+export interface PlcStage { stage: "PLC-1" | "PLC-2" | "PLC-3" | "PLC-4"; label: string }
+export function plcStageOf(cagrPct: number): PlcStage {
+  if (cagrPct < 0) return { stage: "PLC-4", label: "Decline" };
+  if (cagrPct <= 3) return { stage: "PLC-3", label: "Mature" };
+  if (cagrPct <= 15) return { stage: "PLC-2", label: "Growth" };
+  return { stage: "PLC-1", label: "Introduction" };
+}
+
 // Import as a LOCAL binding (so buildDemoVersionSeed can read it) AND re-export for consumers.
 import { SLIDE_SEED } from "./innovation-slide-seed";
 export { SLIDE_SEED };
@@ -1842,6 +1852,16 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
       const w = winProbabilityOf(p);
       return [["Revenue", GATE_STAGE[p.gate], money(p.fullRev10yM), "—"], ["Win probability", "Plan", `${Math.round(w.p50 * 100)}%`, "—"]];
     }
+    case "S16.plc": {
+      const fo = financialsOverview(p, { years: 10, funded: true });
+      const first = Math.max(fo[0]?.revM ?? 0.01, 0.01), last = Math.max(fo[fo.length - 1]?.revM ?? first, 0.01);
+      const cagr = fo.length > 1 ? (Math.pow(last / first, 1 / (fo.length - 1)) - 1) * 100 : 0;
+      const st = plcStageOf(cagr);
+      const yr = parseInt(p.firstRevenue.match(/\d{4}/)?.[0] ?? "2027", 10);
+      return [["PLC-1: Introduction", `${p.firstRevenue}`], ["PLC-2: Growth", `${yr + 1}`], ["PLC-3: Mature (0–3% CAGR)", `${yr + 4}`], ["PLC-4: Decline (neg. CAGR)", `${yr + 8}`], ["Model CAGR → current stage", `${cagr.toFixed(1)}% → ${st.stage} ${st.label}`]];
+    }
+    case "S16.risks": return [`Growth: revenue tracking vs the ${money(p.fullRev10yM)} plan`, `Profit: margin ${execOf(p).marginPct}% hold vs actuals`, "Quality: customer OTTR + Mfg PPM"];
+    case "S16.counter": return ["Growth: expand pursuits + pricing actions", "Profit: cost-down + favorable mix", "Quality: containment + corrective action"];
     default: return null;
   }
 }
