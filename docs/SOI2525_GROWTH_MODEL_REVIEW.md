@@ -43,5 +43,7 @@
 
 **MoT synthesis:** The Growth Model is now one coherent, drill-down P&L on a single selector, seeded from clean tier tables, with Risk and Funded governance lenses and a bottom-up QTY·ASP·COGS build-up. Test suite green throughout (556→568). Remaining: operator feedback pass (this artifact) + the deferred global-feedback/footer work.
 
-## Deferred (operator: "later, after all plan")
-- Global feedback: anyone, anytime; system captures page + details; screenshot/snip upload (built-in). SECURITY-2525 into the footer line with Feedback + eXeL AI, tool-wide.
+## Deferred → SHIPPED (task #324, 2026-07-28)
+- **Global feedback** — anyone, anytime: the trigger is in the global footer on every route. Built-in **Snip** (getDisplayMedia one-frame → PNG, graceful fallback to Upload) beside **Upload**; `handleSubmit` auto-captures page context (path, title, viewport, ISO timestamp). Capture is always user-gestured. Files: `frontend/components/feedback-widget.tsx`.
+- **SECURITY-2525 in the footer line** with Feedback + eXeL AI, tool-wide (`frontend/components/providers.tsx` SiteFooter); homepage's duplicate in-flow pill removed. 
+- **HTML feedback artifact:** `docs/feedback/SoI2525_Feedback_2026.07.28_images.html` (deployed-image cards + Approve/Change/N-A verdicts + 12-AsM review). Builder: `docs/feedback/build_soi2525_footer_feedback_2026.07.28.mjs`.
