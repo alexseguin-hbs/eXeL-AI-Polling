@@ -20,7 +20,9 @@ type Secret = { labelKey: string; view: string; download: string };
 type Demo = { labelKey: string; codeKey: string; openKey: string; href: string };
 // An inline image shown under the card text by default (no toggle).
 type CardImage = { src: string; altKey: string };
-type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; tagKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo; image?: CardImage; defaultOpen?: boolean };
+// Small label/value stats shown under the image (e.g. Build effort · estimated Value).
+type Stat = { labelKey: string; valueKey: string };
+type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; tagKey?: string; icon?: LucideIcon; secret?: Secret; demo?: Demo; image?: CardImage; stats?: Stat[]; defaultOpen?: boolean };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -49,6 +51,10 @@ const WRITEUPS: Item[] = [
     blurbKey: "experiences.egg.soi.blurb",
     href: "/main/SoI-2525/",
     image: { src: "/experiences/innovate-speed-of-thought.png", altKey: "experiences.egg.poster.alt" },
+    stats: [
+      { labelKey: "experiences.egg.soi.buildLabel", valueKey: "experiences.egg.soi.buildVal" },
+      { labelKey: "experiences.egg.soi.valueLabel", valueKey: "experiences.egg.soi.valueVal" },
+    ],
     demo: {
       labelKey: "experiences.egg.soi.demoLabel",
       codeKey: "experiences.egg.soi.demoCode",
@@ -224,6 +230,17 @@ function Card({ item }: { item: Item }) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.image.src} alt={t(item.image.altKey)} className="block h-auto w-full" />
                 </button>
+              )}
+              {/* Build / Value stats — under the image, before the demo toggle */}
+              {item.stats && item.stats.length > 0 && (
+                <div className="mt-3 grid gap-x-4 gap-y-2 rounded-lg border border-border/60 bg-background/40 p-3 sm:grid-cols-2">
+                  {item.stats.map((s) => (
+                    <div key={s.valueKey} className="flex flex-col">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">{t(s.labelKey)}</span>
+                      <span className="text-[13px] font-medium text-foreground">{t(s.valueKey)}</span>
+                    </div>
+                  ))}
+                </div>
               )}
               {item.kind === "pdf" && (
                 <div className="mt-3 flex items-center gap-2">
