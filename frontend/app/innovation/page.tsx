@@ -4456,6 +4456,10 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // line visibly rises from the first bar. Its per-year value = base-year bar top × (1+growth)^y.
   const baseTop = stackPos[0] || Math.max(1, baseM);
   const targetLine = rows.map((_, i) => baseTop * Math.pow(1 + growth, i));
+  // Target (Growth) line only makes sense in Incremental mode and never while a Step 1/2/3 component view is
+  // active (operator). The "Growth target" legend is its on/off toggle; it's disabled outside Incremental mode.
+  const targetApplies = incr && !step;
+  const showTarget = showBaseline && targetApplies;
   const max = Math.max(...targetLine, ...stackPos, 1) * 1.1;
   const minV = Math.min(0, ...stackNeg) * 1.1;
   const pw = (W - L - R) / rows.length;
@@ -4574,8 +4578,8 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
             </g>
           );
         })}
-        {showBaseline && <polyline points={rows.map((_, i) => `${L + i * pw + pw * 0.5},${y(targetLine[i])}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />}
-        {showBaseline && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(targetLine[i])} r="2.6" fill="#e2e8f0" />)}
+        {showTarget && <polyline points={rows.map((_, i) => `${L + i * pw + pw * 0.5},${y(targetLine[i])}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />}
+        {showTarget && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(targetLine[i])} r="2.6" fill="#e2e8f0" />)}
       </svg>
 
       {/* Stacked-segment legend — the child nodes of the current scope (Company→BUs, BU→SBUs, SBU→Alpha Codes). */}
@@ -4598,7 +4602,13 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
             className={`rounded border px-2 py-0.5 ${step === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
             style={step === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
         ))}
-        <span className="ml-1 text-slate-500"><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0" }} />Growth target</span>
+        {/* Growth-target on/off toggle (operator) — the white bullet + text IS the toggle. Only active in
+            Incremental mode with no Step selected; otherwise greyed (the target line doesn't apply). */}
+        <button type="button" onClick={() => setShowBaseline((v) => !v)} disabled={!targetApplies} aria-pressed={showTarget}
+          title={targetApplies ? "Toggle the growth target line" : "Growth target applies only in Incremental mode"}
+          className={`ml-1 inline-flex items-center ${targetApplies ? "text-slate-400 hover:text-slate-200" : "cursor-not-allowed text-slate-600"}`}>
+          <i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0", opacity: showTarget ? 1 : 0.3 }} />Growth target
+        </button>
       </div>
 
       {/* MoT time-spread (operator) — scoped cost/rev/margin totals spread to $/min over 91-day / 365-day / custom */}
@@ -4638,10 +4648,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           <input type="text" inputMode="decimal" value={declinePct} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && setDeclinePct(e.target.value)}
             className={`ml-1.5 w-16 ${selStyle} tabular-nums`} />
         </label>
-        <label className="flex items-center gap-1.5">
-          <input type="checkbox" checked={showBaseline} onChange={(e) => setShowBaseline(e.target.checked)} className="accent-cyan-500" />
-          Show target line
-        </label>
+        {/* "Show target line" checkbox removed — the toggle now lives on the "Growth target" legend above. */}
       </div>
     </div>
   );
