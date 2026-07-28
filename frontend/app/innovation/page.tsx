@@ -4429,11 +4429,16 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // Each segment carries its own per-year revenue series `revAt` (+ base-year `base` for Incremental). Hierarchy
   // uses the true per-node tier compounding; Pillar / Risk take a proportional slice of the ONE canonical series,
   // so every split's stack sums to the same total as Hierarchy for every year.
-  type Seg = { code: string; color: string; revAt: (i: number) => number; base: number; gm: (typeof rows) };
+  // `gm` carries the do-nothing components (Step 1 New · Step 2 Decline · Step 3 EOL · Incremental = 1−2+3).
+  // Hierarchy / Pillar segments own a real project subset, so their gm sums to the scope total (gmScale 1). Risk
+  // segments aren't a project partition — they carry the whole scope's gm scaled by their fraction, so the two
+  // risk slices still sum to the scope total.
+  type Seg = { code: string; color: string; revAt: (i: number) => number; base: number; gm: (typeof rows); gmScale?: number };
   const gmOpts = (over: number) => ({ years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: over } as const);
+  const scopeGm = growthModel(scoped, gmOpts(baseM));
   const segments: Seg[] = splitBy === "risk"
     ? ([["Risk-weighted", "#34d399", riskFrac], ["At-risk upside", "#fbbf24", 1 - riskFrac]] as const).map(([code, color, frac]): Seg => ({
-        code, color, revAt: (i: number) => frac * scopeRevSeries[i], base: frac * scopeRevSeries[0], gm: growthModel(scoped, gmOpts(baseM * frac)),
+        code, color, revAt: (i: number) => frac * scopeRevSeries[i], base: frac * scopeRevSeries[0], gm: scopeGm, gmScale: frac,
       }))
     : splitBy === "pillar"
     ? Array.from(new Set(inScope.map(pillarKey))).sort().map((code): Seg => {
@@ -4445,10 +4450,13 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         code: n.code, color: segColorOf(childLevel, n.code, idx),
         revAt: (i: number) => n.seed * Math.pow(1 + n.g, i), base: n.seed, gm: growthModel(n.sp, gmOpts(baseM * n.share)),
       }));
-  // Value of a segment in a given year for the active band — its revenue series, transformed per band.
+  // Value of a segment in a given year for the active band. Full Rev/Mgn use the tier-grown revenue series;
+  // Incremental and the Step 1/2/3 components come from the do-nothing growth model, so Incremental == Step1 −
+  // Step2 + Step3 exactly (and ≈ Step 1, since only SAR + Legacy decline).
   const segVal = (seg: Seg, i: number) => {
     const rev = seg.revAt(i);
-    return band === "rev" ? rev : band === "mgn" ? rev * marginFrac : band === "incremental" ? rev - seg.base : band === "incmgn" ? (rev - seg.base) * marginFrac : band === "new" ? seg.gm[i].newRev : band === "decline" ? -seg.gm[i].declineRev : seg.gm[i].eolRev;
+    const gs = seg.gmScale ?? 1;
+    return band === "rev" ? rev : band === "mgn" ? rev * marginFrac : band === "incremental" ? seg.gm[i].incremental * gs : band === "incmgn" ? seg.gm[i].incremental * gs * marginFrac : band === "new" ? seg.gm[i].newRev * gs : band === "decline" ? -seg.gm[i].declineRev * gs : seg.gm[i].eolRev * gs;
   };
   const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, segVal(g, i)), 0));
   const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, segVal(g, i)), 0));
@@ -4460,7 +4468,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // active (operator). The "Growth target" legend is its on/off toggle; it's disabled outside Incremental mode.
   const targetApplies = incr && !step;
   const showTarget = showBaseline && targetApplies;
-  const max = Math.max(...targetLine, ...stackPos, 1) * 1.1;
+  // Y-axis auto-adjusts to the bars when the target line is hidden (operator) — otherwise a steep target would
+  // flatten the bars. Only include the target line in the max when it's actually drawn.
+  const max = Math.max(...(showTarget ? targetLine : []), ...stackPos, 1) * 1.1;
   const minV = Math.min(0, ...stackNeg) * 1.1;
   const pw = (W - L - R) / rows.length;
   const y = (v: number) => H - B - ((v - minV) / (max - minV)) * (H - B - T);

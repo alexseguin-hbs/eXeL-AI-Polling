@@ -1257,8 +1257,15 @@ export function growthModel(
   const baseYear = opts.baseYear ?? 2026, years = opts.years ?? 6;
   const decline = opts.decline ?? 0.15, growth = opts.growth ?? 0.038;
   const revMult = REV_MODE[opts.revMode ?? "full"].mult;
-  // Year-0 run rate: enterable LOB/company base revenue ($M) overrides the summed do-nothing.
+  // Year-0 run rate: enterable LOB/company base revenue ($M) overrides the summed do-nothing (drives the target
+  // line + the tier growth trajectory).
   const annualBase = opts.baseOverrideM != null ? opts.baseOverrideM : funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
+  // AAR fix: Step 2 (Decline) + Step 3 (EOL) must reflect the ACTUAL do-nothing revenue that is projected to
+  // decline — i.e. only the projects that carry existing revenue (SAR + Legacy; every other project has
+  // doNothing10yM = 0). Previously these eroded the whole tier base (baseOverrideM), so Decline was ~15% of the
+  // entire $143M base instead of the two declining lines — making Incremental ≪ Step 1. This base is always the
+  // projects' own do-nothing revenue, independent of the tier override.
+  const declineBase = funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
   const annualNpi = funded.reduce((s, p) => s + weightedRevM(p), 0) / 10 * revMult;
   const out: GrowthYear[] = [];
   for (let y = 0; y < years; y++) {
@@ -1270,8 +1277,9 @@ export function growthModel(
     // Operator's three components (single source — no second do-nothing computation): (1) New = next-gen ramp,
     // (2) Decline = revenue eroded vs base if unfunded, (3) EOL = prior-gen tail (quarter of the existing line).
     const newRev = weighted;
-    const declineRev = Math.max(0, annualBase - doNothing);
-    const eolRev = doNothing * EOL_FRACTION;
+    const declineDoNothing = declineBase * Math.pow(1 - decline, y);      // the actual declining lines, eroding
+    const declineRev = Math.max(0, declineBase - declineDoNothing);        // Step 2 — only SAR + Legacy contribute
+    const eolRev = declineDoNothing * EOL_FRACTION;                        // Step 3 — prior-gen tail of those lines
     const incremental = newRev - declineRev + eolRev; // "1 − 2 + 3" → Incremental Revenue (orange)
     out.push({ year: baseYear + y, doNothing, weighted, remaining, target, newRev, declineRev, eolRev, incremental });
   }

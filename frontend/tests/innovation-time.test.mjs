@@ -84,6 +84,14 @@ ok(gm.every((r) => Math.abs(r.incremental - (r.newRev - r.declineRev + r.eolRev)
 ok(gm.every((r) => r.newRev >= 0 && r.declineRev >= 0 && r.eolRev >= 0), "growth components are non-negative");
 ok(gm[0].declineRev === 0 && gm[5].declineRev > gm[0].declineRev, "decline-if-unfunded grows from zero at year 0");
 ok(gm[0].newRev === gm[0].weighted, "New band = probability-weighted next-gen ramp");
+// AAR lock: Step 2 (Decline) + Step 3 (EOL) come from the projects' ACTUAL do-nothing revenue, NOT the tier base
+// override — a huge baseOverrideM must NOT inflate Decline/EOL (only projects with existing revenue decline).
+const gmBase = growthModel([P({ doNothing10yM: 600, fullRev10yM: 900 })], { years: 6, decline: 0.15 });
+const gmOver = growthModel([P({ doNothing10yM: 600, fullRev10yM: 900 })], { years: 6, decline: 0.15, baseOverrideM: 5000 });
+ok(gmBase.every((r, i) => Math.abs(r.declineRev - gmOver[i].declineRev) < 1e-9 && Math.abs(r.eolRev - gmOver[i].eolRev) < 1e-9), "Decline/EOL are override-independent (from actual do-nothing revenue, not the tier base)");
+// New-revenue-only project (doNothing10yM = 0): zero Decline + zero EOL → Incremental == Step 1 New.
+const gmNewOnly = growthModel([P({ doNothing10yM: 0, fullRev10yM: 900 })], { years: 6, decline: 0.15, baseOverrideM: 5000 });
+ok(gmNewOnly.every((r) => r.declineRev === 0 && r.eolRev === 0 && Math.abs(r.incremental - r.newRev) < 1e-9), "new-revenue-only: Decline=EOL=0, Incremental == Step 1 New");
 
 /* ---------------- Rack & Stack 2525: hierarchy + crowd-sourced risk register ---------------- */
 import {
