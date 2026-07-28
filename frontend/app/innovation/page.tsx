@@ -32,7 +32,7 @@ import {
   valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
   valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf, killRiskOf,
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
-  DEMO_DEPS, dependencySummary, dependsOn, dependentsOf,
+  DEMO_DEPS, dependencySummary, dependsOn, dependentsOf, constellationLayout,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
   seedBizSetup, BIZ_TIERS, fmtPerCadence, CADENCE_UNIT, type Cadence,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
@@ -4557,8 +4557,10 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
   // Bubble size is selectable (deck: NPV · Year-1 Rev · 3-Year Rev · 10-Year Rev).
   const [sizeMode, setSizeMode] = useState<"npv" | "y1" | "y3" | "y10">("npv");
   // Node color-mode (Slice 5) — funding · risk · value-contribution · Intelligence-Load overlay.
-  const [colorMode, setColorMode] = useState<"funding" | "risk" | "value" | "load">("funding");
+  const [colorMode, setColorMode] = useState<"division" | "funding" | "risk" | "value" | "load">("division");
+  const divColor = (d: string): string => `hsl(${parseInt((d + "|hue").split("").reduce((h, c) => ((h * 31 + c.charCodeAt(0)) | 0), 7).toString().replace("-", ""), 10) % 360}, 62%, 60%)`;
   const nodeStroke = (p: Project): string => {
+    if (colorMode === "division") return divColor(p.division);
     if (colorMode === "risk") { const r = riskBandOf(p); const w = [r.technical, r.commercial, r.dependency]; return w.includes("High") ? VIZ.rose : w.includes("Med") ? VIZ.amber : VIZ.emerald; }
     if (colorMode === "value") { const ci = valueEquationOf(p).competitiveIndex; return ci >= 60 ? "#34d399" : ci >= 40 ? "#94a3b8" : "#fb7185"; }
     if (colorMode === "load") { const m = Math.max(p.ai, p.si, p.hi); return m === p.ai ? VIZ.cyan : m === p.si ? VIZ.sunset : VIZ.hiViolet; }
@@ -4574,27 +4576,30 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
     return p.fullRev10yM;
   };
   const SIZE_LABEL: Record<string, string> = { npv: "NPV", y1: "Year-1 Rev", y3: "3-Year Rev", y10: "10-Year Rev" };
-  // Constellation layout (FLIR §4.3): layered by in-degree so the MOST-depended-upon project
-  // (the primary dependency) sinks to the BOTTOM and arrows point down to it. Nodes numbered
-  // by dependent-rank (#1 = most depended-upon). Bubble ∝ √NPV.
+  // Constellation — DETERMINISTIC force-directed layout (operator): seed by id hash, then drag / wheel-zoom / pan.
   const withDeps = projects.filter((p) => dependsOn(deps, p.id).length || dependentsOf(deps, p.id).length);
   const inDeg = (id: string) => dependentsOf(deps, id).length;
   const ranked = [...withDeps].sort((a, b) => inDeg(b.id) - inDeg(a.id) || npvM(b) - npvM(a));
   const rankOf = new Map(ranked.map((p, i) => [p.id, i + 1]));           // #1 = most depended-upon
-  const degVals = Array.from(new Set(withDeps.map((p) => inDeg(p.id)))).sort((a, b) => a - b); // asc → top→bottom
-  const layerOf = (id: string) => degVals.indexOf(inDeg(id));            // 0 = fewest dependents (top)
-  const nL = degVals.length;
-  const W = 640, H = 400, T = 34, Bm = 42;
-  const layerY = (li: number) => (nL <= 1 ? (T + H - Bm) / 2 : T + (li / (nL - 1)) * (H - T - Bm));
-  const pos = new Map<string, { x: number; y: number; r: number }>();
+  const W = 640, H = 400;
+  const ids = withDeps.map((p) => p.id);
+  const base = useMemo(() => constellationLayout(ids, deps.map((e) => ({ from: e.from, to: e.to })), { w: W, h: H }), [ids.join(","), deps]);
+  const [drag, setDrag] = useState<Record<string, { x: number; y: number }>>({});
+  const [view, setView] = useState({ s: 1, tx: 0, ty: 0 });
+  const dragRef = useRef<{ id: string | null; pan: boolean }>({ id: null, pan: false });
+  const svgRef = useRef<SVGSVGElement>(null);
   const maxSize = Math.max(...withDeps.map((p) => sizeVal(p)), 1);
-  degVals.forEach((_, li) => {
-    const nodes = withDeps.filter((p) => layerOf(p.id) === li).sort((a, b) => npvM(b) - npvM(a));
-    nodes.forEach((p, j) => {
-      const x = nodes.length === 1 ? W / 2 : 46 + (j / (nodes.length - 1)) * (W - 92);
-      pos.set(p.id, { x, y: layerY(li), r: 7 + 15 * Math.sqrt(Math.max(0, sizeVal(p)) / maxSize) });
-    });
-  });
+  const posOf = (id: string) => drag[id] ?? base[id] ?? { x: W / 2, y: H / 2 };
+  const rOf = (p: Project) => 7 + 15 * Math.sqrt(Math.max(0, sizeVal(p)) / maxSize);
+  const toSvg = (cx: number, cy: number) => { const r = svgRef.current?.getBoundingClientRect(); if (!r) return { x: 0, y: 0 }; const sx = (cx - r.left) / r.width * W, sy = (cy - r.top) / r.height * H; return { x: (sx - view.tx) / view.s, y: (sy - view.ty) / view.s }; };
+  const onDown = (e: React.PointerEvent, id: string | null) => { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); dragRef.current = { id, pan: id === null }; };
+  const onMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (d.id) { const pt = toSvg(e.clientX, e.clientY); setDrag((m) => ({ ...m, [d.id!]: { x: Math.max(14, Math.min(W - 14, pt.x)), y: Math.max(14, Math.min(H - 14, pt.y)) } })); }
+    else if (d.pan) { const r = svgRef.current?.getBoundingClientRect(); if (!r) return; setView((v) => ({ ...v, tx: v.tx + e.movementX / r.width * W, ty: v.ty + e.movementY / r.height * H })); }
+  };
+  const onUp = () => { dragRef.current = { id: null, pan: false }; };
+  const onWheel = (e: React.WheelEvent) => { setView((v) => ({ ...v, s: Math.max(0.5, Math.min(3, v.s * (e.deltaY < 0 ? 1.1 : 0.9))) })); };
   return (
     <DashCard title="Dependencies · Summary + Constellation" tag="Cross-project">
       {/* Bubble-size selector (deck: NPV · Year-1 · 3-Year · 10-Year) */}
@@ -4608,46 +4613,54 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
         </div>
         <span className="text-[10px] uppercase tracking-wider text-slate-500">{t("innovation.dep.colorBy")}</span>
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {(["funding", "risk", "value", "load"] as const).map((m) => (
+          {(["division", "funding", "risk", "value", "load"] as const).map((m) => (
             <button key={m} onClick={() => setColorMode(m)}
-              className={`px-2 py-1 ${colorMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{t(`innovation.dep.${m}`)}</button>
+              className={`px-2 py-1 ${colorMode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{m === "division" ? "Division" : t(`innovation.dep.${m}`)}</button>
           ))}
         </div>
-        <span className="ml-auto text-[10px] text-slate-500">Gravity: most-depended-upon sinks to the bottom</span>
+        <button onClick={() => { setDrag({}); setView({ s: 1, tx: 0, ty: 0 }); }} className="rounded border border-slate-700 px-2 py-1 text-[10px] text-slate-400 hover:bg-slate-800">Reset layout</button>
+        <span className="ml-auto text-[10px] text-slate-500">Force-directed · drag nodes · wheel-zoom · drag background to pan</span>
       </div>
-      {/* Constellation graph */}
-      <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 520, height: "auto" }}>
+      {/* Constellation graph — deterministic force layout with drag / zoom / pan */}
+      <ChartFrame label="Dependency Constellations">
+      <div className="overflow-hidden rounded-lg border border-slate-800 bg-[#0b0f14]">
+        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full touch-none select-none" style={{ height: "auto", cursor: dragRef.current.pan ? "grabbing" : "default" }}
+          onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onWheel={onWheel}>
           <defs>
             <marker id="dep-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="#64748b" />
             </marker>
           </defs>
+          {/* background hit area — drag to pan */}
+          <rect x={0} y={0} width={W} height={H} fill="transparent" onPointerDown={(e) => onDown(e, null)} style={{ cursor: "grab" }} />
+          <g transform={`translate(${view.tx},${view.ty}) scale(${view.s})`}>
           {deps.map((e, i) => {
-            const a = pos.get(e.from), b = pos.get(e.to);
+            const a = posOf(e.from), b = posOf(e.to);
             if (!a || !b) return null;
             return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={e.critical ? "#fb7185" : "#475569"} strokeWidth={e.critical ? 1.6 : 1} strokeDasharray={e.acknowledged ? "" : "4 3"} markerEnd="url(#dep-arrow)" opacity={0.7} />;
           })}
           {withDeps.map((p) => {
-            const pt = pos.get(p.id)!;
+            const pt = posOf(p.id), r = rOf(p);
             const rank = rankOf.get(p.id)!;
             const deg = inDeg(p.id);
             const stroke = nodeStroke(p);
-            const segs = p.segmentValueProps?.length ?? 0;      // segment-aware node thickness (Slice 5)
-            const sw = 2 + Math.min(4, segs);
+            const sw = 2 + Math.min(4, p.segmentValueProps?.length ?? 0);
             const halo = inheritsRisk(p);
             return (
-              <g key={p.id} className="cursor-pointer" onClick={() => onSelect(p.id)}>
-                {halo && <circle cx={pt.x} cy={pt.y} r={pt.r + 3.5} fill="none" stroke="#fbbf24" strokeWidth={1.5} strokeDasharray="2 2" opacity={0.8} />}
-                <circle cx={pt.x} cy={pt.y} r={pt.r} fill={BU_COLOR[hierOf(p).bu] ?? VIZ.cyan} fillOpacity={0.25} stroke={stroke} strokeWidth={sw} />
+              <g key={p.id} className="cursor-pointer" onPointerDown={(e) => onDown(e, p.id)} onClick={() => onSelect(p.id)}>
+                {halo && <circle cx={pt.x} cy={pt.y} r={r + 3.5} fill="none" stroke="#fbbf24" strokeWidth={1.5} strokeDasharray="2 2" opacity={0.8} />}
+                <circle cx={pt.x} cy={pt.y} r={r} fill={BU_COLOR[hierOf(p).bu] ?? VIZ.cyan} fillOpacity={0.25} stroke={stroke} strokeWidth={sw} />
                 <text x={pt.x} y={pt.y + 3.5} textAnchor="middle" fontSize="11" fontWeight="700" fill="#e2e8f0" fontFamily="ui-monospace, monospace">{rank}</text>
-                <text x={pt.x} y={pt.y - pt.r - 3} textAnchor="middle" fontSize="9" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{hierOf(p).bu}·{p.id.slice(-2)}{deg ? ` ·${deg}↓` : ""}</text>
-                <text x={pt.x} y={pt.y + pt.r + 9} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="ui-monospace, monospace">{usd(npvM(p))}</text>
+                <text x={pt.x} y={pt.y - r - 12} textAnchor="middle" fontSize="8" fill="#94a3b8" fontFamily="ui-monospace, monospace">{p.division}{deg ? ` ·${deg}↓` : ""}</text>
+                <text x={pt.x} y={pt.y - r - 3} textAnchor="middle" fontSize="9" fontWeight="600" fill="#e2e8f0">{p.name.length > 16 ? p.name.slice(0, 16) + "…" : p.name}</text>
+                <text x={pt.x} y={pt.y + r + 9} textAnchor="middle" fontSize="8" fill="#cbd5e1" fontFamily="ui-monospace, monospace">{SIZE_LABEL[sizeMode]} {sizeMode === "npv" ? usd(npvM(p)) : usd(sizeVal(p))}</text>
               </g>
             );
           })}
+          </g>
         </svg>
       </div>
+      </ChartFrame>
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
         <span className="text-slate-400"><b>#1 = most-depended-upon (bottom)</b> · arrows point down · ·N↓ = dependents</span>
         <span>bubble ∝ NPV</span>

@@ -826,6 +826,20 @@ import { spreadPerMin, spreadDaysOf, linearize, SPREAD_BASES } from "../lib/soi-
   ok(Math.abs(lin.reduce((a, b) => a + b, 0) - 120) < 1e-9, "linearize conserves the total");
 }
 
+/* ---------------- H4 — Dependency Constellations: deterministic force layout ---------------- */
+import { constellationLayout } from "../lib/innovation-data.ts";
+{
+  const nodes = ["A", "B", "C", "D", "E"];
+  const edges = [{ from: "A", to: "B" }, { from: "C", to: "B" }, { from: "D", to: "E" }];
+  const L1 = constellationLayout(nodes, edges, { w: 640, h: 400, iters: 80 });
+  const L2 = constellationLayout(nodes, edges, { w: 640, h: 400, iters: 80 });
+  ok(nodes.every((n) => L1[n] && typeof L1[n].x === "number"), "constellationLayout places every node");
+  ok(nodes.every((n) => JSON.stringify(L1[n]) === JSON.stringify(L2[n])), "constellationLayout is deterministic (same seed → same coords)");
+  ok(nodes.every((n) => L1[n].x >= 0 && L1[n].x <= 640 && L1[n].y >= 0 && L1[n].y <= 400), "nodes stay within the viewbox");
+  ok(constellationLayout([], [], {}) && Object.keys(constellationLayout([], [])).length === 0, "empty graph → empty layout (no crash)");
+  ok(constellationLayout(["X"], [{ from: "X", to: "MISSING" }]).X, "edges to missing nodes are ignored, node still placed");
+}
+
 /* ---------------- G4 — slide version history + replay backbone ---------------- */
 import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelta, isSubstantial, finSnapOf, buildDemoVersionSeed, SUBSTANTIAL_THRESHOLD } from "../lib/innovation-data.ts";
 {

@@ -2152,6 +2152,46 @@ export function dependencySummary(projects: Project[], deps: DepEdge[]): DepSumm
   }).sort((a, b) => b.npvWithDepsM - a.npvWithDepsM);
 }
 
+// Dependency Constellations — DETERMINISTIC force-directed layout (operator: live constellation, drag/zoom).
+// Seeds node positions from an id hash (no Math.random), then runs a fixed number of iterations of
+// charge-repulsion + edge-springs + centering. Same ids+edges → identical coordinates (reproducible).
+export function constellationLayout(
+  ids: string[], edges: { from: string; to: string }[], opts: { w?: number; h?: number; iters?: number } = {},
+): Record<string, { x: number; y: number }> {
+  const W = opts.w ?? 640, H = opts.h ?? 400, iters = opts.iters ?? 120, n = ids.length;
+  const pos: Record<string, { x: number; y: number; vx: number; vy: number }> = {};
+  ids.forEach((id) => {
+    const hx = parseInt(hashStr(id + "|x"), 36) % 1000, hy = parseInt(hashStr(id + "|y"), 36) % 1000;
+    pos[id] = { x: W * (0.15 + 0.7 * (hx / 1000)), y: H * (0.15 + 0.7 * (hy / 1000)), vx: 0, vy: 0 };
+  });
+  const idset = new Set(ids);
+  const E = edges.filter((e) => idset.has(e.from) && idset.has(e.to));
+  const k = Math.sqrt((W * H) / Math.max(1, n)); // ideal edge length
+  for (let it = 0; it < iters; it++) {
+    const cool = 1 - it / iters;
+    for (const a of ids) for (const b of ids) {
+      if (a === b) continue;
+      const dx = pos[a].x - pos[b].x, dy = pos[a].y - pos[b].y, d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      const rep = (k * k) / d; pos[a].vx += (dx / d) * rep; pos[a].vy += (dy / d) * rep;
+    }
+    for (const e of E) {
+      const dx = pos[e.from].x - pos[e.to].x, dy = pos[e.from].y - pos[e.to].y, d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      const att = (d * d) / k, fx = (dx / d) * att, fy = (dy / d) * att;
+      pos[e.from].vx -= fx; pos[e.from].vy -= fy; pos[e.to].vx += fx; pos[e.to].vy += fy;
+    }
+    for (const id of ids) {
+      pos[id].vx += (W / 2 - pos[id].x) * 0.01; pos[id].vy += (H / 2 - pos[id].y) * 0.01;
+      pos[id].x += Math.max(-30, Math.min(30, pos[id].vx * 0.05 * cool));
+      pos[id].y += Math.max(-30, Math.min(30, pos[id].vy * 0.05 * cool));
+      pos[id].vx *= 0.85; pos[id].vy *= 0.85;
+      pos[id].x = Math.max(14, Math.min(W - 14, pos[id].x)); pos[id].y = Math.max(14, Math.min(H - 14, pos[id].y));
+    }
+  }
+  const out: Record<string, { x: number; y: number }> = {};
+  for (const id of ids) out[id] = { x: +pos[id].x.toFixed(2), y: +pos[id].y.toFixed(2) };
+  return out;
+}
+
 // ── GATE REQUIREMENTS REGISTRY (SPEC §3) — the governance-facing second surface ───────────
 // One unified registry of what is required at each gate, folding three sources into a single
 // grammar (§3.1): (1) the S1–S18 review deliverables (derived from GATE_REVIEW, no duplication),
