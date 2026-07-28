@@ -13,7 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac,
-  BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario,
+  BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   gateScheduleOf, defaultStartISO, addDaysISO, PHASE_DAYS, type GateStop,
@@ -4017,6 +4017,20 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
               <span className="text-slate-500">M</span>
             </div>
           ))}
+        </div>
+        {/* Per-scenario SBU budget split — weighted by NRE demand (operator: assign SBU/Alpha budgets per scenario) */}
+        <div className="mt-3 space-y-1.5">
+          {scenarios.map((s) => (
+            <div key={`alloc-${s.key}`} className="flex flex-wrap items-center gap-1.5 text-[10px]">
+              <span className="w-28 shrink-0 truncate text-slate-500">{s.label} · ${s.m}M →</span>
+              {scenarioNodeBudgets(s.m, DEMO_PROJECTS, "sbu").map((n) => (
+                <span key={n.node} className="rounded border border-slate-700 bg-[#0b0f14] px-1.5 py-0.5 tabular-nums text-slate-300">
+                  <span className="font-mono text-cyan-400">{n.node}</span> <span className="text-emerald-300">${n.m}M</span>
+                </span>
+              ))}
+            </div>
+          ))}
+          <p className="text-[10px] text-slate-500">SBU budgets are weighted by each SBU&apos;s NRE demand and sum to the scenario total. Per-node editable overrides land next.</p>
         </div>
       </div>
 

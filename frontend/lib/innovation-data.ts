@@ -1314,6 +1314,17 @@ export function rackGroupedByParent(projects: Project[], level: HierKey): { pare
   return { parentLevel, groups };
 }
 
+// Per-scenario node budgets (operator: assign each R&D scenario's total across SBU/Alpha-Group). Seeded
+// WEIGHTED BY NRE demand at the chosen level (higher NRE → larger slice); falls back to an even split when no
+// NRE. Pure + deterministic; sums back to totalM (± rounding). Feeds the Admin scenario editor + funding views.
+export function scenarioNodeBudgets(totalM: number, projects: Project[], level: HierKey = "sbu"): { node: string; m: number }[] {
+  const rows = rackByLevel(projects, level);
+  if (!rows.length) return [];
+  const totNre = rows.reduce((s, r) => s + r.nreK, 0);
+  if (totNre <= 0) return rows.map((r) => ({ node: r.key, m: Math.round((totalM / rows.length) * 10) / 10 }));
+  return rows.map((r) => ({ node: r.key, m: Math.round((r.nreK / totNre) * totalM * 10) / 10 }));
+}
+
 // The three decision levels the tool is designed for (BU · SBU · Product Group).
 export const DECISION_LEVELS: HierKey[] = ["bu", "sbu", "pgroup"];
 

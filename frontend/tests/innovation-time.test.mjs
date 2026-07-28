@@ -1032,5 +1032,23 @@ import { blendedMarginFrac } from "../lib/innovation-data.ts";
   ok(gm.every((r) => Math.abs(r.incremental - (r.newRev - r.declineRev + r.eolRev)) < 1e-6), "Incremental Rev = Step1 New − Step2 Decline + Step3 EOL");
 }
 
+/* ---------------- Per-scenario SBU budgets (H33) — weighted by NRE, sums to the scenario total ---------------- */
+import { scenarioNodeBudgets } from "../lib/innovation-data.ts";
+{
+  for (const total of [66, 77, 88]) {
+    const split = scenarioNodeBudgets(total, DEMO_PROJECTS, "sbu");
+    ok(split.length === 8, `scenario $${total}M splits across 8 SBUs`);
+    ok(split.every((n) => n.m >= 0), `scenario $${total}M — no negative SBU budget`);
+    const sum = split.reduce((s, n) => s + n.m, 0);
+    ok(Math.abs(sum - total) <= split.length * 0.1, `scenario $${total}M SBU budgets sum to the total (±rounding): ${sum}`);
+  }
+  // Weighted: the SBU with the most NRE demand gets the biggest slice.
+  const rack = rackByLevel(DEMO_PROJECTS, "sbu");
+  const topNre = [...rack].sort((a, b) => b.nreK - a.nreK)[0].key;
+  const s66 = scenarioNodeBudgets(66, DEMO_PROJECTS, "sbu");
+  const topBudget = [...s66].sort((a, b) => b.m - a.m)[0].node;
+  ok(topBudget === topNre, "highest-NRE SBU receives the largest scenario budget (weighted)");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
