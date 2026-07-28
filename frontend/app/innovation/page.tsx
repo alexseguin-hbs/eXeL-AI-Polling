@@ -1226,48 +1226,51 @@ function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
   );
 }
 
-// Per-project financial projection — old product line declining (no innovation) + new product
-// ramp when funded. The operator methodology for aging-portfolio financials.
+// Per-project revenue projection (operator): Risk-Weighted Rev vs Full Revenue — a selector, stackable across
+// project → Alpha Group → SBU → BU (same two measures roll up cleanly). Full = projected revenue; Risk-Weighted =
+// Full × tech×commercial success prob (pSuccess). In Full mode the bar stacks Risk-Weighted (solid) + the at-risk
+// upside (light) up to Full; in Risk-Weighted mode only the solid base shows.
 function ProjectRevChart({ p }: { p: Project }) {
-  const [funded, setFunded] = useState(true);
-  const rows = projectRevSeries(p, { years: 10, funded });
+  const [mode, setMode] = useState<"risk" | "full">("full");
+  const rows = projectRevSeries(p, { years: 10, funded: true });
+  const pw = pSuccess(p);
+  const full = rows.map((r) => r.total);
+  const rw = full.map((v) => v * pw);
   const W = 340, H = 120, B = 16, T = 8;
-  const max = Math.max(...rows.map((r) => r.total), 1) * 1.1;
+  const max = Math.max(...(mode === "full" ? full : rw), 1) * 1.1;
   const bw = (W - 8) / rows.length;
   const hy = (v: number) => (v / max) * (H - B - T);
-  const noInno = projectRevSeries(p, { years: 10, funded: false });
-  const lost = noInno.reduce((s, r) => s + r.oldDecline, 0);
-  const added = rows.reduce((s, r) => s + r.newRamp, 0);
+  const totFull = full.reduce((a, b) => a + b, 0), totRw = rw.reduce((a, b) => a + b, 0);
   return (
     <div className="mt-3 border-t border-slate-800 pt-3">
-      <div className="flex items-center justify-between">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Financial projection · aging line + new product (10 yr)</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">Revenue · 10 yr · stackable (project → Alpha Grp → SBU → BU)</div>
         <div className="flex overflow-hidden rounded-md border border-slate-700 text-[10px]">
-          {([[true, "With new product"], [false, "No innovation"]] as const).map(([f, lbl]) => (
-            <button key={String(f)} onClick={() => setFunded(f)}
-              className={`px-2 py-0.5 ${funded === f ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          {([["risk", "Risk-Weighted"], ["full", "Full Revenue"]] as const).map(([m, lbl]) => (
+            <button key={m} onClick={() => setMode(m)} aria-pressed={mode === m}
+              className={`px-2 py-0.5 ${mode === m ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
         </div>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
         {rows.map((r, i) => {
           const x = 4 + i * bw + bw * 0.15, w = bw * 0.7;
-          const oh = hy(r.oldDecline), nh = hy(r.newRamp);
-          const yOld = H - B - oh, yNew = yOld - nh;
+          const rwh = hy(rw[i]), upH = mode === "full" ? hy(full[i] - rw[i]) : 0;
+          const yRw = H - B - rwh, yUp = yRw - upH;
           return (
             <g key={r.year}>
-              <title>{r.year}: old {Math.round(r.oldDecline)} + new {Math.round(r.newRamp)} = {Math.round(r.total)} $M</title>
-              <rect x={x} y={yOld} width={w} height={Math.max(0, oh)} fill="#64748b" opacity="0.7" />
-              <rect x={x} y={yNew} width={w} height={Math.max(0, nh)} fill="#34d399" />
+              <title>{r.year}: risk-weighted {Math.round(rw[i])}{mode === "full" ? ` · full ${Math.round(full[i])}` : ""} $M</title>
+              {mode === "full" && <rect x={x} y={yUp} width={w} height={Math.max(0, upH)} fill="#34d399" opacity="0.32" />}
+              <rect x={x} y={yRw} width={w} height={Math.max(0, rwh)} fill="#34d399" />
               {i % 3 === 0 && <text x={x + w / 2} y={H - 4} textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="ui-monospace, monospace">{String(r.year).slice(2)}</text>}
             </g>
           );
         })}
       </svg>
       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b" }} />old line (declines {Math.round((1 - noInno[9].oldDecline / (noInno[0].oldDecline || 1)) * 100)}% w/o innovation)</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />new product ramp</span>
-        <span className="ml-auto text-slate-400">erodes {usd(lost)} · new adds {usd(added)}</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399" }} />Risk-weighted (tech×comm {Math.round(pw * 100)}%)</span>
+        {mode === "full" && <span><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#34d399", opacity: 0.32 }} />at-risk upside</span>}
+        <span className="ml-auto text-slate-400">RW {usd(totRw)} · Full {usd(totFull)}</span>
       </div>
     </div>
   );
