@@ -4247,6 +4247,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
   const [showBaseline, setShowBaseline] = useState(true);
   // Growth-model band view (operator): Incremental (orange, New−Decline+EOL) by default; or one component.
   const [band, setBand] = useState<"incremental" | "incmgn" | "new" | "decline" | "eol">("incremental");
+  // Split-by dimension (operator): stack the bar by hierarchy child (default) or by strategic pillar (admin colors).
+  const [splitBy, setSplitBy] = useState<"hier" | "pillar">("hier");
+  const [pillarSel, setPillarSel] = useState<Set<string>>(new Set()); // multi-select (pillar mode only; empty = all)
   // MoT time-spread (operator, global deck lens): spread scoped cost/rev/margin totals to $/min over a chosen
   // window — 91-day (SoI) / 365-day / user-defined — persisted deck-wide. Linearized (even) for less lumpiness.
   const [spreadKey, setSpreadKey] = useState<SpreadKey>(() => (lsGet("innovation-spread") as SpreadKey) || "q91");
@@ -4296,11 +4299,20 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
   // SBU→Alpha Codes — grouped straight from the already-scoped funded set. Each segment runs the growth model
   // on its own projects with a proportional slice of the scope base, so the stack sums back to the scope total.
   const childLevel: HierKey = selBu === "All" ? "bu" : selSbu === "All" ? "sbu" : "alpha";
-  const scopeIncr = scoped.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
-  const segments = Array.from(new Set(scoped.map((p) => hierOf(p)[childLevel]))).sort().map((code, idx) => {
-    const sp = scoped.filter((p) => hierOf(p)[childLevel] === code);
+  // Split-by (operator IMG_8051): stack by hierarchy child (default) OR by strategic pillar. Pillar mode groups
+  // the scope by metaOf().initiative and colors each segment with the ADMIN pillar color (pillarColorOf), with an
+  // optional multi-select to view one/more pillars alone. Pillar set is derived at render (N pillars, not fixed).
+  const pillarDefs = loadPillars();
+  const pillarKey = (p: Project) => metaOf(p).initiative;
+  const inScope = splitBy === "pillar" && pillarSel.size ? scoped.filter((p) => pillarSel.has(pillarKey(p))) : scoped;
+  const segLabel = splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code";
+  const keyOf = (p: Project) => (splitBy === "pillar" ? pillarKey(p) : hierOf(p)[childLevel]);
+  const scopeIncr = inScope.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
+  const segments = Array.from(new Set(inScope.map(keyOf))).sort().map((code, idx) => {
+    const sp = inScope.filter((p) => keyOf(p) === code);
     const share = sp.reduce((s, p) => s + incrementalRevM(p), 0) / scopeIncr;
-    return { code, color: segColorOf(childLevel, code, idx), rows: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
+    const color = splitBy === "pillar" ? pillarColorOf(code, pillarDefs) : segColorOf(childLevel, code, idx);
+    return { code, color, rows: growthModel(sp, { years: years + 1, growth, decline, revMode, baseYear: 2026, baseOverrideM: baseM * share }) };
   });
   const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, seriesVal(g.rows[i])), 0));
   const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, seriesVal(g.rows[i])), 0));
@@ -4339,6 +4351,13 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
       {/* Scope breadcrumb (Christo) — the chart follows the ONE page-level Scope filter; no separate cascade. */}
       <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
         <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
+        {/* Split-by: hierarchy child (default) or strategic pillar (admin colors) */}
+        <div className="flex overflow-hidden rounded-md border border-slate-700">
+          {([["hier", "Hierarchy"], ["pillar", "Pillar"]] as const).map(([k, lbl]) => (
+            <button key={k} onClick={() => setSplitBy(k)} aria-pressed={splitBy === k}
+              className={`px-2.5 py-1 ${splitBy === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          ))}
+        </div>
         {/* # Years */}
         <div className="ml-auto flex overflow-hidden rounded-md border border-slate-700">
           {[1, 3, 10].map((yv) => (
@@ -4347,6 +4366,25 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
           ))}
         </div>
       </div>
+
+      {/* Pillar multi-select — only in pillar mode; empty = all pillars. Colors match Admin → Strategic Pillars. */}
+      {splitBy === "pillar" && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+          <span className="font-semibold uppercase tracking-wider text-slate-500">Pillars</span>
+          {pillarDefs.map((pl) => {
+            const on = pillarSel.size === 0 || pillarSel.has(pl.name);
+            return (
+              <button key={pl.name} onClick={() => setPillarSel((prev) => { const n = new Set(prev); n.has(pl.name) ? n.delete(pl.name) : n.add(pl.name); return n; })}
+                aria-pressed={pillarSel.has(pl.name)}
+                className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 ${pillarSel.has(pl.name) ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
+                style={pillarSel.has(pl.name) ? { background: pillarColorOf(pl.name, pillarDefs) } : undefined}>
+                <i className="inline-block h-2 w-2 rounded-sm" style={{ background: pillarColorOf(pl.name, pillarDefs), opacity: on ? 1 : 0.4 }} />{pl.name}
+              </button>
+            );
+          })}
+          {pillarSel.size > 0 && <button onClick={() => setPillarSel(new Set())} className="rounded border border-slate-700 px-1.5 py-0.5 text-slate-400 hover:bg-slate-800">All</button>}
+        </div>
+      )}
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
@@ -4386,7 +4424,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter }: { funded: Proje
 
       {/* Stacked-segment legend — the child nodes of the current scope (Company→BUs, BU→SBUs, SBU→Alpha Codes). */}
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
-        <span className="font-semibold uppercase tracking-wider text-slate-500">{childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code"}</span>
+        <span className="font-semibold uppercase tracking-wider text-slate-500">{segLabel}</span>
         {segments.length ? segments.map((g) => (
           <span key={g.code} className="inline-flex items-center gap-1"><i className="inline-block h-2 w-2 rounded-sm" style={{ background: g.color }} /><span className="font-mono">{g.code}</span></span>
         )) : <span className="italic text-slate-600">no projects in scope</span>}

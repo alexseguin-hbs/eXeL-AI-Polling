@@ -1097,5 +1097,16 @@ import { scopeSeed, buCagrPct } from "../lib/innovation-data.ts";
   for (const b of ["DS", "MS", "AP"]) ok(Number.isFinite(buCagrPct(DEMO_PROJECTS, b, { years: 10 })), `buCagrPct(${b}) is finite`);
 }
 
+// H36 — pillar split: every project maps to exactly one pillar (deterministic partition); admin color per pillar.
+import { metaOf as metaOf36, pillarColorOf as pillarColorOf36, STRATEGIC_INITIATIVES as SI36 } from "../lib/innovation-data.ts";
+{
+  const keys = DEMO_PROJECTS.map((p) => metaOf36(p).initiative);
+  ok(keys.every((k) => typeof k === "string" && k.length > 0), "every project resolves to exactly one pillar key");
+  ok(keys.every((k) => metaOf36(DEMO_PROJECTS.find((p) => metaOf36(p).initiative === k)).initiative === k), "pillar mapping is deterministic");
+  const groups = new Set(keys);
+  ok([...groups].reduce((s, k) => s + keys.filter((x) => x === k).length, 0) === DEMO_PROJECTS.length, "pillar groups partition the portfolio (sum = N)");
+  ok(SI36.every((n) => /^#|^hsl/.test(pillarColorOf36(n))), "pillarColorOf returns a color for each seeded pillar");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
