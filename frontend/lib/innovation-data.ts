@@ -1237,6 +1237,32 @@ export function rackByLevel(projects: Project[], level: HierKey): RackRow[] {
   }
   return Array.from(map.values()).sort((a, b) => b.npvM - a.npvM);
 }
+// Grouped Rack & Stack: cluster a level's rows under their PARENT level so the UI shows a parent header before
+// each split — SBU rows grouped under their BU; Alpha-Group rows grouped under their SBU (operator). Parents keep
+// NPV priority (order of first appearance in the NPV-sorted rows); rows within a parent stay NPV-desc. Pure.
+export interface RackGroup extends RackRow { parent: string; rows: RackRow[] }
+export function rackGroupedByParent(projects: Project[], level: HierKey): { parentLevel: HierKey | null; groups: RackGroup[] } {
+  const parentLevel: HierKey | null = level === "sbu" ? "bu" : level === "pgroup" ? "sbu" : null;
+  const rows = rackByLevel(projects, level); // NPV desc
+  if (!parentLevel) return { parentLevel: null, groups: rows.map((r) => ({ ...r, parent: "", rows: [r] })) };
+  const parentOf = new Map<string, string>();
+  for (const p of projects) parentOf.set(hierOf(p)[level], hierOf(p)[parentLevel]);
+  const order: string[] = [];
+  const byParent = new Map<string, RackRow[]>();
+  for (const r of rows) {
+    const par = parentOf.get(r.key) ?? "—";
+    if (!byParent.has(par)) { byParent.set(par, []); order.push(par); }
+    byParent.get(par)!.push(r);
+  }
+  const agg = (rs: RackRow[]): RackRow => ({
+    key: "", count: rs.reduce((s, x) => s + x.count, 0), nreK: rs.reduce((s, x) => s + x.nreK, 0),
+    weightedRevM: rs.reduce((s, x) => s + x.weightedRevM, 0), incRevM: rs.reduce((s, x) => s + x.incRevM, 0),
+    npvM: rs.reduce((s, x) => s + x.npvM, 0),
+  });
+  const groups: RackGroup[] = order.map((par) => ({ ...agg(byParent.get(par)!), key: par, parent: par, rows: byParent.get(par)! }));
+  return { parentLevel, groups };
+}
+
 // The three decision levels the tool is designed for (BU · SBU · Product Group).
 export const DECISION_LEVELS: HierKey[] = ["bu", "sbu", "pgroup"];
 

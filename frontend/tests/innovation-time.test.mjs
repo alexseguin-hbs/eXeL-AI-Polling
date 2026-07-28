@@ -130,6 +130,21 @@ ok(rackSbu.every((r, i) => i === 0 || rackSbu[i - 1].npvM >= r.npvM), "rack rows
 ok(Math.abs(rackSbu.reduce((s, r) => s + r.count, 0) - DEMO_PROJECTS.length) < 1e-9, "rack SBU counts sum to portfolio");
 ok(rackByLevel(DEMO_PROJECTS, "bu").length === 3 && rackByLevel(DEMO_PROJECTS, "material").length === DEMO_PROJECTS.length, "rack BU=3, Material# = one per project (BOM)");
 
+// ── grouped Rack & Stack (H10): SBU rows grouped under a BU header, Alpha Groups under an SBU header ──
+import { rackGroupedByParent } from "../lib/innovation-data.ts";
+{
+  const gS = rackGroupedByParent(DEMO_PROJECTS, "sbu");
+  ok(gS.parentLevel === "bu", "sbu split → parent header level is BU");
+  ok(gS.groups.length === 3, "sbu split → 3 BU parent groups");
+  ok(gS.groups.flatMap((g) => g.rows).length === rackSbu.length, "grouped SBU rows === flat SBU row count (none dropped)");
+  ok(gS.groups.every((g) => Math.abs(g.npvM - g.rows.reduce((s, r) => s + r.npvM, 0)) < 1e-9), "BU header NPV = Σ its SBU rows");
+  ok(gS.groups.reduce((s, g) => s + g.count, 0) === DEMO_PROJECTS.length, "BU headers' project counts sum to portfolio");
+  const gP = rackGroupedByParent(DEMO_PROJECTS, "pgroup");
+  ok(gP.parentLevel === "sbu", "Alpha-Group split → parent header level is SBU");
+  ok(gP.groups.flatMap((g) => g.rows).length === rackByLevel(DEMO_PROJECTS, "pgroup").length, "grouped Alpha-Group rows === flat count");
+  ok(rackGroupedByParent(DEMO_PROJECTS, "bu").parentLevel === null, "BU split has no parent header level");
+}
+
 // ── aging-portfolio financial model: old line declines (no innovation); new product ramps if funded ──
 const P01 = DEMO_PROJECTS.find((p) => p.id === "PRJ-01");
 const sFund = projectRevSeries(P01, { years: 10, funded: true });
