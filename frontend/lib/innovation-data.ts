@@ -1269,6 +1269,9 @@ export type HierKey = typeof HIER_LEVELS[number]["key"];
 export interface HierPath { bu: string; sbu: string; pgroup: string; alpha: string; product: string; material: string }
 
 export const COMPANY_NAME = "Company (All BUs)";
+// Editable brand shown in the header eyebrow (Vision • 2525 · <brand>) and seeded into BizSetup.company.
+// Distinct from COMPANY_NAME (the drill-down rollup aggregate label, which stays "Company (All BUs)").
+export const DEFAULT_COMPANY_NAME = "Harmattan AI";
 // BU (2-letter) — aka LOB. SBU (3-letter) rolls up to a BU. Codes + human labels.
 export const BU_LABEL: Record<string, string> = { MS: "Mission System", DS: "Drone Swarm", AP: "Advanced Programs" };
 // Trinity color per BU (SoI: AI cyan · SI sunset · HI violet) — the ONE hierarchy color source shared by the
@@ -1631,7 +1634,7 @@ export function seedBizSetup(projects: Project[]): BizSetup {
     product.push({ code: h.product, label: p.name, parent: h.alpha });
     material.push({ code: h.material, label: `${p.name} variant`, parent: h.product });
   }
-  return { company: COMPANY_NAME, bu: uniq(bu), sbu: uniq(sbu), pgroup: uniq(pgroup), alpha: uniq(alpha), product: uniq(product), material: uniq(material) };
+  return { company: DEFAULT_COMPANY_NAME, bu: uniq(bu), sbu: uniq(sbu), pgroup: uniq(pgroup), alpha: uniq(alpha), product: uniq(product), material: uniq(material) };
 }
 
 // ── STACK: rank order → cumulative NRE → funding line (CRS-42/43/71) ─────────────────────

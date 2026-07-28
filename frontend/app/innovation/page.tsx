@@ -36,7 +36,7 @@ import {
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
   DEMO_DEPS, dependencySummary, dependsOn, dependentsOf, constellationLayout,
   STRATEGIC_INITIATIVES, PILLAR_DESC,
-  seedBizSetup, BIZ_TIERS, BU_COLOR, fmtPerCadence, CADENCE_UNIT, type Cadence,
+  seedBizSetup, DEFAULT_COMPANY_NAME, BIZ_TIERS, BU_COLOR, fmtPerCadence, CADENCE_UNIT, type Cadence,
   can, roleOf, isLastLead, scrubText, ROLE_LABEL, PROJECT_ROLES, type ProjectRole, type ProjectMember, type MembershipMap,
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   changeSummaryRows, reviewApprovalRows,
@@ -254,11 +254,14 @@ function Board() {
   // Master data (BU/SBU/Alpha…) for the edit + new-idea dropdowns; reloads ONLY when LEAVING Setup (not on
   // every tab switch — spurious localStorage re-read + full state replace on each navigation, Stability).
   const [setup, setSetup] = useState<BizSetup>(() => seedBizSetup(DEMO_PROJECTS));
+  // Editable company brand shown in the header eyebrow. Admin renames it live via onCompanyRename (below);
+  // seeded/hydrated from the master Business Setup (setup.company), default "Harmattan AI".
+  const [companyName, setCompanyName] = useState(DEFAULT_COMPANY_NAME);
   const _prevViewForSetup = useRef<typeof view | null>(null);
   useEffect(() => {
     // Hydrate from the localStorage rung once on mount; thereafter re-read ONLY when LEAVING Setup — not on
     // every tab switch (the prior [view] dep re-read localStorage + full-replaced state on each navigation).
-    if (_prevViewForSetup.current === null || (_prevViewForSetup.current === "setup" && view !== "setup")) { setSetup(loadBizSetup()); setScenarios(loadScenarios()); }
+    if (_prevViewForSetup.current === null || (_prevViewForSetup.current === "setup" && view !== "setup")) { const s = loadBizSetup(); setSetup(s); setCompanyName(s.company); setScenarios(loadScenarios()); }
     _prevViewForSetup.current = view;
   }, [view]);
   // Remembered defaults — a returning VP lands on the VP lens, not a PM view (usability).
@@ -454,7 +457,7 @@ function Board() {
         for (const [key, raw] of Object.entries(bundle)) {
           if (CONFIG_KEYS.includes(key) && typeof raw === "string") lsSet(key, raw);
         }
-        setSetup(loadBizSetup()); setStackName(loadStackName());
+        const s = loadBizSetup(); setSetup(s); setCompanyName(s.company); setStackName(loadStackName());
       }
       // Per-project edits (new ideas, value drivers, gate/field edits) — durable + cross-device. Cloud is
       // the source of truth once the operator has saved anything; first load with no cloud keeps the seeds.
@@ -503,7 +506,7 @@ function Board() {
       <header className="border-b border-slate-800 px-5 py-4 flex flex-col gap-3">
         {/* Row 1: eyebrow (left) lines up with Template + New Idea tabs (right) — operator alignment */}
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · Harmattan AI</div>
+          <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400">Vision • 2525 · {companyName}</div>
           <div className="flex items-center gap-2">
             <button onClick={() => setTemplateOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10">
@@ -879,7 +882,7 @@ function Board() {
 
       {view === "setup" && (
         <div className="p-5">
-          <BusinessSetup onRename={setStackName} onClose={() => setView("portfolio")} />
+          <BusinessSetup onRename={setStackName} onCompanyRename={setCompanyName} onClose={() => setView("portfolio")} />
         </div>
       )}
       </div>{/* end scroll rail */}
@@ -3896,7 +3899,15 @@ function loadPillars(): PillarDef[] {
 // the seed. Powers the edit-project + Submit-New-Idea dropdowns so BU/SBU/Alpha changes flow.
 function loadBizSetup(): BizSetup {
   const saved = lsGet(BIZ_KEY);
-  if (saved) { try { return JSON.parse(saved) as BizSetup; } catch { /* fall through to seed */ } }
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved) as BizSetup;
+      // Coerce the legacy generic company label (or an empty value) to the brand so existing demo
+      // localStorage shows "Harmattan AI"; any operator-chosen custom name is preserved as-is.
+      if (!parsed.company?.trim() || parsed.company === COMPANY_NAME) parsed.company = DEFAULT_COMPANY_NAME;
+      return parsed;
+    } catch { /* fall through to seed */ }
+  }
   return seedBizSetup(DEMO_PROJECTS);
 }
 // R&D budget scenarios — admin-editable NAME + $M (operator), persisted in Business Setup; seeded from defaults.
@@ -3951,7 +3962,7 @@ function loadDogtag(): string[] {
   if (s) { try { const a = JSON.parse(s) as string[]; if (Array.isArray(a) && a.length) return a.filter((kk) => DOGTAG_METRICS.some((m) => m.key === kk)); } catch { /* default */ } }
   return DEFAULT_DOGTAG;
 }
-function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => void; onClose?: () => void }) {
+function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (name: string) => void; onCompanyRename?: (name: string) => void; onClose?: () => void }) {
   const [admin, setAdmin] = useState(false);
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
@@ -3967,8 +3978,7 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
   const { t } = useLexicon();
   useEffect(() => {
     setAdmin(ssGet(ADMIN_KEY) === "1");
-    const saved = lsGet(BIZ_KEY);
-    if (saved) { try { setSetup(JSON.parse(saved)); } catch { /* keep seed */ } }
+    setSetup(loadBizSetup()); // shared loader coerces the legacy company label → brand (single source)
     setPillars(loadPillars());
     setScenarios(loadScenarios());
     setBoard(loadReviewBoard());
@@ -3978,6 +3988,9 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
     setGlossary(Object.entries(loadGlossary()));
   }, []);
   const persist = (next: BizSetup) => { setSetup(next); lsSet(BIZ_KEY, JSON.stringify(next)); };
+  // Company brand — the TOP editable item; persists via the setup blob AND pushes the name up so the
+  // header eyebrow (Vision • 2525 · <brand>) updates live throughout the tool.
+  const persistCompany = (name: string) => { persist({ ...setup, company: name }); onCompanyRename?.(name); };
   const persistSegLib = (next: string[]) => { setSegLib(next); lsSet(SEGLIB_KEY, JSON.stringify(next)); };
   const persistGlossary = (next: [string, string][]) => { setGlossary(next); lsSet(GLOSSARY_KEY, JSON.stringify(Object.fromEntries(next.filter(([k2]) => k2.trim())))); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
@@ -4032,7 +4045,9 @@ function BusinessSetup({ onRename, onClose }: { onRename?: (name: string) => voi
       <div className="flex flex-wrap items-center gap-3">
         <div>
           <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-amber-400">Master Business Setup · Admin</div>
-          <input value={setup.company} onChange={(e) => persist({ ...setup, company: e.target.value })}
+          <label className="mt-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Company Name — top of hierarchy · drives the header brand</label>
+          <input value={setup.company} onChange={(e) => persistCompany(e.target.value)} placeholder={DEFAULT_COMPANY_NAME}
+            aria-label="Company name"
             className="mt-0.5 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-lg font-semibold text-slate-100 outline-none focus:border-cyan-500" />
         </div>
         <div className="ml-auto flex items-center gap-2 text-[11px]">
