@@ -23,7 +23,7 @@ import {
   DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
-  scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, rackGroupedByParent, projectRevSeries,
+  scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackGroupedByParent, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
@@ -401,7 +401,6 @@ function Board() {
   // Rack & Stack decisions + access rights are by BU · SBU · Alpha Group (Alpha Code is not a
   // decision level — it's only a project attribute). Product # = working stack · Material # = BOM.
   const isGroupLevel = stackLevel === "bu" || stackLevel === "sbu" || stackLevel === "pgroup";
-  const groupRows = useMemo(() => rackByLevel(scoped, stackLevel), [scoped, stackLevel]);
   const drilled = drill && stackLevel === "product" ? scoped.filter((p) => hierOf(p)[drill.level] === drill.value) : (filterActive ? scoped : null);
   // Breadcrumb ancestry (Company › BU › SBU › …) for the drilled node — clickable to navigate up.
   const HIER_ORDER: HierKey[] = ["bu", "sbu", "pgroup", "alpha"];
@@ -645,34 +644,54 @@ function Board() {
 
           <div className={portfolioMax ? "flex-1 min-h-0 overflow-auto" : "overflow-x-auto"}>
             {isGroupLevel && (() => {
-              // Group SBU rows under a BU header, and Alpha-Group rows under an SBU header (operator): show the
-              // parent header before each split. `flat` keeps the funding-line math aligned to the rendered order.
-              const grouped = rackGroupedByParent(scoped, stackLevel);
-              const flat = grouped.parentLevel ? grouped.groups.flatMap((g) => g.rows) : groupRows;
-              const st = stackWithBudget(flat.map((g) => ({ nreK: g.nreK } as unknown as Project)), avail);
-              const parentTag = grouped.parentLevel === "bu" ? "BU" : grouped.parentLevel === "sbu" ? "SBU" : "";
-              const parentName = (c: string) => grouped.parentLevel === "bu" ? (BU_LABEL[c] ?? c) : grouped.parentLevel === "sbu" ? (SBU_LABEL[c] ?? c) : c;
-              const dataRow = (g: typeof flat[number], i: number, indent: boolean) => (
-                <React.Fragment key={g.key}>
-                  {i === st.lineIndex && (
-                    <tr><td colSpan={7} className="px-2 py-0.5">
-                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
-                        <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(avail)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
-                      </div></td></tr>
-                  )}
-                  <tr onClick={() => { setDrill({ level: stackLevel, value: g.key }); setStackLevel("product"); }}
-                    className={`cursor-pointer border-b border-slate-900 hover:bg-cyan-500/10 hover:ring-1 hover:ring-inset hover:ring-cyan-500/30 ${st.rows[i]?.funded ? "" : "opacity-70"}`} title="Drill to projects">
-                    <td className="px-2 py-2 tabular-nums text-slate-400">{i + 1}</td>
+              // FUNDED / UNFUNDED split by the PROJECT-LEVEL funded set (fundedRows — the SAME source the Budget
+              // modal reads), NOT a group-cumulative funding line. So Σ NRE + project count ABOVE the line equal
+              // the Budget modal EXACTLY (operator: must be accurate in both) for every persona. A group that
+              // straddles the line appears in BOTH sections, each side carrying only its own projects.
+              const fundedIds = new Set(fundedRows.map((r) => r.p.id));
+              const fundedProjects = scoped.filter((p) => fundedIds.has(p.id));
+              const unfundedProjects = scoped.filter((p) => !fundedIds.has(p.id));
+              const parentTag = stackLevel === "sbu" ? "BU" : stackLevel === "pgroup" ? "SBU" : "";
+              const parentName = (c: string) => stackLevel === "sbu" ? (BU_LABEL[c] ?? c) : stackLevel === "pgroup" ? (SBU_LABEL[c] ?? c) : c;
+              const fundedNreK = fundedProjects.reduce((s, p) => s + p.nreK, 0);
+              const unfundedNreK = unfundedProjects.reduce((s, p) => s + p.nreK, 0);
+              type GRow = { key: string; nreK: number; weightedRevM: number; incRevM: number; npvM: number; count: number };
+              let rowNo = 0, cum = 0;
+              const dataRow = (g: GRow, indent: boolean, side: "funded" | "unfunded") => {
+                rowNo += 1; cum += g.nreK;
+                return (
+                  <tr key={`${side}-${g.key}`} onClick={() => { setDrill({ level: stackLevel, value: g.key }); setStackLevel("product"); }}
+                    className={`cursor-pointer border-b border-slate-900 hover:bg-cyan-500/10 hover:ring-1 hover:ring-inset hover:ring-cyan-500/30 ${side === "funded" ? "" : "opacity-70"}`} title="Drill to projects">
+                    <td className="px-2 py-2 tabular-nums text-slate-400">{rowNo}</td>
                     <td className={`px-2 py-2 font-medium ${indent ? "pl-6" : ""}`}>{indent && <span className="mr-1 text-slate-600">↳</span>}{g.key}</td>
                     <td className="px-2 py-2 text-center tabular-nums text-slate-400">{g.count}</td>
                     <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(g.nreK)}</td>
                     <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={g.weightedRevM} incremental={g.incRevM} /></td>
                     <td className={`px-2 py-2 text-right tabular-nums font-semibold ${g.npvM >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(g.npvM)}</td>
-                    <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(st.rows[i]?.cumK ?? 0)}</td>
+                    <td className="px-2 py-2 text-right tabular-nums text-slate-400">{k(cum)}</td>
                   </tr>
-                </React.Fragment>
-              );
-              let di = -1;
+                );
+              };
+              // A section (funded / unfunded) renders its own parent-grouped rows; parent aggregates reflect only
+              // that side's projects (we hand rackGroupedByParent only that side's project set).
+              const section = (projects: Project[], side: "funded" | "unfunded") => {
+                const grouped = rackGroupedByParent(projects, stackLevel);
+                return grouped.parentLevel
+                  ? grouped.groups.map((grp) => (
+                      <React.Fragment key={`${side}-grp-${grp.parent}`}>
+                        <tr className="border-y border-slate-800 bg-slate-900/60">
+                          <td className="px-2 py-1.5" />
+                          <td className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-cyan-300" colSpan={2}>{parentTag} · {grp.parent} <span className="normal-case text-slate-500">{parentName(grp.parent)} · {grp.count} proj</span></td>
+                          <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{k(grp.nreK)}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums"><PwtCell weighted={grp.weightedRevM} incremental={grp.incRevM} /></td>
+                          <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${grp.npvM >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(grp.npvM)}</td>
+                          <td className="px-2 py-1.5" />
+                        </tr>
+                        {grp.rows.map((g) => dataRow(g, true, side))}
+                      </React.Fragment>
+                    ))
+                  : grouped.groups.map((g) => dataRow(g, false, side));
+              };
               return (
                 <table className="w-full text-sm">
                   <thead>
@@ -687,22 +706,23 @@ function Board() {
                     </tr>
                   </thead>
                   <tbody>
-                    {grouped.parentLevel
-                      ? grouped.groups.map((grp) => (
-                          <React.Fragment key={`grp-${grp.parent}`}>
-                            {/* Parent rollup header — BU before its SBUs · SBU before its Alpha Groups */}
-                            <tr className="border-y border-slate-800 bg-slate-900/60">
-                              <td className="px-2 py-1.5" />
-                              <td className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-cyan-300" colSpan={2}>{parentTag} · {grp.parent} <span className="normal-case text-slate-500">{parentName(grp.parent)} · {grp.count} proj</span></td>
-                              <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{k(grp.nreK)}</td>
-                              <td className="px-2 py-1.5 text-right tabular-nums"><PwtCell weighted={grp.weightedRevM} incremental={grp.incRevM} /></td>
-                              <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${grp.npvM >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(grp.npvM)}</td>
-                              <td className="px-2 py-1.5" />
-                            </tr>
-                            {grp.rows.map((g) => { di += 1; return dataRow(g, di, true); })}
-                          </React.Fragment>
-                        ))
-                      : groupRows.map((g, i) => dataRow(g, i, false))}
+                    {/* ▲ ABOVE · FUNDED — count + Σ NRE match the Budget modal exactly */}
+                    <tr><td colSpan={7} className="px-2 py-1">
+                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
+                        <span>▲ Above · Funded</span><span className="text-slate-500">{fundedProjects.length} proj · {k(fundedNreK)} NRE</span><span className="h-px flex-1 bg-emerald-500/40" />
+                      </div></td></tr>
+                    {section(fundedProjects, "funded")}
+                    {/* FUNDING LINE */}
+                    <tr><td colSpan={7} className="px-2 py-0.5">
+                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
+                        <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(avail)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
+                      </div></td></tr>
+                    {/* ▼ BELOW · NOT FUNDED */}
+                    <tr><td colSpan={7} className="px-2 py-1">
+                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-rose-400">
+                        <span>▼ Below · Not funded</span><span className="text-slate-500">{unfundedProjects.length} proj · {k(unfundedNreK)} NRE</span><span className="h-px flex-1 bg-rose-500/40" />
+                      </div></td></tr>
+                    {section(unfundedProjects, "unfunded")}
                   </tbody>
                 </table>
               );

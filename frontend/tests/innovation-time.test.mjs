@@ -380,6 +380,30 @@ const stNone = stackWithBudget(stOrder, 500);
 ok(!stNone.rows[0].funded && stNone.lineIndex === 0, "nothing funded when budget < first project NRE (line at 0)");
 ok(stackWithBudget([], 1000).lineIndex === 0, "empty stack → lineIndex 0, no crash");
 
+/* Cross-surface parity (operator IMG_8157 vs IMG_8158): the Portfolio rack roll-up and the Budget modal MUST
+   classify the SAME funded set from the project-level funding line, so Σ funded NRE + project count match in
+   BOTH locations. rackByLevel(funded) is the rack's above-line total; fundingBuckets(...).funded is the modal's. */
+{
+  const avail = 66000; // $66M R&D funding line
+  const st = stackWithBudget(DEMO_PROJECTS, avail);
+  const fundedIds = new Set(st.rows.filter((r) => r.funded).map((r) => r.p.id));
+  const fundedProjects = DEMO_PROJECTS.filter((p) => fundedIds.has(p.id));
+  const unfundedProjects = DEMO_PROJECTS.filter((p) => !fundedIds.has(p.id));
+  const buckets = fundingBuckets(DEMO_PROJECTS, "sbu", (id) => fundedIds.has(id));
+  const rackFunded = rackByLevel(fundedProjects, "sbu");
+  const rackNreK = rackFunded.reduce((s, r) => s + r.nreK, 0);
+  const rackCount = rackFunded.reduce((s, r) => s + r.count, 0);
+  const bkNreK = buckets.reduce((s, b) => s + b.funded.nreK, 0);
+  const bkCount = buckets.reduce((s, b) => s + b.funded.count, 0);
+  const directNreK = fundedProjects.reduce((s, p) => s + p.nreK, 0);
+  ok(rackNreK === bkNreK && bkNreK === directNreK, "rack funded NRE == budget-modal funded NRE == Σ funded projects (match in both locations)");
+  ok(rackCount === bkCount && bkCount === fundedProjects.length, "rack funded count == budget-modal funded count == # funded projects");
+  const rackUnfNre = rackByLevel(unfundedProjects, "sbu").reduce((s, r) => s + r.nreK, 0);
+  const bkUnfNre = buckets.reduce((s, b) => s + b.unfunded.nreK, 0);
+  const totalNreK = DEMO_PROJECTS.reduce((s, p) => s + p.nreK, 0);
+  ok(rackUnfNre === bkUnfNre && (rackNreK + rackUnfNre) === totalNreK, "unfunded NRE matches too + funded+unfunded == total NRE (no project lost across the line)");
+}
+
 /* ---------------- Executive slide: two-bullet summary (AMTS overview one-pager) ---------------- */
 import { execSummaryBullets } from "../lib/innovation-data.ts";
 const eb = execSummaryBullets(DEMO_PROJECTS.find((p) => p.id === "PRJ-01"));
