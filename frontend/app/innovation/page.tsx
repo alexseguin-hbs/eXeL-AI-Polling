@@ -45,6 +45,7 @@ import {
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
+import { useViewport } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
@@ -181,6 +182,7 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
 // ── Portfolio workbench ─────────────────────────────────────────────────────────────────
 function Board() {
   const { t } = useLexicon();
+  const vp = useViewport(); // F6 — responsive contract (16:9/1080p/4k/other · portrait/landscape), parity with Architect/Security-2525
   // Default rank: by weighted NPV desc (a sane starting stack; user then drags).
   const [order, setOrder] = useState<Project[]>(
     [...DEMO_PROJECTS].sort((a, b) => npvM(b) - npvM(a))
@@ -497,7 +499,7 @@ function Board() {
     // Ease-of-viewing (operator): on phone/tablet (portrait + landscape) the whole PAGE scrolls so nothing —
     // including the bottom controls — is ever clipped by a fixed height; on desktop (lg+) keep the fixed
     // app-shell with an internal scroll rail. Mirrors the Architect-2525 / Security-2525 responsive pattern.
-    <div className="flex min-h-[100dvh] w-full flex-col bg-[#0b0f14] text-slate-100 lg:h-[100dvh] lg:overflow-hidden">
+    <div data-orientation={vp.orientation} data-vpclass={vp.aspectClass} className="flex min-h-[100dvh] w-full flex-col bg-[#0b0f14] text-slate-100 lg:h-[100dvh] lg:overflow-hidden">
     {/* Consistent max-width band (phone → desktop) — every section shares these bounds; full-bleed bg behind. */}
     <div className="mx-auto flex w-full max-w-[1600px] flex-col lg:min-h-0 lg:flex-1">
       {/* Header */}

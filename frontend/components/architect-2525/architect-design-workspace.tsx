@@ -12,6 +12,7 @@
  * keeps every existing SPIRAL assert (`[data-arch-subnav] button:has-text("Site")` + `[data-sky-view]`) green.
  */
 import { useEffect, useState, type ReactNode } from "react";
+import { useViewport } from "@/lib/use-viewport";
 import { createPortal } from "react-dom";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { AlvarMark } from "./alvar-mark";
@@ -134,12 +135,19 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2
   const [b2Open, setB2Open] = useState(false);       // B2 Approvals·Codes — expand on demand
   // "Selecting any item in the Layer Tree opens the Right Context Panel" — auto-open on a new selection.
   useEffect(() => { if (selectedId) setRightOpen(true); }, [selectedId]);
+  // F6 — responsive parity (matches SoI-2525 / Security-2525): react to viewport class + orientation. On a
+  // phone in PORTRAIT the engine needs the full width, so auto-collapse the left rail; restore it on
+  // landscape / larger viewports. Keyed on the transition so it never fights a manual toggle mid-orientation.
+  const vp = useViewport();
+  const phonePortrait = vp.isPhone && vp.orientation === "portrait";
+  useEffect(() => { setLeftOpen(!phonePortrait); }, [phonePortrait]);
   return (
     <div className="flex flex-col gap-2">
       {/* Width breakpoint (md = 768px), NOT orientation: on desktop/tablet the tree sits to the LEFT of the
           engine in one row; below md it stacks vertically (phones). No flex-wrap — wrapping let the engine
-          drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug). */}
-      <div data-arch-design-ws className="flex flex-col gap-2 md:flex-row md:items-stretch">
+          drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug).
+          F6: data-orientation / data-vpclass stamp the shared viewport contract for CSS + parity. */}
+      <div data-arch-design-ws data-orientation={vp.orientation} data-vpclass={vp.aspectClass} className="flex flex-col gap-2 md:flex-row md:items-stretch">
       <Rail side="left" title="Vision Tree" open={leftOpen} setOpen={setLeftOpen}
         titleIcon={<AlvarMark color={C.cyan} size={16} title="Alvar — guardian of the Vision Tree" />}>
         {leftRail ?? (
