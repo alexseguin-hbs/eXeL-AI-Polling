@@ -1257,29 +1257,24 @@ export function growthModel(
   const baseYear = opts.baseYear ?? 2026, years = opts.years ?? 6;
   const decline = opts.decline ?? 0.15, growth = opts.growth ?? 0.038;
   const revMult = REV_MODE[opts.revMode ?? "full"].mult;
-  // Year-0 run rate: enterable LOB/company base revenue ($M) overrides the summed do-nothing (drives the target
-  // line + the tier growth trajectory).
+  // Year-0 run rate: the grey BASELINE (existing) revenue ($M) — enterable base overrides the summed do-nothing.
+  // The base declines at `decline`/yr if unfunded (the grey bar drops); Step 2 (Decline) IS that erosion, Step 3
+  // (EOL) is a tail of it, and the New/Incremental stacks build on TOP of the declining baseline. (Operator: the
+  // 55M drop = the base eroding, e.g. 142 × (1 − 0.85^3) ≈ 55.)
   const annualBase = opts.baseOverrideM != null ? opts.baseOverrideM : funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
-  // AAR fix: Step 2 (Decline) + Step 3 (EOL) must reflect the ACTUAL do-nothing revenue that is projected to
-  // decline — i.e. only the projects that carry existing revenue (SAR + Legacy; every other project has
-  // doNothing10yM = 0). Previously these eroded the whole tier base (baseOverrideM), so Decline was ~15% of the
-  // entire $143M base instead of the two declining lines — making Incremental ≪ Step 1. This base is always the
-  // projects' own do-nothing revenue, independent of the tier override.
-  const declineBase = funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
   const annualNpi = funded.reduce((s, p) => s + weightedRevM(p), 0) / 10 * revMult;
   const out: GrowthYear[] = [];
   for (let y = 0; y < years; y++) {
-    const doNothing = annualBase * Math.pow(1 - decline, y);
+    const doNothing = annualBase * Math.pow(1 - decline, y);              // grey baseline, eroding YoY
     const ramp = Math.min(1, years <= 2 ? 1 : y / (years - 2)); // NPI ramps in over the horizon
     const weighted = annualNpi * ramp;
     const target = annualBase * Math.pow(1 + growth, y);
     const remaining = Math.max(0, target - doNothing - weighted);
-    // Operator's three components (single source — no second do-nothing computation): (1) New = next-gen ramp,
-    // (2) Decline = revenue eroded vs base if unfunded, (3) EOL = prior-gen tail (quarter of the existing line).
+    // Three components (single source): (1) New = next-gen ramp, (2) Decline = base revenue eroded vs baseline
+    // if unfunded (= the grey bar's drop), (3) EOL = prior-gen tail (a quarter of the do-nothing line).
     const newRev = weighted;
-    const declineDoNothing = declineBase * Math.pow(1 - decline, y);      // the actual declining lines, eroding
-    const declineRev = Math.max(0, declineBase - declineDoNothing);        // Step 2 — only SAR + Legacy contribute
-    const eolRev = declineDoNothing * EOL_FRACTION;                        // Step 3 — prior-gen tail of those lines
+    const declineRev = Math.max(0, annualBase - doNothing);                // Step 2 — the grey baseline's erosion
+    const eolRev = doNothing * EOL_FRACTION;                               // Step 3 — prior-gen tail of the baseline
     const incremental = newRev - declineRev + eolRev; // "1 − 2 + 3" → Incremental Revenue (orange)
     out.push({ year: baseYear + y, doNothing, weighted, remaining, target, newRev, declineRev, eolRev, incremental });
   }
