@@ -3472,13 +3472,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // because it is the one line a gate board has to act on.
       S1: () => (
         <>
-          <AmtsPanel title="Product · What It Is And Who It Is For" icon="◧" required={spec.stage}>
+          <AmtsPanel title="Product · What It Is And Who It Is For" icon="◧">
             {fieldsOf("oneline", "segment")}
           </AmtsPanel>
-          <AmtsPanel title="Key Value Proposition" icon="♡" required={spec.stage}>
+          <AmtsPanel title="Key Value Proposition" icon="♡">
             {fieldsOf("valueprop")}
           </AmtsPanel>
-          <AmtsPanel wide title="Recommendation · Ask For The Gate" icon="⚑" required={spec.stage}>
+          <AmtsPanel wide title="Recommendation · Ask For The Gate" icon="⚑">
             {fieldsOf("ask")}
           </AmtsPanel>
         </>
@@ -3489,7 +3489,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // rather than sitting above the grid — same GateTimeline, same live source link.
       S2: () => (
         <>
-          <AmtsPanel title="Return Profile" icon="▤" required={spec.stage}>
+          <AmtsPanel title="Return Profile" icon="▤">
             {fieldsOf("profile")}
           </AmtsPanel>
           <AmtsPanel title="Upside Spending Accelerator Lever" icon="⚡">
@@ -3514,7 +3514,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // number here is LINKED to the one financial record, so the panel only arranges — it never re-derives.
       S3: () => (
         <>
-          <AmtsPanel title="Return Profile · Revenue + Margin by Year" icon="▤" required={spec.stage}>
+          <AmtsPanel title="Return Profile · Revenue + Margin by Year" icon="▤">
             {fieldsOf("profile", "revtable")}
           </AmtsPanel>
           <AmtsPanel title="Cash Flow · R&D/NRE Out vs Revenue + Margin" icon="◈">
@@ -3530,7 +3530,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // proposition spans the foot of the slide as the single sentence a board remembers.
       S8: () => (
         <>
-          <AmtsPanel title="Competition · Next Best Alternative" icon="⚔" required={spec.stage}>
+          <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
             {fieldsOf("nba", "diffs")}
           </AmtsPanel>
           <AmtsPanel title="Value · Creation + Capture" icon="◈">
@@ -3545,7 +3545,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // column is the decision the board reads first, so the VOC table leads.
       S11: () => (
         <>
-          <AmtsPanel title="Early Validation · UXD Voice Of Customer" icon="◉" required={spec.stage}>
+          <AmtsPanel title="Early Validation · UXD Voice Of Customer" icon="◉">
             {fieldsOf("voc")}
           </AmtsPanel>
           <AmtsPanel title="Planned Experiments" icon="⚗">
