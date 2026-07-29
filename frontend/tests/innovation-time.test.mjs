@@ -1343,6 +1343,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // Every field id a built panel names must be a REAL field on that slide.
   const PANEL_FIELDS = {
     S1: ["oneline", "segment", "valueprop", "ask"],
+    S2: ["profile", "accel", "roadmap", "toprisks", "status"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
     S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"],
   };
@@ -1359,7 +1360,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // AmtsPanel is THE shared frame (Aset): built panels compose it, nobody hand-draws a second frame.
   ok(/function AmtsPanel\(/.test(src), "AmtsPanel frame primitive exists");
   const built = [...src.matchAll(/^\s{6}(S\d+|PRB\w*): \(\) => \(/gm)].map((m) => m[1]);
-  ok(built.length >= 2, `at least S2 + S8 panels are built (${built.join(", ")})`);
+  ok(built.length >= 4, `S1 + S2 + S3 + S8 panels are built (${built.join(", ")})`);
+  // S2 is the AMTS SIX-panel one-pager — the timeline is folded IN, not stacked above the grid.
+  const s2 = src.slice(src.indexOf("      S2: () => ("), src.indexOf("      S3: () => ("));
+  ok((s2.match(/<AmtsPanel/g) ?? []).length === 6, "S2 renders exactly 6 AMTS panels");
+  ok(/<GateTimeline p=\{p\} \/>/.test(s2), "S2's gate timeline is folded into a panel (GateTimeline reused, not rebuilt)");
   ok(built.every((c) => codes.includes(c)), "every built panel key is a real slide code");
   ok(built.length < codes.length, "the fallback still matters — not every slide is built yet");
 }

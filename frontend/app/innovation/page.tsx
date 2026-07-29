@@ -3483,16 +3483,31 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </AmtsPanel>
         </>
       ),
-      // S2 — the timeline card that shipped in G-play, re-expressed through the shared frame. Layout is
-      // UNCHANGED (wide timeline card, then the field grid) — only the frame is now the common primitive.
-      // The full 6-panel AMTS S2 lands in its own commit later in the build order.
+      // S2 — Project Overview as the AMTS SIX-PANEL one-pager (spec §S2 Δ): return profile + the upside
+      // spending-accelerator lever read across the top, the live MoT gate timeline spans the middle, and
+      // roadmap / risks / status close it out. The timeline card that shipped in G-play is FOLDED IN here
+      // rather than sitting above the grid — same GateTimeline, same live source link.
       S2: () => (
         <>
+          <AmtsPanel title="Return Profile" icon="▤" required={spec.stage}>
+            {fieldsOf("profile")}
+          </AmtsPanel>
+          <AmtsPanel title="Upside Spending Accelerator Lever" icon="⚡">
+            {fieldsOf("accel")}
+          </AmtsPanel>
           <AmtsPanel wide title="Program Timeline · MoT Gate Schedule · ◈ live" icon="🗓">
             <GateTimeline p={p} />
             <SourceLink source="Program start (source record)" />
           </AmtsPanel>
-          {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
+          <AmtsPanel title="Roadmap Snapshot" icon="◈">
+            {fieldsOf("roadmap")}
+          </AmtsPanel>
+          <AmtsPanel title="Top Risks + Dependencies" icon="⚠">
+            {fieldsOf("toprisks")}
+          </AmtsPanel>
+          <AmtsPanel wide title="Stage / Status" icon="◉">
+            {fieldsOf("status")}
+          </AmtsPanel>
         </>
       ),
       // S3 — Financials (AMTS: Return Profile + Revenue/Margin by Year | cash-flow chart + comments). Every
