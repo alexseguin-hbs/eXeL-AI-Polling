@@ -13,7 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
-  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, revPlanGateReq, revPlanGateGaps, annualPlanCells, monthly24Cells, annualPlanTotalM, perMinFinancials, type RevPlan,
+  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, revPlanGateReq, revPlanGateGaps, annualPlanCells, monthly24Cells, annualPlanTotalM, perMinFinancials, groupsOf, type RevPlan,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -4552,8 +4552,15 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const childLevel: HierKey | "project" = selBu === "All" ? "bu" : selSbu === "All" ? "sbu" : selPg === "All" ? "pgroup" : "project";
   // Membership includes altGroups (H5): a project belongs to its primary pgroup AND any additional Alpha Groups
   // within the same SBU, so scoping to any of them lists it (portfolio $ still counted once via primary pgroup).
-  const groupsOf = (p: Project): string[] => [hierOf(p).pgroup, ...(p.altGroups ?? [])];
-  const codeOf = (p: Project): string => (childLevel === "project" ? p.id : childLevel === "pgroup" ? hierOf(p).pgroup : hierOf(p)[childLevel]);
+  // When splitting BY Alpha Group, a shared project sits under the scoped group if that group is one of its
+  // memberships (else its primary) — so an SBU split shows it once, under the group the viewer is looking at.
+  const codeOf = (p: Project): string => {
+    if (childLevel === "project") return p.id;
+    if (childLevel !== "pgroup") return hierOf(p)[childLevel];
+    const mine = groupsOf(p);
+    const scoped = hierFilter.pgroup.filter((g) => mine.includes(g));
+    return scoped[0] ?? hierOf(p).pgroup;
+  };
   // H6 — project-level palette: 13 SoI-Trinity-derived colors, then HSL-rotate (golden angle) beyond 13.
   const TRINITY13 = ["#22d3ee", "#a78bfa", "#f7b955", "#34d399", "#fb7185", "#38bdf8", "#c084fc", "#fbbf24", "#4ade80", "#f472b6", "#2dd4bf", "#818cf8", "#fb923c"];
   const projColor = (i: number): string => (i < TRINITY13.length ? TRINITY13[i] : `hsl(${(i * 137.508) % 360}, 68%, 62%)`);

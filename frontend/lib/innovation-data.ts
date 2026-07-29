@@ -625,7 +625,7 @@ const DEMO_PROJECTS_BASE: Project[] = [
   { id: "PRJ-19", name: "XR Pilot Training & Mastery Suite (LVC)", division: "Training AI", lob: "SBU-2", manager: "S. Haddad", category: "New Product", gate: "G2", confidence: 3, tech: "med", comm: "low", nreK: 4200, fullRev10yM: 145, doNothing10yM: 12, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.5, ai: 0.5, si: 0.3, hi: 0.2, predictions: 20 },
   { id: "PRJ-20", name: "AI Dogfight RL Agent (MUM-T)", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "med", nreK: 9800, fullRev10yM: 320, doNothing10yM: 5, firstRevenue: "2029-Q2", criticalPath: true, humanLoad: 0.72, ai: 0.62, si: 0.23, hi: 0.15, predictions: 58 },
   { id: "PRJ-21", name: "Commander Decision-Speed SA Engine", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "low", nreK: 5200, fullRev10yM: 190, doNothing10yM: 20, firstRevenue: "2027-Q3", criticalPath: true, humanLoad: 0.58, ai: 0.6, si: 0.25, hi: 0.15, predictions: 33 },
-  { id: "PRJ-22", name: "Group 1/3/5 Multi-UAS Teaming Fabric", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 8600, fullRev10yM: 300, doNothing10yM: 8, firstRevenue: "2028-Q4", criticalPath: true, humanLoad: 0.68, ai: 0.55, si: 0.3, hi: 0.15, predictions: 44 },
+  { id: "PRJ-22", name: "Group 1/3/5 Multi-UAS Teaming Fabric", division: "Autonomy", lob: "SBU-1", manager: "R. Kaur", category: "New Platform", gate: "G2", confidence: 2, tech: "high", comm: "med", nreK: 8600, fullRev10yM: 300, doNothing10yM: 8, firstRevenue: "2028-Q4", criticalPath: true, humanLoad: 0.68, ai: 0.55, si: 0.3, hi: 0.15, predictions: 44, altGroups: ["DE2"] },
   // Real project example (A. Seguin, eXeL AI Strategy) — AI/ML Software & Integration for Army IVAS. Multi-domain
   // edge-AI platform ecosystem: fuses UGV/UAS/aircraft feeds into one IVAS COP with digital-twin mission planning,
   // in-app escalations + JADC2 engagement approvals. $18M ROM across 4 phases (KO+6/9/12/18 mo, 5→20 FTE).
@@ -635,6 +635,19 @@ const DEMO_PROJECTS_BASE: Project[] = [
   // description: UGV/UAS/heavy-lift teaming · edge neural nets · modular SWaP/TOPS compute · In-App escalations).
   // The tool merges partial coverage + the derived-fallback engine, so a multi-document node still resolves whole.
   { id: "PRJ-24", name: "Swarm C2 Edge Node", division: "Autonomy SW", lob: "SBU-2", manager: "A. Seguin", category: "New Product", gate: "G2", confidence: 3, tech: "high", comm: "med", nreK: 6800, fullRev10yM: 175, doNothing10yM: 12, firstRevenue: "2028-Q1", criticalPath: true, humanLoad: 0.6, ai: 0.55, si: 0.3, hi: 0.15, predictions: 31 },
+  // ── H5 (operator) — 9 additional projects so the SBU→Alpha-Group→Project drill has real data to render.
+  //    Spread 3 per BU (MS 10 · DS 14 · AP 9 of 33 → no BU holds more than half) and across gates G1–G6.
+  //    `altGroups` = extra Alpha Groups WITHIN THE SAME SBU; the primary `pgroup` still owns the portfolio $
+  //    (counted once), so double-membership can never double-count revenue/NRE.
+  { id: "PRJ-25", name: "Maritime Strike Seeker Upgrade", division: "Maritime ISR", lob: "SBU-1", manager: "M. Devlin", category: "New Product", gate: "G2", confidence: 3, tech: "med", comm: "low", nreK: 4400, fullRev10yM: 125, doNothing10yM: 0, firstRevenue: "2027-Q4", criticalPath: false, humanLoad: 0.52, ai: 0.35, si: 0.35, hi: 0.3, predictions: 23, altGroups: ["AB3"] },
+  { id: "PRJ-26", name: "Littoral Mine-Hunting Autonomy", division: "Maritime ISR", lob: "SBU-1", manager: "M. Devlin", category: "New Platform", gate: "G4", confidence: 4, tech: "med", comm: "med", nreK: 7100, fullRev10yM: 205, doNothing10yM: 0, firstRevenue: "2027-Q1", criticalPath: true, humanLoad: 0.61, ai: 0.45, si: 0.3, hi: 0.25, predictions: 35 },
+  { id: "PRJ-27", name: "Shipboard EW Aperture Gen-2", division: "ISR Payloads", lob: "SBU-1", manager: "A. Seguin", category: "New Product", gate: "G1", confidence: 2, tech: "high", comm: "med", nreK: 5600, fullRev10yM: 150, doNothing10yM: 0, firstRevenue: "2029-Q3", criticalPath: false, humanLoad: 0.57, ai: 0.4, si: 0.3, hi: 0.3, predictions: 29 },
+  { id: "PRJ-28", name: "Counter-UAS Directed Effector", division: "Effects", lob: "SBU-1", manager: "T. Cho", category: "New Platform", gate: "G3", confidence: 3, tech: "high", comm: "med", nreK: 9100, fullRev10yM: 265, doNothing10yM: 0, firstRevenue: "2028-Q3", criticalPath: true, humanLoad: 0.7, ai: 0.4, si: 0.3, hi: 0.3, predictions: 51, altGroups: ["DE2"] },
+  { id: "PRJ-29", name: "Loitering Munition Fire-Control", division: "Effects", lob: "SBU-1", manager: "T. Cho", category: "Sustaining+", gate: "G5", confidence: 4, tech: "low", comm: "low", nreK: 3900, fullRev10yM: 115, doNothing10yM: 0, firstRevenue: "2026-Q4", criticalPath: false, humanLoad: 0.45, ai: 0.3, si: 0.35, hi: 0.35, predictions: 16 },
+  { id: "PRJ-30", name: "Edge Mission Autonomy Runtime", division: "Autonomy SW", lob: "SBU-2", manager: "L. Okafor", category: "New Product", gate: "G2", confidence: 3, tech: "med", comm: "low", nreK: 5800, fullRev10yM: 195, doNothing10yM: 0, firstRevenue: "2028-Q2", criticalPath: true, humanLoad: 0.63, ai: 0.6, si: 0.25, hi: 0.15, predictions: 37, altGroups: ["DC1"] },
+  { id: "PRJ-31", name: "Sovereign Deep-Strike Datalink", division: "Comms", lob: "SBU-3", manager: "T. Cho", category: "Sustaining", gate: "G6", confidence: 5, tech: "low", comm: "low", nreK: 2600, fullRev10yM: 85, doNothing10yM: 0, firstRevenue: "2026-Q2", criticalPath: false, humanLoad: 0.36, ai: 0.25, si: 0.4, hi: 0.35, predictions: 12, altGroups: ["AP4"] },
+  { id: "PRJ-32", name: "Attritable Sensor Airframe", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Platform", gate: "G1", confidence: 1, tech: "high", comm: "high", nreK: 11200, fullRev10yM: 340, doNothing10yM: 0, firstRevenue: "2030-Q2", criticalPath: true, humanLoad: 0.69, ai: 0.55, si: 0.25, hi: 0.2, predictions: 71 },
+  { id: "PRJ-33", name: "Multi-Orbit ISR Tasking Broker", division: "Space ISR", lob: "SBU-3", manager: "V. Rossi", category: "New Product", gate: "G3", confidence: 3, tech: "med", comm: "med", nreK: 4900, fullRev10yM: 155, doNothing10yM: 0, firstRevenue: "2028-Q1", criticalPath: false, humanLoad: 0.54, ai: 0.5, si: 0.3, hi: 0.2, predictions: 27 },
 ];
 
 // Realistic simulated intelligence per project (Tom Sant NOSE-informed value prop + the competitive Next
@@ -825,6 +838,70 @@ const PROJECT_INTEL: Record<string, ProjectIntel> = {
       { segment: "Joint Force Commanders", prop: "Decentralized execution under intent with auditable JADC2 approvals.", pain: "un-auditable edge decisions", outcome: "intent-bound, auditable approvals", confidence: 3 },
     ],
   },
+  // ── H5 — intel for the 9 added projects (keeps the per-project value-prop / NBA / driver coverage locks green).
+  "PRJ-25": {
+    valueProp: "For maritime strike planners who must hit moving surface targets in sea clutter, the Maritime Strike Seeker Upgrade is a dual-mode seeker refresh that holds terminal lock through clutter and decoys. Unlike the legacy single-mode seeker, it retains track when the sea state and countermeasures degrade the return.",
+    nextBestAlternative: "Legacy single-mode radar seeker (loses terminal lock in high sea state and against decoys)",
+    valueDrivers: [d("Terminal lock through sea clutter", 1.0, 0.9, 0.42), d("Decoy/countermeasure discrimination", 0.9, 0.86, 0.4), d("Drop-in fit to fielded rounds", 0.82, 0.88, 0.55)],
+    killRisk: "Dual-mode seeker holds discrimination against modern decoys at operational sea states",
+    segmentValueProps: [{ segment: "Navy · Surface Warfare", prop: "Terminal lock that survives clutter and decoys, retrofit to fielded rounds.", pain: "lock loss in high sea state", outcome: "hit probability holds", confidence: 3 }],
+  },
+  "PRJ-26": {
+    valueProp: "For mine countermeasure units clearing littoral approaches, Littoral Mine-Hunting Autonomy is an autonomous UUV mission stack that classifies and re-acquires mine-like contacts without a manned platform in the minefield. Unlike towed sonar sweeps, it takes the crew out of the threat area and runs the search continuously.",
+    nextBestAlternative: "Manned towed-sonar minesweeping (crew in the minefield, slow area coverage)",
+    valueDrivers: [d("Crew removed from the minefield", 1.0, 0.94, 0.2), d("Autonomous classify + re-acquire", 0.92, 0.87, 0.45), d("Area coverage rate per sortie", 0.85, 0.83, 0.5)],
+    killRisk: "Autonomous classification holds false-alarm rate low enough to avoid re-clearing the same area",
+    segmentValueProps: [{ segment: "Navy · MCM", prop: "Clear the approach without putting a crew in the minefield.", pain: "crew exposure + slow sweeps", outcome: "unmanned, continuous clearance", confidence: 4 }],
+  },
+  "PRJ-27": {
+    valueProp: "For shipboard EW teams facing dense emitter environments, the Shipboard EW Aperture Gen-2 is a wideband array that geolocates and classifies threat emitters while the ship's own systems radiate. Unlike the current narrowband suite, it keeps situational awareness in a saturated spectrum.",
+    nextBestAlternative: "Current narrowband EW suite (saturates and loses classification in dense emitter environments)",
+    valueDrivers: [d("Wideband simultaneity in dense EMS", 1.0, 0.88, 0.38), d("Emitter geolocation accuracy", 0.9, 0.84, 0.45), d("Co-site interference rejection", 0.86, 0.85, 0.4)],
+    killRisk: "Co-site interference rejection holds while the ship's own radar and comms radiate at full power",
+    segmentValueProps: [{ segment: "Navy · EW", prop: "Classify and geolocate threats without going deaf to your own emissions.", pain: "co-site saturation", outcome: "SA holds in dense EMS", confidence: 2 }],
+  },
+  "PRJ-28": {
+    valueProp: "For base-defense cells facing one-way attack drones, the Counter-UAS Directed Effector is a low-cost-per-shot directed effector that defeats Group 1–3 UAS at magazine depths a missile cannot match. Unlike interceptor missiles, its cost per engagement makes saturation raids affordable to defend against.",
+    nextBestAlternative: "Interceptor-missile counter-UAS (cost per shot far exceeds the threat; magazine runs dry in a raid)",
+    valueDrivers: [d("Cost per engagement vs threat cost", 1.0, 0.95, 0.15), d("Effective magazine depth", 0.94, 0.9, 0.3), d("Group 1–3 defeat at useful range", 0.88, 0.82, 0.6)],
+    killRisk: "Effector holds defeat range and dwell against hardened airframes in adverse weather",
+    segmentValueProps: [{ segment: "Army · Base Defense", prop: "Defend against saturation drone raids without spending a missile per drone.", pain: "cost-exchange is upside-down", outcome: "affordable magazine depth", confidence: 3 }],
+  },
+  "PRJ-29": {
+    valueProp: "For loitering-munition operators, the Loitering Munition Fire-Control refresh shortens the sensor-to-shot loop with on-board target reacquisition after loss of link. Unlike the fielded fire-control, it completes the engagement when the operator link is intermittent.",
+    nextBestAlternative: "Fielded loitering-munition fire-control (aborts the engagement on link loss)",
+    valueDrivers: [d("Reacquire target after link loss", 1.0, 0.9, 0.3), d("Sensor-to-shot loop time", 0.9, 0.86, 0.5), d("Retrofit to fielded inventory", 0.85, 0.9, 0.6)],
+    killRisk: "On-board reacquisition meets the ROE evidence bar for engagement without operator confirmation",
+    segmentValueProps: [{ segment: "Army · Fires", prop: "Finish the engagement even when the link drops mid-flight.", pain: "aborts on link loss", outcome: "engagement completes", confidence: 4 }],
+  },
+  "PRJ-30": {
+    valueProp: "For autonomy integrators fielding third-party behaviors, the Edge Mission Autonomy Runtime is a certified on-platform runtime that executes vetted autonomy modules under commander intent with a full decision audit trail. Unlike bespoke per-platform stacks, one runtime carries behaviors across airframes.",
+    nextBestAlternative: "Bespoke per-platform autonomy stacks (re-integration cost for every airframe, no shared audit trail)",
+    valueDrivers: [d("Portability across airframes", 1.0, 0.9, 0.3), d("Auditable decision trail", 0.92, 0.88, 0.35), d("Certifiable module sandboxing", 0.88, 0.85, 0.45)],
+    killRisk: "Runtime sandboxing satisfies airworthiness for third-party autonomy modules",
+    segmentValueProps: [{ segment: "Joint · Autonomy Integration", prop: "Field vetted autonomy once and run it on every airframe, with an audit trail.", pain: "re-integration per platform", outcome: "write once, fly anywhere", confidence: 3 }],
+  },
+  "PRJ-31": {
+    valueProp: "For deep-strike planners operating beyond sovereign comms, the Sovereign Deep-Strike Datalink is a hardened waveform refresh that holds the mission link in jammed, PNT-denied corridors. Unlike the legacy datalink, it keeps the strike package connected where GPS and SATCOM are contested.",
+    nextBestAlternative: "Legacy strike datalink (drops in jammed / PNT-denied corridors)",
+    valueDrivers: [d("Link hold in jammed corridors", 1.0, 0.9, 0.35), d("PNT-denied operation", 0.9, 0.85, 0.3), d("Retrofit to fielded radios", 0.8, 0.92, 0.6)],
+    killRisk: "Waveform holds link margin against the projected 2030 jamming threat",
+    segmentValueProps: [{ segment: "Air Force · Strike", prop: "Keep the package connected where GPS and SATCOM are contested.", pain: "link drops in the corridor", outcome: "mission link holds", confidence: 5 }],
+  },
+  "PRJ-32": {
+    valueProp: "For space ISR planners who need attritable coverage, the Attritable Sensor Airframe is a low-cost sensing platform designed to be lost without breaking the constellation budget. Unlike exquisite satellites, its unit economics let coverage scale with risk rather than collapse under it.",
+    nextBestAlternative: "Exquisite low-count satellite constellation (each loss is unaffordable; coverage collapses under attrition)",
+    valueDrivers: [d("Unit cost enables attrition", 1.0, 0.93, 0.12), d("Coverage scales with count", 0.9, 0.86, 0.35), d("Rapid replenishment cadence", 0.85, 0.8, 0.4)],
+    killRisk: "Unit cost holds at production volume low enough for attritable use",
+    segmentValueProps: [{ segment: "USSF · ISR", prop: "Coverage that survives attrition because losing one is affordable.", pain: "each loss is unaffordable", outcome: "resilient coverage", confidence: 1 }],
+  },
+  "PRJ-33": {
+    valueProp: "For multi-orbit ISR tasking cells, the Multi-Orbit ISR Tasking Broker arbitrates collection requests across owned and partner constellations and returns the first feasible revisit. Unlike per-constellation tasking portals, it gives the planner one queue and one answer.",
+    nextBestAlternative: "Per-constellation tasking portals (planner arbitrates by hand across separate queues)",
+    valueDrivers: [d("Single cross-constellation queue", 1.0, 0.89, 0.25), d("First-feasible revisit solve", 0.9, 0.85, 0.4), d("Partner-asset arbitration", 0.85, 0.82, 0.35)],
+    killRisk: "Partner constellations expose tasking APIs with latency low enough for the revisit promise",
+    segmentValueProps: [{ segment: "Joint · ISR Tasking", prop: "One queue across every constellation, with the first feasible revisit returned.", pain: "hand-arbitrated portals", outcome: "one tasking answer", confidence: 3 }],
+  },
 };
 
 // Every project ships with populated intel merged over the base (explicit fields still win; a project
@@ -845,6 +922,9 @@ const REVPLAN_QTY: Record<string, number> = {
   "PRJ-07": 8, "PRJ-08": 45, "PRJ-09": 90, "PRJ-10": 600, "PRJ-11": 50, "PRJ-12": 140,
   "PRJ-13": 400, "PRJ-14": 120, "PRJ-15": 12, "PRJ-16": 55, "PRJ-17": 110, "PRJ-18": 40,
   "PRJ-19": 350, "PRJ-20": 200, "PRJ-21": 300, "PRJ-22": 180, "PRJ-23": 250, "PRJ-24": 220,
+  // H5 — volumes by archetype for the 9 added projects (space very-low · hardware low · attritable/software high).
+  "PRJ-25": 140, "PRJ-26": 65, "PRJ-27": 85, "PRJ-28": 400, "PRJ-29": 320,
+  "PRJ-30": 450, "PRJ-31": 260, "PRJ-32": 30, "PRJ-33": 180,
 };
 function revPlanProfileFor(p: Project): Pick<RevPlan, "profile" | "growthPctQ" | "rampQuarters"> {
   const isNew = p.category === "New Platform" || p.category === "New Product";
@@ -1488,6 +1568,17 @@ export const PROJECT_HIER: Record<string, HierPath> = {
   "PRJ-22": { bu: "DS", sbu: "DSE", pgroup: "DE1", alpha: "DE1W", product: "70022", material: "70022-001" },
   "PRJ-23": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1J", product: "70023", material: "70023-001" },
   "PRJ-24": { bu: "DS", sbu: "DSC", pgroup: "DC1", alpha: "DC1K", product: "70024", material: "70024-001" },
+  // H5 — 9 new projects. Existing BUs (MS/DS/AP) + existing SBUs only; new Alpha Groups AB3 · DE2 · DC2 · AP4
+  // give several SBUs 2+ groups so the SBU→Alpha-Group drill and cross-group membership are exercised.
+  "PRJ-25": { bu: "MS", sbu: "MSP", pgroup: "AB1", alpha: "AB1M", product: "70025", material: "70025-001" },
+  "PRJ-26": { bu: "MS", sbu: "MSP", pgroup: "AB3", alpha: "AB3S", product: "70026", material: "70026-001" },
+  "PRJ-27": { bu: "MS", sbu: "MSE", pgroup: "AB2", alpha: "AB2E", product: "70027", material: "70027-001" },
+  "PRJ-28": { bu: "DS", sbu: "DSE", pgroup: "DE1", alpha: "DE1C", product: "70028", material: "70028-001" },
+  "PRJ-29": { bu: "DS", sbu: "DSE", pgroup: "DE2", alpha: "DE2L", product: "70029", material: "70029-001" },
+  "PRJ-30": { bu: "DS", sbu: "DSC", pgroup: "DC2", alpha: "DC2E", product: "70030", material: "70030-001" },
+  "PRJ-31": { bu: "AP", sbu: "AP1", pgroup: "AP1", alpha: "AP1D", product: "70031", material: "70031-001" },
+  "PRJ-32": { bu: "AP", sbu: "AP1", pgroup: "AP4", alpha: "AP4A", product: "70032", material: "70032-001" },
+  "PRJ-33": { bu: "AP", sbu: "AP3", pgroup: "AP3", alpha: "AP3T", product: "70033", material: "70033-001" },
 };
 export const hierOf = (p: Project): HierPath => {
   const base = PROJECT_HIER[p.id] ?? { bu: BU_OF_SBU[p.lob] ?? p.lob, sbu: p.lob, pgroup: p.category, alpha: "—", product: p.id, material: `${p.id}-M01` };
@@ -1584,8 +1675,14 @@ export function hierValues(projects: Project[], level: HierKey, parent?: { level
   const scoped = parent ? projects.filter((p) => hierOf(p)[parent.level] === parent.value) : projects;
   return Array.from(new Set(scoped.map((p) => hierOf(p)[level]))).sort();
 }
+// H5 — Alpha-Group membership: a project belongs to its PRIMARY `pgroup` plus any `altGroups` (same SBU).
+// Scoping to any of them lists the project; the primary still owns the portfolio $ so nothing double-counts.
+export const groupsOf = (p: Project): string[] => [hierOf(p).pgroup, ...(p.altGroups ?? [])];
+export const inGroup = (p: Project, code: string): boolean => groupsOf(p).includes(code);
+
 export const filterByHier = (projects: Project[], level: HierKey, value: string): Project[] =>
-  value === "All" ? projects : projects.filter((p) => hierOf(p)[level] === value);
+  value === "All" ? projects
+    : projects.filter((p) => (level === "pgroup" ? inGroup(p, value) : hierOf(p)[level] === value));
 
 // Multi-select scope filter across BU · SBU · Alpha Group (pgroup). Each level is OR-within / AND-across;
 // an empty set for a level = no constraint at that level (all-empty ⇒ all projects). Pure + deterministic;
@@ -1596,7 +1693,8 @@ export function scopeByHier(projects: Project[], sel: HierSel): Project[] {
   if (!bu.size && !sbu.size && !pg.size) return projects;
   return projects.filter((p) => {
     const h = hierOf(p);
-    return (!bu.size || bu.has(h.bu)) && (!sbu.size || sbu.has(h.sbu)) && (!pg.size || pg.has(h.pgroup));
+    // pgroup honours multi-group membership (primary + altGroups) so a shared project shows under either group.
+    return (!bu.size || bu.has(h.bu)) && (!sbu.size || sbu.has(h.sbu)) && (!pg.size || groupsOf(p).some((g) => pg.has(g)));
   });
 }
 
@@ -2129,8 +2227,11 @@ export function plcStageOf(cagrPct: number): PlcStage {
 }
 
 // Import as a LOCAL binding (so buildDemoVersionSeed can read it) AND re-export for consumers.
-import { SLIDE_SEED } from "./innovation-slide-seed";
-export { SLIDE_SEED };
+import { SLIDE_SEED as SLIDE_SEED_AUTHORED } from "./innovation-slide-seed";
+import { SLIDE_SEED_H5 } from "./innovation-slide-seed-h5";
+// The 24 original projects carry 12-AsM authored deck content; the 9 H5 additions carry deck content generated
+// deterministically from their own intel (same hi+ai contract). One merged seed → one lookup for the whole deck.
+export const SLIDE_SEED: SlideSeed = { ...SLIDE_SEED_AUTHORED, ...SLIDE_SEED_H5 };
 
 export type SlideFieldValue = string | string[] | string[][] | Record<string, string> | null;
 

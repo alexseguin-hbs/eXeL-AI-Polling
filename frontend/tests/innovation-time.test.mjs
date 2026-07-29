@@ -1275,5 +1275,35 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(monthly24Cells(gQ1, gQ1.revPlan).every((c) => /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d\d$/.test(c.label)), "every monthly label is well-formed across boundaries");
 }
 
+/* ---------------- H5 — +9 projects & cross-Alpha-Group membership (SBU→AG→Project drill data) ---------------- */
+{
+  const { groupsOf, inGroup, scopeByHier } = await import("../lib/innovation-data.ts");
+  // Portfolio grew to 33 while the hierarchy shape (the drill's contract) is unchanged.
+  ok(DEMO_PROJECTS.length === 33, `portfolio is 33 projects after H5 (${DEMO_PROJECTS.length})`);
+  ok(hierValues(DEMO_PROJECTS, "bu").length === 3 && hierValues(DEMO_PROJECTS, "sbu").length === 8, "still exactly 3 BUs / 8 SBUs after H5");
+  const buCount = {};
+  for (const p of DEMO_PROJECTS) buCount[hierOf(p).bu] = (buCount[hierOf(p).bu] ?? 0) + 1;
+  ok(Math.max(...Object.values(buCount)) <= DEMO_PROJECTS.length / 2, "no BU holds more than half the 33-project portfolio");
+  ok(DEMO_PROJECTS.every((p) => hierOf(p).bu.length === 2 && hierOf(p).sbu.length === 3 && hierOf(p).pgroup.length === 3 && hierOf(p).alpha.length === 4), "BU 2 · SBU 3 · Alpha Group 3 · Alpha Code 4 chars for all 33");
+  // Cross-membership: altGroups must stay INSIDE the project's own SBU, and must name a real Alpha Group.
+  const shared = DEMO_PROJECTS.filter((p) => (p.altGroups ?? []).length > 0);
+  ok(shared.length >= 4, `at least 4 projects belong to 2+ Alpha Groups (${shared.length})`);
+  const groupSbu = {};
+  for (const p of DEMO_PROJECTS) groupSbu[hierOf(p).pgroup] = hierOf(p).sbu;
+  ok(shared.every((p) => (p.altGroups ?? []).every((g) => groupSbu[g] === hierOf(p).sbu)), "every altGroup is a real Alpha Group within the SAME SBU");
+  ok(shared.every((p) => groupsOf(p).length === new Set(groupsOf(p)).size), "membership has no duplicate groups (primary never repeated in altGroups)");
+  // A shared project is listed under BOTH its primary and its alt group.
+  const s0 = shared[0], primary = hierOf(s0).pgroup, alt = s0.altGroups[0];
+  ok(inGroup(s0, primary) && inGroup(s0, alt), `${s0.id} is a member of both ${primary} and ${alt}`);
+  ok(filterByHier(DEMO_PROJECTS, "pgroup", alt).some((p) => p.id === s0.id), "scoping to the ALT group lists the shared project");
+  ok(filterByHier(DEMO_PROJECTS, "pgroup", primary).some((p) => p.id === s0.id), "scoping to the PRIMARY group still lists it");
+  ok(scopeByHier(DEMO_PROJECTS, { bu: [], sbu: [], pgroup: [alt] }).some((p) => p.id === s0.id), "scopeByHier honours alt-group membership");
+  // No double-count: portfolio NRE / revenue counted ONCE despite multi-group membership.
+  const nreOnce = DEMO_PROJECTS.reduce((s, p) => s + p.nreK, 0);
+  const nreByGroup = Object.values(DEMO_PROJECTS.reduce((acc, p) => { const g = hierOf(p).pgroup; acc[g] = (acc[g] ?? 0) + p.nreK; return acc; }, {})).reduce((a, b) => a + b, 0);
+  ok(nreByGroup === nreOnce, "Σ NRE by PRIMARY Alpha Group == portfolio NRE (multi-membership never double-counts)");
+  ok(DEMO_PROJECTS.every((p) => p.revPlan && Math.abs(revPlanFullM(p, p.revPlan) - p.fullRev10yM) < 0.01), "all 33 projects still reconcile revPlanFullM == fullRev10yM");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
