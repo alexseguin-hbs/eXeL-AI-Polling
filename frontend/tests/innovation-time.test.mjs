@@ -1798,5 +1798,41 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(ship.indexOf("slide-shots.mjs") < ship.indexOf("test:pdf-gate"), "the PDF gate runs after the slide gate (both need the build)");
 }
 
+// ── #28 · Risk Register moves into Project details ──────────────────────────────────────
+// It sat on the main page taking a Project dropdown and listing EVERY project's risks. Under one project
+// the dropdown had exactly one possible value and the PROJECT column repeated the page heading on every
+// row. Now it renders directly beneath the rollup that summarises it — one risk region, not two places.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+
+  ok(/function RiskRegister\(\{ risks, setRisks, p \}: \{ risks: Risk\[\]; setRisks: \(r: Risk\[\]\) => void; p: Project \}\)/.test(src),
+     "RiskRegister takes ONE project — projects/selId/onSelect are gone from its signature");
+  ok((src.match(/<RiskRegister /g) ?? []).length === 1, "there is exactly ONE RiskRegister mount");
+  ok(/<div className="mt-3">\s*<RiskRegister risks=\{risks\} setRisks=\{setRisks\} p=\{p\} \/>/.test(src),
+     "it is mounted inside ProjectDetail, directly under the risk rollup");
+  ok(!/<RiskRegister risks=\{risks\} setRisks=\{setRisks\} projects=/.test(src), "the main-page mount is gone");
+
+  // scoped to the project, and the stale-default bug is now structurally impossible
+  ok(/\.filter\(\(r\) => r\.projectId === p\.id\)/.test(src), "the ranked list shows only THIS project's risks");
+  ok(/const pid = p\.id;/.test(src), "new risks are logged against the mounted project — no dropdown to get out of sync");
+  ok(!/useEffect\(\(\) => \{ setPid\(selId\); \}, \[selId\]\);/.test(src), "the effect that patched the stale dropdown default is gone with the dropdown");
+
+  // the PROJECT column is gone and its width went to the risk text
+  // Scope to RiskRegister's own source — DependencyPanel legitimately has a Project column of its own and
+  // must not be swept up by a repo-wide grep.
+  const rr = src.slice(src.indexOf("function RiskRegister("));
+  ok(!/<th className="px-2 py-1.5 text-left">Project<\/th>/.test(rr.slice(0, rr.indexOf("\nfunction "))), "the PROJECT column is removed from the Risk Register (DependencyPanel's own column is untouched)");
+  ok(/<th className="w-1\/2 px-2 py-1.5 text-left">Risk<\/th>/.test(src), "the freed width went to the RISK column");
+  ok(!/const nameOf = \(id: string\)/.test(src), "the project-name lookup the column needed is gone too");
+  ok(!/onClick=\{\(\) => onSelect\(r\.projectId\)\}/.test(src), "rows no longer navigate to another project — there is only one");
+
+  // identity the operator asked to keep
+  ok(/Risk Register · eXeL AI feedback session/.test(src), "the header keeps its identity");
+  ok(/Identify · Concur · De-risk/.test(src), "the Identify · Concur · De-risk explainer is kept");
+  ok(/\+ Identify risk/.test(src), "the identify-a-risk action is kept");
+  ok(/▲ concur/.test(src), "the concur (poll) action is kept");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

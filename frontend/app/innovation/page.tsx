@@ -837,7 +837,7 @@ function Board() {
             className="flex w-full items-center gap-1 rounded-lg border border-slate-700 bg-[#0e141b] px-3 py-2 text-[12px] font-medium text-slate-300 hover:bg-slate-800 landscape:hidden">
             ‹ {t("innovation.detail.back")}
           </button>
-          <ProjectDetail p={sel} risks={risks} setup={setup} maximized={false} onToggleMax={() => setDetailMax(true)}
+          <ProjectDetail p={sel} risks={risks} setRisks={setRisks} setup={setup} maximized={false} onToggleMax={() => setDetailMax(true)}
             onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
             onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           <TimeEngine p={sel} />
@@ -847,10 +847,6 @@ function Board() {
         </section>
       </div>
 
-      {/* Crowd-sourced Risk Register — anyone documents, the community polls, the team de-risks */}
-      <div className="px-5 pb-4">
-        <RiskRegister risks={risks} setRisks={setRisks} projects={scoped} selId={selId} onSelect={setSelId} />
-      </div>
 
       {/* Funding & Approval history — the append-only, timestamped, PERSISTED audit trail (Slice 6) */}
       <div className="px-5 pb-4">
@@ -908,7 +904,7 @@ function Board() {
       {detailMax && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={() => setDetailMax(false)} role="dialog" aria-modal="true" aria-label={sel?.name ?? "Project detail"}>
           <div className="mx-auto max-w-4xl" onClick={(e) => e.stopPropagation()}>
-            <ProjectDetail p={sel} risks={risks} setup={setup} maximized onToggleMax={() => setDetailMax(false)}
+            <ProjectDetail p={sel} risks={risks} setRisks={setRisks} setup={setup} maximized onToggleMax={() => setDetailMax(false)}
               onEdit={(patch, changes) => applyEdit(sel.id, patch, changes)}
               onApprove={(kind, by) => log(kind, sel.name, kind === "approve" ? `${GATE_STAGE[sel.gate]} (${sel.gate}) approved` : `${sel.gate} — changes requested`, by)} />
           </div>
@@ -2259,8 +2255,8 @@ function RiskPill({ label, level }: { label: string; level: Project["tech"] }) {
   return <span className={`rounded px-1.5 py-0.5 text-[11px] font-mono ${c}`}>{label} {RISK_LABEL[level]}</span>;
 }
 
-function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onApprove }: {
-  p: Project; risks: Risk[]; setup: BizSetup; maximized?: boolean; onToggleMax?: () => void;
+function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEdit, onApprove }: {
+  p: Project; risks: Risk[]; setRisks: (r: Risk[]) => void; setup: BizSetup; maximized?: boolean; onToggleMax?: () => void;
   onEdit: (patch: Partial<Project>, changes: string[]) => void;
   onApprove: (kind: "approve" | "reject", by: string) => void;
 }) {
@@ -2460,6 +2456,12 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
         <span className="text-slate-600">·</span>
         <span className="text-slate-300">exposure {Math.round(roll.liveExposure)}/{roll.rawExposure}</span>
         <span className="ml-auto text-emerald-400">{Math.round(roll.retired * 100)}% de-risked</span>
+      </div>
+      {/* The full Risk Register for THIS project, directly under the rollup that summarises it (operator,
+          2026-07-29). It used to sit on the main page with a Project dropdown and every project's rows;
+          under one project the rollup and the register are ONE risk region instead of two places to look. */}
+      <div className="mt-3">
+        <RiskRegister risks={risks} setRisks={setRisks} p={p} />
       </div>
       {/* Meta Data (FLIR §2.1 / IMG_7843): Strategic Initiative · Value Ladder · Target Market · Competitive */}
       <div className="mt-3 flex flex-wrap gap-1.5 text-[10px]">
@@ -2692,7 +2694,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
               <div className="space-y-1.5">
                 <SectionTitle>Critical Issues &amp; Risks</SectionTitle>
                 {myRisks.length === 0 ? (
-                  <p className="text-[11px] text-slate-500">No risks logged — raise one in the Risk Register.</p>
+                  <p className="text-[11px] text-slate-500">No risks logged — raise one in the Risk Register below.</p>
                 ) : (
                   <ul className="space-y-1">
                     {myRisks.slice(0, 4).map((r) => {
@@ -5892,20 +5894,19 @@ const statusColor: Record<RiskStatus, string> = {
   open: "text-rose-300", mitigating: "text-amber-300", mitigated: "text-emerald-300", accepted: "text-slate-400",
 };
 
-function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
-  risks: Risk[]; setRisks: (r: Risk[]) => void; projects: Project[]; selId: string; onSelect: (id: string) => void;
-}) {
+// Lives INSIDE Project details (operator, 2026-07-29). It was on the main page taking a Project dropdown and
+// listing every project's risks; sitting under one project it is scoped to THAT project — the dropdown had
+// exactly one possible value and the PROJECT column repeated the heading on every row.
+function RiskRegister({ risks, setRisks, p }: { risks: Risk[]; setRisks: (r: Risk[]) => void; p: Project }) {
   const [title, setTitle] = useState("");
   const [cat, setCat] = useState<RiskCategory>("technical");
   const [sev, setSev] = useState(3);
   const [like, setLike] = useState(3);
-  const [pid, setPid] = useState(selId);
-  // Track the selected project: when the operator selects another project elsewhere, default the
-  // Identify-risk form to it (the dropdown still allows manual override). Mirrors ProjectDetail's
-  // [p.id] reset — fixes the stale default that logged risks against the previously-selected project.
-  useEffect(() => { setPid(selId); }, [selId]);
-  const ranked = useMemo(() => [...risks].sort((a, b) => riskPriority(b) - riskPriority(a)), [risks]);
-  const nameOf = (id: string) => projects.find((p) => p.id === id)?.name ?? id;
+  // The project is the one this panel is mounted under. No dropdown to keep in sync, and no way to log a
+  // risk against the wrong project — the stale-default bug the dropdown needed an effect to work around
+  // cannot exist any more.
+  const pid = p.id;
+  const ranked = useMemo(() => [...risks].filter((r) => r.projectId === p.id).sort((a, b) => riskPriority(b) - riskPriority(a)), [risks, p.id]);
 
   const add = () => {
     if (!title.trim()) return;
@@ -5930,7 +5931,7 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">Risk Register · eXeL AI feedback session</h2>
+        <h2 className="text-sm font-semibold">Risk Register · eXeL AI feedback session <span className="font-normal text-slate-500">· {p.name}</span></h2>
         <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">Identify · Concur · De-risk</span>
       </div>
       <p className="mt-1 text-[11px] text-slate-500">Anyone identifies a risk; the team gives internal feedback by concurring (poll) — priority = severity × likelihood × status × concurrence. Actioned + correct predictions earn ♡ / 웃 / ◬ rewards.</p>
@@ -5940,11 +5941,6 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
         <label className="flex-1 min-w-[180px]">Risk
           <input value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()}
             placeholder="Describe a risk anyone should know about…" className={`mt-0.5 block w-full ${sel}`} />
-        </label>
-        <label>Project
-          <select value={pid} onChange={(e) => setPid(e.target.value)} className={`ml-1.5 ${sel}`}>
-            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
         </label>
         <label>Type
           <select value={cat} onChange={(e) => setCat(e.target.value as RiskCategory)} className={`ml-1.5 ${sel}`}>
@@ -5965,8 +5961,7 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
-              <th className="px-2 py-1.5 text-left">Risk</th>
-              <th className="px-2 py-1.5 text-left">Project</th>
+              <th className="w-1/2 px-2 py-1.5 text-left">Risk</th>
               <th className="px-2 py-1.5 text-center">S×L</th>
               <th className="px-2 py-1.5 text-center">Status</th>
               <th className="px-2 py-1.5 text-right">Priority</th>
@@ -5976,13 +5971,11 @@ function RiskRegister({ risks, setRisks, projects, selId, onSelect }: {
           </thead>
           <tbody>
             {ranked.map((r) => (
-              <tr key={r.id} onClick={() => onSelect(r.projectId)}
-                className={`cursor-pointer border-b border-slate-900 hover:bg-slate-800/40 ${selId === r.projectId ? "bg-cyan-500/5" : ""}`}>
-                <td className="px-2 py-1.5">
+              <tr key={r.id} className="border-b border-slate-900 hover:bg-slate-800/40">
+                <td className="w-1/2 px-2 py-1.5">
                   <div className="leading-tight">{r.title}</div>
                   <div className="text-[10px] text-slate-500">{r.category} · by {r.author}{r.mitigation ? ` · ${r.mitigation}` : ""}</div>
                 </td>
-                <td className="px-2 py-1.5 text-[11px] text-slate-400">{nameOf(r.projectId)}</td>
                 <td className="px-2 py-1.5 text-center">
                   <span className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${bandColor[riskBand(r)]}`}>{r.severity}×{r.likelihood}={riskScore(r)}</span>
                 </td>
