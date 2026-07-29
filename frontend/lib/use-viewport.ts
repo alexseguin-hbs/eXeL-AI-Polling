@@ -31,6 +31,24 @@ export function classifyViewport(w: number, h: number): ViewportInfo {
   return { w, h, aspect, aspectClass, orientation: w >= h ? "landscape" : "portrait", isPhone: short < 768 };
 }
 
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 3;
+
+/** Distance between two touch points. Pure — takes plain {clientX, clientY} pairs, not TouchEvent. */
+export function touchDistance(a: { clientX: number; clientY: number }, b: { clientX: number; clientY: number }): number {
+  return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+}
+
+/** Pure pinch-zoom resolver, shared by the 2525 apps.
+ *  `startZoom` is the zoom level captured WHEN THE GESTURE BEGAN — so a pinch continues from wherever the
+ *  ＋/－ buttons left off instead of snapping back to 1×. Result is clamped to [ZOOM_MIN, ZOOM_MAX] and
+ *  rounded to 2dp so React state settles (no infinite float churn). A zero/absent start distance is a no-op. */
+export function pinchZoom(startZoom: number, startDist: number, curDist: number): number {
+  if (!(startDist > 0) || !(curDist > 0)) return startZoom;
+  const next = startZoom * (curDist / startDist);
+  return +Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next)).toFixed(2);
+}
+
 const SSR_DEFAULT: ViewportInfo = classifyViewport(1440, 900); // stable SSR value (desktop landscape)
 
 /** Reactive viewport info. SSR-safe (returns a stable desktop default until mounted), then updates on

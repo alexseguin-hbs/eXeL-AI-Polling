@@ -45,7 +45,7 @@ import {
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
 } from "@/lib/innovation-data";
-import { useViewport } from "@/lib/use-viewport";
+import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
@@ -3162,10 +3162,36 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     el.requestFullscreen?.().catch(() => {});
     return () => { if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {}); };
   }, [present]);
-  // Swipe nav on the stage (touch).
+  // Swipe nav + PINCH-ZOOM on the stage (touch). One-finger drag pages the deck; two fingers zoom the 16:9
+  // canvas. The pinch EXTENDS the existing `zoom` state (the ＋/－ buttons stay the same source of truth) —
+  // `startZoom` is captured when the gesture begins so a pinch continues from where the buttons left off
+  // instead of snapping to 1×. `pinching` suppresses the swipe handler so lifting ONE finger out of a pinch
+  // can never page the slide (Enki).
   const touchX = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0]?.clientX ?? null; };
-  const onTouchEnd = (e: React.TouchEvent) => { if (touchX.current == null) return; const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); touchX.current = null; };
+  const pinchDist = useRef(0);
+  const startZoom = useRef(1);
+  const pinching = useRef(false);
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length >= 2) {
+      pinching.current = true;
+      pinchDist.current = touchDistance(e.touches[0], e.touches[1]);
+      startZoom.current = zoom;
+      touchX.current = null;
+      return;
+    }
+    touchX.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length < 2 || !pinching.current) return;
+    setZoom(pinchZoom(startZoom.current, pinchDist.current, touchDistance(e.touches[0], e.touches[1])));
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (pinching.current) { if (e.touches.length === 0) { pinching.current = false; pinchDist.current = 0; } return; }
+    if (touchX.current == null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+    touchX.current = null;
+  };
 
   // ---- field editors (edit-mode) ----
   const inputCls = "w-full rounded-lg border border-slate-700 bg-[#0e141b] px-2.5 py-1.5 text-[13px] text-slate-100 outline-none focus:border-cyan-500";
@@ -3420,7 +3446,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       : { height: "100%", aspectRatio: "16 / 9", maxWidth: "100vw", containerType: "size", transform: `scale(${zoom})`, transformOrigin: "center" };
     return (
       <div className="fixed inset-0 z-[60] flex flex-col bg-black text-slate-100" role="dialog" aria-modal="true"
-        onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+        style={{ touchAction: "none" }}>
         {/* TOP CONTROL BAR — always above the slide (never covers it) */}
         <div className="flex shrink-0 items-center justify-end gap-2 p-2">
           {/* zoom (esp. portrait) */}

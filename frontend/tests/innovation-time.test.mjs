@@ -1305,5 +1305,32 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(DEMO_PROJECTS.every((p) => p.revPlan && Math.abs(revPlanFullM(p, p.revPlan) - p.fullRev10yM) < 0.01), "all 33 projects still reconcile revPlanFullM == fullRev10yM");
 }
 
+// ── PINCH-ZOOM in Present mode (Athena: ships first) ────────────────────────────────────
+// The pinch EXTENDS the ＋/－ zoom state rather than replacing it. Locks: the two clamps, and the
+// Enki edge that a pinch must CONTINUE from the zoom level captured when the gesture started.
+{
+  const { pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } = await import("../lib/use-viewport.ts");
+  ok(ZOOM_MIN === 1 && ZOOM_MAX === 3, "zoom range is the shipped 1×–3×, unchanged");
+  ok(touchDistance({ clientX: 0, clientY: 0 }, { clientX: 3, clientY: 4 }) === 5, "touchDistance is Math.hypot (3-4-5)");
+  // Neutral: same distance → same zoom.
+  ok(pinchZoom(1, 100, 100) === 1, "no spread → zoom unchanged");
+  ok(pinchZoom(2, 100, 100) === 2, "no spread at 2× → still 2×");
+  // Enki: a pinch continues from wherever the ＋ button left off — it does NOT snap back to 1×.
+  ok(pinchZoom(2, 100, 120) === 2.4, "pinch out from 2× continues from 2× (2 × 1.2), never snaps to 1×");
+  ok(pinchZoom(2, 100, 50) === 1, "pinch in from 2× halves to 1×");
+  // Clamp at ZOOM_MIN — pinching in past the minimum can never go below 1×.
+  ok(pinchZoom(1, 100, 10) === ZOOM_MIN, "pinch-in past minimum clamps at 1×");
+  ok(pinchZoom(1.5, 100, 1) === ZOOM_MIN, "extreme pinch-in still clamps at 1×");
+  // Clamp at ZOOM_MAX — pinching out past the maximum can never exceed 3×.
+  ok(pinchZoom(1, 100, 1000) === ZOOM_MAX, "pinch-out past maximum clamps at 3×");
+  ok(pinchZoom(3, 100, 500) === ZOOM_MAX, "already at 3×, further pinch-out stays 3×");
+  // Degenerate distances are a no-op (a stale/absent gesture start must never zero the zoom).
+  ok(pinchZoom(2, 0, 120) === 2, "zero start distance is a no-op");
+  ok(pinchZoom(2, 100, 0) === 2, "zero current distance is a no-op");
+  // Rounded to 2dp so React state settles instead of churning on float noise.
+  const z = pinchZoom(1, 100, 133.3333);
+  ok(z === +z.toFixed(2), "pinch result is rounded to 2dp (state settles)");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
