@@ -3541,6 +3541,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </AmtsPanel>
         </>
       ),
+      // S11 — Early Validation / UXD (AMTS: VOC evidence | planned experiments). The Pivot-Pursue-Pass
+      // column is the decision the board reads first, so the VOC table leads.
+      S11: () => (
+        <>
+          <AmtsPanel title="Early Validation · UXD Voice Of Customer" icon="◉" required={spec.stage}>
+            {fieldsOf("voc")}
+          </AmtsPanel>
+          <AmtsPanel title="Planned Experiments" icon="⚗">
+            {fieldsOf("exp")}
+          </AmtsPanel>
+          <AmtsPanel wide title="Comments" icon="✎">
+            {fieldsOf("comments")}
+          </AmtsPanel>
+        </>
+      ),
     };
     const panel = SLIDE_PANEL[spec.code];
     const portrait = vp.orientation === "portrait";

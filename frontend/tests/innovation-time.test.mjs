@@ -1346,6 +1346,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     S2: ["profile", "accel", "roadmap", "toprisks", "status"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
     S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"],
+    S11: ["voc", "exp", "comments"],
   };
   for (const [code, ids] of Object.entries(PANEL_FIELDS)) {
     const sp = SLIDE_SCHEMA.find((s) => s.code === code);
