@@ -2260,6 +2260,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
   const [finDeck, setFinDeck] = useState(false); // F2 — shared financial source editor (opened from dog-tag / overview / slide)
   const openFinancials = () => setFinDeck(true);
+  const [veqMax, setVeqMax] = useState(false); // G1b — full-screen the Value Proposition card (Celestial-2525-style)
   // Backfill: seed from derived drivers when none are hand-scored, so the waterfall is populated for every project.
   const [veqDrivers, setVeqDrivers] = useState<ValueDriver[]>(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
   useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); setVeqDrivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); }, [p.id, p.valuePropSource, p.valueDrivers]);
@@ -2314,9 +2315,13 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
       ); })()}
       {/* Value proposition — HI master (must-have) with a HI⇄AI toggle, the Next Best Alternative,
           and per-needs-segment props (recommended). AI rendition is minted at submission. */}
-      <div className="mb-3 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-3">
+      <div className={veqMax ? "fixed inset-0 z-[55] overflow-y-auto bg-[#0b0f14] p-4 sm:p-6" : "mb-3 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-3"}>
         <div className="flex items-center justify-between gap-2">
           <div className="text-[10px] uppercase tracking-wider text-cyan-400">Value proposition</div>
+          <div className="flex items-center gap-2">
+          {/* G1b — full-screen / minimize the whole Value Proposition card (Celestial-2525-style) */}
+          <button onClick={() => setVeqMax((v) => !v)} title={veqMax ? "Minimize" : "Full screen"} aria-label={veqMax ? "Minimize value proposition" : "Full screen value proposition"}
+            className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">{veqMax ? "⤡" : "⤢"}</button>
           <div className="flex overflow-hidden rounded-md border border-slate-700 text-[10px]" title="Toggle the best-in-class human (HI) version vs the AI-generated rendition">
             {(["HI", "AI"] as const).map((v) => (
               <button key={v} onClick={() => setVpView(v)}
@@ -2324,6 +2329,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
                 {v === "HI" ? "웃 HI" : "◬ AI"}
               </button>
             ))}
+          </div>
           </div>
         </div>
         <p className="mt-1 text-[12px] leading-snug text-slate-200">{vpView === "AI" ? aiValuePropOf(p) : valuePropOf(p)}</p>
