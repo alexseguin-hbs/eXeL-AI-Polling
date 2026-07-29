@@ -3372,7 +3372,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       <span aria-hidden>◈</span> Edit source{source ? `: ${source}` : ""} <span aria-hidden>→</span>
     </button>
   );
-  function PresentField({ sp, f, big }: { sp: SlideSpec; f: SlideField; big?: boolean }) {
+  // `bare` — the field is the ONLY thing in an AMTS panel, so the panel banner has already named it. Drawing
+  // a second banner with the same words directly under the first is what pushed the actual value out of the
+  // clipped panel and made S1/S2 read as "field name, no value" (operator, 2026-07-29). Bare drops the inner
+  // banner AND the inner card frame; AmtsPanel supplies both.
+  function PresentField({ sp, f, big, bare }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean }) {
     const acc = sectionAccent(sp.code, f);
     // Colored banner header (icon + section name) matching the reference deck, wrapping every field card.
     const Banner = () => (
@@ -3382,9 +3386,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       </div>
     );
     if (f.kind === "chart" && f.linked) return (
-      <div className={`overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] sm:col-span-2`}>
-        <Banner />
-        <div className="p-3"><ChartFrame label={f.name}>
+      <div className={bare ? "min-w-0" : `overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] sm:col-span-2`}>
+        {!bare && <Banner />}
+        <div className={bare ? "" : "p-3"}><ChartFrame label={f.name}>
           <MiniFinChart kind={sp.code} big={big} />
           {/* Direct link to the single source of truth that feeds this chart/table. */}
           <SourceLink source={sp.source} />
@@ -3401,9 +3405,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
     return (
-      <div className={`overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "sm:col-span-2" : ""}`}>
-        <Banner />
-        <div className="p-3">
+      <div className={bare ? `min-w-0 ${isConops ? "sm:col-span-2" : ""}` : `overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "sm:col-span-2" : ""}`}>
+        {!bare && <Banner />}
+        <div className={bare ? "" : "p-3"}>
         {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors
             made portrait phones render huge headers that overflowed the slide while landscape looked fine.
             Outside the canvas there is no container context, so the original px/vw clamp stays. */}
@@ -3468,9 +3472,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // renders the AMTS two-panel layout from docs/SOI2525_AMTS_SPEC.md; a code WITHOUT one falls through to the
     // shipped PresentField grid, so the deck never regresses while the remaining panels are built slide by slide.
     // Panel CONTENTS are still PresentField — the panel only supplies the AMTS frame (AmtsPanel).
+    // A panel must NEVER render its title with nothing under it. Two independent causes, both closed here:
+    //  (a) DUPLICATE NAME — when a panel holds exactly ONE field, the AMTS banner and the field banner said the
+    //      same words twice; on a phone the panel clipped after those two rows and the value never appeared.
+    //      One field in → render it `bare` (no second banner, no nested card). Two or more → banners stay,
+    //      because that is the only thing telling the fields apart.
+    //  (b) NOTHING RESOLVED — an unauthored field returned null and left the body literally empty. It now says
+    //      so, in the deck's own voice, instead of leaving a headed box with a void under it.
     const fieldsOf = (...ids: string[]) => ids.map((id) => {
       const f = spec.fields.find((x) => x.id === id);
-      return f ? <PresentField key={f.id} sp={spec} f={f} big /> : null;
+      if (!f) return null;
+      const solo = ids.length === 1;
+      const alwaysRenders = f.kind === "attach" || (f.kind === "chart" && f.linked);
+      if (!alwaysRenders && fieldEmpty(effective(spec, f, presentSrc)))
+        return <p key={id} className="m-0 italic text-slate-500" style={{ fontSize: "1.05cqw" }}>{f.name} — not authored yet</p>;
+      return <PresentField key={f.id} sp={spec} f={f} big bare={solo} />;
     });
     const SLIDE_PANEL: Record<string, () => React.ReactNode> = {
       // S1 — Executive Summary (AMTS exec one-pager: what / who | why | the ask). The ask spans the foot

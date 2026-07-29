@@ -1406,5 +1406,47 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(ship.indexOf("Compiled successfully") < ship.indexOf("slide-shots.mjs"), "the shot gate runs AFTER the build (it drives the exported app)");
 }
 
+// ── #2 · NO PANEL RENDERS A TITLE WITH NOTHING UNDER IT ─────────────────────────────────
+// The operator saw S1/S2 panels showing only the field NAME. Root cause was NOT resolution — PRJ-01
+// resolves every S1/S2 field (proved below) — it was that a single-field panel drew the SAME name twice
+// (AMTS banner + field banner) and the clipped panel cut the value off below the fold. Locks: the data
+// really does resolve, the duplicate banner is gone, and an unauthored field states itself instead of
+// leaving a void.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const { DEMO_PROJECTS, SLIDE_SEED, SLIDE_SCHEMA, linkedSlideField, aiSlideField } = await import("../lib/innovation-data.ts");
+  const p1 = DEMO_PROJECTS.find((x) => x.id === "PRJ-01");
+  ok(!!p1, "PRJ-01 exists in DEMO_PROJECTS");
+
+  // Mirror of the page's effective(): linked -> live record, else the seeded HI cell, else the AI draft.
+  const empty = (v) => v == null || (typeof v === "string" && !v.trim()) || (Array.isArray(v) && !v.filter((x) => (Array.isArray(x) ? x.some(Boolean) : x && String(x).trim())).length)
+    || (typeof v === "object" && !Array.isArray(v) && !Object.values(v).filter((x) => x && String(x).trim()).length);
+  const resolved = (code, f) => (f.linked ? linkedSlideField(p1, code, f.id) : (SLIDE_SEED["PRJ-01"]?.[code]?.[f.id]?.hi ?? aiSlideField(p1, code, f.id)));
+
+  for (const code of ["S1", "S2"]) {
+    const sp = SLIDE_SCHEMA.find((s) => s.code === code);
+    for (const f of sp.fields)
+      ok(!empty(resolved(code, f)), `PRJ-01 ${code}.${f.id} ("${f.name}") resolves a NON-EMPTY value in present mode`);
+  }
+  // metrics panels must resolve every declared item key, not just the object
+  for (const code of ["S2", "S3"]) {
+    const sp = SLIDE_SCHEMA.find((s) => s.code === code);
+    for (const f of sp.fields.filter((x) => x.kind === "metrics")) {
+      const rec = resolved(code, f);
+      ok(f.items.every((m) => rec?.[m.k] && String(rec[m.k]).trim()), `PRJ-01 ${code}.${f.id} fills all ${f.items.length} metric slots`);
+    }
+  }
+
+  // (a) the duplicate-name fix — one field in a panel renders bare
+  ok(/function PresentField\(\{ sp, f, big, bare \}/.test(src), "PresentField accepts `bare` (panel already carries the name)");
+  ok(/const solo = ids\.length === 1;/.test(src), "fieldsOf renders a SOLO field bare — no second banner repeating the panel title");
+  ok(/\{!bare && <Banner \/>\}/.test(src), "the inner banner is suppressed when bare");
+  ok((src.match(/\{!bare && <Banner \/>\}/g) ?? []).length === 2, "both PresentField exits (chart + general) honour bare");
+  // (b) the empty-body fix — an unauthored field speaks rather than vanishing
+  ok(/not authored yet<\/p>/.test(src), "an unauthored field renders a stated placeholder, never an empty panel body");
+  ok(/const alwaysRenders = f\.kind === "attach" \|\| \(f\.kind === "chart" && f\.linked\)/.test(src), "charts and attachments are exempt (they render without a text value)");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
