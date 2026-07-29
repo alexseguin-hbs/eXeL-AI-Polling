@@ -2227,10 +2227,9 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   const [showExec, setShowExec] = useState(false);
   const [draft, setDraft] = useState<Partial<Project>>({});
   const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
-  const [veqOpen, setVeqOpen] = useState(false); // Value Equation editor (re-openable, Slice 1B)
   // Backfill: seed from derived drivers when none are hand-scored, so the waterfall is populated for every project.
   const [veqDrivers, setVeqDrivers] = useState<ValueDriver[]>(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
-  useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); setVeqDrivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); setVeqOpen(false); }, [p.id, p.valuePropSource, p.valueDrivers]);
+  useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); setVeqDrivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); }, [p.id, p.valuePropSource, p.valueDrivers]);
   const dv = <K extends keyof Project>(k: K): Project[K] => (draft[k] !== undefined ? (draft[k] as Project[K]) : p[k]);
   const setD = <K extends keyof Project>(k: K, v: Project[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const saveEdit = () => {
@@ -2249,10 +2248,12 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   const ex = execOf(p);
   const meta = metaOf(p);
   const fm = financialMetrics(p);
-  // Full FLIR "Project Metrics" card set (12) — IMG_7843 / spec §2.4.
+  // Full FLIR "Project Metrics" card set (14) — IMG_7843 / spec §2.4. Adds Quantity + COGS (unit + 10-yr) from
+  // the same engine values (execOf / financialMetrics) so the QTY·ASP·COGS build-up shows here too (operator).
   const metrics: [string, string][] = [
     ["NPV", usd(fm.npvM)], ["REV/NRE", `${fm.revOverNre.toFixed(1)}×`], ["IRR", `${fm.irrPct}%`],
-    ["Gross Margin", `${fm.grossMarginPct}%`], ["Payback", `${payb(fm.paybackYears)}`], ["10-Yr Volume", fm.vol10y.toLocaleString()],
+    ["Gross Margin", `${fm.grossMarginPct}%`], ["Payback", `${payb(fm.paybackYears)}`], ["Quantity (10-Yr)", fm.vol10y.toLocaleString()],
+    ["Unit COGS", k(ex.cogsK)], ["COGS (10-Yr)", usd(Math.max(0, fm.rev10yM - fm.grossProfit10yM))],
     ["10-Yr Revenue", usd(fm.rev10yM)], ["10-Yr Gross Profit", usd(fm.grossProfit10yM)], ["Cur-Yr Op Expense", k(fm.curYearOpexK)],
     ["Total R&D Op Ex", k(fm.totalRdOpexK)], ["Capital", k(fm.capitalK)], ["Man Hours", `${(fm.manHours / 1000).toFixed(1)}k`],
   ];
@@ -2260,7 +2261,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
       <div className="mb-3"><DogTag p={p} /></div>
-      {/* Consistency badge + outcome-brief export (Slice 8) */}
+      {/* Under the dog tag: consistency (left) · Outcome brief (center) · expand/collapse (upper-right).
+          Operator: outcome in the middle, expand/collapse icon in the upper right. */}
       {(() => { const c = consistencyCheck(p); return (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <span className={`rounded px-2 py-0.5 text-[10px] font-medium ${c.ok ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"}`}
@@ -2268,6 +2270,10 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
             {c.ok ? `✓ ${t("innovation.consistency.ok")}` : `⚠ ${t("innovation.consistency.gaps")} (${c.issues.length})`}
           </span>
           <button onClick={() => downloadOutcomeBrief(p)} className="rounded border border-cyan-500/40 px-2 py-0.5 text-[10px] font-medium text-cyan-300 hover:bg-cyan-500/10">⬇ {t("innovation.export.outcomeBrief")}</button>
+          {onToggleMax
+            ? <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize deep-dive"} aria-label={maximized ? "Restore" : "Maximize deep-dive"}
+                className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">{maximized ? "⤡" : "⤢"}</button>
+            : <span className="w-6" aria-hidden="true" />}
         </div>
       ); })()}
       {/* Value proposition — HI master (must-have) with a HI⇄AI toggle, the Next Best Alternative,
@@ -2292,23 +2298,19 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
             <span className="text-[9px] uppercase tracking-wider text-amber-400/90">Next Best Alternative</span>
             <p className="text-[11px] leading-snug text-slate-300">{nbaOf(p)}</p>
           </div>
-          <button onClick={() => setVeqOpen((o) => !o)}
-            className="shrink-0 rounded border border-amber-500/40 px-2 py-0.5 text-[10px] font-medium text-amber-300 hover:bg-amber-500/10">
-            {veqOpen ? "✕" : "◇"} {t("innovation.veq.title")}
-          </button>
+          <span className="shrink-0 rounded border border-amber-500/40 px-2 py-0.5 text-[10px] font-medium text-amber-300">◇ {t("innovation.veq.title")}</span>
         </div>
-        {veqOpen && (
-          <div className="mt-2">
-            <ValueEquationPanel
-              drivers={veqDrivers} onChange={setVeqDrivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
-              onGenerate={() => onEdit({ valueDrivers: veqDrivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: veqDrivers }), valuePropSource: "HI" }, ["value prop generated from Value Equation vs NBA"])}
-            />
-            <div className="mt-1.5 flex justify-end">
-              <button onClick={() => onEdit({ valueDrivers: veqDrivers }, [`value drivers: ${veqDrivers.length} vs NBA`])}
-                className="rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Save drivers</button>
-            </div>
+        {/* Value Equation — always shown (operator): the Competitive Value Prop (our value vs the NBA) is on screen. */}
+        <div className="mt-2">
+          <ValueEquationPanel
+            drivers={veqDrivers} onChange={setVeqDrivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
+            onGenerate={() => onEdit({ valueDrivers: veqDrivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: veqDrivers }), valuePropSource: "HI" }, ["value prop generated from Value Equation vs NBA"])}
+          />
+          <div className="mt-1.5 flex justify-end">
+            <button onClick={() => onEdit({ valueDrivers: veqDrivers }, [`value drivers: ${veqDrivers.length} vs NBA`])}
+              className="rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Save drivers</button>
           </div>
-        )}
+        </div>
         {p.segmentValueProps && p.segmentValueProps.length > 0 ? (
           <ul className="mt-2 space-y-0.5">
             {p.segmentValueProps.map((s, i) => (
@@ -2332,10 +2334,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
           <button onClick={() => setShowExec((s) => !s)} title="Expandable executive slide (2-screen swipe overview)"
             className={`rounded border px-2 py-0.5 text-[11px] ${showExec ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>▤ Exec slide</button>
           <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-mono text-amber-300">±{Math.round(band * 100)}% band</span>
-          {onToggleMax && (
-            <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize deep-dive"}
-              className="rounded border border-slate-700 px-1.5 py-0.5 text-[13px] leading-none text-slate-300 hover:bg-slate-800">{maximized ? "⤡" : "⤢"}</button>
-          )}
+          {/* Maximize/restore moved to the upper-right of the dog-tag row (operator). */}
         </div>
       </div>
 
@@ -2417,8 +2416,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
         <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Competitive position">⚑ {meta.competitive}</span>
         <span className="rounded border border-slate-700 bg-slate-800/40 px-1.5 py-0.5 text-slate-300" title="Target market">◈ {meta.targetMarket}</span>
       </div>
-      {/* Project Metrics — full 12-metric FLIR card set (§2.4 / IMG_7843) */}
-      <div className="mt-3 text-[10px] uppercase tracking-wider text-slate-500">Project Metrics · 12-metric set</div>
+      {/* Project Metrics — full FLIR card set (§2.4 / IMG_7843) + Quantity & COGS */}
+      <div className="mt-3 text-[10px] uppercase tracking-wider text-slate-500">Project Metrics · {metrics.length}-metric set</div>
       <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-4">
         {metrics.map(([l, v]) => (
           <div key={l} className="rounded-lg bg-[#0b0f14] px-2.5 py-2">
