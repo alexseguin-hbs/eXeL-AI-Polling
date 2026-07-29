@@ -4360,11 +4360,15 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // Operator: Rev / Mgn = FULL. The chart OPENS on Full Revenue (Rev highlighted, NOT incremental). Selecting
   // Rev/Mgn always shows FULL and clears incremental+step. "Incremental" is a SEPARATE, explicit toggle that
   // composes with the current metric (Rev→Incremental Rev, Mgn→Incremental Mgn). Step 1/2/3 is its own view.
+  // Two composable axes (operator): metric = Revenue | Margin (unit) · view = Incremental | Step 1 | Step 2 |
+  // Step 3 (a scrollable banner). Default = Revenue + Incremental highlighted → Incremental Rev. Selecting Rev/Mgn
+  // keeps the view; selecting a view keeps the metric. "Full" revenue is the grey baseline + the Incremental
+  // stack on top (see showBase). Steps carry the metric too (× margin when Mgn).
   const [metric, setMetric] = useState<"rev" | "mgn">("rev");
-  const [incr, setIncr] = useState(false);
-  const [step, setStep] = useState<null | "new" | "decline" | "eol">(null);
-  const band: "incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol" =
-    step ?? (incr ? (metric === "rev" ? "incremental" : "incmgn") : metric);
+  const [view, setView] = useState<"incremental" | "new" | "decline" | "eol">("incremental");
+  const [showBase, setShowBase] = useState(true); // grey baseline (existing) revenue bar under the stacks
+  const band: "incremental" | "incmgn" | "new" | "decline" | "eol" =
+    view === "incremental" ? (metric === "rev" ? "incremental" : "incmgn") : view;
   // Split-by dimension (operator): stack the bar by hierarchy child (default/highlighted), strategic pillar
   // (admin colors), or Risk (risk-weighted vs at-risk upside). Charts show FUNDED (above-line) projects only —
   // for management-and-above decision-making — so there is no separate Funded split.
@@ -4462,27 +4466,31 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         code: n.code, color: segColorOf(childLevel, n.code, idx),
         revAt: (i: number) => n.seed * Math.pow(1 + n.g, i), base: n.seed, gm: growthModel(n.sp, gmOpts(baseM * n.share)),
       }));
-  // Value of a segment in a given year for the active band. Full Rev/Mgn use the tier-grown revenue series;
-  // Incremental and the Step 1/2/3 components come from the do-nothing growth model, so Incremental == Step1 −
-  // Step2 + Step3 exactly (and ≈ Step 1, since only SAR + Legacy decline).
+  // Value of a segment in a given year for the active band. Incremental and the Step 1/2/3 components come from
+  // the do-nothing growth model, so Incremental == Step1 − Step2 + Step3 exactly. Steps carry the metric too:
+  // × blended margin when Mgn is selected.
   const segVal = (seg: Seg, i: number) => {
-    const rev = seg.revAt(i);
     const gs = seg.gmScale ?? 1;
-    return band === "rev" ? rev : band === "mgn" ? rev * marginFrac : band === "incremental" ? seg.gm[i].incremental * gs : band === "incmgn" ? seg.gm[i].incremental * gs * marginFrac : band === "new" ? seg.gm[i].newRev * gs : band === "decline" ? -seg.gm[i].declineRev * gs : seg.gm[i].eolRev * gs;
+    const mul = metric === "mgn" ? marginFrac : 1;   // Step 1/2/3 shown in the selected unit (Rev or Mgn)
+    return band === "incremental" ? seg.gm[i].incremental * gs : band === "incmgn" ? seg.gm[i].incremental * gs * marginFrac
+      : band === "new" ? seg.gm[i].newRev * gs * mul : band === "decline" ? -seg.gm[i].declineRev * gs * mul : seg.gm[i].eolRev * gs * mul;
   };
   const stackPos = rows.map((_, i) => segments.reduce((s, g) => s + Math.max(0, segVal(g, i)), 0));
   const stackNeg = rows.map((_, i) => segments.reduce((s, g) => s + Math.min(0, segVal(g, i)), 0));
-  // Right-axis Growth line (operator): starts at the TOP of the base-year bar and grows at the target rate, so the
-  // line visibly rises from the first bar. Its per-year value = base-year bar top × (1+growth)^y.
-  const baseTop = stackPos[0] || Math.max(1, baseM);
+  // Grey BASELINE (existing) revenue — the do-nothing base eroding YoY (operator's 142→~55 drop). Shown via the
+  // Base Revenue toggle, only in the Incremental view; the New/Incremental stacks build ON TOP of it. In Mgn unit
+  // → × blended margin. Off → stacks sit on zero, no grey.
+  const baselineShown = showBase && view === "incremental";
+  const baseSeries = rows.map((_, i) => (baselineShown ? rows[i].doNothing * (metric === "mgn" ? marginFrac : 1) : 0));
+  // Right-axis Growth line: from the TOP of the base-year bar (baseline + stack) growing at the target rate.
+  const baseTop = (baseSeries[0] + stackPos[0]) || Math.max(1, baseM);
   const targetLine = rows.map((_, i) => baseTop * Math.pow(1 + growth, i));
-  // Target (Growth) line only makes sense in Incremental mode and never while a Step 1/2/3 component view is
-  // active (operator). The "Growth target" legend is its on/off toggle; it's disabled outside Incremental mode.
-  const targetApplies = incr && !step;
+  // Target (Growth) line only in the Incremental view; the "Growth Target" legend is its on/off toggle.
+  const targetApplies = view === "incremental";
   const showTarget = showBaseline && targetApplies;
-  // Y-axis auto-adjusts to the bars when the target line is hidden (operator) — otherwise a steep target would
-  // flatten the bars. Only include the target line in the max when it's actually drawn.
-  const max = Math.max(...(showTarget ? targetLine : []), ...stackPos, 1) * 1.1;
+  // Y-axis auto-adjusts to the bars (baseline + stack) when the target line is hidden — otherwise a steep target
+  // would flatten the bars. Only include the target line in the max when it's actually drawn.
+  const max = Math.max(...(showTarget ? targetLine : []), ...stackPos.map((v, i) => v + baseSeries[i]), 1) * 1.1;
   const minV = Math.min(0, ...stackNeg) * 1.1;
   const pw = (W - L - R) / rows.length;
   const y = (v: number) => H - B - ((v - minV) / (max - minV)) * (H - B - T);
@@ -4526,17 +4534,13 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
               className={`px-2.5 py-1 ${splitBy === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
           ))}
         </div>
-        {/* Financial metric selectors — placed AFTER (to the right of) the split-by toggle (operator IMG_8129):
-            Rev · Mgn. Selecting one shows FULL Rev/Mgn and clears Incremental + Step (operator: Rev is never
-            incremental). Highlighted only when that metric is showing FULL. */}
+        {/* Financial METRIC (unit) — Rev · Mgn — right of the split toggle (operator IMG_8129). Composable: it
+            keeps the current view (Incremental/Step). Default Revenue highlighted. */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => {
-            const on = metric === k && !incr && !step;
-            return (
-              <button key={k} onClick={() => { setMetric(k); setIncr(false); setStep(null); }} aria-pressed={on}
-                className={`px-2.5 py-1 ${on ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
-            );
-          })}
+          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
+            <button key={k} onClick={() => setMetric(k)} aria-pressed={metric === k}
+              className={`px-2.5 py-1 ${metric === k ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+          ))}
         </div>
         {/* # Years */}
         <div className="ml-auto flex overflow-hidden rounded-md border border-slate-700">
@@ -4584,14 +4588,18 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           const cx = x + bw / 2;
           const y0 = y(0);
           const net = stackPos[i] + stackNeg[i]; // net of positive + negative segments (= scope band value)
-          const topY = y(Math.max(0.0001, stackPos[i])); // label just above the tallest positive stack
-          // Stack each child segment: positives up from 0, negatives (Step-2 decline) down from 0.
-          let posAcc = 0, negAcc = 0;
+          const bl = baseSeries[i];              // grey baseline (0 unless shown)
+          const topY = y(Math.max(0.0001, bl + stackPos[i])); // label above the baseline + stack
+          const barLabel = Math.round(bl + net); // baseline + incremental = full revenue when baseline shown
+          // Grey baseline first; then stack each child segment ON TOP of it (positives up from baseline,
+          // negatives down from 0).
+          let posAcc = bl, negAcc = 0;
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
-              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · Target Rev ${Math.round(targetLine[i])}M · growth {growthPct}%/yr</title>
+              <title>{r.year} — {baselineShown ? `Base ${Math.round(bl)} + ` : ""}{BAND[band].label}: {Math.round(net)}{baselineShown ? ` = ${barLabel}` : ""} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · Target Rev ${Math.round(targetLine[i])}M · growth {growthPct}%/yr</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
+              {bl > 0 && <rect x={x} y={Math.min(y(0), y(bl))} width={bw} height={Math.max(0, Math.abs(y(0) - y(bl)))} fill="#475569" rx={1} opacity={on ? 0.7 : 0.5} stroke="#0e141b" strokeWidth={0.5} />}
               {segments.map((g) => {
                 const v = segVal(g, i); if (!v) return null;
                 const from = v >= 0 ? posAcc : negAcc; const to = from + v;
@@ -4600,7 +4608,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
                 return <rect key={g.code} x={x} y={Math.min(yA, yB)} width={bw} height={Math.max(0, Math.abs(yA - yB))} fill={g.color} rx={1} opacity={on ? 1 : 0.9} stroke="#0e141b" strokeWidth={0.5} />;
               })}
               <text x={cx} y={H - B + 12} textAnchor="middle" fill={on ? "#e2e8f0" : "#64748b"}>{r.year}</text>
-              <text x={cx} y={(net >= 0 ? topY : y0 + 12) - 4} textAnchor="middle" fill="#e2e8f0">{Math.round(net)}</text>
+              <text x={cx} y={(net >= 0 ? topY : y0 + 12) - 4} textAnchor="middle" fill="#e2e8f0">{barLabel}</text>
             </g>
           );
         })}
@@ -4616,23 +4624,25 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         )) : <span className="italic text-slate-600">no projects in scope</span>}
       </div>
 
-      {/* Incremental modifier — a SEPARATE view that composes with the Rev/Mgn metric (Rev → Incremental Rev,
-          Mgn → Incremental Mgn). OFF by default (chart opens on Full Rev). Then the do-nothing Step 1/2/3
-          components (each a separate view that overrides the metric while active). */}
-      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-        <button onClick={() => { setIncr((o) => !o); setStep(null); }} aria-pressed={incr && !step}
-          className={`rounded border px-2 py-0.5 ${incr && !step ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
-          style={incr && !step ? { background: BAND.incremental.color } : undefined}>Incremental</button>
-        {(["new", "decline", "eol"] as const).map((k) => (
-          <button key={k} onClick={() => setStep((s) => (s === k ? null : k))} aria-pressed={step === k}
-            className={`rounded border px-2 py-0.5 ${step === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
-            style={step === k ? { background: BAND[k].color } : undefined}>{BAND[k].label}</button>
+      {/* VIEW banner (operator) — scrollable left→right: Incremental · Step 1 · Step 2 · Step 3. Default
+          Incremental. Composes with the Rev/Mgn metric. Then the Base Revenue (grey baseline) + Growth Target
+          on/off toggles. */}
+      <div className="mt-1 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-[10px]">
+        {([["incremental", "Incremental", BAND.incremental.color], ["new", BAND.new.label, BAND.new.color], ["decline", BAND.decline.label, BAND.decline.color], ["eol", BAND.eol.label, BAND.eol.color]] as const).map(([k, lbl, color]) => (
+          <button key={k} onClick={() => setView(k)} aria-pressed={view === k}
+            className={`shrink-0 rounded border px-2 py-0.5 ${view === k ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
+            style={view === k ? { background: color } : undefined}>{lbl}</button>
         ))}
-        {/* Growth-target on/off toggle (operator) — the white bullet + text IS the toggle. Only active in
-            Incremental mode with no Step selected; otherwise greyed (the target line doesn't apply). */}
+        {/* Base Revenue (grey baseline) toggle — only meaningful in the Incremental view. */}
+        <button type="button" onClick={() => setShowBase((v) => !v)} disabled={view !== "incremental"} aria-pressed={showBase && view === "incremental"}
+          title={view === "incremental" ? "Toggle the grey base (existing) revenue" : "Base revenue shows in the Incremental view"}
+          className={`ml-1 inline-flex shrink-0 items-center ${view === "incremental" ? "text-slate-400 hover:text-slate-200" : "cursor-not-allowed text-slate-600"}`}>
+          <i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#475569", opacity: baselineShown ? 1 : 0.3 }} />Base Revenue
+        </button>
+        {/* Growth-target on/off toggle — the white bullet + text IS the toggle; active only in the Incremental view. */}
         <button type="button" onClick={() => setShowBaseline((v) => !v)} disabled={!targetApplies} aria-pressed={showTarget}
-          title={targetApplies ? "Toggle the growth target line" : "Growth target applies only in Incremental mode"}
-          className={`ml-1 inline-flex items-center ${targetApplies ? "text-slate-400 hover:text-slate-200" : "cursor-not-allowed text-slate-600"}`}>
+          title={targetApplies ? "Toggle the growth target line" : "Growth target applies only in the Incremental view"}
+          className={`ml-1 inline-flex shrink-0 items-center ${targetApplies ? "text-slate-400 hover:text-slate-200" : "cursor-not-allowed text-slate-600"}`}>
           <i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0", opacity: showTarget ? 1 : 0.3 }} />Growth Target
         </button>
       </div>
