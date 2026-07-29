@@ -930,11 +930,13 @@ function Kpi({ label, value, tone, align }: { label: string; value: string; tone
 // as a <tr> for table bodies; omit for a plain flex row (card/product lists). Single source → identical arrows
 // + Above/Below wording on every surface (group rack · drilled rack · product stack · Budget modal).
 function FundingDivider({ availK, above, below, colSpan }: { availK: number; above?: { count: number; nreK: number }; below?: { count: number; nreK: number }; colSpan?: number }) {
+  {/* H3 — stacked layout so side labels never run off the right edge: ABOVE label left-justified over the rule,
+      the amber funding rule centered, BELOW label right-justified under the rule (operator IMG_8227/8228). */}
   const line = (
-    <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
-      {above && <span className="shrink-0 text-emerald-400">▲ Above · Funded {above.count} proj · {k(above.nreK)} NRE</span>}
-      <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(availK)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
-      {below && <span className="shrink-0 text-rose-400">▼ Below · Not funded {below.count} proj · {k(below.nreK)} NRE</span>}
+    <div className="text-[10px] font-mono uppercase tracking-wider">
+      {above && <div className="text-left text-emerald-400">▲ Above · Funded {above.count} proj · {k(above.nreK)}</div>}
+      <div className="flex items-center gap-2 text-amber-400"><span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(availK)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" /></div>
+      {below && <div className="text-right text-rose-400">▼ Below · Not funded {below.count} proj · {k(below.nreK)} NRE</div>}
     </div>
   );
   return colSpan != null ? <tr><td colSpan={colSpan} className="px-2 py-1">{line}</td></tr> : <div className="py-0.5">{line}</div>;
