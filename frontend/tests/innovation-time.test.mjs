@@ -1180,7 +1180,7 @@ import { existingCurve as existingCurve40 } from "../lib/innovation-data.ts";
 }
 
 // H41 — per-quarter RevPlan (QTY·ASP·COGS) + profiles + $/min surfaces.
-import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPlanAnnual, revPlanMonthly, launchYearOf, launchQuarterOf } from "../lib/innovation-data.ts";
+import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPlanAnnual, revPlanMonthly, launchYearOf, launchQuarterOf, revPlanGateReq, revPlanGateGaps } from "../lib/innovation-data.ts";
 {
   const p = DEMO_PROJECTS[0];
   // High-Level: 40 quarters that sum to the plan's fullRev10yM.
@@ -1236,6 +1236,19 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const pShift2 = { ...pShift, firstRevenue: "2029-Q3" };
   ok(revPlanAnnual(pShift, pShift.revPlan)[0].year === 2026 && revPlanAnnual(pShift2, pShift2.revPlan)[0].year === 2029, "launch-date change shifts the series start (2026→2029)");
   ok(launchQuarterOf(pShift2) === 3 && revPlanMonthly(pShift2, pShift2.revPlan)[0].label.startsWith("Jul"), "monthly grid starts at the launch quarter's first month (Q3→Jul)");
+  // ── F5: gate-driven granularity ladder (G1 high-level → G2 by-year+COGS/ASP → G3 by-month → G4 +finance+PLC) ──
+  ok(revPlanGateReq("G1").gran === "highlevel" && !revPlanGateReq("G1").needsCogsAsp, "G1 = high-level only");
+  ok(revPlanGateReq("G2").gran === "annual" && revPlanGateReq("G2").needsCogsAsp, "G2 = by-year + COGS/ASP");
+  ok(revPlanGateReq("G3").gran === "monthly" && revPlanGateReq("G3").needsCogsAsp && !revPlanGateReq("G3").needsFinanceApproval, "G3 = by-month + COGS/ASP (no finance gate)");
+  ok(revPlanGateReq("G4").gran === "monthly" && revPlanGateReq("G4").needsFinanceApproval && revPlanGateReq("G4").needsPlc, "G4 = by-month + finance approval + PLC #3/#4");
+  ok(["G5", "G6", "G7"].every((g) => revPlanGateReq(g).needsFinanceApproval && revPlanGateReq(g).needsPlc), "G5-G7 keep the G4 rigor (monthly + finance + PLC)");
+  // Compliance: a G4 project needs monthly + finance + PLC; a Detailed plan missing those reports the gaps.
+  const g4 = P({ gate: "G4", firstRevenue: "2026-Q1", revPlan: { entryMode: "detailed", profile: "linear", inputGran: "annual", qty: 10, aspK: 50, unitCogsK: 30 } });
+  const g4gaps = revPlanGateGaps(g4, g4.revPlan);
+  ok(g4gaps.includes("monthly forecast") && g4gaps.includes("Finance / FP&A approval") && g4gaps.includes("PLC #3 & #4 dates"), "G4 gaps flag monthly + finance + PLC when unmet");
+  const g4ok = { ...g4, revPlan: { ...g4.revPlan, inputGran: "monthly", financeApproved: true, plc3: "06/2032", plc4: "06/2035" } };
+  ok(revPlanGateGaps(g4ok, g4ok.revPlan).length === 0, "G4 compliant once monthly + finance + PLC #3/#4 supplied");
+  ok(revPlanGateGaps(P({ gate: "G1", revPlan: { entryMode: "highlevel", profile: "linear" } }), { entryMode: "highlevel", profile: "linear" }).length === 0, "G1 high-level plan is compliant with no extra requirements");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

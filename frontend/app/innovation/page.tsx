@@ -13,7 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
-  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, perMinFinancials, type RevPlan,
+  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, revPlanGateReq, revPlanGateGaps, perMinFinancials, type RevPlan,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -3571,6 +3571,25 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                               </div>
                               <span className="rounded border border-slate-700 px-1.5 py-0.5 font-mono text-[9px] text-slate-400" title="Launch (first revenue) — the grid anchors here; changing it shifts the entire series">◈ Launch {p.firstRevenue}</span>
                             </div>
+                            {/* F5 — gate-driven granularity requirement + live compliance (more granular as funding rises). */}
+                            {(() => {
+                              const req = revPlanGateReq(p.gate); const gaps = revPlanGateGaps(p, plan);
+                              return (
+                                <div className={`mb-1.5 rounded border px-2 py-1 text-[9px] ${gaps.length ? "border-amber-500/40 bg-amber-500/10 text-amber-200" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"}`}>
+                                  <span className="font-semibold">{p.gate} {GATE_STAGE[p.gate]} requires:</span> {req.label}
+                                  {gaps.length > 0 && <span className="block text-amber-300/90">⚠ still needed: {gaps.join(" · ")}</span>}
+                                  {gaps.length === 0 && <span className="ml-1 text-emerald-300/90">✓ compliant</span>}
+                                </div>
+                              );
+                            })()}
+                            {/* F5 — Finance approval + PLC #3/#4 (required at Qualify+ / G4+). */}
+                            {revPlanGateReq(p.gate).needsFinanceApproval && (
+                              <div className="mb-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                                <label className="flex items-center gap-1 text-[9px] text-slate-400"><input type="checkbox" defaultChecked={!!plan.financeApproved} onChange={(e) => setPlan({ financeApproved: e.target.checked })} className="accent-cyan-500" />Finance / FP&amp;A approved</label>
+                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">PLC #3 Mature (MM/YYYY)<input type="text" defaultValue={plan.plc3 ?? ""} onBlur={(e) => setPlan({ plc3: e.target.value.trim() })} placeholder="MM/YYYY" className={inp} /></label>
+                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">PLC #4 Decline (MM/YYYY)<input type="text" defaultValue={plan.plc4 ?? ""} onBlur={(e) => setPlan({ plc4: e.target.value.trim() })} placeholder="MM/YYYY" className={inp} /></label>
+                              </div>
+                            )}
                             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                               {plan.entryMode === "detailed" ? <>
                                 <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Qty/yr<input type="text" inputMode="numeric" defaultValue={String(plan.qty ?? 0)} onBlur={(e) => setPlan({ qty: +e.target.value || 0 })} className={inp} /></label>

@@ -405,6 +405,31 @@ export interface RevPlan {
   growthPctQ?: number;   // "growth" profile: compounding % per quarter
   rampQuarters?: number; // "ramp" profile: quarters to reach plateau
   manualQ?: number[];    // "manual" profile: explicit per-quarter weights (any length; normalized)
+  financeApproved?: boolean; // F5/G4: Finance/FP&A sign-off on the forecast (required at Qualify+)
+  plc3?: string;         // F5/G4: PLC #3 (Mature) estimated date "MM/YYYY" (required at Qualify+)
+  plc4?: string;         // F5/G4: PLC #4 (Decline) estimated date "MM/YYYY" (required at Qualify+)
+}
+// F5 — gate-driven forecast granularity ladder (AMTS: more granular as funding rises). G1 high-level →
+// G2 by-year + COGS/ASP → G3 by-month + COGS/ASP → G4 by-month + finance-approval + PLC #3/#4 documented.
+export interface RevPlanGateReq { gate: Gate; gran: "highlevel" | "annual" | "monthly"; needsCogsAsp: boolean; needsFinanceApproval: boolean; needsPlc: boolean; label: string }
+export function revPlanGateReq(gate: Gate): RevPlanGateReq {
+  switch (gate) {
+    case "G1": return { gate, gran: "highlevel", needsCogsAsp: false, needsFinanceApproval: false, needsPlc: false, label: "High-level only (order-of-magnitude)" };
+    case "G2": return { gate, gran: "annual", needsCogsAsp: true, needsFinanceApproval: false, needsPlc: false, label: "By Year + COGS & ASP estimate (Annual Forecast Required · Plan)" };
+    case "G3": return { gate, gran: "monthly", needsCogsAsp: true, needsFinanceApproval: false, needsPlc: false, label: "By Month + COGS & ASP (Monthly Forecast Required · Develop)" };
+    default:   return { gate, gran: "monthly", needsCogsAsp: true, needsFinanceApproval: true, needsPlc: true, label: "By Month + Finance approval + PLC #3 (Mature) & PLC #4 (Decline) documented" };
+  }
+}
+/** F5 — validate a plan against its gate requirement. Returns the unmet requirements (empty = compliant). */
+export function revPlanGateGaps(p: Project, plan: RevPlan): string[] {
+  const req = revPlanGateReq(p.gate); const gaps: string[] = [];
+  const gran = plan.inputGran ?? "annual";
+  if (req.gran === "annual" && plan.entryMode === "highlevel" && gran !== "annual" && gran !== "monthly") gaps.push("annual (or finer) forecast");
+  if (req.gran === "monthly" && gran !== "monthly") gaps.push("monthly forecast");
+  if (req.needsCogsAsp && !(plan.entryMode === "detailed" && (plan.aspK ?? 0) > 0 && (plan.unitCogsK ?? 0) >= 0)) gaps.push("COGS & ASP (Detailed mode)");
+  if (req.needsFinanceApproval && !plan.financeApproved) gaps.push("Finance / FP&A approval");
+  if (req.needsPlc && (!plan.plc3 || !plan.plc4)) gaps.push("PLC #3 & #4 dates");
+  return gaps;
 }
 // F4 — launch (first-revenue) parsers. `firstRevenue` is "YYYY-Qn"; anchor the forecast grid to it so that when
 // the launch date changes, the whole series (and the financial slide) shifts. Deterministic, no clock read.
