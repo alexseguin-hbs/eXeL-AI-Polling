@@ -1,0 +1,63 @@
+# Is the live site serving main? — the answer, on demand, with NO secrets required.
+#
+# WHY: the Claude Code sandbox proxy 403s every outbound host, so an agent working there physically cannot
+# read the deployed site and must report UNVERIFIED. That is honest but useless on its own. GitHub's runners
+# DO have network, so this workflow performs the one check the sandbox can't and records the verdict in the
+# Actions API — where the agent CAN read it. "Is it live?" becomes answerable again, by evidence.
+#
+# Deliberately separate from deploy.yml: that one needs CLOUDFLARE_API_TOKEN and the NEXT_PUBLIC_* secrets.
+# This one needs NOTHING. It must never be blocked by missing configuration, because it is the instrument of
+# record for whether Cloudflare actually shipped the commit.
+
+name: Verify Live
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+  schedule:
+    - cron: "*/30 * * * *"     # catch a deploy that silently stops promoting
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cloudflare builds then promotes; give it room before calling it stale. Reports the SHA it actually
+      # sees on every attempt, so the log is a deployment timeline rather than a single pass/fail.
+      - name: Poll live site for ${{ github.sha }}
+        env:
+          SITE: https://exel-ai-polling.explore-096.workers.dev
+          WANT: ${{ github.sha }}
+        run: |
+          want7="${WANT:0:7}"
+          echo "expecting: $want7"
+          for i in $(seq 1 20); do
+            html="$(curl -sS -m 20 -H 'cache-control: no-cache' "$SITE" || true)"
+            live="$(printf '%s' "$html" | grep -oE 'SHA:[^0-9a-f]*[0-9a-f]{7}' | grep -oE '[0-9a-f]{7}$' | head -1)"
+            [ -z "$live" ] && live="$(printf '%s' "$html" | grep -oE '\b[0-9a-f]{7}\b' | head -1)"
+            echo "attempt $i/20 — live=${live:-none}"
+            if [ "$live" = "$want7" ]; then
+              echo "LIVE=$live" >> "$GITHUB_ENV"
+              echo "::notice title=LIVE::$SITE is serving $live"
+              echo "### ✅ LIVE — \`$live\`" >> "$GITHUB_STEP_SUMMARY"
+              echo "$SITE is serving this commit." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error title=STALE::expected $want7, site is serving ${live:-nothing}"
+          {
+            echo "### ❌ STALE"
+            echo "Expected \`$want7\`, live site serves \`${live:-nothing}\` after 10 minutes."
+            echo ""
+            echo "Cloudflare built but did not promote, or the build failed."
+            echo "Remedy: Workers & Pages → exel-ai-polling → Deployments → promote newest to 100%,"
+            echo "or clear the build cache (Settings → Build → Clear build cache) and retry."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
