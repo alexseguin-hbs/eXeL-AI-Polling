@@ -1,0 +1,109 @@
+# Deploy to Cloudflare Workers on every push to main.
+#
+# WHY THIS EXISTS (AAR 2026-07-29): the Cloudflare git integration has never successfully deployed this Worker.
+# Across 14 consecutive commit pairs the SAME commit built green on the preview branch and red on `main`, and the
+# only Source that ever appears in Deployment History is "Wrangler" — i.e. a human running `wrangler deploy` by
+# hand. Meanwhile the site served a 4-hour-old build while every push reported success. This workflow replaces
+# that path with one that is versioned in the repo, reviewable, and — critically — FAILS LOUDLY instead of
+# silently serving stale or degraded code.
+#
+# Three gates, in order, any of which stops the deploy:
+#   envcheck  — required NEXT_PUBLIC_* present, or the bundle would ship with an empty Supabase client
+#   build     — must actually print "Compiled successfully"; a zero exit code is not accepted as proof
+#   verify    — the LIVE url must serve this commit's SHA, or the run is red
+#
+# Setup (once): Settings > Secrets and variables > Actions
+#   CLOUDFLARE_API_TOKEN       token with "Workers Scripts: Edit" on this account
+#   CLOUDFLARE_ACCOUNT_ID
+#   NEXT_PUBLIC_SUPABASE_URL   NEXT_PUBLIC_SUPABASE_ANON_KEY     <- required; Trinity Redundancy depends on them
+#   NEXT_PUBLIC_API_URL  NEXT_PUBLIC_WS_URL  NEXT_PUBLIC_AUTH0_*  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY  <- optional
+# No secret value is ever written to a file or echoed in a log.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}          # manual re-deploy without a new commit
+
+concurrency:                      # never let two deploys race for the same Worker
+  group: deploy-production
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # next.config.js falls back to `git rev-parse` for the SHA banner
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22        # matches the Cloudflare build image (nodejs@22)
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # `npm ci` is strict about package.json <-> lock agreement. scripts/lockcheck.mjs (in prebuild) reports the
+      # offending entries by name when they drift, instead of the opaque failure that broke every build earlier.
+      - name: Install
+        run: npm ci
+
+      # FAIL CLOSED. Building without these produces a site that loads fine and whose live-response path is dead.
+      - name: Check required build vars
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
+          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+        run: node scripts/envcheck.mjs
+
+      - name: Test
+        run: npm run test:innovation-time
+
+      # A build that exits 0 without compiling is exactly how a broken deploy got shipped before. Require the words.
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
+          NEXT_PUBLIC_AUTH0_DOMAIN: ${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+          NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          npm run build 2>&1 | tee /tmp/build.log
+          grep -q "Compiled successfully" /tmp/build.log \
+            || { echo "::error::build did not report 'Compiled successfully'"; exit 1; }
+
+      # `deploy` uploads AND routes 100% of traffic. `versions upload` stages at 0% and is what left the site
+      # serving a stale version while every build looked fine. Do not change this verb.
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: frontend
+          command: deploy
+
+      # A deploy is not a ship. Cloudflare's edge needs a moment to propagate, so poll rather than fail on the
+      # first miss — but if it never matches, the run goes RED. That is the whole point.
+      - name: Verify live site serves ${{ github.sha }}
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if node scripts/verify-deploy.mjs "${{ github.sha }}"; then exit 0; fi
+            echo "not live yet (attempt $i/6) — waiting 15s"; sleep 15
+          done
+          echo "::error::deployed, but the live site never served ${{ github.sha }}"
+          exit 1
