@@ -3059,6 +3059,25 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
 // fields inherit until overridden. Gate readiness = filled required ÷ total required. Present mode renders
 // the same fields as a full deck. This is the digital presentation: concept → slide detail → execution (WBS
 // cost + schedule, S10/S14) → BOM at launch (S16) → validated G1→G7.
+// B3 · AmtsPanel — THE single AMTS panel frame (Aset). Every per-slide panel COMPOSES this; none draws its
+// own frame, so a spacing/typography fix lands once instead of once per slide. Matches the AMTS anatomy in
+// docs/SOI2525_AMTS_SPEC.md §1: blue-title panel card + optional "REQUIRED: {gate}+" flag + body. Sized in
+// cq units so it scales with the 16:9 SlideCanvas exactly like the header band and footer do.
+function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: string; required?: string; wide?: boolean; children: React.ReactNode }) {
+  return (
+    <div className={`overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "sm:col-span-2" : ""}`}>
+      <div className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1.2cqw] py-[0.7cqh]">
+        <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
+          {icon && <span aria-hidden style={{ fontSize: "1.3cqw" }}>{icon}</span>}
+          <span className="truncate font-semibold uppercase tracking-[0.14em]" style={{ fontSize: "1.15cqw" }}>{title}</span>
+        </span>
+        {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: "1cqw" }}>REQUIRED: {required}+</span>}
+      </div>
+      <div className="grid content-start gap-[1cqh] p-[1cqw]">{children}</div>
+    </div>
+  );
+}
+
 function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { p: Project; startSlide?: string; onClose: () => void; onEditSource?: (patch: Partial<Project>, changes: string[]) => void; openSource?: boolean }) {
   const { t } = useLexicon();
   const start = Math.max(0, SLIDE_SCHEMA.findIndex((s) => s.code === startSlide));
@@ -3440,6 +3459,45 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // G-refine (IMG_8215/16) — play mode: controls in a TOP BAR that never overlaps the slide; the slide area
     // below fills to the screen edges in landscape (PC + phone) and shows a fit-to-width 16:9 band in portrait,
     // which the user can ZOOM into. No rotation — text renders exactly as it does in landscape.
+    // B3 · per-slide AMTS panels. ONE dispatch table keyed by slide code — NOT 19 forks. A code with an entry
+    // renders the AMTS two-panel layout from docs/SOI2525_AMTS_SPEC.md; a code WITHOUT one falls through to the
+    // shipped PresentField grid, so the deck never regresses while the remaining panels are built slide by slide.
+    // Panel CONTENTS are still PresentField — the panel only supplies the AMTS frame (AmtsPanel).
+    const fieldsOf = (...ids: string[]) => ids.map((id) => {
+      const f = spec.fields.find((x) => x.id === id);
+      return f ? <PresentField key={f.id} sp={spec} f={f} big /> : null;
+    });
+    const SLIDE_PANEL: Record<string, () => React.ReactNode> = {
+      // S2 — the timeline card that shipped in G-play, re-expressed through the shared frame. Layout is
+      // UNCHANGED (wide timeline card, then the field grid) — only the frame is now the common primitive.
+      // The full 6-panel AMTS S2 lands in its own commit later in the build order.
+      S2: () => (
+        <>
+          <AmtsPanel wide title="Program Timeline · MoT Gate Schedule · ◈ live" icon="🗓">
+            <GateTimeline p={p} />
+            <SourceLink source="Program start (source record)" />
+          </AmtsPanel>
+          {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
+        </>
+      ),
+      // S8 — Competition + Value (AMTS: Next Best Alternative | Value Prop v NBA + waterfall/WTP). The
+      // flagship: left panel is what we must out-perform, right panel is what that is worth, and the value
+      // proposition spans the foot of the slide as the single sentence a board remembers.
+      S8: () => (
+        <>
+          <AmtsPanel title="Competition · Next Best Alternative" icon="⚔" required={spec.stage}>
+            {fieldsOf("nba", "diffs")}
+          </AmtsPanel>
+          <AmtsPanel title="Value · Creation + Capture" icon="◈">
+            {fieldsOf("valuechart", "capture")}
+          </AmtsPanel>
+          <AmtsPanel wide title="Primary Customer Value Proposition" icon="♡">
+            {fieldsOf("vprop", "benefits", "features")}
+          </AmtsPanel>
+        </>
+      ),
+    };
+    const panel = SLIDE_PANEL[spec.code];
     const portrait = vp.orientation === "portrait";
     const canvasStyle: React.CSSProperties = portrait
       ? { width: "100vw", aspectRatio: "16 / 9", containerType: "size", transform: `scale(${zoom})`, transformOrigin: "top center" }
@@ -3495,18 +3553,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
               <span>Source: <span className="text-slate-300">{spec.source}</span></span>
             </div>
-            {/* body — field grid inside the canvas (B3 swaps per-slide panels next); scrolls only if it overflows */}
+            {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback.
+                A slide code with no entry renders exactly as before, so the deck stays presentable while the
+                remaining panels are built out slide by slide. */}
             <div className="mt-[1.2cqh] grid min-h-0 flex-1 content-start gap-[1.4cqh] overflow-y-auto sm:grid-cols-2" style={{ fontSize: "1.4cqw" }}>
-              {spec.code === "S2" && (
-                <div className="overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] sm:col-span-2">
-                  <div className="flex items-center gap-1.5 bg-cyan-500/10 px-3 py-1.5 text-cyan-300">
-                    <span aria-hidden className="text-[12px] leading-none">🗓</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">Program timeline · MoT gate schedule · ◈ live</span>
-                  </div>
-                  <div className="p-3"><GateTimeline p={p} /><SourceLink source="Program start (source record)" /></div>
-                </div>
-              )}
-              {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
+              {panel ? panel() : spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
               {!anyContent && <p className="italic text-slate-500" style={{ fontSize: "1.6cqw" }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
             </div>
             {/* B2 · footer — page # (left) · progress · reference links (right) */}

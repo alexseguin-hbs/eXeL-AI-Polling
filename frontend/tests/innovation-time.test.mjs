@@ -1332,5 +1332,33 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(z === +z.toFixed(2), "pinch result is rounded to 2dp (state settles)");
 }
 
+// ── B3 · per-slide AMTS panels — the dispatch CONTRACT ──────────────────────────────────
+// The panel table is keyed by slide code and every panel is composed from fields that must exist in
+// SLIDE_SCHEMA. These locks fail the moment a panel references a field the schema doesn't have (the panel
+// would silently render nothing), and they prove every not-yet-built code still has a fallback to fall to.
+{
+  const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const codes = SLIDE_SCHEMA.map((s) => s.code);
+  // Every field id a built panel names must be a REAL field on that slide.
+  const PANEL_FIELDS = { S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"] };
+  for (const [code, ids] of Object.entries(PANEL_FIELDS)) {
+    const sp = SLIDE_SCHEMA.find((s) => s.code === code);
+    ok(!!sp, `${code} exists in SLIDE_SCHEMA`);
+    ok(ids.every((id) => sp.fields.some((f) => f.id === id)), `every field the ${code} panel renders exists on ${code}`);
+    // No field is silently dropped by the panel — the AMTS layout must cover the whole slide.
+    ok(sp.fields.every((f) => ids.includes(f.id)), `the ${code} panel covers ALL ${sp.fields.length} of its schema fields (none dropped)`);
+  }
+  // The dispatch + its fallback are both present, so an unbuilt code can never render blank.
+  ok(/const SLIDE_PANEL: Record<string, \(\) => React\.ReactNode>/.test(src), "SLIDE_PANEL dispatch table exists");
+  ok(/panel \? panel\(\) : spec\.fields\.map/.test(src), "unbuilt slide codes fall back to the PresentField grid");
+  // AmtsPanel is THE shared frame (Aset): built panels compose it, nobody hand-draws a second frame.
+  ok(/function AmtsPanel\(/.test(src), "AmtsPanel frame primitive exists");
+  const built = [...src.matchAll(/^\s{6}(S\d+|PRB\w*): \(\) => \(/gm)].map((m) => m[1]);
+  ok(built.length >= 2, `at least S2 + S8 panels are built (${built.join(", ")})`);
+  ok(built.every((c) => codes.includes(c)), "every built panel key is a real slide code");
+  ok(built.length < codes.length, "the fallback still matters — not every slide is built yet");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
