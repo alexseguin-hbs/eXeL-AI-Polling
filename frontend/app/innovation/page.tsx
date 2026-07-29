@@ -336,6 +336,13 @@ function Board() {
   // R&D budget scenario (operator) — Conservative $66M · Base $77M · Growth $88M sets the funding line.
   const [scenario, setScenario] = useState<BudgetScenario>("base");
   useEffect(() => { const s = lsGet("innovation-scenario") as BudgetScenario | null; if (s && BUDGET_SCENARIOS.some((x) => x.key === s)) setScenario(s); }, []);
+  // FUNDED-ONLY IS THE RESTING STATE (operator, asked four times). ONE flag for every surface that can show
+  // unfunded work — not a per-chart toggle. Default OFF on first load, then persisted like the other view
+  // preferences. Unfunded projects were not merely visual clutter: they were inflating the per-gate spend a
+  // board funds from, so this filters the ARITHMETIC as well as the chips.
+  const [showUnfunded, setShowUnfunded] = useState(false);
+  useEffect(() => { setShowUnfunded(lsGet("innovation-show-unfunded") === "1"); }, []);
+  useEffect(() => { lsSet("innovation-show-unfunded", showUnfunded ? "1" : "0"); }, [showUnfunded]);
   useEffect(() => { lsSet("innovation-scenario", scenario); }, [scenario]);
   // R&D scenarios (name + $M) are admin-editable in Business Setup; re-read when leaving setup (below). avail = configured $M.
   const [scenarios, setScenarios] = useState<ScenarioCfg[]>(() => loadScenarios());
@@ -873,7 +880,7 @@ function Board() {
 
       {view === "dashboards" && (
         <div className="p-5">
-          <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} cadence={cadence} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
+          <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} cadence={cadence} showUnfunded={showUnfunded} onShowUnfunded={setShowUnfunded} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
         </div>
       )}
 
@@ -5327,17 +5334,25 @@ function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (
 
 // Pipeline by Gate — gate-spend columns + a PRIORITY-ORDERED project list, maximizable to full
 // screen. Clicking a project shows its dog-tag (in max mode) and opens the full Project details.
-function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
+function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSelect }: { projects: Project[]; funded: Project[]; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void }) {
+  const { t } = useLexicon();
   const [maxed, setMaxed] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   // H4 — gate filter: click gate columns to show ONLY those gates' dog-tags + project list; none selected = all.
   const [selGates, setSelGates] = useState<Set<string>>(new Set());
   const gateOn = (g: string) => selGates.size === 0 || selGates.has(g);
   const toggleGate = (g: string) => setSelGates((prev) => { const n = new Set(prev); n.has(g) ? n.delete(g) : n.add(g); return n; });
-  const pipe = pipelineByGate(projects);
-  const maxGateSpend = Math.max(...pipe.map((g) => g.spendK), 1);
-  const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`)
   const fundedIds = useMemo(() => new Set(funded.map((p) => p.id)), [funded]);
+  // THE FUNDED FIGURE NEVER CHANGES MEANING. `pipe` is always the funded-only roll-up, so the $ and the
+  // count a board reads are byte-identical whether the toggle is on or off. Revealing unfunded work adds a
+  // SEPARATE dim segment and a "(+n unfunded)" suffix — it never folds into the funded ask.
+  const pipe = useMemo(() => pipelineByGate(funded), [funded]);
+  const pipeUn = useMemo(() => pipelineByGate(projects.filter((p) => !fundedIds.has(p.id))), [projects, fundedIds]);
+  const unByGate = useMemo(() => new Map(pipeUn.map((g) => [g.gate, g])), [pipeUn]);
+  // The bar scale spans whatever is on screen, so the funded bars keep their proportions in both states.
+  const maxGateSpend = Math.max(...pipe.map((g, i) => g.spendK + (showUnfunded ? pipeUn[i].spendK : 0)), 1);
+  const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`)
+  const shown = useMemo(() => (showUnfunded ? projects : projects.filter((p) => fundedIds.has(p.id))), [projects, fundedIds, showUnfunded]);
   const pickedP = picked ? projects.find((p) => p.id === picked) : null;
   // In max mode a click previews the dog-tag; otherwise it opens the Project details.
   const clickProject = (id: string) => (maxed ? setPicked(id) : onSelect(id));
@@ -5349,7 +5364,8 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
       <div className="-mx-1 overflow-x-auto px-1">
         <div className="grid min-w-[680px] grid-cols-7 gap-2">
           {pipe.map((g) => {
-            const gateProjects = projects.filter((p) => p.gate === g.gate);
+            const gateProjects = shown.filter((p) => p.gate === g.gate);
+            const un = unByGate.get(g.gate);
             const active = gateOn(g.gate); const sel = selGates.has(g.gate);
             return (
               <div key={g.gate} className={`flex flex-col rounded-lg border bg-[#0b0f14] p-2 text-center transition ${sel ? "border-cyan-500 ring-1 ring-cyan-500/50" : "border-slate-800"} ${active ? "" : "opacity-40"}`}>
@@ -5357,10 +5373,14 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
                   <div className={`text-[11px] font-mono ${sel ? "text-cyan-300 font-semibold" : "text-slate-300"}`}>{g.gate}</div>
                   <div className="mb-1.5 max-w-full truncate text-[9px] text-slate-500" title={g.stage}>{g.stage}</div>
                   <div className="flex h-16 w-full items-end justify-center">
-                    <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: sel ? "#22d3ee" : "#19c8cf", opacity: 0.85 }} />
+                    <div className="flex w-6 flex-col justify-end">
+                      {/* unfunded rides ON TOP as its own dim segment — never merged into the funded bar */}
+                      {showUnfunded && !!un?.spendK && <div className="rounded-t" title={`${kM(un.spendK)} unfunded`} style={{ height: `${Math.max(2, (un.spendK / maxGateSpend) * 60)}px`, background: "#64748b", opacity: 0.45 }} />}
+                      <div className={showUnfunded && un?.spendK ? "" : "rounded-t"} style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: sel ? "#22d3ee" : "#19c8cf", opacity: 0.85 }} />
+                    </div>
                   </div>
                   <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
-                  <div className="text-[10px] text-slate-500">{g.count} proj</div>
+                  <div className="text-[10px] text-slate-500">{g.count} proj{showUnfunded && un?.count ? <span className="text-slate-600"> (+{un.count} {t("innovation.pipeline.unfundedShort")})</span> : null}</div>
                 </button>
                 {/* dog-tag chips for THIS gate — only when the gate is active (H4 filter); size unchanged */}
                 <div className="mt-1.5 flex flex-col gap-1 border-t border-slate-800/70 pt-1.5">
@@ -5382,7 +5402,12 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
         {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
           <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
         ))}
-        <span className="text-slate-600">· dim = not funded</span>
+        {showUnfunded && <span className="text-slate-600">· {t("innovation.pipeline.dimLegend")}</span>}
+        <button type="button" onClick={() => onShowUnfunded(!showUnfunded)} aria-pressed={showUnfunded}
+          title={t("innovation.pipeline.unfundedHint")}
+          className="ml-auto inline-flex min-h-[44px] shrink-0 items-center text-slate-400 hover:text-slate-200">
+          <i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#64748b", opacity: showUnfunded ? 1 : 0.3 }} />{t("innovation.pipeline.unfunded")}
+        </button>
       </div>
 
       {/* Dog-tag preview of the picked project (max mode) + jump to full details */}
@@ -5400,7 +5425,7 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
           {selGates.size > 0 && <button onClick={() => setSelGates(new Set())} className="rounded border border-slate-700 px-1.5 py-0.5 text-cyan-300 hover:bg-slate-800">✕ clear {selGates.size} gate{selGates.size === 1 ? "" : "s"}</button>}
         </div>
         <ol className="grid gap-1 sm:grid-cols-2">
-          {projects.filter((p) => gateOn(p.gate)).map((p, i) => {
+          {shown.filter((p) => gateOn(p.gate)).map((p, i) => {
             const fu = fundedIds.has(p.id);
             return (
               <li key={p.id}>
@@ -5452,7 +5477,7 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
 // four visuals the operator kept useful: Pipeline-by-Gate · 12-box metrics · one horizontal spend bar · a new
 // portfolio cash-flow line. Replaces the old messy 4-card ROI grid + redundant stat row. Everything ties to the
 // same engine (financialMetrics / roiSummary / financialsOverview) so numbers never diverge from the deck.
-function RoiVisuals({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
+function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect }: { projects: Project[]; funded: Project[]; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void }) {
   const [view, setView] = useState<"pipeline" | "metrics" | "spend" | "cash">("pipeline");
   const kM = k;
   const roi = roiSummary(funded);
@@ -5505,7 +5530,7 @@ function RoiVisuals({ projects, funded, onSelect }: { projects: Project[]; funde
             className={`px-2.5 py-1 ${view === k2 ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
         ))}
       </div>
-      {view === "pipeline" && <PipelineByGate projects={projects} funded={funded} onSelect={onSelect} />}
+      {view === "pipeline" && <PipelineByGate projects={projects} funded={funded} showUnfunded={showUnfunded} onShowUnfunded={onShowUnfunded} onSelect={onSelect} />}
       {view === "metrics" && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {tiles.map((m) => <StatTile key={m.label} label={m.label} value={m.value} sub={m.sub} tone={m.tone} />)}
@@ -5532,7 +5557,7 @@ function RoiVisuals({ projects, funded, onSelect }: { projects: Project[]; funde
   );
 }
 
-function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; cadence?: Cadence; onSelect: (id: string) => void }) {
+function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", showUnfunded, onShowUnfunded, onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; cadence?: Cadence; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void }) {
   const { t } = useLexicon();
   const fundedSet = new Set(funded.map((p) => p.id));
   const buAlloc = nodeAllocation(projects, "bu", (id) => fundedSet.has(id), availK, budgetOverrideK);
@@ -5645,7 +5670,7 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
 
       {/* G6 — simplified ROI Visuals (selector-driven): Pipeline · 12-box Metrics · Spend · Cash Flow.
           Replaces the old 6-tile row + 4-card grid + standalone Pipeline (operator: dashboard was too complex). */}
-      <RoiVisuals projects={projects} funded={funded} onSelect={onSelect} />
+      <RoiVisuals projects={projects} funded={funded} showUnfunded={showUnfunded} onShowUnfunded={onShowUnfunded} onSelect={onSelect} />
 
       {/* Intelligence Load — AI·SI·HI by strategic pillar / BU / SBU / Alpha Group / Project */}
       <IntelligenceLoadPanel projects={projects} />

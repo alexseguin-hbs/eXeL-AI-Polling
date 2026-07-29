@@ -1654,5 +1654,58 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/ENFORCED IN ITEM 22/.test(shot), "the deferral is stated in the gate itself, not hidden");
 }
 
+// ── #6 · FUNDED-ONLY IS THE RESTING STATE (asked four times) ────────────────────────────
+// Unfunded projects were not merely clutter on Pipeline by Gate: pipelineByGate(projects) at :5326 fed the
+// BAR HEIGHTS, the "$48.2M" per-gate spend and the "N proj" counts from ALL projects, so the figure a board
+// funds from was inflated by work nobody had funded. Hiding the chips alone would have fixed the picture and
+// left the arithmetic wrong. The roll-up is now funded-only, and revealing unfunded adds a SEPARATE segment.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const lex = await fsp.readFile("lib/lexicon-data.ts", "utf8");
+  const { DEMO_PROJECTS, pipelineByGate, GATES } = await import("../lib/innovation-data.ts");
+
+  // (a) THE ARITHMETIC. Funded-only roll-up, computed from the funded list — this is the assertion that was
+  //     red before the fix: pipelineByGate(ALL) != pipelineByGate(FUNDED) for this portfolio.
+  const all = DEMO_PROJECTS;
+  const funded = all.filter((_, i) => i % 2 === 0);            // any strict subset proves the distinction
+  const unfunded = all.filter((p) => !funded.includes(p));
+  const pipeF = pipelineByGate(funded), pipeU = pipelineByGate(unfunded), pipeA = pipelineByGate(all);
+  ok(pipeF.some((g, i) => g.spendK !== pipeA[i].spendK), "the funded-only roll-up genuinely differs from the all-projects roll-up (the defect was real)");
+  ok(pipeF.every((g, i) => g.spendK + pipeU[i].spendK === pipeA[i].spendK), "funded + unfunded spend reconciles to the total exactly — no double count, no drift");
+  ok(pipeF.every((g, i) => g.count + pipeU[i].count === pipeA[i].count), "funded + unfunded counts reconcile exactly");
+  ok(pipeF.length === GATES.length, "every gate is still represented when the unfunded are removed");
+
+  // (b) THE FUNDED FIGURE NEVER CHANGES MEANING — the component reads `pipe` from `funded`, unconditionally.
+  ok(/const pipe = useMemo\(\(\) => pipelineByGate\(funded\), \[funded\]\);/.test(src), "the funded roll-up is computed from the FUNDED list only — identical whether the toggle is on or off");
+  ok(/const pipeUn = useMemo\(\(\) => pipelineByGate\(projects\.filter\(\(p\) => !fundedIds\.has\(p\.id\)\)\)/.test(src), "unfunded are rolled up SEPARATELY, never folded into the funded ask");
+  ok(/\(\+\{un\.count\} \{t\("innovation\.pipeline\.unfundedShort"\)\}\)/.test(src), 'the count reads "5 proj (+2 unfunded)", not "7 proj"');
+  ok(/showUnfunded && !!un\?\.spendK && <div className="rounded-t"/.test(src), "unfunded spend renders as its own dim stacked segment");
+
+  // (c) DEFAULT OFF, shared, persisted
+  ok(/const \[showUnfunded, setShowUnfunded\] = useState\(false\);/.test(src), "the flag defaults OFF on first load");
+  ok(/lsGet\("innovation-show-unfunded"\)/.test(src) && /lsSet\("innovation-show-unfunded"/.test(src), "the flag persists like the other view preferences");
+  ok((src.match(/const \[showUnfunded, setShowUnfunded\] = useState/g) ?? []).length === 1, "there is ONE flag, lifted to the Board — not a per-chart toggle");
+  ok(/const shown = useMemo\(\(\) => \(showUnfunded \? projects : projects\.filter\(\(p\) => fundedIds\.has\(p\.id\)\)\)/.test(src), "chips AND the priority list read the same `shown` set");
+  ok(/\{shown\.filter\(\(p\) => gateOn\(p\.gate\)\)\.map/.test(src), "the priority-ordered list obeys the flag too");
+  ok(/const gateProjects = shown\.filter/.test(src), "the dog-tag chips obey the flag too");
+
+  // (d) the control reuses the Base Revenue idiom, and the legend cannot claim a convention that is off-screen
+  ok(/style=\{\{ background: "#64748b", opacity: showUnfunded \? 1 : 0\.3 \}\}/.test(src), "the toggle uses the Base Revenue swatch idiom (opacity reflects state)");
+  ok(/aria-pressed=\{showUnfunded\}/.test(src), "the toggle exposes its state to assistive tech");
+  ok(/min-h-\[44px\]/.test(src), "the toggle meets the 44px touch target");
+  ok(/\{showUnfunded && <span className="text-slate-600">· \{t\("innovation\.pipeline\.dimLegend"\)\}<\/span>\}/.test(src), "the 'dim = not funded' legend only appears while dimming is actually on screen");
+
+  // (e) t() coverage
+  for (const k2 of ["innovation.pipeline.unfunded", "innovation.pipeline.unfundedShort", "innovation.pipeline.unfundedHint", "innovation.pipeline.dimLegend"])
+    ok(lex.includes(`key: "${k2}"`), `lexicon carries ${k2}`);
+  ok(!/>Unfunded Projects</.test(src), "no hardcoded English for the toggle label — it goes through t()");
+
+  // (f) THE DELIBERATE EXCEPTION, confirmed rather than silently filtered: the rack's funded-above /
+  //     unfunded-below split (FundingDivider, tasks #325/#332) exists to SHOW the comparison. It keeps both.
+  ok(/function FundingDivider\(/.test(src) && (src.match(/<FundingDivider/g) ?? []).length >= 2,
+     "the rack's FundingDivider split is untouched — that surface's whole purpose is funded-vs-unfunded comparison");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

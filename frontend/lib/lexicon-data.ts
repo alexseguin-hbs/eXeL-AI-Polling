@@ -1301,6 +1301,10 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.kpi.rdAvailable", englishDefault: "R&D available", context: "Innovation KPI: R&D available", cubeId: 60 },
   { key: "innovation.kpi.fundedNre", englishDefault: "Funded NRE", context: "Innovation KPI: funded NRE", cubeId: 60 },
   { key: "innovation.kpi.fundedProjects", englishDefault: "Funded projects", context: "Innovation KPI: funded projects", cubeId: 60 },
+  { key: "innovation.pipeline.unfunded", englishDefault: "Unfunded Projects", context: "Pipeline by Gate toggle: reveal unfunded projects (default off — funded-only is the resting state)", cubeId: 60 },
+  { key: "innovation.pipeline.unfundedShort", englishDefault: "unfunded", context: "Pipeline by Gate: the '(+2 unfunded)' suffix on a gate's project count", cubeId: 60 },
+  { key: "innovation.pipeline.unfundedHint", englishDefault: "Show unfunded projects, greyed out. The funded figure never changes.", context: "Pipeline by Gate: unfunded toggle tooltip", cubeId: 60 },
+  { key: "innovation.pipeline.dimLegend", englishDefault: "dim = not funded", context: "Pipeline by Gate legend, shown only while unfunded projects are revealed", cubeId: 60 },
   { key: "innovation.kpi.upside", englishDefault: "Upside R&D", context: "Innovation KPI: unallocated R&D = available − funded NRE (eXeL nomenclature: Upside R&D)", cubeId: 60 },
   { key: "innovation.kpi.portfolioNpv", englishDefault: "Portfolio NPV", context: "Innovation KPI: portfolio NPV", cubeId: 60 },
   // Persona lens
