@@ -2,6 +2,21 @@
 
 ## Workflow Rules
 - **ALWAYS commit and push to GitHub after each change.** Do not wait — commit and push immediately after every modification.
+- **REPORT THE SHA AND THE DEPLOY STATE ON EVERY UPDATE (AAR 2026-07-29, MoT-enforced).** For four hours a
+  push was reported as a ship: five commits announced "done" while the live site served a build four hours old.
+  The gate ended at `git push` returning 0 and nobody ever compared the site to the commit.
+  **Every update to the operator MUST carry the output of `cd frontend && npm run status`:**
+  ```
+  SHA <short> | committed ✓ | pushed ✓ | cloudflare LIVE <sha> | UNVERIFIED | STALE <sha>
+  ```
+  1. **Three states, never collapsed.** COMMITTED ≠ PUSHED ≠ LIVE. Report all three, every time.
+  2. **PUSHED means the remote moved** — proven with `git ls-remote`, never inferred from a push's exit code.
+  3. **LIVE means the site serves that SHA** — proven by fetching it. Nothing else counts as deployed.
+  4. **UNREACHABLE IS NOT A PASS.** The Claude Code sandbox proxy 403s every host, so LIVE cannot be confirmed
+     from there. Say **UNVERIFIED** and hand the operator the command. Never say "deployed", "shipped", or
+     "live" without the SHA comparison. Never explain a stale site away as "deploy lag" without checking
+     Cloudflare Build history first.
+  5. **Always include the website URL** so the operator can check in one tap.
 - **NO REWORK — verify before you execute (R-CORE law, MoT-enforced).** Rework is the antithesis of R-CORE. Before opening code for ANY backlog item:
   1. **Grep-verify it isn't already shipped.** Search the real files for the feature's identifiers (state, handler, label, export). Cite the file:line as evidence.
   2. **If it exists → REUSE or EXTEND it. Never rebuild it.** Fold the new requirement into the existing primitive; do not fork a parallel implementation.
