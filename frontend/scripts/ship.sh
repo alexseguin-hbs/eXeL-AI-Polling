@@ -69,7 +69,7 @@ done
 #        NOT `wrangler versions upload`, which stages a version at 0% and is exactly what left the
 #        site serving a 4-hour-old build while every push looked successful.
 step "wrangler deploy (uploads + promotes to 100%)"
-npx wrangler deploy || fail "wrangler deploy failed — check auth (wrangler login / CLOUDFLARE_API_TOKEN)"
+npx wrangler@4.115.0 deploy || fail "wrangler deploy failed — check auth (wrangler login / CLOUDFLARE_API_TOKEN)"
 
 # ── 5 · PROVE IT — a push is not a ship ──────────────────────────────────────────────────────
 step "verify live site serves $SHORT"
