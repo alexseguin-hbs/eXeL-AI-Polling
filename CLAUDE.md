@@ -2,6 +2,12 @@
 
 ## Workflow Rules
 - **ALWAYS commit and push to GitHub after each change.** Do not wait — commit and push immediately after every modification.
+- **NO REWORK — verify before you execute (R-CORE law, MoT-enforced).** Rework is the antithesis of R-CORE. Before opening code for ANY backlog item:
+  1. **Grep-verify it isn't already shipped.** Search the real files for the feature's identifiers (state, handler, label, export). Cite the file:line as evidence.
+  2. **If it exists → REUSE or EXTEND it. Never rebuild it.** Fold the new requirement into the existing primitive; do not fork a parallel implementation.
+  3. **If it partially exists → state which part is done and implement only the gap.**
+  4. **Never re-report a shipped item as remaining.** A backlog line is only "remaining" once step 1 proves the gap.
+  5. **Scope check first:** confirm the item belongs to the app under work (e.g. `/innovation` = `app/innovation/page.tsx` · `lib/innovation-data.ts` · the slide seeds). Items belonging to other apps/cubes are out of scope, not silently absorbed.
 
 ## Release Process (Mandatory)
 
