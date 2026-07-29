@@ -1546,5 +1546,19 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(SLIDE_SCHEMA.length >= 18, `the printed deck is cover + ${SLIDE_SCHEMA.length} slides`);
 }
 
+// ── #19 · ONE NAME FOR ONE NUMBER — "Upside R&D", never "dry powder" ────────────────────
+// Two names for the same figure is the drift the consistency gate exists to stop. Label only: the
+// available − funded-NRE math is untouched.
+{
+  const fsp = await import("node:fs/promises");
+  const lex = await fsp.readFile("lib/lexicon-data.ts", "utf8");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const data = await fsp.readFile("lib/innovation-data.ts", "utf8");
+  ok(/englishDefault: "Upside R&D"/.test(lex), "the KPI lexicon default is Upside R&D");
+  ok(!/dry powder/i.test(lex) && !/dry powder/i.test(data), "no 'dry powder' survives in the lexicon or the data engine");
+  ok((src.match(/dry powder/gi) ?? []).length <= 1, "the only remaining mention in the page is the historical note on the rename");
+  ok(/<Kpi label=\{t\("innovation.kpi.upside"\)\} value=\{k\(avail - fundedNre\)\}/.test(src), "the KPI still computes available − funded NRE — the rename touched no math");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

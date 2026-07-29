@@ -1301,7 +1301,7 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.kpi.rdAvailable", englishDefault: "R&D available", context: "Innovation KPI: R&D available", cubeId: 60 },
   { key: "innovation.kpi.fundedNre", englishDefault: "Funded NRE", context: "Innovation KPI: funded NRE", cubeId: 60 },
   { key: "innovation.kpi.fundedProjects", englishDefault: "Funded projects", context: "Innovation KPI: funded projects", cubeId: 60 },
-  { key: "innovation.kpi.upside", englishDefault: "Upside (dry powder)", context: "Innovation KPI: unallocated R&D = available − funded NRE", cubeId: 60 },
+  { key: "innovation.kpi.upside", englishDefault: "Upside R&D", context: "Innovation KPI: unallocated R&D = available − funded NRE (eXeL nomenclature: Upside R&D)", cubeId: 60 },
   { key: "innovation.kpi.portfolioNpv", englishDefault: "Portfolio NPV", context: "Innovation KPI: portfolio NPV", cubeId: 60 },
   // Persona lens
   { key: "innovation.persona.viewAs", englishDefault: "View as", context: "Innovation persona-switcher label", cubeId: 60 },

@@ -1327,7 +1327,7 @@ export const buBuckets = (projects: Project[], isFunded: (id: string) => boolean
 // The R&D envelope (scenario available $) is split across nodes by revenue-base share, so every node
 // carries: budget (its share of the R&D cap) · allocated (Σ funded NRE) · UPSIDE = unallocated funds
 // (budget − allocated) · over (overcommit). Budgets sum to the envelope at each level, so "upside" is a
-// real bucket of dry powder the lead can deploy. Pure + deterministic; reuses fundingBuckets (one source).
+// real bucket of Upside R&D the lead can deploy. Pure + deterministic; reuses fundingBuckets (one source).
 export interface NodeAllocation {
   code: string; label: string;
   budgetK: number; allocatedK: number; upsideK: number; overK: number;
