@@ -3361,20 +3361,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
     // name (Executive Summary · Customer Problem · Product Summary · Customer Workflow · Competition + Value · …),
     // large white, centered between gate·stage (left) and slide code (right). No per-project subtitle/variation.
     const deckTitle = slideDef(spec.code)?.name ?? spec.code;
+    const ex = execOf(p);
+    // B1: fixed 16:9 slide CANVAS (container-type: size → cqw/cqh scale everything with the page, letterboxed on
+    // a black backdrop). B2: AMTS SlideChrome — PROJECT NAME header band (+COGS/MSRP/Mgn%) · Business/Project#/Slide
+    // · gate·stage · Req flag; footer = page# + reference links + progress. Controls stay OUTSIDE the canvas.
     return (
-      <div className="fixed inset-0 z-[60] flex flex-col bg-[#04070c] text-slate-100" role="dialog" aria-modal="true"
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black text-slate-100" role="dialog" aria-modal="true"
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        {/* tap zones for prev/next (edges) */}
-        <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[1] w-[16%] cursor-w-resize bg-transparent" />
-        <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[1] w-[16%] cursor-e-resize bg-transparent" />
-        {/* REQUIRED badge — upper-left, same top line as the As-set/HI/AI + Edit + Exit controls (operator). */}
-        <div className="absolute left-3 top-3 z-10 flex items-center">
-          <span className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-semibold tracking-wide text-amber-300 whitespace-nowrap">Req: {spec.stage}+</span>
-        </div>
-        {/* stage controls */}
+        {/* tap zones for prev/next (edges) — outside the canvas so they always work */}
+        <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[12%] cursor-w-resize bg-transparent" />
+        <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[12%] cursor-e-resize bg-transparent" />
+        {/* stage controls (top-right) */}
         <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
-          {/* Live source override — flip the whole deck between the human baseline and the enhanced AI, or honor
-              each field's own choice ("As set"). */}
           <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("innovation.present.src")}>
             {([["set", t("innovation.present.src.set")], ["hi", `웃 ${t("innovation.slides.hi")}`], ["ai", `◬ ${t("innovation.slides.ai")}`]] as const).map(([k, lbl]) => (
               <button key={k} onClick={() => setPresentSrc(k)} aria-pressed={presentSrc === k}
@@ -3384,45 +3382,54 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
-        {/* Top padding clears the As-set/HI/AI + Edit + Exit controls (top-right) + Req badge (top-left);
-            tightened so the title sits higher and landscape/portrait keep more room for content + bottom strip. */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-[clamp(16px,3.5vw,56px)] pb-[clamp(10px,2vw,28px)] pt-[clamp(48px,6vw,60px)]">
-          <div className="border-b border-slate-800 pb-[clamp(6px,1.2vw,14px)]">
-            {/* One line: gate·stage (cyan, left) · title (TRUE-centered via equal 1fr side cols) · slide code (right) */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2">
-              <span className="min-w-0 justify-self-start font-mono text-[clamp(11px,1.2vw,15px)] tracking-[0.14em] text-cyan-400">{spec.gate} · {spec.stage}</span>
-              <div className="flex min-w-0 flex-col items-center text-center">
-                <h2 className="text-[clamp(20px,3.4vw,44px)] font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance">{deckTitle}</h2>
+        {/* B1 · SlideCanvas — fixed 16:9, scale-to-fit (width capped by viewport height), container for cq units */}
+        <div className="relative overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800"
+          style={{ width: "min(100vw, calc(100dvh * 16 / 9))", aspectRatio: "16 / 9", containerType: "size" }}>
+          <div className="flex h-full flex-col" style={{ padding: "3.2cqh 3.2cqw" }}>
+            {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
+            <div className="flex items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
+              <div className="min-w-0">
+                <div className="truncate font-semibold tracking-tight text-cyan-200" style={{ fontSize: "3cqw", lineHeight: 1.05 }}>{p.name}</div>
+                <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: "1.35cqw" }}>
+                  <span>COGS <b className="text-slate-200">${ex.cogsK}k</b></span>
+                  <span>MSRP <b className="text-slate-200">${ex.msrpK}k</b></span>
+                  <span>Mgn <b className="text-slate-200">{ex.marginPct}%</b></span>
+                </div>
               </div>
-              <span className="min-w-0 justify-self-end font-mono text-[clamp(11px,1.4vw,17px)] font-semibold tracking-[0.14em] text-cyan-400">{spec.code}</span>
+              <h2 className="shrink-0 text-center font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance" style={{ fontSize: "2.9cqw", maxWidth: "44cqw" }}>{deckTitle}</h2>
+              <div className="flex shrink-0 flex-col items-end gap-[0.6cqh]">
+                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: "1.2cqw" }}>Req: {spec.stage}+</span>
+                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: "1.4cqw" }}>{spec.gate} · {spec.stage} · {spec.code}</span>
+              </div>
             </div>
-            {/* Business · Project # · Source subheader — left-justified (operator) */}
-            <div className="mt-1 flex flex-wrap items-center justify-start gap-x-3 gap-y-0.5 text-[clamp(10px,1.1vw,13px)] text-slate-500">
+            {/* subheader */}
+            <div className="mt-[0.8cqh] flex flex-wrap items-center gap-x-[1.6cqw] text-slate-500" style={{ fontSize: "1.25cqw" }}>
               <span>Business: <span className="text-slate-300">{p.division}</span></span>
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
               <span>Source: <span className="text-slate-300">{spec.source}</span></span>
             </div>
-          </div>
-          <div className="mt-[clamp(8px,1.4vw,16px)] grid min-h-0 flex-1 content-start gap-[clamp(10px,1.4vw,18px)] overflow-y-auto sm:grid-cols-2">
-            {/* MoT gate timeline (S2 · Project Overview) — estimated dates that slide when the start date changes. */}
-            {spec.code === "S2" && (
-              <div className="overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] sm:col-span-2">
-                <div className="flex items-center gap-1.5 bg-cyan-500/10 px-3 py-1.5 text-cyan-300">
-                  <span aria-hidden className="text-[12px] leading-none">🗓</span>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">Program timeline · MoT gate schedule · ◈ live</span>
+            {/* body — field grid inside the canvas (B3 swaps per-slide panels next); scrolls only if it overflows */}
+            <div className="mt-[1.2cqh] grid min-h-0 flex-1 content-start gap-[1.4cqh] overflow-y-auto sm:grid-cols-2" style={{ fontSize: "1.4cqw" }}>
+              {spec.code === "S2" && (
+                <div className="overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] sm:col-span-2">
+                  <div className="flex items-center gap-1.5 bg-cyan-500/10 px-3 py-1.5 text-cyan-300">
+                    <span aria-hidden className="text-[12px] leading-none">🗓</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">Program timeline · MoT gate schedule · ◈ live</span>
+                  </div>
+                  <div className="p-3"><GateTimeline p={p} /><SourceLink source="Program start (source record)" /></div>
                 </div>
-                <div className="p-3"><GateTimeline p={p} /><SourceLink source="Program start (source record)" /></div>
-              </div>
-            )}
-            {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
-            {!anyContent && <p className="text-[clamp(14px,1.6vw,20px)] italic text-slate-500">Nothing authored on this slide yet — tap Edit to add content.</p>}
-          </div>
-          <div className="mt-[clamp(8px,1.4vw,16px)] flex shrink-0 items-center gap-3 border-t border-slate-800 pt-[clamp(8px,1.2vw,14px)]">
-            <span className="truncate font-mono text-[11px] tracking-wider text-slate-500">{p.name}</span>
-            <div className="flex flex-1 gap-1">
-              {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-1 flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
+              )}
+              {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
+              {!anyContent && <p className="italic text-slate-500" style={{ fontSize: "1.6cqw" }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
             </div>
-            <span className="font-mono text-[11px] tabular-nums text-slate-500">{idx + 1}/{SLIDE_SCHEMA.length}</span>
+            {/* B2 · footer — page # (left) · progress · reference links (right) */}
+            <div className="mt-[1cqh] flex shrink-0 items-center gap-[1.2cqw] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: "1.15cqw" }}>
+              <span className="tabular-nums">{idx + 1}/{SLIDE_SCHEMA.length}</span>
+              <div className="flex flex-1 gap-[0.4cqw]">
+                {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-[0.5cqh] flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
+              </div>
+              <span className="truncate">Reference Links: <span className="text-slate-400">{spec.source}</span></span>
+            </div>
           </div>
         </div>
       </div>
