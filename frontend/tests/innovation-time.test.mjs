@@ -77,6 +77,7 @@ const gm = growthModel([P({ doNothing10yM: 600, tech: "low", comm: "low", fullRe
 ok(gm.length === 6, "growth model spans 6 years");
 ok(gm.every((r) => Math.abs(r.doNothing - gm[0].doNothing) < 1e-9), "grey baseline (Base Rev) held FLAT — current-year jump-off, does not erode as a block");
 ok(gm[5].target > gm[0].target, "target grows YoY");
+ok(Math.abs(gm[0].target - gm[0].doNothing) < 1e-9, "Growth Target anchors at Base Rev (base-year target == baseline, not top of Full Rev)");
 ok(gm.every((r) => r.remaining >= 0), "remaining-to-target never negative");
 ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
 // H2 — the three operator components + Incremental summation (1 − 2 + 3)

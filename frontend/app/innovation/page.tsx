@@ -4482,9 +4482,11 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // → × blended margin. Off → stacks sit on zero, no grey.
   const baselineShown = showBase && view === "incremental";
   const baseSeries = rows.map((_, i) => (baselineShown ? rows[i].doNothing * (metric === "mgn" ? marginFrac : 1) : 0));
-  // Right-axis Growth line: from the TOP of the base-year bar (baseline + stack) growing at the target rate.
-  const baseTop = (baseSeries[0] + stackPos[0]) || Math.max(1, baseM);
-  const targetLine = rows.map((_, i) => baseTop * Math.pow(1 + growth, i));
+  // Growth-target line: anchors at the base-year BASELINE REV (operator: "target starts at Baseline Rev, not the
+  // top of Full Rev") and grows at the target CAGR. In the Mgn unit → × blended margin. A perfect portfolio lands
+  // this line BETWEEN the top of Risk-weighted (green) and the bottom of At-risk upside (orange).
+  const targetAnchor = (metric === "mgn" ? baseM * marginFrac : baseM) || Math.max(1, baseM);
+  const targetLine = rows.map((_, i) => targetAnchor * Math.pow(1 + growth, i));
   // Target (Growth) line only in the Incremental view; the "Growth Target" legend is its on/off toggle.
   const targetApplies = view === "incremental";
   const showTarget = showBaseline && targetApplies;
