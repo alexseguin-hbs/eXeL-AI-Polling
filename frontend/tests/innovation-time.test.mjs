@@ -1341,7 +1341,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
   const codes = SLIDE_SCHEMA.map((s) => s.code);
   // Every field id a built panel names must be a REAL field on that slide.
-  const PANEL_FIELDS = { S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"] };
+  const PANEL_FIELDS = {
+    S3: ["profile", "revtable", "rdchart", "fincomment"],
+    S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"],
+  };
   for (const [code, ids] of Object.entries(PANEL_FIELDS)) {
     const sp = SLIDE_SCHEMA.find((s) => s.code === code);
     ok(!!sp, `${code} exists in SLIDE_SCHEMA`);

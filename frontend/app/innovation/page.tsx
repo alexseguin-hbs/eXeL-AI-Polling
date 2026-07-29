@@ -3480,6 +3480,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           {spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
         </>
       ),
+      // S3 — Financials (AMTS: Return Profile + Revenue/Margin by Year | cash-flow chart + comments). Every
+      // number here is LINKED to the one financial record, so the panel only arranges — it never re-derives.
+      S3: () => (
+        <>
+          <AmtsPanel title="Return Profile · Revenue + Margin by Year" icon="▤" required={spec.stage}>
+            {fieldsOf("profile", "revtable")}
+          </AmtsPanel>
+          <AmtsPanel title="Cash Flow · R&D/NRE Out vs Revenue + Margin" icon="◈">
+            {fieldsOf("rdchart")}
+          </AmtsPanel>
+          <AmtsPanel wide title="Financial Comments · Assumptions" icon="✎">
+            {fieldsOf("fincomment")}
+          </AmtsPanel>
+        </>
+      ),
       // S8 — Competition + Value (AMTS: Next Best Alternative | Value Prop v NBA + waterfall/WTP). The
       // flagship: left panel is what we must out-perform, right panel is what that is worth, and the value
       // proposition spans the foot of the slide as the single sentence a board remembers.
