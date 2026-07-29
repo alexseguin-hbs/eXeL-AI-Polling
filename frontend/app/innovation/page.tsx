@@ -3402,7 +3402,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       <div className={`overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "sm:col-span-2" : ""}`}>
         <Banner />
         <div className="p-3">
-        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}>{v as string}</p>}
+        {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors
+            made portrait phones render huge headers that overflowed the slide while landscape looked fine.
+            Outside the canvas there is no container context, so the original px/vw clamp stays. */}
+        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${big ? (isVp ? "text-[1.9cqw] font-medium" : "text-[1.5cqw]") : (isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]")}`}>{v as string}</p>}
         {f.kind === "attach" && (isImageSrc(v)
           ? <img src={v} alt={f.name} className="max-h-[40vh] w-auto rounded border border-slate-700 object-contain" />
           : <p className="m-0 text-[13px] text-slate-300">◧ {typeof v === "string" ? v : ""}</p>)}
