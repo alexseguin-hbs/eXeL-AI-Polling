@@ -91,22 +91,39 @@ const AUDIT = (printW) => {
 
   const overflow = [];
   const type = [];
+  const cRect = canvas.getBoundingClientRect();
   for (const el of canvas.querySelectorAll("*")) {
     const cs = getComputedStyle(el);
     if (cs.display === "none" || cs.visibility === "hidden") continue;
-    // Scrollable-by-design containers legitimately overflow; everything else must fit.
-    const scrollable = /auto|scroll/.test(cs.overflowX + cs.overflowY);
+    // TEXT IS ONLY LOST WHEN SOMETHING CLIPS IT. An element whose overflow is `visible` paints outside its
+    // box and stays perfectly readable (absolutely-positioned connectors do this by design), so flagging it
+    // is a false positive. Two things really lose content, and only these are reported:
+    //   (a) the element CLIPS its own content — overflow:hidden/clip and scroll size exceeds client size;
+    //   (b) the element paints outside the SLIDE CANVAS, which is itself overflow:hidden.
+    // Scrollable-by-design containers (auto/scroll) are exempt from (a) — the user can reach the content —
+    // but they are NOT exempt from (b), because a printed sheet cannot scroll.
+    const clips = /hidden|clip/.test(cs.overflowX + cs.overflowY);
     const w = el.scrollWidth - el.clientWidth;
     const h = el.scrollHeight - el.clientHeight;
     // 1px of slack absorbs sub-pixel rounding in the layout engine; 2px+ is a real clip.
-    if (!scrollable && (w > 1 || h > 1) && el.clientWidth > 0 && el.clientHeight > 0) {
+    if (clips && (w > 1 || h > 1) && el.clientWidth > 0 && el.clientHeight > 0) {
       overflow.push({ tag: el.tagName.toLowerCase(), cls: (el.className || "").toString().slice(0, 70), dx: w, dy: h,
         text: (el.textContent || "").trim().slice(0, 60) });
     }
     // Only measure elements that actually paint text of their own.
     const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
     if (!own) continue;
-    const px = round(parseFloat(cs.fontSize) * k);
+    // (b) — a text element must sit inside the canvas. 2px of slack for sub-pixel layout.
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) {
+      const out = Math.max(cRect.left - r.left, r.right - cRect.right, cRect.top - r.top, r.bottom - cRect.bottom);
+      if (out > 2) overflow.push({ tag: el.tagName.toLowerCase(), cls: "OUTSIDE CANVAS", dx: Math.round(out), dy: 0,
+        text: (el.textContent || "").trim().slice(0, 60) });
+    }
+    // SVG text scales with its viewBox, so its CSS font-size is in USER units, not screen px. Multiply by the
+    // element's actual screen transform before comparing to a px cap, or every chart label reads 4x too big.
+    const ctm = typeof el.getScreenCTM === "function" ? el.getScreenCTM() : null;
+    const px = round(parseFloat(cs.fontSize) * (ctm ? Math.abs(ctm.a) : 1) * k);
     // A "box header" is the slide header band, an AMTS panel banner, or a field banner. Everything else —
     // including the subheader line and the page footer — is body copy and meets the tighter cap.
     const header = !!el.closest("[data-panel-head],[data-field-banner],[data-slide-head]");

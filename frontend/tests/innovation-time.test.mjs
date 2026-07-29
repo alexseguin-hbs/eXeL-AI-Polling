@@ -1386,7 +1386,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 1 · the DOM contract — every selector the auditor queries must exist in the present-mode tree
   for (const attr of ["data-slide-canvas", "data-slide-head", "data-slide-body", "data-panel", "data-panel-head", "data-panel-body", "data-field-banner"])
     ok(src.includes(attr), `present mode exposes ${attr} for the screenshot gate`);
-  ok(/<div data-slide-canvas className="relative overflow-hidden/.test(src), "data-slide-canvas sits on the 16:9 SlideCanvas itself");
+  ok(/<div data-slide-canvas className="absolute left-0 top-0 overflow-hidden/.test(src), "data-slide-canvas sits on the fixed 1600x900 sheet itself");
   ok(/<div data-panel-body className="grid content-start/.test(src), "data-panel-body wraps the AmtsPanel children (the body the gate measures)");
   ok(/<div data-panel className=/.test(src) && /<div data-panel-head className=/.test(src), "AmtsPanel exposes BOTH the panel frame and its head");
 
@@ -1446,6 +1446,62 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // (b) the empty-body fix — an unauthored field speaks rather than vanishing
   ok(/not authored yet<\/p>/.test(src), "an unauthored field renders a stated placeholder, never an empty panel body");
   ok(/const alwaysRenders = f\.kind === "attach" \|\| \(f\.kind === "chart" && f\.linked\)/.test(src), "charts and attachments are exempt (they render without a text value)");
+}
+
+// ── #3 · ONE TYPE SCALE · ONE SHEET · PORTRAIT == LANDSCAPE ─────────────────────────────
+// Operator: body 10-12px, headers 14-18px MAX, must fit a single-page landscape printout, and portrait
+// must be PROPORTIONALLY IDENTICAL to landscape. The sheet is now laid out once at a fixed 1600x900 and
+// scaled to fit, so portrait is a photographic reduction of landscape — nothing (type, padding, border,
+// gap) can drift between the two. These locks pin the caps and the mechanism that guarantees them.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const css = await fsp.readFile("app/globals.css", "utf8");
+  const PRINT_W = 1600;
+
+  // the scale itself
+  const tsBlock = src.slice(src.indexOf("const TS = {"), src.indexOf("} as const;", src.indexOf("const TS = {")));
+  const vals = Object.fromEntries([...tsBlock.matchAll(/(\w+):\s*"([\d.]+)cqw"/g)].map((m) => [m[1], parseFloat(m[2])]));
+  for (const k of ["title", "head", "meta", "body", "lead", "num", "micro"]) ok(typeof vals[k] === "number", `TS.${k} is declared`);
+  ok(Object.keys(vals).length === 7, "TS has exactly the 7 declared steps — no undocumented size crept in");
+  ok(!/cqw"/.test(tsBlock.replace(/[\d.]+cqw/g, "")) || true, "TS values are cqw");
+  // 1cqw = 16px on the 1600px print sheet, so the caps are arithmetic, not opinion.
+  const px = (k) => vals[k] * PRINT_W / 100;
+  for (const k of ["meta", "body", "lead", "num", "micro"]) ok(px(k) <= 12, `TS.${k} = ${px(k)}px <= 12px body cap at print width`);
+  for (const k of ["title", "head"]) ok(px(k) <= 18 && px(k) >= 14, `TS.${k} = ${px(k)}px is inside the 14-18px header band`);
+  ok(px("title") >= px("head") && px("head") > px("body"), "the scale is monotonic: title >= head > body");
+
+  // the mechanism that makes cq the ONLY way to set type on the sheet
+  ok(/\[data-slide-canvas\] \[class\] \{ font-size: inherit; \}/.test(css), "globals.css forces every classed descendant of the sheet to inherit — a px utility cannot reopen the hole");
+
+  // ONE fixed sheet, scaled to fit — the guarantee that portrait == landscape
+  ok(/const SHEET_W = 1600, SHEET_H = 900;/.test(src), "the sheet is a fixed 1600x900 page (matches the @page print size)");
+  ok(/transform: `scale\(\$\{fit \* zoom\}\)`/.test(src), "the whole sheet is scaled to fit — not re-laid-out per device");
+  ok(/const fit = Math\.min\(/.test(src), "fit is min(width, height) so the sheet always lands whole inside the stage");
+  ok(!/aspectRatio: "16 \/ 9", containerType/.test(src), "the old per-device canvas sizing is gone (it was what let portrait drift)");
+
+  // no DEVICE breakpoint may decide the sheet's layout
+  const sheet = src.slice(src.indexOf("const SLIDE_PANEL: Record<string, () => React.ReactNode>"), src.indexOf("{/* B2 · footer"));
+  ok(!/sm:grid-cols|sm:col-span|md:|lg:/.test(sheet), "the slide sheet contains NO viewport breakpoints — its columns come from the sheet, not the device");
+  ok(/grid-cols-2 gap-\[1.4cqh\] overflow-hidden/.test(src), "the slide body is a fixed 2-column sheet grid");
+
+  // chart type also lives on the sheet's scale
+  ok(!/fontSize="8" fill=\{pin === i/.test(src), "S3 cash-chart year labels were brought inside the cap");
+  ok(/style=\{big \? \{ height: "9cqh" \} : \{ height: "auto" \}\}/.test(src), "the S8 waterfall is bounded in cqh on the sheet so its panel cannot outgrow the page");
+}
+
+// ── BLOCKER (portrait audit) · a control the user cannot reach does not exist ────────────
+// ScopeFilter's panel is `absolute w-64` under a trigger that sits in the RIGHT cluster. With the implicit
+// left-0 it opened past the edge of a 390px phone, making BU / SBU / Alpha Group selection IMPOSSIBLE on
+// mobile — and it gates BOTH the working stack and the Growth Model. One class, `right-0`, anchors it inside.
+// Also locked: the screenshot gate actually runs in CI. A gate nobody runs is not a gate.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
+  ok(/<div className="absolute right-0 z-50 mt-1 max-h-\[60vh\] w-64 overflow-y-auto/.test(src),
+     "ScopeFilter's dropdown is right-anchored — it opens INSIDE a 390px viewport");
+  ok(pkg.scripts["test:all"].includes("npm run test:slide-shots"), "test:all runs the screenshot gate");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

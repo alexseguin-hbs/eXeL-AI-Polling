@@ -1171,7 +1171,7 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
               <rect x={bx} y={rev} width={bw - 1} height={Math.max(0, zeroY - rev)} fill="#34d399" rx={1} />
               <rect x={bx + bw} y={mar} width={bw - 1} height={Math.max(0, zeroY - mar)} fill="#f7b955" rx={1} />
               <rect x={bx + bw * 0.35} y={zeroY} width={bw * 1.3} height={Math.max(0, rd - zeroY)} fill="#f87171" rx={1} opacity={0.9} />
-              <text x={cx(i)} y={H - 3} textAnchor="middle" fontSize="8" fill={pin === i ? "#38bdf8" : "#64748b"} fontFamily="ui-monospace, monospace">{r.year}</text>
+              <text x={cx(i)} y={H - 3} textAnchor="middle" fontSize="6" fill={pin === i ? "#38bdf8" : "#64748b"} fontFamily="ui-monospace, monospace">{r.year}</text>
             </g>
           );
         })}
@@ -1221,19 +1221,19 @@ function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#fb7185]" />Give-back</span>
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#3b82f6]" />EVC</span>
         </div>
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "auto" }} role="img" aria-label="S8 value creation / capture waterfall">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "9cqh" } : { height: "auto" }} role="img" aria-label="S8 value creation / capture waterfall">
           {[0.25, 0.5, 0.75, 1].map((f) => <line key={f} x1={L} y1={y(max * f / 1.1)} x2={W} y2={y(max * f / 1.1)} stroke="rgba(148,163,184,.09)" />)}
           {seq.map((s, i) => { const top = y(Math.max(s.from, s.to)), bot = y(Math.min(s.from, s.to)); const x = L + i * gw + (gw - bw) / 2; return (
             <g key={i}>
               <rect x={x} y={top} width={bw} height={Math.max(1.5, bot - top)} fill={fill(s.kind)} rx={1} />
-              <text x={x + bw / 2} y={H - 4} textAnchor="middle" fontSize="6.5" fill="#64748b">{s.label.length > 8 ? s.label.slice(0, 8) : s.label}</text>
+              <text x={x + bw / 2} y={H - 4} textAnchor="middle" fontSize="5" fill="#64748b">{s.label.length > 8 ? s.label.slice(0, 8) : s.label}</text>
             </g>
           ); })}
         </svg>
       </div>
       <div>
         <div className="mb-1 text-[10px] text-slate-400">Willingness-to-pay · price-performance positioning</div>
-        <div className="relative h-9 rounded border border-slate-800 bg-[#0e141b]">
+        <div className="relative h-6 rounded border border-slate-800 bg-[#0e141b]">
           <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
           {markers.map((m) => (
             <div key={m.label} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${6 + m.x * 88}%` }}>
@@ -1285,7 +1285,7 @@ function ProjectRevChart({ p }: { p: Project }) {
               <title>{r.year}: risk-weighted {Math.round(rw[i])}{mode === "full" ? ` · full ${Math.round(full[i])}` : ""} $M</title>
               {mode === "full" && <rect x={x} y={yUp} width={w} height={Math.max(0, upH)} fill="#fbbf24" />}
               <rect x={x} y={yRw} width={w} height={Math.max(0, rwh)} fill="#34d399" />
-              {i % 3 === 0 && <text x={x + w / 2} y={H - 4} textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="ui-monospace, monospace">{String(r.year).slice(2)}</text>}
+              {i % 3 === 0 && <text x={x + w / 2} y={H - 4} textAnchor="middle" fontSize="3.5" fill="#64748b" fontFamily="ui-monospace, monospace">{String(r.year).slice(2)}</text>}
             </g>
           );
         })}
@@ -1423,7 +1423,7 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute z-50 mt-1 max-h-[60vh] w-64 overflow-y-auto rounded-lg border border-slate-700 bg-[#0e141b] p-3 shadow-2xl">
+          <div className="absolute right-0 z-50 mt-1 max-h-[60vh] w-64 overflow-y-auto rounded-lg border border-slate-700 bg-[#0e141b] p-3 shadow-2xl">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-200">{t("innovation.scope.label")}</span>
               <button onClick={() => onChange({ bu: [], sbu: [], pgroup: [] })} className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:bg-slate-800">{t("innovation.scope.clear")}</button>
@@ -2479,7 +2479,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
       <FinancialsOverviewTable p={p} onEdit={openFinancials} />
       {/* AMTS Product-Management-Summary exec fields — Functional Leads · COGS/MSRP/Margin · Customer */}
       <div className="mt-3 border-t border-slate-800 pt-3 text-[11px]">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Product Mgr</div><div className="text-slate-200">{ex.productMgr}</div></div>
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">Project Eng</div><div className="text-slate-200">{ex.projectEng}</div></div>
           <div><div className="text-[10px] uppercase tracking-wider text-slate-500">BD / Sales</div><div className="text-slate-200">{ex.bdLead}</div></div>
@@ -3063,19 +3063,35 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
 // own frame, so a spacing/typography fix lands once instead of once per slide. Matches the AMTS anatomy in
 // docs/SOI2525_AMTS_SPEC.md §1: blue-title panel card + optional "REQUIRED: {gate}+" flag + body. Sized in
 // cq units so it scales with the 16:9 SlideCanvas exactly like the header band and footer do.
+// ── TS · THE ONE TYPE SCALE for the present-mode sheet (/innovation backlog #3) ─────────────────
+// Every size is cqw, so PORTRAIT RENDERS PROPORTIONALLY IDENTICALLY TO LANDSCAPE — a px or vw size is
+// correct at 1440 and four times too big at 390. The print sheet is 1600x900 (@page, backlog #4) where
+// 1cqw = 16px, so these values sit inside the operator's caps: body 10-12px, headers 14-18px MAX.
+// scripts/slide-shots.mjs enforces those caps at BOTH viewports; globals.css makes an inline TS size the
+// only way to set type on the sheet, so a px utility added later cannot quietly reopen the hole.
+const TS = {
+  title: "1.1cqw",  // 17.6px — project name + deck title. The largest type on the sheet, at the header cap.
+  head:  "1.0cqw",  // 16.0px — AMTS panel banner, field banner.
+  meta:  "0.72cqw", // 11.5px — header-band figures, gate·stage, subheader, footer.
+  body:  "0.72cqw", // 11.5px — body copy, lists, tables.
+  lead:  "0.75cqw", // 12.0px — the value proposition: the one line that leads, at the body cap.
+  num:   "0.75cqw", // 12.0px — big tabular metric numbers (weight carries the emphasis, not size).
+  micro: "0.6cqw",  //  9.6px — metric captions, REQUIRED flag, source links.
+} as const;
+
 function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: string; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
-    <div data-panel className={`overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "sm:col-span-2" : ""}`}>
-      <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1.2cqw] py-[0.7cqh]">
+    <div data-panel className={`overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""}`}>
+      <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1cqw] py-[0.5cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
-          {icon && <span aria-hidden style={{ fontSize: "1.3cqw" }}>{icon}</span>}
-          <span className="truncate font-semibold uppercase tracking-[0.14em]" style={{ fontSize: "1.15cqw" }}>{title}</span>
+          {icon && <span aria-hidden style={{ fontSize: TS.head }}>{icon}</span>}
+          <span className="truncate font-semibold uppercase tracking-[0.14em]" style={{ fontSize: TS.head }}>{title}</span>
         </span>
-        {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: "1cqw" }}>REQUIRED: {required}+</span>}
+        {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: TS.micro }}>REQUIRED: {required}+</span>}
       </div>
-      <div data-panel-body className="grid content-start gap-[1cqh] p-[1cqw]">{children}</div>
+      <div data-panel-body className="grid content-start gap-[0.7cqh] p-[0.7cqw]">{children}</div>
     </div>
   );
 }
@@ -3349,7 +3365,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           {fo.map((r, i) => (
             <g key={r.year}>
               {series.map((s, si) => { const x = L + i * gw + gw * 0.15 + si * bw; const yy = y(s.vals[i]); return <rect key={si} x={x} y={yy} width={bw - 1} height={Math.max(0, H - B - yy)} fill={s.color} rx={1} />; })}
-              <text x={L + i * gw + gw / 2} y={H - 4} textAnchor="middle" fontSize="8" fill="#64748b" fontFamily="ui-monospace, monospace">{r.year}</text>
+              <text x={L + i * gw + gw / 2} y={H - 4} textAnchor="middle" fontSize="6" fill="#64748b" fontFamily="ui-monospace, monospace">{r.year}</text>
             </g>
           ))}
         </svg>
@@ -3380,15 +3396,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     const acc = sectionAccent(sp.code, f);
     // Colored banner header (icon + section name) matching the reference deck, wrapping every field card.
     const Banner = () => (
-      <div data-field-banner className={`flex items-center gap-1.5 px-3 py-1.5 ${acc.bar}`}>
-        <span aria-hidden className="text-[12px] leading-none">{acc.icon}</span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">{f.name}{f.linked ? " · ◈ live" : ""}</span>
+      <div data-field-banner className={`flex items-center gap-1.5 px-3 py-1.5 ${acc.bar}`} style={big ? { fontSize: TS.head } : undefined}>
+        <span aria-hidden className={big ? "leading-none" : "text-[12px] leading-none"}>{acc.icon}</span>
+        <span className={`font-semibold uppercase tracking-[0.14em] ${big ? "" : "text-[10px]"}`}>{f.name}{f.linked ? " · ◈ live" : ""}</span>
       </div>
     );
     if (f.kind === "chart" && f.linked) return (
-      <div className={bare ? "min-w-0" : `overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] sm:col-span-2`}>
+      <div className={bare ? "min-w-0" : `overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] col-span-2`}>
         {!bare && <Banner />}
-        <div className={bare ? "" : "p-3"}><ChartFrame label={f.name}>
+        <div className={bare ? "" : "p-2"}><ChartFrame label={f.name}>
           <MiniFinChart kind={sp.code} big={big} />
           {/* Direct link to the single source of truth that feeds this chart/table. */}
           <SourceLink source={sp.source} />
@@ -3405,16 +3421,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
     return (
-      <div className={bare ? `min-w-0 ${isConops ? "sm:col-span-2" : ""}` : `overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "sm:col-span-2" : ""}`}>
+      <div className={bare ? `min-w-0 ${isConops ? "col-span-2" : ""}` : `overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "col-span-2" : ""}`}>
         {!bare && <Banner />}
-        <div className={bare ? "" : "p-3"}>
+        <div className={bare ? "" : "p-2"}>
         {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors
             made portrait phones render huge headers that overflowed the slide while landscape looked fine.
             Outside the canvas there is no container context, so the original px/vw clamp stays. */}
-        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${big ? (isVp ? "text-[1.9cqw] font-medium" : "text-[1.5cqw]") : (isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]")}`}>{v as string}</p>}
+        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${big ? (isVp ? "font-medium" : "") : (isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]")}`} style={big ? { fontSize: isVp ? TS.lead : TS.body } : undefined}>{v as string}</p>}
         {f.kind === "attach" && (isImageSrc(v)
           ? <img src={v} alt={f.name} className="max-h-[40vh] w-auto rounded border border-slate-700 object-contain" />
-          : <p className="m-0 text-[13px] text-slate-300">◧ {typeof v === "string" ? v : ""}</p>)}
+          : <p className={`m-0 text-slate-300 ${big ? "" : "text-[13px]"}`} style={big ? { fontSize: TS.body } : undefined}>◧ {typeof v === "string" ? v : ""}</p>)}
         {f.kind === "list" && isConops && (() => {
           // Single-slide CONOPS (operator): ONE hero visual + the ordered steps — stacked below in PORTRAIT,
           // side-by-side in LANDSCAPE. Hero = the UPLOADED image if one exists (attach field), else the
@@ -3443,9 +3459,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             </div>
           );
         })()}
-        {f.kind === "list" && !isConops && <ul className="m-0 list-disc pl-5 text-[clamp(13px,1.4vw,18px)] text-slate-200">{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
-        {f.kind === "metrics" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2.5 py-2"><div className="text-[clamp(18px,2.2vw,30px)] font-bold tabular-nums text-slate-100">{rec[m.k]}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div></div> : null; })}</div>}
-        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}><div className="overflow-x-auto"><table className="w-full text-[clamp(12px,1.2vw,16px)]"><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className="px-2 py-1 text-left text-[clamp(12px,1.2vw,16px)] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div></ChartFrame>}
+        {f.kind === "list" && !isConops && <ul className={`m-0 list-disc pl-5 text-slate-200 ${big ? "" : "text-[clamp(13px,1.4vw,18px)]"}`} style={big ? { fontSize: TS.body } : undefined}>{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
+        {f.kind === "metrics" && <div className="grid grid-cols-3 gap-2">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2 py-1"><div className={`font-bold tabular-nums text-slate-100 ${big ? "" : "text-[clamp(18px,2.2vw,30px)]"}`} style={big ? { fontSize: TS.num } : undefined}>{rec[m.k]}</div><div className={`uppercase tracking-wider text-slate-500 ${big ? "" : "text-[9px]"}`} style={big ? { fontSize: TS.micro } : undefined}>{m.label}</div></div> : null; })}</div>}
+        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}><div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div></ChartFrame>}
         {/* Single source of truth — direct icon-link to edit the one R&D/NRE + financials + resource record. */}
         {isFinField(sp.code, f.id) && <SourceLink source={sp.source} />}
         </div>
@@ -3485,7 +3501,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       const solo = ids.length === 1;
       const alwaysRenders = f.kind === "attach" || (f.kind === "chart" && f.linked);
       if (!alwaysRenders && fieldEmpty(effective(spec, f, presentSrc)))
-        return <p key={id} className="m-0 italic text-slate-500" style={{ fontSize: "1.05cqw" }}>{f.name} — not authored yet</p>;
+        return <p key={id} className="m-0 italic text-slate-500" style={{ fontSize: TS.body }}>{f.name} — not authored yet</p>;
       return <PresentField key={f.id} sp={spec} f={f} big bare={solo} />;
     });
     const SLIDE_PANEL: Record<string, () => React.ReactNode> = {
@@ -3579,10 +3595,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       ),
     };
     const panel = SLIDE_PANEL[spec.code];
-    const portrait = vp.orientation === "portrait";
-    const canvasStyle: React.CSSProperties = portrait
-      ? { width: "100vw", aspectRatio: "16 / 9", containerType: "size", transform: `scale(${zoom})`, transformOrigin: "top center" }
-      : { height: "100%", aspectRatio: "16 / 9", maxWidth: "100vw", containerType: "size", transform: `scale(${zoom})`, transformOrigin: "center" };
+    // THE SHEET IS A FIXED 1600x900 PAGE, scaled to fit (operator #3: "portrait must be proportionally
+    // identical to landscape", and #4: it must print as one landscape page). Sizing the canvas to the device
+    // and expressing type in cq got the TYPE right but left every px padding, gap, border and dot fixed —
+    // so a 390-wide phone rendered 12px gutters on a 219px-tall sheet while a 1357-wide desktop rendered the
+    // same 12px on a 763px sheet. Laying out at ONE size and scaling the whole page makes portrait a literal
+    // photographic reduction of landscape: nothing can drift, and 12px in the source is 12px on the printout.
+    const SHEET_W = 1600, SHEET_H = 900;
+    const CHROME_H = 48;                                        // the control bar above the stage
+    const fit = Math.min((vp.w || SHEET_W) / SHEET_W, Math.max(1, (vp.h || SHEET_H) - CHROME_H) / SHEET_H);
+    const canvasStyle: React.CSSProperties = {
+      width: SHEET_W, height: SHEET_H, flex: "none", containerType: "size",
+      transform: `scale(${fit * zoom})`, transformOrigin: "center",
+    };
     return (
       <div className="fixed inset-0 z-[60] flex flex-col bg-black text-slate-100" role="dialog" aria-modal="true"
         onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
@@ -3593,7 +3618,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label="Zoom slide">
             <button onClick={() => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom out">－</button>
             <span className="px-1 py-1.5 tabular-nums text-slate-400">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom in">＋</button>
+            <button onClick={() => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom in">＋</button>
           </div>
           <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("innovation.present.src")}>
             {([["set", t("innovation.present.src.set")], ["hi", `웃 ${t("innovation.slides.hi")}`], ["ai", `◬ ${t("innovation.slides.ai")}`]] as const).map(([k, lbl]) => (
@@ -3609,27 +3634,29 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         <div className="relative flex flex-1 items-center justify-center overflow-auto">
           <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
           <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
-          {/* B1 · SlideCanvas — 16:9; landscape fills to edges, portrait fit-to-width + zoom. cq-unit container. */}
-          <div data-slide-canvas className="relative overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={canvasStyle}>
+          {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap below reserves the SCALED footprint so
+              the scaled sheet is centred and pannable at zoom>1 instead of overflowing its own layout box. */}
+          <div className="relative shrink-0" style={{ width: SHEET_W * fit * zoom, height: SHEET_H * fit * zoom }}>
+          <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={{ ...canvasStyle, transformOrigin: "top left" }}>
           <div className="flex h-full flex-col" style={{ padding: "3.2cqh 3.2cqw" }}>
             {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
             <div data-slide-head className="flex items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
               <div className="min-w-0">
-                <div className="truncate font-semibold tracking-tight text-cyan-200" style={{ fontSize: "3cqw", lineHeight: 1.05 }}>{p.name}</div>
-                <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: "1.35cqw" }}>
+                <div className="truncate font-semibold tracking-tight text-cyan-200" style={{ fontSize: TS.title, lineHeight: 1.15 }}>{p.name}</div>
+                <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: TS.meta }}>
                   <span>COGS <b className="text-slate-200">${ex.cogsK}k</b></span>
                   <span>MSRP <b className="text-slate-200">${ex.msrpK}k</b></span>
                   <span>Mgn <b className="text-slate-200">{ex.marginPct}%</b></span>
                 </div>
               </div>
-              <h2 className="shrink-0 text-center font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance" style={{ fontSize: "2.9cqw", maxWidth: "44cqw" }}>{deckTitle}</h2>
+              <h2 className="shrink-0 text-center font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance" style={{ fontSize: TS.title, maxWidth: "44cqw" }}>{deckTitle}</h2>
               <div className="flex shrink-0 flex-col items-end gap-[0.6cqh]">
-                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: "1.2cqw" }}>Req: {spec.stage}+</span>
-                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: "1.4cqw" }}>{spec.gate} · {spec.stage} · {spec.code}</span>
+                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: TS.micro }}>Req: {spec.stage}+</span>
+                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{spec.gate} · {spec.stage} · {spec.code}</span>
               </div>
             </div>
             {/* subheader */}
-            <div className="mt-[0.8cqh] flex flex-wrap items-center gap-x-[1.6cqw] text-slate-500" style={{ fontSize: "1.25cqw" }}>
+            <div className="mt-[0.8cqh] flex flex-wrap items-center gap-x-[1.6cqw] text-slate-500" style={{ fontSize: TS.meta }}>
               <span>Business: <span className="text-slate-300">{p.division}</span></span>
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
               <span>Source: <span className="text-slate-300">{spec.source}</span></span>
@@ -3637,18 +3664,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback.
                 A slide code with no entry renders exactly as before, so the deck stays presentable while the
                 remaining panels are built out slide by slide. */}
-            <div data-slide-body className="mt-[1.2cqh] grid min-h-0 flex-1 content-start gap-[1.4cqh] overflow-y-auto sm:grid-cols-2" style={{ fontSize: "1.4cqw" }}>
+            <div data-slide-body className="mt-[1.2cqh] grid min-h-0 flex-1 content-start grid-cols-2 gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body }}>
               {panel ? panel() : spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
-              {!anyContent && <p className="italic text-slate-500" style={{ fontSize: "1.6cqw" }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
+              {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
             </div>
             {/* B2 · footer — page # (left) · progress · reference links (right) */}
-            <div className="mt-[1cqh] flex shrink-0 items-center gap-[1.2cqw] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: "1.15cqw" }}>
+            <div className="mt-[1cqh] flex shrink-0 items-center gap-[1.2cqw] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: TS.meta }}>
               <span className="tabular-nums">{idx + 1}/{SLIDE_SCHEMA.length}</span>
               <div className="flex flex-1 gap-[0.4cqw]">
                 {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-[0.5cqh] flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
               </div>
               <span className="truncate">Reference Links: <span className="text-slate-400">{spec.source}</span></span>
             </div>
+          </div>
           </div>
           </div>
         </div>

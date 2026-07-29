@@ -64,3 +64,16 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
+
+/* ── PRESENT-MODE SLIDE SHEET · ONE TYPE SCALE (/innovation backlog #3) ──────────────────────
+   The slide is a fixed 16:9 container-query box, so every text size inside it MUST be expressed in
+   cqw — a px or vw size renders correctly at 1440 and enormous at 390, which is exactly how portrait
+   phones ended up with 74px body copy spilling out of every panel.
+
+   This rule makes cq the ONLY way to set type on the sheet: any classed descendant inherits the
+   sheet's scale unless it declares an inline cq size. It cannot be defeated by a px utility added
+   later, and it keeps portrait proportionally identical to landscape.
+
+   Caps enforced by scripts/slide-shots.mjs against the 1600x900 print sheet (1cqw = 16px there):
+   body <= 12px, headers <= 18px. */
+[data-slide-canvas] [class] { font-size: inherit; }
