@@ -1,0 +1,101 @@
+<title>SoI-2525 · Round F+G · 12-AsM + MoT Feedback</title>
+<style>
+  :root{--bg:#0b0f14;--card:#0e141b;--line:#1e293b;--ink:#e2e8f0;--dim:#94a3b8;--faint:#64748b;
+    --cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--violet:#a78bfa;--rose:#fb7185;--accent:#22d3ee}
+  @media(prefers-color-scheme:light){:root{--bg:#f5f7fa;--card:#fff;--line:#e2e8f0;--ink:#0f172a;--dim:#475569;--faint:#94a3b8}}
+  :root[data-theme=dark]{--bg:#0b0f14;--card:#0e141b;--line:#1e293b;--ink:#e2e8f0;--dim:#94a3b8;--faint:#64748b}
+  :root[data-theme=light]{--bg:#f5f7fa;--card:#fff;--line:#e2e8f0;--ink:#0f172a;--dim:#475569;--faint:#94a3b8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:0 0 4rem}
+  .wrap{max-width:960px;margin:0 auto;padding:1.5rem}
+  header{border-bottom:1px solid var(--line);padding-bottom:1rem;margin-bottom:1.5rem}
+  h1{font-size:1.5rem;margin:0 0 .25rem;letter-spacing:-.01em}
+  h2{font-size:1.05rem;margin:2rem 0 .75rem;color:var(--cyan);letter-spacing:.02em}
+  .sub{color:var(--dim);font-size:.85rem}
+  .kpis{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:.6rem;padding:.5rem .8rem;min-width:120px}
+  .kpi b{display:block;font-size:1.25rem;font-variant-numeric:tabular-nums}
+  .kpi span{color:var(--faint);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;margin:.5rem 0}
+  .scroll{overflow-x:auto}
+  th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--faint);text-transform:uppercase;font-size:.68rem;letter-spacing:.08em}
+  td.mono,th.mono{font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .g{font-weight:700}.g.A{color:var(--green)}.g.B{color:var(--cyan)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:.7rem;padding:1rem 1.15rem;margin:.75rem 0}
+  .mot{border-left:3px solid var(--violet)}
+  code{background:color-mix(in srgb,var(--faint) 22%,transparent);padding:.05rem .35rem;border-radius:.3rem;font-size:.82em}
+  .tag{display:inline-block;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--bg);background:var(--accent);border-radius:.3rem;padding:.05rem .4rem;font-weight:700}
+  ul{margin:.3rem 0 .3rem 1.1rem;padding:0}li{margin:.15rem 0}
+  .foot{color:var(--faint);font-size:.75rem;margin-top:2.5rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+<div class="wrap">
+<header>
+  <h1>SoI-2525 · Round F + G — 12 Ascended Masters + MoT Review</h1>
+  <div class="sub">System of Innovation deck (<code>/innovation</code>) · session 2026-07-29 · led by Master of Thought · SSSES + 9× SPIRAL gate held on every slice</div>
+  <div class="kpis">
+    <div class="kpi"><b>16</b><span>gated slices shipped</span></div>
+    <div class="kpi"><b>614/614</b><span>innovation-time locks</span></div>
+    <div class="kpi"><b>15/15</b><span>viewport locks</span></div>
+    <div class="kpi"><b>0</b><span>new tsc errors</span></div>
+    <div class="kpi"><b>✓</b><span>build every slice</span></div>
+    <div class="kpi"><b>A−</b><span>MoT session grade</span></div>
+  </div>
+</header>
+
+<h2>What shipped — each gated (tsc 0 · tests green · build ✓) &amp; pushed to main + claude branch</h2>
+<div class="scroll"><table>
+  <thead><tr><th>Slice</th><th>Change</th><th class="mono">Commit</th></tr></thead>
+  <tbody>
+    <tr><td>Task 0</td><td>Durable AMTS spec (<code>docs/SOI2525_AMTS_SPEC.md</code>) — full S1–S18 + PRB from all 37 pages; no more re-uploads</td><td class="mono">fdd363a</td></tr>
+    <tr><td>F1</td><td>Title-Case: Tech Risk · Comm Risk · Revenue + Margin by Year</td><td class="mono">66c4851</td></tr>
+    <tr><td>F2</td><td>✎ Financials one-tap from dog-tag + Financials-Overview header</td><td class="mono">a5ca090</td></tr>
+    <tr><td>F3</td><td>Tap-to-pin figures on Growth Model bars/target + S3 cash bars</td><td class="mono">e141720</td></tr>
+    <tr><td>F4</td><td>Rev Plan Annual + Monthly, launch-anchored (≥18 mo, shift on launch change)</td><td class="mono">5e48aed</td></tr>
+    <tr><td>F5</td><td>Gate-driven granularity G1→G4 (COGS/ASP · finance · PLC #3/#4)</td><td class="mono">2e1055e</td></tr>
+    <tr><td>F6</td><td>Shared <code>useViewport</code> (16:9/1080p/4K · portrait/landscape) → Architect parity</td><td class="mono">f25cb2a</td></tr>
+    <tr><td>G-play</td><td>Play Mode: controls in top bar, landscape edge-to-edge, portrait fit-to-width + zoom</td><td class="mono">117a874</td></tr>
+    <tr><td>G-frozen</td><td>Slide-modal header + 18+2 slide strip frozen (sticky) — ▶ Present always in reach</td><td class="mono">f1c12a9</td></tr>
+    <tr><td>G-selectors</td><td>Growth-Model selector row stays one line on portrait phone</td><td class="mono">b981ad2</td></tr>
+    <tr><td>G5</td><td>Pipeline by Gate: dog-tags under each of the 7 columns; no portrait overflow</td><td class="mono">1d08f88</td></tr>
+    <tr><td>G1a</td><td>Value Equation: waterfall on top, levers underneath</td><td class="mono">4fc2cfe</td></tr>
+    <tr><td>G1b</td><td>Value Proposition card full-screen / minimize (whole card)</td><td class="mono">98fa162</td></tr>
+    <tr><td>G4</td><td>Editable Annual-10yr grid first, then 24-month detail (yr 3-10 from annual)</td><td class="mono">8fe41c8</td></tr>
+    <tr><td>Enki</td><td>Month-boundary (Dec→Jan) test locks</td><td class="mono">5efb42d</td></tr>
+    <tr><td>G6</td><td>ROI Visuals simplified — selector: Pipeline · 12-box · Spend · Cash Flow</td><td class="mono">0a11df8</td></tr>
+  </tbody>
+</table></div>
+
+<h2>12 Ascended Masters — grades &amp; optimizations</h2>
+<div class="scroll"><table>
+  <thead><tr><th>Master · lens</th><th>Grade</th><th>Finding → optimization (applied this pass)</th></tr></thead>
+  <tbody>
+    <tr><td>Aset · consistency</td><td class="g A">A−</td><td><code>useViewport</code> is the single responsive contract; reused in ROI tab + Architect.</td></tr>
+    <tr><td>Asar · synthesis</td><td class="g A">A</td><td>ROI cash-flow reuses <code>financialsOverview</code> — ties to the deck, no divergent numbers.</td></tr>
+    <tr><td>Athena · flow</td><td class="g A">A</td><td>▶ Present now lives inside the frozen bar — one tap from any slide. ✔ shipped.</td></tr>
+    <tr><td>Christo · consensus</td><td class="g B">B+</td><td>Portrait zoom is button-based; pinch-to-zoom deferred (noted).</td></tr>
+    <tr><td>Enki · edge cases</td><td class="g A">A−</td><td>Dec→Jan month-boundary test lock added (614/614). ✔ shipped.</td></tr>
+    <tr><td>Enlil · build</td><td class="g A">A</td><td>0 tsc · build ✓ on all 16 slices; viewport-nowrap lock in place.</td></tr>
+    <tr><td>Krishna · integration</td><td class="g A">A</td><td>G6 reuses <code>&lt;PipelineByGate&gt;</code> verbatim — no fork.</td></tr>
+    <tr><td>Odin · foresight</td><td class="g B">B+</td><td>Zoom capped 3× + overflow-auto pan keeps the slide reachable.</td></tr>
+    <tr><td>Pangu · innovation</td><td class="g A">A−</td><td>Tap-to-pin + new portfolio cash-flow line add novelty on familiar primitives.</td></tr>
+    <tr><td>Sofia · multi-lens</td><td class="g A">A−</td><td>ROI segmented control uses the identical Growth-Model class recipe — one system.</td></tr>
+    <tr><td>Thoth · data</td><td class="g A">A</td><td>12-box metrics pull from <code>financialMetrics</code>/<code>roiSummary</code>, not re-derived.</td></tr>
+    <tr><td>Thor · risk/security</td><td class="g A">A</td><td>Additive only; no Trinity/sacred-code; model-id never committed; no route change.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="card mot">
+  <span class="tag">MoT synthesis</span>
+  <p style="margin:.6rem 0 0">This session converted a scattered feedback backlog into <b>16 gated, reversible slices</b> — every one tsc-0, tests-green (585→614), build-✓, pushed to both branches, with zero regressions to the sacred Trinity-Redundancy code. The through-line is <b>R-CORE modular reuse</b>: one <code>useViewport</code> contract, one <code>financialsOverview</code>/<code>financialMetrics</code> engine, one segmented-control recipe, one <code>PipelineByGate</code>. Financials now flow annual→24-month→gate-granularity with reconciliation locks; presentation is readable in every orientation with controls that never cover the slide; the ROI tab dropped from a dense 4-card grid to a clean four-view selector. Residual debt: pinch-to-zoom (Christo) and the deeper Supabase optimization pass. <b>Session grade: A−</b> — held the quality gate under high feedback velocity.</p>
+</div>
+
+<h2>Where you now edit &amp; present</h2>
+<ul>
+  <li><b>Edit financials</b> — ✎ Financials on the dog-tag, the Financials-Overview header, or the S3 slide → same source editor (Annual 10-yr grid → optional 24-month detail; gate-required granularity shown).</li>
+  <li><b>Present</b> — ▶ Present sits in the frozen slide bar; portrait shows the 16:9 slide with a zoom control; landscape fills the screen; controls never cover the slide.</li>
+  <li><b>ROI Visuals tab</b> — one selector: Pipeline · Metrics (12-box) · Spend · Cash Flow.</li>
+</ul>
+
+<p class="foot">SoI-2525 · eXeL-AI-Polling · Round F+G · generated 2026-07-29. Deploy is Cloudflare-lagged — allow a few minutes after each push before screenshotting. Deferred: pinch-to-zoom, Supabase front/back-end optimization.</p>
+</div>
