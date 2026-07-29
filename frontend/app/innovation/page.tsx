@@ -534,6 +534,9 @@ function Board() {
         <div className="grid grid-cols-2 gap-3 border-t border-slate-800/60 pt-2.5 sm:flex sm:justify-between sm:gap-4">
           <Kpi label={t("innovation.kpi.rdAvailable")} value={k(avail)} />
           <Kpi label={t("innovation.kpi.fundedNre")} value={k(fundedNre)} tone={fundedNre > avail ? "bad" : "ok"} />
+          {/* Upside / dry powder = unallocated R&D (available − funded NRE): the decision-speed lever — how much
+              room remains to fund the next project across the line. Negative = overcommitted (bad). */}
+          <Kpi label={t("innovation.kpi.upside")} value={k(avail - fundedNre)} tone={avail - fundedNre < 0 ? "bad" : "good"} />
           <Kpi label={t("innovation.kpi.fundedProjects")} value={`${fundedRows.length}/${order.length}`} />
           <Kpi label={t("innovation.kpi.portfolioNpv")} value={usd(portfolioNpv)} tone="good" align="right" />
         </div>
