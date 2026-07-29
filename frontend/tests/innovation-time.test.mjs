@@ -1356,14 +1356,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     ok(sp.fields.every((f) => ids.includes(f.id)), `the ${code} panel covers ALL ${sp.fields.length} of its schema fields (none dropped)`);
   }
   // The dispatch + its fallback are both present, so an unbuilt code can never render blank.
-  ok(/const SLIDE_PANEL: Record<string, \(\) => React\.ReactNode>/.test(src), "SLIDE_PANEL dispatch table exists");
-  ok(/panel \? panel\(\) : spec\.fields\.map/.test(src), "unbuilt slide codes fall back to the PresentField grid");
+  ok(/const panelsFor = \(sp: SlideSpec\): Record<string, \(\) => React\.ReactNode> =>/.test(src), "the AMTS panel dispatch table exists (as a function of the slide, so one renderer serves screen AND print)");
+  ok(/panel \? panel\(\) : sp\.fields\.map/.test(src), "unbuilt slide codes fall back to the PresentField grid");
   // AmtsPanel is THE shared frame (Aset): built panels compose it, nobody hand-draws a second frame.
   ok(/function AmtsPanel\(/.test(src), "AmtsPanel frame primitive exists");
-  const built = [...src.matchAll(/^\s{6}(S\d+|PRB\w*): \(\) => \(/gm)].map((m) => m[1]);
+  const built = [...src.matchAll(/^\s+(S\d+|PRB\w*): \(\) => \(/gm)].map((m) => m[1]);
   ok(built.length >= 4, `S1 + S2 + S3 + S8 panels are built (${built.join(", ")})`);
   // S2 is the AMTS SIX-panel one-pager — the timeline is folded IN, not stacked above the grid.
-  const s2 = src.slice(src.indexOf("      S2: () => ("), src.indexOf("      S3: () => ("));
+  const s2 = src.slice(src.indexOf("S2: () => ("), src.indexOf("S3: () => ("));
   ok((s2.match(/<AmtsPanel/g) ?? []).length === 6, "S2 renders exactly 6 AMTS panels");
   ok(/<GateTimeline p=\{p\} \/>/.test(s2), "S2's gate timeline is folded into a panel (GateTimeline reused, not rebuilt)");
   ok(built.every((c) => codes.includes(c)), "every built panel key is a real slide code");
@@ -1502,6 +1502,48 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/<div className="absolute right-0 z-50 mt-1 max-h-\[60vh\] w-64 overflow-y-auto/.test(src),
      "ScopeFilter's dropdown is right-anchored — it opens INSIDE a 390px viewport");
   ok(pkg.scripts["test:all"].includes("npm run test:slide-shots"), "test:all runs the screenshot gate");
+}
+
+// ── #4 + #17 · PRINT MODE — the board artifact ──────────────────────────────────────────
+// White page, coloured banners, black/grey text; the WHOLE deck (cover + every slide) through the SAME
+// renderer the projector uses; a cover and a per-page footer that carry provenance; no new dependency.
+// Grep-verified first: there is NO inverted colour scheme in the polling results view to reuse — the only
+// print idiom in the repo is PRINT_CSS in components/experiences/experiences-landing.tsx, and THAT is what
+// is reused (inline <style> + @media print + @page + print-color-adjust + a -noprint class).
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
+  const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
+
+  // the page itself
+  ok(/@page \{ size: 1600px 900px landscape; margin: 0; \}/.test(src), "@page is 1600x900 landscape with zero margin — the sheet prints 1:1");
+  ok(/-webkit-print-color-adjust: exact; print-color-adjust: exact/.test(src), "print colours are preserved (banners survive the printer's colour stripping)");
+  ok(/background: #fff !important/.test(src), "the printed sheet is WHITE");
+  ok(/\[data-panel-head\] \{ background-color: #e0f2fe/.test(src) && /\[data-field-banner\] \{ background-color: #f1f5f9/.test(src), "banners keep their colour on the white page");
+  ok(/\[data-slide-canvas\] \* \{ background-color: transparent !important; color: #111827/.test(src), "text inverts to near-black");
+  ok(/\.text-slate-400, .*\.text-slate-500.*\{ color: #6b7280/.test(src), "muted text stays GREY rather than collapsing to black");
+  ok(/\.slide-print-page \{ break-after: page/.test(src), "every sheet is its own page");
+
+  // ONE renderer for screen and print — the defect this design exists to prevent
+  ok((src.match(/const Sheet = \(\{ sp, i, style \}/g) ?? []).length === 1, "there is exactly ONE Sheet renderer");
+  ok(/<Sheet sp=\{spec\} i=\{idx\} \/>/.test(src), "the screen stage renders through Sheet");
+  ok(/SLIDE_SCHEMA\.map\(\(sp, i\) => \(/.test(src) && /<Sheet sp=\{sp\} i=\{i\} style=\{printSheetStyle\} \/>/.test(src), "the print stack renders EVERY slide through the same Sheet");
+  ok(/const panelsFor = \(sp: SlideSpec\)/.test(src), "the AMTS panel table is a function of the slide, which is what lets one renderer serve all 20 pages");
+
+  // cover + footer provenance (#17) — every figure from the deck engine, none hand-written
+  ok(/const Cover = \(\) =>/.test(src), "the deck has a cover page");
+  ok(/const decisionAsk = typeof askVal === "string"/.test(src), "the cover's decision-requested is the S1 ask resolved through the deck engine, not a second sentence that could drift");
+  ok(/\{p\.id\} · \{p\.gate\} · \{scenarioLabel\} · p\{i \+ 2\}\/\{SLIDE_SCHEMA\.length \+ 1\} · \{exportDate\}/.test(src), "every page footer carries project · gate · scenario · page · export date");
+  ok(/lsGet\("innovation-scenario"\)/.test(src), "the scenario on the cover/footer reads the SAME key the Board writes — one source, no second definition");
+  ok(/Safari on iOS may ignore it/.test(src), "the PDF button's tooltip states the browser caveat");
+
+  // cost + correctness
+  ok(/const \[printing, setPrinting\] = useState\(false\);/.test(src) && /\{printing && <div className="slide-print-stack hidden"/.test(src), "the 20-page stack MOUNTS only while printing — a phone never lays out pixels nobody sees");
+  ok(/addEventListener\("beforeprint"/.test(src) && /addEventListener\("afterprint"/.test(src), "Ctrl/Cmd-P produces the same artifact as the button");
+  const deps = JSON.stringify({ ...pkg.dependencies, ...pkg.devDependencies });
+  ok(!/jspdf|html2pdf|pdfmake|puppeteer|html2canvas/i.test(deps), "no PDF dependency was added — the browser's own print engine does it");
+  ok(SLIDE_SCHEMA.length >= 18, `the printed deck is cover + ${SLIDE_SCHEMA.length} slides`);
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

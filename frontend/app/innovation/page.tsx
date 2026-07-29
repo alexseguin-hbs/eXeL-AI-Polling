@@ -3063,6 +3063,38 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
 // own frame, so a spacing/typography fix lands once instead of once per slide. Matches the AMTS anatomy in
 // docs/SOI2525_AMTS_SPEC.md §1: blue-title panel card + optional "REQUIRED: {gate}+" flag + body. Sized in
 // cq units so it scales with the 16:9 SlideCanvas exactly like the header band and footer do.
+// ── SLIDE_PRINT_CSS · the board artifact (/innovation backlog #4) ────────────────────────────────
+// Grep-verified before writing: there is NO inverted colour scheme anywhere in the polling results view —
+// the ONLY print idiom in this repo is PRINT_CSS in components/experiences/experiences-landing.tsx
+// (inline <style> + @media print + @page + print-color-adjust: exact + a -noprint class). That idiom is
+// reused verbatim here; the inversion itself is new because nothing to reuse existed.
+//
+// White page, COLOURED banners, black/grey text. Backgrounds are cleared and then the two banner surfaces
+// get their tint back, so the sheet reads as the same document in reverse rather than a washed-out screen
+// grab. Charts keep their colours: SVG paints with `fill`, which `background-color` cannot touch.
+const SLIDE_PRINT_CSS = `
+@media print {
+  @page { size: 1600px 900px landscape; margin: 0; }
+  html, body { background: #fff !important; height: auto !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Only the print stack paints. visibility (not display) keeps the stack's own layout intact. */
+  body * { visibility: hidden !important; }
+  .slide-print-stack, .slide-print-stack * { visibility: visible !important; }
+  .slide-print-stack { position: absolute !important; left: 0 !important; top: 0 !important; display: block !important; width: 1600px; }
+  .slide-noprint { display: none !important; }
+  .slide-printonly { display: inline !important; }
+  .slide-print-page { break-after: page; page-break-after: always; overflow: hidden; }
+  .slide-print-page:last-child { break-after: auto; page-break-after: auto; }
+  .slide-print-stack [data-slide-canvas] { box-shadow: none !important; }
+  /* INVERT — white sheet, black/grey text, coloured banners */
+  .slide-print-stack [data-slide-canvas] { background: #fff !important; }
+  .slide-print-stack [data-slide-canvas] * { background-color: transparent !important; color: #111827 !important; border-color: #cbd5e1 !important; }
+  .slide-print-stack .text-slate-400, .slide-print-stack .text-slate-500, .slide-print-stack .text-slate-600 { color: #6b7280 !important; }
+  .slide-print-stack [data-panel-head] { background-color: #e0f2fe !important; }
+  .slide-print-stack [data-field-banner] { background-color: #f1f5f9 !important; }
+  .slide-print-stack [data-panel-head] *, .slide-print-stack [data-field-banner] * { color: #0c4a6e !important; }
+  .slide-print-stack [data-slide-head] { border-bottom-color: #94a3b8 !important; }
+}`;
+
 // ── TS · THE ONE TYPE SCALE for the present-mode sheet (/innovation backlog #3) ─────────────────
 // Every size is cqw, so PORTRAIT RENDERS PROPORTIONALLY IDENTICALLY TO LANDSCAPE — a px or vw size is
 // correct at 1440 and four times too big at 390. The print sheet is 1600x900 (@page, backlog #4) where
@@ -3105,6 +3137,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   const [present, setPresent] = useState(false);
   const vp = useViewport(); // G2 — present mode adapts to portrait/landscape so the slide is readable on a phone
   const [zoom, setZoom] = useState(1); // G-refine — pinch/tap zoom of the 16:9 slide (esp. portrait phones)
+  // The 20-page print stack is only MOUNTED while printing. Rendering 20 sheets (each with charts) behind a
+  // `hidden` class would cost a phone the whole deck's layout on every present render, for pixels nobody sees.
+  const [printing, setPrinting] = useState(false);
+  useEffect(() => {
+    // Ctrl/Cmd-P must produce the same artifact as the ⎙ PDF button — one path, not two.
+    const before = () => setPrinting(true);
+    const after = () => setPrinting(false);
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    return () => { window.removeEventListener("beforeprint", before); window.removeEventListener("afterprint", after); };
+  }, []);
+  // The PDF cover + every page footer name the R&D scenario the deck was exported under. Read from the SAME
+  // "innovation-scenario" key the Board writes — one source, no prop drilling, no second definition.
+  const [scenario, setScenario] = useState<BudgetScenario>("base");
+  useEffect(() => { const sc = lsGet("innovation-scenario") as BudgetScenario | null; if (sc && BUDGET_SCENARIOS.some((x) => x.key === sc)) setScenario(sc); }, []);
   // Present-mode live source override (operator): flip the WHOLE deck between the human baseline and the enhanced
   // AI while presenting, or honor each field's own per-field choice ("set"). Edit mode always uses per-field mode.
   const [presentSrc, setPresentSrc] = useState<"set" | "hi" | "ai">("set");
@@ -3495,16 +3542,20 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     //      because that is the only thing telling the fields apart.
     //  (b) NOTHING RESOLVED — an unauthored field returned null and left the body literally empty. It now says
     //      so, in the deck's own voice, instead of leaving a headed box with a void under it.
-    const fieldsOf = (...ids: string[]) => ids.map((id) => {
-      const f = spec.fields.find((x) => x.id === id);
+    const fieldsIn = (sp: SlideSpec, ids: string[]) => ids.map((id) => {
+      const f = sp.fields.find((x) => x.id === id);
       if (!f) return null;
       const solo = ids.length === 1;
       const alwaysRenders = f.kind === "attach" || (f.kind === "chart" && f.linked);
-      if (!alwaysRenders && fieldEmpty(effective(spec, f, presentSrc)))
+      if (!alwaysRenders && fieldEmpty(effective(sp, f, presentSrc)))
         return <p key={id} className="m-0 italic text-slate-500" style={{ fontSize: TS.body }}>{f.name} — not authored yet</p>;
-      return <PresentField key={f.id} sp={spec} f={f} big bare={solo} />;
+      return <PresentField key={f.id} sp={sp} f={f} big bare={solo} />;
     });
-    const SLIDE_PANEL: Record<string, () => React.ReactNode> = {
+    // The panel table is now a FUNCTION of the slide, not of "the current slide". That is the whole reason the
+    // print stack can render all 20 pages through the SAME renderer instead of forking a second one.
+    const panelsFor = (sp: SlideSpec): Record<string, () => React.ReactNode> => {
+      const fieldsOf = (...ids: string[]) => fieldsIn(sp, ids);
+      return {
       // S1 — Executive Summary (AMTS exec one-pager: what / who | why | the ask). The ask spans the foot
       // because it is the one line a gate board has to act on.
       S1: () => (
@@ -3593,8 +3644,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </AmtsPanel>
         </>
       ),
+      };
     };
-    const panel = SLIDE_PANEL[spec.code];
     // THE SHEET IS A FIXED 1600x900 PAGE, scaled to fit (operator #3: "portrait must be proportionally
     // identical to landscape", and #4: it must print as one landscape page). Sizing the canvas to the device
     // and expressing type in cq got the TYPE right but left every px padding, gap, border and dot fixed —
@@ -3604,40 +3655,28 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     const SHEET_W = 1600, SHEET_H = 900;
     const CHROME_H = 48;                                        // the control bar above the stage
     const fit = Math.min((vp.w || SHEET_W) / SHEET_W, Math.max(1, (vp.h || SHEET_H) - CHROME_H) / SHEET_H);
-    const canvasStyle: React.CSSProperties = {
+    const sheetStyle: React.CSSProperties = {
       width: SHEET_W, height: SHEET_H, flex: "none", containerType: "size",
-      transform: `scale(${fit * zoom})`, transformOrigin: "center",
+      transform: `scale(${fit * zoom})`, transformOrigin: "top left",
     };
-    return (
-      <div className="fixed inset-0 z-[60] flex flex-col bg-black text-slate-100" role="dialog" aria-modal="true"
-        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
-        style={{ touchAction: "none" }}>
-        {/* TOP CONTROL BAR — always above the slide (never covers it) */}
-        <div className="flex shrink-0 items-center justify-end gap-2 p-2">
-          {/* zoom (esp. portrait) */}
-          <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label="Zoom slide">
-            <button onClick={() => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom out">－</button>
-            <span className="px-1 py-1.5 tabular-nums text-slate-400">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom in">＋</button>
-          </div>
-          <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("innovation.present.src")}>
-            {([["set", t("innovation.present.src.set")], ["hi", `웃 ${t("innovation.slides.hi")}`], ["ai", `◬ ${t("innovation.slides.ai")}`]] as const).map(([k, lbl]) => (
-              <button key={k} onClick={() => setPresentSrc(k)} aria-pressed={presentSrc === k}
-                className={`px-2.5 py-1.5 ${presentSrc === k ? (k === "hi" ? "bg-violet-500/25 text-violet-100" : k === "ai" ? "bg-cyan-500/25 text-cyan-100" : "bg-slate-600/40 text-slate-100") : "text-slate-400 hover:bg-slate-800"}`}>{lbl}</button>
-            ))}
-          </div>
-          <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
-          <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
-        </div>
-        {/* SLIDE AREA — fills the remaining space below the control bar; overflow-auto lets you pan when zoomed.
-            Edge tap-zones page prev/next. Landscape fills to the screen edges; portrait is a fit-to-width 16:9 band. */}
-        <div className="relative flex flex-1 items-center justify-center overflow-auto">
-          <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
-          <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
-          {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap below reserves the SCALED footprint so
-              the scaled sheet is centred and pannable at zoom>1 instead of overflowing its own layout box. */}
-          <div className="relative shrink-0" style={{ width: SHEET_W * fit * zoom, height: SHEET_H * fit * zoom }}>
-          <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={{ ...canvasStyle, transformOrigin: "top left" }}>
+    // The print stack lays the same sheet out at 1:1 — the @page IS 1600x900, so no scaling at all.
+    const printSheetStyle: React.CSSProperties = { width: SHEET_W, height: SHEET_H, flex: "none", containerType: "size" };
+    const exportDate = new Date().toISOString().slice(0, 10);
+    const scenarioLabel = `${scenario.charAt(0).toUpperCase()}${scenario.slice(1)} R&D`;
+    // The cover's "decision requested" is the S1 ask, resolved through the deck engine like any other field —
+    // never a second, hand-written sentence that could drift from the slide the board actually reads.
+    const s1 = slideSpec("S1"); const s1ask = s1?.fields.find((f) => f.id === "ask");
+    const askVal = s1 && s1ask ? effective(s1, s1ask, presentSrc) : null;
+    const decisionAsk = typeof askVal === "string" && askVal.trim() ? askVal : `Approve ${p.gate} → ${GATES[Math.min(GATES.indexOf(p.gate) + 1, GATES.length - 1)]} progression.`;
+    // ── THE SHEET · ONE renderer for the screen stage AND the print stack ────────────────────────
+    // Anything that renders a slide renders THIS. A second, print-only slide renderer is exactly how a PDF
+    // ends up disagreeing with what the board saw on the projector.
+    const Sheet = ({ sp, i, style }: { sp: SlideSpec; i: number; style?: React.CSSProperties }) => {
+      const panel = panelsFor(sp)[sp.code];
+      const anyContent = sp.fields.some((f) => !fieldEmpty(effective(sp, f, presentSrc)) || (f.kind === "chart" && f.linked));
+      const deckTitle = slideDef(sp.code)?.name ?? sp.code;
+      return (
+        <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={style ?? sheetStyle}>
           <div className="flex h-full flex-col" style={{ padding: "3.2cqh 3.2cqw" }}>
             {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
             <div data-slide-head className="flex items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
@@ -3651,35 +3690,108 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               </div>
               <h2 className="shrink-0 text-center font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance" style={{ fontSize: TS.title, maxWidth: "44cqw" }}>{deckTitle}</h2>
               <div className="flex shrink-0 flex-col items-end gap-[0.6cqh]">
-                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: TS.micro }}>Req: {spec.stage}+</span>
-                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{spec.gate} · {spec.stage} · {spec.code}</span>
+                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: TS.micro }}>Req: {sp.stage}+</span>
+                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{sp.gate} · {sp.stage} · {sp.code}</span>
               </div>
             </div>
             {/* subheader */}
             <div className="mt-[0.8cqh] flex flex-wrap items-center gap-x-[1.6cqw] text-slate-500" style={{ fontSize: TS.meta }}>
               <span>Business: <span className="text-slate-300">{p.division}</span></span>
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
-              <span>Source: <span className="text-slate-300">{spec.source}</span></span>
+              <span>Source: <span className="text-slate-300">{sp.source}</span></span>
             </div>
-            {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback.
-                A slide code with no entry renders exactly as before, so the deck stays presentable while the
-                remaining panels are built out slide by slide. */}
+            {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback. */}
             <div data-slide-body className="mt-[1.2cqh] grid min-h-0 flex-1 content-start grid-cols-2 gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body }}>
-              {panel ? panel() : spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
+              {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
               {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
             </div>
-            {/* B2 · footer — page # (left) · progress · reference links (right) */}
+            {/* B2 · footer — page # (left) · progress · reference links (right) · PRINT provenance (print only) */}
             <div className="mt-[1cqh] flex shrink-0 items-center gap-[1.2cqw] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: TS.meta }}>
-              <span className="tabular-nums">{idx + 1}/{SLIDE_SCHEMA.length}</span>
+              <span className="tabular-nums">{i + 1}/{SLIDE_SCHEMA.length}</span>
               <div className="flex flex-1 gap-[0.4cqw]">
-                {SLIDE_SCHEMA.map((s, i) => <span key={s.code} className={`h-[0.5cqh] flex-1 rounded ${i === idx ? "bg-cyan-500" : fillOf(s) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
+                {SLIDE_SCHEMA.map((x, xi) => <span key={x.code} className={`h-[0.5cqh] flex-1 rounded ${xi === i ? "bg-cyan-500" : fillOf(x) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
               </div>
-              <span className="truncate">Reference Links: <span className="text-slate-400">{spec.source}</span></span>
+              {/* Provenance — a board artifact with no provenance is orphaned within a week (operator #17). */}
+              <span className="slide-printonly hidden truncate">{p.id} · {p.gate} · {scenarioLabel} · p{i + 2}/{SLIDE_SCHEMA.length + 1} · {exportDate}</span>
+              <span className="truncate">Reference Links: <span className="text-slate-400">{sp.source}</span></span>
             </div>
           </div>
+        </div>
+      );
+    };
+
+    // ── COVER PAGE (print only, operator #17) — every figure resolves from the deck engine ───────
+    const Cover = () => (
+      <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14]" style={sheetStyle}>
+        <div className="flex h-full flex-col justify-between" style={{ padding: "6cqh 5cqw" }}>
+          <div>
+            <div className="font-mono uppercase tracking-[0.3em] text-cyan-400" style={{ fontSize: TS.micro }}>Gate Review Deck · S1–S{SLIDE_SCHEMA.length}</div>
+            <h1 className="mt-[1.5cqh] font-semibold tracking-tight text-slate-100" style={{ fontSize: "2.4cqw", lineHeight: 1.1 }}>{p.name}</h1>
+            <div className="mt-[0.8cqh] font-mono text-slate-400" style={{ fontSize: TS.body }}>{p.id} · {p.division}</div>
           </div>
+          <div className="grid grid-cols-4 gap-[1.5cqw]" style={{ fontSize: TS.body }}>
+            {([["Gate", `${p.gate} · ${GATE_STAGE[p.gate]}`], ["R&D scenario", scenarioLabel], ["NRE", `$${(p.nreK / 1000).toFixed(1)}M`], ["Exported", exportDate]] as const).map(([k, v]) => (
+              <div key={k} className="rounded-lg border border-slate-700 px-[1cqw] py-[0.8cqh]">
+                <div className="font-bold tabular-nums text-slate-100" style={{ fontSize: TS.num }}>{v}</div>
+                <div className="uppercase tracking-wider text-slate-500" style={{ fontSize: TS.micro }}>{k}</div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.06] px-[1.4cqw] py-[1cqh]">
+            <div className="uppercase tracking-[0.14em] text-cyan-300" style={{ fontSize: TS.micro }}>Decision requested</div>
+            <p className="m-0 mt-[0.5cqh] text-slate-100" style={{ fontSize: TS.lead }}>{decisionAsk}</p>
+          </div>
+          <div className="font-mono text-slate-500" style={{ fontSize: TS.micro }}>{p.id} · {p.gate} · {scenarioLabel} · p1/{SLIDE_SCHEMA.length + 1} · {exportDate}</div>
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="fixed inset-0 z-[60] flex flex-col bg-black text-slate-100" role="dialog" aria-modal="true"
+        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+        style={{ touchAction: "none" }}>
+        <style>{SLIDE_PRINT_CSS}</style>
+        {/* TOP CONTROL BAR — always above the slide (never covers it) */}
+        <div className="slide-noprint flex shrink-0 items-center justify-end gap-2 p-2">
+          {/* zoom (esp. portrait) */}
+          <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label="Zoom slide">
+            <button onClick={() => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom out">－</button>
+            <span className="px-1 py-1.5 tabular-nums text-slate-400">{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom in">＋</button>
+          </div>
+          <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("innovation.present.src")}>
+            {([["set", t("innovation.present.src.set")], ["hi", `웃 ${t("innovation.slides.hi")}`], ["ai", `◬ ${t("innovation.slides.ai")}`]] as const).map(([k, lbl]) => (
+              <button key={k} onClick={() => setPresentSrc(k)} aria-pressed={presentSrc === k}
+                className={`px-2.5 py-1.5 ${presentSrc === k ? (k === "hi" ? "bg-violet-500/25 text-violet-100" : k === "ai" ? "bg-cyan-500/25 text-cyan-100" : "bg-slate-600/40 text-slate-100") : "text-slate-400 hover:bg-slate-800"}`}>{lbl}</button>
+            ))}
+          </div>
+          {/* ⎙ PDF — the whole deck, cover + all {n} slides, through the SAME Sheet renderer. No dependency:
+              the browser's own print engine paginates a 1600x900 landscape @page. */}
+          <button onClick={() => { setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }} aria-label="Export deck as PDF"
+            title={`Print / save the whole ${SLIDE_SCHEMA.length + 1}-page deck as PDF · Chrome and Firefox honour the 1600x900 landscape page size; Safari on iOS may ignore it and use its own`}
+            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">⎙ PDF</button>
+          <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
+          <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
+        </div>
+        {/* SLIDE AREA — fills the remaining space below the control bar; overflow-auto lets you pan when zoomed. */}
+        <div className="slide-noprint relative flex flex-1 items-center justify-center overflow-auto">
+          <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
+          <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
+          {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap reserves the SCALED footprint so the
+              scaled sheet is centred and pannable at zoom>1 instead of overflowing its own layout box. */}
+          <div className="relative shrink-0" style={{ width: SHEET_W * fit * zoom, height: SHEET_H * fit * zoom }}>
+            <Sheet sp={spec} i={idx} />
           </div>
         </div>
+        {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
+        {printing && <div className="slide-print-stack hidden" aria-hidden>
+          <div className="slide-print-page relative" style={{ width: SHEET_W, height: SHEET_H }}><Cover /></div>
+          {SLIDE_SCHEMA.map((sp, i) => (
+            <div key={sp.code} className="slide-print-page relative" style={{ width: SHEET_W, height: SHEET_H }}>
+              <Sheet sp={sp} i={i} style={printSheetStyle} />
+            </div>
+          ))}
+        </div>}
       </div>
     );
   }
