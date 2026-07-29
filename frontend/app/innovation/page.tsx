@@ -1092,6 +1092,7 @@ function ConopsWireframe({ seed }: { seed: string }) {
 function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
   const [horizon, setHorizon] = useState(3);
   const [view, setView] = useState<"chart" | "table">("chart");
+  const [pin, setPin] = useState<number | null>(null); // F3 — tap a year → pin its exact figures
   const fo = financialsOverview(p, { years: horizon + 1, funded: true });
   let run = 0;
   const cash = fo.map((r) => (run += r.marginM - r.rdK / 1000)); // cumulative net cash ($M)
@@ -1161,17 +1162,29 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
           const bx = L + i * gw + gw * 0.16;
           const rev = yVal(r.revM), mar = yVal(r.marginM), rd = yVal(-r.rdK / 1000);
           return (
-            <g key={r.year}>
+            <g key={r.year} style={{ cursor: "pointer" }} onClick={() => setPin((prev) => (prev === i ? null : i))}>
+              <rect x={L + i * gw} y={T} width={gw} height={H - T} fill={pin === i ? "rgba(56,189,248,.08)" : "transparent"} />
               <rect x={bx} y={rev} width={bw - 1} height={Math.max(0, zeroY - rev)} fill="#34d399" rx={1} />
               <rect x={bx + bw} y={mar} width={bw - 1} height={Math.max(0, zeroY - mar)} fill="#f7b955" rx={1} />
               <rect x={bx + bw * 0.35} y={zeroY} width={bw * 1.3} height={Math.max(0, rd - zeroY)} fill="#f87171" rx={1} opacity={0.9} />
-              <text x={cx(i)} y={H - 3} textAnchor="middle" fontSize="8" fill="#64748b" fontFamily="ui-monospace, monospace">{r.year}</text>
+              <text x={cx(i)} y={H - 3} textAnchor="middle" fontSize="8" fill={pin === i ? "#38bdf8" : "#64748b"} fontFamily="ui-monospace, monospace">{r.year}</text>
             </g>
           );
         })}
         <polyline fill="none" stroke="#38bdf8" strokeWidth={1.6} points={cash.map((c, i) => `${cx(i)},${yVal(c)}`).join(" ")} />
         {cash.map((c, i) => <circle key={i} cx={cx(i)} cy={yVal(c)} r={2} fill="#38bdf8" />)}
       </svg>
+      )}
+      {/* F3 — pinned figure chip for the tapped year (Revenue · Margin · R&D · cumulative cash). */}
+      {view === "chart" && pin != null && fo[pin] && (
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[10px]">
+          <span className="font-mono font-semibold text-cyan-200">{fo[pin].year}</span>
+          <span className="text-emerald-300">Rev <b className="tabular-nums">${fo[pin].revM.toFixed(1)}M</b></span>
+          <span className="text-amber-300">Mgn <b className="tabular-nums">${fo[pin].marginM.toFixed(1)}M</b></span>
+          <span className="text-rose-300">R&D <b className="tabular-nums">${(fo[pin].rdK / 1000).toFixed(1)}M</b></span>
+          <span className="text-sky-300">Cash <b className="tabular-nums">${cash[pin].toFixed(1)}M</b></span>
+          <button onClick={() => setPin(null)} className="ml-auto rounded px-1 leading-none text-slate-400 hover:text-cyan-300" aria-label="Dismiss">✕</button>
+        </div>
       )}
     </div>
   );
@@ -4416,6 +4429,8 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   useEffect(() => { setBaseStr(String(scopeRev > 0 ? scopeRev : scopeBase(selBu, selSbu, selPg))); }, [selBu, selSbu, selPg]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (scopeGrowth > 0) setGrowthPct(String(scopeGrowth)); }, [selBu, selSbu, selPg]); // eslint-disable-line react-hooks/exhaustive-deps
   const [hover, setHover] = useState<number | null>(null);
+  // F3 — tap-to-pin (mobile-friendly): click a bar or the target dot → pin its exact figure in a chip below.
+  const [pin, setPin] = useState<{ i: number; kind: "bar" | "target" } | null>(null);
   const scoped = funded; // already scoped by the page-level ScopeFilter (hierFilter)
 
   const growth = (parseFloat(growthPct) || 0) / 100;
@@ -4591,7 +4606,8 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           let posAcc = bl, negAcc = 0;
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
-              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
+              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}
+              onClick={() => setPin((prev) => (prev && prev.i === i && prev.kind === "bar" ? null : { i, kind: "bar" }))}>
               <title>{r.year} — {baselineShown ? `Base ${Math.round(bl)} + ` : ""}{BAND[band].label}: {Math.round(net)}{baselineShown ? ` = ${barLabel}` : ""} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · Target Rev ${Math.round(targetLine[i])}M · growth {growthPct}%/yr</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
               {bl > 0 && <rect x={x} y={Math.min(y(0), y(bl))} width={bw} height={Math.max(0, Math.abs(y(0) - y(bl)))} fill="#475569" rx={1} opacity={on ? 0.7 : 0.5} stroke="#0e141b" strokeWidth={0.5} />}
@@ -4608,8 +4624,29 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           );
         })}
         {showTarget && <polyline points={rows.map((_, i) => `${L + i * pw + pw * 0.5},${y(targetLine[i])}`).join(" ")} fill="none" stroke="#e2e8f0" strokeWidth="1.4" />}
-        {showTarget && rows.map((r, i) => <circle key={r.year} cx={L + i * pw + pw * 0.5} cy={y(targetLine[i])} r="2.6" fill="#e2e8f0" />)}
+        {showTarget && rows.map((r, i) => (
+          <g key={r.year} style={{ cursor: "pointer" }}
+            onClick={(e) => { e.stopPropagation(); setPin((prev) => (prev && prev.i === i && prev.kind === "target" ? null : { i, kind: "target" })); }}>
+            {/* larger transparent hit area so the target dot is tappable on phones */}
+            <circle cx={L + i * pw + pw * 0.5} cy={y(targetLine[i])} r="9" fill="transparent" />
+            <circle cx={L + i * pw + pw * 0.5} cy={y(targetLine[i])} r={pin && pin.i === i && pin.kind === "target" ? 4 : 2.6} fill="#e2e8f0" stroke={pin && pin.i === i && pin.kind === "target" ? "#22d3ee" : "none"} strokeWidth="1.4" />
+          </g>
+        ))}
       </svg>
+      {/* F3 — pinned figure chip: the exact $ value for the clicked bar or target dot (tap again to dismiss). */}
+      {pin && (() => {
+        const i = pin.i; const r = rows[i]; if (!r) return null;
+        const net = stackPos[i] + stackNeg[i]; const bl = baseSeries[i]; const barLabel = Math.round(bl + net);
+        return (
+          <div className="mt-1.5 flex items-center gap-2 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1 text-[11px]">
+            <span className="font-mono font-semibold text-cyan-200">{r.year}</span>
+            {pin.kind === "target"
+              ? <span className="text-slate-200">Target {metric === "mgn" ? "Margin" : "Rev"} <b className="tabular-nums text-cyan-100">${Math.round(targetLine[i]).toLocaleString()}M</b> · growth {growthPct}%/yr</span>
+              : <span className="text-slate-200">{baselineShown ? <>Full <b className="tabular-nums text-cyan-100">${barLabel.toLocaleString()}M</b> · {BAND[band].label} <b className="tabular-nums text-slate-100">${Math.round(net).toLocaleString()}M</b></> : <><span>{BAND[band].label}</span> <b className="tabular-nums text-cyan-100">${Math.round(net).toLocaleString()}M</b></>}{showTarget ? <> · vs Target ${Math.round(targetLine[i]).toLocaleString()}M</> : null}</span>}
+            <button onClick={() => setPin(null)} className="ml-auto rounded px-1 text-[12px] leading-none text-slate-400 hover:text-cyan-300" aria-label="Dismiss">✕</button>
+          </div>
+        );
+      })()}
 
       {/* Stacked-segment legend — the child nodes of the current scope (Company→BUs, BU→SBUs, SBU→Alpha Codes). */}
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
