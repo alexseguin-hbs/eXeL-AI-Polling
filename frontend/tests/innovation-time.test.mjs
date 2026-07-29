@@ -1462,13 +1462,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // the scale itself
   const tsBlock = src.slice(src.indexOf("const TS = {"), src.indexOf("} as const;", src.indexOf("const TS = {")));
   const vals = Object.fromEntries([...tsBlock.matchAll(/(\w+):\s*"([\d.]+)cqw"/g)].map((m) => [m[1], parseFloat(m[2])]));
-  for (const k of ["title", "head", "meta", "body", "lead", "num", "micro"]) ok(typeof vals[k] === "number", `TS.${k} is declared`);
-  ok(Object.keys(vals).length === 7, "TS has exactly the 7 declared steps — no undocumented size crept in");
+  for (const k of ["title", "proj", "head", "meta", "body", "lead", "num", "micro"]) ok(typeof vals[k] === "number", `TS.${k} is declared`);
+  ok(Object.keys(vals).length === 8, "TS has exactly the 8 declared steps — no undocumented size crept in");
   ok(!/cqw"/.test(tsBlock.replace(/[\d.]+cqw/g, "")) || true, "TS values are cqw");
   // 1cqw = 16px on the 1600px print sheet, so the caps are arithmetic, not opinion.
   const px = (k) => vals[k] * PRINT_W / 100;
   for (const k of ["meta", "body", "lead", "num", "micro"]) ok(px(k) <= 12, `TS.${k} = ${px(k)}px <= 12px body cap at print width`);
-  for (const k of ["title", "head"]) ok(px(k) <= 18 && px(k) >= 14, `TS.${k} = ${px(k)}px is inside the 14-18px header band`);
+  for (const k of ["title", "head", "proj"]) ok(px(k) <= 18 && px(k) >= 14, `TS.${k} = ${px(k)}px is inside the 14-18px header band`);
   ok(px("title") >= px("head") && px("head") > px("body"), "the scale is monotonic: title >= head > body");
 
   // the mechanism that makes cq the ONLY way to set type on the sheet
@@ -1487,7 +1487,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // chart type also lives on the sheet's scale
   ok(!/fontSize="8" fill=\{pin === i/.test(src), "S3 cash-chart year labels were brought inside the cap");
-  ok(/style=\{big \? \{ height: "9cqh" \} : \{ height: "auto" \}\}/.test(src), "the S8 waterfall is bounded in cqh on the sheet so its panel cannot outgrow the page");
+  ok(/style=\{big \? \{ height: "7cqh" \} : \{ height: "auto" \}\}/.test(src), "the S8 waterfall is bounded in cqh on the sheet so its panel cannot outgrow the page");
+  ok(/style=\{big \? \{ height: "20cqh" \} : \{ height: "auto" \}\}/.test(src), "the S10/S14 bar chart is bounded in cqh too — unbounded it became a 700px block, 453px past its panel");
 }
 
 // ── BLOCKER (portrait audit) · a control the user cannot reach does not exist ────────────
@@ -1558,6 +1559,99 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/dry powder/i.test(lex) && !/dry powder/i.test(data), "no 'dry powder' survives in the lexicon or the data engine");
   ok((src.match(/dry powder/gi) ?? []).length <= 1, "the only remaining mention in the page is the historical note on the rename");
   ok(/<Kpi label=\{t\("innovation.kpi.upside"\)\} value=\{k\(avail - fundedNre\)\}/.test(src), "the KPI still computes available − funded NRE — the rename touched no math");
+}
+
+// ── #20 · S4 "Customer CONOPS" + the clipped hero ───────────────────────────────────────
+// One definition of the title, and a hero that fits its panel. The clip was NOT a sizing accident: the
+// CONOPS block used Tailwind's `landscape:` variant, which is a DEVICE-orientation media query. On a
+// portrait phone the hero stacked ABOVE the steps and the block clipped out of the panel — the same class
+// of defect as the sm: grid that broke portrait in #3. The sheet is always a 16:9 landscape page.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const data = await fsp.readFile("lib/innovation-data.ts", "utf8");
+  const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
+  const { GATE_REQUIREMENTS, slideDef } = await import("../lib/innovation-data.ts");
+
+  ok(slideDef("S4")?.name === "Customer CONOPS", 'S4 is titled exactly "Customer CONOPS"');
+  ok(!/Customer CONOPS — Applications/.test(data) && !/Customer CONOPS — Applications/.test(src), 'the "— Applications" suffix is gone from every file');
+  ok(GATE_REQUIREMENTS.filter((r) => r.type === "S" && r.slide === "S4").length <= 1, "S4 has ONE deliverable definition — the matrix, the strip and the header all read it");
+  ok(/const deckTitle = slideDef\(sp\.code\)\?\.name \?\? sp\.code;/.test(src), "the slide header reads its title from slideDef — no second, hardcoded string");
+
+  // the hero fits: no device-orientation branch inside the sheet, and a cqh-bounded box
+  ok(/big \? "flex flex-row items-start gap-3" : "flex flex-col gap-3 landscape:flex-row/.test(src), "inside the sheet the CONOPS layout is FIXED side-by-side — no device-orientation branch");
+  ok(/style=\{big \? \{ height: "24cqh" \} : undefined\}/.test(src), "the CONOPS hero is bounded in cqh on the sheet, so it cannot outgrow its panel");
+  ok(/big \? "" : "aspect-\[16\/9\]"/.test(src), "the fixed aspect box only applies OUTSIDE the sheet, where height is free");
+
+  // the gate hole the operator asked about: images carry no text node
+  ok(/const paints = \/\^\(img\|svg\|canvas\|image\)\$\/\.test/.test(shot), "the canvas-bounds check covers img/svg/canvas — a clipped picture has no text node to catch it by");
+}
+
+// ── #21 · ONE HEADER for all 20 codes ───────────────────────────────────────────────────
+// Two constants, computed ONCE from the worst case and applied to every slide: no per-slide override, no
+// content-dependent clamp, no shrink-to-fit. The project name never truncates, and the body starts at the
+// same Y on every slide — uniform geometry matters as much as uniform size.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
+  const { DEMO_PROJECTS, SLIDE_SCHEMA, slideDef } = await import("../lib/innovation-data.ts");
+
+  // the two constants
+  const tsBlock = src.slice(src.indexOf("const TS = {"), src.indexOf("} as const;", src.indexOf("const TS = {")));
+  const vals = Object.fromEntries([...tsBlock.matchAll(/(\w+):\s*"([\d.]+)cqw"/g)].map((m) => [m[1], parseFloat(m[2])]));
+  ok(typeof vals.proj === "number" && typeof vals.title === "number", "TS.proj and TS.title are declared as the two header constants");
+  ok(vals.proj * 16 <= 18 && vals.title * 16 <= 18, `both header constants stay inside the 18px cap (${vals.proj * 16}px / ${vals.title * 16}px at print)`);
+  ok(!/fontSize: TS\.(proj|title)[^}]*\?/.test(src), "neither header constant is applied conditionally — one value, every slide");
+
+  // no truncation, one line, fixed band
+  ok(/data-proj-name className="whitespace-nowrap font-semibold/.test(src), "the project name is whitespace-nowrap and carries NO truncate — it can never ellipsise");
+  ok(!/truncate[^"]*" style=\{\{ fontSize: TS\.proj/.test(src), "the truncate that produced \"Edge Mission Aut…\" is gone");
+  ok(/data-slide-title className="shrink-0 whitespace-nowrap/.test(src), "the slide title renders on one line");
+  ok(/data-slide-head className="flex h-\[7.4cqh\] shrink-0/.test(src), "the header band has a RESERVED fixed height, so the body starts at the same Y on all 20 slides");
+
+  // the gate drives all 20 codes against the WORST CASE project, derived from the data
+  const longest = [...DEMO_PROJECTS].sort((a, b) => b.name.length - a.name.length)[0];
+  ok(new RegExp(`const PROJECT = process.env.PROJECT \\|\\| "${longest.id}"`).test(shot),
+     `the gate defaults to the LONGEST-named project (${longest.id} "${longest.name}", ${longest.name.length} ch) — not the easy case`);
+  const codes = SLIDE_SCHEMA.map((x) => x.code);
+  ok(codes.every((c) => shot.includes(c)) && /const ALL_SLIDES =/.test(shot), `the gate drives all ${codes.length} codes by default`);
+  ok(/PROJECT NAME size differs across slides/.test(shot), "gate fails if the project-name size differs slide to slide");
+  ok(/SLIDE TITLE size differs across slides/.test(shot), "gate fails if the slide-title size differs slide to slide");
+  ok(/BODY starts at different Y across slides/.test(shot), "gate fails if the body Y-offset differs slide to slide");
+  ok(/PROJECT NAME TRUNCATED/.test(shot), "gate fails on ANY truncation of the project name");
+  ok(/selectOption\(PROJECT\)/.test(shot), "the gate picks the project through the real selector an operator uses");
+
+  // if a longer name or title is ever added, the constants must be re-derived — this lock forces it
+  const longestTitle = SLIDE_SCHEMA.map((x) => slideDef(x.code)?.name ?? x.code).sort((a, b) => b.length - a.length)[0];
+  ok(longest.name.length <= 40, `worst-case project name is still <= 40 ch (${longest.name.length}) — the length the constants were derived at`);
+  ok(longestTitle.length <= 25, `worst-case slide title is still <= 25 ch ("${longestTitle}") — the length the constants were derived at`);
+}
+
+// ── #2 (extended) · A PANEL NEVER PRINTS ITS OWN NAME TWICE ─────────────────────────────
+// The original rule keyed off "this panel holds exactly one field". S8's value-proposition panel holds
+// THREE, and only the first repeated the panel title — so the duplicate banner survived and cost the panel
+// a row it did not have. The panel title is the only reliable signal, so AmtsPanel publishes it and any
+// field whose name matches renders bare. One rule, all 20 slides, including the ones not built yet.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  ok(/const PanelTitleCtx = React\.createContext<string>\(""\);/.test(src), "AmtsPanel publishes its title through a context");
+  ok(/<PanelTitleCtx.Provider value=\{title\}>\{children\}<\/PanelTitleCtx.Provider>/.test(src), "the provider wraps the panel BODY, so only that panel's fields see it");
+  ok(/bare = bare \|\| \(!!panelTitle && sameName\(panelTitle, f\.name\)\)/.test(src), "a field whose name matches the panel title renders bare");
+  ok(/const sameName = \(a: string, b: string\) =>[^;]*replace\(\/\[\^a-z0-9\]\/gi, ""\)\.toLowerCase\(\)/.test(src), "the match ignores case and punctuation — \"Primary Customer Value Proposition\" == \"Primary customer value proposition\"");
+  ok(/bare = bare \|\|/.test(src), "the rule EXTENDS the single-field rule rather than replacing it");
+}
+
+// ── The 20-slide gate measures DEAD SPACE (enforced in item 22) ──────────────────────────
+// Recorded here so the measurement cannot be quietly deleted between the slice that found the defect and
+// the slice that fixes it. Pre-fix evidence: >90px of void on 20/20 slides, peaking at 689px on CS.
+{
+  const shot = await (await import("node:fs/promises")).readFile("scripts/slide-shots.mjs", "utf8");
+  ok(/const paintedBottom = \(root\) =>/.test(shot), "dead space is measured from where content is PAINTED (Range rects), not where its box ends");
+  ok(/NodeFilter\.SHOW_TEXT/.test(shot) && /querySelectorAll\("img,svg,canvas"\)/.test(shot), "the painted-bottom scan covers text AND images/charts");
+  ok(/dead \$\{maxDead\}px/.test(shot), "every slide reports its worst dead-space gap");
+  ok(/ENFORCED IN ITEM 22/.test(shot), "the deferral is stated in the gate itself, not hidden");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

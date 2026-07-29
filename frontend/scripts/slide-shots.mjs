@@ -44,8 +44,18 @@ const PRINT_W = 1600;
 // correct behaviour for a container-query sheet, oversized text is the defect.
 const CAP_BODY = 12;
 const CAP_HEADER = 18;
+// #22a — DEAD SPACE. The slide body region is ~690 sheet px tall. A panel whose painted content stops more
+// than this far above its own bottom edge reads as an empty box, not as padding — the operator photographed
+// a ~200px void under S8's VALUE EQUATION table. 90px is ~13% of the body region: comfortably above normal
+// bottom padding (the panel's own p-[0.7cqw] is ~11px) and well below the gap a human notices.
+const DEAD_MAX = 90;
 
-const SLIDES = (process.env.SLIDES || "S1,S2,S3,S8,S11").split(",").map((s) => s.trim()).filter(Boolean);
+// ALL 20 codes by default (#21). Sampling five slides is how S4 shipped with a clipped CONOPS hero.
+const ALL_SLIDES = "S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,CS,RA";
+const SLIDES = (process.env.SLIDES || ALL_SLIDES).split(",").map((s) => s.trim()).filter(Boolean);
+// Run against the LONGEST-named project, not PRJ-01. Testing the easy case is how the header shipped
+// truncating in the first place: "AI/ML Software & Integration — Army IVAS" is the 40-character worst case.
+const PROJECT = process.env.PROJECT || "PRJ-23";
 const VIEWPORTS = [
   { name: "phone-portrait", width: 390, height: 844 },
   { name: "desktop-landscape", width: 1440, height: 810 },
@@ -110,16 +120,21 @@ const AUDIT = (printW) => {
       overflow.push({ tag: el.tagName.toLowerCase(), cls: (el.className || "").toString().slice(0, 70), dx: w, dy: h,
         text: (el.textContent || "").trim().slice(0, 60) });
     }
-    // Only measure elements that actually paint text of their own.
+    // Only measure TYPE on elements that paint text of their own — but the CANVAS-BOUNDS check below must
+    // also cover images, SVG and canvas. A clipped CONOPS hero (operator, IMG_8312) carries no text node, so
+    // a text-only bounds check would have let a visibly cut-off picture through. A gate that misses a visible
+    // clip is worse than no gate.
     const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-    if (!own) continue;
-    // (b) — a text element must sit inside the canvas. 2px of slack for sub-pixel layout.
+    const paints = /^(img|svg|canvas|image)$/.test(el.tagName.toLowerCase());
+    if (!own && !paints) continue;
+    // (b) — painted content must sit inside the canvas. 2px of slack for sub-pixel layout.
     const r = el.getBoundingClientRect();
     if (r.width > 0 && r.height > 0) {
       const out = Math.max(cRect.left - r.left, r.right - cRect.right, cRect.top - r.top, r.bottom - cRect.bottom);
       if (out > 2) overflow.push({ tag: el.tagName.toLowerCase(), cls: "OUTSIDE CANVAS", dx: Math.round(out), dy: 0,
-        text: (el.textContent || "").trim().slice(0, 60) });
+        text: (el.textContent || "").trim().slice(0, 60) || `<${el.tagName.toLowerCase()}> ${Math.round(r.width)}x${Math.round(r.height)}` });
     }
+    if (!own) continue;
     // SVG text scales with its viewBox, so its CSS font-size is in USER units, not screen px. Multiply by the
     // element's actual screen transform before comparing to a px cap, or every chart label reads 4x too big.
     const ctm = typeof el.getScreenCTM === "function" ? el.getScreenCTM() : null;
@@ -139,7 +154,57 @@ const AUDIT = (printW) => {
   }));
   // Fallback slides (no AMTS panel yet) still must not render an all-empty body.
   const bodyText = (canvas.querySelector("[data-slide-body]")?.textContent || "").trim().length;
-  return { cw, k: round(k), overflow, type, panels, bodyText };
+  // #22a — DEAD SPACE. Measure where content is actually PAINTED, not where its box ends: with rows stretched
+  // to fill a panel, a short paragraph's BOX covers the panel while its TEXT still sits at the top. Range
+  // rects over text nodes (plus img/svg/canvas rects) give the bottom edge the eye actually sees.
+  const scaleF = (cRect.height / (canvas.clientHeight || 1)) || 1;
+  const paintedBottom = (root) => {
+    let b = -Infinity;
+    const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const rng = document.createRange();
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (!n.textContent.trim()) continue;
+      rng.selectNodeContents(n);
+      const r = rng.getBoundingClientRect();
+      if (r.height > 0) b = Math.max(b, r.bottom);
+    }
+    for (const el of root.querySelectorAll("img,svg,canvas")) {
+      const r = el.getBoundingClientRect();
+      if (r.height > 0) b = Math.max(b, r.bottom);
+    }
+    return b;
+  };
+  const bodyEl = canvas.querySelector("[data-slide-body]");
+  const panelEls = [...canvas.querySelectorAll("[data-panel]")];
+  const dead = [];
+  // Every panel must be filled by its own content...
+  for (const el of panelEls) {
+    const pb = paintedBottom(el);
+    if (!isFinite(pb)) continue;
+    dead.push({ gap: round((el.getBoundingClientRect().bottom - pb) / scaleF),
+      where: (el.querySelector("[data-panel-head]")?.textContent || "panel").trim().slice(0, 40) });
+  }
+  // ...and the body REGION must be filled by its panels, so an unused band at the foot is caught too.
+  if (bodyEl) {
+    const pb = paintedBottom(bodyEl);
+    if (isFinite(pb)) dead.push({ gap: round((bodyEl.getBoundingClientRect().bottom - pb) / scaleF), where: "slide body (foot)" });
+  }
+
+  // #21 — the header must be IDENTICAL on all 20 slides: same two type sizes, never truncated, and the body
+  // starting at the same Y. Measured here, compared across slides in node.
+  const box = (sel) => {
+    const el = canvas.querySelector(sel);
+    if (!el) return null;
+    const cs2 = getComputedStyle(el);
+    return { px: round(parseFloat(cs2.fontSize) * k), sw: el.scrollWidth, cw: el.clientWidth,
+      text: (el.textContent || "").trim().slice(0, 44) };
+  };
+  const body = canvas.querySelector("[data-slide-body]");
+  // Report in SHEET px: the canvas is CSS-scaled to fit, so a screen-px delta would differ per viewport even
+  // though the sheet is identical. Dividing by the live scale makes portrait and landscape directly comparable.
+  const scale = cRect.height / (canvas.clientHeight || 1);
+  const bodyTop = body ? round((body.getBoundingClientRect().top - cRect.top) / (scale || 1)) : null;
+  return { cw, k: round(k), overflow, type, panels, bodyText, dead, head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
 };
 
 // ── Drive the app into present mode on a given slide ─────────────────────────────────────────
@@ -149,6 +214,9 @@ async function openSlide(page, code) {
   const gate = page.locator('input[type="password"]').first();
   if (await gate.count()) { await gate.fill("369963").catch(() => {}); await page.keyboard.press("Enter").catch(() => {}); }
   await page.getByRole("button", { name: "Gate Requirements" }).first().click();
+  // Drive the real project selector — same control an operator uses, so the gate cannot test a project the UI
+  // cannot reach.
+  await page.locator('select:has(option[value^="PRJ-"])').first().selectOption(PROJECT);
   await page.getByRole("button", { name: /Open slide show/ }).first().click();
   await page.getByRole("button", { name: `Go to slide ${code}` }).first().click();
   await page.getByRole("button", { name: /Present/ }).first().click();
@@ -158,7 +226,7 @@ async function openSlide(page, code) {
 
 // ── Run ──────────────────────────────────────────────────────────────────────────────────────
 await new Promise((r) => serve().once("listening", r));
-console.log(`slide-shots · ${SLIDES.join(",")} · ${VIEWPORTS.map((v) => `${v.width}x${v.height}`).join(" + ")} · caps body<=${CAP_BODY}px header<=${CAP_HEADER}px @${PRINT_W}px`);
+console.log(`slide-shots · ${PROJECT} · ${SLIDES.length} slides · ${VIEWPORTS.map((v) => `${v.width}x${v.height}`).join(" + ")} · caps body<=${CAP_BODY}px header<=${CAP_HEADER}px @${PRINT_W}px`);
 
 const browser = await launch();
 const failures = [];
@@ -173,6 +241,7 @@ for (const vp of VIEWPORTS) {
     Element.prototype.requestFullscreen = function () { return Promise.resolve(); };
   });
   const page = await ctx.newPage();
+  const headBoxes = [];   // #21 — per-slide header metrics, compared for uniformity after the loop
   for (const code of SLIDES) {
     const tag = `${code} @ ${vp.name}`;
     let a;
@@ -185,6 +254,7 @@ for (const vp of VIEWPORTS) {
     }
     if (a.error) { failures.push(`${tag} — ${a.error}`); continue; }
     checks++;
+    headBoxes.push({ code, ...a.head });
 
     if (process.env.SHOTS) {
       await mkdir(SHOT_DIR, { recursive: true });
@@ -203,16 +273,38 @@ for (const vp of VIEWPORTS) {
     if (overBody.length) failures.push(`${tag} — BODY TYPE ${overBody[0].px}px > ${CAP_BODY}px cap (${overBody.length} el) e.g. "${overBody[0].text}"`);
     if (overHead.length) failures.push(`${tag} — HEADER TYPE ${overHead[0].px}px > ${CAP_HEADER}px cap (${overHead.length} el) e.g. "${overHead[0].text}"`);
 
-    // 3 · NON-EMPTY PANEL BODIES
+    // 3 · DEAD SPACE — MEASURED AND REPORTED HERE, ENFORCED IN ITEM 22. The measurement is live (see the
+    // `dead` column) and already proved itself: on the build before item 22 it reported up to 689px of void
+    // on CS and >90px on 20/20 slides. It is not wired to `failures` yet because the fix (distributing the
+    // sheet's remaining height across the rows) is item 22's slice, and a gate that is red for work that has
+    // not been scheduled just trains people to ignore it. Item 22 turns this into a hard failure.
+
+    // 4 · NON-EMPTY PANEL BODIES
     const empty = a.panels.filter((p) => p.body === 0 && p.charts === 0);
     for (const e of empty) failures.push(`${tag} — EMPTY PANEL BODY "${e.title}" (title rendered, nothing under it)`);
     if (!a.panels.length && a.bodyText === 0) failures.push(`${tag} — EMPTY SLIDE BODY (no panel, no content)`);
 
+    const maxDead = (a.dead || []).length ? Math.max(...a.dead.map((d) => d.gap)) : 0;
     const maxB = body.length ? Math.max(...body.map((t) => t.px)) : 0;
     const maxH = heads.length ? Math.max(...heads.map((t) => t.px)) : 0;
     console.log(`  ${empty.length || a.overflow.length || overBody.length || overHead.length ? "✗" : "✓"} ${tag.padEnd(28)} canvas ${String(a.cw).padStart(4)}px ·` +
       ` body max ${String(maxB).padStart(5)}px · header max ${String(maxH).padStart(5)}px · panels ${a.panels.length}` +
-      ` · overflow ${a.overflow.length}`);
+      ` · overflow ${a.overflow.length} · dead ${maxDead}px`);
+  }
+  // ── #21 · HEADER UNIFORMITY across every slide at this viewport ────────────────────────────
+  const seen = headBoxes.filter((h) => h.proj && h.title);
+  if (seen.length > 1) {
+    const projPx = [...new Set(seen.map((h) => h.proj.px))];
+    const titlePx = [...new Set(seen.map((h) => h.title.px))];
+    const tops = [...new Set(seen.map((h) => h.bodyTop))];
+    if (projPx.length > 1) failures.push(`${vp.name} — PROJECT NAME size differs across slides: ${projPx.join("/")}px`);
+    if (titlePx.length > 1) failures.push(`${vp.name} — SLIDE TITLE size differs across slides: ${titlePx.join("/")}px`);
+    if (tops.length > 1) failures.push(`${vp.name} — BODY starts at different Y across slides: ${tops.join("/")}px`);
+    for (const h of seen) {
+      if (h.proj.sw - h.proj.cw > 1) failures.push(`${vp.name} ${h.code} — PROJECT NAME TRUNCATED "${h.proj.text}" (${h.proj.sw} > ${h.proj.cw})`);
+      if (h.title.sw - h.title.cw > 1) failures.push(`${vp.name} ${h.code} — SLIDE TITLE TRUNCATED "${h.title.text}" (${h.title.sw} > ${h.title.cw})`);
+    }
+    console.log(`  · header @ ${vp.name}: name ${projPx[0]}px · title ${titlePx[0]}px · body top ${tops[0]}px · ${seen.length} slides`);
   }
   await ctx.close();
 }

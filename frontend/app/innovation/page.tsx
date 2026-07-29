@@ -1222,7 +1222,7 @@ function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#fb7185]" />Give-back</span>
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#3b82f6]" />EVC</span>
         </div>
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "9cqh" } : { height: "auto" }} role="img" aria-label="S8 value creation / capture waterfall">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "7cqh" } : { height: "auto" }} role="img" aria-label="S8 value creation / capture waterfall">
           {[0.25, 0.5, 0.75, 1].map((f) => <line key={f} x1={L} y1={y(max * f / 1.1)} x2={W} y2={y(max * f / 1.1)} stroke="rgba(148,163,184,.09)" />)}
           {seq.map((s, i) => { const top = y(Math.max(s.from, s.to)), bot = y(Math.min(s.from, s.to)); const x = L + i * gw + (gw - bw) / 2; return (
             <g key={i}>
@@ -3103,7 +3103,13 @@ const SLIDE_PRINT_CSS = `
 // scripts/slide-shots.mjs enforces those caps at BOTH viewports; globals.css makes an inline TS size the
 // only way to set type on the sheet, so a px utility added later cannot quietly reopen the hole.
 const TS = {
-  title: "1.1cqw",  // 17.6px — project name + deck title. The largest type on the sheet, at the header cap.
+  // #21 — the header is UNIFORM across all 20 codes. Both sizes are computed ONCE from the worst case
+  // (longest project name x longest slide title rendered together) and applied to every slide. No per-slide
+  // override, no content-dependent clamp, no shrink-to-fit: a header that resizes per slide is the exact
+  // inconsistency being reported. Worst case measured: "AI/ML Software & Integration — Army IVAS" (40 ch)
+  // + "User Stories — Highlights" (25 ch); both sit on one line inside the 1497px content width.
+  proj:  "1.05cqw", // 16.8px — project name, every slide, never truncated.
+  title: "1.1cqw",  // 17.6px — deck title, every slide. The largest type on the sheet, at the header cap.
   head:  "1.0cqw",  // 16.0px — AMTS panel banner, field banner.
   meta:  "0.72cqw", // 11.5px — header-band figures, gate·stage, subheader, footer.
   body:  "0.72cqw", // 11.5px — body copy, lists, tables.
@@ -3111,6 +3117,13 @@ const TS = {
   num:   "0.75cqw", // 12.0px — big tabular metric numbers (weight carries the emphasis, not size).
   micro: "0.6cqw",  //  9.6px — metric captions, REQUIRED flag, source links.
 } as const;
+
+// Published by AmtsPanel, read by PresentField. Item #2 established that a panel must not print its own name
+// twice; with ONE field that was detectable from the call (ids.length === 1), but a panel can also hold three
+// fields where only the FIRST repeats the panel title (S8's value proposition). The title itself is the only
+// reliable signal, so the panel hands it down.
+const PanelTitleCtx = React.createContext<string>("");
+const sameName = (a: string, b: string) => a.replace(/[^a-z0-9]/gi, "").toLowerCase() === b.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
 function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: string; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
@@ -3124,7 +3137,7 @@ function AmtsPanel({ title, icon, required, wide, children }: { title: string; i
         </span>
         {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: TS.micro }}>REQUIRED: {required}+</span>}
       </div>
-      <div data-panel-body className="grid content-start gap-[0.7cqh] p-[0.7cqw]">{children}</div>
+      <div data-panel-body className="grid content-start gap-[0.7cqh] p-[0.7cqw]"><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
     </div>
   );
 }
@@ -3408,7 +3421,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         <div className="mb-1 flex flex-wrap gap-x-3 gap-y-0.5">
           {series.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
         </div>
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "auto" }} role="img" aria-label={`${kind} financials by year`}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "20cqh" } : { height: "auto" }} role="img" aria-label={`${kind} financials by year`}>
           {[0.25, 0.5, 0.75, 1].map((fr) => <line key={fr} x1={L} y1={y(max * fr)} x2={W} y2={y(max * fr)} stroke="rgba(148,163,184,.1)" />)}
           {fo.map((r, i) => (
             <g key={r.year}>
@@ -3442,9 +3455,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // banner AND the inner card frame; AmtsPanel supplies both.
   function PresentField({ sp, f, big, bare }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean }) {
     const acc = sectionAccent(sp.code, f);
+    const panelTitle = React.useContext(PanelTitleCtx);
+    // The panel banner directly above already says this field's name — a second identical banner is chrome
+    // that costs a row and says nothing (item #2's law, now covering multi-field panels too).
+    bare = bare || (!!panelTitle && sameName(panelTitle, f.name));
     // Colored banner header (icon + section name) matching the reference deck, wrapping every field card.
     const Banner = () => (
-      <div data-field-banner className={`flex items-center gap-1.5 px-3 py-1.5 ${acc.bar}`} style={big ? { fontSize: TS.head } : undefined}>
+      <div data-field-banner className={`flex items-center gap-1.5 ${big ? "px-[0.8cqw] py-[0.45cqh]" : "px-3 py-1.5"} ${acc.bar}`} style={big ? { fontSize: TS.head } : undefined}>
         <span aria-hidden className={big ? "leading-none" : "text-[12px] leading-none"}>{acc.icon}</span>
         <span className={`font-semibold uppercase tracking-[0.14em] ${big ? "" : "text-[10px]"}`}>{f.name}{f.linked ? " · ◈ live" : ""}</span>
       </div>
@@ -3452,7 +3469,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     if (f.kind === "chart" && f.linked) return (
       <div className={bare ? "min-w-0" : `overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] col-span-2`}>
         {!bare && <Banner />}
-        <div className={bare ? "" : "p-2"}><ChartFrame label={f.name}>
+        <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}><ChartFrame label={f.name}>
           <MiniFinChart kind={sp.code} big={big} />
           {/* Direct link to the single source of truth that feeds this chart/table. */}
           <SourceLink source={sp.source} />
@@ -3471,11 +3488,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     return (
       <div className={bare ? `min-w-0 ${isConops ? "col-span-2" : ""}` : `overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "col-span-2" : ""}`}>
         {!bare && <Banner />}
-        <div className={bare ? "" : "p-2"}>
+        <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}>
         {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors
             made portrait phones render huge headers that overflowed the slide while landscape looked fine.
             Outside the canvas there is no container context, so the original px/vw clamp stays. */}
-        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 leading-relaxed text-slate-100 ${big ? (isVp ? "font-medium" : "") : (isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]")}`} style={big ? { fontSize: isVp ? TS.lead : TS.body } : undefined}>{v as string}</p>}
+        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 text-slate-100 ${big ? `leading-snug ${isVp ? "font-medium" : ""}` : `leading-relaxed ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}`} style={big ? { fontSize: isVp ? TS.lead : TS.body } : undefined}>{v as string}</p>}
         {f.kind === "attach" && (isImageSrc(v)
           ? <img src={v} alt={f.name} className="max-h-[40vh] w-auto rounded border border-slate-700 object-contain" />
           : <p className={`m-0 text-slate-300 ${big ? "" : "text-[13px]"}`} style={big ? { fontSize: TS.body } : undefined}>◧ {typeof v === "string" ? v : ""}</p>)}
@@ -3488,19 +3505,24 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           const heroImg = attachF ? effective(sp, attachF, presentSrc) : null;
           const hasImg = isImageSrc(heroImg);
           return (
-            <div className="flex flex-col gap-3 landscape:flex-row landscape:items-start">
-              <div className="landscape:w-1/2 landscape:shrink-0">
-                <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-slate-700 bg-gradient-to-br from-cyan-500/[0.06] to-slate-900/60">
+            // `landscape:` is a DEVICE-orientation media query, so on a portrait phone the hero stacked ABOVE
+            // the steps, doubled the block's height and clipped out of the panel (operator, IMG_8312). The
+            // sheet is ALWAYS a 16:9 landscape page — inside it (`big`) the layout is fixed side-by-side and
+            // the hero is bounded in cqh. Same class of defect as the sm: grid that broke portrait in #3.
+            <div className={big ? "flex flex-row items-start gap-3" : "flex flex-col gap-3 landscape:flex-row landscape:items-start"}>
+              <div className={big ? "w-1/2 shrink-0" : "landscape:w-1/2 landscape:shrink-0"}>
+                <div className={`relative overflow-hidden rounded-lg border border-slate-700 bg-gradient-to-br from-cyan-500/[0.06] to-slate-900/60 ${big ? "" : "aspect-[16/9]"}`}
+                  style={big ? { height: "24cqh" } : undefined}>
                   {hasImg
                     ? <img src={heroImg as string} alt={`${sp.code} CONOPS`} className="h-full w-full object-contain" />
-                    : <><ConopsWireframe seed={`${sp.code}:hero:${p.id}`} /><span className="absolute bottom-1 right-1.5 text-[7px] font-mono uppercase tracking-wider text-cyan-300/50">wireframe · generative</span></>}
+                    : <><ConopsWireframe seed={`${sp.code}:hero:${p.id}`} /><span className="absolute bottom-1 right-1.5 font-mono uppercase tracking-wider text-cyan-300/50" style={big ? { fontSize: TS.micro } : { fontSize: 7 }}>wireframe · generative</span></>}
                 </div>
               </div>
-              <ol className="m-0 flex-1 list-none space-y-1.5 p-0 landscape:w-1/2">
+              <ol className={`m-0 min-w-0 flex-1 list-none p-0 ${big ? "space-y-[0.6cqh]" : "space-y-1.5 landscape:w-1/2"}`}>
                 {steps.map((x, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-cyan-500 text-[13px] font-bold tabular-nums text-[#06202a]">{i + 1}</span>
-                    <p className="m-0 text-[clamp(13px,1.4vw,18px)] leading-snug text-slate-100">{x}</p>
+                    <span className={`mt-0.5 flex shrink-0 items-center justify-center rounded-md bg-cyan-500 font-bold tabular-nums text-[#06202a] ${big ? "h-[2.2cqh] w-[2.2cqh]" : "h-6 w-6 text-[13px]"}`} style={big ? { fontSize: TS.micro } : undefined}>{i + 1}</span>
+                    <p className={`m-0 leading-snug text-slate-100 ${big ? "" : "text-[clamp(13px,1.4vw,18px)]"}`} style={big ? { fontSize: TS.body } : undefined}>{x}</p>
                   </li>
                 ))}
               </ol>
@@ -3680,16 +3702,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={style ?? sheetStyle}>
           <div className="flex h-full flex-col" style={{ padding: "3.2cqh 3.2cqw" }}>
             {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
-            <div data-slide-head className="flex items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
+            {/* B2 · header band — FIXED HEIGHT so the body starts at the same Y on every one of the 20 slides.
+                Uniform geometry matters as much as uniform size (#21). */}
+            <div data-slide-head className="flex h-[7.4cqh] shrink-0 items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
               <div className="min-w-0">
-                <div className="truncate font-semibold tracking-tight text-cyan-200" style={{ fontSize: TS.title, lineHeight: 1.15 }}>{p.name}</div>
+                <div data-proj-name className="whitespace-nowrap font-semibold tracking-tight text-cyan-200" style={{ fontSize: TS.proj, lineHeight: 1.15 }}>{p.name}</div>
                 <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: TS.meta }}>
                   <span>COGS <b className="text-slate-200">${ex.cogsK}k</b></span>
                   <span>MSRP <b className="text-slate-200">${ex.msrpK}k</b></span>
                   <span>Mgn <b className="text-slate-200">{ex.marginPct}%</b></span>
                 </div>
               </div>
-              <h2 className="shrink-0 text-center font-semibold leading-[1.05] tracking-tight text-slate-100 text-balance" style={{ fontSize: TS.title, maxWidth: "44cqw" }}>{deckTitle}</h2>
+              <h2 data-slide-title className="shrink-0 whitespace-nowrap text-center font-semibold leading-[1.05] tracking-tight text-slate-100" style={{ fontSize: TS.title }}>{deckTitle}</h2>
               <div className="flex shrink-0 flex-col items-end gap-[0.6cqh]">
                 <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: TS.micro }}>Req: {sp.stage}+</span>
                 <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{sp.gate} · {sp.stage} · {sp.code}</span>
@@ -4266,7 +4290,7 @@ function GateRequirementsView({ projects, sel, onSelect, onEditSource }: { proje
       {/* §3.1 Requirements × gates matrix — rows = requirements, columns = G1–G7 */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-slate-800">
-          <h2 className="text-sm font-semibold">Gate review slides · S1–S18 · {sRows.length} across G1–G7</h2>
+          <h2 className="text-sm font-semibold">Gate Review Slides · S1 – S18</h2>
           <div className="text-[10px] text-slate-500">Each slide is reviewed at its gate — set your {board} gate feedback per slide.</div>
         </div>
         <div className="overflow-x-auto">

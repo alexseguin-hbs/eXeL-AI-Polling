@@ -60,7 +60,7 @@ export const GATE_REVIEW: Record<Gate, GateReview> = {
       { slide: "S1", name: "Executive Summary", summary: "Crisp one-slide" },
       { slide: "S2", name: "Project Overview", summary: "Template one-pager" },
       { slide: "S3", name: "Financial — Return", summary: "Profile: NPV + IRR", priority: 3 },
-      { slide: "S4", name: "Customer CONOPS — Applications", summary: "Mission Needs" },
+      { slide: "S4", name: "Customer CONOPS", summary: "Mission Needs" },
       { slide: "S5", name: "Customer Problem", summary: "Statement — Outcomes" },
       { slide: "S6", name: "Product Summary", summary: "Customer Segment 1" },
     ],
