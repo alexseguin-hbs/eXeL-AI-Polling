@@ -13,7 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
-  revPlanQuarters, revPlanFullM, perMinFinancials, type RevPlan,
+  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, perMinFinancials, type RevPlan,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -3565,6 +3565,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                               <select defaultValue={plan.profile} onChange={(e) => setPlan({ profile: e.target.value as RevPlan["profile"] })} className={inp}>
                                 {["linear", "growth", "ramp", "manual"].map((pr) => <option key={pr} value={pr}>{pr}</option>)}
                               </select>
+                              {/* F4 — input granularity: Annual (By-Year @ Plan, AMTS S10a) | Monthly (By-Month @ Develop, S10b). */}
+                              <div className="flex overflow-hidden rounded border border-slate-700" title="Forecast input granularity — Annual (By-Year @ Plan) or Monthly (By-Month @ Develop, ≥18 mo past launch)">
+                                {(["annual", "monthly"] as const).map((g) => <button key={g} onClick={() => setPlan({ inputGran: g })} className={`px-2 py-0.5 capitalize ${(plan.inputGran ?? "annual") === g ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>{g}</button>)}
+                              </div>
+                              <span className="rounded border border-slate-700 px-1.5 py-0.5 font-mono text-[9px] text-slate-400" title="Launch (first revenue) — the grid anchors here; changing it shifts the entire series">◈ Launch {p.firstRevenue}</span>
                             </div>
                             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                               {plan.entryMode === "detailed" ? <>
@@ -3577,6 +3582,33 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                               {plan.profile === "ramp" && <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Ramp qtrs<input type="text" inputMode="numeric" defaultValue={String(plan.rampQuarters ?? 8)} onBlur={(e) => setPlan({ rampQuarters: +e.target.value || 8 })} className={inp} /></label>}
                             </div>
                             {plan.profile === "manual" && <label className="mt-1.5 flex flex-col gap-0.5 text-[9px] text-slate-500">Manual per-quarter weights (comma-separated)<textarea defaultValue={(plan.manualQ ?? []).join(",")} onBlur={(e) => setPlan({ manualQ: e.target.value.split(",").map((v) => +v.trim() || 0).filter((_, i) => i < 40) })} rows={2} className={`${inp} font-mono`} placeholder="e.g. 1,1,2,2,3,3,…" /></label>}
+                            {/* F4 — launch-anchored preview: Annual (10 yr, By-Year @ Plan) or Monthly (≥18 mo past launch, By-Month
+                                @ Develop). Both derive from the same engine → Σ reconciles to New rev 10-yr (determinism lock). */}
+                            {(() => {
+                              const gran = plan.inputGran ?? "annual";
+                              if (gran === "annual") {
+                                const yr = revPlanAnnual(p, plan);
+                                return (
+                                  <div className="mt-1.5">
+                                    <div className="mb-0.5 text-[9px] uppercase tracking-wider text-slate-500">By Year · anchored at launch {launchYearOf(p)} · Σ ${Math.round(yr.reduce((s, r) => s + r.rev, 0))}M</div>
+                                    <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">$M</th>{yr.map((r) => <th key={r.year} className="px-1 text-right font-mono">{String(r.year).slice(2)}</th>)}</tr></thead><tbody>
+                                      <tr><td className="px-1 text-left text-slate-500">Rev</td>{yr.map((r) => <td key={r.year} className="px-1 text-right text-emerald-400/90">{r.rev.toFixed(0)}</td>)}</tr>
+                                      <tr><td className="px-1 text-left text-slate-500">Mgn</td>{yr.map((r) => <td key={r.year} className="px-1 text-right text-amber-300/80">{r.margin.toFixed(0)}</td>)}</tr>
+                                    </tbody></table></div>
+                                  </div>
+                                );
+                              }
+                              const mo = revPlanMonthly(p, plan).slice(0, 24); // show first 24 mo (≥18 past launch)
+                              return (
+                                <div className="mt-1.5">
+                                  <div className="mb-0.5 text-[9px] uppercase tracking-wider text-slate-500">By Month · from launch {p.firstRevenue} · first 24 mo (min 18 required @ Develop)</div>
+                                  <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">$M</th>{mo.map((m) => <th key={m.idx} className="px-1 text-right font-mono">{m.label}</th>)}</tr></thead><tbody>
+                                    <tr><td className="px-1 text-left text-slate-500">Rev</td>{mo.map((m) => <td key={m.idx} className="px-1 text-right text-emerald-400/90">{m.rev.toFixed(1)}</td>)}</tr>
+                                    <tr><td className="px-1 text-left text-slate-500">Mgn</td>{mo.map((m) => <td key={m.idx} className="px-1 text-right text-amber-300/80">{m.margin.toFixed(1)}</td>)}</tr>
+                                  </tbody></table></div>
+                                </div>
+                              );
+                            })()}
                           </div>
                         );
                       })()}

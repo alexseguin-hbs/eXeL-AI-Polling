@@ -396,6 +396,7 @@ export type RevProfile = "linear" | "growth" | "ramp" | "manual";
 export interface RevPlan {
   entryMode: "highlevel" | "detailed";
   profile: RevProfile;
+  inputGran?: "annual" | "monthly"; // F4: forecast input granularity (AMTS S10a By-Year @ PLAN / S10b By-Month @ DEVELOP). Default annual.
   fullRev10yM?: number;  // High-Level: total 10-yr new revenue ($M) — defaults to p.fullRev10yM
   marginPct?: number;    // High-Level: gross margin % — defaults to execOf(p).marginPct
   qty?: number;          // Detailed: units per year at plateau
@@ -404,6 +405,39 @@ export interface RevPlan {
   growthPctQ?: number;   // "growth" profile: compounding % per quarter
   rampQuarters?: number; // "ramp" profile: quarters to reach plateau
   manualQ?: number[];    // "manual" profile: explicit per-quarter weights (any length; normalized)
+}
+// F4 — launch (first-revenue) parsers. `firstRevenue` is "YYYY-Qn"; anchor the forecast grid to it so that when
+// the launch date changes, the whole series (and the financial slide) shifts. Deterministic, no clock read.
+export function launchYearOf(p: Project): number { const y = parseInt((p.firstRevenue || "").slice(0, 4), 10); return Number.isFinite(y) ? y : 2026; }
+export function launchQuarterOf(p: Project): number { const m = (p.firstRevenue || "").match(/Q([1-4])/); return m ? +m[1] : 1; }
+export interface RevYearCell { year: number; rev: number; margin: number }
+export interface RevMonthCell { idx: number; year: number; month: number; label: string; rev: number; margin: number }
+/** F4 — 10 ANNUAL cells (By-Year, AMTS S10a), launch-anchored. Σ == fullRev10yM (sums the 40-quarter engine). */
+export function revPlanAnnual(p: Project, plan: RevPlan): RevYearCell[] {
+  const qs = revPlanQuarters(p, plan, { baseYear: launchYearOf(p) });
+  const out: RevYearCell[] = [];
+  for (let y = 0; y < 10; y++) {
+    const four = qs.slice(y * 4, y * 4 + 4);
+    out.push({ year: launchYearOf(p) + y, rev: four.reduce((s, q) => s + q.rev, 0), margin: four.reduce((s, q) => s + q.margin, 0) });
+  }
+  return out;
+}
+/** F4 — 120 MONTHLY cells (By-Month, AMTS S10b), each = quarter/3 (SoI/MoT cadence), launch-anchored to the
+ *  launch year+quarter. Always ≥18 months past launch (120 ≫ 18). Σ == fullRev10yM (splits the same engine). */
+export function revPlanMonthly(p: Project, plan: RevPlan): RevMonthCell[] {
+  const qs = revPlanQuarters(p, plan, { baseYear: launchYearOf(p) });
+  const startMonth = (launchQuarterOf(p) - 1) * 3; // 0=Jan … launch quarter's first month
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const out: RevMonthCell[] = [];
+  qs.forEach((q, qi) => {
+    for (let m = 0; m < 3; m++) {
+      const abs = startMonth + qi * 3 + m; // months since Jan of launch year
+      const year = launchYearOf(p) + Math.floor(abs / 12);
+      const month = abs % 12;
+      out.push({ idx: qi * 3 + m, year, month, label: `${MON[month]} ${String(year).slice(2)}`, rev: q.rev / 3, margin: q.margin / 3 });
+    }
+  });
+  return out;
 }
 /** n normalized weights (Σ=1) shaping how the total spreads across quarters. */
 export function profileWeights(profile: RevProfile, n: number, o: { growthPctQ?: number; rampQuarters?: number; manualQ?: number[] } = {}): number[] {

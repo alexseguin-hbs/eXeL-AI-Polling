@@ -1180,7 +1180,7 @@ import { existingCurve as existingCurve40 } from "../lib/innovation-data.ts";
 }
 
 // H41 — per-quarter RevPlan (QTY·ASP·COGS) + profiles + $/min surfaces.
-import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials } from "../lib/innovation-data.ts";
+import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPlanAnnual, revPlanMonthly, launchYearOf, launchQuarterOf } from "../lib/innovation-data.ts";
 {
   const p = DEMO_PROJECTS[0];
   // High-Level: 40 quarters that sum to the plan's fullRev10yM.
@@ -1220,6 +1220,22 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials } from 
   // QTY×ASP identity + 40-quarter sum == annual total, per project.
   ok(DEMO_PROJECTS.every((p) => Math.abs((p.revPlan.qty * p.revPlan.aspK / 1000) * 10 - p.fullRev10yM) < 0.01), "qty×aspK/1000×10 == fullRev10yM (all 24)");
   ok(DEMO_PROJECTS.every((p) => revPlanQuarters(p, p.revPlan).length === 40), "every RevPlan yields 40 quarters");
+  // ── F4: Annual + Monthly input, launch-anchored (AMTS S10a/S10b) — reconciliation + shift locks ──
+  // Annual (10 cells) and Monthly (120 cells) both derive from the same 40-quarter engine → Σ reconciles
+  // to revPlanFullM (the determinism lock): annual Σ == monthly Σ == quarterly Σ, for every project.
+  ok(DEMO_PROJECTS.every((p) => revPlanAnnual(p, p.revPlan).length === 10), "revPlanAnnual returns 10 By-Year cells (all 24)");
+  ok(DEMO_PROJECTS.every((p) => revPlanMonthly(p, p.revPlan).length === 120), "revPlanMonthly returns 120 By-Month cells (≥18 past launch, all 24)");
+  const annBad = DEMO_PROJECTS.filter((p) => Math.abs(revPlanAnnual(p, p.revPlan).reduce((s, r) => s + r.rev, 0) - revPlanFullM(p, p.revPlan)) > 0.01);
+  ok(annBad.length === 0, `annual Σ == fullRev (all 24; off: ${annBad.map((p) => p.id).join(",") || "none"})`);
+  const monBad = DEMO_PROJECTS.filter((p) => Math.abs(revPlanMonthly(p, p.revPlan).reduce((s, m) => s + m.rev, 0) - revPlanFullM(p, p.revPlan)) > 0.01);
+  ok(monBad.length === 0, `monthly Σ == fullRev (all 24; off: ${monBad.map((p) => p.id).join(",") || "none"})`);
+  // Launch anchoring: the annual grid's first year == launch year parsed from firstRevenue; changing the
+  // launch date shifts the whole series (annual first year moves with it).
+  ok(DEMO_PROJECTS.every((p) => revPlanAnnual(p, p.revPlan)[0].year === launchYearOf(p)), "annual grid anchors at launch year (all 24)");
+  const pShift = P({ firstRevenue: "2026-Q1", fullRev10yM: 100, revPlan: { entryMode: "highlevel", profile: "linear", fullRev10yM: 100, marginPct: 40 } });
+  const pShift2 = { ...pShift, firstRevenue: "2029-Q3" };
+  ok(revPlanAnnual(pShift, pShift.revPlan)[0].year === 2026 && revPlanAnnual(pShift2, pShift2.revPlan)[0].year === 2029, "launch-date change shifts the series start (2026→2029)");
+  ok(launchQuarterOf(pShift2) === 3 && revPlanMonthly(pShift2, pShift2.revPlan)[0].label.startsWith("Jul"), "monthly grid starts at the launch quarter's first month (Q3→Jul)");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
