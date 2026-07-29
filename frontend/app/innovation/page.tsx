@@ -4975,30 +4975,41 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
 
   const body = (
     <>
-      <div className="grid grid-cols-7 gap-2">
-        {pipe.map((g) => (
-          <div key={g.gate} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-center">
-            <div className="text-[11px] font-mono text-slate-300">{g.gate}</div>
-            <div className="text-[9px] text-slate-500 mb-1.5 truncate" title={g.stage}>{g.stage}</div>
-            <div className="mx-auto flex h-16 w-full items-end justify-center">
-              <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: "#19c8cf", opacity: 0.8 }} />
-            </div>
-            <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
-            <div className="text-[10px] text-slate-500">{g.count} proj</div>
-          </div>
-        ))}
+      {/* G5 — 7 gate columns, each carrying ITS project dog-tag chips underneath (CONCEPT tags under the Concept
+          column, etc.). Horizontal-scroll wrapper so on a phone the columns never render off-screen (portrait). */}
+      <div className="-mx-1 overflow-x-auto px-1">
+        <div className="grid min-w-[680px] grid-cols-7 gap-2">
+          {pipe.map((g) => {
+            const gateProjects = projects.filter((p) => p.gate === g.gate);
+            return (
+              <div key={g.gate} className="flex flex-col rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-center">
+                <div className="text-[11px] font-mono text-slate-300">{g.gate}</div>
+                <div className="mb-1.5 truncate text-[9px] text-slate-500" title={g.stage}>{g.stage}</div>
+                <div className="mx-auto flex h-16 w-full items-end justify-center">
+                  <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: "#19c8cf", opacity: 0.8 }} />
+                </div>
+                <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
+                <div className="text-[10px] text-slate-500">{g.count} proj</div>
+                {/* dog-tag chips for THIS gate, stacked under the column */}
+                <div className="mt-1.5 flex flex-col gap-1 border-t border-slate-800/70 pt-1.5">
+                  {gateProjects.length === 0
+                    ? <span className="text-[9px] italic text-slate-600">—</span>
+                    : gateProjects.map((p) => (
+                        <button key={p.id} onClick={() => clickProject(p.id)}
+                          className={`truncate rounded px-1 py-0.5 text-[9px] font-semibold text-[#06202a] hover:opacity-90 ${picked === p.id ? "ring-2 ring-white/70" : ""} ${fundedIds.has(p.id) ? "" : "opacity-60"}`}
+                          style={{ background: DEV_TYPE[devTypeOf(p)].color }} title={`${p.name} · ${p.gate}${fundedIds.has(p.id) ? " · funded" : " · not funded"}`}>{p.id}</button>
+                      ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
         {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
           <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
         ))}
-      </div>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {projects.map((p) => (
-          <button key={p.id} onClick={() => clickProject(p.id)}
-            className={`rounded px-2 py-0.5 text-[10px] font-medium text-[#06202a] hover:opacity-90 ${picked === p.id ? "ring-2 ring-white/70" : ""}`}
-            style={{ background: DEV_TYPE[devTypeOf(p)].color }} title={`${p.name} · ${p.gate}`}>{p.id}</button>
-        ))}
+        <span className="text-slate-600">· dim = not funded</span>
       </div>
 
       {/* Dog-tag preview of the picked project (max mode) + jump to full details */}
