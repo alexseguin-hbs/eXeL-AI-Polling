@@ -42,13 +42,28 @@ const PORT = Number(process.env.SHOT_PORT || 4601);
 const PRINT_W = 1600;
 // Backlog item 3 — absolute px caps at print width. Upper bounds only: small text at a small viewport is
 // correct behaviour for a container-query sheet, oversized text is the defect.
-const CAP_BODY = 12;
-const CAP_HEADER = 18;
+// 20px, not 12px: item 22c scaled body copy into the room the bigger boxes created. 12px was derived when
+// the sheet was cramped and every panel was clipping; with the layout distributing the full canvas the same
+// text is legible larger. The cap is still a hard ceiling — the DENSEST slide sets what the whole deck can
+// use, because one global size is what makes 20 slides read as one deck.
+const CAP_BODY = 20;
+// 36px, not 18px: the operator re-specified the header band twice against IMG_8310 ("slide titles need to go
+// back to prior size"), which is roughly double what item 21 derived. The cap follows the operator's stated
+// reference — it is a ceiling that stops drift, not an independent opinion about what looks right.
+const CAP_HEADER = 36;
 // #22a — DEAD SPACE. The slide body region is ~690 sheet px tall. A panel whose painted content stops more
 // than this far above its own bottom edge reads as an empty box, not as padding — the operator photographed
 // a ~200px void under S8's VALUE EQUATION table. 90px is ~13% of the body region: comfortably above normal
 // bottom padding (the panel's own p-[0.7cqw] is ~11px) and well below the gap a human notices.
-const DEAD_MAX = 90;
+// Two DIFFERENT voids, and conflating them is why the first attempt at this failed. A stretched box whose
+// content still sits at the top looks identical, on a naive measurement, to a box that was never stretched.
+//   DEAD_BOX — canvas height the LAYOUT never covered: the grid packed its rows and left the foot empty.
+//              Pure geometry, fixed by stretching (22a). After the fix this should be ~0, so the cap is tight.
+//   DEAD_INK — space inside a box below where its content is actually PAINTED. Stretching cannot fix this;
+//              only larger type can (22c). 90px is ~13% of the 690px body region: comfortably above normal
+//              bottom padding (a panel's own p-[0.7cqw] is ~11px) and well below the void a human notices.
+const DEAD_BOX = 24;
+const DEAD_INK = 90;
 
 // ALL 20 codes by default (#21). Sampling five slides is how S4 shipped with a clipped CONOPS hero.
 const ALL_SLIDES = "S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,CS,RA";
@@ -176,18 +191,22 @@ const AUDIT = (printW) => {
   };
   const bodyEl = canvas.querySelector("[data-slide-body]");
   const panelEls = [...canvas.querySelectorAll("[data-panel]")];
-  const dead = [];
-  // Every panel must be filled by its own content...
-  for (const el of panelEls) {
+  const deadInk = [];
+  // INK — every box must be filled by its own content.
+  const inkBoxes = panelEls.length ? panelEls : (bodyEl ? [...bodyEl.children] : []);
+  for (const el of inkBoxes) {
     const pb = paintedBottom(el);
     if (!isFinite(pb)) continue;
-    dead.push({ gap: round((el.getBoundingClientRect().bottom - pb) / scaleF),
-      where: (el.querySelector("[data-panel-head]")?.textContent || "panel").trim().slice(0, 40) });
+    deadInk.push({ gap: round((el.getBoundingClientRect().bottom - pb) / scaleF),
+      where: (el.querySelector("[data-panel-head],[data-field-banner]")?.textContent || el.textContent || "box").trim().slice(0, 40) });
   }
-  // ...and the body REGION must be filled by its panels, so an unused band at the foot is caught too.
-  if (bodyEl) {
-    const pb = paintedBottom(bodyEl);
-    if (isFinite(pb)) dead.push({ gap: round((bodyEl.getBoundingClientRect().bottom - pb) / scaleF), where: "slide body (foot)" });
+  // BOX — the body region must be COVERED by its boxes. This is the one 22a fixes: it ignores where the ink
+  // stops and asks only whether the layout used the canvas it was given.
+  let deadBox = 0;
+  if (bodyEl && bodyEl.children.length) {
+    const bRect = bodyEl.getBoundingClientRect();
+    const lowest = Math.max(...[...bodyEl.children].map((c) => c.getBoundingClientRect().bottom));
+    deadBox = round((bRect.bottom - lowest) / scaleF);
   }
 
   // #21 — the header must be IDENTICAL on all 20 slides: same two type sizes, never truncated, and the body
@@ -204,7 +223,7 @@ const AUDIT = (printW) => {
   // though the sheet is identical. Dividing by the live scale makes portrait and landscape directly comparable.
   const scale = cRect.height / (canvas.clientHeight || 1);
   const bodyTop = body ? round((body.getBoundingClientRect().top - cRect.top) / (scale || 1)) : null;
-  return { cw, k: round(k), overflow, type, panels, bodyText, dead, head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
+  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
 };
 
 // ── Drive the app into present mode on a given slide ─────────────────────────────────────────
@@ -231,6 +250,10 @@ console.log(`slide-shots · ${PROJECT} · ${SLIDES.length} slides · ${VIEWPORTS
 const browser = await launch();
 const failures = [];
 let checks = 0;
+// Cross-viewport header record (#22b): portrait must stay within 2% of landscape on the
+// fontSize-to-canvas-width RATIO. Comparing raw px would pass trivially now that the sheet is a fixed
+// 1600x900 page; comparing the ratio is what actually proves the two renders are the same document.
+const perVp = [];
 
 for (const vp of VIEWPORTS) {
   const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 1 });
@@ -273,23 +296,25 @@ for (const vp of VIEWPORTS) {
     if (overBody.length) failures.push(`${tag} — BODY TYPE ${overBody[0].px}px > ${CAP_BODY}px cap (${overBody.length} el) e.g. "${overBody[0].text}"`);
     if (overHead.length) failures.push(`${tag} — HEADER TYPE ${overHead[0].px}px > ${CAP_HEADER}px cap (${overHead.length} el) e.g. "${overHead[0].text}"`);
 
-    // 3 · DEAD SPACE — MEASURED AND REPORTED HERE, ENFORCED IN ITEM 22. The measurement is live (see the
-    // `dead` column) and already proved itself: on the build before item 22 it reported up to 689px of void
-    // on CS and >90px on 20/20 slides. It is not wired to `failures` yet because the fix (distributing the
-    // sheet's remaining height across the rows) is item 22's slice, and a gate that is red for work that has
-    // not been scheduled just trains people to ignore it. Item 22 turns this into a hard failure.
+    // 3 · DEAD BOX — ENFORCED (22a). The layout must use the canvas it was given. Proven red before the fix:
+    //     >90px of uncovered foot on 20/20 slides, peaking at 689px on CS.
+    if (a.deadBox > DEAD_BOX) failures.push(`${tag} — DEAD BOX ${a.deadBox}px of canvas the layout never covered (cap ${DEAD_BOX}px)`);
+
+    // 3b · DEAD INK — measured, enforced in 22c. Stretching boxes cannot fill them with words; only larger
+    //      type can, and the operator's order is BOXES FIRST, TEXT SECOND. Wiring this before 22c would make
+    //      the gate red for work that has not been scheduled, which only teaches people to ignore it.
 
     // 4 · NON-EMPTY PANEL BODIES
     const empty = a.panels.filter((p) => p.body === 0 && p.charts === 0);
     for (const e of empty) failures.push(`${tag} — EMPTY PANEL BODY "${e.title}" (title rendered, nothing under it)`);
     if (!a.panels.length && a.bodyText === 0) failures.push(`${tag} — EMPTY SLIDE BODY (no panel, no content)`);
 
-    const maxDead = (a.dead || []).length ? Math.max(...a.dead.map((d) => d.gap)) : 0;
+    const maxInk = (a.deadInk || []).length ? Math.max(...a.deadInk.map((d) => d.gap)) : 0;
     const maxB = body.length ? Math.max(...body.map((t) => t.px)) : 0;
     const maxH = heads.length ? Math.max(...heads.map((t) => t.px)) : 0;
-    console.log(`  ${empty.length || a.overflow.length || overBody.length || overHead.length ? "✗" : "✓"} ${tag.padEnd(28)} canvas ${String(a.cw).padStart(4)}px ·` +
+    console.log(`  ${empty.length || a.overflow.length || overBody.length || overHead.length || a.deadBox > DEAD_BOX ? "✗" : "✓"} ${tag.padEnd(28)} canvas ${String(a.cw).padStart(4)}px ·` +
       ` body max ${String(maxB).padStart(5)}px · header max ${String(maxH).padStart(5)}px · panels ${a.panels.length}` +
-      ` · overflow ${a.overflow.length} · dead ${maxDead}px`);
+      ` · overflow ${a.overflow.length} · box-void ${a.deadBox}px · ink-void ${maxInk}px`);
   }
   // ── #21 · HEADER UNIFORMITY across every slide at this viewport ────────────────────────────
   const seen = headBoxes.filter((h) => h.proj && h.title);
@@ -305,8 +330,19 @@ for (const vp of VIEWPORTS) {
       if (h.title.sw - h.title.cw > 1) failures.push(`${vp.name} ${h.code} — SLIDE TITLE TRUNCATED "${h.title.text}" (${h.title.sw} > ${h.title.cw})`);
     }
     console.log(`  · header @ ${vp.name}: name ${projPx[0]}px · title ${titlePx[0]}px · body top ${tops[0]}px · ${seen.length} slides`);
+    perVp.push({ name: vp.name, proj: projPx[0], title: titlePx[0], top: tops[0], cw: seen[0].cw || 1600 });
   }
   await ctx.close();
+}
+// #22b · PORTRAIT vs LANDSCAPE — same document, not merely similar.
+if (perVp.length > 1) {
+  const [a0, b0] = perVp;
+  const drift = (x, y) => (Math.abs(x - y) / Math.max(x, y, 1)) * 100;
+  for (const key of ["proj", "title", "top"]) {
+    const d = drift(a0[key] / a0.cw, b0[key] / b0.cw);
+    if (d > 2) failures.push(`${key} RATIO drifts ${d.toFixed(2)}% between ${a0.name} and ${b0.name} (cap 2%)`);
+  }
+  console.log(`  · portrait vs landscape: name ${a0.proj}/${b0.proj}px · title ${a0.title}/${b0.title}px · body top ${a0.top}/${b0.top}px`);
 }
 await browser.close();
 process.exit(0 + (failures.length ? 1 : 0) * (console.log(`\n${failures.length ? "✗" : "✓"} ${checks} slide-viewport checks`), failures.length ? (failures.forEach((f) => console.error(`  ✗ ${f}`)), 1) : 0));

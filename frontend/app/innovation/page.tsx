@@ -3115,14 +3115,14 @@ const TS = {
   // override, no content-dependent clamp, no shrink-to-fit: a header that resizes per slide is the exact
   // inconsistency being reported. Worst case measured: "AI/ML Software & Integration — Army IVAS" (40 ch)
   // + "User Stories — Highlights" (25 ch); both sit on one line inside the 1497px content width.
-  proj:  "1.05cqw", // 16.8px — project name, every slide, never truncated.
-  title: "1.1cqw",  // 17.6px — deck title, every slide. The largest type on the sheet, at the header cap.
-  head:  "1.0cqw",  // 16.0px — AMTS panel banner, field banner.
-  meta:  "0.72cqw", // 11.5px — header-band figures, gate·stage, subheader, footer.
-  body:  "0.72cqw", // 11.5px — body copy, lists, tables.
-  lead:  "0.75cqw", // 12.0px — the value proposition: the one line that leads, at the body cap.
-  num:   "0.75cqw", // 12.0px — big tabular metric numbers (weight carries the emphasis, not size).
-  micro: "0.6cqw",  //  9.6px — metric captions, REQUIRED flag, source links.
+  proj:  "2.05cqw", // 32.8px — project name, every slide, never truncated. Raised to the IMG_8310 band.
+  title: "2.2cqw",  // 35.2px — deck title, every slide. The largest type on the sheet.
+  head:  "0.92cqw", // 14.7px — AMTS panel banner, field banner.
+  meta:  "0.75cqw", // 12.0px — header-band figures, gate·stage, subheader, footer.
+  body:  "0.75cqw", // 12.0px — body copy, lists, tables.
+  lead:  "0.82cqw", // 13.1px — the value proposition: the one line that leads, at the body cap.
+  num:   "0.8cqw",  // 12.8px — big tabular metric numbers (weight carries the emphasis, not size).
+  micro: "0.62cqw", //  9.9px — metric captions, REQUIRED flag, source links.
 } as const;
 
 // Published by AmtsPanel, read by PresentField. Item #2 established that a panel must not print its own name
@@ -3136,7 +3136,7 @@ function AmtsPanel({ title, icon, required, wide, children }: { title: string; i
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
-    <div data-panel className={`overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""}`}>
+    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""}`}>
       <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1cqw] py-[0.5cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
           {icon && <span aria-hidden style={{ fontSize: TS.head }}>{icon}</span>}
@@ -3144,7 +3144,7 @@ function AmtsPanel({ title, icon, required, wide, children }: { title: string; i
         </span>
         {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: TS.micro }}>REQUIRED: {required}+</span>}
       </div>
-      <div data-panel-body className="grid content-start gap-[0.7cqh] p-[0.7cqw]"><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
+      <div data-panel-body className="grid min-h-0 flex-1 content-stretch gap-[0.7cqh] p-[0.7cqw]"><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
     </div>
   );
 }
@@ -3474,7 +3474,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       </div>
     );
     if (f.kind === "chart" && f.linked) return (
-      <div className={bare ? "min-w-0" : `overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] col-span-2`}>
+      <div className={bare ? "flex min-h-0 min-w-0 flex-col" : `flex min-h-0 flex-col overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] col-span-2`}>
         {!bare && <Banner />}
         <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}><ChartFrame label={f.name}>
           <MiniFinChart kind={sp.code} big={big} />
@@ -3493,7 +3493,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
     return (
-      <div className={bare ? `min-w-0 ${isConops ? "col-span-2" : ""}` : `overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "col-span-2" : ""}`}>
+      <div className={bare ? `flex min-h-0 min-w-0 flex-col ${isConops ? "col-span-2" : ""}` : `flex min-h-0 flex-col overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "col-span-2" : ""}`}>
         {!bare && <Banner />}
         <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}>
         {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors
@@ -3711,7 +3711,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
             {/* B2 · header band — FIXED HEIGHT so the body starts at the same Y on every one of the 20 slides.
                 Uniform geometry matters as much as uniform size (#21). */}
-            <div data-slide-head className="flex h-[7.4cqh] shrink-0 items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
+            <div data-slide-head className="flex h-[8.6cqh] shrink-0 items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
               <div className="min-w-0">
                 <div data-proj-name className="whitespace-nowrap font-semibold tracking-tight text-cyan-200" style={{ fontSize: TS.proj, lineHeight: 1.15 }}>{p.name}</div>
                 <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: TS.meta }}>
@@ -3733,7 +3733,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               <span>Source: <span className="text-slate-300">{sp.source}</span></span>
             </div>
             {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback. */}
-            <div data-slide-body className="mt-[1.2cqh] grid min-h-0 flex-1 content-start grid-cols-2 gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body }}>
+            <div data-slide-body className="mt-[1.2cqh] grid min-h-0 flex-1 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body }}>
               {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
               {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
             </div>

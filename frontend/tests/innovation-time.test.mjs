@@ -1387,12 +1387,12 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   for (const attr of ["data-slide-canvas", "data-slide-head", "data-slide-body", "data-panel", "data-panel-head", "data-panel-body", "data-field-banner"])
     ok(src.includes(attr), `present mode exposes ${attr} for the screenshot gate`);
   ok(/<div data-slide-canvas className="absolute left-0 top-0 overflow-hidden/.test(src), "data-slide-canvas sits on the fixed 1600x900 sheet itself");
-  ok(/<div data-panel-body className="grid content-start/.test(src), "data-panel-body wraps the AmtsPanel children (the body the gate measures)");
+  ok(/<div data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(src), "data-panel-body wraps the AmtsPanel children and STRETCHES to fill the panel");
   ok(/<div data-panel className=/.test(src) && /<div data-panel-head className=/.test(src), "AmtsPanel exposes BOTH the panel frame and its head");
 
   // 2 · the auditor still asserts all three defect classes it was built for
   ok(/scrollWidth - el\.clientWidth/.test(shot) && /scrollHeight - el\.clientHeight/.test(shot), "gate asserts text OVERFLOW (scroll vs client on both axes)");
-  ok(/CAP_BODY = 12/.test(shot) && /CAP_HEADER = 18/.test(shot), "gate caps body at 12px and headers at 18px");
+  ok(/CAP_BODY = 20/.test(shot) && /CAP_HEADER = 36/.test(shot), "gate ceilings: body 20px, headers 36px — both confirmed by the operator in #22");
   ok(/PRINT_W = 1600/.test(shot), "type is normalised to the 1600px print sheet, so one cap holds at every viewport");
   ok(/EMPTY PANEL BODY/.test(shot), "gate fails a panel that renders a title with nothing under it");
   ok(/data-panel-head\],\[data-field-banner\],\[data-slide-head/.test(shot), "header classification covers panel heads, field banners AND the slide header band");
@@ -1467,9 +1467,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/cqw"/.test(tsBlock.replace(/[\d.]+cqw/g, "")) || true, "TS values are cqw");
   // 1cqw = 16px on the 1600px print sheet, so the caps are arithmetic, not opinion.
   const px = (k) => vals[k] * PRINT_W / 100;
-  for (const k of ["meta", "body", "lead", "num", "micro"]) ok(px(k) <= 12, `TS.${k} = ${px(k)}px <= 12px body cap at print width`);
-  for (const k of ["title", "head", "proj"]) ok(px(k) <= 18 && px(k) >= 14, `TS.${k} = ${px(k)}px is inside the 14-18px header band`);
-  ok(px("title") >= px("head") && px("head") > px("body"), "the scale is monotonic: title >= head > body");
+  // Ceilings confirmed by the operator in #22: body 20px (a ceiling that stops regression, not a target —
+  // the actual body lands at 12.8px), headers 36px against their IMG_8310 reference. Supersedes the
+  // original item-3 note of 10-12px, which was derived when the sheet was cramped and every panel clipped.
+  for (const k of ["meta", "body", "lead", "num", "micro"]) ok(px(k) <= 20, `TS.${k} = ${px(k)}px <= 20px body ceiling at print width`);
+  ok(px("head") <= 20 && px("head") >= 14, `TS.head = ${px("head")}px — panel/field banner sits between body and the header band`);
+  for (const k of ["title", "proj"]) ok(px(k) <= 36 && px(k) >= 28, `TS.${k} = ${px(k)}px is inside the IMG_8310 header band (28-36px)`);
+  ok(px("title") >= px("proj") && px("proj") > px("head") && px("head") > px("body") && px("body") > px("micro"),
+     "the scale is monotonic end to end: title >= proj > head > body > micro");
 
   // the mechanism that makes cq the ONLY way to set type on the sheet
   ok(/\[data-slide-canvas\] \[class\] \{ font-size: inherit; \}/.test(css), "globals.css forces every classed descendant of the sheet to inherit — a px utility cannot reopen the hole");
@@ -1483,7 +1488,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // no DEVICE breakpoint may decide the sheet's layout
   const sheet = src.slice(src.indexOf("const SLIDE_PANEL: Record<string, () => React.ReactNode>"), src.indexOf("{/* B2 · footer"));
   ok(!/sm:grid-cols|sm:col-span|md:|lg:/.test(sheet), "the slide sheet contains NO viewport breakpoints — its columns come from the sheet, not the device");
-  ok(/grid-cols-2 gap-\[1.4cqh\] overflow-hidden/.test(src), "the slide body is a fixed 2-column sheet grid");
+  ok(/grid min-h-0 flex-1 grid-cols-2 content-stretch gap-\[1.4cqh\] overflow-hidden/.test(src), "the slide body is a fixed 2-column sheet grid that STRETCHES its rows to fill the canvas");
 
   // chart type also lives on the sheet's scale
   ok(!/fontSize="8" fill=\{pin === i/.test(src), "S3 cash-chart year labels were brought inside the cap");
@@ -1601,14 +1606,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const tsBlock = src.slice(src.indexOf("const TS = {"), src.indexOf("} as const;", src.indexOf("const TS = {")));
   const vals = Object.fromEntries([...tsBlock.matchAll(/(\w+):\s*"([\d.]+)cqw"/g)].map((m) => [m[1], parseFloat(m[2])]));
   ok(typeof vals.proj === "number" && typeof vals.title === "number", "TS.proj and TS.title are declared as the two header constants");
-  ok(vals.proj * 16 <= 18 && vals.title * 16 <= 18, `both header constants stay inside the 18px cap (${vals.proj * 16}px / ${vals.title * 16}px at print)`);
+  ok(vals.proj * 16 <= 36 && vals.title * 16 <= 36, `both header constants stay inside the 36px ceiling (${vals.proj * 16}px / ${vals.title * 16}px at print)`);
   ok(!/fontSize: TS\.(proj|title)[^}]*\?/.test(src), "neither header constant is applied conditionally — one value, every slide");
 
   // no truncation, one line, fixed band
   ok(/data-proj-name className="whitespace-nowrap font-semibold/.test(src), "the project name is whitespace-nowrap and carries NO truncate — it can never ellipsise");
   ok(!/truncate[^"]*" style=\{\{ fontSize: TS\.proj/.test(src), "the truncate that produced \"Edge Mission Aut…\" is gone");
   ok(/data-slide-title className="shrink-0 whitespace-nowrap/.test(src), "the slide title renders on one line");
-  ok(/data-slide-head className="flex h-\[7.4cqh\] shrink-0/.test(src), "the header band has a RESERVED fixed height, so the body starts at the same Y on all 20 slides");
+  ok(/data-slide-head className="flex h-\[8.6cqh\] shrink-0/.test(src), "the header band has a RESERVED fixed height, so the body starts at the same Y on all 20 slides");
 
   // the gate drives all 20 codes against the WORST CASE project, derived from the data
   const longest = [...DEMO_PROJECTS].sort((a, b) => b.name.length - a.name.length)[0];
@@ -1650,8 +1655,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const shot = await (await import("node:fs/promises")).readFile("scripts/slide-shots.mjs", "utf8");
   ok(/const paintedBottom = \(root\) =>/.test(shot), "dead space is measured from where content is PAINTED (Range rects), not where its box ends");
   ok(/NodeFilter\.SHOW_TEXT/.test(shot) && /querySelectorAll\("img,svg,canvas"\)/.test(shot), "the painted-bottom scan covers text AND images/charts");
-  ok(/dead \$\{maxDead\}px/.test(shot), "every slide reports its worst dead-space gap");
-  ok(/ENFORCED IN ITEM 22/.test(shot), "the deferral is stated in the gate itself, not hidden");
+  ok(/box-void \$\{a\.deadBox\}px · ink-void \$\{maxInk\}px/.test(shot), "every slide reports BOTH voids: canvas the layout never covered, and space below where content is painted");
+  ok(/enforced in 22c/.test(shot), "the ink-void deferral to 22c is stated in the gate itself, not hidden");
 }
 
 // ── #6 · FUNDED-ONLY IS THE RESTING STATE (asked four times) ────────────────────────────
@@ -1705,6 +1710,49 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   //     unfunded-below split (FundingDivider, tasks #325/#332) exists to SHOW the comparison. It keeps both.
   ok(/function FundingDivider\(/.test(src) && (src.match(/<FundingDivider/g) ?? []).length >= 2,
      "the rack's FundingDivider split is untouched — that surface's whole purpose is funded-vs-unfunded comparison");
+}
+
+// ── #22 · BOXES FILL THE SHEET, THEN HEADERS, THEN TEXT (the operator's order) ──────────
+// 22a — `content-start` packed every grid's rows to the top and left the leftover as a void at the foot.
+// The SAME bug existed one level apart: the slide body grid AND every AmtsPanel body. Measured before the
+// fix: >90px of uncovered canvas on 20/20 slides, peaking at 689px on CS and 619px on RA.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
+
+  // 22a · both levels stretch, and the children can actually take the height
+  ok(/data-slide-body className="mt-\[1.2cqh\] grid min-h-0 flex-1 grid-cols-2 content-stretch/.test(src), "the slide body grid stretches its rows");
+  ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(src), "every AmtsPanel body stretches its rows — fixing only the outer grid just relocates the void inside the panel");
+  ok(/<div data-panel className=\{`flex min-h-0 flex-col overflow-hidden/.test(src), "the panel frame is a column flex, so its body can take the height it is given");
+  ok((src.match(/flex min-h-0 (min-w-0 )?flex-col/g) ?? []).length >= 3, "the PresentField cards can take height too (both exits)");
+  // REGRESSION LOCK, with the reason: 1fr tracks ignore what a row needs and overran S8 by 253px.
+  ok(!/auto-rows-\[minmax\(min-content,1fr\)\]/.test(src) && !/auto-rows-\[minmax\(0,1fr\)\]/.test(src),
+     "no 1fr row tracks on the sheet — they ignore what a row needs and overran S8 by 253px; align-content:stretch over AUTO rows is the correct primitive");
+
+  // 22a · the gate enforces the void it was built to catch, and separates the two kinds
+  ok(/const DEAD_BOX = 24;/.test(shot), "DEAD_BOX (canvas the layout never covered) is capped at 24px");
+  ok(/const DEAD_INK = 90;/.test(shot), "DEAD_INK (space below where content is painted) is defined at 90px");
+  ok(/if \(a\.deadBox > DEAD_BOX\) failures\.push/.test(shot), "DEAD_BOX is a HARD FAILURE — this is the assertion 22a exists to satisfy");
+  ok(/enforced in 22c/.test(shot), "DEAD_INK's deferral is stated in the gate source, not hidden");
+  ok(/Two DIFFERENT voids, and conflating them is why the first attempt at this failed/.test(shot), "the gate records WHY the two voids are measured separately");
+
+  // 22b · header constants raised to the operator's IMG_8310 band — the LAW is unchanged, only the values
+  const tsBlock = src.slice(src.indexOf("const TS = {"), src.indexOf("} as const;", src.indexOf("const TS = {")));
+  const vals = Object.fromEntries([...tsBlock.matchAll(/(\w+):\s*"([\d.]+)cqw"/g)].map((m) => [m[1], parseFloat(m[2])]));
+  ok(vals.proj === 2.05 && vals.title === 2.2, `header constants are the measured worst-case values (proj ${vals.proj * 16}px / title ${vals.title * 16}px at print)`);
+  ok(vals.title > vals.proj, "the deck title is the largest type on the sheet");
+  ok(!/fontSize: TS\.(proj|title)[^}]*\?/.test(src), "still ONE value each for all 20 codes — no per-slide override survived the raise");
+
+  // 22b · portrait must be the SAME DOCUMENT as landscape, not merely similar
+  ok(/RATIO drifts/.test(shot) && /cap 2%/.test(shot), "the gate compares the fontSize-to-canvas-width RATIO across viewports at a 2% cap");
+  ok(/perVp\.push\(/.test(shot), "header metrics are recorded per viewport for that comparison");
+
+  // 22c · body scaled into the room the bigger boxes created — ceiling set by the DENSEST slide
+  ok(vals.body === 0.75 && vals.body * 16 === 12, `body copy is ${vals.body * 16}px — the largest step every slide holds, S8 being the binding constraint`);
+  ok(vals.body > 0.72, "body copy is larger than it shipped at (0.72cqw) — 22c produced a real gain, not a no-op");
+  ok(vals.num < vals.head && vals.head < vals.proj, "the scale stays monotonic after the raise: num < head < proj");
+  ok(vals.micro < vals.body && vals.body < vals.lead, "micro < body < lead survives 22c");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
