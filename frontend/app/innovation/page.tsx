@@ -695,22 +695,12 @@ function Board() {
                     </tr>
                   </thead>
                   <tbody>
-                    {/* ▲ ABOVE · FUNDED — count + Σ NRE match the Budget modal exactly */}
-                    <tr><td colSpan={7} className="px-2 py-1">
-                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                        <span>▲ Above · Funded</span><span className="text-slate-500">{fundedProjects.length} proj · {k(fundedNreK)} NRE</span><span className="h-px flex-1 bg-emerald-500/40" />
-                      </div></td></tr>
+                    {/* Funded rows above the line, unfunded below — one reusable divider carries the symmetric
+                        ▲ Above · Funded / ▼ Below · Not funded labels (counts + Σ NRE match the Budget modal). */}
                     {section(fundedProjects, "funded")}
-                    {/* FUNDING LINE */}
-                    <tr><td colSpan={7} className="px-2 py-0.5">
-                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
-                        <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(avail)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
-                      </div></td></tr>
-                    {/* ▼ BELOW · NOT FUNDED */}
-                    <tr><td colSpan={7} className="px-2 py-1">
-                      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-rose-400">
-                        <span>▼ Below · Not funded</span><span className="text-slate-500">{unfundedProjects.length} proj · {k(unfundedNreK)} NRE</span><span className="h-px flex-1 bg-rose-500/40" />
-                      </div></td></tr>
+                    <FundingDivider availK={avail} colSpan={7}
+                      above={{ count: fundedProjects.length, nreK: fundedNreK }}
+                      below={{ count: unfundedProjects.length, nreK: unfundedNreK }} />
                     {section(unfundedProjects, "unfunded")}
                   </tbody>
                 </table>
@@ -730,11 +720,7 @@ function Board() {
                       const p = r.p, last = i === st.rows.length - 1;
                       return (
                         <React.Fragment key={p.id}>
-                          {i === st.lineIndex && (
-                            <div className="flex items-center gap-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-amber-400">
-                              <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(avail)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
-                            </div>
-                          )}
+                          {i === st.lineIndex && <FundingDivider availK={avail} />}
                           <div data-stack-row={i} onClick={() => selectProject(p.id)}
                             className={`flex items-center gap-2 rounded-lg ${dragIdx === i ? "opacity-40" : ""} ${!r.funded ? "opacity-70" : ""} ${overIdx === i && dragIdx !== i ? "ring-1 ring-cyan-400" : selId === p.id ? "ring-1 ring-cyan-500/60" : ""}`}>
                             {canDrag && <span onPointerDown={startRowDrag(i)} style={{ touchAction: "none" }} title="Drag to reprioritize" className="cursor-grab px-0.5 text-slate-600 active:cursor-grabbing">⠿</span>}
@@ -936,6 +922,22 @@ function Kpi({ label, value, tone, align }: { label: string; value: string; tone
   );
 }
 
+// R-Core · ONE reusable funding-line divider (operator: "always max reuse"). Symmetric ▲ Above · Funded (up)
+// and ▼ Below · Not funded (down) around the amber "Funding line · $X R&D" rule. Pass `above`/`below`
+// {count,nreK} to show the labeled sides; omit for a bare rule (drilled + product stacks). `colSpan` wraps it
+// as a <tr> for table bodies; omit for a plain flex row (card/product lists). Single source → identical arrows
+// + Above/Below wording on every surface (group rack · drilled rack · product stack · Budget modal).
+function FundingDivider({ availK, above, below, colSpan }: { availK: number; above?: { count: number; nreK: number }; below?: { count: number; nreK: number }; colSpan?: number }) {
+  const line = (
+    <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
+      {above && <span className="shrink-0 text-emerald-400">▲ Above · Funded {above.count} proj · {k(above.nreK)} NRE</span>}
+      <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(availK)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
+      {below && <span className="shrink-0 text-rose-400">▼ Below · Not funded {below.count} proj · {k(below.nreK)} NRE</span>}
+    </div>
+  );
+  return colSpan != null ? <tr><td colSpan={colSpan} className="px-2 py-1">{line}</td></tr> : <div className="py-0.5">{line}</div>;
+}
+
 function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, dragging, over, onGripDown, canDrag = true }: {
   r: ReturnType<typeof stackWithBudget>["rows"][number]; i: number; showLine: boolean;
   selId: string; onSelect: (id: string) => void; onUp?: () => void; onDown?: () => void; last: boolean; avail: number;
@@ -944,17 +946,7 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
   const { p, cumK, funded } = r;
   return (
     <>
-      {showLine && (
-        <tr>
-          <td colSpan={10} className="px-2 py-0.5">
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
-              <span className="h-px flex-1 bg-amber-500/60" />
-              Funding line · {k(avail)} R&amp;D
-              <span className="h-px flex-1 bg-amber-500/60" />
-            </div>
-          </td>
-        </tr>
-      )}
+      {showLine && <FundingDivider availK={avail} colSpan={10} />}
       <tr
         onClick={() => onSelect(p.id)}
         data-stack-row={i}
@@ -2098,23 +2090,10 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                 <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {levelLabel} · above the line = FUNDED · below = NOT FUNDED · live $/{CADENCE_UNIT[cadence].short} burn</span>
                 <span className="text-[10px] text-slate-500">a project sits in one bucket, set by the funding line</span>
               </div>
-              {/* ABOVE THE LINE — combined FUNDED */}
-              <div className="mb-1.5 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                <span className="shrink-0">▲ Above · Funded</span>
-                <span className="shrink-0 text-slate-500">{totF.count} proj · {k(totF.nreK)} NRE</span>
-                <span className="h-px flex-1 bg-emerald-500/40" />
-              </div>
+              {/* Funded cards above the line, unfunded below — one reusable divider (R-Core) carries the
+                  symmetric ▲ Above · Funded / ▼ Below · Not funded labels, identical to the rack. */}
               {sideCards("funded")}
-              {/* FUNDING LINE */}
-              <div className="my-2.5 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
-                <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(availK)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
-              </div>
-              {/* BELOW THE LINE — combined NOT FUNDED */}
-              <div className="mb-1.5 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-rose-400">
-                <span className="shrink-0">▼ Below · Not funded</span>
-                <span className="shrink-0 text-slate-500">{totU.count} proj · {k(totU.nreK)} NRE</span>
-                <span className="h-px flex-1 bg-rose-500/40" />
-              </div>
+              <div className="my-2.5"><FundingDivider availK={availK} above={{ count: totF.count, nreK: totF.nreK }} below={{ count: totU.count, nreK: totU.nreK }} /></div>
               {sideCards("unfunded")}
             </div>
           );
@@ -4382,7 +4361,6 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // (admin colors), or Risk (risk-weighted vs at-risk upside). Charts show FUNDED (above-line) projects only —
   // for management-and-above decision-making — so there is no separate Funded split.
   const [splitBy, setSplitBy] = useState<"hier" | "pillar" | "risk">("hier");
-  const [pillarSel, setPillarSel] = useState<Set<string>>(new Set()); // multi-select (pillar mode only; empty = all)
   // MoT time-spread (operator, global deck lens): spread scoped cost/rev/margin totals to $/min over a chosen
   // window — 91-day (SoI) / 365-day / user-defined — persisted deck-wide. Linearized (even) for less lumpiness.
   const [spreadKey, setSpreadKey] = useState<SpreadKey>(() => (lsGet("innovation-spread") as SpreadKey) || "q91");
@@ -4434,7 +4412,6 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const childLevel: HierKey = selBu === "All" ? "bu" : selSbu === "All" ? "sbu" : "alpha";
   const pillarDefs = loadPillars();
   const pillarKey = (p: Project) => metaOf(p).initiative;
-  const inScope = splitBy === "pillar" && pillarSel.size ? scoped.filter((p) => pillarSel.has(pillarKey(p))) : scoped;
   const segLabel = splitBy === "risk" ? "Risk" : splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code";
   const scopeIncrAll = scoped.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
   const tierNodes: BizNode[] = bizSetup[childLevel as BizTier] ?? [];
@@ -4466,7 +4443,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         code, color, revAt: (i: number) => frac * scopeRevSeries[i], base: frac * scopeRevSeries[0], gm: scopeGm, gmScale: frac,
       }))
     : splitBy === "pillar"
-    ? Array.from(new Set(inScope.map(pillarKey))).sort().map((code): Seg => {
+    ? Array.from(new Set(scoped.map(pillarKey))).sort().map((code): Seg => {
         const sp = scoped.filter((p) => pillarKey(p) === code);
         const share = sp.reduce((a, p) => a + incrementalRevM(p), 0) / scopeIncrAll;
         return { code, color: pillarColorOf(code, pillarDefs), revAt: (i: number) => share * scopeRevSeries[i], base: share * scopeRevSeries[0], gm: growthModel(sp, gmOpts(baseM * share)) };
@@ -4562,25 +4539,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         </div>
       </div>
 
-      {/* Pillar multi-select — only in pillar mode; empty = all pillars. Colors match Admin → Strategic Pillars. */}
-      {splitBy === "pillar" && (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
-          <span className="font-semibold uppercase tracking-wider text-slate-500">Pillars</span>
-          {pillarDefs.map((pl) => {
-            const on = pillarSel.size === 0 || pillarSel.has(pl.name);
-            return (
-              <button key={pl.name} onClick={() => setPillarSel((prev) => { const n = new Set(prev); n.has(pl.name) ? n.delete(pl.name) : n.add(pl.name); return n; })}
-                aria-pressed={pillarSel.has(pl.name)}
-                className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 ${pillarSel.has(pl.name) ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
-                style={pillarSel.has(pl.name) ? { background: pillarColorOf(pl.name, pillarDefs) } : undefined}>
-                <i className="inline-block h-2 w-2 rounded-sm" style={{ background: pillarColorOf(pl.name, pillarDefs), opacity: on ? 1 : 0.4 }} />{pl.name}
-              </button>
-            );
-          })}
-          {pillarSel.size > 0 && <button onClick={() => setPillarSel(new Set())} className="rounded border border-slate-700 px-1.5 py-0.5 text-slate-400 hover:bg-slate-800">All</button>}
-        </div>
-      )}
-
+      {/* Pillar color key is the single stacked-segment legend BELOW the chart (operator: no duplicate on-map key). */}
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full" preserveAspectRatio="xMidYMid meet" style={{ height: "auto" }}>
         {/* Left axis = financials ($M); right axis = Growth (the target line, base-year-anchored). */}
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
