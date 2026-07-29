@@ -4545,20 +4545,29 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   // Drill-down stacking: split the scope's bar into its CHILD nodes — Company→BUs, BU→SBUs, SBU→Alpha Codes (or
   // strategic pillars in pillar mode). Each segment GROWS from its seeded base-year Revenue at its tier CAGR, so
   // Full Revenue / Incremental / Margin are all positive; Step 1/2/3 still come from the do-nothing growth model.
-  const childLevel: HierKey = selBu === "All" ? "bu" : selSbu === "All" ? "sbu" : "alpha";
+  // H1/H6 — drill ladder: Company→BU → BU→SBU → SBU→Alpha Group → Alpha Group→Project (operator). Scope at
+  // SBU shows Alpha Groups (not Alpha Code); scope at a single Alpha Group shows individual projects.
+  const childLevel: HierKey | "project" = selBu === "All" ? "bu" : selSbu === "All" ? "sbu" : selPg === "All" ? "pgroup" : "project";
+  // Membership includes altGroups (H5): a project belongs to its primary pgroup AND any additional Alpha Groups
+  // within the same SBU, so scoping to any of them lists it (portfolio $ still counted once via primary pgroup).
+  const groupsOf = (p: Project): string[] => [hierOf(p).pgroup, ...(p.altGroups ?? [])];
+  const codeOf = (p: Project): string => (childLevel === "project" ? p.id : childLevel === "pgroup" ? hierOf(p).pgroup : hierOf(p)[childLevel]);
+  // H6 — project-level palette: 13 SoI-Trinity-derived colors, then HSL-rotate (golden angle) beyond 13.
+  const TRINITY13 = ["#22d3ee", "#a78bfa", "#f7b955", "#34d399", "#fb7185", "#38bdf8", "#c084fc", "#fbbf24", "#4ade80", "#f472b6", "#2dd4bf", "#818cf8", "#fb923c"];
+  const projColor = (i: number): string => (i < TRINITY13.length ? TRINITY13[i] : `hsl(${(i * 137.508) % 360}, 68%, 62%)`);
   const pillarDefs = loadPillars();
   const pillarKey = (p: Project) => metaOf(p).initiative;
-  const segLabel = splitBy === "risk" ? "Risk" : splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha Code";
+  const segLabel = splitBy === "risk" ? "Risk" : splitBy === "pillar" ? "Pillar" : childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : childLevel === "pgroup" ? "Alpha Group" : "Project";
   const scopeIncrAll = scoped.reduce((s, p) => s + incrementalRevM(p), 0) || 1;
-  const tierNodes: BizNode[] = bizSetup[childLevel as BizTier] ?? [];
+  const tierNodes: BizNode[] = (childLevel === "project" || childLevel === "pgroup") ? [] : (bizSetup[childLevel as BizTier] ?? []);
   // Blended risk weight (tech×comm success) over the FUNDED scope — green risk-weighted share; upside = 1 − it.
   const riskFrac = (() => { const inc = scoped.reduce((s, p) => s + incrementalRevM(p), 0); return inc > 0 ? scoped.reduce((s, p) => s + weightedRevM(p), 0) / inc : 0.5; })();
   // ── ONE canonical per-year revenue for the FUNDED scope, from the hierarchy tier seeds (H38/H39 single source
   //    of truth). EVERY split (Hierarchy · Pillar · Risk) re-slices THIS same series, so all three show identical
   //    yearly totals — the split only changes how the one bar is partitioned, never its height.
-  const childCodes = Array.from(new Set(scoped.map((p) => hierOf(p)[childLevel]))).sort();
+  const childCodes = Array.from(new Set(scoped.map(codeOf))).sort();
   const nodeInfo = childCodes.map((code) => {
-    const sp = scoped.filter((p) => hierOf(p)[childLevel] === code);
+    const sp = scoped.filter((p) => codeOf(p) === code);
     const share = sp.reduce((a, p) => a + incrementalRevM(p), 0) / scopeIncrAll;
     const node = tierNodes.find((n) => n.code === code);
     return { code, sp, share, seed: node?.revM ?? scopeRev * share, g: (node?.growthPct ?? scopeGrowth) / 100 };
@@ -4585,7 +4594,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         return { code, color: pillarColorOf(code, pillarDefs), revAt: (i: number) => share * scopeRevSeries[i], base: share * scopeRevSeries[0], gm: growthModel(sp, gmOpts(baseM * share)) };
       })
     : nodeInfo.map((n, idx): Seg => ({
-        code: n.code, color: segColorOf(childLevel, n.code, idx),
+        code: n.code, color: (childLevel === "project" || childLevel === "pgroup") ? projColor(idx) : segColorOf(childLevel, n.code, idx),
         revAt: (i: number) => n.seed * Math.pow(1 + n.g, i), base: n.seed, gm: growthModel(n.sp, gmOpts(baseM * n.share)),
       }));
   // Value of a segment in a given year for the active band. Incremental and the Step 1/2/3 components come from

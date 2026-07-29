@@ -218,6 +218,8 @@ export interface Project {
   // win over the PROJECT_HIER seed (hierOf) and the derived pillar (metaOf), so edits to the
   // Business-Setup hierarchy flow through the whole tool.
   bu?: string; sbu?: string; pgroup?: string; alpha?: string; product?: string; material?: string;
+  altGroups?: string[];               // H5 — additional Alpha Groups (same SBU) this project also belongs to;
+                                      // primary `pgroup` still owns portfolio $ (no double-count), altGroups add membership.
   initiative?: string;
   startDate?: string;                 // program start (ISO YYYY-MM-DD) — anchors the MoT gate timeline; when
                                       // changed, every gate date slides accordingly (gateScheduleOf).
