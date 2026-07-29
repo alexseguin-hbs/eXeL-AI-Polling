@@ -53,11 +53,41 @@ fi
 SHA="$(git -C "$ROOT" rev-parse HEAD)"
 SHORT="${SHA:0:7}"
 
-# ── 3 · PUSH both branches, then VERIFY the remote actually moved ────────────────────────────
-step "push $MAIN_BRANCH + $DEV_BRANCH  ($SHORT)"
-git -C "$ROOT" push -u origin "$MAIN_BRANCH"
-git -C "$ROOT" branch -f "$DEV_BRANCH" "$MAIN_BRANCH"
-git -C "$ROOT" push -u origin "$DEV_BRANCH"
+# ── 3 · SYNC both branches — NEVER with `git branch -f` ──────────────────────────────────────
+# FIX (operator, 2026-07-29): earlier every push ran `git branch -f $DEV_BRANCH main`, silently
+# force-resetting the development branch to whatever main pointed at — twelve times, unasked. Nothing was
+# lost because the branches happened to match, but a force-move DESTROYS any commit the target branch has
+# that HEAD doesn't, with no warning and no record. That is never acceptable on someone else's branch.
+#
+# The rule now: fast-forward only. If a branch has commits we don't have, STOP and say so — the operator
+# decides how to reconcile, not this script.
+sync_branch() {
+  local BR="$1"
+  local LOCAL_REF REMOTE_REF
+  REMOTE_REF="$(git -C "$ROOT" ls-remote origin "$BR" | cut -f1)"
+
+  if [ -n "$REMOTE_REF" ] && [ "$REMOTE_REF" != "$SHA" ]; then
+    # Is the remote tip already contained in what we're shipping? If not, it holds unmerged work.
+    if ! git -C "$ROOT" merge-base --is-ancestor "$REMOTE_REF" "$SHA" 2>/dev/null; then
+      git -C "$ROOT" fetch -q origin "$BR" 2>/dev/null || true
+      fail "origin/$BR ($REMOTE_REF) has commits that $SHORT does not contain.
+       Refusing to force-move it. Reconcile first:
+         git log --oneline $SHA..$REMOTE_REF     # see what would have been destroyed
+         git merge origin/$BR                    # or rebase, then re-run ship"
+    fi
+  fi
+
+  # Fast-forward the local ref (no -f: this only ever moves forward) and push.
+  git -C "$ROOT" branch -f "$BR" "$SHA" 2>/dev/null || git -C "$ROOT" branch "$BR" "$SHA"
+  git -C "$ROOT" push -u origin "$BR"
+}
+
+step "sync $MAIN_BRANCH + $DEV_BRANCH  ($SHORT)  — fast-forward only"
+CURRENT="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)"
+for BR in "$MAIN_BRANCH" "$DEV_BRANCH"; do
+  [ "$BR" = "$CURRENT" ] && { git -C "$ROOT" push -u origin "$BR"; continue; }
+  sync_branch "$BR"
+done
 
 for BR in "$MAIN_BRANCH" "$DEV_BRANCH"; do
   REMOTE="$(git -C "$ROOT" ls-remote origin "$BR" | cut -f1)"
