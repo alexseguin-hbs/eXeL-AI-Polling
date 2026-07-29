@@ -3056,6 +3056,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   const [bags, setBags] = useState<Record<string, ProjFieldBag>>({});
   const [status, setStatus] = useState<Record<string, string>>({});
   const [present, setPresent] = useState(false);
+  const vp = useViewport(); // G2 — present mode adapts to portrait/landscape so the slide is readable on a phone
   // Present-mode live source override (operator): flip the WHOLE deck between the human baseline and the enhanced
   // AI while presenting, or honor each field's own per-field choice ("set"). Edit mode always uses per-field mode.
   const [presentSrc, setPresentSrc] = useState<"set" | "hi" | "ai">("set");
@@ -3399,8 +3400,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // B1: fixed 16:9 slide CANVAS (container-type: size → cqw/cqh scale everything with the page, letterboxed on
     // a black backdrop). B2: AMTS SlideChrome — PROJECT NAME header band (+COGS/MSRP/Mgn%) · Business/Project#/Slide
     // · gate·stage · Req flag; footer = page# + reference links + progress. Controls stay OUTSIDE the canvas.
+    // G2 — on a portrait phone a letterboxed 16:9 canvas is tiny + unreadable (cqw ties fonts to the narrow width).
+    // Rotate the SAME landscape 16:9 slide 90° so it fills the tall screen: cqw now references the long edge, so
+    // text scales up to a legible size — "portrait shows the same as landscape, readable." Controls live on the
+    // OUTER (unrotated) container, so they stay upright and never rotate with the slide.
+    const rotate = vp.orientation === "portrait" && vp.isPhone;
+    const canvasStyle: React.CSSProperties = rotate
+      ? { width: "calc(100vw * 16 / 9)", height: "100vw", transform: "rotate(90deg)", containerType: "size" }
+      // G3 — cap the canvas height by 3.5rem so it sits BELOW the top control bar (was overlapping the header).
+      : { width: "min(100vw, calc((100dvh - 3.5rem) * 16 / 9))", aspectRatio: "16 / 9", containerType: "size" };
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black text-slate-100" role="dialog" aria-modal="true"
+      <div className={`fixed inset-0 z-[60] flex justify-center bg-black text-slate-100 ${rotate ? "items-center" : "items-center pt-14"}`} role="dialog" aria-modal="true"
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {/* tap zones for prev/next (edges) — outside the canvas so they always work */}
         <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[12%] cursor-w-resize bg-transparent" />
@@ -3416,9 +3426,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
-        {/* B1 · SlideCanvas — fixed 16:9, scale-to-fit (width capped by viewport height), container for cq units */}
-        <div className="relative overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800"
-          style={{ width: "min(100vw, calc(100dvh * 16 / 9))", aspectRatio: "16 / 9", containerType: "size" }}>
+        {/* B1 · SlideCanvas — 16:9, scale-to-fit; portrait-phone rotates to fill the screen (G2). cq-unit container. */}
+        <div className="relative overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={canvasStyle}>
           <div className="flex h-full flex-col" style={{ padding: "3.2cqh 3.2cqw" }}>
             {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
             <div className="flex items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
