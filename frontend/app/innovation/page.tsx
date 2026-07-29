@@ -1293,12 +1293,19 @@ function ProjectRevChart({ p }: { p: Project }) {
 }
 
 // Project Financials Overview (FLIR §2.3) — read-only yearly Revenue / Margin / R&D + Totals.
-function FinancialsOverviewTable({ p }: { p: Project }) {
+function FinancialsOverviewTable({ p, onEdit }: { p: Project; onEdit?: () => void }) {
   const rows = financialsOverview(p, { years: 10, funded: true });
   const tot = rows.reduce((a, r) => ({ revM: a.revM + r.revM, marginM: a.marginM + r.marginM, rdK: a.rdK + r.rdK }), { revM: 0, marginM: 0, rdK: 0 });
   return (
     <div className="mt-3 border-t border-slate-800 pt-3">
-      <div className="text-[10px] uppercase tracking-wider text-slate-500">Project Financials Overview · 10-yr (Revenue · Margin · R&D)</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">Project Financials Overview · 10-yr (Revenue · Margin · R&D)</div>
+        {/* F2 — one-tap financial edit access from the Financials Overview header (opens the shared source editor). */}
+        {onEdit && (
+          <button onClick={onEdit} title="Edit financials — opens the Revenue Plan source editor" aria-label="Edit financials"
+            className="shrink-0 rounded border border-cyan-500/40 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/10">✎ Financials</button>
+        )}
+      </div>
       <div className="mt-1 overflow-x-auto">
         <table className="w-full min-w-[520px] text-[11px] tabular-nums">
           <thead>
@@ -1414,7 +1421,7 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
   );
 }
 
-function DogTag({ p }: { p: Project }) {
+function DogTag({ p, onEditFinancials }: { p: Project; onEditFinancials?: () => void }) {
   const { t } = useLexicon();
   const h = hierOf(p);
   const dt = DEV_TYPE[devTypeOf(p)]; // project TYPE (orange/blue/green/purple) — a distinct cue (the ● dot)
@@ -1447,10 +1454,17 @@ function DogTag({ p }: { p: Project }) {
             ? metrics.map((m) => (<div key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></div>))
             : engMetrics.map((m) => (<div key={m.label}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val}</b></div>))}
         </div>
-        <button onClick={() => setFace((f) => (f === "biz" ? "eng" : "biz"))} title={t("innovation.dogtag.flip")} aria-label={t("innovation.dogtag.flip")}
-          className="mt-0.5 text-[8px] uppercase tracking-wider text-slate-600 hover:text-cyan-400">
-          {face === "biz" ? `⇄ ${t("innovation.dogtag.engFace")}` : `⇄ ${t("innovation.dogtag.bizFace")}`}
-        </button>
+        <div className="mt-0.5 flex items-center justify-center gap-2">
+          <button onClick={() => setFace((f) => (f === "biz" ? "eng" : "biz"))} title={t("innovation.dogtag.flip")} aria-label={t("innovation.dogtag.flip")}
+            className="text-[8px] uppercase tracking-wider text-slate-600 hover:text-cyan-400">
+            {face === "biz" ? `⇄ ${t("innovation.dogtag.engFace")}` : `⇄ ${t("innovation.dogtag.bizFace")}`}
+          </button>
+          {/* F2 — one-tap financial edit access from the dog tag (opens the shared Rev-Plan source editor). */}
+          {onEditFinancials && (
+            <button onClick={onEditFinancials} title="Edit financials — opens the Revenue Plan source editor" aria-label="Edit financials"
+              className="rounded border border-cyan-500/40 px-1 text-[8px] font-semibold uppercase tracking-wider text-cyan-300 hover:bg-cyan-500/10">✎ Financials</button>
+          )}
+        </div>
       </div>
       {/* Launch date — fixed, vertical right (locked to the project title) */}
       <div className="flex shrink-0 items-center justify-center bg-slate-800/50 px-0.5">
@@ -2227,6 +2241,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   const [showExec, setShowExec] = useState(false);
   const [draft, setDraft] = useState<Partial<Project>>({});
   const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
+  const [finDeck, setFinDeck] = useState(false); // F2 — shared financial source editor (opened from dog-tag / overview / slide)
+  const openFinancials = () => setFinDeck(true);
   // Backfill: seed from derived drivers when none are hand-scored, so the waterfall is populated for every project.
   const [veqDrivers, setVeqDrivers] = useState<ValueDriver[]>(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
   useEffect(() => { setDraft({}); setEditing(false); setVpView(p.valuePropSource ?? "HI"); setVeqDrivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); }, [p.id, p.valuePropSource, p.valueDrivers]);
@@ -2259,8 +2275,11 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
   ];
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+      {/* F2 — shared financial source editor: one tap from the dog-tag / overview / slide opens the SAME
+          Rev-Plan editor (deep-links to S3 with the source panel expanded). "user should know where to edit." */}
+      {finDeck && <SlideShowModal p={p} startSlide="S3" openSource onEditSource={onEdit} onClose={() => setFinDeck(false)} />}
       {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
-      <div className="mb-3"><DogTag p={p} /></div>
+      <div className="mb-3"><DogTag p={p} onEditFinancials={openFinancials} /></div>
       {/* Under the dog tag: consistency (left) · Outcome brief (center) · expand/collapse (upper-right).
           Operator: outcome in the middle, expand/collapse icon in the upper right. */}
       {(() => { const c = consistencyCheck(p); return (
@@ -2432,7 +2451,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
       {/* Per-project financial projection — aging line decline + new-product ramp (operator methodology) */}
       <ProjectRevChart p={p} />
       {/* Project Financials Overview (FLIR §2.3) — yearly Revenue / Margin / R&D expense */}
-      <FinancialsOverviewTable p={p} />
+      <FinancialsOverviewTable p={p} onEdit={openFinancials} />
       {/* AMTS Product-Management-Summary exec fields — Functional Leads · COGS/MSRP/Margin · Customer */}
       <div className="mt-3 border-t border-slate-800 pt-3 text-[11px]">
         <div className="grid grid-cols-3 gap-2">
@@ -3015,7 +3034,7 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
 // fields inherit until overridden. Gate readiness = filled required ÷ total required. Present mode renders
 // the same fields as a full deck. This is the digital presentation: concept → slide detail → execution (WBS
 // cost + schedule, S10/S14) → BOM at launch (S16) → validated G1→G7.
-function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; startSlide?: string; onClose: () => void; onEditSource?: (patch: Partial<Project>, changes: string[]) => void }) {
+function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { p: Project; startSlide?: string; onClose: () => void; onEditSource?: (patch: Partial<Project>, changes: string[]) => void; openSource?: boolean }) {
   const { t } = useLexicon();
   const start = Math.max(0, SLIDE_SCHEMA.findIndex((s) => s.code === startSlide));
   const [idx, setIdx] = useState(start < 0 ? 0 : start);
@@ -3031,7 +3050,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
   const [versions, setVersions] = useState<SlideVersion[]>([]);
   const [showReplay, setShowReplay] = useState(false);
   const [vIdx, setVIdx] = useState(0);
-  const [srcOpen, setSrcOpen] = useState(false); // "edit source record" panel (single source of truth)
+  const [srcOpen, setSrcOpen] = useState(!!openSource); // "edit source record" panel (single source of truth) — F2: deep-link opens it expanded
   useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); setGov({ activity: readAudit(), members: readMembers(), board: loadReviewBoard() }); setVersions(mergeSlideVersions(readVersions()[p.id] ?? [], buildDemoVersionSeed(p))); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const spec = SLIDE_SCHEMA[idx];
   const bag = bags[p.id] || {};
