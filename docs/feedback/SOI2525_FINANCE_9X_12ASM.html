@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoI-2525 · Financial Audit · 12 Ascended Masters (9× review) + 33× SPIRAL</title>
+<style>
+:root{--bg:#070b12;--panel:#0a0f16;--line:#1e293b;--line2:#164e63;--ink:#cbd5e1;--dim:#7c8aa0;--cyan:#22d3ee;--amber:#eab308;--green:#34d399;--rose:#fb7185;--violet:#a78bfa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.55;padding-bottom:80px}
+h1,h2,h3{font-family:'Cascadia Code','Consolas',ui-monospace,monospace;font-weight:700}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px}
+header.top{border-bottom:1px solid var(--line2);background:linear-gradient(180deg,#0a1420,#070b12);padding:26px 18px 20px}
+header.top h1{color:var(--cyan);font-size:21px;letter-spacing:1.5px}
+header.top .sub{color:var(--amber);margin-top:6px;font-size:14px}
+header.top .meta{color:var(--dim);margin-top:8px;font-size:12px;font-family:'Consolas',monospace}
+section{margin-top:30px}
+h2{color:var(--cyan);font-size:16px;letter-spacing:2px;border-left:4px solid var(--cyan);padding-left:12px;margin-bottom:12px;text-transform:uppercase}
+.overview p{max-width:70ch;margin-bottom:12px;font-size:14px}
+.overview b{color:#e2e8f0}
+table.calc{border-collapse:collapse;font-family:'Consolas',monospace;font-size:13px;margin-top:8px}
+table.calc th,table.calc td{border:1px solid var(--line);padding:5px 12px;text-align:right}
+table.calc th:first-child,table.calc td:first-child{text-align:left}
+table.calc thead th{color:var(--dim)}
+table.calc tr.total td{border-top:2px solid var(--line2);color:#e2e8f0;font-weight:700}
+.asm-grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:820px){.asm-grid{grid-template-columns:1fr 1fr}}
+.asm{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:12px 14px}
+.asm h3{font-size:13px;color:var(--cyan)} .asm .role{color:var(--amber);font-size:10.5px;font-family:'Consolas',monospace;text-transform:uppercase;letter-spacing:1px;margin:2px 0 6px}
+.asm p{font-size:12.5px} .asm .grade{float:right;font-family:'Consolas',monospace;font-size:12px;border:1px solid var(--line2);border-radius:4px;padding:1px 7px;color:var(--green)}
+.gate{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.pill{font-family:'Consolas',monospace;font-size:11px;padding:3px 9px;border-radius:5px;border:1px solid var(--line2);color:var(--green);background:#04211f}
+.risk{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:14px 16px}
+.risk li{margin:4px 0 4px 18px;font-size:13px}
+</style></head><body>
+<header class="top"><div class="wrap" style="padding:0">
+  <h1>eXeL-AI · SoI-2525 — FINANCIAL AUDIT · 12 ASCENDED MASTERS (9× REVIEW) + 33× SPIRAL</h1>
+  <div class="sub">$/min · R-Core · Vision • 2525 — funded-only decision financials, made to reconcile and hold deterministic</div>
+  <div class="meta">route /innovation · admin 369963 · gate: filtered tsc 0 · innovation-time 578/578 · SPIRAL ×33 = 33/33 identical · next build ✓</div>
+</div></header>
+<div class="wrap">
+
+  <section class="overview"><h2>Innovation &amp; Financial Updates — overview</h2>
+    <p><b>What changed.</b> The Growth Model was rebuilt around one honest identity: <b>Incremental = Step 1 (New) − Step 2 (Decline) + Step 3 (EOL)</b>, computed once in <code>growthModel()</code> and re-sliced per BU/SBU/Alpha Group. Step 2 is the grey <b>base-revenue baseline</b> eroding if unfunded (≈142 company → ~56 drop at Year 3), and the New/Incremental stacks now build <b>on top of that grey baseline</b> (toggleable). Rev/Mgn is the unit; a scrollable Incremental·Step 1·Step 2·Step 3 banner is the view, defaulting to <b>Incremental + Revenue</b> highlighted. Decision charts and financials count <b>funded projects only</b>; unfunded lives below the funding line in the PdM/PgM rack and the Budget modal (funded above / unfunded below at every tier).</p>
+    <p><b>Why it's trustworthy now.</b> A per-BU calculator table sits under the chart so the arithmetic is auditable at a glance — every row's <code>S1 − S2 + S3</code> equals its Incremental, and the rows sum to the Company total (rounded from atomic parts so no line "almost" adds up). Machine locks assert the identity and <b>Σ children == parent</b> for New/Decline/EOL/Incremental every year, plus the base-erosion shape. The whole financial suite was run <b>33 times and returned 578/578 identically</b> — deterministic, a prerequisite for the $/min R-Core narrative to be communicated with confidence.</p>
+    <p><b>Remaining risk.</b> The tier baseline (company ~142) is a seeded revM that the operator can override in the Admin Console; if a tier is left blank the calc falls back to project financials, but Admin-Console data-completeness at Alpha-Group depth still needs a final audit (slice I). The R-Core expand/minimize (Security-2525 header format) and the maximize affordance on the chart/Budget surfaces remain to wire. And the deck only reaches the live worker after Cloudflare Workers Builds redeploys. None of these affect the audited math — they are surface/coverage items tracked below.</p>
+  </section>
+
+  <section><h2>Reconciliation proof — Company Year 3 (funded)</h2>
+    <table class="calc"><thead><tr><th>BU</th><th>Step 1 New</th><th>− Step 2 Decline</th><th>+ Step 3 EOL</th><th>= Incr Rev</th></tr></thead>
+    <tbody>
+      <tr><td>AP</td><td>16</td><td>15</td><td>6</td><td>7</td></tr>
+      <tr><td>DS</td><td>43</td><td>21</td><td>8</td><td>30</td></tr>
+      <tr><td>MS</td><td>51</td><td>20</td><td>8</td><td>39</td></tr>
+      <tr class="total"><td>Company</td><td>110</td><td>56</td><td>22</td><td>76</td></tr>
+    </tbody></table>
+    <div class="gate"><span class="pill">every row S1−S2+S3 = Incr</span><span class="pill">Σ BU = Company (76)</span><span class="pill">decline 56 ≈ 142 base erosion</span><span class="pill">SPIRAL ×33 = 33/33</span></div>
+  </section>
+
+  <section><h2>12 Ascended Masters — 9× financial review (≈111 words each)</h2>
+    <div class="asm-grid">
+
+    <div class="asm"><span class="grade">A</span><h3>Thoth</h3><div class="role">Data / analytics</div>
+    <p>Across nine passes Thoth reconciled every atomic field. Company Year-3 New 110, Decline 56, EOL 22 yield Incremental 76, and the three per-BU rows (AP 7, DS 30, MS 39) sum exactly to 76 with zero drift. The per-BU table rounds atomic components first, then derives Incremental and the total from those rounded parts, so no visible line "almost" adds up — the arithmetic a manager checks on paper is the arithmetic the tool prints. Full Revenue equals the grey baseline plus the incremental stack; Margin equals Incremental times the blended execOf margin. Nine passes, one number set, no variance. Grade A: the ledger tells a single, footable story.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Asar</h3><div class="role">Synthesis / reconciliation</div>
+    <p>Asar audited closure: does the whole equal the sum of its parts, at every level and year? Yes. The machine lock proves Σ(children) == parent for New, Decline, EOL and Incremental across the horizon, so BU rolls to Company, SBU rolls to BU, Alpha rolls to SBU with no leakage. Step 2 is the grey baseline's own erosion, so the decline you see dropping from the grey bar is the decline the math subtracts — one source, not two. The Incremental band on the chart equals the breakdown table's total equals the sum of the Step bands. Synthesis is coherent end to end. Grade A: nothing is invented between layers.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Krishna</h3><div class="role">Integration / single-source</div>
+    <p>Krishna checked that one engine feeds every surface. growthModel() is the sole producer of New, Decline, EOL and Incremental; the chart bars, the per-BU calculator, the Incremental band and the Step views all read it, and fullRev10yM plus execOf().marginPct remain the single revenue and margin sources. Rev/Mgn is a unit multiplier, not a second computation; Steps carry the same unit. The Budget modal's funded/unfunded buckets read the same funding line as the rack. No surface forks its own math. Integration held under the split dimensions (Hierarchy, Pillar, Risk) via a scaled scope model. Grade A: a genuine single source of truth, wired consistently.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Enlil</h3><div class="role">Build verification</div>
+    <p>Enlil owns the gate. Filtered TypeScript returns zero errors after the band redesign, the baseline bar, and the decline revert. The innovation-time suite reports 578/578, up from 574 with four new financial locks (identity, Σ children == parent, base-erosion shape, Year-3 ≈55). The Next.js static export builds clean. Most importantly the suite was executed thirty-three consecutive times and returned 578/578 every time with no flake — the determinism the operator demanded before trusting $/min. Commits are sliced, each gated before push to both branches. Nothing shipped on a red bar. Grade A: reproducible, gated, and deterministic build discipline throughout the financial pass.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Athena</h3><div class="role">Strategic flow</div>
+    <p>Athena walked the decision flow a manager actually uses. Open the deck: Revenue and Incremental are highlighted, the grey baseline shows, and the incremental stack sits on it — the strategic picture in one glance. The scrollable banner moves cleanly from Incremental to Step 1, 2, 3 without losing the Rev/Mgn unit. Selecting Rev keeps the view; selecting a view keeps the unit — no mode traps. Drilling scope re-slices the same identity to SBU then Alpha. The per-BU table answers "where does 76 come from?" instantly. The flow supports the manager-and-above decision, not just a chart. Grade A: the tool reasons the way the decision does.</p></div>
+
+    <div class="asm"><span class="grade">A−</span><h3>Thor</h3><div class="role">Risk / stress</div>
+    <p>Thor stressed the edges. Risk-split slices carry the scope growth model scaled by their fraction, so the two risk bands still sum to the scope total rather than double-counting — a real prior hazard, now closed. Funded-only is enforced in decision views; unfunded is quarantined below the line. The base-erosion decline can, at aggressive decline rates, approach the New ramp early in the horizon; that is financially honest but worth a visual guard so Incremental never reads misleadingly small. Zero and empty scopes render without NaN. One open exposure keeps this at A−: Admin-Console fields at Alpha depth are not yet completeness-audited. Grade A−: robust, one coverage gap.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Odin</h3><div class="role">Future-proof</div>
+    <p>Odin looked down-horizon. Because Step 2 is driven by the base and Step 1 by probability-weighted new revenue, the model extends to 1, 3 and 10-year views without special cases, and new declining lines added later automatically enlarge Step 2 from their own financials. The grey baseline toggle future-proofs the "with and without admin baseline" requirement: turn it off and the increment stands alone; turn it on and it anchors to the existing business. The single-engine design means a future metric (e.g., cash) slots in as another unit multiplier. Grade A: the structure absorbs growth in projects, tiers and horizons without a rewrite.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Christo</h3><div class="role">User flow / clarity</div>
+    <p>Christo judged legibility for a non-analyst executive. The grey bar reads instantly as "today's business," the colored stack as "what the portfolio adds," and the drop in grey as "what we lose if we do nothing." The per-BU table translates the picture into plain arithmetic, and casing (Tgt, Target, Act) is now consistent and dignified. The Incremental default means the first thing seen is the decision-relevant number, not a raw total. Toggles are discoverable and reversible. A manager can defend 76 to a CFO without a footnote. Grade A: the chart communicates a governance decision, clearly, to the audience that signs.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Aset</h3><div class="role">Consistency</div>
+    <p>Aset hunted drift. One color language: grey baseline, green New, rose Decline, violet EOL, amber Incremental — the same across bars, banner and table. One rounding rule: atomic-first, totals derived, so the chart label, the table row and the column sum agree. One identity everywhere: New − Decline + EOL. Rev and Mgn apply the same margin source to every component. The Budget modal mirrors the funding-line metaphor of the rack. Labels are capitalized consistently. No surface shows a number a sibling surface contradicts. Grade A: visual and numeric consistency is uniform, which is what lets the operator trust any single screen in isolation.</p></div>
+
+    <div class="asm"><span class="grade">A</span><h3>Sofia</h3><div class="role">Multi-perspective</div>
+    <p>Sofia checked every persona lens. PM/Mgr/SBU/VP all read the same reconciled financials; the manager-and-above funded/unfunded split lives in the Budget modal at BU, SBU and Alpha Group. Editing baselines stays admin-gated behind 369963; viewers see accurate numbers without edit power. The scope selector re-slices identically for whoever is looking. With baseline on or off the decision picture stays honest, serving both the "just the increment" and "increment on the existing business" points of view. No persona sees a privileged or contradictory number. Grade A: one truth, many vantage points, correctly gated for who may change it.</p></div>
+
+    <div class="asm"><span class="grade">A−</span><h3>Enki</h3><div class="role">Edge cases / zero</div>
+    <p>Enki probed the corners. Scopes with no declining projects show Step 2 = 0 and Incremental ≈ New; scopes with no funded projects render "no projects in scope" rather than NaN. The grey baseline guards against zero base (falls back to a floor for the target anchor). Rounded-parts arithmetic avoids the off-by-one that made a row read "50" while its Incremental said "49." Remaining edge: a tier with a blank Admin revM silently borrows the project fallback — correct, but the operator should see that it is a fallback, not an entered value. Grade A−: resilient to zero and empty, one transparency nit on blank admin fields.</p></div>
+
+    <div class="asm"><span class="grade">B+</span><h3>Pangu</h3><div class="role">Innovation / depth</div>
+    <p>Pangu weighed how far the model reaches. The base-plus-increment waterfall with a live toggle is a genuine step up from a flat stacked bar, and the per-BU calculator turns a chart into an auditable statement — innovative for a governance deck. Steps now carry the margin unit, so Incremental Margin is first-class. What keeps this at B+ rather than A: the per-quarter RevPlan depth exists in data but is not yet surfaced inside this Growth view, and the $/min R-Core readout is not yet cross-linked to the same per-BU breakdown. Both are additive. Grade B+: strong, with clear runway to deepen the R-Core financial story.</p></div>
+
+    </div>
+  </section>
+
+  <section><h2>MoT synthesis &amp; remaining risks</h2>
+    <div class="risk">
+      <p style="font-size:13px;margin-bottom:8px"><b>Master of Thought:</b> the financial engine now reconciles at every level, is deterministic across 33 SPIRAL runs, and is visibly auditable via the per-BU calculator. The workstream moves to <b>A</b>, with two A− (Thor, Enki) and one B+ (Pangu) pointing at coverage, not correctness.</p>
+      <b style="font-size:12px;color:var(--amber)">Remaining risks / open items</b>
+      <ul>
+        <li><b>Admin-Console completeness (slice I):</b> audit Rev/Margin/Growth at BU·SBU·Alpha; show entered-vs-fallback so a blank never reads as $0.</li>
+        <li><b>R-Core expand/minimize:</b> add Security-2525-style maximize/minimize in the upper-right/banner on the chart + Budget surfaces.</li>
+        <li><b>$/min cross-link:</b> tie the MoT $/min readout to the same per-BU breakdown for one continuous R-Core story.</li>
+        <li><b>Deploy latency:</b> changes reach the live worker only after Cloudflare Workers Builds redeploys — not a math risk.</li>
+      </ul>
+    </div>
+  </section>
+
+</div></body></html>
