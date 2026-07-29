@@ -1265,6 +1265,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const gM = { ...gA, revPlan: { ...gA.revPlan, manualM24: Array.from({ length: 24 }, (_, i) => i + 1) } };
   ok(monthly24Cells(gM, gM.revPlan)[5].rev === 6, "manualM24 drives the 24-month cells directly");
   ok(annualPlanCells(gM, gM.revPlan)[5].rev === 40, "years 3-10 still pull from the annual grid (unaffected by monthly detail)");
+  // Enki (12-AsM) — month labels must roll Dec→Jan across a year boundary. Launch Q4 (Oct) → month idx 3 = Jan next yr.
+  const gQ4 = P({ firstRevenue: "2027-Q4", revPlan: { entryMode: "highlevel", profile: "linear", marginPct: 40, manualY: [12, 24, 24, 24, 24, 24, 24, 24, 12, 6] } });
+  const m24 = monthly24Cells(gQ4, gQ4.revPlan);
+  ok(m24[0].label.startsWith("Oct") && m24[0].year === 2027, "Q4 launch → month 0 = Oct 2027");
+  ok(m24[2].label.startsWith("Dec") && m24[2].year === 2027, "month 2 = Dec 2027 (still launch year)");
+  ok(m24[3].label.startsWith("Jan") && m24[3].year === 2028, "month 3 rolls Dec→Jan across the year boundary (Jan 2028)");
+  const gQ1 = P({ firstRevenue: "2029-Q1", revPlan: gQ4.revPlan });
+  ok(monthly24Cells(gQ1, gQ1.revPlan).every((c) => /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d\d$/.test(c.label)), "every monthly label is well-formed across boundaries");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
