@@ -13,7 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
-  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, revPlanGateReq, revPlanGateGaps, perMinFinancials, type RevPlan,
+  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, revPlanGateReq, revPlanGateGaps, annualPlanCells, monthly24Cells, annualPlanTotalM, perMinFinancials, type RevPlan,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -3612,30 +3612,43 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                               {plan.profile === "ramp" && <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Ramp qtrs<input type="text" inputMode="numeric" defaultValue={String(plan.rampQuarters ?? 8)} onBlur={(e) => setPlan({ rampQuarters: +e.target.value || 8 })} className={inp} /></label>}
                             </div>
                             {plan.profile === "manual" && <label className="mt-1.5 flex flex-col gap-0.5 text-[9px] text-slate-500">Manual per-quarter weights (comma-separated)<textarea defaultValue={(plan.manualQ ?? []).join(",")} onBlur={(e) => setPlan({ manualQ: e.target.value.split(",").map((v) => +v.trim() || 0).filter((_, i) => i < 40) })} rows={2} className={`${inp} font-mono`} placeholder="e.g. 1,1,2,2,3,3,…" /></label>}
-                            {/* F4 — launch-anchored preview: Annual (10 yr, By-Year @ Plan) or Monthly (≥18 mo past launch, By-Month
-                                @ Develop). Both derive from the same engine → Σ reconciles to New rev 10-yr (determinism lock). */}
+                            {/* G4 — EDITABLE Annual-out-10-years grid FIRST (AMTS S10a); then an optional 24-month
+                                by-month detail for the first 2 years (S10b). Both launch-anchored: changing the launch
+                                date slides the labels; years 3-10 always pull from the annual grid. */}
                             {(() => {
-                              const gran = plan.inputGran ?? "annual";
-                              if (gran === "annual") {
-                                const yr = revPlanAnnual(p, plan);
-                                return (
-                                  <div className="mt-1.5">
-                                    <div className="mb-0.5 text-[9px] uppercase tracking-wider text-slate-500">By Year · anchored at launch {launchYearOf(p)} · Σ ${Math.round(yr.reduce((s, r) => s + r.rev, 0))}M</div>
-                                    <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">$M</th>{yr.map((r) => <th key={r.year} className="px-1 text-right font-mono">{String(r.year).slice(2)}</th>)}</tr></thead><tbody>
-                                      <tr><td className="px-1 text-left text-slate-500">Rev</td>{yr.map((r) => <td key={r.year} className="px-1 text-right text-emerald-400/90">{r.rev.toFixed(0)}</td>)}</tr>
-                                      <tr><td className="px-1 text-left text-slate-500">Mgn</td>{yr.map((r) => <td key={r.year} className="px-1 text-right text-amber-300/80">{r.margin.toFixed(0)}</td>)}</tr>
+                              const yr = annualPlanCells(p, plan);
+                              const setY = (i: number, v: number) => { const arr = yr.map((c) => c.rev); arr[i] = v; setPlan({ manualY: arr, fullRev10yM: Math.round(arr.reduce((a, b) => a + b, 0)) }); };
+                              const mo = monthly24Cells(p, plan);
+                              const setM = (i: number, v: number) => { const arr = mo.map((c) => c.rev); arr[i] = v; setPlan({ manualM24: arr }); };
+                              const showMonthly = (plan.inputGran ?? "annual") === "monthly" || !!(plan.manualM24 && plan.manualM24.length);
+                              return (
+                                <div className="mt-1.5 space-y-2">
+                                  {/* Annual — 10 editable year cells, launch-anchored */}
+                                  <div>
+                                    <div className="mb-0.5 flex items-center justify-between text-[9px] uppercase tracking-wider text-slate-500">
+                                      <span>① Annual · Revenue $M by Year (out 10 yr from launch {launchYearOf(p)})</span>
+                                      <span className="text-emerald-400/90">Σ ${Math.round(annualPlanTotalM(p, plan))}M</span>
+                                    </div>
+                                    <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">Yr</th>{yr.map((c) => <th key={c.year} className="px-1 text-right font-mono">{String(c.year).slice(2)}</th>)}</tr></thead><tbody>
+                                      <tr><td className="px-1 text-left text-slate-500">Rev</td>{yr.map((c, i) => <td key={c.year} className="px-0.5"><input type="text" inputMode="decimal" defaultValue={String(Math.round(c.rev))} onBlur={(e) => setY(i, +e.target.value || 0)} className="w-full rounded border border-slate-700 bg-[#0e141b] px-0.5 py-0.5 text-right text-[9px] tabular-nums text-emerald-300 outline-none focus:border-cyan-500" /></td>)}</tr>
+                                      <tr><td className="px-1 text-left text-slate-500">Mgn</td>{yr.map((c) => <td key={c.year} className="px-1 text-right text-amber-300/70">{c.margin.toFixed(0)}</td>)}</tr>
                                     </tbody></table></div>
                                   </div>
-                                );
-                              }
-                              const mo = revPlanMonthly(p, plan).slice(0, 24); // show first 24 mo (≥18 past launch)
-                              return (
-                                <div className="mt-1.5">
-                                  <div className="mb-0.5 text-[9px] uppercase tracking-wider text-slate-500">By Month · from launch {p.firstRevenue} · first 24 mo (min 18 required @ Develop)</div>
-                                  <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">$M</th>{mo.map((m) => <th key={m.idx} className="px-1 text-right font-mono">{m.label}</th>)}</tr></thead><tbody>
-                                    <tr><td className="px-1 text-left text-slate-500">Rev</td>{mo.map((m) => <td key={m.idx} className="px-1 text-right text-emerald-400/90">{m.rev.toFixed(1)}</td>)}</tr>
-                                    <tr><td className="px-1 text-left text-slate-500">Mgn</td>{mo.map((m) => <td key={m.idx} className="px-1 text-right text-amber-300/80">{m.margin.toFixed(1)}</td>)}</tr>
-                                  </tbody></table></div>
+                                  {/* Monthly detail — enable the 24-month first-2-years ramp (S10b @ Develop) */}
+                                  {!showMonthly ? (
+                                    <button onClick={() => setPlan({ inputGran: "monthly", manualM24: mo.map((c) => Math.round(c.rev * 10) / 10) })}
+                                      className="rounded border border-cyan-500/40 px-2 py-0.5 text-[9px] font-semibold text-cyan-300 hover:bg-cyan-500/10">② ＋ Add 24-month detail (first 2 yr) →</button>
+                                  ) : (
+                                    <div>
+                                      <div className="mb-0.5 flex items-center justify-between text-[9px] uppercase tracking-wider text-slate-500">
+                                        <span>② Monthly · first 24 mo from launch {p.firstRevenue} (yr 3-10 pull from Annual)</span>
+                                        <button onClick={() => setPlan({ inputGran: "annual", manualM24: undefined })} className="text-slate-500 hover:text-rose-300">✕ monthly</button>
+                                      </div>
+                                      <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">Mo</th>{mo.map((c) => <th key={c.idx} className="px-1 text-right font-mono">{c.label}</th>)}</tr></thead><tbody>
+                                        <tr><td className="px-1 text-left text-slate-500">Rev</td>{mo.map((c, i) => <td key={c.idx} className="px-0.5"><input type="text" inputMode="decimal" defaultValue={String(Math.round(c.rev * 10) / 10)} onBlur={(e) => setM(i, +e.target.value || 0)} className="w-full rounded border border-slate-700 bg-[#0e141b] px-0.5 py-0.5 text-right text-[9px] tabular-nums text-emerald-300 outline-none focus:border-cyan-500" /></td>)}</tr>
+                                      </tbody></table></div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })()}

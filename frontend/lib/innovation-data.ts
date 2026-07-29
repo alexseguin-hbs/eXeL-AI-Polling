@@ -408,7 +408,41 @@ export interface RevPlan {
   financeApproved?: boolean; // F5/G4: Finance/FP&A sign-off on the forecast (required at Qualify+)
   plc3?: string;         // F5/G4: PLC #3 (Mature) estimated date "MM/YYYY" (required at Qualify+)
   plc4?: string;         // F5/G4: PLC #4 (Decline) estimated date "MM/YYYY" (required at Qualify+)
+  manualY?: number[];    // G4: EDITABLE annual revenue ($M), up to 10 years — "enter annual out 10 years first"
+  manualM24?: number[];  // G4: EDITABLE monthly revenue ($M), 24 months past launch — the detailed first-2-yr ramp
 }
+// G4 — editable ANNUAL plan (AMTS S10a "Annual Forecast · PLAN"): 10 launch-anchored yearly revenue cells the
+// operator enters directly. Uses manualY when present; otherwise falls back to the derived annual series (F4).
+export function annualPlanCells(p: Project, plan: RevPlan): RevYearCell[] {
+  const marginPct = plan.entryMode === "detailed" ? execOf(p).marginPct : (plan.marginPct ?? execOf(p).marginPct);
+  if (plan.manualY && plan.manualY.length) {
+    return Array.from({ length: 10 }, (_, y) => { const rev = Math.max(0, plan.manualY![y] ?? 0); return { year: launchYearOf(p) + y, rev, margin: rev * marginPct / 100 }; });
+  }
+  return revPlanAnnual(p, plan);
+}
+// G4 — editable 24-MONTH plan (AMTS S10b "Monthly Forecast · DEVELOP"): the detailed first-two-years ramp,
+// launch-anchored so changing the launch date slides it in absolute time; years 3-10 keep pulling from annual.
+// Uses manualM24 when present; otherwise seeds from the annual plan's first 2 years spread by the profile.
+export function monthly24Cells(p: Project, plan: RevPlan): RevMonthCell[] {
+  const marginPct = plan.entryMode === "detailed" ? execOf(p).marginPct : (plan.marginPct ?? execOf(p).marginPct);
+  const startMonth = (launchQuarterOf(p) - 1) * 3;
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const label = (i: number) => { const abs = startMonth + i; const year = launchYearOf(p) + Math.floor(abs / 12); return { year, month: abs % 12, label: `${MON[abs % 12]} ${String(year).slice(2)}` }; };
+  let monthlyRev: number[];
+  if (plan.manualM24 && plan.manualM24.length) {
+    monthlyRev = Array.from({ length: 24 }, (_, i) => Math.max(0, plan.manualM24![i] ?? 0));
+  } else {
+    // seed: annual years 0 & 1 spread across their 12 months by the profile weights (first 8 quarters → 24 mo).
+    const yr = annualPlanCells(p, plan);
+    const w = profileWeights(plan.profile, 8, plan); // first 8 quarters
+    const wSum01 = w.slice(0, 8).reduce((a, b) => a + b, 0) || 1;
+    const twoYrRev = (yr[0]?.rev ?? 0) + (yr[1]?.rev ?? 0);
+    monthlyRev = Array.from({ length: 24 }, (_, i) => (twoYrRev * (w[Math.floor(i / 3)] / wSum01)) / 3);
+  }
+  return monthlyRev.map((rev, i) => { const l = label(i); return { idx: i, year: l.year, month: l.month, label: l.label, rev, margin: rev * marginPct / 100 }; });
+}
+/** G4 — 10-yr total ($M) implied by an editable annual plan (Σ manualY), so it can feed fullRev10yM. */
+export const annualPlanTotalM = (p: Project, plan: RevPlan): number => annualPlanCells(p, plan).reduce((s, c) => s + c.rev, 0);
 // F5 — gate-driven forecast granularity ladder (AMTS: more granular as funding rises). G1 high-level →
 // G2 by-year + COGS/ASP → G3 by-month + COGS/ASP → G4 by-month + finance-approval + PLC #3/#4 documented.
 export interface RevPlanGateReq { gate: Gate; gran: "highlevel" | "annual" | "monthly"; needsCogsAsp: boolean; needsFinanceApproval: boolean; needsPlc: boolean; label: string }

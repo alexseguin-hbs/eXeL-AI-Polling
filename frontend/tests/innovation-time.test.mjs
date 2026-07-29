@@ -1180,7 +1180,7 @@ import { existingCurve as existingCurve40 } from "../lib/innovation-data.ts";
 }
 
 // H41 — per-quarter RevPlan (QTY·ASP·COGS) + profiles + $/min surfaces.
-import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPlanAnnual, revPlanMonthly, launchYearOf, launchQuarterOf, revPlanGateReq, revPlanGateGaps } from "../lib/innovation-data.ts";
+import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPlanAnnual, revPlanMonthly, launchYearOf, launchQuarterOf, revPlanGateReq, revPlanGateGaps, annualPlanCells, monthly24Cells, annualPlanTotalM } from "../lib/innovation-data.ts";
 {
   const p = DEMO_PROJECTS[0];
   // High-Level: 40 quarters that sum to the plan's fullRev10yM.
@@ -1249,6 +1249,22 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const g4ok = { ...g4, revPlan: { ...g4.revPlan, inputGran: "monthly", financeApproved: true, plc3: "06/2032", plc4: "06/2035" } };
   ok(revPlanGateGaps(g4ok, g4ok.revPlan).length === 0, "G4 compliant once monthly + finance + PLC #3/#4 supplied");
   ok(revPlanGateGaps(P({ gate: "G1", revPlan: { entryMode: "highlevel", profile: "linear" } }), { entryMode: "highlevel", profile: "linear" }).length === 0, "G1 high-level plan is compliant with no extra requirements");
+  // ── G4: editable Annual-out-10yr + 24-month, launch-anchored (AMTS S10a/S10b) ──
+  const gA = P({ firstRevenue: "2027-Q2", revPlan: { entryMode: "highlevel", profile: "linear", marginPct: 40, manualY: [10, 20, 30, 40, 40, 40, 30, 20, 10, 5] } });
+  ok(annualPlanCells(gA, gA.revPlan).length === 10, "annualPlanCells returns 10 editable year cells");
+  ok(annualPlanCells(gA, gA.revPlan)[0].rev === 10 && annualPlanCells(gA, gA.revPlan)[3].rev === 40, "annual grid reflects the operator's manualY entries");
+  ok(annualPlanCells(gA, gA.revPlan)[0].year === 2027, "annual grid anchors year 0 at the launch year (2027)");
+  ok(Math.abs(annualPlanTotalM(gA, gA.revPlan) - 245) < 0.01, "annualPlanTotalM sums manualY (Σ = 245)");
+  ok(Math.abs(annualPlanCells(gA, gA.revPlan)[3].margin - 40 * 0.4) < 0.01, "annual margin = rev × marginPct");
+  ok(monthly24Cells(gA, gA.revPlan).length === 24, "monthly24Cells returns 24 months");
+  ok(monthly24Cells(gA, gA.revPlan)[0].label.startsWith("Apr"), "24-month grid starts at the launch quarter's first month (Q2→Apr)");
+  // launch-date shift: moving launch Q2→Q4 slides the monthly labels (ramp slides in absolute time)
+  const gA4 = { ...gA, firstRevenue: "2029-Q4" };
+  ok(monthly24Cells(gA4, gA4.revPlan)[0].label.startsWith("Oct") && annualPlanCells(gA4, gA4.revPlan)[0].year === 2029, "launch-date change slides monthly ramp (Q4→Oct) + annual start (2029)");
+  // manualM24 overrides the seeded ramp; years 3-10 keep pulling from annual (unchanged by manualM24)
+  const gM = { ...gA, revPlan: { ...gA.revPlan, manualM24: Array.from({ length: 24 }, (_, i) => i + 1) } };
+  ok(monthly24Cells(gM, gM.revPlan)[5].rev === 6, "manualM24 drives the 24-month cells directly");
+  ok(annualPlanCells(gM, gM.revPlan)[5].rev === 40, "years 3-10 still pull from the annual grid (unaffected by monthly detail)");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
