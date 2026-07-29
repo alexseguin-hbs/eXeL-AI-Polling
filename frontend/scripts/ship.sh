@@ -49,7 +49,7 @@ echo "  ✓ compiled"
 #        SKIP_SHOTS=1 bypasses it when Chromium is unavailable (CI images without /opt/pw-browsers).
 if [ "${SKIP_TESTS:-0}" != "1" ] && [ "${SKIP_SHOTS:-0}" != "1" ]; then
   step "npm run test:slide-shots (present-mode overflow + type-scale + empty-panel gate)"
-  node scripts/slide-shots.mjs || fail "slide gate red — a slide clips, oversizes type, or renders an empty panel"
+  npm run --silent test:slide-shots || fail "slide gate red — a slide clips, oversizes type, or renders an empty panel"
 
   # The PDF gate asserts on the ARTIFACT Chromium emits, not on the DOM. The #4 probe counted 21 nodes it
   # believed were pages while the real export had 2 — the operator found that, not the gate.

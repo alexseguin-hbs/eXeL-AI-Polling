@@ -2123,7 +2123,7 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "benefits", name: "Key customer benefits", kind: "list" },
     { id: "features", name: "Key technical features", kind: "list" } ] },
   { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
-    { id: "stories", name: "High-priority user stories", kind: "table", req: true, cols: ["Persona", "As a… I want… so that…", "Req ID"], hint: "Req ID follows CRS-##.IN.SRS.### so the story survives into the matrix." } ] },
+    { id: "stories", name: "High-priority user stories", kind: "table", req: true, cols: ["MVP", "Persona", "As a… I want… so that…", "Team", "Req ID"], hint: "Team picks the discipline (SRS · WRS · VRS · FRS · MRS · AIML · Other:); Req ID follows CRS-##.IN.<TEAM>.### so the story survives into the matrix." } ] },
   { code: "S10", gate: "G2", stage: "Plan", source: "Business Case · annual forecast required at Plan", fields: [
     { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "10a: annual at Plan; 10b: monthly at Develop — SoI/MoT cadence (month = quarter/3)." },
     { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, cols: ["Scenario", "L-1", "Launch", "Yr 2", "Yr 3"] },
@@ -2235,6 +2235,116 @@ export const SLIDE_SEED: SlideSeed = { ...SLIDE_SEED_AUTHORED, ...SLIDE_SEED_H5 
 
 export type SlideFieldValue = string | string[] | string[][] | Record<string, string> | null;
 
+// ── HEADER FIT · the operator's standing law: text is NEVER cut off, and NEVER ellipsised ────────
+// The one-size law from #21 stands — all 20 codes share TS.proj/TS.title, and with the constants derived
+// from the worst case nothing shrinks today. This is the SAFETY VALVE for the long tail: at 999 projects a
+// single absurd name must not drag the whole deck's type down, and must not be clipped either. So that ONE
+// string shrinks itself; below the legibility floor it WRAPS into the reserved band. Never an ellipsis.
+//
+// Deterministic and DOM-free on purpose: measuring in the browser would make the rendered size depend on
+// when layout ran, and the deck's whole contract is that identical inputs render identically.
+// CHAR_W is the mean advance width of the header face (semibold, tracking-tight) as a fraction of its
+// font-size, calibrated against the real render: the 40-character worst case measured ~700px at 32.8px.
+export const HEADER_CHAR_W = 0.53;
+export interface HeaderFit { cqw: number; wrap: boolean; shrunk: boolean }
+export function fitHeader(text: string, sharedCqw: number, budgetCqw: number, floorCqw: number): HeaderFit {
+  const n = (text || "").length;
+  if (!n) return { cqw: sharedCqw, wrap: false, shrunk: false };
+  const est = n * HEADER_CHAR_W * sharedCqw;
+  if (est <= budgetCqw) return { cqw: sharedCqw, wrap: false, shrunk: false };   // the common case: untouched
+  const scaled = sharedCqw * (budgetCqw / est);
+  // FLOOR the rounding, never round up: toFixed() could push the chosen size a hair past the budget, which
+  // is the one thing this function exists to prevent.
+  if (scaled >= floorCqw) return { cqw: Math.floor(scaled * 1000) / 1000, wrap: false, shrunk: true };
+  // Below the floor we stop shrinking and let it WRAP — the header band is a reserved fixed height, so the
+  // body still starts at the same Y on every slide.
+  return { cqw: floorCqw, wrap: true, shrunk: true };
+}
+// Budgets in cqw of the 1600px sheet, measured from the real header layout: the name owns the left block,
+// the title the centre, with the gate/stage cluster and gaps taking the rest.
+export const HEADER_NAME_BUDGET = 46, HEADER_NAME_FLOOR = 1.2;
+export const HEADER_TITLE_BUDGET = 30, HEADER_TITLE_FLOOR = 1.3;
+
+// ── S9 USER STORIES · discipline registry + authored stories (operator, 2026-07-29) ──────────────
+// The six Development Team rows, EXACTLY as the operator listed them and in their order, plus "Other:"
+// whose label is whatever the user types. The label is what lands in CRS-##.IN.<LABEL>.### — before this
+// every story was stamped SRS regardless of whether the work was firmware, mechanical or AI/ML.
+export const DISCIPLINES = [
+  { key: "SRS",  team: "Software Platform/Web Development" },
+  { key: "WRS",  team: "Web/Mobile/Browser App" },
+  { key: "VRS",  team: "Virtual Video/Control Platform" },
+  { key: "FRS",  team: "Firmware Development" },
+  { key: "MRS",  team: "Mechanical Development" },
+  { key: "AIML", team: "AI/ML Platform Development" },
+] as const;
+export const DISCIPLINE_OTHER = "Other:";
+export type DisciplineKey = (typeof DISCIPLINES)[number]["key"];
+
+/** Sanitise a discipline label for use inside a Req ID. A DOT would break the CRS-##.IN.X.### segmentation
+ *  and silently corrupt the ID, so dots are stripped along with spaces; the result is uppercased. */
+export function disciplineLabel(raw: string): string {
+  const clean = (raw || "").trim().toUpperCase().replace(/[.\s]+/g, "");
+  return clean || "SRS";
+}
+
+/** Default discipline for a project — derived from data already on the record, never hand-mapped per project.
+ *  Same idiom as metaOf(): one regex rule over division + name + category. Ordered most-specific first, so a
+ *  "AI/ML Autonomy Runtime" resolves to AIML rather than falling through to firmware on the word "runtime". */
+export function defaultDiscipline(p: Project): DisciplineKey {
+  const d = `${p.division} ${p.name} ${p.category}`.toLowerCase();
+  if (/\bai\b|\bml\b|ai\/ml|autonomy|inference|neural|machine learning|vision|hivemind|targeting/.test(d)) return "AIML";
+  if (/xr\b|\bvr\b|video|simulat|training|control station|\bgcs\b|visual|teleop/.test(d)) return "VRS";
+  if (/web|mobile|browser|portal|marketplace|\bsdk\b|cloud/.test(d)) return "WRS";
+  if (/mechanic|airframe|structure|thermal|enclosure|chassis|launcher|mount|optic/.test(d)) return "MRS";
+  if (/firmware|embedded|fpga|payload|radar|seeker|effector|sensor|munition|focal/.test(d)) return "FRS";
+  return "SRS";
+}
+
+// Parent requirement for deck-authored stories (CRS-56 · Value Assessment). Named so it stops being a magic
+// literal buried in a template string.
+export const STORY_CRS = 56;
+/** CRS-##.IN.<LABEL>.### — the one place a story Req ID is formed. Multi-discipline rows drive the ID from
+ *  their PRIMARY (first) label; the full set stays visible in the Team column. */
+export const storyReqId = (label: string, n: number) =>
+  `CRS-${STORY_CRS}.IN.${disciplineLabel(label.split(",")[0])}.${String(n).padStart(3, "0")}`;
+
+/** 3-9 user stories per project, authored from THAT project's own brief so none of them could be pasted onto
+ *  another. Personas rotate across the operator's four archetypes — the SYSTEM is first-class — instantiated
+ *  with the project's real market and customer. Grouped by MVP phase so the set reads as a roadmap.
+ *  Deterministic: same project in, same stories out. */
+export function storiesOf(p: Project): { mvp: string; persona: string; story: string; team: string }[] {
+  const b = briefOf(p), m = metaOf(p), ex = execOf(p);
+  // Lower-case the first letter ONLY when it starts an ordinary word. "SWaP-constrained" and "DoD / USSF" are
+  // acronyms — a blind toLowerCase turns them into "sWaP" and "doD", which is how a generated sentence
+  // announces that it was generated.
+  const lc = (x: string) => {
+    if (!x) return "";
+    // Only the FIRST word decides. If it carries a capital anywhere past its first letter it is an acronym or
+    // a mixed-case term — "DoD", "SWaP-constrained", "GPS-denied" — and must be left exactly as written.
+    // A blind toLowerCase yields "doD" and "sWaP", which is how a generated sentence announces itself.
+    const first = x.split(/[\s/]/)[0];
+    return /[A-Z]/.test(first.slice(1)) ? x : x.charAt(0).toLowerCase() + x.slice(1);
+  };
+  const need = (i: number) => lc(b.needs[i] ?? b.needs[0] ?? "the capability");
+  const out = (i: number) => lc(b.outcomes[i] ?? b.outcomes[0] ?? "the mission outcome");
+  const sol = (i: number) => lc(b.solution[i] ?? b.solution[0] ?? "the solution");
+  const evi = (i: number) => lc(b.evidence[i] ?? b.evidence[0] ?? "the test result");
+  const opr = `a ${lc(m.targetMarket)} operator`;
+  const cust = `a ${lc(ex.customer)} program lead`;
+  const dflt = defaultDiscipline(p);
+  const rows = [
+    { mvp: "MVP1", persona: opr,               team: dflt,   story: `As ${opr}, I want ${need(0)} so that ${out(0)} becomes routine.` },
+    { mvp: "MVP1", persona: "the System",      team: "AIML", story: `As the System, I want ${sol(0)} available at run time so that ${need(0)} is met without operator intervention.` },
+    { mvp: "MVP2", persona: cust,              team: dflt,   story: `As ${cust}, I want ${need(1)} so that ${out(1)} is achievable in the field.` },
+    { mvp: "MVP2", persona: "a Lead/Developer", team: "SRS", story: `As a Lead/Developer, I want ${sol(1)} so that ${evi(0)} is reproducible.` },
+    { mvp: "MVP3", persona: opr,               team: dflt,   story: `As ${opr}, I want ${out(1)} so that ${evi(1)} carries into production.` },
+    { mvp: "MVP3", persona: "the System",      team: dflt,   story: `As the System, I want ${sol(0)} to hold at mission scale so that ${out(0)} survives a contested deployment.` },
+  ];
+  // The operator's reference sample repeats two stories verbatim; that duplication is NOT replicated here.
+  const seen = new Set<string>();
+  return rows.filter((r) => (seen.has(r.story) ? false : (seen.add(r.story), true)));
+}
+
 /** Linked field value — read live from the project record so the deck can never disagree with the gate. */
 export function linkedSlideField(p: Project, code: string, fieldId: string): SlideFieldValue {
   const fm = financialMetrics(p);
@@ -2290,7 +2400,7 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S8.features": return b.solution;
     case "S7.personas": return [[m.targetMarket, b.needs[0] ?? "the capability"], [ex.customer, b.outcomes[0] ?? "the outcome"]];
     case "S7.desired": return b.outcomes[0] ?? "";
-    case "S9.stories": return b.outcomes.slice(0, 3).map((o, i) => [m.targetMarket, `As an operator I want ${o.toLowerCase()} so that the mission succeeds`, `CRS-56.IN.SRS.${String(i + 1).padStart(3, "0")}`]);
+    case "S9.stories": return storiesOf(p).map((r, i) => [r.mvp, r.persona, r.story, r.team, storyReqId(r.team, i + 1)]);
     case "S10.spend": {
       const rd = fm.totalRdOpexK; const perYr = Math.round(rd / 3);
       return [1, 2, 3].map((y) => [`Yr ${y}`, `$${Math.round(perYr * 0.55)}k`, `$${Math.round(perYr * 0.25)}k`, `$${Math.round(perYr * 0.12)}k`, `$${Math.round(perYr * 0.08)}k`]);

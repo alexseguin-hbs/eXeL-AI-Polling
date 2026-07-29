@@ -116,6 +116,8 @@ const AUDIT = (printW) => {
 
   const overflow = [];
   const type = [];
+  const ellipsis = [];
+  const own0 = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
   const cRect = canvas.getBoundingClientRect();
   for (const el of canvas.querySelectorAll("*")) {
     const cs = getComputedStyle(el);
@@ -135,6 +137,18 @@ const AUDIT = (printW) => {
       overflow.push({ tag: el.tagName.toLowerCase(), cls: (el.className || "").toString().slice(0, 70), dx: w, dy: h,
         text: (el.textContent || "").trim().slice(0, 60) });
     }
+    // STANDING LAW (operator): text is NEVER cut off and NEVER ellipsised.
+    //   · text-overflow:ellipsis that is ACTUALLY triggering = a clipped string. `truncate` on a string that
+    //     fits is harmless; on one that does not it silently eats content, which is the banned behaviour.
+    //   · a rendered "…" is banned outright in the header band — the law says shrink, then wrap, never clip.
+    if (own0(el)) {
+      const clippedText = cs.textOverflow === "ellipsis" && el.scrollWidth - el.clientWidth > 1;
+      if (clippedText) ellipsis.push({ where: el.getAttribute("data-proj-name") !== null ? "project name" : el.tagName.toLowerCase(),
+        text: (el.textContent || "").trim().slice(0, 50), over: el.scrollWidth - el.clientWidth });
+      if (el.closest("[data-slide-head]") && /[…]|\.\.\.$/.test((el.textContent || "").trim()))
+        ellipsis.push({ where: "HEADER", text: (el.textContent || "").trim().slice(0, 50), over: 0 });
+    }
+
     // Only measure TYPE on elements that paint text of their own — but the CANVAS-BOUNDS check below must
     // also cover images, SVG and canvas. A clipped CONOPS hero (operator, IMG_8312) carries no text node, so
     // a text-only bounds check would have let a visibly cut-off picture through. A gate that misses a visible
@@ -216,6 +230,7 @@ const AUDIT = (printW) => {
     if (!el) return null;
     const cs2 = getComputedStyle(el);
     return { px: round(parseFloat(cs2.fontSize) * k), sw: el.scrollWidth, cw: el.clientWidth,
+      lines: Math.round(el.getBoundingClientRect().height / (parseFloat(cs2.lineHeight) || parseFloat(cs2.fontSize) * 1.15)),
       text: (el.textContent || "").trim().slice(0, 44) };
   };
   const body = canvas.querySelector("[data-slide-body]");
@@ -223,7 +238,7 @@ const AUDIT = (printW) => {
   // though the sheet is identical. Dividing by the live scale makes portrait and landscape directly comparable.
   const scale = cRect.height / (canvas.clientHeight || 1);
   const bodyTop = body ? round((body.getBoundingClientRect().top - cRect.top) / (scale || 1)) : null;
-  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
+  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, ellipsis, head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
 };
 
 // ── Drive the app into present mode on a given slide ─────────────────────────────────────────
@@ -296,6 +311,10 @@ for (const vp of VIEWPORTS) {
     if (overBody.length) failures.push(`${tag} — BODY TYPE ${overBody[0].px}px > ${CAP_BODY}px cap (${overBody.length} el) e.g. "${overBody[0].text}"`);
     if (overHead.length) failures.push(`${tag} — HEADER TYPE ${overHead[0].px}px > ${CAP_HEADER}px cap (${overHead.length} el) e.g. "${overHead[0].text}"`);
 
+    // 2b · NO CLIPPED OR ELLIPSISED TEXT — the operator's standing law.
+    for (const e of (a.ellipsis || []).slice(0, 3))
+      failures.push(`${tag} — TEXT CUT OFF in ${e.where}: "${e.text}"${e.over ? ` (${e.over}px hidden)` : " — rendered an ellipsis"}`);
+
     // 3 · DEAD BOX — ENFORCED (22a). The layout must use the canvas it was given. Proven red before the fix:
     //     >90px of uncovered foot on 20/20 slides, peaking at 689px on CS.
     if (a.deadBox > DEAD_BOX) failures.push(`${tag} — DEAD BOX ${a.deadBox}px of canvas the layout never covered (cap ${DEAD_BOX}px)`);
@@ -334,6 +353,53 @@ for (const vp of VIEWPORTS) {
   }
   await ctx.close();
 }
+// ── HEADER SWEEP · EVERY project, not a sample (standing law) ────────────────────────────────
+// The long-tail name nobody anticipated is the entire point — exactly the class of bug found when the gate
+// widened from 5 sampled slides to all 20 against the longest-named project. The name is a per-PROJECT
+// property and the title a per-SLIDE one, so the sweep runs every project on ONE slide rather than the
+// 33x20x2 = 1320 page loads a naive cross-product would need. One viewport is sufficient and provably so:
+// the portrait/landscape ratio check below holds the two renders identical to 0.00%.
+if (!process.env.NO_SWEEP) {
+  const { DEMO_PROJECTS } = await import("../lib/innovation-data.ts");
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 810 }, deviceScaleFactor: 1 });
+  await ctx.addInitScript(() => {
+    try { sessionStorage.setItem("innovation-unlocked", "1"); } catch {}
+    Element.prototype.requestFullscreen = function () { return Promise.resolve(); };
+  });
+  const page = await ctx.newPage();
+  const sizes = new Map();
+  let swept = 0;
+  for (const pr of DEMO_PROJECTS) {
+    try {
+      await page.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
+      await page.getByRole("button", { name: "Gate Requirements" }).first().click();
+      await page.locator('select:has(option[value^="PRJ-"])').first().selectOption(pr.id);
+      await page.getByRole("button", { name: /Open slide show/ }).first().click();
+      await page.getByRole("button", { name: /Present/ }).first().click();
+      await page.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
+      const h = await page.evaluate(() => {
+        const c = document.querySelector("[data-slide-canvas]");
+        const el = c.querySelector("[data-proj-name]");
+        const cs = getComputedStyle(el);
+        const k = 1600 / (c.clientWidth || 1);
+        return { px: Math.round(parseFloat(cs.fontSize) * k * 10) / 10, sw: el.scrollWidth, cw: el.clientWidth,
+          ell: cs.textOverflow === "ellipsis", dots: /[…]|\.\.\.$/.test((el.textContent || "").trim()),
+          text: (el.textContent || "").trim() };
+      });
+      swept++;
+      sizes.set(h.px, (sizes.get(h.px) || 0) + 1);
+      if (h.sw - h.cw > 1) failures.push(`SWEEP ${pr.id} — project name CUT OFF (${h.sw - h.cw}px hidden): "${h.text}"`);
+      if (h.ell) failures.push(`SWEEP ${pr.id} — project name has text-overflow:ellipsis, which the law bans`);
+      if (h.dots) failures.push(`SWEEP ${pr.id} — project name rendered an ellipsis: "${h.text}"`);
+      if (h.px !== 32.8) console.log(`    · SHRINK FIRED ${pr.id} -> ${h.px}px  "${h.text}" (${h.text.length} ch)`);
+    } catch (e) {
+      failures.push(`SWEEP ${pr.id} — could not reach present mode: ${(e?.message || e).toString().split("\n")[0].slice(0, 90)}`);
+    }
+  }
+  await ctx.close();
+  console.log(`  · header sweep: ${swept}/${DEMO_PROJECTS.length} projects · name sizes ${[...sizes.entries()].map(([px, n]) => `${px}px x${n}`).join(", ")}`);
+}
+
 // #22b · PORTRAIT vs LANDSCAPE — same document, not merely similar.
 if (perVp.length > 1) {
   const [a0, b0] = perVp;

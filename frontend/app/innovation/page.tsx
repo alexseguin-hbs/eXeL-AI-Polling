@@ -26,6 +26,8 @@ import {
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
+  DISCIPLINES, disciplineLabel, storyReqId,
+  fitHeader, HEADER_NAME_BUDGET, HEADER_NAME_FLOOR, HEADER_TITLE_BUDGET, HEADER_TITLE_FLOOR,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
@@ -3138,6 +3140,32 @@ const TS = {
 const PanelTitleCtx = React.createContext<string>("");
 const sameName = (a: string, b: string) => a.replace(/[^a-z0-9]/gi, "").toLowerCase() === b.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
+// TeamPicker — the operator's six Development Team rows plus "Other:". MULTI-SELECT because projects in this
+// deck span firmware + mechanical + AI/ML at once; one discipline per SLIDE would stamp a wrong Req ID on
+// most rows, so the label lives on the ROW. Writes a comma-joined label string straight back through the
+// table's existing setActive round-trip — no new persistence path, no new store.
+function TeamPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { t } = useLexicon();
+  const picked = value.split(",").map((x) => x.trim()).filter(Boolean);
+  const known = DISCIPLINES.map((d) => d.key as string);
+  const other = picked.find((x) => !known.includes(x)) ?? "";
+  const toggle = (k: string) => onChange((picked.includes(k) ? picked.filter((x) => x !== k) : [...picked, k]).join(","));
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {DISCIPLINES.map((d) => (
+        <button key={d.key} type="button" onClick={() => toggle(d.key)} aria-pressed={picked.includes(d.key)}
+          title={t(`innovation.story.team.${d.key}`)}
+          className={`rounded border px-1.5 py-0.5 text-[10px] font-mono ${picked.includes(d.key) ? "border-cyan-500 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}>{d.key}</button>
+      ))}
+      <label className="flex items-center gap-1 text-[10px] text-slate-500">{t("innovation.story.team.other")}
+        <input value={other} placeholder="LABEL"
+          onChange={(e) => onChange([...picked.filter((x) => known.includes(x)), disciplineLabel(e.target.value)].filter(Boolean).join(","))}
+          className="w-20 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 font-mono text-[10px] uppercase text-slate-100 outline-none focus:border-cyan-500" />
+      </label>
+    </div>
+  );
+}
+
 function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: string; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
@@ -3403,7 +3431,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       <div key={i} className="flex items-center gap-1.5">{f.ordered && <span className="w-4 shrink-0 text-right text-[10px] text-slate-500">{i + 1}</span>}<input className={inputCls} value={r} placeholder="Add a point" onChange={(e) => { const nr = [...rows]; nr[i] = e.target.value; setActive(spec.code, f.id, nr); }} /><button onClick={() => { const nr = rows.filter((_, j) => j !== i); setActive(spec.code, f.id, nr.length ? nr : [""]); }} className="shrink-0 rounded border border-slate-700 px-2 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove">×</button></div>
     ))}<button onClick={() => setActive(spec.code, f.id, [...rows, ""])} className="rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add point</button></div>; }
     if (f.kind === "table") { const cols = f.cols ?? []; const rows = ((v as string[][])?.length ? (v as string[][]) : [cols.map(() => "")]); return <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[12px]"><thead><tr>{cols.map((c) => <th key={c} className="px-1 pb-1 text-left text-[12px] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}<th /></tr></thead><tbody>{rows.map((r, ri) => (
-      <tr key={ri}>{cols.map((c, ci) => <td key={ci} className="px-0.5 pb-1"><input className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" value={r[ci] || ""} placeholder={c} onChange={(e) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = e.target.value; setActive(spec.code, f.id, nr); }} /></td>)}<td className="pb-1"><button onClick={() => { const nr = rows.filter((_, j) => j !== ri); setActive(spec.code, f.id, nr.length ? nr : [cols.map(() => "")]); }} className="rounded border border-slate-700 px-1.5 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove row">×</button></td></tr>
+      <tr key={ri}>{cols.map((c, ci) => <td key={ci} className="px-0.5 pb-1">{c === "Team"
+        ? <TeamPicker value={r[ci] || ""} onChange={(next) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = next; const idc = cols.indexOf("Req ID"); if (idc >= 0) nr[ri][idc] = storyReqId(next, ri + 1); setActive(spec.code, f.id, nr); }} />
+        : <input className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" value={r[ci] || ""} placeholder={c} onChange={(e) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = e.target.value; setActive(spec.code, f.id, nr); }} />}</td>)}<td className="pb-1"><button onClick={() => { const nr = rows.filter((_, j) => j !== ri); setActive(spec.code, f.id, nr.length ? nr : [cols.map(() => "")]); }} className="rounded border border-slate-700 px-1.5 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove row">×</button></td></tr>
     ))}</tbody></table><button onClick={() => setActive(spec.code, f.id, [...rows, cols.map(() => "")])} className="mt-1 rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add row</button></div>; }
     return null;
   }
@@ -3711,22 +3741,28 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       const panel = panelsFor(sp)[sp.code];
       const anyContent = sp.fields.some((f) => !fieldEmpty(effective(sp, f, presentSrc)) || (f.kind === "chart" && f.linked));
       const deckTitle = slideDef(sp.code)?.name ?? sp.code;
+      // Standing law: never cut off, never ellipsised. Shared size for the common case; a string that would
+      // overflow shrinks ITSELF, and below the floor wraps into the reserved band. Box first, then type.
+      const nameFit = fitHeader(p.name, parseFloat(TS.proj), HEADER_NAME_BUDGET, HEADER_NAME_FLOOR);
+      const titleFit = fitHeader(deckTitle, parseFloat(TS.title), HEADER_TITLE_BUDGET, HEADER_TITLE_FLOOR);
       return (
         <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={style ?? sheetStyle}>
           <div className="flex h-full flex-col" style={{ padding: "3.2cqh 3.2cqw" }}>
             {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
             {/* B2 · header band — FIXED HEIGHT so the body starts at the same Y on every one of the 20 slides.
                 Uniform geometry matters as much as uniform size (#21). */}
-            <div data-slide-head className="flex h-[8.6cqh] shrink-0 items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
+            <div data-slide-head className="flex h-[9.4cqh] shrink-0 items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
               <div className="min-w-0">
-                <div data-proj-name className="whitespace-nowrap font-semibold tracking-tight text-cyan-200" style={{ fontSize: TS.proj, lineHeight: 1.15 }}>{p.name}</div>
+                <div data-proj-name className={`font-semibold tracking-tight text-cyan-200 ${nameFit.wrap ? "" : "whitespace-nowrap"}`}
+                  style={{ fontSize: `${nameFit.cqw}cqw`, lineHeight: 1.15 }}>{p.name}</div>
                 <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: TS.meta }}>
                   <span>COGS <b className="text-slate-200">${ex.cogsK}k</b></span>
                   <span>MSRP <b className="text-slate-200">${ex.msrpK}k</b></span>
                   <span>Mgn <b className="text-slate-200">{ex.marginPct}%</b></span>
                 </div>
               </div>
-              <h2 data-slide-title className="shrink-0 whitespace-nowrap text-center font-semibold leading-[1.05] tracking-tight text-slate-100" style={{ fontSize: TS.title }}>{deckTitle}</h2>
+              <h2 data-slide-title className={`shrink-0 text-center font-semibold leading-[1.05] tracking-tight text-slate-100 ${titleFit.wrap ? "" : "whitespace-nowrap"}`}
+                style={{ fontSize: `${titleFit.cqw}cqw` }}>{deckTitle}</h2>
               <div className="flex shrink-0 flex-col items-end gap-[0.6cqh]">
                 <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: TS.micro }}>Req: {sp.stage}+</span>
                 <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{sp.gate} · {sp.stage} · {sp.code}</span>

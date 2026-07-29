@@ -1400,10 +1400,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/chromium-1194/.test(shot) && !/exec\w*\(|spawn\w*\(/.test(shot), "gate points at the preinstalled Chromium and never shells out (no `playwright install`)");
 
   // 3 · it is actually wired into the release path (item 1's whole point)
-  ok(pkg.scripts["test:slide-shots"] === "node scripts/slide-shots.mjs", "npm run test:slide-shots exists");
-  ok(/slide-shots\.mjs/.test(ship), "ship.sh runs the screenshot gate");
+  ok(/scripts\/slide-shots\.mjs/.test(pkg.scripts["test:slide-shots"] || ""), "npm run test:slide-shots exists");
+  ok(/test:slide-shots/.test(ship), "ship.sh runs the screenshot gate");
   ok(/SKIP_SHOTS/.test(ship), "ship.sh can bypass the gate only via an explicit SKIP_SHOTS escape hatch");
-  ok(ship.indexOf("Compiled successfully") < ship.indexOf("slide-shots.mjs"), "the shot gate runs AFTER the build (it drives the exported app)");
+  ok(ship.indexOf("Compiled successfully") < ship.indexOf("test:slide-shots"), "the shot gate runs AFTER the build (it drives the exported app)");
 }
 
 // ── #2 · NO PANEL RENDERS A TITLE WITH NOTHING UNDER IT ─────────────────────────────────
@@ -1610,10 +1610,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/fontSize: TS\.(proj|title)[^}]*\?/.test(src), "neither header constant is applied conditionally — one value, every slide");
 
   // no truncation, one line, fixed band
-  ok(/data-proj-name className="whitespace-nowrap font-semibold/.test(src), "the project name is whitespace-nowrap and carries NO truncate — it can never ellipsise");
+  ok(/data-proj-name className=\{`font-semibold tracking-tight text-cyan-200 \$\{nameFit\.wrap \? "" : "whitespace-nowrap"\}`\}/.test(src), "the project name is nowrap until it reaches the floor, and carries NO truncate — it can never ellipsise");
   ok(!/truncate[^"]*" style=\{\{ fontSize: TS\.proj/.test(src), "the truncate that produced \"Edge Mission Aut…\" is gone");
-  ok(/data-slide-title className="shrink-0 whitespace-nowrap/.test(src), "the slide title renders on one line");
-  ok(/data-slide-head className="flex h-\[8.6cqh\] shrink-0/.test(src), "the header band has a RESERVED fixed height, so the body starts at the same Y on all 20 slides");
+  ok(/data-slide-title className=\{`shrink-0 text-center font-semibold leading-\[1\.05\] tracking-tight text-slate-100 \$\{titleFit\.wrap \? "" : "whitespace-nowrap"\}`\}/.test(src), "the slide title renders on one line until it reaches the floor");
+  ok(/data-slide-head className="flex h-\[9.4cqh\] shrink-0/.test(src), "the header band has a RESERVED fixed height, so the body starts at the same Y on all 20 slides");
 
   // the gate drives all 20 codes against the WORST CASE project, derived from the data
   const longest = [...DEMO_PROJECTS].sort((a, b) => b.name.length - a.name.length)[0];
@@ -1832,6 +1832,140 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/Identify · Concur · De-risk/.test(src), "the Identify · Concur · De-risk explainer is kept");
   ok(/\+ Identify risk/.test(src), "the identify-a-risk action is kept");
   ok(/▲ concur/.test(src), "the concur (poll) action is kept");
+}
+
+// ── #23 · S9 user stories — discipline selector + authored stories ──────────────────────
+// EXTENDED, not forked: the S9 table already existed at innovation-data.ts:2126 and the generator at :2293.
+// Both were stamping CRS-56.IN.SRS.### on every row regardless of whether the work was firmware, mechanical
+// or AI/ML, and emitting three copies of "As an operator I want ... so that the mission succeeds".
+{
+  const fsp = await import("node:fs/promises");
+  const data = await fsp.readFile("lib/innovation-data.ts", "utf8");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const lex = await fsp.readFile("lib/lexicon-data.ts", "utf8");
+  const M = await import("../lib/innovation-data.ts");
+
+  // 23a · the six teams, EXACTLY as the operator listed them, in order, plus Other:
+  const want = [["SRS", "Software Platform/Web Development"], ["WRS", "Web/Mobile/Browser App"],
+    ["VRS", "Virtual Video/Control Platform"], ["FRS", "Firmware Development"],
+    ["MRS", "Mechanical Development"], ["AIML", "AI/ML Platform Development"]];
+  ok(M.DISCIPLINES.length === 6, "six Development Team rows");
+  want.forEach(([k, team], i) => {
+    ok(M.DISCIPLINES[i].key === k, `discipline ${i + 1} is ${k} (order preserved)`);
+    ok(M.DISCIPLINES[i].team === team, `${k} = "${team}"`);
+  });
+  ok(M.DISCIPLINE_OTHER === "Other:", 'the seventh option is "Other:"');
+
+  // the label sanitiser — a DOT would break CRS-##.IN.X.### segmentation and silently corrupt the ID
+  ok(M.disciplineLabel(" my team ") === "MYTEAM", "Other label is trimmed, uppercased, de-spaced");
+  ok(!M.disciplineLabel("a.b.c").includes("."), "dots are stripped — they would break the Req ID segmentation");
+  ok(M.disciplineLabel("") === "SRS", "an empty Other label falls back rather than emitting CRS-56.IN..001");
+  ok(M.storyReqId("FRS", 7) === "CRS-56.IN.FRS.007", "Req ID is CRS-##.IN.<LABEL>.###");
+  ok(M.storyReqId("FRS,MRS", 1) === "CRS-56.IN.FRS.001", "a multi-discipline row drives its ID from the PRIMARY label");
+  ok(/^CRS-\d+\.IN\.[A-Z0-9]+\.\d{3}$/.test(M.storyReqId("x y.z", 3)), "a sanitised Other label still yields a well-formed Req ID");
+
+  // every producer of the old hardcoded SRS is gone
+  ok(!/CRS-56\.IN\.SRS\.\$\{/.test(data), "the generator no longer hardcodes SRS (was innovation-data.ts:2293)");
+  ok(!/Req ID follows CRS-##\.IN\.SRS\.###/.test(data), "the schema hint no longer names SRS as the only label (was :2126)");
+  ok(/cols: \["MVP", "Persona", "As a… I want… so that…", "Team", "Req ID"\]/.test(data), "the table gained MVP + Team columns");
+
+  // default discipline is a RULE over data already on the project, not 33 hand-maps
+  ok(/export function defaultDiscipline/.test(data) && /\$\{p\.division\} \$\{p\.name\} \$\{p\.category\}/.test(data),
+     "the default is derived by rule from division + name + category, the same idiom as metaOf()");
+  const dist = {};
+  for (const p of M.DEMO_PROJECTS) { const d = M.defaultDiscipline(p); dist[d] = (dist[d] || 0) + 1; }
+  ok(Object.keys(dist).length >= 4, `the rule actually discriminates — ${JSON.stringify(dist)}`);
+  ok(!dist.SRS || dist.SRS < M.DEMO_PROJECTS.length, "the default is NOT always SRS");
+  ok(M.DEMO_PROJECTS.every((p) => M.DISCIPLINES.some((d) => d.key === M.defaultDiscipline(p))), "every default is one of the six");
+
+  // the multi-select lives on the ROW and writes through the EXISTING store round-trip
+  ok(/function TeamPicker\(/.test(src), "TeamPicker exists");
+  ok(/c === "Team"\s*\?\s*<TeamPicker/.test(src), "the Team column renders the picker instead of a bare text input");
+  ok(/setActive\(spec\.code, f\.id, nr\)/.test(src), "it writes through the table's existing setActive round-trip — no new persistence path");
+  ok(/nr\[ri\]\[idc\] = storyReqId\(next, ri \+ 1\)/.test(src), "changing the Team rewrites that row's Req ID — the slide and the export cannot disagree");
+  ok(/const toggle = \(k: string\) => onChange\(\(picked\.includes\(k\) \? picked\.filter\(\(x\) => x !== k\) : \[\.\.\.picked, k\]\)\.join\(","\)\)/.test(src), "the picker is MULTI-select (toggles into a comma-joined set, not a radio)");
+
+  // t() coverage
+  for (const [k] of want) ok(lex.includes(`key: "innovation.story.team.${k}"`), `lexicon carries innovation.story.team.${k}`);
+  ok(lex.includes('key: "innovation.story.team.other"'), "lexicon carries the Other: label");
+
+  // 23b · 3-9 authored stories per project, specific, well formed, unique
+  const RX = /^As .+, I want .+ so that .+\.$/;
+  const seenAll = new Set(); let total = 0, min = 99, max = 0;
+  for (const p of M.DEMO_PROJECTS) {
+    const st = M.storiesOf(p);
+    min = Math.min(min, st.length); max = Math.max(max, st.length); total += st.length;
+    ok(st.length >= 3 && st.length <= 9, `${p.id} has ${st.length} stories (3-9)`);
+    const local = new Set();
+    for (const r of st) {
+      ok(RX.test(r.story), `${p.id} story matches "As a … I want … so that …": ${r.story.slice(0, 48)}`);
+      ok(!local.has(r.story), `${p.id} has no duplicate story`);
+      local.add(r.story);
+      ok(/^(MVP1|MVP2|MVP3)$/.test(r.mvp), `${p.id} story is grouped by MVP phase`);
+      ok(M.DISCIPLINES.some((d) => d.key === r.team) || r.team === M.disciplineLabel(r.team), `${p.id} story carries a valid Team label`);
+      seenAll.add(r.story);
+    }
+    ok(st.some((r) => r.persona === "the System"), `${p.id} treats the SYSTEM as a first-class persona`);
+    ok(new Set(st.map((r) => r.persona)).size >= 3, `${p.id} rotates at least 3 personas`);
+    ok(st.some((r) => r.mvp === "MVP1") && st.some((r) => r.mvp === "MVP3"), `${p.id} spans the MVP roadmap`);
+  }
+  ok(seenAll.size === total, `no story is shared between projects — ${total} stories, all distinct (a story that could be pasted onto another project has failed)`);
+  ok(min >= 3 && max <= 9, `story counts across 33 projects: min ${min}, max ${max}, total ${total}`);
+  ok(!/As an operator I want/.test(data), "the single generic 'operator' persona is gone");
+  // determinism — the deck's contract
+  ok(JSON.stringify(M.storiesOf(M.DEMO_PROJECTS[0])) === JSON.stringify(M.storiesOf(M.DEMO_PROJECTS[0])), "storiesOf is deterministic");
+}
+
+// ── STANDING LAW · text is NEVER cut off and NEVER ellipsised ────────────────────────────
+// The one-size law stands: with the constants derived from the worst case, NOTHING shrinks today. This is
+// the valve for the long tail — at 999 projects one absurd name must not drag the deck's type down, and
+// must not be clipped either. Proven to fire: 40 ch (the real worst case) untouched at 32.8px, 45 ch shrinks
+// to 30.9px, 90 ch and beyond wrap at the 19.2px floor.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
+  const M = await import("../lib/innovation-data.ts");
+  const S = 2.05, B = M.HEADER_NAME_BUDGET, F = M.HEADER_NAME_FLOOR;
+
+  // the common case is UNTOUCHED — the shared size still governs every real project
+  const longest = [...M.DEMO_PROJECTS].sort((a, b) => b.name.length - a.name.length)[0];
+  ok(M.fitHeader(longest.name, S, B, F).shrunk === false,
+     `the longest REAL name ("${longest.name}", ${longest.name.length} ch) does NOT shrink — the one-size law is intact`);
+  ok(M.DEMO_PROJECTS.every((p) => M.fitHeader(p.name, S, B, F).cqw === S), "all 33 projects render the project name at the shared 32.8px");
+
+  // the valve fires, and degrades in the right order: shrink -> floor -> wrap, never clip
+  ok(M.fitHeader("X".repeat(45), S, B, F).shrunk === true, "a 45-character name shrinks itself");
+  ok(M.fitHeader("X".repeat(45), S, B, F).wrap === false, "…and does not need to wrap yet");
+  ok(M.fitHeader("X".repeat(90), S, B, F).wrap === true, "a 90-character name reaches the floor and WRAPS");
+  ok(M.fitHeader("X".repeat(300), S, B, F).cqw === F, "an absurd 300-character name stops at the legibility floor, it does not vanish");
+  // exhaustive: no length may ever exceed the budget unwrapped, or fall below the floor
+  let bad = 0;
+  for (let n = 1; n <= 300; n++) {
+    const f = M.fitHeader("X".repeat(n), S, B, F);
+    if (f.cqw > S || f.cqw < F) bad++;
+    if (!f.wrap && n * M.HEADER_CHAR_W * f.cqw > B) bad++;
+  }
+  ok(bad === 0, "exhaustive scan of name lengths 1-300: never over budget unwrapped, never below the floor");
+  ok(/Math\.floor\(scaled \* 1000\) \/ 1000/.test(await fsp.readFile("lib/innovation-data.ts", "utf8")),
+     "the chosen size is FLOORED, never rounded up past the budget");
+
+  // never an ellipsis, in code or on screen
+  ok(!/data-proj-name[^>]*truncate/.test(src) && !/data-slide-title[^>]*truncate/.test(src), "no truncate on the project name or the slide title");
+  ok(/nameFit\.wrap \? "" : "whitespace-nowrap"/.test(src) && /titleFit\.wrap \? "" : "whitespace-nowrap"/.test(src),
+     "nowrap is released only when the string has reached the floor — wrap, never clip");
+  ok(/TEXT CUT OFF in \$\{e\.where\}/.test(shot), "the gate fails on ANY clipped text node");
+  ok(/cs\.textOverflow === "ellipsis" && el\.scrollWidth - el\.clientWidth > 1/.test(shot), "an ellipsis that is actually triggering is a failure");
+  ok(/rendered an ellipsis/.test(shot), "a literal … in the header band is a failure");
+
+  // box first, then type
+  ok(/data-slide-head className="flex h-\[9.4cqh\] shrink-0/.test(src), "the header band was widened FIRST so a wrapped second line fits without moving the body");
+
+  // the sweep covers EVERY project, not a sample
+  ok(/HEADER SWEEP · EVERY project, not a sample/.test(shot), "the gate sweeps all projects");
+  ok(/for \(const pr of DEMO_PROJECTS\)/.test(shot), "the sweep iterates the full project list");
+  ok(/SHRINK FIRED/.test(shot), "the sweep reports any shrink together with the string that caused it");
+  ok(/project name CUT OFF/.test(shot), "the sweep fails on a clipped name");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
