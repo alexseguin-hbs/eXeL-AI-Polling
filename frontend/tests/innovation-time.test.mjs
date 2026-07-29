@@ -75,7 +75,7 @@ ok(Math.abs(day.cost.value - 9_000_000) < 5000, "G1 cost remaining ≈ full NRE"
 import { growthModel } from "../lib/innovation-data.ts";
 const gm = growthModel([P({ doNothing10yM: 600, tech: "low", comm: "low", fullRev10yM: 900 })], { years: 6, growth: 0.038, decline: 0.15 });
 ok(gm.length === 6, "growth model spans 6 years");
-ok(gm[0].doNothing > gm[5].doNothing, "do-nothing declines YoY");
+ok(gm.every((r) => Math.abs(r.doNothing - gm[0].doNothing) < 1e-9), "grey baseline (Base Rev) held FLAT — current-year jump-off, does not erode as a block");
 ok(gm[5].target > gm[0].target, "target grows YoY");
 ok(gm.every((r) => r.remaining >= 0), "remaining-to-target never negative");
 ok(gm[5].weighted >= gm[0].weighted, "weighted NPI ramps in");
@@ -84,12 +84,17 @@ ok(gm.every((r) => Math.abs(r.incremental - (r.newRev - r.declineRev + r.eolRev)
 ok(gm.every((r) => r.newRev >= 0 && r.declineRev >= 0 && r.eolRev >= 0), "growth components are non-negative");
 ok(gm[0].declineRev === 0 && gm[5].declineRev > gm[0].declineRev, "decline-if-unfunded grows from zero at year 0");
 ok(gm[0].newRev === gm[0].weighted, "New band = probability-weighted next-gen ramp");
-// Base-erosion model (operator): Step 2 (Decline) = the grey BASELINE dropping — base × (1 − (1−decline)^y).
-// e.g. 142 base at 15%/yr → Y3 ≈ 55. Step 3 (EOL) = doNothing × EOL_FRACTION. Incremental = New − Decline + EOL.
-const gmB = growthModel([P({ doNothing10yM: 600, fullRev10yM: 900 })], { years: 6, decline: 0.15, baseOverrideM: 142 });
-ok(gmB.every((r, i) => Math.abs(r.declineRev - (142 - 142 * Math.pow(0.85, i))) < 1e-6), "Step 2 Decline == base × (1 − (1−decline)^y) — the grey-baseline erosion");
-ok(Math.abs(gmB[3].declineRev - 55) < 1.5, "Y3 base erosion of 142 ≈ 55 (matches operator's 100 − 55 + 22)");
-ok(gmB.every((r) => Math.abs(r.incremental - (r.newRev - r.declineRev + r.eolRev)) < 1e-9), "Incremental == New − Decline + EOL (base-erosion model)");
+// PROJECT-DRIVEN model (operator, latest): Step 2 (Decline) + Step 3 (EOL) come from the projects' OWN prior-gen
+// declining revenue (the do-nothing line), NOT the Base-Rev override — so a huge Base Rev must NOT inflate them.
+// Base Rev is the grey flat jump-off; Step 2 = declineBase × (1 − (1−decline)^y); Step 3 = the eroding tail × EOL.
+const gmBase = growthModel([P({ doNothing10yM: 600, fullRev10yM: 900 })], { years: 6, decline: 0.15 });
+const gmOver = growthModel([P({ doNothing10yM: 600, fullRev10yM: 900 })], { years: 6, decline: 0.15, baseOverrideM: 5000 });
+ok(gmBase.every((r, i) => Math.abs(r.declineRev - gmOver[i].declineRev) < 1e-9 && Math.abs(r.eolRev - gmOver[i].eolRev) < 1e-9), "Decline/EOL are Base-Rev-override-independent (from the projects' own do-nothing revenue)");
+ok(gmOver.every((r) => Math.abs(r.doNothing - 5000) < 1e-9), "grey baseline == Base-Rev override (flat current-year jump-off)");
+// New-revenue-only project (doNothing10yM = 0 → no prior-gen line): zero Decline + zero EOL → Incremental == Step 1 New.
+const gmNewOnly = growthModel([P({ doNothing10yM: 0, fullRev10yM: 900 })], { years: 6, decline: 0.15, baseOverrideM: 5000 });
+ok(gmNewOnly.every((r) => r.declineRev === 0 && r.eolRev === 0 && Math.abs(r.incremental - r.newRev) < 1e-9), "new-revenue-only: Decline=EOL=0, Incremental == Step 1 New");
+ok(gmBase.every((r) => Math.abs(r.incremental - (r.newRev - r.declineRev + r.eolRev)) < 1e-9), "Incremental == New − Decline + EOL (project-driven model)");
 // FINANCIAL RECONCILIATION (operator 9× audit): the per-BU breakdown must sum to the Company total for EVERY
 // step + Incremental, every year — so the Growth Model's Incremental band == Σ BU (Step1 − Step2 + Step3).
 {
@@ -1092,6 +1097,9 @@ import { BU_SEED_REV, BU_SEED_GROWTH } from "../lib/innovation-data.ts";
     ok(node && typeof node.marginM === "number" && node.marginM > 0 && node.marginM < node.revM, `BU ${bu} seeds a Margin $ below Revenue`);
     ok(node && !!node.color, `BU ${bu} carries a Trinity color`);
   }
+  // Base Rev = current-year baseline jump-off (operator IMG_8152/8154): AP $11M · DS $42M · MS $31M = $84M company.
+  ok(BU_SEED_REV.AP === 11 && BU_SEED_REV.DS === 42 && BU_SEED_REV.MS === 31, "Base Rev per BU: AP 11 · DS 42 · MS 31");
+  ok(Object.values(BU_SEED_REV).reduce((a, b) => a + b, 0) === 84, "company Base Rev = Σ BU Base Rev = $84M");
   // Revenue splits down to SBU and sums back to the BU (within rounding).
   const dsSbuRev = setup.sbu.filter((n) => n.parent === "DS").reduce((s, n) => s + (n.revM ?? 0), 0);
   ok(Math.abs(dsSbuRev - BU_SEED_REV.DS) <= 1, `DS SBU revenue sums back to the BU base-year Rev (${dsSbuRev})`);
@@ -1106,11 +1114,11 @@ import { BU_SEED_REV, BU_SEED_GROWTH } from "../lib/innovation-data.ts";
 import { scopeSeed, buCagrPct } from "../lib/innovation-data.ts";
 {
   const setup = seedBizSetup(DEMO_PROJECTS);
-  ok(scopeSeed(setup, "revM", "DS", "All", "All") === 99, "scopeSeed revM @ DU=DS reads the seeded base-year Rev (99)");
+  ok(scopeSeed(setup, "revM", "DS", "All", "All") === 42, "scopeSeed revM @ DU=DS reads the seeded Base Rev (42)");
   ok(scopeSeed(setup, "growthPct", "MS", "All", "All") === 33, "scopeSeed growthPct @ MS reads the seeded rate (33)");
   ok(scopeSeed(setup, "growthPct", "AP", "All", "All") === 44, "scopeSeed growthPct @ AP reads the seeded rate (44)");
-  // Company-scope revenue rolls up across BUs (99+33+11 = 143).
-  ok(Math.abs(scopeSeed(setup, "revM", "All", "All", "All") - 143) <= 1, "scopeSeed revM @ Company sums the BU base-year Revenue (143)");
+  // Company-scope Base Rev rolls up across BUs (11+42+31 = 84).
+  ok(Math.abs(scopeSeed(setup, "revM", "All", "All", "All") - 84) <= 1, "scopeSeed revM @ Company sums the BU Base Rev (84)");
   // A single SBU reads its own seeded revM (a share of its BU).
   const anySbu = setup.sbu.find((n) => n.parent === "DS");
   ok(anySbu && scopeSeed(setup, "revM", "DS", anySbu.code, "All") === anySbu.revM, "scopeSeed revM @ a single SBU reads that SBU's seed");

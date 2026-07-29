@@ -4090,7 +4090,9 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
   const delRow = (i: number) => setRows(rows.filter((_, j) => j !== i));
   const resetSeed = () => persist(seedBizSetup(DEMO_PROJECTS));
   const inp = "rounded border border-slate-700 bg-[#0b0f14] px-1.5 py-0.5 text-xs text-slate-100 outline-none focus:border-cyan-500";
-  const totalBase = setup.sbu.reduce((s, n) => s + (n.baseM ?? 0), 0);
+  // Σ Base Rev = the current-year baseline (Rev $M at SBU tier). The old do-nothing "Base $M" column was removed
+  // (operator: "Base Rev / Base Mgn are current-year figures … there is not another number too").
+  const totalBaseRev = setup.sbu.reduce((s, n) => s + (n.revM ?? 0), 0);
 
   return (
     <div className="space-y-4">
@@ -4103,7 +4105,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
             className="mt-0.5 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-lg font-semibold text-slate-100 outline-none focus:border-cyan-500" />
         </div>
         <div className="ml-auto flex items-center gap-2 text-[11px]">
-          <span className="text-slate-500">Σ SBU base <b className="text-emerald-300">${totalBase}M</b></span>
+          <span className="text-slate-500">Σ Base Rev <b className="text-emerald-300">${Math.round(totalBaseRev)}M</b></span>
           <button onClick={resetSeed} className="rounded border border-slate-700 px-2 py-1 text-slate-300 hover:bg-slate-800">Reset to seed</button>
           <button onClick={() => { ssDel(ADMIN_KEY); setAdmin(false); }} className="rounded border border-slate-700 px-2 py-1 text-slate-400 hover:bg-slate-800">Lock</button>
           {onClose && <button onClick={onClose} aria-label={t("innovation.setup.close")} title={t("innovation.setup.close")} className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 font-medium text-cyan-300 hover:bg-cyan-500/20">✕ {t("innovation.setup.close")}</button>}
@@ -4271,9 +4273,8 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                 <th className="px-2 py-2 text-left">Label</th>
                 <th className="px-2 py-2 text-left">Description</th>
                 {parentTier && <th className="px-2 py-2 text-left">{BIZ_TIERS.find((t) => t.key === parentTier)!.label}</th>}
-                {baseTier && <th className="px-2 py-2 text-right">Base $M</th>}
-                {finTier && <th className="px-2 py-2 text-right">Rev $M</th>}
-                {finTier && <th className="px-2 py-2 text-right">Margin $M</th>}
+                {finTier && <th className="px-2 py-2 text-right">Base Rev $M</th>}
+                {finTier && <th className="px-2 py-2 text-right">Base Mgn $M</th>}
                 {finTier && <th className="px-2 py-2 text-right">Growth %</th>}
                 <th className="px-2 py-2 text-right">·</th>
               </tr>
@@ -4292,7 +4293,6 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
                       </select>
                     </td>
                   )}
-                  {baseTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="numeric" value={String(r.baseM ?? 0)} onChange={(e) => /^\d*$/.test(e.target.value) && updateRow(i, { baseM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
                   {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.revM ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { revM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
                   {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.marginM ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { marginM: +e.target.value })} className={`w-16 text-right tabular-nums ${inp}`} /></td>}
                   {finTier && <td className="px-2 py-1.5 text-right"><input type="text" inputMode="decimal" value={String(r.growthPct ?? 0)} onChange={(e) => /^\d*\.?\d*$/.test(e.target.value) && updateRow(i, { growthPct: +e.target.value })} className={`w-14 text-right tabular-nums ${inp}`} /></td>}
@@ -4302,7 +4302,7 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
             </tbody>
           </table>
         </div>
-        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Master data persists in this browser. Codes: BU 2-letter · SBU 3-letter · Alpha Group alphanumeric · Alpha Code 4-char · Product 7xxxx · Material 7xxxx-yyy. Base-year Rev · Margin $ · Growth % seed the Growth Model down to the Alpha Code tier; each BU carries a Trinity color its children inherit (left bar).</p>
+        <p className="px-4 py-2 text-[10px] text-slate-500 border-t border-slate-800">Master data persists in this browser. Codes: BU 2-letter · SBU 3-letter · Alpha Group alphanumeric · Alpha Code 4-char · Product 7xxxx · Material 7xxxx-yyy. Base Rev · Base Mgn · Growth % (current-year figures) seed the Growth Model down to the Alpha Code tier — Base Rev is the grey jump-off the New/Incremental stacks build on; each BU carries a Trinity color its children inherit (left bar).</p>
       </section>
     </div>
   );

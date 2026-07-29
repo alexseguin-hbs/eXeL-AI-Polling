@@ -1257,24 +1257,31 @@ export function growthModel(
   const baseYear = opts.baseYear ?? 2026, years = opts.years ?? 6;
   const decline = opts.decline ?? 0.15, growth = opts.growth ?? 0.038;
   const revMult = REV_MODE[opts.revMode ?? "full"].mult;
-  // Year-0 run rate: the grey BASELINE (existing) revenue ($M) — enterable base overrides the summed do-nothing.
-  // The base declines at `decline`/yr if unfunded (the grey bar drops); Step 2 (Decline) IS that erosion, Step 3
-  // (EOL) is a tail of it, and the New/Incremental stacks build on TOP of the declining baseline. (Operator: the
-  // 55M drop = the base eroding, e.g. 142 × (1 − 0.85^3) ≈ 55.)
+  // Base Rev = the CURRENT-YEAR existing-revenue baseline ($M) — the grey JUMP-OFF bar. Enterable override (the
+  // tier Base Rev seed) else the funded set's own do-nothing sum. It is HELD FLAT (a current-year figure — "there
+  // is not another number too"): the New/Incremental stacks build on TOP of this flat baseline. The whole base
+  // does NOT erode as a block — only actual prior-gen lines decline (Step 2, below), so nothing is double-counted.
   const annualBase = opts.baseOverrideM != null ? opts.baseOverrideM : funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
+  // Step 2 (Decline) + Step 3 (EOL) are PROJECT-DRIVEN — only funded projects that carry an existing prior-gen
+  // revenue line (a non-zero do-nothing: SAR + Legacy today; every other project is zeroed at build, line ~771)
+  // contribute. Every all-new project therefore has Incremental == Step 1 (New). Independent of the Base-Rev
+  // override, so a large Base Rev never inflates Decline/EOL. (Operator: "most of which is not used unless there
+  // are projects with old-generation offerings with prior revenues.")
+  const declineBase = funded.reduce((s, p) => s + p.doNothing10yM, 0) / 10;
   const annualNpi = funded.reduce((s, p) => s + weightedRevM(p), 0) / 10 * revMult;
   const out: GrowthYear[] = [];
   for (let y = 0; y < years; y++) {
-    const doNothing = annualBase * Math.pow(1 - decline, y);              // grey baseline, eroding YoY
+    const doNothing = annualBase;                              // grey baseline = flat current-year Base Rev (jump-off)
     const ramp = Math.min(1, years <= 2 ? 1 : y / (years - 2)); // NPI ramps in over the horizon
     const weighted = annualNpi * ramp;
     const target = annualBase * Math.pow(1 + growth, y);
     const remaining = Math.max(0, target - doNothing - weighted);
-    // Three components (single source): (1) New = next-gen ramp, (2) Decline = base revenue eroded vs baseline
-    // if unfunded (= the grey bar's drop), (3) EOL = prior-gen tail (a quarter of the do-nothing line).
+    // Three components (single source): (1) New = next-gen ramp, (2) Decline = the prior-gen lines eroding at
+    // `decline`/yr if unfunded, (3) EOL = prior-gen tail (a quarter of those declining lines).
     const newRev = weighted;
-    const declineRev = Math.max(0, annualBase - doNothing);                // Step 2 — the grey baseline's erosion
-    const eolRev = doNothing * EOL_FRACTION;                               // Step 3 — prior-gen tail of the baseline
+    const declineDoNothing = declineBase * Math.pow(1 - decline, y);        // the actual declining lines, eroding
+    const declineRev = Math.max(0, declineBase - declineDoNothing);         // Step 2 — only SAR + Legacy contribute
+    const eolRev = declineDoNothing * EOL_FRACTION;                         // Step 3 — prior-gen tail of those lines
     const incremental = newRev - declineRev + eolRev; // "1 − 2 + 3" → Incremental Revenue (orange)
     out.push({ year: baseYear + y, doNothing, weighted, remaining, target, newRev, declineRev, eolRev, incremental });
   }
@@ -1643,9 +1650,11 @@ export const BIZ_TIERS: { key: BizTier; label: string; parent?: BizTier }[] = [
 // inherited by children). ALL new fields are optional so a validated loader tolerates old persisted setups.
 export interface BizNode { code: string; label: string; desc?: string; parent?: string; baseM?: number; revM?: number; marginM?: number; growthPct?: number; color?: string }
 export type BizSetup = { company: string } & Record<BizTier, BizNode[]>;
-// Base-year seeds per BU (operator IMG_8045/8049): DS anchors $99M @ 77% CAGR, MS $33M @ 33%, AP $11M @ 44%.
-// Seeded down to the SBU tier (Rev split by SBU do-nothing share, Growth inherited); deeper tiers edit in-app.
-export const BU_SEED_REV: Record<string, number> = { DS: 99, MS: 33, AP: 11 };
+// Base-year Base Rev per BU (operator IMG_8152/8154 — the current-year existing-revenue baseline, i.e. the grey
+// jump-off bar the New/Incremental stacks build on): AP $11M, DS $42M, MS $31M = $84M company. Growth is the
+// aspirational CAGR per BU. Seeded down to the SBU tier (Base Rev split by SBU share, Growth inherited); deeper
+// tiers edit in-app. NOTE: there is no separate "base" number — Base Rev IS the baseline (old BASE $M removed).
+export const BU_SEED_REV: Record<string, number> = { AP: 11, DS: 42, MS: 31 };
 export const BU_SEED_GROWTH: Record<string, number> = { DS: 77, MS: 33, AP: 44 };
 const SEED_MARGIN_FRAC = 0.4; // demo gross-margin fraction → seeds Margin $ from base-year Revenue
 export function seedBizSetup(projects: Project[]): BizSetup {
