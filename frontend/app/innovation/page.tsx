@@ -23,7 +23,7 @@ import {
   DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
-  scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackGroupedByParent, projectRevSeries,
+  scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
@@ -651,19 +651,22 @@ function Board() {
               const fundedIds = new Set(fundedRows.map((r) => r.p.id));
               const fundedProjects = scoped.filter((p) => fundedIds.has(p.id));
               const unfundedProjects = scoped.filter((p) => !fundedIds.has(p.id));
-              const parentTag = stackLevel === "sbu" ? "BU" : stackLevel === "pgroup" ? "SBU" : "";
-              const parentName = (c: string) => stackLevel === "sbu" ? (BU_LABEL[c] ?? c) : stackLevel === "pgroup" ? (SBU_LABEL[c] ?? c) : c;
               const fundedNreK = fundedProjects.reduce((s, p) => s + p.nreK, 0);
               const unfundedNreK = unfundedProjects.reduce((s, p) => s + p.nreK, 0);
+              // Row → BU (for the Trinity color bar). Same color code as the Admin panel (DS cyan · MS amber · AP
+              // violet): the grouping is shown by the left color bar, NOT by parent rollup/subtotal rows (operator:
+              // "remove sub total and totals … subtotal and rollups seems to be confusing HI and AI").
+              const buOfCode: Record<string, string> = {};
+              for (const p of scoped) buOfCode[hierOf(p)[stackLevel]] = hierOf(p).bu;
               type GRow = { key: string; nreK: number; weightedRevM: number; incRevM: number; npvM: number; count: number };
               let rowNo = 0, cum = 0;
-              const dataRow = (g: GRow, indent: boolean, side: "funded" | "unfunded") => {
+              const dataRow = (g: GRow, side: "funded" | "unfunded") => {
                 rowNo += 1; cum += g.nreK;
                 return (
                   <tr key={`${side}-${g.key}`} onClick={() => { setDrill({ level: stackLevel, value: g.key }); setStackLevel("product"); }}
                     className={`cursor-pointer border-b border-slate-900 hover:bg-cyan-500/10 hover:ring-1 hover:ring-inset hover:ring-cyan-500/30 ${side === "funded" ? "" : "opacity-70"}`} title="Drill to projects">
                     <td className="px-2 py-2 tabular-nums text-slate-400">{rowNo}</td>
-                    <td className={`px-2 py-2 font-medium ${indent ? "pl-6" : ""}`}>{indent && <span className="mr-1 text-slate-600">↳</span>}{g.key}</td>
+                    <td className="px-2 py-2 font-medium" style={{ borderLeft: `3px solid ${BU_COLOR[buOfCode[g.key]] ?? "#334155"}` }}>{g.key}</td>
                     <td className="px-2 py-2 text-center tabular-nums text-slate-400">{g.count}</td>
                     <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(g.nreK)}</td>
                     <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={g.weightedRevM} incremental={g.incRevM} /></td>
@@ -672,26 +675,9 @@ function Board() {
                   </tr>
                 );
               };
-              // A section (funded / unfunded) renders its own parent-grouped rows; parent aggregates reflect only
-              // that side's projects (we hand rackGroupedByParent only that side's project set).
-              const section = (projects: Project[], side: "funded" | "unfunded") => {
-                const grouped = rackGroupedByParent(projects, stackLevel);
-                return grouped.parentLevel
-                  ? grouped.groups.map((grp) => (
-                      <React.Fragment key={`${side}-grp-${grp.parent}`}>
-                        <tr className="border-y border-slate-800 bg-slate-900/60">
-                          <td className="px-2 py-1.5" />
-                          <td className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-cyan-300" colSpan={2}>{parentTag} · {grp.parent} <span className="normal-case text-slate-500">{parentName(grp.parent)} · {grp.count} proj</span></td>
-                          <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{k(grp.nreK)}</td>
-                          <td className="px-2 py-1.5 text-right tabular-nums"><PwtCell weighted={grp.weightedRevM} incremental={grp.incRevM} /></td>
-                          <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${grp.npvM >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(grp.npvM)}</td>
-                          <td className="px-2 py-1.5" />
-                        </tr>
-                        {grp.rows.map((g) => dataRow(g, true, side))}
-                      </React.Fragment>
-                    ))
-                  : grouped.groups.map((g) => dataRow(g, false, side));
-              };
+              // Flat rows (NPV desc) per side — NO parent rollup/subtotal rows; the BU color bar carries the grouping.
+              const section = (projects: Project[], side: "funded" | "unfunded") =>
+                rackByLevel(projects, stackLevel).map((g) => dataRow(g, side));
               return (
                 <table className="w-full text-sm">
                   <thead>
@@ -4683,40 +4669,47 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           const m = blendedMarginFrac(n.sp);
           const s1 = Math.round(g.newRev), s2 = Math.round(g.declineRev), s3 = Math.round(g.eolRev);
           const inc = s1 - s2 + s3;
-          return { code: n.code, s1, s2, s3, inc, mgn: Math.round(inc * m) };
+          const base = Math.round(n.seed);        // Base Rev jump-off (current-year, held flat) for this node
+          return { code: n.code, base, full: base + inc, s1, s2, s3, inc, mgn: Math.round(inc * m) };
         });
-        const tot = rowsBk.reduce((a, r) => ({ s1: a.s1 + r.s1, s2: a.s2 + r.s2, s3: a.s3 + r.s3, inc: a.inc + r.inc, mgn: a.mgn + r.mgn }), { s1: 0, s2: 0, s3: 0, inc: 0, mgn: 0 });
+        const tot = rowsBk.reduce((a, r) => ({ base: a.base + r.base, full: a.full + r.full, s1: a.s1 + r.s1, s2: a.s2 + r.s2, s3: a.s3 + r.s3, inc: a.inc + r.inc, mgn: a.mgn + r.mgn }), { base: 0, full: 0, s1: 0, s2: 0, s3: 0, inc: 0, mgn: 0 });
         const segName = childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha";
         const n0 = (v: number) => v;
         return (
           <div className="mt-2 overflow-x-auto rounded-lg border border-slate-800 bg-[#0b0f14]">
-            <div className="px-3 pt-2 text-[10px] uppercase tracking-wider text-slate-500">Funded incremental · {yr} · Step 1 − Step 2 + Step 3 = Incremental Rev · × margin = Incremental Mgn ($M)</div>
+            <div className="px-3 pt-2 text-[10px] uppercase tracking-wider text-slate-500">Funded incremental · {yr} · {baselineShown ? "Base Rev + " : ""}Step 1 − Step 2 + Step 3 = Incremental Rev{baselineShown ? " · Base + Incr = Full Rev" : ""} · × margin = Incremental Mgn ($M)</div>
             <table className="w-full text-[11px] tabular-nums">
               <thead><tr className="text-slate-500">
                 <th className="px-3 py-1 text-left font-medium">{segName}</th>
+                {baselineShown && <th className="px-2 py-1 text-right font-medium text-slate-400">Base Rev</th>}
                 <th className="px-2 py-1 text-right font-medium text-emerald-300">Step 1 New</th>
                 <th className="px-2 py-1 text-right font-medium text-rose-300">− Step 2 Decline</th>
                 <th className="px-2 py-1 text-right font-medium text-violet-300">+ Step 3 EOL</th>
                 <th className="px-2 py-1 text-right font-medium text-amber-300">= Incr Rev</th>
+                {baselineShown && <th className="px-2 py-1 text-right font-medium text-sky-300">Full Rev</th>}
                 <th className="px-3 py-1 text-right font-medium text-amber-200">Incr Mgn</th>
               </tr></thead>
               <tbody>
                 {rowsBk.map((r) => (
                   <tr key={r.code} className="border-t border-slate-900">
                     <td className="px-3 py-1 font-mono text-slate-200">{r.code}</td>
+                    {baselineShown && <td className="px-2 py-1 text-right text-slate-400">${n0(r.base)}</td>}
                     <td className="px-2 py-1 text-right text-slate-300">${n0(r.s1)}</td>
                     <td className="px-2 py-1 text-right text-slate-300">${n0(r.s2)}</td>
                     <td className="px-2 py-1 text-right text-slate-300">${n0(r.s3)}</td>
                     <td className="px-2 py-1 text-right font-semibold text-amber-300">${n0(r.inc)}</td>
+                    {baselineShown && <td className="px-2 py-1 text-right font-semibold text-sky-300">${n0(r.full)}</td>}
                     <td className="px-3 py-1 text-right text-amber-200">${n0(r.mgn)}</td>
                   </tr>
                 ))}
                 <tr className="border-t border-slate-700 font-semibold">
                   <td className="px-3 py-1 text-cyan-300">{scopeLabel}</td>
+                  {baselineShown && <td className="px-2 py-1 text-right text-slate-300">${n0(tot.base)}</td>}
                   <td className="px-2 py-1 text-right text-emerald-300">${n0(tot.s1)}</td>
                   <td className="px-2 py-1 text-right text-rose-300">${n0(tot.s2)}</td>
                   <td className="px-2 py-1 text-right text-violet-300">${n0(tot.s3)}</td>
                   <td className="px-2 py-1 text-right text-amber-300">${n0(tot.inc)}</td>
+                  {baselineShown && <td className="px-2 py-1 text-right text-sky-300">${n0(tot.full)}</td>}
                   <td className="px-3 py-1 text-right text-amber-200">${n0(tot.mgn)}</td>
                 </tr>
               </tbody>
