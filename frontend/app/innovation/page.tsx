@@ -2034,18 +2034,6 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
               </div>
             </div>
           );
-          const bucketCard = (b: typeof buckets[number]) => (
-            <div key={b.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
-              <div className="mb-1.5 flex items-baseline justify-between">
-                <span className="text-xs font-semibold text-slate-100">{b.code}</span>
-                <span className="text-[9px] text-slate-500">{b.label}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {cell("Funded", "ok", b.funded)}
-                {cell("Unfunded", "bad", b.unfunded)}
-              </div>
-            </div>
-          );
           // Group the funded/unfunded buckets under a parent header (operator): SBUs nested under their BU,
           // Alpha Groups nested under "BU • SBU". BU is the top of the hierarchy, so it stays flat.
           const parentInfo = (code: string): { key: string; label: string; bu: string } => {
@@ -2065,36 +2053,60 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
               grouped[i].items.push(b);
             }
           }
+          // Above-the-line = combined FUNDED nodes; below-the-line = combined NOT-FUNDED nodes (operator). One
+          // funding line splits the two. Each node card shows that node's count + financials for the side.
+          const sumSide = (side: "funded" | "unfunded") => buckets.reduce((s, b) => ({ count: s.count + b[side].count, nreK: s.nreK + b[side].nreK }), { count: 0, nreK: 0 });
+          const totF = sumSide("funded"), totU = sumSide("unfunded");
+          const sideCards = (side: "funded" | "unfunded") => {
+            const tone: "ok" | "bad" = side === "funded" ? "ok" : "bad";
+            const withData = buckets.filter((b) => b[side].count > 0);
+            if (!withData.length) return <div className="text-[10px] italic text-slate-600">none</div>;
+            if (level === "bu") {
+              return <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{withData.map((b) => <React.Fragment key={b.code}>{cell(b.code, tone, b[side])}</React.Fragment>)}</div>;
+            }
+            const gs = grouped.map((g) => ({ ...g, items: g.items.filter((b) => b[side].count > 0) })).filter((g) => g.items.length);
+            return (
+              <div className="flex flex-col gap-2.5">
+                {gs.map((g) => {
+                  const c = BU_COLOR[g.bu] ?? "#64748b";
+                  return (
+                    <div key={g.key}>
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="h-px w-4 shrink-0" style={{ background: c }} />
+                        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider" style={{ color: c }}>{g.label}</span>
+                        <span className="h-px flex-1 bg-slate-800" />
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{g.items.map((b) => <React.Fragment key={b.code}>{cell(b.code, tone, b[side])}</React.Fragment>)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          };
           return (
             <div className="border-b border-slate-800 px-4 py-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {buckets.length} {levelLabel}{buckets.length === 1 ? "" : "s"}{level !== "bu" ? ` · grouped by ${level === "sbu" ? "BU" : "BU • SBU"}` : ""} × funded / unfunded · live $/{CADENCE_UNIT[cadence].short} burn</span>
+                <span className="text-[10px] uppercase tracking-wider text-slate-500">Funding buckets · {levelLabel} · above the line = FUNDED · below = NOT FUNDED · live $/{CADENCE_UNIT[cadence].short} burn</span>
                 <span className="text-[10px] text-slate-500">a project sits in one bucket, set by the funding line</span>
               </div>
-              {level === "bu" ? (
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {buckets.map(bucketCard)}
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {grouped.map((g) => {
-                    const c = BU_COLOR[g.bu] ?? "#64748b";
-                    return (
-                      <div key={g.key}>
-                        <div className="mb-1.5 flex items-center gap-2">
-                          <span className="h-px w-4 shrink-0" style={{ background: c }} />
-                          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider" style={{ color: c }}>{g.label}</span>
-                          <span className="shrink-0 text-[9px] text-slate-500">{g.items.length} {levelLabel}{g.items.length === 1 ? "" : "s"}</span>
-                          <span className="h-px flex-1 bg-slate-800" />
-                        </div>
-                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                          {g.items.map(bucketCard)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              {/* ABOVE THE LINE — combined FUNDED */}
+              <div className="mb-1.5 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
+                <span className="shrink-0">▲ Above · Funded</span>
+                <span className="shrink-0 text-slate-500">{totF.count} proj · {k(totF.nreK)} NRE</span>
+                <span className="h-px flex-1 bg-emerald-500/40" />
+              </div>
+              {sideCards("funded")}
+              {/* FUNDING LINE */}
+              <div className="my-2.5 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-amber-400">
+                <span className="h-px flex-1 bg-amber-500/60" />Funding line · {k(availK)} R&amp;D<span className="h-px flex-1 bg-amber-500/60" />
+              </div>
+              {/* BELOW THE LINE — combined NOT FUNDED */}
+              <div className="mb-1.5 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-rose-400">
+                <span className="shrink-0">▼ Below · Not funded</span>
+                <span className="shrink-0 text-slate-500">{totU.count} proj · {k(totU.nreK)} NRE</span>
+                <span className="h-px flex-1 bg-rose-500/40" />
+              </div>
+              {sideCards("unfunded")}
             </div>
           );
         })()}
@@ -4345,11 +4357,11 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
   const [showBaseline, setShowBaseline] = useState(true);
   // Growth-model band view (operator, Manager-and-above decision surface). Two composable controls:
   //   • metric: Rev (default) or Mgn         • incr (Incremental modifier): default ON
-  // So the chart OPENS on Incremental Rev with BOTH "Rev" and "Incremental" highlighted. Selecting Mgn keeps
-  // Incremental on → Incremental Mgn; toggling Incremental off → Full Rev / Full Mgn. Step 1/2/3 is a separate
-  // do-nothing-component view that overrides the metric while active.
+  // Operator: Rev / Mgn = FULL. The chart OPENS on Full Revenue (Rev highlighted, NOT incremental). Selecting
+  // Rev/Mgn always shows FULL and clears incremental+step. "Incremental" is a SEPARATE, explicit toggle that
+  // composes with the current metric (Rev→Incremental Rev, Mgn→Incremental Mgn). Step 1/2/3 is its own view.
   const [metric, setMetric] = useState<"rev" | "mgn">("rev");
-  const [incr, setIncr] = useState(true);
+  const [incr, setIncr] = useState(false);
   const [step, setStep] = useState<null | "new" | "decline" | "eol">(null);
   const band: "incremental" | "incmgn" | "rev" | "mgn" | "new" | "decline" | "eol" =
     step ?? (incr ? (metric === "rev" ? "incremental" : "incmgn") : metric);
@@ -4481,7 +4493,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">Growth Model · Do-Nothing Scenario with Portfolio NPIs</h3>
-        <span className="text-[11px] text-slate-500">target CAGR ~{cagr}% · Margin ${Math.round(scopeMargin)}M · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
+        <span className="text-[11px] text-slate-500">Target CAGR ~{cagr}% · Margin ${Math.round(scopeMargin)}M · {scoped.length} project{scoped.length === 1 ? "" : "s"}</span>
       </div>
 
       {/* Per-BU CAGR banner (operator, upper-right scrollable) — target (seeded Growth %) vs actual (rollup). */}
@@ -4495,8 +4507,8 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
             <span key={b} className="inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5" style={{ borderColor: `${BU_COLOR[b]}55` }}>
               <i className="inline-block h-2 w-2 rounded-sm" style={{ background: BU_COLOR[b] }} />
               <b className="font-mono" style={{ color: BU_COLOR[b] }}>{b}</b>
-              <span className="text-slate-400">tgt {Math.round(tgt)}%</span>
-              <span className={onTrack ? "text-emerald-300" : "text-rose-300"}>act {Math.round(act)}%</span>
+              <span className="text-slate-400">Tgt {Math.round(tgt)}%</span>
+              <span className={onTrack ? "text-emerald-300" : "text-rose-300"}>Act {Math.round(act)}%</span>
             </span>
           );
         })}
@@ -4515,12 +4527,16 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           ))}
         </div>
         {/* Financial metric selectors — placed AFTER (to the right of) the split-by toggle (operator IMG_8129):
-            Rev · Mgn. These set the METRIC and clear any Step view; the Incremental modifier below composes. */}
+            Rev · Mgn. Selecting one shows FULL Rev/Mgn and clears Incremental + Step (operator: Rev is never
+            incremental). Highlighted only when that metric is showing FULL. */}
         <div className="flex overflow-hidden rounded-md border border-slate-700">
-          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => (
-            <button key={k} onClick={() => { setMetric(k); setStep(null); }} aria-pressed={metric === k && !step}
-              className={`px-2.5 py-1 ${metric === k && !step ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
-          ))}
+          {([["rev", "Rev"], ["mgn", "Mgn"]] as const).map(([k, lbl]) => {
+            const on = metric === k && !incr && !step;
+            return (
+              <button key={k} onClick={() => { setMetric(k); setIncr(false); setStep(null); }} aria-pressed={on}
+                className={`px-2.5 py-1 ${on ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+            );
+          })}
         </div>
         {/* # Years */}
         <div className="ml-auto flex overflow-hidden rounded-md border border-slate-700">
@@ -4574,7 +4590,7 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
           return (
             <g key={r.year} fontFamily="ui-monospace, monospace" fontSize="9" opacity={dim}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
-              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · target Rev ${Math.round(targetLine[i])}M · growth {growthPct}%/yr</title>
+              <title>{r.year} — {BAND[band].label}: {Math.round(net)} · {segments.map((g) => `${g.code} ${Math.round(segVal(g, i))}`).join(" · ")} · Target Rev ${Math.round(targetLine[i])}M · growth {growthPct}%/yr</title>
               <rect x={x} y={T} width={bw} height={H - B - T} fill="transparent" />
               {segments.map((g) => {
                 const v = segVal(g, i); if (!v) return null;
@@ -4600,9 +4616,9 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         )) : <span className="italic text-slate-600">no projects in scope</span>}
       </div>
 
-      {/* Incremental modifier — composes with the Rev/Mgn metric (Rev → Incremental Rev, Mgn → Incremental Mgn).
-          Defaults ON for Manager-and-above, so the chart opens on Incremental Rev. Then the do-nothing Step
-          1/2/3 components (a separate view that overrides the metric while active). */}
+      {/* Incremental modifier — a SEPARATE view that composes with the Rev/Mgn metric (Rev → Incremental Rev,
+          Mgn → Incremental Mgn). OFF by default (chart opens on Full Rev). Then the do-nothing Step 1/2/3
+          components (each a separate view that overrides the metric while active). */}
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
         <button onClick={() => { setIncr((o) => !o); setStep(null); }} aria-pressed={incr && !step}
           className={`rounded border px-2 py-0.5 ${incr && !step ? "border-transparent text-[#06202a] font-semibold" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
@@ -4617,9 +4633,65 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         <button type="button" onClick={() => setShowBaseline((v) => !v)} disabled={!targetApplies} aria-pressed={showTarget}
           title={targetApplies ? "Toggle the growth target line" : "Growth target applies only in Incremental mode"}
           className={`ml-1 inline-flex items-center ${targetApplies ? "text-slate-400 hover:text-slate-200" : "cursor-not-allowed text-slate-600"}`}>
-          <i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0", opacity: showTarget ? 1 : 0.3 }} />Growth target
+          <i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: "#e2e8f0", opacity: showTarget ? 1 : 0.3 }} />Growth Target
         </button>
       </div>
+
+      {/* Per-node financial breakdown (operator: "show me the calc for each BU") — FUNDED only, final displayed
+          year: Step 1 − Step 2 + Step 3 = Incremental Rev, × each node's blended margin = Incremental Mgn, with
+          a scope TOTAL = Σ nodes. Makes the Incremental band auditable and reconciles to the bars. */}
+      {(() => {
+        const li = rows.length - 1;
+        const yr = rows[li]?.year;
+        // Round the ATOMIC components first, then derive Incremental = S1 − S2 + S3 from the rounded parts, and
+        // the TOTAL row as the column-wise sum of the rounded node values — so every displayed row AND column
+        // reconciles exactly (no "51 − 2 + 1 shows 50 but Incr says 49" rounding artifact).
+        const rowsBk = nodeInfo.map((n) => {
+          const g = growthModel(n.sp, gmOpts(baseM * n.share))[li] ?? { newRev: 0, declineRev: 0, eolRev: 0, incremental: 0 };
+          const m = blendedMarginFrac(n.sp);
+          const s1 = Math.round(g.newRev), s2 = Math.round(g.declineRev), s3 = Math.round(g.eolRev);
+          const inc = s1 - s2 + s3;
+          return { code: n.code, s1, s2, s3, inc, mgn: Math.round(inc * m) };
+        });
+        const tot = rowsBk.reduce((a, r) => ({ s1: a.s1 + r.s1, s2: a.s2 + r.s2, s3: a.s3 + r.s3, inc: a.inc + r.inc, mgn: a.mgn + r.mgn }), { s1: 0, s2: 0, s3: 0, inc: 0, mgn: 0 });
+        const segName = childLevel === "bu" ? "BU" : childLevel === "sbu" ? "SBU" : "Alpha";
+        const n0 = (v: number) => v;
+        return (
+          <div className="mt-2 overflow-x-auto rounded-lg border border-slate-800 bg-[#0b0f14]">
+            <div className="px-3 pt-2 text-[10px] uppercase tracking-wider text-slate-500">Funded incremental · {yr} · Step 1 − Step 2 + Step 3 = Incremental Rev · × margin = Incremental Mgn ($M)</div>
+            <table className="w-full text-[11px] tabular-nums">
+              <thead><tr className="text-slate-500">
+                <th className="px-3 py-1 text-left font-medium">{segName}</th>
+                <th className="px-2 py-1 text-right font-medium text-emerald-300">Step 1 New</th>
+                <th className="px-2 py-1 text-right font-medium text-rose-300">− Step 2 Decline</th>
+                <th className="px-2 py-1 text-right font-medium text-violet-300">+ Step 3 EOL</th>
+                <th className="px-2 py-1 text-right font-medium text-amber-300">= Incr Rev</th>
+                <th className="px-3 py-1 text-right font-medium text-amber-200">Incr Mgn</th>
+              </tr></thead>
+              <tbody>
+                {rowsBk.map((r) => (
+                  <tr key={r.code} className="border-t border-slate-900">
+                    <td className="px-3 py-1 font-mono text-slate-200">{r.code}</td>
+                    <td className="px-2 py-1 text-right text-slate-300">${n0(r.s1)}</td>
+                    <td className="px-2 py-1 text-right text-slate-300">${n0(r.s2)}</td>
+                    <td className="px-2 py-1 text-right text-slate-300">${n0(r.s3)}</td>
+                    <td className="px-2 py-1 text-right font-semibold text-amber-300">${n0(r.inc)}</td>
+                    <td className="px-3 py-1 text-right text-amber-200">${n0(r.mgn)}</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-slate-700 font-semibold">
+                  <td className="px-3 py-1 text-cyan-300">{scopeLabel}</td>
+                  <td className="px-2 py-1 text-right text-emerald-300">${n0(tot.s1)}</td>
+                  <td className="px-2 py-1 text-right text-rose-300">${n0(tot.s2)}</td>
+                  <td className="px-2 py-1 text-right text-violet-300">${n0(tot.s3)}</td>
+                  <td className="px-2 py-1 text-right text-amber-300">${n0(tot.inc)}</td>
+                  <td className="px-3 py-1 text-right text-amber-200">${n0(tot.mgn)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
 
       {/* MoT time-spread (operator) — scoped cost/rev/margin totals spread to $/min over 91-day / 365-day / custom */}
       {(() => {

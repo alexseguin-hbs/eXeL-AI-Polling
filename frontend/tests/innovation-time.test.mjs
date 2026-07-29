@@ -92,6 +92,21 @@ ok(gmBase.every((r, i) => Math.abs(r.declineRev - gmOver[i].declineRev) < 1e-9 &
 // New-revenue-only project (doNothing10yM = 0): zero Decline + zero EOL → Incremental == Step 1 New.
 const gmNewOnly = growthModel([P({ doNothing10yM: 0, fullRev10yM: 900 })], { years: 6, decline: 0.15, baseOverrideM: 5000 });
 ok(gmNewOnly.every((r) => r.declineRev === 0 && r.eolRev === 0 && Math.abs(r.incremental - r.newRev) < 1e-9), "new-revenue-only: Decline=EOL=0, Incremental == Step 1 New");
+// FINANCIAL RECONCILIATION (operator 9× audit): the per-BU breakdown must sum to the Company total for EVERY
+// step + Incremental, every year — so the Growth Model's Incremental band == Σ BU (Step1 − Step2 + Step3).
+{
+  const YRS = 4;
+  const allGm = growthModel(DEMO_PROJECTS, { years: YRS });
+  const buList = [...new Set(DEMO_PROJECTS.map((p) => hierOf(p).bu))];
+  const buGms = buList.map((bu) => growthModel(DEMO_PROJECTS.filter((p) => hierOf(p).bu === bu), { years: YRS }));
+  let recon = true;
+  for (let y = 0; y < YRS; y++) {
+    const sum = (k) => buGms.reduce((s, g) => s + g[y][k], 0);
+    for (const k of ["newRev", "declineRev", "eolRev", "incremental"]) if (Math.abs(sum(k) - allGm[y][k]) > 1e-6) recon = false;
+    if (Math.abs(allGm[y].incremental - (allGm[y].newRev - allGm[y].declineRev + allGm[y].eolRev)) > 1e-6) recon = false;
+  }
+  ok(recon, "Σ BU == Company for New/Decline/EOL/Incremental every year, and Incremental == Step1−Step2+Step3");
+}
 
 /* ---------------- Rack & Stack 2525: hierarchy + crowd-sourced risk register ---------------- */
 import {
