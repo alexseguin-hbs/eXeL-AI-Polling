@@ -8,6 +8,7 @@
  *
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
+import ReactDOM from "react-dom";
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
@@ -3084,10 +3085,13 @@ const SLIDE_PRINT_CSS = `
 @media print {
   @page { size: 1600px 900px landscape; margin: 0; }
   html, body { background: #fff !important; height: auto !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  /* Only the print stack paints. visibility (not display) keeps the stack's own layout intact. */
-  body * { visibility: hidden !important; }
-  .slide-print-stack, .slide-print-stack * { visibility: visible !important; }
-  .slide-print-stack { position: absolute !important; left: 0 !important; top: 0 !important; display: block !important; width: 1600px; }
+  /* Only the print stack paints. It is PORTALLED to <body>, so hiding body's other children is exact —
+     and display:none (not visibility:hidden) removes them from FLOW, which is what stops the print engine
+     paginating around boxes nobody can see. */
+  body > *:not(.slide-print-stack) { display: none !important; }
+  .slide-print-stack { position: static !important; display: block !important; width: 1600px; margin: 0 !important; }
+  .slide-print-page { position: relative !important; width: 1600px !important; height: 900px !important; transform: none !important; }
+  .slide-print-page [data-slide-canvas] { transform: none !important; }
   .slide-noprint { display: none !important; }
   .slide-printonly { display: inline !important; }
   .slide-print-page { break-after: page; page-break-after: always; overflow: hidden; }
@@ -3754,7 +3758,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
 
     // ── COVER PAGE (print only, operator #17) — every figure resolves from the deck engine ───────
     const Cover = () => (
-      <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14]" style={sheetStyle}>
+      <div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-[#0b0f14]" style={printSheetStyle}>
         <div className="flex h-full flex-col justify-between" style={{ padding: "6cqh 5cqw" }}>
           <div>
             <div className="font-mono uppercase tracking-[0.3em] text-cyan-400" style={{ fontSize: TS.micro }}>Gate Review Deck · S1–S{SLIDE_SCHEMA.length}</div>
@@ -3816,14 +3820,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </div>
         </div>
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
-        {printing && <div className="slide-print-stack hidden" aria-hidden>
+        {printing && typeof document !== "undefined" && ReactDOM.createPortal(
+          <div className="slide-print-stack hidden" aria-hidden>
           <div className="slide-print-page relative" style={{ width: SHEET_W, height: SHEET_H }}><Cover /></div>
           {SLIDE_SCHEMA.map((sp, i) => (
             <div key={sp.code} className="slide-print-page relative" style={{ width: SHEET_W, height: SHEET_H }}>
               <Sheet sp={sp} i={i} style={printSheetStyle} />
             </div>
           ))}
-        </div>}
+          </div>, document.body)}
       </div>
     );
   }

@@ -1545,7 +1545,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/Safari on iOS may ignore it/.test(src), "the PDF button's tooltip states the browser caveat");
 
   // cost + correctness
-  ok(/const \[printing, setPrinting\] = useState\(false\);/.test(src) && /\{printing && <div className="slide-print-stack hidden"/.test(src), "the 20-page stack MOUNTS only while printing — a phone never lays out pixels nobody sees");
+  ok(/const \[printing, setPrinting\] = useState\(false\);/.test(src) && /\{printing && typeof document !== "undefined" && ReactDOM\.createPortal\(/.test(src), "the 20-page stack MOUNTS only while printing — a phone never lays out pixels nobody sees");
   ok(/addEventListener\("beforeprint"/.test(src) && /addEventListener\("afterprint"/.test(src), "Ctrl/Cmd-P produces the same artifact as the button");
   const deps = JSON.stringify({ ...pkg.dependencies, ...pkg.devDependencies });
   ok(!/jspdf|html2pdf|pdfmake|puppeteer|html2canvas/i.test(deps), "no PDF dependency was added — the browser's own print engine does it");
@@ -1753,6 +1753,49 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(vals.body > 0.72, "body copy is larger than it shipped at (0.72cqw) — 22c produced a real gain, not a no-op");
   ok(vals.num < vals.head && vals.head < vals.proj, "the scale stays monotonic after the raise: num < head < proj");
   ok(vals.micro < vals.body && vals.body < vals.lead, "micro < body < lead survives 22c");
+}
+
+// ── #29 · THE PDF IS THE ARTIFACT, NOT THE DOM ──────────────────────────────────────────
+// The #4/#17 probe counted 21 elements it BELIEVED were pages and reported the export verified. The real
+// export was TWO pages. Counting your own intention is not verification. The gate now drives page.pdf() and
+// asserts on the bytes Chromium emits. Proven red against the pre-fix build: "REAL PDF pages: 2".
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const gate = await fsp.readFile("scripts/pdf-gate.mjs", "utf8");
+  const ship = await fsp.readFile("scripts/ship.sh", "utf8");
+  const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
+  const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
+
+  // the gate asserts on the ARTIFACT
+  ok(/await page\.pdf\(\{/.test(gate), "the gate produces a REAL PDF via page.pdf()");
+  ok(/const pdfPageCount = \(buf\) =>/.test(gate) && /\/Type\\s\*\\\/Page/.test(gate), "page count is read from the PDF's own object table, not from the DOM");
+  ok(/EXPECT_PAGES = SLIDE_SCHEMA\.length \+ 1/.test(gate), `expected page count is derived from the schema (${SLIDE_SCHEMA.length} + cover), so adding a slide cannot leave the gate asserting a stale number`);
+  ok(/THE ARTIFACT HAS \$\{pages\} PAGES/.test(gate), "a wrong page count is a hard failure naming the artifact");
+  ok(/does not fill the 1600x900 sheet/.test(gate), "the gate catches the third-scale cover — every canvas must FILL its sheet");
+  ok(/runs \$\{g\.widest - 1600\}px past the right edge/.test(gate), "the gate catches content running off the page");
+  ok(/dispatchEvent\(new Event\("beforeprint"\)\)/.test(gate), "the stack is mounted through the app's OWN beforeprint listener — if that breaks, the gate breaks with it");
+  ok(!/jspdf|pdf-lib|pdfkit/i.test(gate), "no PDF dependency — Chromium's own engine produces it and the bytes are parsed directly");
+
+  // ROOT CAUSE 1 — the cover carried the SCREEN transform
+  ok(/<div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-\[#0b0f14\]" style=\{printSheetStyle\}>/.test(src),
+     "the cover uses printSheetStyle — sheetStyle carries transform:scale(fit), which is what printed it at a third scale in the corner");
+  ok(!/const Cover = \(\) => \(\s*<div data-slide-canvas[^>]*style=\{sheetStyle\}/.test(src), "the cover no longer takes the screen sheet style");
+
+  // ROOT CAUSE 2 — absolute inside a FIXED modal gave the print engine one viewport-tall block
+  ok(/ReactDOM\.createPortal\(/.test(src) && /document\.body\)\}/.test(src), "the print stack is PORTALLED to <body> so it sits in normal flow the print engine can paginate");
+  ok(/import ReactDOM from "react-dom";/.test(src), "react-dom is imported for the portal (no new dependency — it is already the renderer)");
+
+  // ROOT CAUSE 3 — isolation by display, not visibility
+  ok(/body > \*:not\(\.slide-print-stack\) \{ display: none !important; \}/.test(src), "print isolation removes other content from FLOW, not merely from view");
+  ok(/\.slide-print-stack \{ position: static !important;/.test(src), "the stack is static in print — absolute inside the fixed modal was the 2-page bug");
+  ok(/\.slide-print-page \{ position: relative !important; width: 1600px !important; height: 900px !important; transform: none !important; \}/.test(src), "every print page is exactly one 1600x900 sheet with no transform");
+
+  // wired into the release path
+  ok(pkg.scripts["test:pdf-gate"], "npm run test:pdf-gate exists");
+  ok(pkg.scripts["test:all"].includes("npm run test:pdf-gate"), "test:all runs the PDF gate");
+  ok(/pdf-gate/.test(ship), "ship.sh runs the PDF gate");
+  ok(ship.indexOf("slide-shots.mjs") < ship.indexOf("test:pdf-gate"), "the PDF gate runs after the slide gate (both need the build)");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

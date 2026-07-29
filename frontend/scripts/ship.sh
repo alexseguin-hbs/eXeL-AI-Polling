@@ -50,6 +50,11 @@ echo "  ✓ compiled"
 if [ "${SKIP_TESTS:-0}" != "1" ] && [ "${SKIP_SHOTS:-0}" != "1" ]; then
   step "npm run test:slide-shots (present-mode overflow + type-scale + empty-panel gate)"
   node scripts/slide-shots.mjs || fail "slide gate red — a slide clips, oversizes type, or renders an empty panel"
+
+  # The PDF gate asserts on the ARTIFACT Chromium emits, not on the DOM. The #4 probe counted 21 nodes it
+  # believed were pages while the real export had 2 — the operator found that, not the gate.
+  step "npm run test:pdf-gate (real page.pdf() — page count + sheet geometry)"
+  npm run --silent test:pdf-gate || fail "PDF gate red — the exported deck is not 21 correct 1600x900 pages"
 fi
 
 # ── 2 · COMMIT (only if a message was supplied and the tree is dirty) ────────────────────────
