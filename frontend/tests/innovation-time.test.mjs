@@ -1342,6 +1342,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const codes = SLIDE_SCHEMA.map((s) => s.code);
   // Every field id a built panel names must be a REAL field on that slide.
   const PANEL_FIELDS = {
+    S1: ["oneline", "segment", "valueprop", "ask"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
     S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"],
   };

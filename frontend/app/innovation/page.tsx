@@ -3468,6 +3468,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       return f ? <PresentField key={f.id} sp={spec} f={f} big /> : null;
     });
     const SLIDE_PANEL: Record<string, () => React.ReactNode> = {
+      // S1 — Executive Summary (AMTS exec one-pager: what / who | why | the ask). The ask spans the foot
+      // because it is the one line a gate board has to act on.
+      S1: () => (
+        <>
+          <AmtsPanel title="Product · What It Is And Who It Is For" icon="◧" required={spec.stage}>
+            {fieldsOf("oneline", "segment")}
+          </AmtsPanel>
+          <AmtsPanel title="Key Value Proposition" icon="♡" required={spec.stage}>
+            {fieldsOf("valueprop")}
+          </AmtsPanel>
+          <AmtsPanel wide title="Recommendation · Ask For The Gate" icon="⚑" required={spec.stage}>
+            {fieldsOf("ask")}
+          </AmtsPanel>
+        </>
+      ),
       // S2 — the timeline card that shipped in G-play, re-expressed through the shared frame. Layout is
       // UNCHANGED (wide timeline card, then the field grid) — only the frame is now the common primitive.
       // The full 6-panel AMTS S2 lands in its own commit later in the build order.
