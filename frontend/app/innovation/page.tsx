@@ -5095,34 +5095,95 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
   );
 }
 
+// G6 — ROI VISUALS (simplified, R-CORE reuse). One Growth-Model-style segmented selector switches between the
+// four visuals the operator kept useful: Pipeline-by-Gate · 12-box metrics · one horizontal spend bar · a new
+// portfolio cash-flow line. Replaces the old messy 4-card ROI grid + redundant stat row. Everything ties to the
+// same engine (financialMetrics / roiSummary / financialsOverview) so numbers never diverge from the deck.
+function RoiVisuals({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
+  const [view, setView] = useState<"pipeline" | "metrics" | "spend" | "cash">("pipeline");
+  const kM = k;
+  const roi = roiSummary(funded);
+  const eff = rdEfficiency(funded);
+  const cost = costSplit(projects);
+  const npvTotal = funded.reduce((s, p) => s + npvM(p), 0);
+  const incrTotal = funded.reduce((s, p) => s + incrementalRevM(p), 0);
+  const wtdTotal = funded.reduce((s, p) => s + weightedRevM(p), 0);
+  const rev10 = funded.reduce((s, p) => s + financialMetrics(p).rev10yM, 0);
+  const gp10 = funded.reduce((s, p) => s + financialMetrics(p).grossProfit10yM, 0);
+  const gmPct = rev10 > 0 ? Math.round((gp10 / rev10) * 100) : 0;
+  const byBU = spendByBU(projects);
+  // Portfolio cash-flow: Σ funded (margin − R&D) per year, cumulative. Reuses financialsOverview (deck engine).
+  const YRS = 10;
+  const rows = funded.map((p) => financialsOverview(p, { years: YRS, funded: true }));
+  let run = 0;
+  const cash = Array.from({ length: YRS }, (_, y) => {
+    const marginM = rows.reduce((s, r) => s + (r[y]?.marginM ?? 0), 0);
+    const rdM = rows.reduce((s, r) => s + (r[y]?.rdK ?? 0) / 1000, 0);
+    run += marginM - rdM;
+    return { year: (rows[0]?.[y]?.year ?? 2026), marginM, rdM, cum: run };
+  });
+  const tiles: { label: string; value: string; sub?: string; tone?: "green" | "cyan" | "amber" }[] = [
+    { label: "Projects", value: `${projects.length}`, sub: `${funded.length} funded` },
+    { label: "R&D efficiency", value: `${eff.toFixed(2)}×`, sub: "NPV per $ NRE", tone: "green" },
+    { label: "10-Yr NPV", value: usd(npvTotal), sub: "funded", tone: "green" },
+    { label: "Incremental Rev", value: usd(incrTotal), sub: "10-yr funded", tone: "cyan" },
+    { label: "Prob-Weighted Rev", value: usd(wtdTotal), sub: "risk-adjusted", tone: "green" },
+    { label: "Total NRE", value: kM(cost.totalK), sub: "all projects", tone: "amber" },
+    { label: "10-Yr Revenue", value: usd(rev10), sub: "funded", tone: "green" },
+    { label: "Gross Margin", value: `${gmPct}%`, sub: "portfolio", tone: "green" },
+    { label: "New-Product Rev", value: usd(roi.newProductM), sub: "10-yr", tone: "cyan" },
+    { label: "End-of-Life Rev", value: usd(roi.eolM), sub: "10-yr", tone: "amber" },
+    { label: "Upside (at-risk)", value: usd(Math.max(0, roi.incrementalM - roi.weightedM)), sub: "to 100%", tone: "amber" },
+    { label: "Cash @ Yr 10", value: usd(cash[YRS - 1]?.cum ?? 0), sub: "cumulative", tone: cash[YRS - 1]?.cum >= 0 ? "green" : "amber" },
+  ];
+  const VIEWS = [["pipeline", "Pipeline"], ["metrics", "Metrics"], ["spend", "Spend"], ["cash", "Cash Flow"]] as const;
+  // cash-flow mini chart geometry
+  const W = 560, H = 150, L = 34, B = 20, T = 10;
+  const maxV = Math.max(1, ...cash.map((c) => Math.max(c.marginM, c.cum)));
+  const minV = Math.min(0, ...cash.map((c) => c.cum), ...cash.map((c) => -c.rdM));
+  const span = maxV - minV || 1, pw = (W - L) / YRS;
+  const y = (v: number) => T + (H - B - T) * (1 - (v - minV) / span);
+  return (
+    <DashCard title="ROI Visuals" tag="Portfolio">
+      {/* Growth-Model-style segmented selector (Sofia: identical class recipe) */}
+      <div className="mb-3 flex overflow-hidden rounded-md border border-slate-700 text-[11px] w-fit">
+        {VIEWS.map(([k2, lbl]) => (
+          <button key={k2} onClick={() => setView(k2)} aria-pressed={view === k2}
+            className={`px-2.5 py-1 ${view === k2 ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
+        ))}
+      </div>
+      {view === "pipeline" && <PipelineByGate projects={projects} funded={funded} onSelect={onSelect} />}
+      {view === "metrics" && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {tiles.map((m) => <StatTile key={m.label} label={m.label} value={m.value} sub={m.sub} tone={m.tone} />)}
+        </div>
+      )}
+      {view === "spend" && (<><HBars rows={byBU.map((s) => ({ name: s.name, value: s.spendK, sub: `${s.count}` }))} fmt={kM} /><p className="mt-2 text-[10px] text-slate-500">NRE spend by Business Unit · right count = # projects.</p></>)}
+      {view === "cash" && (
+        <div className="overflow-x-auto">
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 360, height: "auto" }} role="img" aria-label="Portfolio cash flow">
+            <line x1={L} y1={y(0)} x2={W} y2={y(0)} stroke="rgba(148,163,184,.35)" />
+            {cash.map((c, i) => { const bx = L + i * pw + pw * 0.2, bw = pw * 0.28;
+              return <g key={c.year}>
+                <rect x={bx} y={Math.min(y(0), y(c.marginM))} width={bw} height={Math.abs(y(0) - y(c.marginM))} fill="#34d399" rx={1} />
+                <rect x={bx + bw + 2} y={y(0)} width={bw} height={Math.abs(y(0) - y(-c.rdM))} fill="#f87171" rx={1} opacity={0.9} />
+                <text x={bx + bw} y={H - 6} textAnchor="middle" fontSize="8" fill="#64748b" fontFamily="ui-monospace, monospace">{String(c.year).slice(2)}</text>
+              </g>; })}
+            <polyline fill="none" stroke="#38bdf8" strokeWidth={1.8} points={cash.map((c, i) => `${L + i * pw + pw * 0.5},${y(c.cum)}`).join(" ")} />
+            {cash.map((c, i) => <circle key={c.year} cx={L + i * pw + pw * 0.5} cy={y(c.cum)} r={2.2} fill="#38bdf8" />)}
+          </svg>
+          <p className="mt-1 flex flex-wrap gap-x-3 text-[10px] text-slate-500"><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#34d399]" />Margin</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#f87171]" />R&D/NRE</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#38bdf8]" />Cumulative cash</span><span className="ml-auto tabular-nums text-slate-400">Yr-10 cash {usd(cash[YRS - 1]?.cum ?? 0)}</span></p>
+        </div>
+      )}
+    </DashCard>
+  );
+}
+
 function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; cadence?: Cadence; onSelect: (id: string) => void }) {
   const { t } = useLexicon();
   const fundedSet = new Set(funded.map((p) => p.id));
   const buAlloc = nodeAllocation(projects, "bu", (id) => fundedSet.has(id), availK, budgetOverrideK);
-  const npvTotal = funded.reduce((s, p) => s + npvM(p), 0);
-  const incrTotal = funded.reduce((s, p) => s + incrementalRevM(p), 0);
-  const wtdTotal = funded.reduce((s, p) => s + weightedRevM(p), 0);
-  const eff = rdEfficiency(funded);
-  const byBU = spendByBU(projects);
-  const byCat = spendByCategory(projects);
-  const cost = costSplit(projects);
-  const roi = roiSummary(funded);
-
-  const costRows = [
-    { name: "Labor", value: cost.labor, color: "#19c8cf" },
-    { name: "Subcontractor", value: cost.subcontractor, color: "#a78bfa" },
-    { name: "Material", value: cost.material, color: "#fbbf24" },
-    { name: "Other", value: cost.other, color: "#64748b" },
-  ];
-  const roiRows = [
-    { name: "New Product (rev)", value: roi.newProductM, color: "#34d399" },
-    { name: "Do-Nothing base", value: roi.doNothingM, color: "#64748b" },
-    { name: "End-of-Life", value: roi.eolM, color: "#fb923c" },
-    { name: "Incremental", value: roi.incrementalM, color: "#19c8cf" },
-    { name: "REV · probability-weighted", value: roi.weightedM, color: "#34d399" },
-    { name: "Upside · at-risk to 100%", value: Math.max(0, roi.incrementalM - roi.weightedM), color: "#fbbf24" },
-  ];
-  const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`)
+  const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`); ROI stats moved into RoiVisuals
   // Admin Business-Setup drives labels + base revenue (one source of truth for the rollup).
   const bizSetup = loadBizSetup();
   const sbuBaseOf = (c: string) => bizSetup.sbu.find((n) => n.code === c)?.baseM ?? 0;
@@ -5221,43 +5282,9 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
         <p className="mt-2 text-[10px] text-slate-500">Base revenue anchors the do-nothing growth model per SBU. BU = Σ its SBUs · Company = Σ all BUs (700M).</p>
       </DashCard>
 
-      {/* Top Dashboard — FLIR R&D VIEW KPIs */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-        <StatTile label="Projects" value={`${projects.length}`} sub={`${funded.length} funded`} />
-        <StatTile label="R&D efficiency" value={`${eff.toFixed(2)}×`} sub="NPV per $ NRE" tone="green" />
-        <StatTile label="10yr Op Contribution" value={usd(npvTotal)} sub="funded NPV" tone="green" />
-        <StatTile label="Incremental rev" value={usd(incrTotal)} sub="10yr, funded" tone="cyan" />
-        <StatTile label="Prob-weighted rev" value={usd(wtdTotal)} sub="risk-adjusted" tone="green" />
-        <StatTile label="Total NRE" value={kM(cost.totalK)} sub="all projects" tone="amber" />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Division / BU Dashboard */}
-        <DashCard title="Spend by Business Unit" tag="Division">
-          <HBars rows={byBU.map((s) => ({ name: s.name, value: s.spendK, sub: `${s.count}` }))} fmt={kM} />
-          <p className="mt-2 text-[10px] text-slate-500">Bar = NRE spend · right count = # projects in the BU.</p>
-        </DashCard>
-
-        {/* Spend by Category */}
-        <DashCard title="Spend by Category" tag="Top">
-          <HBars rows={byCat.map((s) => ({ name: s.name, value: s.spendK, color: categoryColor(s.name), sub: `${s.count}` }))} fmt={kM} />
-        </DashCard>
-
-        {/* Cost Dashboard */}
-        <DashCard title="Cost Dashboard · expense split" tag="Cost">
-          <HBars rows={costRows} fmt={kM} />
-          <p className="mt-2 text-[10px] text-slate-500">Labor / Subcontractor / Material / Other — split of {kM(cost.totalK)} total NRE.</p>
-        </DashCard>
-
-        {/* ROI Summary */}
-        <DashCard title="ROI Summary" tag="ROI Visuals">
-          <HBars rows={roiRows} fmt={usd} />
-          <p className="mt-2 text-[10px] text-slate-500">New / Do-Nothing / EOL / Incremental, then probability-weighted (technical × commercial risk).</p>
-        </DashCard>
-      </div>
-
-      {/* Pipeline by Gate — maximizable, with priority-ordered project list + dog-tag preview */}
-      <PipelineByGate projects={projects} funded={funded} onSelect={onSelect} />
+      {/* G6 — simplified ROI Visuals (selector-driven): Pipeline · 12-box Metrics · Spend · Cash Flow.
+          Replaces the old 6-tile row + 4-card grid + standalone Pipeline (operator: dashboard was too complex). */}
+      <RoiVisuals projects={projects} funded={funded} onSelect={onSelect} />
 
       {/* Intelligence Load — AI·SI·HI by strategic pillar / BU / SBU / Alpha Group / Project */}
       <IntelligenceLoadPanel projects={projects} />
