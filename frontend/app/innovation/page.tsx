@@ -3492,6 +3492,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.slides.title")}>
       <div ref={dialogRef} tabIndex={-1} className="mx-auto max-w-3xl rounded-xl border border-slate-800 bg-[#0e141b] p-4 sm:p-5 outline-none" onClick={(e) => e.stopPropagation()}>
+        {/* G-frozen (IMG_8214/13) — header + 18+2 slide strip FROZEN at the top (sticky) so you can jump slide-
+            to-slide and hit Present without scrolling back up. Negative margins let it span the card edge-to-edge. */}
+        <div className="sticky top-0 z-10 -mx-4 -mt-4 rounded-t-xl bg-[#0e141b]/95 px-4 pt-4 pb-2 backdrop-blur sm:-mx-5 sm:-mt-5 sm:px-5 sm:pt-5">
         {/* Header — project + deck progress + present + close */}
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-sm font-semibold">{t("innovation.slides.title")} · <span className="text-slate-300">{p.name}</span></h2>
@@ -3519,6 +3522,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             );
           })}
         </div>
+        </div>{/* end frozen top bar */}
 
         {/* EDIT MODE — field-level authoring (Present renders as a full-screen stage via early return above) */}
         {(
