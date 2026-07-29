@@ -5195,6 +5195,8 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
   const fundedSet = new Set(funded.map((p) => p.id));
   const buAlloc = nodeAllocation(projects, "bu", (id) => fundedSet.has(id), availK, budgetOverrideK);
   const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`); ROI stats moved into RoiVisuals
+  const [expandedBus, setExpandedBus] = useState<Set<string>>(new Set()); // H2 — rollup default COLLAPSED
+  const toggleBu = (name: string) => setExpandedBus((prev) => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; });
   // Admin Business-Setup drives labels + base revenue (one source of truth for the rollup).
   const bizSetup = loadBizSetup();
   const sbuBaseOf = (c: string) => bizSetup.sbu.find((n) => n.code === c)?.baseM ?? 0;
@@ -5256,16 +5258,21 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
                 <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(roll.company.npvM)}</td>
                 <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{roll.company.count}</td>
               </tr>
-              {roll.bus.map((bu) => (
+              {roll.bus.map((bu) => {
+                const open = expandedBus.has(bu.name);
+                const buCol = BU_COLOR[bu.name] ?? "#64748b";
+                // H2 — expanded BU: rows tinted (masked bg) across all metrics + a left edge in the BU Trinity color.
+                const tint = open ? { background: `${buCol}1f`, boxShadow: `inset 3px 0 0 ${buCol}` } : undefined;
+                return (
                 <React.Fragment key={bu.name}>
-                  <tr className="border-b border-slate-900 bg-slate-900/40">
-                    <td className="px-2 py-1.5 pl-4 font-semibold text-slate-100">▸ {bu.name} <span className="text-[10px] text-slate-500">{buLabelOf(bu.name)}</span></td>
+                  <tr onClick={() => toggleBu(bu.name)} className="cursor-pointer border-b border-slate-900 bg-slate-900/40 hover:bg-slate-900/70" style={tint} title={open ? "Collapse" : "Expand"}>
+                    <td className="px-2 py-1.5 pl-4 font-semibold text-slate-100">{open ? "▾" : "▸"} {bu.name} <span className="text-[10px] text-slate-500">{buLabelOf(bu.name)}</span></td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-emerald-300">${bu.baseM}M</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-slate-300">{kM(bu.spendK)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-emerald-400">{usd(bu.npvM)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-slate-400">{bu.count}</td>
                   </tr>
-                  {bu.sbus.map((sbu) => (
+                  {open && bu.sbus.map((sbu) => (
                     <React.Fragment key={sbu.name}>
                       <tr className="border-b border-slate-900 bg-slate-900/20">
                         <td className="px-2 py-1 pl-8 font-medium">· {sbu.name} <span className="text-[10px] text-slate-500">{sbuLabelOf(sbu.name)}</span></td>
@@ -5286,7 +5293,8 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
                     </React.Fragment>
                   ))}
                 </React.Fragment>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
