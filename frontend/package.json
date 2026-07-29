@@ -55,7 +55,8 @@
     "test:adapt-themes": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/adapt-live-themes.test.mjs",
     "test:viewport": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/use-viewport.test.mjs",
     "deploy": "wrangler deploy",
-    "verify:deploy": "node scripts/verify-deploy.mjs"
+    "verify:deploy": "node scripts/verify-deploy.mjs",
+    "ship": "bash scripts/ship.sh"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
