@@ -4462,6 +4462,7 @@ function Differentiators({ p, cadence = "M" }: { p: Project; cadence?: Cadence }
 // (Gate cadence lives on the per-project gate overview, not here.)
 function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onScope }: { funded: Project[]; cadence?: Cadence; hierFilter: HierSel; allProjects: Project[]; onScope: (s: HierSel) => void }) {
   const [years, setYears] = useState(3);
+  const vpGM = useViewport(); // G-refine — keep the selector row on ONE line (compact) on a portrait phone
   const [growthPct, setGrowthPct] = useState("3.8");
   const [declinePct, setDeclinePct] = useState("15.1");
   const [revMode] = useState<RevMode>("full"); // revenue mode fixed to full; band pills carry the view choice now
@@ -4635,8 +4636,10 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         })}
       </div>
 
-      {/* Scope selector ON the chart (operator) — the ONE standard ScopeFilter, cross-filtering the whole view. */}
-      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
+      {/* Scope selector ON the chart (operator) — the ONE standard ScopeFilter, cross-filtering the whole view.
+          G-refine — on a portrait phone the selectors stay on ONE (slightly smaller) line, scrolling horizontally
+          instead of wrapping (best-practice responsive: no clipped/stacked controls). */}
+      <div className={`mt-2 flex items-center text-slate-400 ${vpGM.isPhone && vpGM.orientation === "portrait" ? "flex-nowrap gap-1.5 overflow-x-auto whitespace-nowrap text-[10px] [&_button]:px-2 [&_button]:py-0.5" : "flex-wrap gap-3 text-[11px]"}`}>
         <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <span className="rounded-md border border-slate-700 bg-[#0b0f14] px-2 py-1">Scope: <b className="font-mono text-cyan-300">{scopeLabel}</b></span>
         {/* Split-by: hierarchy child (default) · strategic pillar (admin colors) · Risk (risk-weighted vs upside).
