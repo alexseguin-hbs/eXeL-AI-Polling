@@ -1,0 +1,55 @@
+{
+  "release": "eXeL-AI · INNOVATION PROJECT (images)",
+  "stamp": "2026.07.29",
+  "sha": "89999f0",
+  "features": {
+    "IN-01": {
+      "sha": "c5271c4",
+      "title": "Present mode · pinch-to-zoom",
+      "verdict": null,
+      "comment": ""
+    },
+    "IN-02": {
+      "sha": "10e4e22",
+      "title": "S8 Competition + Value · AMTS panel",
+      "verdict": null,
+      "comment": ""
+    },
+    "IN-03": {
+      "sha": "e325bd6",
+      "title": "S3 Financials · AMTS panel",
+      "verdict": null,
+      "comment": ""
+    },
+    "IN-04": {
+      "sha": "398f6e2",
+      "title": "S1 Executive Summary · AMTS panel",
+      "verdict": null,
+      "comment": ""
+    },
+    "IN-05": {
+      "sha": "5d4f679",
+      "title": "S2 Project Overview · six-panel",
+      "verdict": null,
+      "comment": ""
+    },
+    "IN-06": {
+      "sha": "94a4fcc",
+      "title": "S11 Early Validation · AMTS panel",
+      "verdict": null,
+      "comment": ""
+    },
+    "IN-07": {
+      "sha": "850bcc7",
+      "title": "Portfolio · 33 projects, cross-Alpha-Group",
+      "verdict": null,
+      "comment": ""
+    },
+    "IN-08": {
+      "sha": "89999f0",
+      "title": "Deploy status · SHA + pushed + live",
+      "verdict": null,
+      "comment": ""
+    }
+  }
+}

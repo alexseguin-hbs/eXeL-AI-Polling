@@ -57,7 +57,8 @@
     "deploy": "npx wrangler@4.115.0 deploy",
     "verify:deploy": "node scripts/verify-deploy.mjs",
     "ship": "bash scripts/ship.sh",
-    "status": "node scripts/status.mjs"
+    "status": "node scripts/status.mjs",
+    "feedback": "node scripts/feedback-artifact.mjs"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
