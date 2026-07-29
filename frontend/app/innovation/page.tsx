@@ -4999,6 +4999,10 @@ function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (
 function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; funded: Project[]; onSelect: (id: string) => void }) {
   const [maxed, setMaxed] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
+  // H4 — gate filter: click gate columns to show ONLY those gates' dog-tags + project list; none selected = all.
+  const [selGates, setSelGates] = useState<Set<string>>(new Set());
+  const gateOn = (g: string) => selGates.size === 0 || selGates.has(g);
+  const toggleGate = (g: string) => setSelGates((prev) => { const n = new Set(prev); n.has(g) ? n.delete(g) : n.add(g); return n; });
   const pipe = pipelineByGate(projects);
   const maxGateSpend = Math.max(...pipe.map((g) => g.spendK), 1);
   const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`)
@@ -5015,18 +5019,22 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
         <div className="grid min-w-[680px] grid-cols-7 gap-2">
           {pipe.map((g) => {
             const gateProjects = projects.filter((p) => p.gate === g.gate);
+            const active = gateOn(g.gate); const sel = selGates.has(g.gate);
             return (
-              <div key={g.gate} className="flex flex-col rounded-lg border border-slate-800 bg-[#0b0f14] p-2 text-center">
-                <div className="text-[11px] font-mono text-slate-300">{g.gate}</div>
-                <div className="mb-1.5 truncate text-[9px] text-slate-500" title={g.stage}>{g.stage}</div>
-                <div className="mx-auto flex h-16 w-full items-end justify-center">
-                  <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: "#19c8cf", opacity: 0.8 }} />
-                </div>
-                <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
-                <div className="text-[10px] text-slate-500">{g.count} proj</div>
-                {/* dog-tag chips for THIS gate, stacked under the column */}
+              <div key={g.gate} className={`flex flex-col rounded-lg border bg-[#0b0f14] p-2 text-center transition ${sel ? "border-cyan-500 ring-1 ring-cyan-500/50" : "border-slate-800"} ${active ? "" : "opacity-40"}`}>
+                <button onClick={() => toggleGate(g.gate)} title={sel ? "Click to deselect" : "Click to show only this gate"} className="flex flex-col items-center hover:opacity-90">
+                  <div className={`text-[11px] font-mono ${sel ? "text-cyan-300 font-semibold" : "text-slate-300"}`}>{g.gate}</div>
+                  <div className="mb-1.5 max-w-full truncate text-[9px] text-slate-500" title={g.stage}>{g.stage}</div>
+                  <div className="flex h-16 w-full items-end justify-center">
+                    <div className="w-6 rounded-t" style={{ height: `${Math.max(4, (g.spendK / maxGateSpend) * 60)}px`, background: sel ? "#22d3ee" : "#19c8cf", opacity: 0.85 }} />
+                  </div>
+                  <div className="mt-1 text-[11px] tabular-nums text-slate-200">{kM(g.spendK)}</div>
+                  <div className="text-[10px] text-slate-500">{g.count} proj</div>
+                </button>
+                {/* dog-tag chips for THIS gate — only when the gate is active (H4 filter); size unchanged */}
                 <div className="mt-1.5 flex flex-col gap-1 border-t border-slate-800/70 pt-1.5">
-                  {gateProjects.length === 0
+                  {!active ? <span className="text-[9px] italic text-slate-600">·</span>
+                    : gateProjects.length === 0
                     ? <span className="text-[9px] italic text-slate-600">—</span>
                     : gateProjects.map((p) => (
                         <button key={p.id} onClick={() => clickProject(p.id)}
@@ -5054,11 +5062,14 @@ function PipelineByGate({ projects, funded, onSelect }: { projects: Project[]; f
         </div>
       )}
 
-      {/* Priority-ordered project list (funding-stack order) */}
+      {/* Priority-ordered project list (funding-stack order) — filtered to selected gates (H4) */}
       <div className="mt-4 border-t border-slate-800 pt-3">
-        <div className="mb-1.5 text-[10px] uppercase tracking-wider text-slate-500">Projects · priority order · {maxed ? "tap to preview" : "tap to open details"}</div>
+        <div className="mb-1.5 flex items-center gap-2 text-[10px] uppercase tracking-wider text-slate-500">
+          <span>Projects · priority order · {maxed ? "tap to preview" : "tap to open details"}</span>
+          {selGates.size > 0 && <button onClick={() => setSelGates(new Set())} className="rounded border border-slate-700 px-1.5 py-0.5 text-cyan-300 hover:bg-slate-800">✕ clear {selGates.size} gate{selGates.size === 1 ? "" : "s"}</button>}
+        </div>
         <ol className="grid gap-1 sm:grid-cols-2">
-          {projects.map((p, i) => {
+          {projects.filter((p) => gateOn(p.gate)).map((p, i) => {
             const fu = fundedIds.has(p.id);
             return (
               <li key={p.id}>
