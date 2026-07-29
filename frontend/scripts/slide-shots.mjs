@@ -107,8 +107,9 @@ const AUDIT = (printW) => {
     const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
     if (!own) continue;
     const px = round(parseFloat(cs.fontSize) * k);
-    // A "box header" is the AMTS panel banner title or a field banner; everything else is body copy.
-    const header = !!el.closest("[data-panel-head],[data-field-banner]");
+    // A "box header" is the slide header band, an AMTS panel banner, or a field banner. Everything else —
+    // including the subheader line and the page footer — is body copy and meets the tighter cap.
+    const header = !!el.closest("[data-panel-head],[data-field-banner],[data-slide-head]");
     type.push({ px, header, text: (el.textContent || "").trim().slice(0, 42) });
   }
 

@@ -1370,5 +1370,41 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(built.length < codes.length, "the fallback still matters — not every slide is built yet");
 }
 
+// ── THE SCREENSHOT GATE — present-mode DOM hooks + the assertions that use them ─────────
+// WHY: tsc and unit tests cannot see an empty panel body or text spilling out of a card; a human found
+// both by opening the app on a phone. scripts/slide-shots.mjs drives the built app in Chromium at
+// 390x844 and 1440x810 and fails the build on overflow / oversized type / titled-but-empty panels.
+// These locks guarantee the hooks it queries stay in the page — remove one and the gate silently
+// passes on a blank deck, which is worse than no gate at all.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
+  const ship = await fsp.readFile("scripts/ship.sh", "utf8");
+  const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
+
+  // 1 · the DOM contract — every selector the auditor queries must exist in the present-mode tree
+  for (const attr of ["data-slide-canvas", "data-slide-head", "data-slide-body", "data-panel", "data-panel-head", "data-panel-body", "data-field-banner"])
+    ok(src.includes(attr), `present mode exposes ${attr} for the screenshot gate`);
+  ok(/<div data-slide-canvas className="relative overflow-hidden/.test(src), "data-slide-canvas sits on the 16:9 SlideCanvas itself");
+  ok(/<div data-panel-body className="grid content-start/.test(src), "data-panel-body wraps the AmtsPanel children (the body the gate measures)");
+  ok(/<div data-panel className=/.test(src) && /<div data-panel-head className=/.test(src), "AmtsPanel exposes BOTH the panel frame and its head");
+
+  // 2 · the auditor still asserts all three defect classes it was built for
+  ok(/scrollWidth - el\.clientWidth/.test(shot) && /scrollHeight - el\.clientHeight/.test(shot), "gate asserts text OVERFLOW (scroll vs client on both axes)");
+  ok(/CAP_BODY = 12/.test(shot) && /CAP_HEADER = 18/.test(shot), "gate caps body at 12px and headers at 18px");
+  ok(/PRINT_W = 1600/.test(shot), "type is normalised to the 1600px print sheet, so one cap holds at every viewport");
+  ok(/EMPTY PANEL BODY/.test(shot), "gate fails a panel that renders a title with nothing under it");
+  ok(/data-panel-head\],\[data-field-banner\],\[data-slide-head/.test(shot), "header classification covers panel heads, field banners AND the slide header band");
+  ok(/390, height: 844/.test(shot) && /1440, height: 810/.test(shot), "gate runs BOTH phone portrait and desktop landscape");
+  ok(/chromium-1194/.test(shot) && !/exec\w*\(|spawn\w*\(/.test(shot), "gate points at the preinstalled Chromium and never shells out (no `playwright install`)");
+
+  // 3 · it is actually wired into the release path (item 1's whole point)
+  ok(pkg.scripts["test:slide-shots"] === "node scripts/slide-shots.mjs", "npm run test:slide-shots exists");
+  ok(/slide-shots\.mjs/.test(ship), "ship.sh runs the screenshot gate");
+  ok(/SKIP_SHOTS/.test(ship), "ship.sh can bypass the gate only via an explicit SKIP_SHOTS escape hatch");
+  ok(ship.indexOf("Compiled successfully") < ship.indexOf("slide-shots.mjs"), "the shot gate runs AFTER the build (it drives the exported app)");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

@@ -3065,15 +3065,17 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
 // cq units so it scales with the 16:9 SlideCanvas exactly like the header band and footer do.
 function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: string; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
-    <div className={`overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "sm:col-span-2" : ""}`}>
-      <div className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1.2cqw] py-[0.7cqh]">
+    // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
+    // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
+    <div data-panel className={`overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "sm:col-span-2" : ""}`}>
+      <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1.2cqw] py-[0.7cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
           {icon && <span aria-hidden style={{ fontSize: "1.3cqw" }}>{icon}</span>}
           <span className="truncate font-semibold uppercase tracking-[0.14em]" style={{ fontSize: "1.15cqw" }}>{title}</span>
         </span>
         {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: "1cqw" }}>REQUIRED: {required}+</span>}
       </div>
-      <div className="grid content-start gap-[1cqh] p-[1cqw]">{children}</div>
+      <div data-panel-body className="grid content-start gap-[1cqh] p-[1cqw]">{children}</div>
     </div>
   );
 }
@@ -3374,7 +3376,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     const acc = sectionAccent(sp.code, f);
     // Colored banner header (icon + section name) matching the reference deck, wrapping every field card.
     const Banner = () => (
-      <div className={`flex items-center gap-1.5 px-3 py-1.5 ${acc.bar}`}>
+      <div data-field-banner className={`flex items-center gap-1.5 px-3 py-1.5 ${acc.bar}`}>
         <span aria-hidden className="text-[12px] leading-none">{acc.icon}</span>
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">{f.name}{f.linked ? " · ◈ live" : ""}</span>
       </div>
@@ -3592,10 +3594,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
           <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
           {/* B1 · SlideCanvas — 16:9; landscape fills to edges, portrait fit-to-width + zoom. cq-unit container. */}
-          <div className="relative overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={canvasStyle}>
+          <div data-slide-canvas className="relative overflow-hidden bg-[#0b0f14] shadow-2xl ring-1 ring-slate-800" style={canvasStyle}>
           <div className="flex h-full flex-col" style={{ padding: "3.2cqh 3.2cqw" }}>
             {/* B2 · header band — PROJECT NAME + COGS/MSRP/Mgn% (left) · title (center) · gate·stage + Req (right) */}
-            <div className="flex items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
+            <div data-slide-head className="flex items-start justify-between gap-[2cqw] border-b border-slate-700 pb-[1.4cqh]">
               <div className="min-w-0">
                 <div className="truncate font-semibold tracking-tight text-cyan-200" style={{ fontSize: "3cqw", lineHeight: 1.05 }}>{p.name}</div>
                 <div className="mt-[0.6cqh] flex flex-wrap gap-x-[1.4cqw] font-mono text-slate-400" style={{ fontSize: "1.35cqw" }}>
@@ -3619,7 +3621,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback.
                 A slide code with no entry renders exactly as before, so the deck stays presentable while the
                 remaining panels are built out slide by slide. */}
-            <div className="mt-[1.2cqh] grid min-h-0 flex-1 content-start gap-[1.4cqh] overflow-y-auto sm:grid-cols-2" style={{ fontSize: "1.4cqw" }}>
+            <div data-slide-body className="mt-[1.2cqh] grid min-h-0 flex-1 content-start gap-[1.4cqh] overflow-y-auto sm:grid-cols-2" style={{ fontSize: "1.4cqw" }}>
               {panel ? panel() : spec.fields.map((f) => <PresentField key={f.id} sp={spec} f={f} big />)}
               {!anyContent && <p className="italic text-slate-500" style={{ fontSize: "1.6cqw" }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
             </div>

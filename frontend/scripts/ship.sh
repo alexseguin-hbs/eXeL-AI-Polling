@@ -42,6 +42,16 @@ npm run --silent build > /tmp/ship-build.log 2>&1 || { tail -40 /tmp/ship-build.
 grep -q "Compiled successfully" /tmp/ship-build.log || { tail -40 /tmp/ship-build.log; fail "build did not report success — not shipping"; }
 echo "  ✓ compiled"
 
+# ── 1b · SCREENSHOT GATE — the only check that can see a clipped slide or an empty panel body.
+#        Runs AFTER build because it drives the real exported app in Chromium over out/.
+#        Proven to fail on the real deck before being wired in (operator rule): first run flagged
+#        overflow + oversized type on S1/S2/S3/S8/S11 at both viewports.
+#        SKIP_SHOTS=1 bypasses it when Chromium is unavailable (CI images without /opt/pw-browsers).
+if [ "${SKIP_TESTS:-0}" != "1" ] && [ "${SKIP_SHOTS:-0}" != "1" ]; then
+  step "npm run test:slide-shots (present-mode overflow + type-scale + empty-panel gate)"
+  node scripts/slide-shots.mjs || fail "slide gate red — a slide clips, oversizes type, or renders an empty panel"
+fi
+
 # ── 2 · COMMIT (only if a message was supplied and the tree is dirty) ────────────────────────
 if [ -n "$MSG" ] && [ -n "$(git -C "$ROOT" status --porcelain)" ]; then
   step "commit"

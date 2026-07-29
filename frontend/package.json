@@ -37,6 +37,7 @@
     "test:security-paris": "node tests/security-paris-tiles.test.mjs",
     "test:cube-partitions": "node tests/cube-partitions.test.mjs",
     "test:innovation-time": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/innovation-time.test.mjs",
+    "test:slide-shots": "node scripts/slide-shots.mjs",
     "test:soi-i18n": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-i18n-contract.test.mjs",
     "test:soi-section": "node tests/soi-section-guard.test.mjs",
     "test:hwr-client": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/hwr-client.test.mjs",
