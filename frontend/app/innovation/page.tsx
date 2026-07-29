@@ -1506,8 +1506,10 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
   const vLabel = (v: string) => (v === "win" ? t("innovation.veq.win") : v === "loss" ? t("innovation.veq.loss") : t("innovation.veq.parity"));
   const inp = "rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500";
   return (
-    <div className="rounded-lg border border-amber-500/25 bg-amber-500/[0.03] p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    // G1 — flex-col with explicit order so the VALUE WATERFALL renders ON TOP and the differentiator LEVERS
+    // (sliders) sit UNDERNEATH it (operator IMG_8194), without physically relocating the large SVG block.
+    <div className="flex flex-col rounded-lg border border-amber-500/25 bg-amber-500/[0.03] p-3">
+      <div className="order-0 flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="text-[10px] uppercase tracking-wider text-amber-400/90">{t("innovation.veq.title")}</div>
           <div className="text-[10px] text-slate-500">{t("innovation.veq.subtitle")}{nbaLabel ? ` — ${nbaLabel}` : ""}</div>
@@ -1516,9 +1518,9 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
       </div>
 
       {drivers.length === 0 ? (
-        <p className="mt-2 text-[11px] text-slate-600">{t("innovation.veq.empty")}</p>
+        <p className="order-2 mt-2 text-[11px] text-slate-600">{t("innovation.veq.empty")}</p>
       ) : (
-        <div className="mt-2 space-y-1.5 overflow-x-auto">
+        <div className="order-2 mt-2 space-y-1.5 overflow-x-auto">
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 text-[9px] uppercase tracking-wider text-slate-500">
             <span>{t("innovation.veq.colDriver")}</span><span className="w-16 text-center">{t("innovation.veq.colImportance")}</span>
             <span className="w-16 text-center">{t("innovation.veq.colOurs")}</span><span className="w-16 text-center">{t("innovation.veq.colNba")}</span><span className="w-12 text-right">{t("innovation.veq.colVerdict")}</span>
@@ -1573,7 +1575,7 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
         const y = (v: number) => H - (v / max) * H;
         const fill = (k: string) => (k === "base" ? "#64748b" : k === "total" ? "#3b82f6" : k === "up" ? "#34d399" : "#fb7185");
         return (
-          <div className="mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
+          <div className="order-1 mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase tracking-wider text-slate-400">{t("innovation.veq.waterfall")}</span>
               <span className="text-[10px] text-slate-400">{t("innovation.veq.valueCreation")} <b className="tabular-nums text-emerald-300">${eq.differentiationM.toFixed(0)}M</b></span>
@@ -1618,7 +1620,7 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
         );
       })()}
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2">
+      <div className="order-3 mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2">
         <div className="flex items-center gap-4 text-[11px]">
           <span className="text-slate-400">{t("innovation.veq.index")} <b className="tabular-nums text-amber-300">{Math.round(eq.competitiveIndex)}</b>/100</span>
           <span className="text-slate-400">{t("innovation.veq.evc")} <b className="tabular-nums text-emerald-300">${eq.evcUsdM.toFixed(0)}M</b></span>
