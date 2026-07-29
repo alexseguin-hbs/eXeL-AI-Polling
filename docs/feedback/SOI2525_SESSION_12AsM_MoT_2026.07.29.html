@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SoI-2525 · 12 Ascended Masters + MoT Review · 2026-07-29</title>
+<style>
+  :root{
+    --bg:#0a0e13; --panel:#0e141b; --panel2:#0b0f14; --line:#1e2937; --ink:#e2e8f0; --dim:#94a3b8; --faint:#64748b;
+    --cyan:#22d3ee; --amber:#f7b955; --violet:#a78bfa; --emerald:#34d399; --rose:#fb7185; --sky:#38bdf8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px}
+  header.hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#0e141b,#0a0e13);padding:22px 24px}
+  .eyebrow{font:600 11px/1.4 ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan)}
+  h1{margin:.3em 0 .2em;font-size:26px;letter-spacing:-.01em;text-wrap:balance}
+  .sub{color:var(--dim);font-size:13px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .badge{font:600 11px/1 ui-monospace,monospace;letter-spacing:.04em;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--dim)}
+  .badge b{color:var(--emerald)}
+  h2{margin:34px 0 12px;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);padding-bottom:8px}
+  p{color:#cdd6e4}
+  .over p{margin:0 0 12px}
+  .commits{display:grid;gap:8px;grid-template-columns:1fr}
+  .commit{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 12px;font-size:13.5px}
+  .commit code{font:600 12px ui-monospace,monospace;color:var(--amber)}
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13.5px;min-width:520px}
+  th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;font-family:ui-monospace,monospace}
+  thead th{color:var(--faint);font:600 11px/1.3 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase}
+  tr.total td{font-weight:700;border-top:2px solid #2b3a4d;color:#fff}
+  .s1{color:var(--emerald)} .s2{color:var(--rose)} .s3{color:var(--violet)} .inc{color:var(--amber)} .base{color:var(--dim)} .full{color:var(--sky)}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));margin-top:6px}
+  .asm{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px}
+  .asm .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .asm .who{font-weight:700}
+  .asm .dim{font:600 10px/1.3 ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .grade{font:800 13px ui-monospace,monospace;padding:3px 9px;border-radius:8px;border:1px solid}
+  .A{color:#5eead4;border-color:#134e4a;background:#0c2b28}
+  .Am{color:#a7f3d0;border-color:#155e45;background:#0b2c22}
+  .Bp{color:#fde68a;border-color:#5c4a10;background:#2a2408}
+  .asm p{margin:0;font-size:13px;color:#c3cddb}
+  .mot{border:1px solid #2b3a4d;border-radius:14px;background:linear-gradient(180deg,#0f1620,#0b0f14);padding:18px 20px}
+  .mot .who{color:var(--cyan);font-weight:800;letter-spacing:.02em}
+  ul.risks{margin:10px 0 0;padding-left:18px}
+  ul.risks li{margin:6px 0;color:#c3cddb;font-size:13.5px}
+  .foot{margin-top:34px;color:var(--faint);font-size:12px;text-align:center;border-top:1px solid var(--line);padding-top:16px}
+  .pill{display:inline-block;font:600 10px ui-monospace,monospace;color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:2px 7px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">SoI-2525 · System of Innovation · Post-Release Review</div>
+    <h1>12 Ascended Masters + Master of Thought — Session Audit</h1>
+    <div class="sub">Route <b>/innovation</b> · <b>/main/SoI-2525</b> · 2026-07-29 · commit range <code>b699f90..4f48834</code></div>
+    <div class="badges">
+      <span class="badge">filtered tsc <b>0 errors</b></span>
+      <span class="badge">innovation-time <b>585/585</b></span>
+      <span class="badge">next build <b>✓</b></span>
+      <span class="badge">6 gated commits · pushed <b>main + branch</b></span>
+    </div>
+  </header>
+
+  <h2>Innovation &amp; Financial Updates — Overview</h2>
+  <div class="over">
+    <p><b>What changed.</b> This session re-based the Growth Model on the operator's final financial model and de-duplicated the decision surfaces. <b>Base Rev</b> is now the current-year baseline jump-off — AP $11M · DS $42M · MS $31M = <b>$84M</b> company — held flat, with the old do-nothing "BASE $M" column removed from the Admin Console (now Base Rev · Base Mgn · Growth %). <b>Step 2 (Decline) + Step 3 (EOL) are project-driven</b> again — only prior-gen lines (SAR, Legacy) erode — so every all-new project's Incremental equals its Step 1 (New). The <b>Growth Target line anchors at Baseline Rev</b>, not the top of Full Rev. The Portfolio rack and the Budget modal now classify the <b>same funded set</b> (one <code>fundedRows</code> source), so Σ NRE + count above the line match exactly ($62.5M / 12). Confusing rack rollup rows were removed in favour of Admin Trinity color bars; the per-BU table gained Base Rev + Full Rev when the baseline toggle is on; a live <b>Upside (dry powder)</b> KPI was added; and the duplicate on-map pillar key plus four hand-duplicated funding-line dividers were collapsed into one reusable <code>FundingDivider</code>.</p>
+    <p><b>Why it's trustworthy now.</b> There is exactly one funded-set source feeding the rack, the Budget modal, the dashboards and the Upside KPI, so no surface can disagree about which projects are funded — a machine lock asserts <code>rackByLevel(funded) == fundingBuckets(...).funded == Σ funded projects</code>, and that funded + unfunded == total NRE (no project lost across the line). The Growth Model keeps its identity <code>Incremental = Step 1 − Step 2 + Step 3</code> with Σ children == parent every year, the target anchors at Base Rev (<code>target[0] == doNothing[0]</code>), and the whole suite returns 585/585 deterministically. Every commit gated on filtered tsc 0 · tests green · clean static build before push.</p>
+    <p><b>Remaining risk.</b> Base Mgn is seeded at 40% of Base Rev pending the exact IMG_8154 figures; Admin-Console completeness at Alpha-Group depth still needs an entered-vs-fallback audit; the R-Core expand/minimize affordance and the $/min ↔ per-BU cross-link remain to wire; and changes reach the live worker only after Cloudflare Workers Builds redeploys. None of these affect the audited math — they are coverage / surface items tracked below.</p>
+  </div>
+
+  <h2>Reconciliation Proof — Company Year 3 (Funded, current model)</h2>
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>BU</th><th>Base Rev</th><th>Step 1 New</th><th>− Step 2</th><th>+ Step 3</th><th>= Incr Rev</th><th>Full Rev</th><th>Incr Mgn</th></tr></thead>
+      <tbody>
+        <tr><td>AP</td><td class="base">$11</td><td>$16</td><td>$0</td><td>$0</td><td class="inc">$16</td><td class="full">$27</td><td>$10</td></tr>
+        <tr><td>DS</td><td class="base">$42</td><td>$43</td><td>$0</td><td>$0</td><td class="inc">$43</td><td class="full">$85</td><td>$28</td></tr>
+        <tr><td>MS</td><td class="base">$31</td><td>$51</td><td>$2</td><td>$1</td><td class="inc">$50</td><td class="full">$81</td><td>$34</td></tr>
+        <tr class="total"><td>Company</td><td>$84</td><td>$110</td><td>$2</td><td>$1</td><td>$109</td><td>$193</td><td>$72</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12.5px;color:var(--dim);margin-top:8px">Every row: Step 1 − Step 2 + Step 3 = Incr Rev · Base Rev + Incr = Full Rev · Σ BU = Company (109) · rack ↔ Budget modal parity: 12 funded / $62.5M NRE above the line, identical for Manager · SBU Director · VP Portfolio · SPIRAL 585/585.</p>
+
+  <h2>This Session's Commits</h2>
+  <div class="commits">
+    <div class="commit"><code>5062ed3</code> — Base Rev jump-off (AP 11 · DS 42 · MS 31 = $84M) · project-driven Step 2/3 · removed BASE $M column.</div>
+    <div class="commit"><code>d19cb54</code> — Growth Target line anchors at Baseline Rev, not top of Full Rev.</div>
+    <div class="commit"><code>88fbba7</code> — Rack roll-up funded/unfunded split == Budget modal (project-level <code>fundedRows</code>).</div>
+    <div class="commit"><code>964b4ec</code> — Rack: drop rollup/subtotal rows + Admin BU color bars · Growth table Base/Full Rev when baseline on.</div>
+    <div class="commit"><code>624d299</code> — Live Upside (dry powder) KPI = R&amp;D available − funded NRE.</div>
+    <div class="commit"><code>4f48834</code> — Remove duplicate on-map pillar key · ONE reusable FundingDivider (R-Core, symmetric ▲/▼).</div>
+  </div>
+
+  <h2>12 Ascended Masters — Financial &amp; UX Review (≈111 words each)</h2>
+  <div class="grid">
+
+    <div class="asm"><div class="top"><span class="who">Thoth</span><span class="grade A">A</span></div><div class="dim">Data / Analytics</div>
+      <p>Thoth reconciled every atomic field against the new baseline. Company Year-3 New 110, Decline 2, EOL 1 give Incremental 109, and the per-BU rows (AP 16, DS 43, MS 50) sum exactly to it — MS's 2/1 is SAR's $6M/yr line eroding at 15%, the only funded prior-gen decline. Base Rev sums 11 + 42 + 31 = 84 to the company baseline; Full Rev = Base + Incremental holds per row (MS 31 + 50 = 81). The funded-set parity lock proves rack NRE == Budget-modal NRE == Σ funded projects to the dollar ($62.5M / 12). One number set, no drift. Grade A: a single footable ledger.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Asar</span><span class="grade A">A</span></div><div class="dim">Synthesis / Reconciliation</div>
+      <p>Asar audited closure across levels and years. The identity Incremental = New − Decline + EOL holds every year, and Σ children == parent for New, Decline, EOL and Incremental, so BU rolls to Company with no leakage. The new machine lock closes the cross-surface gap: funded + unfunded == total NRE, so no project is lost across the funding line, and the rack's above-line total equals the Budget modal's funded bucket equals the raw funded projects. Base Rev flows down to SBU then Alpha and rolls back to $84M. The whole equals the sum of its parts at every tier. Grade A: nothing invented between layers.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Krishna</span><span class="grade A">A</span></div><div class="dim">Integration / Single-Source</div>
+      <p>Krishna checked that one engine feeds every surface. A single <code>fundedRows</code> set now drives the rack split, the Budget modal buckets, the dashboards and the new Upside KPI — the exact defect from before (rack re-deriving its own group-cumulative line) is gone. The R-Core <code>FundingDivider</code> is the sole producer of the ▲/▼ funding-line markup, reused on four surfaces instead of hand-copied. <code>growthModel()</code> stays the one source of New/Decline/EOL/Incremental; <code>fullRev10yM</code> + <code>execOf().marginPct</code> remain the single revenue and margin sources. No surface forks its own truth. Grade A: a genuine single source of truth, consistently wired.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Enlil</span><span class="grade A">A</span></div><div class="dim">Build Verification</div>
+      <p>Enlil owns the gate. Six commits this session, each gated before push: filtered TypeScript returns zero errors after the baseline re-base, the target-anchor change, the parity refactor, the color/legend cleanup, the Upside KPI and the FundingDivider extraction. The innovation-time suite reports 585/585 — up with new locks for Base Rev, the flat baseline, project-driven decline override-independence, target-at-baseline, and rack↔budget parity. The Next.js static export builds clean each time. Nothing shipped on a red bar; every commit carries its SSSES delta and pushes to both branches. Grade A: disciplined, reproducible, gated build hygiene throughout.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Athena</span><span class="grade A">A</span></div><div class="dim">Strategic Flow</div>
+      <p>Athena walked the decision a lead actually makes. The top strip now answers the two questions that gate a fund call: how much R&amp;D is committed (Funded NRE) and how much room remains (Upside / dry powder), green when there is headroom, red when overcommitted — a decision-speed lever, not mental math. The rack and Budget modal agree on the 12 funded projects, so reprioritising is trustworthy. Base Rev as a flat jump-off with Incremental stacked on top reads as "today's business plus what the portfolio adds," and the target line launching from Base Rev frames the ambition honestly. Grade A: the tool reasons the way the decision does.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Thor</span><span class="grade Am">A−</span></div><div class="dim">Risk / Stress</div>
+      <p>Thor stressed the edges. A straddling group now appears on BOTH sides of the funding line carrying only its own projects, so no NRE double-counts and none is dropped — the parity lock enforces it. The Upside KPI flips red on overcommit, surfacing the danger state immediately. Project-driven decline means a huge Base Rev override can never inflate Step 2/3. Removing the pillar filter loses a control, but the lower legend still keys the colors, so nothing is unreadable. One exposure keeps this at A−: Admin-Console fields at Alpha depth are not yet completeness-audited (entered-vs-fallback), so a blank could quietly read as a real value. Grade A−: robust, one coverage gap.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Odin</span><span class="grade A">A</span></div><div class="dim">Future-Proof</div>
+      <p>Odin looked down-horizon. Because Base Rev is a flat current-year figure and decline is project-driven, the model extends to 1/3/10-year views with no special cases — add a new prior-gen line and Step 2/3 grow from its own financials automatically. The reusable FundingDivider means any future funded/unfunded surface inherits the identical ▲/▼ treatment for free, and the single <code>fundedRows</code> source means a new consumer can't drift. The Upside KPI generalises to any envelope. The structure absorbs more projects, tiers and horizons without a rewrite. Grade A: built to grow without churn.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Christo</span><span class="grade A">A</span></div><div class="dim">User Flow / Clarity</div>
+      <p>Christo judged legibility for a non-analyst exec. Removing the confusing parent rollup/subtotal rows — and the duplicate on-map pillar key — cuts the noise the operator flagged; grouping now reads from the Admin Trinity color bar (DS cyan · MS amber · AP violet), the same code everywhere. The single funding-line divider shows ▲ funded above and ▼ not-funded below in one place, so up/down is unambiguous. The per-BU table adds Base Rev + Full Rev so the grey bar plus the stack reconcile to the bar height at a glance. Grade A: the screens now say one clear thing to the audience that signs.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Aset</span><span class="grade A">A</span></div><div class="dim">Consistency</div>
+      <p>Aset hunted drift. One color language now spans admin and decision surfaces: the rack rows inherit the same BU Trinity bar the Admin panel uses, so a BU reads identically in both places. One divider primitive means the funded/unfunded arrows and "Above / Not funded" wording are byte-identical on the group rack, the product stack and the Budget modal — the operator's "same below and above comment." One rounding rule keeps the per-BU table's rows and totals agreeing. No surface shows a number or a label a sibling surface contradicts. Grade A: visual and lexical consistency is uniform, which is what lets any single screen be trusted alone.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Sofia</span><span class="grade A">A</span></div><div class="dim">Multi-Perspective</div>
+      <p>Sofia checked every persona lens. Manager, SBU Director and VP Portfolio all read the same reconciled funded set — the rack and Budget modal derive it from one <code>fundedRows</code>, so the 12 funded / $62.5M figure is invariant across who is looking. Editing baselines stays admin-gated behind 369963; viewers see accurate numbers without edit power. The scope selector re-slices the same identity to SBU then Alpha for any persona. With the baseline toggle on or off the picture stays honest, serving both the "just the increment" and "increment on the existing business" viewpoints. Grade A: one truth, many vantage points, correctly gated for who may change it.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Enki</span><span class="grade Am">A−</span></div><div class="dim">Edge Cases / Zero</div>
+      <p>Enki probed the corners. Scopes with no declining projects show Step 2 = 0 and Incremental ≈ New; empty scopes render "no projects in scope" rather than NaN. The Upside KPI handles the negative (overcommit) case explicitly with a red tone and a signed value. Rounded-parts arithmetic avoids the off-by-one that once made a row read 50 while its Incremental said 49. The FundingDivider degrades cleanly to a bare rule when a stack has no above/below counts. Remaining nit: a tier with a blank Admin Base Rev silently borrows the project fallback — correct, but the operator should see it is a fallback, not an entered value. Grade A−: resilient, one transparency item.</p></div>
+
+    <div class="asm"><div class="top"><span class="who">Pangu</span><span class="grade Bp">B+</span></div><div class="dim">Innovation / Depth</div>
+      <p>Pangu weighed how far the model reaches. The flat-baseline-plus-incremental waterfall with a live toggle, the Base + Full reconciliation columns, and the dry-powder Upside lever are real steps beyond a static stacked bar — the deck now reasons about headroom, not just totals. The R-Core divider extraction is the kind of reuse that compounds. What holds this at B+: the per-quarter RevPlan depth exists in data but is not yet surfaced inside this Growth view, and the MoT $/min readout is not yet cross-linked to the same per-BU breakdown. Both are additive. Grade B+: strong, with clear runway to deepen the R-Core financial story.</p></div>
+
+  </div>
+
+  <h2>Master of Thought — Synthesis &amp; Remaining Risks</h2>
+  <div class="mot">
+    <p><span class="who">Master of Thought:</span> the financial engine reconciles at every level, the decision surfaces now share one funded-set source, and the UI was de-duplicated (pillar key, rollup rows, funding-line dividers) into reusable, consistent primitives. Determinism holds at 585/585 across the suite. The workstream sits at <b>A</b>, with two A− (Thor, Enki) and one B+ (Pangu) pointing at coverage and depth, not correctness.</p>
+    <ul class="risks">
+      <li><b>Base Mgn precision:</b> seeded at 40% of Base Rev pending the exact IMG_8154 margin figures — enter/confirm in the Admin Console.</li>
+      <li><b>Admin completeness (Alpha depth):</b> audit Base Rev / Base Mgn / Growth at BU · SBU · Alpha; show entered-vs-fallback so a blank never reads as a real value.</li>
+      <li><b>R-Core expand/minimize:</b> add the Security-2525-style maximize/minimize affordance on the chart + Budget surfaces.</li>
+      <li><b>$/min cross-link:</b> tie the MoT $/min readout to the same per-BU breakdown for one continuous R-Core story.</li>
+      <li><b>Deploy latency:</b> changes reach the live worker only after Cloudflare Workers Builds redeploys — not a math risk.</li>
+    </ul>
+    <p style="margin-top:12px"><b>Next-session process:</b> confirm Base Mgn from IMG_8154 → close the Admin Alpha-depth audit (entered-vs-fallback) → wire R-Core expand/minimize + $/min cross-link → re-run the 12-AsM pass on the completed baseline.</p>
+  </div>
+
+  <div class="foot">SoI-2525 · eXeL AI · “Where Shared Intention moves at the Speed of Thought.” · Review generated 2026-07-29 · commit range b699f90..4f48834</div>
+
+</div>
+</body>
+</html>
