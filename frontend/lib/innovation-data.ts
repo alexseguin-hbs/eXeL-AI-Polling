@@ -1897,7 +1897,7 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "toprisks", name: "Top risks or dependencies", kind: "list" } ] },
   { code: "S3", gate: "G1", stage: "Concept", source: "Business Case · linked to project financials", fields: [
     { id: "profile", name: "Return profile", kind: "metrics", linked: true, items: [ { k: "npv", label: "3-Yr NPV" }, { k: "irr", label: "IRR" }, { k: "payback", label: "Payback" }, { k: "rev1", label: "1st revenue" }, { k: "tech", label: "Technical risk" }, { k: "comm", label: "Commercial risk" } ] },
-    { id: "revtable", name: "Revenue + margin by year", kind: "table", linked: true, cols: ["Year", "Revenue", "Margin"] },
+    { id: "revtable", name: "Revenue + Margin by Year", kind: "table", linked: true, cols: ["Year", "Revenue", "Margin"] },
     { id: "rdchart", name: "Cash flow — R&D/NRE (out) vs revenue & margin", kind: "chart", linked: true },
     { id: "fincomment", name: "Financial comments", kind: "list", hint: "Assumptions a reviewer would otherwise have to ask about." } ] },
   { code: "S4", gate: "G1", stage: "Concept", source: "Market Needs", supplemental: ["Market Landscape & Needs"], fields: [

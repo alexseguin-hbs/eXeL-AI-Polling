@@ -2361,8 +2361,8 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
           <label>New rev 10yr $M<input type="text" inputMode="numeric" value={String(dv("fullRev10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("fullRev10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
           <label>Do-nothing 10yr $M<input type="text" inputMode="numeric" value={String(dv("doNothing10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("doNothing10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
           <label>Gate<select value={dv("gate")} onChange={(e) => setD("gate", e.target.value as Project["gate"])} className={`mt-0.5 block w-full ${editStyle}`}>{GATES.map((g) => <option key={g} value={g}>{g} {GATE_STAGE[g]}</option>)}</select></label>
-          <label>Tech risk<select value={dv("tech")} onChange={(e) => setD("tech", e.target.value as Project["tech"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
-          <label>Comm risk<select value={dv("comm")} onChange={(e) => setD("comm", e.target.value as Project["comm"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+          <label>Tech Risk<select value={dv("tech")} onChange={(e) => setD("tech", e.target.value as Project["tech"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+          <label>Comm Risk<select value={dv("comm")} onChange={(e) => setD("comm", e.target.value as Project["comm"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
           {/* Master-data dropdowns — options come from Business Setup (BU/SBU/Alpha…) + pillars */}
           <label className="col-span-2 sm:col-span-3">Strategic Pillar
             <select value={dv("initiative") ?? metaOf(p).initiative} onChange={(e) => setD("initiative", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`}>
@@ -2391,7 +2391,7 @@ function ProjectDetail({ p, risks, setup, maximized, onToggleMax, onEdit, onAppr
           </label>
         </div>
       )}
-      {/* Tech × Comm risk → revenue captured / upside (operator default model) */}
+      {/* Tech × Comm Risk → revenue captured / upside (operator default model) */}
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
         <RiskPill label="Tech" level={p.tech} />
         <RiskPill label="Comm" level={p.comm} />
@@ -3227,7 +3227,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
 
   // ---- present-mode field renderer (read effective value) ----
   // Financial mini-chart drawn LIVE from the project record (import project financials). S3 = R&D spend
-  // vs revenue vs margin by year (grouped bars); S14 = combined resource needs ($/yr). Deterministic SVG.
+  // vs Revenue + Margin by Year (grouped bars); S14 = combined resource needs ($/yr). Deterministic SVG.
   function MiniFinChart({ kind, big }: { kind: string; big?: boolean }) {
     // S3 — Business-Case cash chart (AMTS deck parity): R&D / NRE renders as a NEGATIVE flow (money out, below
     // zero), Revenue + Margin above zero, and cumulative CASH FLOW as a line. Horizon toggle renders horizon+1
@@ -3510,8 +3510,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource }: { p: Project; 
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence
                         <select defaultValue={String(p.confidence)} onChange={(e) => onEditSource({ confidence: +e.target.value as Project["confidence"] }, [`Confidence → ${e.target.value}`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500">{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}/5</option>)}</select>
                       </label>
-                      {riskEdit("Tech risk", "tech")}
-                      {riskEdit("Comm risk", "comm")}
+                      {riskEdit("Tech Risk", "tech")}
+                      {riskEdit("Comm Risk", "comm")}
                       {numEdit("Upside accel", "upsideAccelK", "$K")}
                       {/* Program start — anchors the MoT gate timeline; changing it slides EVERY gate date. */}
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program start (MoT — slides all gates)
