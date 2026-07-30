@@ -1439,7 +1439,14 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-1 max-h-[60vh] w-64 overflow-y-auto rounded-lg border border-slate-700 bg-[#0e141b] p-3 shadow-2xl">
+          {/* OP-1 · ANCHOR LEFT, NEVER RIGHT. `right-0` pinned the 16rem panel's RIGHT edge to the button's
+              right edge, so the panel grew 256px LEFTWARD — and ScopeFilter is the FIRST control in both of
+              its rows (:635 header, :5260 Growth Model), i.e. always hard against the left edge of the page.
+              On a phone the panel therefore hung off-screen and the BU/SBU/Alpha chips were unreachable.
+              left-0 grows it rightward into the space that actually exists. The max-w clamp is the other
+              half: at 390px the panel must still never cross the right edge either, so it shrinks instead
+              of overflowing — no horizontal page scroll in either direction, at any viewport. */}
+          <div className="absolute left-0 z-50 mt-1 max-h-[60vh] w-64 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border border-slate-700 bg-[#0e141b] p-3 shadow-2xl">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-200">{t("innovation.scope.label")}</span>
               <button onClick={() => onChange({ bu: [], sbu: [], pgroup: [] })} className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:bg-slate-800">{t("innovation.scope.clear")}</button>

@@ -1497,16 +1497,35 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 }
 
 // ── BLOCKER (portrait audit) · a control the user cannot reach does not exist ────────────
-// ScopeFilter's panel is `absolute w-64` under a trigger that sits in the RIGHT cluster. With the implicit
-// left-0 it opened past the edge of a 390px phone, making BU / SBU / Alpha Group selection IMPOSSIBLE on
-// mobile — and it gates BOTH the working stack and the Growth Model. One class, `right-0`, anchors it inside.
+// ScopeFilter's panel is `absolute w-64` and gates BU / SBU / Alpha Group selection on BOTH the working stack
+// and the Growth Model — unreachable means those filters do not exist for that user.
+//
+// THIS LOCK WAS WRONG ONCE, AND THE WAY IT WAS WRONG IS THE POINT. It used to assert `right-0`, justified by
+// "a trigger that sits in the RIGHT cluster". That premise was never re-checked, and the trigger is in fact the
+// FIRST child of a left-aligned row at BOTH mount points — so `right-0` grew the 16rem panel 256px LEFTWARD,
+// straight off the edge of the page. Operator screenshot IMG_8349 (2026-07-30) caught it on a phone: the chips
+// were off-screen and untappable. The lock passed the whole time, because it asserted the ASSUMPTION
+// (a class name) rather than the BEHAVIOUR (the panel is reachable).
+//
+// So this version pins BOTH halves and the premise itself:
+//   1. left-0 — grow into the space that actually exists, plus a viewport max-width clamp so a 390px screen
+//      cannot push it off the RIGHT edge either. Neither direction overflows.
+//   2. the premise — ScopeFilter really is the first control in each of its two rows. If someone later moves
+//      it into a right-hand cluster, THIS assertion fails and forces the anchor to be reconsidered, instead of
+//      the layout silently breaking again.
 // Also locked: the screenshot gate actually runs in CI. A gate nobody runs is not a gate.
 {
   const fsp = await import("node:fs/promises");
   const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
   const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
-  ok(/<div className="absolute right-0 z-50 mt-1 max-h-\[60vh\] w-64 overflow-y-auto/.test(src),
-     "ScopeFilter's dropdown is right-anchored — it opens INSIDE a 390px viewport");
+  ok(/<div className="absolute left-0 z-50 mt-1 max-h-\[60vh\] w-64 max-w-\[calc\(100vw-1\.5rem\)\] overflow-y-auto/.test(src),
+     "ScopeFilter's dropdown is left-anchored AND viewport-clamped — it opens INSIDE a 390px viewport, both edges");
+  // The premise the anchor depends on. Both rows open with the filter, so left-0 is the reachable side.
+  const mounts = src.match(/<div className="flex flex-wrap items-center gap-2">\s*\{\/\*[^]*?\*\/\}\s*<ScopeFilter/)
+    ? 1 : 0;
+  ok(mounts === 1, "the header row opens with ScopeFilter — the premise `left-0` depends on");
+  ok(/text-\[10px\][^]{0,400}?<ScopeFilter projects=\{allProjects\}/.test(src),
+     "the Growth Model control row also opens with ScopeFilter — same premise, same anchor");
   ok(pkg.scripts["test:all"].includes("npm run test:slide-shots"), "test:all runs the screenshot gate");
 }
 
