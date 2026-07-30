@@ -3255,7 +3255,11 @@ const SLIDE_PRINT_CSS = `
   .slide-print-page [data-slide-canvas] { width: 100% !important; height: 100% !important; transform: none !important; }
   /* Screen zoom must never reach the exported PDF. Sheet already forces zoomOn=false for the print stack
      (it is the only caller that passes a style prop); this is the belt to that braces. */
-  [data-slide-zoom], [data-slide-zoom] > * { transform: none !important; width: auto !important; height: auto !important; overflow: visible !important; }
+  /* PRINT NEVER INHERITS A ZOOM. Z4 nested the scaled element one level deeper (viewport, sizer, scaled),
+     so the old child-only reset stopped covering it and a zoomed screen would have carried its transform
+     into the PDF. The descendant selector reaches every level. NO BACKTICKS IN HERE — this block is inside
+     a template literal, and a stray one silently terminates the string. */
+  [data-slide-zoom], [data-slide-zoom] * { transform: none !important; width: auto !important; height: auto !important; overflow: visible !important; }
   /* Both the modern and the LEGACY fragmentation properties — WebKit still wants the legacy pair. */
   .slide-print-page { break-inside: avoid; page-break-inside: avoid; }
   .slide-noprint { display: none !important; }
@@ -4607,11 +4611,34 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 scripts/slide-shots.mjs measures overflow off that element, and turning it into the scroll
                 container would make overflow unobservable and retire the gate that caught S10 spilling by 21
                 elements. At zoom === 1 the measured geometry is byte-identical to before. Print forces 1. */}
+            {/* ⚠ THE ZOOM BUG, MEASURED. The previous form put `width: ${100/zoom}%` on the SCALED element.
+                That does not magnify — it RE-FLOWS. At 3x the layout box became 499x228 instead of 1498x685
+                (measured), the content was laid out into a box a third the size, and `scale(3)` painted it
+                back to the same painted size. Type is sized in `cq` units that resolve against the CANVAS
+                container, which never changed, so text kept its absolute size and then got x3 — while every
+                BOX was laid out at a third and scaled back to where it started. Result: 3x text inside
+                unchanged boxes, clipping, exactly what the operator photographed. And the wrapper's scroll
+                extent stayed 1498x1498 (== client), so there was nothing to pan to either.
+
+                MAGNIFY, DON'T RE-FLOW — three elements, each with one job:
+                · viewport  — fixed size, scrolls when zoomed. This is what you pan.
+                · sizer     — `zoom x` the viewport, so the scroll extent actually exists. Transforms do not
+                              affect layout, so without this there is no scrollable area no matter how large
+                              the paint is.
+                · scaled    — `(100/zoom)%` OF THE SIZER, which is exactly 100% of the viewport: it lays out
+                              at the ORIGINAL size, unchanged from 1x, then paints `zoom x`. No reflow.
+                At zoom === 1 all three collapse to `undefined` and the geometry is byte-identical to before,
+                which is what keeps `slide-shots.mjs` measuring the same thing. Print forces 1. */}
             <div data-slide-zoom className={`mt-[1.2cqh] min-h-0 flex-1 ${zoomOn ? "overflow-auto" : "overflow-hidden"}`}>
-              <div style={zoomOn ? { transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%`, height: `${100 / zoom}%` } : undefined} className="h-full">
-                <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body, ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}) }}>
+              <div style={zoomOn ? { width: `${100 * zoom}%`, height: `${100 * zoom}%` } : undefined} className={zoomOn ? "" : "h-full"}>
+                <div style={zoomOn ? { width: `${100 / zoom}%`, height: `${100 / zoom}%`, transform: `scale(${zoom})`, transformOrigin: "0 0" } : undefined} className="h-full">
+                  {/* The body stops clipping ONLY while zoomed. At 1x it keeps `overflow-hidden`, because
+                      `slide-shots.mjs` measures the overflow gate off this element and a permanently visible
+                      overflow would retire the check that caught S10 spilling by 21 elements. */}
+                <div data-slide-body className={`grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] ${zoomOn ? "overflow-visible" : "overflow-hidden"}`} style={{ fontSize: TS.body, ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}) }}>
                   {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
                   {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
+                </div>
                 </div>
               </div>
             </div>

@@ -1503,7 +1503,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // no DEVICE breakpoint may decide the sheet's layout
   const sheet = src.slice(src.indexOf("const SLIDE_PANEL: Record<string, () => React.ReactNode>"), src.indexOf("{/* B2 · footer"));
   ok(!/sm:grid-cols|sm:col-span|md:|lg:/.test(sheet), "the slide sheet contains NO viewport breakpoints — its columns come from the sheet, not the device");
-  ok(/data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-\[1.4cqh\] overflow-hidden"/.test(src), "the slide body is a fixed 2-column sheet grid that STRETCHES its rows to fill the canvas");
+  ok(/data-slide-body className=\{`grid h-full min-h-0 grid-cols-2 content-stretch gap-\[1\.4cqh\] \$\{zoomOn \? "overflow-visible" : "overflow-hidden"\}`\}/.test(src),
+     "the slide body is a fixed 2-column sheet grid that STRETCHES its rows to fill the canvas (Z4: it releases its clip only while zoomed)");
 
   // chart type also lives on the sheet's scale
   ok(!/fontSize="8" fill=\{pin === i/.test(src), "S3 cash-chart year labels were brought inside the cap");
@@ -2285,6 +2286,54 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the badge becomes a LINK only where there is somewhere to go");
 }
 
+// ── Z4 · ZOOM MAGNIFIES, IT DOES NOT RE-FLOW ────────────────────────────────────────────
+// Operator: "when I zoom off the digital slide; text still gets bigger while slide perimeter does not
+// adjust." Correct, and the cause was one property. Z2 put `width: ${100/zoom}%` on the SCALED element,
+// which does not magnify — it RE-FLOWS. Measured at 3x on a 390px phone:
+//
+//                     body LAYOUT      body PAINTED     scroll extent
+//   before            499 x 228        365 x 167        1498 == client (no pan at all)
+//   after           1498 x 685        1095 x 501        4493 x 2054 (3x, pannable)
+//
+// The content was being laid out into a box a THIRD the size and then painted back to the same size. Type
+// is sized in `cq` units that resolve against the CANVAS container, which never changed, so text kept its
+// absolute size and then got x3 — while every BOX was laid out at a third and scaled back to where it
+// started. Hence 3x text inside unchanged boxes, clipping. And with no scroll extent there was nothing to
+// pan to, so the magnified remainder was simply unreachable.
+{
+  const fspZ = await import("node:fs/promises");
+  const pageZ = await fspZ.readFile("app/innovation/page.tsx", "utf8");
+  // ANCHOR ON THE JSX, not the first textual hit — `data-slide-zoom` appears in SLIDE_PRINT_CSS first, and
+  // slicing from there measured the print reset instead of the markup. That mis-anchoring is also how the
+  // print bug below was found: the reset said `> *`, but Z4 made the scaled element a GRANDCHILD.
+  const zone = pageZ.slice(pageZ.indexOf("<div data-slide-zoom"), pageZ.indexOf("data-slide-body", pageZ.indexOf("<div data-slide-zoom")) + 900);
+  ok(/\[data-slide-zoom\], \[data-slide-zoom\] \* \{ transform: none !important/.test(pageZ),
+     "the print reset reaches EVERY descendant — `> *` stopped covering the scaled element when it moved a level deeper");
+
+  // THREE ELEMENTS, EACH WITH ONE JOB. The sizer is what makes the scroll extent exist at all — transforms
+  // do not affect layout, so without it no amount of painting produces a scrollable area.
+  ok(zone.includes("width: `${100 * zoom}%`, height: `${100 * zoom}%`"),
+     "a SIZER establishes the scroll extent at zoom x the viewport");
+  ok(zone.includes('width: `${100 / zoom}%`, height: `${100 / zoom}%`, transform: `scale(${zoom})`, transformOrigin: "0 0"'),
+     "the SCALED child is (100/zoom)% OF THE SIZER — exactly 100% of the viewport, so it lays out unchanged");
+  // The regression guard: the old form put the DIVISION on the element that carries the transform.
+  ok(!pageZ.includes('transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%`'),
+     "the re-flowing form — divide the width of the scaled element itself — is gone");
+
+  // THE BODY MUST STOP CLIPPING WHILE ZOOMED, or the magnified content is cut off by its own container
+  // even though the viewport can now scroll to it.
+  ok(pageZ.includes('${zoomOn ? "overflow-visible" : "overflow-hidden"}'),
+     "the body clips at 1x and releases when zoomed");
+  // ...and it must still clip at 1x, because `slide-shots.mjs` measures the overflow gate off this element.
+  ok(/zoomOn \? "overflow-visible" : "overflow-hidden"/.test(pageZ),
+     "at 1x the overflow gate still has something to measure — S10 spilled by 21 elements once");
+
+  // AT ZOOM 1 EVERYTHING COLLAPSES TO `undefined`, which is what keeps the shot gate measuring the same
+  // geometry it always did. Asserted on the ternaries rather than assumed.
+  ok((zone.match(/zoomOn \? \{ width/g) || []).length === 2,
+     "both wrappers are styled ONLY when zoomed — at 1x the DOM geometry is byte-identical to before");
+}
+
 // ── E0c · CONFIDENCE IS DERIVED FROM RISK, NOT TYPED ────────────────────────────────────
 // Operator: "confidence should be moved to risk and dependent on Low, Med, High for tech and commercial.
 // Low/Low is 5 bullet. High/High is 1 bullet. and 3 is Med/Med, while 2 bullets is Medium or High Technical
@@ -2499,14 +2548,18 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // 2. Zoom lives on a wrapper INSIDE the sheet, and `data-slide-body` stays the overflow-gate anchor.
   ok(/data-slide-zoom/.test(src), "there is a dedicated zoom layer inside the sheet");
-  ok(/transform: `scale\(\$\{zoom\}\)`, transformOrigin: "top left"/.test(src), "the zoom layer carries the scale");
-  ok(/<div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-\[1\.4cqh\] overflow-hidden"/.test(src),
-     "data-slide-body keeps overflow-hidden and stays the element slide-shots measures — the overflow gate survives");
+  ok(/transform: `scale\(\$\{zoom\}\)`, transformOrigin: "0 0"/.test(src), "the zoom layer carries the scale (Z4 moved the origin keyword to 0 0 with the sizer rewrite)");
+  // Z4: the clip is now conditional — `overflow-hidden` at 1x (which is the only state `slide-shots.mjs`
+  // ever measures) and `overflow-visible` while zoomed, or the magnified content is cut off by its own
+  // container even though the viewport can scroll to it. The GATE is what this lock protects, so it asserts
+  // the 1x branch by name rather than the whole literal.
+  ok(/data-slide-body className=\{`grid h-full min-h-0 grid-cols-2 content-stretch gap-\[1\.4cqh\] \$\{zoomOn \? "overflow-visible" : "overflow-hidden"\}`\}/.test(src),
+     "data-slide-body keeps overflow-hidden at 1x and stays the element slide-shots measures — the overflow gate survives");
 
   // 3. Print can never inherit a screen zoom: the component forces it off AND the print CSS forces it off.
   ok(/const zoomOn = !style && zoom > 1;/.test(src), "the print stack (the only caller passing a style) renders at 1x");
-  ok(/\[data-slide-zoom\], \[data-slide-zoom\] > \* \{ transform: none !important;/.test(src),
-     "print CSS also neutralises the zoom layer — belt and braces on the exported PDF");
+  ok(/\[data-slide-zoom\], \[data-slide-zoom\] \* \{ transform: none !important;/.test(src),
+     "print CSS neutralises EVERY descendant of the zoom layer — `> *` stopped reaching the scaled element when Z4 nested it deeper");
 
   // 4. ONE ceiling. The + button clamped to 4 while pinchZoom clamped to 3, so you could button to 400% and
   //    the next pinch snapped you back to 300%.
@@ -2868,7 +2921,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
 
   // 22a · both levels stretch, and the children can actually take the height
-  ok(/data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch/.test(src), "the slide body grid stretches its rows");
+  ok(/data-slide-body className=\{`grid h-full min-h-0 grid-cols-2 content-stretch/.test(src), "the slide body grid stretches its rows");
   ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(src), "every AmtsPanel body stretches its rows — fixing only the outer grid just relocates the void inside the panel");
   ok(/<div data-panel className=\{`flex min-h-0 flex-col overflow-hidden/.test(src), "the panel frame is a column flex, so its body can take the height it is given");
   ok((src.match(/flex min-h-0 (min-w-0 )?flex-col/g) ?? []).length >= 3, "the PresentField cards can take height too (both exits)");
