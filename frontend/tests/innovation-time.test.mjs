@@ -1481,14 +1481,16 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // ONE fixed sheet, scaled to fit — the guarantee that portrait == landscape
   ok(/const SHEET_W = 1600, SHEET_H = 900;/.test(src), "the sheet is a fixed 1600x900 page (matches the @page print size)");
-  ok(/transform: `scale\(\$\{fit \* zoom\}\)`/.test(src), "the whole sheet is scaled to fit — not re-laid-out per device");
+  // Re-based: `zoom` moved off the canvas and onto [data-slide-zoom] inside it, so the banner holds its
+  // on-screen size while the body magnifies. The PROPERTY under test is unchanged — one sheet, scaled to fit.
+  ok(/transform: `scale\(\$\{fit\}\)`/.test(src), "the whole sheet is scaled to fit — not re-laid-out per device");
   ok(/const fit = Math\.min\(/.test(src), "fit is min(width, height) so the sheet always lands whole inside the stage");
   ok(!/aspectRatio: "16 \/ 9", containerType/.test(src), "the old per-device canvas sizing is gone (it was what let portrait drift)");
 
   // no DEVICE breakpoint may decide the sheet's layout
   const sheet = src.slice(src.indexOf("const SLIDE_PANEL: Record<string, () => React.ReactNode>"), src.indexOf("{/* B2 · footer"));
   ok(!/sm:grid-cols|sm:col-span|md:|lg:/.test(sheet), "the slide sheet contains NO viewport breakpoints — its columns come from the sheet, not the device");
-  ok(/grid min-h-0 flex-1 grid-cols-2 content-stretch gap-\[1.4cqh\] overflow-hidden/.test(src), "the slide body is a fixed 2-column sheet grid that STRETCHES its rows to fill the canvas");
+  ok(/data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-\[1.4cqh\] overflow-hidden"/.test(src), "the slide body is a fixed 2-column sheet grid that STRETCHES its rows to fill the canvas");
 
   // chart type also lives on the sheet's scale
   ok(!/fontSize="8" fill=\{pin === i/.test(src), "S3 cash-chart year labels were brought inside the cap");
@@ -1860,6 +1862,54 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      `the scenarios draft speaks the four Rack & Stack band names — got [${scen.map((r) => r[0]).join(" · ")}]`);
 }
 
+// ── Z · PRESENT-MODE ZOOM — magnify the content, hold the chrome ────────────────────────
+// Operator: "when pinch zoom, top icons and banner size should not change just the content of slide. This
+// applies to portrait and landscape." Zoom was applied to the whole 1600x900 sheet, so pinching to read a
+// dense table also magnified the project name, the COGS/MSRP/Mgn strip, the Req badge, the gate stamp, the
+// title and the footer — the banner ate the viewport and pushed the content off-screen.
+{
+  const fspz = await import("node:fs/promises");
+  const src = await fspz.readFile("app/innovation/page.tsx", "utf8");
+  const vpSrc = await fspz.readFile("lib/use-viewport.ts", "utf8");
+
+  // 1. The canvas scales by `fit` ALONE. Reattaching zoom here is the regression.
+  ok(/transform: `scale\(\$\{fit\}\)`/.test(src), "the sheet scales by fit alone — the chrome holds a constant on-screen size");
+  ok(!/scale\(\$\{fit \* zoom\}\)/.test(src), "zoom is no longer multiplied into the sheet transform");
+  ok(!/width: SHEET_W \* fit \* zoom/.test(src), "the shrink-wrap footprint no longer reserves a zoomed page");
+
+  // 2. Zoom lives on a wrapper INSIDE the sheet, and `data-slide-body` stays the overflow-gate anchor.
+  ok(/data-slide-zoom/.test(src), "there is a dedicated zoom layer inside the sheet");
+  ok(/transform: `scale\(\$\{zoom\}\)`, transformOrigin: "top left"/.test(src), "the zoom layer carries the scale");
+  ok(/<div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-\[1\.4cqh\] overflow-hidden"/.test(src),
+     "data-slide-body keeps overflow-hidden and stays the element slide-shots measures — the overflow gate survives");
+
+  // 3. Print can never inherit a screen zoom: the component forces it off AND the print CSS forces it off.
+  ok(/const zoomOn = !style && zoom > 1;/.test(src), "the print stack (the only caller passing a style) renders at 1x");
+  ok(/\[data-slide-zoom\], \[data-slide-zoom\] > \* \{ transform: none !important;/.test(src),
+     "print CSS also neutralises the zoom layer — belt and braces on the exported PDF");
+
+  // 4. ONE ceiling. The + button clamped to 4 while pinchZoom clamped to 3, so you could button to 400% and
+  //    the next pinch snapped you back to 300%.
+  ok(/ZOOM_MIN, ZOOM_MAX \} from "@\/lib\/use-viewport"/.test(src), "the deck imports the shared zoom clamps");
+  ok(/Math\.max\(ZOOM_MIN,/.test(src) && /Math\.min\(ZOOM_MAX,/.test(src), "the +/- buttons use them instead of hardcoding 1 and 4");
+  ok(!/setZoom\(\(z\) => Math\.min\(4,/.test(src), "the 4x button ceiling that disagreed with pinch is gone");
+  ok(/export const ZOOM_MAX = 3;/.test(vpSrc), "there is exactly one place that defines the ceiling");
+
+  // 5. Chrome height is MEASURED. It was hardcoded 48px against a five-group bar with no wrap, so on a 390px
+  //    phone the stage height was wrong by 50-100px and the sheet ended up parked below dead space.
+  ok(/const chromeRef = useRef<HTMLDivElement \| null>\(null\);/.test(src) && /setChromeH\(chromeRef\.current\?\.offsetHeight/.test(src),
+     "the control bar's height is measured, not assumed");
+  ok(/\(vp\.h \|\| SHEET_H\) - chromeH\)/.test(src), "`fit` uses the measured height");
+  ok(/ref=\{chromeRef\} className="slide-noprint flex shrink-0 flex-wrap/.test(src),
+     "the control bar wraps instead of compressing, and is the element being measured");
+  ok(/flex flex-1 items-start justify-center overflow-hidden/.test(src),
+     "the stage top-aligns the sheet: a 16:9 page in a 9:19.5 phone leaves one contiguous gap at the bottom, not two");
+
+  // 6. A drag pans when zoomed and pages at 1x — the body is what moves under the finger now.
+  ok(/if \(zoom <= 1 && Math\.abs\(dx\) > 50\) go\(dx < 0 \? 1 : -1\);/.test(src),
+     "a swipe pages only at 1x; zoomed in it pans the body instead of turning the page mid-read");
+}
+
 // ── S10 · FINANCIAL INPUT MODEL — arithmetic, not shape ─────────────────────────────────
 // Faithful to the operator's own Rack & Stack (FLIR Portfolio Planning, 2019). These EXECUTE the functions
 // against real numbers rather than grepping for their names, because the whole point of S10 is that the figure
@@ -2198,7 +2248,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
 
   // 22a · both levels stretch, and the children can actually take the height
-  ok(/data-slide-body className="mt-\[1.2cqh\] grid min-h-0 flex-1 grid-cols-2 content-stretch/.test(src), "the slide body grid stretches its rows");
+  ok(/data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch/.test(src), "the slide body grid stretches its rows");
   ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(src), "every AmtsPanel body stretches its rows — fixing only the outer grid just relocates the void inside the panel");
   ok(/<div data-panel className=\{`flex min-h-0 flex-col overflow-hidden/.test(src), "the panel frame is a column flex, so its body can take the height it is given");
   ok((src.match(/flex min-h-0 (min-w-0 )?flex-col/g) ?? []).length >= 3, "the PresentField cards can take height too (both exits)");
@@ -2482,7 +2532,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // the SCREEN path is untouched
   ok(/const SHEET_W = 1600, SHEET_H = 900;/.test(src), "SHEET_W/SHEET_H remain for the screen path");
-  ok(/transform: `scale\(\$\{fit \* zoom\}\)`/.test(src), "the screen sheet still scales to fit — only the print path changed");
+  ok(/transform: `scale\(\$\{fit\}\)`/.test(src), "the screen sheet still scales to fit — only the print path changed");
 
   // THE ASSERTION THAT NEVER EXISTED, and the reason the clip survived
   ok(/printable box at 96dpi|Printable box at 96dpi/i.test(gate), "the gate reasons in real paper units");

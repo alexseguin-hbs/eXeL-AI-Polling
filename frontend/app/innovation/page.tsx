@@ -55,7 +55,7 @@ import {
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness,
 } from "@/lib/innovation-data";
-import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
+import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
@@ -3206,6 +3206,9 @@ const SLIDE_PRINT_CSS = `
        portrait  Letter, 0.5in margins ->  7.5in x 4.219in   (both fit) */
   .slide-print-page { position: relative !important; width: 100% !important; height: auto !important; aspect-ratio: 16 / 9; transform: none !important; }
   .slide-print-page [data-slide-canvas] { width: 100% !important; height: 100% !important; transform: none !important; }
+  /* Screen zoom must never reach the exported PDF. Sheet already forces zoomOn=false for the print stack
+     (it is the only caller that passes a style prop); this is the belt to that braces. */
+  [data-slide-zoom], [data-slide-zoom] > * { transform: none !important; width: auto !important; height: auto !important; overflow: visible !important; }
   /* Both the modern and the LEGACY fragmentation properties — WebKit still wants the legacy pair. */
   .slide-print-page { break-inside: avoid; page-break-inside: avoid; }
   .slide-noprint { display: none !important; }
@@ -3805,6 +3808,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // would silently shift a year. Read once, pass down; the pure lib still takes `baseYear` so tests pin 2026.
   const baseYear = useMemo(() => new Date().getFullYear(), []);
   const [zoom, setZoom] = useState(1); // G-refine — pinch/tap zoom of the 16:9 slide (esp. portrait phones)
+  // MEASURED PRESENT CHROME. `fit` used to be computed against a hardcoded 48px control bar; the bar is five
+  // groups with no wrap, so on a 390px phone it takes two or three rows and the stage height was wrong by
+  // 50-100px — which is why the operator's screenshots show the sheet parked below a screen of dead space.
+  // Hooks live here, unconditionally, because Present mode is an early-return branch further down.
+  const chromeRef = useRef<HTMLDivElement | null>(null);
+  const [chromeH, setChromeH] = useState(48);
+  useEffect(() => {
+    if (!present) return;
+    const measure = () => setChromeH(chromeRef.current?.offsetHeight ?? 48);
+    measure();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (ro && chromeRef.current) ro.observe(chromeRef.current);
+    window.addEventListener("resize", measure);
+    return () => { ro?.disconnect(); window.removeEventListener("resize", measure); };
+  }, [present]);
   // The 20-page print stack is only MOUNTED while printing. Rendering 20 sheets (each with charts) behind a
   // `hidden` class would cost a phone the whole deck's layout on every present render, for pixels nobody sees.
   const [printing, setPrinting] = useState(false);
@@ -3941,7 +3959,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     if (pinching.current) { if (e.touches.length === 0) { pinching.current = false; pinchDist.current = 0; } return; }
     if (touchX.current == null) return;
     const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current;
-    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+    // ZOOMED IN, A DRAG PANS — IT DOES NOT PAGE. Once the zoom transform lives on the slide body, the body
+    // is the thing that moves under your finger; paging the deck out from under a half-read table is the
+    // opposite of what the gesture now means. At 1x nothing changed: a swipe still turns the page.
+    if (zoom <= 1 && Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
     touchX.current = null;
   };
 
@@ -4377,11 +4398,20 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // same 12px on a 763px sheet. Laying out at ONE size and scaling the whole page makes portrait a literal
     // photographic reduction of landscape: nothing can drift, and 12px in the source is 12px on the printout.
     const SHEET_W = 1600, SHEET_H = 900;
-    const CHROME_H = 48;                                        // the control bar above the stage
-    const fit = Math.min((vp.w || SHEET_W) / SHEET_W, Math.max(1, (vp.h || SHEET_H) - CHROME_H) / SHEET_H);
+    // CHROME_H WAS A GUESS AND THE GUESS WAS WRONG ON A PHONE. The control bar is five groups with no wrap;
+    // at 390px it takes two or three rows, not the 48px assumed here, so `fit` was computed against a height
+    // the stage did not have and the sheet ended up parked at the bottom of a tall dead region (operator's
+    // iPhone screenshots, 2026-07-30). Measure the bar instead of assuming it.
+    const fit = Math.min((vp.w || SHEET_W) / SHEET_W, Math.max(1, (vp.h || SHEET_H) - chromeH) / SHEET_H);
+    // ZOOM NO LONGER TOUCHES THE SHEET. Scaling the whole 1600x900 page magnified the header band with the
+    // content — project name, COGS/MSRP/Mgn strip, Req badge, gate stamp, title and footer all grew, ate the
+    // viewport, and pushed the table the presenter was trying to read off-screen (operator: "top icons and
+    // banner size should not change just the content of slide"). The sheet now always scales by `fit` alone,
+    // so the chrome holds a constant on-screen size in both orientations, and `zoom` is applied INSIDE, to
+    // the slide body only. See `bodyZoomStyle` on [data-slide-body]'s wrapper.
     const sheetStyle: React.CSSProperties = {
       width: SHEET_W, height: SHEET_H, flex: "none", containerType: "size",
-      transform: `scale(${fit * zoom})`, transformOrigin: "top left",
+      transform: `scale(${fit})`, transformOrigin: "top left",
     };
     // The print stack lays the same sheet out at 1:1 — the @page IS 1600x900, so no scaling at all.
     // Print path ONLY — the screen path (sheetStyle + the `fit` calc above) keeps SHEET_W/SHEET_H and is not
@@ -4399,6 +4429,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // Anything that renders a slide renders THIS. A second, print-only slide renderer is exactly how a PDF
     // ends up disagreeing with what the board saw on the projector.
     const Sheet = ({ sp, i, style }: { sp: SlideSpec; i: number; style?: React.CSSProperties }) => {
+      // `style` is passed ONLY by the print stack and the cover, so it is the discriminator that keeps the
+      // exported PDF at 1x no matter what the operator has zoomed the screen to. Belt and braces: the print
+      // CSS also forces `transform: none` on [data-slide-zoom].
+      const zoomOn = !style && zoom > 1;
       const panel = panelsFor(sp)[sp.code];
       const anyContent = sp.fields.some((f) => !fieldEmpty(effective(sp, f, presentSrc)) || (f.kind === "chart" && f.linked));
       const deckTitle = slideDef(sp.code)?.name ?? sp.code;
@@ -4435,10 +4469,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               <span>Project #: <span className="text-slate-300">{p.id}</span></span>
               <span>Source: <span className="text-slate-300">{sp.source}</span></span>
             </div>
-            {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback. */}
-            <div data-slide-body className="mt-[1.2cqh] grid min-h-0 flex-1 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body }}>
-              {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
-              {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
+            {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback.
+                ZOOM LIVES HERE, not on the canvas. The wrapper is the pan viewport; its child carries the
+                scale. `data-slide-body` deliberately stays on the SAME grid with the SAME overflow-hidden —
+                scripts/slide-shots.mjs measures overflow off that element, and turning it into the scroll
+                container would make overflow unobservable and retire the gate that caught S10 spilling by 21
+                elements. At zoom === 1 the measured geometry is byte-identical to before. Print forces 1. */}
+            <div data-slide-zoom className={`mt-[1.2cqh] min-h-0 flex-1 ${zoomOn ? "overflow-auto" : "overflow-hidden"}`}>
+              <div style={zoomOn ? { transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%`, height: `${100 / zoom}%` } : undefined} className="h-full">
+                <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body }}>
+                  {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
+                  {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
+                </div>
+              </div>
             </div>
             {/* B2 · footer — page # (left) · progress · reference links (right) · PRINT provenance (print only) */}
             <div className="mt-[1cqh] flex shrink-0 items-center gap-[1.2cqw] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: TS.meta }}>
@@ -4487,12 +4530,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         style={{ touchAction: "none" }}>
         <style>{SLIDE_PRINT_CSS}</style>
         {/* TOP CONTROL BAR — always above the slide (never covers it) */}
-        <div className="slide-noprint flex shrink-0 items-center justify-end gap-2 p-2">
+        <div ref={chromeRef} className="slide-noprint flex shrink-0 flex-wrap items-center justify-end gap-2 p-2">
           {/* zoom (esp. portrait) */}
           <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label="Zoom slide">
-            <button onClick={() => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom out">－</button>
+            <button onClick={() => setZoom((z) => Math.max(ZOOM_MIN, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom out">－</button>
             <span className="px-1 py-1.5 tabular-nums text-slate-400">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom in">＋</button>
+            <button onClick={() => setZoom((z) => Math.min(ZOOM_MAX, +(z + 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom in">＋</button>
           </div>
           <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label={t("innovation.present.src")}>
             {([["set", t("innovation.present.src.set")], ["hi", `웃 ${t("innovation.slides.hi")}`], ["ai", `◬ ${t("innovation.slides.ai")}`]] as const).map(([k, lbl]) => (
@@ -4511,13 +4554,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
-        {/* SLIDE AREA — fills the remaining space below the control bar; overflow-auto lets you pan when zoomed. */}
-        <div className="slide-noprint relative flex flex-1 items-center justify-center overflow-auto">
+        {/* SLIDE AREA — fills the remaining space below the control bar. The sheet now ALWAYS fits (zoom moved
+            inside it), so this box never scrolls and the page can never be parked below a screen of dead
+            space, which is what the operator's phone screenshots showed. TOP-ALIGNED, not centred: a 16:9
+            sheet inside a 9:19.5 phone can only ever be width-fit, so ~500px of the portrait screen is
+            unavoidably empty — centring split that emptiness above AND below the sheet and made the deck look
+            like it had fallen down the page. Anchoring it under the controls keeps the one contiguous gap at
+            the bottom, where it reads as the end of a document rather than a layout fault. */}
+        <div className="slide-noprint relative flex flex-1 items-start justify-center overflow-hidden">
           <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
           <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
           {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap reserves the SCALED footprint so the
               scaled sheet is centred and pannable at zoom>1 instead of overflowing its own layout box. */}
-          <div className="relative shrink-0" style={{ width: SHEET_W * fit * zoom, height: SHEET_H * fit * zoom }}>
+          <div className="relative shrink-0" style={{ width: SHEET_W * fit, height: SHEET_H * fit }}>
             <Sheet sp={spec} i={idx} />
           </div>
         </div>
