@@ -495,6 +495,22 @@ export const finNewRevM = (fin: FinPlan): number =>
 export const finRollup = (fin: FinPlan): { nreK: number; fullRev10yM: number } =>
   ({ nreK: Math.round(finTotalSpendK(fin)), fullRev10yM: finNewRevM(fin) });
 
+// ── GATE READINESS — the ladder, measured ────────────────────────────────────────────────
+// Concept must forecast current+3, Plan current+5, Develop current+10 (operator). Storage is always 11, so
+// demoting HIDES years and never deletes them — which is why readiness counts only the years the stage is
+// asked for. A year counts as forecast when it carries ANY entered figure: spend, or a revenue on any band.
+// Deliberately generous about WHICH figure — the gate asks "have you forecast this year", not "have you
+// filled every cell", and a stricter rule would fail projects whose Do-Nothing line is genuinely zero.
+export const finYearForecast = (y: FinYear): boolean =>
+  spendTotalK(y) > 0 || [y.neu, y.don, y.dec].some((b) => b.units > 0 || (b.revK ?? 0) > 0 || (b.mgnK ?? 0) > 0);
+export interface FinGateReadiness { need: number; filled: number; ready: boolean; missing: number[] }
+export function finGateReadiness(fin: FinPlan, gate: Gate): FinGateReadiness {
+  const need = visibleYearCount(gate);
+  const span = fin.years.slice(0, need);
+  const missing = span.filter((y) => !finYearForecast(y)).map((y) => y.year);
+  return { need, filled: need - missing.length, ready: missing.length === 0, missing };
+}
+
 // ── Derived. Never stored, so two surfaces cannot disagree. ──────────────────────────────
 /** ASP = list price net of the distribution discount. Derived, never typed. */
 export const aspOf = (b: FinBandYear): number => b.msrpK * (1 - (b.discPct || 0) / 100);

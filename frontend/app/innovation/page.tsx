@@ -53,6 +53,7 @@ import {
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
+  finGateReadiness,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -2338,6 +2339,9 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
 }) {
   const [editing, setEditing] = useState(false);
   const { t } = useLexicon();
+  // ONE CLOCK here too — same discipline as the deck root. Read once so a panel open across midnight on
+  // 31 December cannot silently re-anchor the plan it is measuring.
+  const baseYear = useMemo(() => new Date().getFullYear(), []);
   const [showExec, setShowExec] = useState(false);
   const [draft, setDraft] = useState<Partial<Project>>({});
   const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
@@ -2488,7 +2492,23 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
           <label>NRE $K<input type="text" inputMode="numeric" value={String(dv("nreK"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("nreK", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
           <label>New rev 10yr $M<input type="text" inputMode="numeric" value={String(dv("fullRev10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("fullRev10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
           <label>Do-nothing 10yr $M<input type="text" inputMode="numeric" value={String(dv("doNothing10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("doNothing10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
-          <label>Gate<select value={dv("gate")} onChange={(e) => setD("gate", e.target.value as Project["gate"])} className={`mt-0.5 block w-full ${editStyle}`}>{GATES.map((g) => <option key={g} value={g}>{g} {GATE_STAGE[g]}</option>)}</select></label>
+          {/* GATE LADDER — Concept forecasts current+3, Plan current+5, Develop current+10. The option text
+              carries its own requirement so the ladder is legible at the moment of the decision, and a stage
+              whose years are not yet forecast says so instead of failing silently at the review. The gate is
+              NOT blocked: a board can advance a project for reasons the grid does not know about, and locking
+              33 seeded projects out of their own stage would be a worse defect than the one being fixed. */}
+          <label>Gate
+            <select value={dv("gate")} onChange={(e) => setD("gate", e.target.value as Project["gate"])} className={`mt-0.5 block w-full ${editStyle}`}>
+              {GATES.map((g) => <option key={g} value={g}>{g} {GATE_STAGE[g]} · {visibleYearCount(g)} yr</option>)}
+            </select>
+            {(() => {
+              const g = (dv("gate") ?? p.gate) as Project["gate"];
+              const r = finGateReadiness(finOf(p, baseYear), g);
+              return r.ready
+                ? <span className="mt-0.5 block text-[9px] text-emerald-400/90">S10 forecasts all {r.need} years this stage needs.</span>
+                : <span className="mt-0.5 block text-[9px] text-amber-400/90">S10 forecasts {r.filled} of the {r.need} years {GATE_STAGE[g]} needs — missing {r.missing.map((y) => yearLabel(y)).join(", ")}.</span>;
+            })()}
+          </label>
           <label>Tech Risk<select value={dv("tech")} onChange={(e) => setD("tech", e.target.value as Project["tech"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
           <label>Comm Risk<select value={dv("comm")} onChange={(e) => setD("comm", e.target.value as Project["comm"])} className={`mt-0.5 block w-full ${editStyle}`}>{["low", "med", "high"].map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
           {/* Master-data dropdowns — options come from Business Setup (BU/SBU/Alpha…) + pillars */}
@@ -3621,6 +3641,16 @@ function S10FinEditor({ p, baseYear, onEdit }: {
       <div className="mb-1 flex flex-wrap items-baseline gap-x-2 text-[10px]">
         <span className="font-semibold uppercase tracking-wider text-cyan-300">S10 · Financials by Year</span>
         <span className="text-slate-500">{GATE_STAGE[p.gate]} ({p.gate}) shows {n} of {fin.years.length} calendar years — demoting hides years, never deletes them.</span>
+        {/* The gate ladder, measured rather than described: Concept current+3, Plan current+5, Develop +10. */}
+        {(() => {
+          const r = finGateReadiness(fin, p.gate);
+          return r.ready
+            ? <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 text-emerald-300">✓ {r.filled}/{r.need} years forecast</span>
+            : <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 text-amber-300"
+                    title={`${GATE_STAGE[p.gate]} needs a forecast for ${r.need} calendar years. Missing: ${r.missing.join(", ")}.`}>
+                {r.filled}/{r.need} years forecast — missing {r.missing.map((y) => yearLabel(y)).join(", ")}
+              </span>;
+        })()}
       </div>
       <div className="max-h-[46vh] overflow-auto">
         <table className="w-full border-collapse">

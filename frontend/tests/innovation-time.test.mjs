@@ -1756,6 +1756,42 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/DERIVED_BY_GRID: string\[\] = \[[^\]]*doNothing10yM/.test(pageSrc),
      "Do-Nothing and the upside accelerator are NOT grid fields and stay editable — the lockdown is precise, not blanket");
 
+  // 4e. F6 · THE GATE LADDER, MEASURED. Concept forecasts current+3, Plan current+5, Develop current+10.
+  //     Storage is ALWAYS 11 years: demoting hides columns, it never deletes them — so a project that slips
+  //     back to Concept and is later re-promoted must return with every cell it had, not a truncated plan.
+  ok(F.visibleYearCount("G1") === 4 && F.visibleYearCount("G2") === 6 && F.visibleYearCount("G3") === 11,
+     `4 / 6 / 11 by stage — got ${F.visibleYearCount("G1")} / ${F.visibleYearCount("G2")} / ${F.visibleYearCount("G3")}`);
+  ok(["G4", "G5", "G6", "G7"].every((g) => F.visibleYearCount(g) === 11), "every stage past Develop keeps the full 11-year span");
+
+  // Demote → promote is lossless, asserted on the DATA rather than on a UI flow: the plan is one object and
+  // the stage is only a window onto it, so the round trip is identity by construction. This is the assertion
+  // that fails the day someone "optimises" storage down to the visible span.
+  const wide = F.withFinSpendRow(base, "sustain", Array.from({ length: F.FIN_SPAN }, (_, i) => 100 + i));
+  const asConcept = wide.years.slice(0, F.visibleYearCount("G1"));
+  ok(asConcept.length === 4 && wide.years.length === F.FIN_SPAN,
+     "demoting to Concept shows 4 years while the record still stores 11");
+  ok(wide.years.every((y, i) => y.sustain === 100 + i),
+     "every stored year keeps its value regardless of which stage is displayed — demote/promote is lossless");
+
+  // Readiness counts the years the STAGE asks for, and a year counts as forecast on any entered figure —
+  // spend or revenue. A stricter "every cell filled" rule would fail projects whose Do-Nothing is truly zero.
+  const empty = F.emptyFinPlan(2026);
+  ok(!F.finGateReadiness(empty, "G1").ready && F.finGateReadiness(empty, "G1").need === 4 && F.finGateReadiness(empty, "G1").filled === 0,
+     "an empty plan is not Concept-ready and says so as 0 of 4");
+  const three = F.withFinSpendRow(empty, "labor", [10, 10, 10]);
+  const r3 = F.finGateReadiness(three, "G1");
+  ok(r3.filled === 3 && !r3.ready && r3.missing.length === 1 && r3.missing[0] === 2029,
+     `three forecast years leaves Concept one short, and NAMES it — got ${r3.filled}/${r3.need}, missing [${r3.missing.join(",")}]`);
+  const four = F.withFinSpendRow(empty, "labor", [10, 10, 10, 10]);
+  ok(F.finGateReadiness(four, "G1").ready && !F.finGateReadiness(four, "G2").ready,
+     "four years satisfies Concept and not Plan — the ladder actually steps");
+  ok(F.finGateReadiness(F.withFinBandRow(empty, "neu", "revK", [5, 5, 5, 5]), "G1").ready,
+     "revenue alone counts as a forecast year — the gate asks whether the year is modelled, not that every cell is typed");
+  ok(/finGateReadiness\(fin, p\.gate\)/.test(pageSrc) && /years forecast/.test(pageSrc),
+     "the S10 editor shows the ladder as measured progress, not as prose");
+  ok(/\{g\} \{GATE_STAGE\[g\]\} · \{visibleYearCount\(g\)\} yr/.test(pageSrc),
+     "each gate option carries its own year requirement, so the ladder is legible at the moment of the decision");
+
   // 5. ONE CLOCK. Both S10 tables called new Date().getFullYear() on every render, so a deck left open across
   //    midnight on 31 December would re-anchor its columns mid-session. Hoisted to one memo at the deck root.
   ok(/const baseYear = useMemo\(\(\) => new Date\(\)\.getFullYear\(\), \[\]\);/.test(pageSrc),
