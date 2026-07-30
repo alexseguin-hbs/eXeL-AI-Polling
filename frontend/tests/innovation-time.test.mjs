@@ -2852,8 +2852,30 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/<AmtsPanel wide title="R&D Spend"/.test(src), "S10 carries the R&D Spend panel");
   ok(/<AmtsPanel wide title="R&D Revenues"/.test(src), "S10 carries the R&D Revenues panel");
 
-  // 2. The four Rack & Stack band names, spelled as the operator's reference spells them.
-  for (const b of ["Do Nothing: Existing", "New: 1st Product Rev", "Declining Rev: Existing", "Combined: Incremental"]) {
+  // 2. The band names, spelled as the OPERATOR spells them (F6, 2026-07-30) — and compared BETWEEN the two
+  //    surfaces, not just looked for in the file.
+  //    The previous form was `src.includes("<name>")` over the whole of page.tsx. Both surfaces live in that
+  //    one file, so it passed when only ONE of them was retitled — green on exactly the half-done change it
+  //    existed to forbid, and red only if you did the complete, correct thing. A lock inverted against its
+  //    own intent (Odin, pre-change review). It now extracts BOTH lists and compares them, which is the same
+  //    shape the file already uses for metric-row order.
+  //    "PRD" is the operator's term, kept verbatim on their instruction after it was flagged as absent from
+  //    the entire repo and ambiguous against "Product Requirements Document".
+  // Slices are rebuilt here rather than reused: `ed`/`bandFn2` are block-scoped to the E1/E4 block above,
+  // and reaching for them across blocks is what made this probe throw on first run. Same anchors, locally.
+  const shSlice = src.slice(src.indexOf("const band = (key:"), src.indexOf("Combined is DERIVED: Revenue/Margin"));
+  const edSlice = src.slice(src.indexOf("const BANDS"), src.indexOf("Combined is DERIVED — New"));
+  const shTitles = [...shSlice.matchAll(/\.\.\.band\("(?:don|neu|dec)", "([^"]+)"/g)].map((m) => m[1]);
+  const edTitles = [...edSlice.matchAll(/\{ key: "(?:don|neu|dec)", label: "([^"]+)" \}/g)].map((m) => m[1]);
+  ok(shTitles.join("|") === edTitles.join("|"),
+     `sheet and editor spell the bands IDENTICALLY — sheet [${shTitles.join(" · ")}] vs editor [${edTitles.join(" · ")}]`);
+  ok(edTitles.join("|") === "Step 1b · New Product Rev|Step 2 · Do Nothing Rev • Not Funded|Step 3 · Existing • PRD Revenue • EOL",
+     `the bands carry the operator's titles, in their order — got [${edTitles.join(" · ")}]`);
+  // The step now lives INSIDE the label, so there is one string per band rather than two composed pieces.
+  ok(!/\{ key: "(?:don|neu|dec)", label: "[^"]+", step:/.test(edSlice), "the separate `step` field is gone — one string per band");
+  ok(!/\{b\.label\} <span[^>]*>· \{b\.step\}/.test(edSlice), "the editor renders the label whole, not label-then-step");
+  // Combined is NOT in the operator's rename list and must not be swept along.
+  for (const b of ["Combined: Incremental"]) {
     ok(src.includes(`"${b}"`), `band "${b}" is named exactly as Rack & Stack names it`);
   }
   // Other and Sustain are SEPARATE spend rows — the AMTS sheet merges them, Rack & Stack does not.

@@ -3605,9 +3605,12 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
       gutter dense
       head={["", ...ys.map((y) => yearLabel(y.year))]}
       rows={[
-        ...band("don", "Do Nothing: Existing", "rgba(100,116,139,.14)"),
-        ...band("neu", "New: 1st Product Rev", "rgba(59,130,246,.14)"),
-        ...band("dec", "Declining Rev: Existing", "rgba(251,146,60,.14)"),
+        // F6 · SAME ORDER AND SAME STRINGS AS THE EDITOR'S `BANDS`. Whole `...band(...)` spreads are moved,
+        // never split: each is a contiguous groupSpan-6 block and `S10Grid` computes its rowSpan cover set
+        // positionally, so splitting one desynchronises the gutter and shifts every number a column right.
+        ...band("neu", "Step 1b · New Product Rev", "rgba(59,130,246,.14)"),
+        ...band("don", "Step 2 · Do Nothing Rev • Not Funded", "rgba(100,116,139,.14)"),
+        ...band("dec", "Step 3 · Existing • PRD Revenue • EOL", "rgba(251,146,60,.14)"),
         // Combined is DERIVED: Revenue/Margin = New − Do-Nothing + EOL, and Quantity is the NET count
         // (New − Declining), labelled as such so nobody reads it as a gross unit total.
         { group: "Combined: Incremental", groupSpan: 5, tint: "rgba(34,211,238,.16)", label: "Quantity (net)", cells: ys.map((y) => finFmtQty(incUnits(y))) },
@@ -3762,10 +3765,16 @@ function S10FinEditor({ p, baseYear, onEdit }: {
       set={(i, v) => setYear(i, { [key]: v } as Partial<FinYear>, `${label} ${fin.years[i].year} → ${v}`)}
       onFill={() => openFill(label, fin.years[0][key], (vals) => withFinSpendRow(fin, key, vals))} />
   );
-  const BANDS: { key: "don" | "neu" | "dec"; label: string; step: string }[] = [
-    { key: "don", label: "Do Nothing: Existing", step: "Step 2" },
-    { key: "neu", label: "New: 1st Product Rev", step: "Step 1b" },
-    { key: "dec", label: "Declining Rev: Existing", step: "Step 3" },
+  // F6 · ORDER AND TITLES ARE THE OPERATOR'S. The ladder now reads 1a → 1b → 2 → 3 down the panel; it used
+  // to read 1a, 2, 1b, 3, with the step number LAST so a wrapped label orphaned it onto its own line as a
+  // bare digit. The step is folded INTO the label — ONE string, used verbatim by the sheet as well, so the
+  // two surfaces cannot compose the same name two different ways and drift. The separate `step` field is
+  // gone for the same reason. `·` separates step from name, `•` separates clauses within the name; that is
+  // the operator's own punctuation and it is now a stated two-level convention, not an accident.
+  const BANDS: { key: "don" | "neu" | "dec"; label: string }[] = [
+    { key: "neu", label: "Step 1b · New Product Rev" },
+    { key: "don", label: "Step 2 · Do Nothing Rev • Not Funded" },
+    { key: "dec", label: "Step 3 · Existing • PRD Revenue • EOL" },
   ];
   // STICKY TOP — the vertical twin of the pinned band labels. The editor scrolls inside `max-h-[46vh]`; with
   // six rows on each of three bands plus the spend block, scrolling down loses the calendar years and you are
@@ -3864,7 +3873,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                         label cell carrying the name AND its toggle (the control must not scroll away from the
                         label it belongs to), and a spanning cell that carries the stripe. */}
                     <td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">
-                      {b.label} <span className="font-normal text-slate-400">· {b.step}</span>
+                      {b.label}
                       {/* THE TOGGLE SWAPS THE ROW SET (operator: "if Rev / Mgn Only is selected, Qty, COGS,
                           ASP are hidden and those cells are editable"). Each mode shows exactly what it takes
                           and nothing it ignores, so there is never a row on screen the current mode does not
