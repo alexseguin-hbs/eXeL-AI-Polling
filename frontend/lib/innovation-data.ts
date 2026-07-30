@@ -247,6 +247,7 @@ export interface Project {
   existingRevM?: number;              // base-year existing revenue ($M)
   existingDecline?: { toM: number; overYears: number; zeroAfterYear: number };
   revPlan?: RevPlan;                  // H42 — per-project QTY·ASP·COGS build-up + profile (High-Level ↔ Detailed)
+  finPlan?: FinPlan;                  // S10 — the financial record. 11 calendar years, Rack & Stack 3-step model.
 }
 /** A single differentiator in the Value Equation — scored for customer importance and performance vs the NBA. */
 export interface ValueDriver { name: string; importance: number; ourScore: number; nbaScore: number }
@@ -513,6 +514,49 @@ export const finFilledYears = (f: FinPlan, gate: Gate): { filled: number; need: 
   }
   return { filled, need, missing };
 };
+
+// ── Baseline — so no project opens on an empty grid ──────────────────────────────────────
+// The operator's call was BACK-SOLVE: derive units from the revenue already on the record, divided by list
+// price. Guard: a zero or missing MSRP leaves units at 0 and the band falls back to direct Revenue/Margin
+// entry, because dividing by an unknown price invents a quantity that would look typed.
+// R&D spend uses COST_SPLIT — the ONE portfolio split (`:1795`); the S10 generator's rival 55/25/12/8 is not
+// used anywhere here, so the two can no longer disagree.
+export function finBaseline(p: Project, baseYear: number): FinPlan {
+  const plan = emptyFinPlan(baseYear);
+  const ex = execOf(p);
+  const split = costSplit([p]);                          // the ONE split, applied to this project's NRE alone
+  const rdYears = Math.min(3, FIN_SPAN);                 // NRE is front-loaded over the first three years
+  const series = projectRevSeries(p, { years: FIN_SPAN, baseYear });
+  const mgnFrac = (ex.marginPct || 0) / 100;
+  plan.years.forEach((y, i) => {
+    if (i < rdYears) {
+      y.labor = Math.round(split.labor / rdYears);
+      y.contractor = Math.round(split.subcontractor / rdYears);
+      y.materials = Math.round(split.material / rdYears);
+      y.other = Math.round(split.other / rdYears);
+    }
+    const s = series[i];
+    if (!s) return;
+    // $M on the series → $K here. New = the ramp; Declining = the eroding existing line.
+    const newK = Math.round((s.newRamp || 0) * 1000);
+    const decK = Math.round((s.oldDecline || 0) * 1000);
+    const seed = (b: FinBandYear, revK: number) => {
+      b.revK = revK; b.mgnK = Math.round(revK * mgnFrac);
+      b.msrpK = ex.msrpK || 0; b.cogsK = ex.cogsK || 0;
+      b.units = ex.msrpK > 0 ? Math.round(revK / ex.msrpK) : 0;   // back-solve; 0 when price is unknown
+    };
+    seed(y.neu, newK);
+    seed(y.dec, decK);
+  });
+  // Unit economics stays OFF for a back-solved plan: the units are derived, so Revenue/Margin remain the
+  // authoritative figures until a human enters real quantities. Turning it on would silently re-derive
+  // revenue from a guessed quantity and move numbers nobody edited.
+  plan.unitEcon = { neu: false, don: false, dec: false };
+  plan.spendRequestK = Math.round(split.labor + split.subcontractor + split.material + split.other) / rdYears;
+  return plan;
+}
+/** The plan for a project: whatever a human saved, else the back-solved baseline. Never null, never empty. */
+export const finOf = (p: Project, baseYear: number): FinPlan => p.finPlan ?? finBaseline(p, baseYear);
 
 // ── Per-quarter Revenue Plan (H41) — QTY · ASP · COGS build-up with an entry mode + a shaping profile. Pure,
 // deterministic (no clock/random). Detailed mode derives revenue = QTY×ASP and margin = (ASP−COGS)/ASP; High-Level

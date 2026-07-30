@@ -48,6 +48,9 @@ import {
   type SlideVersion,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
+  // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
+  finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
+  incUnits, incYoYPct, type FinYear,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -3292,7 +3295,138 @@ function TeamPicker({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: string; required?: string; wide?: boolean; children: React.ReactNode }) {
+// ── S10 panel marks — DRAWN, not emoji (operator: "all UX is drawn ... no emoji's"). Inline SVG so they scale
+// with the sheet, print as vectors rather than font glyphs, and cannot fall back to a system emoji face.
+const MarkSpend = () => (
+  <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <path d="M2 13.5 8.5 7M10 2.5a3.5 3.5 0 0 0 3 5.9l-4.6 4.6a2 2 0 1 1-2.4-2.4L10.6 6A3.5 3.5 0 0 1 10 2.5Z" strokeLinejoin="round" />
+  </svg>
+);
+const MarkRevenue = () => (
+  <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <path d="M1.5 12.5 5.5 8l3 2.5 5.5-6.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M10.5 4h3.5v3.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+// The three pictographic emoji that were in this file (calendar, clock, pin) are now drawn the same way. An
+// emoji is a font glyph: it renders as a different picture on Windows, macOS, Android and in a PDF, and there
+// is no colour or weight control over it. On a board artifact that is not acceptable.
+const MarkCalendar = () => (
+  <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <rect x="2" y="3.5" width="12" height="10.5" rx="1.5" /><path d="M2 6.5h12M5.5 1.8v2.4M10.5 1.8v2.4" strokeLinecap="round" />
+  </svg>
+);
+const MarkClock = () => (
+  <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <circle cx="8" cy="8" r="6.2" /><path d="M8 4.4V8l2.6 1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const MarkPin = () => (
+  <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <path d="M8 14.2V9.4M5 2h6l-.7 3.1 1.9 2.1a.7.7 0 0 1-.5 1.2H5.3a.7.7 0 0 1-.5-1.2l1.9-2.1L5 2Z" strokeLinejoin="round" />
+  </svg>
+);
+
+// ── S10 · the two Rack & Stack tables, read-only on the sheet ────────────────────────────
+// Money is $K to match what is entered; an em-dash for anything undefined, so a board never reads a computed
+// blank as a zero. Column count comes from ONE place (`visibleYearCount`) — no surface derives its own.
+const finFmtK = (n: number): string => (n === 0 ? "—" : `$${Math.round(n).toLocaleString()}k`);
+const finFmtPct = (n: number | null): string => (n === null ? "—" : `${n.toFixed(0)}%`);
+const finFmtQty = (n: number): string => (n === 0 ? "—" : n.toLocaleString());
+
+function S10Grid({ head, rows, accent }: { head: string[]; rows: { label: string; cells: string[]; strong?: boolean; band?: boolean }[]; accent?: string }) {
+  return (
+    <div className="min-h-0 overflow-auto">
+      <table className="w-full border-collapse" style={{ fontSize: TS.num }}>
+        <thead>
+          <tr>
+            {/* The row-label column is sticky so eleven years can scroll on a phone without losing what the row IS. */}
+            <th className="sticky left-0 z-10 bg-[#0b0f14] px-[0.5cqw] py-[0.3cqh] text-left font-semibold text-slate-400" style={{ fontSize: TS.micro }}>{head[0]}</th>
+            {head.slice(1).map((h) => (
+              <th key={h} className="px-[0.5cqw] py-[0.3cqh] text-right font-mono font-semibold text-cyan-300/90 tabular-nums" style={{ fontSize: TS.micro }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.label} className={r.band ? "bg-cyan-500/10" : ""} style={r.band && accent ? { background: accent } : undefined}>
+              <td className={`sticky left-0 z-10 px-[0.5cqw] py-[0.25cqh] text-left ${r.band ? "font-semibold text-slate-100" : r.strong ? "font-semibold text-slate-200" : "text-slate-400"} ${r.band ? "" : "bg-[#0b0f14]"}`}
+                  style={r.band && accent ? { background: accent } : undefined}>{r.label}</td>
+              {r.cells.map((c, i) => (
+                <td key={i} className={`px-[0.5cqw] py-[0.25cqh] text-right font-mono tabular-nums ${r.strong ? "font-semibold text-slate-100" : "text-slate-300"}`}>{c}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** Step 1a · R&D Spend — five entered rows plus a derived Total, per calendar year. */
+function S10SpendTable({ p }: { p: Project }) {
+  const f = finOf(p, new Date().getFullYear());
+  const n = visibleYearCount(p.gate);
+  const ys = f.years.slice(0, n);
+  const col = (pick: (y: FinYear) => number) => ys.map((y) => finFmtK(pick(y)));
+  return (
+    <>
+      <S10Grid
+        head={["$K", ...ys.map((y) => String(y.year))]}
+        rows={[
+          { label: "Total", cells: col(spendTotalK), strong: true },
+          { label: "Labor", cells: col((y) => y.labor) },
+          { label: "Contractor", cells: col((y) => y.contractor) },
+          { label: "Materials", cells: col((y) => y.materials) },
+          { label: "Other", cells: col((y) => y.other) },
+          { label: "Sustain", cells: col((y) => y.sustain) },
+        ]}
+      />
+      <div className="flex flex-wrap items-center gap-[1.4cqw] px-[0.5cqw] text-slate-400" style={{ fontSize: TS.micro }}>
+        <span>{ys[0]?.year} R&D Spend Request: <b className="font-mono text-slate-200">{finFmtK(f.spendRequestK)}</b></span>
+        <span>Technical Confidence: <b className="font-mono text-slate-200">{f.techConfPct}%</b></span>
+        <span>Commercial Confidence: <b className="font-mono text-slate-200">{f.commConfPct}%</b></span>
+      </div>
+    </>
+  );
+}
+
+/** Steps 1b / 2 / 3 + Combined — the four Rack & Stack revenue bands. Combined is derived, never entered. */
+function S10RevenueTable({ p }: { p: Project }) {
+  const f = finOf(p, new Date().getFullYear());
+  const n = visibleYearCount(p.gate);
+  const ys = f.years.slice(0, n);
+  const band = (key: "neu" | "don" | "dec", label: string, tint: string) => {
+    const on = f.unitEcon[key];
+    return [
+      { label, cells: ys.map(() => ""), band: true, tint },
+      { label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
+      { label: "Revenue", cells: ys.map((y) => finFmtK(bandRevK(y[key], on))) },
+      { label: "Margin", cells: ys.map((y) => finFmtK(bandMgnK(y[key], on))) },
+      { label: "Margin %", cells: ys.map((y) => finFmtPct(bandMgnPct(y[key], on))) },
+    ];
+  };
+  return (
+    <S10Grid
+      head={["", ...ys.map((y) => String(y.year))]}
+      rows={[
+        ...band("don", "Do Nothing: Existing", "rgba(148,163,184,.18)"),
+        ...band("neu", "New: 1st Product Rev", "rgba(56,189,248,.18)"),
+        ...band("dec", "Declining Rev: Existing", "rgba(100,116,139,.18)"),
+        { label: "Combined: Incremental", cells: ys.map(() => ""), band: true },
+        // NET of New minus Declining — a delta in units, not units shipped. Named so nobody reads it as volume.
+        { label: "Quantity (net)", cells: ys.map((y) => finFmtQty(incUnits(y))) },
+        { label: "Revenue", cells: ys.map((y) => finFmtK(incRevK(y, f.unitEcon))), strong: true },
+        { label: "Margin", cells: ys.map((y) => finFmtK(incMgnK(y, f.unitEcon))), strong: true },
+        { label: "Margin %", cells: ys.map((y) => finFmtPct(incMgnPct(y, f.unitEcon))) },
+        // YoY appears on Incremental ONLY (operator). Blank in the first column — there is no prior year.
+        { label: "YoY Growth", cells: ys.map((_, i) => finFmtPct(incYoYPct(f.years, i, f.unitEcon))) },
+      ]}
+    />
+  );
+}
+
+function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
@@ -3795,7 +3929,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <AmtsPanel title="Upside Spending Accelerator Lever" icon="⚡">
             {fieldsOf("accel")}
           </AmtsPanel>
-          <AmtsPanel wide title="Program Timeline · MoT Gate Schedule · ◈ live" icon="🗓">
+          <AmtsPanel wide title="Program Timeline · MoT Gate Schedule · ◈ live" icon={<MarkCalendar />}>
             <GateTimeline p={p} />
             <SourceLink source="Program start (source record)" />
           </AmtsPanel>
@@ -3838,6 +3972,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </AmtsPanel>
           <AmtsPanel wide title="Primary Customer Value Proposition" icon="♡">
             {fieldsOf("vprop", "benefits", "features")}
+          </AmtsPanel>
+        </>
+      ),
+      // S10 — Financials by Year. THE single source of truth, and the only slide that accepts financial input.
+      // Two panels, matching the operator's own Rack & Stack: R&D Spend above, R&D Revenues below. Both are
+      // READ-ONLY here — typing happens in the source editor, which opens on this slide alone. Columns follow
+      // the gate ladder (Concept 4 · Plan 6 · Develop 11) so a Concept sheet is wide and legible instead of
+      // squeezing eleven columns onto a slide that only needs four.
+      S10: () => (
+        <>
+          <AmtsPanel wide title="R&D Spend" icon={<MarkSpend />} required={sp.stage}>
+            <S10SpendTable p={p} />
+          </AmtsPanel>
+          <AmtsPanel wide title="R&D Revenues" icon={<MarkRevenue />} required={sp.stage}>
+            <S10RevenueTable p={p} />
           </AmtsPanel>
         </>
       ),
@@ -4251,10 +4400,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             <div className="mt-3 rounded-lg border border-slate-800 bg-[#0e141b]">
               <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                 <button onClick={() => { setShowReplay((v) => !v); setVIdx(Math.max(0, slideVersions.length - 1)); }}
-                  className="rounded border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-slate-800">🕑 {showReplay ? "Hide" : "History / Replay"} <span className="tabular-nums text-slate-500">({slideVersions.length})</span></button>
+                  className="rounded border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-slate-800"><MarkClock /> {showReplay ? "Hide" : "History / Replay"} <span className="tabular-nums text-slate-500">({slideVersions.length})</span></button>
                 <input id="ver-comment" placeholder="Comment for this version…" className="min-w-0 flex-1 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500" />
                 <button onClick={() => { const el = document.getElementById("ver-comment") as HTMLInputElement | null; const c = (el?.value || "").trim() || "Working update saved."; const sub = captureVersion("submitted", c, p.manager); if (el) el.value = ""; setShowReplay(true); setVIdx(slideVersions.length); if (sub) alert("Substantial change (≥10%) — this version needs Lead approval before it becomes the baseline."); }}
-                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20">📌 Save version</button>
+                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20"><MarkPin /> Save version</button>
               </div>
               {showReplay && (slideVersions.length === 0 ? (
                 <div className="px-3 pb-3 text-[11px] italic text-slate-500">No versions yet — save one, or approve the slide, to start the history.</div>

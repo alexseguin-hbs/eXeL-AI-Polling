@@ -1656,6 +1656,48 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(F.CONF_LADDER.join(",") === "10,25,50,68,95,99", "technical confidence uses the 10/25/50/68/95/99 ladder");
 }
 
+// ── S10 · THE PANEL — SoI's own deck standard, and no emoji ─────────────────────────────
+// Before this, only 5 of 20 slide codes had an AmtsPanel; S10 — the financial slide — was one of the fifteen
+// that fell through to the generic field grid. That is why it never looked like the operator's reference.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+
+  // 1. S10 has a panel, and it is the two Rack & Stack panels by their real names.
+  const keys = [...src.matchAll(/^ {6}(S\d+|CS|RA): \(\) => \(/gm)].map((m) => m[1]);
+  ok(keys.includes("S10"), `S10 has an AmtsPanel entry — panel map currently: [${keys.join(" ")}]`);
+  ok(/<AmtsPanel wide title="R&D Spend"/.test(src), "S10 carries the R&D Spend panel");
+  ok(/<AmtsPanel wide title="R&D Revenues"/.test(src), "S10 carries the R&D Revenues panel");
+
+  // 2. The four Rack & Stack band names, spelled as the operator's reference spells them.
+  for (const b of ["Do Nothing: Existing", "New: 1st Product Rev", "Declining Rev: Existing", "Combined: Incremental"]) {
+    ok(src.includes(`"${b}"`), `band "${b}" is named exactly as Rack & Stack names it`);
+  }
+  // Other and Sustain are SEPARATE spend rows — the AMTS sheet merges them, Rack & Stack does not.
+  ok(/label: "Other"/.test(src) && /label: "Sustain"/.test(src), "Other and Sustain are separate spend rows, not merged");
+  ok(/label: "Total"/.test(src), "the Total spend row exists (it was only ever an implicit nreK before)");
+
+  // 3. NO EMOJI (operator: "all UX is drawn ... no emoji's"). Scoped deliberately to PICTOGRAPHIC emoji —
+  //    the U+1F300..1FAFF planes plus the FE0F variation selector that forces colour-emoji rendering. It does
+  //    NOT sweep U+2600..27BF: that range is dingbats (☰ ✕ ✔ ⚠ ♡ ✎), which this app already uses in ~78 places
+  //    the operator approved long ago. Deleting those was never asked for, so the lock does not force it —
+  //    "should the dingbats become drawn marks too?" is an open question, not something to do unilaterally.
+  const emoji = src.match(/[\u{1F300}-\u{1FAFF}\u{FE0F}]/gu) ?? [];
+  ok(emoji.length === 0, `no pictographic emoji in the innovation page — found ${emoji.length}: ${[...new Set(emoji)].slice(0, 8).join(" ")}`);
+  ok(/const MarkSpend = \(\) => \(\s*<svg/.test(src) && /const MarkRevenue = \(\) => \(\s*<svg/.test(src),
+     "the S10 panel marks are drawn inline SVG, not glyphs that can fall back to a system emoji face");
+
+  // 4. Column count comes from ONE function. A second derivation is how surfaces drift apart.
+  ok((src.match(/visibleYearCount\(p\.gate\)/g) ?? []).length >= 2, "both S10 tables take their column count from visibleYearCount");
+  ok(!/\.slice\(0,\s*11\)/.test(src), "no surface hard-codes 11 columns — the gate ladder decides");
+
+  // 5. The row-label column is pinned so 11 years can scroll on a phone without losing what the row IS.
+  ok(/sticky left-0/.test(src), "the row-label column is sticky — years scroll, labels stay");
+
+  // 6. Combined quantity is labelled NET, so nobody reads a delta as units shipped.
+  ok(/label: "Quantity \(net\)"/.test(src), "Combined quantity is labelled (net) — it is New minus Declining");
+}
+
 // ── #4 + #17 · PRINT MODE — the board artifact ──────────────────────────────────────────
 // White page, coloured banners, black/grey text; the WHOLE deck (cover + every slide) through the SAME
 // renderer the projector uses; a cover and a per-page footer that carry provenance; no new dependency.
