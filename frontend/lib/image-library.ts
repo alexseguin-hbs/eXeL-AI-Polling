@@ -8,7 +8,7 @@
  * provenance message "Project · Date · Time · Name" — the user never has to know Light Codex is involved. Signing
  * is best-effort: if it can't sign, the plain image is used.
  */
-import { saveState } from "./innovation-store";
+import { deleteState } from "./innovation-store";
 import { placeSignature } from "./light-codex";
 
 export interface LibImageMeta { project?: string; date?: string; time?: string; who?: string }
@@ -22,9 +22,24 @@ const idOf = (src: string): string => { let h = 2166136261; for (let i = 0; i < 
 export function loadImageLibrary(): LibImage[] {
   try { const s = localStorage.getItem(KEY); const a = s ? JSON.parse(s) : []; return Array.isArray(a) ? a : []; } catch { return []; }
 }
+// SECURITY (Thor 3c) — the cloud mirror of this pool is REMOVED, not repaired.
+//   • It was write-only: nothing ever read "image-library" back (loadImageLibrary() reads localStorage, and
+//     the namespace is absent from the /innovation CLOUD_NS hydrate list), so it had no consumer.
+//   • It was corrupt anyway: scrubDeep() partially [redacted]s each base64 body (it matches the 40+
+//     alphanumeric token pattern) and truncates it at 4000 chars, so no mirrored image could ever decode.
+//   • What DID survive intact was provenance — project, date, time and `who` (the uploader's name):
+//     unredacted personal data in a shared table. Nothing is gained by writing it, so nothing is written.
+// One-time best-effort purge of rows the old mirror already wrote, so previously-leaked provenance is
+// dropped rather than left sitting in the table. Guarded to the browser; never throws; never blocks.
+let purgedLegacyMirror = false;
+function purgeLegacyCloudMirror(): void {
+  if (purgedLegacyMirror || typeof window === "undefined") return;
+  purgedLegacyMirror = true;
+  void deleteState("image-library");
+}
 function persist(next: LibImage[]) {
   try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* quota — keep in-memory only */ }
-  void saveState("image-library", next as unknown as Record<string, string>); // best-effort cloud mirror
+  purgeLegacyCloudMirror(); // local-only from here: no cloud mirror of images or uploader names
 }
 /** Add an image (deduped by content) with provenance; newest first, capped at MAX. Returns the updated library. */
 export function addToImageLibrary(name: string, src: string, meta: LibImageMeta = {}): LibImage[] {

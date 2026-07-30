@@ -1858,16 +1858,24 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // the label sanitiser — a DOT would break CRS-##.IN.X.### segmentation and silently corrupt the ID
   ok(M.disciplineLabel(" my team ") === "MYTEAM", "Other label is trimmed, uppercased, de-spaced");
+  // Thoth P0b — the old [.\\s] denylist let all of these through into the Req ID.
+  ok(M.disciplineLabel("RF/EW") === "RFEW" && M.disciplineLabel("hw-eng") === "HWENG", "slashes and hyphens are stripped, not passed through");
+  ok(M.disciplineLabel("Other:") === "OTHER", "the colon in the literal \"Other:\" cannot reach the ID");
+  ok(!M.disciplineLabel("AI,ML").includes(","), "the COMMA — the multi-select field separator — cannot survive into a label");
+  ok(M.disciplineLabel("A".repeat(5000)).length === M.DISCIPLINE_MAX, `labels are capped at ${M.DISCIPLINE_MAX} chars — an unbounded label lands in the ID and on the printed sheet`);
+  ok(M.disciplineLabel("AB\u202ECD") === "ABCD", "U+202E RIGHT-TO-LEFT OVERRIDE is stripped — a Req ID must not display as a different ID than it stores");
+  ok(/^[A-Z0-9]*$/.test(M.disciplineLabel("\u200bx\u00e9!@#")), "the sanitiser is an ALLOWLIST — only A-Z0-9 survives");
   ok(!M.disciplineLabel("a.b.c").includes("."), "dots are stripped — they would break the Req ID segmentation");
-  ok(M.disciplineLabel("") === "SRS", "an empty Other label falls back rather than emitting CRS-56.IN..001");
-  ok(M.storyReqId("FRS", 7) === "CRS-56.IN.FRS.007", "Req ID is CRS-##.IN.<LABEL>.###");
-  ok(M.storyReqId("FRS,MRS", 1) === "CRS-56.IN.FRS.001", "a multi-discipline row drives its ID from the PRIMARY label");
-  ok(/^CRS-\d+\.IN\.[A-Z0-9]+\.\d{3}$/.test(M.storyReqId("x y.z", 3)), "a sanitised Other label still yields a well-formed Req ID");
+  ok(M.disciplineLabel("") === "", "an empty Other label stays EMPTY — the fallback lives in storyReqId, so clearing the box cannot append a phantom SRS (Thoth P0b)");
+  ok(M.storyReqId("PRJ-01", "", 1) === "CRS-01.IN.SRS.001", "…and the fallback still yields a well-formed ID at the point of use");
+  ok(M.storyReqId("PRJ-07", "FRS", 7) === "CRS-07.IN.FRS.007", "Req ID encodes the PROJECT: CRS-<project>.IN.<LABEL>.<seq>");
+  ok(M.storyReqId("PRJ-01", "FRS,MRS", 1) === "CRS-01.IN.FRS.001", "a multi-discipline row drives its ID from the PRIMARY label");
+  ok(/^CRS-\d+\.IN\.[A-Z0-9]+\.\d{3}$/.test(M.storyReqId("PRJ-01", "x y.z", 3)), "a sanitised Other label still yields a well-formed Req ID");
 
   // every producer of the old hardcoded SRS is gone
   ok(!/CRS-56\.IN\.SRS\.\$\{/.test(data), "the generator no longer hardcodes SRS (was innovation-data.ts:2293)");
   ok(!/Req ID follows CRS-##\.IN\.SRS\.###/.test(data), "the schema hint no longer names SRS as the only label (was :2126)");
-  ok(/cols: \["MVP", "Persona", "As a… I want… so that…", "Team", "Req ID"\]/.test(data), "the table gained MVP + Team columns");
+  ok(/cols: \[\.\.\.STORY_COLS\]/.test(data), "S9 uses the operator's 8-column schema (STORY_COLS), spread so the schema and the row builder cannot disagree");
 
   // default discipline is a RULE over data already on the project, not 33 hand-maps
   ok(/export function defaultDiscipline/.test(data) && /\$\{p\.division\} \$\{p\.name\} \$\{p\.category\}/.test(data),
@@ -1880,9 +1888,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // the multi-select lives on the ROW and writes through the EXISTING store round-trip
   ok(/function TeamPicker\(/.test(src), "TeamPicker exists");
-  ok(/c === "Team"\s*\?\s*<TeamPicker/.test(src), "the Team column renders the picker instead of a bare text input");
+  ok(/c === "Team"/.test(src) && /<TeamPicker value=\{r\[ci\] \|\| ""\}/.test(src), "TeamPicker stays wired to any table declaring a Team column — S9's 8-column schema has none, so the discipline now comes from storiesOf()");
   ok(/setActive\(spec\.code, f\.id, nr\)/.test(src), "it writes through the table's existing setActive round-trip — no new persistence path");
-  ok(/nr\[ri\]\[idc\] = storyReqId\(next, ri \+ 1\)/.test(src), "changing the Team rewrites that row's Req ID — the slide and the export cannot disagree");
+  ok(/nr\.forEach\(\(rr, k\) => \{ rr\[idc\] = storyReqId\(p\.id, \(tc >= 0 \? rr\[tc\] : ""\) \|\| "SRS", k \+ 1\); \}\)/.test(src), "changing the Team RENUMBERS every row — recomputing only the edited row from its index let a delete leave 001,002,004,005,006 and the next add collide on 006 (Thoth P0)");
   ok(/const toggle = \(k: string\) => onChange\(\(picked\.includes\(k\) \? picked\.filter\(\(x\) => x !== k\) : \[\.\.\.picked, k\]\)\.join\(","\)\)/.test(src), "the picker is MULTI-select (toggles into a comma-joined set, not a radio)");
 
   // t() coverage
@@ -2015,6 +2023,106 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/webkit\.launch\(\)/.test(gate), "a WebKit run is attempted whenever a build is present");
   ok(/does not fragment out-of-flow boxes/.test(gate) && /does not fragment inside transformed boxes/.test(gate),
      "the WebKit run asserts the two rules WebKit is stricter about than Blink");
+}
+
+// ── #23b/#23c · ONE story record, THREE progressive-disclosure levels ───────────────────
+// Operator: "DTM is max Level 3 detail (which will populate CRS FROM Level 1)." One record per story with
+// progressively more fields surfaced — NOT three parallel tables that could drift.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const M = await import("../lib/innovation-data.ts");
+
+  ok(M.STORY_COLS.join(" | ") === "User Stories | POC | Alpha | MVP1 | MVP2 | MVP3 | CRS # | Customer Needs",
+     "Level 2 columns are exactly the operator's eight, in order");
+  ok(M.TRACE_COLS.length === 18, "Level 3 has the operator's 18 DHF columns");
+  ok(M.TRACE_COLS[0] === "User Stories" && M.TRACE_COLS[3] === "Design Input #" && M.TRACE_COLS[6] === "Design Output #",
+     "Level 3 column order matches the operator's specification");
+
+  for (const p of M.DEMO_PROJECTS) {
+    const st = M.storiesOf(p), l2 = M.storyTableRows(p), l3 = M.traceRowsOf(p);
+    // ROW LENGTH === COLS LENGTH — the shifted-column bug the operator photographed, impossible in EVERY view
+    ok(l2.every((r) => r.length === M.STORY_COLS.length), `${p.id} Level 2 rows are all exactly ${M.STORY_COLS.length} wide`);
+    ok(l3.every((r) => r.length === M.TRACE_COLS.length), `${p.id} Level 3 rows are all exactly ${M.TRACE_COLS.length} wide`);
+    // ONE dataset: every level has one row per story (plus group headers), and the SAME sentence
+    const l2d = l2.filter((r) => !M.isStoryGroupRow(r)), l3d = l3.filter((r) => !M.isTraceGroupRow(r));
+    ok(l2d.length === st.length, `${p.id} Level 2 has exactly one row per story (${l2d.length}/${st.length})`);
+    ok(l3d.length === st.length, `${p.id} Level 3 has exactly one row per story (${l3d.length}/${st.length})`);
+    ok(st.every((r, i) => l2d[i][0] === r.story), `${p.id} Level 2 story text is byte-identical to Level 1`);
+    const byCrs = new Map(l3d.map((r) => [r[1], r]));
+    ok(st.every((r) => byCrs.get(r.crsNum)?.[0] === r.story), `${p.id} Level 3 story text is byte-identical to Level 1`);
+    // exactly ONE maturity dot per row
+    ok(l2d.every((r) => r.slice(1, 6).filter((c) => c === "●").length === 1), `${p.id} every Level 2 row carries exactly one ● across the five maturity columns`);
+    // CRS # sequential per project
+    ok(l2d.every((r, i) => r[6] === `CRS-${String(i + 1).padStart(2, "0")}`), `${p.id} CRS # is sequential from CRS-01`);
+    // Design Output # DERIVED from Design Input #, never stored twice
+    ok(st.every((r) => r.designOutputId === r.designInputId.replace(".IN.", ".OUT.")), `${p.id} Design Output # is derived from Design Input #`);
+    ok(st.every((r) => /^CRS-\d+\.IN\.[A-Z0-9]+\.\d{3}$/.test(r.designInputId)), `${p.id} Design Input # keeps the CRS-##.IN.<LABEL>.### format`);
+    ok(st.every((r) => /^DR-\d{4}\.\d{2}\.\d{2}-DR\.\d{3}$/.test(r.designReviewId)), `${p.id} Design Review # is date-stamped DR-YYYY.MM.DD-DR.###`);
+    // the eight lifecycle columns are EMPTY by design — nothing invented
+    ok(l3d.every((r) => r.slice(10).every((c) => c === "")), `${p.id} the eight forward lifecycle columns are empty, not invented`);
+    ok(st.every((r) => M.CUBES.some((c) => c.n === r.cube)), `${p.id} every story groups under a real cube`);
+    ok(l3.some((r) => M.isTraceGroupRow(r) && /^🧊 Cube \d+ — .+ \(\d,\d,\d\)$/.test(r[0])), `${p.id} Level 3 carries cube group headers with (level,row,col) coordinates`);
+  }
+  // determinism — designReviewId must not call new Date()
+  ok(!/new Date\(\)/.test((await fsp.readFile("lib/innovation-data.ts", "utf8")).slice(
+      (await fsp.readFile("lib/innovation-data.ts", "utf8")).indexOf("export function designReviewId"),
+      (await fsp.readFile("lib/innovation-data.ts", "utf8")).indexOf("export function traceRowsOf"))),
+     "designReviewId is derived from the project's own gate schedule, not from today's date");
+
+  // three views, one component, tabs that cannot move the body
+  ok(/const STORY_LEVELS = \[/.test(src) && /Level 1 · High-Level Specs/.test(src) && /Level 3 · Design Traceability Matrix/.test(src), "the three levels are tabs");
+  ok(/function StorySpecs\(/.test(src), "one component renders all three levels");
+  ok(/const max = React\.useContext\(ChartMaxCtx\)/.test(src), "it reuses ChartFrame's existing maximize state — no new affordance");
+  ok(/maximize to open the 18-column Design Traceability Matrix/.test(src), "Level 3 refuses to render in-canvas and says why");
+  ok(/whitespace-normal break-words/.test(src), "Level 3 cells WRAP — the no-clip law holds by wrapping and scrolling, never truncating");
+}
+
+// ── SEED WIDTH · the third producer (Krishna #1) ─────────────────────────────────────────
+// The bug the operator photographed RECURRED and shipped: S9's schema widened, both CODE producers were
+// migrated, and SLIDE_SEED — a THIRD producer, 33 projects x hi+ai — was never grepped for. page.tsx padded
+// short rows with em-dashes instead of failing, so every project rendered shifted by one column and the
+// H5 seed's literal placeholder "High-priority 0" appeared under PERSONA. Proven red before the fix:
+// 182 mismatched rows of 3042. This ONE lock covers every table field on every slide for every project.
+{
+  const M = await import("../lib/innovation-data.ts");
+  let checked = 0, bad = 0; const ex = [];
+  for (const sp of M.SLIDE_SCHEMA) for (const f of sp.fields) {
+    if (f.kind !== "table" || !f.cols) continue;
+    for (const p of M.DEMO_PROJECTS) for (const slot of ["hi", "ai"]) {
+      const v = M.SLIDE_SEED[p.id]?.[sp.code]?.[f.id]?.[slot];
+      if (!Array.isArray(v)) continue;
+      for (const row of v) { checked++; if (!Array.isArray(row) || row.length !== f.cols.length) { bad++; if (ex.length < 3) ex.push(`${p.id} ${sp.code}.${f.id}.${slot} width ${row?.length} != ${f.cols.length}`); } }
+    }
+  }
+  ok(bad === 0, `every seeded table row matches its schema's column count (${checked} rows checked)${bad ? " — " + ex.join("; ") : ""}`);
+  ok(checked > 500, `the lock actually traverses the seed (${checked} rows), it is not vacuously true`);
+
+  // S9's stories are LINKED, so the seed can never shadow the generator again (Krishna #2: storiesOf was
+  // dead code for all 33 projects because every seeded ai cell was non-empty).
+  const f9 = M.SLIDE_SCHEMA.find((s2) => s2.code === "S9").fields.find((x) => x.id === "stories");
+  ok(f9.linked === true, "S9.stories is a LINKED field — read live from the project record, never from the seed");
+  for (const p of M.DEMO_PROJECTS) {
+    const v = M.linkedSlideField(p, "S9", "stories");
+    ok(Array.isArray(v) && v.length > 0, `${p.id} S9.stories resolves through the linked path`);
+    ok(v.every((r) => r.length === M.STORY_COLS.length), `${p.id} every rendered story row is ${M.STORY_COLS.length} wide`);
+    ok(!M.SLIDE_SEED[p.id]?.S9?.stories, `${p.id} carries no stale S9.stories seed to shadow the generator`);
+  }
+  ok(!JSON.stringify(M.SLIDE_SEED).includes("High-priority"), 'the "High-priority 0" placeholder the operator photographed is gone from the seed');
+
+  // Thoth P0 — Req IDs must be globally distinct now that the DTM keys on Design Input #
+  const ids = new Set(); let n = 0;
+  for (const p of M.DEMO_PROJECTS) for (const r of M.storiesOf(p)) { ids.add(r.designInputId); n++; }
+  ok(ids.size === n, `all ${n} Design Input # are distinct across the portfolio (was 22 distinct for 198 stories)`);
+  ok(M.projectCrsNum("PRJ-07") === "07" && M.projectCrsNum("PRJ-33") === "33", "the CRS-## segment is the project number");
+}
+
+// ── Krishna #5 · the Risk Register cannot mount twice ────────────────────────────────────
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  ok(/\$\{detailMax \? "hidden" : detailOpen \? "block" : "hidden"\}/.test(src),
+     "the inline detail rail UNMOUNTS while the maximize overlay is open — landscape kept both alive, giving two live RiskRegister forms in one aria-modal dialog");
+  ok(/\$\{detailMax \? "" : "landscape:block"\}/.test(src), "landscape:block no longer forces the rail back on underneath the overlay");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

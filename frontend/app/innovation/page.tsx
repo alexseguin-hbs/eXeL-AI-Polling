@@ -26,7 +26,8 @@ import {
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
-  DISCIPLINES, disciplineLabel, storyReqId,
+  DISCIPLINES, disciplineLabel, storyReqId, DISCIPLINE_MAX,
+  STORY_MATURITY, isStoryGroupRow, storyTableRows, TRACE_COLS, isTraceGroupRow, traceRowsOf, designOutputId,
   fitHeader, HEADER_NAME_BUDGET, HEADER_NAME_FLOOR, HEADER_TITLE_BUDGET, HEADER_TITLE_FLOOR,
   type SlideField, type SlideSpec, type SlideFieldValue,
   buBuckets, fundingBuckets, costPerMinuteOf, upsideAccelOf, nodeAllocation, type BuBucket, type FundingBucket, type NodeAllocation,
@@ -834,7 +835,11 @@ function Board() {
         </section>
 
         {/* Selected project detail — portrait: hidden until a project is tapped (top/bottom split); landscape: always shown right */}
-        <section ref={detailRef} className={`${detailOpen ? "block" : "hidden"} w-full space-y-4 landscape:block landscape:w-[42%] landscape:shrink-0`}>
+        {/* UNMOUNT the inline rail while the ⤢ overlay is open. `landscape:block` kept it mounted underneath,
+            so in landscape — the operator's default on PC and phone — ⤢ produced TWO live RiskRegister forms
+            inside one aria-modal dialog, each with its own draft state, identical heading and placeholder.
+            A half-typed risk in the hidden copy was silently abandoned. (Krishna #5) */}
+        <section ref={detailRef} className={`${detailMax ? "hidden" : detailOpen ? "block" : "hidden"} w-full space-y-4 ${detailMax ? "" : "landscape:block"} landscape:w-[42%] landscape:shrink-0`}>
           <button onClick={() => { setDetailOpen(false); scrollToEl(stackRef.current); }}
             className="flex w-full items-center gap-1 rounded-lg border border-slate-700 bg-[#0e141b] px-3 py-2 text-[12px] font-medium text-slate-300 hover:bg-slate-800 landscape:hidden">
             ‹ {t("innovation.detail.back")}
@@ -1015,6 +1020,10 @@ const isImageSrc = (s: unknown): s is string => typeof s === "string" && (s.star
 // ChartFrame — wraps any chart/financial so it can expand to full-screen and minimize back to slide view
 // (operator). Reuses the deck's `fixed inset-0` maximize idiom; ⤢/⤡ toggle + Esc-to-restore (capture-phase so
 // it closes the chart before the modal's own Esc). Renders inline until maximized.
+// Published by ChartFrame so a child can render differently collapsed vs maximized. Same idiom as
+// PanelTitleCtx — the frame already owns the expand state, it just never told anyone.
+const ChartMaxCtx = React.createContext(false);
+
 function ChartFrame({ children, label }: { children: React.ReactNode; label?: string }) {
   const [max, setMax] = useState(false);
   useEffect(() => {
@@ -1030,7 +1039,7 @@ function ChartFrame({ children, label }: { children: React.ReactNode; label?: st
       {max && label && <div className="mb-2 shrink-0 pr-8 text-[clamp(13px,1.6vw,18px)] font-semibold text-slate-100">{label}</div>}
       {/* Top-aligned (not justify-center) so a tall table/chart scrolls from the top instead of clipping — the
           outer container is overflow-auto, so both axes scroll and every number is reachable + readable. */}
-      <div className={max ? "flex min-h-0 w-full flex-1 flex-col overflow-auto" : ""}>{children}</div>
+      <div className={max ? "flex min-h-0 w-full flex-1 flex-col overflow-auto" : ""}><ChartMaxCtx.Provider value={max}>{children}</ChartMaxCtx.Provider></div>
     </div>
   );
 }
@@ -3155,6 +3164,100 @@ const TS = {
 const PanelTitleCtx = React.createContext<string>("");
 const sameName = (a: string, b: string) => a.replace(/[^a-z0-9]/gi, "").toLowerCase() === b.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
+// S9 · THREE LEVELS ON TABS (operator 23c): "Level 1: Highlevel Specs, Tab for Level 2: Detailed CRS,
+// Level 3: Design Traceability Matrix". One story set, three views — Levels 1 and 2 read the SAME 8-wide
+// rows from storyTableRows() and Level 3 the 18-wide rows from traceRowsOf(), both built from storiesOf().
+// No view has its own row builder, so the shifted-column bug the operator photographed cannot return in one
+// view only. The tab bar is a fixed-height row INSIDE the panel body, so it cannot move the body Y-offset.
+// Level 3 is 18 columns and cannot fit a 16:9 sheet: it renders only when ChartFrame is maximized (an
+// overlay, not a reflow) and scrolls horizontally inside it.
+const STORY_LEVELS = [
+  { key: "L1", label: "Level 1 · High-Level Specs" },
+  { key: "L2", label: "Level 2 · Detailed CRS" },
+  { key: "L3", label: "Level 3 · Design Traceability Matrix" },
+] as const;
+
+function StorySpecs({ cols, rows, trace, big }: { cols: string[]; rows: string[][]; trace: string[][]; big?: boolean }) {
+  const max = React.useContext(ChartMaxCtx);
+  const [level, setLevel] = useState<"L1" | "L2" | "L3">("L1");
+  const dot = (c: string) => (STORY_MATURITY as readonly string[]).includes(c);
+  const cell = big ? { fontSize: TS.body } : undefined;
+  const micro = big ? { fontSize: TS.micro } : undefined;
+
+  const tabs = (
+    <div className="mb-1 flex shrink-0 flex-wrap gap-1" role="tablist" aria-label="User story detail level">
+      {STORY_LEVELS.map((l) => (
+        <button key={l.key} type="button" role="tab" aria-selected={level === l.key} onClick={() => setLevel(l.key)}
+          className={`rounded border px-1.5 py-0.5 ${level === l.key ? "border-cyan-500 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400 hover:bg-slate-800"}`}
+          style={micro}>{max ? l.label : l.key}</button>
+      ))}
+    </div>
+  );
+
+  const L1 = (
+    <table className="w-full table-fixed" style={cell}>
+      <tbody>
+        {rows.map((r, ri) => isStoryGroupRow(r)
+          ? <tr key={ri}><td className="px-2 pb-0.5 pt-1.5 font-semibold uppercase tracking-[0.1em] text-cyan-300">{r[0]}</td></tr>
+          : <tr key={ri}><td className="px-2 py-0.5 align-top text-slate-200">{r[0]}</td></tr>)}
+      </tbody>
+    </table>
+  );
+
+  const L2 = (
+    <table className="w-full table-fixed" style={cell}>
+      <thead>
+        <tr>{cols.map((c) => <th key={c} style={{ width: STORY_COL_W[c] }}
+          className={`px-2 py-1 font-semibold uppercase tracking-wide text-slate-400 ${dot(c) ? "text-center" : "text-left"}`}>{c}</th>)}</tr>
+      </thead>
+      <tbody>
+        {rows.map((r, ri) => isStoryGroupRow(r)
+          ? <tr key={ri} className="border-t border-slate-800"><td colSpan={cols.length} className="px-2 py-1 font-semibold uppercase tracking-[0.1em] text-cyan-300">{r[0]}</td></tr>
+          : <tr key={ri} className="border-t border-slate-800">{cols.map((c, ci) =>
+              <td key={ci} className={`px-2 py-1 align-top ${dot(c) ? "text-center text-cyan-300" : "text-slate-200"}`}>{r[ci] || (dot(c) ? "" : "—")}</td>)}</tr>)}
+      </tbody>
+    </table>
+  );
+
+  // 18 columns will not fit the sheet. Maximized it gets its own horizontal scroller and cells WRAP —
+  // the no-clip law holds by wrapping and scrolling, never by truncating.
+  const L3 = !max ? (
+    <p className="m-0 px-2 py-3 italic text-slate-500" style={cell}>
+      ⤢ maximize to open the 18-column Design Traceability Matrix — it does not fit the slide.
+    </p>
+  ) : (
+    <div className="overflow-auto">
+      <table className="border-collapse text-left" style={{ ...cell, minWidth: 2400 }}>
+        <thead>
+          <tr>{TRACE_COLS.map((c) => <th key={c} className="whitespace-normal border border-slate-800 bg-slate-900/60 px-2 py-1 align-bottom font-semibold uppercase tracking-wide text-slate-400" style={{ minWidth: 120 }}>{c}</th>)}</tr>
+        </thead>
+        <tbody>
+          {trace.map((r, ri) => isTraceGroupRow(r)
+            ? <tr key={ri}><td colSpan={TRACE_COLS.length} className="border border-slate-800 bg-cyan-500/10 px-2 py-1 font-semibold uppercase tracking-[0.1em] text-cyan-300">{r[0]}</td></tr>
+            : <tr key={ri}>{TRACE_COLS.map((c, ci) =>
+                <td key={ci} className="whitespace-normal break-words border border-slate-800 px-2 py-1 align-top text-slate-200" style={{ minWidth: 120 }}>{r[ci] || ""}</td>)}</tr>)}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <div className={max ? "flex min-h-0 w-full flex-1 flex-col" : "overflow-hidden"}>
+      {tabs}
+      {level === "L1" ? L1 : level === "L2" ? L2 : L3}
+      {!max && level !== "L3" && <div className="px-2 pt-1 italic text-slate-500" style={micro}>⤢ expand for detail and the traceability matrix</div>}
+    </div>
+  );
+}
+
+// S9 is the widest table in the deck: 8 columns at 12.0px body on a 16:9 sheet. A maturity cell holds one
+// dot, so those five columns are squeezed to the minimum and the width goes to the two prose columns.
+// Percentages sum to 100 exactly.
+const STORY_COL_W: Record<string, string> = {
+  "User Stories": "38%", POC: "4%", Alpha: "4.5%", MVP1: "4.5%", MVP2: "4.5%", MVP3: "4.5%",
+  "CRS #": "8%", "Customer Needs": "32%",
+};
+
 // TeamPicker — the operator's six Development Team rows plus "Other:". MULTI-SELECT because projects in this
 // deck span firmware + mechanical + AI/ML at once; one discipline per SLIDE would stamp a wrong Req ID on
 // most rows, so the label lives on the ROW. Writes a comma-joined label string straight back through the
@@ -3174,7 +3277,8 @@ function TeamPicker({ value, onChange }: { value: string; onChange: (v: string) 
       ))}
       <label className="flex items-center gap-1 text-[10px] text-slate-500">{t("innovation.story.team.other")}
         <input value={other} placeholder="LABEL"
-          onChange={(e) => onChange([...picked.filter((x) => known.includes(x)), disciplineLabel(e.target.value)].filter(Boolean).join(","))}
+          maxLength={DISCIPLINE_MAX}
+          onChange={(e) => { const lbl = disciplineLabel(e.target.value); onChange([...picked.filter((x) => known.includes(x)), lbl].filter(Boolean).join(",")); }}
           className="w-20 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 font-mono text-[10px] uppercase text-slate-100 outline-none focus:border-cyan-500" />
       </label>
     </div>
@@ -3447,7 +3551,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     ))}<button onClick={() => setActive(spec.code, f.id, [...rows, ""])} className="rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add point</button></div>; }
     if (f.kind === "table") { const cols = f.cols ?? []; const rows = ((v as string[][])?.length ? (v as string[][]) : [cols.map(() => "")]); return <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-[12px]"><thead><tr>{cols.map((c) => <th key={c} className="px-1 pb-1 text-left text-[12px] font-semibold uppercase tracking-wide text-slate-400">{c}</th>)}<th /></tr></thead><tbody>{rows.map((r, ri) => (
       <tr key={ri}>{cols.map((c, ci) => <td key={ci} className="px-0.5 pb-1">{c === "Team"
-        ? <TeamPicker value={r[ci] || ""} onChange={(next) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = next; const idc = cols.indexOf("Req ID"); if (idc >= 0) nr[ri][idc] = storyReqId(next, ri + 1); setActive(spec.code, f.id, nr); }} />
+        // RECONCILIATION (23b): the operator's S9 schema has EIGHT columns and none of them is Team, so the
+        // discipline is no longer an S9 table control — there is nowhere to put it that they asked for, and
+        // inventing a parallel per-row store would be a second persistence path. The selector and its
+        // Req-ID generation are KEPT: per-row discipline comes from storiesOf(), defaulting through
+        // defaultDiscipline(p), and drives the CRS-##.IN.<TEAM>.### traceability ID that the matrix consumes.
+        // TeamPicker stays wired to any table that DOES declare a Team column, so nothing was deleted.
+        ? <TeamPicker value={r[ci] || ""} onChange={(next) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = next; const idc = cols.indexOf("Req ID"); const tc = cols.indexOf("Team");
+              // Renumber EVERY row, not just this one: recomputing only the edited row from its index means
+              // deleting row 3 of 6 leaves 001,002,004,005,006 and the next added row collides on 006.
+              if (idc >= 0) nr.forEach((rr, k) => { rr[idc] = storyReqId(p.id, (tc >= 0 ? rr[tc] : "") || "SRS", k + 1); });
+              setActive(spec.code, f.id, nr); }} />
         : <input className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" value={r[ci] || ""} placeholder={c} onChange={(e) => { const nr = rows.map((x) => [...x]); nr[ri][ci] = e.target.value; setActive(spec.code, f.id, nr); }} />}</td>)}<td className="pb-1"><button onClick={() => { const nr = rows.filter((_, j) => j !== ri); setActive(spec.code, f.id, nr.length ? nr : [cols.map(() => "")]); }} className="rounded border border-slate-700 px-1.5 text-slate-500 hover:border-rose-500/50 hover:text-rose-300" aria-label="Remove row">×</button></td></tr>
     ))}</tbody></table><button onClick={() => setActive(spec.code, f.id, [...rows, cols.map(() => "")])} className="mt-1 rounded border border-dashed border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">+ Add row</button></div>; }
     return null;
@@ -3589,7 +3703,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         })()}
         {f.kind === "list" && !isConops && <ul className={`m-0 list-disc pl-5 text-slate-200 ${big ? "" : "text-[clamp(13px,1.4vw,18px)]"}`} style={big ? { fontSize: TS.body } : undefined}>{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
         {f.kind === "metrics" && <div className="grid grid-cols-3 gap-2">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2 py-1"><div className={`font-bold tabular-nums text-slate-100 ${big ? "" : "text-[clamp(18px,2.2vw,30px)]"}`} style={big ? { fontSize: TS.num } : undefined}>{rec[m.k]}</div><div className={`uppercase tracking-wider text-slate-500 ${big ? "" : "text-[9px]"}`} style={big ? { fontSize: TS.micro } : undefined}>{m.label}</div></div> : null; })}</div>}
-        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}><div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div></ChartFrame>}
+        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}>{f.id === "stories"
+          ? <StorySpecs cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
+          : <div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div>}</ChartFrame>}
         {/* Single source of truth — direct icon-link to edit the one R&D/NRE + financials + resource record. */}
         {isFinField(sp.code, f.id) && <SourceLink source={sp.source} />}
         </div>

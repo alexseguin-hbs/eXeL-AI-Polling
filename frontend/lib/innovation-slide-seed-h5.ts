@@ -284,38 +284,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "Decoy/countermeasure discrimination",
-            "Drop-in fit to fielded rounds"
-          ],
-          [
-            "High-priority 1",
-            "Drop-in fit to fielded rounds",
-            "Terminal lock through sea clutter"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "Decoy/countermeasure discrimination",
-            "Drop-in fit to fielded rounds"
-          ],
-          [
-            "High-priority 1",
-            "Drop-in fit to fielded rounds",
-            "Terminal lock through sea clutter"
-          ],
-          [
-            "High-priority 2",
-            "Terminal lock through sea clutter",
-            "Decoy/countermeasure discrimination"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -1309,38 +1278,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "Autonomous classify + re-acquire",
-            "Area coverage rate per sortie"
-          ],
-          [
-            "High-priority 1",
-            "Area coverage rate per sortie",
-            "Crew removed from the minefield"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "Autonomous classify + re-acquire",
-            "Area coverage rate per sortie"
-          ],
-          [
-            "High-priority 1",
-            "Area coverage rate per sortie",
-            "Crew removed from the minefield"
-          ],
-          [
-            "High-priority 2",
-            "Crew removed from the minefield",
-            "Autonomous classify + re-acquire"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -2334,38 +2272,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "Emitter geolocation accuracy",
-            "Co-site interference rejection"
-          ],
-          [
-            "High-priority 1",
-            "Co-site interference rejection",
-            "Wideband simultaneity in dense EMS"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "Emitter geolocation accuracy",
-            "Co-site interference rejection"
-          ],
-          [
-            "High-priority 1",
-            "Co-site interference rejection",
-            "Wideband simultaneity in dense EMS"
-          ],
-          [
-            "High-priority 2",
-            "Wideband simultaneity in dense EMS",
-            "Emitter geolocation accuracy"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -3359,38 +3266,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "Effective magazine depth",
-            "Group 1–3 defeat at useful range"
-          ],
-          [
-            "High-priority 1",
-            "Group 1–3 defeat at useful range",
-            "Cost per engagement vs threat cost"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "Effective magazine depth",
-            "Group 1–3 defeat at useful range"
-          ],
-          [
-            "High-priority 1",
-            "Group 1–3 defeat at useful range",
-            "Cost per engagement vs threat cost"
-          ],
-          [
-            "High-priority 2",
-            "Cost per engagement vs threat cost",
-            "Effective magazine depth"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -4384,38 +4260,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "Sensor-to-shot loop time",
-            "Retrofit to fielded inventory"
-          ],
-          [
-            "High-priority 1",
-            "Retrofit to fielded inventory",
-            "Reacquire target after link loss"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "Sensor-to-shot loop time",
-            "Retrofit to fielded inventory"
-          ],
-          [
-            "High-priority 1",
-            "Retrofit to fielded inventory",
-            "Reacquire target after link loss"
-          ],
-          [
-            "High-priority 2",
-            "Reacquire target after link loss",
-            "Sensor-to-shot loop time"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -5409,38 +5254,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "Auditable decision trail",
-            "Certifiable module sandboxing"
-          ],
-          [
-            "High-priority 1",
-            "Certifiable module sandboxing",
-            "Portability across airframes"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "Auditable decision trail",
-            "Certifiable module sandboxing"
-          ],
-          [
-            "High-priority 1",
-            "Certifiable module sandboxing",
-            "Portability across airframes"
-          ],
-          [
-            "High-priority 2",
-            "Portability across airframes",
-            "Auditable decision trail"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -6434,38 +6248,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "PNT-denied operation",
-            "Retrofit to fielded radios"
-          ],
-          [
-            "High-priority 1",
-            "Retrofit to fielded radios",
-            "Link hold in jammed corridors"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "PNT-denied operation",
-            "Retrofit to fielded radios"
-          ],
-          [
-            "High-priority 1",
-            "Retrofit to fielded radios",
-            "Link hold in jammed corridors"
-          ],
-          [
-            "High-priority 2",
-            "Link hold in jammed corridors",
-            "PNT-denied operation"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -7459,38 +7242,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "Coverage scales with count",
-            "Rapid replenishment cadence"
-          ],
-          [
-            "High-priority 1",
-            "Rapid replenishment cadence",
-            "Unit cost enables attrition"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "Coverage scales with count",
-            "Rapid replenishment cadence"
-          ],
-          [
-            "High-priority 1",
-            "Rapid replenishment cadence",
-            "Unit cost enables attrition"
-          ],
-          [
-            "High-priority 2",
-            "Unit cost enables attrition",
-            "Coverage scales with count"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [
@@ -8484,38 +8236,7 @@ export const SLIDE_SEED_H5: SlideSeed = {
       }
     },
     "S9": {
-      "stories": {
-        "hi": [
-          [
-            "High-priority 0",
-            "First-feasible revisit solve",
-            "Partner-asset arbitration"
-          ],
-          [
-            "High-priority 1",
-            "Partner-asset arbitration",
-            "Single cross-constellation queue"
-          ]
-        ],
-        "ai": [
-          [
-            "High-priority 0",
-            "First-feasible revisit solve",
-            "Partner-asset arbitration"
-          ],
-          [
-            "High-priority 1",
-            "Partner-asset arbitration",
-            "Single cross-constellation queue"
-          ],
-          [
-            "High-priority 2",
-            "Single cross-constellation queue",
-            "First-feasible revisit solve"
-          ]
-        ]
-      }
-    },
+      },
     "S10": {
       "spend": {
         "hi": [

@@ -2073,6 +2073,9 @@ export interface SlideField {
   cols?: string[]; items?: SlideMetricItem[]; hint?: string;
 }
 export interface SlideSpec { code: string; gate: Gate; stage: string; source: string; supplemental?: string[]; fields: SlideField[] }
+// S9 table shape — declared before SLIDE_SCHEMA because the schema spreads it into its `cols`.
+export const STORY_COLS = ["User Stories", "POC", "Alpha", "MVP1", "MVP2", "MVP3", "CRS #", "Customer Needs"] as const;
+export const STORY_MATURITY = ["POC", "Alpha", "MVP1", "MVP2", "MVP3"] as const;
 export const SLIDE_SCHEMA: SlideSpec[] = [
   // S1 — crisp Executive Summary (consolidated to the essentials: what/why/who/ask).
   { code: "S1", gate: "G1", stage: "Concept", source: "Market Needs + Business Case", supplemental: ["Market Landscape & Needs"], fields: [
@@ -2123,7 +2126,7 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "benefits", name: "Key customer benefits", kind: "list" },
     { id: "features", name: "Key technical features", kind: "list" } ] },
   { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
-    { id: "stories", name: "High-priority user stories", kind: "table", req: true, cols: ["MVP", "Persona", "As a… I want… so that…", "Team", "Req ID"], hint: "Team picks the discipline (SRS · WRS · VRS · FRS · MRS · AIML · Other:); Req ID follows CRS-##.IN.<TEAM>.### so the story survives into the matrix." } ] },
+    { id: "stories", name: "High-priority user stories", kind: "table", req: true, linked: true, cols: [...STORY_COLS], hint: "One ● marks the release a story lands in. CRS # is sequential per project; the discipline selector still drives the CRS-##.IN.<TEAM>.### traceability Req ID behind it." } ] },
   { code: "S10", gate: "G2", stage: "Plan", source: "Business Case · annual forecast required at Plan", fields: [
     { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "10a: annual at Plan; 10b: monthly at Develop — SoI/MoT cadence (month = quarter/3)." },
     { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, cols: ["Scenario", "L-1", "Launch", "Yr 2", "Yr 3"] },
@@ -2283,9 +2286,15 @@ export type DisciplineKey = (typeof DISCIPLINES)[number]["key"];
 /** Sanitise a discipline label for use inside a Req ID. A DOT would break the CRS-##.IN.X.### segmentation
  *  and silently corrupt the ID, so dots are stripped along with spaces; the result is uppercased. */
 export function disciplineLabel(raw: string): string {
-  const clean = (raw || "").trim().toUpperCase().replace(/[.\s]+/g, "");
-  return clean || "SRS";
+  // ALLOWLIST, not a denylist. The old `[.\s]` strip let "RF/EW", "hw-eng", "Other:" and "AI,ML" through —
+  // and the COMMA is the multi-select field separator, so "AI,ML" silently split into two disciplines.
+  // Unicode also passed untouched, including U+202E RIGHT-TO-LEFT OVERRIDE, which can make a printed Req ID
+  // display as a different ID than the one stored. Only A-Z0-9 survives.
+  // Capped at 8 characters: without a cap a 5,000-character label lands in the ID and on the printed sheet.
+  // NO fallback here — an empty label must stay empty so the writer can tell "cleared" from "SRS".
+  return (raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
 }
+export const DISCIPLINE_MAX = 8;
 
 /** Default discipline for a project — derived from data already on the record, never hand-mapped per project.
  *  Same idiom as metaOf(): one regex rule over division + name + category. Ordered most-specific first, so a
@@ -2300,19 +2309,42 @@ export function defaultDiscipline(p: Project): DisciplineKey {
   return "SRS";
 }
 
-// Parent requirement for deck-authored stories (CRS-56 · Value Assessment). Named so it stops being a magic
-// literal buried in a template string.
-export const STORY_CRS = 56;
-/** CRS-##.IN.<LABEL>.### — the one place a story Req ID is formed. Multi-discipline rows drive the ID from
- *  their PRIMARY (first) label; the full set stays visible in the Team column. */
-export const storyReqId = (label: string, n: number) =>
-  `CRS-${STORY_CRS}.IN.${disciplineLabel(label.split(",")[0])}.${String(n).padStart(3, "0")}`;
+/** The project number carried by a project id ("PRJ-07" -> "07"). This is the CRS-## segment: with a
+ *  constant 56 every project emitted the SAME ids — CRS-56.IN.AIML.002 was 33 different requirements — and a
+ *  traceability matrix keyed on Design Input # cannot function on colliding keys. The operator's own sample
+ *  confirms the shape: CRS-01.IN.SRS.001, CRS-09.IN.AIML.009. */
+export const projectCrsNum = (projectId: string) => (projectId.match(/(\d+)/)?.[1] ?? "00").padStart(2, "0");
+
+/** CRS-<project>.IN.<LABEL>.<seq> — the one place a story Req ID is formed. Multi-discipline rows drive the
+ *  ID from their PRIMARY (first) label. The SRS fallback lives here, not in the sanitiser, so clearing the
+ *  Other box cannot append a phantom "SRS" to the selection. */
+export const storyReqId = (projectId: string, label: string, n: number) =>
+  `CRS-${projectCrsNum(projectId)}.IN.${disciplineLabel((label || "").split(",")[0]) || "SRS"}.${String(n).padStart(3, "0")}`;
 
 /** 3-9 user stories per project, authored from THAT project's own brief so none of them could be pasted onto
  *  another. Personas rotate across the operator's four archetypes — the SYSTEM is first-class — instantiated
  *  with the project's real market and customer. Grouped by MVP phase so the set reads as a roadmap.
  *  Deterministic: same project in, same stories out. */
-export function storiesOf(p: Project): { mvp: string; persona: string; story: string; team: string }[] {
+// ONE record per story, carrying EVERY field any level needs (operator 23c: "DTM ... will populate CRS FROM
+// Level 1"). Level 1 renders `story`; Level 2 a subset; Level 3 all of it. Three parallel structures would
+// let a Level-1 edit leave a stale CRS at Level 2 and a stale DTM row at Level 3 — the exact drift the
+// single-reference rule exists to prevent. Every level is a PROJECTION of this record onto a column list.
+export type StoryRow = {
+  // Level 1 — the source
+  story: string; mvp: string; persona: string; group?: string;
+  // Level 2 — CRS detail
+  crsNum: string; maturity: string; customerNeed: string;
+  // Level 3 — design traceability
+  devTeam: string; designInputId: string; designOutputId: string;
+  specTarget: string; stretchTarget: string; designOutputMeasure: string; designReviewId: string;
+  cube: number;
+  // Level 3 — the eight forward LIFECYCLE fields. Empty by design, filled as a project progresses.
+  vvPlan: string; testRun: string; testIssues: string; testIssueDesc: string;
+  designTransfer: string; designTransferConfirm: string; designChange: string; designChangeDesc: string;
+  // retained for the discipline selector's own column wherever a table declares one
+  team: string; need: string;
+};
+export function storiesOf(p: Project): StoryRow[] {
   const b = briefOf(p), m = metaOf(p), ex = execOf(p);
   // Lower-case the first letter ONLY when it starts an ordinary word. "SWaP-constrained" and "DoD / USSF" are
   // acronyms — a blind toLowerCase turns them into "sWaP" and "doD", which is how a generated sentence
@@ -2332,18 +2364,154 @@ export function storiesOf(p: Project): { mvp: string; persona: string; story: st
   const opr = `a ${lc(m.targetMarket)} operator`;
   const cust = `a ${lc(ex.customer)} program lead`;
   const dflt = defaultDiscipline(p);
-  const rows = [
-    { mvp: "MVP1", persona: opr,               team: dflt,   story: `As ${opr}, I want ${need(0)} so that ${out(0)} becomes routine.` },
-    { mvp: "MVP1", persona: "the System",      team: "AIML", story: `As the System, I want ${sol(0)} available at run time so that ${need(0)} is met without operator intervention.` },
-    { mvp: "MVP2", persona: cust,              team: dflt,   story: `As ${cust}, I want ${need(1)} so that ${out(1)} is achievable in the field.` },
-    { mvp: "MVP2", persona: "a Lead/Developer", team: "SRS", story: `As a Lead/Developer, I want ${sol(1)} so that ${evi(0)} is reproducible.` },
-    { mvp: "MVP3", persona: opr,               team: dflt,   story: `As ${opr}, I want ${out(1)} so that ${evi(1)} carries into production.` },
-    { mvp: "MVP3", persona: "the System",      team: dflt,   story: `As the System, I want ${sol(0)} to hold at mission scale so that ${out(0)} survives a contested deployment.` },
+  // Customer Needs is written from the CUSTOMER's side — the need the story serves, not a restatement of it.
+  // Each one embeds this project's own brief clauses, so it cannot be pasted onto another project either.
+  const cap = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : "");
+  type StorySeed = Pick<StoryRow, "mvp" | "persona" | "story" | "team" | "need"> & { group?: string };
+  const rows: StorySeed[] = [
+    { mvp: "MVP1", persona: opr,               team: dflt,   group: `MVP 1.0 — ${cap(need(0))} (Core)`,
+      story: `As ${opr}, I want ${need(0)} so that ${out(0)} becomes routine.`,
+      need: `${cap(out(0))}, with no added workload on the crew.` },
+    { mvp: "MVP1", persona: "the System",      team: "AIML",
+      story: `As the System, I want ${sol(0)} available at run time so that ${need(0)} is met without operator intervention.`,
+      need: `${cap(need(0))} handled by the system, not by people.` },
+    { mvp: "MVP2", persona: cust,              team: dflt,   group: `MVP 2.0 — ${cap(out(1))} (Field)`,
+      story: `As ${cust}, I want ${need(1)} so that ${out(1)} is achievable in the field.`,
+      need: `${cap(out(1))} that a program can field and sustain.` },
+    { mvp: "MVP2", persona: "a Lead/Developer", team: "SRS",
+      story: `As a Lead/Developer, I want ${sol(1)} so that ${evi(0)} is reproducible.`,
+      need: `${cap(evi(0))} — evidence a reviewer can reproduce, not claims.` },
+    { mvp: "MVP3", persona: opr,               team: dflt,   group: `MVP 3.0 — ${cap(out(0))} (Scale)`,
+      story: `As ${opr}, I want ${out(1)} so that ${evi(1)} carries into production.`,
+      need: `${cap(out(1))} proven at production maturity.` },
+    { mvp: "MVP3", persona: "the System",      team: dflt,
+      story: `As the System, I want ${sol(0)} to hold at mission scale so that ${out(0)} survives a contested deployment.`,
+      need: `${cap(out(0))} that holds under contested load.` },
   ];
   // The operator's reference sample repeats two stories verbatim; that duplication is NOT replicated here.
   const seen = new Set<string>();
-  return rows.filter((r) => (seen.has(r.story) ? false : (seen.add(r.story), true)));
+  const uniq = rows.filter((r) => (seen.has(r.story) ? false : (seen.add(r.story), true)));
+  // Assemble the FULL record once. Everything downstream is a projection of this — CRS # is assigned here,
+  // Design Output # is derived from Design Input #, and the eight lifecycle fields are explicitly empty.
+  return uniq.map((r, i): StoryRow => {
+    const n = i + 1;
+    const designInputId = storyReqId(p.id, r.team, n);
+    return {
+      ...r,
+      crsNum: `CRS-${String(n).padStart(2, "0")}`,
+      maturity: r.mvp,
+      customerNeed: r.need,
+      devTeam: r.team,
+      designInputId,
+      designOutputId: designOutputId(designInputId),
+      specTarget: `${cap1(b.outcomes[0] ?? "The capability")} delivered at launch, verified on the bench.`,
+      stretchTarget: `${cap1(b.outcomes[1] ?? b.outcomes[0] ?? "The capability")} sustained in the field at production rate.`,
+      designOutputMeasure: `Observable: ${lc(r.need)}`,
+      designReviewId: designReviewId(p, n),
+      cube: CUBE_BY_TEAM[r.team] ?? 5,
+      vvPlan: "", testRun: "", testIssues: "", testIssueDesc: "",
+      designTransfer: "", designTransferConfirm: "", designChange: "", designChangeDesc: "",
+    };
+  });
 }
+
+/** The S9 table rows, EXACTLY STORY_COLS.length wide. The deployed 819ff3e bug ("PERSONA: High-priority 0")
+ *  was a shape mismatch between the generated array and cols — so the row is built here, once, from the
+ *  column list itself, and locked to it. A section row carries its heading in cell 0 and nothing else. */
+export function storyTableRows(p: Project): string[][] {
+  const width = STORY_COLS.length;
+  const blank = () => Array.from({ length: width }, () => "");
+  const out: string[][] = [];
+  for (const r of storiesOf(p)) {
+    if (r.group) { const g = blank(); g[0] = r.group; out.push(g); }
+    const row = blank();
+    row[0] = r.story;                                   // Level 1's sentence, byte-identical
+    const mi = STORY_MATURITY.indexOf(r.maturity as (typeof STORY_MATURITY)[number]);
+    if (mi >= 0) row[1 + mi] = "●";                     // exactly ONE dot per row
+    row[6] = r.crsNum;
+    row[7] = r.customerNeed;
+    if (row.length !== width) throw new Error(`story row width ${row.length} != ${width}`);
+    out.push(row);
+  }
+  return out;
+}
+
+/** A section row: heading in cell 0, every other cell empty. The renderer spans these across the table. */
+export const isStoryGroupRow = (row: string[]) => !!row[0] && row.slice(1).every((c) => !c || !c.trim());
+
+// ── LEVEL 3 · DESIGN TRACEABILITY MATRIX (DHF) ───────────────────────────────────────────────────
+// 18 columns in the operator's exact order. The last eight are the forward LIFECYCLE columns: empty in the
+// operator's sample and empty here, filled as a project progresses. Nothing is invented for them.
+export const TRACE_COLS = [
+  "User Stories", "CRS #", "Dev Team", "Design Input #", "Specification Input: Target at Launch",
+  "Market Input: Stretch Target", "Design Output #", "Design Output: Definable / Measurable",
+  "Design Review #", "Design Review Plan", "Verification & Validation Plan", "Test Run #",
+  "Test Issues", "Test Issue Description", "Design Transfer", "Design Transfer Confirmation",
+  "Design Change", "Design Change Description",
+] as const;
+// The eight lifecycle columns, by index — rendered empty and editable, never auto-filled.
+export const TRACE_EMPTY_FROM = 10;
+
+// Cube coordinates are (level,row,col) per CLAUDE.md's Cube Architecture table — the canonical source. Read
+// from there rather than re-typed by eye; Level-1 cubes 1-9 plus the Level-2 centre.
+export const CUBES = [
+  { n: 1, name: "Session Join & QR", coord: "1,2,2" },
+  { n: 2, name: "Text Submission Handler", coord: "1,2,3" },
+  { n: 3, name: "Voice-to-Text Engine", coord: "1,3,3" },
+  { n: 4, name: "Response Collector", coord: "1,3,2" },
+  { n: 5, name: "Gateway / Orchestrator", coord: "1,3,1" },
+  { n: 6, name: "AI Theming Clusterer", coord: "1,2,1" },
+  { n: 7, name: "Prioritization & Voting", coord: "1,1,1" },
+  { n: 8, name: "Token Reward Calculator", coord: "1,1,2" },
+  { n: 9, name: "Reports & Dashboards", coord: "1,1,3" },
+  { n: 10, name: "Simulation Orchestrator", coord: "2,2,2" },
+] as const;
+
+// A story's discipline already says which part of the system it exercises, so it — not an arbitrary index —
+// decides the cube it groups under. Deterministic and explainable.
+const CUBE_BY_TEAM: Record<string, number> = { WRS: 2, VRS: 3, FRS: 4, SRS: 5, AIML: 6, MRS: 9 };
+
+/** Design Output # is DERIVED from Design Input #, never stored twice — CLAUDE.md declares the pairing
+ *  (Input ID: CRS-##.##.IN | Output ID: CRS-##.##.OUT). */
+export const designOutputId = (inputId: string) => inputId.replace(".IN.", ".OUT.");
+
+/** Date-stamped Design Review #, DR-YYYY.MM.DD-DR.###. Derived from the project's own gate schedule so it is
+ *  deterministic — a new Date() here would make the deck render differently every day. */
+export function designReviewId(p: Project, n: number): string {
+  const iso = (gateScheduleOf(p).find((g) => g.gate === "G3") ?? gateScheduleOf(p)[0])?.startISO ?? SCHEDULE_FALLBACK_START;
+  return `DR-${iso.replace(/-/g, ".")}-DR.${String(n).padStart(3, "0")}`;
+}
+
+/** The 18-wide traceability rows for a project, grouped by cube with a spanning header per group. Built from
+ *  the SAME storiesOf() set as Levels 1 and 2 — one story set, three views. */
+export function traceRowsOf(p: Project): string[][] {
+  const width = TRACE_COLS.length;
+  const blank = () => Array.from({ length: width }, () => "");
+  const st = storiesOf(p);
+  const out: string[][] = [];
+  for (const cube of CUBES) {
+    const group = st.filter((r) => r.cube === cube.n);
+    if (!group.length) continue;
+    const g = blank();
+    g[0] = `🧊 Cube ${cube.n} — ${cube.name} (${cube.coord})`;
+    out.push(g);
+    for (const r of group) {
+      // Pure projection of the ONE record — nothing is recomputed here, so Level 3 cannot drift from Level 1.
+      const row = [r.story, r.crsNum, r.devTeam, r.designInputId, r.specTarget, r.stretchTarget,
+        r.designOutputId, r.designOutputMeasure, r.designReviewId, `Gate ${p.gate} design review against ${r.designInputId}.`,
+        r.vvPlan, r.testRun, r.testIssues, r.testIssueDesc, r.designTransfer, r.designTransferConfirm,
+        r.designChange, r.designChangeDesc];
+      if (row.length !== width) throw new Error(`trace row width ${row.length} != ${width}`);
+      out.push(row);
+    }
+  }
+  return out;
+}
+
+const cap1 = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : "");
+
+/** A trace group row: heading in cell 0, everything else empty. */
+export const isTraceGroupRow = (row: string[]) => !!row[0] && row.slice(1).every((c) => !c || !c.trim());
 
 /** Linked field value — read live from the project record so the deck can never disagree with the gate. */
 export function linkedSlideField(p: Project, code: string, fieldId: string): SlideFieldValue {
@@ -2357,6 +2525,8 @@ export function linkedSlideField(p: Project, code: string, fieldId: string): Sli
   }
   if (code === "S3" && fieldId === "revtable")
     return financialsOverview(p, { years: 3, funded: true }).map((r) => [`${r.year}`, money(r.revM), money(r.marginM)]);
+  // S9's stories are generated from the project's own brief (one record, three views) — never authored twice.
+  if (code === "S9" && fieldId === "stories") return storyTableRows(p);
   if (code === "S16" && fieldId === "bom") {
     try { return bomOf(p).slice(0, 6).map((b) => [b.desc, b.material, `$${bomStdCost(b).toLocaleString("en-US")}`]); }
     catch { return [[`${p.name} assembly`, hierOf(p).material, `$${Math.round(p.nreK * 50).toLocaleString("en-US")}`]]; }
@@ -2400,7 +2570,7 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S8.features": return b.solution;
     case "S7.personas": return [[m.targetMarket, b.needs[0] ?? "the capability"], [ex.customer, b.outcomes[0] ?? "the outcome"]];
     case "S7.desired": return b.outcomes[0] ?? "";
-    case "S9.stories": return storiesOf(p).map((r, i) => [r.mvp, r.persona, r.story, r.team, storyReqId(r.team, i + 1)]);
+    case "S9.stories": return storyTableRows(p);
     case "S10.spend": {
       const rd = fm.totalRdOpexK; const perYr = Math.round(rd / 3);
       return [1, 2, 3].map((y) => [`Yr ${y}`, `$${Math.round(perYr * 0.55)}k`, `$${Math.round(perYr * 0.25)}k`, `$${Math.round(perYr * 0.12)}k`, `$${Math.round(perYr * 0.08)}k`]);
