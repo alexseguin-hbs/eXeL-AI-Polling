@@ -2664,6 +2664,35 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      `ASP is derived FROM revenue — ${p0.id} units ${y0.neu.units} × ASP ${F.aspOf(y0.neu).toFixed(4)} == revK ${y0.neu.revK}`);
 }
 
+// ── H1/H8 · THE VALUE WATERFALL CANNOT CLIP ITS OWN NUMBERS ──────────────────────────────
+// Operator, twice, from two live screenshots: the 4th driver bar and the Customer Value bar showed NO
+// number above them. Root cause: labels are drawn at `yTop - 2` while `max` mapped to y = 0 in a viewBox
+// whose origin IS 0 — so a bar at the maximum put its label outside the box. The driver steps are
+// cumulative, so the LAST driver's top always equals the total, which is also the Customer Value bar:
+// exactly two labels, every time, deterministically.
+// ASSERTED AS ARITHMETIC, not as the presence of a `T`. A constant can be added and then not used; what
+// matters is where the topmost label actually lands. This computes it from the source's own numbers.
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const veq = src.slice(src.indexOf("const max = Math.max(1, eq.referenceM, eq.evcUsdM"), src.indexOf("order-3 mt-3 flex flex-wrap"));
+  const dims = veq.match(/const W = (\d+), H = (\d+), T = (\d+),/);
+  ok(!!dims, "the waterfall declares W, H and a top band T");
+  const [, , H, T] = dims.map(Number);
+  // The plot must map `max` to T, never to 0. Read the mapping rather than trusting the constant.
+  ok(/const y = \(v: number\) => H - \(v \/ max\) \* \(H - T\);/.test(veq),
+     "the value→pixel map reserves the top band — max lands at T, not at y = 0");
+  // Now the arithmetic the operator actually cares about: a 7.5pt label drawn at (top − 2) has its glyph
+  // top roughly 6 above its baseline. For the TALLEST bar (top === T) that must still be inside the box.
+  const labelTop = T - 2 - 6;
+  ok(labelTop > 0, `the tallest bar's number renders INSIDE the viewBox — glyph top at y=${labelTop} (was -8, i.e. clipped)`);
+  ok(H >= 120, `the plot fills the panel — H=${H} (was 90, leaving the panel half empty)`);
+  // H8 · the key is gone, and its removal is safe ONLY because the labels above the bars now render.
+  ok(!/Full-text legend — guarantees every label is legible/.test(src),
+     "the duplicate legend/key below the waterfall is removed (operator: 'Do not have key')");
+  ok(/<title>\{b\.label\}<\/title>/.test(veq),
+     "every bar still carries its full name in a <title> — the key's only unique job survives its deletion");
+}
+
 // ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
 {
   const F = await import("../lib/innovation-data.ts");

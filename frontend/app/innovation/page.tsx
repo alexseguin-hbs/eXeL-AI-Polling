@@ -1694,8 +1694,19 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
           { label: t("innovation.veq.customerValue"), kind: "total" as const, from: 0, to: eq.evcUsdM },
         ];
         const max = Math.max(1, eq.referenceM, eq.evcUsdM, ...bars.map((b) => b.to));
-        const W = 320, H = 90, n = bars.length, bw = (W / n) * 0.72, gap = (W / n) * 0.28;
-        const y = (v: number) => H - (v / max) * H;
+        // H1 · A TOP BAND FOR THE VALUE LABELS. This chart drew its numbers at `yTop - 2` while mapping
+        // `max` to y = 0 inside a viewBox whose origin IS 0 — so any bar at the maximum put its label at
+        // y = -2, outside the box, invisible. And because the driver steps are cumulative, the LAST driver's
+        // top equals the total, which is also the Customer Value bar — so exactly two labels vanished, every
+        // time, which is what the operator photographed twice.
+        // T is carved OUT of H rather than added to the viewBox: the box keeps its aspect, so nothing about
+        // the surrounding layout shifts, and the plot simply yields the space its own labels need. Same
+        // "box first, then type" law S8ValueChart states at :1249 and already honours for its bottom axis.
+        // 11 = 7.5pt glyph (~6 above the baseline) + the 2 offset + slack.
+        // H8 · H grew 90 → 150 to fill the panel. It is funded by deleting the legend below, which existed
+        // only because these labels did not render — see the comment where it was removed.
+        const W = 320, H = 150, T = 11, n = bars.length, bw = (W / n) * 0.72, gap = (W / n) * 0.28;
+        const y = (v: number) => H - (v / max) * (H - T);
         const fill = (k: string) => (k === "base" ? "#64748b" : k === "total" ? "#3b82f6" : k === "up" ? "#34d399" : "#fb7185");
         return (
           <div className="order-1 mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
@@ -1729,16 +1740,16 @@ function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGe
                 })}
               </svg>
             </div>
-            {/* Full-text legend — guarantees every label is legible even when the bar label wraps */}
-            <div className="mt-2 grid grid-cols-1 gap-0.5 sm:grid-cols-2">
-              {bars.map((b, i) => (
-                <div key={i} className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span className="inline-block h-2 w-2 shrink-0 rounded-sm" style={{ background: fill(b.kind) }} />
-                  <span className="truncate text-slate-300" title={b.label}>{b.label}</span>
-                  <span className="ml-auto shrink-0 tabular-nums text-slate-500">{b.kind === "up" || b.kind === "down" ? `${(b as { delta: number }).delta >= 0 ? "+" : ""}$${(b as { delta: number }).delta.toFixed(0)}M` : `$${b.to.toFixed(0)}M`}</span>
-                </div>
-              ))}
-            </div>
+            {/* H8 · THE KEY IS GONE. Operator: "Do not have key… always make full width and height of area
+                it fills (maximize within window and don't cut off numbers)."
+                It listed every bar again with its value — and it existed as a WORKAROUND: the value labels
+                above the bars were being clipped (H1), so the legend was the only place two of the numbers
+                could be read. H1 puts them back on the bars, which is what makes this safe to delete rather
+                than a loss of data. ORDER MATTERS: removing this before H1 would have deleted the only
+                surviving copy of the top two values.
+                Its removal is also what funds the taller plot (H = 90 → 150) — the space the key occupied
+                goes to the chart, which is the "fill the area" half of the same instruction. Every label is
+                still reachable: each bar carries a <title> with its full name. */}
           </div>
         );
       })()}
