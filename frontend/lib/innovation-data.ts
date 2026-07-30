@@ -532,9 +532,14 @@ export const finTotalSpendK = (fin: FinPlan): number =>
 /** Σ NEW-product revenue across the plan, in $M — what `fullRev10yM` means once S10 is the source. */
 export const finNewRevM = (fin: FinPlan): number =>
   Math.round(fin.years.reduce((a, y) => a + bandRevK(y.neu, fin.unitEcon.neu), 0) / 1000);
+/** Σ DO-NOTHING revenue across the plan, in $M — what `doNothing10yM` means once S10 is the source.
+ *  Mirrors `finNewRevM` deliberately: same shape, same rounding, different band. This closes the last
+ *  scalar that S10 could not derive, which is what let a rival free-text input survive in ProjectDetail. */
+export const finDoNothingM = (fin: FinPlan): number =>
+  Math.round(fin.years.reduce((a, y) => a + bandRevK(y.don, fin.unitEcon.don), 0) / 1000);
 /** The scalar roll-up a plan implies. Applied alongside every `finPlan` write so no surface goes stale. */
-export const finRollup = (fin: FinPlan): { nreK: number; fullRev10yM: number } =>
-  ({ nreK: Math.round(finTotalSpendK(fin)), fullRev10yM: finNewRevM(fin) });
+export const finRollup = (fin: FinPlan): { nreK: number; fullRev10yM: number; doNothing10yM: number } =>
+  ({ nreK: Math.round(finTotalSpendK(fin)), fullRev10yM: finNewRevM(fin), doNothing10yM: finDoNothingM(fin) });
 
 // ── GATE READINESS — the ladder, measured ────────────────────────────────────────────────
 // Concept must forecast current+3, Plan current+5, Develop current+10 (operator). Storage is always 11, so

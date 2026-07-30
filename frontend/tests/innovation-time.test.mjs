@@ -2520,6 +2520,42 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(dead.length <= 12, `the dead-field set has not grown — ${dead.length}: [${dead.join(", ")}]`);
 }
 
+// ── F1 · ONE DOOR FOR THE MONEY — counted on the surface that was violating it ────────────
+// INV-1 says exactly one surface accepts typing per input record. Two shipped commit messages (0428e67,
+// caed97a) asserted S10 was the only writer of the financials. That was true of `finPlan` and FALSE of the
+// money: ProjectDetail's editing panel carried free-text `NRE $K`, `New rev 10yr $M` and `Do-nothing 10yr
+// $M` writing straight to the scalars, so the same three numbers could be authored in two places and
+// disagree. Found by reading the file, never by a green test — which is why the guard is a COUNT over the
+// component's source rather than a list of the three names: a fourth money input added here tomorrow fails
+// this without anyone remembering to update it.
+{
+  // `F` is block-scoped and re-imported per block in this file — every neighbouring block does the same.
+  const F = await import("../lib/innovation-data.ts");
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const pd = src.slice(src.indexOf("function ProjectDetail("), src.indexOf("function GateCube("));
+  ok(pd.length > 1000, "ProjectDetail was located — the slice is not empty");
+  // Any input/textarea in ProjectDetail whose setD/onChange targets a MONEY scalar. Matched on the write,
+  // not on the label, because a label can be renamed while the write stays.
+  const MONEY = ["nreK", "fullRev10yM", "doNothing10yM", "upsideAccelK"];
+  const writers = MONEY.filter((k) => new RegExp(`setD\\("${k}"`).test(pd));
+  ok(writers.length === 0,
+     `ProjectDetail writes ZERO money scalars — the one door is S10. Found writers: [${writers.join(", ")}]`);
+  // …and the read-outs it shows instead are Σ of the plan, not a second copy of the number.
+  ok(/const roll = finRollup\(finOf\(p, baseYear\)\)/.test(pd),
+     "the three figures ProjectDetail still SHOWS are computed from the plan via finRollup");
+  ok(/onClick=\{openFinancials\}/.test(pd),
+     "and it offers the route to the one door rather than a dead end — reusing openFinancials, not a new nav");
+  // finRollup must actually carry all three, or the read-out silently falls back to a stale record value.
+  ok(typeof F.finRollup === "function" && typeof F.finDoNothingM === "function", "finRollup + finDoNothingM exported");
+  const rk = F.finRollup(F.finOf(F.DEMO_PROJECTS[0], 2026));
+  for (const k of ["nreK", "fullRev10yM", "doNothing10yM"])
+    ok(typeof rk[k] === "number" && Number.isFinite(rk[k]), `finRollup derives ${k} — got ${rk[k]}`);
+  // The one that was missing: doNothing10yM is Σ of the Step 2 band, to the dollar.
+  const f0 = F.finOf(F.DEMO_PROJECTS[0], 2026);
+  const donM = Math.round(f0.years.reduce((a, y) => a + F.bandRevK(y.don, f0.unitEcon.don), 0) / 1000);
+  ok(rk.doNothing10yM === donM, `doNothing10yM == Σ Step 2 band — ${rk.doNothing10yM} vs ${donM}`);
+}
+
 // ── A-INPUT · CAN EVERY S1-S18 FIELD ACTUALLY BE INPUT, AND DOES IT RENDER IN PLAY MODE? ─
 // Operator, 2026-07-30: "ensure all S1-S18 can actually be input into tool so Slide in play mode renders from
 // S1-S18 input fields... having a single source of truth (not in Excel and Power point), for real time

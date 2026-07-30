@@ -2536,9 +2536,37 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
       {editing && (
         <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg border border-cyan-500/20 bg-[#0b0f14] p-2.5 text-[11px] text-slate-400 sm:grid-cols-3">
           <label className="col-span-2 sm:col-span-3">Name<input value={dv("name")} onChange={(e) => setD("name", e.target.value)} className={`mt-0.5 block w-full ${editStyle}`} /></label>
-          <label>NRE $K<input type="text" inputMode="numeric" value={String(dv("nreK"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("nreK", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
-          <label>New rev 10yr $M<input type="text" inputMode="numeric" value={String(dv("fullRev10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("fullRev10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
-          <label>Do-nothing 10yr $M<input type="text" inputMode="numeric" value={String(dv("doNothing10yM"))} onChange={(e) => /^\d*$/.test(e.target.value) && setD("doNothing10yM", +e.target.value)} className={`mt-0.5 block w-full ${editStyle} tabular-nums`} /></label>
+          {/* F1 · THE SECOND DOOR IS CLOSED. These three were free-text inputs writing straight to the
+              scalars while S10's grid claimed to be the only place financials are typed — so the same three
+              numbers could be authored in two places and disagree, and INV-1 (ONE DOOR) was false in fact
+              while two shipped commit messages said it was true. They are now READ-OUTS of the grid: every
+              figure is Σ of the plan via `finRollup`, and the one way to change any of them is the S10
+              editor, reached by the button below (`openFinancials`, already the route four other surfaces
+              use — no new navigation was invented for this). Counted, not named: a lock asserts ProjectDetail
+              offers ZERO writable money inputs, so a new one added here tomorrow fails without a list to
+              update. */}
+          {(() => {
+            const roll = finRollup(finOf(p, baseYear));
+            const cell = (label: string, val: number, unit: string) => (
+              <label key={label} className="text-slate-400">{label}
+                <span className="mt-0.5 flex items-baseline gap-1 rounded border border-emerald-500/25 bg-emerald-500/[0.04] px-1.5 py-0.5 text-xs tabular-nums text-emerald-300">
+                  {val.toLocaleString()}<span className="text-[9px] text-slate-500">{unit}</span>
+                </span>
+              </label>
+            );
+            return (<>
+              {cell("NRE $K", roll.nreK, "Σ S10 spend")}
+              {cell("New rev 10yr $M", roll.fullRev10yM, "Σ Step 1b")}
+              {cell("Do-nothing 10yr $M", roll.doNothing10yM, "Σ Step 2")}
+              <label className="col-span-2 sm:col-span-3 text-[10px] text-slate-500">
+                <button type="button" onClick={openFinancials}
+                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/20">
+                  ✎ {SOURCE_LABEL.S10}
+                </button>
+                <span className="ml-2">These three are totals of the S10 grid — change them there and every surface follows.</span>
+              </label>
+            </>);
+          })()}
           {/* GATE LADDER — Concept forecasts current+3, Plan current+5, Develop current+10. The option text
               carries its own requirement so the ladder is legible at the moment of the decision, and a stage
               whose years are not yet forecast says so instead of failing silently at the review. The gate is
