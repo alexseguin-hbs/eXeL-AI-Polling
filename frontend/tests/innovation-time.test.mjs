@@ -2424,8 +2424,12 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // assertion used the broad form and went red on three unrelated selects (per-segment confidence, and the
   // risk-register severity and likelihood pickers). None of those is the score being retired.
   ok(!/value=\{n\}>\{n\}\/5<\/option>/.test(pageC), "the 1-5 Confidence select is removed from the S10 panel");
-  ok(/Confidence <span className="text-\[9px\] text-slate-500">\(from risk\)<\/span>/.test(pageC),
-     "the read-out sits where the input was, labelled as derived — the operator can still see the number");
+  // The visible "(from risk)" caption was removed on operator instruction (2026-07-30) — the derivation is
+  // still stated, in the read-out's own title attribute, which is the affordance that matters. So the lock
+  // now asserts the READ-OUT and its derivation tooltip, not the retired caption: a caption is cosmetic, a
+  // read-out that stops explaining where its number came from is the regression worth catching.
+  ok(/title=\{`\$\{RISK_LABEL\[p\.tech\]\} technical \/ \$\{RISK_LABEL\[p\.comm\]\} commercial → \$\{confidenceOf\(p\)\} of 5`\}/.test(pageC),
+     "the read-out sits where the input was and still names its own derivation — the operator can see the number AND why");
 
   // 5. IT ACTUALLY MOVES. The behaviour the operator described is that changing a risk dropdown changes the
   //    bullets; asserted as a value change, not as the presence of a function.
@@ -2779,7 +2783,12 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // ONE renderer for screen and print — the defect this design exists to prevent
   ok((src.match(/const Sheet = \(\{ sp, i, style \}/g) ?? []).length === 1, "there is exactly ONE Sheet renderer");
-  ok(/<Sheet sp=\{spec\} i=\{idx\} \/>/.test(src), "the screen stage renders through Sheet");
+  // The screen stage INVOKES Sheet rather than mounting <Sheet/>: Sheet is declared inside SlideShowModal, so
+  // the JSX form gives React a new component type every render and remounts the entire sheet on every state
+  // update. Either form satisfies the invariant this lock exists for — ONE renderer for screen and print — so
+  // both are accepted, and the assertion stays anchored on `spec`/`idx` so a second screen renderer still fails.
+  ok(/<Sheet sp=\{spec\} i=\{idx\} \/>/.test(src) || /\{Sheet\(\{ sp: spec, i: idx \}\)\}/.test(src),
+     "the screen stage renders through Sheet");
   ok(/SLIDE_SCHEMA\.map\(\(sp, i\) => \(/.test(src) && /<Sheet sp=\{sp\} i=\{i\} style=\{printSheetStyle\} \/>/.test(src), "the print stack renders EVERY slide through the same Sheet");
   ok(/const panelsFor = \(sp: SlideSpec\)/.test(src), "the AMTS panel table is a function of the slide, which is what lets one renderer serve all 20 pages");
 

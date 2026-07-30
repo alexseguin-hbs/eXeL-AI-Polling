@@ -4123,33 +4123,55 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     el.requestFullscreen?.().catch(() => {});
     return () => { if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {}); };
   }, [present]);
-  // Swipe nav + PINCH-ZOOM on the stage (touch). One-finger drag pages the deck; two fingers zoom the 16:9
-  // canvas. The pinch EXTENDS the existing `zoom` state (the ＋/－ buttons stay the same source of truth) —
+  // Swipe nav + PINCH-ZOOM on the stage. One-finger drag pages the deck; two fingers zoom the 16:9 canvas.
+  // The pinch EXTENDS the existing `zoom` state (the ＋/－ buttons stay the same source of truth) —
   // `startZoom` is captured when the gesture begins so a pinch continues from where the buttons left off
   // instead of snapping to 1×. `pinching` suppresses the swipe handler so lifting ONE finger out of a pinch
   // can never page the slide (Enki).
+  //
+  // ⚠ POINTER EVENTS, NOT TOUCH EVENTS — AND THAT IS THE WHOLE BUG (measured 2026-07-30, CDP two-finger
+  // probe on the built app at 390x844). The gesture was wired to onTouchStart/Move/End. A TouchEvent
+  // sequence whose target lies INSIDE [data-slide-zoom] is terminated by the browser the instant the zoom
+  // re-render mutates that subtree: of 8 dispatched pinch frames the page received 2, then nothing — no
+  // further touchmove, no touchend, no touchcancel, ever. So a pinch advanced exactly ONE frame
+  // (100% → 145%) and froze, no matter how far the fingers travelled; the ＋/－ buttons masked it because a
+  // click is a single discrete event. The same gesture, on the same element, delivers 16/16 pointermove
+  // frames — Chrome's implicit pointer capture keeps a touch pointer bound to its element across the
+  // mutation. Pinching the header, footer or the empty stage always worked (those targets sit OUTSIDE the
+  // zoom viewport), which is exactly why the bug survived the +/- verification.
+  // Mouse pointers are ignored so a desktop click-drag still cannot page the deck. `touchAction: "none"` on
+  // the stage root (below) is what makes pointermove fire at all for touch — do not remove it.
+  const ptrs = useRef(new Map<number, { clientX: number; clientY: number }>());
   const touchX = useRef<number | null>(null);
   const pinchDist = useRef(0);
   const startZoom = useRef(1);
   const pinching = useRef(false);
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length >= 2) {
+  const spread = () => { const [a, b] = [...ptrs.current.values()]; return a && b ? touchDistance(a, b) : 0; };
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") return;
+    ptrs.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    if (ptrs.current.size >= 2) {
       pinching.current = true;
-      pinchDist.current = touchDistance(e.touches[0], e.touches[1]);
+      pinchDist.current = spread();
       startZoom.current = zoom;
       touchX.current = null;
       return;
     }
-    touchX.current = e.touches[0]?.clientX ?? null;
+    touchX.current = e.clientX;
   };
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length < 2 || !pinching.current) return;
-    setZoom(pinchZoom(startZoom.current, pinchDist.current, touchDistance(e.touches[0], e.touches[1])));
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!ptrs.current.has(e.pointerId)) return;
+    ptrs.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    if (!pinching.current || ptrs.current.size < 2) return;
+    setZoom(pinchZoom(startZoom.current, pinchDist.current, spread()));
   };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (pinching.current) { if (e.touches.length === 0) { pinching.current = false; pinchDist.current = 0; } return; }
+  // pointerup AND pointercancel land here: a cancelled pointer that never cleared `pinching` would leave the
+  // swipe handler dead for the rest of the session.
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!ptrs.current.delete(e.pointerId)) return;
+    if (pinching.current) { if (ptrs.current.size === 0) { pinching.current = false; pinchDist.current = 0; } return; }
     if (touchX.current == null) return;
-    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current;
+    const dx = e.clientX - touchX.current;
     // ZOOMED IN, A DRAG PANS — IT DOES NOT PAGE. Once the zoom transform lives on the slide body, the body
     // is the thing that moves under your finger; paging the deck out from under a half-read table is the
     // opposite of what the gesture now means. At 1x nothing changed: a swipe still turns the page.
@@ -4755,7 +4777,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
 
     return (
       <div className="fixed inset-0 z-[60] flex flex-col bg-black text-slate-100" role="dialog" aria-modal="true"
-        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+        onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
         style={{ touchAction: "none" }}>
         <style>{SLIDE_PRINT_CSS}</style>
         {/* TOP CONTROL BAR — always above the slide (never covers it) */}
@@ -4796,7 +4818,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap reserves the SCALED footprint so the
               scaled sheet is centred and pannable at zoom>1 instead of overflowing its own layout box. */}
           <div className="relative shrink-0" style={{ width: SHEET_W * fit, height: SHEET_H * fit }}>
-            {Sheet({ sp: spec, i: idx })}
+            {/* CALLED, not <Sheet/>. `Sheet` is declared inside this component, so its function identity is
+                new on every render — and `<Sheet/>` therefore makes React see a NEW COMPONENT TYPE each time
+                and tear the whole sheet down and rebuild it on every state update (measured: full remount per
+                keystroke, per zoom step). Invoking it returns the element tree inline, so React reconciles in
+                place. Sheet holds no hooks, so this is safe; if a hook is ever added to it, it must be lifted
+                to module scope FIRST and rendered as <Sheet/> again. The print stack below still uses the JSX
+                form — remounting a hidden stack costs nothing and keeps the .map() keyed. */}
+            <Sheet sp={spec} i={idx} />
           </div>
         </div>
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
@@ -4968,12 +4997,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           so the read-out sits WHERE THE INPUT WAS and moves the moment either risk changes. */}
                       {riskEdit("Tech Risk", "tech")}
                       {riskEdit("Comm Risk", "comm")}
-                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence <span className="text-[9px] text-slate-500">(from risk)</span>
+                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence
                         <div className="rounded border border-emerald-500/25 bg-emerald-500/[0.04] px-1.5 py-1 text-[12px] tabular-nums text-emerald-300" title={`${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial → ${confidenceOf(p)} of 5`}>
                           {"●".repeat(confidenceOf(p))}<span className="text-slate-700">{"●".repeat(5 - confidenceOf(p))}</span> <span className="text-slate-400">{confidenceOf(p)}/5</span>
                         </div>
                       </label>
-                      {numEdit("Upside accel", "upsideAccelK", "$K")}
+                      {numEdit("eXeL R&D Upside", "upsideAccelK", "$K")}
                       {/* Program start — anchors the MoT gate timeline; changing it slides EVERY gate date. */}
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program start (MoT — slides all gates)
                         <input type="date" defaultValue={p.startDate ?? defaultStartISO(p)} onChange={(e) => e.target.value && onEditSource({ startDate: e.target.value }, [`Program start → ${e.target.value} (timeline slid)`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
