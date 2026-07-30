@@ -480,6 +480,21 @@ export const withFinSpendRow = (fin: FinPlan, key: FinSpendKey, vals: number[]):
 export const withFinBandRow = (fin: FinPlan, band: "neu" | "don" | "dec", key: FinBandKey, vals: number[]): FinPlan =>
   ({ ...fin, years: fin.years.map((y, i) => (i < vals.length ? { ...y, [band]: { ...y[band], [key]: vals[i] } } : y)) });
 
+// ── THE ROLL-UP the rest of the app already reads ────────────────────────────────────────
+// `nreK` has 69 read sites and `fullRev10yM` feeds every chart, the Rack sort and the budget line. Rewriting
+// 69 call sites to ask the grid would be a large, risky diff for no behavioural gain — and would leave the
+// two numbers free to disagree in the meantime. Instead the grid DERIVES them at the one place it writes, so
+// there is still exactly one authority (the plan) and every existing reader is correct by construction.
+/** Σ of all five spend rows across every stored year, in $K — what `nreK` means once S10 is the source. */
+export const finTotalSpendK = (fin: FinPlan): number =>
+  fin.years.reduce((a, y) => a + spendTotalK(y), 0);
+/** Σ NEW-product revenue across the plan, in $M — what `fullRev10yM` means once S10 is the source. */
+export const finNewRevM = (fin: FinPlan): number =>
+  Math.round(fin.years.reduce((a, y) => a + bandRevK(y.neu, fin.unitEcon.neu), 0) / 1000);
+/** The scalar roll-up a plan implies. Applied alongside every `finPlan` write so no surface goes stale. */
+export const finRollup = (fin: FinPlan): { nreK: number; fullRev10yM: number } =>
+  ({ nreK: Math.round(finTotalSpendK(fin)), fullRev10yM: finNewRevM(fin) });
+
 // ── Derived. Never stored, so two surfaces cannot disagree. ──────────────────────────────
 /** ASP = list price net of the distribution discount. Derived, never typed. */
 export const aspOf = (b: FinBandYear): number => b.msrpK * (1 - (b.discPct || 0) / 100);

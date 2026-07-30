@@ -52,7 +52,7 @@ import {
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
-  withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel,
+  withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -3572,7 +3572,11 @@ function S10FinEditor({ p, baseYear, onEdit }: {
   const fin = finOf(p, baseYear);
   const n = visibleYearCount(p.gate);
   const ys = fin.years.slice(0, n);
-  const commit = (next: FinPlan, what: string) => onEdit({ finPlan: next }, [`S10 · ${what}`]);
+  // EVERY grid write carries the scalar roll-up with it. `nreK` (69 read sites) and `fullRev10yM` feed the
+  // Rack sort, the budget line, the dog-tag and S1/S2/S3; if the grid moved and they did not, the deck would
+  // show two different answers for the same money — which is the exact duplication this work exists to end.
+  const commit = (next: FinPlan, what: string) =>
+    onEdit({ finPlan: next, ...finRollup(next) }, [`S10 · ${what}`]);
   const setFin = (patch: Partial<FinPlan>, what: string) => commit({ ...fin, ...patch }, what);
   // `withFinYear` / `withFinBand` are pure and live in the lib, so the update semantics the whole grid depends
   // on are executed by the test suite rather than re-implemented (and re-broken) here.
@@ -4562,11 +4566,25 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 those charts and metric blocks into free-text editable tables, the exact opposite of
                 single-source. Non-owning slides deep-link here instead of stranding the user. */}
             {onEditSource && spec.code === "S10" && panelExists("S10") && (() => {
+              // ONCE THE GRID EXISTS, THE GRID IS THE SOURCE. `nreK` and `fullRev10yM` are Σ of the plan the
+              // operator typed above, so leaving them as free-text inputs would put two editable surfaces on
+              // one number — the duplication this whole thread exists to end. They become read-only read-outs
+              // with a note saying where they come from. `doNothing10yM` and `upsideAccelK` are NOT grid
+              // fields, so they stay editable.
+              const gridOwns = !!p.finPlan;
+              const DERIVED_BY_GRID: string[] = ["nreK", "fullRev10yM"];
               const numEdit = (label: string, key: "nreK" | "fullRev10yM" | "doNothing10yM" | "upsideAccelK", suffix: string) => {
                 const cur = (p[key] ?? (key === "upsideAccelK" ? upsideAccelOf(p).accelK : 0)) as number;
+                const derived = gridOwns && DERIVED_BY_GRID.includes(key);
                 return (
-                <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}
-                  <div className="flex items-center gap-1"><input type="text" inputMode="numeric" defaultValue={String(cur)} onBlur={(e) => { const v = +e.target.value; if (/^\d+$/.test(e.target.value) && v !== cur) onEditSource({ [key]: v } as Partial<Project>, [`${label} → ${v}`]); }} className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" /><span className="text-slate-600">{suffix}</span></div>
+                <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">{label}{derived && <span className="text-emerald-400/80"> · Σ from the grid</span>}
+                  {derived ? (
+                    <div className="flex items-center gap-1" title="Derived from the S10 grid above — edit the years, not this total.">
+                      <output className="w-full rounded border border-emerald-500/25 bg-[#0e141b]/60 px-1.5 py-1 text-[12px] tabular-nums text-emerald-300">{cur.toLocaleString()}</output><span className="text-slate-600">{suffix}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1"><input type="text" inputMode="numeric" defaultValue={String(cur)} onBlur={(e) => { const v = +e.target.value; if (/^\d+$/.test(e.target.value) && v !== cur) onEditSource({ [key]: v } as Partial<Project>, [`${label} → ${v}`]); }} className="w-full rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" /><span className="text-slate-600">{suffix}</span></div>
+                  )}
                 </label>
                 );
               };

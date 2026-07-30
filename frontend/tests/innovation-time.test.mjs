@@ -1670,7 +1670,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 4. THE WRITER IS WIRED. A pure function nobody calls is the defect this commit exists to fix, so assert
   //    the component actually commits a `finPlan` patch through the shared source-edit callback.
   ok(/function S10FinEditor\(/.test(pageSrc), "the S10 source editor component exists");
-  ok(/onEdit\(\{ finPlan: next \}/.test(pageSrc), "editing a cell writes Project.finPlan — the field finally has a writer");
+  ok(/onEdit\(\{ finPlan: next, \.\.\.finRollup\(next\) \}/.test(pageSrc), "editing a cell writes Project.finPlan — the field finally has a writer");
   ok(/<S10FinEditor p=\{p\} baseYear=\{baseYear\} onEdit=\{onEditSource\} \/>/.test(pageSrc),
      "the editor is mounted inside the S10 source panel, the one door input was narrowed to");
   ok(/commit\(withFinYear\(fin, i, patch\), what\)/.test(pageSrc) && /commit\(withFinBand\(fin, i, band, patch\), what\)/.test(pageSrc),
@@ -1733,6 +1733,28 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the eleven values are PREVIEWED before anything is written — the most destructive click in the grid");
   ok(/data-fin-fill/.test(pageSrc) && /Apply 11 years/.test(pageSrc) && /↺ Undo fill/.test(pageSrc),
      "preview strip, explicit Apply, and a single Undo are all present");
+
+  // 4d. F5 · THE ROLL-UP CANNOT GO STALE. `nreK` has 69 read sites and `fullRev10yM` drives the Rack sort,
+  //     the budget line, the dog-tag and S1/S2/S3. If the grid moved and those did not, the deck would show
+  //     two answers for the same money — the exact duplication the operator photographed. Every grid write
+  //     carries the roll-up, so there is still ONE authority (the plan) and 69 readers stay correct untouched.
+  const filled = F.withFinSpendRow(base, "labor", Array.from({ length: F.FIN_SPAN }, () => 1000));
+  const roll = F.finRollup(filled);
+  const byHand = filled.years.reduce((a, y) => a + F.spendTotalK(y), 0);
+  ok(roll.nreK === Math.round(byHand), `the roll-up NRE is Σ of every spend cell — ${roll.nreK} vs ${Math.round(byHand)} computed independently`);
+  ok(roll.nreK >= 11000, `filling Labor at 1000 across 11 years puts at least 11,000 into NRE — got ${roll.nreK}`);
+  const revByHand = Math.round(filled.years.reduce((a, y) => a + F.bandRevK(y.neu, filled.unitEcon.neu), 0) / 1000);
+  ok(roll.fullRev10yM === revByHand, `the roll-up 10-yr revenue is Σ of the NEW band in $M — ${roll.fullRev10yM} vs ${revByHand}`);
+  ok(Number.isInteger(roll.nreK) && Number.isInteger(roll.fullRev10yM), "both roll-up scalars are whole numbers, as their fields are typed");
+  ok(/onEdit\(\{ finPlan: next, \.\.\.finRollup\(next\) \}/.test(pageSrc),
+     "EVERY grid write carries the roll-up — one write point, so Rack total == Σ S10 spend by construction");
+  // Two editable surfaces for one number is the defect; once the grid exists the scalars are read-outs.
+  ok(/const gridOwns = !!p\.finPlan;/.test(pageSrc) && /const DERIVED_BY_GRID: string\[\] = \["nreK", "fullRev10yM"\];/.test(pageSrc),
+     "with a grid present, NRE and 10-yr revenue stop being free-text inputs");
+  ok(/Σ from the grid/.test(pageSrc) && /<output className="w-full rounded border border-emerald-500\/25/.test(pageSrc),
+     "they render as a labelled read-out that says where the number comes from");
+  ok(!/DERIVED_BY_GRID: string\[\] = \[[^\]]*doNothing10yM/.test(pageSrc),
+     "Do-Nothing and the upside accelerator are NOT grid fields and stay editable — the lockdown is precise, not blanket");
 
   // 5. ONE CLOCK. Both S10 tables called new Date().getFullYear() on every render, so a deck left open across
   //    midnight on 31 December would re-anchor its columns mid-session. Hoisted to one memo at the deck root.
