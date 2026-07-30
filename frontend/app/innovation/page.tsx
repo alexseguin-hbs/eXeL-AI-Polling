@@ -3392,26 +3392,41 @@ const finFmtK = (n: number): string => (n === 0 ? "—" : `$${Math.round(n).toLo
 const finFmtPct = (n: number | null): string => (n === null ? "—" : `${n.toFixed(0)}%`);
 const finFmtQty = (n: number): string => (n === 0 ? "—" : n.toLocaleString());
 
-function S10Grid({ head, rows, accent }: { head: string[]; rows: { label: string; cells: string[]; strong?: boolean; band?: boolean }[]; accent?: string }) {
+/** A row of the S10 sheet. `group` + `groupSpan` put the band name in a LEFT GUTTER spanning the band's rows
+ *  instead of on a full-width header row of its own — four rows recovered on a sheet that cannot grow, and it
+ *  reads closer to the Rack & Stack reference, where the band name sits in the gutter beside its numbers. */
+type S10Row = { label: string; cells: string[]; strong?: boolean; band?: boolean; group?: string; groupSpan?: number; tint?: string };
+
+function S10Grid({ head, rows, accent, gutter }: { head: string[]; rows: S10Row[]; accent?: string; gutter?: boolean }) {
+  // A `rowSpan` cell already OCCUPIES the gutter column for the rows beneath it. Emitting a placeholder <td>
+  // in those rows pushes their whole line one column right, so Quantity lined up one column left of Revenue
+  // and the last year fell off the sheet. Mark the covered rows and emit nothing for them.
+  const covered = new Set<number>();
+  rows.forEach((r, i) => { for (let k = 1; k < (r.groupSpan ?? 0); k++) covered.add(i + k); });
   return (
     <div className="min-h-0 overflow-auto">
       <table className="w-full border-collapse" style={{ fontSize: TS.num }}>
         <thead>
           <tr>
+            {gutter && <th className="sticky left-0 z-10 bg-[#0b0f14]" />}
             {/* The row-label column is sticky so eleven years can scroll on a phone without losing what the row IS. */}
-            <th className="sticky left-0 z-10 bg-[#0b0f14] px-[0.5cqw] py-[0.3cqh] text-left font-semibold text-slate-400" style={{ fontSize: TS.micro }}>{head[0]}</th>
+            <th className={`sticky ${gutter ? "left-[7.5cqw]" : "left-0"} z-10 bg-[#0b0f14] px-[0.5cqw] py-[0.2cqh] text-left font-semibold text-slate-400`} style={{ fontSize: TS.micro }}>{head[0]}</th>
             {head.slice(1).map((h) => (
-              <th key={h} className="px-[0.5cqw] py-[0.3cqh] text-right font-mono font-semibold text-cyan-300/90 tabular-nums" style={{ fontSize: TS.micro }}>{h}</th>
+              <th key={h} className="px-[0.5cqw] py-[0.2cqh] text-right font-mono font-semibold text-cyan-300/90 tabular-nums" style={{ fontSize: TS.micro }}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.label} className={r.band ? "bg-cyan-500/10" : ""} style={r.band && accent ? { background: accent } : undefined}>
-              <td className={`sticky left-0 z-10 px-[0.5cqw] py-[0.25cqh] text-left ${r.band ? "font-semibold text-slate-100" : r.strong ? "font-semibold text-slate-200" : "text-slate-400"} ${r.band ? "" : "bg-[#0b0f14]"}`}
+          {rows.map((r, ri) => (
+            <tr key={`${r.group ?? ""}:${r.label}:${ri}`} className={r.band ? "bg-cyan-500/10" : ""} style={r.band && accent ? { background: accent } : undefined}>
+              {gutter && r.groupSpan ? (
+                <td rowSpan={r.groupSpan} className="sticky left-0 z-10 w-[7.5cqw] border-r border-slate-800 bg-[#0b0f14] pr-[0.4cqw] align-middle text-left font-semibold leading-tight text-slate-200"
+                    style={{ fontSize: TS.micro, background: r.tint }}>{r.group}</td>
+              ) : gutter && !covered.has(ri) ? <td className="sticky left-0 z-10 bg-[#0b0f14]" /> : null}
+              <td className={`sticky ${gutter ? "left-[7.5cqw]" : "left-0"} z-10 px-[0.5cqw] py-[0.15cqh] text-left ${r.band ? "font-semibold text-slate-100" : r.strong ? "font-semibold text-slate-200" : "text-slate-400"} ${r.band ? "" : "bg-[#0b0f14]"}`}
                   style={r.band && accent ? { background: accent } : undefined}>{r.label}</td>
               {r.cells.map((c, i) => (
-                <td key={i} className={`px-[0.5cqw] py-[0.25cqh] text-right font-mono tabular-nums ${r.strong ? "font-semibold text-slate-100" : "text-slate-300"}`}>{c}</td>
+                <td key={i} className={`px-[0.5cqw] py-[0.15cqh] text-right font-mono tabular-nums ${r.strong ? "font-semibold text-slate-100" : "text-slate-300"}`}>{c}</td>
               ))}
             </tr>
           ))}
@@ -3456,27 +3471,32 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
   const f = finOf(p, baseYear);
   const n = visibleYearCount(p.gate);
   const ys = f.years.slice(0, n);
-  // S10 IS THE STANDARD; 10.1 / 10.2 CARRY THE DETAIL (operator). Every band shows Revenue and Margin here —
-  // exactly what the Rack & Stack sheet prints for New and Declining. Quantity, ASP and COGS live on 10.1/10.2.
-  // This is not a preference: at four rows per band the sheet overflowed by 21 elements at phone-portrait and
-  // the screenshot gate rejected it. The canvas is `container-type: size`, so content cannot grow it — it
-  // clips silently. Fewer rows on the standard sheet is what makes the detail views necessary AND legible.
-  const band = (key: "neu" | "don" | "dec", label: string) => {
+  // FOUR ROWS ON EVERY BAND — Quantity · Revenue · Margin · Margin % — per the operator's spec. An earlier cut
+  // dropped Quantity and Margin % to clear a 21-element overflow; that was the wrong cut. "S10 is the standard
+  // with 10.1 and 10.2 (if desired to show COGS AND ASP DATA)" puts COGS and ASP on the detail sheets, not
+  // Quantity and Margin %. The overflow is solved by the LAYOUT instead: the band name moved into a left
+  // gutter spanning its four rows (recovering four full-width header rows) and row padding tightened, so a
+  // row the operator asked for is never traded away to make the sheet fit.
+  const band = (key: "neu" | "don" | "dec", label: string, tint: string): S10Row[] => {
     const on = f.unitEcon[key];
     return [
-      { label, cells: ys.map(() => ""), band: true },
+      { group: label, groupSpan: 4, tint, label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
       { label: "Revenue", cells: ys.map((y) => finFmtK(bandRevK(y[key], on))) },
       { label: "Margin", cells: ys.map((y) => finFmtK(bandMgnK(y[key], on))) },
+      { label: "Margin %", cells: ys.map((y) => finFmtPct(bandMgnPct(y[key], on))) },
     ];
   };
   return (
     <S10Grid
+      gutter
       head={["", ...ys.map((y) => String(y.year))]}
       rows={[
-        ...band("don", "Do Nothing: Existing"),
-        ...band("neu", "New: 1st Product Rev"),
-        ...band("dec", "Declining Rev: Existing"),
-        { label: "Combined: Incremental", cells: ys.map(() => ""), band: true },
+        ...band("don", "Do Nothing: Existing", "rgba(100,116,139,.14)"),
+        ...band("neu", "New: 1st Product Rev", "rgba(59,130,246,.14)"),
+        ...band("dec", "Declining Rev: Existing", "rgba(251,146,60,.14)"),
+        // Combined is DERIVED: Revenue/Margin = New − Do-Nothing + EOL, and Quantity is the NET count
+        // (New − Declining), labelled as such so nobody reads it as a gross unit total.
+        { group: "Combined: Incremental", groupSpan: 5, tint: "rgba(34,211,238,.16)", label: "Quantity (net)", cells: ys.map((y) => finFmtQty(incUnits(y))) },
         { label: "Revenue", cells: ys.map((y) => finFmtK(incRevK(y, f.unitEcon))), strong: true },
         { label: "Margin", cells: ys.map((y) => finFmtK(incMgnK(y, f.unitEcon))), strong: true },
         { label: "Margin %", cells: ys.map((y) => finFmtPct(incMgnPct(y, f.unitEcon))) },

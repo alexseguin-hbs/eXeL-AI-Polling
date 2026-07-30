@@ -1676,6 +1676,33 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/commit\(withFinYear\(fin, i, patch\), what\)/.test(pageSrc) && /commit\(withFinBand\(fin, i, band, patch\), what\)/.test(pageSrc),
      "the editor uses the locked pure writers instead of re-implementing update semantics");
 
+  // 4b. F2 · FOUR ROWS ON EVERY BAND, FIVE ON COMBINED. An earlier cut dropped Quantity and Margin % to clear
+  //     a screenshot overflow; the operator's spec puts COGS and ASP on 10.1/10.2 and keeps Quantity and
+  //     Margin % on the standard sheet. Counted, so "make it fit" can never silently trade a row away again.
+  const revTable = pageSrc.slice(pageSrc.indexOf("function S10RevenueTable("), pageSrc.indexOf("function AmtsPanel("));
+  const bandFn = revTable.slice(revTable.indexOf("const band ="), revTable.indexOf("return ("));
+  for (const row of ["Quantity", "Revenue", "Margin", "Margin %"]) {
+    ok(bandFn.includes(`label: "${row}"`), `every revenue band renders a ${row} row`);
+  }
+  ok(/groupSpan: 4/.test(bandFn), "each band's four rows share ONE gutter label instead of a full-width header row");
+  for (const row of ["Quantity (net)", "Revenue", "Margin", "Margin %", "YoY Growth"]) {
+    ok(revTable.includes(`label: "${row}"`), `Combined: Incremental renders a ${row} row`);
+  }
+  ok(/groupSpan: 5/.test(revTable), "Combined carries five rows under one gutter label");
+  ok(/label: "YoY Growth"/.test(revTable) && !bandFn.includes("YoY"),
+     "YoY Growth appears on Combined ONLY — never on an entered band (operator)");
+  // The gutter is a rowSpan, so the rows it covers must NOT emit their own cell — one stray placeholder <td>
+  // shifted every line under a band label one column right and pushed the last year off the sheet. Caught by
+  // reading the render; locked here so the alignment cannot silently break again.
+  ok(/rows\.forEach\(\(r, i\) => \{ for \(let k = 1; k < \(r\.groupSpan \?\? 0\); k\+\+\) covered\.add\(i \+ k\); \}\);/.test(pageSrc),
+     "rows covered by a rowSpan gutter are tracked, so no row emits a duplicate gutter cell");
+  ok(/gutter && !covered\.has\(ri\) \? <td/.test(pageSrc),
+     "the placeholder gutter cell is skipped for covered rows — every band's numbers stay under their year");
+  // Quantity is a COUNT, not money: it must not go through the $K formatter.
+  ok(/const finFmtQty = /.test(pageSrc) && /finFmtQty\(y\[b?\.?key\]\.units\)|finFmtQty\(y\[key\]\.units\)/.test(pageSrc),
+     "Quantity renders through a count formatter, never the $K one");
+  ok(/finFmtQty\(incUnits\(y\)\)/.test(pageSrc), "Combined Quantity is the NET count (New − Declining), from incUnits");
+
   // 5. ONE CLOCK. Both S10 tables called new Date().getFullYear() on every render, so a deck left open across
   //    midnight on 31 December would re-anchor its columns mid-session. Hoisted to one memo at the deck root.
   ok(/const baseYear = useMemo\(\(\) => new Date\(\)\.getFullYear\(\), \[\]\);/.test(pageSrc),
