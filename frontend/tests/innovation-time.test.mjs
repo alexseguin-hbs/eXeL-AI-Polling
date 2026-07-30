@@ -3228,7 +3228,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/lsGet\("innovation-show-unfunded"\)/.test(src) && /lsSet\("innovation-show-unfunded"/.test(src), "the flag persists like the other view preferences");
   ok((src.match(/const \[showUnfunded, setShowUnfunded\] = useState/g) ?? []).length === 1, "there is ONE flag, lifted to the Board — not a per-chart toggle");
   ok(/const shown = useMemo\(\(\) => \(showUnfunded \? projects : projects\.filter\(\(p\) => fundedIds\.has\(p\.id\)\)\)/.test(src), "chips AND the priority list read the same `shown` set");
-  ok(/\{shown\.filter\(\(p\) => gateOn\(p\.gate\)\)\.map/.test(src), "the priority-ordered list obeys the flag too");
+  // PROXY LOCK REWRITTEN (W-2, the fifth this session). This asserted the literal expression
+  // `{shown.filter((p) => gateOn(p.gate)).map` — the SHAPE of the code, not the property it protects. W-2
+  // hoisted that same filter to `pri` so the column-major row count could be derived from the rendered list,
+  // and the lock went red on a change with identical behaviour. What it MEANS is: the priority list is
+  // derived from `shown` (so the funded/unfunded flag governs it) and gate-filtered. That is now what it says.
+  ok(/const pri = useMemo\(\(\) => shown\.filter\(\(p\) => gateOn\(p\.gate\)\)/.test(src),
+     "the priority-ordered list obeys the flag too — it derives from `shown`, then gate-filters");
+  ok(/\{pri\.map\(\(p, i\)/.test(src), "…and that one derived array is what renders");
   ok(/const gateProjects = shown\.filter/.test(src), "the dog-tag chips obey the flag too");
 
   // (d) the control reuses the Base Revenue idiom, and the legend cannot claim a convention that is off-screen
@@ -3735,6 +3742,48 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
   const union = new Set(bus.flatMap((b) => M.scopeByHier(all, { bu: [b], sbu: [], pgroup: [] }).map((p) => p.id)));
   ok(union.size === all.length, "every project is reachable from some BU scope — narrowing never makes a project permanently unselectable");
+}
+
+// ── W-2 · PIPELINE'S PRIORITY LIST READS DOWN, THEN ACROSS ──────────────────────────────
+// Operator, with a screenshot: "Ensure the projects get listed down 1-8 then second column 9-15. basically go
+// down first." `sm:grid-cols-2` fills ROW-major, so rank 8 landed mid-right and reading a strictly-ordered
+// funding stack meant zig-zagging. The fix is a FLOW change, not a data change — which is exactly what these
+// assertions have to prove, because "reordered the list" and "reflowed the list" look identical in a
+// screenshot and are very different in a screen reader.
+{
+  const fspW2 = await import("node:fs/promises");
+  const srcW2 = await fspW2.readFile("app/innovation/page.tsx", "utf8");
+  // ⚠ PROBE ERROR, RECORDED (the seventh in this workstream). The first draft asserted over the RAW block and
+  // went red twice — on my own explanatory comment, which quotes `sm:grid-cols-2` and `grid-flow-col` to say
+  // what changed and why. A negative assertion ("the row-major fill is gone") cannot be run against text that
+  // includes prose ABOUT the row-major fill. Comments are stripped first; the assertions read code only.
+  const rawW2 = srcW2.slice(srcW2.indexOf("Priority-ordered project list"), srcW2.indexOf("if (maxed) {"));
+  const pipeBlock = rawW2.replace(/\/\*[\s\S]*?\*\//g, "");
+  ok(pipeBlock.length > 200, "the Pipeline priority-list block was located");
+  ok(pipeBlock.length < rawW2.length, "comments were stripped — negative assertions read code, never prose about the code");
+
+  // (a) COLUMN-MAJOR FLOW, and only above the phone breakpoint.
+  ok(/sm:grid-flow-col/.test(pipeBlock), "the priority list flows by COLUMN — down first, then across");
+  ok(!/sm:grid-cols-2/.test(pipeBlock), "the row-major two-column fill is gone (it is what put rank 8 mid-right)");
+  ok(!/\bgrid-flow-col\b(?!\s|")/.test(pipeBlock.replace(/sm:grid-flow-col/g, "")),
+     "column flow is gated behind `sm:` — the phone stays one column, where down-first is already what it does");
+
+  // (b) THE ROW COUNT IS DERIVED FROM THE RENDERED LIST, NOT FROM `shown`. This is the real trap: with a gate
+  //     chip selected the rendered list is shorter than `shown`, and a row count taken from `shown` silently
+  //     spills the list into a THIRD column. Asserted by naming the array that both the count and the map read.
+  ok(/repeat\(var\(--pr\),/.test(pipeBlock), "the row count is carried by a CSS variable (Tailwind cannot emit a dynamic grid-rows-N)");
+  ok(/"--pr": Math\.max\(1, Math\.ceil\(pri\.length \/ 2\)\)/.test(pipeBlock),
+     "the row count is ⌈pri.length / 2⌉ — derived from the SAME array that renders, and floored at 1 so an empty list cannot emit repeat(0)");
+  ok(/\{pri\.map\(\(p, i\)/.test(pipeBlock), "the list renders from `pri` — one array feeds both the geometry and the rows");
+  ok(!/shown\.filter\(\(p\) => gateOn\(p\.gate\)\)\.map/.test(pipeBlock),
+     "the filter is hoisted, not re-run inside the map — a second filter is a second source of truth");
+
+  // (c) DOM ORDER IS UNTOUCHED, WHICH IS THE POINT. The rank badge, tab order and screen-reader order must
+  //     still read 1..n in priority sequence; only the visual placement moved. If someone "fixes" this by
+  //     re-sorting the array instead of reflowing the grid, the badge stops matching the funding stack.
+  ok(/<span className="w-5 shrink-0 text-right tabular-nums text-slate-500">\{i \+ 1\}<\/span>/.test(pipeBlock),
+     "the rank badge is still the render index — the list is REFLOWED, never re-sorted");
+  ok(!/\.sort\(/.test(pipeBlock), "no sort was introduced into the priority list — funding-stack order is upstream and stays upstream");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

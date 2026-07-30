@@ -6507,6 +6507,10 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
   const kM = k; // $K → $M — single source (was a redundant re-impl of the global `k`)
   const shown = useMemo(() => (showUnfunded ? projects : projects.filter((p) => fundedIds.has(p.id))), [projects, fundedIds, showUnfunded]);
   const pickedP = picked ? projects.find((p) => p.id === picked) : null;
+  // The rendered priority list, hoisted out of its own `.map` so the column-major row count below can be
+  // derived from the SAME array that renders. Deriving it from `shown` would over-count the moment a gate
+  // chip is selected, and the list would silently grow a third column.
+  const pri = useMemo(() => shown.filter((p) => gateOn(p.gate)), [shown, selGates]);   // eslint-disable-line react-hooks/exhaustive-deps
   // In max mode a click previews the dog-tag; otherwise it opens the Project details.
   const clickProject = (id: string) => (maxed ? setPicked(id) : onSelect(id));
 
@@ -6571,14 +6575,27 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
         </div>
       )}
 
-      {/* Priority-ordered project list (funding-stack order) — filtered to selected gates (H4) */}
+      {/* Priority-ordered project list (funding-stack order) — filtered to selected gates (H4).
+          Hoisted out of the map so the column-major row count below can be derived from the SAME list that
+          is rendered; deriving it from `shown` would over-count whenever a gate filter is active. */}
       <div className="mt-4 border-t border-slate-800 pt-3">
         <div className="mb-1.5 flex items-center gap-2 text-[10px] uppercase tracking-wider text-slate-500">
           <span>Projects · priority order · {maxed ? "tap to preview" : "tap to open details"}</span>
           {selGates.size > 0 && <button onClick={() => setSelGates(new Set())} className="rounded border border-slate-700 px-1.5 py-0.5 text-cyan-300 hover:bg-slate-800">✕ clear {selGates.size} gate{selGates.size === 1 ? "" : "s"}</button>}
         </div>
-        <ol className="grid gap-1 sm:grid-cols-2">
-          {shown.filter((p) => gateOn(p.gate)).map((p, i) => {
+        {/* W-2 · DOWN FIRST, THEN ACROSS (operator, with a screenshot): "Ensure the projects get listed down
+            1-8 then second column 9-15. basically go down first."
+            `sm:grid-cols-2` fills ROW-major — 1,2 / 3,4 / 5,6 — so rank 8 landed mid-right and the eye had to
+            zig-zag to read a funding stack that is strictly ordered. Column-major is a FLOW change only:
+            `grid-flow-col` plus an explicit row count of ⌈n/2⌉ puts ranks 1-8 down the left column and 9-15
+            down the right.
+            DOM ORDER IS UNTOUCHED, and that is the point — the `{i + 1}` rank badge, tab order and screen-
+            reader order all still read 1..n in priority sequence; only the visual placement changes.
+            The `sm:` prefix keeps the phone on a single column, where down-first is already what one column
+            does; a CSS variable carries the row count because Tailwind cannot emit a dynamic `grid-rows-N`. */}
+        <ol className="grid gap-1 sm:grid-flow-col sm:[grid-template-rows:repeat(var(--pr),minmax(0,1fr))]"
+            style={{ "--pr": Math.max(1, Math.ceil(pri.length / 2)) } as React.CSSProperties}>
+          {pri.map((p, i) => {
             const fu = fundedIds.has(p.id);
             return (
               <li key={p.id}>
