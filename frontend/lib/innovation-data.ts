@@ -1752,6 +1752,33 @@ export function nodeAllocation(
   });
 }
 
+/** W-8 · THE THIRD FIGURE IS WHICHEVER ONE IS REAL. Operator: "if OVER (red), don't show UPSIDE."
+ *
+ *  ⚠ THIS WAS NEVER A DISPLAY PREFERENCE — THE MODEL HAS ALWAYS AGREED. A few lines above:
+ *      upsideK = max(0, budget − allocated)      overK = max(0, allocated − budget)
+ *  They are MUTUALLY EXCLUSIVE BY CONSTRUCTION; one of the two is always exactly zero. The engine has known
+ *  that since A1 and only the render did not, so every over-allocated BU printed a guaranteed "◆ Upside
+ *  $0.0M" beside the number that actually mattered. The operator caught it on a phone.
+ *
+ *  ONE HELPER, BOTH SURFACES — the dashboard card and the Budget popup. Shipping the rule to one of them
+ *  leaves the other printing the pair, which is exactly the two-surface drift F0 and W-3 each caught the
+ *  hard way. A lock counts callers so a third surface cannot quietly reintroduce it. */
+export type AllocHeadroom = { kind: "over" | "upside"; k: number };
+export const allocHeadroom = (n: { upsideK: number; overK: number }): AllocHeadroom =>
+  n.overK > 0 ? { kind: "over", k: n.overK } : { kind: "upside", k: n.upsideK };
+
+/** The bar STOPS BEING ONE CLAMPED BLOCK and becomes the two numbers printed under it (operator: "color bar
+ *  according to Numbers: Budget vs Over. or Allocated vs Upside"). Clamped at 100%, a BU at 190% of budget
+ *  looked identical to one at exactly 100% — the overage was invisible, which is the opposite of what a
+ *  funding board needs to see. Returns two percentages that always sum to 100. */
+export function allocBarSplit(n: { budgetK: number; allocatedK: number; upsideK: number; overK: number; utilPct: number }) {
+  const over = n.overK > 0;
+  const total = over ? n.allocatedK : n.budgetK;
+  if (!(total > 0)) return { over, firstPct: 100, secondPct: 0 };
+  const firstPct = ((over ? n.budgetK : n.allocatedK) / total) * 100;
+  return { over, firstPct, secondPct: 100 - firstPct };
+}
+
 // ── GROWTH MODEL (CRS-69) — Do-Nothing decline + weighted NPI + remaining-to-target ──────
 // The signature Rack-&-Stack chart: a base revenue that declines YoY with no new launches,
 // the probability-weighted incremental revenue from funded NPIs ramping in, the gap remaining

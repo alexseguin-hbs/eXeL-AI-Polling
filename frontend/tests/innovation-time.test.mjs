@@ -4009,5 +4009,76 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "order is unchanged: Feedback left · SECURITY-2525 centre · eXeL AI right");
 }
 
+// ── W-8 · ALLOCATION: THREE FIGURES, AND A BAR THAT SHOWS THE SPLIT ─────────────────────
+// Operator, with a live phone screenshot: "remember if OVER (red), don't show UPSIDE." DS Drone Swarm was
+// printing `◆ Upside $0.0M` beside `Over $17.0M` — four figures where three are real.
+//
+// ⚠ THIS WAS NEVER A DISPLAY PREFERENCE. innovation-data.ts:1748-1749 computes
+//     upsideK = max(0, budget − allocated)   ·   overK = max(0, allocated − budget)
+// which are MUTUALLY EXCLUSIVE BY CONSTRUCTION — one is always exactly zero. The engine has known that
+// since A1; only the render did not. Proven below by EXECUTING it over the real portfolio, not by reading.
+{
+  const A = await import("../lib/innovation-data.ts");
+  const fspW8 = await import("node:fs/promises");
+  const srcW8 = await fspW8.readFile("app/innovation/page.tsx", "utf8");
+
+  // (a) THE EXCLUSIVITY, ON REAL DATA, EVERY NODE. This is the assertion that turns the operator's rule
+  //     from an opinion into a property of the model.
+  let nodes = 0, both = 0;
+  // Half the portfolio funded, so the run spans BOTH states — a fully-funded or fully-unfunded set would
+  // exercise only one branch and the "never both" claim would be vacuous on it.
+  const fundedW8 = new Set(A.DEMO_PROJECTS.filter((_, i) => i % 2 === 0).map((p) => p.id));
+  for (const level of ["bu", "sbu", "pgroup"]) {
+    for (const n of A.nodeAllocation(A.DEMO_PROJECTS, level, (id) => fundedW8.has(id), 77_000)) {
+      nodes++;
+      if (n.upsideK > 0 && n.overK > 0) both++;
+      const h = A.allocHeadroom(n);
+      ok(h.kind === (n.overK > 0 ? "over" : "upside"), `${level}/${n.code}: headroom picks the non-zero side`);
+      ok(h.k === (n.overK > 0 ? n.overK : n.upsideK), `${level}/${n.code}: headroom carries that side's figure`);
+    }
+  }
+  ok(nodes > 0, `the allocation model produced ${nodes} nodes to check`);
+  ok(both === 0, `upside and over are never BOTH non-zero — ${both} of ${nodes} nodes violate it`);
+
+  // (b) THE BAR IS THE TWO NUMBERS UNDERNEATH. Segments always sum to 100, and their ratio equals the
+  //     printed figures' ratio — the label and the geometry read one number, not two.
+  for (const n of A.nodeAllocation(A.DEMO_PROJECTS, "bu", (id) => fundedW8.has(id), 77_000)) {
+    const s = A.allocBarSplit(n);
+    ok(Math.abs(s.firstPct + s.secondPct - 100) < 1e-9, `${n.code}: bar segments sum to 100%`);
+    ok(s.over === (n.overK > 0), `${n.code}: the bar's mode matches the data's mode`);
+    const denom = s.over ? n.allocatedK : n.budgetK;
+    if (denom > 0) {
+      const want = ((s.over ? n.overK : n.upsideK) / denom) * 100;
+      ok(Math.abs(s.secondPct - want) < 1e-6, `${n.code}: the second segment IS the third printed figure, to scale`);
+    }
+  }
+  // A 190%-of-budget node must NOT look like a 100% one — that clamp was the defect.
+  {
+    const over = A.allocBarSplit({ budgetK: 18900, allocatedK: 35900, upsideK: 0, overK: 17000, utilPct: 190 });
+    ok(over.firstPct > 50 && over.firstPct < 55 && over.secondPct > 45,
+       `DS reads ~53/47 budget-vs-over, not a flat 100% block — got ${over.firstPct.toFixed(1)}/${over.secondPct.toFixed(1)}`);
+    ok(A.allocBarSplit({ budgetK: 0, allocatedK: 0, upsideK: 0, overK: 0, utilPct: 0 }).firstPct === 100,
+       "a zero-budget node degrades to a full first segment rather than NaN");
+  }
+
+  // (c) BOTH SURFACES, ONE HELPER — and no render may re-derive the pair itself.
+  const codeW8 = srcW8.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok((codeW8.match(/allocHeadroom\(n\)/g) ?? []).length === 2,
+     "both allocation surfaces call allocHeadroom — the dashboard card AND the Budget popup");
+  ok((codeW8.match(/allocBarSplit\(n\)/g) ?? []).length === 2, "both surfaces split their bar the same way");
+  ok(!/n\.overK > 0 &&/.test(codeW8), "no render still gates a field on overK itself — the helper owns that decision");
+  // ⚠ THIS ASSERTION WAS TOO BROAD ON ITS FIRST RUN and went red on two INNOCENT sites: the "Σ upside"
+  // roll-up (a genuine total across nodes) and my own bar tooltip (already conditional on `!split.over`).
+  // The defect was never "the string upsideK appears" — it was the FIELD rendering unconditionally. So the
+  // assertion names the field: every Upside/Over label must read `head.k`, never the node's raw side.
+  const upsideLabels = [...codeW8.matchAll(/t\("innovation\.alloc\.upside"\)[\s\S]{0,120}?\{(k|kM)\(([^)]+)\)\}/g)];
+  ok(upsideLabels.length === 2, `both surfaces render exactly one Upside field — found ${upsideLabels.length}`);
+  ok(upsideLabels.every((m) => m[2] === "head.k"),
+     `every Upside field reads head.k, never n.upsideK — got ${upsideLabels.map((m) => m[2]).join(", ")}`);
+  const overLabels = [...codeW8.matchAll(/t\("innovation\.alloc\.over"\)[\s\S]{0,120}?\{(k|kM)\(([^)]+)\)\}/g)];
+  ok(overLabels.length === 2 && overLabels.every((m) => m[2] === "head.k"),
+     `every Over field reads head.k too — got ${overLabels.map((m) => m[2]).join(", ")}`);
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

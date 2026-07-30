@@ -51,7 +51,7 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
-  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf,
+  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
 } from "@/lib/innovation-data";
@@ -2294,16 +2294,25 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {alloc.map((n) => {
-                  const pct = Math.min(100, n.utilPct);
-                  const barTone = n.overK > 0 ? "bg-rose-500" : n.utilPct >= 90 ? "bg-amber-500" : "bg-emerald-500";
+                  // W-8 · THE SAME RULE, FROM THE SAME HELPER. Shipping "if OVER, no UPSIDE" to the
+                  // dashboard card alone would leave THIS surface — the editable twin, down to Alpha Group —
+                  // still printing "Upside $0.0M" beside "Over $17.0M". That is the two-surface drift F0 and
+                  // W-3 each caught the hard way, and it is cheaper to not create it than to find it later.
+                  // This panel keeps its extra rows (editable Budget, $/min); "only 3 fields" was the
+                  // dashboard card's rule, not this one's.
+                  const head = allocHeadroom(n);
+                  const split = allocBarSplit(n);
+                  const firstTone = split.over ? "bg-slate-500" : n.utilPct >= 90 ? "bg-amber-500" : "bg-emerald-500";
+                  const secondTone = split.over ? "bg-rose-500" : "bg-cyan-500";
                   return (
                     <div key={n.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
                       <div className="mb-1 flex items-baseline justify-between">
                         <span className="text-xs font-semibold text-slate-100">{n.code}</span>
                         <span className="text-[9px] text-slate-500 truncate">{n.label}</span>
                       </div>
-                      <div className="mb-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800" title={`${n.utilPct}% of budget allocated`}>
-                        <div className={`h-full ${barTone}`} style={{ width: `${pct}%` }} />
+                      <div className="mb-1.5 flex h-2 w-full overflow-hidden rounded-full bg-slate-800" title={`${n.utilPct}% of budget allocated`}>
+                        <div className={`h-full ${firstTone}`} style={{ width: `${split.firstPct}%` }} />
+                        <div className={`h-full ${secondTone}`} style={{ width: `${split.secondPct}%` }} />
                       </div>
                       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
                         <span className="text-slate-500">{t("innovation.alloc.budget")}</span>
@@ -2316,8 +2325,9 @@ function BudgetModal({ projects, fundedIds, availK, budgetOverrideK, onSetBudget
                           {budgetOverrideK(level, n.code) != null && <button onClick={() => onSetBudget(level, n.code, null)} title={t("innovation.alloc.reset")} aria-label={`${t("innovation.alloc.reset")} · ${n.code}`} className="ml-1 text-[11px] text-slate-500 hover:text-cyan-300">↺</button>}
                         </span>
                         <span className="text-slate-500">{t("innovation.alloc.allocated")}</span><span className="text-right tabular-nums text-slate-300">{k(n.allocatedK)}</span>
-                        <span className="text-cyan-400">◆ {t("innovation.alloc.upside")}</span><span className="text-right tabular-nums text-cyan-300">{k(n.upsideK)}</span>
-                        {n.overK > 0 && (<><span className="text-rose-400">{t("innovation.alloc.over")}</span><span className="text-right tabular-nums text-rose-300">{k(n.overK)}</span></>)}
+                        {head.kind === "over"
+                          ? (<><span className="text-rose-400">{t("innovation.alloc.over")}</span><span className="text-right tabular-nums text-rose-300">{k(head.k)}</span></>)
+                          : (<><span className="text-cyan-400">◆ {t("innovation.alloc.upside")}</span><span className="text-right tabular-nums text-cyan-300">{k(head.k)}</span></>)}
                         <span className="text-slate-500" title="Live burn of the funded projects at this node">$/{CADENCE_UNIT[cadence].short}</span><span className="text-right tabular-nums text-amber-300">{fmtPerCadence(n.perMinUsd, cadence)}</span>
                       </div>
                     </div>
@@ -6805,22 +6815,34 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
       <DashCard title="Allocation & upside · by BU" tag="Spend">
         <div className="grid gap-2 sm:grid-cols-3">
           {buAlloc.map((n) => {
-            const pct = Math.min(100, n.utilPct);
-            const tone = n.overK > 0 ? "bg-rose-500" : n.utilPct >= 90 ? "bg-amber-500" : "bg-emerald-500";
+            // W-8 · THREE FIGURES, AND THE THIRD IS WHICHEVER ONE IS REAL (operator, with a phone
+            // screenshot: "remember if OVER (red), don't show UPSIDE"). `allocHeadroom` picks it; the model
+            // has made the pair mutually exclusive since A1, so the fourth figure was always a guaranteed $0.
+            const head = allocHeadroom(n);
+            // THE BAR IS THE TWO NUMBERS UNDERNEATH IT, not one block clamped at 100%. Clamped, DS at 190%
+            // of budget looked identical to a BU at exactly 100% — the overage was invisible, which is the
+            // opposite of what a funding board needs. Amber survives as the ALLOCATED segment's colour at
+            // >=90% so the near-the-limit warning is not lost to the segmentation.
+            const split = allocBarSplit(n);
+            const firstTone = split.over ? "bg-slate-500" : n.utilPct >= 90 ? "bg-amber-500" : "bg-emerald-500";
+            const secondTone = split.over ? "bg-rose-500" : "bg-cyan-500";
             return (
               <div key={n.code} className="rounded-lg border border-slate-800 bg-[#0b0f14] p-2.5">
                 <div className="mb-1 flex items-baseline justify-between">
                   <span className="text-xs font-semibold text-slate-100">{n.code} <span className="font-normal text-slate-500">{n.label}</span></span>
                   <span className="text-[10px] tabular-nums text-amber-300">{fmtPerCadence(n.perMinUsd, cadence)}</span>
                 </div>
-                <div className="mb-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-800" title={`${n.utilPct}% of budget allocated`}>
-                  <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
+                <div className="mb-1.5 flex h-2 w-full overflow-hidden rounded-full bg-slate-800"
+                     title={split.over ? `${n.utilPct}% of budget allocated — ${kM(n.budgetK)} budget + ${kM(n.overK)} over` : `${n.utilPct}% of budget allocated — ${kM(n.allocatedK)} allocated + ${kM(n.upsideK)} upside`}>
+                  <div className={`h-full ${firstTone}`} style={{ width: `${split.firstPct}%` }} />
+                  <div className={`h-full ${secondTone}`} style={{ width: `${split.secondPct}%` }} />
                 </div>
                 <div className="flex flex-wrap justify-between gap-x-3 text-[10px] tabular-nums">
                   <span className="text-slate-500">{t("innovation.alloc.budget")} <b className="text-slate-300">{kM(n.budgetK)}</b></span>
                   <span className="text-slate-500">{t("innovation.alloc.allocatedShort")} <b className="text-slate-300">{kM(n.allocatedK)}</b></span>
-                  <span className="text-cyan-400">◆ {t("innovation.alloc.upside")} <b className="text-cyan-300">{kM(n.upsideK)}</b></span>
-                  {n.overK > 0 && <span className="text-rose-400">{t("innovation.alloc.over")} <b className="text-rose-300">{kM(n.overK)}</b></span>}
+                  {head.kind === "over"
+                    ? <span className="text-rose-400">{t("innovation.alloc.over")} <b className="text-rose-300">{kM(head.k)}</b></span>
+                    : <span className="text-cyan-400">◆ {t("innovation.alloc.upside")} <b className="text-cyan-300">{kM(head.k)}</b></span>}
                 </div>
               </div>
             );
