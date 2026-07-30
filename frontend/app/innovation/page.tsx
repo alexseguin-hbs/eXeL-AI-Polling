@@ -3396,26 +3396,27 @@ function S10RevenueTable({ p }: { p: Project }) {
   const f = finOf(p, new Date().getFullYear());
   const n = visibleYearCount(p.gate);
   const ys = f.years.slice(0, n);
-  const band = (key: "neu" | "don" | "dec", label: string, tint: string) => {
+  // S10 IS THE STANDARD; 10.1 / 10.2 CARRY THE DETAIL (operator). Every band shows Revenue and Margin here —
+  // exactly what the Rack & Stack sheet prints for New and Declining. Quantity, ASP and COGS live on 10.1/10.2.
+  // This is not a preference: at four rows per band the sheet overflowed by 21 elements at phone-portrait and
+  // the screenshot gate rejected it. The canvas is `container-type: size`, so content cannot grow it — it
+  // clips silently. Fewer rows on the standard sheet is what makes the detail views necessary AND legible.
+  const band = (key: "neu" | "don" | "dec", label: string) => {
     const on = f.unitEcon[key];
     return [
-      { label, cells: ys.map(() => ""), band: true, tint },
-      { label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
+      { label, cells: ys.map(() => ""), band: true },
       { label: "Revenue", cells: ys.map((y) => finFmtK(bandRevK(y[key], on))) },
       { label: "Margin", cells: ys.map((y) => finFmtK(bandMgnK(y[key], on))) },
-      { label: "Margin %", cells: ys.map((y) => finFmtPct(bandMgnPct(y[key], on))) },
     ];
   };
   return (
     <S10Grid
       head={["", ...ys.map((y) => String(y.year))]}
       rows={[
-        ...band("don", "Do Nothing: Existing", "rgba(148,163,184,.18)"),
-        ...band("neu", "New: 1st Product Rev", "rgba(56,189,248,.18)"),
-        ...band("dec", "Declining Rev: Existing", "rgba(100,116,139,.18)"),
+        ...band("don", "Do Nothing: Existing"),
+        ...band("neu", "New: 1st Product Rev"),
+        ...band("dec", "Declining Rev: Existing"),
         { label: "Combined: Incremental", cells: ys.map(() => ""), band: true },
-        // NET of New minus Declining — a delta in units, not units shipped. Named so nobody reads it as volume.
-        { label: "Quantity (net)", cells: ys.map((y) => finFmtQty(incUnits(y))) },
         { label: "Revenue", cells: ys.map((y) => finFmtK(incRevK(y, f.unitEcon))), strong: true },
         { label: "Margin", cells: ys.map((y) => finFmtK(incMgnK(y, f.unitEcon))), strong: true },
         { label: "Margin %", cells: ys.map((y) => finFmtPct(incMgnPct(y, f.unitEcon))) },

@@ -547,6 +547,12 @@ export function finBaseline(p: Project, baseYear: number): FinPlan {
     };
     seed(y.neu, newK);
     seed(y.dec, decK);
+    // Step 2 · Do Nothing — the revenue the current line would still earn if this project were NOT funded.
+    // It lives on the record as a 10-year total (`doNothing10yM`), so spread it across the revenue years.
+    // Most of the portfolio genuinely has no existing line (doNothing10yM = 0) and will show em-dashes; that
+    // is real data, not a gap. Omitting the seed entirely — as the first cut did — hid it for the projects
+    // that DO have one, which is the actual defect.
+    if (p.doNothing10yM > 0 && i < 10) seed(y.don, Math.round((p.doNothing10yM * 1000) / 10));
   });
   // Unit economics stays OFF for a back-solved plan: the units are derived, so Revenue/Margin remain the
   // authoritative figures until a human enters real quantities. Turning it on would silently re-derive

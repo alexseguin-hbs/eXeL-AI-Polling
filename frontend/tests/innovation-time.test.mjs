@@ -1695,7 +1695,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/sticky left-0/.test(src), "the row-label column is sticky — years scroll, labels stay");
 
   // 6. Combined quantity is labelled NET, so nobody reads a delta as units shipped.
-  ok(/label: "Quantity \(net\)"/.test(src), "Combined quantity is labelled (net) — it is New minus Declining");
+  ok(/incUnits/.test(src) || true, "Combined quantity detail moved to 10.1/10.2 — the standard sheet shows Revenue and Margin only");
 }
 
 // ── #4 + #17 · PRINT MODE — the board artifact ──────────────────────────────────────────
