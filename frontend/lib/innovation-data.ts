@@ -401,6 +401,20 @@ export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: 
 // discount, which is the lever a product manager actually negotiates, and makes list price unrecoverable.
 export const FIN_SPAN = 11;                                   // current year + 10
 export const finYearList = (baseYear: number): number[] => Array.from({ length: FIN_SPAN }, (_, i) => baseYear + i);
+
+// ── THE ONLY PRODUCER OF A PERIOD LABEL ──────────────────────────────────────────────────
+// Operator, four times: "year only", "we will not use Year 1, Year 2 / always 2026 or 26, 27, 28 etc".
+// `Yr 1`, `Year 1`, `L-1`, `L-3` and `Launch` are launch-RELATIVE: they mean different calendar years for
+// two projects side by side on the same board, which is exactly the confusion a portfolio review cannot
+// afford. Every column header, every axis tick, every generated table column comes through here.
+//   full  → "2026"   (the default; unambiguous on a printed sheet)
+//   short → "26"     (only where a column is too narrow for four digits)
+export type YearLabelForm = "full" | "short";
+export const yearLabel = (y: number, form: YearLabelForm = "full"): string =>
+  form === "short" ? String(y % 100).padStart(2, "0") : String(y);
+/** Column headers for a span of calendar years — the one call every table should make. */
+export const yearCols = (baseYear: number, n: number = FIN_SPAN, form: YearLabelForm = "full"): string[] =>
+  Array.from({ length: n }, (_, i) => yearLabel(baseYear + i, form));
 /** Columns a stage must fill: Concept current+3, Plan current+5, Develop and beyond current+10. */
 export const STAGE_SPAN: Record<Gate, number> = { G1: 4, G2: 6, G3: 11, G4: 11, G5: 11, G6: 11, G7: 11 };
 export const visibleYearCount = (gate: Gate): number => STAGE_SPAN[gate] ?? FIN_SPAN;
@@ -2326,8 +2340,12 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
   { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
     { id: "stories", name: "High-priority user stories", kind: "table", req: true, linked: true, cols: [...STORY_COLS], hint: "One ● marks the release a story lands in. CRS # is sequential per project; the discipline selector still drives the CRS-##.IN.<TEAM>.### traceability Req ID behind it." } ] },
   { code: "S10", gate: "G2", stage: "Plan", source: "Business Case · annual forecast required at Plan", fields: [
-    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "10a: annual at Plan; 10b: monthly at Develop — SoI/MoT cadence (month = quarter/3)." },
-    { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, cols: ["Scenario", "L-1", "Launch", "Yr 2", "Yr 3"] },
+    // CALENDAR ONLY. The schema is a module constant and cannot read a clock, so these columns name the AXIS
+    // ("Year") and the WBS lines — never a launch-relative period. `L-1`, `Launch`, `Yr 2`, `Yr 3` lived here
+    // and were the last banned labels in the deck: they mean different calendar years for two projects side
+    // by side on the same board. Actual year headers are produced by `yearCols(baseYear, n)` at render time.
+    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "Calendar years, current + 10. Entered on the S10 grid — this table is the read-out." },
+    { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, cols: ["Band", "Quantity", "Revenue", "Margin", "Margin %"], hint: "Rack & Stack Steps 1b / 2 / 3 plus the derived Combined: Incremental." },
     { id: "conf", name: "Confidence", kind: "metrics", items: [ { k: "tech", label: "Technical" }, { k: "comm", label: "Commercial" } ] } ] },
   { code: "S11", gate: "G2", stage: "Plan", source: "UXD validation", fields: [
     { id: "voc", name: "Early validation — UXD", kind: "table", req: true, cols: ["# customers", "Differentiator", "VOC learnings", "Pivot / Pursue / Pass"] },
@@ -2793,13 +2811,24 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S7.personas": return [[m.targetMarket, b.needs[0] ?? "the capability"], [ex.customer, b.outcomes[0] ?? "the outcome"]];
     case "S7.desired": return b.outcomes[0] ?? "";
     case "S9.stories": return storyTableRows(p);
+    // These two drafts are the fallback the generic field grid shows before a human opens the S10 editor.
+    // They used to emit `Yr 1 / Yr 2 / Yr 3` and a launch-relative L-1 / Launch column set — the last two
+    // ban-list violations in the deck. Both now speak the same language as the real S10 grid: calendar years
+    // from `yearLabel`, and the four named Rack & Stack bands. `launchYearOf` is a pure read of the project
+    // record (no clock), so the draft stays deterministic.
     case "S10.spend": {
       const rd = fm.totalRdOpexK; const perYr = Math.round(rd / 3);
-      return [1, 2, 3].map((y) => [`Yr ${y}`, `$${Math.round(perYr * 0.55)}k`, `$${Math.round(perYr * 0.25)}k`, `$${Math.round(perYr * 0.12)}k`, `$${Math.round(perYr * 0.08)}k`]);
+      const y0 = launchYearOf(p);
+      return [0, 1, 2].map((i) => [yearLabel(y0 + i), `$${Math.round(perYr * 0.55)}k`, `$${Math.round(perYr * 0.25)}k`, `$${Math.round(perYr * 0.12)}k`, `$${Math.round(perYr * 0.08)}k`]);
     }
     case "S10.scenarios": {
       const inc = incrementalRevM(p), dn = p.doNothing10yM / 10;
-      return [["Do nothing", money(dn), money(dn * 0.85), money(dn * 0.72), money(dn * 0.61)], ["New product", "$0M", money(inc * 0.15), money(inc * 0.35), money(inc * 0.55)], ["Combined", money(dn), money(dn * 0.85 + inc * 0.15), money(dn * 0.72 + inc * 0.35), money(dn * 0.61 + inc * 0.55)]];
+      const gm = (ex.marginPct || 0) / 100, pct = (x: number) => (x > 0 ? `${Math.round(gm * 100)}%` : "—");
+      const row = (band: string, revM: number, qty: number): string[] =>
+        [band, qty > 0 ? qty.toLocaleString() : "—", money(revM), money(revM * gm), pct(revM)];
+      // Combined: Incremental = New − Do-Nothing + EOL, the same arithmetic the grid uses.
+      return [row("Do Nothing: Existing", dn, 0), row("New: 1st Product Rev", inc, ex.msrpK > 0 ? Math.round((inc * 1000) / ex.msrpK) : 0),
+              row("Declining Rev: Existing", 0, 0), row("Combined: Incremental", inc - dn, 0)];
     }
     case "S10.conf": return { tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm] };
     case "S13.tech": return [[RISK_LABEL[p.tech], b.evidence.find((e) => /risk|mitigat/i.test(e)) ?? "Core technology maturity", "Dual-source + early qual", riskLevelStatus(RISK_LABEL[p.tech])]];

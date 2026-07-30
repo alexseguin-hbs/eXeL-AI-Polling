@@ -1744,6 +1744,64 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(s10Fns === 3, `all three S10 surfaces take baseYear as a prop — found ${s10Fns}/3`);
 }
 
+// ── F4 · CALENDAR YEARS ONLY — the ban list, enforced ───────────────────────────────────
+// Operator, four separate times: "year only", "we will not use Year 1, Year 2 / always 2026 or 26, 27, 28".
+// `Yr 1`, `Year 1`, `L-1`, `L-3` and `Launch` are launch-RELATIVE: on a board showing two projects side by
+// side they denote different calendar years, which is precisely the ambiguity a portfolio review cannot
+// carry. This asserts the PROPERTY (no such label reaches a rendered surface), not the spelling of a fix.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fsp3 = await import("node:fs/promises");
+
+  ok(F.yearLabel(2026) === "2026" && F.yearLabel(2026, "short") === "26" && F.yearLabel(2007, "short") === "07",
+     `yearLabel produces 2026 / 26 / 07 — got ${F.yearLabel(2026)} / ${F.yearLabel(2026, "short")} / ${F.yearLabel(2007, "short")}`);
+  const cols = F.yearCols(2026, 11);
+  ok(cols.length === 11 && cols[0] === "2026" && cols[10] === "2036" && cols.every((c) => /^20\d\d$/.test(c)),
+     `yearCols spans 2026..2036 as four-digit calendar years — got ${cols[0]}..${cols[10]}`);
+
+  // The ban list, across the two files that render the deck. `innovation-slide-seed-h5.ts` is EXCLUDED on
+  // purpose: its `L-30 · final deliverables` and `EOL-120 · draft plan` are MILESTONE names from the gate
+  // schema, not period labels for a column. Anyone "fixing" those would be breaking the deck, so the
+  // exclusion is stated here rather than left as a silent omission.
+  // A span like `10-Yr Rev` / `3-Yr NPV` / `5-Yr Mgn` is the operator's OWN vocabulary and stays — it names a
+  // horizon, not a column. What is banned is `Yr <n>` / `Year <n>` / `L-1` / `L-3` standing in for a period.
+  // KNOWN DEBT, declared not hidden: S14's FTE tables still carry Yr 1..Yr 4 (innovation-data.ts, `fte` and
+  // `ftedollar`). They are out of the financial single-source scope and their 2,860 seeded rows are keyed to
+  // those widths, so they are listed here by name rather than silently skipped. Any NEW site fails.
+  const BAN = /\b(Yr\s?\d|Year\s?[1-9]\b|L-[13]\b|Launch\s?\+?\d)/;
+  const KNOWN_DEBT = ['id: "fte"', 'id: "ftedollar"'];
+  const strip = (line) => line.replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "");   // code only, not commentary
+  for (const f of ["lib/innovation-data.ts", "app/innovation/page.tsx"]) {
+    const txt = await fsp3.readFile(f, "utf8");
+    const hits = txt.split("\n")
+      .map((line, i) => [i + 1, strip(line)])
+      .filter(([, line]) => BAN.test(line) && !KNOWN_DEBT.some((d) => line.includes(d)));
+    ok(hits.length === 0, `${f} carries no launch-relative period label — found ${hits.length}${hits.length ? `: line ${hits[0][0]} · ${String(hits[0][1]).trim().slice(0, 80)}` : ""}`);
+  }
+  const fte = F.SLIDE_SCHEMA.find((s) => s.code === "S14").fields.find((x) => x.id === "fte");
+  ok(fte.cols.some((c) => BAN.test(c)),
+     "S14's FTE debt is REAL and still there — this lock fails the day someone fixes it, forcing the exception to be removed rather than left lying");
+  // The two sites that carried them, asserted by behaviour rather than by grep-for-absence.
+  const s10 = F.SLIDE_SCHEMA.find((s) => s.code === "S10");
+  const allCols = s10.fields.flatMap((f) => f.cols ?? []);
+  ok(allCols.length > 0 && !allCols.some((c) => BAN.test(c)),
+     `S10's schema columns are period-free — [${allCols.join(" · ")}]`);
+  // NOT widened to six columns. The schema's `cols` describe the legacy generic table, and 2,860 seeded rows
+  // are keyed to its width — adding Sustain here fails the row-width lock across the whole portfolio for a
+  // read-out nobody uses now that S10 renders its own grid. Sustain IS an entered row: it lives in the grid
+  // and in `FinYear`, which is where the operator types it.
+  ok(s10.fields.find((f) => f.id === "spend").cols.length === 5,
+     "the legacy S10 read-out keeps its seeded width — the five WBS lines live in the FinYear grid, not here");
+  ok(["labor", "contractor", "materials", "other", "sustain"].every((k) => k in F.emptyFinYear(2026)),
+     "all five entered spend lines including Sustain exist on the record the grid writes");
+  const draft = F.aiSlideField(F.DEMO_PROJECTS[0], "S10", "spend");
+  ok(Array.isArray(draft) && draft.every((r) => /^20\d\d$/.test(r[0])),
+     `the S10 spend draft labels its rows with calendar years — got [${draft.map((r) => r[0]).join(", ")}]`);
+  const scen = F.aiSlideField(F.DEMO_PROJECTS[0], "S10", "scenarios");
+  ok(Array.isArray(scen) && scen.length === 4 && scen[0][0] === "Do Nothing: Existing" && scen[3][0] === "Combined: Incremental",
+     `the scenarios draft speaks the four Rack & Stack band names — got [${scen.map((r) => r[0]).join(" · ")}]`);
+}
+
 // ── S10 · FINANCIAL INPUT MODEL — arithmetic, not shape ─────────────────────────────────
 // Faithful to the operator's own Rack & Stack (FLIR Portfolio Planning, 2019). These EXECUTE the functions
 // against real numbers rather than grepping for their names, because the whole point of S10 is that the figure

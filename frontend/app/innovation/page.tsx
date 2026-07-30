@@ -52,7 +52,7 @@ import {
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
-  withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN,
+  withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -3447,7 +3447,7 @@ function S10SpendTable({ p, baseYear }: { p: Project; baseYear: number }) {
   return (
     <>
       <S10Grid
-        head={["$K", ...ys.map((y) => String(y.year))]}
+        head={["$K", ...ys.map((y) => yearLabel(y.year))]}
         rows={[
           { label: "Total", cells: col(spendTotalK), strong: true },
           { label: "Labor", cells: col((y) => y.labor) },
@@ -3458,7 +3458,7 @@ function S10SpendTable({ p, baseYear }: { p: Project; baseYear: number }) {
         ]}
       />
       <div className="flex flex-wrap items-center gap-[1.4cqw] px-[0.5cqw] text-slate-400" style={{ fontSize: TS.micro }}>
-        <span>{ys[0]?.year} R&D Spend Request: <b className="font-mono text-slate-200">{finFmtK(f.spendRequestK)}</b></span>
+        <span>{yearLabel(ys[0]?.year ?? baseYear)} R&D Spend Request: <b className="font-mono text-slate-200">{finFmtK(f.spendRequestK)}</b></span>
         <span>Technical Confidence: <b className="font-mono text-slate-200">{f.techConfPct}%</b></span>
         <span>Commercial Confidence: <b className="font-mono text-slate-200">{f.commConfPct}%</b></span>
       </div>
@@ -3489,7 +3489,7 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
   return (
     <S10Grid
       gutter
-      head={["", ...ys.map((y) => String(y.year))]}
+      head={["", ...ys.map((y) => yearLabel(y.year))]}
       rows={[
         ...band("don", "Do Nothing: Existing", "rgba(100,116,139,.14)"),
         ...band("neu", "New: 1st Product Rev", "rgba(59,130,246,.14)"),
@@ -3608,7 +3608,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
     <thead>
       <tr>
         <th className="sticky left-0 z-10 bg-[#0b0f14] pr-1.5 text-left text-[9px] uppercase tracking-wider text-slate-500">$K</th>
-        {ys.map((y) => <th key={y.year} className="px-0.5 text-right font-mono text-[9px] text-cyan-300/90 tabular-nums">{y.year}</th>)}
+        {ys.map((y) => <th key={y.year} className="px-0.5 text-right font-mono text-[9px] text-cyan-300/90 tabular-nums">{yearLabel(y.year)}</th>)}
       </tr>
     </thead>
   );
@@ -3708,7 +3708,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
             <span className="text-slate-500">one-shot fill — editing a year afterwards recomputes nothing</span>
           </div>
           <div className="mt-1 flex flex-wrap gap-1 font-mono text-[10px] tabular-nums text-amber-200/90">
-            {preview.map((v, i) => <span key={i} className="rounded bg-black/30 px-1">{fin.years[i]?.year}: {v.toLocaleString()}</span>)}
+            {preview.map((v, i) => <span key={i} className="rounded bg-black/30 px-1">{yearLabel(fin.years[i]?.year ?? 0)}: {v.toLocaleString()}</span>)}
           </div>
         </div>
       )}
@@ -3721,7 +3721,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
       )}
       {/* Current-year ask + the Rack & Stack confidence ladder — six rungs, not a 1-5 opinion score. */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
-        <label className="flex items-center gap-1">{ys[0]?.year} R&amp;D Spend Request
+        <label className="flex items-center gap-1">{yearLabel(ys[0]?.year ?? baseYear)} R&amp;D Spend Request
           <span className="w-20"><FinCell value={fin.spendRequestK} title="Current-year R&D ask, $K" onCommit={(v) => setFin({ spendRequestK: v }, `spend request → ${v}`)} /></span>
         </label>
         <label className="flex items-center gap-1">Technical Confidence
@@ -6197,7 +6197,7 @@ function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect }
     { label: "New-Product Rev", value: usd(roi.newProductM), sub: "10-yr", tone: "cyan" },
     { label: "End-of-Life Rev", value: usd(roi.eolM), sub: "10-yr", tone: "amber" },
     { label: "Upside (at-risk)", value: usd(Math.max(0, roi.incrementalM - roi.weightedM)), sub: "to 100%", tone: "amber" },
-    { label: "Cash @ Yr 10", value: usd(cash[YRS - 1]?.cum ?? 0), sub: "cumulative", tone: cash[YRS - 1]?.cum >= 0 ? "green" : "amber" },
+    { label: "Cash · 10-yr", value: usd(cash[YRS - 1]?.cum ?? 0), sub: "cumulative", tone: cash[YRS - 1]?.cum >= 0 ? "green" : "amber" },
   ];
   const VIEWS = [["pipeline", "Pipeline"], ["metrics", "Metrics"], ["spend", "Spend"], ["cash", "Cash Flow"]] as const;
   // cash-flow mini chart geometry
