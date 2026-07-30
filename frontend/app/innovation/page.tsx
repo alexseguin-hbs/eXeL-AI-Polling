@@ -3087,15 +3087,30 @@ function GateCube({ p, onEditSource }: { p: Project; onEditSource?: (patch: Part
 // grab. Charts keep their colours: SVG paints with `fill`, which `background-color` cannot touch.
 const SLIDE_PRINT_CSS = `
 @media print {
-  @page { size: 1600px 900px landscape; margin: 0; }
+  /* THE PAPER IS PAPER. The old rule declared size: 1600px 900px landscape — a custom size AND an
+     orientation keyword at once, which is contradictory CSS, and it asserted that the sheet's 1600x900 px
+     WAS the paper. The operator's paper is US Letter: at 100% scaling a 1600px sheet cannot fit an ~960px
+     printable box, so it overflowed and clipped on the right in BOTH orientations. That is why the clip
+     survived three fixes that were all aimed at fragmentation.
+     Landscape and 0.5in are explicit operator requirements. Portrait still works — the sheet fills whatever
+     printable box exists rather than demanding a fixed one. */
+  @page { size: letter landscape; margin: 0.5in; }
   html, body { background: #fff !important; height: auto !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   /* Only the print stack paints. It is PORTALLED to <body>, so hiding body's other children is exact —
      and display:none (not visibility:hidden) removes them from FLOW, which is what stops the print engine
      paginating around boxes nobody can see. */
   body > *:not(.slide-print-stack) { display: none !important; }
-  .slide-print-stack { position: static !important; display: block !important; width: 1600px; margin: 0 !important; }
-  .slide-print-page { position: relative !important; width: 1600px !important; height: 900px !important; transform: none !important; }
-  .slide-print-page [data-slide-canvas] { transform: none !important; }
+  .slide-print-stack { position: static !important; display: block !important; width: 100%; margin: 0 !important; }
+  /* The sheet FILLS the printable box and keeps the deck's 16:9. Because the canvas is a container-type:size
+     box, every cqw/cqh inside it rescales proportionally — a true photographic reduction, the same law item 3
+     established for portrait vs landscape. Deliberately NOT transform: scale(): WebKit ignores fragmentation
+     inside a transformed box, which would re-break the pagination fixed in b7bad08.
+       landscape Letter, 0.5in margins -> 10.0in x 5.625in
+       portrait  Letter, 0.5in margins ->  7.5in x 4.219in   (both fit) */
+  .slide-print-page { position: relative !important; width: 100% !important; height: auto !important; aspect-ratio: 16 / 9; transform: none !important; }
+  .slide-print-page [data-slide-canvas] { width: 100% !important; height: 100% !important; transform: none !important; }
+  /* Both the modern and the LEGACY fragmentation properties — WebKit still wants the legacy pair. */
+  .slide-print-page { break-inside: avoid; page-break-inside: avoid; }
   .slide-noprint { display: none !important; }
   .slide-printonly { display: inline !important; }
   .slide-print-page { break-after: page; page-break-after: always; overflow: hidden; }
@@ -3726,7 +3741,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       transform: `scale(${fit * zoom})`, transformOrigin: "top left",
     };
     // The print stack lays the same sheet out at 1:1 — the @page IS 1600x900, so no scaling at all.
-    const printSheetStyle: React.CSSProperties = { width: SHEET_W, height: SHEET_H, flex: "none", containerType: "size" };
+    // Print path ONLY — the screen path (sheetStyle + the `fit` calc above) keeps SHEET_W/SHEET_H and is not
+    // touched. Here the sheet takes the PRINTABLE box's width and derives its height from the deck's 16:9;
+    // container-type:size then makes every cq unit inside rescale to whatever paper the operator chose.
+    const printSheetStyle: React.CSSProperties = { width: "100%", aspectRatio: "16 / 9", flex: "none", containerType: "size" };
     const exportDate = new Date().toISOString().slice(0, 10);
     const scenarioLabel = `${scenario.charAt(0).toUpperCase()}${scenario.slice(1)} R&D`;
     // The cover's "decision requested" is the S1 ask, resolved through the deck engine like any other field —
@@ -3841,9 +3859,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </div>
           {/* ⎙ PDF — the whole deck, cover + all {n} slides, through the SAME Sheet renderer. No dependency:
               the browser's own print engine paginates a 1600x900 landscape @page. */}
-          <button onClick={() => { setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }} aria-label="Export deck as PDF"
-            title={`Print / save the whole ${SLIDE_SCHEMA.length + 1}-page deck as PDF · Chrome and Firefox honour the 1600x900 landscape page size; Safari on iOS may ignore it and use its own`}
-            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">⎙ PDF</button>
+          {/* Honest affordance: this OPENS the print dialog with landscape + 0.5in margins pre-set. The user
+              still picks "Save as PDF" and the destination folder — there is no direct download, and the
+              label must not imply one. Zero dependencies, by design (#4/#17). */}
+          <button onClick={() => { setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }} aria-label="Print or save the deck as PDF"
+            title={`Opens your print dialog for all ${SLIDE_SCHEMA.length + 1} pages, preset to landscape with 0.5in margins. Choose "Save as PDF" and pick a folder. Keep scaling at 100%.`}
+            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">⎙ Print / Save PDF</button>
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
@@ -3860,9 +3881,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
         {printing && typeof document !== "undefined" && ReactDOM.createPortal(
           <div className="slide-print-stack hidden" aria-hidden>
-          <div className="slide-print-page relative" style={{ width: SHEET_W, height: SHEET_H }}><Cover /></div>
+          <div className="slide-print-page relative" style={{ width: "100%", aspectRatio: "16 / 9" }}><Cover /></div>
           {SLIDE_SCHEMA.map((sp, i) => (
-            <div key={sp.code} className="slide-print-page relative" style={{ width: SHEET_W, height: SHEET_H }}>
+            <div key={sp.code} className="slide-print-page relative" style={{ width: "100%", aspectRatio: "16 / 9" }}>
               <Sheet sp={sp} i={i} style={printSheetStyle} />
             </div>
           ))}

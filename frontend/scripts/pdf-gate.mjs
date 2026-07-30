@@ -65,60 +65,123 @@ await ctx.addInitScript(() => {
 const page = await ctx.newPage();
 const failures = [];
 
-await page.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
-await page.getByRole("button", { name: "Gate Requirements" }).first().click();
-await page.locator('select:has(option[value^="PRJ-"])').first().selectOption(PROJECT);
-await page.getByRole("button", { name: /Open slide show/ }).first().click();
-await page.getByRole("button", { name: /Present/ }).first().click();
-await page.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
+// ── REAL PAPER, not a 1600x900 fantasy ───────────────────────────────────────────────────────
+// The operator prints US Letter with 0.5in margins, in BOTH orientations. The old gate asked Chromium for a
+// 1600x900 page — the exact assumption that was broken — so it could never see the clipped right edge that
+// survived every previous fix. Printable box at 96dpi:
+//   Letter landscape 11.0 x 8.5in - 1in margins ->  10.0in x 7.5in ->  960 x 720 px
+//   Letter portrait   8.5 x 11.0in - 1in margins ->   7.5in x 10.0in -> 720 x 960 px
+const PAPER = [
+  { name: "Letter landscape", landscape: true,  wpx: 960, hpx: 720 },
+  { name: "Letter portrait",  landscape: false, wpx: 720, hpx: 960 },
+];
 
-// Mount the print stack the same way a real Ctrl-P does — through the app's own beforeprint listener, not
-// by reaching into React state. If that listener ever breaks, this gate must break with it.
-await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
-await page.waitForTimeout(800);
+const open = async (pg) => {
+  await pg.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
+  await pg.getByRole("button", { name: "Gate Requirements" }).first().click();
+  await pg.locator('select:has(option[value^="PRJ-"])').first().selectOption(PROJECT);
+  await pg.getByRole("button", { name: /Open slide show/ }).first().click();
+  await pg.getByRole("button", { name: /Present/ }).first().click();
+  await pg.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
+  // Mount the print stack through the app's OWN beforeprint listener — if that breaks, the gate breaks too.
+  await pg.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+  await pg.waitForTimeout(700);
+};
 
-const domPages = await page.evaluate(() => document.querySelectorAll(".slide-print-page").length);
+for (const paper of PAPER) {
+  // Model the paper: lay the page out at the PRINTABLE width before printing. This is also the operator's
+  // real condition on a phone, where the print tree inherits a narrow layout viewport.
+  await page.setViewportSize({ width: paper.wpx, height: paper.hpx });
+  // Navigate under SCREEN media — print CSS hides everything but the stack, so the app's own UI must still
+  // be reachable to drive it. Switch to print only once the stack is mounted.
+  await page.emulateMedia({ media: "screen" });
+  await open(page);
+  await page.emulateMedia({ media: "print" });
+  await page.waitForTimeout(400);
 
-const buf = await page.pdf({ width: "1600px", height: "900px", landscape: true, printBackground: true,
-  preferCSSPageSize: true, margin: { top: "0", bottom: "0", left: "0", right: "0" } });
-const pages = pdfPageCount(buf);
-
-if (process.env.KEEP) { await mkdir(SHOT_DIR, { recursive: true }); await writeFile(join(SHOT_DIR, "deck.pdf"), buf); }
-
-console.log(`  DOM print-pages: ${domPages}   REAL PDF pages: ${pages}   bytes: ${buf.length}`);
-if (domPages !== EXPECT_PAGES) failures.push(`the print stack mounted ${domPages} pages, expected ${EXPECT_PAGES}`);
-if (pages !== EXPECT_PAGES) failures.push(`THE ARTIFACT HAS ${pages} PAGES, expected ${EXPECT_PAGES} — this is the defect the DOM count could not see`);
-
-// ── Geometry, measured in the PRINT rendering rather than on screen ─────────────────────────
-// preferCSSPageSize means the @page box governs; every sheet must fill it, and nothing may sit outside it.
-await page.emulateMedia({ media: "print" });
-await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
-await page.waitForTimeout(600);
-const geo = await page.evaluate(() => {
-  const sheets = [...document.querySelectorAll(".slide-print-page")];
-  const out = sheets.slice(0, 3).concat(sheets.slice(-1)).map((el, i) => {
-    const r = el.getBoundingClientRect();
-    const canvas = el.querySelector("[data-slide-canvas]");
-    const cr = canvas ? canvas.getBoundingClientRect() : null;
-    // widest painted element relative to the sheet — catches body text running off the page
-    let widest = 0;
-    for (const n of el.querySelectorAll("*")) {
-      const b = n.getBoundingClientRect();
-      if (b.width > 0) widest = Math.max(widest, b.right - r.left);
+  const m = await page.evaluate(() => {
+    const sheets = [...document.querySelectorAll(".slide-print-page")];
+    let widest = 0, tallest = 0;
+    for (const sh of sheets.slice(0, 4)) {
+      const r = sh.getBoundingClientRect();
+      tallest = Math.max(tallest, Math.round(r.height));
+      for (const n of sh.querySelectorAll("*")) {
+        const b = n.getBoundingClientRect();
+        if (b.width > 0) widest = Math.max(widest, Math.round(b.right));
+      }
     }
-    return { i, sheet: [Math.round(r.width), Math.round(r.height)],
-      canvas: cr ? [Math.round(cr.width), Math.round(cr.height)] : null, widest: Math.round(widest) };
+    // Carried over from the previous gate: every canvas must FILL its sheet. This is what caught the
+    // third-scale cover, so the paper rewrite must not drop it.
+    let worstFill = 1;
+    for (const sh of sheets) {
+      const r = sh.getBoundingClientRect(), c = sh.querySelector("[data-slide-canvas]");
+      if (!c || !r.width) { worstFill = 0; continue; }
+      const cr = c.getBoundingClientRect();
+      worstFill = Math.min(worstFill, (cr.width / r.width) * (cr.height / Math.max(1, r.height)));
+    }
+    return { sheets: sheets.length, widest, tallest, worstFill: Math.round(worstFill * 100) / 100,
+      sheetW: sheets[0] ? Math.round(sheets[0].getBoundingClientRect().width) : 0 };
   });
-  return out;
-});
-for (const g of geo) {
-  if (!g.canvas) { failures.push(`sheet ${g.i}: no [data-slide-canvas] inside the print page`); continue; }
-  if (g.sheet[0] !== 1600 || g.sheet[1] !== 900) failures.push(`sheet ${g.i}: print page is ${g.sheet[0]}x${g.sheet[1]}, expected 1600x900`);
-  // The cover was rendering at roughly a third scale in a corner — the canvas must FILL its sheet.
-  if (g.canvas[0] < 1590 || g.canvas[1] < 890) failures.push(`sheet ${g.i}: canvas is ${g.canvas[0]}x${g.canvas[1]}, does not fill the 1600x900 sheet`);
-  if (g.widest > 1610) failures.push(`sheet ${g.i}: content runs ${g.widest - 1600}px past the right edge of the sheet`);
+
+  const buf = await page.pdf({ format: "Letter", landscape: paper.landscape, printBackground: true,
+    margin: { top: "0.5in", bottom: "0.5in", left: "0.5in", right: "0.5in" } });
+  const pages = pdfPageCount(buf);
+  if (process.env.KEEP) { await mkdir(SHOT_DIR, { recursive: true }); await writeFile(join(SHOT_DIR, `deck-${paper.landscape ? "landscape" : "portrait"}.pdf`), buf); }
+
+  console.log(`  ${paper.name.padEnd(17)} printable ${paper.wpx}x${paper.hpx}px · sheet ${m.sheetW}x${m.tallest}px · widest ${m.widest}px · fill ${Math.round(m.worstFill * 100)}% · REAL PDF pages ${pages}`);
+  if (pages !== EXPECT_PAGES) failures.push(`${paper.name} — THE ARTIFACT HAS ${pages} PAGES, expected ${EXPECT_PAGES}`);
+  // THE ASSERTION THAT DID NOT EXIST, and the reason the clipped right edge survived three fixes.
+  if (m.widest > paper.wpx + 2) failures.push(`${paper.name} — content runs ${m.widest - paper.wpx}px past the ${paper.wpx}px printable width (right edge CLIPPED)`);
+  if (m.sheetW > paper.wpx + 2) failures.push(`${paper.name} — the print sheet is ${m.sheetW}px wide, wider than the ${paper.wpx}px printable box`);
+  if (m.sheets !== EXPECT_PAGES) failures.push(`${paper.name} — the stack mounted ${m.sheets} sheets, expected ${EXPECT_PAGES}`);
+  if (m.worstFill < 0.98) failures.push(`${paper.name} — a canvas fills only ${Math.round(m.worstFill * 100)}% of its sheet (the third-scale cover defect)`);
 }
-console.log("  geometry:", geo.map((g) => `#${g.i} sheet ${g.sheet.join("x")} canvas ${g.canvas ? g.canvas.join("x") : "MISSING"} widest ${g.widest}`).join(" | "));
+
+// ── ENGINE COVERAGE — state it, never imply it ───────────────────────────────────────────────
+// The operator prints from Chrome on iPhone. Chrome on iOS is NOT Chromium: Apple mandates WKWebView, so
+// every iOS browser is WebKit. This gate drives Blink. Twice now a green Chromium run was allowed to imply
+// the artifact was correct everywhere, and twice the operator found it broken. So the run says out loud
+// which engine it verified and which it did not.
+let webkitPages = null, webkitWhy = "";
+try {
+  const { webkit } = await import("playwright");
+  const wb = await webkit.launch();
+  const wctx = await wb.newContext({ viewport: { width: 960, height: 720 } });
+  await wctx.addInitScript(() => { try { sessionStorage.setItem("innovation-unlocked", "1"); } catch {} });
+  const wp = await wctx.newPage();
+  await open(wp);
+  // WebKit's page.pdf() is Chromium-only in Playwright; assert on the print-media LAYOUT instead, which is
+  // where WebKit and Blink actually diverge (out-of-flow + transformed boxes are not fragmented by WebKit).
+  await wp.emulateMedia({ media: "print" });
+  await wp.waitForTimeout(400);
+  const wm = await wp.evaluate(() => {
+    const sheets = [...document.querySelectorAll(".slide-print-page")];
+    let widest = 0, oof = 0, tx = 0;
+    for (const sh of sheets) {
+      const cs = getComputedStyle(sh);
+      if (cs.position === "fixed" || cs.position === "absolute") oof++;
+      for (let n = sh; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).transform !== "none") { tx++; break; }
+      for (const n of sh.querySelectorAll("*")) { const b = n.getBoundingClientRect(); if (b.width > 0) widest = Math.max(widest, Math.round(b.right)); }
+    }
+    return { sheets: sheets.length, widest, oof, tx };
+  });
+  webkitPages = wm.sheets;
+  console.log(`  WebKit           sheets ${wm.sheets} · widest ${wm.widest}px · out-of-flow sheets ${wm.oof} · transformed ancestors ${wm.tx}`);
+  if (wm.sheets !== EXPECT_PAGES) failures.push(`WebKit — ${wm.sheets} print sheets, expected ${EXPECT_PAGES}`);
+  if (wm.oof) failures.push(`WebKit — ${wm.oof} sheets are out of flow; WebKit does not fragment out-of-flow boxes`);
+  if (wm.tx) failures.push(`WebKit — ${wm.tx} sheets sit under a transform; WebKit does not fragment inside transformed boxes`);
+  if (wm.widest > 962) failures.push(`WebKit — content runs ${wm.widest - 960}px past the printable width`);
+  await wb.close();
+} catch (e) { webkitWhy = (e?.message || String(e)).split("\n")[0].slice(0, 110); }
+
+if (webkitPages === null) {
+  console.log(`\n  ⚠ WEBKIT UNVERIFIED — no WebKit build in this sandbox (/opt/pw-browsers has chromium only, and`);
+  console.log(`    \`playwright install\` is forbidden here). Reason: ${webkitWhy}`);
+  console.log(`    VERIFIED ENGINE: Blink (Chromium). UNVERIFIED ENGINE: WebKit — which is what Chrome on iOS,`);
+  console.log(`    Safari and every iOS browser actually use. A green run above does NOT prove the operator's`);
+  console.log(`    export is correct. The CSS is written to WebKit's stricter fragmentation rules (normal flow,`);
+  console.log(`    no transforms, legacy break properties emitted) but that is reasoning, not measurement.`);
+}
 
 await browser.close();
 console.log(`\n${failures.length ? "✗" : "✓"} pdf-gate`);

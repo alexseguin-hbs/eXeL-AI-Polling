@@ -1523,7 +1523,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
 
   // the page itself
-  ok(/@page \{ size: 1600px 900px landscape; margin: 0; \}/.test(src), "@page is 1600x900 landscape with zero margin — the sheet prints 1:1");
+  ok(/@page \{ size: letter landscape; margin: 0\.5in; \}/.test(src), "@page is real paper — letter landscape with 0.5in margins (see the #29-reopened block below)");
   ok(/-webkit-print-color-adjust: exact; print-color-adjust: exact/.test(src), "print colours are preserved (banners survive the printer's colour stripping)");
   ok(/background: #fff !important/.test(src), "the printed sheet is WHITE");
   ok(/\[data-panel-head\] \{ background-color: #e0f2fe/.test(src) && /\[data-field-banner\] \{ background-color: #f1f5f9/.test(src), "banners keep their colour on the white page");
@@ -1542,7 +1542,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/const decisionAsk = typeof askVal === "string"/.test(src), "the cover's decision-requested is the S1 ask resolved through the deck engine, not a second sentence that could drift");
   ok(/\{p\.id\} · \{p\.gate\} · \{scenarioLabel\} · p\{i \+ 2\}\/\{SLIDE_SCHEMA\.length \+ 1\} · \{exportDate\}/.test(src), "every page footer carries project · gate · scenario · page · export date");
   ok(/lsGet\("innovation-scenario"\)/.test(src), "the scenario on the cover/footer reads the SAME key the Board writes — one source, no second definition");
-  ok(/Safari on iOS may ignore it/.test(src), "the PDF button's tooltip states the browser caveat");
+  ok(/Choose "Save as PDF" and pick a folder/.test(src), "the button's tooltip says what actually happens — it opens the dialog, it does not download");
 
   // cost + correctness
   ok(/const \[printing, setPrinting\] = useState\(false\);/.test(src) && /\{printing && typeof document !== "undefined" && ReactDOM\.createPortal\(/.test(src), "the 20-page stack MOUNTS only while printing — a phone never lays out pixels nobody sees");
@@ -1772,8 +1772,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/const pdfPageCount = \(buf\) =>/.test(gate) && /\/Type\\s\*\\\/Page/.test(gate), "page count is read from the PDF's own object table, not from the DOM");
   ok(/EXPECT_PAGES = SLIDE_SCHEMA\.length \+ 1/.test(gate), `expected page count is derived from the schema (${SLIDE_SCHEMA.length} + cover), so adding a slide cannot leave the gate asserting a stale number`);
   ok(/THE ARTIFACT HAS \$\{pages\} PAGES/.test(gate), "a wrong page count is a hard failure naming the artifact");
-  ok(/does not fill the 1600x900 sheet/.test(gate), "the gate catches the third-scale cover — every canvas must FILL its sheet");
-  ok(/runs \$\{g\.widest - 1600\}px past the right edge/.test(gate), "the gate catches content running off the page");
+  ok(/fills only \$\{Math\.round\(m\.worstFill \* 100\)\}% of its sheet/.test(gate), "the gate catches the third-scale cover — every canvas must FILL its sheet");
+  ok(/past the \$\{paper\.wpx\}px printable width/.test(gate), "the gate catches content running off the printable box");
   ok(/dispatchEvent\(new Event\("beforeprint"\)\)/.test(gate), "the stack is mounted through the app's OWN beforeprint listener — if that breaks, the gate breaks with it");
   ok(!/jspdf|pdf-lib|pdfkit/i.test(gate), "no PDF dependency — Chromium's own engine produces it and the bytes are parsed directly");
 
@@ -1789,7 +1789,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // ROOT CAUSE 3 — isolation by display, not visibility
   ok(/body > \*:not\(\.slide-print-stack\) \{ display: none !important; \}/.test(src), "print isolation removes other content from FLOW, not merely from view");
   ok(/\.slide-print-stack \{ position: static !important;/.test(src), "the stack is static in print — absolute inside the fixed modal was the 2-page bug");
-  ok(/\.slide-print-page \{ position: relative !important; width: 1600px !important; height: 900px !important; transform: none !important; \}/.test(src), "every print page is exactly one 1600x900 sheet with no transform");
+  ok(/\.slide-print-page \{ position: relative !important; width: 100% !important; height: auto !important; aspect-ratio: 16 \/ 9; transform: none !important; \}/.test(src), "every print page is one 16:9 sheet filling the printable box, with no transform");
 
   // wired into the release path
   ok(pkg.scripts["test:pdf-gate"], "npm run test:pdf-gate exists");
@@ -1966,6 +1966,55 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/for \(const pr of DEMO_PROJECTS\)/.test(shot), "the sweep iterates the full project list");
   ok(/SHRINK FIRED/.test(shot), "the sweep reports any shrink together with the string that caused it");
   ok(/project name CUT OFF/.test(shot), "the sweep fails on a clipped name");
+}
+
+// ── #29 REOPENED · THE PAPER IS PAPER ───────────────────────────────────────────────────
+// b7bad08 fixed FRAGMENTATION (portrait genuinely paginates 21/21). What it did not fix was the assumption
+// that the paper IS 1600x900. The operator prints US Letter: at 100% scaling a 1600px sheet cannot fit an
+// ~960px printable box, so it overflowed and clipped on the right in BOTH orientations. That is why the clip
+// survived three fixes all aimed at fragmentation, and why the gate could not see it — it asked Chromium for
+// a 1600x900 page, i.e. it asserted the very assumption that was broken.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const gate = await fsp.readFile("scripts/pdf-gate.mjs", "utf8");
+
+  // the @page rule
+  ok(/@page \{ size: letter landscape; margin: 0\.5in; \}/.test(src), "@page is `letter landscape` with 0.5in margins — both explicit operator requirements");
+  ok(!/@page \{ size: 1600px 900px landscape/.test(src), "the contradictory `1600px 900px landscape` rule (a custom size AND an orientation keyword) is gone");
+  ok(!/margin: 0; \}/.test(src.slice(src.indexOf("@media print"), src.indexOf("@media print") + 400)), "margin: 0 is gone — it contradicted the requested 0.5in");
+
+  // the sheet fills the PRINTABLE BOX and keeps 16:9, so cq units rescale to whatever paper is chosen
+  ok(/\.slide-print-page \{ position: relative !important; width: 100% !important; height: auto !important; aspect-ratio: 16 \/ 9;/.test(src),
+     "the print sheet fills the printable box at 16:9 instead of demanding 1600x900");
+  ok(/const printSheetStyle: React\.CSSProperties = \{ width: "100%", aspectRatio: "16 \/ 9", flex: "none", containerType: "size" \}/.test(src),
+     "printSheetStyle is width:100% + aspect-ratio + container-type:size, so every cqw/cqh rescales proportionally");
+  ok(!/style=\{\{ width: SHEET_W, height: SHEET_H \}\}/.test(src), "no print wrapper still hardcodes the pixel sheet");
+
+  // NOT transform: scale() — that would re-break the WebKit fragmentation b7bad08 fixed
+  ok(/transform: none !important/.test(src), "the print tree carries no transform");
+  ok(/Deliberately NOT transform: scale\(\)/.test(src), "the reason transform was rejected is recorded where the next person will look");
+  ok(/break-inside: avoid; page-break-inside: avoid/.test(src), "BOTH the modern and legacy fragmentation properties are emitted — WebKit still wants the legacy pair");
+
+  // the SCREEN path is untouched
+  ok(/const SHEET_W = 1600, SHEET_H = 900;/.test(src), "SHEET_W/SHEET_H remain for the screen path");
+  ok(/transform: `scale\(\$\{fit \* zoom\}\)`/.test(src), "the screen sheet still scales to fit — only the print path changed");
+
+  // THE ASSERTION THAT NEVER EXISTED, and the reason the clip survived
+  ok(/printable box at 96dpi|Printable box at 96dpi/i.test(gate), "the gate reasons in real paper units");
+  ok(/format: "Letter", landscape: paper\.landscape/.test(gate), "the gate prints real Letter, not a 1600x900 fantasy");
+  ok(/margin: \{ top: "0\.5in", bottom: "0\.5in", left: "0\.5in", right: "0\.5in" \}/.test(gate), "…with the operator's 0.5in margins");
+  ok(/past the \$\{paper\.wpx\}px printable width \(right edge CLIPPED\)/.test(gate), "the gate FAILS on content wider than the printable box — this assertion did not exist before");
+  ok(/name: "Letter landscape", landscape: true/.test(gate) && /name: "Letter portrait",  landscape: false/.test(gate), "both orientations are asserted — the operator uses both");
+  ok(/wpx: 960, hpx: 720/.test(gate) && /wpx: 720, hpx: 960/.test(gate), "printable boxes are 10x7.5in landscape and 7.5x10in portrait at 96dpi");
+
+  // engine coverage is STATED, never implied
+  ok(/WEBKIT UNVERIFIED/.test(gate), "the gate says out loud when WebKit could not be verified");
+  ok(/VERIFIED ENGINE: Blink \(Chromium\)\. UNVERIFIED ENGINE: WebKit/.test(gate), "it names the engine it verified AND the one it did not");
+  ok(/Chrome on iOS is NOT Chromium/.test(gate), "the gate records WHY WebKit matters — Apple mandates WKWebView, so every iOS browser is WebKit");
+  ok(/webkit\.launch\(\)/.test(gate), "a WebKit run is attempted whenever a build is present");
+  ok(/does not fragment out-of-flow boxes/.test(gate) && /does not fragment inside transformed boxes/.test(gate),
+     "the WebKit run asserts the two rules WebKit is stricter about than Blink");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
