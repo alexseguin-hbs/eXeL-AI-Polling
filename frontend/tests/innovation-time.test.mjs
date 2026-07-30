@@ -2176,6 +2176,49 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "every SEEDED plan stays in Rev & Mgn only — its revenue is authoritative and must not be recomputed");
 }
 
+// ── E2 · THE BAND LABELS STAY ON SCREEN ─────────────────────────────────────────────────
+// Operator: "I need Step 1A, Do nothing and other labels to stay on screen just like labels for rev margin,
+// etc." Exactly right, and it was one missing property. The METRIC labels (Quantity, Revenue, Margin) are
+// `sticky left-0` on `FinRow`, so they hold when you scroll out to 2036. The BAND and SECTION headers were
+// full-width `colSpan` cells with no sticky, so their text rode off the left edge and you lost which band you
+// were typing into. A colSpan cell already spans the table, so stickying the CELL does nothing — the content
+// has to be pinned instead. Structural here; measured in a browser by the E2 proof.
+{
+  const fspE2 = await import("node:fs/promises");
+  const pageE2 = await fspE2.readFile("app/innovation/page.tsx", "utf8");
+  const ed = pageE2.slice(pageE2.indexOf("const head = ("), pageE2.indexOf("Apply-rate strip"));
+
+  // ⚠ THE STICKY GOES ON THE `td`, NOT ON A SPAN INSIDE IT. A sticky SPAN inside a `colSpan` cell of a
+  // `border-collapse: collapse` table clips its own left edge — measured at ~20px lost on a 390px phone,
+  // which cut "Declining Rev: Existing" to "lining Rev: Existing" in a screenshot while the desktop was
+  // pixel-perfect. The band header is now two cells, exactly like `FinRow`: a PINNED label cell (carrying
+  // the band name and its toggle, so the control never scrolls away from the label it belongs to) and a
+  // spanning cell that carries the stripe.
+  ok(!/<span className="sticky left-0 inline-block">/.test(ed),
+     "no sticky span inside a colSpan cell — that form clips its own label under border-collapse");
+  const pinned = [...ed.matchAll(/<td className="sticky left-0 z-10 max-w-\[60vw\] bg-\[#12202a\]/g)];
+  const stripes = [...ed.matchAll(/<td colSpan=\{ys\.length\} className="bg-cyan-500\/10" \/>/g)];
+  ok(pinned.length === 3, `three section headers pin their label cell — ${pinned.length}`);
+  ok(stripes.length === 3, `each pinned label is paired with a spanning stripe cell — ${stripes.length}`);
+  ok(!/colSpan=\{ys\.length \+ 1\}/.test(ed),
+     "no full-width header remains — a colSpan across the label column cannot be pinned");
+  // The three the operator named by hand, asserted by name as well as by count.
+  ok(/bg-\[#12202a\][^>]*>R&amp;D Spend · Step 1a<\/td>/.test(ed), '"R&D Spend · Step 1a" is in a pinned cell');
+  ok(/bg-\[#12202a\][^>]*>Combined: Incremental/.test(ed), '"Combined: Incremental" is in a pinned cell');
+  ok(/bg-\[#12202a\][^>]*>\s*\{b\.label\}/.test(ed),
+     "the per-band header (Do Nothing / New: 1st Product Rev / Declining Rev) is pinned, with its toggle inside it");
+
+  // THE VERTICAL TWIN. Scrolling down 24 rows used to lose the calendar years.
+  // ⚠ THE STICKY MUST BE ON EVERY `th`, NOT ON THE `thead`. This table is `border-collapse: collapse`, and
+  // a collapsed table gives `thead`/`tr` no box to position against, so the rule is silently ignored. Caught
+  // by measurement, not by review: with it on the thead the year row sat at y 1216 inside a box at y 283.
+  ok(!/<thead className="[^"]*sticky/.test(ed), "the sticky is NOT on the thead — it would be ignored under border-collapse");
+  ok(/<th className="sticky left-0 top-0 z-30 bg-\[#0b0f14\]/.test(ed),
+     "the corner cell pins BOTH ways and outranks everything — z-30 over the header's z-20 and the row labels' z-10");
+  ok(/\{ys\.map\(\(y\) => <th key=\{y\.year\} className="sticky top-0 z-20 bg-\[#0b0f14\]/.test(ed),
+     "each year header is individually sticky and carries its own background — a transparent one shows the rows through it");
+}
+
 // ── E0c · CONFIDENCE IS DERIVED FROM RISK, NOT TYPED ────────────────────────────────────
 // Operator: "confidence should be moved to risk and dependent on Low, Med, High for tech and commercial.
 // Low/Low is 5 bullet. High/High is 1 bullet. and 3 is Med/Med, while 2 bullets is Medium or High Technical

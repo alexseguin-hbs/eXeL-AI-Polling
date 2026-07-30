@@ -3686,11 +3686,19 @@ function S10FinEditor({ p, baseYear, onEdit }: {
     { key: "neu", label: "New: 1st Product Rev", step: "Step 1b" },
     { key: "dec", label: "Declining Rev: Existing", step: "Step 3" },
   ];
+  // STICKY TOP — the vertical twin of the pinned band labels. The editor scrolls inside `max-h-[46vh]`; with
+  // six rows on each of three bands plus the spend block, scrolling down loses the calendar years and you are
+  // typing into an unlabelled column. `z-20` so the header wins over the `z-10` row labels where they cross
+  // at the top-left corner, and every cell carries the background or the rows show through it.
+  // ⚠ THE STICKY GOES ON EVERY `th`, NOT ON THE `thead`. The table is `border-collapse: collapse`, and a
+  // collapsed table has no box for `thead`/`tr` to position against — the rule is silently ignored and the
+  // header scrolls away. Measured: with it on the thead the year row sat at y 1216 inside a box starting at
+  // y 283. Per-cell sticky is the form that works, which is why each `th` also carries its own background.
   const head = (
     <thead>
       <tr>
-        <th className="sticky left-0 z-10 bg-[#0b0f14] pr-1.5 text-left text-[9px] uppercase tracking-wider text-slate-500">$K</th>
-        {ys.map((y) => <th key={y.year} className="px-0.5 text-right font-mono text-[9px] text-cyan-300/90 tabular-nums">{yearLabel(y.year)}</th>)}
+        <th className="sticky left-0 top-0 z-30 bg-[#0b0f14] pr-1.5 text-left text-[9px] uppercase tracking-wider text-slate-500">$K</th>
+        {ys.map((y) => <th key={y.year} className="sticky top-0 z-20 bg-[#0b0f14] px-0.5 text-right font-mono text-[9px] text-cyan-300/90 tabular-nums">{yearLabel(y.year)}</th>)}
       </tr>
     </thead>
   );
@@ -3714,7 +3722,14 @@ function S10FinEditor({ p, baseYear, onEdit }: {
         <table className="w-full border-collapse">
           {head}
           <tbody>
-            <tr><td colSpan={ys.length + 1} className="bg-cyan-500/10 py-0.5 text-left text-[10px] font-semibold text-slate-100">R&amp;D Spend · Step 1a</td></tr>
+            {/* THE LABEL IS PINNED, NOT THE ROW. Operator: "I need Step 1A, Do nothing and other labels to
+                stay on screen just like labels for rev margin, etc." The metric labels are `sticky left-0` on
+                `FinRow`, so they hold when you scroll out to 2036; these band headers were full-width colSpan
+                cells with no sticky, so their text rode off the left edge and you lost track of which band you
+                were typing into — the failure mode that makes a wide grid unusable.
+                A colSpan cell already spans the table, so stickying the CELL does nothing. The remedy is to
+                pin its CONTENT: the label parks against the left edge while its stripe scrolls underneath. */}
+            <tr><td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">R&amp;D Spend · Step 1a</td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
             {spendRow("Labor", "labor")}
             {spendRow("Contractor", "contractor")}
             {spendRow("Materials", "materials")}
@@ -3729,7 +3744,12 @@ function S10FinEditor({ p, baseYear, onEdit }: {
               return (
                 <React.Fragment key={b.key}>
                   <tr>
-                    <td colSpan={ys.length + 1} className="bg-cyan-500/10 py-0.5 text-left text-[10px] font-semibold text-slate-100">
+                    {/* THE STICKY GOES ON THE `td`, exactly as it does on `FinRow`'s metric labels — a sticky
+                        SPAN inside a `colSpan` cell of a `border-collapse: collapse` table clips its own left
+                        edge, measured at ~20px lost on a 390px phone. So the band header is two cells: a pinned
+                        label cell carrying the name AND its toggle (the control must not scroll away from the
+                        label it belongs to), and a spanning cell that carries the stripe. */}
+                    <td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">
                       {b.label} <span className="font-normal text-slate-400">· {b.step}</span>
                       {/* THE TOGGLE CHANGES ONE THING ONLY: whether Revenue and Margin are COMPUTED from the
                           three entered rows or TYPED over them. QTY, ASP and COGS stay visible and editable
@@ -3743,6 +3763,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                         {on ? "Qty · ASP · COGS" : "Rev & Mgn only"}
                       </button>
                     </td>
+                    <td colSpan={ys.length} className="bg-cyan-500/10" />
                   </tr>
                   {/* QTY · ASP · COGS — ALWAYS ENTERED, in both modes (operator: "add QTY, ASP, COGS for
                       input, with toggle of Rev & Mgn only option"). ASP is typed here and wins over the
@@ -3775,7 +3796,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
               );
             })}
             {/* Combined is DERIVED — New − Do-Nothing + EOL. There is nothing to type here, so there is no input. */}
-            <tr><td colSpan={ys.length + 1} className="bg-cyan-500/10 py-0.5 text-left text-[10px] font-semibold text-slate-100">Combined: Incremental <span className="font-normal text-slate-400">· derived, never entered</span></td></tr>
+            <tr><td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">Combined: Incremental <span className="font-normal text-slate-400">· derived</span></td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
             <tr>
               <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-400">Revenue</td>
               {ys.map((y) => <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[11px] tabular-nums text-slate-100">{finFmtK(incRevK(y, fin.unitEcon))}</td>)}
