@@ -2153,22 +2153,43 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
        `${p.id} carries no typed ASP — its ASP still derives from MSRP and discount`);
   }
 
-  // 4. THE EDITOR SHOWS ALL THREE IN BOTH MODES. Asserted OUTSIDE the mode branch: the rows must not sit
-  //    inside `{on ? ...}`, which is precisely how they went missing on 33 projects the first time.
-  const ed = pageE1.slice(pageE1.indexOf("const BANDS"), pageE1.indexOf("Combined: Incremental <span"));
-  const modeSplit = ed.indexOf("{on ? (");
-  ok(modeSplit > 0, "the editor still has a mode branch");
-  const always = ed.slice(0, modeSplit);
-  for (const row of ['label="Quantity"', 'label="ASP $K"', 'label="COGS $K"'])
-    ok(always.includes(row), `${row} is rendered BEFORE the mode branch — present in both modes`);
-  const branch = ed.slice(modeSplit);
-  ok(branch.includes('label="Revenue $K"') && branch.includes('label="Margin $K"'),
-     "Revenue and Margin are the only rows the toggle moves");
+  // 4. THE TOGGLE SWAPS THE ROW SET. Operator, revising E1: "if Rev / Mgn Only is selected, Qty, COGS, ASP
+  //    are hidden and those cells are editable." Each mode shows exactly what it takes. E1 originally kept
+  //    all three visible in both modes and asserted they sat OUTSIDE the branch; that assertion is inverted
+  //    here rather than deleted, so the file records that the behaviour was chosen, not drifted into.
+  const ed = pageE1.slice(pageE1.indexOf("const BANDS"), pageE1.indexOf("Combined is DERIVED — New"));
+  const split = ed.indexOf("{on ? <>");
+  ok(split > 0, "the band rows are inside a mode branch");
+  const buildUp = ed.slice(split, ed.indexOf("</> : <>", split));
+  const typed = ed.slice(ed.indexOf("</> : <>", split));
+  for (const row of ['label="Quantity"', 'label="COGS $K"', 'label="ASP $K"'])
+    ok(buildUp.includes(row) && !typed.includes(row), `${row} renders ONLY in the build-up mode`);
+  for (const row of ['label="Revenue $K"', 'label="Margin $K"'])
+    ok(typed.includes(row) && !buildUp.includes(row), `${row} is typeable ONLY in Rev & Mgn only`);
+  ok(buildUp.includes("Rev · Mgn <span"), "the build-up mode shows Revenue/Margin as a read-only calc row");
+  ok(!ed.slice(0, split).includes('label="Quantity"'), "no band row escapes the mode branch");
 
-  // 5. THE TOGGLE SAYS WHAT THE OPERATOR CALLED IT.
-  ok(/\{on \? "Qty · ASP · COGS" : "Rev & Mgn only"\}/.test(pageE1),
-     "the toggle reads 'Qty · ASP · COGS' / 'Rev & Mgn only', the operator's own words");
-  ok(!/Units × ASP|Revenue typed/.test(pageE1), "the old 'Units × ASP' / 'Revenue typed' labels are gone");
+  // 5. ORDER IS THE ORDER OF THE DECISION — Quantity, then what it costs to make, then what it sells for.
+  //    Compared as LISTS between the editor and the sheet: two separate assertions can both pass while the
+  //    surfaces drift; one comparison cannot.
+  const edOrder = [...buildUp.matchAll(/label="(Quantity|COGS \$K|ASP \$K)"/g)].map((m) => m[1].replace(" $K", ""));
+  const bandFn2 = pageE1.slice(pageE1.indexOf("const band = (key:"), pageE1.indexOf("Combined is DERIVED: Revenue/Margin"));
+  const shOrder = [...bandFn2.matchAll(/label: "(Quantity|COGS|ASP)"/g)].map((m) => m[1]);
+  ok(edOrder.join(" → ") === "Quantity → COGS → ASP", `the editor orders Quantity → COGS → ASP — got ${edOrder.join(" → ")}`);
+  ok(edOrder.join("|") === shOrder.join("|"),
+     `the sheet carries the SAME order as the editor — sheet [${shOrder.join(" → ")}] vs editor [${edOrder.join(" → ")}]`);
+
+  // 5b. THE TOGGLE SAYS WHAT THE OPERATOR CALLED IT, in the new order.
+  ok(/\{on \? "Qty · COGS · ASP" : "Rev & Mgn only"\}/.test(pageE1),
+     "the toggle reads 'Qty · COGS · ASP' / 'Rev & Mgn only'");
+  ok(!/Qty · ASP · COGS|Units × ASP|Revenue typed/.test(pageE1), "no earlier ordering or wording survives");
+
+  // 5c. HIDDEN IS NOT DELETED. Switching to Rev & Mgn only must not clear the build-up values, or a mode
+  //     flip would silently destroy typed data — the single worst thing a toggle can do.
+  const withQty = F.withFinBandRow(F.finBaseline(F.DEMO_PROJECTS[0], 2026), "neu", "units", [7, 7, 7]);
+  const hidden = { ...withQty, unitEcon: { ...withQty.unitEcon, neu: false } };
+  ok(hidden.years[0].neu.units === 7 && hidden.years[2].neu.units === 7,
+     "hiding the build-up rows leaves Quantity on the record — switching back restores what was typed");
 
   // 6. DEFAULTS, STATED RATHER THAN DISCOVERED. New/empty plans start in the Qty build-up; the 33 seeded
   //    plans stay in Rev & Mgn only, deliberately — `finBaseline` back-solves units from revenue, so

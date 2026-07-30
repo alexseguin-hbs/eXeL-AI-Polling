@@ -3556,9 +3556,13 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
   const band = (key: "neu" | "don" | "dec", label: string, tint: string): S10Row[] => {
     const on = f.unitEcon[key];
     return [
+      // ORDER: Quantity -> COGS -> ASP (operator) — how many you sell, what it costs to make, what you sell
+      // it for. The EDITOR carries the same order, and a lock compares the two lists directly rather than
+      // asserting each surface separately, because two independent assertions can both pass while the
+      // surfaces drift.
       { group: label, groupSpan: 6, tint, label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
-      { label: "ASP", cells: ys.map((y) => finFmtK(aspOf(y[key]))) },
       { label: "COGS", cells: ys.map((y) => finFmtK(y[key].cogsK)) },
+      { label: "ASP", cells: ys.map((y) => finFmtK(aspOf(y[key]))) },
       { label: "Revenue", cells: ys.map((y) => finFmtK(bandRevK(y[key], on))) },
       { label: "Margin", cells: ys.map((y) => finFmtK(bandMgnK(y[key], on))) },
       { label: "Margin %", cells: ys.map((y) => finFmtPct(bandMgnPct(y[key], on))) },
@@ -3751,32 +3755,36 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                         label it belongs to), and a spanning cell that carries the stripe. */}
                     <td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">
                       {b.label} <span className="font-normal text-slate-400">· {b.step}</span>
-                      {/* THE TOGGLE CHANGES ONE THING ONLY: whether Revenue and Margin are COMPUTED from the
-                          three entered rows or TYPED over them. QTY, ASP and COGS stay visible and editable
-                          either way — they are facts about the product, not artefacts of a revenue model, and
-                          hiding them is exactly what made the operator ask "where is my Qty. ASP, and Mgn?" */}
-                      <button onClick={() => setFin({ unitEcon: { ...fin.unitEcon, [b.key]: !on } }, `${b.label} ${on ? "Rev & Mgn only" : "Qty · ASP · COGS"}`)}
+                      {/* THE TOGGLE SWAPS THE ROW SET (operator: "if Rev / Mgn Only is selected, Qty, COGS,
+                          ASP are hidden and those cells are editable"). Each mode shows exactly what it takes
+                          and nothing it ignores, so there is never a row on screen the current mode does not
+                          use.
+                          ⚠ THIS REVERSES E1, which kept all three visible in both modes on the argument that
+                          they are facts about the product rather than artefacts of a revenue model. The
+                          operator has decided otherwise. The original "where is my Qty. ASP, and Mgn?" was
+                          caused by the toggle being INVISIBLE, not by the rows being conditional — and the
+                          toggle now names both modes in plain words on every band. */}
+                      <button onClick={() => setFin({ unitEcon: { ...fin.unitEcon, [b.key]: !on } }, `${b.label} ${on ? "Rev & Mgn only" : "Qty · COGS · ASP"}`)}
                         title={on
-                          ? "Revenue = Qty x ASP, Margin = Qty x (ASP - COGS). Click to type Revenue and Margin directly instead; Qty, ASP and COGS stay editable either way."
-                          : "Revenue and Margin are TYPED. Click to compute them from Qty, ASP and COGS instead."}
+                          ? "Entered: Quantity, COGS, ASP. Revenue = Qty x ASP and Margin = Qty x (ASP - COGS) are calculated. Click to type Revenue and Margin directly instead."
+                          : "Entered: Revenue and Margin, typed directly. Click to build them up from Quantity, COGS and ASP instead."}
                         className={`ml-2 rounded border px-1.5 py-0 text-[9px] ${on ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400"}`}>
-                        {on ? "Qty · ASP · COGS" : "Rev & Mgn only"}
+                        {on ? "Qty · COGS · ASP" : "Rev & Mgn only"}
                       </button>
                     </td>
                     <td colSpan={ys.length} className="bg-cyan-500/10" />
                   </tr>
-                  {/* QTY · ASP · COGS — ALWAYS ENTERED, in both modes (operator: "add QTY, ASP, COGS for
-                      input, with toggle of Rev & Mgn only option"). ASP is typed here and wins over the
-                      MSRP x (1 - disc) fallback that still backs the 33 seeded plans; MSRP and Disc keep
-                      their record fields but leave the default row set, which is what makes six rows fit. */}
-                  <FinRow label="Quantity" years={ys} hint="# units — entered in both modes" get={(y) => y[b.key].units} set={(i, v) => setBand(i, b.key, { units: v }, `${b.label} qty ${fin.years[i].year} → ${v}`)}
-                    onFill={() => openFill(`${b.label} · Quantity`, fin.years[0][b.key].units, (vals) => withFinBandRow(fin, b.key, "units", vals))} />
-                  <FinRow label="ASP $K" years={ys} hint="Average selling price per unit. Typed ASP wins; blank falls back to MSRP net of the distribution discount." get={(y) => aspOf(y[b.key])} set={(i, v) => setBand(i, b.key, { aspK: v }, `${b.label} ASP ${fin.years[i].year} → ${v}`)}
-                    onFill={() => openFill(`${b.label} · ASP`, aspOf(fin.years[0][b.key]), (vals) => withFinBandRow(fin, b.key, "aspK", vals))} />
-                  <FinRow label="COGS $K" years={ys} hint="Cost of goods per unit — entered in both modes" get={(y) => y[b.key].cogsK} set={(i, v) => setBand(i, b.key, { cogsK: v }, `${b.label} COGS ${fin.years[i].year} → ${v}`)}
-                    onFill={() => openFill(`${b.label} · COGS`, fin.years[0][b.key].cogsK, (vals) => withFinBandRow(fin, b.key, "cogsK", vals))} />
-                  {on ? (
-                    // COMPUTED. Read-only, and labelled with the arithmetic so a board can audit it.
+                  {on ? <>
+                    {/* ORDER IS THE ORDER OF THE DECISION (operator): how many you sell, what it costs to
+                        make, what you sell it for. Quantity -> COGS -> ASP, and the SHEET carries the same
+                        order — a lock compares the two lists directly so they cannot drift apart. */}
+                    <FinRow label="Quantity" years={ys} hint="# units" get={(y) => y[b.key].units} set={(i, v) => setBand(i, b.key, { units: v }, `${b.label} qty ${fin.years[i].year} -> ${v}`)}
+                      onFill={() => openFill(`${b.label} · Quantity`, fin.years[0][b.key].units, (vals) => withFinBandRow(fin, b.key, "units", vals))} />
+                    <FinRow label="COGS $K" years={ys} hint="Cost of goods per unit" get={(y) => y[b.key].cogsK} set={(i, v) => setBand(i, b.key, { cogsK: v }, `${b.label} COGS ${fin.years[i].year} -> ${v}`)}
+                      onFill={() => openFill(`${b.label} · COGS`, fin.years[0][b.key].cogsK, (vals) => withFinBandRow(fin, b.key, "cogsK", vals))} />
+                    <FinRow label="ASP $K" years={ys} hint="Average selling price per unit. Typed ASP wins; blank falls back to MSRP net of the distribution discount." get={(y) => aspOf(y[b.key])} set={(i, v) => setBand(i, b.key, { aspK: v }, `${b.label} ASP ${fin.years[i].year} -> ${v}`)}
+                      onFill={() => openFill(`${b.label} · ASP`, aspOf(fin.years[0][b.key]), (vals) => withFinBandRow(fin, b.key, "aspK", vals))} />
+                    {/* CALCULATED. Read-only, labelled with the arithmetic so a board can audit it. */}
                     <tr>
                       <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-500" title="Revenue = Qty x ASP · Margin = Qty x (ASP - COGS)">Rev · Mgn <span className="text-slate-600">(calc)</span></td>
                       {ys.map((y) => (
@@ -3786,10 +3794,13 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                         </td>
                       ))}
                     </tr>
-                  ) : <>
-                    <FinRow label="Revenue $K" years={ys} hint="Typed — Qty · ASP · COGS above are kept, they simply do not drive this row" get={(y) => y[b.key].revK ?? 0} set={(i, v) => setBand(i, b.key, { revK: v }, `${b.label} revenue ${fin.years[i].year} → ${v}`)}
+                  </> : <>
+                    {/* REV & MGN ONLY — the three build-up rows are HIDDEN and these two are the entered pair.
+                        Quantity, COGS and ASP stay ON THE RECORD untouched: switching back restores whatever
+                        was typed rather than starting from blank. */}
+                    <FinRow label="Revenue $K" years={ys} hint="Typed directly — the build-up rows are hidden in this mode, not deleted" get={(y) => y[b.key].revK ?? 0} set={(i, v) => setBand(i, b.key, { revK: v }, `${b.label} revenue ${fin.years[i].year} -> ${v}`)}
                       onFill={() => openFill(`${b.label} · Revenue`, fin.years[0][b.key].revK ?? 0, (vals) => withFinBandRow(fin, b.key, "revK", vals))} />
-                    <FinRow label="Margin $K" years={ys} get={(y) => y[b.key].mgnK ?? 0} set={(i, v) => setBand(i, b.key, { mgnK: v }, `${b.label} margin ${fin.years[i].year} → ${v}`)}
+                    <FinRow label="Margin $K" years={ys} get={(y) => y[b.key].mgnK ?? 0} set={(i, v) => setBand(i, b.key, { mgnK: v }, `${b.label} margin ${fin.years[i].year} -> ${v}`)}
                       onFill={() => openFill(`${b.label} · Margin`, fin.years[0][b.key].mgnK ?? 0, (vals) => withFinBandRow(fin, b.key, "mgnK", vals))} />
                   </>}
                 </React.Fragment>
