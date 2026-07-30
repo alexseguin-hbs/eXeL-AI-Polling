@@ -246,6 +246,10 @@ export interface Project {
   confidence: 1 | 2 | 3 | 4 | 5;  // (CRS-38)
   tech: RiskLevel;            // technical risk → success prob RISK_P[tech]
   comm: RiskLevel;            // commercial risk → success prob RISK_P[comm]
+  // W-13 · MANUAL Business Confidence, set by the PdM/PgM after talking to the SBU/BU Director or VP.
+  // OPTIONAL and UNSET by default: this is the one confidence figure nothing derives, so an absent value
+  // must read "—" rather than inherit a number nobody chose. `bizConfOf(p)` is the only reader.
+  bizConfPct?: number | null; // one rung of BIZ_CONF_LADDER, or null/undefined when the call is unmade
   lob: string;                // line of business (portfolio roll-up + growth-model filter)
   nreK: number;               // non-recurring engineering $K (CRS-47)
   fullRev10yM: number;        // 10-yr new-product revenue $M (CRS-49)
@@ -513,6 +517,31 @@ export interface FinPlan {
 }
 /** The Rack & Stack technical-confidence ladder. Six rungs, not a 1-5 opinion score. */
 export const CONF_LADDER = [10, 25, 50, 68, 95, 99] as const;
+
+// W-13 · BUSINESS CONFIDENCE IS THE ONE LADDER THAT COMES BACK, AND IT IS MANUAL.
+// Operator: "Add Manual 'Business Confidence' (by PdM/PgM) only using 10 - 95% Confidence and same options
+// as before: 10%, 20%, 50%, 68%, 80%, 95%, 99%), or whatever we used to have for Technical and Commercial
+// Confidence." W-11 (`0dfabf9`) removed the ladder from Technical and Commercial for the right reason — a
+// percentage is the wrong instrument for a judgement derived from two risk levels. Business Confidence is
+// the opposite case: it is NOT derived from anything, it is a person's call after talking to the SBU/BU
+// Director or VP, so a discrete rung is exactly the right instrument.
+//
+// ⚠ ASSUMPTION STATED, NOT BURIED. The operator listed the rungs approximately and then said "or whatever
+// we used to have" — so this REUSES `CONF_LADDER` verbatim rather than inventing a seventh rung. Their list
+// differs in two places (20 vs 25, and an extra 80); say the word and either lands in one line. Reusing the
+// existing constant also keeps the lock at tests:3010 meaningful instead of forking a near-duplicate array.
+export const BIZ_CONF_LADDER = CONF_LADDER;
+/** Business Confidence is MANUAL and starts UNSET — an unmade call must read as unmade, never as a default
+ *  someone mistakes for a judgement. `null` renders "—"; the PdM/PgM picks a rung to make it real. */
+export const bizConfOf = (p: { bizConfPct?: number | null }): number | null => {
+  const v = p?.bizConfPct;
+  return typeof v === "number" && (BIZ_CONF_LADDER as readonly number[]).includes(v) ? v : null;
+};
+
+/** Columns for the `S8.diffs` read-out. Declared HERE, above `SLIDE_SCHEMA`, because the schema spreads it
+ *  at module-evaluation time — a `const` declared further down the file would be a temporal-dead-zone crash
+ *  on import, not a type error, so `tsc` would pass and the route would white-screen. */
+export const S8_DIFF_COLS = ["Differentiator", "Value $M", "Importance", "vs NBA"] as const;
 
 export const emptyFinYear = (year: number): FinYear => ({
   year, labor: 0, contractor: 0, materials: 0, other: 0, sustain: 0,
@@ -2496,11 +2525,23 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "flow", name: "Customer + decision work-flow", kind: "attach" },
     { id: "desired", name: "Desired outcome", kind: "longtext" } ] },
   { code: "S8", gate: "G2", stage: "Plan", source: "Business Case", fields: [
-    { id: "nba", name: "Next best alternative (NBA)", kind: "text", req: true, hint: "The As-Is option this must out-perform." },
-    { id: "diffs", name: "Value equation", kind: "table", req: true, cols: ["Differentiator", "Importance", "Ours", "NBA", "Value $"], hint: "importance × (our score − NBA score) = value. Same maths as the submit-idea form." },
+    // W-1c · FIELD ORDER, DICTATED BY THE OPERATOR, VERBATIM:
+    //   "Order: Primary customer value proposition REQUIRED / Next best alternative (NBA) REQUIRED /
+    //    Value waterfall + WTP positioning ✎ Edit Value Prop / Value equation REQUIRED"
+    // Their earlier "Place Chart Above with Numbers on it" means above the VALUE EQUATION TABLE — which is
+    // the same instruction as "I want differentiators under visual value prop". The chart sat FIFTH, below
+    // the table it explains; it now sits directly above it, third. `benefits` and `features` keep their
+    // relative order untouched (rule 6 — nothing unasked is shuffled).
     { id: "vprop", name: "Primary customer value proposition", kind: "longtext", req: true },
-    { id: "capture", name: "Value creation + capture", kind: "metrics", items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "index", label: "Competitive index" } ] },
+    { id: "nba", name: "Next best alternative (NBA)", kind: "text", req: true, hint: "The As-Is option this must out-perform." },
     { id: "valuechart", name: "Value waterfall + WTP positioning", kind: "chart", linked: true },
+    // W-1c · `diffs` AND `capture` ARE READ-OUTS NOW, NOT INPUTS. Both were typed straight into
+    // `bag[code][fid]`, which is how a hand-typed "50%" and an em-dash could sit twelve pixels from a
+    // waterfall that computes both. `linked: true` routes them through `linkedSlideField`, whose branches
+    // ship in this SAME commit — `linked` without a resolver returns null and renders the panel blank (the
+    // V1 trap, already paid for once). Both stay `req: true`, so NO project's gate score moves.
+    { id: "diffs", name: "Value equation", kind: "table", req: true, linked: true, cols: [...S8_DIFF_COLS], hint: "The differentiators behind the waterfall above. Typed $ IS the bar; importance is a 1-5 pick; vs NBA is the sign of the dollars. Authored in ◈ Edit source record, never twice." },
+    { id: "capture", name: "Value creation + capture", kind: "metrics", linked: true, items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "index", label: "Competitive index" } ] },
     { id: "benefits", name: "Key customer benefits", kind: "list" },
     { id: "features", name: "Key technical features", kind: "list" } ] },
   { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
@@ -2972,6 +3013,10 @@ function linkedSlideFieldRest(p: Project, code: string, fieldId: string): SlideF
   // the bottom returns null — which would render both panels empty. Shipping the resolver first means the
   // lockdown commit cannot blank a slide even for one render.
   if ((code === "S1" && fieldId === "valueprop") || (code === "S6" && fieldId === "desc")) return valuePropOf(p);
+  // W-1c · THE TWO S8 READ-OUTS. Same law as the value-prop branches directly above: these exist BEFORE
+  // `linked: true` is set on the fields, in the SAME commit, because the fall-through below returns null.
+  if (code === "S8" && fieldId === "diffs") return valuePropRows(p);
+  if (code === "S8" && fieldId === "capture") return valuePropCapture(p);
   if (code === "S16" && fieldId === "bom") {
     try { return bomOf(p).slice(0, 6).map((b) => [b.desc, b.material, `$${bomStdCost(b).toLocaleString("en-US")}`]); }
     catch { return [[`${p.name} assembly`, hierOf(p).material, `$${Math.round(p.nreK * 50).toLocaleString("en-US")}`]]; }
@@ -3008,9 +3053,12 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     ];
     case "S6.conops": return b.needs.concat(b.outcomes).slice(0, 3);
     case "S8.nba": return nbaOf(p);
-    case "S8.diffs": return ve.perDriver.map((d) => [d.name, pct(d.importance), pct((d.deltaVsNba + 1) / 2 + 0.0), "", money(d.weighted)]);
+    // W-1c · THE AI DRAFT AND THE READ-OUT ARE ONE PRODUCER APART. These two used to format the same record
+    // independently — which is how the draft printed a hardcoded "50%" capture beside a chart drawing 33%.
+    // Now both surfaces call `valuePropRows` / `valuePropCapture`, so they cannot disagree by construction.
+    case "S8.diffs": return valuePropRows(p);
     case "S8.vprop": return valuePropOf(p);
-    case "S8.capture": return { creation: money(ve.differentiationM), capture: "50%", index: `${Math.round(ve.competitiveIndex)}/100` };
+    case "S8.capture": return valuePropCapture(p);
     case "S8.benefits": return b.outcomes;
     case "S8.features": return b.solution;
     case "S7.personas": return [[m.targetMarket, b.needs[0] ?? "the capability"], [ex.customer, b.outcomes[0] ?? "the outcome"]];
@@ -3297,6 +3345,51 @@ export function derivedDriversOf(p: Project): ValueDriver[] {
 export function valueEquationOf(p: Project): ValueEquationResult {
   const drivers = p.valueDrivers && p.valueDrivers.length ? p.valueDrivers : derivedDriversOf(p);
   return valueEquation(drivers, incrementalRevM(p));
+}
+
+// ── W-1c · THE TWO S8 READ-OUTS, FROM ONE PRODUCER EACH ────────────────────────────────────────────────
+// Operator, twice: "S8 is the sole source of Truth" · "there is only one Value Prop visual that is source
+// for everything including slide." W-1b made the CHART single-source. These two make the RECORD single-
+// source: `S8.diffs` was a `kind: "table"` schema field typed straight into `bag[code][fid]`, and
+// `S8.capture` was a `kind: "metrics"` field with three hand-typed strings — which is exactly why the
+// operator's screenshot reads `COMPETITIVE INDEX —` twelve pixels from a waterfall that computes it.
+//
+// Both producers are called from BOTH `linkedSlideField` (the read-out) and `aiSlideField` (the draft), so
+// the two can never print different answers for one record. That is the whole point of routing them here
+// rather than writing the formatting twice.
+
+/** Glyph column for the 1-5 importance pick — the text twin of `<ImportanceBars>`, same 20% gradations. */
+export const importanceGlyphs = (n: number): string => {
+  const b = importanceBars(n);
+  return "▮".repeat(b) + "▯".repeat(5 - b);
+};
+
+/** Glyph for vs-NBA — the text twin of `<VsNba>`, same three glyphs, same `driverTone` sign behind it. */
+export const vsNbaGlyph = (sign: number): string => (sign > 0 ? "▲" : sign < 0 ? "▼" : "▬");
+
+/** `S8.diffs` read-out. Columns match `S8_DIFF_COLS` exactly — the schema and the rows are one list apart. */
+export function valuePropRows(p: Project): string[][] {
+  const ve = valueEquationOf(p);
+  return ve.perDriver.map((d) => [
+    d.name,
+    `${d.weighted < 0 ? "−" : ""}$${Math.abs(Math.round(d.weighted * 10) / 10).toLocaleString("en-US")}M`,
+    importanceGlyphs(d.importance),
+    vsNbaGlyph(d.deltaVsNba),
+  ]);
+}
+
+/** `S8.capture` read-out — all THREE metrics derived, which is what makes `COMPETITIVE INDEX —` impossible.
+ *  Value capture % is `DEFAULT_CAPTURE_PCT`, the same constant the chart's two capture bars are drawn from,
+ *  so the tile and the geometry read one number rather than a typed "50%" beside a 33% bar. */
+export function valuePropCapture(p: Project): Record<string, string> {
+  const ve = valueEquationOf(p);
+  const split = valueSplit(ve.evcUsdM, ve.referenceM);
+  const money = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
+  return {
+    creation: money(ve.differentiationM),
+    capture: `${split.capturePct}%`,
+    index: `${Math.round(ve.competitiveIndex)}/100`,
+  };
 }
 
 /**

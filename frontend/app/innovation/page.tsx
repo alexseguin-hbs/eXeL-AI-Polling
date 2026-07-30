@@ -54,6 +54,7 @@ import {
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, driverValueM, driverTone, importanceBars,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
+  BIZ_CONF_LADDER, bizConfOf,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -5208,6 +5209,27 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           title={`${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial → ${confidenceOf(p)} of 5`}>
                           {"●".repeat(confidenceOf(p))}<span className="text-slate-700">{"●".repeat(5 - confidenceOf(p))}</span> <span className="text-slate-400">{confidenceOf(p)}/5</span>
                         </div>
+                      </label>
+                      {/* W-13 · BUSINESS CONFIDENCE — THE ONE LADDER THAT COMES BACK, BECAUSE IT IS MANUAL.
+                          Operator: "Add Manual 'Business Confidence' (by PdM/PgM) only using 10 - 95%
+                          Confidence and same options as before … or whatever we used to have for Technical
+                          and Commercial Confidence."
+                          W-11 removed the ladder from Technical and Commercial for a reason that does NOT
+                          apply here: those two are DERIVED from risk levels, so a rival percentage could
+                          contradict them. This one is derived from nothing — it is a person's call after a
+                          conversation with the SBU/BU Director or VP — so a discrete rung is the correct
+                          instrument, and there is no second source for it to disagree with.
+                          UNSET BY DEFAULT: an unmade call reads "—", never a number nobody chose. */}
+                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Business Confidence
+                        <span className="text-slate-600"> · PdM / PgM</span>
+                        <select value={bizConfOf(p) ?? ""}
+                          onChange={(e) => onEditSource({ bizConfPct: e.target.value === "" ? null : +e.target.value } as Partial<Project>,
+                                                        [`Business Confidence → ${e.target.value === "" ? "—" : `${e.target.value}%`}`])}
+                          title="Set by the PdM/PgM after talking to the SBU or BU Director or VP. Derived from nothing — this is a judgement, not a calculation."
+                          className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
+                          <option value="">—</option>
+                          {BIZ_CONF_LADDER.map((r) => <option key={r} value={r}>{r}%</option>)}
+                        </select>
                       </label>
                       {numEdit("eXeL R&D Upside", "upsideAccelK", "$K")}
                       {/* Program start — anchors the MoT gate timeline; changing it slides EVERY gate date. */}

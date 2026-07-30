@@ -2496,7 +2496,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const codeOnly = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");   // the W-2 lesson
   const editorCode = codeOnly(pageB.slice(pageB.indexOf('<FinBanner tone="tech"')));
   ok(!/techConfPct|commConfPct/.test(editorCode), "neither confidence percentage is typed anywhere in the S10 editor");
-  ok(!/CONF_LADDER/.test(editorCode), "the six-rung percentage ladder is not rendered — the ladder was the defect");
+  // ⚠ PROXY LOCK #7, REWRITTEN. This banned the SUBSTRING `CONF_LADDER` across a slice that runs to the end
+  // of the file — so it went red on W-13's `BIZ_CONF_LADDER`, a control the operator explicitly asked for.
+  // The lock's INTENT is "Technical and Commercial confidence have no percentage control"; the assertion
+  // above (`techConfPct|commConfPct`) already states that precisely. This one now bans the ladder only where
+  // it is NOT the business one, so re-adding the tech/comm ladder still goes red while the manual Business
+  // Confidence picker — derived from nothing, and therefore with no second source to contradict — is allowed.
+  ok(!/(?<!BIZ_)CONF_LADDER/.test(editorCode),
+     "no TECHNICAL or COMMERCIAL percentage ladder is rendered — that ladder was the defect (BIZ_CONF_LADDER is a different, manual instrument)");
   ok(techBlock.includes("R&amp;D Spend Request"), "the current-year ask is technical, and sits with the technical rows");
   // AND THE BOARD SHEET LOSES ITS READ-OUTS TOO. Deleting the input while leaving the printed figure is the
   // second-door defect inverted: a number on a board slide nobody can change and nothing derives.
@@ -3663,8 +3670,21 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const M = await import("../lib/innovation-data.ts");
   let checked = 0, bad = 0; const ex = [];
+  let deadCells = 0;
   for (const sp of M.SLIDE_SCHEMA) for (const f of sp.fields) {
     if (f.kind !== "table" || !f.cols) continue;
+    // W-1c · SCOPED TO WHAT ACTUALLY RENDERS FROM THE BAG. This lock exists because page.tsx PADS a short
+    // seeded row with em-dashes instead of failing, shifting every column. That failure needs the seed to
+    // be rendered — and a `linked` field never renders its bag cells; `linkedSlideField` resolves them.
+    // So a linked field's seeded rows are DEAD DATA, and asserting their width is vacuous by construction.
+    // NOT SILENT: the count is printed below, because "we stopped checking" must never look like "it passed".
+    if (f.linked) {
+      for (const p of M.DEMO_PROJECTS) for (const slot of ["hi", "ai"]) {
+        const v = M.SLIDE_SEED[p.id]?.[sp.code]?.[f.id]?.[slot];
+        if (Array.isArray(v)) deadCells += v.length;
+      }
+      continue;
+    }
     for (const p of M.DEMO_PROJECTS) for (const slot of ["hi", "ai"]) {
       const v = M.SLIDE_SEED[p.id]?.[sp.code]?.[f.id]?.[slot];
       if (!Array.isArray(v)) continue;
@@ -3672,6 +3692,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     }
   }
   ok(bad === 0, `every seeded table row matches its schema's column count (${checked} rows checked)${bad ? " — " + ex.join("; ") : ""}`);
+  // The dead rows, COUNTED AND NAMED rather than quietly excluded. They are H5 placeholders ("Value 0",
+  // "Value 1") on S8.diffs for PRJ-25..33, orphaned when that field became a read-out. Left in place — the
+  // operator did not ask for a seed deletion, and nothing renders them — but visible, so a future reader
+  // who un-links the field learns the rows are the OLD 5-column shape from this line, not from a bug report.
+  console.log(`  · dead seed cells behind linked table fields (unrendered, width-unchecked): ${deadCells}`);
   ok(checked > 500, `the lock actually traverses the seed (${checked} rows), it is not vacuously true`);
 
   // S9's stories are LINKED, so the seed can never shadow the generator again (Krishna #2: storiesOf was
@@ -4096,6 +4121,84 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const overLabels = [...codeW8.matchAll(/t\("innovation\.alloc\.over"\)[\s\S]{0,120}?\{(k|kM)\(([^)]+)\)\}/g)];
   ok(overLabels.length === 2 && overLabels.every((m) => m[2] === "head.k"),
      `every Over field reads head.k too — got ${overLabels.map((m) => m[2]).join(", ")}`);
+}
+
+// ── W-1c · THE S8 RECORD IS A READ-OUT, NOT A SECOND TYPING SURFACE ──────────────────────────────────
+// Operator, twice: "S8 is the sole source of Truth" · "there is only one Value Prop visual that is source
+// for everything including slide." W-1b made the CHART single-source; this makes the RECORD single-source.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const S8 = F.SLIDE_SCHEMA.find((s) => s.code === "S8");
+
+  // (a) FIELD ORDER, DICTATED VERBATIM by the operator with a screenshot. Asserted as the WHOLE LIST, not
+  //     "valuechart is before diffs" — a positional pair passes while three other fields shuffle behind it.
+  ok(S8.fields.map((f) => f.id).join(",") === "vprop,nba,valuechart,diffs,capture,benefits,features",
+     `S8 field order is vprop → nba → valuechart → diffs → capture → benefits → features (got ${S8.fields.map((f) => f.id).join(",")})`);
+  // The instruction that produced it, in its own right: the chart sits directly ABOVE the table it explains.
+  const ids = S8.fields.map((f) => f.id);
+  ok(ids.indexOf("valuechart") === ids.indexOf("diffs") - 1,
+     "the waterfall is the field immediately above Value equation — 'Place Chart Above', 'differentiators under visual value prop'");
+
+  // (b) THE RESOLVER EXISTS AND IS NON-NULL — the V1 trap, asserted rather than remembered. `linked: true`
+  //     without a branch returns null and renders the panel BLANK, which no type check and no build can see.
+  const diffs = S8.fields.find((f) => f.id === "diffs");
+  const capture = S8.fields.find((f) => f.id === "capture");
+  ok(diffs.linked === true && capture.linked === true, "both S8 read-outs are linked, so neither accepts typing");
+  ok(diffs.req === true, "diffs stays req:true — converting to a read-out must not move any project's gate score");
+  ok(JSON.stringify(diffs.cols) === JSON.stringify([...F.S8_DIFF_COLS]),
+     "the schema's columns ARE S8_DIFF_COLS — one list, so the header and the rows cannot drift apart");
+  ok(!diffs.cols.includes("Ours") && !diffs.cols.includes("NBA"),
+     "the retired OURS and NBA score columns are gone from the read-out, as they are from the chart's table");
+
+  // (c) EXECUTED OVER EVERY PROJECT, not sampled. This is the assertion that makes `COMPETITIVE INDEX —`
+  //     impossible: the defect was a TYPED metrics field rendering whatever was (not) in the bag.
+  let blankRows = 0, blankIdx = 0, badWidth = 0, capDrift = 0, aiDrift = 0;
+  for (const p of F.DEMO_PROJECTS) {
+    const rows = F.linkedSlideField(p, "S8", "diffs");
+    const cap = F.linkedSlideField(p, "S8", "capture");
+    if (!Array.isArray(rows) || rows.length === 0) blankRows++;
+    else if (rows.some((r) => r.length !== F.S8_DIFF_COLS.length)) badWidth++;
+    if (!cap || !cap.index || cap.index === "—") blankIdx++;
+    if (!cap || cap.capture !== `${F.DEFAULT_CAPTURE_PCT}%`) capDrift++;
+    if (JSON.stringify(F.aiSlideField(p, "S8", "diffs")) !== JSON.stringify(rows)) aiDrift++;
+    if (JSON.stringify(F.aiSlideField(p, "S8", "capture")) !== JSON.stringify(cap)) aiDrift++;
+  }
+  ok(blankRows === 0, `every project resolves a non-empty Value-equation read-out (${blankRows} blank)`);
+  ok(badWidth === 0, `every read-out row has exactly ${F.S8_DIFF_COLS.length} cells (${badWidth} ragged)`);
+  ok(blankIdx === 0, `NO project can render "COMPETITIVE INDEX —" any more (${blankIdx} still can)`);
+  // The label and the geometry read ONE number — the whole lesson of this session applied to this tile.
+  ok(capDrift === 0, `every project's Value-capture tile equals the chart's own capture % (${capDrift} drift)`);
+  // The AI draft and the read-out are one producer apart, so they cannot print different answers.
+  ok(aiDrift === 0, `aiSlideField and linkedSlideField agree on both S8 fields for every project (${aiDrift} drift)`);
+}
+
+// ── W-13 · BUSINESS CONFIDENCE IS MANUAL, DISCRETE, AND UNSET UNTIL SOMEBODY DECIDES ─────────────────
+// Operator: "Add Manual 'Business Confidence' (by PdM/PgM) only using 10 - 95% Confidence and same options
+// as before … or whatever we used to have for Technical and Commercial Confidence."
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fspW13 = await import("node:fs/promises");
+  const srcW13 = await fspW13.readFile("app/innovation/page.tsx", "utf8");
+  // REUSE, NOT A NEAR-DUPLICATE ARRAY. The operator's own fallback clause points at the existing ladder,
+  // and forking a second one would leave two rung lists free to drift.
+  ok(F.BIZ_CONF_LADDER === F.CONF_LADDER, "Business Confidence reuses CONF_LADDER — one rung list, not two");
+  ok([...F.BIZ_CONF_LADDER].join(",") === "10,25,50,68,95,99", "the rungs are the ones the tool already had");
+
+  // UNSET MEANS UNSET. A judgement nobody has made must not read as a number somebody chose.
+  ok(F.bizConfOf({}) === null, "a project with no Business Confidence reads null, never a default");
+  ok(F.bizConfOf({ bizConfPct: null }) === null, "an explicitly cleared value reads null");
+  ok(F.bizConfOf({ bizConfPct: 42 }) === null, "an off-ladder value is rejected rather than displayed");
+  ok(F.BIZ_CONF_LADDER.every((r) => F.bizConfOf({ bizConfPct: r }) === r), "every rung round-trips");
+  ok(F.DEMO_PROJECTS.every((p) => F.bizConfOf(p) === null),
+     "NO seeded project ships a Business Confidence — the call is the PdM/PgM's to make, not a seed's");
+
+  // THE CONTROL EXISTS, IS A DISCRETE PICKER, AND WRITES THE FIELD. Counted on the real source, comments
+  // stripped first — three probe errors this workstream came from assertions matching my own prose.
+  const codeW13 = srcW13.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(/Business Confidence/.test(codeW13), "the Business Confidence control is rendered");
+  ok(/BIZ_CONF_LADDER\.map/.test(codeW13), "its options come from the ladder, never from inline literals");
+  ok(/bizConfPct:/.test(codeW13), "it writes bizConfPct through onEditSource");
+  ok(!/type="range"[^>]*bizConf/.test(codeW13), "it is a discrete picker, not a slider — rungs, not a continuum");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
