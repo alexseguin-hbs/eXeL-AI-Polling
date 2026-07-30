@@ -2315,7 +2315,26 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/colSpan=\{ys\.length \+ 1\}/.test(ed),
      "no full-width header remains — a colSpan across the label column cannot be pinned");
   // The three the operator named by hand, asserted by name as well as by count.
-  ok(/bg-\[#12202a\][^>]*>R&amp;D Spend · Step 1a<\/td>/.test(ed), '"R&D Spend · Step 1a" is in a pinned cell');
+  // W-5 · STEP-FIRST, THE WHOLE LADDER. The operator's F6 instruction inverted the three revenue bands to
+  // `Step 1b · …` / `Step 2 · …` / `Step 3 · …` but named only those three, so rule 6 left the spend header
+  // reading `R&D Spend · Step 1a` and the panel read 1a-last, 1b-first — the inconsistency F6 flagged and
+  // deferred. The operator has now asked for it: "Step 1a · R&D Spend replaces R&D Spend · Step 1a".
+  // The `bg-[#12202a]` anchor is the E2 sticky-clip guard, NOT a naming assertion — it stays.
+  ok(/bg-\[#12202a\][^>]*>Step 1a · R&amp;D Spend<\/td>/.test(ed), '"Step 1a · R&D Spend" is in a pinned cell');
+  // STEP-FIRST IS THE INVARIANT, NOT THE FOUR STRINGS. Asserting a count would be wrong here: the three
+  // revenue labels each appear TWICE (the sheet's `...band(...)` spreads and the editor's BANDS array), so a
+  // count locks an accident of duplication rather than the rule. Instead: nowhere in the file may a step
+  // token appear AFTER its name. That goes red if any header is flipped back, and it covers a fifth band
+  // added tomorrow — which a list of four literals could never do.
+  //
+  // ⚠ PROBE ERROR, RECORDED (the sixth in this workstream). The first draft matched any ` · Step N` and went
+  // red on three innocents — `Step 1 New · Step 2 Decline · Step 3 EOL` in the Growth-Model comment at :6072,
+  // where the `·` separates TERMS OF A FORMULA, not a name from its step. The lookahead is the fix: a name-last
+  // LABEL ends immediately after its step token (`<` in JSX, `"` in a string literal), a formula never does.
+  {
+    const nameLast = [...pageE2.matchAll(/ · (Step 1a|Step 1b|Step 2|Step 3)(?=["<])/g)].map((m) => m[0].trim());
+    ok(nameLast.length === 0, `every S10 band header is step-first — name-last survivors: ${nameLast.join(" | ") || "none"}`);
+  }
   ok(/bg-\[#12202a\][^>]*>Combined: Incremental/.test(ed), '"Combined: Incremental" is in a pinned cell');
   ok(/bg-\[#12202a\][^>]*>\s*\{b\.label\}/.test(ed),
      "the per-band header (Do Nothing / New: 1st Product Rev / Declining Rev) is pinned, with its toggle inside it");

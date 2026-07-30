@@ -3873,7 +3873,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                 were typing into — the failure mode that makes a wide grid unusable.
                 A colSpan cell already spans the table, so stickying the CELL does nothing. The remedy is to
                 pin its CONTENT: the label parks against the left edge while its stripe scrolls underneath. */}
-            <tr><td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">R&amp;D Spend · Step 1a</td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
+            <tr><td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">Step 1a · R&amp;D Spend</td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
             {spendRow("Labor", "labor")}
             {spendRow("Contractor", "contractor")}
             {spendRow("Materials", "materials")}
