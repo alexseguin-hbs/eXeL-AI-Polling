@@ -390,6 +390,130 @@ export function projectRevSeries(p: Project, opts: { baseYear?: number; years?: 
   return out;
 }
 
+// ═══ S10 · FINANCIAL INPUT — THE SINGLE SOURCE OF TRUTH ══════════════════════════════════
+// Faithful to the operator's own Rack & Stack model (FLIR Portfolio Planning, A. Seguin, 2019). Three revenue
+// steps, one spend table, eleven CALENDAR years. Everything here is pure and clock-free: the caller supplies
+// `baseYear`, so a test can pin 2026 while the app passes the real current year.
+//
+// WHY FOUR INPUTS AND NOT THREE. Rack & Stack Step 1b takes "# Units, MSRP (List Price), Distribution Discount,
+// COGS". ASP is NOT typed — it is MSRP net of the distribution discount. Modelling it as a typed ASP loses the
+// discount, which is the lever a product manager actually negotiates, and makes list price unrecoverable.
+export const FIN_SPAN = 11;                                   // current year + 10
+export const finYearList = (baseYear: number): number[] => Array.from({ length: FIN_SPAN }, (_, i) => baseYear + i);
+/** Columns a stage must fill: Concept current+3, Plan current+5, Develop and beyond current+10. */
+export const STAGE_SPAN: Record<Gate, number> = { G1: 4, G2: 6, G3: 11, G4: 11, G5: 11, G6: 11, G7: 11 };
+export const visibleYearCount = (gate: Gate): number => STAGE_SPAN[gate] ?? FIN_SPAN;
+
+/** One revenue band's inputs for one year. Rack & Stack Step 1b / 2 / 3 all take this identical shape. */
+export interface FinBandYear {
+  units: number;      // # Units
+  msrpK: number;      // MSRP — LIST price, $K per unit
+  discPct: number;    // Distribution discount, % off list
+  cogsK: number;      // COGS, $K per unit
+  revK?: number;      // direct entry, used only when unit economics is OFF for this band
+  mgnK?: number;      // direct entry, ditto
+}
+export const emptyBandYear = (): FinBandYear => ({ units: 0, msrpK: 0, discPct: 0, cogsK: 0 });
+
+/** R&D spend + all three revenue bands, for one calendar year. */
+export interface FinYear {
+  year: number;                                                        // CALENDAR. Never "Yr 1", never "L-1".
+  labor: number; contractor: number; materials: number; other: number; sustain: number;  // integer $K
+  neu: FinBandYear;   // Step 1b · New: 1st Product Rev
+  don: FinBandYear;   // Step 2  · Do Nothing: Existing        (forgone if the project proceeds)
+  dec: FinBandYear;   // Step 3  · Declining Rev: Existing / EOL plan
+}
+export interface FinPlan {
+  years: FinYear[];                                  // ALWAYS FIN_SPAN. Display slices by stage; storage never does.
+  unitEcon: { neu: boolean; don: boolean; dec: boolean };  // per band: derive from units, or type Revenue/Margin
+  techConfPct: number;                               // Rack & Stack ladder: 10 · 25 · 50 · 68 · 95 · 99
+  commConfPct: number;
+  spendRequestK: number;                             // current-year R&D ask
+}
+/** The Rack & Stack technical-confidence ladder. Six rungs, not a 1-5 opinion score. */
+export const CONF_LADDER = [10, 25, 50, 68, 95, 99] as const;
+
+export const emptyFinYear = (year: number): FinYear => ({
+  year, labor: 0, contractor: 0, materials: 0, other: 0, sustain: 0,
+  neu: emptyBandYear(), don: emptyBandYear(), dec: emptyBandYear(),
+});
+export const emptyFinPlan = (baseYear: number): FinPlan => ({
+  years: finYearList(baseYear).map(emptyFinYear),
+  unitEcon: { neu: true, don: true, dec: true },
+  techConfPct: 50, commConfPct: 50, spendRequestK: 0,
+});
+
+// ── Derived. Never stored, so two surfaces cannot disagree. ──────────────────────────────
+/** ASP = list price net of the distribution discount. Derived, never typed. */
+export const aspOf = (b: FinBandYear): number => b.msrpK * (1 - (b.discPct || 0) / 100);
+/** Revenue $K. Unit economics ON → units × ASP. OFF → the typed figure. */
+export const bandRevK = (b: FinBandYear, unitEcon: boolean): number =>
+  unitEcon ? b.units * aspOf(b) : (b.revK ?? 0);
+/** Margin $K. Unit economics ON → units × (ASP − COGS). OFF → the typed figure. */
+export const bandMgnK = (b: FinBandYear, unitEcon: boolean): number =>
+  unitEcon ? b.units * (aspOf(b) - b.cogsK) : (b.mgnK ?? 0);
+/** Margin %. `null` at zero revenue — the caller renders an em-dash. NEVER NaN, never a bare 0%. */
+export const bandMgnPct = (b: FinBandYear, unitEcon: boolean): number | null => {
+  const r = bandRevK(b, unitEcon);
+  return r > 0 ? (bandMgnK(b, unitEcon) / r) * 100 : null;
+};
+/** Total R&D spend for one year — the five entered rows. */
+export const spendTotalK = (y: FinYear): number => y.labor + y.contractor + y.materials + y.other + y.sustain;
+
+/** Combined: Incremental = New − Do-Nothing + EOL. Rack & Stack p.8: 14,111,925 − 17,119,427 + 8,478,189. */
+export const incRevK = (y: FinYear, ue: FinPlan["unitEcon"]): number =>
+  bandRevK(y.neu, ue.neu) - bandRevK(y.don, ue.don) + bandRevK(y.dec, ue.dec);
+export const incMgnK = (y: FinYear, ue: FinPlan["unitEcon"]): number =>
+  bandMgnK(y.neu, ue.neu) - bandMgnK(y.don, ue.don) + bandMgnK(y.dec, ue.dec);
+export const incMgnPct = (y: FinYear, ue: FinPlan["unitEcon"]): number | null => {
+  const r = incRevK(y, ue);
+  return r !== 0 ? (incMgnK(y, ue) / r) * 100 : null;
+};
+/** Combined quantity is a NET count (New − Declining), not units shipped. Labelled as such wherever it renders. */
+export const incUnits = (y: FinYear): number => y.neu.units - y.dec.units;
+/** YoY growth % on the Incremental band ONLY. `null` in the first column and on a zero prior year. */
+export const incYoYPct = (years: FinYear[], i: number, ue: FinPlan["unitEcon"]): number | null => {
+  if (i <= 0) return null;
+  const prev = incRevK(years[i - 1], ue);
+  if (!prev) return null;
+  return ((incRevK(years[i], ue) - prev) / Math.abs(prev)) * 100;
+};
+
+/** Σ total spend across the plan — this is what `nreK` means once S10 is the source. */
+export const finNreK = (f: FinPlan): number => f.years.reduce((s, y) => s + spendTotalK(y), 0);
+/** Σ incremental revenue, in $M, over the first `n` years. `10-Yr Rev` is n = 10. */
+export const finRevM = (f: FinPlan, n = 10): number =>
+  f.years.slice(0, n).reduce((s, y) => s + incRevK(y, f.unitEcon), 0) / 1000;
+/** Σ incremental margin, in $M, over the first `n` years. `5-Yr Mgn` is n = 5. */
+export const finMgnM = (f: FinPlan, n = 5): number =>
+  f.years.slice(0, n).reduce((s, y) => s + incMgnK(y, f.unitEcon), 0) / 1000;
+
+// ── Apply-rate — "just to linearize" (operator). A ONE-SHOT FILL, not a live formula. ─────
+// It writes n plain numbers and gets out of the way; editing a year afterwards changes only that year, because
+// there is no formula left to recompute. Negative rates are required — Do-Nothing and Declining erode.
+// Growth must span the operator's stated 3%…333% range, so no clamp is applied beyond finiteness.
+export const linearize = (seed: number, ratePct: number, n: number): number[] => {
+  const g = 1 + ratePct / 100;
+  const out: number[] = [];
+  let v = seed;
+  for (let i = 0; i < n; i++) { out.push(Number.isFinite(v) ? Math.round(v) : 0); v *= g; }
+  return out;
+};
+
+/** Completeness for the gate ladder: how many of the stage's required years carry ANY entered figure. */
+export const finFilledYears = (f: FinPlan, gate: Gate): { filled: number; need: number; missing: number[] } => {
+  const need = visibleYearCount(gate);
+  const missing: number[] = [];
+  let filled = 0;
+  for (let i = 0; i < need; i++) {
+    const y = f.years[i];
+    const any = !!y && (spendTotalK(y) !== 0 || bandRevK(y.neu, f.unitEcon.neu) !== 0
+      || bandRevK(y.don, f.unitEcon.don) !== 0 || bandRevK(y.dec, f.unitEcon.dec) !== 0);
+    if (any) filled++; else if (y) missing.push(y.year);
+  }
+  return { filled, need, missing };
+};
+
 // ── Per-quarter Revenue Plan (H41) — QTY · ASP · COGS build-up with an entry mode + a shaping profile. Pure,
 // deterministic (no clock/random). Detailed mode derives revenue = QTY×ASP and margin = (ASP−COGS)/ASP; High-Level
 // mode takes Revenue + Margin directly. Either way the 40-quarter series sums to the annual `fullRev10yM` total, so

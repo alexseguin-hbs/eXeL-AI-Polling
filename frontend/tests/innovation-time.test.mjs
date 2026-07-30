@@ -1572,6 +1572,90 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "off S10, Edit-source navigates TO S10 and opens the panel — the user is never stranded");
 }
 
+// ── S10 · FINANCIAL INPUT MODEL — arithmetic, not shape ─────────────────────────────────
+// Faithful to the operator's own Rack & Stack (FLIR Portfolio Planning, 2019). These EXECUTE the functions
+// against real numbers rather than grepping for their names, because the whole point of S10 is that the figure
+// on the board is arithmetic over what someone typed — so the arithmetic is what has to be locked.
+{
+  const F = await import("../lib/innovation-data.ts");
+
+  // 1. Eleven CALENDAR years, from whatever base the caller passes. No launch-relative anything.
+  const ys = F.finYearList(2026);
+  ok(ys.length === 11 && ys[0] === 2026 && ys[10] === 2036, `11 calendar years 2026..2036 — got ${ys[0]}..${ys[10]} (${ys.length})`);
+  ok(ys.every((y) => /^20\d\d$/.test(String(y))), "every column is a four-digit calendar year");
+
+  // 2. THE FOUR INPUTS. Rack & Stack Step 1b is "# Units, MSRP (List Price), Distribution Discount, COGS".
+  //    ASP is DERIVED. 100 units, $310k list, 10% distribution discount, $188k COGS:
+  //      ASP     = 310 × 0.90            = 279
+  //      Revenue = 100 × 279             = 27,900
+  //      Margin  = 100 × (279 − 188)     = 9,100
+  const b = { units: 100, msrpK: 310, discPct: 10, cogsK: 188 };
+  ok(Math.abs(F.aspOf(b) - 279) < 1e-9, `ASP = MSRP net of distribution discount = 279 — got ${F.aspOf(b)}`);
+  ok(Math.abs(F.bandRevK(b, true) - 27900) < 1e-9, `Revenue = units × ASP = 27,900 — got ${F.bandRevK(b, true)}`);
+  ok(Math.abs(F.bandMgnK(b, true) - 9100) < 1e-9, `Margin = units × (ASP − COGS) = 9,100 — got ${F.bandMgnK(b, true)}`);
+  ok(Math.abs(F.bandMgnPct(b, true) - (9100 / 27900) * 100) < 1e-9, "Margin % = margin / revenue");
+  // A zero discount must not silently change the price. Regression guard on the new fourth input.
+  ok(F.aspOf({ ...b, discPct: 0 }) === 310, "zero discount leaves ASP at list");
+
+  // 3. Zero revenue renders an em-dash, never NaN, never a bare 0%.
+  ok(F.bandMgnPct(F.emptyBandYear(), true) === null, "Margin % is null (→ em-dash) at zero revenue, never NaN");
+
+  // 4. Direct entry when unit economics is OFF — the typed figure wins, units are ignored.
+  const typed = { ...F.emptyBandYear(), units: 999, revK: 4200, mgnK: 1500 };
+  ok(F.bandRevK(typed, false) === 4200 && F.bandMgnK(typed, false) === 1500,
+     "unit economics OFF → the typed Revenue/Margin are used and units are ignored");
+
+  // 5. INCREMENTAL = New − Do Nothing + EOL. Rack & Stack p.8 worked example, in $K:
+  //    14,111.925 − 17,119.427 + 8,478.189 = 5,470.687
+  const y = { ...F.emptyFinYear(2026),
+    neu: { ...F.emptyBandYear(), revK: 14111.925 }, don: { ...F.emptyBandYear(), revK: 17119.427 },
+    dec: { ...F.emptyBandYear(), revK: 8478.189 } };
+  const off = { neu: false, don: false, dec: false };
+  ok(Math.abs(F.incRevK(y, off) - 5470.687) < 1e-6,
+     `Incremental = New − DoNothing + EOL = 5,470.687 — got ${F.incRevK(y, off)}`);
+
+  // 6. Combined quantity is a NET count (New − Declining), not units shipped.
+  ok(F.incUnits({ ...F.emptyFinYear(2026), neu: { ...F.emptyBandYear(), units: 50 }, dec: { ...F.emptyBandYear(), units: 12 } }) === 38,
+     "Combined quantity is NET: New − Declining");
+
+  // 7. Spend total is the five entered rows — Other and Sustain are SEPARATE.
+  const sy = { ...F.emptyFinYear(2026), labor: 1000, contractor: 400, materials: 250, other: 100, sustain: 50 };
+  ok(F.spendTotalK(sy) === 1800, `Total = Labor+Contractor+Materials+Other+Sustain = 1800 — got ${F.spendTotalK(sy)}`);
+
+  // 8. YoY growth: null in the first column and on a zero prior year; correct otherwise.
+  const mk = (r) => ({ ...F.emptyFinYear(2026), neu: { ...F.emptyBandYear(), revK: r } });
+  const series = [mk(0), mk(100), mk(133)];
+  ok(F.incYoYPct(series, 0, off) === null, "YoY is null in the first column — there is no prior year");
+  ok(F.incYoYPct(series, 1, off) === null, "YoY is null when the prior year is zero — never Infinity");
+  ok(Math.abs(F.incYoYPct(series, 2, off) - 33) < 1e-9, `YoY 100 → 133 is 33% — got ${F.incYoYPct(series, 2, off)}`);
+
+  // 9. Apply-rate spans the operator's stated 3%…333% range and is a ONE-SHOT fill of n plain numbers.
+  const lo = F.linearize(100, 3, 11), hi = F.linearize(100, 333, 11);
+  ok(lo.length === 11 && lo[0] === 100 && lo[1] === 103, `3%/yr: seed 100 then 103 — got ${lo.slice(0, 2)}`);
+  ok(hi[1] === 433, `333%/yr: seed 100 then 433 — got ${hi[1]}`);
+  ok(F.linearize(100, -20, 3)[2] === 64, "negative rates work — Do-Nothing and Declining erode");
+  ok(F.linearize(100, 3, 11).every(Number.isFinite), "no NaN or Infinity ever leaves linearize");
+
+  // 10. Gate ladder: Concept 4 · Plan 6 · Develop-and-beyond 11. ONE function, no second copy.
+  ok(F.visibleYearCount("G1") === 4 && F.visibleYearCount("G2") === 6 && F.visibleYearCount("G3") === 11,
+     "Concept 4 columns · Plan 6 · Develop 11");
+  ok(["G4", "G5", "G6", "G7"].every((g) => F.visibleYearCount(g) === 11), "G4-G7 carry the full 11 columns");
+
+  // 11. Storage is ALWAYS 11 years regardless of stage — demotion hides, it never deletes.
+  const plan = F.emptyFinPlan(2026);
+  ok(plan.years.length === 11, "an empty plan still stores all 11 years — demotion must never destroy data");
+
+  // 12. Completeness names the missing years rather than silently disabling the gate.
+  const p2 = F.emptyFinPlan(2026);
+  p2.years[0].labor = 500;
+  const c = F.finFilledYears(p2, "G1");
+  ok(c.filled === 1 && c.need === 4 && c.missing.join(",") === "2027,2028,2029",
+     `completeness names the gaps — got ${c.filled}/${c.need} missing [${c.missing}]`);
+
+  // 13. The confidence ladder is Rack & Stack's six rungs, not a 1-5 opinion score.
+  ok(F.CONF_LADDER.join(",") === "10,25,50,68,95,99", "technical confidence uses the 10/25/50/68/95/99 ladder");
+}
+
 // ── #4 + #17 · PRINT MODE — the board artifact ──────────────────────────────────────────
 // White page, coloured banners, black/grey text; the WHOLE deck (cover + every slide) through the SAME
 // renderer the projector uses; a cover and a per-page footer that carry provenance; no new dependency.
