@@ -53,7 +53,7 @@ import {
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
-  finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf,
+  finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -1008,7 +1008,9 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
           </div>
         </td>
         <td className="px-2 py-2 text-center"><span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono">{p.gate}</span></td>
-        <td className="px-2 py-2 text-center tabular-nums" title={`Model confidence ${confidenceOf(p)}/5 — derived from ${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial risk`}>{"●".repeat(confidenceOf(p))}<span className="text-slate-700">{"●".repeat(5 - confidenceOf(p))}</span></td>
+        {/* G3 · filled bullets take the score's tone (1-2 red · 3-4 sunset · 5 green) from `confidenceTone`,
+            the SAME function the S10 panel uses. Unfilled stay slate. */}
+        <td className="px-2 py-2 text-center tabular-nums" title={`Model confidence ${confidenceOf(p)}/5 — derived from ${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial risk`}><span style={{ color: confidenceTone(confidenceOf(p)) }}>{"●".repeat(confidenceOf(p))}</span><span className="text-slate-700">{"●".repeat(5 - confidenceOf(p))}</span></td>
         <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(p.nreK)}</td>
         <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={weightedRevM(p)} incremental={incrementalRevM(p)} /></td>
         <td className={`px-2 py-2 text-right tabular-nums font-semibold ${npvM(p) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(npvM(p))}</td>
@@ -3548,7 +3550,20 @@ function S10SpendTable({ p, baseYear }: { p: Project; baseYear: number }) {
   const col = (pick: (y: FinYear) => number) => ys.map((y) => finFmtK(pick(y)));
   return (
     <>
+      {/* G4 · `gutter` RESERVES THE SAME 8.5cqw LEFT COLUMN THE REVENUE TABLE USES FOR ITS BAND NAMES.
+          Operator: "Add space R&D NRE to match Commercial Financial section so year 2026 and year 2036
+          line up." Without it this table's label column sat at left-0 while the revenue table's sits at
+          left-[8.5cqw], so the two grids' year columns were offset by exactly that gutter and 2026 did not
+          sit above 2026. The gutter stays EMPTY here — spend has no bands to name, and adding a label the
+          operator did not ask for would be inventing UI. This is space, not content.
+          ⚠ TWO SYNTAX TRAPS HIT WHILE WRITING THIS COMMENT, both recorded so the next reader avoids them:
+          (1) a JSX comment between ATTRIBUTES is invalid — it must sit outside the opening tag, as here;
+          (2) writing the comment-close sequence inside a JSX comment ENDS it early, so this text may never
+          contain it. Both were caught by tsc and NEITHER could be caught by the lock suite, which reads this
+          file as text and passed 2941/2941 on a file that would not compile. Locks assert content; only the
+          compiler asserts validity — which is why the build gate is not optional. */}
       <S10Grid
+        gutter
         dense
         head={["$K", ...ys.map((y) => yearLabel(y.year))]}
         rows={[
@@ -3634,15 +3649,27 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
 // never a mutation of `finOf`'s return. The failure this prevents is the classic one: the first cell you type
 // into replaces the plan and the other 87 cells come back zero. There is a lock that types into one cell and
 // asserts the rest are byte-identical.
+/** G2 · DISPLAY rounding, never STORAGE rounding. F2a derives seeded ASP and COGS from the revenue so that
+ *  `units × aspK === revK` to zero error — which makes them exact floats like 134.78048780487805. This input
+ *  rendered `String(value)` raw, so the operator's screenshot showed "134.7804" and "40.00000". Two decimals,
+ *  trailing zeros stripped, is what a $K figure is worth reading.
+ *  ⚠ THE STORED VALUE MUST NOT BE ROUNDED. Rounding the record would re-introduce the 301 rows where
+ *  Qty × ASP ≠ Revenue that F2a just eliminated. So the commit test below compares the typed string against
+ *  the DISPLAYED string, not the parsed number against the stored float: tabbing through a cell without
+ *  editing it must write nothing. Comparing numbers would make every cursor pass silently overwrite an exact
+ *  value with its 2-dp shadow — the whole risk of this change, and it has its own lock. */
+const finDisp = (v: number): string => (v ? String(Math.round(v * 100) / 100) : "");
 function FinCell({ value, onCommit, title, suffix }: { value: number; onCommit: (v: number) => void; title: string; suffix?: string }) {
+  const shown = finDisp(value);
   return (
-    <input type="text" inputMode="decimal" defaultValue={value ? String(value) : ""} title={title} aria-label={title}
+    <input type="text" inputMode="decimal" defaultValue={shown} title={`${title} — stored ${value}`} aria-label={title}
       key={`${title}:${value}`}   // re-seed the uncontrolled input when the plan changes underneath it (apply-rate, undo)
       placeholder="—"
       onBlur={(e) => {
         const raw = e.target.value.trim();
+        if (raw === shown) return;                       // untouched: leave the exact stored value alone
         const v = raw === "" ? 0 : Number(raw.replace(/[$,\s]/g, ""));
-        if (!Number.isFinite(v)) { e.target.value = value ? String(value) : ""; return; }  // never coerce junk to 0 silently
+        if (!Number.isFinite(v)) { e.target.value = shown; return; }  // never coerce junk to 0 silently
         if (v !== value) onCommit(v);
       }}
       onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
@@ -3903,16 +3930,33 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                       onFill={() => openFill(`${b.label} · COGS`, fin.years[0][b.key].cogsK, (vals) => withFinBandRow(fin, b.key, "cogsK", vals))} />
                     <FinRow label="ASP $K" years={ys} hint="Average selling price per unit. Typed ASP wins; blank falls back to MSRP net of the distribution discount." get={(y) => aspOf(y[b.key])} set={(i, v) => setBand(i, b.key, { aspK: v }, `${b.label} ASP ${fin.years[i].year} -> ${v}`)}
                       onFill={() => openFill(`${b.label} · ASP`, aspOf(fin.years[0][b.key]), (vals) => withFinBandRow(fin, b.key, "aspK", vals))} />
-                    {/* CALCULATED. Read-only, labelled with the arithmetic so a board can audit it. */}
-                    <tr>
-                      <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-500" title="Revenue = Qty x ASP · Margin = Qty x (ASP - COGS)">Rev · Mgn <span className="text-slate-600">(calc)</span></td>
-                      {ys.map((y) => (
-                        <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[9px] tabular-nums text-emerald-400/90"
-                            title={`Revenue ${finFmtK(bandRevK(y[b.key], true))} · Margin ${finFmtK(bandMgnK(y[b.key], true))} · ${finFmtPct(bandMgnPct(y[b.key], true))}`}>
-                          {finFmtK(bandRevK(y[b.key], true))}
+                    {/* G1 · CALCULATED — Revenue AND Margin, each on its OWN row, named exactly as the typed
+                        mode names them. Operator: "Ensure you Show Commercial Elements: Revenue and Margin,
+                        when in QTY, REV, MGN mode of input."
+                        This was ONE row labelled "Rev · Mgn (calc)" that printed revenue ONLY; margin existed
+                        just inside its `title`, which is invisible on a phone and invisible to a board. So the
+                        mode that COMPUTES margin was the only mode that never showed it, and the two modes
+                        disagreed about whether margin was worth displaying. Read-only styling (no <input>,
+                        emerald) so a calculated row is never mistaken for a typeable one, and each row still
+                        carries its own arithmetic in the tooltip so the number can be audited.
+                        Margin % is deliberately NOT added here — the operator asked for Revenue and Margin,
+                        and the sheet already carries Margin % as its sixth band row. */}
+                    {([
+                      ["Revenue $K", bandRevK, "Revenue = Qty × ASP"],
+                      ["Margin $K", bandMgnK, "Margin = Qty × (ASP − COGS)"],
+                    ] as const).map(([label, calc, formula]) => (
+                      <tr key={label}>
+                        <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-500" title={formula}>
+                          {label} <span className="text-slate-600">(calc)</span>
                         </td>
-                      ))}
-                    </tr>
+                        {ys.map((y) => (
+                          <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[11px] tabular-nums text-emerald-400/90"
+                              title={`${formula} — ${finFmtK(calc(y[b.key], true))} · margin ${finFmtPct(bandMgnPct(y[b.key], true))}`}>
+                            {finFmtK(calc(y[b.key], true))}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
                   </> : <>
                     {/* REV & MGN ONLY — the three build-up rows are HIDDEN and these two are the entered pair.
                         Quantity, COGS and ASP stay ON THE RECORD untouched: switching back restores whatever
@@ -5044,8 +5088,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           so the read-out sits WHERE THE INPUT WAS and moves the moment either risk changes. */}
                       {riskEdit("Tech Risk", "tech")}
                       {riskEdit("Comm Risk", "comm")}
+                      {/* G3 · THE WHOLE READ-OUT TAKES THE SCORE'S TONE, not just the dots. It was hardcoded
+                          emerald — border, fill and text — so a 3/5 read as reassuring green, which is the
+                          case in the operator's screenshot (Med/Med). Tone comes from `confidenceTone`, the
+                          same function the portfolio table uses, so the two can never disagree. */}
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence
-                        <div className="rounded border border-emerald-500/25 bg-emerald-500/[0.04] px-1.5 py-1 text-[12px] tabular-nums text-emerald-300" title={`${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial → ${confidenceOf(p)} of 5`}>
+                        <div className="rounded border px-1.5 py-1 text-[12px] tabular-nums"
+                          style={{ borderColor: `${confidenceTone(confidenceOf(p))}40`, background: `${confidenceTone(confidenceOf(p))}0a`, color: confidenceTone(confidenceOf(p)) }}
+                          title={`${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial → ${confidenceOf(p)} of 5`}>
                           {"●".repeat(confidenceOf(p))}<span className="text-slate-700">{"●".repeat(5 - confidenceOf(p))}</span> <span className="text-slate-400">{confidenceOf(p)}/5</span>
                         </div>
                       </label>

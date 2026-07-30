@@ -1721,8 +1721,15 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // longer split the body evenly — an even split silently scrolled Margin % and YoY Growth out of sight.
   ok(/const BODY_ROWS: Record<string, string> = \{ S10: "minmax\(0, 10fr\) minmax\(0, 24fr\)" \};/.test(pageSrc),
      "the S10 body sizes its two panels by the rows they actually carry, not 50/50");
-  ok(/gutter dense/.test(revTable) && /<S10Grid\n        dense/.test(pageSrc),
+  // Asserted as a PROPERTY of each table, not as literal adjacency. The old form matched
+  // `<S10Grid\n        dense` — which broke the moment G4 added `gutter` above `dense` on the spend grid,
+  // even though both tables still pass `dense`. A positional pattern fails on formatting; this fails only
+  // if a table actually stops being dense, which is what the assertion is for.
+  const spendTable = pageSrc.slice(pageSrc.indexOf("function S10SpendTable"), pageSrc.indexOf("function S10RevenueTable"));
+  ok(/\bdense\b/.test(revTable) && /\bdense\b/.test(spendTable),
      "both S10 tables use the dense type step — one size across the slide, and the only way 24 rows fit");
+  ok(/\bgutter\b/.test(revTable) && /\bgutter\b/.test(spendTable),
+     "both S10 tables reserve the same left gutter, so their year columns line up (G4)");
   for (const row of ["Quantity (net)", "Revenue", "Margin", "Margin %", "YoY Growth"]) {
     ok(revTable.includes(`label: "${row}"`), `Combined: Incremental renders a ${row} row`);
   }
@@ -2179,7 +2186,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     ok(buildUp.includes(row) && !typed.includes(row), `${row} renders ONLY in the build-up mode`);
   for (const row of ['label="Revenue $K"', 'label="Margin $K"'])
     ok(typed.includes(row) && !buildUp.includes(row), `${row} is typeable ONLY in Rev & Mgn only`);
-  ok(buildUp.includes("Rev · Mgn <span"), "the build-up mode shows Revenue/Margin as a read-only calc row");
+  // G1 · Revenue and Margin are TWO calculated rows in build-up mode, not one combined row.
+  // This asserted `"Rev · Mgn <span"` — a single row that printed REVENUE only, with margin hidden in a
+  // `title` tooltip that is invisible on a phone and to a board. So the mode that computes margin was the
+  // one mode that never displayed it (operator, from a live screenshot). The lock now requires both rows
+  // by name, and that the retired combined row is gone rather than left beside them.
+  ok(buildUp.includes('["Revenue $K", bandRevK') && buildUp.includes('["Margin $K", bandMgnK'),
+     "the build-up mode shows Revenue AND Margin as separate read-only calc rows");
+  ok(!buildUp.includes("Rev · Mgn <span"), "the old combined Rev · Mgn row is gone, not duplicated alongside");
   ok(!ed.slice(0, split).includes('label="Quantity"'), "no band row escapes the mode branch");
 
   // 5. ORDER IS THE ORDER OF THE DECISION — Quantity, then what it costs to make, then what it sells for.
@@ -2622,6 +2636,56 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const y0 = F.finOf(p0, 2026).years.find((y) => y.neu.units > 0);
   ok(Math.abs(F.aspOf(y0.neu) * y0.neu.units - (y0.neu.revK ?? 0)) < 0.005,
      `ASP is derived FROM revenue — ${p0.id} units ${y0.neu.units} × ASP ${F.aspOf(y0.neu).toFixed(4)} == revK ${y0.neu.revK}`);
+}
+
+// ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
+{
+  const F = await import("../lib/innovation-data.ts");
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+
+  // G2 · Rounding is for the EYE, never for the RECORD. F2a derives seeded ASP/COGS from revenue so that
+  // units × aspK === revK exactly; that makes them long floats, which the input rendered raw ("134.7804",
+  // "40.00000" in the operator's screenshot). The display is now 2dp — but if a mere TAB through a cell
+  // committed the rounded number, every cursor pass would silently overwrite an exact value with its
+  // shadow and re-create the 301 mismatches F2a removed. Hence: compare the typed STRING to the shown
+  // STRING and return early when untouched. That early return is the assertion below.
+  ok(/const finDisp = \(v: number\): string =>[^\n]*Math\.round\(v \* 100\) \/ 100/.test(src),
+     "FinCell shows a 2dp value");
+  ok(/if \(raw === shown\) return;/.test(src),
+     "an untouched cell commits NOTHING — tabbing through never rewrites the exact stored float");
+  ok(/defaultValue=\{shown\}/.test(src), "the input seeds from the rounded display value");
+  // …and the record itself is still exact, i.e. rounding did not leak into finBaseline.
+  const exact = F.DEMO_PROJECTS.every((p) => F.finBaseline(p, 2026).years.every((y) =>
+    ["neu","don","dec"].every((k) => Math.abs(F.bandRevK(y[k], true) - F.bandRevK(y[k], false)) < 0.005)));
+  ok(exact, "the STORED values are untouched by display rounding — the F2a identity still holds exactly");
+
+  // G3 · Operator: "1-2 bullets, Use Color Red, 3-4 bullets color Sunset, 5 Bullets (5 color Green)".
+  // Executed over every score, not asserted as a string.
+  const TONE = { 1: "#ef4444", 2: "#ef4444", 3: "#ffb020", 4: "#ffb020", 5: "#22c55e" };
+  for (const n of [1, 2, 3, 4, 5])
+    ok(F.confidenceTone(n) === TONE[n], `confidence ${n}/5 is ${n <= 2 ? "RED" : n <= 4 ? "SUNSET" : "GREEN"} — got ${F.confidenceTone(n)}`);
+  // The operator's own case: Med/Med must be sunset, Low/Low green, High/High red.
+  ok(F.confidenceTone(F.confidenceFromRisk("med", "med")) === "#ffb020", "Med/Med → 3/5 → Sunset (was emerald)");
+  ok(F.confidenceTone(F.confidenceFromRisk("low", "low")) === "#22c55e", "Low/Low → 5/5 → Green");
+  ok(F.confidenceTone(F.confidenceFromRisk("high", "high")) === "#ef4444", "High/High → 1/5 → Red");
+  // COUNTED, not named: every bullet renderer must resolve its colour through the one function, so a third
+  // renderer added later cannot quietly ship in emerald — the drift that hit the band titles.
+  // PROXIMITY, not a global count. A first draft compared totals (`toned >= bulletRows`) and survived
+  // hardcoding emerald at one site, because the S10 panel alone makes three tone calls (border, fill, text)
+  // and the total stayed ahead. Found by mutation-testing. Each bullet run is now checked against the code
+  // immediately around IT, so one renderer going rogue cannot hide behind another's calls.
+  const bullets = [...src.matchAll(/"●"\.repeat\(confidenceOf\(p\)\)/g)];
+  ok(bullets.length >= 2, `both bullet renderers were found — ${bullets.length}`);
+  const untoned = bullets.filter((m) => !src.slice(Math.max(0, m.index - 260), m.index).includes("confidenceTone("));
+  ok(untoned.length === 0,
+     `every bullet renderer takes its colour from confidenceTone — ${untoned.length} of ${bullets.length} render an untoned bullet run`);
+  ok(!/border-emerald-500\/25 bg-emerald-500\/\[0\.04\][^>]*>\s*\{"●"/.test(src), "the hardcoded emerald confidence chip is gone");
+
+  // G4 · The spend grid reserves the SAME left gutter as the revenue grid, so 2026 sits above 2026.
+  // Operator: "Add space R&D NRE to match Commercial Financial section so year 2026 and year 2036 line up."
+  const spend = src.slice(src.indexOf("function S10SpendTable"), src.indexOf("function S10RevenueTable"));
+  ok(/\n\s+gutter\n/.test(spend), "the R&D Spend grid reserves the gutter column");
+  ok(/w-\[8\.5cqw\]/.test(src), "the gutter width is the single 8.5cqw constant both grids share");
 }
 
 // ── A-INPUT · CAN EVERY S1-S18 FIELD ACTUALLY BE INPUT, AND DOES IT RENDER IN PLAY MODE? ─

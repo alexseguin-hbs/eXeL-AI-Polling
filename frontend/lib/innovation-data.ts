@@ -211,6 +211,18 @@ export const confidenceFromRisk = (tech: RiskLevel, comm: RiskLevel): 1 | 2 | 3 
 /** Every consumer reads this, never `p.confidence` — one function, so no surface can print a stale score. */
 export const confidenceOf = (p: Pick<Project, "tech" | "comm">): 1 | 2 | 3 | 4 | 5 =>
   confidenceFromRisk(p.tech, p.comm);
+/** G3 · The colour of the filled bullets. Operator: "1-2 bullets, Use Color Red, 3-4 bullets color Sunset,
+ *  5 Bullets (5 color Green)". The bullets were always emerald whatever the score, so a 3/5 read as
+ *  reassuring green — the exact case in the operator's screenshot.
+ *  HUES ARE THE PROJECT'S OWN, not three ad-hoc picks: `coral`, `si-sun` and `green` from the TRINITY_13
+ *  palette in `lib/trinity-colors.ts`, and the sunset is literally the ♡ S.I. anchor of the SoI Trinity.
+ *  They are inlined as hexes rather than imported because neither this module nor the innovation page
+ *  imports that palette today, and three constants do not justify a new cross-module dependency — the
+ *  comment carries the provenance instead.
+ *  ONE FUNCTION, because there are TWO renderers (the portfolio table and the S10 panel). Colouring one and
+ *  not the other is precisely the drift that shipped in the band titles; a lock counts the call sites. */
+export const confidenceTone = (n: 1 | 2 | 3 | 4 | 5): string =>
+  n >= 5 ? "#22c55e" : n >= 3 ? "#ffb020" : "#ef4444";
 // S13 risk-table status derived from the row's risk Level (deterministic): High→Open, Med→Mitigating, Low→Mitigated.
 // Keeps every project's Risk Highlights showing a Status consistent with its level. Pure; no clock/random.
 export const riskLevelStatus = (level: string): string => {
