@@ -3952,7 +3952,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   });
   const setActive = (code: string, fid: string, v: SlideFieldValue) => { const c = cellOf(code, fid); writeCell(code, fid, c.mode === "ai" ? { ai: v } : { hi: v }); };
   const setMode = (code: string, fid: string, mode: "hi" | "ai") => writeCell(code, fid, { mode });
-  const fillOf = (sp: SlideSpec) => { const req = sp.fields.filter((f) => f.req); const base = req.length ? req : sp.fields; if (!base.length) return 1; return base.filter((f) => !fieldEmpty(effective(sp, f))).length / base.length; };
+  // "% authored" per slide. S10 HAS NO SCHEMA FIELDS — its content is the financial grid — so asking the
+  // field list would score it 100% forever, which is worse than the duplicate tables it replaced. It asks the
+  // RECORD instead: how many of the years this gate requires actually carry a forecast. That is a truer
+  // measure than "did someone type into a table", and it is the same function the gate ladder already uses.
+  const fillOf = (sp: SlideSpec) => {
+    if (sp.code === "S10") { const r = finGateReadiness(finOf(p, baseYear), p.gate); return r.need ? r.filled / r.need : 1; }
+    const req = sp.fields.filter((f) => f.req); const base = req.length ? req : sp.fields;
+    if (!base.length) return 1;
+    return base.filter((f) => !fieldEmpty(effective(sp, f))).length / base.length;
+  };
   const st = status[`${p.id}|${spec.code}`] || "";
   // Capture a durable version snapshot of the CURRENT slide (fields + financial snapshot). Deterministic id;
   // ts injected here (UI layer). Substantial = ≥10% quantified move vs the prior version → manager-approval flag.
@@ -4789,10 +4798,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               );
               return (
                 <div className="mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.03]">
-                  <button onClick={() => setSrcOpen((v) => !v)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/5">
-                    <span>{srcOpen ? "▾" : "▸"}</span>◈ Edit source record <span className="font-normal text-slate-500">— one edit updates every surface (no duplicate sources)</span>
-                  </button>
-                  {srcOpen && (
+                  {/* THE FINANCIAL GRID ALWAYS SHOWS (operator, 2026-07-30: "remember financial grid S10
+                      always shows"). S10 now has ZERO schema fields, so this panel is not a drawer beside
+                      the content — it IS the content. A collapsed S10 would be a slide with nothing under
+                      it, and a single source of truth nobody can see sends the work back to Excel, which is
+                      the failure the operator named as critical. No toggle, no arrow, no way to hide it.
+                      S8 keeps its collapse: it still has authored fields of its own underneath. */}
+                  <div className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] font-medium text-emerald-300">
+                    ◈ Financial record <span className="font-normal text-slate-500">— one edit updates every surface (no duplicate sources)</span>
+                  </div>
+                  {(
                     <div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-3">
                       {/* THE GRID IS THE RECORD — and now the only thing on this panel that takes money.
                           R&D/NRE and New-rev-10-yr were read-outs of Sigma of the rows immediately above, and

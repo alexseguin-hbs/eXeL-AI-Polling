@@ -2413,21 +2413,22 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "features", name: "Key technical features", kind: "list" } ] },
   { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
     { id: "stories", name: "High-priority user stories", kind: "table", req: true, linked: true, cols: [...STORY_COLS], hint: "One ● marks the release a story lands in. CRS # is sequential per project; the discipline selector still drives the CRS-##.IN.<TEAM>.### traceability Req ID behind it." } ] },
-  { code: "S10", gate: "G2", stage: "Plan", source: "Business Case · annual forecast required at Plan", fields: [
-    // CALENDAR ONLY. The schema is a module constant and cannot read a clock, so these columns name the AXIS
-    // ("Year") and the WBS lines — never a launch-relative period. `L-1`, `Launch`, `Yr 2`, `Yr 3` lived here
-    // and were the last banned labels in the deck: they mean different calendar years for two projects side
-    // by side on the same board. Actual year headers are produced by `yearCols(baseYear, n)` at render time.
-    // ALL THREE ARE `linked` — READ-OUTS, NOT EDITORS. Operator: "delete everything that does not help make
-    // a slide." S10's panel renders the grid from `finPlan` and never touched these fields, yet they still
-    // accepted typing, so the sheet said $547k while the table under it said $683k. They stay in the schema
-    // and stay `req: true` — removing them would re-score gate completeness on all 33 projects and orphan
-    // 2,860 seeded rows — but the only place a financial figure can now be TYPED is the grid.
-    // Their resolvers landed in the previous commit (E0b-i): `linked` routes a field through
-    // `linkedSlideField`, whose fall-through returns null, so the flag and the branch must never be separated.
-    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, linked: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "Calendar years, current + 10. Entered on the S10 grid — this table is the read-out." },
-    { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, linked: true, cols: ["Band", "Quantity", "Revenue", "Margin", "Margin %"], hint: "Rack & Stack Steps 1b / 2 / 3 plus the derived Combined: Incremental. Entered on the S10 grid." },
-    { id: "conf", name: "Confidence", kind: "metrics", linked: true, items: [ { k: "tech", label: "Technical" }, { k: "comm", label: "Commercial" } ], hint: "The Rack & Stack confidence ladder, set on the S10 grid." } ] },
+  // S10 HAS NO SCHEMA FIELDS, AND THAT IS THE POINT. Operator, 2026-07-30, from a live screenshot:
+  // "Delete / R&D spend by year (WBS) REQUIRED / Revenue scenarios REQUIRED / Confidence (this should be in
+  // Risk section)". Those three were the last remnants of a second financial input surface: E0b made them
+  // read-outs of the grid, and a read-out that repeats, three inches lower, exactly what the sheet above it
+  // already prints is not a second opinion — it is noise on the one screen where the money is authored.
+  //
+  // The financial record lives in `Project.finPlan` and is authored in ONE place, the S10 grid, which is
+  // always on screen. `SLIDE_PANEL["S10"]` renders the sheet; `S10FinEditor` is the only writer.
+  // Confidence is now `confidenceOf(p)`, derived from the two risk levels, and it renders beside them in
+  // the panel's risk row — which is where the operator asked for it.
+  //
+  // GATE SCORING DOES NOT MOVE. `gateReadiness` grades `GATE_REQUIREMENTS` by gate, never `SlideSpec.fields`
+  // (`innovation-data.ts` — `requirementStatus` takes a `GateRequirement`, not a field). The only consumer of
+  // the field list for completeness is the deck's "% authored" strip, and that now asks the financial plan
+  // itself — `finGateReadiness` — which is a truer measure than "did someone type into a duplicate table".
+  { code: "S10", gate: "G2", stage: "Plan", source: "Business Case · annual forecast required at Plan", fields: [] },
   { code: "S11", gate: "G2", stage: "Plan", source: "UXD validation", fields: [
     { id: "voc", name: "Early validation — UXD", kind: "table", req: true, cols: ["# customers", "Differentiator", "VOC learnings", "Pivot / Pursue / Pass"] },
     { id: "exp", name: "Planned experiments", kind: "table", cols: ["Exp #", "Assumption to test", "Success criteria", "Result"] },
@@ -2823,7 +2824,6 @@ export const SOURCE_SLIDE: Record<string, string> = {
   "S8.capture": "S8", "S8.valuechart": "S8",
   // Money — S10 owns it. Eleven calendar years of spend + the three revenue bands.
   "S2.profile": "S10", "S2.accel": "S10", "S3.profile": "S10", "S3.revtable": "S10", "S3.rdchart": "S10",
-  "S10.spend": "S10", "S10.scenarios": "S10", "S10.conf": "S10",
 };
 /** The set of slides that own an input record — i.e. the only codes allowed to render a source panel. */
 export const SOURCE_CODES: string[] = Array.from(new Set(Object.values(SOURCE_SLIDE)));
@@ -2839,47 +2839,8 @@ export const isOwnSource = (code: string, fieldId: string): boolean => sourceSli
  *  grid does. It is optional only so non-financial callers need not care; when omitted the plan's own first
  *  stored year answers, and `launchYearOf` (a pure read of the record, no clock) is the final fallback. */
 export function linkedSlideField(p: Project, code: string, fieldId: string, baseYear?: number): SlideFieldValue {
-  // ── S10 · THE FINANCIAL READ-OUTS ──────────────────────────────────────────────────────────────────────
-  // These three fields render BELOW the S10 sheet in the field grid. Until now they were free-text tables a
-  // human could type into, holding numbers that matched nothing: Contractor $683k against a grid saying
-  // $547k, revenue scenarios in units nobody entered, and "Low / —" where the grid said 50% / 50%. Three
-  // input surfaces for one record, two of which fed nothing the slide shows.
-  //
-  // This commit adds the RESOLVERS ONLY — no field is marked `linked` yet, so behaviour is unchanged. That
-  // ordering is deliberate and was learned the hard way (V1): `linked` routes a field through this function,
-  // and the fall-through at the bottom returns null, so marking a field `linked` before its branch exists
-  // renders an empty panel. Resolver first means the lockdown commit that follows cannot blank a slide.
-  if (code === "S10") {
-    const fin = finOf(p, baseYear ?? p.finPlan?.years[0]?.year ?? launchYearOf(p));
-    const ys = fin.years.slice(0, visibleYearCount(p.gate));   // the gate ladder: 4 · 6 · 11, same as the sheet
-    // Rows are CALENDAR YEARS, from `yearLabel` — the sole producer. No `Yr 1`, no `L-1`, no launch-relative
-    // column ever reaches this table again, because the labels are no longer authored cell values.
-    if (fieldId === "spend")
-      return ys.map((y) => [yearLabel(y.year), finFmtK(y.labor), finFmtK(y.contractor), finFmtK(y.materials), finFmtK(y.other)]);
-    if (fieldId === "scenarios") {
-      // Band totals across the VISIBLE span, so the read-out sums exactly the columns the board is shown.
-      const sum = (f: (y: FinYear) => number) => ys.reduce((a, y) => a + f(y), 0);
-      const pct = (mgn: number, rev: number): number | null => (rev !== 0 ? (mgn / rev) * 100 : null);
-      const bandRow = (key: "don" | "neu" | "dec", label: string): string[] => {
-        const on = fin.unitEcon[key];
-        const rev = sum((y) => bandRevK(y[key], on)), mgn = sum((y) => bandMgnK(y[key], on));
-        return [label, finFmtQty(sum((y) => y[key].units)), finFmtK(rev), finFmtK(mgn), finFmtPct(pct(mgn, rev))];
-      };
-      const iRev = sum((y) => incRevK(y, fin.unitEcon)), iMgn = sum((y) => incMgnK(y, fin.unitEcon));
-      return [
-        bandRow("don", "Do Nothing: Existing"),
-        bandRow("neu", "New: 1st Product Rev"),
-        bandRow("dec", "Declining Rev: Existing"),
-        // Combined is DERIVED (New − Do-Nothing + EOL) and its quantity is a NET count — the same arithmetic
-        // the sheet uses, reached through the same exported helpers rather than re-implemented here.
-        ["Combined: Incremental", finFmtQty(sum(incUnits)), finFmtK(iRev), finFmtK(iMgn), finFmtPct(pct(iMgn, iRev))],
-      ];
-    }
-    // The Rack & Stack confidence LADDER (10·25·50·68·95·99), which is what the grid carries — not the 1-5
-    // opinion score. The old draft printed a risk LABEL here, which is why the field read "Low" beside a grid
-    // reading "50%": two different quantities wearing the same name.
-    if (fieldId === "conf") return { tech: `${fin.techConfPct}%`, comm: `${fin.commConfPct}%` };
-  }
+  // The S10 financial read-outs that lived here are GONE with their schema fields (operator: "Delete").
+  // The grid IS the surface; nothing renders a second copy of it, so nothing needs resolving.
   return linkedSlideFieldRest(p, code, fieldId);
 }
 
@@ -2946,26 +2907,6 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S7.personas": return [[m.targetMarket, b.needs[0] ?? "the capability"], [ex.customer, b.outcomes[0] ?? "the outcome"]];
     case "S7.desired": return b.outcomes[0] ?? "";
     case "S9.stories": return storyTableRows(p);
-    // These two drafts are the fallback the generic field grid shows before a human opens the S10 editor.
-    // They used to emit `Yr 1 / Yr 2 / Yr 3` and a launch-relative L-1 / Launch column set — the last two
-    // ban-list violations in the deck. Both now speak the same language as the real S10 grid: calendar years
-    // from `yearLabel`, and the four named Rack & Stack bands. `launchYearOf` is a pure read of the project
-    // record (no clock), so the draft stays deterministic.
-    case "S10.spend": {
-      const rd = fm.totalRdOpexK; const perYr = Math.round(rd / 3);
-      const y0 = launchYearOf(p);
-      return [0, 1, 2].map((i) => [yearLabel(y0 + i), `$${Math.round(perYr * 0.55)}k`, `$${Math.round(perYr * 0.25)}k`, `$${Math.round(perYr * 0.12)}k`, `$${Math.round(perYr * 0.08)}k`]);
-    }
-    case "S10.scenarios": {
-      const inc = incrementalRevM(p), dn = p.doNothing10yM / 10;
-      const gm = (ex.marginPct || 0) / 100, pct = (x: number) => (x > 0 ? `${Math.round(gm * 100)}%` : "—");
-      const row = (band: string, revM: number, qty: number): string[] =>
-        [band, qty > 0 ? qty.toLocaleString() : "—", money(revM), money(revM * gm), pct(revM)];
-      // Combined: Incremental = New − Do-Nothing + EOL, the same arithmetic the grid uses.
-      return [row("Do Nothing: Existing", dn, 0), row("New: 1st Product Rev", inc, ex.msrpK > 0 ? Math.round((inc * 1000) / ex.msrpK) : 0),
-              row("Declining Rev: Existing", 0, 0), row("Combined: Incremental", inc - dn, 0)];
-    }
-    case "S10.conf": return { tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm] };
     case "S13.tech": return [[RISK_LABEL[p.tech], b.evidence.find((e) => /risk|mitigat/i.test(e)) ?? "Core technology maturity", "Dual-source + early qual", riskLevelStatus(RISK_LABEL[p.tech])]];
     case "S13.comm": return [[RISK_LABEL[p.comm], killRiskOf(p), "VOC validation + phased commitments", riskLevelStatus(RISK_LABEL[p.comm])]];
     case "S13.biz": {

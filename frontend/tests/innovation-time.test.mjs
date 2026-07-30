@@ -545,8 +545,14 @@ ok(aiSlideOf(P0, "S10") === aiSlideOf(P0, "S10"), "aiSlideOf(S10 financials) is 
   ok(fmFn(bumped).totalRdOpexK === P0.nreK * 2, "doubling p.nreK doubles the derived R&D metric (real-time single source)");
   ok(fmFn(bumped).manHours > fm.manHours, "resource planning (man-hours) tracks the same R&D/NRE source");
   // S10 R&D-spend + S14 resources AI drafts trace to the same financialMetrics number (not an independent figure).
-  const s10 = aiSlideField(P0, "S10", "spend");
-  ok(Array.isArray(s10) && s10.length === 3, "S10 R&D spend-by-year derives from the financial source (3 WBS years)");
+  // S10's spend no longer has an AI draft or a schema field — the operator deleted the duplicate table
+  // ("Delete / R&D spend by year (WBS) REQUIRED"). The intent of this assertion was never the draft; it was
+  // that S10's R&D spend traces to the SAME number as every other surface. That is now checkable against the
+  // record itself, which is stronger: the grid's own spend total must reconstruct `nreK`.
+  const FIN0 = await import("../lib/innovation-data.ts");
+  const finP0 = FIN0.finBaseline(P0, 2026);
+  ok(Math.abs(FIN0.finTotalSpendK(finP0) - P0.nreK) <= finP0.years.length,
+     `the S10 grid's spend total reconstructs p.nreK — ${Math.round(FIN0.finTotalSpendK(finP0))} vs ${P0.nreK} (rounding only)`);
   const s14 = aiSlideField(P0, "S14", "fte");
   ok(Array.isArray(s14) && s14.length >= 1, "S14 resource plan derives from the same man-hours source");
 }
@@ -575,7 +581,14 @@ import { SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField } from "../lib/
 ok(SLIDE_SCHEMA.length === 20, "SLIDE_SCHEMA = 18 review slides (S1–S18) + 2 closeout slides (CS, RA)");
 ok(SLIDE_SCHEMA[0].code === "S1" && SLIDE_SCHEMA[1].code === "S2" && SLIDE_SCHEMA[17].code === "S18" && SLIDE_SCHEMA[18].code === "CS" && SLIDE_SCHEMA[19].code === "RA", "schema runs S1 → S18 then CS + RA");
 ok(slideSpec("CS").fields.every((f) => f.linked) && slideSpec("RA").fields.every((f) => f.linked), "CS + RA fields are all linked (live governance, no authoring)");
-ok(SLIDE_SCHEMA.every((s) => s.fields.length > 0 && s.source && GATES_N.includes(s.gate)), "every slide carries typed fields + a source + a valid gate");
+ok(SLIDE_SCHEMA.every((s) => s.source && GATES_N.includes(s.gate)), "every slide carries a source + a valid gate");
+// S10 IS THE ONE CODE WITH NO SCHEMA FIELDS, BY DESIGN AND BY OPERATOR INSTRUCTION. Its content is the
+// financial grid, which is always on screen and is the only place money can be typed. Named as the single
+// exception rather than softened away, so a SECOND field-free slide — which would be a slide with nothing on
+// it — still fails.
+ok(SLIDE_SCHEMA.filter((s) => s.fields.length === 0).map((s) => s.code).join("|") === "S10",
+   `S10 alone carries no schema fields — [${SLIDE_SCHEMA.filter((s) => !s.fields.length).map((s) => s.code).join(", ")}]`);
+ok(SLIDE_SCHEMA.filter((s) => s.code !== "S10").every((s) => s.fields.length > 0), "every OTHER slide carries typed fields");
 ok(SLIDE_SCHEMA.every((s) => s.fields.every((f) => f.id && f.name && f.kind)), "every field has id + name + kind");
 ok(SLIDE_SCHEMA.some((s) => s.fields.some((f) => f.req)), "the spec flags required fields (drives gate readiness)");
 ok(slideSpec("S6").fields.find((f) => f.id === "problem").kind === "list" && !slideSpec("S6").fields.find((f) => f.id === "problem").mirror, "S6 problem is a reduced authored list (de-mirrored)");
@@ -1579,8 +1592,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // The two records this work exists to unify, asserted by routing rather than by comment.
   ok(D.sourceSlideOf("S1", "valueprop") === "S8" && D.sourceSlideOf("S6", "desc") === "S8" && D.sourceSlideOf("S8", "vprop") === "S8",
      "the value proposition is owned by S8 — all three renderings route to one editor");
-  ok(D.sourceSlideOf("S3", "revtable") === "S10" && D.sourceSlideOf("S2", "profile") === "S10" && D.sourceSlideOf("S10", "spend") === "S10",
+  // `S10.spend` no longer appears as a key: the field it referred to is deleted, so a self-referential row
+  // would point at nothing. S10 remains an OWNING code because other slides still route to it, which is the
+  // property that actually matters — asserted directly rather than via a row that existed to satisfy a test.
+  ok(D.sourceSlideOf("S3", "revtable") === "S10" && D.sourceSlideOf("S2", "profile") === "S10" && D.isSourceSlide("S10"),
      "the money record is owned by S10 — the S3/S8/S10 revenue the operator photographed routes to one editor");
+  ok(!Object.keys(D.SOURCE_SLIDE).some((k) => k.startsWith("S10.")),
+     "no SOURCE_SLIDE row points a deleted S10 field at itself");
   ok(D.isOwnSource("S8", "vprop") && !D.isOwnSource("S1", "valueprop"),
      "isOwnSource distinguishes the owning slide from a rendering of it (Edit source vs Edit on S8)");
   ok(D.sourceSlideOf("S11", "voc") === null, "a field authored in place has no owner and therefore no deep link");
@@ -1866,22 +1884,23 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // The two sites that carried them, asserted by behaviour rather than by grep-for-absence.
   const s10 = F.SLIDE_SCHEMA.find((s) => s.code === "S10");
   const allCols = s10.fields.flatMap((f) => f.cols ?? []);
-  ok(allCols.length > 0 && !allCols.some((c) => BAN.test(c)),
-     `S10's schema columns are period-free — [${allCols.join(" · ")}]`);
-  // NOT widened to six columns. The schema's `cols` describe the legacy generic table, and 2,860 seeded rows
-  // are keyed to its width — adding Sustain here fails the row-width lock across the whole portfolio for a
-  // read-out nobody uses now that S10 renders its own grid. Sustain IS an entered row: it lives in the grid
-  // and in `FinYear`, which is where the operator types it.
-  ok(s10.fields.find((f) => f.id === "spend").cols.length === 5,
-     "the legacy S10 read-out keeps its seeded width — the five WBS lines live in the FinYear grid, not here");
+  // S10 has NO schema columns left to be period-free: the three tables that carried them are deleted, and
+  // every year label on the sheet is produced by `yearLabel` at render time from the project's own plan. That
+  // is a stronger guarantee than "the literals are clean" — there are no literals.
+  ok(allCols.length === 0, `S10 declares no schema columns at all — [${allCols.join(" · ")}]`);
+  ok(!s10.fields.length && F.yearLabel(2031) === "2031" && F.yearLabel(2031, "short") === "31",
+     "S10's periods come from yearLabel at render time, never from an authored column header");
+  // The legacy five-column read-out is DELETED (operator, from a live screenshot: "Delete / R&D spend by year
+  // (WBS) REQUIRED / Revenue scenarios REQUIRED / Confidence"). The five WBS lines were never really its
+  // columns — they are fields on `FinYear`, which is what the grid writes, and that is what to assert.
   ok(["labor", "contractor", "materials", "other", "sustain"].every((k) => k in F.emptyFinYear(2026)),
      "all five entered spend lines including Sustain exist on the record the grid writes");
-  const draft = F.aiSlideField(F.DEMO_PROJECTS[0], "S10", "spend");
-  ok(Array.isArray(draft) && draft.every((r) => /^20\d\d$/.test(r[0])),
-     `the S10 spend draft labels its rows with calendar years — got [${draft.map((r) => r[0]).join(", ")}]`);
-  const scen = F.aiSlideField(F.DEMO_PROJECTS[0], "S10", "scenarios");
-  ok(Array.isArray(scen) && scen.length === 4 && scen[0][0] === "Do Nothing: Existing" && scen[3][0] === "Combined: Incremental",
-     `the scenarios draft speaks the four Rack & Stack band names — got [${scen.map((r) => r[0]).join(" · ")}]`);
+  // No AI DRAFT either: a draft exists to fill a field a human has not authored, and there is no field. The
+  // grid always renders, from `finBaseline` when a project has no plan of its own, so nothing is ever blank.
+  for (const fid of ["spend", "scenarios", "conf"])
+    ok(F.aiSlideField(F.DEMO_PROJECTS[0], "S10", fid) === null, `no S10.${fid} AI draft survives its deleted field`);
+  ok(F.finBaseline(F.DEMO_PROJECTS[0], 2026).years.length === F.FIN_SPAN,
+     "a project with no stored plan still renders a full grid — the fallback is the baseline, not an empty slide");
 }
 
 // ── E0 · ONE FINANCIAL EDITOR — the rival is gone ───────────────────────────────────────
@@ -2026,110 +2045,70 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/mt-0\.5 whitespace-nowrap text-\[7px\]/.test(src), "the nowrap that caused the overflow is gone");
 }
 
-// ── E0b-i · S10's THREE FIELD READ-OUTS RESOLVE FROM THE GRID ───────────────────────────
-// Operator: "delete everything that does not help make a slide." The measurement behind that: S10 is the
-// ONLY code whose panel ignores its own schema fields — it renders the grid from `finPlan` and never touches
-// `spend`, `scenarios` or `conf`. Those three still rendered as EDITABLE tables below the sheet holding
-// numbers that matched nothing (Contractor $683k against a grid saying $547k; "Low / —" against 50% / 50%).
-// This commit adds the RESOLVERS ONLY — nothing is marked `linked` yet, so behaviour is unchanged. That
-// ordering is the V1 lesson: `linked` routes a field through `linkedSlideField`, whose fall-through returns
-// null, so flipping the flag before the branch exists renders an empty panel.
+// ── E0d · S10 HAS ONE SURFACE, AND IT IS THE GRID ───────────────────────────────────────
+// Operator, 2026-07-30, from a live screenshot of S10's field grid:
+//   "Delete / R&D spend by year (WBS) REQUIRED / Revenue scenarios REQUIRED / Confidence (this should be in
+//    Risk section) ... remember financial grid S10 always shows."
+// E0b made those three read-outs of the grid. The operator's answer to a read-out that repeats, three inches
+// lower, exactly what the sheet above it already prints is: delete it. So S10's schema fields are gone
+// entirely and the grid — which cannot be collapsed — is the whole slide.
 {
   const F = await import("../lib/innovation-data.ts");
   const fspE = await import("node:fs/promises");
   const pageE = await fspE.readFile("app/innovation/page.tsx", "utf8");
   const p0 = F.DEMO_PROJECTS[0];
   const BY = 2026;                                     // pinned, so the lock never depends on the wall clock
-
-  // 1. THE RESOLVERS EXIST — the precondition for E0b-ii. Without this, the next commit blanks the panel.
-  for (const fid of ["spend", "scenarios", "conf"])
-    ok(F.linkedSlideField(p0, "S10", fid, BY) !== null, `S10.${fid} resolves from the record, not from null`);
-
-  // 2. SHAPE MATCHES THE SCHEMA. A read-out with the wrong column count renders ragged under its header.
   const s10 = F.slideSpec("S10");
-  const colsOf = (fid) => s10.fields.find((f) => f.id === fid).cols;
-  const spend = F.linkedSlideField(p0, "S10", "spend", BY);
-  const scen = F.linkedSlideField(p0, "S10", "scenarios", BY);
-  ok(spend.every((r) => r.length === colsOf("spend").length),
-     `every spend row has ${colsOf("spend").length} cells, matching its declared columns`);
-  ok(scen.every((r) => r.length === colsOf("scenarios").length),
-     `every scenario row has ${colsOf("scenarios").length} cells, matching its declared columns`);
 
-  // 3. THE COLUMN COUNT IS THE GATE LADDER — the same ladder the sheet obeys. A read-out showing eleven years
-  //    beside a Concept sheet showing four is the disagreement this whole thread exists to end.
-  for (const g of ["G1", "G2", "G3"]) {
-    const pg = { ...p0, gate: g };
-    ok(F.linkedSlideField(pg, "S10", "spend", BY).length === F.visibleYearCount(g),
-       `at ${g} the spend read-out shows ${F.visibleYearCount(g)} years — the same span as the sheet`);
-  }
+  // 1. THE THREE FIELDS ARE GONE — asserted by NAME, because those are the three the operator pointed at.
+  for (const fid of ["spend", "scenarios", "conf"])
+    ok(!s10.fields.some((f) => f.id === fid), `S10.${fid} is deleted — the grid already prints it`);
+  // ...and by COUNT, so a NEW field added to S10 tomorrow fails without anyone remembering to update a list.
+  ok(s10.fields.length === 0, `S10 declares no fields at all — [${s10.fields.map((f) => f.id).join(", ")}]`);
 
-  // 4. CALENDAR YEARS, FROM `yearLabel`, AS DATA. The seeded `Yr 1 / Yr 2` cells the F4 ban-list could not
-  //    reach were authored VALUES, not schema columns; a resolver retires them because the label is computed.
-  const fin = F.finOf(p0, BY);
-  ok(spend.map((r) => r[0]).join("|") === fin.years.slice(0, F.visibleYearCount(p0.gate)).map((y) => F.yearLabel(y.year)).join("|"),
-     "the spend read-out's first column IS the calendar-year list, produced by yearLabel");
-  const flat = JSON.stringify([spend, scen, F.linkedSlideField(p0, "S10", "conf", BY)]);
-  for (const bad of ["Yr 1", "Yr 2", "Year 1", "L-1", "Launch"])
-    ok(!flat.includes(bad), `no "${bad}" survives anywhere in an S10 read-out`);
+  // 2. NOTHING ELSE LOST ITS FIELDS. The delete was surgical; nineteen other codes still author in place.
+  ok(F.SLIDE_SCHEMA.filter((sp) => sp.code !== "S10").every((sp) => sp.fields.length > 0),
+     "every other code kept its fields — this was a delete of one slide's duplicates, not a purge");
 
-  // 5. THE BANDS ARE THE SHEET'S BANDS — compared as LISTS against page.tsx, not asserted separately on each
-  //    surface. Two independent assertions can both pass while the surfaces drift; one comparison cannot.
-  const revTbl = pageE.slice(pageE.indexOf("function S10RevenueTable"), pageE.indexOf("// ═══ S10 · THE EDITOR"));
-  const sheetBands = [...revTbl.matchAll(/(?:band\("(?:neu|don|dec)", |group: )"([^"]*(?:Existing|Product Rev|Incremental))"/g)].map((m) => m[1]);
-  ok(sheetBands.length === 4, `the sheet renders four bands — found [${sheetBands.join(" · ")}]`);
-  ok(scen.map((r) => r[0]).join("|") === sheetBands.join("|"),
-     `the scenarios read-out's bands equal the sheet's bands, in order — [${scen.map((r) => r[0]).join(" · ")}]`);
+  // 3. GATE SCORING IS UNMOVED ACROSS THE PORTFOLIO. `gateReadiness` grades GATE_REQUIREMENTS by gate and
+  //    never reads `SlideSpec.fields`, so removing two `req: true` fields cannot re-score anyone. Executed on
+  //    all 33 projects rather than argued from the call graph.
+  ok(F.DEMO_PROJECTS.every((p) => F.gateReadinessAll(p).every((g) => g.required > 0)),
+     `all ${F.DEMO_PROJECTS.length} projects still grade against a non-empty requirement set at every gate`);
+  ok(F.gateReadiness(p0, p0.gate).pct === Math.round((F.gateReadiness(p0, p0.gate).satisfied / F.gateReadiness(p0, p0.gate).required) * 100),
+     "gate % is computed from the requirement register, which the schema change never touched");
 
-  // 6. THE NUMBERS ARE THE GRID'S NUMBERS, through the SHARED formatters. This is the defect the operator
-  //    photographed: a field-grid table printing $683k while the grid above it printed $547k.
-  const y0 = fin.years[0];
-  ok(spend[0][1] === F.finFmtK(y0.labor) && spend[0][2] === F.finFmtK(y0.contractor) &&
-     spend[0][3] === F.finFmtK(y0.materials) && spend[0][4] === F.finFmtK(y0.other),
-     "year one's spend cells are the plan's own figures, formatted by the one shared formatter");
-  const ys = fin.years.slice(0, F.visibleYearCount(p0.gate));
-  const neuRev = ys.reduce((a, y) => a + F.bandRevK(y.neu, fin.unitEcon.neu), 0);
-  ok(scen[1][2] === F.finFmtK(neuRev), "the New-product revenue row is the span sum of the grid's own band");
-  // Confidence is the Rack & Stack LADDER the grid carries (10·25·50·68·95·99), not a risk LABEL. The old
-  // draft printed "Low" beside a grid reading "50%" — two different quantities wearing one field name.
-  const conf = F.linkedSlideField(p0, "S10", "conf", BY);
-  ok(conf.tech === `${fin.techConfPct}%` && conf.comm === `${fin.commConfPct}%`,
-     `Confidence reads the grid's ladder percentages — ${conf.tech} / ${conf.comm}`);
-  ok(!Object.values(conf).some((v) => ["Low", "Med", "High"].includes(v)),
-     "Confidence no longer prints a risk label where the grid prints a percentage");
-
-  // 7. E0b-ii · THE FLAG IS FLIPPED AND THE RECORD IS KEPT. `linked` makes the field a read-out; `req` stays
-  //    true so gate completeness does not move on any of the 33 projects. Both halves matter: dropping the
-  //    field would silently re-score every gate, and leaving it editable would keep the third input surface.
+  // 4. THE DEAD CODE WENT WITH THE FIELDS. A resolver and an AI draft for a field that no longer exists are
+  //    exactly what "delete everything that does not help make a slide" is about.
   for (const fid of ["spend", "scenarios", "conf"]) {
-    const f = s10.fields.find((x) => x.id === fid);
-    ok(f.linked === true, `S10.${fid} is a read-out, not an editor — the grid is the only door to the money`);
+    ok(F.linkedSlideField(p0, "S10", fid, BY) === null, `no S10.${fid} resolver survives its deleted field`);
+    ok(F.aiSlideField(p0, "S10", fid) === null, `no S10.${fid} AI draft survives its deleted field`);
   }
-  // `conf` was never required; `spend` and `scenarios` were and still are. Asserted as the exact set below
-  // rather than per field — an earlier draft of this lock claimed all three were required and went red on
-  // its own first run, which is the lock doing its job on the person writing it.
-  // ONE EDITABLE FINANCIAL SURFACE ON S10, COUNTED rather than named — so a NEW editable field added to S10
-  // tomorrow fails this without anyone remembering to update the list.
-  ok(s10.fields.filter((f) => !f.linked).length === 0,
-     `S10 renders zero editable schema fields — [${s10.fields.filter((f) => !f.linked).map((f) => f.id).join(", ")}]`);
-  // NO BLANK PANEL: every field S10 shows must resolve to something, or the read-only conversion has just
-  // emptied the slide. This is the V1 failure, asserted rather than assumed.
-  for (const f of s10.fields)
-    ok(F.linkedSlideField(p0, "S10", f.id, BY) != null, `S10.${f.id} renders a value — no field went blank`);
-  // Gate scoring is BYTE-IDENTICAL across the portfolio: same required set, same field ids, all 33 projects.
-  const reqIds = s10.fields.filter((f) => f.req).map((f) => f.id).join("|");
-  ok(reqIds === "spend|scenarios", `S10's required set is unchanged — [${reqIds}]`);
-  ok(F.DEMO_PROJECTS.every((pp) => F.linkedSlideField(pp, "S10", "spend", BY).length === F.visibleYearCount(pp.gate)),
-     `every one of the ${F.DEMO_PROJECTS.length} projects renders its spend read-out at its own gate span`);
-  // READ-ONLY TAKES AWAY THE TYPING, NEVER THE READING. The editable table renders a <thead> from `f.cols`;
-  // the read-out has to as well, or converting these fields would silently delete the column labels the
-  // operator can see today — five bare numbers with nothing saying which is Labor and which is Other.
-  ok(/!!f\.cols\?\.length && <thead>/.test(pageE),
-     "a linked table renders its declared column headers — the conversion removes the input, not the labels");
+  ok(!Object.keys(F.SOURCE_SLIDE).some((k) => k.startsWith("S10.")),
+     "no SOURCE_SLIDE row points a deleted S10 field at itself");
 
-  // 8. THE DECK PASSES ITS ONE CLOCK IN. A resolver that reached for `new Date()` would re-anchor a stored
-  //    plan on 1 January and disagree with the grid for a day.
-  ok(/linkedSlideField\(p, sp\.code, f\.id, baseYear\)/.test(pageE),
-     "the deck threads its hoisted baseYear into the resolver — the read-out and the grid share one calendar");
+  // 5. S10 IS STILL THE OWNING CODE. Other slides route their money read-outs here; deleting S10's OWN rows
+  //    must not have unhooked S2 and S3 from it.
+  ok(F.isSourceSlide("S10") && F.sourceSlideOf("S3", "revtable") === "S10" && F.sourceSlideOf("S2", "profile") === "S10",
+     "S10 still owns the money record — S2 and S3 still deep-link to it");
+
+  // 6. THE GRID ALWAYS SHOWS. Not "opens by default" — there is no toggle at all on S10, because a collapsed
+  //    S10 is now a slide with nothing under it. Asserted on the render, and on the ABSENCE of the control.
+  ok(/◈ Financial record/.test(pageE), "the S10 financial panel renders with no collapse control");
+  const s10Panel = pageE.slice(pageE.indexOf("◈ Financial record") - 900, pageE.indexOf("◈ Financial record") + 400);
+  ok(!/setSrcOpen/.test(s10Panel), "no collapse toggle sits on the S10 financial panel");
+  ok(/<span>\{srcOpen \? "▾" : "▸"\}<\/span>◈ Edit source record/.test(pageE),
+     "S8 KEEPS its collapse — it still has authored fields of its own underneath");
+
+  // 7. "% AUTHORED" ASKS THE RECORD. With no fields, a field-list score would read 100% forever, which is a
+  //    worse lie than the duplicate tables it replaced. It asks `finGateReadiness` — the same ladder the gate
+  //    uses — so an unforecast project reads as unforecast.
+  ok(/if \(sp\.code === "S10"\) \{ const r = finGateReadiness/.test(pageE),
+     "S10's authored % is measured from the financial plan, not from an empty field list");
+  const empty = { ...p0, finPlan: F.emptyFinPlan(BY) };
+  ok(F.finGateReadiness(F.finOf(empty, BY), empty.gate).filled === 0,
+     "a project with an empty plan scores 0 forecast years — the % cannot be gamed by having no fields");
+  ok(F.finGateReadiness(F.finOf(p0, BY), p0.gate).filled > 0, "a seeded project still scores its forecast years");
 }
 
 // ── E0c · CONFIDENCE IS DERIVED FROM RISK, NOT TYPED ────────────────────────────────────
@@ -2261,7 +2240,12 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // keeps the worklist visible without pretending a blank VOC table is a defect in the tool.
   ok(reqUnresolved.every((u) => rows.find((r) => `${r.code}.${r.id}` === u.replace("*", ""))?.kind === "plain"),
      `every required field without a derived draft is at least directly typeable — [${reqUnresolved.join(", ")}]`);
-  ok(rows.length - unresolved.length >= 45,
+  // Threshold moved 45 → 42 with the field COUNT, not the coverage: S10's three duplicates were deleted and
+  // all three used to resolve, so the numerator and the denominator both dropped by three. Coverage is
+  // 42/69 = 61%, up from 45/72 = 62.5%... within a point, and the deleted fields were duplicates of the
+  // grid, so nothing a board sees was lost. Stated here so a future reader does not mistake a smaller
+  // number for a regression.
+  ok(rows.length - unresolved.length >= 42,
      `most of the deck renders in play mode from the record alone — ${rows.length - unresolved.length}/${rows.length}`);
 }
 
