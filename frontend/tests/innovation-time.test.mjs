@@ -3835,5 +3835,69 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(pinned === 3, `all three static band headers stay pinned (E2) — found ${pinned}`);   // 1a, Combined, + the mapped band
 }
 
+// ── W-1a · THE DIFFERENTIATOR MODEL IS THE OPERATOR'S OWN ───────────────────────────────
+// "Just like excel, value vs NBA is number." The bar was DERIVED from importance × (ours − nba) × revenue;
+// it is now the TYPED number, with the ▲▬▼ arrow derived from its sign ("derived by actual value if positive
+// up green arrow, 0 equal or line sunset colour, down arrow red if number is negative") and Importance left
+// as a manual 5-bar pick. These assertions EXECUTE the functions rather than reading the source, because a
+// formula that compiles and returns the wrong number is exactly what a text lock cannot see.
+{
+  const V = await import("../lib/innovation-data.ts");
+  const drv = (o) => ({ name: "d", importance: 0.5, ourScore: 0.5, nbaScore: 0.5, ...o });
+
+  // (a) IMPORTANCE — 20% gradations, asserted AT THE BOUNDARIES, never at convenient midpoints. An off-by-one
+  //     in a ceiling function hides perfectly between 0.3 and 0.5; it cannot hide between 0.2 and 0.21.
+  for (const [n, want] of [[0, 1], [0.2, 1], [0.21, 2], [0.4, 2], [0.41, 3], [0.6, 3], [0.61, 4], [0.8, 4], [0.81, 5], [1, 5]])
+    ok(V.importanceBars(n) === want, `importanceBars(${n}) === ${want} — 20% gradations at the boundary`);
+  ok(V.importanceBars(-99) === 1 && V.importanceBars(99) === 5, "importanceBars clamps rather than escaping 1-5");
+
+  // (b) THE ARROW IS THE SIGN OF THE VALUE — one rule, no branch, so the icon and the bar cannot disagree.
+  ok(V.driverTone(drv({ valueM: 5 }), 100) === "pos", "positive value → ▲");
+  ok(V.driverTone(drv({ valueM: 0 }), 100) === "neutral", "zero value → ▬ (parity)");
+  ok(V.driverTone(drv({ valueM: -5 }), 100) === "neg", "negative value → ▼");
+
+  // (c) TYPED WINS, VERBATIM — including the two values a truthy check would silently swallow.
+  ok(V.driverValueM(drv({ valueM: -12 }), 100) === -12, "a typed NEGATIVE survives (the template's ($12,000))");
+  // ⚠ VACUOUS LOCK CAUGHT BY MUTATION, AND IT WAS MINE. The first draft asserted `drv({valueM: 0})` on the
+  // default fixture (`ourScore: 0.5`) — whose LEGACY fallback also evaluates to exactly 0. So swapping the
+  // finite-check for a truthy `if (d?.valueM)`, which swallows a typed zero, passed 3010/3010. The fixture
+  // now forces the two paths APART: typed 0 vs a fallback of 40. Enki flagged exactly this input.
+  ok(V.driverValueM(drv({ valueM: 0, ourScore: 0.9 }), 100) === 0,
+     "a typed ZERO survives — it is a legitimate answer, not 'unset' (fallback here would be 40)");
+  ok(V.driverValueM(drv({ valueM: 87.5 }), 100) === 87.5, "a typed value is returned unscaled — nothing multiplies it");
+  ok(V.driverValueM(drv({ importance: 0.5, ourScore: 0.9 }), 100) === 40,
+     "an UNTYPED driver falls back to the legacy geometry, so no seeded project renders blank");
+  ok(V.driverValueM(drv({ ourScore: 0.9 }), 0) === 0, "zero addressable revenue degrades to 0, never NaN");
+
+  // (d) `nbaScore` IS DEAD ON THE VALUE PATH. Odin's finding: a field left populated but unread gets revived,
+  //     and the new surface then disagrees with the waterfall silently. Proven by CHANGING it and requiring
+  //     nothing to move — a comment could never establish this.
+  const a = drv({ importance: 0.7, ourScore: 0.8, nbaScore: 0.1 });
+  const b = drv({ importance: 0.7, ourScore: 0.8, nbaScore: 0.9 });
+  ok(V.driverValueM(a, 100) === V.driverValueM(b, 100), "nbaScore does not move the bar — it is a dead seed");
+  ok(V.valueEquation([a], 100).competitiveIndex === V.valueEquation([b], 100).competitiveIndex,
+     "nbaScore does not move the competitive index either");
+
+  // (e) THE INDEX DISCRIMINATES — this is the assertion that was MISSING when the first formula shipped a
+  //     portfolio-wide 100.0. It must separate a clean project from one carrying a give-back.
+  const mk = (v) => drv({ importance: 1, valueM: v });
+  const ix = (ds) => V.valueEquation(ds, 100).competitiveIndex;
+  ok(ix([mk(50), mk(30)]) === 100, "all-positive → 100 (100% of value created is upside)");
+  ok(Math.abs(ix([mk(50), mk(-30)]) - 62.5) < 1e-9, "one give-back → 62.5 — the index RANKS, it does not pin");
+  ok(ix([mk(50), mk(-50)]) === 50, "balanced → 50 (parity)");
+  ok(ix([mk(-50)]) === 0, "all-negative → 0");
+  ok(ix([]) === 50 && V.valueEquation([], 0).evcUsdM === 0, "empty input → parity, never NaN");
+
+  // (f) EVC IS Σ OF THE DIFFERENTIATOR VALUES — the operator's own `I6 =SUM(I9:I52)`, not a weighted product.
+  const sum = V.valueEquation([mk(50), mk(-30), mk(10)], 100);
+  ok(Math.abs(sum.differentiationM - 30) < 1e-9, "differentiation = 50 − 30 + 10 = 30, a plain SUM of what was typed");
+  ok(sum.wins === 2 && sum.losses === 1, "wins/losses count the arrows, and the arrows count the signs");
+
+  // (g) WTP normalises ONCE, here, so the strip position and the capture split cannot each re-derive it.
+  ok(V.wtpUsd({ value: 12, basis: "perUnit", unit: "k" }) === 12_000, "WTP $K per unit → 12,000 USD");
+  ok(V.wtpUsd({ value: 3.5, basis: "total", unit: "m" }) === 3_500_000, "WTP $M total → 3,500,000 USD");
+  ok(V.wtpUsd(null) === 0 && V.wtpUsd(undefined) === 0, "an unentered WTP is 0, never NaN");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

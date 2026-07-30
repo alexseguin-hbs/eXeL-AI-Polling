@@ -290,8 +290,21 @@ export interface Project {
   revPlan?: RevPlan;                  // H42 — per-project QTY·ASP·COGS build-up + profile (High-Level ↔ Detailed)
   finPlan?: FinPlan;                  // S10 — the financial record. 11 calendar years, Rack & Stack 3-step model.
 }
-/** A single differentiator in the Value Equation — scored for customer importance and performance vs the NBA. */
-export interface ValueDriver { name: string; importance: number; ourScore: number; nbaScore: number }
+/** A single differentiator in the Value Equation. TWO inputs: a typed signed `valueM` (the bar) and a manual
+ *  `importance` (the 1-5 bars). vs-NBA is derived from the sign of `valueM` — see `driverTone`.
+ *
+ *  ⚠ `ourScore` / `nbaScore` ARE LEGACY SEEDS AND ARE NOT INPUTS. They stay on the record only so the 33
+ *  seeded projects need no migration, exactly as `Project.confidence` was kept by E0c. `nbaScore` is read
+ *  NOWHERE on the new path; `ourScore` is read ONLY as the fallback tone for a driver with no typed value.
+ *  Do not wire a new surface to either — it would disagree with the waterfall beside it, silently. */
+export interface ValueDriver {
+  name: string;
+  importance: number;   // 0..1 — MANUAL. Renders as 1-5 bars at 20% gradations (`importanceBars`).
+  valueM?: number;      // signed $M, TYPED. When present this IS the bar height; nothing scales it.
+  detail?: string;      // the template's "Differentiator Details" column.
+  ourScore: number;     // LEGACY seed — fallback tone only.
+  nbaScore: number;     // LEGACY seed — never read.
+}
 // Per-needs-segment value prop — a first-class reusable object (Bridge Slice 7 · Enki): segment name,
 // the pain it removes, the quantified outcome, and a confidence flag. pain/outcome/confidence optional
 // for back-compat with existing 2-field seeds.
@@ -3088,6 +3101,60 @@ const clamp01 = (n: number) => (Number.isFinite(n) ? Math.max(0, Math.min(1, n))
 //    competitive Next Best Alternative. Economic Value to Customer (EVC) vs the NBA. Pure + deterministic.
 
 export type DriverVerdict = "win" | "parity" | "loss";
+
+// ── W-1a · THE DIFFERENTIATOR MODEL, THE OPERATOR'S OWN METHOD ──────────────────────────────────────────
+// Their FLIR template types a signed dollar Δ per differentiator and rolls it up with a plain SUM
+// (`I6 =SUM(I9:I52)`); Customer Importance and Relative Performance are ICONS, never multipliers. This model
+// was the inverse — it DERIVED the dollars from `importance × (ourScore − nbaScore) × revenue`, a product
+// nobody can reconstruct in their head. Operator: "Just like excel, value vs NBA is number."
+//
+// TWO INPUTS PER DIFFERENTIATOR, and only two:
+//   · Value $M   — TYPED, signed. It IS the bar height. Nothing scales it.
+//   · Importance — MANUAL, a 1-5 bar pick. Operator: "Only vs-NBA is auto; Importance stays manual."
+// vs-NBA is NOT an input: it is the SIGN of the value, because it is the same fact. Deriving it is what
+// makes the arrow and the bar incapable of disagreeing — they are one function apart, not two judgements.
+
+/** Customer Importance as the template draws it: 1-5 bars, 20% gradations. Floored at 1 so a zero-importance
+ *  driver still renders a bar rather than vanishing. MANUAL — never derived from the value. */
+export const importanceBars = (n: number): 1 | 2 | 3 | 4 | 5 =>
+  Math.min(5, Math.max(1, Math.ceil(clamp01(n) * 5))) as 1 | 2 | 3 | 4 | 5;
+
+/** SUPERSEDED, kept exported because it is still the honest reading of a 0-100 position: 33% gradations.
+ *  The operator specified this when vs-NBA was going to BE a 0-100 slider; they have since ruled that the
+ *  arrow is "derived by actual value", so nothing on the tone path reaches it any more. Retained rather than
+ *  deleted because the Value-Pricing work may yet need a 0-100 → three-state reading, and because silently
+ *  dropping a rule the operator stated is how requirements get lost. */
+export const relPerfTone = (n: number): "neg" | "neutral" | "pos" =>
+  clamp01(n) < 1 / 3 ? "neg" : clamp01(n) < 2 / 3 ? "neutral" : "pos";
+
+/** The bar height, signed, in $M. Typed wins; an untyped driver falls back to the legacy geometry so the 33
+ *  seeded projects keep rendering. Note the fallback is centred at `ourScore = 0.5` (parity) rather than
+ *  reaching for `nbaScore` — the NBA score is a dead seed on this path and must not creep back in. */
+export function driverValueM(d: ValueDriver, addressableRevM: number): number {
+  if (typeof d?.valueM === "number" && Number.isFinite(d.valueM)) return d.valueM;
+  const rev = Number.isFinite(addressableRevM) && addressableRevM > 0 ? addressableRevM : 0;
+  return clamp01(d?.importance ?? 0) * (2 * clamp01(d?.ourScore ?? 0.5) - 1) * rev;
+}
+
+/** ONE function behind both the ▲▬▼ icon and the bar's colour, so the two can never contradict each other on
+ *  screen — the drift this whole workstream keeps closing, applied before it can happen.
+ *
+ *  Operator, verbatim: "▲/▬/▼ is derived by actual value if positive up green arrow, 0 equal or line sunset
+ *  colour, down arrow red if number is negative." ONE rule, no branch: the sign of the differentiator's own
+ *  dollars. A typed driver and a legacy one are read the same way, so there is no second code path to drift. */
+export const driverTone = (d: ValueDriver, addressableRevM: number): "neg" | "neutral" | "pos" => {
+  const v = driverValueM(d, addressableRevM);
+  return v > 0 ? "pos" : v < 0 ? "neg" : "neutral";
+};
+
+/** Willingness to pay. Operator: "Price or Price per unit is selectable in toggle on value prop, also enable
+ *  unit ($, k$, M$)." Normalised to plain USD once, here, so the strip position, the capture split and any
+ *  comparison against S10's ASP all read the SAME number instead of each re-deriving it. */
+export interface WtpValue { value: number; basis: "total" | "perUnit"; unit: "usd" | "k" | "m" }
+export const WTP_UNIT_MULT: Record<WtpValue["unit"], number> = { usd: 1, k: 1_000, m: 1_000_000 };
+export const wtpUsd = (w?: WtpValue | null): number =>
+  w && Number.isFinite(w.value) ? w.value * WTP_UNIT_MULT[w.unit] : 0;
+
 export interface ValueEquationRow { name: string; importance: number; deltaVsNba: number; weighted: number; verdict: DriverVerdict }
 export interface ValueEquationResult {
   perDriver: ValueEquationRow[];
@@ -3111,18 +3178,33 @@ export function valueEquation(drivers: ValueDriver[], addressableRevM: number): 
   if (clean.length === 0) {
     return { perDriver: [], competitiveIndex: 50, evcUsdM: referenceM, referenceM, differentiationM: 0, wins: 0, losses: 0 };
   }
-  let wSum = 0, wDelta = 0, differentiationM = 0, wins = 0, losses = 0;
+  let posM = 0, negM = 0, differentiationM = 0, wins = 0, losses = 0;
   const perDriver: ValueEquationRow[] = clean.map((d) => {
-    const imp = clamp01(d.importance), ours = clamp01(d.ourScore), nba = clamp01(d.nbaScore);
-    const deltaVsNba = ours - nba;
-    const weighted = imp * deltaVsNba * rev; // $M this driver adds vs the NBA
-    wSum += imp; wDelta += imp * deltaVsNba; differentiationM += weighted;
-    const verdict: DriverVerdict = deltaVsNba > 0.1 ? "win" : deltaVsNba < -0.1 ? "loss" : "parity";
+    // W-1a · THE BAR IS THE TYPED NUMBER. `driverValueM` returns `valueM` verbatim when present and falls
+    // back to the legacy geometry otherwise, so no seeded project blanks. `nbaScore` is NOT read here.
+    const imp = clamp01(d.importance);
+    const weighted = driverValueM(d, rev);           // $M this differentiator is worth — signed
+    const tone = driverTone(d, rev);                 // ONE source for the ▲▬▼ icon AND this verdict
+    const sign = tone === "pos" ? 1 : tone === "neg" ? -1 : 0;
+    if (weighted > 0) posM += weighted; else negM += -weighted;
+    differentiationM += weighted;
+    const verdict: DriverVerdict = tone === "pos" ? "win" : tone === "neg" ? "loss" : "parity";
     if (verdict === "win") wins++; else if (verdict === "loss") losses++;
-    return { name: d.name || "Driver", importance: imp, deltaVsNba, weighted, verdict };
+    // `deltaVsNba` is kept on the row for back-compat with existing readers, expressed as the tone's sign
+    // rather than the retired `ours − nba` so nothing downstream reads a quantity that no longer has inputs.
+    return { name: d.name || "Driver", importance: imp, deltaVsNba: sign, weighted, verdict };
   });
-  const meanDelta = wSum > 0 ? wDelta / wSum : 0; // importance-weighted mean advantage vs NBA (−1..1)
-  const competitiveIndex = Math.max(0, Math.min(100, 50 + 50 * meanDelta));
+  // COMPETITIVE INDEX = the share of value that is UPSIDE: 50 + 50 × (Σ⁺ − Σ⁻) / Σ|value|.
+  //
+  // ⚠ TWO ATTEMPTS, BOTH MEASURED BEFORE SHIPPING, AND THE SECOND FOUND THE REAL CAUSE. Weighting the
+  // ARROWS — importance-weighted mean of +1/0/−1 — put all 33 seeded projects at exactly 100.0. Switching to
+  // the DOLLARS did not move it, which is the useful finding: the formula was never the problem. NOT ONE
+  // SEEDED DRIVER WAS NEGATIVE, so every share-of-value measure is 1.0 by construction. The old 65-79 spread
+  // came from a bounded 0-1 score axis that no longer exists, not from any real give-back in the data.
+  // Fixed where the defect actually lives — `derivedDriversOf` now backfills a give-back, exactly as the
+  // operator's own reference chart carries KD8 −12 and KD9 −11 beside its winners.
+  const scaleM = posM + negM;
+  const competitiveIndex = Math.max(0, Math.min(100, scaleM > 0 ? 50 + 50 * ((posM - negM) / scaleM) : 50));
   return { perDriver, competitiveIndex, evcUsdM: referenceM + differentiationM, referenceM, differentiationM, wins, losses };
 }
 
@@ -3135,11 +3217,16 @@ export function derivedDriversOf(p: Project): ValueDriver[] {
   const b = briefOf(p);
   const base = relPerformanceOf(p), imp0 = custImportanceOf(p);
   const names = (b.solution.length ? b.solution : [`${p.name} capability`]).slice(0, 3);
+  // UNCHANGED BY W-1a, DELIBERATELY. A give-back was drafted here and REVERTED: all 33 demo projects carry
+  // hand-seeded `valueDrivers`, so this backfill is unreachable for them and the edit was inert complexity
+  // dressed as a fix. The competitive index reading 100 across the portfolio is a property of the SEEDS —
+  // every authored driver has `ourScore > nbaScore`, i.e. not one give-back in 101 — not of the formula.
+  // Fabricating downside here would have hidden that behind a number that looked plausible.
   return names.map((name, i) => ({
     name: name.length > 40 ? name.slice(0, 38) + "…" : name,
     importance: clamp01(imp0 + 0.05 - 0.08 * i),
     ourScore: clamp01(base + 0.08 - 0.06 * i),
-    nbaScore: clamp01(base - (0.35 - 0.05 * i)),
+    nbaScore: clamp01(base - (0.35 - 0.05 * i)),   // LEGACY seed — never read. Kept so no migration is needed.
   }));
 }
 
