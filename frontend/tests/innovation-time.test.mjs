@@ -1683,10 +1683,21 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   //     Margin % on the standard sheet. Counted, so "make it fit" can never silently trade a row away again.
   const revTable = pageSrc.slice(pageSrc.indexOf("function S10RevenueTable("), pageSrc.indexOf("function AmtsPanel("));
   const bandFn = revTable.slice(revTable.indexOf("const band ="), revTable.indexOf("return ("));
-  for (const row of ["Quantity", "Revenue", "Margin", "Margin %"]) {
+  // SIX rows per band since 2026-07-30: the operator asked for QTY, COGS and ASP on the sheet itself, so a
+  // board can audit the QTY x ASP build-up instead of taking Revenue and Margin on faith. ASP is DERIVED
+  // (MSRP net of the distribution discount) — shown, never typed.
+  for (const row of ["Quantity", "ASP", "COGS", "Revenue", "Margin", "Margin %"]) {
     ok(bandFn.includes(`label: "${row}"`), `every revenue band renders a ${row} row`);
   }
-  ok(/groupSpan: 4/.test(bandFn), "each band's four rows share ONE gutter label instead of a full-width header row");
+  ok(/label: "ASP", cells: ys\.map\(\(y\) => finFmtK\(aspOf\(y\[key\]\)\)\)/.test(bandFn),
+     "the ASP row is computed by aspOf — MSRP net of discount, never a typed field");
+  ok(/groupSpan: 6/.test(bandFn), "each band's six rows share ONE gutter label instead of a full-width header row");
+  // 3 bands x 6 + Combined 5 + a column header is 24 rows on a sheet that cannot grow, so the two panels no
+  // longer split the body evenly — an even split silently scrolled Margin % and YoY Growth out of sight.
+  ok(/const BODY_ROWS: Record<string, string> = \{ S10: "minmax\(0, 10fr\) minmax\(0, 24fr\)" \};/.test(pageSrc),
+     "the S10 body sizes its two panels by the rows they actually carry, not 50/50");
+  ok(/gutter dense/.test(revTable) && /<S10Grid\n        dense/.test(pageSrc),
+     "both S10 tables use the dense type step — one size across the slide, and the only way 24 rows fit");
   for (const row of ["Quantity (net)", "Revenue", "Margin", "Margin %", "YoY Growth"]) {
     ok(revTable.includes(`label: "${row}"`), `Combined: Incremental renders a ${row} row`);
   }

@@ -3420,7 +3420,7 @@ const finFmtQty = (n: number): string => (n === 0 ? "—" : n.toLocaleString());
  *  reads closer to the Rack & Stack reference, where the band name sits in the gutter beside its numbers. */
 type S10Row = { label: string; cells: string[]; strong?: boolean; band?: boolean; group?: string; groupSpan?: number; tint?: string };
 
-function S10Grid({ head, rows, accent, gutter }: { head: string[]; rows: S10Row[]; accent?: string; gutter?: boolean }) {
+function S10Grid({ head, rows, accent, gutter, dense }: { head: string[]; rows: S10Row[]; accent?: string; gutter?: boolean; dense?: boolean }) {
   // A `rowSpan` cell already OCCUPIES the gutter column for the rows beneath it. Emitting a placeholder <td>
   // in those rows pushes their whole line one column right, so Quantity lined up one column left of Revenue
   // and the last year fell off the sheet. Mark the covered rows and emit nothing for them.
@@ -3428,12 +3428,12 @@ function S10Grid({ head, rows, accent, gutter }: { head: string[]; rows: S10Row[
   rows.forEach((r, i) => { for (let k = 1; k < (r.groupSpan ?? 0); k++) covered.add(i + k); });
   return (
     <div className="min-h-0 overflow-auto">
-      <table className="w-full border-collapse" style={{ fontSize: TS.num }}>
+      <table className="w-full table-fixed border-collapse" style={{ fontSize: dense ? TS.micro : TS.num }}>
         <thead>
           <tr>
-            {gutter && <th className="sticky left-0 z-10 bg-[#0b0f14]" />}
+            {gutter && <th className="sticky left-0 z-10 w-[8.5cqw] bg-[#0b0f14]" />}
             {/* The row-label column is sticky so eleven years can scroll on a phone without losing what the row IS. */}
-            <th className={`sticky ${gutter ? "left-[7.5cqw]" : "left-0"} z-10 bg-[#0b0f14] px-[0.5cqw] py-[0.2cqh] text-left font-semibold text-slate-400`} style={{ fontSize: TS.micro }}>{head[0]}</th>
+            <th className={`sticky ${gutter ? "left-[8.5cqw]" : "left-0"} z-10 w-[7cqw] bg-[#0b0f14] px-[0.5cqw] py-[0.2cqh] text-left font-semibold text-slate-400`} style={{ fontSize: TS.micro }}>{head[0]}</th>
             {head.slice(1).map((h) => (
               <th key={h} className="px-[0.5cqw] py-[0.2cqh] text-right font-mono font-semibold text-cyan-300/90 tabular-nums" style={{ fontSize: TS.micro }}>{h}</th>
             ))}
@@ -3443,10 +3443,10 @@ function S10Grid({ head, rows, accent, gutter }: { head: string[]; rows: S10Row[
           {rows.map((r, ri) => (
             <tr key={`${r.group ?? ""}:${r.label}:${ri}`} className={r.band ? "bg-cyan-500/10" : ""} style={r.band && accent ? { background: accent } : undefined}>
               {gutter && r.groupSpan ? (
-                <td rowSpan={r.groupSpan} className="sticky left-0 z-10 w-[7.5cqw] border-r border-slate-800 bg-[#0b0f14] pr-[0.4cqw] align-middle text-left font-semibold leading-tight text-slate-200"
+                <td rowSpan={r.groupSpan} className="sticky left-0 z-10 w-[8.5cqw] break-words border-r border-slate-800 bg-[#0b0f14] pr-[0.4cqw] align-middle text-left font-semibold leading-tight text-slate-200"
                     style={{ fontSize: TS.micro, background: r.tint }}>{r.group}</td>
               ) : gutter && !covered.has(ri) ? <td className="sticky left-0 z-10 bg-[#0b0f14]" /> : null}
-              <td className={`sticky ${gutter ? "left-[7.5cqw]" : "left-0"} z-10 px-[0.5cqw] py-[0.15cqh] text-left ${r.band ? "font-semibold text-slate-100" : r.strong ? "font-semibold text-slate-200" : "text-slate-400"} ${r.band ? "" : "bg-[#0b0f14]"}`}
+              <td className={`sticky ${gutter ? "left-[8.5cqw]" : "left-0"} z-10 px-[0.5cqw] ${dense ? "py-0 leading-tight" : "py-[0.15cqh]"} text-left ${r.band ? "font-semibold text-slate-100" : r.strong ? "font-semibold text-slate-200" : "text-slate-400"} ${r.band ? "" : "bg-[#0b0f14]"}`}
                   style={r.band && accent ? { background: accent } : undefined}>{r.label}</td>
               {r.cells.map((c, i) => (
                 <td key={i} className={`px-[0.5cqw] py-[0.15cqh] text-right font-mono tabular-nums ${r.strong ? "font-semibold text-slate-100" : "text-slate-300"}`}>{c}</td>
@@ -3470,6 +3470,7 @@ function S10SpendTable({ p, baseYear }: { p: Project; baseYear: number }) {
   return (
     <>
       <S10Grid
+        dense
         head={["$K", ...ys.map((y) => yearLabel(y.year))]}
         rows={[
           { label: "Total", cells: col(spendTotalK), strong: true },
@@ -3500,10 +3501,17 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
   // Quantity and Margin %. The overflow is solved by the LAYOUT instead: the band name moved into a left
   // gutter spanning its four rows (recovering four full-width header rows) and row padding tightened, so a
   // row the operator asked for is never traded away to make the sheet fit.
+  // SIX ROWS PER BAND (operator, 2026-07-30, from a live screenshot: "For S10, we need rows for QTY, COGS,
+  // ASP"). ASP is DERIVED — MSRP net of the distribution discount — so it is shown, never typed; that is the
+  // whole reason Rack & Stack Step 1b takes four inputs and not three. Revenue and Margin follow from
+  // QTY x ASP and QTY x (ASP - COGS), so the sheet now prints the build-up a board can actually audit
+  // instead of two totals it has to take on faith.
   const band = (key: "neu" | "don" | "dec", label: string, tint: string): S10Row[] => {
     const on = f.unitEcon[key];
     return [
-      { group: label, groupSpan: 4, tint, label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
+      { group: label, groupSpan: 6, tint, label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
+      { label: "ASP", cells: ys.map((y) => finFmtK(aspOf(y[key]))) },
+      { label: "COGS", cells: ys.map((y) => finFmtK(y[key].cogsK)) },
       { label: "Revenue", cells: ys.map((y) => finFmtK(bandRevK(y[key], on))) },
       { label: "Margin", cells: ys.map((y) => finFmtK(bandMgnK(y[key], on))) },
       { label: "Margin %", cells: ys.map((y) => finFmtPct(bandMgnPct(y[key], on))) },
@@ -3511,7 +3519,7 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
   };
   return (
     <S10Grid
-      gutter
+      gutter dense
       head={["", ...ys.map((y) => yearLabel(y.year))]}
       rows={[
         ...band("don", "Do Nothing: Existing", "rgba(100,116,139,.14)"),
@@ -3777,6 +3785,13 @@ function S10FinEditor({ p, baseYear, onEdit }: {
     </div>
   );
 }
+
+// PANELS ARE NOT ALWAYS EQUAL. The body grid gives every row the same height, which is right for two panels
+// of similar weight and wrong for S10, where R&D Spend needs 7 rows and R&D Revenues needs 24. An even split
+// pushed Margin % and YoY Growth off the bottom of the revenue table — present in the DOM, scrollable, and
+// therefore invisible on a printed board, which is the worst of both worlds. Sizing the rows by the content
+// they actually carry is the fix; anything else is shrinking type to pay for wasted space above it.
+const BODY_ROWS: Record<string, string> = { S10: "minmax(0, 10fr) minmax(0, 24fr)" };
 
 function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
@@ -4477,7 +4492,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 elements. At zoom === 1 the measured geometry is byte-identical to before. Print forces 1. */}
             <div data-slide-zoom className={`mt-[1.2cqh] min-h-0 flex-1 ${zoomOn ? "overflow-auto" : "overflow-hidden"}`}>
               <div style={zoomOn ? { transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%`, height: `${100 / zoom}%` } : undefined} className="h-full">
-                <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body }}>
+                <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body, ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}) }}>
                   {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
                   {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
                 </div>
