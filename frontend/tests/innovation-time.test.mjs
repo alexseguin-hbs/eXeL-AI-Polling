@@ -1529,6 +1529,49 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(pkg.scripts["test:all"].includes("npm run test:slide-shots"), "test:all runs the screenshot gate");
 }
 
+// ── INPUT LOCKDOWN · S10 is the ONLY slide that accepts financial input ──────────────────
+// The operator photographed S3, S8 and S10 all showing revenue and asked why there is no single place to enter
+// it. The cause was one condition: the source panel — the WHOLE planning editor (NRE, 10-yr revenue, do-nothing,
+// upside accelerator, confidence, tech/comm risk, program start, revenue plan) — opened on any slide that had a
+// `linked` field OR a FIN_FIELDS entry. That is NINE slides: S2 S3 S8 S9 S10 S14 S16 CS RA. Nine doors into one
+// record is how one figure gets typed three different ways.
+//
+// These assert the PROPERTY (exactly one slide takes input), not the spelling of the condition — the mistake the
+// ScopeFilter lock above made. Cardinality is checked by counting, so widening the gate ANY way fails it.
+{
+  const fsp = await import("node:fs/promises");
+  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+
+  // 1. The gate names exactly one slide code, and it is S10.
+  const gate = src.match(/\{onEditSource && ([^\n]*?) && \(\(\) => \{/);
+  ok(!!gate, "the source-panel gate is still a single inline condition (shape unchanged)");
+  ok(gate?.[1] === 'spec.code === "S10"',
+     `the source panel opens on S10 and nothing else — found: ${gate?.[1]}`);
+  // Widening it back via either old trigger must fail here, by name.
+  ok(!/onEditSource && [^\n]*f\.linked/.test(src),
+     "the gate no longer keys off `linked` — that flag makes a field READ-ONLY derived, it must not grant input");
+  ok(!/onEditSource && [^\n]*hasOwnProperty\.call\(FIN_FIELDS/.test(src),
+     "the gate no longer keys off FIN_FIELDS membership either");
+
+  // 2. FIN_FIELDS has exactly one key, matching the gate. Two conditions that can disagree is the original bug.
+  const fin = src.match(/const FIN_FIELDS: Record<string, string\[\]> = \{([^}]*)\}/s);
+  ok(!!fin, "FIN_FIELDS is still declared as an object literal");
+  const finKeys = [...(fin?.[1] ?? "").matchAll(/(\bS\d+|\bCS|\bRA)\s*:/g)].map((m) => m[1]);
+  ok(finKeys.length === 1 && finKeys[0] === "S10",
+     `FIN_FIELDS carries exactly one slide, S10 — found: [${finKeys.join(", ")}]`);
+
+  // 3. `linked` STAYS. Removing it does not lock input down — it turns derived charts and metric blocks into
+  //    free-text editable tables, which is the opposite of a single source. Count it so a "cleanup" can't strip it.
+  const dataSrc = await fsp.readFile("lib/innovation-data.ts", "utf8");
+  const linkedCount = (dataSrc.match(/linked: true/g) ?? []).length;
+  ok(linkedCount >= 11,
+     `every derived field keeps \`linked: true\` (read-only display) — found ${linkedCount}, expected >= 11`);
+
+  // 4. Off S10 the affordance is a deep link, not a dead button or a hole.
+  ok(/const S10_IDX = SLIDE_SCHEMA\.findIndex/.test(src) && /if \(!here && S10_IDX >= 0\) setIdx\(S10_IDX\)/.test(src),
+     "off S10, Edit-source navigates TO S10 and opens the panel — the user is never stranded");
+}
+
 // ── #4 + #17 · PRINT MODE — the board artifact ──────────────────────────────────────────
 // White page, coloured banners, black/grey text; the WHOLE deck (cover + every slide) through the SAME
 // renderer the projector uses; a cover and a per-page footer that carry provenance; no new dependency.
