@@ -2687,6 +2687,30 @@ const cap1 = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : "");
 /** A trace group row: heading in cell 0, everything else empty. */
 export const isTraceGroupRow = (row: string[]) => !!row[0] && row.slice(1).every((c) => !c || !c.trim());
 
+// ═══ SOURCE REGISTRY — the ONE answer to "where is this typed?" ═══════════════════════════════
+// INV-1 (one door): for every input record exactly one slide accepts typing; every other surface that shows
+// it is read-only and carries an Edit-Source control that NAVIGATES to that slide. Before this table the
+// answer lived in three places that could drift — a hardcoded `spec.code === "S10"` gate, a separate
+// FIN_FIELDS literal, and a `SourceLink` that always jumped to S10 no matter which record you were looking
+// at. One table, three readers. Adding a third source is a row here, not a fourth condition over there.
+export const SOURCE_SLIDE: Record<string, string> = {
+  // Value proposition — S8 owns it. It already carries the NBA and the Value Equation the prop is argued
+  // from, so the claim sits beside its evidence (operator: "we can only have one model value prop; gut says S8").
+  "S1.valueprop": "S8", "S6.desc": "S8", "S8.vprop": "S8", "S8.nba": "S8", "S8.diffs": "S8",
+  "S8.capture": "S8", "S8.valuechart": "S8",
+  // Money — S10 owns it. Eleven calendar years of spend + the three revenue bands.
+  "S2.profile": "S10", "S2.accel": "S10", "S3.profile": "S10", "S3.revtable": "S10", "S3.rdchart": "S10",
+  "S10.spend": "S10", "S10.scenarios": "S10", "S10.conf": "S10",
+};
+/** The set of slides that own an input record — i.e. the only codes allowed to render a source panel. */
+export const SOURCE_CODES: string[] = Array.from(new Set(Object.values(SOURCE_SLIDE)));
+export const isSourceSlide = (code: string): boolean => SOURCE_CODES.includes(code);
+/** Which slide owns this field's record? `null` when the field is authored in place (no deep link needed). */
+export const sourceSlideOf = (code: string, fieldId: string): string | null =>
+  SOURCE_SLIDE[`${code}.${fieldId}`] ?? null;
+/** True when the field IS on its owning slide — the Edit-Source control says "Edit source", not "Edit on S8". */
+export const isOwnSource = (code: string, fieldId: string): boolean => sourceSlideOf(code, fieldId) === code;
+
 /** Linked field value — read live from the project record so the deck can never disagree with the gate. */
 export function linkedSlideField(p: Project, code: string, fieldId: string): SlideFieldValue {
   const fm = financialMetrics(p);

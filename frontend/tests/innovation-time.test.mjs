@@ -1556,20 +1556,32 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 1. The gate names exactly one slide code, and it is S10.
   const gate = src.match(/\{onEditSource && ([^\n]*?) && \(\(\) => \{/);
   ok(!!gate, "the source-panel gate is still a single inline condition (shape unchanged)");
-  ok(gate?.[1] === 'spec.code === "S10"',
-     `the source panel opens on S10 and nothing else — found: ${gate?.[1]}`);
+  const gateCodes = [...(gate?.[1] ?? "").matchAll(/"(S\d+|CS|RA)"/g)].map((m) => m[1]);
+  ok(new Set(gateCodes).size === 1 && gateCodes[0] === "S10",
+     `the money source panel opens on S10 and nothing else — found: [${gateCodes.join(", ")}]`);
   // Widening it back via either old trigger must fail here, by name.
   ok(!/onEditSource && [^\n]*f\.linked/.test(src),
      "the gate no longer keys off `linked` — that flag makes a field READ-ONLY derived, it must not grant input");
   ok(!/onEditSource && [^\n]*hasOwnProperty\.call\(FIN_FIELDS/.test(src),
      "the gate no longer keys off FIN_FIELDS membership either");
 
-  // 2. FIN_FIELDS has exactly one key, matching the gate. Two conditions that can disagree is the original bug.
-  const fin = src.match(/const FIN_FIELDS: Record<string, string\[\]> = \{([^}]*)\}/s);
-  ok(!!fin, "FIN_FIELDS is still declared as an object literal");
-  const finKeys = [...(fin?.[1] ?? "").matchAll(/(\bS\d+|\bCS|\bRA)\s*:/g)].map((m) => m[1]);
-  ok(finKeys.length === 1 && finKeys[0] === "S10",
-     `FIN_FIELDS carries exactly one slide, S10 — found: [${finKeys.join(", ")}]`);
+  // 2. F0 · ONE TABLE ANSWERS "where is this typed?". FIN_FIELDS is gone; `SOURCE_SLIDE` replaced it, and this
+  //    block EXECUTES the registry rather than grepping a literal. Two conditions that can disagree was the
+  //    original bug, so the property under test is that there is only one condition left to disagree with.
+  const D = await import("../lib/innovation-data.ts");
+  ok(!/const FIN_FIELDS/.test(src), "FIN_FIELDS is retired — SOURCE_SLIDE is the only routing table");
+  ok(D.SOURCE_CODES.length >= 1 && D.SOURCE_CODES.every((c) => D.SLIDE_SCHEMA.some((s) => s.code === c)),
+     `every owning code in SOURCE_SLIDE is a real slide — [${D.SOURCE_CODES.join(", ")}]`);
+  ok(Object.keys(D.SOURCE_SLIDE).every((k) => /^(S\d+|CS|RA)\.[a-z0-9]+$/i.test(k)),
+     "every SOURCE_SLIDE key is a `S##.field` reference, never a bare code");
+  // The two records this work exists to unify, asserted by routing rather than by comment.
+  ok(D.sourceSlideOf("S1", "valueprop") === "S8" && D.sourceSlideOf("S6", "desc") === "S8" && D.sourceSlideOf("S8", "vprop") === "S8",
+     "the value proposition is owned by S8 — all three renderings route to one editor");
+  ok(D.sourceSlideOf("S3", "revtable") === "S10" && D.sourceSlideOf("S2", "profile") === "S10" && D.sourceSlideOf("S10", "spend") === "S10",
+     "the money record is owned by S10 — the S3/S8/S10 revenue the operator photographed routes to one editor");
+  ok(D.isOwnSource("S8", "vprop") && !D.isOwnSource("S1", "valueprop"),
+     "isOwnSource distinguishes the owning slide from a rendering of it (Edit source vs Edit on S8)");
+  ok(D.sourceSlideOf("S11", "voc") === null, "a field authored in place has no owner and therefore no deep link");
 
   // 3. `linked` STAYS. Removing it does not lock input down — it turns derived charts and metric blocks into
   //    free-text editable tables, which is the opposite of a single source. Count it so a "cleanup" can't strip it.
@@ -1578,9 +1590,32 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(linkedCount >= 11,
      `every derived field keeps \`linked: true\` (read-only display) — found ${linkedCount}, expected >= 11`);
 
-  // 4. Off S10 the affordance is a deep link, not a dead button or a hole.
-  ok(/const S10_IDX = SLIDE_SCHEMA\.findIndex/.test(src) && /if \(!here && S10_IDX >= 0\) setIdx\(S10_IDX\)/.test(src),
-     "off S10, Edit-source navigates TO S10 and opens the panel — the user is never stranded");
+  // 4. Off the owning slide the affordance is a deep link, not a dead button or a hole — and the target is
+  //    RESOLVED from the registry, not a hardcoded index. `const S10_IDX` is exactly the constant that made
+  //    every Edit-Source button point at the money editor no matter which record you were reading.
+  ok(!/const S10_IDX\b/.test(src), "the hardcoded S10 index is gone — the deep-link target is resolved per field");
+  ok(/const owner = target \?\? \(code && fieldId \? sourceSlideOf\(code, fieldId\) : null\)/.test(src),
+     "SourceLink resolves its target from SOURCE_SLIDE, so Edit Source lands on the right S##");
+  ok(/if \(!here && oi >= 0\) setIdx\(oi\)/.test(src),
+     "off the owning slide, Edit-source navigates TO it and opens the panel — the user is never stranded");
+
+  // 5. F0 · NO EDIT-SOURCE BUTTON MAY POINT AT A SLIDE WITH NO EDITOR. This is the defect the commit repairs:
+  //    ProjectDetail's two financial-edit controls deep-linked to S3 with `openSource`, and S3 stopped having a
+  //    panel the moment input was locked to S10 — both buttons became no-ops. A button is only drawn when its
+  //    target is in SOURCE_PANEL_CODES, and the deep link reads the registry instead of naming a slide.
+  ok(/const SOURCE_PANEL_CODES = \[/.test(src) && /const panelExists = \(code: string\) =>/.test(src),
+     "the set of codes that actually RENDER a source panel is declared, separately from who owns the record");
+  ok(/const hasSourceLink = \(code: string, fid: string\) => \{ const o = sourceSlideOf\(code, fid\); return !!o && panelExists\(o\); \}/.test(src),
+     "an Edit-Source button is drawn only when its target has an editor behind it");
+  ok(!/<SlideShowModal p=\{p\} startSlide="S3" openSource/.test(src),
+     "the financials deep-link no longer lands on S3, which has had no source panel since the lockdown");
+  ok(/\{finDeck && <SlideShowModal p=\{p\} startSlide=\{sourceSlideOf\(/.test(src),
+     "the financials deep-link resolves its slide from SOURCE_SLIDE, so it cannot drift from the panel gate again");
+  // Every SourceLink render site is guarded — an unguarded one is how a dead button gets back in.
+  const renders = [...src.matchAll(/<SourceLink /g)].length;
+  const guarded = [...src.matchAll(/(hasSourceLink\([^)]*\) && <SourceLink |<SourceLink source="Program start \(source record\)" target="S10")/g)].length;
+  ok(renders === guarded,
+     `every SourceLink render is guarded by hasSourceLink or an explicit target — ${guarded}/${renders}`);
 }
 
 // ── S10 · FINANCIAL INPUT MODEL — arithmetic, not shape ─────────────────────────────────

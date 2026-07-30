@@ -26,6 +26,7 @@ import {
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
+  sourceSlideOf,
   DISCIPLINES, disciplineLabel, storyReqId, DISCIPLINE_MAX,
   STORY_MATURITY, isStoryGroupRow, storyTableRows, TRACE_COLS, isTraceGroupRow, traceRowsOf, designOutputId,
   fitHeader, HEADER_NAME_BUDGET, HEADER_NAME_FLOOR, HEADER_TITLE_BUDGET, HEADER_TITLE_FLOOR,
@@ -1338,7 +1339,7 @@ function FinancialsOverviewTable({ p, onEdit }: { p: Project; onEdit?: () => voi
         <div className="text-[10px] uppercase tracking-wider text-slate-500">Project Financials Overview · 10-yr (Revenue · Margin · R&D)</div>
         {/* F2 — one-tap financial edit access from the Financials Overview header (opens the shared source editor). */}
         {onEdit && (
-          <button onClick={onEdit} title="Edit financials — opens the Revenue Plan source editor" aria-label="Edit financials"
+          <button onClick={onEdit} title="Edit financials — opens S10, the single source of truth, with its source panel expanded" aria-label="Edit financials"
             className="shrink-0 rounded border border-cyan-500/40 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/10">✎ Financials</button>
         )}
       </div>
@@ -2352,9 +2353,12 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
   ];
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
-      {/* F2 — shared financial source editor: one tap from the dog-tag / overview / slide opens the SAME
-          Rev-Plan editor (deep-links to S3 with the source panel expanded). "user should know where to edit." */}
-      {finDeck && <SlideShowModal p={p} startSlide="S3" openSource onEditSource={onEdit} onClose={() => setFinDeck(false)} />}
+      {/* F0 — shared financial source editor: one tap from the dog-tag / overview / slide opens the SAME
+          editor, deep-linked to the slide that OWNS the money record with its source panel expanded.
+          This said S3 until now, which stopped working the moment the source panel was gated to S10 — both
+          entry points landed on a slide with no editor and nothing happened. The target is read from
+          SOURCE_SLIDE so it can never drift from the panel gate again. */}
+      {finDeck && <SlideShowModal p={p} startSlide={sourceSlideOf("S10", "spend") ?? "S10"} openSource onEditSource={onEdit} onClose={() => setFinDeck(false)} />}
       {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
       <div className="mb-3"><DogTag p={p} onEditFinancials={openFinancials} /></div>
       {/* Under the dog tag: consistency (left) · Outcome brief (center) · expand/collapse (upper-right).
@@ -3782,23 +3786,31 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // (financialMetrics/financialsOverview read p.nreK; S10 spend + S14 resources trace to the same number).
   // Every financial/resource field carries a direct icon-link to edit that ONE record; edits propagate to
   // every derived surface in real time via React state (no duplicate sources anywhere).
-  // S10 ONLY. This map used to carry S2/S3/S14 as well, which — together with any `linked` field — is what
-  // opened the planning editor on nine different slides. It now has exactly one key, matching the source-panel
-  // gate below, so "which slide takes input" has ONE answer in ONE place instead of two conditions that can drift.
-  const FIN_FIELDS: Record<string, string[]> = { S10: ["spend", "scenarios", "conf"] };
-  const isFinField = (code: string, fid: string) => (FIN_FIELDS[code] ?? []).includes(fid);
-  const S10_IDX = SLIDE_SCHEMA.findIndex((s) => s.code === "S10");
-  // Off S10 this is a DEEP LINK, not a dead button. The editor moved; the way in must not disappear with it, or
-  // a user standing on S3 wondering where NPV comes from has nowhere to go. Jump to S10, open the panel there.
-  const SourceLink = ({ source }: { source?: string }) => {
-    const here = spec.code === "S10";
+  // WHICH SLIDE TAKES INPUT has ONE answer, and it is `SOURCE_SLIDE` (innovation-data.ts). This used to be
+  // three literals that could drift: a FIN_FIELDS map, a hardcoded `spec.code === "S10"` panel gate, and a
+  // SourceLink that always jumped to S10 whatever record you were looking at. All three now read the table,
+  // so a field's Edit-Source control lands on the slide that actually owns it (operator: "Edit Source that
+  // takes user to the right S## to edit").
+  // Codes that actually RENDER a source panel today. `SOURCE_SLIDE` says who owns a record; this says whose
+  // editor is built. An Edit-Source button is only drawn when its target can actually be typed into — the
+  // whole defect this commit repairs was a button pointing at a slide with no editor behind it.
+  const SOURCE_PANEL_CODES = ["S10"];
+  const panelExists = (code: string) => SOURCE_PANEL_CODES.includes(code);
+  const hasSourceLink = (code: string, fid: string) => { const o = sourceSlideOf(code, fid); return !!o && panelExists(o); };
+  const idxOfCode = (code: string) => SLIDE_SCHEMA.findIndex((s) => s.code === code);
+  // Off the owning slide this is a DEEP LINK, not a dead button. The editor moved; the way in must not
+  // disappear with it, or a user standing on S3 wondering where NPV comes from has nowhere to go.
+  const SourceLink = ({ source, code, fieldId, target }: { source?: string; code?: string; fieldId?: string; target?: string }) => {
+    const owner = target ?? (code && fieldId ? sourceSlideOf(code, fieldId) : null) ?? "S10";
+    const here = spec.code === owner;
+    const oi = idxOfCode(owner);
     return (
-      <button onClick={() => { setPresent(false); if (!here && S10_IDX >= 0) setIdx(S10_IDX); setSrcOpen(true); }}
+      <button onClick={() => { setPresent(false); if (!here && oi >= 0) setIdx(oi); setSrcOpen(true); }}
         title={here
-          ? "Edit the single source of truth — R&D spend, revenue, margin. Updates everywhere in real time."
-          : "Financials are entered on S10 — the single source of truth. Opens S10 with the editor expanded."}
+          ? `Edit the single source of truth — ${owner} owns this record. Updates everywhere in real time.`
+          : `This is entered on ${owner} — the single source of truth. Opens ${owner} with the editor expanded.`}
         className="mt-2 inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20">
-        <span aria-hidden>◈</span> {here ? "Edit source" : "Edit on S10"}{source ? `: ${source}` : ""} <span aria-hidden>→</span>
+        <span aria-hidden>◈</span> {here ? "Edit source" : `Edit on ${owner}`}{source ? `: ${source}` : ""} <span aria-hidden>→</span>
       </button>
     );
   };
@@ -3824,8 +3836,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         {!bare && <Banner />}
         <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}><ChartFrame label={f.name}>
           <MiniFinChart kind={sp.code} big={big} />
-          {/* Direct link to the single source of truth that feeds this chart/table. */}
-          <SourceLink source={sp.source} />
+          {/* Direct link to the slide that owns the record feeding this chart — drawn only when that slide
+              actually has an editor, so the button can never be a no-op. */}
+          {hasSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
         </ChartFrame></div>
       </div>
     );
@@ -3887,8 +3900,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}>{f.id === "stories"
           ? <StorySpecs cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
           : <div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div>}</ChartFrame>}
-        {/* Single source of truth — direct icon-link to edit the one R&D/NRE + financials + resource record. */}
-        {isFinField(sp.code, f.id) && <SourceLink source={sp.source} />}
+        {/* Single source of truth — icon-link to whichever slide OWNS this field's record (SOURCE_SLIDE). */}
+        {hasSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
         </div>
       </div>
     );
@@ -3963,7 +3976,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </AmtsPanel>
           <AmtsPanel wide title="Program Timeline · MoT Gate Schedule · ◈ live" icon={<MarkCalendar />}>
             <GateTimeline p={p} />
-            <SourceLink source="Program start (source record)" />
+            {/* Program start lives in the S10 source panel beside the money it schedules. */}
+            <SourceLink source="Program start (source record)" target="S10" />
           </AmtsPanel>
           <AmtsPanel title="Roadmap Snapshot" icon="◈">
             {fieldsOf("roadmap")}
@@ -4252,18 +4266,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 className={`shrink-0 rounded border px-2 py-0.5 text-[11px] font-mono ${SLIDE_PILL[st]}`}>{SLIDE_TXT[st]}</button>
             </div>
 
-            {/* Edit source record — SINGLE SOURCE OF TRUTH, and S10 IS THAT SOURCE.
-                This panel is the whole planning editor: NRE, 10-yr revenue, do-nothing, upside accelerator,
-                confidence, tech/comm risk, program start and the entire revenue plan. It used to open wherever a
-                slide had ANY `linked` field or a FIN_FIELDS entry — which is NINE slides (S2 S3 S8 S9 S10 S14 S16
-                CS RA). Nine doors into one record is how the same figure ends up typed differently in three
-                places, and it is the duplication the operator photographed on S3/S8/S10.
-                One condition, one door: S10. Every other slide still RENDERS its derived financials (that is what
-                `linked` does — see FieldEditor, which short-circuits linked fields to a read-only LinkedField);
-                it just no longer ACCEPTS input. `linked` therefore stays on every field it is on today: removing
-                it would turn those charts and metric blocks into free-text editable tables, the exact opposite of
-                single-source. Non-S10 slides deep-link here instead of stranding the user. */}
-            {onEditSource && spec.code === "S10" && (() => {
+            {/* Edit source record — SINGLE SOURCE OF TRUTH. The slide that renders this panel is the slide
+                that OWNS the record, and that answer comes from `SOURCE_SLIDE` (innovation-data.ts) — not from
+                a code literal here. This panel is the money editor: NRE, 10-yr revenue, do-nothing, upside
+                accelerator, confidence, tech/comm risk, program start and the revenue plan. It used to open
+                wherever a slide had ANY `linked` field or a FIN_FIELDS entry — NINE slides (S2 S3 S8 S9 S10
+                S14 S16 CS RA). Nine doors into one record is how the same figure ends up typed differently in
+                three places, and it is the duplication the operator photographed on S3/S8/S10.
+                Every other slide still RENDERS its derived financials (that is what `linked` does — see
+                FieldEditor, which short-circuits linked fields to a read-only LinkedField); it just no longer
+                ACCEPTS input. `linked` therefore stays on every field it is on today: removing it would turn
+                those charts and metric blocks into free-text editable tables, the exact opposite of
+                single-source. Non-owning slides deep-link here instead of stranding the user. */}
+            {onEditSource && spec.code === "S10" && panelExists("S10") && (() => {
               const numEdit = (label: string, key: "nreK" | "fullRev10yM" | "doNothing10yM" | "upsideAccelK", suffix: string) => {
                 const cur = (p[key] ?? (key === "upsideAccelK" ? upsideAccelOf(p).accelK : 0)) as number;
                 return (
