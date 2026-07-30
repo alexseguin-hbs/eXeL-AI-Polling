@@ -14,7 +14,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
   DEMO_PROJECTS, stackWithBudget, incrementalRevM, weightedRevM, blendedMarginFrac, segColorOf, scopeSeed, buCagrPct,
-  revPlanQuarters, revPlanFullM, revPlanAnnual, revPlanMonthly, launchYearOf, revPlanGateReq, revPlanGateGaps, annualPlanCells, monthly24Cells, annualPlanTotalM, perMinFinancials, groupsOf, type RevPlan,
+  launchYearOf, perMinFinancials, groupsOf,
   BUDGET_SCENARIOS, derivedDriversOf, type BudgetScenario, scenarioNodeBudgets,
   pSuccess, upsideFraction, npvM, irrPct, revOverNre, GATE_BAND, GATE_STAGE,
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
@@ -4786,12 +4786,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                   </button>
                   {srcOpen && (
                     <div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-3">
-                      {/* THE GRID COMES FIRST. It is the record; the scalars below it are the older
-                          whole-portfolio shorthand that S10 is replacing year by year. */}
+                      {/* THE GRID IS THE RECORD — and now the only thing on this panel that takes money.
+                          R&D/NRE and New-rev-10-yr were read-outs of Sigma of the rows immediately above, and
+                          Do-nothing-10-yr was a rival scalar for a band that has eleven years of its own. A
+                          total printed twice on one panel is noise, not confirmation. The H42 Revenue Plan
+                          block went with them: it wrote `revPlan`, S10 renders `finPlan`, and two financial
+                          editors stacked on one panel disagree by construction (operator: "remove anything
+                          that is not feeding slide financials"). What stays below is what genuinely feeds the
+                          financials and is not a grid row — the two risk levers that drive pSuccess for the
+                          risk-weighted NPV, and the program start the spend years are anchored to. */}
                       <S10FinEditor p={p} baseYear={baseYear} onEdit={onEditSource} />
-                      {numEdit("R&D / NRE", "nreK", "$K")}
-                      {numEdit("New rev 10-yr", "fullRev10yM", "$M")}
-                      {numEdit("Do-nothing 10-yr", "doNothing10yM", "$M")}
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence
                         <select defaultValue={String(p.confidence)} onChange={(e) => onEditSource({ confidence: +e.target.value as Project["confidence"] }, [`Confidence → ${e.target.value}`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500">{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}/5</option>)}</select>
                       </label>
@@ -4802,101 +4806,6 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program start (MoT — slides all gates)
                         <input type="date" defaultValue={p.startDate ?? defaultStartISO(p)} onChange={(e) => e.target.value && onEditSource({ startDate: e.target.value }, [`Program start → ${e.target.value} (timeline slid)`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
                       </label>
-                      {/* H42 — per-project Revenue Plan: High-Level (Rev+Margin, above) ↔ Detailed (QTY·ASP·COGS), with a
-                          profile (linear/growth/ramp/manual). Detailed derives fullRev10yM = Σ quarters so every chart follows. */}
-                      {(() => {
-                        const plan: RevPlan = p.revPlan ?? { entryMode: "highlevel", profile: "linear" };
-                        const setPlan = (patch: Partial<RevPlan>) => { const next = { ...plan, ...patch }; const extra = next.entryMode === "detailed" ? { fullRev10yM: Math.round(revPlanFullM(p, next)) } : {}; onEditSource({ revPlan: next, ...extra }, [`Rev plan → ${next.entryMode}·${next.profile}`]); };
-                        const inp = "rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] tabular-nums text-slate-100 outline-none focus:border-cyan-500";
-                        return (
-                          <div className="col-span-2 mt-1 rounded-lg border border-slate-800 bg-[#0b0f14] p-2 sm:col-span-3">
-                            <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
-                              <span className="font-semibold uppercase tracking-wider text-slate-500">Revenue plan</span>
-                              <div className="flex overflow-hidden rounded border border-slate-700">
-                                {(["highlevel", "detailed"] as const).map((m) => <button key={m} onClick={() => setPlan({ entryMode: m })} className={`px-2 py-0.5 ${plan.entryMode === m ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>{m === "highlevel" ? "High-Level" : "Detailed"}</button>)}
-                              </div>
-                              <select defaultValue={plan.profile} onChange={(e) => setPlan({ profile: e.target.value as RevPlan["profile"] })} className={inp}>
-                                {["linear", "growth", "ramp", "manual"].map((pr) => <option key={pr} value={pr}>{pr}</option>)}
-                              </select>
-                              {/* F4 — input granularity: Annual (By-Year @ Plan, AMTS S10a) | Monthly (By-Month @ Develop, S10b). */}
-                              <div className="flex overflow-hidden rounded border border-slate-700" title="Forecast input granularity — Annual (By-Year @ Plan) or Monthly (By-Month @ Develop, ≥18 mo past launch)">
-                                {(["annual", "monthly"] as const).map((g) => <button key={g} onClick={() => setPlan({ inputGran: g })} className={`px-2 py-0.5 capitalize ${(plan.inputGran ?? "annual") === g ? "bg-cyan-500 font-semibold text-[#06202a]" : "hover:bg-slate-800"}`}>{g}</button>)}
-                              </div>
-                              <span className="rounded border border-slate-700 px-1.5 py-0.5 font-mono text-[9px] text-slate-400" title="Launch (first revenue) — the grid anchors here; changing it shifts the entire series">◈ Launch {p.firstRevenue}</span>
-                            </div>
-                            {/* F5 — gate-driven granularity requirement + live compliance (more granular as funding rises). */}
-                            {(() => {
-                              const req = revPlanGateReq(p.gate); const gaps = revPlanGateGaps(p, plan);
-                              return (
-                                <div className={`mb-1.5 rounded border px-2 py-1 text-[9px] ${gaps.length ? "border-amber-500/40 bg-amber-500/10 text-amber-200" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"}`}>
-                                  <span className="font-semibold">{p.gate} {GATE_STAGE[p.gate]} requires:</span> {req.label}
-                                  {gaps.length > 0 && <span className="block text-amber-300/90">⚠ still needed: {gaps.join(" · ")}</span>}
-                                  {gaps.length === 0 && <span className="ml-1 text-emerald-300/90">✓ compliant</span>}
-                                </div>
-                              );
-                            })()}
-                            {/* F5 — Finance approval + PLC #3/#4 (required at Qualify+ / G4+). */}
-                            {revPlanGateReq(p.gate).needsFinanceApproval && (
-                              <div className="mb-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                                <label className="flex items-center gap-1 text-[9px] text-slate-400"><input type="checkbox" defaultChecked={!!plan.financeApproved} onChange={(e) => setPlan({ financeApproved: e.target.checked })} className="accent-cyan-500" />Finance / FP&amp;A approved</label>
-                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">PLC #3 Mature (MM/YYYY)<input type="text" defaultValue={plan.plc3 ?? ""} onBlur={(e) => setPlan({ plc3: e.target.value.trim() })} placeholder="MM/YYYY" className={inp} /></label>
-                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">PLC #4 Decline (MM/YYYY)<input type="text" defaultValue={plan.plc4 ?? ""} onBlur={(e) => setPlan({ plc4: e.target.value.trim() })} placeholder="MM/YYYY" className={inp} /></label>
-                              </div>
-                            )}
-                            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-                              {plan.entryMode === "detailed" ? <>
-                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Qty/yr<input type="text" inputMode="numeric" defaultValue={String(plan.qty ?? 0)} onBlur={(e) => setPlan({ qty: +e.target.value || 0 })} className={inp} /></label>
-                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">ASP $K<input type="text" inputMode="numeric" defaultValue={String(plan.aspK ?? 0)} onBlur={(e) => setPlan({ aspK: +e.target.value || 0 })} className={inp} /></label>
-                                <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Unit COGS $K<input type="text" inputMode="numeric" defaultValue={String(plan.unitCogsK ?? 0)} onBlur={(e) => setPlan({ unitCogsK: +e.target.value || 0 })} className={inp} /></label>
-                                <div className="flex flex-col justify-end text-[9px] text-slate-500">Rev·Mgn<div className="tabular-nums text-emerald-400">${Math.round(revPlanFullM(p, plan))}M · {(plan.aspK ?? 0) > 0 ? Math.round(((plan.aspK! - (plan.unitCogsK ?? 0)) / plan.aspK!) * 100) : 0}%</div></div>
-                              </> : <div className="col-span-2 text-[9px] text-slate-500 sm:col-span-4">High-Level uses <b className="text-slate-300">New rev 10-yr</b> + margin above; the profile shapes the per-quarter ramp.</div>}
-                              {plan.profile === "growth" && <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Growth %/qtr<input type="text" inputMode="decimal" defaultValue={String(plan.growthPctQ ?? 0)} onBlur={(e) => setPlan({ growthPctQ: +e.target.value || 0 })} className={inp} /></label>}
-                              {plan.profile === "ramp" && <label className="flex flex-col gap-0.5 text-[9px] text-slate-500">Ramp qtrs<input type="text" inputMode="numeric" defaultValue={String(plan.rampQuarters ?? 8)} onBlur={(e) => setPlan({ rampQuarters: +e.target.value || 8 })} className={inp} /></label>}
-                            </div>
-                            {plan.profile === "manual" && <label className="mt-1.5 flex flex-col gap-0.5 text-[9px] text-slate-500">Manual per-quarter weights (comma-separated)<textarea defaultValue={(plan.manualQ ?? []).join(",")} onBlur={(e) => setPlan({ manualQ: e.target.value.split(",").map((v) => +v.trim() || 0).filter((_, i) => i < 40) })} rows={2} className={`${inp} font-mono`} placeholder="e.g. 1,1,2,2,3,3,…" /></label>}
-                            {/* G4 — EDITABLE Annual-out-10-years grid FIRST (AMTS S10a); then an optional 24-month
-                                by-month detail for the first 2 years (S10b). Both launch-anchored: changing the launch
-                                date slides the labels; years 3-10 always pull from the annual grid. */}
-                            {(() => {
-                              const yr = annualPlanCells(p, plan);
-                              const setY = (i: number, v: number) => { const arr = yr.map((c) => c.rev); arr[i] = v; setPlan({ manualY: arr, fullRev10yM: Math.round(arr.reduce((a, b) => a + b, 0)) }); };
-                              const mo = monthly24Cells(p, plan);
-                              const setM = (i: number, v: number) => { const arr = mo.map((c) => c.rev); arr[i] = v; setPlan({ manualM24: arr }); };
-                              const showMonthly = (plan.inputGran ?? "annual") === "monthly" || !!(plan.manualM24 && plan.manualM24.length);
-                              return (
-                                <div className="mt-1.5 space-y-2">
-                                  {/* Annual — 10 editable year cells, launch-anchored */}
-                                  <div>
-                                    <div className="mb-0.5 flex items-center justify-between text-[9px] uppercase tracking-wider text-slate-500">
-                                      <span>① Annual · Revenue $M by Year (out 10 yr from launch {launchYearOf(p)})</span>
-                                      <span className="text-emerald-400/90">Σ ${Math.round(annualPlanTotalM(p, plan))}M</span>
-                                    </div>
-                                    <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">Yr</th>{yr.map((c) => <th key={c.year} className="px-1 text-right font-mono">{String(c.year).slice(2)}</th>)}</tr></thead><tbody>
-                                      <tr><td className="px-1 text-left text-slate-500">Rev</td>{yr.map((c, i) => <td key={c.year} className="px-0.5"><input type="text" inputMode="decimal" defaultValue={String(Math.round(c.rev))} onBlur={(e) => setY(i, +e.target.value || 0)} className="w-full rounded border border-slate-700 bg-[#0e141b] px-0.5 py-0.5 text-right text-[9px] tabular-nums text-emerald-300 outline-none focus:border-cyan-500" /></td>)}</tr>
-                                      <tr><td className="px-1 text-left text-slate-500">Mgn</td>{yr.map((c) => <td key={c.year} className="px-1 text-right text-amber-300/70">{c.margin.toFixed(0)}</td>)}</tr>
-                                    </tbody></table></div>
-                                  </div>
-                                  {/* Monthly detail — enable the 24-month first-2-years ramp (S10b @ Develop) */}
-                                  {!showMonthly ? (
-                                    <button onClick={() => setPlan({ inputGran: "monthly", manualM24: mo.map((c) => Math.round(c.rev * 10) / 10) })}
-                                      className="rounded border border-cyan-500/40 px-2 py-0.5 text-[9px] font-semibold text-cyan-300 hover:bg-cyan-500/10">② ＋ Add 24-month detail (first 2 yr) →</button>
-                                  ) : (
-                                    <div>
-                                      <div className="mb-0.5 flex items-center justify-between text-[9px] uppercase tracking-wider text-slate-500">
-                                        <span>② Monthly · first 24 mo from launch {p.firstRevenue} (yr 3-10 pull from Annual)</span>
-                                        <button onClick={() => setPlan({ inputGran: "annual", manualM24: undefined })} className="text-slate-500 hover:text-rose-300">✕ monthly</button>
-                                      </div>
-                                      <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-[9px] tabular-nums"><thead><tr className="text-slate-600"><th className="px-1 text-left">Mo</th>{mo.map((c) => <th key={c.idx} className="px-1 text-right font-mono">{c.label}</th>)}</tr></thead><tbody>
-                                        <tr><td className="px-1 text-left text-slate-500">Rev</td>{mo.map((c, i) => <td key={c.idx} className="px-0.5"><input type="text" inputMode="decimal" defaultValue={String(Math.round(c.rev * 10) / 10)} onBlur={(e) => setM(i, +e.target.value || 0)} className="w-full rounded border border-slate-700 bg-[#0e141b] px-0.5 py-0.5 text-right text-[9px] tabular-nums text-emerald-300 outline-none focus:border-cyan-500" /></td>)}</tr>
-                                      </tbody></table></div>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        );
-                      })()}
                     </div>
                   )}
                 </div>

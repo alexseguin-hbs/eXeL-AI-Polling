@@ -1876,6 +1876,43 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      `the scenarios draft speaks the four Rack & Stack band names — got [${scen.map((r) => r[0]).join(" · ")}]`);
 }
 
+// ── E0 · ONE FINANCIAL EDITOR — the rival is gone ───────────────────────────────────────
+// Operator: "remove anything that is not feeding slide financials." The S10 source panel carried a COMPLETE
+// second financial editor beneath the grid — the H42 Revenue Plan block: High-Level/Detailed, a
+// linear/growth/ramp/manual profile, Annual/Monthly granularity, its own Qty/ASP/Unit-COGS trio, growth %/qtr,
+// ramp quarters, a manual-weights textbox, a 10-cell annual grid and a 24-cell monthly grid. S10 renders
+// `finPlan`; that block wrote `revPlan`. Two money editors stacked on one panel disagree by construction.
+{
+  const fsp0 = await import("node:fs/promises");
+  const src = await fsp0.readFile("app/innovation/page.tsx", "utf8");
+  const code = src.split("\n").map((l) => l.replace(/\/\/.*$/, "")).join("\n");   // ignore commentary
+
+  // 1. Zero callers. The lib still EXPORTS these — deleting the engine is a separate commit that has to
+  //    re-base tests/innovation-time.test.mjs:1183-1305 — but nothing in the app reaches them any more, so
+  //    that removal becomes a clean follow-up instead of an archaeology exercise.
+  for (const fn of ["revPlanQuarters", "revPlanFullM", "revPlanAnnual", "revPlanMonthly",
+                    "annualPlanCells", "monthly24Cells", "annualPlanTotalM", "revPlanGateReq", "revPlanGateGaps"]) {
+    ok(!new RegExp(`\\b${fn}\\b`).test(code), `${fn} has no caller left in app/ — the rival editor is gone, not hidden`);
+  }
+  ok(!/\bRevPlan\b/.test(code) && !/p\.revPlan/.test(code), "the RevPlan type and field are no longer referenced by the UI");
+  const F0 = await import("../lib/innovation-data.ts");
+  ok(typeof F0.revPlanQuarters === "function", "the engine is still exported — this commit removed the DOOR, not the engine");
+
+  // 2. The three scalars the grid now owns are gone from the panel. F5 made nreK and fullRev10yM Sigma of the
+  //    rows immediately above them; doNothing10yM was a rival scalar for a band with eleven years of its own.
+  for (const label of ['numEdit("R&D / NRE"', 'numEdit("New rev 10-yr"', 'numEdit("Do-nothing 10-yr"']) {
+    ok(!src.includes(label), `${label}…) is gone — a total printed twice on one panel is noise, not confirmation`);
+  }
+
+  // 3. What REMAINS is exactly the grid plus what feeds the financials without duplicating a grid row:
+  //    the two risk levers (they drive pSuccess for the risk-weighted NPV) and the program start the spend
+  //    years are anchored to. Asserted positively so a future "tidy-up" cannot quietly take them too.
+  ok(/<S10FinEditor p=\{p\} baseYear=\{baseYear\} onEdit=\{onEditSource\} \/>/.test(src), "the grid is still mounted");
+  ok(/riskEdit\("Tech Risk", "tech"\)/.test(src) && /riskEdit\("Comm Risk", "comm"\)/.test(src),
+     "Tech and Comm risk stay — they drive pSuccess, which the risk-weighted NPV needs");
+  ok(/Program start \(MoT — slides all gates\)/.test(src), "Program start stays — it anchors the years the spend sits on");
+}
+
 // ── V1 · THE VALUE-PROP RESOLVER — shipped before the lockdown, on purpose ──────────────
 // `linked: true` does two jobs: it opens the source panel AND it short-circuits FieldEditor to a read-only
 // LinkedField whose value comes from `linkedSlideField`. That function is an if-chain with `return null` at
