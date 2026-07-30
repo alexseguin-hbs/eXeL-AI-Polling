@@ -2930,8 +2930,14 @@ function linkedSlideFieldRest(p: Project, code: string, fieldId: string): SlideF
     const ua = upsideAccelOf(p);
     return { spend: `$${(ua.accelK / 1000).toFixed(1)}M`, months: `${ua.months} mo`, revFwd: money(ua.revFwdM) };
   }
+  // W-10 · FOUR YEARS, BECAUSE A 3-YEAR CAGR NEEDS FOUR POINTS (operator: "S3 Update: Show 4 years for a
+  // 3 Year CAGR"). The slide's headline metric is 3-Yr NPV and the table under it showed 2026-2028 — three
+  // points, which spans only TWO growth intervals. A reader cannot compute the three-year compound rate the
+  // slide is titled for. Four rows span three intervals, and the arithmetic works.
+  // `rdYears = Math.min(3, years)` inside `financialsOverview` is UNAFFECTED — R&D front-loading is a
+  // property of the spend curve, not of how many years this table chooses to print.
   if (code === "S3" && fieldId === "revtable")
-    return financialsOverview(p, { years: 3, funded: true }).map((r) => [`${r.year}`, money(r.revM), money(r.marginM)]);
+    return financialsOverview(p, { years: 4, funded: true }).map((r) => [`${r.year}`, money(r.revM), money(r.marginM)]);
   // S9's stories are generated from the project's own brief (one record, three views) — never authored twice.
   if (code === "S9" && fieldId === "stories") return storyTableRows(p);
   // VALUE PROP — S8 owns the sentence; S1 and S6 RENDER it. These two branches must exist BEFORE either

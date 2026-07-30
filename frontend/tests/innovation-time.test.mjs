@@ -3899,5 +3899,23 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(V.wtpUsd(null) === 0 && V.wtpUsd(undefined) === 0, "an unentered WTP is 0, never NaN");
 }
 
+// ── W-10 · S3 PRINTS FOUR YEARS, SO ITS 3-YEAR CAGR IS COMPUTABLE ───────────────────────
+// Operator: "S3 Update: Show 4 years for a 3 Year CAGR." Three rows span TWO growth intervals; a three-year
+// compound rate needs THREE intervals, i.e. four points. The slide is headlined "3-Yr NPV" and the table
+// under it could not support the period it was named for.
+{
+  const S = await import("../lib/innovation-data.ts");
+  const rows = S.linkedSlideField(S.DEMO_PROJECTS[0], "S3", "revtable");
+  ok(Array.isArray(rows) && rows.length === 4, `S3's revenue table prints 4 years — got ${rows?.length}`);
+  // THE POINT IS THE INTERVAL COUNT, not the row count. Asserted as the arithmetic the operator named, so a
+  // future trim back to 3 fails with the reason rather than with an off-by-one.
+  ok(rows.length - 1 === 3, "4 rows span 3 growth intervals — exactly what a 3-year CAGR consumes");
+  const years = rows.map((r) => Number(r[0]));
+  ok(years.every((y, i) => i === 0 || y === years[i - 1] + 1), `the four years are consecutive — ${years.join(", ")}`);
+  // And the CAGR is actually derivable from what is printed: no zero start year, no gap.
+  const rev0 = Number(String(rows[0][1]).replace(/[^0-9.]/g, ""));
+  ok(rev0 > 0, `the first printed year carries revenue (${rows[0][1]}) — a CAGR from zero is undefined`);
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
