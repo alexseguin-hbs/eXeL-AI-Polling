@@ -52,7 +52,7 @@ import {
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
-  withFinYear, withFinBand,
+  withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -3533,13 +3533,27 @@ function FinCell({ value, onCommit, title, suffix }: { value: number; onCommit: 
   );
 }
 
-/** One editable row across the visible years. */
-function FinRow({ label, years, get, set, hint }: {
+/** One editable row across the visible years, with a fill-right handle.
+ *  APPLY-RATE IS WHY THIS IS USABLE. 14 entered rows x 11 years = 154 cells per project, 5,082 across the
+ *  portfolio. A seed and a growth rate turn a row's eleven keystrokes into two. It is a ONE-SHOT FILL, not a
+ *  live formula: it writes eleven plain numbers and gets out of the way, so editing a year afterwards changes
+ *  only that year. Negative rates are required — Do-Nothing and Declining erode. */
+function FinRow({ label, years, get, set, hint, onFill }: {
   label: string; years: FinYear[]; get: (y: FinYear) => number; set: (i: number, v: number) => void; hint?: string;
+  onFill?: () => void;
 }) {
   return (
     <tr>
-      <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-400" title={hint}>{label}</td>
+      <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-400" title={hint}>
+        <span className="flex items-center gap-1">
+          {onFill && (
+            <button onClick={onFill} aria-label={`Fill ${label} across all years from a growth rate`}
+              title={`Fill ${label} across all 11 years from a seed and a growth rate. Preview first; one undo.`}
+              className="rounded border border-slate-700 px-1 leading-none text-[9px] text-slate-500 hover:border-cyan-500/60 hover:text-cyan-300">⇥</button>
+          )}
+          <span className="truncate">{label}</span>
+        </span>
+      </td>
       {years.map((y, i) => (
         <td key={y.year} className="px-0.5 py-0.5">
           <FinCell value={get(y)} onCommit={(v) => set(i, v)} title={`${label} · ${y.year}`} />
@@ -3565,8 +3579,25 @@ function S10FinEditor({ p, baseYear, onEdit }: {
   const setYear = (i: number, patch: Partial<FinYear>, what: string) => commit(withFinYear(fin, i, patch), what);
   const setBand = (i: number, band: "neu" | "don" | "dec", patch: Partial<FinBandYear>, what: string) =>
     commit(withFinBand(fin, i, band, patch), what);
+
+  // ── Apply-rate: preview, then apply, then ONE undo. The most destructive click in the grid, so it never
+  //    fires straight from a keystroke — the operator sees the eleven numbers before they land.
+  const [fill, setFill] = useState<{ label: string; seed: number; rate: string; write: (vals: number[]) => FinPlan } | null>(null);
+  const [undo, setUndo] = useState<{ plan: FinPlan; what: string } | null>(null);
+  const preview = fill ? linearize(fill.seed, Number(fill.rate) || 0, FIN_SPAN) : [];
+  const applyFill = () => {
+    if (!fill) return;
+    setUndo({ plan: fin, what: fill.label });                       // snapshot BEFORE, so undo is exact
+    commit(fill.write(preview), `${fill.label} filled at ${fill.rate || 0}%/yr`);
+    setFill(null);
+  };
+  const openFill = (label: string, seed: number, write: (vals: number[]) => FinPlan) =>
+    setFill({ label, seed, rate: "0", write });
+
   const spendRow = (label: string, key: "labor" | "contractor" | "materials" | "other" | "sustain") => (
-    <FinRow key={key} label={label} years={ys} get={(y) => y[key]} set={(i, v) => setYear(i, { [key]: v } as Partial<FinYear>, `${label} ${fin.years[i].year} → ${v}`)} />
+    <FinRow key={key} label={label} years={ys} get={(y) => y[key]}
+      set={(i, v) => setYear(i, { [key]: v } as Partial<FinYear>, `${label} ${fin.years[i].year} → ${v}`)}
+      onFill={() => openFill(label, fin.years[0][key], (vals) => withFinSpendRow(fin, key, vals))} />
   );
   const BANDS: { key: "don" | "neu" | "dec"; label: string; step: string }[] = [
     { key: "don", label: "Do Nothing: Existing", step: "Step 2" },
@@ -3618,10 +3649,13 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                     </td>
                   </tr>
                   {on ? <>
-                    <FinRow label="Quantity" years={ys} hint="# units" get={(y) => y[b.key].units} set={(i, v) => setBand(i, b.key, { units: v }, `${b.label} qty ${fin.years[i].year} → ${v}`)} />
-                    <FinRow label="MSRP $K" years={ys} hint="List price per unit" get={(y) => y[b.key].msrpK} set={(i, v) => setBand(i, b.key, { msrpK: v }, `${b.label} MSRP ${fin.years[i].year} → ${v}`)} />
+                    <FinRow label="Quantity" years={ys} hint="# units" get={(y) => y[b.key].units} set={(i, v) => setBand(i, b.key, { units: v }, `${b.label} qty ${fin.years[i].year} → ${v}`)}
+                      onFill={() => openFill(`${b.label} · Quantity`, fin.years[0][b.key].units, (vals) => withFinBandRow(fin, b.key, "units", vals))} />
+                    <FinRow label="MSRP $K" years={ys} hint="List price per unit" get={(y) => y[b.key].msrpK} set={(i, v) => setBand(i, b.key, { msrpK: v }, `${b.label} MSRP ${fin.years[i].year} → ${v}`)}
+                      onFill={() => openFill(`${b.label} · MSRP`, fin.years[0][b.key].msrpK, (vals) => withFinBandRow(fin, b.key, "msrpK", vals))} />
                     <FinRow label="Disc %" years={ys} hint="Distribution discount off list — ASP = MSRP × (1 − disc)" get={(y) => y[b.key].discPct} set={(i, v) => setBand(i, b.key, { discPct: v }, `${b.label} disc ${fin.years[i].year} → ${v}`)} />
-                    <FinRow label="COGS $K" years={ys} hint="Cost of goods per unit" get={(y) => y[b.key].cogsK} set={(i, v) => setBand(i, b.key, { cogsK: v }, `${b.label} COGS ${fin.years[i].year} → ${v}`)} />
+                    <FinRow label="COGS $K" years={ys} hint="Cost of goods per unit" get={(y) => y[b.key].cogsK} set={(i, v) => setBand(i, b.key, { cogsK: v }, `${b.label} COGS ${fin.years[i].year} → ${v}`)}
+                      onFill={() => openFill(`${b.label} · COGS`, fin.years[0][b.key].cogsK, (vals) => withFinBandRow(fin, b.key, "cogsK", vals))} />
                     <tr>
                       <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-500">ASP · Rev · Mgn</td>
                       {ys.map((y) => (
@@ -3632,8 +3666,10 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                       ))}
                     </tr>
                   </> : <>
-                    <FinRow label="Revenue $K" years={ys} get={(y) => y[b.key].revK ?? 0} set={(i, v) => setBand(i, b.key, { revK: v }, `${b.label} revenue ${fin.years[i].year} → ${v}`)} />
-                    <FinRow label="Margin $K" years={ys} get={(y) => y[b.key].mgnK ?? 0} set={(i, v) => setBand(i, b.key, { mgnK: v }, `${b.label} margin ${fin.years[i].year} → ${v}`)} />
+                    <FinRow label="Revenue $K" years={ys} get={(y) => y[b.key].revK ?? 0} set={(i, v) => setBand(i, b.key, { revK: v }, `${b.label} revenue ${fin.years[i].year} → ${v}`)}
+                      onFill={() => openFill(`${b.label} · Revenue`, fin.years[0][b.key].revK ?? 0, (vals) => withFinBandRow(fin, b.key, "revK", vals))} />
+                    <FinRow label="Margin $K" years={ys} get={(y) => y[b.key].mgnK ?? 0} set={(i, v) => setBand(i, b.key, { mgnK: v }, `${b.label} margin ${fin.years[i].year} → ${v}`)}
+                      onFill={() => openFill(`${b.label} · Margin`, fin.years[0][b.key].mgnK ?? 0, (vals) => withFinBandRow(fin, b.key, "mgnK", vals))} />
                   </>}
                 </React.Fragment>
               );
@@ -3651,6 +3687,38 @@ function S10FinEditor({ p, baseYear, onEdit }: {
           </tbody>
         </table>
       </div>
+      {/* Apply-rate strip — PREVIEW, then apply, then one undo. Nothing is written until Apply is clicked. */}
+      {fill && (
+        <div data-fin-fill className="mt-1.5 rounded border border-amber-500/40 bg-amber-500/[0.06] p-1.5">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-300">
+            <b className="text-amber-300">Fill {fill.label}</b>
+            <label className="flex items-center gap-1">seed
+              <input type="text" inputMode="decimal" defaultValue={String(fill.seed)} aria-label="Seed value"
+                onChange={(e) => setFill({ ...fill, seed: Number(e.target.value.replace(/[$,\s]/g, "")) || 0 })}
+                className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+            </label>
+            <label className="flex items-center gap-1">growth %/yr
+              <input type="text" inputMode="decimal" value={fill.rate} aria-label="Growth rate percent per year"
+                onChange={(e) => setFill({ ...fill, rate: e.target.value })}
+                title="Negative rates are expected here — Do-Nothing and Declining erode."
+                className="w-16 rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+            </label>
+            <button onClick={applyFill} className="rounded border border-amber-500/60 bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-200 hover:bg-amber-500/25">Apply 11 years</button>
+            <button onClick={() => setFill(null)} className="rounded border border-slate-700 px-2 py-0.5 text-slate-400 hover:bg-slate-800">Cancel</button>
+            <span className="text-slate-500">one-shot fill — editing a year afterwards recomputes nothing</span>
+          </div>
+          <div className="mt-1 flex flex-wrap gap-1 font-mono text-[10px] tabular-nums text-amber-200/90">
+            {preview.map((v, i) => <span key={i} className="rounded bg-black/30 px-1">{fin.years[i]?.year}: {v.toLocaleString()}</span>)}
+          </div>
+        </div>
+      )}
+      {undo && !fill && (
+        <div className="mt-1.5 flex items-center gap-2 text-[10px] text-slate-400">
+          <span>Filled <b className="text-slate-200">{undo.what}</b>.</span>
+          <button onClick={() => { commit(undo.plan, `undo fill · ${undo.what}`); setUndo(null); }}
+            className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:bg-slate-800">↺ Undo fill</button>
+        </div>
+      )}
       {/* Current-year ask + the Rack & Stack confidence ladder — six rungs, not a 1-5 opinion score. */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
         <label className="flex items-center gap-1">{ys[0]?.year} R&amp;D Spend Request

@@ -1703,6 +1703,37 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "Quantity renders through a count formatter, never the $K one");
   ok(/finFmtQty\(incUnits\(y\)\)/.test(pageSrc), "Combined Quantity is the NET count (New − Declining), from incUnits");
 
+  // 4c. F3 · APPLY-RATE. 14 entered rows x 11 years = 154 cells per project, 5,082 across the portfolio. A
+  //     seed and a rate turn a row's eleven keystrokes into two. It is a ONE-SHOT FILL, not a live formula.
+  const seeded = F.withFinSpendRow(base, "labor", F.linearize(1000, 10, F.FIN_SPAN));
+  ok(seeded.years.length === F.FIN_SPAN && seeded.years[0].labor === 1000 && seeded.years[1].labor === 1100,
+     `a fill writes the whole row from seed x (1+rate) — got ${seeded.years[0].labor}, ${seeded.years[1].labor}`);
+  ok(seeded.years.every((y, i) => y.contractor === base.years[i].contractor && y.neu === base.years[i].neu),
+     "a fill touches ONE row — the other spend rows and all three bands are untouched (bands by reference)");
+  // Editing a year after a fill must change only that year: proof the fill is not a live formula.
+  const afterEdit = F.withFinYear(seeded, 4, { labor: 1 });
+  ok(afterEdit.years[4].labor === 1 && afterEdit.years[5].labor === seeded.years[5].labor,
+     "editing a filled year recomputes nothing downstream — the fill wrote plain numbers and got out of the way");
+  // NEGATIVE RATES ARE REQUIRED: Do-Nothing and Declining erode. A fill that could only grow would be useless
+  // for two of the three Rack & Stack bands.
+  const eroding = F.linearize(1000, -20, F.FIN_SPAN);
+  ok(eroding[0] === 1000 && eroding[1] === 800 && eroding[10] < eroding[0],
+     `a negative rate erodes — got ${eroding[0]}, ${eroding[1]}, … ${eroding[10]}`);
+  const decFilled = F.withFinBandRow(base, "dec", "revK", eroding);
+  ok(decFilled.years[1].dec.revK === 800 && decFilled.years[1].neu === base.years[1].neu,
+     "a band-row fill writes one field of one band and leaves its siblings identical");
+  ok(F.withFinSpendRow(base, "labor", [5]).years[0].labor === 5 && F.withFinSpendRow(base, "labor", [5]).years[1].labor === base.years[1].labor,
+     "a short value list fills what it covers and leaves later years alone — never truncates the plan");
+  // Undo restores EXACTLY: the snapshot is the pre-fill plan object itself.
+  ok(base.years.every((y, i) => y.labor === F.finBaseline(F.DEMO_PROJECTS[0], 2026).years[i].labor),
+     "the pre-fill plan is unchanged by the fill — so the undo snapshot is exact, not a re-derivation");
+  ok(/setUndo\(\{ plan: fin, what: fill\.label \}\);/.test(pageSrc),
+     "apply-rate snapshots the plan BEFORE writing, so one undo restores all 11 cells exactly");
+  ok(/const preview = fill \? linearize\(fill\.seed, Number\(fill\.rate\) \|\| 0, FIN_SPAN\) : \[\];/.test(pageSrc),
+     "the eleven values are PREVIEWED before anything is written — the most destructive click in the grid");
+  ok(/data-fin-fill/.test(pageSrc) && /Apply 11 years/.test(pageSrc) && /↺ Undo fill/.test(pageSrc),
+     "preview strip, explicit Apply, and a single Undo are all present");
+
   // 5. ONE CLOCK. Both S10 tables called new Date().getFullYear() on every render, so a deck left open across
   //    midnight on 31 December would re-anchor its columns mid-session. Hoisted to one memo at the deck root.
   ok(/const baseYear = useMemo\(\(\) => new Date\(\)\.getFullYear\(\), \[\]\);/.test(pageSrc),

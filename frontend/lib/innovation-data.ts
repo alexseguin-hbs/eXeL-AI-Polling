@@ -455,6 +455,17 @@ export const withFinYear = (fin: FinPlan, i: number, patch: Partial<FinYear>): F
 export const withFinBand = (fin: FinPlan, i: number, band: "neu" | "don" | "dec", patch: Partial<FinBandYear>): FinPlan =>
   (i < 0 || i >= fin.years.length) ? fin : withFinYear(fin, i, { [band]: { ...fin.years[i][band], ...patch } } as Partial<FinYear>);
 
+/** Spend row keys a human can type into. `Total` is derived and deliberately absent. */
+export type FinSpendKey = "labor" | "contractor" | "materials" | "other" | "sustain";
+/** Band-input keys. `revK`/`mgnK` are the direct-entry pair used when unit economics is off. */
+export type FinBandKey = "units" | "msrpK" | "discPct" | "cogsK" | "revK" | "mgnK";
+/** Write a WHOLE spend row at once — the apply-rate fill. Shorter values leave later years untouched. */
+export const withFinSpendRow = (fin: FinPlan, key: FinSpendKey, vals: number[]): FinPlan =>
+  ({ ...fin, years: fin.years.map((y, i) => (i < vals.length ? { ...y, [key]: vals[i] } : y)) });
+/** Write a WHOLE band row at once — same contract, one level deeper. */
+export const withFinBandRow = (fin: FinPlan, band: "neu" | "don" | "dec", key: FinBandKey, vals: number[]): FinPlan =>
+  ({ ...fin, years: fin.years.map((y, i) => (i < vals.length ? { ...y, [band]: { ...y[band], [key]: vals[i] } } : y)) });
+
 // ── Derived. Never stored, so two surfaces cannot disagree. ──────────────────────────────
 /** ASP = list price net of the distribution discount. Derived, never typed. */
 export const aspOf = (b: FinBandYear): number => b.msrpK * (1 - (b.discPct || 0) / 100);
