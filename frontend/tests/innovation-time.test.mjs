@@ -2334,6 +2334,53 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "both wrappers are styled ONLY when zoomed — at 1x the DOM geometry is byte-identical to before");
 }
 
+// ── E5 · TECHNICAL / COMMERCIAL BANNERS ─────────────────────────────────────────────────
+// Operator: "Create Technical Financials banner that encapsulates R&D · NRE / Create Commercial Financials
+// banner that encapsulates COGS · REV · MGN ... each section can be expanded or reduced. That way when we
+// are inputting project data, we do not see commercial details, and vice versa."
+{
+  const fspB = await import("node:fs/promises");
+  const pageB = await fspB.readFile("app/innovation/page.tsx", "utf8");
+
+  // 1. TWO BANNERS, in the operator's own words, over the right row sets.
+  ok(/tone="tech" title="Technical Financials" sub="R&D · NRE"/.test(pageB), "the Technical banner is titled and scoped as asked");
+  ok(/tone="comm" title="Commercial Financials" sub="COGS · REV · MGN"/.test(pageB), "the Commercial banner is titled and scoped as asked");
+
+  // 2. INDEPENDENT SWITCHES, not a radio pair — "each section can be expanded or reduced" is two switches,
+  //    and closing both is legitimate (it leaves the two summary lines, a compact read of the whole plan).
+  ok(/const \[finOpen, setFinOpen\] = useState<\{ tech: boolean; comm: boolean \}>\(\{ tech: true, comm: true \}\)/.test(pageB),
+     "one state object, two independent booleans, BOTH default open");
+  ok(/setFinOpen\(\(o\) => \(\{ \.\.\.o, tech: !o\.tech \}\)\)/.test(pageB) && /setFinOpen\(\(o\) => \(\{ \.\.\.o, comm: !o\.comm \}\)\)/.test(pageB),
+     "each toggle moves ONLY its own section");
+
+  // 3. DEFAULT OPEN IS THE SAFE DEFAULT. Hiding a section nobody asked to hide is the same class of defect
+  //    as the duplicate tables E0b removed: a number you cannot see is a number you assume is absent.
+  ok(/\{ tech: true, comm: true \}/.test(pageB), "nothing collapses itself on arrival");
+
+  // 4. THE COLLAPSED BANNER STILL CARRIES ITS HEADLINE FIGURE, so closing a section costs the DETAIL and
+  //    never the ANSWER. A bare chevron would force you to re-open a section just to recall what was in it.
+  ok(/summary=\{`\$\{finFmtK\(techTotalK\)\} total`\}/.test(pageB), "Technical summarises its total spend");
+  ok(/summary=\{`\$\{finFmtK\(commRevK\)\} incremental`\}/.test(pageB), "Commercial summarises its incremental revenue");
+  ok(/const techTotalK = fin\.years\.reduce\(\(a, y\) => a \+ spendTotalK\(y\), 0\)/.test(pageB),
+     "the technical summary is Sigma of the SAME spendTotalK the grid prints — not a second calculation");
+  ok(/const commRevK = ys\.reduce\(\(a, y\) => a \+ incRevK\(y, fin\.unitEcon\), 0\)/.test(pageB),
+     "the commercial summary is Sigma of the SAME incRevK the sheet prints");
+
+  // 5. EACH CONFIDENCE RUNG TRAVELS WITH ITS OWN SECTION. They used to share one footer strip, which would
+  //    have left a COMMERCIAL control sitting inside the technical section the moment these banners existed.
+  const techBlock = pageB.slice(pageB.indexOf('<FinBanner tone="tech"'), pageB.indexOf('<FinBanner tone="comm"'));
+  const commBlock = pageB.slice(pageB.indexOf('<FinBanner tone="comm"'));
+  ok(techBlock.includes("Technical Confidence") && !techBlock.includes("Commercial Confidence"),
+     "the technical section holds the technical rung and nothing commercial");
+  ok(commBlock.includes("Commercial Confidence") && !commBlock.includes("Technical Confidence"),
+     "the commercial section holds the commercial rung and nothing technical");
+  ok(techBlock.includes("R&amp;D Spend Request"), "the current-year ask is technical, and sits with the technical rows");
+
+  // 6. THE STATE IS ANNOUNCED, NOT ONLY DRAWN. These two sections are the only thing between a technical
+  //    reviewer and a screen of commercial numbers they did not ask for.
+  ok(/aria-expanded=\{open\} aria-controls=\{`fin-\$\{tone\}`\}/.test(pageB), "the banner reports its expanded state to assistive tech");
+}
+
 // ── E0c · CONFIDENCE IS DERIVED FROM RISK, NOT TYPED ────────────────────────────────────
 // Operator: "confidence should be moved to risk and dependent on Low, Med, High for tech and commercial.
 // Low/Low is 5 bullet. High/High is 1 bullet. and 3 is Med/Med, while 2 bullets is Medium or High Technical
@@ -3322,6 +3369,82 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/\$\{detailMax \? "hidden" : detailOpen \? "block" : "hidden"\}/.test(src),
      "the inline detail rail UNMOUNTS while the maximize overlay is open — landscape kept both alive, giving two live RiskRegister forms in one aria-modal dialog");
   ok(/\$\{detailMax \? "" : "landscape:block"\}/.test(src), "landscape:block no longer forces the rail back on underneath the overlay");
+}
+
+// ── GATE REQUIREMENTS · the project dropdown is SCOPED (operator: "gate requirement's should have same ────
+//    scope selector BU SBU ALPHA GROUP from financial review slide — that way random projects do not appear")
+//
+// THE DEFECT: the Gate Requirements tab listed every project in the company in one flat <select>. The page
+// already computed `scoped = scopeByHier(order, hierFilter)` and already handed THAT to the view, but the tab
+// carried no ScopeFilter control, so an operator standing on the Gate tab had no way to narrow it and the
+// resting state was all 33 projects. The fix is a CONTROL, not a second filter path — these locks exist to
+// stop a future edit from (a) dropping the control, (b) forking a Gate-local scope state that drifts away from
+// the portfolio and the financial review, or (c) feeding the <select> the unscoped list again.
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const gs = src.indexOf("function GateRequirementsView(");
+  const ge = src.indexOf("\nfunction ", gs + 10);
+  ok(gs > 0 && ge > gs, "GateRequirementsView is still a top-level component we can isolate");
+  const gate = src.slice(gs, ge);
+
+  // (a) the ONE standard control is mounted inside the Gate tab, with the SAME props shape the portfolio
+  // header (:663) and the Growth Model / financial-review chart (:5913) use.
+  ok(/<ScopeFilter projects=\{allProjects\} sel=\{hierFilter\} onChange=\{onScope\} \/>/.test(gate),
+     "the Gate tab mounts the standard ScopeFilter — same component, same BU · SBU · Alpha Group groups as the financial review slide");
+  ok((src.match(/<ScopeFilter /g) || []).length === 3,
+     "exactly three ScopeFilter mounts — portfolio header, Growth Model, Gate Requirements — nobody has rebuilt a fourth bespoke scope UI");
+  // ScopeFilter must be fed the UNSCOPED list, otherwise choosing a BU would delete the other BUs' buttons
+  // and the operator could never widen the scope again (a one-way trapdoor).
+  ok(/allProjects=\{order\}/.test(src.slice(src.indexOf("<GateRequirementsView"), src.indexOf("<GateRequirementsView") + 400)),
+     "the Gate tab's ScopeFilter options come from the FULL order, so a narrowed scope can always be widened again");
+
+  // (b) DECISION: SHARED state, not a Gate-local copy. The call site must hand down the page-level hierFilter
+  // and the page-level setter — a local useState<HierSel> inside the view would let the Gate tab disagree with
+  // the portfolio and the financial review, putting the "random projects" back on the other tabs.
+  const call = src.slice(src.indexOf("<GateRequirementsView"), src.indexOf("<GateRequirementsView") + 400);
+  ok(/hierFilter=\{hierFilter\}/.test(call) && /onScope=\{setHierFilter\}/.test(call),
+     "Gate Requirements shares the page-level hierFilter + setHierFilter — one company scope across portfolio, financial review and gates");
+  ok(!/useState<HierSel>/.test(gate),
+     "GateRequirementsView holds NO scope state of its own — a forked copy would silently drift from the other tabs");
+
+  // (c) the dropdown renders the SCOPED list. `projects` is the scoped prop; allProjects is the full one.
+  ok(/\{projects\.map\(\(p\) => <option key=\{p\.id\} value=\{p\.id\}>\{p\.name\} · \{p\.gate\}<\/option>\)\}/.test(gate),
+     "the <select> maps the SCOPED `projects` prop — never allProjects, never DEMO_PROJECTS");
+  ok(/projects=\{scoped\}/.test(call), "and `projects` is the page's scopeByHier() output, so the tab reuses the one filter choke point");
+
+  // (d) THE ORPHAN EDGE CASE. `sel` is resolved upstream from the full order, so narrowing the scope can point
+  // <select value={sel.id}> at an id that is no longer among its options — browsers then paint the first option
+  // while the app still reports the old project. The view must snap to the first in-scope project, and must be
+  // guarded so an EMPTY scope does not read projects[0] of nothing.
+  ok(/if \(projects\.length > 0 && !projects\.some\(\(p\) => p\.id === sel\.id\)\) onSelect\(projects\[0\]\.id\);/.test(gate),
+     "an out-of-scope selection snaps to the first IN-scope project — the dropdown can never point at nothing");
+  ok(/\[projects, sel\.id, onSelect\]/.test(gate), "the snap effect re-runs whenever the scope or the selection changes");
+  ok(/projects\.length === 0 && <option value=\{sel\.id\}>/.test(gate),
+     "an empty scope still renders the current project as an option, so the readiness rollup below always has a subject");
+  ok(/data-gate-scope-count/.test(gate), "the header states 'N of M in scope' — the operator can see the list shrink");
+}
+
+// Behavioural half of the same lock — the source checks above prove the wiring, this proves the ARITHMETIC the
+// wiring depends on: scoping by a BU really does shrink the project list, and the snap target it produces is
+// always a member of the scoped set (so the auto-select can never re-orphan itself).
+{
+  const M = await import("../lib/innovation-data.ts");
+  const all = M.DEMO_PROJECTS;
+  const empty = { bu: [], sbu: [], pgroup: [] };
+  ok(M.scopeByHier(all, empty).length === all.length, "an empty scope is a pass-through — the resting state still lists every project");
+  const bus = M.hierValues(all, "bu");
+  ok(bus.length > 1, `the portfolio spans ${bus.length} BUs, so scoping is capable of shrinking the list`);
+  for (const bu of bus) {
+    const sc = M.scopeByHier(all, { bu: [bu], sbu: [], pgroup: [] });
+    ok(sc.length > 0, `BU ${bu} scopes to a non-empty list — the snap-to-first target always exists`);
+    ok(sc.length < all.length, `BU ${bu} genuinely SHRINKS the dropdown (${sc.length} of ${all.length}) — this is the operator's "no random projects"`);
+    ok(sc.every((p) => M.hierOf(p).bu === bu), `BU ${bu} scope contains only that BU's projects`);
+    ok(sc.some((p) => p.id === sc[0].id), `BU ${bu}: the snapped-to project (first in scope) is itself in scope`);
+    // and the union over every BU is the whole portfolio — no project is unreachable from any scope
+    ok(sc.every((p) => all.includes(p)), `BU ${bu} scope is a subset of the portfolio`);
+  }
+  const union = new Set(bus.flatMap((b) => M.scopeByHier(all, { bu: [b], sbu: [], pgroup: [] }).map((p) => p.id)));
+  ok(union.size === all.length, "every project is reachable from some BU scope — narrowing never makes a project permanently unselectable");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

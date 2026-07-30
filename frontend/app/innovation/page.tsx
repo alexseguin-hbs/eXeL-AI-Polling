@@ -906,7 +906,7 @@ function Board() {
 
       {view === "gates" && (
         <div className="p-5">
-          <GateRequirementsView projects={scoped} sel={sel} onSelect={setSelId} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
+          <GateRequirementsView projects={scoped} allProjects={order} hierFilter={hierFilter} onScope={setHierFilter} sel={sel} onSelect={setSelId} onEditSource={(patch, changes) => applyEdit(sel.id, patch, changes)} />
         </div>
       )}
 
@@ -3652,12 +3652,57 @@ function FinRow({ label, years, get, set, hint, onFill }: {
 /** The S10 source editor — R&D spend + the three Rack & Stack revenue bands, per calendar year.
  *  Columns follow the gate ladder (Concept 4 · Plan 6 · Develop 11); STORAGE is always 11, so demoting a
  *  project hides years, it never deletes them. */
+/** A collapsible section banner for the S10 editor — one for Technical (R&D · NRE), one for Commercial
+ *  (COGS · REV · MGN). Operator: "each section can be expanded or reduced. That way when we are inputting
+ *  project data, we do not see commercial details, and vice versa."
+ *
+ *  THE SUMMARY IS THE POINT. A collapsed section still prints its headline figure, so closing one costs the
+ *  DETAIL and never the ANSWER — which is what makes it safe to collapse mid-review. A bare chevron would
+ *  make the operator re-open a section just to remember what was in it.
+ *
+ *  `aria-expanded` + `aria-controls` so the state is announced, not just drawn: the two sections are the
+ *  only thing standing between a technical reviewer and a screen of commercial numbers they did not ask for. */
+function FinBanner({ tone, title, sub, summary, open, onToggle }: {
+  tone: "tech" | "comm"; title: string; sub: string; summary: string; open: boolean; onToggle: () => void;
+}) {
+  const skin = tone === "tech"
+    ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/15"
+    : "border-emerald-500/40 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/15";
+  return (
+    <button onClick={onToggle} aria-expanded={open} aria-controls={`fin-${tone}`}
+      title={open ? `Collapse ${title}` : `Expand ${title} — ${summary}`}
+      className={`mt-2 flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left ${skin}`}>
+      <span aria-hidden className="text-[10px]">{open ? "▾" : "▸"}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider">{title}</span>
+      <span className="text-[10px] font-normal opacity-70">{sub}</span>
+      <span className="flex-1" />
+      <span className="font-mono text-[11px] tabular-nums opacity-90">{summary}</span>
+    </button>
+  );
+}
+
 function S10FinEditor({ p, baseYear, onEdit }: {
   p: Project; baseYear: number; onEdit: (patch: Partial<Project>, changes: string[]) => void;
 }) {
   const fin = finOf(p, baseYear);
   const n = visibleYearCount(p.gate);
   const ys = fin.years.slice(0, n);
+  // TWO BANNERS, INDEPENDENTLY COLLAPSIBLE (operator: "Create Technical Financials banner that encapsulates
+  // R&D · NRE / Create Commercial Financials banner that encapsulates COGS · REV · MGN ... each section can
+  // be expanded or reduced. That way when we are inputting project data, we do not see commercial details,
+  // and vice versa").
+  //
+  // BOTH DEFAULT OPEN. Hiding a section nobody asked to hide is the same class of defect as the duplicate
+  // tables this panel just spent four commits removing — a number you cannot see is a number you assume is
+  // absent. The operator collapses what they are not working on; nothing collapses itself.
+  //
+  // INDEPENDENT, not a radio pair: "each section can be expanded or reduced" is two switches, and closing
+  // both is a legitimate state — it leaves the two summary lines, which is a compact read of the whole plan.
+  const [finOpen, setFinOpen] = useState<{ tech: boolean; comm: boolean }>({ tech: true, comm: true });
+  // A COLLAPSED banner still carries its section's headline figure, so shutting a section costs you the
+  // detail and never the answer. That is what makes collapsing safe to do in the middle of a review.
+  const techTotalK = fin.years.reduce((a, y) => a + spendTotalK(y), 0);
+  const commRevK = ys.reduce((a, y) => a + incRevK(y, fin.unitEcon), 0);
   // EVERY grid write carries the scalar roll-up with it. `nreK` (69 read sites) and `fullRev10yM` feed the
   // Rack sort, the budget line, the dog-tag and S1/S2/S3; if the grid moved and they did not, the deck would
   // show two different answers for the same money — which is the exact duplication this work exists to end.
@@ -3726,6 +3771,11 @@ function S10FinEditor({ p, baseYear, onEdit }: {
               </span>;
         })()}
       </div>
+      {/* ── TECHNICAL FINANCIALS · R&D · NRE ─────────────────────────────────────────────── */}
+      <FinBanner tone="tech" title="Technical Financials" sub="R&D · NRE"
+        summary={`${finFmtK(techTotalK)} total`} open={finOpen.tech}
+        onToggle={() => setFinOpen((o) => ({ ...o, tech: !o.tech }))} />
+      {finOpen.tech && (<>
       <div className="max-h-[46vh] overflow-auto">
         <table className="w-full border-collapse">
           {head}
@@ -3747,6 +3797,34 @@ function S10FinEditor({ p, baseYear, onEdit }: {
               <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] font-semibold text-slate-200">Total</td>
               {ys.map((y) => <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[11px] font-semibold tabular-nums text-slate-100">{finFmtK(spendTotalK(y))}</td>)}
             </tr>
+          </tbody>
+        </table>
+      </div>
+      {/* The current-year ask and the TECHNICAL rung live with the technical rows they describe. The two
+          confidences used to share one footer strip, which would have put a commercial control inside the
+          technical section the moment these banners existed. */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+        <label className="flex items-center gap-1">{yearLabel(ys[0]?.year ?? baseYear)} R&amp;D Spend Request
+          <span className="w-20"><FinCell value={fin.spendRequestK} title="Current-year R&D ask, $K" onCommit={(v) => setFin({ spendRequestK: v }, `spend request -> ${v}`)} /></span>
+        </label>
+        <label className="flex items-center gap-1">Technical Confidence
+          <select value={String(fin.techConfPct)} onChange={(e) => setFin({ techConfPct: +e.target.value }, `tech confidence -> ${e.target.value}%`)}
+            className="rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
+            {CONF_LADDER.map((c) => <option key={c} value={c}>{c}%</option>)}
+          </select>
+        </label>
+      </div>
+      </>)}
+
+      {/* ── COMMERCIAL FINANCIALS · COGS · REV · MGN ──────────────────────────────────────── */}
+      <FinBanner tone="comm" title="Commercial Financials" sub="COGS · REV · MGN"
+        summary={`${finFmtK(commRevK)} incremental`} open={finOpen.comm}
+        onToggle={() => setFinOpen((o) => ({ ...o, comm: !o.comm }))} />
+      {finOpen.comm && (<>
+      <div className="max-h-[46vh] overflow-auto">
+        <table className="w-full border-collapse">
+          {head}
+          <tbody>
             {BANDS.map((b) => {
               const on = fin.unitEcon[b.key];
               return (
@@ -3855,24 +3933,16 @@ function S10FinEditor({ p, baseYear, onEdit }: {
             className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:bg-slate-800">↺ Undo fill</button>
         </div>
       )}
-      {/* Current-year ask + the Rack & Stack confidence ladder — six rungs, not a 1-5 opinion score. */}
+      {/* The COMMERCIAL rung, with the commercial rows. Its twin moved up into the technical section. */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
-        <label className="flex items-center gap-1">{yearLabel(ys[0]?.year ?? baseYear)} R&amp;D Spend Request
-          <span className="w-20"><FinCell value={fin.spendRequestK} title="Current-year R&D ask, $K" onCommit={(v) => setFin({ spendRequestK: v }, `spend request → ${v}`)} /></span>
-        </label>
-        <label className="flex items-center gap-1">Technical Confidence
-          <select value={String(fin.techConfPct)} onChange={(e) => setFin({ techConfPct: +e.target.value }, `tech confidence → ${e.target.value}%`)}
-            className="rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
-            {CONF_LADDER.map((c) => <option key={c} value={c}>{c}%</option>)}
-          </select>
-        </label>
         <label className="flex items-center gap-1">Commercial Confidence
-          <select value={String(fin.commConfPct)} onChange={(e) => setFin({ commConfPct: +e.target.value }, `commercial confidence → ${e.target.value}%`)}
+          <select value={String(fin.commConfPct)} onChange={(e) => setFin({ commConfPct: +e.target.value }, `commercial confidence -> ${e.target.value}%`)}
             className="rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
             {CONF_LADDER.map((c) => <option key={c} value={c}>{c}%</option>)}
           </select>
         </label>
       </div>
+      </>)}
     </div>
   );
 }
@@ -4726,7 +4796,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap reserves the SCALED footprint so the
               scaled sheet is centred and pannable at zoom>1 instead of overflowing its own layout box. */}
           <div className="relative shrink-0" style={{ width: SHEET_W * fit, height: SHEET_H * fit }}>
-            <Sheet sp={spec} i={idx} />
+            {Sheet({ sp: spec, i: idx })}
           </div>
         </div>
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
@@ -5132,7 +5202,7 @@ function GateNotesPanel({ sel }: { sel: Project }) {
   );
 }
 
-function GateRequirementsView({ projects, sel, onSelect, onEditSource }: { projects: Project[]; sel: Project; onSelect: (id: string) => void; onEditSource?: (patch: Partial<Project>, changes: string[]) => void }) {
+function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel, onSelect, onEditSource }: { projects: Project[]; allProjects: Project[]; hierFilter: HierSel; onScope: (s: HierSel) => void; sel: Project; onSelect: (id: string) => void; onEditSource?: (patch: Partial<Project>, changes: string[]) => void }) {
   const { t } = useLexicon();
   const readiness = useMemo(() => gateReadinessAll(sel), [sel]);
   const gateIdx = GATES.indexOf(sel.gate);
@@ -5156,18 +5226,42 @@ function GateRequirementsView({ projects, sel, onSelect, onEditSource }: { proje
   });
   // Digital slide show — open at S1 (header) or at a specific slide (from a matrix row).
   const [deck, setDeck] = useState<{ open: boolean; slide?: string }>({ open: false });
+  // ── GATE SCOPE · DECISION 1 — SHARE the page-level `hierFilter`, do not fork a Gate-local one. ──────────
+  // The Growth Model / financial-review chart already drives the SAME page-level state (page.tsx:631 passes
+  // `onScope={setHierFilter}`, rendered at :5913), and the portfolio header owns the same control (:663). One
+  // company scope is the operator's mental model: a Gate-local copy would silently disagree with the portfolio
+  // and the financial review, so narrowing here and then flipping tabs would put the "random projects" straight
+  // back on screen — which is the exact defect being fixed. `projects` is ALREADY `scopeByHier(order,
+  // hierFilter)` (page.tsx:385 → :909), so this adds the missing CONTROL, it does not add a second filter path.
+  // ── DECISION 2 — a scope change must never orphan the selection. ────────────────────────────────────────
+  // `sel` is resolved upstream from the FULL `order` (page.tsx:387), not from the scoped list, so narrowing the
+  // scope can leave <select value={sel.id}> pointing at an id that is no longer one of its <option>s. Browsers
+  // then paint the first option while the app still reports the old project — the header, readiness rollup and
+  // slide matrix would describe a project the dropdown appears not to be on. So: SNAP TO THE FIRST IN-SCOPE
+  // PROJECT. Guarded on `projects.length` — an empty scope (e.g. a BU + an Alpha Group from another BU) keeps
+  // the previous selection rather than crashing on `projects[0]`, and the header says the scope is empty.
+  useEffect(() => {
+    if (projects.length > 0 && !projects.some((p) => p.id === sel.id)) onSelect(projects[0].id);
+  }, [projects, sel.id, onSelect]);
   return (
     <div className="space-y-4">
       {deck.open && <SlideShowModal p={sel} startSlide={deck.slide} onEditSource={onEditSource} onClose={() => { setDeck({ open: false }); setSlides(readStore(SLIDE_KEY)); }} />}
-      {/* Project selector + context */}
+      {/* Project selector + context — scoped by the ONE standard BU · SBU · Alpha Group ScopeFilter, so the
+          dropdown lists only the projects in the operator's scope instead of every project in the company. */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="text-sm text-slate-400">Gate governance for</div>
+        <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
         <select
-          value={sel.id} onChange={(e) => onSelect(e.target.value)}
+          value={sel.id} onChange={(e) => onSelect(e.target.value)} aria-label="Gate governance project"
           className="rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-1.5 text-sm text-slate-100 outline-none focus:border-cyan-500"
         >
           {projects.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.gate}</option>)}
+          {/* Empty scope — keep the current project addressable so the view below still has a subject. */}
+          {projects.length === 0 && <option value={sel.id}>{sel.name} · {sel.gate}</option>}
         </select>
+        <span data-gate-scope-count className="text-[11px] tabular-nums text-slate-500">
+          {projects.length} of {allProjects.length} in scope
+        </span>
         <span className="text-[11px] text-slate-500">Last completed gate <span className="font-mono text-slate-300">{sel.gate}</span> → stage <span className="text-slate-300">{GATE_STAGE[sel.gate]}</span></span>
         <button onClick={() => setDeck({ open: true })}
           className="ml-auto rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">▶ {t("innovation.slides.open")}</button>
