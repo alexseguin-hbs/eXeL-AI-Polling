@@ -2838,6 +2838,17 @@ export const SOURCE_SLIDE: Record<string, string> = {
   // Money — S10 owns it. Eleven calendar years of spend + the three revenue bands.
   "S2.profile": "S10", "S2.accel": "S10", "S3.profile": "S10", "S3.revtable": "S10", "S3.rdchart": "S10",
 };
+/** What the Edit-Source control CALLS itself, chosen by the owning slide rather than typed per site.
+ *  Operator: "Anytime we say live from project have Edit Financials or Edit Value Prop instead with edit
+ *  symbol." A read-only field used to announce itself with a passive badge — `◈ LIVE FROM PROJECT` — which
+ *  tells you the value is not yours to type but not where it IS yours to type. The verb does both.
+ *  One row per owner, so adding a third source names its own badge instead of touching three call sites. */
+export const SOURCE_LABEL: Record<string, string> = { S10: "Edit Financials", S8: "Edit Value Prop" };
+/** The label for a field's owning slide; falls back to a generic verb so a new owner is never nameless. */
+export const sourceLabelOf = (code: string, fieldId: string): string => {
+  const owner = sourceSlideOf(code, fieldId);
+  return (owner && SOURCE_LABEL[owner]) || "Edit source";
+};
 /** The set of slides that own an input record — i.e. the only codes allowed to render a source panel. */
 export const SOURCE_CODES: string[] = Array.from(new Set(Object.values(SOURCE_SLIDE)));
 export const isSourceSlide = (code: string): boolean => SOURCE_CODES.includes(code);

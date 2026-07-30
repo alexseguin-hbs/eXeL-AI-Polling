@@ -26,7 +26,7 @@ import {
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
   scopeBaseM, GATE_REVIEW, GATE_NOTES, SLIDES, slideDef, slideHintOf, aiSlideOf, rackByLevel, projectRevSeries,
   SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField, SLIDE_SEED,
-  sourceSlideOf,
+  sourceSlideOf, sourceLabelOf, SOURCE_LABEL,
   DISCIPLINES, disciplineLabel, storyReqId, DISCIPLINE_MAX,
   STORY_MATURITY, isStoryGroupRow, storyTableRows, TRACE_COLS, isTraceGroupRow, traceRowsOf, designOutputId,
   fitHeader, HEADER_NAME_BUDGET, HEADER_NAME_FLOOR, HEADER_TITLE_BUDGET, HEADER_TITLE_FLOOR,
@@ -4254,17 +4254,22 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   const idxOfCode = (code: string) => SLIDE_SCHEMA.findIndex((s) => s.code === code);
   // Off the owning slide this is a DEEP LINK, not a dead button. The editor moved; the way in must not
   // disappear with it, or a user standing on S3 wondering where NPV comes from has nowhere to go.
-  const SourceLink = ({ source, code, fieldId, target }: { source?: string; code?: string; fieldId?: string; target?: string }) => {
+  const SourceLink = ({ source, code, fieldId, target, inline }: { source?: string; code?: string; fieldId?: string; target?: string; inline?: boolean }) => {
     const owner = target ?? (code && fieldId ? sourceSlideOf(code, fieldId) : null) ?? "S10";
     const here = spec.code === owner;
     const oi = idxOfCode(owner);
+    // The label is chosen by the OWNER, from `SOURCE_LABEL`, never typed at the call site — so a third
+    // source names its own control instead of requiring an edit here, on the field header and in Present.
+    const verb = (code && fieldId ? sourceLabelOf(code, fieldId) : SOURCE_LABEL[owner]) || "Edit source";
     return (
       <button onClick={() => { setPresent(false); if (!here && oi >= 0) setIdx(oi); setSrcOpen(true); }}
         title={here
-          ? `Edit the single source of truth — ${owner} owns this record. Updates everywhere in real time.`
-          : `This is entered on ${owner} — the single source of truth. Opens ${owner} with the editor expanded.`}
-        className="mt-2 inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20">
-        <span aria-hidden>◈</span> {here ? "Edit source" : `Edit on ${owner}`}{source ? `: ${source}` : ""} <span aria-hidden>→</span>
+          ? `${verb} — ${owner} owns this record. Updates everywhere in real time.`
+          : `Entered on ${owner}, the single source of truth. Opens ${owner} with the editor ready.`}
+        className={inline
+          ? "inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0 text-[9px] font-medium text-emerald-300 hover:bg-emerald-500/20"
+          : "mt-2 inline-flex items-center gap-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20"}>
+        <span aria-hidden>✎</span> {verb}{source ? `: ${source}` : ""} <span aria-hidden>→</span>
       </button>
     );
   };
@@ -4282,7 +4287,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     const Banner = () => (
       <div data-field-banner className={`flex items-center gap-1.5 ${big ? "px-[0.8cqw] py-[0.45cqh]" : "px-3 py-1.5"} ${acc.bar}`} style={big ? { fontSize: TS.head } : undefined}>
         <span aria-hidden className={big ? "leading-none" : "text-[12px] leading-none"}>{acc.icon}</span>
-        <span className={`font-semibold uppercase tracking-[0.14em] ${big ? "" : "text-[10px]"}`}>{f.name}{f.linked ? " · ◈ live" : ""}</span>
+        <span className={`font-semibold uppercase tracking-[0.14em] ${big ? "" : "text-[10px]"}`}>{f.name}{f.linked ? ` · ✎ ${sourceLabelOf(sp.code, f.id)}` : ""}</span>
       </div>
     );
     if (f.kind === "chart" && f.linked) return (
@@ -4428,7 +4433,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <AmtsPanel title="Upside Spending Accelerator Lever" icon="⚡">
             {fieldsOf("accel")}
           </AmtsPanel>
-          <AmtsPanel wide title="Program Timeline · MoT Gate Schedule · ◈ live" icon={<MarkCalendar />}>
+          <AmtsPanel wide title={`Program Timeline · MoT Gate Schedule · ✎ ${SOURCE_LABEL.S10}`} icon={<MarkCalendar />}>
             <GateTimeline p={p} />
             {/* Program start lives in the S10 source panel beside the money it schedules. */}
             <SourceLink source="Program start (source record)" target="S10" />
@@ -4879,7 +4884,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                     <div className="mb-1.5 flex flex-wrap items-center gap-2">
                       <span className="text-[12px] font-semibold text-slate-200">{f.name}</span>
                       {f.req && <span className="rounded bg-amber-500/15 px-1 text-[9px] font-mono tracking-wider text-amber-300">REQUIRED</span>}
-                      {f.linked && <span className="rounded bg-emerald-500/15 px-1 text-[9px] font-mono tracking-wider text-emerald-300">◈ LIVE FROM PROJECT</span>}
+                      {/* THE BADGE IS THE CONTROL (operator: "Anytime we say live from project have Edit
+                          Financials or Edit Value Prop instead with edit symbol"). `◈ LIVE FROM PROJECT` was
+                          passive — it told you the value was not yours to type, but not where it WAS. The verb
+                          does both, and it sits exactly where the eye already is when someone wonders "can I
+                          change this?", so the separate Edit-on-S## button below the field is removed as a
+                          duplicate: one element fewer per linked field, which pays straight back into the
+                          A2/V4 fit budgets on the tightest sheets.
+                          Off the owning slide it navigates; ON the owning slide there is nowhere to go, so it
+                          stays a badge — an edit verb that goes nowhere would be a lie. */}
+                      {f.linked && (hasSourceLink(spec.code, f.id)
+                        ? <SourceLink source={undefined} code={spec.code} fieldId={f.id} inline />
+                        : <span className="rounded bg-emerald-500/15 px-1 text-[9px] font-mono tracking-wider text-emerald-300">✎ {sourceLabelOf(spec.code, f.id)}</span>)}
                       {f.mirror && <span className="rounded bg-violet-500/15 px-1 text-[9px] font-mono tracking-wider text-violet-300">◈ MIRRORS {f.mirror}</span>}
                       <span className="flex-1" />
                       {!f.linked && (

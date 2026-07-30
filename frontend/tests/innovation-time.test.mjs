@@ -1636,7 +1636,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the financials deep-link resolves its slide from SOURCE_SLIDE, so it cannot drift from the panel gate again");
   // Every SourceLink render site is guarded — an unguarded one is how a dead button gets back in.
   const renders = [...src.matchAll(/<SourceLink /g)].length;
-  const guarded = [...src.matchAll(/(hasSourceLink\([^)]*\) && <SourceLink |<SourceLink source="Program start \(source record\)" target="S10")/g)].length;
+  // The edit-mode field BADGE is now the control (E3), so its guard reads `hasSourceLink(...) ? <SourceLink`
+  // — a ternary, because ON the owning slide it falls back to a static badge rather than a link that goes
+  // nowhere. Both forms count as guarded; an UNGUARDED render is how a dead button gets back in.
+  const guarded = [...src.matchAll(/(hasSourceLink\([^)]*\)\s*(?:&&|\?)\s*<SourceLink |<SourceLink source="Program start \(source record\)" target="S10")/g)].length;
   ok(renders === guarded,
      `every SourceLink render is guarded by hasSourceLink or an explicit target — ${guarded}/${renders}`);
 }
@@ -2217,6 +2220,48 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the corner cell pins BOTH ways and outranks everything — z-30 over the header's z-20 and the row labels' z-10");
   ok(/\{ys\.map\(\(y\) => <th key=\{y\.year\} className="sticky top-0 z-20 bg-\[#0b0f14\]/.test(ed),
      "each year header is individually sticky and carries its own background — a transparent one shows the rows through it");
+}
+
+// ── E3 · "LIVE FROM PROJECT" BECOMES "✎ EDIT FINANCIALS" / "✎ EDIT VALUE PROP" ─────────
+// Operator: "Anytime we say live from project have Edit Financials or Edit Value Prop instead with edit
+// symbol." A read-only field used to announce itself with a passive badge — it told you the value was not
+// yours to type, but not where it WAS yours to type. The verb does both, and it sits exactly where the eye
+// already is when someone wonders "can I change this?".
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fspE3 = await import("node:fs/promises");
+  const pageE3 = await fspE3.readFile("app/innovation/page.tsx", "utf8");
+  // Strip BOTH comment forms. A first draft stripped only `//` lines and went red on its own explanatory
+  // JSX block comment, which quotes the retired badge text — the lock catching the person writing it.
+  const code = pageE3.replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+                     .split("\n").map((l) => l.replace(/^\s*\/\/.*$/, "")).join("\n");
+
+  // 1. EVERY PASSIVE BADGE IS GONE — all three sites the operator's phrase covered.
+  for (const dead of ["LIVE FROM PROJECT", "· ◈ live", "◈ live\""])
+    ok(!code.includes(dead), `"${dead}" no longer appears anywhere in the deck`);
+
+  // 2. THE LABEL COMES FROM THE OWNER, not from the call site — so a THIRD source names its own control
+  //    instead of requiring three edits. That is the whole reason this is a table and not a string.
+  ok(F.SOURCE_LABEL.S10 === "Edit Financials" && F.SOURCE_LABEL.S8 === "Edit Value Prop",
+     "SOURCE_LABEL names both owners in the operator's own words");
+  ok(F.sourceLabelOf("S3", "revtable") === "Edit Financials", "an S3 money field says Edit Financials");
+  ok(F.sourceLabelOf("S1", "valueprop") === "Edit Value Prop" && F.sourceLabelOf("S6", "desc") === "Edit Value Prop",
+     "S1 and S6 both say Edit Value Prop — they render the sentence S8 owns");
+  ok(F.sourceLabelOf("S4", "conops") === "Edit source",
+     "a field with no owner falls back to a generic verb — a new owner is never nameless");
+  // Registry coverage: every owning code must have a label, or a field would name its control after nothing.
+  ok(F.SOURCE_CODES.every((c) => F.SOURCE_LABEL[c]), `every owning code has a label — [${F.SOURCE_CODES.join(", ")}]`);
+
+  // 3. THE EDIT SYMBOL, as asked. The old ◈ was a diamond, not an edit affordance.
+  ok(/<span aria-hidden>✎<\/span> \{verb\}/.test(code), "the control leads with the ✎ edit symbol and the owner's verb");
+  ok(/✎ \$\{sourceLabelOf\(sp\.code, f\.id\)\}/.test(code), "the PRESENT-mode field banner carries the same verb");
+
+  // 4. IT ACTUALLY GOES SOMEWHERE — off the owning slide. On the owning slide there is nowhere to go, so it
+  //    stays a badge: an edit verb that navigates nowhere would be a lie, which is the defect F0 fixed.
+  ok(/setPresent\(false\); if \(!here && oi >= 0\) setIdx\(oi\); setSrcOpen\(true\);/.test(code),
+     "clicking it leaves Present, navigates to the owner and opens the editor");
+  ok(/hasSourceLink\(spec\.code, f\.id\)\s*\?\s*<SourceLink/.test(code),
+     "the badge becomes a LINK only where there is somewhere to go");
 }
 
 // ── E0c · CONFIDENCE IS DERIVED FROM RISK, NOT TYPED ────────────────────────────────────
