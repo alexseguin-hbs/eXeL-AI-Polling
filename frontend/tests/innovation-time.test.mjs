@@ -2308,7 +2308,12 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // spanning cell that carries the stripe.
   ok(!/<span className="sticky left-0 inline-block">/.test(ed),
      "no sticky span inside a colSpan cell — that form clips its own label under border-collapse");
-  const pinned = [...ed.matchAll(/<td className="sticky left-0 z-10 max-w-\[60vw\] bg-\[#12202a\]/g)];
+  // PROXY LOCK REWRITTEN (W-3, the SIXTH this session). This matched the band header's FULL class string,
+  // `max-w-[60vw]` included — the SHAPE, not the property. W-3 deletes that cap deliberately (the shared
+  // colgroup owns the gutter now), and the lock went red on a change that strengthens the very thing it
+  // guards. What it MEANS is: each band header's LABEL CELL is pinned with the E2 stripe background. That
+  // is now what it says, and it survives any future width mechanism.
+  const pinned = [...ed.matchAll(/<td className="sticky left-0 z-10 [^"]*bg-\[#12202a\]/g)];
   const stripes = [...ed.matchAll(/<td colSpan=\{ys\.length\} className="bg-cyan-500\/10" \/>/g)];
   ok(pinned.length === 3, `three section headers pin their label cell — ${pinned.length}`);
   ok(stripes.length === 3, `each pinned label is paired with a spanning stripe cell — ${stripes.length}`);
@@ -3784,6 +3789,50 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/<span className="w-5 shrink-0 text-right tabular-nums text-slate-500">\{i \+ 1\}<\/span>/.test(pipeBlock),
      "the rank badge is still the render index — the list is REFLOWED, never re-sorted");
   ok(!/\.sort\(/.test(pipeBlock), "no sort was introduced into the priority list — funding-stack order is upstream and stays upstream");
+}
+
+// ── W-3 · THE TWO S10 EDITOR TABLES DECLARE ONE GUTTER ──────────────────────────────────
+// Operator: "Financial Output on Play mode is correct as far as year alignment. Do same for input."
+//
+// THE FINDING THIS LOCK EXISTS TO PRESERVE: both tables ALREADY rendered the same `head` constant, and their
+// 2026 columns still sat ~200px apart. A shared component guarantees nothing about shared geometry, because
+// `<table>` defaults to AUTO layout and sizes column 1 from its own widest cell — "Contractor" on one,
+// "Step 3 · Existing • PRD Revenue • EOL" plus a mode chip on the other. So the assertions below are about
+// the DECLARATION (colgroup + table-fixed), never about the two tables looking similar.
+{
+  const fspW3 = await import("node:fs/promises");
+  const srcW3 = await fspW3.readFile("app/innovation/page.tsx", "utf8");
+  // COMMENTS STRIPPED FIRST — the W-2 lesson, applied here on the first run rather than after a red gate.
+  // Three of the comments below quote `sm:whitespace-nowrap` to explain why it was removed, and a negative
+  // assertion cannot be run against prose about the thing it forbids.
+  const rawW3 = srcW3.slice(srcW3.indexOf("function S10FinEditor"), srcW3.indexOf("Apply-rate strip"));
+  const edW3 = rawW3.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(edW3.length > 500, "the S10FinEditor block was located");
+  ok(edW3.length < rawW3.length, "comments were stripped before asserting");
+
+  // (a) ONE COLGROUP, ONE DECLARATION, BOTH TABLES. Counted, not named — a third table added later must
+  //     inherit the gutter rather than quietly reintroducing auto layout.
+  const tables = (edW3.match(/<table className=\{tableCls\} style=\{tableStyle\}>/g) ?? []).length;
+  ok(tables === 2, `both editor tables read the shared class + style — found ${tables}`);
+  ok((edW3.match(/\{cols\}/g) ?? []).length === tables, "every one of those tables renders the shared colgroup");
+  ok(!/<table className="w-full border-collapse">/.test(edW3), "no editor table is left on auto layout (auto layout IS the defect)");
+  ok(/const tableCls = "w-full table-fixed border-collapse"/.test(edW3),
+     "`table-fixed` is part of the shared class — without it a column may still grow past its declared width to fit content");
+  ok(/const LABEL_W = \d+;/.test(edW3) && /const YEAR_W = \d+;/.test(edW3), "the gutter and the year column are named constants, not repeated literals");
+  ok(/minWidth: LABEL_W \+ ys\.length \* YEAR_W/.test(edW3),
+     "the table's min width is derived from the gate-visible year count — 4, 6 or 11 columns all stay typeable");
+
+  // (b) NO BAND HEADER MAY NOWRAP. This is the assertion that would have caught the one real clip driving the
+  //     app found: "Combined: Incremental · derived" overflowed its 132px gutter at 180px on DESKTOP while
+  //     measuring clean on the phone, because `sm:whitespace-nowrap` only binds above the breakpoint. Under
+  //     table-fixed a nowrap label no longer widens its column — it paints across the year cells.
+  const nowrap = (edW3.match(/sm:whitespace-nowrap/g) ?? []).length;
+  ok(nowrap === 0, `no editor band header forces nowrap — found ${nowrap} (each one overflows the declared gutter instead of widening it)`);
+  const maxw = (edW3.match(/max-w-\[60vw\]/g) ?? []).length;
+  ok(maxw === 0, `no editor band header caps its own width — the colgroup owns that now — found ${maxw}`);
+  // All four band headers survived the change and still carry the E2 sticky-clip guard.
+  const pinned = (edW3.match(/sticky left-0 z-10 bg-\[#12202a\]/g) ?? []).length;
+  ok(pinned === 3, `all three static band headers stay pinned (E2) — found ${pinned}`);   // 1a, Combined, + the mapped band
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

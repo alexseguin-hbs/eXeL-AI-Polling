@@ -3841,6 +3841,32 @@ function S10FinEditor({ p, baseYear, onEdit }: {
       </tr>
     </thead>
   );
+  // W-3 · THE TWO TABLES DECLARE ONE GUTTER (operator: "Financial Output on Play mode is correct as far as
+  // year alignment. Do same for input").
+  //
+  // BOTH TABLES ALREADY SHARED `head` — and their 2026 columns still sat ~200px apart on the operator's
+  // screen. A shared component guarantees nothing about shared geometry: `<table>` defaults to AUTO layout,
+  // which sizes the first column from its own widest cell. Technical's is "Contractor"; Commercial's is
+  // "Step 3 · Existing • PRD Revenue • EOL" PLUS its "Qty · COGS · ASP" chip. Same header, different gutter.
+  //
+  // So the gutter is DECLARED, exactly as the output sheet declares `w-[8.5cqw]` on S10Grid (G4). One
+  // colgroup, rendered into both tables, plus `table-fixed` so the declaration actually binds — without it
+  // the browser is free to grow a column past its stated width to fit content, which is the whole defect.
+  //
+  // `minWidth` keeps the year columns typeable on a phone (FinCell's own min-w is 52px) and lets the panel
+  // scroll horizontally rather than crushing eleven columns into 390px. `w-full` still fills a wide desktop;
+  // because both tables carry the SAME colgroup inside the SAME parent, any leftover width is distributed
+  // identically to both, so they stay aligned at every viewport rather than only at the narrow one.
+  const LABEL_W = 132;                        // reserved gutter — holds the longest band label AND its chip
+  const YEAR_W = 64;                          // one calendar year — FinCell min-w 52px + the cell's px-0.5
+  const cols = (
+    <colgroup>
+      <col style={{ width: LABEL_W }} />
+      {ys.map((y) => <col key={y.year} style={{ width: YEAR_W }} />)}
+    </colgroup>
+  );
+  const tableCls = "w-full table-fixed border-collapse";
+  const tableStyle = { minWidth: LABEL_W + ys.length * YEAR_W };
   return (
     <div className="col-span-2 rounded border border-cyan-500/20 bg-[#0b0f14] p-2 sm:col-span-3">
       <div className="mb-1 flex flex-wrap items-baseline gap-x-2 text-[10px]">
@@ -3863,7 +3889,8 @@ function S10FinEditor({ p, baseYear, onEdit }: {
         onToggle={() => setFinOpen((o) => ({ ...o, tech: !o.tech }))} />
       {finOpen.tech && (<>
       <div className="max-h-[46vh] overflow-auto">
-        <table className="w-full border-collapse">
+        <table className={tableCls} style={tableStyle}>
+          {cols}
           {head}
           <tbody>
             {/* THE LABEL IS PINNED, NOT THE ROW. Operator: "I need Step 1A, Do nothing and other labels to
@@ -3873,7 +3900,10 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                 were typing into — the failure mode that makes a wide grid unusable.
                 A colSpan cell already spans the table, so stickying the CELL does nothing. The remedy is to
                 pin its CONTENT: the label parks against the left edge while its stripe scrolls underneath. */}
-            <tr><td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">Step 1a · R&amp;D Spend</td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
+            {/* W-3 · `sm:whitespace-nowrap` IS GONE, and its removal is the point. Under `table-fixed` a
+                nowrap label does not widen its column any more — it OVERFLOWS it, painting across the year
+                cells. The declared gutter only binds if the content is allowed to wrap inside it. */}
+            <tr><td className="sticky left-0 z-10 bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold leading-tight text-slate-100">Step 1a · R&amp;D Spend</td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
             {spendRow("Labor", "labor")}
             {spendRow("Contractor", "contractor")}
             {spendRow("Materials", "materials")}
@@ -3908,7 +3938,8 @@ function S10FinEditor({ p, baseYear, onEdit }: {
         onToggle={() => setFinOpen((o) => ({ ...o, comm: !o.comm }))} />
       {finOpen.comm && (<>
       <div className="max-h-[46vh] overflow-auto">
-        <table className="w-full border-collapse">
+        <table className={tableCls} style={tableStyle}>
+          {cols}
           {head}
           <tbody>
             {BANDS.map((b) => {
@@ -3921,7 +3952,14 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                         edge, measured at ~20px lost on a 390px phone. So the band header is two cells: a pinned
                         label cell carrying the name AND its toggle (the control must not scroll away from the
                         label it belongs to), and a spanning cell that carries the stripe. */}
-                    <td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">
+                    {/* W-3 · THIS CELL WAS THE CAUSE. Under AUTO table layout its `sm:whitespace-nowrap`
+                        content — the longest band label PLUS the mode chip beside it — sized the first
+                        column, which is why Commercial's 2026 sat ~200px right of Technical's despite both
+                        tables rendering the same `head`. The gutter is now declared by the shared colgroup,
+                        so the label wraps inside it and the chip drops to its own line under the name rather
+                        than extending it. Nothing is hidden; the cell grows DOWN, which costs a row height
+                        and buys alignment on both tables at every viewport. */}
+                    <td className="sticky left-0 z-10 bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold leading-tight text-slate-100">
                       {b.label}
                       {/* THE TOGGLE SWAPS THE ROW SET (operator: "if Rev / Mgn Only is selected, Qty, COGS,
                           ASP are hidden and those cells are editable"). Each mode shows exactly what it takes
@@ -3936,7 +3974,7 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                         title={on
                           ? "Entered: Quantity, COGS, ASP. Revenue = Qty x ASP and Margin = Qty x (ASP - COGS) are calculated. Click to type Revenue and Margin directly instead."
                           : "Entered: Revenue and Margin, typed directly. Click to build them up from Quantity, COGS and ASP instead."}
-                        className={`ml-2 rounded border px-1.5 py-0 text-[9px] ${on ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400"}`}>
+                        className={`mt-0.5 block rounded border px-1.5 py-0 text-[9px] ${on ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400"}`}>
                         {on ? "Qty · COGS · ASP" : "Rev & Mgn only"}
                       </button>
                     </td>
@@ -3992,7 +4030,11 @@ function S10FinEditor({ p, baseYear, onEdit }: {
               );
             })}
             {/* Combined is DERIVED — New − Do-Nothing + EOL. There is nothing to type here, so there is no input. */}
-            <tr><td className="sticky left-0 z-10 max-w-[60vw] bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold text-slate-100 sm:max-w-none sm:whitespace-nowrap">Combined: Incremental <span className="font-normal text-slate-400">· derived</span></td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
+            {/* W-3 · THE FOURTH BAND HEADER GETS THE SAME TREATMENT, and it was NOT free. Driving the built
+                app found this cell overflowing its declared 132px gutter at 180px on desktop while measuring
+                clean on the phone — the phone wrapped it, the desktop did not, because `sm:whitespace-nowrap`
+                only applies above the breakpoint. One clipped cell, found by measurement, not by a lock. */}
+            <tr><td className="sticky left-0 z-10 bg-[#12202a] py-0.5 pr-2 text-left text-[10px] font-semibold leading-tight text-slate-100">Combined: Incremental <span className="font-normal text-slate-400">· derived</span></td><td colSpan={ys.length} className="bg-cyan-500/10" /></tr>
             <tr>
               <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-400">Revenue</td>
               {ys.map((y) => <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[11px] tabular-nums text-slate-100">{finFmtK(incRevK(y, fin.unitEcon))}</td>)}
