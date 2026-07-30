@@ -2097,11 +2097,34 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!Object.values(conf).some((v) => ["Low", "Med", "High"].includes(v)),
      "Confidence no longer prints a risk label where the grid prints a percentage");
 
-  // 7. STILL UNCHANGED — this commit is resolver-only. The flag flip is E0b-ii; if it rode along here, a
-  //    blank panel would ship between the two and nobody would know which commit caused it.
-  for (const fid of ["spend", "scenarios", "conf"])
-    ok(!s10.fields.find((f) => f.id === fid).linked,
-       `S10.${fid} is not yet linked — E0b-i adds the resolver, E0b-ii flips the flag`);
+  // 7. E0b-ii · THE FLAG IS FLIPPED AND THE RECORD IS KEPT. `linked` makes the field a read-out; `req` stays
+  //    true so gate completeness does not move on any of the 33 projects. Both halves matter: dropping the
+  //    field would silently re-score every gate, and leaving it editable would keep the third input surface.
+  for (const fid of ["spend", "scenarios", "conf"]) {
+    const f = s10.fields.find((x) => x.id === fid);
+    ok(f.linked === true, `S10.${fid} is a read-out, not an editor — the grid is the only door to the money`);
+  }
+  // `conf` was never required; `spend` and `scenarios` were and still are. Asserted as the exact set below
+  // rather than per field — an earlier draft of this lock claimed all three were required and went red on
+  // its own first run, which is the lock doing its job on the person writing it.
+  // ONE EDITABLE FINANCIAL SURFACE ON S10, COUNTED rather than named — so a NEW editable field added to S10
+  // tomorrow fails this without anyone remembering to update the list.
+  ok(s10.fields.filter((f) => !f.linked).length === 0,
+     `S10 renders zero editable schema fields — [${s10.fields.filter((f) => !f.linked).map((f) => f.id).join(", ")}]`);
+  // NO BLANK PANEL: every field S10 shows must resolve to something, or the read-only conversion has just
+  // emptied the slide. This is the V1 failure, asserted rather than assumed.
+  for (const f of s10.fields)
+    ok(F.linkedSlideField(p0, "S10", f.id, BY) != null, `S10.${f.id} renders a value — no field went blank`);
+  // Gate scoring is BYTE-IDENTICAL across the portfolio: same required set, same field ids, all 33 projects.
+  const reqIds = s10.fields.filter((f) => f.req).map((f) => f.id).join("|");
+  ok(reqIds === "spend|scenarios", `S10's required set is unchanged — [${reqIds}]`);
+  ok(F.DEMO_PROJECTS.every((pp) => F.linkedSlideField(pp, "S10", "spend", BY).length === F.visibleYearCount(pp.gate)),
+     `every one of the ${F.DEMO_PROJECTS.length} projects renders its spend read-out at its own gate span`);
+  // READ-ONLY TAKES AWAY THE TYPING, NEVER THE READING. The editable table renders a <thead> from `f.cols`;
+  // the read-out has to as well, or converting these fields would silently delete the column labels the
+  // operator can see today — five bare numbers with nothing saying which is Labor and which is Other.
+  ok(/!!f\.cols\?\.length && <thead>/.test(pageE),
+     "a linked table renders its declared column headers — the conversion removes the input, not the labels");
 
   // 8. THE DECK PASSES ITS ONE CLOCK IN. A resolver that reached for `new Date()` would re-anchor a stored
   //    plan on 1 January and disagree with the grid for a day.

@@ -4046,7 +4046,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     }
     if (Array.isArray(v)) {
       const rows = v as string[][];
-      return <div className="overflow-x-auto"><table className="w-full text-[12px]"><tbody>{rows.map((r, ri) => <tr key={ri} className="border-b border-slate-900">{r.map((c, ci) => <td key={ci} className="px-2 py-1 tabular-nums text-emerald-300">{c}</td>)}</tr>)}</tbody></table></div>;
+      // COLUMN HEADERS, when the field declares them. The editable table renders a `<thead>` from `f.cols`;
+      // a read-out that dropped it would REMOVE labels the operator can see today — five bare numbers with
+      // nothing saying which is Labor and which is Other. Converting a field to read-only must take away the
+      // typing, never the reading. Applies to every linked table, so S3's revenue read-out gains it too.
+      return <div className="overflow-x-auto"><table className="w-full text-[12px]">
+        {!!f.cols?.length && <thead><tr>{f.cols.map((c) => <th key={c} className="px-2 pb-1 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">{c}</th>)}</tr></thead>}
+        <tbody>{rows.map((r, ri) => <tr key={ri} className="border-b border-slate-900">{r.map((c, ci) => <td key={ci} className="px-2 py-1 tabular-nums text-emerald-300">{c}</td>)}</tr>)}</tbody></table></div>;
     }
     // chart → live financial mini-chart from the project record (import project financials); maximizable
     if (f.kind === "chart") return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-2"><div className="mb-1 text-[10px] text-emerald-300/80">◈ Live from the project record</div><ChartFrame label={f.name}><MiniFinChart kind={spec.code} /></ChartFrame></div>;

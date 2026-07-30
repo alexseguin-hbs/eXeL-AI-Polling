@@ -2389,9 +2389,16 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // ("Year") and the WBS lines — never a launch-relative period. `L-1`, `Launch`, `Yr 2`, `Yr 3` lived here
     // and were the last banned labels in the deck: they mean different calendar years for two projects side
     // by side on the same board. Actual year headers are produced by `yearCols(baseYear, n)` at render time.
-    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "Calendar years, current + 10. Entered on the S10 grid — this table is the read-out." },
-    { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, cols: ["Band", "Quantity", "Revenue", "Margin", "Margin %"], hint: "Rack & Stack Steps 1b / 2 / 3 plus the derived Combined: Incremental." },
-    { id: "conf", name: "Confidence", kind: "metrics", items: [ { k: "tech", label: "Technical" }, { k: "comm", label: "Commercial" } ] } ] },
+    // ALL THREE ARE `linked` — READ-OUTS, NOT EDITORS. Operator: "delete everything that does not help make
+    // a slide." S10's panel renders the grid from `finPlan` and never touched these fields, yet they still
+    // accepted typing, so the sheet said $547k while the table under it said $683k. They stay in the schema
+    // and stay `req: true` — removing them would re-score gate completeness on all 33 projects and orphan
+    // 2,860 seeded rows — but the only place a financial figure can now be TYPED is the grid.
+    // Their resolvers landed in the previous commit (E0b-i): `linked` routes a field through
+    // `linkedSlideField`, whose fall-through returns null, so the flag and the branch must never be separated.
+    { id: "spend", name: "R&D spend by year (WBS)", kind: "table", req: true, linked: true, cols: ["Year", "Labor", "Contractor", "Materials", "Other"], hint: "Calendar years, current + 10. Entered on the S10 grid — this table is the read-out." },
+    { id: "scenarios", name: "Revenue scenarios", kind: "table", req: true, linked: true, cols: ["Band", "Quantity", "Revenue", "Margin", "Margin %"], hint: "Rack & Stack Steps 1b / 2 / 3 plus the derived Combined: Incremental. Entered on the S10 grid." },
+    { id: "conf", name: "Confidence", kind: "metrics", linked: true, items: [ { k: "tech", label: "Technical" }, { k: "comm", label: "Commercial" } ], hint: "The Rack & Stack confidence ladder, set on the S10 grid." } ] },
   { code: "S11", gate: "G2", stage: "Plan", source: "UXD validation", fields: [
     { id: "voc", name: "Early validation — UXD", kind: "table", req: true, cols: ["# customers", "Differentiator", "VOC learnings", "Pivot / Pursue / Pass"] },
     { id: "exp", name: "Planned experiments", kind: "table", cols: ["Exp #", "Assumption to test", "Success criteria", "Result"] },
