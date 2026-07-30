@@ -1716,7 +1716,15 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
   ok(/label: "ASP", cells: ys\.map\(\(y\) => finFmtK\(aspOf\(y\[key\]\)\)\)/.test(bandFn),
      "the ASP row is computed by aspOf — MSRP net of discount, never a typed field");
-  ok(/groupSpan: 6/.test(bandFn), "each band's six rows share ONE gutter label instead of a full-width header row");
+  // The intent here is the GUTTER IDIOM — one label spanning the band's rows instead of a full-width header
+  // row of its own. It asserted the literal `groupSpan: 6`, which was a stand-in that stopped being true
+  // when F2b made the row count depend on the mode (6 when building up, 3 when typed). The span is now
+  // DERIVED from the actual rows, so the property is asserted instead of the number: exactly one row in the
+  // band carries the gutter, and it carries a span rather than a hardcoded size.
+  ok(/groupSpan: rows\.length/.test(bandFn),
+     "each band's rows share ONE gutter label spanning however many rows the mode produces");
+  ok(/i === 0 \? \{ \.\.\.r, group: label, groupSpan: rows\.length, tint \} : r/.test(bandFn),
+     "the gutter is attached to the FIRST row only — the rest are covered by its rowSpan");
   // 3 bands x 6 + Combined 5 + a column header is 24 rows on a sheet that cannot grow, so the two panels no
   // longer split the body evenly — an even split silently scrolled Margin % and YoY Growth out of sight.
   ok(/const BODY_ROWS: Record<string, string> = \{ S10: "minmax\(0, 10fr\) minmax\(0, 24fr\)" \};/.test(pageSrc),
@@ -2205,6 +2213,24 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(edOrder.join(" → ") === "Quantity → COGS → ASP", `the editor orders Quantity → COGS → ASP — got ${edOrder.join(" → ")}`);
   ok(edOrder.join("|") === shOrder.join("|"),
      `the sheet carries the SAME order as the editor — sheet [${shOrder.join(" → ")}] vs editor [${edOrder.join(" → ")}]`);
+
+  // 5c · F2b · PRESENCE, not just order. The lock above compares ORDER, and that is exactly how the defect
+  // shipped green: the sheet emitted Quantity/COGS/ASP UNCONDITIONALLY while the editor hid them in typed
+  // mode, so both surfaces listed the same three metrics in the same order and the comparison passed — while
+  // a band in "Rev & Mgn only" printed a build-up that did not produce the revenue beside it. Order equality
+  // cannot see a missing branch; presence equality can.
+  ok(/\.\.\.\(on \? \[/.test(bandFn2), "the SHEET's band rows are inside a mode branch, not emitted unconditionally");
+  ok(/^\s*\.\.\.\(on \? \[/m.test(bandFn2) && /\] : \[\]\),/.test(bandFn2),
+     "the sheet's build-up rows collapse to NOTHING when the band is typed");
+  // Revenue/Margin/Margin % are outside the branch on the sheet — they exist in BOTH modes, which is the
+  // whole point of the toggle. Asserted so a later 'simplification' cannot sweep them inside it.
+  const shAfterBranch = bandFn2.slice(bandFn2.indexOf("] : []),"));
+  for (const r of ['label: "Revenue"', 'label: "Margin"', 'label: "Margin %"'])
+    ok(shAfterBranch.includes(r), `the sheet shows ${r} in BOTH modes — it is a total, not a build-up row`);
+  // groupSpan must be DERIVED. A literal span on a 3-row band leaves rows uncovered and shifts every number
+  // one column right — the rowSpan cover-set defect S10Grid's own comment warns about.
+  ok(/groupSpan: rows\.length/.test(bandFn2), "the band's gutter rowSpan is derived from its actual row count");
+  ok(!/groupSpan: 6,/.test(bandFn2), "no hardcoded 6-row span survives the branch");
 
   // 5a. BAND ORDER IS THE SAME ON BOTH SURFACES — the level above 5, and it was UNGUARDED until now.
   //     Measured before writing this (AsM Enlil/Krishna, 2026-07-30): reordering the SHEET's three bands

@@ -3602,18 +3602,29 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
   // instead of two totals it has to take on faith.
   const band = (key: "neu" | "don" | "dec", label: string, tint: string): S10Row[] => {
     const on = f.unitEcon[key];
-    return [
-      // ORDER: Quantity -> COGS -> ASP (operator) — how many you sell, what it costs to make, what you sell
-      // it for. The EDITOR carries the same order, and a lock compares the two lists directly rather than
-      // asserting each surface separately, because two independent assertions can both pass while the
-      // surfaces drift.
-      { group: label, groupSpan: 6, tint, label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
-      { label: "COGS", cells: ys.map((y) => finFmtK(y[key].cogsK)) },
-      { label: "ASP", cells: ys.map((y) => finFmtK(aspOf(y[key]))) },
+    // F2b · THE SHEET BRANCHES ON THE MODE, exactly as the editor does.
+    // It used to emit Quantity/COGS/ASP UNCONDITIONALLY while using `on` only inside bandRevK/bandMgnK. So a
+    // band in "Rev & Mgn only" printed a build-up that did not produce the revenue beside it — three numbers
+    // that do not multiply to the fourth, in front of a board. (F2a removed the seeded case by reconciling
+    // ASP to revenue; this closes the case a USER creates by flipping a band to typed entry.)
+    // ORDER: Quantity -> COGS -> ASP (operator) — how many you sell, what it costs to make, what you sell it
+    // for. The EDITOR carries the same order and the same presence rule, and a lock compares the two lists
+    // directly rather than asserting each surface separately, because two independent assertions can both
+    // pass while the surfaces drift.
+    const rows: S10Row[] = [
+      ...(on ? [
+        { label: "Quantity", cells: ys.map((y) => finFmtQty(y[key].units)) },
+        { label: "COGS", cells: ys.map((y) => finFmtK(y[key].cogsK)) },
+        { label: "ASP", cells: ys.map((y) => finFmtK(aspOf(y[key]))) },
+      ] : []),
       { label: "Revenue", cells: ys.map((y) => finFmtK(bandRevK(y[key], on))) },
       { label: "Margin", cells: ys.map((y) => finFmtK(bandMgnK(y[key], on))) },
       { label: "Margin %", cells: ys.map((y) => finFmtPct(bandMgnPct(y[key], on))) },
     ];
+    // groupSpan is DERIVED from the row count, never a literal 6. `S10Grid` builds its rowSpan cover set from
+    // groupSpan (`page.tsx` covered-set), so a hardcoded span on a 3-row band would leave three rows
+    // uncovered and shift every number one column right — the defect the cover-set comment already warns of.
+    return rows.map((r, i) => (i === 0 ? { ...r, group: label, groupSpan: rows.length, tint } : r));
   };
   return (
     <S10Grid
