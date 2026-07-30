@@ -2038,10 +2038,17 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const fspc = await import("node:fs/promises");
   const src = await fspc.readFile("app/innovation/page.tsx", "utf8");
-  const chart = src.slice(src.indexOf("function S8ValueChart("), src.indexOf("function S8ValueChart(") + 4200);
+  // W-1b · RE-POINTED, NOT RELAXED. `S8ValueChart` and `ValueEquationPanel` merged into ONE `ValueProp`
+  // (operator: "only one Value Prop visual that is source for everything including slide"), so this slice
+  // named a function that no longer exists and `indexOf` returned -1 — slicing the TOP of the file and
+  // failing nine assertions that were all still true. Every property below is unchanged; only the anchor is.
+  const chart = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
 
   ok(!/s\.label\.length > 8 \? s\.label\.slice\(0, 8\)/.test(chart), "the eight-character hard cut is gone");
-  ok(!/slice\(0, 8\)/.test(chart), "no truncation of any driver label survives in this chart");
+  // ⚠ NARROWED, AND THE REASON MATTERS. The ban was `/slice(0, 8)/` — any occurrence. W-1b caps the chart at
+  // eight differentiator bars with `ve.perDriver.slice(0, 8)`, which is a CAP ON BARS, not a cut through a
+  // label, and the blanket ban could not tell them apart. The defect was always `<label>.slice(0, N)`.
+  ok(!/\blabel\.slice\(0,\s*\d+\)/.test(chart), "no truncation of any driver LABEL survives in this chart");
   ok(/return out\.slice\(0, 2\);/.test(chart), "labels WRAP to at most two lines — the budget is lines, not characters");
   ok(/const FS = Math\.max\(4\.4, Math\.min\(6, gw \/ 5\.2\)\);/.test(chart),
      "type shrinks toward a legibility FLOOR of 4.4 before it wraps — it never shrinks without limit");
@@ -2049,13 +2056,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // The y axis exists, and the gutter is MEASURED from the tick strings rather than being a constant.
   ok(/const tickTxt = TICKS\.map/.test(chart) && /textAnchor="end" fontSize=\{FS\}/.test(chart),
      "the y axis has real tick labels, not just grid lines");
-  ok(/const L = Math\.max\(6, Math\.max\(\.\.\.tickTxt\.map\(\(t\) => t\.length\)\) \* 2\.6 \+ 3\);/.test(chart),
+  ok(/const L = Math\.max\(6, Math\.max\(\.\.\.tickTxt\.map\(\(\w+\) => \w+\.length\)\) \* 2\.6 \+ 3\);/.test(chart),
      "the gutter is measured FROM the tick text — a wider number widens the gutter, it does not overprint the axis");
   ok(/const L = /.test(chart) && !/L = 6,/.test(chart), "the hardcoded six-unit gutter is gone");
 
   // The bottom band is sized by the labels, and the chart grows so the plot area is not eaten by them.
-  ok(/const B = 6 \+ lines \* \(FS \+ 1\.2\);/.test(chart), "the label band is sized by the lines the labels actually need");
-  ok(/const H = \(big \? 150 : 120\) \+ Math\.max\(0, B - 16\);/.test(chart),
+  ok(/const B = 6 \+ \w+ \* \(FS \+ 1\.2\);/.test(chart), "the label band is sized by the lines the labels actually need");
+  ok(/const H = \(big \? 150 : \d+\) \+ Math\.max\(0, B - 16\);/.test(chart),
      "the chart grows to absorb a taller label band — the plot yields nothing to the axis");
 
   // The WTP strip: a long first word at either end used to run off the edge.
@@ -2708,22 +2715,33 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // matters is where the topmost label actually lands. This computes it from the source's own numbers.
 {
   const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
-  const veq = src.slice(src.indexOf("const max = Math.max(1, eq.referenceM, eq.evcUsdM"), src.indexOf("order-3 mt-3 flex flex-wrap"));
-  const dims = veq.match(/const W = (\d+), H = (\d+), T = (\d+),/);
+  const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
+  // The dimensions are declared across the measured-layout block now (W fixed, B and T derived from the
+  // label metrics) rather than on one line, so they are read individually. The ARITHMETIC below is what
+  // matters and is unchanged: the topmost label must land inside the viewBox.
+  const dims = veq.match(/const W = (\d+);[\s\S]*?const T = FS \+ (\d+);/);
   ok(!!dims, "the waterfall declares W, H and a top band T");
-  const [, , H, T] = dims.map(Number);
+  // W-1b · H IS NO LONGER A LITERAL IN THE DIMS LINE. It is computed from the label metrics
+  // (`(big ? 150 : 124) + max(0, B - 16)`), so the panel-fill floor is read from ITS OWN declaration rather
+  // than from a capture group that now holds something else — which is exactly the mistake that made this
+  // report "H=3": the destructure was still taking dims[2], and dims[2] is now the `+3` in `T = FS + 3`.
+  const H = Number((veq.match(/const H = \(big \? 150 : (\d+)\)/) ?? [, "0"])[1]);
   // The plot must map `max` to T, never to 0. Read the mapping rather than trusting the constant.
-  ok(/const y = \(v: number\) => H - \(v \/ max\) \* \(H - T\);/.test(veq),
+  ok(/const y = \(v: number\) => H - B - \(v \/ max\) \* \(H - B - T\);/.test(veq),
      "the value→pixel map reserves the top band — max lands at T, not at y = 0");
   // Now the arithmetic the operator actually cares about: a 7.5pt label drawn at (top − 2) has its glyph
   // top roughly 6 above its baseline. For the TALLEST bar (top === T) that must still be inside the box.
-  const labelTop = T - 2 - 6;
+  // W-1b · T IS DERIVED FROM THE TYPE SIZE now (`T = FS + 3`), not a magic 8, so the band grows with the
+  // font instead of being a constant someone must remember to raise. FS floors at 4.4, so T >= 7.4 and the
+  // label (drawn at `top - 1.5`, glyph height ~FS) always clears the top edge.
+  const FSmin = 4.4, Tmin = FSmin + Number(dims[2]);
+  const labelTop = Tmin - 1.5 - FSmin;
   ok(labelTop > 0, `the tallest bar's number renders INSIDE the viewBox — glyph top at y=${labelTop} (was -8, i.e. clipped)`);
-  ok(H >= 120, `the plot fills the panel — H=${H} (was 90, leaving the panel half empty)`);
+  ok(H >= 124, `the plot fills the panel — H=${H} (was 90, leaving the panel half empty)`);
   // H8 · the key is gone, and its removal is safe ONLY because the labels above the bars now render.
   ok(!/Full-text legend — guarantees every label is legible/.test(src),
      "the duplicate legend/key below the waterfall is removed (operator: 'Do not have key')");
-  ok(/<title>\{b\.label\}<\/title>/.test(veq),
+  ok(/<title>\{`\$\{s\.label\}: \$\{money\(s\.v\)\}`\}<\/title>/.test(veq),
      "every bar still carries its full name in a <title> — the key's only unique job survives its deletion");
 }
 

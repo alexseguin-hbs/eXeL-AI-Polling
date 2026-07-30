@@ -51,7 +51,7 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
-  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit,
+  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, driverValueM, driverTone, importanceBars,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
 } from "@/lib/innovation-data";
@@ -1258,83 +1258,225 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
   );
 }
 
-// S8 Competition + Value Prop (AMTS deck parity, operator: BOTH visuals) — a value creation/capture WATERFALL
-// (NBA baseline → per-driver up/down steps → EVC total) AND a WTP price-performance POSITIONING strip
-// (competitors + NBA + our system on a Low→High axis). Deterministic SVG from the value equation.
-function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
-  const ve = valueEquationOf(p);
-  const steps = ve.perDriver.slice(0, 6);
-  // BOX FIRST, THEN TYPE. NEVER CLIP, NEVER ELLIPSIS. The operator photographed this chart with every driver
-  // truncated — "Portability across…", "Auditable decision…", "Certifiable module…" — because the labels were
-  // hard-cut at eight characters and the y axis had no ticks at all, only grid lines, behind a six-unit
-  // gutter that could not have held one. Both axes now FIT: the plot yields space to the labels rather than
-  // the labels being cut to fit the plot.
-  const W = 320, T = 8;
-  //  · y ticks are formatted FIRST, then the gutter is measured from them, so a wider number widens the
-  //    gutter instead of overprinting the axis.
-  const TICKS = [0, 0.25, 0.5, 0.75, 1];
+// ══ W-1b · THE ONE VALUE PROP VISUAL ═══════════════════════════════════════════════════════════════════
+// Operator: "there is only one Value Prop visual that is source for everything including slide" ·
+// "S8 is the sole source of Truth" · "Place chart at Top … differentiators under visual value prop".
+//
+// THIS REPLACES TWO CHARTS THAT DREW THE SAME RECORD DIFFERENTLY. `S8ValueChart` (the slide, y-ticks + WTP
+// strip) and `ValueEquationPanel` (the authoring surface, sliders) were separate implementations of one
+// waterfall, so a fix to either — V-1's top label band, V4's axis fitting — reached only half the app. Every
+// consumer now renders THIS component; the differences are a `mode`, not a second file.
+//
+//   mode="slide"  S8 in Present — chart only, fills its area, no controls
+//   mode="read"   project deep-dive — chart + READ-ONLY table (operator: "remove sliders … sliders only for S8")
+//   mode="edit"   S8 source panel + New Idea — chart + the editable table
+//
+// THE MODEL IS W-1a's: a differentiator's bar is its TYPED `valueM`, its ▲▬▼ is the SIGN of that number
+// (`driverTone`), and Importance is a manual 1-5 pick that scales nothing. Two capture bars close the chart
+// using `valueSplit` — Customer Value @ (1−X)% steps DOWN from EVC, Price @ X% is a total from zero, which
+// is the shape of the operator's own reference waterfall.
+type VPMode = "slide" | "read" | "edit";
+
+/** Importance as the template draws it: five bars, coloured by band. Operator: "Importance should be red 1-2
+ *  bars, sunset 3-4 bars, green, 5 full bars. Use drop down for simplicity."
+ *  ⚠ THE SAME THREE-BAND SCALE `confidenceTone` ALREADY SHIPS (G3: 1-2 coral · 3-4 SI-Sunset · 5 green), so
+ *  this is a second consumer of one semantic palette, not a fourth set of hexes invented for one control. */
+function ImportanceBars({ n }: { n: 1 | 2 | 3 | 4 | 5 }) {
+  const tone = confidenceTone(n);
+  return (
+    <span className="inline-flex items-end gap-[1px] align-middle" aria-hidden>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <i key={i} className="inline-block w-[3px] rounded-[1px]"
+           style={{ height: `${3 + i * 1.6}px`, background: i <= n ? tone : "#334155" }} />
+      ))}
+    </span>
+  );
+}
+
+/** vs NBA — operator: "green up arrow, 0 equal or line sunset colour, down arrow red if number is negative."
+ *  DERIVED, never typed: `driverTone` reads the sign of the differentiator's own dollars, so the arrow and
+ *  the bar are one function apart and cannot contradict each other on screen. */
+function VsNba({ tone }: { tone: "pos" | "neutral" | "neg" }) {
+  const glyph = tone === "pos" ? "▲" : tone === "neg" ? "▼" : "▬";
+  const color = tone === "pos" ? "#22c55e" : tone === "neg" ? "#ef4444" : "#ffb020";
+  const label = tone === "pos" ? "Above the NBA" : tone === "neg" ? "Below the NBA" : "Parity with the NBA";
+  return <span title={label} aria-label={label} style={{ color }} className="text-[11px] leading-none">{glyph}</span>;
+}
+
+function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, big }: {
+  p: Project; mode: VPMode;
+  drivers?: ValueDriver[]; onChange?: (d: ValueDriver[]) => void;
+  nbaLabel?: string; addressableRevM?: number; onGenerate?: () => void; big?: boolean;
+}) {
+  const { t } = useLexicon();
+  // ONE RECORD. When a caller is authoring it passes its own draft; otherwise the project's own drivers are
+  // the source, falling back to the derived backfill so no project renders a blank chart.
+  const rows = drivers ?? (p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
+  const rev = addressableRevM ?? incrementalRevM(p);
+  const ve = valueEquation(rows, rev);
+  const split = valueSplit(ve.evcUsdM, ve.referenceM);
+  const editable = mode === "edit" && !!onChange;
+  const set = (i: number, patch: Partial<ValueDriver>) => onChange?.(rows.map((d, j) => (j === i ? { ...d, ...patch } : d)));
+
+  // ── THE WATERFALL ────────────────────────────────────────────────────────────────────────────────────
+  // BOX FIRST, THEN TYPE. NEVER CLIP, NEVER ELLIPSIS. The y gutter is measured from the FORMATTED ticks and
+  // the bottom band from however many lines the longest x-label actually needs, so the plot yields to the
+  // labels rather than the labels being cut to fit the plot (V4). The TOP band `T` exists because a bar whose
+  // value equals the domain max would otherwise put its number at y≈0 — outside the viewBox entirely, which
+  // is exactly how V-1 found the two tallest bars silently label-less.
+  const W = 320;
+  const steps = ve.perDriver.slice(0, 8);
   let run = ve.referenceM;
-  const seq: { label: string; from: number; to: number; kind: "base" | "up" | "down" | "total" }[] = [{ label: "NBA", from: 0, to: ve.referenceM, kind: "base" }];
-  for (const d of steps) { const from = run; run += d.weighted; seq.push({ label: d.name, from, to: run, kind: d.weighted >= 0 ? "up" : "down" }); }
-  seq.push({ label: "EVC", from: 0, to: run, kind: "total" });
+  type Bar = { label: string; from: number; to: number; kind: "base" | "up" | "down" | "give" | "total"; v: number };
+  const seq: Bar[] = [{ label: "NBA", from: 0, to: ve.referenceM, kind: "base", v: ve.referenceM }];
+  for (const d of steps) { const from = run; run += d.weighted; seq.push({ label: d.name, from, to: run, kind: d.weighted >= 0 ? "up" : "down", v: d.weighted }); }
+  // The two capture bars, in the operator's own order: the customer's share steps DOWN from the top, then
+  // our price stands as a TOTAL from zero — bookending "their price" against "our price".
+  if (split.totalValueM > 0) {
+    seq.push({ label: `Customer Value @ ${100 - split.capturePct}%`, from: run, to: split.priceM, kind: "give", v: -split.customerValueM });
+    seq.push({ label: `Price · Value Capture @ ${split.capturePct}%`, from: 0, to: split.priceM, kind: "total", v: split.priceM });
+  } else {
+    seq.push({ label: "EVC", from: 0, to: run, kind: "total", v: run });
+  }
+  const TICKS = [0, 0.25, 0.5, 0.75, 1];
   const max = Math.max(1, ...seq.map((s) => Math.max(s.from, s.to))) * 1.1;
   const tickTxt = TICKS.map((f) => `${Math.round((max * f) / 1.1)}`);
-  const L = Math.max(6, Math.max(...tickTxt.map((t) => t.length)) * 2.6 + 3);
-  //  · x labels shrink toward a legibility FLOOR, then WRAP to at most two lines. The bottom band is sized
-  //    by however many lines the longest label actually needs, so nothing is ever cut.
-  const n = seq.length, gw = (W - L) / n, bw = Math.max(4, gw * 0.6);
+  const L = Math.max(6, Math.max(...tickTxt.map((s) => s.length)) * 2.6 + 3);
+  const n = seq.length, gw = (W - L) / n, bw = Math.max(4, gw * 0.62);
   const FS = Math.max(4.4, Math.min(6, gw / 5.2));
-  const wrap = (t: string): string[] => {
+  const wrap = (txt: string): string[] => {
     const per = Math.max(4, Math.floor(gw / (FS * 0.56)));
-    if (t.length <= per) return [t];
-    const words = t.split(" "); const out: string[] = []; let line = "";
-    for (const w of words) {
-      if (!line) { line = w; continue; }
-      if ((line + " " + w).length <= per) line += " " + w; else { out.push(line); line = w; }
-    }
+    if (txt.length <= per) return [txt];
+    const words = txt.split(" "); const out: string[] = []; let line = "";
+    for (const w of words) { if (!line) { line = w; continue; } if ((line + " " + w).length <= per) line += " " + w; else { out.push(line); line = w; } }
     if (line) out.push(line);
     return out.slice(0, 2);
   };
   const wrapped = seq.map((s) => wrap(s.label));
-  const lines = Math.max(1, ...wrapped.map((w) => w.length));
-  const B = 6 + lines * (FS + 1.2);
-  const H = (big ? 150 : 120) + Math.max(0, B - 16);
+  const linesN = Math.max(1, ...wrapped.map((w) => w.length));
+  const B = 6 + linesN * (FS + 1.2);
+  const T = FS + 3;                                   // the label band — V-1's fix, kept
+  const H = (big ? 150 : 124) + Math.max(0, B - 16);
   const y = (v: number) => H - B - (v / max) * (H - B - T);
-  const fill = (k: string) => (k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : "#3b82f6");
+  const fill = (k: Bar["kind"]) =>
+    k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : k === "give" ? "#60a5fa" : "#94a3b8";
+  const money = (v: number) => `${v < 0 ? "−" : ""}${Math.round(Math.abs(v))}`;
   // WTP positioning — Low→High price-performance; markers deterministic from the competitive index.
   const ci = Math.max(0, Math.min(1, ve.competitiveIndex / 100));
-  const markers = [{ label: "NBA", x: 0.5, c: "#64748b" }, { label: "Comp A", x: 0.34, c: "#94a3b8" }, { label: "Comp B", x: 0.62, c: "#94a3b8" }, { label: p.name.split(" ")[0], x: ci, c: "#3b82f6" }];
-  return (
-    <div className="space-y-2">
-      <div>
-        <div className="mb-1 flex flex-wrap gap-x-3 text-[10px] text-slate-400">
-          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#64748b]" />NBA baseline</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#34d399]" />Value creation</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#fb7185]" />Give-back</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#3b82f6]" />EVC</span>
-        </div>
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "7cqh" } : { height: "auto" }} role="img" aria-label="S8 value creation / capture waterfall">
-          {TICKS.map((f, i) => (
-            <g key={f}>
-              <line x1={L} y1={y(max * f / 1.1)} x2={W} y2={y(max * f / 1.1)} stroke="rgba(148,163,184,.09)" />
-              <text x={L - 2} y={y(max * f / 1.1) + FS * 0.36} textAnchor="end" fontSize={FS} fill="#64748b">{tickTxt[i]}</text>
-            </g>
-          ))}
-          {seq.map((s, i) => { const top = y(Math.max(s.from, s.to)), bot = y(Math.min(s.from, s.to)); const x = L + i * gw + (gw - bw) / 2; return (
-            <g key={i}>
-              <rect x={x} y={top} width={bw} height={Math.max(1.5, bot - top)} fill={fill(s.kind)} rx={1} />
-              {wrapped[i].map((ln, li) => (
-                <text key={li} x={x + bw / 2} y={H - B + 6 + li * (FS + 1.2)} textAnchor="middle" fontSize={FS} fill="#64748b">{ln}</text>
-              ))}
-            </g>
-          ); })}
-        </svg>
+  const wtpMarkers = [{ label: "NBA", x: 0.5, c: "#64748b" }, { label: "Comp A", x: 0.34, c: "#94a3b8" },
+                      { label: "Comp B", x: 0.62, c: "#94a3b8" }, { label: (p.name || "Ours").split(" ")[0], x: ci, c: "#3b82f6" }];
+
+  const chart = (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "7cqh" } : { height: "auto" }}
+         role="img" aria-label="Value creation and capture waterfall vs the next best alternative">
+      {TICKS.map((f, i) => (
+        <g key={f}>
+          <line x1={L} y1={y((max * f) / 1.1)} x2={W} y2={y((max * f) / 1.1)} stroke="rgba(148,163,184,.09)" />
+          <text x={L - 2} y={y((max * f) / 1.1) + FS * 0.36} textAnchor="end" fontSize={FS} fill="#64748b">{tickTxt[i]}</text>
+        </g>
+      ))}
+      {seq.map((s, i) => {
+        const top = y(Math.max(s.from, s.to)), bot = y(Math.min(s.from, s.to));
+        const x = L + i * gw + (gw - bw) / 2;
+        return (
+          <g key={i}>
+            <title>{`${s.label}: ${money(s.v)}`}</title>
+            <rect x={x} y={top} width={bw} height={Math.max(1.5, bot - top)} fill={fill(s.kind)} rx={1} />
+            {/* A NUMBER ABOVE EVERY BAR (operator: "add numbers to value prop"). Drawn at `top - 1.5`, which
+                the top band T was reserved for — without it the tallest bars label at y<0 and vanish. */}
+            <text x={x + bw / 2} y={top - 1.5} textAnchor="middle" fontSize={FS} fontWeight={600} fill="#e2e8f0">{money(s.v)}</text>
+            {wrapped[i].map((ln, li) => (
+              <text key={li} x={x + bw / 2} y={H - B + 6 + li * (FS + 1.2)} textAnchor="middle" fontSize={FS} fill="#64748b">{ln}</text>
+            ))}
+          </g>
+        );
+      })}
+    </svg>
+  );
+
+  // ── THE DIFFERENTIATOR TABLE, DIRECTLY UNDER THE CHART ───────────────────────────────────────────────
+  // Operator: "I want differentiators under visual value prop" · columns as their FLIR template draws them —
+  // the name, the money, the 5-bar importance, the ▲▬▼. `OURS` and `NBA` are GONE: `nbaScore` is a dead seed
+  // and `ourScore` is only a fallback, so a column for either would invite typing into a number nothing reads.
+  const table = mode === "slide" ? null : (
+    <div className="mt-2 overflow-x-auto">
+      <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-x-2 gap-y-1 text-[9px] uppercase tracking-wider text-slate-500">
+        <span>{t("innovation.veq.colDriver")}</span>
+        <span className="w-16 text-right">Value $M</span>
+        <span className="w-20 text-center">{t("innovation.veq.colImportance")}</span>
+        <span className="w-10 text-center">vs NBA</span>
+        <span className="w-5" />
       </div>
-      <div>
+      {rows.map((d, i) => {
+        const vm = driverValueM(d, rev);
+        const tone = driverTone(d, rev);
+        const bars = importanceBars(d.importance);
+        return (
+          <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-x-2 gap-y-1 py-0.5">
+            {editable
+              ? <input value={d.name} onChange={(e) => set(i, { name: e.target.value })} placeholder={t("innovation.veq.driverPlaceholder")}
+                       className="w-full rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500" />
+              : <span className="truncate text-[11px] text-slate-300" title={d.name}>{d.name}</span>}
+            {/* VALUE $ IS THE FIRST INPUT AND IT IS THE BAR (operator: "Start with Value for Each
+                Differentiator" · "value vs NBA is number"). Typed wins; blank falls back to the legacy
+                geometry so a seeded project never renders empty. */}
+            {editable
+              ? <input type="text" inputMode="decimal" defaultValue={typeof d.valueM === "number" ? String(d.valueM) : ""}
+                       placeholder={vm.toFixed(0)} aria-label={`${d.name || `Driver ${i + 1}`} value $M`}
+                       onBlur={(e) => { const raw = e.target.value.trim(); const v = raw === "" ? undefined : Number(raw.replace(/[$,\s]/g, "")); if (raw === "" || Number.isFinite(v)) set(i, { valueM: v }); else e.target.value = ""; }}
+                       className="w-16 rounded border border-slate-700 bg-[#0b0f14] px-1 py-1 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+              : <span className="w-16 text-right text-[11px] tabular-nums text-slate-200">{money(vm)}</span>}
+            {/* IMPORTANCE IS A DROP-DOWN (operator: "Use drop down for simplicity"), not a slider — five
+                discrete choices where a continuous 0-100 rail only ever produced five distinct readings. */}
+            {editable
+              ? <span className="flex w-20 items-center justify-center gap-1">
+                  <ImportanceBars n={bars} />
+                  <select value={String(bars)} aria-label={`${d.name || `Driver ${i + 1}`} customer importance`}
+                          onChange={(e) => set(i, { importance: (+e.target.value - 0.5) / 5 })}
+                          className="rounded border border-slate-700 bg-[#0b0f14] px-0.5 py-0.5 text-[10px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
+                    {[1, 2, 3, 4, 5].map((v) => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </span>
+              : <span className="flex w-20 justify-center"><ImportanceBars n={bars} /></span>}
+            <span className="w-10 text-center"><VsNba tone={tone} /></span>
+            {editable
+              ? <button onClick={() => onChange?.(rows.filter((_, j) => j !== i))} className="w-5 rounded text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
+              : <span className="w-5" />}
+          </div>
+        );
+      })}
+      {editable && (
+        <button onClick={() => onChange?.([...rows, { name: "", importance: 0.5, ourScore: 0.5, nbaScore: 0.5, valueM: 0 }])}
+                className="mt-1 rounded border border-dashed border-slate-700 px-2 py-0.5 text-[10px] text-slate-400 hover:border-cyan-500/60 hover:text-cyan-300">
+          + {t("innovation.veq.addDriver")}
+        </button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-1">
+      {mode !== "slide" && (
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div className="text-[10px] uppercase tracking-wider text-amber-400/90">{t("innovation.veq.title")}{nbaLabel ? ` — ${nbaLabel}` : ""}</div>
+          <div className="flex items-center gap-3 text-[11px]">
+            <span className="text-slate-400">{t("innovation.veq.index")} <b className="tabular-nums text-amber-300">{Math.round(ve.competitiveIndex)}</b>/100</span>
+            <span className="text-slate-400">{t("innovation.veq.evc")} <b className="tabular-nums text-emerald-300">${ve.evcUsdM.toFixed(0)}M</b></span>
+          </div>
+        </div>
+      )}
+      {/* CHART FIRST, ALWAYS (operator: "Place chart at Top" · "Value Prop Image on top"). */}
+      {chart}
+      {/* ⚠ THE WTP STRIP CAME ACROSS WITH THE CHART, and the first draft of this merge DROPPED IT — a
+          regression I created, caught by the V4 lock rather than by the operator. It only ever lived on
+          `S8ValueChart`, so folding that component in without carrying the strip silently deleted UI nobody
+          asked to remove (rule 6). W-7 renames it "Price Performance: Competition" and makes the markers
+          draggable; until then it renders exactly as it did. */}
+      <div className="mt-2">
         <div className="mb-1 text-[10px] text-slate-400">Willingness-to-pay · price-performance positioning</div>
         <div className="relative h-6 rounded border border-slate-800 bg-[#0e141b]">
           <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
-          {markers.map((m) => (
+          {wtpMarkers.map((m) => (
             <div key={m.label} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${6 + m.x * 88}%`, maxWidth: "22%" }}>
               <div className="mx-auto h-2.5 w-2.5 rounded-full" style={{ background: m.c }} />
               {/* The MARKER is positioned; its label wraps within a share of the strip, so a long product
@@ -1346,6 +1488,15 @@ function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
           <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>
         </div>
       </div>
+      {table}
+      {mode === "edit" && onGenerate && (
+        <div className="flex justify-end pt-1">
+          <button onClick={onGenerate} disabled={ve.wins === 0}
+                  className="rounded-md border border-cyan-500/40 px-2.5 py-1 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-40">
+            {t("innovation.veq.generate")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1630,160 +1781,26 @@ function DogTag({ p, onEditFinancials }: { p: Project; onEditFinancials?: () => 
   );
 }
 
-// New-idea modal — a project cannot be created without a MASTER value proposition (must-have);
-// per-needs-based-segment value props are recommended (add as many as apply).
-// Value Equation panel (Slice 1B) — create the value prop by scoring each differentiator against the
-// competitive NBA. importance × (our score − NBA score) × addressable revenue → EVC + competitive index.
-// Primary authoring path in NewIdeaModal; re-openable in ProjectDetail. Deterministic (lib valueEquation).
-function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGenerate }: {
-  drivers: ValueDriver[]; onChange: (d: ValueDriver[]) => void; nbaLabel: string; addressableRevM: number; onGenerate?: () => void;
+// W-1b · `ValueEquationPanel` IS NOW AN ADAPTER, NOT A SECOND CHART. It kept its call signature — three
+// sites pass `{drivers, onChange, nbaLabel, addressableRevM, onGenerate}` — but every pixel it draws comes
+// from `ValueProp`. That is what "one Value Prop visual that is source for everything including slide"
+// means in code: ONE implementation, thin adapters for the shapes callers already use, so a fix lands
+// everywhere at once instead of on whichever copy someone remembered.
+//
+// ⚠ IT NO LONGER RENDERS SLIDERS. Operator, explicitly: "On project tab with Value prop, remove sliders
+// (sliders only for S8)." The `mode` a caller passes decides that; NewIdeaModal and the S8 source panel
+// author, the project deep-dive reads.
+function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGenerate, project, mode = "edit" }: {
+  drivers: ValueDriver[]; onChange: (d: ValueDriver[]) => void; nbaLabel: string; addressableRevM: number;
+  onGenerate?: () => void; project?: Project; mode?: "read" | "edit";
 }) {
-  const { t } = useLexicon();
-  const eq = valueEquation(drivers, addressableRevM);
-  const set = (i: number, patch: Partial<ValueDriver>) => onChange(drivers.map((d, j) => (j === i ? { ...d, ...patch } : d)));
-  const add = () => onChange([...drivers, { name: "", importance: 0.6, ourScore: 0.7, nbaScore: 0.4 }]);
-  const del = (i: number) => onChange(drivers.filter((_, j) => j !== i));
-  const vColor = (v: string) => (v === "win" ? "text-emerald-400" : v === "loss" ? "text-rose-400" : "text-slate-400");
-  const vLabel = (v: string) => (v === "win" ? t("innovation.veq.win") : v === "loss" ? t("innovation.veq.loss") : t("innovation.veq.parity"));
-  const inp = "rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500";
+  // A caller without a project (the New Idea form, where none exists yet) gets a minimal stand-in: the chart
+  // reads only `valueDrivers` and the addressable revenue, both of which are passed explicitly.
+  const p = project ?? ({ id: "new", name: "New idea", valueDrivers: drivers } as unknown as Project);
   return (
-    // G1 — flex-col with explicit order so the VALUE WATERFALL renders ON TOP and the differentiator LEVERS
-    // (sliders) sit UNDERNEATH it (operator IMG_8194), without physically relocating the large SVG block.
-    <div className="flex flex-col rounded-lg border border-amber-500/25 bg-amber-500/[0.03] p-3">
-      <div className="order-0 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-amber-400/90">{t("innovation.veq.title")}</div>
-          <div className="text-[10px] text-slate-500">{t("innovation.veq.subtitle")}{nbaLabel ? ` — ${nbaLabel}` : ""}</div>
-        </div>
-        <button onClick={add} className="rounded bg-amber-500/90 px-2 py-0.5 text-[11px] font-semibold text-[#2a1a06] hover:bg-amber-400">{t("innovation.veq.addDriver")}</button>
-      </div>
-
-      {drivers.length === 0 ? (
-        <p className="order-2 mt-2 text-[11px] text-slate-600">{t("innovation.veq.empty")}</p>
-      ) : (
-        <div className="order-2 mt-2 space-y-1.5 overflow-x-auto">
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2 text-[9px] uppercase tracking-wider text-slate-500">
-            <span>{t("innovation.veq.colDriver")}</span><span className="w-16 text-center">{t("innovation.veq.colImportance")}</span>
-            <span className="w-16 text-center">{t("innovation.veq.colOurs")}</span><span className="w-16 text-center">{t("innovation.veq.colNba")}</span><span className="w-12 text-right">{t("innovation.veq.colVerdict")}</span>
-          </div>
-          {drivers.map((d, i) => {
-            const row = eq.perDriver[i];
-            const pct = (n: number) => `${Math.round(n * 100)}`;
-            return (
-              <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <input value={d.name} onChange={(e) => set(i, { name: e.target.value })} placeholder={t("innovation.veq.driverPlaceholder")} className={`w-full ${inp}`} />
-                </div>
-                <label className="flex w-16 flex-col items-center" title="Customer importance">
-                  <input type="range" min={0} max={1} step={0.05} value={d.importance} onChange={(e) => set(i, { importance: +e.target.value })} className="w-16 accent-amber-500"
-                    aria-label={`${d.name || `Driver ${i + 1}`} customer importance`} aria-valuetext={`${pct(d.importance)}%`} />
-                  <span className="text-[9px] tabular-nums text-slate-500">{pct(d.importance)}</span>
-                </label>
-                <label className="flex w-16 flex-col items-center" title="Our performance">
-                  <input type="range" min={0} max={1} step={0.05} value={d.ourScore} onChange={(e) => set(i, { ourScore: +e.target.value })} className="w-16 accent-emerald-500"
-                    aria-label={`${d.name || `Driver ${i + 1}`} our performance`} aria-valuetext={`${pct(d.ourScore)}%`} />
-                  <span className="text-[9px] tabular-nums text-emerald-500/80">{pct(d.ourScore)}</span>
-                </label>
-                <label className="flex w-16 flex-col items-center" title="NBA performance">
-                  <input type="range" min={0} max={1} step={0.05} value={d.nbaScore} onChange={(e) => set(i, { nbaScore: +e.target.value })} className="w-16 accent-slate-500"
-                    aria-label={`${d.name || `Driver ${i + 1}`} NBA performance`} aria-valuetext={`${pct(d.nbaScore)}%`} />
-                  <span className="text-[9px] tabular-nums text-slate-500">{pct(d.nbaScore)}</span>
-                </label>
-                <div className="flex w-12 items-center justify-end gap-1">
-                  <span className={`text-[10px] font-semibold ${vColor(row?.verdict ?? "parity")}`}>{vLabel(row?.verdict ?? "parity")}</span>
-                  <button onClick={() => del(i)} className="rounded px-1 text-rose-400 hover:bg-rose-500/10" title="Remove">✕</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Value waterfall vs NBA (deck parity — MASS-AI/Ecospheres): grey NBA baseline → green/red driver steps
-          → blue Customer Value (EVC). Cumulative. Deterministic from the solver result. */}
-      {eq.perDriver.length > 0 && (() => {
-        const bars = [
-          { label: t("innovation.veq.baseline"), kind: "base" as const, from: 0, to: eq.referenceM },
-          ...eq.perDriver.reduce<{ acc: number; rows: { label: string; kind: "up" | "down"; from: number; to: number; delta: number }[] }>((s, d) => {
-            const from = s.acc, to = s.acc + d.weighted;
-            s.rows.push({ label: d.name || "Driver", kind: d.weighted >= 0 ? "up" : "down", from: Math.min(from, to), to: Math.max(from, to), delta: d.weighted });
-            s.acc = to; return s;
-          }, { acc: eq.referenceM, rows: [] }).rows,
-          { label: t("innovation.veq.customerValue"), kind: "total" as const, from: 0, to: eq.evcUsdM },
-        ];
-        const max = Math.max(1, eq.referenceM, eq.evcUsdM, ...bars.map((b) => b.to));
-        // H1 · A TOP BAND FOR THE VALUE LABELS. This chart drew its numbers at `yTop - 2` while mapping
-        // `max` to y = 0 inside a viewBox whose origin IS 0 — so any bar at the maximum put its label at
-        // y = -2, outside the box, invisible. And because the driver steps are cumulative, the LAST driver's
-        // top equals the total, which is also the Customer Value bar — so exactly two labels vanished, every
-        // time, which is what the operator photographed twice.
-        // T is carved OUT of H rather than added to the viewBox: the box keeps its aspect, so nothing about
-        // the surrounding layout shifts, and the plot simply yields the space its own labels need. Same
-        // "box first, then type" law S8ValueChart states at :1249 and already honours for its bottom axis.
-        // 11 = 7.5pt glyph (~6 above the baseline) + the 2 offset + slack.
-        // H8 · H grew 90 → 150 to fill the panel. It is funded by deleting the legend below, which existed
-        // only because these labels did not render — see the comment where it was removed.
-        const W = 320, H = 150, T = 11, n = bars.length, bw = (W / n) * 0.72, gap = (W / n) * 0.28;
-        const y = (v: number) => H - (v / max) * (H - T);
-        const fill = (k: string) => (k === "base" ? "#64748b" : k === "total" ? "#3b82f6" : k === "up" ? "#34d399" : "#fb7185");
-        return (
-          <div className="order-1 mt-3 rounded-lg border border-slate-800 bg-[#0b0f14] p-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400">{t("innovation.veq.waterfall")}</span>
-              <span className="text-[10px] text-slate-400">{t("innovation.veq.valueCreation")} <b className="tabular-nums text-emerald-300">${eq.differentiationM.toFixed(0)}M</b></span>
-            </div>
-            <div className="mt-1 overflow-x-auto">
-              <svg viewBox={`0 0 ${W} ${H + 34}`} className="w-full" style={{ minWidth: 320, height: "auto" }} role="img" aria-label="Value waterfall vs NBA">
-                {bars.map((b, i) => {
-                  const x = i * (W / n) + gap / 2;
-                  const yTop = y(b.to), h = Math.max(1.5, y(b.from) - y(b.to));
-                  // Horizontal, two-line wrapped label (no rotation → legible); full name in <title> + the legend below.
-                  const words = b.label.split(/\s+/);
-                  const lines: string[] = []; let cur = "";
-                  const CPL = 12; // chars per line that fit under a bar
-                  for (const w of words) { if ((cur + " " + w).trim().length > CPL && cur) { lines.push(cur); cur = w; } else { cur = (cur + " " + w).trim(); } if (lines.length === 2) break; }
-                  if (cur && lines.length < 2) lines.push(cur);
-                  if (lines.length === 2 && words.join(" ").length > lines.join(" ").length) lines[1] = lines[1].slice(0, CPL - 1) + "…";
-                  return (
-                    <g key={i}>
-                      <title>{b.label}</title>
-                      {i > 0 && i < n && <line x1={x - gap / 2} y1={y(bars[i - 1].to)} x2={x} y2={y(bars[i - 1].to)} stroke="#334155" strokeWidth={0.75} strokeDasharray="2 2" />}
-                      <rect x={x} y={yTop} width={bw} height={h} fill={fill(b.kind)} rx={1.5} />
-                      <text x={x + bw / 2} y={yTop - 2} textAnchor="middle" fontSize="7.5" fill="#e2e8f0" fontWeight="700" fontFamily="ui-monospace, monospace">{b.kind === "up" || b.kind === "down" ? `${(b as { delta: number }).delta >= 0 ? "+" : ""}${(b as { delta: number }).delta.toFixed(0)}` : b.to.toFixed(0)}</text>
-                      {lines.map((ln, li) => (
-                        <text key={li} x={x + bw / 2} y={H + 10 + li * 9} textAnchor="middle" fontSize="7" fill="#94a3b8" fontFamily="ui-sans-serif">{ln}</text>
-                      ))}
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-            {/* H8 · THE KEY IS GONE. Operator: "Do not have key… always make full width and height of area
-                it fills (maximize within window and don't cut off numbers)."
-                It listed every bar again with its value — and it existed as a WORKAROUND: the value labels
-                above the bars were being clipped (H1), so the legend was the only place two of the numbers
-                could be read. H1 puts them back on the bars, which is what makes this safe to delete rather
-                than a loss of data. ORDER MATTERS: removing this before H1 would have deleted the only
-                surviving copy of the top two values.
-                Its removal is also what funds the taller plot (H = 90 → 150) — the space the key occupied
-                goes to the chart, which is the "fill the area" half of the same instruction. Every label is
-                still reachable: each bar carries a <title> with its full name. */}
-          </div>
-        );
-      })()}
-
-      <div className="order-3 mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2">
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="text-slate-400">{t("innovation.veq.index")} <b className="tabular-nums text-amber-300">{Math.round(eq.competitiveIndex)}</b>/100</span>
-          <span className="text-slate-400">{t("innovation.veq.evc")} <b className="tabular-nums text-emerald-300">${eq.evcUsdM.toFixed(0)}M</b></span>
-        </div>
-        {onGenerate && (
-          <button onClick={onGenerate} disabled={eq.wins === 0}
-            className="rounded-md border border-cyan-500/40 px-2.5 py-1 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-40">
-            {t("innovation.veq.generate")}
-          </button>
-        )}
-      </div>
+    <div className="rounded-lg border border-amber-500/25 bg-amber-500/[0.03] p-3">
+      <ValueProp p={p} mode={mode} drivers={drivers} onChange={onChange} nbaLabel={nbaLabel}
+                 addressableRevM={addressableRevM} onGenerate={onGenerate} />
     </div>
   );
 }
@@ -2520,7 +2537,11 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
               one record is the duplication this work exists to end; the way in is the deep link below, which
               lands on S8 with its source panel open. `onChange` still drives the local sliders so the card
               stays interactive; nothing it does is written. */}
-          <ValueEquationPanel
+          {/* W-1b · READ MODE. Operator: "On project tab with Value prop, remove sliders (sliders only for
+              S8). Only have importance (5 bar), and vs NBA (Above, Equal, Below) on this chart." The card
+              still shows every number; it simply stops offering a control that writes nowhere — which is
+              what made it read as a second editor. */}
+          <ValueEquationPanel mode="read" project={p}
             drivers={veqDrivers} onChange={setVeqDrivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
           />
           <div className="mt-1.5 flex items-center justify-between gap-2">
@@ -4489,7 +4510,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // zero), Revenue + Margin above zero, and cumulative CASH FLOW as a line. Horizon toggle renders horizon+1
     // year points so a CAGR spanning `horizon` years reads across `horizon+1` columns (3-Yr→4, 5-Yr→6, 10-Yr→11).
     if (kind === "S3") return <S3CashChart p={p} big={big} />;
-    if (kind === "S8") return <S8ValueChart p={p} big={big} />;
+    if (kind === "S8") return <ValueProp p={p} mode="slide" big={big} />;
     const fo = financialsOverview(p, { years: 6, funded: true });
     const series = kind === "S14"
       ? [{ label: "Resource $ (R&D)", color: "#a78bfa", vals: fo.map((r) => r.rdK / 1000) }]
@@ -5107,7 +5128,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                         onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== nbaOf(p)) onEditSource({ nextBestAlternative: v }, [`NBA → ${v}`]); }}
                         className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
                     </label>
-                    <ValueEquationPanel
+                    <ValueEquationPanel project={p}
                       drivers={s8Drivers} onChange={setS8Drivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
                       onGenerate={() => onEditSource({ valueDrivers: s8Drivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: s8Drivers }), valuePropSource: "HI" }, ["value prop generated from the Value Equation vs NBA"])}
                     />
