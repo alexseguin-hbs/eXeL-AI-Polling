@@ -1714,9 +1714,17 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "rows covered by a rowSpan gutter are tracked, so no row emits a duplicate gutter cell");
   ok(/gutter && !covered\.has\(ri\) \? <td/.test(pageSrc),
      "the placeholder gutter cell is skipped for covered rows — every band's numbers stay under their year");
-  // Quantity is a COUNT, not money: it must not go through the $K formatter.
-  ok(/const finFmtQty = /.test(pageSrc) && /finFmtQty\(y\[b?\.?key\]\.units\)|finFmtQty\(y\[key\]\.units\)/.test(pageSrc),
+  // Quantity is a COUNT, not money: it must not go through the $K formatter. The formatter itself now lives
+  // in the LIB — the sheet is no longer the only surface printing these figures (the S10 field-grid read-outs
+  // print them too), and two formatters for one number is a second source of truth in disguise. So the
+  // definition is asserted where it lives and the usage where it renders.
+  ok(typeof F.finFmtQty === "function" && typeof F.finFmtK === "function" && typeof F.finFmtPct === "function",
+     "the three financial formatters are exported from the lib — one set, every surface");
+  ok(!/^const finFmt(K|Pct|Qty) = /m.test(pageSrc), "page.tsx does not redefine a financial formatter locally");
+  ok(/finFmtQty\(y\[b?\.?key\]\.units\)|finFmtQty\(y\[key\]\.units\)/.test(pageSrc),
      "Quantity renders through a count formatter, never the $K one");
+  ok(F.finFmtQty(0) === "—" && F.finFmtK(0) === "—" && F.finFmtPct(null) === "—",
+     "an unfilled cell reads as an em-dash on every formatter — never a measured-looking zero");
   ok(/finFmtQty\(incUnits\(y\)\)/.test(pageSrc), "Combined Quantity is the NET count (New − Declining), from incUnits");
 
   // 4c. F3 · APPLY-RATE. 14 entered rows x 11 years = 154 cells per project, 5,082 across the portfolio. A
@@ -2016,6 +2024,89 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/maxWidth: "22%"/.test(src) && /break-words text-center text-\[7px\]/.test(src),
      "WTP marker labels wrap within a share of the strip instead of running off its edge");
   ok(!/mt-0\.5 whitespace-nowrap text-\[7px\]/.test(src), "the nowrap that caused the overflow is gone");
+}
+
+// ── E0b-i · S10's THREE FIELD READ-OUTS RESOLVE FROM THE GRID ───────────────────────────
+// Operator: "delete everything that does not help make a slide." The measurement behind that: S10 is the
+// ONLY code whose panel ignores its own schema fields — it renders the grid from `finPlan` and never touches
+// `spend`, `scenarios` or `conf`. Those three still rendered as EDITABLE tables below the sheet holding
+// numbers that matched nothing (Contractor $683k against a grid saying $547k; "Low / —" against 50% / 50%).
+// This commit adds the RESOLVERS ONLY — nothing is marked `linked` yet, so behaviour is unchanged. That
+// ordering is the V1 lesson: `linked` routes a field through `linkedSlideField`, whose fall-through returns
+// null, so flipping the flag before the branch exists renders an empty panel.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fspE = await import("node:fs/promises");
+  const pageE = await fspE.readFile("app/innovation/page.tsx", "utf8");
+  const p0 = F.DEMO_PROJECTS[0];
+  const BY = 2026;                                     // pinned, so the lock never depends on the wall clock
+
+  // 1. THE RESOLVERS EXIST — the precondition for E0b-ii. Without this, the next commit blanks the panel.
+  for (const fid of ["spend", "scenarios", "conf"])
+    ok(F.linkedSlideField(p0, "S10", fid, BY) !== null, `S10.${fid} resolves from the record, not from null`);
+
+  // 2. SHAPE MATCHES THE SCHEMA. A read-out with the wrong column count renders ragged under its header.
+  const s10 = F.slideSpec("S10");
+  const colsOf = (fid) => s10.fields.find((f) => f.id === fid).cols;
+  const spend = F.linkedSlideField(p0, "S10", "spend", BY);
+  const scen = F.linkedSlideField(p0, "S10", "scenarios", BY);
+  ok(spend.every((r) => r.length === colsOf("spend").length),
+     `every spend row has ${colsOf("spend").length} cells, matching its declared columns`);
+  ok(scen.every((r) => r.length === colsOf("scenarios").length),
+     `every scenario row has ${colsOf("scenarios").length} cells, matching its declared columns`);
+
+  // 3. THE COLUMN COUNT IS THE GATE LADDER — the same ladder the sheet obeys. A read-out showing eleven years
+  //    beside a Concept sheet showing four is the disagreement this whole thread exists to end.
+  for (const g of ["G1", "G2", "G3"]) {
+    const pg = { ...p0, gate: g };
+    ok(F.linkedSlideField(pg, "S10", "spend", BY).length === F.visibleYearCount(g),
+       `at ${g} the spend read-out shows ${F.visibleYearCount(g)} years — the same span as the sheet`);
+  }
+
+  // 4. CALENDAR YEARS, FROM `yearLabel`, AS DATA. The seeded `Yr 1 / Yr 2` cells the F4 ban-list could not
+  //    reach were authored VALUES, not schema columns; a resolver retires them because the label is computed.
+  const fin = F.finOf(p0, BY);
+  ok(spend.map((r) => r[0]).join("|") === fin.years.slice(0, F.visibleYearCount(p0.gate)).map((y) => F.yearLabel(y.year)).join("|"),
+     "the spend read-out's first column IS the calendar-year list, produced by yearLabel");
+  const flat = JSON.stringify([spend, scen, F.linkedSlideField(p0, "S10", "conf", BY)]);
+  for (const bad of ["Yr 1", "Yr 2", "Year 1", "L-1", "Launch"])
+    ok(!flat.includes(bad), `no "${bad}" survives anywhere in an S10 read-out`);
+
+  // 5. THE BANDS ARE THE SHEET'S BANDS — compared as LISTS against page.tsx, not asserted separately on each
+  //    surface. Two independent assertions can both pass while the surfaces drift; one comparison cannot.
+  const revTbl = pageE.slice(pageE.indexOf("function S10RevenueTable"), pageE.indexOf("// ═══ S10 · THE EDITOR"));
+  const sheetBands = [...revTbl.matchAll(/(?:band\("(?:neu|don|dec)", |group: )"([^"]*(?:Existing|Product Rev|Incremental))"/g)].map((m) => m[1]);
+  ok(sheetBands.length === 4, `the sheet renders four bands — found [${sheetBands.join(" · ")}]`);
+  ok(scen.map((r) => r[0]).join("|") === sheetBands.join("|"),
+     `the scenarios read-out's bands equal the sheet's bands, in order — [${scen.map((r) => r[0]).join(" · ")}]`);
+
+  // 6. THE NUMBERS ARE THE GRID'S NUMBERS, through the SHARED formatters. This is the defect the operator
+  //    photographed: a field-grid table printing $683k while the grid above it printed $547k.
+  const y0 = fin.years[0];
+  ok(spend[0][1] === F.finFmtK(y0.labor) && spend[0][2] === F.finFmtK(y0.contractor) &&
+     spend[0][3] === F.finFmtK(y0.materials) && spend[0][4] === F.finFmtK(y0.other),
+     "year one's spend cells are the plan's own figures, formatted by the one shared formatter");
+  const ys = fin.years.slice(0, F.visibleYearCount(p0.gate));
+  const neuRev = ys.reduce((a, y) => a + F.bandRevK(y.neu, fin.unitEcon.neu), 0);
+  ok(scen[1][2] === F.finFmtK(neuRev), "the New-product revenue row is the span sum of the grid's own band");
+  // Confidence is the Rack & Stack LADDER the grid carries (10·25·50·68·95·99), not a risk LABEL. The old
+  // draft printed "Low" beside a grid reading "50%" — two different quantities wearing one field name.
+  const conf = F.linkedSlideField(p0, "S10", "conf", BY);
+  ok(conf.tech === `${fin.techConfPct}%` && conf.comm === `${fin.commConfPct}%`,
+     `Confidence reads the grid's ladder percentages — ${conf.tech} / ${conf.comm}`);
+  ok(!Object.values(conf).some((v) => ["Low", "Med", "High"].includes(v)),
+     "Confidence no longer prints a risk label where the grid prints a percentage");
+
+  // 7. STILL UNCHANGED — this commit is resolver-only. The flag flip is E0b-ii; if it rode along here, a
+  //    blank panel would ship between the two and nobody would know which commit caused it.
+  for (const fid of ["spend", "scenarios", "conf"])
+    ok(!s10.fields.find((f) => f.id === fid).linked,
+       `S10.${fid} is not yet linked — E0b-i adds the resolver, E0b-ii flips the flag`);
+
+  // 8. THE DECK PASSES ITS ONE CLOCK IN. A resolver that reached for `new Date()` would re-anchor a stored
+  //    plan on 1 January and disagree with the grid for a day.
+  ok(/linkedSlideField\(p, sp\.code, f\.id, baseYear\)/.test(pageE),
+     "the deck threads its hoisted baseYear into the resolver — the read-out and the grid share one calendar");
 }
 
 // ── A-INPUT · CAN EVERY S1-S18 FIELD ACTUALLY BE INPUT, AND DOES IT RENDER IN PLAY MODE? ─

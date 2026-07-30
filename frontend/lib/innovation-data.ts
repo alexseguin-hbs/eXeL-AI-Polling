@@ -528,6 +528,17 @@ export const bandMgnPct = (b: FinBandYear, unitEcon: boolean): number | null => 
 /** Total R&D spend for one year — the five entered rows. */
 export const spendTotalK = (y: FinYear): number => y.labor + y.contractor + y.materials + y.other + y.sustain;
 
+// ── FORMATTERS. One set, shared by the S10 sheet, the S10 editor and the field-grid read-outs ────────────
+// These lived in `page.tsx` while only the sheet used them. The moment a second surface prints the same
+// figure, a second formatter is a second source of truth: "$547k" here and "$0.5M" there is a disagreement a
+// board will read as an error. They move to the lib so every surface prints the identical string.
+/** $K, or an em-dash at zero — never "$0k", which reads as a measured zero rather than an unfilled cell. */
+export const finFmtK = (n: number): string => (n === 0 ? "—" : `$${Math.round(n).toLocaleString()}k`);
+/** Percent, or an em-dash on `null` (zero-revenue margin, first-column YoY). NEVER NaN. */
+export const finFmtPct = (n: number | null): string => (n === null ? "—" : `${n.toFixed(0)}%`);
+/** A unit count, or an em-dash at zero. */
+export const finFmtQty = (n: number): string => (n === 0 ? "—" : n.toLocaleString());
+
 /** Combined: Incremental = New − Do-Nothing + EOL. Rack & Stack p.8: 14,111,925 − 17,119,427 + 8,478,189. */
 export const incRevK = (y: FinYear, ue: FinPlan["unitEcon"]): number =>
   bandRevK(y.neu, ue.neu) - bandRevK(y.don, ue.don) + bandRevK(y.dec, ue.dec);
@@ -2787,8 +2798,57 @@ export const sourceSlideOf = (code: string, fieldId: string): string | null =>
 /** True when the field IS on its owning slide — the Edit-Source control says "Edit source", not "Edit on S8". */
 export const isOwnSource = (code: string, fieldId: string): boolean => sourceSlideOf(code, fieldId) === code;
 
-/** Linked field value — read live from the project record so the deck can never disagree with the gate. */
-export function linkedSlideField(p: Project, code: string, fieldId: string): SlideFieldValue {
+/** Linked field value — read live from the project record so the deck can never disagree with the gate.
+ *  `baseYear` is threaded from the deck root (one clock) so a read-out anchors to the same calendar the S10
+ *  grid does. It is optional only so non-financial callers need not care; when omitted the plan's own first
+ *  stored year answers, and `launchYearOf` (a pure read of the record, no clock) is the final fallback. */
+export function linkedSlideField(p: Project, code: string, fieldId: string, baseYear?: number): SlideFieldValue {
+  // ── S10 · THE FINANCIAL READ-OUTS ──────────────────────────────────────────────────────────────────────
+  // These three fields render BELOW the S10 sheet in the field grid. Until now they were free-text tables a
+  // human could type into, holding numbers that matched nothing: Contractor $683k against a grid saying
+  // $547k, revenue scenarios in units nobody entered, and "Low / —" where the grid said 50% / 50%. Three
+  // input surfaces for one record, two of which fed nothing the slide shows.
+  //
+  // This commit adds the RESOLVERS ONLY — no field is marked `linked` yet, so behaviour is unchanged. That
+  // ordering is deliberate and was learned the hard way (V1): `linked` routes a field through this function,
+  // and the fall-through at the bottom returns null, so marking a field `linked` before its branch exists
+  // renders an empty panel. Resolver first means the lockdown commit that follows cannot blank a slide.
+  if (code === "S10") {
+    const fin = finOf(p, baseYear ?? p.finPlan?.years[0]?.year ?? launchYearOf(p));
+    const ys = fin.years.slice(0, visibleYearCount(p.gate));   // the gate ladder: 4 · 6 · 11, same as the sheet
+    // Rows are CALENDAR YEARS, from `yearLabel` — the sole producer. No `Yr 1`, no `L-1`, no launch-relative
+    // column ever reaches this table again, because the labels are no longer authored cell values.
+    if (fieldId === "spend")
+      return ys.map((y) => [yearLabel(y.year), finFmtK(y.labor), finFmtK(y.contractor), finFmtK(y.materials), finFmtK(y.other)]);
+    if (fieldId === "scenarios") {
+      // Band totals across the VISIBLE span, so the read-out sums exactly the columns the board is shown.
+      const sum = (f: (y: FinYear) => number) => ys.reduce((a, y) => a + f(y), 0);
+      const pct = (mgn: number, rev: number): number | null => (rev !== 0 ? (mgn / rev) * 100 : null);
+      const bandRow = (key: "don" | "neu" | "dec", label: string): string[] => {
+        const on = fin.unitEcon[key];
+        const rev = sum((y) => bandRevK(y[key], on)), mgn = sum((y) => bandMgnK(y[key], on));
+        return [label, finFmtQty(sum((y) => y[key].units)), finFmtK(rev), finFmtK(mgn), finFmtPct(pct(mgn, rev))];
+      };
+      const iRev = sum((y) => incRevK(y, fin.unitEcon)), iMgn = sum((y) => incMgnK(y, fin.unitEcon));
+      return [
+        bandRow("don", "Do Nothing: Existing"),
+        bandRow("neu", "New: 1st Product Rev"),
+        bandRow("dec", "Declining Rev: Existing"),
+        // Combined is DERIVED (New − Do-Nothing + EOL) and its quantity is a NET count — the same arithmetic
+        // the sheet uses, reached through the same exported helpers rather than re-implemented here.
+        ["Combined: Incremental", finFmtQty(sum(incUnits)), finFmtK(iRev), finFmtK(iMgn), finFmtPct(pct(iMgn, iRev))],
+      ];
+    }
+    // The Rack & Stack confidence LADDER (10·25·50·68·95·99), which is what the grid carries — not the 1-5
+    // opinion score. The old draft printed a risk LABEL here, which is why the field read "Low" beside a grid
+    // reading "50%": two different quantities wearing the same name.
+    if (fieldId === "conf") return { tech: `${fin.techConfPct}%`, comm: `${fin.commConfPct}%` };
+  }
+  return linkedSlideFieldRest(p, code, fieldId);
+}
+
+/** Every non-financial linked field. Split out only so neither half grows past a readable screen. */
+function linkedSlideFieldRest(p: Project, code: string, fieldId: string): SlideFieldValue {
   const fm = financialMetrics(p);
   const money = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
   const profile = () => ({ npv: money(fm.npvM), irr: `${fm.irrPct}%`, payback: Number.isFinite(fm.paybackYears) && fm.paybackYears > 0 ? `${fm.paybackYears} yr` : "—", rev1: p.firstRevenue, tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm], stage: `${GATE_STAGE[p.gate]} (${p.gate})` });

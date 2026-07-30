@@ -53,7 +53,7 @@ import {
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
-  finGateReadiness,
+  finGateReadiness, finFmtK, finFmtPct, finFmtQty,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -3458,9 +3458,9 @@ const MarkPin = () => (
 // ── S10 · the two Rack & Stack tables, read-only on the sheet ────────────────────────────
 // Money is $K to match what is entered; an em-dash for anything undefined, so a board never reads a computed
 // blank as a zero. Column count comes from ONE place (`visibleYearCount`) — no surface derives its own.
-const finFmtK = (n: number): string => (n === 0 ? "—" : `$${Math.round(n).toLocaleString()}k`);
-const finFmtPct = (n: number | null): string => (n === null ? "—" : `${n.toFixed(0)}%`);
-const finFmtQty = (n: number): string => (n === 0 ? "—" : n.toLocaleString());
+// `finFmtK` / `finFmtPct` / `finFmtQty` MOVED TO THE LIB and are imported above: the S10 sheet is no longer
+// the only surface printing these figures — the field-grid read-outs print them too — and two formatters for
+// one number is a second source of truth wearing a harmless-looking disguise.
 
 /** A row of the S10 sheet. `group` + `groupSpan` put the band name in a LEFT GUTTER spanning the band's rows
  *  instead of on a full-width header row of its own — four rows recovered on a sheet that cannot grow, and it
@@ -3929,7 +3929,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       if (sp.code === "CS" && f.id === "changes") return changeSummaryRows(gov.activity, p.id, p.name);
       if (sp.code === "RA" && f.id === "approvals") return reviewApprovalRows(gov.activity, gov.members, p.id, p.manager, gov.board);
       if (sp.code === "RA" && f.id === "board") return `${boardFull(gov.board)} (${gov.board})`;
-      return linkedSlideField(p, sp.code, f.id);
+      // `baseYear` is the deck's ONE clock (hoisted at the root). Passing it means an S10 read-out anchors to
+      // exactly the calendar the S10 grid three inches above it is anchored to — the two cannot disagree.
+      return linkedSlideField(p, sp.code, f.id, baseYear);
     }
     const c = cellOf(sp.code, f.id);
     // Present-mode override (As-set → per-field mode; HI/AI → force that slot); edit mode passes nothing.
