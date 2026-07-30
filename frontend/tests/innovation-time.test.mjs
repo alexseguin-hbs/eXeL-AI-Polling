@@ -1873,6 +1873,27 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      `the scenarios draft speaks the four Rack & Stack band names — got [${scen.map((r) => r[0]).join(" · ")}]`);
 }
 
+// ── V1 · THE VALUE-PROP RESOLVER — shipped before the lockdown, on purpose ──────────────
+// `linked: true` does two jobs: it opens the source panel AND it short-circuits FieldEditor to a read-only
+// LinkedField whose value comes from `linkedSlideField`. That function is an if-chain with `return null` at
+// the bottom, and it had no branch for the value prop — so marking S1.valueprop or S6.desc `linked` would
+// have rendered both panels EMPTY. Exactly the failure that left TeamPicker dead. Resolver first, always.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const p0 = F.DEMO_PROJECTS[0];
+  const vp = F.valuePropOf(p0);
+  ok(vp.trim().length > 0, "the fixture has a value proposition to resolve");
+  ok(F.linkedSlideField(p0, "S1", "valueprop") === vp, "S1.valueprop resolves through the linked resolver to the ONE sentence");
+  ok(F.linkedSlideField(p0, "S6", "desc") === vp, "S6.desc resolves to the same sentence — one record, two renderings");
+  ok(F.DEMO_PROJECTS.every((pr) => F.linkedSlideField(pr, "S1", "valueprop") === F.linkedSlideField(pr, "S6", "desc")),
+     "S1 and S6 agree on every project in the portfolio — they cannot drift because they read one function");
+  ok(F.linkedSlideField(p0, "S1", "oneline") === null,
+     "the fall-through still returns null for fields the resolver does not own — the branch is targeted, not a catch-all");
+  // The trap, asserted directly: without these branches the lockdown blanks two slides.
+  ok(F.linkedSlideField(p0, "S1", "valueprop") !== null && F.linkedSlideField(p0, "S6", "desc") !== null,
+     "neither value-prop field can resolve to null — this is the assertion that makes marking them `linked` safe");
+}
+
 // ── Z · PRESENT-MODE ZOOM — magnify the content, hold the chrome ────────────────────────
 // Operator: "when pinch zoom, top icons and banner size should not change just the content of slide. This
 // applies to portrait and landscape." Zoom was applied to the whole 1600x900 sheet, so pinching to read a

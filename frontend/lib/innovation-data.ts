@@ -2798,6 +2798,11 @@ export function linkedSlideField(p: Project, code: string, fieldId: string): Sli
     return financialsOverview(p, { years: 3, funded: true }).map((r) => [`${r.year}`, money(r.revM), money(r.marginM)]);
   // S9's stories are generated from the project's own brief (one record, three views) — never authored twice.
   if (code === "S9" && fieldId === "stories") return storyTableRows(p);
+  // VALUE PROP — S8 owns the sentence; S1 and S6 RENDER it. These two branches must exist BEFORE either
+  // field is marked `linked`, because `linked` routes a field through this resolver and the fall-through at
+  // the bottom returns null — which would render both panels empty. Shipping the resolver first means the
+  // lockdown commit cannot blank a slide even for one render.
+  if ((code === "S1" && fieldId === "valueprop") || (code === "S6" && fieldId === "desc")) return valuePropOf(p);
   if (code === "S16" && fieldId === "bom") {
     try { return bomOf(p).slice(0, 6).map((b) => [b.desc, b.material, `$${bomStdCost(b).toLocaleString("en-US")}`]); }
     catch { return [[`${p.name} assembly`, hierOf(p).material, `$${Math.round(p.nreK * 50).toLocaleString("en-US")}`]]; }
