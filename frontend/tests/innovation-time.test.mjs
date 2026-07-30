@@ -1981,6 +1981,80 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/mt-0\.5 whitespace-nowrap text-\[7px\]/.test(src), "the nowrap that caused the overflow is gone");
 }
 
+// ── A-INPUT · CAN EVERY S1-S18 FIELD ACTUALLY BE INPUT, AND DOES IT RENDER IN PLAY MODE? ─
+// Operator, 2026-07-30: "ensure all S1-S18 can actually be input into tool so Slide in play mode renders from
+// S1-S18 input fields... having a single source of truth (not in Excel and Power point), for real time
+// alignment is critical." A deck that cannot be filled in the tool sends people back to PowerPoint, and the
+// single source of truth dies there. So this is a CENSUS, not a spot check: every field on every code is
+// classified, and the classification is printed so the gaps are visible rather than assumed.
+//
+// A field is INPUTTABLE if any of these is true:
+//   · plain          — FieldEditor renders an editor for it (the default for every non-linked field)
+//   · linked+source  — read-only here, but SOURCE_SLIDE names the slide that owns it, and that slide has a panel
+//   · linked+derived — read-only and resolved live by linkedSlideField (governance, BOM, stories, profiles)
+// Anything else is an ORPHAN: it appears on the sheet and nothing in the product can fill it.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const p0 = F.DEMO_PROJECTS[0];
+  const PANELLED = ["S10", "S8"];                     // codes that render a source panel today
+  const rows = [];
+  for (const sp of F.SLIDE_SCHEMA) {
+    for (const f of sp.fields) {
+      const owner = F.sourceSlideOf(sp.code, f.id);
+      let kind;
+      if (!f.linked) kind = "plain";
+      else if (owner && PANELLED.includes(owner)) kind = "linked+source";
+      else if (F.linkedSlideField(p0, sp.code, f.id) !== null) kind = "linked+derived";
+      // CS and RA are the closeout slides: `effective()` routes them to LIVE GOVERNANCE (the sign-off ledger
+      // and the approval record), not to linkedSlideField — a third resolver the census has to know about or
+      // it reports four false orphans. Chart fields render from the financial engine for the same reason.
+      else if (sp.code === "CS" || sp.code === "RA") kind = "linked+governance";
+      else if (f.kind === "chart") kind = "linked+chart";
+      else kind = "ORPHAN";
+      rows.push({ code: sp.code, id: f.id, req: !!f.req, kind });
+    }
+  }
+  const orphans = rows.filter((r) => r.kind === "ORPHAN");
+  const reqOrphans = orphans.filter((r) => r.req);
+  const by = (k) => rows.filter((r) => r.kind === k).length;
+  console.log(`  · S1-S18 input census: ${rows.length} fields across ${F.SLIDE_SCHEMA.length} codes — plain ${by("plain")} · ` +
+              `linked+source ${by("linked+source")} · linked+derived ${by("linked+derived")} · ` +
+              `linked+governance ${by("linked+governance")} · linked+chart ${by("linked+chart")} · orphan ${orphans.length}`);
+  if (orphans.length) console.log(`  · orphans: ${orphans.map((r) => `${r.code}.${r.id}${r.req ? "*" : ""}`).join(", ")}`);
+
+  ok(rows.length > 0, "the census actually walked the schema");
+  // A REQUIRED field with no way to fill it is the failure the operator is describing: it forces the deck
+  // back into PowerPoint. Non-required orphans would be a softer problem; there are none either.
+  ok(reqOrphans.length === 0,
+     `every REQUIRED field on every code can be filled in the tool — orphans: [${reqOrphans.map((r) => `${r.code}.${r.id}`).join(", ")}]`);
+  ok(orphans.length === 0,
+     `no field anywhere is orphaned — [${orphans.map((r) => `${r.code}.${r.id}`).join(", ")}]`);
+
+  // PLAY MODE must render from those same inputs, not from a parallel store. Every code resolves a value for
+  // each field through ONE chain (authored cell -> linked resolver -> AI draft), so what a board sees in
+  // Present is what someone typed or what the record derives — never a third thing.
+  const unresolved = [];
+  for (const sp of F.SLIDE_SCHEMA) {
+    for (const f of sp.fields) {
+      if (f.kind === "attach") continue;                        // images are uploads, not text fields
+      const v = F.linkedSlideField(p0, sp.code, f.id) ?? F.aiSlideField(p0, sp.code, f.id);
+      const empty = v == null || (typeof v === "string" && !v.trim()) || (Array.isArray(v) && v.length === 0);
+      if (empty) unresolved.push(`${sp.code}.${f.id}${f.req ? "*" : ""}`);
+    }
+  }
+  console.log(`  · play-mode fill: ${rows.length - unresolved.length}/${rows.length} fields resolve a value with NO authoring at all`);
+  const reqUnresolved = unresolved.filter((u) => u.endsWith("*"));
+  if (reqUnresolved.length) console.log(`  · authoring worklist (required, no derived draft): ${reqUnresolved.join(", ")}`);
+  // NOT a failure: a required field with no AI draft still renders as soon as someone types it, and both of
+  // these are Voice-of-Customer tables that SHOULD be human evidence rather than a generated placeholder.
+  // What would be a failure is a required field nobody can type into — asserted above as zero orphans. This
+  // keeps the worklist visible without pretending a blank VOC table is a defect in the tool.
+  ok(reqUnresolved.every((u) => rows.find((r) => `${r.code}.${r.id}` === u.replace("*", ""))?.kind === "plain"),
+     `every required field without a derived draft is at least directly typeable — [${reqUnresolved.join(", ")}]`);
+  ok(rows.length - unresolved.length >= 45,
+     `most of the deck renders in play mode from the record alone — ${rows.length - unresolved.length}/${rows.length}`);
+}
+
 // ── Z · PRESENT-MODE ZOOM — magnify the content, hold the chrome ────────────────────────
 // Operator: "when pinch zoom, top icons and banner size should not change just the content of slide. This
 // applies to portrait and landscape." Zoom was applied to the whole 1600x900 sheet, so pinching to read a
