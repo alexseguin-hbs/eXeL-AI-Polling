@@ -3907,6 +3907,32 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(V.wtpUsd({ value: 12, basis: "perUnit", unit: "k" }) === 12_000, "WTP $K per unit → 12,000 USD");
   ok(V.wtpUsd({ value: 3.5, basis: "total", unit: "m" }) === 3_500_000, "WTP $M total → 3,500,000 USD");
   ok(V.wtpUsd(null) === 0 && V.wtpUsd(undefined) === 0, "an unentered WTP is 0, never NaN");
+
+  // (h) VALUE CAPTURE — operator: "Value Capture defaulted as 67/33 Price @ 33% Value Capture", against
+  //     their Shield AI reference (NBA 100 → steps → Customer Value @ 40% → Price / Value Capture @ 60%).
+  ok(V.DEFAULT_CAPTURE_PCT === 33, "the default split is 67 customer / 33 us — NOT the reference chart's 60/40");
+  {
+    const s = V.valueSplit(300, 100);                       // total value 200, default 33%
+    ok(s.totalValueM === 200, "total value = EVC − NBA baseline, the operator's 'delta from top to NBA'");
+    ok(Math.abs(s.priceM - 166) < 1e-9, "price = NBA + 33% of total → 100 + 66 = 166");
+    ok(Math.abs(s.customerValueM - 134) < 1e-9, "customer keeps 67% → 134");
+    // THE LABEL AND THE BAR READ THE SAME NUMBER. In the operator's own workbook they do not: `1b!C6`
+    // hard-codes 50000 over `='1a'!I9` (=30000), printing "@ 40%" beside a bar that is actually 57%.
+    ok(Math.abs((s.priceM - 100) / s.totalValueM * 100 - s.capturePct) < 1e-9,
+       "the printed % and the bar geometry are ONE number — the template's C6 defect is not ported");
+    ok(Math.abs(s.customerValueM + (s.priceM - 100) - s.totalValueM) < 1e-9, "the two bars sum to the total value");
+  }
+  // The reference chart itself, reproduced: NBA 100, total 100, capture 60 → price 130, customer 40.
+  {
+    const r = V.valueSplit(200, 100, 60);
+    ok(Math.abs(r.priceM - 160) < 1e-9 && Math.abs(r.customerValueM - 40) < 1e-9,
+       "the Shield AI shape reproduces: customer 40 · capture 60");
+  }
+  ok(V.valueSplit(100, 100).totalValueM === 0 && V.valueSplit(100, 100).priceM === 100,
+     "zero value created → zero split, price falls back to the NBA (the template's F6 divides by zero here)");
+  ok(V.valueSplit(50, 100).customerValueM === 0, "NEGATIVE value created degrades safely rather than inverting the bars");
+  ok(V.valueSplit(300, 100, 120).priceM > 300,
+     "capture ABOVE 100% is NOT clamped — 'priced above the value created' is a real position, not an error to hide");
 }
 
 // ── W-10 · S3 PRINTS FOUR YEARS, SO ITS 3-YEAR CAGR IS COMPUTABLE ───────────────────────

@@ -3156,6 +3156,35 @@ export const driverTone = (d: ValueDriver, addressableRevM: number): "neg" | "ne
 /** Willingness to pay. Operator: "Price or Price per unit is selectable in toggle on value prop, also enable
  *  unit ($, k$, M$)." Normalised to plain USD once, here, so the strip position, the capture split and any
  *  comparison against S10's ASP all read the SAME number instead of each re-deriving it. */
+/** VALUE CAPTURE — the split between what the customer keeps and what we price for.
+ *
+ *  Operator: "Value Capture defaulted as 67/33 Price @ 33% Value Capture", with their Shield AI waterfall as
+ *  the reference shape: NBA 100 → six green differentiator steps → two red give-backs → a BLUE bar stepping
+ *  DOWN from the top by the customer's share → a grey TOTAL-from-zero at our price.
+ *
+ *  totalValue  = EVC − NBA baseline          ← the operator's "delta from top to NBA", and identically the
+ *                                              template's `I6 = SUM(I9:I52)`
+ *  priceM      = NBA + capture% × totalValue ← DERIVED. We choose the %, the price follows.
+ *  customerM   = (1 − capture%) × totalValue ← the blue give-back bar; its height IS the customer's surplus
+ *
+ *  ⚠ ONE FUNCTION, so the "@ 33%" LABEL AND THE BAR HEIGHT CANNOT DISAGREE. In the operator's own workbook
+ *  they do: `1b!C6` is a hard-coded 50000 overwriting `='1a'!I9` (=30000), so that sheet prints "@ 40%"
+ *  beside a bar that is actually 57%. Porting the arithmetic without porting the fix would import the defect.
+ *
+ *  Guards the template lacks: `F6` has no divide-by-zero protection, so a zero or negative total value there
+ *  produces nonsense. Here it degrades to a zero split. Capture ABOVE 100% is deliberately NOT clamped — it
+ *  means "priced above the value created", which is a real if aggressive position, and silently clamping it
+ *  would hide a decision someone made. */
+export const DEFAULT_CAPTURE_PCT = 33;   // operator: 67 customer / 33 us — NOT the reference chart's 60/40
+export interface ValueSplit { capturePct: number; totalValueM: number; priceM: number; customerValueM: number }
+export function valueSplit(evcUsdM: number, referenceM: number, capturePct: number = DEFAULT_CAPTURE_PCT): ValueSplit {
+  const ref = Number.isFinite(referenceM) ? referenceM : 0;
+  const total = Number.isFinite(evcUsdM) ? evcUsdM - ref : 0;
+  const pct = Number.isFinite(capturePct) ? capturePct : DEFAULT_CAPTURE_PCT;
+  if (total <= 0) return { capturePct: pct, totalValueM: 0, priceM: ref, customerValueM: 0 };
+  return { capturePct: pct, totalValueM: total, priceM: ref + (pct / 100) * total, customerValueM: (1 - pct / 100) * total };
+}
+
 export interface WtpValue { value: number; basis: "total" | "perUnit"; unit: "usd" | "k" | "m" }
 export const WTP_UNIT_MULT: Record<WtpValue["unit"], number> = { usd: 1, k: 1_000, m: 1_000_000 };
 export const wtpUsd = (w?: WtpValue | null): number =>
