@@ -1244,13 +1244,41 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
 function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
   const ve = valueEquationOf(p);
   const steps = ve.perDriver.slice(0, 6);
-  const W = 320, H = big ? 150 : 120, L = 6, T = 8, B = 16;
+  // BOX FIRST, THEN TYPE. NEVER CLIP, NEVER ELLIPSIS. The operator photographed this chart with every driver
+  // truncated — "Portability across…", "Auditable decision…", "Certifiable module…" — because the labels were
+  // hard-cut at eight characters and the y axis had no ticks at all, only grid lines, behind a six-unit
+  // gutter that could not have held one. Both axes now FIT: the plot yields space to the labels rather than
+  // the labels being cut to fit the plot.
+  const W = 320, T = 8;
+  //  · y ticks are formatted FIRST, then the gutter is measured from them, so a wider number widens the
+  //    gutter instead of overprinting the axis.
+  const TICKS = [0, 0.25, 0.5, 0.75, 1];
   let run = ve.referenceM;
   const seq: { label: string; from: number; to: number; kind: "base" | "up" | "down" | "total" }[] = [{ label: "NBA", from: 0, to: ve.referenceM, kind: "base" }];
   for (const d of steps) { const from = run; run += d.weighted; seq.push({ label: d.name, from, to: run, kind: d.weighted >= 0 ? "up" : "down" }); }
   seq.push({ label: "EVC", from: 0, to: run, kind: "total" });
   const max = Math.max(1, ...seq.map((s) => Math.max(s.from, s.to))) * 1.1;
+  const tickTxt = TICKS.map((f) => `${Math.round((max * f) / 1.1)}`);
+  const L = Math.max(6, Math.max(...tickTxt.map((t) => t.length)) * 2.6 + 3);
+  //  · x labels shrink toward a legibility FLOOR, then WRAP to at most two lines. The bottom band is sized
+  //    by however many lines the longest label actually needs, so nothing is ever cut.
   const n = seq.length, gw = (W - L) / n, bw = Math.max(4, gw * 0.6);
+  const FS = Math.max(4.4, Math.min(6, gw / 5.2));
+  const wrap = (t: string): string[] => {
+    const per = Math.max(4, Math.floor(gw / (FS * 0.56)));
+    if (t.length <= per) return [t];
+    const words = t.split(" "); const out: string[] = []; let line = "";
+    for (const w of words) {
+      if (!line) { line = w; continue; }
+      if ((line + " " + w).length <= per) line += " " + w; else { out.push(line); line = w; }
+    }
+    if (line) out.push(line);
+    return out.slice(0, 2);
+  };
+  const wrapped = seq.map((s) => wrap(s.label));
+  const lines = Math.max(1, ...wrapped.map((w) => w.length));
+  const B = 6 + lines * (FS + 1.2);
+  const H = (big ? 150 : 120) + Math.max(0, B - 16);
   const y = (v: number) => H - B - (v / max) * (H - B - T);
   const fill = (k: string) => (k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : "#3b82f6");
   // WTP positioning — Low→High price-performance; markers deterministic from the competitive index.
@@ -1266,11 +1294,18 @@ function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#3b82f6]" />EVC</span>
         </div>
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "7cqh" } : { height: "auto" }} role="img" aria-label="S8 value creation / capture waterfall">
-          {[0.25, 0.5, 0.75, 1].map((f) => <line key={f} x1={L} y1={y(max * f / 1.1)} x2={W} y2={y(max * f / 1.1)} stroke="rgba(148,163,184,.09)" />)}
+          {TICKS.map((f, i) => (
+            <g key={f}>
+              <line x1={L} y1={y(max * f / 1.1)} x2={W} y2={y(max * f / 1.1)} stroke="rgba(148,163,184,.09)" />
+              <text x={L - 2} y={y(max * f / 1.1) + FS * 0.36} textAnchor="end" fontSize={FS} fill="#64748b">{tickTxt[i]}</text>
+            </g>
+          ))}
           {seq.map((s, i) => { const top = y(Math.max(s.from, s.to)), bot = y(Math.min(s.from, s.to)); const x = L + i * gw + (gw - bw) / 2; return (
             <g key={i}>
               <rect x={x} y={top} width={bw} height={Math.max(1.5, bot - top)} fill={fill(s.kind)} rx={1} />
-              <text x={x + bw / 2} y={H - 4} textAnchor="middle" fontSize="5" fill="#64748b">{s.label.length > 8 ? s.label.slice(0, 8) : s.label}</text>
+              {wrapped[i].map((ln, li) => (
+                <text key={li} x={x + bw / 2} y={H - B + 6 + li * (FS + 1.2)} textAnchor="middle" fontSize={FS} fill="#64748b">{ln}</text>
+              ))}
             </g>
           ); })}
         </svg>
@@ -1280,9 +1315,11 @@ function S8ValueChart({ p, big }: { p: Project; big?: boolean }) {
         <div className="relative h-6 rounded border border-slate-800 bg-[#0e141b]">
           <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
           {markers.map((m) => (
-            <div key={m.label} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${6 + m.x * 88}%` }}>
+            <div key={m.label} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${6 + m.x * 88}%`, maxWidth: "22%" }}>
               <div className="mx-auto h-2.5 w-2.5 rounded-full" style={{ background: m.c }} />
-              <div className="mt-0.5 whitespace-nowrap text-[7px] text-slate-400">{m.label}</div>
+              {/* The MARKER is positioned; its label wraps within a share of the strip, so a long product
+                  name at either end folds instead of running off the edge. */}
+              <div className="mt-0.5 break-words text-center text-[7px] leading-tight text-slate-400">{m.label}</div>
             </div>
           ))}
           <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>

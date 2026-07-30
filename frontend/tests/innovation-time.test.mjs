@@ -1947,6 +1947,40 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "idea creation still captures all four value-prop roots — creation is not a door, and this exception is named");
 }
 
+// ── V4 · S8 AXES ALWAYS FIT — box first, then type; never clip, never ellipsis ──────────
+// The operator photographed this chart with every driver truncated: "Portability across…", "Auditable
+// decision…", "Certifiable module…". Two causes. The x labels were hard-cut at eight characters with no
+// ellipsis and no wrap, and the y axis had NO ticks at all — only grid lines, behind a six-unit gutter that
+// could not have held a number anyway.
+{
+  const fspc = await import("node:fs/promises");
+  const src = await fspc.readFile("app/innovation/page.tsx", "utf8");
+  const chart = src.slice(src.indexOf("function S8ValueChart("), src.indexOf("function S8ValueChart(") + 4200);
+
+  ok(!/s\.label\.length > 8 \? s\.label\.slice\(0, 8\)/.test(chart), "the eight-character hard cut is gone");
+  ok(!/slice\(0, 8\)/.test(chart), "no truncation of any driver label survives in this chart");
+  ok(/return out\.slice\(0, 2\);/.test(chart), "labels WRAP to at most two lines — the budget is lines, not characters");
+  ok(/const FS = Math\.max\(4\.4, Math\.min\(6, gw \/ 5\.2\)\);/.test(chart),
+     "type shrinks toward a legibility FLOOR of 4.4 before it wraps — it never shrinks without limit");
+
+  // The y axis exists, and the gutter is MEASURED from the tick strings rather than being a constant.
+  ok(/const tickTxt = TICKS\.map/.test(chart) && /textAnchor="end" fontSize=\{FS\}/.test(chart),
+     "the y axis has real tick labels, not just grid lines");
+  ok(/const L = Math\.max\(6, Math\.max\(\.\.\.tickTxt\.map\(\(t\) => t\.length\)\) \* 2\.6 \+ 3\);/.test(chart),
+     "the gutter is measured FROM the tick text — a wider number widens the gutter, it does not overprint the axis");
+  ok(/const L = /.test(chart) && !/L = 6,/.test(chart), "the hardcoded six-unit gutter is gone");
+
+  // The bottom band is sized by the labels, and the chart grows so the plot area is not eaten by them.
+  ok(/const B = 6 \+ lines \* \(FS \+ 1\.2\);/.test(chart), "the label band is sized by the lines the labels actually need");
+  ok(/const H = \(big \? 150 : 120\) \+ Math\.max\(0, B - 16\);/.test(chart),
+     "the chart grows to absorb a taller label band — the plot yields nothing to the axis");
+
+  // The WTP strip: a long first word at either end used to run off the edge.
+  ok(/maxWidth: "22%"/.test(src) && /break-words text-center text-\[7px\]/.test(src),
+     "WTP marker labels wrap within a share of the strip instead of running off its edge");
+  ok(!/mt-0\.5 whitespace-nowrap text-\[7px\]/.test(src), "the nowrap that caused the overflow is gone");
+}
+
 // ── Z · PRESENT-MODE ZOOM — magnify the content, hold the chrome ────────────────────────
 // Operator: "when pinch zoom, top icons and banner size should not change just the content of slide. This
 // applies to portrait and landscape." Zoom was applied to the whole 1600x900 sheet, so pinching to read a
