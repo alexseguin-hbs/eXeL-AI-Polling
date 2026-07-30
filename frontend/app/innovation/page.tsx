@@ -51,7 +51,7 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
-  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
+  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
 } from "@/lib/innovation-data";
@@ -3587,9 +3587,12 @@ function S10SpendTable({ p, baseYear }: { p: Project; baseYear: number }) {
         ]}
       />
       <div className="flex flex-wrap items-center gap-[1.4cqw] px-[0.5cqw] text-slate-400" style={{ fontSize: TS.micro }}>
+        {/* W-11 · THE TWO CONFIDENCE PERCENTAGES ARE GONE FROM THE BOARD SHEET TOO, not just the editor.
+            Operator: "remove % allocation for Commercial and Technical Confidence. Business Confidence will
+            be allocated from PdM or PgM after talking to SBU or BU Director or VP."
+            Deleting the INPUT while leaving the READ-OUT is the second-door defect inverted: a figure on a
+            board slide that nobody can change and nothing derives. Both go together. */}
         <span>{yearLabel(ys[0]?.year ?? baseYear)} R&D Spend Request: <b className="font-mono text-slate-200">{finFmtK(f.spendRequestK)}</b></span>
-        <span>Technical Confidence: <b className="font-mono text-slate-200">{f.techConfPct}%</b></span>
-        <span>Commercial Confidence: <b className="font-mono text-slate-200">{f.commConfPct}%</b></span>
       </div>
     </>
   );
@@ -3923,12 +3926,9 @@ function S10FinEditor({ p, baseYear, onEdit }: {
         <label className="flex items-center gap-1">{yearLabel(ys[0]?.year ?? baseYear)} R&amp;D Spend Request
           <span className="w-20"><FinCell value={fin.spendRequestK} title="Current-year R&D ask, $K" onCommit={(v) => setFin({ spendRequestK: v }, `spend request -> ${v}`)} /></span>
         </label>
-        <label className="flex items-center gap-1">Technical Confidence
-          <select value={String(fin.techConfPct)} onChange={(e) => setFin({ techConfPct: +e.target.value }, `tech confidence -> ${e.target.value}%`)}
-            className="rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
-            {CONF_LADDER.map((c) => <option key={c} value={c}>{c}%</option>)}
-          </select>
-        </label>
+        {/* W-11 · "Technical Confidence 50%" REMOVED. Verified before deleting: `techConfPct` fed NOTHING —
+            not NPV, not pSuccess, not gate scoring — so nothing downstream freezes at a stale value. The
+            field stays on FinPlan so no seeded project migrates; it is simply no longer typed or printed. */}
       </div>
       </>)}
 
@@ -4078,15 +4078,12 @@ function S10FinEditor({ p, baseYear, onEdit }: {
             className="rounded border border-slate-700 px-2 py-0.5 text-slate-300 hover:bg-slate-800">↺ Undo fill</button>
         </div>
       )}
-      {/* The COMMERCIAL rung, with the commercial rows. Its twin moved up into the technical section. */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
-        <label className="flex items-center gap-1">Commercial Confidence
-          <select value={String(fin.commConfPct)} onChange={(e) => setFin({ commConfPct: +e.target.value }, `commercial confidence -> ${e.target.value}%`)}
-            className="rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
-            {CONF_LADDER.map((c) => <option key={c} value={c}>{c}%</option>)}
-          </select>
-        </label>
-      </div>
+      {/* W-11 · "Commercial Confidence 10%" REMOVED, and the strip with it — it held nothing else.
+          Operator: "Business Confidence will be allocated from PdM or PgM after talking to SBU or BU
+          Director or VP." A six-rung percentage ladder is the wrong instrument for a judgement a person
+          makes in a conversation; it invited a number to be picked because a control was there.
+          The replacement — "Business Risk Assessment", up on the risk row beside Technical and Commercial
+          Risk — is the operator's separate in-flight item and lands with it, not smuggled in here. */}
       </>)}
     </div>
   );
@@ -6813,6 +6810,18 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
         </div>
       </DashCard>
 
+      {/* W-6 · ROI VISUALS IS SECOND, DIRECTLY UNDER ALLOCATION & UPSIDE (operator, asked more than once:
+          "place ROI Visual with default Financials by Gate below first section: Allocation & upside · by BU
+          … Item to stay 2nd on list"). It used to render FOURTH — after the Financial Map and the Rollup
+          table — so the panel whose default view is Pipeline by Gate sat two scrolls below the budget it
+          allocates against.
+          THIS ALSO CLOSES H3 WITHOUT H3'S SURGERY. That plan proposed EXTRACTING PipelineByGate out of
+          RoiVisuals to render it standalone here, which would have reversed the deliberate consolidation
+          recorded at :6802, cut the view selector from four options to three, and risked the same panel
+          appearing twice. Pipeline is already RoiVisuals' DEFAULT view, so moving the whole panel up
+          satisfies "Pipeline by Gate after Allocation & Upside" as a reorder, with nothing dismantled. */}
+      <RoiVisuals projects={projects} funded={funded} showUnfunded={showUnfunded} onShowUnfunded={onShowUnfunded} onSelect={onSelect} />
+
       {/* Financial Map — R&D spend vs risk-weighted revenue (Financial = 3rd-most-important) */}
       <FinancialMap projects={projects} onSelect={onSelect} />
 
@@ -6880,9 +6889,8 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
         <p className="mt-2 text-[10px] text-slate-500">Base revenue anchors the do-nothing growth model per SBU. BU = Σ its SBUs · Company = Σ all BUs (700M).</p>
       </DashCard>
 
-      {/* G6 — simplified ROI Visuals (selector-driven): Pipeline · 12-box Metrics · Spend · Cash Flow.
-          Replaces the old 6-tile row + 4-card grid + standalone Pipeline (operator: dashboard was too complex). */}
-      <RoiVisuals projects={projects} funded={funded} showUnfunded={showUnfunded} onShowUnfunded={onShowUnfunded} onSelect={onSelect} />
+      {/* G6's ROI Visuals — selector-driven Pipeline · Metrics · Spend · Cash Flow — MOVED UP to second
+          position by W-6. It renders directly under Allocation & upside now; this is where it used to sit. */}
 
       {/* Intelligence Load — AI·SI·HI by strategic pillar / BU / SBU / Alpha Group / Project */}
       <IntelligenceLoadPanel projects={projects} />

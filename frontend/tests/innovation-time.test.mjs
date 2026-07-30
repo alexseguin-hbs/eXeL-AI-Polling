@@ -2477,15 +2477,25 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/const commRevK = ys\.reduce\(\(a, y\) => a \+ incRevK\(y, fin\.unitEcon\), 0\)/.test(pageB),
      "the commercial summary is Sigma of the SAME incRevK the sheet prints");
 
-  // 5. EACH CONFIDENCE RUNG TRAVELS WITH ITS OWN SECTION. They used to share one footer strip, which would
-  //    have left a COMMERCIAL control sitting inside the technical section the moment these banners existed.
+  // 5. W-11 · BOTH CONFIDENCE PERCENTAGES ARE GONE — INPUT AND READ-OUT TOGETHER.
+  //    Operator: "remove % allocation for Commercial and Technical Confidence. Business Confidence will be
+  //    allocated from PdM or PgM after talking to SBU or BU Director or VP." A six-rung percentage ladder is
+  //    the wrong instrument for a judgement a person makes in a conversation — the control invited a number
+  //    to be picked because it was there.
+  //    THIS REPLACES the old "each rung travels with its own section" pair, which asserted the presence of
+  //    controls the operator has now removed. Verified before deleting: neither percentage fed NPV, pSuccess
+  //    or gate scoring, so nothing downstream freezes at a stale value.
   const techBlock = pageB.slice(pageB.indexOf('<FinBanner tone="tech"'), pageB.indexOf('<FinBanner tone="comm"'));
-  const commBlock = pageB.slice(pageB.indexOf('<FinBanner tone="comm"'));
-  ok(techBlock.includes("Technical Confidence") && !techBlock.includes("Commercial Confidence"),
-     "the technical section holds the technical rung and nothing commercial");
-  ok(commBlock.includes("Commercial Confidence") && !commBlock.includes("Technical Confidence"),
-     "the commercial section holds the commercial rung and nothing technical");
+  const codeOnly = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");   // the W-2 lesson
+  const editorCode = codeOnly(pageB.slice(pageB.indexOf('<FinBanner tone="tech"')));
+  ok(!/techConfPct|commConfPct/.test(editorCode), "neither confidence percentage is typed anywhere in the S10 editor");
+  ok(!/CONF_LADDER/.test(editorCode), "the six-rung percentage ladder is not rendered — the ladder was the defect");
   ok(techBlock.includes("R&amp;D Spend Request"), "the current-year ask is technical, and sits with the technical rows");
+  // AND THE BOARD SHEET LOSES ITS READ-OUTS TOO. Deleting the input while leaving the printed figure is the
+  // second-door defect inverted: a number on a board slide nobody can change and nothing derives.
+  const sheetCode = codeOnly(pageB.slice(pageB.indexOf("function S10SpendTable"), pageB.indexOf("function S10RevenueTable")));
+  ok(!/Technical Confidence|Commercial Confidence/.test(sheetCode),
+     "the S10 sheet no longer prints either confidence percentage");
 
   // 6. THE STATE IS ANNOUNCED, NOT ONLY DRAWN. These two sections are the only thing between a technical
   //    reviewer and a screen of commercial numbers they did not ask for.
@@ -3915,6 +3925,30 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // And the CAGR is actually derivable from what is printed: no zero start year, no gap.
   const rev0 = Number(String(rows[0][1]).replace(/[^0-9.]/g, ""));
   ok(rev0 > 0, `the first printed year carries revenue (${rows[0][1]}) — a CAGR from zero is undefined`);
+}
+
+// ── W-6 · ROI VISUALS IS SECOND ON THE DASHBOARDS TAB ───────────────────────────────────
+// Operator, asked MORE THAN ONCE — recorded in the plan and shipped late, which is the reason this lock
+// exists rather than a comment: "place ROI Visual with default Financials by Gate below first section:
+// Allocation & upside · by BU … Item to stay 2nd on list."
+// Asserted as ORDER OF FIRST APPEARANCE in the rendered tree, so re-adding a panel above it fails.
+{
+  const fspW6 = await import("node:fs/promises");
+  const srcW6 = await fspW6.readFile("app/innovation/page.tsx", "utf8");
+  const dash = srcW6.slice(srcW6.indexOf('<DashCard title="Allocation & upside'));
+  const at = (needle) => dash.indexOf(needle);
+  const alloc = at('<DashCard title="Allocation & upside');
+  const roi = at("<RoiVisuals projects=");
+  const fmap = at("<FinancialMap projects=");
+  const roll = at('<DashCard title="Rollup');
+  ok(alloc === 0, "Allocation & upside is still first");
+  ok(roi > alloc && roi < fmap && roi < roll,
+     `ROI Visuals renders SECOND — after Allocation (${alloc}), before Financial Map (${fmap}) and Rollup (${roll}); got ${roi}`);
+  ok((dash.match(/<RoiVisuals projects=/g) ?? []).length === 1, "ROI Visuals renders ONCE — a move, not a copy");
+  // H3 IS CLOSED BY THIS, NOT BY EXTRACTION. Pipeline stays RoiVisuals' default view rather than being
+  // pulled out to render standalone, so the four-option selector survives and the panel cannot appear twice.
+  ok(!/<PipelineByGate projects=[\s\S]{0,200}<RoiVisuals/.test(dash),
+     "PipelineByGate is not ALSO hoisted standalone — it is RoiVisuals' default view and stays there");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
