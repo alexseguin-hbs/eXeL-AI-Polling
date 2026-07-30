@@ -2111,6 +2111,71 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(F.finGateReadiness(F.finOf(p0, BY), p0.gate).filled > 0, "a seeded project still scores its forecast years");
 }
 
+// ── E1 · QTY · ASP · COGS ARE INPUTS, IN BOTH MODES ─────────────────────────────────────
+// Operator: "add QTY, ASP, COGS for input, with toggle of Rev & Mgn only option. If under Qty, Rev, Mgn
+// input Calculations occur for Rev and Margin." — and, earlier, "where is my Qty. ASP, and Mgn?"
+//
+// That question had a real cause. The SHEET printed six rows per band while the EDITOR forked: unit
+// economics ON showed Quantity/MSRP/Disc/COGS, OFF showed Revenue and Margin only — and `finBaseline` sets
+// OFF for all 33 seeded projects, so on every one of them Quantity, ASP and COGS simply were not there.
+// The read-out promised figures the input surface would not accept.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fspE1 = await import("node:fs/promises");
+  const pageE1 = await fspE1.readFile("app/innovation/page.tsx", "utf8");
+
+  // 1. ASP IS A FIELD NOW, and typed ASP WINS. This reverses a decision this repo argued for in a comment;
+  //    the lever is kept as a fallback so no seeded plan moves by a cent.
+  const seeded = { units: 10, msrpK: 100, discPct: 20, cogsK: 40 };          // no aspK — the 33 seeded shape
+  ok(F.aspOf(seeded) === 80, `a plan with no typed ASP still derives MSRP net of discount — ${F.aspOf(seeded)}`);
+  ok(F.aspOf({ ...seeded, aspK: 91 }) === 91, "a typed ASP wins over the MSRP × (1 − disc) fallback");
+  ok(F.aspOf({ ...seeded, aspK: 0 }) === 0, "a typed ASP of ZERO is honoured, not treated as absent");
+  ok(F.emptyBandYear().aspK === undefined, "a fresh band year has no ASP until someone types one");
+
+  // 2. THE ARITHMETIC, EXECUTED. Revenue = Qty × ASP · Margin = Qty × (ASP − COGS).
+  const b = { units: 12, aspK: 55, msrpK: 0, discPct: 0, cogsK: 20 };
+  ok(F.bandRevK(b, true) === 660, `Revenue = Qty × ASP — ${F.bandRevK(b, true)}`);
+  ok(F.bandMgnK(b, true) === 420, `Margin = Qty × (ASP − COGS) — ${F.bandMgnK(b, true)}`);
+  ok(Math.round(F.bandMgnPct(b, true)) === 64, `Margin % follows — ${F.bandMgnPct(b, true)}`);
+  // "Rev & Mgn only" ignores all three and takes the typed pair — including a typed ZERO.
+  const t = { ...b, revK: 999, mgnK: 111 };
+  ok(F.bandRevK(t, false) === 999 && F.bandMgnK(t, false) === 111, "Rev & Mgn only uses the typed pair");
+  ok(F.bandRevK({ ...b, revK: 0 }, false) === 0, "a typed revenue of zero is a measured zero, not a fallback");
+
+  // 3. NO SEEDED PLAN MOVED. `aspK` is optional and absent from every baseline, so all 33 projects render
+  //    exactly what they rendered before this field existed. Asserted across the portfolio, not on one row.
+  for (const p of F.DEMO_PROJECTS) {
+    const fin = F.finBaseline(p, 2026);
+    ok(fin.years.every((y) => ["neu","don","dec"].every((k) => y[k].aspK === undefined)),
+       `${p.id} carries no typed ASP — its ASP still derives from MSRP and discount`);
+  }
+
+  // 4. THE EDITOR SHOWS ALL THREE IN BOTH MODES. Asserted OUTSIDE the mode branch: the rows must not sit
+  //    inside `{on ? ...}`, which is precisely how they went missing on 33 projects the first time.
+  const ed = pageE1.slice(pageE1.indexOf("const BANDS"), pageE1.indexOf("Combined: Incremental <span"));
+  const modeSplit = ed.indexOf("{on ? (");
+  ok(modeSplit > 0, "the editor still has a mode branch");
+  const always = ed.slice(0, modeSplit);
+  for (const row of ['label="Quantity"', 'label="ASP $K"', 'label="COGS $K"'])
+    ok(always.includes(row), `${row} is rendered BEFORE the mode branch — present in both modes`);
+  const branch = ed.slice(modeSplit);
+  ok(branch.includes('label="Revenue $K"') && branch.includes('label="Margin $K"'),
+     "Revenue and Margin are the only rows the toggle moves");
+
+  // 5. THE TOGGLE SAYS WHAT THE OPERATOR CALLED IT.
+  ok(/\{on \? "Qty · ASP · COGS" : "Rev & Mgn only"\}/.test(pageE1),
+     "the toggle reads 'Qty · ASP · COGS' / 'Rev & Mgn only', the operator's own words");
+  ok(!/Units × ASP|Revenue typed/.test(pageE1), "the old 'Units × ASP' / 'Revenue typed' labels are gone");
+
+  // 6. DEFAULTS, STATED RATHER THAN DISCOVERED. New/empty plans start in the Qty build-up; the 33 seeded
+  //    plans stay in Rev & Mgn only, deliberately — `finBaseline` back-solves units from revenue, so
+  //    flipping them would recompute revenue from a rounded quantity and move every seeded figure.
+  ok(Object.values(F.emptyFinPlan(2026).unitEcon).every(Boolean),
+     "a NEW plan starts in Qty · ASP · COGS — the build-up is the default when there is nothing to preserve");
+  ok(F.DEMO_PROJECTS.every((p) => Object.values(F.finBaseline(p, 2026).unitEcon).every((v) => v === false)),
+     "every SEEDED plan stays in Rev & Mgn only — its revenue is authoritative and must not be recomputed");
+}
+
 // ── E0c · CONFIDENCE IS DERIVED FROM RISK, NOT TYPED ────────────────────────────────────
 // Operator: "confidence should be moved to risk and dependent on Low, Med, High for tech and commercial.
 // Low/Low is 5 bullet. High/High is 1 bullet. and 3 is Med/Med, while 2 bullets is Medium or High Technical

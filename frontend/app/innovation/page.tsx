@@ -3731,34 +3731,42 @@ function S10FinEditor({ p, baseYear, onEdit }: {
                   <tr>
                     <td colSpan={ys.length + 1} className="bg-cyan-500/10 py-0.5 text-left text-[10px] font-semibold text-slate-100">
                       {b.label} <span className="font-normal text-slate-400">· {b.step}</span>
-                      <button onClick={() => setFin({ unitEcon: { ...fin.unitEcon, [b.key]: !on } }, `${b.label} unit economics ${on ? "off" : "on"}`)}
+                      {/* THE TOGGLE CHANGES ONE THING ONLY: whether Revenue and Margin are COMPUTED from the
+                          three entered rows or TYPED over them. QTY, ASP and COGS stay visible and editable
+                          either way — they are facts about the product, not artefacts of a revenue model, and
+                          hiding them is exactly what made the operator ask "where is my Qty. ASP, and Mgn?" */}
+                      <button onClick={() => setFin({ unitEcon: { ...fin.unitEcon, [b.key]: !on } }, `${b.label} ${on ? "Rev & Mgn only" : "Qty · ASP · COGS"}`)}
                         title={on
-                          ? "Unit economics ON — Revenue = Units x ASP, Margin = Units x (ASP - COGS). ASP is MSRP net of the distribution discount, never typed directly."
-                          : "Unit economics OFF — type Revenue and Margin directly."}
+                          ? "Revenue = Qty x ASP, Margin = Qty x (ASP - COGS). Click to type Revenue and Margin directly instead; Qty, ASP and COGS stay editable either way."
+                          : "Revenue and Margin are TYPED. Click to compute them from Qty, ASP and COGS instead."}
                         className={`ml-2 rounded border px-1.5 py-0 text-[9px] ${on ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400"}`}>
-                        {on ? "Units × ASP" : "Revenue typed"}
+                        {on ? "Qty · ASP · COGS" : "Rev & Mgn only"}
                       </button>
                     </td>
                   </tr>
-                  {on ? <>
-                    <FinRow label="Quantity" years={ys} hint="# units" get={(y) => y[b.key].units} set={(i, v) => setBand(i, b.key, { units: v }, `${b.label} qty ${fin.years[i].year} → ${v}`)}
-                      onFill={() => openFill(`${b.label} · Quantity`, fin.years[0][b.key].units, (vals) => withFinBandRow(fin, b.key, "units", vals))} />
-                    <FinRow label="MSRP $K" years={ys} hint="List price per unit" get={(y) => y[b.key].msrpK} set={(i, v) => setBand(i, b.key, { msrpK: v }, `${b.label} MSRP ${fin.years[i].year} → ${v}`)}
-                      onFill={() => openFill(`${b.label} · MSRP`, fin.years[0][b.key].msrpK, (vals) => withFinBandRow(fin, b.key, "msrpK", vals))} />
-                    <FinRow label="Disc %" years={ys} hint="Distribution discount off list — ASP = MSRP × (1 − disc)" get={(y) => y[b.key].discPct} set={(i, v) => setBand(i, b.key, { discPct: v }, `${b.label} disc ${fin.years[i].year} → ${v}`)} />
-                    <FinRow label="COGS $K" years={ys} hint="Cost of goods per unit" get={(y) => y[b.key].cogsK} set={(i, v) => setBand(i, b.key, { cogsK: v }, `${b.label} COGS ${fin.years[i].year} → ${v}`)}
-                      onFill={() => openFill(`${b.label} · COGS`, fin.years[0][b.key].cogsK, (vals) => withFinBandRow(fin, b.key, "cogsK", vals))} />
+                  {/* QTY · ASP · COGS — ALWAYS ENTERED, in both modes (operator: "add QTY, ASP, COGS for
+                      input, with toggle of Rev & Mgn only option"). ASP is typed here and wins over the
+                      MSRP x (1 - disc) fallback that still backs the 33 seeded plans; MSRP and Disc keep
+                      their record fields but leave the default row set, which is what makes six rows fit. */}
+                  <FinRow label="Quantity" years={ys} hint="# units — entered in both modes" get={(y) => y[b.key].units} set={(i, v) => setBand(i, b.key, { units: v }, `${b.label} qty ${fin.years[i].year} → ${v}`)}
+                    onFill={() => openFill(`${b.label} · Quantity`, fin.years[0][b.key].units, (vals) => withFinBandRow(fin, b.key, "units", vals))} />
+                  <FinRow label="ASP $K" years={ys} hint="Average selling price per unit. Typed ASP wins; blank falls back to MSRP net of the distribution discount." get={(y) => aspOf(y[b.key])} set={(i, v) => setBand(i, b.key, { aspK: v }, `${b.label} ASP ${fin.years[i].year} → ${v}`)}
+                    onFill={() => openFill(`${b.label} · ASP`, aspOf(fin.years[0][b.key]), (vals) => withFinBandRow(fin, b.key, "aspK", vals))} />
+                  <FinRow label="COGS $K" years={ys} hint="Cost of goods per unit — entered in both modes" get={(y) => y[b.key].cogsK} set={(i, v) => setBand(i, b.key, { cogsK: v }, `${b.label} COGS ${fin.years[i].year} → ${v}`)}
+                    onFill={() => openFill(`${b.label} · COGS`, fin.years[0][b.key].cogsK, (vals) => withFinBandRow(fin, b.key, "cogsK", vals))} />
+                  {on ? (
+                    // COMPUTED. Read-only, and labelled with the arithmetic so a board can audit it.
                     <tr>
-                      <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-500">ASP · Rev · Mgn</td>
+                      <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-500" title="Revenue = Qty x ASP · Margin = Qty x (ASP - COGS)">Rev · Mgn <span className="text-slate-600">(calc)</span></td>
                       {ys.map((y) => (
                         <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[9px] tabular-nums text-emerald-400/90"
-                            title={`ASP ${finFmtK(aspOf(y[b.key]))} · Revenue ${finFmtK(bandRevK(y[b.key], true))} · Margin ${finFmtK(bandMgnK(y[b.key], true))} · ${finFmtPct(bandMgnPct(y[b.key], true))}`}>
+                            title={`Revenue ${finFmtK(bandRevK(y[b.key], true))} · Margin ${finFmtK(bandMgnK(y[b.key], true))} · ${finFmtPct(bandMgnPct(y[b.key], true))}`}>
                           {finFmtK(bandRevK(y[b.key], true))}
                         </td>
                       ))}
                     </tr>
-                  </> : <>
-                    <FinRow label="Revenue $K" years={ys} get={(y) => y[b.key].revK ?? 0} set={(i, v) => setBand(i, b.key, { revK: v }, `${b.label} revenue ${fin.years[i].year} → ${v}`)}
+                  ) : <>
+                    <FinRow label="Revenue $K" years={ys} hint="Typed — Qty · ASP · COGS above are kept, they simply do not drive this row" get={(y) => y[b.key].revK ?? 0} set={(i, v) => setBand(i, b.key, { revK: v }, `${b.label} revenue ${fin.years[i].year} → ${v}`)}
                       onFill={() => openFill(`${b.label} · Revenue`, fin.years[0][b.key].revK ?? 0, (vals) => withFinBandRow(fin, b.key, "revK", vals))} />
                     <FinRow label="Margin $K" years={ys} get={(y) => y[b.key].mgnK ?? 0} set={(i, v) => setBand(i, b.key, { mgnK: v }, `${b.label} margin ${fin.years[i].year} → ${v}`)}
                       onFill={() => openFill(`${b.label} · Margin`, fin.years[0][b.key].mgnK ?? 0, (vals) => withFinBandRow(fin, b.key, "mgnK", vals))} />

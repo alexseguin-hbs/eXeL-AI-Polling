@@ -450,11 +450,23 @@ export const visibleYearCount = (gate: Gate): number => STAGE_SPAN[gate] ?? FIN_
 
 /** One revenue band's inputs for one year. Rack & Stack Step 1b / 2 / 3 all take this identical shape. */
 export interface FinBandYear {
-  units: number;      // # Units
-  msrpK: number;      // MSRP — LIST price, $K per unit
-  discPct: number;    // Distribution discount, % off list
-  cogsK: number;      // COGS, $K per unit
-  revK?: number;      // direct entry, used only when unit economics is OFF for this band
+  units: number;      // # Units — QTY. Entered in BOTH modes; it is a fact about the product.
+  // ASP — average selling price, $K per unit. AUTHORITATIVE when present.
+  //
+  // ⚠ THIS REVERSES A DECISION ARGUED FOR IN THIS FILE. The model took Rack & Stack Step 1b literally —
+  // units · msrpK · discPct · cogsK, with ASP DERIVED as list price net of the distribution discount — and a
+  // comment here used to explain why four inputs beat three (typing ASP loses the discount lever). The
+  // operator has since said ASP is an input: "add QTY, ASP, COGS for input". Their call, and it is the
+  // simpler thing to actually fill in.
+  //
+  // The lever is not lost. `msrpK` and `discPct` stay on the record as the FALLBACK, so the 33 seeded plans
+  // (which carry MSRP and no `aspK`) keep working untouched and anyone negotiating a discount can still
+  // model it on the detail sheet. Typed ASP wins; see `aspOf`.
+  aspK?: number;
+  msrpK: number;      // MSRP — LIST price, $K per unit. Fallback source for ASP.
+  discPct: number;    // Distribution discount, % off list. Fallback source for ASP.
+  cogsK: number;      // COGS, $K per unit. Entered in BOTH modes.
+  revK?: number;      // direct entry, used only when "Rev & Mgn only" is on for this band
   mgnK?: number;      // direct entry, ditto
 }
 export const emptyBandYear = (): FinBandYear => ({ units: 0, msrpK: 0, discPct: 0, cogsK: 0 });
@@ -501,7 +513,7 @@ export const withFinBand = (fin: FinPlan, i: number, band: "neu" | "don" | "dec"
 /** Spend row keys a human can type into. `Total` is derived and deliberately absent. */
 export type FinSpendKey = "labor" | "contractor" | "materials" | "other" | "sustain";
 /** Band-input keys. `revK`/`mgnK` are the direct-entry pair used when unit economics is off. */
-export type FinBandKey = "units" | "msrpK" | "discPct" | "cogsK" | "revK" | "mgnK";
+export type FinBandKey = "units" | "aspK" | "msrpK" | "discPct" | "cogsK" | "revK" | "mgnK";
 /** Write a WHOLE spend row at once — the apply-rate fill. Shorter values leave later years untouched. */
 export const withFinSpendRow = (fin: FinPlan, key: FinSpendKey, vals: number[]): FinPlan =>
   ({ ...fin, years: fin.years.map((y, i) => (i < vals.length ? { ...y, [key]: vals[i] } : y)) });
@@ -541,8 +553,9 @@ export function finGateReadiness(fin: FinPlan, gate: Gate): FinGateReadiness {
 }
 
 // ── Derived. Never stored, so two surfaces cannot disagree. ──────────────────────────────
-/** ASP = list price net of the distribution discount. Derived, never typed. */
-export const aspOf = (b: FinBandYear): number => b.msrpK * (1 - (b.discPct || 0) / 100);
+/** ASP $K. TYPED ASP WINS; otherwise list price net of the distribution discount.
+ *  The fallback is what keeps every seeded plan — which carries MSRP and no `aspK` — unchanged to the cent. */
+export const aspOf = (b: FinBandYear): number => b.aspK ?? (b.msrpK * (1 - (b.discPct || 0) / 100));
 /** Revenue $K. Unit economics ON → units × ASP. OFF → the typed figure. */
 export const bandRevK = (b: FinBandYear, unitEcon: boolean): number =>
   unitEcon ? b.units * aspOf(b) : (b.revK ?? 0);
