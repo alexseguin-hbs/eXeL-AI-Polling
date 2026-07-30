@@ -562,6 +562,13 @@ export function finGateReadiness(fin: FinPlan, gate: Gate): FinGateReadiness {
  *  The fallback is what keeps every seeded plan — which carries MSRP and no `aspK` — unchanged to the cent. */
 export const aspOf = (b: FinBandYear): number => b.aspK ?? (b.msrpK * (1 - (b.discPct || 0) / 100));
 /** Revenue $K. Unit economics ON → units × ASP. OFF → the typed figure. */
+/** Can this band honestly be shown as a Qty × ASP build-up? Only if EVERY year can be expressed as one.
+ *  A year carrying revenue but ZERO units (revenue below half a unit price, so `Math.round` floored it)
+ *  would render as zero in build-up mode and silently lose money off the sheet. Named and exported rather
+ *  than inlined, so the rule has one definition and a test can exercise the failing case directly — the
+ *  portfolio happens to contain no such year today, which would make an in-situ assertion vacuous. */
+export const bandBuildUpOk = (years: FinYear[], k: "neu" | "don" | "dec"): boolean =>
+  years.every((y) => y[k].units > 0 || (y[k].revK ?? 0) === 0);
 export const bandRevK = (b: FinBandYear, unitEcon: boolean): number =>
   unitEcon ? b.units * aspOf(b) : (b.revK ?? 0);
 /** Margin $K. Unit economics ON → units × (ASP − COGS). OFF → the typed figure. */
@@ -669,6 +676,15 @@ export function finBaseline(p: Project, baseYear: number): FinPlan {
       b.revK = revK; b.mgnK = Math.round(revK * mgnFrac);
       b.msrpK = ex.msrpK || 0; b.cogsK = ex.cogsK || 0;
       b.units = ex.msrpK > 0 ? Math.round(revK / ex.msrpK) : 0;   // back-solve; 0 when price is unknown
+      // F2a · RECONCILE THE BUILD-UP TO THE REVENUE, rather than leaving them to disagree.
+      // The `units` above is ROUNDED, and ASP used to fall back to `msrpK × (1 − disc)` — so `units × ASP`
+      // missed `revK` by up to half a price, on 301 of 804 printed rows (measured). The sheet printed that
+      // build-up beside the revenue it did not produce, which is a board reading numbers that do not
+      // multiply. Deriving ASP FROM the revenue removes the residue by construction instead of hiding it:
+      //   units × aspK  === revK    and    units × (aspK − cogsK) === mgnK
+      // Revenue and margin stay authoritative — nothing is re-priced, and the zero-drift lock proves it.
+      // The cost, stated: seeded ASP and COGS are now IMPLIED by the revenue rather than typed by a human.
+      if (b.units > 0) { b.aspK = b.revK / b.units; b.cogsK = b.aspK - b.mgnK / b.units; }
     };
     seed(y.neu, newK);
     seed(y.dec, decK);
@@ -679,10 +695,16 @@ export function finBaseline(p: Project, baseYear: number): FinPlan {
     // that DO have one, which is the actual defect.
     if (p.doNothing10yM > 0 && i < 10) seed(y.don, Math.round((p.doNothing10yM * 1000) / 10));
   });
-  // Unit economics stays OFF for a back-solved plan: the units are derived, so Revenue/Margin remain the
-  // authoritative figures until a human enters real quantities. Turning it on would silently re-derive
-  // revenue from a guessed quantity and move numbers nobody edited.
-  plan.unitEcon = { neu: false, don: false, dec: false };
+  // UNIT ECONOMICS, PER BAND — and this REVERSES the rule that stood here.
+  // The old comment said: "stays OFF … turning it on would silently re-derive revenue from a guessed
+  // quantity and move numbers nobody edited." That was TRUE while ASP came from `msrpK`, because the
+  // rounded `units` then disagreed with `revK`. It is FALSE now: `seed` above derives ASP from the revenue,
+  // so `units × aspK === revK` exactly and turning the band on moves NOTHING. Leaving it off would keep the
+  // sheet printing a build-up it refuses to stand behind — the defect, not the safeguard.
+  // A band goes on ONLY if every year can be expressed as a build-up: a year with revenue but zero units
+  // (revenue smaller than half a unit price, so `Math.round` floored it) would render as zero and drift.
+  // Those bands stay typed, and F2b is what stops the sheet printing Qty/COGS/ASP for them.
+  plan.unitEcon = { neu: bandBuildUpOk(plan.years, "neu"), don: bandBuildUpOk(plan.years, "don"), dec: bandBuildUpOk(plan.years, "dec") };
   // Misplaced paren: this rounded the TOTAL and then divided, so the ask rendered as "2733.33333" in the
   // editor. $K is an integer field — round after the division. (Caught by reading the screenshot, not the diff.)
   plan.spendRequestK = Math.round((split.labor + split.subcontractor + split.material + split.other) / rdYears);

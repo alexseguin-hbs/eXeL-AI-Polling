@@ -2146,13 +2146,25 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(F.bandRevK(t, false) === 999 && F.bandMgnK(t, false) === 111, "Rev & Mgn only uses the typed pair");
   ok(F.bandRevK({ ...b, revK: 0 }, false) === 0, "a typed revenue of zero is a measured zero, not a fallback");
 
-  // 3. NO SEEDED PLAN MOVED. `aspK` is optional and absent from every baseline, so all 33 projects render
-  //    exactly what they rendered before this field existed. Asserted across the portfolio, not on one row.
+  // 3. NO SEEDED PLAN MOVED — asserted DIRECTLY now, not through a proxy.
+  //    This lock's purpose has never changed: adding `aspK` must not re-price the portfolio. Its ORIGINAL
+  //    assertion was "`aspK` is absent from every baseline", which was a stand-in for that purpose and was
+  //    true while ASP fell back to MSRP. F2a makes it false ON PURPOSE — `finBaseline` now derives ASP FROM
+  //    the revenue so the build-up reconciles (301 of 804 printed rows previously had Qty × ASP ≠ Revenue).
+  //    So the proxy is replaced by the property itself, which is strictly stronger: whether ASP is present
+  //    or absent, reading a band as a build-up and reading it as a typed pair must give the SAME number.
+  //    A future change that re-prices anything fails this, which the old absence check could never catch.
   for (const p of F.DEMO_PROJECTS) {
     const fin = F.finBaseline(p, 2026);
-    ok(fin.years.every((y) => ["neu","don","dec"].every((k) => y[k].aspK === undefined)),
-       `${p.id} carries no typed ASP — its ASP still derives from MSRP and discount`);
+    const same = fin.years.every((y) => ["neu","don","dec"].every((k) =>
+      Math.abs(F.bandRevK(y[k], true) - F.bandRevK(y[k], false)) < 0.005 &&
+      Math.abs(F.bandMgnK(y[k], true) - F.bandMgnK(y[k], false)) < 0.005));
+    ok(same, `${p.id} reads identically typed or built up — the seeded plan did not move`);
   }
+  // The MSRP fallback still works for a band that has no typed ASP — deriving ASP in the baseline must not
+  // quietly delete the path a hand-entered plan still relies on.
+  ok(F.aspOf({ units: 0, msrpK: 200, discPct: 10, cogsK: 0 }) === 180,
+     "a band with no typed ASP still falls back to MSRP net of discount");
 
   // 4. THE TOGGLE SWAPS THE ROW SET. Operator, revising E1: "if Rev / Mgn Only is selected, Qty, COGS, ASP
   //    are hidden and those cells are editable." Each mode shows exactly what it takes. E1 originally kept
@@ -2209,13 +2221,31 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(hidden.years[0].neu.units === 7 && hidden.years[2].neu.units === 7,
      "hiding the build-up rows leaves Quantity on the record — switching back restores what was typed");
 
-  // 6. DEFAULTS, STATED RATHER THAN DISCOVERED. New/empty plans start in the Qty build-up; the 33 seeded
-  //    plans stay in Rev & Mgn only, deliberately — `finBaseline` back-solves units from revenue, so
-  //    flipping them would recompute revenue from a rounded quantity and move every seeded figure.
+  // 6. DEFAULTS, STATED RATHER THAN DISCOVERED — and REVERSED for seeded plans by F2a.
+  //    This assertion used to read "every SEEDED plan stays in Rev & Mgn only", on the reasoning that
+  //    "`finBaseline` back-solves units from revenue, so flipping them would recompute revenue from a
+  //    ROUNDED quantity and move every seeded figure." That reasoning was CORRECT, and F2a removes its
+  //    premise rather than overriding it: ASP is now derived from the revenue, so the quantity is no longer
+  //    rounded against a separate price and flipping moves nothing. Proved directly — 1,105 displayed
+  //    figures across 33 projects are byte-identical before and after, and section 3 above asserts the
+  //    typed and built-up readings agree on every band-year. Leaving these OFF would have kept the sheet
+  //    printing a build-up it would not stand behind, which was the defect the operator asked to fix.
   ok(Object.values(F.emptyFinPlan(2026).unitEcon).every(Boolean),
      "a NEW plan starts in Qty · ASP · COGS — the build-up is the default when there is nothing to preserve");
-  ok(F.DEMO_PROJECTS.every((p) => Object.values(F.finBaseline(p, 2026).unitEcon).every((v) => v === false)),
-     "every SEEDED plan stays in Rev & Mgn only — its revenue is authoritative and must not be recomputed");
+  ok(F.DEMO_PROJECTS.every((p) => Object.values(F.finBaseline(p, 2026).unitEcon).every((v) => v === true)),
+     "every SEEDED plan now runs the build-up too — safe ONLY because the identity above holds exactly");
+  // The guard that makes the flip safe is a PROPERTY, and it is exercised on the FAILING case directly.
+  // Asserting it in situ would be VACUOUS — no seeded year currently has revenue with zero units, so the
+  // check passes whether or not the guard works. Found by mutation-testing: forcing the predicate to
+  // `true` left the suite green. So `bandBuildUpOk` is exported and driven with the case that matters.
+  const yr = (units, revK) => ({ neu: { units, revK, msrpK: 0, discPct: 0, cogsK: 0 }, don: { units: 0, revK: 0, msrpK: 0, discPct: 0, cogsK: 0 }, dec: { units: 0, revK: 0, msrpK: 0, discPct: 0, cogsK: 0 } });
+  ok(F.bandBuildUpOk([yr(4, 400), yr(6, 600)], "neu") === true, "a band whose every year has units CAN build up");
+  ok(F.bandBuildUpOk([yr(4, 400), yr(0, 600)], "neu") === false,
+     "a band with revenue but ZERO units in any year CANNOT build up — that year would render as zero");
+  ok(F.bandBuildUpOk([yr(4, 400), yr(0, 0)], "neu") === true, "a genuinely empty year does not disqualify the band");
+  ok(F.DEMO_PROJECTS.every((p) => { const f = F.finBaseline(p, 2026);
+    return ["neu","don","dec"].every((k) => f.unitEcon[k] === F.bandBuildUpOk(f.years, k)); }),
+     "every seeded band's mode is exactly what the predicate says — the flag is derived, never hand-set");
 }
 
 // ── E2 · THE BAND LABELS STAY ON SCREEN ─────────────────────────────────────────────────
@@ -2554,6 +2584,44 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const f0 = F.finOf(F.DEMO_PROJECTS[0], 2026);
   const donM = Math.round(f0.years.reduce((a, y) => a + F.bandRevK(y.don, f0.unitEcon.don), 0) / 1000);
   ok(rk.doNothing10yM === donM, `doNothing10yM == Σ Step 2 band — ${rk.doNothing10yM} vs ${donM}`);
+}
+
+// ── F2a · THE BUILD-UP AND THE REVENUE AGREE — the sheet stops printing numbers that don't multiply ─
+// Measured before the fix: 301 of 804 printed band rows had Qty × ASP ≠ Revenue, because `finBaseline`
+// derived `units = round(revK / msrpK)` and let ASP fall back to `msrpK × (1 − disc)` — the ROUNDING was
+// the residue. The board therefore read a build-up beside a revenue it did not produce. The fix derives
+// ASP from the revenue instead, so the identity holds by construction rather than by luck.
+// THE ASSERTION IS THE IDENTITY ITSELF, not the formula that produces it: `bandRevK(b, true)` (build-up)
+// must equal `bandRevK(b, false)` (typed) for every seeded band-year. That is the property a reader cares
+// about, and it stays true if someone rewrites the derivation a different way.
+{
+  const F = await import("../lib/innovation-data.ts");
+  let rows = 0, revBad = 0, mgnBad = 0, on = 0, off = 0;
+  for (const p of F.DEMO_PROJECTS) {
+    const f = F.finOf(p, 2026);
+    for (const k of ["neu", "don", "dec"]) {
+      f.unitEcon[k] ? on++ : off++;
+      for (const y of f.years) {
+        rows++;
+        // Compare the two readings of the SAME cell. Sub-cent tolerance: these are IEEE doubles, and the
+        // display rounds to whole $K long before any float residue could become visible.
+        if (Math.abs(F.bandRevK(y[k], true) - F.bandRevK(y[k], false)) > 0.005) revBad++;
+        if (Math.abs(F.bandMgnK(y[k], true) - F.bandMgnK(y[k], false)) > 0.005) mgnBad++;
+      }
+    }
+  }
+  ok(rows > 300, `every seeded band-year was checked — ${rows} rows across ${F.DEMO_PROJECTS.length} projects`);
+  ok(revBad === 0, `Revenue reads the same typed or built up, on every row — ${revBad} disagree (was 301 on the printed subset)`);
+  ok(mgnBad === 0, `Margin reads the same typed or built up, on every row — ${mgnBad} disagree`);
+  // …and because the identity holds, the bands can honestly be SHOWN as a build-up. This is the number the
+  // operator's "we need rows for QTY, COGS, ASP" depends on: at 0, the sheet has nothing truthful to print.
+  ok(on === 99 && off === 0, `all 99 seeded bands run unit economics — on ${on}, typed ${off} (was on 0, typed 99)`);
+  // The seeded ASP is IMPLIED by revenue, not typed. Guard the direction of the derivation so nobody
+  // "simplifies" it back to the MSRP fallback, which is what made the numbers disagree in the first place.
+  const p0 = F.DEMO_PROJECTS.find((p) => F.finOf(p, 2026).years.some((y) => y.neu.units > 0));
+  const y0 = F.finOf(p0, 2026).years.find((y) => y.neu.units > 0);
+  ok(Math.abs(F.aspOf(y0.neu) * y0.neu.units - (y0.neu.revK ?? 0)) < 0.005,
+     `ASP is derived FROM revenue — ${p0.id} units ${y0.neu.units} × ASP ${F.aspOf(y0.neu).toFixed(4)} == revK ${y0.neu.revK}`);
 }
 
 // ── A-INPUT · CAN EVERY S1-S18 FIELD ACTUALLY BE INPUT, AND DOES IT RENDER IN PLAY MODE? ─
