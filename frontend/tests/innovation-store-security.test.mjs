@@ -175,7 +175,8 @@ ok(REDACT_MAX === 4000, "REDACT_MAX mirrors redactSecrets()'s cap");
 const MIG = "supabase/migrations/030_innovation_state_rls_hardening.sql";
 ok(fs.existsSync(path.resolve(REPO, MIG)), `${MIG} exists (history is superseded, not rewritten)`);
 {
-  const sql = read(MIG);
+  const raw = read(MIG);
+  const sql = raw.replace(/^\s*--.*$/gm, ""); // executable statements only — the header explains the defect
   ok(!/length\(owner_key\)\s*>\s*0/.test(sql), "030 contains no `length(owner_key) > 0` no-op authorisation");
   for (const p of ["Owners read innovation state", "Owners insert innovation state", "Owners update innovation state", "Owners delete innovation state"]) {
     ok(sql.includes(`DROP POLICY IF EXISTS "${p}"`), `030 drops the no-op policy "${p}"`);
@@ -183,7 +184,7 @@ ok(fs.existsSync(path.resolve(REPO, MIG)), `${MIG} exists (history is superseded
   // `select *` with no filter must return nothing for the public anon key: no anon policy + no anon grants.
   const policies = sql.match(/CREATE POLICY[\s\S]*?;/g) ?? [];
   ok(policies.length === 1, "030 leaves exactly one direct-table policy");
-  ok(!/CREATE POLICY[\s\S]*?TO[^\n]*\banon\b/.test(sql), "no policy grants the anon role direct table access ⇒ bare `select *` matches zero rows");
+  ok(policies.every((p) => !/\bTO\b[^\n]*\banon\b/.test(p)), "no policy grants the anon role direct table access ⇒ bare `select *` matches zero rows");
   ok(/TO authenticated/.test(policies[0]) && /user_id = auth\.uid\(\)/.test(policies[0]),
      "the one policy keys rows to auth.uid(), not to a not-null check");
   ok(/USING\s*\(user_id IS NOT NULL AND user_id = auth\.uid\(\)\)/.test(sql),
