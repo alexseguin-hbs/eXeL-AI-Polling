@@ -2170,6 +2170,65 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
 }
 
+// ── R-CENSUS · WHICH PROJECT-RECORD FIELDS NEVER REACH A SLIDE ─────────────────────────
+// Operator: "identify if there's anything on S1 to S18 that is in INPUT, but not on the slide."
+//
+// Two halves, and they must not be conflated. The DECK-FIELD half is measured in a real browser by
+// `npm run test:input-census` (seed a marker into every authorable field, read the Present sheet — 51/51
+// render). This is the RECORD half: fields on `Project` itself. It MUTATES each one and re-renders all
+// twenty codes; a field that changes no rendered byte is a field the board never sees.
+//
+// An earlier draft grep'd the resolver source for each field NAME and concluded that nothing reaches a
+// slide, which is obviously false — most values arrive through derived helpers (`financialMetrics`,
+// `valuePropOf`, `briefOf`) that never name the field. Mutation is the only honest test.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const BY = 2026;
+  const render = (p) => {
+    const out = [];
+    for (const sp of F.SLIDE_SCHEMA) for (const f of sp.fields)
+      out.push(`${sp.code}.${f.id}=${JSON.stringify(F.linkedSlideField(p, sp.code, f.id, BY) ?? F.aiSlideField(p, sp.code, f.id))}`);
+    // S10 has no fields — its content IS the grid, so the grid is rendered here too or the census would
+    // report every financial input as dead the moment E0d landed.
+    const fin = F.finOf(p, BY), ys = fin.years.slice(0, F.visibleYearCount(p.gate));
+    out.push("S10=" + JSON.stringify(ys.map((y) => [F.yearLabel(y.year), F.spendTotalK(y), F.incRevK(y, fin.unitEcon), F.incMgnK(y, fin.unitEcon), F.incUnits(y)])));
+    out.push("S10c=" + JSON.stringify([fin.techConfPct, fin.commConfPct, F.confidenceOf(p), fin.spendRequestK]));
+    out.push("hdr=" + JSON.stringify([p.name, p.gate, F.GATE_STAGE[p.gate], p.firstRevenue, F.RISK_LABEL[p.tech], F.RISK_LABEL[p.comm]]));
+    out.push("fin=" + JSON.stringify(F.financialMetrics(p)));
+    return out.join("\n");
+  };
+  const p0 = JSON.parse(JSON.stringify(F.DEMO_PROJECTS[0]));
+  const base = render(p0);
+  const ENUMS = { gate: p0.gate === "G4" ? "G2" : "G4", tech: p0.tech === "low" ? "high" : "low",
+                  comm: p0.comm === "low" ? "high" : "low", category: "New Product" };
+  const dead = [];
+  for (const k of Object.keys(p0)) {
+    if (k === "id") continue;                                       // the key, not an input
+    const p = JSON.parse(JSON.stringify(p0));
+    if (k in ENUMS) p[k] = ENUMS[k];
+    else if (typeof p[k] === "string") p[k] += "·CENSUS";
+    else if (typeof p[k] === "number") p[k] += 4242.42;
+    else if (typeof p[k] === "boolean") p[k] = !p[k];
+    else continue;                                                  // objects/arrays: covered by the deck census
+    let after; try { after = render(p); } catch { after = base + "·THREW"; }
+    if (after === base) dead.push(k);
+  }
+  console.log(`  · record census: ${dead.length} Project fields change nothing any slide renders — ${dead.join(", ")}`);
+  // NONE OF THEM IS TYPEABLE. Every one is written exactly once, at project creation, with a hardcoded
+  // default — there is no editor anywhere in the tool. So "input but not on a slide" is currently EMPTY,
+  // which is the operator's actual question. `confidence` is deliberately here since E0c: it is derived
+  // from the two risk levels, so mutating the stored copy is meant to change nothing.
+  const fspR = await import("node:fs/promises");
+  const pageR = await fspR.readFile("app/innovation/page.tsx", "utf8");
+  const typeable = dead.filter((k) => new RegExp(`onEditSource\\(\\{ ${k}:|onEdit\\(\\{ ${k}:`).test(pageR));
+  ok(typeable.length === 0,
+     `nothing a human can EDIT is invisible to the board — editable-but-dead: [${typeable.join(", ")}]`);
+  ok(dead.includes("confidence"), "confidence is intentionally dead on the record — E0c derives it from risk");
+  // Guard the other direction too: if someone later adds an editor for one of these, this lock goes red and
+  // forces the question "which slide shows it?" to be answered before the control ships.
+  ok(dead.length <= 12, `the dead-field set has not grown — ${dead.length}: [${dead.join(", ")}]`);
+}
+
 // ── A-INPUT · CAN EVERY S1-S18 FIELD ACTUALLY BE INPUT, AND DOES IT RENDER IN PLAY MODE? ─
 // Operator, 2026-07-30: "ensure all S1-S18 can actually be input into tool so Slide in play mode renders from
 // S1-S18 input fields... having a single source of truth (not in Excel and Power point), for real time

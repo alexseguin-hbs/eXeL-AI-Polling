@@ -61,7 +61,8 @@
     "verify:deploy": "node scripts/verify-deploy.mjs",
     "ship": "bash scripts/ship.sh",
     "status": "node scripts/status.mjs",
-    "feedback": "node scripts/feedback-artifact.mjs"
+    "feedback": "node scripts/feedback-artifact.mjs",
+    "test:input-census": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/input-census.mjs"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
