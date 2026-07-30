@@ -1607,8 +1607,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   //    target is in SOURCE_PANEL_CODES, and the deep link reads the registry instead of naming a slide.
   ok(/const SOURCE_PANEL_CODES = \[/.test(src) && /const panelExists = \(code: string\) =>/.test(src),
      "the set of codes that actually RENDER a source panel is declared, separately from who owns the record");
-  ok(/const hasSourceLink = \(code: string, fid: string\) => \{ const o = sourceSlideOf\(code, fid\); return !!o && panelExists\(o\); \}/.test(src),
-     "an Edit-Source button is drawn only when its target has an editor behind it");
+  ok(/const hasSourceLink = \(code: string, fid: string\) => \{ const o = sourceSlideOf\(code, fid\); return !!o && o !== code && panelExists\(o\); \}/.test(src),
+     "an Edit-Source button is drawn only when its target has an editor behind it AND is somewhere else");
+  // It is a NAVIGATION affordance. On the owning slide the editor is already present and the button is pure
+  // height — adding S8 to the registry put four of them on one sheet and overflowed it by 34px.
+  ok(/o !== code/.test(src), "no Edit-Source button on the slide that owns the record");
   ok(!/<SlideShowModal p=\{p\} startSlide="S3" openSource/.test(src),
      "the financials deep-link no longer lands on S3, which has had no source panel since the lockdown");
   ok(/\{finDeck && <SlideShowModal p=\{p\} startSlide=\{sourceSlideOf\(/.test(src),
@@ -1892,6 +1895,56 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // The trap, asserted directly: without these branches the lockdown blanks two slides.
   ok(F.linkedSlideField(p0, "S1", "valueprop") !== null && F.linkedSlideField(p0, "S6", "desc") !== null,
      "neither value-prop field can resolve to null — this is the assertion that makes marking them `linked` safe");
+}
+
+// ── V2/V3 · ONE EDITABLE VALUE PROPOSITION, AND IT IS ON S8 ─────────────────────────────
+// Operator: "we can only have one model value prop; gut says to have on S8." It had FOUR doors — S1.valueprop,
+// S6.desc, S8.vprop, and the Value Equation tool in Project details writing valueProp/valueDrivers straight
+// to the record from outside the deck. Four doors into one sentence is how a board reads three different
+// value propositions for the same project.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fspv = await import("node:fs/promises");
+  const src = await fspv.readFile("app/innovation/page.tsx", "utf8");
+  const field = (code, id) => F.SLIDE_SCHEMA.find((x) => x.code === code).fields.find((f) => f.id === id);
+
+  // 1. Exactly one editable value-prop field across all 20 codes, and it is S8's.
+  ok(field("S1", "valueprop").linked === true, "S1.valueprop renders read-only");
+  ok(field("S6", "desc").linked === true, "S6.desc renders read-only");
+  ok(!field("S8", "vprop").linked, "S8.vprop stays plain and editable — it is the one door");
+  const editable = F.SLIDE_SCHEMA.flatMap((sp) => sp.fields.filter((f) => /valueprop|vprop|^desc$/.test(f.id) && !f.linked).map((f) => `${sp.code}.${f.id}`));
+  ok(editable.length === 1 && editable[0] === "S8.vprop",
+     `exactly one editable value-prop field in the whole schema — [${editable.join(", ")}]`);
+
+  // 2. Gate completeness is untouched: both fields are still required, so no project's score moves.
+  ok(field("S1", "valueprop").req === true && field("S6", "desc").req === true,
+     "both renderings stay req:true — locking them down does not re-score 33 projects");
+
+  // 3. The route out is real. Every rendering carries a link to S8, and S8 now has a panel to land in.
+  ok(F.sourceSlideOf("S1", "valueprop") === "S8" && F.sourceSlideOf("S6", "desc") === "S8",
+     "the registry routes both renderings to S8");
+  ok(/const SOURCE_PANEL_CODES = \["S10", "S8"\];/.test(src), "S8 is registered as a code that renders a source panel");
+  ok(/onEditSource && spec\.code === "S8" && panelExists\("S8"\)/.test(src), "the S8 source panel is gated and mounted");
+
+  // 4. S8 owns all THREE roots. Owning the sentence without the drivers would leave the waterfall, the
+  //    capture metrics and the WTP strip editable somewhere else — the same defect one level down.
+  ok(/onEditSource\(\{ valueProp: v, valuePropSource: "HI" \}/.test(src), "S8 writes the sentence");
+  ok(/onEditSource\(\{ nextBestAlternative: v \}/.test(src), "S8 writes the Next Best Alternative");
+  ok(/onEditSource\(\{ valueDrivers: s8Drivers \}/.test(src), "S8 writes the value drivers");
+
+  // 5. THE FOURTH DOOR IS SHUT. ProjectDetail's Value Equation card keeps its sliders (exploring is not
+  //    editing) but no longer writes, and offers the deep link instead.
+  ok(!/onEdit\(\{ valueDrivers: veqDrivers, valueProp: valuePropFromEquation/.test(src),
+     "ProjectDetail no longer generates-and-saves a value prop from outside the deck");
+  ok(!/onEdit\(\{ valueDrivers: veqDrivers \}/.test(src), "ProjectDetail no longer saves drivers");
+  ok(/Exploring — S8 is where the value proposition is saved\./.test(src) && /Edit on S8/.test(src),
+     "ProjectDetail says where the record lives and offers a way there");
+  ok(/startSlide=\{sourceSlideOf\("S8", "vprop"\) \?\? "S8"\} openSource/.test(src),
+     "that link deep-links to S8 with the source panel expanded — resolved from the registry, not hardcoded");
+
+  // 6. NewIdeaModal is the ONE named exception: creating an idea is not a second editing surface.
+  ok(/onCreate\(\{ name, valueProp, nba, segments, drivers \}\)/.test(src),
+     "idea creation still captures all four value-prop roots — creation is not a door, and this exception is named");
 }
 
 // ── Z · PRESENT-MODE ZOOM — magnify the content, hold the chrome ────────────────────────

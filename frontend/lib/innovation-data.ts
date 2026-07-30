@@ -2323,7 +2323,10 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
   // S1 — crisp Executive Summary (consolidated to the essentials: what/why/who/ask).
   { code: "S1", gate: "G1", stage: "Concept", source: "Market Needs + Business Case", supplemental: ["Market Landscape & Needs"], fields: [
     { id: "oneline", name: "Product in one sentence", kind: "text", req: true, hint: "What it is and who it's for — no adjectives." },
-    { id: "valueprop", name: "Key value proposition", kind: "text", req: true },
+    // READ-ONLY RENDERING OF S8's RECORD. `linked` short-circuits FieldEditor to a LinkedField whose value
+    // comes from linkedSlideField — which gained its branch for this field in the previous commit, so this
+    // line cannot blank the panel. Still `req: true`: gate completeness is untouched on all 33 projects.
+    { id: "valueprop", name: "Key value proposition", kind: "text", req: true, linked: true },
     { id: "segment", name: "Target segment / customer", kind: "text", req: true },
     { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
   // S2 — Project Overview: the project-template one-pager (linked return profile + roadmap/status/risks) plus
@@ -2351,7 +2354,7 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
   // S6 — Product Summary: a REDUCTION of the concepts so far (operator). One-sentence overview + two reduced
   // 3-bullet sections (problem, CONOPS/applications) + two flanking product images.
   { code: "S6", gate: "G1", stage: "Concept", source: "Business Case", supplemental: ["Business Case"], fields: [
-    { id: "desc", name: "Single-sentence overview", kind: "text", req: true, hint: "One sentence, ~19 words — what it is and who it's for." },
+    { id: "desc", name: "Single-sentence overview", kind: "text", req: true, linked: true, hint: "One sentence, ~19 words — what it is and who it's for. Owned by S8; edit it there." },
     { id: "problem", name: "Problem statement", kind: "list", req: true, hint: "3 bullets, 12–19 words each — the customer problem, reduced." },
     { id: "conops", name: "CONOPS + applications", kind: "list", req: true, hint: "3 bullets, 12–19 words each — how it's used, reduced." },
     { id: "image", name: "Product image (left)", kind: "attach" },

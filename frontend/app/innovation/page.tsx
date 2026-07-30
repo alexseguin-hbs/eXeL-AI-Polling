@@ -2347,6 +2347,7 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
   const [vpView, setVpView] = useState<"HI" | "AI">(p.valuePropSource ?? "HI"); // HI⇄AI value-prop toggle
   const [finDeck, setFinDeck] = useState(false); // F2 — shared financial source editor (opened from dog-tag / overview / slide)
   const openFinancials = () => setFinDeck(true);
+  const [vpDeck, setVpDeck] = useState(false);
   const [veqMax, setVeqMax] = useState(false); // G1b — full-screen the Value Proposition card (Celestial-2525-style)
   // Backfill: seed from derived drivers when none are hand-scored, so the waterfall is populated for every project.
   const [veqDrivers, setVeqDrivers] = useState<ValueDriver[]>(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
@@ -2386,6 +2387,8 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
           entry points landed on a slide with no editor and nothing happened. The target is read from
           SOURCE_SLIDE so it can never drift from the panel gate again. */}
       {finDeck && <SlideShowModal p={p} startSlide={sourceSlideOf("S10", "spend") ?? "S10"} openSource onEditSource={onEdit} onClose={() => setFinDeck(false)} />}
+      {/* Same pattern for the value prop: one editor, reached from wherever the record is being read. */}
+      {vpDeck && <SlideShowModal p={p} startSlide={sourceSlideOf("S8", "vprop") ?? "S8"} openSource onEditSource={onEdit} onClose={() => setVpDeck(false)} />}
       {/* Dog-tag summary — SBU (left) · name (top) · launch date (right) · configurable highlights */}
       <div className="mb-3"><DogTag p={p} onEditFinancials={openFinancials} /></div>
       {/* Under the dog tag: consistency (left) · Outcome brief (center) · expand/collapse (upper-right).
@@ -2434,13 +2437,20 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
         </div>
         {/* Value Equation — always shown (operator): the Competitive Value Prop (our value vs the NBA) is on screen. */}
         <div className="mt-2">
+          {/* READ-ONLY HERE. S8 owns the value proposition — the sentence, the NBA and the drivers — so this
+              card explores the equation without being a second place to save it. Two editable surfaces for
+              one record is the duplication this work exists to end; the way in is the deep link below, which
+              lands on S8 with its source panel open. `onChange` still drives the local sliders so the card
+              stays interactive; nothing it does is written. */}
           <ValueEquationPanel
             drivers={veqDrivers} onChange={setVeqDrivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
-            onGenerate={() => onEdit({ valueDrivers: veqDrivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: veqDrivers }), valuePropSource: "HI" }, ["value prop generated from Value Equation vs NBA"])}
           />
-          <div className="mt-1.5 flex justify-end">
-            <button onClick={() => onEdit({ valueDrivers: veqDrivers }, [`value drivers: ${veqDrivers.length} vs NBA`])}
-              className="rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Save drivers</button>
+          <div className="mt-1.5 flex items-center justify-between gap-2">
+            <span className="text-[9px] text-slate-500">Exploring — S8 is where the value proposition is saved.</span>
+            <button onClick={() => setVpDeck(true)} title="Open S8 with the value-proposition editor expanded"
+              className="rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-500/20">
+              <span aria-hidden>◈</span> Edit on S8 <span aria-hidden>→</span>
+            </button>
           </div>
         </div>
         {p.segmentValueProps && p.segmentValueProps.length > 0 ? (
@@ -3822,6 +3832,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // deck left open across midnight on 31 December would re-anchor its columns mid-session and the stored plan
   // would silently shift a year. Read once, pass down; the pure lib still takes `baseYear` so tests pin 2026.
   const baseYear = useMemo(() => new Date().getFullYear(), []);
+  // S8's driver working set. Seeded from the record (or the derived fallback so the equation is never blank)
+  // and re-seeded when the project changes, exactly like the copy this replaces in Project details.
+  const [s8Drivers, setS8Drivers] = useState<ValueDriver[]>(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
+  useEffect(() => { setS8Drivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); }, [p.id, p.valueDrivers]);
   const [zoom, setZoom] = useState(1); // G-refine — pinch/tap zoom of the 16:9 slide (esp. portrait phones)
   // MEASURED PRESENT CHROME. `fit` used to be computed against a hardcoded 48px control bar; the bar is five
   // groups with no wrap, so on a 390px phone it takes two or three rows and the stage height was wrong by
@@ -4147,9 +4161,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // Codes that actually RENDER a source panel today. `SOURCE_SLIDE` says who owns a record; this says whose
   // editor is built. An Edit-Source button is only drawn when its target can actually be typed into — the
   // whole defect this commit repairs was a button pointing at a slide with no editor behind it.
-  const SOURCE_PANEL_CODES = ["S10"];
+  const SOURCE_PANEL_CODES = ["S10", "S8"];
   const panelExists = (code: string) => SOURCE_PANEL_CODES.includes(code);
-  const hasSourceLink = (code: string, fid: string) => { const o = sourceSlideOf(code, fid); return !!o && panelExists(o); };
+  // Edit Source is a NAVIGATION affordance, so it is drawn only where there is somewhere to go. On the
+  // owning slide the editor is already right there (the source panel below, in Edit mode) and Present mode
+  // has no editor at all — so a button there is pure height. Adding S8 to the registry put four of them on
+  // one slide and overflowed it by 34px; the rule, not the slide, was wrong.
+  const hasSourceLink = (code: string, fid: string) => { const o = sourceSlideOf(code, fid); return !!o && o !== code && panelExists(o); };
   const idxOfCode = (code: string) => SLIDE_SCHEMA.findIndex((s) => s.code === code);
   // Off the owning slide this is a DEEP LINK, not a dead button. The editor moved; the way in must not
   // disappear with it, or a user standing on S3 wondering where NPV comes from has nowhere to go.
@@ -4659,6 +4677,43 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 ACCEPTS input. `linked` therefore stays on every field it is on today: removing it would turn
                 those charts and metric blocks into free-text editable tables, the exact opposite of
                 single-source. Non-owning slides deep-link here instead of stranding the user. */}
+            {/* ── S8 · THE VALUE PROPOSITION, and everything it is argued from ──────────────────────
+                One sentence used to be editable in four places: S1.valueprop, S6.desc, S8.vprop and the
+                Value Equation tool in Project details, which wrote valueProp/valueDrivers straight to the
+                record from outside the deck entirely. Four doors into one sentence is how a board ends up
+                reading three different value propositions for the same project.
+                S8 owns all THREE roots — the sentence, the Next Best Alternative it beats, and the drivers
+                the equation is built from — because owning the sentence without the drivers would leave the
+                waterfall, the capture metrics and the WTP strip editable somewhere else. */}
+            {onEditSource && spec.code === "S8" && panelExists("S8") && (
+              <div className="mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.03]">
+                <button onClick={() => setSrcOpen((v) => !v)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/5">
+                  <span>{srcOpen ? "▾" : "▸"}</span>◈ Edit source record <span className="font-normal text-slate-500">— S8 owns the value proposition; S1 and S6 render it</span>
+                </button>
+                {srcOpen && (
+                  <div className="space-y-2 px-3 pb-3">
+                    <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Primary customer value proposition <span className="text-slate-600">— the one sentence S1, S6 and the dog-tag all render</span>
+                      <textarea defaultValue={valuePropOf(p)} rows={3}
+                        onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== valuePropOf(p)) onEditSource({ valueProp: v, valuePropSource: "HI" }, ["value proposition edited on S8"]); }}
+                        className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] leading-snug text-slate-100 outline-none focus:border-cyan-500" />
+                    </label>
+                    <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Next Best Alternative <span className="text-slate-600">— the As-Is option this must out-perform</span>
+                      <input type="text" defaultValue={nbaOf(p)}
+                        onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== nbaOf(p)) onEditSource({ nextBestAlternative: v }, [`NBA → ${v}`]); }}
+                        className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
+                    </label>
+                    <ValueEquationPanel
+                      drivers={s8Drivers} onChange={setS8Drivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
+                      onGenerate={() => onEditSource({ valueDrivers: s8Drivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: s8Drivers }), valuePropSource: "HI" }, ["value prop generated from the Value Equation vs NBA"])}
+                    />
+                    <div className="flex justify-end">
+                      <button onClick={() => onEditSource({ valueDrivers: s8Drivers }, [`value drivers: ${s8Drivers.length} vs NBA`])}
+                        className="rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Save drivers</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {onEditSource && spec.code === "S10" && panelExists("S10") && (() => {
               // ONCE THE GRID EXISTS, THE GRID IS THE SOURCE. `nreK` and `fullRev10yM` are Σ of the plan the
               // operator typed above, so leaving them as free-text inputs would put two editable surfaces on
