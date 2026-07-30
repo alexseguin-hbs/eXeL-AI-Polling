@@ -2123,6 +2123,33 @@ export const filterByHier = (projects: Project[], level: HierKey, value: string)
 // an empty set for a level = no constraint at that level (all-empty ⇒ all projects). Pure + deterministic;
 // `hierOf(p)` computed once per project (efficiency). Available to every persona (the filter isn't persona-gated).
 export interface HierSel { bu: string[]; sbu: string[]; pgroup: string[] }
+
+// W-17 · THE LIST NAMES THE LEVEL YOU JUST DRILLED PAST.
+// Operator: "If single BU is highlighted, show SBU in front of project title. If single SBU is highlighted,
+// show Alpha Group in front of Title. If Alpha Group, show Alpha Code in front of Title."
+//
+// The rule generalises: prefix with the level immediately BELOW the deepest one that is pinned to exactly
+// one value. Once you have filtered to a single BU, repeating that BU on every row is noise — what you now
+// need to tell rows apart is their SBU. Same logic one and two levels down.
+//
+// "HIGHLIGHTED" MEANS EXACTLY ONE. A multi-select of two SBUs is not a drill-down, it is a comparison, and
+// prefixing with the level below would hide the very thing being compared. Deepest single selection wins.
+export const scopePrefixOf = (p: Project, sel: HierSel | null | undefined): string | null => {
+  if (!sel) return null;
+  const h = hierOf(p);
+  const pick = sel.pgroup?.length === 1 ? h.alpha     // Alpha Group pinned → the Alpha CODE distinguishes
+             : sel.sbu?.length === 1    ? h.pgroup    // SBU pinned        → the Alpha GROUP does
+             : sel.bu?.length === 1     ? h.sbu       // BU pinned         → the SBU does
+             : null;
+  // `alpha` seeds as an em dash when a project has no code yet. Prefixing "— · Name" would read as a defect,
+  // so an unset level yields no prefix at all rather than a placeholder the operator has to decode.
+  return pick && pick !== "—" && pick.trim() ? pick : null;
+};
+/** The label a scoped picker should render. ONE producer, so a second list cannot invent its own format. */
+export const scopedProjectLabel = (p: Project, sel: HierSel | null | undefined): string => {
+  const pre = scopePrefixOf(p, sel);
+  return pre ? `${pre} · ${p.name}` : p.name;
+};
 export function scopeByHier(projects: Project[], sel: HierSel): Project[] {
   const bu = new Set(sel.bu), sbu = new Set(sel.sbu), pg = new Set(sel.pgroup);
   if (!bu.size && !sbu.size && !pg.size) return projects;
@@ -2572,7 +2599,7 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // ship in this SAME commit — `linked` without a resolver returns null and renders the panel blank (the
     // V1 trap, already paid for once). Both stay `req: true`, so NO project's gate score moves.
     { id: "diffs", name: "Value equation", kind: "table", req: true, linked: true, cols: [...S8_DIFF_COLS], hint: "The differentiators behind the waterfall above. Typed $ IS the bar; importance is a 1-5 pick; vs NBA is the sign of the dollars. Authored in ◈ Edit source record, never twice." },
-    { id: "capture", name: "Value creation + capture", kind: "metrics", linked: true, items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "index", label: "Competitive index" } ] },
+    { id: "capture", name: "Value creation + capture", kind: "metrics", linked: true, items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "range", label: "Value Price Range" } ] },
     { id: "benefits", name: "Key customer benefits", kind: "list" },
     { id: "features", name: "Key technical features", kind: "list" } ] },
   { code: "S9", gate: "G2", stage: "Plan", source: "Design Traceability Matrix", fields: [
@@ -3419,7 +3446,17 @@ export function valuePropCapture(p: Project): Record<string, string> {
   return {
     creation: money(ve.differentiationM),
     capture: `${split.capturePct}%`,
-    index: `${Math.round(ve.competitiveIndex)}/100`,
+    // W-23 · VALUE PRICE RANGE REPLACES COMPETITIVE INDEX (operator: "Instead of Competitive Index, show:
+    // $ 85 - 144 / Value Price Range. So bottom Range is NBA price and Top end is the %Value Capture Price").
+    //
+    // THIS IS THE RIGHT TRADE AND I WILL SAY WHY. The index was a 0-100 abstraction with no counterpart in
+    // the operator's own template — flagged as an honest mismatch back in the H4 workbook read — and on this
+    // portfolio it reads 100/100 on all 33 projects because no seeded driver is negative. A tile that says
+    // the same thing about every project tells a board nothing. The range says something a board can act on:
+    // the floor is what the alternative already charges, the ceiling is what our capture % asks for, and the
+    // deal lands between them. Same two numbers the gold stacked bar is drawn from, so the tile and the
+    // geometry cannot disagree.
+    range: `$${Math.round(ve.referenceM)} – ${Math.round(split.priceM)}M`,
   };
 }
 

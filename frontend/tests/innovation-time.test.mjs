@@ -2748,8 +2748,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // H8 · the key is gone, and its removal is safe ONLY because the labels above the bars now render.
   ok(!/Full-text legend — guarantees every label is legible/.test(src),
      "the duplicate legend/key below the waterfall is removed (operator: 'Do not have key')");
-  ok(/<title>\{`\$\{s\.label\}: \$\{money\(s\.v\)\}`\}<\/title>/.test(veq),
-     "every bar still carries its full name in a <title> — the key's only unique job survives its deletion");
+  // ⚠ PROXY LOCK #9, REWRITTEN. This matched the <title> element's ENTIRE literal, so W-19 — which APPENDS a
+  // stacked-bar breakdown to the same tooltip, strictly more information — turned it red. Ninth of its kind:
+  // the assertion is named for a property ("carries its full name") but was written against a shape.
+  // It now asserts the property, and additionally that the name comes FIRST so the tooltip still opens with
+  // the thing the deleted key used to say.
+  ok(/<title>\{`\$\{s\.label\}: \$\{(money\(s\.v\)|barLabel\(s\))\}`\}/.test(veq),
+     "every bar still carries its full name and value in a <title>, name first — the key's only unique job survives its deletion");
 }
 
 // ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
@@ -3763,8 +3768,17 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "GateRequirementsView holds NO scope state of its own — a forked copy would silently drift from the other tabs");
 
   // (c) the dropdown renders the SCOPED list. `projects` is the scoped prop; allProjects is the full one.
-  ok(/\{projects\.map\(\(p\) => <option key=\{p\.id\} value=\{p\.id\}>\{p\.name\} · \{p\.gate\}<\/option>\)\}/.test(gate),
-     "the <select> maps the SCOPED `projects` prop — never allProjects, never DEMO_PROJECTS");
+  // ⚠ PROXY LOCK #8, REWRITTEN. This matched the option's FULL literal — `{p.name} · {p.gate}` — so it was
+  // asserting the LABEL TEXT while claiming to assert the DATA SOURCE. W-17 changed the label to add a scope
+  // prefix, behaviour-identical for scoping, and this went red on a correct change. Eighth of its kind this
+  // session: a lock anchored on a shape dies the first time the shape moves for a good reason.
+  // It now asserts the property it is named for — the option list is generated from the SCOPED prop.
+  const optSrc = gate.slice(gate.indexOf("<select"), gate.indexOf("</select>"));
+  ok(/\{projects\.map\(\(p\) =>\s*<option/.test(optSrc),
+     "the <select> maps the SCOPED `projects` prop");
+  ok(!/(allProjects|DEMO_PROJECTS)\.map\(/.test(optSrc),
+     "the <select> never maps allProjects or DEMO_PROJECTS — that would list projects outside the scope");
+  ok(/key=\{p\.id\} value=\{p\.id\}/.test(optSrc), "each option is keyed and valued by project id");
   ok(/projects=\{scoped\}/.test(call), "and `projects` is the page's scopeByHier() output, so the tab reuses the one filter choke point");
 
   // (d) THE ORPHAN EDGE CASE. `sel` is resolved upstream from the full order, so narrowing the scope can point
@@ -4158,14 +4172,16 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     const cap = F.linkedSlideField(p, "S8", "capture");
     if (!Array.isArray(rows) || rows.length === 0) blankRows++;
     else if (rows.some((r) => r.length !== F.S8_DIFF_COLS.length)) badWidth++;
-    if (!cap || !cap.index || cap.index === "—") blankIdx++;
+    // W-23 retired `index` for `range`; the PROPERTY under test is "the third tile is derived, never an
+    // em dash", so the assertion follows the tile rather than the key name it happened to have.
+    if (!cap || !cap.range || cap.range === "—") blankIdx++;
     if (!cap || cap.capture !== `${F.DEFAULT_CAPTURE_PCT}%`) capDrift++;
     if (JSON.stringify(F.aiSlideField(p, "S8", "diffs")) !== JSON.stringify(rows)) aiDrift++;
     if (JSON.stringify(F.aiSlideField(p, "S8", "capture")) !== JSON.stringify(cap)) aiDrift++;
   }
   ok(blankRows === 0, `every project resolves a non-empty Value-equation read-out (${blankRows} blank)`);
   ok(badWidth === 0, `every read-out row has exactly ${F.S8_DIFF_COLS.length} cells (${badWidth} ragged)`);
-  ok(blankIdx === 0, `NO project can render "COMPETITIVE INDEX —" any more (${blankIdx} still can)`);
+  ok(blankIdx === 0, `NO project can render an em-dash in the third capture tile (${blankIdx} still can)`);
   // The label and the geometry read ONE number — the whole lesson of this session applied to this tile.
   ok(capDrift === 0, `every project's Value-capture tile equals the chart's own capture % (${capDrift} drift)`);
   // The AI draft and the read-out are one producer apart, so they cannot print different answers.
@@ -4306,6 +4322,149 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the Projects tile leads with funded / submitted, not the raw count");
   ok(/sub: "Funded \(Funded\/Submitted\)"/.test(code), "the subtitle names the ratio the operator asked for");
   ok(!/sub: `\$\{funded\.length\} funded`/.test(code), "the old 'N funded' whisper is gone, not left beside it");
+}
+
+// ── W-17 · THE PICKER NAMES THE LEVEL YOU JUST DRILLED PAST ──────────────────────────────────────────
+// Operator: "If single BU is highlighted, show SBU in front of project title. If single SBU is highlighted,
+// show Alpha Group in front of Title. If Alpha Group, show Alpha Code in front of Title."
+{
+  const F = await import("../lib/innovation-data.ts");
+  const none = { bu: [], sbu: [], pgroup: [] };
+  const p = F.DEMO_PROJECTS[0], h = F.hierOf(p);
+
+  // THE THREE RULES, EXECUTED — each pinned level yields the level BELOW it.
+  ok(F.scopePrefixOf(p, { ...none, bu: [h.bu] }) === h.sbu, "single BU pinned → the SBU is the prefix");
+  ok(F.scopePrefixOf(p, { ...none, sbu: [h.sbu] }) === h.pgroup, "single SBU pinned → the Alpha Group is the prefix");
+  ok(F.scopePrefixOf(p, { ...none, pgroup: [h.pgroup] }) === h.alpha, "single Alpha Group pinned → the Alpha Code is the prefix");
+  // DEEPEST WINS — pinning BU *and* SBU is a drill to the SBU, so the Alpha Group is what distinguishes rows.
+  ok(F.scopePrefixOf(p, { ...none, bu: [h.bu], sbu: [h.sbu] }) === h.pgroup, "the deepest single selection wins");
+
+  // "HIGHLIGHTED" MEANS EXACTLY ONE. Two SBUs is a COMPARISON; prefixing with the level below would hide the
+  // very thing being compared. This is the assertion that stops the feature firing on a multi-select.
+  ok(F.scopePrefixOf(p, { ...none, sbu: [h.sbu, "OTHER"] }) === null, "two selected values is a comparison, not a drill — no prefix");
+  ok(F.scopePrefixOf(p, none) === null, "no scope, no prefix");
+  ok(F.scopePrefixOf(p, null) === null, "a missing selection is handled, not thrown on");
+
+  // ZERO DRIFT WITH NO SCOPE, ACROSS THE PORTFOLIO — the label must be byte-identical to today by default.
+  const drift = F.DEMO_PROJECTS.filter((q) => F.scopedProjectLabel(q, none) !== q.name).length;
+  ok(drift === 0, `with no scope every label is the bare project name (${drift} drifted)`);
+  // And when it DOES fire it must actually add something — a prefix that repeats nothing is decoration.
+  const bu1 = F.DEMO_PROJECTS.filter((q) => F.scopedProjectLabel(q, { ...none, bu: [F.hierOf(q).bu] }) === q.name).length;
+  ok(bu1 === 0, `under a single-BU scope every project gains a prefix (${bu1} gained none)`);
+  // An unset Alpha Code seeds as an em dash; "— · Name" would read as a defect, so it yields no prefix.
+  const dash = F.DEMO_PROJECTS.filter((q) => F.scopedProjectLabel(q, { ...none, pgroup: [F.hierOf(q).pgroup] }).startsWith("— ")).length;
+  ok(dash === 0, `no label is prefixed with an em-dash placeholder (${dash} were)`);
+
+  // ONE PRODUCER — the picker must not format its own label.
+  const fspW17 = await import("node:fs/promises");
+  const codeW17 = (await fspW17.readFile("app/innovation/page.tsx", "utf8"))
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(/scopedProjectLabel\(p, hierFilter\)/.test(codeW17), "the gate picker routes its label through the one producer");
+}
+
+// ── W-18 · THE EDIT BADGE ON THE OWNING SLIDE OPENS THE EDITOR ───────────────────────────────────────
+// Operator: "not sure how to add and edit differentiators vs NBA." W-1c made the field a read-out; the badge
+// beside it was an inert <span> because the code believed there was nowhere to go. The editor was on the
+// same slide, in a COLLAPSED panel.
+{
+  const fspW18 = await import("node:fs/promises");
+  const codeW18 = (await fspW18.readFile("app/innovation/page.tsx", "utf8"))
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(/onClick=\{\(\) => \{ setSrcOpen\(true\);/.test(codeW18),
+     "on the owning slide the ✎ badge OPENS the source panel — it is a control, not a caption");
+  ok(/data-source-panel/.test(codeW18), "the panel carries the anchor the badge scrolls to");
+  ok(/querySelector\("\[data-source-panel\]"\)\?\.scrollIntoView/.test(codeW18),
+     "opening also brings the editor into view — expanding something off-screen is not discoverability");
+  // The editor itself already meets the operator's spec; asserted so a later 'simplification' cannot drop a control.
+  // ⚠ PROBE ERROR #10, RECORDED BESIDE THE ASSERTION THAT PRODUCED IT. The first draft sliced from
+  // `const table = mode ===` to `const chart = (` — but the chart is declared BEFORE the table in the file,
+  // so indexOf returned a LOWER index and the slice was empty. Four assertions failed against "" while the
+  // code was correct. Slice forward from the table to the end of the component instead.
+  const tblStart = codeW18.indexOf("const table = mode ===");
+  const tbl = codeW18.slice(tblStart, codeW18.indexOf("function ProjectRevChart", tblStart));
+  ok(/set\(i, \{ name: e\.target\.value \}\)/.test(tbl), "the differentiator NAME is editable");
+  ok(/set\(i, \{ valueM: v \}\)/.test(tbl), "the VALUE $M is editable and is the bar");
+  ok(/\[1, 2, 3, 4, 5\]\.map\(\(v\) => <option/.test(tbl), "IMPORTANCE is a 1-5 drop-down, per the operator");
+  ok(/<VsNba tone=\{tone\}/.test(tbl) && !/set\(i, \{ *tone/.test(tbl),
+     "the ▲▬▼ is DERIVED from the sign of the dollars and is never typed");
+}
+
+// ── W-19 + W-20 · THE STACKED GOLDEN PRICE BAR, AND THE 3D BEVEL ─────────────────────────────────────
+{
+  const fspW19 = await import("node:fs/promises");
+  const raw = await fspW19.readFile("app/innovation/page.tsx", "utf8");
+  const vp = raw.slice(raw.indexOf("function ValueProp("), raw.indexOf("function ProjectRevChart"))
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  // W-19 · Operator: "Make blue bar stacked Bar (with value above NBA as Golden). So 85-144 is golden bar."
+  ok(/s\.kind === "total" && s\.from === 0 && ve\.referenceM > 0 && s\.to > ve\.referenceM/.test(vp),
+     "the price bar splits ONLY when it is a total that actually clears the NBA price");
+  // GEOMETRY FROM THE SAME SCALE, not a second one — this is what makes the gold height equal price − NBA.
+  ok(/<Bar3D x=\{x\} y=\{y\(ve\.referenceM\)\}/.test(vp) && /<Bar3D x=\{x\} y=\{top\}[^/]*k="gold"/.test(vp),
+     "the split is drawn at y(ve.referenceM) — the SAME scale fn and reference the NBA bar uses");
+  ok(/k="gold"/.test(vp), "the segment above the NBA price is gold");
+  // The base segment reuses the NBA bar's own slate, so the chart bookends their price against ours.
+  ok(/base: "#64748b"/.test(vp), "the gold bar's base is the same slate as the NBA bar at the far left");
+
+  // W-20 · Operator: "Make bars futuristic; 3D shaded like attached."
+  ok(/<linearGradient key=\{k\} id=\{`\$\{gid\}-\$\{k\}`\}/.test(vp), "each semantic fill has its own gradient");
+  ok(/const gid = useId\(\)/.test(vp),
+     "gradient ids are PER-INSTANCE — two charts on one page would otherwise share the first one's fills");
+  ok(/replace\(\/:\/g, ""\)/.test(vp), "the useId colons are stripped — they are illegal inside an SVG url(#…)");
+  // ONE HELPER, COUNTED: a future bar cannot ship flat by omission.
+  const rects = [...vp.matchAll(/<rect x=\{x\}[^>]*fill=\{fill\(/g)];
+  ok(rects.length === 0, `no bar is drawn as a flat rect any more (${rects.length} still are)`);
+  ok((vp.match(/<Bar3D /g) ?? []).length === 3, "every bar body routes through the ONE Bar3D helper");
+  ok(/fill="#ffffff" opacity=\{0\.28\}/.test(vp) && /fill="#000000" opacity=\{0\.22\}/.test(vp),
+     "the bevel is a lighter cap and a darker foot — Excel's 3-D bevel, which is what the operator sent");
+  // The shading must not move a NUMBER: the value label and the tick scale are untouched by it.
+  ok(/y=\{top - 1\.5\}/.test(vp), "the value label still sits in the reserved top band — shading changed no geometry");
+}
+
+// ── W-21 · THE CUSTOMER-VALUE BAR READS POSITIVE, AND ONLY THAT BAR ──────────────────────────────────
+// Operator: "Also make blue bar title from negative to positive." 120 of customer surplus is a good thing;
+// the minus was contradicting the word printed directly beneath it.
+{
+  const fspW21 = await import("node:fs/promises");
+  const raw21 = await fspW21.readFile("app/innovation/page.tsx", "utf8");
+  const vp21 = raw21.slice(raw21.indexOf("function ValueProp("), raw21.indexOf("function ProjectRevChart"))
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(/const barLabel = \(b: Bar\) => \(b\.kind === "give" \?/.test(vp21),
+     "only the `give` (Customer Value) bar drops its sign");
+  // THE GIVE-BACK BARS KEEP THEIRS. This is the assertion that stops a blanket Math.abs erasing the one
+  // sign that carries meaning — a rose bar IS value destroyed.
+  ok(/: money\(b\.v\)\)/.test(vp21), "every other bar still routes through the signed formatter");
+  ok(!/Math\.abs\(s\.v\)/.test(vp21), "no blanket abs on the label — that would hide the rose give-backs' minus");
+  // THE MODEL IS UNTOUCHED: the sign still draws the bar downward. Display-only, like the G2 decimals fix.
+  ok(/v: -split\.customerValueM/.test(vp21),
+     "the model keeps the NEGATIVE value — the sign is geometry, and only the READING changed");
+  ok(/\{barLabel\(s\)\}<\/text>/.test(vp21), "the drawn label and the tooltip read the same formatter");
+}
+
+// ── W-23 · VALUE PRICE RANGE REPLACES COMPETITIVE INDEX ──────────────────────────────────────────────
+// Operator: "Instead of Competitive Index, show: $ 85 - 144 / Value Price Range. So bottom Range is NBA
+// price and Top end is the %Value Capture Price (currently set at 33%)."
+{
+  const F = await import("../lib/innovation-data.ts");
+  const S8 = F.SLIDE_SCHEMA.find((s) => s.code === "S8");
+  const items = S8.fields.find((f) => f.id === "capture").items;
+  ok(items.some((i) => i.k === "range" && i.label === "Value Price Range"), "the third tile is the Value Price Range");
+  ok(!items.some((i) => i.k === "index"), "Competitive index is gone from the tile set, not left beside it");
+
+  // THE RANGE IS THE SAME TWO NUMBERS THE GOLD STACKED BAR IS DRAWN FROM — floor = NBA price, ceiling =
+  // price at the capture %. Executed on every project, so the tile and the geometry cannot disagree.
+  let bad = 0, stale = 0;
+  for (const q of F.DEMO_PROJECTS) {
+    const ve = F.valueEquationOf(q), sp = F.valueSplit(ve.evcUsdM, ve.referenceM);
+    const c = F.valuePropCapture(q);
+    if (c.range !== `$${Math.round(ve.referenceM)} – ${Math.round(sp.priceM)}M`) bad++;
+    if ("index" in c) stale++;
+  }
+  ok(bad === 0, `every project's range is NBA price → capture price (${bad} disagree)`);
+  ok(stale === 0, `the retired index key is not still emitted alongside it (${stale} projects)`);
+  // The floor must be the NBA and the ceiling the price — not the other way round, and never inverted.
+  const q0 = F.DEMO_PROJECTS[0], ve0 = F.valueEquationOf(q0), sp0 = F.valueSplit(ve0.evcUsdM, ve0.referenceM);
+  ok(sp0.priceM >= ve0.referenceM, "the ceiling is at or above the floor — a capture % never prices below the NBA");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

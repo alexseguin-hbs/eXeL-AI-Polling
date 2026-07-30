@@ -9,7 +9,7 @@
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
 import ReactDOM from "react-dom";
-import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback, useId } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
@@ -20,7 +20,7 @@ import {
   timeReadout, toleranceBand, TIME_UNITS, UNIT_LABEL, scheduleFromStart, GATES,
   gateScheduleOf, defaultStartISO, addDaysISO, PHASE_DAYS, type GateStop,
   riskContingency, riskAdjustedNreK, riskAdjustedWorkdays,
-  growthModel, RISK_LABEL, HIER_LEVELS, hierValues, scopeByHier, hierOf, type HierSel,
+  growthModel, RISK_LABEL, HIER_LEVELS, hierValues, scopeByHier, hierOf, type HierSel, scopePrefixOf, scopedProjectLabel,
   DEMO_RISKS, riskScore, riskExposure, riskPriority, riskBand, riskRollup,
   RISK_STATUS_LABEL, spendByBU, spendByCategory, rdEfficiency, costSplit, roiSummary,
   pipelineByGate, devTypeOf, DEV_TYPE, lobBaseM, companyBaseM, companyRollup, COMPANY_NAME, sayDo, briefOf, execOf, intelligenceLoad,
@@ -1480,13 +1480,53 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const y = (v: number) => H - B - (v / max) * (H - B - T);
   const fill = (k: Bar["kind"]) =>
     k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : k === "give" ? "#60a5fa" : "#94a3b8";
+  // W-20 · one gradient per semantic fill. `gold` is W-19's premium segment; the rest mirror `fill` exactly,
+  // so the flat colour and its shaded twin can never drift apart.
+  const GRAD: Record<string, string> = { base: "#64748b", up: "#34d399", down: "#fb7185", give: "#60a5fa", total: "#94a3b8", gold: "#ffb020" };
+  const gid = useId().replace(/:/g, "");   // `useId` emits colons, which are illegal in an SVG url(#…) ref
+  const grad = (k: string) => `url(#${gid}-${k})`;
+  /** A bar, drawn with the bevel: gradient body · lighter top cap · darker foot. One helper, so every bar in
+   *  every mode gets the identical treatment and a future bar cannot ship flat by omission. */
+  const Bar3D = ({ x, y: by, w, h, k }: { x: number; y: number; w: number; h: number; k: string }) => (
+    <g>
+      <rect x={x} y={by} width={w} height={h} fill={grad(k)} rx={1} />
+      <rect x={x} y={by} width={w} height={Math.min(1.6, h * 0.22)} fill="#ffffff" opacity={0.28} rx={0.6} />
+      <rect x={x} y={by + h - Math.min(1.2, h * 0.16)} width={w} height={Math.min(1.2, h * 0.16)} fill="#000000" opacity={0.22} />
+      <rect x={x + w - Math.min(1.1, w * 0.12)} y={by} width={Math.min(1.1, w * 0.12)} height={h} fill="#000000" opacity={0.16} />
+    </g>
+  );
   const money = (v: number) => `${v < 0 ? "−" : ""}${Math.round(Math.abs(v))}`;
+  // W-21 · THE CUSTOMER-VALUE BAR PRINTS A POSITIVE NUMBER (operator: "make blue bar title from negative to
+  // positive"). Its `v` is signed NEGATIVE in the model because the bar steps DOWN from EVC to the price —
+  // that sign is correct GEOMETRY and stays, because it is what draws the bar in the give-back direction.
+  // But it is the wrong READING: the quantity is customer surplus, and 120 of surplus is a good thing. The
+  // direction is already stated by the bar's own label ("Customer Value @ 67%") and by which way it points,
+  // so the minus was carrying no information and contradicting the word beside it.
+  // ⚠ SCOPED TO `give` ONLY. The rose `down` bars are genuine value DESTROYED and keep their minus — that
+  // sign is the whole point of a give-back, and blanket-absing every label would erase it.
+  const barLabel = (b: Bar) => (b.kind === "give" ? `${Math.round(Math.abs(b.v))}` : money(b.v));
   // WTP positioning — Low→High price-performance; markers deterministic from the competitive index.
   const ci = Math.max(0, Math.min(1, ve.competitiveIndex / 100));
 
   const chart = (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "7cqh" } : { height: "auto" }}
          role="img" aria-label="Value creation and capture waterfall vs the next best alternative">
+      {/* W-20 · 3D SHADED BARS (operator: "Make bars futuristic; 3D shaded like attached", with their own
+          Excel reference). Excel's "3-D bevel" is, in substance, a VERTICAL GRADIENT plus a lighter cap at
+          the top and a darker foot — so that is exactly what this draws: static SVG defs, two extra rects
+          per bar, no library, no per-frame cost, and nothing that moves a number.
+          ⚠ IDS ARE PER-INSTANCE (`useId`). Two ValueProps can render on one page — the S8 slide and the deep
+          dive — and duplicate `<linearGradient id>`s in one document make the SECOND chart silently adopt
+          the FIRST one's fills. That is a real bug, not a hypothetical, and it is why this is not a constant. */}
+      <defs>
+        {Object.entries(GRAD).map(([k, hex]) => (
+          <linearGradient key={k} id={`${gid}-${k}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={hex} stopOpacity="1" />
+            <stop offset="55%" stopColor={hex} stopOpacity="0.92" />
+            <stop offset="100%" stopColor={hex} stopOpacity="0.62" />
+          </linearGradient>
+        ))}
+      </defs>
       {TICKS.map((f, i) => (
         <g key={f}>
           <line x1={L} y1={y((max * f) / 1.1)} x2={W} y2={y((max * f) / 1.1)} stroke="rgba(148,163,184,.09)" />
@@ -1498,11 +1538,30 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
         const x = L + i * gw + (gw - bw) / 2;
         return (
           <g key={i}>
-            <title>{`${s.label}: ${money(s.v)}`}</title>
-            <rect x={x} y={top} width={bw} height={Math.max(1.5, bot - top)} fill={fill(s.kind)} rx={1} />
+            <title>{`${s.label}: ${barLabel(s)}`}{s.kind === "total" && s.from === 0 && ve.referenceM > 0 && s.to > ve.referenceM
+              ? ` — ${money(ve.referenceM)} matches the NBA price · ${money(s.to - ve.referenceM)} is the premium we capture` : ""}</title>
+            {/* W-19 · THE PRICE BAR IS STACKED (operator: "Make blue bar stacked Bar (with value above NBA
+                as Golden). So 85-144 is golden bar we expect price range to fall").
+                A single flat bar reading 144 answers "what do we charge" but not the question a board
+                actually asks — how much of that is simply MATCHING the alternative, and how much is the
+                premium our differentiation earns. Split at the NBA price: the base is the same slate as the
+                NBA bar at the far left, so the chart BOOKENDS their price against ours and the eye can
+                measure the gap directly; the segment above it is SI-Sunset #ffb020, the ♡ Shared-Intent
+                anchor already in this palette, not a fourth hue invented for one bar.
+                GEOMETRY, NOT DECORATION: the split y is `y(ve.referenceM)` — the SAME scale function and the
+                SAME reference the NBA bar is drawn from — so the gold segment's height IS `price − NBA` and
+                cannot disagree with the numbers printed above and below it. */}
+            {s.kind === "total" && s.from === 0 && ve.referenceM > 0 && s.to > ve.referenceM ? (
+              <>
+                <Bar3D x={x} y={y(ve.referenceM)} w={bw} h={Math.max(1, bot - y(ve.referenceM))} k="base" />
+                <Bar3D x={x} y={top} w={bw} h={Math.max(1, y(ve.referenceM) - top)} k="gold" />
+              </>
+            ) : (
+              <Bar3D x={x} y={top} w={bw} h={Math.max(1.5, bot - top)} k={s.kind} />
+            )}
             {/* A NUMBER ABOVE EVERY BAR (operator: "add numbers to value prop"). Drawn at `top - 1.5`, which
                 the top band T was reserved for — without it the tallest bars label at y<0 and vanish. */}
-            <text x={x + bw / 2} y={top - 1.5} textAnchor="middle" fontSize={FS} fontWeight={600} fill="#e2e8f0">{money(s.v)}</text>
+            <text x={x + bw / 2} y={top - 1.5} textAnchor="middle" fontSize={FS} fontWeight={600} fill="#e2e8f0">{barLabel(s)}</text>
             {wrapped[i].map((ln, li) => (
               <text key={li} x={x + bw / 2} y={H - B + 6 + li * (FS + 1.2)} textAnchor="middle" fontSize={FS} fill="#64748b">{ln}</text>
             ))}
@@ -5316,7 +5375,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 </label>
               );
               return (
-                <div className="mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.03]">
+                <div data-source-panel className="mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.03]">
                   {/* THE FINANCIAL GRID ALWAYS SHOWS (operator, 2026-07-30: "remember financial grid S10
                       always shows"). S10 now has ZERO schema fields, so this panel is not a drawer beside
                       the content — it IS the content. A collapsed S10 would be a slide with nothing under
@@ -5416,7 +5475,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           stays a badge — an edit verb that goes nowhere would be a lie. */}
                       {f.linked && (hasSourceLink(spec.code, f.id)
                         ? <SourceLink source={undefined} code={spec.code} fieldId={f.id} inline />
-                        : <span className="rounded bg-emerald-500/15 px-1 text-[9px] font-mono tracking-wider text-emerald-300">✎ {sourceLabelOf(spec.code, f.id)}</span>)}
+                        // W-18 · ON THE OWNING SLIDE THE BADGE OPENS THE EDITOR. Operator: "not sure how to
+                        // add and edit differentiators vs NBA." That is MY defect: W-1c turned this field
+                        // into a read-out, and the comment above says the badge "stays a badge — an edit
+                        // verb that goes nowhere would be a lie." It was wrong about there being nowhere to
+                        // go. The editor is the ◈ Edit source record panel at the top of THIS slide, and it
+                        // starts COLLAPSED — so the one control sitting exactly where the user is looking
+                        // when they wonder "can I change this?" did nothing at all.
+                        // It now expands that panel and scrolls to it. No new surface, no second editor:
+                        // the same one door, finally with a handle on it.
+                        : <button type="button" onClick={() => { setSrcOpen(true); requestAnimationFrame(() => document.querySelector("[data-source-panel]")?.scrollIntoView({ behavior: "smooth", block: "start" })); }}
+                            title={`Open ${sourceLabelOf(spec.code, f.id)} — the editor for this record is on this slide`}
+                            className="rounded bg-emerald-500/15 px-1 text-[9px] font-mono tracking-wider text-emerald-300 hover:bg-emerald-500/30 hover:text-emerald-200">✎ {sourceLabelOf(spec.code, f.id)}</button>)}
                       {f.mirror && <span className="rounded bg-violet-500/15 px-1 text-[9px] font-mono tracking-wider text-violet-300">◈ MIRRORS {f.mirror}</span>}
                       <span className="flex-1" />
                       {!f.linked && (
@@ -5668,9 +5738,15 @@ function GateRequirementsView({ projects, allProjects, hierFilter, onScope, sel,
           value={sel.id} onChange={(e) => onSelect(e.target.value)} aria-label="Gate governance project"
           className="rounded-lg border border-slate-700 bg-[#0b0f14] px-3 py-1.5 text-sm text-slate-100 outline-none focus:border-cyan-500"
         >
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.gate}</option>)}
+          {/* W-17 · THE LABEL NAMES THE LEVEL YOU JUST DRILLED PAST (operator: "If single BU is highlighted,
+              show SBU in front of project title … If Alpha Group, show Alpha Code in front of Title").
+              Once the scope is pinned to one BU, repeating that BU on every row is noise; what tells the rows
+              apart is their SBU. `scopedProjectLabel` is the ONE producer, so a second scoped picker cannot
+              invent its own format — and with no single level pinned it returns the bare name, byte-identical
+              to today. */}
+          {projects.map((p) => <option key={p.id} value={p.id}>{scopedProjectLabel(p, hierFilter)} · {p.gate}</option>)}
           {/* Empty scope — keep the current project addressable so the view below still has a subject. */}
-          {projects.length === 0 && <option value={sel.id}>{sel.name} · {sel.gate}</option>}
+          {projects.length === 0 && <option value={sel.id}>{scopedProjectLabel(sel, hierFilter)} · {sel.gate}</option>}
         </select>
         <span data-gate-scope-count className="text-[11px] tabular-nums text-slate-500">
           {projects.length} of {allProjects.length} in scope
