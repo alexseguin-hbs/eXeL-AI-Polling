@@ -53,7 +53,7 @@ import {
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
-  finGateReadiness, finFmtK, finFmtPct, finFmtQty,
+  finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -1008,7 +1008,7 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
           </div>
         </td>
         <td className="px-2 py-2 text-center"><span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono">{p.gate}</span></td>
-        <td className="px-2 py-2 text-center tabular-nums" title={`Model confidence ${p.confidence}/5`}>{"●".repeat(p.confidence)}<span className="text-slate-700">{"●".repeat(5 - p.confidence)}</span></td>
+        <td className="px-2 py-2 text-center tabular-nums" title={`Model confidence ${confidenceOf(p)}/5 — derived from ${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial risk`}>{"●".repeat(confidenceOf(p))}<span className="text-slate-700">{"●".repeat(5 - confidenceOf(p))}</span></td>
         <td className="px-2 py-2 text-right tabular-nums text-slate-300">{k(p.nreK)}</td>
         <td className="px-2 py-2 text-right tabular-nums"><PwtCell weighted={weightedRevM(p)} incremental={incrementalRevM(p)} /></td>
         <td className={`px-2 py-2 text-right tabular-nums font-semibold ${npvM(p) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{usd(npvM(p))}</td>
@@ -1570,7 +1570,7 @@ function DogTag({ p, onEditFinancials }: { p: Project; onEditFinancials?: () => 
   const engMetrics: { label: string; val: string }[] = [
     { label: t("innovation.dogtag.load"), val: `${Math.round(p.ai * 100)}/${Math.round(p.si * 100)}/${Math.round(p.hi * 100)}` },
     { label: t("innovation.dogtag.hiload"), val: `${Math.round(p.humanLoad * 100)}%` },
-    { label: t("innovation.dogtag.confidence"), val: `${p.confidence}/5` },
+    { label: t("innovation.dogtag.confidence"), val: `${confidenceOf(p)}/5` },
     { label: t("innovation.dogtag.risk"), val: `${rb.technical[0]}/${rb.commercial[0]}/${rb.dependency[0]}` },
   ];
   return (
@@ -4804,11 +4804,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           financials and is not a grid row — the two risk levers that drive pSuccess for the
                           risk-weighted NPV, and the program start the spend years are anchored to. */}
                       <S10FinEditor p={p} baseYear={baseYear} onEdit={onEditSource} />
-                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence
-                        <select defaultValue={String(p.confidence)} onChange={(e) => onEditSource({ confidence: +e.target.value as Project["confidence"] }, [`Confidence → ${e.target.value}`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500">{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}/5</option>)}</select>
-                      </label>
+                      {/* CONFIDENCE IS NO LONGER TYPED (operator: "confidence should be moved to risk and
+                          dependent on Low, Med, High for tech and commercial"). It was a 1-5 select sitting
+                          directly above two risk dropdowns that already encode the same judgement, free to
+                          disagree with them. It is now `confidenceOf(p)` — a pure read of those two levers —
+                          so the read-out sits WHERE THE INPUT WAS and moves the moment either risk changes. */}
                       {riskEdit("Tech Risk", "tech")}
                       {riskEdit("Comm Risk", "comm")}
+                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Confidence <span className="text-[9px] text-slate-500">(from risk)</span>
+                        <div className="rounded border border-emerald-500/25 bg-emerald-500/[0.04] px-1.5 py-1 text-[12px] tabular-nums text-emerald-300" title={`${RISK_LABEL[p.tech]} technical / ${RISK_LABEL[p.comm]} commercial → ${confidenceOf(p)} of 5`}>
+                          {"●".repeat(confidenceOf(p))}<span className="text-slate-700">{"●".repeat(5 - confidenceOf(p))}</span> <span className="text-slate-400">{confidenceOf(p)}/5</span>
+                        </div>
+                      </label>
                       {numEdit("Upside accel", "upsideAccelK", "$K")}
                       {/* Program start — anchors the MoT gate timeline; changing it slides EVERY gate date. */}
                       <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program start (MoT — slides all gates)
@@ -4934,7 +4941,7 @@ function reqDetailRows(req: { id: string; type: string }, p: Project): [string, 
     case "REQ-50": rows.push(["Do-Nothing 10-yr", usd(p.doNothing10yM)], ["Note", "price + volume decline; may not reach 0"]); break;
     case "REQ-51": rows.push(["Existing line", usd(p.doNothing10yM)], ["Rule", "phase-out ≤ 3 yrs → terminal zero"]); break;
     case "REQ-52": rows.push(["Incremental", usd(incrementalRevM(p))], ["Probability-weighted", usd(weightedRevM(p))], ["Upside (at-risk)", `${Math.round(upsideFraction(p) * 100)}%`]); break;
-    case "REQ-38": rows.push(["Model confidence", `${p.confidence}/5`]); break;
+    case "REQ-38": rows.push(["Model confidence", `${confidenceOf(p)}/5`]); break;
     case "REQ-53": rows.push(["Technical risk", RISK_LABEL[p.tech]], ["Commercial risk", RISK_LABEL[p.comm]], ["Contingency", `+${Math.round(riskContingency(p) * 100)}%`], ["NPV", usd(fm.npvM)], ["IRR", `${fm.irrPct}%`]); break;
     case "REQ-54": rows.push(["Strategic pillar", m.initiative]); break;
     case "REQ-55": rows.push(["Value ladder", m.valueLadder], ["Impact", m.valueImpact], ["Competitive", m.competitive]); break;

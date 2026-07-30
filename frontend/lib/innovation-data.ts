@@ -185,6 +185,32 @@ export type RiskLevel = "low" | "med" | "high";
 export const RISK_P: Record<RiskLevel, number> = { low: 0.9, med: 0.6, high: 0.3 };
 export const riskNum = (l: RiskLevel) => 1 - RISK_P[l]; // probability of failure (for tolerance band)
 export const RISK_LABEL: Record<RiskLevel, string> = { low: "Low", med: "Med", high: "High" };
+
+// ── CONFIDENCE IS DERIVED FROM RISK. It is not a separate opinion. ───────────────────────
+// Operator: "confidence should be moved to risk and dependent on Low, Med, High for tech and commercial.
+// Low/Low is 5 bullet. High/High is 1 bullet. and 3 is Med/Med, while 2 bullets is Medium or High Technical
+// and low or Med Commercial. and 4 is other option (low/med commercial risk and tech risk)."
+//
+// This removes a duplication for the right reason: `confidence` was a 1-5 score typed into a select that sat
+// directly beneath two risk dropdowns already encoding the same judgement, so the two could disagree and
+// nothing reconciled them. Changing a risk level now visibly moves the bullets, which is the behaviour that
+// was described.
+//
+// ONE OVERLAP HAD TO BE RESOLVED and was confirmed with the operator before coding: `Med tech / Low comm` is
+// claimed by both the "4" rule and the "2" rule as stated. It reads as 4 — the "2" rule's distinguishing
+// feature is HIGH technical risk, and the matrix must be MONOTONE (more risk can never mean more
+// confidence), which the other reading would break. That monotonicity is the property the lock protects.
+const CONF_MATRIX: Record<RiskLevel, Record<RiskLevel, 1 | 2 | 3 | 4 | 5>> = {
+  //          comm: low  med  high
+  low:  { low: 5, med: 4, high: 2 },
+  med:  { low: 4, med: 3, high: 2 },
+  high: { low: 2, med: 2, high: 1 },
+};
+/** Model confidence, 1-5 bullets, as a pure function of the two risk levels. The ONLY producer. */
+export const confidenceFromRisk = (tech: RiskLevel, comm: RiskLevel): 1 | 2 | 3 | 4 | 5 => CONF_MATRIX[tech][comm];
+/** Every consumer reads this, never `p.confidence` — one function, so no surface can print a stale score. */
+export const confidenceOf = (p: Pick<Project, "tech" | "comm">): 1 | 2 | 3 | 4 | 5 =>
+  confidenceFromRisk(p.tech, p.comm);
 // S13 risk-table status derived from the row's risk Level (deterministic): High→Open, Med→Mitigating, Low→Mitigated.
 // Keeps every project's Risk Highlights showing a Status consistent with its level. Pure; no clock/random.
 export const riskLevelStatus = (level: string): string => {
@@ -202,7 +228,10 @@ export interface Project {
   manager: string;
   category: string;
   gate: Gate;                 // last completed gate → derives stage (CRS-56, never user-set)
-  confidence: 1 | 2 | 3 | 4 | 5;  // reviewer-set model confidence, 5-point scale (CRS-38)
+  // LEGACY SEED ONLY — never read. Confidence is DERIVED from `tech` + `comm` via `confidenceOf(p)`; this
+  // field is the pre-E0c stored score, kept so the 33 seeded rows still type-check and so a future migration
+  // can diff what a human once typed against what the risk levels imply. Writing it changes nothing on screen.
+  confidence: 1 | 2 | 3 | 4 | 5;  // (CRS-38)
   tech: RiskLevel;            // technical risk → success prob RISK_P[tech]
   comm: RiskLevel;            // commercial risk → success prob RISK_P[comm]
   lob: string;                // line of business (portfolio roll-up + growth-model filter)
@@ -308,7 +337,7 @@ export const PROJECT_BRIEF: Record<string, ProjectBrief> = {
   "PRJ-24": { needs: ["Command a UAS/UGV swarm forward of reliable cloud reachback", "Keep JADC2 escalations + engagement approvals moving when the link is degraded"], outcomes: ["Decision loop stays alive at the edge (comms-degraded C2)", "Auditable in-app approvals under commander intent"], solution: ["Ruggedized edge-compute node (Mimic / Universal Controller class)", "On-node sensor fusion + decentralized swarm tasking"], evidence: ["Edge autopilot + ATAK / Kägwerks integration in prior IVAS phases", "Concept synthesized from two partial source documents into one full node spec"] },
 };
 export const briefOf = (p: Project): ProjectBrief =>
-  PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${p.confidence}/5`] };
+  PROJECT_BRIEF[p.id] ?? { needs: [`${p.name} capability gap`], outcomes: [`Field ${p.name}`], solution: [`Develop ${p.name} to ${p.category}`], evidence: [`${GATE_STAGE[p.gate]} stage · confidence ${confidenceOf(p)}/5`] };
 
 // AMTS Product-Management-Summary exec fields (Functional Leads · COGS/MSRP/Margin ·
 // Customer/Program-of-Record · Franchise Pursuits · Intra-BU dependencies). Derived
@@ -824,7 +853,7 @@ export function bomCostSplit(p: Project) {
 // confidence, risk profile, and critical-path; at Launch this binds to real actuals in the
 // business systems (schedule/cost/scope) so the tool tracks Say/Do end-to-end.
 export function sayDo(p: Project) {
-  const conf = (p.confidence - 2.5) * 0.06;
+  const conf = (confidenceOf(p) - 2.5) * 0.06;
   const riskDrag = ((riskNum(p.tech) + riskNum(p.comm)) / 2) * 0.25;
   const cp = p.criticalPath ? 0.03 : 0;
   const clamp = (v: number) => +Math.max(0.6, Math.min(1.4, v)).toFixed(2);
@@ -2191,10 +2220,10 @@ export function metaOf(p: Project): ProjectMeta {
       : "Sovereign Deep-Strike & ISR");
   const valueLadder = /platform/.test(d) ? "Platform" : /sdk|marketplace|cloud/.test(d) ? "Ecosystem"
     : /sustain|phase|legacy|eol|bridge/.test(d) ? "Product" : "Solution";
-  const valueImpact = p.confidence <= 2 && (p.tech === "high" || p.comm === "high") ? "Transformational"
+  const valueImpact = confidenceOf(p) <= 2 && (p.tech === "high" || p.comm === "high") ? "Transformational"
     : /platform|next-gen|gen-5/.test(d) ? "Differentiating"
     : /sustain|phase|legacy|eol|bridge/.test(d) ? "Sustaining" : "Incremental";
-  const competitive = p.confidence >= 4 ? "Leader" : p.confidence === 3 ? "Challenger"
+  const competitive = confidenceOf(p) >= 4 ? "Leader" : confidenceOf(p) === 3 ? "Challenger"
     : incrementalRevM(p) > 200 ? "Fast Follower" : "Niche";
   return { initiative, targetMarket: customerOf(p), valueLadder, valueImpact, competitive };
 }
@@ -2272,7 +2301,7 @@ export function aiSlideOf(p: Project, slideId: string): string {
       return `${p.name} (${p.category}, ${m.initiative}). ${valuePropOf(p)} Recommendation: advance ${p.gate} — modeled NPV ${usdM(fm.npvM)}, IRR ${fm.irrPct}%, first revenue ${p.firstRevenue}.`;
     case "S2": {
       const ua = upsideAccelOf(p);
-      return `${p.name} overview — ${GATE_STAGE[p.gate]} (${p.gate}), confidence ${p.confidence}/5. Return: NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${payb(fm.paybackYears)}. Upside accelerator: ${kFmt(ua.accelK)} pulls ~${ua.months} mo forward (${usdM(ua.revFwdM)} revenue moved left).`;
+      return `${p.name} overview — ${GATE_STAGE[p.gate]} (${p.gate}), confidence ${confidenceOf(p)}/5. Return: NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${payb(fm.paybackYears)}. Upside accelerator: ${kFmt(ua.accelK)} pulls ~${ua.months} mo forward (${usdM(ua.revFwdM)} revenue moved left).`;
     }
     case "S3":
       return `Return profile — NPV ${usdM(fm.npvM)} · IRR ${fm.irrPct}% · payback ${payb(fm.paybackYears)} · REV/NRE ${fm.revOverNre.toFixed(1)}×. NRE ${kFmt(p.nreK)} against 10-yr revenue ${usdM(p.fullRev10yM)}; risk-adjusted expected value ${usdM(expectedValueOf(p))}.`;
@@ -2291,7 +2320,7 @@ export function aiSlideOf(p: Project, slideId: string): string {
     case "S10":
       return `Financials by year — 10-yr new-product revenue ${usdM(p.fullRev10yM)}; incremental ${usdM(incrementalRevM(p))}; probability-weighted ${usdM(weightedRevM(p))}; do-nothing baseline ${usdM(p.doNothing10yM)}. MSRP $${ex.msrpK}k · margin ${ex.marginPct}%.`;
     case "S11":
-      return `Preliminary feedback + validation — ${list(b.evidence)}. Model confidence ${p.confidence}/5; validation plan closes the remaining assumptions before Plan gate.`;
+      return `Preliminary feedback + validation — ${list(b.evidence)}. Model confidence ${confidenceOf(p)}/5; validation plan closes the remaining assumptions before Plan gate.`;
     case "S12":
       return `Go-to-market — target market ${m.targetMarket} via ${ex.customer}; pursuits ${ex.pursuits.map((x) => x.name).join(", ")}. Strategy aligned to the ${m.initiative} roadmap.`;
     case "S13":
@@ -2299,7 +2328,7 @@ export function aiSlideOf(p: Project, slideId: string): string {
     case "S14":
       return `Resourcing / functional alignment — ${fm.manHours.toLocaleString()} man-hours, capital ${kFmt(fm.capitalK)}, total R&D ${kFmt(fm.totalRdOpexK)}. Intelligence load: ${intelLoadGloss(p).gloss}.`;
     case "S15":
-      return `BETA feedback / pre-launch VOCs — ${list(b.evidence)}. Confidence ${p.confidence}/5; pre-launch VOCs dispositioned into the launch plan.`;
+      return `BETA feedback / pre-launch VOCs — ${list(b.evidence)}. Confidence ${confidenceOf(p)}/5; pre-launch VOCs dispositioned into the launch plan.`;
     case "S16": {
       const w = winProbabilityOf(p);
       return `Market performance — say/do: win probability P50 ${Math.round(w.p50 * 100)}% (P10 ${Math.round(w.p10 * 100)}% / P90 ${Math.round(w.p90 * 100)}%); tracked revenue vs the ${usdM(p.fullRev10yM)} plan with Finance + BD.`;
@@ -2892,7 +2921,7 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S1.valueprop": return valuePropOf(p);
     case "S1.segment": return `${p.segmentValueProps?.[0]?.segment || m.targetMarket} · ${ex.customer}`;
     case "S1.ask": return `Approve ${p.gate} with the ${p.firstRevenue} first-revenue date and the modeled ${money(fm.npvM)} NPV / ${fm.irrPct}% IRR return profile.`;
-    case "S2.status": return `${GATE_STAGE[p.gate]} (${p.gate}) · confidence ${p.confidence}/5`;
+    case "S2.status": return `${GATE_STAGE[p.gate]} (${p.gate}) · confidence ${confidenceOf(p)}/5`;
     case "S2.roadmap": return b.solution.slice(0, 3);
     case "S2.toprisks": return [killRiskOf(p), p.criticalPath ? "On the cross-project critical path" : `Commercial risk ${RISK_LABEL[p.comm]}`];
     case "S4.conops": return b.needs.concat(b.outcomes).slice(0, 5);
@@ -2940,7 +2969,7 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
     case "S13.tech": return [[RISK_LABEL[p.tech], b.evidence.find((e) => /risk|mitigat/i.test(e)) ?? "Core technology maturity", "Dual-source + early qual", riskLevelStatus(RISK_LABEL[p.tech])]];
     case "S13.comm": return [[RISK_LABEL[p.comm], killRiskOf(p), "VOC validation + phased commitments", riskLevelStatus(RISK_LABEL[p.comm])]];
     case "S13.biz": {
-      const lvl = p.confidence >= 4 ? "Low" : p.confidence === 3 ? "Med" : "High";
+      const lvl = confidenceOf(p) >= 4 ? "Low" : confidenceOf(p) === 3 ? "Med" : "High";
       return [
         [lvl, "Funding continuity across gates", "Phase-gated releases + portfolio reserve", riskLevelStatus(lvl)],
         [lvl, `Schedule vs ${p.firstRevenue} first-revenue commit`, "Critical-path buffer + upside accelerator", riskLevelStatus(lvl)],
@@ -2996,7 +3025,7 @@ export function optimizeSlideTitle(raw: SlideFieldValue): string {
 /** Derived customer importance (0–1) — BD's weight; falls back to reviewer confidence (1–5 → 0.2–1.0). */
 export function custImportanceOf(p: Project): number {
   if (typeof p.custImportance === "number") return clamp01(p.custImportance);
-  return clamp01(p.confidence / 5);
+  return clamp01(confidenceOf(p) / 5);
 }
 /** Derived relative performance vs the NBA (0–1) — engineering's score; falls back to competitive position. */
 export function relPerformanceOf(p: Project): number {
@@ -3015,7 +3044,7 @@ export function valuePerDollarOf(p: Project): number {
 /** Commercial adoption / BD win probability band {p10,p50,p90} (0–1). p50 from winP50 or pSuccess×confidence. */
 export function winProbabilityOf(p: Project): { p10: number; p50: number; p90: number } {
   const p50 = typeof p.winP50 === "number" ? clamp01(p.winP50)
-    : clamp01(pSuccess(p) * (0.6 + 0.08 * p.confidence)); // confidence 1..5 → 0.68..1.0 multiplier
+    : clamp01(pSuccess(p) * (0.6 + 0.08 * confidenceOf(p))); // confidence 1..5 → 0.68..1.0 multiplier
   const spread = 0.18 * (1 - p50 * 0.5); // wider band for lower-confidence forecasts
   return { p10: clamp01(p50 - spread), p50, p90: clamp01(p50 + spread) };
 }

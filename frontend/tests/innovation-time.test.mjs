@@ -2132,6 +2132,65 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the deck threads its hoisted baseYear into the resolver — the read-out and the grid share one calendar");
 }
 
+// ── E0c · CONFIDENCE IS DERIVED FROM RISK, NOT TYPED ────────────────────────────────────
+// Operator: "confidence should be moved to risk and dependent on Low, Med, High for tech and commercial.
+// Low/Low is 5 bullet. High/High is 1 bullet. and 3 is Med/Med, while 2 bullets is Medium or High Technical
+// and low or Med Commercial. and 4 is other option (low/med commercial risk and tech risk)."
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fspC = await import("node:fs/promises");
+  const pageC = await fspC.readFile("app/innovation/page.tsx", "utf8");
+  const libC = await fspC.readFile("lib/innovation-data.ts", "utf8");
+
+  // 1. THE MATRIX, EXECUTED — all nine cells, not a spot check. The anchors the operator named by hand
+  //    (Low/Low 5, Med/Med 3, High/High 1) are in here beside the six they implied.
+  const M = { low: { low: 5, med: 4, high: 2 }, med: { low: 4, med: 3, high: 2 }, high: { low: 2, med: 2, high: 1 } };
+  for (const t of ["low", "med", "high"]) for (const c of ["low", "med", "high"])
+    ok(F.confidenceFromRisk(t, c) === M[t][c], `${t} tech / ${c} comm → ${M[t][c]} bullets`);
+
+  // 2. MONOTONE — worsening either axis can never RAISE confidence. This is not decoration: it is the
+  //    property that RESOLVED an overlap in the rule as stated. `Med tech / Low comm` is claimed by both the
+  //    "4" rule and the "2" rule; it reads as 4 because the "2" rule's distinguishing feature is HIGH
+  //    technical risk, and because the other reading would make the matrix non-monotone. Confirmed with the
+  //    operator before coding, so the property is the thing worth locking.
+  const rank = { low: 0, med: 1, high: 2 };
+  for (const t of ["low", "med", "high"]) for (const c of ["low", "med", "high"])
+    for (const t2 of ["low", "med", "high"]) for (const c2 of ["low", "med", "high"])
+      if (rank[t2] >= rank[t] && rank[c2] >= rank[c])
+        ok(F.confidenceFromRisk(t2, c2) <= F.confidenceFromRisk(t, c),
+           `more risk never means more confidence: ${t2}/${c2} (${F.confidenceFromRisk(t2, c2)}) <= ${t}/${c} (${F.confidenceFromRisk(t, c)})`);
+
+  // 3. ONE PRODUCER. Every consumer reads `confidenceOf(p)`; nothing reads the stored field. A second reader
+  //    of `p.confidence` is a second source of truth, which is the whole subject of this thread.
+  ok(F.DEMO_PROJECTS.every((p) => F.confidenceOf(p) === F.confidenceFromRisk(p.tech, p.comm)),
+     `all ${F.DEMO_PROJECTS.length} projects derive confidence from their own two risk levels`);
+  ok(!/\bp\.confidence\b/.test(pageC), "page.tsx never reads the stored confidence score");
+  ok(!/\bp\.confidence\b/.test(libC.replace(/^.*never `p\.confidence`.*$/m, "")),
+     "innovation-data.ts never reads the stored confidence score either");
+
+  // 4. THE INPUT IS GONE. A 1-5 select sitting above two risk dropdowns that already encode the same
+  //    judgement was the duplication; deleting the derivation and keeping the select would be the wrong half.
+  ok(!/onEditSource\(\{ confidence:/.test(pageC), "nothing writes `confidence` — the two risk levers are the only input");
+  // Matched on the option's own `n/5` label, not on the bare `[1,2,3,4,5].map` — a first draft of this
+  // assertion used the broad form and went red on three unrelated selects (per-segment confidence, and the
+  // risk-register severity and likelihood pickers). None of those is the score being retired.
+  ok(!/value=\{n\}>\{n\}\/5<\/option>/.test(pageC), "the 1-5 Confidence select is removed from the S10 panel");
+  ok(/Confidence <span className="text-\[9px\] text-slate-500">\(from risk\)<\/span>/.test(pageC),
+     "the read-out sits where the input was, labelled as derived — the operator can still see the number");
+
+  // 5. IT ACTUALLY MOVES. The behaviour the operator described is that changing a risk dropdown changes the
+  //    bullets; asserted as a value change, not as the presence of a function.
+  const p0 = F.DEMO_PROJECTS[0];
+  ok(F.confidenceOf({ ...p0, tech: "low", comm: "low" }) === 5 && F.confidenceOf({ ...p0, tech: "high", comm: "low" }) === 2,
+     "flipping Tech Risk Low → High drops the bullets 5 → 2 with nothing else touched");
+  // 6. NEVER OUT OF RANGE — the score feeds `clamp01(conf / 5)` and a 0 or a 6 would silently skew every
+  //    downstream probability.
+  for (const t of ["low", "med", "high"]) for (const c of ["low", "med", "high"]) {
+    const v = F.confidenceFromRisk(t, c);
+    ok(Number.isInteger(v) && v >= 1 && v <= 5, `${t}/${c} yields an integer 1-5 — got ${v}`);
+  }
+}
+
 // ── A-INPUT · CAN EVERY S1-S18 FIELD ACTUALLY BE INPUT, AND DOES IT RENDER IN PLAY MODE? ─
 // Operator, 2026-07-30: "ensure all S1-S18 can actually be input into tool so Slide in play mode renders from
 // S1-S18 input fields... having a single source of truth (not in Excel and Power point), for real time
