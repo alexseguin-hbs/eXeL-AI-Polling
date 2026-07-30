@@ -3951,5 +3951,37 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "PipelineByGate is not ALSO hoisted standalone — it is RoiVisuals' default view and stays there");
 }
 
+// ── W-12 · THE RACK HEADER FREEZES · H5 · THE FOOTER REACHES BOTH EDGES ─────────────────
+{
+  const fspW12 = await import("node:fs/promises");
+  const srcW12 = await fspW12.readFile("app/innovation/page.tsx", "utf8");
+  const prov = await fspW12.readFile("../frontend/components/providers.tsx", "utf8").catch(() =>
+    fspW12.readFile("components/providers.tsx", "utf8"));
+
+  // W-12 · Operator: "For portfolio prioritization, freeze headers so if I scroll down, I can still see
+  // headers." Scrolled past row six, NRE / P-wt Rev / NPV / Cum are four "$NN.NM" columns with no labels.
+  const rack = srcW12.slice(srcW12.indexOf('<th className={`px-2 py-2 text-left ${th}`}>#<'), srcW12.indexOf("<tbody>", srcW12.indexOf('P-wt Rev')));
+  ok(/const th = "sticky top-0 z-20 bg-\[#0e141b\]"/.test(srcW12),
+     "the Rack header cells share ONE sticky class — declared once, not repeated nine times");
+  const stuck = (srcW12.match(/\$\{th\}`}/g) ?? []).length;
+  ok(stuck === 10, `every one of the Rack's 10 header cells is sticky — got ${stuck}`);
+  // ⚠ THE E2 FINDING, ASSERTED SO IT CANNOT BE UNDONE: a collapsed table gives thead/tr no box to position
+  // against, so `sticky` there is silently ignored. Per-cell or it does not work at all.
+  ok(!/<thead className="sticky/.test(rack), "the sticky is on the cells, never on the thead (collapsed tables ignore it)");
+
+  // H5 · Operator, asked twice: "Ensure Feedback and eXeL AI are moved to edges of screen Left = Feedback,
+  // Right = eXeL AI." The cause was a 1024px CENTRED container — `justify-between` was distributing them
+  // across a box far narrower than the screen. The box was wrong, not the distribution.
+  // ⚠ PROBE ERROR, THE EIGHTH — AND THE THIRD OF THIS EXACT SHAPE. The assertion below forbids `max-w-5xl`,
+  // and the comment beside the fixed code quotes `max-w-5xl` to explain that the cap WAS the defect. Read raw,
+  // the lock fails on its own explanation. Comments stripped, as W-2 and W-3 both had to learn.
+  const foot = prov.slice(prov.indexOf("function SiteFooter"), prov.indexOf("</footer>"))
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+  ok(!/max-w-5xl/.test(foot), "the footer row no longer caps itself at 1024px — that cap WAS the defect");
+  ok(/flex w-full items-center justify-between/.test(foot), "the row spans the viewport and still distributes its three items");
+  ok(/<FeedbackWidget[\s\S]*SECURITY-2525[\s\S]*<PoweredBadge/.test(foot),
+     "order is unchanged: Feedback left · SECURITY-2525 centre · eXeL AI right");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

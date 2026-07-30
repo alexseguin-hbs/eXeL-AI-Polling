@@ -55,7 +55,15 @@ function SiteFooter() {
     : "other";
   return (
     <footer className="w-full border-t border-border/40 bg-background/60">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+      {/* H5 · THE ROW SPANS THE VIEWPORT (operator, asked twice: "Ensure Feedback and eXeL AI are moved to
+          edges of screen Left = Feedback, Right = eXeL AI").
+          The cause was `mx-auto max-w-5xl` — a 1024px centred container. On a 1900px screen that parks
+          Feedback ~440px in from the left and the eXeL badge ~440px in from the right, so `justify-between`
+          was distributing them across a box far narrower than the screen. `justify-between` was never wrong;
+          the box was. Dropping the cap and keeping the padding pins each end to its own edge.
+          PHONE IS UNAFFECTED: below 1024px the cap never bound, so this changes nothing there — the reason
+          it is safe to widen rather than special-case a breakpoint. */}
+      <div className="flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <FeedbackWidget screen={screen} docked />
         {/* SECURITY-2525 lives on the footer line with Feedback + eXeL AI, tool-wide (operator ask). */}
         <a

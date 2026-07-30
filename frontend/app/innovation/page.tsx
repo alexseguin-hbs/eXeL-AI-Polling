@@ -781,20 +781,38 @@ function Board() {
                   </div>
                 );
               }
+              // W-12 · THE RACK HEADER FREEZES ON SCROLL (operator: "For portfolio prioritization, freeze
+              // headers so if I scroll down, I can still see headers"). Scrolling past row ~6 left the
+              // operator reading four unlabelled money columns — NRE, P-wt Rev, NPV and Cum all render
+              // "$NN.NM" and are indistinguishable without their header.
+              //
+              // ⚠ THE STICKY GOES ON EVERY `th`, NEVER ON THE `thead` — the E2 finding, already paid for
+              // once in the S10 editor. Tailwind's preflight sets `border-collapse: collapse`, and a
+              // collapsed table gives `thead`/`tr` no box to position against, so the rule is silently
+              // ignored and the header scrolls away exactly as before. Each `th` carries its own background
+              // too, or the rows scroll through it.
+              //
+              // ⚠ AND THESE ARE `//` COMMENTS, NOT `{/* */}` — the JSX form cannot be the FIRST thing after
+              // `return (`, because a JSX comment is only valid INSIDE an element, never as the expression
+              // that opens one. The first draft put it there and produced 14 type errors while the lock
+              // suite passed 3025/3025, which is the third time this session a green suite has certified a
+              // file that does not compile. Locks read source as text; only tsc sees validity.
               return (
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
-                      <th className="w-6"></th>
-                      <th className="px-2 py-2 text-left">#</th>
-                      <th className="px-2 py-2 text-left">Project #</th>
-                      <th className="px-2 py-2 text-center">Gate</th>
-                      <th className="px-2 py-2 text-center">Conf</th>
-                      <th className="px-2 py-2 text-right">NRE</th>
-                      <th className="px-2 py-2 text-right">P-wt Rev</th>
-                      <th className="px-2 py-2 text-right">NPV</th>
-                      <th className="px-2 py-2 text-right">Cum</th>
-                      <th className="px-2 py-2"></th>
+                      {(() => { const th = "sticky top-0 z-20 bg-[#0e141b]"; return (<>
+                      <th className={`w-6 ${th}`}></th>
+                      <th className={`px-2 py-2 text-left ${th}`}>#</th>
+                      <th className={`px-2 py-2 text-left ${th}`}>Project #</th>
+                      <th className={`px-2 py-2 text-center ${th}`}>Gate</th>
+                      <th className={`px-2 py-2 text-center ${th}`}>Conf</th>
+                      <th className={`px-2 py-2 text-right ${th}`}>NRE</th>
+                      <th className={`px-2 py-2 text-right ${th}`}>P-wt Rev</th>
+                      <th className={`px-2 py-2 text-right ${th}`}>NPV</th>
+                      <th className={`px-2 py-2 text-right ${th}`}>Cum</th>
+                      <th className={`px-2 py-2 ${th}`}></th>
+                      </>); })()}
                     </tr>
                   </thead>
                   <tbody>
