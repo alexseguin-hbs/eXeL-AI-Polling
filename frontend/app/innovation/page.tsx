@@ -1508,8 +1508,17 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // WTP positioning — Low→High price-performance; markers deterministic from the competitive index.
   const ci = Math.max(0, Math.min(1, ve.competitiveIndex / 100));
 
+  // X-1 · IN SLIDE MODE THE CHART FILLS ITS BOX. `height: 7cqh` was a fixed slice of the container that had
+  // nothing to do with how much room the panel actually gave it — the third of three constraints, and the
+  // only one visible in the markup. `h-full` plus `xMidYMid meet` scales the WHOLE drawing, type included,
+  // up to whatever the panel row now offers, while keeping the bars' proportions honest. NON-SLIDE MODES ARE
+  // UNTOUCHED (`height: auto`), so the deep dive and the source panel render exactly as before.
+  // ⚠ WRITTEN AS `//`, NOT `{/* */}`. A JSX comment before the root element of a parenthesised expression
+  // makes TWO children where one is allowed — `Expected ',', got 'viewBox'`. Second time this session, and
+  // BOTH times the lock suite passed while the file would not compile. Only `npm run build` catches it.
   const chart = (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "7cqh" } : { height: "auto" }}
+    <svg viewBox={`0 0 ${W} ${H}`} className={big ? "h-full w-full" : "w-full"} preserveAspectRatio="xMidYMid meet"
+         style={big ? undefined : { height: "auto" }}
          role="img" aria-label="Value creation and capture waterfall vs the next best alternative">
       {/* W-20 · 3D SHADED BARS (operator: "Make bars futuristic; 3D shaded like attached", with their own
           Excel reference). Excel's "3-D bevel" is, in substance, a VERTICAL GRADIENT plus a lighter cap at
@@ -4304,7 +4313,16 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 // they actually carry is the fix; anything else is shrinking type to pay for wasted space above it.
 const BODY_ROWS: Record<string, string> = { S10: "minmax(0, 10fr) minmax(0, 24fr)" };
 
-function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; children: React.ReactNode }) {
+// X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
+// the sentence, the NBA it must beat, the waterfall, and the differentiators behind it. When that panel is
+// OPEN they are an echo of the editor directly above them — one reading the draft, one reading the record —
+// so the edit view suppresses them. Named as a SET, not four conditions, so a fifth field moved into the
+// panel is one entry here rather than a new branch someone has to notice.
+// `capture`, `benefits` and `features` are deliberately absent: the panel does not render those, so hiding
+// them would delete content instead of a duplicate.
+const S8_PANEL_ECHO = new Set(["vprop", "nba", "valuechart", "diffs"]);
+
+function AmtsPanel({ title, icon, required, wide, rows, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; rows?: string; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
@@ -4316,7 +4334,12 @@ function AmtsPanel({ title, icon, required, wide, children }: { title: string; i
         </span>
         {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: TS.micro }}>REQUIRED: {required}+</span>}
       </div>
-      <div data-panel-body className="grid min-h-0 flex-1 content-stretch gap-[0.7cqh] p-[0.7cqw]"><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
+      {/* X-1 · `content-stretch` gives every child an EQUAL share of the panel's height, which is right when
+          two panels carry similar weight and wrong when one is a chart and the other is three small figures.
+          `rows` lets a panel say otherwise — S8's value panel gives the waterfall `1fr` and its metric strip
+          `auto`. Opt-in, so every panel that does not pass it renders byte-identically to before. */}
+      <div data-panel-body className={`grid min-h-0 flex-1 gap-[0.7cqh] p-[0.7cqw] ${rows ? "" : "content-stretch"}`}
+           style={rows ? { gridTemplateRows: rows } : undefined}><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
     </div>
   );
 }
@@ -4802,7 +4825,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     if (f.kind === "chart" && f.linked) return (
       <div className={bare ? "flex min-h-0 min-w-0 flex-col" : `flex min-h-0 flex-col overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] col-span-2`}>
         {!bare && <Banner />}
-        <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}><ChartFrame label={f.name}>
+        {/* X-1 · `flex-1 min-h-0` — without it this div collapses to CONTENT height inside its
+            `flex min-h-0 flex-col` parent, so widening the panel row above changed nothing at all. Two
+            constraints, and fixing either alone is invisible; that is why this looked wrong three times. */}
+        <div className={`${bare ? "" : big ? "p-[0.45cqw]" : "p-2"} flex min-h-0 flex-1 flex-col`}><ChartFrame label={f.name}>
           <MiniFinChart kind={sp.code} big={big} />
           {/* Direct link to the slide that owns the record feeding this chart — drawn only when that slide
               actually has an editor, so the button can never be a no-op. */}
@@ -4864,7 +4890,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           );
         })()}
         {f.kind === "list" && !isConops && <ul className={`m-0 list-disc pl-5 text-slate-200 ${big ? "" : "text-[clamp(13px,1.4vw,18px)]"}`} style={big ? { fontSize: TS.body } : undefined}>{(v as string[]).filter((x) => x && x.trim()).map((x, i) => <li key={i} className="mb-0.5">{x}</li>)}</ul>}
-        {f.kind === "metrics" && <div className="grid grid-cols-3 gap-2">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <div key={m.k} className="rounded-lg border border-slate-700 px-2 py-1"><div className={`font-bold tabular-nums text-slate-100 ${big ? "" : "text-[clamp(18px,2.2vw,30px)]"}`} style={big ? { fontSize: TS.num } : undefined}>{rec[m.k]}</div><div className={`uppercase tracking-wider text-slate-500 ${big ? "" : "text-[9px]"}`} style={big ? { fontSize: TS.micro } : undefined}>{m.label}</div></div> : null; })}</div>}
+        {/* X-1 · A CAPTION STRIP, NOT THREE CARDS (operator: "Shrink Boxes and find locations for them
+            around waterfall chart"). Value and label sit on ONE line each, so the row costs the height of a
+            single line instead of a stacked card with its own padding — and that reclaimed height is exactly
+            what the waterfall above now uses. The figures are the chart's own endpoints, so reading them as
+            its caption is truer than reading them as separate metrics. */}
+        {f.kind === "metrics" && <div className="flex flex-wrap items-baseline justify-between gap-x-[1.2cqw] gap-y-[0.3cqh] rounded-lg border border-slate-800 px-[0.8cqw] py-[0.35cqh]">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <span key={m.k} className="flex items-baseline gap-[0.4cqw]"><span className="font-bold tabular-nums text-slate-100" style={big ? { fontSize: TS.head } : undefined}>{rec[m.k]}</span><span className={`uppercase tracking-wider text-slate-500 ${big ? "" : "text-[9px]"}`} style={big ? { fontSize: TS.micro } : undefined}>{m.label}</span></span> : null; })}</div>}
         {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}>{f.id === "stories"
           ? <StorySpecs cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
           : <div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div>}</ChartFrame>}
@@ -4981,7 +5012,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
             {fieldsOf("nba", "diffs")}
           </AmtsPanel>
-          <AmtsPanel title="Value · Creation + Capture" icon="◈">
+          {/* X-1 · THE WATERFALL FILLS THIS BOX (operator, three times: "Waterfall has to be a majority of
+              slide … must fill the box its given, upper right" · "Shrink Boxes and find locations for them
+              around waterfall chart"). The chart takes 1fr; the three capture figures take only the height
+              they need. They are the chart's own endpoints — Value Creation is the sum of its green bars and
+              Value Price Range is its NBA-to-price span — so they read as its caption, not as rivals for
+              half the panel. */}
+          <AmtsPanel title="Value · Creation + Capture" icon="◈" rows="minmax(0, 1fr) auto">
             {fieldsOf("valuechart", "capture")}
           </AmtsPanel>
           <AmtsPanel wide title="Primary Customer Value Proposition" icon="♡">
@@ -5457,7 +5494,28 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             })()}
 
             <div className="mt-3 divide-y divide-slate-800">
+              {/* ── X-0 · THE VALUE PROP RENDERS ONCE ON THIS PAGE ────────────────────────────────────
+                  Operator: "Remove duplicate value prop below first one on S8 INPUT" — and, separately,
+                  "I can't change numbers." THOSE WERE ONE DEFECT, and their own page dump proved it: the
+                  source panel's chart read 162 while the copy below read 180.4. Both were correct. The panel
+                  renders the DRAFT (`s8Drivers`), the fields below render the SAVED RECORD, so a successful
+                  edit displayed as a failed one.
+                  I CREATED THAT DUPLICATE IN W-1c. Before it, these four fields held independently typed
+                  content, so they genuinely differed from the panel. Turning them into `linked` read-outs of
+                  the same record made them a literal echo of the editor directly above them.
+                  ⚠ THIS SUPPRESSES ONLY THE **EDIT** VIEW, AND ONLY THE FOUR THE PANEL ALREADY SHOWS.
+                  Present mode renders through `panelsFor`, which is untouched — the slide still shows all of
+                  them. `capture`, `benefits` and `features` stay here because the panel does NOT render them,
+                  so hiding those would remove content rather than a duplicate.
+                  ⚠ DELIBERATE DEVIATION FROM THE APPROVED PLAN, STATED NOT SLIPPED IN. The plan proposed the
+                  inverse — retire the panel and make these fields the editing surface. Executing it exposed a
+                  trap: un-linking `vprop`/`nba` routes them to the FIELD BAG, while S1, S6 and the dog-tag all
+                  read `valuePropOf(p)` from the RECORD. That "fix" would have split the source in a new place.
+                  Suppressing the echo instead keeps every write on the record, keeps the operator's field
+                  ORDER intact inside the panel (value prop → NBA → chart → drivers), touches no schema, moves
+                  no gate score, and removes no control — the Save the plan would have deleted stays. */}
               {spec.fields.map((f) => {
+                if (spec.code === "S8" && srcOpen && S8_PANEL_ECHO.has(f.id)) return null;
                 const c = cellOf(spec.code, f.id);
                 return (
                   <div key={f.id} className="py-3">

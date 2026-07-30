@@ -1400,7 +1400,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   for (const attr of ["data-slide-canvas", "data-slide-head", "data-slide-body", "data-panel", "data-panel-head", "data-panel-body", "data-field-banner"])
     ok(src.includes(attr), `present mode exposes ${attr} for the screenshot gate`);
   ok(/<div data-slide-canvas className="absolute left-0 top-0 overflow-hidden/.test(src), "data-slide-canvas sits on the fixed 1600x900 sheet itself");
-  ok(/<div data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(src), "data-panel-body wraps the AmtsPanel children and STRETCHES to fill the panel");
+  // ⚠ PROXY LOCK #11 — the SAME literal asserted a second time, 100 lines from #10, and it went red for the
+  // same reason. Two copies of one proxy is exactly how a shape outlives the property it stood for.
+  ok(/<div data-panel-body className=\{`grid min-h-0 flex-1 gap/.test(src) && /content-stretch/.test(src),
+     "data-panel-body wraps the AmtsPanel children and fills the panel — stretching by default");
   ok(/<div data-panel className=/.test(src) && /<div data-panel-head className=/.test(src), "AmtsPanel exposes BOTH the panel frame and its head");
 
   // 2 · the auditor still asserts all three defect classes it was built for
@@ -1508,7 +1511,19 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // chart type also lives on the sheet's scale
   ok(!/fontSize="8" fill=\{pin === i/.test(src), "S3 cash-chart year labels were brought inside the cap");
-  ok(/style=\{big \? \{ height: "7cqh" \} : \{ height: "auto" \}\}/.test(src), "the S8 waterfall is bounded in cqh on the sheet so its panel cannot outgrow the page");
+  // ⚠ PROXY LOCK #12, REWRITTEN — AND THIS ONE GUARDS SOMETHING REAL, so the replacement is stricter, not
+  // looser. The property is "the S8 waterfall cannot outgrow its page". `7cqh` was ONE way to guarantee that
+  // and it guaranteed something else too: the chart could never USE the space it was given, which is the
+  // defect the operator reported three times. X-1 replaces the fixed slice with containment — `h-full`
+  // inside a `flex-1 min-h-0` body inside an `overflow-hidden` panel, so the chart is bounded BY ITS BOX
+  // rather than by a magic number. All three links in that chain are asserted here, because breaking any one
+  // of them is what would let it escape.
+  ok(/className=\{big \? "h-full w-full" : "w-full"\}/.test(src), "on the sheet the waterfall fills its box");
+  ok(/preserveAspectRatio="xMidYMid meet"/.test(src), "it scales the whole drawing rather than distorting the bars");
+  ok(/\$\{bare \? "" : big \? "p-\[0\.45cqw\]" : "p-2"\} flex min-h-0 flex-1 flex-col/.test(src),
+     "its wrapper may grow (flex-1) but never past its parent (min-h-0) — the containment that replaces the 7cqh cap");
+  ok(/<div data-panel className=\{`flex min-h-0 flex-col overflow-hidden/.test(src),
+     "and the panel itself clips, so a filled chart still cannot outgrow the page");
   ok(/style=\{big \? \{ height: "20cqh" \} : \{ height: "auto" \}\}/.test(src), "the S10/S14 bar chart is bounded in cqh too — unbounded it became a 700px block, 453px past its panel");
 }
 
@@ -3311,7 +3326,20 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // 22a · both levels stretch, and the children can actually take the height
   ok(/data-slide-body className=\{`grid h-full min-h-0 grid-cols-2 content-stretch/.test(src), "the slide body grid stretches its rows");
-  ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(src), "every AmtsPanel body stretches its rows — fixing only the outer grid just relocates the void inside the panel");
+  // ⚠ PROXY LOCK #10, REWRITTEN. This matched the literal `content-stretch` class while its own name claims a
+  // PROPERTY — "the body stretches its rows". X-1 gives S8's value panel an explicit
+  // `gridTemplateRows: minmax(0,1fr) auto` so the waterfall can take the slack the three capture figures do
+  // not need. That STILL fills the panel — a `1fr` track absorbs everything `content-stretch` would have —
+  // but the class is gone, so the literal went red on a change that satisfies the intent perfectly.
+  // Tenth of its kind this session. It now asserts the property: the body always fills, EITHER by stretching
+  // every row equally OR by an explicit template, and an explicit template must contain a fraction track so
+  // it cannot silently reintroduce the void this lock exists to prevent.
+  ok(/data-panel-body className=\{`grid min-h-0 flex-1 gap-\[0\.7cqh\] p-\[0\.7cqw\] \$\{rows \? "" : "content-stretch"\}`\}/.test(src),
+     "the AmtsPanel body fills its panel — content-stretch by default, an explicit row template when one is given");
+  ok(/gridTemplateRows: rows/.test(src), "the explicit path is a real grid template, not a class that merely looks like one");
+  const tmpl = [...src.matchAll(/<AmtsPanel[^>]*\brows="([^"]+)"/g)].map((m) => m[1]);
+  ok(tmpl.length > 0 && tmpl.every((r) => /(^|\s)(minmax\(0,\s*1fr\)|1fr)/.test(r)),
+     `every explicit panel row template leads with a fraction track, so the panel still fills — got ${tmpl.join(" | ") || "none"}`);
   ok(/<div data-panel className=\{`flex min-h-0 flex-col overflow-hidden/.test(src), "the panel frame is a column flex, so its body can take the height it is given");
   ok((src.match(/flex min-h-0 (min-w-0 )?flex-col/g) ?? []).length >= 3, "the PresentField cards can take height too (both exits)");
   // REGRESSION LOCK, with the reason: 1fr tracks ignore what a row needs and overran S8 by 253px.
