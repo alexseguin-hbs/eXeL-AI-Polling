@@ -1618,6 +1618,74 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      `every SourceLink render is guarded by hasSourceLink or an explicit target — ${guarded}/${renders}`);
 }
 
+// ── F1 · S10 HAS A WRITER — the 87-cell immutability contract ───────────────────────────
+// `Project.finPlan` was declared, typed and read, and NOTHING ever set it: `grep -rn finPlan app/ lib/` found
+// the declaration and `finOf`, nothing else. So S10's eleven columns were always `finBaseline` — a re-spread
+// of three scalars wearing a grid's clothes. The lockdown narrowed nine input doors to one; this is the lock
+// that proves something is behind that door, and that typing into it does not wipe the rest of the plan.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fsp2 = await import("node:fs/promises");
+  const pageSrc = await fsp2.readFile("app/innovation/page.tsx", "utf8");
+
+  const base = F.finBaseline(F.DEMO_PROJECTS[0], 2026);
+  ok(base.years.length === F.FIN_SPAN, `a plan always stores ${F.FIN_SPAN} years regardless of stage`);
+
+  // 1. THE FAILURE THIS PREVENTS: one edit replaces the plan and everything else comes back zero.
+  //    Reference equality, not deep-equal — a rebuilt-but-equal year would still be a bug waiting to happen.
+  const edited = F.withFinYear(base, 3, { labor: 4242 });
+  ok(edited.years[3].labor === 4242, "the edited cell takes the new value");
+  ok(base.years[3].labor !== 4242, "the ORIGINAL plan is untouched — no mutation in place");
+  const otherYearsShared = base.years.every((y, i) => i === 3 || edited.years[i] === y);
+  ok(otherYearsShared, "every other year is the SAME object — 10 of 11 years pass through by reference");
+  const touched = edited.years[3];
+  ok(touched.neu === base.years[3].neu && touched.don === base.years[3].don && touched.dec === base.years[3].dec,
+     "inside the edited year, the three revenue bands are untouched — a spend edit cannot zero revenue");
+  ok(["contractor", "materials", "other", "sustain"].every((k) => touched[k] === base.years[3][k]),
+     "the other four spend rows of the edited year keep their values");
+
+  // 2. Band edits clone one band of one year and nothing else — 87 of 88 band-cells survive.
+  const bandEdited = F.withFinBand(base, 5, "neu", { units: 77 });
+  ok(bandEdited.years[5].neu.units === 77, "the edited band cell takes the new value");
+  ok(bandEdited.years[5].don === base.years[5].don && bandEdited.years[5].dec === base.years[5].dec,
+     "the sibling bands of the edited year are the SAME objects");
+  ok(bandEdited.years[5].neu.msrpK === base.years[5].neu.msrpK && bandEdited.years[5].neu.cogsK === base.years[5].neu.cogsK,
+     "the other inputs of the edited band survive — typing Quantity does not clear MSRP or COGS");
+  ok(base.years.every((y, i) => i === 5 || bandEdited.years[i] === y), "every other year is untouched by a band edit");
+
+  // 3. Out-of-range index is a no-op, not a crash or a silent 12th year.
+  ok(F.withFinYear(base, -1, { labor: 1 }) === base && F.withFinYear(base, 99, { labor: 1 }) === base,
+     "an out-of-range year index returns the plan unchanged");
+  ok(F.withFinYear(base, 2, { labor: 1 }).years.length === F.FIN_SPAN, "an edit never changes the number of stored years");
+
+  // 3b. Every $K figure the editor puts in a numeric input is an INTEGER. `spendRequestK` rounded the total
+  //     and then divided by three, so the ask rendered as "2733.33333" in a $K box — visible in the captured
+  //     screenshot, invisible in the diff. Asserted across the whole portfolio, not just the fixture.
+  ok(F.DEMO_PROJECTS.every((pr) => Number.isInteger(F.finBaseline(pr, 2026).spendRequestK)),
+     "the current-year R&D ask is a whole $K on every project — no repeating decimal in an integer field");
+  ok(F.DEMO_PROJECTS.every((pr) => F.finBaseline(pr, 2026).years.every((y) =>
+       [y.labor, y.contractor, y.materials, y.other, y.sustain].every(Number.isInteger))),
+     "every seeded spend cell is a whole $K");
+
+  // 4. THE WRITER IS WIRED. A pure function nobody calls is the defect this commit exists to fix, so assert
+  //    the component actually commits a `finPlan` patch through the shared source-edit callback.
+  ok(/function S10FinEditor\(/.test(pageSrc), "the S10 source editor component exists");
+  ok(/onEdit\(\{ finPlan: next \}/.test(pageSrc), "editing a cell writes Project.finPlan — the field finally has a writer");
+  ok(/<S10FinEditor p=\{p\} baseYear=\{baseYear\} onEdit=\{onEditSource\} \/>/.test(pageSrc),
+     "the editor is mounted inside the S10 source panel, the one door input was narrowed to");
+  ok(/commit\(withFinYear\(fin, i, patch\), what\)/.test(pageSrc) && /commit\(withFinBand\(fin, i, band, patch\), what\)/.test(pageSrc),
+     "the editor uses the locked pure writers instead of re-implementing update semantics");
+
+  // 5. ONE CLOCK. Both S10 tables called new Date().getFullYear() on every render, so a deck left open across
+  //    midnight on 31 December would re-anchor its columns mid-session. Hoisted to one memo at the deck root.
+  ok(/const baseYear = useMemo\(\(\) => new Date\(\)\.getFullYear\(\), \[\]\);/.test(pageSrc),
+     "the deck reads the calendar year ONCE, at the root");
+  ok(!/finOf\(p, new Date\(\)\.getFullYear\(\)\)/.test(pageSrc),
+     "no component re-reads the clock — baseYear is a prop everywhere, so a stored plan cannot re-anchor");
+  const s10Fns = [...pageSrc.matchAll(/function (S10SpendTable|S10RevenueTable|S10FinEditor)\(\{ p, baseYear/g)].length;
+  ok(s10Fns === 3, `all three S10 surfaces take baseYear as a prop — found ${s10Fns}/3`);
+}
+
 // ── S10 · FINANCIAL INPUT MODEL — arithmetic, not shape ─────────────────────────────────
 // Faithful to the operator's own Rack & Stack (FLIR Portfolio Planning, 2019). These EXECUTE the functions
 // against real numbers rather than grepping for their names, because the whole point of S10 is that the figure

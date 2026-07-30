@@ -51,7 +51,8 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
-  incUnits, incYoYPct, type FinYear,
+  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, CONF_LADDER,
+  withFinYear, withFinBand,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
@@ -187,14 +188,32 @@ function Gate({ onUnlock }: { onUnlock: () => void }) {
   );
 }
 
+/** Local mirror of the working project set. Same namespace convention as the other `innovation-*` keys. */
+const PROJECTS_KEY = "innovation-projects";
+
 // ── Portfolio workbench ─────────────────────────────────────────────────────────────────
 function Board() {
   const { t } = useLexicon();
   const vp = useViewport(); // F6 — responsive contract (16:9/1080p/4k/other · portrait/landscape), parity with Architect/Security-2525
   // Default rank: by weighted NPV desc (a sane starting stack; user then drags).
+  // PROJECT EDITS MUST SURVIVE A REFRESH, cloud or no cloud. Until now `order` was pushed to Supabase and
+  // nowhere else — so with no `NEXT_PUBLIC_SUPABASE_*` configured, `saveState` returns "offline" and every
+  // per-project edit (a new idea, value drivers, and now 154 typed S10 cells) died on reload. A financial
+  // record that evaporates when you close the tab is not a source of truth. Local mirror first, cloud still
+  // wins on hydrate (see the loadAllState effect) so cross-device behaviour is unchanged.
   const [order, setOrder] = useState<Project[]>(
     [...DEMO_PROJECTS].sort((a, b) => npvM(b) - npvM(a))
   );
+  useEffect(() => {
+    const raw = lsGet(PROJECTS_KEY);
+    if (!raw) return;
+    try {
+      const local = JSON.parse(raw) as Project[];
+      if (Array.isArray(local) && local.length > 0 && local.every((p) => p && typeof p.id === "string")) {
+        setOrder(local); setSelId(local[0].id);
+      }
+    } catch { /* corrupt mirror → keep the seeds, never blank the portfolio */ }
+  }, []);
   const [selId, setSelId] = useState(order[0].id);
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
   const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
@@ -474,8 +493,9 @@ function Board() {
         }
         const s = loadBizSetup(); setSetup(s); setCompanyName(s.company); setStackName(loadStackName());
       }
-      // Per-project edits (new ideas, value drivers, gate/field edits) — durable + cross-device. Cloud is
-      // the source of truth once the operator has saved anything; first load with no cloud keeps the seeds.
+      // Per-project edits (new ideas, value drivers, gate/field edits, S10 financials) — durable +
+      // cross-device. Cloud is the source of truth once the operator has saved anything; with no cloud we
+      // fall back to the local mirror below, and only then to the seeds.
       const saved = cloud["projects"] as Project[] | undefined;
       if (Array.isArray(saved) && saved.length > 0 && saved.every((p) => p && typeof p.id === "string")) {
         setOrder(saved); setSelId(saved[0].id);
@@ -495,7 +515,10 @@ function Board() {
   const projectsHydrated = useRef(false);
   useEffect(() => {
     if (!projectsHydrated.current) return; // don't overwrite the cloud with seeds before hydration completes
-    const id = setTimeout(() => { void saveState("projects", order); }, 800);
+    const id = setTimeout(() => {
+      lsSet(PROJECTS_KEY, JSON.stringify(order));   // always durable locally, even when the cloud is offline
+      void saveState("projects", order);
+    }, 800);
     return () => clearTimeout(id);
   }, [order]);
   // Push the admin config bundle to the cloud whenever the operator leaves Business Setup (where edits
@@ -3398,9 +3421,11 @@ function S10Grid({ head, rows, accent }: { head: string[]; rows: { label: string
   );
 }
 
-/** Step 1a · R&D Spend — five entered rows plus a derived Total, per calendar year. */
-function S10SpendTable({ p }: { p: Project }) {
-  const f = finOf(p, new Date().getFullYear());
+/** Step 1a · R&D Spend — five entered rows plus a derived Total, per calendar year.
+ *  `baseYear` is a PROP, never read from the clock here: one clock at the deck root means a stored plan
+ *  cannot silently re-anchor when the calendar rolls over on 1 January, and a test can pin 2026. */
+function S10SpendTable({ p, baseYear }: { p: Project; baseYear: number }) {
+  const f = finOf(p, baseYear);
   const n = visibleYearCount(p.gate);
   const ys = f.years.slice(0, n);
   const col = (pick: (y: FinYear) => number) => ys.map((y) => finFmtK(pick(y)));
@@ -3427,8 +3452,8 @@ function S10SpendTable({ p }: { p: Project }) {
 }
 
 /** Steps 1b / 2 / 3 + Combined — the four Rack & Stack revenue bands. Combined is derived, never entered. */
-function S10RevenueTable({ p }: { p: Project }) {
-  const f = finOf(p, new Date().getFullYear());
+function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
+  const f = finOf(p, baseYear);
   const n = visibleYearCount(p.gate);
   const ys = f.years.slice(0, n);
   // S10 IS THE STANDARD; 10.1 / 10.2 CARRY THE DETAIL (operator). Every band shows Revenue and Margin here —
@@ -3462,6 +3487,172 @@ function S10RevenueTable({ p }: { p: Project }) {
   );
 }
 
+// ═══ S10 · THE EDITOR — the writer `Project.finPlan` never had ══════════════════════════════
+// `finPlan` was declared, typed and read, and NOTHING in the application ever set it. So `finOf` always fell
+// through to `finBaseline`, and S10's eleven columns were a re-spread of three scalars wearing a grid's
+// clothes: it looked alive because editing NRE moved the spend row, but no per-year figure could be entered
+// anywhere in the product. The lockdown narrowed nine input doors to one; this is what is behind that door.
+//
+// EVERY WRITE CLONES. `setFin` spreads the WHOLE plan and `setCell` maps the year array — never a splice,
+// never a mutation of `finOf`'s return. The failure this prevents is the classic one: the first cell you type
+// into replaces the plan and the other 87 cells come back zero. There is a lock that types into one cell and
+// asserts the rest are byte-identical.
+function FinCell({ value, onCommit, title, suffix }: { value: number; onCommit: (v: number) => void; title: string; suffix?: string }) {
+  return (
+    <input type="text" inputMode="decimal" defaultValue={value ? String(value) : ""} title={title} aria-label={title}
+      key={`${title}:${value}`}   // re-seed the uncontrolled input when the plan changes underneath it (apply-rate, undo)
+      placeholder="—"
+      onBlur={(e) => {
+        const raw = e.target.value.trim();
+        const v = raw === "" ? 0 : Number(raw.replace(/[$,\s]/g, ""));
+        if (!Number.isFinite(v)) { e.target.value = value ? String(value) : ""; return; }  // never coerce junk to 0 silently
+        if (v !== value) onCommit(v);
+      }}
+      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      className="w-full min-w-[52px] rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+  );
+}
+
+/** One editable row across the visible years. */
+function FinRow({ label, years, get, set, hint }: {
+  label: string; years: FinYear[]; get: (y: FinYear) => number; set: (i: number, v: number) => void; hint?: string;
+}) {
+  return (
+    <tr>
+      <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-400" title={hint}>{label}</td>
+      {years.map((y, i) => (
+        <td key={y.year} className="px-0.5 py-0.5">
+          <FinCell value={get(y)} onCommit={(v) => set(i, v)} title={`${label} · ${y.year}`} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+/** The S10 source editor — R&D spend + the three Rack & Stack revenue bands, per calendar year.
+ *  Columns follow the gate ladder (Concept 4 · Plan 6 · Develop 11); STORAGE is always 11, so demoting a
+ *  project hides years, it never deletes them. */
+function S10FinEditor({ p, baseYear, onEdit }: {
+  p: Project; baseYear: number; onEdit: (patch: Partial<Project>, changes: string[]) => void;
+}) {
+  const fin = finOf(p, baseYear);
+  const n = visibleYearCount(p.gate);
+  const ys = fin.years.slice(0, n);
+  const commit = (next: FinPlan, what: string) => onEdit({ finPlan: next }, [`S10 · ${what}`]);
+  const setFin = (patch: Partial<FinPlan>, what: string) => commit({ ...fin, ...patch }, what);
+  // `withFinYear` / `withFinBand` are pure and live in the lib, so the update semantics the whole grid depends
+  // on are executed by the test suite rather than re-implemented (and re-broken) here.
+  const setYear = (i: number, patch: Partial<FinYear>, what: string) => commit(withFinYear(fin, i, patch), what);
+  const setBand = (i: number, band: "neu" | "don" | "dec", patch: Partial<FinBandYear>, what: string) =>
+    commit(withFinBand(fin, i, band, patch), what);
+  const spendRow = (label: string, key: "labor" | "contractor" | "materials" | "other" | "sustain") => (
+    <FinRow key={key} label={label} years={ys} get={(y) => y[key]} set={(i, v) => setYear(i, { [key]: v } as Partial<FinYear>, `${label} ${fin.years[i].year} → ${v}`)} />
+  );
+  const BANDS: { key: "don" | "neu" | "dec"; label: string; step: string }[] = [
+    { key: "don", label: "Do Nothing: Existing", step: "Step 2" },
+    { key: "neu", label: "New: 1st Product Rev", step: "Step 1b" },
+    { key: "dec", label: "Declining Rev: Existing", step: "Step 3" },
+  ];
+  const head = (
+    <thead>
+      <tr>
+        <th className="sticky left-0 z-10 bg-[#0b0f14] pr-1.5 text-left text-[9px] uppercase tracking-wider text-slate-500">$K</th>
+        {ys.map((y) => <th key={y.year} className="px-0.5 text-right font-mono text-[9px] text-cyan-300/90 tabular-nums">{y.year}</th>)}
+      </tr>
+    </thead>
+  );
+  return (
+    <div className="col-span-2 rounded border border-cyan-500/20 bg-[#0b0f14] p-2 sm:col-span-3">
+      <div className="mb-1 flex flex-wrap items-baseline gap-x-2 text-[10px]">
+        <span className="font-semibold uppercase tracking-wider text-cyan-300">S10 · Financials by Year</span>
+        <span className="text-slate-500">{GATE_STAGE[p.gate]} ({p.gate}) shows {n} of {fin.years.length} calendar years — demoting hides years, never deletes them.</span>
+      </div>
+      <div className="max-h-[46vh] overflow-auto">
+        <table className="w-full border-collapse">
+          {head}
+          <tbody>
+            <tr><td colSpan={ys.length + 1} className="bg-cyan-500/10 py-0.5 text-left text-[10px] font-semibold text-slate-100">R&amp;D Spend · Step 1a</td></tr>
+            {spendRow("Labor", "labor")}
+            {spendRow("Contractor", "contractor")}
+            {spendRow("Materials", "materials")}
+            {spendRow("Other", "other")}
+            {spendRow("Sustain", "sustain")}
+            <tr>
+              <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] font-semibold text-slate-200">Total</td>
+              {ys.map((y) => <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[11px] font-semibold tabular-nums text-slate-100">{finFmtK(spendTotalK(y))}</td>)}
+            </tr>
+            {BANDS.map((b) => {
+              const on = fin.unitEcon[b.key];
+              return (
+                <React.Fragment key={b.key}>
+                  <tr>
+                    <td colSpan={ys.length + 1} className="bg-cyan-500/10 py-0.5 text-left text-[10px] font-semibold text-slate-100">
+                      {b.label} <span className="font-normal text-slate-400">· {b.step}</span>
+                      <button onClick={() => setFin({ unitEcon: { ...fin.unitEcon, [b.key]: !on } }, `${b.label} unit economics ${on ? "off" : "on"}`)}
+                        title={on
+                          ? "Unit economics ON — Revenue = Units x ASP, Margin = Units x (ASP - COGS). ASP is MSRP net of the distribution discount, never typed directly."
+                          : "Unit economics OFF — type Revenue and Margin directly."}
+                        className={`ml-2 rounded border px-1.5 py-0 text-[9px] ${on ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-200" : "border-slate-700 text-slate-400"}`}>
+                        {on ? "Units × ASP" : "Revenue typed"}
+                      </button>
+                    </td>
+                  </tr>
+                  {on ? <>
+                    <FinRow label="Quantity" years={ys} hint="# units" get={(y) => y[b.key].units} set={(i, v) => setBand(i, b.key, { units: v }, `${b.label} qty ${fin.years[i].year} → ${v}`)} />
+                    <FinRow label="MSRP $K" years={ys} hint="List price per unit" get={(y) => y[b.key].msrpK} set={(i, v) => setBand(i, b.key, { msrpK: v }, `${b.label} MSRP ${fin.years[i].year} → ${v}`)} />
+                    <FinRow label="Disc %" years={ys} hint="Distribution discount off list — ASP = MSRP × (1 − disc)" get={(y) => y[b.key].discPct} set={(i, v) => setBand(i, b.key, { discPct: v }, `${b.label} disc ${fin.years[i].year} → ${v}`)} />
+                    <FinRow label="COGS $K" years={ys} hint="Cost of goods per unit" get={(y) => y[b.key].cogsK} set={(i, v) => setBand(i, b.key, { cogsK: v }, `${b.label} COGS ${fin.years[i].year} → ${v}`)} />
+                    <tr>
+                      <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-500">ASP · Rev · Mgn</td>
+                      {ys.map((y) => (
+                        <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[9px] tabular-nums text-emerald-400/90"
+                            title={`ASP ${finFmtK(aspOf(y[b.key]))} · Revenue ${finFmtK(bandRevK(y[b.key], true))} · Margin ${finFmtK(bandMgnK(y[b.key], true))} · ${finFmtPct(bandMgnPct(y[b.key], true))}`}>
+                          {finFmtK(bandRevK(y[b.key], true))}
+                        </td>
+                      ))}
+                    </tr>
+                  </> : <>
+                    <FinRow label="Revenue $K" years={ys} get={(y) => y[b.key].revK ?? 0} set={(i, v) => setBand(i, b.key, { revK: v }, `${b.label} revenue ${fin.years[i].year} → ${v}`)} />
+                    <FinRow label="Margin $K" years={ys} get={(y) => y[b.key].mgnK ?? 0} set={(i, v) => setBand(i, b.key, { mgnK: v }, `${b.label} margin ${fin.years[i].year} → ${v}`)} />
+                  </>}
+                </React.Fragment>
+              );
+            })}
+            {/* Combined is DERIVED — New − Do-Nothing + EOL. There is nothing to type here, so there is no input. */}
+            <tr><td colSpan={ys.length + 1} className="bg-cyan-500/10 py-0.5 text-left text-[10px] font-semibold text-slate-100">Combined: Incremental <span className="font-normal text-slate-400">· derived, never entered</span></td></tr>
+            <tr>
+              <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-400">Revenue</td>
+              {ys.map((y) => <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[11px] tabular-nums text-slate-100">{finFmtK(incRevK(y, fin.unitEcon))}</td>)}
+            </tr>
+            <tr>
+              <td className="sticky left-0 z-10 bg-[#0b0f14] py-0.5 pr-1.5 text-left text-[10px] text-slate-400">Margin</td>
+              {ys.map((y) => <td key={y.year} className="px-1 py-0.5 text-right font-mono text-[11px] tabular-nums text-slate-100">{finFmtK(incMgnK(y, fin.unitEcon))}</td>)}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {/* Current-year ask + the Rack & Stack confidence ladder — six rungs, not a 1-5 opinion score. */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+        <label className="flex items-center gap-1">{ys[0]?.year} R&amp;D Spend Request
+          <span className="w-20"><FinCell value={fin.spendRequestK} title="Current-year R&D ask, $K" onCommit={(v) => setFin({ spendRequestK: v }, `spend request → ${v}`)} /></span>
+        </label>
+        <label className="flex items-center gap-1">Technical Confidence
+          <select value={String(fin.techConfPct)} onChange={(e) => setFin({ techConfPct: +e.target.value }, `tech confidence → ${e.target.value}%`)}
+            className="rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
+            {CONF_LADDER.map((c) => <option key={c} value={c}>{c}%</option>)}
+          </select>
+        </label>
+        <label className="flex items-center gap-1">Commercial Confidence
+          <select value={String(fin.commConfPct)} onChange={(e) => setFin({ commConfPct: +e.target.value }, `commercial confidence → ${e.target.value}%`)}
+            className="rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500">
+            {CONF_LADDER.map((c) => <option key={c} value={c}>{c}%</option>)}
+          </select>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
@@ -3487,6 +3678,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   const [status, setStatus] = useState<Record<string, string>>({});
   const [present, setPresent] = useState(false);
   const vp = useViewport(); // G2 — present mode adapts to portrait/landscape so the slide is readable on a phone
+  // ONE CLOCK for the whole deck. S10's tables each called `new Date().getFullYear()` on every render, so a
+  // deck left open across midnight on 31 December would re-anchor its columns mid-session and the stored plan
+  // would silently shift a year. Read once, pass down; the pure lib still takes `baseYear` so tests pin 2026.
+  const baseYear = useMemo(() => new Date().getFullYear(), []);
   const [zoom, setZoom] = useState(1); // G-refine — pinch/tap zoom of the 16:9 slide (esp. portrait phones)
   // The 20-page print stack is only MOUNTED while printing. Rendering 20 sheets (each with charts) behind a
   // `hidden` class would cost a phone the whole deck's layout on every present render, for pixels nobody sees.
@@ -4029,10 +4224,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       S10: () => (
         <>
           <AmtsPanel wide title="R&D Spend" icon={<MarkSpend />} required={sp.stage}>
-            <S10SpendTable p={p} />
+            <S10SpendTable p={p} baseYear={baseYear} />
           </AmtsPanel>
           <AmtsPanel wide title="R&D Revenues" icon={<MarkRevenue />} required={sp.stage}>
-            <S10RevenueTable p={p} />
+            <S10RevenueTable p={p} baseYear={baseYear} />
           </AmtsPanel>
         </>
       ),
@@ -4299,6 +4494,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                   </button>
                   {srcOpen && (
                     <div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-3">
+                      {/* THE GRID COMES FIRST. It is the record; the scalars below it are the older
+                          whole-portfolio shorthand that S10 is replacing year by year. */}
+                      <S10FinEditor p={p} baseYear={baseYear} onEdit={onEditSource} />
                       {numEdit("R&D / NRE", "nreK", "$K")}
                       {numEdit("New rev 10-yr", "fullRev10yM", "$M")}
                       {numEdit("Do-nothing 10-yr", "doNothing10yM", "$M")}

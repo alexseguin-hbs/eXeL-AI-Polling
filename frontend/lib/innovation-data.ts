@@ -444,6 +444,17 @@ export const emptyFinPlan = (baseYear: number): FinPlan => ({
   techConfPct: 50, commConfPct: 50, spendRequestK: 0,
 });
 
+// ── WRITERS. Pure, so the editor cannot invent its own update semantics ──────────────────
+// `finPlan` was declared and read but never written; when the editor finally arrived, the obvious hazard was
+// the one every grid editor hits — the first cell you type into replaces the plan and the other 87 cells come
+// back zero. These two functions are the ONLY way a year changes. They clone the plan, clone the year array
+// and clone the one year being touched; every other year comes through by REFERENCE, which is what makes the
+// immutability lock checkable with `===` rather than a deep compare that could paper over a rebuild.
+export const withFinYear = (fin: FinPlan, i: number, patch: Partial<FinYear>): FinPlan =>
+  (i < 0 || i >= fin.years.length) ? fin : { ...fin, years: fin.years.map((y, j) => (j === i ? { ...y, ...patch } : y)) };
+export const withFinBand = (fin: FinPlan, i: number, band: "neu" | "don" | "dec", patch: Partial<FinBandYear>): FinPlan =>
+  (i < 0 || i >= fin.years.length) ? fin : withFinYear(fin, i, { [band]: { ...fin.years[i][band], ...patch } } as Partial<FinYear>);
+
 // ── Derived. Never stored, so two surfaces cannot disagree. ──────────────────────────────
 /** ASP = list price net of the distribution discount. Derived, never typed. */
 export const aspOf = (b: FinBandYear): number => b.msrpK * (1 - (b.discPct || 0) / 100);
@@ -558,7 +569,9 @@ export function finBaseline(p: Project, baseYear: number): FinPlan {
   // authoritative figures until a human enters real quantities. Turning it on would silently re-derive
   // revenue from a guessed quantity and move numbers nobody edited.
   plan.unitEcon = { neu: false, don: false, dec: false };
-  plan.spendRequestK = Math.round(split.labor + split.subcontractor + split.material + split.other) / rdYears;
+  // Misplaced paren: this rounded the TOTAL and then divided, so the ask rendered as "2733.33333" in the
+  // editor. $K is an integer field — round after the division. (Caught by reading the screenshot, not the diff.)
+  plan.spendRequestK = Math.round((split.labor + split.subcontractor + split.material + split.other) / rdYears);
   return plan;
 }
 /** The plan for a project: whatever a human saved, else the back-solved baseline. Never null, never empty. */
