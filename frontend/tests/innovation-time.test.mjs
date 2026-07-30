@@ -2180,6 +2180,23 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(edOrder.join("|") === shOrder.join("|"),
      `the sheet carries the SAME order as the editor — sheet [${shOrder.join(" → ")}] vs editor [${edOrder.join(" → ")}]`);
 
+  // 5a. BAND ORDER IS THE SAME ON BOTH SURFACES — the level above 5, and it was UNGUARDED until now.
+  //     Measured before writing this (AsM Enlil/Krishna, 2026-07-30): reordering the SHEET's three bands
+  //     while leaving the EDITOR alone left the suite at 2899/2899. So the deck could print Step 1b/2/3 to
+  //     a board while the panel behind it still read Step 2/1b/3, with a green gate — and the comment at
+  //     page.tsx "a lock compares the two lists directly" was true of the METRIC rows (5, above) and false
+  //     of the BANDS. Keyed on don/neu/dec rather than on the display titles, so a retitle cannot silently
+  //     satisfy it and an order change cannot silently escape it.
+  const shBands = [...bandFn2.matchAll(/\.\.\.band\("(don|neu|dec)"/g)].map((m) => m[1]);
+  // The trailing comma is load-bearing: without it this also matches the TYPE ANNOTATION
+  // `BANDS: { key: "don" | "neu" | "dec"; … }[]`, which captures a phantom fourth band and reports
+  // [don → don → neu → dec]. My probe was wrong, not the code — recorded beside the assertion it broke.
+  const edBands = [...ed.matchAll(/\{ key: "(don|neu|dec)",/g)].map((m) => m[1]);
+  ok(shBands.length === 3, `the sheet renders exactly three revenue bands — got [${shBands.join(" → ")}]`);
+  ok(edBands.length === 3, `the editor renders exactly three revenue bands — got [${edBands.join(" → ")}]`);
+  ok(shBands.join("|") === edBands.join("|"),
+     `sheet and editor carry the SAME band order — sheet [${shBands.join(" → ")}] vs editor [${edBands.join(" → ")}]`);
+
   // 5b. THE TOGGLE SAYS WHAT THE OPERATOR CALLED IT, in the new order.
   ok(/\{on \? "Qty · COGS · ASP" : "Rev & Mgn only"\}/.test(pageE1),
      "the toggle reads 'Qty · COGS · ASP' / 'Rev & Mgn only'");
