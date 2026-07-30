@@ -9,7 +9,7 @@
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
 import ReactDOM from "react-dom";
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
@@ -1433,23 +1433,55 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
       </div>
     </div>
   );
+  // ── OP-1 · THE PANEL IS A PORTAL. Third attempt, and the first that addresses the actual causes. ──────
+  // Attempt 1 used `right-0`: the 16rem panel grew LEFTWARD off the page on a phone.
+  // Attempt 2 used `left-0`: it fixed the phone but then covered the BU/SBU/Alpha/Product#/Material# toggle
+  //   sitting immediately to its right on desktop, and did nothing at all for the Growth Model mount —
+  //   whose row is `overflow-x-auto`, and per the CSS Overflow spec that forces `overflow-y` from `visible`
+  //   to `auto`, turning a ~28px-tall row into a scroll container that clips the dropdown in BOTH axes.
+  // No left/right value can fix a clipping ancestor or a sibling collision. So the panel leaves the flow
+  // entirely: rendered into <body> at a FIXED position measured from the trigger, flipped when there is not
+  // enough room below or to the right, and clamped to the real viewport on every edge. Nothing that scrolls,
+  // clips or sits beside the trigger can affect it any more.
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number; maxH: number } | null>(null);
+  const PANEL_W = 256, GAP = 4, EDGE = 8;
+  const place = useCallback(() => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    // Prefer the trigger's left edge; if the panel would cross the right edge, right-align it to the trigger;
+    // if it STILL does not fit (a viewport narrower than the panel), pin it to the left margin.
+    let left = r.left;
+    if (left + PANEL_W > vw - EDGE) left = Math.max(EDGE, r.right - PANEL_W);
+    if (left + PANEL_W > vw - EDGE) left = EDGE;
+    const below = vh - r.bottom - GAP - EDGE;
+    const above = r.top - GAP - EDGE;
+    const flip = below < 200 && above > below;      // open upward only when downward is genuinely cramped
+    const maxH = Math.max(140, Math.min(0.6 * vh, flip ? above : below));
+    setPos({ left, top: flip ? Math.max(EDGE, r.top - GAP - maxH) : r.bottom + GAP, maxH });
+  }, []);
+  useEffect(() => {
+    if (!open) { setPos(null); return; }
+    place();
+    // Re-measure rather than close: a scroll or rotate must not lose the user's half-made selection.
+    const onMove = () => place();
+    window.addEventListener("resize", onMove);
+    window.addEventListener("scroll", onMove, true);   // capture — any ancestor scroll counts
+    return () => { window.removeEventListener("resize", onMove); window.removeEventListener("scroll", onMove, true); };
+  }, [open, place]);
   return (
     <div className="relative">
-      <button onClick={() => setOpen((v) => !v)} aria-expanded={open} title={t("innovation.scope.label")}
+      <button ref={btnRef} onClick={() => setOpen((v) => !v)} aria-expanded={open} title={t("innovation.scope.label")}
         className={`flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] ${count ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
         ⧉ {count ? t("innovation.scope.n").replace("{n}", String(count)) : `${t("innovation.scope.label")}: ${t("innovation.scope.allShort")}`} <span className="text-slate-500">▾</span>
       </button>
-      {open && (
+      {open && pos && typeof document !== "undefined" && ReactDOM.createPortal(
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          {/* OP-1 · ANCHOR LEFT, NEVER RIGHT. `right-0` pinned the 16rem panel's RIGHT edge to the button's
-              right edge, so the panel grew 256px LEFTWARD — and ScopeFilter is the FIRST control in both of
-              its rows (:635 header, :5260 Growth Model), i.e. always hard against the left edge of the page.
-              On a phone the panel therefore hung off-screen and the BU/SBU/Alpha chips were unreachable.
-              left-0 grows it rightward into the space that actually exists. The max-w clamp is the other
-              half: at 390px the panel must still never cross the right edge either, so it shrinks instead
-              of overflowing — no horizontal page scroll in either direction, at any viewport. */}
-          <div className="absolute left-0 z-50 mt-1 max-h-[60vh] w-64 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border border-slate-700 bg-[#0e141b] p-3 shadow-2xl">
+          <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} />
+          <div data-scope-panel role="dialog" aria-label={t("innovation.scope.label")}
+            className="fixed z-[91] overflow-y-auto overscroll-contain rounded-lg border border-slate-700 bg-[#0e141b] p-3 shadow-2xl"
+            style={{ left: pos.left, top: pos.top, width: PANEL_W, maxHeight: pos.maxH }}>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-200">{t("innovation.scope.label")}</span>
               <button onClick={() => onChange({ bu: [], sbu: [], pgroup: [] })} className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:bg-slate-800">{t("innovation.scope.clear")}</button>
@@ -1458,8 +1490,7 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
             {group("sbu", "SBU", sbuOpts)}
             {group("pgroup", t("innovation.scope.alpha"), pgOpts)}
           </div>
-        </>
-      )}
+        </>, document.body)}
     </div>
   );
 }

@@ -1518,14 +1518,25 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const fsp = await import("node:fs/promises");
   const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
   const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
-  ok(/<div className="absolute left-0 z-50 mt-1 max-h-\[60vh\] w-64 max-w-\[calc\(100vw-1\.5rem\)\] overflow-y-auto/.test(src),
-     "ScopeFilter's dropdown is left-anchored AND viewport-clamped — it opens INSIDE a 390px viewport, both edges");
-  // The premise the anchor depends on. Both rows open with the filter, so left-0 is the reachable side.
-  const mounts = src.match(/<div className="flex flex-wrap items-center gap-2">\s*\{\/\*[^]*?\*\/\}\s*<ScopeFilter/)
-    ? 1 : 0;
-  ok(mounts === 1, "the header row opens with ScopeFilter — the premise `left-0` depends on");
-  ok(/text-\[10px\][^]{0,400}?<ScopeFilter projects=\{allProjects\}/.test(src),
-     "the Growth Model control row also opens with ScopeFilter — same premise, same anchor");
+  // THIRD ATTEMPT, and the first that stops asserting a class name. `right-0` shipped broken; `left-0` fixed
+  // the phone and then covered the level toggle on desktop while doing nothing for the Growth Model mount,
+  // whose `overflow-x-auto` row clips in both axes. Both previous locks passed throughout. So:
+  //   (a) the panel must leave the flow entirely — a portal at a fixed, measured position;
+  //   (b) it must be clamped on EVERY edge, not just one;
+  //   (c) no anchor class may come back, because no anchor value can fix a clipping ancestor.
+  ok(/ReactDOM\.createPortal\(\s*<>[^]{0,800}?data-scope-panel/.test(src),
+     "the scope panel is portalled to <body> — no ancestor overflow can clip it");
+  ok(/data-scope-panel[^]{0,400}?className="fixed z-\[91\]/.test(src),
+     "the panel is position:fixed, so a scrolling ancestor cannot move or crop it");
+  ok(/if \(left \+ PANEL_W > vw - EDGE\) left = Math\.max\(EDGE, r\.right - PANEL_W\);/.test(src)
+     && /if \(left \+ PANEL_W > vw - EDGE\) left = EDGE;/.test(src),
+     "horizontal placement flips to right-aligned, then pins to the margin — clamped on BOTH edges");
+  ok(/const flip = below < 200 && above > below;/.test(src),
+     "vertical placement flips upward only when downward is genuinely cramped");
+  ok(/window\.addEventListener\("scroll", onMove, true\)/.test(src),
+     "capture-phase scroll re-measures rather than closing — a half-made selection survives a scroll");
+  ok(!/className="absolute (left|right)-0 z-50 mt-1 max-h-\[60vh\] w-64/.test(src),
+     "neither anchor class returns — no left/right value can fix a clipping ancestor or a sibling collision");
   ok(pkg.scripts["test:all"].includes("npm run test:slide-shots"), "test:all runs the screenshot gate");
 }
 
