@@ -250,6 +250,9 @@ export interface Project {
   // OPTIONAL and UNSET by default: this is the one confidence figure nothing derives, so an absent value
   // must read "—" rather than inherit a number nobody chose. `bizConfOf(p)` is the only reader.
   bizConfPct?: number | null; // one rung of BIZ_CONF_LADDER, or null/undefined when the call is unmade
+  // W-7 · Price Performance: Competition — dragged marker positions, so a position survives a reload.
+  // Absent = the DEFAULT_COMPETITORS set; our own marker is never stored (it is derived from the index).
+  competitors?: WtpMarker[] | null;
   lob: string;                // line of business (portfolio roll-up + growth-model filter)
   nreK: number;               // non-recurring engineering $K (CRS-47)
   fullRev10yM: number;        // 10-yr new-product revenue $M (CRS-49)
@@ -536,6 +539,34 @@ export const BIZ_CONF_LADDER = CONF_LADDER;
 export const bizConfOf = (p: { bizConfPct?: number | null }): number | null => {
   const v = p?.bizConfPct;
   return typeof v === "number" && (BIZ_CONF_LADDER as readonly number[]).includes(v) ? v : null;
+};
+
+// W-7 · PRICE PERFORMANCE: COMPETITION — the strip's markers become DATA, not literals.
+// Operator: "Add Edit mode for and rename to: 'Price Performance: Competition' / Add Comp C / If None,
+// starts with Comp A (may relabel as well) / User drags where left to right on Competitive Bar, then saves,
+// exiting Edit Mode" · and later, with a screenshot: "add edit to drag NBA and other Comp A and Comp B
+// around". So NBA is draggable too — it is a competitor position like any other.
+//
+// OUR OWN MARKER IS NOT IN HERE, DELIBERATELY. It is computed from the competitive index, which is computed
+// from the drivers. Making it draggable would let someone move the picture without moving the number behind
+// it — the exact single-source violation this workstream exists to close.
+export interface WtpMarker { label: string; x: number }   // x is 0..1 across Low → High
+/** ⚠ DEFAULT KEEPS ALL THREE MARKERS, NOT "Comp A only". The operator's "If None, starts with Comp A"
+ *  describes a fresh authoring surface; applying it to the 33 seeded projects would DELETE Comp B and NBA
+ *  from every strip on screen — removing UI nobody asked to remove (rule 6). New competitors are added with
+ *  the "+ Comp" control up to Comp C; every label is renamable. Say the word and the default drops to one. */
+export const DEFAULT_COMPETITORS: readonly WtpMarker[] = [
+  { label: "NBA", x: 0.5 }, { label: "Comp A", x: 0.34 }, { label: "Comp B", x: 0.62 },
+];
+export const clampX = (n: number): number => (Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0.5);
+export const competitorsOf = (p: { competitors?: WtpMarker[] | null }): WtpMarker[] =>
+  (p?.competitors?.length ? p.competitors : DEFAULT_COMPETITORS).map((m) => ({ label: m.label, x: clampX(m.x) }));
+/** The next default label when adding one — A, B, C, then stop. Operator asked for Comp C, not Comp Z. */
+export const MAX_COMPETITORS = 4;   // NBA + Comp A + Comp B + Comp C
+export const nextCompetitorLabel = (cur: WtpMarker[]): string | null => {
+  if (cur.length >= MAX_COMPETITORS) return null;
+  const used = new Set(cur.map((m) => m.label));
+  return ["Comp A", "Comp B", "Comp C"].find((l) => !used.has(l)) ?? null;
 };
 
 /** Columns for the `S8.diffs` read-out. Declared HERE, above `SLIDE_SCHEMA`, because the schema spreads it

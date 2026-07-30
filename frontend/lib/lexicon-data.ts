@@ -1467,7 +1467,11 @@ const innovation: TranslationEntry[] = [
   { key: "innovation.export.outcomeBrief", englishDefault: "Outcome brief", context: "Outcome-brief export button", cubeId: 60 },
   // Digital slide show (S1–S18) — editable HI inputs + AI version toggle
   { key: "innovation.slides.title", englishDefault: "Digital slide show", context: "Slide-show modal title", cubeId: 60 },
-  { key: "innovation.slides.open", englishDefault: "Open slide show", context: "Open the S1–S18 slide show", cubeId: 60 },
+  // W-16 · THE BUTTON NAMES WHAT IT DOES. Operator: "Make this say: Open Digital Presentation Input (takes
+  // you to slide inputs). Then Play presents." "Open slide show" promised a presentation and delivered the
+  // AUTHORING view — the deck opens in Edit mode with the source panel, and Present is a separate control
+  // inside it. Naming the input step is the whole point of a single source of truth being findable.
+  { key: "innovation.slides.open", englishDefault: "Open Digital Presentation Input", context: "Open the S1–S18 deck in INPUT (edit) mode — Play is the separate control that presents", cubeId: 60 },
   { key: "innovation.slides.openThis", englishDefault: "Open this slide", context: "Open the slide show at this slide", cubeId: 60 },
   { key: "innovation.slides.authored", englishDefault: "authored", context: "Slide-show progress: slides authored", cubeId: 60 },
   { key: "innovation.slides.hi", englishDefault: "HI", context: "Slide-show human-input lens label", cubeId: 60 },

@@ -54,10 +54,10 @@ import {
   incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, driverValueM, driverTone, importanceBars,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
-  BIZ_CONF_LADDER, bizConfOf,
+  BIZ_CONF_LADDER, bizConfOf, competitorsOf, clampX, nextCompetitorLabel, type WtpMarker,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
-import { Settings, FileText, Lightbulb } from "lucide-react"; // settings gear + Template/New-Idea icons
+import { Settings, FileText, Lightbulb, Save } from "lucide-react"; // settings gear + Template/New-Idea icons + W-7 disk Save (the ONE save glyph, matching Architect-2525)
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
 
@@ -1304,10 +1304,129 @@ function VsNba({ tone }: { tone: "pos" | "neutral" | "neg" }) {
   return <span title={label} aria-label={label} style={{ color }} className="text-[11px] leading-none">{glyph}</span>;
 }
 
-function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, big }: {
+/** W-7 · PRICE PERFORMANCE: COMPETITION — the strip, renamed and made editable.
+ *
+ *  Operator: "Add Edit mode for and rename to: 'Price Performance: Competition' / Add Comp C / If None,
+ *  starts with Comp A (may relabel as well) / User drags where left to right on Competitive Bar, then saves,
+ *  exiting Edit Mode. Use Save icon (Standard disk). Never use a pin" — and, with a screenshot,
+ *  "Clean this up and add edit to drag NBA and other Comp A and Comp B around."
+ *
+ *  ⚠ OUR OWN MARKER IS NOT DRAGGABLE, DELIBERATELY. Its position is the competitive index, which is computed
+ *  from the drivers. Letting it be dragged would move the picture without moving the number behind it — the
+ *  exact single-source violation this whole workstream exists to close. It is drawn, never grabbed.
+ *
+ *  POINTER EVENTS, NOT MOUSE EVENTS. A marker drag mutates the subtree being touched, and a touch drag dies
+ *  on any re-render that does that — the idiom is taken from `mission-planning.tsx`'s mini-map grip, which
+ *  learned it the hard way. `touch-none` stops the browser scrolling the page instead of moving the marker.
+ *
+ *  EDITS ARE STAGED, NOT LIVE. Dragging mutates a local draft; the disk button commits it and leaves edit
+ *  mode, and Cancel discards. That is what the operator described ("then saves, exiting Edit Mode") and it
+ *  also means a half-finished drag never reaches the record. */
+function CompetitionStrip({ p, ours, oursLabel, onSave }: {
+  p: Project; ours: number; oursLabel: string; onSave?: (c: WtpMarker[]) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<WtpMarker[]>([]);
+  const barRef = useRef<HTMLDivElement | null>(null);
+  const dragging = useRef<number | null>(null);
+  const saved = competitorsOf(p);
+  const marks = editing ? draft : saved;
+
+  // The strip's usable track is inset 6%..94% (the Low/High captions own the ends), so screen x maps back
+  // through the SAME constants the markers are positioned with — one geometry, not two that drift.
+  const X0 = 6, SPAN = 88;
+  const xFromEvent = (clientX: number) => {
+    const r = barRef.current?.getBoundingClientRect();
+    if (!r || r.width <= 0) return 0.5;
+    return clampX(((clientX - r.left) / r.width * 100 - X0) / SPAN);
+  };
+  const onMove = (e: React.PointerEvent) => {
+    if (dragging.current === null) return;
+    const i = dragging.current, x = xFromEvent(e.clientX);
+    setDraft((d) => d.map((m, j) => (j === i ? { ...m, x } : m)));
+  };
+  const endDrag = (e: React.PointerEvent) => {
+    if (dragging.current === null) return;
+    try { (e.target as Element).releasePointerCapture?.(e.pointerId); } catch { /* capture may already be gone */ }
+    dragging.current = null;
+  };
+  const startEdit = () => { setDraft(saved.map((m) => ({ ...m }))); setEditing(true); };
+  const commit = () => { onSave?.(draft.map((m) => ({ label: m.label.trim() || "Comp", x: clampX(m.x) }))); setEditing(false); };
+  const addOne = () => { const l = nextCompetitorLabel(draft); if (l) setDraft([...draft, { label: l, x: 0.5 }]); };
+
+  return (
+    <div className="mt-2">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <div className="text-[10px] text-slate-400">Price Performance: Competition</div>
+        {onSave && (editing ? (
+          <div className="flex items-center gap-1">
+            <button onClick={addOne} disabled={!nextCompetitorLabel(draft)}
+              className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-300 hover:border-cyan-500 hover:text-cyan-300 disabled:opacity-40"
+              title={nextCompetitorLabel(draft) ? `Add ${nextCompetitorLabel(draft)}` : "Comp A, B and C are all placed"}>+ Comp</button>
+            <button onClick={() => setEditing(false)}
+              className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-slate-200">Cancel</button>
+            {/* THE DISK, NOT A PIN (operator: "Use Save icon (Standard disk). Never use a pin"). Same lucide
+                `Save` already used by Architect-2525's design library — one save glyph across the tool. */}
+            <button onClick={commit} aria-label="Save competitor positions"
+              className="flex items-center gap-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300 hover:bg-cyan-500/20">
+              <Save className="h-3 w-3" aria-hidden /> Save
+            </button>
+          </div>
+        ) : (
+          <button onClick={startEdit} aria-label="Edit competitor positions"
+            className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 hover:border-cyan-500 hover:text-cyan-300">✎ Edit</button>
+        ))}
+      </div>
+      <div ref={barRef} onPointerMove={onMove} onPointerUp={endDrag} onPointerCancel={endDrag}
+           className={`relative h-9 rounded border bg-[#0e141b] ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
+        <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
+        {marks.map((m, i) => (
+          <div key={`${m.label}-${i}`} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${X0 + m.x * SPAN}%`, maxWidth: "22%" }}>
+            <div
+              onPointerDown={editing ? (e) => { dragging.current = i; (e.target as Element).setPointerCapture?.(e.pointerId); } : undefined}
+              role={editing ? "slider" : undefined} tabIndex={editing ? 0 : undefined}
+              aria-label={editing ? `${m.label} price-performance position` : undefined}
+              aria-valuemin={editing ? 0 : undefined} aria-valuemax={editing ? 100 : undefined}
+              aria-valuenow={editing ? Math.round(m.x * 100) : undefined}
+              // Keyboard is not an afterthought: a drag-only control is unusable without a pointer, and the
+              // arrow keys move by the same 1% the pointer resolves to.
+              onKeyDown={editing ? (e) => {
+                const d = e.key === "ArrowLeft" ? -0.01 : e.key === "ArrowRight" ? 0.01 : 0;
+                if (!d) return; e.preventDefault();
+                setDraft((cur) => cur.map((c, j) => (j === i ? { ...c, x: clampX(c.x + d) } : c)));
+              } : undefined}
+              className={`mx-auto h-2.5 w-2.5 rounded-full ${editing ? "h-3.5 w-3.5 cursor-grab ring-2 ring-cyan-400/60 active:cursor-grabbing" : ""}`}
+              style={{ background: m.label === "NBA" ? "#64748b" : "#94a3b8" }} />
+            {editing ? (
+              <input value={m.label} onChange={(e) => setDraft((d) => d.map((c, j) => (j === i ? { ...c, label: e.target.value } : c)))}
+                aria-label={`${m.label} label`}
+                className="mt-0.5 w-full bg-transparent text-center text-[7px] leading-tight text-slate-300 outline-none focus:text-cyan-300" />
+            ) : (
+              /* The MARKER is positioned; its label wraps within a share of the strip, so a long product
+                 name at either end folds instead of running off the edge. */
+              <div className="mt-0.5 break-words text-center text-[7px] leading-tight text-slate-400">{m.label}</div>
+            )}
+          </div>
+        ))}
+        {/* OURS — derived from the competitive index, drawn last so it sits above the competitors, and never
+            given a pointer handler even in edit mode. */}
+        <div className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${X0 + clampX(ours) * SPAN}%`, maxWidth: "22%" }}>
+          <div className="mx-auto h-2.5 w-2.5 rounded-full" style={{ background: "#3b82f6" }} />
+          <div className="mt-0.5 break-words text-center text-[7px] leading-tight text-blue-300">{oursLabel}</div>
+        </div>
+        <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>
+        <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>
+      </div>
+      {editing && <div className="mt-0.5 text-[9px] text-slate-500">Drag a marker (or use ← →) — your own position is computed from the competitive index and cannot be moved.</div>}
+    </div>
+  );
+}
+
+function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, big }: {
   p: Project; mode: VPMode;
   drivers?: ValueDriver[]; onChange?: (d: ValueDriver[]) => void;
-  nbaLabel?: string; addressableRevM?: number; onGenerate?: () => void; big?: boolean;
+  nbaLabel?: string; addressableRevM?: number; onGenerate?: () => void;
+  onCompetitors?: (c: WtpMarker[]) => void; big?: boolean;
 }) {
   const { t } = useLexicon();
   // ONE RECORD. When a caller is authoring it passes its own draft; otherwise the project's own drivers are
@@ -1364,8 +1483,6 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const money = (v: number) => `${v < 0 ? "−" : ""}${Math.round(Math.abs(v))}`;
   // WTP positioning — Low→High price-performance; markers deterministic from the competitive index.
   const ci = Math.max(0, Math.min(1, ve.competitiveIndex / 100));
-  const wtpMarkers = [{ label: "NBA", x: 0.5, c: "#64748b" }, { label: "Comp A", x: 0.34, c: "#94a3b8" },
-                      { label: "Comp B", x: 0.62, c: "#94a3b8" }, { label: (p.name || "Ours").split(" ")[0], x: ci, c: "#3b82f6" }];
 
   const chart = (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "7cqh" } : { height: "auto" }}
@@ -1468,27 +1585,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
       )}
       {/* CHART FIRST, ALWAYS (operator: "Place chart at Top" · "Value Prop Image on top"). */}
       {chart}
-      {/* ⚠ THE WTP STRIP CAME ACROSS WITH THE CHART, and the first draft of this merge DROPPED IT — a
-          regression I created, caught by the V4 lock rather than by the operator. It only ever lived on
-          `S8ValueChart`, so folding that component in without carrying the strip silently deleted UI nobody
-          asked to remove (rule 6). W-7 renames it "Price Performance: Competition" and makes the markers
-          draggable; until then it renders exactly as it did. */}
-      <div className="mt-2">
-        <div className="mb-1 text-[10px] text-slate-400">Willingness-to-pay · price-performance positioning</div>
-        <div className="relative h-6 rounded border border-slate-800 bg-[#0e141b]">
-          <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
-          {wtpMarkers.map((m) => (
-            <div key={m.label} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${6 + m.x * 88}%`, maxWidth: "22%" }}>
-              <div className="mx-auto h-2.5 w-2.5 rounded-full" style={{ background: m.c }} />
-              {/* The MARKER is positioned; its label wraps within a share of the strip, so a long product
-                  name at either end folds instead of running off the edge. */}
-              <div className="mt-0.5 break-words text-center text-[7px] leading-tight text-slate-400">{m.label}</div>
-            </div>
-          ))}
-          <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>
-          <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>
-        </div>
-      </div>
+      <CompetitionStrip p={p} ours={ci} oursLabel={(p.name || "Ours").split(" ")[0]} onSave={onCompetitors} />
       {table}
       {mode === "edit" && onGenerate && (
         <div className="flex justify-end pt-1">
@@ -1791,16 +1888,19 @@ function DogTag({ p, onEditFinancials }: { p: Project; onEditFinancials?: () => 
 // ⚠ IT NO LONGER RENDERS SLIDERS. Operator, explicitly: "On project tab with Value prop, remove sliders
 // (sliders only for S8)." The `mode` a caller passes decides that; NewIdeaModal and the S8 source panel
 // author, the project deep-dive reads.
-function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGenerate, project, mode = "edit" }: {
+function ValueEquationPanel({ drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, project, mode = "edit" }: {
   drivers: ValueDriver[]; onChange: (d: ValueDriver[]) => void; nbaLabel: string; addressableRevM: number;
   onGenerate?: () => void; project?: Project; mode?: "read" | "edit";
+  // W-7 · absent in read/slide consumers, so the strip is read-only there and editable only where the
+  // record is authored. Passing the writer IS the permission — no separate `canEdit` flag to fall out of sync.
+  onCompetitors?: (c: WtpMarker[]) => void;
 }) {
   // A caller without a project (the New Idea form, where none exists yet) gets a minimal stand-in: the chart
   // reads only `valueDrivers` and the addressable revenue, both of which are passed explicitly.
   const p = project ?? ({ id: "new", name: "New idea", valueDrivers: drivers } as unknown as Project);
   return (
     <div className="rounded-lg border border-amber-500/25 bg-amber-500/[0.03] p-3">
-      <ValueProp p={p} mode={mode} drivers={drivers} onChange={onChange} nbaLabel={nbaLabel}
+      <ValueProp p={p} mode={mode} drivers={drivers} onChange={onChange} nbaLabel={nbaLabel} onCompetitors={onCompetitors}
                  addressableRevM={addressableRevM} onGenerate={onGenerate} />
     </div>
   );
@@ -2583,7 +2683,7 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
       {/* Edit + Approvals bar */}
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
         <button onClick={() => setEditing((e) => !e)} className={`rounded border px-2 py-0.5 ${editing ? "border-cyan-500 text-cyan-300 bg-cyan-500/10" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>{editing ? "✕ Cancel" : "✎ Edit"}</button>
-        {editing && <button onClick={saveEdit} className="rounded bg-cyan-500 px-2 py-0.5 font-semibold text-[#06202a] hover:bg-cyan-400">Save</button>}
+        {editing && <button onClick={saveEdit} className="inline-flex items-center gap-1 rounded bg-cyan-500 px-2 py-0.5 font-semibold text-[#06202a] hover:bg-cyan-400"><Save className="h-3 w-3" aria-hidden /> Save</button>}
         <span className="ml-auto text-[10px] uppercase tracking-wider text-slate-500">Gate approval:</span>
         {([["◬", "AI"], ["♡", "SI"], ["웃", "HI"]] as const).map(([g, by]) => (
           <button key={by} onClick={() => onApprove("approve", `${g} ${by}`)} title={`Approve as ${by}`}
@@ -3544,11 +3644,10 @@ const MarkClock = () => (
     <circle cx="8" cy="8" r="6.2" /><path d="M8 4.4V8l2.6 1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-const MarkPin = () => (
-  <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
-    <path d="M8 14.2V9.4M5 2h6l-.7 3.1 1.9 2.1a.7.7 0 0 1-.5 1.2H5.3a.7.7 0 0 1-.5-1.2l1.9-2.1L5 2Z" strokeLinejoin="round" />
-  </svg>
-);
+// W-7b · `MarkPin` IS GONE. Operator: "Use Save icon (Standard disk). Never use a pin, change all Save to
+// Disk icon." It drew a pushpin on "Save version" — the one control in this deck that literally saves. The
+// replacement is lucide `Save`, the SAME disk Architect-2525's design library already uses
+// (components/architect-2525/architect-projects.tsx), so the tool has one save glyph rather than three.
 
 // ── S10 · the two Rack & Stack tables, read-only on the sheet ────────────────────────────
 // Money is $K to match what is entered; an em-dash for anything undefined, so a board never reads a computed
@@ -5174,10 +5273,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                     <ValueEquationPanel project={p}
                       drivers={s8Drivers} onChange={setS8Drivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
                       onGenerate={() => onEditSource({ valueDrivers: s8Drivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: s8Drivers }), valuePropSource: "HI" }, ["value prop generated from the Value Equation vs NBA"])}
+                      // W-7 · ONLY the S8 source panel passes this, so the strip is editable exactly where
+                      // the record is authored and read-only on the slide and in the deep dive. The audit
+                      // line names the positions, so the ledger records WHAT moved, not just that it did.
+                      onCompetitors={(c) => onEditSource({ competitors: c },
+                        [`competitor positions → ${c.map((m) => `${m.label} ${Math.round(m.x * 100)}%`).join(" · ")}`])}
                     />
                     <div className="flex justify-end">
                       <button onClick={() => onEditSource({ valueDrivers: s8Drivers }, [`value drivers: ${s8Drivers.length} vs NBA`])}
-                        className="rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400">Save drivers</button>
+                        className="inline-flex items-center gap-1 rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400"><Save className="h-3 w-3" aria-hidden /> Save drivers</button>
                     </div>
                   </div>
                 )}
@@ -5262,8 +5366,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           conversation with the SBU/BU Director or VP — so a discrete rung is the correct
                           instrument, and there is no second source for it to disagree with.
                           UNSET BY DEFAULT: an unmade call reads "—", never a number nobody chose. */}
-                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Business Confidence
-                        <span className="text-slate-600"> · PdM / PgM</span>
+                      {/* ONE LINE (operator: "Becomes one line: Business Confidence · PdM / PgM"). The
+                          caption was a `<span>` sibling inside a `flex-col`, so it took a row of its own and
+                          pushed this control's select a line below Tech Risk's and Comm Risk's — the whole
+                          row stopped aligning. A nested flex-row keeps the two texts on one baseline, so the
+                          three selects sit level again. `whitespace-nowrap` on the qualifier stops it
+                          re-wrapping at the narrow end of the grid, which is where it started. */}
+                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">
+                        <span className="flex items-baseline gap-1">
+                          Business Confidence
+                          <span className="whitespace-nowrap text-slate-600">· PdM / PgM</span>
+                        </span>
                         <select value={bizConfOf(p) ?? ""}
                           onChange={(e) => onEditSource({ bizConfPct: e.target.value === "" ? null : +e.target.value } as Partial<Project>,
                                                         [`Business Confidence → ${e.target.value === "" ? "—" : `${e.target.value}%`}`])}
@@ -5332,7 +5445,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                   className="rounded border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-slate-800"><MarkClock /> {showReplay ? "Hide" : "History / Replay"} <span className="tabular-nums text-slate-500">({slideVersions.length})</span></button>
                 <input id="ver-comment" placeholder="Comment for this version…" className="min-w-0 flex-1 rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-cyan-500" />
                 <button onClick={() => { const el = document.getElementById("ver-comment") as HTMLInputElement | null; const c = (el?.value || "").trim() || "Working update saved."; const sub = captureVersion("submitted", c, p.manager); if (el) el.value = ""; setShowReplay(true); setVIdx(slideVersions.length); if (sub) alert("Substantial change (≥10%) — this version needs Lead approval before it becomes the baseline."); }}
-                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20"><MarkPin /> Save version</button>
+                  className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/20"><Save className="h-3 w-3" aria-hidden /> Save version</button>
               </div>
               {showReplay && (slideVersions.length === 0 ? (
                 <div className="px-3 pb-3 text-[11px] italic text-slate-500">No versions yet — save one, or approve the slide, to start the history.</div>
@@ -6823,7 +6936,11 @@ function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect }
     return { year: (rows[0]?.[y]?.year ?? 2026), marginM, rdM, cum: run };
   });
   const tiles: { label: string; value: string; sub?: string; tone?: "green" | "cyan" | "amber" }[] = [
-    { label: "Projects", value: `${projects.length}`, sub: `${funded.length} funded` },
+    // W-15 · THE TILE LEADS WITH THE DECISION, NOT THE INVENTORY (operator: "Projects should be 15 / 33
+    // Funded … Funded (Funded/Submitted)"). It read `33` big with `15 funded` as a whisper underneath, so
+    // the headline number was the one nobody acts on. `funded / submitted` is the same ratio the Rack &
+    // Stack KPI strip already prints at page.tsx:583 — one format for one fact, on both surfaces.
+    { label: "Projects", value: `${funded.length} / ${projects.length}`, sub: "Funded (Funded/Submitted)" },
     { label: "R&D efficiency", value: `${eff.toFixed(2)}×`, sub: "NPV per $ NRE", tone: "green" },
     { label: "10-Yr NPV", value: usd(npvTotal), sub: "funded", tone: "green" },
     { label: "Incremental Rev", value: usd(incrTotal), sub: "10-yr funded", tone: "cyan" },

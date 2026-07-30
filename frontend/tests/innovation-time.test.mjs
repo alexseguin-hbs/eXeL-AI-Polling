@@ -4230,5 +4230,83 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "beforeunload is NOT relied on — it does not fire reliably on iOS Safari");
 }
 
+// ── W-7 · PRICE PERFORMANCE: COMPETITION — editable markers, and the disk-not-pin convention ─────────
+{
+  const F = await import("../lib/innovation-data.ts");
+  const fspW7 = await import("node:fs/promises");
+  const srcW7 = await fspW7.readFile("app/innovation/page.tsx", "utf8");
+  const codeW7 = srcW7.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");   // the W-2 lesson
+
+  // (a) THE RENAME, and the old caption gone. Operator: "rename to: 'Price Performance: Competition'".
+  ok(/Price Performance: Competition/.test(codeW7), "the strip is captioned Price Performance: Competition");
+  ok(!/Willingness-to-pay · price-performance positioning/.test(codeW7), "the old caption is gone, not duplicated");
+
+  // (b) MARKERS ARE DATA. Executed, not read: every project resolves a marker set, every x is inside 0..1,
+  //     and NOTHING is written to a seeded project until someone drags — zero drift on open.
+  let bad = 0, seeded = 0;
+  for (const q of F.DEMO_PROJECTS) {
+    const c = F.competitorsOf(q);
+    if (!c.length || c.some((m) => !(m.x >= 0 && m.x <= 1) || !m.label)) bad++;
+    if (q.competitors && q.competitors.length) seeded++;
+  }
+  ok(bad === 0, `every project resolves a valid competitor set (${bad} invalid)`);
+  ok(seeded === 0, "no seeded project stores competitor positions — the default is used until someone drags");
+  ok(F.competitorsOf({}).length === 3, "the default keeps NBA + Comp A + Comp B — no marker vanishes from any strip");
+  ok(F.clampX(-4) === 0 && F.clampX(9) === 1 && F.clampX(0.42) === 0.42, "positions are clamped to the track");
+  ok(F.clampX(NaN) === 0.5, "a non-finite position falls back to centre rather than rendering off-strip");
+
+  // (c) COMP C, AND THEN STOP. Operator asked for Comp C, not an unbounded list.
+  const base = F.competitorsOf({});
+  ok(F.nextCompetitorLabel(base) === "Comp C", "the next label after NBA/A/B is Comp C");
+  ok(F.nextCompetitorLabel([...base, { label: "Comp C", x: 0.8 }]) === null, "there is no Comp D — the control disables");
+
+  // (d) OUR OWN MARKER IS NEVER DRAGGED. Its position is the competitive index; making it draggable would
+  //     move the picture without moving the number. Asserted structurally, since that is where it can regress.
+  const strip = codeW7.slice(codeW7.indexOf("function CompetitionStrip"), codeW7.indexOf("function ValueProp"));
+  ok(strip.length > 0, "the strip is its own component");
+  ok(/pointer-events-none[^"]*absolute[\s\S]{0,200}clampX\(ours\)/.test(strip),
+     "the 'ours' marker is pointer-events-none and positioned from the index — it cannot be grabbed");
+  // POINTER events, never mouse — a touch drag dies on any re-render that mutates the touched subtree.
+  ok(/onPointerDown/.test(strip) && /onPointerMove/.test(strip), "dragging uses pointer events");
+  ok(!/onMouseDown/.test(strip), "no mouse-only drag handler — that breaks every touch device");
+  ok(/touch-none/.test(strip), "the track disables browser panning while editing, or the page scrolls instead");
+  // Drag-only is unusable without a pointer.
+  ok(/ArrowLeft/.test(strip) && /ArrowRight/.test(strip), "markers are keyboard-adjustable, not drag-only");
+  ok(/role=\{editing \? "slider"/.test(strip), "an editable marker announces itself as a slider");
+
+  // (e) EDITS ARE STAGED. Operator: "then saves, exiting Edit Mode" — a half-finished drag must not persist.
+  ok(/const commit = \(\) => \{ onSave\?\.\(/.test(strip), "Save is the only writer; dragging touches a local draft");
+  ok(/setEditing\(false\)/.test(strip), "saving leaves edit mode");
+}
+
+// ── W-7b · THE SAVE ICON IS A DISK, REPO-WIDE. "Never use a pin." ────────────────────────────────────
+{
+  const fspSave = await import("node:fs/promises");
+  const pageSave = await fspSave.readFile("app/innovation/page.tsx", "utf8");
+  const code = pageSave.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  // The pin is banned by NAME, because that is the thing the operator called out. `MarkPin` was the glyph
+  // on "Save version"; it is now the lucide disk that Architect-2525 already uses.
+  ok(!/MarkPin/.test(code), "no MarkPin remains — the pin glyph the operator banned is gone");
+  ok(/import \{[^}]*\bSave\b[^}]*\} from "lucide-react"/.test(code),
+     "the disk comes from lucide, the same glyph Architect-2525's design library already uses");
+  // Every save control in this deck carries it — counted, so a fourth added later cannot ship bare.
+  const saves = [...code.matchAll(/>\s*(?:<Save[^>]*\/>\s*)?Save[^<]*</g)];
+  ok(saves.length >= 3, `every save control is accounted for (found ${saves.length})`);
+  ok(saves.every((m) => /<Save/.test(m[0])), `every save control renders the disk — bare: ${saves.filter((m) => !/<Save/.test(m[0])).map((m) => m[0].trim()).join(" | ")}`);
+}
+
+// ── W-15 · THE PROJECTS TILE LEADS WITH THE DECISION ─────────────────────────────────────────────────
+// Operator: "Projects should be 15 / 33 Funded … Funded (Funded/Submitted)". It read `33` big with
+// `15 funded` as a whisper, so the headline was the number nobody acts on.
+{
+  const fspW15 = await import("node:fs/promises");
+  const srcW15 = await fspW15.readFile("app/innovation/page.tsx", "utf8");
+  const code = srcW15.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(/label: "Projects", value: `\$\{funded\.length\} \/ \$\{projects\.length\}`/.test(code),
+     "the Projects tile leads with funded / submitted, not the raw count");
+  ok(/sub: "Funded \(Funded\/Submitted\)"/.test(code), "the subtitle names the ratio the operator asked for");
+  ok(!/sub: `\$\{funded\.length\} funded`/.test(code), "the old 'N funded' whisper is gone, not left beside it");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
