@@ -88,3 +88,8 @@ docs/security-2525/wireframe/__pycache__/
 *.tmp.mjs
 *.tmp.js
 frontend/probe.*
+
+# Generated PDF gate artifacts (KEEP=1 node scripts/pdf-gate.mjs) — regenerated every run, never tracked.
+# The reference PNGs in the same directory ARE tracked; only the PDFs churn.
+docs/feedback/shots/*.pdf
+frontend/scripts/_probe-*.mjs
