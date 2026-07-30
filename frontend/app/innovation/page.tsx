@@ -4141,16 +4141,25 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // zoom viewport), which is exactly why the bug survived the +/- verification.
   // Mouse pointers are ignored so a desktop click-drag still cannot page the deck. `touchAction: "none"` on
   // the stage root (below) is what makes pointermove fire at all for touch — do not remove it.
-  const ptrs = useRef(new Map<number, { clientX: number; clientY: number }>());
+  // Live pointers, in the order they touched down — a plain array, so [0] and [1] are the same two fingers
+  // `touches[0]`/`touches[1]` used to be.
+  const ptrs = useRef<{ id: number; clientX: number; clientY: number }[]>([]);
   const touchX = useRef<number | null>(null);
   const pinchDist = useRef(0);
   const startZoom = useRef(1);
   const pinching = useRef(false);
-  const spread = () => { const [a, b] = [...ptrs.current.values()]; return a && b ? touchDistance(a, b) : 0; };
+  const spread = () => (ptrs.current.length >= 2 ? touchDistance(ptrs.current[0], ptrs.current[1]) : 0);
+  /** Record/refresh one pointer. Returns false when the pointer was not already being tracked. */
+  const track = (e: React.PointerEvent, add: boolean) => {
+    const i = ptrs.current.findIndex((q) => q.id === e.pointerId);
+    if (i < 0) { if (!add) return false; ptrs.current.push({ id: e.pointerId, clientX: e.clientX, clientY: e.clientY }); return true; }
+    ptrs.current[i] = { id: e.pointerId, clientX: e.clientX, clientY: e.clientY };
+    return true;
+  };
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === "mouse") return;
-    ptrs.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-    if (ptrs.current.size >= 2) {
+    track(e, true);
+    if (ptrs.current.length >= 2) {
       pinching.current = true;
       pinchDist.current = spread();
       startZoom.current = zoom;
@@ -4160,16 +4169,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     touchX.current = e.clientX;
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!ptrs.current.has(e.pointerId)) return;
-    ptrs.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-    if (!pinching.current || ptrs.current.size < 2) return;
+    if (!track(e, false)) return;
+    if (!pinching.current || ptrs.current.length < 2) return;
     setZoom(pinchZoom(startZoom.current, pinchDist.current, spread()));
   };
   // pointerup AND pointercancel land here: a cancelled pointer that never cleared `pinching` would leave the
   // swipe handler dead for the rest of the session.
   const onPointerUp = (e: React.PointerEvent) => {
-    if (!ptrs.current.delete(e.pointerId)) return;
-    if (pinching.current) { if (ptrs.current.size === 0) { pinching.current = false; pinchDist.current = 0; } return; }
+    const i = ptrs.current.findIndex((q) => q.id === e.pointerId);
+    if (i < 0) return;
+    ptrs.current.splice(i, 1);
+    if (pinching.current) { if (ptrs.current.length === 0) { pinching.current = false; pinchDist.current = 0; } return; }
     if (touchX.current == null) return;
     const dx = e.clientX - touchX.current;
     // ZOOMED IN, A DRAG PANS — IT DOES NOT PAGE. Once the zoom transform lives on the slide body, the body
