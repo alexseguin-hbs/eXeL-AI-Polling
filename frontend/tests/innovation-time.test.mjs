@@ -4201,5 +4201,34 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/type="range"[^>]*bizConf/.test(codeW13), "it is a discrete picker, not a slider — rungs, not a continuum");
 }
 
+// ── W-14 · FLUID NUMBER ENTRY — A PURE UPDATER AND A GUARDED, DEBOUNCED WRITE ────────────────────────
+// Operator: "Input fields allow for one number, then it takes me off; need fluid number entry for all Value
+// Prop numbers." Their screenshot showed `VALUE CAPTURE % 3` after typing 33 — a DROPPED KEYSTROKE.
+{
+  const fspW14 = await import("node:fs/promises");
+  const srcW14 = await fspW14.readFile("app/innovation/page.tsx", "utf8");
+  const codeW14 = srcW14.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");   // the W-2 lesson
+
+  // (a) THE UPDATER IS PURE. This is the defect itself: `writeFieldBags` JSON-serialises the whole portfolio
+  //     bag AND fires a Supabase write, and it ran INSIDE `setBags` — so every character paid for both, twice
+  //     over in StrictMode. Asserted on the updater body, not on the file, so an unrelated caller is fine.
+  const upd = codeW14.slice(codeW14.indexOf("const writeCell ="), codeW14.indexOf("const setActive ="));
+  ok(upd.length > 0 && !/writeFieldBags/.test(upd),
+     "the setBags updater is PURE — no persistence inside a React state updater");
+
+  // (b) THE GUARD, WHICH IS THE LOAD-BEARING PART. `bags` initialises to `{}`; an unguarded effect persists
+  //     that empty object on first render and wipes every authored field. Mutation-tested by removing it.
+  ok(/if \(!hydrated\.current\) return;/.test(codeW14),
+     "nothing is persisted before hydration — an unguarded effect would write {} over the whole record");
+  ok(/hydrated\.current = true/.test(codeW14), "hydration flips the guard once the real bag is loaded");
+
+  // (c) DEBOUNCED, AND NOTHING IS LOST ON EXIT. `pagehide` — not `beforeunload`, which does not fire
+  //     reliably on iOS Safari, the operator's own device.
+  ok(/setTimeout\(\(\) => \{ writeFieldBags\(snapshot\)/.test(codeW14), "the write is deferred, not per-keystroke");
+  ok(/addEventListener\("pagehide"/.test(codeW14), "the pending write is flushed on tab close / backgrounding");
+  ok(!/addEventListener\("beforeunload"[^)]*flushBags/.test(codeW14),
+     "beforeunload is NOT relied on — it does not fire reliably on iOS Safari");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

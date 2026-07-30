@@ -4168,6 +4168,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   const start = Math.max(0, SLIDE_SCHEMA.findIndex((s) => s.code === startSlide));
   const [idx, setIdx] = useState(start < 0 ? 0 : start);
   const [bags, setBags] = useState<Record<string, ProjFieldBag>>({});
+  // W-14 · `bags` starts EMPTY and is filled by the hydrate effect. Nothing may persist until that has run,
+  // or the first render writes `{}` over every authored field. See the debounced writer below.
+  const hydrated = useRef(false);
   const [status, setStatus] = useState<Record<string, string>>({});
   const [present, setPresent] = useState(false);
   const vp = useViewport(); // G2 — present mode adapts to portrait/landscape so the slide is readable on a phone
@@ -4220,7 +4223,31 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   const [showReplay, setShowReplay] = useState(false);
   const [vIdx, setVIdx] = useState(0);
   const [srcOpen, setSrcOpen] = useState(!!openSource); // "edit source record" panel (single source of truth) — F2: deep-link opens it expanded
-  useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); setGov({ activity: readAudit(), members: readMembers(), board: loadReviewBoard() }); setVersions(mergeSlideVersions(readVersions()[p.id] ?? [], buildDemoVersionSeed(p))); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setBags(readFieldBags()); setStatus(readStore(SLIDE_KEY)); setGov({ activity: readAudit(), members: readMembers(), board: loadReviewBoard() }); setVersions(mergeSlideVersions(readVersions()[p.id] ?? [], buildDemoVersionSeed(p))); hydrated.current = true; }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // W-14 · THE OTHER HALF: persistence is debounced, and NEVER runs before hydration.
+  //
+  // ⚠ THE GUARD IS THE LOAD-BEARING PART, NOT THE DEBOUNCE. `bags` initialises to `{}` and is filled by the
+  // hydrate effect above. A naive `useEffect(… , [bags])` therefore fires ONCE WITH `{}` on first render and
+  // persists an empty object — wiping every authored field in local storage AND in Supabase before the user
+  // has touched anything. `hydrated` blocks that first pass; nothing is written until real data is loaded.
+  //
+  // NOTHING IS LOST ON EXIT. The timer is flushed synchronously on unmount and on `pagehide`, which fires on
+  // tab close, navigation and mobile backgrounding (`beforeunload` does not fire reliably on iOS Safari —
+  // the operator's own device). So the worst case is that a keystroke is persisted 400ms late, never never.
+  const flushBags = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (!hydrated.current) return;
+    const snapshot = bags;                        // capture, so a later render cannot persist a stale object
+    const id = setTimeout(() => { writeFieldBags(snapshot); flushBags.current = null; }, 400);
+    flushBags.current = () => { clearTimeout(id); writeFieldBags(snapshot); flushBags.current = null; };
+    const onHide = () => flushBags.current?.();
+    window.addEventListener("pagehide", onHide);
+    return () => { window.removeEventListener("pagehide", onHide); clearTimeout(id); };
+  }, [bags]);
+  // Unmount is its own effect: the cleanup above clears the timer on EVERY bags change, so a flush written
+  // there would fire on every keystroke and undo the debounce entirely. This one runs only on teardown.
+  useEffect(() => () => { flushBags.current?.(); }, []);
   const spec = SLIDE_SCHEMA[idx];
   const bag = bags[p.id] || {};
   // Fall back to the 12-AsM authored seed when the user hasn't authored a cell: seeded HI shows by default;
@@ -4250,11 +4277,26 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     }
     return v;
   };
+  // W-14 · FLUID NUMBER ENTRY. Operator: "Input fields allow for one number, then it takes me off; need
+  // fluid number entry for all Value Prop numbers." Their screenshot showed `VALUE CAPTURE % 3` after
+  // typing 33 — a dropped character, not a rendering bug.
+  //
+  // THE CAUSE, LOCATED NOT GUESSED. `writeFieldBags` (page.tsx, above) does TWO expensive things:
+  //   lsSet(KEY, JSON.stringify(obj))   — serialises the ENTIRE portfolio bag, every project, every slide
+  //   void saveState("slide-fields", …) — and fires a Supabase write
+  // It was called INSIDE the `setBags` updater, so both ran on EVERY KEYSTROKE — and a state updater must be
+  // pure, because React invokes it twice in StrictMode, doubling the work again. A controlled input whose
+  // parent does O(whole-portfolio) work per character loses keystrokes and drops the caret.
+  //
+  // THE FIX IS TWO SEPARATIONS, NOT A REWRITE OF THE INPUTS:
+  //   1. the updater becomes PURE — it computes the next bag and returns it, nothing else;
+  //   2. persistence moves to a debounced effect below, so typing is bounded by React state alone.
+  // The inputs themselves are untouched, so no field changes its editing behaviour or its value semantics.
   const writeCell = (code: string, fid: string, patch: Partial<FieldCell>) => setBags((prev) => {
     const nb = { ...prev }; const pb = { ...(nb[p.id] || {}) }; const cb = { ...(pb[code] || {}) };
     const baseCell: FieldCell = cb[fid] ?? { hi: null, ai: null, mode: "hi" };
     cb[fid] = { ...baseCell, ...patch };
-    pb[code] = cb; nb[p.id] = pb; writeFieldBags(nb); return nb;
+    pb[code] = cb; nb[p.id] = pb; return nb;
   });
   const setActive = (code: string, fid: string, v: SlideFieldValue) => { const c = cellOf(code, fid); writeCell(code, fid, c.mode === "ai" ? { ai: v } : { hi: v }); };
   const setMode = (code: string, fid: string, mode: "hi" | "ai") => writeCell(code, fid, { mode });
