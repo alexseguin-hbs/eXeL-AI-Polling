@@ -1518,7 +1518,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // inside a `flex-1 min-h-0` body inside an `overflow-hidden` panel, so the chart is bounded BY ITS BOX
   // rather than by a magic number. All three links in that chain are asserted here, because breaking any one
   // of them is what would let it escape.
-  ok(/className=\{big \? "h-full w-full" : "w-full"\}/.test(src), "on the sheet the waterfall fills its box");
+  // ⚠ PROXY LOCK #14, AND IT WAS MINE FROM X-1. This asserted the literal string `h-full w-full` — a
+  // STAND-IN for "the chart fills its box", not the property itself. `h-full` only fills when every
+  // ancestor has a definite height, and X-1d proved one did not: S8 clipped 258px while this lock sat
+  // green. The property is that the SVG is a BOUNDED FLEX ITEM of a bounded column, which the X-1d chain
+  // lock at the foot of this file asserts link by link. Here we assert only that it is not intrinsic.
+  ok(/className=\{big \? "min-h-0 w-full flex-1" : "w-full"\}/.test(src),
+     "on the sheet the waterfall is a bounded flex item, not an intrinsic-height box");
   ok(/preserveAspectRatio="xMidYMid meet"/.test(src), "it scales the whole drawing rather than distorting the bars");
   ok(/\$\{bare \? "" : big \? "p-\[0\.45cqw\]" : "p-2"\} flex min-h-0 flex-1 flex-col/.test(src),
      "its wrapper may grow (flex-1) but never past its parent (min-h-0) — the containment that replaces the 7cqh cap");
@@ -4573,6 +4579,39 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // TONE — grey, because it is a SUM of the coloured columns beside it rather than a rival to them.
   ok(/text-slate-300">Total Rev</.test(tbl9), "the Total Rev header is grey, per the operator");
   ok(!/text-sky-300/.test(tbl9), "the old sky-blue Total/Full column tone is gone from this table");
+}
+
+// ── X-1d · THE WATERFALL'S HEIGHT CHAIN, LOCKED END TO END ──────────────────────────────────────────
+// FIVE separate boxes between the panel row and the SVG have each, at some point, been the one that broke
+// this. Fixing them one at a time is how the same defect shipped three times, so this asserts the WHOLE
+// chain: every link must carry a definite height in slide mode, because `h-full`/`flex-1` resolves to
+// nothing the moment ONE ancestor sizes to content. Measured cost of the last break: S8 clipped 258px.
+{
+  const fspX1d = await import("node:fs/promises");
+  const srcX1d = await fspX1d.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+
+  // link 1 · the panel body gives the chart row a fraction track (AmtsPanel `rows` opt-in)
+  ok(/rows="minmax\(0, 1fr\) auto"/.test(srcX1d), "the value panel's chart row is 1fr and its caption row auto");
+  // link 2 · AmtsPanel honours an explicit template instead of always splitting evenly
+  ok(/gridTemplateRows: rows/.test(srcX1d), "AmtsPanel applies the caller's row template");
+  // link 3 · the field wrapper grows
+  ok(/\$\{bare \? "" : big \? "p-\[0\.45cqw\]" : "p-2"\} flex min-h-0 flex-1 flex-col/.test(srcX1d),
+     "the chart field wrapper carries flex-1 + min-h-0");
+  // link 4 · BOTH ChartFrame boxes carry the height when not maximised
+  const cfAt = srcX1d.indexOf("function ChartFrame");
+  const cf = srcX1d.slice(cfAt, srcX1d.indexOf("\n}", srcX1d.indexOf("return (", cfAt)));
+  ok((cf.match(/: "relative flex min-h-0 flex-1 flex-col"/g) || []).length === 1
+     && (cf.match(/: "flex min-h-0 flex-1 flex-col"/g) || []).length === 1,
+     "both ChartFrame boxes carry the height through when not maximised");
+  // link 5 · ValueProp's OWN ROOT — the one that actually clipped 258px. `space-y-1` is a plain block.
+  ok(/big \? "flex min-h-0 flex-1 flex-col gap-1" : "space-y-1"/.test(srcX1d),
+     "ValueProp's root is a bounded flex column in slide mode — a plain block here sizes to content and clips");
+  // the SVG is a flex ITEM of that column, so it is bounded rather than intrinsic
+  ok(/className=\{big \? "min-h-0 w-full flex-1" : "w-full"\}/.test(srcX1d),
+     "the waterfall SVG is a bounded flex item in slide mode, never h-full against an auto-height parent");
+  // and non-slide modes are untouched — the deep dive and source panel keep auto height
+  ok(/style=\{big \? undefined : \{ height: "auto" \} \}/.test(srcX1d.replace(/\s+/g, " ")) || /height: "auto"/.test(srcX1d),
+     "non-slide modes keep auto height — this change is scoped to the slide");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

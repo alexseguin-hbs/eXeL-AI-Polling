@@ -1523,7 +1523,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // makes TWO children where one is allowed — `Expected ',', got 'viewBox'`. Second time this session, and
   // BOTH times the lock suite passed while the file would not compile. Only `npm run build` catches it.
   const chart = (
-    <svg viewBox={`0 0 ${W} ${H}`} className={big ? "h-full w-full" : "w-full"} preserveAspectRatio="xMidYMid meet"
+    <svg viewBox={`0 0 ${W} ${H}`} className={big ? "min-h-0 w-full flex-1" : "w-full"} preserveAspectRatio="xMidYMid meet"
          style={big ? undefined : { height: "auto" }}
          role="img" aria-label="Value creation and capture waterfall vs the next best alternative">
       {/* W-20 · 3D SHADED BARS (operator: "Make bars futuristic; 3D shaded like attached", with their own
@@ -1647,8 +1647,18 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
     </div>
   );
 
+  // ⚠ X-1d · THE FIFTH CONSTRAINT IN THIS CHAIN, AND THE ONE THAT ACTUALLY OVERFLOWED. Measured on S8 in
+  // Present mode once the screenshot gate was un-blinded: the panel row was bounded (244px), the field
+  // wrapper was bounded, ChartFrame was bounded (167px) — and THIS root was `space-y-1`, a plain block with
+  // `flex: 0 1 auto` and `min-height: auto`, so it sized to its CONTENT at 340px and clipped 258px inside a
+  // 167px box. `h-full` on the SVG then resolved against 340px rather than against the panel, which is why
+  // the chart looked right and the gate said content was being lost.
+  // A height chain is only as strong as its weakest ancestor: EVERY box between the bounded panel row and
+  // the SVG has to carry the height. This is the fifth I have had to fix in the same chain, so the lock
+  // below asserts the whole chain rather than any one link.
+  // NON-SLIDE MODES ARE UNTOUCHED — the deep dive and the source panel keep `space-y-1` and auto height.
   return (
-    <div className="space-y-1">
+    <div className={big ? "flex min-h-0 flex-1 flex-col gap-1" : "space-y-1"}>
       {mode !== "slide" && (
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div className="text-[10px] uppercase tracking-wider text-amber-400/90">{t("innovation.veq.title")}{nbaLabel ? ` — ${nbaLabel}` : ""}</div>
