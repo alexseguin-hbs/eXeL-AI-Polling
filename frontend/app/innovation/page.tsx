@@ -4712,6 +4712,20 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     if (!base.length) return 1;
     return base.filter((f) => !fieldEmpty(effective(sp, f))).length / base.length;
   };
+  // ⚠ A SLIDE WITH NO AUTHORABLE FIELD CANNOT BE "100% COMPLETE" — operator: "make CS+RA tab grey not green".
+  // They are right, and it is a semantic error rather than a colour preference. `fillOf` falls back to ALL
+  // fields when a slide declares no `req` ones; CS+RA's three are live governance read-outs that always
+  // resolve, so it scored 3/3 = 100% and wore the emerald "done" badge every other tab has to EARN by being
+  // filled in. A derived read-out can never be incomplete, so "complete" is meaningless praise.
+  //
+  // ⚠ S10 IS EXCLUDED DELIBERATELY. Every S10 schema field is linked too, but S10 HAS a real completeness
+  // measure — finGateReadiness over the year grid, the branch on the first line of fillOf — so its colour
+  // means something. The rule is "no completeness signal", not "all fields linked".
+  //
+  // ⚠ THIS ALSO CHANGES S9, AND I AM SAYING SO RATHER THAN LETTING IT BE DISCOVERED. S9's one required
+  // field (`stories`) is linked as well, so its green was equally hollow. Executed: exactly S9 and CSRA of
+  // the 19 slides move; every other tab is byte-identical.
+  const hasFillSignal = (sp: SlideSpec) => sp.code === "S10" || sp.fields.some((f) => !f.linked);
   const st = status[`${p.id}|${spec.code}`] || "";
   // Capture a durable version snapshot of the CURRENT slide (fields + financial snapshot). Deterministic id;
   // ts injected here (UI layer). Substantial = ≥10% quantified move vs the prior version → manager-approval flag.
@@ -5640,11 +5654,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             const cls = i === idx ? "border-cyan-500 bg-cyan-500/15 text-cyan-200"
               : s.code === "S1" ? "border-sky-500/40 bg-sky-500/10 text-sky-300"
               : s.code === "S2" || s.code === "S3" ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+              // No completeness signal → the neutral slate every unfilled tab already uses. Not a new colour.
+              : !hasFillSignal(s) ? "border-slate-700 text-slate-500 hover:bg-slate-800"
               : pctF >= 100 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
               : pctF > 0 ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
               : "border-slate-700 text-slate-500 hover:bg-slate-800";
             return (
-              <button key={s.code} onClick={() => setIdx(i)} title={`${s.code} · ${s.gate} ${s.stage} · ${pctF}% required filled`} aria-label={`Go to slide ${s.code}`}
+              <button key={s.code} onClick={() => setIdx(i)} title={hasFillSignal(s) ? `${s.code} · ${s.gate} ${s.stage} · ${pctF}% required filled` : `${s.code} · ${s.gate} ${s.stage} · derived read-out — nothing to author`} aria-label={`Go to slide ${s.code}`}
                 className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${cls}`}>{tabLabelOf(s.code)}</button>
             );
           })}

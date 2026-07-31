@@ -965,6 +965,33 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   ok(buildDemoVersionSeed(DEMO_PROJECTS.find((p) => p.id === "PRJ-24")).length === 0, "non-demo projects start with empty history");
 }
 
+/* ---------------- X-7e — A DERIVED READ-OUT TAB IS GREY, NOT GREEN -------------------------------------
+   Operator: "make CS+RA tab grey not green". They were right and it is a SEMANTIC error, not a colour
+   preference: fillOf falls back to ALL fields when a slide declares no `req` ones, so CS+RA's three live
+   read-outs scored 3/3 = 100% and wore the emerald "done" badge every other tab has to EARN.            */
+{
+  const F = await import("../lib/innovation-data.ts");
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const authorable = (sp) => sp.fields.some((f) => !f.linked);
+  const noSignal = F.SLIDE_SCHEMA.filter((sp) => sp.code !== "S10" && !authorable(sp)).map((sp) => sp.code);
+
+  ok(/const hasFillSignal = \(sp: SlideSpec\) => sp\.code === "S10" \|\| sp\.fields\.some\(\(f\) => !f\.linked\)/.test(src),
+     "the rule is 'has a completeness signal', DERIVED from the schema — not a CSRA special case");
+  ok(/!hasFillSignal\(s\) \? "border-slate-700 text-slate-500/.test(src),
+     "a slide with no completeness signal renders the NEUTRAL slate the unfilled tabs already use — no new colour was invented");
+  ok(/derived read-out — nothing to author/.test(src),
+     "its tooltip says what it is instead of claiming a percentage it cannot have");
+
+  // COUNTED, NOT NAMED — so a future all-linked slide inherits the rule automatically.
+  ok(noSignal.includes("CSRA"), "CS+RA has no authorable field, so it reads grey — the operator's ask, expressed as the rule");
+  ok(noSignal.length === 2 && noSignal.includes("S9"),
+     `exactly TWO tabs change and S9 is the other — declared, not discovered: [${noSignal.join(", ")}]`);
+  // ⚠ S10 MUST KEEP ITS COLOUR. Every S10 field is linked too, but it HAS a real measure (finGateReadiness
+  // over the year grid), so greying it would destroy a signal that means something.
+  ok(!authorable(F.slideSpec("S10")) && /sp\.code === "S10" \|\|/.test(src),
+     "S10 is excluded by name because it carries a genuine readiness measure despite having no authorable field");
+}
+
 /* ---------------- D1 — REMOVE A PROJECT (operator: "add and remove projects at will") ------------------
    ADD already worked; REMOVE did not exist ANYWHERE. Grep-verified before a line was written, per R-CORE:
    deleteProject|removeProject|onDelete|onRemove returned nothing across app/innovation/ and the lib. These
