@@ -1606,17 +1606,18 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
         return (
           <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-x-2 gap-y-1 py-0.5">
             {editable
-              ? <input value={d.name} onChange={(e) => set(i, { name: e.target.value })} placeholder={t("innovation.veq.driverPlaceholder")}
-                       className="w-full rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500" />
+              ? <TextCell value={d.name} onCommit={(v) => set(i, { name: v })} placeholder={t("innovation.veq.driverPlaceholder")}
+                          title={`Differentiator ${i + 1} name`} />
               : <span className="truncate text-[11px] text-slate-300" title={d.name}>{d.name}</span>}
             {/* VALUE $ IS THE FIRST INPUT AND IT IS THE BAR (operator: "Start with Value for Each
                 Differentiator" · "value vs NBA is number"). Typed wins; blank falls back to the legacy
                 geometry so a seeded project never renders empty. */}
             {editable
-              ? <input type="text" inputMode="decimal" defaultValue={typeof d.valueM === "number" ? String(d.valueM) : ""}
-                       placeholder={vm.toFixed(0)} aria-label={`${d.name || `Driver ${i + 1}`} value $M`}
-                       onBlur={(e) => { const raw = e.target.value.trim(); const v = raw === "" ? undefined : Number(raw.replace(/[$,\s]/g, "")); if (raw === "" || Number.isFinite(v)) set(i, { valueM: v }); else e.target.value = ""; }}
-                       className="w-16 rounded border border-slate-700 bg-[#0b0f14] px-1 py-1 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+              ? <FinCell value={typeof d.valueM === "number" ? d.valueM : null} signed keySeed={`drv${i}-valueM`}
+                         title={`${d.name || `Driver ${i + 1}`} value $M`} placeholder={vm.toFixed(0)}
+                         onCommit={(v) => set(i, { valueM: v })}
+                         onClear={() => set(i, { valueM: undefined })}
+                         className="w-16 rounded border border-slate-700 bg-[#0b0f14] px-1 py-1 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
               : <span className="w-16 text-right text-[11px] tabular-nums text-slate-200">{money(vm)}</span>}
             {/* IMPORTANCE IS A DROP-DOWN (operator: "Use drop down for simplicity"), not a slider — five
                 discrete choices where a continuous 0-100 rail only ever produced five distinct readings. */}
@@ -3907,21 +3908,62 @@ function S10RevenueTable({ p, baseYear }: { p: Project; baseYear: number }) {
  *  editing it must write nothing. Comparing numbers would make every cursor pass silently overwrite an exact
  *  value with its 2-dp shadow — the whole risk of this change, and it has its own lock. */
 const finDisp = (v: number): string => (v ? String(Math.round(v * 100) / 100) : "");
-function FinCell({ value, onCommit, title, suffix }: { value: number; onCommit: (v: number) => void; title: string; suffix?: string }) {
-  const shown = finDisp(value);
+/** ⚠ ONE NUMBER-ENTRY ENGINE FOR THE WHOLE TOOL (operator: "I checked Financials and input works fine — see
+ *  if you can apply number enter from financials to fields for value prop"). S10 is the surface that WORKS,
+ *  so the value prop adopts this component rather than keeping its own near-miss copy. What the copy lacked,
+ *  itemised, because each one is a real defect and not a style difference:
+ *    1. the `key` re-seed — without it an uncontrolled input never picks up a value changed underneath it
+ *    2. the untouched guard — tabbing through a cell used to rewrite it
+ *    3. Enter-to-commit
+ *    4. the junk guard — bad input was silently coerced instead of restored
+ *    5. `title` naming the exact stored value
+ *  `onClear` and `placeholder` are ADDITIVE and optional, so every existing S10 call site is untouched and
+ *  keeps its exact behaviour (blank → 0). The value prop passes `onClear` because a blank differentiator is
+ *  not worth zero — it falls back to the derived geometry, which is why its placeholder is that number. */
+function FinCell({ value, onCommit, title, suffix, onClear, placeholder, className, signed, keySeed }: {
+  value: number | null; onCommit: (v: number) => void; title: string; suffix?: string;
+  onClear?: () => void; placeholder?: string; className?: string; signed?: boolean;
+  /** ⚠ A FIELD'S KEY MUST NEVER DEPEND ON A SIBLING FIELD'S VALUE. Measured: typing into Value $M worked
+   *  perfectly in isolation (caret 1→2→3, focus kept) and lost focus to BODY on EVERY keystroke once the
+   *  driver NAME had been edited first — because the key was `${title}:${value}` and this call site's title
+   *  embeds `d.name`. A changed key makes React unmount and remount the input, which is precisely "takes
+   *  cursor off the field I'm updating". S10 never hit this because its titles are `label · year`, both
+   *  stable. `keySeed` lets a caller supply a stable identity (here: the row index). */
+  keySeed?: string;
+}) {
+  const shown = finDisp(value ?? 0);
   return (
-    <input type="text" inputMode="decimal" defaultValue={shown} title={`${title} — stored ${value}`} aria-label={title}
-      key={`${title}:${value}`}   // re-seed the uncontrolled input when the plan changes underneath it (apply-rate, undo)
-      placeholder="—"
+    <input type="text" inputMode={signed ? "text" : "decimal"} defaultValue={shown}
+      title={`${title} — stored ${value ?? "—"}`} aria-label={title}
+      key={`${keySeed ?? title}:${value}`}   // re-seed the uncontrolled input when the value changes underneath it (apply-rate, undo)
+      placeholder={placeholder ?? "—"}
       onBlur={(e) => {
         const raw = e.target.value.trim();
         if (raw === shown) return;                       // untouched: leave the exact stored value alone
+        if (raw === "" && onClear) { onClear(); return; } // blank CLEARS where the caller allows it
         const v = raw === "" ? 0 : Number(raw.replace(/[$,\s]/g, ""));
         if (!Number.isFinite(v)) { e.target.value = shown; return; }  // never coerce junk to 0 silently
         if (v !== value) onCommit(v);
       }}
       onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-      className="w-full min-w-[52px] rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+      className={className ?? "w-full min-w-[52px] rounded border border-slate-700 bg-[#0e141b] px-1 py-0.5 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500"} />
+  );
+}
+
+/** The TEXT twin of FinCell, same five disciplines. The driver-name field was CONTROLLED (`value=` +
+ *  onChange), so every keystroke round-tripped through parent state — and the operator reported exactly what
+ *  that produces: "1 letter or number defaults and takes cursor to front". Uncontrolled + commit-on-blur is
+ *  what S10 does and what works. */
+function TextCell({ value, onCommit, title, placeholder, className, keySeed }: {
+  value: string; onCommit: (v: string) => void; title: string; placeholder?: string; className?: string;
+  keySeed?: string;   // same rule as FinCell: a stable identity, never a sibling's value
+}) {
+  return (
+    <input type="text" defaultValue={value} aria-label={title} title={title} placeholder={placeholder}
+      key={`${keySeed ?? title}:${value}`}
+      onBlur={(e) => { const raw = e.target.value; if (raw !== value) onCommit(raw); }}
+      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      className={className ?? "w-full rounded border border-slate-700 bg-[#0b0f14] px-2 py-1 text-xs text-slate-100 outline-none focus:border-cyan-500"} />
   );
 }
 
@@ -5397,16 +5439,27 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 </button>
                 {srcOpen && (
                   <div className="space-y-2 px-3 pb-3">
-                    <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Primary customer value proposition <span className="text-slate-600">— the one sentence S1, S6 and the dog-tag all render</span>
-                      <textarea defaultValue={valuePropOf(p)} rows={3}
+                    {/* ⚠ THE `<label>` WRAPPER IS GONE, AND THAT IS THE FIX, NOT A TIDY-UP (operator: "1 letter
+                        or number defaults and takes cursor to front or off the field I'm updating"). MEASURED:
+                        a Playwright click on a field in this panel was INTERCEPTED by the descriptive hint
+                        span — because the span sat inside a <label> that WRAPPED the control. Clicking any
+                        part of a wrapping label re-focuses its control and drops the caret at position 0,
+                        which is exactly "takes cursor to front". Typing itself was never broken: focusing
+                        directly and typing one character at a time with 700ms pauses kept focus and advanced
+                        the caret 1→2→3 with no remount. So the caret bug was a CLICK-TARGET bug all along.
+                        `htmlFor`/`id` keeps the label association (and the a11y name) without the wrapper. */}
+                    <div className="flex flex-col gap-0.5 text-[10px] text-slate-400">
+                      <label htmlFor="s8-vprop">Primary customer value proposition <span className="text-slate-600">— the one sentence S1, S6 and the dog-tag all render</span></label>
+                      <textarea id="s8-vprop" defaultValue={valuePropOf(p)} rows={3} key={`vprop:${valuePropOf(p)}`}
                         onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== valuePropOf(p)) onEditSource({ valueProp: v, valuePropSource: "HI" }, ["value proposition edited on S8"]); }}
                         className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] leading-snug text-slate-100 outline-none focus:border-cyan-500" />
-                    </label>
-                    <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Next Best Alternative <span className="text-slate-600">— the As-Is option this must out-perform</span>
-                      <input type="text" defaultValue={nbaOf(p)}
-                        onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== nbaOf(p)) onEditSource({ nextBestAlternative: v }, [`NBA → ${v}`]); }}
+                    </div>
+                    <div className="flex flex-col gap-0.5 text-[10px] text-slate-400">
+                      <label htmlFor="s8-nba">Next Best Alternative <span className="text-slate-600">— the As-Is option this must out-perform</span></label>
+                      <TextCell value={nbaOf(p)} title="Next Best Alternative"
+                        onCommit={(raw) => { const v = raw.trim(); if (v && v !== nbaOf(p)) onEditSource({ nextBestAlternative: v }, [`NBA → ${v}`]); }}
                         className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
-                    </label>
+                    </div>
                     <ValueEquationPanel project={p}
                       drivers={s8Drivers} onChange={setS8Drivers} nbaLabel={nbaOf(p)} addressableRevM={incrementalRevM(p)}
                       onGenerate={() => onEditSource({ valueDrivers: s8Drivers, valueProp: valuePropFromEquation({ ...p, valueDrivers: s8Drivers }), valuePropSource: "HI" }, ["value prop generated from the Value Equation vs NBA"])}

@@ -4423,8 +4423,47 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // code was correct. Slice forward from the table to the end of the component instead.
   const tblStart = codeW18.indexOf("const table = mode ===");
   const tbl = codeW18.slice(tblStart, codeW18.indexOf("function ProjectRevChart", tblStart));
-  ok(/set\(i, \{ name: e\.target\.value \}\)/.test(tbl), "the differentiator NAME is editable");
+  ok(/set\(i, \{ name: v \}\)/.test(tbl), "the differentiator NAME is editable");
   ok(/set\(i, \{ valueM: v \}\)/.test(tbl), "the VALUE $M is editable and is the bar");
+
+  // ── X-0c · ONE NUMBER-ENTRY ENGINE ────────────────────────────────────────────────────────────────
+  // Operator: "I checked Financials and input works fine — see if you can apply number enter from
+  // financials to fields for value prop." S10's FinCell is the surface that works, so the value prop uses
+  // IT rather than a near-miss copy. Asserted as REUSE, not as a shape: the driver table must route entry
+  // through the shared cells and must not hand-roll a raw <input> again.
+  ok(/<FinCell /.test(tbl), "Value $M routes through S10's FinCell — the entry engine that already works");
+  ok(/<TextCell /.test(tbl), "the differentiator NAME routes through TextCell — uncontrolled, commit on blur");
+  ok(!/<input /.test(tbl), "no hand-rolled <input> survives in the driver table — a second engine is how they drift");
+
+  // ⚠ A FIELD'S KEY MUST NEVER CONTAIN A SIBLING FIELD'S VALUE. This is the defect the operator reported as
+  // "1 letter or number defaults and takes cursor to front or off the field". MEASURED, before and after:
+  // Value $M typed cleanly in isolation (caret 1→2→3) and lost focus to BODY on EVERY keystroke once the
+  // NAME had been edited, because the key was `${title}:${value}` and this title embeds `d.name`. A changed
+  // key makes React unmount the input mid-typing. The `keySeed` must be stable — the row INDEX, never `d.name`.
+  const seed = /keySeed=\{`([^`]*)`\}/.exec(tbl)?.[1] ?? "";
+  ok(/<FinCell[^>]*keySeed=/.test(tbl.replace(/\n/g, " ")), "Value $M pins a stable keySeed");
+  ok(seed.includes("${i}") && !seed.includes("d.name"),
+     "the keySeed is the row index and contains NO sibling field — a volatile key remounts the input mid-typing");
+
+  // The two panel fields that used to sit INSIDE a wrapping <label>: clicking any part of a wrapping label
+  // re-focuses its control at caret 0, which is literally "takes cursor to front". Association is kept via
+  // htmlFor/id, which does not steal the click.
+  // ⚠ PROBE ERROR #12, RECORDED BESIDE THE ASSERTION THAT PRODUCED IT. The first draft sliced FROM the
+  // label's text — but `htmlFor="s8-vprop"` is written BEFORE that text in `<label htmlFor=…>Primary …`,
+  // so the attribute fell outside the window and a correct fix reported red. Start the slice 400 chars
+  // earlier so the opening tag is inside it.
+  const vpAt = codeW18.indexOf("Primary customer value proposition");
+  const panel = codeW18.slice(Math.max(0, vpAt - 400), vpAt + 2200);
+  // ⚠ PROXY LOCK #13, REWRITTEN BEFORE IT WAS TRUSTED. The first form was
+  // `!/<label[^>]*>[^<]*Primary…[\s\S]{0,400}?<textarea/` — which matches whether or not the textarea is
+  // INSIDE the label, because `[\s\S]{0,400}?` happily crosses the `</label>`. It reported red on correct
+  // code. The PROPERTY is "the label closes before the control opens", so assert exactly that.
+  const lblOpen = panel.indexOf("<label htmlFor=\"s8-vprop\"");
+  const taOpen = panel.indexOf("<textarea id=\"s8-vprop\"");
+  ok(lblOpen > 0 && taOpen > lblOpen && panel.slice(lblOpen, taOpen).includes("</label>"),
+     "the value-prop <label> CLOSES before the textarea opens — a wrapping label hijacks the click and resets the caret");
+  ok(/htmlFor="s8-vprop"/.test(panel) && /id="s8-vprop"/.test(panel),
+     "label association is kept with htmlFor/id instead of wrapping");
   ok(/\[1, 2, 3, 4, 5\]\.map\(\(v\) => <option/.test(tbl), "IMPORTANCE is a 1-5 drop-down, per the operator");
   ok(/<VsNba tone=\{tone\}/.test(tbl) && !/set\(i, \{ *tone/.test(tbl),
      "the ▲▬▼ is DERIVED from the sign of the dollars and is never typed");
