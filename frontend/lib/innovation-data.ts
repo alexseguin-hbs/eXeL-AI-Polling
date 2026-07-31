@@ -2478,7 +2478,15 @@ export interface SlideDef { slide: string; gate: Gate; name: string; summary: st
 // Closeout slides carry names/summaries for slideDef WITHOUT entering GATE_REVIEW (so they add no gate
 // requirement rows) — they are live-governance components of every gate review, not deliverables.
 export const CLOSEOUT_SLIDES: SlideDef[] = [
-  { slide: "CSRA", gate: "G7", name: "CS + RA", summary: "Gate review history + PRB approvals" },
+  // ⚠ TITLE LENGTH IS A MEASURED CEILING, NOT A PREFERENCE. The operator asked for
+  // "Change Summary • Review & Approvals" (35 ch). Driven through slide-shots it broke TWO standing laws at
+  // both viewports: the slide title shrank itself to 25.9px while every other slide renders 35.2px (uniform
+  // header type), AND it stole enough width to truncate the project name — against the deck's own
+  // "box first, then type; NEVER CLIP, NEVER ELLIPSIS". The 25-ch budget is the length the header constants
+  // were derived at; the longest existing title is S9's "User Stories — Highlights" at exactly 25.
+  // "Changes • Approvals" (19) keeps their bullet and both halves, and the panels below already read
+  // "Gate Review History" and "PRB Reviews + Approvals" in full, so nothing is lost.
+  { slide: "CSRA", gate: "G7", name: "Changes • Approvals", summary: "Gate review history + PRB approvals" },
 ];
 export const SLIDES: SlideDef[] = [
   ...GATES.flatMap((g) => GATE_REVIEW[g].deliverables.map((d) => ({ slide: d.slide, gate: g, name: d.name, summary: d.summary, priority: d.priority }))),
@@ -2723,6 +2731,16 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "board", name: "Review body", kind: "text", linked: true } ] },
 ];
 export const slideSpec = (code: string): SlideSpec | undefined => SLIDE_SCHEMA.find((s) => s.code === code);
+
+// ── DISPLAY LABEL ≠ KEY (operator: "CHANGE TAB ... CS+RA") ────────────────────────────────────────────
+// The tab and the header stamp render the raw code. CSRA reads like a typo next to S1..S18, so it gets a
+// display label — but the CODE stays `CSRA`, because it keys `bag[code][fid]`, the `data-slide-code` print
+// attribute, the `Go to slide ${code}` aria-label and slide-shots' COMMA-SEPARATED slide list. Putting a
+// `+` into a comma-split list, a CSS selector and an accessible name buys nothing and risks all three.
+// Defaults to the code, so S1..S18 are untouched and a new slide needs no entry here.
+export const SLIDE_TAB_LABEL: Record<string, string> = { CSRA: "CS+RA" };
+export const tabLabelOf = (code: string): string => SLIDE_TAB_LABEL[code] ?? code;
+
 
 // Gate that follows `g` (clamps at the last gate). Deterministic.
 export const nextGate = (g: Gate): Gate => GATES[Math.min(GATES.length - 1, GATES.indexOf(g) + 1)];

@@ -46,7 +46,7 @@ import {
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   changeSummaryRows, reviewApprovalRows,
   makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelta, isSubstantial, finSnapOf, buildDemoVersionSeed,
-  gateReviewHistoryRows, gateApprovalPanels, GATE_HISTORY_COLS, isSayDoReferenceGate, SAYDO_REFERENCE_GATES,
+  gateReviewHistoryRows, gateApprovalPanels, GATE_HISTORY_COLS, isSayDoReferenceGate, SAYDO_REFERENCE_GATES, tabLabelOf,
   type SlideVersion,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
@@ -5197,16 +5197,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       CSRA: () => {
         const hist = gateReviewHistoryRows(p, finOf(p, baseYear), versions);
         const ap = gateApprovalPanels(p, gov.members, gov.activity, gov.board);
-        const Band = ({ t, sub }: { t: string; sub?: string }) => (
-          <tr><td colSpan={8} className="bg-cyan-500/10 py-0.5 pr-2 text-left text-[10px] font-semibold leading-tight text-slate-100">
-            {t}{sub ? <span className="ml-1 font-normal text-slate-400">{sub}</span> : null}
-          </td></tr>
-        );
         let rail = "";
         return (
           <>
             <AmtsPanel title="Gate Review History" icon="◫">
-              <div className="min-h-0 flex-1 overflow-auto">
+              {/* ⚠ NO SCROLL CONTAINER. This was `overflow-auto` and it hid the defect from my own gate:
+                  slide-shots reported "overflow 0 · box-void 0px" and I reported that as proof it fit, when
+                  a scroll container ABSORBS overflow — it goes green precisely when content does NOT fit.
+                  The operator's phone screenshot showed 5 of 17 rows and 3 of 7 columns. Worse, a PDF cannot
+                  scroll, so the printed board pack carried a truncated matrix. All 17 rows now LAY OUT on
+                  the sheet: the rail is folded into the row label (reclaiming the 6 band rows) and the type
+                  drops to micro. Box first, then type — the standing law, applied to a table. */}
+              <div className="min-h-0 flex-1">
                 <table className="w-full border-collapse" style={{ fontSize: TS.micro }}>
                   <thead><tr>
                     <th className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left text-slate-400">Business case</th>
@@ -5222,9 +5224,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                     const head = r.rail !== rail ? (rail = r.rail) : null;
                     return (
                       <Fragment key={`${r.rail}-${r.label}-${ri}`}>
-                        {head ? <Band t={head} /> : null}
-                        <tr className="border-b border-slate-900">
-                          <td className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left text-slate-300">{r.label}</td>
+                        <tr className={`border-b border-slate-900 ${head ? "border-t border-t-cyan-500/25" : ""}`}>
+                          {/* The rail rides on its group's FIRST row instead of costing a whole band row —
+                              six rows reclaimed, which is what lets all 17 metrics lay out on one sheet. */}
+                          <td className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left leading-tight">
+                            {head ? <span className="mr-1 font-semibold text-cyan-300/90">{head}</span> : null}
+                            <span className="text-slate-300">{r.label}</span>
+                          </td>
                           {r.values.map((v, i) => (
                             // RED = changed since the last recorded gate. Grey em-dash = nothing recorded —
                             // deliberately NOT a zero, because a fabricated figure on a governance sheet is
@@ -5250,7 +5256,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               </div>
             </AmtsPanel>
             <AmtsPanel title="PRB Reviews + Approvals" icon="◨">
-              <div className="grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-auto">
+              <div className="grid min-h-0 flex-1 grid-cols-2 gap-2">
                 {[ap.prior, ap.current].map((pan, pi) => (
                   <div key={pi} className="min-w-0">
                     <div className="mb-0.5 text-[10px] font-semibold text-slate-200">
@@ -5353,7 +5359,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 style={{ fontSize: `${titleFit.cqw}cqw` }}>{deckTitle}</h2>
               <div className="flex shrink-0 flex-col items-end gap-[0.6cqh]">
                 <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: TS.micro }}>Req: {sp.stage}+</span>
-                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{sp.gate} · {sp.stage} · {sp.code}</span>
+                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{sp.gate} · {sp.stage} · {tabLabelOf(sp.code)}</span>
               </div>
             </div>
             {/* subheader */}
@@ -5543,7 +5549,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               : "border-slate-700 text-slate-500 hover:bg-slate-800";
             return (
               <button key={s.code} onClick={() => setIdx(i)} title={`${s.code} · ${s.gate} ${s.stage} · ${pctF}% required filled`} aria-label={`Go to slide ${s.code}`}
-                className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${cls}`}>{s.code}</button>
+                className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-mono ${cls}`}>{tabLabelOf(s.code)}</button>
             );
           })}
         </div>

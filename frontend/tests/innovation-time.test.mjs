@@ -1046,6 +1046,34 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   //    currently supply it: aiSlideField(p,"S16","saydo") returns TWO rows against the template's six,
   //    stamps the reference stage as the CURRENT gate, sets Target to p.fullRev10yM (today's forecast,
   //    which moves whenever S10 is edited), and hard-codes Actual to "—".
+  // ── ⚠ THE GATE THAT WOULD HAVE CAUGHT MY OWN DEFECT, GENERALISED SO NO SHEET CAN HIDE BEHIND A SCROLLER.
+  //    X-7b wrapped the Gate Review History in `overflow-auto`. slide-shots then reported
+  //    "CSRA overflow 0 · box-void 0px" and I reported that as proof it fit. It was not: a scroll container
+  //    ABSORBS overflow, so the measurement goes green precisely when content does NOT fit. The operator's
+  //    phone screenshot showed 5 of 17 rows and 3 of 7 gate columns — and a PDF cannot scroll, so the
+  //    printed board pack carried a truncated matrix.
+  //
+  //    This exact trap is written into the Z2 section of the plan ("if the body itself becomes the scroll
+  //    container, overflow stops being observable and that gate goes quietly green forever") and I walked
+  //    into it anyway. So it becomes a lock rather than a lesson.
+  const pageSrcCsra = (await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8"));
+  // ⚠ BOTH ANCHORS MUST RESOLVE, AND THE SLICE MUST BE BOUNDED. The first draft used an end anchor that
+  // did not exist, so indexOf returned -1, slice(a, -1) ran to END OF FILE, and the lock went red against
+  // the zoom wrapper and two modal overlays — code nowhere near this panel. A `length > 500` guard passed
+  // vacuously on that runaway slice. Probe error #16, and the whole family has been unverified slices.
+  const csraStart = pageSrcCsra.indexOf("CSRA: () => {");
+  const csraEnd = pageSrcCsra.indexOf("\n      };", csraStart);
+  ok(csraStart > 0 && csraEnd > csraStart, "both CS+RA panel anchors resolve — a -1 anchor would slice to end of file and assert against unrelated code");
+  const csraPanel = pageSrcCsra.slice(csraStart, csraEnd);
+  ok(csraPanel.length > 500 && csraPanel.length < 12000, `the CS+RA panel slice is bounded (${csraPanel.length} chars) — not a runaway to EOF`);
+  // ⚠ CODE ONLY, NOT COMMENTARY — the first version of this lock went RED against my own comment
+  // EXPLAINING the removal. Same class as the <label> regex that crossed </label> earlier in this session.
+  // F4's ban-list already solved it; reuse the same strip rather than inventing a second one.
+  const codeOnly = csraPanel.split("\n")
+    .map((l) => l.replace(/\/\/.*$/, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, ""))
+    .filter((l) => !/^\s*(\*|\{?\/\*)/.test(l)).join("\n");
+  ok(!/overflow-auto|overflow-y-auto|overflow-scroll/.test(codeOnly),
+     "the CS+RA sheet contains NO scroll container — content must LAY OUT on the sheet, because a printed page cannot scroll and a scroller blinds the overflow gate");
   ok(F.SAYDO_REFERENCE_GATES.length === 2 && F.isSayDoReferenceGate("G2") && F.isSayDoReferenceGate("G5"),
      "the S16 join names PLAN (G2) and LAUNCH (G5) — the two Reference Stages the operator's template fixes");
   ok(F.SAYDO_REFERENCE_GATES.every((r) => F.GATE_HISTORY_COLS.some((c) => c.gate === r.gate)),
