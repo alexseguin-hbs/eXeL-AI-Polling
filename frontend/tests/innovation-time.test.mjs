@@ -965,6 +965,53 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   ok(buildDemoVersionSeed(DEMO_PROJECTS.find((p) => p.id === "PRJ-24")).length === 0, "non-demo projects start with empty history");
 }
 
+/* ---------------- D1 — REMOVE A PROJECT (operator: "add and remove projects at will") ------------------
+   ADD already worked; REMOVE did not exist ANYWHERE. Grep-verified before a line was written, per R-CORE:
+   deleteProject|removeProject|onDelete|onRemove returned nothing across app/innovation/ and the lib. These
+   locks hold the shape that makes a destructive action safe.                                            */
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+
+  // ONE WRITER — remove mutates the SAME `order` array createIdea appends to, so the SAME debounced
+  // saveState("projects", …) persists it. A second persistence path is how two surfaces drift.
+  ok(/const removeIdea = \(id: string\) =>/.test(src), "removeIdea exists — the half of 'at will' that was missing");
+  ok(/setOrder\(\(o\) => o\.filter\(\(x\) => x\.id !== id\)\)/.test(src), "remove filters the SAME `order` array createIdea appends to — one writer, one persistence path");
+  ok(!/saveState\("projects-removed"|deleteState\("projects"/.test(src), "no second persistence path was invented for removal");
+
+  // ASKS FIRST, AND NAMES WHAT GOES. A bare ✕ on a row is how a portfolio loses a project silently.
+  ok(/setConfirmRemove\(selId\)/.test(src) && /Confirm project removal/.test(src), "removal is confirm-gated, never a one-click destroy");
+  ok(/Remove this project\?/.test(src) && /stay keyed to \{v\.id\}/.test(src),
+     "the dialog NAMES the project and states what stays behind — the operator decides with the facts, not a bare warning");
+
+  // UNDO — saveState is debounced, so without this an accidental delete is unrecoverable from the cloud copy.
+  ok(/const undoRemove = \(\) =>/.test(src) && /Undo<\/button>/.test(src), "a one-step Undo exists and is reachable from the UI");
+  ok(/o\.some\(\(x\) => x\.id === undoRemoved\.p\.id\) \? o : \[undoRemoved\.p, \.\.\.o\]/.test(src),
+     "Undo restores the WHOLE record and is idempotent — a double-undo cannot duplicate the project");
+
+  // AUDITED — the removal shows up in CS+RA's own change ledger, which is the governance loop closing.
+  ok(/project REMOVED from the portfolio/.test(src), "removal writes an audit entry, so CS+RA's change ledger records it");
+
+  // SELECTION SAFETY — never leave the detail pane pointed at a dead id.
+  ok(/if \(selId === id\) \{/.test(src), "removing the SELECTED project reselects a neighbour rather than stranding the detail pane");
+
+  // ⚠ ORPHANS ARE LEFT INERT ON PURPOSE, AND COUNTED. Deleting bags/versions/members would destroy slide
+  // cells and approved gate history that Undo could not restore. Ids are never reused, so nothing inherits.
+  ok(/ids are never reused/.test(src), "the audit line states that orphan records are left keyed and ids never reused");
+  // ⚠ THIS LOCK WAS DECORATION ON ITS FIRST WRITING AND MUTATION-TESTING CAUGHT IT. It matched the literal
+  // spelling `delete bags[`, so a mutation writing `delete _b[id]` walked straight past it and the suite
+  // stayed GREEN. Asserting a SPELLING instead of the PROPERTY is the proxy-lock family that cost fourteen
+  // rewrites this session. Now it scopes to removeIdea's own body and forbids the REAL destructive verbs:
+  // any `delete` statement, and any writer that could persist a swept record.
+  const rmStart = src.indexOf("const removeIdea = (id: string) =>");
+  const rmEnd = src.indexOf("\n  const undoRemove", rmStart);
+  ok(rmStart > 0 && rmEnd > rmStart, "removeIdea's body was located and bounded for inspection");
+  const rmBody = src.slice(rmStart, rmEnd);
+  ok(rmBody.length > 300 && rmBody.length < 4000, `removeIdea body is bounded (${rmBody.length} chars)`);
+  ok(!/\bdelete\s/.test(rmBody), "removeIdea performs NO delete — orphan records are left inert, because Undo could not restore them and no id ever inherits them");
+  ok(!/writeFieldBags|writeVersions|setMembers|setVersions|setBags/.test(rmBody),
+     "removeIdea writes NONE of the bag/version/member stores — it touches `order` and the audit only");
+}
+
 /* ---------------- X-7a — CS + RA · the merged governance close-out (operator's Approval Templates) ------
    The operator supplied slides 35-36 (Change Summary "Gate Review History" + PRB Reviews & Approvals) and
    required that the merged slide give NEW insight beyond what S16 is designed after. These locks hold the

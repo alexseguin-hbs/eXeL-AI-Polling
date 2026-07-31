@@ -58,7 +58,7 @@ import {
   BIZ_CONF_LADDER, bizConfOf, competitorsOf, clampX, nextCompetitorLabel, type WtpMarker,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
-import { Settings, FileText, Lightbulb, Save } from "lucide-react"; // settings gear + Template/New-Idea icons + W-7 disk Save (the ONE save glyph, matching Architect-2525)
+import { Settings, FileText, Lightbulb, Save, Trash2 } from "lucide-react"; // settings gear + Template/New-Idea icons + W-7 disk Save (the ONE save glyph, matching Architect-2525)
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
 
@@ -336,6 +336,50 @@ function Board() {
     log("edit", np.name, `submitted new idea (G1) · HI value prop + NBA set · AI version minted${np.segmentValueProps?.length ? ` · ${np.segmentValueProps.length} segment(s)` : ""}`, "you");
     setNewIdeaOpen(false);
   };
+  // ── REMOVE A PROJECT (operator: "user can add and remove projects at will") ──────────────────────────
+  //
+  // ⚠ ADD ALREADY WORKED; REMOVE DID NOT EXIST AT ALL. Grep-verified before writing a line, per R-CORE:
+  // `deleteProject|removeProject|onDelete|onRemove` returned NOTHING across app/innovation/ and the lib.
+  // So "at will" was half true — you could grow the portfolio and never shrink it.
+  //
+  // ONE WRITER, NOT A SECOND DOOR. This mutates the same `order` array `createIdea` appends to, so the
+  // SAME debounced `saveState("projects", order)` effect persists it. No new persistence path, no second
+  // Supabase call, nothing to keep in sync.
+  const [undoRemoved, setUndoRemoved] = useState<{ p: Project; at: number } | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  const removeIdea = (id: string) => {
+    const victim = order.find((x) => x.id === id);
+    if (!victim) return;
+    // ⚠ ORPHANS ARE LEFT INERT AND COUNTED, NOT SWEPT. bags[id] / versions[id] / members[id] are keyed by
+    // project id. Deleting them would destroy slide cells, approved gate history and role assignments that
+    // an undo could not restore — and `createIdea` mints ids from max+1, so an id is NEVER reused and the
+    // records can never be inherited by a different project. The count is reported to the operator rather
+    // than silently swept: their data, their call.
+    const orphans = [
+      Object.keys(readFieldBags()[id] ?? {}).length,
+      (readVersions()[id] ?? []).length,
+      (members[id] ?? []).length,
+    ];
+    setUndoRemoved({ p: victim, at: Date.now() });
+    setOrder((o) => o.filter((x) => x.id !== id));
+    // Selection safety: never leave the detail pane pointed at a dead id.
+    if (selId === id) {
+      const rest = order.filter((x) => x.id !== id);
+      setSelId(rest[0]?.id ?? "");
+      if (!rest.length) setDetailOpen(false);
+    }
+    log("edit", victim.name, `project REMOVED from the portfolio · ${orphans[0]} slide-field cells · ${orphans[1]} versions · ${orphans[2]} member(s) left keyed (ids are never reused)`, "you",
+        { projectId: id, field: "project", from: victim.id, to: "removed" });
+  };
+  const undoRemove = () => {
+    if (!undoRemoved) return;
+    // Restore at the head, exactly where createIdea puts a project, and re-select it so the operator sees
+    // it come back rather than having to hunt for it.
+    setOrder((o) => (o.some((x) => x.id === undoRemoved.p.id) ? o : [undoRemoved.p, ...o]));
+    selectProject(undoRemoved.p.id);
+    log("edit", undoRemoved.p.name, "project removal UNDONE — record restored intact", "you", { projectId: undoRemoved.p.id });
+    setUndoRemoved(null);
+  };
   // Change + approval activity log (edits and gate approvals) — the audit summary.
   // Funding & approval AUDIT TRAIL (Slice 6) — append-only, timestamped, PERSISTED (localStorage + debounced
   // cloud "audit"), hydrated with union-merge-by-id so history survives reload and never clobbers cloud entries.
@@ -557,8 +601,26 @@ function Board() {
               className="inline-flex items-center gap-1.5 rounded-md bg-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-[#06202a] hover:bg-cyan-400">
               <Lightbulb className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t("innovation.header.newIdea")}
             </button>
+            {/* ── REMOVE, BESIDE ADD — the operator asked to "add and remove projects at will", and until now
+                only half of that existed. Deliberately NOT a bare ✕ on a row: a project carries slide cells,
+                approved gate history, membership and audit, so it asks first and NAMES what goes. */}
+            <button onClick={() => setConfirmRemove(selId)} disabled={!selId}
+              title={sel ? `Remove ${sel.name} from the portfolio` : "Select a project first"}
+              aria-label="Remove the selected project"
+              className="inline-flex items-center gap-1.5 rounded-md border border-rose-500/40 px-2.5 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40">
+              <Trash2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />Remove
+            </button>
           </div>
         </div>
+        {/* UNDO — `saveState("projects", …)` is debounced, so an accidental delete is otherwise unrecoverable
+            from the cloud copy. One step back, holding the whole record, restored intact. */}
+        {undoRemoved && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-200">
+            <span>Removed <strong>{undoRemoved.p.name}</strong> ({undoRemoved.p.id}) from the portfolio.</span>
+            <button onClick={undoRemove} className="rounded border border-amber-400/50 px-2 py-0.5 font-semibold text-amber-100 hover:bg-amber-500/20">Undo</button>
+            <button onClick={() => setUndoRemoved(null)} className="text-amber-300/70 hover:text-amber-200">dismiss</button>
+          </div>
+        )}
         {/* Row 2: System of Innovation title (left) lines up with the R&D Scenario dropdown (right) — operator */}
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <div>
@@ -946,6 +1008,40 @@ function Board() {
 
       {/* New-idea modal — value proposition is a must-have at creation */}
       {newIdeaOpen && <NewIdeaModal onCreate={createIdea} onClose={() => setNewIdeaOpen(false)} />}
+      {/* ── CONFIRM REMOVE — names the project AND what stays behind, so the operator decides with the
+          facts. Orphan records are LEFT INERT deliberately: deleting them would destroy slide cells and
+          approved gate history that Undo could not restore, and ids are never reused (createIdea mints
+          max+1), so nothing can inherit them. */}
+      {confirmRemove && (() => {
+        const v = order.find((x) => x.id === confirmRemove);
+        if (!v) return null;
+        const cells = Object.keys(readFieldBags()[v.id] ?? {}).length;
+        const vers = (readVersions()[v.id] ?? []).length;
+        const mem = (members[v.id] ?? []).length;
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Confirm project removal"
+               onClick={() => setConfirmRemove(null)}>
+            <div className="w-full max-w-md rounded-lg border border-rose-500/40 bg-[#0e141b] p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-sm font-semibold text-rose-300">Remove this project?</h2>
+              <p className="mt-2 text-[13px] text-slate-200"><strong>{v.name}</strong> <span className="text-slate-400">({v.id})</span></p>
+              <p className="mt-1 text-[12px] text-slate-400">
+                {GATE_STAGE[v.gate]} ({v.gate}) · R&amp;D {k(v.nreK)} · it leaves the Rack &amp; Stack and every rollup immediately.
+              </p>
+              <ul className="mt-3 space-y-0.5 text-[11px] text-slate-400">
+                <li>· {cells} slide-field cell{cells === 1 ? "" : "s"}, {vers} version{vers === 1 ? "" : "s"} and {mem} member record{mem === 1 ? "" : "s"} stay keyed to {v.id}</li>
+                <li>· project ids are never reused, so nothing can inherit them</li>
+                <li>· one-step <strong>Undo</strong> appears immediately after</li>
+              </ul>
+              <div className="mt-4 flex justify-end gap-2">
+                <button onClick={() => setConfirmRemove(null)}
+                  className="rounded border border-slate-600 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">Cancel</button>
+                <button onClick={() => { removeIdea(v.id); setConfirmRemove(null); }}
+                  className="rounded bg-rose-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-400">Remove project</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* R-Core Project Template — in-app pop-out (was a new-tab link); embeds the standalone template doc */}
       {templateOpen && <TemplateModal onClose={() => setTemplateOpen(false)} />}
