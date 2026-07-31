@@ -4639,5 +4639,36 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/Unit COGS|COGS \(10-Yr\)/.test(list), "the two non-canonical COGS tiles are gone");
 }
 
+// ── X-1c · THREE BANDS · X-5a · CAPTURE % IS AN INPUT ───────────────────────────────────────────────
+{
+  const fspX5 = await import("node:fs/promises");
+  const srcX5 = await fspX5.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+  const libX5 = await fspX5.readFile(new URL("../lib/innovation-data.ts", import.meta.url), "utf8");
+
+  // X-1c — the marker wrapper must NOT translate the dot+label STACK; that is what put the dot above the
+  // rule and the label into the LOW/HIGH band. A `1fr auto 1fr` grid over the full height puts the middle
+  // row on the centre line. Measured after the fix: dot offsets 0,0,0,0 · labels -7px · LOW/HIGH +11px.
+  const cs = srcX5.indexOf("function CompetitionStrip");
+  const strip = srcX5.slice(cs, srcX5.indexOf("\nfunction ", cs + 10));
+  ok(/grid-rows-\[1fr_auto_1fr\]/.test(strip), "the marker is a 1fr/auto/1fr grid, so the dot row IS the centre line");
+  ok(!/absolute top-1\/2 -translate-x-1\/2 -translate-y-1\/2/.test(strip),
+     "no marker wrapper translates the dot+label stack — that is what dropped labels onto the LOW/HIGH band");
+  ok((strip.match(/row-start-2/g) || []).length === 2, "both dots (competitors + ours) sit in the centre row");
+  ok((strip.match(/row-start-1[^"]*self-end/g) || []).length >= 2, "labels bottom-align in the row ABOVE the rule");
+
+  // X-5a — capture % is per-project and EVERY consumer reads the same accessor, so the chart's two bars,
+  // the tile and the price range cannot disagree. Driven: 33% → 50% moved all three together.
+  ok(/export const captureOf =/.test(libX5), "captureOf is the one reader of the per-project capture %");
+  ok(/capturePct\?: number \| null;/.test(libX5), "Project carries an OPTIONAL capturePct — seeded projects keep the default");
+  const splits = [...srcX5.matchAll(/valueSplit\(/g), ...libX5.matchAll(/valueSplit\(/g)];
+  const bare = [...srcX5.matchAll(/valueSplit\(([^)]*)\)/g), ...libX5.matchAll(/valueSplit\(([^)]*)\)/g)]
+    .filter((m) => !/captureOf\(|capturePct/.test(m[1]) && !/evcUsdM: number/.test(m[1]));
+  ok(bare.length === 0, `every valueSplit caller passes the per-project % (${bare.length} still use the bare default)`);
+  ok(/aria-label="Value capture percent"/.test(srcX5) || /title="Value capture percent"/.test(srcX5),
+     "the capture % is a real input with an accessible name, not a read-out");
+  ok(/onClear=\{\(\) => onEditSource\(\{ capturePct: null \}/.test(srcX5),
+     "clearing the field restores the 33% default rather than committing a zero");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

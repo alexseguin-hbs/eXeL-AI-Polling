@@ -51,7 +51,7 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
-  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, driverValueM, driverTone, importanceBars,
+  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, captureOf, driverValueM, driverTone, importanceBars,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
   BIZ_CONF_LADDER, bizConfOf, competitorsOf, clampX, nextCompetitorLabel, type WtpMarker,
@@ -1384,10 +1384,20 @@ function CompetitionStrip({ p, ours, oursLabel, onSave }: {
         ))}
       </div>
       <div ref={barRef} onPointerMove={onMove} onPointerUp={endDrag} onPointerCancel={endDrag}
-           className={`relative h-9 rounded border bg-[#0e141b] ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
+           className={`relative h-12 rounded border bg-[#0e141b] ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
         <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
+        {/* ⚠ X-1c · THREE BANDS, NOT ONE (operator, with the screenshot: "Price performance labels: NBA,
+            Comp A, Comp B must be above circle. Have circle centered on line so we can read Low to High
+            below line and title"). THE CAUSE: this wrapper carried `-translate-y-1/2` around the dot AND
+            the label TOGETHER, so translating the STACK up by half its own height pushed the DOT above the
+            rule and dropped the LABEL onto the band where LOW/HIGH live — three things competing for one
+            band, which is why SAR overprinted HIGH.
+            A `1fr auto 1fr` grid over the full height puts the middle row exactly on the centre line, so
+            the DOT is centred on the rule and the position it encodes is literally where the marker is —
+            which it was not before. The label bottom-aligns in the row above; LOW/HIGH keep the row below
+            to themselves. Strip grows h-9 → h-12 to hold three legible bands. */}
         {marks.map((m, i) => (
-          <div key={`${m.label}-${i}`} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${X0 + m.x * SPAN}%`, maxWidth: "22%" }}>
+          <div key={`${m.label}-${i}`} className="absolute inset-y-0 -translate-x-1/2 grid grid-rows-[1fr_auto_1fr] justify-items-center" style={{ left: `${X0 + m.x * SPAN}%`, maxWidth: "22%" }}>
             <div
               onPointerDown={editing ? (e) => { dragging.current = i; (e.target as Element).setPointerCapture?.(e.pointerId); } : undefined}
               role={editing ? "slider" : undefined} tabIndex={editing ? 0 : undefined}
@@ -1401,24 +1411,30 @@ function CompetitionStrip({ p, ours, oursLabel, onSave }: {
                 if (!d) return; e.preventDefault();
                 setDraft((cur) => cur.map((c, j) => (j === i ? { ...c, x: clampX(c.x + d) } : c)));
               } : undefined}
-              className={`mx-auto h-2.5 w-2.5 rounded-full ${editing ? "h-3.5 w-3.5 cursor-grab ring-2 ring-cyan-400/60 active:cursor-grabbing" : ""}`}
+              // ROW 2 = the centre line. Only the DOT sits here, so its centre is on the rule.
+              className={`row-start-2 mx-auto h-2.5 w-2.5 rounded-full ${editing ? "h-3.5 w-3.5 cursor-grab ring-2 ring-cyan-400/60 active:cursor-grabbing" : ""}`}
               style={{ background: m.label === "NBA" ? "#64748b" : "#94a3b8" }} />
+            {/* ROW 1, BOTTOM-ALIGNED — the label sits directly ABOVE the dot and can never reach the
+                LOW/HIGH band. Placed by grid row rather than by moving this JSX, so the drag handlers
+                above stay exactly where they are. */}
             {editing ? (
               <input value={m.label} onChange={(e) => setDraft((d) => d.map((c, j) => (j === i ? { ...c, label: e.target.value } : c)))}
                 aria-label={`${m.label} label`}
-                className="mt-0.5 w-full bg-transparent text-center text-[7px] leading-tight text-slate-300 outline-none focus:text-cyan-300" />
+                className="row-start-1 mb-0.5 w-full self-end bg-transparent text-center text-[7px] leading-tight text-slate-300 outline-none focus:text-cyan-300" />
             ) : (
               /* The MARKER is positioned; its label wraps within a share of the strip, so a long product
                  name at either end folds instead of running off the edge. */
-              <div className="mt-0.5 break-words text-center text-[7px] leading-tight text-slate-400">{m.label}</div>
+              <div className="row-start-1 mb-0.5 self-end break-words text-center text-[7px] leading-tight text-slate-400">{m.label}</div>
             )}
           </div>
         ))}
         {/* OURS — derived from the competitive index, drawn last so it sits above the competitors, and never
             given a pointer handler even in edit mode. */}
-        <div className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${X0 + clampX(ours) * SPAN}%`, maxWidth: "22%" }}>
-          <div className="mx-auto h-2.5 w-2.5 rounded-full" style={{ background: "#3b82f6" }} />
-          <div className="mt-0.5 break-words text-center text-[7px] leading-tight text-blue-300">{oursLabel}</div>
+        <div className="pointer-events-none absolute inset-y-0 -translate-x-1/2 grid grid-rows-[1fr_auto_1fr] justify-items-center" style={{ left: `${X0 + clampX(ours) * SPAN}%`, maxWidth: "22%" }}>
+          <div className="row-start-2 mx-auto h-2.5 w-2.5 rounded-full" style={{ background: "#3b82f6" }} />
+          {/* OURS gets the same three-band treatment — this is the marker whose label (e.g. "SAR")
+              overprinted HIGH, because the competitive index pins it hard right at x = 1.0. */}
+          <div className="row-start-1 mb-0.5 self-end break-words text-center text-[7px] leading-tight text-blue-300">{oursLabel}</div>
         </div>
         <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>
         <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>
@@ -1440,7 +1456,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const rows = drivers ?? (p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
   const rev = addressableRevM ?? incrementalRevM(p);
   const ve = valueEquation(rows, rev);
-  const split = valueSplit(ve.evcUsdM, ve.referenceM);
+  const split = valueSplit(ve.evcUsdM, ve.referenceM, captureOf(p));   // X-5a · the chart's two capture bars read the SAME % as the tile
   const editable = mode === "edit" && !!onChange;
   const set = (i: number, patch: Partial<ValueDriver>) => onChange?.(rows.map((d, j) => (j === i ? { ...d, ...patch } : d)));
 
@@ -5485,6 +5501,25 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                       onCompetitors={(c) => onEditSource({ competitors: c },
                         [`competitor positions → ${c.map((m) => `${m.label} ${Math.round(m.x * 100)}%`).join(" · ")}`])}
                     />
+                    {/* X-5a · VALUE CAPTURE % IS AN INPUT (operator: "I don't see option to change 33% to
+                        something else. Even though value capture is defaulted to 33% should be able to
+                        change as a whole"). It was a derived read-out of a module constant with no way in.
+                        It sits HERE, in the one place that authors the value prop, so there is still ONE
+                        door. Typing it moves the chart's two capture bars, the VALUE CAPTURE % tile and the
+                        VALUE PRICE RANGE together, because all three now read `captureOf(p)`.
+                        Blank CLEARS back to the 33% default rather than committing a zero. */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-[#0b0f14] px-2 py-1.5">
+                      <label htmlFor="s8-capture" className="text-[10px] text-slate-400">Value capture %
+                        <span className="ml-1 text-slate-600">— our share of the value created; the rest is the customer&apos;s</span></label>
+                      <span className="flex items-center gap-1">
+                        <FinCell value={typeof p.capturePct === "number" ? p.capturePct : null} keySeed="s8-capture"
+                          title="Value capture percent" placeholder={String(captureOf(p))}
+                          onCommit={(v) => onEditSource({ capturePct: Math.max(0, Math.min(100, v)) }, [`value capture → ${Math.max(0, Math.min(100, v))}%`])}
+                          onClear={() => onEditSource({ capturePct: null }, ["value capture → default"])}
+                          className="w-14 rounded border border-slate-700 bg-[#0e141b] px-1 py-1 text-right text-[11px] tabular-nums text-slate-100 outline-none focus:border-cyan-500" />
+                        <span className="text-[11px] text-slate-400">%</span>
+                      </span>
+                    </div>
                     <div className="flex justify-end">
                       <button onClick={() => onEditSource({ valueDrivers: s8Drivers }, [`value drivers: ${s8Drivers.length} vs NBA`])}
                         className="inline-flex items-center gap-1 rounded-md bg-cyan-500 px-2.5 py-1 text-[11px] font-semibold text-[#06202a] hover:bg-cyan-400"><Save className="h-3 w-3" aria-hidden /> Save drivers</button>

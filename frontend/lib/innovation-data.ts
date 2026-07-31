@@ -253,6 +253,10 @@ export interface Project {
   // W-7 · Price Performance: Competition — dragged marker positions, so a position survives a reload.
   // Absent = the DEFAULT_COMPETITORS set; our own marker is never stored (it is derived from the index).
   competitors?: WtpMarker[] | null;
+  /** X-5a · PER-PROJECT VALUE CAPTURE % (operator: "I don't see option to change 33% to something else.
+   *  Even though value capture is defaulted to 33% should be able to change"). Optional, so every seeded
+   *  project keeps `DEFAULT_CAPTURE_PCT` and NOTHING re-prices until someone types a number. */
+  capturePct?: number | null;
   lob: string;                // line of business (portfolio roll-up + growth-model filter)
   nreK: number;               // non-recurring engineering $K (CRS-47)
   fullRev10yM: number;        // 10-yr new-product revenue $M (CRS-49)
@@ -3310,6 +3314,13 @@ export const driverTone = (d: ValueDriver, addressableRevM: number): "neg" | "ne
  *  would hide a decision someone made. */
 export const DEFAULT_CAPTURE_PCT = 33;   // operator: 67 customer / 33 us — NOT the reference chart's 60/40
 export interface ValueSplit { capturePct: number; totalValueM: number; priceM: number; customerValueM: number }
+/** THE ONE READER OF `capturePct`. Every surface that needs the split calls this rather than the constant,
+ *  so the chart's two bars, the tile and the price range can never disagree about which % is in force.
+ *  Clamped 0-100: a capture below 0 or above 100 is not a position, it is a typo. */
+export const captureOf = (p: { capturePct?: number | null }): number => {
+  const v = p?.capturePct;
+  return typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : DEFAULT_CAPTURE_PCT;
+};
 export function valueSplit(evcUsdM: number, referenceM: number, capturePct: number = DEFAULT_CAPTURE_PCT): ValueSplit {
   const ref = Number.isFinite(referenceM) ? referenceM : 0;
   const total = Number.isFinite(evcUsdM) ? evcUsdM - ref : 0;
@@ -3441,7 +3452,7 @@ export function valuePropRows(p: Project): string[][] {
  *  so the tile and the geometry read one number rather than a typed "50%" beside a 33% bar. */
 export function valuePropCapture(p: Project): Record<string, string> {
   const ve = valueEquationOf(p);
-  const split = valueSplit(ve.evcUsdM, ve.referenceM);
+  const split = valueSplit(ve.evcUsdM, ve.referenceM, captureOf(p));   // X-5a · per-project, not the constant
   const money = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
   return {
     creation: money(ve.differentiationM),
