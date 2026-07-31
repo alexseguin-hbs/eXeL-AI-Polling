@@ -963,6 +963,109 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   ok(buildDemoVersionSeed(DEMO_PROJECTS.find((p) => p.id === "PRJ-24")).length === 0, "non-demo projects start with empty history");
 }
 
+/* ---------------- X-7a — CS + RA · the merged governance close-out (operator's Approval Templates) ------
+   The operator supplied slides 35-36 (Change Summary "Gate Review History" + PRB Reviews & Approvals) and
+   required that the merged slide give NEW insight beyond what S16 is designed after. These locks hold the
+   producers to the template AND to that differentiation. Every one was written RED first.               */
+{
+  const F = await import("../lib/innovation-data.ts");
+  const P = F.DEMO_PROJECTS.find((p) => p.id === "PRJ-01");
+  const fin = F.finOf(P, 2026);
+  const rep = F.gateReviewHistoryRows(P, fin, F.buildDemoVersionSeed(P));
+
+  // ── The template's shape: seven gate columns, Conceive → Retire, in order.
+  ok(F.GATE_HISTORY_COLS.length === 7, "Gate Review History has SEVEN gate columns — the template's Conceive→Retire span");
+  ok(F.GATE_HISTORY_COLS.map((c) => c.gate).join(",") === F.GATES.join(","),
+     "the columns ARE the gate ladder, in order — derived from GATES, so adding a gate cannot leave the matrix stale");
+
+  // ── The template's rails, asserted as a SET so a dropped group fails rather than shrinking quietly.
+  // SIX rails, not five — the template splits Financials into a one-year and a three-year group, so they
+  // are two rails, not one. My first draft asserted five and went red on the true shape; corrected to the
+  // template rather than the assertion loosened to fit the code.
+  const rails = [...new Set(rep.rows.map((r) => r.rail))];
+  ok(rails.length === 6 && ["Market", "Date", "Financials · 1-Yr", "Financials · 3-Yr", "Value Proposition", "R&D + Risk"].every((x) => rails.includes(x)),
+     `all SIX template rails are present — got ${rails.join(" | ")}`);
+  ok(rep.rows.filter((r) => r.rail === "Financials · 1-Yr").length === 2
+     && rep.rows.filter((r) => r.rail === "Financials · 3-Yr").length === 3,
+     "the template's one-year pair and three-year trio are both rendered");
+  // ⚠ THE HORIZON FORM IS NOT COSMETIC — F4's calendar-only ban-list caught my first labels. Its own rule:
+  // `3-Yr NPV` names a HORIZON and stays; `Yr 1` is a launch-relative PERIOD index and is banned. I had used
+  // both conventions in adjacent rows. Every rail here now uses the sanctioned form.
+  ok(!rails.some((r) => /\b(Yr\s?\d|Year\s?[1-9]\b)/.test(r)),
+     "no rail uses a launch-relative period index — the F4 calendar-only law reaches these labels too");
+
+  // ── ⚠ THE GAPS ARE ASSERTED, NOT HIDDEN. Three template rows have no source in the tool; they render
+  //    "—" everywhere and are NAMED. A future commit that invents a number for one of them fails here,
+  //    which is the point — a fabricated figure on a governance slide is worse than a visible hole.
+  ok(rep.gaps.length === 3 && rep.gaps.includes("TAM, $") && rep.gaps.includes("SAM, $") && rep.gaps.includes("Competitive NBA Price, $"),
+     `exactly three rows are declared gaps and named: ${rep.gaps.join(" · ")}`);
+  for (const g of rep.gaps) {
+    const row = rep.rows.find((r) => r.label === g);
+    ok(row.values.every((v) => v === null), `gap row "${g}" renders empty in every gate column — never a fabricated figure`);
+  }
+  // The duplicate that executing caught: NBA Price must NOT echo NBA value.
+  const nba = rep.rows.find((r) => r.label === "Competitive NBA, $");
+  const nbaPrice = rep.rows.find((r) => r.label === "Competitive NBA Price, $");
+  ok(nba.values.some((v) => v !== null) && nbaPrice.values.every((v) => v === null),
+     "Competitive NBA carries a value and NBA Price does not — the first draft derived NBA Price back to exactly NBA value and printed the same $ twice");
+
+  // ── DRIFT ACROSS GATES IS THE WHOLE POINT. A matrix that resolves to one column demonstrates nothing;
+  //    that is exactly what the first run produced (recordedGates 1/7) because every seeded version was
+  //    stamped at p.gate. PRJ-01 sits at G4, so four gates must carry a recorded business case.
+  ok(rep.recordedGates === 4, `PRJ-01 (G4) records FOUR gate columns, not one — got ${rep.recordedGates}`);
+  const rd = rep.rows.find((r) => r.label === "R&D Spend, $");
+  ok(rd.values.filter((v) => v !== null).length === 4, "R&D Spend is reconstructed at every cleared gate from the version snapshot");
+  ok(rd.changed.filter(Boolean).length >= 2, "the R&D Spend row flags its changes — 'Highlight Changes Only in Red' is computed, not decorative");
+  ok(rd.changed[0] === false, "the FIRST recorded value is a baseline, never flagged as a change");
+
+  // ── ⚠ COVERAGE IS REPORTED, NOT IMPLIED. A project at G1 has cleared nothing and must say so rather
+  //    than render a confident single column that reads like a complete history.
+  const early = F.DEMO_PROJECTS.find((p) => p.gate === "G1");
+  ok(F.gateReviewHistoryRows(early, F.finOf(early, 2026), F.buildDemoVersionSeed(early)).recordedGates === 1,
+     "a G1 project reports 1 of 7 gates recorded — no invented history for gates it has not reached");
+
+  // ── NEW INSIGHT vs S16 — the operator's explicit requirement, enforced rather than promised.
+  //    S16 · Market Performance is post-launch variance (Say/Do, Target vs Actual). This is gate-to-gate
+  //    drift of the forecast. The one colliding LABEL is Value Capture, and it is not the same quantity:
+  //    S16's is (List Price − Actual Price) × Qty in DOLLARS; this is the planned share, a PERCENT.
+  const vc = rep.rows.find((r) => r.label.startsWith("Value Capture"));
+  ok(vc && /%$/.test(vc.label), "the Value Capture row carries its UNIT in the label — S16 prints a $ leakage under the same words");
+  ok(vc.values.filter(Boolean).every((v) => v.endsWith("%")), "Value Capture renders a PERCENT here, so it can never be read as S16's dollar figure");
+  ok(!rep.rows.some((r) => /Say ?\/ ?Do|OTTR|PPM/i.test(r.label)),
+     "CS+RA carries NO Say/Do, OTTR or PPM row — those are S16's post-launch variance and duplicating them would defeat the 'new insight' requirement");
+
+  // ── ONE PRODUCER FOR CAGR. It was computed inline inside the S16.plc resolver and nowhere else, so
+  //    CS+RA would have had to fork it — two expressions of one quantity, free to disagree.
+  //    ⚠ THIS LOCK WAS DECORATION ON ITS FIRST WRITING AND MUTATION-TESTING CAUGHT IT. The first version
+  //    asserted only that S16's read-out contained cagrPctOf's value; it never looked at the CS+RA row, so
+  //    forking the CS+RA side left it GREEN. A lock that checks each surface separately can drift — one that
+  //    COMPARES them cannot. Same correction the band-order lock needed in F0.
+  const cagr = F.cagrPctOf(P);
+  ok(Number.isFinite(cagr), "cagrPctOf returns a finite growth rate");
+  const cagrRow = rep.rows.find((r) => r.label === "Market CAGR, %");
+  const cagrShown = cagrRow.values.find((v) => v !== null);
+  // ⚠ ANCHORED ON ^Model CAGR, NOT ON /CAGR/. The loose form matched "PLC-3: Mature (0–3% CAGR)" — an
+  // earlier row whose value is a YEAR — and reported 2030 as the growth rate. Probe error, caught by the
+  // lock going red at baseline rather than by reading.
+  const plcShown = String(F.aiSlideField(P, "S16", "plc").find((r) => /^Model CAGR/.test(String(r[0])))?.[1] ?? "");
+  ok(cagrShown !== undefined && plcShown.includes(cagrShown),
+     `CS+RA's Market CAGR row (${cagrShown}) is the SAME string S16's PLC read-out prints (${plcShown}) — compared directly, so forking either side goes red`);
+
+  // ── RA · the nine PRB functions, three required, from the template.
+  ok(F.PRB_FUNCTIONS.length === 9, "the PRB review board has the template's NINE functions");
+  ok(F.PRB_FUNCTIONS.filter((f) => f.required).length === 3
+     && F.PRB_FUNCTIONS.slice(0, 3).every((f) => f.required),
+     "Product/Business, Finance/FP&A and R&D-Development are the three REQUIRED (●) functions, and they lead");
+  const panels = F.gateApprovalPanels(P, {}, [], "PRB");
+  ok(panels.prior.gate === "G3" && panels.current.gate === "G4",
+     "the two panels are PRIOR gate and CURRENT gate — the template's left/right split");
+  ok(panels.current.rows.length === 9, "the current-gate panel renders all nine functions, filled or not");
+  ok(panels.current.satisfied === 0, "with no recorded decisions, ZERO required functions read as satisfied — an unsigned board never looks signed");
+  ok(panels.current.rows.every((r) => r.date === "—" || /^\d{4}-\d{2}-\d{2}$/.test(r.date)), "every approval date is an ISO day or an honest em-dash");
+  // A G1 project has no prior gate — the panel must degrade, not fabricate one.
+  ok(F.gateApprovalPanels(early, {}, [], "PRB").prior.gate === null, "a G1 project reports NO prior gate rather than inventing one");
+}
+
 /* ---------------- G5 — S16 PLC classifier + S8 value chart field ---------------- */
 import { plcStageOf } from "../lib/innovation-data.ts";
 {

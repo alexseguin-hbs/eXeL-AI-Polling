@@ -1699,6 +1699,34 @@ export function buildDemoVersionSeed(p: Project): SlideVersion[] {
       out.push(makeSlideVersion({ ts: DEMO_VERSION_TS[i], projectId: p.id, slide: code, gate: p.gate, by, status, comment, substantial: i === 1, fields, fin: scale(k) }));
     });
   }
+  // ── GATE-TO-GATE APPROVAL HISTORY (added for CS + RA · Gate Review History) ────────────────────
+  //
+  // ⚠ WHY THIS WAS NEEDED, FOUND BY EXECUTING RATHER THAN READING. Every version above is stamped
+  // `gate: p.gate`, so the three stages model a version progression WITHIN one gate. Run against PRJ-01
+  // that yields `recordedGates: 1/7` — the whole Gate Review History collapsed into a single column and
+  // demonstrated nothing. The template's entire point is the drift ACROSS gates.
+  //
+  // A gate review ends in an approval, so a project sitting at G4 genuinely cleared G1..G3. One approved
+  // version per CLEARED gate, on the slide that carries the financial case (S3), with the business case
+  // ramping toward today's numbers. DEMO DATA, deliberately: it stays inside `buildDemoVersionSeed`, still
+  // gated to the three demo projects, and a real deployment's own approvals flow through the same reader.
+  //
+  // DETERMINISTIC, NO CLOCK: each gate's timestamp is that gate's own scheduled start from `gateScheduleOf`
+  // — the schedule the MoT timeline already draws — so the history lines up with the timeline instead of
+  // inventing a second set of dates.
+  const cleared = GATES.indexOf(p.gate);
+  if (cleared > 0) {
+    const sched = gateScheduleOf(p);
+    for (let gi = 0; gi < cleared; gi++) {
+      // Ramp 0.70 → 1.00 across the cleared gates so the matrix shows real movement to flag in red.
+      const k = 0.70 + (0.30 * (gi + 1)) / cleared;
+      out.push(makeSlideVersion({
+        ts: `${sched[gi].endISO}T09:00:00Z`, projectId: p.id, slide: "S3", gate: GATES[gi], by: "웃 HI",
+        status: "approved", comment: `${GATE_STAGE[GATES[gi]]} gate review — business case approved.`,
+        fields: {}, fin: scale(+k.toFixed(3)),
+      }));
+    }
+  }
   return out;
 }
 
@@ -2720,6 +2748,184 @@ export function reviewApprovalRows(activity: AuditEntry[], members: MembershipMa
     rows.push([`${board} decision`, e.by || "—", e.kind === "approve" ? "Approved ✓" : "Changes requested"]);
   return rows;
 }
+
+// ── CS + RA · THE MERGED GOVERNANCE CLOSE-OUT (operator's Approval Templates, slides 35-36) ──────────────
+//
+// WHY THIS EXISTS, AND WHAT IT IS NOT. S16 · Market Performance asks "after launch, did we hit the number?"
+// — Say/Do ratios, one Target against one Actual, at one moment, Launch+. THIS asks a different question:
+// "how has the business case itself MOVED across all seven gates, and who signed each move?" Drift of the
+// forecast, not variance of the outcome. The operator's requirement was that CS+RA give NEW insight beyond
+// what S16 is designed after, and that is the axis on which it does.
+//
+// ⚠ ONE LABEL COLLIDES WITH S16 AND IT IS NOT THE SAME QUANTITY. S16's "Value Capture" is
+// (List Price − Actual Price) × Quantity — realised $ leakage after launch. The row below is the PLANNED
+// share of created value, a percent. Same words, different unit, different stage. The row is therefore
+// named "Value Capture, %" with the unit IN the label, and a lock asserts the percent, so a reader can
+// never take the two for one number.
+//
+// EVERYTHING HERE IS PURE. Timestamps arrive already injected on AuditEntry/SlideVersion (the SoI no-clock
+// rule), and the caller passes the FinPlan so no surface reads the calendar.
+
+/** Model CAGR % over the funded 10-year revenue curve. ONE producer — read by `S16.plc` (the PLC stage) and
+ *  by CS+RA's "Market CAGR, %" row, so the two surfaces cannot print different growth rates. */
+export function cagrPctOf(p: Project): number {
+  const fo = financialsOverview(p, { years: 10, funded: true });
+  const first = Math.max(fo[0]?.revM ?? 0.01, 0.01), last = Math.max(fo[fo.length - 1]?.revM ?? first, 0.01);
+  return fo.length > 1 ? (Math.pow(last / first, 1 / (fo.length - 1)) - 1) * 100 : 0;
+}
+
+/** The seven gate columns of the Gate Review History, in template order (Conceive → Retire). */
+export const GATE_HISTORY_COLS: { gate: Gate; label: string }[] =
+  GATES.map((g) => ({ gate: g, label: GATE_STAGE[g] }));
+
+/** One metric row of the Gate Review History matrix. `values[i]` is null where no value is recorded. */
+export interface GateHistoryRow {
+  rail: string;            // the template's left rail group (Market · Date · Financials · Value Proposition · R&D + Risk)
+  label: string;           // row label, UNIT INCLUDED — the S16 collision above is why
+  values: (string | null)[];  // one per GATE_HISTORY_COLS entry
+  changed: boolean[];      // true where the value differs from the previous recorded one → "Highlight Changes Only in Red"
+  gap?: true;              // no source exists in the tool for this row (see GateHistoryReport.gaps)
+}
+export interface GateHistoryReport {
+  rows: GateHistoryRow[];
+  recordedGates: number;   // how many of the 7 columns carry ANY recorded value
+  gaps: string[];          // rows that render "—" everywhere because the tool has no source yet
+}
+
+/** Format helpers local to the matrix, so every cell in it rounds the same way. */
+const gh$M = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
+const gh$K = (k: number) => `$${Math.round(k).toLocaleString("en-US")}k`;
+
+/**
+ * CS · GATE REVIEW HISTORY — the business case at every gate, changes flagged.
+ *
+ * THE REUSE, AND IT IS THE WHOLE POINT: `SlideVersion` already carries { ts, gate, by, status, fin } and its
+ * own demo seed calls the approved moment "baseline locked". The version history IS the gate review history,
+ * so this reads it rather than inventing a parallel schedule.
+ *
+ * ⚠ HONEST ABOUT WHAT HISTORY CAN CARRY. SlideFinSnap records four numbers (nreK · revM · marginM · npvM), so
+ * only the four financial rows can be reconstructed at a PAST gate. Every other row can only be known as it
+ * stands NOW, and is therefore placed in the current gate's column with "—" elsewhere. That is a limit of the
+ * recorded data, not a rendering choice, and `recordedGates` reports it rather than letting a sparse matrix
+ * read as a complete one.
+ */
+export function gateReviewHistoryRows(
+  p: Project, fin: FinPlan, versions: SlideVersion[],
+): GateHistoryReport {
+  const mine = versions.filter((v) => v.projectId === p.id && v.status === "approved");
+  // Newest approved version per gate — a gate reviewed twice reports its LATEST approval, not its first.
+  const byGate = new Map<Gate, SlideVersion>();
+  for (const v of [...mine].sort((a, b) => a.ts.localeCompare(b.ts))) byGate.set(v.gate, v);
+  const curIdx = GATES.indexOf(p.gate);
+  const ve = valueEquationOf(p);
+  const split = valueSplit(ve.evcUsdM, ve.referenceM, captureOf(p));
+  const y = fin.years;
+  const sumInc = (n: number, pick: (yy: FinYear) => number) => y.slice(0, n).reduce((a, yy) => a + pick(yy), 0);
+  const incRev1 = sumInc(1, (yy) => incRevK(yy, fin.unitEcon)), incRev3 = sumInc(3, (yy) => incRevK(yy, fin.unitEcon));
+  const incMgn1 = sumInc(1, (yy) => incMgnK(yy, fin.unitEcon)), incMgn3 = sumInc(3, (yy) => incMgnK(yy, fin.unitEcon));
+  const top3 = [...(p.valueDrivers ?? [])]
+    .sort((a, b) => Math.abs(driverValueM(b, ve.referenceM)) - Math.abs(driverValueM(a, ve.referenceM)))
+    .slice(0, 3).map((d) => d.name).join(" · ");
+
+  // `snap` rows can be reconstructed at a past gate from SlideFinSnap; `now` rows only at the current gate.
+  type Spec = { rail: string; label: string; now: string | null; snap?: (s: SlideFinSnap) => string };
+  const specs: Spec[] = [
+    // ⚠ NO SOURCE IN THE TREE. Rendered so the operator sees the hole where the template puts it, rather
+    // than a quietly shortened table. Named in `gaps`, and never filled with an invented figure.
+    { rail: "Market", label: "TAM, $", now: null },
+    { rail: "Market", label: "SAM, $", now: null },
+    { rail: "Market", label: "Market CAGR, %", now: `${cagrPctOf(p).toFixed(1)}%` },
+    { rail: "Date", label: "Date of 1st Revenue", now: p.firstRevenue },
+    { rail: "Financials · 1-Yr", label: "Incremental Revenues, $", now: gh$K(incRev1) },
+    { rail: "Financials · 1-Yr", label: "Incremental Margin, $", now: gh$K(incMgn1) },
+    { rail: "Financials · 3-Yr", label: "Incremental Revenues, $", now: gh$K(incRev3) },
+    { rail: "Financials · 3-Yr", label: "Incremental Margin, $", now: gh$K(incMgn3) },
+    // ⚠ NPV here is the 10-year DEMO HEURISTIC (npvM), NOT a 3-year DCF — the template asks for 3-Year NPV
+    // and the tool has no 3-year cut. Labelled for what it is rather than mislabelled to match the template.
+    { rail: "Financials · 3-Yr", label: "NPV, $ (10-yr model)", now: gh$M(npvM(p)), snap: (s) => gh$M(s.npvM) },
+    { rail: "Value Proposition", label: "Competitive NBA, $", now: gh$M(ve.referenceM) },
+    // ⚠ GAP, AND IT WAS A DUPLICATE BEFORE I EXECUTED IT. My first draft derived this as
+    // `priceM − totalValue × capture%`, which is algebraically `referenceM` — it printed $150M directly
+    // beneath a "Competitive NBA, $" row already printing $150M. A row that always equals its neighbour is
+    // noise wearing a second label. The tool anchors the Value Price Range on NBA *value* and carries no
+    // separate NBA list price, so this is a genuine gap and is marked as one.
+    { rail: "Value Proposition", label: "Competitive NBA Price, $", now: null },
+    { rail: "Value Proposition", label: "Top 3 Differentiators", now: top3 || "—" },
+    { rail: "Value Proposition", label: "Value Creation, $", now: gh$M(ve.differentiationM) },
+    // Unit IS the label — see the S16 collision note above.
+    { rail: "Value Proposition", label: "Value Capture, %", now: `${split.capturePct}%` },
+    { rail: "R&D + Risk", label: "Risk: Technical", now: RISK_LABEL[p.tech] },
+    { rail: "R&D + Risk", label: "Risk: Commercial", now: RISK_LABEL[p.comm] },
+    { rail: "R&D + Risk", label: "R&D Spend, $", now: gh$K(p.nreK), snap: (s) => gh$K(s.nreK) },
+  ];
+
+  const rows: GateHistoryRow[] = specs.map((sp) => {
+    const values = GATES.map((g, i) => {
+      const v = byGate.get(g);
+      if (v && sp.snap) return sp.snap(v.fin);
+      if (i === curIdx) return sp.now;
+      return null;
+    });
+    // "Highlight Changes Only in Red" — a cell is changed when it differs from the last RECORDED value to
+    // its left. The first recorded value is a baseline, never a change.
+    const changed = values.map(() => false);
+    let prev: string | null = null;
+    values.forEach((v, i) => { if (v == null) return; if (prev != null && v !== prev) changed[i] = true; prev = v; });
+    return { rail: sp.rail, label: sp.label, values, changed, ...(sp.now == null && !sp.snap ? { gap: true as const } : {}) };
+  });
+  const recordedGates = GATES.filter((_, i) => rows.some((r) => r.values[i] != null)).length;
+  return { rows, recordedGates, gaps: rows.filter((r) => r.gap).map((r) => r.label) };
+}
+
+/** RA · the nine PRB review functions, in template order. The first three are REQUIRED (●), rest optional (○). */
+export const PRB_FUNCTIONS: { fn: string; required: boolean }[] = [
+  { fn: "Product / Business", required: true },
+  { fn: "Finance / FP&A", required: true },
+  { fn: "R&D – Development", required: true },
+  { fn: "Mfg Ops / Supply", required: false },
+  { fn: "Marketing / Sales", required: false },
+  { fn: "Support / Service", required: false },
+  { fn: "Legal / Trade Review", required: false },
+  { fn: "HR Planning", required: false },
+  { fn: "Other", required: false },
+];
+export interface ApprovalRow { required: boolean; fn: string; name: string; date: string; signed: boolean }
+export interface GateApprovalPanel { gate: Gate | null; stage: string; rows: ApprovalRow[]; concerns: string[]; satisfied: number }
+
+/**
+ * RA · PRIOR GATE | CURRENT GATE reviews + approvals, from LIVE governance — never authored.
+ *
+ * Names come from project membership (the manager always owns Product/Business); dates and decisions come
+ * from the approve/reject audit trail. An unfilled function shows "—" rather than a placeholder name, and
+ * `satisfied` counts only the REQUIRED functions that actually carry a signature — so "3 of 3 required" is
+ * a measured statement, not a layout that looks complete because it has nine rows.
+ */
+export function gateApprovalPanels(
+  p: Project, members: MembershipMap, activity: AuditEntry[], board: string,
+): { prior: GateApprovalPanel; current: GateApprovalPanel; board: string } {
+  const curIdx = GATES.indexOf(p.gate);
+  const priorGate = curIdx > 0 ? GATES[curIdx - 1] : null;
+  const roster = members[p.id] ?? [];
+  const decisions = activity.filter((e) => e.projectId === p.id && (e.kind === "approve" || e.kind === "reject"));
+
+  const panel = (gate: Gate | null): GateApprovalPanel => {
+    if (!gate) return { gate: null, stage: "—", rows: [], concerns: [], satisfied: 0 };
+    // Decisions recorded while the project sat AT this gate. `field` carries the gate on gate-status entries;
+    // fall back to every decision when it does not, so a sparse trail degrades to "shown" not "lost".
+    const atGate = decisions.filter((e) => !e.field || e.field.includes(gate) || (e.to ?? "").includes(gate));
+    const rows: ApprovalRow[] = PRB_FUNCTIONS.map((f, i) => {
+      const who = i === 0 ? (p.manager || "") : (roster[i - 1]?.userRef ?? "");
+      const d = atGate[i];
+      return { required: f.required, fn: f.fn, name: who || d?.by || "—",
+               date: d ? d.ts.slice(0, 10) : "—", signed: !!d };
+    });
+    const concerns = atGate.filter((e) => e.kind === "reject").map((e) => `${e.by}: ${e.to || e.field || "changes requested"}`);
+    return { gate, stage: GATE_STAGE[gate], rows, concerns,
+             satisfied: rows.filter((r) => r.required && r.signed).length };
+  };
+  return { prior: panel(priorGate), current: panel(p.gate), board };
+}
+
 // 12-AsM authored slide content seed (S1–S3 + stage + next gate · non-linked fields). Each cell carries BOTH
 // a human baseline (hi) and an ENHANCED, more-comprehensive AI superset built off the hi (ai). Static committed
 // constant → runtime stays deterministic. Populated by the 12-agent Ascended-Masters workflow (see SLIDE_SEED_DATA
@@ -3163,9 +3369,10 @@ export function aiSlideField(p: Project, code: string, fieldId: string): SlideFi
       return [["Revenue", GATE_STAGE[p.gate], money(p.fullRev10yM), "—"], ["Win probability", "Plan", `${Math.round(w.p50 * 100)}%`, "—"]];
     }
     case "S16.plc": {
-      const fo = financialsOverview(p, { years: 10, funded: true });
-      const first = Math.max(fo[0]?.revM ?? 0.01, 0.01), last = Math.max(fo[fo.length - 1]?.revM ?? first, 0.01);
-      const cagr = fo.length > 1 ? (Math.pow(last / first, 1 / (fo.length - 1)) - 1) * 100 : 0;
+      // CS+RA's "Market CAGR, %" row needs this same number. It was computed inline here and nowhere else,
+      // so CS+RA would have had to fork it — two expressions of one quantity, free to disagree, which is the
+      // drift class this workstream keeps closing. Extracted to `cagrPctOf`; both surfaces now read it.
+      const cagr = cagrPctOf(p);
       const st = plcStageOf(cagr);
       const yr = parseInt(p.firstRevenue.match(/\d{4}/)?.[0] ?? "2027", 10);
       return [["PLC-1: Introduction", `${p.firstRevenue}`], ["PLC-2: Growth", `${yr + 1}`], ["PLC-3: Mature (0–3% CAGR)", `${yr + 4}`], ["PLC-4: Decline (neg. CAGR)", `${yr + 8}`], ["Model CAGR → current stage", `${cagr.toFixed(1)}% → ${st.stage} ${st.label}`]];
