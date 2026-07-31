@@ -251,7 +251,12 @@ async function openSlide(page, code) {
   // Drive the real project selector — same control an operator uses, so the gate cannot test a project the UI
   // cannot reach.
   await page.locator('select:has(option[value^="PRJ-"])').first().selectOption(PROJECT);
-  await page.getByRole("button", { name: /Open slide show/ }).first().click();
+  // ⚠ THE GATE WAS TESTING NOTHING, AND IT TOOK A CLEAN RUN TO NOTICE. W-16 renamed this button to the
+  // operator's wording ("Open Digital Presentation Input"); this locator still said "Open slide show", so
+  // EVERY one of the 40 checks failed with "could not reach present mode" and the run reported `0 checks`.
+  // A gate whose selector drifts stops guarding silently — the worst failure mode a gate has. Matches BOTH
+  // labels so a future rename degrades instead of blinding it.
+  await page.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
   await page.getByRole("button", { name: `Go to slide ${code}` }).first().click();
   await page.getByRole("button", { name: /Present/ }).first().click();
   await page.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
@@ -374,7 +379,12 @@ if (!process.env.NO_SWEEP) {
       await page.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
       await page.getByRole("button", { name: "Gate Requirements" }).first().click();
       await page.locator('select:has(option[value^="PRJ-"])').first().selectOption(pr.id);
-      await page.getByRole("button", { name: /Open slide show/ }).first().click();
+      // ⚠ THE GATE WAS TESTING NOTHING, AND IT TOOK A CLEAN RUN TO NOTICE. W-16 renamed this button to the
+  // operator's wording ("Open Digital Presentation Input"); this locator still said "Open slide show", so
+  // EVERY one of the 40 checks failed with "could not reach present mode" and the run reported `0 checks`.
+  // A gate whose selector drifts stops guarding silently — the worst failure mode a gate has. Matches BOTH
+  // labels so a future rename degrades instead of blinding it.
+  await page.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
       await page.getByRole("button", { name: /Present/ }).first().click();
       await page.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
       const h = await page.evaluate(() => {

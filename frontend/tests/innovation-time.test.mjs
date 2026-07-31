@@ -4547,5 +4547,33 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(sp0.priceM >= ve0.referenceM, "the ceiling is at or above the floor — a capture % never prices below the NBA");
 }
 
+// ── X-9 · THE RISK TABLE: = Incr Rev · Incr Mgn · Total Rev, AND "FULL REV" IS RETIRED ───────────────
+// Operator: "= Incr Rev  Full Rev  Incr Mgn  becomes  = Incr Rev  Incr Mgn  Total Rev. Total Rev is Grey,
+// plus Green + Orange (risk to get to Full Rev), it's misleading to call total chart of final year Full Rev."
+// The column is Base + Incremental and the incremental half is the AT-RISK half, so "Full" asserts an
+// outcome the number has not earned. Locked as ORDER + NAME + TONE, because all three were the ask.
+{
+  const fspX9 = await import("node:fs/promises");
+  const srcX9 = await fspX9.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+  const at = srcX9.indexOf("Funded incremental ·");
+  ok(at > 0, "the funded-incremental risk table is still a locatable surface");
+  const head = srcX9.slice(at, srcX9.indexOf("</thead>", at));
+
+  // ORDER, read as the sequence the header actually emits — not as three independent presence checks,
+  // which would pass on ANY arrangement. That distinction is the whole point of this lock.
+  const order = [...head.matchAll(/>(= Incr Rev|Incr Mgn|Total Rev|Full Rev)</g)].map((m) => m[1]);
+  ok(JSON.stringify(order) === JSON.stringify(["= Incr Rev", "Incr Mgn", "Total Rev"]),
+     `the risk table reads = Incr Rev → Incr Mgn → Total Rev (got ${JSON.stringify(order)})`);
+
+  // NAME — retired on this surface, caption included, so the header and the formula cannot disagree.
+  const tbl9 = srcX9.slice(at, srcX9.indexOf("</table>", at));
+  ok(!/Full Rev/.test(tbl9), "no 'Full Rev' survives anywhere in the risk table, caption included");
+  ok(/Base \+ Incr = Total Rev/.test(tbl9), "the caption states the arithmetic with the new name");
+
+  // TONE — grey, because it is a SUM of the coloured columns beside it rather than a rival to them.
+  ok(/text-slate-300">Total Rev</.test(tbl9), "the Total Rev header is grey, per the operator");
+  ok(!/text-sky-300/.test(tbl9), "the old sky-blue Total/Full column tone is gone from this table");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

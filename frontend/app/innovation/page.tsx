@@ -6794,7 +6794,13 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
         const n0 = (v: number) => v;
         return (
           <div className="mt-2 overflow-x-auto rounded-lg border border-slate-800 bg-[#0b0f14]">
-            <div className="px-3 pt-2 text-[10px] uppercase tracking-wider text-slate-500">Funded incremental · {yr} · {baselineShown ? "Base Rev + " : ""}Step 1 − Step 2 + Step 3 = Incremental Rev{baselineShown ? " · Base + Incr = Full Rev" : ""} · × margin = Incremental Mgn ($M)</div>
+            {/* ⚠ "FULL REV" IS RETIRED HERE AND THE OPERATOR IS RIGHT ABOUT WHY. Their words: "Total Rev is
+                Grey, plus Green + Orange (risk to get to Full Rev) — it's misleading to call [the] total
+                chart of [the] final year Full Rev." The column is Base + Incremental, and the incremental
+                half is the AT-RISK half the green/orange bands are about. Calling it "Full" asserts it is
+                already earned. "Total" states the arithmetic without asserting the outcome. Grey, because
+                it is a SUM of the coloured columns beside it, not a fourth quantity competing with them. */}
+            <div className="px-3 pt-2 text-[10px] uppercase tracking-wider text-slate-500">Funded incremental · {yr} · {baselineShown ? "Base Rev + " : ""}Step 1 − Step 2 + Step 3 = Incremental Rev{baselineShown ? " · Base + Incr = Total Rev" : ""} · × margin = Incremental Mgn ($M)</div>
             <table className="w-full text-[11px] tabular-nums">
               <thead><tr className="text-slate-500">
                 <th className="px-3 py-1 text-left font-medium">{segName}</th>
@@ -6802,9 +6808,12 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
                 <th className="px-2 py-1 text-right font-medium text-emerald-300">Step 1 New</th>
                 <th className="px-2 py-1 text-right font-medium text-rose-300">− Step 2 Decline</th>
                 <th className="px-2 py-1 text-right font-medium text-violet-300">+ Step 3 EOL</th>
+                {/* ORDER, per the operator: = Incr Rev · Incr Mgn · Total Rev. The two INCREMENTAL figures
+                    now sit together — they are the same story in dollars and margin — and the SUM lands
+                    last, where a total belongs. */}
                 <th className="px-2 py-1 text-right font-medium text-amber-300">= Incr Rev</th>
-                {baselineShown && <th className="px-2 py-1 text-right font-medium text-sky-300">Full Rev</th>}
-                <th className="px-3 py-1 text-right font-medium text-amber-200">Incr Mgn</th>
+                <th className="px-2 py-1 text-right font-medium text-amber-200">Incr Mgn</th>
+                {baselineShown && <th className="px-3 py-1 text-right font-medium text-slate-300">Total Rev</th>}
               </tr></thead>
               <tbody>
                 {rowsBk.map((r) => (
@@ -6815,8 +6824,8 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
                     <td className="px-2 py-1 text-right text-slate-300">${n0(r.s2)}</td>
                     <td className="px-2 py-1 text-right text-slate-300">${n0(r.s3)}</td>
                     <td className="px-2 py-1 text-right font-semibold text-amber-300">${n0(r.inc)}</td>
-                    {baselineShown && <td className="px-2 py-1 text-right font-semibold text-sky-300">${n0(r.full)}</td>}
-                    <td className="px-3 py-1 text-right text-amber-200">${n0(r.mgn)}</td>
+                    <td className="px-2 py-1 text-right text-amber-200">${n0(r.mgn)}</td>
+                    {baselineShown && <td className="px-3 py-1 text-right font-semibold text-slate-200">${n0(r.full)}</td>}
                   </tr>
                 ))}
                 <tr className="border-t border-slate-700 font-semibold">
@@ -6826,8 +6835,8 @@ function GrowthModelChart({ funded, cadence = "M", hierFilter, allProjects, onSc
                   <td className="px-2 py-1 text-right text-rose-300">${n0(tot.s2)}</td>
                   <td className="px-2 py-1 text-right text-violet-300">${n0(tot.s3)}</td>
                   <td className="px-2 py-1 text-right text-amber-300">${n0(tot.inc)}</td>
-                  {baselineShown && <td className="px-2 py-1 text-right text-sky-300">${n0(tot.full)}</td>}
-                  <td className="px-3 py-1 text-right text-amber-200">${n0(tot.mgn)}</td>
+                  <td className="px-2 py-1 text-right text-amber-200">${n0(tot.mgn)}</td>
+                  {baselineShown && <td className="px-3 py-1 text-right text-slate-200">${n0(tot.full)}</td>}
                 </tr>
               </tbody>
             </table>
