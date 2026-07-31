@@ -5629,7 +5629,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                       </label>
                       {numEdit("eXeL R&D Upside", "upsideAccelK", "$K")}
                       {/* Program start — anchors the MoT gate timeline; changing it slides EVERY gate date. */}
-                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program start (MoT — slides all gates)
+                      <label className="flex flex-col gap-0.5 text-[10px] text-slate-400">Program Start (MoT • Slider)
                         <input type="date" defaultValue={p.startDate ?? defaultStartISO(p)} onChange={(e) => e.target.value && onEditSource({ startDate: e.target.value }, [`Program start → ${e.target.value} (timeline slid)`])} className="rounded border border-slate-700 bg-[#0e141b] px-1.5 py-1 text-[12px] text-slate-100 outline-none focus:border-cyan-500" />
                       </label>
                     </div>

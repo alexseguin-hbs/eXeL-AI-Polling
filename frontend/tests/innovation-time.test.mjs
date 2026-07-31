@@ -1977,7 +1977,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/<S10FinEditor p=\{p\} baseYear=\{baseYear\} onEdit=\{onEditSource\} \/>/.test(src), "the grid is still mounted");
   ok(/riskEdit\("Tech Risk", "tech"\)/.test(src) && /riskEdit\("Comm Risk", "comm"\)/.test(src),
      "Tech and Comm risk stay — they drive pSuccess, which the risk-weighted NPV needs");
-  ok(/Program start \(MoT — slides all gates\)/.test(src), "Program start stays — it anchors the years the spend sits on");
+  // X-6a · relabelled to fit ONE line (operator). The lock still guards the CONTROL's existence — the point
+  // was never the wording, it was that Program Start survives, because it anchors the years the spend sits on.
+  ok(/Program Start \(MoT • Slider\)/.test(src), "Program Start stays — it anchors the years the spend sits on");
 }
 
 // ── V1 · THE VALUE-PROP RESOLVER — shipped before the lockdown, on purpose ──────────────
