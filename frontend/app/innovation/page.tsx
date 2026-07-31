@@ -4795,6 +4795,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // `touches[0]`/`touches[1]` used to be.
   const ptrs = useRef<{ id: number; clientX: number; clientY: number }[]>([]);
   const touchX = useRef<number | null>(null);
+  // Z5 · THE PAN VIEWPORT, and it has to be driven by hand. The stage root sets `touchAction: "none"` (that
+  // is what makes pointermove fire for touch at all — see the note above), so the browser will NEVER scroll
+  // this container for a finger. Wheel and trackpad are unaffected by touch-action and scroll natively.
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const pinchDist = useRef(0);
   const startZoom = useRef(1);
   const pinching = useRef(false);
@@ -4819,9 +4823,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     touchX.current = e.clientX;
   };
   const onPointerMove = (e: React.PointerEvent) => {
+    const prev = ptrs.current.find((q) => q.id === e.pointerId);
+    const dx = prev ? e.clientX - prev.clientX : 0, dy = prev ? e.clientY - prev.clientY : 0;
     if (!track(e, false)) return;
-    if (!pinching.current || ptrs.current.length < 2) return;
-    setZoom(pinchZoom(startZoom.current, pinchDist.current, spread()));
+    if (pinching.current && ptrs.current.length >= 2) { setZoom(pinchZoom(startZoom.current, pinchDist.current, spread())); return; }
+    // Z5 · ONE FINGER PANS THE PAGE WHILE ZOOMED. Drag the sheet and it follows the finger, so scrollLeft
+    // moves OPPOSITE the delta. Only above 1x: at 1x the sheet always fits, there is nothing to pan, and the
+    // same drag must still page the deck (handled on pointerup).
+    if (!pinching.current && ptrs.current.length === 1 && zoom > 1 && stageRef.current) {
+      const st = stageRef.current;
+      st.scrollLeft -= dx; st.scrollTop -= dy;
+    }
   };
   // pointerup AND pointercancel land here: a cancelled pointer that never cleared `pinching` would leave the
   // swipe handler dead for the rest of the session.
@@ -4832,9 +4844,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     if (pinching.current) { if (ptrs.current.length === 0) { pinching.current = false; pinchDist.current = 0; } return; }
     if (touchX.current == null) return;
     const dx = e.clientX - touchX.current;
-    // ZOOMED IN, A DRAG PANS — IT DOES NOT PAGE. Once the zoom transform lives on the slide body, the body
-    // is the thing that moves under your finger; paging the deck out from under a half-read table is the
-    // opposite of what the gesture now means. At 1x nothing changed: a swipe still turns the page.
+    // ZOOMED IN, A DRAG PANS — IT DOES NOT PAGE. Z5 moved the transform back onto the whole sheet, so the
+    // PAGE is what moves under your finger (onPointerMove drives the stage scroller); paging the deck out
+    // from under a half-read table is the opposite of what the gesture means. At 1x nothing changed: the
+    // sheet always fits, there is nothing to pan, and a swipe still turns the page.
     if (zoom <= 1 && Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
     touchX.current = null;
   };
@@ -5412,15 +5425,19 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // the stage did not have and the sheet ended up parked at the bottom of a tall dead region (operator's
     // iPhone screenshots, 2026-07-30). Measure the bar instead of assuming it.
     const fit = Math.min((vp.w || SHEET_W) / SHEET_W, Math.max(1, (vp.h || SHEET_H) - chromeH) / SHEET_H);
-    // ZOOM NO LONGER TOUCHES THE SHEET. Scaling the whole 1600x900 page magnified the header band with the
-    // content — project name, COGS/MSRP/Mgn strip, Req badge, gate stamp, title and footer all grew, ate the
-    // viewport, and pushed the table the presenter was trying to read off-screen (operator: "top icons and
-    // banner size should not change just the content of slide"). The sheet now always scales by `fit` alone,
-    // so the chrome holds a constant on-screen size in both orientations, and `zoom` is applied INSIDE, to
-    // the slide body only. See `bodyZoomStyle` on [data-slide-body]'s wrapper.
+    // ⚠ Z5 · THE WHOLE SHEET ZOOMS, EDGES AND ALL — AND THIS DELIBERATELY REVERSES Z2.
+    // Z2/Z4 held the chrome at 1x and magnified only [data-slide-zoom], because the operator had said "top
+    // icons and banner size should not change just the content of slide". Measured at 200% that gave text
+    // 2.00x, panel box 2.00x, slide title 1.00x — content growing inside a frame that stayed put. The
+    // operator then asked for the opposite, with a concrete model: "ensure Zoom and edge of slide are synced
+    // as one. Should zoom as I would a pdf of computer screen." A PDF viewer scales the PAGE — border,
+    // banner, footer, body, one transform — and you pan it. So `zoom` multiplies into the sheet transform
+    // again and the body-side zoom stack is gone. Confirmed with the operator before the change; the Z-block
+    // lock was REWRITTEN to the new law rather than deleted, so neither behaviour can return by accident.
+    // The top control bar is unaffected: it is a sibling OUTSIDE this transform and never scaled.
     const sheetStyle: React.CSSProperties = {
       width: SHEET_W, height: SHEET_H, flex: "none", containerType: "size",
-      transform: `scale(${fit})`, transformOrigin: "top left",
+      transform: `scale(${fit * zoom})`, transformOrigin: "top left",
     };
     // The print stack lays the same sheet out at 1:1 — the @page IS 1600x900, so no scaling at all.
     // Print path ONLY — the screen path (sheetStyle + the `fit` calc above) keeps SHEET_W/SHEET_H and is not
@@ -5438,10 +5455,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // Anything that renders a slide renders THIS. A second, print-only slide renderer is exactly how a PDF
     // ends up disagreeing with what the board saw on the projector.
     const Sheet = ({ sp, i, style }: { sp: SlideSpec; i: number; style?: React.CSSProperties }) => {
-      // `style` is passed ONLY by the print stack and the cover, so it is the discriminator that keeps the
-      // exported PDF at 1x no matter what the operator has zoomed the screen to. Belt and braces: the print
-      // CSS also forces `transform: none` on [data-slide-zoom].
-      const zoomOn = !style && zoom > 1;
+      // `style` is passed ONLY by the print stack and the cover, and it REPLACES `sheetStyle` — which is
+      // where the zoom transform now lives (Z5). So the exported PDF is at 1x no matter what the operator
+      // has zoomed the screen to, structurally rather than by a flag. Belt and braces: the print CSS forces
+      // `transform: none` on `.slide-print-page [data-slide-canvas]` AND on [data-slide-zoom].
       const panel = panelsFor(sp)[sp.code];
       const anyContent = sp.fields.some((f) => !fieldEmpty(effective(sp, f, presentSrc)) || (f.kind === "chart" && f.linked));
       const deckTitle = slideDef(sp.code)?.name ?? sp.code;
@@ -5479,40 +5496,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               <span>Source: <span className="text-slate-300">{sp.source}</span></span>
             </div>
             {/* B3 · body — per-slide AMTS panels via ONE dispatch table, with the field grid as the fallback.
-                ZOOM LIVES HERE, not on the canvas. The wrapper is the pan viewport; its child carries the
-                scale. `data-slide-body` deliberately stays on the SAME grid with the SAME overflow-hidden —
-                scripts/slide-shots.mjs measures overflow off that element, and turning it into the scroll
-                container would make overflow unobservable and retire the gate that caught S10 spilling by 21
-                elements. At zoom === 1 the measured geometry is byte-identical to before. Print forces 1. */}
-            {/* ⚠ THE ZOOM BUG, MEASURED. The previous form put `width: ${100/zoom}%` on the SCALED element.
-                That does not magnify — it RE-FLOWS. At 3x the layout box became 499x228 instead of 1498x685
-                (measured), the content was laid out into a box a third the size, and `scale(3)` painted it
-                back to the same painted size. Type is sized in `cq` units that resolve against the CANVAS
-                container, which never changed, so text kept its absolute size and then got x3 — while every
-                BOX was laid out at a third and scaled back to where it started. Result: 3x text inside
-                unchanged boxes, clipping, exactly what the operator photographed. And the wrapper's scroll
-                extent stayed 1498x1498 (== client), so there was nothing to pan to either.
-
-                MAGNIFY, DON'T RE-FLOW — three elements, each with one job:
-                · viewport  — fixed size, scrolls when zoomed. This is what you pan.
-                · sizer     — `zoom x` the viewport, so the scroll extent actually exists. Transforms do not
-                              affect layout, so without this there is no scrollable area no matter how large
-                              the paint is.
-                · scaled    — `(100/zoom)%` OF THE SIZER, which is exactly 100% of the viewport: it lays out
-                              at the ORIGINAL size, unchanged from 1x, then paints `zoom x`. No reflow.
-                At zoom === 1 all three collapse to `undefined` and the geometry is byte-identical to before,
-                which is what keeps `slide-shots.mjs` measuring the same thing. Print forces 1. */}
-            <div data-slide-zoom className={`mt-[1.2cqh] min-h-0 flex-1 ${zoomOn ? "overflow-auto" : "overflow-hidden"}`}>
-              <div style={zoomOn ? { width: `${100 * zoom}%`, height: `${100 * zoom}%` } : undefined} className={zoomOn ? "" : "h-full"}>
-                <div style={zoomOn ? { width: `${100 / zoom}%`, height: `${100 / zoom}%`, transform: `scale(${zoom})`, transformOrigin: "0 0" } : undefined} className="h-full">
-                  {/* The body stops clipping ONLY while zoomed. At 1x it keeps `overflow-hidden`, because
-                      `slide-shots.mjs` measures the overflow gate off this element and a permanently visible
-                      overflow would retire the check that caught S10 spilling by 21 elements. */}
-                <div data-slide-body className={`grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] ${zoomOn ? "overflow-visible" : "overflow-hidden"}`} style={{ fontSize: TS.body, ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}) }}>
-                  {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
-                  {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
-                </div>
-                </div>
+                ⚠ Z5 · NO ZOOM LIVES HERE ANY MORE. Z2/Z4 built a viewport/sizer/scaled stack in this spot so
+                the body could magnify while the chrome held still. The operator has since asked for the
+                PDF-viewer model — the whole page scales and you pan it — so the scale moved back onto
+                [data-slide-canvas] (see `sheetStyle`) and all three wrappers collapsed to this one plain box.
+                Because the sheet's own layout is now IDENTICAL at every zoom level (only its transform
+                changes), `data-slide-body` measures the same geometry it always did, at 1x and at 3x alike.
+                That is what keeps scripts/slide-shots.mjs honest: it reads overflow off this element, and a
+                permanently-visible overflow would have retired the gate that caught S10 spilling by 21
+                elements. `overflow-hidden` is therefore UNCONDITIONAL again — no zoom ternary to go wrong.
+                [data-slide-zoom] is kept as the print CSS's reset anchor even though it no longer transforms:
+                it costs nothing and it means a re-introduced body zoom still cannot reach the PDF. */}
+            <div data-slide-zoom className="mt-[1.2cqh] min-h-0 flex-1 overflow-hidden">
+              <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body, ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}) }}>
+                {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
+                {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
               </div>
             </div>
             {/* B2 · footer — page # (left) · progress · reference links (right) · PRINT provenance (print only) */}
@@ -5593,12 +5591,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             unavoidably empty — centring split that emptiness above AND below the sheet and made the deck look
             like it had fallen down the page. Anchoring it under the controls keeps the one contiguous gap at
             the bottom, where it reads as the end of a document rather than a layout fault. */}
-        <div className="slide-noprint relative flex flex-1 items-start justify-center overflow-hidden">
+        {/* ⚠ Z5 · TWO BOXES, NOT ONE. The prev/next hit zones must anchor to the STAGE FRAME, while the sheet
+            scrolls INSIDE it — an absolutely-positioned child of a scroll container scrolls away with the
+            content, so a single box would have panned the page-turn zones off screen the moment you zoomed.
+            Frame clips and holds the buttons; the inner div is the scroller. */}
+        <div className="slide-noprint relative flex flex-1 overflow-hidden">
           <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
           <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
-          {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap reserves the SCALED footprint so the
-              scaled sheet is centred and pannable at zoom>1 instead of overflowing its own layout box. */}
-          <div className="relative shrink-0" style={{ width: SHEET_W * fit, height: SHEET_H * fit }}>
+          {/* THE PAN VIEWPORT. `mx-auto` on the footprint below — NOT `justify-center` here — is deliberate:
+              a centred flex item that is wider than its scroll container overflows on BOTH sides and its left
+              edge becomes unreachable. An auto margin on an over-wide block resolves to 0, so the sheet
+              centres while it fits and pins to the left edge (fully scrollable) once it does not. */}
+          <div ref={stageRef} className="flex-1 overflow-auto">
+          {/* B1 · SlideCanvas — a FIXED 1600x900 page. The shrink-wrap reserves the SCALED footprint (fit ×
+              zoom, Z5) so the sheet has a real layout box to pan inside rather than overflowing it. */}
+          <div className="relative mx-auto" style={{ width: SHEET_W * fit * zoom, height: SHEET_H * fit * zoom }}>
             {/* CALLED, not <Sheet/>. `Sheet` is declared inside this component, so its function identity is
                 new on every render — and `<Sheet/>` therefore makes React see a NEW COMPONENT TYPE each time
                 and tear the whole sheet down and rebuild it on every state update (measured: full remount per
@@ -5607,6 +5614,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 to module scope FIRST and rendered as <Sheet/> again. The print stack below still uses the JSX
                 form — remounting a hidden stack costs nothing and keeps the .map() keyed. */}
             <Sheet sp={spec} i={idx} />
+          </div>
           </div>
         </div>
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
