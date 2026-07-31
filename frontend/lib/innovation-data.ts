@@ -2784,6 +2784,28 @@ export function cagrPctOf(p: Project): number {
   return fo.length > 1 ? (Math.pow(last / first, 1 / (fo.length - 1)) - 1) * 100 : 0;
 }
 
+// ── THE LINK TO S16, AND IT IS THE REASON CS+RA EARNS ITS PLACE ──────────────────────────────────────
+//
+// S16 · Market Performance is a Say/Do table: `["Metric", "Reference stage", "Target", "Actual"]`. That
+// "Reference stage" column IS A GATE — the operator's template fixes it at PLAN for the R&D ratio and at
+// LAUNCH+ for revenue, margin and value capture. So S16's Target is, by definition, *the value the business
+// case recorded at that gate*.
+//
+// ⚠ AND THAT VALUE DID NOT EXIST ANYWHERE UNTIL NOW, WHICH IS WHY S16's RATIO CANNOT CURRENTLY BE A RATIO.
+// Executed on PRJ-01, `aiSlideField(p,"S16","saydo")` returns two rows against the template's six, stamps
+// the reference stage as the CURRENT gate ("Qualify") rather than the fixed Plan/Launch, and sets Target to
+// `p.fullRev10yM` — today's forecast, which moves every time someone edits S10. A denominator that follows
+// its own numerator's record is not a measurement. Actual is hard-coded "—".
+//
+// CS+RA's Gate Review History carries exactly the missing figure: the approved value AT each gate. So the
+// two slides are complementary by construction rather than by convention — S16 measures the doing, CS+RA
+// holds the saying. This constant names the join so neither side can drift from it.
+export const SAYDO_REFERENCE_GATES: { gate: Gate; measures: string }[] = [
+  { gate: "G2", measures: "Say / Do R&D (R&D Spend actuals ÷ forecast)" },
+  { gate: "G5", measures: "Say / Do Rev · Mgn · Value Capture" },
+];
+export const isSayDoReferenceGate = (g: Gate): boolean => SAYDO_REFERENCE_GATES.some((r) => r.gate === g);
+
 /** The seven gate columns of the Gate Review History, in template order (Conceive → Retire). */
 export const GATE_HISTORY_COLS: { gate: Gate; label: string }[] =
   GATES.map((g) => ({ gate: g, label: GATE_STAGE[g] }));

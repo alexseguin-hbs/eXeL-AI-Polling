@@ -1036,6 +1036,29 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   ok(!rep.rows.some((r) => /Say ?\/ ?Do|OTTR|PPM/i.test(r.label)),
      "CS+RA carries NO Say/Do, OTTR or PPM row — those are S16's post-launch variance and duplicating them would defeat the 'new insight' requirement");
 
+  // ── ⚠ NON-DUPLICATION IS ONLY HALF THE REQUIREMENT, AND THE ABSENCE LOCK ABOVE CANNOT PROVE THE OTHER
+  //    HALF. The operator asked that CS+RA give NEW INSIGHT relative to S16, so there must be a POSITIVE
+  //    linkage, asserted.
+  //
+  //    S16's Say/Do table is ["Metric", "Reference stage", "Target", "Actual"] and the template fixes that
+  //    Reference stage at PLAN (R&D ratio) and LAUNCH+ (revenue · margin · value capture). So S16's Target
+  //    IS the value the business case recorded at that gate — a cell in this matrix. Executed, S16 cannot
+  //    currently supply it: aiSlideField(p,"S16","saydo") returns TWO rows against the template's six,
+  //    stamps the reference stage as the CURRENT gate, sets Target to p.fullRev10yM (today's forecast,
+  //    which moves whenever S10 is edited), and hard-codes Actual to "—".
+  ok(F.SAYDO_REFERENCE_GATES.length === 2 && F.isSayDoReferenceGate("G2") && F.isSayDoReferenceGate("G5"),
+     "the S16 join names PLAN (G2) and LAUNCH (G5) — the two Reference Stages the operator's template fixes");
+  ok(F.SAYDO_REFERENCE_GATES.every((r) => F.GATE_HISTORY_COLS.some((c) => c.gate === r.gate)),
+     "every S16 reference stage IS a column of this matrix — the join is structural, not a caption");
+  const rdRow = rep.rows.find((r) => r.label === "R&D Spend, $");
+  const planIdx = F.GATES.indexOf("G2");
+  ok(rdRow.values[planIdx] !== null,
+     `CS+RA supplies the PLAN-gate R&D Spend (${rdRow.values[planIdx]}) that S16's Say/Do R&D ratio divides into — the denominator that did not exist before this slide`);
+  // And the defect this exposes on S16, recorded so it is a decision rather than a discovery.
+  const saydo = F.aiSlideField(P, "S16", "saydo");
+  ok(saydo.length < 6 && saydo.every((r) => r[3] === "—"),
+     `KNOWN GAP, declared not hidden: S16.saydo renders ${saydo.length} of the template's 6 rows and every Actual is "—". CS+RA now holds the reference-stage Target; wiring S16 to it is a separate slice on S16's own sheet.`);
+
   // ── ONE PRODUCER FOR CAGR. It was computed inline inside the S16.plc resolver and nowhere else, so
   //    CS+RA would have had to fork it — two expressions of one quantity, free to disagree.
   //    ⚠ THIS LOCK WAS DECORATION ON ITS FIRST WRITING AND MUTATION-TESTING CAUGHT IT. The first version

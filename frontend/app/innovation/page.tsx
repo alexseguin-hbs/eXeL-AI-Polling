@@ -46,7 +46,7 @@ import {
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   changeSummaryRows, reviewApprovalRows,
   makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelta, isSubstantial, finSnapOf, buildDemoVersionSeed,
-  gateReviewHistoryRows, gateApprovalPanels, GATE_HISTORY_COLS,
+  gateReviewHistoryRows, gateApprovalPanels, GATE_HISTORY_COLS, isSayDoReferenceGate, SAYDO_REFERENCE_GATES,
   type SlideVersion,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
@@ -5210,7 +5210,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 <table className="w-full border-collapse" style={{ fontSize: TS.micro }}>
                   <thead><tr>
                     <th className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left text-slate-400">Business case</th>
-                    {GATE_HISTORY_COLS.map((c) => <th key={c.gate} className="px-1 py-0.5 text-right text-slate-400">{c.label}</th>)}
+                    {GATE_HISTORY_COLS.map((c) => (
+                      // ◆ marks a gate S16 · Say/Do names as its Reference Stage. Those columns are not
+                      // decoration here — they ARE the Target S16 divides its Actual by.
+                      <th key={c.gate} className={`px-1 py-0.5 text-right ${isSayDoReferenceGate(c.gate) ? "text-cyan-300" : "text-slate-400"}`}>
+                        {isSayDoReferenceGate(c.gate) ? "◆ " : ""}{c.label}
+                      </th>
+                    ))}
                   </tr></thead>
                   <tbody>{hist.rows.map((r, ri) => {
                     const head = r.rail !== rail ? (rail = r.rail) : null;
@@ -5238,6 +5244,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 <span>{hist.recordedGates} of {GATE_HISTORY_COLS.length} gates carry a recorded review</span>
                 <span className="text-rose-400/80">red = changed vs the prior recorded gate</span>
                 {hist.gaps.length ? <span>no source yet: {hist.gaps.join(" · ")}</span> : null}
+                <span className="text-cyan-300/80">
+                  ◆ = S16 · Say/Do reference stage — {SAYDO_REFERENCE_GATES.map((r) => `${GATE_STAGE[r.gate]}: ${r.measures}`).join(" · ")}
+                </span>
               </div>
             </AmtsPanel>
             <AmtsPanel title="PRB Reviews + Approvals" icon="◨">
