@@ -80,7 +80,11 @@ const open = async (pg) => {
   await pg.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
   await pg.getByRole("button", { name: "Gate Requirements" }).first().click();
   await pg.locator('select:has(option[value^="PRJ-"])').first().selectOption(PROJECT);
-  await pg.getByRole("button", { name: /Open slide show/ }).first().click();
+  // ⚠ SAME STALE LOCATOR AS slide-shots, SAME ROOT CAUSE. W-16 renamed this button to the operator's
+  // wording ("Open Digital Presentation Input"); BOTH gates still clicked "Open slide show". slide-shots
+  // failed SILENTLY (0 checks, still summarised); this one at least crashed. Either way the PDF has been
+  // unverified for the same four commits. Matches both labels so a future rename degrades, not blinds.
+  await pg.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
   await pg.getByRole("button", { name: /Present/ }).first().click();
   await pg.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
   // Mount the print stack through the app's OWN beforeprint listener — if that breaks, the gate breaks too.

@@ -2651,12 +2651,18 @@ function ProjectDetail({ p, risks, setRisks, setup, maximized, onToggleMax, onEd
   const ex = execOf(p);
   const meta = metaOf(p);
   const fm = financialMetrics(p);
-  // Full FLIR "Project Metrics" card set (14) — IMG_7843 / spec §2.4. Adds Quantity + COGS (unit + 10-yr) from
-  // the same engine values (execOf / financialMetrics) so the QTY·ASP·COGS build-up shows here too (operator).
+  // X-4 · THE CANONICAL TWELVE (operator: "Reduce Metrics to 12 key for decision making"). This set is not
+  // a preference — it is already written down and locked in the lib as the FLIR twelve, and the heading
+  // count is derived (`{metrics.length}-metric set`), so it re-labels itself.
+  // ⚠ REMOVING THESE TWO DELETES A LIVE BUG RATHER THAN RELABELLING ONE. `Unit COGS` was `k(ex.cogsK)`,
+  // where `k` is the $K→$M converter and `ex.cogsK` is a PER-UNIT price in $K. Executed: a ~$40k unit cost
+  // rendered "$0.0M" — the value was right and the tile destroyed it by applying a program-scale converter
+  // to a per-unit figure. The same number renders correctly as `${ex.cogsK}k` elsewhere, so the converter
+  // is right everywhere else and was wrong only here. `COGS (10-Yr)` goes with it as the other tile outside
+  // the canonical set; both were bolted on and neither is backed by a locked `FinMetrics` field.
   const metrics: [string, string][] = [
     ["NPV", usd(fm.npvM)], ["REV/NRE", `${fm.revOverNre.toFixed(1)}×`], ["IRR", `${fm.irrPct}%`],
     ["Gross Margin", `${fm.grossMarginPct}%`], ["Payback", `${payb(fm.paybackYears)}`], ["Quantity (10-Yr)", fm.vol10y.toLocaleString()],
-    ["Unit COGS", k(ex.cogsK)], ["COGS (10-Yr)", usd(Math.max(0, fm.rev10yM - fm.grossProfit10yM))],
     ["10-Yr Revenue", usd(fm.rev10yM)], ["10-Yr Gross Profit", usd(fm.grossProfit10yM)], ["Cur-Yr Op Expense", k(fm.curYearOpexK)],
     ["Total R&D Op Ex", k(fm.totalRdOpexK)], ["Capital", k(fm.capitalK)], ["Man Hours", `${(fm.manHours / 1000).toFixed(1)}k`],
   ];

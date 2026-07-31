@@ -4614,5 +4614,30 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "non-slide modes keep auto height — this change is scoped to the slide");
 }
 
+// ── X-4 · THE CANONICAL TWELVE, AND NO PER-UNIT FIGURE THROUGH THE $K→$M CONVERTER ──────────────────
+// Operator: "Reduce Metrics to 12 key for decision making." The set was 14; exactly two fell outside the
+// FLIR twelve the lib already documents, and removing them deleted a LIVE BUG rather than relabelling one.
+{
+  const fspX4 = await import("node:fs/promises");
+  const srcX4 = await fspX4.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+  const at4 = srcX4.indexOf("const metrics: [string, string][] = [");
+  ok(at4 > 0, "the project-metrics tile list is a locatable surface");
+  const list = srcX4.slice(at4, srcX4.indexOf("];", at4));
+  const labels = [...list.matchAll(/\["([^"]+)",/g)].map((m) => m[1]);
+  ok(labels.length === 12, `exactly 12 metric tiles (got ${labels.length}: ${labels.join(" · ")})`);
+
+  // The twelve are the documented FLIR set — asserted as a SET, so a swap is caught, not just a count.
+  const want = ["NPV", "REV/NRE", "IRR", "Gross Margin", "Payback", "Quantity (10-Yr)", "10-Yr Revenue",
+                "10-Yr Gross Profit", "Cur-Yr Op Expense", "Total R&D Op Ex", "Capital", "Man Hours"];
+  ok(JSON.stringify([...labels].sort()) === JSON.stringify([...want].sort()),
+     "the twelve are the documented FLIR set — no substitutions");
+
+  // ⚠ THE REAL DEFECT, LOCKED AS ARITHMETIC RATHER THAN AS A LABEL. `k` is the $K→$M converter and
+  // `ex.cogsK` is a PER-UNIT price in $K, so `k(ex.cogsK)` rendered a ~$40k unit cost as "$0.0M" — correct
+  // value, destroyed by a program-scale converter. Banning the SHAPE stops it coming back under any name.
+  ok(!/k\(ex\.cogsK\)/.test(list), "no tile applies the $K→$M converter to a per-unit figure");
+  ok(!/Unit COGS|COGS \(10-Yr\)/.test(list), "the two non-canonical COGS tiles are gone");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
