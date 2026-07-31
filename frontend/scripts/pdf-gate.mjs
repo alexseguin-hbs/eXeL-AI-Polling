@@ -24,7 +24,11 @@ const PROJECT = process.env.PROJECT || "PRJ-23";
 
 // The deck is a cover + every slide in SLIDE_SCHEMA. Read the count from the schema rather than hardcoding
 // 21, so adding a slide cannot silently make the gate assert the wrong number.
-const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
+const { SLIDE_SCHEMA, DEMO_PROJECTS, visibleYearCount } = await import("../lib/innovation-data.ts");
+// The S10 forecast horizon the probe project is actually ASKED for — derived from its gate via the same
+// ladder the sheet renders through, never a hardcoded 11. See the S10 assertion below for why that matters.
+const PROJECT_GATE = DEMO_PROJECTS.find((p) => p.id === PROJECT)?.gate ?? "G3";
+const YEAR_FLOOR = visibleYearCount(PROJECT_GATE);
 const EXPECT_PAGES = SLIDE_SCHEMA.length + 1;
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
@@ -127,6 +131,90 @@ for (const paper of PAPER) {
       sheetW: sheets[0] ? Math.round(sheets[0].getBoundingClientRect().width) : 0 };
   });
 
+  // ── X-8a · WHAT IS *ON* THE PAGE — because everything above this line is GEOMETRY ─────────────
+  //
+  // ⚠ THIS MUST RUN **BEFORE** `page.pdf()`, AND THAT IS NOT A STYLE PREFERENCE.
+  // `page.pdf()` fires the print lifecycle, and the app listens for it: page.tsx has
+  // `window.addEventListener("afterprint", () => setPrinting(false))`, which UNMOUNTS the portal that
+  // holds the whole print stack. Written after the pdf call, this probe measured a torn-down DOM and
+  // reported "0 coded sheets" on a stack that a direct probe proved carried all 21 — a false RED that
+  // would have been "fixed" by weakening the assertion. Anything added here that reads the stack goes
+  // ABOVE the pdf call. Measured, not reasoned: the same evaluate returns 21 here and 0 four lines down.
+  // Operator: "ensure pdf renders value prop and financials with latest updates." Asking the question
+  // exposed that the gate could not answer it: page count, width, sheet count and fill are all satisfied
+  // by a correctly-sized, perfectly-filled deck of BLANK sheets. Same failure class as the stale
+  // slide-shots locator four commits ago — a gate certifying a shape while the thing it protects
+  // quietly disappears.
+  //
+  // Keyed on `data-slide-code`, NOT on prose. Matching "does this sheet mention NBA?" is the
+  // proxy-assertion habit that cost fourteen lock rewrites this session, so the stack now carries a real
+  // hook (page.tsx print stack) and this reads it.
+  //
+  // FLOORS, NEVER EXACT VALUES. The gate must fail on ABSENCE and must not go red every time a seeded
+  // number changes. Exact-value assertions belong in innovation-time, which executes the producers
+  // directly. Runs on BOTH orientations deliberately: portrait is the narrower layout and is where a
+  // chart is likeliest to collapse to nothing.
+  const c = await page.evaluate(() => {
+    const sheets = [...document.querySelectorAll("[data-slide-code]")];
+    const codes = sheets.map((s) => s.getAttribute("data-slide-code"));
+    const of = (code) => sheets.find((s) => s.getAttribute("data-slide-code") === code);
+    const textLen = (el) => ((el?.textContent || "").replace(/\s+/g, " ").trim()).length;
+    // A waterfall draws a value above every bar; ZERO numeric <text> nodes means the chart rendered empty.
+    const svgNums = (el) => [...(el?.querySelectorAll("svg text") || [])]
+      .filter((t) => /^[−+-]?[\d,.]+$/.test((t.textContent || "").trim())).length;
+    const s8 = of("S8"), s10 = of("S10");
+    const t8 = (s8?.textContent || "").replace(/\s+/g, " "), t10 = (s10?.textContent || "").replace(/\s+/g, " ");
+    return {
+      codes, total: sheets.length,
+      thin: sheets.filter((s) => textLen(s) < 80).map((s) => `${s.getAttribute("data-slide-code")}:${textLen(s)}`),
+      s8: !s8 ? null : { svgNums: svgNums(s8), capture: /Value capture|Capture @/i.test(t8), range: /Value Price Range/i.test(t8) },
+      // ⚠ YEARS ARE COUNTED **STRUCTURALLY**, PER CELL — never scraped out of textContent.
+      // The first draft ran /\b20\d\d\b/g over the sheet text and reported ONE year on a sheet that
+      // prints six. Cause: textContent concatenates adjacent header cells into "202620272028202920302031",
+      // and \b cannot match inside a digit run, so everything after the first year is invisible. That is
+      // probe error #14 in this workstream and every one has been a regex over joined text. One cell,
+      // one year, counted as elements.
+      s10: !s10 ? null : {
+        years: new Set([...s10.querySelectorAll("th,td")]
+          .map((n) => (n.textContent || "").trim()).filter((x) => /^20(?:2[5-9]|3[0-9])$/.test(x))).size,
+        // The SHEET's own band vocabulary. "Step 1a" is deliberately NOT here: W-5 put the step prefix on
+        // the EDITOR's band header only (page.tsx, the sticky td), and the sheet's R&D panel is titled
+        // plain "R&D Spend". Asserting "Step 1a" would fail a correct sheet — checked against the render,
+        // not against the plan's prose.
+        steps: ["R&D Spend", "Step 1b", "Step 2", "Step 3"].filter((s) => t10.includes(s)),
+      },
+    };
+  });
+  const P = paper.name;
+  // IDENTITY — the single assertion that kills "the stack silently dropped a slide".
+  if (c.total !== EXPECT_PAGES) failures.push(`${P} — ${c.total} sheets carry data-slide-code, expected ${EXPECT_PAGES}`);
+  const want = ["COVER", ...SLIDE_SCHEMA.map((s) => s.code)];
+  const missing = want.filter((k) => !c.codes.includes(k));
+  if (missing.length) failures.push(`${P} — the print stack is MISSING ${missing.join(", ")}`);
+  const dupes = want.filter((k) => c.codes.filter((x) => x === k).length > 1);
+  if (dupes.length) failures.push(`${P} — printed twice: ${dupes.join(", ")}`);
+  // NON-EMPTY — a blank page can never pass again.
+  if (c.thin.length) failures.push(`${P} — sheets with almost no text (code:chars): ${c.thin.join(" ")}`);
+  // S8 · the value prop actually drew.
+  if (!c.s8) failures.push(`${P} — S8 (value prop) is not in the print stack`);
+  else {
+    if (c.s8.svgNums < 4) failures.push(`${P} — S8 waterfall printed ${c.s8.svgNums} numeric SVG labels (<4) — the chart rendered EMPTY`);
+    if (!c.s8.capture) failures.push(`${P} — S8 printed no value-capture read-out`);
+    if (!c.s8.range) failures.push(`${P} — S8 printed no Value Price Range`);
+  }
+  // S10 · the forecast horizon and all four bands actually drew.
+  // ⚠ THE YEAR FLOOR IS THE **GATE LADDER**, NOT 11. Storage is always 11 years, but F6 makes the sheet
+  // show only what the stage is asked to forecast — visibleYearCount is 4 at Concept, 6 at Plan, 11 at
+  // Develop, and demotion HIDES rather than deletes. Hardcoding 11 would fail every pre-Develop project
+  // for doing exactly the right thing. PROJECT here is G2, so the floor is 6 — derived, so the gate cannot
+  // go stale when the ladder changes or the gate probe project does.
+  if (!c.s10) failures.push(`${P} — S10 (financials) is not in the print stack`);
+  else {
+    if (c.s10.years < YEAR_FLOOR) failures.push(`${P} — S10 printed ${c.s10.years} calendar-year cells (<${YEAR_FLOOR}, the ${PROJECT_GATE} forecast horizon)`);
+    if (c.s10.steps.length !== 4) failures.push(`${P} — S10 printed bands [${c.s10.steps.join(", ")}] — expected R&D Spend + Step 1b/2/3`);
+  }
+  console.log(`  ${"".padEnd(17)} content · ${c.total} coded sheets · S8 svg-nums ${c.s8?.svgNums ?? "—"} capture ${!!c.s8?.capture} range ${!!c.s8?.range} · S10 years ${c.s10?.years ?? "—"} bands ${c.s10?.steps.length ?? "—"}/4`);
+
   const buf = await page.pdf({ format: "Letter", landscape: paper.landscape, printBackground: true,
     margin: { top: "0.5in", bottom: "0.5in", left: "0.5in", right: "0.5in" } });
   const pages = pdfPageCount(buf);
@@ -139,6 +227,7 @@ for (const paper of PAPER) {
   if (m.sheetW > paper.wpx + 2) failures.push(`${paper.name} — the print sheet is ${m.sheetW}px wide, wider than the ${paper.wpx}px printable box`);
   if (m.sheets !== EXPECT_PAGES) failures.push(`${paper.name} — the stack mounted ${m.sheets} sheets, expected ${EXPECT_PAGES}`);
   if (m.worstFill < 0.98) failures.push(`${paper.name} — a canvas fills only ${Math.round(m.worstFill * 100)}% of its sheet (the third-scale cover defect)`);
+
 }
 
 // ── ENGINE COVERAGE — state it, never imply it ───────────────────────────────────────────────

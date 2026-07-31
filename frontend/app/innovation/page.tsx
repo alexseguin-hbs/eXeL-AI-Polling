@@ -5390,9 +5390,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
         {printing && typeof document !== "undefined" && ReactDOM.createPortal(
           <div className="slide-print-stack hidden" aria-hidden>
-          <div className="slide-print-page relative" style={{ width: "100%", aspectRatio: "16 / 9" }}><Cover /></div>
+          {/* X-8a · `data-slide-code` IS THE GATE'S HOOK, AND IT EXISTS BECAUSE THE GATE HAD NONE.
+              pdf-gate asserted page count, width, sheet count and fill — every one a GEOMETRY measure — so a
+              correctly-sized, perfectly-filled deck of BLANK sheets passed it. Probing the stack for S8/S10
+              had to scan `textContent` for prose, which is the proxy-assertion habit that cost fourteen lock
+              rewrites this session. `sp.code` was already in scope on the very line that needed it.
+              Attribute only: no class, no style, no layout — every existing pdf-gate measurement is
+              byte-identical. */}
+          <div data-slide-code="COVER" className="slide-print-page relative" style={{ width: "100%", aspectRatio: "16 / 9" }}><Cover /></div>
           {SLIDE_SCHEMA.map((sp, i) => (
-            <div key={sp.code} className="slide-print-page relative" style={{ width: "100%", aspectRatio: "16 / 9" }}>
+            <div key={sp.code} data-slide-code={sp.code} className="slide-print-page relative" style={{ width: "100%", aspectRatio: "16 / 9" }}>
               <Sheet sp={sp} i={i} style={printSheetStyle} />
             </div>
           ))}

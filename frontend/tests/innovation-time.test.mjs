@@ -3391,7 +3391,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const gate = await fsp.readFile("scripts/pdf-gate.mjs", "utf8");
   const ship = await fsp.readFile("scripts/ship.sh", "utf8");
   const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
-  const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
+  const { SLIDE_SCHEMA, visibleYearCount } = await import("../lib/innovation-data.ts");
 
   // the gate asserts on the ARTIFACT
   ok(/await page\.pdf\(\{/.test(gate), "the gate produces a REAL PDF via page.pdf()");
@@ -3402,6 +3402,52 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/past the \$\{paper\.wpx\}px printable width/.test(gate), "the gate catches content running off the printable box");
   ok(/dispatchEvent\(new Event\("beforeprint"\)\)/.test(gate), "the stack is mounted through the app's OWN beforeprint listener — if that breaks, the gate breaks with it");
   ok(!/jspdf|pdf-lib|pdfkit/i.test(gate), "no PDF dependency — Chromium's own engine produces it and the bytes are parsed directly");
+
+  // ── X-8a · THE GATE ASSERTS CONTENT, NOT ONLY GEOMETRY ────────────────────────────────────────
+  // Everything above is a SHAPE measure, and a correctly-sized, perfectly-filled deck of BLANK sheets
+  // satisfied every one of them. These locks guard the assertions that make a blank page fail.
+  //
+  // ⚠ EACH ONE IS WRITTEN AS A DERIVATION, NOT A NUMBER — the same discipline as the EXPECT_PAGES lock
+  // three lines up. Odin's finding: 20 is a literal in three places and every one of them is a tax the
+  // next slide pays. Nothing here says 20, 21 or 19.
+  ok(/data-slide-code=\{sp\.code\}/.test(src), "every printed slide sheet carries data-slide-code={sp.code} — a REAL identity hook, so the gate never has to match on prose");
+  ok(/data-slide-code="COVER"/.test(src), "the cover sheet is identified too, so the identity check covers the whole stack");
+  ok(/querySelectorAll\("\[data-slide-code\]"\)/.test(gate), "the content gate keys on the identity attribute, not on textContent");
+  ok(/const want = \["COVER", \.\.\.SLIDE_SCHEMA\.map\(\(s\) => s\.code\)\]/.test(gate),
+     `the expected code set is DERIVED from the schema (${SLIDE_SCHEMA.length} + cover) — merging or adding a slide cannot leave it stale`);
+  ok(/the print stack is MISSING \$\{missing\.join/.test(gate), "a dropped slide fails by NAME, not merely by count");
+  ok(/printed twice: \$\{dupes\.join/.test(gate), "a slide printed twice fails — a count alone passes when one code substitutes for another");
+  ok(/sheets with almost no text/.test(gate), "a blank sheet fails — the floor that makes every geometry assertion above meaningful");
+  ok(/S8 waterfall printed \$\{c\.s8\.svgNums\} numeric SVG labels/.test(gate), "S8 fails when the waterfall draws no values — an empty chart is the way the value prop disappears");
+  ok(/S8 printed no value-capture read-out/.test(gate) && /S8 printed no Value Price Range/.test(gate), "S8's capture % and price range must reach the page");
+  ok(/S10 printed \$\{c\.s10\.years\} calendar-year cells/.test(gate), "S10 fails when fewer year cells print than the stage's forecast horizon");
+  ok(/expected R&D Spend \+ Step 1b\/2\/3/.test(gate), "S10 fails when any of the four SHEET bands is missing — asserted as a SET");
+  // FLOORS, not equalities — a gate that goes red on a seeded number change gets disabled by the next reader.
+  ok(/svgNums < 4/.test(gate) && /c\.s10\.years < YEAR_FLOOR/.test(gate), "the content thresholds are FLOORS (< n), so they fail on absence and not on a changed figure");
+  ok(!/svgNums === |c\.s10\.years === /.test(gate), "no exact-value content assertion in the gate — exact values belong in this suite, which executes the producers directly");
+
+  // ── THE THREE TRAPS THAT MADE THE FIRST DRAFT OF THIS GATE WRONG. Each cost a red run to find; each
+  //    gets a lock so the next reader does not re-learn it by debugging.
+  //
+  // TRAP 1 · the probe must run BEFORE page.pdf(). The app listens for afterprint and unmounts the print
+  // portal, so a probe placed after the pdf call measures a torn-down DOM: the same evaluate returned 21
+  // coded sheets before it and 0 after it.
+  ok(/window\.addEventListener\("afterprint", after\)/.test(src), "the app unmounts the print stack on afterprint — the fact that makes probe ORDER load-bearing");
+  ok(gate.indexOf('querySelectorAll("[data-slide-code]")') < gate.indexOf("await page.pdf("),
+     "the content probe runs BEFORE page.pdf() — page.pdf fires afterprint, which unmounts the stack it is measuring");
+  // TRAP 2 · years are counted as CELLS, not scraped from textContent. textContent joins adjacent header
+  // cells into "202620272028…", where \b cannot match inside the digit run — the first draft reported ONE
+  // year on a sheet printing six. Probe error #14, and every one has been a regex over joined text.
+  ok(/querySelectorAll\("th,td"\)[\s\S]{0,160}\/\^20/.test(gate), "S10's year count is STRUCTURAL — one cell, one year — never a regex over concatenated textContent");
+  // TRAP 3 · the horizon floor is the gate ladder, not 11. Storage is 11 years but the sheet shows what the
+  // stage is asked for, so a hardcoded 11 fails every pre-Develop project for being correct.
+  ok(/const YEAR_FLOOR = visibleYearCount\(PROJECT_GATE\)/.test(gate),
+     `the S10 year floor is DERIVED from the probe project's gate via visibleYearCount, not hardcoded (G1/G2/G3 = ${[
+       visibleYearCount("G1"), visibleYearCount("G2"), visibleYearCount("G3")].join("/")})`);
+  ok(!/years < 11|years < 4|years < 6/.test(gate), "no hardcoded horizon in the gate — demoting a project's stage must never turn the PDF gate red");
+  // And the band list must match the SHEET's vocabulary, not the EDITOR's: W-5 put "Step 1a" on the editor's
+  // sticky band header only, and the sheet's panel is titled plain "R&D Spend".
+  ok(/"R&D Spend", "Step 1b", "Step 2", "Step 3"/.test(gate), "the gate asserts the SHEET's band labels — 'Step 1a' is editor-only (W-5) and asserting it would fail a correct sheet");
 
   // ROOT CAUSE 1 — the cover carried the SCREEN transform
   ok(/<div data-slide-canvas className="absolute left-0 top-0 overflow-hidden bg-\[#0b0f14\]" style=\{printSheetStyle\}>/.test(src),
