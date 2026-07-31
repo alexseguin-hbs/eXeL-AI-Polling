@@ -1286,7 +1286,7 @@ function S3CashChart({ p, big }: { p: Project; big?: boolean }) {
     <div>
       <div className="mb-1 flex flex-wrap items-center justify-between gap-1">
         <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-          {legend.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
+          {legend.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span data-ink className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
         </div>
         <div className="flex items-center gap-1">
           <div className="flex overflow-hidden rounded border border-slate-700 text-[9px]" role="group" aria-label="View mode">
@@ -1482,7 +1482,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave }: {
       </div>
       <div ref={barRef} onPointerMove={onMove} onPointerUp={endDrag} onPointerCancel={endDrag}
            className={`relative h-12 rounded border bg-[#0e141b] ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
-        <div className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
+        <div data-ink className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
         {/* ⚠ X-1c · THREE BANDS, NOT ONE (operator, with the screenshot: "Price performance labels: NBA,
             Comp A, Comp B must be above circle. Have circle centered on line so we can read Low to High
             below line and title"). THE CAUSE: this wrapper carried `-translate-y-1/2` around the dot AND
@@ -1510,7 +1510,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave }: {
               } : undefined}
               // ROW 2 = the centre line. Only the DOT sits here, so its centre is on the rule.
               className={`row-start-2 mx-auto h-2.5 w-2.5 rounded-full ${editing ? "h-3.5 w-3.5 cursor-grab ring-2 ring-cyan-400/60 active:cursor-grabbing" : ""}`}
-              style={{ background: m.label === "NBA" ? "#64748b" : "#94a3b8" }} />
+              data-ink style={{ background: m.label === "NBA" ? "#64748b" : "#94a3b8" }} />
             {/* ROW 1, BOTTOM-ALIGNED — the label sits directly ABOVE the dot and can never reach the
                 LOW/HIGH band. Placed by grid row rather than by moving this JSX, so the drag handlers
                 above stay exactly where they are. */}
@@ -1528,7 +1528,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave }: {
         {/* OURS — derived from the competitive index, drawn last so it sits above the competitors, and never
             given a pointer handler even in edit mode. */}
         <div className="pointer-events-none absolute inset-y-0 -translate-x-1/2 grid grid-rows-[1fr_auto_1fr] justify-items-center" style={{ left: `${X0 + clampX(ours) * SPAN}%`, maxWidth: "22%" }}>
-          <div className="row-start-2 mx-auto h-2.5 w-2.5 rounded-full" style={{ background: "#3b82f6" }} />
+          <div data-ink className="row-start-2 mx-auto h-2.5 w-2.5 rounded-full" style={{ background: "#3b82f6" }} />
           {/* OURS gets the same three-band treatment — this is the marker whose label (e.g. "SAR")
               overprinted HIGH, because the competitive index pins it hard right at x = 1.0. */}
           <div className="row-start-1 mb-0.5 self-end break-words text-center text-[7px] leading-tight text-blue-300">{oursLabel}</div>
@@ -3662,14 +3662,35 @@ const SLIDE_PRINT_CSS = `
   .slide-print-page { break-after: page; page-break-after: always; overflow: hidden; }
   .slide-print-page:last-child { break-after: auto; page-break-after: auto; }
   .slide-print-stack [data-slide-canvas] { box-shadow: none !important; }
-  /* INVERT — white sheet, black/grey text, coloured banners */
-  .slide-print-stack [data-slide-canvas] { background: #fff !important; }
-  .slide-print-stack [data-slide-canvas] * { background-color: transparent !important; color: #111827 !important; border-color: #cbd5e1 !important; }
-  .slide-print-stack .text-slate-400, .slide-print-stack .text-slate-500, .slide-print-stack .text-slate-600 { color: #6b7280 !important; }
-  .slide-print-stack [data-panel-head] { background-color: #e0f2fe !important; }
-  .slide-print-stack [data-field-banner] { background-color: #f1f5f9 !important; }
-  .slide-print-stack [data-panel-head] *, .slide-print-stack [data-field-banner] * { color: #0c4a6e !important; }
-  .slide-print-stack [data-slide-head] { border-bottom-color: #94a3b8 !important; }
+
+  /* ── P1 · TWO VERSIONS, ONE RENDERER ───────────────────────────────────────────────────────
+     Operator: "generate a slide based off play mode (a version that is literally exact replica of
+     computer screen black background), and another inverted version of black, where figure colors and
+     value prop all stay the same color."
+
+     ORIGINAL (.pdf-original) needs NO rules at all — it is this sheet, unmodified, so it is byte-identical
+     to Present mode by construction rather than by a second stylesheet that could drift. Everything below
+     is therefore scoped to .pdf-friendly. That asymmetry is the point: the exact replica cannot be wrong,
+     because nothing acts on it.
+
+     ⚠ AND THE INVERSION USED TO DESTROY DATA COLOUR — MEASURED, not suspected. Driving the print stack
+     under @media print and diffing every element against itself on screen (keyed by structural path, after
+     two probes gave false results — see the test comment) found colour that CARRIES MEANING being erased:
+       · footer page-progress bars   rgb(100,116,139) -> transparent   x18 per sheet
+       · chart legend swatches       emerald/sunset/coral/sky/cyan -> transparent
+       · price-performance strip     rule + markers rgb(148,163,184) -> transparent
+     A legend whose swatches are invisible is worse than no legend. '[data-ink]' marks a painted surface
+     whose colour IS the datum; the blanket clear skips it. '*:not([data-ink])' is a SIMPLE :not (Selectors
+     3) on purpose — a complex :not("not a descendant of") is Safari 16.4+, and an unsupported selector
+     drops the WHOLE rule, which would print light-slate text on white paper. Fail-safe over elegant.
+     (Panel-head glyph icons DO recolour cyan -> #0c4a6e. That is chrome, it is intended, and it is left.) */
+  .slide-print-stack.pdf-friendly [data-slide-canvas] { background: #fff !important; }
+  .slide-print-stack.pdf-friendly [data-slide-canvas] *:not([data-ink]) { background-color: transparent !important; color: #111827 !important; border-color: #cbd5e1 !important; }
+  .slide-print-stack.pdf-friendly .text-slate-400, .slide-print-stack.pdf-friendly .text-slate-500, .slide-print-stack.pdf-friendly .text-slate-600 { color: #6b7280 !important; }
+  .slide-print-stack.pdf-friendly [data-panel-head] { background-color: #e0f2fe !important; }
+  .slide-print-stack.pdf-friendly [data-field-banner] { background-color: #f1f5f9 !important; }
+  .slide-print-stack.pdf-friendly [data-panel-head] *:not([data-ink]), .slide-print-stack.pdf-friendly [data-field-banner] *:not([data-ink]) { color: #0c4a6e !important; }
+  .slide-print-stack.pdf-friendly [data-slide-head] { border-bottom-color: #94a3b8 !important; }
 }`;
 
 // ── TS · THE ONE TYPE SCALE for the present-mode sheet (/innovation backlog #3) ─────────────────
@@ -4594,6 +4615,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // The 20-page print stack is only MOUNTED while printing. Rendering 20 sheets (each with charts) behind a
   // `hidden` class would cost a phone the whole deck's layout on every present render, for pixels nobody sees.
   const [printing, setPrinting] = useState(false);
+  // P1 · WHICH OF THE TWO PDFs. "friendly" is the default and is byte-identical to what shipped before,
+  // so Ctrl/Cmd-P — which has no button to press and therefore no way to choose — keeps producing exactly
+  // the artifact it produced yesterday. A keyboard shortcut that silently changes its output is the worst
+  // kind of surprise, so the default is the incumbent, not the new thing.
+  const [printMode, setPrintMode] = useState<"friendly" | "original">("friendly");
   useEffect(() => {
     // Ctrl/Cmd-P must produce the same artifact as the ⎙ PDF button — one path, not two.
     const before = () => setPrinting(true);
@@ -4998,7 +5024,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     return (
       <div>
         <div className="mb-1 flex flex-wrap gap-x-3 gap-y-0.5">
-          {series.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
+          {series.map((s) => <span key={s.label} className="flex items-center gap-1 text-[10px] text-slate-400"><span data-ink className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}
         </div>
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={big ? { height: "20cqh" } : { height: "auto" }} role="img" aria-label={`${kind} financials by year`}>
           {[0.25, 0.5, 0.75, 1].map((fr) => <line key={fr} x1={L} y1={y(max * fr)} x2={W} y2={y(max * fr)} stroke="rgba(148,163,184,.1)" />)}
@@ -5517,7 +5543,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             <div className="mt-[1cqh] flex shrink-0 items-center gap-[1.2cqw] border-t border-slate-700 pt-[1cqh] font-mono text-slate-500" style={{ fontSize: TS.meta }}>
               <span className="tabular-nums">{i + 1}/{SLIDE_SCHEMA.length}</span>
               <div className="flex flex-1 gap-[0.4cqw]">
-                {SLIDE_SCHEMA.map((x, xi) => <span key={x.code} className={`h-[0.5cqh] flex-1 rounded ${xi === i ? "bg-cyan-500" : fillOf(x) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
+                {SLIDE_SCHEMA.map((x, xi) => <span key={x.code} data-ink className={`h-[0.5cqh] flex-1 rounded ${xi === i ? "bg-cyan-500" : fillOf(x) > 0 ? "bg-slate-500" : "bg-slate-800"}`} />)}
               </div>
               {/* Provenance — a board artifact with no provenance is orphaned within a week (operator #17). */}
               <span className="slide-printonly hidden truncate">{p.id} · {p.gate} · {scenarioLabel} · p{i + 2}/{SLIDE_SCHEMA.length + 1} · {exportDate}</span>
@@ -5578,9 +5604,16 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           {/* Honest affordance: this OPENS the print dialog with landscape + 0.5in margins pre-set. The user
               still picks "Save as PDF" and the destination folder — there is no direct download, and the
               label must not imply one. Zero dependencies, by design (#4/#17). */}
-          <button onClick={() => { setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }} aria-label="Print or save the deck as PDF"
-            title={`Opens your print dialog for all ${SLIDE_SCHEMA.length + 1} pages, preset to landscape with 0.5in margins. Choose "Save as PDF" and pick a folder. Keep scaling at 100%.`}
-            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">⎙ Print / Save PDF</button>
+          {/* P1 · TWO VERSIONS OF THE SAME DECK. Both print the SAME `Sheet` through the SAME stack — only a
+              class on the portal differs — so the two can never disagree about content, only about ink.
+              `printMode` is set in the same click that opens the dialog, one rAF before window.print(), so
+              the class is on the DOM before the print engine reads it. */}
+          {([["friendly", "⎙ Printer-friendly", `White page, dark text, coloured banners. Charts, legends and the value prop keep their own colours. All ${SLIDE_SCHEMA.length + 1} pages, landscape, 0.5in margins — choose "Save as PDF". Keep scaling at 100%.`],
+             ["original", "⎙ Original", `The deck exactly as it looks in Present mode — dark sheet, every colour unchanged. Turn ON "Background graphics" in your print dialog or the page prints white.`]] as const).map(([mode, label, tip]) => (
+            <button key={mode} onClick={() => { setPrintMode(mode); setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }}
+              aria-label={mode === "friendly" ? "Print or save the deck as a printer-friendly PDF" : "Print or save the deck as an original dark PDF"} title={tip}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${mode === "friendly" ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20" : "border-slate-600 bg-slate-800/60 text-slate-200 hover:bg-slate-700/60"}`}>{label}</button>
+          ))}
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
@@ -5619,7 +5652,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         </div>
         {/* PRINT STACK — cover + every slide at 1:1, hidden on screen, one @page each. Same Sheet renderer. */}
         {printing && typeof document !== "undefined" && ReactDOM.createPortal(
-          <div className="slide-print-stack hidden" aria-hidden>
+          <div className={`slide-print-stack hidden ${printMode === "friendly" ? "pdf-friendly" : "pdf-original"}`} aria-hidden>
           {/* X-8a · `data-slide-code` IS THE GATE'S HOOK, AND IT EXISTS BECAUSE THE GATE HAD NONE.
               pdf-gate asserted page count, width, sheet count and fill — every one a GEOMETRY measure — so a
               correctly-sized, perfectly-filled deck of BLANK sheets passed it. Probing the stack for S8/S10

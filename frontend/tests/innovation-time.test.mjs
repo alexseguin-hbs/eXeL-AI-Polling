@@ -3247,6 +3247,86 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "a swipe pages only at 1x; zoomed in it pans the body instead of turning the page mid-read");
 }
 
+// ── P1 · TWO PDFs — AN EXACT SCREEN REPLICA, AND AN INVERTED ONE THAT KEEPS FIGURE COLOUR ──
+// Operator: "generate a slide based off play mode (a version that is literally exact replica of computer
+// screen black background), and another inverted version of black, where figure colors and value prop all
+// stay the same color."
+//
+// ⚠ THE SECOND HALF WAS A REAL DEFECT, AND IT WAS MEASURED, NOT ASSUMED. The old CSS carried a comment
+// claiming "Charts keep their colours: SVG paints with `fill`, which `background-color` cannot touch."
+// Driving the print stack under @media print and diffing every element against ITSELF on screen showed the
+// claim was only half true — anything painting with an HTML background lost its colour outright:
+//     footer page-progress bars  rgb(100,116,139) -> transparent   x18 per sheet
+//     chart legend swatches      emerald/sunset/coral/sky/cyan -> transparent
+//     price-performance strip    rule + markers rgb(148,163,184) -> transparent
+// Getting that measurement right took three attempts and both failures are recorded, because both would
+// have read as a clean bill of health: a per-SIGNATURE diff reported the waterfall gradients as flattened
+// purely because React re-keyed their ids between snapshots (a proxy key), and attribute stamps died
+// outright — 0 of 3017 survived the media switch, printing "0 colour changes" from an empty comparison.
+// Probe error #17. The probe now keys on structural path and refuses to report unless ≥80% of paths match.
+{
+  const fspP1 = await import("node:fs/promises");
+  const p1 = await fspP1.readFile("app/innovation/page.tsx", "utf8");
+
+  // 1 · TWO BUTTONS, ONE STACK. The versions differ by a class, never by a second renderer — a print-only
+  //     renderer is exactly how a PDF ends up disagreeing with the projector.
+  ok(/const \[printMode, setPrintMode\] = useState<"friendly" \| "original">\("friendly"\);/.test(p1),
+     "there are two print modes and FRIENDLY is the default — Ctrl/Cmd-P, which cannot choose, keeps today's artifact");
+  ok(/\["friendly", "⎙ Printer-friendly"/.test(p1) && /\["original", "⎙ Original"/.test(p1),
+     "both versions are offered as their own button at print time");
+  ok(/setPrintMode\(mode\); setPrinting\(true\); requestAnimationFrame/.test(p1),
+     "the mode is set in the same click that opens the dialog, before window.print()");
+  ok(/slide-print-stack hidden \$\{printMode === "friendly" \? "pdf-friendly" : "pdf-original"\}/.test(p1),
+     "the portal carries the mode as a class — one stack, one Sheet, two inks");
+  ok((p1.match(/<Sheet sp=\{sp\} i=\{i\} style=\{printSheetStyle\} \/>/g) || []).length === 1,
+     "…and there is still exactly ONE print renderer, so the two versions cannot drift in content");
+
+  // 2 · ORIGINAL IS THE EXACT REPLICA **BY CONSTRUCTION** — no rule targets it, so there is nothing that
+  //     could make it differ from Present mode. Asserted as an absence, which is the strong form.
+  ok(!/pdf-original\s*\[data-slide-canvas\]/.test(p1) && !/\.pdf-original [^{]*\{/.test(p1),
+     "NO print rule targets .pdf-original — the exact replica is unmodified, not re-styled to match");
+
+  // 3 · EVERY inversion rule is scoped to .pdf-friendly. One unscoped rule would leak the white sheet into
+  //     the original and silently destroy the thing the operator asked for.
+  const inv = p1.slice(p1.indexOf("P1 · TWO VERSIONS, ONE RENDERER"), p1.indexOf("}`;", p1.indexOf("P1 · TWO VERSIONS, ONE RENDERER")));
+  ok(inv.length > 400 && inv.length < 4000, "the inversion block resolves and is bounded (a runaway slice asserts against the whole file)");
+  const invRules = inv.split("\n").filter((l) => /^\s{2}\.slide-print-stack/.test(l));
+  ok(invRules.length >= 6, `every inversion rule is enumerable (${invRules.length} found)`);
+  ok(invRules.every((l) => l.includes(".pdf-friendly")), "…and EVERY one is scoped to .pdf-friendly — none can reach the original");
+
+  // 4 · FIGURE COLOUR SURVIVES THE INVERSION. `[data-ink]` marks a surface whose colour IS the datum.
+  ok(/\*:not\(\[data-ink\]\) \{ background-color: transparent !important/.test(p1),
+     "the blanket clear skips [data-ink] — legend swatches and chart segments keep their colour on paper");
+  ok(!/\[data-slide-canvas\] \* \{ background-color: transparent !important/.test(p1),
+     "the old unconditional blanket — which erased every legend swatch — is gone");
+  // A SIMPLE :not(), deliberately. A complex :not (\"not a descendant of\") is Safari 16.4+, and an
+  // unsupported selector drops the WHOLE rule — which would print light-slate text onto white paper.
+  ok(!/:not\([^)]*\s[^)]*\)/.test(p1.match(/\*:not\(\[data-ink\]\)[^\n]*/)?.[0] ?? ""),
+     "the exemption uses a SIMPLE :not — a complex one would drop the whole rule on older WebKit and print white-on-white");
+  // COUNTED, not named: the three measured surfaces plus the footer bars all carry the mark.
+  ok((p1.match(/data-ink/g) || []).length >= 4 + 3,
+     "all four measured colour-losing surfaces are marked (legend x2 · strip rule · footer page bars)");
+  ok(/\{legend\.map\(\(s\) => <span key=\{s\.label\}[^>]*><span data-ink/.test(p1), "chart legend swatches are marked");
+  ok(/\{series\.map\(\(s\) => <span key=\{s\.label\}[^>]*><span data-ink/.test(p1), "the second chart legend is marked too — one lock, both surfaces");
+  ok(/<span key=\{x\.code\} data-ink className=\{`h-\[0\.5cqh\] flex-1 rounded/.test(p1), "the footer page-progress bars are marked");
+  ok(/<div data-ink className="absolute inset-x-3 top-1\/2 h-px bg-slate-700" \/>/.test(p1), "the price-performance strip's rule is marked");
+
+  // 5 · The base print rules — page size, fragmentation, body-hiding, zoom reset — stay UNCONDITIONAL,
+  //     because they are correct for both versions. Scoping them to one mode would break the other's pages.
+  // ⚠ MY FIRST FORM OF THIS GUARD WAS A BAD PROBE and it went red for the wrong reason: it asked whether
+  //   "pdf-friendly" appeared anywhere before the rule ON THE SAME LINE, which matches a DIFFERENT rule
+  //   sharing that line. Ask the real question instead — find the base rule's OWN line, and require THAT
+  //   line to be unscoped.
+  for (const [re, what] of [[/@page \{ size: letter landscape; margin: 0\.5in; \}/, "page size"],
+                            [/body > \*:not\(\.slide-print-stack\) \{ display: none !important; \}/, "body hiding"],
+                            [/\.slide-print-page \{ break-after: page; page-break-after: always/, "fragmentation"],
+                            [/\[data-slide-zoom\], \[data-slide-zoom\] \* \{ transform: none !important/, "zoom reset"]]) {
+    const line = p1.split("\n").find((l) => re.test(l));
+    ok(line !== undefined && !line.includes("pdf-friendly") && !line.includes("pdf-original"),
+       `${what} stays unconditional — correct for BOTH versions`);
+  }
+}
+
 // ── S10 · FINANCIAL INPUT MODEL — arithmetic, not shape ─────────────────────────────────
 // Faithful to the operator's own Rack & Stack (FLIR Portfolio Planning, 2019). These EXECUTE the functions
 // against real numbers rather than grepping for their names, because the whole point of S10 is that the figure
@@ -3412,7 +3492,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/-webkit-print-color-adjust: exact; print-color-adjust: exact/.test(src), "print colours are preserved (banners survive the printer's colour stripping)");
   ok(/background: #fff !important/.test(src), "the printed sheet is WHITE");
   ok(/\[data-panel-head\] \{ background-color: #e0f2fe/.test(src) && /\[data-field-banner\] \{ background-color: #f1f5f9/.test(src), "banners keep their colour on the white page");
-  ok(/\[data-slide-canvas\] \* \{ background-color: transparent !important; color: #111827/.test(src), "text inverts to near-black");
+  // P1 re-based: the invert is now scoped to .pdf-friendly and skips [data-ink], so figure colour survives.
+  // The PROPERTY under test is unchanged — text still inverts to near-black on the printer-friendly PDF.
+  ok(/\.pdf-friendly \[data-slide-canvas\] \*:not\(\[data-ink\]\) \{ background-color: transparent !important; color: #111827/.test(src), "text inverts to near-black");
   ok(/\.text-slate-400, .*\.text-slate-500.*\{ color: #6b7280/.test(src), "muted text stays GREY rather than collapsing to black");
   ok(/\.slide-print-page \{ break-after: page/.test(src), "every sheet is its own page");
 
@@ -3432,7 +3514,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/const decisionAsk = typeof askVal === "string"/.test(src), "the cover's decision-requested is the S1 ask resolved through the deck engine, not a second sentence that could drift");
   ok(/\{p\.id\} · \{p\.gate\} · \{scenarioLabel\} · p\{i \+ 2\}\/\{SLIDE_SCHEMA\.length \+ 1\} · \{exportDate\}/.test(src), "every page footer carries project · gate · scenario · page · export date");
   ok(/lsGet\("innovation-scenario"\)/.test(src), "the scenario on the cover/footer reads the SAME key the Board writes — one source, no second definition");
-  ok(/Choose "Save as PDF" and pick a folder/.test(src), "the button's tooltip says what actually happens — it opens the dialog, it does not download");
+  // P1: one button became two, so the honest-affordance copy lives in the printer-friendly tooltip. The
+  // property is unchanged and still asserted: the control must not imply a direct download.
+  ok(/choose "Save as PDF"/.test(src), "the button's tooltip says what actually happens — it opens the dialog, it does not download");
+  ok(!/Downloads? the deck|Saves the PDF to/.test(src), "…and nothing anywhere claims it downloads a file");
 
   // cost + correctness
   ok(/const \[printing, setPrinting\] = useState\(false\);/.test(src) && /\{printing && typeof document !== "undefined" && ReactDOM\.createPortal\(/.test(src), "the 20-page stack MOUNTS only while printing — a phone never lays out pixels nobody sees");
