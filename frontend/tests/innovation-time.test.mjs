@@ -3779,8 +3779,21 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // header (:663) and the Growth Model / financial-review chart (:5913) use.
   ok(/<ScopeFilter projects=\{allProjects\} sel=\{hierFilter\} onChange=\{onScope\} \/>/.test(gate),
      "the Gate tab mounts the standard ScopeFilter — same component, same BU · SBU · Alpha Group groups as the financial review slide");
-  ok((src.match(/<ScopeFilter /g) || []).length === 3,
-     "exactly three ScopeFilter mounts — portfolio header, Growth Model, Gate Requirements — nobody has rebuilt a fourth bespoke scope UI");
+  // X-2a · FOUR now, not three. The operator asked for Scope on Dashboards · ROI Visuals ("Scope addition in
+  // ROI Chart before 4 toggle selector, matching Image 1"), so the count rises by exactly one and the fourth
+  // is NAMED. The invariant this lock protects is unchanged and is NOT the number: it is that every scope
+  // control in the tool is THE SAME `ScopeFilter`, so nobody ships a bespoke cascade beside it. The clause
+  // below enforces that directly — every mount must carry the identical props shape.
+  const mounts = src.match(/<ScopeFilter [^/]*\/>/g) || [];
+  ok(mounts.length === 4,
+     "exactly four ScopeFilter mounts — portfolio header, Growth Model, Gate Requirements, ROI Visuals — nobody has rebuilt a bespoke scope UI");
+  ok(mounts.every((m) => /projects=\{/.test(m) && /sel=\{/.test(m) && /onChange=\{/.test(m)),
+     "every ScopeFilter mount uses the one standard props shape (projects · sel · onChange) — a divergent one is a bespoke control in disguise");
+  // The ROI mount sits BEFORE the four-way Pipeline/Metrics/Spend/Cash selector, which is what the operator
+  // asked for and the only part of this a screenshot can show.
+  const roiS = src.indexOf("function RoiVisuals");
+  ok(roiS > 0 && src.indexOf("<ScopeFilter", roiS) > 0 && src.indexOf("<ScopeFilter", roiS) < src.indexOf("VIEWS.map", roiS),
+     "ROI Visuals renders Scope BEFORE the four-way view selector");
   // ScopeFilter must be fed the UNSCOPED list, otherwise choosing a BU would delete the other BUs' buttons
   // and the operator could never widen the scope again (a one-way trapdoor).
   ok(/allProjects=\{order\}/.test(src.slice(src.indexOf("<GateRequirementsView"), src.indexOf("<GateRequirementsView") + 400)),

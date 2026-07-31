@@ -931,7 +931,8 @@ function Board() {
 
       {view === "dashboards" && (
         <div className="p-5">
-          <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} cadence={cadence} showUnfunded={showUnfunded} onShowUnfunded={setShowUnfunded} onSelect={(id) => { selectProject(id); setView("portfolio"); }} />
+          <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} cadence={cadence} showUnfunded={showUnfunded} onShowUnfunded={setShowUnfunded} onSelect={(id) => { selectProject(id); setView("portfolio"); }}
+            allProjects={order} hierFilter={hierFilter} onScope={setHierFilter} />
         </div>
       )}
 
@@ -1081,14 +1082,19 @@ function ChartFrame({ children, label }: { children: React.ReactNode; label?: st
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, [max]);
+  // X-1 · THE FOURTH CONSTRAINT, found by reading the chain AFTER shipping — the commit says so plainly.
+  // The panel row, the field wrapper and the SVG were all made growable, and the chart STILL could not grow,
+  // because ChartFrame sat between them as a bare `relative` div with AUTO height. `h-full` needs a DEFINITE
+  // parent height; one auto-height ancestor anywhere in the chain silently resolves it to nothing. Both of
+  // ChartFrame's boxes now carry the height through when not maximised. The maximised branch already had one.
   return (
-    <div className={max ? "fixed inset-0 z-[70] flex flex-col overflow-auto bg-[#0b0f14] p-[clamp(12px,3vw,32px)]" : "relative"}>
+    <div className={max ? "fixed inset-0 z-[70] flex flex-col overflow-auto bg-[#0b0f14] p-[clamp(12px,3vw,32px)]" : "relative flex min-h-0 flex-1 flex-col"}>
       <button onClick={() => setMax((v) => !v)} aria-label={max ? "Restore" : "Full screen"} title={max ? "Restore" : "Full screen"}
         className="absolute right-1 top-1 z-[2] rounded border border-slate-700 bg-[#0b0f14]/85 px-1.5 py-0.5 text-[11px] text-slate-300 hover:bg-slate-800">{max ? "⤡" : "⤢"}</button>
       {max && label && <div className="mb-2 shrink-0 pr-8 text-[clamp(13px,1.6vw,18px)] font-semibold text-slate-100">{label}</div>}
       {/* Top-aligned (not justify-center) so a tall table/chart scrolls from the top instead of clipping — the
           outer container is overflow-auto, so both axes scroll and every number is reachable + readable. */}
-      <div className={max ? "flex min-h-0 w-full flex-1 flex-col overflow-auto" : ""}><ChartMaxCtx.Provider value={max}>{children}</ChartMaxCtx.Provider></div>
+      <div className={max ? "flex min-h-0 w-full flex-1 flex-col overflow-auto" : "flex min-h-0 flex-1 flex-col"}><ChartMaxCtx.Provider value={max}>{children}</ChartMaxCtx.Provider></div>
     </div>
   );
 }
@@ -4362,7 +4368,42 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // S8's driver working set. Seeded from the record (or the derived fallback so the equation is never blank)
   // and re-seeded when the project changes, exactly like the copy this replaces in Project details.
   const [s8Drivers, setS8Drivers] = useState<ValueDriver[]>(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p));
-  useEffect(() => { setS8Drivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); }, [p.id, p.valueDrivers]);
+  // ⚠ KEYED ON `p.id` ALONE, AND THE `p.valueDrivers` DEP IS DELIBERATELY GONE. Driving the fix below found
+  // a race the fix itself created: a landed write changes `p.valueDrivers`, which re-seeded this state and
+  // CLOBBERED a newer draft the operator had already typed. Measured — editing three rows in a row persisted
+  // ["300","301",""]: the third was overwritten by the echo of the second. Re-seeding on our own write is
+  // never wanted; the comment above always said "when the project changes", and now the deps say it too.
+  // Cost, stated: an EXTERNAL change to `valueDrivers` (there is no such writer today) would not refresh
+  // this panel until the project is switched.
+  useEffect(() => { setS8Drivers(p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p)); }, [p.id]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // ── X-0b · THE DRAFT ALWAYS LANDS ON THE RECORD ─────────────────────────────────────────────────────
+  // Operator: "I can't edit; test all entry of numbers on value prop (while in Edit mode)." I DROVE IT, and
+  // the report was exactly right in a way the screenshot could not show: typing WORKS (300/301/302 were
+  // accepted and the chart moved 129→300, 108→301, 77→302) — and then a reload returned ["","",""]. The
+  // edit reached the DRAFT and never reached the RECORD, so a successful edit looked like a failed one and
+  // the seeded 69/56/58 on screen are PLACEHOLDERS, not values.
+  // X-0 hid the duplicate read-out but deliberately kept this draft, and that deviation is what left the
+  // defect alive. The draft stays — it is what makes entry fluid — but it now FLUSHES, exactly like W-14's
+  // field bags: 400ms debounce, `pagehide` (not `beforeunload` — unreliable on iOS Safari), and an unmount
+  // flush in its own effect because a `[s8Drivers]` cleanup fires on every keystroke.
+  // ⚠ THE SEED GUARD IS LOAD-BEARING, TWICE OVER. The re-seed effect above keys on `p.valueDrivers`, so a
+  // write that lands hands this effect a fresh array identity and the two would trade writes forever.
+  // Comparing against the SEED (not just the record) also stops a spurious write of `derivedDriversOf(p)`
+  // on mount and on every project switch — so opening a seeded project still writes nothing at all.
+  const flushDrivers = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    const seed = p.valueDrivers?.length ? p.valueDrivers : derivedDriversOf(p);
+    if (JSON.stringify(seed) === JSON.stringify(s8Drivers)) return;   // unchanged → nothing to persist
+    const snapshot = s8Drivers;
+    const audit = [`value drivers: ${snapshot.length} vs NBA`];
+    const write = () => { onEditSource?.({ valueDrivers: snapshot }, audit); flushDrivers.current = null; };
+    const id = setTimeout(write, 400);
+    flushDrivers.current = () => { clearTimeout(id); write(); };
+    const onHide = () => flushDrivers.current?.();
+    window.addEventListener("pagehide", onHide);
+    return () => { window.removeEventListener("pagehide", onHide); clearTimeout(id); };
+  }, [s8Drivers]);   // eslint-disable-line react-hooks/exhaustive-deps -- p/onEditSource read fresh at flush
+  useEffect(() => () => { flushDrivers.current?.(); }, []);
   const [zoom, setZoom] = useState(1); // G-refine — pinch/tap zoom of the 16:9 slide (esp. portrait phones)
   // MEASURED PRESENT CHROME. `fit` used to be computed against a hardcoded 48px control bar; the bar is five
   // groups with no wrap, so on a 390px phone it takes two or three rows and the stage height was wrong by
@@ -7046,7 +7087,8 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
 // four visuals the operator kept useful: Pipeline-by-Gate · 12-box metrics · one horizontal spend bar · a new
 // portfolio cash-flow line. Replaces the old messy 4-card ROI grid + redundant stat row. Everything ties to the
 // same engine (financialMetrics / roiSummary / financialsOverview) so numbers never diverge from the deck.
-function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect }: { projects: Project[]; funded: Project[]; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void }) {
+function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect, allProjects, hierFilter, onScope }: { projects: Project[]; funded: Project[]; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void;
+  allProjects: Project[]; hierFilter: HierSel; onScope: (s: HierSel) => void }) {
   const [view, setView] = useState<"pipeline" | "metrics" | "spend" | "cash">("pipeline");
   const kM = k;
   const roi = roiSummary(funded);
@@ -7096,12 +7138,19 @@ function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect }
   const y = (v: number) => T + (H - B - T) * (1 - (v - minV) / span);
   return (
     <DashCard title="ROI Visuals" tag="Portfolio">
+      {/* X-2a · SCOPE SITS BEFORE THE FOUR-WAY SELECTOR (operator, with both screenshots: "Scope addition in
+          ROI Chart before 4 toggle selector, matching Image 1"). This is the THIRD mount of the one standard
+          `ScopeFilter` — the same control, same props shape, as Portfolio (`:664`) and Gate Requirements
+          (`:5827`). The data on this tab was ALREADY scoped; only the control was missing. */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <ScopeFilter projects={allProjects} sel={hierFilter} onChange={onScope} />
       {/* Growth-Model-style segmented selector (Sofia: identical class recipe) */}
-      <div className="mb-3 flex overflow-hidden rounded-md border border-slate-700 text-[11px] w-fit">
+      <div className="flex overflow-hidden rounded-md border border-slate-700 text-[11px] w-fit">
         {VIEWS.map(([k2, lbl]) => (
           <button key={k2} onClick={() => setView(k2)} aria-pressed={view === k2}
             className={`px-2.5 py-1 ${view === k2 ? "bg-cyan-500 text-[#06202a] font-semibold" : "text-slate-300 hover:bg-slate-800"}`}>{lbl}</button>
         ))}
+      </div>
       </div>
       {view === "pipeline" && <PipelineByGate projects={projects} funded={funded} showUnfunded={showUnfunded} onShowUnfunded={onShowUnfunded} onSelect={onSelect} />}
       {view === "metrics" && (
@@ -7130,7 +7179,11 @@ function RoiVisuals({ projects, funded, showUnfunded, onShowUnfunded, onSelect }
   );
 }
 
-function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", showUnfunded, onShowUnfunded, onSelect }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; cadence?: Cadence; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void }) {
+function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", showUnfunded, onShowUnfunded, onSelect, allProjects, hierFilter, onScope }: { projects: Project[]; funded: Project[]; availK: number; budgetOverrideK: (level: HierKey, code: string) => number | undefined; cadence?: Cadence; showUnfunded: boolean; onShowUnfunded: (v: boolean) => void; onSelect: (id: string) => void;
+  // X-2a · the Dashboards tab already RECEIVED scoped data and offered no control to change it, so a
+  // director reading Allocation and ROI saw one BU and could not ask why. These three are the same thread
+  // `GateRequirementsView` is handed at the call site — reuse, not invention.
+  allProjects: Project[]; hierFilter: HierSel; onScope: (s: HierSel) => void }) {
   const { t } = useLexicon();
   const fundedSet = new Set(funded.map((p) => p.id));
   const buAlloc = nodeAllocation(projects, "bu", (id) => fundedSet.has(id), availK, budgetOverrideK);
@@ -7196,7 +7249,8 @@ function Dashboards({ projects, funded, availK, budgetOverrideK, cadence = "M", 
           recorded at :6802, cut the view selector from four options to three, and risked the same panel
           appearing twice. Pipeline is already RoiVisuals' DEFAULT view, so moving the whole panel up
           satisfies "Pipeline by Gate after Allocation & Upside" as a reorder, with nothing dismantled. */}
-      <RoiVisuals projects={projects} funded={funded} showUnfunded={showUnfunded} onShowUnfunded={onShowUnfunded} onSelect={onSelect} />
+      <RoiVisuals projects={projects} funded={funded} showUnfunded={showUnfunded} onShowUnfunded={onShowUnfunded} onSelect={onSelect}
+        allProjects={allProjects} hierFilter={hierFilter} onScope={onScope} />
 
       {/* Financial Map — R&D spend vs risk-weighted revenue (Financial = 3rd-most-important) */}
       <FinancialMap projects={projects} onSelect={onSelect} />
