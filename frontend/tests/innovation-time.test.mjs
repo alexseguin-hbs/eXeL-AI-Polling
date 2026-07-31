@@ -965,6 +965,38 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   ok(buildDemoVersionSeed(DEMO_PROJECTS.find((p) => p.id === "PRJ-24")).length === 0, "non-demo projects start with empty history");
 }
 
+/* ---------------- X-7f — 2-3 WORD DIFFERENTIATORS ON CS+RA (operator, with a screenshot) --------------- */
+{
+  const F = await import("../lib/innovation-data.ts");
+  // Deterministic, because identical inputs must yield identical themes and a board sheet cannot wait on a
+  // network round-trip. "AI" here is this codebase's own offline-generator idiom, not a provider call.
+  ok(typeof F.shortDifferentiator === "function", "shortDifferentiator is a pure exported producer");
+  ok(!/fetch\(|await /.test(F.shortDifferentiator.toString()), "it makes NO network call — deterministic, like every other AI-drafted field here");
+  ok(F.shortDifferentiator("On-board AI SAR forming (edge targets)") === "On-board AI SAR", "strips a parenthetical aside and caps at three");
+  ok(F.shortDifferentiator("Open architecture / low migration risk") === "Open architecture", "keeps the HEAD clause before the first separator");
+  ok(F.shortDifferentiator("Lower operator cognitive load (XR)") === "Operator cognitive load", "drops a leading comparative — direction, not substance — and restores sentence case");
+  ok(F.shortDifferentiator("PNT-denied operation") === "PNT-denied operation", "an already-short name is returned UNCHANGED, never mangled");
+  ok(F.shortDifferentiator("Sensor-grid fusion to the TOC") === "Sensor-grid fusion TOC", "connectives are dropped but ACRONYMS keep their case");
+  ok(F.shortDifferentiator("") === "" && F.shortDifferentiator(undefined) === "", "empty and undefined degrade to empty, never to 'undefined'");
+
+  // EXECUTED OVER ALL 33 PROJECTS — the operator asked for "all 33 CS+RA slides", so it is counted, not sampled.
+  const names = new Set();
+  for (const p of F.DEMO_PROJECTS) for (const d of (p.valueDrivers ?? [])) names.add(d.name);
+  const over = [...names].filter((n) => F.shortDifferentiator(n).split(/\s+/).length > 3);
+  ok(names.size > 90 && over.length === 0, `every one of the ${names.size} distinct differentiator names reduces to <= 3 words (${over.length} over)`);
+  const blank = [...names].filter((n) => !F.shortDifferentiator(n).trim());
+  ok(blank.length === 0, "no name reduces to empty — a blank cell would be worse than a long one");
+
+  // ⚠ SCOPED TO CS+RA. S8 keeps the FULL names: that is where the value proposition is authored and read in
+  // detail, and this is a display shortening for a 7-column matrix cell, never a rewrite of the record.
+  const P = F.DEMO_PROJECTS.find((x) => x.id === "PRJ-01");
+  const cell = F.gateReviewHistoryRows(P, F.finOf(P, 2026), F.buildDemoVersionSeed(P))
+    .rows.find((r) => r.label === "Top 3 Differentiators").values.find((v) => v !== null);
+  ok(cell === "All-weather · On-board AI SAR · SWaP fit Group-3", `CS+RA shows the short form: "${cell}"`);
+  const s8 = F.valuePropRows(P).map((r) => r[0]).join(" ");
+  ok(/GPS-denied imaging/.test(s8), "S8 still carries the FULL differentiator names — the record is untouched");
+}
+
 /* ---------------- X-7e — A DERIVED READ-OUT TAB IS GREY, NOT GREEN -------------------------------------
    Operator: "make CS+RA tab grey not green". They were right and it is a SEMANTIC error, not a colour
    preference: fillOf falls back to ALL fields when a slide declares no `req` ones, so CS+RA's three live

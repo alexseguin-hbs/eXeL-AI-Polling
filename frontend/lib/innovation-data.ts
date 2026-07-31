@@ -2824,6 +2824,41 @@ export const SAYDO_REFERENCE_GATES: { gate: Gate; measures: string }[] = [
 ];
 export const isSayDoReferenceGate = (g: Gate): boolean => SAYDO_REFERENCE_GATES.some((r) => r.gate === g);
 
+// ── 2-3 WORD DIFFERENTIATOR LABELS FOR THE CS+RA MATRIX (operator: "use AI to reduce differentiator to
+//    2-3 words. Do this for all 33 CS+RA slides") ─────────────────────────────────────────────────────────
+//
+// "AI" here is this codebase's own idiom — the DETERMINISTIC offline generator (aiValuePropOf, aiSlideField),
+// not a provider call. Identical inputs must yield identical themes, and a board sheet cannot wait on a
+// network round-trip. So this is a pure function, designed against the REAL data rather than guessed:
+// executed over all 33 projects there are 101 distinct driver names, 62 of them longer than three words and
+// the longest six. In the Gate Review History that one cell wrapped to two lines and squeezed every gate
+// column beside it.
+//
+// The rule, in order: strip a parenthetical aside · keep the HEAD clause before the first separator (the
+// lead concept is the differentiator's essence) · drop connective stop-words · drop a leading comparative
+// (Lower/Longer/Faster — direction, not substance, and the noun phrase carries the meaning) · cap at three ·
+// re-trim a trailing connective · restore sentence case without touching ACRONYMS.
+//
+// ⚠ SCOPED TO CS+RA ON PURPOSE. S8 keeps the full names — that is where the value proposition is authored
+// and read in detail. This is a display shortening for a 7-column matrix cell, never a rewrite of the record.
+const SHORT_STOP = new Set(["on", "at", "to", "in", "the", "a", "an", "of", "per", "vs", "for", "with", "into",
+  "and", "or", "from", "beyond", "across", "within", "under", "over", "through", "during", "before", "after", "than", "by"]);
+const SHORT_LEAD = new Set(["lower", "longer", "higher", "faster", "better", "greater", "shorter", "smaller", "larger", "more", "less"]);
+/** A differentiator name reduced to 2-3 high-signal words. Pure + deterministic. */
+export function shortDifferentiator(raw: string): string {
+  const noParen = String(raw ?? "").replace(/\s*\([^)]*\)/g, "").trim();
+  if (!noParen) return "";
+  const head = noParen.split(/\s+(?:[/+—–-]|vs\.?)\s+/i)[0].trim() || noParen;
+  const clean = (x: string) => x.toLowerCase().replace(/[.,;:]$/, "");
+  let w = head.split(/\s+/).filter(Boolean).filter((x) => !SHORT_STOP.has(clean(x)));
+  if (w.length > 3 && SHORT_LEAD.has(clean(w[0]))) w = w.slice(1);
+  w = w.slice(0, 3);
+  while (w.length > 1 && SHORT_STOP.has(clean(w[w.length - 1]))) w.pop();
+  const out = w.join(" ") || noParen.split(/\s+/).slice(0, 3).join(" ");
+  // Sentence case, but NEVER touch an acronym (SWaP, ISR, TOC) — uppercase runs stay as authored.
+  return /^[a-z]/.test(out) ? out[0].toUpperCase() + out.slice(1) : out;
+}
+
 /** The seven gate columns of the Gate Review History, in template order (Conceive → Retire). */
 export const GATE_HISTORY_COLS: { gate: Gate; label: string }[] =
   GATES.map((g) => ({ gate: g, label: GATE_STAGE[g] }));
@@ -2873,9 +2908,10 @@ export function gateReviewHistoryRows(
   const sumInc = (n: number, pick: (yy: FinYear) => number) => y.slice(0, n).reduce((a, yy) => a + pick(yy), 0);
   const incRev1 = sumInc(1, (yy) => incRevK(yy, fin.unitEcon)), incRev3 = sumInc(3, (yy) => incRevK(yy, fin.unitEcon));
   const incMgn1 = sumInc(1, (yy) => incMgnK(yy, fin.unitEcon)), incMgn3 = sumInc(3, (yy) => incMgnK(yy, fin.unitEcon));
+  // 2-3 words each — the full names live on S8, where the value prop is authored and read in detail.
   const top3 = [...(p.valueDrivers ?? [])]
     .sort((a, b) => Math.abs(driverValueM(b, ve.referenceM)) - Math.abs(driverValueM(a, ve.referenceM)))
-    .slice(0, 3).map((d) => d.name).join(" · ");
+    .slice(0, 3).map((d) => shortDifferentiator(d.name)).join(" · ");
 
   // `snap` rows can be reconstructed at a past gate from SlideFinSnap; `now` rows only at the current gate.
   type Spec = { rail: string; label: string; now: string | null; snap?: (s: SlideFinSnap) => string };
