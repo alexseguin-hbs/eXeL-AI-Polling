@@ -9,7 +9,7 @@
  * Gated behind an access code (369963) until fully tested — the "UNLOCK" tab.
  */
 import ReactDOM from "react-dom";
-import React, { useMemo, useState, useEffect, useRef, useCallback, useId } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback, useId, Fragment } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { saveState, loadState, loadAllState, ownerKey } from "@/lib/innovation-store";
 import {
@@ -46,6 +46,7 @@ import {
   makeAuditEntry, mergeAudit, diffFundedSets, summarizeAudit, fmtAuditEntry, auditTimeline, type AuditEntry, type AuditKind, type TimelinePoint,
   changeSummaryRows, reviewApprovalRows,
   makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelta, isSubstantial, finSnapOf, buildDemoVersionSeed,
+  gateReviewHistoryRows, gateApprovalPanels, GATE_HISTORY_COLS,
   type SlideVersion,
   type Project, type Gate, type TimeUnit, type HierKey, type RevMode, type Risk, type RiskStatus, type RiskCategory,
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
@@ -1051,7 +1052,7 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
 function sectionAccent(code: string, f: SlideField): { icon: string; bar: string; ring: string } {
   const id = f.id.toLowerCase(), name = f.name.toLowerCase();
   const has = (re: RegExp) => re.test(id) || re.test(name);
-  if (code === "CS" || code === "RA" || has(/approv|sign|review|change|member|role/))
+  if (code === "CSRA" || has(/approv|sign|review|change|member|role/))
     return { icon: "✔", bar: "bg-indigo-500/20 text-indigo-100", ring: "border-indigo-500/30" };
   if (has(/valueprop|vprop|value prop|desc|oneline|overview|ask|benefit/))
     return { icon: "◆", bar: "bg-cyan-500/20 text-cyan-100", ring: "border-cyan-500/30" };
@@ -4555,9 +4556,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   const effective = (sp: SlideSpec, f: SlideField, srcOverride?: "set" | "hi" | "ai"): SlideFieldValue => {
     if (f.linked) {
       // CS + RA resolve from LIVE governance data (audit trail + membership + review board) — never authored.
-      if (sp.code === "CS" && f.id === "changes") return changeSummaryRows(gov.activity, p.id, p.name);
-      if (sp.code === "RA" && f.id === "approvals") return reviewApprovalRows(gov.activity, gov.members, p.id, p.manager, gov.board);
-      if (sp.code === "RA" && f.id === "board") return `${boardFull(gov.board)} (${gov.board})`;
+      // X-7b · now ONE code. `history` is the operator's Gate Review History matrix: the business case at
+      // every gate, read from the approved version snapshots. Flattened to string[][] here so the generic
+      // LinkedField still renders it in Present mode; the CSRA panel renders the same rows WITH the
+      // red change-flags, from the identical producer — one source, two presentations.
+      if (sp.code === "CSRA" && f.id === "history")
+        return gateReviewHistoryRows(p, finOf(p, baseYear), versions).rows
+          .map((r) => [`${r.rail} · ${r.label}`, ...r.values.map((v) => v ?? "—")]);
+      if (sp.code === "CSRA" && f.id === "approvals") {
+        const ap = gateApprovalPanels(p, gov.members, gov.activity, gov.board);
+        return [...ap.prior.rows, ...ap.current.rows].map((r) => [r.required ? "●" : "○", r.fn, r.name, r.date]);
+      }
+      if (sp.code === "CSRA" && f.id === "board") return `${boardFull(gov.board)} (${gov.board})`;
       // `baseYear` is the deck's ONE clock (hoisted at the root). Passing it means an S10 read-out anchors to
       // exactly the calendar the S10 grid three inches above it is anchored to — the two cannot disagree.
       return linkedSlideField(p, sp.code, f.id, baseYear);
@@ -5176,6 +5186,93 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </AmtsPanel>
         </>
       ),
+      // ── CS + RA · THE MERGED GOVERNANCE CLOSE-OUT (operator's Approval Templates, slides 35-36) ─────
+      // CS and RA had NO panel entry at all — they fell through to the generic field list, which is why
+      // slide-shots measured them as the two emptiest sheets in the deck (ink-void 668.8px / 631.5px
+      // against a next-worst of 260px). This is the first designed layout either has had.
+      //
+      // The red flags are the reason this is a panel and not a plain linked table: the operator's template
+      // says "Highlight Changes Only in Red", and `changed[]` is computed per cell by the SAME producer the
+      // Present-mode read-out uses. One source, two presentations — never two computations.
+      CSRA: () => {
+        const hist = gateReviewHistoryRows(p, finOf(p, baseYear), versions);
+        const ap = gateApprovalPanels(p, gov.members, gov.activity, gov.board);
+        const Band = ({ t, sub }: { t: string; sub?: string }) => (
+          <tr><td colSpan={8} className="bg-cyan-500/10 py-0.5 pr-2 text-left text-[10px] font-semibold leading-tight text-slate-100">
+            {t}{sub ? <span className="ml-1 font-normal text-slate-400">{sub}</span> : null}
+          </td></tr>
+        );
+        let rail = "";
+        return (
+          <>
+            <AmtsPanel title="Gate Review History" icon="◫">
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="w-full border-collapse" style={{ fontSize: TS.micro }}>
+                  <thead><tr>
+                    <th className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left text-slate-400">Business case</th>
+                    {GATE_HISTORY_COLS.map((c) => <th key={c.gate} className="px-1 py-0.5 text-right text-slate-400">{c.label}</th>)}
+                  </tr></thead>
+                  <tbody>{hist.rows.map((r, ri) => {
+                    const head = r.rail !== rail ? (rail = r.rail) : null;
+                    return (
+                      <Fragment key={`${r.rail}-${r.label}-${ri}`}>
+                        {head ? <Band t={head} /> : null}
+                        <tr className="border-b border-slate-900">
+                          <td className="sticky left-0 z-10 bg-[#0e141b] px-1 py-0.5 text-left text-slate-300">{r.label}</td>
+                          {r.values.map((v, i) => (
+                            // RED = changed since the last recorded gate. Grey em-dash = nothing recorded —
+                            // deliberately NOT a zero, because a fabricated figure on a governance sheet is
+                            // worse than a visible hole.
+                            <td key={i} className={`px-1 py-0.5 text-right tabular-nums ${v == null ? "text-slate-700" : r.changed[i] ? "font-semibold text-rose-400" : "text-slate-200"}`}>
+                              {v ?? "—"}
+                            </td>
+                          ))}
+                        </tr>
+                      </Fragment>
+                    );
+                  })}</tbody>
+                </table>
+              </div>
+              {/* COVERAGE, SAID OUT LOUD. A sparse matrix must never read as a complete one. */}
+              <div className="mt-1 flex flex-wrap gap-x-3 text-[9px] text-slate-500">
+                <span>{hist.recordedGates} of {GATE_HISTORY_COLS.length} gates carry a recorded review</span>
+                <span className="text-rose-400/80">red = changed vs the prior recorded gate</span>
+                {hist.gaps.length ? <span>no source yet: {hist.gaps.join(" · ")}</span> : null}
+              </div>
+            </AmtsPanel>
+            <AmtsPanel title="PRB Reviews + Approvals" icon="◨">
+              <div className="grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-auto">
+                {[ap.prior, ap.current].map((pan, pi) => (
+                  <div key={pi} className="min-w-0">
+                    <div className="mb-0.5 text-[10px] font-semibold text-slate-200">
+                      {pi === 0 ? "Prior Gate" : "Current Gate"}
+                      <span className="ml-1 font-normal text-slate-400">{pan.gate ? `${pan.gate} · ${pan.stage}` : "— none"}</span>
+                    </div>
+                    {pan.gate ? (
+                      <table className="w-full border-collapse" style={{ fontSize: TS.micro }}>
+                        <tbody>{pan.rows.map((r) => (
+                          <tr key={r.fn} className="border-b border-slate-900">
+                            <td className={`w-3 py-0.5 ${r.required ? "text-cyan-400" : "text-slate-600"}`}>{r.required ? "●" : "○"}</td>
+                            <td className="py-0.5 pr-1 text-slate-300">{r.fn}</td>
+                            <td className="py-0.5 pr-1 text-slate-200">{r.name}</td>
+                            <td className="py-0.5 text-right tabular-nums text-slate-400">{r.date}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
+                    ) : <div className="text-[10px] text-slate-600">This project has not cleared a gate yet.</div>}
+                    {/* MEASURED, not implied: nine rows always render, so "looks full" proves nothing. */}
+                    <div className="mt-0.5 text-[9px] text-slate-500">{pan.satisfied} of 3 required functions signed</div>
+                    {pan.concerns.length ? (
+                      <div className="mt-1 text-[9px] text-amber-300/80">PRB + Executive concerns: {pan.concerns.join(" · ")}</div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-1 text-[9px] text-slate-500">Review body: {boardFull(gov.board)} ({gov.board})</div>
+            </AmtsPanel>
+          </>
+        );
+      },
       };
     };
     // THE SHEET IS A FIXED 1600x900 PAGE, scaled to fit (operator #3: "portrait must be proportionally

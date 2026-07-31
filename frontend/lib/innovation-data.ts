@@ -2478,8 +2478,7 @@ export interface SlideDef { slide: string; gate: Gate; name: string; summary: st
 // Closeout slides carry names/summaries for slideDef WITHOUT entering GATE_REVIEW (so they add no gate
 // requirement rows) — they are live-governance components of every gate review, not deliverables.
 export const CLOSEOUT_SLIDES: SlideDef[] = [
-  { slide: "CS", gate: "G7", name: "Change Summary", summary: "Version + approval history" },
-  { slide: "RA", gate: "G7", name: "Review & Approvals", summary: "Board sign-off — title + name" },
+  { slide: "CSRA", gate: "G7", name: "CS + RA", summary: "Gate review history + PRB approvals" },
 ];
 export const SLIDES: SlideDef[] = [
   ...GATES.flatMap((g) => GATE_REVIEW[g].deliverables.map((d) => ({ slide: d.slide, gate: g, name: d.name, summary: d.summary, priority: d.priority }))),
@@ -2706,10 +2705,21 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     { id: "e60", name: "EOL-60 · final deliverables", kind: "list" },
     { id: "e0", name: "End of life · communication + execution", kind: "list" } ] },
   // Closeout slides — present at EVERY gate review, resolved LIVE from governance (never authored HI/AI).
-  { code: "CS", gate: "G7", stage: "Gate Review", source: "Governance change/approval ledger", fields: [
-    { id: "changes", name: "Change summary", kind: "table", linked: true, cols: ["When", "Change", "By"] } ] },
-  { code: "RA", gate: "G7", stage: "Gate Review", source: "Review board sign-off", fields: [
-    { id: "approvals", name: "Review & approvals", kind: "table", linked: true, cols: ["Title", "Name", "Decision"] },
+  // ── CS + RA · ONE CLOSE-OUT SLIDE, AFTER S18 (operator: 'Slide is to be labeled "CS + RA" after S18') ──
+  //
+  // WAS TWO CODES. `CS` rendered a three-column change ledger and `RA` a three-column approvals list, and
+  // NEITHER had a panel renderer — both fell through to the generic field list, which is measurably why
+  // slide-shots reported them as the two emptiest sheets in the deck by a factor of 2.5 (CS ink-void
+  // 668.8px · RA 631.5px against a next-worst of 260px). Merging is not just a count change; it is the
+  // first time these two sheets carry a designed layout.
+  //
+  // The content is the operator's own Approval Templates (slides 35-36): a Gate Review History matrix with
+  // changes flagged, and the PRB prior/current approval panels. Every cell resolves from live governance or
+  // the version history — there is no authoring surface here and there never was.
+  { code: "CSRA", gate: "G7", stage: "Gate Review", source: "Governance change/approval ledger + review board sign-off", fields: [
+    // Columns are DERIVED from the gate ladder, so adding a gate cannot leave this header stale.
+    { id: "history", name: "Gate Review History", kind: "table", linked: true, cols: ["Business case", ...GATES.map((g) => GATE_STAGE[g])] },
+    { id: "approvals", name: "PRB reviews + approvals", kind: "table", linked: true, cols: ["Req", "Function", "Reviewer", "Date"] },
     { id: "board", name: "Review body", kind: "text", linked: true } ] },
 ];
 export const slideSpec = (code: string): SlideSpec | undefined => SLIDE_SCHEMA.find((s) => s.code === code);
@@ -2722,7 +2732,7 @@ export function slidesForProject(p: Project): string[] {
   const ng = nextGate(p.gate);
   const codes = new Set<string>(["S1", "S2", "S3"]);
   for (const s of SLIDE_SCHEMA) if (s.gate === p.gate || s.gate === ng) codes.add(s.code);
-  codes.add("CS"); codes.add("RA"); // closeout slides ship on EVERY gate review (live governance)
+  codes.add("CSRA"); // the merged close-out ships on EVERY gate review (live governance)
   return SLIDE_SCHEMA.filter((s) => codes.has(s.code)).map((s) => s.code);
 }
 

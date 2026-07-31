@@ -516,8 +516,8 @@ ok(GATES_N.every((g) => GATE_NOTES[g].countermeasures.every((c) => c.solved === 
 
 /* ---------------- Digital slide show (S1–S18) — HI hint + AI version ---------------- */
 import { SLIDES, slideDef, slideHintOf, aiSlideOf } from "../lib/innovation-data.ts";
-ok(SLIDES.length === 20, "SLIDES = 18 review deliverables (S1–S18) + 2 closeout slides (CS, RA)");
-ok(SLIDES[0].slide === "S1" && SLIDES[1].slide === "S2" && SLIDES[17].slide === "S18" && SLIDES[18].slide === "CS" && SLIDES[19].slide === "RA", "SLIDES run S1 → S18 in gate order, then CS + RA closeouts");
+ok(SLIDES.length === 19, "SLIDES = 18 review deliverables (S1–S18) + the merged CS + RA close-out");
+ok(SLIDES[0].slide === "S1" && SLIDES[1].slide === "S2" && SLIDES[17].slide === "S18" && SLIDES[18].slide === "CSRA" && SLIDES.length === 19, "SLIDES run S1 → S18 in gate order, then the CS + RA close-out — AFTER S18, as the operator specified");
 ok(SLIDES.every((s) => !!s.slide && !!s.name && !!s.summary && GATES_N.includes(s.gate)), "every slide carries slide/name/summary/gate");
 ok(slideDef("S3")?.name === "Financial — Return", "slideDef resolves S3 to Financial — Return");
 ok(slideHintOf("S8").includes("Competition"), "slideHintOf surfaces the slide name in the HI prompt");
@@ -578,9 +578,11 @@ ok(DEMO_PROJECTS.every((p) => (p.segmentValueProps?.length ?? 0) >= 1), "every p
 
 /* ---------------- S1–S18 field spec (schema-driven slide authoring) ---------------- */
 import { SLIDE_SCHEMA, slideSpec, linkedSlideField, aiSlideField } from "../lib/innovation-data.ts";
-ok(SLIDE_SCHEMA.length === 20, "SLIDE_SCHEMA = 18 review slides (S1–S18) + 2 closeout slides (CS, RA)");
-ok(SLIDE_SCHEMA[0].code === "S1" && SLIDE_SCHEMA[1].code === "S2" && SLIDE_SCHEMA[17].code === "S18" && SLIDE_SCHEMA[18].code === "CS" && SLIDE_SCHEMA[19].code === "RA", "schema runs S1 → S18 then CS + RA");
-ok(slideSpec("CS").fields.every((f) => f.linked) && slideSpec("RA").fields.every((f) => f.linked), "CS + RA fields are all linked (live governance, no authoring)");
+ok(SLIDE_SCHEMA.length === 19, "SLIDE_SCHEMA = 18 review slides (S1–S18) + the merged CS + RA close-out (was 20; the merge honours the flower of life)");
+ok(SLIDE_SCHEMA[0].code === "S1" && SLIDE_SCHEMA[1].code === "S2" && SLIDE_SCHEMA[17].code === "S18" && SLIDE_SCHEMA[18].code === "CSRA", "schema runs S1 → S18 then the merged CSRA — positioned AFTER S18");
+ok(slideSpec("CSRA").fields.every((f) => f.linked), "every CS + RA field is linked (live governance, no authoring surface)");
+ok(slideSpec("CS") === undefined && slideSpec("RA") === undefined, "the retired CS and RA codes are GONE — not left half-alive alongside the merge");
+ok(slideSpec("CSRA").fields.find((f) => f.id === "history").cols.length === 8, "the history matrix declares a label column + one per gate, derived from the ladder");
 ok(SLIDE_SCHEMA.every((s) => s.source && GATES_N.includes(s.gate)), "every slide carries a source + a valid gate");
 // S10 IS THE ONE CODE WITH NO SCHEMA FIELDS, BY DESIGN AND BY OPERATOR INSTRUCTION. Its content is the
 // financial grid, which is always on screen and is the only place money can be typed. Named as the single
@@ -852,9 +854,9 @@ import { slidesForProject, nextGate, SLIDE_SEED, changeSummaryRows, reviewApprov
   ok(SLIDE_SCHEMA.filter((s) => s.gate === "G3").every((s) => sset.includes(s.code)), "slidesForProject includes next-gate slides");
   ok(new Set(sset).size === sset.length, "slidesForProject de-dups");
   ok(!sset.includes("S16") && !sset.includes("S18"), "slidesForProject excludes far-gate slides");
-  ok(sset.includes("CS") && sset.includes("RA"), "slidesForProject always includes the CS + RA closeouts");
-  ok(sset[sset.length - 2] === "CS" && sset[sset.length - 1] === "RA", "CS + RA are the last two slides in the deck");
-  ok(DEMO_PROJECTS.every((p) => { const s = slidesForProject(p); return s.includes("CS") && s.includes("RA"); }), "every project ships CS + RA");
+  ok(sset.includes("CSRA"), "slidesForProject always includes the merged CS + RA close-out");
+  ok(sset[sset.length - 1] === "CSRA", "CS + RA is the LAST slide — immediately after S18");
+  ok(DEMO_PROJECTS.every((p) => slidesForProject(p).includes("CSRA")), "every project ships the CS + RA close-out");
   // CS + RA live-governance row builders (pure — consume already-timestamped audit + membership)
   const act = [
     { id: "a1", ts: "2026-02-01T00:00:00Z", kind: "approve", projectId: "PRJ-04", by: "◬ AI" },
@@ -875,7 +877,7 @@ import { slidesForProject, nextGate, SLIDE_SEED, changeSummaryRows, reviewApprov
     const specBy = Object.fromEntries(SLIDE_SCHEMA.map((s) => [s.code, s]));
     let cells = 0, gaps = [], notEnhanced = 0;
     // H6 — EVERY project has the FULL S1–S18 deck filled (HI + AI superset). CS/RA are linked closeouts (skipped).
-    const fullDeck = SLIDE_SCHEMA.filter((s) => s.code !== "CS" && s.code !== "RA").map((s) => s.code);
+    const fullDeck = SLIDE_SCHEMA.filter((s) => s.code !== "CSRA").map((s) => s.code);
     for (const p of DEMO_PROJECTS) {
       for (const code of fullDeck) {
         for (const f of specBy[code].fields) {
@@ -2962,7 +2964,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
       // CS and RA are the closeout slides: `effective()` routes them to LIVE GOVERNANCE (the sign-off ledger
       // and the approval record), not to linkedSlideField — a third resolver the census has to know about or
       // it reports four false orphans. Chart fields render from the financial engine for the same reason.
-      else if (sp.code === "CS" || sp.code === "RA") kind = "linked+governance";
+      else if (sp.code === "CSRA") kind = "linked+governance";
       else if (f.kind === "chart") kind = "linked+chart";
       else kind = "ORPHAN";
       rows.push({ code: sp.code, id: f.id, req: !!f.req, kind });

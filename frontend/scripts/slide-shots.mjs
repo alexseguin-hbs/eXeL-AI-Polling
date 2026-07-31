@@ -66,7 +66,7 @@ const DEAD_BOX = 24;
 const DEAD_INK = 90;
 
 // ALL 20 codes by default (#21). Sampling five slides is how S4 shipped with a clipped CONOPS hero.
-const ALL_SLIDES = "S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,CS,RA";
+const ALL_SLIDES = "S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,CSRA";
 const SLIDES = (process.env.SLIDES || ALL_SLIDES).split(",").map((s) => s.trim()).filter(Boolean);
 // Run against the LONGEST-named project, not PRJ-01. Testing the easy case is how the header shipped
 // truncating in the first place: "AI/ML Software & Integration — Army IVAS" is the 40-character worst case.
