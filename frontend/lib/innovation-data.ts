@@ -2551,6 +2551,19 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // line cannot blank the panel. Still `req: true`: gate completeness is untouched on all 33 projects.
     { id: "valueprop", name: "Key value proposition", kind: "text", req: true, linked: true },
     { id: "segment", name: "Target segment / customer", kind: "text", req: true },
+    // ── X-7a · THE S8 VALUE PROP, WITH ITS DETAILS, ON S1 ────────────────────────────────────────────
+    // Operator: "place value prop from S8 with details on S1". S1 already renders the value-prop SENTENCE
+    // (`valueprop`, linked since V1) — what an exec summary lacked was the evidence UNDER it: which
+    // differentiators, worth what, and how the value splits.
+    // ⚠ REUSE, NOT A SECOND SOURCE. These resolve from `valuePropRows` / `valuePropCapture` — the SAME two
+    // producers S8's own read-outs use — so S1 and S8 cannot disagree, and nothing new is authored anywhere.
+    // Editing a driver or the capture % on S8 moves both slides at once.
+    // ⚠ DELIBERATELY NOT `req: true`. A required field would re-score gate completeness on all 33 projects;
+    // these are evidence, not a new gate obligation, so every project's percentage is byte-identical.
+    { id: "vpdiffs", name: "Value equation · differentiators", kind: "table", linked: true, cols: [...S8_DIFF_COLS],
+      hint: "The S8 differentiators behind the value proposition above. Authored on S8, never here." },
+    { id: "vpcapture", name: "Value creation + capture", kind: "metrics", linked: true,
+      items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "range", label: "Value Price Range" } ] },
     { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
   // S2 — Project Overview: the project-template one-pager (linked return profile + roadmap/status/risks) plus
   //      the Upside spending-accelerator lever intake (extra $ that pulls the schedule/revenue forward).
@@ -3079,6 +3092,11 @@ function linkedSlideFieldRest(p: Project, code: string, fieldId: string): SlideF
   // `linked: true` is set on the fields, in the SAME commit, because the fall-through below returns null.
   if (code === "S8" && fieldId === "diffs") return valuePropRows(p);
   if (code === "S8" && fieldId === "capture") return valuePropCapture(p);
+  // X-7a · S1 renders the SAME two producers. Written in the SAME commit as the `linked: true` above them,
+  // because `linked` without a resolver falls through to `return null` and the panel renders blank — the V1
+  // trap, already paid for once. One producer, two slides, no second source.
+  if (code === "S1" && fieldId === "vpdiffs") return valuePropRows(p);
+  if (code === "S1" && fieldId === "vpcapture") return valuePropCapture(p);
   if (code === "S16" && fieldId === "bom") {
     try { return bomOf(p).slice(0, 6).map((b) => [b.desc, b.material, `$${bomStdCost(b).toLocaleString("en-US")}`]); }
     catch { return [[`${p.name} assembly`, hierOf(p).material, `$${Math.round(p.nreK * 50).toLocaleString("en-US")}`]]; }

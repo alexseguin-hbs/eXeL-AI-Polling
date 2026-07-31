@@ -5068,8 +5068,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <AmtsPanel title="Product · What It Is And Who It Is For" icon="◧">
             {fieldsOf("oneline", "segment")}
           </AmtsPanel>
+          {/* X-7a · THE SENTENCE, THEN THE EVIDENCE UNDER IT (operator: "place value prop from S8 with
+              details on S1"). All three resolve from S8's record via the same producers S8 itself uses —
+              `valuePropOf`, `valuePropRows`, `valuePropCapture` — so the exec summary carries the WHY
+              (which differentiators, worth what, how the value splits) without becoming a second place to
+              author it. Editing a driver or the capture % on S8 moves this panel too. */}
           <AmtsPanel title="Key Value Proposition" icon="♡">
-            {fieldsOf("valueprop")}
+            {fieldsOf("valueprop", "vpdiffs", "vpcapture")}
           </AmtsPanel>
           <AmtsPanel wide title="Recommendation · Ask For The Gate" icon="⚑">
             {fieldsOf("ask")}

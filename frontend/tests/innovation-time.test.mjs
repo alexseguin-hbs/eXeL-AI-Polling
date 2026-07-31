@@ -1355,7 +1355,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const codes = SLIDE_SCHEMA.map((s) => s.code);
   // Every field id a built panel names must be a REAL field on that slide.
   const PANEL_FIELDS = {
-    S1: ["oneline", "segment", "valueprop", "ask"],
+    // X-7a · the S8 value-prop DETAIL now sits under the sentence on S1 (operator: "place value prop from
+    // S8 with details on S1"). Both are `linked` read-outs of S8's record — no new authoring surface.
+    S1: ["oneline", "segment", "valueprop", "vpdiffs", "vpcapture", "ask"],
     S2: ["profile", "accel", "roadmap", "toprisks", "status"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
     S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"],
