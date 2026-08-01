@@ -1592,7 +1592,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
  *  ⚠ NOT EXPORTED. A Next.js page module may only export `default` and a fixed set of route options —
  *  `export const SLIDE_SLOT_ASPECT` fails the build with TS2344 on the generated route types. The drift
  *  lock reads it out of the source text instead, which is what the other page-level locks already do. */
-const SLIDE_SLOT_ASPECT = 2.03;   // measured: the panel's flex column is 718.1 x 353.2 on the 1600x900 sheet
+const SLIDE_SLOT_ASPECT = 1.51;   // measured: the panel's flex column is 718.1 x 476.2 on the 1600x900 sheet
 
 function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, big }: {
   p: Project; mode: VPMode;
@@ -1726,7 +1726,16 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const W = big && aspect > 0
     ? Math.min(1200, Math.max(W0, Math.round(intrinsic.H * aspect)))
     : W0;
-  const { gw, bw, FS, wrapped, B, A, T, H } = W === W0 ? intrinsic : layout(W);
+  const { gw, bw, FS, wrapped, B, A, T, H: H0 } = W === W0 ? intrinsic : layout(W);
+  // ⚠ X-7 · THE OTHER HALF OF THE SAME IDEA: FILL A SLOT THAT IS TALLER, NOT WIDER.
+  // X-1 matched the viewBox aspect to the slot by WIDENING `W`. That lever is one-directional and it runs
+  // out: `W` is clamped at the intrinsic 320 (`Math.max(W0, …)`) because a narrower layout would shrink the
+  // type, so when the slot is TALLER in proportion than the drawing the chart goes width-limited and
+  // letterboxes vertically instead. Measured the moment the waterfall got a three-row box: slot 718.1 x
+  // 476.2 (aspect 1.508), viewBox 320 x 165.4 (aspect 1.935), 121.9px of dead space, fillV 71.1%.
+  // Growing `H` is the fix, and it grows the RIGHT thing — the plot area is `H − B − T`, so the bars get
+  // taller while the caption band, the label band and the type stay exactly as they were.
+  const H = big && aspect > 0 ? Math.max(H0, Math.round(W / aspect)) : H0;
   const y = (v: number) => H - B - (v / max) * (H - B - T);
   const fill = (k: Bar["kind"]) =>
     k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : k === "give" ? "#60a5fa" : "#94a3b8";
@@ -4720,7 +4729,7 @@ const BODY_ROWS: Record<string, string> = {
   // X-4 · S8's top row (Competition | the waterfall) is the larger band. Weights are MEASURED, not guessed:
   // the x3-bands probe reports what each panel needs, and this is the split where the waterfall gets the
   // most height with zero overflow in any of the three panels.
-  S8: "minmax(0, 1fr) minmax(0, 1.72fr) minmax(0, 1fr)",
+  S8: "auto minmax(0, 3.55fr) minmax(0, 1.25fr) minmax(0, 1.7fr)",
 };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
@@ -4732,11 +4741,14 @@ const BODY_ROWS: Record<string, string> = {
 // them would delete content instead of a duplicate.
 const S8_PANEL_ECHO = new Set(["vprop", "nba", "valuechart", "diffs"]);
 
-function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; children: React.ReactNode }) {
+// `wide` spans both COLUMNS; `tall` spans three ROWS. X-7 added `tall` so one panel can run the height of
+// a stack beside it — the waterfall against VProp / NBA / Price Performance — which is the only way a chart
+// gets real height on a sheet that also has to carry five prose boxes.
+function AmtsPanel({ title, icon, required, wide, tall, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; tall?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
-    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""}`}>
+    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""} ${tall ? "row-span-3" : ""}`}>
       <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1cqw] py-[0.5cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
           {icon && <span aria-hidden style={{ fontSize: TS.head }}>{icon}</span>}
@@ -5550,32 +5562,33 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // proposition spans the foot of the slide as the single sentence a board remembers.
       S8: () => (
         <>
-          {/* ⚠ X-6 · THE 3x2, DICTATED SLOT BY SLOT. Operator: "in above customer benefits is Slider price
-              performance · above technical benefits is NBA DETAIL (below price waterfall) · primary customer
-              value prop first box top left" — then, correcting my 2x2: "keep very bottom box customer
-              benefits and very bottom box technical · also value equation box should not have moved just
-              the slider."
-                  row 1   ♡ the value proposition          |  ◈ the waterfall
-                  row 2   $ Price Performance (the slider) |  ⚔ NBA detail + Value Equation
-                  row 3   ◆ Key Customer Benefits          |  ▪ Key Technical Features
-              Every column is a chain the eye can follow: LEFT is the claim → where we price against the
-              field → what the customer gets. RIGHT is the money → the alternative it beats → how it is
-              built. THE VALUE EQUATION DID NOT MOVE: it stays with the NBA it argues against, exactly as
-              the operator said; only the slider ever left that panel. */}
+          {/* ⚠ X-7 · THE LEFT COLUMN STACKS AND THE WATERFALL RUNS BESIDE ALL OF IT. Operator: "Where price
+              performance competition is, move items from right to left (and expand visual for value prop
+              waterfall). NBA and value equation go under 'primary customer value prop' and above price
+              performance competition. Do not move key customer benefits or Technical benefits at all."
+
+                  ♡ Primary Customer VP   ┐
+                  ⚔ NBA + Value Equation  ├─  ◈ Value · Creation + Capture   (spans all three)
+                  $ Price Performance     ┘
+                  ◆ Key Customer Benefits │  ▪ Key Technical Features        (STATIONARY, untouched)
+
+              PANEL ORDER IS GRID AUTO-PLACEMENT ORDER, so this list is the layout — `valuechart` is second
+              because it has to claim column 2 of row 1 before `nba` can fall into row 2 of column 1.
+              WHY IT MATTERS BEYOND LOOKS: with the right column chopped into three boxes the exported chart
+              measured 13% of the canvas. Emptying that column of everything but the chart is the fix for
+              that number. `♡` is `auto` — one sentence, no taller — so every pixel it does not use goes to
+              the stack under it and the chart beside it ("just single sentence value prop needed to move"). */}
           <AmtsPanel title="Primary Customer Value Proposition" icon="♡">
             {fieldsOf("vprop")}
           </AmtsPanel>
-          {/* X-1 / X-2 / X-4 · THE WATERFALL'S BOX. X-1 gave it the width (matching the viewBox aspect to
-              the slot), X-2 the height (the capture figures moved onto the chart), X-4 put it back here
-              after I moved it uninvited. It holds nothing else, so it fills the box. */}
-          <AmtsPanel title="Value · Creation + Capture" icon="◈">
+          <AmtsPanel tall title="Value · Creation + Capture" icon="◈">
             {fieldsOf("valuechart")}
-          </AmtsPanel>
-          <AmtsPanel title="Price Performance · Competition" icon="$">
-            {fieldsOf("wtp")}
           </AmtsPanel>
           <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
             {fieldsOf("nba", "diffs")}
+          </AmtsPanel>
+          <AmtsPanel title="Price Performance · Competition" icon="$">
+            {fieldsOf("wtp")}
           </AmtsPanel>
           <AmtsPanel title="Key Customer Benefits" icon="◆">
             {fieldsOf("benefits")}

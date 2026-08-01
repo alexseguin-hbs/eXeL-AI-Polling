@@ -71,6 +71,17 @@ const SLIDES = (process.env.SLIDES || ALL_SLIDES).split(",").map((s) => s.trim()
 // Run against the LONGEST-named project, not PRJ-01. Testing the easy case is how the header shipped
 // truncating in the first place: "AI/ML Software & Integration — Army IVAS" is the 40-character worst case.
 const PROJECT = process.env.PROJECT || "PRJ-23";
+
+// ⚠ X-7 · THE SLOT-ASPECT DRIFT LOCK — PROMISED IN X-4 AND NOT BUILT UNTIL NOW.
+// `SLIDE_SLOT_ASPECT` in page.tsx is the aspect the waterfall lays itself out for WHEN IT CANNOT MEASURE
+// ITS OWN BOX — which is every print render, because the print stack mounts under `display:none`. A stale
+// constant therefore does not break the screen at all (a live ResizeObserver overrides it there); it breaks
+// the EXPORTED PDF, silently, and the only lock that existed pinned the number instead of checking it.
+// This reads the constant out of the source and compares it against the panel the browser actually laid
+// out. 8% is far tighter than the ~3x error one layout change produces, and loose enough not to flap.
+const SLOT_TOL = 0.08;
+const SLOT_CONST = Number(
+  (await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8")).match(/const SLIDE_SLOT_ASPECT = ([\d.]+);/)?.[1] ?? 0);
 const VIEWPORTS = [
   { name: "phone-portrait", width: 390, height: 844 },
   { name: "desktop-landscape", width: 1440, height: 810 },
@@ -307,6 +318,21 @@ for (const vp of VIEWPORTS) {
     // 1 · OVERFLOW
     for (const o of a.overflow.slice(0, 4))
       failures.push(`${tag} — OVERFLOW ${o.dx > 1 ? `+${o.dx}px wide` : ""}${o.dy > 1 ? ` +${o.dy}px tall` : ""} on <${o.tag}> "${o.text}"`);
+
+    // 1b · X-7 · S8's waterfall slot must still match the constant its PRINT layout is seeded from.
+    if (code === "S8") {
+      const slot = await page.evaluate(() => {
+        const g = document.querySelector('[data-slide-canvas] svg[aria-label^="Value creation"]');
+        const box = g?.closest("[data-panel-body]")?.getBoundingClientRect();
+        return box && box.height > 0 ? +(box.width / box.height).toFixed(3) : 0;
+      });
+      if (!SLOT_CONST) failures.push(`${tag} — could not read SLIDE_SLOT_ASPECT out of page.tsx`);
+      else if (!slot) failures.push(`${tag} — could not measure the waterfall's panel to check SLIDE_SLOT_ASPECT`);
+      else if (Math.abs(slot - SLOT_CONST) > SLOT_CONST * SLOT_TOL)
+        failures.push(`${tag} — SLIDE_SLOT_ASPECT is ${SLOT_CONST} but the panel measures ${slot} (>${Math.round(SLOT_TOL * 100)}% drift). `
+          + `The SCREEN self-corrects and hides this; the EXPORTED PDF lays out from the constant and will letterbox. Update it.`);
+      else console.log(`  · S8 slot aspect ${slot} vs SLIDE_SLOT_ASPECT ${SLOT_CONST} — within ${Math.round(SLOT_TOL * 100)}%`);
+    }
 
     // 2 · TYPE SCALE (normalised to the print sheet)
     const body = a.type.filter((t) => !t.header);

@@ -122,7 +122,7 @@ const open = async (pg, mode) => {
   const mounted = await pg.evaluate((cls) => {
     const g = document.querySelector(`.slide-print-stack.${cls} svg[aria-label^="Value creation"]`);
     const vb = (g?.getAttribute("viewBox") || "").split(/\s+/).map(Number);
-    return { vbW: vb[2] || 0 };
+    return { vbW: vb[2] || 0, vbH: vb[3] || 0, vbAspect: vb[3] > 0 ? +(vb[2] / vb[3]).toFixed(3) : 0 };
   }, mode.cls);
 
   await pg.waitForTimeout(700);
@@ -258,11 +258,19 @@ for (const paper of PAPER) for (const mode of MODES) {
     };
   });
   const P = `${paper.name} · ${mode.key}`;
-  // THE AT-MOUNT ASSERTION. `W0` is the intrinsic 320 the chart falls back to when it has no slot to lay out
-  // for; anything at or below it means the print copy was never given one, which renders as a small drawing
-  // floating in a big box — the operator's exported deck, exactly.
-  if (mounted.vbW <= 320)
-    failures.push(`${P} — the print stack mounted with viewBox width ${mounted.vbW} (<= the intrinsic 320): the exported chart is laid out for NO slot and will float, small, in its box`);
+  // ⚠ THE AT-MOUNT ASSERTION, AND X-7 HAD TO CORRECT ITS SHAPE. It used to demand `viewBox width > 320`,
+  // which was only ever a PROXY for "the chart laid out for a slot" — true while the slot was WIDER in
+  // proportion than the drawing, because the fix was to widen `W`. The moment the waterfall got a TALLER
+  // box the correct answer became `W = 320` with a grown `H`, and the proxy failed a chart that was right.
+  // The property is the ASPECT: whatever the print copy mounted with must match the slot it will be drawn
+  // into. Direction-agnostic, and it still catches the original defect — unmeasured is 320/165.4 = 1.935
+  // against a 1.51 slot, which is 28% out.
+  const SEED = Number((await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8")).match(/const SLIDE_SLOT_ASPECT = ([\d.]+);/)?.[1] ?? 0);
+  if (!mounted.vbAspect)
+    failures.push(`${P} — could not read the print stack's waterfall viewBox at mount`);
+  else if (Math.abs(mounted.vbAspect - SEED) > SEED * 0.1)
+    failures.push(`${P} — the print stack mounted with viewBox aspect ${mounted.vbAspect} against a ${SEED} slot (>10% out): `
+      + `the exported chart is laid out for the WRONG box and will letterbox`);
   // IDENTITY — the single assertion that kills "the stack silently dropped a slide".
   if (c.total !== EXPECT_PAGES) failures.push(`${P} — ${c.total} sheets carry data-slide-code, expected ${EXPECT_PAGES}`);
   const want = ["COVER", ...SLIDE_SCHEMA.map((s) => s.code)];
@@ -312,7 +320,7 @@ for (const paper of PAPER) for (const mode of MODES) {
     if (c.s10.years < YEAR_FLOOR) failures.push(`${P} — S10 printed ${c.s10.years} calendar-year cells (<${YEAR_FLOOR}, the ${PROJECT_GATE} forecast horizon)`);
     if (c.s10.steps.length !== 4) failures.push(`${P} — S10 printed bands [${c.s10.steps.join(", ")}] — expected R&D Spend + Step 1b/2/3`);
   }
-  console.log(`  ${"".padEnd(17)} at-mount viewBox W ${mounted.vbW} · content · ${c.total} coded sheets · S8 bars ${c.s8?.bars ?? "—"} svg-nums ${c.s8?.svgNums ?? "—"} painted ${c.s8 ? Math.round((c.s8.chartW / c.s8.panelW) * 100) : "—"}%W x ${c.s8 ? Math.round((c.s8.chartH / c.s8.sheetH) * 100) : "—"}%H of canvas · range ${!!c.s8?.range} · S10 years ${c.s10?.years ?? "—"} bands ${c.s10?.steps.length ?? "—"}/4`);
+  console.log(`  ${"".padEnd(17)} at-mount viewBox ${mounted.vbW}x${mounted.vbH} (aspect ${mounted.vbAspect}) · content · ${c.total} coded sheets · S8 bars ${c.s8?.bars ?? "—"} svg-nums ${c.s8?.svgNums ?? "—"} painted ${c.s8 ? Math.round((c.s8.chartW / c.s8.panelW) * 100) : "—"}%W x ${c.s8 ? Math.round((c.s8.chartH / c.s8.sheetH) * 100) : "—"}%H of canvas · range ${!!c.s8?.range} · S10 years ${c.s10?.years ?? "—"} bands ${c.s10?.steps.length ?? "—"}/4`);
 
   const buf = await page.pdf({ format: "Letter", landscape: paper.landscape, printBackground: true,
     margin: { top: "0.5in", bottom: "0.5in", left: "0.5in", right: "0.5in" } });
