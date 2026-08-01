@@ -4681,23 +4681,18 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 // The weights are measured, not guessed. The S8 band-budget probe reports the top two panels needing 410px
 // of the 685px body and the chart card 304px; 3fr/2fr gives the top band 411 (it fits exactly) and hands the
 // chart every remaining pixel at the FULL width of the sheet.
-// X-4 · THE FIELDS THAT SPAN BOTH IMPLICIT COLUMNS OF THEIR PANEL.
-// `data-panel-body` is a grid with no explicit columns, so ONE `col-span-2` child creates two implicit
-// columns and every other child pairs up into them. Declared here rather than inferred from `kind`, because
-// inference is how the Competition panel silently became two-column the moment a chart field joined it.
-//   X-5 REMOVED S8.diffs. It spanned while the Competition panel held three fields; that panel now holds
-//   only the NBA card and the table, and a spanning table would strand the NBA card at half width with a
-//   void beside it. With no spanning child the panel is a single column and both get the full width.
-//   S8.vprop — the value-proposition SENTENCE spans, so Key Customer Benefits and Key Technical Features sit
-//              bottom-left and bottom-right beneath it. This is the operator's layout, stated verbatim.
-const PANEL_SPAN = new Set(["S8.vprop"]);
+// X-6 · `PANEL_SPAN` IS GONE, WITH ITS LAST CALLER. It existed so the value-proposition sentence could span
+// both implicit columns of its panel while Benefits and Features paired up beneath it. The operator has
+// since given Benefits and Features panels of their own on the bottom row, so no panel on this deck has two
+// columns any more and nothing spans. Kept, it would be an abstraction with zero callers — the same
+// Succinctness failure the `rows` hatch was removed for two commits ago. Re-adding it is four lines.
 
 const BODY_ROWS: Record<string, string> = {
   S10: "minmax(0, 10fr) minmax(0, 24fr)",
   // X-4 · S8's top row (Competition | the waterfall) is the larger band. Weights are MEASURED, not guessed:
   // the x3-bands probe reports what each panel needs, and this is the split where the waterfall gets the
   // most height with zero overflow in any of the three panels.
-  S8: "minmax(0, 1.2fr) minmax(0, 1fr)",
+  S8: "minmax(0, 1fr) minmax(0, 1.72fr) minmax(0, 1fr)",
 };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
@@ -5321,14 +5316,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // a second banner with the same words directly under the first is what pushed the actual value out of the
   // clipped panel and made S1/S2 read as "field name, no value" (operator, 2026-07-29). Bare drops the inner
   // banner AND the inner card frame; AmtsPanel supplies both.
-  // ⚠ X-4 · `span` MAKES THE TWO-COLUMN PANEL A DESIGN INSTEAD OF AN ACCIDENT. `data-panel-body` is a grid
-  // with NO explicit columns, so a `col-span-2` child creates TWO IMPLICIT columns and every later
-  // single-span child packs into them. That is already how the Competition panel ends up with NBA beside
-  // the Value Equation and the price strip spanning underneath — but only because `wtp` happens to be a
-  // linked chart, which is a side effect nobody chose. Naming the flag lets a caller say "this one spans,
-  // the rest pair up" on purpose, which is exactly the ♡ panel's layout: sentence across the top, Key
-  // Customer Benefits bottom-left, Key Technical Features bottom-right.
-  function PresentField({ sp, f, big, bare, span }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean; span?: boolean }) {
+  function PresentField({ sp, f, big, bare }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean }) {
     const acc = sectionAccent(sp.code, f);
     const panelTitle = React.useContext(PanelTitleCtx);
     // The panel banner directly above already says this field's name — a second identical banner is chrome
@@ -5364,7 +5352,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // CONOPS (operational concept) renders as a numbered step-flow — 6–10 ordered steps, each an image-tiled
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
-    const wide2 = isConops || span ? "col-span-2" : "";
+    const wide2 = isConops ? "col-span-2" : "";
     return (
       <div className={bare ? `flex min-h-0 min-w-0 flex-col ${wide2}` : `flex min-h-0 flex-col overflow-hidden rounded-lg ring-1 ring-inset ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${wide2}`}>
         {!bare && <Banner />}
@@ -5459,9 +5447,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       const alwaysRenders = f.kind === "attach" || (f.kind === "chart" && f.linked);
       if (!alwaysRenders && fieldEmpty(effective(sp, f, presentSrc)))
         return <p key={id} className="m-0 italic text-slate-500" style={{ fontSize: TS.body }}>{f.name} — not authored yet</p>;
-      // X-4 · WHICH FIELDS SPAN BOTH COLUMNS — declared in ONE place (`PANEL_SPAN`), never inferred from a
-      // field's kind. A panel with a spanning child gets two implicit columns and everything else pairs up.
-      return <PresentField key={f.id} sp={sp} f={f} big bare={solo} span={ids.length > 1 && PANEL_SPAN.has(`${sp.code}.${f.id}`)} />;
+      return <PresentField key={f.id} sp={sp} f={f} big bare={solo} />;
     });
     // The panel table is now a FUNCTION of the slide, not of "the current slide". That is the whole reason the
     // print stack can render all 20 pages through the SAME renderer instead of forking a second one.
@@ -5536,19 +5522,20 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // proposition spans the foot of the slide as the single sentence a board remembers.
       S8: () => (
         <>
-          {/* ⚠ X-5 · A 2x2, AND EVERY SLOT IS THE OPERATOR'S. Verbatim: "Price pefromanc is left bottom,
-              then move NBA under Value Prop waterfall. that leaves Upper left for Value prop sentence thr
-              first thing we see on this slide."
-                  UPPER-LEFT   ♡ the value proposition — the first thing the eye lands on
-                  UPPER-RIGHT  ◈ the waterfall (unchanged, X-4's box)
-                  BOTTOM-LEFT  $ Price Performance — its own panel at last, so the LOW→HIGH axis finally
-                               has room and Comp A stops colliding with our own marker
-                  BOTTOM-RIGHT ⚔ Competition · NBA — "under Value Prop waterfall", carrying the Value
-                               Equation table that argues it
-              Reading down the left column you get our claim and its evidence; down the right, the money and
-              the alternative it beats. Nothing is deleted — every field on this slide still renders. */}
+          {/* ⚠ X-6 · THE 3x2, DICTATED SLOT BY SLOT. Operator: "in above customer benefits is Slider price
+              performance · above technical benefits is NBA DETAIL (below price waterfall) · primary customer
+              value prop first box top left" — then, correcting my 2x2: "keep very bottom box customer
+              benefits and very bottom box technical · also value equation box should not have moved just
+              the slider."
+                  row 1   ♡ the value proposition          |  ◈ the waterfall
+                  row 2   $ Price Performance (the slider) |  ⚔ NBA detail + Value Equation
+                  row 3   ◆ Key Customer Benefits          |  ▪ Key Technical Features
+              Every column is a chain the eye can follow: LEFT is the claim → where we price against the
+              field → what the customer gets. RIGHT is the money → the alternative it beats → how it is
+              built. THE VALUE EQUATION DID NOT MOVE: it stays with the NBA it argues against, exactly as
+              the operator said; only the slider ever left that panel. */}
           <AmtsPanel title="Primary Customer Value Proposition" icon="♡">
-            {fieldsOf("vprop", "benefits", "features")}
+            {fieldsOf("vprop")}
           </AmtsPanel>
           {/* X-1 / X-2 / X-4 · THE WATERFALL'S BOX. X-1 gave it the width (matching the viewBox aspect to
               the slot), X-2 the height (the capture figures moved onto the chart), X-4 put it back here
@@ -5561,6 +5548,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           </AmtsPanel>
           <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
             {fieldsOf("nba", "diffs")}
+          </AmtsPanel>
+          <AmtsPanel title="Key Customer Benefits" icon="◆">
+            {fieldsOf("benefits")}
+          </AmtsPanel>
+          <AmtsPanel title="Key Technical Features" icon="▪">
+            {fieldsOf("features")}
           </AmtsPanel>
         </>
       ),

@@ -1721,7 +1721,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
 
   // (a) the duplicate-name fix — one field in a panel renders bare
-  ok(/function PresentField\(\{ sp, f, big, bare, span \}/.test(src), "PresentField accepts `bare` (panel already carries the name)");
+  ok(/function PresentField\(\{ sp, f, big, bare \}/.test(src), "PresentField accepts `bare` (panel already carries the name)");
   ok(/const solo = ids\.length === 1;/.test(src), "fieldsOf renders a SOLO field bare — no second banner repeating the panel title");
   ok(/\{!bare && <Banner \/>\}/.test(src), "the inner banner is suppressed when bare");
   ok((src.match(/\{!bare && <Banner \/>\}/g) ?? []).length === 2, "both PresentField exits (chart + general) honour bare");
@@ -3200,8 +3200,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // holds nothing else, so it fills that box.
   ok(/<AmtsPanel title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(src),
      "the waterfall is the upper-RIGHT panel and holds nothing but the chart");
-  ok(/S8: "minmax\(0, 1\.2fr\) minmax\(0, 1fr\)"/.test(src),
-     "S8's top band is the larger of the two — measured: the split where nothing overflows");
+  // X-6 · THREE ROWS, AND THE OUTER TWO ARE EQUAL ON PURPOSE — the operator asked for "visual pleasing
+  // symetry". The middle row is 1.72x because it carries the value-equation table, which is the tallest
+  // single block on the slide; measured, 1.65 still overflowed it by 4px and 1.72 is the first that clears.
+  ok(/S8: "minmax\(0, 1fr\) minmax\(0, 1\.72fr\) minmax\(0, 1fr\)"/.test(src),
+     "S8's outer rows are equal and the middle row is sized to the value-equation table");
   ok(!/mode !== "slide" && <CompetitionStrip[\s\S]{0,200}?compact/.test(veq),
      "the strip inside ValueProp is off the slide entirely — it is not merely made smaller there");
   ok(/\{mode !== "slide" && <CompetitionStrip/.test(veq),
@@ -3252,19 +3255,29 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // ⚠ X-5 · THE 2x2, IN THE OPERATOR'S OWN WORDS: "Price pefromanc is left bottom, then move NBA under
   // Value Prop waterfall. that leaves Upper left for Value prop sentence thr first thing we see."
   // Grid order IS reading order: upper-left, upper-right, bottom-left, bottom-right.
-  ok(panels.join(" | ") === "Primary Customer Value Proposition | Value · Creation + Capture | Price Performance · Competition | Competition · Next Best Alternative",
-     `S8 is a 2x2 — VProp | Waterfall over Price Performance | NBA — got ${panels.join(" | ")}`);
+  // ⚠ X-6 · THE 3x2, SLOT BY SLOT, IN THE OPERATOR'S WORDS: "in above customer benefits is Slider price
+  // performance · above technical benefits is NBA DETAIL (below price waterfall) · primary customer value
+  // prop first box top left" + "keep very bottom box customer benefits and very bottom box technical".
+  // Grid order IS reading order, so this list IS the layout.
+  ok(panels.join(" | ") === "Primary Customer Value Proposition | Value · Creation + Capture | Price Performance · Competition | Competition · Next Best Alternative | Key Customer Benefits | Key Technical Features",
+     `S8 is a 3x2 — VProp|Waterfall / Slider|NBA / Benefits|Features — got ${panels.join(" | ")}`);
+  // "value equation box should not have moved just the slider" — it stays with the NBA it argues against.
+  ok(/<AmtsPanel title="Competition · Next Best Alternative" icon="⚔">\s*\{fieldsOf\("nba", "diffs"\)\}/.test(src),
+     "the Value Equation did NOT move — only the slider left the Competition panel");
 
   // 2 · THE SPANNING RULE IS DECLARED, NOT INFERRED. Inference from `kind` is how the Competition panel
   //     silently became two-column when a chart field joined it.
   // X-5 dropped S8.diffs: its panel now holds only the NBA card and the table, and a spanning table would
   // strand the NBA card at half width with a void beside it. One entry left, still declared in one place.
-  ok(/const PANEL_SPAN = new Set\(\["S8\.vprop"\]\);/.test(src),
-     "which fields span both columns is declared in ONE place");
-  ok(/span=\{ids\.length > 1 && PANEL_SPAN\.has\(`\$\{sp\.code\}\.\$\{f\.id\}`\)\}/.test(src),
-     "…and `fieldsIn` reads that declaration rather than sniffing the field's kind");
-  ok(/const wide2 = isConops \|\| span \? "col-span-2" : "";/.test(src),
-     "…and PresentField turns it into the col-span-2 that creates the two implicit columns");
+  // X-6 · `PANEL_SPAN` AND ITS `span` PROP ARE GONE WITH THEIR LAST CALLER. Benefits and Features have
+  // panels of their own on the bottom row now, so no panel on this deck wants two columns and nothing
+  // spans. Kept, it would be an abstraction with zero callers — the same Succinctness failure the `rows`
+  // hatch was deleted for. `isConops` is untouched: CONOPS still spans, and always did.
+  const pgX6 = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(!/PANEL_SPAN/.test(pgX6) && !/\bspan\?: boolean/.test(pgX6),
+     "the span mechanism is removed, not left behind with zero callers");
+  ok(/const wide2 = isConops \? "col-span-2" : "";/.test(src),
+     "…and CONOPS keeps the full-width span it has always had");
 
   // 3 · THE PRINT SEED — the reason the exported chart was a small drawing in a big box.
   ok(/const SLIDE_SLOT_ASPECT = 2\.03;/.test(src), "the sheet-constant slot aspect is the MEASURED 2.03");
