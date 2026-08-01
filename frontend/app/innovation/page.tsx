@@ -1473,6 +1473,32 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
   const commit = () => { onSave?.(draft.map((m) => ({ label: m.label.trim() || "Comp", x: clampX(m.x) }))); setEditing(false); };
   const addOne = () => { const l = nextCompetitorLabel(draft); if (l) setDraft([...draft, { label: l, x: 0.5 }]); };
 
+  // ⚠ X-6b · LABEL LANES — TWO MARKERS CLOSE TOGETHER USED TO PRINT THEIR NAMES ON TOP OF EACH OTHER.
+  // Visible in every screenshot the operator has sent: "Comp A" and our own marker overprint into an
+  // unreadable "&Mb A" whenever the capture fraction lands near a competitor. It was tolerable while the
+  // strip was a 32px afterthought; now that Price Performance owns a panel it is the first thing the eye
+  // catches, and the operator asked for "professional and not cluttered".
+  // Sort every marker by position and give one the NEXT LANE DOWN when it lands within 12% of the marker
+  // before it; the lane lifts its label clear of the one beside it. 12% is the label's own share of the
+  // track (`maxWidth: 22%`) with a margin, so a lane is spent only when the boxes would actually touch.
+  // OURS IS IN THE SORT, not special-cased — the collision the operator sees is between ours and Comp A,
+  // so leaving it out would fix nothing. Lanes cap at 2 (3 rows) so a pile-up cannot climb out of the box.
+  const LANE_GAP = 0.12, LANE_STEP = 11, MAX_LANE = 2;
+  const lanes: Record<string, number> = {};
+  {
+    const pts = [...marks.map((m, i) => ({ k: `c${i}`, x: clampX(m.x) })), { k: "ours", x: clampX(ours) }]
+      .sort((a, b) => a.x - b.x);
+    let lastX = -Infinity, lane = 0;
+    for (const pt of pts) {
+      lane = pt.x - lastX < LANE_GAP ? Math.min(MAX_LANE, lane + 1) : 0;
+      lanes[pt.k] = lane;
+      lastX = pt.x;
+    }
+  }
+  // A lane is only usable where there is height to spend it in — `fill` mode has a whole panel, the
+  // roomier h-12 editor track has one row to give, and the 32px compact strip has none.
+  const laneLift = (k: string) => (lanes[k] ?? 0) * (fill ? LANE_STEP : compact ? 0 : LANE_STEP * 0.55);
+
   return (
     <div className={fill ? "mt-1 flex min-h-0 flex-1 flex-col" : compact ? "mt-1" : "mt-2"}>
       <div className={`flex items-center justify-between gap-2 ${compact ? "mb-0.5" : "mb-1"}`}>
@@ -1537,7 +1563,8 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
             ) : (
               /* The MARKER is positioned; its label wraps within a share of the strip, so a long product
                  name at either end folds instead of running off the edge. */
-              <div className="row-start-1 mb-0.5 self-end break-words text-center text-[7px] leading-tight text-slate-400">{m.label}</div>
+              <div className="row-start-1 self-end break-words text-center text-[7px] leading-tight text-slate-400"
+                   style={{ marginBottom: 2 + laneLift(`c${i}`) }}>{m.label}</div>
             )}
           </div>
         ))}
@@ -1547,7 +1574,8 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
           <div data-ink className="row-start-2 mx-auto h-2.5 w-2.5 rounded-full" style={{ background: "#3b82f6" }} />
           {/* OURS gets the same three-band treatment — this is the marker whose label (e.g. "SAR")
               overprinted HIGH, because the competitive index pins it hard right at x = 1.0. */}
-          <div className="row-start-1 mb-0.5 self-end break-words text-center text-[7px] leading-tight text-blue-300">{oursLabel}</div>
+          <div className="row-start-1 self-end break-words text-center text-[7px] leading-tight text-blue-300"
+               style={{ marginBottom: 2 + laneLift("ours") }}>{oursLabel}</div>
         </div>
         <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>
         <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>

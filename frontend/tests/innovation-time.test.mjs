@@ -3281,6 +3281,19 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // 3 · THE PRINT SEED — the reason the exported chart was a small drawing in a big box.
   ok(/const SLIDE_SLOT_ASPECT = 2\.03;/.test(src), "the sheet-constant slot aspect is the MEASURED 2.03");
+
+  // 4 · X-6b · LABEL LANES. Two markers within 12% of each other used to overprint their names into an
+  //     unreadable smear ("Comp A" over our own marker, in every screenshot the operator sent). Asserted as
+  //     the MECHANISM — sort, threshold, capped lane, and OURS inside the sort, because leaving ours out
+  //     would leave the exact collision the operator can see.
+  ok(/const LANE_GAP = 0\.12, LANE_STEP = 11, MAX_LANE = 2;/.test(src),
+     "the marker-label lane rule is one declaration: threshold, step and a cap");
+  ok(/\{ k: "ours", x: clampX\(ours\) \}\]\s*\.sort\(\(a, b\) => a\.x - b\.x\)/.test(src),
+     "…and OUR marker is in the sort, not special-cased — it is half of the collision");
+  ok(/lane = pt\.x - lastX < LANE_GAP \? Math\.min\(MAX_LANE, lane \+ 1\) : 0;/.test(src),
+     "…a marker takes the next lane only when it lands inside the threshold, and lanes cannot run away");
+  ok(/const laneLift = \(k: string\) => \(lanes\[k\] \?\? 0\) \* \(fill \? LANE_STEP : compact \? 0 : LANE_STEP \* 0\.55\);/.test(src),
+     "…and a lane is only spent where there is height to spend it — never in the 32px compact strip");
   // ⚠ COMMENTS STRIPPED — third time this session a ban matched the sentence explaining it. The rule is
   // about CODE: a Next.js page may only export `default` and the route options, and `export const` here
   // fails the BUILD with TS2344 on the generated route types (paid for once, during X-4).
