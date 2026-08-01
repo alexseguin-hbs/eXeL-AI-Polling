@@ -1666,7 +1666,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/<div data-slide-canvas className="absolute left-0 top-0 overflow-hidden/.test(src), "data-slide-canvas sits on the fixed 1600x900 sheet itself");
   // ⚠ PROXY LOCK #11 — the SAME literal asserted a second time, 100 lines from #10, and it went red for the
   // same reason. Two copies of one proxy is exactly how a shape outlives the property it stood for.
-  ok(/<div data-panel-body className=\{`grid min-h-0 flex-1 gap/.test(src) && /content-stretch/.test(src),
+  // X-2 · back to a plain string once the `rows` template hatch lost its last caller, so the interpolation
+  // is gone. The property — grid · min-h-0 · flex-1 · content-stretch — is what this has always meant.
+  ok(/<div data-panel-body className="grid min-h-0 flex-1 content-stretch gap/.test(src),
      "data-panel-body wraps the AmtsPanel children and fills the panel — stretching by default");
   ok(/<div data-panel className=/.test(src) && /<div data-panel-head className=/.test(src), "AmtsPanel exposes BOTH the panel frame and its head");
 
@@ -2345,8 +2347,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // The y axis exists, and the gutter is MEASURED from the tick strings rather than being a constant.
   ok(/const tickTxt = TICKS\.map/.test(chart) && /textAnchor="end" fontSize=\{FS\}/.test(chart),
      "the y axis has real tick labels, not just grid lines");
-  ok(/const L = Math\.max\(6, Math\.max\(\.\.\.tickTxt\.map\(\(\w+\) => \w+\.length\)\) \* 2\.6 \+ 3\);/.test(chart),
+  // X-2 · the per-character constant rose 2.6 → 3.9 because X-1 let `FS` reach its cap of 6 and a four-digit
+  // tick sheared its leading digit off the left edge (measured on PRJ-15/23/32). The PROPERTY is unchanged
+  // and is what this asserts: the gutter is a function of the longest tick STRING, not a fixed number.
+  ok(/const L = Math\.max\(6, Math\.max\(\.\.\.tickTxt\.map\(\(\w+\) => \w+\.length\)\) \* 3\.9 \+ 3\);/.test(chart),
      "the gutter is measured FROM the tick text — a wider number widens the gutter, it does not overprint the axis");
+  // …and it is sized for the WIDEST type the chart can draw, or the widening reopens the shear.
+  ok(/Math\.min\(6, gw \/ 5\.2\)/.test(chart) && 3.9 >= 6 * 0.58,
+     "the gutter's per-character budget covers FS at its cap (6), not a typical FS");
   ok(/const L = /.test(chart) && !/L = 6,/.test(chart), "the hardcoded six-unit gutter is gone");
 
   // The bottom band is sized by the labels, and the chart grows so the plot area is not eaten by them.
@@ -3034,8 +3042,15 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // X-1 · `W` is no longer a bare literal: it is `W0` (the intrinsic width) plus a measured slide width, and
   // `T`/`H` moved into the two-pass `layout()` return. The ARITHMETIC these locks exist for is untouched, so
   // only the shape they read is updated — the assertions below still compute where the topmost label lands.
-  const dims = veq.match(/const W0 = (\d+);[\s\S]*?T: FS \+ (\d+),/);
-  ok(!!dims, "the waterfall declares an intrinsic width W0, a height H and a top band T");
+  // X-2 added the caption band `A` ABOVE the bar-number band, so `T` is now measured from it (`T: A + FS + 3`).
+  // The arithmetic below still computes where the topmost bar NUMBER lands, which is what these locks are for
+  // — the number sits `FS + 3` under the top of its own band exactly as it always did, `A` only moves the
+  // whole plot down and grows `H` to match, so no bar and no bar-number can enter the caption band.
+  const dims = veq.match(/const W0 = (\d+);[\s\S]*?T: A \+ FS \+ (\d+),/);
+  ok(!!dims, "the waterfall declares an intrinsic width W0, a height H, a caption band A and a top band T above the bars");
+  ok(/const A = FS \+ \d+;/.test(veq), "the caption band A is reserved space, sized from the type");
+  ok(/H: \(big \? 150 : \d+\) \+ Math\.max\(0, B - 16\) \+ A/.test(veq),
+     "H grows by exactly A — the caption band is added to the box, never taken out of the plot");
   // W-1b · H IS NO LONGER A LITERAL IN THE DIMS LINE. It is computed from the label metrics
   // (`(big ? 150 : 124) + max(0, B - 16)`), so the panel-fill floor is read from ITS OWN declaration rather
   // than from a capture group that now holds something else — which is exactly the mistake that made this
@@ -3097,7 +3112,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 3 · Every non-slide surface — the deep dive, the source panel, SSR and first paint — keeps the
   //     intrinsic 320. This is what makes the change additive rather than a redesign of four other views.
   ok(/const W0 = 320;/.test(veq), "the intrinsic layout width is still 320 for every non-slide surface");
-  ok(/const \{ gw, bw, FS, wrapped, B, T, H \} = W === W0 \? intrinsic : layout\(W\);/.test(veq),
+  ok(/const \{ gw, bw, FS, wrapped, B, A, T, H \} = W === W0 \? intrinsic : layout\(W\);/.test(veq),
      "at the intrinsic width the FIRST pass is reused verbatim — a non-slide render is byte-identical to before");
 
   // 4 · ONE layout function, evaluated twice. The failure mode this forbids is two copies of the same
@@ -3108,6 +3123,47 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   for (const sym of ["gw", "bw", "FS", "wrapped", "B"])
     ok(new RegExp(`\\b${sym}\\b`).test(veq.slice(veq.indexOf("const layout = (Wx: number)"), veq.indexOf("const intrinsic = layout(W0);"))),
        `${sym} is computed inside layout() — it cannot be left behind at the old width`);
+}
+
+// ── X-2 · THE CHART CARRIES ITS OWN CAPTION, AND THE CHIP ROW IS GONE ────────────────────
+// Operator, from the exported PDF: "Make waterfall value prop chart take up more of screen in PDF and slide
+// · price performance competition takes too much of screen · no need to use box for 33% value capture as
+// thats now on chart · place value creation between NBA AND PRICE BARS · and place value price range upper
+// right of chart".
+// Four asks, one shape: the three-chip row under the waterfall is deleted from the slide, its two remaining
+// figures move into a reserved band ON the chart, and the WTP strip is compacted — all of which is height
+// handed back to the chart. Verified across all 33 projects by measurement, not by looking at one slide.
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
+
+  // 1 · VALUE CREATION starts at the NBA bar's RIGHT edge — that IS "between NBA and Price", expressed as
+  //     geometry rather than as a hand-tuned x. Bar 0 is the NBA bar, so its right edge is L + inset + bw.
+  ok(/<text x=\{L \+ \(gw - bw\) \/ 2 \+ bw \+ 2\} y=\{A \* 0\.7\} textAnchor="start"/.test(veq),
+     "VALUE CREATION is anchored to the NBA bar's right edge — between the NBA and Price bars, by construction");
+  ok(/VALUE CREATION<\/tspan>/.test(veq) && /ve\.differentiationM/.test(veq),
+     "…and it prints the differentiation the green bars sum to, not a second number");
+
+  // 2 · VALUE PRICE RANGE is right-anchored, inset by a reserve for the ⤢ overlay that is NOT in this svg.
+  ok(/<text x=\{W - FS \* 5\.2\} y=\{A \* 0\.7\} textAnchor="end"/.test(veq),
+     "VALUE PRICE RANGE sits upper-right, inset so it clears the panel's ⤢ control");
+  ok(/VALUE PRICE RANGE<\/tspan>/.test(veq) && /ve\.referenceM/.test(veq) && /split\.priceM/.test(veq),
+     "…and it is the NBA-to-price span the gold segment is drawn from — the same two numbers, never a third");
+
+  // 3 · THE CHIP ROW IS OFF THE SLIDE, AND THE FIELD STILL EXISTS. Deleting `S8.capture` from the registry
+  //     would have taken S1's tile and the source record with it; only the slide stops rendering it.
+  ok(!/fieldsOf\("valuechart", "capture"\)/.test(src), "the slide no longer stacks the capture chips under the chart");
+  const data = await (await import("node:fs/promises")).readFile("lib/innovation-data.ts", "utf8");
+  ok(/\{ id: "capture", name: "Value creation \+ capture", kind: "metrics", linked: true/.test(data)
+     && /code === "S8" && fieldId === "capture"\) return valuePropCapture\(p\)/.test(data),
+     "S8.capture is still a real field with a real resolver — removed from a slide, not from the record");
+  ok(/fieldsOf\("valueprop", "vpdiffs", "vpcapture"\)/.test(src),
+     "S1's exec summary keeps its capture tile — this change is scoped to S8's slide");
+
+  // 4 · THE WTP STRIP IS COMPACT ON A SLIDE ONLY. Dragging a marker happens in the source editor, which
+  //     keeps the roomier track it was tuned for.
+  ok(/compact \? "h-8" : "h-12"/.test(src), "the Price Performance track is shorter on a slide and unchanged elsewhere");
+  ok(/<CompetitionStrip [^>]*compact=\{big\}/.test(veq), "…and `compact` is exactly `big`, i.e. slide mode");
 }
 
 // ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
@@ -3942,12 +3998,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // Tenth of its kind this session. It now asserts the property: the body always fills, EITHER by stretching
   // every row equally OR by an explicit template, and an explicit template must contain a fraction track so
   // it cannot silently reintroduce the void this lock exists to prevent.
-  ok(/data-panel-body className=\{`grid min-h-0 flex-1 gap-\[0\.7cqh\] p-\[0\.7cqw\] \$\{rows \? "" : "content-stretch"\}`\}/.test(src),
-     "the AmtsPanel body fills its panel — content-stretch by default, an explicit row template when one is given");
-  ok(/gridTemplateRows: rows/.test(src), "the explicit path is a real grid template, not a class that merely looks like one");
-  const tmpl = [...src.matchAll(/<AmtsPanel[^>]*\brows="([^"]+)"/g)].map((m) => m[1]);
-  ok(tmpl.length > 0 && tmpl.every((r) => /(^|\s)(minmax\(0,\s*1fr\)|1fr)/.test(r)),
-     `every explicit panel row template leads with a fraction track, so the panel still fills — got ${tmpl.join(" | ") || "none"}`);
+  // X-2 · the `rows` escape hatch is GONE, because its one caller is. S8's value panel no longer renders the
+  // three capture figures under the chart (they are on the chart), so the panel has a single child and
+  // `content-stretch` gives it the whole box — which is what `minmax(0,1fr) auto` was emulating.
+  ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch gap-\[0\.7cqh\] p-\[0\.7cqw\]"/.test(src),
+     "the AmtsPanel body fills its panel — one behaviour, content-stretch, for every panel");
+  ok(!/gridTemplateRows: rows/.test(src) && !/<AmtsPanel[^>]*\brows="/.test(src),
+     "the single-caller row-template hatch is removed, not left behind with zero callers");
   ok(/<div data-panel className=\{`flex min-h-0 flex-col overflow-hidden/.test(src), "the panel frame is a column flex, so its body can take the height it is given");
   ok((src.match(/flex min-h-0 (min-w-0 )?flex-col/g) ?? []).length >= 3, "the PresentField cards can take height too (both exits)");
   // REGRESSION LOCK, with the reason: 1fr tracks ignore what a row needs and overran S8 by 253px.
@@ -5251,10 +5308,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const fspX1d = await import("node:fs/promises");
   const srcX1d = await fspX1d.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
 
-  // link 1 · the panel body gives the chart row a fraction track (AmtsPanel `rows` opt-in)
-  ok(/rows="minmax\(0, 1fr\) auto"/.test(srcX1d), "the value panel's chart row is 1fr and its caption row auto");
-  // link 2 · AmtsPanel honours an explicit template instead of always splitting evenly
-  ok(/gridTemplateRows: rows/.test(srcX1d), "AmtsPanel applies the caller's row template");
+  // link 1+2 · the panel body gives the chart the whole box. X-2 removed the three capture figures from the
+  // slide, so the value panel has ONE child and `content-stretch` hands it every pixel — which is what the
+  // `minmax(0,1fr) auto` template existed to approximate. The property is unchanged: the chart's row fills.
+  ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(srcX1d),
+     "the panel body stretches its rows, so the chart's row fills the panel");
+  ok(/<AmtsPanel title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(srcX1d),
+     "the value panel renders the chart ALONE — the capture chips are on the chart, not stacked under it");
   // link 3 · the field wrapper grows
   ok(/\$\{bare \? "" : big \? "p-\[0\.45cqw\]" : "p-2"\} flex min-h-0 flex-1 flex-col/.test(srcX1d),
      "the chart field wrapper carries flex-1 + min-h-0");

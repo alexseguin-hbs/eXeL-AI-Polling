@@ -1432,8 +1432,12 @@ function VsNba({ tone }: { tone: "pos" | "neutral" | "neg" }) {
  *  EDITS ARE STAGED, NOT LIVE. Dragging mutates a local draft; the disk button commits it and leaves edit
  *  mode, and Cancel discards. That is what the operator described ("then saves, exiting Edit Mode") and it
  *  also means a half-finished drag never reaches the record. */
-function CompetitionStrip({ p, ours, oursLabel, onSave }: {
-  p: Project; ours: number; oursLabel: string; onSave?: (c: WtpMarker[]) => void;
+// X-2 · `compact` IS THE SLIDE VARIANT (operator: "price performance competition takes too much of screen").
+// Same strip, same geometry, same three bands — only the padding and the track height change, and only on a
+// slide, where the chart above it is the thing the room belongs to. The deep dive and the source editor keep
+// the roomier h-12 they were tuned for, because that is where a marker is actually dragged.
+function CompetitionStrip({ p, ours, oursLabel, onSave, compact }: {
+  p: Project; ours: number; oursLabel: string; onSave?: (c: WtpMarker[]) => void; compact?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<WtpMarker[]>([]);
@@ -1465,9 +1469,9 @@ function CompetitionStrip({ p, ours, oursLabel, onSave }: {
   const addOne = () => { const l = nextCompetitorLabel(draft); if (l) setDraft([...draft, { label: l, x: 0.5 }]); };
 
   return (
-    <div className="mt-2">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <div className="text-[10px] text-slate-400">Price Performance: Competition</div>
+    <div className={compact ? "mt-1" : "mt-2"}>
+      <div className={`flex items-center justify-between gap-2 ${compact ? "mb-0.5" : "mb-1"}`}>
+        <div className={`text-slate-400 ${compact ? "text-[9px]" : "text-[10px]"}`}>Price Performance: Competition</div>
         {onSave && (editing ? (
           <div className="flex items-center gap-1">
             <button onClick={addOne} disabled={!nextCompetitorLabel(draft)}
@@ -1488,7 +1492,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave }: {
         ))}
       </div>
       <div ref={barRef} onPointerMove={onMove} onPointerUp={endDrag} onPointerCancel={endDrag}
-           className={`relative h-12 rounded border bg-[#0e141b] ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
+           className={`relative rounded border bg-[#0e141b] ${compact ? "h-8" : "h-12"} ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
         <div data-ink className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
         {/* ⚠ X-1c · THREE BANDS, NOT ONE (operator, with the screenshot: "Price performance labels: NBA,
             Comp A, Comp B must be above circle. Have circle centered on line so we can read Low to High
@@ -1623,7 +1627,16 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const TICKS = [0, 0.25, 0.5, 0.75, 1];
   const max = Math.max(1, ...seq.map((s) => Math.max(s.from, s.to))) * 1.1;
   const tickTxt = TICKS.map((f) => `${Math.round((max * f) / 1.1)}`);
-  const L = Math.max(6, Math.max(...tickTxt.map((s) => s.length)) * 2.6 + 3);
+  // ⚠ X-2 · THE GUTTER IS SIZED FOR THE WIDEST TYPE THIS CHART CAN DRAW, NOT FOR A TYPICAL ONE. The `2.6`
+  // per character was calibrated when `FS` sat around 4.4-5.4. X-1 widened the layout, `FS` rose to its cap
+  // of 6, and a four-digit tick stopped fitting: PRJ-23's axis printed "064 · 798 · 532 · 266 · 0" — every
+  // label's leading digit sheared off at x < 0. The number was right and the box was too small, which is
+  // precisely the failure the "BOX FIRST, THEN TYPE" rule above exists to forbid.
+  // `FS` is clamped to at most 6 and the ticks are drawn at `FS`, so 6 × 0.58 ≈ 3.5 per character is the
+  // WORST case: it can never clip, and at a smaller `FS` it costs a couple of units of plot width. Sized
+  // from the cap rather than from `FS` itself on purpose — `FS` is derived from `gw`, which is derived from
+  // `L`, and reading it here would close that loop.
+  const L = Math.max(6, Math.max(...tickTxt.map((s) => s.length)) * 3.9 + 3);
   const n = seq.length;
   /** Everything downstream of the layout WIDTH, in one place so it can be evaluated twice — once at the
    *  intrinsic 320 to learn how tall the drawing wants to be, and again at the width that makes the viewBox
@@ -1642,7 +1655,13 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
     const wrapped = seq.map((s) => wrap(s.label));
     const linesN = Math.max(1, ...wrapped.map((w) => w.length));
     const B = 6 + linesN * (FS + 1.2);
-    return { gw, bw, FS, wrapped, B, T: FS + 3, H: (big ? 150 : 124) + Math.max(0, B - 16) };
+    // X-2 · `A` IS THE CAPTION BAND, AND IT IS RESERVED SPACE — the same discipline as `B` and `T`.
+    // Value Creation and Value Price Range used to live in a chip row UNDER the chart, competing with it
+    // for panel height. They are the chart's own endpoints, so they move ONTO it — but only into a band no
+    // bar and no bar-number can enter, because `T` (the bar-number band) is measured FROM `A`. Nothing is
+    // squeezed to make room: `H` grows by exactly `A`, so the plot area `H − B − T` is unchanged.
+    const A = FS + 5;
+    return { gw, bw, FS, wrapped, B, A, T: A + FS + 3, H: (big ? 150 : 124) + Math.max(0, B - 16) + A };
   };
   const intrinsic = layout(W0);
   // The slide's slot is wider than tall, so `W` is the width that squares the viewBox aspect with it. Clamped
@@ -1652,7 +1671,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const W = big && slotAspect > 0
     ? Math.min(1200, Math.max(W0, Math.round(intrinsic.H * slotAspect)))
     : W0;
-  const { gw, bw, FS, wrapped, B, T, H } = W === W0 ? intrinsic : layout(W);
+  const { gw, bw, FS, wrapped, B, A, T, H } = W === W0 ? intrinsic : layout(W);
   const y = (v: number) => H - B - (v / max) * (H - B - T);
   const fill = (k: Bar["kind"]) =>
     k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : k === "give" ? "#60a5fa" : "#94a3b8";
@@ -1734,6 +1753,29 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
           </linearGradient>
         ))}
       </defs>
+      {/* X-2 · THE TWO FIGURES THE BOARD READS, ON THE CHART ITSELF (operator: "no need to use box for 33%
+          value capture as thats now on chart · place value creation between NBA AND PRICE BARS · and place
+          value price range upper right of chart").
+          They were a three-chip row under the waterfall. All three are the chart's own geometry: capture %
+          is already printed on the price bar's label, Value Creation is the rise from the NBA bar to the
+          last driver, and Value Price Range is the NBA-to-price span the gold segment is drawn from. A chip
+          repeating a number the bars already state is not a caption, it is a rival for panel height — so
+          the row goes and these two annotations take its place inside band `A`.
+          PLACEMENT IS GEOMETRIC, NOT GUESSED. Value Creation starts at the NBA bar's RIGHT edge, so it sits
+          over the driver bars — literally between NBA and Price, which is where the operator put it. Value
+          Price Range is anchored to the right edge of the viewBox. Neither can collide with a bar or a bar
+          number: band `A` is reserved above `T` and nothing is drawn into it but these. */}
+      <text x={L + (gw - bw) / 2 + bw + 2} y={A * 0.7} textAnchor="start" fontSize={FS} fill="#64748b">
+        <tspan fill="#34d399" fontWeight={600}>${Math.round(ve.differentiationM)}M</tspan>
+        <tspan dx={2}>VALUE CREATION</tspan>
+      </text>
+      {/* ⚠ `W − FS × 5.2`, NOT `W`. The panel's ⤢ maximize control is a DOM overlay pinned to the box's
+          top-right corner, OUTSIDE this svg and invisible to it — anchored flush at `W` the range ran
+          straight under the button. The reserve scales with the type so it holds at every `FS`. */}
+      <text x={W - FS * 5.2} y={A * 0.7} textAnchor="end" fontSize={FS} fill="#64748b">
+        <tspan fill="#e2e8f0" fontWeight={600}>${Math.round(ve.referenceM)} – {Math.round(split.priceM)}M</tspan>
+        <tspan dx={2}>VALUE PRICE RANGE</tspan>
+      </text>
       {TICKS.map((f, i) => (
         <g key={f}>
           <line x1={L} y1={y((max * f) / 1.1)} x2={W} y2={y((max * f) / 1.1)} stroke="rgba(148,163,184,.09)" />
@@ -1861,7 +1903,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
       )}
       {/* CHART FIRST, ALWAYS (operator: "Place chart at Top" · "Value Prop Image on top"). */}
       {chart}
-      <CompetitionStrip p={p} ours={ci} oursLabel={(p.name || "Ours").split(" ")[0]} onSave={onCompetitors} />
+      <CompetitionStrip p={p} ours={ci} oursLabel={(p.name || "Ours").split(" ")[0]} onSave={onCompetitors} compact={big} />
       {table}
       {mode === "edit" && onGenerate && (
         <div className="flex justify-end pt-1">
@@ -4610,7 +4652,7 @@ const BODY_ROWS: Record<string, string> = { S10: "minmax(0, 10fr) minmax(0, 24fr
 // them would delete content instead of a duplicate.
 const S8_PANEL_ECHO = new Set(["vprop", "nba", "valuechart", "diffs"]);
 
-function AmtsPanel({ title, icon, required, wide, rows, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; rows?: string; children: React.ReactNode }) {
+function AmtsPanel({ title, icon, required, wide, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
@@ -4622,12 +4664,12 @@ function AmtsPanel({ title, icon, required, wide, rows, children }: { title: str
         </span>
         {required && <span className="shrink-0 whitespace-nowrap font-semibold tracking-wide text-amber-300/90" style={{ fontSize: TS.micro }}>REQUIRED: {required}+</span>}
       </div>
-      {/* X-1 · `content-stretch` gives every child an EQUAL share of the panel's height, which is right when
-          two panels carry similar weight and wrong when one is a chart and the other is three small figures.
-          `rows` lets a panel say otherwise — S8's value panel gives the waterfall `1fr` and its metric strip
-          `auto`. Opt-in, so every panel that does not pass it renders byte-identically to before. */}
-      <div data-panel-body className={`grid min-h-0 flex-1 gap-[0.7cqh] p-[0.7cqw] ${rows ? "" : "content-stretch"}`}
-           style={rows ? { gridTemplateRows: rows } : undefined}><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
+      {/* `content-stretch` gives every child an EQUAL share of the panel's height, and every panel in the deck
+          wants that. X-1 briefly added a `rows` escape hatch so S8's value panel could give the waterfall
+          `1fr` and its three capture figures `auto`; X-2 deleted those figures from the slide, leaving the
+          hatch with ZERO callers, so it is gone too. One panel primitive, one behaviour — an abstraction kept
+          for a single caller that no longer exists is the Succinctness pillar's exact failure mode. */}
+      <div data-panel-body className="grid min-h-0 flex-1 content-stretch gap-[0.7cqh] p-[0.7cqw]"><PanelTitleCtx.Provider value={title}>{children}</PanelTitleCtx.Provider></div>
     </div>
   );
 }
@@ -5424,14 +5466,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
             {fieldsOf("nba", "diffs")}
           </AmtsPanel>
-          {/* X-1 · THE WATERFALL FILLS THIS BOX (operator, three times: "Waterfall has to be a majority of
-              slide … must fill the box its given, upper right" · "Shrink Boxes and find locations for them
-              around waterfall chart"). The chart takes 1fr; the three capture figures take only the height
-              they need. They are the chart's own endpoints — Value Creation is the sum of its green bars and
-              Value Price Range is its NBA-to-price span — so they read as its caption, not as rivals for
-              half the panel. */}
-          <AmtsPanel title="Value · Creation + Capture" icon="◈" rows="minmax(0, 1fr) auto">
-            {fieldsOf("valuechart", "capture")}
+          {/* X-1 / X-2 · THE WATERFALL FILLS THIS BOX (operator, four times, ending: "Make waterfall value
+              prop chart take up more of screen in PDF and slide").
+              X-1 gave it the WIDTH (62.2% -> 95.5%, by matching the viewBox aspect to the slot). X-2 gives
+              it the HEIGHT: the three-chip capture row is GONE FROM THE SLIDE, because all three figures
+              are now on the chart itself — capture % has always been printed on the price bar's label,
+              and Value Creation and Value Price Range moved into the chart's reserved caption band.
+              ⚠ THE FIELD IS NOT DELETED. `S8.capture` still exists in the registry, still resolves through
+              `valuePropCapture`, and still renders on S1 and in the source record — only this SLIDE stops
+              spending a panel row restating what the bars say. `rows` goes with it: one child, one row,
+              1fr by default. */}
+          <AmtsPanel title="Value · Creation + Capture" icon="◈">
+            {fieldsOf("valuechart")}
           </AmtsPanel>
           <AmtsPanel wide title="Primary Customer Value Proposition" icon="♡">
             {fieldsOf("vprop", "benefits", "features")}
