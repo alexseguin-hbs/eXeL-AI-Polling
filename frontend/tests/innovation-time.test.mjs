@@ -1721,7 +1721,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
 
   // (a) the duplicate-name fix — one field in a panel renders bare
-  ok(/function PresentField\(\{ sp, f, big, bare \}/.test(src), "PresentField accepts `bare` (panel already carries the name)");
+  ok(/function PresentField\(\{ sp, f, big, bare, span \}/.test(src), "PresentField accepts `bare` (panel already carries the name)");
   ok(/const solo = ids\.length === 1;/.test(src), "fieldsOf renders a SOLO field bare — no second banner repeating the panel title");
   ok(/\{!bare && <Banner \/>\}/.test(src), "the inner banner is suppressed when bare");
   ok((src.match(/\{!bare && <Banner \/>\}/g) ?? []).length === 2, "both PresentField exits (chart + general) honour bare");
@@ -3104,10 +3104,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 2 · The width is DERIVED from that measurement times the height the drawing wants, which is exactly the
   //     statement "viewBox aspect == slot aspect". Clamped both ways so a degenerate box cannot make the
   //     chart narrower than the intrinsic one, nor absurdly wide.
-  ok(/Math\.min\(1200, Math\.max\(W0, Math\.round\(intrinsic\.H \* slotAspect\)\)\)/.test(veq),
-     "the slide width is intrinsic height × measured slot aspect — clamped to [W0, 1200]");
-  ok(/const W = big && slotAspect > 0/.test(veq),
-     "the widening applies ONLY on a slide, and only once a real measurement exists");
+  ok(/Math\.min\(1200, Math\.max\(W0, Math\.round\(intrinsic\.H \* aspect\)\)\)/.test(veq),
+     "the slide width is intrinsic height × slot aspect — clamped to [W0, 1200]");
+  ok(/const W = big && aspect > 0/.test(veq),
+     "the widening applies ONLY on a slide");
+  // X-4 · and `aspect` prefers a LIVE measurement, falling back to the sheet constant only when there is
+  // none — which is every print render, because the print stack mounts under `display:none`.
+  ok(/const aspect = slotAspect > 0 \? slotAspect : big \? SLIDE_SLOT_ASPECT : 0;/.test(veq),
+     "a live measurement always wins; the sheet constant only fills the gap before one exists");
 
   // 3 · Every non-slide surface — the deep dive, the source panel, SSR and first paint — keeps the
   //     intrinsic 320. This is what makes the change additive rather than a redesign of four other views.
@@ -3184,12 +3188,15 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and it declares its owning record, so its ✎ Edit link is not a no-op");
 
   // 2 · THE SLIDE PLACES IT IN THE COMPETITION PANEL, and the value panel is the chart at full width.
-  ok(/<AmtsPanel title="Competition · Next Best Alternative" icon="⚔">\s*\{fieldsOf\("nba", "diffs", "wtp"\)\}/.test(src),
+  ok(/<AmtsPanel title="Competition · Next Best Alternative" icon="⚔">\s*\{fieldsOf\("nba", "wtp", "diffs"\)\}/.test(src),
      "Price Performance renders in the COMPETITION panel — where a competitor-positioning axis belongs");
-  ok(/<AmtsPanel wide title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(src),
-     "the value panel is `wide` and holds the waterfall alone — full sheet width");
-  ok(/S8: "auto minmax\(0, 1fr\)"/.test(src),
-     "S8's top band sizes to its content and the waterfall takes EVERY remaining pixel");
+  // ⚠ X-4 · NOT `wide`. The operator: "I need competitive Value Waterfall in right section like before …
+  // Who told you to move? keep to upper right box." The waterfall is the UPPER-RIGHT panel of a 2x2, and it
+  // holds nothing else, so it fills that box.
+  ok(/<AmtsPanel title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(src),
+     "the waterfall is the upper-RIGHT panel and holds nothing but the chart");
+  ok(/S8: "minmax\(0, 1\.55fr\) minmax\(0, 1fr\)"/.test(src),
+     "S8's top band — Competition | the waterfall — is the larger of the two rows");
   ok(!/mode !== "slide" && <CompetitionStrip[\s\S]{0,200}?compact/.test(veq),
      "the strip inside ValueProp is off the slide entirely — it is not merely made smaller there");
   ok(/\{mode !== "slide" && <CompetitionStrip/.test(veq),
@@ -3222,8 +3229,40 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…driven through the operator's own Export menu, not a synthetic print event");
   ok(/failures\.push\(`\$\{P\} — S8 waterfall printed \$\{c\.s8\.bars\} filled bar rects/.test(gate),
      "pdf-gate asserts the BARS render — labels are not bars (the P3 blind spot, closed)");
-  ok(/failures\.push\(`\$\{P\} — S8 waterfall spans \$\{pctW\}% of the slide width/.test(gate),
-     "…and that the waterfall is still full width in the artifact, not merely on screen");
+  ok(/failures\.push\(`\$\{P\} — the PAINTED waterfall spans \$\{pctW\}% of its panel/.test(gate),
+     "…and that the PAINTED drawing fills its panel in the artifact — the element box is not the drawing");
+}
+
+// ── X-4 · THE UPPER-RIGHT BOX · THE 2×2 · AND THE PRINT SEED ─────────────────────────────
+// Operator: "So value prop water fall upper right box · Key Customer benefits bottom left · Key Technical
+// Benefits bottom right using this slide view (as a basis) not pdf. then have pdf match."
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const gate = await (await import("node:fs/promises")).readFile("scripts/pdf-gate.mjs", "utf8");
+  const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
+
+  // 1 · THE 2×2, panel by panel, in the operator's own order.
+  const s8 = src.slice(src.indexOf("      S8: () => ("), src.indexOf("      // S10 — Financials by Year"));
+  const panels = [...s8.matchAll(/<AmtsPanel (wide )?title="([^"]+)"/g)].map((m) => `${m[1] ? "wide " : ""}${m[2]}`);
+  ok(panels.join(" | ") === "Competition · Next Best Alternative | Value · Creation + Capture | wide Primary Customer Value Proposition",
+     `S8 is Competition | Waterfall on top and the value proposition across the foot — got ${panels.join(" | ")}`);
+
+  // 2 · THE SPANNING RULE IS DECLARED, NOT INFERRED. Inference from `kind` is how the Competition panel
+  //     silently became two-column when a chart field joined it.
+  ok(/const PANEL_SPAN = new Set\(\["S8\.diffs", "S8\.vprop"\]\);/.test(src),
+     "which fields span both columns is declared in ONE place");
+  ok(/span=\{ids\.length > 1 && PANEL_SPAN\.has\(`\$\{sp\.code\}\.\$\{f\.id\}`\)\}/.test(src),
+     "…and `fieldsIn` reads that declaration rather than sniffing the field's kind");
+  ok(/const wide2 = isConops \|\| span \? "col-span-2" : "";/.test(src),
+     "…and PresentField turns it into the col-span-2 that creates the two implicit columns");
+
+  // 3 · THE PRINT SEED — the reason the exported chart was a small drawing in a big box.
+  ok(/const SLIDE_SLOT_ASPECT = 2\.03;/.test(src), "the sheet-constant slot aspect is the MEASURED 2.03");
+  // ⚠ COMMENTS STRIPPED — third time this session a ban matched the sentence explaining it. The rule is
+  // about CODE: a Next.js page may only export `default` and the route options, and `export const` here
+  // fails the BUILD with TS2344 on the generated route types (paid for once, during X-4).
+  ok(!/export const SLIDE_SLOT_ASPECT/.test(src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")),
+     "…and it is NOT exported — a Next.js page may only export `default` and the route options (TS2344)");
 }
 
 // ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
@@ -5384,7 +5423,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // `minmax(0,1fr) auto` template existed to approximate. The property is unchanged: the chart's row fills.
   ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(srcX1d),
      "the panel body stretches its rows, so the chart's row fills the panel");
-  ok(/<AmtsPanel wide title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(srcX1d),
+  ok(/<AmtsPanel title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(srcX1d),
      "the value panel renders the chart ALONE — the capture chips are on the chart, not stacked under it");
   // link 3 · the field wrapper grows
   ok(/\$\{bare \? "" : big \? "p-\[0\.45cqw\]" : "p-2"\} flex min-h-0 flex-1 flex-col/.test(srcX1d),

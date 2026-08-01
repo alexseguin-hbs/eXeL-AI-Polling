@@ -111,7 +111,22 @@ const open = async (pg, mode) => {
   // ATTACHED, not visible: the stack carries `hidden` under SCREEN media by design and only becomes
   // visible once `emulateMedia({ media: "print" })` runs, four lines after this returns.
   await pg.waitForSelector(`.slide-print-stack.${mode.cls}`, { state: "attached", timeout: 15000 });
+
+  // ⚠ X-4 · READ AT MOUNT, BEFORE ANY SETTLE — THIS IS THE STATE `window.print()` ACTUALLY CAPTURES.
+  // The operator's export runs `setPrinting(true)` then `window.print()` two frames later, synchronously.
+  // The print stack mounts under `display:none`, so a ResizeObserver on it reports 0x0 and the chart has no
+  // measurement to lay out from; whatever the viewBox says AT THIS INSTANT is what gets rasterised.
+  // Everything after this line — 700ms of settle, `emulateMedia`, another 400ms — is time the GATE has and
+  // the OPERATOR does not. Measuring after those waits is why a mutation that removes the print seed still
+  // showed 97%: the observer had already landed. Reading here removes timing from the assertion entirely.
+  const mounted = await pg.evaluate((cls) => {
+    const g = document.querySelector(`.slide-print-stack.${cls} svg[aria-label^="Value creation"]`);
+    const vb = (g?.getAttribute("viewBox") || "").split(/\s+/).map(Number);
+    return { vbW: vb[2] || 0 };
+  }, mode.cls);
+
   await pg.waitForTimeout(700);
+  return mounted;
 };
 
 for (const paper of PAPER) for (const mode of MODES) {
@@ -121,7 +136,7 @@ for (const paper of PAPER) for (const mode of MODES) {
   // Navigate under SCREEN media — print CSS hides everything but the stack, so the app's own UI must still
   // be reachable to drive it. Switch to print only once the stack is mounted.
   await page.emulateMedia({ media: "screen" });
-  await open(page, mode);
+  const mounted = await open(page, mode);
   await page.emulateMedia({ media: "print" });
   await page.waitForTimeout(400);
 
@@ -193,19 +208,32 @@ for (const paper of PAPER) for (const mode of MODES) {
       s8: !s8 ? null : {
         svgNums: svgNums(s8),
         capture: /Value capture|Capture @/i.test(t8), range: /Value Price Range/i.test(t8),
+        // ⚠ THE UNDERCOAT ONLY, BY PALETTE. A size floor alone was scale-sensitive: the white/black bevel
+        // caps cleared 2px on the larger landscape sheet and not on portrait, so the same deck counted 16
+        // bars one way and 8 the other. Filtering to the six semantic fills makes the count the number of
+        // BARS, identical on every paper — and still goes to 0 the moment the undercoat is removed.
         bars: [...(s8.querySelectorAll('svg[aria-label^="Value creation"] rect') || [])].filter((r) => {
-          const f = (r.getAttribute("fill") || "").trim();
+          const f = (r.getAttribute("fill") || "").trim().toLowerCase();
           const b = r.getBoundingClientRect();
-          return /^#[0-9a-f]{3,8}$/i.test(f) && b.width >= 2 && b.height >= 2;
+          return ["#64748b", "#34d399", "#fb7185", "#60a5fa", "#94a3b8", "#ffb020"].includes(f)
+            && b.width >= 1 && b.height >= 1;
         }).length,
         // The chart must also OCCUPY the slide it was given — a 1-pixel-tall svg technically has bars.
         // ⚠ MEASURED AGAINST THE CANVAS, NOT THE PAPER. Dividing by the print PAGE reported 18% landscape
         // and 13% portrait for the same slide, because the 16:9 canvas letterboxes differently on each
         // paper — a difference in the ruler, not in the deck. The canvas IS the slide.
-        chartH: Math.round((s8.querySelector('svg[aria-label^="Value creation"]')?.getBoundingClientRect().height) || 0),
-        chartW: Math.round((s8.querySelector('svg[aria-label^="Value creation"]')?.getBoundingClientRect().width) || 0),
-        sheetW: Math.round((s8.closest(".slide-print-page")?.querySelector("[data-slide-canvas]")?.getBoundingClientRect().width)
-          || s8.getBoundingClientRect().width || 1),
+        // ⚠ X-4 · THE PAINTED EXTENT, NOT THE ELEMENT BOX. This measured `svg.getBoundingClientRect()` — the
+        // flex box, which is 92% of the panel no matter what is drawn inside it — and therefore certified an
+        // export in which the DRAWING was a fraction of that box, floating in the middle. Element-not-drawing,
+        // the same error class as counting labels instead of bars. `getBBox() x getScreenCTM()` is what the
+        // eye sees, and it is the metric the screen probe has always used.
+        ...(() => {
+          const g = s8.querySelector('svg[aria-label^="Value creation"]');
+          if (!g) return { chartH: 0, chartW: 0 };
+          const bb = g.getBBox(), m = g.getScreenCTM();
+          return { chartW: Math.round(bb.width * (m?.a ?? 1)), chartH: Math.round(bb.height * (m?.d ?? 1)) };
+        })(),
+        panelW: Math.round((s8.querySelector('svg[aria-label^="Value creation"]')?.closest("[data-panel-body]")?.getBoundingClientRect().width) || 1),
         // …and the canvas is found by walking UP to the print page, because `data-slide-code` sits INSIDE
         // the canvas, not around it — a downward query found nothing and silently fell back to the page
         // box, which is what produced the bogus 18%-vs-13% split in the first place.
@@ -230,6 +258,11 @@ for (const paper of PAPER) for (const mode of MODES) {
     };
   });
   const P = `${paper.name} · ${mode.key}`;
+  // THE AT-MOUNT ASSERTION. `W0` is the intrinsic 320 the chart falls back to when it has no slot to lay out
+  // for; anything at or below it means the print copy was never given one, which renders as a small drawing
+  // floating in a big box — the operator's exported deck, exactly.
+  if (mounted.vbW <= 320)
+    failures.push(`${P} — the print stack mounted with viewBox width ${mounted.vbW} (<= the intrinsic 320): the exported chart is laid out for NO slot and will float, small, in its box`);
   // IDENTITY — the single assertion that kills "the stack silently dropped a slide".
   if (c.total !== EXPECT_PAGES) failures.push(`${P} — ${c.total} sheets carry data-slide-code, expected ${EXPECT_PAGES}`);
   const want = ["COVER", ...SLIDE_SCHEMA.map((s) => s.code)];
@@ -252,8 +285,8 @@ for (const paper of PAPER) for (const mode of MODES) {
     if (c.s8.bars < 5) failures.push(`${P} — S8 waterfall printed ${c.s8.bars} filled bar rects (<5) — the BARS did not render, only the labels`);
     // X-3 · WIDTH IS THE OPERATOR'S ACTUAL ASK ("use full width waterfall for value prop section"), so it
     // is the assertion with teeth: the chart spans the sheet, or this gate is red. Measured 95%.
-    const pctW = Math.round((c.s8.chartW / c.s8.sheetW) * 100);
-    if (pctW < 85) failures.push(`${P} — S8 waterfall spans ${pctW}% of the slide width (<85%) — it is no longer full width`);
+    const pctW = Math.round((c.s8.chartW / c.s8.panelW) * 100);
+    if (pctW < 85) failures.push(`${P} — the PAINTED waterfall spans ${pctW}% of its panel (<85%) — a small drawing floating in a big box, which is what the operator's export showed`);
     // HEIGHT is a floor against COLLAPSE, not a target — and the honest numbers are stated rather than
     // rounded up to something flattering. Measured, same canvas, same slide:
     //     screen                 21%
@@ -279,7 +312,7 @@ for (const paper of PAPER) for (const mode of MODES) {
     if (c.s10.years < YEAR_FLOOR) failures.push(`${P} — S10 printed ${c.s10.years} calendar-year cells (<${YEAR_FLOOR}, the ${PROJECT_GATE} forecast horizon)`);
     if (c.s10.steps.length !== 4) failures.push(`${P} — S10 printed bands [${c.s10.steps.join(", ")}] — expected R&D Spend + Step 1b/2/3`);
   }
-  console.log(`  ${"".padEnd(17)} content · ${c.total} coded sheets · S8 bars ${c.s8?.bars ?? "—"} svg-nums ${c.s8?.svgNums ?? "—"} chart ${c.s8 ? Math.round((c.s8.chartW / c.s8.sheetW) * 100) : "—"}%W x ${c.s8 ? Math.round((c.s8.chartH / c.s8.sheetH) * 100) : "—"}%H of canvas · range ${!!c.s8?.range} · S10 years ${c.s10?.years ?? "—"} bands ${c.s10?.steps.length ?? "—"}/4`);
+  console.log(`  ${"".padEnd(17)} at-mount viewBox W ${mounted.vbW} · content · ${c.total} coded sheets · S8 bars ${c.s8?.bars ?? "—"} svg-nums ${c.s8?.svgNums ?? "—"} painted ${c.s8 ? Math.round((c.s8.chartW / c.s8.panelW) * 100) : "—"}%W x ${c.s8 ? Math.round((c.s8.chartH / c.s8.sheetH) * 100) : "—"}%H of canvas · range ${!!c.s8?.range} · S10 years ${c.s10?.years ?? "—"} bands ${c.s10?.steps.length ?? "—"}/4`);
 
   const buf = await page.pdf({ format: "Letter", landscape: paper.landscape, printBackground: true,
     margin: { top: "0.5in", bottom: "0.5in", left: "0.5in", right: "0.5in" } });

@@ -1552,6 +1552,15 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact }: {
   );
 }
 
+/** X-4 · The S8 upper-right panel's aspect on the fixed 1600×900 slide canvas. A real constant of the sheet
+ *  design, MEASURED against the live panel — see the `SLIDE_SLOT_ASPECT` drift lock, which fails if this and
+ *  the rendered box disagree by more than 8%, so a layout change goes red instead of quietly shrinking the
+ *  exported chart. Used only when no live measurement exists yet, which is every print render.
+ *  ⚠ NOT EXPORTED. A Next.js page module may only export `default` and a fixed set of route options —
+ *  `export const SLIDE_SLOT_ASPECT` fails the build with TS2344 on the generated route types. The drift
+ *  lock reads it out of the source text instead, which is what the other page-level locks already do. */
+const SLIDE_SLOT_ASPECT = 2.03;   // measured: the panel's flex column is 718.1 x 353.2 on the 1600x900 sheet
+
 function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, big }: {
   p: Project; mode: VPMode;
   drivers?: ValueDriver[]; onChange?: (d: ValueDriver[]) => void;
@@ -1597,7 +1606,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // and INDEPENDENT of the viewBox. Widening `W` therefore cannot change what the observer reports. The 1%
   // dead-band below is belt-and-braces, not the mechanism.
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const [slotAspect, setSlotAspect] = useState(0);   // 0 until measured — SSR and first paint keep the 320
+  const [slotAspect, setSlotAspect] = useState(0);   // 0 until measured — see `aspect` below for the seed
   useEffect(() => {
     const el = svgRef.current;
     if (!big || !el || typeof ResizeObserver === "undefined") return;
@@ -1668,8 +1677,21 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // so a degenerate measurement (a collapsed or absurd box) can never produce a chart narrower than the
   // intrinsic one or wider than four sheets. Pass two can only SHORTEN `H` — wider columns wrap fewer label
   // lines — so any residual mismatch letterboxes by a few percent vertically, never by the 35% it did.
-  const W = big && slotAspect > 0
-    ? Math.min(1200, Math.max(W0, Math.round(intrinsic.H * slotAspect)))
+  // ⚠ X-4 · THE SEED IS WHY THE EXPORTED PDF WAS WRONG, AND IT IS NOT A NICETY.
+  // The print stack mounts under Tailwind `hidden` (`display:none`) and only becomes visible under
+  // `@media print` — see the print CSS, `.slide-print-stack { display: block !important }`. A ResizeObserver
+  // on a `display:none` element reports 0x0, the guard above skips, `slotAspect` stays 0, and `W` fell back
+  // to the intrinsic 320. A 320x154 viewBox (aspect 2.07) inside a slot several times wider is
+  // HEIGHT-limited, so the drawing rendered about `2.07 x slotHeight` wide and centred itself — a small
+  // chart floating in a large empty box, which is exactly what the operator's exported deck shows.
+  // `window.print()` runs two frames after mount, so the observer callback and a React re-render cannot
+  // land inside a synchronous print. THE EXPORT HAS NEVER BEEN MEASURED, and no amount of waiting fixes it.
+  // The slide canvas is a FIXED 1600x900 design, so this panel's aspect is a real constant of the sheet,
+  // not a guess — measured, and locked against drift by a gate that reads the live panel and fails if the
+  // two disagree by more than 8%. A live measurement always wins; this only fills the gap before one exists.
+  const aspect = slotAspect > 0 ? slotAspect : big ? SLIDE_SLOT_ASPECT : 0;
+  const W = big && aspect > 0
+    ? Math.min(1200, Math.max(W0, Math.round(intrinsic.H * aspect)))
     : W0;
   const { gw, bw, FS, wrapped, B, A, T, H } = W === W0 ? intrinsic : layout(W);
   const y = (v: number) => H - B - (v / max) * (H - B - T);
@@ -4654,9 +4676,23 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 // The weights are measured, not guessed. The S8 band-budget probe reports the top two panels needing 410px
 // of the 685px body and the chart card 304px; 3fr/2fr gives the top band 411 (it fits exactly) and hands the
 // chart every remaining pixel at the FULL width of the sheet.
+// X-4 · THE FIELDS THAT SPAN BOTH IMPLICIT COLUMNS OF THEIR PANEL.
+// `data-panel-body` is a grid with no explicit columns, so ONE `col-span-2` child creates two implicit
+// columns and every other child pairs up into them. Declared here rather than inferred from `kind`, because
+// inference is how the Competition panel silently became two-column the moment a chart field joined it.
+//   S8.diffs — the value-equation TABLE spans, so the short NBA card and the short price strip pair up above
+//              it. Measured: side by side at half the panel the table wrapped its driver names and overflowed
+//              by 135px; spanning, it has the full panel width and fits.
+//   S8.vprop — the value-proposition SENTENCE spans, so Key Customer Benefits and Key Technical Features sit
+//              bottom-left and bottom-right beneath it. This is the operator's layout, stated verbatim.
+const PANEL_SPAN = new Set(["S8.diffs", "S8.vprop"]);
+
 const BODY_ROWS: Record<string, string> = {
   S10: "minmax(0, 10fr) minmax(0, 24fr)",
-  S8: "auto minmax(0, 1fr)",
+  // X-4 · S8's top row (Competition | the waterfall) is the larger band. Weights are MEASURED, not guessed:
+  // the x3-bands probe reports what each panel needs, and this is the split where the waterfall gets the
+  // most height with zero overflow in any of the three panels.
+  S8: "minmax(0, 1.55fr) minmax(0, 1fr)",
 };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
@@ -5280,7 +5316,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // a second banner with the same words directly under the first is what pushed the actual value out of the
   // clipped panel and made S1/S2 read as "field name, no value" (operator, 2026-07-29). Bare drops the inner
   // banner AND the inner card frame; AmtsPanel supplies both.
-  function PresentField({ sp, f, big, bare }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean }) {
+  // ⚠ X-4 · `span` MAKES THE TWO-COLUMN PANEL A DESIGN INSTEAD OF AN ACCIDENT. `data-panel-body` is a grid
+  // with NO explicit columns, so a `col-span-2` child creates TWO IMPLICIT columns and every later
+  // single-span child packs into them. That is already how the Competition panel ends up with NBA beside
+  // the Value Equation and the price strip spanning underneath — but only because `wtp` happens to be a
+  // linked chart, which is a side effect nobody chose. Naming the flag lets a caller say "this one spans,
+  // the rest pair up" on purpose, which is exactly the ♡ panel's layout: sentence across the top, Key
+  // Customer Benefits bottom-left, Key Technical Features bottom-right.
+  function PresentField({ sp, f, big, bare, span }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean; span?: boolean }) {
     const acc = sectionAccent(sp.code, f);
     const panelTitle = React.useContext(PanelTitleCtx);
     // The panel banner directly above already says this field's name — a second identical banner is chrome
@@ -5316,8 +5359,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // CONOPS (operational concept) renders as a numbered step-flow — 6–10 ordered steps, each an image-tiled
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
+    const wide2 = isConops || span ? "col-span-2" : "";
     return (
-      <div className={bare ? `flex min-h-0 min-w-0 flex-col ${isConops ? "col-span-2" : ""}` : `flex min-h-0 flex-col overflow-hidden rounded-lg ring-1 ring-inset ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "col-span-2" : ""}`}>
+      <div className={bare ? `flex min-h-0 min-w-0 flex-col ${wide2}` : `flex min-h-0 flex-col overflow-hidden rounded-lg ring-1 ring-inset ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${wide2}`}>
         {!bare && <Banner />}
         <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}>
         {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors
@@ -5410,7 +5454,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       const alwaysRenders = f.kind === "attach" || (f.kind === "chart" && f.linked);
       if (!alwaysRenders && fieldEmpty(effective(sp, f, presentSrc)))
         return <p key={id} className="m-0 italic text-slate-500" style={{ fontSize: TS.body }}>{f.name} — not authored yet</p>;
-      return <PresentField key={f.id} sp={sp} f={f} big bare={solo} />;
+      // X-4 · WHICH FIELDS SPAN BOTH COLUMNS — declared in ONE place (`PANEL_SPAN`), never inferred from a
+      // field's kind. A panel with a spanning child gets two implicit columns and everything else pairs up.
+      return <PresentField key={f.id} sp={sp} f={f} big bare={solo} span={ids.length > 1 && PANEL_SPAN.has(`${sp.code}.${f.id}`)} />;
     });
     // The panel table is now a FUNCTION of the slide, not of "the current slide". That is the whole reason the
     // print stack can render all 20 pages through the SAME renderer instead of forking a second one.
@@ -5485,21 +5531,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // proposition spans the foot of the slide as the single sentence a board remembers.
       S8: () => (
         <>
-          {/* X-3 · THE ARGUMENT ON TOP, THE MONEY PICTURE FULL-WIDTH UNDERNEATH.
-              The price-performance strip changed panels: it was never a "value creation" object — it plots
-              where WE sit against Comp A / NBA / Comp B, which is the COMPETITION panel's entire subject.
-              Moving it there is what frees the value panel to be the waterfall and nothing else.
-              ⚠ I TRIED THREE STACKED FULL-WIDTH BANDS FIRST AND MEASURED IT: 4 overflows, +100px on the
-              value-equation table and +78px on each value-proposition list. Full width does not shrink a
-              table or a bullet list — it only spends horizontal room they do not need, while their heights
-              stay exactly the same and the band budget gets thinner. So only the CHART goes full width,
-              which is what the operator actually asked for; the two prose/table panels keep the half width
-              they were laid out for and share the top band. */}
+          {/* ⚠ X-4 · THE WATERFALL BELONGS IN THE UPPER-RIGHT BOX AND I MOVED IT WITHOUT BEING ASKED.
+              X-3 read "use full width waterfall" as licence to restructure the whole slide into stacked
+              bands. Operator: "I need competitive Value Waterfall in right section like before … Who told
+              you to move? keep to upper right box." This is the layout, and it is the operator's, not mine:
+                  row 1   ⚔ Competition · NBA        |   ◈ Value · Creation + Capture  (the waterfall)
+                  row 2   ♡ Primary Customer Value Proposition — sentence spanning, then
+                          ◆ Key Customer Benefits    |   ▪ Key Technical Features
+              The price-performance strip STAYS in Competition — the one X-3 change the operator kept
+              ("the rest looks god"). It was never a value-creation object: it plots where we sit against
+              Comp A / NBA / Comp B, which is this panel's whole subject. */}
           <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
-            {fieldsOf("nba", "diffs", "wtp")}
-          </AmtsPanel>
-          <AmtsPanel title="Primary Customer Value Proposition" icon="♡">
-            {fieldsOf("vprop", "benefits", "features")}
+            {fieldsOf("nba", "wtp", "diffs")}
           </AmtsPanel>
           {/* X-1 / X-2 · THE WATERFALL FILLS THIS BOX (operator, four times, ending: "Make waterfall value
               prop chart take up more of screen in PDF and slide").
@@ -5511,8 +5554,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               `valuePropCapture`, and still renders on S1 and in the source record — only this SLIDE stops
               spending a panel row restating what the bars say. `rows` goes with it: one child, one row,
               1fr by default. */}
-          <AmtsPanel wide title="Value · Creation + Capture" icon="◈">
+          <AmtsPanel title="Value · Creation + Capture" icon="◈">
             {fieldsOf("valuechart")}
+          </AmtsPanel>
+          {/* X-4 · THE SENTENCE SPANS, ITS EVIDENCE SITS SIDE BY SIDE UNDER IT (operator: "Key Customer
+              benefits bottom left / Key Technical Benefits bottom right"). The sentence does not move and
+              does not take a box of its own — it is the thesis, and the two columns beneath it are its
+              evidence. See `PresentField`'s `span` flag for how the two implicit columns are created. */}
+          <AmtsPanel wide title="Primary Customer Value Proposition" icon="♡">
+            {fieldsOf("vprop", "benefits", "features")}
           </AmtsPanel>
         </>
       ),
