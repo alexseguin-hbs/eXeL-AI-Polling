@@ -468,17 +468,17 @@ ok(glossHi.dominant === "HI" && glossHi.gloss.length > 0, "intelLoadGloss: domin
 /* ---------------- Value Equation (Slice 1B) — create the value prop vs the competitive NBA ---------------- */
 import { valueEquation, valueEquationOf, valuePropFromEquation } from "../lib/innovation-data.ts";
 const empty = valueEquation([], 100);
-ok(empty.competitiveIndex === 50 && empty.evcUsdM === 100 && empty.wins === 0, "valueEquation: empty drivers → parity index 50, EVC = reference, 0 wins");
+ok(empty.evcUsdM === 100 && empty.wins === 0, "valueEquation: empty drivers → parity index 50, EVC = reference, 0 wins");
 const winDriver = valueEquation([{ name: "Range", importance: 1, ourScore: 0.9, nbaScore: 0.3 }], 100);
 ok(winDriver.perDriver[0].verdict === "win", "valueEquation: ours ≫ NBA → win verdict");
-ok(winDriver.competitiveIndex > 50 && winDriver.evcUsdM > 100, "valueEquation: a win lifts competitive index >50 and EVC above the NBA reference");
+ok(winDriver.differentiationM > 0 && winDriver.evcUsdM > 100, "valueEquation: a win lifts differentiation and EVC above the NBA reference");
 const lossDriver = valueEquation([{ name: "Cost", importance: 1, ourScore: 0.2, nbaScore: 0.8 }], 100);
-ok(lossDriver.perDriver[0].verdict === "loss" && lossDriver.competitiveIndex < 50, "valueEquation: ours ≪ NBA → loss verdict, index <50");
+ok(lossDriver.perDriver[0].verdict === "loss" && lossDriver.differentiationM < 0, "valueEquation: ours ≪ NBA → loss verdict, index <50");
 const evcLo = valueEquation([{ name: "X", importance: 1, ourScore: 0.5, nbaScore: 0.4 }], 100).evcUsdM;
 const evcHi = valueEquation([{ name: "X", importance: 1, ourScore: 0.9, nbaScore: 0.4 }], 100).evcUsdM;
 ok(evcHi > evcLo, "valueEquation: EVC is monotonic increasing in our score");
-ok(winDriver.competitiveIndex >= 0 && winDriver.competitiveIndex <= 100, "valueEquation: competitive index clamped to [0,100]");
-ok(valueEquationOf(DEMO_PROJECTS[0]).competitiveIndex >= 0, "valueEquationOf resolves for a real project (addressable = incremental rev)");
+ok(Number.isFinite(winDriver.differentiationM), "valueEquation: differentiation is a finite $ figure (D3 retired the 0-100 index)");
+ok(Number.isFinite(valueEquationOf(DEMO_PROJECTS[0]).evcUsdM), "valueEquationOf resolves for a real project (addressable = full 10-yr revenue)");
 ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "All-weather range", importance: 1, ourScore: 0.9, nbaScore: 0.3 }] }).includes("All-weather range"), "valuePropFromEquation names the winning driver vs the NBA");
 ok(valuePropFromEquation({ ...P0, valueDrivers: [] }).length > 0, "valuePropFromEquation resolves even with no stored drivers (derived backfill populates winners)");
 ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "z", importance: 1, ourScore: 0.1, nbaScore: 0.9 }] }).includes("Unlike"), "valuePropFromEquation falls back to the derived AI value prop when the (stored) drivers do not win");
@@ -3247,6 +3247,42 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "a swipe pages only at 1x; zoomed in it pans the body instead of turning the page mid-read");
 }
 
+// ── D3 · THE COMPETITIVE INDEX IS RETIRED — EVERYWHERE, not half-alive ──────────────────
+// Odin flagged it three times. Executed: 100/100 on ALL 33 seeded projects — ONE distinct value
+// portfolio-wide, so it ranked nothing, and a half-retired metric is what the next reader revives.
+// Operator: "retire it everywhere." 24 sites: lib 7 · page 10 · tests 7.
+//
+// ⚠ TWO OF THEM WERE BEHAVIOURAL, and both got a real basis BEFORE the field was deleted:
+//   · the price-performance strip marker read `competitiveIndex / 100` → pinned hard right on every
+//     project, which IS the X-1c right-edge collision. It now reads the CAPTURE FRACTION — semantically
+//     exact, because price = NBA + capture × (EVC − NBA), so the capture fraction IS our price's position
+//     between the two. Retiring the index therefore CLOSES X-1c rather than leaving it.
+//   · the constellation's `value` colour mode banded the index, so it painted all 33 the SAME green — an
+//     operator-selectable colour mode that coloured nothing. It now bands `valueForMoney`.
+//
+// ⚠ AND A CORRECTION TO MY OWN PLAN, MADE BEFORE SHIPPING RATHER THAN AFTER. I wrote that the capture
+// fraction "genuinely varies". It does not: `captureOf` measures 33 on all 33, because every seeded
+// project still uses the default. The marker now MEANS something and moves off the wall, and it moves the
+// moment anyone edits capture % on S8 — but on the seed data it is one value, and that is a SEED gap, not
+// a property of the replacement. Two other candidates were tested and rejected for the same reason: price
+// position is algebraically identical to capture, and value-for-money is not a price axis.
+{
+  const fspD3 = await import("node:fs/promises");
+  const codeOnly = (x) => x.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").replace(/\/\/.*$/gm, "");
+  const libD3 = codeOnly(await fspD3.readFile("lib/innovation-data.ts", "utf8"));
+  const pgD3 = codeOnly(await fspD3.readFile("app/innovation/page.tsx", "utf8"));
+  ok(!/competitiveIndex/.test(libD3), "ZERO competitiveIndex in the library — field, computation and prose");
+  ok(!/competitiveIndex/.test(pgD3), "ZERO competitiveIndex in the deck — no display, no consumer");
+  ok(!/Diff Index/.test(pgD3), "the `Diff Index` dog-tag row that rendered it is gone");
+  // The two behavioural replacements, asserted as REPLACEMENTS rather than as absences.
+  ok(/const ci = Math\.max\(0, Math\.min\(1, captureOf\(p\) \/ 100\)\);/.test(pgD3),
+     "strip marker reads the capture fraction — a price position, and off the right wall");
+  ok(/valueForMoney\(p, valueEquationOf\(p\)\.differentiationM\)/.test(pgD3) && /VFM_BANDS\.high/.test(pgD3),
+     "the value colour mode bands valueForMoney — 32 distinct values where the index had 1");
+  ok(/export const valueForMoney/.test(libD3) && /export const VFM_BANDS/.test(libD3),
+     "ONE producer and ONE band table, so a second reader cannot invent different thresholds");
+}
+
 // ── D8 · THE LAST FOUR OVERFLOW LINES — the border WAS the overflow ─────────────────────
 // Carried all session as "4 red lines in slide-shots, 2 panels x 2 viewports". Measured on S8/PRJ-23 at
 // 1440x810 rather than guessed: the two list panels reported clientHeight 123 against scrollHeight 125 —
@@ -4519,18 +4555,31 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const a = drv({ importance: 0.7, ourScore: 0.8, nbaScore: 0.1 });
   const b = drv({ importance: 0.7, ourScore: 0.8, nbaScore: 0.9 });
   ok(V.driverValueM(a, 100) === V.driverValueM(b, 100), "nbaScore does not move the bar — it is a dead seed");
-  ok(V.valueEquation([a], 100).competitiveIndex === V.valueEquation([b], 100).competitiveIndex,
-     "nbaScore does not move the competitive index either");
+  ok(V.valueEquation([a], 100).differentiationM === V.valueEquation([b], 100).differentiationM,
+     "nbaScore does not move differentiation either");
 
-  // (e) THE INDEX DISCRIMINATES — this is the assertion that was MISSING when the first formula shipped a
-  //     portfolio-wide 100.0. It must separate a clean project from one carrying a give-back.
+  // (e) ⚠ D3 · THE DISCRIMINATION TEST MOVED, IT DID NOT DIE. This block existed to assert that the metric
+  //     SEPARATES projects — written after the first formula shipped a portfolio-wide 100.0. The second
+  //     formula did it again: `competitiveIndex` measured exactly 100 on all 33 seeded projects, one
+  //     distinct value, so it ranked nothing and has been retired. The requirement is unchanged and now
+  //     falls on `valueForMoney`, which is what the constellation's `value` colour mode reads.
   const mk = (v) => drv({ importance: 1, valueM: v });
-  const ix = (ds) => V.valueEquation(ds, 100).competitiveIndex;
-  ok(ix([mk(50), mk(30)]) === 100, "all-positive → 100 (100% of value created is upside)");
-  ok(Math.abs(ix([mk(50), mk(-30)]) - 62.5) < 1e-9, "one give-back → 62.5 — the index RANKS, it does not pin");
-  ok(ix([mk(50), mk(-50)]) === 50, "balanced → 50 (parity)");
-  ok(ix([mk(-50)]) === 0, "all-negative → 0");
-  ok(ix([]) === 50 && V.valueEquation([], 0).evcUsdM === 0, "empty input → parity, never NaN");
+  const vfm = (nreK, ds) => V.valueForMoney({ nreK }, V.valueEquation(ds, 100).differentiationM);
+  ok(vfm(1000, [mk(50), mk(30)]) === 80, "80 $M differentiation per $1M R&D — a plain ratio, not a scaled index");
+  ok(vfm(2000, [mk(50), mk(30)]) === 40, "…and DOUBLING the R&D halves it: spend is in the denominator");
+  ok(vfm(1000, [mk(50), mk(-30)]) < vfm(1000, [mk(50), mk(30)]), "a give-back lowers it — it RANKS, it does not pin");
+  ok(vfm(1000, [mk(-50)]) < 0, "an all-negative project is NEGATIVE value for money, not floored at zero");
+  ok(Number.isFinite(vfm(0, [mk(50)])), "zero R&D does not divide by zero");
+  // The bands are the MEASURED terciles of the real portfolio, not round numbers picked to look tidy.
+  ok(V.VFM_BANDS.low === 52.4 && V.VFM_BANDS.high === 61.3, "bands are the measured p33/p67 of the 33 seeded projects");
+  {
+    const seen = new Set(DEMO_PROJECTS.map((p) => Math.round(V.valueForMoney(p, valueEquationOf(p).differentiationM))));
+    ok(seen.size >= 20, `value-for-money DISCRIMINATES across the portfolio: ${seen.size} distinct values on 33 projects (the retired index had 1)`);
+    const band = (v) => (v >= V.VFM_BANDS.high ? "g" : v >= V.VFM_BANDS.low ? "s" : "r");
+    const cols = new Set(DEMO_PROJECTS.map((p) => band(V.valueForMoney(p, valueEquationOf(p).differentiationM))));
+    ok(cols.size === 3, `…and the colour mode paints THREE colours, not one: ${[...cols].join("/")}`);
+  }
+  ok(V.valueEquation([], 0).evcUsdM === 0, "empty input → never NaN");
 
   // (f) EVC IS Σ OF THE DIFFERENTIATOR VALUES — the operator's own `I6 =SUM(I9:I52)`, not a weighted product.
   const sum = V.valueEquation([mk(50), mk(-30), mk(10)], 100);

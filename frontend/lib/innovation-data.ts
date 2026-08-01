@@ -2532,7 +2532,7 @@ export function aiSlideOf(p: Project, slideId: string): string {
     case "S7":
       return `Customer workflow (by persona) — ${ex.customer} operators using ${list(b.solution)} to achieve ${b.outcomes[0] ?? "the mission outcome"}. PM ${ex.productMgr} · Eng ${ex.projectEng} · BD ${ex.bdLead}.`;
     case "S8":
-      return `Competition + value vs NBA (${nbaOf(p)}) — competitive index ${Math.round(ve.competitiveIndex)}/100 (50 = parity), ${ve.wins} win / ${ve.losses} loss drivers, EVC ${usdM(ve.evcUsdM)} vs NBA baseline ${usdM(ve.referenceM)} (+${usdM(ve.differentiationM)} differentiation).`;
+      return `Competition + value vs NBA (${nbaOf(p)}) — ${ve.wins} win / ${ve.losses} loss drivers, EVC ${usdM(ve.evcUsdM)} vs NBA baseline ${usdM(ve.referenceM)} (+${usdM(ve.differentiationM)} differentiation).`;
     case "S9":
       return `User stories — highlights: ${list(b.outcomes, 3)}. Each maps to a measurable outcome the ${m.targetMarket} buyer can verify.`;
     case "S10":
@@ -3624,6 +3624,14 @@ export const driverTone = (d: ValueDriver, addressableRevM: number): "neg" | "ne
  *  means "priced above the value created", which is a real if aggressive position, and silently clamping it
  *  would hide a decision someone made. */
 export const DEFAULT_CAPTURE_PCT = 33;   // operator: 67 customer / 33 us — NOT the reference chart's 60/40
+/** D3 · VALUE FOR MONEY — differentiation dollars earned per R&D dollar spent. This REPLACES
+ *  `competitiveIndex`, which was retired for reading 100/100 on all 33 projects: a metric with one distinct
+ *  value portfolio-wide ranks nothing. Measured over the same 33: 32 distinct values, 5.4 – 79.3.
+ *  Terciles p33 = 52.4 and p67 = 61.3 split them 10 / 11 / 12 — three groups that actually mean something. */
+export const valueForMoney = (p: { nreK?: number }, differentiationM: number): number =>
+  differentiationM / Math.max(0.001, (p?.nreK ?? 1) / 1000);
+export const VFM_BANDS = { low: 52.4, high: 61.3 } as const;
+
 export interface ValueSplit { capturePct: number; totalValueM: number; priceM: number; customerValueM: number }
 /** THE ONE READER OF `capturePct`. Every surface that needs the split calls this rather than the constant,
  *  so the chart's two bars, the tile and the price range can never disagree about which % is in force.
@@ -3648,7 +3656,6 @@ export const wtpUsd = (w?: WtpValue | null): number =>
 export interface ValueEquationRow { name: string; importance: number; deltaVsNba: number; weighted: number; verdict: DriverVerdict }
 export interface ValueEquationResult {
   perDriver: ValueEquationRow[];
-  competitiveIndex: number; // 0–100 · 50 = parity with the NBA · >50 = we out-perform (importance-weighted)
   evcUsdM: number;          // Economic Value to Customer ($M) = NBA reference + differentiation value
   referenceM: number;       // the value the NBA / As-Is already delivers (baseline)
   differentiationM: number; // Σ importance × (ourScore − nbaScore) × addressable revenue
@@ -3658,7 +3665,6 @@ export interface ValueEquationResult {
 /**
  * Solve the Value Equation for a set of drivers against an addressable revenue ($M).
  * EVC = reference (NBA baseline) + Σ importance × (ourScore − nbaScore) × addressableRevenue.
- * competitiveIndex = 50 + 50 × (importance-weighted mean of ourScore − nbaScore) → clamped 0–100.
  * Empty/degenerate input → parity (index 50, EVC = reference = addressable revenue). Never throws.
  */
 export function valueEquation(drivers: ValueDriver[], addressableRevM: number): ValueEquationResult {
@@ -3666,7 +3672,7 @@ export function valueEquation(drivers: ValueDriver[], addressableRevM: number): 
   const clean = (drivers ?? []).filter((d) => d && d.name != null);
   const referenceM = rev;
   if (clean.length === 0) {
-    return { perDriver: [], competitiveIndex: 50, evcUsdM: referenceM, referenceM, differentiationM: 0, wins: 0, losses: 0 };
+    return { perDriver: [], evcUsdM: referenceM, referenceM, differentiationM: 0, wins: 0, losses: 0 };
   }
   let posM = 0, negM = 0, differentiationM = 0, wins = 0, losses = 0;
   const perDriver: ValueEquationRow[] = clean.map((d) => {
@@ -3694,8 +3700,7 @@ export function valueEquation(drivers: ValueDriver[], addressableRevM: number): 
   // Fixed where the defect actually lives — `derivedDriversOf` now backfills a give-back, exactly as the
   // operator's own reference chart carries KD8 −12 and KD9 −11 beside its winners.
   const scaleM = posM + negM;
-  const competitiveIndex = Math.max(0, Math.min(100, scaleM > 0 ? 50 + 50 * ((posM - negM) / scaleM) : 50));
-  return { perDriver, competitiveIndex, evcUsdM: referenceM + differentiationM, referenceM, differentiationM, wins, losses };
+  return { perDriver, evcUsdM: referenceM + differentiationM, referenceM, differentiationM, wins, losses };
 }
 
 /**
@@ -3830,7 +3835,7 @@ export function valuePropFromEquation(p: Project): string {
   if (winners.length === 0) return aiValuePropOf(p);
   const m = metaOf(p);
   const list = winners.length === 1 ? winners[0] : winners.slice(0, -1).join(", ") + " and " + winners[winners.length - 1];
-  return `For ${m.targetMarket}, ${p.name} beats ${nbaOf(p)} on ${list} — ~$${eq.evcUsdM.toFixed(0)}M economic value to the customer (${Math.round(eq.competitiveIndex)}/100 vs the next-best alternative).`;
+  return `For ${m.targetMarket}, ${p.name} beats ${nbaOf(p)} on ${list} — ~$${eq.evcUsdM.toFixed(0)}M economic value to the customer, +$${eq.differentiationM.toFixed(0)}M over the next-best alternative.`;
 }
 
 // Executive-slide two-bullet Project Summary (AMTS overview one-pager parity — IMG_7825/7826).

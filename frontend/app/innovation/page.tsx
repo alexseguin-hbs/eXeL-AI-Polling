@@ -52,7 +52,7 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
-  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, captureOf, driverValueM, driverTone, importanceBars,
+  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, captureOf, valueForMoney, VFM_BANDS, driverValueM, driverTone, importanceBars,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
   BIZ_CONF_LADDER, bizConfOf, competitorsOf, clampX, nextCompetitorLabel, type WtpMarker,
@@ -1632,7 +1632,15 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // sign is the whole point of a give-back, and blanket-absing every label would erase it.
   const barLabel = (b: Bar) => (b.kind === "give" ? `${Math.round(Math.abs(b.v))}` : money(b.v));
   // WTP positioning — Low→High price-performance; markers deterministic from the competitive index.
-  const ci = Math.max(0, Math.min(1, ve.competitiveIndex / 100));
+  // ⚠ D3 · OUR MARKER'S POSITION IS THE CAPTURE FRACTION, NOT A RETIRED INDEX. It used to be
+  // `competitiveIndex / 100`, which measured 100/100 on ALL 33 projects — so every project's marker was
+  // pinned hard right, which IS the X-1c right-edge collision, and it encoded nothing. The strip is a PRICE
+  // axis, so the honest position is where our price sits between the NBA baseline and full EVC — and that
+  // is exactly the capture fraction, by construction (price = NBA + capture × (EVC − NBA)).
+  // ⚠ STATED, NOT HIDDEN: on the seeded portfolio this is 0.33 for all 33, because every project still uses
+  // the DEFAULT capture. That is a seed gap, not a defect in the replacement — the marker now means
+  // something and moves the moment anyone edits capture % on S8, which X-5a made editable.
+  const ci = Math.max(0, Math.min(1, captureOf(p) / 100));
 
   // X-1 · IN SLIDE MODE THE CHART FILLS ITS BOX. `height: 7cqh` was a fixed slice of the container that had
   // nothing to do with how much room the panel actually gave it — the third of three constraints, and the
@@ -1783,7 +1791,6 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div className="text-[10px] uppercase tracking-wider text-amber-400/90">{t("innovation.veq.title")}{nbaLabel ? ` — ${nbaLabel}` : ""}</div>
           <div className="flex items-center gap-3 text-[11px]">
-            <span className="text-slate-400">{t("innovation.veq.index")} <b className="tabular-nums text-amber-300">{Math.round(ve.competitiveIndex)}</b>/100</span>
             <span className="text-slate-400">{t("innovation.veq.evc")} <b className="tabular-nums text-emerald-300">${ve.evcUsdM.toFixed(0)}M</b></span>
           </div>
         </div>
@@ -2359,7 +2366,7 @@ function NewIdeaModal({ onCreate, onClose }: { onCreate: (f: { name: string; val
     if (winners.length === 0) return;
     const list = winners.length === 1 ? winners[0] : winners.slice(0, -1).join(", ") + " and " + winners[winners.length - 1];
     const who = name.trim() || "our customers";
-    setValueProp(`For ${who}, this beats ${nba.trim() || "the next-best alternative"} on ${list} — ~$${eq.evcUsdM.toFixed(0)}M economic value to the customer (${Math.round(eq.competitiveIndex)}/100 vs the NBA).`);
+    setValueProp(`For ${who}, this beats ${nba.trim() || "the next-best alternative"} on ${list} — ~$${eq.evcUsdM.toFixed(0)}M economic value to the customer, +$${eq.differentiationM.toFixed(0)}M over the NBA.`);
   };
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0f14]/95 backdrop-blur-sm p-3 sm:p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label={t("innovation.newidea.title")}>
@@ -2436,7 +2443,7 @@ function downloadBdPacket(p: Project) {
     `SBU ${hierOf(p).sbu}  ·  ${GATE_STAGE[p.gate]} (${p.gate})  ·  Launch ${p.firstRevenue}`,
     ``, `VALUE PROPOSITION`, valuePropOf(p),
     ``, `NEXT BEST ALTERNATIVE`, nbaOf(p),
-    `Competitive index vs NBA: ${Math.round(eq.competitiveIndex)}/100  ·  EVC ~$${eq.evcUsdM.toFixed(0)}M`,
+    `EVC vs NBA: ~$${eq.evcUsdM.toFixed(0)}M  ·  +$${eq.differentiationM.toFixed(0)}M differentiation`,
     ``, `TOP METRICS`, `NPV ${usd(fm.npvM)}  ·  IRR ${fm.irrPct}%  ·  Payback ${payb(fm.paybackYears)}  ·  10-Yr Rev ${usd(fm.rev10yM)}`,
     ``, `KEY RISK`, killRiskOf(p),
     ``, `FUNDING ASK`, `R&D (NRE): ${k(p.nreK)}`,
@@ -2462,7 +2469,7 @@ function downloadOutcomeBrief(p: Project) {
     `SBU ${hierOf(p).sbu} · ${GATE_STAGE[p.gate]} (${p.gate}) · Launch ${p.firstRevenue}`,
     ``, `VALUE PROPOSITION`, valuePropOf(p),
     ``, `NEXT BEST ALTERNATIVE`, nbaOf(p),
-    ``, `VALUE EQUATION vs NBA — index ${Math.round(eq.competitiveIndex)}/100 · EVC ~$${eq.evcUsdM.toFixed(0)}M`, drivers,
+    ``, `VALUE EQUATION vs NBA — EVC ~$${eq.evcUsdM.toFixed(0)}M · +$${eq.differentiationM.toFixed(0)}M differentiation`, drivers,
     ``, `NEEDS SEGMENTS`, segs,
     ``, `INTELLIGENCE LOAD`, `AI ${Math.round(p.ai * 100)} · SI ${Math.round(p.si * 100)} · HI ${Math.round(p.hi * 100)} — ${il.gloss}`,
     ``, `ECONOMICS`, `NPV ${usd(fm.npvM)} · IRR ${fm.irrPct}% · Payback ${payb(fm.paybackYears)} · 10-Yr Rev ${usd(fm.rev10yM)} · R&D ${k(p.nreK)}`,
@@ -3142,7 +3149,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
         {scorecard.map(([label, val]) => (
           <span key={label} className="text-[11px]"><span className="text-slate-500">{label}</span> <b className="tabular-nums text-slate-200">{val}</b></span>
         ))}
-        <span className="ml-auto text-[11px]"><span className="text-slate-500">vs NBA</span> <b className="tabular-nums text-amber-300">{Math.round(eq.competitiveIndex)}/100</b></span>
+        <span className="ml-auto text-[11px]"><span className="text-slate-500">vs NBA</span> <b className="tabular-nums text-amber-300">+${Math.round(eq.differentiationM)}M</b></span>
       </div>
 
       {/* Two-screen swipe carousel — touch swipe + ← → keyboard (a11y), ARIA carousel semantics */}
@@ -3210,7 +3217,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
               </div>
               <div className="rounded-lg border border-cyan-500/25 bg-cyan-500/[0.04] p-2">
                 <div className="text-[9px] uppercase tracking-wider text-cyan-300">◬ {t("innovation.exec.bizRead")}</div>
-                <div className="mt-1 text-[11px] leading-snug text-slate-300">{h.sbu} · launch {p.firstRevenue} · NPV {usd(npvM(p))} · EVC ${eq.evcUsdM.toFixed(0)}M · {Math.round(eq.competitiveIndex)}/100 vs NBA</div>
+                <div className="mt-1 text-[11px] leading-snug text-slate-300">{h.sbu} · launch {p.firstRevenue} · NPV {usd(npvM(p))} · EVC ${eq.evcUsdM.toFixed(0)}M · +${Math.round(eq.differentiationM)}M vs NBA</div>
               </div>
             </div>
           </div>
@@ -3304,7 +3311,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
                 </ul>
               )}
               <div className="rounded-lg border border-amber-500/25 bg-amber-500/[0.04] p-2 text-[11px] text-slate-300">
-                Beats <b className="text-amber-300">{nbaOf(p)}</b> — {Math.round(eq.competitiveIndex)}/100 · EVC ${eq.evcUsdM.toFixed(0)}M. BD feedback (win/loss/objection) flows back to the originating engineer via the activity log.
+                Beats <b className="text-amber-300">{nbaOf(p)}</b> — +${Math.round(eq.differentiationM)}M · EVC ${eq.evcUsdM.toFixed(0)}M. BD feedback (win/loss/objection) flows back to the originating engineer via the activity log.
               </div>
             </div>
           </div>
@@ -6505,7 +6512,6 @@ const DOGTAG_METRICS: { key: string; label: string; val: (p: Project) => string 
   { key: "vpd", label: "Value / $", val: (p) => `${valuePerDollarOf(p).toFixed(1)}×` },
   { key: "winp", label: "Win P50", val: (p) => `${Math.round(winProbabilityOf(p).p50 * 100)}%` },
   { key: "vindex", label: "Value Index", val: (p) => usd(valueIndexOf(p)) },
-  { key: "diffindex", label: "Diff Index", val: (p) => `${Math.round(valueEquationOf(p).competitiveIndex)}/100` },
   { key: "riskband", label: "Risk Band", val: (p) => { const r = riskBandOf(p); return `${r.technical[0]}/${r.commercial[0]}/${r.dependency[0]}`; } },
   { key: "cpb", label: "Cost / Buyer", val: (p) => k(costPerServedBuyerOf(p, Math.max(1, p.segmentValueProps?.length ?? 1)) / 1000) },
   { key: "nba", label: "Next Best Alt", val: (p) => { const s = nbaOf(p); return s.length > 26 ? s.slice(0, 24) + "…" : s; } },
@@ -7850,7 +7856,13 @@ function DependencyPanel({ projects, deps, onSelect }: { projects: Project[]; de
   const nodeStroke = (p: Project): string => {
     if (colorMode === "division") return divColor(p.division);
     if (colorMode === "risk") { const r = riskBandOf(p); const w = [r.technical, r.commercial, r.dependency]; return w.includes("High") ? VIZ.rose : w.includes("Med") ? VIZ.amber : VIZ.emerald; }
-    if (colorMode === "value") { const ci = valueEquationOf(p).competitiveIndex; return ci >= 60 ? "#34d399" : ci >= 40 ? "#94a3b8" : "#fb7185"; }
+    if (colorMode === "value") {
+      // D3 · was `competitiveIndex`, which is 100 on every project — so this "value" colour mode painted all
+      // 33 the SAME green and coloured nothing. Value-for-money gives 32 distinct values over the same 33;
+      // the bands are the measured terciles, so the three colours are ~evenly populated (10 / 11 / 12).
+      const v = valueForMoney(p, valueEquationOf(p).differentiationM);
+      return v >= VFM_BANDS.high ? "#34d399" : v >= VFM_BANDS.low ? "#94a3b8" : "#fb7185";
+    }
     if (colorMode === "load") { const m = Math.max(p.ai, p.si, p.hi); return m === p.ai ? VIZ.cyan : m === p.si ? VIZ.sunset : VIZ.hiViolet; }
     return npvM(p) >= 0 ? "#34d399" : "#fb7185"; // funding
   };
