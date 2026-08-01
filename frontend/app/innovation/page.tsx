@@ -1570,7 +1570,43 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // labels rather than the labels being cut to fit the plot (V4). The TOP band `T` exists because a bar whose
   // value equals the domain max would otherwise put its number at y≈0 — outside the viewBox entirely, which
   // is exactly how V-1 found the two tallest bars silently label-less.
-  const W = 320;
+  //
+  // ⚠ X-1 · THE CHART UNDER-FILLED ITS SLOT BECAUSE OF AN ASPECT MISMATCH, NOT A HEIGHT BUG. Measured on S8
+  // in Present mode: the slot is 703.8 x 220.3 (aspect 3.19) and the viewBox was 320 x 154.4 (aspect 2.07).
+  // `xMidYMid meet` fits the SMALLER of the two scales, so the drawing was HEIGHT-limited: it rendered
+  // 460.4 x 193.8 and left 243px of the panel's width as letterbox — 62.2% of the width used.
+  // I chased the wrong lever first and it cost a round. Sweeping the viewBox HEIGHT (154.4 -> 175/200/212/230)
+  // could never work: the slot's height is pinned by flex, so a taller viewBox only makes the drawing
+  // SMALLER (H=230 measured 41.7% fill, worse than the control). The lever is the layout WIDTH. Injection
+  // proof, on the live build, against a pristine clone per variant:
+  //     control                       painted 460.4 x 193.8   62.2%
+  //     viewBox H -> 230              painted 309.1 x 131.2   41.7%   (the wrong lever, and it hurts)
+  //     preserveAspectRatio="none"    painted 709.6 x 193.1   95.8%   (the slot IS fillable)
+  //     content widened 1.54x         painted 709.1 x 193.1   95.8%   (the lever, without distortion)
+  //
+  // So the width is measured, not guessed. `W` is the intrinsic 320 everywhere except a slide, where it is
+  // set to whatever makes the viewBox aspect match the box the slide actually hands over. Bars spread and
+  // labels get room; the RENDERED type size does not change, because the height-limited scale is unchanged.
+  //
+  // NO FEEDBACK LOOP, AND THIS IS LOAD-BEARING: the svg's own layout box is the flex remainder of its
+  // column (width from the parent, height from `flex-1` after the sibling strip) — measured 703.8 x 220.3
+  // and INDEPENDENT of the viewBox. Widening `W` therefore cannot change what the observer reports. The 1%
+  // dead-band below is belt-and-braces, not the mechanism.
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [slotAspect, setSlotAspect] = useState(0);   // 0 until measured — SSR and first paint keep the 320
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!big || !el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => {
+      const { width, height } = e.contentRect;
+      if (!(width > 0 && height > 0)) return;
+      const a = +(width / height).toFixed(3);
+      setSlotAspect((prev) => (Math.abs(a - prev) > prev * 0.01 ? a : prev));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [big]);
+  const W0 = 320;                                    // the intrinsic layout width — every non-slide surface
   const steps = ve.perDriver.slice(0, 8);
   let run = ve.referenceM;
   type Bar = { label: string; from: number; to: number; kind: "base" | "up" | "down" | "give" | "total"; v: number };
@@ -1588,21 +1624,35 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   const max = Math.max(1, ...seq.map((s) => Math.max(s.from, s.to))) * 1.1;
   const tickTxt = TICKS.map((f) => `${Math.round((max * f) / 1.1)}`);
   const L = Math.max(6, Math.max(...tickTxt.map((s) => s.length)) * 2.6 + 3);
-  const n = seq.length, gw = (W - L) / n, bw = Math.max(4, gw * 0.62);
-  const FS = Math.max(4.4, Math.min(6, gw / 5.2));
-  const wrap = (txt: string): string[] => {
-    const per = Math.max(4, Math.floor(gw / (FS * 0.56)));
-    if (txt.length <= per) return [txt];
-    const words = txt.split(" "); const out: string[] = []; let line = "";
-    for (const w of words) { if (!line) { line = w; continue; } if ((line + " " + w).length <= per) line += " " + w; else { out.push(line); line = w; } }
-    if (line) out.push(line);
-    return out.slice(0, 2);
+  const n = seq.length;
+  /** Everything downstream of the layout WIDTH, in one place so it can be evaluated twice — once at the
+   *  intrinsic 320 to learn how tall the drawing wants to be, and again at the width that makes the viewBox
+   *  aspect match the slot. Identical arithmetic to before; only the free variable moved into a parameter. */
+  const layout = (Wx: number) => {
+    const gw = (Wx - L) / n, bw = Math.max(4, gw * 0.62);
+    const FS = Math.max(4.4, Math.min(6, gw / 5.2));
+    const wrap = (txt: string): string[] => {
+      const per = Math.max(4, Math.floor(gw / (FS * 0.56)));
+      if (txt.length <= per) return [txt];
+      const words = txt.split(" "); const out: string[] = []; let line = "";
+      for (const w of words) { if (!line) { line = w; continue; } if ((line + " " + w).length <= per) line += " " + w; else { out.push(line); line = w; } }
+      if (line) out.push(line);
+      return out.slice(0, 2);
+    };
+    const wrapped = seq.map((s) => wrap(s.label));
+    const linesN = Math.max(1, ...wrapped.map((w) => w.length));
+    const B = 6 + linesN * (FS + 1.2);
+    return { gw, bw, FS, wrapped, B, T: FS + 3, H: (big ? 150 : 124) + Math.max(0, B - 16) };
   };
-  const wrapped = seq.map((s) => wrap(s.label));
-  const linesN = Math.max(1, ...wrapped.map((w) => w.length));
-  const B = 6 + linesN * (FS + 1.2);
-  const T = FS + 3;                                   // the label band — V-1's fix, kept
-  const H = (big ? 150 : 124) + Math.max(0, B - 16);
+  const intrinsic = layout(W0);
+  // The slide's slot is wider than tall, so `W` is the width that squares the viewBox aspect with it. Clamped
+  // so a degenerate measurement (a collapsed or absurd box) can never produce a chart narrower than the
+  // intrinsic one or wider than four sheets. Pass two can only SHORTEN `H` — wider columns wrap fewer label
+  // lines — so any residual mismatch letterboxes by a few percent vertically, never by the 35% it did.
+  const W = big && slotAspect > 0
+    ? Math.min(1200, Math.max(W0, Math.round(intrinsic.H * slotAspect)))
+    : W0;
+  const { gw, bw, FS, wrapped, B, T, H } = W === W0 ? intrinsic : layout(W);
   const y = (v: number) => H - B - (v / max) * (H - B - T);
   const fill = (k: Bar["kind"]) =>
     k === "base" ? "#64748b" : k === "up" ? "#34d399" : k === "down" ? "#fb7185" : k === "give" ? "#60a5fa" : "#94a3b8";
@@ -1665,7 +1715,7 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // makes TWO children where one is allowed — `Expected ',', got 'viewBox'`. Second time this session, and
   // BOTH times the lock suite passed while the file would not compile. Only `npm run build` catches it.
   const chart = (
-    <svg viewBox={`0 0 ${W} ${H}`} className={big ? "min-h-0 w-full flex-1" : "w-full"} preserveAspectRatio="xMidYMid meet"
+    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className={big ? "min-h-0 w-full flex-1" : "w-full"} preserveAspectRatio="xMidYMid meet"
          style={big ? undefined : { height: "auto" }}
          role="img" aria-label="Value creation and capture waterfall vs the next best alternative">
       {/* W-20 · 3D SHADED BARS (operator: "Make bars futuristic; 3D shaded like attached", with their own

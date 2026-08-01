@@ -2351,7 +2351,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // The bottom band is sized by the labels, and the chart grows so the plot area is not eaten by them.
   ok(/const B = 6 \+ \w+ \* \(FS \+ 1\.2\);/.test(chart), "the label band is sized by the lines the labels actually need");
-  ok(/const H = \(big \? 150 : \d+\) \+ Math\.max\(0, B - 16\);/.test(chart),
+  // X-1 moved this into the two-pass `layout()` return (`H: (big ? …)`) so it can be evaluated at two widths.
+  // Same expression, same guarantee — only the binding form changed from a `const` to an object property.
+  ok(/H: \(big \? 150 : \d+\) \+ Math\.max\(0, B - 16\)/.test(chart),
      "the chart grows to absorb a taller label band — the plot yields nothing to the axis");
 
   // The WTP strip: a long first word at either end used to run off the edge.
@@ -3029,13 +3031,16 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // The dimensions are declared across the measured-layout block now (W fixed, B and T derived from the
   // label metrics) rather than on one line, so they are read individually. The ARITHMETIC below is what
   // matters and is unchanged: the topmost label must land inside the viewBox.
-  const dims = veq.match(/const W = (\d+);[\s\S]*?const T = FS \+ (\d+);/);
-  ok(!!dims, "the waterfall declares W, H and a top band T");
+  // X-1 · `W` is no longer a bare literal: it is `W0` (the intrinsic width) plus a measured slide width, and
+  // `T`/`H` moved into the two-pass `layout()` return. The ARITHMETIC these locks exist for is untouched, so
+  // only the shape they read is updated — the assertions below still compute where the topmost label lands.
+  const dims = veq.match(/const W0 = (\d+);[\s\S]*?T: FS \+ (\d+),/);
+  ok(!!dims, "the waterfall declares an intrinsic width W0, a height H and a top band T");
   // W-1b · H IS NO LONGER A LITERAL IN THE DIMS LINE. It is computed from the label metrics
   // (`(big ? 150 : 124) + max(0, B - 16)`), so the panel-fill floor is read from ITS OWN declaration rather
   // than from a capture group that now holds something else — which is exactly the mistake that made this
   // report "H=3": the destructure was still taking dims[2], and dims[2] is now the `+3` in `T = FS + 3`.
-  const H = Number((veq.match(/const H = \(big \? 150 : (\d+)\)/) ?? [, "0"])[1]);
+  const H = Number((veq.match(/H: \(big \? 150 : (\d+)\)/) ?? [, "0"])[1]);
   // The plot must map `max` to T, never to 0. Read the mapping rather than trusting the constant.
   ok(/const y = \(v: number\) => H - B - \(v \/ max\) \* \(H - B - T\);/.test(veq),
      "the value→pixel map reserves the top band — max lands at T, not at y = 0");
@@ -3058,6 +3063,51 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // the thing the deleted key used to say.
   ok(/<title>\{`\$\{s\.label\}: \$\{(money\(s\.v\)|barLabel\(s\))\}`\}/.test(veq),
      "every bar still carries its full name and value in a <title>, name first — the key's only unique job survives its deletion");
+}
+
+// ── X-1 · THE WATERFALL FILLS THE WIDTH IT IS GIVEN ──────────────────────────────────────
+// Operator: the chart is to fill its box. It did not — measured on the live build, the drawing rendered
+// 460.4 x 193.8 inside a 740.5-wide panel: 62.2% of the width, 243px of letterbox.
+// CAUSE, ESTABLISHED BY INJECTION BEFORE ANY EDIT: `xMidYMid meet` takes the SMALLER of the two scales, and
+// with a viewBox aspect of 2.073 against a slot aspect of 3.194 the drawing was height-limited. The height
+// is NOT the lever — the slot's height is pinned by flex, so a taller viewBox only shrinks the drawing
+// (viewBox H 230 measured 41.7% fill, worse than the control). Widening the layout measured 95.8%.
+// These locks assert the MECHANISM, because the pixel outcome is measured elsewhere (scripts/slide-shots).
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
+
+  // 1 · The slot is MEASURED, never assumed. A hardcoded 3.194 would be a design constant today and a lie
+  //     the first time the sibling strip under the chart wraps to a different height.
+  ok(/const svgRef = useRef<SVGSVGElement \| null>\(null\);/.test(veq) && /<svg ref=\{svgRef\}/.test(veq),
+     "the waterfall svg is measurable — it carries the ref the observer reads");
+  ok(/new ResizeObserver\(\(\[e\]\) => \{[\s\S]{0,400}?e\.contentRect/.test(veq),
+     "the slot aspect comes from a ResizeObserver on the svg's own box, not from a constant");
+  ok(/setSlotAspect\(\(prev\) => \(Math\.abs\(a - prev\) > prev \* 0\.01 \? a : prev\)\)/.test(veq),
+     "the observer has a dead-band — a sub-1% re-measure cannot loop the component");
+
+  // 2 · The width is DERIVED from that measurement times the height the drawing wants, which is exactly the
+  //     statement "viewBox aspect == slot aspect". Clamped both ways so a degenerate box cannot make the
+  //     chart narrower than the intrinsic one, nor absurdly wide.
+  ok(/Math\.min\(1200, Math\.max\(W0, Math\.round\(intrinsic\.H \* slotAspect\)\)\)/.test(veq),
+     "the slide width is intrinsic height × measured slot aspect — clamped to [W0, 1200]");
+  ok(/const W = big && slotAspect > 0/.test(veq),
+     "the widening applies ONLY on a slide, and only once a real measurement exists");
+
+  // 3 · Every non-slide surface — the deep dive, the source panel, SSR and first paint — keeps the
+  //     intrinsic 320. This is what makes the change additive rather than a redesign of four other views.
+  ok(/const W0 = 320;/.test(veq), "the intrinsic layout width is still 320 for every non-slide surface");
+  ok(/const \{ gw, bw, FS, wrapped, B, T, H \} = W === W0 \? intrinsic : layout\(W\);/.test(veq),
+     "at the intrinsic width the FIRST pass is reused verbatim — a non-slide render is byte-identical to before");
+
+  // 4 · ONE layout function, evaluated twice. The failure mode this forbids is two copies of the same
+  //     arithmetic drifting apart, which is how the label band and the plot area disagree.
+  const layoutFns = veq.match(/const layout = \(Wx: number\) => \{/g) ?? [];
+  ok(layoutFns.length === 1, `the width-dependent arithmetic lives in exactly ONE function — found ${layoutFns.length}`);
+  ok(/const intrinsic = layout\(W0\);/.test(veq), "pass one runs at the intrinsic width to learn the drawing's natural height");
+  for (const sym of ["gw", "bw", "FS", "wrapped", "B"])
+    ok(new RegExp(`\\b${sym}\\b`).test(veq.slice(veq.indexOf("const layout = (Wx: number)"), veq.indexOf("const intrinsic = layout(W0);"))),
+       `${sym} is computed inside layout() — it cannot be left behind at the old width`);
 }
 
 // ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
