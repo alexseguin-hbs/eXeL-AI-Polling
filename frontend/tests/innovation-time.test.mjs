@@ -3247,6 +3247,63 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "a swipe pages only at 1x; zoomed in it pans the body instead of turning the page mid-read");
 }
 
+// ── Z6a · THE LAYOUT VIEWPORT — the shared primitive must never read the VISUAL one ─────
+// Operator, with three iPhone screenshots: "these tabs when two finger released get really big and slide
+// large." Measured on a 390x844 phone: the slide sat at an apparent 219px through 1x, 1.5x, 2x AND 3x while
+// the control bar went 123px -> 810px. Cause: `useViewport` read `window.innerWidth/innerHeight`, which on
+// iOS is the VISUAL viewport and SHRINKS under a pinch. `fit` shrank by exactly the factor the browser
+// magnified by, the two cancelled, and only the chrome — not a function of `fit` — actually grew.
+//
+// ⚠ NO GATE IN THIS REPOSITORY COULD SEE IT. On desktop Chromium `innerWidth` and
+// `documentElement.clientWidth` are the same number, so tsc, every lock here, slide-shots and pdf-gate were
+// structurally incapable of telling them apart. `scripts/zoom-gate.mjs` exists for exactly that blind spot
+// and was proven RED (12 failures, ratio 1.00 where 3.00 was required) before the fix landed.
+{
+  const fspV = await import("node:fs/promises");
+  const vpRaw = await fspV.readFile("lib/use-viewport.ts", "utf8");
+  // ⚠ CODE ONLY. The first form of this lock went red against MY OWN COMMENT — the one explaining that
+  // `window.innerWidth` is the visual viewport on iOS. A ban that forbids naming the thing it bans makes the
+  // file undocumentable. Same strip F4 and W-2 use; the lesson keeps having to be re-learned.
+  const vp = vpRaw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  // 1 · THE READ. Asserted as an absence AND a presence — either alone can pass on a rewrite.
+  ok(/const el = document\.documentElement;/.test(vp) && /classifyViewport\(el\.clientWidth, el\.clientHeight\)/.test(vp),
+     "useViewport reads documentElement.clientWidth/clientHeight — the LAYOUT viewport, immune to pinch on iOS");
+  ok(!/window\.innerWidth|window\.innerHeight/.test(vp),
+     "…and the shared layout primitive contains ZERO reads of the visual viewport");
+  // No fallback, deliberately: `clientWidth || innerWidth` is how the bug returns the first time someone
+  // worries about an edge case that does not exist.
+  ok(!/clientWidth \|\||\|\| window\.inner/.test(vp), "there is no `|| innerWidth` fallback to reopen the hole");
+
+  // 2 · `classifyViewport` STAYS PURE (Krishna). It is the unit-testable half; a window read inside it would
+  //     make every existing classifier test environment-dependent.
+  const cls = vp.slice(vp.indexOf("export function classifyViewport"), vp.indexOf("export const ZOOM_MIN"));
+  ok(cls.length > 200 && cls.length < 1600, "the classifier slice resolves and is bounded");
+  ok(!/window|document/.test(cls), "classifyViewport touches no DOM — still pure, its tests unchanged");
+
+  // 3 · ODIN'S LOCK, HONESTLY SCOPED. His condition was "zero raw innerWidth reads anywhere". The census
+  //     narrowed it, and the narrowing is stated rather than quietly applied: 7 other raw reads exist and
+  //     every one is a POPOVER OR FLOATING-PANEL CLAMP, or a diagnostic string — surfaces that legitimately
+  //     want the VISUAL viewport, because they position against what the user can actually see. Banning
+  //     those would be wrong, not safer. What must never read it is a LAYOUT-SIZING primitive, and there is
+  //     exactly one of those.
+  ok(/from "@\/lib\/use-viewport"/.test(await fspV.readFile("app/innovation/page.tsx", "utf8")),
+     "the deck sizes from the shared hook, not from its own viewport read");
+
+  // 4 · THE GATE IS WIRED, or it protects nothing. This is the assertion that would have caught a gate
+  //     written and then never run — the shape that let the original defect ship green.
+  const pkg = JSON.parse(await fspV.readFile("package.json", "utf8"));
+  ok(pkg.scripts["test:zoom-gate"] === "node scripts/zoom-gate.mjs", "zoom-gate has its own npm script");
+  ok(pkg.scripts["test:all"].includes("test:zoom-gate"), "…and test:all runs it, so it cannot rot unnoticed");
+  const zg = await fspV.readFile("scripts/zoom-gate.mjs", "utf8");
+  ok(/apparent = CSS size x browser magnification/.test(zg),
+     "the gate asserts Thoth's PRODUCT, not a pixel count that would go stale on the next layout change");
+  ok(/ENTERED ALREADY PINCHED/.test(zg) && /SOFTWARE KEYBOARD/.test(zg) && /phone-landscape/.test(zg),
+     "Enki's three edges are CASES in the gate, not footnotes in a comment");
+  ok(/setViewportSize` IS THE WRONG TOOL/.test(zg),
+     "the gate records WHY it overrides innerWidth instead of resizing — a resize cannot discriminate fixed from broken");
+}
+
 // ── P1 · TWO PDFs — AN EXACT SCREEN REPLICA, AND AN INVERTED ONE THAT KEEPS FIGURE COLOUR ──
 // Operator: "generate a slide based off play mode (a version that is literally exact replica of computer
 // screen black background), and another inverted version of black, where figure colors and value prop all

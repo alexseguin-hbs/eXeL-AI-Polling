@@ -52,14 +52,30 @@ export function pinchZoom(startZoom: number, startDist: number, curDist: number)
 const SSR_DEFAULT: ViewportInfo = classifyViewport(1440, 900); // stable SSR value (desktop landscape)
 
 /** Reactive viewport info. SSR-safe (returns a stable desktop default until mounted), then updates on
- *  resize + orientationchange. Debounced via rAF so rapid resizes coalesce to one state update. */
+ *  resize + orientationchange. Debounced via rAF so rapid resizes coalesce to one state update.
+ *
+ *  ⚠ Z6a · READS THE **LAYOUT** VIEWPORT, NEVER `window.innerWidth`. THIS IS LOAD-BEARING, AND IT SHIPPED
+ *  WRONG. On a desktop the two are the same number, which is exactly why it survived: `tsc`, 3358 locks,
+ *  the screenshot gate and the PDF gate were all structurally incapable of telling them apart. On iOS,
+ *  `window.innerWidth/innerHeight` report the **VISUAL** viewport, which SHRINKS when the user pinches.
+ *  Consumers size layout from this hook, so a pinch fed them a smaller viewport, their content shrank in
+ *  CSS px by exactly the factor the browser was magnifying by, the two cancelled — and the content never
+ *  grew while the surrounding chrome took the magnification in full. Measured on the operator's case
+ *  (/innovation Present, 390x844): the slide sat at an apparent 219px through 1x, 1.5x, 2x and 3x, while
+ *  the control bar went 123px -> 810px. `scripts/zoom-gate.mjs` reproduces it and was proven RED here
+ *  before this line changed.
+ *
+ *  `documentElement.clientWidth/clientHeight` IS the layout viewport: immune to pinch on iOS, identical to
+ *  `innerWidth` on every desktop, and universally supported. There is no fallback to `innerWidth` on
+ *  purpose — a fallback is how the bug comes back. */
 export function useViewport(): ViewportInfo {
   const [vp, setVp] = useState<ViewportInfo>(SSR_DEFAULT);
   useEffect(() => {
     let raf = 0;
     const read = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setVp(classifyViewport(window.innerWidth, window.innerHeight)));
+      const el = document.documentElement;
+      raf = requestAnimationFrame(() => setVp(classifyViewport(el.clientWidth, el.clientHeight)));
     };
     read();
     window.addEventListener("resize", read);
