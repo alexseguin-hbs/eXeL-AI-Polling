@@ -1436,8 +1436,13 @@ function VsNba({ tone }: { tone: "pos" | "neutral" | "neg" }) {
 // Same strip, same geometry, same three bands — only the padding and the track height change, and only on a
 // slide, where the chart above it is the thing the room belongs to. The deep dive and the source editor keep
 // the roomier h-12 they were tuned for, because that is where a marker is actually dragged.
-function CompetitionStrip({ p, ours, oursLabel, onSave, compact }: {
-  p: Project; ours: number; oursLabel: string; onSave?: (c: WtpMarker[]) => void; compact?: boolean;
+// X-5 · `fill` — THE AXIS TAKES ITS BOX. Operator: "swap Price Performance to make full axis". Once the
+// strip has a panel of its own instead of riding under the value equation, a 32px track inside a 300px box
+// is 211px of void — measured, the worst ink-void on the slide. `fill` swaps the fixed track height for
+// `flex-1`, so the axis is as tall as the panel it was given. The three-band grid inside (label · dot on the
+// rule · LOW/HIGH) already scales, so nothing else changes.
+function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
+  p: Project; ours: number; oursLabel: string; onSave?: (c: WtpMarker[]) => void; compact?: boolean; fill?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<WtpMarker[]>([]);
@@ -1469,7 +1474,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact }: {
   const addOne = () => { const l = nextCompetitorLabel(draft); if (l) setDraft([...draft, { label: l, x: 0.5 }]); };
 
   return (
-    <div className={compact ? "mt-1" : "mt-2"}>
+    <div className={fill ? "mt-1 flex min-h-0 flex-1 flex-col" : compact ? "mt-1" : "mt-2"}>
       <div className={`flex items-center justify-between gap-2 ${compact ? "mb-0.5" : "mb-1"}`}>
         <div className={`text-slate-400 ${compact ? "text-[9px]" : "text-[10px]"}`}>Price Performance: Competition</div>
         {onSave && (editing ? (
@@ -1492,7 +1497,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact }: {
         ))}
       </div>
       <div ref={barRef} onPointerMove={onMove} onPointerUp={endDrag} onPointerCancel={endDrag}
-           className={`relative rounded border bg-[#0e141b] ${compact ? "h-8" : "h-12"} ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
+           className={`relative rounded border bg-[#0e141b] ${fill ? "min-h-[2rem] flex-1" : compact ? "h-8" : "h-12"} ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
         <div data-ink className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
         {/* ⚠ X-1c · THREE BANDS, NOT ONE (operator, with the screenshot: "Price performance labels: NBA,
             Comp A, Comp B must be above circle. Have circle centered on line so we can read Low to High
@@ -4680,19 +4685,19 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 // `data-panel-body` is a grid with no explicit columns, so ONE `col-span-2` child creates two implicit
 // columns and every other child pairs up into them. Declared here rather than inferred from `kind`, because
 // inference is how the Competition panel silently became two-column the moment a chart field joined it.
-//   S8.diffs — the value-equation TABLE spans, so the short NBA card and the short price strip pair up above
-//              it. Measured: side by side at half the panel the table wrapped its driver names and overflowed
-//              by 135px; spanning, it has the full panel width and fits.
+//   X-5 REMOVED S8.diffs. It spanned while the Competition panel held three fields; that panel now holds
+//   only the NBA card and the table, and a spanning table would strand the NBA card at half width with a
+//   void beside it. With no spanning child the panel is a single column and both get the full width.
 //   S8.vprop — the value-proposition SENTENCE spans, so Key Customer Benefits and Key Technical Features sit
 //              bottom-left and bottom-right beneath it. This is the operator's layout, stated verbatim.
-const PANEL_SPAN = new Set(["S8.diffs", "S8.vprop"]);
+const PANEL_SPAN = new Set(["S8.vprop"]);
 
 const BODY_ROWS: Record<string, string> = {
   S10: "minmax(0, 10fr) minmax(0, 24fr)",
   // X-4 · S8's top row (Competition | the waterfall) is the larger band. Weights are MEASURED, not guessed:
   // the x3-bands probe reports what each panel needs, and this is the split where the waterfall gets the
   // most height with zero overflow in any of the three panels.
-  S8: "minmax(0, 1.55fr) minmax(0, 1fr)",
+  S8: "minmax(0, 1.2fr) minmax(0, 1fr)",
 };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
@@ -5240,7 +5245,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     if (kind === "S3") return <S3CashChart p={p} big={big} />;
     // The strip is its own field now, so it can live in the COMPETITION panel where a competitor-positioning
     // axis belongs — and the waterfall can take the full sheet width without dragging it along.
-    if (kind === "S8" && field === "wtp") return <CompetitionStrip p={p} ours={captureFraction(p)} oursLabel={(p.name || "Ours").split(" ")[0]} compact={big} />;
+    if (kind === "S8" && field === "wtp") return <CompetitionStrip p={p} ours={captureFraction(p)} oursLabel={(p.name || "Ours").split(" ")[0]} compact={big} fill={big} />;
     if (kind === "S8") return <ValueProp p={p} mode="slide" big={big} />;
     const fo = financialsOverview(p, { years: 6, funded: true });
     const series = kind === "S14"
@@ -5531,38 +5536,31 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // proposition spans the foot of the slide as the single sentence a board remembers.
       S8: () => (
         <>
-          {/* ⚠ X-4 · THE WATERFALL BELONGS IN THE UPPER-RIGHT BOX AND I MOVED IT WITHOUT BEING ASKED.
-              X-3 read "use full width waterfall" as licence to restructure the whole slide into stacked
-              bands. Operator: "I need competitive Value Waterfall in right section like before … Who told
-              you to move? keep to upper right box." This is the layout, and it is the operator's, not mine:
-                  row 1   ⚔ Competition · NBA        |   ◈ Value · Creation + Capture  (the waterfall)
-                  row 2   ♡ Primary Customer Value Proposition — sentence spanning, then
-                          ◆ Key Customer Benefits    |   ▪ Key Technical Features
-              The price-performance strip STAYS in Competition — the one X-3 change the operator kept
-              ("the rest looks god"). It was never a value-creation object: it plots where we sit against
-              Comp A / NBA / Comp B, which is this panel's whole subject. */}
-          <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
-            {fieldsOf("nba", "wtp", "diffs")}
+          {/* ⚠ X-5 · A 2x2, AND EVERY SLOT IS THE OPERATOR'S. Verbatim: "Price pefromanc is left bottom,
+              then move NBA under Value Prop waterfall. that leaves Upper left for Value prop sentence thr
+              first thing we see on this slide."
+                  UPPER-LEFT   ♡ the value proposition — the first thing the eye lands on
+                  UPPER-RIGHT  ◈ the waterfall (unchanged, X-4's box)
+                  BOTTOM-LEFT  $ Price Performance — its own panel at last, so the LOW→HIGH axis finally
+                               has room and Comp A stops colliding with our own marker
+                  BOTTOM-RIGHT ⚔ Competition · NBA — "under Value Prop waterfall", carrying the Value
+                               Equation table that argues it
+              Reading down the left column you get our claim and its evidence; down the right, the money and
+              the alternative it beats. Nothing is deleted — every field on this slide still renders. */}
+          <AmtsPanel title="Primary Customer Value Proposition" icon="♡">
+            {fieldsOf("vprop", "benefits", "features")}
           </AmtsPanel>
-          {/* X-1 / X-2 · THE WATERFALL FILLS THIS BOX (operator, four times, ending: "Make waterfall value
-              prop chart take up more of screen in PDF and slide").
-              X-1 gave it the WIDTH (62.2% -> 95.5%, by matching the viewBox aspect to the slot). X-2 gives
-              it the HEIGHT: the three-chip capture row is GONE FROM THE SLIDE, because all three figures
-              are now on the chart itself — capture % has always been printed on the price bar's label,
-              and Value Creation and Value Price Range moved into the chart's reserved caption band.
-              ⚠ THE FIELD IS NOT DELETED. `S8.capture` still exists in the registry, still resolves through
-              `valuePropCapture`, and still renders on S1 and in the source record — only this SLIDE stops
-              spending a panel row restating what the bars say. `rows` goes with it: one child, one row,
-              1fr by default. */}
+          {/* X-1 / X-2 / X-4 · THE WATERFALL'S BOX. X-1 gave it the width (matching the viewBox aspect to
+              the slot), X-2 the height (the capture figures moved onto the chart), X-4 put it back here
+              after I moved it uninvited. It holds nothing else, so it fills the box. */}
           <AmtsPanel title="Value · Creation + Capture" icon="◈">
             {fieldsOf("valuechart")}
           </AmtsPanel>
-          {/* X-4 · THE SENTENCE SPANS, ITS EVIDENCE SITS SIDE BY SIDE UNDER IT (operator: "Key Customer
-              benefits bottom left / Key Technical Benefits bottom right"). The sentence does not move and
-              does not take a box of its own — it is the thesis, and the two columns beneath it are its
-              evidence. See `PresentField`'s `span` flag for how the two implicit columns are created. */}
-          <AmtsPanel wide title="Primary Customer Value Proposition" icon="♡">
-            {fieldsOf("vprop", "benefits", "features")}
+          <AmtsPanel title="Price Performance · Competition" icon="$">
+            {fieldsOf("wtp")}
+          </AmtsPanel>
+          <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
+            {fieldsOf("nba", "diffs")}
           </AmtsPanel>
         </>
       ),

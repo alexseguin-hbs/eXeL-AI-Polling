@@ -3188,15 +3188,20 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and it declares its owning record, so its ✎ Edit link is not a no-op");
 
   // 2 · THE SLIDE PLACES IT IN THE COMPETITION PANEL, and the value panel is the chart at full width.
-  ok(/<AmtsPanel title="Competition · Next Best Alternative" icon="⚔">\s*\{fieldsOf\("nba", "wtp", "diffs"\)\}/.test(src),
-     "Price Performance renders in the COMPETITION panel — where a competitor-positioning axis belongs");
+  // ⚠ X-5 · PRICE PERFORMANCE HAS ITS OWN PANEL NOW. Operator: "swap Price Performance to make full axis
+  // … Price pefromanc is left bottom". Riding inside Competition it was a 32px track; alone in the
+  // bottom-left box the LOW→HIGH axis is as tall as the panel (`fill`), which is what "full axis" means.
+  ok(/<AmtsPanel title="Price Performance · Competition" icon="\$">\s*\{fieldsOf\("wtp"\)\}/.test(src),
+     "Price Performance is its own bottom-left panel, not a strip inside another");
+  ok(/fill \? "min-h-\[2rem\] flex-1" : compact \? "h-8" : "h-12"/.test(src),
+     "…and its track FILLS that panel instead of leaving a void under a fixed 32px strip");
   // ⚠ X-4 · NOT `wide`. The operator: "I need competitive Value Waterfall in right section like before …
   // Who told you to move? keep to upper right box." The waterfall is the UPPER-RIGHT panel of a 2x2, and it
   // holds nothing else, so it fills that box.
   ok(/<AmtsPanel title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(src),
      "the waterfall is the upper-RIGHT panel and holds nothing but the chart");
-  ok(/S8: "minmax\(0, 1\.55fr\) minmax\(0, 1fr\)"/.test(src),
-     "S8's top band — Competition | the waterfall — is the larger of the two rows");
+  ok(/S8: "minmax\(0, 1\.2fr\) minmax\(0, 1fr\)"/.test(src),
+     "S8's top band is the larger of the two — measured: the split where nothing overflows");
   ok(!/mode !== "slide" && <CompetitionStrip[\s\S]{0,200}?compact/.test(veq),
      "the strip inside ValueProp is off the slide entirely — it is not merely made smaller there");
   ok(/\{mode !== "slide" && <CompetitionStrip/.test(veq),
@@ -3244,12 +3249,17 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 1 · THE 2×2, panel by panel, in the operator's own order.
   const s8 = src.slice(src.indexOf("      S8: () => ("), src.indexOf("      // S10 — Financials by Year"));
   const panels = [...s8.matchAll(/<AmtsPanel (wide )?title="([^"]+)"/g)].map((m) => `${m[1] ? "wide " : ""}${m[2]}`);
-  ok(panels.join(" | ") === "Competition · Next Best Alternative | Value · Creation + Capture | wide Primary Customer Value Proposition",
-     `S8 is Competition | Waterfall on top and the value proposition across the foot — got ${panels.join(" | ")}`);
+  // ⚠ X-5 · THE 2x2, IN THE OPERATOR'S OWN WORDS: "Price pefromanc is left bottom, then move NBA under
+  // Value Prop waterfall. that leaves Upper left for Value prop sentence thr first thing we see."
+  // Grid order IS reading order: upper-left, upper-right, bottom-left, bottom-right.
+  ok(panels.join(" | ") === "Primary Customer Value Proposition | Value · Creation + Capture | Price Performance · Competition | Competition · Next Best Alternative",
+     `S8 is a 2x2 — VProp | Waterfall over Price Performance | NBA — got ${panels.join(" | ")}`);
 
   // 2 · THE SPANNING RULE IS DECLARED, NOT INFERRED. Inference from `kind` is how the Competition panel
   //     silently became two-column when a chart field joined it.
-  ok(/const PANEL_SPAN = new Set\(\["S8\.diffs", "S8\.vprop"\]\);/.test(src),
+  // X-5 dropped S8.diffs: its panel now holds only the NBA card and the table, and a spanning table would
+  // strand the NBA card at half width with a void beside it. One entry left, still declared in one place.
+  ok(/const PANEL_SPAN = new Set\(\["S8\.vprop"\]\);/.test(src),
      "which fields span both columns is declared in ONE place");
   ok(/span=\{ids\.length > 1 && PANEL_SPAN\.has\(`\$\{sp\.code\}\.\$\{f\.id\}`\)\}/.test(src),
      "…and `fieldsIn` reads that declaration rather than sniffing the field's kind");
