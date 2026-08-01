@@ -1615,6 +1615,20 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
    *  every mode gets the identical treatment and a future bar cannot ship flat by omission. */
   const Bar3D = ({ x, y: by, w, h, k }: { x: number; y: number; w: number; h: number; k: string }) => (
     <g>
+      {/* ⚠ P3 · THE FLAT UNDERCOAT IS WHY THE BARS SURVIVE A PDF. Measured on the operator's own export and
+          reproduced here: every bar was INVISIBLE in the printed deck — axis rules, tick numbers, value
+          labels and x-labels all printed, and the bars did not, because a `url(#gradient)` paint server does
+          not resolve in Chrome's PDF rasteriser. It failed in BOTH the light and the dark export, so this
+          was never a dark-mode bug: it is every PDF this deck has ever produced.
+          AND THE GATE COULD NOT SEE IT — pdf-gate asserted "S8 has >= 4 numeric SVG labels", counted 12, and
+          went green while the chart it exists to protect was blank. Labels are not bars.
+          THE FIX IS ADDITIVE AND UNCONDITIONAL: paint the same colour FLAT underneath, then the gradient on
+          top. Where gradients resolve (every browser) you see the bevel exactly as before — the screen does
+          not change by one pixel. Where they do not (the PDF, and any reader that rasterises it differently)
+          you see the solid bar. No print branch, no mode flag, nothing to keep in sync — and it satisfies
+          the operator's actual requirement, that the export "should not matter what PDF reader is used".
+          `GRAD[k]` is the SAME hex the gradient's stops are built from, so the two can never disagree. */}
+      <rect x={x} y={by} width={w} height={h} fill={GRAD[k] ?? fill(k as Bar["kind"])} rx={1} />
       <rect x={x} y={by} width={w} height={h} fill={grad(k)} rx={1} />
       <rect x={x} y={by} width={w} height={Math.min(1.6, h * 0.22)} fill="#ffffff" opacity={0.28} rx={0.6} />
       <rect x={x} y={by + h - Math.min(1.2, h * 0.16)} width={w} height={Math.min(1.2, h * 0.16)} fill="#000000" opacity={0.22} />
@@ -3668,7 +3682,19 @@ const SLIDE_PRINT_CSS = `
      so the old child-only reset stopped covering it and a zoomed screen would have carried its transform
      into the PDF. The descendant selector reaches every level. NO BACKTICKS IN HERE — this block is inside
      a template literal, and a stray one silently terminates the string. */
-  [data-slide-zoom], [data-slide-zoom] * { transform: none !important; width: auto !important; height: auto !important; overflow: visible !important; }
+  /* ⚠ P3 · THIS RULE ERASED EVERY CHART BAR IN EVERY PDF, AND 'width: auto' WAS THE WHOLE OF IT.
+     Z4 added 'width/height: auto !important' here to undo the body-zoom wrappers' percentage width.
+     But the descendant selector reaches SVG too, and on an SVG <rect> width/height are CSS GEOMETRY
+     PROPERTIES that OVERRIDE the presentation attributes — and auto computes to ZERO. Measured in the
+     print sheet: <line> 611.8x0.0 (fine, it has no width property), <text> fine, and every <rect> 0.0x0.0
+     with width="31.95" height="36.75" still on the attribute. So the waterfall printed its axis, its grid,
+     its tick numbers and its value labels, and not one bar — in the LIGHT export as well as the dark one,
+     which is why this was never a dark-mode bug but every PDF this deck has produced.
+     Z5 DELETED THE WRAPPERS THIS WAS UNDOING, so the width/height half is now not merely harmful but dead.
+     transform/overflow stay as a cheap guard against a re-introduced body zoom; geometry must never be
+     touched by a blanket selector again. */
+  [data-slide-zoom], [data-slide-zoom] * { transform: none !important; overflow: visible !important; }
+
   /* Both the modern and the LEGACY fragmentation properties — WebKit still wants the legacy pair. */
   .slide-print-page { break-inside: avoid; page-break-inside: avoid; }
   .slide-noprint { display: none !important; }

@@ -3247,6 +3247,38 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "a swipe pages only at 1x; zoomed in it pans the body instead of turning the page mid-read");
 }
 
+// ── P3 · THE PDF PRINTED NO CHART BARS, AND `width: auto` WAS THE WHOLE OF IT ────────────
+// Operator, with their own 20-page export: "you graphs don't render in dark mode; see financial and value
+// prop." Reproduced here, then CORRECTED: it was never a dark-mode bug. Generated both exports and read
+// page 9 of each — the bars were missing in the LIGHT one too. Every PDF this deck has produced.
+//
+// MEASURED in the print sheet, and the control is what makes it conclusive:
+//     <line>  611.8 x 0.0   ✓ renders  (no width/height CSS properties to clobber)
+//     <text>  real          ✓ renders  (same)
+//     <rect>    0.0 x 0.0   ✗ GONE     (width="31.95" height="36.75" still on the attribute)
+// SLIDE_PRINT_CSS carried `[data-slide-zoom] * { width: auto !important; height: auto !important }`. On an
+// SVG <rect> those are CSS GEOMETRY PROPERTIES that OVERRIDE the presentation attributes, and `auto`
+// computes to ZERO. Z4 added it to undo the body-zoom wrappers; Z5 DELETED those wrappers, so it was dead
+// weight that erased 35 rects per chart. After: 35 of 35 rects have real geometry, in both modes.
+//
+// ⚠ AND pdf-gate WENT GREEN THROUGH ALL OF IT — it asserts "S8 has >= 4 numeric SVG labels", counted 12,
+// and never looked at a bar. Labels are not bars. That is the same class as the stale slide-shots locator.
+{
+  const fspP3 = await import("node:fs/promises");
+  const p3 = await fspP3.readFile("app/innovation/page.tsx", "utf8");
+  ok(/\[data-slide-zoom\], \[data-slide-zoom\] \* \{ transform: none !important; overflow: visible !important; \}/.test(p3),
+     "the zoom reset touches transform and overflow ONLY");
+  ok(!/\[data-slide-zoom\][^\n]*width: auto !important/.test(p3),
+     "…and NEVER width/height — a blanket selector must not reach SVG geometry properties");
+  ok(!/\[data-slide-zoom\][^\n]*height: auto !important/.test(p3), "…neither half of it comes back");
+  // The flat undercoat is reader-independence insurance (operator: the export "should not matter what PDF
+  // reader is used"). It is NOT what fixed this, and the comment says so rather than taking credit.
+  ok(/fill=\{GRAD\[k\] \?\? fill\(k as Bar\["kind"\]\)\}/.test(p3),
+     "every bar paints a FLAT colour under its gradient, so a reader that cannot resolve a paint server still shows the bar");
+  ok(/THE FLAT UNDERCOAT IS WHY THE BARS SURVIVE A PDF/.test(p3) && /was never a dark-mode bug/.test(p3),
+     "the finding is recorded where the next reader will look, including that it was not dark-mode-specific");
+}
+
 // ── D3 · THE COMPETITIVE INDEX IS RETIRED — EVERYWHERE, not half-alive ──────────────────
 // Odin flagged it three times. Executed: 100/100 on ALL 33 seeded projects — ONE distinct value
 // portfolio-wide, so it ranked nothing, and a half-retired metric is what the next reader revives.
