@@ -3329,10 +3329,41 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   //     renderer is exactly how a PDF ends up disagreeing with the projector.
   ok(/const \[printMode, setPrintMode\] = useState<"friendly" \| "original">\("friendly"\);/.test(p1),
      "there are two print modes and FRIENDLY is the default — Ctrl/Cmd-P, which cannot choose, keeps today's artifact");
-  ok(/\["friendly", "⎙ Printer-friendly"/.test(p1) && /\["original", "⎙ Original"/.test(p1),
-     "both versions are offered as their own button at print time");
-  ok(/setPrintMode\(mode\); setPrinting\(true\); requestAnimationFrame/.test(p1),
+  // P2 re-based: two top-level buttons became ONE Export control with two options (operator: "i dont need
+  // printer friendly but export PDF WITH TWO OPTIONS"). The PROPERTY is unchanged and still asserted —
+  // both modes reachable, mode set in the same action that opens the dialog. Rewritten, not deleted.
+  ok(/⎙ Export PDF</.test(p1), "there is ONE export control, and it is an ACTION not a mode name");
+  ok(/\["friendly", "Light"/.test(p1) && /\["original", "Original"/.test(p1),
+     "…offering both versions as its two options");
+  ok(!/⎙ Printer-friendly/.test(p1), "the two-button form that ate a control-bar group is gone");
+  ok(/setExportOpen\(false\); setPrintMode\(mode\); setPrinting\(true\); requestAnimationFrame/.test(p1),
      "the mode is set in the same click that opens the dialog, before window.print()");
+  ok(/role="menu"/.test(p1) && /role="menuitem"/.test(p1) && /aria-haspopup="menu"/.test(p1),
+     "the chooser is a real menu to assistive tech, not a div that looks like one");
+
+  // ── Z6b · THE TABS NEVER SCALE — TWO INDEPENDENT MECHANISMS ────────────────────────────────
+  // Operator: "these tabs when two finger released get really big." Z6a stopped the SHEET collapsing;
+  // this stops the CHROME running away. TWO mechanisms because the engine that matters (WebKit — iOS
+  // Chrome is a WKWebView) cannot be verified in this sandbox, so one would be a single point of failure
+  // on the only device that counts. Either alone solves the operator's complaint.
+  ok(/for \(const ev of \["gesturestart", "gesturechange", "gestureend"\]\) target\.addEventListener\(ev, stop, \{ passive: false \}\)/.test(p1),
+     "(1) BLOCK — the WebKit page-pinch events are prevented, non-passive or preventDefault is ignored");
+  ok(/if \(\(e as TouchEvent\)\.touches\?\.length >= 2\) e\.preventDefault\(\)/.test(p1),
+     "…plus a >=2-touch touchmove guard for engines with no gesture events — one finger still pans");
+  ok(/const \[vvPin, setVvPin\] = useState/.test(p1) && /vv\.scale > 1\.01/.test(p1),
+     "(2) PIN — visualViewport backstop, armed ONLY when a pinch actually got through");
+  ok(/transform: `translate\(\$\{vvPin\.x\}px, \$\{vvPin\.y\}px\) scale\(\$\{1 \/ vvPin\.s\}\)`/.test(p1),
+     "…the bar counter-scales by 1/scale AND re-anchors, so it holds its size and stays reachable");
+  ok(/style=\{vvPin \? \{/.test(p1),
+     "at rest vvPin is null and the bar's geometry is byte-identical — the backstop costs nothing until needed");
+  // Thor: Present mode only. A blanket block would take browser zoom off the Rack & Stack tables, where
+  // there is no in-app zoom to replace it.
+  const z6b = p1.slice(p1.indexOf("Z6b · THE TABS NEVER SCALE"), p1.indexOf("}, [present]);", p1.indexOf("Z6b · THE TABS NEVER SCALE")));
+  ok(z6b.length > 600 && z6b.length < 5000, "the Z6b effect slice resolves and is bounded (measured 3200)");
+  ok(/if \(!present\) return;/.test(z6b) && /gesturestart/.test(z6b),
+     "the block is armed on entering Present and torn down on leaving — never the whole route");
+  ok(/for \(const ev of \["gesturestart", "gesturechange", "gestureend"\]\) target\.removeEventListener/.test(p1),
+     "…and every listener is removed, so nothing leaks outside the deck");
   ok(/slide-print-stack hidden \$\{printMode === "friendly" \? "pdf-friendly" : "pdf-original"\}/.test(p1),
      "the portal carries the mode as a class — one stack, one Sheet, two inks");
   ok((p1.match(/<Sheet sp=\{sp\} i=\{i\} style=\{printSheetStyle\} \/>/g) || []).length === 1,
@@ -3573,7 +3604,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/lsGet\("innovation-scenario"\)/.test(src), "the scenario on the cover/footer reads the SAME key the Board writes — one source, no second definition");
   // P1: one button became two, so the honest-affordance copy lives in the printer-friendly tooltip. The
   // property is unchanged and still asserted: the control must not imply a direct download.
-  ok(/choose "Save as PDF"/.test(src), "the button's tooltip says what actually happens — it opens the dialog, it does not download");
+  ok(/choose “Save as PDF”/.test(src), "the export menu says what actually happens — it opens the dialog, it does not download");
   ok(!/Downloads? the deck|Saves the PDF to/.test(src), "…and nothing anywhere claims it downloads a file");
 
   // cost + correctness

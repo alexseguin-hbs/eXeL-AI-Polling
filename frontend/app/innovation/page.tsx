@@ -4612,6 +4612,48 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     window.addEventListener("resize", measure);
     return () => { ro?.disconnect(); window.removeEventListener("resize", measure); };
   }, [present]);
+  // ── Z6b · THE TABS NEVER SCALE — TWO INDEPENDENT MECHANISMS, EITHER ONE SUFFICIENT ────────────
+  // Operator: "consider tabs at top separate from window with slide for zoom. These tabs when two finger
+  // released get really big." Z6a stopped the SHEET collapsing under a browser pinch; this stops the CHROME
+  // running away. Two mechanisms rather than one because the engine that matters — WebKit, which is what
+  // iOS Chrome is — cannot be verified in this sandbox, so a single mechanism would be a single point of
+  // failure on the only device that counts.
+  //
+  //   (1) BLOCK  — `gesturestart/change/end` are WebKit-proprietary and are how Safari and every iOS
+  //                browser start a page pinch. preventDefault on them means a two-finger gesture reaches
+  //                only OUR handler, which drives `zoom`, which by Z5 scales the sheet and never the bar.
+  //                Non-passive, or preventDefault is ignored — the same reason `useWheel` exists in
+  //                mission-planning.tsx:587, and the idiom is reused rather than reinvented.
+  //   (2) PIN    — if a pinch lands anyway (an engine without gesture events, or a future WebKit change),
+  //                `visualViewport` reports the magnification and offset, and the bar counter-scales and
+  //                re-anchors to the visible rectangle. So the tabs hold their on-screen size AND stay
+  //                reachable instead of panning off the top-left corner.
+  //
+  // PRESENT MODE ONLY. Outside the deck there is no in-app zoom to replace the affordance, and taking
+  // browser zoom away from the Rack & Stack tables would be a real accessibility loss (Thor).
+  const [vvPin, setVvPin] = useState<{ s: number; x: number; y: number; w: number } | null>(null);
+  useEffect(() => {
+    if (!present) return;
+    const root = document.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement | null;
+    const stop = (e: Event) => e.preventDefault();
+    // touchmove covers engines with no gesture events; >=2 touches only, so a one-finger pan still works.
+    const stopMulti = (e: Event) => { if ((e as TouchEvent).touches?.length >= 2) e.preventDefault(); };
+    const target: EventTarget = root ?? document;
+    for (const ev of ["gesturestart", "gesturechange", "gestureend"]) target.addEventListener(ev, stop, { passive: false });
+    target.addEventListener("touchmove", stopMulti, { passive: false });
+    const vv = window.visualViewport;
+    // At scale 1 this stores null and the bar renders EXACTLY as before — the backstop has zero cost and
+    // zero visual effect until a pinch actually gets through, which is what makes it safe to add.
+    const onVv = () => setVvPin(vv && vv.scale > 1.01 ? { s: vv.scale, x: vv.offsetLeft, y: vv.offsetTop, w: vv.width } : null);
+    onVv();
+    vv?.addEventListener("resize", onVv); vv?.addEventListener("scroll", onVv);
+    return () => {
+      for (const ev of ["gesturestart", "gesturechange", "gestureend"]) target.removeEventListener(ev, stop);
+      target.removeEventListener("touchmove", stopMulti);
+      vv?.removeEventListener("resize", onVv); vv?.removeEventListener("scroll", onVv);
+      setVvPin(null);
+    };
+  }, [present]);
   // The 20-page print stack is only MOUNTED while printing. Rendering 20 sheets (each with charts) behind a
   // `hidden` class would cost a phone the whole deck's layout on every present render, for pixels nobody sees.
   const [printing, setPrinting] = useState(false);
@@ -4620,6 +4662,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // the artifact it produced yesterday. A keyboard shortcut that silently changes its output is the worst
   // kind of surprise, so the default is the incumbent, not the new thing.
   const [printMode, setPrintMode] = useState<"friendly" | "original">("friendly");
+  const [exportOpen, setExportOpen] = useState(false);   // P2 · the two-option Export PDF menu
   useEffect(() => {
     // Ctrl/Cmd-P must produce the same artifact as the ⎙ PDF button — one path, not two.
     const before = () => setPrinting(true);
@@ -5586,7 +5629,12 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         style={{ touchAction: "none" }}>
         <style>{SLIDE_PRINT_CSS}</style>
         {/* TOP CONTROL BAR — always above the slide (never covers it) */}
-        <div ref={chromeRef} className="slide-noprint flex shrink-0 flex-wrap items-center justify-end gap-2 p-2">
+        {/* Z6b(2) · THE PIN. `vvPin` is null unless a browser pinch actually got past the block, so at rest
+            this is `undefined` and the bar's geometry is byte-identical to before. When it is set, the bar
+            counter-scales by 1/scale and re-anchors to the visible rectangle — holding its on-screen size
+            AND staying reachable rather than panning off the corner. */}
+        <div ref={chromeRef} className="slide-noprint flex shrink-0 flex-wrap items-center justify-end gap-2 p-2"
+          style={vvPin ? { transform: `translate(${vvPin.x}px, ${vvPin.y}px) scale(${1 / vvPin.s})`, transformOrigin: "top left", width: vvPin.w * vvPin.s } : undefined}>
           {/* zoom (esp. portrait) */}
           <div className="flex overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14]/80 text-[11px]" role="group" aria-label="Zoom slide">
             <button onClick={() => setZoom((z) => Math.max(ZOOM_MIN, +(z - 0.25).toFixed(2)))} className="px-2.5 py-1.5 text-slate-300 hover:bg-slate-800" aria-label="Zoom out">－</button>
@@ -5608,12 +5656,32 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               class on the portal differs — so the two can never disagree about content, only about ink.
               `printMode` is set in the same click that opens the dialog, one rAF before window.print(), so
               the class is on the DOM before the print engine reads it. */}
-          {([["friendly", "⎙ Printer-friendly", `White page, dark text, coloured banners. Charts, legends and the value prop keep their own colours. All ${SLIDE_SCHEMA.length + 1} pages, landscape, 0.5in margins — choose "Save as PDF". Keep scaling at 100%.`],
-             ["original", "⎙ Original", `The deck exactly as it looks in Present mode — dark sheet, every colour unchanged. Turn ON "Background graphics" in your print dialog or the page prints white.`]] as const).map(([mode, label, tip]) => (
-            <button key={mode} onClick={() => { setPrintMode(mode); setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }}
-              aria-label={mode === "friendly" ? "Print or save the deck as a printer-friendly PDF" : "Print or save the deck as an original dark PDF"} title={tip}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${mode === "friendly" ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20" : "border-slate-600 bg-slate-800/60 text-slate-200 hover:bg-slate-700/60"}`}>{label}</button>
-          ))}
+          {/* P2 · ONE EXPORT CONTROL, TWO OPTIONS (operator: "i dont need printer friendly but export PDF
+              WITH TWO OPTIONS"). P1 shipped two top-level buttons; that spent two groups of a control bar
+              that already wrapped to four rows on a 390px phone, and it put a mode name in the bar where an
+              action belongs. One `⎙ Export PDF` opens the choice; the two modes underneath are unchanged and
+              still verified — same Sheet, same stack, same [data-ink] colour preservation. */}
+          <div className="relative">
+            <button onClick={() => setExportOpen((v) => !v)} aria-haspopup="menu" aria-expanded={exportOpen}
+              aria-label="Export the deck as a PDF" title="Export all pages as a PDF — choose Light or Original."
+              className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20">⎙ Export PDF</button>
+            {exportOpen && (
+              <div role="menu" aria-label="PDF export options"
+                className="absolute right-0 top-full z-[3] mt-1 w-60 overflow-hidden rounded-lg border border-slate-700 bg-[#0b0f14] shadow-2xl">
+                {([["friendly", "Light", "White page, dark text. Charts, legends and the value prop keep their own colours."],
+                   ["original", "Original", "Exactly as it looks on screen — dark sheet. Turn ON “Background graphics” in the print dialog."]] as const).map(([mode, label, tip]) => (
+                  <button key={mode} role="menuitem"
+                    onClick={() => { setExportOpen(false); setPrintMode(mode); setPrinting(true); requestAnimationFrame(() => requestAnimationFrame(() => window.print())); }}
+                    aria-label={mode === "friendly" ? "Export a light PDF" : "Export an original dark PDF"}
+                    className="block w-full border-b border-slate-800 px-3 py-2 text-left last:border-b-0 hover:bg-slate-800/70">
+                    <span className="text-xs font-semibold text-slate-100">⎙ {label}</span>
+                    <span className="mt-0.5 block text-[10px] leading-tight text-slate-400">{tip}</span>
+                  </button>
+                ))}
+                <div className="border-t border-slate-800 px-3 py-1.5 text-[10px] text-slate-500">All {SLIDE_SCHEMA.length + 1} pages · landscape · 0.5in — choose “Save as PDF”, keep scaling 100%.</div>
+              </div>
+            )}
+          </div>
           <button onClick={() => setPresent(false)} className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">✎ Edit</button>
           <button onClick={() => { setPresent(false); onClose(); }} aria-label="Exit" className="rounded-lg border border-slate-700 bg-[#0b0f14]/80 px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800">✕ Exit</button>
         </div>
