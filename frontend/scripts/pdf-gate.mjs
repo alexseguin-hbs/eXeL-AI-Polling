@@ -80,7 +80,16 @@ const PAPER = [
   { name: "Letter portrait",  landscape: false, wpx: 720, hpx: 960 },
 ];
 
-const open = async (pg) => {
+// X-3 · BOTH EXPORTS ARE GATED, NOT ONE (operator: "ensure chart renders appropriately on both versions OF
+// PDF"). The stack renders under `.pdf-friendly` or `.pdf-original`, and only `friendly` carries the colour
+// inversion — so a rule that blanks something can be live in one export and absent from the other. Gating
+// the default alone certified half the product.
+const MODES = [
+  { key: "friendly", menu: "Export a light PDF", cls: "pdf-friendly" },
+  { key: "original", menu: "Export an original dark PDF", cls: "pdf-original" },
+];
+
+const open = async (pg, mode) => {
   await pg.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
   await pg.getByRole("button", { name: "Gate Requirements" }).first().click();
   await pg.locator('select:has(option[value^="PRJ-"])').first().selectOption(PROJECT);
@@ -91,19 +100,28 @@ const open = async (pg) => {
   await pg.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
   await pg.getByRole("button", { name: /Present/ }).first().click();
   await pg.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
-  // Mount the print stack through the app's OWN beforeprint listener — if that breaks, the gate breaks too.
-  await pg.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+  // ⚠ THE STACK IS MOUNTED BY DRIVING THE REAL CONTROL. `window.print` is stubbed FIRST — the menu item's
+  // handler sets the mode, mounts the stack, then calls `window.print()`, which would open a blocking
+  // dialog and (via `afterprint`) tear the stack straight back down. Stubbing it is the smallest possible
+  // interference: every other step is the operator's own click path, so a broken Export menu fails this
+  // gate instead of being routed around by a synthetic `beforeprint` event.
+  await pg.evaluate(() => { window.print = () => {}; });
+  await pg.getByRole("button", { name: "Export the deck as a PDF" }).first().click();
+  await pg.getByRole("menuitem", { name: mode.menu }).first().click();
+  // ATTACHED, not visible: the stack carries `hidden` under SCREEN media by design and only becomes
+  // visible once `emulateMedia({ media: "print" })` runs, four lines after this returns.
+  await pg.waitForSelector(`.slide-print-stack.${mode.cls}`, { state: "attached", timeout: 15000 });
   await pg.waitForTimeout(700);
 };
 
-for (const paper of PAPER) {
+for (const paper of PAPER) for (const mode of MODES) {
   // Model the paper: lay the page out at the PRINTABLE width before printing. This is also the operator's
   // real condition on a phone, where the print tree inherits a narrow layout viewport.
   await page.setViewportSize({ width: paper.wpx, height: paper.hpx });
   // Navigate under SCREEN media — print CSS hides everything but the stack, so the app's own UI must still
   // be reachable to drive it. Switch to print only once the stack is mounted.
   await page.emulateMedia({ media: "screen" });
-  await open(page);
+  await open(page, mode);
   await page.emulateMedia({ media: "print" });
   await page.waitForTimeout(400);
 
@@ -167,7 +185,33 @@ for (const paper of PAPER) {
     return {
       codes, total: sheets.length,
       thin: sheets.filter((s) => textLen(s) < 80).map((s) => `${s.getAttribute("data-slide-code")}:${textLen(s)}`),
-      s8: !s8 ? null : { svgNums: svgNums(s8), capture: /Value capture|Capture @/i.test(t8), range: /Value Price Range/i.test(t8) },
+      // ⚠ BARS, NOT LABELS. P3: every bar was INVISIBLE in the printed deck while this gate counted 12
+      // numeric <text> nodes and went green. Labels are not bars. A waterfall is its RECTANGLES, so they
+      // are counted here — painted area only, and only where the fill actually resolves to a colour.
+      // `url(#gradient)` is excluded on purpose: it is exactly what does NOT resolve in Chrome's PDF
+      // rasteriser, so counting it would re-certify the blank chart. Only the flat undercoat counts.
+      s8: !s8 ? null : {
+        svgNums: svgNums(s8),
+        capture: /Value capture|Capture @/i.test(t8), range: /Value Price Range/i.test(t8),
+        bars: [...(s8.querySelectorAll('svg[aria-label^="Value creation"] rect') || [])].filter((r) => {
+          const f = (r.getAttribute("fill") || "").trim();
+          const b = r.getBoundingClientRect();
+          return /^#[0-9a-f]{3,8}$/i.test(f) && b.width >= 2 && b.height >= 2;
+        }).length,
+        // The chart must also OCCUPY the slide it was given — a 1-pixel-tall svg technically has bars.
+        // ⚠ MEASURED AGAINST THE CANVAS, NOT THE PAPER. Dividing by the print PAGE reported 18% landscape
+        // and 13% portrait for the same slide, because the 16:9 canvas letterboxes differently on each
+        // paper — a difference in the ruler, not in the deck. The canvas IS the slide.
+        chartH: Math.round((s8.querySelector('svg[aria-label^="Value creation"]')?.getBoundingClientRect().height) || 0),
+        chartW: Math.round((s8.querySelector('svg[aria-label^="Value creation"]')?.getBoundingClientRect().width) || 0),
+        sheetW: Math.round((s8.closest(".slide-print-page")?.querySelector("[data-slide-canvas]")?.getBoundingClientRect().width)
+          || s8.getBoundingClientRect().width || 1),
+        // …and the canvas is found by walking UP to the print page, because `data-slide-code` sits INSIDE
+        // the canvas, not around it — a downward query found nothing and silently fell back to the page
+        // box, which is what produced the bogus 18%-vs-13% split in the first place.
+        sheetH: Math.round((s8.closest(".slide-print-page")?.querySelector("[data-slide-canvas]")?.getBoundingClientRect().height)
+          || s8.getBoundingClientRect().height || 1),
+      },
       // ⚠ YEARS ARE COUNTED **STRUCTURALLY**, PER CELL — never scraped out of textContent.
       // The first draft ran /\b20\d\d\b/g over the sheet text and reported ONE year on a sheet that
       // prints six. Cause: textContent concatenates adjacent header cells into "202620272028202920302031",
@@ -185,7 +229,7 @@ for (const paper of PAPER) {
       },
     };
   });
-  const P = paper.name;
+  const P = `${paper.name} · ${mode.key}`;
   // IDENTITY — the single assertion that kills "the stack silently dropped a slide".
   if (c.total !== EXPECT_PAGES) failures.push(`${P} — ${c.total} sheets carry data-slide-code, expected ${EXPECT_PAGES}`);
   const want = ["COVER", ...SLIDE_SCHEMA.map((s) => s.code)];
@@ -199,6 +243,28 @@ for (const paper of PAPER) {
   if (!c.s8) failures.push(`${P} — S8 (value prop) is not in the print stack`);
   else {
     if (c.s8.svgNums < 4) failures.push(`${P} — S8 waterfall printed ${c.s8.svgNums} numeric SVG labels (<4) — the chart rendered EMPTY`);
+    // X-3 · THE BAR FLOOR, CALIBRATED AGAINST THE MODEL AND THEN AGAINST THE MEASUREMENT.
+    // Only the FLAT UNDERCOAT counts: the bevel caps are sub-2px and filtered out, and `url(#gradient)`
+    // is excluded on purpose because it is precisely what does not resolve in Chrome's PDF rasteriser.
+    // The smallest waterfall the model can draw is NBA + 1 driver + Customer Value + the STACKED price
+    // (base + gold) = 5 undercoats. PRJ-23 measures 8. Floor 5 fails on absence and cannot go stale on a
+    // project with fewer drivers — which a hardcoded 8 would.
+    if (c.s8.bars < 5) failures.push(`${P} — S8 waterfall printed ${c.s8.bars} filled bar rects (<5) — the BARS did not render, only the labels`);
+    // X-3 · WIDTH IS THE OPERATOR'S ACTUAL ASK ("use full width waterfall for value prop section"), so it
+    // is the assertion with teeth: the chart spans the sheet, or this gate is red. Measured 95%.
+    const pctW = Math.round((c.s8.chartW / c.s8.sheetW) * 100);
+    if (pctW < 85) failures.push(`${P} — S8 waterfall spans ${pctW}% of the slide width (<85%) — it is no longer full width`);
+    // HEIGHT is a floor against COLLAPSE, not a target — and the honest numbers are stated rather than
+    // rounded up to something flattering. Measured, same canvas, same slide:
+    //     screen                 21%
+    //     Letter landscape PDF   18%
+    //     Letter portrait  PDF   13%    <- KNOWN, UNFIXED
+    // The gap is fixed-px chrome (the field banner, panel padding) that does NOT scale with the sheet, so
+    // the smaller the printed canvas the bigger its share and the less is left for the `1fr` chart row.
+    // Portrait prints a 720x405 canvas against landscape's 960x540, which is why it is worst there. Real,
+    // explainable, and NOT what this assertion is for: 12% fails a chart that has actually vanished.
+    const pctH = Math.round((c.s8.chartH / c.s8.sheetH) * 100);
+    if (pctH < 12) failures.push(`${P} — S8 waterfall is ${pctH}% of the slide canvas (<12%) — it collapsed in print`);
     if (!c.s8.capture) failures.push(`${P} — S8 printed no value-capture read-out`);
     if (!c.s8.range) failures.push(`${P} — S8 printed no Value Price Range`);
   }
@@ -213,7 +279,7 @@ for (const paper of PAPER) {
     if (c.s10.years < YEAR_FLOOR) failures.push(`${P} — S10 printed ${c.s10.years} calendar-year cells (<${YEAR_FLOOR}, the ${PROJECT_GATE} forecast horizon)`);
     if (c.s10.steps.length !== 4) failures.push(`${P} — S10 printed bands [${c.s10.steps.join(", ")}] — expected R&D Spend + Step 1b/2/3`);
   }
-  console.log(`  ${"".padEnd(17)} content · ${c.total} coded sheets · S8 svg-nums ${c.s8?.svgNums ?? "—"} capture ${!!c.s8?.capture} range ${!!c.s8?.range} · S10 years ${c.s10?.years ?? "—"} bands ${c.s10?.steps.length ?? "—"}/4`);
+  console.log(`  ${"".padEnd(17)} content · ${c.total} coded sheets · S8 bars ${c.s8?.bars ?? "—"} svg-nums ${c.s8?.svgNums ?? "—"} chart ${c.s8 ? Math.round((c.s8.chartW / c.s8.sheetW) * 100) : "—"}%W x ${c.s8 ? Math.round((c.s8.chartH / c.s8.sheetH) * 100) : "—"}%H of canvas · range ${!!c.s8?.range} · S10 years ${c.s10?.years ?? "—"} bands ${c.s10?.steps.length ?? "—"}/4`);
 
   const buf = await page.pdf({ format: "Letter", landscape: paper.landscape, printBackground: true,
     margin: { top: "0.5in", bottom: "0.5in", left: "0.5in", right: "0.5in" } });

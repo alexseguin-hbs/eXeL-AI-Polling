@@ -2644,13 +2644,24 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // relative order untouched (rule 6 — nothing unasked is shuffled).
     { id: "vprop", name: "Primary customer value proposition", kind: "longtext", req: true },
     { id: "nba", name: "Next best alternative (NBA)", kind: "text", req: true, hint: "The As-Is option this must out-perform." },
-    { id: "valuechart", name: "Value waterfall + WTP positioning", kind: "chart", linked: true },
+    // X-3 · TWO CHARTS, TWO FIELDS. They were one field rendering a waterfall with a price-performance strip
+    // welded under it, which is why the strip could only ever live wherever the waterfall lived. Operator:
+    // "remove price performance competition for this section and consider placing somewhere else on slide ·
+    // use full width waterfall for value prop section". Splitting them is what makes both asks possible:
+    // `valuechart` is the waterfall alone and takes the full sheet width; `wtp` is the strip, and it moves
+    // into the COMPETITION panel, which is where a competitor-positioning axis belonged all along.
+    { id: "valuechart", name: "Value waterfall", kind: "chart", linked: true },
     // W-1c · `diffs` AND `capture` ARE READ-OUTS NOW, NOT INPUTS. Both were typed straight into
     // `bag[code][fid]`, which is how a hand-typed "50%" and an em-dash could sit twelve pixels from a
     // waterfall that computes both. `linked: true` routes them through `linkedSlideField`, whose branches
     // ship in this SAME commit — `linked` without a resolver returns null and renders the panel blank (the
     // V1 trap, already paid for once). Both stay `req: true`, so NO project's gate score moves.
     { id: "diffs", name: "Value equation", kind: "table", req: true, linked: true, cols: [...S8_DIFF_COLS], hint: "The differentiators behind the waterfall above. Typed $ IS the bar; importance is a 1-5 pick; vs NBA is the sign of the dollars. Authored in ◈ Edit source record, never twice." },
+    // ⚠ ORDERED AFTER `diffs`, NOT BEFORE IT. The record's field order is a rule the operator dictated with
+    // a screenshot — the waterfall sits IMMEDIATELY above the value-equation table it explains — and slotting
+    // `wtp` between them broke it. The SLIDE's layout is independent of this order (`fieldsOf` names its own
+    // sequence), so the strip can render first on the competition panel while the record keeps its shape.
+    { id: "wtp", name: "Price performance · competition", kind: "chart", linked: true },
     { id: "capture", name: "Value creation + capture", kind: "metrics", linked: true, items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "range", label: "Value Price Range" } ] },
     { id: "benefits", name: "Key customer benefits", kind: "list" },
     { id: "features", name: "Key technical features", kind: "list" } ] },
@@ -3321,7 +3332,7 @@ export const SOURCE_SLIDE: Record<string, string> = {
   // Value proposition — S8 owns it. It already carries the NBA and the Value Equation the prop is argued
   // from, so the claim sits beside its evidence (operator: "we can only have one model value prop; gut says S8").
   "S1.valueprop": "S8", "S6.desc": "S8", "S8.vprop": "S8", "S8.nba": "S8", "S8.diffs": "S8",
-  "S8.capture": "S8", "S8.valuechart": "S8",
+  "S8.capture": "S8", "S8.valuechart": "S8", "S8.wtp": "S8",
   // Money — S10 owns it. Eleven calendar years of spend + the three revenue bands.
   "S2.profile": "S10", "S2.accel": "S10", "S3.profile": "S10", "S3.revtable": "S10", "S3.rdchart": "S10",
 };
@@ -3631,6 +3642,15 @@ export const DEFAULT_CAPTURE_PCT = 33;   // operator: 67 customer / 33 us — NO
 export const valueForMoney = (p: { nreK?: number }, differentiationM: number): number =>
   differentiationM / Math.max(0.001, (p?.nreK ?? 1) / 1000);
 export const VFM_BANDS = { low: 52.4, high: 61.3 } as const;
+
+/** Our own marker's position on the price-performance strip, as a 0-1 fraction of the NBA→EVC span.
+ *  ⚠ ONE PRODUCER, ON PURPOSE (X-3). The strip used to be welded under the waterfall inside `ValueProp`,
+ *  which computed this inline; splitting the strip into its own field gave it a SECOND caller, and two
+ *  copies of `captureOf(p) / 100` is exactly how a marker drifts from the bar it is supposed to agree with.
+ *  D3's reasoning still holds: the strip is a PRICE axis, and our price sits at the capture fraction between
+ *  the NBA baseline and full EVC by construction (price = NBA + capture × (EVC − NBA)). */
+export const captureFraction = (p: { capturePct?: number | null }): number =>
+  Math.max(0, Math.min(1, captureOf(p) / 100));
 
 export interface ValueSplit { capturePct: number; totalValueM: number; priceM: number; customerValueM: number }
 /** THE ONE READER OF `capturePct`. Every surface that needs the split calls this rather than the constant,

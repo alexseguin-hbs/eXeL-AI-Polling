@@ -52,7 +52,7 @@ import {
   type ReqStatus, type DepEdge, type BizTier, type BizNode, type BizSetup, type SegmentValueProp,
   // S10 · the financial record — Rack & Stack 3-step model, 11 calendar years.
   finOf, visibleYearCount, spendTotalK, bandRevK, bandMgnK, bandMgnPct, incRevK, incMgnK, incMgnPct,
-  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, captureOf, valueForMoney, VFM_BANDS, driverValueM, driverTone, importanceBars,
+  incUnits, incYoYPct, type FinYear, type FinPlan, type FinBandYear, aspOf, allocHeadroom, allocBarSplit, valueSplit, captureOf, captureFraction, valueForMoney, VFM_BANDS, driverValueM, driverTone, importanceBars,
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
   BIZ_CONF_LADDER, bizConfOf, competitorsOf, clampX, nextCompetitorLabel, type WtpMarker,
@@ -1723,7 +1723,10 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // ⚠ STATED, NOT HIDDEN: on the seeded portfolio this is 0.33 for all 33, because every project still uses
   // the DEFAULT capture. That is a seed gap, not a defect in the replacement — the marker now means
   // something and moves the moment anyone edits capture % on S8, which X-5a made editable.
-  const ci = Math.max(0, Math.min(1, captureOf(p) / 100));
+  // ⚠ X-3 · THROUGH THE SHARED PRODUCER, NOT INLINE. Splitting the strip into its own field gave this
+  // arithmetic a second caller, and two copies of `captureOf(p) / 100` is exactly how the marker and the
+  // bar it must agree with drift apart. `captureFraction` is the one place it is computed.
+  const ci = captureFraction(p);
 
   // X-1 · IN SLIDE MODE THE CHART FILLS ITS BOX. `height: 7cqh` was a fixed slice of the container that had
   // nothing to do with how much room the panel actually gave it — the third of three constraints, and the
@@ -1903,7 +1906,12 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
       )}
       {/* CHART FIRST, ALWAYS (operator: "Place chart at Top" · "Value Prop Image on top"). */}
       {chart}
-      <CompetitionStrip p={p} ours={ci} oursLabel={(p.name || "Ours").split(" ")[0]} onSave={onCompetitors} compact={big} />
+      {/* X-3 · NOT ON A SLIDE. The strip is `S8.wtp` now and it renders in the COMPETITION panel, so the
+          waterfall can take the full sheet width alone (operator: "remove price performance competition for
+          this section and consider placing somewhere else on slide · use full width waterfall for value prop
+          section"). Every OTHER surface — the deep dive, the source editor, where the markers are actually
+          dragged — keeps it directly under the chart, unchanged. */}
+      {mode !== "slide" && <CompetitionStrip p={p} ours={ci} oursLabel={(p.name || "Ours").split(" ")[0]} onSave={onCompetitors} />}
       {table}
       {mode === "edit" && onGenerate && (
         <div className="flex justify-end pt-1">
@@ -4641,7 +4649,15 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 // pushed Margin % and YoY Growth off the bottom of the revenue table — present in the DOM, scrollable, and
 // therefore invisible on a printed board, which is the worst of both worlds. Sizing the rows by the content
 // they actually carry is the fix; anything else is shrinking type to pay for wasted space above it.
-const BODY_ROWS: Record<string, string> = { S10: "minmax(0, 10fr) minmax(0, 24fr)" };
+// X-3 · S8's three stacked bands are NOT equal thirds. `content-stretch` would give the waterfall exactly a
+// third, and the operator asked for the opposite ("Make waterfall value prop chart take up more of screen").
+// The weights are measured, not guessed. The S8 band-budget probe reports the top two panels needing 410px
+// of the 685px body and the chart card 304px; 3fr/2fr gives the top band 411 (it fits exactly) and hands the
+// chart every remaining pixel at the FULL width of the sheet.
+const BODY_ROWS: Record<string, string> = {
+  S10: "minmax(0, 10fr) minmax(0, 24fr)",
+  S8: "auto minmax(0, 1fr)",
+};
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
 // the sentence, the NBA it must beat, the waterfall, and the differentiators behind it. When that panel is
@@ -5178,11 +5194,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // ---- present-mode field renderer (read effective value) ----
   // Financial mini-chart drawn LIVE from the project record (import project financials). S3 = R&D spend
   // vs Revenue + Margin by Year (grouped bars); S14 = combined resource needs ($/yr). Deterministic SVG.
-  function MiniFinChart({ kind, big }: { kind: string; big?: boolean }) {
+  // X-3 · `field` DISAMBIGUATES TWO CHARTS ON ONE SLIDE. This dispatched on the slide CODE alone, which was
+  // fine while every slide had at most one chart. S8 now has two — the waterfall and the price-performance
+  // strip — and without the field id the second one would silently render the first.
+  function MiniFinChart({ kind, field, big }: { kind: string; field?: string; big?: boolean }) {
     // S3 — Business-Case cash chart (AMTS deck parity): R&D / NRE renders as a NEGATIVE flow (money out, below
     // zero), Revenue + Margin above zero, and cumulative CASH FLOW as a line. Horizon toggle renders horizon+1
     // year points so a CAGR spanning `horizon` years reads across `horizon+1` columns (3-Yr→4, 5-Yr→6, 10-Yr→11).
     if (kind === "S3") return <S3CashChart p={p} big={big} />;
+    // The strip is its own field now, so it can live in the COMPETITION panel where a competitor-positioning
+    // axis belongs — and the waterfall can take the full sheet width without dragging it along.
+    if (kind === "S8" && field === "wtp") return <CompetitionStrip p={p} ours={captureFraction(p)} oursLabel={(p.name || "Ours").split(" ")[0]} compact={big} />;
     if (kind === "S8") return <ValueProp p={p} mode="slide" big={big} />;
     const fo = financialsOverview(p, { years: 6, funded: true });
     const series = kind === "S14"
@@ -5278,7 +5300,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             `flex min-h-0 flex-col` parent, so widening the panel row above changed nothing at all. Two
             constraints, and fixing either alone is invisible; that is why this looked wrong three times. */}
         <div className={`${bare ? "" : big ? "p-[0.45cqw]" : "p-2"} flex min-h-0 flex-1 flex-col`}><ChartFrame label={f.name}>
-          <MiniFinChart kind={sp.code} big={big} />
+          <MiniFinChart kind={sp.code} field={f.id} big={big} />
           {/* Direct link to the slide that owns the record feeding this chart — drawn only when that slide
               actually has an editor, so the button can never be a no-op. */}
           {hasSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
@@ -5463,8 +5485,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // proposition spans the foot of the slide as the single sentence a board remembers.
       S8: () => (
         <>
+          {/* X-3 · THE ARGUMENT ON TOP, THE MONEY PICTURE FULL-WIDTH UNDERNEATH.
+              The price-performance strip changed panels: it was never a "value creation" object — it plots
+              where WE sit against Comp A / NBA / Comp B, which is the COMPETITION panel's entire subject.
+              Moving it there is what frees the value panel to be the waterfall and nothing else.
+              ⚠ I TRIED THREE STACKED FULL-WIDTH BANDS FIRST AND MEASURED IT: 4 overflows, +100px on the
+              value-equation table and +78px on each value-proposition list. Full width does not shrink a
+              table or a bullet list — it only spends horizontal room they do not need, while their heights
+              stay exactly the same and the band budget gets thinner. So only the CHART goes full width,
+              which is what the operator actually asked for; the two prose/table panels keep the half width
+              they were laid out for and share the top band. */}
           <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
-            {fieldsOf("nba", "diffs")}
+            {fieldsOf("nba", "diffs", "wtp")}
+          </AmtsPanel>
+          <AmtsPanel title="Primary Customer Value Proposition" icon="♡">
+            {fieldsOf("vprop", "benefits", "features")}
           </AmtsPanel>
           {/* X-1 / X-2 · THE WATERFALL FILLS THIS BOX (operator, four times, ending: "Make waterfall value
               prop chart take up more of screen in PDF and slide").
@@ -5476,11 +5511,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               `valuePropCapture`, and still renders on S1 and in the source record — only this SLIDE stops
               spending a panel row restating what the bars say. `rows` goes with it: one child, one row,
               1fr by default. */}
-          <AmtsPanel title="Value · Creation + Capture" icon="◈">
+          <AmtsPanel wide title="Value · Creation + Capture" icon="◈">
             {fieldsOf("valuechart")}
-          </AmtsPanel>
-          <AmtsPanel wide title="Primary Customer Value Proposition" icon="♡">
-            {fieldsOf("vprop", "benefits", "features")}
           </AmtsPanel>
         </>
       ),

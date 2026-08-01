@@ -1622,7 +1622,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     S1: ["oneline", "segment", "valueprop", "vpdiffs", "vpcapture", "ask"],
     S2: ["profile", "accel", "roadmap", "toprisks", "status"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
-    S8: ["nba", "diffs", "valuechart", "capture", "vprop", "benefits", "features"],
+    S8: ["nba", "diffs", "wtp", "valuechart", "capture", "vprop", "benefits", "features"],
     S11: ["voc", "exp", "comments"],
   };
   for (const [code, ids] of Object.entries(PANEL_FIELDS)) {
@@ -2016,7 +2016,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the gutter is attached to the FIRST row only — the rest are covered by its rowSpan");
   // 3 bands x 6 + Combined 5 + a column header is 24 rows on a sheet that cannot grow, so the two panels no
   // longer split the body evenly — an even split silently scrolled Margin % and YoY Growth out of sight.
-  ok(/const BODY_ROWS: Record<string, string> = \{ S10: "minmax\(0, 10fr\) minmax\(0, 24fr\)" \};/.test(pageSrc),
+  ok(/S10: "minmax\(0, 10fr\) minmax\(0, 24fr\)",/.test(pageSrc),
      "the S10 body sizes its two panels by the rows they actually carry, not 50/50");
   // Asserted as a PROPERTY of each table, not as literal adjacency. The old form matched
   // `<S10Grid\n        dense` — which broke the moment G4 added `gutter` above `dense` on the spend grid,
@@ -3163,7 +3163,67 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 4 · THE WTP STRIP IS COMPACT ON A SLIDE ONLY. Dragging a marker happens in the source editor, which
   //     keeps the roomier track it was tuned for.
   ok(/compact \? "h-8" : "h-12"/.test(src), "the Price Performance track is shorter on a slide and unchanged elsewhere");
-  ok(/<CompetitionStrip [^>]*compact=\{big\}/.test(veq), "…and `compact` is exactly `big`, i.e. slide mode");
+  ok(/<CompetitionStrip [^>]*compact=\{big\}/.test(src), "…and `compact` is exactly `big`, i.e. slide mode");
+}
+
+// ── X-3 · FULL-WIDTH WATERFALL · THE STRIP CHANGES PANELS · BOTH PDFs GATED ──────────────
+// Operator: "remove price performance competition for this section and consider placing somewhere else on
+// slide · use full width waterfall for value prop section · ensure chart renders appropriately on both
+// versions OF PDF".
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const data = await (await import("node:fs/promises")).readFile("lib/innovation-data.ts", "utf8");
+  const gate = await (await import("node:fs/promises")).readFile("scripts/pdf-gate.mjs", "utf8");
+  const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
+
+  // 1 · TWO CHARTS, TWO FIELDS. They were one field with the strip welded under the waterfall, which is
+  //     why the strip could only live wherever the chart lived. Splitting is what made both asks possible.
+  ok(/\{ id: "wtp", name: "Price performance · competition", kind: "chart", linked: true \}/.test(data),
+     "the price-performance strip is its own field, not a passenger on the waterfall");
+  ok(/"S8\.capture": "S8", "S8\.valuechart": "S8", "S8\.wtp": "S8"/.test(data),
+     "…and it declares its owning record, so its ✎ Edit link is not a no-op");
+
+  // 2 · THE SLIDE PLACES IT IN THE COMPETITION PANEL, and the value panel is the chart at full width.
+  ok(/<AmtsPanel title="Competition · Next Best Alternative" icon="⚔">\s*\{fieldsOf\("nba", "diffs", "wtp"\)\}/.test(src),
+     "Price Performance renders in the COMPETITION panel — where a competitor-positioning axis belongs");
+  ok(/<AmtsPanel wide title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(src),
+     "the value panel is `wide` and holds the waterfall alone — full sheet width");
+  ok(/S8: "auto minmax\(0, 1fr\)"/.test(src),
+     "S8's top band sizes to its content and the waterfall takes EVERY remaining pixel");
+  ok(!/mode !== "slide" && <CompetitionStrip[\s\S]{0,200}?compact/.test(veq),
+     "the strip inside ValueProp is off the slide entirely — it is not merely made smaller there");
+  ok(/\{mode !== "slide" && <CompetitionStrip/.test(veq),
+     "…and every NON-slide surface still renders it under the chart, unchanged");
+
+  // 3 · ONE PRODUCER for our marker's position. Splitting the strip out gave `captureOf(p)/100` a second
+  //     caller, and two copies are how a marker drifts from the bar it must agree with.
+  ok(/export const captureFraction = \(p: \{ capturePct\?: number \| null \}\): number =>/.test(data),
+     "our marker's position on the strip has ONE producer");
+  // ⚠ COMMENTS STRIPPED. First draft of this lock matched the sentence explaining the rule and went red
+  // against its own rationale — the same trap the F4/W-2 ban-lists hit. The ban is on CODE.
+  const pgX3 = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok((pgX3.match(/captureOf\(p\) \/ 100/g) ?? []).length === 0,
+     "…and no surface in the deck recomputes it inline");
+
+  // 4 · TWO CHARTS ON ONE SLIDE NEED A DISAMBIGUATOR, or the second silently renders the first.
+  ok(/function MiniFinChart\(\{ kind, field, big \}/.test(src) && /<MiniFinChart kind=\{sp\.code\} field=\{f\.id\} big=\{big\} \/>/.test(src),
+     "the chart dispatch keys off the FIELD as well as the slide code");
+  ok(/if \(kind === "S8" && field === "wtp"\) return <CompetitionStrip/.test(src),
+     "…and S8's two charts resolve to two different components");
+
+  // 5 · BOTH PDF EXPORTS ARE GATED, AND THE GATE COUNTS BARS. P3 shipped a deck whose every bar was blank
+  //     while the gate counted 12 text labels and went green. Mutation-tested: deleting the flat undercoat
+  //     takes `bars` to 0 in all four paper×mode combinations while `svgNums` stays 12.
+  ok(/const MODES = \[[\s\S]{0,300}?"friendly"[\s\S]{0,300}?"original"/.test(gate),
+     "pdf-gate exports BOTH modes, not just the default");
+  ok(/for \(const paper of PAPER\) for \(const mode of MODES\)/.test(gate),
+     "…across both papers, so the matrix is 4 runs");
+  ok(/getByRole\("menuitem", \{ name: mode\.menu \}\)/.test(gate),
+     "…driven through the operator's own Export menu, not a synthetic print event");
+  ok(/failures\.push\(`\$\{P\} — S8 waterfall printed \$\{c\.s8\.bars\} filled bar rects/.test(gate),
+     "pdf-gate asserts the BARS render — labels are not bars (the P3 blind spot, closed)");
+  ok(/failures\.push\(`\$\{P\} — S8 waterfall spans \$\{pctW\}% of the slide width/.test(gate),
+     "…and that the waterfall is still full width in the artifact, not merely on screen");
 }
 
 // ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
@@ -3413,8 +3473,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/competitiveIndex/.test(pgD3), "ZERO competitiveIndex in the deck — no display, no consumer");
   ok(!/Diff Index/.test(pgD3), "the `Diff Index` dog-tag row that rendered it is gone");
   // The two behavioural replacements, asserted as REPLACEMENTS rather than as absences.
-  ok(/const ci = Math\.max\(0, Math\.min\(1, captureOf\(p\) \/ 100\)\);/.test(pgD3),
+  // X-3 moved the arithmetic into the shared `captureFraction` producer when the strip gained a second
+  // caller. The PROPERTY is unchanged and is what this asserts end to end: the marker reads the capture
+  // fraction, and that fraction is still `captureOf / 100` clamped to [0,1].
+  ok(/const ci = captureFraction\(p\);/.test(pgD3),
      "strip marker reads the capture fraction — a price position, and off the right wall");
+  ok(/Math\.max\(0, Math\.min\(1, captureOf\(p\) \/ 100\)\)/.test(codeOnly(libD3)),
+     "…and `captureFraction` is exactly that clamp on captureOf, so the meaning did not move with the code");
   ok(/valueForMoney\(p, valueEquationOf\(p\)\.differentiationM\)/.test(pgD3) && /VFM_BANDS\.high/.test(pgD3),
      "the value colour mode bands valueForMoney — 32 distinct values where the index had 1");
   ok(/export const valueForMoney/.test(libD3) && /export const VFM_BANDS/.test(libD3),
@@ -4055,7 +4120,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/THE ARTIFACT HAS \$\{pages\} PAGES/.test(gate), "a wrong page count is a hard failure naming the artifact");
   ok(/fills only \$\{Math\.round\(m\.worstFill \* 100\)\}% of its sheet/.test(gate), "the gate catches the third-scale cover — every canvas must FILL its sheet");
   ok(/past the \$\{paper\.wpx\}px printable width/.test(gate), "the gate catches content running off the printable box");
-  ok(/dispatchEvent\(new Event\("beforeprint"\)\)/.test(gate), "the stack is mounted through the app's OWN beforeprint listener — if that breaks, the gate breaks with it");
+  // X-3 · STRICTLY STRONGER THAN THE OLD FORM. The gate used to synthesise a `beforeprint` event, which
+  // mounted the stack but ROUTED AROUND the Export menu — a broken menu could not fail this gate. It now
+  // clicks the real control and picks a real mode, so the whole operator path is under test. `window.print`
+  // is stubbed and nothing else, because the print dialog would block and tear the stack down again.
+  ok(/getByRole\("button", \{ name: "Export the deck as a PDF" \}\)/.test(gate) && /getByRole\("menuitem", \{ name: mode\.menu \}\)/.test(gate),
+     "the stack is mounted by driving the app's OWN Export menu — if that breaks, the gate breaks with it");
+  ok(/window\.print = \(\) => \{\}/.test(gate), "…with only `window.print` stubbed, so no other step is simulated");
   ok(!/jspdf|pdf-lib|pdfkit/i.test(gate), "no PDF dependency — Chromium's own engine produces it and the bytes are parsed directly");
 
   // ── X-8a · THE GATE ASSERTS CONTENT, NOT ONLY GEOMETRY ────────────────────────────────────────
@@ -4911,8 +4982,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // (a) FIELD ORDER, DICTATED VERBATIM by the operator with a screenshot. Asserted as the WHOLE LIST, not
   //     "valuechart is before diffs" — a positional pair passes while three other fields shuffle behind it.
-  ok(S8.fields.map((f) => f.id).join(",") === "vprop,nba,valuechart,diffs,capture,benefits,features",
-     `S8 field order is vprop → nba → valuechart → diffs → capture → benefits → features (got ${S8.fields.map((f) => f.id).join(",")})`);
+  ok(S8.fields.map((f) => f.id).join(",") === "vprop,nba,valuechart,diffs,wtp,capture,benefits,features",
+     `S8 field order is vprop → nba → valuechart → diffs → wtp → capture → benefits → features (got ${S8.fields.map((f) => f.id).join(",")})`);
   // The instruction that produced it, in its own right: the chart sits directly ABOVE the table it explains.
   const ids = S8.fields.map((f) => f.id);
   ok(ids.indexOf("valuechart") === ids.indexOf("diffs") - 1,
@@ -5313,7 +5384,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // `minmax(0,1fr) auto` template existed to approximate. The property is unchanged: the chart's row fills.
   ok(/data-panel-body className="grid min-h-0 flex-1 content-stretch/.test(srcX1d),
      "the panel body stretches its rows, so the chart's row fills the panel");
-  ok(/<AmtsPanel title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(srcX1d),
+  ok(/<AmtsPanel wide title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(srcX1d),
      "the value panel renders the chart ALONE — the capture chips are on the chart, not stacked under it");
   // link 3 · the field wrapper grows
   ok(/\$\{bare \? "" : big \? "p-\[0\.45cqw\]" : "p-2"\} flex min-h-0 flex-1 flex-col/.test(srcX1d),
