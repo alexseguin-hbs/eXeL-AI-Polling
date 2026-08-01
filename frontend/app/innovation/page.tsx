@@ -1145,20 +1145,27 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
 
 // Per-section banner accent (AMTS deck parity) — a colored header bar + icon per slide field, keyed by the
 // field's role (value / concern / flow / money / governance / default). Pure + deterministic.
+// ⚠ D8 · THESE ARE RINGS, NOT BORDERS, AND THAT IS A LAYOUT DECISION NOT A STYLE ONE. Measured on S8 at
+// 1440x810: the two list panels reported clientHeight 123 against scrollHeight 125 — overflowing by exactly
+// 2px, at both viewports, which is exactly one border top plus one border bottom. The grid sizes an auto row
+// to the item's CONTENT (125px), then `box-sizing: border-box` spends 2px of that row on the border and
+// leaves a 123px content box. The content never fit by construction. A ring is painted with box-shadow, so
+// it occupies the same pixels and costs NOTHING in layout — the 2px goes back to the content. The field was
+// already named `ring`; it is now actually one. Gaining space can only reduce overflow, never create it.
 function sectionAccent(code: string, f: SlideField): { icon: string; bar: string; ring: string } {
   const id = f.id.toLowerCase(), name = f.name.toLowerCase();
   const has = (re: RegExp) => re.test(id) || re.test(name);
   if (code === "CSRA" || has(/approv|sign|review|change|member|role/))
-    return { icon: "✔", bar: "bg-indigo-500/20 text-indigo-100", ring: "border-indigo-500/30" };
+    return { icon: "✔", bar: "bg-indigo-500/20 text-indigo-100", ring: "ring-indigo-500/30" };
   if (has(/valueprop|vprop|value prop|desc|oneline|overview|ask|benefit/))
-    return { icon: "◆", bar: "bg-cyan-500/20 text-cyan-100", ring: "border-cyan-500/30" };
+    return { icon: "◆", bar: "bg-cyan-500/20 text-cyan-100", ring: "ring-cyan-500/30" };
   if (has(/risk|problem|concern|statusquo|counter|toprisk|dep|nba/))
-    return { icon: "▲", bar: "bg-rose-500/20 text-rose-100", ring: "border-rose-500/30" };
+    return { icon: "▲", bar: "bg-rose-500/20 text-rose-100", ring: "ring-rose-500/30" };
   if (has(/conops|roadmap|workflow|persona|stor|flow|future|outcome|why|voc|experiment|l90|l60|l30|l0|e120|e90|e60|e0|launch|prio/))
-    return { icon: "→", bar: "bg-violet-500/20 text-violet-100", ring: "border-violet-500/30" };
+    return { icon: "→", bar: "bg-violet-500/20 text-violet-100", ring: "ring-violet-500/30" };
   if (f.kind === "chart" || f.kind === "metrics" || has(/profile|rev|margin|financ|spend|scenario|saydo|capture|fte|fincomment|plc|bom|accel|conf|resource/))
-    return { icon: "$", bar: "bg-emerald-500/15 text-emerald-100", ring: "border-emerald-500/25" };
-  return { icon: "▪", bar: "bg-sky-500/15 text-sky-100", ring: "border-slate-700" };
+    return { icon: "$", bar: "bg-emerald-500/15 text-emerald-100", ring: "ring-emerald-500/25" };
+  return { icon: "▪", bar: "bg-sky-500/15 text-sky-100", ring: "ring-slate-700" };
 }
 
 // A field value is a renderable image when it's an uploaded data URI OR a pasted/BYOK http(s) image URL.
@@ -5140,7 +5147,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       </div>
     );
     if (f.kind === "chart" && f.linked) return (
-      <div className={bare ? "flex min-h-0 min-w-0 flex-col" : `flex min-h-0 flex-col overflow-hidden rounded-lg border ${acc.ring} bg-[#0b0f14] col-span-2`}>
+      <div className={bare ? "flex min-h-0 min-w-0 flex-col" : `flex min-h-0 flex-col overflow-hidden rounded-lg ring-1 ring-inset ${acc.ring} bg-[#0b0f14] col-span-2`}>
         {!bare && <Banner />}
         {/* X-1 · `flex-1 min-h-0` — without it this div collapses to CONTENT height inside its
             `flex min-h-0 flex-col` parent, so widening the panel row above changed nothing at all. Two
@@ -5163,7 +5170,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
     return (
-      <div className={bare ? `flex min-h-0 min-w-0 flex-col ${isConops ? "col-span-2" : ""}` : `flex min-h-0 flex-col overflow-hidden rounded-lg border ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "col-span-2" : ""}`}>
+      <div className={bare ? `flex min-h-0 min-w-0 flex-col ${isConops ? "col-span-2" : ""}` : `flex min-h-0 flex-col overflow-hidden rounded-lg ring-1 ring-inset ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${isConops ? "col-span-2" : ""}`}>
         {!bare && <Banner />}
         <div className={bare ? "" : big ? "p-[0.45cqw]" : "p-2"}>
         {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors

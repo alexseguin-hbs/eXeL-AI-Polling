@@ -3247,6 +3247,29 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "a swipe pages only at 1x; zoomed in it pans the body instead of turning the page mid-read");
 }
 
+// ── D8 · THE LAST FOUR OVERFLOW LINES — the border WAS the overflow ─────────────────────
+// Carried all session as "4 red lines in slide-shots, 2 panels x 2 viewports". Measured on S8/PRJ-23 at
+// 1440x810 rather than guessed: the two list panels reported clientHeight 123 against scrollHeight 125 —
+// over by exactly 2px, which is exactly one border top plus one border bottom. A grid auto-row is sized to
+// the item's CONTENT (125px); `box-sizing: border-box` then spends 2px of that row on the border and hands
+// the content a 123px box. It never fit by construction, and no amount of type-shrinking would have been
+// the honest fix.
+//
+// A ring is painted with box-shadow: same pixels, ZERO layout cost. The accent field was already NAMED
+// `ring`; it is now actually one. Gaining space can only reduce overflow, never create it — which is why
+// converting both wrapper sites at once is safe rather than risky.
+{
+  const fspD8 = await import("node:fs/promises");
+  const d8 = await fspD8.readFile("app/innovation/page.tsx", "utf8");
+  const acc = d8.slice(d8.indexOf("function sectionAccent"), d8.indexOf("\n}", d8.indexOf("function sectionAccent")));
+  ok(acc.length > 400 && acc.length < 2000, "the sectionAccent slice resolves and is bounded");
+  ok(!/ring: "border-/.test(acc), "no accent returns a BORDER class — a border costs 2px of content box");
+  ok((acc.match(/ring: "ring-/g) || []).length === 6, "all six accents return a ring class (counted, not named)");
+  ok((d8.match(/rounded-lg ring-1 ring-inset \$\{acc\.ring\}/g) || []).length === 2,
+     "both field wrappers use an inset ring — one fixed and one left behind is how the pair drifts");
+  ok(!/rounded-lg border \$\{acc\.ring\}/.test(d8), "the border form that ate the 2px is gone from both");
+}
+
 // ── Z6a · THE LAYOUT VIEWPORT — the shared primitive must never read the VISUAL one ─────
 // Operator, with three iPhone screenshots: "these tabs when two finger released get really big and slide
 // large." Measured on a 390x844 phone: the slide sat at an apparent 219px through 1x, 1.5x, 2x AND 3x while
