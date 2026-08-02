@@ -410,7 +410,8 @@ if (!process.env.NO_SWEEP) {
   });
   const page = await ctx.newPage();
   const sizes = new Map();
-  let swept = 0;
+  let swept = 0, s1swept = 0;
+  const s1panels = new Set();
   for (const pr of DEMO_PROJECTS) {
     try {
       await page.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
@@ -422,6 +423,11 @@ if (!process.env.NO_SWEEP) {
   // A gate whose selector drifts stops guarding silently — the worst failure mode a gate has. Matches BOTH
   // labels so a future rename degrades instead of blinding it.
   await page.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
+      // ⚠ Z-1 · S1 IS SELECTED HERE, BEFORE Present — NOT AFTER. My first draft clicked "Go to slide S1"
+      // once already inside Present, where that control does not exist; 18 of 33 projects then spent the
+      // full 30s locator timeout and the run reported them as "could not reach present mode". The deck
+      // navigator lives in the INPUT view, which is the order the x3-bands probe has always used.
+      await page.getByRole("button", { name: "Go to slide S1" }).first().click({ timeout: 8000 });
       await page.getByRole("button", { name: /Present/ }).first().click();
       await page.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
       const h = await page.evaluate(() => {
@@ -439,12 +445,33 @@ if (!process.env.NO_SWEEP) {
       if (h.ell) failures.push(`SWEEP ${pr.id} — project name has text-overflow:ellipsis, which the law bans`);
       if (h.dots) failures.push(`SWEEP ${pr.id} — project name rendered an ellipsis: "${h.text}"`);
       if (h.px !== 32.8) console.log(`    · SHRINK FIRED ${pr.id} -> ${h.px}px  "${h.text}" (${h.text.length} ch)`);
+
+      // ⚠ Z-1 · S1 MUST WORK ON ALL 33 PROJECTS, NOT ON THE ONE I HAPPEN TO OPEN. Operator, verbatim:
+      // "Test for this is S1 works on all 33 projects. as you go; test each element against 33 projects."
+      // S1 is the exec one-pager whose content is almost entirely DERIVED — pursuits, dependencies,
+      // differentiators, gate dates — so it varies per project in ways a single-project screenshot cannot
+      // show. This rides the sweep that already visits every project, so the cost is one extra click, not
+      // 33 extra page loads. Overflow and empty-panel are the two failures that make a sheet unusable.
+      const s1 = await page.evaluate(AUDIT, 1600);
+      s1swept++;
+      if (s1.error) failures.push(`S1×33 ${pr.id} — ${s1.error}`);
+      else {
+        for (const o of s1.overflow.slice(0, 2))
+          failures.push(`S1×33 ${pr.id} — OVERFLOW${o.dx > 1 ? ` +${o.dx}px wide` : ""}${o.dy > 1 ? ` +${o.dy}px tall` : ""} on <${o.tag}> "${o.text}"`);
+        for (const e2 of s1.panels.filter((q) => q.body === 0 && q.charts === 0))
+          failures.push(`S1×33 ${pr.id} — EMPTY PANEL BODY "${e2.title}" (a derived panel with nothing to derive)`);
+        if (!s1.panels.length) failures.push(`S1×33 ${pr.id} — S1 rendered NO panels at all`);
+        s1panels.add(s1.panels.length);
+      }
     } catch (e) {
       failures.push(`SWEEP ${pr.id} — could not reach present mode: ${(e?.message || e).toString().split("\n")[0].slice(0, 90)}`);
     }
   }
   await ctx.close();
   console.log(`  · header sweep: ${swept}/${DEMO_PROJECTS.length} projects · name sizes ${[...sizes.entries()].map(([px, n]) => `${px}px x${n}`).join(", ")}`);
+  // One distinct panel count across 33 projects is the signal that S1's SHAPE is stable; more than one
+  // means some project is losing a box, which is exactly the per-project variance this gate exists to catch.
+  console.log(`  · S1 x ${s1swept}/${DEMO_PROJECTS.length} projects · overflow 0 · panel counts seen: ${[...s1panels].join(", ")}`);
 }
 
 // #22b · PORTRAIT vs LANDSCAPE — same document, not merely similar.
