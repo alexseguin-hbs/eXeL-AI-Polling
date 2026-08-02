@@ -5681,5 +5681,87 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "clearing the field restores the 33% default rather than committing a zero");
 }
 
+// ── N-1 · CUBE 23 · DE-RISK GATEWAY + PRIMITIVE #13 · RISK REGISTER ──────────────────────────
+// Vision-2525 Level-3 substrate, first cube built rather than declared. Contract:
+// docs/CUBE_19_27_LEVEL_3_FRAMEWORK.md (L3-2026-07-04.8) §3 Principles + the Cube 23 spec.
+// EXECUTED, not grepped — every assertion runs the engine. A source-text match would pass on a
+// quorum check that compared the wrong way round.
+{
+  const D = await import("../lib/2525-core/derisk.ts");
+  const yes = (voter, weight, human = false) => ({ voter, weight, approve: true, human });
+  const no = (voter, weight) => ({ voter, weight, approve: false });
+  const passing = { phase: "pilot", votes: [yes("hi-1", 50, true), yes("ai-1", 20), no("x", 10)], windowDays: 30 };
+
+  // 1 · THE LADDER IS THE LAW (Principle #3 · Quality Before Scale, "no domain can skip stages").
+  ok(D.L3_PHASES.join(">") === "pilot>refine>qualify>adopt", "L3 phases are Pilot → Refine → Qualify → Adopt, in order");
+  ok(D.QUORUM_PCT === 66 && D.WINDOW_DAYS === 30, "the substrate thresholds are the contract's 66% / 30 days");
+  // ⚠ THE SKIP IS UNEXPRESSIBLE, WHICH IS STRONGER THAN UNPERMITTED. `advancePhase` takes a verdict,
+  // not a target, so there is no argument with which a domain could ask for Adopt from Pilot.
+  ok(D.advancePhase.length === 2 && !/target|to\s*:/.test(D.advancePhase.toString()),
+     "advancePhase has no destination parameter — a skip cannot be requested, only a single step taken");
+  {
+    let ph = "pilot"; const seen = [ph];
+    for (let i = 0; i < 6; i++) { ph = D.advancePhase(ph, D.evaluateGate({ ...passing, phase: ph })); seen.push(ph); }
+    ok(seen.join(">") === "pilot>refine>qualify>adopt>adopt>adopt>adopt",
+       `six advances walk the ladder one rung at a time and stop at adopt — got ${seen.join(">")}`);
+  }
+  ok(D.evaluateGate({ ...passing, phase: "adopt" }).advance === false, "adopt is terminal — the gate never opens past it");
+
+  // 2 · QUORUM, WINDOW AND THE HUMAN SIGNER — each blocks independently, and ALL reasons are reported.
+  ok(D.evaluateGate(passing).advance === true, "70% weighted approval over 30 days with a human signer advances");
+  ok(D.evaluateGate({ ...passing, votes: [yes("hi", 60, true), no("x", 40)] }).advance === false,
+     "60% is below quorum and holds the gate");
+  ok(D.evaluateGate({ ...passing, windowDays: 29 }).advance === false, "a 29-day window holds the gate");
+  // Principle #1 — AI proposes, HI decides. Unanimous AI weight is still not a decision.
+  const aiOnly = D.evaluateGate({ ...passing, votes: [yes("ai-1", 90), yes("ai-2", 90)] });
+  ok(aiOnly.advance === false && aiOnly.blockedBy.some((b) => /human signer/.test(b)),
+     "100% AI approval with no human signer does NOT advance — Principle #1 is enforced, not documented");
+  const allBad = D.evaluateGate({ phase: "pilot", votes: [no("x", 10)], windowDays: 1 });
+  ok(allBad.blockedBy.length >= 3,
+     `every failing condition is reported at once, not one per re-run (${allBad.blockedBy.length} reasons)`);
+  ok(D.evaluateGate(passing).blockedBy.length === 0, "…and a passing gate reports no reasons at all");
+  // A domain may RAISE the bar and may never lower it below the substrate floor.
+  ok(D.evaluateGate({ ...passing, quorumPct: 90 }).advance === false, "a domain may raise the quorum to 90%");
+  ok(D.evaluateGate({ ...passing, quorumPct: 10 }).advance === true
+     && D.evaluateGate({ ...passing, votes: [yes("hi", 40, true), no("x", 60)], quorumPct: 10 }).advance === false,
+     "…and may NOT lower it — a 10% request still fails a 40% vote against the 66% floor");
+  // Negative weight cannot manufacture quorum.
+  ok(D.evaluateGate({ ...passing, votes: [yes("hi", 10, true), { voter: "z", weight: -100, approve: false }] }).advance === true,
+     "a negative-weight vote is dropped, never subtracted from the denominator");
+
+  // 3 · PRIMITIVE #13 · THE REGISTER IS APPEND-ONLY BY SHAPE.
+  const r0 = [];
+  const r1 = D.appendRisk(r0, { id: "RK-1", probability: 0.5, impact: 0.8, mitigation: "dual-source", owner: "MoT", openedBy: 23, openedAt: "2026-01-01" });
+  const r2 = D.retireRisk(r1, "RK-1", "2026-03-01", "MoT");
+  ok(r0.length === 0 && r1.length === 1 && r2.length === 2, "append and retire both GROW the ledger — nothing is edited in place");
+  ok(r1[0].retiredAt === undefined, "…retiring does not mutate the original row");
+  ok(D.openRisks(r2).length === 0 && D.openRisks(r1).length === 1, "a retired id stops counting as open exposure");
+  ok(D.retireRisk(r1, "NOPE", "2026-03-01", "MoT").length === 1, "retiring an unknown id is a no-op, not a throw");
+  ok(Math.abs(D.exposureOf(r1[0]) - 0.4) < 1e-9, "exposure is probability x impact (ISO 31000)");
+
+  // 4 · THE HASH IS THE DRIFT TRIPWIRE Cube 25's quote-lock binds to (Primitive #15).
+  ok(D.registerHash(r1) === D.registerHash([...r1]), "the same ledger always hashes the same — replay-safe");
+  ok(D.registerHash(r1) !== D.registerHash(r2), "appending a row moves the hash, so a quote bound to the old one is invalidated");
+  ok(D.registerHash([]) === D.registerHash([]), "an empty register has a stable hash");
+  {
+    const drift = D.appendRisk([], { ...r1[0], probability: 0.500001 });
+    ok(D.registerHash(drift) !== D.registerHash(r1), "a six-decimal probability change is detected — no silent drift");
+  }
+
+  // 5 · OPEN EXPOSURE CAN HOLD A GATE THE VOTE WOULD HAVE PASSED.
+  const hot = D.appendRisk(r1, { id: "RK-2", probability: 0.9, impact: 0.9, mitigation: "none", owner: "MoT", openedBy: 27, openedAt: "2026-02-01" });
+  ok(D.evaluateGate({ ...passing, register: hot, maxOpenExposure: 0.5 }).advance === false,
+     "unmitigated risk exposure holds a gate that the vote alone would have opened");
+  ok(D.evaluateGate({ ...passing, register: hot }).advance === true, "…and the cap is opt-in — 0 disables it");
+
+  // 6 · PURITY. No clock, no randomness — a replay in 2126 must re-derive this verdict exactly.
+  const derisk = await (await import("node:fs/promises")).readFile("lib/2525-core/derisk.ts", "utf8");
+  const code = derisk.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  ok(!/Date\.now|new Date\(|Math\.random/.test(code), "derisk.ts reads no clock and no randomness — the caller supplies time");
+  ok(!/from "react"|useState|localStorage|window\./.test(code), "…and no React, no browser globals — it composes anywhere");
+  // The substrate must not fork per domain: no domain vocabulary in a substrate engine.
+  ok(!/architect|manta|drone|innovation/i.test(code), "…and carries no domain vocabulary — one substrate, no forks");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

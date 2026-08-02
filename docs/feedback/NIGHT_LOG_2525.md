@@ -1,0 +1,7 @@
+# NIGHT LOG · SoI-2525 / Vision-2525 — autonomous passes
+> Operator asleep. One high-value item per pass, R-CORE verified before code, SSSES stated, every new
+> behaviour locked and every lock mutation-tested. Append only — never rewritten.
+
+| # | Shipped | SSSES | Locks | SHA |
+|--:|---------|-------|------:|-----|
+| 1 | **Cube 23 · De-Risk Gateway + Primitive #13 Risk Register** — the first Level-3 substrate cube BUILT rather than declared. `lib/2525-core/derisk.ts`: Pilot→Refine→Qualify→Adopt ladder (Principle #3, skip is unexpressible), 66%/30-day quorum, human-signer gate (Principle #1), append-only risk ledger with a drift-detecting hash for Cube 25 quote-lock (Primitive #15). Pure, deterministic, domain-neutral. | Stability +30 · Security +15 · Succinctness +10 | 3476 → 3504 (+28) | (this commit) |

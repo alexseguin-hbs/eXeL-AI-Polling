@@ -30,5 +30,14 @@ export {
   type SoiFramework, type SoiCoin, type SoiKV,
 } from "@/lib/soi-framework";
 
+// Cube 23 · De-Risk Gateway (Pilot→Refine→Qualify→Adopt) + Primitive #13 · Risk Register.
+// The SUBSTRATE ladder every Level-3 domain inherits — distinct from `architect-estimate.GATES`,
+// which is Architect-2525's own 14-gate build sequence (a Domain Play, not the substrate).
+export {
+  L3_PHASES, QUORUM_PCT, WINDOW_DAYS,
+  evaluateGate, advancePhase, appendRisk, retireRisk, openRisks, registerHash, exposureOf,
+  type L3Phase, type GateVote, type GateInput, type GateVerdict, type RiskRow,
+} from "@/lib/2525-core/derisk";
+
 // Shared UI primitive (collapsible)
 export { Expander, type ExpanderColors } from "@/components/2525-core/expander";
