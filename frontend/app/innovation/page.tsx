@@ -1497,9 +1497,15 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
       lastX = pt.x;
     }
   }
-  // A lane is only usable where there is height to spend it in — `fill` mode has a whole panel, the
-  // roomier h-12 editor track has one row to give, and the 32px compact strip has none.
-  const laneLift = (k: string) => (lanes[k] ?? 0) * (fill ? LANE_STEP : compact ? 0 : LANE_STEP * 0.55);
+  // ⚠ Z-1 · COMPACT USED TO RETURN ZERO, WHICH MEANT THE LANES DID NOT EXIST WHERE THE OPERATOR SAW THEM
+  // FAIL. X-6b built the lane system because "Comp A" and our own marker overprint into an unreadable
+  // "Ab/Mb A" (IMG_8453) — then exempted `compact` on the reasoning that a 32px strip has no height to
+  // spend. That reasoning inspected the track and forgot the LABEL BAND ABOVE it, which is a `1fr` grid
+  // row and has always had room. So the one mode the operator actually photographed was the one mode the
+  // fix skipped, and the project deep-dive card has carried the collision ever since.
+  // Compact now gets a real lift — smaller than `fill`'s, because the band is shorter — and the track
+  // grows h-8 → h-10 to pay for it. Locked below by a test that drives two markers into collision.
+  const laneLift = (k: string) => (lanes[k] ?? 0) * (fill ? LANE_STEP : compact ? LANE_STEP * 0.6 : LANE_STEP * 0.55);
 
   return (
     <div className={fill ? "mt-1 flex min-h-0 flex-1 flex-col" : compact ? "mt-1" : "mt-2"}>
@@ -1530,7 +1536,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
         ))}
       </div>
       <div ref={barRef} onPointerMove={onMove} onPointerUp={endDrag} onPointerCancel={endDrag}
-           className={`relative rounded border bg-[#0e141b] ${fill ? "min-h-[2rem] flex-1" : compact ? "h-8" : "h-12"} ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
+           className={`relative rounded border bg-[#0e141b] ${fill ? "min-h-[2rem] flex-1" : compact ? "h-10" : "h-12"} ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
         <div data-ink className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
         {/* ⚠ X-1c · THREE BANDS, NOT ONE (operator, with the screenshot: "Price performance labels: NBA,
             Comp A, Comp B must be above circle. Have circle centered on line so we can read Low to High
@@ -1592,20 +1598,34 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
   );
 }
 
-/** X-4 · The S8 upper-right panel's aspect on the fixed 1600×900 slide canvas. A real constant of the sheet
- *  design, MEASURED against the live panel — see the `SLIDE_SLOT_ASPECT` drift lock, which fails if this and
- *  the rendered box disagree by more than 8%, so a layout change goes red instead of quietly shrinking the
- *  exported chart. Used only when no live measurement exists yet, which is every print render.
+/** X-4 · The aspect of a chart's panel slot on the fixed 1600×900 slide canvas. A real constant of the
+ *  sheet design, MEASURED against the live panel — see the `SLIDE_SLOT_ASPECT` drift lock, which fails if
+ *  an entry and its rendered box disagree by more than 8%, so a layout change goes red instead of quietly
+ *  shrinking the exported chart. Read only when no live measurement exists, which is every print render:
+ *  the print stack mounts under `display:none`, where a ResizeObserver reports 0×0 forever.
+ *
+ *  ⚠ Z-1 · A MAP, NOT A SCALAR, AND THAT CHANGE COMES BEFORE THE SECOND CHART. This was one number while
+ *  exactly one slide drew a `big` chart. S1 is about to draw the same waterfall into a differently shaped
+ *  box; a single seed cannot serve both, and the failure is invisible on screen because the screen
+ *  self-corrects from a live measurement — only the PDF letterboxes. That is the identical shape of two
+ *  bugs already paid for (X-4's stale seed, Y-2's absolute-px row, which cost the export a third of its
+ *  height while pdf-gate stayed green). Keyed by slide code; the drift lock iterates every entry.
+ *
  *  ⚠ NOT EXPORTED. A Next.js page module may only export `default` and a fixed set of route options —
  *  `export const SLIDE_SLOT_ASPECT` fails the build with TS2344 on the generated route types. The drift
  *  lock reads it out of the source text instead, which is what the other page-level locks already do. */
-const SLIDE_SLOT_ASPECT = 1.48;   // measured: the panel's flex column is 718.1 x 485.9 on the 1600x900 sheet
+const SLIDE_SLOT_ASPECT: Record<string, number> = {
+  S8: 1.48,   // measured: the panel's flex column is 718.1 x 485.9 on the 1600x900 sheet
+};
 
-function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, big }: {
+function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, big, slotKey }: {
   p: Project; mode: VPMode;
   drivers?: ValueDriver[]; onChange?: (d: ValueDriver[]) => void;
   nbaLabel?: string; addressableRevM?: number; onGenerate?: () => void;
   onCompetitors?: (c: WtpMarker[]) => void; big?: boolean;
+  /** Z-1 · which slide's slot this chart is being drawn into — the key into `SLIDE_SLOT_ASPECT`. Only the
+   *  print path reads it (no live measurement exists there); on screen the observer always wins. */
+  slotKey?: string;
 }) {
   const { t } = useLexicon();
   // ONE RECORD. When a caller is authoring it passes its own draft; otherwise the project's own drivers are
@@ -1729,7 +1749,11 @@ function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGe
   // The slide canvas is a FIXED 1600x900 design, so this panel's aspect is a real constant of the sheet,
   // not a guess — measured, and locked against drift by a gate that reads the live panel and fails if the
   // two disagree by more than 8%. A live measurement always wins; this only fills the gap before one exists.
-  const aspect = slotAspect > 0 ? slotAspect : big ? SLIDE_SLOT_ASPECT : 0;
+  // Z-1 · KEYED BY SLIDE CODE. The caller passes the code it is drawing into (`slotKey`); an unknown key
+  // yields 0, which falls back to the intrinsic layout — the same safe behaviour a non-`big` surface has
+  // always had. Adding a chart to a new slide WITHOUT seeding its slot therefore under-fills the export
+  // rather than letterboxing it, and the drift lock names the missing entry.
+  const aspect = slotAspect > 0 ? slotAspect : big ? (SLIDE_SLOT_ASPECT[slotKey ?? ""] ?? 0) : 0;
   const W = big && aspect > 0
     ? Math.min(1200, Math.max(W0, Math.round(intrinsic.H * aspect)))
     : W0;
@@ -5316,7 +5340,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // The strip is its own field now, so it can live in the COMPETITION panel where a competitor-positioning
     // axis belongs — and the waterfall can take the full sheet width without dragging it along.
     if (kind === "S8" && field === "wtp") return <CompetitionStrip p={p} ours={captureFraction(p)} oursLabel={(p.name || "Ours").split(" ")[0]} compact={big} fill={big} />;
-    if (kind === "S8") return <ValueProp p={p} mode="slide" big={big} />;
+    if (kind === "S8") return <ValueProp p={p} mode="slide" big={big} slotKey={kind} />;
     const fo = financialsOverview(p, { years: 6, funded: true });
     const series = kind === "S14"
       ? [{ label: "Resource $ (R&D)", color: "#a78bfa", vals: fo.map((r) => r.rdK / 1000) }]

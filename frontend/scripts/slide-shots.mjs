@@ -79,9 +79,16 @@ const PROJECT = process.env.PROJECT || "PRJ-23";
 // the EXPORTED PDF, silently, and the only lock that existed pinned the number instead of checking it.
 // This reads the constant out of the source and compares it against the panel the browser actually laid
 // out. 8% is far tighter than the ~3x error one layout change produces, and loose enough not to flap.
+// ⚠ Z-1 · THE CONSTANT IS A PER-CODE MAP NOW, SO THIS PARSES EVERY ENTRY. One number could only ever be
+// right for one slide; the moment a second slide draws a `big` chart, a scalar seed letterboxes one of
+// them in the PDF while both look perfect on screen. Every code that HAS a seed is checked against its
+// own live panel, and a code that draws a chart with NO seed is reported too — an unseeded chart merely
+// under-fills, but silence about it is how the next stale number gets in.
 const SLOT_TOL = 0.08;
-const SLOT_CONST = Number(
-  (await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8")).match(/const SLIDE_SLOT_ASPECT = ([\d.]+);/)?.[1] ?? 0);
+const SLOT_BLOCK = (await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8"))
+  .match(/const SLIDE_SLOT_ASPECT: Record<string, number> = \{([\s\S]*?)\n\};/)?.[1] ?? "";
+const SLOT_CONSTS = Object.fromEntries(
+  [...SLOT_BLOCK.matchAll(/(\w+):\s*([\d.]+)\s*,/g)].map((m) => [m[1], Number(m[2])]));
 const VIEWPORTS = [
   { name: "phone-portrait", width: 390, height: 844 },
   { name: "desktop-landscape", width: 1440, height: 810 },
@@ -319,19 +326,23 @@ for (const vp of VIEWPORTS) {
     for (const o of a.overflow.slice(0, 4))
       failures.push(`${tag} — OVERFLOW ${o.dx > 1 ? `+${o.dx}px wide` : ""}${o.dy > 1 ? ` +${o.dy}px tall` : ""} on <${o.tag}> "${o.text}"`);
 
-    // 1b · X-7 · S8's waterfall slot must still match the constant its PRINT layout is seeded from.
-    if (code === "S8") {
+    // 1b · X-7/Z-1 · ANY slide that draws the waterfall must match the seed its PRINT layout uses.
+    // Driven by what is ON SCREEN, not by a hardcoded code list: if the chart is there, it gets checked.
+    {
       const slot = await page.evaluate(() => {
         const g = document.querySelector('[data-slide-canvas] svg[aria-label^="Value creation"]');
         const box = g?.closest("[data-panel-body]")?.getBoundingClientRect();
         return box && box.height > 0 ? +(box.width / box.height).toFixed(3) : 0;
       });
-      if (!SLOT_CONST) failures.push(`${tag} — could not read SLIDE_SLOT_ASPECT out of page.tsx`);
-      else if (!slot) failures.push(`${tag} — could not measure the waterfall's panel to check SLIDE_SLOT_ASPECT`);
-      else if (Math.abs(slot - SLOT_CONST) > SLOT_CONST * SLOT_TOL)
-        failures.push(`${tag} — SLIDE_SLOT_ASPECT is ${SLOT_CONST} but the panel measures ${slot} (>${Math.round(SLOT_TOL * 100)}% drift). `
+      const seed = SLOT_CONSTS[code];
+      if (!Object.keys(SLOT_CONSTS).length) failures.push(`${tag} — could not read the SLIDE_SLOT_ASPECT map out of page.tsx`);
+      else if (slot && seed === undefined)
+        failures.push(`${tag} — this slide draws the waterfall but has NO SLIDE_SLOT_ASPECT entry. It measures ${slot}. `
+          + `Without a seed the print copy falls back to the intrinsic layout and under-fills its box. Add "${code}: ${slot}".`);
+      else if (slot && Math.abs(slot - seed) > seed * SLOT_TOL)
+        failures.push(`${tag} — SLIDE_SLOT_ASPECT.${code} is ${seed} but the panel measures ${slot} (>${Math.round(SLOT_TOL * 100)}% drift). `
           + `The SCREEN self-corrects and hides this; the EXPORTED PDF lays out from the constant and will letterbox. Update it.`);
-      else console.log(`  · S8 slot aspect ${slot} vs SLIDE_SLOT_ASPECT ${SLOT_CONST} — within ${Math.round(SLOT_TOL * 100)}%`);
+      else if (slot) console.log(`  · ${code} slot aspect ${slot} vs SLIDE_SLOT_ASPECT.${code} ${seed} — within ${Math.round(SLOT_TOL * 100)}%`);
     }
 
     // 2 · TYPE SCALE (normalised to the print sheet)

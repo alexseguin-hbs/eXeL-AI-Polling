@@ -265,9 +265,14 @@ for (const paper of PAPER) for (const mode of MODES) {
   // The property is the ASPECT: whatever the print copy mounted with must match the slot it will be drawn
   // into. Direction-agnostic, and it still catches the original defect — unmeasured is 320/165.4 = 1.935
   // against a 1.51 slot, which is 28% out.
-  const SEED = Number((await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8")).match(/const SLIDE_SLOT_ASPECT = ([\d.]+);/)?.[1] ?? 0);
+  // Z-1 · the seed is a per-code map now; this reads S8's entry, which is the sheet `mounted` samples.
+  const SEED_BLOCK = (await readFile(join(ROOT, "app/innovation/page.tsx"), "utf8"))
+    .match(/const SLIDE_SLOT_ASPECT: Record<string, number> = \{([\s\S]*?)\n\};/)?.[1] ?? "";
+  const SEED = Number(SEED_BLOCK.match(/\bS8:\s*([\d.]+)/)?.[1] ?? 0);
   if (!mounted.vbAspect)
     failures.push(`${P} — could not read the print stack's waterfall viewBox at mount`);
+  else if (!SEED)
+    failures.push(`${P} — could not read SLIDE_SLOT_ASPECT.S8 out of page.tsx`);
   else if (Math.abs(mounted.vbAspect - SEED) > SEED * 0.1)
     failures.push(`${P} — the print stack mounted with viewBox aspect ${mounted.vbAspect} against a ${SEED} slot (>10% out): `
       + `the exported chart is laid out for the WRONG box and will letterbox`);

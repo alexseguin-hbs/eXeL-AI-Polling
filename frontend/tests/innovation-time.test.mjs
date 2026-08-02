@@ -3164,8 +3164,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // thing, because the plot area is `H − B − T`: taller bars, same caption band, same type. fillV -> 92.0%.
   ok(/const H = big && aspect > 0 \? Math\.max\(H0, Math\.round\(W \/ aspect\)\) : H0;/.test(veq),
      "a slot taller than the drawing grows H — the width lever alone leaves vertical letterbox");
-  ok(/const aspect = slotAspect > 0 \? slotAspect : big \? SLIDE_SLOT_ASPECT : 0;/.test(veq),
+  ok(/const aspect = slotAspect > 0 \? slotAspect : big \? \(SLIDE_SLOT_ASPECT\[slotKey \?\? ""\] \?\? 0\) : 0;/.test(veq),
      "a live measurement always wins; the sheet constant only fills the gap before one exists");
+  // Z-1 · keyed by slide code. A scalar could only ever be right for ONE slot; the second `big` chart
+  // would letterboxin the PDF while the screen self-corrected. An unknown key yields 0 → intrinsic layout,
+  // which under-fills rather than mis-fills, and the gate names the missing entry.
+  ok(/slotKey\?: string;/.test(src), "ValueProp takes the slide code it is being drawn into");
+  ok(/if \(kind === "S8"\) return <ValueProp p=\{p\} mode="slide" big=\{big\} slotKey=\{kind\} \/>;/.test(src),
+     "…and the chart dispatch passes it, so the seed is chosen per slide rather than shared");
 
   // 3 · Every non-slide surface — the deep dive, the source panel, SSR and first paint — keeps the
   //     intrinsic 320. This is what makes the change additive rather than a redesign of four other views.
@@ -3220,7 +3226,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // 4 · THE WTP STRIP IS COMPACT ON A SLIDE ONLY. Dragging a marker happens in the source editor, which
   //     keeps the roomier track it was tuned for.
-  ok(/compact \? "h-8" : "h-12"/.test(src), "the Price Performance track is shorter on a slide and unchanged elsewhere");
+  ok(/compact \? "h-10" : "h-12"/.test(src), "the Price Performance track is shorter on a slide and unchanged elsewhere");
   ok(/<CompetitionStrip [^>]*compact=\{big\}/.test(src), "…and `compact` is exactly `big`, i.e. slide mode");
 }
 
@@ -3251,7 +3257,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // header that got removed; the strip keeps the full-height `fill` track it gained in X-5.
   ok(/<AmtsPanel title="Primary Customer Value Proposition" icon="♡">\s*\{leanFieldsOf\("vprop", "nba", "wtp"\)\}/.test(src),
      "Price Performance shares the upper-left box with the value proposition and the NBA");
-  ok(/fill \? "min-h-\[2rem\] flex-1" : compact \? "h-8" : "h-12"/.test(src),
+  ok(/fill \? "min-h-\[2rem\] flex-1" : compact \? "h-10" : "h-12"/.test(src),
      "…and its track FILLS that panel instead of leaving a void under a fixed 32px strip");
   // ⚠ X-4 · NOT `wide`. The operator: "I need competitive Value Waterfall in right section like before …
   // Who told you to move? keep to upper right box." The waterfall is the UPPER-RIGHT panel of a 2x2, and it
@@ -3320,8 +3326,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // catches the original defect — unmeasured is 1.935 against a 1.51 slot, 28% out.
   ok(/Math\.abs\(mounted\.vbAspect - SEED\) > SEED \* 0\.1/.test(gate),
      "the at-mount check compares the print copy's viewBox ASPECT to the slot it will be drawn into");
-  ok(/const SEED = Number\(\(await readFile\(join\(ROOT, "app\/innovation\/page\.tsx"\), "utf8"\)\)\.match\(\/const SLIDE_SLOT_ASPECT/.test(gate),
-     "…reading the seed from the source, so the gate and the deck cannot hold different numbers");
+  ok(/const SEED = Number\(SEED_BLOCK\.match\(\/\\bS8:\\s\*\(\[\\d\.\]\+\)\/\)/.test(gate)
+     && /SLIDE_SLOT_ASPECT: Record<string, number>/.test(gate),
+     "…reading S8's entry out of the per-code seed map in the source, so gate and deck cannot disagree");
 }
 
 // ── X-4 · THE UPPER-RIGHT BOX · THE 2×2 · AND THE PRINT SEED ─────────────────────────────
@@ -3410,15 +3417,22 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and CONOPS keeps the full-width span it has always had");
 
   // 3 · THE PRINT SEED — the reason the exported chart was a small drawing in a big box.
-  ok(/const SLIDE_SLOT_ASPECT = 1\.48;/.test(src), "the sheet-constant slot aspect is the MEASURED 1.48");
+  ok(/const SLIDE_SLOT_ASPECT: Record<string, number> = \{[\s\S]*?\n  S8: 1\.48,/.test(src),
+     "the sheet-constant slot aspect is a per-code MAP, and S8's entry is the measured 1.48");
   // ⚠ X-7 · AND IT IS NOW ACTUALLY GUARDED. X-4's comment promised a drift lock and I never built one; the
   // pin above is a pin, not a guard — it would go red on a CORRECT update and stay green while the number
   // rotted. slide-shots now measures the live panel and fails past 8%. Mutation-tested with the stale 2.03.
   const shotsX7 = await (await import("node:fs/promises")).readFile("scripts/slide-shots.mjs", "utf8");
-  ok(/const SLOT_CONST = Number\(/.test(shotsX7) && /SLIDE_SLOT_ASPECT = \(\[\\d\.\]\+\)/.test(shotsX7),
-     "the gate reads SLIDE_SLOT_ASPECT out of the source rather than duplicating the number");
-  ok(/Math\.abs\(slot - SLOT_CONST\) > SLOT_CONST \* SLOT_TOL/.test(shotsX7),
-     "…and compares it against the panel the browser actually laid out");
+  ok(/const SLOT_CONSTS = Object\.fromEntries\(/.test(shotsX7) && /SLIDE_SLOT_ASPECT: Record<string, number>/.test(shotsX7),
+     "the gate reads the SLIDE_SLOT_ASPECT map out of the source rather than duplicating the numbers");
+  ok(/Math\.abs\(slot - seed\) > seed \* SLOT_TOL/.test(shotsX7),
+     "…and compares each entry against the panel the browser actually laid out");
+  // Z-1 · driven by what is ON SCREEN, not a hardcoded code list — a new slide that draws the waterfall
+  // is checked the moment it exists, and an UNSEEDED one is reported rather than silently under-filling.
+  ok(/this slide draws the waterfall but has NO SLIDE_SLOT_ASPECT entry/.test(shotsX7),
+     "…and a charted slide with no seed is named, not skipped");
+  ok(!/if \(code === "S8"\) \{\n      const slot/.test(shotsX7),
+     "…the check is not gated on a hardcoded S8");
   ok(/The SCREEN self-corrects and hides this; the EXPORTED PDF lays out from the constant/.test(shotsX7),
      "…and the failure says WHY it matters — the screen hides this defect, the PDF ships it");
 
@@ -3432,8 +3446,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and OUR marker is in the sort, not special-cased — it is half of the collision");
   ok(/lane = pt\.x - lastX < LANE_GAP \? Math\.min\(MAX_LANE, lane \+ 1\) : 0;/.test(src),
      "…a marker takes the next lane only when it lands inside the threshold, and lanes cannot run away");
-  ok(/const laneLift = \(k: string\) => \(lanes\[k\] \?\? 0\) \* \(fill \? LANE_STEP : compact \? 0 : LANE_STEP \* 0\.55\);/.test(src),
-     "…and a lane is only spent where there is height to spend it — never in the 32px compact strip");
+  // ⚠ Z-1 · THIS LOCK USED TO ASSERT compact === 0, AND IT WAS PINNING THE BUG. X-6b built the lanes
+  // because "Comp A" and our own marker overprint (IMG_8453) — then exempted `compact` on the reasoning
+  // that a 32px strip has no height to spend. That inspected the TRACK and forgot the label band above it,
+  // which is a `1fr` grid row and always had room. So the single mode the operator photographed was the
+  // one mode the fix skipped, and this test froze that in place. Compact now lifts too.
+  ok(/const laneLift = \(k: string\) => \(lanes\[k\] \?\? 0\) \* \(fill \? LANE_STEP : compact \? LANE_STEP \* 0\.6 : LANE_STEP \* 0\.55\);/.test(src),
+     "…and EVERY mode spends a lane, compact included — the label band has room even when the track does not");
   // ⚠ COMMENTS STRIPPED — third time this session a ban matched the sentence explaining it. The rule is
   // about CODE: a Next.js page may only export `default` and the route options, and `export const` here
   // fails the BUILD with TS2344 on the generated route types (paid for once, during X-4).
