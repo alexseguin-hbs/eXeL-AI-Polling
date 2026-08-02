@@ -1657,7 +1657,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const PANEL_FIELDS = {
     // X-7a · the S8 value-prop DETAIL now sits under the sentence on S1 (operator: "place value prop from
     // S8 with details on S1"). Both are `linked` read-outs of S8's record — no new authoring surface.
-    S1: ["oneline", "segment", "valueprop", "vpdiffs", "vpcapture", "ask"],
+    // Z-1 · S1 gained the waterfall and the Roadmap band; the coverage law is unchanged.
+    S1: ["valueprop", "oneline", "segment", "vpdiffs", "vpcapture", "vpchart", "ask", "schedule"],
     S2: ["profile", "accel", "roadmap", "toprisks", "status"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
     S8: ["nba", "diffs", "wtp", "valuechart", "capture", "vprop", "benefits", "features"],
@@ -1746,7 +1747,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   for (const code of ["S1", "S2"]) {
     const sp = SLIDE_SCHEMA.find((s) => s.code === code);
-    for (const f of sp.fields)
+    // ⚠ Z-1 · A LINKED **CHART** IS NOT RESOLVED HERE. `MiniFinChart` draws it from the project directly
+    // (that is what `alwaysRenders` means in `fieldsIn`), so `linkedSlideField` has no branch for one and
+    // never did — S8.valuechart has the same shape. Asserting a text value for a chart tests nothing and
+    // fails a field that is working; the chart's real gate is pdf-gate's painted-bar count.
+    for (const f of sp.fields.filter((x) => x.kind !== "chart"))
       ok(!empty(resolved(code, f)), `PRJ-01 ${code}.${f.id} ("${f.name}") resolves a NON-EMPTY value in present mode`);
   }
   // metrics panels must resolve every declared item key, not just the object
@@ -3221,8 +3226,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/\{ id: "capture", name: "Value creation \+ capture", kind: "metrics", linked: true/.test(data)
      && /code === "S8" && fieldId === "capture"\) return valuePropCapture\(p\)/.test(data),
      "S8.capture is still a real field with a real resolver — removed from a slide, not from the record");
-  ok(/fieldsOf\("valueprop", "vpdiffs", "vpcapture"\)/.test(src),
-     "S1's exec summary keeps its capture tile — this change is scoped to S8's slide");
+  // Z-1 · the tile survives, one column to the left: it now sits under the differentiators it summarises,
+  // off the right-hand chart column the operator cleared. Kept on S1, still absent from S8's slide.
+  ok(/fieldsOf\("vpdiffs", "vpcapture"\)/.test(src),
+     "S1's exec summary keeps its capture tile — it moved columns, it did not leave the slide");
 
   // 4 · THE WTP STRIP IS COMPACT ON A SLIDE ONLY. Dragging a marker happens in the source editor, which
   //     keeps the roomier track it was tuned for.
@@ -5780,6 +5787,75 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/from "react"|useState|localStorage|window\./.test(code), "…and no React, no browser globals — it composes anywhere");
   // The substrate must not fork per domain: no domain vocabulary in a substrate engine.
   ok(!/architect|manta|drone|innovation/i.test(code), "…and carries no domain vocabulary — one substrate, no forks");
+}
+
+// ── Z-1 · S1 IS THE TEMPLATE ONE-PAGER ───────────────────────────────────────────────────────
+// Operator, IMG_8458: "Match from original template" + "For the right side place visual from S8 water
+// fall chart" + "ensure full one sentence value prop text is there from S8" + "Upper right we have the
+// product type … place dog tag here with correct color and tag border" + "for bottom lets place
+// schedule … ensure input slide feeds present mode" + "calendar is key items needed for current year
+// + next 2 years". Every one of those is asserted here; the 33-project shape is gated in slide-shots.
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const s1 = src.slice(src.indexOf("      S1: () => ("), src.indexOf("      // S2 — Project Overview"));
+  const panels = [...s1.matchAll(/<AmtsPanel ((?:\w+ )*)title="([^"]+)"/g)].map((m) => `${m[1]}${m[2]}`);
+  ok(panels.join(" | ") === "tall Key Value Proposition | tall Value Equation · Differentiators | tall Product Type · Portfolio Positioning | full Recommendation · Ask For The Gate | full Roadmap + Schedule · Current Year + 2",
+     `S1 is three tall columns over a full-width Ask and a full-width Roadmap — got ${panels.join(" | ")}`);
+  // ⚠ `full`, NEVER `wide`. On a 3-column grid `col-span-2` is two thirds, not the row. The Ask shipped
+  // as `wide` for months and would have silently become a two-thirds box the moment S1 went 3-up.
+  ok(!/<AmtsPanel wide /.test(s1), "no S1 panel uses `wide` — col-span-2 is two thirds of a 3-column grid, not the row");
+  ok(/\$\{full \? "col-span-full" : wide \? "col-span-2" : ""\}/.test(src),
+     "…and `full` is col-span-full, which is correct at ANY column count");
+  ok(/const BODY_COLS: Record<string, number\|string> = \{ S1:|const BODY_COLS: Record<string, string> = \{ S1: "repeat\(3, minmax\(0, 1fr\)\)" \}/.test(src),
+     "S1's three columns are DECLARED, not inferred from panel count");
+  ok(!/S1: "[^"]*\d(px|rem|em)\b/.test(src), "S1's row budget carries no absolute length — the print stack rescales the sheet");
+
+  // The value proposition is S8's, and it comes FIRST in the left column.
+  ok(/<AmtsPanel tall title="Key Value Proposition" icon="♡">\s*\{fieldsOf\("valueprop", "oneline", "segment"\)\}/.test(src),
+     "the S8 sentence leads the left column, with oneline and segment beneath it (oneline kept — rule 6)");
+
+  // The dog tag is REUSED, nested in the positioning column, deterministic, and prints no financials.
+  ok(/<DogTag p=\{p\} showType slide \/>/.test(src), "the Product Type tag reuses DogTag with the type spelled out");
+  ok(/const metrics = \(slide \? DEFAULT_DOGTAG : loadDogtag\(\)\)/.test(src),
+     "…and a slide pins the metric set instead of reading localStorage — a printed sheet must be deterministic");
+  ok(!/showType slide onEditFinancials/.test(src), "…and carries no financial editor onto a board sheet");
+
+  // Two charts, two seeds. This is the trap Z-1a was built to close.
+  ok(/if \(kind === "S1" && field === "vpchart"\) return \(/.test(src), "S1 resolves its own chart, keyed by field");
+  ok(/<CompetitionStrip p=\{p\} ours=\{captureFraction\(p\)\} oursLabel=\{\(p\.name \|\| "Ours"\)\.split\(" "\)\[0\]\} compact \/>/.test(src),
+     "…and the compressed price bar rides under it — the same component S8 uses, in its short mode");
+  ok(/\n  S1: 1\.27,/.test(src) && /\n  S8: 1\.48,/.test(src), "both charted slides carry their own measured print seed");
+}
+
+// ── Z-1 · THE CALENDAR IS THE PLANNING HORIZON, NOT THE WHOLE LADDER ─────────────────────────
+// Operator: "calendar is key items needed for current year + next 2 years (as planning is largely
+// inaccurate after that)." EXECUTED against a real project, because a source match would pass on a
+// filter that compared the wrong way round.
+{
+  const F = await import("../lib/innovation-data.ts");
+  ok(F.PLANNING_HORIZON_YEARS === 3, "the horizon is the current year plus the next two");
+  const q = F.DEMO_PROJECTS[0];
+  const base = Number(F.gateScheduleOf(q)[0].startISO.slice(0, 4));
+  const { rows, beyond } = F.gateActivitiesOf(q, base);
+  ok(rows.length > 0, "a real project yields schedule rows inside its own window");
+  const years = rows.map((r) => Number(r.dateLabel.slice(-4)));
+  ok(Math.max(...years) <= base + 2, `no row falls past the horizon — max year ${Math.max(...years)} vs ${base + 2}`);
+  // A tight window must DROP gates, and must say how many rather than truncating in silence.
+  const tight = F.gateActivitiesOf(q, base - 5);
+  ok(tight.beyond > 0, "gates outside the window are counted, not silently dropped");
+  ok(tight.rows.every((r) => Number(r.dateLabel.slice(-4)) <= base - 3), "…and none of them render");
+  // PURE: no clock inside the producer, or a sheet rendered on 31 December differs from 1 January.
+  const lib = await (await import("node:fs/promises")).readFile("lib/innovation-data.ts", "utf8");
+  const fn = lib.slice(lib.indexOf("export function gateActivitiesOf"), lib.indexOf("// Minimum deliverables required"));
+  ok(!/Date\.now|new Date\(\)/.test(fn), "gateActivitiesOf reads no clock — the caller supplies the year");
+  // Every row carries real activities, on every project — the band must never be a row of empty boxes.
+  const empty = F.DEMO_PROJECTS.filter((x) => F.gateActivitiesOf(x, Number(F.gateScheduleOf(x)[0].startISO.slice(0, 4))).rows.some((r) => r.activities.length === 0));
+  ok(empty.length === 0, `every gate row carries key activities on all 33 projects (${empty.map((x) => x.id).join(", ")})`);
+  // And the field is registered, or its ✎ Edit link is a no-op (the V1 trap).
+  ok(/"S1\.vpchart": "S8", "S1\.schedule": "S10",/.test(lib), "both new S1 fields declare an owning record");
+  ok(/{ id: "schedule", name: "Roadmap \+ schedule", kind: "table", linked: true/.test(lib),
+     "the schedule is a TABLE — authored in the input slide, read in Present");
+  ok(!/{ id: "schedule"[^}]*req: true/.test(lib), "…and is req:false, so no project's gate score moves");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

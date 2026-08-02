@@ -1615,6 +1615,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
  *  `export const SLIDE_SLOT_ASPECT` fails the build with TS2344 on the generated route types. The drift
  *  lock reads it out of the source text instead, which is what the other page-level locks already do. */
 const SLIDE_SLOT_ASPECT: Record<string, number> = {
+  S1: 1.27,   // measured: S1 Portfolio Positioning, dog tag above the chart, on the 1600x900 sheet
   S8: 1.48,   // measured: the panel's flex column is 718.1 x 485.9 on the 1600x900 sheet
 };
 
@@ -2247,14 +2248,25 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
   );
 }
 
-function DogTag({ p, onEditFinancials }: { p: Project; onEditFinancials?: () => void }) {
+function DogTag({ p, onEditFinancials, showType, slide }: {
+  p: Project; onEditFinancials?: () => void;
+  /** Z-1 · print the DEV_TYPE label beside the dot. The operator asked to SEE the product type on S1
+   *  ("most are new product"); today it is title/aria only, so it is invisible to a reader and to print.
+   *  Default off, so the project card this component was built for is untouched. */
+  showType?: boolean;
+  /** ⚠ Z-1 · SLIDE MODE PINS THE METRIC SET. The business face normally reads `loadDogtag()` —
+   *  localStorage. On a board sheet that means the printed tag carries whatever the operator last
+   *  configured, and a replay of the same project renders a different card. Neither is acceptable on a
+   *  governed artifact, so a slide gets the DEFAULT set, deterministically. (Thor + Odin, 12-AsM.) */
+  slide?: boolean;
+}) {
   const { t } = useLexicon();
   const h = hierOf(p);
   const dt = DEV_TYPE[devTypeOf(p)]; // project TYPE (orange/blue/green/purple) — a distinct cue (the ● dot)
   const pillar = metaOf(p).initiative;
   const pillarColor = pillarColorOf(pillar, loadPillars()); // highlight/border = Strategic Innovation Pillar
   const [face, setFace] = useState<"biz" | "eng">("biz"); // Slice 2 — engineer ⇄ business face flip
-  const metrics = loadDogtag().map((kk) => DOGTAG_METRICS.find((m) => m.key === kk)).filter(Boolean) as typeof DOGTAG_METRICS;
+  const metrics = (slide ? DEFAULT_DOGTAG : loadDogtag()).map((kk) => DOGTAG_METRICS.find((m) => m.key === kk)).filter(Boolean) as typeof DOGTAG_METRICS;
   // Engineering face — deps/load/readiness read (on-project data), vs the business highlight metrics.
   const rb = riskBandOf(p);
   const engMetrics: { label: string; val: string }[] = [
@@ -2275,6 +2287,12 @@ function DogTag({ p, onEditFinancials }: { p: Project; onEditFinancials?: () => 
           <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: dt.color }} title={`Project type: ${dt.label}`} aria-label={`Project type: ${dt.label}`} />
           <span className="truncate">{p.name}</span>
         </div>
+        {/* Z-1 · the product type IN WORDS. The template's upper-right stack (Research/Demo · Feature/Payload
+            · NextGen/Refresh · New Product · Sustain) is a LABEL, not a dot — a reader has to be able to
+            read which one this project is without hovering. Same `dt` the dot is coloured from. */}
+        {showType && (
+          <div className="mt-0.5 truncate text-[9px] font-semibold uppercase tracking-[0.14em]" style={{ color: dt.color }}>{dt.label}</div>
+        )}
         <div className="mt-0.5 flex flex-col items-center gap-0 text-[10px] leading-tight">
           {face === "biz"
             ? metrics.map((m) => (<div key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></div>))
@@ -4786,7 +4804,18 @@ const BODY_ROWS: Record<string, string> = {
   // waterfall fell from 51% of the canvas to 41% / 33%. The gate's floor is 12%, so it stayed GREEN — the
   // regression was only visible because the run prints the number. 138/900 = 15.33cqh scales with the sheet.
   S8: "minmax(0, 1fr) auto minmax(15.33cqh, auto)",
+  // Z-1 · S1's four bands. Rows 1-2 are the three template columns (every one of them `tall`, so the
+  // band is theirs and auto-placement has no implicit row to invent); row 3 the one-sentence Ask; row 4
+  // the Roadmap band. Same law as S8: NO absolute lengths, ever — the print stack rescales the sheet.
+  S1: "minmax(0, 1.35fr) minmax(0, 1.25fr) auto minmax(0, 1.1fr)",
 };
+
+// ⚠ Z-1 · THE BODY GRID IS TWO COLUMNS FOR EVERY SLIDE BUT ONE. The AMTS sheet has always been a 2-up,
+// and it still is — S1 alone becomes a 3-up because the original template it is being matched to has
+// three columns across the top (Project Overview · Market Opportunity · Portfolio Positioning). Declared
+// here rather than inferred from panel count, for the same reason `PANEL_SPAN` was: a layout that infers
+// itself changes shape when someone adds a box, silently.
+const BODY_COLS: Record<string, string> = { S1: "repeat(3, minmax(0, 1fr))" };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
 // the sentence, the NBA it must beat, the waterfall, and the differentiators behind it. When that panel is
@@ -4800,14 +4829,17 @@ const S8_PANEL_ECHO = new Set(["vprop", "nba", "valuechart", "diffs"]);
 // `wide` spans both COLUMNS; `tall` spans three ROWS. X-7 added `tall` so one panel can run the height of
 // a stack beside it — the waterfall against VProp / NBA / Price Performance — which is the only way a chart
 // gets real height on a sheet that also has to carry five prose boxes.
-function AmtsPanel({ title, icon, required, wide, tall, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; tall?: boolean; children: React.ReactNode }) {
+function AmtsPanel({ title, icon, required, wide, tall, full, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; tall?: boolean; full?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
     // `tall` = "run beside the whole stack in the other column". S8 is the only caller and its stack is two
     // rows deep (Y-1 folded three boxes into one), so the span is a literal — Tailwind cannot see a computed
     // class name, and a lookup table for one caller is the Succinctness pillar's failure mode.
-    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""} ${tall ? "row-span-2" : ""}`}>
+    // Z-1 · `full` is `col-span-full`, which is correct at ANY column count — `wide`'s literal
+    // `col-span-2` means "two thirds" on the 3-column S1, not "the whole row". The two are not
+    // interchangeable and a lock forbids `wide` on S1 for exactly that reason.
+    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${full ? "col-span-full" : wide ? "col-span-2" : ""} ${tall ? "row-span-2" : ""}`}>
       <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1cqw] py-[0.5cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
           {icon && <span aria-hidden style={{ fontSize: TS.head }}>{icon}</span>}
@@ -5340,6 +5372,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // The strip is its own field now, so it can live in the COMPETITION panel where a competitor-positioning
     // axis belongs — and the waterfall can take the full sheet width without dragging it along.
     if (kind === "S8" && field === "wtp") return <CompetitionStrip p={p} ours={captureFraction(p)} oursLabel={(p.name || "Ours").split(" ")[0]} compact={big} fill={big} />;
+    // ⚠ Z-1 · S1's PORTFOLIO POSITIONING = the S8 waterfall + the COMPRESSED price bar, stacked. Operator:
+    // "place visual from S8 water fall chart … only have visual with price positioning and comp A and
+    // CompB from existing price positioning bar (just make compressed version)". Both are the components
+    // S8 already renders — the SAME producers, so S1 and S8 cannot show different value. `compact` is the
+    // existing short mode, and it only became safe to reuse once Z-1a gave it the label lanes.
+    if (kind === "S1" && field === "vpchart") return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col"><ValueProp p={p} mode="slide" big={big} slotKey={kind} /></div>
+        <CompetitionStrip p={p} ours={captureFraction(p)} oursLabel={(p.name || "Ours").split(" ")[0]} compact />
+      </div>
+    );
     if (kind === "S8") return <ValueProp p={p} mode="slide" big={big} slotKey={kind} />;
     const fo = financialsOverview(p, { years: 6, funded: true });
     const series = kind === "S14"
@@ -5462,6 +5505,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     // CONOPS (operational concept) renders as a numbered step-flow — 6–10 ordered steps, each an image-tiled
     // card — matching the reference deck; spans the full width so the sequence reads left-to-right.
     const isConops = f.id === "conops" && (f.ordered || !!f.mirror);
+    // ⚠ Z-1 · THE ROADMAP BAND IS HORIZONTAL, NOT A TABLE, AND THE GATE TOLD ME SO. Authored as a table
+    // (so the input slide can edit every cell — "ensure input slide feeds present mode"), but SEVEN gate
+    // rows stacked vertically overflowed the full-width band by 120px. The template draws this as a
+    // left-to-right roadmap, which is also the shape that fits: one column per gate, activities beneath.
+    const isSchedule = sp.code === "S1" && f.id === "schedule";
     const wide2 = isConops ? "col-span-2" : "";
     return (
       <div className={bare ? `flex min-h-0 min-w-0 flex-col ${wide2}` : `flex min-h-0 flex-col overflow-hidden rounded-lg ring-1 ring-inset ${acc.ring} ${isVp ? "bg-cyan-500/[0.05]" : "bg-[#0b0f14]"} ${wide2}`}>
@@ -5516,7 +5564,23 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             what the waterfall above now uses. The figures are the chart's own endpoints, so reading them as
             its caption is truer than reading them as separate metrics. */}
         {f.kind === "metrics" && <div className="flex flex-wrap items-baseline justify-between gap-x-[1.2cqw] gap-y-[0.3cqh] rounded-lg border border-slate-800 px-[0.8cqw] py-[0.35cqh]">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <span key={m.k} className="flex items-baseline gap-[0.4cqw]"><span className="font-bold tabular-nums text-slate-100" style={big ? { fontSize: TS.head } : undefined}>{rec[m.k]}</span><span className={`uppercase tracking-wider text-slate-500 ${big ? "" : "text-[9px]"}`} style={big ? { fontSize: TS.micro } : undefined}>{m.label}</span></span> : null; })}</div>}
-        {(f.kind === "table" || f.kind === "chart") && Array.isArray(v) && <ChartFrame label={f.name}>{f.id === "stories"
+        {f.kind === "table" && isSchedule && Array.isArray(v) && (
+          <div className="flex w-full items-stretch gap-[0.5cqw]">
+            {(v as string[][]).filter((r) => r[0]).map((r, i) => (
+              <div key={i} className="flex min-w-0 flex-1 flex-col rounded border border-slate-800 bg-[#0e141b] px-[0.5cqw] py-[0.4cqh]">
+                <div className="flex items-baseline justify-between gap-1">
+                  <span className="font-mono font-semibold text-cyan-300" style={big ? { fontSize: TS.body } : undefined}>{r[0]}</span>
+                  <span className="truncate text-slate-500" style={big ? { fontSize: TS.micro } : undefined}>{r[1]}</span>
+                </div>
+                <div className="tabular-nums text-slate-400" style={big ? { fontSize: TS.micro } : undefined}>{r[2]}</div>
+                <ul className="m-0 mt-[0.3cqh] list-none p-0 text-slate-300" style={big ? { fontSize: TS.micro } : undefined}>
+                  {(r[3] || "").split(" · ").filter(Boolean).map((a, j) => <li key={j} className="truncate leading-tight">· {a}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        {(f.kind === "table" || f.kind === "chart") && !isSchedule && Array.isArray(v) && <ChartFrame label={f.name}>{f.id === "stories"
           ? <StorySpecs cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
           : <div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div>}</ChartFrame>}
         {/* Single source of truth — icon-link to whichever slide OWNS this field's record (SOURCE_SLIDE). */}
@@ -5570,21 +5634,52 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       return {
       // S1 — Executive Summary (AMTS exec one-pager: what / who | why | the ask). The ask spans the foot
       // because it is the one line a gate board has to act on.
+      // ⚠ Z-1 · S1 IS THE ORIGINAL TEMPLATE'S ONE-PAGER NOW (operator, IMG_8458: "Match from original
+      // template"). THREE columns — the only 3-up in the deck, declared in BODY_COLS — because the
+      // template runs Overview · Market · Positioning across its top. Panel order IS grid auto-placement
+      // order, so this list is the layout:
+      //
+      //   ♡ Key Value Prop (tall) │ ◎ Market Opportunity (tall) │ ▪ Product Type   ← dog tag
+      //                           │                             │ ◈ Portfolio Positioning (tall)
+      //   ◧ Product Strategy      │ ⇄ Dependencies              │   waterfall + compressed price bar
+      //   ⚑ Recommendation · Ask For The Gate                                    (full)
+      //   ▦ Roadmap + Schedule                                                   (full)
+      //
+      // `full`, NOT `wide`: on a 3-column grid `col-span-2` is two thirds, not the row (Enlil, 12-AsM).
       S1: () => (
         <>
-          <AmtsPanel title="Product · What It Is And Who It Is For" icon="◧">
-            {fieldsOf("oneline", "segment")}
+          {/* The S8 sentence FIRST — "ensure full one sentence value prop text is there from S8" — then
+              `oneline` and the segment beneath it. `valueprop` is linked to S8's own producer, so the two
+              slides cannot drift; `oneline` stays because nothing asked for its removal (rule 6). */}
+          <AmtsPanel tall title="Key Value Proposition" icon="♡">
+            {fieldsOf("valueprop", "oneline", "segment")}
           </AmtsPanel>
-          {/* X-7a · THE SENTENCE, THEN THE EVIDENCE UNDER IT (operator: "place value prop from S8 with
-              details on S1"). All three resolve from S8's record via the same producers S8 itself uses —
-              `valuePropOf`, `valuePropRows`, `valuePropCapture` — so the exec summary carries the WHY
-              (which differentiators, worth what, how the value splits) without becoming a second place to
-              author it. Editing a driver or the capture % on S8 moves this panel too. */}
-          <AmtsPanel title="Key Value Proposition" icon="♡">
-            {fieldsOf("valueprop", "vpdiffs", "vpcapture")}
+          {/* ⚠ NAMED FOR WHAT IT SHOWS. This column becomes Market Opportunity (pursuits · CRM) in the
+              next slice; until it does, calling it that would be a label promising content it does not
+              have — the exact thing the empty-panel gate exists to prevent, one level up. */}
+          <AmtsPanel tall title="Value Equation · Differentiators" icon="▪">
+            {fieldsOf("vpdiffs", "vpcapture")}
           </AmtsPanel>
-          <AmtsPanel wide title="Recommendation · Ask For The Gate" icon="⚑">
+          {/* ⚠ THE DOG TAG SITS INSIDE THIS PANEL, NOT IN ONE OF ITS OWN, AND I TRIED IT THE OTHER WAY
+              FIRST. As a fourth panel it forced an `auto` row that auto-placement then made column 3's
+              only full row: the S1×33 gate measured the chart's slot at aspect 5.248 — a letterbox
+              sliver — and overflowed the value-prop panel by 34px. Nesting it restores three equal
+              columns with no implicit rows, and it is also truer to IMG_8458, where the coloured
+              product-type block sits directly above Portfolio Positioning in the same column.
+              Reuses the DogTag the project card already renders — pillar-coloured border, DEV_TYPE dot —
+              with the type spelled out (`showType`) and the metric set PINNED (`slide`) so a printed
+              board sheet is deterministic rather than reflecting whatever was last configured. */}
+          <AmtsPanel tall title="Product Type · Portfolio Positioning" icon="◈">
+            {/* Capped: the tag is an identifier, not the content. Uncapped it took ~40% of the column
+                and the waterfall — the thing the operator asked to put here — became a thumbnail. */}
+            <div className="max-h-[13cqh] shrink-0 overflow-hidden"><DogTag p={p} showType slide /></div>
+            {fieldsOf("vpchart")}
+          </AmtsPanel>
+          <AmtsPanel full title="Recommendation · Ask For The Gate" icon="⚑">
             {fieldsOf("ask")}
+          </AmtsPanel>
+          <AmtsPanel full title="Roadmap + Schedule · Current Year + 2" icon={<MarkCalendar />}>
+            {fieldsOf("schedule")}
           </AmtsPanel>
         </>
       ),
@@ -5902,7 +5997,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 [data-slide-zoom] is kept as the print CSS's reset anchor even though it no longer transforms:
                 it costs nothing and it means a re-introduced body zoom still cannot reach the PDF. */}
             <div data-slide-zoom className="mt-[1.2cqh] min-h-0 flex-1 overflow-hidden">
-              <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden" style={{ fontSize: TS.body, ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}) }}>
+              <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden"
+                style={{ fontSize: TS.body,
+                  ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}),
+                  ...(BODY_COLS[sp.code] ? { gridTemplateColumns: BODY_COLS[sp.code] } : {}) }}>
                 {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
                 {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
               </div>

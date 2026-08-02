@@ -119,8 +119,14 @@ const open = async (pg, mode) => {
   // Everything after this line — 700ms of settle, `emulateMedia`, another 400ms — is time the GATE has and
   // the OPERATOR does not. Measuring after those waits is why a mutation that removes the print seed still
   // showed 97%: the observer had already landed. Reading here removes timing from the assertion entirely.
+  // ⚠ Z-1 · SCOPED TO S8'S SHEET. There are TWO waterfalls in the stack now (S1 gained one), and a bare
+  // `querySelector` returns whichever sheet comes first — S1's, whose slot is a legitimately different
+  // shape. Comparing S1's viewBox against S8's seed failed a chart that was correct. The assertion is
+  // per-sheet or it is nonsense.
   const mounted = await pg.evaluate((cls) => {
-    const g = document.querySelector(`.slide-print-stack.${cls} svg[aria-label^="Value creation"]`);
+    const sheet = [...document.querySelectorAll(`.slide-print-stack.${cls} [data-slide-code]`)]
+      .find((e) => e.getAttribute("data-slide-code") === "S8");
+    const g = (sheet ?? document).querySelector('svg[aria-label^="Value creation"]');
     const vb = (g?.getAttribute("viewBox") || "").split(/\s+/).map(Number);
     return { vbW: vb[2] || 0, vbH: vb[3] || 0, vbAspect: vb[3] > 0 ? +(vb[2] / vb[3]).toFixed(3) : 0 };
   }, mode.cls);

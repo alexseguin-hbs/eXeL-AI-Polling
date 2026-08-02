@@ -49,6 +49,45 @@ export function gateScheduleOf(p: Project, opts: { startISO?: string; phaseDays?
   }));
 }
 
+/**
+ * Z-1 · THE ROADMAP BAND'S ROWS — GATES INSIDE THE PLANNING HORIZON, AND ONLY THOSE.
+ * Operator: "calendar is key items needed for current year + next 2 years (as planning is largely
+ * inaccurate after that)." So the band is not "all seven gates"; it is the window a board can actually
+ * commit to. A G7 in 2034 on a 2026 sheet is not a plan, it is decoration — and printing it invites a
+ * commitment nobody can hold.
+ *
+ * Dates come from `gateScheduleOf` (one date math for the whole deck — the S2 timeline reads the same
+ * function). Activities come from `GATE_REVIEW[g].deliverables`, which already exists per gate, so all
+ * 33 projects carry real defaults on day one and nothing is invented here.
+ *
+ * `baseYear` is passed in, never read from the clock: a producer that calls `new Date()` renders a
+ * different sheet on 31 December than on 1 January, and the replay hash would drift with the calendar.
+ * NO SILENT TRUNCATION — when gates fall outside the window the caller is told how many, so the band
+ * can say so rather than quietly ending early.
+ */
+export interface SchedRow { gate: Gate; stage: string; dateLabel: string; activities: string[]; done: boolean; current: boolean }
+export const PLANNING_HORIZON_YEARS = 3;   // the current year + the next two
+export function gateActivitiesOf(p: Project, baseYear: number): { rows: SchedRow[]; beyond: number } {
+  const lastYear = baseYear + PLANNING_HORIZON_YEARS - 1;
+  const all = gateScheduleOf(p);
+  const rows: SchedRow[] = [];
+  let beyond = 0;
+  for (const st of all) {
+    const y = Number(st.startISO.slice(0, 4));
+    if (y > lastYear) { beyond++; continue; }
+    // A gate already CLOSED in a prior year is history, not plan — the band is forward-looking.
+    if (y < baseYear && st.done) continue;
+    const d = new Date(st.startISO + "T00:00:00Z");
+    rows.push({
+      gate: st.gate, stage: st.stage,
+      dateLabel: `${d.toLocaleString("en-US", { month: "short", timeZone: "UTC" })} ${d.getUTCFullYear()}`,
+      activities: (GATE_REVIEW[st.gate]?.deliverables ?? []).slice(0, 3).map((x) => x.name),
+      done: st.done, current: st.current,
+    });
+  }
+  return { rows, beyond };
+}
+
 // Minimum deliverables required at each gate to de-risk development (AMTS S1–S18 matrix):
 // slide # · description · summary, plus the Must-Have / Recommended preparation & alignment docs.
 // Financial — Return (S3) is the 3rd-most-important slide (priority: 3).
@@ -577,6 +616,9 @@ export const nextCompetitorLabel = (cur: WtpMarker[]): string | null => {
  *  at module-evaluation time — a `const` declared further down the file would be a temporal-dead-zone crash
  *  on import, not a type error, so `tsc` would pass and the route would white-screen. */
 export const S8_DIFF_COLS = ["Differentiator", "Value $M", "Importance", "vs NBA"] as const;
+// Z-1 · S1's Roadmap + Schedule band. Four columns, the operator's own framing: which gate, what stage,
+// when, and what has to actually happen in it.
+const S1_SCHED_COLS = ["Gate", "Stage", "Date", "Key Activities"] as const;
 
 export const emptyFinYear = (year: number): FinYear => ({
   year, labor: 0, contractor: 0, materials: 0, other: 0, sustain: 0,
@@ -2586,6 +2628,15 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // line cannot blank the panel. Still `req: true`: gate completeness is untouched on all 33 projects.
     { id: "valueprop", name: "Key value proposition", kind: "text", req: true, linked: true },
     { id: "segment", name: "Target segment / customer", kind: "text", req: true },
+    // ── Z-1 · THE TEMPLATE'S PORTFOLIO-POSITIONING BOX AND ITS ROADMAP BAND ──────────────────────────
+    // Operator, matching IMG_8458: "For the right side place visual from S8 water fall chart" and
+    // "for bottom lets place schedule, for now place default gate dates, key activities … ensure input
+    // slide feeds present mode."
+    // ⚠ BOTH ARE `req: false`. A required field re-scores gate completeness on all 33 projects, and
+    // nobody asked for a scoring change (Christo, 12-AsM).
+    { id: "vpchart", name: "Portfolio positioning", kind: "chart", linked: true },
+    { id: "schedule", name: "Roadmap + schedule", kind: "table", linked: true, cols: [...S1_SCHED_COLS],
+      hint: "Current year + the next two. Gate dates come from the program start; key activities seed from the gate review and are editable." },
     // ── X-7a · THE S8 VALUE PROP, WITH ITS DETAILS, ON S1 ────────────────────────────────────────────
     // Operator: "place value prop from S8 with details on S1". S1 already renders the value-prop SENTENCE
     // (`valueprop`, linked since V1) — what an exec summary lacked was the evidence UNDER it: which
@@ -2597,6 +2648,11 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // these are evidence, not a new gate obligation, so every project's percentage is byte-identical.
     { id: "vpdiffs", name: "Value equation · differentiators", kind: "table", linked: true, cols: [...S8_DIFF_COLS],
       hint: "The S8 differentiators behind the value proposition above. Authored on S8, never here." },
+    // ⚠ Z-1 · THE CAPTURE TILE STAYS ON S1, IT JUST MOVED COLUMNS. The operator took it off the RIGHT
+    // ("only have visual with price positioning and comp A and CompB"), which is where it was; it now
+    // sits under the differentiators it summarises. Removing the field outright was my first attempt and
+    // it was wrong twice over — it deleted a surface nobody asked to lose, and S1's own coverage lock
+    // said so immediately.
     { id: "vpcapture", name: "Value creation + capture", kind: "metrics", linked: true,
       items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "range", label: "Value Price Range" } ] },
     { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
@@ -3332,6 +3388,10 @@ export const SOURCE_SLIDE: Record<string, string> = {
   // Value proposition — S8 owns it. It already carries the NBA and the Value Equation the prop is argued
   // from, so the claim sits beside its evidence (operator: "we can only have one model value prop; gut says S8").
   "S1.valueprop": "S8", "S6.desc": "S8", "S8.vprop": "S8", "S8.nba": "S8", "S8.diffs": "S8",
+  // Z-1 · S1's two new derived fields. The waterfall is S8's record; the schedule is anchored on the
+  // program start, which S10 owns. Registered so their ✎ Edit link routes somewhere real — a linked
+  // field with no owner is the V1 trap, and it has been paid for once already.
+  "S1.vpchart": "S8", "S1.schedule": "S10",
   "S8.capture": "S8", "S8.valuechart": "S8", "S8.wtp": "S8",
   // Money — S10 owns it. Eleven calendar years of spend + the three revenue bands.
   "S2.profile": "S10", "S2.accel": "S10", "S3.profile": "S10", "S3.revtable": "S10", "S3.rdchart": "S10",
@@ -3363,11 +3423,11 @@ export const isOwnSource = (code: string, fieldId: string): boolean => sourceSli
 export function linkedSlideField(p: Project, code: string, fieldId: string, baseYear?: number): SlideFieldValue {
   // The S10 financial read-outs that lived here are GONE with their schema fields (operator: "Delete").
   // The grid IS the surface; nothing renders a second copy of it, so nothing needs resolving.
-  return linkedSlideFieldRest(p, code, fieldId);
+  return linkedSlideFieldRest(p, code, fieldId, baseYear);
 }
 
 /** Every non-financial linked field. Split out only so neither half grows past a readable screen. */
-function linkedSlideFieldRest(p: Project, code: string, fieldId: string): SlideFieldValue {
+function linkedSlideFieldRest(p: Project, code: string, fieldId: string, baseYear?: number): SlideFieldValue {
   const fm = financialMetrics(p);
   const money = (m: number) => `$${(Math.round(m * 10) / 10).toLocaleString("en-US")}M`;
   const profile = () => ({ npv: money(fm.npvM), irr: `${fm.irrPct}%`, payback: Number.isFinite(fm.paybackYears) && fm.paybackYears > 0 ? `${fm.paybackYears} yr` : "—", rev1: p.firstRevenue, tech: RISK_LABEL[p.tech], comm: RISK_LABEL[p.comm], stage: `${GATE_STAGE[p.gate]} (${p.gate})` });
@@ -3400,6 +3460,11 @@ function linkedSlideFieldRest(p: Project, code: string, fieldId: string): SlideF
   // trap, already paid for once. One producer, two slides, no second source.
   if (code === "S1" && fieldId === "vpdiffs") return valuePropRows(p);
   if (code === "S1" && fieldId === "vpcapture") return valuePropCapture(p);
+  // Z-1 · the Roadmap band's rows. `baseYear` is the deck's ONE clock, threaded in by `effective` — the
+  // same value the S10 grid and the S2 timeline anchor to, so three surfaces cannot disagree by a year.
+  // A caller that omits the year gets the program-start year, NOT `new Date()` — the producer stays pure.
+  if (code === "S1" && fieldId === "schedule")
+    return gateActivitiesOf(p, baseYear ?? Number(gateScheduleOf(p)[0].startISO.slice(0, 4))).rows.map((r) => [r.gate, r.stage, r.dateLabel, r.activities.join(" · ")]);
   if (code === "S16" && fieldId === "bom") {
     try { return bomOf(p).slice(0, 6).map((b) => [b.desc, b.material, `$${bomStdCost(b).toLocaleString("en-US")}`]); }
     catch { return [[`${p.name} assembly`, hierOf(p).material, `$${Math.round(p.nreK * 50).toLocaleString("en-US")}`]]; }
