@@ -1659,7 +1659,10 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     // S8 with details on S1"). Both are `linked` read-outs of S8's record — no new authoring surface.
     // Z-1 · S1 gained the waterfall and the Roadmap band; the coverage law is unchanged.
     // Z-2 · and the last three template boxes — market opportunity, product strategy, dependencies.
-    S1: ["valueprop", "oneline", "segment", "vpdiffs", "vpcapture", "vpchart", "ask", "schedule",
+    // AA · `vpcapture` left BOTH the panel and the schema (operator: it duplicates the waterfall's own
+    // captions). Taking it out of the schema too is what keeps this a coverage LAW and not a list of
+    // exceptions — a field hidden by a panel but left in the schema would force this lock to be loosened.
+    S1: ["valueprop", "oneline", "segment", "vpdiffs", "vpchart", "ask", "schedule",
          "market", "strategy", "deps"],
     S2: ["profile", "accel", "roadmap", "toprisks", "status"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
@@ -3230,11 +3233,15 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/\{ id: "capture", name: "Value creation \+ capture", kind: "metrics", linked: true/.test(data)
      && /code === "S8" && fieldId === "capture"\) return valuePropCapture\(p\)/.test(data),
      "S8.capture is still a real field with a real resolver — removed from a slide, not from the record");
-  // Z-1 · the tile survives, one column to the left: it now sits under the differentiators it summarises,
-  // off the right-hand chart column the operator cleared. Kept on S1, still absent from S8's slide.
-  // Z-2 · and it survived the Product-Strategy rebuild too, still captioning the same drivers.
-  ok(/leanFieldsOf\("segment", "market", "vpcapture"\)/.test(src),
-     "S1's exec summary keeps its capture tile — it moved columns twice, it never left the slide");
+  // ⚠ AA · THE TILE HAS LEFT S1, AND THE LOCK FLIPPED WITH IT RATHER THAN BEING DELETED. Operator,
+  // IMG_8464: "only remove value creation, value capture, and value price range from this image only".
+  // The thing that must NOT happen is those figures vanishing from the sheet, so that is what is asserted
+  // now: gone from the panel, still printed by the waterfall, and `S8.capture` still owns the record.
+  ok(!/leanFieldsOf\([^)]*"vpcapture"/.test(src) && !/fieldsOf\([^)]*"vpcapture"/.test(src),
+     "S1 no longer renders the capture tile — it duplicated the waterfall's own captions");
+  ok(/<tspan dx=\{2\}>VALUE CREATION<\/tspan>/.test(src) && /<tspan dx=\{2\}>VALUE PRICE RANGE<\/tspan>/.test(src)
+     && /label: `Price · Value Capture @ \$\{split\.capturePct\}%`/.test(src),
+     "…because the waterfall still prints all three figures itself — a duplicate was removed, not a number");
 
   // 4 · THE WTP STRIP IS COMPACT ON A SLIDE ONLY. Dragging a marker happens in the source editor, which
   //     keeps the roomier track it was tuned for.
@@ -5841,7 +5848,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // ⚠ Z-2 · `segment` MOVED, IT WAS NOT DROPPED, and this lock is the difference between the two. Rule 6
   // forbids losing a surface the operator did not ask to lose; a field can leave one panel only by
   // arriving in another, and the test names the panel it arrived in.
-  ok(/<AmtsPanel title="Market Opportunity · Pipeline" icon="◎">\s*\{leanFieldsOf\("segment", "market", "vpcapture"\)\}/.test(src),
+  ok(/<AmtsPanel title="Market Opportunity · Pipeline" icon="◎">[\s\S]{0,700}?\{leanFieldsOf\("segment", "market"\)\}/.test(src),
      "…and Target segment / customer heads Market Opportunity — moved beside the pursuits, never removed");
   // ⚠ Z-2 · EVERY S1 CONTENT PANEL IS `lean`, AND THAT IS A HEIGHT DECISION, NOT A STYLE ONE. Banner cards
   // cost a row of chrome per field; on the deck's only five-band sheet that chrome is the difference

@@ -5760,8 +5760,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           {/* ⚠ SEEDED, NOT SYNTHETIC-PRESENTED-AS-REAL. Operator: "Market opportunities are top projects
               in our pipeline or CRM system". `execOf().pursuits` is a derived model, so the rows ship as
               an EDITABLE default rather than a read-only claim about anyone's CRM (Thoth, 12-AsM). */}
+          {/* ⚠ AA · NO VALUE-PROP FIGURES IN THIS PANEL (operator, IMG_8464: "only remove value creation,
+              value capture, and value price range from this image only"). Verified before removing: the
+              waterfall two columns over already prints all three — VALUE CREATION and VALUE PRICE RANGE as
+              its own axis captions, and `Price · Value Capture @ N%` as its last bar — from the SAME
+              producers (`valueSplit` / `captureOf`). This was a duplicate reading, not a second one. */}
           <AmtsPanel title="Market Opportunity · Pipeline" icon="◎">
-            {leanFieldsOf("segment", "market", "vpcapture")}
+            {leanFieldsOf("segment", "market")}
           </AmtsPanel>
           {/* ⚠ THE TAG IS NOT NESTED HERE ANY MORE, AND THE TITLE FOLLOWED IT. This panel read "Product
               Type · Portfolio Positioning" while it carried the tag; leaving that name on a panel that is

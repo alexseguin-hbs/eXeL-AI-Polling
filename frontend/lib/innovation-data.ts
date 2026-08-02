@@ -2656,13 +2656,13 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // field id did NOT, so every seed, lock and coverage check that names `S1.vpdiffs` still names this.
     { id: "vpdiffs", name: "Differentiators", kind: "list", linked: true,
       hint: "The S8 differentiators behind the value proposition above, largest first. Authored on S8, never here." },
-    // ⚠ Z-1 · THE CAPTURE TILE STAYS ON S1, IT JUST MOVED COLUMNS. The operator took it off the RIGHT
-    // ("only have visual with price positioning and comp A and CompB"), which is where it was; it now
-    // sits under the differentiators it summarises. Removing the field outright was my first attempt and
-    // it was wrong twice over — it deleted a surface nobody asked to lose, and S1's own coverage lock
-    // said so immediately.
-    { id: "vpcapture", name: "Value creation + capture", kind: "metrics", linked: true,
-      items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "range", label: "Value Price Range" } ] },
+    // ⚠ AA · `vpcapture` LEFT S1 (operator, IMG_8464: "only remove value creation, value capture, and value
+    // price range from this image only" — the image being Market Opportunity · Pipeline). It is off the
+    // SLIDE and off S1's SCHEMA, deliberately in that order: hiding a field from the panel while leaving it
+    // in the schema would have forced S1's coverage lock to be loosened, and a loosened coverage lock is not
+    // one. No number left the sheet — the waterfall prints VALUE CREATION, VALUE PRICE RANGE and
+    // `Price · Value Capture @ N%` from the same `valueSplit`/`captureOf` producers. `S8.capture`, which
+    // OWNS the record, is untouched.
     // ── Z-2 · THE THREE REMAINING TEMPLATE BOXES, EACH TO THE OPERATOR'S OWN DEFINITION ──────────────
     // "Market opportunities are top projects in our pipeline or CRM system" — TYPEABLE (not `linked`), with
     // a derived seed so no project ships an empty box. See `derivedS1Cell`.
@@ -3534,7 +3534,6 @@ function linkedSlideFieldRest(p: Project, code: string, fieldId: string, baseYea
   // Z-2 · the SAME `valuePropRows` the S8 table draws, formatted as sentences by `differentiatorLines`.
   // Still one producer: the formatter reads the rows, it does not re-derive them.
   if (code === "S1" && fieldId === "vpdiffs") return differentiatorLines(p);
-  if (code === "S1" && fieldId === "vpcapture") return valuePropCapture(p);
   // Z-2 · dependencies, read from the one edge list. Never empty — see `dependencyLines`.
   if (code === "S1" && fieldId === "deps") return dependencyLines(p);
   // Z-1 · the Roadmap band's rows. `baseYear` is the deck's ONE clock, threaded in by `effective` — the
