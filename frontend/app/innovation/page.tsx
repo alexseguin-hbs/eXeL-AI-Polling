@@ -2277,7 +2277,19 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
     { label: t("innovation.dogtag.risk"), val: `${rb.technical[0]}/${rb.commercial[0]}/${rb.dependency[0]}` },
   ];
   return (
-    <div className="relative mx-auto flex max-w-sm items-stretch overflow-hidden rounded-lg border-2 bg-[#0b0f14]" style={{ borderColor: pillarColor }} title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}\nPillar: ${pillar} · Type: ${dt.label}\n${valuePropOf(p)}`}>
+    // ⚠ AB · THE BODY IS THE PROJECT CATEGORY; THE BORDER IS THE PILLAR. Operator, IMG_8466 (the legacy
+    // board) + IMG_8465: "New market vertical dog tags are green. Only highlight is pillar." The reference
+    // board colours the CARD by category — Pre-Study/Research orange, Enhance/NextGen blue, New Mkt/Vertical
+    // green, Sustaining purple — and outlines it by initiative. This tag had it backwards: a uniformly dark
+    // body with the category demoted to a dot, so every project read the same at a glance.
+    // TINTED, NOT SOLID (operator's call): the category colour is laid over the deck's own #0b0f14 as a
+    // flat 13%/8% gradient rather than replacing it, so the light text keeps its contrast on a dark board
+    // sheet and in the exported PDF. Two stops of the same colour = a solid tint, NOT a gradient — it must
+    // not read as a shine. `DEV_TYPE` is the single palette (`innovation-data.ts:2352`) and it already
+    // carries exactly the four colours the reference legend uses; nothing new was invented here.
+    <div className="relative mx-auto flex max-w-sm items-stretch overflow-hidden rounded-lg border-2"
+      style={{ borderColor: pillarColor, background: `linear-gradient(0deg, ${dt.color}22, ${dt.color}22), #0b0f14` }}
+      title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}\nPillar: ${pillar} · Type: ${dt.label}\n${valuePropOf(p)}`}>
       {/* SBU — fixed, vertical left (locked to the project title); tinted by the pillar (highlight) */}
       <div className="flex shrink-0 items-center justify-center px-0.5" style={{ background: `${pillarColor}22` }}>
         <span className="text-[9px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: pillarColor }}>{h.sbu}</span>

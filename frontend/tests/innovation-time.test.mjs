@@ -6116,5 +6116,44 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/the stage is not scrollable while zoomed/.test(zg), "…and that the zoomed sheet can actually be panned");
 }
 
+// ── AB · THE TAG'S BODY IS THE CATEGORY, ITS BORDER IS THE PILLAR ────────────────────────────
+// Operator, IMG_8465 + IMG_8466 (the legacy board and its legend): "New market vertical dog tags are
+// green. Only highlight is pillar." The reference board colours the CARD by project category and only
+// OUTLINES it by initiative; this tag had a uniformly dark body, so category was reduced to a dot and
+// every project read the same from across a room.
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const F = await import("../lib/innovation-data.ts");
+
+  // 1 · ONE PALETTE, AND IT ALREADY MATCHED THE OPERATOR'S LEGEND — nothing new was invented.
+  ok(F.DEV_TYPE.newmarket.color === "#34d399", "New Mkt / Vertical is green");
+  ok(F.DEV_TYPE.prestudy.color === "#fb923c" && F.DEV_TYPE.enhance.color === "#38bdf8"
+     && F.DEV_TYPE.sustaining.color === "#a78bfa",
+     "…and Pre-study orange · Enhance/NextGen blue · Sustaining purple, exactly the reference legend");
+  ok(new Set(Object.values(F.DEV_TYPE).map((d) => d.color)).size === Object.keys(F.DEV_TYPE).length,
+     "…and every category is a DISTINCT colour, or the tag tells you nothing");
+  // Every project resolves to one of the four — a tag with no category would render an untinted body.
+  const bad = F.DEMO_PROJECTS.filter((p) => !F.DEV_TYPE[F.devTypeOf(p)]);
+  ok(bad.length === 0, `every project resolves a category colour (${bad.map((p) => p.id).join(", ")})`);
+  ok(F.DEMO_PROJECTS.some((p) => F.devTypeOf(p) === "newmarket"),
+     "…and the portfolio actually contains a New Mkt / Vertical project, so the green case is exercised");
+
+  // 2 · BODY = CATEGORY. Two identical stops so it is a flat TINT, not a gradient that reads as a shine.
+  ok(/background: `linear-gradient\(0deg, \$\{dt\.color\}22, \$\{dt\.color\}22\), #0b0f14`/.test(src),
+     "the tag body is tinted by its category over the deck's own dark base");
+  ok(!/rounded-lg border-2 bg-\[#0b0f14\]/.test(src),
+     "…and the flat dark body it replaced is gone — the category is no longer just a dot");
+
+  // 3 · BORDER = PILLAR, STILL THE ONLY HIGHLIGHT. This is the half of the instruction that is a
+  // NON-change, and it is locked precisely because a colour pass is where it would get lost.
+  ok(/borderColor: pillarColor/.test(src), "the pillar remains the highlight — the border, and only the border");
+  ok(/const pillarColor = pillarColorOf\(pillar, loadPillars\(\)\);/.test(src),
+     "…and it still comes from the admin-editable pillar palette, not a second hardcoded table");
+
+  // 4 · ONE COMPONENT, SO ONE RULE — the slide tag and the project cards cannot diverge (operator: everywhere).
+  ok((src.match(/<DogTag /g) || []).length >= 2 && (src.match(/function DogTag\(/g) || []).length === 1,
+     "there is exactly ONE DogTag, rendered in more than one place — the colouring cannot fork per surface");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);
