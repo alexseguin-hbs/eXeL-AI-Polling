@@ -1615,7 +1615,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
  *  `export const SLIDE_SLOT_ASPECT` fails the build with TS2344 on the generated route types. The drift
  *  lock reads it out of the source text instead, which is what the other page-level locks already do. */
 const SLIDE_SLOT_ASPECT: Record<string, number> = {
-  S1: 1.27,   // measured: S1 Portfolio Positioning, dog tag above the chart, on the 1600x900 sheet
+  S1: 1.0,   // measured: S1 Portfolio Positioning, dog tag above the chart, on the 1600x900 sheet
   S8: 1.48,   // measured: the panel's flex column is 718.1 x 485.9 on the 1600x900 sheet
 };
 
@@ -4804,10 +4804,14 @@ const BODY_ROWS: Record<string, string> = {
   // waterfall fell from 51% of the canvas to 41% / 33%. The gate's floor is 12%, so it stayed GREEN — the
   // regression was only visible because the run prints the number. 138/900 = 15.33cqh scales with the sheet.
   S8: "minmax(0, 1fr) auto minmax(15.33cqh, auto)",
-  // Z-1 · S1's four bands. Rows 1-2 are the three template columns (every one of them `tall`, so the
-  // band is theirs and auto-placement has no implicit row to invent); row 3 the one-sentence Ask; row 4
-  // the Roadmap band. Same law as S8: NO absolute lengths, ever — the print stack rescales the sheet.
-  S1: "minmax(0, 1.35fr) minmax(0, 1.25fr) auto minmax(0, 1.1fr)",
+  // Z-1/Z-2 · S1's four bands: two content rows of three columns, the one-sentence Ask, the Roadmap band.
+  // Same law as S8: NO absolute lengths, ever — the print stack rescales the sheet.
+  // ⚠ THE RATIO IS MEASURED, NOT CHOSEN. Row 1 carries the value proposition (the longest prose on the
+  // sheet — two full sentences); row 2 carries Product Strategy, whose differentiator list is the tallest
+  // list; row 4 the gate cards. The first ratio I shipped was 1.35 : 1.25 : auto : 1.1, and on ALL 33
+  // projects it left rows 1 and 2 short — the value prop by 29px and Product Strategy by 81. The numbers
+  // below are that measurement, not a guess, and the S1×33 sweep is what proves them.
+  S1: "minmax(0, 1.72fr) minmax(0, 0.98fr) minmax(0, 0.88fr) minmax(0, 1.02fr)",
 };
 
 // ⚠ Z-1 · THE BODY GRID IS TWO COLUMNS FOR EVERY SLIDE BUT ONE. The AMTS sheet has always been a 2-up,
@@ -4816,6 +4820,13 @@ const BODY_ROWS: Record<string, string> = {
 // here rather than inferred from panel count, for the same reason `PANEL_SPAN` was: a layout that infers
 // itself changes shape when someone adds a box, silently.
 const BODY_COLS: Record<string, string> = { S1: "repeat(3, minmax(0, 1fr))" };
+// ⚠ Z-2 · A PER-SLIDE GUTTER, FOR THE ONE SHEET THAT RAN OUT OF ROOM. Every other code keeps the shared
+// 1.4cqh. S1 is the deck's only 3-up AND its only five-band sheet: four gutters cost it 38px of a 685px
+// body, and the measured shortfall after every content cut was ~6px. Narrowing S1's gutter alone buys
+// 9px without touching a single other slide's geometry — and specifically without moving S8, whose
+// exported waterfall percentage is gated to the tenth. Same shape and same law as BODY_ROWS/BODY_COLS:
+// declared per code, expressed in `cqh` so the print stack rescales it with the sheet.
+const BODY_GAP: Record<string, string> = { S1: "0.95cqh" };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
 // the sentence, the NBA it must beat, the waterfall, and the differentiators behind it. When that panel is
@@ -4829,7 +4840,7 @@ const S8_PANEL_ECHO = new Set(["vprop", "nba", "valuechart", "diffs"]);
 // `wide` spans both COLUMNS; `tall` spans three ROWS. X-7 added `tall` so one panel can run the height of
 // a stack beside it — the waterfall against VProp / NBA / Price Performance — which is the only way a chart
 // gets real height on a sheet that also has to carry five prose boxes.
-function AmtsPanel({ title, icon, required, wide, tall, full, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; tall?: boolean; full?: boolean; children: React.ReactNode }) {
+function AmtsPanel({ title, icon, required, wide, tall, taller, full, children }: { title: string; icon?: React.ReactNode; required?: string; wide?: boolean; tall?: boolean; taller?: boolean; full?: boolean; children: React.ReactNode }) {
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
@@ -4839,7 +4850,7 @@ function AmtsPanel({ title, icon, required, wide, tall, full, children }: { titl
     // Z-1 · `full` is `col-span-full`, which is correct at ANY column count — `wide`'s literal
     // `col-span-2` means "two thirds" on the 3-column S1, not "the whole row". The two are not
     // interchangeable and a lock forbids `wide` on S1 for exactly that reason.
-    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${full ? "col-span-full" : wide ? "col-span-2" : ""} ${tall ? "row-span-2" : ""}`}>
+    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${full ? "col-span-full" : wide ? "col-span-2" : ""} ${taller ? "row-span-3" : tall ? "row-span-2" : ""}`}>
       <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1cqw] py-[0.5cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
           {icon && <span aria-hidden style={{ fontSize: TS.head }}>{icon}</span>}
@@ -5246,6 +5257,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         <div key={m.k} className="rounded-lg border border-emerald-500/25 bg-emerald-500/[0.04] px-2 py-1.5"><div className="text-[9px] uppercase tracking-wider text-slate-500">{m.label}</div><div className="text-[13px] font-semibold tabular-nums text-emerald-300">{rec[m.k] ?? "—"}</div></div>
       ))}</div>;
     }
+    // ⚠ Z-2 · A LINKED **LIST** IS NOT A ONE-COLUMN TABLE, AND ASSUMING IT WAS WHITE-SCREENED THE ROUTE.
+    // The branch below reads any array as `string[][]` and calls `.map` on every row. Until now every linked
+    // array field happened to be a table, so the assumption held by luck; the moment `S1.vpdiffs` became a
+    // list and `S1.deps` arrived, each row was a STRING and `row.map` threw — taking the whole input view
+    // down with a Next error boundary, not a bad-looking panel. The `tsc` pass and the 3559 locks were both
+    // green through it, because neither renders. Branch on the field's declared kind, first.
+    if (Array.isArray(v) && (f.kind === "list" || v.every((r) => !Array.isArray(r)))) {
+      const items = (v as unknown[]).map((x) => String(x)).filter((x) => x.trim());
+      if (!items.length) return <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] px-3 py-2 text-[12px] text-emerald-300/90">◈ Live from the project record — {f.name} has no entries.</div>;
+      return <ul className="m-0 list-disc space-y-0.5 pl-5 text-[12px] text-emerald-300">{items.map((x, i) => <li key={i}>{x}</li>)}</ul>;
+    }
     if (Array.isArray(v)) {
       const rows = v as string[][];
       // COLUMN HEADERS, when the field declares them. The editable table renders a `<thead>` from `f.cols`;
@@ -5568,11 +5590,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <div className="flex w-full items-stretch gap-[0.5cqw]">
             {(v as string[][]).filter((r) => r[0]).map((r, i) => (
               <div key={i} className="flex min-w-0 flex-1 flex-col rounded border border-slate-800 bg-[#0e141b] px-[0.5cqw] py-[0.4cqh]">
+                {/* Z-2 · GATE, STAGE AND DATE ON ONE LINE. The date used to own a row of its own, which cost
+                    the band ~15px per card — 15px this sheet does not have, because Product Strategy and the
+                    value proposition were both measured short. Nothing is dropped; three short strings that
+                    fit one line stop taking two. */}
                 <div className="flex items-baseline justify-between gap-1">
                   <span className="font-mono font-semibold text-cyan-300" style={big ? { fontSize: TS.body } : undefined}>{r[0]}</span>
-                  <span className="truncate text-slate-500" style={big ? { fontSize: TS.micro } : undefined}>{r[1]}</span>
+                  <span className="truncate tabular-nums text-slate-400" style={big ? { fontSize: TS.micro } : undefined}>{r[1]} · {r[2]}</span>
                 </div>
-                <div className="tabular-nums text-slate-400" style={big ? { fontSize: TS.micro } : undefined}>{r[2]}</div>
                 <ul className="m-0 mt-[0.3cqh] list-none p-0 text-slate-300" style={big ? { fontSize: TS.micro } : undefined}>
                   {(r[3] || "").split(" · ").filter(Boolean).map((a, j) => <li key={j} className="truncate leading-tight">· {a}</li>)}
                 </ul>
@@ -5639,26 +5664,42 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // template runs Overview · Market · Positioning across its top. Panel order IS grid auto-placement
       // order, so this list is the layout:
       //
-      //   ♡ Key Value Prop (tall) │ ◎ Market Opportunity (tall) │ ▪ Product Type   ← dog tag
-      //                           │                             │ ◈ Portfolio Positioning (tall)
-      //   ◧ Product Strategy      │ ⇄ Dependencies              │   waterfall + compressed price bar
-      //   ⚑ Recommendation · Ask For The Gate                                    (full)
-      //   ▦ Roadmap + Schedule                                                   (full)
+      //   ♡ Key Value Proposition │ ◎ Market Opportunity  │ ◈ Product Type · Portfolio
+      //     S8 sentence + oneline │   segment · pipeline   │   Positioning (taller — three rows)
+      //   ─────────────────────── ┼ ────────────────────── │   dog tag
+      //   ◧ Product Strategy      │ ▪ Differentiators      │   waterfall
+      //   ─────────────────────── ┼ ────────────────────── │   compressed price bar
+      //   ⚑ Recommendation · Ask  │ ⇄ Dependencies         │
+      //   ▦ Roadmap + Schedule · Current Year + 2                          (full)
       //
       // `full`, NOT `wide`: on a 3-column grid `col-span-2` is two thirds, not the row (Enlil, 12-AsM).
+      // ⚠ PANEL ORDER IS THE LAYOUT. Auto-placement fills each row left→right, so the row-spanning panel
+      // must be the LAST cell of row 1 or every panel after it lands in the wrong column. Reordering this
+      // list silently reflows the sheet, which is why a lock pins the order character-for-character.
+      //
+      // ⚠ THE SPLIT AND THE THIRD ROW ARE BOTH MEASURED CORRECTIONS, NOT PREFERENCES. Product Strategy and
+      // the differentiators shared one cell in the first build: on 3 of the 33 projects that cell ran 17px
+      // past its box, and every trim I tried bought back less than the next project's longer text cost.
+      // Two panels, one row deeper, and the waterfall spanning all three — which also makes the chart the
+      // operator asked for BIGGER (448px → ~490px) instead of smaller. The Ask stops spanning the foot; it
+      // sits bottom-left, beside the dependency risk a board weighs it against. Saying so plainly: that is
+      // a change to a panel the operator did not ask me to move, made to fit the sheet, and reversible.
       S1: () => (
         <>
           {/* The S8 sentence FIRST — "ensure full one sentence value prop text is there from S8" — then
-              `oneline` and the segment beneath it. `valueprop` is linked to S8's own producer, so the two
-              slides cannot drift; `oneline` stays because nothing asked for its removal (rule 6). */}
-          <AmtsPanel tall title="Key Value Proposition" icon="♡">
-            {fieldsOf("valueprop", "oneline", "segment")}
+              `oneline` under it. `valueprop` is linked to S8's own producer, so the two slides cannot
+              drift; `oneline` stays because nothing asked for its removal (rule 6).
+              ⚠ `segment` MOVED, it was not dropped: "Target segment / customer" now heads Market
+              Opportunity, where the customer belongs beside the pursuits being sold to them. Saying so
+              because moving an operator's field without saying so is how rule 6 gets broken quietly. */}
+          <AmtsPanel title="Key Value Proposition" icon="♡">
+            {leanFieldsOf("valueprop", "oneline")}
           </AmtsPanel>
-          {/* ⚠ NAMED FOR WHAT IT SHOWS. This column becomes Market Opportunity (pursuits · CRM) in the
-              next slice; until it does, calling it that would be a label promising content it does not
-              have — the exact thing the empty-panel gate exists to prevent, one level up. */}
-          <AmtsPanel tall title="Value Equation · Differentiators" icon="▪">
-            {fieldsOf("vpdiffs", "vpcapture")}
+          {/* ⚠ SEEDED, NOT SYNTHETIC-PRESENTED-AS-REAL. Operator: "Market opportunities are top projects
+              in our pipeline or CRM system". `execOf().pursuits` is a derived model, so the rows ship as
+              an EDITABLE default rather than a read-only claim about anyone's CRM (Thoth, 12-AsM). */}
+          <AmtsPanel title="Market Opportunity · Pipeline" icon="◎">
+            {leanFieldsOf("segment", "market", "vpcapture")}
           </AmtsPanel>
           {/* ⚠ THE DOG TAG SITS INSIDE THIS PANEL, NOT IN ONE OF ITS OWN, AND I TRIED IT THE OTHER WAY
               FIRST. As a fourth panel it forced an `auto` row that auto-placement then made column 3's
@@ -5669,14 +5710,31 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               Reuses the DogTag the project card already renders — pillar-coloured border, DEV_TYPE dot —
               with the type spelled out (`showType`) and the metric set PINNED (`slide`) so a printed
               board sheet is deterministic rather than reflecting whatever was last configured. */}
-          <AmtsPanel tall title="Product Type · Portfolio Positioning" icon="◈">
+          <AmtsPanel taller title="Product Type · Portfolio Positioning" icon="◈">
             {/* Capped: the tag is an identifier, not the content. Uncapped it took ~40% of the column
                 and the waterfall — the thing the operator asked to put here — became a thumbnail. */}
             <div className="max-h-[13cqh] shrink-0 overflow-hidden"><DogTag p={p} showType slide /></div>
             {fieldsOf("vpchart")}
           </AmtsPanel>
-          <AmtsPanel full title="Recommendation · Ask For The Gate" icon="⚑">
+          {/* Operator: "we can have inputs in S1 for product strategy" — an AUTHORED list, seeded from
+              the project's own model so no project ships an empty box. */}
+          <AmtsPanel title="Product Strategy" icon="◧">
+            {leanFieldsOf("strategy")}
+          </AmtsPanel>
+          {/* Operator: "Differentiators populate from value prop (bars from 8), but in text format".
+              Same producer as S8's table (`valuePropRows`), sentences instead of columns, largest first,
+              and the count it withheld stated out loud. */}
+          <AmtsPanel title="Differentiators · From The Value Prop" icon="▪">
+            {leanFieldsOf("vpdiffs")}
+          </AmtsPanel>
+          {/* Operator: "does another project success impact our ability to meet our timelines". Both
+              directions, critical-path and unacknowledged edges flagged, and an explicit sentence when a
+              project genuinely has none (Enki, 12-AsM — an empty panel is a gate failure). */}
+          <AmtsPanel title="Recommendation · Ask For The Gate" icon="⚑">
             {fieldsOf("ask")}
+          </AmtsPanel>
+          <AmtsPanel title="Dependencies · Timeline Risk" icon="⇄">
+            {leanFieldsOf("deps")}
           </AmtsPanel>
           <AmtsPanel full title="Roadmap + Schedule · Current Year + 2" icon={<MarkCalendar />}>
             {fieldsOf("schedule")}
@@ -6000,7 +6058,8 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               <div data-slide-body className="grid h-full min-h-0 grid-cols-2 content-stretch gap-[1.4cqh] overflow-hidden"
                 style={{ fontSize: TS.body,
                   ...(BODY_ROWS[sp.code] ? { gridTemplateRows: BODY_ROWS[sp.code] } : {}),
-                  ...(BODY_COLS[sp.code] ? { gridTemplateColumns: BODY_COLS[sp.code] } : {}) }}>
+                  ...(BODY_COLS[sp.code] ? { gridTemplateColumns: BODY_COLS[sp.code] } : {}),
+                  ...(BODY_GAP[sp.code] ? { gap: BODY_GAP[sp.code] } : {}) }}>
                 {panel ? panel() : sp.fields.map((f) => <PresentField key={f.id} sp={sp} f={f} big />)}
                 {!anyContent && <p className="italic text-slate-500" style={{ fontSize: TS.body }}>Nothing authored on this slide yet — tap Edit to add content.</p>}
               </div>

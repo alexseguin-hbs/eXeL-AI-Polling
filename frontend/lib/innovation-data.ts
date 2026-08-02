@@ -619,6 +619,11 @@ export const S8_DIFF_COLS = ["Differentiator", "Value $M", "Importance", "vs NBA
 // Z-1 · S1's Roadmap + Schedule band. Four columns, the operator's own framing: which gate, what stage,
 // when, and what has to actually happen in it.
 const S1_SCHED_COLS = ["Gate", "Stage", "Date", "Key Activities"] as const;
+// Z-2 · S1's Market Opportunity band. Declared beside S1_SCHED_COLS and ABOVE `SLIDE_SCHEMA` for the same
+// temporal-dead-zone reason spelled out over S8_DIFF_COLS — the schema spreads it at module-evaluation time.
+const S1_MARKET_COLS = ["Opportunity", "Customer", "Award", "Value"] as const;
+/** Key activities printed per gate card on S1's roadmap band. The rest are counted, never dropped in silence. */
+export const S1_ACT_CAP = 2;
 
 export const emptyFinYear = (year: number): FinYear => ({
   year, labor: 0, contractor: 0, materials: 0, other: 0, sustain: 0,
@@ -2646,8 +2651,11 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // Editing a driver or the capture % on S8 moves both slides at once.
     // ⚠ DELIBERATELY NOT `req: true`. A required field would re-score gate completeness on all 33 projects;
     // these are evidence, not a new gate obligation, so every project's percentage is byte-identical.
-    { id: "vpdiffs", name: "Value equation · differentiators", kind: "table", linked: true, cols: [...S8_DIFF_COLS],
-      hint: "The S8 differentiators behind the value proposition above. Authored on S8, never here." },
+    // ⚠ Z-2 · SAME FIELD, SAME PRODUCER, TEXT INSTEAD OF A TABLE (operator: "Differentiators populate from
+    // value prop (bars from 8), but in text format"). The `kind` changed and the `cols` went with it; the
+    // field id did NOT, so every seed, lock and coverage check that names `S1.vpdiffs` still names this.
+    { id: "vpdiffs", name: "Differentiators", kind: "list", linked: true,
+      hint: "The S8 differentiators behind the value proposition above, largest first. Authored on S8, never here." },
     // ⚠ Z-1 · THE CAPTURE TILE STAYS ON S1, IT JUST MOVED COLUMNS. The operator took it off the RIGHT
     // ("only have visual with price positioning and comp A and CompB"), which is where it was; it now
     // sits under the differentiators it summarises. Removing the field outright was my first attempt and
@@ -2655,6 +2663,18 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
     // said so immediately.
     { id: "vpcapture", name: "Value creation + capture", kind: "metrics", linked: true,
       items: [ { k: "creation", label: "Value creation" }, { k: "capture", label: "Value capture %" }, { k: "range", label: "Value Price Range" } ] },
+    // ── Z-2 · THE THREE REMAINING TEMPLATE BOXES, EACH TO THE OPERATOR'S OWN DEFINITION ──────────────
+    // "Market opportunities are top projects in our pipeline or CRM system" — TYPEABLE (not `linked`), with
+    // a derived seed so no project ships an empty box. See `derivedS1Cell`.
+    { id: "market", name: "Market opportunity · pipeline", kind: "table", req: false, cols: [...S1_MARKET_COLS],
+      hint: "Top pursuits in the pipeline / CRM. Seeded from the programme-of-record model — type over it with the real rows." },
+    // "we can have inputs in S1 for product strategy" — same contract as `market`.
+    { id: "strategy", name: "Product strategy", kind: "list", req: false,
+      hint: "How this product wins: the play, the route to market, the mechanism. Seeded from the project's own model." },
+    // "dependencies are if project is tagged on dependency list (does another project success impact our
+    // ability to meet our timelines)" — READ from the one edge list, both directions. Not typeable here.
+    { id: "deps", name: "Dependencies", kind: "list", req: false, linked: true,
+      hint: "Declared on the dependency list, read here. Both directions, because a project others lean on carries schedule risk it did not declare." },
     { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
   // S2 — Project Overview: the project-template one-pager (linked return profile + roadmap/status/risks) plus
   //      the Upside spending-accelerator lever intake (extra $ that pulls the schedule/revenue forward).
@@ -3099,7 +3119,60 @@ import { SLIDE_SEED as SLIDE_SEED_AUTHORED } from "./innovation-slide-seed";
 import { SLIDE_SEED_H5 } from "./innovation-slide-seed-h5";
 // The 24 original projects carry 12-AsM authored deck content; the 9 H5 additions carry deck content generated
 // deterministically from their own intel (same hi+ai contract). One merged seed → one lookup for the whole deck.
-export const SLIDE_SEED: SlideSeed = { ...SLIDE_SEED_AUTHORED, ...SLIDE_SEED_H5 };
+
+// ── Z-2 · S1's TWO AUTHORABLE-BUT-SEEDED FIELDS ──────────────────────────────────────────────────
+// The operator defined these two boxes as INPUTS: "Market opportunities are top projects in our pipeline or
+// CRM system" and "we can have inputs in S1 for product strategy". Typeable rules out `linked`, which is the
+// deck's read-only path — a linked field has no HI slot to write into.
+//
+// ⚠ AND A TYPEABLE FIELD MAY NOT SHIP EMPTY. Two independent gates say so: the seed-coverage lock demands a
+// non-empty `hi` AND a strictly-enhancing `ai` on every non-linked field of every project, and the panel
+// gate prints "— not authored yet" into a headed box when a field resolves to nothing. Sixty-six hand-typed
+// cells would satisfy both and then drift, because each one would be a COPY of a record the portfolio
+// already holds. So the seed is DERIVED, right here, from `execOf`/`briefOf`/`metaOf` — one producer, and
+// the user's own rows still win, because `cellOf` reads the edit bag first and only then falls back here.
+//
+// ⚠ THOTH (12-AsM) NAMED THE HONESTY PROBLEM AND THIS IS THE ANSWER TO IT. `execOf().pursuits` is derived
+// scaffolding — "<division> PoR" and "Allied FMS" — not an extract from anyone's CRM. Rendering it read-only
+// would have presented two synthesized rows as pipeline truth on a board sheet. Seeding it as an EDITABLE
+// default says exactly what it is: a starting point, waiting for the real pursuit names to be typed over it.
+const S1_DERIVED_FIELDS = ["market", "strategy"] as const;
+function derivedS1Cell(p: Project, fieldId: string): SlideSeedCell | null {
+  const ex = execOf(p), b = briefOf(p), m = metaOf(p);
+  if (fieldId === "market") {
+    const hi = ex.pursuits.map((x) => [x.name, ex.customer, x.award, `$${x.valueM}M`]);
+    // AI is a SUPERSET, never a competing edit (the seed contract): the same rows plus the adjacency the
+    // project's own target market implies, sized off the same 10-year revenue the pursuits are sized off.
+    return { hi, ai: [...hi, [`${m.targetMarket} adjacency`, ex.customer, "Prospect", `$${Math.round(p.fullRev10yM * 0.08)}M`]] };
+  }
+  if (fieldId === "strategy") {
+    const hi = [
+      // ⚠ TERSE ON PURPOSE, AND THE LENGTH IS MEASURED. The first draft read "… impact — under the
+      // <initiative> initiative."; on the three projects whose initiative name is longest that sentence
+      // wrapped to a third line and pushed Product Strategy 17px past its cell. Same three facts, no prose.
+      `${m.valueLadder} play · ${m.valueImpact} impact · ${m.initiative}`,
+      `Route to market: ${ex.customer} · ${m.targetMarket}`,
+      `How we win: ${b.solution[0]}.`,
+    ];
+    return { hi, ai: [...hi, `Franchise leverage: ${b.solution[1] ?? b.evidence[0]}.`, `Competitive posture: ${m.competitive}.`] };
+  }
+  return null;
+}
+/** Fold the derived cells into the authored seed. An AUTHORED cell always wins — this only fills a hole. */
+function withDerivedS1Seed(seed: SlideSeed): SlideSeed {
+  const out: SlideSeed = { ...seed };
+  for (const p of DEMO_PROJECTS) {
+    const s1 = { ...(out[p.id]?.S1 ?? {}) };
+    for (const fid of S1_DERIVED_FIELDS) {
+      if (s1[fid]) continue;
+      const cell = derivedS1Cell(p, fid);
+      if (cell) s1[fid] = cell;
+    }
+    out[p.id] = { ...(out[p.id] ?? {}), S1: s1 };
+  }
+  return out;
+}
+export const SLIDE_SEED: SlideSeed = withDerivedS1Seed({ ...SLIDE_SEED_AUTHORED, ...SLIDE_SEED_H5 });
 
 export type SlideFieldValue = string | string[] | string[][] | Record<string, string> | null;
 
@@ -3458,13 +3531,26 @@ function linkedSlideFieldRest(p: Project, code: string, fieldId: string, baseYea
   // X-7a · S1 renders the SAME two producers. Written in the SAME commit as the `linked: true` above them,
   // because `linked` without a resolver falls through to `return null` and the panel renders blank — the V1
   // trap, already paid for once. One producer, two slides, no second source.
-  if (code === "S1" && fieldId === "vpdiffs") return valuePropRows(p);
+  // Z-2 · the SAME `valuePropRows` the S8 table draws, formatted as sentences by `differentiatorLines`.
+  // Still one producer: the formatter reads the rows, it does not re-derive them.
+  if (code === "S1" && fieldId === "vpdiffs") return differentiatorLines(p);
   if (code === "S1" && fieldId === "vpcapture") return valuePropCapture(p);
+  // Z-2 · dependencies, read from the one edge list. Never empty — see `dependencyLines`.
+  if (code === "S1" && fieldId === "deps") return dependencyLines(p);
   // Z-1 · the Roadmap band's rows. `baseYear` is the deck's ONE clock, threaded in by `effective` — the
   // same value the S10 grid and the S2 timeline anchor to, so three surfaces cannot disagree by a year.
   // A caller that omits the year gets the program-start year, NOT `new Date()` — the producer stays pure.
+  // Z-2 · THE BAND SHOWS THE FIRST `S1_ACT_CAP` ACTIVITIES AND COUNTS THE REST. Measured, not guessed: the
+  // uncapped card cost the roadmap row ~170px of a 685px sheet, which is what pushed Product Strategy and
+  // the value proposition past their cells on all 33 projects. `gateActivitiesOf` still returns the FULL
+  // list — the cap lives here, on the one surface that has a height budget, so S2's timeline is untouched.
   if (code === "S1" && fieldId === "schedule")
-    return gateActivitiesOf(p, baseYear ?? Number(gateScheduleOf(p)[0].startISO.slice(0, 4))).rows.map((r) => [r.gate, r.stage, r.dateLabel, r.activities.join(" · ")]);
+    return gateActivitiesOf(p, baseYear ?? Number(gateScheduleOf(p)[0].startISO.slice(0, 4))).rows.map((r) => {
+      const held = r.activities.length - S1_ACT_CAP;
+      const shown = r.activities.slice(0, S1_ACT_CAP);
+      if (held > 0) shown.push(`+${held} more`);
+      return [r.gate, r.stage, r.dateLabel, shown.join(" · ")];
+    });
   if (code === "S16" && fieldId === "bom") {
     try { return bomOf(p).slice(0, 6).map((b) => [b.desc, b.material, `$${bomStdCost(b).toLocaleString("en-US")}`]); }
     catch { return [[`${p.name} assembly`, hierOf(p).material, `$${Math.round(p.nreK * 50).toLocaleString("en-US")}`]]; }
@@ -3862,6 +3948,26 @@ export function valuePropRows(p: Project): string[][] {
   ]);
 }
 
+// ── Z-2 · THE SAME DIFFERENTIATORS, IN TEXT ──────────────────────────────────────────────────────
+// Operator: "Differentiators populate from value prop (bars from 8), but in text format". So S1 stops
+// restating S8's four-column table and states the drivers as sentences instead.
+// ⚠ ONE PRODUCER. This reads `valuePropRows` — the exact rows S8's own table draws — rather than re-deriving
+// from `valueEquationOf`. A second formatter would be a second source, and the two surfaces could then round,
+// order or label the same driver differently. Edit a driver on S8 and this list moves in the same render.
+// ⚠ THE CAP IS SPOKEN ALOUD. `valuePropRows` is already sorted largest-weighted-first, so a cap keeps the
+// drivers that matter — but a list that silently stops at five reads as "there were five". It says how many
+// it held back, which is the deck's no-silent-caps law applied to text instead of to a chart.
+export const S1_DIFF_CAP = 2;
+export function differentiatorLines(p: Project, cap: number = S1_DIFF_CAP): string[] {
+  const rows = valuePropRows(p);
+  // The two glyph columns carry their own meaning under a panel titled "Differentiators"; the words
+  // "importance" and "vs" cost 15 characters, which at this column width is a whole extra wrapped line.
+  const shown = rows.slice(0, Math.max(1, cap)).map((r) => `${r[0]} — ${r[1]} · ${r[2]} · NBA ${r[3]}`);
+  const held = rows.length - shown.length;
+  if (held > 0) shown.push(`+${held} more differentiator${held === 1 ? "" : "s"} — the full value equation is on S8.`);
+  return shown.length ? shown : ["No value drivers modeled yet — author the value equation on S8."];
+}
+
 /** `S8.capture` read-out — all THREE metrics derived, which is what makes `COMPETITIVE INDEX —` impossible.
  *  Value capture % is `DEFAULT_CAPTURE_PCT`, the same constant the chart's two capture bars are drawn from,
  *  so the tile and the geometry read one number rather than a typed "50%" beside a 33% bar. */
@@ -4016,6 +4122,40 @@ export const DEMO_DEPS: DepEdge[] = [
 ];
 export const dependsOn = (deps: DepEdge[], id: string) => deps.filter((e) => e.from === id);      // I declared
 export const dependentsOf = (deps: DepEdge[], id: string) => deps.filter((e) => e.to === id);      // declared on me
+
+// ── Z-2 · S1's DEPENDENCIES BOX ──────────────────────────────────────────────────────────────────
+// Operator's own definition, verbatim: "dependencies are if project is tagged on dependency list (does
+// another project success impact our ability to meet our timelines)". So the box reads the SAME edge list
+// the Dependency Constellations and the §4.2 summary read — `DEMO_DEPS` — and says both directions, because
+// a project that three others lean on carries schedule risk it did not declare.
+// ⚠ READ-ONLY ON S1 BY DESIGN, and that is not an oversight. The edges are tagged on the dependency surface;
+// a second place to type them would let the constellation and the exec summary disagree about who leans on
+// whom. There is no `SOURCE_SLIDE` row either — `hasSourceLink` therefore renders no ✎ Edit control, rather
+// than a control that lands nowhere (the V1 trap).
+// ⚠ ENKI (12-AsM): the common case is NO dependencies, and an empty panel is a hard gate failure. The
+// no-dependency answer is stated in the deck's own voice — it is information, not a blank.
+/** Entries printed on S1 before the rest are counted. The cap is why the ordering below has to be real. */
+export const S1_DEPS_CAP = 2;
+export function dependencyLines(p: Project, deps: DepEdge[] = DEMO_DEPS, projects: Project[] = DEMO_PROJECTS): string[] {
+  const nameOf = (id: string) => projects.find((q) => q.id === id)?.name ?? id;
+  const risks = (e: DepEdge) => e.risks.map((r) => r[0].toUpperCase() + r.slice(1)).join(" + ");
+  const flags = (e: DepEdge) => `${e.critical ? " · CRITICAL" : ""}${e.acknowledged ? "" : " · UNACKED"}`;
+  const all = [
+    ...dependsOn(deps, p.id).map((e) => ({ e, s: `We rely on ${nameOf(e.to)} · ${risks(e)}${flags(e)}` })),
+    ...dependentsOf(deps, p.id).map((e) => ({ e, s: `${nameOf(e.from)} relies on us · ${risks(e)}${flags(e)}` })),
+  ];
+  // ⚠ THE CAP FORCES AN ORDER, AND THE ORDER IS THE POINT. A cap over an arbitrary list would print
+  // whichever two edges happened to be declared first; ranking critical-path ahead of unacknowledged ahead
+  // of the rest means the two a board most needs are the two it sees. `sort` is stable (ES2019), so ties
+  // keep declaration order — deterministic, and no `localeCompare` to drag a locale into a replay hash.
+  const rank = (e: DepEdge) => (e.critical ? 0 : e.acknowledged ? 2 : 1);
+  const ordered = [...all].sort((a, b) => rank(a.e) - rank(b.e));
+  if (!ordered.length) return ["No cross-project dependencies declared — this timeline stands on its own."];
+  const lines = ordered.slice(0, S1_DEPS_CAP).map((x) => x.s);
+  const held = ordered.length - lines.length;
+  if (held > 0) lines.push(`+${held} more — full graph on the dependency map`);
+  return lines;
+}
 // Dependency summary row (§4.2): NPV, above/below line, NPV incl. dependencies, dep counts.
 export interface DepSummaryRow { id: string; name: string; division: string; npvM: number; deps: number; dependents: number; npvWithDepsM: number; critical: boolean }
 export function dependencySummary(projects: Project[], deps: DepEdge[]): DepSummaryRow[] {

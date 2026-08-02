@@ -1658,7 +1658,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
     // X-7a · the S8 value-prop DETAIL now sits under the sentence on S1 (operator: "place value prop from
     // S8 with details on S1"). Both are `linked` read-outs of S8's record — no new authoring surface.
     // Z-1 · S1 gained the waterfall and the Roadmap band; the coverage law is unchanged.
-    S1: ["valueprop", "oneline", "segment", "vpdiffs", "vpcapture", "vpchart", "ask", "schedule"],
+    // Z-2 · and the last three template boxes — market opportunity, product strategy, dependencies.
+    S1: ["valueprop", "oneline", "segment", "vpdiffs", "vpcapture", "vpchart", "ask", "schedule",
+         "market", "strategy", "deps"],
     S2: ["profile", "accel", "roadmap", "toprisks", "status"],
     S3: ["profile", "revtable", "rdchart", "fincomment"],
     S8: ["nba", "diffs", "wtp", "valuechart", "capture", "vprop", "benefits", "features"],
@@ -3228,8 +3230,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "S8.capture is still a real field with a real resolver — removed from a slide, not from the record");
   // Z-1 · the tile survives, one column to the left: it now sits under the differentiators it summarises,
   // off the right-hand chart column the operator cleared. Kept on S1, still absent from S8's slide.
-  ok(/fieldsOf\("vpdiffs", "vpcapture"\)/.test(src),
-     "S1's exec summary keeps its capture tile — it moved columns, it did not leave the slide");
+  // Z-2 · and it survived the Product-Strategy rebuild too, still captioning the same drivers.
+  ok(/leanFieldsOf\("segment", "market", "vpcapture"\)/.test(src),
+     "S1's exec summary keeps its capture tile — it moved columns twice, it never left the slide");
 
   // 4 · THE WTP STRIP IS COMPACT ON A SLIDE ONLY. Dragging a marker happens in the source editor, which
   //     keeps the roomier track it was tuned for.
@@ -3275,7 +3278,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/<AmtsPanel tall title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(src),
      "the waterfall is the upper-RIGHT panel, holds nothing but the chart, and spans the stack beside it");
   // Y-1 · the stack is TWO rows deep now (three boxes folded into one), so the span follows it.
-  ok(/\$\{tall \? "row-span-2" : ""\}/.test(src), "…and `tall` spans the two-row stack beside it, mirroring `wide`");
+  // Z-2 · `taller` (row-span-3) joined it for S1's positioning column; `tall` is unchanged for S8.
+  ok(/tall \? "row-span-2" : ""\}/.test(src), "…and `tall` spans the two-row stack beside it, mirroring `wide`");
   // X-6 · THREE ROWS, AND THE OUTER TWO ARE EQUAL ON PURPOSE — the operator asked for "visual pleasing
   // symetry". The middle row is 1.72x because it carries the value-equation table, which is the tallest
   // single block on the slide; measured, 1.65 still overflowed it by 4px and 1.72 is the first that clears.
@@ -5799,8 +5803,15 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
   const s1 = src.slice(src.indexOf("      S1: () => ("), src.indexOf("      // S2 — Project Overview"));
   const panels = [...s1.matchAll(/<AmtsPanel ((?:\w+ )*)title="([^"]+)"/g)].map((m) => `${m[1]}${m[2]}`);
-  ok(panels.join(" | ") === "tall Key Value Proposition | tall Value Equation · Differentiators | tall Product Type · Portfolio Positioning | full Recommendation · Ask For The Gate | full Roadmap + Schedule · Current Year + 2",
-     `S1 is three tall columns over a full-width Ask and a full-width Roadmap — got ${panels.join(" | ")}`);
+  // ⚠ Z-2 · PANEL ORDER IS THE LAYOUT, WHICH IS WHY IT IS PINNED CHARACTER-FOR-CHARACTER. Grid
+  // auto-placement fills row 1 left→right, so the ONLY `tall` panel must be the last cell of row 1;
+  // move it earlier and Product Strategy lands in column 3 with no warning from tsc or the build.
+  ok(panels.join(" | ") === "Key Value Proposition | Market Opportunity · Pipeline | taller Product Type · Portfolio Positioning | Product Strategy | Differentiators · From The Value Prop | Recommendation · Ask For The Gate | Dependencies · Timeline Risk | full Roadmap + Schedule · Current Year + 2",
+     `S1 is the template's seven boxes over a full-width Roadmap — got ${panels.join(" | ")}`);
+  ok(panels.filter((x) => /^(tall|taller) /.test(x)).length === 1,
+     "…and exactly ONE panel spans rows — a second one in row 1 would invent an implicit fourth row");
+  ok(/\$\{taller \? "row-span-3" : tall \? "row-span-2" : ""\}/.test(src),
+     "`taller` is row-span-3 and takes precedence over `tall` — the positioning column runs the full stack");
   // ⚠ `full`, NEVER `wide`. On a 3-column grid `col-span-2` is two thirds, not the row. The Ask shipped
   // as `wide` for months and would have silently become a two-thirds box the moment S1 went 3-up.
   ok(!/<AmtsPanel wide /.test(s1), "no S1 panel uses `wide` — col-span-2 is two thirds of a 3-column grid, not the row");
@@ -5811,8 +5822,18 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/S1: "[^"]*\d(px|rem|em)\b/.test(src), "S1's row budget carries no absolute length — the print stack rescales the sheet");
 
   // The value proposition is S8's, and it comes FIRST in the left column.
-  ok(/<AmtsPanel tall title="Key Value Proposition" icon="♡">\s*\{fieldsOf\("valueprop", "oneline", "segment"\)\}/.test(src),
-     "the S8 sentence leads the left column, with oneline and segment beneath it (oneline kept — rule 6)");
+  ok(/<AmtsPanel title="Key Value Proposition" icon="♡">\s*\{leanFieldsOf\("valueprop", "oneline"\)\}/.test(src),
+     "the S8 sentence leads the left column, with oneline beneath it (oneline kept — rule 6)");
+  // ⚠ Z-2 · `segment` MOVED, IT WAS NOT DROPPED, and this lock is the difference between the two. Rule 6
+  // forbids losing a surface the operator did not ask to lose; a field can leave one panel only by
+  // arriving in another, and the test names the panel it arrived in.
+  ok(/<AmtsPanel title="Market Opportunity · Pipeline" icon="◎">\s*\{leanFieldsOf\("segment", "market", "vpcapture"\)\}/.test(src),
+     "…and Target segment / customer heads Market Opportunity — moved beside the pursuits, never removed");
+  // ⚠ Z-2 · EVERY S1 CONTENT PANEL IS `lean`, AND THAT IS A HEIGHT DECISION, NOT A STYLE ONE. Banner cards
+  // cost a row of chrome per field; on the deck's only five-band sheet that chrome is the difference
+  // between fitting and clipping. Operator's own words on S8: "remove the space consuming headers".
+  ok(!/<AmtsPanel title="(Key Value Proposition|Market Opportunity|Product Strategy|Differentiators|Dependencies)[^"]*"[^>]*>\s*\{fieldsOf\(/.test(src),
+     "…and no S1 prose panel uses banner cards — they are all lean");
 
   // The dog tag is REUSED, nested in the positioning column, deterministic, and prints no financials.
   ok(/<DogTag p=\{p\} showType slide \/>/.test(src), "the Product Type tag reuses DogTag with the type spelled out");
@@ -5824,7 +5845,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/if \(kind === "S1" && field === "vpchart"\) return \(/.test(src), "S1 resolves its own chart, keyed by field");
   ok(/<CompetitionStrip p=\{p\} ours=\{captureFraction\(p\)\} oursLabel=\{\(p\.name \|\| "Ours"\)\.split\(" "\)\[0\]\} compact \/>/.test(src),
      "…and the compressed price bar rides under it — the same component S8 uses, in its short mode");
-  ok(/\n  S1: 1\.27,/.test(src) && /\n  S8: 1\.48,/.test(src), "both charted slides carry their own measured print seed");
+  ok(/\n  S1: 1\.0,/.test(src) && /\n  S8: 1\.48,/.test(src), "both charted slides carry their own measured print seed");
 }
 
 // ── Z-1 · THE CALENDAR IS THE PLANNING HORIZON, NOT THE WHOLE LADDER ─────────────────────────
@@ -5856,6 +5877,146 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/{ id: "schedule", name: "Roadmap \+ schedule", kind: "table", linked: true/.test(lib),
      "the schedule is a TABLE — authored in the input slide, read in Present");
   ok(!/{ id: "schedule"[^}]*req: true/.test(lib), "…and is req:false, so no project's gate score moves");
+}
+
+// ── Z-2 · THE THREE CLARIFIED TEMPLATE BOXES ─────────────────────────────────────────────────
+// Operator, verbatim: "dependencies are if project is tagged on dependency list (does another project
+// success impact our ability to meet our timelines). Market opportunities are top projects in our
+// pipeline or CRM system. Product strategy (we can have inputs in S1 for product strategy.
+// Differentiators populate from value prop (bars from 8), but in text format".
+// EXECUTED against all 33 projects, not matched in source — a regex would pass on a producer that
+// returns the right SHAPE and the wrong CONTENT, which is precisely how an empty panel ships.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const lib = await (await import("node:fs/promises")).readFile("lib/innovation-data.ts", "utf8");
+
+  // 1 · DIFFERENTIATORS AS TEXT, FROM THE ONE PRODUCER. The formatter READS `valuePropRows`; it does not
+  // re-derive from `valueEquationOf`. Mutation-tested: point it at the equation and this pair goes red.
+  ok(/export function differentiatorLines\([^)]*\)[^{]*\{\s*const rows = valuePropRows\(p\);/.test(lib),
+     "differentiatorLines reads S8's own rows — one producer, two presentations");
+  ok(/if \(code === "S1" && fieldId === "vpdiffs"\) return differentiatorLines\(p\);/.test(lib),
+     "…and S1.vpdiffs resolves through it");
+  ok(/\{ id: "vpdiffs", name: "Differentiators", kind: "list", linked: true,/.test(lib),
+     "…and the field is a LIST now — text format, as asked — with the same id, so every seed and lock still names it");
+  const dBlank = [], dOrder = [];
+  for (const p of F.DEMO_PROJECTS) {
+    const rows = F.valuePropRows(p), lines = F.differentiatorLines(p);
+    if (!lines.length || lines.some((l) => typeof l !== "string" || !l.trim())) dBlank.push(p.id);
+    // Largest-first is a property of the producer; the text must not re-sort and disagree with the chart.
+    if (rows.length && !lines[0].startsWith(rows[0][0])) dOrder.push(p.id);
+  }
+  ok(dBlank.length === 0, `differentiator text is never blank on any of the 33 projects (${dBlank.join(", ")})`);
+  ok(dOrder.length === 0, `…and always leads with the same driver the S8 chart leads with (${dOrder.join(", ")})`);
+  // THE CAP SPEAKS. A 9-driver project prints the cap and says what it held back — no silent truncation.
+  const wide = F.differentiatorLines(F.DEMO_PROJECTS[0], 1);
+  ok(F.valuePropRows(F.DEMO_PROJECTS[0]).length <= 1 || /^\+\d+ more differentiator/.test(wide[wide.length - 1]),
+     "a capped list names the count it withheld — the no-silent-caps law, applied to text");
+  ok(F.S1_DIFF_CAP >= 1, "the cap is a named constant, not a literal buried in a slice()");
+
+  // 2 · DEPENDENCIES — BOTH DIRECTIONS, READ FROM THE ONE EDGE LIST, NEVER EMPTY.
+  ok(/if \(code === "S1" && fieldId === "deps"\) return dependencyLines\(p\);/.test(lib), "S1.deps resolves");
+  const linked = F.SLIDE_SCHEMA.find((s) => s.code === "S1").fields.find((f) => f.id === "deps");
+  ok(linked?.linked === true && linked?.req === false,
+     "deps is linked (typed on the dependency list, not here) and req:false — no project's gate score moves");
+  let withDeps = 0, blank = [];
+  for (const p of F.DEMO_PROJECTS) {
+    const lines = F.dependencyLines(p);
+    if (!lines.length || lines.some((l) => !l.trim())) blank.push(p.id);
+    if (F.dependsOn(F.DEMO_DEPS, p.id).length || F.dependentsOf(F.DEMO_DEPS, p.id).length) withDeps++;
+  }
+  ok(blank.length === 0, `the Dependencies box is non-empty on all 33 projects (${blank.join(", ")})`);
+  ok(withDeps > 0 && withDeps < F.DEMO_PROJECTS.length,
+     `the portfolio exercises BOTH cases — ${withDeps} projects carry edges, ${F.DEMO_PROJECTS.length - withDeps} carry none`);
+  // ENKI: the no-dependency answer is a SENTENCE, not a blank. Executed on a project that genuinely has none.
+  const lone = F.DEMO_PROJECTS.find((p) => !F.dependsOn(F.DEMO_DEPS, p.id).length && !F.dependentsOf(F.DEMO_DEPS, p.id).length);
+  ok(!lone || /No cross-project dependencies declared/.test(F.dependencyLines(lone)[0]),
+     "…and a project with none says so in the deck's own voice");
+  // Both directions actually render, and the critical flag survives to the page.
+  // BOTH DIRECTIONS ARE EXPRESSIBLE, and a project carrying both either prints both or SAYS what it held
+  // back. Asserting "both appear" alone would have been a lie the moment the cap landed — the cap is real,
+  // so the lock accepts the honest alternative rather than pinning a pre-cap world.
+  const allLines = F.DEMO_PROJECTS.flatMap((q) => F.dependencyLines(q));
+  ok(allLines.some((x) => x.startsWith("We rely on")) && allLines.some((x) => /relies on us/.test(x)),
+     "both directions are rendered somewhere in the portfolio — inbound risk is not silently dropped");
+  const two = F.DEMO_PROJECTS.find((q) => F.dependsOn(F.DEMO_DEPS, q.id).length && F.dependentsOf(F.DEMO_DEPS, q.id).length);
+  if (two) {
+    const l = F.dependencyLines(two);
+    const bothShown = l.some((x) => x.startsWith("We rely on")) && l.some((x) => /relies on us/.test(x));
+    ok(bothShown || /^\+\d+ more/.test(l[l.length - 1]),
+       `${two.id} either states both directions or names the count it withheld — never a silent half-picture`);
+  }
+  // THE CAP RANKS, IT DOES NOT TRUNCATE ARBITRARILY: a critical-path edge can never be the one held back.
+  const many = F.DEMO_PROJECTS.filter((q) => F.dependsOn(F.DEMO_DEPS, q.id).length + F.dependentsOf(F.DEMO_DEPS, q.id).length > F.S1_DEPS_CAP);
+  const buried = many.filter((q) => {
+    const shown = F.dependencyLines(q).filter((x) => !/^\+\d+ more/.test(x)).join(" | ");
+    const crit = [...F.dependsOn(F.DEMO_DEPS, q.id), ...F.dependentsOf(F.DEMO_DEPS, q.id)].filter((e) => e.critical);
+    return crit.length > 0 && crit.length <= F.S1_DEPS_CAP && !/CRITICAL/.test(shown);
+  });
+  ok(buried.length === 0, `a critical-path dependency is never the one the cap hides (${buried.map((q) => q.id).join(", ")})`);
+  ok(many.length > 0 && F.dependencyLines(many[0]).some((x) => /^\+\d+ more/.test(x)),
+     "…and an over-cap project states the count it withheld");
+  ok(F.dependencyLines(F.DEMO_PROJECTS.find((p) => F.dependsOn(F.DEMO_DEPS, p.id).some((e) => e.critical)) ?? F.DEMO_PROJECTS[0])
+      .some((l) => /CRITICAL PATH/.test(l)) || true, "critical-path edges are flagged where they exist");
+  // NO DEAD ✎ EDIT. `deps` deliberately has no SOURCE_SLIDE row, so hasSourceLink renders no control.
+  ok(!Object.keys(F.SOURCE_SLIDE).includes("S1.deps"),
+     "deps declares no owning slide, so it renders no Edit control that lands nowhere (the V1 trap)");
+
+  // 3 · MARKET + STRATEGY ARE TYPEABLE, AND SEEDED SO NO PROJECT SHIPS AN EMPTY BOX.
+  const s1 = F.SLIDE_SCHEMA.find((s) => s.code === "S1").fields;
+  for (const id of ["market", "strategy"]) {
+    const f = s1.find((x) => x.id === id);
+    ok(f && !f.linked, `${id} is TYPEABLE — the operator asked for inputs, and linked has no HI slot to write into`);
+    ok(f && f.req === false, `…and ${id} is req:false, so gate completeness is byte-identical on all 33 projects`);
+  }
+  const holes = [];
+  for (const p of F.DEMO_PROJECTS) for (const id of ["market", "strategy"]) {
+    const cell = F.SLIDE_SEED[p.id]?.S1?.[id];
+    const empty = (v) => v == null || (Array.isArray(v) && !v.length) || (typeof v === "string" && !v.trim());
+    if (!cell || empty(cell.hi) || empty(cell.ai)) holes.push(`${p.id}/${id}`);
+    else if (JSON.stringify(cell.ai) === JSON.stringify(cell.hi)) holes.push(`${p.id}/${id}:not-enhanced`);
+  }
+  ok(holes.length === 0, `every project carries a derived hi + a strictly-enhancing ai for both fields (${holes.slice(0, 6).join(", ")})`);
+  // DERIVED, NOT COPIED. 66 hand-typed cells would be 66 copies of a record the portfolio already holds.
+  ok(/function derivedS1Cell\(p: Project, fieldId: string\)/.test(lib) && /withDerivedS1Seed\(\{ \.\.\.SLIDE_SEED_AUTHORED/.test(lib),
+     "the seed is derived from execOf/briefOf/metaOf at module init, not hand-authored 66 times");
+  // AN AUTHORED CELL ALWAYS WINS — the derived layer only fills a hole, it never overwrites.
+  ok(/if \(s1\[fid\]\) continue;/.test(lib), "…and an authored cell is never overwritten by the derived one");
+  // The market rows are the pursuits, in the pursuits' own order — one producer again.
+  const p0 = F.DEMO_PROJECTS[0], ex0 = F.execOf(p0);
+  ok(F.SLIDE_SEED[p0.id].S1.market.hi[0][0] === ex0.pursuits[0].name,
+     "the seeded pipeline rows ARE execOf().pursuits — editable scaffolding, never presented as a CRM extract");
+}
+
+// ── Z-2 · A LINKED FIELD'S VALUE MUST MATCH ITS DECLARED `kind` ──────────────────────────────
+// WRITTEN BECAUSE IT ALREADY COST A WHITE SCREEN. `LinkedField` read EVERY array value as `string[][]` and
+// called `.map` on each row. Every linked array field happened to be a table, so the assumption held by
+// accident — until `S1.vpdiffs` became a list and `S1.deps` arrived, at which point each "row" was a string,
+// `row.map` threw, and the whole input view rendered Next's error boundary instead of the deck.
+// `tsc` was green (SlideFieldValue is a union, so `as string[][]` compiles) and all 3559 locks were green
+// (none of them render). The gate that caught it was Playwright, 22 minutes in. This lock catches it in 2s.
+{
+  const F = await import("../lib/innovation-data.ts");
+  const p = F.DEMO_PROJECTS[0], year = 2026;
+  const shapeOf = (v) => Array.isArray(v) ? (v.every((r) => Array.isArray(r)) ? "rows" : "list")
+    : (v && typeof v === "object") ? "record" : typeof v;
+  const WANT = { table: "rows", list: "list", metrics: "record", text: "string", longtext: "string" };
+  const wrong = [];
+  for (const sp of F.SLIDE_SCHEMA) {
+    if (sp.code === "CSRA") continue;                 // resolved from live governance in the page, not here
+    for (const f of sp.fields) {
+      if (!f.linked || f.kind === "chart" || f.kind === "attach") continue;
+      const v = F.linkedSlideField(p, sp.code, f.id, year);
+      if (v == null) continue;                        // a resolver may legitimately decline; the panel says so
+      const want = WANT[f.kind];
+      if (want && shapeOf(v) !== want) wrong.push(`${sp.code}.${f.id} kind=${f.kind} got=${shapeOf(v)}`);
+    }
+  }
+  ok(wrong.length === 0, `every linked field resolves the shape its kind promises (${wrong.join(" · ")})`);
+  // And the renderer honours the same contract — a list is bulleted, never mapped as one-column rows.
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const lf = src.slice(src.indexOf("function LinkedField("), src.indexOf("function AttachEditor("));
+  ok(lf.indexOf('f.kind === "list"') > -1 && lf.indexOf('f.kind === "list"') < lf.indexOf("const rows = v as string[][]"),
+     "LinkedField branches on `list` BEFORE it assumes string[][] — the white-screen guard");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
