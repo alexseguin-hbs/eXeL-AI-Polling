@@ -3710,6 +3710,20 @@ export function valueEquation(drivers: ValueDriver[], addressableRevM: number): 
     // rather than the retired `ours − nba` so nothing downstream reads a quantity that no longer has inputs.
     return { name: d.name || "Driver", importance: imp, deltaVsNba: sign, weighted, verdict };
   });
+  // ⚠ Y-2 · LARGEST DIFFERENTIATOR FIRST, WHATEVER ORDER IT WAS TYPED IN (operator: "ensure order is by
+  // largest differentiators first (regardless of input order)"). SORTED HERE AND NOWHERE ELSE: `perDriver`
+  // is the one list both S8 read-outs consume — `valuePropRows` draws the Value Equation table from it and
+  // the waterfall draws its bars from it — so sorting at the producer is what keeps the table's third row
+  // and the chart's third bar the same differentiator. Sorting in either consumer would let them disagree.
+  //
+  // Descending SIGNED value, so give-backs land last, immediately before the capture bars — the shape of
+  // the operator's own reference waterfall (winners stepping up, losses stepping down at the end).
+  //
+  // DETERMINISM: `Array.prototype.sort` is required to be STABLE (ES2019 §23.1.3.27), so drivers of equal
+  // value keep their authored order. That is the tie-break — no name comparison, which would need a
+  // locale and `localeCompare` is exactly the kind of environment-dependent call the replay hash forbids.
+  // The sums above are computed BEFORE this line and are order-independent, so no total moves.
+  perDriver.sort((a, b) => b.weighted - a.weighted);
   // COMPETITIVE INDEX = the share of value that is UPSIDE: 50 + 50 × (Σ⁺ − Σ⁻) / Σ|value|.
   //
   // ⚠ TWO ATTEMPTS, BOTH MEASURED BEFORE SHIPPING, AND THE SECOND FOUND THE REAL CAUSE. Weighting the

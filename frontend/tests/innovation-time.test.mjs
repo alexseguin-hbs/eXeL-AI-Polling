@@ -480,6 +480,34 @@ ok(evcHi > evcLo, "valueEquation: EVC is monotonic increasing in our score");
 ok(Number.isFinite(winDriver.differentiationM), "valueEquation: differentiation is a finite $ figure (D3 retired the 0-100 index)");
 ok(Number.isFinite(valueEquationOf(DEMO_PROJECTS[0]).evcUsdM), "valueEquationOf resolves for a real project (addressable = full 10-yr revenue)");
 ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "All-weather range", importance: 1, ourScore: 0.9, nbaScore: 0.3 }] }).includes("All-weather range"), "valuePropFromEquation names the winning driver vs the NBA");
+
+// ── Y-2 · LARGEST DIFFERENTIATOR FIRST, WHATEVER ORDER IT WAS TYPED IN ────────────────────────
+// Operator: "ensure order is by largest differentiators first (regardless of input order)". EXECUTED
+// against a deliberately shuffled input — a source-text match would pass on a `sort` that sorted the
+// wrong key or the wrong way. `perDriver` is the ONE list both S8 read-outs consume, so this is also
+// what keeps the Value Equation's Nth row and the waterfall's Nth bar the same differentiator.
+{
+  const shuffled = [
+    { name: "small", importance: 0.5, valueM: 12 },
+    { name: "biggest", importance: 0.5, valueM: 90 },
+    { name: "give-back", importance: 0.5, valueM: -20 },
+    { name: "middle", importance: 0.5, valueM: 44 },
+  ];
+  const got = valueEquation(shuffled, 100).perDriver.map((d) => d.name);
+  ok(got.join(" > ") === "biggest > middle > small > give-back",
+     `perDriver is sorted by value DESCENDING regardless of input order — got ${got.join(" > ")}`);
+  // Give-backs land LAST, not sorted by magnitude into the winners: the waterfall steps up then down.
+  ok(got.at(-1) === "give-back", "…and a negative driver steps down at the END, as a waterfall does");
+  // TOTALS ARE ORDER-INDEPENDENT — the sums are taken before the sort, so re-ordering moves no money.
+  const asTyped = valueEquation(shuffled, 100), reversed = valueEquation([...shuffled].reverse(), 100);
+  ok(asTyped.differentiationM === reversed.differentiationM && asTyped.evcUsdM === reversed.evcUsdM
+     && asTyped.wins === reversed.wins && asTyped.losses === reversed.losses,
+     "…and reversing the input changes no total — the sort re-orders the read-out, never the arithmetic");
+  // DETERMINISM: equal values keep authored order (Array.prototype.sort is stable, ES2019 §23.1.3.27).
+  const ties = valueEquation([{ name: "A", importance: 0.5, valueM: 10 }, { name: "B", importance: 0.5, valueM: 10 },
+                              { name: "C", importance: 0.5, valueM: 10 }], 100).perDriver.map((d) => d.name);
+  ok(ties.join("") === "ABC", "…and equal-value drivers keep their authored order — a stable, locale-free tie-break");
+}
 ok(valuePropFromEquation({ ...P0, valueDrivers: [] }).length > 0, "valuePropFromEquation resolves even with no stored drivers (derived backfill populates winners)");
 ok(valuePropFromEquation({ ...P0, valueDrivers: [{ name: "z", importance: 1, ourScore: 0.1, nbaScore: 0.9 }] }).includes("Unlike"), "valuePropFromEquation falls back to the derived AI value prop when the (stored) drivers do not win");
 
@@ -875,7 +903,7 @@ import { slidesForProject, nextGate, SLIDE_SEED, changeSummaryRows, reviewApprov
   const emptyV = (v) => v == null || (typeof v === "string" && !v.trim()) || (Array.isArray(v) && v.length === 0) || (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0);
   if (Object.keys(SLIDE_SEED).length) {
     const specBy = Object.fromEntries(SLIDE_SCHEMA.map((s) => [s.code, s]));
-    let cells = 0, gaps = [], notEnhanced = 0;
+    let cells = 0, gaps = [], notEnhanced = 0; const shorterAi = [];
     // H6 — EVERY project has the FULL S1–S18 deck filled (HI + AI superset). CS/RA are linked closeouts (skipped).
     const fullDeck = SLIDE_SCHEMA.filter((s) => s.code !== "CSRA").map((s) => s.code);
     for (const p of DEMO_PROJECTS) {
@@ -886,11 +914,21 @@ import { slidesForProject, nextGate, SLIDE_SEED, changeSummaryRows, reviewApprov
           cells++;
           if (!cell || emptyV(cell.hi) || emptyV(cell.ai)) { gaps.push(`${p.id}/${code}/${f.id}`); continue; }
           if (JSON.stringify(cell.ai) === JSON.stringify(cell.hi)) notEnhanced++;
+          if (typeof cell.hi === "string" && typeof cell.ai === "string" && cell.ai.length < cell.hi.length) shorterAi.push(`${p.id}/${code}/${f.id}`);
         }
       }
     }
     ok(gaps.length === 0, `SLIDE_SEED fills the FULL S1–S18 deck for every project (hi+ai) — ${gaps.length ? gaps.slice(0, 8).join(", ") + (gaps.length > 8 ? ` +${gaps.length - 8}` : "") : cells + " cells"}`);
-    ok(notEnhanced === 0, `SLIDE_SEED ai differs from hi on every cell (${notEnhanced} identical)`);
+    // ⚠ Y-2 · THIS LOCK USED TO DEMAND ai ≠ hi ON EVERY CELL, AND I RELAXED IT DELIBERATELY. SAYING WHY.
+    // The generator satisfied "ai ⊋ hi" by CUTTING the hi copy of the same sentence at a character budget —
+    // mid-word, ending in an ellipsis — and As-set renders hi, so a severed sentence is what the deck showed.
+    // The operator caught it on S8's NBA. Restoring those 52 cells from their complete ai sibling is the fix;
+    // keeping them severed to hold `=== 0` would have been serving the metric instead of the reader.
+    // The invariant that still MATTERS is below: ai is never SHORTER than hi. And the cap keeps this honest —
+    // a future generator that lazily copies hi into ai wholesale lands at 597 and goes red, which is the real
+    // thing this assertion was ever protecting against. Raise the cap only WITH a reason, never to go green.
+    ok(notEnhanced <= 52, `SLIDE_SEED ai enhances hi on all but the 52 cells Y-2 restored from a clip (${notEnhanced} identical)`);
+    ok(shorterAi.length === 0, `SLIDE_SEED ai is never shorter than hi — it is a superset, never a competing edit (${shorterAi.slice(0, 4).join(", ")})`);
     ok(typeof SLIDE_SEED["PRJ-23"]?.["S1"]?.["oneline"]?.hi === "string", "IVAS S1 one-liner seeded");
 
     // S4 CONOPS — the PRESENTED (in-scope) decks carry 6–10 ordered HI steps (operator floor); AI a superset.
@@ -3228,11 +3266,19 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // X-6 · THREE ROWS, AND THE OUTER TWO ARE EQUAL ON PURPOSE — the operator asked for "visual pleasing
   // symetry". The middle row is 1.72x because it carries the value-equation table, which is the tallest
   // single block on the slide; measured, 1.65 still overflowed it by 4px and 1.72 is the first that clears.
-  // Y-1 · THREE rows. Weights measured with the ink-void probe, not guessed: the bottom row was handing
-  // its two four-bullet lists 201px to paint 119 in, so 61px of pure void moved up to the chart. 1.45 is
-  // the first middle weight at which the value-equation table clears (1.40 overflowed it by 2px).
-  ok(/S8: "minmax\(0, 2\.7fr\) minmax\(0, 1\.45fr\) minmax\(0, 1\.1fr\)"/.test(src),
-     "S8's three rows are weighted from the measured ink-void, not split evenly");
+  // ⚠ Y-2 · THE VALUE-EQUATION ROW IS `auto`, SO 5-8 DIFFERENTIATORS GROW IT INSTEAD OF BEING CLIPPED.
+  // Operator: "ensure spaces adjust if more differentiators (incase there are 5-8)." Measured on a
+  // 7-driver project: row 2 goes 189 -> 270px and row 1 gives up exactly that, overflow 0.
+  // ROW 3 IS PINNED, AND THAT IS WHAT MAKES THE PRINT SEED POSSIBLE — the chart spans rows 1-2, so its
+  // slot is body − row3. With row 3 fixed the slot measures 1.478 on a 3-driver AND a 7-driver project;
+  // had row 3 been `auto` too, `SLIDE_SLOT_ASPECT` could only ever have been right for one of them.
+  // ⚠ PINNED IN `cqh`, NEVER PX. The px draft measured right on screen and cost the EXPORTED waterfall a
+  // third of its height (51% -> 33% of canvas) because the print stack lays the sheet out at 540/405px tall
+  // and an absolute row does not shrink with it. pdf-gate stayed green throughout — its floor is 12% — so
+  // only the printed percentage caught it. Any absolute length in BODY_ROWS is this bug waiting again.
+  ok(!/S8: "[^"]*\d(px|rem|em)\b/.test(src), "…and that pin is a SHEET-RELATIVE unit — an absolute length here shrinks the exported chart");
+  ok(/S8: "minmax\(0, 1fr\) auto minmax\(15\.33cqh, auto\)"/.test(src),
+     "S8's value-equation row is `auto` (adapts to the driver count) and its bottom row is a pinned sheet constant");
   ok(!/mode !== "slide" && <CompetitionStrip[\s\S]{0,200}?compact/.test(veq),
      "the strip inside ValueProp is off the slide entirely — it is not merely made smaller there");
   ok(/\{mode !== "slide" && <CompetitionStrip/.test(veq),
@@ -3312,6 +3358,42 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // notice it disturbed the bottom.
   ok(panels[3] === "Key Customer Benefits" && panels[4] === "Key Technical Features",
      "…and Key Customer Benefits / Key Technical Features are still the last two panels, in that order");
+
+  // ── Y-2 · NOTHING THE DECK SHOWS IS A SEVERED SENTENCE ───────────────────────────────────────
+  // Operator, on S8: "make sure NBA does not cut off." The cause was NOT css and NOT the producer — 69
+  // authored `hi` cells were STORED clipped mid-word with an ellipsis, and As-set resolves `hi`, so the
+  // clip is what the deck rendered by default. Executed over the whole seed, not spot-checked: a single
+  // surviving clip fails, naming it. This is the guard the generator never had.
+  {
+    const ELL = /…\s*$/;
+    const clipped = [];
+    for (const [pid, slides] of Object.entries(SLIDE_SEED))
+      for (const [code, fields] of Object.entries(slides))
+        for (const [fid, v] of Object.entries(fields)) {
+          const walk = (val, lane) => { if (typeof val === "string" && ELL.test(val)) clipped.push(`${pid} ${code}.${fid}.${lane}`); };
+          if (v && typeof v === "object" && !Array.isArray(v)) { walk(v.hi, "hi"); walk(v.ai, "ai"); }
+          else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `[${i}]`));
+          else walk(v, "-");
+        }
+    ok(clipped.length === 0, `no authored seed cell ends in an ellipsis — a clipped sentence is a data defect, not a short rendering (${clipped.length}: ${clipped.slice(0, 4).join(", ")})`);
+  }
+  // …and the field the operator actually photographed is never a TRUNCATION of the real NBA.
+  // ⚠ THE FIRST DRAFT OF THIS LOCK WAS WRONG AND THE DATA SAID SO. It demanded every seeded S8.nba open
+  // with `nbaOf(p)`'s first 24 characters; PRJ-07/14/19 went red because their cells are authored
+  // RE-WORDINGS ("Airborne-only ISR combined with commercial EO imagery, which leaves revisit gaps…"),
+  // which is allowed and always was. Rewriting is fine; SEVERING is not. So the test is exactly that:
+  // a cell that is a PREFIX of the full NBA must be the WHOLE of it. Re-wordings aren't prefixes and pass.
+  {
+    const bad = [];
+    for (const q of DEMO_PROJECTS) {
+      const full = nbaOf(q), cell = SLIDE_SEED[q.id]?.S8?.nba;
+      if (!cell) continue;                            // unseeded → resolves from `nbaOf`, whole by construction
+      for (const [lane, s] of [["hi", cell.hi], ["ai", cell.ai]])
+        if (typeof s === "string" && s.trim() && full.startsWith(s.replace(/[.\s]+$/, "")) && s.replace(/[.\s]+$/, "").length < full.length)
+          bad.push(`${q.id}.${lane}`);
+    }
+    ok(bad.length === 0, `no seeded S8.nba is a truncation of the project's real Next Best Alternative — rewording allowed, severing not (${bad.join(", ")})`);
+  }
 
   // 2 · THE SPANNING RULE IS DECLARED, NOT INFERRED. Inference from `kind` is how the Competition panel
   //     silently became two-column when a chart field joined it.

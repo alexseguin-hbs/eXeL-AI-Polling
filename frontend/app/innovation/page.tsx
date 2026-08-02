@@ -4743,11 +4743,25 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 
 const BODY_ROWS: Record<string, string> = {
   S10: "minmax(0, 10fr) minmax(0, 24fr)",
-  // Y-1 · THREE ROWS, NOT FOUR — the value proposition, NBA and the price strip now share row 1. Weights are
-  // MEASURED, not guessed: the x3-bands probe reports what each panel needs and this is the split where the
-  // waterfall gets the most height with ZERO overflow in any panel. Row 1 carries a sentence, a sentence and
-  // a slider; row 2 the five-row value equation; row 3 two four-bullet lists.
-  S8: "minmax(0, 2.7fr) minmax(0, 1.45fr) minmax(0, 1.1fr)",
+  // Y-1 · THREE ROWS, NOT FOUR — the value proposition, NBA and the price strip share row 1.
+  //
+  // ⚠ Y-2 · THE VALUE-EQUATION ROW IS `auto` SO IT SIZES TO THE DIFFERENTIATORS IT ACTUALLY HAS. Operator:
+  // "ensure spaces adjust if more differentiators (incase there are 5-8)." The old 1.45fr was measured
+  // against FOUR drivers; an eight-driver project would have clipped four rows off the bottom of a table
+  // whose panel could not grow. `auto` takes exactly the rows present — 3 or 8 — and row 1 absorbs the
+  // difference, so the waterfall shrinks instead of the table losing data.
+  //
+  // ⚠ AND ROW 3 IS A FIXED SHEET CONSTANT, WHICH IS WHAT KEEPS THE PRINT SEED POSSIBLE. The chart spans
+  // rows 1-2, so its slot = body − row3 − gap. Had row 3 been `auto` too, the slot would breathe with the
+  // bullet count and `SLIDE_SLOT_ASPECT` — one number the hidden print copy lays out from — could only ever
+  // be right for one project. Pinning row 3 makes the slot IDENTICAL on all 33 regardless of driver count.
+  // ⚠ IN `cqh`, NOT PX, AND I SHIPPED THE PX VERSION LONG ENOUGH TO MEASURE WHAT IT COST. The two bullet
+  // lists paint 119px at their fullest (4 bullets) on the 1600x900 sheet, so 138px is the right SIZE — but
+  // px is an ABSOLUTE unit and the print stack lays the same sheet out at 960x540 and 720x405. A row that
+  // stays 138px on a 540px-tall page eats two and a half times the share it does at 900, and the exported
+  // waterfall fell from 51% of the canvas to 41% / 33%. The gate's floor is 12%, so it stayed GREEN — the
+  // regression was only visible because the run prints the number. 138/900 = 15.33cqh scales with the sheet.
+  S8: "minmax(0, 1fr) auto minmax(15.33cqh, auto)",
 };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
