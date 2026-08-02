@@ -2293,16 +2293,22 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
         {showType && (
           <div className="mt-0.5 truncate text-[9px] font-semibold uppercase tracking-[0.14em]" style={{ color: dt.color }}>{dt.label}</div>
         )}
-        <div className="mt-0.5 flex flex-col items-center gap-0 text-[10px] leading-tight">
+        {/* ⚠ Z-4 · ON A SLIDE THE HIGHLIGHTS RUN INLINE, NOT ONE PER LINE. Same metrics, same values, same
+            order — three rows become one wrapped row, which is ~24px the S1 sheet does not have to spare
+            now that the tag leads column 1. The project card keeps the stacked read it was designed for. */}
+        <div className={`mt-0.5 items-center text-[10px] leading-tight ${slide ? "flex flex-wrap justify-center gap-x-2 gap-y-0" : "flex flex-col gap-0"}`}>
           {face === "biz"
             ? metrics.map((m) => (<div key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></div>))
             : engMetrics.map((m) => (<div key={m.label}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val}</b></div>))}
         </div>
         <div className="mt-0.5 flex items-center justify-center gap-2">
-          <button onClick={() => setFace((f) => (f === "biz" ? "eng" : "biz"))} title={t("innovation.dogtag.flip")} aria-label={t("innovation.dogtag.flip")}
+          {/* ⚠ Z-4 · NO FACE-FLIP ON A SLIDE. It is a control, and a presented sheet is read, not operated —
+              the same reason the operator just had the green ✎ Edit chips taken off S1. It also pinned the
+              tag ~14px taller than the column could pay for. The project card keeps the flip. */}
+          {!slide && <button onClick={() => setFace((f) => (f === "biz" ? "eng" : "biz"))} title={t("innovation.dogtag.flip")} aria-label={t("innovation.dogtag.flip")}
             className="text-[8px] uppercase tracking-wider text-slate-600 hover:text-cyan-400">
             {face === "biz" ? `⇄ ${t("innovation.dogtag.engFace")}` : `⇄ ${t("innovation.dogtag.bizFace")}`}
-          </button>
+          </button>}
           {/* F2 — one-tap financial edit access from the dog tag (opens the shared Rev-Plan source editor). */}
           {onEditFinancials && (
             <button onClick={onEditFinancials} title="Edit financials — opens the Revenue Plan source editor" aria-label="Edit financials"
@@ -4811,7 +4817,14 @@ const BODY_ROWS: Record<string, string> = {
   // list; row 4 the gate cards. The first ratio I shipped was 1.35 : 1.25 : auto : 1.1, and on ALL 33
   // projects it left rows 1 and 2 short — the value prop by 29px and Product Strategy by 81. The numbers
   // below are that measurement, not a guess, and the S1×33 sweep is what proves them.
-  S1: "minmax(0, 1.72fr) minmax(0, 0.98fr) minmax(0, 0.88fr) minmax(0, 1.02fr)",
+  // ⚠ Z-4 · ROWS 2-4 TAKE WHAT THEY NEED; ROW 1 TAKES THE REST. Fixed `fr` ratios were right while the
+  // sheet had slack; the innovation tag consumed it. Measured with every row at `max-content`, rows 2-4
+  // want 133 / 88 / 123px on the reference project while the ratios were handing them 137 / 119 / 152 —
+  // about 64px of allocation that nothing was using, which is almost exactly what the tag costs. `auto`
+  // gives that slack back automatically, and it does it PER PROJECT: a project with a long dependency
+  // list takes its extra from row 1 rather than clipping row 3. Row 1 is the only `fr`, so it absorbs
+  // the remainder — and if it ever cannot, the S1×33 sweep says so instead of the sheet quietly clipping.
+  S1: "minmax(0, 1fr) auto auto auto",
 };
 
 // ⚠ Z-1 · THE BODY GRID IS TWO COLUMNS FOR EVERY SLIDE BUT ONE. The AMTS sheet has always been a 2-up,
@@ -4826,7 +4839,7 @@ const BODY_COLS: Record<string, string> = { S1: "repeat(3, minmax(0, 1fr))" };
 // 9px without touching a single other slide's geometry — and specifically without moving S8, whose
 // exported waterfall percentage is gated to the tenth. Same shape and same law as BODY_ROWS/BODY_COLS:
 // declared per code, expressed in `cqh` so the print stack rescales it with the sheet.
-const BODY_GAP: Record<string, string> = { S1: "0.95cqh" };
+const BODY_GAP: Record<string, string> = { S1: "0.8cqh" };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
 // the sentence, the NBA it must beat, the waterfall, and the differentiators behind it. When that panel is
@@ -5673,10 +5686,10 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // template runs Overview · Market · Positioning across its top. Panel order IS grid auto-placement
       // order, so this list is the layout:
       //
-      //   ♡ Key Value Proposition │ ◎ Market Opportunity  │ ◈ Product Type · Portfolio
-      //     S8 sentence + oneline │   segment · pipeline   │   Positioning (taller — three rows)
-      //   ─────────────────────── ┼ ────────────────────── │   dog tag
-      //   ◧ Product Strategy      │ ▪ Differentiators      │   waterfall
+      //   ♡ [innovation tag]      │ ◎ Market Opportunity  │ ◈ Portfolio Positioning
+      //     Key Value Proposition │   segment · pipeline   │   (taller — three rows)
+      //     S8 sentence + oneline │                        │
+      //   ─────────────────────── ┼ ────────────────────── │   waterfall
       //   ─────────────────────── ┼ ────────────────────── │   compressed price bar
       //   ⚑ Recommendation · Ask  │ ⇄ Dependencies         │
       //   ▦ Roadmap + Schedule · Current Year + 2                          (full)
@@ -5701,7 +5714,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               ⚠ `segment` MOVED, it was not dropped: "Target segment / customer" now heads Market
               Opportunity, where the customer belongs beside the pursuits being sold to them. Saying so
               because moving an operator's field without saying so is how rule 6 gets broken quietly. */}
+          {/* ⚠ Z-4 · THE TAG LEADS THE SHEET NOW (operator, IMG_8461: "lets place innovation tag in upper
+              left above value prop, as these two elements are most important"). It was nested above the
+              waterfall in column 3; it is the SAME DogTag, same pillar-coloured border, same pinned metric
+              set (`slide`) so a printed board sheet stays deterministic — it moved, nothing was rebuilt.
+              Capped, because it is an identifier heading the column, not the column's content. */}
           <AmtsPanel title="Key Value Proposition" icon="♡">
+            <div className="max-h-[11cqh] shrink-0 overflow-hidden"><DogTag p={p} showType slide /></div>
             {leanFieldsOf("valueprop", "oneline")}
           </AmtsPanel>
           {/* ⚠ SEEDED, NOT SYNTHETIC-PRESENTED-AS-REAL. Operator: "Market opportunities are top projects
@@ -5710,19 +5729,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <AmtsPanel title="Market Opportunity · Pipeline" icon="◎">
             {leanFieldsOf("segment", "market", "vpcapture")}
           </AmtsPanel>
-          {/* ⚠ THE DOG TAG SITS INSIDE THIS PANEL, NOT IN ONE OF ITS OWN, AND I TRIED IT THE OTHER WAY
-              FIRST. As a fourth panel it forced an `auto` row that auto-placement then made column 3's
-              only full row: the S1×33 gate measured the chart's slot at aspect 5.248 — a letterbox
-              sliver — and overflowed the value-prop panel by 34px. Nesting it restores three equal
-              columns with no implicit rows, and it is also truer to IMG_8458, where the coloured
-              product-type block sits directly above Portfolio Positioning in the same column.
-              Reuses the DogTag the project card already renders — pillar-coloured border, DEV_TYPE dot —
-              with the type spelled out (`showType`) and the metric set PINNED (`slide`) so a printed
-              board sheet is deterministic rather than reflecting whatever was last configured. */}
-          <AmtsPanel taller title="Product Type · Portfolio Positioning" icon="◈">
-            {/* Capped: the tag is an identifier, not the content. Uncapped it took ~40% of the column
-                and the waterfall — the thing the operator asked to put here — became a thumbnail. */}
-            <div className="max-h-[13cqh] shrink-0 overflow-hidden"><DogTag p={p} showType slide /></div>
+          {/* ⚠ THE TAG IS NOT NESTED HERE ANY MORE, AND THE TITLE FOLLOWED IT. This panel read "Product
+              Type · Portfolio Positioning" while it carried the tag; leaving that name on a panel that is
+              now only the waterfall and the price bar would be a label promising content it no longer has.
+              A NEVER-NEST-THE-TAG-AS-ITS-OWN-PANEL NOTE STAYS, because I paid for that lesson: as a fourth
+              top-level panel the tag forced an implicit `auto` row, auto-placement made it column 3's only
+              full row, and the S1×33 gate measured the chart's slot at aspect 5.248 — a letterbox sliver —
+              while the value-prop panel overflowed by 34px. Wherever it lives, it lives INSIDE a panel. */}
+          <AmtsPanel taller title="Portfolio Positioning" icon="◈">
             {fieldsOf("vpchart")}
           </AmtsPanel>
           {/* Operator: "we can have inputs in S1 for product strategy" — an AUTHORED list, seeded from

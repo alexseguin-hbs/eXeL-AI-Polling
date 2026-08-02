@@ -5808,7 +5808,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // ⚠ Z-2 · PANEL ORDER IS THE LAYOUT, WHICH IS WHY IT IS PINNED CHARACTER-FOR-CHARACTER. Grid
   // auto-placement fills row 1 left→right, so the ONLY `tall` panel must be the last cell of row 1;
   // move it earlier and Product Strategy lands in column 3 with no warning from tsc or the build.
-  ok(panels.join(" | ") === "Key Value Proposition | Market Opportunity · Pipeline | taller Product Type · Portfolio Positioning | Product Strategy | Differentiators · From The Value Prop | Recommendation · Ask For The Gate | Dependencies · Timeline Risk | full Roadmap + Schedule · Current Year + 2",
+  ok(panels.join(" | ") === "Key Value Proposition | Market Opportunity · Pipeline | taller Portfolio Positioning | Product Strategy | Differentiators · From The Value Prop | Recommendation · Ask For The Gate | Dependencies · Timeline Risk | full Roadmap + Schedule · Current Year + 2",
      `S1 is the template's seven boxes over a full-width Roadmap — got ${panels.join(" | ")}`);
   ok(panels.filter((x) => /^(tall|taller) /.test(x)).length === 1,
      "…and exactly ONE panel spans rows — a second one in row 1 would invent an implicit fourth row");
@@ -5836,8 +5836,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and the INPUT view still resolves its Edit-Source control through the unfiltered hasSourceLink");
 
   // The value proposition is S8's, and it comes FIRST in the left column.
-  ok(/<AmtsPanel title="Key Value Proposition" icon="♡">\s*\{leanFieldsOf\("valueprop", "oneline"\)\}/.test(src),
-     "the S8 sentence leads the left column, with oneline beneath it (oneline kept — rule 6)");
+  ok(/<AmtsPanel title="Key Value Proposition" icon="♡">[\s\S]{0,400}?\{leanFieldsOf\("valueprop", "oneline"\)\}/.test(src),
+     "the S8 sentence leads the left column's prose, with oneline beneath it (oneline kept — rule 6)");
   // ⚠ Z-2 · `segment` MOVED, IT WAS NOT DROPPED, and this lock is the difference between the two. Rule 6
   // forbids losing a surface the operator did not ask to lose; a field can leave one panel only by
   // arriving in another, and the test names the panel it arrived in.
@@ -5849,7 +5849,31 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(!/<AmtsPanel title="(Key Value Proposition|Market Opportunity|Product Strategy|Differentiators|Dependencies)[^"]*"[^>]*>\s*\{fieldsOf\(/.test(src),
      "…and no S1 prose panel uses banner cards — they are all lean");
 
-  // The dog tag is REUSED, nested in the positioning column, deterministic, and prints no financials.
+  // ⚠ Z-4 · THE TAG HEADS COLUMN 1 NOW (operator, IMG_8461: "place innovation tag in upper left above
+  // value prop, as these two elements are most important"). Same component, same pinned metric set — it
+  // moved between panels, it was not rebuilt, and it is still NESTED rather than a panel of its own
+  // (as its own panel it forced an implicit row that letterboxed the chart to aspect 5.248).
+  const kvp = s1.slice(s1.indexOf('title="Key Value Proposition"'), s1.indexOf('title="Market Opportunity'));
+  ok(/<DogTag p=\{p\} showType slide \/>/.test(kvp) && kvp.indexOf("DogTag") < kvp.indexOf("leanFieldsOf"),
+     "the innovation tag leads the Key Value Proposition panel, above the value prop");
+  ok((s1.match(/<DogTag /g) || []).length === 1, "…and there is exactly ONE tag on the sheet — it moved, it did not clone");
+  ok(!/title="Portfolio Positioning"[\s\S]{0,200}?<DogTag/.test(s1), "…and the positioning column no longer carries it");
+  ok(!/Product Type · Portfolio Positioning/.test(s1),
+     "…and that panel's title dropped `Product Type`, because the panel no longer shows one");
+
+  // ⚠ Z-4 · THE SLIDE FACE OF THE TAG IS LEANER THAN THE CARD'S, AND BOTH CHANGES BOUGHT THE FIT. Same
+  // metrics, same values, same order — the slide runs them inline instead of one per line (~24px) and
+  // drops the face-flip button (~14px), because a presented sheet is read, not operated. Without those
+  // 38px the tag could not lead column 1 without clipping on all 33 projects; with them, 33/33 fit.
+  // The project card is untouched — a mutation that drops the `slide` branch turns these red.
+  ok(/slide \? "flex flex-wrap justify-center gap-x-2 gap-y-0" : "flex flex-col gap-0"/.test(src),
+     "the tag's highlights run inline on a slide and stay stacked on the project card");
+  ok(/\{!slide && <button onClick=\{\(\) => setFace\(/.test(src),
+     "…and the face-flip control is absent from a slide, present on the card");
+  ok(/S1: "minmax\(0, 1fr\) auto auto auto"/.test(src),
+     "S1's rows 2-4 size to their content and row 1 takes the remainder — the tag's height comes from real slack");
+
+  // The dog tag is REUSED, deterministic, and prints no financials.
   ok(/<DogTag p=\{p\} showType slide \/>/.test(src), "the Product Type tag reuses DogTag with the type spelled out");
   ok(/const metrics = \(slide \? DEFAULT_DOGTAG : loadDogtag\(\)\)/.test(src),
      "…and a slide pins the metric set instead of reading localStorage — a printed sheet must be deterministic");
