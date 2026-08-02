@@ -5454,6 +5454,15 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // has no editor at all — so a button there is pure height. Adding S8 to the registry put four of them on
   // one slide and overflowed it by 34px; the rule, not the slide, was wrong.
   const hasSourceLink = (code: string, fid: string) => { const o = sourceSlideOf(code, fid); return !!o && o !== code && panelExists(o); };
+  // ⚠ Z-3 · S1 SHOWS NO ✎ EDIT CHIPS WHEN IT IS BEING PRESENTED (operator, IMG_8459: "Get rid of all Edit
+  // elements in green on slide … remove edit value prop and edit financial for S1 in present mode only").
+  // PRESENT MODE ONLY, AND ONLY S1. `PresentField` is the present renderer and nothing else calls it, so
+  // gating here cannot reach the input view — the ✎ Edit control on S1's own authoring screen, and every
+  // other slide's chip in both modes, is untouched. The record still knows its owner: `SOURCE_SLIDE` is
+  // unchanged, so nothing about where a field is typed has moved. This hides a control on one printed
+  // sheet; it does not delete a route.
+  const PRESENT_HIDES_SOURCE_LINK = new Set(["S1"]);
+  const showSourceLink = (code: string, fid: string) => hasSourceLink(code, fid) && !PRESENT_HIDES_SOURCE_LINK.has(code);
   const idxOfCode = (code: string) => SLIDE_SCHEMA.findIndex((s) => s.code === code);
   // Off the owning slide this is a DEEP LINK, not a dead button. The editor moved; the way in must not
   // disappear with it, or a user standing on S3 wondering where NPV comes from has nowhere to go.
@@ -5514,7 +5523,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           <MiniFinChart kind={sp.code} field={f.id} big={big} />
           {/* Direct link to the slide that owns the record feeding this chart — drawn only when that slide
               actually has an editor, so the button can never be a no-op. */}
-          {hasSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
+          {showSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
         </ChartFrame></div>
       </div>
     );
@@ -5609,7 +5618,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
           ? <StorySpecs cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
           : <div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div>}</ChartFrame>}
         {/* Single source of truth — icon-link to whichever slide OWNS this field's record (SOURCE_SLIDE). */}
-        {hasSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
+        {showSourceLink(sp.code, f.id) && <SourceLink source={sp.source} code={sp.code} fieldId={f.id} />}
         </div>
       </div>
     );

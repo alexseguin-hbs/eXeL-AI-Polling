@@ -1984,7 +1984,9 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // The edit-mode field BADGE is now the control (E3), so its guard reads `hasSourceLink(...) ? <SourceLink`
   // — a ternary, because ON the owning slide it falls back to a static badge rather than a link that goes
   // nowhere. Both forms count as guarded; an UNGUARDED render is how a dead button gets back in.
-  const guarded = [...src.matchAll(/(hasSourceLink\([^)]*\)\s*(?:&&|\?)\s*<SourceLink |<SourceLink source="Program start \(source record\)" target="S10")/g)].length;
+  // Z-3 · `showSourceLink` is `hasSourceLink` plus the present-mode S1 exemption, so it guards just as
+  // hard — the pattern accepts either name rather than letting the stricter of the two read as ungarded.
+  const guarded = [...src.matchAll(/((?:has|show)SourceLink\([^)]*\)\s*(?:&&|\?)\s*<SourceLink |<SourceLink source="Program start \(source record\)" target="S10")/g)].length;
   ok(renders === guarded,
      `every SourceLink render is guarded by hasSourceLink or an explicit target — ${guarded}/${renders}`);
 }
@@ -5820,6 +5822,18 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/const BODY_COLS: Record<string, number\|string> = \{ S1:|const BODY_COLS: Record<string, string> = \{ S1: "repeat\(3, minmax\(0, 1fr\)\)" \}/.test(src),
      "S1's three columns are DECLARED, not inferred from panel count");
   ok(!/S1: "[^"]*\d(px|rem|em)\b/.test(src), "S1's row budget carries no absolute length — the print stack rescales the sheet");
+
+  // ⚠ Z-3 · NO ✎ EDIT CHIP ON S1 WHILE IT IS BEING PRESENTED (operator, IMG_8459). Present mode only and
+  // S1 only: `PresentField` is the present renderer and has no other caller, so this cannot reach the
+  // input view, and `SOURCE_SLIDE` is untouched — the record still knows who owns it.
+  ok(/const PRESENT_HIDES_SOURCE_LINK = new Set\(\["S1"\]\);/.test(src),
+     "S1 is the one code whose source chips are hidden on a presented sheet");
+  ok(!/\{hasSourceLink\(sp\.code, f\.id\) && <SourceLink/.test(src),
+     "…and BOTH PresentField branches route through showSourceLink — the lean one and the card one");
+  ok((src.match(/showSourceLink\(sp\.code, f\.id\) && <SourceLink/g) || []).length === 2,
+     "…exactly the two present-mode chips, no third site left ungated");
+  ok(/const hasSourceLink = \(code: string, fid: string\)/.test(src) && /f\.linked && \(hasSourceLink\(spec\.code, f\.id\)/.test(src),
+     "…and the INPUT view still resolves its Edit-Source control through the unfiltered hasSourceLink");
 
   // The value proposition is S8's, and it comes FIRST in the left column.
   ok(/<AmtsPanel title="Key Value Proposition" icon="♡">\s*\{leanFieldsOf\("valueprop", "oneline"\)\}/.test(src),
