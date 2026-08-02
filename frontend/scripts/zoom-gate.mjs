@@ -138,6 +138,75 @@ for (const c of CASES) {
   }
   await ctx.close();
 }
+// ── Z-5 · EVERY SLIDE, NOT JUST S1 (operator: "ensure zoom works on all slides") ───────────────
+// The four cases above are DEPTH on one code. This is BREADTH: open the deck once and walk all 20 sheets
+// with ArrowRight, pinching each to 2x. A per-slide open would cost ~20 page loads for the same signal;
+// the walk exercises the real navigation path as a bonus, so a slide that fails to mount also shows up.
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 3 });
+  const page = await ctx.newPage();
+  await openPresent(page);
+  // ⚠ THE COUNT COMES FROM THE DECK'S OWN "i/N" FOOTER, AND THE FIRST DRAFT OF THIS GATE GOT IT WRONG.
+  // It counted `[data-slide-code]`, which only exists in the PRINT stack — unmounted unless printing — so
+  // the walk reported "1 sheets" and passed while testing a single slide. A breadth gate that silently
+  // collapses to depth is worse than none: it reads green and covers nothing.
+  const n = await page.evaluate(() => {
+    const m = Array.from(document.querySelectorAll("span")).map((e) => /^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(e.textContent || "")).find(Boolean);
+    return m ? Number(m[2]) : 0;
+  });
+  if (n < 2) { failures.push(`all-slides walk — could not read the deck length from the i/N footer (got ${n}); the walk would have tested one slide and called it the deck`); }
+  console.log(`\n  ALL SLIDES @ 2x — walking ${n} sheets with ArrowRight`);
+  const seen = new Set();
+  let bad = 0;
+  for (let i = 0; i < n; i++) {
+    await page.evaluate(PINCH, 1); await page.waitForTimeout(120);
+    const b = await page.evaluate(READ);
+    await page.evaluate(PINCH, 2); await page.waitForTimeout(200);
+    const m = await page.evaluate(READ);
+    const code = await page.evaluate(() => document.querySelector("[data-slide-title]")?.textContent?.trim() ?? "?");
+    const ratio = (m.cssH * 2) / (b.cssH * 1);
+    const ok = b.cssH > 0 && Math.abs(ratio - 2) <= 2 * TOL;
+    if (!ok) { bad++; failures.push(`all-slides walk · sheet ${i + 1} (${code}) @ 2x — ratio ${ratio.toFixed(2)}, expected 2.00`); }
+    seen.add(code);
+    if (!ok || i === 0 || i === n - 1) console.log(`     ${String(i + 1).padStart(2)}/${n}  ${code.slice(0, 34).padEnd(36)} ratio ${ratio.toFixed(2)}  ${ok ? "✓" : "✗"}`);
+    await page.keyboard.press("ArrowRight"); await page.waitForTimeout(180);
+  }
+  console.log(`     ${n - bad}/${n} sheets track the pinch · ${seen.size} distinct slide titles visited`);
+  // ArrowRight must actually MOVE. If navigation broke, every iteration would re-measure sheet 1 and the
+  // ratio assertion would pass n times on one slide — the exact false green the count bug above produced.
+  if (seen.size < n) failures.push(`all-slides walk — only ${seen.size} distinct slides of ${n} were reached; ArrowRight is not advancing the deck`);
+  await ctx.close();
+}
+
+// ── Z-5 · THE IN-APP ZOOM CONTROL AND ITS PAN, WHICH IS THE PART THAT FELT FINICKY ─────────────
+// The pinch cases above only ever exercised the BROWSER's magnification. The − 100% + control is a
+// different path: it scales the sheet in CSS and the stage must become scrollable so the reader can pan
+// to the part they zoomed in on. And while zoomed, the two invisible 10%-wide page-turn zones must NOT be
+// in the way — on S1 the left column is the value proposition, so "drag left to read it" was turning the
+// page instead.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  await openPresent(page);
+  const probe = () => {
+    const st = document.querySelector("[data-slide-canvas]")?.closest(".overflow-auto");
+    return { zoneCount: document.querySelectorAll('[aria-label="Previous slide"],[aria-label="Next slide"]').length,
+             pannable: !!st && (st.scrollWidth > st.clientWidth + 2 || st.scrollHeight > st.clientHeight + 2),
+             pager: document.querySelectorAll("[data-slide-pager]").length };
+  };
+  const at1 = await page.evaluate(probe);
+  for (let i = 0; i < 3; i++) { await page.getByRole("button", { name: "Zoom in" }).click(); await page.waitForTimeout(120); }
+  const label = (await page.locator("text=/^\\d+%$/").first().textContent())?.trim();
+  const atZ = await page.evaluate(probe);
+  console.log(`\n  IN-APP ZOOM · 100% → ${label}`);
+  console.log(`     page-turn zones   ${at1.zoneCount} at 1x → ${atZ.zoneCount} zoomed   ${atZ.zoneCount === 0 ? "✓ stand down" : "✗ still armed over the pan"}`);
+  console.log(`     stage pannable    ${at1.pannable} at 1x → ${atZ.pannable} zoomed      ${atZ.pannable ? "✓" : "✗ nothing to pan — the sheet did not grow"}`);
+  if (at1.zoneCount !== 2) failures.push(`in-app zoom — expected 2 page-turn zones at 1x, found ${at1.zoneCount}`);
+  if (atZ.zoneCount !== 0) failures.push(`in-app zoom — ${atZ.zoneCount} page-turn zone(s) still armed while zoomed; a pan will page the deck`);
+  if (!atZ.pannable) failures.push("in-app zoom — the stage is not scrollable while zoomed, so the sheet cannot be panned");
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 
@@ -147,7 +216,8 @@ if (failures.length) {
   for (const f of failures) console.log(`  ✗ ${f}`);
   process.exitCode = 1;
 } else {
-  console.log(`✓ zoom-gate — the sheet tracks the pinch at ${ZOOMS.join("x, ")}x across ${CASES.length} cases`);
+  console.log(`✓ zoom-gate — the sheet tracks the pinch at ${ZOOMS.join("x, ")}x across ${CASES.length} cases,`);
+  console.log(`  on every slide in the deck, and the in-app zoom pans without paging`);
   console.log(`  ⚠ WEBKIT UNVERIFIED — this emulates the iOS visual/layout viewport divergence on Blink by`);
   console.log(`    overriding innerWidth/innerHeight. It is a faithful model of the quirk, not the engine.`);
   console.log(`    There is no WebKit build in this sandbox and \`playwright install\` is forbidden here.`);

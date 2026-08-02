@@ -6057,5 +6057,57 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "LinkedField branches on `list` BEFORE it assumes string[][] — the white-screen guard");
 }
 
+// ── Z-5 · THE ROADMAP BAND IS A CALENDAR, AND THE PAGE-TURN ZONES STAND DOWN WHILE ZOOMED ────
+// Operator: "on table bottom with timelines, we should see current year, 2027, and 2028 (vertical lines
+// will mark year)" + "ensure zoom works on all slides; seems a little finicky on S1".
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const F = await import("../lib/innovation-data.ts");
+
+  // 1 · THE AXIS IS THE HORIZON, NOT THE DATA. Deriving the columns from the rows present would delete a
+  // year in which nothing is scheduled — and "nothing happens in 2027" is precisely what a board needs to
+  // see. Three columns, always, anchored on the deck's current-year clock.
+  ok(/const years = Array\.from\(\{ length: PLANNING_HORIZON_YEARS \}, \(_, i\) => baseYear \+ i\);/.test(src),
+     "the band's columns are the planning horizon anchored on the deck's current year, not the years that happen to have gates");
+  ok(F.PLANNING_HORIZON_YEARS === 3, "…and the horizon is three years — current + 2 (operator)");
+  ok(/border-l-2 border-cyan-500\/40/.test(src), "a ruled vertical line marks each year boundary");
+  ok(/\$\{yi \? "ml-\[0\.6cqw\] border-l-2 border-cyan-500\/40 pl-\[0\.6cqw\]" : ""\}/.test(src),
+     "…on every column but the first — a rule before the first year would be a border, not a divider");
+  ok(/No gate review scheduled/.test(src), "…and an empty year says so rather than rendering a void");
+  ok(/replace\(\/\\s\*\\d\{4\}\$\/, ""\)/.test(src),
+     "the card drops the year from its date — the column header above it already states the year");
+  // The producer is unchanged: the band regroups rows, it does not re-derive them.
+  const q = F.DEMO_PROJECTS[0];
+  const base = Number(F.gateScheduleOf(q)[0].startISO.slice(0, 4));
+  const rows = F.linkedSlideField(q, "S1", "schedule", base);
+  ok(Array.isArray(rows) && rows.every((r) => /\d{4}$/.test(r[2])),
+     "every schedule row still carries a four-digit year for the band to group on");
+
+  // 2 · ZOOM. The invisible 10%-wide page-turn zones are the "finicky": zoomed in, a pan gesture at the
+  // left edge — where S1 keeps the value proposition — fired their native click and turned the page.
+  const zoneBlock = src.slice(src.indexOf("{zoom <= 1 && <>"), src.indexOf("{zoom <= 1 && <>") + 500);
+  ok(src.includes("{zoom <= 1 && <>") && /aria-label="Previous slide"/.test(zoneBlock) && /aria-label="Next slide"/.test(zoneBlock)
+     && !/aria-label="(Previous|Next) slide"[\s\S]*?aria-label="(Previous|Next) slide"[\s\S]*?aria-label="(Previous|Next) slide"/.test(src),
+     "both page-turn tap zones are mounted only at 1x — zoomed in, a drag pans instead of paging");
+  ok(/if \(e\.pointerType === "mouse" && zoom <= 1\) return;/.test(src),
+     "a mouse may pan a zoomed sheet — the blanket bail left desktop readers with only the scrollbars");
+  ok(/if \(e\.pointerType !== "mouse"\) touchX\.current = e\.clientX;/.test(src),
+     "…and it still may not PAGE one: touchX stays null for a mouse, so swipe-to-page cannot fire from it");
+  // Paging must remain reachable while zoomed, or the fix above traps the reader on one slide.
+  ok(/onClick=\{\(\) => go\(-1\)\} disabled=\{idx === 0\}/.test(src) && /onClick=\{\(\) => go\(1\)\} disabled=\{idx === SLIDE_SCHEMA\.length - 1\}/.test(src),
+     "…and the footer's ‹ › buttons still page the deck at any zoom level");
+  ok(/e\.key === "ArrowLeft" && !typing/.test(src) && /e\.key === "ArrowRight" && !typing/.test(src),
+     "…as do the arrow keys");
+
+  // 3 · THE BREADTH GATE EXISTS AND CANNOT COLLAPSE TO ONE SLIDE. Its first draft counted `[data-slide-code]`,
+  // which only exists in the unmounted print stack, so it walked "1 sheet" and read green.
+  const zg = await (await import("node:fs/promises")).readFile("scripts/zoom-gate.mjs", "utf8");
+  ok(/ALL SLIDES @ 2x/.test(zg), "zoom-gate walks every slide, not only S1");
+  ok(/if \(seen\.size < n\) failures\.push/.test(zg),
+     "…and fails if ArrowRight never advanced — n passes on one slide is not n slides passing");
+  ok(/page-turn zone\(s\) still armed while zoomed/.test(zg), "…and it asserts the tap zones stand down");
+  ok(/the stage is not scrollable while zoomed/.test(zg), "…and that the zoomed sheet can actually be panned");
+}
+
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

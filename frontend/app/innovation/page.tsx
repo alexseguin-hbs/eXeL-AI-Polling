@@ -56,6 +56,7 @@ import {
   withFinYear, withFinBand, withFinSpendRow, withFinBandRow, linearize, FIN_SPAN, yearLabel, finRollup,
   finGateReadiness, finFmtK, finFmtPct, finFmtQty, confidenceFromRisk, confidenceOf, confidenceTone,
   BIZ_CONF_LADDER, bizConfOf, competitorsOf, clampX, nextCompetitorLabel, type WtpMarker,
+  PLANNING_HORIZON_YEARS,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { Settings, FileText, Lightbulb, Save, Trash2 } from "lucide-react"; // settings gear + Template/New-Idea icons + W-7 disk Save (the ONE save glyph, matching Architect-2525)
@@ -2282,7 +2283,10 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
         <span className="text-[9px] font-mono font-bold tracking-widest" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", color: pillarColor }}>{h.sbu}</span>
       </div>
       {/* Center — name TOP + compact one-per-line highlights (biz = configured metrics · eng = deps/load/readiness) */}
-      <div className="min-w-0 flex-1 px-2 py-1.5 text-center">
+      {/* Z-5 · one notch less vertical padding on a slide. The year headers the operator asked for on the
+          roadmap band cost row 4 ~12px, and the longest-named project (PRJ-02) then clipped its tag by 4.
+          Four pixels of padding is the cheapest thing on the sheet to spend; the card keeps its breathing room. */}
+      <div className={`min-w-0 flex-1 px-2 text-center ${slide ? "py-1" : "py-1.5"}`}>
         <div className="flex items-center justify-center gap-1 truncate text-[13px] font-bold leading-tight text-slate-100">
           <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: dt.color }} title={`Project type: ${dt.label}`} aria-label={`Project type: ${dt.label}`} />
           <span className="truncate">{p.name}</span>
@@ -5219,7 +5223,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     return true;
   };
   const onPointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse") return;
+    // ⚠ Z-5 · A MOUSE MAY PAN A ZOOMED SHEET; IT STILL MAY NOT PAGE ONE. The blanket mouse bail meant a
+    // desktop reader who zoomed to 200% could only move the sheet with the scrollbars — the same "finicky"
+    // the operator hit. Admitting the mouse only above 1x keeps 1x byte-identical: `touchX` stays null, so
+    // the pointerup swipe-to-page branch below cannot fire for a mouse at any zoom level.
+    if (e.pointerType === "mouse" && zoom <= 1) return;
     track(e, true);
     if (ptrs.current.length >= 2) {
       pinching.current = true;
@@ -5228,7 +5236,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       touchX.current = null;
       return;
     }
-    touchX.current = e.clientX;
+    if (e.pointerType !== "mouse") touchX.current = e.clientX;
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const prev = ptrs.current.find((q) => q.id === e.pointerId);
@@ -5608,25 +5616,51 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             what the waterfall above now uses. The figures are the chart's own endpoints, so reading them as
             its caption is truer than reading them as separate metrics. */}
         {f.kind === "metrics" && <div className="flex flex-wrap items-baseline justify-between gap-x-[1.2cqw] gap-y-[0.3cqh] rounded-lg border border-slate-800 px-[0.8cqw] py-[0.35cqh]">{(f.items ?? []).map((m) => { const rec = v as Record<string, string>; return rec[m.k] ? <span key={m.k} className="flex items-baseline gap-[0.4cqw]"><span className="font-bold tabular-nums text-slate-100" style={big ? { fontSize: TS.head } : undefined}>{rec[m.k]}</span><span className={`uppercase tracking-wider text-slate-500 ${big ? "" : "text-[9px]"}`} style={big ? { fontSize: TS.micro } : undefined}>{m.label}</span></span> : null; })}</div>}
-        {f.kind === "table" && isSchedule && Array.isArray(v) && (
-          <div className="flex w-full items-stretch gap-[0.5cqw]">
-            {(v as string[][]).filter((r) => r[0]).map((r, i) => (
-              <div key={i} className="flex min-w-0 flex-1 flex-col rounded border border-slate-800 bg-[#0e141b] px-[0.5cqw] py-[0.4cqh]">
-                {/* Z-2 · GATE, STAGE AND DATE ON ONE LINE. The date used to own a row of its own, which cost
-                    the band ~15px per card — 15px this sheet does not have, because Product Strategy and the
-                    value proposition were both measured short. Nothing is dropped; three short strings that
-                    fit one line stop taking two. */}
-                <div className="flex items-baseline justify-between gap-1">
-                  <span className="font-mono font-semibold text-cyan-300" style={big ? { fontSize: TS.body } : undefined}>{r[0]}</span>
-                  <span className="truncate tabular-nums text-slate-400" style={big ? { fontSize: TS.micro } : undefined}>{r[1]} · {r[2]}</span>
-                </div>
-                <ul className="m-0 mt-[0.3cqh] list-none p-0 text-slate-300" style={big ? { fontSize: TS.micro } : undefined}>
-                  {(r[3] || "").split(" · ").filter(Boolean).map((a, j) => <li key={j} className="truncate leading-tight">· {a}</li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* ⚠ Z-5 · THE BAND IS A CALENDAR NOW, NOT A ROW OF CARDS (operator: "on table bottom with timelines,
+            we should see current year, 2027, and 2028 — vertical lines will mark year"). One column per year
+            of the planning horizon, a ruled vertical divider between them, and the year named above its own
+            gates. THE AXIS IS THE HORIZON, NOT THE DATA: a year with no gate review still gets its column
+            and says so, because "nothing happens in 2027" is a finding a board needs to see, and deriving
+            the axis from the rows present would silently delete that year from the page.
+            Each year's width grows with the number of gates it holds, so cards stay comparable across the
+            band instead of one gate in 2028 rendering three times the width of four gates in 2026. */}
+        {f.kind === "table" && isSchedule && Array.isArray(v) && (() => {
+          const rows = (v as string[][]).filter((r) => r[0]);
+          const yearOf = (r: string[]) => Number((r[2] || "").slice(-4));
+          const years = Array.from({ length: PLANNING_HORIZON_YEARS }, (_, i) => baseYear + i);
+          return (
+            <div className="flex w-full items-stretch">
+              {years.map((y, yi) => {
+                const cards = rows.filter((r) => yearOf(r) === y);
+                return (
+                  <div key={y} className={`flex min-w-0 flex-col ${yi ? "ml-[0.6cqw] border-l-2 border-cyan-500/40 pl-[0.6cqw]" : ""}`}
+                    style={{ flexGrow: Math.max(1, cards.length), flexBasis: 0 }}>
+                    <div className="font-mono font-semibold leading-none tracking-[0.2em] text-cyan-300/80" style={{ fontSize: TS.micro }}>{y}</div>
+                    <div className="mt-[0.25cqh] flex min-h-0 flex-1 items-stretch gap-[0.5cqw]">
+                      {cards.length ? cards.map((r, i) => (
+                        <div key={i} className="flex min-w-0 flex-1 flex-col rounded border border-slate-800 bg-[#0e141b] px-[0.5cqw] py-[0.4cqh]">
+                          {/* Z-2 · GATE, STAGE AND DATE ON ONE LINE. The date used to own a row of its own,
+                              which cost the band ~15px per card. Z-5 drops the YEAR from the date because the
+                              column header above it already states the year — same information, less ink. */}
+                          <div className="flex items-baseline justify-between gap-1">
+                            <span className="font-mono font-semibold text-cyan-300" style={big ? { fontSize: TS.body } : undefined}>{r[0]}</span>
+                            <span className="truncate tabular-nums text-slate-400" style={big ? { fontSize: TS.micro } : undefined}>{r[1]} · {(r[2] || "").replace(/\s*\d{4}$/, "")}</span>
+                          </div>
+                          <ul className="m-0 mt-[0.3cqh] list-none p-0 text-slate-300" style={big ? { fontSize: TS.micro } : undefined}>
+                            {(r[3] || "").split(" · ").filter(Boolean).map((a, j) => <li key={j} className="truncate leading-tight">· {a}</li>)}
+                          </ul>
+                        </div>
+                      )) : (
+                        <div className="flex flex-1 items-center rounded border border-dashed border-slate-800 px-[0.5cqw] italic text-slate-600"
+                          style={big ? { fontSize: TS.micro } : undefined}>No gate review scheduled</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
         {(f.kind === "table" || f.kind === "chart") && !isSchedule && Array.isArray(v) && <ChartFrame label={f.name}>{f.id === "stories"
           ? <StorySpecs cols={f.cols ?? []} rows={(v as string[][]).filter((r) => r.some((c) => c && c.trim()))} trace={traceRowsOf(p)} big={big} />
           : <div className="overflow-x-auto"><table className={`w-full ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`} style={big ? { fontSize: TS.body } : undefined}><thead>{f.cols && <tr>{f.cols.map((c) => <th key={c} className={`px-2 py-1 text-left font-semibold uppercase tracking-wide text-slate-400 ${big ? "" : "text-[clamp(12px,1.2vw,16px)]"}`}>{c}</th>)}</tr>}</thead><tbody>{(v as string[][]).filter((r) => r.some((c) => c && c.trim())).map((r, ri) => { const ncols = f.cols?.length ?? r.length; return <tr key={ri} className="border-t border-slate-800">{Array.from({ length: ncols }, (_, ci) => <td key={ci} className="px-2 py-1 text-slate-200">{r[ci] || "—"}</td>)}</tr>; })}</tbody></table></div>}</ChartFrame>}
@@ -6202,8 +6236,18 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
             content, so a single box would have panned the page-turn zones off screen the moment you zoomed.
             Frame clips and holds the buttons; the inner div is the scroller. */}
         <div className="slide-noprint relative flex flex-1 overflow-hidden">
-          <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
-          <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
+          {/* ⚠ Z-5 · THE INVISIBLE PAGE-TURN ZONES STAND DOWN WHILE ZOOMED, AND THIS IS THE "FINICKY ON S1"
+              THE OPERATOR FELT. They are 10% of the stage on each side, sitting ABOVE it at z-[2]. At 1x
+              that is a tap target. Zoomed in it is a trap: the sheet is wider than the viewport, so the
+              gesture you want at the left edge is a PAN — and S1 is the slide you most need to pan, because
+              its value proposition is in the left column. `onPointerUp` already refused to swipe-page while
+              zoomed; these two buttons did not get the memo and fired their native click anyway, so a drag
+              to read the left column turned the page instead. Paging stays fully available while zoomed via
+              the ‹ › buttons in the footer and the ArrowLeft/ArrowRight keys. */}
+          {zoom <= 1 && <>
+            <button aria-label="Previous slide" onClick={() => go(-1)} className="absolute inset-y-0 left-0 z-[2] w-[10%] cursor-w-resize bg-transparent" />
+            <button aria-label="Next slide" onClick={() => go(1)} className="absolute inset-y-0 right-0 z-[2] w-[10%] cursor-e-resize bg-transparent" />
+          </>}
           {/* THE PAN VIEWPORT. `mx-auto` on the footprint below — NOT `justify-center` here — is deliberate:
               a centred flex item that is wider than its scroll container overflows on BOTH sides and its left
               edge becomes unreachable. An auto margin on an over-wide block resolves to 0, so the sheet
