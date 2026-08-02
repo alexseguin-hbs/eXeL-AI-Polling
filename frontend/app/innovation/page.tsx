@@ -1152,20 +1152,22 @@ function RowFrag({ r, i, showLine, selId, onSelect, onUp, onDown, last, avail, d
 // leaves a 123px content box. The content never fit by construction. A ring is painted with box-shadow, so
 // it occupies the same pixels and costs NOTHING in layout — the 2px goes back to the content. The field was
 // already named `ring`; it is now actually one. Gaining space can only reduce overflow, never create it.
-function sectionAccent(code: string, f: SlideField): { icon: string; bar: string; ring: string } {
+// `text` is the SAME hue as `bar`, used where an inline label has no filled band behind it to carry the
+// colour (Y-1's lean fields). One accent decision per section, three renderings of it — not three tables.
+function sectionAccent(code: string, f: SlideField): { icon: string; bar: string; ring: string; text: string } {
   const id = f.id.toLowerCase(), name = f.name.toLowerCase();
   const has = (re: RegExp) => re.test(id) || re.test(name);
   if (code === "CSRA" || has(/approv|sign|review|change|member|role/))
-    return { icon: "✔", bar: "bg-indigo-500/20 text-indigo-100", ring: "ring-indigo-500/30" };
+    return { icon: "✔", bar: "bg-indigo-500/20 text-indigo-100", ring: "ring-indigo-500/30", text: "text-indigo-300" };
   if (has(/valueprop|vprop|value prop|desc|oneline|overview|ask|benefit/))
-    return { icon: "◆", bar: "bg-cyan-500/20 text-cyan-100", ring: "ring-cyan-500/30" };
+    return { icon: "◆", bar: "bg-cyan-500/20 text-cyan-100", ring: "ring-cyan-500/30", text: "text-cyan-300" };
   if (has(/risk|problem|concern|statusquo|counter|toprisk|dep|nba/))
-    return { icon: "▲", bar: "bg-rose-500/20 text-rose-100", ring: "ring-rose-500/30" };
+    return { icon: "▲", bar: "bg-rose-500/20 text-rose-100", ring: "ring-rose-500/30", text: "text-rose-300" };
   if (has(/conops|roadmap|workflow|persona|stor|flow|future|outcome|why|voc|experiment|l90|l60|l30|l0|e120|e90|e60|e0|launch|prio/))
-    return { icon: "→", bar: "bg-violet-500/20 text-violet-100", ring: "ring-violet-500/30" };
+    return { icon: "→", bar: "bg-violet-500/20 text-violet-100", ring: "ring-violet-500/30", text: "text-violet-300" };
   if (f.kind === "chart" || f.kind === "metrics" || has(/profile|rev|margin|financ|spend|scenario|saydo|capture|fte|fincomment|plc|bom|accel|conf|resource/))
-    return { icon: "$", bar: "bg-emerald-500/15 text-emerald-100", ring: "ring-emerald-500/25" };
-  return { icon: "▪", bar: "bg-sky-500/15 text-sky-100", ring: "ring-slate-700" };
+    return { icon: "$", bar: "bg-emerald-500/15 text-emerald-100", ring: "ring-emerald-500/25", text: "text-emerald-300" };
+  return { icon: "▪", bar: "bg-sky-500/15 text-sky-100", ring: "ring-slate-700", text: "text-sky-300" };
 }
 
 // A field value is a renderable image when it's an uploaded data URI OR a pasted/BYOK http(s) image URL.
@@ -1502,7 +1504,12 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
   return (
     <div className={fill ? "mt-1 flex min-h-0 flex-1 flex-col" : compact ? "mt-1" : "mt-2"}>
       <div className={`flex items-center justify-between gap-2 ${compact ? "mb-0.5" : "mb-1"}`}>
-        <div className={`text-slate-400 ${compact ? "text-[9px]" : "text-[10px]"}`}>Price Performance: Competition</div>
+        {/* Y-1 · ON THE SLIDE THIS CAPTION IS A PEER OF THE OTHER LEAN LABELS, NOT A STRAY GREY NOTE. The
+            strip shares one box with the value proposition and the NBA, both of which wear an accent
+            uppercase label; leaving this in muted sentence case made the third row look like a leftover.
+            `fill` is the slide-only mode, so the editor and the deep-dive card are untouched. */}
+        <div className={fill ? "font-semibold uppercase tracking-[0.12em] text-emerald-300" : `text-slate-400 ${compact ? "text-[9px]" : "text-[10px]"}`}
+             style={fill ? { fontSize: "0.75cqw" } : undefined}>Price Performance · Competition</div>
         {onSave && (editing ? (
           <div className="flex items-center gap-1">
             <button onClick={addOne} disabled={!nextCompetitorLabel(draft)}
@@ -1592,7 +1599,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
  *  ⚠ NOT EXPORTED. A Next.js page module may only export `default` and a fixed set of route options —
  *  `export const SLIDE_SLOT_ASPECT` fails the build with TS2344 on the generated route types. The drift
  *  lock reads it out of the source text instead, which is what the other page-level locks already do. */
-const SLIDE_SLOT_ASPECT = 1.51;   // measured: the panel's flex column is 718.1 x 476.2 on the 1600x900 sheet
+const SLIDE_SLOT_ASPECT = 1.48;   // measured: the panel's flex column is 718.1 x 485.9 on the 1600x900 sheet
 
 function ValueProp({ p, mode, drivers, onChange, nbaLabel, addressableRevM, onGenerate, onCompetitors, big }: {
   p: Project; mode: VPMode;
@@ -3926,6 +3933,16 @@ const TS = {
 const PanelTitleCtx = React.createContext<string>("");
 const sameName = (a: string, b: string) => a.replace(/[^a-z0-9]/gi, "").toLowerCase() === b.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
+/** Y-1 · THE LABEL A FIELD WEARS WHEN IT SHARES A BOX (operator: "take the content into text and framework
+ *  and remove the space consuming headers … NBA: Palantir TITAN-class …"). A banner costs a whole row plus
+ *  its own padding; an inline label costs the leading words of the row the text was already using.
+ *  A trailing parenthetical is the acronym the field is actually called by — "Next best alternative (NBA)"
+ *  is written and spoken as "NBA" — so that is what the inline label uses. Everything else keeps its name. */
+const leanLabelOf = (name: string) => {
+  const m = /\(([A-Z0-9][A-Z0-9./-]{1,7})\)\s*$/.exec(name.trim());
+  return m ? m[1] : name;
+};
+
 // S9 · THREE LEVELS ON TABS (operator 23c): "Level 1: Highlevel Specs, Tab for Level 2: Detailed CRS,
 // Level 3: Design Traceability Matrix". One story set, three views — Levels 1 and 2 read the SAME 8-wide
 // rows from storyTableRows() and Level 3 the 18-wide rows from traceRowsOf(), both built from storiesOf().
@@ -4726,10 +4743,11 @@ function S10FinEditor({ p, baseYear, onEdit }: {
 
 const BODY_ROWS: Record<string, string> = {
   S10: "minmax(0, 10fr) minmax(0, 24fr)",
-  // X-4 · S8's top row (Competition | the waterfall) is the larger band. Weights are MEASURED, not guessed:
-  // the x3-bands probe reports what each panel needs, and this is the split where the waterfall gets the
-  // most height with zero overflow in any of the three panels.
-  S8: "auto minmax(0, 3.55fr) minmax(0, 1.25fr) minmax(0, 1.7fr)",
+  // Y-1 · THREE ROWS, NOT FOUR — the value proposition, NBA and the price strip now share row 1. Weights are
+  // MEASURED, not guessed: the x3-bands probe reports what each panel needs and this is the split where the
+  // waterfall gets the most height with ZERO overflow in any panel. Row 1 carries a sentence, a sentence and
+  // a slider; row 2 the five-row value equation; row 3 two four-bullet lists.
+  S8: "minmax(0, 2.7fr) minmax(0, 1.45fr) minmax(0, 1.1fr)",
 };
 
 // X-0 · The four S8 fields the ◈ Edit source record panel already renders, in the operator's own order:
@@ -4748,7 +4766,10 @@ function AmtsPanel({ title, icon, required, wide, tall, children }: { title: str
   return (
     // data-panel / -head / -body are the SCREENSHOT GATE's hooks (scripts/slide-shots.mjs): a panel that
     // renders its title with an empty body is a hard build failure. Attributes only — zero visual effect.
-    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""} ${tall ? "row-span-3" : ""}`}>
+    // `tall` = "run beside the whole stack in the other column". S8 is the only caller and its stack is two
+    // rows deep (Y-1 folded three boxes into one), so the span is a literal — Tailwind cannot see a computed
+    // class name, and a lookup table for one caller is the Succinctness pillar's failure mode.
+    <div data-panel className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-cyan-500/25 bg-[#0b0f14] ${wide ? "col-span-2" : ""} ${tall ? "row-span-2" : ""}`}>
       <div data-panel-head className="flex items-center justify-between gap-[1cqw] bg-cyan-500/10 px-[1cqw] py-[0.5cqh]">
         <span className="flex min-w-0 items-center gap-[0.6cqw] text-cyan-300">
           {icon && <span aria-hidden style={{ fontSize: TS.head }}>{icon}</span>}
@@ -5356,12 +5377,23 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
   // a second banner with the same words directly under the first is what pushed the actual value out of the
   // clipped panel and made S1/S2 read as "field name, no value" (operator, 2026-07-29). Bare drops the inner
   // banner AND the inner card frame; AmtsPanel supplies both.
-  function PresentField({ sp, f, big, bare }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean }) {
+  function PresentField({ sp, f, big, bare, lean }: { sp: SlideSpec; f: SlideField; big?: boolean; bare?: boolean; lean?: boolean }) {
     const acc = sectionAccent(sp.code, f);
     const panelTitle = React.useContext(PanelTitleCtx);
     // The panel banner directly above already says this field's name — a second identical banner is chrome
     // that costs a row and says nothing (item #2's law, now covering multi-field panels too).
     bare = bare || (!!panelTitle && sameName(panelTitle, f.name));
+    // ⚠ Y-1 · LEAN IS BARE PLUS AN INLINE LABEL, NOT A THIRD CARD STYLE. Operator: "it may help to take the
+    // content into text and framework and remove the space consuming headers · This may save lots of space
+    // and look cleaner all in one box." A banner is a full row of uppercase chrome plus its own padding and
+    // ring; the lean label rides the FIRST LINE OF THE TEXT ITSELF, so three fields cost three paragraphs
+    // instead of three cards. Charts get no inline label — the strip already captions itself, and a second
+    // "Price Performance" twelve pixels above the first is the duplication this change is removing.
+    // NOR does the field the PANEL is named after: `bare` is already true for it via `sameName`, and an
+    // inline "PRIMARY CUSTOMER VALUE PROPOSITION" under a head reading PRIMARY CUSTOMER VALUE PROPOSITION
+    // is the same duplication in a smaller font. The label is for the fields the head does NOT name.
+    const leanLabel = lean && !bare;
+    if (lean) bare = true;
     // Colored banner header (icon + section name) matching the reference deck, wrapping every field card.
     const Banner = () => (
       <div data-field-banner className={`flex items-center gap-1.5 ${big ? "px-[0.8cqw] py-[0.45cqh]" : "px-3 py-1.5"} ${acc.bar}`} style={big ? { fontSize: TS.head } : undefined}>
@@ -5400,7 +5432,9 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
         {/* Inside the 16:9 SlideCanvas (`big`) size in cq units so text scales WITH the slide — px/vw floors
             made portrait phones render huge headers that overflowed the slide while landscape looked fine.
             Outside the canvas there is no container context, so the original px/vw clamp stays. */}
-        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 text-slate-100 ${big ? `leading-snug ${isVp ? "font-medium" : ""}` : `leading-relaxed ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}`} style={big ? { fontSize: isVp ? TS.lead : TS.body } : undefined}>{v as string}</p>}
+        {(f.kind === "text" || f.kind === "longtext") && <p className={`m-0 text-slate-100 ${big ? `leading-snug ${isVp ? "font-medium" : ""}` : `leading-relaxed ${isVp ? "text-[clamp(15px,1.7vw,22px)] font-medium" : "text-[clamp(14px,1.4vw,18px)]"}`}`} style={big ? { fontSize: isVp ? TS.lead : TS.body } : undefined}>
+          {leanLabel && <><span className={`font-semibold uppercase tracking-[0.12em] ${acc.text}`}>{leanLabelOf(f.name)}</span><span className="text-slate-600"> · </span></>}
+          {v as string}</p>}
         {f.kind === "attach" && (isImageSrc(v)
           ? <img src={v} alt={f.name} className="max-h-[40vh] w-auto rounded border border-slate-700 object-contain" />
           : <p className={`m-0 text-slate-300 ${big ? "" : "text-[13px]"}`} style={big ? { fontSize: TS.body } : undefined}>◧ {typeof v === "string" ? v : ""}</p>)}
@@ -5480,19 +5514,21 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     //      because that is the only thing telling the fields apart.
     //  (b) NOTHING RESOLVED — an unauthored field returned null and left the body literally empty. It now says
     //      so, in the deck's own voice, instead of leaving a headed box with a void under it.
-    const fieldsIn = (sp: SlideSpec, ids: string[]) => ids.map((id) => {
+    const fieldsIn = (sp: SlideSpec, ids: string[], lean?: boolean) => ids.map((id) => {
       const f = sp.fields.find((x) => x.id === id);
       if (!f) return null;
       const solo = ids.length === 1;
       const alwaysRenders = f.kind === "attach" || (f.kind === "chart" && f.linked);
       if (!alwaysRenders && fieldEmpty(effective(sp, f, presentSrc)))
         return <p key={id} className="m-0 italic text-slate-500" style={{ fontSize: TS.body }}>{f.name} — not authored yet</p>;
-      return <PresentField key={f.id} sp={sp} f={f} big bare={solo} />;
+      return <PresentField key={f.id} sp={sp} f={f} big bare={solo} lean={lean} />;
     });
     // The panel table is now a FUNCTION of the slide, not of "the current slide". That is the whole reason the
     // print stack can render all 20 pages through the SAME renderer instead of forking a second one.
     const panelsFor = (sp: SlideSpec): Record<string, () => React.ReactNode> => {
       const fieldsOf = (...ids: string[]) => fieldsIn(sp, ids);
+      // Y-1 · the same fields, wearing inline labels instead of banner cards. See PresentField's `lean`.
+      const leanFieldsOf = (...ids: string[]) => fieldsIn(sp, ids, true);
       return {
       // S1 — Executive Summary (AMTS exec one-pager: what / who | why | the ask). The ask spans the foot
       // because it is the one line a gate board has to act on.
@@ -5562,33 +5598,34 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
       // proposition spans the foot of the slide as the single sentence a board remembers.
       S8: () => (
         <>
-          {/* ⚠ X-7 · THE LEFT COLUMN STACKS AND THE WATERFALL RUNS BESIDE ALL OF IT. Operator: "Where price
-              performance competition is, move items from right to left (and expand visual for value prop
-              waterfall). NBA and value equation go under 'primary customer value prop' and above price
-              performance competition. Do not move key customer benefits or Technical benefits at all."
+          {/* ⚠ Y-1 · THREE HEADERS BECOME ONE BOX. Operator, with the crop: "it may help to take the content
+              into text and framework and remove the space consuming headers · This may save lots of space
+              and look cleaner all in one box on upper left · Primary Value Proposition: … NBA: … Price
+              Performance: overlay graphic."
 
-                  ♡ Primary Customer VP   ┐
-                  ⚔ NBA + Value Equation  ├─  ◈ Value · Creation + Capture   (spans all three)
-                  $ Price Performance     ┘
-                  ◆ Key Customer Benefits │  ▪ Key Technical Features        (STATIONARY, untouched)
+                  ♡ VP sentence · NBA · Price Performance ┐
+                  ▪ Value Equation                        ├─ ◈ Value · Creation + Capture  (spans both)
+                  ◆ Key Customer Benefits                 │  ▪ Key Technical Features   (STATIONARY)
 
-              PANEL ORDER IS GRID AUTO-PLACEMENT ORDER, so this list is the layout — `valuechart` is second
-              because it has to claim column 2 of row 1 before `nba` can fall into row 2 of column 1.
-              WHY IT MATTERS BEYOND LOOKS: with the right column chopped into three boxes the exported chart
-              measured 13% of the canvas. Emptying that column of everything but the chart is the fix for
-              that number. `♡` is `auto` — one sentence, no taller — so every pixel it does not use goes to
-              the stack under it and the chart beside it ("just single sentence value prop needed to move"). */}
+              X-7's stack cost SIX header rows to say three things: three AMTS banners plus, inside them,
+              three field banners. The three now share one box — the panel head carries the value
+              proposition (`sameName` already renders that field bare), and NBA rides an inline label on the
+              first line of its own sentence. The price-performance strip captions itself, so it needs no
+              label at all. PANEL ORDER IS GRID AUTO-PLACEMENT ORDER: the chart is second because it must
+              claim column 2 of row 1 before the Value Equation can fall into row 2 of column 1.
+              ⚠ THE CHART'S SLOT MOVED AND I ASSUMED IT WOULD NOT. I wrote here that two rows of three cover
+              the same extent three rows of four did; the drift lock built last commit measured 1.69 against
+              a constant of 1.51 and failed the build. That is the lock earning its keep on its first real
+              layout change — the screen self-corrects from a live measurement, so nothing would have looked
+              wrong until the operator opened the exported PDF. `SLIDE_SLOT_ASPECT` is re-measured below. */}
           <AmtsPanel title="Primary Customer Value Proposition" icon="♡">
-            {fieldsOf("vprop")}
+            {leanFieldsOf("vprop", "nba", "wtp")}
           </AmtsPanel>
           <AmtsPanel tall title="Value · Creation + Capture" icon="◈">
             {fieldsOf("valuechart")}
           </AmtsPanel>
-          <AmtsPanel title="Competition · Next Best Alternative" icon="⚔">
-            {fieldsOf("nba", "diffs")}
-          </AmtsPanel>
-          <AmtsPanel title="Price Performance · Competition" icon="$">
-            {fieldsOf("wtp")}
+          <AmtsPanel title="Value Equation" icon="▪">
+            {fieldsOf("diffs")}
           </AmtsPanel>
           <AmtsPanel title="Key Customer Benefits" icon="◆">
             {fieldsOf("benefits")}

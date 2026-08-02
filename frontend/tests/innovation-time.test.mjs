@@ -1721,7 +1721,17 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
 
   // (a) the duplicate-name fix — one field in a panel renders bare
-  ok(/function PresentField\(\{ sp, f, big, bare \}/.test(src), "PresentField accepts `bare` (panel already carries the name)");
+  ok(/function PresentField\(\{ sp, f, big, bare, lean \}/.test(src), "PresentField accepts `bare` (panel already carries the name)");
+  // Y-1 · `lean` is bare PLUS an inline label — never a THIRD card style, and never a label the panel head
+  // already speaks. Mutation-tested: drop the `!bare` and the sentence wears "PRIMARY CUSTOMER VALUE
+  // PROPOSITION" directly under a head reading PRIMARY CUSTOMER VALUE PROPOSITION.
+  ok(/const leanLabel = lean && !bare;/.test(src), "…and `lean` labels only the fields the panel head does NOT name");
+  ok(/\{leanLabel && <><span className=\{`font-semibold uppercase tracking-\[0\.12em\] \$\{acc\.text\}`\}>\{leanLabelOf\(f\.name\)\}/.test(src),
+     "…rendering that label INLINE on the text's own first line, not as another banner row");
+  ok(/const leanLabelOf = \(name: string\) => \{/.test(src) && /\\\(\(\[A-Z0-9\]\[A-Z0-9\.\/-\]\{1,7\}\)\\\)\\s\*\$/.test(src),
+     "a trailing acronym IS the inline label — \"Next best alternative (NBA)\" reads as NBA");
+  ok(/text: "text-indigo-300"/.test(src) && /text: "text-sky-300"/.test(src),
+     "…coloured from the SAME sectionAccent decision as the banner it replaces, not a second palette");
   ok(/const solo = ids\.length === 1;/.test(src), "fieldsOf renders a SOLO field bare — no second banner repeating the panel title");
   ok(/\{!bare && <Banner \/>\}/.test(src), "the inner banner is suppressed when bare");
   ok((src.match(/\{!bare && <Banner \/>\}/g) ?? []).length === 2, "both PresentField exits (chart + general) honour bare");
@@ -3197,8 +3207,12 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // ⚠ X-5 · PRICE PERFORMANCE HAS ITS OWN PANEL NOW. Operator: "swap Price Performance to make full axis
   // … Price pefromanc is left bottom". Riding inside Competition it was a 32px track; alone in the
   // bottom-left box the LOW→HIGH axis is as tall as the panel (`fill`), which is what "full axis" means.
-  ok(/<AmtsPanel title="Price Performance · Competition" icon="\$">\s*\{fieldsOf\("wtp"\)\}/.test(src),
-     "Price Performance is its own bottom-left panel, not a strip inside another");
+  // ⚠ Y-1 · IT SHARES THE UPPER-LEFT BOX NOW. Operator, with the crop: "it may help to take the content
+  // into text and framework and remove the space consuming headers · all in one box on upper left ·
+  // Primary Value Proposition: … NBA: … Price Performance: overlay graphic." Its own panel head is the
+  // header that got removed; the strip keeps the full-height `fill` track it gained in X-5.
+  ok(/<AmtsPanel title="Primary Customer Value Proposition" icon="♡">\s*\{leanFieldsOf\("vprop", "nba", "wtp"\)\}/.test(src),
+     "Price Performance shares the upper-left box with the value proposition and the NBA");
   ok(/fill \? "min-h-\[2rem\] flex-1" : compact \? "h-8" : "h-12"/.test(src),
      "…and its track FILLS that panel instead of leaving a void under a fixed 32px strip");
   // ⚠ X-4 · NOT `wide`. The operator: "I need competitive Value Waterfall in right section like before …
@@ -3209,15 +3223,16 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // being 13% of the printed canvas.
   ok(/<AmtsPanel tall title="Value · Creation \+ Capture" icon="◈">\s*\{fieldsOf\("valuechart"\)\}/.test(src),
      "the waterfall is the upper-RIGHT panel, holds nothing but the chart, and spans the stack beside it");
-  ok(/\$\{tall \? "row-span-3" : ""\}/.test(src), "…and `tall` is a row-span-3 on the panel frame, mirroring `wide`");
+  // Y-1 · the stack is TWO rows deep now (three boxes folded into one), so the span follows it.
+  ok(/\$\{tall \? "row-span-2" : ""\}/.test(src), "…and `tall` spans the two-row stack beside it, mirroring `wide`");
   // X-6 · THREE ROWS, AND THE OUTER TWO ARE EQUAL ON PURPOSE — the operator asked for "visual pleasing
   // symetry". The middle row is 1.72x because it carries the value-equation table, which is the tallest
   // single block on the slide; measured, 1.65 still overflowed it by 4px and 1.72 is the first that clears.
-  // X-7 · FOUR rows. `auto` first — "just single sentence value prop needed to move", so its row is the
-  // height of one sentence and nothing more. The rest is measured: 3.55 is the first weight at which the
-  // value-equation table clears, 1.25 the first at which the price axis does.
-  ok(/S8: "auto minmax\(0, 3\.55fr\) minmax\(0, 1\.25fr\) minmax\(0, 1\.7fr\)"/.test(src),
-     "S8 row 1 is AUTO — the value-prop sentence takes only the height it needs");
+  // Y-1 · THREE rows. Weights measured with the ink-void probe, not guessed: the bottom row was handing
+  // its two four-bullet lists 201px to paint 119 in, so 61px of pure void moved up to the chart. 1.45 is
+  // the first middle weight at which the value-equation table clears (1.40 overflowed it by 2px).
+  ok(/S8: "minmax\(0, 2\.7fr\) minmax\(0, 1\.45fr\) minmax\(0, 1\.1fr\)"/.test(src),
+     "S8's three rows are weighted from the measured ink-void, not split evenly");
   ok(!/mode !== "slide" && <CompetitionStrip[\s\S]{0,200}?compact/.test(veq),
      "the strip inside ValueProp is off the slide entirely — it is not merely made smaller there");
   ok(/\{mode !== "slide" && <CompetitionStrip/.test(veq),
@@ -3285,11 +3300,18 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // Grid order IS reading order, so this list IS the layout.
   // ⚠ X-7 · PANEL ORDER IS GRID AUTO-PLACEMENT ORDER, so this list IS the layout. `valuechart` must be
   // SECOND to claim column 2 of row 1 before `nba` can fall into row 2 of column 1.
-  ok(panels.join(" | ") === "Primary Customer Value Proposition | tall Value · Creation + Capture | Competition · Next Best Alternative | Price Performance · Competition | Key Customer Benefits | Key Technical Features",
-     `S8 stacks VProp → NBA → Price Performance beside a spanning waterfall — got ${panels.join(" | ")}`);
-  // "value equation box should not have moved just the slider" — it stays with the NBA it argues against.
-  ok(/<AmtsPanel title="Competition · Next Best Alternative" icon="⚔">\s*\{fieldsOf\("nba", "diffs"\)\}/.test(src),
-     "the Value Equation did NOT move — only the slider left the Competition panel");
+  // ⚠ Y-1 · SIX PANELS BECOME FIVE. The value proposition, the NBA and the price strip share the upper-left
+  // box — "all in one box on upper left". The two bottom panels are STATIONARY, as they have been since X-6.
+  ok(panels.join(" | ") === "Primary Customer Value Proposition | tall Value · Creation + Capture | Value Equation | Key Customer Benefits | Key Technical Features",
+     `S8 folds VProp + NBA + Price Performance into one box beside a spanning waterfall — got ${panels.join(" | ")}`);
+  // The Value Equation kept its own box — the operator moved the NBA sentence, not the table it explains.
+  ok(/<AmtsPanel title="Value Equation" icon="▪">\s*\{fieldsOf\("diffs"\)\}/.test(src),
+     "the Value Equation still has a box of its own, directly under the sentence it argues");
+  // ⚠ AND THE BOTTOM ROW NEVER MOVES. Said three times now: "Do not move key customer benefits or Technical
+  // benefits at all. these remain ststionary." Pinned by position, so a future reshuffle of the top has to
+  // notice it disturbed the bottom.
+  ok(panels[3] === "Key Customer Benefits" && panels[4] === "Key Technical Features",
+     "…and Key Customer Benefits / Key Technical Features are still the last two panels, in that order");
 
   // 2 · THE SPANNING RULE IS DECLARED, NOT INFERRED. Inference from `kind` is how the Competition panel
   //     silently became two-column when a chart field joined it.
@@ -3306,7 +3328,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and CONOPS keeps the full-width span it has always had");
 
   // 3 · THE PRINT SEED — the reason the exported chart was a small drawing in a big box.
-  ok(/const SLIDE_SLOT_ASPECT = 1\.51;/.test(src), "the sheet-constant slot aspect is the MEASURED 1.51");
+  ok(/const SLIDE_SLOT_ASPECT = 1\.48;/.test(src), "the sheet-constant slot aspect is the MEASURED 1.48");
   // ⚠ X-7 · AND IT IS NOW ACTUALLY GUARDED. X-4's comment promised a drift lock and I never built one; the
   // pin above is a pin, not a guard — it would go red on a CORRECT update and stay green while the number
   // rotted. slide-shots now measures the live panel and fails past 8%. Mutation-tested with the stale 2.03.
@@ -5201,7 +5223,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const codeW7 = srcW7.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");   // the W-2 lesson
 
   // (a) THE RENAME, and the old caption gone. Operator: "rename to: 'Price Performance: Competition'".
-  ok(/Price Performance: Competition/.test(codeW7), "the strip is captioned Price Performance: Competition");
+  // Y-1 · the SEPARATOR is now the deck's `·`, because on the slide this caption sits beside "NBA ·" and
+  // reads as its peer; the words the operator named are unchanged.
+  ok(/Price Performance · Competition/.test(codeW7), "the strip is captioned Price Performance · Competition");
+  ok(/fill \? "font-semibold uppercase tracking-\[0\.12em\] text-emerald-300"/.test(codeW7),
+     "…styled as a lean peer label ON THE SLIDE ONLY — the editor and deep-dive card keep the muted caption");
   ok(!/Willingness-to-pay · price-performance positioning/.test(codeW7), "the old caption is gone, not duplicated");
 
   // (b) MARKERS ARE DATA. Executed, not read: every project resolves a marker set, every x is inside 0..1,
