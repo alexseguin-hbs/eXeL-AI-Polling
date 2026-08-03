@@ -29,6 +29,11 @@
   .direction{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:14px 16px;font-size:13.5px;color:#cbd5e1;}
   .direction b{color:var(--ink);}
   footer{margin-top:34px;color:var(--faint);font-size:12px;text-align:center;line-height:1.8;border-top:1px solid var(--line);padding-top:18px;}
+
+/* mobile fix: tables scroll inside their own box; the page never scrolls sideways.
+   Long unbroken tokens (filenames, hashes) wrap instead of pushing the layout. */
+.xscroll{overflow-x:auto;max-width:100%}
+body{overflow-wrap:anywhere}
 </style></head>
 <body><div class="wrap">
   <header class="top">
@@ -58,7 +63,7 @@
   <div class="direction">The hardened tiers are real and were not touched. <b>Apply the additive, no-visible-change fixes now</b> — debounce cloud writes, unify the three slide-status write paths, re-hydrate on modal close, guarded cloud read-back, keyboard + ARIA on the deck, payback/locale/format correctness. <b>Defer</b> everything that changes a displayed number, reframes a badge, or needs accounts (RLS isolation, tolerance-band unification, EV/first-revenue semantics, content i18n) — report, don't silently apply. <b>Enter no sensitive portfolio data until DB-level owner isolation lands.</b></div>
 
   <h2>Applied now — 12 safe, verified fixes ✓</h2>
-  <table>
+  <div class="xscroll"><table>
     <thead><tr><th>Fix</th><th>Area</th><th>Flagged by</th></tr></thead>
     <tbody>
       <tr><td><span class="tag done">✓</span> Debounce cloud writes (~800ms) so a textarea doesn't re-upload the blob per keystroke</td><td class="mono">writeStore</td><td>Thor·Krishna·Odin</td></tr>
@@ -74,10 +79,10 @@
       <tr><td><span class="tag done">✓</span> Value-Equation driver grid wrapped in <span class="mono">overflow-x-auto</span> (320px guard)</td><td class="mono">ValueEquationPanel</td><td>Pangu·Christo</td></tr>
       <tr><td><span class="tag done">✓</span> Nits: <span class="mono">SLIDE_KEY</span> constant in reqDetailRows · “R&amp;D $M” label (cells render $M) · hoist eq in consistencyCheck</td><td class="mono">page + data</td><td>Enlil·Thoth</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h2>Deferred — reported, not applied (rules 6/8 or accounts milestone)</h2>
-  <table>
+  <div class="xscroll"><table>
     <thead><tr><th>Item</th><th>Why deferred</th></tr></thead>
     <tbody>
       <tr><td><span class="tag def">defer</span> innovation_state RLS gates on <span class="mono">owner_key</span> presence, not identity — cross-tenant read/overwrite</td><td>Needs the accounts milestone (<span class="mono">owner_key = auth.uid()</span>). <b>Do not enter sensitive data until it lands.</b></td></tr>
@@ -90,10 +95,10 @@
       <tr><td><span class="tag def">defer</span> New tap-to-cycle pills / budget table below 44px touch target at 375px</td><td>Visibly changes density/layout the operator didn't ask to change (rule 6).</td></tr>
       <tr><td><span class="tag def">defer</span> consistencyCheck/handoffReadiness key off raw drivers → “No drivers” on seeds</td><td>Changes an on-screen badge's wording/behavior (rule 6).</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h2>Residual risk after the applied fixes</h2>
-  <table>
+  <div class="xscroll"><table>
     <thead><tr><th>Sev</th><th>Residual risk</th></tr></thead>
     <tbody>
       <tr><td><span class="tag hi">high</span></td><td>Cross-tenant RLS exposure of <span class="mono">innovation_state</span> until DB-level owner isolation (accounts) lands.</td></tr>
@@ -105,7 +110,7 @@
       <tr><td><span class="tag med">med</span></td><td>GateNotesPanel presents future-gate countermeasures as “solved” on early-stage projects (sign-off gated).</td></tr>
       <tr><td><span class="tag low">low</span></td><td>New tap-to-cycle controls below 44px + budget table can squish at 375px until layout sign-off.</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <footer>
     13-agent council (12 AsM + MoT) · 59 findings · 12 applied (additive, gated) · 9 deferred · 8 residual tracked.<br>

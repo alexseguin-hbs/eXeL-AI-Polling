@@ -41,6 +41,11 @@ td{padding:8px 9px;border-bottom:1px solid #111827;vertical-align:top}
 .bar .stat{font-family:'Consolas',monospace;font-size:12px;color:var(--dim)}
 button.act{font-family:'Consolas',monospace;font-size:13px;font-weight:700;border:none;border-radius:7px;padding:9px 16px;cursor:pointer}
 .b-save{background:#0d141d;color:var(--cyan);border:1px solid var(--line2)} .b-json{background:var(--cyan);color:#06202a} .b-reset{background:#0d141d;color:var(--dim);border:1px solid var(--line)}
+
+/* mobile fix: tables scroll inside their own box; the page never scrolls sideways.
+   Long unbroken tokens (filenames, hashes) wrap instead of pushing the layout. */
+.xscroll{overflow-x:auto;max-width:100%}
+body{overflow-wrap:anywhere}
 </style></head><body>
 <header class="top"><div class="wrap">
 <h1>eXeL-AI · INNOVATION PROJECT — FEEDBACK (WITH IMAGES)</h1>
@@ -164,7 +169,7 @@ button.act{font-family:'Consolas',monospace;font-size:13px;font-weight:700;borde
 
 <section><h2>Assessment plan — roles · PRB · SSSES · cadence</h2>
 <div class="panel"><h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">Usability — 7 roles (bottom-up: Alpha Code → Alpha Group → SBU → BU)</h3>
-<table><thead><tr><th>Role</th><th>Job</th><th>Fix shipped</th></tr></thead><tbody>
+<div class="xscroll"><table><thead><tr><th>Role</th><th>Job</th><th>Fix shipped</th></tr></thead><tbody>
 <tr><td><span class="pill">PdM</span></td><td>Own a product through gates</td><td>GateCube shows slides needed for the NEXT gate + completed-by-gate</td></tr>
 <tr><td><span class="pill">PjM</span></td><td>Schedule/$ honest</td><td>$/min surfaced globally in the cadence caption</td></tr>
 <tr><td><span class="pill">Manager</span></td><td>Work the funding line</td><td>Decision toggle is BU·SBU·Alpha Group (Alpha Code dropped)</td></tr>
@@ -172,15 +177,15 @@ button.act{font-family:'Consolas',monospace;font-size:13px;font-weight:700;borde
 <tr><td><span class="pill">SBU President</span></td><td>Fund Alpha Groups</td><td>SBU persona lands on SBU rollup; access scoped to SBU</td></tr>
 <tr><td><span class="pill">CFO</span></td><td>Trust the numbers</td><td>Metrics labeled estimates · NPV ~5%/yr · post-overhead</td></tr>
 <tr><td><span class="pill">CEO</span></td><td>Whole book, cadence</td><td>Optimize Quarterly→Monthly→Weekly toggle</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <div class="panel"><h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">SSSES optimization (this round)</h3>
-<table><tbody>
+<div class="xscroll"><table><tbody>
 <tr><td class="pill" style="color:var(--rose)">Security</td><td>Access by BU/SBU/Alpha Group; Supabase api-key hash/prefix indexed (no full scan on auth)</td></tr>
 <tr><td class="pill" style="color:var(--amber)">Stability</td><td>131/131; idempotent, table-guarded migration safe on partial schemas</td></tr>
 <tr><td class="pill" style="color:var(--green)">Scalability</td><td>Composite indexes on every org+time / session path; cadence for weekly at scale</td></tr>
 <tr><td class="pill" style="color:var(--cyan)">Efficiency</td><td>GateCube shows only next-gate slides (no static 27); memoized rollups</td></tr>
 <tr><td class="pill" style="color:var(--violet)">Succinctness</td><td>Dropped Alpha Code from the decision toggle; CRS jargon gone</td></tr>
-</tbody></table></div></section>
+</tbody></table></div></div></section>
 </div>
 <div class="bar"><span class="stat" id="stat">0 / 8 reviewed</span><span style="flex:1"></span>
 <button class="act b-reset" onclick="resetFb()">Reset</button><button class="act b-save" onclick="saveFb()">Save</button><button class="act b-json" onclick="downloadJSON()">Download JSON</button></div>

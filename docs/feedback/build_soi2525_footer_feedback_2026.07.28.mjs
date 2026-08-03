@@ -111,6 +111,10 @@ textarea{width:100%;min-height:52px;background:#0d0b06;color:#e2e8f0;border:1px 
 .asm{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:12px 14px}
 .asm h3{font-size:13px;color:var(--cyan)} .asm .role{color:var(--amber);font-size:10.5px;font-family:'Consolas',monospace;text-transform:uppercase;letter-spacing:1px;margin:2px 0 6px} .asm p{font-size:12.5px} .asm .grade{float:right;font-family:'Consolas',monospace;font-size:12px;border:1px solid var(--line2);border-radius:4px;padding:1px 7px;color:var(--green)}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+/* mobile: tables scroll inside their own box; the page never scrolls sideways.
+   Long unbroken tokens (filenames, hashes) wrap instead of pushing the layout. */
+.xscroll{overflow-x:auto;max-width:100%}
+body{overflow-wrap:anywhere}
 .mot{border-left:3px solid var(--amber);background:linear-gradient(180deg,#12100a,#0a0f16)} .mot h3{color:var(--amber);font-size:14px;margin-bottom:6px} .mot p{font-size:12.5px}
 .gate{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 .gate .pill{font-family:'Consolas',monospace;font-size:11px;padding:3px 9px;border-radius:5px;border:1px solid var(--line2);color:var(--green);background:#04211f}

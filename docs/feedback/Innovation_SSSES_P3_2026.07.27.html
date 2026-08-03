@@ -72,6 +72,11 @@
   code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:1px 6px;border-radius:5px}
   footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;font-family:var(--mono)}
   .caveat{font-size:13px;color:var(--muted);border-left:2px solid var(--warn);padding:2px 0 2px 14px;margin:10px 0}
+
+/* mobile fix: tables scroll inside their own box; the page never scrolls sideways.
+   Long unbroken tokens (filenames, hashes) wrap instead of pushing the layout. */
+.xscroll{overflow-x:auto;max-width:100%}
+body{overflow-wrap:anywhere}
 </style>
 
 <div class="wrap">
@@ -94,7 +99,7 @@
   <section>
     <h2>Pillar scorecard — baseline → target</h2>
     <div class="scroll">
-      <table>
+      <div class="xscroll"><table>
         <thead><tr><th>Pillar</th><th>Baseline</th><th>Now</th><th></th><th class="num">Δ</th><th>What moved it</th></tr></thead>
         <tbody>
           <tr><td>Security</td><td class="num">78</td><td class="num">95</td><td><div class="bar"><i style="width:95%"></i></div></td><td class="delta">+17</td><td>scrubDeep at the single cloud-write choke point; member ref opaque</td></tr>
@@ -103,7 +108,7 @@
           <tr><td>Efficiency</td><td class="num">70</td><td class="num">94</td><td><div class="bar"><i style="width:94%"></i></div></td><td class="delta">+24</td><td>memoized funded/NPV/allocation; hierOf once/project; single formatters</td></tr>
           <tr><td>Succinctness</td><td class="num">68</td><td class="num">95</td><td><div class="bar"><i style="width:95%"></i></div></td><td class="delta">+27</td><td>shared useModalDismiss; one VIZ palette; kM aliased to global k/usd</td></tr>
         </tbody>
-      </table>
+      </table></div>
     </div>
     <div class="grid g3" style="margin-top:14px">
       <div class="card"><div class="pill pass">Spiral · PASS</div><p style="font-size:13.5px;color:var(--muted);margin:.6em 0 0">Category/BU/load surfaces read from one source (<code>DEV_TYPE</code>, <code>VIZ</code>, <code>pillarColorOf</code>). Stray <code>#38bdf8</code> removed.</p></div>

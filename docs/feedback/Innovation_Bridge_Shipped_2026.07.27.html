@@ -26,6 +26,11 @@
   .card li { font-size:13px; color:#cbd5e1; margin:3px 0; }
   .done { color:var(--ok); font-weight:600; }
   footer { margin-top:34px; color:var(--faint); font-size:12px; text-align:center; line-height:1.75; }
+
+/* mobile fix: tables scroll inside their own box; the page never scrolls sideways.
+   Long unbroken tokens (filenames, hashes) wrap instead of pushing the layout. */
+.xscroll{overflow-x:auto;max-width:100%}
+body{overflow-wrap:anywhere}
 </style></head>
 <body><div class="wrap">
   <header class="top">
@@ -36,7 +41,7 @@
   </header>
 
   <h2>Shipped ledger (9 gated commits → main)</h2>
-  <table class="ledger">
+  <div class="xscroll"><table class="ledger">
     <thead><tr><th>SHA</th><th>Slice</th><th>What shipped</th></tr></thead>
     <tbody>
       <tr><td><span class="sha">447acae</span></td><td>0 · Foundations</td><td>innovation.* lexicon group + t() wired into the route; innovation-store.ts Supabase persistence + migration 028 (RLS)</td></tr>
@@ -50,7 +55,7 @@
       <tr><td><span class="sha">1a9fdef</span></td><td>7 · Segments / persona</td><td>segment cards (pain · outcome · confidence) · admin segment library · "see in another lens" quick-switch</td></tr>
       <tr><td><span class="sha">34067c1</span></td><td>8 · Glossary / exports</td><td>shared glossary editor · consistency badge · outcome-brief export · activity as audit ledger</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h2>Every council theme → where it landed</h2>
   <div class="theme">

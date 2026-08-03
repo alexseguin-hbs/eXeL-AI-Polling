@@ -66,6 +66,11 @@
   .b-json{background:var(--cyan);color:#06202a}
   .b-reset{background:#0d141d;color:var(--dim);border:1px solid var(--line)}
   a{color:var(--cyan)}
+
+/* mobile fix: tables scroll inside their own box; the page never scrolls sideways.
+   Long unbroken tokens (filenames, hashes) wrap instead of pushing the layout. */
+.xscroll{overflow-x:auto;max-width:100%}
+body{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -104,7 +109,7 @@
 
   <div class="panel">
     <h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">A · User &amp; management types (persona lens)</h3>
-    <table>
+    <div class="xscroll"><table>
       <thead><tr><th>Persona</th><th>Primary job-to-be-done</th><th>Success signal to test</th></tr></thead>
       <tbody>
         <tr><td><span class="pill">Product / Project Mgr</span></td><td>Draft one project; move it through gates; keep Say/Do honest.</td><td>Can submit a new idea + edit BU/SBU/pillar in &lt;60s; 12 metrics render; gate readiness updates.</td></tr>
@@ -112,24 +117,24 @@
         <tr><td><span class="pill">SBU Director</span></td><td>Fund the right mix across Alpha Groups.</td><td>SBU rollup + growth-model contribution reconcile to base revenue.</td></tr>
         <tr><td><span class="pill">VP · Portfolio</span></td><td>See the whole book; spot gaps to target.</td><td>Dashboards + growth model + dependencies load on entry; gap-to-target visible.</td></tr>
       </tbody>
-    </table>
+    </table></div>
   </div>
 
   <div class="panel">
     <h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">B · Product Review Board (PRB) members</h3>
-    <table>
+    <div class="xscroll"><table>
       <thead><tr><th>Role</th><th>Gate authority</th><th>Test</th></tr></thead>
       <tbody>
         <tr><td>Business / Finance</td><td>Incremental-revenue reconcile · budget envelope</td><td>Variance beyond the ±60/40/20/10/5% band raises an exception, not a silent accept.</td></tr>
         <tr><td>Engineering / Mfg</td><td>NRE + Capital &amp; Tooling · design/test requirements</td><td>Gate readiness rollup lists blockers; DR/TR/IS/DT rows sit at the right gate.</td></tr>
         <tr><td>◬ AI · ♡ SI · 웃 HI sign-off</td><td>Tri-approval + Request changes</td><td>Each approval + change request lands in the Changes &amp; Approvals audit trail.</td></tr>
       </tbody>
-    </table>
+    </table></div>
   </div>
 
   <div class="panel">
     <h3 style="color:var(--cyan);font-size:13px;margin-bottom:6px">C · SSSES optimization pass</h3>
-    <table>
+    <div class="xscroll"><table>
       <thead><tr><th>Pillar</th><th>Applied to the Innovation module</th></tr></thead>
       <tbody>
         <tr><td class="pill" style="color:var(--rose)">Security</td><td>Route gate 369963 + separate Business-Setup admin gate; no secrets in client; audit trail on edits/approvals.</td></tr>
@@ -138,7 +143,7 @@
         <tr><td class="pill" style="color:var(--cyan)">Efficiency</td><td>Memoized rollups; one shared risk-weighted color system; persona sets the right default view.</td></tr>
         <tr><td class="pill" style="color:var(--violet)">Succinctness</td><td>CRS jargon removed from UX; pillars/meta derived (no seed bloat); single registry, no duplication.</td></tr>
       </tbody>
-    </table>
+    </table></div>
   </div>
 </section>
 
