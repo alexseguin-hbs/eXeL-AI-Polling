@@ -1,0 +1,795 @@
+<title>Vision 2525 · Capture-Resistant Funding &amp; Governance Framework</title>
+<style>
+:root{
+  --paper:#FAF7F2; --ink:#22201C; --ink-2:#5C564C; --rule:#DDD5C7; --rule-2:#EFE9DF;
+  --brass:#8A6415; --brass-bg:#F3EADA;
+  --brick:#9B4429; --brick-bg:#F7E7E1;
+  --verdigris:#3D6349; --verdigris-bg:#E4EDE6;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#12100E; --ink:#E8E2D8; --ink-2:#9A9186; --rule:#3A342C; --rule-2:#241F1A;
+  --brass:#C9962E; --brass-bg:#241D0F; --brick:#D4785A; --brick-bg:#261510;
+  --verdigris:#7FAE8C; --verdigris-bg:#121D16;
+}}
+:root[data-theme="dark"]{
+  --paper:#12100E; --ink:#E8E2D8; --ink-2:#9A9186; --rule:#3A342C; --rule-2:#241F1A;
+  --brass:#C9962E; --brass-bg:#241D0F; --brick:#D4785A; --brick-bg:#261510;
+  --verdigris:#7FAE8C; --verdigris-bg:#121D16;
+}
+:root[data-theme="light"]{
+  --paper:#FAF7F2; --ink:#22201C; --ink-2:#5C564C; --rule:#DDD5C7; --rule-2:#EFE9DF;
+  --brass:#8A6415; --brass-bg:#F3EADA; --brick:#9B4429; --brick-bg:#F7E7E1;
+  --verdigris:#3D6349; --verdigris-bg:#E4EDE6;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);
+  font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  margin:0;padding:0 20px 96px;-webkit-text-size-adjust:100%}
+.wrap{max-width:78ch;margin:0 auto}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-weight:600;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5.5vw,40px);line-height:1.15;margin:0 0 6px}
+h2{font-size:clamp(20px,3.4vw,25px);line-height:1.25;margin:0}
+h3{font-size:17px;margin:30px 0 8px}
+h4{font-size:14.5px;margin:22px 0 6px;font-weight:700}
+p{margin:0 0 14px}
+small,.meta{color:var(--ink-2)}
+code,.mono,th,.pct{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+code{font-size:.86em;background:var(--rule-2);padding:1px 5px;border-radius:3px;word-break:break-word}
+a{color:var(--brass)}
+
+header.mast{border-bottom:2px solid var(--ink);padding:34px 0 16px;margin-bottom:26px}
+.kicker{font:600 11px/1 ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--brass);margin-bottom:14px}
+.mast .meta{font-family:ui-monospace,monospace;font-size:11.5px;margin-top:12px;line-height:1.7}
+
+.verdict{border:1px solid var(--brick);border-left:5px solid var(--brick);background:var(--brick-bg);
+  padding:18px 20px;margin:0 0 30px;border-radius:2px}
+.verdict .tag{font:700 11px/1 ui-monospace,monospace;letter-spacing:.16em;color:var(--brick);text-transform:uppercase}
+.verdict h2{font-size:22px;margin:9px 0 8px}
+.verdict p{margin:0 0 10px}
+.verdict p:last-child{margin-bottom:0}
+
+section.clause{display:grid;grid-template-columns:4.2rem 1fr;gap:0 18px;
+  border-top:1px solid var(--rule);padding-top:24px;margin-top:34px}
+section.clause>.num{font:600 13px/1.5 ui-monospace,monospace;color:var(--brass);padding-top:6px}
+section.clause>.body{min-width:0}
+@media(max-width:640px){
+  section.clause{grid-template-columns:1fr;gap:0}
+  section.clause>.num{padding:0 0 4px}
+}
+
+.scroll{overflow-x:auto;margin:16px 0;border:1px solid var(--rule);border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:min(100%,560px)}
+th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);
+  background:var(--rule-2);padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--rule-2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.mono,td .pct,td.num{white-space:nowrap;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+.note{border-left:3px solid var(--rule);padding:2px 0 2px 16px;margin:16px 0;color:var(--ink-2);font-size:14.5px}
+.flag{border:1px solid var(--brick);background:var(--brick-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.flag .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--brick);text-transform:uppercase;display:block;margin-bottom:8px}
+.keep{border:1px solid var(--verdigris);background:var(--verdigris-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.keep .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--verdigris);text-transform:uppercase;display:block;margin-bottom:8px}
+.ask{border:1px solid var(--brass);background:var(--brass-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.ask .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--brass);text-transform:uppercase;display:block;margin-bottom:8px}
+.flag p:last-child,.keep p:last-child,.ask p:last-child{margin-bottom:0}
+
+.ladder{list-style:none;margin:18px 0;padding:0;font-size:14.5px}
+.ladder li{border-left:2px solid var(--rule);padding:9px 0 9px 16px;margin:0}
+.ladder li.hi{border-left-color:var(--brass);background:var(--brass-bg)}
+.ladder .t{font-weight:600}
+.ladder .d{color:var(--ink-2);font-size:13.5px}
+
+.master{border-top:1px solid var(--rule-2);padding:15px 0}
+.master:first-of-type{border-top:0}
+.master h4{margin:0 0 3px;font-size:15px;font-weight:600}
+.master .role{font:600 10px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.master .pct{float:right;font-size:13px;font-weight:700;color:var(--brass)}
+.master p{margin:8px 0 0;font-size:14.5px}
+.master .rec{color:var(--ink-2)}
+.bar{height:3px;background:var(--rule-2);border-radius:2px;margin-top:9px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--brass)}
+
+footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
+  font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-2);line-height:1.7}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">Master of Thought · Vision 2525</div>
+  <h1>Nothing to Buy,<br>Nothing to Take</h1>
+  <p class="meta" style="font-family:inherit;font-size:16px;margin:8px 0 0;color:var(--ink-2)">
+    A capture-resistant funding and governance framework — designed so that no investment organisation can
+    hoard it and no politician can credibly argue against it. Convened with the 12 Ascended Masters.
+  </p>
+  <div class="meta">
+    REQUESTED BY&nbsp; Thought Master<br>
+    MANDATE&nbsp; funded by individuals · never corporations or investment funds · unassailable · un-hoardable<br>
+    GROUNDED IN&nbsp; <code>bc6e8d9</code> · 2026.08.03 · every claim cites a real file and line<br>
+    <strong style="color:var(--brick)">NOT LEGAL ADVICE</strong>&nbsp; entity forms are patterns with trade-offs; every jurisdiction requires qualified local counsel<br>
+    NOT DONE&nbsp; no offering document, no solicitation, no product code — analysis only
+  </div>
+</header>
+
+<div class="verdict">
+  <span class="tag">Verdict</span>
+  <h2>The structure you want is achievable. The token you asked for is not — and you do not need it.</h2>
+  <p>
+    A $1 token that multiplies to $10 <strong>cannot</strong> be non-security in the SEC, MAS, CVM, SEBI,
+    CBR or VARA regimes. All apply substance over form. Worse, if the $10 comes from later buyers rather
+    than outside capital, it is a pyramid — criminal, not merely unregistered. That path is closed.
+  </p>
+  <p>
+    But your actual mandate — <em>funded by the people, un-hoardable, politically unassailable</em> — is
+    reachable, and you are closer than you think. The Accords already specify the funding model
+    (<code>ATLANTIS_ACCORDS.md:69-77</code>), and <code>SI_tokens = floor(active_minutes)</code> is already
+    the strongest non-security fact pattern available: <strong>a token that cannot be bought cannot be
+    hoarded, cannot be a security, and cannot be captured.</strong>
+  </p>
+  <p>
+    <strong>Six defects stand between you and that structure, and one is severe:</strong> 웃 <em>is
+    purchasable with money today</em>, and 웃 carries governance weight. An investment organisation could
+    buy governance influence right now — in direct contradiction of the Accords' strongest clause. Everything
+    else in this document is secondary to closing that door.
+  </p>
+</div>
+
+<p class="note">
+  <strong>The organising insight.</strong> Defensibility does not come from what this framework claims. It
+  comes from <strong>what it permanently gives up</strong>. Each renunciation removes a regulator and
+  forecloses an attack line at the same time — so the critic's argument becomes unavailable rather than
+  merely answerable. §2 is that table, and it is the spine of everything after it.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 1</div><div class="body">
+<h2>The constraint, stated once</h2>
+<p>
+  <strong>"Raises $10 per $1" and "not a security" cannot both be true.</strong> The test is substantially
+  the same everywhere: money paid into a common enterprise with an expectation of profit from the efforts of
+  others. Requirement two <em>is</em> the trigger. No wrapper, foundation, or offshore domicile removes it —
+  regulators look through form to substance, and <em>Telegram</em>, <em>Kik</em> and <em>LBRY</em> each lost
+  precisely the "it's a utility token" argument.
+</p>
+<p>
+  This framework does not design: a token sale marketed on appreciation; any structure whose returns depend
+  on later entrants; sanctions or anti-money-laundering evasion; unlicensed money transmission; or means to
+  operate where an activity is lawfully banned.
+</p>
+<div class="keep">
+  <span class="lab">And here is why that costs you nothing</span>
+  <p>Under <em>"we the people, never corporations or investment funds,"</em> the securities problem largely
+  disappears on its own. A voluntary contribution carrying no economic right is not a security in any of the
+  seven jurisdictions. The instrument you were trying to engineer around was never needed for the mission
+  you actually described.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 2</div><div class="body">
+<h2>The renunciation table</h2>
+<p>
+  Every row is something the framework gives up <strong>permanently and in writing</strong>. Read the middle
+  column as the sentence a hostile politician can no longer finish, and the right column as the regulator
+  who no longer has jurisdiction. This is the whole strategy in one table.
+</p>
+
+<div class="scroll"><table>
+  <tr><th>Permanently renounced</th><th>The attack it forecloses</th><th>Regulator it removes</th></tr>
+  <tr><td><strong>Equity · shares · ownership</strong></td><td>“Someone is going to get rich off this.” There is no one to get rich, and nothing to sell.</td><td>Securities · takeover law</td></tr>
+  <tr><td><strong>Purchasable tokens</strong></td><td>“It's a Ponzi.” “It's an unregistered offering.”</td><td>Securities — no investment of money</td></tr>
+  <tr><td><strong>Any economic return to funders</strong></td><td>“Investors are extracting from poor people.”</td><td>Securities · collective investment schemes</td></tr>
+  <tr><td><strong>Distributable surplus</strong> (asset lock)</td><td>“The founders will cash out eventually.”</td><td>— (replaced by charity/asset-lock duties)</td></tr>
+  <tr><td><strong>Lump-sum wealth</strong> (the 9999 ceiling)</td><td>“Insiders are enriching themselves.”</td><td>Executive-compensation scrutiny</td></tr>
+  <tr><td><strong>Governance for money</strong></td><td>“It's controlled by whoever pays most.”</td><td>Lobbying &amp; influence critique</td></tr>
+  <tr><td><strong>Foreign control of local chapters</strong></td><td>“This is foreign influence in our country.”</td><td>FCRA · foreign-agent regimes</td></tr>
+  <tr><td><strong>Political donations &amp; endorsements</strong></td><td>“It's a partisan operation.”</td><td>Electoral &amp; political-finance law</td></tr>
+  <tr><td><strong>Private accounts</strong></td><td>“It's unaccountable.” Transparency exceeds what is required.</td><td>— (defence, not exemption)</td></tr>
+  <tr><td><strong>A single domicile</strong></td><td>“One government can end this tomorrow.”</td><td>— (resilience, §16)</td></tr>
+</table></div>
+
+<div class="ask">
+  <span class="lab">Why this is stronger than a legal opinion</span>
+  <p>A legal opinion says <em>"we believe this is lawful."</em> A renunciation says <em>"the thing you are
+  worried about is structurally impossible here."</em> The first invites argument; the second ends it. It is
+  also the cheaper posture over a five-century horizon, because renunciations do not need to be re-litigated
+  every time a statute changes.</p>
+  <p>The cost is real and should be stated plainly: <strong>these are one-way doors.</strong> A framework
+  that renounces equity can never raise venture capital; one that renounces distributable surplus can never
+  pay a dividend. That is the trade, and it is the correct one for this mission.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 3</div><div class="body">
+<h2>The legal form</h2>
+<p>
+  <strong>No legal-entity work exists anywhere in the corpus</strong> — no steward-ownership, asset lock,
+  purpose trust or foundation model appears in any document. This is genuinely greenfield, and it is the
+  load-bearing gap: every renunciation in §2 is a promise until an entity form makes it structural.
+</p>
+<p>
+  The family of forms that matches what you have already designed is <strong>steward-ownership</strong> —
+  the legal expression of exactly your 7-year leader, councils, contribution-based standing, and
+  livelihood-not-wealth compensation. Four properties do the work:
+</p>
+
+<ul class="ladder">
+  <li class="hi"><span class="t">No equity → nothing to acquire</span><br><span class="d">An entity with no shares cannot be bought, raided or taken over. This is the structural answer to “investment organisations hoarding.” Not a policy against acquisition — an <em>absence of the thing</em> an acquirer would buy.</span></li>
+  <li class="hi"><span class="t">Asset lock → nothing to extract</span><br><span class="d">Assets may only ever transfer to another purpose-locked body, never to individuals. Statutory in some jurisdictions (the UK Community Interest Company asset lock is the clearest example); contractual in others.</span></li>
+  <li class="hi"><span class="t">Control separated from capital → nothing to capture</span><br><span class="d">Economic rights and governance rights are different instruments by construction. This is the Contribution ≠ Funding principle given legal force rather than stated as an aspiration.</span></li>
+  <li class="hi"><span class="t">Federated legal personality → nothing to switch off</span><br><span class="d">A <em>domestic</em> organisation in each signatory region, not one foreign entity soliciting inward. Answers the foreign-influence attack and removes the single point any one government can close. See §16.</span></li>
+</ul>
+
+<p>
+  Long-lived precedents exist across industrial ownership (non-distributing foundations holding operating
+  companies), community enterprise (statutory asset-locked forms) and modern steward-ownership. They are
+  presented here as <strong>patterns with trade-offs, not a recommendation of one vehicle</strong> — the
+  choice is jurisdiction-specific and belongs to counsel.
+</p>
+
+<div class="flag">
+  <span class="lab">The question counsel must be asked first</span>
+  <p>Not <em>“which entity should we use?”</em> but <em>“in this jurisdiction, which form makes the §2
+  renunciations <strong>irreversible by a future board</strong>?”</em> A renunciation a successor can undo
+  is a preference, not a protection — and the whole framework rests on their permanence.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 4</div><div class="body">
+<h2>Anti-hoarding architecture — and the six holes open today</h2>
+<p>
+  Most of the anti-hoarding machinery already exists in your design or your code. The gap is not conception;
+  it is that several mechanisms are specified but not implemented, and two implemented behaviours contradict
+  the specification outright.
+</p>
+
+<h3>What already works</h3>
+<div class="scroll"><table>
+  <tr><th>Mechanism</th><th>Where</th><th>Status</th></tr>
+  <tr><td>Economic tokens count half for governance (<code>HI_weight_factor = 0.5</code>)</td><td class="mono">Token_Governance_Math.md:76</td><td>Spec</td></tr>
+  <tr><td>Quadratic voting — <code>vote_weight = sqrt(tokens_staked)</code></td><td class="mono">Token_Governance_Math.md:102</td><td>Spec</td></tr>
+  <tr><td>Influence cap — no actor above 15% of governance weight</td><td class="mono">cube7_ranking/ranking_aggregation.py:59</td><td><strong>Implemented</strong></td></tr>
+  <tr><td>Transfer &amp; redemption velocity caps</td><td class="mono">Token_Governance_Math.md:122-141</td><td>Spec</td></tr>
+  <tr><td>Annual earning ceiling (9999 HI)</td><td>Operator design</td><td>New</td></tr>
+  <tr><td>No contribution buys governance influence</td><td class="mono">ATLANTIS_ACCORDS.md:73</td><td>Charter</td></tr>
+</table></div>
+
+<h3>The six defects</h3>
+
+<div class="flag">
+  <span class="lab">Defect 1 · severe · 웃 is purchasable with money today</span>
+  <p><code>cube8_tokens/service.py:75</code> and <code>:488</code> state: <em>“This is the ONLY way to earn
+  웃 tokens — real money → real value”</em>, implementing <code>웃 = $ ÷ 7.25</code>.</p>
+  <p>Because <code>Token_Governance_Math.md:76</code> gives HI governance weight
+  (<code>W_base = SI + HI × 0.5</code>), there is a live path from <strong>money → 웃 → governance
+  influence</strong>. That directly contradicts <code>ATLANTIS_ACCORDS.md:73</code> — <em>“No contribution
+  buys governance influence, from any source, ever”</em> — and your own “never corporation or investment
+  funds.” <strong>An investment organisation could buy governance weight today.</strong> It also supplies
+  the first element of the securities test, destroying the framework's best legal asset.</p>
+  <p><em>Precision:</em> the <strong>purchase path is live in code</strong>; <code>HI_weight_factor</code> is
+  spec-only, not yet implemented. So this is a latent breach that activates the moment the governance spec
+  ships — which is why it must be fixed <em>before</em>, not after.</p>
+  <p><strong>Fix:</strong> 웃 is earned by contributed time only, never purchased. Money in is a
+  <em>donation</em> that mints no token and carries no weight — which is what the Accords already say. If a
+  payer needs acknowledgement, issue a non-transferable, non-governance receipt: a fourth, inert class.</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Defect 2 · a 21.3× cross-border arbitrage</span>
+  <p>Because HI settles at the <em>holder's</em> local rate, 9999 HI earned in Nigeria settles at
+  <strong>$3,399.66</strong> but redeems in Texas for <strong>$72,492.75</strong> — a 21.3× gain from moving
+  the token rather than from contributing anything. Transfers are explicitly contemplated:
+  <code>Token_Governance_Math.md:122-129</code> exists to govern them. A well-capitalised actor could farm
+  low-rate jurisdictions and redeem high — hoarding by geography.</p>
+  <p><strong>Fix:</strong> stamp the settlement rate on the append-only ledger entry <em>at mint time</em>,
+  from the <strong>earner's</strong> jurisdiction. Hours are universal; the rate that converts them freezes
+  the moment they are earned. One field. Preserves transferability, kills the arbitrage.</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Defect 3 · the local rate is applied at the wrong stage</span>
+  <p>Your model is correct and confirmed by its own arithmetic: <strong>1 HI ≡ 1 hour at your local minimum
+  wage</strong>, so <code>9999 × 7.25 = $72,492.75</code> exactly. The token count is identical worldwide;
+  only settlement differs — and every region lands on the same multiple:</p>
+  <div class="scroll" style="margin:12px 0 0"><table>
+    <tr><th>Region</th><th>Min wage/hr</th><th>9999 HI settles at</th><th>× local full-time year (2,080 h)</th></tr>
+    <tr><td>Texas</td><td class="num">7.25</td><td class="num">$72,492.75</td><td class="num">4.8×</td></tr>
+    <tr><td>Brazil</td><td class="num">1.58</td><td class="num">$15,798.42</td><td class="num">4.8×</td></tr>
+    <tr><td>Nigeria</td><td class="num">0.34</td><td class="num">$3,399.66</td><td class="num">4.8×</td></tr>
+  </table></div>
+  <p style="margin:12px 0 0">Equitable by construction. <strong>The code does not do this.</strong>
+  <code>cube5_gateway/service.py:92-94</code> computes <code>minutes × (local_wage/60)</code>, so 40 hours
+  mints <strong>Texas 290 HI · Brazil 63.2 HI · Nigeria 13.6 HI</strong> where your model says 40 everywhere
+  — the same 21.3× spread, now for identical work. This is the Lagos/Austin defect of <code>526fb6e</code>
+  resurfacing in the ledger rather than in demo copy. Separately,
+  <code>cube8_tokens/service.py:76</code> hard-codes <code>HI_RATE_PER_HOUR = 7.25</code> for every
+  jurisdiction with no rate lookup at all, and <code>Token_Governance_Math.md:20-28</code> encodes the same
+  error.</p>
+  <p style="margin:12px 0 0"><strong>Fix:</strong> the local rate belongs at <em>settlement</em>, not at
+  <em>mint</em>. Apply it once, in the right place, and your model works exactly as described. Keep 9999.</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Defect 4 · the anti-hoarding caps have no numbers</span>
+  <p><code>ATLANTIS_ACCORDS.md:75</code>: <em>“Administrative overhead is capped. Corporate and institutional
+  gifts are welcomed and capped.”</em> No figure appears anywhere in the corpus.
+  <strong>An undefined cap is not a cap</strong> — and it is the first clause a hostile critic will test,
+  because it is the one the Accords rely on to keep large donors from acquiring standing.</p>
+  <p><strong>Fix:</strong> publish two numbers — a maximum share of total funding from any single
+  institutional source, and a maximum administrative overhead ratio. Both belong in the Adaptive class
+  (tunable, logged), but they must <em>exist</em>.</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Defect 5 · the influence cap is defeated by the reputation multiplier</span>
+  <p><code>W_damped</code> caps a user at <code>influence_cap = 0.15</code>. But
+  <code>effective_governance_weight = W_damped × reputation_score</code>, where
+  <code>reputation_score = consistency (≤2.0) × tenure (≤3.0) = ≤6.0</code>. Multiplying <em>after</em> the
+  cap lifts a single actor to roughly 90% of the pre-cap pool — and the person who maximises tenure is
+  definitionally your 7-year leader, precisely who the cap exists to constrain.</p>
+  <p><em>Precision:</em> <code>_apply_influence_cap</code> <strong>is</strong> implemented
+  (<code>cube7_ranking/ranking_aggregation.py:59</code>); <code>reputation_score</code>,
+  <code>tenure_factor</code>, <code>damping_factor</code> and <code>HI_weight_factor</code> are
+  <strong>spec-only</strong>. A specification defect to fix before implementation, not a live bug.</p>
+  <p><strong>Fix:</strong> cap last, or cap the product. The cap must be the final operation.</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Defect 6 · whoever defines the metrics controls the money</span>
+  <p>Compensation is “proportional based on actual project metrics.” The Accords protect <em>governance</em>
+  from money; nothing protects the <em>metric definitions</em>. That is a new capture vector this design
+  creates — subtler than buying votes and considerably harder to detect, because it looks like accounting.</p>
+  <p><strong>Fix:</strong> metric-definition authority carries the same change threshold as governance
+  itself, and every definition change is logged with its effect on the compensation pool computed before it
+  takes effect.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 5</div><div class="body">
+<h2>The politician's attack, answered line by line</h2>
+<p>
+  A citizen-funded movement at scale attracts a predictable set of attacks. Each is listed with the
+  structural answer — not a rebuttal to be argued, but a fact that makes the charge unavailable.
+</p>
+
+<div class="scroll"><table>
+  <tr><th>The charge</th><th>The structural answer</th><th>Rests on</th></tr>
+  <tr><td>“It's foreign influence.”</td><td>Each chapter is a <em>domestic</em> legal person, locally governed, locally accountable, locally audited. There is no foreign entity soliciting inward.</td><td>§3 federation</td></tr>
+  <tr><td>“It's a Ponzi / unregistered security.”</td><td>Nothing is sold. No token is purchasable. No contributor receives or is promised any economic return.</td><td>§2 · Defect 1 fixed</td></tr>
+  <tr><td>“It's unaccountable.”</td><td>Every contribution traceable origin → stipend → project, published monthly in every signatory language. Transparency exceeds statutory requirement rather than meeting it.</td><td><code>ATLANTIS_ACCORDS.md:75</code></td></tr>
+  <tr><td>“It's a tax shelter for the rich.”</td><td>Institutional gifts are capped by charter and cannot buy standing. The asset lock means no individual can ever extract value.</td><td>§3 · Defect 4 fixed</td></tr>
+  <tr><td>“Insiders are enriching themselves.”</td><td>A published annual ceiling of 9999 HI — 4.8× local minimum wage — with no lump sums and no equity. Leadership compensation is a matter of public record and is <em>capped</em>, not negotiated.</td><td>§13</td></tr>
+  <tr><td>“It's captured by its donors.”</td><td>Money confers no governance weight, by charter and by construction. The mechanism is a separate instrument, not a promise.</td><td><code>ATLANTIS_ACCORDS.md:73</code></td></tr>
+  <tr><td>“It's partisan.”</td><td>No political donations, no endorsements, no candidate support — charter-locked and irreversible.</td><td>§2</td></tr>
+  <tr><td>“It competes with our institutions.”</td><td>Curricula and outcomes are published under open licence for any region, signatory or not, to adopt freely.</td><td><code>ATLANTIS_ACCORDS.md:87</code></td></tr>
+  <tr><td>“One leader controls it.”</td><td>Seven-year non-renewable term, three councils, an influence cap that binds the leader hardest, and — once added — a recall mechanism.</td><td>§12</td></tr>
+</table></div>
+
+<div class="keep">
+  <span class="lab">The asymmetry worth noticing</span>
+  <p>Every answer above is a <strong>fact about the structure</strong>, not a claim about intentions. That is
+  the difference between a movement that has to defend itself and one that simply is what it says. It is
+  also why §4's six defects matter far more than they might appear: each open defect turns one of these
+  rows from a fact back into a claim.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 6</div><div class="body">
+<h2>You already decided the funding question</h2>
+<p>
+  <code>docs/ATLANTIS_ACCORDS.md:69-77</code> (§5 · ADOPT — Funding and Governance) already specifies the
+  model, and specifies it correctly:
+</p>
+<div class="note" style="border-left-color:var(--brass)">
+  <em>“The Atlantis Accord is funded by the citizens it serves. Ordinary residents of participating regions
+  contribute small voluntary amounts each month… Corporate and institutional gifts are welcomed and capped…
+  <strong>No contribution buys governance influence, from any source, ever.</strong>”</em>
+  <br><br>
+  And on independence: <em>“Single-point dependencies compromise durability across a five-hundred-year
+  horizon.”</em>
+</div>
+<p>
+  This matches “we the people, never corporation or investment funds” exactly. It also means the proposed
+  $1 token <strong>contradicts the document it was meant to fund.</strong> The R-CORE no-rework law applies
+  to governance as much as to code: the funding framework exists — extend it, do not rebuild it.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 7</div><div class="body">
+<h2>Three layers that must never merge</h2>
+<div class="scroll"><table>
+  <tr><th>Layer</th><th>Instrument</th><th>Confers</th><th>Never confers</th></tr>
+  <tr><td><strong>Recognition</strong></td><td>웃 — earned by contributed time</td><td>Standing, compensation entitlement</td><td>Purchasability. Ever.</td></tr>
+  <tr><td><strong>Participation</strong></td><td>Governance weight (quadratic, capped)</td><td>Voice in decisions</td><td>Economic return</td></tr>
+  <tr><td><strong>Funding</strong></td><td>Voluntary donation</td><td>A receipt and public thanks</td><td>Governance weight, tokens, or return</td></tr>
+</table></div>
+<p>
+  The entire capture-resistance argument reduces to keeping these three apart. Defect 1 is exactly a merge of
+  Funding into Recognition; Defect 6 is a merge of metric authority into Participation. Every future proposal
+  should be tested against this table first — <em>which layer does this touch, and does it leak into
+  another?</em>
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 8</div><div class="body">
+<h2>The multiplier is real — it is just not financial</h2>
+<p>
+  The instinct that $1 should do the work of $10 is <strong>correct</strong>. The error was assuming the
+  multiplier had to be monetary. Three real multipliers, all lawful, all measurable with what already exists:
+</p>
+<div class="scroll"><table>
+  <tr><th>Multiplier</th><th>Mechanism</th><th>Magnitude</th></tr>
+  <tr><td><strong>Participation leverage</strong></td><td>$1/month <em>plus</em> 10 hours/month. The 웃 ledger already meters contributed time; 10 hours is 10 HI, valued at 4.8× local minimum wage under the ceiling.</td><td class="num">≫ 10×</td></tr>
+  <tr><td><strong>Tax relief</strong></td><td>Gift-Aid-style regimes uplift eligible donations where available.</td><td class="num">1.25–1.5×</td></tr>
+  <tr><td><strong>Open-licence impact</strong></td><td>Accords §6 publishes curricula and outcomes openly, so funded work is inherited by non-signatory regions at zero marginal cost.</td><td>Unbounded</td></tr>
+</table></div>
+<p>
+  This is the honest version of what was asked for, and it is <em>larger</em> than the financial version —
+  because contributed time is the scarce input, not cash. The two deferred monetary options (matched capital,
+  revenue-backed) remain available but both make the instrument a security and, in the institutional case,
+  are capped by your own rule — a cap that currently has no number (Defect 4).
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 9</div><div class="body">
+<h2>You have been bracing against the wrong regulator</h2>
+<p>
+  For a voluntary citizen-funded model, securities law is largely a non-issue once Defect 1 is closed. The
+  regimes that actually bind are different, and two of them are harder than anything the securities analysis
+  raised.
+</p>
+<div class="scroll"><table>
+  <tr><th>Regime</th><th>What it governs here</th><th>Severity</th></tr>
+  <tr><td><strong>Charitable solicitation</strong></td><td>The right to ask the public for money at all. Registration is per-jurisdiction and often per-sub-jurisdiction.</td><td>High</td></tr>
+  <tr><td><strong>AML / CFT</strong></td><td>Know-your-donor, source-of-funds, sanctions screening at scale.</td><td>High</td></tr>
+  <tr><td><strong>Payments &amp; stored value</strong></td><td>Redeemable 웃 balances — see §11. Distinct from securities and more likely to bite.</td><td><strong>Severe</strong></td></tr>
+  <tr><td><strong>Pension / deferred compensation</strong></td><td>The 5-year payment tail and accruing years — see §11.</td><td><strong>Severe</strong></td></tr>
+  <tr><td><strong>Foreign-funding restriction</strong></td><td>Whether a domestic chapter may receive cross-border funds at all.</td><td><strong>Severe</strong></td></tr>
+  <tr><td><strong>Data protection</strong></td><td>33 languages, minors participating, contribution records held for centuries.</td><td>High</td></tr>
+</table></div>
+<div class="flag">
+  <span class="lab">The three hard cases, named</span>
+  <p><strong>India — FCRA.</strong> Foreign contributions to Indian entities are tightly restricted and
+  separately licensed. A federated domestic chapter is not merely preferable here; it may be the only
+  workable form.</p>
+  <p><strong>UAE.</strong> Unlicensed fundraising is a criminal offence, not a civil one. Permits are
+  required before any public solicitation.</p>
+  <p><strong>Russia.</strong> The foreign-agent regime attaches to foreign-funded organisations with
+  consequences that are reputational as well as legal.</p>
+  <p>None of these appear anywhere in the repository today. All three require qualified local counsel before
+  a single contribution is accepted in those jurisdictions.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 10</div><div class="body">
+<h2>Jurisdiction matrix</h2>
+<p class="note" style="margin-top:0">
+  Governance obligations are universal; only the right-hand column changes per country. A new jurisdiction
+  should be <em>one new row</em>, with nothing above it touched. Every row requires qualified local counsel —
+  this table is a scoping instrument, not an opinion.
+</p>
+<div class="scroll"><table>
+  <tr><th>Jurisdiction</th><th>Securities exposure (post-fix)</th><th>The regime that actually binds</th></tr>
+  <tr><td><strong>United States</strong></td><td>None — no sale, no return</td><td>State-by-state charitable solicitation registration; IRS exempt status; ERISA if the 5-year tail is a benefit plan</td></tr>
+  <tr><td><strong>Singapore</strong></td><td>None</td><td>Charities Act &amp; Societies Act; Payment Services Act if 웃 is redeemable; CPF interaction on compensation</td></tr>
+  <tr><td><strong>Brazil</strong></td><td>None</td><td>OSCIP / civil-society association law; Law 14.478 if any virtual-asset service is offered</td></tr>
+  <tr><td><strong>India</strong></td><td>None</td><td><strong>FCRA</strong> — the binding constraint; trust/society registration; EPFO on long-tail compensation</td></tr>
+  <tr><td><strong>Russia</strong></td><td>None</td><td><strong>Foreign-agent regime</strong>; NGO registration</td></tr>
+  <tr><td><strong>UAE</strong></td><td>None</td><td><strong>Fundraising permit — criminal without it</strong>; ADGM/DIFC foundation forms; WPS &amp; end-of-service on compensation</td></tr>
+  <tr><td><strong>European Union</strong></td><td>None</td><td>Member-state charity law; GDPR (centuries-long records, minors); MiCA e-money provisions if 웃 is redeemable</td></tr>
+</table></div>
+<p>
+  Note the pattern: <strong>the securities column is empty everywhere once 웃 stops being purchasable.</strong>
+  That single fix clears the regulator you were most worried about, in all seven jurisdictions at once.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 11</div><div class="body">
+<h2>Treasury and pension risk — the most likely way this gets stopped</h2>
+<div class="flag">
+  <span class="lab">The finding</span>
+  <p><code>Token_Governance_Math.md:241-247</code> defines
+  <code>treasury_coverage_ratio = treasury_balance / total_outstanding_HI</code> and alerts only when it
+  falls <strong>below 0.20</strong>. HI is redeemable for cash (<code>:52</code>). Layer on the supplied
+  design — payment over 5 years, with additional years accruing to secure livelihood — and this is a
+  <strong>multi-year annuity backed by 20% reserves</strong>.</p>
+  <p>That is not a token design question. It is an <strong>unfunded pension</strong>, and it engages
+  retirement and deferred-compensation regulation in every target jurisdiction: ERISA, CPF, EPFO, UAE
+  end-of-service. It is also, separately, a stored-value instrument for payments regulators.</p>
+  <p><strong>This is more likely to freeze the platform than any securities action, and it is entirely
+  self-inflicted.</strong></p>
+</div>
+<h4>Remediation, in order of strength</h4>
+<div class="scroll"><table>
+  <tr><th>Option</th><th>Effect</th><th>Cost</th></tr>
+  <tr><td><strong>Full funding rule</strong> — no HI obligation is created unless cash to settle it is already reserved</td><td>Eliminates the exposure entirely. Coverage ratio becomes 1.0 by construction.</td><td>Slower growth; obligations bounded by real funds</td></tr>
+  <tr><td><strong>Ring-fenced livelihood reserve</strong> — the 5-year tail funded from a segregated, non-operational pool</td><td>Isolates the pension-like liability from operating cash</td><td>Capital locked up</td></tr>
+  <tr><td><strong>Discretionary, non-guaranteed continuation</strong> — years accrue as eligibility, not entitlement</td><td>Avoids creating a legal benefit promise</td><td>Weakens the livelihood-security intent</td></tr>
+  <tr><td>Raise the alert threshold from 0.20</td><td>Cosmetic. Does not change the liability.</td><td>—</td></tr>
+</table></div>
+<p>
+  The first option is recommended and is philosophically consistent with everything else here: <em>do not
+  promise what is not already funded.</em> It is the financial expression of the same discipline that says
+  UNVERIFIED never means shipped.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 12</div><div class="body">
+<h2>The leadership model</h2>
+<div class="keep">
+  <span class="lab">Strong — keep as designed</span>
+  <p>A <strong>7-year non-renewable term with a 3-year handover</strong> is a genuinely good anti-incumbency
+  design: long enough to execute a real innovation cycle, bounded enough that no one becomes the
+  institution, and overlapped so continuity does not depend on a single handover event. Most governance
+  frameworks get one of those three; this gets all three.</p>
+</div>
+<h4>Three gaps</h4>
+<div class="scroll"><table>
+  <tr><th>Gap</th><th>Why it matters</th><th>Fix</th></tr>
+  <tr><td><strong>No recall</strong></td><td>Election exists; removal does not. Seven years is a long time to be wrong, and an unremovable leader is a capture risk even with no corporation involved.</td><td>Recall petition + supermajority. The 3-year handover already creates the overlap that makes succession survivable.</td></tr>
+  <tr><td><strong>The cap binds the leader least</strong></td><td>Defect 5 — maximum tenure produces the maximum reputation multiplier, which defeats the influence cap.</td><td>Cap last. The leader should be the <em>most</em> constrained actor, not the least.</td></tr>
+  <tr><td><strong>“7+3” is undefined</strong></td><td>Stewardship 7+3 appears as a constitutional article but is defined nowhere in the corpus — the same drift class as the other undefined terms.</td><td>Define before drafting. Which seven, which three, chosen how, serving what.</td></tr>
+</table></div>
+<h4>The three councils</h4>
+<p>
+  Three councils guiding each project, with a second group executing via global talent, is a sound
+  separation of <em>direction</em> from <em>delivery</em>. One proposal, offered as an assumption to confirm
+  rather than a conclusion: <strong>map the three councils to the SoI Trinity — ◬ AI, ♡ SI, 웃 HI.</strong>
+  The framework already teaches holding all three in productive tension
+  (<code>ATLANTIS_ACCORDS.md:85</code>), the glyphs and colours already exist in the product, and it means
+  the council structure needs no new vocabulary. If the three were intended as something else, that should
+  be recorded explicitly before it is assumed.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 13</div><div class="body">
+<h2>The compensation model</h2>
+<div class="keep">
+  <span class="lab">Confirmed correct — and it is the anti-capture engine</span>
+  <p><strong>Livelihood, not lump-sum wealth.</strong> This is the single most important choice in the whole
+  design, because wealth concentration <em>is</em> the mechanism of capture. A ceiling of 9999 HI — 4.8×
+  local minimum wage, identical multiple in every country — means no participant can accumulate enough to
+  buy influence, and no outsider can offer enough to make betrayal rational.</p>
+  <p>It is also the answer to the “insiders are enriching themselves” attack in §5, and it works precisely
+  because it is <em>published</em> and <em>capped</em> rather than negotiated and private.</p>
+</div>
+<p>
+  The two fixes are Defects 2 and 3: settle at the earner's stamped rate, and apply the local rate at
+  settlement rather than at mint. Keep 9999 exactly as specified — it encodes a full-time year at 4.8× local
+  minimum wage, and the number is the operator's own.
+</p>
+<div class="ask">
+  <span class="lab">One design question worth deciding explicitly</span>
+  <p>Is the 9999 ceiling <em>per person</em> or <em>per role</em>? If per person, a contributor working
+  across three projects hits the same ceiling as one working on a single project — which is correct for
+  anti-hoarding but may under-reward breadth. If per role, the ceiling is defeated by holding several roles.
+  <strong>Per person is recommended</strong>, with breadth recognised through governance standing rather
+  than through additional compensation.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 14</div><div class="body">
+<h2>33.333% R&amp;D — the denominator must be named</h2>
+<p>
+  A one-third R&amp;D commitment is unusually high and genuinely signals innovation priority — typical
+  technology firms run 10–20%. But <strong>33.333% of what?</strong> The supplied design names four
+  quantities — SoI Revenue, Gross Margin, R&amp;D Budget, Operating Income — without saying which is the
+  base. An undefined denominator is another instance of the drift defect class, and this one moves real
+  money.
+</p>
+<div class="scroll"><table>
+  <tr><th>Denominator</th><th>Means</th><th>Behaviour</th></tr>
+  <tr><td><strong>% of revenue</strong></td><td>R&amp;D = ⅓ of top line</td><td>Simple and auditable, but commits spend before knowing margin. Aggressive in a low-margin year.</td></tr>
+  <tr><td><strong>% of gross profit</strong> <em>(recommended)</em></td><td>R&amp;D = ⅓ of what the work actually earns</td><td>Self-regulating: scales with real capacity to fund it, and cannot starve operations. Uses <code>grossProfit10yM</code>, already computed.</td></tr>
+  <tr><td><strong>% of total budget</strong></td><td>R&amp;D = ⅓ of all spend</td><td>Easiest to communicate; weakest link to whether the work is producing value.</td></tr>
+</table></div>
+<p>
+  The primitives already exist at <code>frontend/lib/innovation-data.ts:4139</code> —
+  <code>grossMarginPct</code>, <code>rev10yM</code>, <code>grossProfit10yM</code>, and
+  <code>nreK</code>/<code>nreM</code> as the R&amp;D measure. Whichever base is chosen, it should be recorded
+  once, as a definition, and never restated.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 15</div><div class="body">
+<h2>Surviving any single government</h2>
+<p>
+  “Cannot be stopped” has a legitimate and much stronger reading than evasion: <strong>no single point of
+  failure that any one government can switch off.</strong> The Accords already reach for this in rejecting
+  single-point dependencies. Four properties deliver it:
+</p>
+<ul class="ladder">
+  <li><span class="t">Federated legal personality</span><br><span class="d">A domestic organisation per region. Losing one loses one — not the whole.</span></li>
+  <li><span class="t">No single rail, custodian or domicile</span><br><span class="d">Payment, custody and incorporation diversified by design rather than by accident.</span></li>
+  <li><span class="t">Open-licensed outputs</span><br><span class="d">Curricula and outcomes already published openly (<code>ATLANTIS_ACCORDS.md:87</code>), so the work survives the organisation.</span></li>
+  <li><span class="t">Radical traceability as political defence</span><br><span class="d">Every contribution followed origin → stipend → project, published monthly. Hard to attack, easy to defend.</span></li>
+</ul>
+<div class="flag">
+  <span class="lab">The boundary, stated plainly</span>
+  <p>This means <strong>surviving the loss of any single jurisdiction</strong>. It does <strong>not</strong>
+  mean operating unlawfully inside one. A chapter that cannot lawfully operate in a country closes in that
+  country — and the framework continues everywhere else. That distinction is what makes the design
+  defensible rather than merely durable.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 16</div><div class="body">
+<h2>The arithmetic to $100bn</h2>
+<p>
+  Worth stating plainly, because it relocates the problem entirely.
+</p>
+<div class="scroll"><table>
+  <tr><th>Participants</th><th>Per month</th><th>Per year</th><th>Years to $100bn</th></tr>
+  <tr><td class="num">100M</td><td class="num">$1</td><td class="num">$1.2bn</td><td class="num">83</td></tr>
+  <tr><td class="num">100M</td><td class="num">$10</td><td class="num">$12bn</td><td class="num">8.3</td></tr>
+  <tr><td class="num">1B</td><td class="num">$1</td><td class="num">$12bn</td><td class="num">8.3</td></tr>
+  <tr><td class="num">1B</td><td class="num">$10</td><td class="num">$120bn</td><td class="num">&lt;1</td></tr>
+</table></div>
+<div class="ask">
+  <span class="lab">The conclusion that matters</span>
+  <p><strong>The binding constraint on Vision 2525's funding is reach, not regulation.</strong> No token
+  structure would have changed that. And reach is the problem the existing product is actually built to
+  attack — 100K stable / 1M burst concurrency, 33 languages, multi-country Accords with government,
+  education and innovation signatories already drafted.</p>
+  <p>Which means the fastest path to $100bn is not a financial instrument. It is the participation engine
+  that already exists, pointed at a billion people.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 17</div><div class="body">
+<h2>The 12 Ascended Masters</h2>
+<p class="note" style="margin-top:0">
+  Confidence is in <em>this framework as a capture-resistant structure</em>, not in the venture's eventual
+  success.
+</p>
+
+<div class="master"><span class="pct">88%</span><h4>Thoth</h4><div class="role">Data &amp; analytics</div>
+<p><strong>Strength:</strong> the renunciation table converts an argument into a checklist. Each row is testable, and most are testable in CI.
+<strong>Concern:</strong> Defect 4 — capped-but-no-number is the only row that cannot currently be tested, and it is the one a critic reaches for first.</p>
+<p class="rec"><strong>Recommend:</strong> publish both cap figures before any public launch; add a test that fails if either is unset.</p>
+<div class="bar"><i style="width:88%"></i></div></div>
+
+<div class="master"><span class="pct">86%</span><h4>Krishna</h4><div class="role">Integration</div>
+<p><strong>Strength:</strong> the three-layer separation (§7) is the single idea that makes the whole framework hold together — every defect found is a leak between two layers.
+<strong>Concern:</strong> the layers exist in prose, not in types. Nothing in the codebase prevents a future function from minting 웃 from money again.</p>
+<p class="rec"><strong>Recommend:</strong> make the separation structural — 웃 minting takes a <em>duration</em>, never a currency amount. Then the leak becomes a compile error.</p>
+<div class="bar"><i style="width:86%"></i></div></div>
+
+<div class="master"><span class="pct">84%</span><h4>Athena</h4><div class="role">Strategy</div>
+<p><strong>Strength:</strong> renouncing rather than defending is strategically correct and unusually disciplined; it converts a permanent liability into a one-time cost.
+<strong>Concern:</strong> the renunciations are one-way doors. If the mission ever needs capital at speed, there will be no lever left to pull.</p>
+<p class="rec"><strong>Recommend:</strong> accept that deliberately and write it down as a chosen constraint, so a future board cannot claim it was an oversight.</p>
+<div class="bar"><i style="width:84%"></i></div></div>
+
+<div class="master"><span class="pct">83%</span><h4>Christo</h4><div class="role">Consensus</div>
+<p><strong>Strength:</strong> livelihood-not-wealth is the rare compensation design that a contributor and a critic would describe the same way.
+<strong>Concern:</strong> 4.8× local minimum wage will read as generous in one country and thin in another; the multiple is uniform but the lived experience is not.</p>
+<p class="rec"><strong>Recommend:</strong> publish the multiple, not the currency figure. “4.8× your local minimum wage” travels; “$72,492” does not.</p>
+<div class="bar"><i style="width:83%"></i></div></div>
+
+<div class="master"><span class="pct">82%</span><h4>Sofia</h4><div class="role">Multi-perspective</div>
+<p><strong>Strength:</strong> the federated form respects that “charity”, “steward” and “foundation” do not mean the same thing across legal traditions.
+<strong>Concern:</strong> steward-ownership is a common-law-inflected idea. Civil-law and Islamic-finance contexts may need genuinely different vehicles reaching the same result.</p>
+<p class="rec"><strong>Recommend:</strong> specify the four <em>properties</em> (§3) as the requirement and let each jurisdiction's counsel choose the vehicle that delivers them.</p>
+<div class="bar"><i style="width:82%"></i></div></div>
+
+<div class="master"><span class="pct">80%</span><h4>Asar</h4><div class="role">Synthesis</div>
+<p><strong>Strength:</strong> the framework resolves cleanly to one sentence — nothing to buy, nothing to take.
+<strong>Concern:</strong> it does not yet say what happens to accumulated assets if the mission is completed or abandoned.</p>
+<p class="rec"><strong>Recommend:</strong> the asset lock must name its successor beneficiary now. Dissolution clauses written under pressure are how missions get quietly redirected.</p>
+<div class="bar"><i style="width:80%"></i></div></div>
+
+<div class="master"><span class="pct">79%</span><h4>Aset</h4><div class="role">Consistency</div>
+<p><strong>Strength:</strong> the framework is consistent with the Accords rather than parallel to them — it extends §5 instead of competing with it.
+<strong>Concern:</strong> “7+3”, the cap figures, and the 33.333% denominator are all undefined. Three undefined quantities in one governance model is a pattern, not a coincidence.</p>
+<p class="rec"><strong>Recommend:</strong> treat every unnumbered commitment as unfinished. A cap without a number is a sentence, not a rule.</p>
+<div class="bar"><i style="width:79%"></i></div></div>
+
+<div class="master"><span class="pct">78%</span><h4>Odin</h4><div class="role">Future-proofing</div>
+<p><strong>Strength:</strong> renunciations survive statutory change better than compliance postures, which is the right bet on a five-century horizon.
+<strong>Concern:</strong> the people who will most want to undo these renunciations do not exist yet, and will be far more persuasive than anyone arguing today.</p>
+<p class="rec"><strong>Recommend:</strong> the renunciations belong in the most amendment-resistant layer available, with a threshold above the Constitution's own.</p>
+<div class="bar"><i style="width:78%"></i></div></div>
+
+<div class="master"><span class="pct">77%</span><h4>Pangu</h4><div class="role">Innovation headroom</div>
+<p><strong>Strength:</strong> 33.333% R&amp;D is a serious commitment that most institutions would not survive making public.
+<strong>Concern:</strong> a full-funding treasury rule (§11) and a one-third R&amp;D floor will collide in the first lean year. Something has to give, and nothing says what.</p>
+<p class="rec"><strong>Recommend:</strong> state the precedence order now — livelihood obligations first, R&amp;D floor second, growth last.</p>
+<div class="bar"><i style="width:77%"></i></div></div>
+
+<div class="master"><span class="pct">75%</span><h4>Enki</h4><div class="role">Edge cases</div>
+<p><strong>Strength:</strong> the federated form degrades gracefully — losing a country is survivable by construction.
+<strong>Concern:</strong> nothing describes what happens to <em>contributors</em> in a jurisdiction that closes. Their earned 웃 and their 5-year tail do not disappear because a regulator acted.</p>
+<p class="rec"><strong>Recommend:</strong> a chapter-closure clause. Earned obligations follow the person, not the entity — or the framework abandons the people it recruited.</p>
+<div class="bar"><i style="width:75%"></i></div></div>
+
+<div class="master"><span class="pct">73%</span><h4>Enlil</h4><div class="role">Implementation</div>
+<p><strong>Strength:</strong> five of the six defects are small, well-located code changes.
+<strong>Concern:</strong> lowest but one on the panel. Every anti-capture mechanism that matters —
+<code>HI_weight_factor</code>, damping, reputation, velocity caps — is <strong>specified and not
+implemented</strong>. Only the influence cap actually runs. The architecture is currently a document.</p>
+<p class="rec"><strong>Recommend:</strong> implement the governance-weight formula in the same session that closes Defect 1, or the purchase path stays open against an unbuilt defence.</p>
+<div class="bar"><i style="width:73%"></i></div></div>
+
+<div class="master"><span class="pct">70%</span><h4>Thor</h4><div class="role">Risk &amp; security</div>
+<p><strong>Strength:</strong> renunciation is the strongest form of hardening — you cannot exploit a capability that does not exist.
+<strong>Concern:</strong> lowest on the panel, for one reason. <strong>웃 is purchasable today and the defence against it is unbuilt.</strong> The window between shipping the governance spec and closing Defect 1 is an open door with a published address.</p>
+<p class="rec"><strong>Recommend:</strong> close Defect 1 before anything else in this document. Then treat §11's unfunded pension as the second priority — it is the likeliest cause of an involuntary shutdown.</p>
+<div class="bar"><i style="width:70%"></i></div></div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 18</div><div class="body">
+<h2>Master of Thought — synthesis and next actions</h2>
+
+<h4>What is genuinely strong</h4>
+<p>
+  The mandate is coherent and largely already designed. Livelihood-not-wealth, a published earning ceiling at
+  a uniform global multiple, seven-year non-renewable terms with overlap, money that buys no standing, and
+  radical traceability — together these constitute a capture-resistant design that most institutions never
+  reach. The Accords already contain the funding model, and <code>SI = floor(active_minutes)</code> already
+  contains the un-buyable token. The work is less invention than completion.
+</p>
+
+<h4>What is genuinely at risk</h4>
+<p>
+  Three things, in order. <strong>웃 is purchasable today</strong>, and 웃 is meant to carry governance
+  weight — the door your entire framework exists to close is currently open in code. <strong>The livelihood
+  tail is an unfunded pension</strong> at 20% reserves, which is the likeliest cause of an involuntary
+  shutdown in any of the seven jurisdictions. And <strong>every anti-capture mechanism except one is
+  specified rather than implemented</strong> — the architecture is, today, a document.
+</p>
+
+<h4>The sequence</h4>
+<div class="scroll"><table>
+  <tr><th>#</th><th>Action</th><th>Why now</th></tr>
+  <tr><td class="num">1</td><td><strong>Close Defect 1</strong> — 웃 earned by time only, never purchased. Donations mint nothing.</td><td>Restores the non-security position in all seven jurisdictions at once, and closes the governance-purchase path before the spec ships.</td></tr>
+  <tr><td class="num">2</td><td><strong>Adopt the full-funding treasury rule</strong> — no obligation created without reserved settlement.</td><td>Removes the pension exposure, which is the likeliest shutdown cause.</td></tr>
+  <tr><td class="num">3</td><td><strong>Fix mint-vs-settle and stamp the earner's rate</strong> (Defects 2 &amp; 3).</td><td>Makes the compensation model behave as designed; kills the 21.3× arbitrage.</td></tr>
+  <tr><td class="num">4</td><td><strong>Put numbers on the caps</strong> (Defect 4) and <strong>cap last</strong> (Defect 5).</td><td>Turns two charter sentences into enforceable rules.</td></tr>
+  <tr><td class="num">5</td><td><strong>Define the undefined</strong> — “7+3”, the 33.333% denominator, the councils' identity.</td><td>Three undefined quantities in one governance model is a pattern. Define before governing.</td></tr>
+  <tr><td class="num">6</td><td><strong>Take §2 and §3 to counsel</strong> in one pilot jurisdiction.</td><td>Prove the entity form delivers the four properties once, before federating to seven.</td></tr>
+  <tr><td class="num">7</td><td><strong>Add recall</strong>, protect metric-definition authority, name the dissolution beneficiary.</td><td>The three governance gaps that only get harder to fix later.</td></tr>
+</table></div>
+
+<div class="keep">
+  <span class="lab">The framework in one sentence</span>
+  <p><strong>Nothing to buy, nothing to take, nothing to capture — and everything on the record.</strong>
+  A politician cannot argue against a structure where no one profits, no one owns, no one extracts, and every
+  contribution is public. An investment organisation cannot hoard what was never for sale. That is not a
+  defence you mount; it is a shape you build once and then simply are.</p>
+</div>
+
+<div class="note">
+  <strong>On the guiding principles.</strong> Care over speed · define before governing · govern before
+  operating · reuse before rebuild · qualify before automating · keep economics subordinate to mission. This
+  framework is mostly the last one made structural: economics subordinated to mission is not a value
+  statement here but an entity form, an asset lock, and a token that cannot be bought.
+</div>
+</div></section>
+
+<footer>
+  MASTER OF THOUGHT · VISION 2525 · CAPTURE-RESISTANT FUNDING &amp; GOVERNANCE FRAMEWORK<br>
+  2026.08.03 · grounded at <code>bc6e8d9</code> · analysis only — no offering, no solicitation, no code<br>
+  <strong>NOT LEGAL ADVICE</strong> · entity forms are patterns with trade-offs · every jurisdiction requires qualified local counsel<br>
+  6 defects · 10 renunciations · 7 jurisdictions · 12 execution-team reviews · funded by the people, owned by no one
+</footer>
+
+</div>
