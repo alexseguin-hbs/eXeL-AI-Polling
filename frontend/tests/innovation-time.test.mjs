@@ -6215,6 +6215,21 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
        "…and the 1.90:1 hardcoded slate-500 label the fill made unreadable is gone from the tag");
   }
 
+  const shotsSrc = await (await import("node:fs/promises")).readFile("scripts/slide-shots.mjs", "utf8");
+  // 2e · AD6 · ⚠ "PIPELINE TABLE AT TOP OF BOX" WAS INVESTIGATED AND **NOT** REPRODUCED.
+  // Operator, IMG_8469. The obvious cause was AmtsPanel's `content-stretch`, which hands every child an
+  // equal share of the panel height and can strand a short table mid-box. An opt-in `content-start` was
+  // built for exactly that — and then MEASURED, and it changed nothing: the gap above the pipeline table
+  // is 5px on all 33 projects with the prop and 5px without it, because the table already stretches to
+  // fill. Shipping a no-op with a confident comment is worse than shipping nothing, so the prop was
+  // reverted and only the measurement was kept (`pipelineTop` in slide-shots, failing past 20px).
+  // WHAT IS STILL OPEN: the panel renders "Target segment / customer" ABOVE the table, so the table is
+  // ~43px down the box. If that line is what the operator wants the table above, it is a REORDER, not a
+  // stretch fix — and it contradicts the earlier explicit instruction that segment heads this panel, so
+  // it needs one word from them rather than a guess. Reported, not silently chosen.
+  ok(/data-panel-body/.test(shotsSrc) && /pipelineTop/.test(shotsSrc),
+     "slide-shots measures the rendered gap above the pipeline table on all 33 projects");
+
   // 2d · AD3 · "G1 · Concept" IS ONE PRODUCER, AND THE ROADMAP BAND AND THE SLIDE HEADER BOTH CALL IT.
   // Operator: "this ensure same convention everywhere including top right of slide." Two templates spelling
   // the same three facts is a convention with a expiry date — it lasts until someone edits one of them.

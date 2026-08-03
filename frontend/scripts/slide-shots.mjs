@@ -135,6 +135,29 @@ const AUDIT = (printW) => {
   const overflow = [];
   const type = [];
   const ellipsis = [];
+  // ⚠ AD6 · "PIPELINE TABLE AT THE TOP OF ITS BOX" IS A RENDERED OFFSET, NOT A CLASS NAME.
+  // Grepping for `content-start` would pass while the table still sat in the middle — the class only
+  // matters if the panel is actually taller than its content, which is exactly the case in IMG_8469.
+  // Measured: the table's top edge minus the panel BODY's top edge, in layout px.
+  // ⚠ AND THE MEASUREMENT IS THE **GAP ABOVE THE TABLE**, NOT ITS ABSOLUTE OFFSET. The panel legitimately
+  // carries the "Target segment / customer" line above the pipeline, so the table can never be at pixel
+  // zero — the first draft of this check asserted exactly that and failed all 33 projects for the wrong
+  // reason. What IMG_8469 actually shows is DEAD SPACE: content-stretch handing each child an equal share
+  // of a tall box, so the table floats with a void above it. The defect is the gap, so the gap is measured:
+  // the table's top edge minus the bottom edge of whatever renders immediately before it.
+  let pipelineTop = null;
+  {
+    const head = [...canvas.querySelectorAll("[data-panel-head]")]
+      .find((h) => /market opportunity/i.test(h.textContent || ""));
+    const body = head?.parentElement?.querySelector("[data-panel-body]");
+    const tbl = body?.querySelector("table");
+    if (body && tbl) {
+      const cell = [...body.children].find((c) => c.contains(tbl));
+      const prev = cell?.previousElementSibling;
+      const from = prev ? prev.getBoundingClientRect().bottom : body.getBoundingClientRect().top;
+      pipelineTop = Math.round(tbl.getBoundingClientRect().top - from);
+    }
+  }
   const own0 = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
   const cRect = canvas.getBoundingClientRect();
   for (const el of canvas.querySelectorAll("*")) {
@@ -273,7 +296,7 @@ const AUDIT = (printW) => {
     const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
     if (ox > 1 && oy > 1) collide.push({ a: labels[i].t, b: labels[j].t, ox: round(ox / (scale || 1)), oy: round(oy / (scale || 1)) });
   }
-  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, ellipsis, collide, labels: labels.length,
+  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, ellipsis, collide, labels: labels.length, pipelineTop,
     head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
 };
 
@@ -431,7 +454,7 @@ if (!process.env.NO_SWEEP) {
   const page = await ctx.newPage();
   const sizes = new Map();
   let swept = 0, s1swept = 0;
-  const s1panels = new Set();
+  const s1panels = new Set(); const pipeTops = new Set();
   for (const pr of DEMO_PROJECTS) {
     try {
       await page.goto(`http://127.0.0.1:${PORT}/innovation/`, { waitUntil: "networkidle", timeout: 30000 });
@@ -483,6 +506,11 @@ if (!process.env.NO_SWEEP) {
         if (!s1.panels.length) failures.push(`S1×33 ${pr.id} — S1 rendered NO panels at all`);
         for (const c of s1.collide ?? [])
           failures.push(`S1×33 ${pr.id} — LABELS OVERPRINT "${c.a}" x "${c.b}" overlap ${c.ox}x${c.oy}px`);
+        // AD6 · no DEAD SPACE above the pipeline table. The grid gap is 0.7cqh (~6px at 1440) plus the
+        // ChartFrame's own few px; anything past 20px is content-stretch floating the table again.
+        if (s1.pipelineTop === null) failures.push(`S1×33 ${pr.id} — no Market Opportunity table found to measure`);
+        else if (s1.pipelineTop > 20) failures.push(`S1×33 ${pr.id} — DEAD SPACE ABOVE PIPELINE TABLE (+${s1.pipelineTop}px)`);
+        else pipeTops.add(s1.pipelineTop);
         s1panels.add(s1.panels.length);
       }
     } catch (e) {
@@ -493,7 +521,7 @@ if (!process.env.NO_SWEEP) {
   console.log(`  · header sweep: ${swept}/${DEMO_PROJECTS.length} projects · name sizes ${[...sizes.entries()].map(([px, n]) => `${px}px x${n}`).join(", ")}`);
   // One distinct panel count across 33 projects is the signal that S1's SHAPE is stable; more than one
   // means some project is losing a box, which is exactly the per-project variance this gate exists to catch.
-  console.log(`  · S1 x ${s1swept}/${DEMO_PROJECTS.length} projects · overflow 0 · panel counts seen: ${[...s1panels].join(", ")}`);
+  console.log(`  · S1 x ${s1swept}/${DEMO_PROJECTS.length} projects · overflow 0 · panel counts seen: ${[...s1panels].join(", ")} · pipeline top offsets: ${[...pipeTops].sort((a, b) => a - b).join("/")}px`);
 }
 
 // #22b · PORTRAIT vs LANDSCAPE — same document, not merely similar.
