@@ -2425,7 +2425,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the chart grows to absorb a taller label band — the plot yields nothing to the axis");
 
   // The WTP strip: a long first word at either end used to run off the edge.
-  ok(/maxWidth: "22%"/.test(src) && /break-words text-center text-\[7px\]/.test(src),
+  ok(/maxWidth: "22%"/.test(src) && /break-words pb-0\.5 text-center text-\[7px\]/.test(src),
      "WTP marker labels wrap within a share of the strip instead of running off its edge");
   ok(!/mt-0\.5 whitespace-nowrap text-\[7px\]/.test(src), "the nowrap that caused the overflow is gone");
 }
@@ -3245,7 +3245,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // 4 · THE WTP STRIP IS COMPACT ON A SLIDE ONLY. Dragging a marker happens in the source editor, which
   //     keeps the roomier track it was tuned for.
-  ok(/compact \? "h-10" : "h-12"/.test(src), "the Price Performance track is shorter on a slide and unchanged elsewhere");
+  // ⚠ AC · HEIGHT IS NO LONGER A STYLE CHOICE, IT IS WHAT MAKES A LANE POSSIBLE. h-10 gave the label band
+  // 15px — exactly one label — so the lift was clamped to zero and 33/33 projects overprinted while this
+  // very lock read green on `compact ? "h-10" : "h-12"`. One floor, every mode, big enough for two.
+  ok(/\$\{fill \? "min-h-\[4\.5rem\] flex-1" : "h-\[4\.5rem\]"\}/.test(src),
+     "every Price Performance track is tall enough for two label lanes — the fix the h-10 lock was hiding");
   ok(/<CompetitionStrip [^>]*compact=\{big\}/.test(src), "…and `compact` is exactly `big`, i.e. slide mode");
 }
 
@@ -3276,8 +3280,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // header that got removed; the strip keeps the full-height `fill` track it gained in X-5.
   ok(/<AmtsPanel title="Primary Customer Value Proposition" icon="♡">\s*\{leanFieldsOf\("vprop", "nba", "wtp"\)\}/.test(src),
      "Price Performance shares the upper-left box with the value proposition and the NBA");
-  ok(/fill \? "min-h-\[2rem\] flex-1" : compact \? "h-10" : "h-12"/.test(src),
-     "…and its track FILLS that panel instead of leaving a void under a fixed 32px strip");
+  ok(/fill \? "min-h-\[4\.5rem\] flex-1" : "h-\[4\.5rem\]"/.test(src),
+     "…and its track FILLS that panel instead of leaving a void under a fixed strip");
   // ⚠ X-4 · NOT `wide`. The operator: "I need competitive Value Waterfall in right section like before …
   // Who told you to move? keep to upper right box." The waterfall is the UPPER-RIGHT panel of a 2x2, and it
   // holds nothing else, so it fills that box.
@@ -3460,8 +3464,8 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   //     unreadable smear ("Comp A" over our own marker, in every screenshot the operator sent). Asserted as
   //     the MECHANISM — sort, threshold, capped lane, and OURS inside the sort, because leaving ours out
   //     would leave the exact collision the operator can see.
-  ok(/const LANE_GAP = 0\.12, LANE_STEP = 11, MAX_LANE = 2;/.test(src),
-     "the marker-label lane rule is one declaration: threshold, step and a cap");
+  ok(/const LANE_GAP = 0\.12, MAX_LANE = 1;/.test(src),
+     "the marker-label lane rule is one declaration: a proximity threshold and a cap — no pixel step left to guess");
   ok(/\{ k: "ours", x: clampX\(ours\) \}\]\s*\.sort\(\(a, b\) => a\.x - b\.x\)/.test(src),
      "…and OUR marker is in the sort, not special-cased — it is half of the collision");
   ok(/lane = pt\.x - lastX < LANE_GAP \? Math\.min\(MAX_LANE, lane \+ 1\) : 0;/.test(src),
@@ -3471,7 +3475,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // that a 32px strip has no height to spend. That inspected the TRACK and forgot the label band above it,
   // which is a `1fr` grid row and always had room. So the single mode the operator photographed was the
   // one mode the fix skipped, and this test froze that in place. Compact now lifts too.
-  ok(/const laneLift = \(k: string\) => \(lanes\[k\] \?\? 0\) \* \(fill \? LANE_STEP : compact \? LANE_STEP \* 0\.6 : LANE_STEP \* 0\.55\);/.test(src),
+  ok(/const laneRow = \(k: string\) => \(\(lanes\[k\] \?\? 0\) === 0 \? 2 : 1\);/.test(src),
      "…and EVERY mode spends a lane, compact included — the label band has room even when the track does not");
   // ⚠ COMMENTS STRIPPED — third time this session a ban matched the sentence explaining it. The rule is
   // about CODE: a Next.js page may only export `default` and the route options, and `export const` here
@@ -3913,7 +3917,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   ok(/\{legend\.map\(\(s\) => <span key=\{s\.label\}[^>]*><span data-ink/.test(p1), "chart legend swatches are marked");
   ok(/\{series\.map\(\(s\) => <span key=\{s\.label\}[^>]*><span data-ink/.test(p1), "the second chart legend is marked too — one lock, both surfaces");
   ok(/<span key=\{x\.code\} data-ink className=\{`h-\[0\.5cqh\] flex-1 rounded/.test(p1), "the footer page-progress bars are marked");
-  ok(/<div data-ink className="absolute inset-x-3 top-1\/2 h-px bg-slate-700" \/>/.test(p1), "the price-performance strip's rule is marked");
+  ok(/<div data-ink className="mx-3 h-px self-center bg-slate-700" \/>/.test(p1), "the price-performance strip's rule is marked (now inside STRIP_ROWS, so it tracks the label band)");
 
   // 5 · The base print rules — page size, fragmentation, body-hiding, zoom reset — stay UNCONDITIONAL,
   //     because they are correct for both versions. Scoping them to one mode would break the other's pages.
@@ -5700,11 +5704,14 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // row on the centre line. Measured after the fix: dot offsets 0,0,0,0 · labels -7px · LOW/HIGH +11px.
   const cs = srcX5.indexOf("function CompetitionStrip");
   const strip = srcX5.slice(cs, srcX5.indexOf("\nfunction ", cs + 10));
-  ok(/grid-rows-\[1fr_auto_1fr\]/.test(strip), "the marker is a 1fr/auto/1fr grid, so the dot row IS the centre line");
+  ok(/grid \$\{STRIP_ROWS\}/.test(strip), "the marker shares STRIP_ROWS with the rule, so the dot row IS the centre line at any band height");
   ok(!/absolute top-1\/2 -translate-x-1\/2 -translate-y-1\/2/.test(strip),
      "no marker wrapper translates the dot+label stack — that is what dropped labels onto the LOW/HIGH band");
   ok((strip.match(/row-start-2/g) || []).length === 2, "both dots (competitors + ours) sit in the centre row");
-  ok((strip.match(/row-start-1[^"]*self-end/g) || []).length >= 2, "labels bottom-align in the row ABOVE the rule");
+  // AC · the labels now sit in a two-row band that occupies row 1; each still bottom-aligns in its own lane.
+  ok((strip.match(/row-start-1 grid w-full grid-rows-2/g) || []).length === 2
+     && (strip.match(/self-end break-words/g) || []).length === 2,
+     "labels bottom-align inside a two-lane band in the row ABOVE the rule");
 
   // X-5a — capture % is per-project and EVERY consumer reads the same accessor, so the chart's two bars,
   // the tile and the price range cannot disagree. Driven: 33% → 50% moved all three together.
@@ -6153,6 +6160,35 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 4 · ONE COMPONENT, SO ONE RULE — the slide tag and the project cards cannot diverge (operator: everywhere).
   ok((src.match(/<DogTag /g) || []).length >= 2 && (src.match(/function DogTag\(/g) || []).length === 1,
      "there is exactly ONE DogTag, rendered in more than one place — the colouring cannot fork per surface");
+}
+
+// ── AC · THE LANE SYSTEM IS GATED BY A MEASUREMENT NOW, NOT BY A REGEX OVER ITS OWN CONSTANTS ──
+// The two locks this replaces were PROXIES: they matched `LANE_GAP = 0.12, …` and the `laneLift`
+// expression, and passed for months while the rendered sheet painted "Comp A" on top of the project's own
+// marker on 33 of 33 projects. `slide-shots` now reads every `[data-wtp-label]` rect and fails on real
+// overlap; these assertions guard only the hook and the geometry that measurement proved necessary.
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const shots = await (await import("node:fs/promises")).readFile("scripts/slide-shots.mjs", "utf8");
+  ok((src.match(/<div data-wtp-label/g) || []).length === 2,
+     "both marker labels — the competitors' and ours — carry the collision gate's hook");
+  ok(/const collide = \[\];/.test(shots) && /querySelectorAll\("\[data-wtp-label\]"\)/.test(shots),
+     "slide-shots measures the rendered label rects");
+  ok(/if \(ox > 1 && oy > 1\) collide\.push/.test(shots),
+     "…and only reports a REAL overlap — ink on ink in both axes, 1px slack, not mere adjacency");
+  ok(/LABELS OVERPRINT/.test(shots) && /S1×33 \$\{pr\.id\} — LABELS OVERPRINT/.test(shots),
+     "…on every viewport AND on all 33 projects, because the defect was per-project");
+  // ⚠ THE LANE IS GEOMETRY, NOT ARITHMETIC. Three pixel steps were wrong in turn (11 · 6.6 · 16); the last
+  // cleared 32 of 33 and still lost to a three-line label. Two rows of one grid cannot overlap at any
+  // text length, so there is no number left to get wrong.
+  ok(/const laneRow = \(k: string\) => \(\(lanes\[k\] \?\? 0\) === 0 \? 2 : 1\);/.test(src)
+     && /className="row-start-1 grid w-full grid-rows-2"/.test(src),
+     "lanes are rows of a two-row label band — no pixel lift, so no label length can defeat them");
+  ok(!/LANE_STEP/.test(src), "…and the pixel step is gone entirely, not merely retuned");
+  ok(/const STRIP_ROWS = "grid-rows-\[1fr_auto_14px\]";/.test(src),
+     "the label band takes the strip's leftover height instead of a hard-coded half of it");
+  ok(!/inset-x-3 top-1\/2 h-px bg-slate-700/.test(src),
+     "…and the strip's centre rule no longer pins that band to 50%, which is what clamped the lift to zero");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

@@ -256,7 +256,25 @@ const AUDIT = (printW) => {
   // though the sheet is identical. Dividing by the live scale makes portrait and landscape directly comparable.
   const scale = cRect.height / (canvas.clientHeight || 1);
   const bodyTop = body ? round((body.getBoundingClientRect().top - cRect.top) / (scale || 1)) : null;
-  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, ellipsis, head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
+  // ── COLLISION · TWO PAINTED LABELS MAY NOT OCCUPY THE SAME PIXELS ────────────────────────────
+  // WRITTEN BECAUSE THE EXISTING GUARD WAS A PROXY. The price-strip lane system exists to stop marker
+  // names overprinting (the operator photographed it three times: "Ab/Mb A", then "SAR▨"), and it was
+  // locked by two SOURCE regexes matching its constants and its expression. A regex cannot see a rendered
+  // box. This measures the boxes: every marker label on the sheet, every pair, real overlap in BOTH axes
+  // with 1px of sub-pixel slack. Reported in sheet px so portrait and landscape are comparable. Adjacency
+  // does not register — only ink on top of ink.
+  const collide = [];
+  const labels = [...canvas.querySelectorAll("[data-wtp-label]")]
+    .map((el) => ({ t: (el.textContent || "").trim(), r: el.getBoundingClientRect() }))
+    .filter((x) => x.t && x.r.width > 0 && x.r.height > 0);
+  for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+    const a = labels[i].r, b = labels[j].r;
+    const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+    const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+    if (ox > 1 && oy > 1) collide.push({ a: labels[i].t, b: labels[j].t, ox: round(ox / (scale || 1)), oy: round(oy / (scale || 1)) });
+  }
+  return { cw, k: round(k), overflow, type, panels, bodyText, deadInk, deadBox, ellipsis, collide, labels: labels.length,
+    head: { proj: box("[data-proj-name]"), title: box("[data-slide-title]"), bodyTop } };
 };
 
 // ── Drive the app into present mode on a given slide ─────────────────────────────────────────
@@ -360,6 +378,8 @@ for (const vp of VIEWPORTS) {
     // 3 · DEAD BOX — ENFORCED (22a). The layout must use the canvas it was given. Proven red before the fix:
     //     >90px of uncovered foot on 20/20 slides, peaking at 689px on CS.
     if (a.deadBox > DEAD_BOX) failures.push(`${tag} — DEAD BOX ${a.deadBox}px of canvas the layout never covered (cap ${DEAD_BOX}px)`);
+    for (const c of a.collide ?? [])
+      failures.push(`${tag} — LABELS OVERPRINT "${c.a}" x "${c.b}" overlap ${c.ox}x${c.oy}px. Two marker names are painting on the same pixels.`);
 
     // 3b · DEAD INK — measured, enforced in 22c. Stretching boxes cannot fill them with words; only larger
     //      type can, and the operator's order is BOXES FIRST, TEXT SECOND. Wiring this before 22c would make
@@ -375,7 +395,7 @@ for (const vp of VIEWPORTS) {
     const maxH = heads.length ? Math.max(...heads.map((t) => t.px)) : 0;
     console.log(`  ${empty.length || a.overflow.length || overBody.length || overHead.length || a.deadBox > DEAD_BOX ? "✗" : "✓"} ${tag.padEnd(28)} canvas ${String(a.cw).padStart(4)}px ·` +
       ` body max ${String(maxB).padStart(5)}px · header max ${String(maxH).padStart(5)}px · panels ${a.panels.length}` +
-      ` · overflow ${a.overflow.length} · box-void ${a.deadBox}px · ink-void ${maxInk}px`);
+      ` · overflow ${a.overflow.length} · box-void ${a.deadBox}px · ink-void ${maxInk}px · labels ${a.labels ?? 0}/collide ${(a.collide ?? []).length}`);
   }
   // ── #21 · HEADER UNIFORMITY across every slide at this viewport ────────────────────────────
   const seen = headBoxes.filter((h) => h.proj && h.title);
@@ -461,6 +481,8 @@ if (!process.env.NO_SWEEP) {
         for (const e2 of s1.panels.filter((q) => q.body === 0 && q.charts === 0))
           failures.push(`S1×33 ${pr.id} — EMPTY PANEL BODY "${e2.title}" (a derived panel with nothing to derive)`);
         if (!s1.panels.length) failures.push(`S1×33 ${pr.id} — S1 rendered NO panels at all`);
+        for (const c of s1.collide ?? [])
+          failures.push(`S1×33 ${pr.id} — LABELS OVERPRINT "${c.a}" x "${c.b}" overlap ${c.ox}x${c.oy}px`);
         s1panels.add(s1.panels.length);
       }
     } catch (e) {

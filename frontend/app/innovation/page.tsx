@@ -1486,7 +1486,16 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
   // track (`maxWidth: 22%`) with a margin, so a lane is spent only when the boxes would actually touch.
   // OURS IS IN THE SORT, not special-cased — the collision the operator sees is between ours and Comp A,
   // so leaving it out would fix nothing. Lanes cap at 2 (3 rows) so a pile-up cannot climb out of the box.
-  const LANE_GAP = 0.12, LANE_STEP = 11, MAX_LANE = 2;
+  // ⚠ AC · THE STEP IS THE LABEL'S OWN HEIGHT, AND IT WAS NEVER TIED TO IT. Measured on the real sheet:
+  // every marker label renders 15.0px tall (7px type, leading-tight, up to two wrapped lines). The step was
+  // 11 — and 6.6 in `compact` — so even where a lane WAS assigned the boxes still overlapped: 4px on S8 and
+  // the full 15px on S1, where the lift had nowhere to go at all. A lane that does not clear a whole label
+  // is not a lane. 16 = one label + 1px. MAX_LANE drops 2 → 1 for the same reason: no strip in the deck has
+  // ever had room for a third row, so a third lane only ever pushed a label off the top of its box.
+  const LANE_GAP = 0.12, MAX_LANE = 1;
+  // Row 1 is the label band; row 2 the dot + the rule; row 3 the fixed LOW/HIGH caption. One constant, so
+  // the markers, OURS and the rule cannot drift out of alignment at any band height.
+  const STRIP_ROWS = "grid-rows-[1fr_auto_14px]";
   const lanes: Record<string, number> = {};
   {
     const pts = [...marks.map((m, i) => ({ k: `c${i}`, x: clampX(m.x) })), { k: "ours", x: clampX(ours) }]
@@ -1506,7 +1515,14 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
   // fix skipped, and the project deep-dive card has carried the collision ever since.
   // Compact now gets a real lift — smaller than `fill`'s, because the band is shorter — and the track
   // grows h-8 → h-10 to pay for it. Locked below by a test that drives two markers into collision.
-  const laneLift = (k: string) => (lanes[k] ?? 0) * (fill ? LANE_STEP : compact ? LANE_STEP * 0.6 : LANE_STEP * 0.55);
+  // ⚠ AC · NO PIXEL STEP AT ALL. THREE GUESSES AT THIS NUMBER HAVE NOW BEEN WRONG — 11px, then 6.6px in
+  // `compact`, then a measured 16px which cleared 32 of 33 projects and still overprinted PRJ-14, whose
+  // label ("Manned-Unmanned") wraps to three lines and is taller than any constant I can pick. A lift can
+  // only ever be right for the label lengths that happen to exist today.
+  // So the lanes stop being a nudge and become GEOMETRY: the label band is a two-row grid, lane 1 takes the
+  // upper row and lane 0 the lower, and two labels in different rows of the same grid cannot overlap at any
+  // text length. The browser does the arithmetic that three hardcoded numbers kept getting wrong.
+  const laneRow = (k: string) => ((lanes[k] ?? 0) === 0 ? 2 : 1);
 
   return (
     <div className={fill ? "mt-1 flex min-h-0 flex-1 flex-col" : compact ? "mt-1" : "mt-2"}>
@@ -1537,8 +1553,21 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
         ))}
       </div>
       <div ref={barRef} onPointerMove={onMove} onPointerUp={endDrag} onPointerCancel={endDrag}
-           className={`relative rounded border bg-[#0e141b] ${fill ? "min-h-[2rem] flex-1" : compact ? "h-10" : "h-12"} ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
-        <div data-ink className="absolute inset-x-3 top-1/2 h-px bg-slate-700" />
+           /* ⚠ AC · HEIGHT IS WHAT MAKES THE LANE REAL. At h-10 the label band was 15px and a label is 15px, so the
+              lift was swallowed — which is why S1 overprinted on 33/33 projects while the locks read green. Two
+              lanes of a THREE-LINE label (24px — PRJ-14's "Manned-Unmanned") plus the 10px dot
+              and the 14px LOW/HIGH band need 72px; that is the floor now, in all three modes. `fill` keeps flex-1 and only raises its minimum. */
+             className={`relative rounded border bg-[#0e141b] ${fill ? "min-h-[4.5rem] flex-1" : "h-[4.5rem]"} ${editing ? "border-cyan-500/40" : "border-slate-800"} ${editing ? "touch-none" : ""}`}>
+        {/* ⚠ AC · THE RULE FOLLOWS THE LAYOUT NOW; THE LAYOUT USED TO FOLLOW THE RULE. Pinned at `top-1/2`,
+            it forced the marker grid's two outer rows to be equal `1fr` so the dot would land on it — which
+            made the LABEL BAND exactly half the leftover height: 15px in a 40px strip, the same height as one
+            label. So `marginBottom` could not move anything and the lane lift was silently clamped to zero,
+            while the two source-regex locks read green. The band only needs to fit its labels; the LOW/HIGH
+            caption below needs ~14px. An identical grid means the dot and the line share row 2 by
+            construction, at whatever height the label band actually needs. */}
+        <div aria-hidden className={`pointer-events-none absolute inset-0 grid ${STRIP_ROWS}`}>
+          <div /><div data-ink className="mx-3 h-px self-center bg-slate-700" /><div />
+        </div>
         {/* ⚠ X-1c · THREE BANDS, NOT ONE (operator, with the screenshot: "Price performance labels: NBA,
             Comp A, Comp B must be above circle. Have circle centered on line so we can read Low to High
             below line and title"). THE CAUSE: this wrapper carried `-translate-y-1/2` around the dot AND
@@ -1550,7 +1579,7 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
             which it was not before. The label bottom-aligns in the row above; LOW/HIGH keep the row below
             to themselves. Strip grows h-9 → h-12 to hold three legible bands. */}
         {marks.map((m, i) => (
-          <div key={`${m.label}-${i}`} className="absolute inset-y-0 -translate-x-1/2 grid grid-rows-[1fr_auto_1fr] justify-items-center" style={{ left: `${X0 + m.x * SPAN}%`, maxWidth: "22%" }}>
+          <div key={`${m.label}-${i}`} className={`absolute inset-y-0 -translate-x-1/2 grid ${STRIP_ROWS} justify-items-center`} style={{ left: `${X0 + m.x * SPAN}%`, maxWidth: "22%" }}>
             <div
               onPointerDown={editing ? (e) => { dragging.current = i; (e.target as Element).setPointerCapture?.(e.pointerId); } : undefined}
               role={editing ? "slider" : undefined} tabIndex={editing ? 0 : undefined}
@@ -1577,19 +1606,27 @@ function CompetitionStrip({ p, ours, oursLabel, onSave, compact, fill }: {
             ) : (
               /* The MARKER is positioned; its label wraps within a share of the strip, so a long product
                  name at either end folds instead of running off the edge. */
-              <div className="row-start-1 self-end break-words text-center text-[7px] leading-tight text-slate-400"
-                   style={{ marginBottom: 2 + laneLift(`c${i}`) }}>{m.label}</div>
+              /* `data-wtp-label` IS THE COLLISION GATE'S HOOK, AND IT EXISTS BECAUSE THE GATE HAD NONE.
+                 The lane system that stops two marker names overprinting was guarded by two SOURCE REGEXES
+                 — they matched the constants and the expression and could not see whether a single pair of
+                 labels actually touched. Attribute only: no class, no style, no layout. */
+              <div className="row-start-1 grid w-full grid-rows-2">
+                <div data-wtp-label className="self-end break-words pb-0.5 text-center text-[7px] leading-tight text-slate-400"
+                     style={{ gridRow: laneRow(`c${i}`) }}>{m.label}</div>
+              </div>
             )}
           </div>
         ))}
         {/* OURS — derived from the competitive index, drawn last so it sits above the competitors, and never
             given a pointer handler even in edit mode. */}
-        <div className="pointer-events-none absolute inset-y-0 -translate-x-1/2 grid grid-rows-[1fr_auto_1fr] justify-items-center" style={{ left: `${X0 + clampX(ours) * SPAN}%`, maxWidth: "22%" }}>
+        <div className={`pointer-events-none absolute inset-y-0 -translate-x-1/2 grid ${STRIP_ROWS} justify-items-center`} style={{ left: `${X0 + clampX(ours) * SPAN}%`, maxWidth: "22%" }}>
           <div data-ink className="row-start-2 mx-auto h-2.5 w-2.5 rounded-full" style={{ background: "#3b82f6" }} />
           {/* OURS gets the same three-band treatment — this is the marker whose label (e.g. "SAR")
               overprinted HIGH, because the competitive index pins it hard right at x = 1.0. */}
-          <div className="row-start-1 self-end break-words text-center text-[7px] leading-tight text-blue-300"
-               style={{ marginBottom: 2 + laneLift("ours") }}>{oursLabel}</div>
+          <div className="row-start-1 grid w-full grid-rows-2">
+            <div data-wtp-label className="self-end break-words pb-0.5 text-center text-[7px] leading-tight text-blue-300"
+                 style={{ gridRow: laneRow("ours") }}>{oursLabel}</div>
+          </div>
         </div>
         <span className="absolute bottom-0.5 left-2 text-[7px] uppercase text-slate-600">Low</span>
         <span className="absolute bottom-0.5 right-2 text-[7px] uppercase text-slate-600">High</span>
