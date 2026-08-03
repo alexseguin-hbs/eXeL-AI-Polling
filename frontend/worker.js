@@ -26,9 +26,27 @@
 //      (/, /main, /main/*) and static assets returns paused.html with 503.
 //   Both fail OPEN: any error leaves the site fully live. Toggle the pause via
 //   KV `SITE_STATE:paused` (instant) or env `SITE_PAUSED` (both default OFF).
+import { handleDonate } from "./donate-core.js";
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    // --- /api/donate — LIVE Stripe Checkout (see donate-core.js) ---------------------------------
+    // ⚠ THIS ROUTE HAS TO BE HERE, NOT IN functions/. It was written as a Pages Function, and this
+    // deploy never runs those (see the header above). The request therefore fell through to
+    // env.ASSETS.fetch → SPA fallback → index.html with a 200, so the client got HTML where it
+    // expected JSON and showed "Donation could not be started. Please try again." Stripe was never
+    // contacted. Handled before the security + pause checks so a paused site still cannot charge.
+    if (url.pathname === "/api/donate" || url.pathname === "/api/donate/") {
+      try {
+        return await handleDonate(request, env);
+      } catch (_e) {
+        return new Response(JSON.stringify({ error: "Donation service error" }), {
+          status: 502, headers: { "content-type": "application/json" },
+        });
+      }
+    }
 
     // --- Atlantis short link (unchanged) ---
     const m = url.pathname.match(/^\/Atlantis-Accords\/([^/]+)\/?$/);

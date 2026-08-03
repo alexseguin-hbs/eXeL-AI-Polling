@@ -27,14 +27,22 @@ export async function startDonation(opts: {
     }),
   });
 
+  // ⚠ A NON-JSON BODY MEANS THE ENDPOINT ISN'T THERE — AND IT USED TO READ AS A STRIPE FAILURE.
+  // The comment below always said "treat as demo", but the code only did that on a 404. This deploy
+  // serves Workers Static Assets with `not_found_handling: "single-page-application"`, so an
+  // unrouted /api/donate came back as **index.html with a 200** — res.ok true, JSON parse failed,
+  // `configured` undefined, status not 404 — and fell straight through to the generic throw. The
+  // operator saw "Donation could not be started. Please try again." for a request that never
+  // reached Stripe. The route now lives in worker.js; this makes the failure mode honest either way.
+  const ct = res.headers.get("content-type") || "";
   let data: { url?: string; configured?: boolean; error?: string } = {};
-  try {
-    data = await res.json();
-  } catch {
-    /* non-JSON (e.g. Pages Function not deployed yet) → treat as demo below */
+  let parsed = false;
+  if (ct.includes("application/json")) {
+    try { data = await res.json(); parsed = true; } catch { /* malformed JSON — handled below */ }
   }
 
-  if (res.ok && data.url) return data.url; // live Stripe checkout
-  if (data.configured === false || res.status === 404) return null; // no key / function absent → demo
+  if (res.ok && data.url) return data.url;                            // live Stripe checkout
+  if (data.configured === false || res.status === 404) return null;   // no key / route absent → demo
+  if (!parsed) return null;                                           // HTML or empty body → not deployed → demo
   throw new Error(data.error || "Donation could not be started. Please try again.");
 }
