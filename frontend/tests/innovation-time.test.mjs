@@ -6171,14 +6171,16 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and the portfolio actually contains a New Mkt / Vertical project, so the green case is exercised");
 
   // 2 · BODY = CATEGORY. Two identical stops so it is a flat TINT, not a gradient that reads as a shine.
-  ok(/background: `linear-gradient\(0deg, \$\{dt\.color\}\$\{TAG_TINT_ALPHA\}, \$\{dt\.color\}\$\{TAG_TINT_ALPHA\}\), #0b0f14`/.test(src),
-     "the tag body is tinted by its category over the deck's own dark base");
+  ok(/background: `linear-gradient\(0deg, \$\{dt\.color\}\$\{dtMask\}, \$\{dt\.color\}\$\{dtMask\}\), #0b0f14`/.test(src),
+     "the tag body is tinted by its category over the deck's own dark base — both stops from the RESOLVED mask");
   // ⚠ AD · ONE CONSTANT, ONE SITE (Odin). The operator has asked for this fill strength twice; the third
   // ask must stay a two-second edit, which it only does while there is exactly one number to change.
   ok(/^const TAG_TINT_ALPHA = "[0-9a-f]{2}";$/m.test(src),
      "the fill strength is a single named hex-alpha constant");
-  ok((src.match(/TAG_TINT_ALPHA/g) || []).length === 3,
-     "…referenced from exactly one place (declaration + the two gradient stops) — no second copy to drift");
+  // AD · the constant is now the SEED for the admin-settable mask, so it is referenced by the declaration,
+  // its numeric twin, and the resolver call — still one source, just one hop further along.
+  ok((src.match(/TAG_TINT_ALPHA\b/g) || []).length === 3 && (src.match(/TAG_TINT_ALPHA_N/g) || []).length === 3,
+     "the fill strength still has ONE seed — TAG_TINT_ALPHA — which TAG_TINT_ALPHA_N derives from and the resolver falls back to");
   ok(!/rounded-lg border-2 bg-\[#0b0f14\]/.test(src),
      "…and the flat dark body it replaced is gone — the category is no longer just a dot");
 
@@ -6216,6 +6218,43 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
 
   const shotsSrc = await (await import("node:fs/promises")).readFile("scripts/slide-shots.mjs", "utf8");
+  // 2f · AD · CATEGORY COLOUR + MASK ARE ADMIN-SETTABLE, AND THE OVERRIDE LIVES AT A RESOLVER.
+  // Operator: "for mask and color; these will be set-able in Admin Console." SIX render sites read the
+  // category colour; an override wired at any one of them puts two different greens on one screen.
+  {
+    ok(typeof F.devTypeColorOf === "function" && typeof F.devTypeMaskOf === "function",
+       "devTypeColorOf + devTypeMaskOf are exported resolvers");
+    // Precedence + validation, shaped exactly like pillarColorOf.
+    ok(F.devTypeColorOf("newmarket") === F.DEV_TYPE.newmarket.color, "no override → the DEV_TYPE default");
+    ok(F.devTypeColorOf("newmarket", { newmarket: { color: "#123456" } }) === "#123456", "a valid hex override wins");
+    ok(F.devTypeColorOf("newmarket", { newmarket: { color: "not-a-colour" } }) === F.DEV_TYPE.newmarket.color,
+       "…and an INVALID hex falls back rather than painting garbage");
+    // ⚠ PER-ENTRY: one bad value costs one category, never the palette (Enki, 12-AsM).
+    ok(F.devTypeColorOf("enhance", { newmarket: { color: "zzz" }, enhance: { color: "#abcdef" } }) === "#abcdef",
+       "…and a bad entry does not poison its neighbours");
+    ok(F.devTypeMaskOf("enhance", 0x5c) === 0x5c, "no mask override → the deck default passed in by the caller");
+    ok(F.devTypeMaskOf("enhance", 0x5c, { enhance: { mask: 0x40 } }) === 0x40, "a valid mask override wins");
+    ok(F.devTypeMaskOf("enhance", 0x5c, { enhance: { mask: 9999 } }) === 0x5c
+       && F.devTypeMaskOf("enhance", 0x5c, { enhance: { mask: -5 } }) === 0x5c,
+       "…and an out-of-range mask falls back — the slider cannot be driven to an invisible or opaque fill");
+    // EVERY render site goes through the resolver: no `.color` read off DEV_TYPE survives in the page.
+    const rawColorReads = (src.match(/DEV_TYPE\[[^\]]+\]\.color/g) || []);
+    ok(rawColorReads.length === 0, `no render site reads DEV_TYPE[...].color directly (${rawColorReads.length} left)`);
+    ok((src.match(/devTypeColorOf\(/g) || []).length >= 6, "…and at least the six known sites call the resolver");
+    // The store mirrors the pillars rather than inventing a mechanism, and seeds FROM DEV_TYPE.
+    ok(/const DEVTYPE_KEY = "innovation-devtype-style";/.test(src), "the store has its own key beside PILLAR_KEY");
+    ok(/for \(const k of Object\.keys\(DEV_TYPE\) as DevType\[\]\)/.test(src),
+       "…and load validates against DEV_TYPE's own keys — the seed is derived, never hand-copied");
+    // ⚠ THE MASK SLIDER MEASURES BACK. The tag contrast lock only covers the DECLARED default.
+    ok(typeof F.tagTextContrast === "function", "tagTextContrast is exported so the editor can measure");
+    ok(Math.abs(F.tagTextContrast("#059669", 0x5c, "#cbd5e1") - 7.89) < 0.05,
+       `…and it agrees with the shipped measurement (${F.tagTextContrast("#059669", 0x5c, "#cbd5e1").toFixed(2)}:1)`);
+    ok(F.tagTextContrast("#ffffff", 0x99, "#cbd5e1") < 4.5,
+       "…and a bright fill at max mask really does fall under AA, so the warning can fire");
+    ok(/data-devtype-contrast/.test(src) && /under AA, text will be hard to read/.test(src),
+       "the Admin row shows the measured ratio and flags anything under AA");
+  }
+
   // 2e · AD6 · ⚠ "PIPELINE TABLE AT TOP OF BOX" WAS INVESTIGATED AND **NOT** REPRODUCED.
   // Operator, IMG_8469. The obvious cause was AmtsPanel's `content-stretch`, which hands every child an
   // equal share of the panel height and can strand a short table mid-box. An opt-in `content-start` was

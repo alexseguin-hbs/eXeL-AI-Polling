@@ -35,7 +35,7 @@ import {
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
-  metaOf, pillarColorOf, gateStageLabel, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
+  metaOf, pillarColorOf, gateStageLabel, devTypeColorOf, type DevType, devTypeMaskOf, alphaHex, tagTextContrast, DEVTYPE_MASK_MIN, DEVTYPE_MASK_MAX, type DevTypeStyle, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
   valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
   valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf, killRiskOf,
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
@@ -2291,6 +2291,30 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
 // edit at one site, not a settings surface nobody asked for (Odin, 12-AsM). Hex alpha over the deck's own
 // #0b0f14 — `5c` is ~36%, up from the `22` (13%) that let the dark base mask the colour.
 const TAG_TINT_ALPHA = "5c";
+/** The same fill strength as a number, for the resolver. ONE seed — `TAG_TINT_ALPHA` stays the source. */
+const TAG_TINT_ALPHA_N = parseInt(TAG_TINT_ALPHA, 16);
+
+// ⚠ AD · ADMIN-SETTABLE CATEGORY COLOUR + MASK. Mirrors the pillar palette store exactly (`PILLAR_KEY` /
+// `loadPillars` / `persistPillars`) rather than inventing a second mechanism, and the seed is DERIVED from
+// DEV_TYPE instead of hand-copied — a hand-copied seed is a second source of truth that drifts silently.
+const DEVTYPE_KEY = "innovation-devtype-style";
+function loadDevTypeStyles(): Partial<Record<DevType, DevTypeStyle>> {
+  const raw = lsGet(DEVTYPE_KEY);
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as Partial<Record<DevType, DevTypeStyle>>;
+    // Per-entry validation: one bad hex costs ONE category, never the palette (Enki, 12-AsM).
+    const out: Partial<Record<DevType, DevTypeStyle>> = {};
+    for (const k of Object.keys(DEV_TYPE) as DevType[]) {
+      const v = parsed?.[k]; if (!v) continue;
+      const e: DevTypeStyle = {};
+      if (typeof v.color === "string" && /^#[0-9a-fA-F]{3,8}$/.test(v.color)) e.color = v.color;
+      if (typeof v.mask === "number" && v.mask >= DEVTYPE_MASK_MIN && v.mask <= DEVTYPE_MASK_MAX) e.mask = Math.round(v.mask);
+      if (e.color || e.mask !== undefined) out[k] = e;
+    }
+    return out;
+  } catch { return {}; }
+}
 
 // ⚠ AD · THE TINT MOVED THE FLOOR UNDER THE METRIC TEXT, SO THE METRIC TEXT MOVED WITH IT.
 // The plan's A-grade criterion was to MEASURE contrast against the new fill rather than eyeball it. Composited
@@ -2317,7 +2341,11 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
 }) {
   const { t } = useLexicon();
   const h = hierOf(p);
-  const dt = DEV_TYPE[devTypeOf(p)]; // project TYPE (orange/blue/green/purple) — a distinct cue (the ● dot)
+  const dtKey = devTypeOf(p);
+  const dtStyles = loadDevTypeStyles();
+  // ⚠ COLOUR AND FILL BOTH COME FROM THE RESOLVER, NEVER FROM DEV_TYPE DIRECTLY — see devTypeColorOf.
+  const dt = { label: DEV_TYPE[dtKey].label, color: devTypeColorOf(dtKey, dtStyles) };
+  const dtMask = alphaHex(devTypeMaskOf(dtKey, TAG_TINT_ALPHA_N, dtStyles));
   const pillar = metaOf(p).initiative;
   const pillarColor = pillarColorOf(pillar, loadPillars()); // highlight/border = Strategic Innovation Pillar
   const [face, setFace] = useState<"biz" | "eng">("biz"); // Slice 2 — engineer ⇄ business face flip
@@ -2342,7 +2370,7 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
     // not read as a shine. `DEV_TYPE` is the single palette (`innovation-data.ts:2352`) and it already
     // carries exactly the four colours the reference legend uses; nothing new was invented here.
     <div className="relative mx-auto flex max-w-sm items-stretch overflow-hidden rounded-lg border-2"
-      style={{ borderColor: pillarColor, background: `linear-gradient(0deg, ${dt.color}${TAG_TINT_ALPHA}, ${dt.color}${TAG_TINT_ALPHA}), #0b0f14` }}
+      style={{ borderColor: pillarColor, background: `linear-gradient(0deg, ${dt.color}${dtMask}, ${dt.color}${dtMask}), #0b0f14` }}
       title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}\nPillar: ${pillar} · Type: ${dt.label}\n${valuePropOf(p)}`}>
       {/* SBU — fixed, vertical left (locked to the project title); tinted by the pillar (highlight) */}
       <div className="flex shrink-0 items-center justify-center px-0.5" style={{ background: `${pillarColor}22` }}>
@@ -3424,7 +3452,7 @@ function ExecutiveSlide({ p, risks }: { p: Project; risks: Risk[] }) {
   const gi = GATES.indexOf(p.gate);
   const nextGate = GATES[gi + 1];
   const nextReview = GATE_REVIEW[nextGate ?? p.gate];
-  const dt = DEV_TYPE[devTypeOf(p)];
+  const dt = { label: DEV_TYPE[devTypeOf(p)].label, color: devTypeColorOf(devTypeOf(p), loadDevTypeStyles()) };
 
   const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <div className="rounded bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-300">{children}</div>
@@ -7180,6 +7208,20 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
   const persistSegLib = (next: string[]) => { setSegLib(next); lsSet(SEGLIB_KEY, JSON.stringify(next)); };
   const persistGlossary = (next: [string, string][]) => { setGlossary(next); lsSet(GLOSSARY_KEY, JSON.stringify(Object.fromEntries(next.filter(([k2]) => k2.trim())))); };
   const persistPillars = (next: PillarDef[]) => { setPillars(next); lsSet(PILLAR_KEY, JSON.stringify(next)); };
+  // AD · category colour + mask, same persistence path as the pillars (lsSet), so two people printing the
+  // same deck get the same sheet rather than a per-device preference.
+  const [devTypeStyles, setDevTypeStyles] = useState<Partial<Record<DevType, DevTypeStyle>>>({});
+  useEffect(() => { setDevTypeStyles(loadDevTypeStyles()); }, []);
+  const persistDevTypeStyles = (next: Partial<Record<DevType, DevTypeStyle>>) => {
+    const clean: Partial<Record<DevType, DevTypeStyle>> = {};
+    for (const [k, v] of Object.entries(next) as [DevType, DevTypeStyle][]) {
+      const e: DevTypeStyle = {};
+      if (v?.color) e.color = v.color;
+      if (v?.mask !== undefined) e.mask = v.mask;
+      if (e.color || e.mask !== undefined) clean[k] = e;
+    }
+    setDevTypeStyles(clean); lsSet(DEVTYPE_KEY, JSON.stringify(clean));
+  };
   const persistBoard = (next: string) => { setBoard(next); lsSet(REVIEW_BOARD_KEY, next); };
   const persistStackName = (next: string) => { setStackName(next); lsSet(STACK_NAME_KEY, next); onRename?.(next); };
   const persistDogtag = (next: string[]) => { const v = next.length ? next : DEFAULT_DOGTAG; setDogtag(v); lsSet(DOGTAG_KEY, JSON.stringify(v)); };
@@ -7276,6 +7318,61 @@ function BusinessSetup({ onRename, onCompanyRename, onClose }: { onRename?: (nam
           <p className="text-[10px] text-slate-500">SBU budgets are weighted by each SBU&apos;s NRE demand and sum to the scenario total. Per-node editable overrides land next.</p>
         </div>
       </div>
+
+      {/* ⚠ AD · PROJECT CATEGORY COLOURS + FILL STRENGTH (operator: "for mask and color; these will be
+          set-able in Admin Console"). Deliberately the SAME shape as the Strategic Pillars rows below —
+          swatch, colour input, ↺ reset — because two editors that do the same job should look the same.
+          THE MASK SLIDER IS CONTRAST-GUARDED: the shipped tag lock measures the DECLARED default alpha and
+          knows nothing about an operator override, so the editor measures the same WCAG arithmetic live and
+          refuses a value that would put the tag's own metric text under AA. A control that can silently
+          make the board sheet unreadable would undo the whole point of that lock. */}
+      <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Project Category Colours <span className="text-[11px] text-slate-500">— the dog-tag body fill; the border stays the Strategic Pillar</span></h2>
+          {Object.keys(devTypeStyles).length > 0 && (
+            <button onClick={() => persistDevTypeStyles({})} className="rounded border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 hover:bg-slate-800">↺ Reset all</button>
+          )}
+        </div>
+        <div className="mt-2 space-y-1.5">
+          {(Object.keys(DEV_TYPE) as DevType[]).map((k) => {
+            const color = devTypeColorOf(k, devTypeStyles);
+            const mask = devTypeMaskOf(k, TAG_TINT_ALPHA_N, devTypeStyles);
+            // Live measurement against the same two text colours the tag actually paints.
+            const cLabel = tagTextContrast(color, mask, "#cbd5e1");
+            const cValue = tagTextContrast(color, mask, "#f1f5f9");
+            const readable = cLabel >= 4.5 && cValue >= 4.5;
+            const set = (patch: DevTypeStyle) => persistDevTypeStyles({ ...devTypeStyles, [k]: { ...devTypeStyles[k], ...patch } });
+            return (
+              <div key={k} className="flex flex-wrap items-center gap-2">
+                <span className="flex h-6 w-16 items-center justify-center rounded border text-[10px] font-mono"
+                  style={{ borderColor: color, background: `linear-gradient(0deg, ${color}${alphaHex(mask)}, ${color}${alphaHex(mask)}), #0b0f14`, color: "#cbd5e1" }}>Aa</span>
+                <span className="w-40 shrink-0 truncate text-[11px] text-slate-300">{DEV_TYPE[k].label}</span>
+                <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                  Colour
+                  <input type="color" value={color} aria-label={`Colour for ${DEV_TYPE[k].label}`}
+                    onChange={(e) => set({ color: e.target.value })}
+                    className="h-6 w-8 cursor-pointer rounded border border-slate-700 bg-transparent p-0" />
+                  {devTypeStyles[k]?.color && <button onClick={() => set({ color: undefined })} title="Reset to default" aria-label={`Reset colour for ${DEV_TYPE[k].label}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
+                </label>
+                <label className="flex items-center gap-1 text-[10px] text-slate-500">
+                  Mask
+                  <input type="range" min={DEVTYPE_MASK_MIN} max={DEVTYPE_MASK_MAX} value={mask}
+                    aria-label={`Fill strength for ${DEV_TYPE[k].label}`}
+                    onChange={(e) => set({ mask: Number(e.target.value) })}
+                    className="h-1.5 w-24 cursor-pointer accent-cyan-400" />
+                  <span className="w-8 tabular-nums text-slate-400">{Math.round((mask / 255) * 100)}%</span>
+                  {devTypeStyles[k]?.mask !== undefined && <button onClick={() => set({ mask: undefined })} title="Reset to default" aria-label={`Reset fill for ${DEV_TYPE[k].label}`} className="text-slate-500 hover:text-cyan-300">↺</button>}
+                </label>
+                <span data-devtype-contrast className={`rounded px-1.5 py-0.5 text-[10px] tabular-nums ${readable ? "text-emerald-300" : "bg-rose-500/15 font-semibold text-rose-300"}`}
+                  title="Measured WCAG contrast of the tag's own metric text over this fill">
+                  {readable ? `${cLabel.toFixed(1)}:1 ✓` : `${cLabel.toFixed(1)}:1 — under AA, text will be hard to read`}
+                </span>
+              </div>
+            );
+          })}
+          <p className="text-[10px] text-slate-500">Body fill = project category · border = Strategic Pillar. Contrast is measured live against the tag&apos;s own metric text; anything under 4.5:1 is flagged in red.</p>
+        </div>
+      </section>
 
       {/* Strategic pillars editor — the four (or more) pillars every project maps onto */}
       <section className="rounded-xl border border-slate-800 bg-[#0e141b] p-4">
@@ -8006,7 +8103,7 @@ function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (
           return (
             <g key={p.id} onMouseEnter={() => setHover(p.id)} onMouseLeave={() => setHover(null)} onClick={() => onSelect(p.id)} style={{ cursor: "pointer" }}>
               <title>{p.name} · spend {usdM(xOf(p))} · {mode === "rw" ? "risk-wt" : "upside"} rev {usdM(yOf(p))} · NPV {usdM(npvM(p))}</title>
-              <circle cx={cx} cy={cy} r={rOf(p)} fill={DEV_TYPE[devTypeOf(p)].color} opacity={on ? 0.95 : 0.6} stroke={on ? "#e2e8f0" : "none"} strokeWidth="1.2" />
+              <circle cx={cx} cy={cy} r={rOf(p)} fill={devTypeColorOf(devTypeOf(p), loadDevTypeStyles())} opacity={on ? 0.95 : 0.6} stroke={on ? "#e2e8f0" : "none"} strokeWidth="1.2" />
               <text x={cx} y={cy + 2.5} textAnchor="middle" fontSize="7.5" fill="#06202a" fontWeight="700" fontFamily="ui-monospace, monospace">{p.id.replace("PRJ-", "")}</text>
             </g>
           );
@@ -8014,7 +8111,7 @@ function FinancialMap({ projects, onSelect }: { projects: Project[]; onSelect: (
       </svg>
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
         {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
-          <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
+          <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: devTypeColorOf(k2, loadDevTypeStyles()) }} />{DEV_TYPE[k2].label}</span>
         ))}
       </div>
     </DashCard>
@@ -8083,7 +8180,7 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
                     : gateProjects.map((p) => (
                         <button key={p.id} onClick={() => clickProject(p.id)}
                           className={`truncate rounded px-1 py-0.5 text-[9px] font-semibold text-[#06202a] hover:opacity-90 ${picked === p.id ? "ring-2 ring-white/70" : ""} ${fundedIds.has(p.id) ? "" : "opacity-60"}`}
-                          style={{ background: DEV_TYPE[devTypeOf(p)].color }} title={`${p.name} · ${p.gate}${fundedIds.has(p.id) ? " · funded" : " · not funded"}`}>{p.id}</button>
+                          style={{ background: devTypeColorOf(devTypeOf(p), loadDevTypeStyles()) }} title={`${p.name} · ${p.gate}${fundedIds.has(p.id) ? " · funded" : " · not funded"}`}>{p.id}</button>
                       ))}
                 </div>
               </div>
@@ -8093,7 +8190,7 @@ function PipelineByGate({ projects, funded, showUnfunded, onShowUnfunded, onSele
       </div>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-500">
         {(Object.keys(DEV_TYPE) as (keyof typeof DEV_TYPE)[]).map((k2) => (
-          <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: DEV_TYPE[k2].color }} />{DEV_TYPE[k2].label}</span>
+          <span key={k2}><i className="mr-1 inline-block h-2 w-2 rounded-sm" style={{ background: devTypeColorOf(k2, loadDevTypeStyles()) }} />{DEV_TYPE[k2].label}</span>
         ))}
         {showUnfunded && <span className="text-slate-600">· {t("innovation.pipeline.dimLegend")}</span>}
         <button type="button" onClick={() => onShowUnfunded(!showUnfunded)} aria-pressed={showUnfunded}

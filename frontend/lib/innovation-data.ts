@@ -2481,6 +2481,54 @@ export function pillarColorOf(name: string, pillars?: { name: string; color?: st
   return PILLAR_FALLBACK[Math.abs(h) % PILLAR_FALLBACK.length];
 }
 
+/**
+ * ⚠ AD · CATEGORY COLOUR AND FILL STRENGTH ARE ADMIN-SETTABLE, AND THE OVERRIDE GOES **HERE**.
+ * Operator: "for mask and color; these will be set-able in Admin Console."
+ *
+ * SIX render sites read the category colour today — the dog tag's body, dot and label, the project-detail
+ * chip, the constellation circles, and the pipeline squares plus their two legends. Wiring an override at
+ * any ONE of them would put two different greens on the same screen, so both resolvers live beside
+ * `pillarColorOf` and every caller goes through them. Same hex validation, same precedence, and validation
+ * is PER ENTRY so one bad value costs one category rather than the whole palette.
+ */
+export const DEVTYPE_MASK_MIN = 0x14;   // ~8%  — below this the category is invisible
+export const DEVTYPE_MASK_MAX = 0x99;   // ~60% — above this the tag's own text starts losing contrast
+export type DevTypeStyle = { color?: string; mask?: number };
+
+export function devTypeColorOf(type: DevType, overrides?: Partial<Record<DevType, DevTypeStyle>>): string {
+  const o = overrides?.[type]?.color;
+  if (o && /^#[0-9a-fA-F]{3,8}$/.test(o)) return o;
+  return DEV_TYPE[type].color;
+}
+
+/** Fill strength as a 0-255 alpha. `fallback` is the deck default (TAG_TINT_ALPHA), passed in by the caller
+ *  so the seed lives at ONE site in the component rather than being duplicated here. */
+export function devTypeMaskOf(type: DevType, fallback: number, overrides?: Partial<Record<DevType, DevTypeStyle>>): number {
+  const m = overrides?.[type]?.mask;
+  if (typeof m === "number" && Number.isFinite(m) && m >= DEVTYPE_MASK_MIN && m <= DEVTYPE_MASK_MAX) return Math.round(m);
+  return fallback;
+}
+
+/** Two-hex-digit alpha suffix for a CSS colour — the form the tag's gradient stops need. */
+export const alphaHex = (a: number) => Math.max(0, Math.min(255, Math.round(a))).toString(16).padStart(2, "0");
+
+/**
+ * ⚠ THE ADMIN MASK CONTROL CAN BREAK THE CONTRAST THE TAG ALREADY MEASURES, SO IT MEASURES BACK.
+ * The shipped contrast lock composites the DECLARED default alpha; an operator-set mask is not covered by
+ * it. This is the same arithmetic, exported, so the editor can refuse a value that would put the tag's own
+ * metric text under WCAG AA rather than letting someone quietly make the sheet unreadable.
+ */
+export function tagTextContrast(color: string, mask: number, text: string, base = "#0b0f14"): number {
+  const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const lin = (c: number) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const lum = (rgb: number[]) => 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]);
+  const a = Math.max(0, Math.min(255, mask)) / 255;
+  const b = hex(base), c = hex(color);
+  const body = c.map((x, i) => x * a + b[i] * (1 - a));
+  const L1 = lum(hex(text)), L2 = lum(body);
+  return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+}
+
 export const VALUE_LADDER = ["Commodity", "Product", "Solution", "Platform", "Ecosystem"] as const;
 export const VALUE_IMPACT = ["Incremental", "Sustaining", "Differentiating", "Transformational"] as const;
 export const COMPETITIVE_POSITIONS = ["Leader", "Challenger", "Fast Follower", "Niche"] as const;
