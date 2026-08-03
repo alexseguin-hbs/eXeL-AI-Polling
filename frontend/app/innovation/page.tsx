@@ -35,7 +35,7 @@ import {
   bomOf, bomStdCost, bomExtended, productionCost, BU_LABEL, SBU_LABEL,
   GATE_REQUIREMENTS, requirementStatus, gateReadinessAll,
   TOLERANCE_LADDER, REQ_STATUS_LABEL,
-  metaOf, pillarColorOf, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
+  metaOf, pillarColorOf, gateStageLabel, financialMetrics, financialsOverview, execSummaryBullets, valuePropOf, nbaOf, aiValuePropOf,
   valueEquation, valuePropFromEquation, valueEquationOf, type ValueDriver,
   valuePerDollarOf, winProbabilityOf, valueIndexOf, riskBandOf, costPerServedBuyerOf, killRiskOf,
   expectedValueOf, handoffReadiness, consistencyCheck, intelLoadGloss,
@@ -5714,9 +5714,14 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                           {/* Z-2 · GATE, STAGE AND DATE ON ONE LINE. The date used to own a row of its own,
                               which cost the band ~15px per card. Z-5 drops the YEAR from the date because the
                               column header above it already states the year — same information, less ink. */}
+                          {/* ⚠ AD3 · TITLE IS `G1 · Concept`, DATE ALONE ON THE RIGHT (operator, IMG_8467).
+                              It used to read gate-left / `stage · date`-right, which spelled the same three
+                              facts in a different order from the slide header — and the operator's ask was
+                              explicitly that the convention be identical "everywhere including top right of
+                              slide". Both now call `gateStageLabel`, so they cannot drift. */}
                           <div className="flex items-baseline justify-between gap-1">
-                            <span className="font-mono font-semibold text-cyan-300" style={big ? { fontSize: TS.body } : undefined}>{r[0]}</span>
-                            <span className="truncate tabular-nums text-slate-400" style={big ? { fontSize: TS.micro } : undefined}>{r[1]} · {(r[2] || "").replace(/\s*\d{4}$/, "")}</span>
+                            <span className="font-mono font-semibold text-cyan-300" style={big ? { fontSize: TS.body } : undefined}>{gateStageLabel(r[0], r[1])}</span>
+                            <span className="truncate tabular-nums text-slate-400" style={big ? { fontSize: TS.micro } : undefined}>{(r[2] || "").replace(/\s*\d{4}$/, "")}</span>
                           </div>
                           <ul className="m-0 mt-[0.3cqh] list-none p-0 text-slate-300" style={big ? { fontSize: TS.micro } : undefined}>
                             {(r[3] || "").split(" · ").filter(Boolean).map((a, j) => <li key={j} className="truncate leading-tight">· {a}</li>)}
@@ -6175,7 +6180,7 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                 style={{ fontSize: `${titleFit.cqw}cqw` }}>{deckTitle}</h2>
               <div className="flex shrink-0 flex-col items-end gap-[0.6cqh]">
                 <span className="rounded border border-amber-500/40 bg-amber-500/10 px-[1cqw] py-[0.4cqh] font-semibold tracking-wide text-amber-300 whitespace-nowrap" style={{ fontSize: TS.micro }}>Req: {sp.stage}+</span>
-                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{sp.gate} · {sp.stage} · {tabLabelOf(sp.code)}</span>
+                <span className="font-mono tracking-[0.14em] text-cyan-400" style={{ fontSize: TS.meta }}>{gateStageLabel(sp.gate, sp.stage)} · {tabLabelOf(sp.code)}</span>
               </div>
             </div>
             {/* subheader */}

@@ -619,6 +619,17 @@ export const S8_DIFF_COLS = ["Differentiator", "Value $M", "Importance", "vs NBA
 // Z-1 · S1's Roadmap + Schedule band. Four columns, the operator's own framing: which gate, what stage,
 // when, and what has to actually happen in it.
 const S1_SCHED_COLS = ["Gate", "Stage", "Date", "Key Activities"] as const;
+/**
+ * ⚠ AD3 · ONE PRODUCER FOR "G1 · Concept", USED BY BOTH SURFACES THAT PRINT IT.
+ * Operator, IMG_8467: the roadmap block title must read `G1 · Concept`, and — verbatim — "this ensure same
+ * convention everywhere including top right of slide". The slide header already rendered
+ * `{gate} · {stage} · {code}`; the roadmap band rendered the gate alone on the left and the stage bolted
+ * onto the date on the right. Two independent templates for one convention is a convention that survives
+ * exactly until someone edits one of them, so both now call this and a lock forbids a second copy.
+ * Empty parts are dropped rather than printing a stray separator.
+ */
+export const gateStageLabel = (gate?: string, stage?: string): string =>
+  [gate, stage].map((s) => (s ?? "").trim()).filter(Boolean).join(" · ");
 // Z-2 · S1's Market Opportunity band. Declared beside S1_SCHED_COLS and ABOVE `SLIDE_SCHEMA` for the same
 // temporal-dead-zone reason spelled out over S8_DIFF_COLS — the schema spreads it at module-evaluation time.
 const S1_MARKET_COLS = ["Opportunity", "Customer", "Award", "Value"] as const;

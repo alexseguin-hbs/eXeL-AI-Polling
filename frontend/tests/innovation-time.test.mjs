@@ -6211,6 +6211,27 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
        "…and the 1.90:1 hardcoded slate-500 label the fill made unreadable is gone from the tag");
   }
 
+  // 2d · AD3 · "G1 · Concept" IS ONE PRODUCER, AND THE ROADMAP BAND AND THE SLIDE HEADER BOTH CALL IT.
+  // Operator: "this ensure same convention everywhere including top right of slide." Two templates spelling
+  // the same three facts is a convention with a expiry date — it lasts until someone edits one of them.
+  {
+    ok(typeof F.gateStageLabel === "function", "gateStageLabel is an exported producer");
+    ok(F.gateStageLabel("G1", "Concept") === "G1 · Concept", `it renders exactly "G1 · Concept" (${F.gateStageLabel("G1", "Concept")})`);
+    ok(F.gateStageLabel("G2", "") === "G2" && F.gateStageLabel("", "Plan") === "Plan" && F.gateStageLabel() === "",
+       "…and a missing half never prints a dangling separator");
+    // The two render sites, by exact text — the roadmap card title and the slide's top-right meta.
+    ok(/<span className="font-mono font-semibold text-cyan-300"[^>]*>\{gateStageLabel\(r\[0\], r\[1\]\)\}<\/span>/.test(src),
+       "the roadmap card title is gateStageLabel(gate, stage)");
+    ok(/\{gateStageLabel\(sp\.gate, sp\.stage\)\} · \{tabLabelOf\(sp\.code\)\}/.test(src),
+       "…and the slide's top-right meta is the SAME producer plus the slide code");
+    // ⚠ THE BAN IS THE LOCK. A future `${sp.gate} · ${sp.stage}` anywhere re-forks the convention silently.
+    ok(!/\{sp\.gate\} · \{sp\.stage\}/.test(src) && !/\$\{gate\} · \$\{stage\}/.test(src),
+       "…and no second hand-written `gate · stage` template survives anywhere in the deck");
+    // The date cell is the DATE ONLY now — the stage moved into the title, so it must not print twice.
+    ok(/<span className="truncate tabular-nums text-slate-400"[^>]*>\{\(r\[2\] \|\| ""\)\.replace\(\/\\s\*\\d\{4\}\$\/, ""\)\}<\/span>/.test(src),
+       "the roadmap date cell prints the date alone, year stripped — the stage is not repeated on the right");
+  }
+
   // 2c · NO PROPORTIONAL CAP ON A FIXED-HEIGHT TAG. `max-h-[11cqh]` rationed a MEASURED-constant 92px tag by
   // a fraction of a row whose height moves with the OTHER panels' content — 81px on PRJ-02, 96px on PRJ-01 —
   // so four projects clipped their own metrics while 29 looked fine. `slide-shots` catches the clip; this
