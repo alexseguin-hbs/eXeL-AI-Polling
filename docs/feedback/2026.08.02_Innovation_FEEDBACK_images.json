@@ -1,0 +1,67 @@
+{
+  "release": "eXeL-AI · INNOVATION PROJECT (images)",
+  "stamp": "2026.08.02",
+  "sha": "591cadc",
+  "features": {
+    "F1": {
+      "sha": "0c3f044",
+      "title": "Dog tag — category fill, darker green, short label, 3 metric lines",
+      "verdict": null,
+      "comment": ""
+    },
+    "F2": {
+      "sha": "0c3f044",
+      "title": "Metric text contrast at the new fill — measured, not eyeballed",
+      "verdict": null,
+      "comment": ""
+    },
+    "F3": {
+      "sha": "5f974b6",
+      "title": "Dependencies — a real table, Project # | Project | Risk",
+      "verdict": null,
+      "comment": ""
+    },
+    "F4": {
+      "sha": "79f7366",
+      "title": "Roadmap blocks read G1 · Concept, date alone on the right",
+      "verdict": null,
+      "comment": ""
+    },
+    "F5": {
+      "sha": "79f7366",
+      "title": "Same convention, slide top-right",
+      "verdict": null,
+      "comment": ""
+    },
+    "F6": {
+      "sha": "7683e81",
+      "title": "Market Opportunity · Pipeline — investigated, no dead space found",
+      "verdict": null,
+      "comment": ""
+    },
+    "F7": {
+      "sha": "6d5ca82",
+      "title": "\"Open Digital Inputs\" — the shorter button",
+      "verdict": null,
+      "comment": ""
+    },
+    "F8": {
+      "sha": "591cadc",
+      "title": "Admin — category colours AND fill strength, contrast-guarded",
+      "verdict": null,
+      "comment": ""
+    },
+    "F9": {
+      "sha": "591cadc",
+      "title": "S1 as one sheet — judge the whole thing",
+      "verdict": null,
+      "comment": ""
+    },
+    "F10": {
+      "sha": "414e6bc",
+      "title": "Settings — Feedback + eXeL AI at the very bottom, egg still unlocks",
+      "verdict": null,
+      "comment": ""
+    }
+  }
+}
