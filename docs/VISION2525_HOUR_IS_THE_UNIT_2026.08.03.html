@@ -1,0 +1,548 @@
+<title>웃 · The Hour Is the Unit — Work-Time Standardization &amp; the Settlement Ladder</title>
+<style>
+:root{
+  --paper:#FAF7F2; --ink:#22201C; --ink-2:#5C564C; --rule:#DDD5C7; --rule-2:#EFE9DF;
+  --brass:#8A6415; --brass-bg:#F3EADA;
+  --brick:#9B4429; --brick-bg:#F7E7E1;
+  --verdigris:#3D6349; --verdigris-bg:#E4EDE6;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#12100E; --ink:#E8E2D8; --ink-2:#9A9186; --rule:#3A342C; --rule-2:#241F1A;
+  --brass:#C9962E; --brass-bg:#241D0F; --brick:#D4785A; --brick-bg:#261510;
+  --verdigris:#7FAE8C; --verdigris-bg:#121D16;
+}}
+:root[data-theme="dark"]{
+  --paper:#12100E; --ink:#E8E2D8; --ink-2:#9A9186; --rule:#3A342C; --rule-2:#241F1A;
+  --brass:#C9962E; --brass-bg:#241D0F; --brick:#D4785A; --brick-bg:#261510;
+  --verdigris:#7FAE8C; --verdigris-bg:#121D16;
+}
+:root[data-theme="light"]{
+  --paper:#FAF7F2; --ink:#22201C; --ink-2:#5C564C; --rule:#DDD5C7; --rule-2:#EFE9DF;
+  --brass:#8A6415; --brass-bg:#F3EADA; --brick:#9B4429; --brick-bg:#F7E7E1;
+  --verdigris:#3D6349; --verdigris-bg:#E4EDE6;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);
+  font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  margin:0;padding:0 20px 96px;-webkit-text-size-adjust:100%}
+.wrap{max-width:78ch;margin:0 auto}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-weight:600;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5.5vw,40px);line-height:1.15;margin:0 0 6px}
+h2{font-size:clamp(20px,3.4vw,25px);line-height:1.25;margin:0}
+h3{font-size:17px;margin:30px 0 8px}
+h4{font-size:14.5px;margin:22px 0 6px;font-weight:700}
+p{margin:0 0 14px}
+small,.meta{color:var(--ink-2)}
+code,.mono,th,.pct{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+code{font-size:.86em;background:var(--rule-2);padding:1px 5px;border-radius:3px;word-break:break-word}
+a{color:var(--brass)}
+
+header.mast{border-bottom:2px solid var(--ink);padding:34px 0 16px;margin-bottom:26px}
+.kicker{font:600 11px/1 ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--brass);margin-bottom:14px}
+.mast .meta{font-family:ui-monospace,monospace;font-size:11.5px;margin-top:12px;line-height:1.7}
+
+.verdict{border:1px solid var(--brick);border-left:5px solid var(--brick);background:var(--brick-bg);
+  padding:18px 20px;margin:0 0 30px;border-radius:2px}
+.verdict .tag{font:700 11px/1 ui-monospace,monospace;letter-spacing:.16em;color:var(--brick);text-transform:uppercase}
+.verdict h2{font-size:22px;margin:9px 0 8px}
+.verdict p:last-child{margin-bottom:0}
+
+section.clause{display:grid;grid-template-columns:4.2rem 1fr;gap:0 18px;
+  border-top:1px solid var(--rule);padding-top:24px;margin-top:34px}
+section.clause>.num{font:600 13px/1.5 ui-monospace,monospace;color:var(--brass);padding-top:6px}
+section.clause>.body{min-width:0}
+@media(max-width:640px){
+  section.clause{grid-template-columns:1fr;gap:0}
+  section.clause>.num{padding:0 0 4px}
+}
+
+.scroll{overflow-x:auto;margin:16px 0;border:1px solid var(--rule);border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:min(100%,560px)}
+th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);
+  background:var(--rule-2);padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--rule-2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num{white-space:nowrap;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;text-align:right}
+
+/* coverage bar — one figure, stated once, visually */
+.cov{margin:20px 0;border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.cov .bars{display:flex;height:38px}
+.cov .b{display:flex;align-items:center;justify-content:center;
+  font:700 11px/1 ui-monospace,monospace;letter-spacing:.06em;color:var(--paper)}
+.cov .b.p{background:var(--verdigris)}
+.cov .b.m{background:var(--brass)}
+.cov .b.n{background:var(--brick)}
+.cov .cap{padding:9px 12px;font-size:13px;color:var(--ink-2);border-top:1px solid var(--rule)}
+
+.note{border-left:3px solid var(--rule);padding:2px 0 2px 16px;margin:16px 0;color:var(--ink-2);font-size:14.5px}
+.flag{border:1px solid var(--brick);background:var(--brick-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.flag .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--brick);text-transform:uppercase;display:block;margin-bottom:8px}
+.keep{border:1px solid var(--verdigris);background:var(--verdigris-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.keep .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--verdigris);text-transform:uppercase;display:block;margin-bottom:8px}
+.ask{border:1px solid var(--brass);background:var(--brass-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.ask .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--brass);text-transform:uppercase;display:block;margin-bottom:8px}
+.flag p:last-child,.keep p:last-child,.ask p:last-child{margin-bottom:0}
+
+/* settlement ladder tiers */
+.tier{border-left:3px solid var(--rule);padding:12px 0 12px 16px;margin:14px 0}
+.tier.t1{border-left-color:var(--verdigris)}
+.tier.t2{border-left-color:var(--brass)}
+.tier.t3{border-left-color:var(--brick)}
+.tier .hd{font-weight:700;font-size:14.5px}
+.tier .cnt{float:right;font:700 12px/1.4 ui-monospace,monospace;color:var(--ink-2)}
+.tier p{margin:6px 0 0;font-size:14.5px;color:var(--ink-2)}
+
+.master{border-top:1px solid var(--rule-2);padding:15px 0}
+.master:first-of-type{border-top:0}
+.master h4{margin:0 0 3px;font-size:15px;font-weight:600}
+.master .role{font:600 10px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.master .pct{float:right;font-size:13px;font-weight:700;color:var(--brass)}
+.master p{margin:8px 0 0;font-size:14.5px}
+.master .rec{color:var(--ink-2)}
+.bar{height:3px;background:var(--rule-2);border-radius:2px;margin-top:9px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--brass)}
+
+footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
+  font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-2);line-height:1.7}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">Master of Thought · Vision 2525 · 웃 Work-Time Standard</div>
+  <h1>The Hour Is the Unit</h1>
+  <p class="meta" style="font-family:inherit;font-size:16px;margin:8px 0 0;color:var(--ink-2)">
+    What the 114-row global wage table actually proves — and why
+    <strong>“maximize 웃 to standardize work time”</strong> is the only instruction that survives contact
+    with it. Convened with the 12 Ascended Masters.
+  </p>
+  <div class="meta">
+    SOURCE&nbsp; operator's consolidated rate table · 114 rows · 103 jurisdictions · 27 currencies<br>
+    GROUNDED IN&nbsp; <code>d9b687c</code> · 2026.08.03 · every figure re-derived from the table itself<br>
+    <strong style="color:var(--brick)">NOT LEGAL ADVICE</strong>&nbsp; wage figures are the operator's; this document analyses structure, not their accuracy<br>
+    NOT DONE&nbsp; no code changed — analysis and schema recommendation only
+  </div>
+</header>
+
+<div class="verdict">
+  <span class="tag">Verdict</span>
+  <h2>42% of the world has no single hourly wage to denominate in — and never will.</h2>
+  <p>
+    74.6% of the table is NULL, but the NULLs are not all the same kind. <strong>37 rows are merely
+    unfilled</strong> — a national rate exists and research would recover it. <strong>The other 48 —
+    42.1% of the table — are structurally unfillable.</strong> Those jurisdictions have collective
+    agreements, sectoral floors, occupational bands, regional rates and employer-size tiers, or publish
+    nothing comparable at all. No research programme fills those cells, because the number being sought
+    does not exist.
+  </p>
+  <p>
+    Which means <strong>wage cannot be the unit.</strong> A unit that is undefinable for 42% of jurisdictions
+    cannot standardize anything. And the instruction already contains the answer:
+    <strong>maximize 웃 to standardize work time.</strong> The hour is available in 100% of jurisdictions,
+    needs no table, no currency, no exchange rate, and no lookup. <strong>웃 <em>is</em> the hour.</strong>
+    The wage table is demoted from <em>the unit</em> to <em>a settlement convenience</em> — and everything
+    that was hard becomes easy.
+  </p>
+</div>
+
+<div class="cov">
+  <div class="bars">
+    <div class="b p" style="width:25.4%">25.4%</div>
+    <div class="b m" style="width:32.5%">32.5%</div>
+    <div class="b n" style="width:42.1%">42.1% UNFILLABLE</div>
+  </div>
+  <div class="cap">
+    <strong>29 rows (25.4%)</strong> carry a published numeric hourly rate ·
+    <strong>37 (32.5%)</strong> have a single national rate that is simply not filled in here — research
+    recovers these · <strong>48 (42.1%)</strong> have no single national rate to recover: 35 where pay is
+    set regionally, sectorally or by employer size, and 13 where no official rate is published at all.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 1</div><div class="body">
+<h2>What the table proves</h2>
+<p>
+  Read as a data-collection exercise, the table looks three-quarters finished. Read as evidence, it is
+  complete — and it settles an architectural question that no amount of further research could.
+</p>
+<div class="scroll"><table>
+  <tr><th>Measure</th><th>Value</th><th>What it means</th></tr>
+  <tr><td>Total rows</td><td class="num">114</td><td>Language × jurisdiction pairs</td></tr>
+  <tr><td>Distinct jurisdictions</td><td class="num">103</td><td>Eight countries appear more than once — see §5</td></tr>
+  <tr><td>Published numeric rate</td><td class="num">29</td><td><strong>25.4%</strong> — the only rows a wage-denominated system can serve directly</td></tr>
+  <tr><td>NULL</td><td class="num">85</td><td><strong>74.6%</strong> — but of three different kinds</td></tr>
+  <tr><td>— unfilled, but recoverable</td><td class="num">37</td><td>A single national rate exists; research would supply it. <strong>32.5%</strong></td></tr>
+  <tr><td>— no single national rate</td><td class="num">35</td><td>A rate exists but is regional, sectoral, occupational or employer-size dependent</td></tr>
+  <tr><td>— no official rate published</td><td class="num">13</td><td>Collective bargaining (AT · IT · SE · DK · FI · LI) or no comparable figure (KP · YE · UG · RW · AE · VA)</td></tr>
+  <tr><td><strong>= structurally unfillable</strong></td><td class="num">48</td><td><strong>42.1%</strong> — the number that decides the architecture</td></tr>
+  <tr><td>Distinct currencies</td><td class="num">27</td><td>Every one needs an FX rate <em>and</em> a date — see §6</td></tr>
+</table></div>
+<div class="keep">
+  <span class="lab">The structural conclusion</span>
+  <p>A wage-denominated 웃 works today in <strong>25.4%</strong> of the world, and could reach
+  <strong>57.9%</strong> with a research effort. It stops there. The remaining <strong>42.1%</strong> is
+  not a backlog — those societies genuinely set pay another way, and the number does not exist to be
+  found. A time-denominated 웃 works in <strong>100%</strong>, today, with no research at all.</p>
+  <p>Put the other way: <strong>a wage-denominated design would permanently exclude two of every five
+  jurisdictions</strong> — including some of the most equitable labour markets on earth. That is the
+  decision, and it is not close.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 2</div><div class="body">
+<h2>웃 is the hour — the instruction, made structural</h2>
+<p>
+  <strong>1 웃 ≡ 1 hour of contributed time.</strong> Not one hour <em>valued at</em> something. The hour
+  itself. This is what <em>“maximize 웃 to standardize work time”</em> means when carried all the way
+  through, and it has four properties nothing wage-based can match:
+</p>
+<div class="scroll"><table>
+  <tr><th>Property</th><th>Consequence</th></tr>
+  <tr><td><strong>Universally defined</strong></td><td>An hour is an hour in all 103 jurisdictions — including the 13 that publish no wage and the four with unstable currency. Coverage is 100% by construction, not by data collection.</td></tr>
+  <tr><td><strong>Needs no table</strong></td><td>Minting requires no rate lookup, no FX, no date, no fallback. The most reliable subsystem is the one that does not exist.</td></tr>
+  <tr><td><strong>Cannot inflate</strong></td><td>An hour in 2026 is an hour in 2525. Currency-denominated ledgers do not survive five centuries; a time-denominated one does.</td></tr>
+  <tr><td><strong>Cannot be bought</strong></td><td>Time can only be spent, never purchased. This is the same property that makes 웃 a non-security and un-hoardable — the unit and the anti-capture mechanism are the same choice.</td></tr>
+</table></div>
+<p class="note">
+  The last row is worth sitting with. The reason 웃 resists capture and the reason it works in 103
+  jurisdictions are not two design decisions that happen to agree. They are one decision, seen from two
+  sides. Denominating in time is simultaneously the equity argument, the coverage argument, the durability
+  argument and the securities argument.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 3</div><div class="body">
+<h2>Mint and settle are different problems</h2>
+<p>
+  Once 웃 is the hour, the wage table stops being load-bearing. It is needed only when someone converts 웃
+  into local money — which is optional, local, and late.
+</p>
+<div class="scroll"><table>
+  <tr><th></th><th>MINT · hours → 웃</th><th>SETTLE · 웃 → currency</th></tr>
+  <tr><td><strong>Needs a wage rate?</strong></td><td>No</td><td>Yes</td></tr>
+  <tr><td><strong>Needs FX + date?</strong></td><td>No</td><td>Yes</td></tr>
+  <tr><td><strong>Jurisdiction coverage</strong></td><td><strong>103 / 103 — 100%</strong></td><td><strong>29 / 103 — 25.4% cleanly</strong></td></tr>
+  <tr><td><strong>Frequency</strong></td><td>Continuous, every contribution</td><td>Occasional, opt-in</td></tr>
+  <tr><td><strong>Failure mode if unavailable</strong></td><td>Cannot happen</td><td>Settlement deferred; balance unaffected</td></tr>
+</table></div>
+<div class="ask">
+  <span class="lab">The law this establishes</span>
+  <p><strong>A missing wage rate must never block a contribution from being recorded.</strong> Someone in
+  Vatican City, North Korea or Uganda contributes an hour and earns 1 웃, exactly like everyone else. What
+  they cannot immediately do is convert it — and that is a settlement question, not a recognition question.</p>
+  <p>The current code inverts this: <code>backend/app/cubes/cube5_gateway/service.py:92-94</code> multiplies
+  by the rate <em>at mint</em>, so a jurisdiction with no rate cannot mint correctly at all. Moving the rate
+  to settlement fixes the equity defect and the coverage defect with the same change.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 4</div><div class="body">
+<h2>The settlement ladder</h2>
+<p>
+  The table's own three states are the tiers. Each is a different <em>kind</em> of answer, and the
+  difference must be visible to the person being paid.
+</p>
+
+<div class="tier t1">
+  <span class="cnt">29 · 25.4%</span>
+  <div class="hd">Tier 1 — published single national hourly rate</div>
+  <p>Direct settlement. US · GB · CA · AU · NZ · NG · CM · ES · MX · CO · CL · DE · LU · BR · RU · CN · JP ·
+  KR · EG · MA · PK · TH · VN · ID · MY · PH · TR · PL · IL. Note several of these are already
+  sub-national (Beijing, Tokyo, Bangkok, Jakarta, Metro Manila, Punjab, Region I) — the rate is published,
+  but the jurisdiction it covers is narrower than the country.</p>
+</div>
+
+<div class="tier t1" style="border-left-color:var(--brass);opacity:.9">
+  <span class="cnt">37 · 32.5%</span>
+  <div class="hd">Tier 1 pending — a national rate exists, not yet recorded</div>
+  <p>IE · FR · PT · CZ · GR · RO · UA · PE · BO · AR and 27 others. These belong in Tier 1 once the figure
+  is sourced and dated. They are the only rows where research is the answer — and the only ones that
+  should be treated as a backlog.</p>
+</div>
+
+<div class="tier t2">
+  <span class="cnt">35 · 30.7%</span>
+  <div class="hd">Tier 2 — published, but no single national rate</div>
+  <p>A rate exists; the system must choose <em>which</em>. Regional (CH cantons, CA Québec), sectoral
+  (MZ · AO · BD · SV), occupational (CR · SG · SA), employer-size (HN · DO), or citizenship-linked
+  (OM · BH · KW · SA). <strong>The selection rule is a governance decision, not a data decision</strong> —
+  highest, median, or the one matching the contributor's declared sector — and whichever is chosen must be
+  written down once and applied identically everywhere.</p>
+</div>
+
+<div class="tier t3">
+  <span class="cnt">13 · 11.4%</span>
+  <div class="hd">Tier 3 — no official rate published</div>
+  <p>Collective-bargaining economies (AT · IT · SE · DK · FI · LI) where a legal minimum genuinely does not
+  exist, and jurisdictions with no comparable figure (KP · YE · UG · RW · AE · VA). No wage anchor can be
+  derived honestly. Settlement here requires either a declared proxy — with its provenance stated — or an
+  honest “settlement unavailable in this jurisdiction.”</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Mandatory — disclosure of tier</span>
+  <p><strong>Every settlement states which tier produced it.</strong> A Tier 1 figure and a Tier 3 estimate
+  must never render identically, because they are not the same kind of claim. This is
+  <code>U-WF-09</code> — <em>“silent caps forbidden; must report dropped detail”</em> — promoted from
+  geometry to money.</p>
+  <p>Without it, the 42.1% quietly becomes indistinguishable from the 25.4%, and the framework's most
+  valuable property — that it never overstates what it knows — is lost at exactly the point where money
+  changes hands.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 5</div><div class="body">
+<h2>Three defects this table exposes in the running system</h2>
+
+<div class="flag">
+  <span class="lab">Defect A · severe · the two tables are in different units</span>
+  <p><code>backend/app/core/hi_rates.py</code> stores rates in <strong>USD</strong>. This table is in
+  <strong>local currency</strong>. Neither file says so. Loading one into the other multiplies every
+  non-USD rate by its exchange rate:</p>
+  <div class="scroll" style="margin:12px 0 0"><table>
+    <tr><th>Country</th><th>hi_rates.py</th><th>This table</th><th>Error if merged</th></tr>
+    <tr><td>Nigeria</td><td class="num">0.34</td><td class="num">402.739 NGN</td><td class="num">1,185×</td></tr>
+    <tr><td>Colombia</td><td class="num">2.45</td><td class="num">10,073.700 COP</td><td class="num">4,112×</td></tr>
+    <tr><td>Chile</td><td class="num">3.02</td><td class="num">3,101.087 CLP</td><td class="num">1,027×</td></tr>
+    <tr><td>Thailand</td><td class="num">1.49</td><td class="num">50.000 THB</td><td class="num">34×</td></tr>
+    <tr><td>Mexico</td><td class="num">1.43</td><td class="num">39.380 MXN</td><td class="num">28×</td></tr>
+    <tr><td>Brazil</td><td class="num">1.58</td><td class="num">9.326 BRL</td><td class="num">6×</td></tr>
+  </table></div>
+  <p style="margin:12px 0 0">The implied ratios are real exchange rates — 34 THB/USD and 1,185 NGN/USD are
+  approximately correct — which <em>confirms</em> the diagnosis rather than merely suggesting it. The two
+  sources are internally consistent; they simply measure different things.</p>
+  <p style="margin:12px 0 0"><strong>Fix:</strong> every rate carries its <code>currency_code</code>
+  explicitly. There is no such thing as a bare number here. The table already has the column — the code
+  does not.</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Defect B · 91% of jurisdictions silently settle at Texas today</span>
+  <p><code>hi_rates.py</code> resolves <strong>9</strong> non-US countries. The table lists
+  <strong>103</strong> jurisdictions. <code>DEFAULT_HUMAN_RATE = 7.25</code> with
+  <code>DEFAULT_COUNTRY = "United States"</code> means the other <strong>94 — 91% — silently receive the
+  Texas rate.</strong> No warning, no flag, no disclosure.</p>
+  <p>And the nine that <em>are</em> covered do not align either: six appear with published numbers (in the
+  other unit, per Defect A), <strong>Nepal and Honduras are NULL</strong> in the new table, and
+  <strong>Cambodia is absent entirely</strong> — yet all three carry confident three-decimal values in code
+  today.</p>
+  <p><strong>Fix:</strong> an unresolvable jurisdiction must return <em>unresolved</em>, never a default. A
+  silent fallback to one country's wage is the same defect class as a silent cap.</p>
+</div>
+
+<div class="flag">
+  <span class="lab">Defect C · the table is keyed by language, and a wage is not a property of language</span>
+  <p>Eight jurisdictions appear more than once because the key is <em>(language, country)</em>:
+  <strong>India ×4</strong> (English · Hindi · Bengali · Punjabi), <strong>Switzerland ×3</strong>
+  (French · German · Italian), and Belgium · Canada · DRC · Cyprus · Finland · Singapore ×2 each.</p>
+  <p>Under this key, two people doing identical work in Switzerland could settle differently because one
+  reads the interface in German and the other in French. That is arbitrary, and in employment terms it is
+  worse than arbitrary.</p>
+  <p><strong>Fix — two tables, joined only for display:</strong> the <strong>rate</strong> is keyed by
+  jurisdiction (<code>country_code</code> + optional subdivision). The <strong>language</strong> belongs to
+  the lexicon, which already exists and already carries 33 languages
+  (<code>frontend/lib/constants.ts:53</code>). 103 rate rows, 33 language rows — not 114 conflated ones.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 6</div><div class="body">
+<h2>Currency date is not optional</h2>
+<p>
+  Four rows carry their own warning: Sudan and Syria are marked <em>“currency-date control required”</em>,
+  Venezuela <em>“currency value highly unstable”</em>, Argentina <em>“frequently adjusted”</em>. But the
+  problem is general, not special — <strong>every one of the 27 currencies needs a date</strong>, because a
+  rate without one is unreproducible, and an unreproducible settlement cannot be replayed.
+</p>
+<div class="keep">
+  <span class="lab">One mechanism, three problems</span>
+  <p>Stamping <code>rate</code> + <code>currency</code> + <code>as_of_date</code> + <code>tier</code> on the
+  ledger entry <strong>at the moment of earning</strong> solves all of these at once:</p>
+  <p>· the cross-border arbitrage (settle at the earner's stamped rate, not the redeemer's)<br>
+  · the unstable-currency problem (the rate is fixed at the moment work was done, not at redemption)<br>
+  · replay (the settlement is reproducible for centuries)<br>
+  · tier disclosure (§4 travels with the entry rather than being recomputed later)</p>
+  <p>Four fields on an append-only record, and the ledger becomes self-describing.</p>
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 7</div><div class="body">
+<h2>The schema this table should become</h2>
+<p>
+  One table becomes three, each with a single job. The operator's 114 rows contain all of the content —
+  they are simply carrying three schemas at once.
+</p>
+<div class="scroll"><table>
+  <tr><th>Table</th><th>Key</th><th>Columns</th><th>Rows</th></tr>
+  <tr><td><strong>jurisdiction_rate</strong></td><td class="mono">country_code + subdivision</td><td><code>currency_code · hourly_rate · tier · as_of_date · basis_note · source</code></td><td class="num">103</td></tr>
+  <tr><td><strong>lexicon_language</strong></td><td class="mono">language_code</td><td>Already exists — <code>constants.ts:53</code></td><td class="num">33</td></tr>
+  <tr><td><strong>ledger_entry</strong></td><td class="mono">append-only id</td><td><code>hours · 웃 · stamped rate · currency · as_of_date · tier</code></td><td>—</td></tr>
+</table></div>
+<div class="ask">
+  <span class="lab">Two columns to add that the table does not yet have</span>
+  <p><strong><code>tier</code></strong> — 1, 2 or 3 per §4, so the <em>kind</em> of answer is data rather
+  than a note a human has to read.<br>
+  <strong><code>as_of_date</code></strong> — per §6, so every figure is reproducible.</p>
+  <p>The existing <code>Notes</code> column is doing the work of both today, in prose. Prose cannot be
+  tested; two columns can. This is the same move as making Document 0 a registry rather than an essay.</p>
+</div>
+<p class="note">
+  <strong>Rows to reconcile before load:</strong> the three <code>hi_rates.py</code> entries with no
+  counterpart — <strong>Nepal</strong> and <strong>Honduras</strong> (NULL in the new table) and
+  <strong>Cambodia</strong> (absent). Each currently carries a confident value in production code. Either
+  the new table is missing them or the code invented them; either way one source is wrong, and that is
+  exactly the drift class this project keeps meeting.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 8</div><div class="body">
+<h2>What this changes about the 9999 ceiling</h2>
+<p>
+  Nothing — and that is the point worth stating explicitly, because it is the test of whether the model
+  holds.
+</p>
+<div class="scroll"><table>
+  <tr><th>Quantity</th><th>Denominated in</th><th>Varies by jurisdiction?</th></tr>
+  <tr><td>1 웃</td><td>One hour</td><td><strong>No.</strong> Identical in all 103.</td></tr>
+  <tr><td>9999 웃/year ceiling</td><td>Hours</td><td><strong>No.</strong> Same ceiling for everyone.</td></tr>
+  <tr><td>What 9999 웃 settles to</td><td>Local currency</td><td><strong>Yes.</strong> That is settlement's job.</td></tr>
+</table></div>
+<p>
+  The ceiling is a <em>time</em> ceiling, so it needs no rate to enforce and applies identically to a
+  contributor in Tier 1 Germany and Tier 3 Uganda. Only the payout differs — and only where a payout is
+  possible at all. <strong>The equity is in the unit; the locality is in the settlement.</strong> Keep 9999
+  exactly as specified.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 9</div><div class="body">
+<h2>The 12 Ascended Masters</h2>
+<p class="note" style="margin-top:0">Confidence is in <em>the hour-as-unit conclusion and this schema</em>.</p>
+
+<div class="master"><span class="pct">94%</span><h4>Thoth</h4><div class="role">Data &amp; analytics</div>
+<p><strong>Strength:</strong> highest on the panel. 42.1% structurally unfillable is not noise — it is a measurement, and it settles the question decisively. A unit that two of every five jurisdictions cannot define is not a unit.
+<strong>Concern:</strong> the <code>Notes</code> column is carrying structured data as prose.</p>
+<p class="rec"><strong>Recommend:</strong> promote <code>tier</code> and <code>as_of_date</code> to columns. Untestable prose is how the 25.4% and the 42.1% become indistinguishable.</p>
+<div class="bar"><i style="width:94%"></i></div></div>
+
+<div class="master"><span class="pct">91%</span><h4>Krishna</h4><div class="role">Integration</div>
+<p><strong>Strength:</strong> mint/settle separation is a single change that fixes equity, coverage and replay simultaneously.
+<strong>Concern:</strong> the unit mismatch in Defect A is the kind of error that ships silently and is discovered by a contributor who was underpaid 1,185×.</p>
+<p class="rec"><strong>Recommend:</strong> make <code>currency_code</code> non-nullable on every rate. A bare number should be impossible to represent.</p>
+<div class="bar"><i style="width:91%"></i></div></div>
+
+<div class="master"><span class="pct">89%</span><h4>Sofia</h4><div class="role">Multi-perspective</div>
+<p><strong>Strength:</strong> the table respects that societies genuinely order pay differently — collective bargaining is not a failure to publish, it is a different settlement.
+<strong>Concern:</strong> Tier 3's collective-bargaining economies are among the world's most equitable. Treating them as “missing data” inverts the truth.</p>
+<p class="rec"><strong>Recommend:</strong> name Tier 3 <em>“no statutory minimum — pay set collectively”</em>, not “unavailable.” The label is the respect.</p>
+<div class="bar"><i style="width:89%"></i></div></div>
+
+<div class="master"><span class="pct">88%</span><h4>Christo</h4><div class="role">Consensus</div>
+<p><strong>Strength:</strong> everyone earns the same 웃 per hour, everywhere. That is explicable to a contributor in one sentence and is felt as fair because it is fair.
+<strong>Concern:</strong> a Tier 3 contributor who cannot settle may experience the ceiling as theoretical.</p>
+<p class="rec"><strong>Recommend:</strong> say plainly at the point of joining what settlement is available in that jurisdiction. Earned recognition is real either way; do not let it be discovered as a surprise.</p>
+<div class="bar"><i style="width:88%"></i></div></div>
+
+<div class="master"><span class="pct">86%</span><h4>Aset</h4><div class="role">Consistency</div>
+<p><strong>Strength:</strong> the hour is the first quantity in this framework that means exactly one thing in every source.
+<strong>Concern:</strong> Nepal, Honduras and Cambodia carry confident production values with no counterpart in this table.</p>
+<p class="rec"><strong>Recommend:</strong> reconcile those three before load. A confident number with no source is worse than a NULL.</p>
+<div class="bar"><i style="width:86%"></i></div></div>
+
+<div class="master"><span class="pct">85%</span><h4>Asar</h4><div class="role">Synthesis</div>
+<p><strong>Strength:</strong> the framework's equity argument, coverage argument, durability argument and securities argument turn out to be one argument.
+<strong>Concern:</strong> nothing yet says what happens to unsettled 웃 balances over decades.</p>
+<p class="rec"><strong>Recommend:</strong> state whether unsettled 웃 expires. It should not — but silence will be read as expiry by whoever inherits the ledger.</p>
+<div class="bar"><i style="width:85%"></i></div></div>
+
+<div class="master"><span class="pct">84%</span><h4>Odin</h4><div class="role">Future-proofing</div>
+<p><strong>Strength:</strong> an hour in 2026 is an hour in 2525. No currency in this table will survive that span; several will not survive the decade.
+<strong>Concern:</strong> the stamped settlement rate is only durable if the <em>date</em> is stamped with it.</p>
+<p class="rec"><strong>Recommend:</strong> <code>as_of_date</code> is not optional metadata. It is what makes the ledger readable by people who have never heard of these currencies.</p>
+<div class="bar"><i style="width:84%"></i></div></div>
+
+<div class="master"><span class="pct">82%</span><h4>Athena</h4><div class="role">Strategy</div>
+<p><strong>Strength:</strong> demoting the wage table from unit to convenience removes the project's largest ongoing maintenance burden.
+<strong>Concern:</strong> Tier 2's selection rule (35 rows) is a governance decision disguised as a data question, and it will be made by default if it is not made deliberately.</p>
+<p class="rec"><strong>Recommend:</strong> decide the Tier 2 rule explicitly and once — highest, median, or declared-sector — and record it as a definition.</p>
+<div class="bar"><i style="width:82%"></i></div></div>
+
+<div class="master"><span class="pct">80%</span><h4>Enki</h4><div class="role">Edge cases</div>
+<p><strong>Strength:</strong> mint never fails, so the hardest jurisdictions degrade gracefully rather than excluding people.
+<strong>Concern:</strong> contributors who move between jurisdictions mid-year are undefined — which ceiling, which rate, which tier?</p>
+<p class="rec"><strong>Recommend:</strong> the ceiling follows the person; the rate follows the entry. Each hour keeps the stamp it was earned under.</p>
+<div class="bar"><i style="width:80%"></i></div></div>
+
+<div class="master"><span class="pct">79%</span><h4>Pangu</h4><div class="role">Innovation headroom</div>
+<p><strong>Strength:</strong> a time-denominated ledger is a genuinely novel primitive — most systems reach for currency and inherit its problems.
+<strong>Concern:</strong> 27 currencies today; the schema must not assume that set is closed.</p>
+<p class="rec"><strong>Recommend:</strong> currency is data, never an enum in code. A new jurisdiction should be a row, never a deployment.</p>
+<div class="bar"><i style="width:79%"></i></div></div>
+
+<div class="master"><span class="pct">76%</span><h4>Enlil</h4><div class="role">Implementation</div>
+<p><strong>Strength:</strong> the change is small and well-located — move the multiplication from mint to settle.
+<strong>Concern:</strong> 94 of 103 jurisdictions currently resolve to Texas <em>silently</em>. That is shipping today, and every settlement it has touched is wrong.</p>
+<p class="rec"><strong>Recommend:</strong> make <code>resolve_human_rate</code> return unresolved rather than a default, and let callers handle it. Fail visibly or do not fail.</p>
+<div class="bar"><i style="width:76%"></i></div></div>
+
+<div class="master"><span class="pct">74%</span><h4>Thor</h4><div class="role">Risk &amp; security</div>
+<p><strong>Strength:</strong> a unit that cannot be bought or inflated removes two entire attack classes.
+<strong>Concern:</strong> lowest on the panel. Defect A is a 1,185× payout error waiting on a data load, and Defect B is a wrong-by-default that is live right now. Both are silent — no exception, no log, no alert.</p>
+<p class="rec"><strong>Recommend:</strong> before any table load, add a test asserting that no rate exists without a currency and no lookup falls back to a default. Then load.</p>
+<div class="bar"><i style="width:74%"></i></div></div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 10</div><div class="body">
+<h2>Master of Thought — synthesis</h2>
+<p>
+  The table was assembled to answer <em>“what does an hour pay everywhere?”</em> It answers a better
+  question instead: <strong>“can pay be the unit at all?”</strong> — and the answer is no, permanently, for
+  42.1% of jurisdictions. That is not a disappointing result. It is the result that makes the design simple.
+</p>
+<p>
+  <strong>웃 is the hour.</strong> It needs no table to mint, works in every jurisdiction including the
+  thirteen that publish nothing, cannot inflate across five centuries, and cannot be bought — which is the
+  same property that makes it un-hoardable and non-security. The equity argument and the coverage argument
+  turn out to be the same argument, and the wage table becomes what it should always have been: a
+  convenience at the edge, consulted when someone wants local currency, and honest about which of three
+  tiers produced the number.
+</p>
+
+<h4>Next actions</h4>
+<div class="scroll"><table>
+  <tr><th>#</th><th>Action</th><th>Why now</th></tr>
+  <tr><td class="num">1</td><td>Add <code>currency_code</code> to every rate; make a bare number unrepresentable</td><td>Defect A is a 1,185× error waiting on a data load</td></tr>
+  <tr><td class="num">2</td><td><code>resolve_human_rate</code> returns <em>unresolved</em>, never a default</td><td>Defect B is wrong-by-default in production today, for 91% of jurisdictions</td></tr>
+  <tr><td class="num">3</td><td>Move the rate multiplication from mint to settle</td><td>Fixes equity and coverage with one change; makes 웃 the hour in code</td></tr>
+  <tr><td class="num">4</td><td>Split the table: rate by jurisdiction, language by lexicon</td><td>Defect C — nobody's pay should depend on their interface language</td></tr>
+  <tr><td class="num">5</td><td>Add <code>tier</code> and <code>as_of_date</code> columns</td><td>Makes the tier distinction testable rather than prose</td></tr>
+  <tr><td class="num">6</td><td>Decide the Tier 2 selection rule, once</td><td>35 rows depend on it; it will be decided by default otherwise</td></tr>
+  <tr><td class="num">7</td><td>Reconcile Nepal · Honduras · Cambodia</td><td>Confident production values with no source in the new table</td></tr>
+</table></div>
+
+<div class="keep">
+  <span class="lab">In one sentence</span>
+  <p><strong>Denominate in the hour, settle in the currency, and always say which of the three you had to
+  reach for.</strong> That is the whole standard — and it is what “maximize 웃 to standardize work time”
+  looks like once the table has been read honestly.</p>
+</div>
+</div></section>
+
+<footer>
+  MASTER OF THOUGHT · VISION 2525 · 웃 THE HOUR IS THE UNIT<br>
+  2026.08.03 · grounded at <code>d9b687c</code> · analysis only — no code changed<br>
+  114 rows · 103 jurisdictions · 27 currencies · 29 published (25.4%) · 37 recoverable (32.5%) · 48 unfillable (42.1%) · 3 defects · 12 reviews<br>
+  1 웃 = 1 hour · everywhere · always · unbuyable
+</footer>
+
+</div>
