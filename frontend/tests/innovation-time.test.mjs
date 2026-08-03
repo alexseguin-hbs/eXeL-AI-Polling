@@ -5880,8 +5880,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // drops the face-flip button (~14px), because a presented sheet is read, not operated. Without those
   // 38px the tag could not lead column 1 without clipping on all 33 projects; with them, 33/33 fit.
   // The project card is untouched — a mutation that drops the `slide` branch turns these red.
-  ok(/slide \? "flex flex-wrap justify-center gap-x-2 gap-y-0" : "flex flex-col gap-0"/.test(src),
-     "the tag's highlights run inline on a slide and stay stacked on the project card");
+  // ⚠ AD · ONE METRIC PER LINE, EVERY SURFACE (operator). This REVERSES Z-4's slide-only inline wrap. The
+  // lock flips with the law rather than being deleted, so the inline mode cannot come back by accident.
+  ok(/<div className="mt-0\.5 flex flex-col items-center gap-0 text-\[10px\] leading-tight">/.test(src),
+     "the tag's highlights are one per line on every surface — three lines");
+  ok(!/flex flex-wrap justify-center gap-x-2/.test(src), "…and the slide-only inline wrap is gone, not just bypassed");
   ok(/\{!slide && <button onClick=\{\(\) => setFace\(/.test(src),
      "…and the face-flip control is absent from a slide, present on the card");
   ok(/S1: "minmax\(0, 1fr\) auto auto auto"/.test(src),
@@ -6133,7 +6136,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const F = await import("../lib/innovation-data.ts");
 
   // 1 · ONE PALETTE, AND IT ALREADY MATCHED THE OPERATOR'S LEGEND — nothing new was invented.
-  ok(F.DEV_TYPE.newmarket.color === "#34d399", "New Mkt / Vertical is green");
+  ok(F.DEV_TYPE.newmarket.color === "#10b981", "New Mkt / Vertical is green — deepened for the stronger fill");
   ok(F.DEV_TYPE.prestudy.color === "#fb923c" && F.DEV_TYPE.enhance.color === "#38bdf8"
      && F.DEV_TYPE.sustaining.color === "#a78bfa",
      "…and Pre-study orange · Enhance/NextGen blue · Sustaining purple, exactly the reference legend");
@@ -6146,10 +6149,58 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "…and the portfolio actually contains a New Mkt / Vertical project, so the green case is exercised");
 
   // 2 · BODY = CATEGORY. Two identical stops so it is a flat TINT, not a gradient that reads as a shine.
-  ok(/background: `linear-gradient\(0deg, \$\{dt\.color\}22, \$\{dt\.color\}22\), #0b0f14`/.test(src),
+  ok(/background: `linear-gradient\(0deg, \$\{dt\.color\}\$\{TAG_TINT_ALPHA\}, \$\{dt\.color\}\$\{TAG_TINT_ALPHA\}\), #0b0f14`/.test(src),
      "the tag body is tinted by its category over the deck's own dark base");
+  // ⚠ AD · ONE CONSTANT, ONE SITE (Odin). The operator has asked for this fill strength twice; the third
+  // ask must stay a two-second edit, which it only does while there is exactly one number to change.
+  ok(/^const TAG_TINT_ALPHA = "[0-9a-f]{2}";$/m.test(src),
+     "the fill strength is a single named hex-alpha constant");
+  ok((src.match(/TAG_TINT_ALPHA/g) || []).length === 3,
+     "…referenced from exactly one place (declaration + the two gradient stops) — no second copy to drift");
   ok(!/rounded-lg border-2 bg-\[#0b0f14\]/.test(src),
      "…and the flat dark body it replaced is gone — the category is no longer just a dot");
+
+  // 2b · ⚠ THE FILL RAISED THE FLOOR UNDER THE TEXT, SO THE TEXT IS GATED BY THE SAME ARITHMETIC.
+  // This is NOT a regex over a class name pretending to be a contrast check — it composites each category
+  // colour at the ACTUAL declared alpha over the deck's ACTUAL base and computes the WCAG ratio. Change the
+  // alpha, change the palette, or dim the text, and this fails with the number that broke it. `text-slate-500`
+  // (what shipped before this commit) measures 1.90:1 on `enhance` and would be caught here.
+  {
+    const alpha = parseInt((src.match(/^const TAG_TINT_ALPHA = "([0-9a-f]{2})";$/m) || [, "00"])[1], 16) / 255;
+    const labelCls = (src.match(/^const TAG_METRIC_LABEL = "([\w-]+)";/m) || [, ""])[1];
+    const valueCls = (src.match(/^const TAG_METRIC_VALUE = "([\w-]+)";/m) || [, ""])[1];
+    // Tailwind slate ramp — only the shades the tag may legally use; an unlisted class fails loudly below.
+    const SLATE = { "text-slate-500": "#64748b", "text-slate-400": "#94a3b8", "text-slate-300": "#cbd5e1", "text-slate-200": "#e2e8f0", "text-slate-100": "#f1f5f9" };
+    const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    const ratio = (f, b) => { const a = lum(f), c = lum(b); return (Math.max(a, c) + 0.05) / (Math.min(a, c) + 0.05); };
+    const BASE = [0x0b, 0x0f, 0x14]; // the deck's own body colour, the second layer under the tint
+    ok(SLATE[labelCls] && SLATE[valueCls], `the tag's metric label + value are named constants on the slate ramp (${labelCls} / ${valueCls})`);
+    let worstLabel = Infinity, worstValue = Infinity, worstAt = "";
+    for (const [k, d] of Object.entries(F.DEV_TYPE)) {
+      const body = hex(d.color).map((x, i) => Math.round(x * alpha + BASE[i] * (1 - alpha)));
+      const rl = ratio(hex(SLATE[labelCls] || "#000000"), body);
+      const rv = ratio(hex(SLATE[valueCls] || "#000000"), body);
+      if (rl < worstLabel) { worstLabel = rl; worstAt = k; }
+      worstValue = Math.min(worstValue, rv);
+    }
+    ok(worstLabel >= 4.5, `metric LABEL clears WCAG AA over every tinted category body (worst ${worstLabel.toFixed(2)}:1 at ${worstAt})`);
+    ok(worstValue >= 4.5, `metric VALUE clears WCAG AA over every tinted category body (worst ${worstValue.toFixed(2)}:1)`);
+    ok(lum(hex(SLATE[valueCls] || "#000000")) > lum(hex(SLATE[labelCls] || "#ffffff")),
+       "…and the value stays LIGHTER than its own label — lifting both for contrast must not flatten the hierarchy");
+    ok(!/<span className="text-slate-500">\{m\.label\}:<\/span>/.test(src),
+       "…and the 1.90:1 hardcoded slate-500 label the fill made unreadable is gone from the tag");
+  }
+
+  // 2c · NO PROPORTIONAL CAP ON A FIXED-HEIGHT TAG. `max-h-[11cqh]` rationed a MEASURED-constant 92px tag by
+  // a fraction of a row whose height moves with the OTHER panels' content — 81px on PRJ-02, 96px on PRJ-01 —
+  // so four projects clipped their own metrics while 29 looked fine. `slide-shots` catches the clip; this
+  // catches the re-introduction, which is the cheaper place to catch it.
+  ok(/<div className="shrink-0"><DogTag p=\{p\} showType slide \/><\/div>/.test(src),
+     "the S1 tag is shrink-0 and uncapped — the value-prop prose beneath it is the flexible child");
+  ok(!/max-h-\[\d+cqh\][^>]*><DogTag/.test(src),
+     "…and no container-query height cap has crept back onto it");
 
   // 3 · BORDER = PILLAR, STILL THE ONLY HIGHLIGHT. This is the half of the instruction that is a
   // NON-change, and it is locked precisely because a colour pass is where it would get lost.
@@ -6189,6 +6240,34 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "the label band takes the strip's leftover height instead of a hard-coded half of it");
   ok(!/inset-x-3 top-1\/2 h-px bg-slate-700/.test(src),
      "…and the strip's centre rule no longer pins that band to 50%, which is what clamped the lift to zero");
+}
+
+// ── AD · THE LABEL LOSES WORDS, SO COLOUR MUST NOT BECOME THE SOLE CARRIER ───────────────────
+// Operator: "remove next gen and new from label — that's why we color." Correct for a reader who knows
+// the code. The 12-AsM review flagged the cost: Sofia — ~1 man in 12 cannot reliably separate this green
+// from this orange, and Christo — a first-time gate attendee now reads "Mkt / Vertical" and learns
+// nothing. Aset — the DOT is the one cue that survives greyscale, small sizes, and a tint that has not
+// painted yet. So the words go, and all three remaining cues are locked here so a later colour pass
+// cannot quietly take the last of them.
+{
+  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const F = await import("../lib/innovation-data.ts");
+
+  // 1 · THE WORDS ARE STRUCK — literally those two, and nothing else was rewritten in passing.
+  ok(F.DEV_TYPE.enhance.label === "Enhance" && F.DEV_TYPE.newmarket.label === "Mkt / Vertical",
+     "the type label drops 'NextGen' and 'New' — the colour carries them now");
+  ok(F.DEV_TYPE.prestudy.label === "Pre-study / Research" && F.DEV_TYPE.sustaining.label === "Sustaining",
+     "…and the two labels carrying no struck word are untouched");
+  ok(!Object.values(F.DEV_TYPE).some((d) => /\bNew\b|NextGen/i.test(d.label)),
+     "…no struck word survives anywhere in the palette");
+
+  // 2 · COLOUR IS NEVER THE SOLE CARRIER. Three cues, and the first works without colour at all.
+  ok(/<span className="inline-block h-2 w-2 shrink-0 rounded-full" style=\{\{ background: dt\.color \}\}/.test(src),
+     "the category DOT survives — the cue that still reads in greyscale and at thumbnail size");
+  ok(/title=\{`\$\{p\.name\} · \$\{h\.sbu\}[^`]*Type: \$\{dt\.label\}/.test(src),
+     "…the tooltip still spells the type out in full, so the information is demoted, never deleted");
+  ok(/\{showType && \(/.test(src) && /style=\{\{ color: dt\.color \}\}>\{dt\.label\}<\/div>/.test(src),
+     "…and the shortened label is still printed, not replaced by colour alone");
 }
 
 console.log(`\nINNOVATION-TIME ${pass}/${pass + fail} passed`);

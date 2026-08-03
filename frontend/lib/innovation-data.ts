@@ -2349,11 +2349,20 @@ export function roiSummary(projects: Project[]) {
 
 // Pipeline by Gate: dev-type color + spend + count per gate (G1..G7).
 export type DevType = "sustaining" | "prestudy" | "enhance" | "newmarket";
+// ⚠ AD · THE LABEL DROPS THE WORDS THE COLOUR ALREADY CARRIES (operator: "remove next gen and new from
+// label — that's why we color"). Struck literally: "NextGen" and "New", nothing else. Pre-study/Research
+// and Sustaining are untouched because neither carries a struck word.
+// ⚠ AND THE COLOUR IS NOW THE ONLY THING SAYING "NEW" — which is a real trade, not a free win. Roughly one
+// man in twelve cannot separate this green from this orange (Sofia, 12-AsM), so colour must never be the
+// SOLE carrier: the coloured dot survives, the shortened label survives, and the tag's `title` still spells
+// out "Type: <label>" in full. Three cues, one of which works in greyscale.
+// The green deepened #34d399 → #10b981 because the body tint strengthened; at the old value a 36% fill
+// read neon on the dark sheet.
 export const DEV_TYPE: Record<DevType, { label: string; color: string }> = {
   prestudy:  { label: "Pre-study / Research", color: "#fb923c" },  // orange
-  enhance:   { label: "Enhance / NextGen",    color: "#38bdf8" },  // blue
-  newmarket: { label: "New Mkt / Vertical",   color: "#34d399" },  // green
-  sustaining:{ label: "Sustaining",           color: "#a78bfa" },  // purple
+  enhance:   { label: "Enhance",              color: "#38bdf8" },  // blue
+  newmarket: { label: "Mkt / Vertical",       color: "#10b981" },  // green
+  sustaining:{ label: "Sustaining",           color: "#a78bfa" },  // violet
 };
 export const devTypeOf = (p: Project): DevType =>
   /phase|legacy|sustain/i.test(p.category) ? "sustaining"

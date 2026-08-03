@@ -2286,6 +2286,23 @@ function ScopeFilter({ projects, sel, onChange }: { projects: Project[]; sel: Hi
   );
 }
 
+// ⚠ AD · ONE CONSTANT CONTROLS HOW MUCH THE CATEGORY FILLS THE TAG, AND IT LIVES HERE ON PURPOSE.
+// The operator has asked for this twice ("fill more, less masking"), so predict a third: it is a two-second
+// edit at one site, not a settings surface nobody asked for (Odin, 12-AsM). Hex alpha over the deck's own
+// #0b0f14 — `5c` is ~36%, up from the `22` (13%) that let the dark base mask the colour.
+const TAG_TINT_ALPHA = "5c";
+
+// ⚠ AD · THE TINT MOVED THE FLOOR UNDER THE METRIC TEXT, SO THE METRIC TEXT MOVED WITH IT.
+// The plan's A-grade criterion was to MEASURE contrast against the new fill rather than eyeball it. Composited
+// over #0b0f14 at `5c`, the four category bodies are rgb(98,62,34) · rgb(27,78,102) · rgb(13,76,59) ·
+// rgb(67,60,103), and the old `text-slate-500` label fell to **1.90:1** on `enhance` — it was already under AA
+// at the previous 13% and the fill made it unreadable. The plan said "below 4.5:1 the alpha comes down"; that
+// would undo the operator's explicit "fill more (less masking)", so the TEXT is what changes instead. Measured
+// worst case across all four categories: label 6.08:1, value 8.23:1 — both clear WCAG AA for small text, and
+// the value stays brighter than its label so the hierarchy survives the lift.
+const TAG_METRIC_LABEL = "text-slate-300"; // worst 6.08:1 over the tinted body (was slate-500 @ 1.90:1)
+const TAG_METRIC_VALUE = "text-slate-100"; // worst 8.23:1 — must stay lighter than the label above
+
 function DogTag({ p, onEditFinancials, showType, slide }: {
   p: Project; onEditFinancials?: () => void;
   /** Z-1 · print the DEV_TYPE label beside the dot. The operator asked to SEE the product type on S1
@@ -2325,7 +2342,7 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
     // not read as a shine. `DEV_TYPE` is the single palette (`innovation-data.ts:2352`) and it already
     // carries exactly the four colours the reference legend uses; nothing new was invented here.
     <div className="relative mx-auto flex max-w-sm items-stretch overflow-hidden rounded-lg border-2"
-      style={{ borderColor: pillarColor, background: `linear-gradient(0deg, ${dt.color}22, ${dt.color}22), #0b0f14` }}
+      style={{ borderColor: pillarColor, background: `linear-gradient(0deg, ${dt.color}${TAG_TINT_ALPHA}, ${dt.color}${TAG_TINT_ALPHA}), #0b0f14` }}
       title={`${p.name} · ${h.sbu} · launch ${p.firstRevenue}\nPillar: ${pillar} · Type: ${dt.label}\n${valuePropOf(p)}`}>
       {/* SBU — fixed, vertical left (locked to the project title); tinted by the pillar (highlight) */}
       <div className="flex shrink-0 items-center justify-center px-0.5" style={{ background: `${pillarColor}22` }}>
@@ -2335,7 +2352,12 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
       {/* Z-5 · one notch less vertical padding on a slide. The year headers the operator asked for on the
           roadmap band cost row 4 ~12px, and the longest-named project (PRJ-02) then clipped its tag by 4.
           Four pixels of padding is the cheapest thing on the sheet to spend; the card keeps its breathing room. */}
-      <div className={`min-w-0 flex-1 px-2 text-center ${slide ? "py-1" : "py-1.5"}`}>
+      {/* ⚠ AD · py-0.5 ON A SLIDE, and this is the second time the roadmap-vs-tag budget has been settled
+          here rather than by taking content off the sheet. Restoring one-metric-per-line put the tag at a
+          measured 92px and left the Key Value Proposition panel 2px short on 4 of 33 projects; 4px of the
+          tag's own vertical padding is the cheapest thing on the board and buys 2px of margin. The plan's
+          rule holds: the space comes from the tag's padding — never from a dropped field or smaller type. */}
+      <div className={`min-w-0 flex-1 px-2 text-center ${slide ? "py-0.5" : "py-1.5"}`}>
         <div className="flex items-center justify-center gap-1 truncate text-[13px] font-bold leading-tight text-slate-100">
           <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: dt.color }} title={`Project type: ${dt.label}`} aria-label={`Project type: ${dt.label}`} />
           <span className="truncate">{p.name}</span>
@@ -2346,13 +2368,14 @@ function DogTag({ p, onEditFinancials, showType, slide }: {
         {showType && (
           <div className="mt-0.5 truncate text-[9px] font-semibold uppercase tracking-[0.14em]" style={{ color: dt.color }}>{dt.label}</div>
         )}
-        {/* ⚠ Z-4 · ON A SLIDE THE HIGHLIGHTS RUN INLINE, NOT ONE PER LINE. Same metrics, same values, same
-            order — three rows become one wrapped row, which is ~24px the S1 sheet does not have to spare
-            now that the tag leads column 1. The project card keeps the stacked read it was designed for. */}
-        <div className={`mt-0.5 items-center text-[10px] leading-tight ${slide ? "flex flex-wrap justify-center gap-x-2 gap-y-0" : "flex flex-col gap-0"}`}>
+        {/* ⚠ AD · ONE METRIC PER LINE — THREE LINES — ON EVERY SURFACE (operator). This REVERSES Z-4, which
+            ran them inline on a slide to reclaim ~24px, and that 24px is exactly what let the tag fit above
+            the value proposition when it moved to column 1. Row 1 has to give it back; where it comes from
+            is measured in the sweep, and it does not come from dropping a field or shrinking type. */}
+        <div className="mt-0.5 flex flex-col items-center gap-0 text-[10px] leading-tight">
           {face === "biz"
-            ? metrics.map((m) => (<div key={m.key}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val(p)}</b></div>))
-            : engMetrics.map((m) => (<div key={m.label}><span className="text-slate-500">{m.label}:</span> <b className="tabular-nums text-slate-200">{m.val}</b></div>))}
+            ? metrics.map((m) => (<div key={m.key}><span className={TAG_METRIC_LABEL}>{m.label}:</span> <b className={`tabular-nums ${TAG_METRIC_VALUE}`}>{m.val(p)}</b></div>))
+            : engMetrics.map((m) => (<div key={m.label}><span className={TAG_METRIC_LABEL}>{m.label}:</span> <b className={`tabular-nums ${TAG_METRIC_VALUE}`}>{m.val}</b></div>))}
         </div>
         <div className="mt-0.5 flex items-center justify-center gap-2">
           {/* ⚠ Z-4 · NO FACE-FLIP ON A SLIDE. It is a control, and a presented sheet is read, not operated —
@@ -5801,9 +5824,17 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
               left above value prop, as these two elements are most important"). It was nested above the
               waterfall in column 3; it is the SAME DogTag, same pillar-coloured border, same pinned metric
               set (`slide`) so a printed board sheet stays deterministic — it moved, nothing was rebuilt.
-              Capped, because it is an identifier heading the column, not the column's content. */}
+              It leads the column as an identifier, so it never shrinks — the prose below takes the remainder. */}
+          {/* ⚠ AD · THE `max-h-[11cqh]` CAP IS GONE, AND MEASUREMENT IS WHY. Restoring one-metric-per-line
+              (operator) put the tag at a MEASURED 92px — and 92px on all 33 projects, because every line in it
+              is either truncated or a fixed 3-line metric block. The cap was PROPORTIONAL: `11cqh` resolved to
+              81px on PRJ-02 but 96px on PRJ-01, purely because row 1's height moves with what the OTHER panels
+              in the row happen to contain. A fixed-height element rationed by a fraction of a varying row is a
+              clip waiting for the right project, and four of them found it (PRJ-02/05/07/24, up to +15px).
+              `shrink-0` alone is the correct rule: the tag is constant, the value-prop prose beneath it is the
+              flexible child, and `content-stretch` hands the remainder there. No field dropped, no type shrunk. */}
           <AmtsPanel title="Key Value Proposition" icon="♡">
-            <div className="max-h-[11cqh] shrink-0 overflow-hidden"><DogTag p={p} showType slide /></div>
+            <div className="shrink-0"><DogTag p={p} showType slide /></div>
             {leanFieldsOf("valueprop", "oneline")}
           </AmtsPanel>
           {/* ⚠ SEEDED, NOT SYNTHETIC-PRESENTED-AS-REAL. Operator: "Market opportunities are top projects
