@@ -18,6 +18,8 @@ import { LanguageLexicon } from "@/components/language-lexicon";
 import { AtlantisAccordViewer } from "@/components/atlantis-accord-viewer";
 import { LightCodexSettingsRow } from "@/components/light-codex-cube";
 import { CubeArchitectureStatus } from "@/components/cube-status";
+import { FeedbackWidget } from "@/components/feedback-widget";
+import { PoweredBadge } from "@/components/powered-badge";
 import { TrinityColorPicker } from "@/components/trinity-color-picker";
 import { getSortedLanguages } from "@/lib/language-utils";
 
@@ -88,6 +90,9 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
           return (
             <button
               key={preset.id}
+              // Test hook only — the easter-egg gate has to drive the REAL sequence
+              // (exel-cyan → sunset → violet), and it cannot click what it cannot address.
+              data-theme-preset={preset.id}
               onClick={() => handlePresetSelect(preset.id)}
               className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-2.5 transition-colors hover:bg-accent/50 ${
                 isActive
@@ -454,8 +459,13 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
           </Button>
         </div>
 
-        {/* Content — extra bottom padding so the last row clears the floating eXeL badge */}
-        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-20 space-y-6">
+        {/* ⚠ THE `pb-20` THAT USED TO BE HERE WAS RESERVING 80px FOR A BADGE THAT WAS NOT THERE.
+            It said "so the last row clears the floating eXeL badge", but the badge stopped floating when
+            `providers.tsx` moved it to a docked page footer — behind this z-50 panel, where scrolling can
+            never reach it. That stale reservation is exactly what made the defect invisible: the panel
+            looked like it had a badge slot, so nobody checked whether a badge was in it. The badge is now a
+            real row at the foot of this list, so the padding it was standing in for is gone with it. */}
+        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6 space-y-6">
           {/* All users see language + theme; moderators also see admin sections */}
           <SettingsLanguageSelector />
           <Separator />
@@ -477,6 +487,24 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
               <LightCodexSettingsRow />
             </>
           )}
+          {/* ⚠ FEEDBACK + eXeL AI AT THE VERY BOTTOM, BELOW ATLANTIS ACCORD (operator, verbatim).
+              WHY IT HAD TO MOVE: these two live in the global page footer (`providers.tsx` SiteFooter),
+              which is normal-flow content sitting BEHIND this `fixed … z-50` panel. With Settings open there
+              was no amount of scrolling that could reach the eXeL badge — and the badge is the second half
+              of the easter egg (theme sequence arms it, clicking it enters Simulation Mode), so the unlock
+              was effectively dead from this screen.
+              SAME TWO COMPONENTS, NOT COPIES: `FeedbackWidget` and `PoweredBadge` are the exact ones the
+              footer renders, in the same `docked` mode — one implementation, so a fix lands in both places.
+              `badgeOnly` keeps the footer instance the sole owner of the Simulation overlay (see its prop
+              doc); without it the egg would mount two launchers at once.
+              OUTSIDE the `!isPollingUser` block ON PURPOSE: `registerThemeClick` fires before the
+              `disabled` guard in ThemeCustomizer, so a polling user can arm the egg too and must be able to
+              reach the badge. Feedback is for everyone by definition. */}
+          <Separator />
+          <div data-settings-footer className="flex items-center justify-end gap-3 pt-1">
+            <FeedbackWidget screen="settings" docked />
+            <PoweredBadge docked badgeOnly />
+          </div>
         </div>
       </div>
     </>

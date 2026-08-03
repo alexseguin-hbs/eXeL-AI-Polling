@@ -200,8 +200,11 @@ function SimulationOverlay() {
 
   return (
     <>
-      {/* ── Top center: "SIMULATION MODE" label + eXeL H.I. logo ── */}
-      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1 pointer-events-auto">
+      {/* ── Top center: "SIMULATION MODE" label + eXeL H.I. logo ──
+          `data-sim-overlay` is a test hook, not styling: Simulation Mode must mount EXACTLY ONCE, and now
+          that a second PoweredBadge lives in the Settings panel, "exactly once" is a thing that can break.
+          The gate counts these; without a real hook the count is 0 and the assertion passes vacuously. */}
+      <div data-sim-overlay className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1 pointer-events-auto">
         <span className="text-[10px] font-mono text-primary/80 uppercase tracking-[0.25em]">
           {t("shared.sim.simulation_mode")}
         </span>
@@ -301,7 +304,19 @@ function SimulationOverlay() {
   );
 }
 
-export function PoweredBadge({ docked = false }: { docked?: boolean } = {}) {
+export function PoweredBadge({ docked = false, badgeOnly = false }: {
+  docked?: boolean;
+  /**
+   * ⚠ SIMULATION MODE IS SINGLE-INSTANCE, AND THIS PROP IS WHAT KEEPS IT THAT WAY.
+   * Below, a `simulationMode` badge stops being a badge and becomes `<Vision2525Launcher/>` +
+   * `<SimulationOverlay/>`. The Settings panel now renders its OWN badge (so the easter egg is reachable
+   * while the panel covers the page footer), which means the instant the egg fires there would be TWO
+   * launchers on screen — the footer's and the panel's. `badgeOnly` renders nothing in simulation mode, so
+   * the panel copy is a button and only the button; the global footer instance stays the sole owner of the
+   * overlay. Default false, so the footer keeps today's behaviour exactly.
+   */
+  badgeOnly?: boolean;
+} = {}) {
   const { simulationMode, easterEggUnlocked, enterSimulationMode, visionView } =
     useEasterEgg();
   const { currentTheme } = useTheme();
@@ -329,6 +344,9 @@ export function PoweredBadge({ docked = false }: { docked?: boolean } = {}) {
     }
   }, [enterSimulationMode, isAuthenticated, router, pathname, searchParams]);
 
+  // A badge-only instance owns no overlay — see `badgeOnly` above. This check comes FIRST so the
+  // launcher/overlay branch below can never run twice.
+  if (simulationMode && badgeOnly) return null;
   if (simulationMode) {
     // The 3-Seed music layer persists OVER whatever easter-egg sub-menu is showing (E1) —
     // seeds + music stay up in ANY sub-menu, music always-on (the old dedicated "sim" view
