@@ -1,0 +1,661 @@
+<title>Vision 2525 · Architectural Review Before Document 0</title>
+<style>
+:root{
+  --paper:#FAF7F2; --ink:#22201C; --ink-2:#5C564C; --rule:#DDD5C7; --rule-2:#EFE9DF;
+  --brass:#8A6415; --brass-bg:#F3EADA;
+  --brick:#9B4429; --brick-bg:#F7E7E1;
+  --verdigris:#3D6349; --verdigris-bg:#E4EDE6;
+  --panel:#FFFDF9;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#12100E; --ink:#E8E2D8; --ink-2:#9A9186; --rule:#3A342C; --rule-2:#241F1A;
+  --brass:#C9962E; --brass-bg:#241D0F;
+  --brick:#D4785A; --brick-bg:#261510;
+  --verdigris:#7FAE8C; --verdigris-bg:#121D16;
+  --panel:#191612;
+}}
+:root[data-theme="dark"]{
+  --paper:#12100E; --ink:#E8E2D8; --ink-2:#9A9186; --rule:#3A342C; --rule-2:#241F1A;
+  --brass:#C9962E; --brass-bg:#241D0F; --brick:#D4785A; --brick-bg:#261510;
+  --verdigris:#7FAE8C; --verdigris-bg:#121D16; --panel:#191612;
+}
+:root[data-theme="light"]{
+  --paper:#FAF7F2; --ink:#22201C; --ink-2:#5C564C; --rule:#DDD5C7; --rule-2:#EFE9DF;
+  --brass:#8A6415; --brass-bg:#F3EADA; --brick:#9B4429; --brick-bg:#F7E7E1;
+  --verdigris:#3D6349; --verdigris-bg:#E4EDE6; --panel:#FFFDF9;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);
+  font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  margin:0;padding:0 20px 96px;-webkit-text-size-adjust:100%}
+.wrap{max-width:78ch;margin:0 auto}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-weight:600;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5.5vw,40px);line-height:1.15;margin:0 0 6px}
+h2{font-size:clamp(20px,3.4vw,25px);line-height:1.25;margin:0}
+h3{font-size:17px;margin:30px 0 8px}
+p,li{color:var(--ink)}
+p{margin:0 0 14px}
+small,.meta{color:var(--ink-2)}
+code,.mono,th,.pct{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+code{font-size:.86em;background:var(--rule-2);padding:1px 5px;border-radius:3px;word-break:break-word}
+a{color:var(--brass)}
+
+/* masthead */
+header.mast{border-bottom:2px solid var(--ink);padding:34px 0 16px;margin-bottom:26px}
+.kicker{font:600 11px/1 ui-monospace,monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--brass);margin-bottom:14px}
+.mast .meta{font-family:ui-monospace,monospace;font-size:11.5px;margin-top:12px;line-height:1.7}
+
+/* verdict band — a status strip, not a hero */
+.verdict{border:1px solid var(--brick);border-left:5px solid var(--brick);background:var(--brick-bg);
+  padding:18px 20px;margin:0 0 30px;border-radius:2px}
+.verdict .tag{font:700 11px/1 ui-monospace,monospace;letter-spacing:.16em;color:var(--brick);text-transform:uppercase}
+.verdict h2{font-size:22px;margin:9px 0 8px}
+.verdict p{margin:0 0 10px}
+.verdict ol{margin:10px 0 0;padding-left:22px}
+.verdict li{margin-bottom:7px}
+
+/* clause gutter: § numbers are a real sequence (deliverables 1–10), not decoration */
+section.clause{display:grid;grid-template-columns:4.2rem 1fr;gap:0 18px;
+  border-top:1px solid var(--rule);padding-top:24px;margin-top:34px}
+section.clause>.num{font:600 13px/1.5 ui-monospace,monospace;color:var(--brass);padding-top:6px}
+section.clause>.body{min-width:0}
+@media(max-width:640px){
+  section.clause{grid-template-columns:1fr;gap:0}
+  section.clause>.num{padding:0 0 4px}
+}
+.deliv{display:inline-block;font:600 10px/1 ui-monospace,monospace;letter-spacing:.1em;
+  color:var(--brass);border:1px solid var(--brass);border-radius:2px;padding:3px 6px;margin-left:8px;vertical-align:2px}
+
+/* tables */
+.scroll{overflow-x:auto;margin:16px 0;border:1px solid var(--rule);border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:min(100%,540px)}
+th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);
+  background:var(--rule-2);padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--rule-2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.mono,td .pct{white-space:nowrap}
+
+/* callouts */
+.note{border-left:3px solid var(--rule);padding:2px 0 2px 16px;margin:16px 0;color:var(--ink-2);font-size:14.5px}
+.flag{border:1px solid var(--brick);background:var(--brick-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.flag .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--brick);text-transform:uppercase;display:block;margin-bottom:8px}
+.keep{border:1px solid var(--verdigris);background:var(--verdigris-bg);border-radius:2px;padding:14px 16px;margin:18px 0}
+.keep .lab{font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--verdigris);text-transform:uppercase;display:block;margin-bottom:8px}
+
+/* the hierarchy ladder */
+.ladder{list-style:none;margin:18px 0;padding:0;font-size:14.5px}
+.ladder li{border-left:2px solid var(--rule);padding:9px 0 9px 16px;margin:0;position:relative}
+.ladder li.new{border-left-color:var(--brass);background:var(--brass-bg)}
+.ladder li.new::after{content:"NEW";font:700 9px/1 ui-monospace,monospace;letter-spacing:.12em;
+  color:var(--brass);position:absolute;right:10px;top:12px}
+.ladder .t{font-weight:600}
+.ladder .d{color:var(--ink-2);font-size:13.5px}
+
+/* masters */
+.master{border-top:1px solid var(--rule-2);padding:15px 0}
+.master:first-of-type{border-top:0}
+.master h4{margin:0 0 3px;font-size:15px;font-weight:600}
+.master .role{font:600 10px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.master .pct{float:right;font-size:13px;font-weight:700;color:var(--brass)}
+.master p{margin:8px 0 0;font-size:14.5px}
+.master .rec{color:var(--ink-2)}
+.bar{height:3px;background:var(--rule-2);border-radius:2px;margin-top:9px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--brass)}
+
+footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
+  font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-2);line-height:1.7}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">Master of Thought · Architectural Review</div>
+  <h1>Before Document&nbsp;0</h1>
+  <p class="meta" style="font-family:inherit;font-size:16px;margin:8px 0 0;color:var(--ink-2)">
+    A pressure test of the proposed Vision&nbsp;2525 documentation hierarchy, convened with the
+    12&nbsp;Ascended&nbsp;Masters. No constitutional language has been drafted.
+  </p>
+  <div class="meta">
+    REQUESTED BY&nbsp; Thought Master<br>
+    SCOPE&nbsp; architecture only — hierarchy, sequencing, boundaries, R-CORE inheritance<br>
+    GROUNDED IN&nbsp; <code>526fb6e</code> · 2026.08.03 · every claim below cites a real file<br>
+    NOT DONE&nbsp; Document 0, constitutional text, product code — all untouched, by instruction
+  </div>
+</header>
+
+<div class="verdict">
+  <span class="tag">Recommendation · Deliverable 10</span>
+  <h2>Conditional GO. Do not begin Document&nbsp;0 today.</h2>
+  <p>
+    The hierarchy is <strong>sound in order and nearly sound in shape</strong>. Sequencing
+    (define → govern → protect → operate → localise) is correct, and the review found live evidence that
+    proves it rather than merely arguing it. One layer is missing, and three decisions must be made before
+    the first sentence of Document&nbsp;0 is written — because each one changes how every later document
+    cites it. This is roughly <strong>one working session away</strong>, not a re-architecture.
+  </p>
+  <ol>
+    <li><strong>Resolve <code>SI</code>.</strong> It currently means three different things in three
+      authoritative sources (§3). Pick one canonical term. A Constitution drafted today would cite
+      an undefined word.</li>
+    <li><strong>Decide Document 0's <em>form</em>:</strong> machine-readable registry, or prose?
+      Everything downstream inherits that choice (§2).</li>
+    <li><strong>Accept or reject the Conformance&nbsp;&amp;&nbsp;Inheritance Protocol</strong> as a layer
+      between Definitions and Constitution (§1). Whether enforcement sits above or below the Constitution
+      changes what the Constitution has to say.</li>
+  </ol>
+</div>
+
+<p class="note">
+  <strong>How to read this.</strong> Sections are numbered as clauses because they are a sequence, not a
+  list — §1–§12 map onto the ten requested deliverables, marked <span class="deliv">D#</span> where they
+  land. Where the review disagrees with the proposal it says so plainly; a pressure test that agrees with
+  everything has not been run.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 1</div><div class="body">
+<h2>Recommended hierarchy <span class="deliv">D#1</span></h2>
+
+<p>
+  The proposed stack is kept almost intact. <strong>One layer is added, none removed, none reordered.</strong>
+  Resisting the urge to add more is itself a recommendation: every additional layer is a place for two
+  documents to disagree, and this framework must stay legible for centuries.
+</p>
+
+<ul class="ladder">
+  <li><span class="t">Vision 2525</span><br><span class="d">Why the framework exists. Aspirational, amendable rarely, cited by everything.</span></li>
+  <li><span class="t">Document 0 · Foundational Definitions &amp; Boundaries</span><br><span class="d">What every word means. One ID per term. No governance, no obligations — definitions only.</span></li>
+  <li class="new"><span class="t">Document 0.5 · Conformance &amp; Inheritance Protocol</span><br><span class="d">Who may change a definition, what must pass before it changes, and how a downstream system proves it conforms.</span></li>
+  <li><span class="t">Document 1 · Constitutional Specification</span><br><span class="d">Enduring governance. Slow to amend. Uses Document 0's words without redefining them.</span></li>
+  <li><span class="t">Protective Charter</span><br><span class="d">Anti-capture, mission preservation, amendment resistance. Subordinate to the Constitution, superior to policy.</span></li>
+  <li><span class="t">Operating Policies</span><br><span class="d">How the work is actually done. Freely amendable without touching anything above.</span></li>
+  <li><span class="t">Regional Legal Implementations</span><br><span class="d">A conformance matrix, not a set of rewrites. See §5.</span></li>
+</ul>
+
+<h3>Why Document 0.5 exists, and why it is the one genuine gap</h3>
+<p>
+  This project has already built a working inheritance contract — for geometry.
+  <code>docs/2525-core/WIREFRAME-CORE.md</code> defines twelve shared primitives
+  (<code>U-WF-01…12</code>) and then does the thing that makes them binding: a
+  <em>parallel development protocol</em> stating that “a change to a U-WF primitive must pass BOTH domains'
+  verification sheets,” with explicit pass criteria — determinism hash stable across five runs, render
+  within the HAL budget, SSSES per pillar.
+</p>
+<p>
+  Document 0 as proposed has the definitions but none of that. It can be <em>cited</em>; it cannot be
+  <em>conformed to</em>. The distance between those two words is the distance between a glossary and a
+  foundation. WIREFRAME-CORE already proves the pattern works in this organisation — Document 0.5 is that
+  same protocol, lifted from geometry to governance.
+</p>
+
+<div class="keep">
+  <span class="lab">Confirmed — do not change</span>
+  The <strong>ordering</strong> is right. Every instinct to draft the Constitution first should be resisted,
+  and §3 gives the evidence rather than the argument.
+</div>
+
+<h3>Layers deliberately NOT added</h3>
+<div class="scroll"><table>
+  <tr><th>Considered</th><th>Verdict</th><th>Why</th></tr>
+  <tr><td>A separate Ethics Charter</td><td>Reject</td><td>Splits conscience from governance. Ethics belongs inside the Protective Charter, where it has teeth.</td></tr>
+  <tr><td>A Glossary distinct from Document 0</td><td>Reject</td><td>Two term lists is the exact failure Document 0 exists to end.</td></tr>
+  <tr><td>A Technical Standards layer</td><td>Reject</td><td>Already exists as WIREFRAME-CORE and the CRS registry. Reuse before rebuild.</td></tr>
+  <tr><td>A Ratification document</td><td>Fold in</td><td>Belongs as an article of the Constitution (Amendments), not a peer document.</td></tr>
+</table></div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 2</div><div class="body">
+<h2>Per-document purpose <span class="deliv">D#2</span></h2>
+
+<div class="flag">
+  <span class="lab">Decision required before drafting</span>
+  <strong>Document 0 should be a registry, not an essay.</strong> One entry per term:
+  <code>id · term · definition · boundary (what it is NOT) · supersedes · version</code>. Prose renders
+  <em>from</em> the registry; the registry is never derived from prose. This is the single highest-leverage
+  choice in the whole hierarchy, because it determines whether a downstream system can <em>check</em> that
+  it used a term correctly or merely <em>claim</em> it did.
+  <br><br>
+  A mechanism for exactly this already exists and is proven at scale:
+  <code>frontend/lib/lexicon-data.ts</code> holds the app's key registry across the 33 supported languages
+  (<code>frontend/lib/constants.ts:53</code>) with a documented fallback chain
+  (translation → English default → raw key, <code>frontend/lib/lexicon-context.tsx:182</code>) and an admin
+  approval gate. Document 0 should inherit that machinery rather than invent a second one.
+</div>
+
+<div class="scroll"><table>
+  <tr><th>Document</th><th>Owns</th><th>Must never contain</th></tr>
+  <tr><td><strong>Document 0</strong></td><td>Terms, boundaries, provenance of every constant</td><td>Obligations, rights, procedures. A definition that tells someone what to do is a smuggled law.</td></tr>
+  <tr><td><strong>Document 0.5</strong></td><td>Change control, conformance tests, inheritance rules</td><td>Definitions of its own. It governs terms; it does not create them.</td></tr>
+  <tr><td><strong>Constitution</strong></td><td>Enduring principles, authority, amendment, continuity</td><td>Anything with a number that will change — thresholds, rates, timelines, tooling.</td></tr>
+  <tr><td><strong>Protective Charter</strong></td><td>Anti-capture, mission lock, transparency duties</td><td>Operational procedure. It states what must remain true, not how a team works.</td></tr>
+  <tr><td><strong>Operating Policies</strong></td><td>Procedure, workflow, engineering practice, finance ops</td><td>Anything a jurisdiction could forbid. That belongs in Regional.</td></tr>
+  <tr><td><strong>Regional</strong></td><td>How a jurisdiction satisfies each numbered obligation</td><td>New obligations. Regional implements; it never legislates upward.</td></tr>
+</table></div>
+
+<h3>Adopt the numbering that already exists</h3>
+<p>
+  The repository already runs a disciplined citation scheme — <code>CRS-##.##</code> with
+  <code>.IN</code>/<code>.OUT</code> identifiers, and domain-scoped variants <code>U-WF-##</code>,
+  <code>SEC-##.##</code>, <code>ARC-##.##</code>. Governance clauses should join it as
+  <code>V25-##.##</code>. Then a cube cites a constitutional clause exactly the way it already cites a
+  requirement, and traceability comes free instead of being built twice.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 3</div><div class="body">
+<h2>Missing foundational concepts <span class="deliv">D#3</span></h2>
+
+<div class="flag">
+  <span class="lab">Live defect — found during this review</span>
+  <strong><code>SI</code> is defined three different ways, in three authoritative sources, today.</strong>
+  <div class="scroll" style="margin:12px 0 0"><table>
+    <tr><th>Source</th><th>Says SI means</th></tr>
+    <tr><td class="mono">frontend/lib/soi-framework.ts:32</td><td><strong>Shared Intention</strong> — shipped app data, what users actually see</td></tr>
+    <tr><td class="mono">docs/VISION_2525.md:12</td><td><strong>Spiritual</strong> — conscience / stewardship / restraint</td></tr>
+    <tr><td class="mono">CLAUDE.md · docs/MASTER_OF_THOUGHT_2525.md:37</td><td><strong>Shared Intent</strong> — also the term used in the review request itself</td></tr>
+  </table></div>
+  <p style="margin:12px 0 0">
+    Note that even the two that agree do not match: <em>Shared Intent</em> and <em>Shared Intention</em>
+    are different words in a system that mints a token against one of them. This is not a hypothetical
+    argument for Document 0 — it is the defect Document 0 exists to prevent, discovered in the framework's
+    own foundation, and it settles the sequencing question on its own.
+  </p>
+</div>
+
+<div class="flag">
+  <span class="lab">Second instance — found while verifying this review's own citations</span>
+  <strong>The supported-language count is stated two ways.</strong> The running code defines
+  <strong>33</strong> languages (<code>frontend/lib/constants.ts:53</code> — English included, and the
+  lexicon derives from it). <code>CLAUDE.md</code> says “34 languages” four times and “33 languages”
+  once, in the same file.
+  <p style="margin:12px 0 0">
+    This one is trivial in consequence and precisely for that reason it is the more instructive finding.
+    <code>SI</code> could be dismissed as three teams using a term loosely. A <em>counted integer</em>
+    drifting against the code that produces it cannot. The defect is not carelessness about words — it is
+    the <strong>absence of a single authoritative source with a version and an owner</strong>, which is
+    exactly the hole Document 0 is proposed to fill. An earlier draft of this very review inherited the
+    wrong number from <code>CLAUDE.md</code> without checking the code; that is how the defect propagates,
+    and it is the argument for making Document 0 machine-readable (§2) rather than prose.
+  </p>
+</div>
+
+<h3>Concepts the proposed term list is missing</h3>
+<p>
+  Each of the following is <strong>already load-bearing in the running system</strong>. They are not
+  additions to the philosophy; they are things the framework already does that the vocabulary cannot yet name.
+</p>
+
+<div class="scroll"><table>
+  <tr><th>Missing term</th><th>Already exists as</th><th>Why it must be defined</th></tr>
+  <tr><td><strong>Verified / Unverified</strong></td><td><code>npm run status</code> reports COMMITTED ≠ PUSHED ≠ LIVE and holds that “UNVERIFIED never means shipped”</td><td>Trust requires a name for <em>not yet proven</em>. Without it, “done” absorbs “claimed”, which is how the four-hour stale-deploy incident happened.</td></tr>
+  <tr><td><strong>Reversal</strong></td><td>Three changes were built, measured, disproved and reverted in a single night</td><td>The list has Replay (memory) and Evidence (proof) but nothing for <em>undo</em>. A framework that cannot reverse cannot be trusted to try things.</td></tr>
+  <tr><td><strong>Disclosure of absence</strong></td><td><code>U-WF-09</code>: “silent caps forbidden (must report dropped detail)”</td><td>The duty to report what was <em>not</em> done. Silence reads as completeness; this project's recurring failure mode.</td></tr>
+  <tr><td><strong>Baseline · Denomination · Provenance</strong></td><td>The 웃 rate: 7.25/hour, seeded from a minimum-wage floor, denominated in TIME, pegged to no currency (<code>526fb6e</code>)</td><td>Every constant needs to say where it came from and what it is measured in, or it will be misread — this one was, as dollars.</td></tr>
+  <tr><td><strong>Determinism</strong></td><td><code>U-WF-08</code>: identical input → identical SHA-256 render hash</td><td>Replay is meaningless without it. It is currently an engineering property; it should be a defined term.</td></tr>
+  <tr><td><strong>Steward vs Custodian</strong></td><td>Not distinguished anywhere</td><td>Stewardship (7+3) implies authority over direction; custody implies holding without deciding. Conflating them is how capture begins.</td></tr>
+</table></div>
+
+<div class="note">
+  <strong>Consolidate, do not re-derive.</strong> A large share of the proposed term list is already written
+  in prose across <code>docs/VISION_2525.md</code> (the three intelligences, the disciplined ladder
+  <em>pilot → replay → qualify → certify → adopt → educate → expand</em>, the 12 Guiding Principles),
+  <code>SSSES.md</code>, <code>Token_Governance_Math.md</code>, and
+  <code>docs/MASTER_OF_THOUGHT_2525.md</code> (ME → Universal Function Registry, Ma'at → SSSES).
+  Document 0 must <em>supersede</em> these explicitly and say so per term, or the count of authoritative
+  sources goes from one to five. Reuse before rebuild, applied to your own documents.
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 4</div><div class="body">
+<h2>Constitutional vs operational <span class="deliv">D#4</span></h2>
+
+<p>The proposed twelve articles are close. Four changes:</p>
+
+<div class="scroll"><table>
+  <tr><th>#</th><th>Article</th><th>Verdict</th></tr>
+  <tr><td class="mono">1</td><td>Mission</td><td>Keep as Article 1.</td></tr>
+  <tr><td class="mono">2</td><td>Principles</td><td>Keep.</td></tr>
+  <tr><td class="mono">3</td><td>Membership</td><td>Keep — but define membership <em>status</em> only; joining procedure is policy.</td></tr>
+  <tr><td class="mono">4</td><td>Governance</td><td>Keep.</td></tr>
+  <tr><td class="mono">5</td><td>Stewardship (7+3)</td><td>Keep. The 7+3 <em>split</em> is constitutional; the <em>seat count</em> should not be, or growth requires amendment.</td></tr>
+  <tr><td class="mono">6</td><td>Human Authority</td><td><strong>Move up to Article 3.</strong> It constrains everything after it. Placed sixth, it reads as one mechanism among many rather than the boundary condition on all of them.</td></tr>
+  <tr><td class="mono">7</td><td>Qualification</td><td>Keep the <em>right</em> to qualify and the <em>duty</em> to; thresholds are policy.</td></tr>
+  <tr><td class="mono">8</td><td>Replay</td><td>Keep — but see the addition below. Replay alone is memory without a standard of proof.</td></tr>
+  <tr><td class="mono">9</td><td>Compensation</td><td>Keep, and split per §6: entitlement is constitutional, settlement is regional.</td></tr>
+  <tr><td class="mono">10</td><td>Financial Stewardship</td><td>Keep.</td></tr>
+  <tr><td class="mono">11</td><td>Amendments</td><td>Keep. Must state its own amendment threshold — a self-amending clause with no floor is the classic capture vector.</td></tr>
+  <tr><td class="mono">12</td><td>Continuity &amp; Dissolution</td><td>Keep as the last article.</td></tr>
+  <tr><td class="mono">+</td><td><strong>Evidence</strong></td><td><strong>Add.</strong> The standard of proof. “Trust must be proven” is doctrine already; nothing says <em>by what</em>.</td></tr>
+  <tr><td class="mono">+</td><td><strong>Reversal</strong></td><td><strong>Add.</strong> The right and duty to undo what evidence disproves.</td></tr>
+  <tr><td class="mono">+</td><td><strong>Disclosure</strong></td><td><strong>Add</strong> — or fold into Evidence. The duty to report absence, omission and non-verification.</td></tr>
+</table></div>
+
+<h3>The test for which side a rule belongs on</h3>
+<p>
+  A rule is <strong>constitutional</strong> if changing it would change <em>who we are</em>. It is
+  <strong>operational</strong> if changing it would change <em>how we work today</em>. A practical proxy:
+  <em>if it contains a number that a competent team might tune next quarter, it is not constitutional.</em>
+  Under that test, qualification thresholds, moderation procedure, simulation rules, software lifecycle and
+  financial operations all fall to policy — as proposed. That part of the split is correct as written.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 5</div><div class="body">
+<h2>Universal vs jurisdiction-specific <span class="deliv">D#5</span></h2>
+
+<p>
+  <strong>Recommendation: a Conformance Matrix, not a document per jurisdiction.</strong> Every jurisdiction
+  implements the <em>same numbered obligations</em>; the matrix records how each one is satisfied locally,
+  and only the matrix changes. Adding Brazil then means adding a column, not authoring a parallel legal
+  document that can drift from the Constitution it claims to implement.
+</p>
+
+<div class="scroll"><table>
+  <tr><th>Obligation</th><th>US</th><th>EU</th><th>SG</th><th>DIFC</th><th>BR</th></tr>
+  <tr><td class="mono">V25-09.01 · entitlement</td><td colspan="5" style="text-align:center;color:var(--verdigris)">universal — identical in every column, by construction</td></tr>
+  <tr><td class="mono">V25-09.02 · settlement</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+  <tr><td class="mono">V25-03.01 · human authority</td><td colspan="5" style="text-align:center;color:var(--verdigris)">universal</td></tr>
+  <tr><td class="mono">V25-10.02 · data residency</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+</table></div>
+<p class="meta" style="font-size:13px;margin-top:-4px">
+  Illustrative shape only — the cells are for counsel to fill, and this review does not attempt legal advice.
+</p>
+
+<p>
+  The property that matters: <strong>a row that is universal must be <em>visibly</em> universal.</strong>
+  When a jurisdiction cannot satisfy a universal row, that is not a local exception to be quietly written
+  down — it is a constitutional conflict that must escalate. A matrix makes that visible; five separate
+  legal documents hide it.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 6</div><div class="body">
+<h2>Economic architecture</h2>
+
+<p>
+  The proposed chain — Participation → Contribution → Qualification → Responsibility → Capability →
+  Compensation — is <strong>substantially more durable than organising around monetary contribution levels</strong>,
+  and should be adopted. It separates <em>showing up</em> from <em>being trusted</em> from <em>being paid</em>,
+  which is exactly the separation that keeps money from buying authority. Two refinements:
+</p>
+
+<h3>Insert <strong>Recognition</strong> between Contribution and Qualification</h3>
+<p>
+  Contribution is what someone did; Qualification is a status the system grants. Without a step between,
+  qualification has to do two jobs — acknowledging work and conferring standing — and those corrupt each
+  other. Recognition is the record that a contribution happened and was accepted; qualification then reads
+  the record. It also gives contributors something immediate that costs the framework nothing to grant
+  honestly.
+</p>
+
+<h3>Split Compensation into <strong>Entitlement</strong> and <strong>Settlement</strong></h3>
+<div class="keep">
+  <span class="lab">Already proven in this system</span>
+  The 웃 token was just re-founded on exactly this distinction. An hour of work earns
+  <strong>7.25 웃 anywhere on Earth</strong> — the entitlement, denominated in time, seeded from a
+  minimum-wage floor and pegged to no currency. How that entitlement is <em>settled</em> — into which
+  currency, under which tax and labour law — is jurisdiction-local. Before the change, a shipped SDK demo
+  paid a Lagos hour 21× less than an Austin hour by “local rate”; the split is what made that impossible
+  to express.
+</div>
+<p>
+  Carry that into the constitutional layer verbatim: <strong>entitlement is universal and belongs in the
+  Constitution; settlement is local and belongs in the Regional matrix.</strong> This is the single
+  strongest de-risking move available, because it stops jurisdiction-specific law from reaching upward
+  into governance — the failure mode that makes international frameworks unamendable.
+</p>
+
+<h3>Additional separation points worth naming</h3>
+<div class="scroll"><table>
+  <tr><th>Separate</th><th>From</th><th>Risk it removes</th></tr>
+  <tr><td>Contribution</td><td>Funding</td><td>Money purchasing standing. Both are contributions; only one may confer authority.</td></tr>
+  <tr><td>Capability</td><td>Permission</td><td>“Can” silently becoming “may”. Automation is the acute case.</td></tr>
+  <tr><td>Responsibility</td><td>Liability</td><td>Stewards absorbing legal exposure they never accepted.</td></tr>
+  <tr><td>Operating Income</td><td>Innovation Spend</td><td>Already in the term list — keep it, and define which one may fund compensation.</td></tr>
+</table></div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 7</div><div class="body">
+<h2>R-CORE compatibility <span class="deliv">D#6</span></h2>
+
+<p>
+  <strong>Assessment: strong, and stronger than the hierarchy currently claims.</strong> R-CORE inheritance
+  is not aspirational here — it is running. WIREFRAME-CORE already demonstrates the full pattern the
+  governance stack needs: a shared contract, domain-scoped extension, a change protocol requiring both
+  consumers to re-verify, and objective pass criteria.
+</p>
+
+<div class="scroll"><table>
+  <tr><th>Layer</th><th>Inherited by every 2525 system?</th><th>Note</th></tr>
+  <tr><td>Vision 2525</td><td>Yes — unconditionally</td><td>Already is.</td></tr>
+  <tr><td>Document 0</td><td>Yes — unconditionally</td><td>The point of it. A system that redefines a term is non-conforming.</td></tr>
+  <tr><td>Document 0.5</td><td>Yes</td><td>Mirrors the U-WF protocol a domain already follows for primitives.</td></tr>
+  <tr><td>Constitution</td><td>Yes</td><td>Applies to the organisation, therefore to every system it operates.</td></tr>
+  <tr><td>Protective Charter</td><td>Yes</td><td>Anti-capture is meaningless if a subsidiary system is exempt.</td></tr>
+  <tr><td>Operating Policies</td><td><strong>Partially</strong></td><td>Split: shared practice inherited; domain-specific procedure owned locally. Say which is which explicitly, per policy.</td></tr>
+  <tr><td>Regional</td><td>Per deployment</td><td>Only where a system actually operates.</td></tr>
+</table></div>
+
+<p>
+  <strong>Shared infrastructure vs project-specific.</strong> The dividing line already used for geometry
+  works here: a concept needed by <em>two or more</em> systems is defined once at the core and consumed;
+  a concept needed by one stays local until a second needs it. Applying it now — Human Authority,
+  Qualification, Replay, Evidence, Determinism, Reversal are all multi-system and belong at the core;
+  moderation procedure, engagement replay semantics and construction takeoff rules do not.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 8</div><div class="body">
+<h2>Knowledge Graph &amp; Replay</h2>
+
+<p>The question asked was whether these are constitutional infrastructure or operational policy. They split:</p>
+
+<div class="scroll"><table>
+  <tr><th>Concept</th><th>Layer</th><th>Reason</th></tr>
+  <tr><td><strong>Replay</strong></td><td>Constitutional</td><td>A right — the ability to re-examine a decision. Remove it and accountability is unenforceable.</td></tr>
+  <tr><td><strong>Evidence</strong></td><td>Constitutional</td><td>The standard of proof. Currently doctrine (“trust must be proven”) with no article behind it.</td></tr>
+  <tr><td><strong>Human Authority</strong></td><td>Constitutional</td><td>Article 3 per §4.</td></tr>
+  <tr><td><strong>Qualification</strong></td><td>Split</td><td>The <em>duty</em> to qualify is constitutional; the <em>criteria</em> are policy, or thresholds become unamendable.</td></tr>
+  <tr><td><strong>Traceability</strong></td><td>Constitutional</td><td>Without it Replay is a claim. Already implemented as the CRS <code>.IN</code>/<code>.OUT</code> chain — cite that, do not reinvent it.</td></tr>
+  <tr><td><strong>Version history</strong></td><td>Operational</td><td>A mechanism. Constitutionalising a storage format guarantees an amendment when the format changes.</td></tr>
+  <tr><td><strong>Knowledge accumulation</strong></td><td>Operational</td><td>Valuable and mutable. Protect the <em>right of access</em> constitutionally; leave the graph itself to policy.</td></tr>
+</table></div>
+
+<div class="note">
+  A useful rule that falls out of the above: <strong>constitutionalise the right, not the artefact.</strong>
+  Replay the right, not the replay bundle format. Traceability the duty, not the ID scheme. Evidence the
+  standard, not the test harness.
+</div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 9</div><div class="body">
+<h2>The 12 Ascended Masters</h2>
+
+<div class="master"><span class="pct">88%</span><h4>Aset</h4><div class="role">Consistency &amp; reinforcement</div>
+<p><strong>Strength:</strong> the hierarchy's single-source-of-truth intent is exactly right.
+<strong>Concern:</strong> four documents already define these terms in prose; Document 0 becomes a fifth unless it explicitly supersedes each one, per term.</p>
+<p class="rec"><strong>Recommend:</strong> every Document 0 entry carries a <code>supersedes:</code> field naming the file and line it replaces.</p>
+<div class="bar"><i style="width:88%"></i></div></div>
+
+<div class="master"><span class="pct">84%</span><h4>Asar</h4><div class="role">Synthesis &amp; outcome</div>
+<p><strong>Strength:</strong> the stack reads as one coherent descent from purpose to practice.
+<strong>Concern:</strong> nothing states what the framework looks like when it is <em>working</em> — there is no success condition, only structure.</p>
+<p class="rec"><strong>Recommend:</strong> Vision 2525 gains a short “what good looks like in 2525” clause the Constitution can be measured against.</p>
+<div class="bar"><i style="width:84%"></i></div></div>
+
+<div class="master"><span class="pct">91%</span><h4>Athena</h4><div class="role">Strategic sequencing</div>
+<p><strong>Strength:</strong> define → govern → operate is the correct order and the discipline to ask before drafting is the right instinct.
+<strong>Concern:</strong> Document 0 is being treated as small. It is the largest and slowest document here; underestimating it will pressure the Constitution to start early and redefine terms defensively.</p>
+<p class="rec"><strong>Recommend:</strong> budget Document 0 at three times the expected effort and forbid parallel constitutional drafting.</p>
+<div class="bar"><i style="width:91%"></i></div></div>
+
+<div class="master"><span class="pct">79%</span><h4>Christo</h4><div class="role">Consensus &amp; human flow</div>
+<p><strong>Strength:</strong> membership and participation are separated early, which protects belonging from being purchased.
+<strong>Concern:</strong> nothing in the hierarchy is written for the person who has to <em>read</em> it. Six stacked documents is a barrier to the participation the framework depends on.</p>
+<p class="rec"><strong>Recommend:</strong> a one-page plain-language Reader's Preface, non-normative, explicitly not a source of truth.</p>
+<div class="bar"><i style="width:79%"></i></div></div>
+
+<div class="master"><span class="pct">86%</span><h4>Enki</h4><div class="role">Diversity &amp; edge cases</div>
+<p><strong>Strength:</strong> boundaries (“what it is NOT”) in Document 0 will prevent most drift.
+<strong>Concern:</strong> no layer handles conflict. What happens when Regional cannot satisfy a universal obligation? Today the answer is silence, and silence resolves in favour of the local exception.</p>
+<p class="rec"><strong>Recommend:</strong> a precedence clause — Document 0 &gt; 0.5 &gt; Constitution &gt; Charter &gt; Policy &gt; Regional — plus a named escalation path when a lower layer cannot conform.</p>
+<div class="bar"><i style="width:86%"></i></div></div>
+
+<div class="master"><span class="pct">72%</span><h4>Enlil</h4><div class="role">Implementation &amp; build</div>
+<p><strong>Strength:</strong> the intent that later documents reference rather than redefine is implementable.
+<strong>Concern:</strong> <em>nothing enforces it.</em> Prose cannot be verified. Without Document 0.5 and a machine-readable registry, conformance is an honour system — and this codebase has repeatedly shown that unenforced intent decays into a comment describing behaviour that no longer exists.</p>
+<p class="rec"><strong>Recommend:</strong> Document 0.5 is not optional. Lowest confidence of the twelve, and the reason is specific.</p>
+<div class="bar"><i style="width:72%"></i></div></div>
+
+<div class="master"><span class="pct">89%</span><h4>Krishna</h4><div class="role">Integration across systems</div>
+<p><strong>Strength:</strong> R-CORE inheritance is genuinely achievable — the pattern is already running in WIREFRAME-CORE.
+<strong>Concern:</strong> the governance stack was designed as if that precedent did not exist; it reinvents inheritance instead of extending it.</p>
+<p class="rec"><strong>Recommend:</strong> Document 0.5 cites <code>U-WF</code>'s parallel-development protocol as its direct antecedent, so one pattern governs geometry and governance alike.</p>
+<div class="bar"><i style="width:89%"></i></div></div>
+
+<div class="master"><span class="pct">76%</span><h4>Odin</h4><div class="role">Foresight</div>
+<p><strong>Strength:</strong> continuity and dissolution present in v1 is unusually farsighted; most frameworks add it after a crisis.
+<strong>Concern:</strong> the amendment article has no floor. A constitution that can amend its own amendment threshold by simple majority has no floor at all — this is the specific mechanism by which frameworks are captured legally rather than illegally.</p>
+<p class="rec"><strong>Recommend:</strong> entrench Articles 1, 3 (Human Authority) and 11 behind a supermajority plus a mandatory waiting period.</p>
+<div class="bar"><i style="width:76%"></i></div></div>
+
+<div class="master"><span class="pct">81%</span><h4>Pangu</h4><div class="role">Cutting-edge / first principles</div>
+<p><strong>Strength:</strong> defining before governing is the correct primitive and rarely done.
+<strong>Concern:</strong> the hierarchy assumes documents are the unit of governance. For a 500-year framework the durable unit is the <em>clause</em> — individually addressable, versioned, citable.</p>
+<p class="rec"><strong>Recommend:</strong> clause-level IDs (<code>V25-##.##</code>) from day one. Retrofitting them later invalidates every citation ever made.</p>
+<div class="bar"><i style="width:81%"></i></div></div>
+
+<div class="master"><span class="pct">83%</span><h4>Sofia</h4><div class="role">Multi-perspective</div>
+<p><strong>Strength:</strong> universal-vs-regional separation anticipates real international friction.
+<strong>Concern:</strong> the whole stack is drafted in one language and one legal tradition. “Steward”, “Charter” and “Authority” carry common-law connotations that do not survive translation into civil-law or Islamic-finance contexts intact.</p>
+<p class="rec"><strong>Recommend:</strong> each Document 0 term carries a translation note; the existing 33-language lexicon is the right vehicle and already exists.</p>
+<div class="bar"><i style="width:83%"></i></div></div>
+
+<div class="master"><span class="pct">87%</span><h4>Thoth</h4><div class="role">Data &amp; analytics</div>
+<p><strong>Strength:</strong> Replay and Evidence being considered foundational is correct and unusual.
+<strong>Concern:</strong> no term defines the <em>provenance</em> of a number. The 웃 baseline had to be rescued from being read as a currency peg precisely because 7.25 appeared without its origin attached.</p>
+<p class="rec"><strong>Recommend:</strong> every constant in Document 0 carries <code>baseline</code>, <code>denomination</code> and <code>provenance</code>. A number without provenance is a rumour.</p>
+<div class="bar"><i style="width:87%"></i></div></div>
+
+<div class="master"><span class="pct">80%</span><h4>Thor</h4><div class="role">Risk &amp; security</div>
+<p><strong>Strength:</strong> a dedicated Protective Charter is the right instinct and correctly separated from the Constitution.
+<strong>Concern:</strong> its protections are listed but not <em>ranked</em>. Under real pressure, transparency and mission preservation will conflict, and an unranked list resolves that conflict in favour of whoever is holding the pen.</p>
+<p class="rec"><strong>Recommend:</strong> the Charter states an explicit precedence order among its own protections, and names who may invoke each.</p>
+<div class="bar"><i style="width:80%"></i></div></div>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 10</div><div class="body">
+<h2>Master of Thought — synthesis <span class="deliv">D#7 · D#8</span></h2>
+
+<p>
+  The council converges on one finding and disagrees on almost nothing: <strong>the architecture is right and
+  the enforcement is absent.</strong> Enlil's 72% is the lowest score and the most important — every other
+  master's concern is a variation of it. Definitions that cannot be verified become suggestions; a hierarchy
+  whose only binding force is good intention decays at exactly the rate that memory of the intention fades.
+  That is the argument for Document 0.5, and it is the whole of this review's structural objection.
+</p>
+
+<h3>Architectural risks, ranked</h3>
+<div class="scroll"><table>
+  <tr><th>#</th><th>Risk</th><th>Mitigation</th></tr>
+  <tr><td class="mono">1</td><td>Document 0 is advisory — nothing detects a system that redefines a term</td><td>Document 0.5 + machine-readable registry (§1, §2)</td></tr>
+  <tr><td class="mono">2</td><td>Five prior documents keep their authority; Document 0 becomes the fifth voice</td><td>Per-term <code>supersedes:</code> (Aset)</td></tr>
+  <tr><td class="mono">3</td><td>Amendment article with no entrenchment floor</td><td>Supermajority + waiting period on Articles 1, 3, 11 (Odin)</td></tr>
+  <tr><td class="mono">4</td><td>Regional exception silently overriding a universal obligation</td><td>Precedence clause + escalation path (Enki); Conformance Matrix (§5)</td></tr>
+  <tr><td class="mono">5</td><td>Jurisdiction-specific law reaching up into the Constitution via Compensation</td><td>Entitlement / Settlement split (§6)</td></tr>
+  <tr><td class="mono">6</td><td>Citations invalidated later by retrofitting clause IDs</td><td><code>V25-##.##</code> from the first draft (Pangu)</td></tr>
+  <tr><td class="mono">7</td><td>Constitution drafted while <code>SI</code> is still ambiguous</td><td>Resolve before drafting — blocking (§3)</td></tr>
+</table></div>
+
+<h3>Long-term maintainability</h3>
+<p>
+  The proposed hierarchy maintains well <em>if and only if</em> two properties hold: each layer is amendable
+  without disturbing the one above it, and conformance is checkable rather than asserted. The first is
+  designed for and mostly achieved — the leaks are Compensation (§6) and qualification thresholds (§4),
+  both fixable now at no cost. The second does not currently exist at all.
+</p>
+<p>
+  The most encouraging signal is that this organisation has already solved the harder version of this
+  problem once. WIREFRAME-CORE governs a shared substrate across parallel domains with a real change
+  protocol and objective pass criteria, and it works. The governance stack is not attempting anything
+  novel — it is attempting something already proven here, in a different medium. That is the strongest
+  possible argument that it can be done, and the strongest possible argument for not inventing a second
+  way to do it.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 11</div><div class="body">
+<h2>Confidence by layer <span class="deliv">D#9</span></h2>
+
+<div class="scroll"><table>
+  <tr><th>Layer</th><th>Conf.</th><th>What the number means</th></tr>
+  <tr><td><strong>Vision 2525</strong></td><td class="pct">94%</td><td>Exists, is coherent, is already cited. Needs a success condition (Asar).</td></tr>
+  <tr><td><strong>Document 0</strong></td><td class="pct">68%</td><td>Right idea, unresolved form, and a live contradiction inside its own subject matter. Rises to ~90% the moment SI is settled and registry-vs-prose is chosen.</td></tr>
+  <tr><td><strong>Document 0.5</strong></td><td class="pct">76%</td><td>Confidence in the <em>recommendation</em>, not in an existing artefact — it does not exist yet. High because its antecedent is running today.</td></tr>
+  <tr><td><strong>Constitution</strong></td><td class="pct">82%</td><td>Article set is close; four changes named in §4. Cannot be drafted before Document 0 without redefining terms defensively.</td></tr>
+  <tr><td><strong>Protective Charter</strong></td><td class="pct">74%</td><td>Purpose is right, contents unranked (Thor), boundary with the Constitution still soft.</td></tr>
+  <tr><td><strong>Operating Policies</strong></td><td class="pct">88%</td><td>Cleanest layer. Correctly scoped, correctly amendable, low risk.</td></tr>
+  <tr><td><strong>Regional</strong></td><td class="pct">70%</td><td>Structure recommended (§5) but untested against real counsel in any jurisdiction. Treat as provisional until at least two are attempted.</td></tr>
+  <tr><td><strong>R-CORE inheritance</strong></td><td class="pct">85%</td><td>Strongest area. Precedent exists and runs; the gap is that the governance stack does not yet reference it.</td></tr>
+  <tr><td><strong>Economic layering</strong></td><td class="pct">80%</td><td>Six-layer chain is durable; rises with Recognition and the Entitlement/Settlement split (§6).</td></tr>
+</table></div>
+<p class="meta" style="font-size:13px">
+  Confidence here means: <em>how likely is this layer to still be serving its purpose, unamended in its
+  structure, after ten years of use.</em> It is not a quality score.
+</p>
+</div></section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 12</div><div class="body">
+<h2>Readiness <span class="deliv">D#10</span></h2>
+
+<p>
+  <strong>Conditional GO.</strong> The framework is not ready to begin Document 0 today, and it is close.
+  Nothing found in this review requires re-architecture; everything found requires a decision. Three exit
+  criteria, each small, each genuinely blocking because each one changes what Document 0's first page looks like:
+</p>
+
+<div class="scroll"><table>
+  <tr><th>#</th><th>Exit criterion</th><th>Why blocking</th></tr>
+  <tr><td class="mono">1</td><td>Choose the canonical meaning of <code>SI</code>, and correct the two sources that disagree</td><td>Document 0 cannot define a term the organisation has not decided. Everything downstream inherits the error.</td></tr>
+  <tr><td class="mono">2</td><td>Decide Document 0's form — machine-readable registry, or prose</td><td>Determines whether conformance can ever be checked, and how every later document cites a term.</td></tr>
+  <tr><td class="mono">3</td><td>Accept or reject Document 0.5 as a layer</td><td>If rejected, the Constitution must absorb change-control itself — a materially different Constitution.</td></tr>
+</table></div>
+
+<p>Recommended once those clear, in order:</p>
+<ol>
+  <li>Inventory every existing definition across the five prose sources and mark each <em>supersede</em>, <em>merge</em> or <em>retire</em>.</li>
+  <li>Draft Document 0 as the registry, terms only, boundaries mandatory, provenance on every constant.</li>
+  <li>Draft Document 0.5 against WIREFRAME-CORE's protocol as its stated antecedent.</li>
+  <li>Only then open the Constitution — and when it uses a word, it cites a clause ID rather than explaining itself.</li>
+</ol>
+
+<div class="keep">
+  <span class="lab">On the instinct that prompted this review</span>
+  Asking for an architectural review before drafting was correct, and it paid for itself: the review found a
+  live three-way contradiction in the framework's most foundational term. Had Document 0 been drafted first,
+  that contradiction would have been resolved silently, in one direction, by whoever happened to write the
+  paragraph — and the Constitution would have been built on it.
+  <em>Care over speed. Define before governing.</em>
+</div>
+</div></section>
+
+<footer>
+  MASTER OF THOUGHT · 12 ASCENDED MASTERS — architectural review, 2026.08.03<br>
+  Grounded at <code>526fb6e</code>. Citations resolve against this repository at that commit.<br>
+  Review only — no constitutional language drafted, no product code changed.<br>
+  ⚠ LEGAL: this is an architectural review, not legal advice. §5's jurisdiction cells are for counsel.
+</footer>
+
+</div>
