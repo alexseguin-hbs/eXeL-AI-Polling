@@ -97,7 +97,7 @@ const open = async (pg, mode) => {
   // wording ("Open Digital Presentation Input"); BOTH gates still clicked "Open slide show". slide-shots
   // failed SILENTLY (0 checks, still summarised); this one at least crashed. Either way the PDF has been
   // unverified for the same four commits. Matches both labels so a future rename degrades, not blinds.
-  await pg.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
+  await pg.getByRole("button", { name: /Open (Digital (Presentation )?Inputs?|slide show)/i }).first().click();
   await pg.getByRole("button", { name: /Present/ }).first().click();
   await pg.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
   // ⚠ THE STACK IS MOUNTED BY DRIVING THE REAL CONTROL. `window.print` is stubbed FIRST — the menu item's

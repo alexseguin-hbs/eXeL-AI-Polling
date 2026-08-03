@@ -6154,7 +6154,11 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const F = await import("../lib/innovation-data.ts");
 
   // 1 · ONE PALETTE, AND IT ALREADY MATCHED THE OPERATOR'S LEGEND — nothing new was invented.
-  ok(F.DEV_TYPE.newmarket.color === "#10b981", "New Mkt / Vertical is green — deepened for the stronger fill");
+  // ⚠ AD · GREEN WENT DOWN TWICE, ON TWO SEPARATE OPERATOR ASKS: #34d399 → #10b981 ("a little darker",
+  // once the 36% fill made the original read neon) → #059669 ("darker again — one more step"). Pinned to
+  // the exact hex because the contrast lock below composites THIS value; a silent revert would move the
+  // measured floor under the metric text without anything else noticing.
+  ok(F.DEV_TYPE.newmarket.color === "#059669", `New Mkt / Vertical is deep green (${F.DEV_TYPE.newmarket.color})`);
   ok(F.DEV_TYPE.prestudy.color === "#fb923c" && F.DEV_TYPE.enhance.color === "#38bdf8"
      && F.DEV_TYPE.sustaining.color === "#a78bfa",
      "…and Pre-study orange · Enhance/NextGen blue · Sustaining purple, exactly the reference legend");

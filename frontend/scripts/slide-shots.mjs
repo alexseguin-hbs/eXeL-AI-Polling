@@ -292,7 +292,7 @@ async function openSlide(page, code) {
   // EVERY one of the 40 checks failed with "could not reach present mode" and the run reported `0 checks`.
   // A gate whose selector drifts stops guarding silently — the worst failure mode a gate has. Matches BOTH
   // labels so a future rename degrades instead of blinding it.
-  await page.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
+  await page.getByRole("button", { name: /Open (Digital (Presentation )?Inputs?|slide show)/i }).first().click();
   await page.getByRole("button", { name: `Go to slide ${code}` }).first().click();
   await page.getByRole("button", { name: /Present/ }).first().click();
   await page.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
@@ -442,7 +442,7 @@ if (!process.env.NO_SWEEP) {
   // EVERY one of the 40 checks failed with "could not reach present mode" and the run reported `0 checks`.
   // A gate whose selector drifts stops guarding silently — the worst failure mode a gate has. Matches BOTH
   // labels so a future rename degrades instead of blinding it.
-  await page.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
+  await page.getByRole("button", { name: /Open (Digital (Presentation )?Inputs?|slide show)/i }).first().click();
       // ⚠ Z-1 · S1 IS SELECTED HERE, BEFORE Present — NOT AFTER. My first draft clicked "Go to slide S1"
       // once already inside Present, where that control does not exist; 18 of 33 projects then spent the
       // full 30s locator timeout and the run reported them as "could not reach present mode". The deck

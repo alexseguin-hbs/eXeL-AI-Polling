@@ -2372,7 +2372,7 @@ export type DevType = "sustaining" | "prestudy" | "enhance" | "newmarket";
 export const DEV_TYPE: Record<DevType, { label: string; color: string }> = {
   prestudy:  { label: "Pre-study / Research", color: "#fb923c" },  // orange
   enhance:   { label: "Enhance",              color: "#38bdf8" },  // blue
-  newmarket: { label: "Mkt / Vertical",       color: "#10b981" },  // green
+  newmarket: { label: "Mkt / Vertical",       color: "#059669" },  // green (AD: one step darker again)
   sustaining:{ label: "Sustaining",           color: "#a78bfa" },  // violet
 };
 export const devTypeOf = (p: Project): DevType =>

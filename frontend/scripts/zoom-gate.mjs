@@ -88,7 +88,7 @@ async function openPresent(page) {
   if (await gate.count()) { await gate.fill("369963").catch(() => {}); await page.keyboard.press("Enter").catch(() => {}); }
   await page.getByRole("button", { name: "Gate Requirements" }).first().click();
   await page.locator('select:has(option[value^="PRJ-"])').first().selectOption("PRJ-01");
-  await page.getByRole("button", { name: /Open (Digital Presentation Input|slide show)/i }).first().click();
+  await page.getByRole("button", { name: /Open (Digital (Presentation )?Inputs?|slide show)/i }).first().click();
   await page.getByRole("button", { name: "Go to slide S1" }).first().click();
   await page.getByRole("button", { name: /Present/ }).first().click();
   await page.waitForSelector("[data-slide-canvas]", { timeout: 15000 });
