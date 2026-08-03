@@ -100,7 +100,8 @@ export function CubeDevSim() {
     void runSimPlay(setPlay, () => !playing.current).finally(() => { playing.current = false; });
   }, []);
 
-  // Timer starts on open, counts down; ♡ = ceil(active minutes), ◬ = ♡×5, 웃 = $/7.25.
+  // Timer starts on open, counts down; ♡ = ceil(active minutes), ◬ = ♡×5, 웃 = hours × 7.25
+  // (TIME-denominated — 웃 is earned by the hour, never converted from a currency amount).
   useEffect(() => {
     const id = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(id);

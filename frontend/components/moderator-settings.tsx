@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign } from "lucide-react";
+import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -482,6 +482,27 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
               <LanguageLexicon userEmail={userEmail} />
               <Separator />
               <AtlantisAccordViewer />
+              {/* ⚠ VISION 2525 LIVES HERE NOW, NOT BEHIND THE EASTER EGG (operator: "Place Vision 2525
+                  link under Atlantis Accords in settings and remove from easter egg"). It is the public
+                  manifesto — Humanity's Coordination Framework — so gating it behind a theme-click sequence
+                  hid the one page that explains what the whole product is for. The matching VISION HUB tile
+                  was deleted from the easter-egg launcher in the same commit; a lock holds that it exists in
+                  exactly one place, so this is a MOVE and never becomes two entry points that drift. */}
+              <Separator />
+              <a
+                data-vision-2525-link
+                href="/vision-2525/"
+                className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
+              >
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">Vision 2525</div>
+                    <div className="text-xs text-muted-foreground">Humanity&apos;s Coordination Framework — manifesto, framework, worlds</div>
+                  </div>
+                </div>
+                <span className="text-xs text-muted-foreground">→</span>
+              </a>
               {/* Light Codex — hidden until the Easter-egg unlock; the row
                   renders null otherwise, so no Separator artifact when locked. */}
               <LightCodexSettingsRow />

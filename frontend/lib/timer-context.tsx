@@ -39,7 +39,9 @@ interface TimerContextValue {
 
 const TimerContext = createContext<TimerContextValue | null>(null);
 
-// Default hourly rate for 웃 calculation (Austin TX $7.25/hr)
+// 웃 per HOUR of participation. 7.25 is seeded from a real minimum-wage floor (Texas / US federal)
+// but it is NOT a currency peg: the unit is the hour, so every participant on Earth earns the same
+// 7.25 웃 for the same hour. See soi.coin.HI.baseline for the wording shown to users.
 const DEFAULT_RATE_PER_HOUR = 7.25;
 
 export function TimerProvider({ children }: { children: ReactNode }) {

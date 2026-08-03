@@ -479,7 +479,7 @@ const override = await res.json();
       {
         master: "Sofia", masterTitle: "Sophia — wisdom through many lenses",
         need: "A global nonprofit needed to fairly compensate contributors across 12 countries with wildly different costs of living.",
-        outcome: "$500 donation distributed as 68.97 웃 tokens. Nigerian contributor received $0.34/hr (local rate) for 40 hours of work. US contributor received $7.25/hr for 5 hours.",
+        outcome: "45 hours of contributed work → 326.25 웃. The Lagos contributor earned 7.25 웃 for each of 40 hours; the Austin contributor earned 7.25 웃 for each of 5 hours. Identical work, identical 웃 — the token measures TIME, so no local currency discounts anyone's hour.",
         solutionText: "Post a donation via the payments endpoint — automatically converts dollars to HI tokens at the federal minimum wage rate.",
         solution: `const res = await fetch(API_BASE + "/payments/donate", {
   method: "POST",
@@ -490,15 +490,16 @@ const override = await res.json();
   })
 });
 const receipt = await res.json();
-// receipt.hi_tokens → 68.97 (= $500 ÷ $7.25/hr)
+// receipt.hi_tokens → 68.97   # the donation FUNDS 68.97 hours of contributed time
 // receipt.ledger_entry_id → "uuid-..."
-// Payout at LOCAL minimum wage: US $7.25, Nigeria $0.34, Germany $12.41`,
-        evidence: "Sofia tested across all 59 jurisdictions. $500 funds 1,471 hours in Nigeria OR 68.9 hours in the US. The platform maximizes global participation.",
+// Payout is 7.25 웃 per hour WORLDWIDE — never the local minimum wage. An hour in
+// Lagos and an hour in Austin credit exactly the same 웃.`,
+        evidence: "Sofia tested across all 59 jurisdictions and found the flaw this now fixes: paying LOCAL minimum wage made the same hour worth 21x more in the US than in Nigeria. 웃 is time-denominated instead — 68.97 hours of contributed work credit 500.03 웃 no matter where the contributor sits.",
       },
       {
         master: "Aset", masterTitle: "Egyptian Isis — enduring truth",
         need: "A moderator wanted to know exactly how their $11.11 session fee translated to platform value.",
-        outcome: "$11.11 → 1.532 웃 tokens. This represents 1.532 hours of compensated human intelligence at minimum wage.",
+        outcome: "The $11.11 fee FUNDS 1.532 hours of compensated human intelligence — 11.11 웃 of credit at the universal 7.25 웃/hour rate. The currency is the on-ramp; the hour is the unit.",
         solutionText: "Moderator fee payment auto-converts to HI tokens — stored in append-only ledger, visible in the participant Token HUD.",
         solution: `const res = await fetch(API_BASE + "/payments/moderator-checkout", {
   method: "POST",
@@ -508,10 +509,11 @@ const receipt = await res.json();
     amount_cents: 1111  // $11.11
   })
 });
-// Auto-conversion: $11.11 ÷ $7.25 = 1.532 웃
+// The fee funds 1.532 hours (11.11 / 7.25). 웃 is credited BY THE HOUR at 7.25 웃/hr,
+// the same rate in every economy — the dollar figure is only how this fee was paid.
 // Ledger entry created: { type: "hi_credit", amount: 1.532, status: "finalized" }
 // Visible in Token HUD: GET /sessions/{session_id}/tokens/balance`,
-        evidence: "Aset confirmed: $11.11 ÷ $7.25 = 1.532 웃. Stored in append-only ledger. Visible in Token HUD.",
+        evidence: "Aset confirmed: the fee funds 1.532 hours at the universal 7.25 웃/hour rate. Stored in append-only ledger. Visible in Token HUD.",
       },
       {
         master: "Krishna", masterTitle: "Hindu Unifier — connection",

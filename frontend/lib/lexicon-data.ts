@@ -752,6 +752,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.coin.SI.purpose", englishDefault: "Time offered in good faith — the trust and belonging that let people build together.", context: "SoI coin ♡ SI purpose", cubeId: 8 },
   { key: "soi.coin.HI.name", englishDefault: "Human Intelligence", context: "SoI coin 웃 HI name", cubeId: 8 },
   { key: "soi.coin.HI.law", englishDefault: "1 hour of fair work ≈ 7.25 웃", context: "SoI coin 웃 HI earning rule (keep the 웃 glyph + numbers)", cubeId: 8 },
+  { key: "soi.coin.HI.baseline", englishDefault: "Baseline 7.25 웃 / hour — seeded from a minimum-wage floor (Texas · US federal), then denominated in TIME. An hour is an hour: the same 7.25 웃 in every economy, pegged to no currency.", context: "SoI coin 웃 HI baseline — states WHERE 7.25 came from and that the token is time-denominated, never dollar-pegged. Keep the 웃 glyph and the number 7.25.", cubeId: 8 },
   { key: "soi.coin.HI.purpose", englishDefault: "Skill, craft, and care — honored so people and their families can thrive.", context: "SoI coin 웃 HI purpose", cubeId: 8 },
   { key: "soi.coin.AI.name", englishDefault: "Artificial Intelligence", context: "SoI coin ◬ AI name", cubeId: 8 },
   { key: "soi.coin.AI.law", englishDefault: "1 min SI = 5 ◬ (5× leverage)", context: "SoI coin ◬ AI earning rule (keep the ◬ glyph + numbers)", cubeId: 8 },

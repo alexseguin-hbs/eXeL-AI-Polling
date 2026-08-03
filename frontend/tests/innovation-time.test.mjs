@@ -6310,6 +6310,64 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "there is exactly ONE DogTag, rendered in more than one place — the colouring cannot fork per surface");
 }
 
+// ── AE · VISION 2525 MOVED OUT OF THE EASTER EGG, AND 웃 IS DENOMINATED IN TIME ─────────────
+// Two operator asks in one block because they share a subject: what Vision 2525 says the token IS.
+//   1. "Place Vision 2525 link under Atlantis Accords in settings and remove from easter egg."
+//   2. "ensure Vision 2525 is hourly minimum wage Baseline: Texas, 7.25 something that is globally
+//       obtainable and doesn't benchmark to dollar."
+{
+  const fs = await import("node:fs/promises");
+  const settings = await fs.readFile("components/moderator-settings.tsx", "utf8");
+  const launcher = await fs.readFile("components/vision-2525-launcher.tsx", "utf8");
+  const lex = await fs.readFile("lib/lexicon-data.ts", "utf8");
+  const soiSec = await fs.readFile("components/soi-section.tsx", "utf8");
+  const nav = await fs.readFile("components/navbar.tsx", "utf8");
+  const demos = await fs.readFile("lib/sdk-demos.ts", "utf8");
+  const liveSrc = await fs.readFile("lib/sim-live-source.ts", "utf8");
+
+  // 1 · IT IS A MOVE, NOT A COPY. Two entry points to the same manifesto is how they drift.
+  ok(/data-vision-2525-link/.test(settings) && /href="\/vision-2525\/"/.test(settings),
+     "Settings carries the Vision 2525 link");
+  ok(settings.indexOf("<AtlantisAccordViewer />") < settings.indexOf("data-vision-2525-link"),
+     "…directly UNDER Atlantis Accords, which is where the operator put it");
+  // Scoped to the TILE, not to any mention of it: the comment explaining WHY it was removed is exactly
+  // the sort of thing that should survive, and a lock that forbids its own explanation is a bad lock.
+  ok(!/id: "visionhub"/.test(launcher) && !/name: "VISION HUB"/.test(launcher),
+     "…and the VISION HUB tile is gone from the easter-egg launcher");
+  ok(/THE "VISION HUB" TILE WAS REMOVED/.test(launcher),
+     "…with the reason left in place, so nobody re-adds it thinking it was an oversight");
+  // The launcher itself must SURVIVE — it is the only way into SIM, Security and Architect.
+  for (const keep of ["cubesim", "security", "architect", "celestial", "codex", "atlantis"])
+    ok(new RegExp(`id: "${keep}"`).test(launcher), `…and the ${keep} tile is untouched — the egg still opens it`);
+
+  // 2 · THE 웃 IS TIME-DENOMINATED. The number stays 7.25; what changes is that nothing calls it dollars.
+  ok(/soi\.coin\.HI\.baseline/.test(lex), "a baseline key states where 7.25 came from");
+  const baseline = (lex.match(/key: "soi\.coin\.HI\.baseline", englishDefault: "([^"]+)"/) || [])[1] || "";
+  ok(/7\.25/.test(baseline) && /웃/.test(baseline), "…keeping the number and the 웃 glyph");
+  ok(/Texas/i.test(baseline) && /minimum.wage/i.test(baseline),
+     "…naming the minimum-wage floor it was seeded from (the operator asked for the provenance)");
+  ok(/TIME/.test(baseline) && /no currency|pegged to no currency/i.test(baseline),
+     "…and saying plainly that it is denominated in TIME and pegged to no currency");
+  ok(!/\$/.test(baseline), "…with no dollar sign anywhere in it");
+  ok(/data-hi-baseline/.test(soiSec) && /c\.key === "HI"/.test(soiSec),
+     "the HI coin card renders that baseline, and only the HI card");
+
+  // 3 · ⚠ THE BAN. These were the actual dollar benchmarks, and they are the thing the operator objected
+  // to — including an SDK demo that paid a Lagos hour 21x less than an Austin hour at "local rate".
+  const banned = [
+    [nav, /\$7\.25 = 1 hour/, "navbar SDK card no longer reads \"$7.25 = 1 hour\""],
+    [demos, /local rate/i, "no SDK demo pays a LOCAL rate for the same hour"],
+    [demos, /÷ \$7\.25/, "no demo divides dollars by 7.25 to define 웃"],
+    [liveSrc, /dollars_to_hi_tokens/, "the live SDK source converts HOURS to 웃, not dollars"],
+    [liveSrc, /amount_usd \/ HI_RATE/, "…and the formula is hours x rate, never currency ÷ rate"],
+  ];
+  for (const [src2, re, msg] of banned) ok(!re.test(src2), msg);
+  ok(/hours_to_hi_tokens/.test(liveSrc) && /hours \* HI_RATE_PER_HOUR/.test(liveSrc),
+     "the live SDK source is hours x 7.25");
+  ok(/identical work, identical 웃|Identical work, identical 웃/.test(demos),
+     "…and a demo states the point outright: identical work earns identical 웃");
+}
+
 // ── AC · THE LANE SYSTEM IS GATED BY A MEASUREMENT NOW, NOT BY A REGEX OVER ITS OWN CONSTANTS ──
 // The two locks this replaces were PROXIES: they matched `LANE_GAP = 0.12, …` and the `laneLift`
 // expression, and passed for months while the rendered sheet painted "Comp A" on top of the project's own

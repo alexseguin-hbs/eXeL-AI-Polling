@@ -225,9 +225,9 @@ export const SIM_LIVE_SOURCE: Record<string, Record<string, LiveFn>> =
     }
   },
   "8": {
-    "dollars_to_hi_tokens": {
+    "hours_to_hi_tokens": {
       "path": "app/cubes/cube8_tokens/service.py",
-      "source": "def dollars_to_hi_tokens(amount_usd: float) -> float:\n    \"\"\"Convert USD payment/donation to 웃 (HI) tokens.\n\n    Formula: 웃 = $ ÷ 7.25\n    Examples:\n      $11.11 moderator fee → 1.532 웃\n      $50.00 donation      → 6.897 웃\n      $7.25 (1 hour wage)  → 1.000 웃\n\n    This makes 웃 the universal measure of compensated value.\n    Anyone who pays or donates earns 웃 proportional to their contribution.\n    \"\"\"\n    if amount_usd <= 0:\n        return 0.0\n    return round(amount_usd / HI_RATE_PER_HOUR, 3)\n"
+      "source": "def hours_to_hi_tokens(hours: float) -> float:\n    \"\"\"웃 (HI) is denominated in TIME, not in any currency.\n\n    Formula: 웃 = hours x 7.25\n    Examples:\n      1 hour of work    -> 7.25 웃\n      40 hours (Lagos)  -> 290.00 웃\n      40 hours (Austin) -> 290.00 웃   # identical work, identical 웃\n\n    BASELINE: 7.25 is seeded from a real minimum-wage floor (Texas / US\n    federal), but it is NOT a dollar peg. The unit is the hour, so the rate\n    is globally obtainable and no local currency discounts anyone's time.\n\n    A currency donation is a separate on-ramp (see donate-core.js); it funds\n    the platform, it does not define what an hour of human work is worth.\n    \"\"\"\n    if hours <= 0:\n        return 0.0\n    return round(hours * HI_RATE_PER_HOUR, 3)\n"
     },
     "resolve_human_rate": {
       "path": "app/core/hi_rates.py",

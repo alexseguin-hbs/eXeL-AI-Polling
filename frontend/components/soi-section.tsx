@@ -65,6 +65,13 @@ export function SoISection() {
                 <div key={c.key} data-soi-section-coin className="rounded-lg border p-3">
                   <div className="font-semibold" style={{ color: COIN_C[c.key] }}>{c.sym} {c.key} <span className="text-foreground">· {tr(c.name, dc?.name, `soi.coin.${c.key}.name`)}</span></div>
                   <div className="mt-1 text-xs text-muted-foreground">{tr(c.law, dc?.law, `soi.coin.${c.key}.law`)}</div>
+                  {/* ⚠ HI ONLY — the 웃 is the one coin whose number needs its provenance stated. 7.25 came
+                      from a real minimum-wage floor, but the token is denominated in TIME, so an hour of
+                      work earns the same 7.25 웃 anywhere on Earth. Saying so on the card is what stops the
+                      number being read as "$7.25". */}
+                  {c.key === "HI" && (
+                    <div data-hi-baseline className="mt-1 text-[11px] leading-snug text-muted-foreground/80">{t("soi.coin.HI.baseline")}</div>
+                  )}
                   <div className="mt-1 text-xs text-muted-foreground">{tr(c.purpose, dc?.purpose, `soi.coin.${c.key}.purpose`)}</div>
                 </div>
               );
