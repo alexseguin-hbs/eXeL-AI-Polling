@@ -2633,6 +2633,9 @@ export interface SlideSpec { code: string; gate: Gate; stage: string; source: st
 // S9 table shape — declared before SLIDE_SCHEMA because the schema spreads it into its `cols`.
 export const STORY_COLS = ["User Stories", "POC", "Alpha", "MVP1", "MVP2", "MVP3", "CRS #", "Customer Needs"] as const;
 export const STORY_MATURITY = ["POC", "Alpha", "MVP1", "MVP2", "MVP3"] as const;
+/** The columns S1's dependency table declares. One source, so the header and the row width cannot drift. */
+export const S1_DEPS_COLS = ["Project #", "Project", "Risk"];
+
 export const SLIDE_SCHEMA: SlideSpec[] = [
   // S1 — crisp Executive Summary (consolidated to the essentials: what/why/who/ask).
   { code: "S1", gate: "G1", stage: "Concept", source: "Market Needs + Business Case", supplemental: ["Market Landscape & Needs"], fields: [
@@ -2682,7 +2685,9 @@ export const SLIDE_SCHEMA: SlideSpec[] = [
       hint: "How this product wins: the play, the route to market, the mechanism. Seeded from the project's own model." },
     // "dependencies are if project is tagged on dependency list (does another project success impact our
     // ability to meet our timelines)" — READ from the one edge list, both directions. Not typeable here.
-    { id: "deps", name: "Dependencies", kind: "list", req: false, linked: true,
+    // AD2 · a real table keyed by project number (operator, IMG_8467) — `cols` reads the one exported
+    // constant so the header and `dependencyRows`' row width are physically the same declaration.
+    { id: "deps", name: "Dependencies", kind: "table", req: false, linked: true, cols: S1_DEPS_COLS,
       hint: "Declared on the dependency list, read here. Both directions, because a project others lean on carries schedule risk it did not declare." },
     { id: "ask", name: "Recommendation / ask for the gate", kind: "longtext", req: true } ] },
   // S2 — Project Overview: the project-template one-pager (linked return profile + roadmap/status/risks) plus
@@ -3543,8 +3548,8 @@ function linkedSlideFieldRest(p: Project, code: string, fieldId: string, baseYea
   // Z-2 · the SAME `valuePropRows` the S8 table draws, formatted as sentences by `differentiatorLines`.
   // Still one producer: the formatter reads the rows, it does not re-derive them.
   if (code === "S1" && fieldId === "vpdiffs") return differentiatorLines(p);
-  // Z-2 · dependencies, read from the one edge list. Never empty — see `dependencyLines`.
-  if (code === "S1" && fieldId === "deps") return dependencyLines(p);
+  // Z-2 · dependencies, read from the one edge list. Never empty — see `dependencyRows`.
+  if (code === "S1" && fieldId === "deps") return dependencyRows(p);
   // Z-1 · the Roadmap band's rows. `baseYear` is the deck's ONE clock, threaded in by `effective` — the
   // same value the S10 grid and the S2 timeline anchor to, so three surfaces cannot disagree by a year.
   // A caller that omits the year gets the program-start year, NOT `new Date()` — the producer stays pure.
@@ -4144,13 +4149,25 @@ export const dependentsOf = (deps: DepEdge[], id: string) => deps.filter((e) => 
 // no-dependency answer is stated in the deck's own voice — it is information, not a blank.
 /** Entries printed on S1 before the rest are counted. The cap is why the ordering below has to be real. */
 export const S1_DEPS_CAP = 2;
-export function dependencyLines(p: Project, deps: DepEdge[] = DEMO_DEPS, projects: Project[] = DEMO_PROJECTS): string[] {
+/**
+ * ⚠ AD2 · A REAL TABLE, AND THE PROJECT NUMBER IS THE JOIN KEY (operator, IMG_8467).
+ * Rows are `[id, name, risk]`, and the id is the SAME `p.id` the constellation, `DEMO_DEPS` and the §4.2
+ * summary use — so the table and the graph can never name the same project two different ways.
+ *
+ * ⚠ DIRECTION IS NOT PRINTED, AND THAT IS THE OPERATOR'S CALL, MADE KNOWINGLY. The bullets said "We rely on
+ * X" vs "X relies on us"; a 3-column table cannot carry it, and the operator chose 3 columns over a 4th
+ * `Dir` column with that trade stated. Both directions still APPEAR — a project others lean on carries
+ * schedule risk it never declared, which is the whole reason the box reads both ways — the sheet just no
+ * longer says which way each row points. The dependency map still does.
+ */
+export function dependencyRows(p: Project, deps: DepEdge[] = DEMO_DEPS, projects: Project[] = DEMO_PROJECTS): string[][] {
   const nameOf = (id: string) => projects.find((q) => q.id === id)?.name ?? id;
   const risks = (e: DepEdge) => e.risks.map((r) => r[0].toUpperCase() + r.slice(1)).join(" + ");
   const flags = (e: DepEdge) => `${e.critical ? " · CRITICAL" : ""}${e.acknowledged ? "" : " · UNACKED"}`;
+  // The counterpart project — `to` when we declared the edge, `from` when someone declared it on us.
   const all = [
-    ...dependsOn(deps, p.id).map((e) => ({ e, s: `We rely on ${nameOf(e.to)} · ${risks(e)}${flags(e)}` })),
-    ...dependentsOf(deps, p.id).map((e) => ({ e, s: `${nameOf(e.from)} relies on us · ${risks(e)}${flags(e)}` })),
+    ...dependsOn(deps, p.id).map((e) => ({ e, id: e.to })),
+    ...dependentsOf(deps, p.id).map((e) => ({ e, id: e.from })),
   ];
   // ⚠ THE CAP FORCES AN ORDER, AND THE ORDER IS THE POINT. A cap over an arbitrary list would print
   // whichever two edges happened to be declared first; ranking critical-path ahead of unacknowledged ahead
@@ -4158,11 +4175,17 @@ export function dependencyLines(p: Project, deps: DepEdge[] = DEMO_DEPS, project
   // keep declaration order — deterministic, and no `localeCompare` to drag a locale into a replay hash.
   const rank = (e: DepEdge) => (e.critical ? 0 : e.acknowledged ? 2 : 1);
   const ordered = [...all].sort((a, b) => rank(a.e) - rank(b.e));
-  if (!ordered.length) return ["No cross-project dependencies declared — this timeline stands on its own."];
-  const lines = ordered.slice(0, S1_DEPS_CAP).map((x) => x.s);
-  const held = ordered.length - lines.length;
-  if (held > 0) lines.push(`+${held} more — full graph on the dependency map`);
-  return lines;
+  // ⚠ ENKI (12-AsM): the no-dependency case is still ONE HONEST ROW, not an empty table. An empty panel
+  // body is a hard gate failure, and "nothing here" is information a board acts on.
+  // ⚠ AND IT IS WORDED TO FIT ONE LINE PER CELL, WHICH IS A MEASUREMENT, NOT A STYLE PREFERENCE. The first
+  // draft read "No cross-project dependencies declared" / "This timeline stands on its own"; in a column one
+  // third of the sheet wide both wrapped to three lines, and the 26px that cost came straight out of the
+  // Key Value Proposition panel on the tightest project in the portfolio (PRJ-23, which has no edges at all).
+  if (!ordered.length) return [["—", "None declared", "Stands on its own"]];
+  const rows = ordered.slice(0, S1_DEPS_CAP).map((x) => [x.id, nameOf(x.id), `${risks(x.e)}${flags(x.e)}`]);
+  const held = ordered.length - rows.length;
+  if (held > 0) rows.push(["", `+${held} more`, "full graph on the dependency map"]);
+  return rows;
 }
 // Dependency summary row (§4.2): NPV, above/below line, NPV incl. dependencies, dep counts.
 export interface DepSummaryRow { id: string; name: string; division: string; npvM: number; deps: number; dependents: number; npvWithDepsM: number; critical: boolean }

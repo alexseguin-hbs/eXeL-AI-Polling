@@ -5968,50 +5968,68 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
      "a capped list names the count it withheld — the no-silent-caps law, applied to text");
   ok(F.S1_DIFF_CAP >= 1, "the cap is a named constant, not a literal buried in a slice()");
 
-  // 2 · DEPENDENCIES — BOTH DIRECTIONS, READ FROM THE ONE EDGE LIST, NEVER EMPTY.
-  ok(/if \(code === "S1" && fieldId === "deps"\) return dependencyLines\(p\);/.test(lib), "S1.deps resolves");
+  // 2 · DEPENDENCIES — A REAL TABLE, KEYED BY PROJECT NUMBER, NEVER EMPTY (AD2).
+  ok(/if \(code === "S1" && fieldId === "deps"\) return dependencyRows\(p\);/.test(lib), "S1.deps resolves");
   const linked = F.SLIDE_SCHEMA.find((s) => s.code === "S1").fields.find((f) => f.id === "deps");
   ok(linked?.linked === true && linked?.req === false,
      "deps is linked (typed on the dependency list, not here) and req:false — no project's gate score moves");
-  let withDeps = 0, blank = [];
+  // ⚠ THE HEADER AND THE ROWS ARE THE SAME DECLARATION. A table whose header says three columns while its
+  // producer emits four renders a silently-shifted row, which reads as data rather than as a bug.
+  ok(linked?.kind === "table" && linked?.cols === F.S1_DEPS_COLS,
+     "…and it is a TABLE whose cols ARE the exported constant, not a hand-copied second list");
+  ok(F.S1_DEPS_COLS.length === 3 && F.S1_DEPS_COLS[0] === "Project #",
+     `the columns are Project # | Project | Risk (${F.S1_DEPS_COLS.join(" | ")})`);
+  let withDeps = 0; const blank = [], ragged = [];
   for (const p of F.DEMO_PROJECTS) {
-    const lines = F.dependencyLines(p);
-    if (!lines.length || lines.some((l) => !l.trim())) blank.push(p.id);
+    const rows = F.dependencyRows(p);
+    if (!rows.length || rows.some((r) => r.every((c) => !String(c).trim()))) blank.push(p.id);
+    if (rows.some((r) => r.length !== F.S1_DEPS_COLS.length)) ragged.push(p.id);
     if (F.dependsOn(F.DEMO_DEPS, p.id).length || F.dependentsOf(F.DEMO_DEPS, p.id).length) withDeps++;
   }
-  ok(blank.length === 0, `the Dependencies box is non-empty on all 33 projects (${blank.join(", ")})`);
+  ok(blank.length === 0, `the Dependencies table is non-empty on all 33 projects (${blank.join(", ")})`);
+  ok(ragged.length === 0, `every row is exactly ${F.S1_DEPS_COLS.length} cells wide on all 33 (${ragged.join(", ")})`);
   ok(withDeps > 0 && withDeps < F.DEMO_PROJECTS.length,
      `the portfolio exercises BOTH cases — ${withDeps} projects carry edges, ${F.DEMO_PROJECTS.length - withDeps} carry none`);
-  // ENKI: the no-dependency answer is a SENTENCE, not a blank. Executed on a project that genuinely has none.
+  // ENKI: the no-dependency answer is a ROW, not an empty table. Executed on a project that genuinely has none.
   const lone = F.DEMO_PROJECTS.find((p) => !F.dependsOn(F.DEMO_DEPS, p.id).length && !F.dependentsOf(F.DEMO_DEPS, p.id).length);
-  ok(!lone || /No cross-project dependencies declared/.test(F.dependencyLines(lone)[0]),
-     "…and a project with none says so in the deck's own voice");
-  // Both directions actually render, and the critical flag survives to the page.
-  // BOTH DIRECTIONS ARE EXPRESSIBLE, and a project carrying both either prints both or SAYS what it held
-  // back. Asserting "both appear" alone would have been a lie the moment the cap landed — the cap is real,
-  // so the lock accepts the honest alternative rather than pinning a pre-cap world.
-  const allLines = F.DEMO_PROJECTS.flatMap((q) => F.dependencyLines(q));
-  ok(allLines.some((x) => x.startsWith("We rely on")) && allLines.some((x) => /relies on us/.test(x)),
-     "both directions are rendered somewhere in the portfolio — inbound risk is not silently dropped");
-  const two = F.DEMO_PROJECTS.find((q) => F.dependsOn(F.DEMO_DEPS, q.id).length && F.dependentsOf(F.DEMO_DEPS, q.id).length);
-  if (two) {
-    const l = F.dependencyLines(two);
-    const bothShown = l.some((x) => x.startsWith("We rely on")) && l.some((x) => /relies on us/.test(x));
-    ok(bothShown || /^\+\d+ more/.test(l[l.length - 1]),
-       `${two.id} either states both directions or names the count it withheld — never a silent half-picture`);
-  }
+  ok(!lone || /None declared/.test(F.dependencyRows(lone)[0].join(" ")),
+     "…and a project with none says so in the deck's own voice, as one honest row");
+  // ⚠ KRISHNA · THE PROJECT NUMBER IS THE JOIN KEY. If the table can print an id the graph does not know,
+  // the sheet and the constellation are describing two different portfolios. Checked against DEMO_PROJECTS.
+  const known = new Set(F.DEMO_PROJECTS.map((q) => q.id));
+  const strangers = [];
+  for (const p of F.DEMO_PROJECTS)
+    for (const r of F.dependencyRows(p))
+      if (r[0] && r[0] !== "—" && !known.has(r[0])) strangers.push(`${p.id}->${r[0]}`);
+  ok(strangers.length === 0, `every printed Project # is a real project id (${strangers.join(", ")})`);
+  // …and it is the COUNTERPART's id, never the project's own — a row pointing at itself carries no information.
+  const selfRef = F.DEMO_PROJECTS.filter((p) => F.dependencyRows(p).some((r) => r[0] === p.id));
+  ok(selfRef.length === 0, `no row names the project it is printed on (${selfRef.map((q) => q.id).join(", ")})`);
+  // BOTH DIRECTIONS STILL APPEAR AS ROWS. Direction is no longer PRINTED (operator chose 3 columns over a
+  // 4th Dir column, knowing the trade), but an inbound edge must still produce a row or inbound schedule
+  // risk vanishes from the sheet entirely — which is a different and much worse defect.
+  const inbound = F.DEMO_PROJECTS.find((q) => !F.dependsOn(F.DEMO_DEPS, q.id).length && F.dependentsOf(F.DEMO_DEPS, q.id).length);
+  ok(!inbound || F.dependencyRows(inbound).some((r) => known.has(r[0])),
+     "a project with ONLY inbound edges still gets rows — leaning-on-us risk is not silently dropped");
+  const outbound = F.DEMO_PROJECTS.find((q) => F.dependsOn(F.DEMO_DEPS, q.id).length);
+  ok(!outbound || F.dependencyRows(outbound).some((r) => known.has(r[0])), "…and so does one with outbound edges");
   // THE CAP RANKS, IT DOES NOT TRUNCATE ARBITRARILY: a critical-path edge can never be the one held back.
   const many = F.DEMO_PROJECTS.filter((q) => F.dependsOn(F.DEMO_DEPS, q.id).length + F.dependentsOf(F.DEMO_DEPS, q.id).length > F.S1_DEPS_CAP);
   const buried = many.filter((q) => {
-    const shown = F.dependencyLines(q).filter((x) => !/^\+\d+ more/.test(x)).join(" | ");
+    const shown = F.dependencyRows(q).filter((r) => !/^\+\d+ more/.test(r[1])).map((r) => r.join(" ")).join(" | ");
     const crit = [...F.dependsOn(F.DEMO_DEPS, q.id), ...F.dependentsOf(F.DEMO_DEPS, q.id)].filter((e) => e.critical);
     return crit.length > 0 && crit.length <= F.S1_DEPS_CAP && !/CRITICAL/.test(shown);
   });
   ok(buried.length === 0, `a critical-path dependency is never the one the cap hides (${buried.map((q) => q.id).join(", ")})`);
-  ok(many.length > 0 && F.dependencyLines(many[0]).some((x) => /^\+\d+ more/.test(x)),
-     "…and an over-cap project states the count it withheld");
-  ok(F.dependencyLines(F.DEMO_PROJECTS.find((p) => F.dependsOn(F.DEMO_DEPS, p.id).some((e) => e.critical)) ?? F.DEMO_PROJECTS[0])
-      .some((l) => /CRITICAL PATH/.test(l)) || true, "critical-path edges are flagged where they exist");
+  ok(many.length > 0 && F.dependencyRows(many[0]).some((r) => /^\+\d+ more/.test(r[1])),
+     "…and an over-cap project states the count it withheld — the no-silent-caps law, applied to a table");
+  // THE RISK COLUMN STILL CARRIES CRITICALITY. Dropping direction was the operator's call; dropping the
+  // CRITICAL flag was not, and a colour-free table makes that word the only escalation signal on the sheet.
+  const critRows = F.DEMO_PROJECTS.flatMap((q) => F.dependencyRows(q)).filter((r) => /CRITICAL/.test(r[2]));
+  ok(critRows.length > 0, "criticality survives into the Risk column, where a board can act on it");
+  // DETERMINISM: the producer is pure — same inputs, byte-identical table, twice.
+  ok(F.DEMO_PROJECTS.every((q) => JSON.stringify(F.dependencyRows(q)) === JSON.stringify(F.dependencyRows(q))),
+     "dependencyRows is deterministic on all 33 — no clock, no locale, no Math.random in the ranking");
   // NO DEAD ✎ EDIT. `deps` deliberately has no SOURCE_SLIDE row, so hasSourceLink renders no control.
   ok(!Object.keys(F.SOURCE_SLIDE).includes("S1.deps"),
      "deps declares no owning slide, so it renders no Edit control that lands nowhere (the V1 trap)");
