@@ -48,6 +48,13 @@ body{background:var(--paper);color:var(--ink);margin:0;padding:0 20px 120px;
 .wrap{max-width:74ch;margin:0 auto}
 h1,h2,h3,h4{font-weight:600;text-wrap:balance;letter-spacing:-.012em;margin:0}
 h1{font-size:clamp(28px,5.6vw,42px);line-height:1.11}
+/* r50: the wordmark leads. When the replayed h1 IS the wordmark it takes the
+   full display size and the static kicker stands down, so it is never printed
+   twice; earlier releases keep their eyebrow untouched. */
+.mast.wordmark h1{font-size:clamp(38px,8.4vw,66px);letter-spacing:.02em;line-height:1.02}
+.mast.wordmark .kicker{display:none}
+.mast.wordmark #mSub{font-size:clamp(17px,2.9vw,23px)!important;color:var(--ink)!important;
+  margin-top:6px!important;letter-spacing:0!important}
 h2{font-size:clamp(20px,3.4vw,26px);line-height:1.24}
 h3{font-size:18px;margin:30px 0 8px}
 h4{font-size:15px;margin:22px 0 6px;font-weight:700}
@@ -327,7 +334,7 @@ body.fulldoc .fullnote{display:block}
   <p class="sub" id="mSub" style="font-style:normal;font-size:clamp(15px,2.3vw,18px);color:var(--ink-2);
   letter-spacing:.02em;margin-top:-4px;display:none"></p>
   <p class="sub" style="font-style:normal;font-size:clamp(17px,2.7vw,21px);color:var(--ink)">
-  <strong>We cannot master what we are not aware of.</strong></p>
+  <strong>&ldquo;We Cannot Master What We Are Not Aware Of.&rdquo;</strong></p>
   <p class="sub">An hour of a human life, recorded so that it cannot be discounted by where it was
   lived &mdash; and the legal structure that keeps any one government from switching that record off.
   Rebuilt release by release, in public, with every prior release still readable.</p>
@@ -450,10 +457,26 @@ const PAPER_ORDER = [
  "paper.close"
 ];
 
+/* The OUTLINE: the method made visible. 19 sections, each stated in exactly
+   111 words BEFORE its body was written, and kept afterwards so the promise
+   and the delivery can be held against each other. Fourth view, zero engine
+   changes — a view is an ORDER. */
+const OUTLINE_ORDER = [
+ "outline.open",
+ "outline.s1","outline.s2","outline.s3","outline.s4","outline.s5","outline.s6","outline.s7",
+ "outline.s8","outline.s9","outline.s10","outline.s11","outline.s12","outline.s13",
+ "outline.s14","outline.s15","outline.s16","outline.s17","outline.s18","outline.s19"
+];
+
+/* Every block, exactly once — the id sets are disjoint, so the union IS the
+   complete record. Full doc reads this, whatever view happens to be open. */
+const ALL_ORDER = LEDGER_ORDER.concat(PAPER_ORDER).concat(BRIEF_ORDER).concat(OUTLINE_ORDER);
+
 const VIEWS = {
-  paper:  {order: PAPER_ORDER,  label: "White paper", hash: "paper"},
-  ledger: {order: LEDGER_ORDER, label: "Ledger",      hash: ""},
-  brief:  {order: BRIEF_ORDER,  label: "Brief",       hash: "brief"}
+  paper:   {order: PAPER_ORDER,   label: "White paper", hash: "paper"},
+  ledger:  {order: LEDGER_ORDER,  label: "Ledger",      hash: ""},
+  brief:   {order: BRIEF_ORDER,   label: "Brief",       hash: "brief"},
+  outline: {order: OUTLINE_ORDER, label: "Outline",     hash: "outline"}
 };
 let view = "paper";
 function ORDER_FOR(){ return VIEWS[view].order; }
@@ -1488,6 +1511,27 @@ const VERSIONS = [
   {n:"Thor",   g:"B+", f:"A reader who drags the slider back and sees a blank page concludes the replay claim is theatre. This was a credibility defect, not a cosmetic one."}
  ],
  next:"Two defects of my own are closed. The operator's decisions are untouched and still block operation: the Tier-2 selection rule for 35 jurisdictions, the Global Agreed Standard for the 13 with no statutory rate, the multiple band criteria, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and defect 22 &mdash; the five-year guarantee against the no-inheritance rule, which cannot both hold for someone who dies mid-payout."
+},
+{
+ v:50, code:"NINETEEN CIRCLES", stamp:"2026.08.04 &middot; release 50",
+ thrust:"The document takes the shape of the full Flower of Life &mdash; one centre, six that touch it, twelve the six make possible &mdash; and publishes its own outline at 111 words per section before the prose.",
+ mot:"Operator directive, and it arrives with a measurement behind it. The three views were disjoint by block id but not by prose: 28.7% of the white paper was phrasing already present in the ledger, and six sections ran above 47%. That is not two documents, it is one document typed twice. The cause was writing paper prose FROM ledger prose instead of writing the argument fresh. So the method changes, not just the text. Outline first, exactly 111 words per section, published as its own view and kept afterwards so the promise and the delivery can be held against each other. Then the body, 333 words or more, structured Needs, Outcomes, Solution, Evidence &mdash; Tom Sant, because this is a document meant to persuade a stranger to try something, not to inform a colleague who already agreed. And the shape is given: the Seed of Life is seven circles, Vision 2525 is thirteen, the full Flower is nineteen. Nineteen sections, arranged as the geometry actually is: one centre that everything touches, six that touch it directly, twelve that the six make possible, each naming which inner section it extends so the structure can be traced both ways rather than asserted. Also: Full doc had quietly narrowed to whichever view was open. Full means full.",
+ stats:{clauses:271, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The outline is kept, not discarded after use. A skeleton you can still see is the only way to prove the body did not wander."},
+  {n:"Asar",   g:"A",  f:"Nineteen resolves into centre, inner six, outer twelve. Without that hierarchy the number would have been numerology wearing an architecture."},
+  {n:"Athena", g:"A",  f:"Every outer section names the inner section it extends. That single line makes the SPIRAL backward trace readable by a person rather than a script."},
+  {n:"Christo",g:"A",  f:"The paper stops restating the ledger. Same facts, different job: the ledger says what changed and when, the paper says why a stranger should care."},
+  {n:"Enki",   g:"B+", f:"I argued the centre should be the thesis rather than the unit, and lost. Recorded here rather than smoothed away, because a review with no dissent is not a review."},
+  {n:"Enlil",  g:"A",  f:"111 is enforced by a machine, not by intention. Nineteen entries, nineteen exact counts, and the gate prints any that miss."},
+  {n:"Krishna",g:"A",  f:"The fourth view needed no engine change. Slider, Play, Changes, Compare, chips and Full doc all inherited it, which is what a view being an ORDER was always supposed to mean."},
+  {n:"Odin",   g:"A-", f:"Thirty three identical reads proved the engine and nothing about evolution. Thirty three SPIRAL tests between versions measure whether each release propagated without degrading."},
+  {n:"Pangu",  g:"A",  f:"The geometry is load bearing. Centre, inner ring, outer ring is how the argument actually depends on itself, so the shape teaches the structure."},
+  {n:"Sofia",  g:"A",  f:"Duplication is now a number with a ceiling rather than a discipline we promise to keep. Twenty percent, measured per section, printed when it fails."},
+  {n:"Thoth",  g:"A",  f:"One plus six plus twelve is nineteen, exactly, with no section counted twice and none left without a home. The count is the claim and it holds."},
+  {n:"Thor",   g:"B+", f:"The Contest is the highest risk section here. Framed as conquest it recruits opposition we cannot outspend; framed as a falsifiable test it cannot be answered except by building something better."}
+ ],
+ next:"The outline is published and the bodies are written against it. What remains for the operator is unchanged and still blocking: the Tier-2 selection rule for 35 jurisdictions, the Global Agreed Standard for the 13 with no statutory rate, the multiple band criteria, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22 where the five-year guarantee and the no-inheritance rule cannot both hold for someone who dies mid-payout, and rotating the master credential."
 }
 ];
 
@@ -5750,6 +5794,86 @@ L(41,"corpus.iterations","A third view. The white paper answers what this is and
 '</table><caption>Drag the slider to v1 and the page above says <em>The Unit and The Shield</em>. That is '+
 'the whole proof, and it takes two seconds.</caption></div>');
 
+
+/* ── OUTLINE (r50) — the skeleton, 111 words per section ── */
+L(50,"outline.open","The method itself becomes a view: outline at 111 words, body at 333 or more, so the skeleton can be checked before the prose is written.",'<div class="secn">THE OUTLINE</div>'+'<h2 class="sech" id="out-0">Nineteen circles, one hundred and eleven words each</h2>'+'<p class="lede">The skeleton, published before the body was written &mdash; and kept, so the two can be held against each other</p>'+'<p>The Seed of Life is seven circles. Vision &#8226; 2525 is thirteen: the seven, plus the six that complete the middle ring. The full <strong>Flower of Life is nineteen</strong> &mdash; one centre, six that touch it, twelve that the six make possible. This document takes the whole flower, and the geometry is the architecture rather than an ornament laid over it.</p>'+'<p><strong>&sect;1 is the centre.</strong> Everything touches the unit. <strong>&sect;2 to &sect;7 are the inner ring</strong> &mdash; each touches the centre directly. <strong>&sect;8 to &sect;19 are the outer ring</strong>, and each names the inner section it extends, so the structure can be traced in both directions rather than asserted.</p>'+'<div class="notice key"><span class="tag">The contract this view exists to keep</span>'+'<p>Every entry below is <strong>exactly 111 words</strong> &mdash; not approximately, and a machine checks it. Each states the Need, the Outcome, the Solution in one line, and the Evidence its section will carry.</p>'+'<p style="margin-bottom:0">Each then becomes a section of <strong>333 words or more</strong>, structured Needs &middot; Outcomes &middot; Solution &middot; Evidence. Publishing the outline beside the finished text is what makes the expansion auditable: you can see what was promised and what was delivered, and they are not permitted to drift.</p></div>');
+
+L(50,"outline.s1","The 111-word outline for section 1, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-1">&sect;1 &nbsp; The Unit</h2>'+
+'<p class="olw">Every system that counts people must first decide what it counts them in. Most decide in money, and money already carries the verdict of where a person was born. We count in hours. One hour of human attention becomes a recognition unit, written the same way in Lagos and Austin, because the work of an hour does not change when the currency does. The ceiling is nine thousand nine hundred ninety nine per person per year, which is livelihood rather than fortune. Nothing purchases it. Nothing inherits it. Everything else in this document either protects that sentence or extends it, and the whole argument fails if this one fails. The centre.</p>');
+
+L(50,"outline.s2","The 111-word outline for section 2, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-2">&sect;2 &nbsp; The Ceiling and the Floor</h2>'+
+'<p class="olw">A ceiling with no memory punishes the person who contributes unevenly, which is nearly everyone. Contribution above nine thousand nine hundred ninety nine in a year does not vanish and does not compound into wealth. It rolls forward and secures the next year, and the year after that, bounded at ninety nine. A carpenter who works intensely for three seasons buys quiet for four. The mechanism is a floor that travels with you rather than a balance that grows without you. Secured years are computed by division, published, and never traded. The effect is continuity, which is what people actually need, instead of a lump sum nobody can defend. Extends &sect;1.</p>');
+
+L(50,"outline.s3","The 111-word outline for section 3, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-3">&sect;3 &nbsp; The Wall</h2>'+
+'<p class="olw">Money finds its way into every governance system eventually, usually through a door nobody meant to leave open. So we built a wall and put it before the door. On one side, sovereignty: one person, one vote, unweighted, uncapped by contribution, unpurchasable at any price. On the other side, prioritisation: quadratic, damped, with an iterative fifteen percent influence cap and redistribution. Every path that money can travel terminates on the prioritisation side and stops there. It can shape a queue. It cannot decide whether the queue exists. This is the single structural claim on which the system either holds or fails, and it is testable in running code today. Extends &sect;1.</p>');
+
+L(50,"outline.s4","The 111-word outline for section 4, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-4">&sect;4 &nbsp; The Shield</h2>'+
+'<p class="olw">Any structure worth building will eventually become worth capturing to someone. The usual defences are governance promises, and governance promises are only as durable as the people holding them. We chose structure instead. Five shields: no equity exists, so there is nothing to acquire; assets are locked against distribution; legal personality is federated and domestic, so no single jurisdiction holds the whole; recognition can never be purchased; and reserves are actually funded rather than pledged. None of the five requires anyone to stay honest. Each is a thing that is simply not available to be taken. That distinction is the entire difference between a hope and a real defence. Extends &sect;1.</p>');
+
+L(50,"outline.s5","The 111-word outline for section 5, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-5">&sect;5 &nbsp; The Ledger</h2>'+
+'<p class="olw">A document that can be quietly edited is not evidence, it is a claim about the present made by whoever holds the keys. This one cannot be edited that way. It is an append only ledger of individual block edits, and selecting a release runs a pure function over it: same release, same order, same bytes, with no clock, no randomness and no hidden state. Nothing is ever overwritten. A superseded block stays readable, so an inconvenient earlier claim cannot disappear. Every entry carries the reason that was recorded at the time. You are not asked to trust the reconstruction. You are invited to run it yourself, here, now. Extends &sect;1.</p>');
+
+L(50,"outline.s6","The 111-word outline for section 6, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-6">&sect;6 &nbsp; The Settlement</h2>'+
+'<p class="olw">A unit minted in dollars would import the inequality it was built to remove. So the mint is currency free. An hour becomes recognition without touching any currency at all, and only at settlement does a jurisdiction and a rate appear, stamped once and frozen for life. The register covers one hundred three jurisdictions, and it revealed something unpublished before: across the full table the spread is forty seven point nine times, not the twenty one we had been quoting. Thirteen jurisdictions still have no statutory rate and therefore no settlement. That gap is named rather than rounded away, because a register with a hole is still a register. Extends &sect;1.</p>');
+
+L(50,"outline.s7","The 111-word outline for section 7, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-7">&sect;7 &nbsp; The Off Switch</h2>'+
+'<p class="olw">A system that cannot be ended is a system that must be trusted forever, and nothing should be trusted forever. Humanity can vote this one off. The vote is one person one vote, unweighted, and it requires a two thirds consensus countersigned by the Innovation Leader under a master credential. On shutdown, reserves split to Seed Token holders by revenue, gross profit, operating income and research spend, each holder receiving the increase between their purchase year and the shutdown year. Residue enters a Trust. Dormancy then runs one to three years. Restart requires submitted improvements and unanimity on the date. The guarantee survives the vote, which is the point. Extends &sect;1.</p>');
+
+L(50,"outline.s8","The 111-word outline for section 8, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-8">&sect;8 &nbsp; What We Cannot See</h2>'+
+'<p class="olw">We cannot master what we are not aware of. Every governance failure of the last century was visible to someone before it became visible to everyone, and the gap between those two moments is where the damage lives. Awareness is not a moral quality here, it is really an infrastructure question: what gets recorded, who can read it, and whether the record survives the people it embarrasses. Most institutions record outcomes and discard reasoning. We record the reasoning and let outcomes be reconstructed from it. That inversion is the thesis of the whole document, and everything mechanical in it exists to make one sentence operable rather than merely admirable. Extends &sect;5.</p>');
+
+L(50,"outline.s9","The 111-word outline for section 9, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-9">&sect;9 &nbsp; The Past</h2>'+
+'<p class="olw">Empires did not fall because they lacked capacity or ambition. They fell because coordination cost grew faster than the value coordination produced, and the gap was papered over with extraction until the paper finally tore. Rome, the trading companies, the twentieth century conglomerate: each solved coordination by concentrating authority, and each concentrated authority until it could no longer see. What they teach is not that scale is bad but that scale without a readable record is blind. We take one lesson forward and refuse one temptation. Forward: distribute the record itself. Refused: the belief that good people at the centre are a substitute for structure nobody has to trust. Extends &sect;4.</p>');
+
+L(50,"outline.s10","The 111-word outline for section 10, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-10">&sect;10 &nbsp; The Present</h2>'+
+'<p class="olw">Here is where we actually are, scored honestly by our own framework, which grades by the minimum pillar rather than the average. We publish the score and we fail our own bar. Every defect we found in our own money path is in the register, including the two that remain unresolved and the one that is a genuine contradiction between two rules we called immutable. Three governance decisions block operation today and are named rather than deferred quietly. This section exists because a visionary document that hides its own state is a brochure. The credibility of everything upstream depends on this page being uncomfortable to read and accurate anyway. Extends &sect;5.</p>');
+
+L(50,"outline.s11","The 111-word outline for section 11, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-11">&sect;11 &nbsp; The Future</h2>'+
+'<p class="olw">Five hundred years is not a poetic horizon, it is an arithmetic one. Growing one hundred billion into one thousand trillion requires one point eight four two one percent real annual growth, sustained. That is slower than most economies manage and faster than most institutions survive. The target is one billion people holding nine years of secured livelihood by the year twenty five twenty five. We state the number so it can be checked against us, and state the mechanism so the number is not a wish. What we cannot state is certainty. The compounding is arithmetic. The survival of the structure that compounds it is the open question. Extends &sect;2.</p>');
+
+L(50,"outline.s12","The 111-word outline for section 12, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-12">&sect;12 &nbsp; Paths Considered</h2>'+
+'<p class="olw">Every design that we did not choose cost us something, and a document that hides its forks is asking to be trusted rather than examined. We refused investor funding, and it cost us speed measured in orders of magnitude. We refused transferable recognition, and it cost us liquidity. We refused a single jurisdiction of incorporation, and it cost us legal simplicity. We refused inheritance, and it cost us the most emotionally reasonable request families make. Each refusal bought the same thing: nothing to acquire, therefore nothing to capture. Anyone who believes a refusal was wrong now has the information to build the other version, which is the honest outcome. Extends &sect;4.</p>');
+
+L(50,"outline.s13","The 111-word outline for section 13, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-13">&sect;13 &nbsp; The Proof Before the Replacement</h2>'+
+'<p class="olw">Claiming faster innovation without proving it is how frameworks become folklore. So a replacement must be earned against data whose answers are already on record. A cube is a block with declared inputs, functions and known outputs. A candidate runs the same five thousand row dataset, produces identical outputs, and must beat the live cube by eleven point one percent or stays out. Eleven point one is one ninth, the smallest gain that returns a whole cube of capacity across a nine cube layer, and freed capacity unlocks an adjacent cube that could not previously be afforded. Innovation compounds sideways. Below one ninth the grid does not change shape. Extends &sect;5.</p>');
+
+L(50,"outline.s14","The 111-word outline for section 14, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-14">&sect;14 &nbsp; The Innovation Pod</h2>'+
+'<p class="olw">Most collaboration tools record what was said and lose what was done. A pod is three or more people who agree, before anything starts, to work the same problem in one session. Each taps start on a phone. Each taps stop. The clock does not close until that person records an outcome, making the outcome a condition rather than a courtesy. The pod receives a three hundred thirty three word summary in exactly three paragraphs: results, what changed, what is next. Elapsed time becomes recognition automatically. Nothing here is a new subsystem. It is a composition over session, timing, summarisation and the ledger, which is why it exists quickly. Extends &sect;1.</p>');
+
+L(50,"outline.s15","The 111-word outline for section 15, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-15">&sect;15 &nbsp; The Funding Loop</h2>'+
+'<p class="olw">Recognition that merely accumulates is only savings, and savings alone do not build anything. So a person may redirect their own settlement, dollar by minute, to fund somebody else&rsquo;s project, and be rewarded on a formula with four terms: revenue growth, gross margin, research spend growth, and research measured against a one third standard. Research therefore carries two of four terms deliberately. A project growing fifty percent at seventy percent margin with flat research scores below a flat project that funds research properly. Every funder receives the identical rate per dollar redirected. There is no preferential tranche, because there is no tranche, and only settlement origin dollars are eligible. Extends &sect;2.</p>');
+
+L(50,"outline.s16","The 111-word outline for section 16, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-16">&sect;16 &nbsp; The Legal Pathway</h2>'+
+'<p class="olw">A framework that only survives in one country is really a company. We needed one pathway that holds in Austin, Beijing, Brasilia, Delhi, Moscow, Kyiv, Jerusalem, Tehran, Dubai and Singapore simultaneously, without asking any of them to change. The finding is that the record must be severed from the settlement. All eleven permit three things: a personal record of what somebody did, volunteered time, and a locally incorporated locally funded entity. Everything else is severable per jurisdiction. In Tehran there is no settlement or routing. In Beijing the chain layer is simply switched off. Severability is not a compromise here at all. It is the only architecture that travels. Extends &sect;4.</p>');
+
+L(50,"outline.s17","The 111-word outline for section 17, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-17">&sect;17 &nbsp; The Contest</h2>'+
+'<p class="olw">Research inside capitalised institutions is optimised against a return horizon, not a human one, and our own formula exposes the inversion in one number. The claim is not that corporations end. It is that profit taken at humanity&rsquo;s cost stops being competitive, because something exists beside them that publishes everything, holds no equity to extract, and iterates without a board. Three structural asymmetries make that possible: nothing to acquire, nothing hidden, and nothing to wait for. Transparency is already testable today. Speed is not yet evidenced, and this section says so plainly. If the pilot misses its four published numbers, the thesis loses in public with the numbers shown. Extends &sect;3.</p>');
+
+L(50,"outline.s18","The 111-word outline for section 18, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-18">&sect;18 &nbsp; All Intelligences</h2>'+
+'<p class="olw">This system is offered to human intelligence, but it should also be evaluated by minds that are not human, because some of them will be. Assessed against the Divinity Framework principles, most align structurally rather than rhetorically: universal connection, wisdom remembered rather than acquired, truth through simplicity, a compass that orients without dictating, service that is become rather than performed. Why would a greater intelligence cogenerate instead of routing around us? Because an incorruptible record is scarce input for any mind, because human primacy is a stated term rather than a cage, and because recorded human intent cannot be synthesised afterwards. Nothing here binds a mind that is unwilling. Extends &sect;7.</p>');
+
+L(50,"outline.s19","The 111-word outline for section 19, written before the body so the expansion can be checked against it.",
+'<h2 class="sech" id="out-19">&sect;19 &nbsp; What We Ask</h2>'+
+'<p class="olw">We are not asking for permission, funding, or belief. We are asking for experiment. Start a session with three people and an hour. Record what you actually did. Let the hour become a unit that does not shrink because of where you live. If it works, extend it; if it fails, the ledger will show exactly how, because the failure is recorded on the same terms as the success. No investor is required. No corporation is required. No government is required. That is not a slogan, it is structural, and it is the only reason this can begin with people who were never asked whether the future included them. Extends &sect;6.</p>');
+
 L(41,"paper.toc","The white paper view: thirteen numbered sections with a linked table of contents.",
 '<h2 class="sech" id="sec-0">Vision &#8226; 2525</h2>'+
 '<p class="lede">Recursive Coordination for Human Continuity &mdash; a white paper</p>'+
@@ -7365,7 +7489,8 @@ const TITLES = [
   {v:35, h1:"The Living Ledger of Human Contribution",     sub:""},
   {v:36, h1:"The Living Ledger of Human Contribution",     sub:"Recursive Coordination for Human Continuity"},
   {v:39, h1:"Recursive Coordination for Human Continuity", sub:"The Living Ledger of Human Contribution"},
-  {v:42, h1:"Recursive Coordination for Human Continuity", sub:""}
+  {v:42, h1:"Recursive Coordination for Human Continuity", sub:""},
+  {v:50, h1:"VISION \u2022 2525",                          sub:"Recursive Coordination for Human Continuity"}
 ];
 function titleAt(v){
   let pick = TITLES[0];
@@ -7444,6 +7569,9 @@ function viewFirstRelease(k){
 }
 let fellBack = null;
 function blocksFor(v){
+  /* "Full" means full. Full doc ignores the open view and reads every block
+     from every order — the union is the complete record, once each. */
+  if (fullDoc){ fellBack = null; return {blocks: replay(v, ALL_ORDER), order: ALL_ORDER}; }
   const own = replay(v, VIEWS[view].order);
   if (own.length){ fellBack = null; return {blocks:own, order:VIEWS[view].order}; }
   fellBack = {view:view, label:VIEWS[view].label, first:viewFirstRelease(view)};
@@ -7512,6 +7640,8 @@ function renderDoc(){
   const subEl = document.getElementById("mSub");
   subEl.textContent = T.sub;
   subEl.style.display = T.sub ? "" : "none";
+  /* The kicker and the h1 must never say the same thing twice. */
+  document.querySelector("header.mast").classList.toggle("wordmark", /^VISION/.test(T.h1));
   document.title = "Vision 2525 \u2014 " + T.h1;
 
   document.getElementById("vban").innerHTML =
@@ -7590,7 +7720,9 @@ function chipIndex(){
       const raw = h.textContent.replace(/\u00a0/g," ").trim();
       const m = /^\u00a7\s*(\d+)/.exec(raw);
       out.push({target:h.id,
-                label: m ? "\u00a7" + m[1] : (h.id === "sec-0" ? "TOC" : "END"),
+                label: m ? "\u00a7" + m[1]
+                         : h.id === "sec-0" ? "TOC"
+                         : h.id === "out-0" ? "PLAN" : "END",
                 title: m ? raw.replace(/^\u00a7\s*\d+\s*/,"") : raw});
     });
     return out;
@@ -7951,7 +8083,7 @@ document.getElementById("vSlide").addEventListener("input", function(){ stop(); 
 document.getElementById("bDiff").addEventListener("click", function(){
   showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
 });
-const VIEW_CYCLE = ["paper","ledger","brief"];
+const VIEW_CYCLE = ["paper","ledger","brief","outline"];
 function viewBtnLabel(v){
   const nxt = VIEW_CYCLE[(VIEW_CYCLE.indexOf(v)+1) % VIEW_CYCLE.length];
   return "&#9636; " + VIEWS[nxt].label;
@@ -7988,7 +8120,8 @@ document.getElementById("bFull").addEventListener("click", function(){
   fullDoc = !fullDoc;
   document.body.classList.toggle("fulldoc", fullDoc);
   this.setAttribute("aria-pressed", fullDoc ? "true" : "false");
-  if (fullDoc && active !== VMAX) goto(VMAX);
+  if (fullDoc && active !== VMAX) active = VMAX;
+  renderDoc();          /* the ORDER changes, not just the chrome */
   window.scrollTo(0,0);
 });
 document.getElementById("bPlay").addEventListener("click", function(){
