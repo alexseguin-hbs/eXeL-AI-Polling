@@ -1,6 +1,6 @@
 # Vision • 2525 — Document Architecture Spec
 
-**Status:** LIVE · locked at release 40 · gated by `scratchpad/lv-gate.mjs`
+**Status:** LIVE · locked at release 40, extended to three views at release 41 · gated by `scratchpad/lv-gate.mjs`
 **Applies to:** `docs/SOI_VISION2525_LIVING_DOCUMENT.html` and its dated release copies
 
 > **The rule this spec exists to enforce:** there is exactly **one** Vision 2525 document.
@@ -51,24 +51,31 @@ A **view is an ORDER, not a template.** Both views replay the same ledger with t
 
 ```js
 const VIEWS = {
-  ledger: {order: LEDGER_ORDER, label: "Ledger", hash: ""},
-  brief:  {order: BRIEF_ORDER,  label: "Brief",  hash: "brief"}
+  paper:  {order: PAPER_ORDER,  label: "White paper", hash: "paper"},
+  ledger: {order: LEDGER_ORDER, label: "Ledger",      hash: ""},
+  brief:  {order: BRIEF_ORDER,  label: "Brief",       hash: "brief"}
 };
-let view = "ledger";
+let view = "paper";                 // the default landing view
+const VIEW_CYCLE = ["paper","ledger","brief"];
 function ORDER_FOR(){ return VIEWS[view].order; }
 ```
 
-| View | Order | Size at r40 | Purpose |
-|------|-------|:-----------:|---------|
-| `ledger` | `LEDGER_ORDER` | 74 blocks | The complete record |
-| `brief` | `BRIEF_ORDER` | 8 blocks | The twenty-minute read |
+| View | Order | Size at r41 | The question it answers |
+|------|-------|:-----------:|-------------------------|
+| `paper` | `PAPER_ORDER` | 15 blocks | What is this, and why is it shaped this way? |
+| `ledger` | `LEDGER_ORDER` | 74 blocks | What changed, when, and for what recorded reason? |
+| `brief` | `BRIEF_ORDER` | 8 blocks | Can I have the twenty-minute version? |
+
+**The white-paper view carries no release numbers.** A stranger arriving at the framework does not care
+that we were wrong at release nine. The ledger view is where change history lives; keep them separate.
 
 ### Adding a third view
 
 1. Define `<NAME>_ORDER` as an array of block ids.
 2. Register it in `VIEWS`.
 3. Write its blocks into the ledger with `L(v, id, why, html)` at the current release.
-4. Add the id list to the gate's orphan check (§7).
+4. Add the id list to the gate's orphan check, distinctness union, and overlap check (§7).
+5. Add it to `VIEW_CYCLE` so the toggle reaches it.
 
 **No engine changes are required.** Slider, Play, Changes, Key improvements, Compare and
 Full-doc all operate on `ORDER_FOR()` and inherit the new view for free.
@@ -113,11 +120,13 @@ as auditable as the contents — because nobody audits the frame, which is exact
 
 | Hash | Opens |
 |------|-------|
-| `#v40` | Ledger view at release 40 |
-| `#brief/v40` | Brief view at release 40 |
-| *(none)* | Ledger view at the latest release |
+| `#v41` | Ledger view at release 41 |
+| `#brief/v41` | Brief view at release 41 |
+| `#paper/v41` | White-paper view at release 41 |
+| *(none)* | White-paper view at the latest release |
 
-Parsed by `/^#(?:(brief)\/)?v(\d+)$/`. The hash is rewritten on every navigation via
+Parsed by `/^#(?:(brief|paper)\/)?v(\d+)$/`. Section anchors inside the paper view (`#sec-8`) are
+**intercepted and scrolled**, never navigated — otherwise a jump to §8 would destroy the version hash. The hash is rewritten on every navigation via
 `history.replaceState`, so any state a reader reaches is shareable.
 
 ---
@@ -135,6 +144,12 @@ One pass = one full R-CORE cycle. **Append only. Never rewrite history.**
 5. **Re-derive** — any new arithmetic independently in Python before it ships.
 6. **Release** — copy to `docs/VISION2525_LIVING_LEDGER_YYYY.MM.DD.html`, commit, push to both
    branches, report `SHA | committed | pushed | LIVE-UNVERIFIED` plus the site URL.
+
+### Section numbering (paper view only)
+
+Sections render `§N · TITLE` with an `id="sec-N"` anchor and a `↑ contents` link back to `#sec-0`.
+The ToC is itself a block (`paper.toc`), so it replays like everything else and cannot drift from
+the sections it lists. The gate asserts every ToC link resolves to a real section.
 
 ### Every release MUST change at least one block in the `ledger` view
 
@@ -190,9 +205,13 @@ Sections:
 4. **2c · Masthead replay** — title at v1 ≠ title at latest; v1 and v34 carry the founding
    title; the v35 rename takes effect; v36 carries its subtitle; v39 carries the swapped pair;
    `document.title` tracks the masthead.
-5. **2d · Two views** — both banners render, block counts differ and are non-zero, the brief
-   hash is deep-linkable, the brief's state hash is deterministic, compare reports change in
-   the brief view, and toggling back restores the ledger view and hash.
+5. **2d · Three views** — all three banners render, block counts are distinct and non-zero, each
+   hash is deep-linkable in its own grammar, each view's state hash is deterministic, compare
+   reports change in each view, the toggle cycles all three in order, all 13 ToC links resolve to
+   real sections, and clicking a section link does not alter the version hash.
+
+   **Structural checks must pin the view.** Sections 1, 2, 2b and 2c call `setView('ledger')` first,
+   because paper and brief blocks only exist from r40/r41 and would make v1 and v2 render identically.
 6. **Responsive** — 375 / 768 / 1440 × light + dark × every release: zero body h-scroll, zero
    overflowing elements outside `.scroll`/`pre`, zero clipped wrappers at desktop width.
 

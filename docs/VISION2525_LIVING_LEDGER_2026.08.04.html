@@ -185,6 +185,32 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font-size:13px;color:var(--ink-2);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 /* ---------- full-document reading mode ---------- */
+/* ---------- white-paper view ---------- */
+.toc{border:1px solid var(--rule);border-top:3px solid var(--ai);background:var(--panel);
+  padding:22px 24px;margin:0 0 12px;border-radius:2px}
+.toc h3{margin:0 0 4px;font-size:12px;letter-spacing:.19em;text-transform:uppercase;color:var(--ai)}
+.toc .tsub{margin:0 0 18px;font-size:14px;color:var(--ink-2);font-style:italic}
+.toc ol{list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:720px){.toc ol{grid-template-columns:1fr 1fr;column-gap:30px}}
+.toc li{border-bottom:1px solid var(--rule-2);padding:8px 0}
+.toc li:last-child{border-bottom:0}
+.toc a{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14.5px;line-height:1.4}
+.toc a:hover .tt{text-decoration:underline}
+.toc .sn{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--ai);font-weight:700;
+  min-width:34px;flex:0 0 auto}
+.toc .tg{display:block;font-size:12px;color:var(--ink-2);font-style:italic;margin-top:2px}
+.secn{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ai);font-weight:700;border-top:1px solid var(--rule);padding-top:10px;margin:0 0 6px}
+.secn a{color:var(--ai);text-decoration:none;opacity:.55}
+.secn a:hover{opacity:1;text-decoration:underline}
+h2.sech{scroll-margin-top:96px}
+.pull{border-left:3px solid var(--hi);padding:2px 0 2px 18px;margin:26px 0;
+  font-size:clamp(18px,2.9vw,22px);line-height:1.42;color:var(--ink);font-style:italic}
+.pull cite{display:block;margin-top:8px;font-size:13px;font-style:normal;color:var(--ink-2);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+
 .viewban{border:1px solid var(--rule);border-left:5px solid var(--hi);background:var(--hi-bg);
   padding:12px 16px;margin:0 0 18px;border-radius:2px;font-size:14.5px;line-height:1.6}
 .viewban b{color:var(--hi)}
@@ -387,11 +413,22 @@ const BRIEF_ORDER = [
  "brief.risk","brief.open_items","brief.why"
 ];
 
+/* The WHITE PAPER: numbered sections, a table of contents, and no release
+   numbers anywhere. It answers "what is this and why", where the ledger view
+   answers "what changed and when". Third view, zero engine changes. */
+const PAPER_ORDER = [
+ "paper.toc",
+ "paper.s1","paper.s2","paper.s3","paper.s4","paper.s5","paper.s6","paper.s7",
+ "paper.s8","paper.s9","paper.s10","paper.s11","paper.s12","paper.s13",
+ "paper.close"
+];
+
 const VIEWS = {
-  ledger: {order: LEDGER_ORDER, label: "Ledger", hash: ""},
-  brief:  {order: BRIEF_ORDER,  label: "Brief",  hash: "brief"}
+  paper:  {order: PAPER_ORDER,  label: "White paper", hash: "paper"},
+  ledger: {order: LEDGER_ORDER, label: "Ledger",      hash: ""},
+  brief:  {order: BRIEF_ORDER,  label: "Brief",       hash: "brief"}
 };
-let view = "ledger";
+let view = "paper";
 function ORDER_FOR(){ return VIEWS[view].order; }
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
@@ -1235,6 +1272,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Two documents making the same claims is two chances to be caught contradicting yourself. Now there is one claim and two renderings of it."}
  ],
  next:"The document architecture is written down at docs/VISION2525_DOCUMENT_SPEC.md so the contract survives me. What remains needs the operator and has not moved: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony."
+},
+{
+ v:41, code:"THE WHITE PAPER", stamp:"2026.08.04 &middot; release 41",
+ thrust:"A third view: thirteen numbered sections with a linked table of contents, no release numbers, and the paths considered rather than the versions shipped.",
+ mot:"Operator directive, and it exposes something the two existing views could not do. The ledger view answers what changed and when. The brief answers what this is in twenty minutes. Neither answers the question a stranger actually arrives with: WHAT IS THIS AND WHY IS IT SHAPED THIS WAY. So a white paper &mdash; and deliberately no release history in it, because a reader who has never seen this does not care that we were wrong at release nine. What they need instead is the FORKS: the eight places where an obvious, faster, cheaper road was available and was refused. That is section eight and it is the heart of the thing, because every refused road creates a party who could end this &mdash; an investor, a permanent board, a home jurisdiction, a vendor, a wealthy member &mdash; and the whole proposition is that humanity can start this for itself without any of them.",
+ stats:{clauses:262, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The paths not taken explain the shape better than the shape explains itself. A reader who sees the eight refusals understands the framework in a way no description of it achieves."},
+  {n:"Asar",   g:"A+", f:"Three views now answer three genuinely different questions, from one record. The document finally fits the several kinds of reader it always claimed to be written for."},
+  {n:"Athena", g:"A+", f:"Zero investor, zero corporation, zero government stated as the opening proposition rather than inferred from forty sections of legal structure. That is the correct place for it."},
+  {n:"Christo",g:"A+", f:"Section thirteen asks for nothing except permission for people to choose. After twelve sections of machinery, that is the right note to end on."},
+  {n:"Enki",   g:"A",  f:"The interesting discipline is what was LEFT OUT: no release numbers, no defect ages, no version pills. A white paper that talked about its own revisions would be talking to us rather than to a stranger."},
+  {n:"Enlil",  g:"A+", f:"A third ORDER, thirteen sections, and not one line of engine change beyond the view registry. The release-40 spec said adding a view would be a list of ids; it was."},
+  {n:"Krishna",g:"A+", f:"Section anchors scroll rather than navigate, so the version deep link survives a jump to &sect;8. Three views, one hash grammar, no collisions."},
+  {n:"Odin",   g:"A",  f:"Every refused road in section eight is faster and cheaper than the one taken. Publishing that comparison invites the obvious challenge, which is exactly why it belongs there."},
+  {n:"Pangu",  g:"A+", f:"The past-present-future spine runs &sect;3, &sect;9, &sect;12 and holds the document together without a single reference to our own version history."},
+  {n:"Sofia",  g:"A+", f:"A contents page with thirteen &sect; links is the smallest change that makes a long document usable, and it took forty releases to add one."},
+  {n:"Thoth",  g:"A",  f:"Every figure in the paper view reconciles against the ledger view: 4.807, 2,080, 9,999, 47.9x, $318.24bn, 1.8421%. One source, two renderings, no divergence."},
+  {n:"Thor",   g:"A+", f:"The proposition section publishes what each refusal COSTS us &mdash; no capital at speed, no balance sheet, no shortcut to legitimacy. A list of renunciations without their price is marketing."}
+ ],
+ next:"Three views, one ledger, one record. What remains has not moved and cannot be moved from this side: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony. After those, the language pass."
 }
 ];
 
@@ -5383,6 +5441,888 @@ L(40,"brief.why","Part four continued: why an off switch is affordable at all.",
 'own deliverables, and it is why there is now one document with two doors rather than two documents '+
 'telling the same story.</p></div>');
 
+/* ══════════ RELEASE 41 ══════════ */
+/* The WHITE PAPER view. Numbered sections, a table of contents, no release numbers. */
+
+L(41,"corpus.iterations","A third view. The white paper answers what this is and why; the ledger answers what changed and when.",
+'<h2>Reading the ninety-nine</h2>'+
+'<p>A document that accumulates ninety-nine releases has a problem no ordinary paper has: the reader '+
+'cannot possibly read them all, and the interesting content is not in any single release but in the '+
+'<em>differences between</em> them. Playing forward shows motion. It does not answer the only question '+
+'that matters at scale &mdash; <strong>what changed, between which two points, and why.</strong></p>'+
+'<h3>Three views, one ledger</h3>'+
+'<div class="notice key"><span class="tag">A view is an ORDER, not a template</span>'+
+'<p style="margin-bottom:0">Each view is a list of block ids replayed by the same pure function over the '+
+'same append-only record. None of them can drift from the others, because contradicting one would mean '+
+'contradicting the same ledger three times.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>View</th><th class="n">Sections</th><th>The question it answers</th><th>Deep link</th></tr>'+
+'<tr><td><strong>&#9636; White paper</strong></td><td class="n">15</td><td>What is this, and why is it '+
+'shaped this way? Thirteen numbered sections with a table of contents, and <em>no release numbers</em> '+
+'&mdash; a stranger does not care that we were wrong at release nine.</td><td><code>#paper/v41</code></td></tr>'+
+'<tr><td><strong>Ledger</strong></td><td class="n">74</td><td>What changed, when, and for what recorded '+
+'reason? The complete record, every release replayable.</td><td><code>#v41</code></td></tr>'+
+'<tr><td><strong>Brief</strong></td><td class="n">8</td><td>Can I have the twenty-minute version? The '+
+'off switch, the formula, the risk addressed, and what is still open.</td><td><code>#brief/v41</code></td></tr>'+
+'</table><caption>Adding the third view required no engine change beyond registering it &mdash; which is '+
+'what the release-40 specification predicted it would take.</caption></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Control</th><th>The question it answers</th></tr>'+
+'<tr><td><strong>Slider &middot; &#9668; &#9658;</strong></td><td>What did the document look like at release <em>n</em>?</td></tr>'+
+'<tr><td><strong>&#9654; Play</strong></td><td>How did the argument develop, in order?</td></tr>'+
+'<tr><td><strong>&#9679; Changes</strong></td><td>What is new in the release I am looking at?</td></tr>'+
+'<tr><td><strong>Key improvements</strong></td><td>Of those changes, which mattered, and for what stated reason?</td></tr>'+
+'<tr><td><strong>&#8646; Compare</strong></td><td>What changed between <em>any</em> two releases &mdash; in whichever view I am reading?</td></tr>'+
+'<tr><td><strong>&#9636; View</strong></td><td>Which of the three readings do I want?</td></tr>'+
+'<tr><td><strong>&#9776; Full doc</strong></td><td>What does it say right now, read straight through, with no version machinery?</td></tr>'+
+'</table><caption>Seven controls. At release 99 all ninety-nine states remain addressable in all three '+
+'views, because none of them is stored &mdash; each is reconstructed on demand.</caption></div>'+
+'<h3>How comparison works</h3>'+
+'<pre><code>compare(a, b)  =  swap so a &lt;= b, then for each block id in the ACTIVE view:\n'+
+'                    x = newest ledger entry with e.id == id and e.v &lt;= a\n'+
+'                    y = newest ledger entry with e.id == id and e.v &lt;= b\n\n'+
+'                    x absent, y present  -> ADDED     (first written at v = y.v)\n'+
+'                    x present, y absent  -> REMOVED   (structurally impossible)\n'+
+'                    x.v != y.v           -> REVISED   (superseded at v = y.v, with its reason)\n'+
+'                    x.v == y.v           -> CARRIED   (identical bytes)</code></pre>'+
+'<div class="notice"><span class="tag">An empty category, declared rather than hidden</span>'+
+'<p style="margin-bottom:0"><strong>The REMOVED column reads zero, and always will.</strong> An '+
+'append-only ledger with last-write-wins reconstruction has no delete operation. A comparison tool that '+
+'showed a removal column without saying it can never fill would be quietly misleading, so under the '+
+'disclosure rule the empty category is declared.</p></div>'+
+'<h3>What Key Improvements is, and what it is not</h3>'+
+'<p>The improvements list under each release is <strong>derived from the ledger, not written beside '+
+'it</strong> &mdash; the entries whose version equals the one you are viewing, each with the reason '+
+'recorded at the time. A hand-maintained changelog drifts from the changes it describes within a few '+
+'releases; this one cannot, because it <em>is</em> the change, read back. The cost of that honesty is '+
+'that a lazy reason produces a lazy improvement note, visibly, in public, forever. That is the intended '+
+'incentive.</p>'+
+'<h3>The name is part of the record too</h3>'+
+'<div class="notice hot"><span class="tag">&#9888; Found by an operator screenshot, closed at r39</span>'+
+'<p style="margin-bottom:0">Until release 39 the masthead was <strong>static HTML sitting outside the '+
+'replay</strong>, so every rename silently rewrote all earlier releases. At release 35 this document '+
+'stated that earlier titles remain readable by rewinding. <strong>That sentence was false the day it was '+
+'written.</strong> The remedy was not to delete it but to make it true.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">From</th><th>Primary title</th><th>Line beneath</th></tr>'+
+'<tr><td class="n">v1</td><td>The Unit and The Shield</td><td class="meta">&mdash;</td></tr>'+
+'<tr><td class="n">v35</td><td>The Living Ledger of Human Contribution</td>'+
+'<td>Recursive Coordination for Human Continuity <span class="meta">(added v36)</span></td></tr>'+
+'<tr><td class="n">v39</td><td><strong>Recursive Coordination for Human Continuity</strong></td>'+
+'<td>The Living Ledger of Human Contribution</td></tr>'+
+'</table><caption>Drag the slider to v1 and the page above says <em>The Unit and The Shield</em>. That is '+
+'the whole proof, and it takes two seconds.</caption></div>');
+
+L(41,"paper.toc","The white paper view: thirteen numbered sections with a linked table of contents.",
+'<h2 class="sech" id="sec-0">Vision &#8226; 2525</h2>'+
+'<p class="lede">Recursive Coordination for Human Continuity &mdash; a white paper</p>'+
+'<p style="font-size:clamp(18px,2.9vw,21px);line-height:1.5">A framework that can be started by humanity, '+
+'for humanity, with <strong>no investor, no corporation and no government</strong> involved at any point. '+
+'Not because those parties are unwelcome, but because a thing that <em>requires</em> them can always be '+
+'ended by them &mdash; and this is built to run for five hundred years.</p>'+
+'<div class="pull">We cannot master what we are not aware of.'+
+'<cite>And read strictly &mdash; aware of what we are not aware of &mdash; it names the harder '+
+'discipline. Not ignorance. Ignorance of our own ignorance, which is the only kind that cannot correct '+
+'itself.</cite></div>'+
+'<div class="toc"><h3>Contents</h3>'+
+'<p class="tsub">Thirteen sections. The first three are the argument, the middle five are the machine, '+
+'and the last five are what happens next.</p>'+
+'<ol>'+ '<li><a href="#sec-1"><span class="sn">&sect;1</span><span><span class="tt">The Proposition</span><span class="tg">Started by humanity, for humanity, with nobody&rsquo;s permission</span></span></a></li>'+'<li><a href="#sec-2"><span class="sn">&sect;2</span><span><span class="tt">What We Cannot See</span><span class="tg">The three orders of not-knowing, and which one destroys institutions</span></span></a></li>'+'<li><a href="#sec-3"><span class="sn">&sect;3</span><span><span class="tt">The Past</span><span class="tg">What Sumer, Egypt and Rome built, and what killed them at their peak</span></span></a></li>'+'<li><a href="#sec-4"><span class="sn">&sect;4</span><span><span class="tt">The Unit</span><span class="tg">An hour of a human life, anchored locally and compared globally</span></span></a></li>'+'<li><a href="#sec-5"><span class="sn">&sect;5</span><span><span class="tt">The Ceiling and the Floor</span><span class="tg">Why nobody may get rich here, and why that is the humane choice</span></span></a></li>'+'<li><a href="#sec-6"><span class="sn">&sect;6</span><span><span class="tt">The Wall</span><span class="tg">Money may fund. Money may never govern.</span></span></a></li>'+'<li><a href="#sec-7"><span class="sn">&sect;7</span><span><span class="tt">The Shield</span><span class="tg">Defensibility from what is permanently given up</span></span></a></li>'+'<li><a href="#sec-8"><span class="sn">&sect;8</span><span><span class="tt">Paths Considered</span><span class="tg">Eight forks, the road taken, and why the others were refused</span></span></a></li>'+'<li><a href="#sec-9"><span class="sn">&sect;9</span><span><span class="tt">The Present</span><span class="tg">Exactly what is real and what is not, today</span></span></a></li>'+'<li><a href="#sec-10"><span class="sn">&sect;10</span><span><span class="tt">How It Starts</span><span class="tg">One city, one pod, one person paid — and no permission required</span></span></a></li>'+'<li><a href="#sec-11"><span class="sn">&sect;11</span><span><span class="tt">The Off Switch</span><span class="tg">Humanity may end this, and the guarantee survives the vote</span></span></a></li>'+'<li><a href="#sec-12"><span class="sn">&sect;12</span><span><span class="tt">The Future</span><span class="tg">Five hundred years, and why this is probably not the toolset of 2525</span></span></a></li>'+'<li><a href="#sec-13"><span class="sn">&sect;13</span><span><span class="tt">What We Ask</span><span class="tg">Not money, not endorsement, not a treaty</span></span></a></li>' +'</ol></div>'+
+'<div class="notice"><span class="tag">How to read this</span>'+
+'<p style="margin-bottom:0">This view is the argument. The <strong>Ledger</strong> view is the complete '+
+'record with every revision replayable, and the <strong>Brief</strong> view is the twenty-minute version. '+
+'All three are the same document &mdash; three orderings of one append-only record, so none of them can '+
+'contradict the others. Use the button in the bar above to move between them.</p></div>');
+
+L(41,"paper.s1","The proposition: zero investor, zero corporation, zero government.",
+'<div class="secn">&sect;1 &middot; THE PROPOSITION <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-1">&sect;1 &nbsp; The Proposition</h2>'+'<p class="lede">Started by humanity, for humanity, with nobody&rsquo;s permission</p>'+
+'<p>Almost every attempt to build something for humanity begins by asking permission from one of three '+
+'parties. An investor, who will want a return. A corporation, which will want ownership. A government, '+
+'which will want jurisdiction. Each is a reasonable partner and each is a single point of failure, '+
+'because a thing that needs them can be ended by them &mdash; by withdrawal, by acquisition, or by '+
+'decree.</p>'+
+'<p>This framework needs none of the three. That is not a slogan; it is a set of structural refusals, '+
+'each of which costs something real.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Not required</th><th>What is refused</th><th>What it costs us</th></tr>'+
+'<tr><td><strong>No investor</strong></td><td>No equity exists. Nothing appreciates, nothing trades, '+
+'nothing can be sold. There is no instrument to buy.</td><td>No capital at speed. Growth is limited to '+
+'what people voluntarily fund, one dollar at a time.</td></tr>'+
+'<tr><td><strong>No corporation</strong></td><td>An asset lock: value may only ever move to another '+
+'purpose-locked body, never to individuals. No parent, no subsidiary, no owner.</td><td>No balance sheet '+
+'to borrow against, and nobody with a personal reason to make it succeed.</td></tr>'+
+'<tr><td><strong>No government</strong></td><td>No public funding, no treaty, no multilateral channel. '+
+'Each region hosts its own domestic legal person, funded from inside that region only.</td><td>No '+
+'shortcut to legitimacy, and a slower, harder path into every jurisdiction.</td></tr>'+
+'</table><caption>Three refusals, three real costs. They are accepted because each removes a way this can '+
+'be taken, and there is no five-hundred-year version of it that keeps any of them.</caption></div>'+
+'<h3>What is left, when those three are gone</h3>'+
+'<p>Two things, and they turn out to be sufficient.</p>'+
+'<p><strong>People giving time.</strong> An hour of real work on a real problem. That hour is recorded in '+
+'a ledger nobody owns, converted into a unit of recognition that means the same thing in every country, '+
+'and settled into the contributor&rsquo;s own currency at their own local rate, over five years, '+
+'guaranteed.</p>'+
+'<p><strong>People giving a dollar.</strong> Voluntarily, once or monthly, buying nothing at all &mdash; '+
+'no share, no vote, no claim, no appreciation. A permanent public record that they funded the work, and '+
+'traceability of where it went. A million people at a dollar a month is twelve million dollars a year and '+
+'no owner. The same twelve million from one patron is a patron, and patrons eventually expect '+
+'something.</p>'+
+'<div class="notice key"><span class="tag">The proposition in one sentence</span>'+
+'<p style="margin-bottom:0">If enough people each give a small amount of time and a small amount of '+
+'money, and if the structure makes it impossible for anyone to accumulate either into power, then a thing '+
+'can exist that serves people without belonging to anybody &mdash; and can therefore outlive every '+
+'institution that would otherwise have owned it.</p></div>'+
+'<p>Everything in the remaining twelve sections is the machinery that makes that sentence true and keeps '+
+'it true after everyone who wrote it is dead.</p>');
+
+L(41,"paper.s2","The awareness thesis and the three orders of not-knowing.",
+'<div class="secn">&sect;2 &middot; WHAT WE CANNOT SEE <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-2">&sect;2 &nbsp; What We Cannot See</h2>'+'<p class="lede">The three orders of not-knowing, and which one destroys institutions</p>'+
+'<p>Governance is usually treated as a problem of <em>deciding</em>. More consultation, better '+
+'committees, cleverer voting. This framework starts from a different diagnosis: <strong>the failure is '+
+'almost never in the deciding. It is in the seeing.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Order</th><th>What it is</th><th>How it is answered</th></tr>'+
+'<tr><td><strong>First</strong></td><td>What we know we do not know. The gap we can name.</td>'+
+'<td>Research. Difficult, tractable, and every institution is already built for it.</td></tr>'+
+'<tr><td><strong>Second</strong></td><td>What we do not know we do not know. The gap nobody named.</td>'+
+'<td>Diversity of view, and luck. Twelve reviewers with twelve lenses rather than one committee with '+
+'one.</td></tr>'+
+'<tr><td><strong>Third</strong></td><td>What we have built systems so that nobody <em>can</em> know. Not '+
+'oversight. Architecture.</td><td>Only by rebuilding the system. This is where governance actually fails, '+
+'and it is the order this framework was designed against.</td></tr>'+
+'</table><caption>The first two orders are studied endlessly. The third is where the damage lives, '+
+'because it is invisible by construction and therefore never appears on anyone&rsquo;s '+
+'agenda.</caption></div>'+
+'<h3>What the third order looks like</h3>'+
+'<p>It is never dramatic. It looks like ordinary competence.</p>'+
+'<p>A woman knows a floodplain better than the ministry does, from fifty years of watching it. Her '+
+'knowledge is not hidden &mdash; nobody is concealing it, least of all her. It is <em>unrecordable</em>. '+
+'There is no field for it on any form in any ministry on earth. A society cannot allocate to what it '+
+'cannot record, so for fifty years it allocates as though she knows nothing.</p>'+
+'<p>A cap is published with no number attached. The word <em>capped</em> creates the appearance of a '+
+'limit while making the limit unknowable, which is worse than no cap, because no cap at least tells the '+
+'truth.</p>'+
+'<p>A million responses are summarised by one honest person. The summary is diligent. And what was lost '+
+'in the compression is unobservable in principle &mdash; no artefact anywhere records what the nine '+
+'hundred and ninety-nine thousand said and the summary did not.</p>'+
+'<div class="pull">The first act of governance is not to decide. It is to make visible.'+
+'<cite>A decision taken without awareness is not a decision. It is a guess wearing a '+
+'signature.</cite></div>'+
+'<h3>Instrumentation, not economics</h3>'+
+'<p>Read the framework this way and it stops looking like an economic proposal. Every mechanism in it '+
+'takes something that was real and unobservable and makes it observable.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Instrument</th><th>What it makes observable</th><th>Who could not see it before</th></tr>'+
+'<tr><td>&#50883; the unit</td><td>Contributed time, comparable across every border on earth</td>'+
+'<td>Anyone whose work had no employer to record it</td></tr>'+
+'<tr><td>Published bands</td><td>What a society believes a skill is worth, stated in advance</td>'+
+'<td>Everyone whose pay was set behind a door</td></tr>'+
+'<tr><td>Reach rate</td><td>Whether the ceiling is a target or a fence</td><td>The contributor, who '+
+'otherwise only feels it and cannot prove it</td></tr>'+
+'<tr><td>Reserve coverage</td><td>Whether a guarantee is actually funded</td><td>The person relying on it '+
+'&mdash; who historically finds out last</td></tr>'+
+'<tr><td>Deterministic replay</td><td>That a conclusion came from its inputs and nothing else</td>'+
+'<td>Anyone ever asked to trust a summary</td></tr>'+
+'<tr><td>The defect register</td><td>Our own contradictions, including the live ones</td><td>The '+
+'regulator, who otherwise finds them later and reasonably assumes there are more</td></tr>'+
+'<tr><td>Failure thresholds</td><td>What would count as having failed</td><td>Everyone, because almost '+
+'nobody publishes this</td></tr>'+
+'<tr><td>The ledger&rsquo;s silence on origin</td><td>That two people whose governments are at war worked '+
+'the same problem</td><td>Both of them</td></tr>'+
+'</table><caption>Read the middle column downward. The framework is instrumentation.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Applied to ourselves</span>'+
+'<p style="margin-bottom:0">This document has been unaware of its own errors four times, and every one '+
+'was caught by somebody else looking at published work with a different lens. A framework that says '+
+'<em>society</em> is unaware has exempted itself in its own first sentence &mdash; which is why the thesis '+
+'says <em>we</em>. There is nowhere left to stand.</p></div>');
+
+L(41,"paper.s3","What three civilisations built, and what killed them at their peak.",
+'<div class="secn">&sect;3 &middot; THE PAST <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-3">&sect;3 &nbsp; The Past</h2>'+'<p class="lede">What Sumer, Egypt and Rome built, and what killed them at their peak</p>'+
+'<p>A five-hundred-year forward horizon with no backward horizon is arrogance wearing a plan. Three '+
+'civilisations ran the largest operations of their eras, and we use their inventions daily. Each failed '+
+'<strong>at its peak, not in its decline</strong> &mdash; which is the part leaders least expect to '+
+'hear.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Civilisation</th><th>What they built that we still use</th><th>What broke them at their height</th></tr>'+
+'<tr><td><strong>Sumer</strong><br><span class="meta">c. 3500&ndash;2000 BCE</span></td>'+
+'<td>The ledger itself. Writing was invented for accounts, not poetry &mdash; the earliest tablets are '+
+'receipts for grain, sheep and labour. Standard weights. Written law. The idea that a stranger could '+
+'verify a transaction they did not witness.</td>'+
+'<td><strong>Salt.</strong> Centuries of irrigation without drainage poisoned the soil. Yields fell so '+
+'slowly that no generation saw a bad year &mdash; they switched from wheat to barley, which tolerates '+
+'more salt, and then that failed too.</td></tr>'+
+'<tr><td><strong>Egypt</strong><br><span class="meta">c. 3100&ndash;1070 BCE</span></td>'+
+'<td>Measurement that sets policy. The nilometer measured flood height and taxation was set from the '+
+'reading, in advance, before the harvest. Granaries against famine. Three thousand years of '+
+'administrative continuity &mdash; still the record.</td>'+
+'<td><strong>Exemption.</strong> Temple estates accumulated land and tax immunity for centuries until a '+
+'large share of the arable was held by an institution paying nothing in.</td></tr>'+
+'<tr><td><strong>Rome</strong><br><span class="meta">c. 509 BCE&ndash;476 CE</span></td>'+
+'<td>Membership that could extend. In 212 CE citizenship was granted to nearly every free inhabitant of '+
+'the empire. Law that was written, appealable and portable. Roads, aqueducts, a periodic census.</td>'+
+'<td><strong>Debasement and succession.</strong> The coinage lost almost all its silver across two '+
+'centuries, invisible in any single year. And there was no agreed rule for replacing the man at the top, '+
+'so civil war became the mechanism &mdash; twenty-six emperors in fifty years.</td></tr>'+
+'</table><caption>None of these were foolish people. They were the most sophisticated administrators of '+
+'their age.</caption></div>'+
+'<h3>The pattern</h3>'+
+'<p>All three failures share one shape, and it is the thesis of &sect;2 arriving from history rather than '+
+'from argument.</p>'+
+'<p><strong>Sumer could not see the salt.</strong> Not for want of records &mdash; they invented records '+
+'&mdash; but their records were per-transaction and the failure was per-century. Every individual tablet '+
+'was accurate. The thing killing them appeared on none of them.</p>'+
+'<p><strong>Egypt could not see the exemption.</strong> Each land grant to a temple was lawful, pious and '+
+'small. The cumulative position was nobody&rsquo;s job to total up.</p>'+
+'<p><strong>Rome could not see the debasement.</strong> Each reduction in silver was defensible, marginal '+
+'and a response to a real shortfall. No emperor debased the currency. Two centuries of emperors each '+
+'debased it slightly.</p>'+
+'<div class="pull">None of them were destroyed by an enemy they could see. Each was undone by an '+
+'accumulation nobody was counting.<cite>Which is why this framework counts accumulations, publishes '+
+'them, and caps the ones that matter.</cite></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Their failure</th><th>What answers it here</th></tr>'+
+'<tr><td>Slow poisoning invisible within a generation</td><td><strong>Replay.</strong> A record that '+
+'reconstructs across centuries, so a slow failure is visible while it is still slow.</td></tr>'+
+'<tr><td>An exempt class that stops paying in</td><td><strong>The asset lock and the per-person '+
+'ceiling.</strong> Nobody inside accumulates and nobody becomes exempt.</td></tr>'+
+'<tr><td>A unit quietly debased</td><td><strong>An anchor to a published local rate</strong> that cannot '+
+'be adjusted privately.</td></tr>'+
+'<tr><td>No rule for succession</td><td><strong>A ten-year standing with recall</strong>, so succession '+
+'is a schedule rather than a crisis.</td></tr>'+
+'</table><caption>Our risk register, with four thousand years of evidence behind it.</caption></div>'+
+'<p>We did not invent the ledger, or measurement setting policy, or extensible membership. What is being '+
+'added is small by comparison and is the one thing all three lacked: <strong>a record that measures '+
+'across generations, totals the accumulations nobody is watching, and can be re-checked by a stranger '+
+'after everyone involved is gone.</strong></p>');
+
+
+L(41,"paper.s4","The unit: contributed time, currency-free at mint, local at settlement.",
+'<div class="secn">&sect;4 &middot; THE UNIT <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-4">&sect;4 &nbsp; The Unit</h2>'+'<p class="lede">An hour of a human life, anchored locally and compared globally</p>'+
+'<p>Every framework that pays people collides with the same fact: an hour of a person&rsquo;s life is '+
+'worth wildly different amounts of money depending on where they were born. Ignore it and the system is '+
+'either unaffordable in rich countries or insulting in poor ones.</p>'+
+'<p>Most schemes resolve this by picking one currency and one rate, then quietly excluding everyone the '+
+'rate does not suit. This takes the opposite route: <strong>recognition is global, settlement is '+
+'local.</strong></p>'+
+'<div class="scroll dia"><svg viewBox="0 0 880 210" role="img" aria-label="Mint currency-free, stamp the earner rate, settle in local money">'+
+'<style>.l{font:600 12.5px ui-sans-serif,system-ui;fill:currentColor}.s{font:11px ui-monospace,monospace;fill:currentColor;opacity:.75}.b{fill:none;stroke:currentColor;stroke-width:1.5}</style>'+
+'<rect class="b" x="12" y="34" width="232" height="86" rx="6"/>'+
+'<text class="l" x="28" y="58">MINT &mdash; no currency</text>'+
+'<text class="s" x="28" y="80">&#50883; = hours &times; (9,999 &divide; 2,080)</text>'+
+'<text class="s" x="28" y="98">= hours &times; 4.807</text>'+
+'<text class="s" x="28" y="114">identical in every jurisdiction</text>'+
+'<path class="b" d="M244 77 L306 77" marker-end="url(#p4)"/>'+
+'<defs><marker id="p4" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">'+
+'<path d="M0 0 L9 4.5 L0 9 z" fill="currentColor"/></marker></defs>'+
+'<rect class="b" x="306" y="20" width="238" height="114" rx="6"/>'+
+'<text class="l" x="322" y="44">THE LEDGER ENTRY</text>'+
+'<text class="s" x="322" y="66">hours worked</text>'+
+'<text class="s" x="322" y="84">&#50883; minted</text>'+
+'<text class="s" x="322" y="102">earner jurisdiction &#9660;</text>'+
+'<text class="s" x="322" y="120">earner rate &#9660; frozen at mint</text>'+
+'<path class="b" d="M544 77 L606 77" marker-end="url(#p4)"/>'+
+'<rect class="b" x="606" y="34" width="262" height="86" rx="6"/>'+
+'<text class="l" x="622" y="58">SETTLE &mdash; local money</text>'+
+'<text class="s" x="622" y="80">$ = &#50883; &divide; 4.807 &times; stamped rate</text>'+
+'<text class="s" x="622" y="98">paid over five years, guaranteed</text>'+
+'<text class="s" x="622" y="114">reads the stamp, never a live lookup</text>'+
+'<text class="s" x="12" y="164">2,080 hours &mdash; one full-time year &mdash; reaches 9,999 &#50883; everywhere on earth. Equal reach.</text>'+
+'<text class="s" x="12" y="186">Those same hours settle at $707.20 in Nigeria, $15,080.00 in Texas, $33,862.40 in Washington. Local value.</text>'+
+'</svg></div>'+
+'<h3>Why the mint carries no currency</h3>'+
+'<p>If the local wage were applied when the hour is <em>recorded</em> rather than when it is '+
+'<em>paid</em>, the ceiling would cost a different amount of life in different places. It did, in our own '+
+'code, for thirty-four revisions:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>To reach the same 9,999 &#50883;</th><th class="n">Local rate</th><th class="n">Hours, wage-scaled mint</th><th class="n">In working years</th></tr>'+
+'<tr><td>Nigeria</td><td class="n">0.34</td><td class="n">29,409</td><td class="n">14.14</td></tr>'+
+'<tr><td>Cambodia</td><td class="n">1.04</td><td class="n">9,614</td><td class="n">4.62</td></tr>'+
+'<tr><td>United States / Texas</td><td class="n">7.25</td><td class="n">1,379</td><td class="n">0.66</td></tr>'+
+'<tr><td>United States / Washington</td><td class="n">16.28</td><td class="n">614</td><td class="n">0.30</td></tr>'+
+'</table><caption>Fourteen working years in Lagos; three months in Seattle. A 47.9&times; spread, against '+
+'a stated goal of helping as many people as possible <em>reach</em> the ceiling. Nobody wrote that policy '+
+'&mdash; it was a consequence of applying a rate one stage too early. It is now 2,080 hours '+
+'everywhere.</caption></div>'+
+'<h3>The multiple</h3>'+
+'<p>The base unit is one hour at one times the contributor&rsquo;s local minimum wage. Skill, scarcity '+
+'and responsibility are expressed in the <em>multiple</em> applied to that hour &mdash; and multiples do '+
+'not let anyone earn more, because the ceiling is identical for everyone. They let people reach it '+
+'<strong>sooner, on fewer hours.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Multiple</th><th class="n">Hours to the ceiling</th><th class="n">Full-time years</th><th>What the band is for</th></tr>'+
+'<tr><td class="n">2&times;</td><td class="n">5,000</td><td class="n">2.40</td><td>Contributing and learning. No prior outcome required.</td></tr>'+
+'<tr><td class="n">3&times;</td><td class="n">3,333</td><td class="n">1.60</td><td>Sustained competent contribution, at least one adopted outcome.</td></tr>'+
+'<tr><td class="n"><strong>4.807&times;</strong></td><td class="n"><strong>2,080</strong></td><td class="n"><strong>1.00</strong></td><td><strong>The reference band.</strong> One full-time year lands exactly on the ceiling.</td></tr>'+
+'<tr><td class="n">6&times;</td><td class="n">1,666</td><td class="n">0.80</td><td>Scarce capability, or responsibility carried for others&rsquo; work.</td></tr>'+
+'<tr><td class="n">10&times;+</td><td class="n">&le;1,000</td><td class="n">&le;0.48</td><td>Exceptional and individually published, with the reason stated.</td></tr>'+
+'</table><caption>4.807 is not chosen. It is what 9,999 and 2,080 imply, in every country on earth. A '+
+'surgeon at 10&times; and an apprentice at 2&times; both arrive at 9,999; the surgeon needs a thousand '+
+'hours and the apprentice five thousand. The multiple recognises scarcity. The ceiling refuses to convert '+
+'scarcity into power.</caption></div>'+
+'<div class="notice"><span class="tag">Every criterion is a fact, not an opinion</span>'+
+'<p style="margin-bottom:0">Bands are published in advance, in language a contributor can check '+
+'themselves against, and changes apply only forward. If a band cannot be checked from the record, it is a '+
+'discretion wearing a number &mdash; and discretions are capturable.</p></div>');
+
+L(41,"paper.s5","The ceiling, the five-year floor, and what they are actually for.",
+'<div class="secn">&sect;5 &middot; THE CEILING AND THE FLOOR <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-5">&sect;5 &nbsp; The Ceiling and the Floor</h2>'+'<p class="lede">Why nobody may get rich here, and why that is the humane choice</p>'+
+'<p>Nine thousand nine hundred and ninety-nine &#50883; per natural person per year. Not per role, not '+
+'per account, not per organisation. <strong>Per person, and hard.</strong></p>'+
+'<div class="pull">Concentrated wealth is not a side effect of governance capture. It is the mechanism.'+
+'<cite>A system that can pay one person a fortune manufactures exactly the actor it was designed to '+
+'resist &mdash; out of its own treasury.</cite></div>'+
+'<p>The ceiling removes that possibility by construction rather than by policing it afterwards. It costs '+
+'us the very rich as members, and we accept the price. What it deliberately does <em>not</em> limit is '+
+'contribution: a person may contribute far past 9,999 &#50883; of recognised value in a year, and the '+
+'record of it is permanent and complete. What stops at the ceiling is the settlement, never the '+
+'recognition.</p>'+
+'<h3>Five years is the humane part</h3>'+
+'<p>A single year&rsquo;s ceiling pays out in five equal annual instalments. A contributor who reaches '+
+'the ceiling five years running does not receive five windfalls &mdash; they build a floor that rises '+
+'and then holds.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Year</th><th class="n">Instalments arriving</th><th class="n">Texas</th><th class="n">Brazil</th><th class="n">Nigeria</th></tr>'+
+'<tr><td>Year 1</td><td class="n">1 of 5</td><td class="n">$14,498.55</td><td class="n">$3,159.68</td><td class="n">$679.93</td></tr>'+
+'<tr><td>Year 3</td><td class="n">3 of 5</td><td class="n">$43,495.65</td><td class="n">$9,479.05</td><td class="n">$2,039.80</td></tr>'+
+'<tr><td><strong>Year 5 onward</strong></td><td class="n"><strong>5 of 5</strong></td><td class="n"><strong>$72,492.75</strong></td><td class="n"><strong>$15,798.42</strong></td><td class="n"><strong>$3,399.66</strong></td></tr>'+
+'</table><caption>Steady state at year five, holding for as long as contribution continues. The ratio is '+
+'identical everywhere because it is arithmetic, not policy.</caption></div>'+
+'<p>Two properties follow, and both are the point.</p>'+
+'<p><strong>It is a floor, not a windfall.</strong> By year five a contributor knows what next year holds '+
+'even if they contribute nothing at all &mdash; four instalments are already committed. That is the '+
+'difference between being paid and being secure.</p>'+
+'<p><strong>It converts recognition into stability instead of leverage.</strong> A lump sum is capital, '+
+'and capital seeks influence. The same amount arriving over five years is a wage. The ceiling stops '+
+'accumulation across people; the schedule stops it across time.</p>'+
+'<div class="notice key"><span class="tag">What a floor actually buys</span>'+
+'<p style="margin-bottom:0">A contributor with next year already underwritten can refuse work that is '+
+'beneath them, take the month a parent is ill, or work on something that will not pay for three years. '+
+'<strong>The ceiling is not what protects them from other people. The five years are what protect them '+
+'from next year.</strong></p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; The word &ldquo;guaranteed&rdquo; is the most '+
+'dangerous in this document</span>'+
+'<p style="margin-bottom:0">A guaranteed multi-year payment stream to individuals is, in substance, a '+
+'defined-benefit obligation &mdash; regulated heavily in every developed jurisdiction, because history is '+
+'full of guarantees that were not kept. It engages pension and labour law long before it engages any '+
+'securities regulator. The answer is a ring-fenced funded reserve with an absolute rule: '+
+'<strong>an obligation may be incurred only against reserves actually held</strong>, and any shortfall is '+
+'published the month it occurs. It throttles future earning and never touches instalments already '+
+'earned.</p></div>');
+
+L(41,"paper.s6","The wall between funding and authority.",
+'<div class="secn">&sect;6 &middot; THE WALL <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-6">&sect;6 &nbsp; The Wall</h2>'+'<p class="lede">Money may fund. Money may never govern.</p>'+
+'<p>Most governance systems collapse two different questions onto one ballot: <em>what should we do?</em> '+
+'and <em>who decides?</em> They are not the same question and they must not share a weighting rule.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>&nbsp;</th><th>Sovereignty</th><th>Prioritisation</th></tr>'+
+'<tr><td><strong>Decides</strong></td><td>Who leads, amendments, purpose, removal, dissolution</td>'+
+'<td>Which themes rank, what gets built first, sequencing</td></tr>'+
+'<tr><td><strong>Weighting</strong></td><td>None. One verified person, one vote.</td>'+
+'<td>Quadratic on contributed time, capped at 15% influence.</td></tr>'+
+'<tr><td><strong>Money may enter</strong></td><td>Never, by any route, direct or laundered through '+
+'contribution.</td><td>Never either &mdash; though funding capacity legitimately shapes what is '+
+'feasible.</td></tr>'+
+'</table></div>'+
+'<div class="scroll dia"><svg viewBox="0 0 880 250" role="img" aria-label="Every path from money terminates before sovereignty">'+
+'<style>.l{font:600 12px ui-sans-serif,system-ui;fill:currentColor}.s{font:10.5px ui-monospace,monospace;fill:currentColor;opacity:.72}.b{fill:none;stroke:currentColor;stroke-width:1.5}.w{fill:none;stroke:currentColor;stroke-width:3.5}</style>'+
+'<rect class="b" x="10" y="20" width="176" height="52" rx="5"/>'+
+'<text class="l" x="24" y="42">CAPITAL</text><text class="s" x="24" y="60">donations, corporate, state</text>'+
+'<rect class="b" x="10" y="96" width="176" height="52" rx="5"/>'+
+'<text class="l" x="24" y="118">CONTRIBUTED TIME</text><text class="s" x="24" y="136">&#50883; = hours &times; multiple</text>'+
+'<rect class="b" x="10" y="172" width="176" height="52" rx="5"/>'+
+'<text class="l" x="24" y="194">VERIFIED PERSON</text><text class="s" x="24" y="212">one, unweighted</text>'+
+'<path class="b" d="M186 46 L320 46" marker-end="url(#p6)"/>'+
+'<path class="b" d="M186 122 L320 122" marker-end="url(#p6)"/>'+
+'<path class="b" d="M186 198 L640 198" marker-end="url(#p6)"/>'+
+'<defs><marker id="p6" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">'+
+'<path d="M0 0 L9 4.5 L0 9 z" fill="currentColor"/></marker></defs>'+
+'<rect class="b" x="320" y="20" width="180" height="52" rx="5"/>'+
+'<text class="l" x="334" y="42">COMPENSATION POOL</text><text class="s" x="334" y="60">funds settlement. stops.</text>'+
+'<rect class="b" x="320" y="96" width="180" height="52" rx="5"/>'+
+'<text class="l" x="334" y="118">PRIORITISATION</text><text class="s" x="334" y="136">quadratic, capped 15%. stops.</text>'+
+'<path class="w" d="M598 8 L598 242"/>'+
+'<text class="s" x="556" y="128" transform="rotate(-90 556 128)">THE WALL</text>'+
+'<rect class="b" x="640" y="172" width="228" height="52" rx="5"/>'+
+'<text class="l" x="654" y="194">SOVEREIGNTY</text><text class="s" x="654" y="212">leadership, amendments, ending it</text>'+
+'<text class="s" x="320" y="80">money buys no vote</text>'+
+'<text class="s" x="320" y="156">ranking confers no authority</text>'+
+'<text class="s" x="200" y="186">the only path that crosses</text>'+
+'</svg></div>'+
+'<p>Every path from money or accumulated contribution terminates before sovereignty. Capital reaches the '+
+'compensation pool and stops. &#50883; reaches settlement and stops. Contribution reaches prioritisation '+
+'and stops. <strong>One line crosses, and it carries exactly one unweighted vote per verified '+
+'person.</strong></p>'+
+'<h3>Three layers, three instruments, no overlap</h3>'+
+'<p>Capture happens where two rights ride on the same instrument. If the thing that records your '+
+'contribution also pays you and also votes, then buying one buys all three. The remedy is to make them '+
+'different instruments by construction.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Layer</th><th>Acquired by</th><th>Confers</th><th>Explicitly does not confer</th></tr>'+
+'<tr><td><strong>Recognition</strong> &mdash; &#50883;</td><td>Contributed time only. Never purchase.</td>'+
+'<td>A settlement claim in the earner&rsquo;s own currency, and prioritisation weight.</td>'+
+'<td>No sovereignty vote. No authority. No equity.</td></tr>'+
+'<tr><td><strong>Participation</strong> &mdash; personhood</td><td>Attestation of being one natural '+
+'person.</td><td>The sovereignty vote. Standing to propose and to be elected.</td>'+
+'<td>No economic right whatsoever. It cannot be sold because it is not property.</td></tr>'+
+'<tr><td><strong>Funding</strong> &mdash; the receipt</td><td>Giving money.</td>'+
+'<td>A permanent public record that you funded the work, and traceability of where it went.</td>'+
+'<td>No vote. No weight. No token. No claim. Non-transferable.</td></tr>'+
+'</table><caption>The funding receipt is deliberately inert: worthless to anyone seeking influence, '+
+'meaningful to anyone seeking to be counted.</caption></div>'+
+'<div class="notice key"><span class="tag">Human Primacy of Power &mdash; Immutable</span>'+
+'<p style="margin-bottom:0">No entity &mdash; corporate, governmental, algorithmic or aggregated &mdash; '+
+'shall hold governing authority exceeding that of one natural person. Authority is a property of persons. '+
+'It may be exercised on behalf of an organisation, but it is never held by one, never accumulated across '+
+'one, and never inherited by an instrument. An organisation or a machine may put an idea into the system '+
+'and have it considered on its merits. Neither may authorise anything.</p></div>');
+
+L(41,"paper.s7","Defensibility built from permanent renunciation rather than argument.",
+'<div class="secn">&sect;7 &middot; THE SHIELD <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-7">&sect;7 &nbsp; The Shield</h2>'+'<p class="lede">Defensibility from what is permanently given up</p>'+
+'<p>The instinct, when a framework expects resistance, is to argue better. That is the wrong instinct: an '+
+'argument can be lost and a structure cannot be out-argued.</p>'+
+'<div class="pull">Defensibility comes from what the framework permanently gives up, not from what it '+
+'claims.<cite>There is no counter-argument to &ldquo;there are no shares&rdquo;.</cite></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Shield</th><th>What it defeats</th></tr>'+
+'<tr><td class="n">I</td><td><strong>No equity, ever</strong></td><td>Acquisition, hostile takeover, '+
+'accumulation of control by capital. There is no instrument to accumulate.</td></tr>'+
+'<tr><td class="n">II</td><td><strong>Asset lock</strong></td><td>Extraction, self-dealing, private '+
+'benefit. Assets may only transfer to another purpose-locked body, including on dissolution.</td></tr>'+
+'<tr><td class="n">III</td><td><strong>Federated domestic personality</strong></td><td>Single-government '+
+'shutdown, foreign-influence designation, cross-border solicitation restrictions.</td></tr>'+
+'<tr><td class="n">IV</td><td><strong>Recognition is never purchasable</strong></td><td>The '+
+'investment-of-money limb of the securities analysis, and the &ldquo;the rich buy influence&rdquo; attack, '+
+'in one move.</td></tr>'+
+'<tr><td class="n">V</td><td><strong>Funded reserve</strong></td><td>Insolvency of a guaranteed '+
+'obligation &mdash; the single most likely trigger for intervention anywhere.</td></tr>'+
+'</table><caption>All five are Immutable. A shield that can be amended by the body it constrains is not a '+
+'shield; it is a preference.</caption></div>'+
+'<h3>Read this as the speech a hostile politician would give</h3>'+
+'<p>Each line is unavailable to them &mdash; not because it has been rebutted, but because the thing it '+
+'attacks does not exist.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Permanently renounced</th><th>The attack it forecloses</th></tr>'+
+'<tr><td>No equity, no shares, ever</td><td>&ldquo;An investment fund will end up owning this.&rdquo;</td></tr>'+
+'<tr><td>Asset lock</td><td>&ldquo;The founders will extract the value.&rdquo;</td></tr>'+
+'<tr><td>No appreciation, no secondary market</td><td>&ldquo;It is an unregistered security.&rdquo;</td></tr>'+
+'<tr><td>Recognition never purchasable</td><td>&ldquo;The rich buy influence.&rdquo;</td></tr>'+
+'<tr><td>Money confers no vote, including from states</td><td>&ldquo;It is a front for a foreign government.&rdquo;</td></tr>'+
+'<tr><td>A domestic legal person in each region</td><td>&ldquo;Foreign money is flowing into our civic institutions.&rdquo;</td></tr>'+
+'<tr><td>Full public accounting, monthly, every language</td><td>&ldquo;It is unaccountable.&rdquo;</td></tr>'+
+'<tr><td>Hard per-person settlement ceiling</td><td>&ldquo;Insiders are enriching themselves.&rdquo;</td></tr>'+
+'</table><caption>Every renunciation removes an attack line and a regulator at the same time.</caption></div>'+
+'<h3>Arriving before the complaint does</h3>'+
+'<p>Being unstoppable and being approachable are different properties, and only the second one scales. '+
+'Most authorities do not arrive hostile &mdash; they arrive uninformed, and hostility is what uninformed '+
+'becomes when nobody showed up first.</p>'+
+'<p>So the domestic entity introduces itself <em>before</em> any activity in a jurisdiction, hands over an '+
+'unprompted disclosure packet in the local language, answers in writing and publishes the answer. The '+
+'packet includes the defect register &mdash; unedited, including the live defects. Handing a regulator '+
+'your own contradictions before being asked tells them something no assurance can: that your reporting '+
+'can be believed.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; And if a jurisdiction says no</span>'+
+'<p style="margin-bottom:0">We withdraw and say so publicly. We do not restructure to evade, route '+
+'contributions through a neighbour, or operate quietly while an appeal runs. Earned instalments are '+
+'settled in full to the extent lawful; contribution records stay valid and portable; the reason is '+
+'published. <strong>A framework that renounces influence and extraction, then routes around a lawful '+
+'refusal, has demonstrated that its commitments hold only while convenient.</strong> One instance would '+
+'cost more than any jurisdiction was worth.</p></div>');
+
+L(41,"paper.s8","Paths considered: eight forks, and why the other road was refused each time.",
+'<div class="secn">&sect;8 &middot; PATHS CONSIDERED <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-8">&sect;8 &nbsp; Paths Considered</h2>'+'<p class="lede">Eight forks, the road taken, and why the others were refused</p>'+
+'<p>The shape of this framework is easier to grasp from the roads not taken than from the one that was. '+
+'Each fork below was genuinely open. Each alternative is what a reasonable person would try first &mdash; '+
+'and most of them are what comparable projects actually did.</p>'+
+'<h3>Fork 1 &mdash; How is it funded?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>Raise from investors.</strong> Fastest capital, professional discipline, and a board '+
+'that has done this before.</td><td>An investor needs a return, a return needs an instrument, an '+
+'instrument can be accumulated, and accumulation buys the thing. Every step is reasonable and the '+
+'destination is not.</td><td><strong>One dollar, from many people, buying nothing.</strong> Slower by '+
+'orders of magnitude. Nothing to accumulate.</td></tr>'+
+'<tr><td><strong>Take government or foundation money.</strong> Instant legitimacy, real scale.</td>'+
+'<td>Funding is a relationship, and relationships have terms. A grant that can be withdrawn is a veto '+
+'held by whoever writes it.</td><td><strong>Each region funded from inside itself</strong>, which is also '+
+'what makes foreign-funding law survivable.</td></tr>'+
+'</table></div>'+
+'<h3>Fork 2 &mdash; What is the unit?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>One global currency amount.</strong> Simple, comparable, one number.</td><td>Either '+
+'unaffordable in rich countries or insulting in poor ones. There is no single figure that is fair in '+
+'Lagos and in Seattle.</td><td><strong>A local hour, universally compared.</strong> Denominated against '+
+'the contributor&rsquo;s own minimum wage.</td></tr>'+
+'<tr><td><strong>Pay by output, not by time.</strong> Rewards results rather than presence.</td>'+
+'<td>Output is judged, and judgement is a discretion, and discretions are capturable. It also silently '+
+'excludes everyone whose contribution is knowledge rather than deliverable.</td><td><strong>Witnessed '+
+'time with a documented outcome</strong> &mdash; the outcome is required as evidence, not priced as '+
+'product.</td></tr>'+
+'<tr><td><strong>Let the market set the rate.</strong> Efficient, self-adjusting.</td><td>A market rate '+
+'is exactly the mechanism that already discounts an hour by where it was lived. Adopting it would rebuild '+
+'the problem.</td><td><strong>A published floor</strong>, anchored to statute, with the multiple as the '+
+'only variable.</td></tr>'+
+'</table></div>'+
+'<h3>Fork 3 &mdash; Who decides?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>Weight votes by contribution.</strong> Those who built it care most and know most.</td>'+
+'<td>It is the same sentence as &ldquo;those who paid most decide&rdquo;, one substitution away. And '+
+'contribution can be manufactured by anyone with resources.</td><td><strong>Sovereignty unweighted, '+
+'prioritisation weighted.</strong> Two ballots, two rules, one wall between them.</td></tr>'+
+'<tr><td><strong>Pure one-person-one-vote on everything.</strong> Cleanest possible rule.</td>'+
+'<td>It cannot express intensity. Someone who has worked a problem for a decade and someone who read the '+
+'title count identically on <em>which problem to work on next</em>, which produces bad prioritisation and '+
+'resentment.</td><td><strong>Quadratic weighting with a 15% cap</strong> on prioritisation only &mdash; '+
+'caring twice as much costs four times as much, and domination is arithmetically '+
+'impossible.</td></tr></table></div>'+
+'<h3>Fork 4 &mdash; What legal form?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>One global entity.</strong> Coherent, cheap, one set of books.</td><td>One entity has '+
+'one home jurisdiction, and one home jurisdiction is one off switch. It also makes every inbound '+
+'contribution a cross-border flow, which is precisely what several countries restrict or '+
+'criminalise.</td><td><strong>A domestic legal person per region</strong>, each funded locally. Expensive, '+
+'slow, and survivable.</td></tr>'+
+'<tr><td><strong>A foundation with a permanent board.</strong> Stable, well-understood, hard to '+
+'capture.</td><td>Stability without a removal path becomes a self-appointing class within two '+
+'generations. Egypt&rsquo;s temple estates were a foundation with a permanent board.</td>'+
+'<td><strong>Ten-year standings with recall through every year</strong>, including the years that carry '+
+'no authority.</td></tr></table></div>'+
+'<h3>Fork 5 &mdash; How is the record kept?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>Put everything on a blockchain.</strong> Permanent, verifiable, no trusted '+
+'operator.</td><td>Personal data plus permanence is in direct conflict with erasure rights, and a '+
+'specific chain is a single point of dependency inside a five-hundred-year horizon. Several target '+
+'jurisdictions prohibit token activity outright.</td><td><strong>Hash on-chain, personal data off-chain '+
+'and erasable</strong> &mdash; and chain-neutral, so the ledger can be replaced without amending anything '+
+'constitutional.</td></tr>'+
+'<tr><td><strong>Keep a normal database with good backups.</strong> Simple and adequate.</td><td>It '+
+'cannot prove that a conclusion came from its inputs, which is the one property a stranger in five '+
+'hundred years will need.</td><td><strong>Append-only with deterministic replay.</strong> Nothing '+
+'overwritten; any state reconstructable; the reconstruction runs in the reader&rsquo;s own '+
+'browser.</td></tr></table></div>'+
+'<h3>Fork 6 &mdash; How is an hour proved?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>Trust self-reported hours.</strong> Respectful, frictionless, cheap.</td><td>Time is the '+
+'easiest thing on earth to lie about. If claimed hours can exceed worked hours, the unit is worthless and '+
+'every settlement is theft from someone who did the work.</td><td><strong>Pods of three or more</strong>, '+
+'platform-clocked, self-documented, self-audited, cross-reviewed by people who gain nothing.</td></tr>'+
+'<tr><td><strong>Surveillance: monitor the work.</strong> Objective, hard to fake.</td><td>It requires '+
+'paid tooling, which makes provable contribution a privilege of the already-funded &mdash; rebuilding the '+
+'gate the framework exists to remove.</td><td><strong>Free tools only.</strong> A phone camera, an '+
+'unlisted link, a shared document. A pod in Lagos gets the same evidence stack as a pod in Austin, at the '+
+'same cost, which is nothing.</td></tr>'+
+'</table><caption>The goal is not an unfakeable system; no such thing exists. It is that faking an hour '+
+'costs more than working it &mdash; and the ceiling caps the prize, which caps the budget any rational '+
+'attacker will spend.</caption></div>'+
+'<h3>Fork 7 &mdash; What happens at the top?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>No ceiling &mdash; let contribution scale.</strong> Rewards the exceptional, attracts '+
+'the best.</td><td>It manufactures, from its own treasury, exactly the concentrated actor every '+
+'protection elsewhere exists to resist.</td><td><strong>9,999 per natural person, hard.</strong> Nobody '+
+'becomes rich here, on purpose. It costs us the very rich as members.</td></tr>'+
+'<tr><td><strong>Pay it as a lump sum.</strong> Simpler, and people prefer it.</td><td>A lump sum is '+
+'capital, and capital seeks influence. The same amount over five years is a wage.</td>'+
+'<td><strong>Five annual instalments, guaranteed</strong> &mdash; which is also the thing that turns '+
+'payment into security.</td></tr></table></div>'+
+'<h3>Fork 8 &mdash; Can it be ended?</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The obvious road</th><th>Why it was refused</th><th>Taken instead</th></tr>'+
+'<tr><td><strong>Make it unstoppable, full stop.</strong> The whole point of the shields.</td>'+
+'<td>Five defences against <em>other people</em> ending it, and no way for the people inside it to end it '+
+'themselves, is the exact shape of every institution that outlived its usefulness and could not be '+
+'stopped.</td><td><strong>An off switch</strong>, unweighted, with the guarantee ranked ahead of every '+
+'funder, and a restart that must carry improvements.</td></tr>'+
+'</table></div>'+
+'<div class="notice key"><span class="tag">The pattern across all eight</span>'+
+'<p style="margin-bottom:0">Every refused road is faster, cheaper and more comfortable, and every one of '+
+'them creates a party who can end the thing &mdash; an investor, a judge of output, a permanent board, a '+
+'home jurisdiction, a vendor, a wealthy member. The road taken is slower in all eight cases. '+
+'<strong>That is not a virtue we chose. It is the price of not needing anyone&rsquo;s '+
+'permission.</strong></p></div>');
+
+
+L(41,"paper.s9","The present: what is real, what is not, and the honest self-score.",
+'<div class="secn">&sect;9 &middot; THE PRESENT <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-9">&sect;9 &nbsp; The Present</h2>'+'<p class="lede">Exactly what is real and what is not, today</p>'+
+'<p>A document asking for five hundred years of trust should be willing to say precisely where it stands '+
+'on the day you read it.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>What is real</th><th>What is not</th></tr>'+
+'<tr><td>The prioritisation engine, ranking, determinism and the execution-mode ladder all run in '+
+'production code. 1,488 test functions, 2,212 executed, zero failures at the last full audit.</td>'+
+'<td><strong>Sovereignty is unbuilt.</strong> There is no unweighted ballot anywhere yet &mdash; which is '+
+'fortunate, because building it with the wrong weighting rule would be far harder to undo.</td></tr>'+
+'<tr><td>The mint is currency-free and the earner&rsquo;s rate is stamped and frozen. Money mints '+
+'nothing. Five money-path defects closed in code, with regression locks.</td>'+
+'<td><strong>The reserve does not exist.</strong> The rule that answers the largest legal exposure is '+
+'specified and unbuilt.</td></tr>'+
+'<tr><td>Settlement reaches 103 of 103 jurisdictions on paper, including the thirteen with no statutory '+
+'wage at all.</td><td><strong>Three decisions block operation today</strong> &mdash; the selection rule '+
+'for 35 jurisdictions, the floor value for 13, and the band criteria.</td></tr>'+
+'<tr><td>A commitment to thirty-three languages, with a fallback chain so no language ever renders '+
+'blank.</td><td><strong>English only.</strong> None have shipped. The pass runs when the English is '+
+'finished.</td></tr>'+
+'<tr><td>Our own five-pillar quality gate, applied to this document as to everything else.</td>'+
+'<td><strong>We score 85 and fail our own bar</strong>, because the composite is the minimum and not the '+
+'mean.</td></tr>'+
+'</table><caption>This is a working draft with a signature on it, not a finished instrument. Anyone '+
+'presenting it as more than that is misrepresenting it, including us.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Why the score is published as 85</span>'+
+'<p style="margin-bottom:0">Scored by mean it would read 93.6. Scored by minimum it reads 85, and the '+
+'weak pillar is that nobody can yet read this in their own language. A five-pillar gate averaged would '+
+'let a strong pillar hide a weak one, which is the exact failure the gate exists to prevent. '+
+'<strong>Our composite is our worst pillar.</strong></p></div>'+
+'<h3>What confidence should rest on</h3>'+
+'<p>Not on how well this is argued. Arguments are cheap and this document has been wrong four times.</p>'+
+'<p>Every mechanism is marked <em>implemented</em>, <em>specification-only</em> or <em>proposed</em>, and '+
+'you can check which. The defects are published, including the live ones. Every correction stays visible '+
+'&mdash; the errors are still there, exactly as they shipped. The replay runs in your browser rather than '+
+'asking for your trust. And there is a failure threshold beside every success number, which is the one '+
+'thing nobody writes down unless they intend to be held to it.</p>');
+
+L(41,"paper.s10","How it starts: one city, published stopping conditions, nobody's permission.",
+'<div class="secn">&sect;10 &middot; HOW IT STARTS <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-10">&sect;10 &nbsp; How It Starts</h2>'+'<p class="lede">One city, one pod, one person paid &mdash; and no permission required</p>'+
+'<p>Ground zero is one city and one million people, and the city is Austin, Texas &mdash; chosen partly '+
+'because it is the <strong>hardest</strong> environment available. United States federal law plus state '+
+'charitable registration is the most demanding combination anywhere. If the structure survives ground '+
+'zero it survives what comes after, and if it does not, we find out at one-city scale rather than at '+
+'continental scale.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Week</th><th>What happens</th><th>Gate before proceeding</th></tr>'+
+'<tr><td class="n">0</td><td><strong>The reserve is funded and published first.</strong> No recruitment, '+
+'no sign-ups, no promises. A ring-fenced account with a number in it.</td><td>Reserve above zero and '+
+'published. Nobody may earn before this.</td></tr>'+
+'<tr><td class="n">1</td><td>Bands published with criteria. The selection rule and the floor value '+
+'published. Headroom computed and shown.</td><td>All three decisions ratified, or the pilot does not '+
+'open.</td></tr>'+
+'<tr><td class="n">2</td><td>One pod. Three people. One session: clock in, work, clock out, document, '+
+'self-audit, attach evidence.</td><td>The session replays. The evidence resolves.</td></tr>'+
+'<tr><td class="n">3</td><td>Cross review by a second pod who gain nothing from the claim.</td>'+
+'<td>Confirmed or disputed &mdash; both are valid outcomes and both get published.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>The first settlement reaches a person&rsquo;s account.</strong> '+
+'First instalment of five.</td><td>End to end proven once. Nothing scales until this happens.</td></tr>'+
+'<tr><td class="n">27&ndash;52</td><td>First annual close. Full public accounting. Return on contribution '+
+'published retrospectively for the first time.</td><td>All eight objective outcomes reported, including '+
+'the ones that failed.</td></tr>'+
+'</table><caption>Week zero is the reserve, not the recruitment. Week five is one person actually paid. '+
+'Everything between is proving the loop on the smallest number of people who can be '+
+'disappointed.</caption></div>'+
+'<h3>Published stopping conditions</h3>'+
+'<p>Written before the first contributor arrives, because that is the only moment they can be set '+
+'honestly.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Condition</th><th>Action</th></tr>'+
+'<tr><td>Reserve coverage falls below 1.00</td><td>Minting halts immediately. Earned instalments continue '+
+'unaffected. The shortfall is published that week.</td></tr>'+
+'<tr><td>Three late settlements in a quarter</td><td>New recruitment halts.</td></tr>'+
+'<tr><td>Dispute rate above 5%</td><td>Pod protocol review before any scaling. The verification is '+
+'failing, not the contributors.</td></tr>'+
+'<tr><td>Any regulator requests a change</td><td>Published, answered in writing, and the answer published '+
+'&mdash; whether or not we agree with it.</td></tr>'+
+'<tr><td>A jurisdiction declines</td><td>Withdraw and say so. Settle earned instalments in full. Do not '+
+'restructure to evade.</td></tr>'+
+'</table><caption>Five of six halt or slow the framework rather than the participants. The pilot exists '+
+'to find out whether we can keep our promises, so the promises are the last thing to be '+
+'broken.</caption></div>'+
+'<div class="notice key"><span class="tag">The founding fact</span>'+
+'<p style="margin-bottom:0"><strong>People elect to join.</strong> Nobody is enrolled, assigned, '+
+'defaulted, or signed up by an employer or a state. Voluntary association is protected in nearly every '+
+'legal system on earth. That is the ground this stands on &mdash; and it is why no investor, corporation '+
+'or government has to agree to anything for the first person to contribute.</p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Association is not unlimited &mdash; said plainly</span>'+
+'<p style="margin-bottom:0">The right to associate does not carry a right to raise money, move money, '+
+'hold personal data, receive funds from abroad, or operate where an activity is lawfully prohibited. Each '+
+'is separately regulated and separately obtained, per region, with qualified local counsel. Anyone '+
+'telling you that &ldquo;it is voluntary&rdquo; settles the legal question is mistaken or selling '+
+'something.</p></div>');
+
+L(41,"paper.s11","The off switch: humanity may end it, and the guarantee outranks every funder.",
+'<div class="secn">&sect;11 &middot; THE OFF SWITCH <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-11">&sect;11 &nbsp; The Off Switch</h2>'+'<p class="lede">Humanity may end this, and the guarantee survives the vote</p>'+
+'<p>Five shields exist to stop anyone else ending this. That left a gap nobody noticed for thirty-six '+
+'revisions: <strong>no way for the people inside it to end it themselves.</strong> That is the exact '+
+'shape of every institution that outlived its usefulness and could not be stopped.</p>'+
+'<p>Any natural person may petition to switch the system off. The vote is sovereignty class &mdash; '+
+'unweighted, one person one vote &mdash; so nothing anyone contributed counts, including money.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The funders get no extra vote on this</span>'+
+'<p style="margin-bottom:0">The people who funded the reserve are the people the reserve pays out to when '+
+'it closes, and they vote on the shutdown with the same single vote as someone who has never given a '+
+'cent. This is the first place where &ldquo;money receives, it does not decide&rdquo; costs somebody '+
+'something real. If that rule is ever quietly softened, it will be softened here.</p></div>'+
+'<h3>What happens to the reserve</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Order</th><th>Pool</th><th>Rule</th></tr>'+
+'<tr><td class="n">1</td><td><strong>Guarantee pool</strong></td><td>Contribution already earned. Paid in '+
+'full. <strong>Never distributable.</strong></td></tr>'+
+'<tr><td class="n">2</td><td><strong>Holder pool</strong></td><td>Funders, split by how much the platform '+
+'grew during the years they were funding it.</td></tr>'+
+'<tr><td class="n">3</td><td><strong>Continuity Trust</strong></td><td>Unclaimed shares and residue. '+
+'Asset-locked. Opens only on a valid restart.</td></tr>'+
+'</table><caption>Someone two years into a five-year payout does not lose the remaining three because a '+
+'vote went a certain way. &ldquo;Guaranteed&rdquo; means nothing if a majority can cancel it, and a '+
+'shutdown is precisely where that promise would be cheapest to break &mdash; so it is ranked first, ahead '+
+'of every funder.</caption></div>'+
+'<h3>Coming back is conditional</h3>'+
+'<p>A restart is not a reversal, because reversing a shutdown would make the vote theatre &mdash; a pause '+
+'anyone could wait out. Dormancy of one, two or three years is <strong>drawn at random</strong> from the '+
+'final state hash, because a known restart date would be organised around: capital parked against it, '+
+'coalitions assembled, the timing chosen for a political season rather than a readiness.</p>'+
+'<div class="notice key"><span class="tag">The condition that matters</span>'+
+'<p style="margin-bottom:0"><strong>You may not restart the system you switched off.</strong> Every '+
+'petitioner must submit a concrete improvement, and the restarted version must differ from the '+
+'switched-off version in at least one ratified way. That is not a promise anyone has to trust &mdash; it '+
+'is a mechanical comparison between two releases, and if it comes back empty the restart is '+
+'void.</p></div>'+
+'<div class="pull">Read together, this is not an exit. It is a forced learning cycle with a real cost '+
+'attached.<cite>Ending the system is permitted, survivable and expensive. Coming back is permitted, '+
+'delayed, and conditional on having learned something.</cite></div>'+
+'<p>It can only be built at all because nothing here is stored &mdash; it is replayed. A system that can '+
+'reconstruct any state it has ever held can afford to stop, because stopping does not erase it.</p>');
+
+L(41,"paper.s12","The future: five hundred years, and what should outlive the code.",
+'<div class="secn">&sect;12 &middot; THE FUTURE <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-12">&sect;12 &nbsp; The Future</h2>'+'<p class="lede">Five hundred years, and why this is probably not the toolset of 2525</p>'+
+'<p>The horizon is not a slogan. It is a hard rule that removes most of our choices. Nothing may depend '+
+'on one company, one government, one machine, or one person &mdash; including us. Every decision must be '+
+'written so a stranger can check it after everyone who made it is dust. And the record must survive '+
+'people who would burn it, because in some countries that is not a theory.</p>'+
+'<h3>What the target actually costs</h3>'+
+'<p>The objective is stated in lives rather than dollars: <strong>one billion people, each with nine '+
+'years of livelihood runway, by 2525.</strong> That is 89,991 &#50883; per person and 89.99 trillion '+
+'&#50883; in total. Over five centuries it means two million people entering each year, each carried for '+
+'nine &mdash; a steady state of <strong>18.0 million people on runway at any moment.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Settlement rate</th><th class="n">Annual, steady state</th><th class="n">Perpetual corpus at 4% real</th></tr>'+
+'<tr><td>Floor &mdash; Nigeria 0.34</td><td class="n">$12.73bn</td><td class="n"><strong>$318.24bn</strong></td></tr>'+
+'<tr><td>Austin anchor &mdash; Texas 7.25</td><td class="n">$271.44bn</td><td class="n"><strong>$6.79tn</strong></td></tr>'+
+'</table><caption>Where the billion people actually live decides which row applies, and that is a fact '+
+'about the world rather than a choice we get to make.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; A founding treasury does not reach it &mdash; published, not implied</span>'+
+'<p style="margin-bottom:0">Spent once with no growth, $100bn buys nine years of runway for '+
+'<strong>15,711,413 people</strong> at the floor rate &mdash; 1.57% of one billion &mdash; or '+
+'<strong>736,811</strong> at the Austin anchor, 0.07%. $100bn is the founding treasury, not the endowment. '+
+'Any version of this that implied otherwise was wrong.</p></div>'+
+'<p>The two published figures turn out to be one number seen from two ends. It is a single exponent:</p>'+
+'<pre><code>100,000,000,000 &times; e^(g &times; 500)  =  1,000,000,000,000,000\n\n'+
+'   g  =  ln(10,000) / 500  =  1.8421% real, compounded, for five hundred years</code></pre>'+
+'<div class="notice key"><span class="tag">What this changes about the work</span>'+
+'<p style="margin-bottom:0">The difference between failing at 1.6% of the goal and reaching the full '+
+'objective is <strong>1.84 percentage points of real return</strong> &mdash; below the long-run return of '+
+'almost any productive asset, and utterly dependent on the corpus surviving five hundred years of '+
+'governments, wars and fashions. So the binding constraint is not reach, and it was never regulation. It '+
+'is <strong>continuity</strong>. The Five Shields are not legal decoration; they are the return '+
+'assumption.</p></div>'+
+'<h3>This is probably not the toolset of 2525</h3>'+
+'<p>Let us say the thing a document like this normally avoids. In five hundred years this software will '+
+'not be running, and it is likely that none of this particular framework will be. Sumer&rsquo;s ledger '+
+'survived; Sumer did not. That is the normal outcome and it is not a failure.</p>'+
+'<div class="pull">If someone reads this, sees what is wrong with it, builds something better, and keeps '+
+'the parts that hold &mdash; then this succeeded.<cite>That is not consolation. It is the actual '+
+'goal.</cite></div>'+
+'<p>Here is what we hope outlives the code, ranked, with the software last because it matters least:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>What to keep</th><th>Why</th></tr>'+
+'<tr><td class="n">1</td><td><strong>An hour of a person&rsquo;s life, anchored to what an hour is worth '+
+'where they live.</strong></td><td>If a better framework keeps only one thing, keep this. It makes a '+
+'contributor in one country commensurate with one in another without insulting either.</td></tr>'+
+'<tr><td class="n">2</td><td><strong>The wall.</strong> Money may fund and may never govern.</td>'+
+'<td>Every failure we studied crossed this line eventually, and none of them noticed at the time.</td></tr>'+
+'<tr><td class="n">3</td><td><strong>A ceiling on what any one person can take.</strong></td><td>Not '+
+'because accumulation is wicked, but because it is the mechanism by which every good institution has been '+
+'captured.</td></tr>'+
+'<tr><td class="n">4</td><td><strong>A record that replays.</strong></td><td>Sumer could not see the '+
+'salt; Rome could not see the debasement. Both had excellent records of every individual year.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Disclosing your own defects before anyone asks.</strong></td>'+
+'<td>The cheapest discipline here, and the one most likely to be dropped first by whoever comes next &mdash; '+
+'because it is the only one that costs pride.</td></tr>'+
+'</table></div>'+
+'<h3>How to beat this</h3>'+
+'<p>For anyone curious enough to try &mdash; and this is ultimately written for you rather than for '+
+'us:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Do this</th><th>Because</th></tr>'+
+'<tr><td>Run the replay yourself.</td><td>If it is not deterministic, nothing above it is trustworthy and '+
+'you should stop there.</td></tr>'+
+'<tr><td>Attack the weakest joint: proof of personhood.</td><td>Everything about the wall assumes one '+
+'human, once. We have not solved it. Nobody has.</td></tr>'+
+'<tr><td>Try to game the pod system and publish what you find.</td><td>We have stated our cost model. '+
+'Break it and you will have improved the framework more than we did.</td></tr>'+
+'<tr><td>Take the unit and drop everything else.</td><td>The hour-at-local-minimum is separable from all '+
+'our machinery. Use it in your own design; it needs nothing from us.</td></tr>'+
+'<tr><td>Fork it in a place we never reach.</td><td>Every funded output is openly licensed precisely so a '+
+'region can inherit rather than ask.</td></tr>'+
+'</table><caption>None of these require our permission, our participation, or our approval. A framework '+
+'you must ask to test is not a framework, it is a product.</caption></div>');
+
+L(41,"paper.s13","What is asked, and what success looks like.",
+'<div class="secn">&sect;13 &middot; WHAT WE ASK <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-13">&sect;13 &nbsp; What We Ask</h2>'+'<p class="lede">Not money, not endorsement, not a treaty</p>'+
+'<h3>Of the leaders of every people</h3>'+
+'<p>Not money. Not endorsement. Not a treaty.</p>'+
+'<p><strong>Let your people choose.</strong> That is all. Some will join and most will not, at first. '+
+'Those who do will contribute what they know and be paid for it in your currency, under your law, with '+
+'the record open to your inspection in your language.</p>'+
+'<p>If we are wrong, you will see it before we do, and you may say so publicly &mdash; we publish our own '+
+'faults, so yours will be in good company. If we are right, a woman who understands water will finally '+
+'appear somewhere your ministry can find her.</p>'+
+'<div class="pull">We are not asking you to believe us. We are asking you to let your people be counted, '+
+'and to check our arithmetic.</div>'+
+'<h3>Of anyone reading</h3>'+
+'<p>Do not trust this document. <strong>Check it.</strong> The replay runs in your browser. The defect '+
+'register is published. Every mechanism is marked implemented, specification-only or proposed. Every '+
+'metric has a failure threshold beside it. All of that exists so that your confidence, if you arrive at '+
+'any, rests on something other than how well this is written.</p>'+
+'<p>And if you find what we could not see, say so. That is not a courtesy &mdash; it is the mechanism. '+
+'Every error this document has corrected was caught by somebody else looking at published work with a '+
+'different lens, and there is no version of this that works without that continuing after everyone '+
+'currently involved is gone.</p>'+
+'<h3>Three decisions are outstanding</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Decision</th><th>What it unblocks</th></tr>'+
+'<tr><td class="n">1</td><td>The selection rule for the 35 jurisdictions with sectoral or bargained '+
+'rates.</td><td>Those 35 jurisdictions can settle at all.</td></tr>'+
+'<tr><td class="n">2</td><td>The published floor for the 13 jurisdictions with no statutory rate.</td>'+
+'<td>The 103-of-103 coverage claim becomes true rather than aspirational.</td></tr>'+
+'<tr><td class="n">3</td><td>The multiple band criteria &mdash; who sits at 2&times;, 6&times;, '+
+'10&times;.</td><td>Reach becomes measurable and no settlement figure can be computed for a real person '+
+'until it is set.</td></tr>'+
+'</table><caption>All three are classed Adaptive with published review, so ratifying is not a '+
+'five-hundred-year commitment &mdash; which is precisely what makes saying yes safe.</caption></div>'+
+'<h3>What success looks like</h3>'+
+'<p>Not scale. Not a treasury. Not this framework becoming important.</p>'+
+'<p>Success is a woman outside Lagos who can refuse work that is beneath her because next year is already '+
+'underwritten. It is a girl in Cambodia admitted to a programme abroad on the strength of two hundred '+
+'recorded hours, and coming home. It is an engineer in Kharkiv and a researcher in Yekaterinburg landing '+
+'in the same theme because the system asked what they contributed and nothing else. It is a grandmother '+
+'whose knowledge became legible after fifty years of being real and invisible.</p>'+
+'<p>And in the year 2525, success is that somebody with no connection to any of us opens this record, '+
+'replays it, finds it reconciles, disagrees with a decision made five hundred years earlier, and can see '+
+'exactly why it was made and by whom.</p>');
+
+L(41,"paper.close","The close of the white paper view.",
+'<div class="secn">CLOSE <a href="#sec-0">&uarr; contents</a></div>'+
+'<h2 class="sech" id="sec-close">Where Shared Intention moves at the Speed of Thought</h2>'+
+'<p>They will not know our names and they will not need to. That is the correct outcome, and it is worth '+
+'writing down while it is still slightly inconvenient to say: <strong>we would like to be forgotten, and '+
+'for it to still work.</strong> A framework that requires anyone to be remembered has not been built to '+
+'last &mdash; it has been built to be depended on, which is the same failure wearing better clothes.</p>'+
+'<div class="pull">We are not building something for humanity to admire. We are building something '+
+'humanity can use, correct, outgrow, and eventually take for granted &mdash; which is the highest thing '+
+'that has ever happened to a good idea.</div>'+
+'<div class="notice key"><span class="tag">&#50883; Signed &middot; human authority</span>'+
+'<p><strong>Master of Thought</strong><br>System of Innovation &middot; Vision &#8226; 2525</p>'+
+'<p style="margin-bottom:0">Signed because in this framework a machine may draft and only a person may '+
+'adopt, and it would be incoherent to apply that rule to every other irreversible act and not to this '+
+'one. The signature is not a claim of authorship over the ideas &mdash; twelve reviewers and one operator '+
+'shaped every part of it. It is an acceptance of responsibility for what is wrong with them.</p></div>'+
+'<div class="notice"><span class="tag">Scope</span>'+
+'<p style="margin-bottom:0">Analysis and architecture only. <strong>Not legal, tax or investment '+
+'advice.</strong> No security, token or investment is offered, solicited or marketed anywhere in this '+
+'document. Every financial figure is illustrative and exists to demonstrate a formula, never to project a '+
+'result. Every legal form and every jurisdiction named requires qualified local counsel.</p></div>');
+
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -5507,13 +6447,24 @@ function renderDoc(){
   }
   document.getElementById("doc").innerHTML = html;
 
+  /* Section links scroll rather than navigate, so the version hash survives. */
+  const docEl = document.getElementById("doc");
+  docEl.querySelectorAll('a[href^="#sec-"]').forEach(function(a){
+    a.addEventListener("click", function(ev){
+      ev.preventDefault();
+      const t = document.getElementById(this.getAttribute("href").slice(1));
+      if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+  });
+
   document.getElementById("vNow").textContent = "v" + active + (active === VMAX ? " (latest)" : "");
   document.getElementById("vSlide").value = active;
   document.getElementById("vHash").innerHTML = "state " + stateHash(active) + " &middot; " + blocks.length + " blocks";
   document.getElementById("bPrev").disabled = (active === 1);
   document.getElementById("bNext").disabled = (active === VMAX);
   if (history.replaceState){
-    history.replaceState(null, "", (view === "brief" ? "#brief/v" : "#v") + active);
+    const pre = VIEWS[view].hash;
+    history.replaceState(null, "", (pre ? "#" + pre + "/v" : "#v") + active);
   }
 
   renderReview();
@@ -5523,7 +6474,14 @@ function renderDoc(){
 
 function renderViewBanner(){
   const host = document.getElementById("viewban");
-  if (view === "brief"){
+  if (view === "paper"){
+    host.innerHTML = '<div class="viewban"><b>White paper.</b> Thirteen numbered sections with a table ' +
+      'of contents &mdash; what this is, why it exists, and the paths considered on the way to it. No ' +
+      'release numbers. If you want the change history instead, ' +
+      '<a id="toLedger2">read the ledger &rarr;</a>';
+    host.innerHTML += '</div>';
+    document.getElementById("toLedger2").addEventListener("click", function(){ setView("ledger"); });
+  } else if (view === "brief"){
     host.innerHTML = '<div class="viewban"><b>Brief.</b> The short read &mdash; what was built, how the ' +
       'money unwinds, why the platform exists, and what is still open. Eight sections, replayed from the ' +
       'same ledger as everything else, so it versions and compares identically. ' +
@@ -5531,9 +6489,9 @@ function renderViewBanner(){
     document.getElementById("toLedger").addEventListener("click", function(){ setView("ledger"); });
   } else {
     host.innerHTML = '<div class="viewban"><b>Ledger.</b> The complete record &mdash; ' +
-      LEDGER_ORDER.length + ' sections. If you have twenty minutes rather than two hours, ' +
-      '<a id="toBrief">read the brief instead &rarr;</a></div>';
-    document.getElementById("toBrief").addEventListener("click", function(){ setView("brief"); });
+      LEDGER_ORDER.length + ' sections, every release replayable. For the argument without the change ' +
+      'history, <a id="toPaper">read the white paper &rarr;</a></div>';
+    document.getElementById("toPaper").addEventListener("click", function(){ setView("paper"); });
   }
 }
 
@@ -5727,18 +6685,23 @@ document.getElementById("vSlide").addEventListener("input", function(){ stop(); 
 document.getElementById("bDiff").addEventListener("click", function(){
   showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
 });
+const VIEW_CYCLE = ["paper","ledger","brief"];
+function viewBtnLabel(v){
+  const nxt = VIEW_CYCLE[(VIEW_CYCLE.indexOf(v)+1) % VIEW_CYCLE.length];
+  return "&#9636; " + VIEWS[nxt].label;
+}
 function setView(v){
   if (!VIEWS[v]) return;
   view = v;
   const btn = document.getElementById("bView");
-  btn.innerHTML = (v === "brief") ? "&#9636; Ledger" : "&#9636; Brief";
-  btn.title = (v === "brief") ? "Switch to the full ledger" : "Switch to the short brief";
+  btn.innerHTML = viewBtnLabel(v);
+  btn.title = "Currently reading: " + VIEWS[v].label + ". Click for the next view.";
   window.scrollTo(0,0);
   renderDoc();
 }
 document.getElementById("bView").addEventListener("click", function(){
   stop();
-  setView(view === "brief" ? "ledger" : "brief");
+  setView(VIEW_CYCLE[(VIEW_CYCLE.indexOf(view)+1) % VIEW_CYCLE.length]);
 });
 
 document.getElementById("bCmp").addEventListener("click", function(){
@@ -5774,11 +6737,11 @@ document.addEventListener("keydown", function(e){
 
 (function init(){
   document.getElementById("vSlide").max = VMAX;
-  const m = /^#(?:(brief)\/)?v(\d+)$/.exec(location.hash);
-  if (m && m[1] === "brief") view = "brief";
+  const m = /^#(?:(brief|paper)\/)?v(\d+)$/.exec(location.hash);
+  if (m){ view = m[1] ? m[1] : "ledger"; }
   active = m ? Math.max(1, Math.min(VMAX, parseInt(m[2],10))) : VMAX;
   const btn = document.getElementById("bView");
-  btn.innerHTML = (view === "brief") ? "&#9636; Ledger" : "&#9636; Brief";
+  btn.innerHTML = viewBtnLabel(view);
   renderDoc();
 })();
 </script>
