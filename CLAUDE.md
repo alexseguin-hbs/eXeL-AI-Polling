@@ -101,6 +101,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 | `Requirements.txt` | Full CRS 1–35 requirements specification |
 | `Token_Governance_Math.md` | Formal governance + tokenomics math specification |
 | `Cube_Mapping_From_v04.2.md` | Mapping between monolith sections and cube services |
+| `docs/VISION2525_DOCUMENT_SPEC.md` | **Vision 2525 document architecture (LIVE, locked r40).** One document, N views over one append-only ledger. Replay contract, view registry, masthead-in-ledger rule, release process, ten invariants, gate sections, 755px layout budget. Read before touching `docs/SOI_VISION2525_LIVING_DOCUMENT.html`. |
 
 ## Technology Stack Decisions
 

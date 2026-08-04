@@ -185,6 +185,12 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font-size:13px;color:var(--ink-2);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 /* ---------- full-document reading mode ---------- */
+.viewban{border:1px solid var(--rule);border-left:5px solid var(--hi);background:var(--hi-bg);
+  padding:12px 16px;margin:0 0 18px;border-radius:2px;font-size:14.5px;line-height:1.6}
+.viewban b{color:var(--hi)}
+.viewban a{color:var(--hi);cursor:pointer;text-decoration:underline}
+body.fulldoc .viewban{display:none}
+
 .keyimp{border:1px solid var(--rule);border-left:5px solid var(--si);background:var(--si-bg);
   padding:15px 17px;margin:0 0 20px;border-radius:2px}
 .keyimp h4{margin:0 0 9px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--si)}
@@ -250,6 +256,7 @@ body.fulldoc .fullnote{display:block}
   <span class="vnow" id="vNow">v1</span>
   <button id="bLatest" title="Jump to the latest release">Latest</button>
   <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">&#9679; Changes</button>
+  <button id="bView" title="Switch between the full ledger and the short brief">&#9636; Brief</button>
   <button id="bCmp" aria-pressed="false" title="Compare any two releases">&#8646; Compare</button>
   <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
   <span class="hash" id="vHash">state &mdash;</span>
@@ -302,6 +309,7 @@ body.fulldoc .fullnote{display:block}
   every revision.</p>
 </div>
 
+<div id="viewban"></div>
 <div id="vban"></div>
 <div id="keyimp"></div>
 <div id="cmp"></div>
@@ -351,7 +359,7 @@ body.fulldoc .fullnote{display:block}
    with the buttons at the foot of the page.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const ORDER = [
+const LEDGER_ORDER = [
  "mot.thesis","mot.leaders",
  "front.thesis","front.mission","front.alvar","front.locked",
  "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
@@ -370,6 +378,21 @@ const ORDER = [
  "reach.intelligence","reach.worlds","reach.accelerate",
  "open.defects","open.decisions","open.proposed","close.synthesis","mot.tenses","mot.address"
 ];
+
+/* The BRIEF is not a second document. It is a second ORDER over the same
+   append-only ledger, replayed by the same pure function. One file, one
+   determinism guarantee, two ways in. */
+const BRIEF_ORDER = [
+ "brief.open","brief.flaw","brief.gates","brief.formula","brief.restart",
+ "brief.risk","brief.open_items","brief.why"
+];
+
+const VIEWS = {
+  ledger: {order: LEDGER_ORDER, label: "Ledger", hash: ""},
+  brief:  {order: BRIEF_ORDER,  label: "Brief",  hash: "brief"}
+};
+let view = "ledger";
+function ORDER_FOR(){ return VIEWS[view].order; }
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
 const VERSIONS = [
@@ -1191,6 +1214,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"The defect was self-flattery rather than an attack surface, which is the kind that survives longest because nobody is looking for it."}
  ],
  next:"The frame is now inside the record. What remains is unchanged and unchanged for a reason: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony. None of them can be closed from this side."
+},
+{
+ v:40, code:"ONE DOCUMENT", stamp:"2026.08.04 &middot; release 40",
+ thrust:"The brief stops being a second file. It becomes a second ORDER over the same ledger, behind a toggle &mdash; one document, two ways in.",
+ mot:"Operator directive, and the right one. We had two files drifting apart already: I renamed the ledger at release 39 and had to go back and hand-patch the brief to match. That is exactly the failure this whole framework exists to prevent, and I built it into my own deliverables within a day. Fold the brief in. Not as a static panel &mdash; as a second ORDER list replayed by the same pure function, so it versions, compares, gates and proves identically. Then write the contract down in a spec, because the next person to add a view should not have to reverse-engineer this from the source.",
+ stats:{clauses:249, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Two files became one record with two doors. Nothing was lost and one whole class of drift became impossible."},
+  {n:"Asar",   g:"A+", f:"The brief was already the best summary of the work; making it a citizen of the ledger rather than a copy of it is what it deserved."},
+  {n:"Athena", g:"A+", f:"A view is an ORDER, not a template. That single decision means every control built so far &mdash; slider, play, changes, compare, key improvements &mdash; works on the brief with no new code."},
+  {n:"Christo",g:"A+", f:"A reader with twenty minutes and a reader with two hours now get the same truth at different depths, from one source. That is hospitality, not simplification."},
+  {n:"Enki",   g:"A",  f:"The interesting constraint is that the brief cannot silently disagree with the ledger any more, because contradicting it would mean contradicting the same ledger twice."},
+  {n:"Enlil",  g:"A+", f:"replay(v, order) is the only change to the engine. Compare, improvements and the state hash all became order-aware for free because they were already built on replay."},
+  {n:"Krishna",g:"A+", f:"Deep links survive: #brief/v40 opens the brief at release 40, so the short read is still shareable on its own without being a separate artefact."},
+  {n:"Odin",   g:"A+", f:"Within a single day of renaming the ledger I had to hand-patch the brief to match. The drift was already happening. One more release and the two would have disagreed in public."},
+  {n:"Pangu",  g:"A",  f:"The pattern generalises. A third view &mdash; a regulator&rsquo;s read, a one-page summary, a translation &mdash; is now a list of ids, not a new file."},
+  {n:"Sofia",  g:"A+", f:"The toggle explains itself in one line and offers the other door rather than hiding it. Nobody has to know the architecture to benefit from it."},
+  {n:"Thoth",  g:"A",  f:"Eight brief sections and seventy-four ledger sections, disjoint id sets, both replayed by one function; the gate now checks orphans across both orders rather than one."},
+  {n:"Thor",   g:"A+", f:"Two documents making the same claims is two chances to be caught contradicting yourself. Now there is one claim and two renderings of it."}
+ ],
+ next:"The document architecture is written down at docs/VISION2525_DOCUMENT_SPEC.md so the contract survives me. What remains needs the operator and has not moved: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony."
 }
 ];
 
@@ -5041,6 +5085,304 @@ L(39,"open.defects","Defect 20: the masthead sat outside the replay and rewrote 
 'two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the '+
 'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
 
+/* ══════════ RELEASE 40 ══════════ */
+/* The BRIEF view. Same ledger, same replay function, different ORDER. */
+
+L(40,"corpus.iterations","One document, two views. The brief became a second ORDER over the same ledger rather than a second file.",
+'<h2>Reading the ninety-nine</h2>'+
+'<p>A document that accumulates ninety-nine releases has a problem no ordinary paper has: the reader '+
+'cannot possibly read them all, and the interesting content is not in any single release but in the '+
+'<em>differences between</em> them. Playing forward shows motion. It does not answer the only question '+
+'that matters at scale &mdash; <strong>what changed, between which two points, and why.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Control</th><th>The question it answers</th></tr>'+
+'<tr><td><strong>Slider &middot; &#9668; &#9658;</strong></td><td>What did the document look like at release <em>n</em>?</td></tr>'+
+'<tr><td><strong>&#9654; Play</strong></td><td>How did the argument develop, in order?</td></tr>'+
+'<tr><td><strong>&#9679; Changes</strong></td><td>What is new in the release I am looking at?</td></tr>'+
+'<tr><td><strong>Key improvements</strong></td><td>Of those changes, which ones mattered, and for what stated reason?</td></tr>'+
+'<tr><td><strong>&#8646; Compare</strong></td><td>What changed between <em>any</em> two releases &mdash; v1 against v99, or v98 against v99?</td></tr>'+
+'<tr><td><strong>&#9636; Brief</strong></td><td>Can I have the twenty-minute version instead of the two-hour one?</td></tr>'+
+'<tr><td><strong>&#9776; Full doc</strong></td><td>What does it say right now, read straight through, with no version machinery?</td></tr>'+
+'</table><caption>Seven controls, seven questions. At release 99 all ninety-nine states remain '+
+'addressable, because none of them is stored &mdash; each is reconstructed on demand from the same '+
+'append-only ledger.</caption></div>'+
+'<h3>Two views, one ledger</h3>'+
+'<div class="notice key"><span class="tag">Release 40 &mdash; the brief stopped being a second file</span>'+
+'<p style="margin-bottom:0">A <strong>view is an ORDER, not a template.</strong> The brief is a list of '+
+'eight block ids replayed by the same pure function as the seventy-four in the full record. It is not a '+
+'summary of this document; it is <em>part of</em> it, and it cannot drift from it, because contradicting '+
+'the ledger would mean contradicting the same ledger twice.</p></div>'+
+'<pre><code>VIEWS = {\n'+
+'  ledger : LEDGER_ORDER   74 ids   the complete record\n'+
+'  brief  : BRIEF_ORDER     8 ids   the short read\n'+
+'}\n\n'+
+'replay(v, order)   same function, same ledger, different ordering\n'+
+'#brief/v40         deep-links straight to the short read at a release</code></pre>'+
+'<p>The reason this exists is a failure in our own work. Until release 40 the brief was a separate HTML '+
+'file. When the document was renamed at release 39, the brief did not follow &mdash; it had to be found '+
+'and hand-patched to match. <strong>Two artefacts making the same claims had begun to disagree within a '+
+'single day.</strong> That is precisely the failure this framework exists to prevent, reproduced in the '+
+'deliverables of the framework itself, and the fix was to stop having two artefacts.</p>'+
+'<h3>How comparison works</h3>'+
+'<p>Compare is a pure function of two integers. It replays both releases and sets the block lists side by '+
+'side; it cannot disagree with what you see on screen, because it is built from the same reconstruction, '+
+'and it operates on whichever view you are reading:</p>'+
+'<pre><code>compare(a, b)  =  swap so a &lt;= b, then for each block id in the ACTIVE view:\n'+
+'                    x = newest ledger entry with e.id == id and e.v &lt;= a\n'+
+'                    y = newest ledger entry with e.id == id and e.v &lt;= b\n\n'+
+'                    x absent, y present  -> ADDED     (first written at v = y.v)\n'+
+'                    x present, y absent  -> REMOVED   (structurally impossible &mdash; see below)\n'+
+'                    x.v != y.v           -> REVISED   (superseded at v = y.v, with its reason)\n'+
+'                    x.v == y.v           -> CARRIED   (identical bytes)</code></pre>'+
+'<div class="notice"><span class="tag">An empty category, declared rather than hidden</span>'+
+'<p style="margin-bottom:0"><strong>The REMOVED column reads zero, and always will.</strong> An '+
+'append-only ledger with last-write-wins reconstruction has no delete operation &mdash; a block can be '+
+'superseded, contradicted, or reduced to a single line saying it was wrong, but it cannot be made to have '+
+'never existed. That is a deliberate constraint and a real limitation, and a comparison tool that showed a '+
+'removal column without saying it can never fill would be quietly misleading. Under the disclosure rule '+
+'(<code>U-WF-09</code>) the empty category is declared.</p></div>'+
+'<h3>What Key Improvements is, and what it is not</h3>'+
+'<p>The improvements list under each release is <strong>derived from the ledger, not written beside '+
+'it</strong>. It is the set of entries whose version equals the one you are viewing, each shown with the '+
+'reason recorded at the time it was made. A hand-maintained changelog drifts away from the changes it '+
+'describes within a few releases; this one cannot drift, because it is not a description of the change '+
+'&mdash; it <em>is</em> the change, read back.</p>'+
+'<p>The cost of that honesty is that the list is only as good as the reasons we wrote down. A lazy '+
+'<code>why</code> string produces a lazy improvement note, visibly, in public, forever. That is the '+
+'intended incentive.</p>'+
+'<h3>The name is part of the record too</h3>'+
+'<div class="notice hot"><span class="tag">&#9888; Found by an operator screenshot, closed at r39</span>'+
+'<p style="margin-bottom:0">Until release 39 the masthead was <strong>static HTML sitting outside the '+
+'replay</strong>. Rewinding to release 1 showed the title the document happened to be carrying today, not '+
+'the one it carried then &mdash; so every rename silently rewrote all earlier releases. At release 35 this '+
+'document stated that earlier titles remain readable by rewinding. <strong>That sentence was false the day '+
+'it was written.</strong> The remedy was not to delete it but to make it true.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">From</th><th>Primary title</th><th>Line beneath</th></tr>'+
+'<tr><td class="n">v1</td><td>The Unit and The Shield</td><td class="meta">&mdash;</td></tr>'+
+'<tr><td class="n">v35</td><td>The Living Ledger of Human Contribution</td>'+
+'<td>Recursive Coordination for Human Continuity <span class="meta">(added v36)</span></td></tr>'+
+'<tr><td class="n">v39</td><td><strong>Recursive Coordination for Human Continuity</strong></td>'+
+'<td>The Living Ledger of Human Contribution</td></tr>'+
+'</table><caption>Drag the slider to v1 and the page above says <em>The Unit and The Shield</em>. That is '+
+'the whole proof, and it takes two seconds. The release-36 argument for the other ordering is still '+
+'readable at v36 &mdash; it was overruled, not deleted.</caption></div>');
+
+L(40,"brief.open","The brief folds into the ledger as a replayed view. Standalone file retired.",
+'<h2>The Off Switch &mdash; the short read</h2>'+
+'<p class="lede" style="font-size:19px;line-height:1.5;color:var(--ink);font-style:normal">Every '+
+'institution that ever outlived its usefulness had one thing in common: by the time everyone agreed it '+
+'should stop, there was no longer any way to stop it.</p>'+
+'<p>This is for someone who has not read the ledger and does not intend to. It answers four questions: '+
+'<strong>what was built, how the money unwinds, why the platform exists at all,</strong> and '+
+'<strong>what is still wrong.</strong> Everything here is replayed from the same append-only ledger as '+
+'the full record, so the two cannot drift apart &mdash; they are not two documents, they are two '+
+'orderings of one.</p>'+
+'<div class="notice"><span class="tag">Not advice</span>'+
+'<p style="margin-bottom:0">Analysis and architecture only. <strong>Not legal, tax or investment '+
+'advice.</strong> No security, token or investment is offered, solicited or marketed anywhere in this '+
+'document. Every financial figure below is illustrative and exists to demonstrate a formula, never to '+
+'project a result.</p></div>');
+
+L(40,"brief.flaw","Part one of the brief: the flaw the off switch closes.",
+'<h2>What was built, and the flaw that prompted it</h2>'+
+'<p>Vision&nbsp;2525 is designed to last five hundred years. That ambition creates a specific danger, and '+
+'for thirty-six releases we built directly into it without noticing.</p>'+
+'<p>The framework carries five legal shields. <strong>No equity</strong>, so it cannot be acquired. An '+
+'<strong>asset lock</strong>, so value cannot be extracted. <strong>Federated domestic personality</strong>, '+
+'so no single government can shut it down. <strong>Recognition that cannot be purchased.</strong> A '+
+'<strong>funded reserve</strong> behind every promise. Together they make the system very hard for anyone '+
+'outside it to stop.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The flaw</span>'+
+'<p style="margin-bottom:0">Five defences against <em>other people</em> ending this system, and '+
+'<strong>no way for the people inside it to end it themselves.</strong> That is not a durable institution. '+
+'That is the exact shape of every organisation that stopped being useful and could not be stopped &mdash; '+
+'and it was built while congratulating ourselves on the shields.</p></div>'+
+'<p>Releases 37 and 38 close it. Anyone may petition to switch the system off. The vote is '+
+'<strong>unweighted &mdash; one person, one vote</strong>. Nothing anyone has contributed counts, '+
+'including money. If it carries, the reserve unwinds by a published formula, obligations already earned '+
+'are paid in full, and what remains is locked in a trust that only a restart can open.</p>');
+
+L(40,"brief.gates","Part one continued: the three gates and the brake-not-throttle asymmetry.",
+'<h2>Three gates</h2>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Gate</th><th>Who decides</th><th>Bar</th></tr>'+
+'<tr><td class="n">1</td><td><strong>Mandate</strong> &mdash; every enrolled person, unweighted</td>'+
+'<td>40% quorum, 60% carry, confirmed again 180 days later</td></tr>'+
+'<tr><td class="n">2</td><td><strong>Counter-signature</strong> &mdash; the tri-council, the Innovation Leader among them</td>'+
+'<td>Two-thirds, and the Leader&rsquo;s assent must be inside that two-thirds</td></tr>'+
+'<tr><td class="n">3</td><td><strong>Execution</strong> &mdash; the master admin account, two keys</td>'+
+'<td>Carries out the decision. Does not make it.</td></tr>'+
+'</table><caption>Gate 3 is a ceremony, not a choice. The choice was already made at gates one and '+
+'two.</caption></div>'+
+'<div class="notice key"><span class="tag">A brake, never a throttle</span>'+
+'<p style="margin-bottom:0">Gate 2 lets the Innovation Leader <strong>slow or stop</strong> a shutdown. It '+
+'can never <strong>cause</strong> one &mdash; no combination of leader and council can end this system '+
+'without a carried mandate from ordinary people. So the veto is structurally incapable of destroying the '+
+'framework; it can only preserve it against a decision it believes is premature. That asymmetry is the '+
+'only reason a single-person veto is acceptable here, and it expires: the counter-signature belongs to the '+
+'founding <strong>7&nbsp;+&nbsp;3</strong> term and lapses automatically ten years after cumulative Seed '+
+'Token proceeds first reach <strong>$1,000,000</strong>. It also lapses if it is not exercised within '+
+'ninety days &mdash; an off switch that can be disabled by not answering the phone is not an off '+
+'switch.</p></div>');
+
+L(40,"brief.formula","Part two of the brief: the reserve split and the Continuity Index, in plain terms.",
+'<h2>The formula, in plain terms</h2>'+
+'<p>If the system stops, the reserve does not become a pot to be divided among whoever is loudest. It '+
+'splits three ways, in strict order, and <strong>the first claim is not a funder&rsquo;s.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Order</th><th>Pool</th><th class="n">Illustrative</th><th>Rule</th></tr>'+
+'<tr><td class="n">1</td><td><strong>Guarantee pool</strong></td><td class="n">$173,982,600</td>'+
+'<td>Contribution already earned. Paid in full. Never distributable.</td></tr>'+
+'<tr><td class="n">2</td><td><strong>Holder pool</strong></td><td class="n">$239,948,806</td>'+
+'<td>Seed Tokens, split by Continuity Index.</td></tr>'+
+'<tr><td class="n">3</td><td><strong>Continuity Trust</strong></td><td class="n">$86,068,593</td>'+
+'<td>Unclaimed shares and residue. Opens only on a valid restart.</td></tr>'+
+'</table><caption>Illustrative reserve of $500,000,000. Free reserve = reserve &minus; committed '+
+'obligations = $326,017,400, of which the unclaimed portion falls to the Trust.</caption></div>'+
+'<div class="notice ok"><span class="tag">&#10003; The guarantee outlives the vote</span>'+
+'<p style="margin-bottom:0">Someone two years into a five-year payout does <strong>not</strong> lose the '+
+'remaining three because a vote went a certain way. &ldquo;Guaranteed&rdquo; means nothing if a majority '+
+'can cancel it, and a shutdown is precisely where that promise would be cheapest to break. So it is ranked '+
+'first, ahead of every funder.</p></div>'+
+'<h3>The Continuity Index</h3>'+
+'<p>Seed Token holders are repaid in proportion to <strong>how much the platform grew during the years '+
+'they were funding it.</strong> Four measures, weighted equally: <strong>Revenue &middot; Gross Profit '+
+'&middot; Operating Income &middot; R&amp;D Spend.</strong></p>'+
+'<pre><code>for each measure m:   &#916;m(y) = m(year it stops) &minus; m(year you bought)\n'+
+'                      share(y) = &#916;m(y) &divide; &#916;m(founding year)\n\n'+
+'Index(y)  = average of the four shares\n'+
+'Payout    = your tokens &times; Index, as a share of everyone else&rsquo;s</code></pre>'+
+'<p>An early holder funded the whole climb, so their index is near <strong>1.0</strong>. Someone who '+
+'joined last year funded only the final stretch, so theirs is low. Someone who bought on the day it '+
+'stopped funded none of it, and their index is <strong>zero</strong>.</p>'+
+'<div class="notice"><span class="tag">Why differences, and not a growth multiple</span>'+
+'<p style="margin-bottom:0">The obvious version is a growth ratio &mdash; today&rsquo;s revenue divided by '+
+'revenue in the year you bought. It breaks immediately. <strong>Operating income is negative in the early '+
+'years of anything worth building</strong>, and dividing by a negative number produces '+
+'<code>&minus;144.0</code>: a figure with no meaning that would silently invert a founder&rsquo;s claim '+
+'into a debt. Measuring the <em>difference</em> works cleanly through zero and stays orderly from first '+
+'holder to last.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Holder</th><th class="n">Bought</th><th class="n">Tokens</th><th class="n">Index</th><th class="n">Per token</th></tr>'+
+'<tr><td>Adaeze</td><td class="n">year 1</td><td class="n">100</td><td class="n">0.9958</td><td class="n">$333,649</td></tr>'+
+'<tr><td>Sokha</td><td class="n">year 4</td><td class="n">10</td><td class="n">0.9108</td><td class="n">$305,178</td></tr>'+
+'<tr><td>Mireille</td><td class="n">year 8</td><td class="n">1,000</td><td class="n">0.5902</td><td class="n">$197,746</td></tr>'+
+'<tr><td>Tomas</td><td class="n">year 11</td><td class="n">100</td><td class="n">0.1742</td><td class="n">$58,375</td></tr>'+
+'</table><caption>Twelve operating years, illustrative figures, real arithmetic. Mireille holds ten times '+
+'Adaeze&rsquo;s tokens and takes the largest total; Adaeze earns nearly six times as much <em>per '+
+'token</em> for arriving ten years earlier.</caption></div>');
+
+L(40,"brief.restart","Part two continued: dormancy and the condition on coming back.",
+'<h2>If it comes back</h2>'+
+'<p>A restart is not a reversal &mdash; that would make the vote theatre, a pause anyone could wait out. '+
+'Dormancy of one, two or three years is <strong>drawn at random</strong> from the final state hash, '+
+'because a known restart date would be organised around: capital parked against it, coalitions assembled '+
+'for it, the timing chosen for a political season rather than a readiness. Earliest restart is the drawn '+
+'period plus one preparation year.</p>'+
+'<div class="notice key"><span class="tag">The condition that matters</span>'+
+'<p style="margin-bottom:0"><strong>You may not restart the system you switched off.</strong> Every '+
+'restart petitioner must submit a concrete improvement, and the restarted version must differ from the '+
+'switched-off version in at least one ratified way. That is not a promise anyone has to trust &mdash; it '+
+'is a mechanical comparison between two releases, and if it comes back empty the restart is void. Ending '+
+'this system is therefore not a death. It is a <strong>forced learning cycle with a real cost '+
+'attached.</strong></p></div>');
+
+L(40,"brief.risk","Part three of the brief: the risk the platform addresses.",
+'<h2>The risk this platform addresses</h2>'+
+'<p>Everything above is machinery. Here is what the machinery is for.</p>'+
+'<p>Large groups of people are very good at generating ideas and very bad at deciding between them. The '+
+'failure is not a shortage of intelligence; it is that <strong>the process of deciding is captured by '+
+'whoever has the most of something</strong> &mdash; money, tenure, volume, proximity to the decision. The '+
+'result looks like consensus and is not. Good ideas from people without standing never reach the surface, '+
+'and by the time anyone measures the outcome, the decision is unattributable.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Risk</th><th>What normally happens</th><th>What is done instead</th></tr>'+
+'<tr><td><strong>Capture</strong></td><td>Whoever funds it, steers it.</td>'+
+'<td>Money receives; it never decides. Contribution buys no vote at any price, in any amount.</td></tr>'+
+'<tr><td><strong>Invisible dissent</strong></td><td>Objections surface after the decision, as failure.</td>'+
+'<td>Everyone contributes in their own language; the objection is in the record before the vote.</td></tr>'+
+'<tr><td><strong>Unattributable outcomes</strong></td><td>Nobody can say whose idea worked.</td>'+
+'<td>Every contribution is a ledger entry with an author, a time and a reason.</td></tr>'+
+'<tr><td><strong>Uncompensated contribution</strong></td><td>Value flows to whoever owned the platform.</td>'+
+'<td>Time earns a unit that settles at local rates, with a hard annual ceiling nobody can exceed.</td></tr>'+
+'<tr><td><strong>Geographic discounting</strong></td><td>An hour is worth less depending where it was lived.</td>'+
+'<td>An hour mints identically everywhere. Only settlement is local.</td></tr>'+
+'<tr><td><strong>Institutional immortality</strong></td><td>It cannot be stopped once it stops working.</td>'+
+'<td>The off switch. Everything above.</td></tr>'+
+'</table></div>'+
+'<div class="notice"><span class="tag">The one-sentence version</span>'+
+'<p style="margin-bottom:0">The platform exists so that a group of people can decide something together '+
+'<strong>without the decision being quietly bought</strong>, can see who contributed what, and can end the '+
+'whole arrangement if it stops serving them.</p></div>'+
+'<p>The economic half is worth stating precisely, because it is where most frameworks of this kind quietly '+
+'fail. Contributed time mints a unit of recognition at a rate that is <strong>identical everywhere on '+
+'earth</strong> &mdash; one full-time year of contribution reaches the annual ceiling exactly, whether '+
+'that year was worked in Lagos or Seattle. The local wage still applies, but only at <em>settlement</em>, '+
+'when the unit converts to money, and the rate is frozen at the moment the work was recorded so it cannot '+
+'be re-priced by anyone who later holds it.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Why that ordering matters</span>'+
+'<p style="margin-bottom:0">Until recently our own code applied the local wage at the wrong moment. It '+
+'meant reaching the same ceiling cost <strong>29,409 hours in Nigeria and 614 in Washington State</strong> '+
+'&mdash; a 47.9&times; spread, against a stated goal of helping as many people as possible reach it. It is '+
+'now 2,080 hours everywhere. We found that in our own system, published it, and fixed it, and this brief '+
+'mentions it because a framework that only reports its successes is not reporting.</p></div>');
+
+L(40,"brief.open_items","Part four of the brief: what is still open, and the three decisions being asked for.",
+'<h2>What we are still getting wrong</h2>'+
+'<p>Five items are open. Three need a decision from a person; two are operational and can be closed this '+
+'week. All of them are published in the ledger&rsquo;s own defect register rather than discovered later by '+
+'someone else.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Open item</th><th>Why it matters</th><th>Needs</th></tr>'+
+'<tr><td><strong>The payout can wipe out a late funder</strong></td>'+
+'<td>Index falls to zero in the shutdown year. If a shutdown starts to look likely, the rational act is to '+
+'stop funding &mdash; which drains the reserve and makes shutdown likelier. Self-fulfilling at the worst '+
+'possible moment.</td><td>A principal floor before the index split. Proposed, not yet adopted.</td></tr>'+
+'<tr><td><strong>The shutdown thresholds are unratified</strong></td>'+
+'<td>Quorum, carry and confirmation are proposals. An unratified threshold is not a threshold.</td>'+
+'<td>Council ratification.</td></tr>'+
+'<tr><td><strong>The reserve is short of the long-horizon target</strong></td>'+
+'<td>Nine years of security for a billion people needs a corpus a founding treasury does not reach on its '+
+'own. It closes only through long-run compounding.</td>'+
+'<td>A funding decision: full pre-funding, or duration-matched.</td></tr>'+
+'<tr><td><strong>Two caps carry no numbers</strong></td>'+
+'<td>Overhead and institutional gifts are described as capped with no figure stated anywhere. An undefined '+
+'cap is not a cap.</td><td>Publish the numbers.</td></tr>'+
+'<tr><td><strong>Credential hygiene on the master key</strong></td>'+
+'<td>A short numeric PIN is brute-forceable without a lockout, and a PIN typed into a live session is not '+
+'truly a second factor.</td><td>Hardware-bound second factor, attempt lockout, rotation before first use.</td></tr>'+
+'</table><caption>The disclosure rule that governs this framework says a hidden gap is worse than a known '+
+'one &mdash; and that it applies to us before it applies to anyone else.</caption></div>'+
+'<div class="notice key"><span class="tag">What we are asking for</span>'+
+'<p>Three decisions, in order of how much they block:</p>'+
+'<ol style="margin-bottom:0">'+
+'<li><strong>The principal floor.</strong> Should a late funder be repaid their contribution before the '+
+'growth-indexed split begins? We think yes, and it changes a stated rule, so it is not ours to change.</li>'+
+'<li><strong>The five shutdown thresholds.</strong> Until they are set, the off switch is a specification '+
+'rather than a working mechanism.</li>'+
+'<li><strong>The reserve fork.</strong> Pre-fund the full guarantee, or match funding to the duration of '+
+'obligations as they arise.</li></ol></div>');
+
+L(40,"brief.why","Part four continued: why an off switch is affordable at all.",
+'<h2>Why any of this is possible</h2>'+
+'<p>A system can only afford an off switch if stopping does not destroy it. This one can, for a structural '+
+'reason: <strong>the record is not stored, it is reconstructed.</strong> Every version of this framework '+
+'can be rebuilt exactly, in any browser, from an append-only list of changes &mdash; including the version '+
+'that was running on the day it was switched off. Nothing is overwritten, no correction erases the mistake '+
+'before it, and any two versions can be compared directly.</p>'+
+'<p>That is what makes ending it survivable rather than final. A framework meant to run for five centuries '+
+'will be wrong at some point, probably more than once. The question was never how to prevent that. It was '+
+'whether being wrong could be made <strong>recoverable</strong>.</p>'+
+'<div class="notice key"><span class="tag">This brief is proof of its own claim</span>'+
+'<p style="margin-bottom:0">Everything you have just read is replayed from the same append-only ledger as '+
+'the full record. Drag the slider and the brief moves through releases like anything else; press '+
+'<strong>&#8646; Compare</strong> and you can audit what changed in it between any two. Before release 40 '+
+'it was a separate file, and within a single day of renaming the main document the two had already drifted '+
+'far enough to need hand-patching. That is the failure this framework exists to prevent, reproduced in our '+
+'own deliverables, and it is why there is now one document with two doors rather than two documents '+
+'telling the same story.</p></div>');
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -5069,9 +5411,9 @@ function fnv1a(s){
 }
 
 /* Deterministic reconstruction: pure function of v. */
-function replay(v){
+function replay(v, order){
   const out = [];
-  for (const id of ORDER){
+  for (const id of (order || ORDER_FOR())){
     let pick = null;
     for (const e of LEDGER){ if (e.id === id && e.v <= v){ if (!pick || e.v >= pick.v) pick = e; } }
     if (pick) out.push(pick);
@@ -5079,8 +5421,8 @@ function replay(v){
   return out;
 }
 
-function stateHash(v){
-  const blocks = replay(v);
+function stateHash(v, order){
+  const blocks = replay(v, order);
   return fnv1a(blocks.map(function(b){ return b.id + "@" + b.v + ":" + b.html.length + ":" + b.html; }).join("|"));
 }
 
@@ -5094,7 +5436,7 @@ function compare(a, b){
   for (const e of replay(a)) A[e.id] = e;
   for (const e of replay(b)) B[e.id] = e;
   const rows = [];
-  for (const id of ORDER){
+  for (const id of ORDER_FOR()){
     const x = A[id], y = B[id];
     if (!x && !y) continue;
     if (!x &&  y) rows.push({id:id, kind:"added",   v:y.v, why:y.why});
@@ -5108,7 +5450,7 @@ function compare(a, b){
 /* Key improvements for one release: derived from the ledger, never authored beside it. */
 function improvements(v){
   const out = [];
-  for (const id of ORDER){
+  for (const id of ORDER_FOR()){
     for (const e of LEDGER){ if (e.id === id && e.v === v) out.push(e); }
   }
   return out;
@@ -5145,6 +5487,7 @@ function renderDoc(){
       '<span>panel mean <b>' + panelMean(V) + '</b></span>' +
     '</div></div>';
 
+  renderViewBanner();
   renderKeyImp();
   renderCompare();
   const cmpMap = {};
@@ -5169,11 +5512,29 @@ function renderDoc(){
   document.getElementById("vHash").innerHTML = "state " + stateHash(active) + " &middot; " + blocks.length + " blocks";
   document.getElementById("bPrev").disabled = (active === 1);
   document.getElementById("bNext").disabled = (active === VMAX);
-  if (history.replaceState) history.replaceState(null, "", "#v" + active);
+  if (history.replaceState){
+    history.replaceState(null, "", (view === "brief" ? "#brief/v" : "#v") + active);
+  }
 
   renderReview();
   renderLedger();
   renderRcore();
+}
+
+function renderViewBanner(){
+  const host = document.getElementById("viewban");
+  if (view === "brief"){
+    host.innerHTML = '<div class="viewban"><b>Brief.</b> The short read &mdash; what was built, how the ' +
+      'money unwinds, why the platform exists, and what is still open. Eight sections, replayed from the ' +
+      'same ledger as everything else, so it versions and compares identically. ' +
+      '<a id="toLedger">Read the full ledger &rarr;</a></div>';
+    document.getElementById("toLedger").addEventListener("click", function(){ setView("ledger"); });
+  } else {
+    host.innerHTML = '<div class="viewban"><b>Ledger.</b> The complete record &mdash; ' +
+      LEDGER_ORDER.length + ' sections. If you have twenty minutes rather than two hours, ' +
+      '<a id="toBrief">read the brief instead &rarr;</a></div>';
+    document.getElementById("toBrief").addEventListener("click", function(){ setView("brief"); });
+  }
 }
 
 function renderKeyImp(){
@@ -5304,7 +5665,8 @@ function renderLedger(){
     '<div class="scroll"><table><tr><th class="n">Rel</th><th>Block</th><th>Why it changed</th>' +
     '<th class="n">Bytes</th><th class="n">State</th></tr>' + rows +
     '</table><caption>' + LEDGER.length + ' entries across ' + VMAX + ' releases, covering ' +
-    ORDER.length + ' addressable blocks. Last-write-wins per block, replayed in order.</caption></div>';
+    ORDER_FOR().length + ' addressable blocks in this view (' + LEDGER_ORDER.length + ' ledger + ' +
+    BRIEF_ORDER.length + ' brief). Last-write-wins per block, replayed in order.</caption></div>';
 }
 
 function renderRcore(){
@@ -5365,6 +5727,20 @@ document.getElementById("vSlide").addEventListener("input", function(){ stop(); 
 document.getElementById("bDiff").addEventListener("click", function(){
   showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
 });
+function setView(v){
+  if (!VIEWS[v]) return;
+  view = v;
+  const btn = document.getElementById("bView");
+  btn.innerHTML = (v === "brief") ? "&#9636; Ledger" : "&#9636; Brief";
+  btn.title = (v === "brief") ? "Switch to the full ledger" : "Switch to the short brief";
+  window.scrollTo(0,0);
+  renderDoc();
+}
+document.getElementById("bView").addEventListener("click", function(){
+  stop();
+  setView(view === "brief" ? "ledger" : "brief");
+});
+
 document.getElementById("bCmp").addEventListener("click", function(){
   stop();
   cmpOn = !cmpOn;
@@ -5398,8 +5774,11 @@ document.addEventListener("keydown", function(e){
 
 (function init(){
   document.getElementById("vSlide").max = VMAX;
-  const m = /^#v(\d+)$/.exec(location.hash);
-  active = m ? Math.max(1, Math.min(VMAX, parseInt(m[1],10))) : VMAX;
+  const m = /^#(?:(brief)\/)?v(\d+)$/.exec(location.hash);
+  if (m && m[1] === "brief") view = "brief";
+  active = m ? Math.max(1, Math.min(VMAX, parseInt(m[2],10))) : VMAX;
+  const btn = document.getElementById("bView");
+  btn.innerHTML = (view === "brief") ? "&#9636; Ledger" : "&#9636; Brief";
   renderDoc();
 })();
 </script>
