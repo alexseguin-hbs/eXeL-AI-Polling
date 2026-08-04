@@ -69,6 +69,58 @@ function ORDER_FOR(){ return VIEWS[view].order; }
 **The white-paper view carries no release numbers.** A stranger arriving at the framework does not care
 that we were wrong at release nine. The ledger view is where change history lives; keep them separate.
 
+### A view can be younger than the record — the fallback rule (r49)
+
+A view's order is a list of ids **written at some release**. Replay that order at an earlier release and
+it returns nothing, because none of the ids existed yet. `PAPER_ORDER` was written at r41; between r1 and
+r40 it replays to **zero blocks**.
+
+This is not hypothetical. It shipped. From r41 to r48 the default view rendered a **completely blank page
+for releases 1 to 40** — forty of forty-nine releases, unreachable from the front door — and the gate did
+not catch it because the structural checks pin `setView('ledger')` first (§7), which is exactly the
+decision that hid it.
+
+```js
+function blocksFor(v){
+  const own = replay(v, VIEWS[view].order);
+  if (own.length){ fellBack = null; return {blocks: own, order: VIEWS[view].order}; }
+  fellBack = {view, label: VIEWS[view].label, first: viewFirstRelease(view)};
+  return {blocks: replay(v, LEDGER_ORDER), order: LEDGER_ORDER};   // the complete record, from v1
+}
+```
+
+**The rule, in three parts:**
+
+1. When the open view has nothing at the selected release, serve the **complete record** for that
+   release. `LEDGER_ORDER` exists from v1 and must always remain the fallback of last resort.
+2. **Say so on the page.** The `.fellback` banner names the view asked for, the release it was first
+   written at, and how to get back to it. A silent substitution is worse than a blank page.
+3. **Never generate content to fill the gap.** There was no white paper at release 20. Inventing one
+   destroys the only property that makes the document worth replaying.
+
+The state hash in the deck must be computed from the order actually rendered — `blocksFor()` returns
+both — or it describes a document the reader is not looking at.
+
+### Comparison is a property of the RECORD, not of the view (r49)
+
+`compare(a,b)` and `improvements(v)` **must** iterate `LEDGER_ORDER`, never `ORDER_FOR()`. Two readers in
+two different views comparing the same two releases must be told the same thing about what changed. This
+was the same defect as the blank page wearing a different coat: in the paper view, comparison of any two
+pre-r41 releases returned empty.
+
+### The section index
+
+Every view carries a jump strip in the sticky deck (`.deck-sec > #chips`):
+
+- **Numbered sections** (paper) → their real `§` number, from the `h2.sech` text. Never invented.
+- **The record** → one chip per contiguous run of a block-id family (`UNIT`, `FUND`, `GOV`), suffixed
+  `·2`, `·3` where a family runs more than once. Governance genuinely appears three times; the suffix
+  says which run rather than pretending the record is tidier than it is.
+- **A single-family view** (the brief is all `brief.*`) → one chip per block, from the id's tail.
+
+The strip is scrolled by setting `scrollLeft` directly — **never `scrollIntoView`**, which can scroll the
+page out from under a reader who only asked to see which section they are in.
+
 ### Adding a third view
 
 1. Define `<NAME>_ORDER` as an array of block ids.
@@ -197,6 +249,9 @@ the false "earlier titles remain readable" claim corrected at r39.
 | 8 | Zero body horizontal scroll, zero clipped `.scroll` wrappers | Gate: 3 viewports × 2 themes × every release |
 | 9 | Zero page errors in either view | Gate: `pageerror` capture |
 | 10 | No credential, key, PIN or token appears anywhere in the file | Manual + repo scan before every push |
+| 11 | **No release renders blank in any view** — every `view × release` state has content | Gate §2f: `VMAX × 3` states, 0 blank |
+| 12 | **Comparison does not depend on the open view** | Gate §2f: `compare(1,VMAX)` identical across all three |
+| 13 | **Every view carries a section index of ≥2 entries at every release** | Gate §2f: chip count per state |
 
 **Invariant 6 in detail.** `REMOVED` is a category that exists in the comparison output and
 **always reads zero**. An append-only ledger with last-write-wins has no delete: a block can be
@@ -229,10 +284,20 @@ Sections:
 
    **Structural checks must pin the view.** Sections 1, 2, 2b and 2c call `setView('ledger')` first,
    because paper and brief blocks only exist from r40/r41 and would make v1 and v2 render identically.
-6. **Responsive** — 375 / 768 / 1440 × light + dark × every release: zero body h-scroll, zero
+   **This pin is also what hid defect r49** — see §2f, which deliberately runs in every view instead.
+6. **2f · Reachability (r49)** — sweeps `VMAX × 3` view/release states and asserts none is blank, each
+   carries a section index, the fallback banner names both the substitution and the release the view
+   begins at, `§` numbers are present in the paper index, the record index has no duplicate labels, a
+   chip click actually scrolls without touching the version hash, and comparison is view-independent.
+
+   `.chips` is a sanctioned horizontal-scroll container, like `.scroll` and `pre`, and is excluded from
+   the overflow detector. The body-h-scroll assertion still covers it and is what protects the page.
+7. **Responsive** — 375 / 768 / 1440 × light + dark × every release: zero body h-scroll, zero
    overflowing elements outside `.scroll`/`pre`, zero clipped wrappers at desktop width.
 
-**Raise the version ceiling on every release** (three `v<=N` occurrences).
+**Never hard-code the version ceiling.** Every loop reads `VMAX` from the page. Release 39 to 48 shipped
+with the responsive sweep frozen at `v<=38` while printing "all versions" — ten releases went
+unexercised at three viewports. If a loop bound is a literal, it is a latent lie.
 
 ### Layout budget
 

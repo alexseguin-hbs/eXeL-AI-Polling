@@ -196,16 +196,21 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
   color:var(--ink-2);cursor:pointer;text-decoration:underline;background:none;border:0;font-weight:700}
 body.fulldoc .specban{display:none}
 
-.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;margin:0 0 14px;
+.deck-sec{max-width:74ch;margin:7px auto 0}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:0 0 2px;margin:0;
   -webkit-overflow-scrolling:touch;scrollbar-width:thin}
-.chips button{flex:0 0 auto;font:600 12.5px ui-monospace,monospace;letter-spacing:.04em;
-  padding:7px 13px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);
+.chips button{flex:0 0 auto;font:600 12px ui-monospace,monospace;letter-spacing:.04em;
+  padding:4px 10px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);
   border-radius:7px;cursor:pointer;white-space:nowrap;transition:none}
 .chips button:hover{color:var(--ink);border-color:var(--ink-2)}
 .chips button.on{color:var(--ai);border-color:var(--ai);box-shadow:0 0 0 1px var(--ai);background:var(--ai-bg)}
 .chips button.lead{color:var(--hi);border-color:var(--hi)}
 .chips .lbl{flex:0 0 auto;font:700 10px ui-sans-serif,system-ui;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--ink-2);align-self:center;padding-right:4px}
+  text-transform:uppercase;color:var(--ink-2);align-self:center;padding-right:2px}
+body.fulldoc .deck-sec{display:none}
+.fellback{border:1px solid var(--hi);border-left:3px solid var(--hi);background:var(--panel);
+  padding:13px 16px;margin:0 0 14px;border-radius:2px;font-size:14px;line-height:1.6}
+.fellback b{color:var(--hi)}
 body.fulldoc .chips{display:none}
 
 /* ---------- white-paper view ---------- */
@@ -311,6 +316,7 @@ body.fulldoc .fullnote{display:block}
   <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
   <span class="hash" id="vHash">state &mdash;</span>
  </div>
+ <div class="deck-sec"><div id="chips"></div></div>
 </div>
 
 <div class="wrap">
@@ -355,7 +361,6 @@ body.fulldoc .fullnote{display:block}
   Press <strong>&#9881;</strong> for the current version number and the architecture.</p>
 </div>
 
-<div id="chips"></div>
 <div id="specban"></div>
 <div id="viewban"></div>
 <div id="vban"></div>
@@ -1462,6 +1467,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Settlement-origin eligibility is the strongest single sentence in the funding design. It converts an exclusion that would need policing into one that needs nothing."}
  ],
  next:"The individual funding path is specified end to end: own settlement in, capped recognition out, one equation for a project and for the framework. Unchanged for the operator: the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, the guarantee-versus-inheritance collision, and rotating the master credential."
+},
+{
+ v:49, code:"NO RELEASE IS BLANK", stamp:"2026.08.04 &middot; release 49",
+ thrust:"Every one of the 49 releases is readable from wherever you are standing, and every view carries a section index you can jump with.",
+ mot:"Operator report, and it is a regression I shipped. When the white paper became the default view at release 41, releases 1 to 40 stopped rendering ANYTHING in it &mdash; the paper blocks were written at 41, so replaying release 20 through the paper order returns nothing and the page goes blank. Forty of forty-nine releases, unreachable from the front door. My gate never caught it because my own structural checks pin the ledger view first, which is precisely the decision that hid the defect from me. Two fixes, and neither of them invents history. First: when the open view has nothing at the selected release, fall back to the complete record and SAY SO on the page &mdash; the record exists from release 1 and always will. Second: comparison and key improvements were reading the open view's order too, so both went empty in the paper for early releases. They are properties of the record, not of the way you hold it, and they now read the ledger order in every view. Separately: the section index existed but was labelled S0..S13, hid itself in the ledger and the brief, and scrolled off the top of the page. It now rides in the sticky deck the way the gate strip does in SoI&#8226;2525, carries the real &sect; numbers, names the families in the record view, and tracks where you are as you scroll.",
+ stats:{clauses:271, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"C",  f:"Forty releases of preserved history were preserved and unreachable. The ledger was never wrong; the door to it was."},
+  {n:"Asar",   g:"B+", f:"The fallback resolves rather than papers over: you get the complete record, and a sentence telling you exactly why."},
+  {n:"Athena", g:"C+", f:"A default view that renders nothing for 82% of releases is a first-thirty-seconds failure. It survived eight releases."},
+  {n:"Christo",g:"A",  f:"Nothing was fabricated to fill the gap. Releases 1 to 40 have no white paper because none was written then, and the page now says that."},
+  {n:"Enki",   g:"B",  f:"The index in the record view names families &mdash; UNIT, FUND, GOV, LEGAL &mdash; which is more useful than a number that means nothing there."},
+  {n:"Enlil",  g:"B+", f:"blocksFor() returns both the blocks and the order used, so the state hash in the deck always describes what is actually on screen."},
+  {n:"Krishna",g:"A",  f:"Comparison reading the open view's order was the same defect wearing a different coat. Both now read the record. One rule, three surfaces."},
+  {n:"Odin",   g:"C+", f:"The gate pinned the ledger view for structural checks. That was my call, it was reasonable, and it is exactly what blinded us. Now asserted in the default view."},
+  {n:"Pangu",  g:"A",  f:"The strip moved into the sticky deck instead of gaining a sticky offset of its own. No measurement, no overlap, works at every width."},
+  {n:"Sofia",  g:"B+", f:"Scroll tracking means the index answers where am I as well as take me there. Half the value was in the second question."},
+  {n:"Thoth",  g:"B",  f:"49 releases x 3 views = 147 states. Before this release 120 of them rendered empty. After it, zero do, and the gate counts them."},
+  {n:"Thor",   g:"B+", f:"A reader who drags the slider back and sees a blank page concludes the replay claim is theatre. This was a credibility defect, not a cosmetic one."}
+ ],
+ next:"Two defects of my own are closed. The operator's decisions are untouched and still block operation: the Tier-2 selection rule for 35 jurisdictions, the Global Agreed Standard for the 13 with no statutory rate, the multiple band criteria, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and defect 22 &mdash; the five-year guarantee against the no-inheritance rule, which cannot both hold for someone who dies mid-payout."
 }
 ];
 
@@ -1965,6 +1991,48 @@ L(5,"rcore.ledger","New in r5. Stop asserting replay; explain the mechanism the 
 'source the document is generated from.</p>'+
 '<p><strong>Anyone can verify the reconstruction.</strong> Not by trusting a hash we publish, but by '+
 're-running it. The buttons at the foot of this page do exactly that.</p>'+
+'<p>This is R-CORE at document scale. The same discipline governs the ranking pipeline, the theming '+
+'pipeline and the financial engine &mdash; where 578 of 578 assertions returned identical results across '+
+'33 independent runs, with per-unit rows reconciling exactly to their company total. The claim in this '+
+'document is smaller and of exactly the same kind.</p>');
+
+L(49,"rcore.ledger","A view is an order, and an order can be empty at an early release. The rule for what happens then belongs in the record, not in a comment.",
+'<h2>How this document is built</h2>'+
+'<p>You are reading the output of the mechanism this section describes, which is the only honest way to '+
+'introduce it.</p>'+
+'<p>Nothing above was stored as a finished page. The document is an <strong>append-only ledger of block '+
+'edits</strong>, and selecting a release runs a pure function over it:</p>'+
+'<pre><code>render(v, order):\n'+
+'    for each block id in order:\n'+
+'        take the newest ledger entry e where e.id == id and e.v &lt;= v\n'+
+'        if one exists, emit it\n\n'+
+'same v, same order  ->  same bytes out.  always.  no clock, no randomness, no hidden state.</code></pre>'+
+'<p>Three properties follow, and each of them is a governance property rather than a technical one.</p>'+
+'<p><strong>Nothing is overwritten.</strong> A superseded block stays in the ledger and stays readable. '+
+'Move the slider back and the earlier wording returns exactly as it was. There is no version of this '+
+'document in which an inconvenient earlier claim quietly disappears.</p>'+
+'<p><strong>Every change carries its cause.</strong> Each ledger entry records why it was made and which '+
+'review produced it. The provenance table below is not a changelog written afterwards &mdash; it is the '+
+'source the document is generated from.</p>'+
+'<p><strong>Anyone can verify the reconstruction.</strong> Not by trusting a hash we publish, but by '+
+'re-running it. The buttons at the foot of this page do exactly that.</p>'+
+'<h3>A view is an order, and an order can be younger than the record</h3>'+
+'<p>There is more than one way to read this document, and each one is nothing but a <em>list of block '+
+'ids</em> handed to the same function. That is what makes a new way of reading cheap: it changes no '+
+'engine, adds no second copy, and inherits the determinism guarantee whole.</p>'+
+'<p>It also creates a situation that has to be answered honestly. A list of ids written at release 41 '+
+'names nothing that existed at release 20. Replay it there and it returns an empty document &mdash; not '+
+'because the record is missing, but because <em>that way of reading it</em> had not been invented yet.</p>'+
+'<div class="notice hot"><span class="tag">The rule</span>'+
+'<p style="margin-bottom:0">When the open view has nothing to show at the selected release, the reader '+
+'is given the <strong>complete record</strong> for that release &mdash; which exists from release 1 &mdash; '+
+'together with a plain statement of which view was asked for, when it was first written, and why it is '+
+'not shown. <strong>Nothing is generated to fill the gap.</strong> A document that would rather show you '+
+'the wrong thing than admit a gap has already lost the only property that makes it worth replaying.</p></div>'+
+'<p>The same reasoning settles a quieter question. <strong>What changed between two releases is a '+
+'property of the record, not of the way you are holding it.</strong> Comparison and key improvements '+
+'therefore read the complete record in every view, so two readers looking at different views of the same '+
+'two releases are told the same thing about what changed.</p>'+
 '<p>This is R-CORE at document scale. The same discipline governs the ranking pipeline, the theming '+
 'pipeline and the financial engine &mdash; where 578 of 578 assertions returned identical results across '+
 '33 independent runs, with per-unit rows reconciling exactly to their company total. The claim in this '+
@@ -7326,6 +7394,25 @@ function replay(v, order){
   return out;
 }
 
+/* A view is an ORDER. An order can be empty at an early release, because the
+   blocks it names had not been written yet. When that happens the reader gets
+   the COMPLETE RECORD for that release and is told why — the alternative is a
+   blank page, and the alternative to that is inventing history. */
+function viewFirstRelease(k){
+  const named = {};
+  VIEWS[k].order.forEach(function(id){ named[id] = 1; });
+  let first = Infinity;
+  for (const e of LEDGER){ if (named[e.id] && e.v < first) first = e.v; }
+  return first === Infinity ? null : first;
+}
+let fellBack = null;
+function blocksFor(v){
+  const own = replay(v, VIEWS[view].order);
+  if (own.length){ fellBack = null; return {blocks:own, order:VIEWS[view].order}; }
+  fellBack = {view:view, label:VIEWS[view].label, first:viewFirstRelease(view)};
+  return {blocks:replay(v, LEDGER_ORDER), order:LEDGER_ORDER};
+}
+
 function stateHash(v, order){
   const blocks = replay(v, order);
   return fnv1a(blocks.map(function(b){ return b.id + "@" + b.v + ":" + b.html.length + ":" + b.html; }).join("|"));
@@ -7338,10 +7425,11 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 function compare(a, b){
   if (a > b){ const t = a; a = b; b = t; }   /* always earlier -> later, so order cannot change the answer */
   const A = {}, B = {};
-  for (const e of replay(a)) A[e.id] = e;
-  for (const e of replay(b)) B[e.id] = e;
+  for (const e of replay(a, LEDGER_ORDER)) A[e.id] = e;
+  for (const e of replay(b, LEDGER_ORDER)) B[e.id] = e;
   const rows = [];
-  for (const id of ORDER_FOR()){
+  /* Always the complete record: what changed cannot depend on which view is open. */
+  for (const id of LEDGER_ORDER){
     const x = A[id], y = B[id];
     if (!x && !y) continue;
     if (!x &&  y) rows.push({id:id, kind:"added",   v:y.v, why:y.why});
@@ -7355,7 +7443,7 @@ function compare(a, b){
 /* Key improvements for one release: derived from the ledger, never authored beside it. */
 function improvements(v){
   const out = [];
-  for (const id of ORDER_FOR()){
+  for (const id of LEDGER_ORDER){
     for (const e of LEDGER){ if (e.id === id && e.v === v) out.push(e); }
   }
   return out;
@@ -7368,7 +7456,8 @@ function gradeCls(g){
 
 function renderDoc(){
   const V = VERSIONS[active-1];
-  const blocks = replay(active);
+  const res = blocksFor(active);
+  const blocks = res.blocks;
 
   const T = titleAt(active);
   document.getElementById("mH1").textContent = T.h1;
@@ -7427,7 +7516,8 @@ function renderDoc(){
 
   document.getElementById("vNow").textContent = "v" + active + (active === VMAX ? " (latest)" : "");
   document.getElementById("vSlide").value = active;
-  document.getElementById("vHash").innerHTML = "state " + stateHash(active) + " &middot; " + blocks.length + " blocks";
+  document.getElementById("vHash").innerHTML = "state " + stateHash(active, res.order) +
+    " &middot; " + blocks.length + " blocks";
   document.getElementById("bPrev").disabled = (active === 1);
   document.getElementById("bNext").disabled = (active === VMAX);
   if (history.replaceState){
@@ -7442,30 +7532,106 @@ function renderDoc(){
 
 let specOpen = false;
 
-/* Section chips — jump between white-paper sections without leaving the page. */
+/* The section index. Numbered sections carry their real § number; the record
+   carries the name of each run of blocks. Present in every view, because
+   "take me to the part I want" is not a white-paper-only need. */
+function chipIndex(){
+  const out = [];
+  const heads = [...document.querySelectorAll('#doc h2.sech[id]')];
+  if (heads.length){
+    heads.forEach(function(h){
+      const raw = h.textContent.replace(/\u00a0/g," ").trim();
+      const m = /^\u00a7\s*(\d+)/.exec(raw);
+      out.push({target:h.id,
+                label: m ? "\u00a7" + m[1] : (h.id === "sec-0" ? "TOC" : "END"),
+                title: m ? raw.replace(/^\u00a7\s*\d+\s*/,"") : raw});
+    });
+    return out;
+  }
+  let last = null;
+  const seen = {};
+  [...document.querySelectorAll('#doc section.blk')].forEach(function(sec){
+    const fam = sec.id.replace(/^blk-/,"").split(".")[0];
+    if (fam === last) return;
+    last = fam;
+    seen[fam] = (seen[fam] || 0) + 1;
+    const h = sec.querySelector('h2,h3');
+    /* A family can run more than once — governance appears before, inside and
+       after the legal sections. The suffix says which run, rather than pretending
+       the record is tidier than it is. */
+    out.push({target:sec.id,
+              label:fam.toUpperCase() + (seen[fam] > 1 ? "\u00b7" + seen[fam] : ""),
+              title:(h ? h.textContent.trim() : fam)});
+  });
+  /* One family for the whole view — the brief is all brief.* — so the run
+     index degenerates to a single chip. Index the blocks themselves instead. */
+  if (out.length < 2){
+    out.length = 0;
+    [...document.querySelectorAll('#doc section.blk')].forEach(function(sec){
+      const part = sec.id.replace(/^blk-/,"").split(".").slice(1).join(".");
+      const h = sec.querySelector('h2,h3');
+      out.push({target:sec.id,
+                label:(part || sec.id).replace(/_/g," ").toUpperCase(),
+                title:(h ? h.textContent.trim() : sec.id)});
+    });
+  }
+  return out;
+}
+
 function renderChips(){
   const host = document.getElementById("chips");
-  if (view !== "paper"){ host.innerHTML = ""; return; }
-  const secs = [...document.querySelectorAll('#doc h2.sech[id]')];
-  if (!secs.length){ host.innerHTML = ""; return; }
-  let h = '<div class="chips"><span class="lbl">Sections</span>';
+  const secs = chipIndex();
+  if (secs.length < 2){ host.innerHTML = ""; return; }
+  let h = '<div class="chips"><span class="lbl">Jump</span>';
   secs.forEach(function(sec, i){
-    const raw = sec.textContent.trim();
-    const m = /^&?\u00a7?\s*(\d+)/.exec(raw.replace(/\u00a7/g,"\u00a7 "));
-    const label = /^\u00a7/.test(raw) ? ("S" + raw.replace(/^\u00a7\s*/,"").split(/\s/)[0])
-                                       : (sec.id === "sec-0" ? "TOC" : "END");
-    h += '<button data-sec="' + sec.id + '"' + (i===0 ? ' class="lead"' : '') + '>' + label + '</button>';
+    h += '<button data-sec="' + sec.target + '" title="' + esc(sec.title) + '"' +
+         (i === 0 ? ' class="lead"' : '') + '>' + sec.label + '</button>';
   });
   host.innerHTML = h + '</div>';
   host.querySelectorAll('button').forEach(function(b){
     b.addEventListener("click", function(){
       const t = document.getElementById(this.getAttribute("data-sec"));
       if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
-      host.querySelectorAll('button').forEach(function(x){ x.classList.remove("on"); });
-      this.classList.add("on");
+      markChip(this);
     });
   });
+  spyChips();
 }
+
+function markChip(btn){
+  const host = document.getElementById("chips");
+  host.querySelectorAll('button').forEach(function(x){ x.classList.remove("on"); });
+  if (btn){
+    btn.classList.add("on");
+    /* Move the strip itself, never scrollIntoView — that can scroll the page
+       out from under a reader who only asked to see which section they are in. */
+    const strip = btn.parentElement;
+    const r = btn.getBoundingClientRect(), s = strip.getBoundingClientRect();
+    if (r.left  < s.left  + 6) strip.scrollLeft += (r.left  - s.left)  - 6;
+    else if (r.right > s.right - 6) strip.scrollLeft += (r.right - s.right) + 6;
+  }
+}
+
+/* Which section am I in? Last target whose top has passed under the deck. */
+let spyPending = false;
+function spyChips(){
+  const host = document.getElementById("chips");
+  const btns = [...host.querySelectorAll('button')];
+  if (!btns.length) return;
+  const deck = document.querySelector('.deck');
+  const cut = (deck ? deck.getBoundingClientRect().height : 60) + 12;
+  let cur = btns[0];
+  for (const b of btns){
+    const t = document.getElementById(b.getAttribute("data-sec"));
+    if (t && t.getBoundingClientRect().top <= cut) cur = b;
+  }
+  if (!cur.classList.contains("on")) markChip(cur);
+}
+window.addEventListener("scroll", function(){
+  if (spyPending) return;
+  spyPending = true;
+  requestAnimationFrame(function(){ spyPending = false; spyChips(); });
+}, {passive:true});
 function renderSpecBanner(){
   const host = document.getElementById("specban");
   if (!specOpen){ host.innerHTML = ""; return; }
@@ -7506,6 +7672,16 @@ function renderSpecBanner(){
 
 function renderViewBanner(){
   const host = document.getElementById("viewban");
+  if (fellBack){
+    const f = fellBack;
+    host.innerHTML = '<div class="fellback"><b>Release ' + active + ' predates the ' +
+      f.label.toLowerCase() + '.</b> Those sections were first written at release ' + f.first +
+      ', so there is nothing to replay for them here &mdash; and nothing will be invented to fill ' +
+      'the gap. You are reading the <strong>complete record</strong> for release ' + active +
+      ' instead, which exists from release 1. Move forward to release ' + f.first + ' or later and the ' +
+      f.label.toLowerCase() + ' returns.</div>';
+    return;
+  }
   if (view === "paper"){
     host.innerHTML = '<div class="viewban"><b>White paper.</b> Thirteen numbered sections with a table ' +
       'of contents &mdash; what this is, why it exists, and the paths considered on the way to it. No ' +
