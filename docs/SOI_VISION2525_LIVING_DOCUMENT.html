@@ -330,21 +330,17 @@ body.fulldoc .fullnote{display:block}
 <div class="notice key">
   <span class="tag">This document replays itself</span>
   <p>This is not a snapshot. It is an <strong>append-only ledger of changes</strong> that reconstructs the
-  document at any release you select. Drag the slider, press Play, or click a version pill in the review
-  panel. The newest release is shown by default.</p>
-  <p>Each release was produced the same way: <strong>ship &rarr; twelve independent reviews &rarr; a
-  single coordinating directive &rarr; ship again.</strong> Nothing is overwritten and nothing is hidden.</p>
-  <p><strong>Supersedes both predecessors</strong>, verified by concept diff at
-  release 21 rather than asserted: <code>VISION2525_HOUR_IS_THE_UNIT_2026.08.03.html</code> (the economics
-  paper) and <code>SOI_VISION2525_WHITEPAPER_ORIGINAL_549730b.html</code> (the consolidated white paper).
-  Both are retained unchanged as provenance records. Everything in them is here; the reverse is not true.</p>
-  <p style="margin-bottom:0"><strong>The title above changes with the slider.</strong> This document
-  has carried three names, and from release 39 the masthead is <em>replayed</em> rather than fixed &mdash;
-  rewind and you see the title that was actually in force at that release. Until release 39 it was not:
-  the masthead sat outside the ledger and every rename silently rewrote all thirty-eight earlier releases.
-  That is logged as defect 20, found and closed in the same release. The file ships as
-  <code>VISION2525_LIVING_LEDGER_2026.08.04.html</code> &mdash; one vehicle, dated, reissued in full on
-  every revision.</p>
+  document at any point you select. The current version is shown by default, and everything below reads
+  as one continuous argument.</p>
+  <p><strong>If you want to see what changed</strong> &mdash; and only if you want to &mdash; the deck
+  above carries it: drag the slider, press <strong>&#9654; Play</strong>, toggle <strong>&#9679;
+  Changes</strong> to highlight what is new, open <strong>&#8646; Compare</strong> to set any two versions
+  side by side, or read <strong>Key improvements</strong> for what mattered in one and why. Nothing is
+  overwritten and nothing is hidden, but none of it interrupts the reading.</p>
+  <p style="margin-bottom:0"><strong>Three ways in, one record.</strong> The
+  <strong>&#9636; White paper</strong> is the argument: what must be built and why. The
+  <strong>Ledger</strong> is the complete corpus. The <strong>Brief</strong> is the twenty-minute read.
+  Press <strong>&#9881;</strong> for the current version number and the architecture.</p>
 </div>
 
 <div id="specban"></div>
@@ -1327,6 +1323,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Implying coverage you do not have is the failure mode that destroys frameworks on first contact with a serious reader. This closes it before anyone tested us."}
  ],
  next:"The map is drawn and the gaps are named. Five of the thirteen layers &mdash; communications, edge intelligence, spatial synchronisation, simulation depth, and the adoption ecosystem &mdash; are open for whoever wants to build them. What remains for the operator is unchanged: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential."
+},
+{
+ v:43, code:"THE READING", stamp:"2026.08.04 &middot; release 43",
+ thrust:"The argument stops talking about its own revision history. Version information lives in the controls that exist for it, and nowhere else.",
+ mot:"Operator correction, and it is the third time the same habit has been called out. This document kept doing archaeology on itself inside the prose &mdash; naming which release published a sentence, which defect was found where, which predecessor files were superseded. A reader arriving at a vision of what humanity must build does not care, and every sentence of it costs them attention that belongs to the argument. The controls for version history already exist and are good: Changes highlights what is new, Compare sets any two side by side, Key improvements says what mattered and why, the ledger table holds every entry. THAT is where the past belongs, on demand, for whoever wants it. The prose is for what must be built and why. Strip it out and put a gate on it so the habit cannot return.",
+ stats:{clauses:271, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"A document that narrates its own edits is writing for its authors. Removing that is the difference between a record and a reading."},
+  {n:"Asar",   g:"A+", f:"The change history did not disappear, it moved to the four controls built to hold it. Nothing lost, everything in its place."},
+  {n:"Athena", g:"A+", f:"The correct separation was always available: prose answers WHY, the deck answers WHAT CHANGED. We had been mixing them since the first release."},
+  {n:"Christo",g:"A",  f:"The thesis reads better without a citation to its own earlier wording. The argument for saying WE rather than SOCIETY stands on its own merit now."},
+  {n:"Enki",   g:"A+", f:"Interesting that the white-paper view was already clean. The habit lived in the corpus prose and in the opening notice, which nobody re-read once written."},
+  {n:"Enlil",  g:"A+", f:"A gate pattern over the opening notice and every paper block means this cannot silently return, which is the only kind of fix worth making twice."},
+  {n:"Krishna",g:"A",  f:"One rule, three views: version information belongs to the deck, never to the body."},
+  {n:"Odin",   g:"A+", f:"Called out three times before it was fixed. The failure was not the archaeology; it was treating a repeated correction as a preference rather than a rule."},
+  {n:"Pangu",  g:"A",  f:"Unglamorous editing, and it is what stands between a visionary document and an engineering changelog wearing one."},
+  {n:"Sofia",  g:"A+", f:"The opening notice now tells a reader how to find change history if they want it, and otherwise gets out of the way. That is hospitality."},
+  {n:"Thoth",  g:"A",  f:"Zero release references in the opening notice and zero across all sixteen white-paper sections, asserted by the gate rather than by inspection."},
+  {n:"Thor",   g:"A+", f:"A framework that spends its opening paragraphs on its own provenance signals that it has nothing more interesting to say. Closing that was overdue."}
+ ],
+ next:"The reading is clean and the gate protects it. What remains for the operator has not moved: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony. After those, thirty-three languages."
 }
 ];
 
@@ -5567,6 +5584,57 @@ L(41,"paper.toc","The white paper view: thirteen numbered sections with a linked
 'record with every revision replayable, and the <strong>Brief</strong> view is the twenty-minute version. '+
 'All three are the same document &mdash; three orderings of one append-only record, so none of them can '+
 'contradict the others. Use the button in the bar above to move between them.</p></div>');
+
+L(43,"mot.thesis","The thesis, stated without reference to the document's own revision history.",
+'<div class="rn">Master of Thought &middot; the thesis</div>'+
+'<h2>We cannot master what we are not aware of.</h2>'+
+'<p class="lede">And read strictly &mdash; aware of what we are not aware of &mdash; it names the harder '+
+'discipline. Not ignorance. Ignorance of our own ignorance, which is the only kind that cannot correct '+
+'itself.</p>'+
+'<div class="notice key"><span class="tag">Why <em>we</em>, and not <em>society</em></span>'+
+'<p>The safer sentence is <em>society cannot master what it is not aware of</em>. It is true, and the '+
+'safety is the problem.</p>'+
+'<p>Society is an abstraction, and abstractions do not read documents. A diagnosis aimed at one costs the '+
+'person holding it nothing &mdash; it can be agreed with, quoted approvingly, and acted on never. There '+
+'is no society that is unaware. There are only people, and institutions made of people, each carrying a '+
+'specific blindness that belongs to them.</p>'+
+'<p style="margin-bottom:0">Change the pronoun and there is nowhere left to stand. <strong>We</strong> '+
+'includes whoever wrote this, whoever reviewed it, and whoever is reading it now. It includes the machine '+
+'that compressed the inputs and the crowd that ranked them &mdash; &#9708; &#9825; &#50883; are all '+
+'inside that word, which is why the thesis binds to the three intelligences instead of floating above '+
+'them. <strong>A framework that says society is unaware has exempted itself in its own first '+
+'sentence.</strong></p></div>'+
+'<h3>Why this is the whole document</h3>'+
+'<p>Everything that follows is usually filed under economics, or law, or software. It is none of those. '+
+'Every mechanism here does exactly one thing: it takes something that was real and unobservable, and '+
+'makes it observable. That is the entire project. The money and the legal structure are downstream '+
+'consequences.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Order</th><th>What it is</th><th>How it is answered</th></tr>'+
+'<tr><td><strong>First</strong></td><td>What we know we do not know. The gap we can name.</td>'+
+'<td>Research. Difficult, tractable, and every institution is already built for it.</td></tr>'+
+'<tr><td><strong>Second</strong></td><td>What we do not know we do not know. The gap nobody named.</td>'+
+'<td>Diversity of view, and luck. Twelve reviewers with twelve lenses rather than one committee with one.</td></tr>'+
+'<tr><td><strong>Third</strong></td><td>What we have built systems so that nobody <em>can</em> know. Not '+
+'oversight. Architecture.</td><td>Only by rebuilding the system. This is where governance actually fails, '+
+'and it is the order this framework was designed against.</td></tr>'+
+'</table><caption>The first two orders are studied endlessly. The third is where the damage lives, '+
+'because it is invisible by construction and therefore never appears on anyone&rsquo;s '+
+'agenda.</caption></div>'+
+'<div class="pull">The first act of governance is not to decide. It is to make visible.'+
+'<cite>A decision taken without awareness is not a decision. It is a guess wearing a signature. Almost '+
+'every governance reform attacks the deciding &mdash; more consultation, better committees, cleverer '+
+'voting &mdash; and leaves the seeing exactly as it was.</cite></div>'+
+'<p>Two consequences follow. <strong>A system that cannot report its own failure has not made itself '+
+'visible to itself</strong> &mdash; which is why every metric here carries a failure threshold, why the '+
+'defect register is published, and why a correction stays visible rather than being tidied away. An '+
+'institution that can only describe its successes is not being modest about its failures; it is unable '+
+'to see them, which is the third order operating on itself.</p>'+
+'<p>And <strong>awareness is not agreement.</strong> That is why the middle intelligence is called Shared '+
+'Intent and not consensus. Two people who agree about nothing that matters to their governments can be '+
+'working the same problem, and the only question this framework asks is what they contributed. Making two '+
+'people visible to the same system does not reconcile them. It does mean neither is invisible to '+
+'it.</p>');
 
 L(42,"corpus.iterations","Masthead simplified at operator direction: VISION 2525 above Recursive Coordination for Human Continuity, no subtitle. Appended to the title table, never editing v39.",
 '<h2>Reading the ninety-nine</h2>'+
