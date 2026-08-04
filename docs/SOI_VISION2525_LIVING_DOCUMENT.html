@@ -7384,13 +7384,50 @@ function fnv1a(s){
 }
 
 /* Deterministic reconstruction: pure function of v. */
-function replay(v, order){
+/* The ledger indexed by block id, each list ascending in v. Built once from
+   LEDGER and never mutated: the same last-write-wins pick, without rescanning
+   every entry for every id. Pure derivation of the record, not part of it. */
+const BY_ID = (function(){
+  const m = new Map();
+  for (const e of LEDGER){
+    let a = m.get(e.id);
+    if (!a){ a = []; m.set(e.id, a); }
+    a.push(e);
+  }
+  for (const a of m.values()) a.sort(function(x, y){ return x.v - y.v; });
+  return m;
+})();
+
+/* Replays are pure, so a repeat of the same (release, order) is the same
+   answer. The cache is keyed by both and never handed a mutable result path
+   — no caller writes to a replayed array. */
+const REPLAY_CACHE = new Map();
+let orderSeq = 0;
+function orderKey(order){
+  if (!order.__k) Object.defineProperty(order, "__k", {value: "o" + (++orderSeq)});
+  return order.__k;
+}
+
+/* fresh=true bypasses the cache. THE VERIFICATION PATH MUST ALWAYS PASS IT.
+   A memo that answers the question "does replay give the same answer twice"
+   proves nothing but that the memo works. Reading may be cached; proving
+   never is. */
+function replay(v, order, fresh){
+  const ord = order || ORDER_FOR();
+  const key = v + "@" + orderKey(ord);
+  if (!fresh){
+    const hit = REPLAY_CACHE.get(key);
+    if (hit) return hit;
+  }
   const out = [];
-  for (const id of (order || ORDER_FOR())){
+  for (const id of ord){
+    const a = BY_ID.get(id);
+    if (!a) continue;
     let pick = null;
-    for (const e of LEDGER){ if (e.id === id && e.v <= v){ if (!pick || e.v >= pick.v) pick = e; } }
+    for (const e of a){ if (e.v <= v) pick = e; else break; }   /* ascending: last wins */
     if (pick) out.push(pick);
   }
+  if (!fresh) REPLAY_CACHE.set(key, out);
   return out;
 }
 
@@ -7413,9 +7450,20 @@ function blocksFor(v){
   return {blocks:replay(v, LEDGER_ORDER), order:LEDGER_ORDER};
 }
 
-function stateHash(v, order){
-  const blocks = replay(v, order);
-  return fnv1a(blocks.map(function(b){ return b.id + "@" + b.v + ":" + b.html.length + ":" + b.html; }).join("|"));
+/* Memoised, NOT reformulated. The string handed to fnv1a is byte-for-byte the
+   one r5 published, so every state hash ever shown is still the same value. */
+const HASH_CACHE = new Map();
+function stateHash(v, order, fresh){
+  const ord = order || ORDER_FOR();
+  const key = v + "@" + orderKey(ord);
+  if (!fresh){
+    const hit = HASH_CACHE.get(key);
+    if (hit !== undefined) return hit;
+  }
+  const blocks = replay(v, ord, fresh);
+  const h = fnv1a(blocks.map(function(b){ return b.id + "@" + b.v + ":" + b.html.length + ":" + b.html; }).join("|"));
+  if (!fresh) HASH_CACHE.set(key, h);
+  return h;
 }
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -7481,7 +7529,6 @@ function renderDoc(){
       '<span>panel mean <b>' + panelMean(V) + '</b></span>' +
     '</div></div>';
 
-  renderChips();
   renderSpecBanner();
   renderViewBanner();
   renderKeyImp();
@@ -7595,7 +7642,11 @@ function renderChips(){
       markChip(this);
     });
   });
-  spyChips();
+  /* Deferred on purpose. spyChips measures element positions, and measuring
+     immediately after replacing the document forces the browser to lay out
+     ~290 KB synchronously — on the critical path of every slider step. The
+     indicator is a convenience; it can arrive one frame late. */
+  requestAnimationFrame(spyChips);
 }
 
 function markChip(btn){
@@ -7813,7 +7864,14 @@ function renderReview(){
   }
 }
 
+/* The provenance table depends on the release AND the view (its caption cites
+   the addressable block count of the open view). Key the cache on both, or it
+   goes stale on a view switch. */
+let ledgerCacheKey = "";
 function renderLedger(){
+  const k = active + "|" + view;
+  if (ledgerCacheKey === k) return;
+  ledgerCacheKey = k;
   let rows = "";
   for (const e of LEDGER){
     const future = e.v > active;
@@ -7856,7 +7914,7 @@ function renderRcore(){
 
   document.getElementById("bProve").addEventListener("click", function(){
     const t0 = performance.now(); const hs = [];
-    for (let i=0;i<33;i++) hs.push(stateHash(active));
+    for (let i=0;i<33;i++) hs.push(stateHash(active, null, true));   /* fresh: no memo */
     const uniq = {}; for (const h of hs) uniq[h] = 1;
     const nu = Object.keys(uniq).length;
     document.getElementById("proof").innerHTML = '<code>' +
@@ -7868,10 +7926,10 @@ function renderRcore(){
   document.getElementById("bProveAll").addEventListener("click", function(){
     const t0 = performance.now(); let lines = "", ok = true;
     for (let v=1; v<=VMAX; v++){
-      const hs = []; for (let i=0;i<33;i++) hs.push(stateHash(v));
+      const hs = []; for (let i=0;i<33;i++) hs.push(stateHash(v, null, true));   /* fresh: no memo */
       const uniq = {}; for (const h of hs) uniq[h] = 1;
       const nu = Object.keys(uniq).length; if (nu !== 1) ok = false;
-      lines += 'v' + v + '  ' + replay(v).length + ' blocks  ' + hs[0] + '  ' +
+      lines += 'v' + v + '  ' + replay(v, null, true).length + ' blocks  ' + hs[0] + '  ' +
                (nu === 1 ? '33/33 identical' : 'FAILED') + '\n';
     }
     document.getElementById("proof").innerHTML = '<code>' + lines +

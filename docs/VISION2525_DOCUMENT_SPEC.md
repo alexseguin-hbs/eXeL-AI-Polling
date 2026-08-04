@@ -252,12 +252,43 @@ the false "earlier titles remain readable" claim corrected at r39.
 | 11 | **No release renders blank in any view** — every `view × release` state has content | Gate §2f: `VMAX × 3` states, 0 blank |
 | 12 | **Comparison does not depend on the open view** | Gate §2f: `compare(1,VMAX)` identical across all three |
 | 13 | **Every view carries a section index of ≥2 entries at every release** | Gate §2f: chip count per state |
+| 14 | **The verification path reads no cache** — `replay`/`stateHash` are called with `fresh=true` | Gate §1: cache-poison test |
+| 15 | **An optimisation may not change one published state hash** | Rebuild protocol: 147 hashes diffed before/after |
 
 **Invariant 6 in detail.** `REMOVED` is a category that exists in the comparison output and
 **always reads zero**. An append-only ledger with last-write-wins has no delete: a block can be
 superseded, contradicted, or reduced to a line saying it was wrong, but it cannot be made never
 to have existed. A comparison tool showing a column that can never fill would be quietly
 misleading, so the document declares the empty category rather than hiding it.
+
+### Caching: reading may be memoised, proving never may (r49 rebuild)
+
+The engine caches replays and state hashes, and indexes `LEDGER` by block id. All three are **pure
+derivations of the record** — none is part of it. Two rules keep that honest:
+
+1. **The cache never changes an answer.** `stateHash` memoises the *identical* string r5 published; it is
+   not reformulated into a faster hash. Every state hash ever displayed still reads the same value.
+2. **`fresh = true` bypasses every cache, and the verification path must always pass it.** The in-page
+   "replay every release 33 times" proof and the gate's determinism assertion both recompute from
+   `LEDGER`. A memo that answers *"does replay give the same answer twice?"* proves only that the memo
+   works — the proof would be circular, and a circular proof of determinism is worse than none, because
+   it still prints PASS.
+
+The gate holds this shut by **poisoning the caches and asserting the fresh path ignores them**. If a future
+change routes verification through a memo, that assertion fails.
+
+### Rebuild protocol — optimising without minting a release
+
+An optimisation that touches only the machinery does **not** get a new version number, and **must not**
+alter the record. The proof is mechanical:
+
+1. Capture all `views × releases` state hashes from the committed build.
+2. Optimise.
+3. Diff. **Every hash must be identical.** If one moves, it was a content change wearing an
+   optimisation's clothes — give it a release number, or revert it.
+
+The r49 rebuild: **147/147 identical**; slider step **66.9 ms → 5.0 ms (13×)**; state-hash sweep 14×;
+`VERSIONS` untouched at 49.
 
 ---
 
