@@ -196,6 +196,18 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
   color:var(--ink-2);cursor:pointer;text-decoration:underline;background:none;border:0;font-weight:700}
 body.fulldoc .specban{display:none}
 
+.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;margin:0 0 14px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.chips button{flex:0 0 auto;font:600 12.5px ui-monospace,monospace;letter-spacing:.04em;
+  padding:7px 13px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);
+  border-radius:7px;cursor:pointer;white-space:nowrap;transition:none}
+.chips button:hover{color:var(--ink);border-color:var(--ink-2)}
+.chips button.on{color:var(--ai);border-color:var(--ai);box-shadow:0 0 0 1px var(--ai);background:var(--ai-bg)}
+.chips button.lead{color:var(--hi);border-color:var(--hi)}
+.chips .lbl{flex:0 0 auto;font:700 10px ui-sans-serif,system-ui;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-2);align-self:center;padding-right:4px}
+body.fulldoc .chips{display:none}
+
 /* ---------- white-paper view ---------- */
 .toc{border:1px solid var(--rule);border-top:3px solid var(--ai);background:var(--panel);
   padding:22px 24px;margin:0 0 12px;border-radius:2px}
@@ -343,6 +355,7 @@ body.fulldoc .fullnote{display:block}
   Press <strong>&#9881;</strong> for the current version number and the architecture.</p>
 </div>
 
+<div id="chips"></div>
 <div id="specban"></div>
 <div id="viewban"></div>
 <div id="vban"></div>
@@ -402,7 +415,7 @@ const LEDGER_ORDER = [
  "fund.token","fund.tiers","fund.escrow","fund.return","fund.quai","fund.rnd",
  "gov.wall","gov.layers","gov.primacy",
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
- "legal.pension","legal.ramp","legal.dissolution","legal.engage","legal.join",
+ "legal.pension","legal.ramp","legal.eleven","legal.dissolution","legal.engage","legal.join",
  "gov.council","gov.ladder","gov.personhood","gov.recall",
  "off.switch","off.keys","off.reserve","off.trust","off.restart","gov.cadence",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
@@ -1407,6 +1420,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"No probate, no beneficiary designation, no trust instrument, no forged will. There is nothing to contest because there is nothing to receive."}
  ],
  next:"The dynasty route is closed. The guarantee collision needs the operator: whether the five-year promise is a promise to a person or to an estate. Everything else is unchanged &mdash; the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential."
+},
+{
+ v:47, code:"THE ELEVEN", stamp:"2026.08.04 &middot; release 47",
+ thrust:"One pathway that holds in every named jurisdiction &mdash; by separating the record from the settlement, so a government can block the money without ever reaching the record.",
+ mot:"Operator directive, and it is the hardest test anyone has set this framework. Eleven jurisdictions, including several that will not be in the same room as each other, and two that cannot lawfully exchange value at all. The instinct is to find a clever structure that satisfies all eleven at once. That instinct is wrong and it is how projects in this field end up designing sanctions evasion without admitting it. The right move is the opposite: find what ALL ELEVEN ALREADY PERMIT, build only inside that intersection, and let everything else be locally severable. The intersection is narrow and it is not empty. Every one of the eleven permits a natural person to keep a record of their own work, permits a person to volunteer time, and permits a locally incorporated, locally funded entity to do locally lawful things. So: SEVER THE RECORD FROM THE SETTLEMENT. The record is information a person holds and needs no licence anywhere on earth. The settlement is money and happens only inside a domestic entity under local law. A government can block the money and never reach the record &mdash; and where settlement is unlawful, it is DEFERRED AND DISCLOSED, never routed around. On Iran and China I say what is true rather than what would be convenient.",
+ stats:{clauses:311, jur:103, shields:5, defects:14, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Severing the record from the settlement is the finding. A record that needs no permission cannot be prohibited, only ignored."},
+  {n:"Asar",   g:"A+", f:"Eleven jurisdictions and one pathway, because the pathway is built from what they already agree on rather than from what we wish they did."},
+  {n:"Athena", g:"A+", f:"Nothing crosses a border, so the entire foreign-funding family of law &mdash; FCRA, foreign agent, inward solicitation &mdash; has nothing to bite on. That is architecture doing the work of diplomacy."},
+  {n:"Christo",g:"A+", f:"An Iranian contributor&rsquo;s record exists and counts even while settlement is lawfully impossible. Deferred is not denied, and a person is not erased by their government&rsquo;s standing."},
+  {n:"Enki",   g:"A",  f:"The chain layer is unusable in one of the eleven, which is precisely why chain neutrality was classed Adaptive from the start. The provision earned itself."},
+  {n:"Enlil",  g:"A+", f:"Every row states its binding constraint and the specific severable component. Nothing is claimed to be solved that is merely deferred."},
+  {n:"Krishna",g:"A+", f:"The deterrent is structural: banning this achieves nothing except denying your own citizens a record. There is no asset to seize, no foreign money to trace, no owner to pressure."},
+  {n:"Odin",   g:"A+", f:"Sanctions are stated as a hard stop rather than an obstacle. A framework that got creative here would deserve everything that followed."},
+  {n:"Pangu",  g:"A",  f:"Eleven jurisdictions is a stress test, not a launch plan. Nothing here says all eleven should be entered, or entered soon."},
+  {n:"Sofia",  g:"A+", f:"A reader in any of the eleven can find their own row and see exactly what works, what is deferred, and what is refused."},
+  {n:"Thoth",  g:"A",  f:"Three universals across eleven jurisdictions: a personal record, volunteered time, and a domestic entity doing domestic things. Everything else is severable per region."},
+  {n:"Thor",   g:"A+", f:"Investment firms cannot intercede because there is nothing to acquire, and no corporation can earn the unit. Governments cannot intercede in the record because it is not theirs to reach. Both exclusions are structural, not defended."}
+ ],
+ next:"The eleven-jurisdiction pathway is specified and its two hard stops are named. Everything here needs qualified local counsel before any region opens, and nothing in it substitutes for that. Unchanged for the operator: the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, the guarantee-versus-inheritance collision, and rotating the master credential."
 }
 ];
 
@@ -7029,6 +7063,128 @@ L(46,"unit.death","Nothing inherits. 웃 is extinguished at death; what passes t
 '<strong>An ending turns into a beginning, which is the only honest thing an ending can become in a '+
 'framework built to run for five hundred years.</strong></p>');
 
+/* ══════════ RELEASE 47 ══════════ */
+
+L(47,"legal.eleven","One pathway across eleven named jurisdictions: sever the record from the settlement, and let a government block the money without ever reaching the record.",
+'<h2>The eleven &mdash; one pathway that holds everywhere</h2>'+
+'<p>The test is deliberately brutal: <strong>Austin and the wider United States, Beijing, Brazil, India, '+
+'Moscow, Kyiv, Israel, Iran, Dubai and Singapore.</strong> Several of these will not be in the same room '+
+'as each other. Two of them cannot lawfully exchange value at all.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The wrong instinct, named first</span>'+
+'<p style="margin-bottom:0">The instinct is to design a clever structure that satisfies all eleven at '+
+'once. That instinct is how projects in this field end up designing sanctions evasion without admitting '+
+'it to themselves. <strong>We do not do that.</strong> Where an activity is unlawful in a jurisdiction, '+
+'it does not happen there, and we say so publicly.</p></div>'+
+'<h3>The finding: sever the record from the settlement</h3>'+
+'<p>Instead of asking what structure satisfies eleven regimes, ask the opposite question &mdash; '+
+'<strong>what do all eleven already permit?</strong> The intersection is narrow, and it is not empty:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Permitted in all eleven</th><th>Why it survives everywhere</th></tr>'+
+'<tr><td class="n">1</td><td><strong>A natural person may keep a record of their own work</strong></td>'+
+'<td>It is information about themselves. No jurisdiction on earth requires a licence for this.</td></tr>'+
+'<tr><td class="n">2</td><td><strong>A natural person may volunteer their time</strong></td>'+
+'<td>Freedom of association, protected in every one of the eleven in some form.</td></tr>'+
+'<tr><td class="n">3</td><td><strong>A locally incorporated, locally funded entity may do locally lawful things</strong></td>'+
+'<td>This is what every company and charity in every country already is.</td></tr>'+
+'</table><caption>Everything else &mdash; money, tokens, cross-border flows, guaranteed streams &mdash; '+
+'breaks in at least one of the eleven. So everything else must be <strong>locally '+
+'severable.</strong></caption></div>'+
+'<div class="scroll dia"><svg viewBox="0 0 880 190" role="img" aria-label="The record is universal; settlement is local and severable">'+
+'<style>.l{font:600 12.5px ui-sans-serif,system-ui;fill:currentColor}.s{font:11px ui-monospace,monospace;fill:currentColor;opacity:.75}.b{fill:none;stroke:currentColor;stroke-width:1.5}.w{fill:none;stroke:currentColor;stroke-width:3.5}</style>'+
+'<rect class="b" x="12" y="28" width="300" height="112" rx="6"/>'+
+'<text class="l" x="28" y="52">THE RECORD &mdash; universal</text>'+
+'<text class="s" x="28" y="74">hours witnessed &middot; &#50883; minted</text>'+
+'<text class="s" x="28" y="92">contribution receipt &middot; replay</text>'+
+'<text class="s" x="28" y="110">held by the person, portable</text>'+
+'<text class="s" x="28" y="128">needs no licence anywhere</text>'+
+'<path class="w" d="M400 10 L400 180"/>'+
+'<text class="s" x="352" y="112" transform="rotate(-90 352 112)">SEVERABLE</text>'+
+'<rect class="b" x="440" y="28" width="428" height="112" rx="6"/>'+
+'<text class="l" x="456" y="52">THE SETTLEMENT &mdash; local</text>'+
+'<text class="s" x="456" y="74">domestic entity &middot; domestic funding only</text>'+
+'<text class="s" x="456" y="92">licensed local payment rails</text>'+
+'<text class="s" x="456" y="110">local wage anchor &middot; local law</text>'+
+'<text class="s" x="456" y="128">blockable by a government &mdash; and only this</text>'+
+'<text class="s" x="12" y="172">A government can stop the money in its own territory. It cannot reach the record, because the record was never theirs to reach.</text>'+
+'</svg></div>'+
+'<div class="notice key"><span class="tag">The consequence that answers the operator&rsquo;s question</span>'+
+'<p style="margin-bottom:0">A fearful government can block settlement inside its borders. It '+
+'<strong>cannot</strong> block a person keeping a record of their own hours, because that is not an '+
+'activity anyone licences. And blocking settlement achieves nothing except <strong>denying its own '+
+'citizens a payment their neighbours receive</strong> &mdash; while the record keeps accruing, visibly, '+
+'for the day conditions change. There is no asset to seize, no foreign money to trace, no owner to '+
+'pressure, and no headquarters to raid.</p></div>'+
+'<h3>The eleven, row by row</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Jurisdiction</th><th>The binding constraint</th><th>The pathway</th></tr>'+
+'<tr><td><strong>Austin &middot; Texas</strong></td><td>State charitable registration; the hardest '+
+'combined environment of the eleven.</td><td>Domestic entity, registered, monthly public accounts '+
+'exceeding the filing floor. Ground zero deliberately starts here.</td></tr>'+
+'<tr><td><strong>United States</strong></td><td>Howey; ERISA if the payment stream is read as a plan. '+
+'ERISA is the live risk, not the SEC.</td><td>Nothing is offered and nothing appreciates, so there is no '+
+'investment contract. The funded reserve answers the plan question.</td></tr>'+
+'<tr><td><strong>Beijing</strong></td><td>Charitable law requires a registered domestic vehicle; token '+
+'activity is broadly prohibited.</td><td>Domestic entity; <strong>the chain layer is switched off '+
+'entirely.</strong> Chain neutrality was classed Adaptive precisely for this.</td></tr>'+
+'<tr><td><strong>Brazil</strong></td><td>CVM if anything is publicly offered; labour law on recurring '+
+'individual payments.</td><td>Nothing offered. Whether a guaranteed stream creates employment is '+
+'unresolved and material &mdash; counsel before opening.</td></tr>'+
+'<tr><td><strong>India</strong></td><td>FCRA. Foreign contribution to civic activity is tightly '+
+'controlled.</td><td>Domestic entity funded only from within India. <strong>Nothing crosses the '+
+'border</strong>, so FCRA has nothing to bite on.</td></tr>'+
+'<tr><td><strong>Moscow</strong></td><td>Foreign-agent designation, triggered by foreign funding of '+
+'civic activity.</td><td>Same answer: no inward funding of any kind. The designation trigger is '+
+'structurally absent.</td></tr>'+
+'<tr><td><strong>Kyiv</strong></td><td>Wartime conditions; degraded banking and displaced '+
+'contributors.</td><td>The record accrues wherever a person is. Settlement resumes when rails do; '+
+'displacement does not erase hours.</td></tr>'+
+'<tr><td><strong>Israel</strong></td><td>Ordinary charitable and payments regulation; no exceptional '+
+'barrier.</td><td>Domestic entity, standard path.</td></tr>'+
+'<tr><td><strong>Iran</strong></td><td><strong>Sanctions.</strong> Value transfer touching US or EU '+
+'persons is prohibited outright.</td><td><strong>Settlement does not happen.</strong> The record accrues '+
+'and is disclosed as unsettled. No routing, no intermediary, no creativity.</td></tr>'+
+'<tr><td><strong>Dubai</strong></td><td>Unlicensed fundraising is a criminal offence; DFSA and DIFC for '+
+'anything token-shaped.</td><td>Licensing strictly precedes any activity. <strong>No informal pilot is '+
+'possible</strong> and none will be run.</td></tr>'+
+'<tr><td><strong>Singapore</strong></td><td>Payment services licensing; CPF interaction with recurring '+
+'individual payments.</td><td>Settlement through a licensed local processor; user balances are never '+
+'held, which is what would make it money transmission.</td></tr>'+
+'</table><caption>Every row requires qualified local counsel. This is orientation, not an opinion on any '+
+'jurisdiction, and must not be relied on as one.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Two hard stops, stated rather than engineered around</span>'+
+'<p><strong>Iran.</strong> Where sanctions prohibit value transfer, <strong>we do not settle.</strong> '+
+'The contribution record exists, the hours are witnessed, and the obligation is recorded, published as '+
+'unsettled, and held open. It is not routed through a third country, an intermediary, a stablecoin, or a '+
+'friend. A framework that got creative here would deserve everything that followed, and would forfeit '+
+'every renunciation on which the rest of it stands.</p>'+
+'<p style="margin-bottom:0"><strong>Beijing.</strong> Any chain-dependent component is simply unusable, '+
+'and is switched off rather than disguised. This is why provenance was specified as '+
+'<em>independently verifiable</em> rather than <em>on a particular ledger</em>: the obligation is '+
+'Immutable, the technology carrying it is Adaptive, and one of the eleven proves that distinction was '+
+'not academic.</p></div>'+
+'<h3>Why an investment firm cannot intercede</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>The usual route in</th><th>Why it is closed here</th></tr>'+
+'<tr><td>Buy equity</td><td>None exists, in any entity, anywhere. There is no instrument.</td></tr>'+
+'<tr><td>Buy the token</td><td>&#50883; is minted only by a natural person&rsquo;s witnessed hours. '+
+'<strong>No corporation can hold it, because no corporation can earn it.</strong></td></tr>'+
+'<tr><td>Fund and take terms</td><td>Every funder is rewarded identically per unit. There is no better '+
+'seat, so there is nothing to negotiate for.</td></tr>'+
+'<tr><td>Take a board seat</td><td>Authority belongs to natural persons, one each, unweighted. An '+
+'organisation holds none at any size.</td></tr>'+
+'<tr><td>Acquire the entity</td><td>Asset-locked and federated. There is no parent to buy, and value can '+
+'only ever move to another purpose-locked body.</td></tr>'+
+'<tr><td>Wait for a liquidity event</td><td>There is none. No appreciation, no secondary market, no '+
+'exit, ever.</td></tr>'+
+'</table><caption>Six routes, six structural closures. None of them is a policy anyone must enforce '+
+'&mdash; each is a thing that does not exist.</caption></div>'+
+'<p>Which is the whole answer to the operator&rsquo;s question. <strong>A jealous government finds '+
+'nothing to seize and nothing to trace. A fearful one finds that banning this only denies its own people '+
+'a record. And an uncreative investment firm finds no door at all</strong> &mdash; not a locked one, '+
+'which could be negotiated, but no door: no share, no token it can hold, no term it can improve, no seat, '+
+'no acquisition, and no exit. The framework is not defended against these actors. It is simply not '+
+'shaped in a way they can use.</p>');
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -7134,6 +7290,7 @@ function renderDoc(){
       '<span>panel mean <b>' + panelMean(V) + '</b></span>' +
     '</div></div>';
 
+  renderChips();
   renderSpecBanner();
   renderViewBanner();
   renderKeyImp();
@@ -7154,6 +7311,7 @@ function renderDoc(){
       '</div></section>';
   }
   document.getElementById("doc").innerHTML = html;
+  renderChips();
 
   /* Section links scroll rather than navigate, so the version hash survives. */
   const docEl = document.getElementById("doc");
@@ -7181,6 +7339,31 @@ function renderDoc(){
 }
 
 let specOpen = false;
+
+/* Section chips — jump between white-paper sections without leaving the page. */
+function renderChips(){
+  const host = document.getElementById("chips");
+  if (view !== "paper"){ host.innerHTML = ""; return; }
+  const secs = [...document.querySelectorAll('#doc h2.sech[id]')];
+  if (!secs.length){ host.innerHTML = ""; return; }
+  let h = '<div class="chips"><span class="lbl">Sections</span>';
+  secs.forEach(function(sec, i){
+    const raw = sec.textContent.trim();
+    const m = /^&?\u00a7?\s*(\d+)/.exec(raw.replace(/\u00a7/g,"\u00a7 "));
+    const label = /^\u00a7/.test(raw) ? ("S" + raw.replace(/^\u00a7\s*/,"").split(/\s/)[0])
+                                       : (sec.id === "sec-0" ? "TOC" : "END");
+    h += '<button data-sec="' + sec.id + '"' + (i===0 ? ' class="lead"' : '') + '>' + label + '</button>';
+  });
+  host.innerHTML = h + '</div>';
+  host.querySelectorAll('button').forEach(function(b){
+    b.addEventListener("click", function(){
+      const t = document.getElementById(this.getAttribute("data-sec"));
+      if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
+      host.querySelectorAll('button').forEach(function(x){ x.classList.remove("on"); });
+      this.classList.add("on");
+    });
+  });
+}
 function renderSpecBanner(){
   const host = document.getElementById("specban");
   if (!specOpen){ host.innerHTML = ""; return; }
