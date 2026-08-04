@@ -397,7 +397,7 @@ body.fulldoc .fullnote{display:block}
 const LEDGER_ORDER = [
  "mot.thesis","mot.leaders",
  "front.thesis","front.mission","front.alvar","front.locked",
- "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.carry","unit.payout","unit.settle",
+ "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.carry","unit.death","unit.payout","unit.settle",
  "unit.mintsettle","unit.guard","unit.witness",
  "fund.token","fund.tiers","fund.escrow","fund.return","fund.quai","fund.rnd",
  "gov.wall","gov.layers","gov.primacy",
@@ -1386,6 +1386,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"No corporation can stake, because no corporation can earn 웃, because 웃 comes only from a natural person&rsquo;s witnessed hours. The exclusion is structural rather than a rule anyone has to enforce."}
  ],
  next:"The economy is closed: time mints recognition, recognition secures years, spare years fuel others&rsquo; work, and the reward returns as recognition under the same ceiling. What remains for the operator is unchanged &mdash; the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential."
+},
+{
+ v:46, code:"NOTHING INHERITS", stamp:"2026.08.04 &middot; release 46",
+ thrust:"&#50883; ends with the person who earned it. What passes to a family is not value &mdash; it is the right to be counted, at one dollar each.",
+ mot:"Operator directive closing the last route to a lump sum nobody worked for. Every system that pays people eventually faces the same question and most answer it badly: what happens when a contributor dies. Answer it with inheritance and you have built a dynasty engine &mdash; the second generation holds what the first earned, the third holds what neither earned, and within four generations the framework is exactly the concentrated actor it was designed to resist. So: NOTHING INHERITS. &#50883; is extinguished at death and returns to the reserve, including reserved forward years. What passes instead is not value &mdash; it is an INVITATION. Up to ten immediate family members may each PURCHASE one dollar Seed Token, linked to the person who died. They pay in; nothing is paid out. That converts a claim into a beginning, which is the only honest thing an ending can become. One collision must be named rather than smoothed: the five-year guarantee and no-transference cannot both hold for someone who dies mid-payout. Both are locked. I state which one I think must yield and I do not decide it.",
+ stats:{clauses:299, jur:103, shields:5, defects:14, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"An ending that becomes an invitation rather than a bequest. The family pays in, and what they receive is a place in the record beside the person they lost."},
+  {n:"Asar",   g:"A+", f:"Nothing inherits, and that single sentence closes the dynasty problem permanently rather than policing it generation by generation."},
+  {n:"Athena", g:"A+", f:"Inheritance is how every meritocratic system becomes an aristocracy within four generations. Refusing it at the unit level costs nothing and prevents everything."},
+  {n:"Christo",g:"A",  f:"The memorial link matters more than anyone will expect. A family that could not be paid can still be counted beside their own, permanently, for a dollar."},
+  {n:"Enki",   g:"A+", f:"Ten is a cap on persons rather than on relationship classes, which is the right way round &mdash; it does not force anyone to rank their own family."},
+  {n:"Enlil",  g:"A+", f:"Extinction is mechanical: cumulative &#50883; returns to the reserve, committed falls, headroom rises. No trustee, no probate, no discretion, nothing to litigate."},
+  {n:"Krishna",g:"A",  f:"A US federal bereavement standard is a real, published, checkable list rather than a definition we invented. Regional equivalents will be needed, and that is named."},
+  {n:"Odin",   g:"A+", f:"The guarantee and no-transference collide for anyone who dies mid-payout, and both are Immutable class. Naming that rather than picking quietly is the whole discipline."},
+  {n:"Pangu",  g:"A",  f:"Ten dollars. That is the entire economic consequence of a death in this framework, and it flows INWARD. The asymmetry is the design."},
+  {n:"Sofia",  g:"A+", f:"A family reading this learns exactly what they may and may not expect, before anyone dies. That is kinder than a promise nobody checked."},
+  {n:"Thoth",  g:"A+", f:"Verified: a contributor with 104,000 &#50883; releases $754,000.00 of committed reserve at the Texas anchor. The family may purchase up to ten dollars of Seed. The ratio is 75,400 to one, inward."},
+  {n:"Thor",   g:"A+", f:"No probate, no beneficiary designation, no trust instrument, no forged will. There is nothing to contest because there is nothing to receive."}
+ ],
+ next:"The dynasty route is closed. The guarantee collision needs the operator: whether the five-year promise is a promise to a person or to an estate. Everything else is unchanged &mdash; the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential."
 }
 ];
 
@@ -6932,6 +6953,81 @@ L(45,"fund.escrow","The stake is earned 웃, never money. One equation scores ev
 'recognition, under the same ceiling, secured the same way.</strong> No corporation, no investment firm, '+
 'and no currency appears anywhere in that sentence &mdash; which is precisely the point, and the reason '+
 'there is no get-rich-quick structure for corruption to attach to.</p>');
+
+/* ══════════ RELEASE 46 ══════════ */
+
+L(46,"unit.death","Nothing inherits. 웃 is extinguished at death; what passes to a family is the right to purchase a Seed Token, not value.",
+'<h2>Nothing inherits</h2>'+
+'<p>Every system that pays people eventually faces the same question, and most answer it badly: '+
+'<strong>what happens when a contributor dies?</strong></p>'+
+'<div class="pull">Answer it with inheritance and you have built a dynasty engine.'+
+'<cite>The second generation holds what the first earned. The third holds what neither earned. Within '+
+'four generations the framework is precisely the concentrated actor every other page of it was designed '+
+'to resist.</cite></div>'+
+'<div class="notice key"><span class="tag">The rule &middot; class: Immutable</span>'+
+'<p style="margin-bottom:0"><strong>&#50883; ends with the person who earned it.</strong> There is no '+
+'transfer on death, no beneficiary designation, no assignment, no trust instrument, no probate claim. '+
+'Reserved forward years extinguish with the rest. A lump sum accrued without work is never available to '+
+'anyone, at any point, by any route &mdash; and the simplest way to guarantee that is to make sure '+
+'nothing survives the person to be accrued.</p></div>'+
+'<h3>What extinction actually does</h3>'+
+'<p>It is mechanical, and there is nothing for anyone to decide:</p>'+
+'<pre><code>at death:   cumulative &#50883;        &rarr;  0\n'+
+'            reserved forward years &rarr;  0\n'+
+'            committed reserve      &rarr;  falls by the extinguished amount\n'+
+'            headroom               &rarr;  rises by the same amount\n\n'+
+'            no trustee &middot; no probate &middot; no discretion &middot; nothing to litigate</code></pre>'+
+'<div class="notice"><span class="tag">The scale of it, stated plainly</span>'+
+'<p style="margin-bottom:0">A contributor who had secured ten years and part of an eleventh holds '+
+'<strong>104,000 &#50883;</strong>. At the Austin anchor that is <strong>$754,000.00 of committed '+
+'reserve</strong>, and at death all of it returns to fund other people&rsquo;s security. The framework '+
+'does not keep it. It re-commits it.</p></div>'+
+'<h3>What passes instead &mdash; an invitation, not a bequest</h3>'+
+'<p>Up to <strong>ten immediate family members</strong> may each <strong>purchase one $1 Seed Token</strong>, '+
+'permanently linked to the person who died. Note the direction: <strong>they pay in. Nothing is paid '+
+'out.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>What the family receives</th><th>What the family does not receive</th></tr>'+
+'<tr><td>The right &mdash; never the obligation &mdash; to purchase one Seed Token each, up to ten '+
+'persons.</td><td>Any &#50883;. Any settlement. Any instalment. Any claim of any kind.</td></tr>'+
+'<tr><td>A permanent memorial link on the record: this token stands beside that contributor&rsquo;s '+
+'work.</td><td>Governance weight. A Seed Token confers none, for them as for everyone.</td></tr>'+
+'<tr><td>The same standing every funder has, and not one degree more.</td><td>Preference, priority, or '+
+'any better term than a stranger would get.</td></tr>'+
+'</table><caption>Ten dollars is the entire economic consequence of a death in this framework, and it '+
+'flows <strong>inward</strong>. Against $754,000 of released reserve that is a ratio of 75,400 to one, in '+
+'the direction nobody would design if the aim were to enrich a family.</caption></div>'+
+'<h3>Who counts as immediate family</h3>'+
+'<p>The definition is not invented here. It follows the <strong>United States federal standard for '+
+'bereavement and survivor benefits</strong> &mdash; a published, checkable list rather than one this '+
+'framework wrote for itself: spouse or domestic partner; children, including step, adopted and foster; '+
+'parents, including step; siblings, including step and half; grandparents; grandchildren; and parents-in-law.</p>'+
+'<div class="notice"><span class="tag">Two properties of the cap that matter</span>'+
+'<p style="margin-bottom:0"><strong>Ten is a cap on persons, not on relationship classes.</strong> A '+
+'family is never asked to rank itself or to choose which relationships qualify. And <strong>election is '+
+'free</strong>: any eligible person may decline, and declining costs them nothing and costs the family '+
+'nothing. Where more than ten are eligible, the family decides among themselves; the framework does not '+
+'adjudicate. In practice perhaps eight of ten will choose to take part, and eight dollars is exactly as '+
+'valid as ten.</p></div>'+
+'<p><strong>Regional equivalents are required.</strong> The US standard is the reference definition, not '+
+'a global imposition. Each region adopts its own published bereavement or survivor standard, and where '+
+'none exists the framework uses the reference. That is an Adaptive number over an Immutable obligation, '+
+'the same pattern as the settlement floor.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Defect 22 &mdash; two locked terms collide, and this does not decide between them</span>'+
+'<p>A contributor two years into a five-year payout has <strong>three instalments already earned and not '+
+'yet paid</strong> &mdash; $43,495.65 at the Austin anchor. Two Immutable rules now reach for it:</p>'+
+'<p><strong>&ldquo;Paid out over five years, guaranteed&rdquo;</strong> says those instalments are owed. '+
+'<strong>&ldquo;Nothing inherits&rdquo;</strong> says nothing survives the person. Both are locked. They '+
+'cannot both hold.</p>'+
+'<p style="margin-bottom:0"><strong>The reading I would take, and it is not mine to settle:</strong> the '+
+'guarantee is a promise <em>to a person</em>, protecting them against next year &mdash; not a promise to '+
+'an estate, protecting it against their death. On that reading outstanding instalments extinguish with '+
+'everything else, and the Seed Token right replaces them. That narrows a locked term, which is exactly '+
+'the kind of change that must be ratified rather than assumed. <strong>Open for the operator.</strong></p></div>'+
+'<p>What makes this bearable is what it becomes. A family that cannot be paid can still be '+
+'<em>counted</em> &mdash; permanently, publicly, beside the person they lost, for a dollar each. '+
+'<strong>An ending turns into a beginning, which is the only honest thing an ending can become in a '+
+'framework built to run for five hundred years.</strong></p>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 
