@@ -103,45 +103,49 @@ class TestHumanTokenCalculation:
 
         assert result == 0.0
 
-    def test_human_enabled_texas_rate(self):
-        """웃 for 1 min at Texas rate (7.25/hr) = 7.25/60 = ~0.1208."""
+    # ── The mint is currency-free from release 35 ───────────────────────────
+    # These four tests used to assert 웃 = minutes × rate/60, which made the
+    # 9,999 ceiling cost 29,409 hours in Nigeria and 614 in Washington State.
+    # They now assert the opposite invariant: one minute mints one minute's 웃
+    # everywhere, and the jurisdiction is carried as a settlement stamp instead.
+
+    ONE_MINUTE_HI = round(1.0 / 60.0 * (9999.0 / 2080.0), 4)  # 0.0801
+
+    def _mint_one_minute(self, country, state=None):
         with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
             mock_settings.human_enabled = True
 
             from app.cubes.cube5_gateway.service import _calculate_human
-            result = _calculate_human(1.0, "US", "Texas")
+            return _calculate_human(1.0, country, state)
 
-        assert abs(result - round(7.25 / 60, 4)) < 0.001
+    def test_human_enabled_texas_rate(self):
+        """웃 for 1 min in Texas — one minute of time, not 7.25/60 of a dollar."""
+        assert self._mint_one_minute("US", "Texas") == self.ONE_MINUTE_HI
 
     def test_human_enabled_california_rate(self):
-        """웃 for 1 min at California rate (16.00/hr)."""
-        with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
-            mock_settings.human_enabled = True
-
-            from app.cubes.cube5_gateway.service import _calculate_human
-            result = _calculate_human(1.0, "US", "California")
-
-        assert abs(result - round(16.00 / 60, 4)) < 0.001
+        """California pays 16.00/hr and still mints exactly the same 웃."""
+        assert self._mint_one_minute("US", "California") == self.ONE_MINUTE_HI
 
     def test_human_international_nigeria(self):
-        """웃 for 1 min at Nigeria rate (0.34/hr)."""
-        with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
-            mock_settings.human_enabled = True
+        """Nigeria pays 0.34/hr and still mints exactly the same 웃.
 
-            from app.cubes.cube5_gateway.service import _calculate_human
-            result = _calculate_human(1.0, "Nigeria")
+        This is the whole point: the 47.9x wage spread must not become a
+        47.9x difference in how long it takes to reach the ceiling.
+        """
+        assert self._mint_one_minute("Nigeria") == self.ONE_MINUTE_HI
 
-        assert abs(result - round(0.34 / 60, 4)) < 0.001
+    def test_human_unknown_jurisdiction_mints_the_same(self):
+        """An unresolved jurisdiction cannot change the mint either."""
+        assert self._mint_one_minute("Atlantis") == self.ONE_MINUTE_HI
 
-    def test_human_unknown_jurisdiction_uses_default(self):
-        """Unknown jurisdiction should use default rate (7.25/hr)."""
-        with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
-            mock_settings.human_enabled = True
+    def test_jurisdiction_still_resolves_for_settlement(self):
+        """The rate table is not gone — it moved to the settlement stamp."""
+        from app.core.hi_rates import settlement_stamp
 
-            from app.cubes.cube5_gateway.service import _calculate_human
-            result = _calculate_human(1.0, "Atlantis")
-
-        assert abs(result - round(7.25 / 60, 4)) < 0.001
+        assert settlement_stamp("US", "Texas") == ("United States/Texas", 7.25)
+        assert settlement_stamp("US", "California") == ("United States/California", 16.00)
+        assert settlement_stamp("Nigeria") == ("Nigeria", 0.34)
+        assert settlement_stamp("Atlantis") == ("Atlantis", 7.25)  # default fallback
 
 
 # ---------------------------------------------------------------------------

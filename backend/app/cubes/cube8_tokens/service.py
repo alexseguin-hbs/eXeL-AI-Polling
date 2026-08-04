@@ -31,6 +31,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import log_audit
+from app.core.hi_rates import hours_to_hi
 from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.core.rcore.rotor_adapter import stamp_orm as _hwr_stamp
 from app.models.token_ledger import TokenDispute, TokenLedger
@@ -81,29 +82,33 @@ LIFECYCLE_STATES = set(VALID_TRANSITIONS.keys())
 # ever") — see the three-layer separation: Recognition (웃, earned) ·
 # Participation (governance, no economic right) · Funding (money, no
 # governance right, inert receipt).
-HI_RATE_PER_HOUR = 7.25  # baseline hourly anchor (Texas / US federal floor)
+#
+# The mint coefficient is DERIVED from the locked definition, never chosen:
+# 9,999 웃 ÷ 2,080 h = 4.807 웃/h, so one full-time year lands exactly on the
+# annual ceiling. It carries no currency. (Until release 35 this constant was
+# 7.25 — a US dollar figure used as a token rate, which put a full-time year at
+# 15,080 웃, overshooting the ceiling by 50.8%. See HI_PER_HOUR in core.hi_rates.)
 
 
 def hours_to_hi_tokens(hours: float) -> float:
     """웃 (HI) is denominated in TIME, not in any currency.
 
-    Formula: 웃 = hours × 7.25
+    Formula: 웃 = hours × HI_PER_HOUR   (9,999 ÷ 2,080 = 4.807…)
     Examples:
-      1 hour of work    -> 7.25 웃
-      40 hours (Lagos)  -> 290.00 웃
-      40 hours (Austin) -> 290.00 웃   # identical work, identical 웃
+      1 hour of work      ->     4.807 웃
+      40 hours (Lagos)    ->   192.288 웃
+      40 hours (Austin)   ->   192.288 웃   # identical work, identical 웃
+      2,080 h (one year)  -> 9,999.000 웃   # the ceiling, exactly, for everyone
 
-    BASELINE: 7.25 is seeded from a real minimum-wage floor (Texas / US
-    federal), but it is NOT a dollar peg. The unit is the hour, so the rate
-    is globally obtainable and no local currency discounts anyone's time.
+    The local minimum wage is not absent — it is deferred. It is stamped on the
+    ledger entry at mint and applied at SETTLEMENT (see settle_hi_to_currency),
+    which is the only place a currency belongs.
 
     A currency donation is a separate on-ramp (see record_contribution_receipt);
     it funds the platform, it does not define what an hour of human work is
     worth.
     """
-    if hours <= 0:
-        return 0.0
-    return round(hours * HI_RATE_PER_HOUR, 3)
+    return hours_to_hi(hours)
 
 
 # ---------------------------------------------------------------------------

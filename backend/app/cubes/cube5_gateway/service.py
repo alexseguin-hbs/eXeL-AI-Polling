@@ -32,7 +32,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.audit import log_audit
-from app.core.hi_rates import resolve_human_rate
+from app.core.hi_rates import hours_to_hi, resolve_human_rate, settlement_stamp
 from app.core.concurrency import SessionSemaphorePool
 from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.models.pipeline_trigger import PipelineTrigger, VALID_TRIGGER_TYPES
@@ -78,20 +78,23 @@ def _calculate_human(
     country: str | None = None,
     state: str | None = None,
 ) -> float:
-    """Calculate 웃 tokens from duration using jurisdiction rate.
+    """Mint 웃 from duration. Currency-free and jurisdiction-free.
 
-    When human_enabled=True: 웃 = duration_minutes * (rate / 60)
+    When human_enabled=True: 웃 = hours * HI_PER_HOUR  (9,999 ÷ 2,080 = 4.807…)
     When human_enabled=False: 웃 = 0.0 (pre-treasury, no payouts yet)
 
-    Rate resolved from rate table by country + state.
-    Default: 7.25/hr (Austin, Texas / US federal).
-    Format: #.### (3 decimal places, no currency symbol).
+    `country`/`state` no longer scale the amount — they resolve the SETTLEMENT
+    stamp written alongside the entry (see settlement_stamp). Before release 35
+    the mint multiplied by the local minimum wage, which meant reaching the
+    9,999 ceiling cost 29,409 hours in Nigeria and 614 hours in Washington
+    State — a 47.9× spread that inverted the goal of helping as many people as
+    possible reach the ceiling. An hour is now an hour anywhere on earth.
+
+    Format: #.#### (no currency symbol — there is no currency here).
     """
     if not settings.human_enabled:
         return 0.0
-    rate = resolve_human_rate(country, state)
-    rate_per_minute = rate / 60.0
-    return round(duration_minutes * rate_per_minute, 4)
+    return hours_to_hi(duration_minutes / 60.0)
 
 
 def calculate_tokens(
@@ -186,6 +189,10 @@ async def stop_time_tracking(
 
     # Create append-only token ledger entry if any tokens earned
     if heart > 0 or human > 0 or unity > 0:
+        # Stamp the EARNER's jurisdiction and settlement rate at mint. The stamp
+        # travels with the entry for its whole life, so settlement can never be
+        # re-priced by where the holder later stands (defect 4, closed r35).
+        jurisdiction, settlement_rate = settlement_stamp(country, state)
         ledger = TokenLedger(
             session_id=entry.session_id,
             user_id=str(entry.participant_id),
@@ -194,6 +201,8 @@ async def stop_time_tracking(
             delta_heart=heart,
             delta_human=human,
             delta_unity=unity,
+            settlement_jurisdiction=jurisdiction,
+            settlement_rate=settlement_rate,
             lifecycle_state="pending",
             reason=f"{entry.action_type} ({entry.duration_seconds:.0f}s) — ♡{heart} 웃{human} ◬{unity}",
             reference_id=str(entry.id),

@@ -119,12 +119,12 @@ class TestHoursToHITokens:
 
     def test_one_hour(self):
         from app.cubes.cube8_tokens.service import hours_to_hi_tokens
-        assert hours_to_hi_tokens(1.0) == 7.25
+        assert hours_to_hi_tokens(1.0) == 4.8072
 
     def test_forty_hours_identical_everywhere(self):
         """Identical work mints identical 웃 regardless of jurisdiction."""
         from app.cubes.cube8_tokens.service import hours_to_hi_tokens
-        assert hours_to_hi_tokens(40.0) == 290.0
+        assert hours_to_hi_tokens(40.0) == 192.2885
 
     def test_zero_returns_zero(self):
         from app.cubes.cube8_tokens.service import hours_to_hi_tokens
@@ -134,9 +134,109 @@ class TestHoursToHITokens:
         from app.cubes.cube8_tokens.service import hours_to_hi_tokens
         assert hours_to_hi_tokens(-5.0) == 0.0
 
-    def test_hi_rate_constant(self):
-        from app.cubes.cube8_tokens.service import HI_RATE_PER_HOUR
-        assert HI_RATE_PER_HOUR == 7.25
+    def test_hi_rate_constant_is_derived_not_chosen(self):
+        """HI_PER_HOUR must be 9,999 ÷ 2,080 — never a currency figure."""
+        from app.core.hi_rates import (
+            FULL_TIME_HOURS_PER_YEAR,
+            HI_ANNUAL_CEILING,
+            HI_PER_HOUR,
+        )
+        assert HI_ANNUAL_CEILING == 9999.0
+        assert FULL_TIME_HOURS_PER_YEAR == 2080.0
+        assert HI_PER_HOUR == HI_ANNUAL_CEILING / FULL_TIME_HOURS_PER_YEAR
+
+    def test_full_time_year_lands_exactly_on_the_ceiling(self):
+        """The locked promise, checked: 2,080 hours == 9,999 웃, to the token."""
+        from app.core.hi_rates import (
+            FULL_TIME_HOURS_PER_YEAR,
+            HI_ANNUAL_CEILING,
+            hours_to_hi,
+        )
+        assert hours_to_hi(FULL_TIME_HOURS_PER_YEAR) == HI_ANNUAL_CEILING
+
+
+class TestReachIsEqualEverywhere:
+    """Defect 3 regression lock: the mint must not vary by jurisdiction.
+
+    Before release 35 the mint multiplied by the local minimum wage, so the
+    9,999 ceiling cost 29,409 hours in Nigeria and 614 hours in Washington
+    State — a 47.9x spread against a goal of helping as many people as
+    possible REACH the ceiling.
+    """
+
+    JURISDICTIONS = [
+        ("Nigeria", None),          # 0.34/hr — the floor of the table
+        ("Cambodia", None),         # 1.04/hr
+        ("United States", "Texas"),  # 7.25/hr — the Austin anchor
+        ("United States", "Washington"),  # 16.28/hr — the ceiling of the table
+        (None, None),               # unresolved
+    ]
+
+    @staticmethod
+    def _enable_payouts(monkeypatch):
+        """웃 only mints when the treasury is live; the defect lives there too."""
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "human_enabled", True)
+
+    def test_same_hours_mint_same_hi_everywhere(self, monkeypatch):
+        from app.cubes.cube5_gateway.service import calculate_tokens
+
+        self._enable_payouts(monkeypatch)
+        minted = {
+            (c, s): calculate_tokens(3600.0, "response", c, s)[1]
+            for c, s in self.JURISDICTIONS
+        }
+        assert set(minted.values()) != {0.0}, "payouts were not actually enabled"
+        assert len(set(minted.values())) == 1, (
+            f"웃 mint varies by jurisdiction — reach is no longer equal: {minted}"
+        )
+
+    def test_hours_to_the_ceiling_are_identical_everywhere(self, monkeypatch):
+        from app.core.hi_rates import FULL_TIME_HOURS_PER_YEAR, hours_to_hi
+        from app.cubes.cube5_gateway.service import calculate_tokens
+
+        self._enable_payouts(monkeypatch)
+        for country, state in self.JURISDICTIONS:
+            per_hour = calculate_tokens(3600.0, "response", country, state)[1]
+            assert per_hour == hours_to_hi(1.0)
+            # Same hours to the ceiling everywhere — 2,080, to the hour.
+            assert round(9999.0 / per_hour) == FULL_TIME_HOURS_PER_YEAR
+
+
+class TestSettlementStampIsFrozenAtMint:
+    """Defect 4 regression lock: the earner's rate travels with the entry."""
+
+    def test_stamp_carries_jurisdiction_and_rate(self):
+        from app.core.hi_rates import settlement_stamp
+
+        assert settlement_stamp("Nigeria") == ("Nigeria", 0.34)
+        assert settlement_stamp("United States", "Washington") == (
+            "United States/Washington",
+            16.28,
+        )
+
+    def test_settlement_uses_the_stamp_not_the_holder_location(self):
+        """A Nigerian-earned hour settles at 0.34 even if held in Washington."""
+        from app.core.hi_rates import hours_to_hi, settle_hi_to_currency
+
+        one_hour = hours_to_hi(1.0)
+        stamped = settle_hi_to_currency(one_hour, rate=0.34)
+        unstamped_in_washington = settle_hi_to_currency(
+            one_hour, "United States", "Washington"
+        )
+        assert stamped == 0.34
+        assert unstamped_in_washington == 16.28
+        assert stamped != unstamped_in_washington, (
+            "the stamp must beat the holder's location, or the 47.9x spread returns"
+        )
+
+    def test_ledger_carries_the_stamp_columns(self):
+        from app.models.token_ledger import TokenLedger
+
+        cols = TokenLedger.__table__.columns
+        assert "settlement_jurisdiction" in cols
+        assert "settlement_rate" in cols
 
 
 class TestMoneyMintsNothing:

@@ -16,8 +16,11 @@ def test_produces_token_result_with_signature():
     assert r["lifecycle_terminal"] == "finalized"
     # A fee mints NO 웃 — it is an inert contribution receipt (defect 1 fix).
     assert r["fee_hi_tokens"] == 0.0
-    # 웃 comes from contributed TIME only: hours x 7.25.
-    assert r["time_hi_tokens"] == round(r["time_hours"] * 7.25, 3)
+    # 웃 comes from contributed TIME only, at the derived rate 9,999 / 2,080.
+    # No currency and no jurisdiction may enter the mint (defects 3 + 4 fix).
+    from app.core.hi_rates import hours_to_hi
+
+    assert r["time_hi_tokens"] == hours_to_hi(r["time_hours"])
 
 
 def test_deterministic():

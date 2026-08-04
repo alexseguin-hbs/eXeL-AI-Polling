@@ -39,6 +39,11 @@ class TokenLedger(Base):
     outcome_status: Mapped[str | None] = mapped_column(
         String(30)  # achieved / partially_achieved / not_achieved / n_a
     )
+    # Settlement stamp — resolved from the EARNER's jurisdiction at mint and
+    # never re-resolved. 웃 is minted currency-free; these two columns are the
+    # only place a currency touches the ledger, and they are frozen on write.
+    settlement_jurisdiction: Mapped[str | None] = mapped_column(String(80))
+    settlement_rate: Mapped[float | None] = mapped_column(Float)
     lifecycle_state: Mapped[str] = mapped_column(String(20), default="pending")
     reason: Mapped[str | None] = mapped_column(String(500))
     reference_id: Mapped[str | None] = mapped_column(String(255))

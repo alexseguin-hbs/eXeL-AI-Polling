@@ -1,9 +1,17 @@
-"""웃 rate table — minimum wage by country/state (per hour).
+"""웃 SETTLEMENT rate table — minimum wage by country/state (per hour).
 
-Default: Austin, Texas = 7.25/hr (US federal minimum wage).
+This table prices 웃 in local currency AT SETTLEMENT. It does NOT price the mint.
 
-Vision: pay out 웃 globally at local minimum wage to leverage global talent.
-When human_enabled=True, each participant earns 웃 based on their jurisdiction.
+  MINT      웃 = hours × HI_PER_HOUR          — currency-free, identical on earth
+  SETTLE    $ = 웃 ÷ HI_PER_HOUR × rate       — local minimum wage, stamped at mint
+
+HI_PER_HOUR is derived, not chosen: 9,999 웃 ÷ 2,080 hours = 4.807 웃/hour, so one
+full-time year of contribution lands exactly on the annual ceiling — for everyone,
+in every jurisdiction. The locked definition says the goal is to help as many
+people as possible REACH 9,999; a mint that varied by local wage made the ceiling
+cost 29,409 hours in Nigeria and 614 hours in Washington State, inverting that
+goal. The rate now enters only where it belongs: converting 웃 into local money.
+
 Rate lookup: resolve_human_rate(country, state) → rate/hr.
 웃 format: #.### (3 decimal places, no currency symbol).
 """
@@ -12,6 +20,59 @@ Rate lookup: resolve_human_rate(country, state) → rate/hr.
 DEFAULT_HUMAN_RATE = 7.25
 DEFAULT_COUNTRY = "United States"
 DEFAULT_STATE = "Texas"
+
+# ---------------------------------------------------------------------------
+# Mint constants — currency-free, jurisdiction-free
+# ---------------------------------------------------------------------------
+HI_ANNUAL_CEILING = 9999.0        # hard ceiling, 웃 per natural person per year
+FULL_TIME_HOURS_PER_YEAR = 2080.0  # 40h × 52w
+HI_PER_HOUR = HI_ANNUAL_CEILING / FULL_TIME_HOURS_PER_YEAR  # 4.807…, derived
+
+
+def hours_to_hi(hours: float) -> float:
+    """Mint 웃 from contributed time. No currency, no jurisdiction.
+
+    An hour is an hour anywhere on earth. 2,080 hours == 9,999.0 웃 exactly.
+    """
+    if hours <= 0:
+        return 0.0
+    return round(hours * HI_PER_HOUR, 4)
+
+
+def settle_hi_to_currency(
+    hi_tokens: float,
+    country: str | None = None,
+    state: str | None = None,
+    rate: float | None = None,
+) -> float:
+    """Convert 웃 to local currency at settlement.
+
+    Pass `rate` to settle at the rate STAMPED on the ledger entry at mint —
+    that is what stops a holder re-pricing another person's hour by moving
+    jurisdiction. Omit it only when stamping for the first time.
+    """
+    if hi_tokens <= 0:
+        return 0.0
+    settlement_rate = rate if rate is not None else resolve_human_rate(country, state)
+    return round(hi_tokens / HI_PER_HOUR * settlement_rate, 2)
+
+
+def settlement_stamp(
+    country: str | None = None,
+    state: str | None = None,
+) -> tuple[str, float]:
+    """Resolve the (jurisdiction, rate) pair to stamp on a ledger entry at mint.
+
+    The stamp travels with the entry for its whole life. Settlement reads the
+    stamp, never the holder's current location.
+    """
+    if country and country.lower() in ("us", "usa", "united states"):
+        resolved_country = DEFAULT_COUNTRY  # canonicalise the aliases
+    else:
+        resolved_country = country or DEFAULT_COUNTRY
+    resolved_state = state or (DEFAULT_STATE if country is None else None)
+    label = f"{resolved_country}/{resolved_state}" if resolved_state else resolved_country
+    return label, resolve_human_rate(country, state)
 
 # ---------------------------------------------------------------------------
 # International rates (country-level, no state subdivision)
