@@ -120,7 +120,7 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
   <div class="meta">
     SOURCE&nbsp; operator's consolidated rate table · 114 rows · 103 jurisdictions · 27 currencies<br>
     GROUNDED IN&nbsp; <code>ee57bfb</code> · 2026.08.03 · every figure re-derived from the table itself<br>
-    REVISION 3&nbsp; reconciled against the Grok and eXeL AI assessments — they conflict on what a 웃 is; see below<br>
+    REVISION 4&nbsp; Grok + eXeL AI reconciled (they conflict on what a 웃 is) · Tier 3 corrected — Global Agreed Standard, never “unavailable”<br>
     <strong style="color:var(--brick)">NOT LEGAL ADVICE</strong>&nbsp; wage figures are the operator's; this document analyses structure, not their accuracy<br>
     NOT DONE&nbsp; no code changed — analysis and schema recommendation only
   </div>
@@ -243,6 +243,9 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
   <p>Put the other way: <strong>a wage-denominated design would permanently exclude two of every five
   jurisdictions</strong> — including some of the most equitable labour markets on earth. That is the
   decision, and it is not close.</p>
+  <p><strong>Settlement, separately, reaches 100%.</strong> Where a region publishes no rate, a single
+  <strong>Global Agreed Standard</strong> supplies the anchor (§4). So the missing 42.1% costs nobody a
+  payout — it only means the ladder has to say which rung it used.</p>
 </div>
 </div></section>
 
@@ -292,9 +295,9 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
   <tr><th></th><th>MINT · hours × multiple → 웃</th><th>SETTLE · 웃 → currency</th></tr>
   <tr><td><strong>Needs a wage rate?</strong></td><td>No</td><td>Yes</td></tr>
   <tr><td><strong>Needs FX + date?</strong></td><td>No</td><td>Yes</td></tr>
-  <tr><td><strong>Jurisdiction coverage</strong></td><td><strong>103 / 103 — 100%</strong></td><td><strong>29 / 103 — 25.4% cleanly</strong></td></tr>
+  <tr><td><strong>Jurisdiction coverage</strong></td><td><strong>103 / 103 — 100%</strong></td><td><strong>103 / 103 — 100%</strong>, via the ladder: local rate where one exists, Global Agreed Standard where none does</td></tr>
   <tr><td><strong>Frequency</strong></td><td>Continuous, every contribution</td><td>Occasional, opt-in</td></tr>
-  <tr><td><strong>Failure mode if unavailable</strong></td><td>Cannot happen</td><td>Settlement deferred; balance unaffected</td></tr>
+  <tr><td><strong>Failure mode if unavailable</strong></td><td>Cannot happen</td><td>Cannot happen — the ladder always terminates in the Global Agreed Standard</td></tr>
 </table></div>
 <div class="ask">
   <span class="lab">The law this establishes</span>
@@ -344,11 +347,30 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
 
 <div class="tier t3">
   <span class="cnt">13 · 11.4%</span>
-  <div class="hd">Tier 3 — no official rate published</div>
+  <div class="hd">Tier 3 — no local rate: the Global Agreed Standard applies</div>
   <p>Collective-bargaining economies (AT · IT · SE · DK · FI · LI) where a legal minimum genuinely does not
-  exist, and jurisdictions with no comparable figure (KP · YE · UG · RW · AE · VA). No wage anchor can be
-  derived honestly. Settlement here requires either a declared proxy — with its provenance stated — or an
-  honest “settlement unavailable in this jurisdiction.”</p>
+  exist, and jurisdictions with no comparable figure (KP · YE · UG · RW · AE · VA).
+  <strong>Settlement is never unavailable.</strong> Where a region has no rate of its own, a single
+  <strong>Global Agreed Standard</strong> — one figure, agreed once through governance, published, and
+  applied identically everywhere it is needed — supplies the settlement anchor.</p>
+</div>
+
+<div class="ask">
+  <span class="lab">Why this closes the ladder — and why it is not the Texas default</span>
+  <p>With a Global Agreed Standard the ladder <strong>always terminates in a payable answer</strong>.
+  Settlement coverage is <strong>103 / 103</strong>, not 29 / 103. No contributor is ever unpayable because
+  their government does not publish a wage — which would have been a perverse outcome, since the Tier 3
+  list includes both the most equitable labour markets on earth and the least transparent.</p>
+  <p>It is worth being precise about how this differs from Defect B (§5), where 94 jurisdictions silently
+  settle at the Texas rate. <strong>The difference is not the number. It is that one was agreed and is
+  disclosed, and the other was neither.</strong> A fallback that governance chose, published, and stamps on
+  every entry it touches is a designed behaviour. The same numeric fallback applied silently, with no record
+  that it was used, is the defect. This is the Disclosure of Absence principle applied to money: the system
+  may substitute, but it must always say that it substituted.</p>
+  <p><strong>Open — what is the number?</strong> That is a governance decision, not a data one, and it
+  belongs in Operating Policy where it can be revised. Candidates: a published median of Tier 1 rates; a
+  purchasing-power-adjusted figure; or a figure negotiated through the Accords. Whichever is chosen, it is
+  <em>one</em> figure, reviewed on a stated cadence, and every settlement that used it says so.</p>
 </div>
 
 <div class="flag">
@@ -529,7 +551,8 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
 
 <p>
   The ceiling needs no wage rate to enforce, so it applies identically to a contributor in Tier 1 Germany
-  and Tier 3 Uganda. Only the payout differs — and only where a payout is possible at all.
+  and Tier 3 Uganda. Only the payout differs — and a payout is always possible, because the ladder ends
+  in the Global Agreed Standard rather than in “unavailable”.
   <strong>The equity is in the unit; the locality is in the settlement; the restraint is in the ceiling.</strong>
   Keep 9999 exactly as specified.
 </p>
@@ -555,13 +578,13 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
 <div class="master"><span class="pct">89%</span><h4>Sofia</h4><div class="role">Multi-perspective</div>
 <p><strong>Strength:</strong> the table respects that societies genuinely order pay differently — collective bargaining is not a failure to publish, it is a different settlement.
 <strong>Concern:</strong> Tier 3's collective-bargaining economies are among the world's most equitable. Treating them as “missing data” inverts the truth.</p>
-<p class="rec"><strong>Recommend:</strong> name Tier 3 <em>“no statutory minimum — pay set collectively”</em>, not “unavailable.” The label is the respect.</p>
+<p class="rec"><strong>Recommend:</strong> name Tier 3 <em>“no statutory minimum — Global Agreed Standard applies”</em>. Settlement is never withheld from these jurisdictions; the label should say so.</p>
 <div class="bar"><i style="width:89%"></i></div></div>
 
 <div class="master"><span class="pct">88%</span><h4>Christo</h4><div class="role">Consensus</div>
 <p><strong>Strength:</strong> everyone earns the same 웃 per hour, everywhere. That is explicable to a contributor in one sentence and is felt as fair because it is fair.
-<strong>Concern:</strong> a Tier 3 contributor who cannot settle may experience the ceiling as theoretical.</p>
-<p class="rec"><strong>Recommend:</strong> say plainly at the point of joining what settlement is available in that jurisdiction. Earned recognition is real either way; do not let it be discovered as a surprise.</p>
+<strong>Concern:</strong> a Tier 3 contributor settles at a global figure rather than a local one, which may sit above or below local norms.</p>
+<p class="rec"><strong>Recommend:</strong> say plainly at the point of joining which tier applies and what it pays. The Global Agreed Standard removes the cliff; it does not remove the need to be told.</p>
 <div class="bar"><i style="width:88%"></i></div></div>
 
 <div class="master"><span class="pct">86%</span><h4>Aset</h4><div class="role">Consistency</div>
@@ -667,6 +690,7 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
   <tr><td><strong>Settle</strong></td><td>Optional conversion of 웃 into local currency, using the tier and the rate stamped at mint. May be delayed or unavailable; never blocks recognition.</td><td>Both</td></tr>
   <tr><td><strong>Regional minimum-wage equivalent</strong></td><td>A jurisdiction-specific settlement benchmark. <em>Not</em> the value of membership, not a guaranteed payout, not the unit.</td><td>eXeL AI — adopted</td></tr>
   <tr><td><strong>Livelihood Continuity Credit</strong></td><td>The multi-year mechanism by which qualified contributors accrue future compensation eligibility. Requires legal review before it is described as anything a pension regime would recognise.</td><td>eXeL AI — adopted (name and caution)</td></tr>
+  <tr><td><strong>Global Agreed Standard</strong></td><td>A single settlement rate, agreed once through governance and published, applied wherever a jurisdiction has no rate of its own. It is what makes settlement coverage 103/103. Distinguished from a silent default by two things: it was <em>agreed</em>, and every settlement that uses it <em>says so</em>. The figure itself is Adaptive — Operating Policy, reviewed on a stated cadence.</td><td>Operator — added</td></tr>
   <tr><td><strong>Compensation pool</strong></td><td>Sized by project performance (revenue, gross margin, operating income). <strong>Performance sizes the pool; it never varies the rate an individual hour earns.</strong></td><td>MoT — the reconciliation</td></tr>
 </table></div>
 
