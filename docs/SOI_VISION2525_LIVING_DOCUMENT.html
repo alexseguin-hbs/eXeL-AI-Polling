@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>SoI · Vision 2525 — The Unit and The Shield · Living Document</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --paper:#F7F5F1; --ink:#1A1D21; --ink-2:#5A6169; --rule:#D7D9D5; --rule-2:#ECEDE9; --panel:#FFFFFF;
+  --ai:#0D6E86;  --ai-bg:#E3F0F3;
+  --si:#8A6206;  --si-bg:#F4ECDB;
+  --hi:#7A2C8C;  --hi-bg:#F1E6F4;
+  --ok:#2F6144;  --ok-bg:#E2ECE6;
+  --alert:#A3341F; --alert-bg:#F8E6E1;
+  --chrome:#EFEEE9;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0B0E11; --ink:#E4E8EC; --ink-2:#8E979F; --rule:#2A3138; --rule-2:#161B20; --panel:#12171C;
+  --ai:#4CCFE0;  --ai-bg:#0C2328;
+  --si:#E3BE4A;  --si-bg:#231D0C;
+  --hi:#D18BE0;  --hi-bg:#1E1125;
+  --ok:#7FBE96;  --ok-bg:#0E1E15;
+  --alert:#E4886A; --alert-bg:#25110B;
+  --chrome:#12171C;
+}}
+:root[data-theme="dark"]{
+  --paper:#0B0E11; --ink:#E4E8EC; --ink-2:#8E979F; --rule:#2A3138; --rule-2:#161B20; --panel:#12171C;
+  --ai:#4CCFE0;  --ai-bg:#0C2328;
+  --si:#E3BE4A;  --si-bg:#231D0C;
+  --hi:#D18BE0;  --hi-bg:#1E1125;
+  --ok:#7FBE96;  --ok-bg:#0E1E15;
+  --alert:#E4886A; --alert-bg:#25110B;
+  --chrome:#12171C;
+}
+:root[data-theme="light"]{
+  --paper:#F7F5F1; --ink:#1A1D21; --ink-2:#5A6169; --rule:#D7D9D5; --rule-2:#ECEDE9; --panel:#FFFFFF;
+  --ai:#0D6E86;  --ai-bg:#E3F0F3;
+  --si:#8A6206;  --si-bg:#F4ECDB;
+  --hi:#7A2C8C;  --hi-bg:#F1E6F4;
+  --ok:#2F6144;  --ok-bg:#E2ECE6;
+  --alert:#A3341F; --alert-bg:#F8E6E1;
+  --chrome:#EFEEE9;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);margin:0;padding:0 20px 120px;
+  font:17px/1.68 "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif}
+.wrap{max-width:74ch;margin:0 auto}
+h1,h2,h3,h4{font-weight:600;text-wrap:balance;letter-spacing:-.012em;margin:0}
+h1{font-size:clamp(28px,5.6vw,42px);line-height:1.11}
+h2{font-size:clamp(20px,3.4vw,26px);line-height:1.24}
+h3{font-size:18px;margin:30px 0 8px}
+h4{font-size:15px;margin:22px 0 6px;font-weight:700}
+p{margin:0 0 15px} ul,ol{margin:0 0 15px;padding-left:1.25em} li{margin:0 0 7px}
+small,.meta{color:var(--ink-2)}
+.mono,code,th,.pill,.kicker,.vnum,.hash,button,input,.tag{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  font-variant-numeric:tabular-nums}
+code{font-size:.84em;background:var(--rule-2);padding:1px 5px;border-radius:3px;word-break:break-word}
+a{color:var(--ai);text-underline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--ai);outline-offset:3px;border-radius:2px}
+
+/* ── masthead ── */
+header.mast{border-bottom:3px solid var(--ink);padding:40px 0 18px}
+.kicker{font-size:11px;line-height:1;letter-spacing:.24em;text-transform:uppercase;font-weight:600;
+  color:var(--ai);margin-bottom:15px}
+.mast .sub{font-size:clamp(16px,2.5vw,19px);color:var(--ink-2);margin:12px 0 0;font-style:italic}
+.glyphline{display:flex;flex-wrap:wrap;gap:9px 20px;margin:20px 0 0;font-size:13px}
+.g-ai{color:var(--ai)} .g-si{color:var(--si)} .g-hi{color:var(--hi)}
+
+/* ── replay deck (sticky) ── */
+.deck{position:sticky;top:0;z-index:40;background:var(--chrome);border-bottom:1px solid var(--rule);
+  margin:0 -20px 0;padding:10px 20px 11px;backdrop-filter:saturate(1.3) blur(6px)}
+.deck-in{max-width:74ch;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.deck .lab{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);font-weight:700;
+  font-family:ui-monospace,monospace}
+button{font-size:12px;padding:5px 10px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);
+  border-radius:3px;cursor:pointer;line-height:1.4}
+button:hover{border-color:var(--ai);color:var(--ai)}
+button[aria-pressed="true"],button.on{background:var(--ai);color:var(--paper);border-color:var(--ai)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.pills{display:flex;flex-wrap:wrap;gap:4px}
+.pills button{padding:4px 9px;min-width:34px}
+input[type=range]{flex:1;min-width:150px;accent-color:var(--ai);height:22px}
+.vnow{font-size:12px;font-weight:700;color:var(--ai);white-space:nowrap}
+.hash{font-size:10.5px;color:var(--ink-2);white-space:nowrap}
+@media(max-width:560px){.deck .lab{display:none}}
+
+/* ── version banner ── */
+.vban{border:1px solid var(--ai);border-left:5px solid var(--ai);background:var(--ai-bg);
+  padding:16px 18px;margin:24px 0 0;border-radius:2px}
+.vban .vtitle{font-size:19px;font-weight:700;margin:6px 0 8px;
+  font-family:"Iowan Old Style",Palatino,Georgia,serif;letter-spacing:-.01em}
+.vban .tag{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
+  color:var(--ai)}
+.vban p{margin:0 0 8px;font-size:15px}
+.vban p:last-child{margin-bottom:0}
+.vstats{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:11.5px;
+  font-family:ui-monospace,monospace;color:var(--ink-2)}
+.vstats b{color:var(--ink)}
+
+/* ── notices ── */
+.notice{border:1px solid var(--rule);border-left:5px solid var(--ink-2);background:var(--rule-2);
+  padding:16px 18px;margin:24px 0;border-radius:2px;font-size:15px}
+.notice.hot{border-color:var(--alert);border-left-color:var(--alert);background:var(--alert-bg)}
+.notice.lock{border-color:var(--hi);border-left-color:var(--hi);background:var(--hi-bg)}
+.notice.key{border-color:var(--ai);border-left-color:var(--ai);background:var(--ai-bg)}
+.notice.ok{border-color:var(--ok);border-left-color:var(--ok);background:var(--ok-bg)}
+.notice p:last-child{margin-bottom:0}
+.notice .tag{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
+  margin-bottom:8px;color:var(--ink-2)}
+.notice.hot .tag{color:var(--alert)} .notice.key .tag{color:var(--ai)}
+.notice.lock .tag{color:var(--hi)}   .notice.ok .tag{color:var(--ok)}
+
+/* ── blocks ── */
+section.blk{border-top:1px solid var(--rule);padding-top:24px;margin-top:32px;
+  display:grid;grid-template-columns:3.4rem 1fr;gap:0 18px}
+section.blk > .bn{font-size:12px;line-height:1.6;color:var(--ink-2);padding-top:8px;font-weight:600;
+  font-family:ui-monospace,monospace}
+section.blk > .bb{min-width:0}
+section.blk.chg{background:linear-gradient(90deg,var(--si-bg),transparent 62%);
+  margin-left:-14px;padding-left:14px;border-radius:3px}
+section.blk.chg > .bn{color:var(--si)}
+.chgtag{display:inline-block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+  color:var(--si);border:1px solid var(--si);background:var(--si-bg);padding:1px 6px;border-radius:2px;
+  margin-left:8px;vertical-align:.18em;font-family:ui-monospace,monospace}
+@media(max-width:640px){
+  section.blk{grid-template-columns:1fr;gap:0}
+  section.blk > .bn{padding:0 0 5px}
+  section.blk.chg{margin-left:-10px;padding-left:10px}
+}
+
+/* ── pills ── */
+.pill{display:inline-block;font-size:10px;line-height:1.5;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:700;padding:2px 7px;border-radius:2px;border:1px solid currentColor;white-space:nowrap;
+  vertical-align:.12em}
+.p-impl{color:var(--ok);background:var(--ok-bg)}
+.p-spec{color:var(--si);background:var(--si-bg)}
+.p-prop{color:var(--hi);background:var(--hi-bg)}
+.p-live{color:var(--alert);background:var(--alert-bg)}
+.p-lock{color:var(--hi);background:var(--hi-bg)}
+
+/* ── tables ── */
+.scroll{overflow-x:auto;margin:18px 0;border:1px solid var(--rule);border-radius:2px;
+  -webkit-overflow-scrolling:touch}
+@media(min-width:980px){.scroll{margin-left:-100px;margin-right:-100px}}
+table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.5;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;text-align:left;font-weight:700;
+  color:var(--ink-2);background:var(--rule-2);padding:9px 11px;border-bottom:1px solid var(--rule);
+  vertical-align:bottom}
+td{padding:9px 11px;border-bottom:1px solid var(--rule-2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+caption{caption-side:bottom;text-align:left;font-size:12.5px;color:var(--ink-2);padding:10px 11px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+.grade{font-family:ui-monospace,monospace;font-weight:700}
+.g-a{color:var(--ok)} .g-b{color:var(--ai)} .g-c{color:var(--si)} .g-d{color:var(--alert)}
+
+pre{margin:16px 0;padding:14px 16px;background:var(--rule-2);border:1px solid var(--rule);
+  border-radius:2px;overflow-x:auto;font-size:12.5px;line-height:1.6;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre code{background:none;padding:0;font-size:inherit}
+blockquote{margin:22px 0;padding:2px 0 2px 20px;border-left:3px solid var(--si);font-style:italic;font-size:17px}
+blockquote .attr{display:block;font-style:normal;font-size:12.5px;color:var(--ink-2);margin-top:8px;
+  font-family:ui-monospace,monospace}
+dl.defs{margin:16px 0;display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:15px}
+dl.defs dt{font-weight:700;white-space:nowrap}
+dl.defs dd{margin:0;color:var(--ink-2)}
+@media(max-width:560px){dl.defs{grid-template-columns:1fr;gap:2px 0}dl.defs dd{margin:0 0 10px}}
+
+figure{margin:24px 0} figure.dia svg{display:block;min-width:600px;width:100%;height:auto;color:var(--ink);padding:16px}
+figure.dia .hot{color:var(--alert)}
+figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.scroll > figcaption{padding:0 12px 12px}
+
+.part{border-top:3px solid var(--ink);margin:60px 0 0;padding:24px 0 4px}
+.part .rn{font-size:11.5px;letter-spacing:.26em;font-weight:700;color:var(--ink-2);text-transform:uppercase;
+  font-family:ui-monospace,monospace}
+.part h2{font-size:clamp(22px,4.2vw,31px);margin:9px 0 9px}
+.part .lede{color:var(--ink-2);font-size:16px;font-style:italic;margin:0}
+
+footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font-size:13px;color:var(--ink-2);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="deck" role="region" aria-label="Version replay controls">
+ <div class="deck-in">
+  <span class="lab">Replay</span>
+  <button id="bPrev" title="Previous version">&#9668;</button>
+  <button id="bPlay" title="Play through every version">&#9654; Play</button>
+  <button id="bNext" title="Next version">&#9658;</button>
+  <input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version">
+  <span class="vnow" id="vNow">v1</span>
+  <button id="bLatest" title="Jump to the latest release">Latest</button>
+  <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">&#9679; Changes</button>
+  <span class="hash" id="vHash">state &mdash;</span>
+ </div>
+</div>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">System of Innovation &middot; Vision 2525 &middot; Living Document &middot; R-CORE Replay</div>
+  <h1>The Unit and The Shield</h1>
+  <p class="sub">The economic unit that makes contribution payable anywhere on earth, and the legal
+  structure that keeps any one government from switching it off &mdash; rebuilt release by release, in
+  public, with every prior release still readable.</p>
+  <div class="glyphline">
+    <span class="g-ai">&#9708; A.I. &mdash; Artificial Intelligence</span>
+    <span class="g-si">&#9825; S.I. &mdash; Shared Intent</span>
+    <span class="g-hi">&#50883; H.I. &mdash; Human Intelligence</span>
+  </div>
+</header>
+
+<div class="notice key">
+  <span class="tag">This document replays itself</span>
+  <p>This is not a snapshot. It is an <strong>append-only ledger of changes</strong> that reconstructs the
+  document at any release you select. Drag the slider, press Play, or click a version pill in the review
+  panel. The newest release is shown by default.</p>
+  <p style="margin-bottom:0">Each release was produced the same way: <strong>ship &rarr; twelve
+  independent reviews &rarr; a single coordinating directive &rarr; ship again.</strong> Nothing is
+  overwritten and nothing is hidden. Supersedes
+  <code>VISION2525_HOUR_IS_THE_UNIT_2026.08.03.html</code>, which is retained unchanged as the v0
+  provenance record.</p>
+</div>
+
+<div id="vban"></div>
+<main id="doc"></main>
+
+<div class="part">
+  <div class="rn">The Review Loop</div>
+  <h2>Twelve reviews, one directive</h2>
+  <p class="lede">What the panel found in this release, and the instruction that produced the next one.</p>
+</div>
+<div id="review"></div>
+
+<div class="part">
+  <div class="rn">Provenance</div>
+  <h2>The change ledger</h2>
+  <p class="lede">Every edit, in order, with the finding that caused it. This is the replay source &mdash;
+  the document above is derived from this table, never the other way round.</p>
+</div>
+<div id="ledger"></div>
+
+<div class="part">
+  <div class="rn">R-CORE</div>
+  <h2>Determinism, demonstrated live</h2>
+  <p class="lede">The claim is that identical inputs produce identical output. Here you can test it in
+  your own browser rather than take it on trust.</p>
+</div>
+<div id="rcore"></div>
+
+<footer class="end">
+  <p><strong>SoI &middot; Vision 2525 &mdash; The Unit and The Shield.</strong> A living document: releases
+  accumulate inside this file rather than replacing it. Frame of reference: the Atlantis Accords and the
+  SoI-2525 cube architecture.</p>
+  <p>Analysis and architecture only. <strong>Not legal advice.</strong> No security, token, or investment
+  is offered, solicited, or marketed anywhere in this document. Every legal form and every jurisdiction
+  named requires qualified local counsel.</p>
+  <p style="margin-bottom:0">Live: <a href="https://exel-ai-polling.explore-096.workers.dev">exel-ai-polling.explore-096.workers.dev</a></p>
+</footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   R-CORE REPLAY ENGINE
+   The document is not stored. It is REBUILT from LEDGER on every render.
+   render(v) = for each block id in ORDER, take the newest entry with e.v <= v.
+   Same v in  ->  same bytes out.  That is the whole claim, and it is testable
+   with the buttons at the foot of the page.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const ORDER = [
+ "front.thesis","front.locked",
+ "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
+ "unit.mintsettle","unit.guard",
+ "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
+ "legal.pension","legal.dissolution",
+ "frame.accords","frame.soi","frame.loop",
+ "rcore.ledger","rcore.modes",
+ "human.story","human.receipt",
+ "open.defects","open.decisions","close.synthesis"
+];
+
+/* ── VERSIONS ─────────────────────────────────────────────────────────── */
+const VERSIONS = [
+{
+ v:1, code:"THE UNIT", stamp:"2026.08.04 &middot; release 1",
+ thrust:"State the economic unit correctly and completely. Nothing else.",
+ mot:"Opening directive. The five predecessor documents each said something true about the unit and none of them said it in one place, in the operator's own words. Build the unit first. Resist the urge to defend it yet.",
+ stats:{clauses:8, jur:3, shields:0, defects:2, reach:"partial"},
+ asm:[
+  {n:"Aset",   g:"B",  f:"The unit finally resolves to one definition instead of three. That alone closes the oldest drift in the corpus."},
+  {n:"Asar",   g:"C+", f:"It defines the unit and stops. A unit with no structure around it is an accounting note, not a framework."},
+  {n:"Athena", g:"C",  f:"No strategy. If a minister reads this and dislikes it, there is nothing here that stops them."},
+  {n:"Christo",g:"B-", f:"The ceiling is dignified &mdash; it protects against concentration. But nothing yet says what happens to the person who reaches it."},
+  {n:"Enki",   g:"C+", f:"Three jurisdictions is a demonstration, not a system. What about the ninety-nine that are not Texas, Brazil or Nigeria?"},
+  {n:"Enlil",  g:"B-", f:"The arithmetic is correct and re-derivable. The code that implements it is not, and that is not said loudly enough."},
+  {n:"Krishna",g:"D+", f:"Completely disconnected from the Accords and from the cube architecture. It floats."},
+  {n:"Odin",   g:"C",  f:"No change classes. In fifty years every number here is wrong and there is no rule for replacing them."},
+  {n:"Pangu",  g:"B",  f:"The multiples idea is genuinely new. Denominating in multiples rather than hours is the move that makes global equity mechanical."},
+  {n:"Sofia",  g:"C+", f:"Written for someone who already agrees. A skeptic gets no purchase."},
+  {n:"Thoth",  g:"A-", f:"Every figure reconciles. The reference multiple falls out of the arithmetic rather than being asserted. Strongest part of the release."},
+  {n:"Thor",   g:"D",  f:"A guaranteed multi-year payout with no funding rule behind it. This is the clause that gets the whole thing shut down, and it is not even flagged."}
+ ],
+ next:"Thor and Christo are pointing at the same hole from opposite sides: we promise five years and say nothing about how it is honoured. Enki is right that three jurisdictions is a demo. v2 makes the ceiling REACHABLE and the payout STRUCTURAL &mdash; the multiple ladder, the five-year ramp, and settlement for everyone rather than for three examples."
+},
+{
+ v:2, code:"REACHABLE", stamp:"2026.08.04 &middot; release 2",
+ thrust:"Make the ceiling something people actually reach, and make the five-year promise a mechanism.",
+ mot:"Directive after release 1. The ceiling is not a rationing device, it is a target. Show the multiple ladder that makes one full-time year land on 9,999. Show what the five-year payout DOES rather than merely that it exists. Extend settlement to every jurisdiction, including the ones with no statutory rate.",
+ stats:{clauses:14, jur:103, shields:0, defects:4, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A-", f:"The reference multiple is the keystone. One full-time year reaching the ceiling exactly is the kind of coherence that survives translation into thirty-three languages."},
+  {n:"Asar",   g:"B",  f:"The economics now cohere end to end. The document still has only one limb."},
+  {n:"Athena", g:"C+", f:"Better, but still no defence. We have built something worth taking and no lock on the door."},
+  {n:"Christo",g:"A-", f:"The rising floor is the humane core of the whole design. Year five is where a contributor stops being precarious. Say that in human words, not only in a table."},
+  {n:"Enki",   g:"A-", f:"103 of 103. The Global Agreed Standard closes the tail properly instead of rounding it away."},
+  {n:"Enlil",  g:"B+", f:"Mint-versus-settle is now stated as a defect with a citation. Good. The arbitrage remedy is one field and should be named as cheap."},
+  {n:"Krishna",g:"D+", f:"Still floating free of the Accords and the cubes. Unchanged from release 1."},
+  {n:"Odin",   g:"C+", f:"Still no change classes. The Global Agreed Standard is a number with no rule for how it moves."},
+  {n:"Pangu",  g:"A-", f:"The ramp table is the best thing in the release. Nobody else in this field has published a livelihood curve."},
+  {n:"Sofia",  g:"B",  f:"A skeptic can now argue with it, which is progress. They will attack the guarantee first."},
+  {n:"Thoth",  g:"A",  f:"Verified independently: 9,999 divided by 2,080 is 4.807, the ramp sums exactly to the ceiling, and all three jurisdictions land on the same multiple."},
+  {n:"Thor",   g:"D+", f:"The guarantee is now MORE exposed, not less, because we have made it concrete. A defined multi-year benefit with no reserve rule is a regulatory shutdown waiting to happen."}
+ ],
+ next:"Athena and Thor now agree, which settles it: v3 is the legal release. Build the shield. Name the regimes that actually apply rather than the one everybody assumes. Treat Thor's guarantee exposure as the first-order legal problem, not a footnote &mdash; because it is the one a regulator reaches for first."
+},
+{
+ v:3, code:"THE SHIELD", stamp:"2026.08.04 &middot; release 3",
+ thrust:"Build the legal structure. Answer the regulator we will actually meet, not the one we expect.",
+ mot:"Directive after release 2. We have been bracing against securities law, which is close to the least of our problems under voluntary funding. The live regimes are fundraising authorisation, payments licensing, data protection, foreign funding and pensions. Name them. Name the statutes. And solve Thor's guarantee with a funded reserve, because an unfunded promise is the single cleanest reason to shut us down.",
+ stats:{clauses:23, jur:103, shields:5, defects:6, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A-", f:"Consistent with the economics. The shield does not quietly redefine the unit to make itself easier, which is the usual failure."},
+  {n:"Asar",   g:"A-", f:"Two limbs now, and they articulate. The synthesis holds."},
+  {n:"Athena", g:"A",  f:"The renunciation table is the strategic core: every attack line is removed by giving something up rather than by winning an argument. This is the release where the document became defensible."},
+  {n:"Christo",g:"B+", f:"Legally stronger, humanly colder. Six pages of statute and not one person in it."},
+  {n:"Enki",   g:"A-", f:"The hard cases are named honestly &mdash; India's FCRA, the UAE criminal exposure, Russia's designation. Most frameworks omit exactly these."},
+  {n:"Enlil",  g:"A-", f:"The funded-reserve rule is specified precisely enough to implement, not merely gestured at."},
+  {n:"Krishna",g:"D+", f:"Third release running with no Accords mapping and no cube ownership. This is now the largest gap in the document."},
+  {n:"Odin",   g:"B",  f:"Change classes arrive and immediately earn their keep: the obligation is immutable, the number is adaptive. That rule will do more work than anything else here."},
+  {n:"Pangu",  g:"B+", f:"Federated domestic personality is the genuinely inventive legal move. No single government holds an off switch."},
+  {n:"Sofia",  g:"A-", f:"Now survives a hostile read. The politician's speech is pre-empted line by line."},
+  {n:"Thoth",  g:"A-", f:"Every jurisdiction row carries a counsel qualifier. No overclaiming detected."},
+  {n:"Thor",   g:"B+", f:"The funded reserve converts my failing grade into a passing one. Obligations may only be incurred against reserves actually held &mdash; that is the correct rule and it should be Immutable."}
+ ],
+ next:"Krishna has been raising the same objection for three releases and has been right every time. v4 stops the drift: bind every clause to an Accords article and to an owning cube, so nothing in this document is orphaned. Christo's point rides along &mdash; the frame is also where the human sits."
+},
+{
+ v:4, code:"BOUND",  stamp:"2026.08.04 &middot; release 4",
+ thrust:"Bind every clause to an Accords article and an owning cube. Nothing orphaned.",
+ mot:"Directive after release 3. Krishna is right three times running. A clause with no owner is a clause nobody maintains, and in five hundred years that is every clause. Map this document onto the Atlantis Accords and the SoI cube architecture so each provision has an article it answers to and a cube that implements it.",
+ stats:{clauses:29, jur:103, shields:5, defects:7, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Binding the clauses to articles is what makes the corpus one corpus rather than five documents with a shared vocabulary."},
+  {n:"Asar",   g:"A",  f:"The synthesis is complete for the first time: unit, shield and frame are one argument, not three."},
+  {n:"Athena", g:"A",  f:"Ownership is strategy. A clause with an owning cube has a maintainer; an unowned clause has a decay date."},
+  {n:"Christo",g:"A-", f:"The Accords frame restores some warmth &mdash; the citizen who funds it appears again. Still needs one passage written for a person rather than an institution."},
+  {n:"Enki",   g:"A",  f:"The mapping surfaced two clauses with no owner at all. Finding them is worth more than the mapping itself."},
+  {n:"Enlil",  g:"A-", f:"Cube ownership is verifiable against the real architecture. I checked six and all six resolve."},
+  {n:"Krishna",g:"A",  f:"Resolved. Every clause now inherits from an article and lands on a cube. This is what I have been asking for since release 1."},
+  {n:"Odin",   g:"A-", f:"Ownership plus change classes gives us a maintenance model that works without the founders. That is the 2525 test."},
+  {n:"Pangu",  g:"B+", f:"Solid consolidation, no new invention. That is the correct choice for this release."},
+  {n:"Sofia",  g:"A-", f:"Reads as one document now. The seams between the five predecessors are gone."},
+  {n:"Thoth",  g:"A",  f:"Article and cube references verified against the live architecture. No dangling pointers."},
+  {n:"Thor",   g:"A-", f:"Ownership is a security property: an unowned clause is an unpatched clause. Two orphans found and closed."}
+ ],
+ next:"The structure is sound and the panel is converging. What is missing is proof and warmth. v5 makes the replay claim testable in the reader's own browser rather than asserted, and gives Christo the passage he has asked for twice."
+}
+];
+
+/* ── LEDGER ───────────────────────────────────────────────────────────── */
+/* Each entry: { v, id, why, html }  -- newest entry with e.v <= active wins. */
+const LEDGER = [];
+function L(v,id,why,html){ LEDGER.push({v:v,id:id,why:why,html:html}); }
+
+/* ══════════ RELEASE 1 ══════════ */
+
+L(1,"front.thesis","Opening statement of purpose.",
+'<h2>Why the unit comes first</h2>'+
+'<p>Every governance framework that pays people eventually collides with the same fact: an hour of a '+
+'person&rsquo;s life is worth wildly different amounts of money depending on where they were born, and any '+
+'system that ignores that is either unaffordable in rich countries or insulting in poor ones.</p>'+
+'<p>Most schemes resolve this by picking one currency and one rate, then quietly excluding everyone the '+
+'rate does not suit. This document takes the opposite route. It defines a unit of recognition that is '+
+'<em>denominated locally and compared globally</em>, so that the same contribution earns the same '+
+'recognition everywhere while settling into money that actually buys groceries where the contributor '+
+'lives.</p>'+
+'<p>Get the unit wrong and nothing downstream can be fixed: the ranking is skewed, the budget is fiction, '+
+'and the people doing the work in the lowest-wage regions are silently written out. Get it right and the '+
+'rest of the architecture has something honest to stand on.</p>');
+
+L(1,"front.locked","Operator-locked definition, verbatim.",
+'<h2>The locked definition</h2>'+
+'<div class="notice lock"><span class="tag">&#50883; Authoritative &middot; Document 0 &middot; class: Immutable</span>'+
+'<ul style="margin-bottom:0">'+
+'<li><strong>&#50883; is denominated in multiples of local or regional minimum wage.</strong></li>'+
+'<li><strong>Higher multiples are allowed.</strong></li>'+
+'<li><strong>Hard annual ceiling: 9,999 &#50883; per natural person.</strong></li>'+
+'<li><strong>Goal: enable as many people as possible to reach 9,999.</strong></li>'+
+'<li><strong>Earned value is paid out over five years, guaranteed.</strong></li>'+
+'<li><strong>Purpose: livelihood security and continuity &mdash; not lump-sum wealth.</strong></li>'+
+'</ul></div>'+
+'<p>This is the authoritative definition for Document 0 and for all future governance language. Every '+
+'clause in this document is downstream of it. Where an earlier write-up conflicts, this text governs.</p>'+
+'<p>Two readings that have appeared in expert commentary are both wrong and are corrected here. '+
+'&#50883; is <em>not</em> a literal count of hours &mdash; 9,999 hours is more than a person is awake for in '+
+'a working year. And it is <em>not</em> a free-floating abstraction &mdash; without the minimum-wage anchor '+
+'it loses the property that makes it equitable. It is a multiple of a local hour, and the multiple is '+
+'where skill, scarcity and responsibility are expressed.</p>');
+
+L(1,"unit.denom","The denomination rule.",
+'<h2>Denomination: the local hour is the anchor</h2>'+
+'<p>The base unit is fixed by definition:</p>'+
+'<pre><code>1 &#50883; (base)  =  one hour at 1x the contributor&rsquo;s local minimum wage\n'+
+'M            =  the multiple applied to that contributor&rsquo;s hour\n'+
+'&#50883; earned     =  hours x M</code></pre>'+
+'<p>The anchor is local; the unit is universal. A contributor in Lagos and a contributor in Austin doing '+
+'the same work at the same multiple earn the same number of &#50883;. What differs is what a &#50883; '+
+'settles into &mdash; and that is correct, because a naira and a dollar buy different things in the places '+
+'they are spent.</p>'+
+'<p>This is the split that makes the whole system work: <strong>recognition is global, settlement is '+
+'local.</strong> Confusing the two is the defect described later in this document.</p>');
+
+L(1,"unit.ceiling","The hard ceiling.",
+'<h2>The ceiling, and why it is hard</h2>'+
+'<p><strong>9,999 &#50883; per natural person per year.</strong> Not per role, not per account, not per '+
+'organisation. Per person.</p>'+
+'<p>A hard ceiling is unusual and it is deliberate. Concentrated wealth is not a side effect of governance '+
+'capture &mdash; it is the mechanism. A system that can pay one person a fortune manufactures exactly the '+
+'actor it was designed to resist, and it does so out of its own treasury. The ceiling removes that '+
+'possibility by construction rather than by policing it afterwards.</p>'+
+'<p>What the ceiling deliberately does <em>not</em> do is limit contribution. A person may contribute far '+
+'past 9,999 &#50883; of recognised value in a year. The record of that contribution is permanent and '+
+'complete. What stops at the ceiling is the settlement, not the recognition.</p>');
+
+L(1,"unit.settle","Settlement across three worked jurisdictions.",
+'<h2>What the ceiling is worth</h2>'+
+'<div class="scroll"><table>'+
+'<tr><th>Jurisdiction</th><th class="n">Local minimum /hr</th><th class="n">9,999 &#50883; settles at</th>'+
+'<th class="n">Local full-time year<br>(2,080 h)</th><th class="n">Ratio</th></tr>'+
+'<tr><td>Texas, United States</td><td class="n">$7.25</td><td class="n">$72,492.75</td><td class="n">$15,080.00</td><td class="n"><strong>4.81x</strong></td></tr>'+
+'<tr><td>Brazil</td><td class="n">$1.58</td><td class="n">$15,798.42</td><td class="n">$3,286.40</td><td class="n"><strong>4.81x</strong></td></tr>'+
+'<tr><td>Nigeria</td><td class="n">$0.34</td><td class="n">$3,399.66</td><td class="n">$707.20</td><td class="n"><strong>4.81x</strong></td></tr>'+
+'</table><caption>Rates from <code>backend/app/core/hi_rates.py</code>. The ratio is identical everywhere '+
+'because it is arithmetic, not policy: 9,999 divided by 2,080 is 4.807 in every country on earth. The '+
+'ceiling is a comfortable livelihood in each place and a fortune in none of them.</caption></div>');
+
+L(1,"unit.mintsettle","The live implementation defect.",
+'<h2>Where the code gets this wrong</h2>'+
+'<div class="notice hot"><span class="tag">&#9888; Live defect &middot; placement, not policy</span>'+
+'<p style="margin-bottom:0">The model is right. The rate is applied one stage too early.</p></div>'+
+'<p><code>backend/app/cubes/cube5_gateway/service.py:92-94</code> computes '+
+'<code>minutes x (local_rate / 60)</code> at the moment work is recorded. Minting needs no wage rate; '+
+'settlement does. The consequence is that forty hours of identical work mints wildly different amounts:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>40 hours contributed in</th><th class="n">Correct (mint in &#50883;)</th><th class="n">Current code mints</th></tr>'+
+'<tr><td>Texas</td><td class="n">40</td><td class="n">290.0</td></tr>'+
+'<tr><td>Brazil</td><td class="n">40</td><td class="n">63.2</td></tr>'+
+'<tr><td>Nigeria</td><td class="n">40</td><td class="n">13.6</td></tr>'+
+'</table><caption>A 21.3x spread for the same work. The ceiling then means three different things: at '+
+'the current code, 9,999 &#50883; is 34 forty-hour weeks in Texas and 735 in Nigeria.</caption></div>'+
+'<p><strong>Remedy:</strong> mint in &#50883;, apply the rate at settlement, and stamp the earner&rsquo;s '+
+'settlement rate on the append-only ledger entry at mint time. One field. It also closes the cross-border '+
+'arbitrage, since &#50883; currently settles at the holder&rsquo;s rate rather than the earner&rsquo;s.</p>');
+
+/* ══════════ RELEASE 2 ══════════ */
+
+L(2,"unit.multiples","MoT directive after r1: the ceiling must be reachable. Adds the multiple ladder and the reference multiple.",
+'<h2>Multiples: how the ceiling becomes reachable</h2>'+
+'<p>The locked definition says higher multiples are allowed and that the goal is to enable as many people '+
+'as possible to <em>reach</em> 9,999. Those two clauses together settle a question the earlier write-ups '+
+'left open, and the answer falls straight out of arithmetic.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Multiple M</th><th class="n">Hours to reach 9,999</th><th class="n">In full-time years</th><th>What this band is for</th></tr>'+
+'<tr><td class="n">1x</td><td class="n">9,999</td><td class="n">4.81</td><td>Unreachable in a year. The floor of the scale, not a working band.</td></tr>'+
+'<tr><td class="n">2x</td><td class="n">5,000</td><td class="n">2.40</td><td>Entry contribution; part-time and learning participation.</td></tr>'+
+'<tr><td class="n">3x</td><td class="n">3,333</td><td class="n">1.60</td><td>Sustained competent contribution.</td></tr>'+
+'<tr><td class="n"><strong>4.807x</strong></td><td class="n"><strong>2,080</strong></td><td class="n"><strong>1.00</strong></td><td><strong>The reference multiple.</strong> One full-time year lands exactly on the ceiling.</td></tr>'+
+'<tr><td class="n">6x</td><td class="n">1,666</td><td class="n">0.80</td><td>Scarce skill, or responsibility carried.</td></tr>'+
+'<tr><td class="n">8x</td><td class="n">1,250</td><td class="n">0.60</td><td>Rare expertise; the band where part-year work still reaches the ceiling.</td></tr>'+
+'<tr><td class="n">10x+</td><td class="n">&le;1,000</td><td class="n">&le;0.48</td><td>Exceptional contribution. Permitted, published, and still capped at 9,999.</td></tr>'+
+'</table><caption>The ceiling divided by a standard working year gives 4.807. That number is not chosen; '+
+'it is what 9,999 and 2,080 imply. It is the multiple at which a full year of full-time contribution '+
+'reaches the ceiling exactly.</caption></div>'+
+'<div class="notice key"><span class="tag">The design consequence</span>'+
+'<p style="margin-bottom:0">Higher multiples do not let anyone earn more &mdash; the ceiling is identical '+
+'for everyone. They let people reach the ceiling <strong>sooner, and on fewer hours</strong>. A surgeon at '+
+'10x and an apprentice at 2x can both arrive at 9,999; the surgeon needs a thousand hours and the '+
+'apprentice needs five thousand. The multiple recognises scarcity. The ceiling refuses to convert scarcity '+
+'into power.</p></div>');
+
+L(2,"unit.reach","New in r2. Christo and Enki both asked what the ceiling is FOR.",
+'<h2>Reach as a design target</h2>'+
+'<p>Most compensation ceilings exist to stop people getting there. This one exists to get people there. '+
+'That inversion is the whole intent of the clause <em>&ldquo;enable as many people as possible to reach '+
+'9,999&rdquo;</em>, and it changes how every other number is set.</p>'+
+'<p>It means multiples are not a rationing device to be set as low as the treasury can defend. They are '+
+'set so that <strong>a person contributing seriously for a year arrives at the ceiling</strong>. A multiple '+
+'band that leaves a full-time contributor at 3,000 &#50883; after a year is not prudent &mdash; it is a '+
+'failure of the stated goal, and it should be reported as one.</p>'+
+'<p>It also gives the system a single legible health metric, which is worth more than a dashboard of '+
+'twenty:</p>'+
+'<pre><code>reach_rate  =  people who reached 9,999 in the year\n'+
+'               -------------------------------------\n'+
+'               people who contributed full-time equivalent hours\n\n'+
+'target: reach_rate -> 1.0        alert: reach_rate &lt; 0.6</code></pre>'+
+'<p>A falling reach rate means multiples have drifted below the value of the work, or that the treasury is '+
+'quietly rationing through the multiple band instead of saying so. Either way it is visible in one '+
+'number, published, before it becomes a grievance.</p>');
+
+L(2,"unit.payout","New in r2. The five-year guarantee turned from a fact into a mechanism.",
+'<h2>Five years, guaranteed: the rising floor</h2>'+
+'<p>Earned value is paid out over five years, and the payment is guaranteed. The purpose is stated in the '+
+'locked definition: <em>livelihood security and continuity, not lump-sum wealth.</em> The mechanism that '+
+'delivers it is worth setting out, because it is the most humane thing in the design and the easiest to '+
+'miss in a table.</p>'+
+'<p>A single year&rsquo;s ceiling pays out in five equal annual instalments. So a contributor who reaches '+
+'the ceiling five years running does not receive five separate windfalls &mdash; they build a floor that '+
+'rises each year and then holds:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Year</th><th class="n">Instalments arriving</th><th class="n">Texas</th><th class="n">Brazil</th><th class="n">Nigeria</th></tr>'+
+'<tr><td>Year 1</td><td class="n">1 of 5</td><td class="n">$14,498.55</td><td class="n">$3,159.68</td><td class="n">$679.93</td></tr>'+
+'<tr><td>Year 2</td><td class="n">2 of 5</td><td class="n">$28,997.10</td><td class="n">$6,319.37</td><td class="n">$1,359.86</td></tr>'+
+'<tr><td>Year 3</td><td class="n">3 of 5</td><td class="n">$43,495.65</td><td class="n">$9,479.05</td><td class="n">$2,039.80</td></tr>'+
+'<tr><td>Year 4</td><td class="n">4 of 5</td><td class="n">$57,994.20</td><td class="n">$12,638.74</td><td class="n">$2,719.73</td></tr>'+
+'<tr><td><strong>Year 5 onward</strong></td><td class="n"><strong>5 of 5</strong></td><td class="n"><strong>$72,492.75</strong></td><td class="n"><strong>$15,798.42</strong></td><td class="n"><strong>$3,399.66</strong></td></tr>'+
+'</table><caption>Steady state is reached in year five and holds for as long as the contributor keeps '+
+'contributing. Each annual figure is the ceiling settled at the local rate divided by five, accumulated '+
+'across overlapping cohorts.</caption></div>'+
+'<p>Two properties follow, and both are the point rather than side effects.</p>'+
+'<p><strong>It is a floor, not a windfall.</strong> By year five a contributor knows what next year holds '+
+'even if they contribute nothing at all &mdash; four instalments are already committed. That is what '+
+'&ldquo;continuity&rdquo; means in the locked definition, and it is the difference between being paid and '+
+'being secure.</p>'+
+'<p><strong>It converts recognition into stability instead of into leverage.</strong> A lump sum of '+
+'$72,492.75 is capital, and capital seeks influence. The same amount arriving over five years is a wage. '+
+'The ceiling stops accumulation across people; the five-year schedule stops it across time.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The cost of the guarantee</span>'+
+'<p style="margin-bottom:0">The word <strong>guaranteed</strong> is doing enormous work here, and it is '+
+'the most legally dangerous word in the document. A guaranteed multi-year payment stream to individuals '+
+'is, in substance, a defined-benefit obligation. It is treated as a first-order legal problem later in '+
+'this document rather than as a footnote, because it is the clause a regulator reaches for first.</p></div>');
+
+L(2,"unit.settle","Extended in r2 from three worked examples to full global coverage.",
+'<h2>What the ceiling is worth, and where it can be paid</h2>'+
+'<div class="scroll"><table>'+
+'<tr><th>Jurisdiction</th><th class="n">Local minimum /hr</th><th class="n">9,999 &#50883; settles at</th>'+
+'<th class="n">Local full-time year<br>(2,080 h)</th><th class="n">Ratio</th></tr>'+
+'<tr><td>Texas, United States</td><td class="n">$7.25</td><td class="n">$72,492.75</td><td class="n">$15,080.00</td><td class="n"><strong>4.81x</strong></td></tr>'+
+'<tr><td>Brazil</td><td class="n">$1.58</td><td class="n">$15,798.42</td><td class="n">$3,286.40</td><td class="n"><strong>4.81x</strong></td></tr>'+
+'<tr><td>Nigeria</td><td class="n">$0.34</td><td class="n">$3,399.66</td><td class="n">$707.20</td><td class="n"><strong>4.81x</strong></td></tr>'+
+'</table><caption>The ratio is identical everywhere because it is arithmetic, not policy: 9,999 divided '+
+'by 2,080 is 4.807 in every country on earth.</caption></div>'+
+'<h3>The settlement ladder &mdash; nobody is unsettleable</h3>'+
+'<p>An earlier analysis concluded that thirteen jurisdictions had no lawful settlement path because they '+
+'publish no national minimum wage. That was wrong, and correcting it moved coverage from 29 jurisdictions '+
+'to all 103.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Tier</th><th class="n">Count</th><th>Basis</th><th>Settles?</th></tr>'+
+'<tr><td><strong>Tier 1 &mdash; published</strong></td><td class="n">29</td><td>A national statutory rate exists and is loaded in the table today.</td><td>Yes</td></tr>'+
+'<tr><td><strong>Tier 1 &mdash; pending</strong></td><td class="n">37</td><td>A national rate exists but is not yet loaded. Recoverable by data entry, not by policy.</td><td>Yes</td></tr>'+
+'<tr><td><strong>Tier 2 &mdash; no single national rate</strong></td><td class="n">35</td><td>Rates are sectoral, regional or collectively bargained. A published selection rule is required.</td><td>Yes</td></tr>'+
+'<tr><td><strong>Tier 3 &mdash; no official rate</strong></td><td class="n">13</td><td>No statutory minimum exists at any level.</td><td>Yes &mdash; <strong>Global Agreed Standard</strong></td></tr>'+
+'<tr><td colspan="2"><strong>Coverage</strong></td><td colspan="2"><strong>103 of 103.</strong> No contributor is structurally unpayable.</td></tr>'+
+'</table><caption>The partition of the 85 jurisdictions that are not yet settle-ready is 37 recoverable / '+
+'35 needing a selection rule / 13 needing the Global Agreed Standard. Two of the three groups need a '+
+'decision, not new law.</caption></div>'+
+'<p>The <strong>Global Agreed Standard</strong> is the floor rate applied where no local statutory rate '+
+'exists. Its <em>existence</em> is an Immutable obligation &mdash; no contributor settles at zero because '+
+'their government has not legislated. Its <em>value</em> is an Adaptive number, published, pegged to an '+
+'international reference and reviewed on a fixed cadence.</p>');
+
+L(2,"unit.guard","New in r2. Whoever sets the multiples controls the money.",
+'<h2>Who sets the multiple</h2>'+
+'<p>Introducing multiples introduces a control point, and it must be named before it is used rather than '+
+'after it is abused.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Structural risk</span>'+
+'<p style="margin-bottom:0"><strong>Whoever sets the multiples controls the money.</strong> Every '+
+'protection elsewhere in this framework can be routed around by an authority that simply reclassifies '+
+'someone into a lower band.</p></div>'+
+'<p>Four guards, all classed Stable rather than Adaptive, because a number that can be changed quietly is '+
+'not a number, it is a discretion:</p>'+
+'<ol>'+
+'<li><strong>Bands are published in advance</strong> of the period they apply to, with the criteria for '+
+'each band stated in plain language.</li>'+
+'<li><strong>Changes apply prospectively only.</strong> No retroactive reclassification of contribution '+
+'already recorded.</li>'+
+'<li><strong>Assignment is appealable</strong> to a body that does not hold the budget the assignment '+
+'draws on.</li>'+
+'<li><strong>Distribution is published.</strong> How many people sit in each band, by region, every '+
+'period. A treasury quietly rationing through band assignment shows up immediately in that table.</li>'+
+'</ol>'+
+'<p>The reach rate defined earlier is the tripwire. If multiples drift down, reach falls, and the fall is '+
+'public before anyone has to allege anything.</p>');
+
+/* ══════════ RELEASE 3 ══════════ */
+
+L(3,"legal.doctrine","New in r3. Athena and Thor both demanded a defence.",
+'<h2>The non-stoppability doctrine</h2>'+
+'<p>The question this section answers is narrow and practical: <em>what would it take for a government to '+
+'stop this, and what can be built now so that the answer is &ldquo;more than it is worth&rdquo;?</em></p>'+
+'<p>The instinct is to argue better. That is the wrong instinct, because an argument can be lost and a '+
+'structure cannot be out-argued. The doctrine here is different:</p>'+
+'<blockquote>Defensibility comes from what the framework permanently gives up, not from what it claims.'+
+'<span class="attr">The organising principle of the entire legal design</span></blockquote>'+
+'<p>Every renunciation removes an attack line and a regulator at the same time. That inverts the usual '+
+'posture: instead of defending against a critic, the structure makes the critic&rsquo;s argument '+
+'unavailable. There is no counter-argument to <em>&ldquo;there are no shares&rdquo;</em>.</p>'+
+'<p>Three things follow, and they are what the rest of this part builds:</p>'+
+'<dl class="defs">'+
+'<dt>Nothing to acquire</dt><dd>No equity, no shares, no tradeable claim. An entity with nothing to buy '+
+'cannot be bought, raided, or taken over.</dd>'+
+'<dt>Nothing to extract</dt><dd>An asset lock: value can only ever move to another purpose-locked body, '+
+'never to individuals. This is what makes &ldquo;they will enrich themselves&rdquo; false rather than '+
+'merely denied.</dd>'+
+'<dt>Nothing to switch off</dt><dd>A domestic legal person in each participating region rather than one '+
+'foreign entity soliciting inward. No single government holds an off switch, and no region is funded from '+
+'abroad.</dd></dl>');
+
+L(3,"legal.shields","New in r3. The five structural defences.",
+'<h2>The Five Shields</h2>'+
+'<p>Each shield is a structural property rather than a policy position, which is what makes it hold when '+
+'nobody is defending it.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>#</th><th>Shield</th><th>What it defeats</th><th>Class</th></tr>'+
+'<tr><td class="n">I</td><td><strong>No equity, ever</strong></td><td>Acquisition, hostile takeover, '+
+'accumulation of control by capital. There is no instrument to accumulate.</td><td>Immutable</td></tr>'+
+'<tr><td class="n">II</td><td><strong>Asset lock</strong></td><td>Extraction, self-dealing, private '+
+'benefit. Assets may only transfer to another purpose-locked body, including on dissolution.</td><td>Immutable</td></tr>'+
+'<tr><td class="n">III</td><td><strong>Federated domestic personality</strong></td><td>Single-government '+
+'shutdown, foreign-influence designation, cross-border solicitation restrictions. Each region hosts its '+
+'own legal person under its own law.</td><td>Immutable</td></tr>'+
+'<tr><td class="n">IV</td><td><strong>Recognition is never purchasable</strong></td><td>The '+
+'investment-of-money limb of the securities analysis, and the &ldquo;the rich buy influence&rdquo; attack, '+
+'in one move.</td><td>Immutable</td></tr>'+
+'<tr><td class="n">V</td><td><strong>Funded reserve</strong></td><td>Insolvency of a guaranteed obligation '+
+'&mdash; the single most likely trigger for regulatory intervention. Obligations may only be incurred '+
+'against reserves actually held.</td><td>Immutable</td></tr>'+
+'</table><caption>All five are Immutable by design. A shield that can be amended by the body it '+
+'constrains is not a shield; it is a preference.</caption></div>'+
+'<p>Shields I to IV were implicit in the Atlantis Accords and are made explicit here. Shield V is new, and '+
+'it exists because the five-year guarantee makes it necessary &mdash; see the section on the guarantee '+
+'exposure below.</p>');
+
+L(3,"legal.renounce","New in r3. The renunciation table.",
+'<h2>The renunciation table</h2>'+
+'<p>Read the middle column as the speech a hostile politician would give. Each line is unavailable to them '+
+'&mdash; not because it has been rebutted, but because the thing it attacks does not exist.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Permanently renounced</th><th>The attack it forecloses</th><th>The regulator it removes</th></tr>'+
+'<tr><td><strong>No equity. No shares. Ever.</strong></td><td>&ldquo;An investment fund will end up owning this.&rdquo;</td><td>Takeover and control regimes &mdash; nothing to acquire.</td></tr>'+
+'<tr><td><strong>Asset lock</strong></td><td>&ldquo;The founders will extract the value.&rdquo;</td><td>Private-benefit and self-dealing scrutiny.</td></tr>'+
+'<tr><td><strong>No appreciation, no secondary market, no profit expectation</strong></td><td>&ldquo;It is an unregistered security.&rdquo;</td><td>Securities regulators &mdash; the expectation-of-profit limb is absent by design.</td></tr>'+
+'<tr><td><strong>&#50883; is never purchasable</strong></td><td>&ldquo;The rich buy influence.&rdquo;</td><td>The investment-of-money limb fails before profit expectation is even reached.</td></tr>'+
+'<tr><td><strong>Money confers no vote, from any source, including states</strong></td><td>&ldquo;It is a front for a foreign government.&rdquo;</td><td>Foreign-influence and foreign-agent regimes.</td></tr>'+
+'<tr><td><strong>A domestic legal person in each region</strong></td><td>&ldquo;Foreign money is flowing into our civic institutions.&rdquo;</td><td>Cross-border solicitation rules; India&rsquo;s FCRA in particular.</td></tr>'+
+'<tr><td><strong>Full public accounting, monthly, in every signatory language</strong></td><td>&ldquo;It is unaccountable.&rdquo;</td><td>Charitable-solicitation reporting becomes a floor already exceeded.</td></tr>'+
+'<tr><td><strong>Open publication of all funded work</strong></td><td>&ldquo;They are hoarding what citizens paid for.&rdquo;</td><td>Removes the exclusivity that makes hoarding possible at all.</td></tr>'+
+'<tr><td><strong>Hard per-person ceiling on settlement</strong></td><td>&ldquo;Insiders are enriching themselves.&rdquo;</td><td>Excess-benefit and reasonable-compensation scrutiny &mdash; the maximum is published and universal.</td></tr>'+
+'</table></div>');
+
+L(3,"legal.regimes","New in r3. The regimes that actually apply.",
+'<h2>The regulator we will actually meet</h2>'+
+'<div class="notice"><span class="tag">Stated once, plainly</span>'+
+'<p style="margin-bottom:0"><strong>&ldquo;Raises ten dollars for every one&rdquo; and &ldquo;not a '+
+'security&rdquo; cannot both be true.</strong> Substance over form applies in every regime named below. If '+
+'a return comes from later entrants it is a pyramid, and criminal essentially everywhere. This framework '+
+'does not design a token sale marketed on appreciation, returns dependent on later participants, sanctions '+
+'or anti-money-laundering evasion, unlicensed money transmission, or any means of operating where an '+
+'activity is lawfully prohibited.</p></div>'+
+'<p>Under voluntary citizen funding with no appreciation, no secondary market and no equity, securities '+
+'law is largely disengaged &mdash; while six other regimes engage immediately and are barely mentioned in '+
+'most comparable documents.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Regime</th><th>Why it engages</th><th>Mitigation in the design</th></tr>'+
+'<tr><td><strong>Charitable solicitation</strong></td><td>Asking the public for money &mdash; per jurisdiction, often per sub-jurisdiction.</td><td>Shield III: a domestic legal person per region. Monthly full public accounting exceeds most filing floors.</td></tr>'+
+'<tr><td><strong>AML / CFT</strong></td><td>Many small inbound payments; any outbound value transfer.</td><td>Settlement in local fiat through licensed rails; provenance hashes only, never value custody.</td></tr>'+
+'<tr><td><strong>Payments licensing</strong></td><td>Holding or transmitting others&rsquo; funds can constitute money transmission.</td><td>Settlement structured as payment for recorded contribution via a licensed processor, never as custody of user balances. <strong>Requires counsel.</strong></td></tr>'+
+'<tr><td><strong>Data protection</strong></td><td>Contribution records are personal data. Permanence and erasure are in direct tension.</td><td>Hash on-chain, personal data off-chain and erasable.</td></tr>'+
+'<tr><td><strong>Foreign funding</strong></td><td>Civic-sector foreign receipts are restricted or criminalised in several target regions.</td><td>Shield III again. This is the strongest single reason for the federated form.</td></tr>'+
+'<tr><td><strong>Pension / end-of-service</strong></td><td>The five-year guarantee is structurally a defined-benefit promise.</td><td>Shield V: the funded reserve. Detailed below &mdash; this is the one that matters most.</td></tr>'+
+'</table></div>');
+
+L(3,"legal.matrix","New in r3. Jurisdiction matrix with the hard cases named.",
+'<h2>Jurisdiction matrix</h2>'+
+'<div class="scroll"><table>'+
+'<tr><th>Jurisdiction</th><th>Principal exposure</th><th>The hard case</th></tr>'+
+'<tr><td><strong>United States</strong></td><td>The <em>Howey</em> analysis; state-by-state charitable registration; ERISA if the payment stream is characterised as a plan.</td><td>&#50883; must never be purchasable, or the investment-of-money limb is supplied outright. ERISA is the live risk, not the SEC.</td></tr>'+
+'<tr><td><strong>European Union</strong></td><td>MiCA for anything token-shaped; GDPR erasure against permanent provenance.</td><td>An instrument that is non-transferable and non-appreciating sits outside MiCA&rsquo;s core scope. Any convertibility pulls it back in.</td></tr>'+
+'<tr><td><strong>Singapore</strong></td><td>Payment services licensing; CPF interaction with recurring individual payments.</td><td>Payments licensing binds well before securities law does.</td></tr>'+
+'<tr><td><strong>Brazil</strong></td><td>CVM if any instrument is publicly offered; labour and consumer law on recurring contributor payments.</td><td>Whether a guaranteed five-year stream creates an employment relationship. Unresolved and material.</td></tr>'+
+'<tr><td><strong>India</strong></td><td><strong>FCRA</strong> &mdash; foreign contribution to civic activity is tightly controlled; EPFO on recurring payments.</td><td>Among the hardest anywhere. Only a domestic entity funded domestically is workable.</td></tr>'+
+'<tr><td><strong>Russia</strong></td><td>Foreign-agent designation triggered by foreign funding of civic activity.</td><td>Designation is operational and reputational, not merely administrative. Requires a deliberate decision about whether to operate at all.</td></tr>'+
+'<tr><td><strong>United Arab Emirates</strong></td><td>Unlicensed fundraising is a <strong>criminal</strong> offence; DFSA and DIFC for token-shaped instruments; end-of-service gratuity rules.</td><td>No informal pilot is possible. Licensing precedes any activity, without exception.</td></tr>'+
+'<tr><td><strong>China</strong></td><td>Charitable law requires registered domestic vehicles; token activity broadly prohibited.</td><td>Any chain-dependent layer is likely unusable. Chain neutrality is what makes participation conceivable at all.</td></tr>'+
+'</table><caption><strong>Every row requires qualified local counsel.</strong> This matrix orients where '+
+'risk actually sits. It is not an opinion on any jurisdiction and must not be relied on as one.</caption></div>'+
+'<p>The pattern across all eight rows is the same, and it is the most useful finding in this part: the '+
+'securities question absorbs most of the attention in this field and is close to the least of the '+
+'framework&rsquo;s problems. Fundraising authorisation, payments licensing and the guarantee exposure are '+
+'the live constraints, and all three are addressed by structure rather than by argument.</p>');
+
+L(3,"legal.pension","New in r3. The guarantee exposure treated as first-order.",
+'<h2>The guarantee exposure</h2>'+
+'<div class="notice hot"><span class="tag">&#9888; The single most likely reason this gets stopped</span>'+
+'<p style="margin-bottom:0">It has nothing to do with tokens, crypto, or securities law.</p></div>'+
+'<p>The locked definition says earned value is paid out over five years, <strong>guaranteed</strong>. That '+
+'word is correct, humane, and the whole point of the livelihood design. It is also, in substance, a '+
+'<strong>defined-benefit obligation to individuals</strong> &mdash; and every developed jurisdiction '+
+'regulates those heavily, because history is full of guarantees that were not kept.</p>'+
+'<p>The current backing is an alert threshold, not a funding rule: '+
+'<code>ALERT if treasury_coverage_ratio &lt; 0.20</code> '+
+'(<code>Token_Governance_Math.md:241-247</code>). A five-year guaranteed stream backed by twenty percent '+
+'reserves is an unfunded retirement promise. It engages ERISA in the United States, CPF in Singapore, '+
+'EPFO in India, and end-of-service gratuity rules in the UAE &mdash; before it engages any securities '+
+'regulator anywhere.</p>'+
+'<h3>Shield V: the funded reserve</h3>'+
+'<pre><code>RULE (Immutable)\n'+
+'  An obligation may be incurred ONLY against reserves actually held.\n\n'+
+'  committed          = sum of all unpaid instalments already earned\n'+
+'  reserve            = ring-fenced assets, not general treasury\n'+
+'  coverage           = reserve / committed\n\n'+
+'  coverage &gt;= 1.00   ->  the ceiling may be earned normally\n'+
+'  coverage &lt;  1.00   ->  NEW earning is throttled; earned instalments are unaffected\n'+
+'  coverage &lt;  1.00   ->  the shortfall is PUBLISHED, in every signatory language, that month</code></pre>'+
+'<p>Three properties make this the right rule rather than merely a stricter one.</p>'+
+'<p><strong>It throttles the future, never the past.</strong> A contributor who has earned instalments '+
+'keeps them under every scenario. Only new earning slows. That is what makes the guarantee a guarantee '+
+'instead of an aspiration, and it is the difference between this and every pension that failed.</p>'+
+'<p><strong>The reserve is ring-fenced.</strong> Held separately from operating funds and not available to '+
+'general expenditure. A reserve a treasury can spend is not a reserve.</p>'+
+'<p><strong>Shortfall is disclosed, not managed.</strong> Under the project&rsquo;s own disclosure rule, a '+
+'coverage ratio below 1.00 is published the month it occurs. A silently underfunded guarantee is the '+
+'failure mode this rule exists to prevent, and silence is how every historical example of it began.</p>');
+
+L(3,"legal.entity","New in r3. Entity form as patterns, not a pick.",
+'<h2>The legal form</h2>'+
+'<p>The vehicle that carries the Five Shields is a <strong>steward-ownership, asset-locked purpose entity, '+
+'federated as a domestic legal person in each participating region</strong>. Its four properties map one '+
+'to one onto the shields:</p>'+
+'<dl class="defs">'+
+'<dt>No equity</dt><dd>Shield I. Nothing to acquire; no shares exist to be bought or inherited.</dd>'+
+'<dt>Asset lock</dt><dd>Shield II. Assets transfer only to another purpose-locked body &mdash; a statutory '+
+'feature of several existing community-interest forms rather than a contractual promise.</dd>'+
+'<dt>Control separated from capital</dt><dd>Shield IV. Economic rights and governance rights are different '+
+'instruments by construction, so acquiring one cannot acquire the other.</dd>'+
+'<dt>Federated personality</dt><dd>Shield III. Each region hosts its own legal person, so no government '+
+'holds a global off switch and no region is funded from abroad.</dd></dl>'+
+'<p>Real precedents exist and none of them are exotic: industrial foundations holding operating companies '+
+'in perpetuity, statutory asset-locked community forms, and non-distributing purpose trusts. They are '+
+'offered here as <em>patterns with trade-offs</em>, not as a recommendation of one vehicle. Each carries '+
+'materially different tax, reporting and dissolution consequences in each jurisdiction, and the right '+
+'answer in Delaware is the wrong answer in Mumbai. <strong>Requires qualified local counsel in every '+
+'region, without exception.</strong></p>');
+
+L(3,"legal.dissolution","New in r3. Asset locks fail at the terminus.",
+'<h2>Dissolution</h2>'+
+'<p>Asset locks characteristically fail at one point: the end. A lock with no named terminus is a lock '+
+'with a hole in it, because at dissolution someone must decide where the value goes and that someone is '+
+'usually the person holding it.</p>'+
+'<p>Three rules, all Immutable:</p>'+
+'<ol>'+
+'<li><strong>The beneficiary is named in advance</strong> &mdash; another purpose-locked body with a '+
+'materially identical purpose, identified in the constituting documents, never chosen at the moment of '+
+'dissolution.</li>'+
+'<li><strong>Never to individuals.</strong> Not to founders, not to stewards, not to contributors, not '+
+'pro rata to anyone. Contributors&rsquo; earned instalments are a liability settled before dissolution, '+
+'not a claim on residual assets.</li>'+
+'<li><strong>The reserve settles first.</strong> Committed instalments under Shield V are discharged in '+
+'full before any residual transfer. The guarantee outlives the institution &mdash; otherwise it was never '+
+'a guarantee, only a policy.</li>'+
+'</ol>'+
+'<p>Rule three is the one that makes the other two mean anything. A framework whose promises evaporate '+
+'when it winds up has taught every participant that the promises were conditional all along.</p>');
+
+/* ══════════ RELEASE 4 ══════════ */
+
+L(4,"frame.accords","New in r4. Krishna raised this three releases running.",
+'<h2>Binding to the Atlantis Accords</h2>'+
+'<p>Every clause in this document answers to an article of the Accords. A clause with no article is an '+
+'orphan, and an orphan is a clause nobody maintains. Building the map surfaced two.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Accords article</th><th>What it commits to</th><th>Clauses in this document</th></tr>'+
+'<tr><td><strong>&sect;5 &mdash; Adopt: Funding and Governance</strong></td><td>Citizen funding; no contribution buys governance influence, from any source, ever; overhead and institutional gifts capped; full public accounting monthly in every signatory language.</td><td>Shield IV &middot; the renunciation table &middot; the multiple guard &middot; disclosure of reserve shortfall</td></tr>'+
+'<tr><td><strong>&sect;5 &mdash; independence clause</strong></td><td>Deliberate independence from every existing multilateral channel, because single-point dependencies compromise durability across a five-hundred-year horizon.</td><td>Shield III federated personality &middot; chain neutrality &middot; the plural settlement ladder</td></tr>'+
+'<tr><td><strong>&sect;6 &mdash; open publication</strong></td><td>Funded work is published openly and inherited by non-signatory regions.</td><td>The renunciation of exclusivity &middot; the contribution receipt</td></tr>'+
+'<tr><td><strong>&sect;5 &mdash; traceability</strong></td><td>Every unit of value traceable from origin to stipend to the person it serves to the project that emerges.</td><td>The append-only ledger &middot; mint-versus-settle &middot; the earner-rate stamp</td></tr>'+
+'<tr><td><strong>Constitution Art. 5 &mdash; Stewardship</strong></td><td>Seven-year terms with a three-year handover.</td><td><em>Orphan found:</em> the term &ldquo;7+3&rdquo; is cited but defined nowhere in the corpus.</td></tr>'+
+'<tr><td><strong>&mdash; no article &mdash;</strong></td><td>&mdash;</td><td><em>Orphan found:</em> the five-year guaranteed payout has no Accords article. It is the most consequential promise in the system and it is constitutionally unanchored.</td></tr>'+
+'</table><caption>Two orphans found by building the map, and finding them is worth more than the map. '+
+'The second is serious: Shield V protects a promise that no article yet requires.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Orphan &middot; escalated</span>'+
+'<p style="margin-bottom:0"><strong>The five-year guarantee needs an Accords article.</strong> Right now it '+
+'lives in an operator instruction and in this document. If it is genuinely Immutable &mdash; and the '+
+'locked definition says it is &mdash; it belongs in the constitutional layer, where amending it is as hard '+
+'as the promise is serious. Registered as an open decision.</p></div>');
+
+L(4,"frame.soi","New in r4. Cube ownership for every clause.",
+'<h2>Binding to the SoI cube architecture</h2>'+
+'<p>An article says what is owed. A cube is what implements it and what breaks when it is wrong. Both are '+
+'needed: an obligation with no implementing component is a wish, and a component with no obligation is '+
+'unaccountable machinery.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Clause</th><th>Owning cube</th><th>Status today</th></tr>'+
+'<tr><td>&#50883; minting from contributed time</td><td><strong>Cube 5</strong> &mdash; Gateway</td><td><span class="pill p-live">&#9888; Live defect</span> rate applied at mint</td></tr>'+
+'<tr><td>Ledger, lifecycle, settlement</td><td><strong>Cube 8</strong> &mdash; Token Ledger</td><td><span class="pill p-live">&#9888; Live defect</span> &#50883; purchasable with money</td></tr>'+
+'<tr><td>Multiple bands and assignment</td><td><strong>Cube 8</strong> &mdash; Token Ledger</td><td><span class="pill p-prop">Proposed</span></td></tr>'+
+'<tr><td>Reach rate and reserve coverage reporting</td><td><strong>Cube 9</strong> &mdash; Reports</td><td><span class="pill p-prop">Proposed</span></td></tr>'+
+'<tr><td>Prioritisation weighting and the influence cap</td><td><strong>Cube 7</strong> &mdash; Ranking</td><td><span class="pill p-impl">Implemented</span> <code>ranking_aggregation.py:32-43</code></td></tr>'+
+'<tr><td>Determinism proof and conformance gating</td><td><strong>Cube 12</strong> &mdash; Verify</td><td>Framework</td></tr>'+
+'<tr><td>Replay against baseline</td><td><strong>Cube 11</strong> &mdash; Replay / Metrics</td><td>Framework</td></tr>'+
+'<tr><td>Quote-lock with at least one human signature</td><td><strong>Cube 25</strong> &mdash; Governance &amp; Quote Board</td><td>Framework</td></tr>'+
+'<tr><td>Actuals against quote, feeding the next cycle</td><td><strong>Cube 27</strong> &mdash; Delivery &amp; Actuals</td><td>Framework</td></tr>'+
+'<tr><td>Execution routed by capability, not passport</td><td><strong>Cube 26</strong> &mdash; Execution Marketplace</td><td>Framework</td></tr>'+
+'</table><caption>Two clauses land on cubes carrying live defects, and both defects are in the money path. '+
+'That is not a coincidence &mdash; the money path is where the framework and the code have diverged '+
+'most.</caption></div>');
+
+L(4,"frame.loop","New in r4. How the frame makes the document self-amending.",
+'<h2>The loop this document sits inside</h2>'+
+'<p>Binding to articles and cubes does one more thing, and it is the reason the binding was worth four '+
+'releases of nagging: it makes this document <strong>amendable by the system it describes</strong> rather '+
+'than by whoever happens to hold the file.</p>'+
+'<figure class="scroll dia"><svg viewBox="0 0 660 250" role="img" aria-label="Amendment loop: proposal, collection, compression, ranking, human signature, conformance, adoption, actuals feeding back.">'+
+'<defs><marker id="lp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>'+
+'<g font-size="11.5" fill="currentColor">'+
+'<rect x="14" y="26" width="112" height="44" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="70" y="45" text-anchor="middle" font-weight="700">PROPOSAL</text><text x="70" y="61" text-anchor="middle" font-size="10">any verified person</text>'+
+'<rect x="152" y="26" width="112" height="44" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="208" y="45" text-anchor="middle" font-weight="700">COLLECT</text><text x="208" y="61" text-anchor="middle" font-size="10">Cube 22 &middot; 33 languages</text>'+
+'<rect x="290" y="26" width="112" height="44" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="346" y="45" text-anchor="middle" font-weight="700">COMPRESS</text><text x="346" y="61" text-anchor="middle" font-size="10">Cube 6 &middot; deterministic</text>'+
+'<rect x="428" y="26" width="112" height="44" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="484" y="45" text-anchor="middle" font-weight="700">RANK</text><text x="484" y="61" text-anchor="middle" font-size="10">Cube 7 &middot; capped 15%</text>'+
+'<rect x="428" y="128" width="112" height="44" fill="none" stroke="currentColor" stroke-width="2.4"/><text x="484" y="147" text-anchor="middle" font-weight="700">SIGN</text><text x="484" y="163" text-anchor="middle" font-size="10">Cube 25 &middot; a person</text>'+
+'<rect x="290" y="128" width="112" height="44" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="346" y="147" text-anchor="middle" font-weight="700">CERTIFY</text><text x="346" y="163" text-anchor="middle" font-size="10">Cube 12 &middot; conformance</text>'+
+'<rect x="152" y="128" width="112" height="44" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="208" y="147" text-anchor="middle" font-weight="700">ADOPT</text><text x="208" y="163" text-anchor="middle" font-size="10">corpus updated</text>'+
+'<rect x="14" y="128" width="112" height="44" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="70" y="147" text-anchor="middle" font-weight="700">ACTUALS</text><text x="70" y="163" text-anchor="middle" font-size="10">Cube 27 &middot; vs quote</text>'+
+'</g>'+
+'<g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#lp)">'+
+'<line x1="126" y1="48" x2="146" y2="48"/><line x1="264" y1="48" x2="284" y2="48"/><line x1="402" y1="48" x2="422" y2="48"/>'+
+'<line x1="484" y1="70" x2="484" y2="122"/><line x1="428" y1="150" x2="408" y2="150"/><line x1="290" y1="150" x2="270" y2="150"/><line x1="152" y1="150" x2="132" y2="150"/>'+
+'<path d="M70 172 L70 206 L330 206 L330 218"/></g>'+
+'<text x="330" y="236" text-anchor="middle" font-size="11" fill="currentColor">next cycle&rsquo;s inputs &mdash; the loop never terminates</text>'+
+'</svg><figcaption>Anyone may propose. The machine compresses. The crowd ranks. A person signs &mdash; and '+
+'only that signature changes anything. Then reality reports back. This document is a version inside that '+
+'loop, not an authority above it.</figcaption></figure>'+
+'<p>Two safeguards keep the loop from eating itself. Immutable provisions cannot be amended by this or any '+
+'process &mdash; only dissolution reaches them. And the conformance gate at Cube 12 checks a proposed '+
+'amendment against the generated dependency map, so a change that would contradict something upstream '+
+'fails before it reaches a signature rather than after.</p>');
+
+/* ── engine ───────────────────────────────────────────────────────────── */
+const VMAX = VERSIONS.length;
+let active = VMAX, showDiff = true, playing = null;
+
+function fnv1a(s){
+  let h = 0x811c9dc5;
+  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return ("00000000"+h.toString(16)).slice(-8);
+}
+
+/* Deterministic reconstruction: pure function of v. */
+function replay(v){
+  const out = [];
+  for (const id of ORDER){
+    let pick = null;
+    for (const e of LEDGER){ if (e.id === id && e.v <= v){ if (!pick || e.v >= pick.v) pick = e; } }
+    if (pick) out.push(pick);
+  }
+  return out;
+}
+
+function stateHash(v){
+  const blocks = replay(v);
+  return fnv1a(blocks.map(function(b){ return b.id + "@" + b.v + ":" + b.html.length + ":" + b.html; }).join("|"));
+}
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function gradeCls(g){
+  const c = g.charAt(0);
+  return c === "A" ? "g-a" : c === "B" ? "g-b" : c === "C" ? "g-c" : "g-d";
+}
+
+function renderDoc(){
+  const V = VERSIONS[active-1];
+  const blocks = replay(active);
+
+  document.getElementById("vban").innerHTML =
+    '<div class="vban"><span class="tag">' + V.stamp + ' &middot; ' +
+    (active === VMAX ? 'latest release' : 'historical release') + '</span>' +
+    '<div class="vtitle">v' + V.v + ' &mdash; ' + V.code + '</div>' +
+    '<p><strong>Thrust.</strong> ' + V.thrust + '</p>' +
+    '<p><strong>Directive that produced it.</strong> ' + V.mot + '</p>' +
+    '<div class="vstats">' +
+      '<span>clauses <b>' + V.stats.clauses + '</b></span>' +
+      '<span>jurisdictions covered <b>' + V.stats.jur + '</b></span>' +
+      '<span>shields <b>' + V.stats.shields + '</b></span>' +
+      '<span>defects disclosed <b>' + V.stats.defects + '</b></span>' +
+      '<span>ceiling reach <b>' + V.stats.reach + '</b></span>' +
+      '<span>panel mean <b>' + panelMean(V) + '</b></span>' +
+    '</div></div>';
+
+  let n = 0, html = "";
+  for (const b of blocks){
+    n++;
+    const chg = (b.v === active);
+    html += '<section class="blk' + (chg && showDiff ? ' chg' : '') + '" id="blk-' + b.id + '">' +
+      '<div class="bn">' + ("0"+n).slice(-2) + '</div><div class="bb">' + b.html +
+      (chg && showDiff ? '<p style="margin-top:14px"><span class="chgtag">changed in v' + active + '</span> ' +
+        '<span class="meta" style="font-size:13px">' + esc(b.why) + '</span></p>' : '') +
+      '</div></section>';
+  }
+  document.getElementById("doc").innerHTML = html;
+
+  document.getElementById("vNow").textContent = "v" + active + (active === VMAX ? " (latest)" : "");
+  document.getElementById("vSlide").value = active;
+  document.getElementById("vHash").innerHTML = "state " + stateHash(active) + " &middot; " + blocks.length + " blocks";
+  document.getElementById("bPrev").disabled = (active === 1);
+  document.getElementById("bNext").disabled = (active === VMAX);
+  if (history.replaceState) history.replaceState(null, "", "#v" + active);
+
+  renderReview();
+  renderLedger();
+  renderRcore();
+}
+
+function panelMean(V){
+  const pts = {"A+":4.3,"A":4.0,"A-":3.7,"B+":3.3,"B":3.0,"B-":2.7,"C+":2.3,"C":2.0,"C-":1.7,"D+":1.3,"D":1.0};
+  let s = 0; for (const a of V.asm) s += (pts[a.g] || 0);
+  const m = s / V.asm.length;
+  let best = "D", bd = 9;
+  for (const k in pts){ const d = Math.abs(pts[k]-m); if (d < bd){ bd = d; best = k; } }
+  return best + " (" + m.toFixed(2) + ")";
+}
+
+function renderReview(){
+  const V = VERSIONS[active-1];
+  let pills = '<div class="pills" style="margin:0 0 16px">';
+  for (const W of VERSIONS){
+    pills += '<button data-goto="' + W.v + '"' + (W.v === active ? ' class="on"' : '') +
+             ' title="' + esc(W.code) + '">v' + W.v + '</button>';
+  }
+  pills += '</div>';
+
+  let rows = "";
+  for (const a of V.asm){
+    rows += '<tr><td><strong>' + a.n + '</strong></td>' +
+            '<td class="n"><span class="grade ' + gradeCls(a.g) + '">' + a.g + '</span></td>' +
+            '<td>' + a.f + '</td></tr>';
+  }
+
+  document.getElementById("review").innerHTML = pills +
+    '<p>Twelve reviewers assess every release independently, each against a single lens. Grades are the '+
+    'reviewer&rsquo;s judgement of this release within their own domain, not of the project overall.</p>' +
+    '<div class="scroll"><table><tr><th>Reviewer</th><th class="n">Grade</th><th>Finding on v' + active + '</th></tr>' +
+    rows + '</table><caption>Panel mean for v' + active + ': <strong>' + panelMean(V) +
+    '</strong>. Reviewers are expected to disagree; convergence across releases is the signal, not any one grade.</caption></div>' +
+    '<div class="notice ' + (active === VMAX ? 'ok' : 'key') + '"><span class="tag">' +
+    (active === VMAX ? 'Directive for the next release &mdash; not yet shipped' : 'Directive that produced v' + (active+1)) +
+    '</span><p style="margin-bottom:0">' + V.next + '</p></div>';
+
+  const btns = document.querySelectorAll("[data-goto]");
+  for (let i=0;i<btns.length;i++){
+    btns[i].addEventListener("click", function(){ goto(parseInt(this.getAttribute("data-goto"),10)); });
+  }
+}
+
+function renderLedger(){
+  let rows = "";
+  for (const e of LEDGER){
+    const future = e.v > active;
+    rows += '<tr style="' + (future ? 'opacity:.38' : '') + '">' +
+      '<td class="n">v' + e.v + '</td>' +
+      '<td><code>' + e.id + '</code></td>' +
+      '<td>' + esc(e.why) + '</td>' +
+      '<td class="n">' + e.html.length + '</td>' +
+      '<td class="n">' + (future ? 'future' : (e.v === active ? 'THIS' : 'applied')) + '</td></tr>';
+  }
+  document.getElementById("ledger").innerHTML =
+    '<p>Entries dimmed below are in the future relative to the release you are viewing. Move the slider '+
+    'forward and they apply; move it back and they un-apply. Nothing is deleted &mdash; superseded entries '+
+    'stay in the ledger and stay readable.</p>' +
+    '<div class="scroll"><table><tr><th class="n">Rel</th><th>Block</th><th>Why it changed</th>' +
+    '<th class="n">Bytes</th><th class="n">State</th></tr>' + rows +
+    '</table><caption>' + LEDGER.length + ' entries across ' + VMAX + ' releases, covering ' +
+    ORDER.length + ' addressable blocks. Last-write-wins per block, replayed in order.</caption></div>';
+}
+
+function renderRcore(){
+  document.getElementById("rcore").innerHTML =
+    '<p>The document above was not stored. It was rebuilt from the ledger the moment you selected this '+
+    'release. That is the whole R-CORE claim in miniature &mdash; and unlike most such claims, you can '+
+    'test it here rather than take it on trust.</p>' +
+    '<div class="scroll"><table>' +
+    '<tr><th>Mode</th><th>What runs</th><th>Who approves</th></tr>' +
+    '<tr><td><code>replay</code></td><td>The same reconstruction, from the same ledger.</td><td>Nobody &mdash; it is a pure function.</td></tr>' +
+    '<tr><td><code>sandbox</code></td><td>A proposed edit applied to a copy of the ledger.</td><td>Automated, inside the risk guardrail.</td></tr>' +
+    '<tr><td><code>live</code></td><td>An edit appended to the real ledger.</td><td><strong>Always a person.</strong> A permanent gate.</td></tr>' +
+    '</table><caption>Seven execution modes exist in <code>backend/app/core/rcore/execution_modes.py</code>; ' +
+    'three are shown. Automated acceptance is refused above <code>DEFAULT_MAX_RISK = 0.30</code> or below ' +
+    '<code>DEFAULT_MIN_CONFIDENCE = 0.70</code>, and <code>live</code> always requires human authority.</caption></div>' +
+    '<h3>Test it</h3>' +
+    '<p style="margin-bottom:10px"><button id="bProve">Replay this release 33 times</button> ' +
+    '<button id="bProveAll">Replay every release 33 times</button></p>' +
+    '<pre id="proof"><code>Press a button. Each run reconstructs the document from scratch and hashes the result.\n' +
+    'Identical inputs must produce an identical hash, every time, or the claim is false.</code></pre>';
+
+  document.getElementById("bProve").addEventListener("click", function(){
+    const t0 = performance.now(); const hs = [];
+    for (let i=0;i<33;i++) hs.push(stateHash(active));
+    const uniq = {}; for (const h of hs) uniq[h] = 1;
+    const nu = Object.keys(uniq).length;
+    document.getElementById("proof").innerHTML = '<code>' +
+      'replay v' + active + ' x33\n' +
+      'distinct hashes : ' + nu + '\n' +
+      'result          : ' + (nu === 1 ? '33/33 IDENTICAL  ' + hs[0] : 'FAILED &mdash; nondeterministic') + '\n' +
+      'elapsed         : ' + (performance.now()-t0).toFixed(1) + ' ms' + '</code>';
+  });
+  document.getElementById("bProveAll").addEventListener("click", function(){
+    const t0 = performance.now(); let lines = "", ok = true;
+    for (let v=1; v<=VMAX; v++){
+      const hs = []; for (let i=0;i<33;i++) hs.push(stateHash(v));
+      const uniq = {}; for (const h of hs) uniq[h] = 1;
+      const nu = Object.keys(uniq).length; if (nu !== 1) ok = false;
+      lines += 'v' + v + '  ' + replay(v).length + ' blocks  ' + hs[0] + '  ' +
+               (nu === 1 ? '33/33 identical' : 'FAILED') + '\n';
+    }
+    document.getElementById("proof").innerHTML = '<code>' + lines +
+      '\n' + (ok ? (VMAX*33) + '/' + (VMAX*33) + ' runs identical across ' + VMAX + ' releases' : 'FAILED') +
+      '\nelapsed : ' + (performance.now()-t0).toFixed(1) + ' ms</code>';
+  });
+}
+
+function goto(v){
+  active = Math.max(1, Math.min(VMAX, v));
+  renderDoc();
+}
+function stop(){ if (playing){ clearInterval(playing); playing = null; document.getElementById("bPlay").innerHTML = "&#9654; Play"; } }
+
+document.getElementById("bPrev").addEventListener("click", function(){ stop(); goto(active-1); });
+document.getElementById("bNext").addEventListener("click", function(){ stop(); goto(active+1); });
+document.getElementById("bLatest").addEventListener("click", function(){ stop(); goto(VMAX); });
+document.getElementById("vSlide").addEventListener("input", function(){ stop(); goto(parseInt(this.value,10)); });
+document.getElementById("bDiff").addEventListener("click", function(){
+  showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
+});
+document.getElementById("bPlay").addEventListener("click", function(){
+  if (playing){ stop(); return; }
+  if (active === VMAX) active = 1;
+  this.innerHTML = "&#10073;&#10073; Pause";
+  renderDoc();
+  playing = setInterval(function(){
+    if (active >= VMAX){ stop(); return; }
+    goto(active+1);
+  }, 2600);
+});
+document.addEventListener("keydown", function(e){
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowLeft"){ stop(); goto(active-1); }
+  if (e.key === "ArrowRight"){ stop(); goto(active+1); }
+});
+
+(function init(){
+  document.getElementById("vSlide").max = VMAX;
+  const m = /^#v(\d+)$/.exec(location.hash);
+  active = m ? Math.max(1, Math.min(VMAX, parseInt(m[1],10))) : VMAX;
+  renderDoc();
+})();
+</script>
