@@ -357,7 +357,8 @@ const ORDER = [
  "gov.wall","gov.layers","gov.primacy",
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
  "legal.pension","legal.ramp","legal.dissolution","legal.engage","legal.join",
- "gov.council","gov.ladder","gov.personhood","gov.recall","gov.cadence",
+ "gov.council","gov.ladder","gov.personhood","gov.recall",
+ "off.switch","off.reserve","off.trust","off.restart","gov.cadence",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
  "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.score","corpus.iterations","corpus.cubes","corpus.empires",
  "rcore.ledger","rcore.modes",
@@ -1124,6 +1125,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Publishing that $100bn buys 1.57% of the target at the floor rate, and 0.07% at the Austin anchor, is the most dangerous paragraph in the document and the most necessary one."}
  ],
  next:"Comparison exists; the reader can now audit any pair of releases. The 2525 objective is restated in lives and its funding gap is published rather than implied. What remains for the ninety-nine: the three ratifications, the reserve fork, the Accords caps, and the language pass. From here the releases should get smaller and more specific, because the structure is done and only the evidence is missing."
+},
+{
+ v:37, code:"THE OFF SWITCH", stamp:"2026.08.04 &middot; release 37",
+ thrust:"Humanity can vote this system off. The reserve unwinds by contribution index, the guarantee survives the shutdown, and a restart must arrive carrying improvements.",
+ mot:"Operator directive, and the most important structural addition since the shields. Thirty-six releases built a system designed to survive being switched off by a government. None of them gave humanity the right to switch it off themselves. That asymmetry is the exact shape of every institution that outlived its usefulness and could not be ended, and we built it by accident while congratulating ourselves on the shields. Fix it. Four things: a sovereign vote to stop, a reserve unwind indexed to Revenue, Gross Profit, Operating Income and R&amp;D Spend over each holder&rsquo;s tenure, a Continuity Trust that only a restart can open, and a dormancy that is randomly drawn so nobody can time it. And one condition on coming back: you may not restart the same system you switched off.",
+ stats:{clauses:238, jur:103, shields:5, defects:11, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"A ledger that cannot be closed is not a ledger, it is a monument. The right to end it is what makes the record honest rather than devotional."},
+  {n:"Asar",   g:"A+", f:"Ending is now part of the design rather than an accident waiting at the edge of it. That completes the arc that began with the unit."},
+  {n:"Athena", g:"A+", f:"The shields stop others switching it off; the switch lets its own people. Together they mean the system can only die by consent, which is the only legitimate way for it to die."},
+  {n:"Christo",g:"A+", f:"The guarantee survives the shutdown. Someone two years into a five-year payout does not lose it because a vote went a certain way &mdash; and that single rule is what separates a promise from a mood."},
+  {n:"Enki",   g:"A",  f:"The random dormancy is the cleverest part. A known restart date would be organised around, capitalised on, and politically timed. A drawn one cannot be."},
+  {n:"Enlil",  g:"A+", f:"The Continuity Index is defined on DIFFERENCES, not ratios, so it survives an operating income that starts negative. The naive ratio reading gives -144.0 and is meaningless; this is checked in the block."},
+  {n:"Krishna",g:"A+", f:"The restart runs through the existing pipeline &mdash; collect, compress, rank, certify, sign. No new machinery. The improvement mandate reuses the loop the framework already runs."},
+  {n:"Odin",   g:"A+", f:"Two new defects published in the same release that creates them. The late-holder wipeout is genuinely dangerous and the register says so rather than waiting to be found."},
+  {n:"Pangu",  g:"A+", f:"Proof of the restart is a compare() call between the release that was switched off and the one that comes back. The tool built last release turns out to be the enforcement mechanism for this one."},
+  {n:"Sofia",  g:"A+", f:"Seed Token holders fund the shutdown payout and get no extra vote on the shutdown. Money receives; it does not decide. Thirty-seven releases of saying that, and here is the first place it costs somebody something."},
+  {n:"Thoth",  g:"A+", f:"Reconciled: reserve $500.00M less committed $173.98M leaves $326.02M free; $239.95M distributed and $86.07M to the Trust. Five instalments of $14,498.55 equal the $72,492.75 full-ceiling figure from release 30. The index runs 1.0000 at founding to 0.0000 at shutdown, monotone, no discontinuity."},
+  {n:"Thor",   g:"A+", f:"The attack this defeats is the one nobody defends against: an institution that has stopped being useful and cannot be stopped. Every safeguard before this one assumed we would still deserve to exist."}
+ ],
+ next:"The switch exists and its two dangers are published: a late holder can be wiped out, and the shutdown threshold is unratified. Both need a person. The proposed principal floor would fix the first and needs the operator; the thresholds need the councils. Until they are ratified this is a specified mechanism rather than a live one, and the register says so."
 }
 ];
 
@@ -4442,6 +4464,233 @@ L(36,"corpus.iterations","Replay became comparison. Any two of the ninety-nine r
 '<p>The cost of that honesty is that the list is only as good as the reasons we wrote down. A lazy '+
 '<code>why</code> string produces a lazy improvement note, visibly, in public, forever. That is the '+
 'intended incentive.</p>');
+
+/* ══════════ RELEASE 37 ══════════ */
+
+L(37,"off.switch","Operator directive: humanity must be able to vote the system off. Thirty-six releases defended against others switching it off and gave its own people no way to.",
+'<h2>The right to switch it off</h2>'+
+'<div class="notice key"><span class="tag">The asymmetry this closes</span>'+
+'<p style="margin-bottom:0">Five shields exist to stop <em>anyone else</em> ending this system. Until '+
+'release 37 there was no way for <strong>the people inside it</strong> to end it. That is the exact shape '+
+'of every institution that outlived its usefulness and could not be stopped &mdash; and we built it by '+
+'accident while congratulating ourselves on the shields.</p></div>'+
+'<p>Any natural person may petition to switch the system off. The vote is <strong>sovereignty '+
+'class</strong>, which under the wall (r19) means <strong>unweighted, one person one vote</strong>. It is '+
+'not prioritisation, so the quadratic weighting and the 15% cap do not apply, and neither does anything '+
+'anyone contributed.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Seed Token holders get no extra vote on this</span>'+
+'<p style="margin-bottom:0">The people who funded the reserve are the people the reserve pays out to when '+
+'it closes &mdash; and they vote on the shutdown with exactly the same single vote as someone who has '+
+'never given a cent. This is the first place in thirty-seven releases where &ldquo;money receives, it does '+
+'not decide&rdquo; costs somebody something real. If that rule is ever going to be quietly softened, it '+
+'will be softened here.</p></div>'+
+'<h3>Thresholds &mdash; proposed, not ratified</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Gate</th><th class="n">Proposed</th><th>Why this shape</th></tr>'+
+'<tr><td>Petition to open a vote</td><td class="n">0.1% of enrolled persons</td>'+
+'<td>Low enough that dissent cannot be gatekept; high enough that it is not one person&rsquo;s bad week.</td></tr>'+
+'<tr><td>Quorum</td><td class="n">40% of enrolled</td><td>A minority cannot end it through everyone else&rsquo;s absence.</td></tr>'+
+'<tr><td>Carry</td><td class="n">60% of votes cast</td><td>Ending is a sovereign act. A bare majority is not enough; unanimity is a veto for the complacent.</td></tr>'+
+'<tr><td>Confirmation</td><td class="n">repeat vote, 180 days later</td><td>The same result twice, half a year apart. One angry season cannot do it.</td></tr>'+
+'<tr><td>Effect</td><td class="n">90 days after confirmation</td><td>Time to close sessions, settle 웃 in flight, and publish the final state.</td></tr>'+
+'</table><caption>These five numbers are a <strong>proposal awaiting ratification</strong>, in the same '+
+'state as the three decisions at release 31. Until the councils set them, the switch is a specified '+
+'mechanism rather than a live one, and the defect register says so.</caption></div>'+
+'<p>Switch-off is <strong>Immutable class</strong> as a right and <strong>Adaptive class</strong> as a '+
+'number: the ability to end the system can never be removed, amended away, or made conditional on '+
+'anyone&rsquo;s permission. The thresholds above can be changed by the ordinary process. The right cannot.</p>');
+
+L(37,"off.reserve","The reserve unwind. Indexed to Revenue, Gross Profit, Operating Income and R&D Spend across each holder tenure &mdash; and the guarantee survives the shutdown.",
+'<h2>What happens to the reserve</h2>'+
+'<p>At switch-off the reserve does not become a pot to be divided. It splits three ways, in strict order, '+
+'and the first claim is not a shareholder&rsquo;s.</p>'+
+'<div class="scroll dia"><svg viewBox="0 0 860 210" role="img" aria-label="Reserve splits three ways at shutdown: guarantee pool, holder pool, continuity trust">'+
+'<style>.l{font:600 12.5px ui-sans-serif,system-ui;fill:currentColor}.s{font:11px ui-monospace,monospace;fill:currentColor;opacity:.75}.b{fill:none;stroke:currentColor;stroke-width:1.5}</style>'+
+'<rect class="b" x="14" y="16" width="200" height="52" rx="5"/>'+
+'<text class="l" x="28" y="38">RESERVE at switch-off</text><text class="s" x="28" y="56">$500,000,000</text>'+
+'<path class="b" d="M114 68 L114 88 M114 88 L300 88 M300 88 L300 108 M114 88 L560 88 M560 88 L560 108 M114 88 L114 108"/>'+
+'<rect class="b" x="14" y="108" width="196" height="76" rx="5"/>'+
+'<text class="l" x="28" y="130">1 &middot; GUARANTEE POOL</text>'+
+'<text class="s" x="28" y="148">$173,982,600</text>'+
+'<text class="s" x="28" y="164">웃 already earned. Never</text><text class="s" x="28" y="178">distributable. Paid in full.</text>'+
+'<rect class="b" x="230" y="108" width="196" height="76" rx="5"/>'+
+'<text class="l" x="244" y="130">2 &middot; HOLDER POOL</text>'+
+'<text class="s" x="244" y="148">$239,948,806</text>'+
+'<text class="s" x="244" y="164">Seed Tokens, split by</text><text class="s" x="244" y="178">Continuity Index.</text>'+
+'<rect class="b" x="446" y="108" width="196" height="76" rx="5"/>'+
+'<text class="l" x="460" y="130">3 &middot; CONTINUITY TRUST</text>'+
+'<text class="s" x="460" y="148">$86,068,593</text>'+
+'<text class="s" x="460" y="164">Unclaimed + residue.</text><text class="s" x="460" y="178">Opens only on restart.</text>'+
+'<text class="s" x="662" y="130">Free reserve</text><text class="s" x="662" y="146">= $326,017,400</text>'+
+'<text class="s" x="662" y="166">= reserve &minus; committed</text><text class="s" x="662" y="182">(the r30 headroom term)</text>'+
+'</svg></div>'+
+'<div class="notice ok"><span class="tag">&#10003; The guarantee outlives the vote</span>'+
+'<p style="margin-bottom:0">Someone two years into a five-year payout does <strong>not</strong> lose the '+
+'remaining three because a vote went a certain way. Obligations already earned are discharged in full '+
+'before a single Seed Token is repaid. &ldquo;Paid out over five years, guaranteed&rdquo; means nothing if '+
+'a majority can cancel it, and the shutdown is precisely where that promise would be cheapest to break. '+
+'This uses the existing <code>headroom = reserve &minus; committed</code> term from release 30 rather than '+
+'a new one.</p></div>'+
+'<h3>The Continuity Index</h3>'+
+'<p>Each holder receives a share of the holder pool proportional to <strong>the increase across the four '+
+'metrics between the year they bought and the year the system stops</strong>. Four metrics, equally '+
+'weighted: <strong>Revenue &middot; Gross Profit &middot; Operating Income &middot; R&amp;D Spend.</strong></p>'+
+'<pre><code>for each metric m:   &Delta;m(y) = m(y_off) &minus; m(y_bought)\n'+
+'                    share_m(y) = &Delta;m(y) / &Delta;m(y_first)\n\n'+
+'Index(y) = &Sigma; w_m &middot; share_m(y)      w = 0.25 each\n'+
+'claim(h) = tokens(h) &times; Index(year_bought(h))\n'+
+'payout(h) = claim(h) / &Sigma;claims &times; holder_pool</code></pre>'+
+'<div class="notice"><span class="tag">Why differences and not ratios</span>'+
+'<p style="margin-bottom:0">The obvious reading is a growth ratio, <code>m(y_off) / m(y_bought)</code>. It '+
+'breaks immediately: operating income is <strong>negative</strong> in the early years of anything worth '+
+'building, and the ratio at year zero comes out at <code>&minus;144.0</code> &mdash; a number with no '+
+'meaning that would silently invert an early founder&rsquo;s claim. Differences are well defined through '+
+'zero, run cleanly from <strong>1.0000</strong> for the founding year to <strong>0.0000</strong> for '+
+'someone who bought on the day it stopped, and are monotone in between.</p></div>'+
+'<h3>Worked example &mdash; illustrative figures, real arithmetic</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Holder</th><th class="n">Bought</th><th class="n">Tokens</th><th class="n">Index</th><th class="n">Payout</th></tr>'+
+'<tr><td>Adaeze</td><td class="n">year 1</td><td class="n">100</td><td class="n">0.9958</td><td class="n">$33,364,877</td></tr>'+
+'<tr><td>Sokha</td><td class="n">year 4</td><td class="n">10</td><td class="n">0.9108</td><td class="n">$3,051,776</td></tr>'+
+'<tr><td>Mireille</td><td class="n">year 8</td><td class="n">1,000</td><td class="n">0.5902</td><td class="n">$197,745,879</td></tr>'+
+'<tr><td>Tomas</td><td class="n">year 11</td><td class="n">100</td><td class="n">0.1742</td><td class="n">$5,837,468</td></tr>'+
+'</table><caption>Twelve operating years; the four metrics grow from $2.0M / $1.2M / &minus;$0.5M / $1.5M '+
+'to $480M / $312M / $72M / $96M. Mireille holds ten times Adaeze&rsquo;s tokens and takes the largest '+
+'share; Adaeze earns <strong>$333,649 per token</strong> against Tomas&rsquo;s <strong>$58,375</strong> '+
+'for arriving ten years later. That ratio is the mechanism working exactly as specified.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Defect 16, published in the release that creates it</span>'+
+'<p>That same ratio is dangerous. A holder who buys in the final year receives '+
+'<strong>almost nothing</strong>; a holder who buys in the shutdown year receives <strong>exactly '+
+'zero</strong> and loses their entire contribution. So if shutdown ever begins to look likely, the '+
+'rational act is to stop funding &mdash; which drains the reserve, which makes shutdown likelier. '+
+'<strong>The rule is self-fulfilling at precisely the moment the system most needs money.</strong></p>'+
+'<p style="margin-bottom:0"><strong>Proposed guard, awaiting ratification:</strong> return of principal '+
+'first, pro rata if the pool cannot cover it, then the index-weighted split of whatever remains. Late '+
+'holders stop being wiped out; early holders keep the whole of the upside they actually generated. This '+
+'preserves the operator&rsquo;s rule for the surplus and only floors the downside &mdash; but it is a '+
+'change to a stated instruction, so it is proposed here rather than assumed.</p></div>');
+
+L(37,"off.trust","The Continuity Trust and the drawn dormancy. A known restart date could be timed; a drawn one cannot.",
+'<h2>The Continuity Trust, and the years of silence</h2>'+
+'<p>What the holders do not claim does not revert to anyone. It goes into a <strong>Continuity '+
+'Trust</strong> &mdash; asset-locked, under the same terms as Shield II, with a single permitted use: '+
+'<strong>funding a restart.</strong> No trustee may distribute it, borrow against it, or spend it on '+
+'anything else, and no one may wind it up.</p>'+
+'<p>There is a quiet justice in how it is funded. The Trust is built from <strong>the shares of the people '+
+'who did not come back to claim them</strong> &mdash; which is, near enough, the people a restart would be '+
+'for.</p>'+
+'<h3>Dormancy is drawn, not chosen</h3>'+
+'<p>At switch-off a dormancy of <strong>one, two or three years</strong> is selected by seeded draw from '+
+'the final state hash. Nothing may restart before it expires.</p>'+
+'<pre><code>D = ( sha256( "vision2525:shutdown:" + final_state_hash ) mod 3 ) + 1\n\n'+
+'   2464687d0e3dee896162ef1209e71244...  ->  D = 2 years\n'+
+'   earliest restart = D + 1  =  3 years after switch-off</code></pre>'+
+'<div class="notice key"><span class="tag">Why a coin and not a committee</span>'+
+'<p style="margin-bottom:0">A <em>chosen</em> dormancy would be negotiated, and a <em>known</em> restart '+
+'date would be organised around: capital parked against it, coalitions assembled for it, the restart timed '+
+'to a political season rather than a readiness. A drawn one cannot be. The draw is deterministic and '+
+'publishable, so anyone can verify it was not fixed &mdash; the same seeded-hash discipline this document '+
+'uses for replay, applied to the one number nobody should be able to influence.</p></div>'+
+'<p>The extra year on top of the draw is not delay for its own sake. It is the <strong>preparation '+
+'window</strong>: the period in which the improvement mandate below is actually compiled, compressed, '+
+'ranked and signed. Dormancy is when the system is off. The year after it is when the work of deserving to '+
+'come back gets done.</p>');
+
+L(37,"off.restart","Restart conditions. You may not switch back on the same system you switched off.",
+'<h2>Coming back</h2>'+
+'<p>A restart is not a reversal. Reversing a shutdown would make the vote theatre &mdash; a pause anyone '+
+'could wait out. Three conditions, all of which must hold:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Condition</th><th>What it prevents</th></tr>'+
+'<tr><td class="n">1</td><td><strong>The dormancy has expired</strong> and the preparation year has run &mdash; earliest D+1.</td>'+
+'<td>Waiting out a decision instead of accepting it.</td></tr>'+
+'<tr><td class="n">2</td><td><strong>A single agreed effective date.</strong> The restart petition carries one date; the vote is on that exact date. No date, no vote.</td>'+
+'<td>A restart that passes with no one agreeing when it happens.</td></tr>'+
+'<tr><td class="n">3</td><td><strong>The Improvement Mandate.</strong> Every petitioner submits at least one concrete change to make the system better. Nothing restarts without them.</td>'+
+'<td>Restarting the system that was rejected, unchanged, and expecting a different result.</td></tr>'+
+'</table></div>'+
+'<h3>The Improvement Mandate</h3>'+
+'<p>Submitted changes are not a wish list stapled to a petition. They enter the loop this framework '+
+'already runs, unmodified:</p>'+
+'<pre><code>collect (Cube 22, 33 languages)  ->  compress (Cube 6, deterministic)\n'+
+'  ->  rank (Cube 7, capped 15%)  ->  certify (Cube 12)  ->  sign (Cube 25, a person)\n'+
+'  ->  the restarted corpus</code></pre>'+
+'<div class="notice ok"><span class="tag">&#10003; The condition is machine-checkable</span>'+
+'<p style="margin-bottom:0">The restarted release must <strong>differ from the switched-off release in at '+
+'least one ratified block</strong>, and the difference must be publishable. That is not a promise anyone '+
+'has to trust &mdash; it is a <code>compare(v_off, v_restart)</code> call, which is the control built in '+
+'release 36. If it returns zero added and zero revised, the restart is void. The tool that shows a reader '+
+'what changed turns out to be the enforcement mechanism for whether a change happened at all.</p></div>'+
+'<p>Only on a valid restart does the Continuity Trust open, and only into the reserve &mdash; never into '+
+'anyone&rsquo;s hands. Holders who were paid out at shutdown are <strong>not</strong> repaid or reinstated; '+
+'their tenure ended when the system did. A restarted system raises its Seed again, from whoever believes '+
+'in the improved version, which is the only honest way to find out whether the improvements are real.</p>'+
+'<div class="notice key"><span class="tag">What the switch actually is</span>'+
+'<p style="margin-bottom:0">Read together, these four sections are not an exit. They are a <strong>forced '+
+'learning cycle with a real cost attached</strong>. Ending the system is permitted, survivable, and '+
+'expensive; coming back is permitted, delayed, and conditional on having learned something. A framework '+
+'that intends to run for five hundred years will be wrong at some point along the way, probably more than '+
+'once. This is the mechanism by which being wrong is recoverable instead of terminal &mdash; and the '+
+'reason it can be built at all is that nothing here is stored. It is replayed. A system that can '+
+'reconstruct any state it has ever held can afford to stop, because stopping does not erase '+
+'it.</p></div>');
+
+L(37,"open.defects","Two new defects, both created by the off switch and published in the release that creates them.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse '+
+'than a known one, and that rule applies to this document before it applies to anything else.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; The money path is clean; the exit path is new</span>'+
+'<p style="margin-bottom:0"><strong>Five defects closed in code</strong> across releases 34 and 35 '+
+'(<code>5c50425</code>, <code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Release 37 adds '+
+'two of its own, in the same release that creates the mechanism, before anyone has had to find '+
+'them.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index '+
+'0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop '+
+'funding, which makes it likelier.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td>'+
+'<td>Principal floor first, then the index split of the remainder. Proposed at r37; changes a stated '+
+'instruction, so it needs the operator.</td></tr>'+
+'<tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, '+
+'quorum, carry, confirmation and effect are all proposals. An unratified threshold is not a threshold.</td>'+
+'<td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td>'+
+'<td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td>'+
+'<td>An undefined cap is not a cap. Publish numbers.</td></tr>'+
+'<tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at '+
+'every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td>'+
+'<td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; '+
+'purchasable with money; governance weight from a balance; local wage applied at mint; cross-border '+
+'arbitrage; a currency constant inside the mint.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td>'+
+'<td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td>'+
+'<td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, specified with its ramp at r30, and now load-bearing in the shutdown split. Unbuilt.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; now '+
+'sharper, because the shutdown rule depends on it surviving a majority.</td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language '+
+'count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10.</td>'+
+'<td><span class="pill p-impl">&#10003; Closed</span></td>'+
+'<td>A generated dependency map prevents recurrence.</td></tr>'+
+'<tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary '+
+'to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td>'+
+'<td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr>'+
+'</table><caption><strong>Five closed in code, one closed by definition, three live, two specification-only, '+
+'two gaps, one accepted, one proposed.</strong> Every live item is now a decision rather than a bug. Two of '+
+'them were created this release, and both were published before anyone had to find them &mdash; which is '+
+'the only version of the disclosure rule that means anything.</caption></div>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
