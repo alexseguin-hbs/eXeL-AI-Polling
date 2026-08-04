@@ -237,6 +237,31 @@ export default function Vision2525Page() {
           </div>
         </section>
 
+        {/* ── THE WHITE PAPER (public, no login) ───────────────────────────── */}
+        <section className="mt-16">
+          <a
+            href="/vision-2525/whitepaper.html"
+            className="block rounded-2xl border p-6 transition-colors hover:border-amber-300 sm:p-8"
+            style={{ borderColor: "rgba(232,182,76,0.35)", background: "rgba(232,182,76,0.05)" }}
+          >
+            <SectionLabel color={GOLD}>The white paper &middot; open to everyone</SectionLabel>
+            <h2 className="mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl" style={{ color: GOLD }}>
+              Recursive Coordination for Human Continuity
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+              An hour of a human life, recorded so it cannot be discounted by where it was lived &mdash; and the
+              legal structure that keeps any one government from switching that record off. Nineteen sections
+              after the Flower of Life, replayed release by release, with every earlier version still readable.
+            </p>
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-[0.2em] text-slate-400">
+              <span>No login</span><span style={{ color: CYAN }}>&middot;</span>
+              <span>No account</span><span style={{ color: CYAN }}>&middot;</span>
+              <span>Reads offline</span><span style={{ color: CYAN }}>&middot;</span>
+              <span style={{ color: GOLD }}>Open it &rarr;</span>
+            </p>
+          </a>
+        </section>
+
         {/* ── WORLDS (inter-site nav) ──────────────────────────────────────── */}
         <section id="worlds" className="mt-16 scroll-mt-20">
           <div className="mb-6 text-center">
