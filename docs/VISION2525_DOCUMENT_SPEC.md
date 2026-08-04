@@ -1,6 +1,6 @@
 # Vision • 2525 — Document Architecture Spec
 
-**Status:** LIVE · locked at release 40, extended to three views at release 41 · gated by `scratchpad/lv-gate.mjs`
+**Status:** LIVE · locked at release 40, extended to three views at release 41; spec surfaced in-document at release 42 · gated by `scratchpad/lv-gate.mjs`
 **Applies to:** `docs/SOI_VISION2525_LIVING_DOCUMENT.html` and its dated release copies
 
 > **The rule this spec exists to enforce:** there is exactly **one** Vision 2525 document.
@@ -145,6 +145,14 @@ One pass = one full R-CORE cycle. **Append only. Never rewrite history.**
 6. **Release** — copy to `docs/VISION2525_LIVING_LEDGER_YYYY.MM.DD.html`, commit, push to both
    branches, report `SHA | committed | pushed | LIVE-UNVERIFIED` plus the site URL.
 
+### The spec is reachable from inside the document
+
+The ⚙ icon in the replay deck opens a panel stating **the release number, the release code, the title in
+force, and the architecture** — view counts, ledger entry count, deep-link grammar, title count, the path
+to this file, and the path to the gate. **The panel reads from the live engine** (`VERSIONS`, `VIEWS`,
+`LEDGER`, `TITLES`, `*_ORDER`) rather than from a description of it, so it cannot drift from what it
+describes. The gate asserts it opens, states a release number, carries at least six rows, and closes.
+
 ### Section numbering (paper view only)
 
 Sections render `§N · TITLE` with an `id="sec-N"` anchor and a `↑ contents` link back to `#sec-0`.
@@ -153,10 +161,19 @@ the sections it lists. The gate asserts every ToC link resolves to a real sectio
 
 ### Every release MUST change at least one block in the `ledger` view
 
-A release that only touches the `brief` view leaves the ledger view byte-identical to its
-predecessor, which fails the distinctness assertion — correctly. Release 40 hit this: the fix
-was to revise `corpus.iterations` so the ledger view genuinely records the architecture change,
-not to weaken the check.
+A release that only touches the `brief` or `paper` view leaves the ledger view byte-identical to its
+predecessor, which fails both the distinctness assertion and `improvements(VMAX)` — correctly. This has
+now fired three times (r40, r41, r42) and the fix is always the same: **find the ledger block the change
+genuinely belongs in and revise it**, never weaken the check. Precedent: `corpus.iterations` at r40 and
+r41; `frame.soi` at r42.
+
+### Scope discipline: this document is the HOW, not the WHAT
+
+Vision • 2525 (thirteen diagrams) states *what* a coordinated civilization needs. This document is the
+*how* for four of those layers, partial on three, silent on five, and deliberately divergent on one
+(diagram 12 runs on aligned capital; this funding model has no investors). **That map is published in
+§0 of the paper view and summarised in `frame.soi`.** Any release that expands scope must update both,
+and must not let the document imply coverage it does not have.
 
 ### Corrections
 

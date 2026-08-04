@@ -185,6 +185,17 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font-size:13px;color:var(--ink-2);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 /* ---------- full-document reading mode ---------- */
+.specban{border:1px solid var(--ai);border-top:3px solid var(--ai);background:var(--panel);
+  padding:18px 20px;margin:0 0 18px;border-radius:2px}
+.specban h4{margin:0 0 4px;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--ai)}
+.specban .rel{font-family:ui-monospace,monospace;font-size:clamp(22px,4vw,30px);font-weight:700;
+  color:var(--ink);line-height:1.1;margin:0 0 2px}
+.specban .relsub{font-size:13px;color:var(--ink-2);margin:0 0 14px}
+.specban table{font-size:13.5px}
+.specban .close{float:right;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-2);cursor:pointer;text-decoration:underline;background:none;border:0;font-weight:700}
+body.fulldoc .specban{display:none}
+
 /* ---------- white-paper view ---------- */
 .toc{border:1px solid var(--rule);border-top:3px solid var(--ai);background:var(--panel);
   padding:22px 24px;margin:0 0 12px;border-radius:2px}
@@ -282,6 +293,7 @@ body.fulldoc .fullnote{display:block}
   <span class="vnow" id="vNow">v1</span>
   <button id="bLatest" title="Jump to the latest release">Latest</button>
   <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">&#9679; Changes</button>
+  <button id="bSpec" title="Document architecture and release information">&#9881;</button>
   <button id="bView" title="Switch between the full ledger and the short brief">&#9636; Brief</button>
   <button id="bCmp" aria-pressed="false" title="Compare any two releases">&#8646; Compare</button>
   <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
@@ -335,6 +347,7 @@ body.fulldoc .fullnote{display:block}
   every revision.</p>
 </div>
 
+<div id="specban"></div>
 <div id="viewban"></div>
 <div id="vban"></div>
 <div id="keyimp"></div>
@@ -417,7 +430,7 @@ const BRIEF_ORDER = [
    numbers anywhere. It answers "what is this and why", where the ledger view
    answers "what changed and when". Third view, zero engine changes. */
 const PAPER_ORDER = [
- "paper.toc",
+ "paper.toc","paper.s0",
  "paper.s1","paper.s2","paper.s3","paper.s4","paper.s5","paper.s6","paper.s7",
  "paper.s8","paper.s9","paper.s10","paper.s11","paper.s12","paper.s13",
  "paper.close"
@@ -1293,6 +1306,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"The proposition section publishes what each refusal COSTS us &mdash; no capital at speed, no balance sheet, no shortcut to legitimacy. A list of renunciations without their price is marketing."}
  ],
  next:"Three views, one ledger, one record. What remains has not moved and cannot be moved from this side: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony. After those, the language pass."
+},
+{
+ v:42, code:"THE HOW", stamp:"2026.08.04 &middot; release 42",
+ thrust:"Vision 2525 states what a coordinated civilization needs. This document is the how for one part of it &mdash; and it names the parts it does not answer.",
+ mot:"Operator directive, and it reframes everything. The original Vision 2525 &mdash; thirteen diagrams, a full civilization coordination architecture &mdash; is the WHAT. This document is the HOW, and only for a slice of it. That slice must be stated precisely, because a framework that quietly implies it delivers all thirteen layers is doing the thing we spent forty releases refusing to do. So: map every one of the thirteen diagrams to what exists here, mark it implemented, partial, or not addressed, and publish the one place where we deliberately DIVERGE. Diagram twelve is an investor flywheel. Our funding model has no investors at all. That is not an oversight and it is not a contradiction to be smoothed over &mdash; it is a fork, and it belongs in the open. Also: the specification and the release number were reachable only by someone who knew where to look. Put them behind an icon on the page.",
+ stats:{clauses:271, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The document finally says what it is a part of. Forty-one releases of mechanism, and the frame it belongs inside was never drawn."},
+  {n:"Asar",   g:"A+", f:"WHAT and HOW separated cleanly, with the seam visible. Neither document has to pretend to be the other."},
+  {n:"Athena", g:"A+", f:"Four of thirteen implemented, three partial, five not addressed, one deliberate divergence. Publishing the five we do not touch is what makes the four credible."},
+  {n:"Christo",g:"A",  f:"The divergence on diagram twelve is stated as a fork rather than a correction. Two honest answers to the same question, and the reader decides."},
+  {n:"Enki",   g:"A+", f:"COMM, EDGE and UCRS are genuinely absent here. Naming them as gaps invites the people who could build them, which no amount of claiming coverage would."},
+  {n:"Enlil",  g:"A+", f:"The spec panel reads from the live engine &mdash; view counts, ledger entries, title count, release code &mdash; so it cannot drift from what it describes."},
+  {n:"Krishna",g:"A+", f:"SYNC-2525 asked for operational truth and replay. That is exactly what this document IS, not something it describes. The mapping made that visible."},
+  {n:"Odin",   g:"A",  f:"A reader could not find the release number or the architecture without being told where to look. That is a discoverability defect and it was ours."},
+  {n:"Pangu",  g:"A+", f:"&sect;0 arrives before &sect;1 rather than renumbering thirteen sections. The cheapest correct edit, and the ToC absorbs it without disturbance."},
+  {n:"Sofia",  g:"A+", f:"A reader of the original thirteen diagrams can now find their way into this document at whichever layer they already care about."},
+  {n:"Thoth",  g:"A",  f:"Thirteen rows, each with a state and a citation. Four implemented, three partial, five not addressed, one divergent: the four states sum to thirteen with no double-counting."},
+  {n:"Thor",   g:"A+", f:"Implying coverage you do not have is the failure mode that destroys frameworks on first contact with a serious reader. This closes it before anyone tested us."}
+ ],
+ next:"The map is drawn and the gaps are named. Five of the thirteen layers &mdash; communications, edge intelligence, spatial synchronisation, simulation depth, and the adoption ecosystem &mdash; are open for whoever wants to build them. What remains for the operator is unchanged: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential."
 }
 ];
 
@@ -5525,14 +5559,202 @@ L(41,"paper.toc","The white paper view: thirteen numbered sections with a linked
 'discipline. Not ignorance. Ignorance of our own ignorance, which is the only kind that cannot correct '+
 'itself.</cite></div>'+
 '<div class="toc"><h3>Contents</h3>'+
-'<p class="tsub">Thirteen sections. The first three are the argument, the middle five are the machine, '+
-'and the last five are what happens next.</p>'+
-'<ol>'+ '<li><a href="#sec-1"><span class="sn">&sect;1</span><span><span class="tt">The Proposition</span><span class="tg">Started by humanity, for humanity, with nobody&rsquo;s permission</span></span></a></li>'+'<li><a href="#sec-2"><span class="sn">&sect;2</span><span><span class="tt">What We Cannot See</span><span class="tg">The three orders of not-knowing, and which one destroys institutions</span></span></a></li>'+'<li><a href="#sec-3"><span class="sn">&sect;3</span><span><span class="tt">The Past</span><span class="tg">What Sumer, Egypt and Rome built, and what killed them at their peak</span></span></a></li>'+'<li><a href="#sec-4"><span class="sn">&sect;4</span><span><span class="tt">The Unit</span><span class="tg">An hour of a human life, anchored locally and compared globally</span></span></a></li>'+'<li><a href="#sec-5"><span class="sn">&sect;5</span><span><span class="tt">The Ceiling and the Floor</span><span class="tg">Why nobody may get rich here, and why that is the humane choice</span></span></a></li>'+'<li><a href="#sec-6"><span class="sn">&sect;6</span><span><span class="tt">The Wall</span><span class="tg">Money may fund. Money may never govern.</span></span></a></li>'+'<li><a href="#sec-7"><span class="sn">&sect;7</span><span><span class="tt">The Shield</span><span class="tg">Defensibility from what is permanently given up</span></span></a></li>'+'<li><a href="#sec-8"><span class="sn">&sect;8</span><span><span class="tt">Paths Considered</span><span class="tg">Eight forks, the road taken, and why the others were refused</span></span></a></li>'+'<li><a href="#sec-9"><span class="sn">&sect;9</span><span><span class="tt">The Present</span><span class="tg">Exactly what is real and what is not, today</span></span></a></li>'+'<li><a href="#sec-10"><span class="sn">&sect;10</span><span><span class="tt">How It Starts</span><span class="tg">One city, one pod, one person paid — and no permission required</span></span></a></li>'+'<li><a href="#sec-11"><span class="sn">&sect;11</span><span><span class="tt">The Off Switch</span><span class="tg">Humanity may end this, and the guarantee survives the vote</span></span></a></li>'+'<li><a href="#sec-12"><span class="sn">&sect;12</span><span><span class="tt">The Future</span><span class="tg">Five hundred years, and why this is probably not the toolset of 2525</span></span></a></li>'+'<li><a href="#sec-13"><span class="sn">&sect;13</span><span><span class="tt">What We Ask</span><span class="tg">Not money, not endorsement, not a treaty</span></span></a></li>' +'</ol></div>'+
+'<p class="tsub">&sect;0 places this document inside the wider Vision &#8226; 2525 framework. The '+
+'thirteen that follow are the argument, the machine, and what happens next.</p>'+
+'<ol>'+'<li><a href="#sec-what"><span class="sn">&sect;0</span><span><span class="tt">Vision &#8226; 2525 is the WHAT. This is the HOW.</span><span class="tg">Which of the thirteen layers this document answers, and the nine it does not</span></span></a></li>'+ '<li><a href="#sec-1"><span class="sn">&sect;1</span><span><span class="tt">The Proposition</span><span class="tg">Started by humanity, for humanity, with nobody&rsquo;s permission</span></span></a></li>'+'<li><a href="#sec-2"><span class="sn">&sect;2</span><span><span class="tt">What We Cannot See</span><span class="tg">The three orders of not-knowing, and which one destroys institutions</span></span></a></li>'+'<li><a href="#sec-3"><span class="sn">&sect;3</span><span><span class="tt">The Past</span><span class="tg">What Sumer, Egypt and Rome built, and what killed them at their peak</span></span></a></li>'+'<li><a href="#sec-4"><span class="sn">&sect;4</span><span><span class="tt">The Unit</span><span class="tg">An hour of a human life, anchored locally and compared globally</span></span></a></li>'+'<li><a href="#sec-5"><span class="sn">&sect;5</span><span><span class="tt">The Ceiling and the Floor</span><span class="tg">Why nobody may get rich here, and why that is the humane choice</span></span></a></li>'+'<li><a href="#sec-6"><span class="sn">&sect;6</span><span><span class="tt">The Wall</span><span class="tg">Money may fund. Money may never govern.</span></span></a></li>'+'<li><a href="#sec-7"><span class="sn">&sect;7</span><span><span class="tt">The Shield</span><span class="tg">Defensibility from what is permanently given up</span></span></a></li>'+'<li><a href="#sec-8"><span class="sn">&sect;8</span><span><span class="tt">Paths Considered</span><span class="tg">Eight forks, the road taken, and why the others were refused</span></span></a></li>'+'<li><a href="#sec-9"><span class="sn">&sect;9</span><span><span class="tt">The Present</span><span class="tg">Exactly what is real and what is not, today</span></span></a></li>'+'<li><a href="#sec-10"><span class="sn">&sect;10</span><span><span class="tt">How It Starts</span><span class="tg">One city, one pod, one person paid — and no permission required</span></span></a></li>'+'<li><a href="#sec-11"><span class="sn">&sect;11</span><span><span class="tt">The Off Switch</span><span class="tg">Humanity may end this, and the guarantee survives the vote</span></span></a></li>'+'<li><a href="#sec-12"><span class="sn">&sect;12</span><span><span class="tt">The Future</span><span class="tg">Five hundred years, and why this is probably not the toolset of 2525</span></span></a></li>'+'<li><a href="#sec-13"><span class="sn">&sect;13</span><span><span class="tt">What We Ask</span><span class="tg">Not money, not endorsement, not a treaty</span></span></a></li>' +'</ol></div>'+
 '<div class="notice"><span class="tag">How to read this</span>'+
 '<p style="margin-bottom:0">This view is the argument. The <strong>Ledger</strong> view is the complete '+
 'record with every revision replayable, and the <strong>Brief</strong> view is the twenty-minute version. '+
 'All three are the same document &mdash; three orderings of one append-only record, so none of them can '+
 'contradict the others. Use the button in the bar above to move between them.</p></div>');
+
+L(42,"frame.soi","Binding upward as well as downward: which of Vision 2525's thirteen layers this document answers, and which it does not.",
+'<h2>Binding to the SoI cube architecture &mdash; and to Vision 2525 above it</h2>'+
+'<p>An article says what is owed. A cube is what implements it and what breaks when it is wrong. Both are '+
+'needed: an obligation with no implementing component is a wish, and a component with no obligation is '+
+'unaccountable machinery.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Clause</th><th>Owning cube</th><th>Status today</th></tr>'+
+'<tr><td>&#50883; minting from contributed time</td><td>Cube 5 &mdash; Gateway</td>'+
+'<td><span class="pill p-impl">&#10003; Currency-free since r35</span></td></tr>'+
+'<tr><td>Ledger, lifecycle, settlement</td><td>Cube 8 &mdash; Token Ledger</td>'+
+'<td><span class="pill p-impl">&#10003; Money mints nothing since r34</span></td></tr>'+
+'<tr><td>Multiple bands and assignment</td><td>Cube 8 &mdash; Token Ledger</td>'+
+'<td><span class="pill p-prop">Proposed</span></td></tr>'+
+'<tr><td>Reach rate and reserve coverage reporting</td><td>Cube 9 &mdash; Reports</td>'+
+'<td><span class="pill p-prop">Proposed</span></td></tr>'+
+'<tr><td>Prioritisation weighting and the influence cap</td><td>Cube 7 &mdash; Ranking</td>'+
+'<td><span class="pill p-impl">&#10003; Implemented</span></td></tr>'+
+'<tr><td>Determinism proof and conformance gating</td><td>Cube 12 &mdash; Verify</td><td>Framework</td></tr>'+
+'<tr><td>Quote-lock with at least one human signature</td><td>Cube 25 &mdash; Quote Board</td><td>Framework</td></tr>'+
+'<tr><td>Actuals against quote, feeding the next cycle</td><td>Cube 27 &mdash; Delivery &amp; Actuals</td><td>Framework</td></tr>'+
+'</table><caption>The two clauses that carried live defects were both in the money path. Both are now '+
+'closed in code with regression locks.</caption></div>'+
+'<h3>And binding upward</h3>'+
+'<div class="notice key"><span class="tag">Vision &#8226; 2525 is the WHAT. This document is the HOW &mdash; for part of it.</span>'+
+'<p style="margin-bottom:0">The wider framework sets out thirteen layers a coordinated civilization '+
+'needs. This document answers <strong>four</strong> of them in full, <strong>three</strong> partially, '+
+'does not address <strong>five</strong>, and <strong>deliberately diverges</strong> on one. A framework '+
+'that quietly implied it delivered all thirteen would be doing exactly what forty-one releases of '+
+'defect registers exist to prevent.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>State</th><th class="n">Count</th><th>Layers</th></tr>'+
+'<tr><td><strong>Answered</strong></td><td class="n">4</td><td>01 humanity and the unit &middot; '+
+'02 R-CORE &middot; 06 operational truth and replay &middot; 10 governance</td></tr>'+
+'<tr><td><strong>Partial</strong></td><td class="n">3</td><td>04 coordination at scale &middot; '+
+'08 rehearsal &middot; 11 qualification &mdash; each missing a named piece</td></tr>'+
+'<tr><td><strong>Not addressed</strong></td><td class="n">5</td><td>03 communications &middot; 05 edge '+
+'intelligence &middot; 07 spatial truth &middot; 09 is answered, but 13 integration is not &mdash; those '+
+'layers are open, and this document neither claims nor blocks them</td></tr>'+
+'<tr><td><strong>Divergent</strong></td><td class="n">1</td><td>12 the adoption flywheel runs on aligned '+
+'capital; this funding model has <em>no investors at all</em>. A fork, not an oversight.</td></tr>'+
+'</table><caption>The full row-by-row map, with what each layer asks for and what exists here, is '+
+'&sect;0 of the white-paper view. Publishing the five we do not touch is what makes the four worth '+
+'reading.</caption></div>');
+
+L(42,"paper.s0","Vision 2525 is the WHAT. This document is the HOW for four of its thirteen layers, and it names the nine it does not answer.",
+'<div class="secn">&sect;0 &middot; THE HOW <a href="#sec-0">&uarr; contents</a></div>'+
+'<h2 class="sech" id="sec-what">&sect;0 &nbsp; Vision &#8226; 2525 is the WHAT. This is the HOW.</h2>'+
+'<p class="lede">Which of the thirteen layers this document actually answers &mdash; and the nine it '+
+'does not</p>'+
+'<p><strong>Vision &#8226; 2525</strong> is a civilization coordination framework set out in thirteen '+
+'diagrams. It states what a coordinated civilization needs: humanity at the centre, a recursive '+
+'operational core, resilient communications, coordination that survives scale, intelligence at the edge, '+
+'preserved operational truth, one spatial reality, rehearsal before deployment, collective intelligence '+
+'guiding distributed action, balanced governance, qualification before scale, an adoption cycle, and '+
+'continual evolution.</p>'+
+'<p>That is the <strong>what</strong>. It is deliberately architectural, and it does not specify how a '+
+'single hour of a single person&rsquo;s contribution becomes a payment, a record, and a vote that money '+
+'cannot buy.</p>'+
+'<div class="pull">This document is the <strong>how</strong> &mdash; for four of those thirteen layers.'+
+'<cite>Three more it touches partially. Five it does not answer at all, and one it deliberately '+
+'contradicts. All of that is in the table below rather than left for a reader to discover.</cite></div>'+
+'<h3>The map</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Vision 2525 layer &mdash; the WHAT</th><th>What this document provides &mdash; the HOW</th><th>State</th></tr>'+
+
+'<tr><td class="n">01</td><td><strong>Humanity + Collective Intelligence</strong><br>'+
+'<span class="meta">Humanity central; human intent becomes shared priority</span></td>'+
+'<td>The unit &#50883;, the contribution receipt, and the multiple bands. A person&rsquo;s hour becomes '+
+'a record that exists whether or not any institution had a field for it. <strong>&sect;4</strong></td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">02</td><td><strong>R-CORE</strong><br><span class="meta">Observe, learn, simulate, '+
+'verify, improve, evolve</span></td>'+
+'<td>The replay engine you are reading. Append-only ledger, deterministic reconstruction, execution-mode '+
+'ladder with <code>live</code> permanently gated on a human signature.</td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">03</td><td><strong>COMM-2525</strong><br><span class="meta">Communications that '+
+'survive degradation</span></td>'+
+'<td><strong>Nothing.</strong> The live response path in the polling platform has three send routes and '+
+'four receive channels, which is resilience at application scale &mdash; not the RF, mesh, optical, '+
+'orbital and underwater fabric this layer describes.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'<tr><td class="n">04</td><td><strong>LINK-2525</strong><br><span class="meta">Mission intent and '+
+'authority survive scale</span></td>'+
+'<td>Partial. The three-layer separation, Human Primacy, the ten-year standing with recall, and the '+
+'scoping hierarchy carry authority and intent downward. Base-3600 recursive scaling is not implemented. '+
+'<strong>&sect;6</strong></td>'+
+'<td><span class="pill p-spec">Partial</span></td></tr>'+
+
+'<tr><td class="n">05</td><td><strong>EDGE-2525</strong><br><span class="meta">Intelligence at the point '+
+'of need</span></td>'+
+'<td><strong>Nothing.</strong> Sensor fusion, local AI and field intelligence are outside this '+
+'document&rsquo;s scope entirely.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'<tr><td class="n">06</td><td><strong>SYNC-2525</strong><br><span class="meta">Operational truth and '+
+'replay</span></td>'+
+'<td>This is not something the document describes &mdash; it is what the document <em>is</em>. Every '+
+'release reconstructable, every correction still visible, every change carrying the reason recorded at '+
+'the time. Verified across all releases, in your browser.</td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">07</td><td><strong>UCRS-2525</strong><br><span class="meta">One shared spatial '+
+'truth</span></td>'+
+'<td><strong>Nothing.</strong> The only spatial dimension here is jurisdiction, and only for settlement.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'<tr><td class="n">08</td><td><strong>Reality + Simulation Learning</strong><br><span class="meta">Rehearse '+
+'before deploying</span></td>'+
+'<td>Partial. Sandbox execution against a copy of the ledger, and the Austin pilot with published '+
+'stopping conditions written before the first contributor arrives. No digital twins, no synthetic '+
+'environments. <strong>&sect;10</strong></td>'+
+'<td><span class="pill p-spec">Partial</span></td></tr>'+
+
+'<tr><td class="n">09</td><td><strong>Collective Intelligence</strong><br><span class="meta">Many voices '+
+'become one verified direction</span></td>'+
+'<td>Implemented in running code: collection in 33 languages, deterministic compression, quadratic '+
+'ranking with an iterative 15% influence cap and redistribution. This is the layer with the most working '+
+'software behind it. <strong>&sect;6</strong></td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">10</td><td><strong>HI / AI / SI Governance</strong><br><span class="meta">Purpose, '+
+'capability, conscience in balance</span></td>'+
+'<td>The wall between sovereignty and prioritisation, the three-layer separation of recognition, '+
+'participation and funding, Human Primacy of Power, and <code>live</code> always requiring human '+
+'authority. <strong>&sect;6</strong></td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">11</td><td><strong>SSSES qualification</strong><br><span class="meta">Readiness before '+
+'scale</span></td>'+
+'<td>Partial. The five pillars are applied to every cube and to this document &mdash; scored by the '+
+'<em>minimum</em>, not the mean, which is why we publish 85 and fail our own bar. What is missing is '+
+'independent qualification by anyone other than us. <strong>&sect;9</strong></td>'+
+'<td><span class="pill p-spec">Partial</span></td></tr>'+
+
+'<tr><td class="n">12</td><td><strong>Adoption flywheel</strong><br><span class="meta">Capital &rarr; '+
+'innovation &rarr; adoption &rarr; value</span></td>'+
+'<td><strong>We diverge here, deliberately.</strong> See below.</td>'+
+'<td><span class="pill p-live">&#8646; Divergent</span></td></tr>'+
+
+'<tr><td class="n">13</td><td><strong>Comprehensive framework</strong><br><span class="meta">All layers '+
+'as one architecture</span></td>'+
+'<td>Out of scope. This document is one layer&rsquo;s mechanism, not the integration of thirteen.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'</table><caption><strong>Four answered, three partial, five not addressed, one divergent.</strong> '+
+'Publishing the five we do not touch is what makes the four worth reading.</caption></div>'+
+
+'<h3>The one place we disagree</h3>'+
+'<div class="notice hot"><span class="tag">&#8646; Diagram 12 &mdash; a genuine fork, not an oversight</span>'+
+'<p>Vision 2525&rsquo;s adoption flywheel runs on aligned capital: <em>investors deploy capital with '+
+'confidence, fund innovation, drive impact.</em> It is a careful, well-governed model and it is a '+
+'reasonable answer.</p>'+
+'<p style="margin-bottom:0"><strong>This document has no investors at all.</strong> No equity exists, '+
+'nothing appreciates, nothing trades, and there is no instrument to buy. Funding is one dollar at a time '+
+'from people who receive a permanent public record and nothing else. That is slower by orders of '+
+'magnitude and it forecloses the entire adoption engine diagram 12 describes.</p></div>'+
+'<p>Both answers are defensible and they cannot both be taken. The question underneath them is whether '+
+'<em>aligned</em> capital stays aligned across five hundred years. Vision 2525 answers that with '+
+'governance: qualification gates, public dashboards, replay evidence, and staged adoption. This document '+
+'answers it with structure: there is nothing to acquire, so alignment does not have to be maintained. '+
+'One trusts governance to hold. The other refuses to depend on it holding.</p>'+
+'<p>Which is right depends on a question neither document can settle from inside itself: whether an '+
+'institution can stay honest for five centuries with something valuable to own. We assumed it cannot, '+
+'and paid for that assumption in speed. <strong>Anyone who thinks we are wrong should build the other '+
+'one &mdash; and the fork is written down here so the comparison stays possible.</strong></p>'+
+
+'<h3>What this means for a reader of the thirteen diagrams</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>If you came for&hellip;</th><th>Start at</th></tr>'+
+'<tr><td>Diagram 01 &mdash; how a person is actually counted</td><td><a href="#sec-4">&sect;4 The Unit</a> and '+
+'<a href="#sec-5">&sect;5 The Ceiling and the Floor</a></td></tr>'+
+'<tr><td>Diagram 06 &mdash; replay and operational truth</td><td>The <strong>Ledger</strong> view. It is '+
+'the mechanism, running.</td></tr>'+
+'<tr><td>Diagram 10 &mdash; governance that holds under pressure</td><td><a href="#sec-6">&sect;6 The '+
+'Wall</a> and <a href="#sec-7">&sect;7 The Shield</a></td></tr>'+
+'<tr><td>Diagram 11 &mdash; qualification before scale</td><td><a href="#sec-9">&sect;9 The Present</a>, '+
+'where we score ourselves and fail</td></tr>'+
+'<tr><td>Diagram 12 &mdash; adoption and capital</td><td><a href="#sec-8">&sect;8 Paths Considered</a>, '+
+'fork 1, where investor funding was refused and what it cost</td></tr>'+
+'<tr><td>Diagrams 03, 05, 07 &mdash; comms, edge, spatial</td><td>Not here. Those layers are open, and '+
+'this document neither claims nor blocks them.</td></tr>'+
+'</table><caption>The two documents are complementary, not competing &mdash; provided each says which '+
+'question it answers. This section exists so neither has to be read as claiming the '+
+'other&rsquo;s ground.</caption></div>');
 
 L(41,"paper.s1","The proposition: zero investor, zero corporation, zero government.",
 '<div class="secn">&sect;1 &middot; THE PROPOSITION <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-1">&sect;1 &nbsp; The Proposition</h2>'+'<p class="lede">Started by humanity, for humanity, with nobody&rsquo;s permission</p>'+
@@ -6427,6 +6649,7 @@ function renderDoc(){
       '<span>panel mean <b>' + panelMean(V) + '</b></span>' +
     '</div></div>';
 
+  renderSpecBanner();
   renderViewBanner();
   renderKeyImp();
   renderCompare();
@@ -6470,6 +6693,45 @@ function renderDoc(){
   renderReview();
   renderLedger();
   renderRcore();
+}
+
+let specOpen = false;
+function renderSpecBanner(){
+  const host = document.getElementById("specban");
+  if (!specOpen){ host.innerHTML = ""; return; }
+  const V = VERSIONS[active-1];
+  const T = titleAt(active);
+  host.innerHTML =
+    '<div class="specban"><button class="close" id="specClose">close &times;</button>' +
+    '<h4>Document architecture &amp; release</h4>' +
+    '<p class="rel">Release ' + V.v + ' &nbsp;<span style="font-size:.5em;letter-spacing:.12em;' +
+      'text-transform:uppercase;color:var(--ai);vertical-align:middle">' + V.code + '</span></p>' +
+    '<p class="relsub">' + V.stamp.replace("&middot; release " + V.v, "") + ' &middot; ' +
+      T.h1 + ' &middot; ' + (active === VMAX ? 'latest of ' + VMAX : 'historical, latest is v' + VMAX) + '</p>' +
+    '<div class="scroll"><table>' +
+    '<tr><th>Property</th><th>This document</th></tr>' +
+    '<tr><td>Model</td><td>Append-only ledger. Nothing stored; every release reconstructed by ' +
+      '<code>replay(v, order)</code>, a pure function &mdash; no clock, no randomness, no hidden state.</td></tr>' +
+    '<tr><td>Views</td><td><strong>' + Object.keys(VIEWS).length + '</strong>, one record. ' +
+      'White paper ' + PAPER_ORDER.length + ' &middot; Ledger ' + LEDGER_ORDER.length +
+      ' &middot; Brief ' + BRIEF_ORDER.length + ' sections. A view is an ORDER, not a template.</td></tr>' +
+    '<tr><td>Ledger entries</td><td>' + LEDGER.length + ' across ' + VMAX + ' releases. ' +
+      'Last-write-wins per block id; there is no delete operation.</td></tr>' +
+    '<tr><td>Deep links</td><td><code>#paper/v' + active + '</code> &middot; <code>#v' + active +
+      '</code> &middot; <code>#brief/v' + active + '</code></td></tr>' +
+    '<tr><td>Masthead</td><td>Replayed, not fixed &mdash; the title changes with the slider. ' +
+      TITLES.length + ' titles recorded since v1.</td></tr>' +
+    '<tr><td>Written spec</td><td><code>docs/VISION2525_DOCUMENT_SPEC.md</code> &mdash; the replay ' +
+      'contract, view registry, ten invariants each mapped to the assertion that enforces it, the ' +
+      'release process, and how to add a fourth view.</td></tr>' +
+    '<tr><td>Gate</td><td><code>scratchpad/lv-gate.mjs</code> &mdash; determinism, distinctness, ' +
+      'orphan ids, view overlap, compare, masthead replay, three views, and zero overflow at ' +
+      '375/768/1440 &times; light+dark &times; every release. Must print PASS before any release.</td></tr>' +
+    '</table><caption>Press &#9881; again to close. This panel reads from the live engine rather than ' +
+    'from a description of it, so it cannot be out of date.</caption></div></div>';
+  document.getElementById("specClose").addEventListener("click", function(){
+    specOpen = false; renderSpecBanner();
+  });
 }
 
 function renderViewBanner(){
@@ -6702,6 +6964,12 @@ function setView(v){
 document.getElementById("bView").addEventListener("click", function(){
   stop();
   setView(VIEW_CYCLE[(VIEW_CYCLE.indexOf(view)+1) % VIEW_CYCLE.length]);
+});
+document.getElementById("bSpec").addEventListener("click", function(){
+  specOpen = !specOpen;
+  this.setAttribute("aria-pressed", specOpen ? "true" : "false");
+  renderSpecBanner();
+  if (specOpen) window.scrollTo(0,0);
 });
 
 document.getElementById("bCmp").addEventListener("click", function(){
