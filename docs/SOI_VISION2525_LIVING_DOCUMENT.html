@@ -1365,6 +1365,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"The wall to AUTHORITY holds absolutely: escrow 웃 carries no governance weight, is non-transferable, and has no secondary market. The wall to RECOGNITION is being lowered on purpose, and the ceiling is the only thing holding it. That is a thinner guard than we had yesterday."}
  ],
  next:"The rolling floor is complete and self-limiting. The escrow is specified and carries a live defect that needs counsel before it can be built &mdash; the securities characterisation of a performance-linked reward, even one paid in a capped, non-transferable unit. Beyond it: how contribution accrues past ninety-nine years, which the operator has deferred."
+},
+{
+ v:45, code:"웃 FUELS 웃", stamp:"2026.08.04 &middot; release 45",
+ thrust:"The stake is contributed time, not money &mdash; and that closes the defect the previous release opened. One equation now scores every project, with R&amp;D measured against the one-third standard.",
+ mot:"Operator clarification, and it materially changes the legal picture in the right direction. I read the escrow as dollars streaming in and I flagged it hard: money reaching recognition, Shield IV narrowed, the securities limb re-engaged. That reading was wrong. The stake is a person&rsquo;s OWN EARNED 웃 &mdash; recognition they got from witnessed time &mdash; redeployed to fuel somebody else&rsquo;s project, and rewarded in the same unit. 웃 in, 웃 out. Money never enters the loop at any point. Recognition still cannot be purchased at any price, which means Shield IV holds intact and defect 21 is closed by correcting my own analysis rather than by adding a guard. Two things follow that the operator did not have to say and I am specifying: the R&amp;D term scores against the framework&rsquo;s own one-third-of-revenue commitment rather than floating free, and A STAKE IS NEVER LOST. Only the reward varies. A framework whose whole purpose is livelihood security cannot also offer people the chance to gamble their secured years away.",
+ stats:{clauses:291, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Recognition earned by time, lent to another person&rsquo;s work, returning as recognition. The loop closes on itself and money is nowhere in it."},
+  {n:"Asar",   g:"A+", f:"One equation now scores a project, the platform, and the framework itself. Three uses, one measure, no separate accounting to keep honest."},
+  {n:"Athena", g:"A+", f:"The previous reading nearly cost Shield IV. Correcting an analysis rather than bolting on a guard is the cheaper and the more honest repair."},
+  {n:"Christo",g:"A+", f:"A person can now spend their security on somebody else&rsquo;s beginning without risking it. That is generosity made structurally safe rather than merely encouraged."},
+  {n:"Enki",   g:"A+", f:"Staking 웃 rather than dollars means the only way to fuel another person&rsquo;s project is to have already given time to the commons. Capital cannot enter because there is no door."},
+  {n:"Enlil",  g:"A+", f:"웃-months is the natural unit: amount staked times duration held. Equal reward per 웃-month, checked to six decimals across stakes from 500 to 9,999."},
+  {n:"Krishna",g:"A+", f:"The R&amp;D term now binds the escrow to the one-third research commitment the framework already made. A project that stops investing scores worse, by construction."},
+  {n:"Odin",   g:"A+", f:"Defect 21 closed by analysis, not by patch. Worth noting that the flag was correct given what was written, and the fix was a clarification the reader would never have inferred."},
+  {n:"Pangu",  g:"A",  f:"Stake returned, reward variable. Unremarkable in finance, and here it is the difference between a mutual-aid mechanism and a casino."},
+  {n:"Sofia",  g:"A+", f:"The sentence that carries it: you may spend your secured years fuelling somebody else&rsquo;s work, and you will get them back."},
+  {n:"Thoth",  g:"A+", f:"Verified: R&amp;D at 18% of revenue scores 0.540 against the one-third standard; at or above one-third it caps at 1.000. P = 0.4025 on the worked project. Every staker returns 0.103881 웃 per 웃-month, largest to smallest."},
+  {n:"Thor",   g:"A+", f:"No corporation can stake, because no corporation can earn 웃, because 웃 comes only from a natural person&rsquo;s witnessed hours. The exclusion is structural rather than a rule anyone has to enforce."}
+ ],
+ next:"The economy is closed: time mints recognition, recognition secures years, spare years fuel others&rsquo; work, and the reward returns as recognition under the same ceiling. What remains for the operator is unchanged &mdash; the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential."
 }
 ];
 
@@ -6826,6 +6847,91 @@ L(44,"fund.escrow","Per-minute escrow funding, on terms identical for every fund
 'corporation or an investment firm anywhere in the path. <strong>The equal-per-dollar rule is the '+
 'anti-corruption mechanism</strong> &mdash; large money gets no better seat than small money, so there is '+
 'no seat worth buying, and the get-rich-quick structure has nothing to attach to.</p>');
+
+/* ══════════ RELEASE 45 ══════════ */
+
+L(45,"fund.escrow","The stake is earned 웃, never money. One equation scores every project, with R&D measured against the one-third standard.",
+'<h2>&#50883; fuels &#50883; &mdash; spending secured years on somebody else&rsquo;s work</h2>'+
+'<p>A person who has earned more than one year of security may <strong>stake their own '+
+'&#50883;</strong> into another person&rsquo;s project. Not money. The recognition they earned from '+
+'witnessed hours, lent forward to fuel work they believe in, and rewarded in the same unit.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Money never enters this loop</span>'+
+'<p style="margin-bottom:0"><strong>&#50883; in, &#50883; out.</strong> Recognition still cannot be '+
+'purchased at any price, from any source &mdash; Shield IV is untouched. The only way to fuel another '+
+'person&rsquo;s project is to have already given time to the commons yourself. <strong>No corporation '+
+'can stake, because no corporation can earn &#50883;</strong>, because &#50883; comes only from a natural '+
+'person&rsquo;s witnessed hours. The exclusion of investment firms is structural, not a rule anyone has '+
+'to enforce.</p></div>'+
+'<h3>One equation, three uses</h3>'+
+'<p>The same flat measure scores an individual project, the platform, and the framework itself. Four '+
+'terms, equally weighted:</p>'+
+'<pre><code>g   = revenue growth        Rev / Rev&#8331; &minus; 1\n'+
+'gm  = gross margin          GP  / Rev\n'+
+'om  = operating margin      OpInc / Rev\n'+
+'rd  = R&amp;D against standard  ( R&amp;D / Rev ) &divide; 0.33333      capped at 1.000\n\n'+
+'P   =  0.25&middot;g + 0.25&middot;gm + 0.25&middot;om + 0.25&middot;rd\n\n'+
+'stake(s)   =  &#50883; staked &times; months held        &rarr;  &#50883;-months\n'+
+'reward(s)  =  stake(s) &divide; &Sigma;stakes  &times;  P  &times;  recognition pool</code></pre>'+
+'<div class="notice key"><span class="tag">Why R&amp;D is scored against one third</span>'+
+'<p style="margin-bottom:0">The framework already commits <strong>one third of resources to research and '+
+'development</strong>. The escrow measures every project against that same standard rather than letting '+
+'R&amp;D intensity float free. A project spending 33.333% of revenue on R&amp;D scores '+
+'<strong>1.000</strong> on that term; one spending 10% scores 0.300. Profit and research carry equal '+
+'weight, so <strong>a project that stops investing in the future scores worse even while its margins look '+
+'healthy.</strong> A framework that pays for innovation should measure whether innovation is still being '+
+'funded.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">R&amp;D as % of revenue</th><th class="n">5%</th><th class="n">10%</th><th class="n">20%</th><th class="n">33.333%</th><th class="n">40%</th></tr>'+
+'<tr><td class="n">Term score</td><td class="n">0.150</td><td class="n">0.300</td><td class="n">0.600</td><td class="n"><strong>1.000</strong></td><td class="n">1.000</td></tr>'+
+'</table><caption>Capped at the standard. Spending beyond one third is permitted and scores no higher '+
+'&mdash; the measure rewards meeting the commitment, never outbidding it.</caption></div>'+
+'<h3>Worked example &mdash; equal per &#50883;-month, without exception</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Staker</th><th class="n">&#50883; staked</th><th class="n">Months</th><th class="n">&#50883;-months</th><th class="n">Share</th><th class="n">Reward per &#50883;-month</th></tr>'+
+'<tr><td>Adaeze</td><td class="n">9,999</td><td class="n">3</td><td class="n">29,997</td><td class="n">19.35%</td><td class="n">0.103881</td></tr>'+
+'<tr><td>Sokha</td><td class="n">2,000</td><td class="n">1</td><td class="n">2,000</td><td class="n">1.29%</td><td class="n">0.103881</td></tr>'+
+'<tr><td>Mireille</td><td class="n">9,999</td><td class="n">12</td><td class="n">119,988</td><td class="n">77.42%</td><td class="n">0.103881</td></tr>'+
+'<tr><td>Tomas</td><td class="n">500</td><td class="n">6</td><td class="n">3,000</td><td class="n">1.94%</td><td class="n">0.103881</td></tr>'+
+'</table><caption>Revenue $52M from $40M, gross margin 0.650, operating margin 0.120, R&amp;D at 18% of '+
+'revenue scoring 0.540 &rarr; <strong>P = 0.4025</strong>. Mireille stakes sixty times what Tomas does '+
+'and receives sixty times as much &mdash; <strong>and not one fraction more per &#50883;-month.</strong> '+
+'The last column is the entire anti-corruption design: there is no better seat, so there is nothing worth '+
+'buying and nothing to negotiate for.</caption></div>'+
+'<h3>The stake is never lost</h3>'+
+'<div class="notice key"><span class="tag">Proposed, and it should not be controversial</span>'+
+'<p style="margin-bottom:0">A stake is <strong>time-locked, not at risk.</strong> It is illiquid for the '+
+'agreed period and then returns in full. Only the <em>reward</em> varies with performance, and its floor '+
+'is zero &mdash; never negative. <strong>A framework whose entire purpose is livelihood security cannot '+
+'also offer people the chance to gamble their secured years away.</strong> If a project fails, a staker '+
+'has lost the use of their recognition for a while. They have not lost the years it was holding.</p></div>'+
+'<h3>What bounds the reward</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Guard</th><th>Effect</th></tr>'+
+'<tr><td><strong>The ceiling applies</strong></td><td>Reward counts against the same 9,999 per year. '+
+'Staking cannot lift anyone above what a contributor can reach.</td></tr>'+
+'<tr><td><strong>The rolling floor applies</strong></td><td>Excess secures future years rather than '+
+'settling faster. Fuelling others buys the same thing work buys: time already covered.</td></tr>'+
+'<tr><td><strong>Non-transferable</strong></td><td>No secondary market in stakes or in rewards. Nothing '+
+'to trade, nothing to speculate on.</td></tr>'+
+'<tr><td><strong>Zero governance weight</strong></td><td>Neither the stake nor the reward carries a vote. '+
+'<strong>The wall to authority is untouched.</strong></td></tr>'+
+'<tr><td><strong>Retrospective only</strong></td><td>P is computed for periods that have ended. Never '+
+'forecast, never stated to attract a stake.</td></tr>'+
+'<tr><td><strong>Natural persons only</strong></td><td>Enforced by construction rather than by rule &mdash; '+
+'only witnessed human hours mint the unit that can be staked.</td></tr>'+
+'</table></div>'+
+'<div class="notice ok"><span class="tag">&#10003; Defect 21 closed &mdash; by correcting an analysis, not by adding a guard</span>'+
+'<p style="margin-bottom:0">This mechanism was previously described as dollars streaming into an escrow, '+
+'and on that reading it narrowed Shield IV and re-engaged the investment-of-money limb of the securities '+
+'analysis. That reading was wrong. <strong>The stake is earned &#50883; and the reward is &#50883;; no '+
+'currency touches the mechanism at any point.</strong> There is no investment of money, so the limb that '+
+'fails first still fails first. The defect is closed by getting the analysis right rather than by bolting '+
+'a guard onto a bad design.</p></div>'+
+'<p>Read together with the rolling floor, the economy closes on itself. <strong>Time mints recognition. '+
+'Recognition secures years. Spare years fuel other people&rsquo;s work. The reward returns as '+
+'recognition, under the same ceiling, secured the same way.</strong> No corporation, no investment firm, '+
+'and no currency appears anywhere in that sentence &mdash; which is precisely the point, and the reason '+
+'there is no get-rich-quick structure for corruption to attach to.</p>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 
