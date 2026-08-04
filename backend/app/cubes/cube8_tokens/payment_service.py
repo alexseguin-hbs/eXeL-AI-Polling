@@ -544,16 +544,16 @@ async def handle_payment_completed(
             tx.status = "completed"
 
             if tx.transaction_type == "divinity_guide_donation":
-                # Award HI tokens for Divinity Guide donation
-                from app.cubes.cube8_tokens.service import award_hi_tokens_for_payment
+                # Record an inert contribution receipt (mints no 웃)
+                from app.cubes.cube8_tokens.service import record_contribution_receipt
                 try:
                     amount_usd = tx.amount_cents / 100.0
-                    await award_hi_tokens_for_payment(
+                    await record_contribution_receipt(
                         db, session_id=tx.session_id, participant_id=tx.participant_id,
                         amount_usd=amount_usd, payment_type="donation",
                     )
                 except Exception as e:
-                    logger.warning("cube8.payment.divinity_hi_award_failed", extra={"error": str(e)})
+                    logger.warning("cube8.payment.divinity_receipt_failed", extra={"error": str(e)})
             elif tx.session_id:
                 session = await _get_session(db, tx.session_id)
                 session.is_paid = True

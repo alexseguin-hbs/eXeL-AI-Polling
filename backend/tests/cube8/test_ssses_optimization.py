@@ -114,44 +114,52 @@ class TestTokenPrecision59Jurisdictions:
         assert unity == 0
 
 
-class TestDollarsToHITokens:
-    """Payment/donation → 웃 conversion at $7.25/hr."""
+class TestHoursToHITokens:
+    """웃 is denominated in TIME. Money is NOT an on-ramp — see Accords §5."""
 
-    def test_minimum_wage_equals_1(self):
-        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
-        assert dollars_to_hi_tokens(7.25) == 1.0
+    def test_one_hour(self):
+        from app.cubes.cube8_tokens.service import hours_to_hi_tokens
+        assert hours_to_hi_tokens(1.0) == 7.25
 
-    def test_moderator_fee(self):
-        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
-        result = dollars_to_hi_tokens(11.11)
-        assert abs(result - 1.532) < 0.001
-
-    def test_large_donation(self):
-        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
-        result = dollars_to_hi_tokens(50.0)
-        assert abs(result - 6.897) < 0.001
-
-    def test_hundred_dollars(self):
-        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
-        result = dollars_to_hi_tokens(100.0)
-        assert abs(result - 13.793) < 0.001
+    def test_forty_hours_identical_everywhere(self):
+        """Identical work mints identical 웃 regardless of jurisdiction."""
+        from app.cubes.cube8_tokens.service import hours_to_hi_tokens
+        assert hours_to_hi_tokens(40.0) == 290.0
 
     def test_zero_returns_zero(self):
-        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
-        assert dollars_to_hi_tokens(0) == 0.0
+        from app.cubes.cube8_tokens.service import hours_to_hi_tokens
+        assert hours_to_hi_tokens(0) == 0.0
 
     def test_negative_returns_zero(self):
-        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
-        assert dollars_to_hi_tokens(-5.0) == 0.0
-
-    def test_small_donation_50_cents(self):
-        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
-        result = dollars_to_hi_tokens(0.50)
-        assert result == 0.069  # $0.50 / $7.25 = 0.069
+        from app.cubes.cube8_tokens.service import hours_to_hi_tokens
+        assert hours_to_hi_tokens(-5.0) == 0.0
 
     def test_hi_rate_constant(self):
         from app.cubes.cube8_tokens.service import HI_RATE_PER_HOUR
         assert HI_RATE_PER_HOUR == 7.25
+
+
+class TestMoneyMintsNothing:
+    """Defect 1 regression lock: there is NO currency path to 웃."""
+
+    def test_dollars_to_hi_tokens_is_gone(self):
+        """The money->웃 conversion must not exist. Ever again."""
+        import app.cubes.cube8_tokens.service as svc
+        assert not hasattr(svc, "dollars_to_hi_tokens"), (
+            "dollars_to_hi_tokens was reintroduced — money must never mint 웃 "
+            "(Atlantis Accords §5: no contribution buys governance influence)"
+        )
+
+    def test_receipt_function_exists(self):
+        from app.cubes.cube8_tokens.service import record_contribution_receipt
+        assert callable(record_contribution_receipt)
+
+    def test_receipt_mints_zero_hi(self):
+        """The inert receipt writes delta_human=0.0 — checked at the source."""
+        import inspect
+        from app.cubes.cube8_tokens.service import record_contribution_receipt
+        src = inspect.getsource(record_contribution_receipt)
+        assert "delta_human=0.0" in src, "contribution receipt must mint zero 웃"
 
 
 # ═══════════════════════════════════════════════════════════════════

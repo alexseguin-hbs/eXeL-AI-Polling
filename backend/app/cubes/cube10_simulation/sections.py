@@ -80,7 +80,7 @@ SECTIONS: dict[int, list[dict]] = {
         {"key": "D", "label": "Break ties & fingerprint", "functions": ["_seeded_tiebreak_key", "_compute_replay_hash"]},
     ],
     8: [
-        {"key": "A", "label": "Dollars to tokens", "functions": ["dollars_to_hi_tokens", "resolve_human_rate"]},
+        {"key": "A", "label": "Hours to tokens", "functions": ["hours_to_hi_tokens", "resolve_human_rate"]},
         {"key": "B", "label": "Mint the tokens", "functions": ["create_ledger_entry", "dispatch_token_award"]},
         {"key": "C", "label": "Lifecycle", "functions": ["transition_lifecycle_state"]},
         {"key": "D", "label": "Fix mistakes", "functions": ["reverse_entry", "create_token_dispute"]},

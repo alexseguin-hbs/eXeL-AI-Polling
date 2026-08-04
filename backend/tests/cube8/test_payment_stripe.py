@@ -676,9 +676,9 @@ class TestWebhookHandler:
             "data": {"object": {"id": "cs_div_hook"}},
         }
 
-        # award_hi_tokens_for_payment is imported inside handle_payment_completed
+        # record_contribution_receipt is imported inside handle_payment_completed
         # Patch it at the service module level where it's imported from
-        with patch("app.cubes.cube8_tokens.service.award_hi_tokens_for_payment", new_callable=AsyncMock) as mock_award:
+        with patch("app.cubes.cube8_tokens.service.record_contribution_receipt", new_callable=AsyncMock) as mock_award:
             await handle_payment_completed(db, event)
             assert tx.status == "completed"
             # Verify the award function was called with correct amount
@@ -876,14 +876,14 @@ class TestTokenConversion:
         assert round(hi_tokens, 3) == 0.069
 
     def test_award_function_exists(self):
-        """Krishna: award_hi_tokens_for_payment exists in service."""
-        from app.cubes.cube8_tokens.service import award_hi_tokens_for_payment
-        assert callable(award_hi_tokens_for_payment)
+        """Krishna: record_contribution_receipt exists in service (money mints no 웃)."""
+        from app.cubes.cube8_tokens.service import record_contribution_receipt
+        assert callable(record_contribution_receipt)
 
     def test_award_function_signature(self):
-        """Krishna: Award function takes db, session_id, participant_id, amount, type."""
-        from app.cubes.cube8_tokens.service import award_hi_tokens_for_payment
-        sig = inspect.signature(award_hi_tokens_for_payment)
+        """Krishna: Receipt function takes db, session_id, participant_id, amount, type."""
+        from app.cubes.cube8_tokens.service import record_contribution_receipt
+        sig = inspect.signature(record_contribution_receipt)
         params = list(sig.parameters.keys())
         assert "amount_usd" in params
         assert "payment_type" in params

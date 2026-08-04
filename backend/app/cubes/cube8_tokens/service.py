@@ -71,26 +71,39 @@ VALID_TRANSITIONS: dict[str, set[str]] = {
 
 LIFECYCLE_STATES = set(VALID_TRANSITIONS.keys())
 
-# HI token conversion: $ donated ÷ minimum wage = 웃 tokens earned
-# This is the ONLY way to earn 웃 tokens — real money → real value
-HI_RATE_PER_HOUR = 7.25  # US federal minimum wage (USD/hr)
+# 웃 (HI) is denominated in TIME, never in currency.
+#
+# 웃 is earned by contributed time and by nothing else. Money is NEVER an
+# on-ramp: a payment or donation funds the platform, it does not create
+# recognition and it carries no governance weight. Any path from currency to
+# 웃 is a path from money to authority, which Atlantis Accords §5 forbids
+# outright ("No contribution buys governance influence, from any source,
+# ever") — see the three-layer separation: Recognition (웃, earned) ·
+# Participation (governance, no economic right) · Funding (money, no
+# governance right, inert receipt).
+HI_RATE_PER_HOUR = 7.25  # baseline hourly anchor (Texas / US federal floor)
 
 
-def dollars_to_hi_tokens(amount_usd: float) -> float:
-    """Convert USD payment/donation to 웃 (HI) tokens.
+def hours_to_hi_tokens(hours: float) -> float:
+    """웃 (HI) is denominated in TIME, not in any currency.
 
-    Formula: 웃 = $ ÷ 7.25
+    Formula: 웃 = hours × 7.25
     Examples:
-      $11.11 moderator fee → 1.532 웃
-      $50.00 donation      → 6.897 웃
-      $7.25 (1 hour wage)  → 1.000 웃
+      1 hour of work    -> 7.25 웃
+      40 hours (Lagos)  -> 290.00 웃
+      40 hours (Austin) -> 290.00 웃   # identical work, identical 웃
 
-    This makes 웃 the universal measure of compensated value.
-    Anyone who pays or donates earns 웃 proportional to their contribution.
+    BASELINE: 7.25 is seeded from a real minimum-wage floor (Texas / US
+    federal), but it is NOT a dollar peg. The unit is the hour, so the rate
+    is globally obtainable and no local currency discounts anyone's time.
+
+    A currency donation is a separate on-ramp (see record_contribution_receipt);
+    it funds the platform, it does not define what an hour of human work is
+    worth.
     """
-    if amount_usd <= 0:
+    if hours <= 0:
         return 0.0
-    return round(amount_usd / HI_RATE_PER_HOUR, 3)
+    return round(hours * HI_RATE_PER_HOUR, 3)
 
 
 # ---------------------------------------------------------------------------
@@ -461,17 +474,17 @@ async def reverse_entry(
 # ---------------------------------------------------------------------------
 
 
-# NOTE: disburse_cqs_reward is defined ONCE below (after award_hi_tokens_for_payment).
+# NOTE: disburse_cqs_reward is defined ONCE below (after record_contribution_receipt).
 # A duplicate definition was removed here on 2026-04-13 (G6 gap fix, Succinctness +5).
 # The canonical version includes Supabase broadcast notification.
 
 
 # ---------------------------------------------------------------------------
-# Payment → 웃 Token Conversion (THE ONLY WAY TO EARN HI TOKENS)
+# Payment → Contribution Receipt (INERT — mints NO tokens, carries NO weight)
 # ---------------------------------------------------------------------------
 
 
-async def award_hi_tokens_for_payment(
+async def record_contribution_receipt(
     db: AsyncSession,
     *,
     session_id: uuid.UUID,
@@ -481,51 +494,54 @@ async def award_hi_tokens_for_payment(
     reference_id: str | None = None,
     session_short_code: str | None = None,
 ) -> TokenLedger:
-    """Award 웃 (HI) tokens when a user pays or donates.
+    """Record that a person funded the work. Mints NOTHING.
 
-    Formula: 웃 = $ amount ÷ 7.25 (US federal minimum wage)
+    Money is not an on-ramp to 웃. A payment or donation buys a permanent,
+    public, non-transferable record that you funded the work, plus full
+    traceability of where it went — and nothing else:
 
-    This is the ONLY way to earn 웃 tokens — real money creates real value.
-    Tracks who's investing in the platform and how much.
+      * NO 웃 minted            (delta_human is always 0.0)
+      * NO governance weight    (a receipt is not a vote and never becomes one)
+      * NO settlement claim     (nothing is owed back)
+      * NOT transferable        (it is a record, not property)
 
-    Examples:
-      $11.11 moderator fee → 1.532 웃
-      $50.00 donation      → 6.897 웃
-      $100.00 cost split   → 13.793 웃
+    This is the fourth, inert class in the three-layer separation. 웃 is earned
+    by contributed time via hours_to_hi_tokens() and by nothing else.
+
+    Atlantis Accords §5: "No contribution buys governance influence, from any
+    source, ever."
     """
-    hi_tokens = dollars_to_hi_tokens(amount_usd)
-
-    if hi_tokens <= 0:
-        raise ValueError("Payment amount must be positive to earn 웃 tokens")
+    if amount_usd <= 0:
+        raise ValueError("Contribution amount must be positive")
 
     entry = await create_ledger_entry(
         db,
         session_id=session_id,
         user_id=user_id,
         cube_id="cube8",
-        action_type=f"payment_{payment_type}",
+        action_type=f"contribution_receipt_{payment_type}",
         delta_heart=0.0,
-        delta_human=hi_tokens,
+        delta_human=0.0,   # INERT: money mints no 웃, ever
         delta_unity=0.0,
         lifecycle_state="pending",
-        reason=f"웃 earned: ${amount_usd:.2f} ÷ $7.25/hr = {hi_tokens:.3f} 웃",
+        reason=f"Contribution receipt: ${amount_usd:.2f} funded ({payment_type}). Mints no 웃.",
         reference_id=reference_id,
         session_short_code=session_short_code,
     )
 
     logger.info(
-        "cube8.hi_tokens.awarded",
+        "cube8.contribution.recorded",
         extra={
             "session_id": str(session_id),
             "user_id": user_id,
             "amount_usd": amount_usd,
-            "hi_tokens": hi_tokens,
+            "hi_tokens_minted": 0.0,
             "payment_type": payment_type,
         },
     )
 
     # Cube 12: Auto-mint ARX NFT if payment is for a physical item (donation type)
-    # This hooks the purchase flow: Stripe payment → ♡ tokens + NFT mint
+    # This hooks the purchase flow: Stripe payment → receipt + NFT mint (no 웃)
     if payment_type == "donation" and amount_usd >= 33.33:
         try:
             from app.cubes.cube12_divinity_nft.service import mint_arx_item
@@ -539,7 +555,7 @@ async def award_hi_tokens_for_payment(
             )
             logger.info("cube12.auto_mint.success", extra={"user_id": user_id, "amount": amount_usd})
         except Exception as e:
-            # Non-fatal — tokens still awarded even if NFT mint fails
+            # Non-fatal — the receipt stands even if NFT mint fails
             logger.warning("cube12.auto_mint.failed", extra={"error": str(e)})
 
     return entry

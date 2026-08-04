@@ -680,7 +680,7 @@
     {
       "code": "8.1",
       "functions": [
-        "dollars_to_hi_tokens"
+        "hours_to_hi_tokens"
       ],
       "ssses": {
         "efficiency": 100,

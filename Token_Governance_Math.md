@@ -73,8 +73,14 @@ Prevents any single actor from dominating governance outcomes.
 
 ### Base governance weight:
 ```
-W_base(user) = SI_balance(user) + (HI_balance(user) * HI_weight_factor)
-HI_weight_factor = 0.5  (HI counts at half weight for governance)
+W_base(user) = SI_balance(user)
+
+# HI_weight_factor DELETED 2026-08-06.
+# 웃 (HI) confers NO governance weight — not at half weight, not at any weight.
+# Governance weight comes from verified personhood, never from a token balance.
+# Combined with a money->웃 path this was a complete route from money to
+# authority; both halves are now removed. Accords §5: "No contribution buys
+# governance influence, from any source, ever." 
 ```
 
 ### Damped weight (per-session):
