@@ -185,6 +185,38 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font-size:13px;color:var(--ink-2);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 /* ---------- full-document reading mode ---------- */
+.keyimp{border:1px solid var(--rule);border-left:5px solid var(--si);background:var(--si-bg);
+  padding:15px 17px;margin:0 0 20px;border-radius:2px}
+.keyimp h4{margin:0 0 9px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--si)}
+.keyimp ol{margin:0;padding-left:20px;font-size:14.5px;line-height:1.62}
+.keyimp li{margin:0 0 6px}
+.keyimp li b{font-family:ui-monospace,monospace;font-size:12.5px;font-weight:600}
+.keyimp .none{margin:0;font-size:14px;color:var(--ink-2);font-style:italic}
+
+.cmp{border:1px solid var(--ai);border-left:5px solid var(--ai);background:var(--panel);
+  padding:16px 18px;margin:0 0 22px;border-radius:2px}
+.cmp h4{margin:0 0 12px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--ai)}
+.cmp-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px;font-size:13px}
+.cmp-ctl select{font:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--rule);
+  background:var(--paper);color:var(--ink);border-radius:2px;max-width:100%}
+.cmp-ctl button{font:inherit;font-size:12px;padding:5px 10px;border:1px solid var(--rule);
+  background:var(--chrome);color:var(--ink);border-radius:2px;cursor:pointer}
+.cmp-sum{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.cmp-sum span{font-size:11.5px;padding:3px 9px;border-radius:2px;border:1px solid var(--rule);
+  font-family:ui-monospace,monospace}
+.cmp-sum b{font-weight:700}
+.k-add{background:var(--ok-bg);border-color:var(--ok)!important;color:var(--ok)}
+.k-rev{background:var(--si-bg);border-color:var(--si)!important;color:var(--si)}
+.k-rem{background:var(--alert-bg);border-color:var(--alert)!important;color:var(--alert)}
+.k-car{color:var(--ink-2)}
+.cmp .none{font-size:14px;color:var(--ink-2);font-style:italic;margin:0}
+section.blk.cmp-add{background:linear-gradient(90deg,var(--ok-bg),transparent 62%);
+  border-left:3px solid var(--ok);margin-left:-16px;padding-left:13px}
+section.blk.cmp-rev{background:linear-gradient(90deg,var(--si-bg),transparent 62%);
+  border-left:3px solid var(--si);margin-left:-16px;padding-left:13px}
+
+body.fulldoc #keyimp,
+body.fulldoc #cmp,
 body.fulldoc .deck,
 body.fulldoc .meta-part,
 body.fulldoc #review,
@@ -198,7 +230,7 @@ body.fulldoc .fullnote{display:block}
 .fullnote{display:none;border:1px solid var(--rule);border-left:5px solid var(--ai);background:var(--ai-bg);
   padding:14px 16px;margin:24px 0;border-radius:2px;font-size:14px}
 @media print{
-  .deck,.meta-part,#review,#ledger,#rcore,#vban{display:none!important}
+  .deck,.meta-part,#review,#ledger,#rcore,#vban,#keyimp,#cmp{display:none!important}
   body{padding:0;font-size:11pt}
   section.blk{grid-template-columns:1fr;break-inside:auto}
   section.blk>.bn,.chgtag{display:none}
@@ -218,6 +250,7 @@ body.fulldoc .fullnote{display:block}
   <span class="vnow" id="vNow">v1</span>
   <button id="bLatest" title="Jump to the latest release">Latest</button>
   <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">&#9679; Changes</button>
+  <button id="bCmp" aria-pressed="false" title="Compare any two releases">&#8646; Compare</button>
   <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
   <span class="hash" id="vHash">state &mdash;</span>
  </div>
@@ -228,6 +261,8 @@ body.fulldoc .fullnote{display:block}
 <header class="mast">
   <div class="kicker">Vision &#8226; 2525 &middot; Vision &amp; White Paper &middot; Master of Thought &middot; R-CORE Replay</div>
   <h1>The Living Ledger of Human Contribution</h1>
+  <p class="sub" style="font-style:normal;font-size:clamp(15px,2.3vw,18px);color:var(--ink-2);
+  letter-spacing:.02em;margin-top:-4px">Recursive Coordination for Human Continuity</p>
   <p class="sub" style="font-style:normal;font-size:clamp(17px,2.7vw,21px);color:var(--ink)">
   <strong>We cannot master what we are not aware of.</strong></p>
   <p class="sub">An hour of a human life, recorded so that it cannot be discounted by where it was
@@ -239,9 +274,11 @@ body.fulldoc .fullnote{display:block}
     <span class="g-hi">&#50883; H.I. &mdash; Human Intelligence</span>
   </div>
   <div class="meta" style="margin-top:18px;font-family:ui-monospace,monospace;font-size:12px;line-height:1.8">
-    <strong style="color:var(--ink)">Vision &amp; White Paper</strong><br>
-    Written by <strong style="color:var(--ink)">Master of Thought</strong><br>
-    System of Innovation &middot; Vision 2525 &middot; Atlantis Accords &middot; eXeL AI Polling
+    <strong style="color:var(--ink)">The Unit. The Shield. The Replay.</strong><br>
+    Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven<br>
+    <br>
+    Vision &amp; White Paper, written by <strong style="color:var(--ink)">Master of Thought</strong><br>
+    R-CORE &middot; SoI&#8226;2525 &middot; Atlantis Accords &middot; eXeL AI Polling
   </div>
 </header>
 
@@ -263,6 +300,8 @@ body.fulldoc .fullnote{display:block}
 </div>
 
 <div id="vban"></div>
+<div id="keyimp"></div>
+<div id="cmp"></div>
 <main id="doc"></main>
 
 <div class="part meta-part">
@@ -1064,6 +1103,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Freezing the earner&rsquo;s rate on the entry removes the arbitrage rather than policing it. There is no longer a trade to detect, because there is no longer a trade."}
  ],
  next:"Three defects closed in code across two releases; the money path is clean. What remains is not ours to close alone: three decisions await ratification, the reserve fork is the operator&rsquo;s, and the Accords caps still carry no numbers. The document should now say plainly which of its open items need a person and which need an engineer, because they are no longer the same list."
+},
+{
+ v:36, code:"THE COMPARISON", stamp:"2026.08.04 &middot; release 36",
+ thrust:"Any two releases can now be compared directly &mdash; and the 2525 target is restated as one billion people with nine years of runway.",
+ mot:"Master of Thought, deciding two things the operator put to me. FIRST, the title. Two candidates: <em>The Living Ledger of Human Contribution</em> and <em>Recursive Coordination for Human Continuity</em>. I take the ledger as primary and the recursion as the line beneath it. The reason is mechanical, not aesthetic: this document IS a ledger &mdash; it is not stored, it is replayed from append-only entries, and a reader can prove that in their own browser in about three seconds. A title should name what a thing does. Recursive coordination is the METHOD by which the ledger stays honest, so it belongs on line two, where it explains rather than claims. SECOND, replay is not yet comparison. Playing forward shows motion; it does not answer &ldquo;what changed between v12 and v99&rdquo;. At ninety-nine releases that question becomes the only one that matters. Build it. And restate the 2525 objective as the operator gave it &mdash; one billion people, nine years of runway each &mdash; then do the arithmetic in public, even where it embarrasses the target.",
+ stats:{clauses:224, jur:103, shields:5, defects:9, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Comparison is what makes a ledger a memory rather than an archive. Until now the past was visible one release at a time; it is now examinable in pairs."},
+  {n:"Asar",   g:"A+", f:"The title question resolved on the right ground: what the thing does, not how it sounds. The subtitle keeps the stronger abstraction without letting it overstate."},
+  {n:"Athena", g:"A+", f:"Compare v1 against v36 and the whole argument of the framework is one screen of coloured rows. That is the most persuasive artefact this document has produced."},
+  {n:"Christo",g:"A",  f:"One billion people with nine years of security is the first target stated in lives rather than dollars. That reordering is the correct one and it should never be reversed."},
+  {n:"Enki",   g:"A+", f:"Key Improvements is DERIVED from the ledger, not authored beside it. A hand-written changelog drifts from the change; this one cannot, because it is the change."},
+  {n:"Enlil",  g:"A+", f:"Compare is a pure function of two integers over the same append-only ledger. It adds no state and cannot disagree with replay, because it is built from it."},
+  {n:"Krishna",g:"A+", f:"Play, slider, changes, compare and full-document are now one instrument rather than five buttons. The reader chooses a question and the deck answers it."},
+  {n:"Odin",   g:"A",  f:"The removal column reads zero and will keep reading zero, and the document says so rather than hiding an empty category. A comparison tool that cannot show deletion must admit it."},
+  {n:"Pangu",  g:"A+", f:"At release 99 this control is the difference between ninety-nine documents and one document with ninety-nine states. The distinction is the whole idea."},
+  {n:"Sofia",  g:"A+", f:"A reader who trusts nothing else can now select two numbers and audit us. That is worth more than any paragraph of assurance in this file."},
+  {n:"Thoth",  g:"A+", f:"The 2525 arithmetic checked independently. 1bn x 9 x 9,999 = 89.99 trillion &#50883;. Steady state 18.0M people on runway. Perpetual corpus at a 4% real draw: $318.24bn at the floor rate, $6.79tn at the Austin anchor. And $100bn compounding at 1.8421% real for 500 years reaches exactly $1,000tn &mdash; the first time the two published targets have been shown to be the same number seen from two ends."},
+  {n:"Thor",   g:"A+", f:"Publishing that $100bn buys 1.57% of the target at the floor rate, and 0.07% at the Austin anchor, is the most dangerous paragraph in the document and the most necessary one."}
+ ],
+ next:"Comparison exists; the reader can now audit any pair of releases. The 2525 objective is restated in lives and its funding gap is published rather than implied. What remains for the ninety-nine: the three ratifications, the reserve fork, the Accords caps, and the language pass. From here the releases should get smaller and more specific, because the structure is done and only the evidence is missing."
 }
 ];
 
@@ -4270,9 +4330,123 @@ L(35,"open.defects","Defects 3, 4 and 15 closed in code. The register now separa
 'Accords must publish, and a fork between full pre-funding and duration-matched reserve. Neither can be '+
 'closed by writing code, and this document should stop implying otherwise.</caption></div>');
 
+/* ══════════ RELEASE 36 ══════════ */
+
+L(36,"scale.2525","Operator restated the objective: one billion people with nine years of runway, by 2525. The arithmetic is published including where it fails.",
+'<h2>The road to 2525 &mdash; one billion people, nine years of runway</h2>'+
+'<p>The objective is now stated in <strong>lives rather than dollars</strong>, and the dollars are made to '+
+'answer to it: <strong>one billion people, each with nine years of livelihood runway, by the year '+
+'2525.</strong> The $100bn treasury and the $1,000tn horizon are not the goal &mdash; they are what the '+
+'goal costs. Stating it the other way round for thirty-five releases was a quiet inversion of priorities, '+
+'and it is corrected here.</p>'+
+'<div class="notice key"><span class="tag">The target, in the unit</span>'+
+'<p style="margin-bottom:0">Nine years of runway is <strong>9 &times; 9,999 = 89,991 &#50883;</strong> per '+
+'person. One billion people is <strong>89.99 trillion &#50883;</strong>. Because the mint went '+
+'currency-free at release 35, that number means the same thing in every jurisdiction &mdash; which is the '+
+'only reason a single global target can be stated at all.</p></div>'+
+'<h3>What it costs, and where $100bn actually lands</h3>'+
+'<p>One billion people over five hundred years is two million people entering each year, each carried for '+
+'nine. So the system is not funding a billion people at once &mdash; it is funding a <strong>steady state '+
+'of 18.0 million people on runway at any moment</strong>. That is the number that has to be paid for, '+
+'every year, for five centuries:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Rate</th><th class="n">Per year</th><th class="n">Nine years</th>'+
+'<th class="n">Annual, steady state</th><th class="n">Corpus at 4% real</th></tr>'+
+'<tr><td>Floor &mdash; Nigeria 0.34</td><td class="n">$707.20</td><td class="n">$6,364.80</td>'+
+'<td class="n">$12.73bn</td><td class="n"><strong>$318.24bn</strong></td></tr>'+
+'<tr><td>Austin &mdash; Texas 7.25</td><td class="n">$15,080.00</td><td class="n">$135,720.00</td>'+
+'<td class="n">$271.44bn</td><td class="n"><strong>$6.79tn</strong></td></tr>'+
+'<tr><td>Table median &mdash; 8.75</td><td class="n">$18,200.00</td><td class="n">$163,800.00</td>'+
+'<td class="n">$327.60bn</td><td class="n"><strong>$8.19tn</strong></td></tr>'+
+'</table><caption>The table median is the median of the 59 published rates, not of humanity &mdash; the '+
+'rate table over-represents high-income jurisdictions, so the realistic figure sits nearer the floor than '+
+'the median. Where the billion people actually live decides which row applies, and that is a fact about '+
+'the world rather than a choice we get to make.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; $100bn does not reach the target. Published, not implied.</span>'+
+'<p>Spent once, with no growth, $100bn buys nine years of runway for:</p>'+
+'<ul style="margin:8px 0 10px"><li><strong>15,711,413 people</strong> at the floor rate &mdash; '+
+'<strong>1.57%</strong> of one billion.</li>'+
+'<li><strong>736,811 people</strong> at the Austin anchor &mdash; <strong>0.07%</strong>.</li></ul>'+
+'<p style="margin-bottom:0">$100bn is the <strong>founding treasury, not the endowment</strong>. Against '+
+'the floor-rate corpus of $318.24bn it is 31.4% of what is needed; against the Austin anchor it is 1.5%. '+
+'Any version of this document that implied $100bn completes the mission was wrong, and this is the release '+
+'that says so.</p></div>'+
+'<h3>The bridge: $100bn and $1,000tn are the same number, five centuries apart</h3>'+
+'<p>These two figures have been carried side by side since release 11 without anyone showing how one '+
+'becomes the other. It is a single exponent:</p>'+
+'<pre><code>100,000,000,000 x e^(g x 500)  =  1,000,000,000,000,000\n\n'+
+'   g = ln(10,000) / 500  =  1.8421% real, compounded, for five hundred years</code></pre>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Real growth</th><th class="n">$100bn becomes, after 500 years</th><th>Verdict against the target</th></tr>'+
+'<tr><td class="n">0.0%</td><td class="n">$0.10tn</td><td>Fails. 15.7M people at the floor rate, 1.6% of target.</td></tr>'+
+'<tr><td class="n">0.5%</td><td class="n">$1.2tn</td><td>Floor-rate corpus cleared in year ~310. Austin anchor never.</td></tr>'+
+'<tr><td class="n">1.0%</td><td class="n">$14.8tn</td><td>Both corpora cleared. $1,000tn missed by 67x.</td></tr>'+
+'<tr><td class="n">1.5%</td><td class="n">$180.8tn</td><td>Comfortable on runway. Still short of the horizon.</td></tr>'+
+'<tr><td class="n"><strong>1.8421%</strong></td><td class="n"><strong>$1,000tn</strong></td>'+
+'<td><strong>Exactly the published horizon. This is the rate the objective implies.</strong></td></tr>'+
+'<tr><td class="n">2.0%</td><td class="n">$2,202.6tn</td><td>Horizon passed with margin.</td></tr>'+
+'</table><caption>Five centuries is long enough that the growth rate matters more than the starting '+
+'amount. The difference between failure and the full objective is <strong>1.84 percentage points of real '+
+'return</strong> &mdash; below the long-run real return of almost any productive asset, and utterly '+
+'dependent on the corpus surviving five hundred years of governments, wars and fashions. That survival is '+
+'what the Five Shields are for. The shields are not legal decoration; they are the return '+
+'assumption.</caption></div>'+
+'<div class="notice key"><span class="tag">What this changes about the work</span>'+
+'<p style="margin-bottom:0">The binding constraint is no longer reach, and it is not regulation. It is '+
+'<strong>continuity</strong> &mdash; whether an asset-locked, equity-free, federated institution can hold '+
+'a corpus for five hundred years at a modest real return without being captured, taxed out of existence, '+
+'or quietly wound up. Every hour of governance work in this document is, in the end, work on that single '+
+'number. Nine years of security for a billion people is not bought with money. It is bought with an '+
+'institution that does not die.</p></div>');
+
+L(36,"corpus.iterations","Replay became comparison. Any two of the ninety-nine releases can now be audited against each other.",
+'<h2>Reading the ninety-nine</h2>'+
+'<p>A document that accumulates ninety-nine releases has a problem no ordinary paper has: the reader '+
+'cannot possibly read them all, and the interesting content is not in any single release but in the '+
+'<em>differences between</em> them. Playing forward shows motion. It does not answer the only question '+
+'that matters at scale &mdash; <strong>what changed, between which two points, and why.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Control</th><th>The question it answers</th></tr>'+
+'<tr><td><strong>Slider &middot; &#9668; &#9658;</strong></td><td>What did the document look like at release <em>n</em>?</td></tr>'+
+'<tr><td><strong>&#9654; Play</strong></td><td>How did the argument develop, in order?</td></tr>'+
+'<tr><td><strong>&#9679; Changes</strong></td><td>What is new in the release I am looking at?</td></tr>'+
+'<tr><td><strong>Key improvements</strong></td><td>Of those changes, which ones mattered, and for what stated reason?</td></tr>'+
+'<tr><td><strong>&#8646; Compare</strong></td><td>What changed between <em>any</em> two releases &mdash; v1 against v99, or v98 against v99?</td></tr>'+
+'<tr><td><strong>&#9776; Full doc</strong></td><td>What does it say right now, read straight through, with no version machinery?</td></tr>'+
+'</table><caption>Six controls, six questions. At release 99 all ninety-nine states remain addressable, '+
+'because none of them is stored &mdash; each is reconstructed on demand from the same append-only '+
+'ledger.</caption></div>'+
+'<h3>How comparison works</h3>'+
+'<p>Compare is a pure function of two integers. It replays both releases and sets the block lists side by '+
+'side; it cannot disagree with what you see on screen, because it is built from the same reconstruction:</p>'+
+'<pre><code>compare(a, b)  =  swap so a &lt;= b, then for each block id in ORDER:\n'+
+'                    x = newest ledger entry with e.id == id and e.v &lt;= a\n'+
+'                    y = newest ledger entry with e.id == id and e.v &lt;= b\n\n'+
+'                    x absent, y present  -> ADDED     (first written at v = y.v)\n'+
+'                    x present, y absent  -> REMOVED   (structurally impossible &mdash; see below)\n'+
+'                    x.v != y.v           -> REVISED   (superseded at v = y.v, with its reason)\n'+
+'                    x.v == y.v           -> CARRIED   (identical bytes)</code></pre>'+
+'<div class="notice"><span class="tag">An empty category, declared rather than hidden</span>'+
+'<p style="margin-bottom:0"><strong>The REMOVED column reads zero, and always will.</strong> An '+
+'append-only ledger with last-write-wins reconstruction has no delete operation &mdash; a block can be '+
+'superseded, contradicted, or reduced to a single line saying it was wrong, but it cannot be made to have '+
+'never existed. That is a deliberate constraint and a real limitation, and a comparison tool that showed a '+
+'removal column without saying it can never fill would be quietly misleading. Under the disclosure rule '+
+'(<code>U-WF-09</code>) the empty category is declared.</p></div>'+
+'<h3>What Key Improvements is, and what it is not</h3>'+
+'<p>The improvements list under each release is <strong>derived from the ledger, not written beside '+
+'it</strong>. It is the set of entries whose version equals the one you are viewing, each shown with the '+
+'reason recorded at the time it was made. A hand-maintained changelog drifts away from the changes it '+
+'describes within a few releases; this one cannot drift, because it is not a description of the change '+
+'&mdash; it <em>is</em> the change, read back.</p>'+
+'<p>The cost of that honesty is that the list is only as good as the reasons we wrote down. A lazy '+
+'<code>why</code> string produces a lazy improvement note, visibly, in public, forever. That is the '+
+'intended incentive.</p>');
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
 let active = VMAX, showDiff = true, playing = null;
+let cmpOn = false, cmpA = 1, cmpB = VERSIONS.length;
 
 function fnv1a(s){
   let h = 0x811c9dc5;
@@ -4298,6 +4472,34 @@ function stateHash(v){
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+/* Comparison: a pure function of two version numbers over the same ledger.
+   Built from replay(), so it can never disagree with what is rendered. */
+function compare(a, b){
+  if (a > b){ const t = a; a = b; b = t; }   /* always earlier -> later, so order cannot change the answer */
+  const A = {}, B = {};
+  for (const e of replay(a)) A[e.id] = e;
+  for (const e of replay(b)) B[e.id] = e;
+  const rows = [];
+  for (const id of ORDER){
+    const x = A[id], y = B[id];
+    if (!x && !y) continue;
+    if (!x &&  y) rows.push({id:id, kind:"added",   v:y.v, why:y.why});
+    else if (x && !y) rows.push({id:id, kind:"removed", v:x.v, why:x.why});
+    else if (x.v !== y.v) rows.push({id:id, kind:"revised", v:y.v, why:y.why});
+    else rows.push({id:id, kind:"carried", v:x.v, why:""});
+  }
+  return rows;
+}
+
+/* Key improvements for one release: derived from the ledger, never authored beside it. */
+function improvements(v){
+  const out = [];
+  for (const id of ORDER){
+    for (const e of LEDGER){ if (e.id === id && e.v === v) out.push(e); }
+  }
+  return out;
+}
+
 function gradeCls(g){
   const c = g.charAt(0);
   return c === "A" ? "g-a" : c === "B" ? "g-b" : c === "C" ? "g-c" : "g-d";
@@ -4322,11 +4524,18 @@ function renderDoc(){
       '<span>panel mean <b>' + panelMean(V) + '</b></span>' +
     '</div></div>';
 
+  renderKeyImp();
+  renderCompare();
+  const cmpMap = {};
+  if (cmpOn){ for (const r of compare(Math.min(cmpA,cmpB), Math.max(cmpA,cmpB))) cmpMap[r.id] = r.kind; }
+
   let n = 0, html = "";
   for (const b of blocks){
     n++;
     const chg = (b.v === active);
-    html += '<section class="blk' + (chg && showDiff ? ' chg' : '') + '" id="blk-' + b.id + '">' +
+    const ck = cmpOn ? cmpMap[b.id] : null;
+    const cc = ck === "added" ? " cmp-add" : ck === "revised" ? " cmp-rev" : "";
+    html += '<section class="blk' + (chg && showDiff && !cmpOn ? ' chg' : '') + cc + '" id="blk-' + b.id + '">' +
       '<div class="bn">' + ("0"+n).slice(-2) + '</div><div class="bb">' + b.html +
       (chg && showDiff ? '<p style="margin-top:14px"><span class="chgtag">changed in v' + active + '</span> ' +
         '<span class="meta" style="font-size:13px">' + esc(b.why) + '</span></p>' : '') +
@@ -4344,6 +4553,75 @@ function renderDoc(){
   renderReview();
   renderLedger();
   renderRcore();
+}
+
+function renderKeyImp(){
+  const imp = improvements(active);
+  let h = '<div class="keyimp"><h4>Key improvements in v' + active + '</h4>';
+  if (!imp.length){
+    h += '<p class="none">No block changed in this release. It exists in the ledger, so the version ' +
+         'sequence stays unbroken, but the document text is identical to v' + (active-1) + '.</p>';
+  } else {
+    h += '<ol>';
+    for (const e of imp) h += '<li><b>' + esc(e.id) + '</b> &mdash; ' + esc(e.why) + '</li>';
+    h += '</ol>';
+  }
+  document.getElementById("keyimp").innerHTML = h + '</div>';
+}
+
+function renderCompare(){
+  const host = document.getElementById("cmp");
+  if (!cmpOn){ host.innerHTML = ""; return; }
+  const lo = Math.min(cmpA, cmpB), hi = Math.max(cmpA, cmpB);
+  const rows = compare(lo, hi);
+  const c = {added:0, revised:0, removed:0, carried:0};
+  for (const r of rows) c[r.kind]++;
+
+  let opts = "";
+  for (let v=1; v<=VMAX; v++) opts += '<option value="' + v + '">v' + v + ' — ' + esc(VERSIONS[v-1].code) + '</option>';
+
+  let h = '<div class="cmp"><h4>&#8646; Compare releases</h4>' +
+    '<div class="cmp-ctl">' +
+      '<label>Baseline <select id="cmpA">' + opts + '</select></label>' +
+      '<label>Target <select id="cmpB">' + opts + '</select></label>' +
+      '<button id="cmpPrev">vs previous</button>' +
+      '<button id="cmpFirst">v1 vs latest</button>' +
+    '</div>' +
+    '<div class="cmp-sum">' +
+      '<span class="k-add">added <b>' + c.added + '</b></span>' +
+      '<span class="k-rev">revised <b>' + c.revised + '</b></span>' +
+      '<span class="k-rem">removed <b>' + c.removed + '</b></span>' +
+      '<span class="k-car">carried unchanged <b>' + c.carried + '</b></span>' +
+      '<span class="k-car">v' + lo + ' &rarr; v' + hi + '</span>' +
+    '</div>';
+
+  const changed = rows.filter(function(r){ return r.kind === "added" || r.kind === "revised" || r.kind === "removed"; });
+  if (!changed.length){
+    h += '<p class="none">Nothing changed between v' + lo + ' and v' + hi + '. Identical bytes.</p>';
+  } else {
+    h += '<div class="scroll"><table><tr><th>Block</th><th>Change</th><th class="n">At</th><th>Recorded reason</th></tr>';
+    for (const r of changed){
+      const cls = r.kind === "added" ? "k-add" : r.kind === "revised" ? "k-rev" : "k-rem";
+      h += '<tr><td><code>' + esc(r.id) + '</code></td>' +
+           '<td><span class="pill ' + cls + '">' + r.kind + '</span></td>' +
+           '<td class="n">v' + r.v + '</td><td>' + esc(r.why) + '</td></tr>';
+    }
+    h += '</table><caption>Sections highlighted below: <strong>green</strong> first written in this range, ' +
+         '<strong>gold</strong> revised in it. The removed column reads zero because an append-only ledger ' +
+         'has no delete &mdash; see &ldquo;Reading the ninety-nine&rdquo;.</caption></div>';
+  }
+  host.innerHTML = h + '</div>';
+
+  document.getElementById("cmpA").value = cmpA;
+  document.getElementById("cmpB").value = cmpB;
+  document.getElementById("cmpA").addEventListener("change", function(){ cmpA = parseInt(this.value,10); goto(cmpB); });
+  document.getElementById("cmpB").addEventListener("change", function(){ cmpB = parseInt(this.value,10); goto(cmpB); });
+  document.getElementById("cmpPrev").addEventListener("click", function(){
+    cmpB = active; cmpA = Math.max(1, active-1); goto(cmpB);
+  });
+  document.getElementById("cmpFirst").addEventListener("click", function(){
+    cmpA = 1; cmpB = VMAX; goto(VMAX);
+  });
 }
 
 function panelMean(V){
@@ -4465,6 +4743,13 @@ document.getElementById("bLatest").addEventListener("click", function(){ stop();
 document.getElementById("vSlide").addEventListener("input", function(){ stop(); goto(parseInt(this.value,10)); });
 document.getElementById("bDiff").addEventListener("click", function(){
   showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
+});
+document.getElementById("bCmp").addEventListener("click", function(){
+  stop();
+  cmpOn = !cmpOn;
+  this.setAttribute("aria-pressed", cmpOn ? "true" : "false");
+  if (cmpOn){ cmpB = active; cmpA = Math.max(1, active-1); }
+  renderDoc();
 });
 var fullDoc = false;
 document.getElementById("bFull").addEventListener("click", function(){
