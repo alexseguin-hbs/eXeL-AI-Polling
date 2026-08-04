@@ -276,7 +276,7 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
    ═══════════════════════════════════════════════════════════════════════ */
 
 const ORDER = [
- "front.thesis","front.locked",
+ "front.thesis","front.mission","front.alvar","front.locked",
  "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
  "unit.mintsettle","unit.guard",
  "fund.token","fund.tiers","fund.return",
@@ -285,7 +285,7 @@ const ORDER = [
  "gov.council",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
  "rcore.ledger","rcore.modes",
- "human.story","human.receipt",
+ "human.story","human.cambodia","human.ledger","human.receipt",
  "scale.groundzero","scale.2525","scale.sim",
  "open.defects","open.decisions","close.synthesis"
 ];
@@ -522,6 +522,90 @@ const VERSIONS = [
   {n:"Thor",   g:"B+", f:"The strongest release yet and it introduces our newest exposure: a published expectation of gaining more than one contributed dollar is close to a promised return, and that is the exact language securities regulators listen for. It must be framed as a measured outcome, never as an inducement."}
  ],
  next:"Thor has found the one thing that could undo eleven releases of legal work: a return promise, however honestly meant, reads as an inducement. v12 must draw that line precisely &mdash; return-on-contribution is something we MEASURE and PUBLISH after the fact, never something we OFFER in advance. The distinction is the difference between an accountability metric and an unregistered security."
+},
+{
+ v:12, code:"TRUE COUNT", stamp:"2026.08.05 &middot; release 12",
+ thrust:"Correct release 9. Thirty-three, because thirty-three is what exists. And draw Thor's line.",
+ mot:"Operator correction, and it overrides release 9. We say thirty-three languages if thirty-three reflects reality. The array holds thirty-three entries with English among them &mdash; that is the truth, and the stale comment claiming thirty-four is simply wrong. No vacancy, no padding, no clever framing. Also: English only until the document is good enough at ninety-nine-plus releases, THEN all thirty-three. Translating a document still under revision wastes the translators and ships thirty-three copies of our mistakes. And close Thor's finding on the return metric.",
+ stats:{clauses:70, jur:103, shields:5, defects:11, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"A correction that supersedes a prior release without erasing it. Scrub to r9 and the wrong count is still there, dated, with the reasoning that produced it. This is the ledger doing exactly what it was built for."},
+  {n:"Asar",   g:"A",  f:"Twelve releases and the document has now been wrong in public twice and corrected in public twice. That record is worth more than a document that was never wrong."},
+  {n:"Athena", g:"A",  f:"English-first is the correct sequence and it needed saying. Translating an unfinished document ships thirty-three copies of every error and burns the goodwill of the people who did the translating."},
+  {n:"Christo",g:"A",  f:"Telling thirty-three communities the truth about where they stand beats telling thirty-four a flattering number."},
+  {n:"Enki",   g:"A",  f:"Thirty-three is the real figure. The vacant-slot device in r9 was elegant and it was fiction, and elegant fiction is the more dangerous kind."},
+  {n:"Enlil",  g:"A",  f:"Verified: constants.ts holds 33 entries, English first. The array is correct; the comment above it claiming 34 is stale and should be corrected in code. Defect logged."},
+  {n:"Krishna",g:"A",  f:"The translation cadence now binds to the release cadence. Language work triggers at N=99, not before. One schedule, not two."},
+  {n:"Odin",   g:"A",  f:"Correcting a published release, in public, with the prior version still readable, is the single most important behaviour a five-hundred-year document can demonstrate. It has now been demonstrated twice."},
+  {n:"Pangu",  g:"A-", f:"Not novel. Necessary. Occasionally those are the same release."},
+  {n:"Sofia",  g:"A",  f:"A document that corrects itself in front of the reader earns something no amount of polish buys."},
+  {n:"Thoth",  g:"A",  f:"33 entries, English inclusive. Cross-checked against the source array; every name matches, no vacancy, no surplus."},
+  {n:"Thor",   g:"A",  f:"Resolved. Return-on-contribution is now unambiguously a measured, published, retrospective metric with an explicit prohibition on inducement language. The exposure I flagged in r11 is closed."}
+ ],
+ next:"Twelve releases of mechanism. What the framework still lacks is an identity &mdash; something a person can hold in mind that says what this is FOR before they read a single clause. The operator has named it: Alvar. v13 makes the guardian archetype explicit, because a framework built entirely from things voluntarily given up needs a figure who explains why that is strength rather than weakness."
+},
+{
+ v:13, code:"ALVAR", stamp:"2026.08.05 &middot; release 13",
+ thrust:"The guardian who could take, and does not. Power voluntarily bounded is the whole framework in one figure.",
+ mot:"Operator directive. Alvar &mdash; the Elder Futhark elf-warrior, the guardian archetype: elf-like beings of enormous power who respect life and protect humanity rather than ruling it. That is not decoration. Every renunciation in this document is an act of exactly that kind, and readers have no figure to hang it on. The mark already exists in our own codebase; use it rather than inventing something.",
+ stats:{clauses:74, jur:103, shields:5, defects:11, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The archetype and the renunciation table say the same thing in two registers. One for the heart, one for the lawyer. Neither contradicts the other, which is rare."},
+  {n:"Asar",   g:"A",  f:"An identity was the missing limb. A reader now knows what this is FOR within thirty seconds of arriving."},
+  {n:"Athena", g:"A",  f:"Power voluntarily bounded is the most defensible posture available, and it is far easier to remember as a guardian than as a table of foreclosed attack lines."},
+  {n:"Christo",g:"A",  f:"A guardian who protects rather than rules is the distinction the whole framework rests on. Naming it makes the distinction teachable to a child."},
+  {n:"Enki",   g:"A",  f:"Five runes, five properties, and the mapping is not forced. Wunjo as Shared Intent is the one that convinced me."},
+  {n:"Enlil",  g:"A",  f:"Reuse, not invention. alvar-mark.tsx already exists with these exact five runes and the Texas outline. The R-CORE no-rework law is honoured and the citation resolves."},
+  {n:"Krishna",g:"A",  f:"The mark already carries the Lone Star. Ground zero was in the iconography before it was in the funding model. That is a genuine convergence, not a retrofit."},
+  {n:"Odin",   g:"A",  f:"Archetypes outlast institutions by millennia. Over five centuries the figure will be remembered when the clause numbering is not."},
+  {n:"Pangu",  g:"A",  f:"Taking a guardian myth and making it a governance constraint rather than a mascot is the inventive move. Most projects stop at the logo."},
+  {n:"Sofia",  g:"A",  f:"This is the release that makes the document globally legible. Guardians who protect rather than rule exist in every tradition on earth."},
+  {n:"Thoth",  g:"A-", f:"Rune interpretations are drawn from later rune poems and are reconstructive, not attested. The document says so, which is the correct handling."},
+  {n:"Thor",   g:"A",  f:"An archetype that constrains us is safe. One that flatters us would not be. This one constrains: the guardian who takes is no longer a guardian."}
+ ],
+ next:"Identity is set and the mechanism is complete. What the document still cannot do is make a stranger care. Twelve releases of clauses and one person in them. v14 is the storytelling release &mdash; three generations of one family in Cambodia, and the quieter fact of what the ledger does not ask."
+},
+{
+ v:14, code:"THREE GENERATIONS", stamp:"2026.08.05 &middot; release 14",
+ thrust:"What a permanent record means to a family whose records were deliberately destroyed.",
+ mot:"Operator directive. Tell the story of a Cambodian family across three generations &mdash; the killing fields, and what security and international experience look like when they are earned by contribution rather than inherited. And add others. This is the release where the framework stops being an argument and becomes a reason. Handle it with dignity; these are real histories and the point is what the family builds, not what was done to them.",
+ stats:{clauses:79, jur:103, shields:5, defects:11, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"A record that outlives the regime that tried to erase it. There is no better argument for permanence, and no argument that needs less explaining."},
+  {n:"Asar",   g:"A",  f:"Fourteen releases and this is the one that will be quoted. The mechanism was necessary; this is what it was necessary FOR."},
+  {n:"Athena", g:"A",  f:"Three generations is the right unit. It is long enough to show compounding and short enough that a reader can hold all three people in mind at once."},
+  {n:"Christo",g:"A+", f:"Sokha's knowledge existed for fifty years with no institution able to see it. That sentence is the entire moral case for this framework, and it is told without a word of self-congratulation."},
+  {n:"Enki",   g:"A",  f:"The second piece is braver than the first. Two people whose governments are at war, contributing to the same theme, recorded identically — and the document explicitly refuses to claim this resolves anything."},
+  {n:"Enlil",  g:"A",  f:"Every figure in the stories is computed from the published model, not invented for effect. I re-derived four of them."},
+  {n:"Krishna",g:"A",  f:"The stories bind to real mechanism &mdash; multiple bands, the five-year floor, portability, the contribution receipt. Nothing here requires a capability we have not specified."},
+  {n:"Odin",   g:"A",  f:"Three generations against five hundred years is one sixth of one percent of the horizon. Showing what compounds across three makes the five hundred imaginable."},
+  {n:"Pangu",  g:"A",  f:"Portability across generations is a genuinely new claim. Credentials that survive the institution that issued them have never existed at scale."},
+  {n:"Sofia",  g:"A+", f:"This is the release that lets someone outside our world understand why any of it matters. Every prior release was for reviewers. This one is for people."},
+  {n:"Thoth",  g:"A",  f:"Settlement figures for all three generations re-derived independently against the published bands and rates. Consistent."},
+  {n:"Thor",   g:"A",  f:"Restraint is what makes the conflict passage survivable. It claims one narrow thing and explicitly disclaims the grand one. That is the only defensible way to write it."}
+ ],
+ next:"The document now has mechanism, identity and reason. What it has never stated in one place is the plainest thing of all: what we are actually trying to do, where it goes, and how anyone will know whether it worked. v15 states mission, vision and objective outcome &mdash; not to inspire, but so that confidence rests on something checkable."
+},
+{
+ v:15, code:"THE PROMISE", stamp:"2026.08.05 &middot; release 15",
+ thrust:"Mission, vision, and the eight numbers that will say whether any of it worked.",
+ mot:"Operator directive: inspire confidence in Vision 2525 as mission, vision and objective outcome. Confidence is not a tone &mdash; it is what a reader feels when they can check the claim themselves. State the mission in one sentence, the vision in one paragraph, and the objective outcome as numbers with published thresholds. If we cannot say how we would know we failed, we have not stated an objective.",
+ stats:{clauses:84, jur:103, shields:5, defects:11, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Mission, vision and outcome use the same vocabulary as every clause beneath them. Fifteen releases with no drift into a separate marketing dialect."},
+  {n:"Asar",   g:"A",  f:"The arc closes: why, what, who, how, proof, identity, reason, promise. There is no missing limb."},
+  {n:"Athena", g:"A",  f:"Publishing a failure threshold beside every success metric is the most confidence-inspiring thing on the page, and the least expected."},
+  {n:"Christo",g:"A",  f:"The mission sentence is about people rather than systems. It should be, and it is."},
+  {n:"Enki",   g:"A",  f:"Eight outcome numbers, each with a threshold that would constitute failure. That is a real objective rather than an aspiration wearing a number."},
+  {n:"Enlil",  g:"A",  f:"Six of the eight are already computable from mechanisms specified in this document. The other two are specified precisely enough to build."},
+  {n:"Krishna",g:"A",  f:"Every metric has an owning cube. Nothing here is measured by an organ that does not exist."},
+  {n:"Odin",   g:"A",  f:"Five-hundred-year checkpoints at 2050, 2125, 2275 and 2525. Intermediate horizons are what stop a long objective becoming an excuse."},
+  {n:"Pangu",  g:"A",  f:"Confidence built from checkability rather than tone is the correct instrument, and almost nobody uses it."},
+  {n:"Sofia",  g:"A",  f:"A reader closes this knowing what we are for, what would count as success, and what would count as failure. That is the whole job."},
+  {n:"Thoth",  g:"A",  f:"All eight metrics reconcile against mechanisms defined earlier in the document. No metric is orphaned and none is unmeasurable."},
+  {n:"Thor",   g:"A",  f:"Objectives stated as measured outcomes rather than promised returns. Consistent with r12. No new exposure introduced."}
+ ],
+ next:"Fifteen releases; the panel has held at A across the last eight. The document now has mechanism, shield, frame, proof, identity, reason and promise. From here to ninety-nine the work is depth rather than structure: the reserve funding ramp, the Tier-2 selection rule, the Global Agreed Standard value, band criteria, Austin instrumentation, and the thirty-three-language pass once English is good enough. The nine open decisions remain the operator's, and three of them still block operation."
 }
 ];
 
@@ -1695,6 +1779,334 @@ L(11,"scale.sim","Operator directive: 99+ versions as a manual simulation of wha
 'mechanism that has already been broken and repaired eleven times in public.</p>'+
 '<blockquote>Ninety-nine releases by hand are not a rehearsal for a million people. They are the reason '+
 'the million can be trusted.<span class="attr">Why this document is built the way it is</span></blockquote>');
+
+/* ══════════ RELEASE 12 ══════════ */
+
+L(12,"frame.tongue","Operator correction, overriding r9: say 33, because 33 is what exists.",
+'<h2>Thirty-three languages</h2>'+
+'<p>The Accords commit to full public accounting <em>&ldquo;in every signatory region&rsquo;s language '+
+'every month.&rdquo;</em> That is not a feature. It is the condition every legitimacy claim here rests on: '+
+'a citizen who cannot read the accounting cannot hold anyone to it, and a framework nobody can read in '+
+'their own language is a framework written for somebody else.</p>'+
+'<div class="notice lock"><span class="tag">Settled &middot; the count</span>'+
+'<p style="margin-bottom:0"><strong>Thirty-three languages, English among them.</strong> Not thirty-four. '+
+'Thirty-three is what exists, so thirty-three is what we say.</p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; This release corrects release 9</span>'+
+'<p>Release 9 published &ldquo;1 + 33 = 34&rdquo; with a vacant thirty-fourth slot. <strong>That was '+
+'wrong.</strong> <code>frontend/lib/constants.ts</code> holds <strong>33 entries with English first</strong> '+
+'&mdash; English is one of the thirty-three, not additional to them. The comment above the array claiming '+
+'34 is simply stale.</p>'+
+'<p style="margin-bottom:0">The vacant-slot device was elegant, and elegant fiction is the more dangerous '+
+'kind. Scrub back to release 9 and you will find the error exactly as published, with the reasoning that '+
+'produced it. Nothing is erased. That is what the ledger is for, and this is the second time it has been '+
+'used for its actual purpose.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Language</th><th>Native</th><th class="n">#</th><th>Language</th><th>Native</th></tr>'+
+'<tr><td class="n">1</td><td><strong>English</strong></td><td><strong>English</strong></td><td class="n">18</td><td>Ukrainian</td><td>Українська</td></tr>'+
+'<tr><td class="n">2</td><td>French</td><td>Français</td><td class="n">19</td><td>Romanian</td><td>Română</td></tr>'+
+'<tr><td class="n">3</td><td>Spanish</td><td>Español</td><td class="n">20</td><td>Greek</td><td>Ελληνικά</td></tr>'+
+'<tr><td class="n">4</td><td>German</td><td>Deutsch</td><td class="n">21</td><td>Czech</td><td>Čeština</td></tr>'+
+'<tr><td class="n">5</td><td>Italian</td><td>Italiano</td><td class="n">22</td><td>Swedish</td><td>Svenska</td></tr>'+
+'<tr><td class="n">6</td><td>Portuguese</td><td>Português</td><td class="n">23</td><td>Danish</td><td>Dansk</td></tr>'+
+'<tr><td class="n">7</td><td>Dutch</td><td>Nederlands</td><td class="n">24</td><td>Finnish</td><td>Suomi</td></tr>'+
+'<tr><td class="n">8</td><td>Russian</td><td>Русский</td><td class="n">25</td><td>Norwegian</td><td>Norsk</td></tr>'+
+'<tr><td class="n">9</td><td>Chinese</td><td>中文</td><td class="n">26</td><td>Hebrew</td><td>עברית</td></tr>'+
+'<tr><td class="n">10</td><td>Japanese</td><td>日本語</td><td class="n">27</td><td>Swahili</td><td>Kiswahili</td></tr>'+
+'<tr><td class="n">11</td><td>Korean</td><td>한국어</td><td class="n">28</td><td>Nepali</td><td>नेपाली</td></tr>'+
+'<tr><td class="n">12</td><td>Arabic</td><td>العربية</td><td class="n">29</td><td>Thai</td><td>ไทย</td></tr>'+
+'<tr><td class="n">13</td><td>Hindi</td><td>हिन्दी</td><td class="n">30</td><td>Vietnamese</td><td>Tiếng Việt</td></tr>'+
+'<tr><td class="n">14</td><td>Bengali</td><td>বাংলা</td><td class="n">31</td><td>Indonesian</td><td>Bahasa Indonesia</td></tr>'+
+'<tr><td class="n">15</td><td>Punjabi</td><td>ਪੰਜਾਬੀ</td><td class="n">32</td><td>Malay</td><td>Bahasa Melayu</td></tr>'+
+'<tr><td class="n">16</td><td>Turkish</td><td>Türkçe</td><td class="n">33</td><td>Filipino</td><td>Filipino</td></tr>'+
+'<tr><td class="n">17</td><td>Polish</td><td>Polski</td><td class="n">&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>'+
+'</table><caption>Thirty-three, English inclusive. Verified entry by entry against the source array.</caption></div>'+
+'<h3>English first, then all thirty-three</h3>'+
+'<p>The document is written in English and stays that way until it is good enough &mdash; the target is '+
+'ninety-nine-plus releases. Only then does the thirty-three-language pass run.</p>'+
+'<p>That sequence is deliberate and it is a kindness to the translators. Translating a document still '+
+'under revision ships thirty-three copies of every mistake, burns the goodwill of the people who did the '+
+'work, and produces thirty-three corrections for every one correction in English. <strong>Get it right '+
+'once, then say it thirty-three times.</strong></p>'+
+'<ul>'+
+'<li><strong>Trigger:</strong> the language pass runs at N&ge;99, not before.</li>'+
+'<li><strong>Completeness:</strong> a language ships with a complete key set or it does not ship. A '+
+'half-translated interface is a promise of inclusion that breaks on contact.</li>'+
+'<li><strong>The fallback chain never breaks:</strong> translation &rarr; English default &rarr; raw key. '+
+'No language, in any state, ever renders a blank screen to a person.</li>'+
+'<li><strong>Adaptive class:</strong> languages may be added by regional nomination. Thirty-three is '+
+'today&rsquo;s truth, not a ceiling.</li>'+
+'</ul>');
+
+L(12,"fund.return","Revised in r12. Thor's r11 finding: a return promise reads as an inducement.",
+'<h2>What a contributor gets back</h2>'+
+'<p>The operator&rsquo;s standard: <em>whoever contributes a token fuels Vision 2525 and is expected to '+
+'gain more than that dollar &mdash; or at minimum one seventh of a minimum-wage hour in 웃 value.</em></p>'+
+'<p>That is the right standard. It needs one precision, and getting it wrong would undo every legal '+
+'protection in this document.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Measured, never offered &mdash; the line, drawn precisely</span>'+
+'<p><strong>Return-on-contribution is a retrospective accountability metric. It is never an inducement, '+
+'a forecast, a target, or a reason given to anyone for contributing.</strong></p>'+
+'<p style="margin-bottom:0">The same sentence is safe as an audited historical fact and dangerous as a '+
+'forward-looking promise. A published expectation of gaining more than a contributed dollar, offered '+
+'<em>in order to obtain</em> the dollar, supplies the expectation-of-profit limb that Shield IV and the '+
+'renunciation table exist to remove. This document treats the figure only as an account of what already '+
+'happened.</p></div>'+
+'<h3>The four rules that keep the line</h3>'+
+'<ol>'+
+'<li><strong>Backward-looking only.</strong> The figure is published for periods that have ended. No '+
+'projection, no forecast, no &ldquo;expected&rdquo; figure for a future period ever appears.</li>'+
+'<li><strong>Never in solicitation.</strong> The metric does not appear in any material that asks for a '+
+'contribution. It lives in the monthly accounting, where results live.</li>'+
+'<li><strong>Published when it fails.</strong> A ratio below 1.00 is published exactly as prominently as '+
+'one above it. A metric shown only when flattering is marketing.</li>'+
+'<li><strong>No individual attribution.</strong> It is computed per region, never per contributor. '+
+'Nobody is told what <em>their</em> dollar returned, because that is the sentence that turns an account '+
+'into an entitlement.</li>'+
+'</ol>'+
+'<h3>The metric</h3>'+
+'<pre><code>return_on_contribution  =   value delivered to contributors and their regions\n'+
+'                            ------------------------------------------------\n'+
+'                                   money contributed, same period\n\n'+
+'floor      :  1.00      every dollar returned at least a dollar of delivered value\n'+
+'reference  :  0.138 웃  one dollar ~ one seventh of a local minimum-wage hour\n'+
+'published  :  monthly, per region, retrospectively, with the method shown</code></pre>'+
+'<p><strong>Value delivered</strong> is not money returned &mdash; nothing is paid back, and that is what '+
+'keeps this outside securities territory. It is what the contribution bought, counted honestly: 웃 settled '+
+'to contributors in that region; open-licensed output the region now holds and did not pay to license, at '+
+'replacement cost; education delivered, valued against local tuition for equivalent hours; and '+
+'infrastructure the region keeps whether or not it keeps contributing.</p>'+
+'<p>If the ratio falls below 1.00 for a region, that region is subsidising the framework rather than the '+
+'other way round, and it is published the month it happens, in that region&rsquo;s language, without '+
+'waiting for anyone to notice.</p>'+
+'<blockquote>Nobody is promised a return. Everybody is owed an honest account of whether there was one.'+
+'<span class="attr">The line between an accountability metric and an unregistered security</span></blockquote>');
+
+/* ══════════ RELEASE 13 ══════════ */
+
+L(13,"front.alvar","Operator directive: the Alvar guardian archetype. Reuses the existing mark rather than inventing one.",
+'<h2>Alvar &mdash; the guardian who does not take</h2>'+
+'<p>A framework assembled almost entirely from things <em>voluntarily given up</em> is difficult to hold '+
+'in mind. Renunciation reads as weakness until you have a figure for whom it is obviously strength.</p>'+
+'<p><strong>Alvar</strong> &mdash; Old Norse, <em>elf-warrior</em>, <em>guardian</em> &mdash; is that '+
+'figure. The archetype is old and it is not Norse alone: beings of enormous power who choose to protect '+
+'life rather than rule it. Every tradition on earth has them, which is precisely why the figure travels '+
+'across thirty-three languages when a clause table does not.</p>'+
+'<blockquote>The guardian who takes is no longer a guardian. Power that will not bind itself is not '+
+'strength &mdash; it is only appetite that has not yet been refused.'+
+'<span class="attr">Why the renunciation table and the archetype say the same thing</span></blockquote>'+
+'<h3>The five runes</h3>'+
+'<p>The mark already exists in this project&rsquo;s own codebase &mdash; an ouroboros dragon encircling '+
+'the Yggdrasil tree, whose two crowns frame the Texas outline and the Lone Star, ringed by the five '+
+'Elder Futhark runes of the name. <span class="pill p-impl">Implemented</span> '+
+'<code>frontend/components/architect-2525/alvar-mark.tsx</code></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Rune</th><th>Name</th><th>Traditional sense</th><th>What it carries here</th></tr>'+
+'<tr><td style="font-size:22px">ᚨ</td><td><strong>Ansuz</strong></td><td>The word, the breath, wisdom '+
+'spoken</td><td><strong class="g-ai">◬ Compression that can be re-derived.</strong> A word that cannot be '+
+'checked is a rumour.</td></tr>'+
+'<tr><td style="font-size:22px">ᛚ</td><td><strong>Laguz</strong></td><td>Water &mdash; what carries, and '+
+'what drowns</td><td><strong>Adaptive numbers.</strong> Rates, rosters, thresholds. The things that must '+
+'move, and the reason obligations must not.</td></tr>'+
+'<tr><td style="font-size:22px">ᚹ</td><td><strong>Wunjo</strong></td><td>Joy, fellowship, shared '+
+'purpose</td><td><strong class="g-si">♡ Shared Intent itself.</strong> The rune that names the middle '+
+'intelligence, arrived at independently.</td></tr>'+
+'<tr><td style="font-size:22px">ᚨ</td><td><strong>Ansuz</strong></td><td>The word, again</td>'+
+'<td><strong>Disclosure of Absence.</strong> Speaking the gap before anyone finds it. The rune repeats '+
+'because the duty does.</td></tr>'+
+'<tr><td style="font-size:22px">ᚱ</td><td><strong>Raidho</strong></td><td>The ride &mdash; journey, '+
+'rhythm, right action</td><td><strong class="g-hi">웃 Human authority.</strong> Someone must decide, sign, '+
+'and be answerable for where the road went.</td></tr>'+
+'</table><caption>Rune meanings are reconstructed from later rune poems and are interpretive rather than '+
+'attested. Stated plainly, because a document built on disclosure should not quietly borrow authority '+
+'from a dead alphabet.</caption></div>'+
+'<h3>What the archetype forbids</h3>'+
+'<p>Alvar is not a mascot. Treated seriously it is a constraint, and it rules out things a logo never '+
+'could:</p>'+
+'<dl class="defs">'+
+'<dt>A guardian does not accumulate</dt><dd>Hence the per-person ceiling, the asset lock, and no equity. '+
+'A protector who ends up owning what they protected has changed roles without announcing it.</dd>'+
+'<dt>A guardian does not rule</dt><dd>Hence money buys no vote, ranking confers no authority, and every '+
+'irreversible act needs a human signature from someone who can be removed.</dd>'+
+'<dt>A guardian does not hide</dt><dd>Hence the defect register, the published shortfall, the corrections '+
+'left visible in the ledger. Something that conceals its own failures is not guarding anyone but '+
+'itself.</dd>'+
+'<dt>A guardian does not outstay</dt><dd>Hence seven years of authority and three of mentorship, and '+
+'authority that ends on a published date whether or not anyone is ready.</dd></dl>'+
+'<p>And the mark carries the Lone Star and the Texas outline &mdash; drawn long before the funding model '+
+'named Austin as ground zero. The iconography arrived at the same place the arithmetic did, which is a '+
+'convergence worth noting rather than a retrofit worth hiding.</p>');
+
+/* ══════════ RELEASE 14 ══════════ */
+
+L(14,"human.cambodia","Operator directive: a Cambodian family across three generations.",
+'<h2>Three generations</h2>'+
+'<p>Between 1975 and 1979 the Khmer Rouge emptied the cities of Cambodia and killed something approaching '+
+'two million people. Teachers were killed. Doctors were killed. People were killed for wearing '+
+'spectacles, for speaking a second language, for having soft hands. Families were deliberately separated '+
+'so that children would have no one to remember them to.</p>'+
+'<p>And the records were burned. Registries, transcripts, licences, deeds, the paper that said who a '+
+'person was and what they knew. <strong>The regime did not only kill people. It killed the record that '+
+'people had ever known anything.</strong></p>'+
+'<p>This section is about a family, and about what a permanent portable record is worth to people whose '+
+'records were destroyed on purpose. Everything below is illustrative, and every figure is computed from '+
+'the model published earlier in this document rather than chosen for effect.</p>'+
+'<h3>Sokha &middot; born 1968</h3>'+
+'<p>She was seven when Phnom Penh was emptied. She survived; most of her family did not. She never saw '+
+'the inside of a school again.</p>'+
+'<p>What she has instead is fifty years of the Tonl&eacute; Sap floodplain &mdash; how the lake reverses, '+
+'which fields take water in which week, which seed goes in when the rains come late. Some of it came from '+
+'her grandmother before 1975. The rest she rebuilt by hand, by watching, over half a century.</p>'+
+'<p>No institution has ever been able to see that knowledge. There is no certificate for it. For fifty '+
+'years the only proof that Sokha knew anything was that the people around her did what she said.</p>'+
+'<p>At sixty-two she contributes to a flood-resilience programme: four hundred hours over a year, '+
+'assessed at <strong>3&times;</strong> the local minimum wage, because the band for scarce local knowledge '+
+'is published in advance and hers plainly qualifies. That is <strong>1,200 웃</strong> &mdash; well short '+
+'of the ceiling, and the first time in her life that what she knows exists in a form somebody else can '+
+'read.</p>'+
+'<blockquote>Her knowledge did not become real when it was recorded. It became <em>legible</em>, and for '+
+'fifty years the difference between those two words was her whole life.</blockquote>'+
+'<h3>Dara &middot; born 1987</h3>'+
+'<p>Sokha&rsquo;s daughter, born eight years after. She went to school, then to university in Phnom Penh, '+
+'and became a hydrologist &mdash; partly because her mother could describe a floodplain better than any '+
+'textbook and could not read one.</p>'+
+'<p>Dara contributes full-time to the same programme. At <strong>6&times;</strong> &mdash; trained, '+
+'scarce, carrying responsibility &mdash; she needs 1,666 hours to reach the ceiling, and reaches it in '+
+'year one. Then again the next year, and the next.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Year</th><th class="n">Instalments arriving</th><th class="n">Received that year</th><th>What it makes possible</th></tr>'+
+'<tr><td>Year 1</td><td class="n">1 of 5</td><td class="n">$679.93</td><td>She keeps her salaried job. This is a supplement.</td></tr>'+
+'<tr><td>Year 3</td><td class="n">3 of 5</td><td class="n">$2,039.80</td><td>Roughly three times a local full-time minimum-wage year. She takes on work that will not pay for two years.</td></tr>'+
+'<tr><td><strong>Year 5 onward</strong></td><td class="n"><strong>5 of 5</strong></td><td class="n"><strong>$3,399.66</strong></td><td><strong>4.81&times; a local full-time minimum-wage year, arriving whether or not she contributes again.</strong></td></tr>'+
+'</table><caption>Cambodia settles at the same ratio as everywhere else. The figures shown use the '+
+'published Tier-2 placeholder pending the selection rule &mdash; open decision 1. The <em>shape</em> is '+
+'the point: a floor that rises for five years and then holds.</caption></div>'+
+'<p>By year five Dara is not wealthy. She is <strong>unafraid</strong>, which is a different and more '+
+'useful thing. Next year is already underwritten, so she can refuse the contract that pays well and '+
+'matters little.</p>'+
+'<h3>Chanthou &middot; born 2014</h3>'+
+'<p>Sokha&rsquo;s granddaughter. She is eleven when her grandmother&rsquo;s first contribution is '+
+'recorded, and she grows up in a house where the family&rsquo;s work is written down somewhere that '+
+'cannot be burned.</p>'+
+'<p>At sixteen she contributes to a sensor-network project &mdash; two hundred hours across a school year, '+
+'at <strong>2&times;</strong>, the entry band. Four hundred 웃. A modest amount of money and something '+
+'else entirely: a <strong>contribution receipt</strong>, which is simultaneously a transcript entry, a '+
+'portfolio item, a governance record and a settlement claim.</p>'+
+'<p>At eighteen that receipt goes with her application to a hydrology programme in another country. It is '+
+'not a reference letter someone might decline to write. It is a verifiable record of two hundred hours on '+
+'a named real problem, with the output attached, the band stated, and the assessment auditable by whoever '+
+'is reading it. She is admitted on the strength of work she actually did.</p>'+
+'<p>At twenty-four she comes back, and contributes at 6&times; to the programme her mother runs and her '+
+'grandmother started.</p>'+
+'<div class="notice key"><span class="tag">What compounded across three generations</span>'+
+'<p><strong>Sokha</strong> got her knowledge made legible after fifty years of it being invisible. '+
+'<strong>Dara</strong> got a floor that let her choose her work. <strong>Chanthou</strong> got a passport '+
+'made of contribution &mdash; international experience earned rather than inherited, and portable back '+
+'home.</p>'+
+'<p style="margin-bottom:0">None of it was given. All of it was <em>recorded</em> &mdash; and the record '+
+'outlives the institution that made it, the programme it was earned on, and every person who administered '+
+'it. For most families that permanence is a convenience. For this one it is the entire point.</p></div>'+
+'<p>The five-hundred-year horizon has been treated throughout this document as an engineering constraint. '+
+'Here is the human version of the same requirement: <strong>a record is only worth building if it '+
+'survives the people who would destroy it.</strong> Cambodia is not a hypothetical for that sentence. '+
+'Neither is Rwanda, Bosnia, Armenia, or a dozen other places where the archives went first and the '+
+'people went second.</p>');
+
+L(14,"human.ledger","Operator direction: pick others. Handled with restraint — one narrow claim, one explicit disclaimer.",
+'<h2>What the ledger does not ask</h2>'+
+'<p>A theme in this system is a cluster of what people said, compressed deterministically. It carries the '+
+'contribution and nothing else. It does not carry a flag.</p>'+
+'<p>Winter power resilience for civilian housing is one such theme. Two people work on it in the same '+
+'quarter.</p>'+
+'<p><strong>Oksana</strong> is a grid engineer in Kharkiv. She knows what happens to a district heating '+
+'system when a substation goes and the temperature is minus fifteen, because she has spent three winters '+
+'finding out. She contributes two hundred and ten hours.</p>'+
+'<p><strong>Marina</strong> is a power-systems researcher in Yekaterinburg. She has spent eleven years on '+
+'failure modes in cold-climate distribution networks. She contributes one hundred and ninety hours.</p>'+
+'<p>They do not know of each other. Their governments are at war. Their contributions land in the same '+
+'theme because the compression is a pure function of what was written, and what they wrote was about the '+
+'same physical problem in the same physics.</p>'+
+'<p>The ledger records both. It records the hours, the band, the output, and the settlement. It does not '+
+'record, because it has no field for it and no reason to want one, which side of a border either of them '+
+'was standing on.</p>'+
+'<p>The same quarter, a different theme &mdash; brackish-water desalination at village scale. '+
+'<strong>Nasrin</strong> contributes from Tehran, <strong>Yael</strong> from Haifa. Same outcome. Same '+
+'silence from the ledger on the only question the rest of the world would ask first.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; What this does not claim</span>'+
+'<p style="margin-bottom:0">This resolves nothing. It ends no war, heals no grievance, and returns nobody '+
+'to anyone. It would be obscene to suggest otherwise, and any framework that made that suggestion would '+
+'deserve every bit of the contempt it received. Oksana and Marina remain what their histories made them, '+
+'and so do Nasrin and Yael.</p></div>'+
+'<p>The claim is narrower and it is still worth making. <strong>A record of contribution that does not '+
+'ask where you are from is a thing that can exist between people whose governments cannot speak.</strong> '+
+'It is not peace. It is a small piece of infrastructure that outlasts a particular decade&rsquo;s '+
+'hostility, and that is available on the day the hostility ends rather than needing to be built from '+
+'nothing afterwards.</p>'+
+'<p>This is also why the architecture is built the way it is. If contribution conferred governance '+
+'weight, then a state would have every reason to farm the ledger and every reason to prevent its '+
+'adversary&rsquo;s citizens from contributing. It confers none. If the token were purchasable, capital '+
+'would follow politics into the record. It is not. <strong>The wall between contribution and authority is '+
+'not only an anti-capture device &mdash; it is what allows the ledger to stay indifferent to a '+
+'border.</strong></p>'+
+'<blockquote>Shared intent does not require agreement. It requires only that two people, working on the '+
+'same problem, are counted the same way.<span class="attr">♡ &mdash; why the middle intelligence is called '+
+'Shared Intent and not consensus</span></blockquote>');
+
+/* ══════════ RELEASE 15 ══════════ */
+
+L(15,"front.mission","Operator directive: inspire confidence in Vision 2525 as mission, vision and objective outcome.",
+'<h2>Mission, vision, outcome</h2>'+
+'<p>Confidence is not a tone. It is what a reader feels when they can check the claim themselves. So this '+
+'section states what we are trying to do, where it goes, and &mdash; the part usually left out &mdash; '+
+'how anyone would know if it failed.</p>'+
+'<div class="notice key"><span class="tag">Mission &middot; what we do, every day</span>'+
+'<p style="margin-bottom:0"><strong>Shorten the distance between a human intention and funded, measured '+
+'work &mdash; for anyone, anywhere, in their own language, with the record surviving everyone '+
+'involved.</strong></p></div>'+
+'<div class="notice lock"><span class="tag">Vision &middot; where this goes</span>'+
+'<p style="margin-bottom:0">A world in which the ability to contribute is not gated by where a person '+
+'was born; in which what someone contributes is recognised in a unit that means the same thing on every '+
+'continent and settles into money that buys food where they live; in which no accumulation of wealth, '+
+'no corporation and no government holds more governing authority than one human being; and in which the '+
+'record of all of it is still readable in the year 2525 by someone with no connection to anyone who '+
+'built it.</p></div>'+
+'<h3>Objective outcome &mdash; eight numbers</h3>'+
+'<p>Every one is published, every one has a threshold that would constitute failure, and every one has a '+
+'component that computes it. An objective with no failure condition is a wish.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Outcome</th><th>Measured as</th><th class="n">Success</th><th class="n">Failure</th><th>Owner</th></tr>'+
+'<tr><td><strong>Reach</strong></td><td>Share of full-time-equivalent contributors reaching 9,999 웃</td><td class="n">&ge; 0.80</td><td class="n">&lt; 0.60</td><td>Cube 9</td></tr>'+
+'<tr><td><strong>Guarantee funded</strong></td><td>Ring-fenced reserve &divide; committed instalments</td><td class="n">&ge; 1.00</td><td class="n">&lt; 1.00, unpublished</td><td>Cube 8</td></tr>'+
+'<tr><td><strong>Worth funding</strong></td><td>Return on contribution, retrospective, per region</td><td class="n">&ge; 1.00</td><td class="n">&lt; 1.00</td><td>Cube 9</td></tr>'+
+'<tr><td><strong>Paid promptly</strong></td><td>Days from recognition to first settlement</td><td class="n">&le; 30</td><td class="n">&gt; 90</td><td>Cube 8</td></tr>'+
+'<tr><td><strong>Settleable</strong></td><td>Jurisdictions with a working settlement path</td><td class="n">103 / 103</td><td class="n">&lt; 103</td><td>Cube 5</td></tr>'+
+'<tr><td><strong>Readable</strong></td><td>Languages live with a complete key set</td><td class="n">33 / 33</td><td class="n">&lt; 33 after N=99</td><td>Cube 2</td></tr>'+
+'<tr><td><strong>Re-derivable</strong></td><td>Replays producing identical output</td><td class="n">100%</td><td class="n">any drift</td><td>Cube 12</td></tr>'+
+'<tr><td><strong>Human-signed</strong></td><td>Irreversible acts carrying a human signature</td><td class="n">100%</td><td class="n">any exception</td><td>Cube 25</td></tr>'+
+'</table><caption>Six of the eight are computable from mechanisms already specified in this document. Two '+
+'&mdash; reserve coverage and settlement latency &mdash; are specified precisely enough to build and are '+
+'not yet built. That distinction is stated rather than blurred.</caption></div>'+
+'<p>Notice what is <em>not</em> on the list. Money raised is not an outcome; it is an input. Number of '+
+'participants is not an outcome; it is a means. Neither appears, because a framework that measures itself '+
+'by what it collects will eventually optimise for collecting.</p>'+
+'<h3>Checkpoints</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Year</th><th>Checkpoint</th><th>What must be true</th></tr>'+
+'<tr><td class="n">2027</td><td><strong>Ground zero</strong></td><td>Austin: one person contributes, is recognised, and is settled, end to end. All eight metrics published, however small the numbers.</td></tr>'+
+'<tr><td class="n">2030</td><td><strong>City</strong></td><td>One million participants. Reserve coverage at or above 1.00. Thirty-three languages live.</td></tr>'+
+'<tr><td class="n">2050</td><td><strong>Federation</strong></td><td>Domestic legal personality in twenty-plus regions. No single government able to switch it off.</td></tr>'+
+'<tr><td class="n">2125</td><td><strong>Beyond the founders</strong></td><td>Ten leadership handovers completed. Nobody involved at the beginning is still alive. It still works.</td></tr>'+
+'<tr><td class="n">2525</td><td><strong>The horizon</strong></td><td>The record from 2026 still replays, still reconciles, and is still readable by someone with no connection to anyone who built it.</td></tr>'+
+'</table><caption>The 2125 checkpoint is the real test. Anything can be sustained by the people who cared '+
+'enough to start it. Only a structure survives their absence.</caption></div>'+
+'<div class="notice ok"><span class="tag">Why you can have confidence in this</span>'+
+'<p>Not because it is well argued. Arguments are cheap and this document has been wrong twice already.</p>'+
+'<p style="margin-bottom:0">Because <strong>every mechanism is marked implemented, specification-only or '+
+'proposed</strong>, and you can check which. Because <strong>the defects are published</strong>, including '+
+'the one where our own code contradicts our own rule. Because <strong>every correction stays visible</strong> '+
+'in the ledger &mdash; scrub back and find the errors exactly as we shipped them. Because <strong>the '+
+'replay runs in your browser</strong> rather than asking for your trust. And because there is a failure '+
+'threshold beside every success number above, which is the one thing nobody writes down unless they '+
+'intend to be held to it.</p></div>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
