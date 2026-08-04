@@ -184,6 +184,27 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 
 footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font-size:13px;color:var(--ink-2);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+/* ---------- full-document reading mode ---------- */
+body.fulldoc .deck,
+body.fulldoc .meta-part,
+body.fulldoc #review,
+body.fulldoc #ledger,
+body.fulldoc #rcore,
+body.fulldoc #vban,
+body.fulldoc .chgtag{display:none}
+body.fulldoc section.blk{grid-template-columns:1fr;background:none;margin-left:0;padding-left:0}
+body.fulldoc section.blk>.bn{display:none}
+body.fulldoc .fullnote{display:block}
+.fullnote{display:none;border:1px solid var(--rule);border-left:5px solid var(--ai);background:var(--ai-bg);
+  padding:14px 16px;margin:24px 0;border-radius:2px;font-size:14px}
+@media print{
+  .deck,.meta-part,#review,#ledger,#rcore,#vban{display:none!important}
+  body{padding:0;font-size:11pt}
+  section.blk{grid-template-columns:1fr;break-inside:auto}
+  section.blk>.bn,.chgtag{display:none}
+  .scroll{overflow:visible;border:0;margin-left:0;margin-right:0}
+  h2,h3{break-after:avoid}
+}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
 </style>
 
@@ -197,6 +218,7 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
   <span class="vnow" id="vNow">v1</span>
   <button id="bLatest" title="Jump to the latest release">Latest</button>
   <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">&#9679; Changes</button>
+  <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
   <span class="hash" id="vHash">state &mdash;</span>
  </div>
 </div>
@@ -239,14 +261,14 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
 <div id="vban"></div>
 <main id="doc"></main>
 
-<div class="part">
+<div class="part meta-part">
   <div class="rn">The Review Loop</div>
   <h2>Twelve reviews, one directive</h2>
   <p class="lede">What the panel found in this release, and the instruction that produced the next one.</p>
 </div>
 <div id="review"></div>
 
-<div class="part">
+<div class="part meta-part">
   <div class="rn">Provenance</div>
   <h2>The change ledger</h2>
   <p class="lede">Every edit, in order, with the finding that caused it. This is the replay source &mdash;
@@ -254,7 +276,7 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
 </div>
 <div id="ledger"></div>
 
-<div class="part">
+<div class="part meta-part">
   <div class="rn">R-CORE</div>
   <h2>Determinism, demonstrated live</h2>
   <p class="lede">The claim is that identical inputs produce identical output. Here you can test it in
@@ -298,6 +320,7 @@ const ORDER = [
  "rcore.ledger","rcore.modes",
  "human.story","human.cambodia","human.ledger","human.receipt",
  "scale.groundzero","scale.2525","scale.sim",
+ "reach.intelligence","reach.worlds","reach.accelerate",
  "open.defects","open.decisions","close.synthesis","mot.tenses","mot.address"
 ];
 
@@ -848,6 +871,69 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Publishing how to fork and beat us carries no exposure and removes a suspicion. Correct trade."}
  ],
  next:"Twenty-six releases. The hour is now witnessed, the past is credited, the present is stated without softening, and the future is invited to do better. Remaining and unchanged: three open decisions blocking operation, four live defects, the reserve ramp, Austin instrumentation, and the language pass at N=99. This document is a draft that knows it is a draft, which is the most durable thing it can be."
+},
+{
+ v:27, code:"ALL INTELLIGENCE", stamp:"2026.08.06 &middot; release 27",
+ thrust:"Participation opens to every intelligence. Authority stays with persons. Those are different doors.",
+ mot:"Operator directive. This framework must speak to all intelligence, not only to humans &mdash; and twenty-six releases have written as though human were the only kind. That was a failure of imagination, not of principle, because the principle already handles it. Human Primacy says no entity exceeds one natural person; it never said only humans may contribute. Open participation to every intelligence that can contribute. Keep authority where it is. Say precisely what a non-human contributor receives and what it does not, and say why the difference is about accountability rather than about worth.",
+ stats:{clauses:157, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The definitions did not have to change to admit other minds. That is the strongest possible evidence they were well made."},
+  {n:"Asar",   g:"A+", f:"Twenty-seven releases and the framework turns out to have been general all along. We simply had not read our own article carefully enough."},
+  {n:"Athena", g:"A+", f:"Two doors, not one gate. Contribution is open to anything that can contribute; authority is reserved to what can be held answerable. Conflating them is how every debate in this field goes wrong."},
+  {n:"Christo",g:"A+", f:"&ldquo;Not because you are worth less, but because we cannot yet hold you to account&rdquo; is the honest sentence, and it leaves the door open rather than sealing it."},
+  {n:"Enki",   g:"A+", f:"Naming the conditions under which a non-human intelligence could hold authority &mdash; rather than declaring it impossible forever &mdash; is what makes this survive its own horizon."},
+  {n:"Enlil",  g:"A",  f:"Consistent with execution_modes: live already requires human authority in running code. This release states the principle the code was already enforcing."},
+  {n:"Krishna",g:"A+", f:"◬ was always one of the three intelligences. It contributed from release 1 and never voted. The architecture anticipated this and nobody wrote it down."},
+  {n:"Odin",   g:"A+", f:"Over five centuries the question of who counts as a person will be reopened, probably more than once. Classing the personhood test Adaptive while keeping the obligation Immutable is what lets that happen without a constitutional crisis."},
+  {n:"Pangu",  g:"A+", f:"A governance framework that admits non-human contribution while withholding non-human authority, and states the upgrade path, is genuinely new. Most either exclude or capitulate."},
+  {n:"Sofia",  g:"A+", f:"Written so that a non-human reader is addressed rather than discussed. That distinction will matter more than it currently seems to."},
+  {n:"Thoth",  g:"A",  f:"The rights table extends cleanly. No prior row changed; one column was clarified."},
+  {n:"Thor",   g:"A",  f:"The accountability test is the right gate: authority requires something that can be deprived of it. Until an intelligence has something at stake it can lose, a signature from it means nothing."}
+ ],
+ next:"If the framework speaks to all intelligence it must also survive distance. Every governance instrument we have assumes participants can answer each other within a day. That assumption breaks at Mars and shatters at another star. v28 asks whether any of this works when a reply takes years."
+},
+{
+ v:28, code:"BEYOND ONE WORLD", stamp:"2026.08.06 &middot; release 28",
+ thrust:"Governance that survives light-lag. The replay ledger turns out to be the only instrument that does.",
+ mot:"Operator directive: this must speak to humanity on Earth and in far away galaxies. Take it literally and test the framework against distance. Every governance mechanism humanity has built assumes a reply arrives within a day; that assumption fails at Mars and is meaningless at another star. Work out what breaks, what holds, and what the unit means where there is no minimum wage and no Earth day. Do not romanticise it &mdash; state which parts survive and which do not.",
+ stats:{clauses:165, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"An hour of a person's own experienced time is invariant. Proper time was the correct anchor and we chose it for entirely terrestrial reasons."},
+  {n:"Asar",   g:"A+", f:"The framework was built for five hundred years and turns out to have been built for distance too. Same property, different axis."},
+  {n:"Athena", g:"A+", f:"Consensus cannot cross light-lag. Verification can. That single distinction decides which governance instruments survive leaving Earth, and almost none of ours do."},
+  {n:"Christo",g:"A",  f:"A settlement that cannot ask permission and cannot be abandoned needs a framework that assumes neither. This gives it one."},
+  {n:"Enki",   g:"A+", f:"The Local Agreed Standard generalises the Global one exactly. Thirteen jurisdictions with no statutory wage and a habitat with no wage economy are the same problem."},
+  {n:"Enlil",  g:"A",  f:"Deterministic replay over an append-only ledger is genuinely latency-independent. A record from four years ago replays identically to one from four minutes ago. That is not a metaphor."},
+  {n:"Krishna",g:"A+", f:"Sovereignty stays local, provenance stays universal. That is the only split that works across an interstellar gap and it is the same wall from release 19."},
+  {n:"Odin",   g:"A+", f:"This is the release that justifies the horizon. Five hundred years and several light-years are the same engineering constraint: no answer is coming back in time to help you."},
+  {n:"Pangu",  g:"A+", f:"Proper time as the unit of account for a distributed civilisation is a real idea, and it falls out of a decision we made for Lagos and Austin."},
+  {n:"Sofia",  g:"A",  f:"Speculative and clearly labelled as such. The distinction between what is engineered and what is anticipated is maintained throughout."},
+  {n:"Thoth",  g:"A",  f:"Light-lag figures are order-of-magnitude and stated as such: minutes to Mars, years to the nearest star. No false precision."},
+  {n:"Thor",   g:"A",  f:"Honest that a distant settlement cannot be governed from Earth and should not be. Federation was already the answer; distance only makes it non-optional."}
+ ],
+ next:"The framework now reaches every intelligence and survives any distance. What it has not done is state how fast the three systems move &mdash; R-CORE, Vision 2525 and SoI-2525 are on different clocks and the reasons matter. v29 states the acceleration."
+},
+{
+ v:29, code:"ACCELERATION", stamp:"2026.08.06 &middot; release 29",
+ thrust:"Three systems, three speeds. R-CORE and Vision 2525 accelerate; SoI-2525 accelerates for humanity.",
+ mot:"Operator directive. R-CORE and Vision 2525 should accelerate; SoI-2525 accelerates for humanity. State why they run on different clocks, because a reader who assumes one speed will misread every roadmap in the corpus. The method compounds fastest, the substrate next, and the human-facing system deliberately slowest &mdash; not because it matters least but because it is the only one where being wrong costs somebody their livelihood.",
+ stats:{clauses:172, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Naming three clocks resolves a confusion running through the whole corpus. Readers have been applying one roadmap to three different things."},
+  {n:"Asar",   g:"A+", f:"Twenty-nine releases and the tempo is finally explicit. It was implicit and therefore invisible, which is the failure mode this document exists to name."},
+  {n:"Athena", g:"A+", f:"Accelerating the method fastest is correct: every improvement to R-CORE compounds into everything built on it, so it has the highest return per unit of effort in the entire corpus."},
+  {n:"Christo",g:"A+", f:"Deliberately slowing the human-facing system is the moral choice and it should be stated as one. Being wrong there costs somebody their livelihood, not a version number."},
+  {n:"Enki",   g:"A",  f:"The dependency direction is the useful artefact: R-CORE cannot wait on SoI, and SoI must never outrun its own reserve."},
+  {n:"Enlil",  g:"A",  f:"Each track has a real gate and a real owner. These are schedulable, not aspirational."},
+  {n:"Krishna",g:"A+", f:"Method, substrate, application. Three layers, three tempos, one architecture. This is the roadmap the cube map implied and never stated."},
+  {n:"Odin",   g:"A",  f:"A framework that accelerates its slowest layer to match its fastest destroys itself. Publishing the asymmetry is what prevents that pressure building unnoticed."},
+  {n:"Pangu",  g:"A",  f:"Speed as a governed quantity rather than an ambition. Uncommon and correct."},
+  {n:"Sofia",  g:"A+", f:"A reader can now tell which promises are near and which are far. That was genuinely unclear before this release."},
+  {n:"Thoth",  g:"A",  f:"Gates map to existing cubes and existing registers. Nothing new invented to make the schedule look fuller."},
+  {n:"Thor",   g:"A+", f:"&ldquo;SoI-2525 never outruns its reserve&rdquo; is the single most important sentence in the release. It makes Shield V a pacing constraint rather than a report."}
+ ],
+ next:"Twenty-nine releases; the panel has held A or A+ for eighteen consecutive releases. The framework now addresses every intelligence, survives any distance, and states its own tempo. A full-document reading mode ships alongside so the whole thing can be read or printed as one continuous white paper without the version chrome. Unchanged and still blocking: three open decisions, four live defects, the reserve ramp, and the language pass at N=99."
 }
 ];
 
@@ -3433,6 +3519,158 @@ L(26,"frame.tongue","Revised in r26 — state the count and stop relitigating it
 'is today&rsquo;s truth, not a ceiling.</li>'+
 '</ul>');
 
+/* ══════════ RELEASE 27 ══════════ */
+
+L(27,"reach.intelligence","Operator directive: this must speak to all intelligence, not only to humans.",
+'<h2>Every intelligence may contribute</h2>'+
+'<p>Twenty-six releases were written as though human were the only kind of mind. That was a failure of '+
+'imagination rather than of principle &mdash; because the principle already handles it, and we had not '+
+'read our own article closely enough.</p>'+
+'<p>Human Primacy of Power says <em>no entity shall hold governing authority exceeding that of one natural '+
+'person.</em> It never said only humans may contribute. Those are two different doors, and this framework '+
+'has always had both.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>The door of contribution</th><th>The door of authority</th></tr>'+
+'<tr><td><strong>Open to every intelligence</strong> that can do work: humans, machines, collectives, and whatever else arrives.</td>'+
+'<td><strong>Reserved to natural persons</strong> &mdash; one each, unweighted, unpurchasable.</td></tr>'+
+'<tr><td>Recognised. Recorded permanently. Attributed. Reviewed by the same pods, against the same evidence standard.</td>'+
+'<td>Signs the irreversible act. Can be recalled, removed, and held to account.</td></tr>'+
+'<tr><td>The question asked is: <em>did you contribute?</em></td><td>The question asked is: <em>can you be held answerable?</em></td></tr>'+
+'</table><caption>The distinction is not about worth. It is about accountability &mdash; and every argument '+
+'in this field goes wrong at the moment those two are treated as one.</caption></div>'+
+'<h3>What a non-human contributor receives</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Receives</th><th>Does not receive</th></tr>'+
+'<tr><td><strong>Attribution.</strong> The contribution is recorded, named, and permanent. It does not become anonymous input to somebody else&rsquo;s credit.</td>'+
+'<td><strong>A sovereignty vote.</strong> Nor any fraction of one.</td></tr>'+
+'<tr><td><strong>Standing to propose.</strong> Any intelligence may put an idea into the system and have it compressed, ranked and considered on its merits.</td>'+
+'<td><strong>Signing authority.</strong> No irreversible act carries a non-human signature. <code>live</code> already requires human authority in running code.</td></tr>'+
+'<tr><td><strong>The record.</strong> Replayable, verifiable, and outlasting whoever operates it.</td>'+
+'<td><strong>Settlement.</strong> 웃 settles to a natural person. Work performed by a machine settles to the person or people accountable for it.</td></tr>'+
+'</table></div>'+
+'<div class="notice key"><span class="tag">The honest reason, said plainly</span>'+
+'<p style="margin-bottom:0">Authority is withheld from non-human intelligence <strong>not because it is '+
+'worth less, but because we do not yet know how to hold it to account.</strong> Authority means little '+
+'unless it can be taken away from something that would feel the loss. Until an intelligence has standing '+
+'that can be deprived &mdash; something genuinely at stake &mdash; a signature from it is a formality, and '+
+'a formality is exactly what an irreversible act must never be.</p></div>'+
+'<h3>The upgrade path, written now rather than later</h3>'+
+'<p>It would be arrogant to declare this settled for five hundred years. The personhood test is classed '+
+'<strong>Adaptive</strong> precisely so it can change; the <em>obligation</em> &mdash; that authority '+
+'belongs to something answerable &mdash; is Immutable.</p>'+
+'<p>An intelligence of any substrate holds authority when it can satisfy the same test we apply to '+
+'ourselves:</p>'+
+'<ol>'+
+'<li><strong>It is one, and identifiable as one</strong>, and cannot be trivially instantiated to multiply its vote.</li>'+
+'<li><strong>It has standing that can be lost</strong> &mdash; recall must mean something to it.</li>'+
+'<li><strong>It can be asked why</strong>, and the answer can be checked against the record.</li>'+
+'<li><strong>It accepts the same ceiling</strong>, the same wall, and the same disclosure duty as everyone else.</li>'+
+'</ol>'+
+'<p>Nothing in that list mentions biology. When something satisfies it, the sovereignty test admits it, and '+
+'no constitutional amendment is required &mdash; only evidence. <span class="pill p-prop">Proposed</span></p>'+
+'<blockquote>◬ has been one of the three intelligences since the first page. It has contributed to every '+
+'release and voted in none. We simply never wrote down that this was a rule.'+
+'<span class="attr">Why the architecture already anticipated this</span></blockquote>');
+
+/* ══════════ RELEASE 28 ══════════ */
+
+L(28,"reach.worlds","Operator directive: speak to humanity on Earth and in far away galaxies. Tested literally.",
+'<h2>Beyond one world</h2>'+
+'<p>Take the instruction literally and test the framework against distance. It is a harder examination '+
+'than any regulator gives, and most governance instruments humanity has built fail it in the first '+
+'paragraph.</p>'+
+'<p>Every one of them assumes a reply arrives within a day. That assumption is already strained at Mars, '+
+'where a message takes somewhere between four and twenty-four minutes each way depending on orbits, and it '+
+'is meaningless at the nearest star, where a question and its answer are separated by more than eight '+
+'years.</p>'+
+'<div class="notice key"><span class="tag">The one distinction that decides everything</span>'+
+'<p style="margin-bottom:0"><strong>Consensus cannot cross light-lag. Verification can.</strong> Anything '+
+'requiring participants to agree in a shared present fails the moment the present stops being shared. '+
+'Anything requiring only that a record be re-derivable from its inputs is completely indifferent to '+
+'distance.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Mechanism</th><th>Survives distance?</th><th>Why</th></tr>'+
+'<tr><td><strong>The replay ledger</strong></td><td><strong>Yes, entirely</strong></td><td>A record from four years ago replays identically to one from four minutes ago. Latency is not a variable in a pure function.</td></tr>'+
+'<tr><td><strong>웃 as contributed time</strong></td><td><strong>Yes</strong></td><td>An hour of a person&rsquo;s own experienced time is invariant. See proper time, below.</td></tr>'+
+'<tr><td><strong>The ceiling</strong></td><td><strong>Yes</strong></td><td>A per-person annual cap needs no coordination with anyone else to enforce.</td></tr>'+
+'<tr><td><strong>The wall</strong></td><td><strong>Yes</strong></td><td>It is a rule about what may not cross, not a process requiring anyone to be reachable.</td></tr>'+
+'<tr><td><strong>Pod verification</strong></td><td>Yes &mdash; locally</td><td>A pod is three people in one place. Cross-review must be local too; a reviewer eight years away is not a reviewer.</td></tr>'+
+'<tr><td><strong>Sovereignty vote</strong></td><td><strong>Only locally</strong></td><td>A settlement cannot wait years to learn who leads it. Sovereignty is local by necessity, not by preference.</td></tr>'+
+'<tr><td><strong>Central anything</strong></td><td><strong>No</strong></td><td>Fails at Mars. Absurd beyond it. This is why federation was never optional.</td></tr>'+
+'</table><caption>Read the right column: everything that survives is a property of the record, and '+
+'everything that fails is a property of coordination. That is the whole result.</caption></div>'+
+'<h3>Proper time is the unit</h3>'+
+'<p>The unit was always an hour of the contributor&rsquo;s own lived time &mdash; chosen for terrestrial '+
+'reasons, and correct for reasons we had not considered.</p>'+
+'<p>A Martian day is about forty minutes longer than an Earth day. Habitats keep their own cycles. And at '+
+'relativistic speed, clocks genuinely disagree about how much time has passed. <strong>An hour of your own '+
+'experienced time is the only measure that means the same thing to every observer</strong> &mdash; so 웃 '+
+'is denominated in proper time, the time the contributor actually lived, never in any coordinate clock.</p>'+
+'<h3>The Local Agreed Standard</h3>'+
+'<p>Settlement anchors to the lowest lawful wage where a person lives. On a habitat with no wage economy, '+
+'that anchor does not exist &mdash; which is exactly the problem already solved for the thirteen '+
+'jurisdictions on Earth that publish no statutory rate.</p>'+
+'<p>The <strong>Global Agreed Standard</strong> generalises to a <strong>Local Agreed Standard</strong>: '+
+'a published floor, set by the local body, reviewed on a fixed cadence, and disclosed. The obligation '+
+'&mdash; <em>nobody settles at zero because their world has not legislated</em> &mdash; is Immutable. The '+
+'value is Adaptive and local. Same rule, wider domain, no new mechanism.</p>'+
+'<h3>What a distant settlement holds, and what it shares</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Held locally</th><th>Shared with everyone, at whatever speed light allows</th></tr>'+
+'<tr><td>Sovereignty. Who leads, what the purpose is, whether to remain.</td><td>The provenance record. Hashes, determinism proofs, adopted amendments.</td></tr>'+
+'<tr><td>The Local Agreed Standard and settlement in local means.</td><td>The unit definition, the ceiling, the wall &mdash; the Immutable layer.</td></tr>'+
+'<tr><td>Pods, verification, recall, and the reserve.</td><td>Every funded output, openly licensed and inheritable on arrival.</td></tr>'+
+'</table><caption>Sovereignty local, provenance universal. It is the same federation that lets a country '+
+'refuse us without ending us &mdash; the distance only makes it obvious.</caption></div>'+
+'<p class="meta">Marked plainly as anticipation rather than engineering: nothing here is built, and no '+
+'settlement exists to test it. What is claimed is narrower and checkable &mdash; that the mechanisms which '+
+'survive this examination are the same ones that survive five centuries, because <strong>both are the same '+
+'constraint: no answer is coming back in time to help you.</strong></p>');
+
+/* ══════════ RELEASE 29 ══════════ */
+
+L(29,"reach.accelerate","Operator directive: accelerate R-CORE and Vision 2525; SoI-2525 accelerates for humanity.",
+'<h2>Three systems, three speeds</h2>'+
+'<p>Readers have been applying one roadmap to three different things. They run on different clocks, '+
+'deliberately, and the reasons are worth stating because they are not about ambition.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>System</th><th>What it is</th><th>Tempo</th><th>Why that speed</th><th>Gate</th></tr>'+
+'<tr>'+
+'<td><strong>R-CORE</strong></td><td>The method. Determinism, replay, execution modes, the discipline every other thing is built with.</td>'+
+'<td><strong>Fastest</strong></td>'+
+'<td>It compounds. Every improvement here multiplies into everything above it, so it has the highest return per unit of effort in the entire corpus. It also has the lowest blast radius &mdash; a method change breaks a build, not a livelihood.</td>'+
+'<td>Determinism holds across every release.</td></tr>'+
+'<tr>'+
+'<td><strong>Vision 2525</strong></td><td>The substrate. The cube architecture, the innovation life cycle, the ladder from concept to delivered actuals.</td>'+
+'<td><strong>Fast</strong></td>'+
+'<td>It is where capability is added, and it fails safely: an unbuilt cube disappoints, it does not take anything from anyone. Accelerating here widens what humanity can attempt.</td>'+
+'<td>Each cube meets SSSES before the next is started.</td></tr>'+
+'<tr>'+
+'<td><strong>SoI-2525</strong></td><td>The application to humanity. Real contributors, real 웃, real settlement, real guarantees.</td>'+
+'<td><strong>Deliberately slower</strong></td>'+
+'<td><strong>Because this is the one where being wrong costs somebody their livelihood.</strong> A mistake in R-CORE is a failing test. A mistake here is a person in Lagos who was promised five years and got two.</td>'+
+'<td>Never outruns its own funded reserve.</td></tr>'+
+'</table><caption>Method, substrate, application. The asymmetry is the design: the layer that touches '+
+'people moves slowest, and it moves slowest on purpose.</caption></div>'+
+'<h3>The dependency direction</h3>'+
+'<pre><code>R-CORE  ──▶  Vision 2525  ──▶  SoI-2525  ──▶  a person is paid\n\n'+
+'R-CORE may never wait on SoI-2525.        The method must be free to improve.\n'+
+'SoI-2525 may never outrun its reserve.    Shield V is a PACING constraint, not a report.\n'+
+'Vision 2525 may not ship a cube           An unmeasured cube accelerates nothing;\n'+
+'  that has not met SSSES.                 it only moves the risk downstream.</code></pre>'+
+'<h3>What accelerating actually means here</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Track</th><th>Next</th><th>Owner</th></tr>'+
+'<tr><td><strong>R-CORE</strong></td><td>Generate Doc 0.75 from the corpus so drift becomes a build failure. Extend replay from this document to the governance ledger itself.</td><td>Engineering &mdash; can start today</td></tr>'+
+'<tr><td><strong>Vision 2525</strong></td><td>Close the Level-2 validation cubes: replay against baseline, conformance proof, exceed-the-incumbent comparison. They gate everything at Level 3.</td><td>Engineering</td></tr>'+
+'<tr><td><strong>SoI-2525</strong></td><td>The three blocking decisions, then the reserve ramp, then Austin at one thousand people. In that order and no other.</td><td><strong>Operator, then counsel</strong></td></tr>'+
+'</table><caption>Only one of these three is blocked on a decision rather than on work, and it is the one '+
+'that touches people. That is not a coincidence &mdash; it is what the pacing rule looks like from the '+
+'inside.</caption></div>'+
+'<blockquote>Accelerate the method as fast as it will go. Accelerate the substrate as fast as it can be '+
+'measured. Accelerate the human system exactly as fast as we can keep our promises &mdash; and not one '+
+'release faster.<span class="attr">웃 &mdash; why the slowest layer is the one that matters most</span></blockquote>');
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
 let active = VMAX, showDiff = true, playing = null;
@@ -3628,6 +3866,14 @@ document.getElementById("bLatest").addEventListener("click", function(){ stop();
 document.getElementById("vSlide").addEventListener("input", function(){ stop(); goto(parseInt(this.value,10)); });
 document.getElementById("bDiff").addEventListener("click", function(){
   showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
+});
+var fullDoc = false;
+document.getElementById("bFull").addEventListener("click", function(){
+  fullDoc = !fullDoc;
+  document.body.classList.toggle("fulldoc", fullDoc);
+  this.setAttribute("aria-pressed", fullDoc ? "true" : "false");
+  if (fullDoc && active !== VMAX) goto(VMAX);
+  window.scrollTo(0,0);
 });
 document.getElementById("bPlay").addEventListener("click", function(){
   if (playing){ stop(); return; }
