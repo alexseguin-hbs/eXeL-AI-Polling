@@ -119,7 +119,8 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
   </p>
   <div class="meta">
     SOURCE&nbsp; operator's consolidated rate table · 114 rows · 103 jurisdictions · 27 currencies<br>
-    GROUNDED IN&nbsp; <code>d9b687c</code> · 2026.08.03 · every figure re-derived from the table itself<br>
+    GROUNDED IN&nbsp; <code>ee57bfb</code> · 2026.08.03 · every figure re-derived from the table itself<br>
+    REVISION 3&nbsp; reconciled against the Grok and eXeL AI assessments — they conflict on what a 웃 is; see below<br>
     <strong style="color:var(--brick)">NOT LEGAL ADVICE</strong>&nbsp; wage figures are the operator's; this document analyses structure, not their accuracy<br>
     NOT DONE&nbsp; no code changed — analysis and schema recommendation only
   </div>
@@ -146,6 +147,58 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
     The wage table is demoted from <em>the unit</em> to <em>a settlement convenience</em> — and everything
     that was hard becomes easy.
   </p>
+</div>
+
+<div class="flag" style="border-left-width:5px">
+  <span class="lab">Read this first — two reviews, one conflict</span>
+  <p>Grok and eXeL AI both reviewed this document. <strong>They agree on almost everything, including the
+  correction already applied here</strong> (9999 웃 is not 9999 hours). But on the single most important
+  question — <em>what a 웃 actually is</em> — they recommend opposite things, and the choice cannot be
+  deferred, because it decides whether the ledger is mechanical or discretionary.</p>
+  <div class="scroll" style="margin:12px 0 0"><table>
+    <tr><th></th><th>Grok</th><th>eXeL AI</th></tr>
+    <tr><td><strong>웃 is…</strong></td><td>1 웃 = one hour at the base rate. Listed under “what the document gets right — high confidence”; explicitly <em>unchanged</em>.</td><td>“HI cannot be defined as one literal hour.” A <em>qualified contribution-credit</em> influenced by time, qualification score, project metrics and council approval.</td></tr>
+    <tr><td><strong>Minting is…</strong></td><td><strong>Mechanical.</strong> hours × multiple. No discretion.</td><td><strong>Discretionary.</strong> Allocated through governance formulas.</td></tr>
+    <tr><td><strong>Higher pay works by…</strong></td><td>A higher multiple → fewer hours to reach the ceiling.</td><td>A higher allocation decided under policy.</td></tr>
+  </table></div>
+  <p style="margin:12px 0 0"><strong>Recommendation: adopt Grok's unit and eXeL AI's separations.</strong>
+  They are compatible, and each supplies what the other lacks.</p>
+</div>
+
+<div class="ask">
+  <span class="lab">Why the unit must stay mechanical</span>
+  <p>eXeL AI's proposal is made in good faith to <em>reduce</em> securities risk. It does the opposite, in
+  two ways, and both are worth stating plainly.</p>
+  <p><strong>1. It re-opens the capture vector.</strong> A discretionary 웃 means someone decides how much
+  each contributor is credited. That is Defect 6 from the capture-resistant framework —
+  <em>whoever defines the metrics controls the money</em> — moved from the edge of the system into its
+  core ledger. Mechanical minting is the reason 웃 cannot be captured: there is no allocation decision to
+  capture.</p>
+  <p><strong>2. It weakens the non-security position it is trying to protect.</strong> eXeL AI's settlement
+  formula multiplies by a <em>Project Performance Factor</em>, with a compensation pool “sized by project
+  performance metrics” — revenue, gross margin, operating income. Compensation that varies with enterprise
+  profits is the classic profit-participation fact pattern. eXeL AI anticipates this and advises against
+  <em>calling</em> it a profit share — but §1 of this document is that substance beats form in every named
+  regime, and <em>Telegram</em>, <em>Kik</em> and <em>LBRY</em> all lost exactly that argument. Renaming it
+  does not change what it is.</p>
+  <p><strong>The reconciliation:</strong> qualification enters through the <strong>multiple</strong>, which
+  is approved, recorded and auditable — not through per-contributor discretion. And project performance
+  sizes the <strong>pool</strong> (how much work gets commissioned), never the <strong>rate</strong> (what
+  an hour earns). Keep those two apart and you get eXeL AI's flexibility with Grok's determinism, and the
+  ledger stays replay-able.</p>
+</div>
+
+<div class="keep">
+  <span class="lab">Adopted from eXeL AI — the strongest thing in either review</span>
+  <p>The layer separation (its §16) is excellent and is adopted in full. These must never collapse into one
+  instrument:</p>
+  <p style="margin:8px 0 0"><code>Voting ≠ Membership ≠ Contribution ≠ 웃 allocation ≠ Service compensation
+  ≠ Settlement currency ≠ Project revenue ≠ Ownership</code></p>
+  <p style="margin:8px 0 0">Also adopted: the <em>$1 Seed gives standing, not control</em>; corporations may
+  contribute but may never accumulate voting power; “Livelihood Continuity Credit” as the name for the
+  multi-year mechanism; and multiplier bands (1× · 2–3× · 5–10× · higher) living in Operating Policy rather
+  than the Constitution — which is exactly the change-class rule that anything containing a number is
+  Adaptive. Both reviewers reached that rule independently.</p>
 </div>
 
 <div class="cov">
@@ -578,10 +631,51 @@ footer{border-top:2px solid var(--ink);margin-top:44px;padding-top:16px;
 </div>
 </div></section>
 
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="clause"><div class="num">§ 11</div><div class="body">
+<h2>Locked definitions — reconciled from both reviews</h2>
+<p>
+  Wording ready to move into Document 0 as registry entries. Where the reviews conflicted, the entry
+  records which was adopted and why.
+</p>
+<div class="scroll"><table>
+  <tr><th>Term</th><th>Definition</th><th>Source</th></tr>
+  <tr><td><strong>웃 (HI)</strong></td><td>A non-equity, non-transferable, non-purchasable unit of account for human contribution. <strong>1 웃 = the value of one hour at the base rate</strong> (the local minimum-wage equivalent, notionally). Minted mechanically; never allocated at discretion.</td><td>Grok — adopted</td></tr>
+  <tr><td><strong>Pay multiple</strong></td><td>The factor by which a contributor's hour is credited, set by role, skill and qualification. <strong>웃 = hours × multiple.</strong> Higher multiple → fewer hours to reach the ceiling. The multiple is where qualification enters; it is approved, recorded and auditable.</td><td>Both — reconciled</td></tr>
+  <tr><td><strong>Verified Contribution Hour</strong></td><td>A documented hour of service, recorded for evidence, replay and qualification. It is the <em>input</em> to minting, not the unit itself.</td><td>eXeL AI — adopted</td></tr>
+  <tr><td><strong>Annual ceiling</strong></td><td><strong>9,999 웃 per person per calendar year</strong> — a token ceiling, never an hour count. Progressive by construction (§8): unreachable below ~4.8× the base rate, tighter above it.</td><td>Both — adopted</td></tr>
+  <tr><td><strong>Mint</strong></td><td>Recording contributed hours as 웃. <strong>Never requires a wage rate.</strong></td><td>Both</td></tr>
+  <tr><td><strong>Settle</strong></td><td>Optional conversion of 웃 into local currency, using the tier and the rate stamped at mint. May be delayed or unavailable; never blocks recognition.</td><td>Both</td></tr>
+  <tr><td><strong>Regional minimum-wage equivalent</strong></td><td>A jurisdiction-specific settlement benchmark. <em>Not</em> the value of membership, not a guaranteed payout, not the unit.</td><td>eXeL AI — adopted</td></tr>
+  <tr><td><strong>Livelihood Continuity Credit</strong></td><td>The multi-year mechanism by which qualified contributors accrue future compensation eligibility. Requires legal review before it is described as anything a pension regime would recognise.</td><td>eXeL AI — adopted (name and caution)</td></tr>
+  <tr><td><strong>Compensation pool</strong></td><td>Sized by project performance (revenue, gross margin, operating income). <strong>Performance sizes the pool; it never varies the rate an individual hour earns.</strong></td><td>MoT — the reconciliation</td></tr>
+</table></div>
+
+<h3>Open items — both reviews flagged these, none is decided</h3>
+<div class="scroll"><table>
+  <tr><th>#</th><th>Item</th><th>Recommendation</th></tr>
+  <tr><td class="num">1</td><td>Approval path for above-base multiples</td><td>Council-approved, recorded on the ledger entry, published as bands in Operating Policy — <em>not</em> the Constitution</td></tr>
+  <tr><td class="num">2</td><td>Do unsettled 웃 balances expire?</td><td><strong>No.</strong> State it explicitly — silence will be read as expiry by whoever inherits the ledger</td></tr>
+  <tr><td class="num">3</td><td>The 5-year payout schedule</td><td>Define vesting and release. <strong>Keep it separate from the 7+3 steward cycle</strong> — different functions, do not merge</td></tr>
+  <tr><td class="num">4</td><td>Tier 2 selection rule (35 jurisdictions)</td><td>Decide once, record as a definition. It will be decided by default otherwise</td></tr>
+  <tr><td class="num">5</td><td>33.333% R&amp;D</td><td>An <em>operating target</em>, reviewable — not an unchangeable constitutional promise. Both reviewers agree; it also follows from the change-class rule that anything with a number is Adaptive</td></tr>
+  <tr><td class="num">6</td><td>Ceiling per person or per role?</td><td>Per person. Per role is defeated by holding several</td></tr>
+  <tr><td class="num">7</td><td>Do 3 councils + 7&nbsp;+&nbsp;3 slow innovation?</td><td>Grok's question, and a fair one. Recommend measuring it: decision latency per gate is already instrumentable via the audit trail</td></tr>
+</table></div>
+
+<div class="ask">
+  <span class="lab">One further separation, from eXeL AI, worth promoting</span>
+  <p>Phrase compensation as <strong>service-based, drawn from an approved pool</strong> — never as a share
+  of profits. That is right. But note it only holds if the <em>rate</em> is independent of performance
+  (§11 above). Naming discipline without structural discipline is precisely the argument
+  <em>Telegram</em> and <em>Kik</em> lost.</p>
+</div>
+</div></section>
+
 <footer>
   MASTER OF THOUGHT · VISION 2525 · 웃 THE HOUR IS THE UNIT<br>
   2026.08.03 · grounded at <code>d9b687c</code> · analysis only — no code changed<br>
-  114 rows · 103 jurisdictions · 27 currencies · 29 published (25.4%) · 37 recoverable (32.5%) · 48 unfillable (42.1%) · 3 defects · 12 reviews<br>
+  114 rows · 103 jurisdictions · 27 currencies · 29 published (25.4%) · 37 recoverable (32.5%) · 48 unfillable (42.1%)<br>3 code defects · 12 AsM reviews · reconciled against Grok + eXeL AI · 9 locked definitions · 7 open items<br>
   1 웃 = one minimum-wage hour of value · 웃 = hours × multiple · ceiling binds above 4.8× only
 </footer>
 
