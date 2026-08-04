@@ -1441,6 +1441,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Investment firms cannot intercede because there is nothing to acquire, and no corporation can earn the unit. Governments cannot intercede in the record because it is not theirs to reach. Both exclusions are structural, not defended."}
  ],
  next:"The eleven-jurisdiction pathway is specified and its two hard stops are named. Everything here needs qualified local counsel before any region opens, and nothing in it substitutes for that. Unchanged for the operator: the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, the guarantee-versus-inheritance collision, and rotating the master credential."
+},
+{
+ v:48, code:"REINVESTMENT WEIGHS AS MUCH AS PROFIT", stamp:"2026.08.04 &middot; release 48",
+ thrust:"Four terms, operating income dropped, and research carrying half the score &mdash; so a project cannot buy a good result by growing while it starves its own future.",
+ mot:"Operator refinement, and the arithmetic it produces is the most opinionated thing in the economics. The terms are now revenue, gross profit, R&amp;D spend, and R&amp;D against the one-third target. Operating income is gone and RESEARCH APPEARS TWICE &mdash; once as absolute investment and once as intensity against the standard. That is two of four terms, so reinvestment weighs exactly as much as revenue and margin combined. Run it and a project growing fifty percent at seventy percent margin, while holding research flat, scores 0.397. A project growing thirty percent at sixty-five percent margin, while nearly tripling research, scores 0.855. HIGHER GROWTH AND HIGHER MARGIN, LESS THAN HALF THE SCORE. That is not a rounding artefact, it is the entire statement of the framework&rsquo;s values expressed as an equation. Second: the input is the person&rsquo;s OWN dollars per minute, drawn from their own settlement. So I am making one rule explicit that the operator did not have to state &mdash; ONLY SETTLEMENT-ORIGIN DOLLARS ARE ELIGIBLE. External capital has no door, because the only money that may be streamed is money that was itself minted from witnessed human hours.",
+ stats:{clauses:318, jur:103, shields:5, defects:14, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"An equation that refuses to reward a company for harvesting itself. Every measure of enterprise health in common use fails that test; this one is built around it."},
+  {n:"Asar",   g:"A+", f:"One formula, two subjects: an individual project and the framework itself. The same yardstick applied upward and downward is what makes either number believable."},
+  {n:"Athena", g:"A+", f:"Dropping operating income is the sharp choice. Profit is what a project keeps; research is what it gives the next decade. Only one of those is a legacy."},
+  {n:"Christo",g:"A",  f:"A person redirecting their own settlement to fuel somebody else&rsquo;s beginning. The money is theirs, earned by hours, and they are choosing to point it at a stranger."},
+  {n:"Enki",   g:"A+", f:"Settlement-origin only is the closure that matters. Every eligible dollar traces back to a witnessed hour, so external capital does not need to be excluded &mdash; it is simply not a valid input."},
+  {n:"Enlil",  g:"A+", f:"Four terms, equal weights, capped intensity. No coefficient anyone can quietly tune, because tuning one would require publishing it."},
+  {n:"Krishna",g:"A+", f:"Reward flows into the ceiling and the rolling floor rather than into a balance. The 36,121 웃 in the worked example becomes three secured years and sixty-one percent of a fourth."},
+  {n:"Odin",   g:"A",  f:"Two terms both keyed to research is unusual and it will be challenged as double-counting. It is deliberate double-counting, and saying so is better than defending it as accidental."},
+  {n:"Pangu",  g:"A+", f:"The starving-project case is the one to put in front of a sceptic. Higher growth, higher margin, less than half the score."},
+  {n:"Sofia",  g:"A+", f:"A person can compute their own reward from four public numbers. Nothing is decided about them behind a door."},
+  {n:"Thoth",  g:"A+", f:"Verified across three project shapes. Reinvesting 0.8549, starving 0.3971, flat-at-standard 0.4010. Every person returns 1.505064 웃 per dollar redirected, from an $800 stream to a $24,000 one."},
+  {n:"Thor",   g:"A+", f:"Settlement-origin eligibility is the strongest single sentence in the funding design. It converts an exclusion that would need policing into one that needs nothing."}
+ ],
+ next:"The individual funding path is specified end to end: own settlement in, capped recognition out, one equation for a project and for the framework. Unchanged for the operator: the principal floor, the shutdown thresholds, the reserve fork, the Accords caps, the guarantee-versus-inheritance collision, and rotating the master credential."
 }
 ];
 
@@ -7184,6 +7205,87 @@ L(47,"legal.eleven","One pathway across eleven named jurisdictions: sever the re
 'which could be negotiated, but no door: no share, no token it can hold, no term it can improve, no seat, '+
 'no acquisition, and no exit. The framework is not defended against these actors. It is simply not '+
 'shaped in a way they can use.</p>');
+
+/* ══════════ RELEASE 48 ══════════ */
+
+L(48,"fund.escrow","Four terms, operating income dropped, research carrying half the score. The input is the person's own settlement, and only settlement-origin dollars are eligible.",
+'<h2>Fuelling another person&rsquo;s work with your own minutes</h2>'+
+'<p>A person may direct <strong>their own dollars per minute</strong> &mdash; drawn from their own '+
+'settlement, the money their own witnessed hours produced &mdash; into a specific innovation project. '+
+'Daily, or per minute, at a rate they set. They are rewarded in recognition, by the same equation that '+
+'scores the framework itself.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; The rule that closes the door to outside capital</span>'+
+'<p style="margin-bottom:0"><strong>Only settlement-origin dollars are eligible.</strong> The single '+
+'permitted input is money that was itself minted from witnessed human hours and settled to the person '+
+'streaming it. External capital is not excluded by a rule anyone must enforce &mdash; <strong>it is '+
+'simply not a valid input.</strong> An investment firm has no door here, because the only currency this '+
+'mechanism accepts is currency that began as somebody&rsquo;s time.</p></div>'+
+'<h3>The equation &mdash; four terms, equally weighted</h3>'+
+'<pre><code>g    = revenue growth              Rev / Rev&#8331; &minus; 1\n'+
+'gm   = gross margin                GP  / Rev\n'+
+'rds  = R&amp;D spend growth            R&amp;D / R&amp;D&#8331; &minus; 1\n'+
+'rdp  = R&amp;D against the standard    ( R&amp;D / Rev ) &divide; 0.33333     capped at 1.000\n\n'+
+'P    =  0.25&middot;g + 0.25&middot;gm + 0.25&middot;rds + 0.25&middot;rdp\n\n'+
+'share(p)   =  own $/min &times; minutes streamed  &divide;  total streamed\n'+
+'reward(p)  =  share(p)  &times;  P  &times;  recognition pool</code></pre>'+
+'<div class="notice key"><span class="tag">Two of four terms are research. That is deliberate.</span>'+
+'<p style="margin-bottom:0"><strong>Operating income is not a term.</strong> Research appears twice '+
+'&mdash; once as absolute investment and once as intensity against the one-third standard &mdash; so '+
+'<strong>reinvestment weighs exactly as much as revenue and margin combined.</strong> It will be called '+
+'double-counting, and it is: deliberate double-counting. Profit is what a project keeps. Research is what '+
+'it gives the next decade. Only one of those is a legacy, and this framework says which.</p></div>'+
+'<h3>What that produces &mdash; the case to put in front of a sceptic</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Project</th><th class="n">Revenue growth</th><th class="n">Gross margin</th><th class="n">R&amp;D spend growth</th><th class="n">R&amp;D vs target</th><th class="n">P</th></tr>'+
+'<tr><td><strong>Healthy, reinvesting</strong><br><span class="meta">R&amp;D $7.0M &rarr; $17.3M</span></td>'+
+'<td class="n">+0.300</td><td class="n">0.650</td><td class="n">+1.471</td><td class="n">0.998</td>'+
+'<td class="n"><strong>0.8549</strong></td></tr>'+
+'<tr><td><strong>Growing, starving research</strong><br><span class="meta">R&amp;D held flat</span></td>'+
+'<td class="n">+0.500</td><td class="n">0.700</td><td class="n">+0.029</td><td class="n">0.360</td>'+
+'<td class="n"><strong>0.3971</strong></td></tr>'+
+'<tr><td>Flat, at the standard</td><td class="n">+0.000</td><td class="n">0.600</td><td class="n">+0.004</td>'+
+'<td class="n">1.000</td><td class="n">0.4010</td></tr>'+
+'</table><caption><strong>The second project grows faster and earns a better margin, and scores less than '+
+'half.</strong> Fifty percent growth at seventy percent margin loses decisively to thirty percent growth '+
+'at sixty-five, because one of them is funding the future and the other is harvesting itself. That is not '+
+'a rounding artefact &mdash; it is the framework&rsquo;s values written as arithmetic, and it is the '+
+'whole reason the terms were chosen this way.</caption></div>'+
+'<h3>Worked example &mdash; identical per dollar, without exception</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Person</th><th class="n">$/min</th><th class="n">Minutes</th><th class="n">Own $ redirected</th><th class="n">Share</th><th class="n">&#50883; per $</th></tr>'+
+'<tr><td>Adaeze</td><td class="n">2.50</td><td class="n">480</td><td class="n">$1,200</td><td class="n">4.23%</td><td class="n">1.505064</td></tr>'+
+'<tr><td>Sokha</td><td class="n">0.25</td><td class="n">3,200</td><td class="n">$800</td><td class="n">2.82%</td><td class="n">1.505064</td></tr>'+
+'<tr><td>Mireille</td><td class="n">2.50</td><td class="n">9,600</td><td class="n">$24,000</td><td class="n">84.51%</td><td class="n">1.505064</td></tr>'+
+'<tr><td>Tomas</td><td class="n">12.00</td><td class="n">200</td><td class="n">$2,400</td><td class="n">8.45%</td><td class="n">1.505064</td></tr>'+
+'</table><caption>Against the reinvesting project, P = 0.8549. Sokha streams twenty-five cents a minute '+
+'and Tomas streams twelve dollars; <strong>both receive 1.505064 &#50883; per dollar.</strong> There is no '+
+'better rate at any size, so there is no seat worth buying and nothing to negotiate for.</caption></div>'+
+'<div class="notice"><span class="tag">Where a large reward actually goes</span>'+
+'<p style="margin-bottom:0">Mireille&rsquo;s 36,121 &#50883; does not become a balance. It meets the '+
+'annual ceiling and the rolling floor: <strong>three fully secured years and sixty-one percent of a '+
+'fourth.</strong> Fuelling other people&rsquo;s work buys exactly what work buys &mdash; time already '+
+'covered &mdash; and it cannot buy anything else.</p></div>'+
+'<h3>One equation, two subjects</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Applied to</th><th>What P measures</th><th>Who reads it</th></tr>'+
+'<tr><td><strong>An individual innovation project</strong></td><td>Whether this specific work grew, held '+
+'margin, and kept funding its own future.</td><td>The people streaming their minutes into it.</td></tr>'+
+'<tr><td><strong>Vision &#8226; 2525 and the wider framework</strong></td><td>Exactly the same four '+
+'measures, at the level of the whole.</td><td>Everyone, in the monthly public accounting.</td></tr>'+
+'</table><caption>The only difference is the subject. Using one yardstick upward and downward is what '+
+'makes either number believable &mdash; a framework that scored itself by a gentler measure than it '+
+'applies to others would deserve neither.</caption></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Guard</th><th>Effect</th></tr>'+
+'<tr><td>Settlement-origin only</td><td>Every eligible dollar traces to a witnessed hour. No external '+
+'capital, by construction.</td></tr>'+
+'<tr><td>The ceiling applies</td><td>Reward counts against 9,999 per year, like everything else.</td></tr>'+
+'<tr><td>The rolling floor applies</td><td>Excess secures future years; nothing settles faster.</td></tr>'+
+'<tr><td>Non-transferable &middot; zero governance weight</td><td>No market, no vote. <strong>The wall to '+
+'authority is untouched.</strong></td></tr>'+
+'<tr><td>Retrospective only</td><td>P is computed for periods that have ended. Never forecast, never '+
+'stated to attract a stream.</td></tr>'+
+'</table></div>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 
