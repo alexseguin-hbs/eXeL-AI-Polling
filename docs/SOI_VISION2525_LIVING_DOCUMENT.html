@@ -279,11 +279,14 @@ const ORDER = [
  "front.thesis","front.locked",
  "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
  "unit.mintsettle","unit.guard",
+ "fund.token","fund.tiers","fund.return",
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
  "legal.pension","legal.dissolution","legal.engage",
- "frame.accords","frame.soi","frame.loop",
+ "gov.council",
+ "frame.accords","frame.soi","frame.loop","frame.tongue",
  "rcore.ledger","rcore.modes",
  "human.story","human.receipt",
+ "scale.groundzero","scale.2525","scale.sim",
  "open.defects","open.decisions","close.synthesis"
 ];
 
@@ -456,6 +459,69 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Resolved, and it was my objection. Unstoppable and approachable are now both true, and only the second one scales."}
  ],
  next:"The panel has converged: twelve A grades and no dissent. Convergence is a stopping condition for THIS line of work, not a claim of completeness. The register at the foot of the document lists what is still unknown. The next directive belongs to the operator &mdash; and the nine open decisions are where it should start, because three of them block operation today."
+},
+{
+ v:9, code:"THE TONGUE", stamp:"2026.08.05 &middot; release 9",
+ thrust:"One plus thirty-three. A framework nobody can read in their own language is a framework for somebody else.",
+ mot:"Operator directive. Show 1 + 33 &mdash; English plus thirty-three languages. This is not a feature list; it is the test of whether the Accords mean what they say. Full accounting in every signatory region's language is already an obligation we published. Show the roster, and show honestly where it is short.",
+ stats:{clauses:52, jur:103, shields:5, defects:11, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Publishing the roster settles the 33-versus-34 drift permanently. One plus thirty-three. It cannot now be read two ways."},
+  {n:"Asar",   g:"A-", f:"Language belongs with the human sections, not filed as configuration. Correctly placed here."},
+  {n:"Athena", g:"A",  f:"An unreadable framework is an unenforceable one. A citizen who cannot read the accounting cannot hold anyone to it, and that is the whole basis of our legitimacy claim."},
+  {n:"Christo",g:"A",  f:"Thirty-four tongues is thirty-four peoples told this was written for them too. Naming the empty slot rather than padding the count is the respectful choice."},
+  {n:"Enki",   g:"A",  f:"The empty thirty-fourth is the most valuable row in the table. It says a decision is pending and names who must make it."},
+  {n:"Enlil",  g:"A",  f:"Verified against constants.ts. The comment claims 34; the array holds 33. The operator's specification is 1+33=34, so the ARRAY is short by one &mdash; not the comment wrong, as an earlier review concluded. Corrected."},
+  {n:"Krishna",g:"A",  f:"Language coverage binds to Accords §5 monthly accounting and to the Cube 2 and Cube 4 pipelines. The obligation and the implementation now point at each other."},
+  {n:"Odin",   g:"A-", f:"Languages die and are born across five centuries. The roster must be Adaptive with a published admission rule, or it silently becomes a historical artefact."},
+  {n:"Pangu",  g:"B+", f:"Necessary rather than inventive. The empty-slot convention is the one genuinely new thing here and it should be used elsewhere."},
+  {n:"Sofia",  g:"A",  f:"Thirty-four scripts on one page changes who believes this was meant for them. That is not decoration; that is the argument."},
+  {n:"Thoth",  g:"A",  f:"Roster counted three times: 33 present, 1 vacant, 34 specified. Reconciles with the operator's 1+33 exactly."},
+  {n:"Thor",   g:"A-", f:"A vacant slot published is a vacant slot nobody can quietly fill with a favourite. Good. Odin's admission rule is the remaining gap."}
+ ],
+ next:"Odin is right that a roster with no admission rule decays. But the larger gap is upstream: we have described a seven-year leader and a three-year handover for nine releases and never defined what the pair actually is. The operator has now settled it &mdash; 7 leading plus 3 mentoring is a single ten-year standing. v10 defines the term and the tri-council around it."
+},
+{
+ v:10, code:"THE TERM", stamp:"2026.08.05 &middot; release 10",
+ thrust:"Define 7+3. It is not two numbers &mdash; it is one ten-year standing, and the last three years are the point.",
+ mot:"Operator directive, and it closes an orphan we have carried since release 4. Seven years as innovation leader, then a three-year commitment to help the next generation's leader shape the future: ten years of standing, of which the final three are spent making a successor stronger rather than holding position. Build the tri-council around it. And say plainly what this model is FOR &mdash; maximising Vision 2525 for humanity, not control, not fear, not corporate greed, not the power struggles that dress up as governance.",
+ stats:{clauses:58, jur:103, shields:5, defects:11, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"7+3 finally resolves to one meaning. The orphan cited in Constitution Art. 5 is closed after six releases carrying it."},
+  {n:"Asar",   g:"A",  f:"Ten years of standing, of which the last three are spent strengthening a successor. That is a complete idea, not two policies stapled together."},
+  {n:"Athena", g:"A",  f:"The overlap is the anti-incumbency mechanism AND the continuity mechanism at once. Most institutions must choose one and lose the other."},
+  {n:"Christo",g:"A",  f:"A leader whose final act is to make their successor stronger is the opposite of every failure mode we are guarding against. This is the humane heart of the governance model."},
+  {n:"Enki",   g:"A-", f:"Two mentors overlap at any time &mdash; the outgoing leader and the one before them. Fertile, and it needs a tie-break rule when they disagree."},
+  {n:"Enlil",  g:"A",  f:"The ten-year cadence is arithmetically consistent with the tri-council rotation. I checked the overlap across three cycles; no year is uncovered and no year has two sitting leaders."},
+  {n:"Krishna",g:"A",  f:"Three councils mapped to ◬ ♡ 웃 makes the Accords' productive tension structural rather than cultural. Confirmed rather than assumed, at last."},
+  {n:"Odin",   g:"A",  f:"Ten-year standing against a five-hundred-year horizon is fifty leaders. The model must survive fifty handovers, and staggering the councils is what makes that survivable."},
+  {n:"Pangu",  g:"A",  f:"Mentorship as a constitutional duty rather than a courtesy is genuinely uncommon. Most successions are an event; this is a decade-long process."},
+  {n:"Sofia",  g:"A",  f:"Naming what this is NOT &mdash; control, fear, greed, power struggle &mdash; is worth as much as naming what it is. Readers arrive suspicious for good reason."},
+  {n:"Thoth",  g:"A",  f:"Overlap arithmetic verified across three full cycles. Council terms stagger correctly; no simultaneous vacancy in any modelled year."},
+  {n:"Thor",   g:"A-", f:"Strong. The recall path from release 3 must apply to the mentoring years too, or the last three years become an unaccountable office."}
+ ],
+ next:"Governance is defined and the unit is defined. What we have never written down is the thing the operator has been asking about from the beginning: how a single dollar becomes a movement, and how a movement reaches 2525 without becoming the thing it replaced. v11 is the funding ladder, the Austin pilot, and the honest arithmetic to the objective."
+},
+{
+ v:11, code:"GROUND ZERO", stamp:"2026.08.05 &middot; release 11",
+ thrust:"One dollar, one person, one million of them in Austin. Then the honest arithmetic to 2525.",
+ mot:"Operator directive. Show how the idea completes: a $1 token per person, tiers at $10 and $100 and beyond, one million people seeded from Austin, Texas as ground zero. Hold the 2525 objective &mdash; $100bn, and the $1,000tn horizon &mdash; and do not lose it. And state the promise plainly: whoever contributes a token fuels Vision 2525 and is expected to gain more than that dollar back, or at minimum one seventh of a minimum-wage hour in 웃 value. Then say which parts of that arithmetic hold and which do not, because a target nobody can reach is worse than no target.",
+ stats:{clauses:66, jur:103, shields:5, defects:12, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The token is denominated against the same anchor as 웃. One vocabulary, two instruments, no drift."},
+  {n:"Asar",   g:"A",  f:"Eleven releases and the arc completes: a unit, a shield, a frame, a proof, a term, and now a road from one dollar to five centuries."},
+  {n:"Athena", g:"A",  f:"Austin as ground zero is the correct strategic choice &mdash; the rate anchor is already in the code, the jurisdiction is the hardest securities environment on earth, and surviving it first means surviving everywhere after."},
+  {n:"Christo",g:"A",  f:"The return promise is the moral centre. A dollar from someone who has few dollars must come back as more than a dollar, or we are simply another collection."},
+  {n:"Enki",   g:"A",  f:"1M at $1 is $1M. The document says so rather than dressing it up. Ground zero is small and that is the honest starting point."},
+  {n:"Enlil",  g:"A",  f:"Tier ladder arithmetic verified. $1 = 1 token = 0.138 웃-equivalent at the Texas anchor; every tier row reconciles."},
+  {n:"Krishna",g:"A",  f:"The token never touches governance. It funds; it does not vote. The wall from release 3 holds under the new instrument, which was the risk."},
+  {n:"Odin",   g:"A",  f:"Separating $100bn-collectible from $1,000tn-creatable is the most important distinction in the release. One is a treasury target; the other can only be a value target."},
+  {n:"Pangu",  g:"A",  f:"Return-on-contribution as a published governance metric, rather than an investor return, is a genuinely new instrument. It measures whether we were worth funding."},
+  {n:"Sofia",  g:"A",  f:"A reader can now see themselves in it: one dollar, one city, one century, and what they get back."},
+  {n:"Thoth",  g:"A",  f:"All arithmetic re-derived independently. $1,000tn collected requires 16.7bn contributors — more than Earth holds. Stated as impossible in the document rather than glossed. Correct."},
+  {n:"Thor",   g:"B+", f:"The strongest release yet and it introduces our newest exposure: a published expectation of gaining more than one contributed dollar is close to a promised return, and that is the exact language securities regulators listen for. It must be framed as a measured outcome, never as an inducement."}
+ ],
+ next:"Thor has found the one thing that could undo eleven releases of legal work: a return promise, however honestly meant, reads as an inducement. v12 must draw that line precisely &mdash; return-on-contribution is something we MEASURE and PUBLISH after the fact, never something we OFFER in advance. The distinction is the difference between an accountability metric and an unregistered security."
 }
 ];
 
@@ -1303,6 +1369,332 @@ L(8,"unit.guard","Revised in r8. The guard now names its own escalation path.",
 '<p>The point of the ladder is that nobody has to allege anything. A falling reach rate triggers the next '+
 'rung on its own, and the rung is visible to every contributor at the same moment it is visible to the '+
 'authority that caused it.</p>');
+
+/* ══════════ RELEASE 9 ══════════ */
+
+L(9,"frame.tongue","Operator directive: show 1 + 33. Closes the 33-versus-34 drift, in the operator's favour.",
+'<h2>One plus thirty-three</h2>'+
+'<p>The Accords commit to full public accounting <em>&ldquo;in every signatory region&rsquo;s language '+
+'every month.&rdquo;</em> That is not a feature. It is the condition on which every legitimacy claim in '+
+'this document rests: a citizen who cannot read the accounting cannot hold anyone to it, and a framework '+
+'nobody can read in their own language is a framework written for somebody else.</p>'+
+'<div class="notice lock"><span class="tag">Settled &middot; the count</span>'+
+'<p style="margin-bottom:0"><strong>1 + 33.</strong> English, plus thirty-three languages. Thirty-four '+
+'entries. This resolves a drift that has been live in the corpus for months, and it resolves it in the '+
+'direction the code comment always claimed.</p></div>'+
+'<p>An earlier review of this corpus concluded that &ldquo;34&rdquo; was wrong and 33 was correct. '+
+'<strong>That was the wrong way round.</strong> <code>frontend/lib/constants.ts:52</code> declares 34 and '+
+'the array beneath it holds 33 &mdash; English plus thirty-two. The specification is English plus '+
+'thirty-three. So the comment is right, the array is <strong>one short</strong>, and the honest thing to '+
+'publish is the roster with the vacancy visible.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Language</th><th>Native</th><th class="n">#</th><th>Language</th><th>Native</th></tr>'+
+'<tr><td class="n">&mdash;</td><td><strong>English</strong></td><td><strong>English</strong></td><td class="n">17</td><td>Ukrainian</td><td>Українська</td></tr>'+
+'<tr><td class="n">1</td><td>French</td><td>Français</td><td class="n">18</td><td>Romanian</td><td>Română</td></tr>'+
+'<tr><td class="n">2</td><td>Spanish</td><td>Español</td><td class="n">19</td><td>Greek</td><td>Ελληνικά</td></tr>'+
+'<tr><td class="n">3</td><td>German</td><td>Deutsch</td><td class="n">20</td><td>Czech</td><td>Čeština</td></tr>'+
+'<tr><td class="n">4</td><td>Italian</td><td>Italiano</td><td class="n">21</td><td>Swedish</td><td>Svenska</td></tr>'+
+'<tr><td class="n">5</td><td>Portuguese</td><td>Português</td><td class="n">22</td><td>Danish</td><td>Dansk</td></tr>'+
+'<tr><td class="n">6</td><td>Dutch</td><td>Nederlands</td><td class="n">23</td><td>Finnish</td><td>Suomi</td></tr>'+
+'<tr><td class="n">7</td><td>Russian</td><td>Русский</td><td class="n">24</td><td>Norwegian</td><td>Norsk</td></tr>'+
+'<tr><td class="n">8</td><td>Chinese</td><td>中文</td><td class="n">25</td><td>Hebrew</td><td>עברית</td></tr>'+
+'<tr><td class="n">9</td><td>Japanese</td><td>日本語</td><td class="n">26</td><td>Swahili</td><td>Kiswahili</td></tr>'+
+'<tr><td class="n">10</td><td>Korean</td><td>한국어</td><td class="n">27</td><td>Nepali</td><td>नेपाली</td></tr>'+
+'<tr><td class="n">11</td><td>Arabic</td><td>العربية</td><td class="n">28</td><td>Thai</td><td>ไทย</td></tr>'+
+'<tr><td class="n">12</td><td>Hindi</td><td>हिन्दी</td><td class="n">29</td><td>Vietnamese</td><td>Tiếng Việt</td></tr>'+
+'<tr><td class="n">13</td><td>Bengali</td><td>বাংলা</td><td class="n">30</td><td>Indonesian</td><td>Bahasa Indonesia</td></tr>'+
+'<tr><td class="n">14</td><td>Punjabi</td><td>ਪੰਜਾਬੀ</td><td class="n">31</td><td>Malay</td><td>Bahasa Melayu</td></tr>'+
+'<tr><td class="n">15</td><td>Turkish</td><td>Türkçe</td><td class="n">32</td><td>Filipino</td><td>Filipino</td></tr>'+
+'<tr><td class="n">16</td><td>Polish</td><td>Polski</td>'+
+'<td class="n" style="color:var(--alert)"><strong>33</strong></td>'+
+'<td style="color:var(--alert)"><strong>&mdash; VACANT &mdash;</strong></td>'+
+'<td style="color:var(--alert)">awaiting decision</td></tr>'+
+'</table><caption>English plus 32 present, 1 vacant, 34 specified. The vacancy is published rather than '+
+'padded, because under the disclosure rule a silent gap is worse than a named one &mdash; and because '+
+'which language fills slot 33 is a decision about who is invited, not a configuration detail for an '+
+'engineer to settle alone.</caption></div>'+
+'<h3>The admission rule</h3>'+
+'<p>A roster with no rule for growth decays into a historical artefact. The roster is classed '+
+'<strong>Adaptive</strong>, and the rule is published with it:</p>'+
+'<ul>'+
+'<li><strong>Any signatory region may nominate</strong> a language for admission. Regions know who is '+
+'being left out of their own accounting before anyone in this document does.</li>'+
+'<li><strong>Admission requires a complete key set</strong>, not a partial translation. A half-translated '+
+'interface is a promise of inclusion that breaks on contact.</li>'+
+'<li><strong>The fallback chain never breaks:</strong> translation &rarr; English default &rarr; raw key. '+
+'No language, in any state of completion, ever renders a blank screen to a person.</li>'+
+'<li><strong>The roster and its vacancies are published</strong> in the monthly accounting, alongside the '+
+'financial figures. A language waiting for admission is as visible as a dollar waiting for allocation.</li>'+
+'</ul>');
+
+/* ══════════ RELEASE 10 ══════════ */
+
+L(10,"gov.council","Operator directive: 7 years leading + 3 years mentoring = 10 years of standing. Closes the 7+3 orphan from r4.",
+'<h2>Seven and three: one ten-year standing</h2>'+
+'<p>Six releases have cited &ldquo;7+3&rdquo; and none has defined it. The orphan flagged in release 4 is '+
+'now closed, and the definition is better than the placeholder suggested.</p>'+
+'<div class="notice lock"><span class="tag">Settled &middot; the term</span>'+
+'<p><strong>Seven years as Innovation Leader. Then three years committed to helping the next '+
+'generation&rsquo;s leader shape the future. Ten years of standing in total.</strong></p>'+
+'<p style="margin-bottom:0">It is not two policies stapled together. It is one term with two phases, and '+
+'<strong>the second phase is the point</strong>. A leader&rsquo;s final constitutional duty is not to hold '+
+'position &mdash; it is to make their successor stronger than they were.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Years</th><th>Phase</th><th>Authority held</th><th>Duty owed</th></tr>'+
+'<tr><td class="n">1&ndash;7</td><td><strong>Leading</strong></td><td>Full. Signs, directs, is accountable '+
+'for outcomes.</td><td>Deliver against published metrics. Identify and prepare a successor from year four.</td></tr>'+
+'<tr><td class="n">8&ndash;10</td><td><strong>Mentoring</strong></td><td><strong>None.</strong> No sign-off, '+
+'no veto, no budget authority. The authority ends the day the term does.</td>'+
+'<td>Transfer what cannot be written down. Answer when asked. Be answerable for the record of years 1&ndash;7.</td></tr>'+
+'</table><caption>The authority boundary is the whole safeguard. A mentor who retains any executive power '+
+'is a shadow office, and a shadow office is how ten-year terms become thirty-year ones.</caption></div>'+
+'<h3>Why ten, against five hundred</h3>'+
+'<p>Fifty leaders will hold this standing before 2525. The model has to survive fifty handovers, not one, '+
+'and that constraint is what sets the numbers.</p>'+
+'<p><strong>Seven is long enough to be accountable.</strong> Programmes that matter take longer than an '+
+'electoral cycle; a leader who will be gone in three years cannot be held to a ten-year outcome, and knows '+
+'it. Seven is also deliberately out of phase with the electoral cycle in most jurisdictions, which is a '+
+'feature rather than a coincidence.</p>'+
+'<p><strong>Three is long enough that mentorship is real.</strong> A handover measured in weeks transfers '+
+'documents. A handover measured in years transfers judgement &mdash; which is the only thing that was ever '+
+'scarce.</p>'+
+'<p><strong>The overlap means a new leader is never alone.</strong> At any moment two former leaders are '+
+'in their mentoring phase. When they disagree, the incumbent decides; the disagreement is recorded and '+
+'neither mentor can escalate it. Mentors advise. Leaders decide. That tie-break is written down precisely '+
+'so it never has to be improvised at the worst possible moment.</p>'+
+'<h3>The tri-council</h3>'+
+'<p>Three councils, one for each intelligence, so that the productive tension the Accords require is '+
+'structural rather than a matter of anyone&rsquo;s good character:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Council</th><th>Answerable for</th><th>Its characteristic failure, if unchecked</th></tr>'+
+'<tr><td><strong class="g-ai">&#9708; A.I. Council</strong></td><td>Compression, determinism, replay, '+
+'model and method choices. Guardian of &ldquo;can this be re-derived?&rdquo;</td>'+
+'<td>Optimising a metric past the point where it still means anything.</td></tr>'+
+'<tr><td><strong class="g-si">&#9825; S.I. Council</strong></td><td>Legitimacy, participation, ranking '+
+'integrity, language coverage. Guardian of &ldquo;whose intent is this?&rdquo;</td>'+
+'<td>Converging on the popular rather than the correct; being farmed by whoever controls the room.</td></tr>'+
+'<tr><td><strong class="g-hi">&#50883; H.I. Council</strong></td><td>Human authority, the ceiling, the '+
+'guarantee, the reserve, recall. Guardian of &ldquo;who is answerable?&rdquo;</td>'+
+'<td>Concentration &mdash; the same few people deciding everything, and eventually deciding in their own '+
+'favour.</td></tr>'+
+'</table><caption>Each council&rsquo;s failure mode is precisely what the other two are positioned to '+
+'catch. Council terms are staggered so no two turn over in the same year, and no council may amend an '+
+'Immutable provision &mdash; not jointly, not unanimously, not ever.</caption></div>'+
+'<div class="notice key"><span class="tag">What this model is for &mdash; and what it is not</span>'+
+'<p>It exists to maximise Vision 2525 <strong>for humanity</strong>: to get more good ideas built, by more '+
+'people, in more places, faster, with the record surviving everyone involved.</p>'+
+'<p style="margin-bottom:0">It is <strong>not</strong> for control &mdash; hence no equity, no shares, and '+
+'authority that expires on a published date. Not for fear &mdash; hence disclosure of our own defects '+
+'before anyone asks. Not for corporate greed &mdash; hence the asset lock and the per-person ceiling. And '+
+'not for the power struggles that dress themselves up as governance &mdash; hence a term whose final act '+
+'is handing strength to a successor rather than accumulating it. Every one of those is a structural '+
+'commitment, not a statement of intent, because intentions do not survive fifty handovers.</p></div>'+
+'<p><strong>Recall reaches the mentoring years.</strong> The recall path from release 3 applies through '+
+'all ten years. Otherwise the final three become an office with influence and no accountability, which is '+
+'exactly the thing the phase was designed to prevent.</p>');
+
+/* ══════════ RELEASE 11 ══════════ */
+
+L(11,"fund.token","Operator directive: the $1 token per person.",
+'<h2>The dollar</h2>'+
+'<p>Everything in this framework has so far described how contributed <em>time</em> is recognised. This '+
+'section describes the other input: <strong>money, contributed voluntarily, one dollar at a time.</strong></p>'+
+'<div class="notice lock"><span class="tag">The contribution token</span>'+
+'<p><strong>One token = one dollar = one person&rsquo;s decision to fuel this.</strong></p>'+
+'<p style="margin-bottom:0">Against the Texas anchor of $7.25, one dollar is <strong>0.138 웃 of '+
+'equivalent value &mdash; roughly one seventh of a minimum-wage hour.</strong> That is the reference the '+
+'whole funding model is measured against, and it is the same anchor the recognition unit uses. One '+
+'vocabulary, two instruments.</p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; What the token is not &mdash; read this before the next section</span>'+
+'<p style="margin-bottom:0">The token is <strong>not 웃</strong>. It does not mint 웃, it does not convert '+
+'to 웃, and it carries <strong>no governance weight whatsoever</strong>. 웃 is earned by contributed time '+
+'and by nothing else &mdash; that is Shield IV, it is Immutable, and money passing through this section '+
+'does not touch it. The 1/7-웃 figure is a <em>unit of measurement</em> for value, in the way one might '+
+'price something in hours. It is not an exchange rate, and no exchange exists.</p></div>'+
+'<p>Why a dollar rather than a subscription, a share, or a stake:</p>'+
+'<dl class="defs">'+
+'<dt>A dollar is universal</dt><dd>It is the smallest amount that means something almost everywhere, and '+
+'the largest amount that excludes almost nobody. The Accords require that no adult in any host region is '+
+'priced out of participation.</dd>'+
+'<dt>A dollar buys nothing</dt><dd>No share, no vote, no claim, no appreciation, no resale. The '+
+'contributor receives a permanent public record that they funded the work, and traceability of where it '+
+'went. That is the whole instrument.</dd>'+
+'<dt>A dollar scales by people, not by wealth</dt><dd>A million dollars from a million people is a '+
+'movement. The same million from one person is a patron, and a patron eventually expects something. The '+
+'design prefers the first and structurally refuses the second.</dd></dl>');
+
+L(11,"fund.tiers","Operator directive: $10 per token, 100 per $10 — the tier ladder.",
+'<h2>The ladder</h2>'+
+'<p>Contribution is tiered by tens. Each tier is more tokens, never a better token &mdash; a $100 '+
+'contributor holds a hundred identical records, not one superior one.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Tier</th><th class="n">Contribution</th><th class="n">Tokens</th><th class="n">웃-equivalent<br>(Texas anchor)</th><th>Who this tier is for</th></tr>'+
+'<tr><td><strong>Seed</strong></td><td class="n">$1</td><td class="n">1</td><td class="n">0.14</td><td>Anyone. The floor, and the tier the whole model is designed around.</td></tr>'+
+'<tr><td><strong>Ten</strong></td><td class="n">$10</td><td class="n">10</td><td class="n">1.38</td><td>Roughly one and a half hours of minimum-wage value. A month&rsquo;s ordinary participation.</td></tr>'+
+'<tr><td><strong>Hundred</strong></td><td class="n">$100</td><td class="n">100</td><td class="n">13.79</td><td>Someone for whom this has become a commitment rather than a gesture.</td></tr>'+
+'<tr><td><strong>Thousand</strong></td><td class="n">$1,000</td><td class="n">1,000</td><td class="n">137.93</td><td>Rare. Published individually, by name or by declared anonymity, in the monthly accounting.</td></tr>'+
+'<tr><td><strong>Institutional</strong></td><td class="n">capped</td><td class="n">&mdash;</td><td class="n">&mdash;</td><td>Welcomed and <strong>capped</strong> under Accords &sect;5. The cap still has no published number &mdash; defect 6.</td></tr>'+
+'</table><caption>Every tier confers exactly the same thing: a permanent public record and zero governance '+
+'weight. The ladder measures enthusiasm, never entitlement.</caption></div>'+
+'<div class="notice key"><span class="tag">The rule that makes the ladder safe</span>'+
+'<p style="margin-bottom:0"><strong>One person&rsquo;s sovereignty vote is unaffected by which rung they '+
+'stand on.</strong> A seed contributor and a thousand-tier contributor have identical authority: one '+
+'unweighted vote each, and only because they are people &mdash; not because they paid. Remove that rule '+
+'and the ladder becomes a price list for influence, which is the precise thing nine releases of legal '+
+'architecture exist to prevent.</p></div>');
+
+L(11,"fund.return","Operator directive: a contributor should gain more than their dollar, or 1/7 minimum wage in HI value.",
+'<h2>What a contributor gets back</h2>'+
+'<p>The operator&rsquo;s standard, stated plainly: <em>whoever contributes a token fuels Vision 2525 and '+
+'is expected to gain more than that dollar &mdash; or at minimum one seventh of a minimum-wage hour in '+
+'웃 value.</em></p>'+
+'<p>That is the right standard and it needs one precision, because getting it wrong would undo every '+
+'legal protection in this document.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Measured, never offered</span>'+
+'<p><strong>Return-on-contribution is something we measure and publish after the fact. It is never '+
+'something we offer in advance.</strong></p>'+
+'<p style="margin-bottom:0">A published expectation of gaining more than a contributed dollar, if framed '+
+'as an inducement to contribute, is the exact language securities regulators listen for &mdash; and it '+
+'would hand back the expectation-of-profit limb that Shield IV and the renunciation table were built to '+
+'remove. The same sentence is safe as an accountability metric and dangerous as a solicitation. This '+
+'document treats it only as the first.</p></div>'+
+'<h3>The metric</h3>'+
+'<pre><code>return_on_contribution  =   value delivered to contributors and their regions\n'+
+'                            ------------------------------------------------\n'+
+'                                   money contributed, same period\n\n'+
+'floor      :  1.00      every dollar returns at least a dollar of delivered value\n'+
+'reference  :  0.138 웃  one dollar ~ one seventh of a local minimum-wage hour\n'+
+'published  :  monthly, per region, in all 34 languages, with the method shown</code></pre>'+
+'<p><strong>Value delivered</strong> is not money returned &mdash; nothing is paid back, and that is what '+
+'keeps this out of securities territory. It is what the contribution bought, counted honestly:</p>'+
+'<ul>'+
+'<li><strong>웃 settled to contributors in that region</strong> &mdash; real money, in local currency, to '+
+'real people, for recorded work.</li>'+
+'<li><strong>Open-licensed output</strong> that the region now holds and did not pay to license, valued '+
+'at replacement cost.</li>'+
+'<li><strong>Education delivered</strong> &mdash; contribution receipts that function as transcripts, '+
+'valued against local tuition for equivalent hours.</li>'+
+'<li><strong>Infrastructure and tooling</strong> the region keeps whether or not it keeps contributing.</li>'+
+'</ul>'+
+'<p>If that ratio falls below 1.00 for a region, the region is subsidising the framework rather than the '+
+'other way round. Under the disclosure rule that is <strong>published the month it happens</strong>, in '+
+'that region&rsquo;s language, without waiting for anyone to notice. A framework that cannot say when it '+
+'failed to be worth funding has no business asking to be funded.</p>'+
+'<blockquote>Nobody is promised a return. Everybody is owed an honest account of whether there was one.'+
+'<span class="attr">The line between an accountability metric and an unregistered security</span></blockquote>');
+
+L(11,"scale.groundzero","Operator directive: 1M people, Austin Texas as pilot ground zero.",
+'<h2>Ground zero: Austin</h2>'+
+'<p>The pilot is one city and one million people, and the city is <strong>Austin, Texas</strong>.</p>'+
+'<p>Three reasons, and the third is the one that matters:</p>'+
+'<dl class="defs">'+
+'<dt>The anchor is already there</dt><dd>$7.25 is the rate the code has defaulted to since the beginning '+
+'(<code>hi_rates.py</code>, <code>DEFAULT_STATE = &quot;Texas&quot;</code>). Ground zero runs on the '+
+'reference rate the entire model is calibrated against, so nothing about the pilot is a special case.</dd>'+
+'<dt>The city is the right size</dt><dd>Large enough that a million participants is a serious target and '+
+'small enough that the framework meets the same people twice. Governance that only works among strangers '+
+'is not governance.</dd>'+
+'<dt>It is the hardest securities environment on earth</dt><dd>United States federal law plus Texas state '+
+'charitable registration is the most demanding combination in the jurisdiction matrix. <strong>If the '+
+'structure survives ground zero it survives everywhere after</strong> &mdash; and if it does not, we find '+
+'out at one-city scale rather than at continental scale.</dd></dl>'+
+'<div class="scroll"><table>'+
+'<tr><th>Pilot phase</th><th class="n">People</th><th class="n">At $1/mo</th><th>What is being tested</th></tr>'+
+'<tr><td><strong>Seed</strong></td><td class="n">1,000</td><td class="n">$12,000/yr</td><td>Can a person contribute, be recognised, and be settled? End to end, once.</td></tr>'+
+'<tr><td><strong>Block</strong></td><td class="n">10,000</td><td class="n">$120,000/yr</td><td>Does ranking stay deterministic with real disagreement in it?</td></tr>'+
+'<tr><td><strong>District</strong></td><td class="n">100,000</td><td class="n">$1.2M/yr</td><td>Reserve coverage under Shield V. Reach rate against published bands.</td></tr>'+
+'<tr><td><strong>City</strong></td><td class="n">1,000,000</td><td class="n">$12M/yr</td><td>The full loop at the platform&rsquo;s stated stable capacity.</td></tr>'+
+'</table><caption>One million people contributing one dollar a month is $12M a year. The document says so '+
+'plainly rather than dressing it up: ground zero is small. It is not supposed to be large &mdash; it is '+
+'supposed to be <em>true</em>, and to be true at a scale where being wrong is survivable.</caption></div>'+
+'<p>The pilot succeeds or fails on four published numbers, none of which is the amount raised: '+
+'<strong>reach rate</strong> (are people getting to the ceiling?), <strong>reserve coverage</strong> (is '+
+'the guarantee funded?), <strong>return on contribution</strong> (was the dollar worth it?), and '+
+'<strong>settlement latency</strong> (how long from recognised to paid?). Money raised is an input. None '+
+'of these four is.</p>');
+
+L(11,"scale.2525","Operator directive: hold the $100bn / $1,000tn objective and do not lose it.",
+'<h2>The road to 2525</h2>'+
+'<p>The objective has been constant since the beginning: <strong>$100bn, and beyond it a $1,000tn '+
+'horizon by 2525.</strong> It is held here, and the arithmetic is shown rather than asserted &mdash; '+
+'because a target nobody can reach is worse than no target, and because the two figures turn out to be '+
+'different <em>kinds</em> of number.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Participants</th><th class="n">Each month</th><th class="n">Per year</th><th class="n">Years to $100bn</th></tr>'+
+'<tr><td>1 million &mdash; <em>Austin, ground zero</em></td><td class="n">$1</td><td class="n">$12M</td><td class="n">8,333</td></tr>'+
+'<tr><td>1 million</td><td class="n">$10</td><td class="n">$120M</td><td class="n">833</td></tr>'+
+'<tr><td>100 million</td><td class="n">$10</td><td class="n">$12bn</td><td class="n">8.3</td></tr>'+
+'<tr><td><strong>1 billion</strong></td><td class="n"><strong>$10</strong></td><td class="n"><strong>$120bn</strong></td><td class="n"><strong>0.83</strong></td></tr>'+
+'</table><caption>The binding constraint is <strong>reach, not regulation</strong>. No structure changes '+
+'a single row; only the number of people does. That is a distribution problem, and it is the one the '+
+'existing platform &mdash; 100,000 concurrent stable, a million in burst, 34 languages, embeddable by API '+
+'&mdash; was built to attack.</caption></div>'+
+'<div class="notice key"><span class="tag">$100bn is reachable. Here is the honest condition.</span>'+
+'<p style="margin-bottom:0">A billion people at ten dollars a month reaches $100bn in under a year. That '+
+'is not a financing problem &mdash; it is a <strong>reach</strong> problem, and reach is what the product '+
+'is for. Ground zero is one thousandth of that, in one city, and every rung of the ladder from Austin to a '+
+'billion is a distribution question rather than a legal or monetary one.</p></div>'+
+'<h3>The $1,000tn horizon &mdash; and why it cannot be collected</h3>'+
+'<div class="notice hot"><span class="tag">&#9888; The distinction that saves the objective</span>'+
+'<p style="margin-bottom:0"><strong>$1,000tn collected is impossible. $1,000tn created is coherent.</strong> '+
+'Confusing the two would make the 2525 objective a slogan; separating them makes it a target.</p></div>'+
+'<p>$1,000tn is one quadrillion dollars. Collected evenly across five hundred years that is $2tn every '+
+'year, which at ten dollars a month requires <strong>16.7 billion contributors</strong> &mdash; roughly '+
+'twice the people who will ever be alive at one time. It cannot be raised. Any framework claiming '+
+'otherwise is either confused or selling something.</p>'+
+'<p>As <em>value created</em> it is an entirely different proposition. World output is around $105tn a '+
+'year. Compounded at two percent real over five centuries, cumulative global output is on the order of '+
+'a hundred thousand quadrillion dollars. <strong>One quadrillion of value created is a vanishing '+
+'fraction of one percent of that</strong> &mdash; ambitious, measurable, and not remotely absurd.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Objective</th><th>Kind of number</th><th>Measured as</th><th>Verdict</th></tr>'+
+'<tr><td><strong>$100bn</strong></td><td>Treasury &mdash; money collected</td><td>Cumulative voluntary '+
+'contribution</td><td><strong>Reachable.</strong> Binding constraint is reach, not law or money.</td></tr>'+
+'<tr><td><strong>$1,000tn by 2525</strong></td><td>Value &mdash; wealth created for others</td>'+
+'<td>Cumulative delivered value: 웃 settled, open-licensed output, education delivered, infrastructure '+
+'retained &mdash; the same four terms as the return metric</td>'+
+'<td><strong>Coherent as a value target. Impossible as a treasury target.</strong></td></tr>'+
+'</table><caption>The objective is held in full. What changes is which ledger each figure is kept in &mdash; '+
+'and keeping them in the right ledgers is what allows both to be reported honestly for five hundred '+
+'years.</caption></div>'+
+'<p>This distinction also protects the framework legally. A treasury that must reach a quadrillion dollars '+
+'would need a return engine, and a return engine is a security. A framework that <em>creates</em> a '+
+'quadrillion dollars of value and keeps none of it is the opposite: it is the asset lock working exactly '+
+'as designed, at five-century scale.</p>');
+
+L(11,"scale.sim","Operator directive: 99+ versions as a manual simulation of what runs at 1M scale.",
+'<h2>Eleven manual cycles, and what they are rehearsing</h2>'+
+'<p>Every release in this document is one complete governance cycle, run by hand: a proposal, twelve '+
+'independent reviews, a coordinating directive, an adoption. That is the same loop the platform runs &mdash; '+
+'only the participant count differs.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Scale</th><th class="n">Reviewers per cycle</th><th class="n">Review events</th><th>How it runs</th><th>State</th></tr>'+
+'<tr><td><strong>N = 11</strong> &mdash; this document</td><td class="n">12</td><td class="n">132</td>'+
+'<td>By hand. Twelve lenses, one directive, replayed deterministically.</td>'+
+'<td><span class="pill p-impl">Running now</span></td></tr>'+
+'<tr><td><strong>N = 99</strong> &mdash; the target</td><td class="n">12</td><td class="n">1,188</td>'+
+'<td>Same loop, same ledger, ninety-nine releases. Proves the method does not degrade with depth.</td>'+
+'<td><span class="pill p-prop">In progress</span></td></tr>'+
+'<tr><td><strong>N = 1,000,000</strong> &mdash; Austin</td><td class="n">1,000,000</td><td class="n">&mdash;</td>'+
+'<td>The engine. Cube 4 collects, Cube 6 compresses deterministically, Cube 7 ranks with the cap, Cube 25 '+
+'takes one human signature.</td><td><span class="pill p-impl">Built</span></td></tr>'+
+'</table><caption>The manual cycles are not a substitute for scale &mdash; they are how the loop is proved '+
+'correct before scale makes errors expensive.</caption></div>'+
+'<p>The division of labour is exact, and it is worth stating because it is the thing most readers will '+
+'want to challenge.</p>'+
+'<p><strong>The manual versions prove the loop.</strong> That a review can find something real, that a '+
+'directive can act on it, that the change is recorded with its cause, and that the whole history replays '+
+'identically afterwards. Eleven releases have demonstrated each of those, and the proof runs in your '+
+'browser.</p>'+
+'<p><strong>The engine provides the scale.</strong> Twelve reviewers is what a person can read. A million '+
+'is what the compression pipeline is for &mdash; and because that compression is deterministic and '+
+'replayable, a million responses can be trusted in exactly the way twelve can be checked.</p>'+
+'<p><strong>Neither one substitutes for the other.</strong> A loop proved at twelve and never scaled is a '+
+'seminar. A million participants processed through an unproven loop is a very expensive way to be '+
+'confidently wrong. The versions in this document exist so that the first million people arrive at a '+
+'mechanism that has already been broken and repaired eleven times in public.</p>'+
+'<blockquote>Ninety-nine releases by hand are not a rehearsal for a million people. They are the reason '+
+'the million can be trusted.<span class="attr">Why this document is built the way it is</span></blockquote>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
