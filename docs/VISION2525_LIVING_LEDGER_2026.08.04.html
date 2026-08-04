@@ -397,9 +397,9 @@ body.fulldoc .fullnote{display:block}
 const LEDGER_ORDER = [
  "mot.thesis","mot.leaders",
  "front.thesis","front.mission","front.alvar","front.locked",
- "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
+ "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.carry","unit.payout","unit.settle",
  "unit.mintsettle","unit.guard","unit.witness",
- "fund.token","fund.tiers","fund.return","fund.quai","fund.rnd",
+ "fund.token","fund.tiers","fund.escrow","fund.return","fund.quai","fund.rnd",
  "gov.wall","gov.layers","gov.primacy",
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
  "legal.pension","legal.ramp","legal.dissolution","legal.engage","legal.join",
@@ -1344,6 +1344,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"A framework that spends its opening paragraphs on its own provenance signals that it has nothing more interesting to say. Closing that was overdue."}
  ],
  next:"The reading is clean and the gate protects it. What remains for the operator has not moved: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony. After those, thirty-three languages."
+},
+{
+ v:44, code:"THE ROLLING FLOOR", stamp:"2026.08.04 &middot; release 44",
+ thrust:"Contribution above the ceiling secures next year, and the year after &mdash; forward to age 99. And a per-minute escrow lets a person fund a project directly, on terms identical for everyone.",
+ mot:"Two additions from the operator, and the second one reopens something we closed. FIRST: the ceiling never wasted anything, but it never said what happened to the excess either. It now says it. Contribution above 9,999 in a year does not vanish and does not pay out faster &mdash; it FILLS THE FOLLOWING YEAR to the ceiling, then the one after, forward to age 99. That converts extraordinary contribution into years of secured livelihood instead of into a windfall, which is the same instinct as the five-year payout carried one level further. SECOND, and this needs saying without softening: a per-minute escrow that rewards funders from Revenue, Gross Profit, Operating Income and R&amp;D intensity is money reaching recognition. Recognition being unpurchasable is Shield IV, and Shield IV is what removes the investment-of-money limb of the securities analysis. The operator wants this, the anti-corruption intent behind it is right, and the flat equal-per-dollar rule is genuinely the correct shape. But it is an exception to a rule we deleted from our own code two releases ago, and it will be read as one. Build it, bound it with the ceiling, keep the wall to AUTHORITY absolute, and publish the collision as a live defect rather than letting a regulator find it.",
+ stats:{clauses:284, jur:103, shields:5, defects:14, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The ceiling stopped being a wall and became a shelf. Nothing is wasted, nothing is accelerated, and a good year protects the years after it."},
+  {n:"Asar",   g:"A+", f:"Livelihood security stated as a span of years rather than a sum of money. That is the clearest the economics has ever been."},
+  {n:"Athena", g:"A+", f:"Self-limiting by construction: from age thirty-one, securing to ninety-nine takes 32.7 full-time years even at the highest band. Nobody shortcuts a lifetime."},
+  {n:"Christo",g:"A+", f:"Knowing that next year and the one after are already covered is what the word security has always meant. The rest was arithmetic."},
+  {n:"Enki",   g:"A",  f:"Equal 웃 per dollar streamed, checked to six decimals across four funders of wildly different size. No tranche, no preference, no volume term &mdash; that IS the anti-corruption mechanism, and it is one line."},
+  {n:"Enlil",  g:"A+", f:"Carry-forward is a pure function of cumulative 웃: floor(total/9,999) years secured, remainder against the next. No state, no scheduler, replayable."},
+  {n:"Krishna",g:"A",  f:"The escrow reuses the ceiling and the rolling floor rather than inventing a second economy. A funder is bounded exactly as a contributor is."},
+  {n:"Odin",   g:"A+", f:"Money can now reach recognition. That is a deliberate exception to Shield IV and it re-engages the securities analysis Shield IV existed to disengage. Published as defect 21 in the release that creates it."},
+  {n:"Pangu",  g:"A",  f:"A stream of dollars per minute against a stream of minutes worked is a genuinely new symmetry. Whether it survives counsel is a different question from whether it is elegant."},
+  {n:"Sofia",  g:"A+", f:"A contributor can now answer the only question that matters to them: how many years am I safe for. The number is on the page."},
+  {n:"Thoth",  g:"A+", f:"Verified: 2,080 h at 10x mints 20,800 웃 &mdash; two full years secured plus 8% of the third. Five such years give ten secured plus 40%. The escrow returns 0.276549 웃 per dollar to every funder identically, largest to smallest."},
+  {n:"Thor",   g:"A",  f:"The wall to AUTHORITY holds absolutely: escrow 웃 carries no governance weight, is non-transferable, and has no secondary market. The wall to RECOGNITION is being lowered on purpose, and the ceiling is the only thing holding it. That is a thinner guard than we had yesterday."}
+ ],
+ next:"The rolling floor is complete and self-limiting. The escrow is specified and carries a live defect that needs counsel before it can be built &mdash; the securities characterisation of a performance-linked reward, even one paid in a capped, non-transferable unit. Beyond it: how contribution accrues past ninety-nine years, which the operator has deferred."
 }
 ];
 
@@ -6683,6 +6704,128 @@ L(41,"paper.close","The close of the white paper view.",
 'document. Every financial figure is illustrative and exists to demonstrate a formula, never to project a '+
 'result. Every legal form and every jurisdiction named requires qualified local counsel.</p></div>');
 
+
+/* ══════════ RELEASE 44 ══════════ */
+
+L(44,"unit.carry","The ceiling never wasted contribution, but never said where the excess went. It goes forward.",
+'<h2>The rolling floor &mdash; a good year protects the years after it</h2>'+
+'<p>The ceiling is 9,999 &#50883; per natural person per year, and it is hard. What it never said is what '+
+'happens to contribution <em>above</em> it. The answer is neither of the two obvious ones. It does not '+
+'vanish, and it does not pay out faster.</p>'+
+'<div class="notice key"><span class="tag">The rule</span>'+
+'<p style="margin-bottom:0">Contribution above the ceiling in one year <strong>fills the following year '+
+'to 9,999</strong>. Any remainder fills the year after that, and so on &mdash; forward, one year at a '+
+'time, until the contributor&rsquo;s ninety-ninth year. A person is not paid more. A person is '+
+'<strong>secured for longer</strong>.</p></div>'+
+'<pre><code>secured_years  =  floor( cumulative &#50883; &divide; 9,999 )\n'+
+'remainder      =  cumulative &#50883; &minus; ( secured_years &times; 9,999 )   &rarr; partial cover of the next year\n\n'+
+'hard bound     :  reservation may not extend past the contributor&rsquo;s 99th year\n'+
+'never          :  the ceiling is not raised, and no year ever settles above 9,999</code></pre>'+
+'<h3>What one full-time year buys, by band</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Band</th><th class="n">&#50883; from 2,080 h</th><th class="n">Settles this year</th><th class="n">Carried forward</th><th class="n">Years secured</th></tr>'+
+'<tr><td class="n">2&times;</td><td class="n">4,160</td><td class="n">4,160</td><td class="n">0</td><td class="n">0.42</td></tr>'+
+'<tr><td class="n">4.807&times;</td><td class="n">9,999</td><td class="n">9,999</td><td class="n">0</td><td class="n">1.00</td></tr>'+
+'<tr><td class="n">6&times;</td><td class="n">12,480</td><td class="n">9,999</td><td class="n">2,481</td><td class="n">1.25</td></tr>'+
+'<tr><td class="n">8&times;</td><td class="n">16,640</td><td class="n">9,999</td><td class="n">6,641</td><td class="n">1.66</td></tr>'+
+'<tr><td class="n">10&times;</td><td class="n">20,800</td><td class="n">9,999</td><td class="n">10,801</td><td class="n">2.08</td></tr>'+
+'</table><caption>&#50883; = hours &times; multiple, so the multiple is simply the &#50883;-per-hour rate. '+
+'A contributor at ten times, working a full year, secures two years and eight percent of a '+
+'third.</caption></div>'+
+'<h3>Sustained contribution</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>After</th><th class="n">Cumulative &#50883;</th><th>Standing</th></tr>'+
+'<tr><td>Year 1 at 10&times;</td><td class="n">20,800</td><td>2 years fully secured, plus 8% of the third</td></tr>'+
+'<tr><td>Year 3</td><td class="n">62,400</td><td>6 years secured, plus 24%</td></tr>'+
+'<tr><td>Year 5</td><td class="n">104,000</td><td>10 years secured, plus 40%</td></tr>'+
+'</table><caption>Five years of exceptional contribution buys a decade of not having to '+
+'worry.</caption></div>'+
+'<div class="notice ok"><span class="tag">&#10003; Self-limiting by construction &mdash; nobody shortcuts a lifetime</span>'+
+'<p style="margin-bottom:0">Securing every year to ninety-nine from age thirty-one means '+
+'<strong>679,932 &#50883;</strong>. Even at the highest published band that is <strong>67,993 hours, or '+
+'32.7 full-time years of witnessed work.</strong> The mechanism is generous and it cannot be gamed into a '+
+'windfall, because the only input is time and time does not compress.</p></div>'+
+'<p>Two properties follow, and both are the point. <strong>Nothing is wasted</strong> &mdash; a person who '+
+'gives an extraordinary year is not told that half of it did not count. And <strong>nothing is '+
+'accelerated</strong> &mdash; no year ever settles above the ceiling, so a good year cannot be converted '+
+'into capital. It converts into <em>time already covered</em>, which is what the five-year payout was '+
+'reaching for and this carries one level further.</p>'+
+'<p><strong>Beyond ninety-nine years:</strong> open, and deliberately deferred. Whether reservation past '+
+'a lifetime becomes inheritable, redirectable to a named person, or returns to the reserve is a decision '+
+'nobody should make casually, and it is not made here.</p>');
+
+L(44,"fund.escrow","Per-minute escrow funding, on terms identical for every funder &mdash; and the collision it creates with Shield IV, published.",
+'<h2>Funding by the minute, on identical terms</h2>'+
+'<p>A person may open an <strong>asset-locked escrow</strong> and stream it into a specific innovation '+
+'project at a rate of dollars per minute &mdash; live while the project works, or at a fixed rate they '+
+'set. The escrow is not a purchase and not a loan. It funds work, and it is recognised.</p>'+
+'<div class="notice key"><span class="tag">The rule that does all the anti-corruption work</span>'+
+'<p style="margin-bottom:0"><strong>Every funder is rewarded identically per dollar streamed.</strong> No '+
+'tranche, no preference, no volume term, no early-funder multiplier, no negotiated side letter. The '+
+'person streaming fifty cents a minute and the person streaming twenty-five dollars a minute receive '+
+'exactly the same recognition per dollar. There is no better seat, so there is nothing to '+
+'negotiate for &mdash; and nothing to corrupt.</p></div>'+
+'<h3>The flat equation</h3>'+
+'<p>Project performance is scored from four measures, equally weighted &mdash; the same four the framework '+
+'uses everywhere it judges an enterprise:</p>'+
+'<pre><code>g   = revenue growth        Rev / Rev&#8331; &minus; 1\n'+
+'gm  = gross margin          GP  / Rev\n'+
+'om  = operating margin      OpInc / Rev\n'+
+'rd  = R&amp;D intensity         R&amp;D / Rev\n\n'+
+'P   =  0.25&middot;g  +  0.25&middot;gm  +  0.25&middot;om  +  0.25&middot;rd        flat, equal weights\n\n'+
+'share(f)   =  minutes_funded(f) &times; rate(f)  &divide;  total streamed\n'+
+'reward(f)  =  share(f)  &times;  P  &times;  recognition_pool</code></pre>'+
+'<p>R&amp;D intensity carries the same weight as profit, which is deliberate: a project that stops '+
+'investing in the future scores worse even while margins look good. A framework that pays for '+
+'innovation should measure whether innovation is still being funded.</p>'+
+'<h3>Worked example</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Funder</th><th class="n">$/min</th><th class="n">Minutes</th><th class="n">Streamed</th><th class="n">Share</th><th class="n">&#50883; per $</th></tr>'+
+'<tr><td>Adaeze</td><td class="n">5.00</td><td class="n">720</td><td class="n">$3,600</td><td class="n">5.31%</td><td class="n">0.276549</td></tr>'+
+'<tr><td>Sokha</td><td class="n">0.50</td><td class="n">2,400</td><td class="n">$1,200</td><td class="n">1.77%</td><td class="n">0.276549</td></tr>'+
+'<tr><td>Mireille</td><td class="n">5.00</td><td class="n">12,000</td><td class="n">$60,000</td><td class="n">88.50%</td><td class="n">0.276549</td></tr>'+
+'<tr><td>Tomas</td><td class="n">25.00</td><td class="n">120</td><td class="n">$3,000</td><td class="n">4.42%</td><td class="n">0.276549</td></tr>'+
+'</table><caption>Revenue $52M from $40M, gross margin 0.650, operating margin 0.120, R&amp;D intensity '+
+'0.180 &rarr; <strong>P = 0.3125</strong>. Mireille streams fifty times what Sokha does and receives '+
+'fifty times as much &mdash; <strong>and not one fraction more per dollar.</strong> The last column is the '+
+'whole design, checked to six decimals.</caption></div>'+
+'<h3>What bounds it</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Guard</th><th>Effect</th></tr>'+
+'<tr><td><strong>The ceiling applies</strong></td><td>Escrow recognition counts against the same 9,999 '+
+'per year. A funder cannot exceed what a contributor can.</td></tr>'+
+'<tr><td><strong>The rolling floor applies</strong></td><td>Excess secures future years rather than '+
+'paying out faster. Funding cannot be converted into a windfall any more than work can.</td></tr>'+
+'<tr><td><strong>Non-transferable</strong></td><td>No secondary market, no resale, no assignment. Nothing '+
+'to trade means nothing to speculate on.</td></tr>'+
+'<tr><td><strong>Zero governance weight</strong></td><td>Escrow recognition carries no vote of any kind. '+
+'<strong>The wall to authority is untouched.</strong></td></tr>'+
+'<tr><td><strong>Natural persons only</strong></td><td>No corporation, fund, or investment firm may open '+
+'an escrow. This is the operator&rsquo;s stated purpose and it is a hard condition, not a '+
+'preference.</td></tr>'+
+'<tr><td><strong>Retrospective only</strong></td><td>P is computed for periods that have ended. No '+
+'forecast, no projection, and never stated to obtain a stream.</td></tr>'+
+'</table></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Defect 21 &mdash; this reopens Shield IV, and it is published in the release that creates it</span>'+
+'<p>Until now, recognition could not be purchased at any price. That is <strong>Shield IV</strong>, and '+
+'Shield IV is precisely what removes the <em>investment-of-money</em> limb from the securities analysis '+
+'&mdash; the limb that fails before profit expectation is even reached. A per-minute escrow that returns '+
+'recognition scored from revenue, margin and profitability is <strong>money reaching recognition, on '+
+'performance terms.</strong></p>'+
+'<p>The guards above are real and they are not nothing: capped, non-transferable, no market, no '+
+'governance weight, natural persons only, retrospective. But the honest statement is that '+
+'<strong>a thinner guard now holds a line that a structural impossibility held yesterday</strong>, and '+
+'that difference is exactly what a regulator is trained to notice.</p>'+
+'<p style="margin-bottom:0"><strong>Status: specified, not built.</strong> It requires qualified counsel '+
+'in every operating region before a single minute is streamed &mdash; specifically on whether a '+
+'performance-linked reward remains outside securities regulation when it is capped, non-transferable, '+
+'unmarketable and paid in a unit that confers no economic transfer right. That question cannot be '+
+'answered from inside this document, and nothing here should be read as having answered it.</p></div>'+
+'<p>What the mechanism is <em>for</em> is not in doubt, and it is the right aim: it lets ordinary people '+
+'fund the work they believe in, on terms nobody can improve by being rich or connected, without a '+
+'corporation or an investment firm anywhere in the path. <strong>The equal-per-dollar rule is the '+
+'anti-corruption mechanism</strong> &mdash; large money gets no better seat than small money, so there is '+
+'no seat worth buying, and the get-rich-quick structure has nothing to attach to.</p>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 
