@@ -53,8 +53,13 @@ h1{font-size:clamp(28px,5.6vw,42px);line-height:1.11}
    twice; earlier releases keep their eyebrow untouched. */
 .mast.wordmark h1{font-size:clamp(38px,8.4vw,66px);letter-spacing:.02em;line-height:1.02}
 .mast.wordmark .kicker{display:none}
-.mast.wordmark #mSub{font-size:clamp(17px,2.9vw,23px)!important;color:var(--ink)!important;
-  margin-top:6px!important;letter-spacing:0!important}
+.mast.wordmark #mSub{font-size:clamp(18px,3.2vw,26px)!important;color:var(--ink)!important;
+  margin-top:8px!important;letter-spacing:0!important;font-weight:600}
+/* r55: the epigraph is its own line, centred and dated, beneath the two title lines. */
+.mast .epigraph{text-align:center;margin:20px auto 0;max-width:34ch;font-weight:600;
+  font-size:clamp(15px,2.4vw,19px);line-height:1.42;color:var(--ink);text-wrap:balance}
+.mast .epiyear{display:block;margin-top:5px;font:600 11px ui-monospace,monospace;
+  letter-spacing:.22em;color:var(--ink-2)}
 h2{font-size:clamp(20px,3.4vw,26px);line-height:1.24}
 h3{font-size:18px;margin:30px 0 8px}
 h4{font-size:15px;margin:22px 0 6px;font-weight:700}
@@ -343,8 +348,8 @@ body.fulldoc .fullnote{display:block}
   <h1 id="mH1">Recursive Coordination for Human Continuity</h1>
   <p class="sub" id="mSub" style="font-style:normal;font-size:clamp(15px,2.3vw,18px);color:var(--ink-2);
   letter-spacing:.02em;margin-top:-4px;display:none"></p>
-  <p class="sub" style="font-style:normal;font-size:clamp(17px,2.7vw,21px);color:var(--ink)">
-  <strong>&ldquo;We Cannot Master What We Are Not Aware Of.&rdquo;</strong></p>
+  <p class="epigraph">&ldquo;We Can Not Master What We Are Not Aware Of&rdquo;
+  <span class="epiyear">2022</span></p>
   <p class="sub">An hour of a human life, recorded so that it cannot be discounted by where it was
   lived &mdash; and the legal structure that keeps any one government from switching that record off.
   Rebuilt release by release, in public, with every prior release still readable.</p>
@@ -446,7 +451,7 @@ const LEDGER_ORDER = [
  "human.story","human.cambodia","human.ledger","human.receipt","human.ladder",
  "scale.groundzero","scale.austin","scale.2525","scale.sim",
  "reach.intelligence","reach.worlds","reach.accelerate",
- "open.defects","open.decisions","open.proposed","close.synthesis","mot.tenses","mot.address"
+ "open.defects","open.decisions","open.proposed","open.external","close.synthesis","mot.tenses","mot.address"
 ];
 
 /* The BRIEF is not a second document. It is a second ORDER over the same
@@ -1627,6 +1632,27 @@ const VERSIONS = [
   {n:"Thor",   g:"B+", f:"Section 17 states its falsification condition and section 18 states its limit. A persuasion document that keeps its own disconfirming clauses is the only kind worth publishing."}
  ],
  next:"The nineteen bodies exist. What remains: the 33 SPIRAL tests replacing the 33 identical reads, the 48-hour coverage audit, the Pod composition in code, and the 11.1 per cent replacement threshold. Operator decisions unchanged and still blocking: Tier-2 selection for 35 jurisdictions, the Global Agreed Standard for the 13 with no statutory rate, the multiple band criteria, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, and rotating the master credential."
+},
+{
+ v:55, code:"THE EPIGRAPH", stamp:"2026.08.04 &middot; release 55",
+ thrust:"The masthead settles into three falling lines with the thesis dated to 2022, and two findings from outside readers enter the record.",
+ mot:"Two things. First the masthead, which the operator has now fixed precisely: VISION &#8226; 2525 largest, Recursive Coordination for Human Continuity beneath it, and the thesis on its own centred line, dated 2022. Three sizes, one falling hierarchy, and the sentence given the room it has always deserved. The quote in the ledger is superseded to the same wording so the masthead and the record cannot drift apart on the one sentence the whole framework rests on. Second, and more useful: four external readers reviewed release 52 independently and two of them found something the registers did not contain. That the severance in &sect;16 fails at any domestic entity compelled to produce contributor records &mdash; the deterrent is structural but not absolute, and we had written it as though it were. And that the defect register asks a reader for exactly the trust the framework exists to remove: the replay is checkable in a browser, the defects are not, and publishing file paths is the strongest available substitute rather than the same thing. Both are now open items. A framework that only publishes the criticism it agrees with has published nothing. Also recorded: one editorial recommendation the operator declined, kept visible so the fork can be examined rather than assumed.",
+ stats:{clauses:271, jur:103, shields:5, defects:15, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The declined recommendation is recorded, not dropped. A review you can only see when it agreed with you is not a review anyone should believe."},
+  {n:"Asar",   g:"A",  f:"Three falling lines and a date. The epigraph finally reads as the thesis of the work rather than as a caption underneath it."},
+  {n:"Athena", g:"A",  f:"Finding 1 is the sharpest external observation in the set. Boring to attack is a better strategy than hard to attack, and we had quietly upgraded it to immune."},
+  {n:"Christo",g:"A",  f:"The masthead and the ledger now say the same sentence in the same words. A framework that disagrees with itself about its own thesis has a bigger problem than typography."},
+  {n:"Enki",   g:"A",  f:"Four readers, four angles, two genuine finds. That ratio is what independent review actually looks like when it is not being managed."},
+  {n:"Enlil",  g:"A-", f:"Finding 2 is uncomfortable and correct. Our defect register is currently a claim about code, and a claim about code is what we tell everyone else not to accept."},
+  {n:"Krishna",g:"A",  f:"Dating the epigraph to 2022 anchors it before the framework existed, which is the right order: the sentence produced the work rather than being written to decorate it."},
+  {n:"Odin",   g:"A",  f:"An independent party who can run the tests is now a named requirement rather than an aspiration. We do not have one, and the document says so."},
+  {n:"Pangu",  g:"A-", f:"Confirmed-rather-than-discovered is reported separately from what was found. Blending the two would have inflated the review into something it was not."},
+  {n:"Sofia",  g:"A",  f:"The epigraph on its own centred line changes how the page is entered. A reader now meets the idea before the apparatus, which is the correct order for a stranger."},
+  {n:"Thoth",  g:"A",  f:"Defect count moves 13 to 15. Two findings, two entries, and the number moves rather than the framing."},
+  {n:"Thor",   g:"A",  f:"Both new findings weaken claims we were making. Publishing them costs us something real, which is the only evidence that the register is not decorative."}
+ ],
+ next:"Two new open items: the compelled-disclosure limit on the severance, and the absence of any independent party able to verify the defect register. Neither has a fix we can write alone. Still owed: the 33 SPIRAL tests, the 48-hour coverage audit, and the Pod composition in code. Operator decisions unchanged: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
 }
 ];
 
@@ -6417,6 +6443,51 @@ L(54,"paper.close","The closing rewritten so it stops echoing the ledger and say
 'declared it. Because an hour is an hour everywhere, and a system that finally counts it that way cannot '+
 'be built by some of us on behalf of the rest. It has to be built by whoever shows up, recorded so that '+
 'showing up is visible, and left open so that nobody needs permission to begin.</p>');
+
+L(55,"mot.thesis","The epigraph takes its settled wording and its date, so the masthead and the record cannot disagree about the sentence the whole framework rests on.",
+'<h2>&ldquo;We Can Not Master What We Are Not Aware Of&rdquo;</h2>'+
+'<p class="meta" style="margin-top:-10px">2022</p>'+
+'<p>The sentence is deliberately not about intelligence, and it is not a complaint about anyone. It is a '+
+'statement about <strong>records</strong>. A thing that is never written down cannot be governed, cannot '+
+'be corrected, and cannot be argued with. It can only be repeated.</p>'+
+'<p>Most institutional failure works this way. Someone saw it. It was not recorded in a form that '+
+'survived the person who saw it. The decision came round again, was taken again by people who could not '+
+'see that it had already failed, and the second failure was blamed on judgement rather than on the '+
+'absence of a record.</p>'+
+'<p style="margin-bottom:0">Everything mechanical in this document exists to make that sentence '+
+'operable rather than admirable: what is recorded, who may read it, and whether the record survives the '+
+'people it embarrasses. The third condition is the one that decides the other two.</p>');
+
+L(55,"open.external","Four external readers reviewed the document independently. Two found things we had not, and both are recorded here rather than absorbed quietly.",
+'<h2>What outside readers caught</h2>'+
+'<p class="lede">Four independent reviews of release 52. Most of it confirmed what the registers already '+
+'say. Two findings did not, and those are the only ones worth a section.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Finding 1 &mdash; the severance is only as strong as the weakest court</span>'+
+'<p style="margin-bottom:0">&sect;16 severs the record from the settlement so that a government can block '+
+'the money without reaching the record. A reader observed the obvious next step we had not written down: '+
+'<strong>if a domestic entity is compelled to hand over contributor records, the severance fails at that '+
+'entity.</strong> The architecture makes the framework boring to attack, which is a better strategy than '+
+'making it hard to attack &mdash; but boring is not immune, and the deterrent is structural rather than '+
+'absolute. This is now an open item rather than an implied strength.</p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Finding 2 &mdash; the defect register asks for the trust it exists to remove</span>'+
+'<p style="margin-bottom:0">The replay is checkable in a browser. The <em>defects</em> are not. A reader '+
+'can verify that the document reconstructs deterministically and cannot verify a single claim about '+
+'<code>cube5_gateway</code>, <code>cube8_tokens</code> or the rates file without our cooperation. '+
+'<strong>That is precisely the asymmetry this framework says it is trying to eliminate, reproduced inside '+
+'the framework.</strong> Publishing file paths and line numbers is the strongest available substitute and '+
+'it is not the same thing. Naming it is the minimum; closing it needs an independent party who can run '+
+'the tests, and we do not have one.</p></div>'+
+'<h3>Confirmed rather than discovered</h3>'+
+'<p>The remaining substantive observations were already carried in the registers and are listed here only '+
+'so the review is reported completely: the guarantee-versus-inheritance collision is live and undecided '+
+'(defect 22); the ladder assumes a density of senior practitioners that does not yet exist and is marked '+
+'spec-only for exactly that reason; and reach rather than regulation is the binding constraint on the '+
+'treasury, which the framework states and does not solve.</p>'+
+'<p style="margin-bottom:0">One editorial recommendation was <strong>declined by the operator</strong>: '+
+'that the masthead carry a descriptive subtitle above the thesis line. The title is settled as '+
+'<em>Vision &#8226; 2525</em> over <em>Recursive Coordination for Human Continuity</em>, and the '+
+'recommendation is recorded rather than silently dropped, so a reader can see the fork and disagree with '+
+'the decision that was actually taken.</p>');
 
 L(41,"paper.toc","The white paper view: thirteen numbered sections with a linked table of contents.",
 '<h2 class="sech" id="sec-0">Vision &#8226; 2525</h2>'+
