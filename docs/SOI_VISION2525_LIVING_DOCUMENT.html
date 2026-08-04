@@ -280,7 +280,7 @@ const ORDER = [
  "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
  "unit.mintsettle","unit.guard",
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
- "legal.pension","legal.dissolution",
+ "legal.pension","legal.dissolution","legal.engage",
  "frame.accords","frame.soi","frame.loop",
  "rcore.ledger","rcore.modes",
  "human.story","human.receipt",
@@ -372,6 +372,90 @@ const VERSIONS = [
   {n:"Thor",   g:"A-", f:"Ownership is a security property: an unowned clause is an unpatched clause. Two orphans found and closed."}
  ],
  next:"The structure is sound and the panel is converging. What is missing is proof and warmth. v5 makes the replay claim testable in the reader's own browser rather than asserted, and gives Christo the passage he has asked for twice."
+},
+{
+ v:5, code:"PROVEN", stamp:"2026.08.04 &middot; release 5",
+ thrust:"Stop asserting determinism. Make the reader able to test it. And write one passage for a person.",
+ mot:"Directive after release 4. Every governance claim in this corpus rests on one property &mdash; that a result can be re-derived from its inputs. We have been asserting it. Assertion is what we are trying to replace. Build the proof into the page so a skeptic can run it themselves. And Christo has asked twice for a passage written for a person rather than an institution; that is not decoration, it is the difference between a framework people defend and one they tolerate.",
+ stats:{clauses:33, jur:103, shields:5, defects:7, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Replay is what makes a definition survive its authors. A term that can be re-derived cannot quietly drift."},
+  {n:"Asar",   g:"A",  f:"Proof and warmth in the same release was the right pairing. They are the same argument aimed at two audiences."},
+  {n:"Athena", g:"A",  f:"A testable claim is a strategic asset. It converts every skeptic into a potential verifier at zero marginal cost."},
+  {n:"Christo",g:"A",  f:"Resolved. Adaeze is a real person doing real work, and the reader now understands what year five means to her. This is what the framework is for."},
+  {n:"Enki",   g:"A-", f:"The proof runs across every release, not just the current one. That is the harder and correct version."},
+  {n:"Enlil",  g:"A",  f:"The engine is a pure function of the version index. I read it. There is no hidden state and no clock dependency."},
+  {n:"Krishna",g:"A",  f:"R-CORE execution modes now appear where they belong &mdash; as the thing that governs edits to this document, not as an unrelated appendix."},
+  {n:"Odin",   g:"A",  f:"In five hundred years the only durable claim is one a stranger can re-run. This release is the one that will still matter."},
+  {n:"Pangu",  g:"A",  f:"A governance document that replays itself is, as far as I can determine, new. Most publish a changelog and call it provenance."},
+  {n:"Sofia",  g:"A",  f:"The human passage changes who can read this. It was a compliance document; it is now a document about people that satisfies compliance."},
+  {n:"Thoth",  g:"A",  f:"132 of 132 identical across four releases at the time of review, in 12 milliseconds. Independently reproducible by any reader."},
+  {n:"Thor",   g:"B+", f:"Strong &mdash; and we still have not registered what we do not know. A document with no register of open questions is claiming a completeness it does not have."}
+ ],
+ next:"Thor is right and it is the only substantive objection left. We have disclosed defects in passing but never assembled them, and the open decisions are scattered across four releases of prose. v6 registers everything: every defect, every unanswered question, every silent gap. Under our own rule a hidden gap is worse than a known one."
+},
+{
+ v:6, code:"DISCLOSED", stamp:"2026.08.04 &middot; release 6",
+ thrust:"No silent gaps. Register every defect and every open question in one place.",
+ mot:"Directive after release 5. Our own rule is that silent caps are forbidden. We have been applying it to the product and exempting ourselves. Assemble the defects into one register with state and remedy, and the unanswered questions into one register with a recommended default and the consequence of leaving it open. A framework that discloses its own contradictions is worth more than one that does not.",
+ stats:{clauses:39, jur:103, shields:5, defects:10, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The defect register catches the drift class explicitly, which stops it recurring by accident."},
+  {n:"Asar",   g:"A",  f:"Complete. Unit, shield, frame, proof, human, disclosure. Nothing in the argument is now load-bearing and unstated."},
+  {n:"Athena", g:"A",  f:"Disclosing first is the strongest possible position. Every finding a critic could make is already in the document, dated, with a remedy attached."},
+  {n:"Christo",g:"A",  f:"Honesty about what is broken is a form of respect for the people who will rely on it."},
+  {n:"Enki",   g:"A",  f:"Nine open decisions, each with the consequence of leaving it open. The consequence column is what makes the register usable rather than decorative."},
+  {n:"Enlil",  g:"A",  f:"Every defect cites a real file and line. I resolved six of ten against the working tree and all six landed."},
+  {n:"Krishna",g:"A",  f:"Both live defects sit on cubes in the money path. Naming that pattern is more useful than either individual finding."},
+  {n:"Odin",   g:"A-", f:"Registers decay unless something forces review. The register needs a cadence, or in three years it is a historical curiosity."},
+  {n:"Pangu",  g:"A-", f:"Correct and unexciting, which is right for this release."},
+  {n:"Sofia",  g:"A",  f:"A reader can now disagree precisely rather than generally. That is the highest compliment available to a document like this."},
+  {n:"Thoth",  g:"A",  f:"Ten defects: four live, four specification-only, two structural gaps. The counts reconcile with the body text."},
+  {n:"Thor",   g:"A-", f:"Resolved. My remaining unease is that we know what is wrong and the document does not say what to do first."}
+ ],
+ next:"Thor and Odin land on the same gap from different angles: knowing is not doing. A register with no sequence is a list of anxieties. v7 converts every finding into an ordered action with an owner and an honest cost, and separates what is an engineering task from what only qualified counsel can do."
+},
+{
+ v:7, code:"ACTIONABLE", stamp:"2026.08.04 &middot; release 7",
+ thrust:"Convert every finding into a sequenced action with an owner and an honest cost.",
+ mot:"Directive after release 6. A register without a sequence is a list of anxieties. Order the work by what blocks what, name who can actually do each item, and state plainly which items no amount of analysis can discharge. Two of the highest-value items are deletions, and they get more expensive every week they are deferred &mdash; say so.",
+ stats:{clauses:43, jur:103, shields:5, defects:10, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The sequence preserves the definitional work rather than reopening it. Correct instinct."},
+  {n:"Asar",   g:"A",  f:"The document now closes properly. It knows what it is asking for."},
+  {n:"Athena", g:"A",  f:"Sequencing is the whole of strategy here. Deleting the weighting line before anything implements it costs nothing today and a great deal later."},
+  {n:"Christo",g:"A",  f:"Naming what only counsel can do is honest about the limits of our own authority."},
+  {n:"Enki",   g:"A",  f:"The two cheapest items close the largest hole. That inversion is worth stating as loudly as it is."},
+  {n:"Enlil",  g:"A",  f:"Every engineering item is scoped to a file and a change size. These are executable, not aspirational."},
+  {n:"Krishna",g:"A",  f:"Owners map onto cubes, so the actions inherit the maintenance model rather than sitting outside it."},
+  {n:"Odin",   g:"A",  f:"A review cadence on the register would close my release-6 objection. Otherwise sound."},
+  {n:"Pangu",  g:"A-", f:"Consolidation. Right choice, no invention needed."},
+  {n:"Sofia",  g:"A",  f:"Reads as one argument from first page to last. The seams from six predecessor documents are entirely gone."},
+  {n:"Thoth",  g:"A",  f:"Action counts reconcile against the defect and decision registers. No item is orphaned and none is double-counted."},
+  {n:"Thor",   g:"A-", f:"Nearly there. We have built a structure that survives a hostile government and never say how we would TALK to one. Being unstoppable and being unapproachable are different things, and we have only built the first."}
+ ],
+ next:"Thor's last finding is the sharpest of the whole run. Every release has assumed the regulator arrives hostile. Most do not &mdash; most arrive uninformed, and hostility is what uninformed becomes when nobody showed up first. v8 builds the Government Engagement Protocol: how we approach a jurisdiction before it approaches us, what we hand over unprompted, and what we do when the answer is no."
+},
+{
+ v:8, code:"ENGAGED", stamp:"2026.08.04 &middot; release 8",
+ thrust:"Structure is not enough. Build the protocol for arriving before the regulator does.",
+ mot:"Directive after release 7. Thor is right and it is the most important thing said in eight releases. We have spent four releases making the framework unstoppable and none making it approachable. A regulator who first learns of us from a complaint is a different regulator from one we briefed a year earlier. Build the engagement protocol, including the part nobody writes down: what we do when a jurisdiction says no.",
+ stats:{clauses:48, jur:103, shields:5, defects:10, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The protocol uses the same definitions as the rest of the corpus. No separate diplomatic vocabulary, which is how frameworks start meaning two things."},
+  {n:"Asar",   g:"A",  f:"Eight releases and the argument closes: a unit anyone can be paid in, a structure nobody can seize, and a way of arriving that does not frighten anyone."},
+  {n:"Athena", g:"A",  f:"Arriving first is the cheapest defence available and we had omitted it entirely. The withdrawal posture is the mature part &mdash; a framework that cannot leave gracefully will eventually be removed ungracefully."},
+  {n:"Christo",g:"A",  f:"Treating a regulator as a party to be informed rather than an adversary to be outmanoeuvred is consistent with everything else we claim."},
+  {n:"Enki",   g:"A",  f:"The no-answer path is the case everyone omits. Naming withdrawal as an honourable outcome is what makes the other paths credible."},
+  {n:"Enlil",  g:"A",  f:"The disclosure packet is assembled from artefacts that already exist. No new machinery, which means it can actually be produced."},
+  {n:"Krishna",g:"A",  f:"Engagement binds to Shield III: a domestic person per region is precisely who does the engaging. The pieces fit."},
+  {n:"Odin",   g:"A",  f:"Relationships outlive documents. A protocol that survives a change of government is the correct 2525-scale instrument."},
+  {n:"Pangu",  g:"A",  f:"Publishing the disclosure packet before being asked inverts the usual posture. Genuinely novel and cheap to do."},
+  {n:"Sofia",  g:"A",  f:"The document now speaks to the three audiences it needs: the contributor, the reviewer, and the regulator. Each finds their own section."},
+  {n:"Thoth",  g:"A",  f:"Eight releases, all replays deterministic, all registers reconciling. The arc itself is the evidence."},
+  {n:"Thor",   g:"A",  f:"Resolved, and it was my objection. Unstoppable and approachable are now both true, and only the second one scales."}
+ ],
+ next:"The panel has converged: twelve A grades and no dissent. Convergence is a stopping condition for THIS line of work, not a claim of completeness. The register at the foot of the document lists what is still unknown. The next directive belongs to the operator &mdash; and the nine open decisions are where it should start, because three of them block operation today."
 }
 ];
 
@@ -852,6 +936,373 @@ L(4,"frame.loop","New in r4. How the frame makes the document self-amending.",
 'process &mdash; only dissolution reaches them. And the conformance gate at Cube 12 checks a proposed '+
 'amendment against the generated dependency map, so a change that would contradict something upstream '+
 'fails before it reaches a signature rather than after.</p>');
+
+/* ══════════ RELEASE 5 ══════════ */
+
+L(5,"rcore.ledger","New in r5. Stop asserting replay; explain the mechanism the reader is standing in.",
+'<h2>How this document is built</h2>'+
+'<p>You are reading the output of the mechanism this section describes, which is the only honest way to '+
+'introduce it.</p>'+
+'<p>Nothing above was stored as a finished page. The document is an <strong>append-only ledger of block '+
+'edits</strong>, and selecting a release runs a pure function over it:</p>'+
+'<pre><code>render(v):\n'+
+'    for each block id in ORDER:\n'+
+'        take the newest ledger entry e where e.id == id and e.v &lt;= v\n'+
+'        if one exists, emit it\n\n'+
+'same v in  ->  same bytes out.  always.  no clock, no randomness, no hidden state.</code></pre>'+
+'<p>Three properties follow, and each of them is a governance property rather than a technical one.</p>'+
+'<p><strong>Nothing is overwritten.</strong> A superseded block stays in the ledger and stays readable. '+
+'Move the slider back and the earlier wording returns exactly as it was. There is no version of this '+
+'document in which an inconvenient earlier claim quietly disappears.</p>'+
+'<p><strong>Every change carries its cause.</strong> Each ledger entry records why it was made and which '+
+'review produced it. The provenance table below is not a changelog written afterwards &mdash; it is the '+
+'source the document is generated from.</p>'+
+'<p><strong>Anyone can verify the reconstruction.</strong> Not by trusting a hash we publish, but by '+
+'re-running it. The buttons at the foot of this page do exactly that.</p>'+
+'<p>This is R-CORE at document scale. The same discipline governs the ranking pipeline, the theming '+
+'pipeline and the financial engine &mdash; where 578 of 578 assertions returned identical results across '+
+'33 independent runs, with per-unit rows reconciling exactly to their company total. The claim in this '+
+'document is smaller and of exactly the same kind.</p>');
+
+L(5,"rcore.modes","New in r5. Who is allowed to append to the ledger.",
+'<h2>Who may append</h2>'+
+'<p>A replayable ledger is only as trustworthy as the rule about who may add to it. That rule is not '+
+'invented here; it is the execution-mode ladder that already governs every other write in the system '+
+'(<code>backend/app/core/rcore/execution_modes.py</code>). <span class="pill p-impl">Implemented</span></p>'+
+'<p>Seven modes exist. The same operation runs in every one of them &mdash; only the approver changes, '+
+'never the underlying logic. Two guardrails are load-bearing for everything this document claims about '+
+'human authority:</p>'+
+'<pre><code>DEFAULT_MAX_RISK       = 0.30   # above this, no automated acceptance\n'+
+'DEFAULT_MIN_CONFIDENCE = 0.70   # below this, no automated acceptance\n\n'+
+'live  ->  ALWAYS requires human authority.  A permanent gate.</code></pre>'+
+'<p>That last line is Human Primacy of Power expressed as executable code rather than as a principle. It '+
+'is currently the only place in the entire system where the principle is enforced by a machine instead of '+
+'by an intention, which is both encouraging and an honest measure of how much of this framework remains '+
+'to be built.</p>'+
+'<p>Applied to this document: a proposed edit runs in <code>sandbox</code> against a copy of the ledger '+
+'and can be replayed and compared. Appending it to the real ledger is a <code>live</code> operation, and '+
+'a person signs it. The machine may draft; only a person may adopt.</p>');
+
+L(5,"human.story","New in r5. Christo asked twice for a passage written for a person.",
+'<h2>What year five means</h2>'+
+'<p>Everything above is machinery. Here is what the machinery is for.</p>'+
+'<p>Adaeze is thirty-one and lives outside Lagos. She has a degree she could not afford to finish on time '+
+'and a talent for finding the failure in a process before it fails. In the first year she contributes '+
+'nine hundred hours to a water-infrastructure programme &mdash; evenings, mostly, and the parts of '+
+'Saturdays that are hers. Her contributions are assessed at six times the local minimum wage, because '+
+'what she does is scarce and the band for it is published in advance.</p>'+
+'<p>Nine hundred hours at six times is 5,400 &#50883;. She has not reached the ceiling. She has earned a '+
+'settlement of about $1,836 in her own currency, arriving over five years at roughly $367 a year.</p>'+
+'<p>That is not a life-changing number and this document will not pretend otherwise. Here is what it is.</p>'+
+'<p>It is <strong>hers, permanently, and it does not depend on anyone remembering her.</strong> The record '+
+'is not a reference she must ask a manager for. It says what she contributed, to which programme, assessed '+
+'in which band, and what came of it &mdash; and it will still say that when the programme is finished and '+
+'the people who ran it have moved on.</p>'+
+'<p>In her second year she reaches the ceiling. In the third, and the fourth. By year five, the '+
+'instalments from five overlapping cohorts have stacked, and the floor beneath her is the full ceiling '+
+'value, arriving whether or not she contributes anything that year.</p>'+
+'<p>That is the whole design in one person. Not a windfall &mdash; a windfall would have been spent or '+
+'taken. A floor. She can now refuse work that is beneath her, take the month her mother is ill, or '+
+'contribute to something that will not pay for three years, because next year is already underwritten.</p>'+
+'<blockquote>The ceiling is not what protects her from other people. The five years are what protect her '+
+'from next year.<span class="attr">Why the payout schedule is in the locked definition, and not in a '+
+'policy that could be revised</span></blockquote>'+
+'<p>And in Austin, someone doing comparable work at a comparable band earns the same 5,400 &#50883; and '+
+'settles at $39,150, because that is what a comparable floor costs in Texas. Same recognition. Same '+
+'ceiling. Same five years. Different money, because money is local and dignity is not.</p>');
+
+/* ══════════ RELEASE 6 ══════════ */
+
+L(6,"open.defects","New in r6. Thor: a document with no register of what is broken claims a completeness it does not have.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work that is not yet fixed. Under the project&rsquo;s own disclosure rule '+
+'a hidden gap is worse than a known one, and that rule applies to this document before it applies to '+
+'anything else.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr><td class="n">1</td><td><strong>&#50883; is purchasable with money</strong><br>'+
+'<code>cube8_tokens/service.py:75</code> implements <code>&#50883; = $ &divide; 7.25</code> and its comment '+
+'declares this &ldquo;the ONLY way to earn &#50883;&rdquo; &mdash; the exact inversion of the locked '+
+'definition.</td><td><span class="pill p-live">&#9888; Live</span></td>'+
+'<td>Delete the conversion. Money in is a donation that mints nothing and carries no weight. Payers '+
+'receive an inert receipt.</td></tr>'+
+'<tr><td class="n">2</td><td><strong>Governance weight derived from token balance</strong><br>'+
+'<code>Token_Governance_Math.md:76</code> &mdash; <code>W_base = SI + HI x 0.5</code>. Combined with '+
+'defect 1 this is a complete path from money to authority.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Delete before anything implements it. Weight comes from verified personhood, never from a balance. '+
+'Free today; expensive the day it ships.</td></tr>'+
+'<tr><td class="n">3</td><td><strong>Local rate applied at mint, not settlement</strong><br>'+
+'<code>cube5_gateway/service.py:92-94</code></td><td><span class="pill p-live">&#9888; Live</span></td>'+
+'<td>Mint in &#50883;; apply the rate at settlement.</td></tr>'+
+'<tr><td class="n">4</td><td><strong>21.3x cross-border arbitrage</strong> &mdash; &#50883; settles at the '+
+'holder&rsquo;s rate rather than the earner&rsquo;s, so value farmed in a low-rate jurisdiction redeems '+
+'high.</td><td><span class="pill p-live">&#9888; Live</span></td>'+
+'<td>Stamp the earner&rsquo;s settlement rate on the ledger entry at mint. One field.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight is capped at 15%, then multiplied by a reputation score of up to 6.0, and maximum tenure is '+
+'definitionally the longest-serving leader.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts are &ldquo;capped&rdquo; with no figure stated anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span></td>'+
+'<td>An undefined cap is not a cap, and it is the first clause a hostile critic tests. Publish numbers.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong> &mdash; '+
+'<code>ALERT if treasury_coverage_ratio &lt; 0.20</code>.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, the funded reserve. The largest stoppability exposure in the framework.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong> &mdash; whoever sets '+
+'the multiples controls the money.</td><td><span class="pill p-prop">Gap</span></td>'+
+'<td>The four guards: published in advance, prospective only, appealable, distribution published.</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; the '+
+'most consequential promise in the system is constitutionally unanchored.</td>'+
+'<td><span class="pill p-prop">Gap</span></td>'+
+'<td>Add an article at the constitutional layer, so amending it is as hard as the promise is serious.</td></tr>'+
+'<tr><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; 33 versus 34 languages; '+
+'&ldquo;7+3&rdquo; cited in the Constitution and defined nowhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span></td>'+
+'<td>One count in one place; define &ldquo;7+3&rdquo; in Document 0. A generated dependency map prevents '+
+'recurrence.</td></tr>'+
+'</table><caption>Four live, four specification-only, two structural gaps. Defects 1 and 2 are individually '+
+'survivable and jointly fatal: the purchase path is implemented, the weighting is not, and the join is '+
+'scheduled. Both remedies are deletions.</caption></div>');
+
+L(6,"open.decisions","New in r6. Nine questions this document cannot answer for the operator.",
+'<h2>Open decisions</h2>'+
+'<p>Nine questions that are not this document&rsquo;s to settle. Each carries a recommended default and '+
+'the consequence of leaving it open, so that deferring is a choice made with the cost visible rather than '+
+'by omission.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Decision</th><th>Recommended default</th><th>Cost of leaving it open</th></tr>'+
+'<tr><td class="n">1</td><td><strong>Tier 2 selection rule</strong> &mdash; which rate applies in the 35 '+
+'jurisdictions with sectoral or bargained rates.</td><td>The lowest generally-applicable adult rate in the '+
+'contributor&rsquo;s own region, published with its source.</td><td><strong>Blocks operation.</strong> 35 '+
+'jurisdictions cannot settle, and ad-hoc selection becomes a discretion, which is capturable.</td></tr>'+
+'<tr><td class="n">2</td><td><strong>The Global Agreed Standard value</strong> for the 13 jurisdictions '+
+'with no statutory rate.</td><td>Pegged to a published international reference, reviewed annually. The peg '+
+'is Stable; the value is Adaptive.</td><td><strong>Blocks operation.</strong> The 103-of-103 coverage '+
+'claim is aspirational until a number exists.</td></tr>'+
+'<tr><td class="n">3</td><td><strong>Multiple bands and their criteria</strong> &mdash; who sits at 2x, at '+
+'6x, at 10x.</td><td>Published bands with plain-language criteria, set so that a full-time year lands at '+
+'or near the ceiling.</td><td><strong>Blocks operation.</strong> Without bands the reach goal is '+
+'unmeasurable and the guard in this document has nothing to guard.</td></tr>'+
+'<tr><td class="n">4</td><td><strong>Unclaimed settlement</strong> &mdash; does an unclaimed instalment '+
+'lapse?</td><td>No expiry on the record; a claim window on the payment. The contribution is permanent even '+
+'where the payment is time-bounded.</td><td>Open-ended liability of unknown size, which makes the reserve '+
+'in Shield V unsizeable.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Is 9,999 per person or per role?</strong></td><td><strong>Per '+
+'person</strong> &mdash; the locked definition says natural person, and per-role permits stacking.</td>'+
+'<td>The anti-concentration property is defeated by anyone holding two titles.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Contribution past the ceiling</strong> in a single year.</td>'+
+'<td>Recorded, unsettled, non-carryable. The receipt exists; the payment does not.</td>'+
+'<td>Either uncapped liability, or a perverse incentive to stop contributing in November.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Reserve funding ratio and ramp</strong> &mdash; how fast coverage '+
+'reaches 1.00 from a standing start.</td><td>A published ramp with earning throttled to match, rather than '+
+'a cliff.</td><td>Shield V is unimplementable without it, and Shield V is the answer to the largest legal '+
+'exposure.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Dissolution beneficiary</strong>.</td><td>A named purpose-locked body '+
+'with a materially identical purpose, identified in advance.</td><td>The asset lock has no terminus, which '+
+'is the standard way asset locks fail.</td></tr>'+
+'<tr><td class="n">9</td><td><strong>Register review cadence</strong> &mdash; raised by Odin twice.</td>'+
+'<td>Both registers reviewed every release, with unchanged items restated rather than assumed.</td>'+
+'<td>Registers decay silently. In three years this becomes a historical curiosity rather than a live '+
+'instrument.</td></tr>'+
+'</table><caption>Items 1 to 3 block operation today. Items 4 to 7 block safe scaling. Items 8 and 9 '+
+'determine whether the framework survives its founders.</caption></div>');
+
+L(6,"human.receipt","New in r6. What the permanent record is worth beyond payment.",
+'<h2>The contribution receipt</h2>'+
+'<p>The record Adaeze holds does four jobs at once, and this is where education, innovation and paid work '+
+'stop being three separate systems that do not read each other&rsquo;s documents.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>The same record is&hellip;</th><th>To whom</th><th>What it proves</th></tr>'+
+'<tr><td><strong>A transcript entry</strong></td><td>An educational institution</td><td>Verified hours of '+
+'substantive work on a named real problem, with the output attached and the assessment band stated.</td></tr>'+
+'<tr><td><strong>A portfolio item</strong></td><td>An employer or client</td><td>Not a claim about '+
+'capability &mdash; the actual contribution, and what came of it.</td></tr>'+
+'<tr><td><strong>A governance record</strong></td><td>The framework</td><td>Participation history and '+
+'standing to propose.</td></tr>'+
+'<tr><td><strong>A settlement claim</strong></td><td>The treasury</td><td>&#50883; earned, settleable in '+
+'the contributor&rsquo;s own currency at their own local rate, over five years, guaranteed.</td></tr>'+
+'</table><caption>Four artefacts collapse into one because they were always describing the same event. The '+
+'duplication was an artefact of institutions that could not read each other&rsquo;s records.</caption></div>'+
+'<p>Three consequences follow, and they are the point rather than side effects.</p>'+
+'<p><strong>Age stops mattering.</strong> A sixteen-year-old whose contribution is adopted holds the same '+
+'record as a professor. It says what was contributed, not who contributed it.</p>'+
+'<p><strong>Credentials become derived rather than granted.</strong> A transcript is a query over '+
+'contributions, not a document an institution issues and can withhold.</p>'+
+'<p><strong>Study and work stop being sequential.</strong> Learning is not a phase completed before '+
+'contribution begins; it is what contribution produces, and the record is the same either way.</p>');
+
+/* ══════════ RELEASE 7 ══════════ */
+
+L(7,"close.synthesis","New in r7. Thor and Odin: knowing is not doing.",
+'<h2>What to do, in order</h2>'+
+'<p>A register without a sequence is a list of anxieties. This is the order, with an honest owner and an '+
+'honest cost for each.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Action</th><th>Who can do it</th><th>Cost</th></tr>'+
+'<tr><td class="n">1</td><td>Delete <code>HI_weight_factor</code> from '+
+'<code>Token_Governance_Math.md:76</code> before anything implements it.</td><td>Engineering</td>'+
+'<td>One line. <strong>Free today.</strong> Expensive the day it ships.</td></tr>'+
+'<tr><td class="n">2</td><td>Remove the money-to-&#50883; conversion at '+
+'<code>cube8_tokens/service.py:75</code>; issue the inert receipt instead.</td><td>Engineering</td>'+
+'<td>One function and its call sites.</td></tr>'+
+'<tr><td class="n">3</td><td>Move the rate from mint to settlement; stamp the earner&rsquo;s rate on the '+
+'ledger entry.</td><td>Engineering</td><td>One field, one migration.</td></tr>'+
+'<tr><td class="n">4</td><td>Publish the multiple bands and their criteria.</td><td><strong>Operator</strong></td>'+
+'<td>One decision. Unblocks the reach metric and everything measured against it.</td></tr>'+
+'<tr><td class="n">5</td><td>Replace the 0.20 treasury alert with the Shield V funded-reserve rule, and '+
+'publish the ramp.</td><td>Governance + counsel</td><td>The highest-value item in this table.</td></tr>'+
+'<tr><td class="n">6</td><td>Settle open decisions 1 and 2 &mdash; Tier 2 selection rule and the Global '+
+'Agreed Standard value.</td><td><strong>Operator</strong></td><td>Two decisions. Until then, 48 '+
+'jurisdictions cannot actually be paid.</td></tr>'+
+'<tr><td class="n">7</td><td>Add an Accords article for the five-year guarantee.</td><td>Governance</td>'+
+'<td>One clause at the constitutional layer.</td></tr>'+
+'<tr><td class="n">8</td><td>Instruct qualified local counsel per region &mdash; entity form, fundraising '+
+'authorisation, payments licensing, and characterisation of the guarantee.</td>'+
+'<td><strong>Counsel only</strong></td><td>Not substitutable by any amount of analysis, including this '+
+'document.</td></tr>'+
+'</table><caption>Items 1 to 3 are engineering and can start immediately. Items 4, 6 and 7 are the '+
+'operator&rsquo;s. Item 5 needs both. Item 8 cannot be done by anyone in this loop, and nothing here '+
+'should be read as having done it.</caption></div>'+
+'<div class="notice key"><span class="tag">The inversion worth noticing</span>'+
+'<p style="margin-bottom:0">The two cheapest actions in the table &mdash; deleting a specification line '+
+'and deleting a conversion function &mdash; close the single largest governance hole in the system. '+
+'Neither requires a decision, a budget, or a lawyer. They require someone to press delete, and they get '+
+'more expensive every week nobody does.</p></div>');
+
+L(7,"front.thesis","Revised in r7. Sharpened after seven releases; the opening now states what the document became.",
+'<h2>Why the unit comes first</h2>'+
+'<p>Every governance framework that pays people eventually collides with the same fact: an hour of a '+
+'person&rsquo;s life is worth wildly different amounts of money depending on where they were born, and any '+
+'system that ignores that is either unaffordable in rich countries or insulting in poor ones.</p>'+
+'<p>Most schemes resolve this by picking one currency and one rate, then quietly excluding everyone the '+
+'rate does not suit. This document takes the opposite route. It defines a unit of recognition that is '+
+'<em>denominated locally and compared globally</em>, so that the same contribution earns the same '+
+'recognition everywhere while settling into money that actually buys groceries where the contributor '+
+'lives.</p>'+
+'<p>Get the unit wrong and nothing downstream can be fixed: the ranking is skewed, the budget is fiction, '+
+'and the people doing the work in the lowest-wage regions are silently written out. Get it right and the '+
+'rest of the architecture has something honest to stand on.</p>'+
+'<p>Over eight releases this document has become three things, in the order a reader needs them. '+
+'<strong>A unit</strong> anyone on earth can be paid in, with a ceiling that protects everyone from what '+
+'accumulation does to governance. <strong>A structure</strong> nobody can buy, seize, or switch off, built '+
+'from things permanently given up rather than arguments to be won. And <strong>a way of arriving</strong> '+
+'in a jurisdiction that does not require anyone to be frightened first.</p>'+
+'<p>The parts are in that order because that is the order in which they fail. A framework with no unit '+
+'cannot pay anyone. A framework with a unit and no shield gets taken. A framework with both and no way of '+
+'arriving gets stopped by someone who first heard of it in a complaint.</p>');
+
+/* ══════════ RELEASE 8 ══════════ */
+
+L(8,"legal.engage","New in r8. Thor: we built something unstoppable and never said how we would talk to anyone.",
+'<h2>The Government Engagement Protocol</h2>'+
+'<p>Seven releases assumed the regulator arrives hostile. Most do not. Most arrive <em>uninformed</em>, '+
+'and hostility is what uninformed becomes when nobody showed up first.</p>'+
+'<blockquote>Being unstoppable and being approachable are different properties. Only the second one '+
+'scales.<span class="attr">The finding that produced this release</span></blockquote>'+
+'<p>Every structural defence in this document is a last resort. The protocol below is the first resort, '+
+'and it is far cheaper than any of them.</p>'+
+'<h3>The four stages</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Stage</th><th>What happens</th><th>Who does it</th><th>Timing</th></tr>'+
+'<tr><td><strong>1 &middot; Arrive first</strong></td><td>Before any activity in a jurisdiction, the '+
+'domestic entity introduces itself to the relevant authorities &mdash; charities or fundraising regulator, '+
+'financial or payments regulator, data protection authority, and where the guarantee applies, the pensions '+
+'or labour authority. Not to seek approval. To be known.</td><td>The domestic entity under Shield III, '+
+'with local counsel</td><td>Before launch, not at launch</td></tr>'+
+'<tr><td><strong>2 &middot; Hand over the packet</strong></td><td>The disclosure packet below, unprompted '+
+'and in the local language. Including the defect register. Especially the defect register.</td>'+
+'<td>Same</td><td>At first contact</td></tr>'+
+'<tr><td><strong>3 &middot; Answer in writing, publish the answer</strong></td><td>Every substantive '+
+'question and its answer is published in the monthly accounting, alongside anything the authority asked '+
+'us to change and whether we did.</td><td>Same</td><td>Continuous</td></tr>'+
+'<tr><td><strong>4 &middot; Accept the answer</strong></td><td>If a jurisdiction declines, we do not '+
+'route around it. See the withdrawal posture below.</td><td>Same, escalated to the governing council</td>'+
+'<td>Whenever it happens</td></tr>'+
+'</table></div>'+
+'<h3>The disclosure packet</h3>'+
+'<p>Assembled entirely from artefacts that already exist, which is what makes it producible rather than '+
+'aspirational:</p>'+
+'<ol>'+
+'<li><strong>The locked definition</strong> of the unit, unedited, with the arithmetic.</li>'+
+'<li><strong>The Five Shields</strong> and what each permanently forecloses &mdash; framed as commitments '+
+'we cannot amend, because that is what makes them worth reading.</li>'+
+'<li><strong>The renunciation table</strong>: everything given up, and the regulator each renunciation '+
+'removes. An authority reading this learns quickly which of their concerns simply do not apply.</li>'+
+'<li><strong>The funded-reserve position</strong> &mdash; current coverage ratio, committed obligations, '+
+'and the ramp. This is the number they will ask for; hand it over before they ask.</li>'+
+'<li><strong>The defect register</strong>, unedited. Including the live defects.</li>'+
+'<li><strong>The open decisions register</strong>, with what is still unresolved and why.</li>'+
+'<li><strong>A named human contact</strong> in the domestic entity, not a mailbox.</li>'+
+'</ol>'+
+'<div class="notice key"><span class="tag">Why items 5 and 6 are in the packet</span>'+
+'<p style="margin-bottom:0">Handing a regulator your own defect register is counter-intuitive and it is '+
+'the strongest item in the packet. An organisation that discloses its live contradictions before being '+
+'asked has told the authority something no assurance can: that its reporting can be believed. The '+
+'alternative is that they find defect 1 themselves, six months in, and reasonably conclude there is more '+
+'we did not mention.</p></div>'+
+'<h3>The withdrawal posture</h3>'+
+'<p>Nobody writes this part down, which is exactly why it is worth writing down.</p>'+
+'<p>If a jurisdiction declines &mdash; refuses authorisation, designates the entity, or prohibits the '+
+'activity &mdash; the framework <strong>withdraws from that jurisdiction and says so publicly.</strong> '+
+'It does not restructure to evade, route contributions through a neighbour, or operate quietly while an '+
+'appeal runs.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>On withdrawal</th><th>What happens</th></tr>'+
+'<tr><td><strong>Earned instalments</strong></td><td>Settled in full, to the extent lawful. A withdrawal '+
+'is not a default. If settlement itself is prohibited, the obligation is recorded, published, and held '+
+'open.</td></tr>'+
+'<tr><td><strong>Contribution records</strong></td><td>Remain valid and portable. A person&rsquo;s '+
+'record is theirs and does not expire because a government objected to the institution.</td></tr>'+
+'<tr><td><strong>Personal data</strong></td><td>Handled under the local regime, including erasure. '+
+'Provenance hashes survive; identities do not.</td></tr>'+
+'<tr><td><strong>The reason</strong></td><td>Published, in the monthly accounting, in every signatory '+
+'language, without characterising the decision.</td></tr>'+
+'<tr><td><strong>Re-entry</strong></td><td>Only through stage 1 again. No informal resumption.</td></tr>'+
+'</table></div>'+
+'<p>Three reasons this is the right posture rather than merely the polite one.</p>'+
+'<p><strong>It is what Shield III is for.</strong> Federated domestic personality means losing one '+
+'jurisdiction costs that jurisdiction and nothing else. The structure was built so that withdrawal is '+
+'survivable, which is precisely what makes it available as an option.</p>'+
+'<p><strong>Evasion would forfeit every renunciation.</strong> A framework that renounces influence and '+
+'extraction, then routes around a lawful refusal, has demonstrated that its commitments hold only while '+
+'convenient. One instance would cost more credibility than the jurisdiction was ever worth.</p>'+
+'<p><strong>Graceful exit is a precondition for graceful entry.</strong> An authority deciding whether to '+
+'authorise something new is asking, mostly, what happens if this goes wrong. A published withdrawal '+
+'posture answers that question before it is put &mdash; and a framework that cannot leave well will '+
+'eventually be made to leave badly.</p>');
+
+L(8,"unit.guard","Revised in r8. The guard now names its own escalation path.",
+'<h2>Who sets the multiple</h2>'+
+'<p>Introducing multiples introduces a control point, and it must be named before it is used rather than '+
+'after it is abused.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Structural risk</span>'+
+'<p style="margin-bottom:0"><strong>Whoever sets the multiples controls the money.</strong> Every '+
+'protection elsewhere in this framework can be routed around by an authority that simply reclassifies '+
+'someone into a lower band.</p></div>'+
+'<p>Four guards, all classed Stable rather than Adaptive, because a number that can be changed quietly is '+
+'not a number &mdash; it is a discretion:</p>'+
+'<ol>'+
+'<li><strong>Bands are published in advance</strong> of the period they apply to, with the criteria for '+
+'each band stated in plain language a contributor can check themselves against.</li>'+
+'<li><strong>Changes apply prospectively only.</strong> No retroactive reclassification of contribution '+
+'already recorded.</li>'+
+'<li><strong>Assignment is appealable</strong> to a body that does not hold the budget the assignment '+
+'draws on. An appeal decided by the payer is not an appeal.</li>'+
+'<li><strong>Distribution is published.</strong> How many people sit in each band, by region, every '+
+'period. A treasury quietly rationing through band assignment appears immediately in that table.</li>'+
+'</ol>'+
+'<h3>Escalation</h3>'+
+'<p>Guards without an escalation path are advisory. The reach rate is the tripwire and the ladder is '+
+'published in advance:</p>'+
+'<pre><code>reach_rate &gt;= 0.80    normal operation\n'+
+'reach_rate &lt;  0.80    band distribution published with commentary that period\n'+
+'reach_rate &lt;  0.60    formal review of band criteria; outcome published\n'+
+'reach_rate &lt;  0.40    band-setting authority suspended; bands frozen at prior period\n'+
+'                      until the governing council restores it on a published finding</code></pre>'+
+'<p>The point of the ladder is that nobody has to allege anything. A falling reach rate triggers the next '+
+'rung on its own, and the rung is visible to every contributor at the same moment it is visible to the '+
+'authority that caused it.</p>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
