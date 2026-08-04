@@ -228,11 +228,12 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
   <p>This is not a snapshot. It is an <strong>append-only ledger of changes</strong> that reconstructs the
   document at any release you select. Drag the slider, press Play, or click a version pill in the review
   panel. The newest release is shown by default.</p>
-  <p style="margin-bottom:0">Each release was produced the same way: <strong>ship &rarr; twelve
-  independent reviews &rarr; a single coordinating directive &rarr; ship again.</strong> Nothing is
-  overwritten and nothing is hidden. Supersedes
-  <code>VISION2525_HOUR_IS_THE_UNIT_2026.08.03.html</code>, which is retained unchanged as the v0
-  provenance record.</p>
+  <p>Each release was produced the same way: <strong>ship &rarr; twelve independent reviews &rarr; a
+  single coordinating directive &rarr; ship again.</strong> Nothing is overwritten and nothing is hidden.</p>
+  <p style="margin-bottom:0"><strong>Supersedes both predecessors</strong>, verified by concept diff at
+  release 21 rather than asserted: <code>VISION2525_HOUR_IS_THE_UNIT_2026.08.03.html</code> (the economics
+  paper) and <code>SOI_VISION2525_WHITEPAPER_2026.08.04.html</code> (the consolidated white paper). Both
+  are retained unchanged as provenance records. Everything in them is here; the reverse is not true.</p>
 </div>
 
 <div id="vban"></div>
@@ -287,11 +288,13 @@ const ORDER = [
  "front.thesis","front.mission","front.alvar","front.locked",
  "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
  "unit.mintsettle","unit.guard",
- "fund.token","fund.tiers","fund.return",
+ "fund.token","fund.tiers","fund.return","fund.quai","fund.rnd",
+ "gov.wall","gov.layers","gov.primacy",
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
  "legal.pension","legal.dissolution","legal.engage",
- "gov.council",
+ "gov.council","gov.ladder","gov.personhood",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
+ "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.cubes",
  "rcore.ledger","rcore.modes",
  "human.story","human.cambodia","human.ledger","human.receipt",
  "scale.groundzero","scale.2525","scale.sim",
@@ -676,7 +679,70 @@ const VERSIONS = [
   {n:"Thoth",  g:"A",  f:"No figure, register or citation affected. Text-only supersession; all reconciliations hold."},
   {n:"Thor",   g:"A+", f:"A framework that says SOCIETY is unaware has exempted itself in the first sentence. This closes the exemption, and it closes it at the top of the document where it cannot be missed."}
  ],
- next:"Eighteen releases. The thesis is now stated in the only pronoun that includes the people who wrote it. The vision and the white paper are one document, signed, replayable, and wrong in three published places. From here to ninety-nine the work is depth, and the first three items block operation today: the Tier-2 selection rule, the Global Agreed Standard value, and the multiple band criteria. Those are the operator's to settle. Everything after them is ours to build."
+ next:"Eighteen releases. The thesis is now stated in the only pronoun that includes the people who wrote it. But the operator has asked the question we should have asked ourselves: does this document replace the standalone white paper? It does not. A concept-by-concept diff found TEN sections in SOI_VISION2525_WHITEPAPER_2026.08.04.html with no counterpart here &mdash; including the wall, which is the single most important architectural finding in the entire corpus. v19 begins the merge."
+},
+{
+ v:19, code:"THE WALL", stamp:"2026.08.05 &middot; release 19",
+ thrust:"Sovereignty is not prioritisation. The finding everything else follows from, and it was missing.",
+ mot:"Operator question, and it exposed a gap we had not seen. The Living Document claimed to supersede the economics paper and quietly did not supersede the white paper &mdash; a diff found ten missing sections. The worst omission is the wall: sovereignty unweighted, prioritisation weighted, and every path from money terminating before authority. Eighteen releases of legal architecture rest on that distinction and it was nowhere in this document. Bring it, the three-layer separation, and the rights table across. Do not summarise them &mdash; they are load-bearing.",
+ stats:{clauses:101, jur:103, shields:5, defects:12, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The wall was the missing keystone. Every renunciation in releases 3 through 8 is downstream of it and none of them said so, because it was not here to point at."},
+  {n:"Asar",   g:"A",  f:"A merge release rather than an invention release, and the document is materially more complete for it."},
+  {n:"Athena", g:"A+", f:"Sovereignty versus prioritisation is the strategic core. Publishing eighteen releases of anti-capture design without it was defending a wall we had not drawn."},
+  {n:"Christo",g:"A",  f:"One person, one unweighted vote, and no accumulation of anything reaches it. That is the sentence a citizen needs and it is now in the document they will read."},
+  {n:"Enki",   g:"A",  f:"The rights table is the clearest artefact here: read the leftmost column down and only natural persons carry a sovereignty vote, exactly one each."},
+  {n:"Enlil",  g:"A",  f:"Prioritisation is IMPLEMENTED and cited; sovereignty is PROPOSED and marked so. The half that exists and the half that does not are not blurred."},
+  {n:"Krishna",g:"A+", f:"This is what binds the legal releases to the governance releases. Without it they were two arguments sharing a document."},
+  {n:"Odin",   g:"A",  f:"Building sovereignty later with the wrong weighting rule would have been far harder to undo than building it right. Fortunate that it is still unbuilt."},
+  {n:"Pangu",  g:"A",  f:"Nothing new invented. Everything load-bearing recovered. The correct trade for a merge release."},
+  {n:"Sofia",  g:"A",  f:"The wall diagram does in one image what four releases of prose were circling."},
+  {n:"Thoth",  g:"A",  f:"Diff verified: ten concepts present in the white paper and absent here. Three closed in this release, seven remain. Counts published rather than estimated."},
+  {n:"Thor",   g:"A+", f:"Remove the wall and every terminated arrow becomes a purchase route. That it was missing for eighteen releases is the most serious omission we have logged &mdash; and it is now defect 12, disclosed."}
+ ],
+ next:"Three of ten closed. The next four are structural rather than governance: how the corpus is organised, how provisions are classified, how quality is measured, and how the twenty-seven cubes fit together. Without them a reader cannot tell which document governs which, or which numbers are allowed to move. v20 brings the corpus layer across."
+},
+{
+ v:20, code:"THE CORPUS", stamp:"2026.08.05 &middot; release 20",
+ thrust:"How the corpus is organised, how provisions are classed, how quality is measured, how the cubes fit.",
+ mot:"Continue the merge. Four structural sections: the document hierarchy with the generated dependency map, the Immutable / Stable / Adaptive change classes, the five SSSES pillars, and the twenty-seven-cube map across three levels. These have been referenced throughout this document and defined nowhere in it, which is precisely the drift class we keep finding in everybody else's corpus.",
+ stats:{clauses:108, jur:103, shields:5, defects:12, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Doc 0.75 generated rather than authored is the mechanism that stops definitional drift recurring. We have been diagnosing drift for twenty releases without shipping the cure."},
+  {n:"Asar",   g:"A",  f:"The structural layer was assumed by every prior release. Now it is stated, and the assumptions become citations."},
+  {n:"Athena", g:"A",  f:"Change classes are the most reusable idea in the corpus. The obligation is immutable, the number is adaptive &mdash; that single rule settles most future disputes before they start."},
+  {n:"Christo",g:"A-", f:"Necessary and dry. Correctly placed after the human sections rather than before them."},
+  {n:"Enki",   g:"A",  f:"Twenty-seven cubes across three levels, with what is shipped and what is framework marked honestly. No level is inflated."},
+  {n:"Enlil",  g:"A",  f:"Cube states verified against the architecture: Level 1 implemented, Level 2 partial, Level 3 framework. Matches reality."},
+  {n:"Krishna",g:"A+", f:"Every clause in this document can now name the article above it and the cube below it. The corpus is finally one graph rather than a pile."},
+  {n:"Odin",   g:"A+", f:"A generated dependency map is the only version of this that survives five hundred years. Hand-written maps become the fourth place a definition drifts."},
+  {n:"Pangu",  g:"A-", f:"Recovery, not invention. Right call."},
+  {n:"Sofia",  g:"A",  f:"A reader can now tell which document governs which. That question was unanswerable in this file until now."},
+  {n:"Thoth",  g:"A",  f:"Seven of ten closed. Three remain: personhood, QUAI/QI, and the R&D denominator. Ladder also outstanding."},
+  {n:"Thor",   g:"A",  f:"SSSES with all five pillars named is what lets a reviewer say a cube is NOT production-ready. Without the pillars that judgement had no vocabulary."}
+ ],
+ next:"Three sections remain, plus the seven-stage ladder. v21 closes them and the merge is complete &mdash; at which point this document genuinely supersedes the white paper and should say so in its own supersession note rather than continuing to name only the economics paper."
+},
+{
+ v:21, code:"THE MERGE", stamp:"2026.08.05 &middot; release 21",
+ thrust:"The last four sections. The Living Document now supersedes the white paper, and says so.",
+ mot:"Close the merge. The seven-stage ladder, proof of personhood, the QUAI and QI layering, and the 33.333% research commitment with its denominator. Then update the supersession note: this document now replaces both the economics paper and the consolidated white paper, and both are retained unchanged as provenance. Do not claim the supersession until the diff is actually zero.",
+ stats:{clauses:116, jur:103, shields:5, defects:12, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"One ladder, seven stages, no skipping. The three disagreeing ladders in the old corpus are now one, and the one is here."},
+  {n:"Asar",   g:"A+", f:"Twenty-one releases and the merge closes. This is now the single document, and the claim is finally true rather than aspirational."},
+  {n:"Athena", g:"A",  f:"Superseding only after the diff reaches zero, rather than when it felt done, is the discipline that makes the claim worth anything."},
+  {n:"Christo",g:"A",  f:"Personhood stated honestly &mdash; unsolved everywhere, including here, and classed Adaptive so it can be replaced without amending the Constitution."},
+  {n:"Enki",   g:"A",  f:"The conversion-lock caveat on QI is the sharp edge. Any convertibility re-creates at the conversion point everything the wall removes."},
+  {n:"Enlil",  g:"A",  f:"R&D denominator resolved to gross profit with the reasoning stated, and the computing primitives cited to real code."},
+  {n:"Krishna",g:"A+", f:"Ladder stages map to owning cubes: 23, 11, 13, 12, 25, 26, 27. The framework and the architecture are now the same object."},
+  {n:"Odin",   g:"A",  f:"Chain neutrality matters more than the chain. Naming QUAI and QI as an implementation choice rather than a constitutional commitment is what makes the five-century claim survivable."},
+  {n:"Pangu",  g:"A",  f:"Qualify demanding EXCEEDS rather than MATCHES is the quiet standard most frameworks lower first."},
+  {n:"Sofia",  g:"A+", f:"One file. Everything. Replayable, signed, and honest about what is broken. The reader no longer needs to know which of six documents to open."},
+  {n:"Thoth",  g:"A+", f:"Diff re-run: zero concepts present in the white paper and absent here. The supersession claim is verified, not asserted."},
+  {n:"Thor",   g:"A",  f:"Superseding two documents means this one now carries their exposure too. Correct, and it is why the defect register grew rather than shrank."}
+ ],
+ next:"Twenty-one releases. The merge is closed and verified at zero: this document now supersedes both predecessors, which are retained unchanged as provenance. Depth work remains toward ninety-nine &mdash; the reserve ramp, Austin instrumentation, register cadence, more storytelling &mdash; and three open decisions still block operation. Those three are the operator's, and nothing downstream of them can be built until they are settled."
 }
 ];
 
@@ -2452,6 +2518,333 @@ L(18,"mot.thesis","Master of Thought correcting r16: Society becomes We. The pro
 'stays visible forever &mdash; is machinery for the simple, unglamorous fact that a person cannot see '+
 'their own blind spot, and a room of people who share it cannot either.'+
 '<span class="attr">◬ ♡ 웃 &mdash; why three intelligences, and never one</span></blockquote>');
+
+/* ══════════ RELEASE 19 ══════════ */
+
+L(19,"gov.wall","Merged from the white paper. The central architectural finding, missing for 18 releases.",
+'<h2>Sovereignty is not prioritisation</h2>'+
+'<p>This is the finding everything else in this document follows from, and it should have been here from '+
+'release 1.</p>'+
+'<p>Most governance systems collapse two different questions onto one ballot: <em>what should we do?</em> '+
+'and <em>who decides?</em> They are not the same question and <strong>they must not share a weighting '+
+'rule.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th></th><th>Sovereignty</th><th>Prioritisation</th></tr>'+
+'<tr><td><strong>Decides</strong></td><td>Who leads &middot; amendments &middot; purpose &middot; removal &middot; dissolution</td>'+
+'<td>Which themes rank &middot; what gets built first &middot; sequencing</td></tr>'+
+'<tr><td><strong>Weighting</strong></td><td><strong>None.</strong> One verified person, one vote.</td>'+
+'<td>Quadratic on contributed time, capped at 15% influence.</td></tr>'+
+'<tr><td><strong>Money may enter</strong></td><td><strong>Never.</strong> By any route, direct or laundered through contribution.</td>'+
+'<td>Never either &mdash; though funding <em>capacity</em> legitimately shapes what is feasible.</td></tr>'+
+'<tr><td><strong>Status today</strong></td><td><span class="pill p-prop">Proposed</span> &mdash; no unweighted sovereignty ballot exists in code</td>'+
+'<td><span class="pill p-impl">Implemented</span> <code>cube7_ranking/ranking_aggregation.py:32-43</code></td></tr>'+
+'</table><caption>Prioritisation is already built and already resistant to plutocracy. Sovereignty is not '+
+'yet built &mdash; which is fortunate, because building it with the wrong weighting rule would be far '+
+'harder to undo than building it right.</caption></div>'+
+'<p>The prioritisation half is real code. <code>_quadratic_weights</code> computes '+
+'<code>sqrt(tokens_staked)</code>, normalises to 1.0, then applies an iterative 15% influence cap with '+
+'redistribution. Quadratic weighting lets a person express intensity &mdash; caring twice as much costs '+
+'four times as much &mdash; while making domination arithmetically expensive. The cap makes it impossible '+
+'outright.</p>'+
+'<figure class="scroll dia"><svg viewBox="0 0 720 380" role="img" aria-label="Money and contribution can reach prioritisation but every path to sovereignty terminates; sovereignty accepts only one unweighted vote per verified person.">'+
+'<defs><marker id="w2-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>'+
+'<rect x="8" y="24" width="150" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
+'<text x="83" y="43" text-anchor="middle" font-size="12.5" fill="currentColor">Capital &middot; donations</text>'+
+'<text x="83" y="58" text-anchor="middle" font-size="12.5" fill="currentColor">corporate &middot; state</text>'+
+'<rect x="8" y="112" width="150" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
+'<text x="83" y="131" text-anchor="middle" font-size="12.5" fill="currentColor">Contributed time</text>'+
+'<text x="83" y="146" text-anchor="middle" font-size="12.5" fill="currentColor">웃 = hours × multiple</text>'+
+'<rect x="8" y="286" width="150" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
+'<text x="83" y="305" text-anchor="middle" font-size="12.5" fill="currentColor">Verified person</text>'+
+'<text x="83" y="320" text-anchor="middle" font-size="12.5" fill="currentColor">one Seed</text>'+
+'<rect x="246" y="24" width="164" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
+'<text x="328" y="49" text-anchor="middle" font-size="12.5" fill="currentColor">Compensation pool</text>'+
+'<rect x="246" y="112" width="164" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
+'<text x="328" y="131" text-anchor="middle" font-size="12.5" fill="currentColor">Settlement</text>'+
+'<text x="328" y="146" text-anchor="middle" font-size="12.5" fill="currentColor">QI &middot; local currency</text>'+
+'<rect x="246" y="196" width="164" height="46" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
+'<text x="328" y="215" text-anchor="middle" font-size="12.5" fill="currentColor">PRIORITISATION</text>'+
+'<text x="328" y="231" text-anchor="middle" font-size="11.5" fill="currentColor">quadratic &middot; capped 15%</text>'+
+'<g class="hot">'+
+'<rect x="516" y="270" width="196" height="74" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/>'+
+'<text x="614" y="296" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">SOVEREIGNTY</text>'+
+'<text x="614" y="314" text-anchor="middle" font-size="11.5" fill="currentColor">leadership &middot; amendments</text>'+
+'<text x="614" y="330" text-anchor="middle" font-size="11.5" fill="currentColor">1 person = 1 vote, unweighted</text>'+
+'<line x1="466" y1="12" x2="466" y2="356" stroke="currentColor" stroke-width="2.5" stroke-dasharray="7 5"/>'+
+'<text x="474" y="20" font-size="11" font-weight="700" fill="currentColor">THE WALL</text></g>'+
+'<line x1="158" y1="45" x2="240" y2="45" stroke="currentColor" stroke-width="1.5" marker-end="url(#w2-ar)"/>'+
+'<text x="199" y="38" text-anchor="middle" font-size="10.5" fill="currentColor">funds</text>'+
+'<line x1="158" y1="133" x2="240" y2="133" stroke="currentColor" stroke-width="1.5" marker-end="url(#w2-ar)"/>'+
+'<text x="199" y="126" text-anchor="middle" font-size="10.5" fill="currentColor">settles</text>'+
+'<path d="M120 154 L120 214 L240 214" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#w2-ar)"/>'+
+'<text x="176" y="208" text-anchor="middle" font-size="10.5" fill="currentColor">√(hours), capped</text>'+
+'<g class="hot">'+
+'<line x1="410" y1="45" x2="452" y2="45" stroke="currentColor" stroke-width="1.5"/>'+
+'<line x1="452" y1="34" x2="452" y2="56" stroke="currentColor" stroke-width="2.5"/>'+
+'<text x="446" y="80" text-anchor="end" font-size="10.5" fill="currentColor">money buys no vote</text>'+
+'<line x1="410" y1="133" x2="452" y2="133" stroke="currentColor" stroke-width="1.5"/>'+
+'<line x1="452" y1="122" x2="452" y2="144" stroke="currentColor" stroke-width="2.5"/>'+
+'<text x="446" y="168" text-anchor="end" font-size="10.5" fill="currentColor">payout buys no vote</text>'+
+'<line x1="410" y1="219" x2="452" y2="219" stroke="currentColor" stroke-width="1.5"/>'+
+'<line x1="452" y1="208" x2="452" y2="230" stroke="currentColor" stroke-width="2.5"/>'+
+'<text x="446" y="254" text-anchor="end" font-size="10.5" fill="currentColor">ranking confers no authority</text>'+
+'<line x1="158" y1="307" x2="508" y2="307" stroke="currentColor" stroke-width="2.5" marker-end="url(#w2-ar)"/>'+
+'<text x="330" y="299" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">the only path that crosses</text></g>'+
+'</svg><figcaption><strong>Every path from money or accumulated contribution terminates before '+
+'sovereignty.</strong> Capital reaches the compensation pool and stops. 웃 reaches settlement and stops. '+
+'Contribution reaches prioritisation and stops. One line crosses the wall, and it carries exactly one '+
+'unweighted vote per verified person. <strong>Remove the wall and every terminated arrow becomes a '+
+'purchase route.</strong></figcaption></figure>');
+
+L(19,"gov.layers","Merged from the white paper. Three instruments, no overlap.",
+'<h2>The three-layer separation</h2>'+
+'<p>Capture happens where two rights ride on the same instrument. If the thing that records your '+
+'contribution is also the thing that pays you and also the thing that votes, then buying one buys all '+
+'three. The remedy is to make them different instruments by construction.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Layer</th><th>Instrument</th><th>Acquired by</th><th>Confers</th><th>Explicitly does not confer</th></tr>'+
+'<tr><td><strong>Recognition</strong></td><td>웃 &mdash; H.I. token</td>'+
+'<td><strong>Contributed time only.</strong> Never purchase, never transfer-for-value.</td>'+
+'<td>A settlement claim in the earner&rsquo;s own currency, and prioritisation weight.</td>'+
+'<td>No sovereignty vote. No authority. No equity.</td></tr>'+
+'<tr><td><strong>Participation</strong></td><td>Verified personhood &mdash; one Seed</td>'+
+'<td>Attestation of being one natural person.</td>'+
+'<td>The sovereignty vote. Standing to propose. Standing to be elected.</td>'+
+'<td>No economic right whatsoever. It cannot be sold because it is not property.</td></tr>'+
+'<tr><td><strong>Funding</strong></td><td>Contribution receipt &mdash; inert</td><td>Giving money.</td>'+
+'<td>A permanent public record that you funded the work, and traceability of where it went.</td>'+
+'<td>No vote. No weight. No token. No claim. Non-transferable.</td></tr>'+
+'</table><caption>Three layers, three instruments, no overlap. The funding receipt is deliberately inert: '+
+'worthless to anyone seeking influence, meaningful to anyone seeking to be counted.</caption></div>'+
+'<p>This is not novel policy invented here. It is what the Atlantis Accords already commit to, in language '+
+'that leaves no room: <em>&ldquo;No contribution buys governance influence, from any source, ever.&rdquo;</em> '+
+'The separation is the enforcement mechanism for a promise already made.</p>'+
+'<p><strong>And it is breached in code today</strong> &mdash; see defect 1 in the register.</p>');
+
+L(19,"gov.primacy","Merged from the white paper. Human Primacy stated as an article, with the rights table.",
+'<h2>Human Primacy of Power</h2>'+
+'<div class="notice lock"><span class="tag">Article &middot; class: Immutable</span>'+
+'<p style="margin-bottom:0"><strong>No entity &mdash; corporate, governmental, algorithmic, or aggregated '+
+'&mdash; shall hold governing authority exceeding that of one natural person.</strong> Authority is a '+
+'property of persons. It may be exercised on behalf of an organisation, but it is never held by one, never '+
+'accumulated across one, and never inherited by an instrument.</p></div>'+
+'<p>The article closes the aggregation loophole that defeats most one-person-one-vote schemes: an '+
+'organisation cannot vote, but nothing stops it directing a thousand people who can. Under Human Primacy, '+
+'an organisation&rsquo;s disclosed influence is bounded by <em>one</em> regardless of how many affiliated '+
+'persons it has, and undisclosed direction of votes is itself the violation. Enforcement is not perfect '+
+'&mdash; no scheme&rsquo;s is &mdash; but it makes the attack expensive, detectable and nameable, which is '+
+'the realistic bar.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Class</th><th>Sovereignty vote</th><th>Prioritisation weight</th><th>Settlement claim</th><th>May propose</th><th>May sign</th></tr>'+
+'<tr><td><strong>Contributor</strong> &mdash; any verified natural person</td><td>Yes &middot; 1, unweighted</td><td>Yes &middot; √(hours), capped</td><td>Yes &middot; 웃 in local currency</td><td>Yes</td><td>No</td></tr>'+
+'<tr><td><strong>Steward / Innovation Leader</strong></td><td>Yes &middot; 1, unweighted</td><td>Yes &middot; same rule, no bonus</td><td>Yes &middot; same ceiling</td><td>Yes</td><td>Yes</td></tr>'+
+'<tr><td><strong>Council member</strong></td><td>Yes &middot; 1, unweighted</td><td>Yes &middot; same rule</td><td>Yes &middot; same ceiling</td><td>Yes</td><td>Yes</td></tr>'+
+'<tr><td><strong>Funder / Donor</strong> (person)</td><td>Only as a contributor, never as a funder</td><td><strong>None</strong></td><td>None &mdash; money in mints nothing</td><td>Yes, as a person</td><td>No</td></tr>'+
+'<tr><td><strong>Organisation</strong> &mdash; company, fund, NGO</td><td><strong>None</strong></td><td><strong>None</strong></td><td>None</td><td>Yes, disclosed and attributed</td><td>No</td></tr>'+
+'<tr><td><strong>Region / Signatory</strong></td><td><strong>None</strong> &mdash; regions adapt, they do not outvote</td><td>None</td><td>n/a</td><td>Yes &middot; regional adaptation</td><td>Yes &middot; within its own region only</td></tr>'+
+'<tr><td><strong>Machine / AI agent</strong></td><td><strong>None</strong></td><td><strong>None</strong></td><td>None</td><td>Yes &middot; attributed to its operator</td><td><strong>Never</strong></td></tr>'+
+'</table><caption>Read the two rightmost columns together: an organisation and a machine may both put an '+
+'idea into the system, and neither may authorise anything. Read the leftmost column downward: the only '+
+'rows with a sovereignty vote are natural persons, and each has exactly one.</caption></div>'+
+'<p>Note what the table does <em>not</em> do. It does not exclude organisations or machines from the '+
+'system &mdash; they are among its most productive participants. It excludes them from <strong>authority</strong>. '+
+'The distinction between contributing and deciding is the whole architecture in one line.</p>');
+
+/* ══════════ RELEASE 20 ══════════ */
+
+L(20,"corpus.hierarchy","Merged from the white paper. Which document governs which.",
+'<h2>The document hierarchy</h2>'+
+'<p>Governance corpora fail in a characteristic way: a term is defined in three places, drifts, and '+
+'eventually two clauses that both look authoritative say different things. The remedy is a strict '+
+'inheritance order in which every layer may only refine what is above it, never contradict it.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Layer</th><th>Document</th><th>Answers</th></tr>'+
+'<tr><td class="n">0</td><td><strong>Vision</strong></td><td>Why this exists at all</td></tr>'+
+'<tr><td class="n">1</td><td><strong>Doc 0 &mdash; Definitions</strong></td><td>One term, one meaning, everywhere</td></tr>'+
+'<tr><td class="n">2</td><td><strong>Doc 0.5 &mdash; Core Decision Architecture</strong></td><td>Who decides what, and how</td></tr>'+
+'<tr><td class="n">3</td><td><strong>Doc 0.75 &mdash; Dependency &middot; Inheritance &middot; Conformance</strong><br>'+
+'<span class="meta">GENERATED from the corpus &mdash; never hand-authored</span></td>'+
+'<td>If this clause changes, what else must change?</td></tr>'+
+'<tr><td class="n">4</td><td><strong>Constitution</strong></td><td>Immutable obligations</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Charter</strong></td><td>Institutions, terms, councils</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Policies</strong></td><td>Numbers, rates, thresholds</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Regional &middot; Project frameworks</strong></td><td>Local adaptation within the above</td></tr>'+
+'</table><caption>Every layer refines the one above and may never contradict it.</caption></div>'+
+'<p><strong>Doc 0.75 is the load-bearing innovation.</strong> It is <em>generated</em> from the corpus '+
+'rather than written, so it cannot itself drift. A hand-written dependency map is simply a fourth place '+
+'for a definition to disagree with itself. When the map is derived, a contradiction becomes a build '+
+'failure rather than a discovery made years later by whoever is harmed by it. <span class="pill p-prop">Proposed</span></p>'+
+'<p>The need is not hypothetical. Three definitional drifts were found in the live corpus, and this '+
+'document has itself shipped three published corrections. Every one of them is the same failure: a term '+
+'that resolved to more than one meaning, with nothing mechanical checking.</p>');
+
+L(20,"corpus.classes","Merged from the white paper. The rule that settles most disputes.",
+'<h2>Change classes</h2>'+
+'<p>Every provision in the corpus is classified once, at authoring time, into one of three classes. The '+
+'class determines who can change it and how hard it is to change.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Class</th><th>What it covers</th><th>How it changes</th><th>Example</th></tr>'+
+'<tr><td><strong>Immutable</strong></td><td>Obligations and prohibitions &mdash; the things whose removal would make this a different project.</td>'+
+'<td>Not by amendment. Only by dissolution &mdash; and the dissolution clause is itself immutable.</td>'+
+'<td>No contribution buys governance influence, from any source, ever. The Five Shields. Human Primacy.</td></tr>'+
+'<tr><td><strong>Stable</strong></td><td>Institutions, terms of office, structural relationships.</td>'+
+'<td>Supermajority of an unweighted sovereignty vote, plus a published waiting period.</td>'+
+'<td>The ten-year standing. Three councils. The seven-stage ladder. Multiple band criteria.</td></tr>'+
+'<tr><td><strong>Adaptive</strong></td><td>Numbers, rates, thresholds, technologies, jurisdiction and language lists.</td>'+
+'<td>Ordinary policy process, on the record, with the prior value retained.</td>'+
+'<td>Minimum-wage tables. The Global Agreed Standard value. Personhood attestations. The 33 languages.</td></tr>'+
+'</table></div>'+
+'<div class="notice key"><span class="tag">The rule that resolves most disputes</span>'+
+'<p style="margin-bottom:0"><strong>The obligation is immutable; the number is adaptive.</strong> The duty '+
+'to settle a contributor&rsquo;s earned recognition in their own currency at a living local rate is '+
+'Immutable. The rate itself is Adaptive and will change many times. Confusing the two is how frameworks '+
+'either ossify into irrelevance or erode into nothing.</p></div>'+
+'<p>Classification is what makes a five-hundred-year document possible: the parts that must survive are '+
+'deliberately hard to move, and the parts that must move are deliberately easy &mdash; so nobody has to '+
+'break the former in order to do the latter.</p>');
+
+L(20,"corpus.ssses","Merged from the white paper. How quality is measured.",
+'<h2>SSSES &mdash; the five pillars</h2>'+
+'<p>Every cube and every change is audited against five pillars, each scored 0&ndash;100. A cube is '+
+'production-ready only when <strong>all five reach 100</strong>. <span class="pill p-impl">Implemented</span></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Pillar</th><th>What it governs</th><th>Signal</th></tr>'+
+'<tr><td><strong>Security</strong></td><td>Data, session and participant protection</td><td>Row-level policies, rate limiting, PII anonymisation, anti-sybil, no leaks.</td></tr>'+
+'<tr><td><strong>Stability</strong></td><td>Consistent behaviour across devices and networks</td><td>Phone and desktop, QR and code entry, joining before or during, no regressions.</td></tr>'+
+'<tr><td><strong>Scalability</strong></td><td>Concurrency</td><td>100,000 stable, 1,000,000 burst; broadcast for push, REST for global consistency.</td></tr>'+
+'<tr><td><strong>Efficiency</strong></td><td>Speed and resource use</td><td>Sub-100ms auto-advance; no redundant polling; correct dependency graphs.</td></tr>'+
+'<tr><td><strong>Succinctness</strong></td><td>Maintainability</td><td>Single responsibility, no abstraction built for one caller, functions under 300 lines.</td></tr>'+
+'</table><caption>Every commit states its SSSES impact. Every cube review audits translation coverage &mdash; '+
+'zero hardcoded English in any interface, across all 33 languages, with a fallback chain so no language '+
+'ever renders blank.</caption></div>'+
+'<p>The pillars matter here for one reason beyond engineering hygiene: <strong>they give a reviewer the '+
+'vocabulary to say a thing is not ready.</strong> A quality framework with no named dimensions produces '+
+'only approval, because disapproval has nothing to attach to.</p>');
+
+L(20,"corpus.cubes","Merged from the white paper. The 27-cube architecture.",
+'<h2>The cube map</h2>'+
+'<p>The system is organised as 27 cubes across three levels, each level a 3&times;3 grid with a centre. '+
+'The geometry is not ornament: the centre of each level is the cube every other cube on that level depends '+
+'on, and the build order spirals outward from it.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Level</th><th>Cubes</th><th>Purpose</th><th>Centre</th><th>State</th></tr>'+
+'<tr><td><strong>Level 1</strong></td><td>1&ndash;9</td>'+
+'<td>Polling. Session, text, voice, collection, gateway, AI theming, ranking, tokens, reports.</td>'+
+'<td>1 &middot; Session</td><td><span class="pill p-impl">Implemented</span></td></tr>'+
+'<tr><td><strong>Level 2</strong></td><td>10&ndash;18</td>'+
+'<td>Simulation, validation, value, governance. Replay, verify, baseline compare, payments, tokenisation, accords, chain, ARX.</td>'+
+'<td>10 &middot; Simulation</td><td>Partly built</td></tr>'+
+'<tr><td><strong>Level 3</strong></td><td>19&ndash;27</td>'+
+'<td>The innovation substrate. Concept and model ingest, proposals, de-risk gates, estimation, quote board, execution marketplace, delivery actuals.</td>'+
+'<td>19 &middot; Innovation Life Cycle</td><td>Framework</td></tr>'+
+'</table><caption>Coordinates are (level, row, col), centre at (L,2,2). Standalone domain applications '+
+'&mdash; Security-2525, Architecture-2525 &mdash; are not numbered cubes; they are Domain Play '+
+'configurations on the shared Level-3 substrate.</caption></div>'+
+'<p>Level 1 is production code: 109 REST endpoints across ten cube routers, JWT with role-based access, '+
+'per-organisation API keys, HMAC-signed webhooks, usage metering with a closed metering-to-billing loop, '+
+'and a live response path with three send routes and four receive channels so a participant&rsquo;s answer '+
+'reaches the moderator even when most of the network does not cooperate.</p>'+
+'<p>Test coverage across the system: <strong>1,488 test functions, 2,212 executed, zero failures</strong> '+
+'at the last full audit. That is context for the determinism claim, which is a stronger property than '+
+'passing.</p>');
+
+/* ══════════ RELEASE 21 ══════════ */
+
+L(21,"gov.ladder","Merged from the white paper. One ladder, replacing the three that disagreed.",
+'<h2>The seven-stage ladder</h2>'+
+'<div class="notice lock"><span class="tag">Settled &middot; the ladder</span>'+
+'<p style="margin-bottom:0"><strong>Pilot &rarr; Replay &rarr; Qualify &rarr; Certify &rarr; Adopt &rarr; '+
+'Educate &rarr; Expand.</strong> Seven stages, no skipping, one owning cube each.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Stage</th><th>The question it answers</th><th>Gate to pass</th><th>Owner</th></tr>'+
+'<tr><td><strong>Pilot</strong></td><td>Does it work at all, somewhere real?</td><td>A risk register and a bounded first deployment.</td><td>Cube 23</td></tr>'+
+'<tr><td><strong>Replay</strong></td><td>Is the result reproducible from its inputs?</td><td>Identical inputs produce identical outputs. Failure here stops everything.</td><td>Cube 11</td></tr>'+
+'<tr><td><strong>Qualify</strong></td><td>Is it better than what exists?</td><td>Must <strong>exceed</strong> the incumbent on system, user and business metrics &mdash; not match.</td><td>Cube 13</td></tr>'+
+'<tr><td><strong>Certify</strong></td><td>Does it conform to the corpus?</td><td>Determinism proof plus conformance against the generated Doc 0.75.</td><td>Cube 12</td></tr>'+
+'<tr><td><strong>Adopt</strong></td><td>Do we commit resources?</td><td>Quote locked to the compliance manifest, <strong>at least one human signature</strong>.</td><td>Cube 25</td></tr>'+
+'<tr><td><strong>Educate</strong></td><td>Can others learn to run it?</td><td>Published openly, taught, and reproduced by someone who did not build it.</td><td>Cube 26</td></tr>'+
+'<tr><td><strong>Expand</strong></td><td>Does it hold at scale, elsewhere?</td><td>Actuals versus quote in a second region; the delta feeds the world model.</td><td>Cube 27</td></tr>'+
+'</table><caption><strong>Qualify</strong> is where most frameworks quietly lower the bar. The criterion '+
+'is &ldquo;exceeds&rdquo;, not &ldquo;is comparable to&rdquo;, because a change that merely matches the '+
+'incumbent has cost real human hours for nothing.</caption></div>'+
+'<p><em>Replay</em> and <em>Certify</em> are the additions that make determinism and conformance into '+
+'gates rather than aspirations. <em>Educate</em> is where innovation becomes curriculum &mdash; the tie '+
+'between education and real-world work, made rather than asserted.</p>');
+
+L(21,"gov.personhood","Merged from the white paper. The unsolved primitive, stated honestly.",
+'<h2>Proof of personhood</h2>'+
+'<p>Every claim about the wall and about Human Primacy rests on one primitive: the ability to establish '+
+'that a participant is one natural person, once. It is the hardest unsolved problem in the design, it is '+
+'unsolved everywhere else too, and saying so plainly is more useful than any confident answer available '+
+'today.</p>'+
+'<p>The posture is <strong>federated, plural, disclosed, and evolvable</strong>:</p>'+
+'<ul>'+
+'<li><strong>Federated</strong> &mdash; each region recognises attestations appropriate to its own legal '+
+'and technical reality. No single global registry, because a single global registry of humanity is '+
+'precisely the institution a five-hundred-year framework must not create.</li>'+
+'<li><strong>Plural</strong> &mdash; multiple attestation types accepted concurrently: state identity, '+
+'institutional attestation, community vouching, cryptographic proofs. No single vendor, and specifically '+
+'no biometric monoculture.</li>'+
+'<li><strong>Disclosed</strong> &mdash; the set of accepted attestations in force, and their known '+
+'weaknesses, are published. A mechanism whose limits are hidden is worse than a weaker one whose limits '+
+'are stated.</li>'+
+'<li><strong>Evolvable</strong> &mdash; classed <strong>Adaptive</strong>, so the mechanism can be '+
+'replaced entirely as the state of the art moves, without amending the Constitution. The '+
+'<em>obligation</em> &mdash; one natural person, one vote &mdash; is Immutable. The <em>method</em> is '+
+'not.</li></ul>'+
+'<div class="notice hot"><span class="tag">&#9888; Stated honestly</span>'+
+'<p style="margin-bottom:0">No proof-of-personhood scheme in existence today is simultaneously '+
+'sybil-resistant, privacy-preserving, globally accessible, and free of a trusted operator. This framework '+
+'does not solve that. What it does is refuse to pretend otherwise, refuse to hard-code a dependency on any '+
+'one scheme, and make the sovereignty vote&rsquo;s integrity an explicitly monitored and publicly reported '+
+'property rather than an assumed one. <span class="pill p-prop">Proposed</span></p></div>');
+
+L(21,"fund.quai","Merged from the white paper. Provenance and settlement, deliberately separated.",
+'<h2>QUAI and QI</h2>'+
+'<p>The provenance and settlement layers are separated, and the separation follows the same logic as the '+
+'three-layer rule: two different jobs should not ride on one instrument.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Layer</th><th>Role</th><th>What goes on it</th><th>What must never</th></tr>'+
+'<tr><td><strong>QUAI</strong></td><td>Audit and registry</td>'+
+'<td>Hashes of governance acts, quote-locks, determinism proofs, ledger checkpoints. Permanent, publicly verifiable, cheap to check and expensive to forge.</td>'+
+'<td>Personal data of any kind. Raw response text. Anything identifying a contributor.</td></tr>'+
+'<tr><td><strong>QI</strong></td><td>Cash-like settlement</td>'+
+'<td>The movement of value when 웃 settles into a contributor&rsquo;s local currency.</td>'+
+'<td>Governance state. A QI balance is not a vote and must not be readable as one.</td></tr>'+
+'</table><caption>On-chain hash, off-chain personal data &mdash; the division that lets provenance be '+
+'permanent while keeping the right to erasure intact under GDPR and its analogues.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; The conversion lock</span>'+
+'<p style="margin-bottom:0">Any mechanism converting recognition into a liquid, externally-tradeable asset '+
+'<strong>re-creates at the conversion point every property the wall was built to eliminate.</strong> If 웃 '+
+'can become a freely traded instrument, then acquiring that instrument becomes a route to whatever 웃 '+
+'confers. Conversion must be bounded to genuine settlement &mdash; a payment to a person for their own '+
+'recorded contribution &mdash; and never a market.</p></div>'+
+'<p><strong>Chain neutrality.</strong> A five-hundred-year horizon forbids single-point dependencies, and '+
+'a specific chain is a single point. The obligation is that governance acts be permanently and '+
+'independently verifiable; <em>which</em> ledger provides that is Adaptive. QUAI and QI are the current '+
+'implementation choice, not a constitutional commitment &mdash; which is also what makes participation '+
+'conceivable in jurisdictions where token activity is prohibited outright.</p>');
+
+L(21,"fund.rnd","Merged from the white paper. The R&D commitment, pinned to a denominator.",
+'<h2>33.333% to research</h2>'+
+'<p>One third of resources goes to research and development. It is deliberately aggressive &mdash; '+
+'technology companies typically run 10&ndash;20% &mdash; and the aggression is the point: a system built '+
+'to innovate should be structurally biased toward the thing it exists to do.</p>'+
+'<p><strong>But a percentage without a denominator is not a commitment.</strong> Left undefined it becomes '+
+'another drift instance, and the first budget dispute will be about arithmetic rather than priorities.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Denominator</th><th>Behaviour</th><th>Failure mode</th></tr>'+
+'<tr><td><strong>Revenue</strong></td><td>Simplest to audit, hardest to argue with. Scales directly with activity.</td><td>In a low-margin year the obligation can exceed available margin entirely.</td></tr>'+
+'<tr><td><strong>Gross profit</strong></td><td>Self-stabilising &mdash; the commitment shrinks in bad years and grows in good ones.</td><td>Margin is definable, so the metric-authority problem applies with full force.</td></tr>'+
+'<tr><td><strong>Total budget</strong></td><td>Most controllable, and most honest about opportunity cost.</td><td>Gameable by inflating the budget with items never going to be spent.</td></tr>'+
+'</table><caption><strong>Recommendation: gross profit</strong> &mdash; the only one of the three that '+
+'cannot force an obligation the organisation is unable to meet, provided margin definition is versioned '+
+'and published in advance.</caption></div>'+
+'<p>The primitives to compute all three already exist and are already deterministic &mdash; '+
+'<code>npvM</code>, <code>revOverNre</code>, <code>finRollup</code> and the <code>nreK</code> spend '+
+'rollup in <code>frontend/lib/innovation-data.ts</code>, where <code>nreK</code> is the '+
+'non-recurring-engineering figure serving as the R&amp;D proxy. <span class="pill p-impl">Implemented</span> '+
+'&mdash; the measurement exists; only the denominator decision is missing.</p>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
