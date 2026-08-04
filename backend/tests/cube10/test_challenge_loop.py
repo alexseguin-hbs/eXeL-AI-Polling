@@ -205,21 +205,40 @@ class TestComputeOptimization:
     """Night B — the parity+efficiency proof: a ≥10% win shrinks the candidate cube vs Live
     (8×8×8 replaces 10×10×10). Earned only when the verdict PASSES (parity first)."""
 
-    def test_ten_percent_faster_pass_is_a_win_and_shrinks_10pct(self):
+    def test_ten_percent_faster_shrinks_but_is_NO_LONGER_a_win(self):
+        # r54: the bar moved from 10% to 11.1% (one ninth of a nine-cube layer). A 10%
+        # gain is real — the cube still shrinks — but it cannot buy an adjacent cube, so
+        # it is not a headline win any more.
         from app.cubes.cube10_simulation.challenge_loop import compute_optimization
-        base = {"duration_ms": 100.0}
-        cand = {"duration_ms": 90.0}
-        opt = compute_optimization(base, cand, passed=True)
+        opt = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 90.0}, passed=True)
         assert opt["optimization_pct"] == 10.0
-        assert opt["win"] is True
-        assert opt["cube_scale"] == 0.9          # 10% smaller cube
+        assert opt["win"] is False               # was True before r54
+        assert opt["cube_scale"] == 0.9          # the gain is still shown
         assert opt["basis"] == "duration_ms"
+
+    def test_win_boundary_is_11_1_percent_exactly(self):
+        # The published number is 11.1, so 11.1 must WIN. Using 1/9 = 0.11111… would
+        # reject a candidate that exactly met the figure we printed, which is the kind of
+        # rounding artefact that costs someone a result they earned.
+        from app.cubes.cube10_simulation.challenge_loop import compute_optimization
+        just_under = compute_optimization({"duration_ms": 1000.0}, {"duration_ms": 890.0}, passed=True)
+        assert just_under["optimization_pct"] == 11.0
+        assert just_under["win"] is False
+
+        exactly = compute_optimization({"duration_ms": 1000.0}, {"duration_ms": 889.0}, passed=True)
+        assert exactly["optimization_pct"] == 11.1
+        assert exactly["win"] is True
+
+    def test_threshold_is_one_ninth_at_published_precision(self):
+        from app.cubes.cube10_simulation.challenge_loop import WIN_THRESHOLD
+        assert WIN_THRESHOLD == 0.111
+        assert round(WIN_THRESHOLD * 100.0, 1) == 11.1
 
     def test_below_threshold_is_not_a_win_but_still_shrinks_proportionally(self):
         from app.cubes.cube10_simulation.challenge_loop import compute_optimization
         opt = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 95.0}, passed=True)
         assert opt["optimization_pct"] == 5.0
-        assert opt["win"] is False               # < 10% → not a headline win
+        assert opt["win"] is False               # < 11.1% → not a headline win
         assert opt["cube_scale"] == 0.95
 
     def test_not_passed_never_shrinks_even_if_faster(self):

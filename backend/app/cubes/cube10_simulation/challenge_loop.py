@@ -145,11 +145,20 @@ def evaluate_challenge(baseline: dict, candidate: dict) -> dict:
 
 
 # ── Optimization → physical-cube shrink (the parity+efficiency proof) ──────────────────────────
-# Operator's north star: when a candidate BEATS the LIVE cube by ≥10% (same-or-better
+# Operator's north star: when a candidate BEATS the LIVE cube by ≥11.1% (same-or-better
 # output, less work), the candidate cube renders that much SMALLER than Live — an 8×8×8
 # that replaces 10×10×10: same result, less compute. The shrink is EARNED, never toggled,
 # and only when the verdict holds (parity first, then efficiency).
-WIN_THRESHOLD = 0.10          # ≥10% improvement = a "win"
+#
+# WHY 11.1 AND NOT 10 (r54, operator directive). 11.1% is 1/9 — one ninth of a nine-cube
+# layer. A replacement that gives back a whole cube's worth of capacity across the layer is
+# the SMALLEST gain that can actually buy an adjacent cube; below one ninth the grid does
+# not change shape and the win, while real, is structurally inert. The threshold is the
+# point at which innovation starts compounding sideways instead of merely accumulating.
+# Published as 11.1%, so the bar IS 0.111 — not 1/9 = 0.11111…, which would reject a
+# candidate that exactly met the number we published. Nobody loses on a rounding artefact
+# in their own favour; if we print 11.1, then 11.1 wins.
+WIN_THRESHOLD = 0.111         # ≥11.1% improvement = a "win" (one ninth, at published precision)
 MIN_CUBE_SCALE = 0.5          # never shrink below half (stays legible next to Live)
 
 

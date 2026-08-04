@@ -186,7 +186,7 @@ class TestSimCheckInSubmit:
         opt = resp.json()["optimization"]
         assert set(opt) >= {"optimization_pct", "win", "cube_scale", "basis", "threshold_pct"}
         assert 0.5 <= opt["cube_scale"] <= 1.0
-        assert opt["threshold_pct"] == 10.0
+        assert opt["threshold_pct"] == 11.1     # r54: one ninth of a nine-cube layer
 
 
 class TestSimContractRichness:
