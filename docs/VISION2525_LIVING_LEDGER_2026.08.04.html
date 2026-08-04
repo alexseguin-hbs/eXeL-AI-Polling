@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="utf-8">
-<title>Vision 2525 — The Living Ledger of Human Contribution</title>
+<title>Vision 2525 — Recursive Coordination for Human Continuity</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 :root{
@@ -260,9 +260,9 @@ body.fulldoc .fullnote{display:block}
 
 <header class="mast">
   <div class="kicker">Vision &#8226; 2525 &middot; Vision &amp; White Paper &middot; Master of Thought &middot; R-CORE Replay</div>
-  <h1>The Living Ledger of Human Contribution</h1>
-  <p class="sub" style="font-style:normal;font-size:clamp(15px,2.3vw,18px);color:var(--ink-2);
-  letter-spacing:.02em;margin-top:-4px">Recursive Coordination for Human Continuity</p>
+  <h1 id="mH1">Recursive Coordination for Human Continuity</h1>
+  <p class="sub" id="mSub" style="font-style:normal;font-size:clamp(15px,2.3vw,18px);color:var(--ink-2);
+  letter-spacing:.02em;margin-top:-4px">The Living Ledger of Human Contribution</p>
   <p class="sub" style="font-style:normal;font-size:clamp(17px,2.7vw,21px);color:var(--ink)">
   <strong>We cannot master what we are not aware of.</strong></p>
   <p class="sub">An hour of a human life, recorded so that it cannot be discounted by where it was
@@ -293,10 +293,13 @@ body.fulldoc .fullnote{display:block}
   release 21 rather than asserted: <code>VISION2525_HOUR_IS_THE_UNIT_2026.08.03.html</code> (the economics
   paper) and <code>SOI_VISION2525_WHITEPAPER_ORIGINAL_549730b.html</code> (the consolidated white paper).
   Both are retained unchanged as provenance records. Everything in them is here; the reverse is not true.</p>
-  <p style="margin-bottom:0"><strong>Named at release 35.</strong> Through release 34 this document was
-  called <em>The Unit and The Shield</em>. It is released as
-  <code>VISION2525_LIVING_LEDGER_2026.08.04.html</code> &mdash; one file, dated, reissued in full on every
-  revision. Earlier titles remain readable by rewinding; nothing was renamed retroactively.</p>
+  <p style="margin-bottom:0"><strong>The title above changes with the slider.</strong> This document
+  has carried three names, and from release 39 the masthead is <em>replayed</em> rather than fixed &mdash;
+  rewind and you see the title that was actually in force at that release. Until release 39 it was not:
+  the masthead sat outside the ledger and every rename silently rewrote all thirty-eight earlier releases.
+  That is logged as defect 20, found and closed in the same release. The file ships as
+  <code>VISION2525_LIVING_LEDGER_2026.08.04.html</code> &mdash; one vehicle, dated, reissued in full on
+  every revision.</p>
 </div>
 
 <div id="vban"></div>
@@ -1167,6 +1170,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Any credential that has passed through a chat, an email or a ticket is compromised and must be rotated before first use. That is stated here because the alternative is a master key whose only protection is that nobody looked."}
  ],
  next:"The authority ladder is specified and its exception is dated. What it needs now is the operator: rotate the credential before any ceremony, bind the second factor to hardware rather than to a number, and ratify the release-37 thresholds. The communication brief accompanying this release explains the formula and the risk to a reader who has never seen the ledger."
+},
+{
+ v:39, code:"THE MASTHEAD JOINS THE LEDGER", stamp:"2026.08.04 &middot; release 39",
+ thrust:"Recursive Coordination for Human Continuity takes the primary line &mdash; and the title stops being able to rewrite its own past.",
+ mot:"Two things, and the second matters more than the first. The operator has swapped the lines: <em>Recursive Coordination for Human Continuity</em> becomes the primary title and <em>The Living Ledger of Human Contribution</em> sits beneath it. I recommended the other order at release 36 and I was overruled, which is how this is supposed to work; the reasoning survives in the ledger at v36 for anyone who wants to weigh it. The second thing is mine to answer for. A screenshot arrived showing the slider at v1 and the masthead reading the CURRENT title &mdash; because the masthead was static HTML sitting outside the replay. Every rename silently rewrote all thirty-eight earlier releases, and at release 35 I wrote that earlier titles remain readable by rewinding. That sentence was false the day I wrote it. The fix is not to delete the sentence. It is to make it true.",
+ stats:{clauses:249, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"A document whose name could rewrite its own history was not yet a ledger, whatever the masthead said. Now the name is part of the record it claims to keep."},
+  {n:"Asar",   g:"A",  f:"Three titles, each recoverable, each dated. The document can no longer pretend it always knew what it was."},
+  {n:"Athena", g:"A+", f:"The operator reversed a recommendation and the recommendation stayed readable at v36 rather than being tidied away. That is the mechanism doing exactly what it was built for."},
+  {n:"Christo",g:"A",  f:"Being overruled and leaving the argument standing is worth more here than being right would have been."},
+  {n:"Enki",   g:"A+", f:"The interesting failure: everything INSIDE the ledger was honest and the frame around it was not. Nobody audits the frame."},
+  {n:"Enlil",  g:"A+", f:"TITLES uses the same last-write-wins rule as the block ledger &mdash; newest entry with e.v &lt;= v. One semantic, two tables, no second mechanism to keep in step."},
+  {n:"Krishna",g:"A",  f:"Masthead, document title and the no-JS fallback all resolve from one source. Three surfaces, one truth."},
+  {n:"Odin",   g:"A+", f:"A published claim was false for four releases and it took an operator screenshot to catch it. The gate now asserts the title at v1 differs from the title at the latest release, so it cannot silently return."},
+  {n:"Pangu",  g:"A",  f:"Small change, and it closes the last place where this document could quietly edit its own past."},
+  {n:"Sofia",  g:"A+", f:"Drag to v1 and the page says The Unit and The Shield. That is the whole proof, and it takes a reader two seconds."},
+  {n:"Thoth",  g:"A",  f:"Three title entries at v1, v35 and v39; thirty-nine releases resolve to exactly three distinct mastheads with no gaps and no overlaps."},
+  {n:"Thor",   g:"A+", f:"The defect was self-flattery rather than an attack surface, which is the kind that survives longest because nobody is looking for it."}
+ ],
+ next:"The frame is now inside the record. What remains is unchanged and unchanged for a reason: the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, and rotating the master credential before any ceremony. None of them can be closed from this side."
 }
 ];
 
@@ -4879,7 +4903,161 @@ L(38,"open.defects","Two credential defects published with the mechanism that cr
 'closed this week; the other three need decisions nobody can make on the operator&rsquo;s '+
 'behalf.</caption></div>');
 
+/* ══════════ RELEASE 39 ══════════ */
+
+L(39,"corpus.iterations","The masthead joins the replay. Until r39 the title was static and every rename rewrote all earlier releases.",
+'<h2>Reading the ninety-nine</h2>'+
+'<p>A document that accumulates ninety-nine releases has a problem no ordinary paper has: the reader '+
+'cannot possibly read them all, and the interesting content is not in any single release but in the '+
+'<em>differences between</em> them. Playing forward shows motion. It does not answer the only question '+
+'that matters at scale &mdash; <strong>what changed, between which two points, and why.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Control</th><th>The question it answers</th></tr>'+
+'<tr><td><strong>Slider &middot; &#9668; &#9658;</strong></td><td>What did the document look like at release <em>n</em>?</td></tr>'+
+'<tr><td><strong>&#9654; Play</strong></td><td>How did the argument develop, in order?</td></tr>'+
+'<tr><td><strong>&#9679; Changes</strong></td><td>What is new in the release I am looking at?</td></tr>'+
+'<tr><td><strong>Key improvements</strong></td><td>Of those changes, which ones mattered, and for what stated reason?</td></tr>'+
+'<tr><td><strong>&#8646; Compare</strong></td><td>What changed between <em>any</em> two releases &mdash; v1 against v99, or v98 against v99?</td></tr>'+
+'<tr><td><strong>&#9776; Full doc</strong></td><td>What does it say right now, read straight through, with no version machinery?</td></tr>'+
+'</table><caption>Six controls, six questions. At release 99 all ninety-nine states remain addressable, '+
+'because none of them is stored &mdash; each is reconstructed on demand from the same append-only '+
+'ledger.</caption></div>'+
+'<h3>How comparison works</h3>'+
+'<p>Compare is a pure function of two integers. It replays both releases and sets the block lists side by '+
+'side; it cannot disagree with what you see on screen, because it is built from the same reconstruction:</p>'+
+'<pre><code>compare(a, b)  =  swap so a &lt;= b, then for each block id in ORDER:\n'+
+'                    x = newest ledger entry with e.id == id and e.v &lt;= a\n'+
+'                    y = newest ledger entry with e.id == id and e.v &lt;= b\n\n'+
+'                    x absent, y present  -> ADDED     (first written at v = y.v)\n'+
+'                    x present, y absent  -> REMOVED   (structurally impossible &mdash; see below)\n'+
+'                    x.v != y.v           -> REVISED   (superseded at v = y.v, with its reason)\n'+
+'                    x.v == y.v           -> CARRIED   (identical bytes)</code></pre>'+
+'<div class="notice"><span class="tag">An empty category, declared rather than hidden</span>'+
+'<p style="margin-bottom:0"><strong>The REMOVED column reads zero, and always will.</strong> An '+
+'append-only ledger with last-write-wins reconstruction has no delete operation &mdash; a block can be '+
+'superseded, contradicted, or reduced to a single line saying it was wrong, but it cannot be made to have '+
+'never existed. That is a deliberate constraint and a real limitation, and a comparison tool that showed a '+
+'removal column without saying it can never fill would be quietly misleading. Under the disclosure rule '+
+'(<code>U-WF-09</code>) the empty category is declared.</p></div>'+
+'<h3>What Key Improvements is, and what it is not</h3>'+
+'<p>The improvements list under each release is <strong>derived from the ledger, not written beside '+
+'it</strong>. It is the set of entries whose version equals the one you are viewing, each shown with the '+
+'reason recorded at the time it was made. A hand-maintained changelog drifts away from the changes it '+
+'describes within a few releases; this one cannot drift, because it is not a description of the change '+
+'&mdash; it <em>is</em> the change, read back.</p>'+
+'<p>The cost of that honesty is that the list is only as good as the reasons we wrote down. A lazy '+
+'<code>why</code> string produces a lazy improvement note, visibly, in public, forever. That is the '+
+'intended incentive.</p>'+
+'<h3>The name is part of the record too</h3>'+
+'<div class="notice hot"><span class="tag">&#9888; Found by an operator screenshot, closed at r39</span>'+
+'<p style="margin-bottom:0">Until this release the masthead was <strong>static HTML sitting outside the '+
+'replay</strong>. Rewinding to release 1 showed the title the document happened to be carrying today, not '+
+'the one it carried then &mdash; so every rename silently rewrote all earlier releases. At release 35 this '+
+'document stated that earlier titles remain readable by rewinding. <strong>That sentence was false the day '+
+'it was written.</strong> The remedy was not to delete it but to make it true.</p></div>'+
+'<p>The masthead now resolves from a table with the same last-write-wins rule as the block ledger, so the '+
+'title, the browser tab and the no-JS fallback all answer to one source:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">From</th><th>Primary title</th><th>Line beneath</th></tr>'+
+'<tr><td class="n">v1</td><td>The Unit and The Shield</td><td class="meta">&mdash;</td></tr>'+
+'<tr><td class="n">v35</td><td>The Living Ledger of Human Contribution</td>'+
+'<td>Recursive Coordination for Human Continuity <span class="meta">(added v36)</span></td></tr>'+
+'<tr><td class="n">v39</td><td><strong>Recursive Coordination for Human Continuity</strong></td>'+
+'<td>The Living Ledger of Human Contribution</td></tr>'+
+'</table><caption>Drag the slider to v1 and the page above says <em>The Unit and The Shield</em>. That is '+
+'the whole proof, and it takes two seconds. The release-36 argument for the other ordering is still '+
+'readable at v36 &mdash; it was overruled, not deleted.</caption></div>');
+
+L(39,"open.defects","Defect 20: the masthead sat outside the replay and rewrote history. Found by an operator screenshot, closed the same release.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse '+
+'than a known one, and that rule applies to this document before it applies to anything else.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Six closed in code &middot; every live item now needs a person</span>'+
+'<p style="margin-bottom:0">The money path was closed at releases 34 and 35 (<code>5c50425</code>, '+
+'<code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Everything still open is a decision or an '+
+'operational act, not a patch. Releases 37 to 39 added five defects of their own, each published in the '+
+'release that created or discovered it.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr style="opacity:.6"><td class="n">20</td><td><strong>The masthead rewrote its own history</strong> '+
+'&mdash; the title was static HTML outside the replay, so every rename silently changed all earlier '+
+'releases, and the r35 claim that earlier titles remain readable by rewinding was false when written.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r39</span><br><span class="meta">found by operator screenshot</span></td>'+
+'<td>The masthead resolves from a table using the block ledger&rsquo;s own last-write-wins rule. The gate '+
+'now asserts the title at v1 differs from the title at the latest release.</td></tr>'+
+'<tr><td class="n">18</td><td><strong>An 8-digit numeric PIN is brute-forceable</strong> &mdash; '+
+'100,000,000 combinations is minutes of offline or unthrottled attack.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">new at r38</span></td>'+
+'<td>Five attempts, exponential lockout, alert on the third failure, one shot per carried mandate. '+
+'Longer term: a passphrase, or drop the PIN for a hardware key entirely.</td></tr>'+
+'<tr><td class="n">19</td><td><strong>A PIN is not a second factor</strong> if whoever holds the session '+
+'can type it &mdash; and any credential that has passed through a chat, email or ticket must be treated as '+
+'already compromised.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs an operational act &middot; new at r38</span></td>'+
+'<td>Bind key 2 to hardware (FIDO2 or TOTP on a separate device). <strong>Rotate the credential before the '+
+'first ceremony, not after.</strong></td></tr>'+
+'<tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index '+
+'0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop '+
+'funding, which makes it likelier.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td>'+
+'<td>Principal floor first, then the index split of the remainder. Changes a stated instruction, so it '+
+'needs the operator.</td></tr>'+
+'<tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, '+
+'quorum, carry, confirmation and effect are all proposals.</td>'+
+'<td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td>'+
+'<td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td>'+
+'<td>An undefined cap is not a cap. Publish numbers.</td></tr>'+
+'<tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at '+
+'every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td>'+
+'<td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; '+
+'purchasable with money; governance weight from a balance; local wage applied at mint; cross-border '+
+'arbitrage; a currency constant inside the mint.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td>'+
+'<td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td>'+
+'<td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, specified with its ramp at r30, now load-bearing in the shutdown split. Unbuilt.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; sharper '+
+'now, because the shutdown rule depends on it surviving a majority.</td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language '+
+'count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10 and given a computable zero '+
+'at r38.</td><td><span class="pill p-impl">&#10003; Closed</span></td>'+
+'<td>A generated dependency map prevents recurrence.</td></tr>'+
+'<tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary '+
+'to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td>'+
+'<td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr>'+
+'</table><caption><strong>Six closed in code, one closed by definition, five live, two specification-only, '+
+'two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the '+
+'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
+
 /* ── engine ───────────────────────────────────────────────────────────── */
+
+/* The masthead is part of the record. Same last-write-wins rule as the block
+   ledger: newest entry with e.v <= v wins. Before r39 this was static HTML and
+   every rename rewrote all earlier releases -- defect 20. */
+const TITLES = [
+  {v:1,  h1:"The Unit and The Shield",                     sub:""},
+  {v:35, h1:"The Living Ledger of Human Contribution",     sub:""},
+  {v:36, h1:"The Living Ledger of Human Contribution",     sub:"Recursive Coordination for Human Continuity"},
+  {v:39, h1:"Recursive Coordination for Human Continuity", sub:"The Living Ledger of Human Contribution"}
+];
+function titleAt(v){
+  let pick = TITLES[0];
+  for (const t of TITLES){ if (t.v <= v && t.v >= pick.v) pick = t; }
+  return pick;
+}
+
 const VMAX = VERSIONS.length;
 let active = VMAX, showDiff = true, playing = null;
 let cmpOn = false, cmpA = 1, cmpB = VERSIONS.length;
@@ -4944,6 +5122,13 @@ function gradeCls(g){
 function renderDoc(){
   const V = VERSIONS[active-1];
   const blocks = replay(active);
+
+  const T = titleAt(active);
+  document.getElementById("mH1").textContent = T.h1;
+  const subEl = document.getElementById("mSub");
+  subEl.textContent = T.sub;
+  subEl.style.display = T.sub ? "" : "none";
+  document.title = "Vision 2525 \u2014 " + T.h1;
 
   document.getElementById("vban").innerHTML =
     '<div class="vban"><span class="tag">' + V.stamp + ' &middot; ' +
