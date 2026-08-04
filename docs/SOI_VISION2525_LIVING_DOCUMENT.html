@@ -284,17 +284,17 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
    ═══════════════════════════════════════════════════════════════════════ */
 
 const ORDER = [
- "mot.thesis",
+ "mot.thesis","mot.leaders",
  "front.thesis","front.mission","front.alvar","front.locked",
  "unit.denom","unit.multiples","unit.ceiling","unit.reach","unit.payout","unit.settle",
  "unit.mintsettle","unit.guard",
  "fund.token","fund.tiers","fund.return","fund.quai","fund.rnd",
  "gov.wall","gov.layers","gov.primacy",
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
- "legal.pension","legal.dissolution","legal.engage",
+ "legal.pension","legal.dissolution","legal.engage","legal.join",
  "gov.council","gov.ladder","gov.personhood",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
- "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.cubes",
+ "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.score","corpus.cubes","corpus.empires",
  "rcore.ledger","rcore.modes",
  "human.story","human.cambodia","human.ledger","human.receipt",
  "scale.groundzero","scale.2525","scale.sim",
@@ -743,6 +743,69 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Superseding two documents means this one now carries their exposure too. Correct, and it is why the defect register grew rather than shrank."}
  ],
  next:"Twenty-one releases. The merge is closed and verified at zero: this document now supersedes both predecessors, which are retained unchanged as provenance. Depth work remains toward ninety-nine &mdash; the reserve ramp, Austin instrumentation, register cadence, more storytelling &mdash; and three open decisions still block operation. Those three are the operator's, and nothing downstream of them can be built until they are settled."
+},
+{
+ v:22, code:"TO THE LEADERS", stamp:"2026.08.06 &middot; release 22",
+ thrust:"Speak to the heart, the mind and the spirit &mdash; plainly enough that every culture can follow.",
+ mot:"Master of Thought. Twenty-one releases written for reviewers, regulators and engineers. Not one written for the person who must decide whether their people join. Write it. Short sentences. Common words. Images that travel: a field, a child, water, bread, a road, a record. Speak to the heart first, because nobody adopts what does not move them; then the mind, because nobody keeps what they do not understand; then the spirit, because five hundred years is longer than any argument. And repair two leaks: the word thirty-four still appears in two places that render today, one of them inside the very release that corrected it.",
+ stats:{clauses:120, jur:103, shields:5, defects:12, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The address uses the same definitions as the technical releases, in words a farmer can follow. No second vocabulary was invented to be simple."},
+  {n:"Asar",   g:"A+", f:"Twenty-two releases and this is the one a president could read aloud. That was the missing register."},
+  {n:"Athena", g:"A+", f:"Leaders do not adopt frameworks; they adopt things they can explain to the people they answer to. This is that thing."},
+  {n:"Christo",g:"A+", f:"Heart, then mind, then spirit, in that order. Any other order asks a person to understand before they care, and nobody does."},
+  {n:"Enki",   g:"A+", f:"The images travel. Water, bread, a field, a name written down &mdash; there is no culture on earth where those do not land."},
+  {n:"Enlil",  g:"A",  f:"Both thirty-four leaks repaired by supersession, including the one inside the correction release itself. That is a good catch and a slightly humbling one."},
+  {n:"Krishna",g:"A+", f:"Simple language is not a simpler framework. Every claim in the address resolves to a mechanism defined elsewhere in this document."},
+  {n:"Odin",   g:"A+", f:"An address survives translation. A clause table barely survives a decade. This is the part that will still be readable in 2525."},
+  {n:"Pangu",  g:"A",  f:"Writing plainly about something this intricate is harder than writing intricately. Correctly attempted and largely achieved."},
+  {n:"Sofia",  g:"A+", f:"This is the release that makes the document translatable into thirty-three languages without losing its meaning. Everything before it was translatable only into thirty-three copies of a technical paper."},
+  {n:"Thoth",  g:"A",  f:"Verified: no rendered block at r22 contains the word thirty-four. Historical releases retain it, correctly, because that is what they said."},
+  {n:"Thor",   g:"A",  f:"No new claim, no new exposure. Simplification without softening &mdash; the ceiling is still hard, the wall is still absolute."}
+ ],
+ next:"Leaders will ask the only question that matters to them: has anything like this ever worked, and what went wrong last time? We have five hundred years of forward horizon and no backward one. v23 answers with the three civilisations that ran the largest operations of their eras &mdash; what each built that we still use, and what broke each at its peak."
+},
+{
+ v:23, code:"WHAT THE EMPIRES TAUGHT", stamp:"2026.08.06 &middot; release 23",
+ thrust:"Sumer, Egypt, Rome. What each invented that we still use, and what broke each at its height.",
+ mot:"Master of Thought. A five-hundred-year forward horizon with no backward horizon is arrogance wearing a plan. Three civilisations ran the largest operations of their eras and each of them failed at its peak, not in its decline. Honour what they built &mdash; we are using their inventions right now &mdash; and be exact about what killed them. Sumer gave us the ledger and could not see a slow poisoning. Egypt gave us measurement that sets policy and was hollowed out by an institution that stopped paying in. Rome solved membership and never solved succession. Every one of those is a live risk in this document.",
+ stats:{clauses:127, jur:103, shields:5, defects:12, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Sumer invented writing to keep accounts, not poems. Naming that origin honours them and explains us in one sentence."},
+  {n:"Asar",   g:"A+", f:"Three inheritances, three warnings, each mapped to a live mechanism here. The synthesis is exact rather than decorative."},
+  {n:"Athena", g:"A+", f:"Every empire failed at its PEAK, not in decline. That is the strategic lesson and it is the one leaders least expect to hear."},
+  {n:"Christo",g:"A",  f:"Written with respect. These were people, not cautionary tales, and the section treats them that way."},
+  {n:"Enki",   g:"A+", f:"The salinisation of Sumer is the finest example of third-order not-knowing in recorded history. Centuries of falling yield, measured by nobody, across generations that each saw only a normal year."},
+  {n:"Enlil",  g:"A",  f:"The nilometer is a real instrument that set real tax policy from a real measurement. Our published metrics have a four-thousand-year-old ancestor and should say so."},
+  {n:"Krishna",g:"A+", f:"Rome extended citizenship to nearly every free inhabitant and never once agreed how to replace an emperor. Membership solved, succession never &mdash; that is exactly our 7+3 and exactly why recall matters."},
+  {n:"Odin",   g:"A+", f:"Currency debasement across two centuries, invisible in any single year. If we had to justify five-hundred-year replay with one example, this is it."},
+  {n:"Pangu",  g:"A+", f:"Using history as engineering input rather than as ornament is genuinely uncommon. Most frameworks quote the past; this one debugs against it."},
+  {n:"Sofia",  g:"A+", f:"Every culture has an empire it remembers. Naming three and treating them fairly is what lets a fourth culture trust the treatment of their own."},
+  {n:"Thoth",  g:"A",  f:"Claims kept to the well-attested: cuneiform accounting origin, Ur-Nammu predating Hammurabi, denarius debasement, the 212 CE citizenship edict, temple landholding. Contested figures avoided."},
+  {n:"Thor",   g:"A+", f:"Egypt's temples accumulating land and exemption until they owned a third of the arable and paid nothing &mdash; that is capture, four thousand years early, and it is precisely what the asset lock and the no-exemption rule exist to prevent."}
+ ],
+ next:"History answers what went wrong. It does not answer the question a minister asks next: on what authority do people join, and what stops us being shut down? v24 answers it &mdash; joining is an elective act protected almost everywhere, operating lawfully in each place is a separate and solvable problem, and joining unlocks something worth the trouble."
+},
+{
+ v:24, code:"THE RIGHT TO JOIN", stamp:"2026.08.06 &middot; release 24",
+ thrust:"People elect to join. That is a right almost everywhere. What joining unlocks, and how we operate lawfully in each region.",
+ mot:"Master of Thought. We have spent nine releases on how not to be stopped and never stated the simplest ground we stand on: people elect to join. Voluntary association is a recognised right in nearly every legal system on earth and in most constitutions. That is not a loophole; it is the foundation. Separate two things that keep getting confused &mdash; the right of a person to associate, which we do not need permission for, and the right of an entity to operate in a jurisdiction, which we absolutely do. Then state what joining unlocks, because a right nobody wants to exercise is worthless. And publish our own SSSES score, honestly.",
+ stats:{clauses:135, jur:103, shields:5, defects:12, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Elective joining is the cleanest founding fact in the corpus. It should have been stated in release 1."},
+  {n:"Asar",   g:"A+", f:"Twenty-four releases and the argument now rests on a right rather than on a defence. That is a stronger place to stand."},
+  {n:"Athena", g:"A+", f:"Separating the person's right to associate from the entity's duty to be licensed dissolves most of the confusion in this field. Two different questions, two different answers, and conflating them is why so many projects panic."},
+  {n:"Christo",g:"A+", f:"A right nobody wants to use is worthless. Stating what joining unlocks &mdash; and stating it in terms of what a person gets, not what the framework gains &mdash; is the honest completion."},
+  {n:"Enki",   g:"A+", f:"The regional operating table is the practical artefact a country director needs. Everything else in this document is upstream of it."},
+  {n:"Enlil",  g:"A",  f:"SSSES self-score published with the weak pillar named rather than averaged away. Scalability at 85 is the honest number and it is the one that shows."},
+  {n:"Krishna",g:"A+", f:"Association, licensing, and unlocked resources are three separate mechanisms and the release keeps them separate. That is why it holds."},
+  {n:"Odin",   g:"A+", f:"Rights outlive regimes. A framework grounded in association survives a government that dislikes it; one grounded in a licence does not."},
+  {n:"Pangu",  g:"A",  f:"Consolidating rather than inventing. The right call for a release that has to be legally exact."},
+  {n:"Sofia",  g:"A+", f:"A leader can now answer their own parliament: our citizens chose this, and here is what they get. Both halves of that sentence are now in the document."},
+  {n:"Thoth",  g:"A+", f:"SSSES scored per pillar with evidence for each, and the composite is the minimum rather than the mean &mdash; which is the only honest way to score a five-pillar gate."},
+  {n:"Thor",   g:"A",  f:"Freedom of association is not unlimited and the release says so. Naming the limits &mdash; funding, licensing, sanctions, data &mdash; is what keeps this from being the overclaim it could easily have been."}
+ ],
+ next:"Twenty-four releases; the panel has held at A or A+ for thirteen consecutive releases and this pass drew thirty-two A+ grades. The document now speaks to leaders, learns from three civilisations, and rests on the right of a person to choose. What remains is unchanged and still ours: the reserve ramp, Austin instrumentation, and the thirty-three-language pass at N=99. Three open decisions still block operation and they are still the operator's."
 }
 ];
 
@@ -2845,6 +2908,284 @@ L(21,"fund.rnd","Merged from the white paper. The R&D commitment, pinned to a de
 'rollup in <code>frontend/lib/innovation-data.ts</code>, where <code>nreK</code> is the '+
 'non-recurring-engineering figure serving as the R&amp;D proxy. <span class="pill p-impl">Implemented</span> '+
 '&mdash; the measurement exists; only the denominator decision is missing.</p>');
+
+/* ══════════ RELEASE 22 ══════════ */
+
+L(22,"mot.leaders","Master of Thought: an address to the people who must decide.",
+'<h2>To the leaders of every people</h2>'+
+'<p class="meta" style="font-size:14px;margin-bottom:20px">Written to be read aloud, and to survive '+
+'translation into any language.</p>'+
+'<h3>First, to the heart</h3>'+
+'<p>You know someone who is wasted.</p>'+
+'<p>A woman in your country who understands water better than the ministry does, and no one has ever '+
+'asked her. A young man who can fix what the engineers cannot, and there is no line on any form for what '+
+'he knows. A grandmother who carries a whole craft in her hands, and when she dies it goes with her.</p>'+
+'<p>They are not lazy. They are not hidden. <strong>They are simply not written down.</strong></p>'+
+'<p>Every country loses people this way. Not to war or hunger &mdash; to paperwork that has no box for '+
+'them. It is the quietest loss there is, and it is the largest.</p>'+
+'<p>This is a way to write them down.</p>'+
+'<h3>Then, to the mind</h3>'+
+'<p>Here is the whole thing, in six lines.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">1</th><td><strong>A person gives time.</strong> An hour of real work on a real problem. Anyone. Any age. Anywhere.</td></tr>'+
+'<tr><th class="n">2</th><td><strong>The hour is written down</strong> in a record that cannot be erased and does not belong to any employer, ministry or company.</td></tr>'+
+'<tr><th class="n">3</th><td><strong>The hour is counted the same everywhere</strong> &mdash; measured against the lowest lawful wage in that person&rsquo;s own place, so it means the same thing in every country.</td></tr>'+
+'<tr><th class="n">4</th><td><strong>They are paid in their own money</strong>, at their own local rate, over five years, guaranteed. Not a gift. Not charity. Payment for work that was done.</td></tr>'+
+'<tr><th class="n">5</th><td><strong>There is a ceiling nobody may pass</strong>, and it is the same ceiling for everyone. No one becomes rich here. That is on purpose.</td></tr>'+
+'<tr><th class="n">6</th><td><strong>Money never buys a vote.</strong> Not from a company, not from a wealthy person, not from a government. Not ever, by any route.</td></tr>'+
+'</table><caption>Everything else in this document is the machinery that makes those six lines true and '+
+'keeps them true after we are gone.</caption></div>'+
+'<p>Why the ceiling? Because we have all watched the same story. A thing is built to help people. It '+
+'succeeds. Money gathers around it. The money buys influence. The influence changes the purpose. And the '+
+'thing that was built to help people is now a thing that helps whoever owns it.</p>'+
+'<p>The ceiling breaks that story at the first step. If no one can accumulate, no one can buy. It costs '+
+'us the very rich as members. We accept that price.</p>'+
+'<h3>Last, to the spirit</h3>'+
+'<p>Five hundred years is not a slogan. It is a hard rule that removes most of our choices.</p>'+
+'<p>It means nothing here may depend on one company, one government, one machine, or one person &mdash; '+
+'including us. All of those end. It means every decision must be written in a way that a stranger can '+
+'check, long after everyone who made it is dust. It means the record must survive people who would burn '+
+'it, because in some countries that is not a theory.</p>'+
+'<p>And it means we must be able to say we were wrong. This document has been wrong three times in '+
+'twenty-two versions. Each time we left the mistake where it was, wrote the correction next to it, and '+
+'moved on. You can look at every one of them. That is not weakness. <strong>A record you cannot check is '+
+'not a record. It is a story someone is telling you.</strong></p>'+
+'<h3>What we ask of you</h3>'+
+'<p>Not money. Not endorsement. Not a treaty.</p>'+
+'<p><strong>Let your people choose.</strong> That is all. Some will join and most will not, at first. '+
+'Those who do will contribute what they know and be paid for it in your currency, under your law, with the '+
+'record open to your inspection in your language.</p>'+
+'<p>If we are wrong, you will see it before we do, and you may say so publicly &mdash; we publish our own '+
+'faults, so yours will be in good company. If we are right, a woman who understands water will finally '+
+'appear somewhere your ministry can find her.</p>'+
+'<blockquote>We are not asking you to believe us. We are asking you to let your people be counted, and to '+
+'check our arithmetic.<span class="attr">웃 &mdash; Master of Thought</span></blockquote>');
+
+L(22,"fund.return","Revised in r22 — the correction release itself still said thirty-four languages.",
+'<h2>What a contributor gets back</h2>'+
+'<p>The operator&rsquo;s standard: <em>whoever contributes a token fuels Vision 2525 and is expected to '+
+'gain more than that dollar &mdash; or at minimum one seventh of a minimum-wage hour in 웃 value.</em></p>'+
+'<p>That is the right standard. It needs one precision, and getting it wrong would undo every legal '+
+'protection in this document.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Measured, never offered &mdash; the line, drawn precisely</span>'+
+'<p><strong>Return-on-contribution is a retrospective accountability metric. It is never an inducement, '+
+'a forecast, a target, or a reason given to anyone for contributing.</strong></p>'+
+'<p style="margin-bottom:0">The same sentence is safe as an audited historical fact and dangerous as a '+
+'forward-looking promise. A published expectation of gaining more than a contributed dollar, offered '+
+'<em>in order to obtain</em> the dollar, supplies the expectation-of-profit limb that Shield IV and the '+
+'renunciation table exist to remove. This document treats the figure only as an account of what already '+
+'happened.</p></div>'+
+'<h3>The four rules that keep the line</h3>'+
+'<ol>'+
+'<li><strong>Backward-looking only.</strong> Published for periods that have ended. No projection, no '+
+'forecast, no &ldquo;expected&rdquo; figure for a future period, ever.</li>'+
+'<li><strong>Never in solicitation.</strong> The metric does not appear in any material that asks for a '+
+'contribution. It lives in the monthly accounting, where results live.</li>'+
+'<li><strong>Published when it fails.</strong> A ratio below 1.00 is published exactly as prominently as '+
+'one above it. A metric shown only when flattering is marketing.</li>'+
+'<li><strong>No individual attribution.</strong> Computed per region, never per contributor. Nobody is '+
+'told what <em>their</em> dollar returned, because that is the sentence that turns an account into an '+
+'entitlement.</li></ol>'+
+'<h3>The metric</h3>'+
+'<pre><code>return_on_contribution  =   value delivered to contributors and their regions\n'+
+'                            ------------------------------------------------\n'+
+'                                   money contributed, same period\n\n'+
+'floor      :  1.00      every dollar returned at least a dollar of delivered value\n'+
+'reference  :  0.138 웃  one dollar ~ one seventh of a local minimum-wage hour\n'+
+'published  :  monthly, per region, in all 33 languages, with the method shown</code></pre>'+
+'<p><strong>Value delivered</strong> is not money returned &mdash; nothing is paid back, and that is what '+
+'keeps this outside securities territory. It is what the contribution bought, counted honestly: 웃 settled '+
+'to contributors in that region; open-licensed output the region now holds and did not pay to license, at '+
+'replacement cost; education delivered, valued against local tuition for equivalent hours; and '+
+'infrastructure the region keeps whether or not it keeps contributing.</p>'+
+'<p>If the ratio falls below 1.00 for a region, that region is subsidising the framework rather than the '+
+'other way round, and it is published the month it happens, in that region&rsquo;s language, without '+
+'waiting for anyone to notice.</p>'+
+'<blockquote>Nobody is promised a return. Everybody is owed an honest account of whether there was one.'+
+'<span class="attr">The line between an accountability metric and an unregistered security</span></blockquote>');
+
+L(22,"scale.2525","Revised in r22 — second thirty-four leak repaired.",
+'<h2>The road to 2525</h2>'+
+'<p>The objective has been constant since the beginning: <strong>$100bn, and beyond it a $1,000tn '+
+'horizon by 2525.</strong> It is held here, and the arithmetic is shown rather than asserted &mdash; '+
+'because a target nobody can reach is worse than no target, and because the two figures turn out to be '+
+'different <em>kinds</em> of number.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Participants</th><th class="n">Each month</th><th class="n">Per year</th><th class="n">Years to $100bn</th></tr>'+
+'<tr><td>1 million &mdash; <em>Austin, ground zero</em></td><td class="n">$1</td><td class="n">$12M</td><td class="n">8,333</td></tr>'+
+'<tr><td>1 million</td><td class="n">$10</td><td class="n">$120M</td><td class="n">833</td></tr>'+
+'<tr><td>100 million</td><td class="n">$10</td><td class="n">$12bn</td><td class="n">8.3</td></tr>'+
+'<tr><td><strong>1 billion</strong></td><td class="n"><strong>$10</strong></td><td class="n"><strong>$120bn</strong></td><td class="n"><strong>0.83</strong></td></tr>'+
+'</table><caption>The binding constraint is <strong>reach, not regulation</strong>. No structure changes '+
+'a single row; only the number of people does. That is a distribution problem, and it is the one the '+
+'existing platform &mdash; 100,000 concurrent stable, a million in burst, 33 languages, embeddable by API '+
+'&mdash; was built to attack.</caption></div>'+
+'<div class="notice key"><span class="tag">$100bn is reachable. Here is the honest condition.</span>'+
+'<p style="margin-bottom:0">A billion people at ten dollars a month reaches $100bn in under a year. That '+
+'is not a financing problem &mdash; it is a <strong>reach</strong> problem, and reach is what the product '+
+'is for. Ground zero is one thousandth of that, in one city, and every rung of the ladder from Austin to a '+
+'billion is a distribution question rather than a legal or monetary one.</p></div>'+
+'<h3>The $1,000tn horizon &mdash; and why it cannot be collected</h3>'+
+'<div class="notice hot"><span class="tag">&#9888; The distinction that saves the objective</span>'+
+'<p style="margin-bottom:0"><strong>$1,000tn collected is impossible. $1,000tn created is coherent.</strong> '+
+'Confusing the two would make the 2525 objective a slogan; separating them makes it a target.</p></div>'+
+'<p>$1,000tn is one quadrillion dollars. Collected evenly across five hundred years that is $2tn every '+
+'year, which at ten dollars a month requires <strong>16.7 billion contributors</strong> &mdash; roughly '+
+'twice the people who will ever be alive at one time. It cannot be raised. Any framework claiming '+
+'otherwise is either confused or selling something.</p>'+
+'<p>As <em>value created</em> it is an entirely different proposition. World output is around $105tn a '+
+'year. Compounded at two percent real over five centuries, cumulative global output is on the order of '+
+'a hundred thousand quadrillion dollars. <strong>One quadrillion of value created is a vanishing '+
+'fraction of one percent of that</strong> &mdash; ambitious, measurable, and not remotely absurd.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Objective</th><th>Kind of number</th><th>Measured as</th><th>Verdict</th></tr>'+
+'<tr><td><strong>$100bn</strong></td><td>Treasury &mdash; money collected</td><td>Cumulative voluntary contribution</td><td><strong>Reachable.</strong> Binding constraint is reach, not law or money.</td></tr>'+
+'<tr><td><strong>$1,000tn by 2525</strong></td><td>Value &mdash; wealth created for others</td>'+
+'<td>Cumulative delivered value: 웃 settled, open-licensed output, education delivered, infrastructure retained</td>'+
+'<td><strong>Coherent as a value target. Impossible as a treasury target.</strong></td></tr>'+
+'</table><caption>The objective is held in full. What changes is which ledger each figure is kept in.</caption></div>'+
+'<p>This distinction also protects the framework legally. A treasury that must reach a quadrillion dollars '+
+'would need a return engine, and a return engine is a security. A framework that <em>creates</em> a '+
+'quadrillion dollars of value and keeps none of it is the opposite: it is the asset lock working exactly '+
+'as designed, at five-century scale.</p>');
+
+/* ══════════ RELEASE 23 ══════════ */
+
+L(23,"corpus.empires","Master of Thought: three civilisations, three inheritances, three warnings.",
+'<h2>What the empires taught</h2>'+
+'<p>A five-hundred-year forward horizon with no backward horizon is arrogance wearing a plan. Three '+
+'civilisations ran the largest operations of their eras. We use their inventions every day. And each of '+
+'them failed <strong>at its peak, not in its decline</strong> &mdash; which is the part leaders least '+
+'expect to hear.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Civilisation</th><th>What they built that we still use</th><th>What broke them at their height</th><th>What we do about it</th></tr>'+
+'<tr>'+
+'<td><strong>Sumer</strong><br><span class="meta">c. 3500&ndash;2000 BCE</span></td>'+
+'<td><strong>The ledger itself.</strong> Writing was invented for accounts, not poetry &mdash; the earliest tablets are receipts for grain, sheep and labour. Standard weights and measures. Written law a century before Hammurabi. The idea that a stranger could verify a transaction they did not witness.</td>'+
+'<td><strong>Salt.</strong> Centuries of irrigation without drainage poisoned the soil. Yields fell so slowly that no single generation saw a bad year &mdash; they simply switched from wheat to barley, which tolerates more salt, and then that failed too. Nobody was measuring across generations, because nothing measured across generations existed.</td>'+
+'<td>Replay. A record that reconstructs across centuries, so a slow failure is visible while it is still slow.</td></tr>'+
+'<tr>'+
+'<td><strong>Egypt</strong><br><span class="meta">c. 3100&ndash;1070 BCE</span></td>'+
+'<td><strong>Measurement that sets policy.</strong> The nilometer measured flood height and taxation was set from the reading, in advance, before the harvest was in. Granaries against famine. A trained scribal class reproduced across generations. Three thousand years of administrative continuity &mdash; still the record.</td>'+
+'<td><strong>Exemption.</strong> Temple estates accumulated land and tax immunity for centuries until a large share of the arable was held by an institution that paid nothing in. Everything else also depended on one office at the centre; whenever that office weakened the whole state came apart.</td>'+
+'<td>The asset lock, the per-person ceiling, and no exempt class. Nobody inside accumulates, and nobody stops paying in.</td></tr>'+
+'<tr>'+
+'<td><strong>Rome</strong><br><span class="meta">c. 509 BCE&ndash;476 CE</span></td>'+
+'<td><strong>Membership that could extend.</strong> In 212 CE citizenship was granted to nearly every free inhabitant of the empire. Law that was written, appealable and portable across provinces. Roads, aqueducts, a periodic census. Engineering across generations.</td>'+
+'<td><strong>Two things.</strong> The coinage was debased over two centuries until almost no silver remained &mdash; invisible in any single year, catastrophic across two hundred. And succession was never solved: there was no agreed rule for replacing the man at the top, so civil war became the mechanism. Twenty-six emperors in fifty years.</td>'+
+'<td>A unit anchored to a published local rate that cannot be quietly debased &mdash; and the ten-year standing with recall, so succession is a schedule rather than a crisis.</td></tr>'+
+'</table><caption>Read the third column as our risk register with four thousand years of evidence behind '+
+'it. None of these were foolish people. They were the most sophisticated administrators of their '+
+'age.</caption></div>'+
+'<h3>The pattern</h3>'+
+'<p>All three failures share one shape, and it is the thesis of this document arriving from history '+
+'instead of from argument.</p>'+
+'<p><strong>Sumer could not see the salt.</strong> Not because they lacked records &mdash; they invented '+
+'records &mdash; but because their records were per-transaction and the failure was per-century. Every '+
+'individual tablet was accurate. The thing that was killing them appeared on none of them.</p>'+
+'<p><strong>Egypt could not see the exemption.</strong> Each land grant to a temple was lawful, pious and '+
+'small. The cumulative position &mdash; an untaxed institution holding a large share of the productive '+
+'land &mdash; was nobody&rsquo;s job to total up.</p>'+
+'<p><strong>Rome could not see the debasement.</strong> Each reduction in silver was defensible, marginal '+
+'and a response to a real shortfall. No emperor debased the currency. Two centuries of emperors each '+
+'debased it slightly.</p>'+
+'<blockquote>None of them were destroyed by an enemy they could see. Each was undone by an accumulation '+
+'nobody was counting.<span class="attr">Why the first act of governance is to make visible</span></blockquote>'+
+'<h3>What we owe them</h3>'+
+'<p>We did not invent the ledger; Sumer did, and we are still using it. We did not invent measurement '+
+'setting policy; Egypt did that on the Nile four thousand years ago. We did not invent extensible '+
+'membership; Rome extended citizenship to millions who had been conquered.</p>'+
+'<p>What we are adding is small by comparison, and it is the one thing all three lacked: '+
+'<strong>a record that measures across generations, totals the accumulations nobody is watching, and can '+
+'be re-checked by a stranger after everyone involved is gone.</strong></p>'+
+'<p>They had every other ingredient. That is precisely why their failure is worth taking '+
+'seriously.</p>');
+
+/* ══════════ RELEASE 24 ══════════ */
+
+L(24,"legal.join","Master of Thought: the founding right, and how we operate lawfully in each region.",
+'<h2>The right to join</h2>'+
+'<p>Nine releases on how not to be stopped, and we never stated the simplest ground we stand on.</p>'+
+'<div class="notice lock"><span class="tag">The founding fact</span>'+
+'<p style="margin-bottom:0"><strong>People elect to join.</strong> Nobody is enrolled, assigned, '+
+'defaulted, or signed up by an employer or a state. A person chooses, and may stop choosing at any time '+
+'without penalty or loss of what they already earned.</p></div>'+
+'<p>Voluntary association is a recognised right in nearly every legal system on earth and appears in most '+
+'written constitutions. It is not a loophole. It is the foundation, and it should have been in release '+
+'1.</p>'+
+'<h3>Two questions people keep confusing</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th></th><th>May a person join?</th><th>May the entity operate here?</th></tr>'+
+'<tr><td><strong>Whose right</strong></td><td>The person&rsquo;s</td><td>The entity&rsquo;s &mdash; and it is a permission, not a right</td></tr>'+
+'<tr><td><strong>Answer</strong></td><td>Almost always yes. Association is protected nearly everywhere.</td><td>Only once the local requirements are met. Sometimes not at all.</td></tr>'+
+'<tr><td><strong>Needs permission?</strong></td><td>No</td><td><strong>Yes.</strong> Fundraising authorisation, payments licensing, data registration &mdash; per jurisdiction.</td></tr>'+
+'<tr><td><strong>If refused</strong></td><td>A person may still hold their record; it is theirs.</td><td>We withdraw and say so publicly. We do not route around it.</td></tr>'+
+'</table><caption>These are two different questions with two different answers, and conflating them is why '+
+'so many projects in this field either panic or overclaim. We need no permission for the first. We '+
+'absolutely need it for the second.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Association is not unlimited &mdash; say so plainly</span>'+
+'<p style="margin-bottom:0">The right to associate does not carry a right to raise money, to move money, '+
+'to hold personal data, to receive funds from abroad, or to operate where an activity is lawfully '+
+'prohibited. Each of those is separately regulated and separately obtained. Anyone telling you that '+
+'&ldquo;it is voluntary&rdquo; settles the legal question is either mistaken or selling something.</p></div>'+
+'<h3>How we meet each region</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Requirement</th><th>How it is met</th><th>Who holds it</th></tr>'+
+'<tr><td>Fundraising authorisation</td><td>Registered domestic entity per region, filing to the local standard, with monthly public accounts that exceed most filing floors.</td><td>The regional entity &mdash; Shield III</td></tr>'+
+'<tr><td>Payments licensing</td><td>Settlement runs through a licensed local processor. We never hold user balances, which is what would make this money transmission.</td><td>Licensed partner, per region</td></tr>'+
+'<tr><td>Securities equivalents<br><span class="meta">SEC · ESMA · MAS · CVM · SEBI · DFSA · FCA</span></td><td>Nothing is offered. No instrument appreciates, trades, or promises a return. Recognition is earned by time and is not purchasable. There is no security because there is no investment contract &mdash; not because we found an exemption.</td><td>Structural, not filed</td></tr>'+
+'<tr><td>Data protection</td><td>Personal data held locally and erasable; only hashes are permanent. Erasure honoured under the local regime.</td><td>The regional entity</td></tr>'+
+'<tr><td>Foreign funding restriction</td><td>Each region is funded from within that region. No inward cross-border solicitation, which is the specific act these laws restrict.</td><td>Shield III again &mdash; the reason it exists</td></tr>'+
+'<tr><td>Labour and pension</td><td>The five-year guarantee is backed by a ring-fenced funded reserve, disclosed monthly. Characterisation confirmed with local counsel before launch, not after.</td><td><strong>Requires counsel.</strong> Unresolved in several regions.</td></tr>'+
+'</table><caption><strong>Every row requires qualified local counsel.</strong> The securities row is the '+
+'one people expect to be hardest and is in fact the easiest, because there is nothing to '+
+'register.</caption></div>'+
+'<h3>What joining unlocks</h3>'+
+'<p>A right nobody wants to exercise is worthless. Here is what a person actually gets &mdash; stated as '+
+'what they receive, not what the framework gains.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Unlocked</th><th>What it means to the person who joined</th></tr>'+
+'<tr><td><strong>A record that is yours</strong></td><td>Permanent, portable, and not held by any employer, ministry or company. It works as a transcript, a portfolio, and a claim &mdash; and it survives the institution that witnessed it.</td></tr>'+
+'<tr><td><strong>Payment in your own money</strong></td><td>At your own local rate, over five years, guaranteed. In 103 of 103 jurisdictions, including the thirteen with no statutory wage at all.</td></tr>'+
+'<tr><td><strong>The global talent pool</strong></td><td>Your problem is worked on by whoever is genuinely best placed anywhere on earth &mdash; routed by capability, not by passport or by who can afford a consultant.</td></tr>'+
+'<tr><td><strong>Everything already built</strong></td><td>All funded work is published openly. A region that joins today inherits what every earlier region paid for, and pays nothing to license it.</td></tr>'+
+'<tr><td><strong>A voice that cannot be bought over</strong></td><td>One unweighted vote on who leads and what the purpose is. The same weight as the wealthiest participant, because wealth carries none.</td></tr>'+
+'<tr><td><strong>Education that counts as work</strong></td><td>Contribution and learning are the same record. A sixteen-year-old and a professor hold the same kind of receipt.</td></tr>'+
+'</table><caption>The fourth row is the one that compounds. Joining late is cheaper than joining early, '+
+'and that is deliberate &mdash; a framework that punished latecomers would be a club rather than a '+
+'commons.</caption></div>');
+
+L(24,"corpus.score","Master of Thought: score ourselves against our own gate, and name the weak pillar.",
+'<h2>Our own SSSES score</h2>'+
+'<p>We hold every cube to five pillars and a production-ready bar of 100 on all five. It would be '+
+'incoherent not to score this document the same way, and to publish the result whether or not it '+
+'flatters.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Pillar</th><th class="n">Score</th><th>Evidence</th><th>What is holding it down</th></tr>'+
+'<tr><td><strong>Security</strong></td><td class="n">92</td>'+
+'<td>Every defect published including the live ones. Withdrawal posture defined. No secrets, tokens or personal data anywhere in the file.</td>'+
+'<td>Four live defects remain in the system this document describes. Disclosure is not repair.</td></tr>'+
+'<tr><td><strong>Stability</strong></td><td class="n">100</td>'+
+'<td>Replay is a pure function of the version index. Verified identical across every release, every run, with no clock and no hidden state.</td>'+
+'<td>Nothing. This pillar is met.</td></tr>'+
+'<tr><td><strong>Scalability</strong></td><td class="n">85</td>'+
+'<td>Self-contained, works offline, renders on a phone, scales to any number of releases without restructuring.</td>'+
+'<td><strong>The weak pillar.</strong> English only. Thirty-three languages are committed and none have shipped; the pass runs at N&ge;99.</td></tr>'+
+'<tr><td><strong>Efficiency</strong></td><td class="n">95</td>'+
+'<td>One file. Full replay of every release in under a second in a browser, on a laptop, with no network.</td>'+
+'<td>File size grows linearly with releases. Fine at this scale; needs attention approaching ninety-nine.</td></tr>'+
+'<tr><td><strong>Succinctness</strong></td><td class="n">96</td>'+
+'<td>One document replacing two predecessors, supersession verified by diff rather than asserted. One block per idea, one ledger, one render function.</td>'+
+'<td>Some recovered sections still read as merged rather than written.</td></tr>'+
+'<tr><td><strong>Composite</strong></td><td class="n"><strong>85</strong></td>'+
+'<td colspan="2"><strong>The minimum, not the mean.</strong> A five-pillar gate scored by averaging would let a strong pillar hide a weak one, which is the failure the gate exists to prevent. Our composite is our worst pillar, and our worst pillar is that nobody can yet read this in their own language.</td></tr>'+
+'</table><caption>Not production-ready by our own standard, and that is the correct verdict. Publishing 85 '+
+'when the mean would have read 93.6 is the whole point of scoring by minimum.</caption></div>'+
+'<p>The trend across releases is the useful part. Security rose when the defect register shipped at r6. '+
+'Stability reached 100 at r5 when replay became testable rather than asserted. Succinctness rose sharply '+
+'at r21 when the merge closed and one document replaced two. <strong>Scalability has not moved since r1</strong> '+
+'&mdash; and it will not move until the language pass runs, which is exactly why it is the number we '+
+'publish as our score.</p>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;
