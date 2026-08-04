@@ -358,7 +358,7 @@ const ORDER = [
  "legal.doctrine","legal.shields","legal.renounce","legal.entity","legal.regimes","legal.matrix",
  "legal.pension","legal.ramp","legal.dissolution","legal.engage","legal.join",
  "gov.council","gov.ladder","gov.personhood","gov.recall",
- "off.switch","off.reserve","off.trust","off.restart","gov.cadence",
+ "off.switch","off.keys","off.reserve","off.trust","off.restart","gov.cadence",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
  "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.score","corpus.iterations","corpus.cubes","corpus.empires",
  "rcore.ledger","rcore.modes",
@@ -1146,6 +1146,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"The attack this defeats is the one nobody defends against: an institution that has stopped being useful and cannot be stopped. Every safeguard before this one assumed we would still deserve to exist."}
  ],
  next:"The switch exists and its two dangers are published: a late holder can be wiped out, and the shutdown threshold is unratified. Both need a person. The proposed principal floor would fix the first and needs the operator; the thresholds need the councils. Until they are ratified this is a specified mechanism rather than a live one, and the register says so."
+},
+{
+ v:38, code:"THE TWO KEYS", stamp:"2026.08.04 &middot; release 38",
+ thrust:"Three gates on the off switch: humanity mandates it, the council and the Innovation Leader counter-sign it, and a two-key ceremony executes it. The veto is a brake, never a throttle, and it expires.",
+ mot:"Operator directive, and it cuts against something we ratified one release ago, so it gets named rather than slipped in. Release 37 made switch-off sovereignty class: unweighted, one person one vote, no exceptions. This adds a counter-signature from one named account. That is a deliberate exception to our own principle and the document says so in those words. Three things make it survivable. It is a BRAKE and not a throttle &mdash; the Leader can slow a shutdown, never cause one. It EXPIRES with the First Innovation Term, ten years from the million-dollar mark, automatically. And it LAPSES on silence, because an off switch that can be disabled by not answering the phone is not an off switch. On the ceremony: build the protocol, never the secret. The PIN goes nowhere near this repository, this document, or any log. I have verified zero tracked files contain it and it stays that way.",
+ stats:{clauses:247, jur:103, shields:5, defects:13, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The founding term is given a beginning that can be pointed at &mdash; the million-dollar mark &mdash; and therefore an end that arrives whether anyone wants it to or not."},
+  {n:"Asar",   g:"A",  f:"An exception to a principle ratified one release earlier. Correct to make it, correct to date-stamp it, and the document does both instead of quietly harmonising them."},
+  {n:"Athena", g:"A+", f:"Brake, not throttle, is the whole design. The counter-signature can only ever preserve the system; it can never be turned around and used to end it. That asymmetry is what makes a single-person veto tolerable at all."},
+  {n:"Christo",g:"A+", f:"A person who builds something should get one decade of the benefit of the doubt, and not one day more. Both halves of that sentence are in the mechanism."},
+  {n:"Enki",   g:"A",  f:"The lapse-on-silence rule is the unglamorous one that matters. Every permanent veto in history began as a temporary one exercised by not responding."},
+  {n:"Enlil",  g:"A+", f:"The PIN is never compared in the application. It is presented to a restricted function that returns a boolean and writes an audit row; the application cannot read the secret it is checking against. That is the only construction worth calling two-key."},
+  {n:"Krishna",g:"A",  f:"Gate 2 binds the Leader to the council rather than placing them above it &mdash; two-thirds consensus that must include the Leader, not the Leader instead of consensus."},
+  {n:"Odin",   g:"A",  f:"Two defects published with the mechanism. An eight-digit numeric PIN is one hundred million combinations, which is minutes of brute force without a lockout, and a PIN typed into a live session is not a second factor at all."},
+  {n:"Pangu",  g:"A+", f:"Execution is separated from decision. The ceremony carries out a choice already made by others; it is not where the choice happens. Most systems lose that distinction and never notice."},
+  {n:"Sofia",  g:"A+", f:"A reader can see exactly who can stop this, for how long, and on what day that stops being true. Nothing about the founder&rsquo;s privilege is left to be inferred."},
+  {n:"Thoth",  g:"A",  f:"The clock has a verifiable zero: the moment cumulative Seed Token proceeds reach $1,000,000. At one dollar a token that is one million tokens, which is also the ground-zero population figure. Seven plus three lands the term end ten years later, computable to the day."},
+  {n:"Thor",   g:"A+", f:"Any credential that has passed through a chat, an email or a ticket is compromised and must be rotated before first use. That is stated here because the alternative is a master key whose only protection is that nobody looked."}
+ ],
+ next:"The authority ladder is specified and its exception is dated. What it needs now is the operator: rotate the credential before any ceremony, bind the second factor to hardware rather than to a number, and ratify the release-37 thresholds. The communication brief accompanying this release explains the formula and the risk to a reader who has never seen the ledger."
 }
 ];
 
@@ -4691,6 +4712,172 @@ L(37,"open.defects","Two new defects, both created by the off switch and publish
 'two gaps, one accepted, one proposed.</strong> Every live item is now a decision rather than a bug. Two of '+
 'them were created this release, and both were published before anyone had to find them &mdash; which is '+
 'the only version of the disclosure rule that means anything.</caption></div>');
+
+/* ══════════ RELEASE 38 ══════════ */
+
+L(38,"off.keys","Operator directive: the Innovation Leader counter-signs the off switch during the founding term, executed by a two-key ceremony. A deliberate, dated exception to release 37.",
+'<h2>Who can turn the key</h2>'+
+'<div class="notice hot"><span class="tag">&#9888; A deliberate exception to our own principle, named rather than harmonised</span>'+
+'<p style="margin-bottom:0">Release 37 made switch-off <strong>sovereignty class</strong>: unweighted, one '+
+'person one vote, nothing anyone contributed counts. This release gives <strong>one named person a '+
+'counter-signature</strong> over that vote. That is an exception, it is being made on purpose, and it is '+
+'written down as an exception rather than blended into the principle. Three things make it survivable: it '+
+'is a <strong>brake and never a throttle</strong>, it <strong>expires</strong>, and it '+
+'<strong>lapses on silence</strong>.</p></div>'+
+'<h3>Three gates</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">Gate</th><th>Who</th><th>Class</th><th>Bar</th></tr>'+
+'<tr><td class="n">1</td><td><strong>Mandate</strong> &mdash; every enrolled natural person</td>'+
+'<td>Sovereignty &middot; unweighted 1p1v</td>'+
+'<td>40% quorum, 60% carry, confirmed 180 days later (r37)</td></tr>'+
+'<tr><td class="n">2</td><td><strong>Counter-signature</strong> &mdash; the tri-council, the Innovation Leader among them</td>'+
+'<td>Consensus</td><td>Two-thirds of council, and the Leader&rsquo;s assent must be inside that two-thirds</td></tr>'+
+'<tr><td class="n">3</td><td><strong>Execution</strong> &mdash; the master admin account</td>'+
+'<td>Ceremony, <em>not</em> a decision</td><td>Two keys: identity, then a secret the application cannot read</td></tr>'+
+'</table><caption>Gate 3 is not where the choice happens. It carries out a choice already made by everyone '+
+'else. Most systems lose that distinction and never notice they have lost it.</caption></div>'+
+'<div class="notice key"><span class="tag">A brake, never a throttle</span>'+
+'<p style="margin-bottom:0">The counter-signature can only ever <strong>stop or slow a shutdown</strong>. '+
+'It cannot start one. No gate lets the Innovation Leader, the council, or any combination of them end this '+
+'system without a carried mandate from ordinary people. The veto is therefore incapable of destroying the '+
+'framework; it can only preserve it against a decision it thinks is premature. That single asymmetry is '+
+'the entire reason a one-person veto is tolerable here and would not be tolerable anywhere else in this '+
+'document.</p></div>'+
+'<h3>The First Innovation Term, and its zero</h3>'+
+'<p>The counter-signature is not a permanent office. It belongs to the <strong>First Innovation Term</strong> '+
+'&mdash; the founding <strong>7 + 3</strong> standing, seven years leading with full authority and three '+
+'mentoring with none &mdash; and the clock has a zero anyone can point at:</p>'+
+'<pre><code>t0  =  the moment cumulative Seed Token proceeds reach $1,000,000\n\n'+
+'       not incorporation.  not the first commit.  not an announcement.\n'+
+'       a public, on-ledger, checkable event.\n\n'+
+'   t0 + 7 years   leading, full authority, counter-signature live\n'+
+'   t0 + 10 years  standing ends; counter-signature LAPSES AUTOMATICALLY\n'+
+'                  gate 2 becomes tri-council two-thirds, alone, forever after</code></pre>'+
+'<p>At one dollar a token the zero is one million tokens &mdash; the same million people named as ground '+
+'zero. The term ends on a computable day whether or not anyone wants it to, and no vote, amendment or '+
+'emergency extends it.</p>'+
+'<h3>When the counter-signature lapses early</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Condition</th><th>Effect</th><th>Why</th></tr>'+
+'<tr><td>No response within 90 days of a carried mandate</td>'+
+'<td>Lapses <strong>for that petition</strong>; gate 2 proceeds on council two-thirds alone</td>'+
+'<td>An off switch that can be disabled by not answering the phone is not an off switch.</td></tr>'+
+'<tr><td>Death, or incapacity certified by the council</td><td>Lapses immediately and permanently</td>'+
+'<td>A safety mechanism must not have a single point of failure that biology can trigger.</td></tr>'+
+'<tr><td>Recall under the r33 process</td><td>Lapses with the standing</td><td>Every office in this framework has a removal path, including this one.</td></tr>'+
+'<tr><td>End of the First Innovation Term</td><td>Lapses automatically at t0 + 10 years</td><td>The founder gets one decade of the benefit of the doubt. Not one day more.</td></tr>'+
+'</table></div>'+
+'<h3>The two-key ceremony &mdash; protocol only</h3>'+
+'<div class="notice ok"><span class="tag">&#10003; The secret is not in this document, this repository, or any log</span>'+
+'<p style="margin-bottom:0">What follows is the <strong>communication and verification protocol</strong>. '+
+'The master PIN itself is held by the Leader and appears nowhere in the system it unlocks. Verified: zero '+
+'tracked files contain it, and that is a condition of every future release.</p></div>'+
+'<div class="scroll dia"><svg viewBox="0 0 880 200" role="img" aria-label="Two-key ceremony: identity and PIN verified by a restricted Supabase function that returns only a boolean">'+
+'<style>.l{font:600 12.5px ui-sans-serif,system-ui;fill:currentColor}.s{font:11px ui-monospace,monospace;fill:currentColor;opacity:.75}.b{fill:none;stroke:currentColor;stroke-width:1.5}</style>'+
+'<rect class="b" x="12" y="14" width="188" height="62" rx="5"/>'+
+'<text class="l" x="26" y="36">KEY 1 &middot; identity</text>'+
+'<text class="s" x="26" y="54">one master admin account</text><text class="s" x="26" y="68">bound to hardware 2FA</text>'+
+'<rect class="b" x="12" y="98" width="188" height="62" rx="5"/>'+
+'<text class="l" x="26" y="120">KEY 2 &middot; master PIN</text>'+
+'<text class="s" x="26" y="138">held by the Leader alone</text><text class="s" x="26" y="152">never stored in this system</text>'+
+'<path class="b" d="M200 45 L262 45 L262 87 M200 129 L262 129 L262 87 M262 87 L318 87" marker-end="url(#a38)"/>'+
+'<defs><marker id="a38" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">'+
+'<path d="M0 0 L9 4.5 L0 9 z" fill="currentColor"/></marker></defs>'+
+'<rect class="b" x="318" y="40" width="252" height="94" rx="5"/>'+
+'<text class="l" x="332" y="62">RESTRICTED FUNCTION</text>'+
+'<text class="s" x="332" y="80">Supabase, SECURITY DEFINER</text>'+
+'<text class="s" x="332" y="96">RLS denies every direct read</text>'+
+'<text class="s" x="332" y="112">Argon2id verify + rate limit</text>'+
+'<text class="s" x="332" y="128">the app cannot read the secret</text>'+
+'<path class="b" d="M570 87 L634 87" marker-end="url(#a38)"/>'+
+'<rect class="b" x="634" y="40" width="232" height="94" rx="5"/>'+
+'<text class="l" x="648" y="62">RETURNS</text>'+
+'<text class="s" x="648" y="80">true / false &mdash; nothing else</text>'+
+'<text class="s" x="648" y="96">+ one append-only audit row</text>'+
+'<text class="s" x="648" y="112">who &middot; when &middot; which mandate</text>'+
+'<text class="s" x="648" y="128">never the value presented</text>'+
+'<text class="s" x="12" y="184">One shot per carried mandate. Five attempts, exponential lockout, alert on the third failure.</text>'+
+'</svg></div>'+
+'<p>Three properties make this a protocol rather than a password box. The application <strong>never sees '+
+'the stored secret</strong> &mdash; row-level security denies every direct read and only a definer-rights '+
+'function may compare. The comparison is against a <strong>salted Argon2id hash</strong>, so the stored '+
+'value is not the PIN and cannot be turned back into it. And the ceremony <strong>writes an append-only '+
+'audit row</strong> recording who acted, when, and against which mandate &mdash; never what they typed. A '+
+'failed ceremony is as permanently recorded as a successful one.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Two things a reader should not take on trust</span>'+
+'<p style="margin-bottom:0"><strong>An eight-digit numeric PIN is 100,000,000 combinations</strong> &mdash; '+
+'minutes of brute force without a lockout, which is why the lockout is part of the specification rather '+
+'than an operational nicety. And <strong>a PIN typed into a live session is not really a second '+
+'factor</strong>: whoever holds the session can type it. The second factor must be bound to hardware. Both '+
+'are logged as defects 18 and 19 rather than left as good intentions.</p></div>');
+
+L(38,"open.defects","Two credential defects published with the mechanism that creates them.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse '+
+'than a known one, and that rule applies to this document before it applies to anything else.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Five closed in code &middot; every live item now needs a person</span>'+
+'<p style="margin-bottom:0">The money path was closed at releases 34 and 35 (<code>5c50425</code>, '+
+'<code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Everything still open is a decision or an '+
+'operational act, not a patch. Releases 37 and 38 added four defects of their own, each published in the '+
+'release that created it, before anyone had to find them.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr><td class="n">18</td><td><strong>An 8-digit numeric PIN is brute-forceable</strong> &mdash; '+
+'100,000,000 combinations is minutes of offline or unthrottled attack.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">new at r38</span></td>'+
+'<td>Five attempts, exponential lockout, alert on the third failure, one shot per carried mandate. '+
+'Longer term: a passphrase, or drop the PIN for a hardware key entirely.</td></tr>'+
+'<tr><td class="n">19</td><td><strong>A PIN is not a second factor</strong> if whoever holds the session '+
+'can type it &mdash; and any credential that has passed through a chat, email or ticket must be treated as '+
+'already compromised.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs an operational act &middot; new at r38</span></td>'+
+'<td>Bind key 2 to hardware (FIDO2 or TOTP on a separate device). <strong>Rotate the credential before the '+
+'first ceremony, not after.</strong></td></tr>'+
+'<tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index '+
+'0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop '+
+'funding, which makes it likelier.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td>'+
+'<td>Principal floor first, then the index split of the remainder. Changes a stated instruction, so it '+
+'needs the operator.</td></tr>'+
+'<tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, '+
+'quorum, carry, confirmation and effect are all proposals.</td>'+
+'<td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td>'+
+'<td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td>'+
+'<td>An undefined cap is not a cap. Publish numbers.</td></tr>'+
+'<tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at '+
+'every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td>'+
+'<td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; '+
+'purchasable with money; governance weight from a balance; local wage applied at mint; cross-border '+
+'arbitrage; a currency constant inside the mint.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td>'+
+'<td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td>'+
+'<td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, specified with its ramp at r30, now load-bearing in the shutdown split. Unbuilt.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; sharper '+
+'now, because the shutdown rule depends on it surviving a majority.</td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language '+
+'count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10 and given a computable zero '+
+'at r38.</td><td><span class="pill p-impl">&#10003; Closed</span></td>'+
+'<td>A generated dependency map prevents recurrence.</td></tr>'+
+'<tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary '+
+'to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td>'+
+'<td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr>'+
+'</table><caption><strong>Five closed in code, one closed by definition, five live, two specification-only, '+
+'two gaps, one accepted, one proposed.</strong> Two of the live items are credential hygiene and can be '+
+'closed this week; the other three need decisions nobody can make on the operator&rsquo;s '+
+'behalf.</caption></div>');
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 const VMAX = VERSIONS.length;

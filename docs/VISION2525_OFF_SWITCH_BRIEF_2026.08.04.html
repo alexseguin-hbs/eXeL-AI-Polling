@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Vision 2525 — The Off Switch: Communication Brief</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --paper:#F7F5F1; --ink:#1A1D21; --ink-2:#5A6169; --rule:#D7D9D5; --rule-2:#ECEDE9; --panel:#FFFFFF;
+  --ai:#0D6E86;  --ai-bg:#E3F0F3;
+  --si:#8A6206;  --si-bg:#F4ECDB;
+  --hi:#7A2C8C;  --hi-bg:#F1E6F4;
+  --ok:#2F6144;  --ok-bg:#E2ECE6;
+  --alert:#A3341F; --alert-bg:#F8E6E1;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0B0E11; --ink:#E4E8EC; --ink-2:#8E979F; --rule:#2A3138; --rule-2:#161B20; --panel:#12171C;
+  --ai:#4CCFE0;  --ai-bg:#0C2328;
+  --si:#E3BE4A;  --si-bg:#231D0C;
+  --hi:#D18BE0;  --hi-bg:#1E1125;
+  --ok:#63C18E;  --ok-bg:#0B1F15;
+  --alert:#E5806A; --alert-bg:#26100B;
+}}
+:root[data-theme="dark"]{
+  --paper:#0B0E11; --ink:#E4E8EC; --ink-2:#8E979F; --rule:#2A3138; --rule-2:#161B20; --panel:#12171C;
+  --ai:#4CCFE0;  --ai-bg:#0C2328;
+  --si:#E3BE4A;  --si-bg:#231D0C;
+  --hi:#D18BE0;  --hi-bg:#1E1125;
+  --ok:#63C18E;  --ok-bg:#0B1F15;
+  --alert:#E5806A; --alert-bg:#26100B;
+}
+:root[data-theme="light"]{
+  --paper:#F7F5F1; --ink:#1A1D21; --ink-2:#5A6169; --rule:#D7D9D5; --rule-2:#ECEDE9; --panel:#FFFFFF;
+  --ai:#0D6E86;  --ai-bg:#E3F0F3;
+  --si:#8A6206;  --si-bg:#F4ECDB;
+  --hi:#7A2C8C;  --hi-bg:#F1E6F4;
+  --ok:#2F6144;  --ok-bg:#E2ECE6;
+  --alert:#A3341F; --alert-bg:#F8E6E1;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:17px/1.68 Georgia,"Iowan Old Style","Times New Roman",serif;
+  -webkit-text-size-adjust:100%;padding:0 20px 80px}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3,.kicker,.meta,table,pre,.tag{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header.mast{padding:56px 0 26px;border-bottom:3px solid var(--ink);margin-bottom:34px}
+.kicker{font-size:11px;letter-spacing:.19em;text-transform:uppercase;color:var(--ai);font-weight:700}
+h1{font-size:clamp(31px,6.2vw,50px);line-height:1.06;margin:16px 0 6px;letter-spacing:-.018em;text-wrap:balance}
+.sub{color:var(--ink-2);font-size:17px;margin:10px 0 0}
+.standfirst{font-size:clamp(18px,2.8vw,21px);line-height:1.5;color:var(--ink);margin:22px 0 0}
+h2{font-size:clamp(21px,4vw,29px);line-height:1.16;margin:52px 0 12px;letter-spacing:-.012em;text-wrap:balance}
+h3{font-size:clamp(16px,2.5vw,19px);margin:32px 0 8px;color:var(--ink)}
+p{margin:0 0 15px}
+.rn{font-size:10.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--ai);font-weight:700;
+  border-top:1px solid var(--rule);padding-top:9px;margin-top:52px}
+.rn+h2{margin-top:8px}
+.notice{border:1px solid var(--rule);border-left:5px solid var(--ai);background:var(--panel);
+  padding:15px 17px;margin:22px 0;border-radius:2px;font-size:15.5px;line-height:1.6}
+.notice.key{border-left-color:var(--ai);background:var(--ai-bg)}
+.notice.ok{border-left-color:var(--ok);background:var(--ok-bg)}
+.notice.hot{border-left-color:var(--alert);background:var(--alert-bg)}
+.notice.warm{border-left-color:var(--si);background:var(--si-bg)}
+.notice p:last-child{margin-bottom:0}
+.tag{display:inline-block;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;font-weight:700;
+  margin-bottom:7px;color:var(--ink-2)}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:2px;margin:22px 0;background:var(--panel)}
+@media(min-width:980px){.scroll{margin-left:-80px;margin-right:-80px}}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.5}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--rule-2);vertical-align:top}
+th{background:var(--rule-2);font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-2)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+tr:last-child td{border-bottom:0}
+caption{caption-side:bottom;text-align:left;padding:11px 13px;font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);line-height:1.55}
+pre{background:var(--rule-2);border:1px solid var(--rule);border-radius:2px;padding:14px 16px;
+  overflow-x:auto;font-size:13px;line-height:1.66;margin:20px 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em}
+ul,ol{margin:0 0 15px;padding-left:24px}
+li{margin:0 0 7px}
+.lede{color:var(--ink-2);font-style:italic;font-size:16px;margin:0 0 6px}
+.dia{padding:18px 16px;color:var(--ink)}
+.dia svg{display:block;min-width:640px;width:100%;height:auto}
+footer.end{border-top:3px solid var(--ink);margin-top:60px;padding-top:22px;font-size:13px;color:var(--ink-2);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+@media print{body{padding:0;font-size:11pt}.scroll{overflow:visible;border:0;margin:0}h2,h3{break-after:avoid}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">Vision &#8226; 2525 &middot; Communication Brief &middot; Master of Thought</div>
+  <h1>The Off Switch</h1>
+  <p class="sub">How this system can be ended, what happens to the money when it is,
+  and the risk that made building it necessary.</p>
+  <p class="standfirst">Every institution that ever outlived its usefulness had one thing in common:
+  by the time everyone agreed it should stop, there was no longer any way to stop it.</p>
+  <div class="meta" style="margin-top:22px;font-family:ui-monospace,monospace;font-size:12px;line-height:1.8;color:var(--ink-2)">
+    Companion to <strong style="color:var(--ink)">Vision &#8226; 2525 &mdash; The Living Ledger of Human Contribution</strong>,
+    releases 37&ndash;38<br>
+    Analysis and architecture only &middot; not legal, tax or investment advice
+  </div>
+</header>
+
+<p>This brief is for someone who has not read the ledger and does not intend to. It answers four
+questions: <strong>what we built, how the money unwinds, why the platform exists at all,</strong> and
+<strong>what we are still getting wrong.</strong></p>
+
+<div class="rn">Part one</div>
+<h2>What we built, and the flaw that prompted it</h2>
+
+<p>Vision&nbsp;2525 is designed to last five hundred years. That ambition creates a specific danger, and
+for thirty-six revisions we built directly into it without noticing.</p>
+
+<p>The framework carries five legal shields. No equity, so it cannot be acquired. An asset lock, so value
+cannot be extracted. Federated domestic personality, so no single government can shut it down. Recognition
+that cannot be purchased. A funded reserve behind every promise. Together they make the system very hard
+for anyone outside it to stop.</p>
+
+<div class="notice hot">
+  <span class="tag">&#9888; The flaw</span>
+  <p style="margin-bottom:0">We had built five defences against <em>other people</em> ending this system,
+  and <strong>no way for the people inside it to end it themselves.</strong> That is not a durable
+  institution. That is the exact shape of every organisation that stopped being useful and could not be
+  stopped &mdash; and we had built it while congratulating ourselves on the shields.</p>
+</div>
+
+<p>Releases 37 and 38 close it. Anyone may petition to switch the system off. The vote is
+<strong>unweighted &mdash; one person, one vote</strong>. Nothing anyone has contributed counts, including
+money. If it carries, the reserve unwinds by a published formula, the obligations already earned are paid
+in full, and what remains is locked in a trust that only a restart can open.</p>
+
+<h3>Three gates</h3>
+<div class="scroll"><table>
+<tr><th class="n">Gate</th><th>Who decides</th><th>Bar</th></tr>
+<tr><td class="n">1</td><td><strong>Mandate</strong> &mdash; every enrolled person, unweighted</td>
+<td>40% quorum, 60% carry, confirmed again 180 days later</td></tr>
+<tr><td class="n">2</td><td><strong>Counter-signature</strong> &mdash; the tri-council, including the Innovation Leader</td>
+<td>Two-thirds, and the Leader&rsquo;s assent must be inside that two-thirds</td></tr>
+<tr><td class="n">3</td><td><strong>Execution</strong> &mdash; the master admin account, two keys</td>
+<td>Carries out the decision. Does not make it.</td></tr>
+</table><caption>Gate&nbsp;3 is a ceremony, not a choice. The choice was already made at gates one and
+two.</caption></div>
+
+<div class="notice key">
+  <span class="tag">A brake, never a throttle</span>
+  <p style="margin-bottom:0">Gate&nbsp;2 lets the Innovation Leader <strong>slow or stop</strong> a
+  shutdown. It can never <strong>cause</strong> one &mdash; no combination of leader and council can end
+  this system without a carried mandate from ordinary people. So the veto is structurally incapable of
+  destroying the framework. It can only preserve it against a decision it believes is premature. That
+  asymmetry is the only reason a single-person veto is acceptable here, and it expires: the
+  counter-signature belongs to the founding <strong>7&nbsp;+&nbsp;3</strong> term and lapses automatically
+  ten years after cumulative Seed Token proceeds first reach <strong>$1,000,000</strong>. It also lapses if
+  it is not exercised within ninety days &mdash; an off switch that can be disabled by not answering the
+  phone is not an off switch.</p>
+</div>
+
+<div class="rn">Part two</div>
+<h2>The formula, in plain terms</h2>
+
+<p>If the system stops, the reserve does not become a pot to be divided among whoever is loudest. It splits
+three ways, in strict order, and <strong>the first claim is not a funder&rsquo;s.</strong></p>
+
+<div class="scroll"><table>
+<tr><th class="n">Order</th><th>Pool</th><th class="n">Illustrative</th><th>Rule</th></tr>
+<tr><td class="n">1</td><td><strong>Guarantee pool</strong></td><td class="n">$173,982,600</td>
+<td>Contribution already earned. Paid in full. Never distributable.</td></tr>
+<tr><td class="n">2</td><td><strong>Holder pool</strong></td><td class="n">$239,948,806</td>
+<td>Seed Tokens, split by Continuity Index.</td></tr>
+<tr><td class="n">3</td><td><strong>Continuity Trust</strong></td><td class="n">$86,068,593</td>
+<td>Unclaimed shares and residue. Opens only on a valid restart.</td></tr>
+</table><caption>Illustrative reserve of $500,000,000. Free reserve = reserve &minus; committed
+obligations = $326,017,400, of which the unclaimed portion falls to the Trust.</caption></div>
+
+<div class="notice ok">
+  <span class="tag">&#10003; The guarantee outlives the vote</span>
+  <p style="margin-bottom:0">Someone two years into a five-year payout does <strong>not</strong> lose the
+  remaining three because a vote went a certain way. &ldquo;Guaranteed&rdquo; means nothing if a majority
+  can cancel it, and a shutdown is precisely where that promise would be cheapest to break. So it is
+  ranked first, ahead of every funder.</p>
+</div>
+
+<h3>The Continuity Index</h3>
+
+<p>Seed Token holders are repaid in proportion to <strong>how much the platform grew during the years they
+were funding it.</strong> Four measures, weighted equally: <strong>Revenue &middot; Gross Profit &middot;
+Operating Income &middot; R&amp;D Spend.</strong></p>
+
+<pre><code>for each measure m:   &#916;m(y) = m(year it stops) &minus; m(year you bought)
+                      share(y) = &#916;m(y) &divide; &#916;m(founding year)
+
+Index(y)  = average of the four shares
+Payout    = your tokens &times; Index, as a share of everyone else's</code></pre>
+
+<p>An early holder funded the whole climb, so their index is near <strong>1.0</strong>. Someone who joined
+last year funded only the final stretch, so theirs is low. Someone who bought on the day it stopped funded
+none of it, and their index is <strong>zero</strong>.</p>
+
+<div class="notice warm">
+  <span class="tag">Why differences, and not a growth multiple</span>
+  <p style="margin-bottom:0">The obvious version is a growth ratio &mdash; today&rsquo;s revenue divided by
+  revenue in the year you bought. It breaks immediately. <strong>Operating income is negative in the early
+  years of anything worth building</strong>, and dividing by a negative number produces
+  <code>&minus;144.0</code>: a figure with no meaning that would silently invert a founder&rsquo;s claim
+  into a debt. Measuring the <em>difference</em> works cleanly through zero and stays orderly from first
+  holder to last.</p>
+</div>
+
+<div class="scroll"><table>
+<tr><th>Holder</th><th class="n">Bought</th><th class="n">Tokens</th><th class="n">Index</th><th class="n">Per token</th></tr>
+<tr><td>Adaeze</td><td class="n">year 1</td><td class="n">100</td><td class="n">0.9958</td><td class="n">$333,649</td></tr>
+<tr><td>Sokha</td><td class="n">year 4</td><td class="n">10</td><td class="n">0.9108</td><td class="n">$305,178</td></tr>
+<tr><td>Mireille</td><td class="n">year 8</td><td class="n">1,000</td><td class="n">0.5902</td><td class="n">$197,746</td></tr>
+<tr><td>Tomas</td><td class="n">year 11</td><td class="n">100</td><td class="n">0.1742</td><td class="n">$58,375</td></tr>
+</table><caption>Twelve operating years, illustrative figures, real arithmetic. Mireille holds ten times
+Adaeze&rsquo;s tokens and takes the largest total; Adaeze earns nearly six times as much
+<em>per token</em> for arriving ten years earlier.</caption></div>
+
+<h3>If it comes back</h3>
+
+<p>A restart is not a reversal &mdash; that would make the vote theatre, a pause anyone could wait out.
+Dormancy of one, two or three years is <strong>drawn at random</strong> from the final state hash, because
+a known restart date would be organised around: capital parked against it, coalitions assembled for it, the
+timing chosen for a political season rather than a readiness. Earliest restart is the drawn period plus one
+preparation year.</p>
+
+<div class="notice key">
+  <span class="tag">The condition that matters</span>
+  <p style="margin-bottom:0"><strong>You may not restart the system you switched off.</strong> Every
+  restart petitioner must submit a concrete improvement, and the restarted version must differ from the
+  switched-off version in at least one ratified way. That is not a promise anyone has to trust &mdash; it
+  is a mechanical comparison between two releases, and if it comes back empty the restart is void. Ending
+  this system is therefore not a death. It is a <strong>forced learning cycle with a real cost
+  attached.</strong></p>
+</div>
+
+<div class="rn">Part three</div>
+<h2>The risk this platform addresses</h2>
+
+<p>Everything above is machinery. Here is what the machinery is for.</p>
+
+<p>Large groups of people are very good at generating ideas and very bad at deciding between them. The
+failure is not a shortage of intelligence; it is that <strong>the process of deciding is captured by
+whoever has the most of something</strong> &mdash; money, tenure, volume, proximity to the decision. The
+result looks like consensus and is not. Good ideas from people without standing never reach the surface,
+and by the time anyone measures the outcome, the decision is unattributable.</p>
+
+<p>Vision&nbsp;2525 attacks that with one structural rule and one economic one.</p>
+
+<div class="scroll"><table>
+<tr><th>Risk</th><th>What normally happens</th><th>What is done instead</th></tr>
+<tr><td><strong>Capture</strong></td><td>Whoever funds it, steers it.</td>
+<td>Money receives; it never decides. Contribution buys no vote at any price, in any amount.</td></tr>
+<tr><td><strong>Invisible dissent</strong></td><td>Objections surface after the decision, as failure.</td>
+<td>Everyone contributes in their own language; the objection is in the record before the vote.</td></tr>
+<tr><td><strong>Unattributable outcomes</strong></td><td>Nobody can say whose idea worked.</td>
+<td>Every contribution is a ledger entry with an author, a time and a reason.</td></tr>
+<tr><td><strong>Uncompensated contribution</strong></td><td>The value flows to whoever owned the platform.</td>
+<td>Time earns a unit that settles at local rates, with a hard annual ceiling nobody can exceed.</td></tr>
+<tr><td><strong>Geographic discounting</strong></td><td>An hour is worth less depending where it was lived.</td>
+<td>An hour mints identically everywhere. Only settlement is local.</td></tr>
+<tr><td><strong>Institutional immortality</strong></td><td>It cannot be stopped once it stops working.</td>
+<td>The off switch. Everything in parts one and two.</td></tr>
+</table></div>
+
+<div class="notice">
+  <span class="tag">The one-sentence version</span>
+  <p style="margin-bottom:0">The platform exists so that a group of people can decide something together
+  <strong>without the decision being quietly bought</strong>, can see who contributed what,
+  and can end the whole arrangement if it stops serving them.</p>
+</div>
+
+<p>The economic half is worth stating precisely, because it is where most frameworks of this kind quietly
+fail. Contributed time mints a unit of recognition at a rate that is <strong>identical everywhere on
+earth</strong> &mdash; one full-time year of contribution reaches the annual ceiling exactly, whether that
+year was worked in Lagos or Seattle. The local wage still applies, but only at <em>settlement</em>, when
+the unit converts to money, and the rate is frozen at the moment the work was recorded so it cannot be
+re-priced by anyone who later holds it.</p>
+
+<div class="notice ok">
+  <span class="tag">&#10003; Why that ordering matters</span>
+  <p style="margin-bottom:0">Until recently our own code applied the local wage at the wrong moment. It
+  meant reaching the same ceiling cost <strong>29,409 hours in Nigeria and 614 in Washington State</strong>
+  &mdash; a 47.9&times; spread, against a stated goal of helping as many people as possible reach it. It
+  is now 2,080 hours everywhere. We found that in our own system, published it, and fixed it, and this
+  brief mentions it because a framework that only reports its successes is not reporting.</p>
+</div>
+
+<div class="rn">Part four</div>
+<h2>What we are still getting wrong</h2>
+
+<p>Five items are open. Three need a decision from a person; two are operational and can be closed this
+week. All of them are published in the ledger&rsquo;s own defect register rather than discovered later by
+someone else.</p>
+
+<div class="scroll"><table>
+<tr><th>Open item</th><th>Why it matters</th><th>Needs</th></tr>
+<tr><td><strong>The payout can wipe out a late funder</strong></td>
+<td>Index falls to zero in the shutdown year. If a shutdown starts to look likely, the rational act is to
+stop funding &mdash; which drains the reserve and makes shutdown likelier. It is self-fulfilling at the
+worst possible moment.</td>
+<td>A principal floor before the index split. Proposed, not yet adopted.</td></tr>
+<tr><td><strong>The shutdown thresholds are unratified</strong></td>
+<td>Quorum, carry and confirmation are proposals. An unratified threshold is not a threshold.</td>
+<td>Council ratification.</td></tr>
+<tr><td><strong>The reserve is short of the long-horizon target</strong></td>
+<td>Sustaining nine years of security for a billion people needs a corpus that a founding treasury does
+not reach on its own. It closes only through long-run compounding.</td>
+<td>A funding decision: full pre-funding, or duration-matched.</td></tr>
+<tr><td><strong>Two caps carry no numbers</strong></td>
+<td>Overhead and institutional gifts are described as capped with no figure stated anywhere. An undefined
+cap is not a cap.</td>
+<td>Publish the numbers.</td></tr>
+<tr><td><strong>Credential hygiene on the master key</strong></td>
+<td>A short numeric PIN is brute-forceable without a lockout, and a PIN typed into a live session is not
+truly a second factor.</td>
+<td>Hardware-bound second factor, attempt lockout, and rotation before first use.</td></tr>
+</table><caption>The disclosure rule that governs this framework says a hidden gap is worse than a known
+one &mdash; and that it applies to us before it applies to anyone else.</caption></div>
+
+<div class="notice key">
+  <span class="tag">What we are asking for</span>
+  <p>Three decisions, in order of how much they block:</p>
+  <ol style="margin-bottom:0">
+    <li><strong>The principal floor.</strong> Should a late funder be repaid their contribution before the
+    growth-indexed split begins? We think yes, and it changes a stated rule, so it is not ours to
+    change.</li>
+    <li><strong>The five shutdown thresholds.</strong> Until they are set, the off switch is a specification
+    rather than a working mechanism.</li>
+    <li><strong>The reserve fork.</strong> Pre-fund the full guarantee, or match funding to the duration of
+    obligations as they arise.</li>
+  </ol>
+</div>
+
+<h2>Why any of this is possible</h2>
+
+<p>A system can only afford an off switch if stopping does not destroy it. This one can, for a structural
+reason: <strong>the record is not stored, it is reconstructed.</strong> Every version of this framework can
+be rebuilt exactly, in any browser, from an append-only list of changes &mdash; including the version that
+was running on the day it was switched off. Nothing is overwritten, no correction erases the mistake before
+it, and any two versions can be compared directly.</p>
+
+<p>That is what makes ending it survivable rather than final. A framework meant to run for five centuries
+will be wrong at some point, probably more than once. The question was never how to prevent that. It was
+whether being wrong could be made <strong>recoverable</strong>.</p>
+
+<footer class="end">
+  <p><strong>Vision &#8226; 2525 &mdash; The Living Ledger of Human Contribution.</strong>
+  The Unit. The Shield. The Replay.<br>
+  Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven</p>
+  <p>Analysis and architecture only. <strong>Not legal, tax or investment advice.</strong> No security,
+  token or investment is offered, solicited or marketed anywhere in this document. All financial figures
+  are illustrative and used to demonstrate a formula, not to project a result. Every legal form and every
+  jurisdiction named requires qualified local counsel.</p>
+  <p style="margin-bottom:0">Full record, with every prior release replayable:
+  <code>VISION2525_LIVING_LEDGER</code> &middot;
+  <a href="https://exel-ai-polling.explore-096.workers.dev">exel-ai-polling.explore-096.workers.dev</a></p>
+</footer>
+
+</div>
+</html>
