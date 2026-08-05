@@ -1,7 +1,8 @@
 # Vision • 2525 — Document Architecture Spec
 
-**Version:** 17 (in progress — the 33 passes have not run) · **Revision:** r72 · **Live:** `/vision-2525/white-paper`
-**Open questions:** `docs/V17_OPEN_QUESTIONS_REGISTER.md`
+**Version:** 17 (in progress — 12 of the 33 passes have run) · **Revision:** r79 · **Live:** `/vision-2525/white-paper`
+**Open questions · operator asks · external reviews:** in the document, ledger view — `open.questions`,
+`open.asks`, `open.external`. They were markdown side-files until r79; that was **defect 27**, and §0 is why.
 **Status:** LIVE · locked at release 40, extended to three views at release 41; spec surfaced in-document at release 42 · gated by `scratchpad/lv-gate.mjs`
 **Applies to:** `docs/SOI_VISION2525_LIVING_DOCUMENT.html` and its dated release copies
 
@@ -163,6 +164,29 @@ function titleAt(v){ /* newest entry with t.v <= v — same rule as the block le
 
 `titleAt(v)` drives the `<h1>`, the subtitle and `document.title`. The static HTML carries the
 current values as the no-JS fallback.
+
+### The doctrine line too (r78, defect 26)
+
+The four-beat line beneath the masthead — *The Unit · The Shield · The Ledger · The Replay* — sat in
+static HTML from v1 to r77, so every rewording silently rewrote all 77 earlier releases. **That is
+defect 20 again, one line below the element defect 20 was about**, and three external reviewers
+examined that line closely enough to redesign it without noticing it was not replayed. Static and
+replayed look identical from the outside; nobody audits what looks already audited.
+
+```js
+const DOCTRINE = [
+  {v:1,  beats:[{w:"The Unit",d:""},{w:"The Shield",d:""},{w:"The Replay",d:""}]},
+  {v:78, beats:[{w:"The Unit",   d:"Contribution measured."},
+                {w:"The Shield", d:"Rights protected."},
+                {w:"The Ledger", d:"History preserved."},
+                {w:"The Replay", d:"Verification without permission."}]}
+];
+function doctrineAt(v){ /* same last-write-wins rule as TITLES */ }
+```
+
+**Any remaining static element is an unaudited defect 20 waiting to happen.** The rule in bold above
+is the whole of the mitigation, and the gate cannot yet tell a static element from a replayed one by
+appearance.
 
 **Rule:** anything that renders differently at different releases MUST resolve from a table
 with a `v` field. Nothing about the document's presentation may be version-blind. The frame is
@@ -353,6 +377,13 @@ shortening headers, not widening the column.
 
 **Retired at r40:** `docs/VISION2525_OFF_SWITCH_BRIEF_2026.08.04.html`. Its content lives in the
 ledger as the eight `brief.*` blocks; the standalone file remains in git history.
+
+**Retired at r79 — defect 27:** `docs/V17_OPEN_QUESTIONS_REGISTER.md`,
+`docs/V17_RUNNING_LIST_2026.08.05.md`, `docs/V17_EXTERNAL_REVIEW_REGISTER.md`. Three registers making
+claims about the same subject as the document, none of them replaying, **which is the exact failure §0
+describes** — and it had already begun: `open.external` had not moved since r55 while the r75 review
+round lived only in markdown. They are now `open.questions`, `open.asks` and `open.external`.
+**The gate fails if any `docs/V17_*.md` reappears.**
 
 ---
 

@@ -101,7 +101,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 | `Requirements.txt` | Full CRS 1–35 requirements specification |
 | `Token_Governance_Math.md` | Formal governance + tokenomics math specification |
 | `Cube_Mapping_From_v04.2.md` | Mapping between monolith sections and cube services |
-| `docs/V17_OPEN_QUESTIONS_REGISTER.md` | **Vision 2525 open questions — Version 17.** Every unanswered question, with Q1-Q5 written to be pasted whole into Grok / DeepSeek / eXeL AI for external review. Operator decisions D1-D13. What is still owed. Errors on the record. **Update this whenever a question is raised or answered.** |
+| `docs/SOI_VISION2525_LIVING_DOCUMENT.html` → **ledger view** | **ONE DOCUMENT — no side-files.** The registers are ledger blocks, reachable from the `▾ Registers` dropdown: `open.questions` (Q1-Q5 with the answers attached, operator decisions D1-D13, errors on the record) · `open.asks` (every operator ask and the release that answered it, plus what is still owed) · `open.external` (all three external reviews, item by item with state) · `open.defects` · `open.decisions` · `open.proposed`. **Update the block, never a markdown copy** — three copies drifted, which is defect 27. The gate fails if any `docs/V17_*.md` reappears. |
 | `docs/VISION2525_DOCUMENT_SPEC.md` | **Vision 2525 document architecture (LIVE, locked r40).** One document, N views over one append-only ledger. Replay contract, view registry, masthead-in-ledger rule, release process, ten invariants, gate sections, 755px layout budget. Read before touching `docs/SOI_VISION2525_LIVING_DOCUMENT.html`. |
 
 ## Technology Stack Decisions

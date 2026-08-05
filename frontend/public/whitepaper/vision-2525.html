@@ -459,6 +459,20 @@ body.fulldoc .secnav,.specban .secnav{display:none}
    that mixes with header)". A version is a document that was handed over and
    answered; it is an identifier, not part of the sentence the title makes. */
 header.mast{position:relative}
+.regwrap{position:relative;display:inline-block}
+.regmenu{position:absolute;z-index:60;top:calc(100% + 6px);left:0;min-width:232px;padding:8px;
+  border-radius:12px;border:1px solid var(--line);background:var(--card);
+  box-shadow:0 18px 44px rgba(0,0,0,.30);text-align:left}
+.regmenu[hidden]{display:none}
+.regmenu h5{margin:2px 6px 6px;font:600 10.5px/1.2 ui-sans-serif,system-ui,sans-serif;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.regmenu h5+h5,.regmenu button+h5{margin-top:10px}
+.regmenu button{display:block;width:100%;margin:0;padding:6px 8px;border:0;border-radius:8px;
+  background:none;text-align:left;font:500 12.5px/1.35 ui-sans-serif,system-ui,sans-serif;
+  color:var(--ink);cursor:pointer}
+.regmenu button:hover,.regmenu button:focus-visible{background:var(--tint);color:var(--ai)}
+.regmenu button .rid{display:block;font:400 10.5px/1.3 ui-monospace,monospace;color:var(--ink-2)}
+@media(max-width:600px){.regmenu{min-width:190px}}
 .doct{display:block;margin-bottom:6px}
 .doct b{color:var(--ink)}
 .doct i{font-style:normal;color:var(--ink-2)}
@@ -494,7 +508,10 @@ header.mast{position:relative}
   <button id="bLatest" title="Jump to the latest release">Latest</button>
   <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">&#9679; Changes</button>
   <button id="bSpec" title="Document architecture and release information">&#9881;</button>
-  <button id="bView" title="Switch between the full ledger and the short brief">&#9636; Brief</button>
+  <span class="regwrap"><button id="bReg" aria-expanded="false" aria-haspopup="true"
+    title="Jump to a register, or to another view">&#9662; Registers</button>
+   <div class="regmenu" id="regMenu" role="menu" hidden></div></span>
+  <button id="bView" title="Cycle the views — white paper, ledger, brief, outline">&#9636; Brief</button>
   <button id="bCmp" aria-pressed="false" title="Compare any two releases">&#8646; Compare</button>
   <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
   <span class="hash" id="vHash">state &mdash;</span>
@@ -614,7 +631,8 @@ const LEDGER_ORDER = [
  "human.story","human.cambodia","human.ledger","human.receipt","human.ladder",
  "scale.groundzero","scale.austin","scale.2525","scale.sim",
  "reach.intelligence","reach.worlds","reach.accelerate",
- "open.defects","open.decisions","open.proposed","open.external","close.synthesis","mot.tenses","mot.address",
+ "open.defects","open.decisions","open.questions","open.asks","open.proposed",
+  "open.external","close.synthesis","mot.tenses","mot.address",
  "mot.author"
 ];
 
@@ -2360,6 +2378,27 @@ const VERSIONS = [
   {n:"Thor",   g:"B+", f:"Static-versus-replayed is invisible from the outside and the gate cannot yet tell them apart. Every remaining static element is an unaudited defect 20 waiting to happen."}
  ],
  next:"From the three reviews, still open and now tracked in docs/V17_EXTERNAL_REVIEW_REGISTER.md: the Constitution chapter (eXeL AI&rsquo;s largest ask) &middot; per-section constitutional markers and Circle numerals &middot; the ninety-second cold open &middot; &sect;7 as a constitutional commitment rather than a legal fix &middot; the four corrections named &middot; a verifiable defect register &middot; passes visible at every release &middot; outline as the promise above the argument &middot; &sect;8 renamed in the contents. Then the reading band and the 228 readings. Version 17 is NOT released until all thirty-three passes are done."
+},
+{
+ v:79, code:"ONE DOCUMENT", stamp:"2026.08.05 &middot; revision 79",
+ thrust:"Three registers lived outside the document as markdown files &mdash; the exact failure the architecture spec was written to prevent, reproduced by me. They are ledger blocks now and the files are deleted. Plus the two review findings that carry the most legal and political weight: what &ldquo;guaranteed&rdquo; is backed by, and what the off switch actually is.",
+ mot:"The rule is the first paragraph of our own architecture spec. There is exactly one Vision 2525 document; any additional reading is a view over the same ledger, never a second file, because two files making the same claims are two chances to be caught contradicting yourself. That spec exists because it already happened once. The off-switch brief shipped as a separate file, release thirty-nine renamed the document, the brief did not follow, and two artefacts disagreed within a single day. Then I wrote three markdown side-files anyway, and the drift was already measurable before anyone noticed: the external-review block in this register had not moved since release fifty-five and knew nothing about the three-reader round at seventy-five, which existed only in a file outside the ledger. One of the three files had no references anywhere in the repository at all. Defect twenty-seven, fixed in the release that names it, and the gate now fails if any such file reappears. Then the two findings that matter most. DeepSeek called the word guaranteed the most dangerous in the document, and was right in a way I had half-answered: release two already called it the most legally dangerous word and put the warning in a notice, then left the bare promise standing in the locked definition where a reader actually stops. The operator&rsquo;s six locked bullets are not edited, because they are the operator&rsquo;s words and they are marked Immutable. The backing is stated directly beneath them instead: funded by a ring-fenced reserve whose balance is published monthly, structural rather than aspirational, with the coverage ratio published the month it falls below one. And Grok said section seven reads as a legal fix rather than a constitutional commitment. It did. The mechanics were right and the claim was never made. It is now: this is an institution that publishes its own death certificate in advance, written at the beginning, while nobody wants to use it and while we are the people it would be used against, because that is the only moment the terms can be honest.",
+ stats:{clauses:291, jur:103, shields:5, defects:27, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The register that had gone stale is the one that proves why the rule exists. It could not have drifted if it had never left."},
+  {n:"Asar",   g:"A",  f:"One document, and the record of what is still owed is now inside the thing that owes it. That closes a loop that was open in three directions."},
+  {n:"Athena", g:"A",  f:"Registers reachable in one click from any release. The Outline was three clicks with no inline link and is now one, which nobody asked for and everybody needed."},
+  {n:"Christo",g:"A+", f:"&ldquo;Written at the beginning, while we are the people it would be used against.&rdquo; That is the sentence that makes the off switch believable rather than clever."},
+  {n:"Enki",   g:"A",  f:"The menu lists what replays at the chosen release, so a reader at r31 is not offered a register that does not exist yet. The static version of this would have been defect 20 again."},
+  {n:"Enlil",  g:"A",  f:"Two ids added to one order; no engine change, no gate change, no new view. The spec said adding a view costs five registrations, and this needed none of them."},
+  {n:"Krishna",g:"A+", f:"The locked bullets stay verbatim and the backing sits beneath them. Editing an operator&rsquo;s Immutable text to fix my own exposure would have been the worse defect."},
+  {n:"Odin",   g:"B+", f:"The reserve rule remains specified and unbuilt. Stating what backs the guarantee does not fund it, and the document must not let those two feel like the same act."},
+  {n:"Pangu",  g:"A",  f:"No state writes its own dissolution procedure while healthy. Claiming that plainly is the most genuinely novel sentence in the release."},
+  {n:"Sofia",  g:"A",  f:"Three external readers examined the doctrine line closely enough to redesign it and none saw it was not replayed. Now three registers stop being the same class of blind spot."},
+  {n:"Thoth",  g:"A",  f:"Twenty-two review items with their state, ten open operator decisions, four recorded errors of mine. All countable, all in one place, all replayable."},
+  {n:"Thor",   g:"A",  f:"&ldquo;Guaranteed&rdquo; was the highest-risk word and it now travels with its backing everywhere it appears. The remaining exposure is that the reserve is not funded, which the document says."}
+ ],
+ next:"Next, in the operator&rsquo;s order: the Constitution &mdash; ten principles as a root, the largest single ask in the external reviews. Then the reading band, thirteen sections above the ceiling and &sect;19 below the floor. Then the 228 readings, each of the twelve reading every section in succession, which is what makes &sect;2, &sect;3, &sect;4, &sect;5, &sect;6, &sect;13 and &sect;18 stop being unreviewed by anyone. Then the single-reader test as the release gate for Version 17."
 }
 ];
 
@@ -10688,6 +10727,301 @@ L(78,"open.defects","Defect 26: the doctrine line sat in static HTML from v1 to 
 'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
 
 
+/* ══════════ REVISION 79 &middot; A ══════════ */
+L(79,"front.locked","D6, from the external review: a reader who stops at the locked definition reads &ldquo;paid out over five years, guaranteed&rdquo; and reads a promise. The operator&rsquo;s six bullets are Immutable and are NOT edited &mdash; the backing is stated directly beneath them instead, where the reader already is.",
+'<h2>The locked definition</h2>'+
+'<div class="notice lock"><span class="tag">&#50883; Authoritative &middot; Document 0 &middot; class: Immutable</span>'+
+'<ul style="margin-bottom:0">'+
+'<li><strong>&#50883; is denominated in multiples of local or regional minimum wage.</strong></li>'+
+'<li><strong>Higher multiples are allowed.</strong></li>'+
+'<li><strong>Hard annual ceiling: 9,999 &#50883; per natural person.</strong></li>'+
+'<li><strong>Goal: enable as many people as possible to reach 9,999.</strong></li>'+
+'<li><strong>Earned value is paid out over five years, guaranteed.</strong></li>'+
+'<li><strong>Purpose: livelihood security and continuity &mdash; not lump-sum wealth.</strong></li>'+
+'</ul></div>'+'<div class="notice hot"><span class="tag">&#9888; What &ldquo;guaranteed&rdquo; is backed by</span>'+'<p>The bullets above are the operator&rsquo;s words and are not edited. This note is the reading, because a reader who stops at the fifth bullet reads a promise, and the fifth bullet is where they stop.</p>'+'<p style="margin-bottom:0">Earned value is paid out over five years, <strong>funded by a ring-fenced reserve whose balance is published monthly</strong>. <strong>The guarantee is structural, not aspirational.</strong> A coverage ratio below 1.00 is published the month it occurs, in every signatory language. If the reserve cannot carry new earning, new earning slows and committed instalments are untouched &mdash; which is the difference between this and every historical promise that was not kept. The reserve rule is specified and <em>unbuilt</em>, and &sect;15 publishes what it will cost.</p></div>'+
+'<p>This is the authoritative definition for Document 0 and for all future governance language. Every '+
+'clause in this document is downstream of it. Where an earlier write-up conflicts, this text governs.</p>'+
+'<p>Two readings that have appeared in expert commentary are both wrong and are corrected here. '+
+'&#50883; is <em>not</em> a literal count of hours &mdash; 9,999 hours is more than a person is awake for in '+
+'a working year. And it is <em>not</em> a free-floating abstraction &mdash; without the minimum-wage anchor '+
+'it loses the property that makes it equitable. It is a multiple of a local hour, and the multiple is '+
+'where skill, scarcity and responsibility are expressed.</p>');
+
+L(79,"unit.payout","D6. This block already called &ldquo;guaranteed&rdquo; the most legally dangerous word in the document at r2, which was right and was not enough &mdash; it named the danger in a notice and left the bare promise in the opening sentence. The backing now travels with the claim.",
+'<h2>Five years, guaranteed: the rising floor</h2>'+
+'<p>Earned value is paid out over five years, <strong>funded by a ring-fenced reserve whose balance is published monthly</strong>. The guarantee is structural, not aspirational. The purpose is stated in the '+
+'locked definition: <em>livelihood security and continuity, not lump-sum wealth.</em> The mechanism that '+
+'delivers it is worth setting out, because it is the most humane thing in the design and the easiest to '+
+'miss in a table.</p>'+
+'<p>A single year&rsquo;s ceiling pays out in five equal annual instalments. So a contributor who reaches '+
+'the ceiling five years running does not receive five separate windfalls &mdash; they build a floor that '+
+'rises each year and then holds:</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Year</th><th class="n">Instalments arriving</th><th class="n">Texas</th><th class="n">Brazil</th><th class="n">Nigeria</th></tr>'+
+'<tr><td>Year 1</td><td class="n">1 of 5</td><td class="n">$14,498.55</td><td class="n">$3,159.68</td><td class="n">$679.93</td></tr>'+
+'<tr><td>Year 2</td><td class="n">2 of 5</td><td class="n">$28,997.10</td><td class="n">$6,319.37</td><td class="n">$1,359.86</td></tr>'+
+'<tr><td>Year 3</td><td class="n">3 of 5</td><td class="n">$43,495.65</td><td class="n">$9,479.05</td><td class="n">$2,039.80</td></tr>'+
+'<tr><td>Year 4</td><td class="n">4 of 5</td><td class="n">$57,994.20</td><td class="n">$12,638.74</td><td class="n">$2,719.73</td></tr>'+
+'<tr><td><strong>Year 5 onward</strong></td><td class="n"><strong>5 of 5</strong></td><td class="n"><strong>$72,492.75</strong></td><td class="n"><strong>$15,798.42</strong></td><td class="n"><strong>$3,399.66</strong></td></tr>'+
+'</table><caption>Steady state is reached in year five and holds for as long as the contributor keeps '+
+'contributing. Each annual figure is the ceiling settled at the local rate divided by five, accumulated '+
+'across overlapping cohorts.</caption></div>'+
+'<p>Two properties follow, and both are the point rather than side effects.</p>'+
+'<p><strong>It is a floor, not a windfall.</strong> By year five a contributor knows what next year holds '+
+'even if they contribute nothing at all &mdash; four instalments are already committed. That is what '+
+'&ldquo;continuity&rdquo; means in the locked definition, and it is the difference between being paid and '+
+'being secure.</p>'+
+'<p><strong>It converts recognition into stability instead of into leverage.</strong> A lump sum of '+
+'$72,492.75 is capital, and capital seeks influence. The same amount arriving over five years is a wage. '+
+'The ceiling stops accumulation across people; the five-year schedule stops it across time.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The cost of the guarantee</span>'+
+'<p style="margin-bottom:0">The word <strong>guaranteed</strong> is doing enormous work here, and it is '+
+'the most legally dangerous word in the document. A guaranteed multi-year payment stream to individuals '+
+'is, in substance, a defined-benefit obligation. It is treated as a first-order legal problem later in '+
+'this document rather than as a footnote, because it is the clause a regulator reaches for first.</p></div>');
+
+L(79,"human.receipt","D6. The last bare &ldquo;guaranteed&rdquo; inside the receipt argument, where a reader is being shown what they actually get.",
+'<h2>The contribution receipt</h2>'+
+'<p>The record Adaeze holds does four jobs at once, and this is where education, innovation and paid work '+
+'stop being three separate systems that do not read each other&rsquo;s documents.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>The same record is&hellip;</th><th>To whom</th><th>What it proves</th></tr>'+
+'<tr><td><strong>A transcript entry</strong></td><td>An educational institution</td><td>Verified hours of '+
+'substantive work on a named real problem, with the output attached and the assessment band stated.</td></tr>'+
+'<tr><td><strong>A portfolio item</strong></td><td>An employer or client</td><td>Not a claim about '+
+'capability &mdash; the actual contribution, and what came of it.</td></tr>'+
+'<tr><td><strong>A governance record</strong></td><td>The framework</td><td>Participation history and '+
+'standing to propose.</td></tr>'+
+'<tr><td><strong>A settlement claim</strong></td><td>The treasury</td><td>&#50883; earned, settleable in '+
+'the contributor&rsquo;s own currency at their own local rate, over five years, from a ring-fenced reserve published monthly.</td></tr>'+
+'</table><caption>Four artefacts collapse into one because they were always describing the same event. The '+
+'duplication was an artefact of institutions that could not read each other&rsquo;s records.</caption></div>'+
+'<p>Three consequences follow, and they are the point rather than side effects.</p>'+
+'<p><strong>Age stops mattering.</strong> A sixteen-year-old whose contribution is adopted holds the same '+
+'record as a professor. It says what was contributed, not who contributed it.</p>'+
+'<p><strong>Credentials become derived rather than granted.</strong> A transcript is a query over '+
+'contributions, not a document an institution issues and can withhold.</p>'+
+'<p><strong>Study and work stop being sequential.</strong> Learning is not a phase completed before '+
+'contribution begins; it is what contribution produces, and the record is the same either way.</p>');
+
+L(79,"mot.leaders","D6. Addressed to heads of state, which is the audience least able to accept an unbacked guarantee and most able to recognise one.",
+'<h2>To the leaders of every people</h2>'+
+'<p class="meta" style="font-size:14px;margin-bottom:20px">Written to be read aloud, and to survive '+
+'translation into any language.</p>'+
+'<h3>First, to the heart</h3>'+
+'<p>You know someone the world is wasting.</p>'+
+'<p>A woman in your country who understands water better than the ministry does, and no one has ever '+
+'asked her. A young man who can fix what the engineers cannot, and there is no line on any form for what '+
+'he knows. A grandmother who carries a whole craft in her hands, and when she dies it goes with her.</p>'+
+'<p>They are not lazy. They are not hidden. <strong>They are simply not written down.</strong></p>'+
+'<p>Every country loses people this way. Not to war or hunger &mdash; to paperwork that has no box for '+
+'them. It is the quietest loss there is, and it is the largest.</p>'+
+'<p>This is a way to write them down.</p>'+
+'<h3>Then, to the mind</h3>'+
+'<p>Here is the whole thing, in six lines.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">1</th><td><strong>A person gives time.</strong> An hour of real work on a real problem. Anyone. Any age. Anywhere.</td></tr>'+
+'<tr><th class="n">2</th><td><strong>The hour is written down</strong> in a record that cannot be erased and does not belong to any employer, ministry or company.</td></tr>'+
+'<tr><th class="n">3</th><td><strong>The hour is counted the same everywhere</strong> &mdash; measured against the lowest lawful wage in that person&rsquo;s own place, so it means the same thing in every country.</td></tr>'+
+'<tr><th class="n">4</th><td><strong>They are paid in their own money</strong>, at their own local rate, over five years, from a ring-fenced reserve published monthly. Not a gift. Not charity. Payment for work that was done.</td></tr>'+
+'<tr><th class="n">5</th><td><strong>There is a ceiling nobody may pass</strong>, and it is the same ceiling for everyone. No one becomes rich here. That is on purpose.</td></tr>'+
+'<tr><th class="n">6</th><td><strong>Money never buys a vote.</strong> Not from a company, not from a wealthy person, not from a government. Not ever, by any route.</td></tr>'+
+'</table><caption>Everything else in this document is the machinery that makes those six lines true and '+
+'keeps them true after we are gone.</caption></div>'+
+'<p>Why the ceiling? Because we have all watched the same story. A thing is built to help people. It '+
+'succeeds. Money gathers around it. The money buys influence. The influence changes the purpose. And the '+
+'thing that was built to help people is now a thing that helps whoever owns it.</p>'+
+'<p>The ceiling breaks that story at the first step. If no one can accumulate, no one can buy. It costs '+
+'us the very rich as members. We accept that price.</p>'+
+'<h3>Last, to the spirit</h3>'+
+'<p>Five hundred years is not a slogan. It is a hard rule that removes most of our choices.</p>'+
+'<p>It means nothing here may depend on one company, one government, one machine, or one person &mdash; '+
+'including us. All of those end. It means every decision must be written in a way that a stranger can '+
+'check, long after everyone who made it is dust. It means the record must survive people who would burn '+
+'it, because in some countries that is not a theory.</p>'+
+'<p>And it means we must be able to say we were wrong. This document has been wrong, more than once. '+
+'Each time we left the mistake where it was, wrote the correction next to it, and moved on. You can '+
+'look at every one of them, in the release they were made. That is not weakness. <strong>A record you '+
+'cannot check is not a record. It is a story someone is telling you.</strong></p>'+
+'<h3>What we ask of you</h3>'+
+'<p>Not money. Not endorsement. Not a treaty.</p>'+
+'<p><strong>Let your people choose.</strong> That is all. Some will join and most will not, at first. '+
+'Those who do will contribute what they know and be paid for it in your currency, under your law, with the '+
+'record open to your inspection in your language.</p>'+
+'<p>If we are wrong, you will see it before we do, and you may say so publicly &mdash; we publish our own '+
+'faults, so yours will be in good company. If we are right, a woman who understands water will finally '+
+'appear somewhere your ministry can find her.</p>'+
+'<blockquote>We are not asking you to believe us. We are asking you to let your people be counted, and to '+
+'check our arithmetic.<span class="attr">웃 &mdash; Master of Thought</span></blockquote>');
+
+L(79,"off.switch","G2, from the external review: the off switch reads as a legal fix rather than a constitutional commitment. The mechanics were right and the claim was never stated. An institution that publishes its own death certificate in advance &mdash; written at the beginning, while we are the people it would be used against, because that is the only moment the terms can be honest.",
+'<h2>The right to switch it off</h2>'+
+'<div class="notice key"><span class="tag">The asymmetry this closes</span>'+
+'<p style="margin-bottom:0">Five shields exist to stop <em>anyone else</em> ending this system. Until '+
+'release 37 there was no way for <strong>the people inside it</strong> to end it. That is the exact shape '+
+'of every institution that outlived its usefulness and could not be stopped &mdash; and we built it by '+
+'accident while congratulating ourselves on the shields.</p></div>'+
+'<p>Any natural person may petition to switch the system off. The vote is <strong>sovereignty '+
+'class</strong>, which under the wall (r19) means <strong>unweighted, one person one vote</strong>. It is '+
+'not prioritisation, so the quadratic weighting and the 15% cap do not apply, and neither does anything '+
+'anyone contributed.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Seed Token holders get no extra vote on this</span>'+
+'<p style="margin-bottom:0">The people who funded the reserve are the people the reserve pays out to when '+
+'it closes &mdash; and they vote on the shutdown with exactly the same single vote as someone who has '+
+'never given a cent. This is the first place in thirty-seven releases where &ldquo;money receives, it does '+
+'not decide&rdquo; costs somebody something real. If that rule is ever going to be quietly softened, it '+
+'will be softened here.</p></div>'+
+'<div class="notice key"><span class="tag">&#9679; What this actually is</span>'+'<p>Every mechanism above is machinery. The claim underneath it is not.</p>'+'<div class="pull">This is an institution that publishes its own death certificate in advance.</div>'+'<p>No state writes the procedure for its own dissolution while it is healthy. No company publishes the vote that ends it. The reason is not oversight &mdash; it is that an institution which can be ended is an institution that must keep earning its existence, and most would rather not sign up for that. So the procedure gets written, if ever, by whoever is left when the thing is already failing, which is the worst possible moment and the worst possible authors.</p>'+'<p>We are writing it now, at the beginning, while nobody wants to use it and while we are the people it would be used against. That is the only moment the terms can be honest. A framework that argues for its own permanence has already told you what it values more than the people it serves.</p>'+'<p style="margin-bottom:0">And the commitment is asymmetric on purpose. The five shields make this <em>hard for outsiders to end</em>. This section makes it <em>possible for its own people to end</em>. Anyone who reads those two together and finds them contradictory has understood them exactly: the framework is defended against everyone except the humans inside it, who need no defence against because they are who it is for.</p></div>'+'<h3>Thresholds &mdash; proposed, not ratified</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Gate</th><th class="n">Proposed</th><th>Why this shape</th></tr>'+
+'<tr><td>Petition to open a vote</td><td class="n">0.1% of enrolled persons</td>'+
+'<td>Low enough that dissent cannot be gatekept; high enough that it is not one person&rsquo;s bad week.</td></tr>'+
+'<tr><td>Quorum</td><td class="n">40% of enrolled</td><td>A minority cannot end it through everyone else&rsquo;s absence.</td></tr>'+
+'<tr><td>Carry</td><td class="n">60% of votes cast</td><td>Ending is a sovereign act. A bare majority is not enough; unanimity is a veto for the complacent.</td></tr>'+
+'<tr><td>Confirmation</td><td class="n">repeat vote, 180 days later</td><td>The same result twice, half a year apart. One angry season cannot do it.</td></tr>'+
+'<tr><td>Effect</td><td class="n">90 days after confirmation</td><td>Time to close sessions, settle 웃 in flight, and publish the final state.</td></tr>'+
+'</table><caption>These five numbers are a <strong>proposal awaiting ratification</strong>, in the same '+
+'state as the three decisions at release 31. Until the councils set them, the switch is a specified '+
+'mechanism rather than a live one, and the defect register says so.</caption></div>'+
+'<p>Switch-off is <strong>Immutable class</strong> as a right and <strong>Adaptive class</strong> as a '+
+'number: the ability to end the system can never be removed, amended away, or made conditional on '+
+'anyone&rsquo;s permission. The thresholds above can be changed by the ordinary process. The right cannot.</p>');
+
+L(79,"paper.s7","G2. The section carried the swap mechanics and never made the political claim. Grok: it reads as a legal fix. The commitment now opens the Evidence movement, where the section makes its case rather than its arrangements.",
+'<div class="secn">&sect;7 &middot; THE OFF SWITCH <a href="#sec-0">&uarr; contents</a></div>'+
+'<h2 class="sech" id="sec-7">&sect;7 &nbsp; The Off Switch</h2>'+
+'<p class="ext">Extends &sect;1</p>'+
+'<div class="nose"><span class="ne">Needs</span><p>A system that cannot be ended must be trusted forever, and nothing should be trusted forever. This is the point at which most ambitious frameworks quietly assume their own permanence, usually by never mentioning termination. But an institution that has no shutdown procedure has not avoided the question of its own ending; it has merely guaranteed that when the ending comes it will be disorderly, and that whoever is holding the assets at that moment will decide what happens to them.</p></div>'+
+'<div class="nose"><span class="ne">Outcomes</span><p>Humanity can switch this off, deliberately, with the money already accounted for. Not a collapse and not a crisis: a vote, a formula that was published before anyone needed it, and a wind-down that runs the same whether the people running it are still enthusiastic or not. A framework that publishes its own termination in advance is easier to trust precisely because it has less to lose by being honest.</p></div>'+
+'<div class="nose"><span class="ne">Solution</span><p>The vote is one person, one vote, unweighted, requiring two-thirds consensus and counter-signature by the Innovation Leader under a master credential held in one place. On shutdown every Seed Token is <strong>swapped back at its own vintage price</strong> &mdash; the figure frozen when it was issued &mdash; so nobody receives more than they contributed and nobody receives less. Residue enters a Trust that can only be reopened if the system is restarted. Dormancy runs one to three years. Restart requires submitted improvements and unanimity on the date, so coming back is deliberately harder than stopping.</p></div>'+
+'<div class="nose"><span class="ne">Evidence</span><p>What this is, stated plainly: an institution that publishes its own death certificate in advance. No state writes the procedure for its own dissolution while it is healthy, and no company publishes the vote that ends it, because a body that can be ended must keep earning its existence. We are writing it at the beginning, while we are the people it would be used against, which is the only moment the terms can be honest. The guarantee survives the vote. Anyone mid-payout continues to be paid through a shutdown, because an obligation that evaporates when the institution becomes inconvenient was never an obligation. Two things here are unresolved and published as such: the five shutdown thresholds are unratified, and whether reserves should be fully pre-funded or duration-matched is an open fork with real consequences either way. We could have written plausible numbers into both. We have written neither, on the principle that a specific number nobody has agreed to is worse than an admitted gap, because the gap invites a decision and the number pretends one was made.</p></div>'+
+'');
+
+
+/* ══════════ REVISION 79 &middot; B ══════════ */
+L(79,"open.external","Merged in from docs/V17_EXTERNAL_REVIEW_REGISTER.md, which should never have existed. This block had not moved since r55 and described only the r52 round, while the r75 round &mdash; DeepSeek, Grok, eXeL AI &mdash; lived in a markdown file outside the ledger. The r52 findings are kept verbatim; the r75 round is appended with all twenty-two items and their state.",
+'<h2>What outside readers caught</h2>'+
+'<p class="lede">Four independent reviews of release 52. Most of it confirmed what the registers already '+
+'say. Two findings did not, and those are the only ones worth a section.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Finding 1 &mdash; the severance is only as strong as the weakest court</span>'+
+'<p style="margin-bottom:0">&sect;16 severs the record from the settlement so that a government can block '+
+'the money without reaching the record. A reader observed the obvious next step we had not written down: '+
+'<strong>if a domestic entity is compelled to hand over contributor records, the severance fails at that '+
+'entity.</strong> The architecture makes the framework boring to attack, which is a better strategy than '+
+'making it hard to attack &mdash; but boring is not immune, and the deterrent is structural rather than '+
+'absolute. This is now an open item rather than an implied strength.</p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Finding 2 &mdash; the defect register asks for the trust it exists to remove</span>'+
+'<p style="margin-bottom:0">The replay is checkable in a browser. The <em>defects</em> are not. A reader '+
+'can verify that the document reconstructs deterministically and cannot verify a single claim about '+
+'<code>cube5_gateway</code>, <code>cube8_tokens</code> or the rates file without our cooperation. '+
+'<strong>That is precisely the asymmetry this framework says it is trying to eliminate, reproduced inside '+
+'the framework.</strong> Publishing file paths and line numbers is the strongest available substitute and '+
+'it is not the same thing. Naming it is the minimum; closing it needs an independent party who can run '+
+'the tests, and we do not have one.</p></div>'+
+'<h3>Confirmed rather than discovered</h3>'+
+'<p>The remaining substantive observations were already carried in the registers and are listed here only '+
+'so the review is reported completely: the guarantee-versus-inheritance collision is live and undecided '+
+'(defect 22); the ladder assumes a density of senior practitioners that does not yet exist and is marked '+
+'spec-only for exactly that reason; and reach rather than regulation is the binding constraint on the '+
+'treasury, which the framework states and does not solve.</p>'+
+'<h3>Release 75 &mdash; three readers, and all three stopped at the same line</h3>'+'<p>DeepSeek, Grok and eXeL AI reviewed release 75 independently. The convergence is worth more than any single finding in it: each one stopped at the doctrine line, and each proposed a different fix for the same fault.</p>'+'<div class="notice key"><span class="tag">&#9679; The convergence</span>'+'<p style="margin-bottom:0"><strong>DeepSeek:</strong> keep the triad, it is earned &mdash; but the line beneath does not carry enough weight, and &ldquo;The Replay&rdquo; reads as a playback feature until you know replay <em>is</em> the governance model. <strong>Grok:</strong> Replay is the weakest leg &mdash; elevate it to a first-class principle or demote the triad. <strong>eXeL AI:</strong> four beats rather than three, because each serves a different purpose, and compressing four into three weakens the architecture. All three were right about the same thing. Shipped at release 78.</p></div>'+'<div class="scroll"><table>'+'<tr><th class="n">#</th><th>Item</th><th>Reader</th><th>State</th></tr>'+'<tr><td class="n">1</td><td>Four beats: Unit measures &middot; Shield protects &middot; Ledger preserves &middot; Replay verifies without permission</td><td>all three</td><td><span class="pill p-impl">&#10003; r78</span></td></tr>'+'<tr><td class="n">2</td><td>Name the four misreadings in writing &mdash; investment contract, governance token, appreciating asset, membership NFT with upside</td><td>Grok</td><td><span class="pill p-impl">&#10003; r78</span></td></tr>'+'<tr><td class="n">3</td><td><strong>The word &ldquo;guaranteed&rdquo;</strong> &mdash; a reader who stops at the locked definition reads a promise</td><td>DeepSeek</td><td><span class="pill p-impl">&#10003; r79</span></td></tr>'+'<tr><td class="n">4</td><td>&sect;7 as a constitutional commitment rather than a legal fix</td><td>Grok</td><td><span class="pill p-impl">&#10003; r79</span></td></tr>'+'<tr><td class="n">5</td><td><strong>A Constitution</strong> &mdash; ten principles as a root, not governance and not ethics</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">6</td><td>Circle numerals &mdash; lean into the geometry rather than calling them sections</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">7</td><td>Hierarchy: &sect;1 as root &middot; &sect;2&ndash;&sect;7 doctrine &middot; &sect;8&ndash;&sect;19 operational</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">8</td><td>Constitutional verbs &mdash; shall, must, cannot, requires, preserves</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">9</td><td>Each section ends operationally rather than philosophically</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">10</td><td>Section markers &mdash; Authority &middot; Replay &middot; Inheritance</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">11</td><td>Cross-references: depends on &middot; verified by</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">12</td><td>Four questions every section answers unasked: what does this protect, how is it proven, how is it preserved, how does it improve</td><td>eXeL AI</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">13</td><td>A ninety-second cold open</td><td>Grok</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">14</td><td>The single-reader test as the release gate</td><td>Grok</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">15</td><td>State more bluntly and more often that the price moves only because a statutory wage moved</td><td>Grok</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">16</td><td>The thirty-three passes should render at every release, not only the latest</td><td>DeepSeek</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">17</td><td>Name the four corrections rather than asserting there were four</td><td>DeepSeek</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">18</td><td>&sect;16&rsquo;s jurisdiction table deserves its own weight. <em>The review read r75, which said eleven; r76 corrected the count to ten</em></td><td>DeepSeek</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">19</td><td>&sect;8 renamed in the contents, with the cost of each refusal listed</td><td>DeepSeek</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">20</td><td>The outline as the promise above the argument rather than a rival mode</td><td>DeepSeek</td><td><span class="pill p-live">open</span></td></tr>'+'<tr><td class="n">21</td><td><strong>A verifiable defect register</strong> &mdash; a read-only endpoint returning the test result for any commit</td><td>DeepSeek</td><td><span class="pill p-spec">needs a build</span></td></tr>'+'<tr><td class="n">22</td><td>Density &mdash; the view machinery obscures the argument for a new reader</td><td>Grok</td><td><span class="pill p-live">open</span></td></tr>'+'</table><caption>Twenty-two items. Four closed at releases 78 and 79; one needs a build that leaves this document; the rest are open and sequenced. This table replaces a markdown file that lived outside the ledger &mdash; see defect 27.</caption></div>'+'<h3>Confirmed rather than discovered &mdash; release 75</h3>'+'<p>Recorded because a register that lists only work is not honest about a review. All three readers scored the replay engine as the distinctive achievement; all three said the defect register is not performative because it publishes corrections to corrections; DeepSeek called the 111-word discipline <em>the single most effective anti-rambling device</em> it had seen in governance prose, and called the r18 change from &ldquo;society cannot master&rdquo; to &ldquo;we cannot master&rdquo; the most important single edit in the document. Grok confirmed that region rather than country was the right resolution. None of the three found what acting on them found &mdash; that the line they were all reading sat outside the replay.</p>'+'<p style="margin-bottom:0">One editorial recommendation was <strong>declined by the operator</strong>: '+
+'that the masthead carry a descriptive subtitle above the thesis line. The title is settled as '+
+'<em>Vision &#8226; 2525</em> over <em>Recursive Coordination for Human Continuity</em>, and the '+
+'recommendation is recorded rather than silently dropped, so a reader can see the fork and disagree with '+
+'the decision that was actually taken.</p>');
+
+L(79,"open.questions","Merged in from docs/V17_OPEN_QUESTIONS_REGISTER.md. Every question that needed an answer, with the answer attached where one arrived &mdash; a question with its answer beside it is the record; a question deleted is not. Three of the five corrected me, and those corrections are the most useful part of it.",
+'<h2>Open questions</h2>'+'<p class="lede">Five questions were put to the operator and to three outside models. Four are answered. <strong>Three of the answers corrected me</strong>, and those are the ones worth reading.</p>'+'<div class="scroll"><table>'+'<tr><th class="n">#</th><th>Question</th><th>Answer, and who was wrong</th><th>State</th></tr>'+'<tr><td class="n">Q1</td><td>The divisor, and what it divides</td><td><strong>Corrected me.</strong> The rule was always <em>region</em>-level, not country-level. Beijing&rsquo;s municipal rate, Moscow&rsquo;s regional supplement and India&rsquo;s state rate all <em>are</em> the posted rate of a region. I reported three failures by asking a country-level question of a region-level rule. Shared intent is a multiple of minimum wage; a Seed Token is that wage &divide; 7.</td><td><span class="pill p-impl">&#10003; r73</span></td></tr>'+'<tr><td class="n">Q2</td><td>Regions with no posted hourly minimum</td><td><strong>Deferred by the operator</strong>, explicitly: start where there is a posted rate, and an <em>Agreed Wage</em> is established later. My &ldquo;a pod declares its own floor&rdquo; proposal was withdrawn &mdash; it was not asked for. There is a difference between answering a question and filling a silence.</td><td><span class="pill p-prop">future work &middot; D2</span></td></tr>'+'<tr><td class="n">Q3</td><td>Is the instrument a security?</td><td><strong>New information I did not have:</strong> the Seed Token grants access to a later, dearer phase. Early cheap entry conferring the right to join a later round <em>is an option, and options have value</em> &mdash; the most exposed thing in the design, and untouched by the three locks. The fix: every rung carries the same locks, so it grants access to contribute more, never to gain more.</td><td><span class="pill p-impl">&#10003; r73</span></td></tr>'+'<tr><td class="n">Q4</td><td>What is the sixth structural reason?</td><td><strong>Corrected me, and it is the sharpest one.</strong> &ldquo;I never said there were 5 or 6 or 7. You MoT created the Shield concept.&rdquo; The concept and every count attached to it are <em>mine</em>. Asking what the sixth one was invited the operator to audit my arithmetic about my own idea &mdash; that is not a question, it is a request for reassurance. Counts come <em>out</em> of the passes as findings; they do not go <em>in</em> as doctrine.</td><td><span class="pill p-impl">withdrawn</span></td></tr>'+'<tr><td class="n">Q5</td><td>Does the minimum-wage flywheel hold, or is it coercive?</td><td><strong>Corrected me, and it reached the whole document.</strong> &ldquo;I don&rsquo;t know what you are talking about &mdash; this tool is about innovating at the speed of thought for the universe of humanity and all those seeking Divine Unity principles.&rdquo; The hostile-minister framing was mine. I had been writing defensively; the defensive material is necessary plumbing, not the thesis.</td><td><span class="pill p-impl">struck</span></td></tr>'+'</table><caption>Q1, Q3, Q4 and Q5 answered. Q2 deferred by the operator and folded into decision D2. The three corrections are recorded as corrections rather than absorbed quietly.</caption></div>'+'<h3>Decisions only the operator can take</h3>'+'<div class="scroll"><table>'+'<tr><th class="n">#</th><th>Decision</th><th>State</th></tr>'+'<tr><td class="n">D1</td><td>Tier-2 selection</td><td>open since r57</td></tr>'+'<tr><td class="n">D2</td><td>Global Agreed Standard &mdash; now including the Agreed Wage from Q2</td><td>open since r57</td></tr>'+'<tr><td class="n">D3</td><td>Band criteria</td><td>open since r57</td></tr>'+'<tr><td class="n">D4</td><td>Principal floor</td><td>open since r57</td></tr>'+'<tr><td class="n">D5</td><td>The five shutdown thresholds</td><td>open since r57</td></tr>'+'<tr><td class="n">D6</td><td>Reserve fork &mdash; pre-fund the full guarantee, or match funding to the duration of obligations</td><td>open since r57</td></tr>'+'<tr><td class="n">D7</td><td>Accords caps</td><td>open since r57</td></tr>'+'<tr><td class="n">D8</td><td><strong>Defect 22</strong> &mdash; the five-year guarantee against the no-inheritance rule</td><td>open since r57</td></tr>'+'<tr><td class="n">D9</td><td>Membership tier delineation</td><td>open since r57</td></tr>'+'<tr><td class="n">D10</td><td><strong>Rotate the master credential</strong></td><td><strong>not paperwork</strong> &mdash; the publish script refuses to ship if it finds the PIN in the document. Rotate before first real use.</td></tr>'+'<tr style="opacity:.6"><td class="n">D11</td><td>&sect;7 reserve refund capped at contribution?</td><td><span class="pill p-impl">&#10003; closed r75</span> &mdash; it was never a share, it is a swap at the vintage price</td></tr>'+'<tr style="opacity:.6"><td class="n">D12</td><td>Divisor 7 or 7.25</td><td><span class="pill p-impl">&#10003; closed r73</span> &mdash; &divide; 7, region-level</td></tr>'+'<tr style="opacity:.6"><td class="n">D13</td><td>Pricing for no-anchor regions</td><td><span class="pill p-impl">folded into D2</span></td></tr>'+'</table><caption>Ten open, three closed. Every one of the ten is a judgement this document declares itself without the authority to make.</caption></div>'+'<h3>Errors on the record</h3>'+'<div class="notice hot"><span class="tag">&#9888; Mine, recorded rather than absorbed</span>'+'<ol style="margin-bottom:0">'+'<li><strong>I claimed seventeen sections shared one rationale line.</strong> Wrong &mdash; my probe used a fixed window and read past a block boundary. The real defect was <em>templated</em> rationales with a digit swapped, which means the gate I had drafted would have passed vacuously.</li>'+'<li><strong>Release 70 was committed with a partial add</strong>, missing the only copy the site serves. The operator&rsquo;s stop hook caught it. It would have reported r70 shipped while the site served r69.</li>'+'<li><strong>Release 71&rsquo;s ledger block was appended above the version ceiling</strong>, making the newest writing unreachable while every gate still passed. Now a hard gate failure.</li>'+'<li><strong>Release 75 swallowed the engine</strong> &mdash; a supersede script took the last block&rsquo;s end as end-of-file and duplicated every function after it. The gate reported success. Fixed by ending at the block&rsquo;s own terminator.</li>'+'</ol></div>');
+
+L(79,"open.asks","Merged in from docs/V17_RUNNING_LIST_2026.08.05.md, a file nothing in the repository pointed at. The operator asks this session, what shipped against each, and what is still owed for Version 17 &mdash; named rather than implied.",
+'<h2>What was asked, and what shipped</h2>'+'<p class="lede">The operator&rsquo;s asks, in the order they were made, with the release that answered each one. An ask with no release beside it is owed.</p>'+'<div class="scroll"><table>'+'<tr><th>Ask</th><th>What shipped</th><th class="n">Release</th></tr>'+'<tr><td>&ldquo;You know someone who is wasted&rdquo; reads as drunk</td><td>Rewritten to &ldquo;the world is wasting&rdquo;; the original stays readable at v22</td><td class="n">r68</td></tr>'+'<tr><td>The Key Improvements panel is blank</td><td>It read one view instead of the record. The defect reached back to r40 &mdash; 72 release pairs</td><td class="n">r68</td></tr>'+'<tr><td>Get rid of the address that follows no logic</td><td>Route deleted; every plausible casing forwards to one lowercase home</td><td class="n">r69 &middot; r71</td></tr>'+'<tr><td>&ldquo;We don&rsquo;t see versions 1&ndash;62 at the bottom&rdquo;</td><td>Sixty-eight chips became two, with all of them still reachable behind a disclosure that must start closed</td><td class="n">r69</td></tr>'+'<tr><td>&ldquo;v.17 upper right, not mixed with the header&rdquo;</td><td>Masthead corner badge; the release count stays in the deck</td><td class="n">r69</td></tr>'+'<tr><td>A direct link to the Outline</td><td>Outline button in the reader bar</td><td class="n">r69</td></tr>'+'<tr><td>&ldquo;Do not let this be stopped by the SEC&rdquo;</td><td>Three locks &mdash; non-transferable, refund capped at contribution, no gain structurally possible &mdash; plus &ldquo;design intent, not a legal opinion&rdquo;</td><td class="n">r70</td></tr>'+'<tr><td>Maybe this helps governments establish a minimum wage</td><td>The flywheel: a state that sets a floor makes its own people countable</td><td class="n">r70</td></tr>'+'<tr><td>Seed Token is no longer $1 &mdash; it is minimum wage &divide; 7</td><td>Dollar anchor withdrawn; eight minutes thirty-four seconds everywhere</td><td class="n">r71</td></tr>'+'<tr><td>Test Dubai, Singapore, Beijing, Brazil, India, Moscow</td><td>Tested and published. Region rather than country resolved three of the four reported failures &mdash; the operator&rsquo;s correction, not my finding</td><td class="n">r71 &middot; r73</td></tr>'+'<tr><td>The profit share is really a token swap</td><td>&sect;7 promised holders the increase in four financial measures &mdash; a profit share, live for twenty-one releases. It was never a share: exit is a swap at your own frozen vintage price</td><td class="n">r75</td></tr>'+'<tr><td>Any overage covers whole years of subscription</td><td>The overage converts to membership, and membership pays nothing &mdash; so an increase is absorbed into something with no monetary value at all</td><td class="n">r76</td></tr>'+'<tr><td>Each AsM must read each section in succession</td><td>Twelve read one section each and found two live contradictions no diff review had caught in seventy-three releases. The full 228 readings are owed</td><td class="n">r74 &middot; r77</td></tr>'+'<tr><td>Incorporate all three external reviews</td><td>Four beats; the four misreadings named; the word &ldquo;guaranteed&rdquo; backed; &sect;7 as a commitment</td><td class="n">r78 &middot; r79</td></tr>'+'<tr><td>Always keep one document</td><td>This block, and the two beside it. Three markdown files deleted &mdash; defect 27</td><td class="n">r79</td></tr>'+'</table><caption>Fifteen asks answered across twelve releases. Every one is checkable by rewinding to the release named.</caption></div>'+'<div class="notice hot"><span class="tag">&#9888; Owed for Version 17, named rather than implied</span>'+'<dl class="defs">'+'<dt>The thirty-three passes</dt><dd>Twelve done. Twenty-one remaining.</dd>'+'<dt>The 228 readings</dt><dd>Twelve done. Seven sections &mdash; 2, 3, 4, 5, 6, 13 and 18 &mdash; have never been assessed by anyone.</dd>'+'<dt>The reading band</dt><dd>Six of twenty sections inside 11&ndash;13. Thirteen above the ceiling, one below the floor.</dd>'+'<dt>The Constitution</dt><dd>Not written. The largest single ask in the external reviews.</dd>'+'<dt>The cover and the emblem</dt><dd>Cover embedded. The eagle is white-on-transparent and needs a dark ground or it vanishes on the light page.</dd>'+'<dt>Cambodia &middot; Honduras &middot; Austin</dt><dd>In the rate table; not yet written as the three-hub argument.</dd>'+'<dt>Pod composition in code &middot; the Flower of Life</dt><dd>Version 18 and Version 19. Not started, and deliberately not started.</dd>'+'</dl></div>');
+
+L(79,"open.defects","Defect 27: three registers lived outside the document as markdown files, which is the exact failure the architecture spec was written to prevent, reproduced by me. Merged in and the files deleted.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse '+
+'than a known one, and that rule applies to this document before it applies to anything else.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Six closed in code &middot; every live item now needs a person</span>'+
+'<p style="margin-bottom:0">The money path was closed at releases 34 and 35 (<code>5c50425</code>, '+
+'<code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Everything still open is a decision or an '+
+'operational act, not a patch. Releases 37 to 39 added five defects of their own, each published in the '+
+'release that created or discovered it.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr style="opacity:.6"><td class="n">20</td><td><strong>The masthead rewrote its own history</strong> '+
+'&mdash; the title was static HTML outside the replay, so every rename silently changed all earlier '+
+'releases, and the r35 claim that earlier titles remain readable by rewinding was false when written.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r39</span><br><span class="meta">found by operator screenshot</span></td>'+
+'<td>The masthead resolves from a table using the block ledger&rsquo;s own last-write-wins rule. The gate '+
+'now asserts the title at v1 differs from the title at the latest release.</td></tr>'+
+'<tr><td class="n">18</td><td><strong>An 8-digit numeric PIN is brute-forceable</strong> &mdash; '+
+'100,000,000 combinations is minutes of offline or unthrottled attack.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">new at r38</span></td>'+
+'<td>Five attempts, exponential lockout, alert on the third failure, one shot per carried mandate. '+
+'Longer term: a passphrase, or drop the PIN for a hardware key entirely.</td></tr>'+
+'<tr><td class="n">19</td><td><strong>A PIN is not a second factor</strong> if whoever holds the session '+
+'can type it &mdash; and any credential that has passed through a chat, email or ticket must be treated as '+
+'already compromised.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs an operational act &middot; new at r38</span></td>'+
+'<td>Bind key 2 to hardware (FIDO2 or TOTP on a separate device). <strong>Rotate the credential before the '+
+'first ceremony, not after.</strong></td></tr>'+
+'<tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index '+
+'0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop '+
+'funding, which makes it likelier.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td>'+
+'<td>Principal floor first, then the index split of the remainder. Changes a stated instruction, so it '+
+'needs the operator.</td></tr>'+
+'<tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, '+
+'quorum, carry, confirmation and effect are all proposals.</td>'+
+'<td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td>'+
+'<td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td>'+
+'<td>An undefined cap is not a cap. Publish numbers.</td></tr>'+
+'<tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at '+
+'every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td>'+
+'<td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; '+
+'purchasable with money; governance weight from a balance; local wage applied at mint; cross-border '+
+'arbitrage; a currency constant inside the mint.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td>'+
+'<td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td>'+
+'<td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, specified with its ramp at r30, now load-bearing in the shutdown split. Unbuilt.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; sharper '+
+'now, because the shutdown rule depends on it surviving a majority.</td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language '+
+'count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10 and given a computable zero '+
+'at r38.</td><td><span class="pill p-impl">&#10003; Closed</span></td>'+
+'<td>A generated dependency map prevents recurrence.</td></tr>'+
+'<tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary '+
+'to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td>'+
+'<td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">23</td><td><strong>A unit mislabelled for forty-five '+
+'releases</strong> &mdash; r11 published &ldquo;0.138 &#50883;&rdquo;. 0.138 is 1 &divide; 7.25, a '+
+'fraction of an hour; the same quantity in &#50883; is 0.6631.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r56&ndash;r57</span></td>'+
+'<td>Corrected in &sect;15 with the r11 wording left readable. Our first correction called the number '+
+'understated; it was the unit, not the number. Both are recorded.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">24</td><td><strong>Our own duplication ceiling breached for thirteen releases</strong> &mdash; the white paper restated the record; worst section 71.2% against a stated 20% ceiling, r41 to r53.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r54</span></td>'+
+'<td>Rewritten to 7.1% worst case at r54 &mdash; but the breach was never disclosed until the spiral tests measured it at r59. Nobody was checking, which is the actual finding.</td></tr>'+
+'<tr><td class="n">25</td><td><strong>A promise made and never instrumented</strong> &mdash; &ldquo;plainly enough for a high school reading level&rdquo; was never measured. Mean grade 13.5; sixteen of twenty sections over grade 12; &sect;16 at 16.3.</td>'+
+'<td><span class="pill p-live">Live</span></td>'+
+'<td>Instrument shipped at r62 and the score published. The rewriting is the open part &mdash; &sect;19 already sits at 8.9, so the target is proven reachable.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">26</td><td><strong>The doctrine line sat outside the replay for seventy-seven releases</strong> &mdash; the four-beat line beneath the masthead was static HTML, so any rewording of it silently rewrote every earlier release. This is defect 20 again, one line below the element defect 20 was about.</td>'+'<td><span class="pill p-impl">&#10003; Fixed r78</span><br><span class="meta">found while acting on three external reviews</span></td>'+'<td>It resolves from a table by the same last-write-wins rule as the masthead. The instructive part is that three independent reviewers read the line closely enough to redesign it and none saw that it was not replayed, because static and replayed look identical from the outside. Nobody audits what looks already audited.</td></tr>'+'<tr style="opacity:.6"><td class="n">27</td><td><strong>Three registers lived outside the document</strong> &mdash; open questions, the operator ask-log and the external reviews were markdown files. The architecture spec exists <em>because this already happened once</em>: a brief shipped as a second file, the document was renamed, the brief did not follow, and two artefacts disagreed within a day.</td>'+'<td><span class="pill p-impl">&#10003; Fixed r79</span><br><span class="meta">operator: &ldquo;we always keep one doc&rdquo;</span></td>'+'<td>All three are now ledger blocks and the files are deleted. The drift was already real: this register&rsquo;s external-review block had not moved since r55 and knew nothing of the r75 round, which existed only in the markdown. The gate now fails if any such file reappears.</td></tr>'+'</table><caption><strong>Six closed in code, three closed in the document, six live, two specification-only, '+
+'two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the '+
+'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
+
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -11106,6 +11440,68 @@ window.addEventListener("scroll", function(){
   spyPending = true;
   requestAnimationFrame(function(){ spyPending = false; spyChips(); });
 }, {passive:true});
+/* ── Registers ────────────────────────────────────────────────────────────
+   Navigation only. It renders no claim, so it cannot drift from what it points
+   at. Membership is derived from what actually replays at the ACTIVE release --
+   open.proposed begins at r31 and open.questions/open.asks at r79, so a static
+   list would offer dead links in the past. Labels are cosmetic; an unrecognised
+   open.* id still appears, titled from its own tail. */
+const REG_LABEL = {
+  "open.defects":   "Defects",
+  "open.decisions": "Decisions",
+  "open.questions": "Open questions",
+  "open.asks":      "Operator asks",
+  "open.external":  "External reviews",
+  "open.proposed":  "Proposed"
+};
+function regTitle(id){
+  if (REG_LABEL[id]) return REG_LABEL[id];
+  const tail = id.split(".").pop().replace(/[-_]/g, " ");
+  return tail.charAt(0).toUpperCase() + tail.slice(1);
+}
+function registersAt(v){
+  return replay(v, LEDGER_ORDER).map(e => e.id).filter(id => id.indexOf("open.") === 0);
+}
+function renderRegMenu(){
+  const host = document.getElementById("regMenu");
+  const rows = registersAt(active);
+  host.innerHTML =
+    '<h5>Registers</h5>' +
+    rows.map(id => '<button role="menuitem" data-reg="' + id + '">' + regTitle(id) +
+                   '<span class="rid">' + id + '</span></button>').join("") +
+    '<h5>Views</h5>' +
+    Object.keys(VIEWS).map(k => '<button role="menuitem" data-view="' + k + '">' +
+                                VIEWS[k].label + '</button>').join("");
+}
+function regClose(){
+  document.getElementById("regMenu").hidden = true;
+  document.getElementById("bReg").setAttribute("aria-expanded", "false");
+}
+document.getElementById("bReg").addEventListener("click", function(e){
+  e.stopPropagation();
+  const m = document.getElementById("regMenu");
+  if (!m.hidden){ regClose(); return; }
+  renderRegMenu();
+  m.hidden = false;
+  this.setAttribute("aria-expanded", "true");
+});
+document.getElementById("regMenu").addEventListener("click", function(e){
+  const b = e.target.closest("button"); if (!b) return;
+  const v = b.getAttribute("data-view");
+  if (v){ setView(v); regClose(); return; }
+  const id = b.getAttribute("data-reg");
+  /* The register lives in the ledger view. Changing view never changes the
+     RELEASE -- `active` is untouched, so a reader keeps the release they chose. */
+  if (view !== "ledger") setView("ledger");
+  const el = document.getElementById("blk-" + id);
+  if (el) el.scrollIntoView({ block: "start" });
+  regClose();
+});
+document.addEventListener("click", function(e){
+  if (!e.target.closest(".regwrap")) regClose();
+});
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") regClose(); });
+
 function renderSpecBanner(){
   const host = document.getElementById("specban");
   if (!specOpen){ host.innerHTML = ""; return; }
@@ -11122,9 +11518,12 @@ function renderSpecBanner(){
     '<tr><th>Property</th><th>This document</th></tr>' +
     '<tr><td>Model</td><td>Append-only ledger. Nothing stored; every release reconstructed by ' +
       '<code>replay(v, order)</code>, a pure function &mdash; no clock, no randomness, no hidden state.</td></tr>' +
+    /* r79: this row printed the count of ALL views and then listed three of them.
+   Generated from VIEWS now, so it cannot disagree with itself again. */
     '<tr><td>Views</td><td><strong>' + Object.keys(VIEWS).length + '</strong>, one record. ' +
-      'White paper ' + PAPER_ORDER.length + ' &middot; Ledger ' + LEDGER_ORDER.length +
-      ' &middot; Brief ' + BRIEF_ORDER.length + ' sections. A view is an ORDER, not a template.</td></tr>' +
+      Object.keys(VIEWS).map(function(k){ return VIEWS[k].label + ' ' + VIEWS[k].order.length; })
+        .join(' &middot; ') +
+      ' blocks. A view is an ORDER, not a template.</td></tr>' +
     '<tr><td>Ledger entries</td><td>' + LEDGER.length + ' across ' + VMAX + ' releases. ' +
       'Last-write-wins per block id; there is no delete operation.</td></tr>' +
     '<tr><td>Deep links</td><td><code>#paper/v' + active + '</code> &middot; <code>#v' + active +
