@@ -648,7 +648,7 @@ const BRIEF_ORDER = [
    numbers anywhere. It answers "what is this and why", where the ledger view
    answers "what changed and when". Third view, zero engine changes. */
 const PAPER_ORDER = [
- "paper.toc","paper.s0",
+ "paper.toc","paper.s0","front.constitution",
  "paper.s1","paper.s2","paper.s3","paper.s4","paper.s5","paper.s6","paper.s7","paper.s8","paper.s9",
  "paper.s10","paper.s11","paper.s12","paper.s13","paper.s14","paper.s15","paper.s16","paper.s17",
  "paper.s18","paper.s19",
@@ -2399,6 +2399,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"&ldquo;Guaranteed&rdquo; was the highest-risk word and it now travels with its backing everywhere it appears. The remaining exposure is that the reserve is not funded, which the document says."}
  ],
  next:"Next, in the operator&rsquo;s order: the Constitution &mdash; ten principles as a root, the largest single ask in the external reviews. Then the reading band, thirteen sections above the ceiling and &sect;19 below the floor. Then the 228 readings, each of the twelve reading every section in succession, which is what makes &sect;2, &sect;3, &sect;4, &sect;5, &sect;6, &sect;13 and &sect;18 stop being unreviewed by anyone. Then the single-reader test as the release gate for Version 17."
+},
+{
+ v:80, code:"THE CONSTITUTION", stamp:"2026.08.05 &middot; revision 80",
+ thrust:"Ten principles, in constitutional verbs, each naming the section that actually implements it &mdash; the largest single ask in sixty hours of external feedback. Plus two real discrepancies found by scanning every live block for the same quantity stated twice, one of which is my own numbers table going stale in two releases.",
+ mot:"The Constitution was eXeL AI&rsquo;s largest ask and it was correct. The doctrine of this framework was spread across nineteen sections with no root, so a reader had to assemble the principles themselves and take it on trust that the assembly was faithful. Ten principles now, in the verbs a constitution uses: shall, must, cannot. And the constraint that makes it honest rather than decorative &mdash; every principle traces to a block that already says it, because the architecture spec forbids a view asserting what the ledger does not already carry. Any principle I could not trace was dropped rather than invented, and where a principle and its section ever disagree, the section governs. The mechanism is the commitment; the page is a summary of it. It is unnumbered and sits before section one, so no existing section number moves and no cross-reference breaks. It is also deliberately not a twentieth outline entry: the outline&rsquo;s own heading says nineteen circles, the geometry is the Flower of Life, and a twentieth entry would have made that heading false &mdash; creating the very defect this release fixes. Then the scan. I ran every live block against every other looking for one quantity stated twice, and it returned five candidates. Three were regex artifacts &mdash; thirty-FIVE jurisdictions, one hundred THREE jurisdictions, and four sections meaning the four parts of the switch. Reporting a false positive as a defect would be its own defect, so they are named as false. Two were real. The membership block still said all eleven jurisdictions; section sixteen was corrected from eleven to ten at release seventy-six and the correction never travelled. That is the same defect class the twelve found by reading two sections in one sitting, surviving in a third because nobody read all three. And the second one is mine. The numbers table I added at release seventy-seven, specifically so section ten would stop promising figures it did not print, was already wrong by release seventy-nine: two defects were raised and nothing re-read the row. Corrected, with the superseded figure kept beside it, and a gate assertion added. The number is allowed to move. It is not allowed to move quietly.",
+ stats:{clauses:301, jur:103, shields:5, defects:27, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"My r76 correction had not travelled to the second block that cites the same set. The scan found in seconds what three review rounds walked past."},
+  {n:"Asar",   g:"A",  f:"A root the nineteen descend from, and it claims nothing new. That restraint is what separates a constitution from a manifesto."},
+  {n:"Athena", g:"A",  f:"Unnumbered, before &sect;1, no outline entry. Three decisions that each avoided breaking something load-bearing."},
+  {n:"Christo",g:"A+", f:"&ldquo;These are the ten things we gave up in order to ask anyone for an hour.&rdquo; That is the sentence a stranger needs before they give the hour."},
+  {n:"Enki",   g:"A",  f:"Principle IX splits inheritance cleanly: the ledger passes on in full, accrued value does not. That distinction was implied in two sections and stated in neither."},
+  {n:"Enlil",  g:"A",  f:"One id added to PAPER_ORDER. No new view, no engine change, and the ToC picks it up because the ToC is itself a block."},
+  {n:"Krishna",g:"A+", f:"Every principle cites its section and the section governs on conflict. A constitution that outranked its own mechanisms would be a new place for drift to live."},
+  {n:"Odin",   g:"B+", f:"The stale-number failure recurred within two releases, exactly as I predicted at r78, and the gate assertion is the first thing that will actually stop it."},
+  {n:"Pangu",  g:"A",  f:"&ldquo;Not to inspire. To make capture expensive.&rdquo; That reframing is what makes ten principles do work instead of decoration."},
+  {n:"Sofia",  g:"A",  f:"Three of five scan hits were false positives and are published as false. A register that only reports confirmed findings is hiding its own error rate."},
+  {n:"Thoth",  g:"A+", f:"27 raised, 18 tabled, 6 live &mdash; and the old figure kept beside the new one, so the drift itself is legible rather than erased."},
+  {n:"Thor",   g:"A",  f:"No principle grants anything. All ten remove a power from us. That is the correct direction for a founding document and the rare one."}
+ ],
+ next:"The reading band &mdash; thirteen sections above the ceiling, &sect;19 below the floor at 9.2, six of twenty in band. Then the 228 readings, which is what makes &sect;2, &sect;3, &sect;4, &sect;5, &sect;6, &sect;13 and &sect;18 stop being unreviewed by anyone. Then the single-reader test as the release gate."
 }
 ];
 
@@ -11020,6 +11041,96 @@ L(79,"open.defects","Defect 27: three registers lived outside the document as ma
 '<tr style="opacity:.6"><td class="n">26</td><td><strong>The doctrine line sat outside the replay for seventy-seven releases</strong> &mdash; the four-beat line beneath the masthead was static HTML, so any rewording of it silently rewrote every earlier release. This is defect 20 again, one line below the element defect 20 was about.</td>'+'<td><span class="pill p-impl">&#10003; Fixed r78</span><br><span class="meta">found while acting on three external reviews</span></td>'+'<td>It resolves from a table by the same last-write-wins rule as the masthead. The instructive part is that three independent reviewers read the line closely enough to redesign it and none saw that it was not replayed, because static and replayed look identical from the outside. Nobody audits what looks already audited.</td></tr>'+'<tr style="opacity:.6"><td class="n">27</td><td><strong>Three registers lived outside the document</strong> &mdash; open questions, the operator ask-log and the external reviews were markdown files. The architecture spec exists <em>because this already happened once</em>: a brief shipped as a second file, the document was renamed, the brief did not follow, and two artefacts disagreed within a day.</td>'+'<td><span class="pill p-impl">&#10003; Fixed r79</span><br><span class="meta">operator: &ldquo;we always keep one doc&rdquo;</span></td>'+'<td>All three are now ledger blocks and the files are deleted. The drift was already real: this register&rsquo;s external-review block had not moved since r55 and knew nothing of the r75 round, which existed only in the markdown. The gate now fails if any such file reappears.</td></tr>'+'</table><caption><strong>Six closed in code, three closed in the document, six live, two specification-only, '+
 'two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the '+
 'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
+
+
+/* ══════════ REVISION 80 ══════════ */
+L(80,"front.constitution","X1 from the external reviews, and the largest single ask in sixty hours of feedback: the doctrine was scattered across nineteen sections with no root. Ten principles, in constitutional verbs. EVERY ONE TRACES TO A BLOCK THAT ALREADY SAYS IT &mdash; the spec forbids a view asserting what the ledger does not already carry, so a principle that could not be traced was dropped rather than invented. Unnumbered and placed before &sect;1, so no existing section number moves.",
+'<div class="secn">THE CONSTITUTION <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-c">The Constitution</h2>'+'<p class="lede">Ten principles. Everything in the nineteen sections that follow is downstream of these, and each one names the section where it is actually implemented &mdash; a constitution that cannot be checked against a mechanism is a preamble.</p>'+'<div class="scroll"><table>'+'<tr><th class="n">&nbsp;</th><th>Principle</th><th class="n">Where it lives</th></tr>'+'<tr><td class="n">I</td><td><strong>Humanity remains sovereign.</strong><br><span class="meta">Any natural person may petition to end this framework, and the vote is one person one vote, unweighted. Nothing anybody contributed counts. The people who funded the reserve vote with exactly the same single vote as someone who has never given a cent.</span></td><td class="n">&sect;7</td></tr>'+'<tr><td class="n">II</td><td><strong>Authority shall always be reviewable.</strong><br><span class="meta">Authority is bounded by term rather than by promise: one ten-year standing, seven years leading and three mentoring with none, with recall available throughout. The mentoring years make succession a scheduled event rather than a crisis.</span></td><td class="n">&sect;9</td></tr>'+'<tr><td class="n">III</td><td><strong>The record cannot be secretly altered.</strong><br><span class="meta">The ledger is append-only and there is no delete operation. A mistake is corrected by writing the correction, never by editing the mistake, so the reasoning survives beside the outcome and an error stays checkable at the release where it was made.</span></td><td class="n">&sect;5</td></tr>'+'<tr><td class="n">IV</td><td><strong>No intelligence supersedes human dignity.</strong><br><span class="meta">Artificial and shared intelligence advise; human intelligence decides. No model, no metric and no majority may reduce a person to an input, and the ceiling binds the authors before it binds anyone else.</span></td><td class="n">&sect;18</td></tr>'+'<tr><td class="n">V</td><td><strong>No institution owns civilization.</strong><br><span class="meta">The founders renounce, in writing and in advance, every mechanism by which they could come to own this: no supervoting class, no founder allocation, no reserved seat, no perpetual role.</span></td><td class="n">&sect;4</td></tr>'+'<tr><td class="n">VI</td><td><strong>Participation must remain voluntary.</strong><br><span class="meta">Nobody is enrolled, assigned, defaulted in or signed up by someone else. A person gives an hour because they chose to and stops when they choose to. A framework for self-governance that begins with compulsion has already answered the question it claims to be asking.</span></td><td class="n">&sect;0</td></tr>'+'<tr><td class="n">VII</td><td><strong>Evidence outranks opinion.</strong><br><span class="meta">Every claim about the running system cites a file and a line and is marked built, specified or proposed. Identical inputs must produce identical outputs, and the proof runs in the reader&rsquo;s own browser rather than on our word.</span></td><td class="n">&sect;13</td></tr>'+'<tr><td class="n">VIII</td><td><strong>Qualification precedes scale.</strong><br><span class="meta">Nothing moves to the next phase because it is popular. It moves because it passed a gate that was published before the attempt, and the framework is deliberately slower than it could be for exactly this reason.</span></td><td class="n">&sect;17</td></tr>'+'<tr><td class="n">IX</td><td><strong>Every generation inherits the ledger, and nothing else.</strong><br><span class="meta">The record passes on in full &mdash; every decision, every reason, every correction. Accrued value does not: no position, no claim and no accumulated advantage survives the person who earned it. What is inherited is the ability to check the past, never a head start over the present.</span></td><td class="n">&sect;5 &middot; &sect;1</td></tr>'+'<tr><td class="n">X</td><td><strong>No single actor may capture the framework.</strong><br><span class="meta">Money may fund and may never govern, by any route, at any price. Contribution buys no vote, no weight and no say, so capture by capital is structurally impossible rather than merely discouraged.</span></td><td class="n">&sect;3</td></tr>'+'</table><caption>Nothing here is new. Every principle was already load-bearing somewhere in the record; what was missing was the root they all descend from. If a principle and its section ever disagree, <strong>the section governs</strong> &mdash; the mechanism is the commitment, and this page is the summary of it.</caption></div>'+'<div class="notice lock"><span class="tag">&#128274; What a constitution is for here</span>'+'<p>Not to inspire. To make capture expensive. Each principle names a specific thing that cannot be done, by us first: we cannot outvote you on ending this, cannot hold authority past ten years, cannot edit an error out of the record, cannot buy a vote with money, and cannot leave our children a position instead of a ledger.</p>'+'<p style="margin-bottom:0">A framework whose founders have not written down what they are forbidden to do has not been designed &mdash; it has been announced. These are the ten things we gave up in order to ask anyone for an hour.</p></div>'+'');
+
+L(80,"fund.membership","A cross-block scan found the count Aset corrected at r76 still standing here. &sect;16 named eleven cities and held ten; the correction landed in &sect;16 and never travelled to this block, which cites the same set. Exactly the defect class the twelve found by reading two sections in one sitting &mdash; surviving in a third because nobody read all three.",
+'<h2>The key and the door</h2>'+
+'<p class="lede">A slice of an hour buys the right to buy a year. The year buys you nothing except '+
+'staying informed &mdash; and that is the point, not a shortfall.</p>'+
+'<div class="nose"><span class="ne">Needs</span>'+
+'<p>A framework funded one contribution at a time has a problem: <strong>one token, once, does not fund '+
+'anything twice.</strong> Contribution that arrives as a single gesture and never returns cannot refuel '+
+'innovation, and a treasury that only drains is a countdown dressed as a plan.</p>'+
+'<p style="margin-bottom:0">The obvious fix is the one that destroys everything upstream. A token that '+
+'entitles you to a share of reserves <em>and</em> is sold on an expectation of gain is a profit interest '+
+'in a common enterprise. That is the definition regulators apply, and it would put &sect;16 and all '+
+'ten jurisdictions at risk to solve a cash-flow problem.</p></div>'+
+'<div class="nose"><span class="ne">Outcomes</span>'+
+'<p><strong>Two instruments, and the second one promises nothing at all.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>&nbsp;</th><th>&#127793; Seed Token</th><th>&#128231; Membership</th></tr>'+
+'<tr><td><strong>Price</strong></td><td><strong>1/7.25 of a local minimum-wage hour</strong>, once, ever</td><td>priced separately, per year</td></tr>'+
+'<tr><td><strong>Cost in time</strong></td><td>8m 17s, everywhere</td><td>set per region</td></tr>'+
+'<tr><td><strong>Term</strong></td><td>permanent</td><td><strong>365 days, or 366 in a leap year</strong></td></tr>'+
+'<tr><td><strong>What it is</strong></td><td>the record that you seeded this</td><td>staying in the loop</td></tr>'+
+'<tr><td><strong>What it grants</strong></td><td><strong>the right to buy a membership</strong>, nothing else</td><td>news and updates to Vision &#8226; 2525</td></tr>'+
+'<tr><td><strong>Gain attached</strong></td><td>none</td><td><strong>none</strong></td></tr>'+
+'<tr><td><strong>Reserve claim at shutdown</strong></td><td>yes &mdash; &sect;7</td><td><strong>none</strong></td></tr>'+
+'<tr><td><strong>Mints &#50883;</strong></td><td>no</td><td>no</td></tr>'+
+'</table><caption>The token is a key. The membership is the door. Nobody is sold a key on the promise of '+
+'what is behind the door &mdash; and behind the door is a newsletter, not a return.</caption></div>'+
+'<p style="margin-bottom:0">The recurring money attaches to the instrument with <strong>no claim on '+
+'reserves and no gain of any kind</strong>. The reserve claim attaches to the instrument that is never '+
+'sold on a return. Separated, both survive. Merged, neither does.</p></div>'+
+'<div class="nose"><span class="ne">Solution</span>'+
+'<div class="notice lock"><span class="tag">&#128274; No gain attached &mdash; locked</span>'+
+'<p><strong>A membership pays nothing, returns nothing, appreciates in nothing and owes the member '+
+'nothing.</strong> Not a yield. Not a multiple. Not a measured benefit floor. Not a claim on reserves, '+
+'revenue, tokens or anything else.</p>'+
+'<p style="margin-bottom:0">What it does is keep a person <strong>in the loop</strong>: each release, what '+
+'changed, why it changed, which defect was found, which decision is still open. The record every reader '+
+'can already see, <em>delivered</em> rather than searched for.</p></div>'+
+'<p><strong>An earlier draft proposed a ten-times utility floor.</strong> It was withdrawn at release 53 '+
+'and the reason is worth keeping. Even framed as usefulness rather than money, a promised multiple is a '+
+'promise, and a promise attached to a recurring payment is the exact shape a regulator looks for. '+
+'Removing it cost nothing that mattered and removed the last edge anyone could grip. The earlier wording '+
+'is still readable at release 52.</p>'+
+'<p style="margin-bottom:0">Membership revenue enters the innovation treasury and funds the next projects '+
+'on the four-term formula in &sect;15. It does not distribute, does not accrue to anyone personally, and '+
+'does not touch &#50883; &mdash; Shield IV, unchanged.</p></div>'+
+'<div class="nose"><span class="ne">Evidence</span>'+
+'<p>The arithmetic is unglamorous and needs no growth story. One token, once, from a million people funds '+
+'one round and then nothing. A membership renewed annually by the same million funds a round every year, '+
+'and the treasury stops being a countdown.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The obvious objection, stated rather than avoided</span>'+
+'<p style="margin-bottom:0">The document is public, at <code>/Vision-2525/White-Paper</code>, with no login and '+
+'no account. <strong>So why would anyone pay to be told what they can already read for free?</strong> '+
+'The honest answer is that they would not be paying for access. They would be funding the next projects, '+
+'and the membership is simply the mechanism that makes that recurring instead of one-time. Being kept '+
+'current without having to check is a small convenience, not a product. If people will not fund something '+
+'they believe in on those terms, the model fails &mdash; and it should, rather than being rescued by '+
+'attaching a return to it.</p></div>'+
+'<p style="margin-bottom:0"><span class="pill p-spec">Spec-only</span> Payment rails exist and are cited '+
+'(<code>backend/app/cubes/cube8_tokens/payment_service.py</code>); the local price resolves through the '+
+'same settlement lookup &#50883; already uses (<code>backend/app/core/hi_rates.py</code>). The membership '+
+'term, the renewal cycle and the update cadence are proposed and unbuilt. The 365/366 rule is stated '+
+'precisely because a membership that silently loses a day every fourth year is the kind of small '+
+'dishonesty that tells you what a system is like.</p></div>');
+
+L(80,"paper.s10","The numbers table written at r77 to stop this section promising figures it does not print went stale within two releases &mdash; defects 26 and 27 were raised and nothing re-read the row. Corrected with the old figure kept beside it, and the gate now checks this row against the register so it can never go stale in silence again.",
+'<div class="secn">&sect;10 &middot; THE PRESENT <a href="#sec-0">&uarr; contents</a></div>'+
+'<h2 class="sech" id="sec-10">&sect;10 &nbsp; The Present</h2>'+
+'<p class="ext">Extends &sect;5</p>'+
+'<div class="nose"><span class="ne">Needs</span><p>There is a genre of visionary document that describes a destination and never states its own position, and the reason is obvious: position is embarrassing. A framework claiming to coordinate civilization while running on one operator, an AI, and no independent verification is in an awkward spot. The ordinary solution is to write in the future tense until the awkwardness passes. It never passes. It becomes the permanent voice of the document, and readers learn to discount everything in it.</p></div>'+
+'<div class="nose"><span class="ne">Outcomes</span><p>You should be able to tell exactly how far along this is without inferring it from tone. Not a summary of progress but the actual numbers, including the ones that are bad, so that the difference between what is built and what is imagined is a matter of record rather than of reading between lines.</p></div>'+
+'<div class="nose"><span class="ne">Solution</span><p>We score against five pillars &mdash; Security, Stability, Scalability, Efficiency, Succinctness. The composite is the minimum rather than the mean, because a system is only as strong as its weakest dimension and averaging is how a weak dimension gets hidden. So the figure below is the lowest of ten cubes rather than the average of ten, and we publish it knowing that it fails our own bar. Every defect found in our own money path is in the register with the date it was found, including the ones still open.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>Measure</th><th class="n">Measured at this release</th><th class="n">Written down before</th></tr>'+
+'<tr><td><strong>SSSES composite</strong> &mdash; the lowest of ten</td><td class="n">74 of 100</td><td class="n">bar is 100</td></tr>'+
+'<tr><td>strongest cube &mdash; Session</td><td class="n">100</td><td class="n">&mdash;</td></tr>'+
+'<tr><td>weakest cube &mdash; Simulation</td><td class="n">74</td><td class="n">&mdash;</td></tr>'+
+'<tr><td>route handlers in the engine</td><td class="n">154 &middot; 17 modules</td><td class="n">109</td></tr>'+
+'<tr><td>test functions in the engine</td><td class="n">2,399 &middot; 151 files</td><td class="n">1,488</td></tr>'+
+'<tr><td>defects raised &middot; tabled &middot; live</td><td class="n">27 &middot; 18 &middot; 6</td><td class="n">was 25 &middot; 16 &middot; 6 at r77</td></tr>'+
+'<tr><td>reading grade, mean of twenty sections</td><td class="n">13.4</td><td class="n">band is 11&ndash;13</td></tr>'+
+'<tr><td>sections inside that band</td><td class="n">6 of 20</td><td class="n">&mdash;</td></tr>'+
+'</table><caption>Measured at this release rather than asserted. Two of these were already recorded elsewhere &mdash; 109 handlers and 1,488 tests &mdash; and both had gone stale, which is the ordinary fate of a number nobody re-measures. Then this table did it too: the defect count published here at r77 was already wrong by r79, because two more defects were raised and nothing re-read this row. It is corrected above with the superseded figure beside it, and a gate assertion now compares this row against the register on every build. The number is allowed to move. It is not allowed to move quietly. The composite is 74 because one cube is at 74. Our bar is 100. We are twenty-six points short of it, and the shortfall has a name and a location.</caption></div>'+
+'<div class="nose"><span class="ne">Evidence</span><p>Now the uncomfortable specifics. Money could once mint recognition, which contradicts the wall that says it never can, and it sat there unnoticed for a long time; recognition briefly carried governance weight, which contradicts the same wall. Both are closed. Both are still readable at the release where they were wrong. Three governance decisions block operation today, and they are named rather than deferred quietly: the selection rule for thirty-five jurisdictions with sectoral rates, the standard value for the thirteen with no statutory rate, and the criteria for the multiple bands. This paper once restated the ledger in 28.7 per cent of its own phrasing. Measurement found that rather than reading, and it is now held below twenty by a machine. Most of the sections above are still too dense to survive translation comfortably, and this one was among them until the numbers arrived and the sentences were shortened to let them in. Uncomfortable to read and accurate anyway, which is the only combination worth publishing.</p></div>'+
+'');
 
 
 /* ── engine ───────────────────────────────────────────────────────────── */
