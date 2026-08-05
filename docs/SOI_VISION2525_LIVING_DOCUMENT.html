@@ -302,9 +302,19 @@ section.blk.cmp-add{background:linear-gradient(90deg,var(--ok-bg),transparent 62
 section.blk.cmp-rev{background:linear-gradient(90deg,var(--si-bg),transparent 62%);
   border-left:3px solid var(--si);margin-left:-16px;padding-left:13px}
 
+/* r87 · A ROOM MUST HAVE A DOOR.
+   Full doc hid the whole deck, which was safe while it took a deliberate tap to
+   enter. It is now the DEFAULT, so hiding every control would strand a first
+   arrival with no way back to the version machinery — the exact "removed UI the
+   operator did not ask to lose" failure. The deck stays; in full doc it carries
+   the one control that leaves, and nothing else. (`.fullnote` styling has been
+   dead since it was written — no element ever used it — so it is not the exit.) */
+body.fulldoc .deck{display:block;padding-top:6px;padding-bottom:6px}
+body.fulldoc .deck-in > *{display:none}
+body.fulldoc .deck-in > #bFull{display:inline-block}
+
 body.fulldoc #keyimp,
 body.fulldoc #cmp,
-body.fulldoc .deck,
 body.fulldoc .meta-part,
 body.fulldoc #review,
 body.fulldoc #ledger,
@@ -495,6 +505,41 @@ header.mast{position:relative}
 .relall .pills{max-height:168px;overflow:auto}
 
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+
+/* ── r87 · PORTRAIT CHROME ─────────────────────────────────────────────────
+   The operator, reading on a phone: "the top header space takes up too much".
+   Measured at 375px the masthead and the four control rows spent 500 of 2000
+   device pixels before a word of the document appeared.
+
+   NOTHING IS REMOVED. Every control is still present and still reachable —
+   removing chrome the operator did not ask to lose would be the worse failure.
+   What changes is vertical rhythm, and the epigraph, which is held to ONE line
+   with its year inline rather than stacked beneath it.
+
+   The two data-theme selectors are repeated here because they carry higher
+   specificity than a bare `header.mast` and would otherwise put the padding
+   back. Last-wins is not enough when the losing rule is more specific. */
+@media (max-width:760px) and (orientation:portrait){
+  header.mast{padding:20px 0 12px}
+  :root[data-theme="dark"] header.mast,
+  :root[data-theme="light"] header.mast{padding-bottom:12px}
+  .mast .epigraph{max-width:none;white-space:nowrap;margin-top:11px;
+    font-size:min(3.35vw,19px);line-height:1.3}
+  .mast .epiyear{display:inline;margin:0 0 0 .5em;font-size:min(2.3vw,11px);
+    letter-spacing:.14em;white-space:nowrap}
+  .mast .epiyear::before{content:"\2022";margin-right:.45em;opacity:.6}
+  .mast .sub{margin-top:9px}
+  .mast .glyphline{margin-top:11px}
+  .deck{padding:7px 20px 8px}
+  .deck-in{gap:6px 9px}
+}
+/* Full doc is now the default, which exposed a 7px horizontal overflow at 320px
+   that has been there since the definition lists were written: a long
+   unbreakable term in dl.defs pushes past the viewport. Pre-existing — pre-r87
+   overflows identically once Full doc is toggled — and fixed here because it is
+   now what a 320px phone sees on arrival rather than after a deliberate tap. */
+@media(max-width:560px){ dl.defs dt{white-space:normal} 
+  dl.defs dt, dl.defs dd{overflow-wrap:anywhere} }
 </style>
 
 <div class="deck" role="region" aria-label="Version replay controls">
@@ -2610,6 +2655,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"The new rule is cheap and load-bearing: no reading may end on a word a sentence cannot end on. It would have caught all twenty-five."}
  ],
  next:"Nine Masters and 171 readings remain, all authored to length. &sect;8 has three concurrences and is decided in r87. Version 17 is NOT released until 228 of 228."
+},
+{
+ v:87, code:"THE PHONE, THE DOOR, AND THE THIRD CONCURRENCE", stamp:"2026.08.05 &middot; revision 87",
+ thrust:"Four operator asks from a phone screenshot, and the &sect;8 decision r86 committed to. Portrait chrome tightened with nothing removed; the epigraph held to one line; the document opens as the document; the leaders&rsquo; opening line rewritten after failing twice; and the reason the framework exists now arrives before &sect;1 instead of at &sect;8.",
+ mot:"The operator sent a photograph of the document on a phone, which is worth more than any viewport assertion I run in a gate. Five hundred of two thousand device pixels were spent before a single word of the document appeared: masthead, four control rows, and an epigraph stacked over three lines with its year on a fourth. The gate had been checking that nothing overflowed horizontally and never once asked how much vertical space the chrome was taking. So: portrait rhythm tightened, the epigraph held to one line with its year inline, and NOTHING REMOVED. Every control is still there, because removing chrome nobody asked me to remove is the worse failure and I have made it before. Second, the door. The document now opens as the document &mdash; every block from every order, read straight through &mdash; because that is what somebody arriving here wants to see and it took two taps to reach. A shared deep link still lands where it was aimed, and choosing any view stands full-doc down, so nothing is trapped. Third, the line addressed to heads of state. It has now failed twice. It was &lsquo;someone who is wasted&rsquo;, which reads as drunk; it became &lsquo;someone the world is wasting&rsquo;, which names an agent but makes the reader work out what the wasting is. It now says the thing itself: you know someone who can do far more than they are ever asked to do. That is what the three examples underneath actually describe &mdash; the woman nobody asked about water, the young man with no line on the form, the grandmother whose craft dies with her. Fourth, and the one that matters most. Three Masters reading in succession &mdash; Aset, Asar, Athena &mdash; each found independently that the reason this framework exists arrives at &sect;8, after seven sections have already asked the reader to accept the mechanisms it justifies. Three lenses make it a defect rather than an opinion, and r86 said this release would decide it. It is fixed, and fixed without renumbering, because &sect;N is load-bearing in every cross-reference, the contents and the gate: the diagnosis is now stated in the Constitution, which precedes &sect;1, in its own words rather than &sect;8&rsquo;s, and &sect;8 keeps the full treatment and is cited from there.",
+ stats:{clauses:303, jur:103, shields:5, defects:29, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The Constitution says it in its own words rather than repeating &sect;8&rsquo;s, so the duplication ceiling is untouched and the finding is still closed."},
+  {n:"Asar",   g:"A+", f:"A reader now meets the reason before the consequences. That was my whole objection and it resolves without a single section number moving."},
+  {n:"Athena", g:"A",  f:"Sequence fixed at the cheapest possible point &mdash; upstream of everything, downstream of nothing. The expensive fix would have renumbered nineteen sections."},
+  {n:"Christo",g:"A+", f:"&ldquo;Someone who can do far more than they are ever asked to do&rdquo; is the first version of that line a listener understands on first hearing."},
+  {n:"Enki",   g:"A",  f:"Portrait AND max-width both gate the chrome rule, so a landscape phone and a narrow desktop window keep the layout they already had."},
+  {n:"Enlil",  g:"A",  f:"Full doc defaults on without touching blocksFor. The boot sets the flag the button sets; one code path, two callers."},
+  {n:"Krishna",g:"A",  f:"setView now stands full-doc down. Without that, every gate and script calling setView would have measured the union and reported a false view count."},
+  {n:"Odin",   g:"B+", f:"The gate measured horizontal overflow for eighty-six releases and never asked what the chrome cost vertically. A photograph found it."},
+  {n:"Pangu",  g:"A",  f:"One line, dated inline, sized in vw so it holds at any phone width. No truncation, no ellipsis, no second line."},
+  {n:"Sofia",  g:"A",  f:"Two rejections of one sentence is the panel working through the operator rather than through us. He heard it aloud; we read it."},
+  {n:"Thoth",  g:"A",  f:"57 readings unchanged, 111 words each, duplication still inside the ceiling with the Constitution&rsquo;s new paragraph counted."},
+  {n:"Thor",   g:"A",  f:"The theme-scoped selectors are repeated inside the portrait rule. Without them the more specific dark-mode padding would have silently won."}
+ ],
+ next:"Nine Masters and 171 readings remain. Version 17 is NOT released until 228 of 228, 33 passes with real referents, and the single-reader test."
 }
 ];
 
@@ -12011,6 +12077,61 @@ L(86,"open.defects","Defect 29: the review panel padded its own readings to reac
 'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
 
 
+/* ══════════ REVISION 87 ══════════ */
+L(87,"mot.leaders","The opening line has now failed twice. &ldquo;Wasted&rdquo; read as drunk and was replaced at r68 with &ldquo;the world is wasting&rdquo;, which the operator has now rejected as well: it names an agent but leaves the reader working out what the wasting IS. The passage is addressed to heads of state and promises to be read aloud and to survive translation, so the first sentence has to land on the first hearing in any language. It now states the thing itself &mdash; a person able to do far more than anybody asks of them &mdash; which is exactly what the three examples underneath describe.",
+'<h2>To the leaders of every people</h2>'+
+'<p class="meta" style="font-size:14px;margin-bottom:20px">Written to be read aloud, and to survive '+
+'translation into any language.</p>'+
+'<h3>First, to the heart</h3>'+
+'<p>You know someone who can do far more than they are ever asked to do.</p>'+
+'<p>A woman in your country who understands water better than the ministry does, and no one has ever '+
+'asked her. A young man who can fix what the engineers cannot, and there is no line on any form for what '+
+'he knows. A grandmother who carries a whole craft in her hands, and when she dies it goes with her.</p>'+
+'<p>They are not lazy. They are not hidden. <strong>They are simply not written down.</strong></p>'+
+'<p>Every country loses people this way. Not to war or hunger &mdash; to paperwork that has no box for '+
+'them. It is the quietest loss there is, and it is the largest.</p>'+
+'<p>This is a way to write them down.</p>'+
+'<h3>Then, to the mind</h3>'+
+'<p>Here is the whole thing, in six lines.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">1</th><td><strong>A person gives time.</strong> An hour of real work on a real problem. Anyone. Any age. Anywhere.</td></tr>'+
+'<tr><th class="n">2</th><td><strong>The hour is written down</strong> in a record that cannot be erased and does not belong to any employer, ministry or company.</td></tr>'+
+'<tr><th class="n">3</th><td><strong>The hour is counted the same everywhere</strong> &mdash; measured against the lowest lawful wage in that person&rsquo;s own place, so it means the same thing in every country.</td></tr>'+
+'<tr><th class="n">4</th><td><strong>They are paid in their own money</strong>, at their own local rate, over five years, from a ring-fenced reserve published monthly. Not a gift. Not charity. Payment for work that was done.</td></tr>'+
+'<tr><th class="n">5</th><td><strong>There is a ceiling nobody may pass</strong>, and it is the same ceiling for everyone. No one becomes rich here. That is on purpose.</td></tr>'+
+'<tr><th class="n">6</th><td><strong>Money never buys a vote.</strong> Not from a company, not from a wealthy person, not from a government. Not ever, by any route.</td></tr>'+
+'</table><caption>Everything else in this document is the machinery that makes those six lines true and '+
+'keeps them true after we are gone.</caption></div>'+
+'<p>Why the ceiling? Because we have all watched the same story. A thing is built to help people. It '+
+'succeeds. Money gathers around it. The money buys influence. The influence changes the purpose. And the '+
+'thing that was built to help people is now a thing that helps whoever owns it.</p>'+
+'<p>The ceiling breaks that story at the first step. If no one can accumulate, no one can buy. It costs '+
+'us the very rich as members. We accept that price.</p>'+
+'<h3>Last, to the spirit</h3>'+
+'<p>Five hundred years is not a slogan. It is a hard rule that removes most of our choices.</p>'+
+'<p>It means nothing here may depend on one company, one government, one machine, or one person &mdash; '+
+'including us. All of those end. It means every decision must be written in a way that a stranger can '+
+'check, long after everyone who made it is dust. It means the record must survive people who would burn '+
+'it, because in some countries that is not a theory.</p>'+
+'<p>And it means we must be able to say we were wrong. This document has been wrong, more than once. '+
+'Each time we left the mistake where it was, wrote the correction next to it, and moved on. You can '+
+'look at every one of them, in the release they were made. That is not weakness. <strong>A record you '+
+'cannot check is not a record. It is a story someone is telling you.</strong></p>'+
+'<h3>What we ask of you</h3>'+
+'<p>Not money. Not endorsement. Not a treaty.</p>'+
+'<p><strong>Let your people choose.</strong> That is all. Some will join and most will not, at first. '+
+'Those who do will contribute what they know and be paid for it in your currency, under your law, with the '+
+'record open to your inspection in your language.</p>'+
+'<p>If we are wrong, you will see it before we do, and you may say so publicly &mdash; we publish our own '+
+'faults, so yours will be in good company. If we are right, a woman who understands water will finally '+
+'appear somewhere your ministry can find her.</p>'+
+'<blockquote>We are not asking you to believe us. We are asking you to let your people be counted, and to '+
+'check our arithmetic.<span class="attr">웃 &mdash; Master of Thought</span></blockquote>');
+
+L(87,"front.constitution","THE THIRD CONCURRENCE. Aset, Asar and Athena each read all nineteen sections in succession and each reached the same finding without looking for it: the reason the framework exists arrives at &sect;8, after seven sections have already asked the reader to accept the mechanisms it justifies. Three independent lenses make it a defect rather than an opinion, and r86 committed to deciding it here. FIXED, and fixed without renumbering &mdash; &sect;N is load-bearing in every cross-reference, the contents and the gate. The diagnosis is now stated in the Constitution, which precedes &sect;1, in its own words rather than &sect;8&rsquo;s; &sect;8 keeps the full treatment and is cited from here.",
+'<div class="secn">THE CONSTITUTION <a href="#sec-0">&uarr; contents</a></div>'+'<h2 class="sech" id="sec-c">The Constitution</h2>'+'<p class="lede">Ten principles. Everything in the nineteen sections that follow is downstream of these, and each one names the section where it is actually implemented &mdash; a constitution that cannot be checked against a mechanism is a preamble.</p>'+'<p><strong>Why any of this exists.</strong> Organisations keep their conclusions and lose the thinking that produced them, so a failure understood once is met again years later by people with no way of seeing that it already happened. Every principle below, and every mechanism the nineteen sections describe, is an answer to that one problem. <span class="meta">Set out in full at &sect;8.</span></p>'+'<div class="scroll"><table>'+'<tr><th class="n">&nbsp;</th><th>Principle</th><th class="n">Where it lives</th></tr>'+'<tr><td class="n">I</td><td><strong>Humanity remains sovereign.</strong><br><span class="meta">Any natural person may petition to end this framework, and the vote is one person one vote, unweighted. Nothing anybody contributed counts. The people who funded the reserve vote with exactly the same single vote as someone who has never given a cent.</span></td><td class="n">&sect;7</td></tr>'+'<tr><td class="n">II</td><td><strong>Authority shall always be reviewable.</strong><br><span class="meta">Authority is bounded by term rather than by promise: one ten-year standing, seven years leading and three mentoring with none, with recall available throughout. The mentoring years make succession a scheduled event rather than a crisis.</span></td><td class="n">&sect;9</td></tr>'+'<tr><td class="n">III</td><td><strong>The record cannot be secretly altered.</strong><br><span class="meta">The ledger is append-only and there is no delete operation. A mistake is corrected by writing the correction, never by editing the mistake, so the reasoning survives beside the outcome and an error stays checkable at the release where it was made.</span></td><td class="n">&sect;5</td></tr>'+'<tr><td class="n">IV</td><td><strong>No intelligence supersedes human dignity.</strong><br><span class="meta">Artificial and shared intelligence advise; human intelligence decides. No model, no metric and no majority may reduce a person to an input, and the ceiling binds the authors before it binds anyone else.</span></td><td class="n">&sect;18</td></tr>'+'<tr><td class="n">V</td><td><strong>No institution owns civilization.</strong><br><span class="meta">The founders renounce, in writing and in advance, every mechanism by which they could come to own this: no supervoting class, no founder allocation, no reserved seat, no perpetual role.</span></td><td class="n">&sect;4</td></tr>'+'<tr><td class="n">VI</td><td><strong>Participation must remain voluntary.</strong><br><span class="meta">Nobody is enrolled, assigned, defaulted in or signed up by someone else. A person gives an hour because they chose to and stops when they choose to. A framework for self-governance that begins with compulsion has already answered the question it claims to be asking.</span></td><td class="n">&sect;0</td></tr>'+'<tr><td class="n">VII</td><td><strong>Evidence outranks opinion.</strong><br><span class="meta">Every claim about the running system cites a file and a line and is marked built, specified or proposed. Identical inputs must produce identical outputs, and the proof runs in the reader&rsquo;s own browser rather than on our word.</span></td><td class="n">&sect;13</td></tr>'+'<tr><td class="n">VIII</td><td><strong>Qualification precedes scale.</strong><br><span class="meta">Nothing moves to the next phase because it is popular. It moves because it passed a gate that was published before the attempt, and the framework is deliberately slower than it could be for exactly this reason.</span></td><td class="n">&sect;17</td></tr>'+'<tr><td class="n">IX</td><td><strong>Every generation inherits the ledger, and nothing else.</strong><br><span class="meta">The record passes on in full &mdash; every decision, every reason, every correction. Accrued value does not: no position, no claim and no accumulated advantage survives the person who earned it. What is inherited is the ability to check the past, never a head start over the present.</span></td><td class="n">&sect;5 &middot; &sect;1</td></tr>'+'<tr><td class="n">X</td><td><strong>No single actor may capture the framework.</strong><br><span class="meta">Money may fund and may never govern, by any route, at any price. Contribution buys no vote, no weight and no say, so capture by capital is structurally impossible rather than merely discouraged.</span></td><td class="n">&sect;3</td></tr>'+'</table><caption>Nothing here is new. Every principle was already load-bearing somewhere in the record; what was missing was the root they all descend from. If a principle and its section ever disagree, <strong>the section governs</strong> &mdash; the mechanism is the commitment, and this page is the summary of it.</caption></div>'+'<div class="notice lock"><span class="tag">&#128274; What a constitution is for here</span>'+'<p>Not to inspire. To make capture expensive. Each principle names a specific thing that cannot be done, by us first: we cannot outvote you on ending this, cannot hold authority past ten years, cannot edit an error out of the record, cannot buy a vote with money, and cannot leave our children a position instead of a ledger.</p>'+'<p style="margin-bottom:0">A framework whose founders have not written down what they are forbidden to do has not been designed &mdash; it has been announced. These are the ten things we gave up in order to ask anyone for an hour.</p></div>'+'');
+
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -12842,6 +12963,13 @@ function viewBtnLabel(v){
 }
 function setView(v){
   if (!VIEWS[v]) return;
+  /* asking for a view means asking to read THAT view — full doc ignores the
+     open view by design, so it must stand down rather than silently win. */
+  if (fullDoc){
+    fullDoc = false;
+    document.body.classList.remove("fulldoc");
+    document.getElementById("bFull").setAttribute("aria-pressed","false");
+  }
   view = v;
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(v);
@@ -12911,6 +13039,16 @@ document.addEventListener("keydown", function(e){
   const m = /^#(?:(brief|paper)\/)?v(\d+)$/.exec(location.hash);
   if (m){ view = m[1] ? m[1] : "ledger"; }
   active = m ? Math.max(1, Math.min(VMAX, parseInt(m[2],10))) : VMAX;
+  /* r87, operator: "always default vision-2525 to full doc". The document
+     opens as the DOCUMENT — every block from every order, read straight
+     through. A view-specific deep link (#paper/v58) still wins, because a link
+     someone shared must land where they meant it to; and choosing any view
+     turns full-doc off, so nothing is trapped in it. */
+  if (!m || !m[1]){
+    fullDoc = true;
+    document.body.classList.add("fulldoc");
+    document.getElementById("bFull").setAttribute("aria-pressed","true");
+  }
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(view);
   renderDoc();
