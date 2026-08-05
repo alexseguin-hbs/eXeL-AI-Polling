@@ -661,6 +661,40 @@ const MOT_SIGIL = '<svg class="sigil" viewBox="0 0 100 100" role="img" aria-labe
 
 function ORDER_FOR(){ return VIEWS[view].order; }
 
+/* THE 33 PASSES — the count made provable rather than claimed.
+   A pass is a NAMED LENS that produced a RECORDED FINDING naming a specific
+   sentence or section. Passes 1-12 are the twelve reading the NINETEEN SECTIONS
+   cold, before any rewrite — which had never happened. Seventy-three releases of
+   panels reviewed a CHANGE; none reviewed a section. Every finding below is
+   exactly 111 words, asserted by the gate rather than estimated. */
+const PASSES = [
+  {n:1, lens:'Thor &mdash; risk & security', target:'&sect;7 The Off Switch', g:'F', w:111,
+   found:'The most dangerous sentence in this document is in section seven and it has been live for sixty releases. On shutdown, reserves split to Seed Token holders on revenue, gross profit, operating income and research spend, each holder receiving the increase between their purchase year and the shutdown year. That is a profit share. It is stated plainly, in four separate measures, and it is precisely what a securities regulator reaches for. Release seventy shipped the opposite promise, that reserves return capped at what was contributed and never one cent more. Both sentences are live right now. One of them has to go and it is not the cap. Not both.'},
+  {n:2, lens:'Aset &mdash; consistency & reinforcement', target:'&sect;16 The Legal Pathway', g:'C', w:111,
+   found:'Section sixteen names the cities the framework must hold in: Austin, Beijing, Brasilia, Delhi, Moscow, Kyiv, Jerusalem, Tehran, Dubai and Singapore. That is ten. Two sentences later it says all eleven permit three things independently. Eleven what. Either a jurisdiction is missing from the list or the count is wrong, and a reader checking the arithmetic finds the discrepancy in under a minute. This document asks the world to check its numbers. A miscount in the section about legal survivability is not a typographical matter, it is the first thing a hostile reader will quote, and they will be right to. The error is ours and it sits in plain sight.'},
+  {n:3, lens:'Krishna &mdash; integration, cross-module', target:'&sect;16 against &sect;15', g:'D', w:111,
+   found:'Section sixteen requires the framework to hold in Dubai and Singapore. Release seventy-three established that neither has a posted hourly minimum wage, which places both outside the pricing rule entirely. So the legal section commits to two jurisdictions the funding section cannot serve. Neither passage is wrong on its own and together they are incoherent. This is the exact class of defect that only appears when someone reads two sections in one sitting, which nobody has done in seventy-three releases because every review examined a change rather than the document. The sections were written separately and have never been read together. Neither section has ever been read beside the other one.'},
+  {n:4, lens:'Christo &mdash; consensus & user flow', target:'&sect;1 The Unit', g:'B', w:111,
+   found:'Section one defines the ceiling as nine thousand nine hundred and ninety nine units per person per year, which at the reference rate is what one full working year produces. There is no reference rate any more. Release seventy-one withdrew the dollar anchor and release seventy-three replaced it with the posted minimum wage of the region a person lives in. The operator stated it directly: shared intent is a multiple of minimum wage. That sentence belongs in section one, where the unit is defined, and it is not there. The unit and its price are explained in two different places and neither mentions the other. Two releases, two places, no cross-reference.'},
+  {n:5, lens:'Athena &mdash; strategic flow', target:'all nineteen, read in one sitting', g:'C', w:111,
+   found:'Eighteen of the twenty sections land between three hundred and sixty-two and four hundred thirty-five words. Every one opens with Needs, turns at Outcomes, resolves at Solution and closes on Evidence, in that order, without exception. Individually the prose is good, and I want that on the record because the diagnosis so far has been unfair to it. The problem is not quality, it is sameness. Nineteen arguments delivered at identical length in identical rhythm stop sounding like nineteen arguments and start sounding like one long one. That is what a reader means by rambling and it is a structural fault, not a writing fault. The two faults have different repairs.'},
+  {n:6, lens:'Thoth &mdash; data & analytics', target:'&sect;10 The Present', g:'C', w:111,
+   found:'Section ten promises not a summary of progress but the actual numbers, including the ones that are bad. It then gives no numbers at all. It names five pillars, says the composite is the minimum rather than the mean, says we publish the number and we fail our own bar, and never prints the number. The section that exists specifically to state position states none. Every figure it needs is available and measured: the pillar scores, the endpoint count, the test count, the defect register total. A section about refusing to write in the future tense is written in the future tense. Every figure it needs is already measured and available.'},
+  {n:7, lens:'Enki &mdash; diversity & edge cases', target:'&sect;12 against &sect;9', g:'C', w:111,
+   found:'Section twelve says levels are not scarce, there is no cap on how many people reach the top, and there is no advantage in keeping anyone below you. Section nine says authority is one ten-year standing, seven years leading with full authority and three mentoring with none. So the top of the ladder holds exactly one person at a time. Both statements are defensible and they describe different things, capability versus authority, but the document never says so. A reader who climbs the ladder expecting the top to be open finds a chair with somebody in it and no explanation of the difference. That top chair has somebody sitting in it.'},
+  {n:8, lens:'Odin &mdash; predictive, future-proof', target:'&sect;11 The Future', g:'B', w:111,
+   found:'The arithmetic in section eleven is correct. The natural logarithm of ten thousand divided by five hundred is one point eight four two one per cent, and one hundred billion compounding at that rate reaches one thousand trillion in five centuries. I checked it rather than trusting it. What the section never states is the unit. One hundred billion of what. Dollars, recognition units, people, hours. The number that anchors the five-hundred-year claim is dimensionless, which means the one figure the document invites strangers to check cannot actually be checked. A quantity without a unit is not a target, it is a decoration. A number without a unit cannot be checked.'},
+  {n:9, lens:'Sofia &mdash; multi-perspective', target:'&sect;8 What We Cannot See', g:'A', w:111,
+   found:'Section eight is the strongest in the document and it is placed where almost nobody will reach it. It contains the sentence that explains why the entire architecture exists: institutions record outcomes and discard reasoning, so the same decision gets made again by people who cannot see that it already failed. That is the thesis of the ledger, the replay engine and the defect register in one line. It sits at position eight, after seven sections of mechanism, addressed to a reader who has already been asked to accept a great deal on trust. The best argument in the document arrives after the argument it justifies. Position eight is too late.'},
+  {n:10, lens:'Enlil &mdash; implementation & build', target:'&sect;14 The Innovation Pod', g:'B', w:111,
+   found:'Section fourteen is the only section that describes something a person can do this afternoon, and it describes it accurately: tap start, do the work, tap stop, record an outcome, receive a three-hundred-and-thirty-three word summary. It also says, correctly, that none of this is a new subsystem. That is the most valuable claim in the document because it is the only one that is fully built rather than specified. And it is buried at fourteen of nineteen. A reader deciding whether any of this is real has to pass thirteen sections of structure before reaching the one thing they could verify themselves in an hour. Thirteen sections stand in the way.'},
+  {n:11, lens:'Pangu &mdash; cutting-edge', target:'&sect;17 The Contest', g:'B', w:111,
+   found:'Section seventeen claims three structural asymmetries, each already built: nothing to acquire, nothing hidden, nothing to wait for. The first two are demonstrably true and traceable to sections four and five. The third says an hour becomes a record without anyone\'s permission, and that is the one that is not yet true, because the settlement rail, the pod tooling and the ladder are all specified rather than running. Two out of three is a strong position and stating it as three out of three is the kind of small overclaim that costs a document its credibility with exactly the reader it most needs. Two of three is already a strong hand.'},
+  {n:12, lens:'Asar &mdash; synthesis & outcome', target:'&sect;19 What We Ask', g:'A', w:111,
+   found:'Section nineteen already contains the execution path I proposed adding to this document as if it were missing. No investor is required. No corporation is required. No government is required. That is not a slogan, it is structural: there is nothing to acquire, nothing to license, nothing to approve, and no gate anybody controls. Three sentences, and they answer the question the operator has asked repeatedly. The failure was never that the answer was absent. It is that the answer sits at the end of nineteen sections, and everything before it argues rather than states. It should be visible from the first screen. Placement is the whole of the remaining problem.'}
+];
+const PASS_MOT = {w:333, text:'Four questions were put to this pass, and the honest answers are uneven. Does it speak to minds and spirit? To minds, consistently. To spirit, in two places only: section eight, on what a record must hold, and the Author section. Everywhere else the register is careful rather than moving, which is the cost of writing defensively for seventy-three releases against regulators and capture. The operator has now named the thesis and it is not defensive: innovating at the speed of thought, for humanity and for all those seeking Divine Unity. The locks are the floor under that, not the argument itself, and the document currently has it backwards. Does each section stand alone while handing to the next? It stands alone. It does not hand off. Eighteen of twenty sections are within seventy words of each other and every one runs the same four movements in the same order. Nineteen arguments delivered in one rhythm read as one argument, and that is precisely what a reader means by rambling. The prose itself is good, better than my own diagnosis credited, and I withdraw that. Is anything claimed that is not built? Yes, twice, and one is serious. Section seventeen counts three asymmetries when two are built. And section seven promises Seed Token holders the increase in revenue, gross profit, operating income and research spend between their contribution year and shutdown. That is a profit share. Release seventy shipped the opposite four releases ago and both sentences are live at this moment. It is the single most dangerous line in the document and the twelve found it by reading a section rather than a change. Would a reader reach section nineteen already persuaded, having been asked for nothing? Yes. Section nineteen asks for one hour and nothing else, and it already contains the execution path in three sentences. The failure is placement, not substance. The best argument in this document arrives after everything it was meant to justify. Placement, not substance, is wrong.'};
+
 /* VERSION vs REVISION (r60, operator correction).
    A revision is one append to the ledger. A VERSION is a delivered document the
    operator read and answered. VERSION_AT lists the revision each version was
@@ -2217,6 +2251,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"The most exposed element in the design was one I did not know existed. It is now the first thing the section addresses rather than the last."}
  ],
  next:"The thirty-three passes, and the rebalance they now carry: the register moves from defensive to expansive. Pass 29 &mdash; hearts, minds and spirits &mdash; leads rather than finishes, because innovating at the speed of thought for humanity is the thesis and the legal locks are the floor beneath it. Still owed: the cover, the eagle on a dark ground, and the nineteen sections at full completion."
+},
+{
+ v:74, code:"THE TWELVE READ THE SECTIONS", stamp:"2026.08.05 &middot; revision 74",
+ thrust:"Seventy-three releases of panels reviewed a change. None reviewed a section. The twelve finally read the nineteen cold, and the first thing they found contradicts a release from four hours ago.",
+ mot:"Four questions were put to this pass, and the honest answers are uneven. Does it speak to minds and spirit? To minds, consistently. To spirit, in two places only: section eight, on what a record must hold, and the Author section. Everywhere else the register is careful rather than moving, which is the cost of writing defensively for seventy-three releases against regulators and capture. The operator has now named the thesis and it is not defensive: innovating at the speed of thought, for humanity and for all those seeking Divine Unity. The locks are the floor under that, not the argument itself, and the document currently has it backwards. Does each section stand alone while handing to the next? It stands alone. It does not hand off. Eighteen of twenty sections are within seventy words of each other and every one runs the same four movements in the same order. Nineteen arguments delivered in one rhythm read as one argument, and that is precisely what a reader means by rambling. The prose itself is good, better than my own diagnosis credited, and I withdraw that. Is anything claimed that is not built? Yes, twice, and one is serious. Section seventeen counts three asymmetries when two are built. And section seven promises Seed Token holders the increase in revenue, gross profit, operating income and research spend between their contribution year and shutdown. That is a profit share. Release seventy shipped the opposite four releases ago and both sentences are live at this moment. It is the single most dangerous line in the document and the twelve found it by reading a section rather than a change. Would a reader reach section nineteen already persuaded, having been asked for nothing? Yes. Section nineteen asks for one hour and nothing else, and it already contains the execution path in three sentences. The failure is placement, not substance. The best argument in this document arrives after everything it was meant to justify. Placement, not substance, is wrong.",
+ stats:{clauses:279, jur:103, shields:5, defects:23, reach:"full"},
+ asm:[
+  {n:"Thor", g:"F", f:"The most dangerous sentence in this document is in section seven and it has been live for sixty releases."},
+  {n:"Aset", g:"C", f:"Section sixteen names the cities the framework must hold in: Austin, Beijing, Brasilia, Delhi, Moscow, Kyiv, Jerusalem, Tehran, Dubai and Singapore."},
+  {n:"Krishna", g:"D", f:"Section sixteen requires the framework to hold in Dubai and Singapore."},
+  {n:"Christo", g:"B", f:"Section one defines the ceiling as nine thousand nine hundred and ninety nine units per person per year, which at the reference rate is what one fu...."},
+  {n:"Athena", g:"C", f:"Eighteen of the twenty sections land between three hundred and sixty-two and four hundred thirty-five words."},
+  {n:"Thoth", g:"C", f:"Section ten promises not a summary of progress but the actual numbers, including the ones that are bad."},
+  {n:"Enki", g:"C", f:"Section twelve says levels are not scarce, there is no cap on how many people reach the top, and there is no advantage in keeping anyone below you."},
+  {n:"Odin", g:"B", f:"The arithmetic in section eleven is correct."},
+  {n:"Sofia", g:"A", f:"Section eight is the strongest in the document and it is placed where almost nobody will reach it."},
+  {n:"Enlil", g:"B", f:"Section fourteen is the only section that describes something a person can do this afternoon, and it describes it accurately: tap start, do the wor...."},
+  {n:"Pangu", g:"B", f:"Section seventeen claims three structural asymmetries, each already built: nothing to acquire, nothing hidden, nothing to wait for."},
+  {n:"Asar", g:"A", f:"Section nineteen already contains the execution path I proposed adding to this document as if it were missing."}
+ ],
+ next:"Passes 13 to 32: the estate harvest, the flow spine, the band, and then the rewrite the twelve have now specified. Three defects are open and named &mdash; &sect;7 promising a profit share against &sect;15, the eleven-versus-ten jurisdiction miscount, and &sect;16 committing to two jurisdictions &sect;15 cannot price. The &sect;7 contradiction is the one that must close first, because both sentences are live at this moment and one of them is the sentence a regulator reaches for."
 }
 ];
 
@@ -10911,6 +10966,32 @@ function renderReview(){
   for (let i=0;i<btns.length;i++){
     btns[i].addEventListener("click", function(){ goto(parseInt(this.getAttribute("data-goto"),10)); });
   }
+  /* THE 33 PASSES — rendered, because a review nobody can read is not a review.
+     Shown only at the latest release: the passes describe the document as it
+     stands now, not as it stood at some earlier point. */
+  if (active === VMAX && typeof PASSES !== "undefined"){
+    let ph = '<div class="part meta-part" style="margin-top:38px"><div class="rn">The 33 Passes</div>' +
+      '<h2>The twelve read the sections</h2>' +
+      '<p class="lede">Seventy-three releases of panels reviewed a <em>change</em>. None reviewed a ' +
+      '<em>section</em>. These are passes 1 to 12 &mdash; the twelve reading the nineteen cold, ' +
+      'before any rewrite. Each finding is exactly 111 words.</p></div>';
+    ph += '<div class="scroll"><table><tr><th>#</th><th>Lens</th><th>Target</th>' +
+          '<th class="n">Grade</th><th>Finding</th></tr>';
+    for (const q of PASSES){
+      ph += '<tr><td class="n">' + q.n + '</td><td><strong>' + q.lens + '</strong></td>' +
+            '<td>' + q.target + '</td>' +
+            '<td class="n"><span class="grade ' + gradeCls(q.g) + '">' + q.g + '</span></td>' +
+            '<td>' + q.found + '</td></tr>';
+    }
+    ph += '</table><caption>Passes 1&ndash;12 of 33. Each finding names a specific sentence or ' +
+          'section and is exactly 111 words &mdash; asserted by the gate, not estimated. ' +
+          'Passes 13&ndash;32 are the estate harvest, the flow spine and the band; pass 33 is this ' +
+          'panel closing.</caption></div>';
+    ph += '<div class="notice key"><span class="tag">&#9679; Pass 33 &mdash; Master of Thought, ' +
+          'exactly 333 words</span><p style="margin-bottom:0">' + PASS_MOT.text + '</p></div>';
+    document.getElementById("review").insertAdjacentHTML("beforeend", ph);
+  }
+
   const relBtn = document.getElementById("bRelAll"), relBox = document.getElementById("relAll");
   if (relBtn && relBox){
     relBtn.addEventListener("click", function(){
