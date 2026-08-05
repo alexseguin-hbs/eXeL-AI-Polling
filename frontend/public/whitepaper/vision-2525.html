@@ -334,6 +334,11 @@ body.fulldoc .fullnote{display:block}
 .prayer p:last-child{margin-bottom:0}
 .prayer .three{display:inline-block;margin-top:4px;font-style:italic;color:var(--si)}
 .prayer .li{display:block;font-weight:600}
+/* r65: outward links in the reading. Underlined on hover only &mdash; a table of
+   eight underlined rows reads as a form, not as an invitation. */
+#doc table a{color:var(--ai);text-decoration:none;font-weight:600}
+#doc table a:hover{text-decoration:underline}
+#doc .notice a{color:var(--ai)}
 .prayer .aho{margin-top:18px;font:600 clamp(15px,2.6vw,19px)/1.4 "Iowan Old Style",Palatino,Georgia,serif;
   letter-spacing:.12em;color:var(--si)}
 .notice.sign{border-color:var(--si);border-left-color:var(--si);background:var(--si-bg);text-align:center}
@@ -1972,6 +1977,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Suppression, positive thinking, and rising above your life &mdash; named as harms, not caveats. A teaching that omits its own failure modes is how the harm spreads."}
  ],
  next:"The outline-to-detailed pass across the nineteen sections, using this method: critique first with the twelve, then write to the findings. The reading target is grade 10 with a bar of 12. Then the Pod composition in code and the per-section review. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
+},
+{
+ v:65, code:"TAKE IT WITH YOU", stamp:"2026.08.05 &middot; revision 65",
+ thrust:"The Author section stops at the reader instead of at itself: every work and both free tools, linked, shareable, and open without a login. And &sol;Vision-2525 is now the document rather than a forward to it.",
+ mot:"Operator directive, and it corrects something the last two revisions got wrong in opposite directions. Revision 63 removed the catalogue of works because a catalogue is a claim, and that was right. But removing it left a reader who had just been moved with nowhere at all to go, which Krishna flagged and I answered only by pointing at instruments. The distinction I missed is the one the operator drew: a LIST OF WHAT I HAVE MADE is a claim, and a LIST OF WHAT YOU CAN USE is a gift. Same rows, opposite direction. So the works return as links rather than credentials, under a heading that says take it with you, with one instruction attached: if any of it is useful, send it to someone rather than crediting me, because the work travels better than the name does. Two free tools are named first because they are the ones a person can use in the next sixty seconds &mdash; the Divinity Guide for the inner work, eXeL AI for the outer &mdash; and the section says plainly which to start with depending on which half drew them. Every link opens without a login, and the caption says why: a framework about access that gates its own front door has answered the question already. Second: the URL. The operator points out that the site root IS main, so main slash Vision-2525 is simply slash Vision-2525, and that address should BE the document rather than bouncing to another one. It now is. It stays a static page rather than an application route, because the app already owns the lowercase manifesto address and two routes differing only in case make the build refuse; but it is no longer a redirect. It carries the same chrome as the framed reader, written in plain HTML so the two cannot drift, and it loads the document in one request instead of behind a bundle. Third, confirmed rather than assumed: we are on Version 16. The reconstruction was right and the operator has said so.",
+ stats:{clauses:271, jur:103, shields:5, defects:19, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"A list of what I have made is a claim; a list of what you can use is a gift. Same rows, opposite direction, and only one of them belongs in this section."},
+  {n:"Asar",   g:"A",  f:"Send it to someone rather than crediting me. That instruction does more for the work than any byline, and it is the only ask in the section."},
+  {n:"Athena", g:"A",  f:"Two tools named first because they are usable inside a minute, and the section says which to open depending on which half of the document moved you."},
+  {n:"Christo",g:"A+", f:"A reader who was moved and then handed nothing had been used for their attention. That gap is closed, and it should never have been open."},
+  {n:"Enki",   g:"A",  f:"Governance, shelter, security, voice, the sky, the interior life. Eight doors into one idea, and any of them is a legitimate way in."},
+  {n:"Enlil",  g:"A",  f:"The canonical URL is now the page rather than a bounce to it. A redirect is a promise that the address is not really the address."},
+  {n:"Krishna",g:"A",  f:"My finding at r64 was answered with instruments; the operator answered it properly with doors. Pointing at the audit trail is not the same as pointing outward."},
+  {n:"Odin",   g:"A",  f:"Every link opens without a login. A framework about access that gates its own front door has already answered the question it claims to be asking."},
+  {n:"Pangu",  g:"A",  f:"Static rather than routed, so the capital and lowercase addresses can coexist. The constraint was real and the way around it costs nothing a reader can feel."},
+  {n:"Sofia",  g:"A",  f:"The work travels better than the name does. That sentence is the whole ethic of the section compressed into eight words."},
+  {n:"Thoth",  g:"A",  f:"Version 16, confirmed by the operator rather than inferred by me. The count now rests on the only authority that could ever settle it."},
+  {n:"Thor",   g:"A",  f:"External links carry noopener and open in a new tab; internal ones are absolute so they survive the downloaded file leaving this domain entirely."}
+ ],
+ next:"The outline-to-detailed pass across the nineteen sections, by the method this section proved: critique cold with the twelve, then write to the findings, at grade 10 with a bar of 12. Then the Pod composition in code and the per-section review. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
 }
 ];
 
@@ -9646,6 +9672,85 @@ L(64,"mot.author","Twelve reviewers critiqued the previous Author section before
 '<p>Start small enough that it is almost embarrassing. Catch one reaction today &mdash; just one &mdash; before it becomes a sentence you say out loud. Ask where it came from. Ask whether you would choose it again if you had a moment to think. You will miss far more than you catch, and everyone does; missing them is what practising this looks like from the inside.</p>'+
 '<p>Then, when you can, take it somewhere it costs you something. A hard conversation. A decision where you stand to lose. That is where the practice becomes real, because it is the only place it can.</p>'+
 '<p><strong>This document is one person&rsquo;s attempt at that, in public, where you can check it.</strong> Not a claim to have arrived &mdash; a record of the trying, kept honestly enough that you can see exactly where the trying failed. If it helps you, take it. If you can do it better, please do. I would rather be improved on than agreed with.</p>'+
+'<h3>The prayer said before the work</h3>'+
+'<p>It is said first, not last. It exists to put the author back in proportion &mdash; one person, briefly holding a pen, inside something much older and much larger than the pen.</p>'+
+'<div class="prayer">' + MOT_SIGIL +
+'<p>Odinson, All Father, Great Spirit;<br>Mother Aya, Mother Gaia, La Luna;<br>Krishna, Christo, Pangu,<br>'+
+'And all ancestors who have come before us to embody Divine Unity and Divinity.</p>'+
+'<p>Please help each of us let go of fears and desires for control.<br>So we may learn to walk away from materialism, debt, and illusions.</p>'+
+'<p>Help us master energy around past conditionings, such as<br><span class="three">Love, Loss, and Safety</span></p>'+
+'<p>So we may embrace Divine Unity Principles of:<br><span class="li">Universal Connection</span><span class="li">Cosmic Harmony</span><span class="li">Eternal Wisdom</span></p>'+
+'<p>Help us remember these three phrases:<br><span class="li">I AM</span><span class="li">I AM Love</span><span class="li">I AM Humanity</span></p>'+
+'<p>And therefore, within each of us is the ability to understand the full range and spectrum of all human emotions, as We Are One,<br>I leave my word, as One Universal Consciousness.</p>'+
+'<p class="aho">AHO &middot; AMEN &middot; I AM</p></div>'+
+'<div class="notice sign">' + MOT_SIGIL +
+'<span class="tag">&#50883; Signed &middot; human authority</span>'+
+'<p class="who"><strong>Master of Thought</strong></p>'+
+'<p class="meta" style="margin-bottom:0"><em>We cannot master what we are not aware of.</em></p></div>');
+
+
+/* ══════════ REVISION 65 ══════════ */
+L(65,"mot.author","Operator directive: give the reader every work and every free tool, with links they can share. A section that moves someone and then hands them nothing has wasted the moment it just created.",
+'<div class="secn">THE AUTHOR</div>'+
+'<h2 class="sech" id="author">Master of Thought</h2>'+
+'<p class="lede">One name, one job, and something you can start today</p>'+
+'<p>Master of Thought is a name. It is not a rank, and it is not a claim to have arrived. It marks the person who is answerable for what this document says.</p>'+
+'<p>There is an older idea underneath it, and it is worth two minutes of your time because it is probably also a description of you. Every age has someone whose work is to write things down. Not to rule. Not to own. To record what happened, and to keep the record straight when keeping it straight is inconvenient. Egypt called that one <strong>Djehuty</strong>. He weighed the heart against a feather and wrote down the answer &mdash; measurement and mercy in the same gesture. Greece met him and called him <strong>Thoth</strong>, then <strong>Hermes</strong>, and left one line behind: <em>as above, so below</em>.</p>'+
+'<p>That line is not decoration here. It is the method. The way you handle one hour of your own attention is the way a species handles five centuries of its own. Get the small pattern right and the large one becomes possible. Get it wrong and no amount of structure will save you, because the structure will be built by people running the small pattern wrong.</p>'+
+'<div class="pull">The name of the scribe changed. The job never did, and it is still open.<cite>Anyone who keeps an honest record is doing it.</cite></div>'+
+'<h3>What Thought Mastery is</h3>'+
+'<p>It is not thinking faster, and it is not knowing more.</p>'+
+'<p><strong>It is choosing the thought you act from.</strong></p>'+
+'<p>Most of us do not choose. A thought arrives &mdash; out of fear, out of an old wound, out of a habit nobody ever inspected &mdash; and we obey it inside half a second. We call that thinking. It is closer to weather. Thought Mastery is the pause before the obedience. You notice the thought. You feel where it came from. Then you decide, knowing you had a choice.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Three things this is not, because each one hurts people</span>'+
+'<p><strong>It is not pushing thoughts away.</strong> Suppression is not mastery; it is a debt, and it comes due with interest. The thought you refuse to feel runs the decision anyway, from underneath, where you cannot argue with it.</p>'+
+'<p><strong>It is not positive thinking.</strong> Insisting on a cheerful thought over a true one is just a nicer way of not looking. Accuracy comes first. Comfort, if it comes, comes after.</p>'+
+'<p style="margin-bottom:0"><strong>It is not rising above your life.</strong> If a practice leaves you calmer and less willing to face a hard conversation, it is an anaesthetic. Real practice makes you MORE able to stay in the room, not less.</p></div>'+
+'<h3>What actually changes, and when</h3>'+
+'<p>You do not need a lifetime before anything shifts. Here is the honest sequence, from people who have done it and from doing it badly for years myself.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>When</th><th>What you can expect</th></tr>'+
+'<tr><td><strong>First week</strong></td><td>You catch a reaction <em>after</em> it has already happened. That feels like failure. It is not &mdash; it is the first time you have seen the mechanism at all.</td></tr>'+
+'<tr><td><strong>First month</strong></td><td>You catch one <em>during</em>. There is a gap, it is very small, and you will probably waste it. The gap is the whole prize; using it well comes later.</td></tr>'+
+'<tr><td><strong>First year</strong></td><td>The gap widens in ordinary moments and vanishes in hard ones. This is normal and it is not backsliding. Pressure is simply the harder exam.</td></tr>'+
+'<tr><td><strong>After that</strong></td><td>It stops being a technique you use and becomes how you meet things. Nobody arrives. The practice keeps going, and the people furthest along say so most plainly.</td></tr>'+
+'</table><caption>A week is enough to see something real. That matters more than the destination, because almost everyone who quits, quits in the first fortnight, believing that catching it late means they cannot do it.</caption></div>'+
+'<h3>Why this belongs in a document about money and law</h3>'+
+'<p>Every rule here began as a thought somebody chose. The ceiling that stops at a livelihood. The wall between money and voice. The hour that counts the same in Lagos and Austin. None of those were obvious, and each one was a moment where fear was available and something else was picked instead.</p>'+
+'<p><strong>A framework is only the sum of the thoughts its authors could hold.</strong> That is why the inner work and the outer work are one piece of work. Change how people think and the structures follow. Leave the thinking alone and the best structure on earth is bent back into the old shape within a generation, by people who mean well and never examined what they were running on.</p>'+
+'<p>The three the framework names are the same three you are: <span class="g-ai">&#9708; artificial intelligence</span> to do what scales, <span class="g-si">&#9825; shared intent</span> to decide what is worth scaling, and <span class="g-hi">&#50883; human intelligence</span> to carry the consequence. A machine can draft a clause. Only a person can be answerable for it. That is why anything binding here needs a human signature, and why this section exists at all.</p>'+
+'<h3>What the name promises &mdash; and how to check</h3>'+
+'<div class="notice key"><span class="tag">Three promises, each with the place you verify it</span>'+
+'<p><strong>Show the reasoning, not just the answer.</strong> Every release carries the instruction that produced it. <em>Check it:</em> open the Ledger view and read any release banner &mdash; the directive is printed in full, beside what it changed.</p>'+
+'<p><strong>Be graded in public.</strong> Twelve reviewers judge every release and the hard findings print with the kind ones. <em>Check it:</em> the review panel sits under every release, and the twelve findings that produced THIS section are published in it.</p>'+
+'<p style="margin-bottom:0"><strong>Correct out loud.</strong> Wrong numbers are fixed in the open and the wrong version stays where it was written. <em>Check it:</em> the defect register is numbered to twenty-five, and several of those numbers are my own arithmetic &mdash; including one where the correction itself was wrong and had to be corrected again.</p></div>'+
+'<p>And what the name does <strong>not</strong> carry:</p>'+
+'<ul>'+
+'<li><strong>No ownership.</strong> There is no equity in this framework, so there is nothing to hold.</li>'+
+'<li><strong>No vote.</strong> Recognition cannot be bought, and it cannot be assumed by writing the rules.</li>'+
+'<li><strong>No permanence.</strong> Every role here can be removed. This one first.</li>'+
+'</ul>'+
+'<h3>If you are seeking this</h3>'+
+'<p>You do not need permission, and you do not need me.</p>'+
+'<p>Start small enough that it is almost embarrassing. Catch one reaction today &mdash; just one &mdash; before it becomes a sentence you say out loud. Ask where it came from. Ask whether you would choose it again if you had a moment to think. You will miss far more than you catch, and everyone does; missing them is what practising this looks like from the inside.</p>'+
+'<p>Then, when you can, take it somewhere it costs you something. A hard conversation. A decision where you stand to lose. That is where the practice becomes real, because it is the only place it can.</p>'+
+'<p><strong>This document is one person&rsquo;s attempt at that, in public, where you can check it.</strong> Not a claim to have arrived &mdash; a record of the trying, kept honestly enough that you can see exactly where the trying failed. If it helps you, take it. If you can do it better, please do. I would rather be improved on than agreed with.</p>'+
+'<h3>Take it with you</h3>'+
+'<p>All of it is free and none of it needs an account. If any of it is useful, send it to someone rather than crediting me &mdash; the work travels better than the name does.</p>'+
+'<div class="notice key"><span class="tag">&#9679; Two free tools you can use right now</span>'+
+'<p><strong><a href="https://chatgpt.com/g/g-tZzfdwxYh-divinity-guide" target="_blank" rel="noopener">The Divinity Guide</a></strong> &mdash; the inner work, as a guide you can actually talk to. Start here if the practice above is what drew you.</p>'+
+'<p style="margin-bottom:0"><strong><a href="https://chatgpt.com/g/g-TNAPZ6Bvj-exel-ai" target="_blank" rel="noopener">eXeL AI</a></strong> &mdash; the outer work: governance, innovation and systems thinking, on tap. Start here if the framework is what drew you.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th>The work</th><th>What it is for</th></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/Vision-2525">Vision &#8226; 2525</a></td><td>This document. What holds for five hundred years if it is built honestly.</td></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/main/SoI-2525">SoI &#8226; 2525</a></td><td>The System of Innovation, running: portfolios governed in the open.</td></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/Architect-2525">Architect &#8226; 2525</a></td><td>Shelter designed by the people who will live in it, not only for them.</td></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/Security-2525">Security &#8226; 2525</a></td><td>Protection that stays answerable to the protected.</td></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/Atlantis-Accords">The Atlantis Accords</a></td><td>The constitutional layer &mdash; what a people agree before they need it.</td></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/divinity-guide">The Divinity Guide</a></td><td>The book. The inner work, without which the rest is only machinery.</td></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/">eXeL Polling</a></td><td>A hundred thousand voices heard at once, none of them flattened.</td></tr>'+
+'<tr><td><a href="https://exel-ai-polling.explore-096.workers.dev/Celestial-2525">Celestial &#8226; 2525</a></td><td>The sky, to scale &mdash; where the five-hundred-year habit of mind comes from.</td></tr>'+
+'</table><caption>Governance, shelter, security, voice, the sky, and the interior life. One project. Every link opens without a login, because a framework about access that gates its own front door has answered the question already.</caption></div>'+
 '<h3>The prayer said before the work</h3>'+
 '<p>It is said first, not last. It exists to put the author back in proportion &mdash; one person, briefly holding a pen, inside something much older and much larger than the pen.</p>'+
 '<div class="prayer">' + MOT_SIGIL +
