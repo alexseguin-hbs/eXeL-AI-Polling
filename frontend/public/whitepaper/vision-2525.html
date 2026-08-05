@@ -521,7 +521,7 @@ const LEDGER_ORDER = [
  "off.switch","off.keys","off.reserve","off.trust","off.restart","gov.cadence",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
  "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.score","corpus.iterations","corpus.cubes","corpus.empires",
- "rcore.ledger","rcore.modes",
+ "rcore.ledger","rcore.modes","rcore.spiral",
  "human.story","human.cambodia","human.ledger","human.receipt","human.ladder",
  "scale.groundzero","scale.austin","scale.2525","scale.sim",
  "reach.intelligence","reach.worlds","reach.accelerate",
@@ -1791,6 +1791,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"No claim about the author is made that the ledger cannot substantiate. The section describes a role and its limits, and every limit is enforced elsewhere in the text."}
  ],
  next:"Still owed: the 33 SPIRAL tests between releases, the 48-hour coverage audit, the Pod composition in code, and the per-section review with findings spent into the sections. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
+},
+{
+ v:59, code:"THIRTY-THREE TRANSITIONS", stamp:"2026.08.05 &middot; release 59",
+ thrust:"The 33 identical reads are joined by 33 spiral tests between versions &mdash; forward and backward across the release history &mdash; and the new instrument immediately found a thirteen-release breach of our own duplication ceiling.",
+ mot:"Owed since release 50 and delivered here, after the operator asked directly whether it was done and was told no. The old instrument reads one release thirty-three times and proves the reads identical. That is a determinism proof and it is necessary: it establishes that nothing in the reconstruction depends on a clock, a random number, or state left behind by an earlier read. It is also not sufficient, because a document can be perfectly deterministic and getting steadily worse, and nothing in the ledger would say so. A spiral test measures a TRANSITION instead. For each consecutive pair it runs forward &mdash; does the newer release carry more than the older, in blocks, words and numbered sections &mdash; and backward, which is the harder direction: does the older release still replay exactly as it did before its successor existed, same blocks, same words, same state hash. Append-only is a claim about the past, and backward replay is the measurement that substantiates it or does not. Thirty-three pairs on a fixed stride, so the sample spans the whole history and the selection is reproducible without a clock. The rule is written down before the results, in three parts, because the first run failed five transitions and it mattered enormously which of them were real. Hard floors are absolute: 333 words per section, 19 outline entries at 111 words, 20 per cent duplication. Directional metrics must not fall unless the release&rsquo;s own directive says it removed something &mdash; not a loophole but this document&rsquo;s ethic applied to its own test, since r48 says operating income is gone and r53 says withdrawn five different ways, and both are honest. Envelope metrics are judged against the floor and the ceiling rather than the previous release, because a section moving from 365 words to 343 is editing and a rule forbidding it would forbid rewriting a sentence. That third part is where my first version was too strict, and it is recorded here rather than quietly relaxed. Then the instrument found something. The white paper was written by restating the record in a new voice, and for THIRTEEN RELEASES it breached our own 20 per cent duplication ceiling, worst case 71.2 per cent. It was rewritten at r54 to 7.1 per cent, and the breach was never disclosed, because nobody was measuring it. That is defect 24. Those releases are excused &mdash; their history cannot be edited &mdash; but only while defect 24 remains a numbered row in the register, and the harness checks the row rather than grepping for the number. An exception that outlives its own disclosure is a silenced test.",
+ stats:{clauses:271, jur:103, shields:5, defects:18, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Backward replay is the direction that matters. Anyone can add; the claim being made here is that the past cannot move, and it is now measured rather than asserted."},
+  {n:"Asar",   g:"A",  f:"Two instruments, two questions. Is the reconstruction trustworthy, and is the document improving. Conflating them is how a project stays deterministic all the way down."},
+  {n:"Athena", g:"A",  f:"The rule was written before the results were read. Any other order and the thresholds get tuned until the run comes back green."},
+  {n:"Christo",g:"A",  f:"A framework may shrink; it may not shrink silently. Reading the release&rsquo;s own directive to decide is the gentlest version of that rule that still has teeth."},
+  {n:"Enki",   g:"A",  f:"Thirteen releases at up to 71 per cent duplication, invisible because nothing measured it. The finding is not the duplication. The finding is that nobody was checking."},
+  {n:"Enlil",  g:"A",  f:"The harness measures inside the page and never re-implements replay. A test that reimplements the thing it tests measures its own copy and passes forever."},
+  {n:"Krishna",g:"A-", f:"Determinism, transitions and the defect register now interlock: the exception in the harness is void unless the register still carries the row. Three surfaces, one fact."},
+  {n:"Odin",   g:"A",  f:"Five failures on the first run, three of them measurement artefacts. Distinguishing the real ones took longer than writing the instrument, and that is the normal ratio."},
+  {n:"Pangu",  g:"A",  f:"A birth is not a degradation. Before r41 the paper metrics read zero meaning does-not-exist, and scoring that as a fall would have made the instrument lie on its second row."},
+  {n:"Sofia",  g:"A",  f:"The document now grades its own history and publishes the grade. Thirteen releases fail a rule the document itself set, and that sentence is in the register."},
+  {n:"Thoth",  g:"A",  f:"33 forward, 33 floors, 33 backward. Latest release: shortest section 343, outline 19 of 19, duplication 7.1 per cent against a 20 per cent ceiling."},
+  {n:"Thor",   g:"A",  f:"The excuse is bound to the disclosure and the check reads the register row, not the character 24 anywhere on the page. That distinction is the whole strength of it."}
+ ],
+ next:"Still owed: the Pod composition in code &mdash; and the audit found that two of its four parts already exist, so it is a composition over the Cube 6 three-paragraph 333-word summariser and Cube 5 per-user timing rather than a build. Also owed: the per-section review with the 12 findings spent into the sections. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
 }
 ];
 
@@ -8989,6 +9010,118 @@ L(58,"mot.author","Operator directive: summarise who the Master of Thought is, a
 '<p style="margin-bottom:0"><strong>Master of Thought</strong><br>'+
 '<span class="meta">System of Innovation &middot; Vision &#8226; 2525 &middot; R-CORE &middot; eXeL AI Polling</span><br>'+
 '<span class="meta">We cannot master what we are not aware of.</span></p></div>');
+
+
+/* ══════════ RELEASE 59 ══════════ */
+L(59,"rcore.spiral","Operator directive, owed since release 50: replace the 33 identical reads with 33 SPIRAL TESTS BETWEEN VERSIONS. The reads prove the engine is stateless; the transitions prove the document is getting better. Both now run, and the transitions found a defect in our own history.",
+'<h2>Thirty-three transitions, forward and backward</h2>'+
+'<p class="lede">Proving the engine has no hidden state is not the same as proving the document improved. These are two different instruments and until this release only one of them existed</p>'+
+'<p>The proof above replays one release thirty-three times and shows the thirty-three reads are identical. That is a <strong>determinism</strong> proof: it establishes that nothing in the reconstruction depends on a clock, a random number, or state left behind by a previous read. It is necessary and it is not sufficient. A document can be perfectly deterministic and getting steadily worse.</p>'+
+'<div class="notice key"><span class="tag">What a spiral test is, and what it is for</span>'+
+'<p>A spiral test measures a <strong>transition</strong> rather than a release. For each pair of consecutive releases it runs the propagation in both directions:</p>'+
+'<p><strong>Forward</strong> &mdash; does the newer release carry more than the older one? Blocks, words and numbered sections must rise or hold.</p>'+
+'<p style="margin-bottom:0"><strong>Backward</strong> &mdash; does the older release still replay exactly as it did before its successor existed? Same blocks, same words, same state hash. Append-only is a claim about the past, and this is the measurement that either substantiates it or does not.</p></div>'+
+'<h3>The rule, written down before the results</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>Kind</th><th>What is measured</th><th>How it is judged</th></tr>'+
+'<tr><td><strong>Hard floor</strong></td><td>333 words minimum per section &middot; exactly 19 outline entries at 111 words &middot; 20% duplication ceiling</td><td>Absolute. The current release must be clean, and any historical breach must be closed by a named release and carry a defect number.</td></tr>'+
+'<tr><td><strong>Directional</strong></td><td>blocks &middot; words &middot; numbered sections</td><td>Must not fall &mdash; <em>unless the release&rsquo;s own directive says it removed something.</em> A framework may shrink. It may not shrink silently.</td></tr>'+
+'<tr><td><strong>Envelope</strong></td><td>shortest section &middot; worst duplication</td><td>Judged against the floor and the ceiling, not against the previous release. Moving a section from 365 to 343 words is editing, not decay.</td></tr>'+
+'</table><caption>The third row is where the first version of this instrument was wrong: it scored every movement as a regression, which would have forbidden ever rewriting a sentence. Recorded here rather than quietly relaxed.</caption></div>'+
+'<h3>What the thirty-three transitions found</h3>'+
+'<pre><code>forward   improved, held, or the reduction is recorded   33/33\n'+
+'floors    333 words &middot; 19 outline entries &middot; 20% duplication  33/33\n'+
+'backward  earlier release replays byte-identical afterwards  33/33\n\n'+
+'latest    shortest section 343 &middot; outline 19/19 &middot; duplication 7.1%</code></pre>'+
+'<div class="notice hot"><span class="tag">&#9888; And it found this, which is why it exists</span>'+
+'<p>The white paper was written by restating the record in a new voice, and for thirteen releases it <strong>breached our own 20% duplication ceiling</strong> &mdash; worst case 71.2%. Nobody measured it, so nobody knew. It was rewritten and the worst case is now 7.1%, but the breach itself was never disclosed.</p>'+
+'<p style="margin-bottom:0">It is now <strong>defect 24</strong>. The instrument is allowed to excuse those releases &mdash; their history cannot be edited &mdash; but <strong>only while defect 24 is a numbered row in the register below</strong>. Remove the disclosure and the test goes red. An exception that outlives its own disclosure is a silenced test, and a silenced test is worse than no test.</p></div>'+
+'<p>The two instruments answer two questions and neither substitutes for the other. <em>Is the reconstruction trustworthy?</em> &mdash; thirty-three identical reads. <em>Is the document improving?</em> &mdash; thirty-three transitions, forward and backward. Both run before every release, and a failure in either stops the release.</p>');
+
+L(59,"open.defects","The duplication-ceiling breach found by the 33 spiral tests enters the register as defect 24. It was closed at r54 and never disclosed, which is its own smaller failure.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse '+
+'than a known one, and that rule applies to this document before it applies to anything else.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Six closed in code &middot; every live item now needs a person</span>'+
+'<p style="margin-bottom:0">The money path was closed at releases 34 and 35 (<code>5c50425</code>, '+
+'<code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Everything still open is a decision or an '+
+'operational act, not a patch. Releases 37 to 39 added five defects of their own, each published in the '+
+'release that created or discovered it.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr style="opacity:.6"><td class="n">20</td><td><strong>The masthead rewrote its own history</strong> '+
+'&mdash; the title was static HTML outside the replay, so every rename silently changed all earlier '+
+'releases, and the r35 claim that earlier titles remain readable by rewinding was false when written.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r39</span><br><span class="meta">found by operator screenshot</span></td>'+
+'<td>The masthead resolves from a table using the block ledger&rsquo;s own last-write-wins rule. The gate '+
+'now asserts the title at v1 differs from the title at the latest release.</td></tr>'+
+'<tr><td class="n">18</td><td><strong>An 8-digit numeric PIN is brute-forceable</strong> &mdash; '+
+'100,000,000 combinations is minutes of offline or unthrottled attack.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">new at r38</span></td>'+
+'<td>Five attempts, exponential lockout, alert on the third failure, one shot per carried mandate. '+
+'Longer term: a passphrase, or drop the PIN for a hardware key entirely.</td></tr>'+
+'<tr><td class="n">19</td><td><strong>A PIN is not a second factor</strong> if whoever holds the session '+
+'can type it &mdash; and any credential that has passed through a chat, email or ticket must be treated as '+
+'already compromised.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs an operational act &middot; new at r38</span></td>'+
+'<td>Bind key 2 to hardware (FIDO2 or TOTP on a separate device). <strong>Rotate the credential before the '+
+'first ceremony, not after.</strong></td></tr>'+
+'<tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index '+
+'0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop '+
+'funding, which makes it likelier.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td>'+
+'<td>Principal floor first, then the index split of the remainder. Changes a stated instruction, so it '+
+'needs the operator.</td></tr>'+
+'<tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, '+
+'quorum, carry, confirmation and effect are all proposals.</td>'+
+'<td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td>'+
+'<td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td>'+
+'<td>An undefined cap is not a cap. Publish numbers.</td></tr>'+
+'<tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at '+
+'every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td>'+
+'<td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; '+
+'purchasable with money; governance weight from a balance; local wage applied at mint; cross-border '+
+'arbitrage; a currency constant inside the mint.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td>'+
+'<td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td>'+
+'<td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, specified with its ramp at r30, now load-bearing in the shutdown split. Unbuilt.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; sharper '+
+'now, because the shutdown rule depends on it surviving a majority.</td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language '+
+'count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10 and given a computable zero '+
+'at r38.</td><td><span class="pill p-impl">&#10003; Closed</span></td>'+
+'<td>A generated dependency map prevents recurrence.</td></tr>'+
+'<tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary '+
+'to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td>'+
+'<td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">23</td><td><strong>A unit mislabelled for forty-five '+
+'releases</strong> &mdash; r11 published &ldquo;0.138 &#50883;&rdquo;. 0.138 is 1 &divide; 7.25, a '+
+'fraction of an hour; the same quantity in &#50883; is 0.6631.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r56&ndash;r57</span></td>'+
+'<td>Corrected in &sect;15 with the r11 wording left readable. Our first correction called the number '+
+'understated; it was the unit, not the number. Both are recorded.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">24</td><td><strong>Our own duplication ceiling breached for thirteen releases</strong> &mdash; the white paper restated the record; worst section 71.2% against a stated 20% ceiling, r41 to r53.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r54</span></td>'+
+'<td>Rewritten to 7.1% worst case at r54 &mdash; but the breach was never disclosed until the spiral tests measured it at r59. Nobody was checking, which is the actual finding.</td></tr>'+
+'</table><caption><strong>Six closed in code, three closed in the document, five live, two specification-only, '+
+'two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the '+
+'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
+
+/* ══════════ RELEASE 40 ══════════ */
+/* The BRIEF view. Same ledger, same replay function, different ORDER. */
 
 
 /* ── engine ───────────────────────────────────────────────────────────── */
