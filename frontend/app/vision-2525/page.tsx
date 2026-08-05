@@ -240,7 +240,7 @@ export default function Vision2525Page() {
         {/* ── THE WHITE PAPER (public, no login) ───────────────────────────── */}
         <section className="mt-16">
           <a
-            href="/Vision-2525/White-Paper/"
+            href="/vision-2525/white-paper/"
             className="block rounded-2xl border p-6 transition-colors hover:border-amber-300 sm:p-8"
             style={{ borderColor: "rgba(232,182,76,0.35)", background: "rgba(232,182,76,0.05)" }}
           >
