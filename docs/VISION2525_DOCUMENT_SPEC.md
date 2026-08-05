@@ -1,5 +1,7 @@
 # Vision • 2525 — Document Architecture Spec
 
+**Version:** 17 (in progress — the 33 passes have not run) · **Revision:** r72 · **Live:** `/vision-2525/white-paper`
+**Open questions:** `docs/V17_OPEN_QUESTIONS_REGISTER.md`
 **Status:** LIVE · locked at release 40, extended to three views at release 41; spec surfaced in-document at release 42 · gated by `scratchpad/lv-gate.mjs`
 **Applies to:** `docs/SOI_VISION2525_LIVING_DOCUMENT.html` and its dated release copies
 

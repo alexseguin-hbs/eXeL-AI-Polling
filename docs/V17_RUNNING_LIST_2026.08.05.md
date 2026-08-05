@@ -1,5 +1,8 @@
 # Version 17 — running list of asks, answers and clarifications
-**Master of Thought · 2026-08-05 · standing at r71**
+**Master of Thought · 2026-08-05 · standing at r72**
+
+> Superseded in part by **`docs/V17_OPEN_QUESTIONS_REGISTER.md`**, which is the durable register
+> and carries the externally-reviewable questions. This file stays as the session record.
 
 Every ask you have made this session, what state it is in, and the questions I need answered.
 Ordered by what blocks the most.
