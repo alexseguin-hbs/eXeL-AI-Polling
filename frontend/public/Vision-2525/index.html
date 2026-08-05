@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vision • 2525</title>
+<!--
+  /Vision-2525 — the operator's canonical URL for the white paper.
+
+  It is a static forward rather than a second Next.js route, and that is not a shortcut:
+  the app already owns /vision-2525 (the manifesto poster), and two app routes differing
+  only in case make webpack refuse to build — "prevent writing to file that only differs
+  in casing … will lead to a race-condition and corrupted files on case-insensitive file
+  systems." So this URL is served from public/, which has no such collision, and lands on
+  the reader that frames the real document.
+
+  No login. No account. Nothing to accept.
+-->
+<meta http-equiv="refresh" content="0; url=/main/Vision-2525/">
+<link rel="canonical" href="/main/Vision-2525/">
+<style>
+  :root{color-scheme:dark}
+  html,body{height:100%}
+  body{margin:0;display:grid;place-items:center;text-align:center;padding:24px;
+    background:radial-gradient(900px 420px at 50% -120px,#0D2F34 0%,rgba(11,19,20,0) 72%),#0B1314;
+    color:#F1F6F7;font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  h1{margin:0 0 6px;font:700 clamp(30px,8vw,48px)/1.05 "Iowan Old Style",Palatino,Georgia,serif;
+    letter-spacing:.02em;color:#e8b64c}
+  h1 span{color:#00DAE6}
+  p{margin:0 0 22px;color:#8FA8AB;font-size:14px}
+  a{display:inline-block;padding:11px 22px;border-radius:999px;background:#00DAE6;color:#04191C;
+    font-weight:700;text-decoration:none;font-size:14px}
+  a:focus-visible{outline:2px solid #F1F6F7;outline-offset:3px}
+</style>
+</head>
+<body>
+  <main>
+    <h1>VISION <span>&bull;</span> 2525</h1>
+    <p>Recursive Coordination for Human Continuity</p>
+    <a href="/main/Vision-2525/">Open the document</a>
+  </main>
+  <script>location.replace("/main/Vision-2525/");</script>
+</body>
+</html>
