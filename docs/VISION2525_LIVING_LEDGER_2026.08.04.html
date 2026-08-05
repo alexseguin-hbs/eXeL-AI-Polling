@@ -459,6 +459,10 @@ body.fulldoc .secnav,.specban .secnav{display:none}
    that mixes with header)". A version is a document that was handed over and
    answered; it is an identifier, not part of the sentence the title makes. */
 header.mast{position:relative}
+.doct{display:block;margin-bottom:6px}
+.doct b{color:var(--ink)}
+.doct i{font-style:normal;color:var(--ink-2)}
+@media(max-width:600px){.doct b,.doct i{display:block}.doct i{margin-bottom:5px}}
 .vbadge{position:absolute;top:0;right:0;font-family:ui-monospace,monospace;font-size:13px;
   letter-spacing:.04em;color:var(--ai);border:1px solid var(--rule);border-radius:999px;
   padding:3px 11px;line-height:1.5;background:var(--panel);white-space:nowrap}
@@ -518,7 +522,7 @@ header.mast{position:relative}
     <span class="g-hi">&#50883; H.I. &mdash; Human Intelligence</span>
   </div>
   <div class="meta" style="margin-top:18px;font-family:ui-monospace,monospace;font-size:12px;line-height:1.8">
-    <strong style="color:var(--ink)">The Unit. The Shield. The Replay.</strong><br>
+    <span id="mDoct"></span>
     Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven<br>
     <br>
     Vision &amp; White Paper, written by <span class="byline"><a href="#author" id="authorLink"><strong>Master of Thought</strong></a></span><br>
@@ -2335,6 +2339,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"No claim is strengthened here. Every figure moves the stated position downward or sideways, never up, which is the only safe direction for a self-report."}
  ],
  next:"The twelve are closed. Remaining: the reading band &mdash; fifteen of twenty sections above the ceiling, &sect;19 below the floor at 9.2 &mdash; then each of the twelve reading every section in succession, 228 readings rather than twelve. Operator decisions still block: Tier-2 selection, the Global Agreed Standard including the Agreed Wage, band criteria, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
+},
+{
+ v:78, code:"THE FOUR BEATS", stamp:"2026.08.05 &middot; revision 78",
+ thrust:"Three external readers reviewed release 75 separately and all three stopped at the same line. It says three things where the framework does four, and Replay &mdash; the weakest-sounding of them &mdash; is the one carrying the most weight. Four beats now, and the defect the review exposed is bigger than the line.",
+ mot:"DeepSeek, Grok and eXeL AI read this independently and converged on one sentence. DeepSeek said the triad is earned but the line beneath it does not carry enough weight, and that Replay reads as a playback feature until you understand it is the governance model. Grok said Replay is the weakest leg &mdash; elevate it to a first-class principle or demote the triad. eXeL AI said there should be four beats rather than three, because each serves a different purpose, and that compressing four into three weakens the architecture. Three readers, one finding, and three fixes that happen to be the same fix. So: The Unit measures contribution. The Shield protects rights. The Ledger preserves history. The Replay verifies without permission. And Replay is now stated as what it is rather than what it does. Every audit regime, every disclosure law and every freedom-of-information act is a workaround for one asymmetry &mdash; a record kept by an institution can only be checked by asking that institution, and the keeper decides what the checker sees. Replay removes the asking. Truth that can be replayed does not require belief. Then the part none of the three found, which is the more valuable half. That doctrine line has been static HTML since version one, outside the replay, which means every rewording of it silently rewrote all seventy-seven earlier releases. That is defect 20 exactly, the masthead defect closed at release 39, alive one line below the masthead it was about. Three careful readers examined that line closely enough to redesign it and not one saw that it was not replayed, because static and replayed look identical from the outside. Nobody audits what looks already audited. It joins the table now under the same last-write-wins rule, so version one keeps the three beats it actually showed and the four begin where they were written. Also from the same reviews: the four common misreadings of the Seed Token &mdash; investment contract, governance token, appreciating asset, membership NFT with upside &mdash; are named and refused in writing rather than left to inference.",
+ stats:{clauses:288, jur:103, shields:5, defects:26, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Version one still shows three beats and always will. The correction adds a row rather than editing a line, which is the whole discipline in one edit."},
+  {n:"Asar",   g:"A+", f:"Four purposes that were always four. The line had been under-counting the framework since the first release."},
+  {n:"Athena", g:"A",  f:"Unit, Shield, Ledger, Replay is also the reading order of the document. The doctrine and the structure finally agree."},
+  {n:"Christo",g:"A",  f:"Verification without permission is the promise a stranger actually needs. Nobody has to be trusted, which is what makes it enterable."},
+  {n:"Enki",   g:"A",  f:"Four misreadings named and refused in the document rather than in a rebuttal. Each one is the reading a different kind of reader would arrive with."},
+  {n:"Enlil",  g:"A",  f:"doctrineAt() is the same six lines as titleAt(). Reused rather than rebuilt, which is the rule this project keeps writing down and occasionally follows."},
+  {n:"Krishna",g:"A+", f:"Three independent reviews converged on one sentence. That convergence is worth more than any single finding in it."},
+  {n:"Odin",   g:"A+", f:"Defect 26 predicts its own recurrence. Any element that renders identically whether replayed or not will drift again, and nothing in the gate distinguishes the two by appearance."},
+  {n:"Pangu",  g:"A",  f:"Truth that can be replayed does not require belief. That is the sentence the document has been circling for seventy-seven releases."},
+  {n:"Sofia",  g:"A+", f:"None of the three reviewers found the defect. They found the wording; acting on the wording found the defect. Review surfaces what review cannot see."},
+  {n:"Thoth",  g:"A",  f:"Defect count 25 to 26, and this one was fixed in the release that found it. The register keeps reconciling."},
+  {n:"Thor",   g:"B+", f:"Static-versus-replayed is invisible from the outside and the gate cannot yet tell them apart. Every remaining static element is an unaudited defect 20 waiting to happen."}
+ ],
+ next:"From the three reviews, still open and now tracked in docs/V17_EXTERNAL_REVIEW_REGISTER.md: the Constitution chapter (eXeL AI&rsquo;s largest ask) &middot; per-section constitutional markers and Circle numerals &middot; the ninety-second cold open &middot; &sect;7 as a constitutional commitment rather than a legal fix &middot; the four corrections named &middot; a verifiable defect register &middot; passes visible at every release &middot; outline as the promise above the argument &middot; &sect;8 renamed in the contents. Then the reading band and the 228 readings. Version 17 is NOT released until all thirty-three passes are done."
 }
 ];
 
@@ -10551,6 +10576,118 @@ L(77,"paper.s9","The other half of Enki&rsquo;s finding. This section caps autho
 '');
 
 
+/* ══════════ REVISION 78 ══════════ */
+L(78,"front.thesis","Three external readers &mdash; DeepSeek, Grok and eXeL AI &mdash; reviewed release 75 independently and all three stopped at the same line: The Unit, The Shield, The Replay. One said the fourth beat was missing, one said Replay was the weakest leg, one said Replay reads as a playback feature until you know it is the governance model. All three were right about the same thing. Four beats now, and Replay is stated as what it actually is: the permanent right to verify without asking anyone.",
+'<h2>What this is</h2>'+'<p class="lede">A tool for self-governance. Not a party, not a company, not a country &mdash; an attempt to actually execute an idea most of the world already claims to hold.</p>'+'<div class="pull">We the People. Not we the corporations, and not we the wealthy.</div>'+'<p>The phrase is three hundred years old and almost every constitution has a version of it. The difficulty was never the sentence. It was that a people has no instrument with which to govern itself at scale &mdash; no way to record what its members contribute, weigh what they think, and fund what they choose, without handing the pen to whoever already owns the press.</p>'+'<p>This document describes that instrument, and the working parts exist. An hour of a human life as the unit (&sect;1). A ceiling nobody may pass, including the authors (&sect;2). Money may fund and may never govern, by any route (&sect;3). A record that outlives the people who built it (&sect;5). An off switch that belongs to the people rather than to us (&sect;7).</p>'+'<h3>Four beats, and what each one is for</h3>'+'<p>Three readers outside this work reviewed it separately and each stopped at the same line. It said three things where the framework does four, and the fourth was the one carrying the most weight.</p>'+'<div class="scroll"><table>'+'<tr><th>Beat</th><th>What it does</th><th>Where it lives</th></tr>'+'<tr><td><strong>The Unit</strong></td><td>Contribution is <em>measured</em> &mdash; an hour of a human life, priced by the region&rsquo;s own published minimum wage, so an hour in Phnom Penh and an hour in Austin are compared honestly rather than converted.</td><td>&sect;1</td></tr>'+'<tr><td><strong>The Shield</strong></td><td>Rights are <em>protected</em> by structure rather than by promise. Nobody may accumulate past the ceiling, money may fund and may never govern, and these hold against the authors first.</td><td>&sect;2 &middot; &sect;3</td></tr>'+'<tr><td><strong>The Ledger</strong></td><td>History is <em>preserved</em>. The record is append-only: a mistake is corrected by writing the correction, never by editing the mistake, so the reasoning survives alongside the outcome.</td><td>&sect;5 &middot; &sect;8</td></tr>'+'<tr><td><strong>The Replay</strong></td><td>Verification happens <em>without permission</em>. Any person may reconstruct the entire record from any point in its history and check it themselves, with no account, no key and nobody to ask.</td><td>&sect;13</td></tr>'+'</table><caption>Four purposes, not three. Compressing them loses the one that does the most work.</caption></div>'+'<div class="notice key"><span class="tag">&#9679; Why the fourth beat is not a feature</span>'+'<p>Replay is easy to mistake for a playback control, and one reviewer said so directly. It is not. Replay is the answer to the oldest problem in governance, which is that a record kept by an institution can only be checked by asking that institution. Every audit, every disclosure regime and every freedom-of-information law is a workaround for the same asymmetry: the keeper decides what the checker sees.</p>'+'<p style="margin-bottom:0"><strong>Truth that can be replayed does not require belief.</strong> The file you are reading rebuilds every earlier version of itself in front of you, offline, with no server involved. That is not a demonstration of the idea. It is the idea, running. A framework that asks to be trusted has already lost the argument; one that can be re-derived by a stranger five centuries from now never has to make it.</p></div>'+'<div class="notice lock"><span class="tag">&#128274; Two conditions on everything that follows</span>'+'<dl class="defs">'+'<dt>Entirely voluntary</dt><dd>Nobody is enrolled, assigned, defaulted in or signed up by someone else. A person gives an hour because they chose to, and stops when they choose to. A framework for self-governance that begins with compulsion has already answered the question it claims to be asking.</dd>'+'<dt>Trust is earned in public, in real time</dt><dd>Not asked for, not asserted, and not borrowed from a credential. Every release is published as it happens, every earlier release stays readable, every defect is listed by number including the ones found after shipping, and the shortfall is stated in the same place as the progress. <strong>Anyone may check the arithmetic without permission from us.</strong></dd></dl>'+'<p style="margin-bottom:0">Those two conditions are why this is slower than a manifesto and why it might survive one. A thing people join freely and can audit continuously does not need anybody to believe in it first.</p></div>'+'<h2>Why the unit comes first</h2>'+
+'<p>Every governance framework that pays people eventually collides with the same fact: an hour of a '+
+'person&rsquo;s life is worth wildly different amounts of money depending on where they were born, and any '+
+'system that ignores that is either unaffordable in rich countries or insulting in poor ones.</p>'+
+'<p>Most schemes resolve this by picking one currency and one rate, then quietly excluding everyone the '+
+'rate does not suit. This document takes the opposite route. It defines a unit of recognition that is '+
+'<em>denominated locally and compared globally</em>, so that the same contribution earns the same '+
+'recognition everywhere while settling into money that actually buys groceries where the contributor '+
+'lives.</p>'+
+'<p>Get the unit wrong and nothing downstream can be fixed: the ranking is skewed, the budget is fiction, '+
+'and the people doing the work in the lowest-wage regions are silently written out. Get it right and the '+
+'rest of the architecture has something honest to stand on.</p>'+
+'<p>Over eight releases this document has become three things, in the order a reader needs them. '+
+'<strong>A unit</strong> anyone on earth can be paid in, with a ceiling that protects everyone from what '+
+'accumulation does to governance. <strong>A structure</strong> nobody can buy, seize, or switch off, built '+
+'from things permanently given up rather than arguments to be won. And <strong>a way of arriving</strong> '+
+'in a jurisdiction that does not require anyone to be frightened first.</p>'+
+'<p>The parts are in that order because that is the order in which they fail. A framework with no unit '+
+'cannot pay anyone. A framework with a unit and no shield gets taken. A framework with both and no way of '+
+'arriving gets stopped by someone who first heard of it in a complaint.</p>');
+
+L(78,"fund.token","Grok asked for an explicit list of the common misreadings rather than leaving them to inference: investment contract, governance token, appreciating asset, membership NFT with upside. All four are named and refused here, in the paragraph that already refused the others, because a misreading answered in advance cannot be quoted as a discovery.",
+'<h2>One seventh of an hour</h2>'+'<p class="lede">The buy-in is the same slice of a working life in every country. It is not the same amount of money, and it was never supposed to be.</p>'+'<div class="notice lock"><span class="tag">&#128274; The price &middot; class: Immutable</span>'+'<p><strong>One Seed Token = one local minimum-wage hour &divide; 7.</strong></p>'+'<p style="margin-bottom:0">Eight minutes and thirty-four seconds of minimum-wage work. Everywhere on earth, without exception, checkable by anyone with a clock. The money differs because the world does. The cost in life does not.</p></div>'+'<h3>What changed, and why the anchor went</h3>'+'<p>Release 57 divided by 7.25 rather than 7. There was one reason: 7.25 is the United States federal minimum wage, so dividing a Texas hour by 7.25 made the token cost exactly one dollar. A clean number at one point on earth.</p>'+'<p>The operator has withdrawn that target, and the special case goes with it. A dollar is a currency, and anchoring a global unit to one country&rsquo;s currency quietly makes that country the reference and everyone else the conversion. <strong>Dividing by 7 treats every hour identically and no jurisdiction as the origin.</strong> Texas now costs $1.04 rather than $1.00, which is the correct kind of untidy: the arithmetic is the same everywhere and the round number was the artefact.</p>'+'<div class="scroll"><table>'+'<tr><th>Jurisdiction</th><th class="n">Minimum / hour</th><th class="n">Seed Token</th><th class="n">Cost in time</th></tr>'+'<tr><td>California</td><td class="n">16.50</td><td class="n">2.36</td><td class="n">8m 34s</td></tr>'+'<tr><td>New York</td><td class="n">16.00</td><td class="n">2.29</td><td class="n">8m 34s</td></tr>'+'<tr><td>United States federal &middot; Texas</td><td class="n">7.25</td><td class="n">1.04</td><td class="n">8m 34s</td></tr>'+'<tr><td>Honduras</td><td class="n">2.11</td><td class="n">0.30</td><td class="n">8m 34s</td></tr>'+'<tr><td>Brazil</td><td class="n">1.58</td><td class="n">0.23</td><td class="n">8m 34s</td></tr>'+'<tr><td>Cambodia</td><td class="n">1.04</td><td class="n">0.15</td><td class="n">8m 34s</td></tr>'+'<tr><td>Nepal</td><td class="n">0.65</td><td class="n">0.09</td><td class="n">8m 34s</td></tr>'+'<tr><td>Nigeria</td><td class="n">0.34</td><td class="n">0.05</td><td class="n">8m 34s</td></tr>'+'</table><caption>Rates from the live settlement table (<code>backend/app/core/hi_rates.py</code>), divided by 7. The last column never changes. Nigeria and California differ by a factor of 48 in money and not at all in life.</caption></div>'+'<h3>The rate is where you live</h3>'+'<p>The anchor is the posted minimum wage of the <strong>region the contributor lives in</strong>. Not the country. That single word settles most of what looked like a problem.</p>'+'<div class="scroll"><table>'+'<tr><th>Asked for</th><th>What the region-level rule finds</th></tr>'+'<tr><td><strong>Brazil</strong></td><td>national rate, posted &mdash; resolves</td></tr>'+'<tr><td><strong>Beijing</strong></td><td>the municipal minimum <em>is</em> the region&rsquo;s posted rate &mdash; resolves</td></tr>'+'<tr><td><strong>Moscow</strong></td><td>the regional rate <em>is</em> the region&rsquo;s posted rate &mdash; resolves</td></tr>'+'<tr><td><strong>India</strong></td><td>the state rate <em>is</em> the region&rsquo;s posted rate &mdash; resolves</td></tr>'+'<tr><td><strong>Dubai</strong> &middot; <strong>Singapore</strong></td><td><strong>no posted hourly minimum</strong> &mdash; outside the rule&rsquo;s scope today</td></tr>'+'</table><caption>Recorded because the previous release got this wrong. It reported four failure classes; three were a country-level question asked of a region-level rule. The rule was right and the test was mine.</caption></div>'+'<div class="notice key"><span class="tag">&#9679; Scope, and what is deliberately unsolved</span>'+'<p>The rule applies wherever there is a <strong>posted hourly minimum wage</strong>. Where none exists, an <strong>Agreed Wage</strong> is to be established &mdash; and that work is named here rather than attempted. It belongs to the Global Agreed Standard, which is an open decision.</p>'+'<p style="margin-bottom:0">Not a gap in the mechanism. A boundary, stated.</p></div>'+'<h3>The ladder, and why every rung carries the same locks</h3>'+'<p>A Seed Token grants access to a later phase at a higher contribution. Stated plainly, because it is the most exposed thing in this design: <strong>early cheap entry that confers the right to join a dearer round later is an option, and options have value.</strong> Value creates expectation, and expectation is the one element that decides whether an instrument is a security.</p>'+'<div class="notice lock"><span class="tag">&#128274; Every rung, identically locked</span>'+'<p>Each phase carries the same three properties: <strong>non-transferable, no gain of any kind, refund capped at what was contributed</strong>. Access to a later phase is therefore access to <strong>contribute more &mdash; never to gain more</strong>.</p>'+'<p style="margin-bottom:0">An option on something with no upside is not a valuable option. That is the whole of the defence, and it holds only if it holds at every rung.</p></div>'+'<div class="scroll"><table>'+'<tr><th>Where</th><th>Regime the design is written against</th></tr>'+'<tr><td>United States</td><td>Howey &mdash; the locks answer expectation of profit</td></tr>'+'<tr><td>European Union</td><td>MiCA attaches to <em>transferable</em> crypto-assets &mdash; non-transferability is the strongest position we hold</td></tr>'+'<tr><td>United Kingdom</td><td>FCA specified investments</td></tr>'+'<tr><td>Singapore</td><td>MAS &mdash; Securities and Futures Act, Payment Services Act</td></tr>'+'<tr><td>Dubai &middot; UAE</td><td>VARA / DFSA virtual asset issuance</td></tr>'+'<tr><td>Brazil</td><td>CVM &mdash; collective investment</td></tr>'+'<tr><td>India</td><td>no unified framework; classification and tax treatment</td></tr>'+'<tr><td>Russia</td><td>Digital Financial Assets law</td></tr>'+'<tr><td><strong>China</strong></td><td><strong>token issuance is prohibited outright</strong> &mdash; and the finding is linguistic: a non-transferable <em>record of a contribution</em> is a different object in law from a <em>token</em>. Same thing, different noun, and the noun may decide it</td></tr>'+'</table><caption>Named regimes rather than a general assurance, because specifics were asked for. Which applies, and whether the design survives it, is a question for counsel in each place &mdash; stated as open, not settled.</caption></div>'+'<h3>Vintages &mdash; why nobody gains and the price still rises</h3>'+'<p>A Seed Token is priced by <strong>region and year of issue</strong>, and that price is <strong>frozen for that vintage forever</strong>. Texas 2026 is 1.0357 and will still be 1.0357 in 2525.</p>'+'<div class="scroll"><table>'+'<tr><th>Vintage</th><th class="n">Local minimum</th><th class="n">Price, frozen</th><th>What it means</th></tr>'+'<tr><td>Texas &middot; 2026</td><td class="n">7.25</td><td class="n">1.0357</td><td>the founding vintage</td></tr>'+'<tr><td>Texas &middot; 2031</td><td class="n">24.50</td><td class="n">3.50</td><td>a <em>different</em> vintage, because the statutory wage moved</td></tr>'+'</table><caption>The 2026 token did not become worth 3.50. A 2031 token costs 3.50. The price of any vintage never changes, so there is nothing to speculate on &mdash; the figure tracks a published wage, never demand.</caption></div>'+'<div class="notice lock"><span class="tag">&#128274; Exit, and what it costs</span>'+'<dl class="defs">'+'<dt>Swap back, at your vintage</dt><dd>Leave whenever you choose. The framework buys the record back at <strong>exactly what you contributed</strong>. Not a sale to a stranger, not a market price &mdash; a swap at a figure fixed years earlier.</dd>'+'<dt>Leaving is leaving</dt><dd>On exit the annual membership ends, the renewal ends, and <strong>all interaction with the ecosystem ends</strong>. Nothing lingers and nothing is owed in either direction.</dd>'+'<dt>Vision &#8226; 2525 always receives the original</dt><dd>Whoever holds a vintage, the framework received that vintage&rsquo;s price once, and it funds global innovation. Acquiring an old vintage later is a <strong>collectible act</strong> &mdash; provenance and historical ownership, not appreciation.</dd></dl>'+'<p style="margin-bottom:0">Which is how the swap and the locks agree. No market, no moving price, no gain &mdash; and still a door out that costs nothing to walk through.</p></div>'+'<h3>The overage buys years, and nothing else</h3>'+'<p>A swap at a later date meets a later vintage price. The difference is <strong>never paid in money</strong>. It converts into membership years, in whole numbers, and the remainder stays in the treasury.</p>'+'<div class="notice lock"><span class="tag">&#128274; The formula &mdash; deterministic, and that is the point</span>'+'<pre>years  =  floor( ( current vintage price &minus; your vintage price )  &divide;  your vintage price )\n\nTexas 2026    1.03571428571429      your vintage\nTexas 2031    3.50000000000000      current vintage\noverage       2.46428571428571      &minus;\n&divide; 1.0357     2.37931034482759      &divide;\nfloor         2                     TWO YEARS OF MEMBERSHIP\nremainder     0.39285714285714      stays in the treasury</pre>'+'<p style="margin-bottom:0">No cash leaves in the contributor&rsquo;s direction, ever. What they receive is <strong>membership &mdash; the thing this document has said since release 53 pays nothing, returns nothing and appreciates in nothing</strong>. The increase is absorbed into something with no monetary value. A number becomes a newsletter, and a newsletter is not a profit under any definition anywhere.</p></div>'+'<div class="pull">Deterministic, never a bet. The price comes from a published wage and the years come from a floor. Nobody is forecasting anything.</div>'+'<p>That last point is the whole design and it is worth being plain about. Every figure here resolves from two published inputs &mdash; a statutory minimum wage and a date &mdash; through arithmetic anyone can repeat. There is no market price, no valuation, no opinion about what something might be worth later. <strong>Perception cannot move any number in this system.</strong></p>'+'<p style="margin-bottom:0">Which is the difference between this and the ecosystem it sits beside. There, value is what the next person believes. Here it is what a government published and a clock recorded, and belief is not an input.</p>'+'<div class="notice key"><span class="tag">&#9679; ARX &mdash; a different instrument, deliberately kept apart</span>'+'<p>ARX is a <strong>physically-backed</strong> token: a chip bonded to a real object, usually a work of art. It is <em>transferable</em>, which the Seed Token is not, and the two must never be described in the same breath.</p>'+'<p style="margin-bottom:0"><strong>Every ARX transfer pays 11.1 per cent to the original artist, in perpetuity.</strong> One ninth &mdash; the same fraction as the replacement gate in &sect;13, and the same reasoning: a ninth is what a nine-part whole gives back when one part improves. The chip tracks ownership so the artist is paid on every onward sale rather than only the first, which is the transaction art has always lost.</p></div>'+'<div class="notice hot"><span class="tag">&#9888; What the token still is not</span>'+'<p style="margin-bottom:0">Repricing changes nothing else. The token is <strong>not &#50883;</strong>, does not mint &#50883;, does not convert to &#50883;, and carries <strong>no governance weight whatsoever</strong>. It remains non-transferable, refundable only up to what was contributed, and attached to no gain of any kind &mdash; the three locks of release 70, unchanged. &#50883; is earned by contributed time and by nothing else.</p>'+'<p style="margin-bottom:0">Named plainly, because a reviewer asked for the misreadings in writing rather than left to inference. <strong>It is not an investment contract</strong> &mdash; there is no gain to expect, structurally, in any state of the world. <strong>It is not a governance token</strong> &mdash; it carries no vote, no weight and no say, by any route. <strong>It is not an appreciating asset</strong> &mdash; a vintage price is frozen at issue and never moves again. <strong>It is not a membership NFT with upside</strong> &mdash; the membership pays nothing, and any overage converts into more of that nothing. If a reading requires one of these four to be true, the reading is wrong and the document would rather say so here than be quoted later.</p></div>');
+
+L(78,"open.defects","Defect 26: the doctrine line sat in static HTML from v1 to r77, outside the replay, so every rewording of it rewrote all earlier releases. Found while acting on the three external reviews &mdash; not by any of them.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse '+
+'than a known one, and that rule applies to this document before it applies to anything else.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Six closed in code &middot; every live item now needs a person</span>'+
+'<p style="margin-bottom:0">The money path was closed at releases 34 and 35 (<code>5c50425</code>, '+
+'<code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Everything still open is a decision or an '+
+'operational act, not a patch. Releases 37 to 39 added five defects of their own, each published in the '+
+'release that created or discovered it.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr style="opacity:.6"><td class="n">20</td><td><strong>The masthead rewrote its own history</strong> '+
+'&mdash; the title was static HTML outside the replay, so every rename silently changed all earlier '+
+'releases, and the r35 claim that earlier titles remain readable by rewinding was false when written.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r39</span><br><span class="meta">found by operator screenshot</span></td>'+
+'<td>The masthead resolves from a table using the block ledger&rsquo;s own last-write-wins rule. The gate '+
+'now asserts the title at v1 differs from the title at the latest release.</td></tr>'+
+'<tr><td class="n">18</td><td><strong>An 8-digit numeric PIN is brute-forceable</strong> &mdash; '+
+'100,000,000 combinations is minutes of offline or unthrottled attack.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">new at r38</span></td>'+
+'<td>Five attempts, exponential lockout, alert on the third failure, one shot per carried mandate. '+
+'Longer term: a passphrase, or drop the PIN for a hardware key entirely.</td></tr>'+
+'<tr><td class="n">19</td><td><strong>A PIN is not a second factor</strong> if whoever holds the session '+
+'can type it &mdash; and any credential that has passed through a chat, email or ticket must be treated as '+
+'already compromised.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs an operational act &middot; new at r38</span></td>'+
+'<td>Bind key 2 to hardware (FIDO2 or TOTP on a separate device). <strong>Rotate the credential before the '+
+'first ceremony, not after.</strong></td></tr>'+
+'<tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index '+
+'0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop '+
+'funding, which makes it likelier.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td>'+
+'<td>Principal floor first, then the index split of the remainder. Changes a stated instruction, so it '+
+'needs the operator.</td></tr>'+
+'<tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, '+
+'quorum, carry, confirmation and effect are all proposals.</td>'+
+'<td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td>'+
+'<td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td>'+
+'<td>An undefined cap is not a cap. Publish numbers.</td></tr>'+
+'<tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at '+
+'every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td>'+
+'<td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; '+
+'purchasable with money; governance weight from a balance; local wage applied at mint; cross-border '+
+'arbitrage; a currency constant inside the mint.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td>'+
+'<td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td>'+
+'<td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, specified with its ramp at r30, now load-bearing in the shutdown split. Unbuilt.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; sharper '+
+'now, because the shutdown rule depends on it surviving a majority.</td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language '+
+'count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10 and given a computable zero '+
+'at r38.</td><td><span class="pill p-impl">&#10003; Closed</span></td>'+
+'<td>A generated dependency map prevents recurrence.</td></tr>'+
+'<tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary '+
+'to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td>'+
+'<td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">23</td><td><strong>A unit mislabelled for forty-five '+
+'releases</strong> &mdash; r11 published &ldquo;0.138 &#50883;&rdquo;. 0.138 is 1 &divide; 7.25, a '+
+'fraction of an hour; the same quantity in &#50883; is 0.6631.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r56&ndash;r57</span></td>'+
+'<td>Corrected in &sect;15 with the r11 wording left readable. Our first correction called the number '+
+'understated; it was the unit, not the number. Both are recorded.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">24</td><td><strong>Our own duplication ceiling breached for thirteen releases</strong> &mdash; the white paper restated the record; worst section 71.2% against a stated 20% ceiling, r41 to r53.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r54</span></td>'+
+'<td>Rewritten to 7.1% worst case at r54 &mdash; but the breach was never disclosed until the spiral tests measured it at r59. Nobody was checking, which is the actual finding.</td></tr>'+
+'<tr><td class="n">25</td><td><strong>A promise made and never instrumented</strong> &mdash; &ldquo;plainly enough for a high school reading level&rdquo; was never measured. Mean grade 13.5; sixteen of twenty sections over grade 12; &sect;16 at 16.3.</td>'+
+'<td><span class="pill p-live">Live</span></td>'+
+'<td>Instrument shipped at r62 and the score published. The rewriting is the open part &mdash; &sect;19 already sits at 8.9, so the target is proven reachable.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">26</td><td><strong>The doctrine line sat outside the replay for seventy-seven releases</strong> &mdash; the four-beat line beneath the masthead was static HTML, so any rewording of it silently rewrote every earlier release. This is defect 20 again, one line below the element defect 20 was about.</td>'+'<td><span class="pill p-impl">&#10003; Fixed r78</span><br><span class="meta">found while acting on three external reviews</span></td>'+'<td>It resolves from a table by the same last-write-wins rule as the masthead. The instructive part is that three independent reviewers read the line closely enough to redesign it and none saw that it was not replayed, because static and replayed look identical from the outside. Nobody audits what looks already audited.</td></tr>'+'</table><caption><strong>Six closed in code, three closed in the document, six live, two specification-only, '+
+'two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the '+
+'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
+
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -10564,6 +10701,31 @@ const TITLES = [
   {v:42, h1:"Recursive Coordination for Human Continuity", sub:""},
   {v:50, h1:"VISION \u2022 2525",                          sub:"Recursive Coordination for Human Continuity"}
 ];
+
+/* The doctrine line is part of the record too. It sat in static HTML from v1
+   to r77, which meant every rewording of it silently rewrote all 77 earlier
+   releases -- defect 20 again, one line below the masthead that defect 20 was
+   about, and three external reviewers read past it because static and replayed
+   look identical. v1 keeps the three beats it actually showed; the four beats
+   begin at r78, where they were written. */
+const DOCTRINE = [
+  {v:1,  beats:[
+    {w:"The Unit",   d:""},
+    {w:"The Shield", d:""},
+    {w:"The Replay", d:""}
+  ]},
+  {v:78, beats:[
+    {w:"The Unit",   d:"Contribution measured."},
+    {w:"The Shield", d:"Rights protected."},
+    {w:"The Ledger", d:"History preserved."},
+    {w:"The Replay", d:"Verification without permission."}
+  ]}
+];
+function doctrineAt(v){
+  let pick = DOCTRINE[0];
+  for (const d of DOCTRINE){ if (d.v <= v && d.v >= pick.v) pick = d; }
+  return pick;
+}
 function titleAt(v){
   let pick = TITLES[0];
   for (const t of TITLES){ if (t.v <= v && t.v >= pick.v) pick = t; }
@@ -10714,6 +10876,11 @@ function renderDoc(){
   const blocks = res.blocks;
 
   const T = titleAt(active);
+  document.getElementById("mDoct").innerHTML =
+    doctrineAt(active).beats
+      .map(function(b){ return '<b>' + b.w + '.</b>' + (b.d ? ' <i>' + b.d + '</i>' : ''); })
+      .join(" ")
+      .replace(/^/, '<span class="doct">') + '</span>';
   document.getElementById("mH1").textContent = T.h1;
   const subEl = document.getElementById("mSub");
   subEl.textContent = T.sub;
