@@ -97,6 +97,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .pills button{padding:4px 9px;min-width:34px}
 input[type=range]{flex:1;min-width:150px;accent-color:var(--ai);height:22px}
 .vnow{font-size:12px;font-weight:700;color:var(--ai);white-space:nowrap}
+.vnow .rev{font-weight:600;color:var(--ink-2);font-size:11px;margin-left:5px}
 .hash{font-size:10.5px;color:var(--ink-2);white-space:nowrap}
 @media(max-width:560px){.deck .lab{display:none}}
 
@@ -227,12 +228,14 @@ body.fulldoc .deck-sec{display:none}
 .fellback b{color:var(--hi)}
 body.fulldoc .chips{display:none}
 
-.nose{margin:22px 0;padding:0 0 0 18px;border-left:2px solid var(--rule)}
-.nose .ne{display:block;font:700 10px ui-sans-serif,system-ui;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--ai);margin:0 0 5px}
-.nose:nth-of-type(2) .ne{color:var(--si)}
-.nose:nth-of-type(3) .ne{color:var(--hi)}
-.nose:nth-of-type(4) .ne{color:var(--ink-2)}
+.nose{margin:24px 0;padding:0 0 0 18px;border-left:1px solid var(--rule-2)}
+.nose .ne{display:block;font:600 9.5px ui-sans-serif,system-ui;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--ink-2);opacity:.5;margin:0 0 6px}
+/* r60: Needs / Outcomes / Solution / Evidence is scaffolding, not scripture. The
+   operator&rsquo;s instruction is that it "does not need to be pronounced so heavily",
+   so the labels lose their colour coding and step back to a whisper. The structure
+   is unchanged and still traceable; it simply stops interrupting the reading.
+   CSS rather than nineteen rewritten sections — the same shape, quieter. */
 .nose p{margin:0}
 p.ext{font:600 11px ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;
   color:var(--ink-2);margin:-6px 0 4px}
@@ -437,7 +440,7 @@ body.fulldoc .fullnote{display:block}
     Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven<br>
     <br>
     Vision &amp; White Paper, written by <span class="byline"><a href="#author" id="authorLink"><strong>Master of Thought</strong></a></span><br>
-    R-CORE &middot; SoI&#8226;2525 &middot; Atlantis Accords &middot; eXeL AI Polling
+    R-CORE &middot; SoI&#8226;2525 &middot; Atlantis Accords &middot; eXeL Polling
   </div>
 </header>
 
@@ -521,7 +524,7 @@ const LEDGER_ORDER = [
  "off.switch","off.keys","off.reserve","off.trust","off.restart","gov.cadence",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
  "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.score","corpus.iterations","corpus.cubes","corpus.empires",
- "rcore.ledger","rcore.modes","rcore.spiral",
+ "rcore.ledger","rcore.modes","rcore.spiral","rcore.version",
  "human.story","human.cambodia","human.ledger","human.receipt","human.ladder",
  "scale.groundzero","scale.austin","scale.2525","scale.sim",
  "reach.intelligence","reach.worlds","reach.accelerate",
@@ -571,6 +574,24 @@ const VIEWS = {
 };
 let view = "paper";
 function ORDER_FOR(){ return VIEWS[view].order; }
+
+/* VERSION vs REVISION (r60, operator correction).
+   A revision is one append to the ledger. A VERSION is a delivered document the
+   operator read and answered. VERSION_AT lists the revision each version was
+   delivered at; a revision written between two deliveries belongs to the version
+   still under discussion. Reconstructed from the record and open to correction —
+   the operator is the only authority on which documents they answered. */
+const VERSION_AT = [
+  {version:16, from:57}   /* r57, r58 and r59 were written between one reading and
+                             the next: three revisions, one version. */
+];
+function versionAt(rev){
+  let v = 1;
+  for (const e of VERSION_AT) if (rev >= e.from) v = e.version;
+  /* Before the first recorded delivery the two counters were the same number,
+     which is the defect this correction closes. */
+  return rev < VERSION_AT[0].from ? rev : v;
+}
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
 const VERSIONS = [
@@ -1812,6 +1833,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"The excuse is bound to the disclosure and the check reads the register row, not the character 24 anywhere on the page. That distinction is the whole strength of it."}
  ],
  next:"Still owed: the Pod composition in code &mdash; and the audit found that two of its four parts already exist, so it is a composition over the Cube 6 three-paragraph 333-word summariser and Cube 5 per-user timing rather than a build. Also owed: the per-section review with the 12 findings spent into the sections. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
+},
+{
+ v:60, code:"VERSION IS NOT REVISION", stamp:"2026.08.05 &middot; revision 60",
+ thrust:"A version counts once, when a delivered document has been read and answered. The ledger had been showing its append count and calling that a version. Also: ALVAR, eXeL Polling, and the NOSE labels stop shouting.",
+ mot:"Operator correction, and the important one is structural. Every block edit appends to the ledger and the ledger numbers the append so replay can find it. That number is a REVISION &mdash; a fact about the mechanism, moving whenever anything is written. It is not what a reader means by a version. A reader means the document they were handed and answered. Those had been the same number, so between one reading and the next the headline moved three times and appeared to describe progress nobody had seen. The rule now: a version increments once, when a delivered document has been read and answered; everything written between two readings is one version whether it took one revision or eleven. Nothing is renumbered to make this true &mdash; renumbering would change every state hash and break the replay this document is built on, and rewriting the record to flatter a count is the one thing forbidden here. The revisions stay exactly as written and stay visible as the audit trail; the version is a second, slower counter laid over them. Second correction: Needs, Outcomes, Solution and Evidence is scaffolding, not scripture. The operator&rsquo;s words are that it does not need to be pronounced so heavily, and they were right &mdash; four coloured capitals announcing themselves before every movement of every section turned a persuasion structure into a form to be filled in. The labels lose their colour coding and step back to a whisper. The structure is unchanged and still traceable; it stops interrupting. That is CSS rather than nineteen rewritten sections, which is the correct size of the change. Third and fourth: the guardian is ALVAR, set in the type a name carrying a framework deserves; and inside Vision 2525 the polling product is eXeL Polling. Both are superseded in the live blocks and both stay as written where they were written &mdash; release thirteen still says what release thirteen said.",
+ stats:{clauses:271, jur:103, shields:5, defects:18, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Nothing renumbered. A count corrected by rewriting the record would have proved the opposite of what the correction is for."},
+  {n:"Asar",   g:"A",  f:"A version is a conversation, not an append. That sentence should have been in the document at release one and it is here at sixty."},
+  {n:"Athena", g:"A",  f:"Two counters, two questions: what can I replay to, and which document are we discussing. Conflating them let the headline outrun every reader."},
+  {n:"Christo",g:"A",  f:"The version can no longer move without a reader. A framework about agreement should not have a progress number that agrees with itself."},
+  {n:"Enki",   g:"A",  f:"Four coloured capitals before every movement made a persuasion structure read as a compliance form. Removing the shout keeps the shape."},
+  {n:"Enlil",  g:"A",  f:"CSS, not nineteen rewrites. The correct size for a change that alters emphasis rather than substance, and it lands on every section at once."},
+  {n:"Krishna",g:"A-", f:"The version table is reconstructed and says so in the code. The operator is the only authority on which documents they actually answered."},
+  {n:"Odin",   g:"A",  f:"Three revisions between two readings is how a number starts measuring effort instead of agreement. It would have kept drifting unmeasured."},
+  {n:"Pangu",  g:"A",  f:"ALVAR in full capitals is a small thing that is not small: the guardian is the figure the framework travels on when the clause tables cannot."},
+  {n:"Sofia",  g:"A",  f:"Scaffolding, not scripture. The framework did its work while the sections were being built; it does not have to stand in the room afterwards."},
+  {n:"Thoth",  g:"A",  f:"Revision 60, version 16. The two numbers are now separately true and separately checkable, which they were not an hour ago."},
+  {n:"Thor",   g:"A",  f:"Superseded blocks, untouched history: r13 still says Alvar and r58 still says eXeL AI Polling, exactly where they were written."}
+ ],
+ next:"Next, in the operator&rsquo;s stated order: the outline-to-detailed pass &mdash; nineteen sections rewritten to speak to the mind and the spirit rather than to a reviewer, with the framework carrying the structure invisibly. Then the Pod composition in code, and the per-section review. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
 }
 ];
 
@@ -9124,6 +9166,108 @@ L(59,"open.defects","The duplication-ceiling breach found by the 33 spiral tests
 /* The BRIEF view. Same ledger, same replay function, different ORDER. */
 
 
+/* ══════════ REVISION 60 ══════════ */
+L(60,"front.alvar","Operator correction: the guardian is ALVAR. A name that carries a framework is set in the type that says so.",
+'<h2>ALVAR &mdash; the guardian who does not take</h2>'+
+'<p>A framework assembled almost entirely from things <em>voluntarily given up</em> is difficult to hold '+
+'in mind. Renunciation reads as weakness until you have a figure for whom it is obviously strength.</p>'+
+'<p><strong>ALVAR</strong> &mdash; Old Norse, <em>elf-warrior</em>, <em>guardian</em> &mdash; is that '+
+'figure. The archetype is old and it is not Norse alone: beings of enormous power who choose to protect '+
+'life rather than rule it. Every tradition on earth has them, which is precisely why the figure travels '+
+'across thirty-three languages when a clause table does not.</p>'+
+'<blockquote>The guardian who takes is no longer a guardian. Power that will not bind itself is not '+
+'strength &mdash; it is only appetite that has not yet been refused.'+
+'<span class="attr">Why the renunciation table and the archetype say the same thing</span></blockquote>'+
+'<h3>The five runes</h3>'+
+'<p>The mark already exists in this project&rsquo;s own codebase &mdash; an ouroboros dragon encircling '+
+'the Yggdrasil tree, whose two crowns frame the Texas outline and the Lone Star, ringed by the five '+
+'Elder Futhark runes of the name. <span class="pill p-impl">Implemented</span> '+
+'<code>frontend/components/architect-2525/alvar-mark.tsx</code></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Rune</th><th>Name</th><th>Traditional sense</th><th>What it carries here</th></tr>'+
+'<tr><td style="font-size:22px">ᚨ</td><td><strong>Ansuz</strong></td><td>The word, the breath, wisdom '+
+'spoken</td><td><strong class="g-ai">◬ Compression that can be re-derived.</strong> A word that cannot be '+
+'checked is a rumour.</td></tr>'+
+'<tr><td style="font-size:22px">ᛚ</td><td><strong>Laguz</strong></td><td>Water &mdash; what carries, and '+
+'what drowns</td><td><strong>Adaptive numbers.</strong> Rates, rosters, thresholds. The things that must '+
+'move, and the reason obligations must not.</td></tr>'+
+'<tr><td style="font-size:22px">ᚹ</td><td><strong>Wunjo</strong></td><td>Joy, fellowship, shared '+
+'purpose</td><td><strong class="g-si">♡ Shared Intent itself.</strong> The rune that names the middle '+
+'intelligence, arrived at independently.</td></tr>'+
+'<tr><td style="font-size:22px">ᚨ</td><td><strong>Ansuz</strong></td><td>The word, again</td>'+
+'<td><strong>Disclosure of Absence.</strong> Speaking the gap before anyone finds it. The rune repeats '+
+'because the duty does.</td></tr>'+
+'<tr><td style="font-size:22px">ᚱ</td><td><strong>Raidho</strong></td><td>The ride &mdash; journey, '+
+'rhythm, right action</td><td><strong class="g-hi">웃 Human authority.</strong> Someone must decide, sign, '+
+'and be answerable for where the road went.</td></tr>'+
+'</table><caption>Rune meanings are reconstructed from later rune poems and are interpretive rather than '+
+'attested. Stated plainly, because a document built on disclosure should not quietly borrow authority '+
+'from a dead alphabet.</caption></div>'+
+'<h3>What the archetype forbids</h3>'+
+'<p>ALVAR is not a mascot. Treated seriously it is a constraint, and it rules out things a logo never '+
+'could:</p>'+
+'<dl class="defs">'+
+'<dt>A guardian does not accumulate</dt><dd>Hence the per-person ceiling, the asset lock, and no equity. '+
+'A protector who ends up owning what they protected has changed roles without announcing it.</dd>'+
+'<dt>A guardian does not rule</dt><dd>Hence money buys no vote, ranking confers no authority, and every '+
+'irreversible act needs a human signature from someone who can be removed.</dd>'+
+'<dt>A guardian does not hide</dt><dd>Hence the defect register, the published shortfall, the corrections '+
+'left visible in the ledger. Something that conceals its own failures is not guarding anyone but '+
+'itself.</dd>'+
+'<dt>A guardian does not outstay</dt><dd>Hence seven years of authority and three of mentorship, and '+
+'authority that ends on a published date whether or not anyone is ready.</dd></dl>'+
+'<p>And the mark carries the Lone Star and the Texas outline &mdash; drawn long before the funding model '+
+'named Austin as ground zero. The iconography arrived at the same place the arithmetic did, which is a '+
+'convergence worth noting rather than a retrofit worth hiding.</p>');
+
+/* ══════════ RELEASE 14 ══════════ */
+
+L(60,"mot.author","Operator correction: within Vision &#8226; 2525 the polling product is eXeL Polling.",
+'<div class="secn">THE AUTHOR</div>'+
+'<h2 class="sech" id="author">Who the Master of Thought is</h2>'+
+'<p class="lede">A method with a name on it &mdash; and the accountability that comes with signing something you are asking humanity to check</p>'+
+'<p><strong>Master of Thought is the name this document is signed with, and a way of working rather than a title.</strong> It is not an office, it confers no authority inside the framework, and it owns nothing here &mdash; there is no equity to own. It is the human who is accountable for what the ledger says, named so that the accountability has somewhere to land.</p>'+
+'<div class="notice key"><span class="tag">What the name actually commits to</span>'+
+'<p><strong>Publish the reasoning, not only the outcome.</strong> Every release in this ledger carries the directive that produced it, in full, in the author&rsquo;s own words. You can read why a decision was made beside what the decision was, which is the part institutions normally discard.</p>'+
+'<p><strong>Be graded in public, by a panel, every time.</strong> Twelve reviewers &mdash; the Ascended Masters &mdash; assess each release and each returns one finding and a letter grade, including the unflattering ones. The panel mean is printed on the release banner whether it flatters or not.</p>'+
+'<p style="margin-bottom:0"><strong>Correct loudly, including your own corrections.</strong> When a number is wrong it is fixed in the open, the wrong version stays readable where it was written, and it enters the defect register with a number. That has happened to this author&rsquo;s own arithmetic, and the second-order correction is in the register too.</p></div>'+
+'<h3>Three intelligences, one signature</h3>'+
+'<p>The work sits at the meeting point of the three the framework names: <span class="g-ai">&#9902; artificial intelligence</span> to do what scales, <span class="g-si">&#9825; shared intent</span> to decide what is worth scaling, and <span class="g-hi">&#50883; human intelligence</span> to carry the consequence. The signature exists because the third one cannot be delegated. A machine can draft a clause; only a person can be answerable for it, and the governance rules in &sect;25 require at least one human signer for exactly that reason.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>What the name carries</th><th>What it does not</th></tr>'+
+'<tr><td>Authorship of this document and of the R-CORE replay engine it runs on.</td><td>Ownership. No equity exists in the framework, so there is nothing to hold.</td></tr>'+
+'<tr><td>The human signature the governance layer requires before a quote or a shutdown can bind.</td><td>Governance weight. Recognition cannot be purchased, and it cannot be assumed by writing the rules either.</td></tr>'+
+'<tr><td>Responsibility for every defect in the register, including the ones still open.</td><td>Permanence. There is a removal path for every role in this framework, this one included.</td></tr>'+
+'<tr><td>The origin of the wider work: System of Innovation, Vision &#8226; 2525, the Atlantis Accords, eXeL Polling.</td><td>A claim to be right. The document asks to be checked, not believed.</td></tr>'+
+'</table><caption>The column on the right is the longer one deliberately. A framework built to resist concentrated authority cannot make an exception for the person who wrote it down.</caption></div>'+
+'<h3>Where the author speaks directly</h3>'+
+'<p>This section describes the role. The <em>person</em> is elsewhere in the record and is not paraphrased here: the first-person address, written at the point where the framework stopped being instruments and became an argument, and the address to the leaders who must decide. Both are in the ledger view, under their own release, in the words they were written in.</p>'+
+'<div class="notice"><span class="tag">&#50883; Signed &middot; human authority</span>'+
+'<p style="margin-bottom:0"><strong>Master of Thought</strong><br>'+
+'<span class="meta">System of Innovation &middot; Vision &#8226; 2525 &middot; R-CORE &middot; eXeL Polling</span><br>'+
+'<span class="meta">We cannot master what we are not aware of.</span></p></div>');
+
+
+/* ══════════ RELEASE 59 ══════════ */
+
+L(60,"rcore.version","Operator correction: a version counts only when a document was delivered and the operator answered it. The ledger had been showing its append count and calling that a version, which is a number about us rather than about the reader.",
+'<h2>A version is a conversation, not an append</h2>'+
+'<p class="lede">The ledger was counting its own edits and calling them versions. Those are two different numbers and only one of them is about the reader</p>'+
+'<p>Every block edit appends to the ledger, and the ledger numbers each append so that replay can find it. That number is a <strong>revision</strong>. It is a fact about the mechanism, it moves whenever anything is written, and it is necessary &mdash; without it there is nothing to replay to.</p>'+
+'<p>It is not what a reader means by a version. A reader means: <strong>the document I was handed, and answered.</strong> Those two numbers had been the same number, so the headline moved several times between one reading and the next, and appeared to describe progress that no reader had seen.</p>'+
+'<div class="notice lock"><span class="tag">&#128274; The rule &middot; class: Immutable</span>'+
+'<p style="margin-bottom:0"><strong>A version increments once, when a delivered document has been read and answered.</strong> Everything written between two readings is one version, whether it took one revision or eleven. The revision count keeps running underneath and stays visible &mdash; it is the audit trail &mdash; but it no longer sets the headline.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th></th><th>Revision</th><th>Version</th></tr>'+
+'<tr><td><strong>Counts</strong></td><td>every append to the ledger</td><td>every delivered document that was answered</td></tr>'+
+'<tr><td><strong>Moved by</strong></td><td>the author, at will</td><td>a reader, by responding</td></tr>'+
+'<tr><td><strong>Answers</strong></td><td>what can I replay to?</td><td>which document are we discussing?</td></tr>'+
+'<tr><td><strong>Can it move without a reader?</strong></td><td>Yes, constantly.</td><td><strong>No. That is the entire point.</strong></td></tr>'+
+'</table><caption>Nothing in the ledger is renumbered to make this true. Renumbering would change every state hash and break the replay this document is built on &mdash; and rewriting the record to flatter a count is the one thing forbidden here. The revisions stay exactly as written; the version is a second, slower counter laid over them.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; What this cost, stated plainly</span>'+
+'<p style="margin-bottom:0">Three documents were written and numbered between one reading and the next. Under the corrected rule that is <strong>one version</strong>, and the numbering said three. A count that runs ahead of its readers is measuring effort rather than agreement, and this document is supposed to be about agreement.</p></div>');
+
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -9336,7 +9480,12 @@ function renderDoc(){
     });
   });
 
-  document.getElementById("vNow").textContent = "v" + active + (active === VMAX ? " (latest)" : "");
+  /* r60: the headline is the VERSION — the document a reader was handed and
+     answered. The revision is the append count and stays visible beside it,
+     because it is the audit trail; it is simply no longer the headline. */
+  document.getElementById("vNow").innerHTML =
+    "Version " + versionAt(active) + ' <span class="rev">r' + active +
+    (active === VMAX ? " latest" : "") + "</span>";
   document.getElementById("vSlide").value = active;
   document.getElementById("vHash").innerHTML = "state " + stateHash(active, res.order) +
     " &middot; " + blocks.length + " blocks";
