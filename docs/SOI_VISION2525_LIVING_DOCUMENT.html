@@ -1674,6 +1674,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Repricing changes nothing about what the token is not: no &#50883;, no conversion, no governance weight. Shield IV is untouched and was checked rather than assumed."}
  ],
  next:"Two blocks still carry the superseded dollar framing and are named rather than left to be discovered: paper.s0 and the historical paper.s1 at v41 both say &lsquo;one dollar at a time&rsquo;. paper.s0 is live and is scheduled for the next release; the v41 block is history and stays as written. Still owed: the 33 SPIRAL tests, the 48-hour coverage audit, the Pod composition in code, and the per-section review with findings spent. Operator decisions unchanged: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
+},
+{
+ v:57, code:"ONE OVER SEVEN POINT TWO FIVE", stamp:"2026.08.05 &middot; release 57",
+ thrust:"The fraction is 1/7.25, which is the anchor rate itself &mdash; so the token costs exactly one dollar in Austin and exactly 8m 17s everywhere. Family purchase an option to join; they inherit nothing.",
+ mot:"A one-character correction that is not a rounding. Release 56 priced the Seed Token at one seventh of a local minimum-wage hour and reported 1.04 at the anchor, calling that close enough because the scale did not move. The operator&rsquo;s correction is that the divisor is 7.25, and 7.25 is not an approximation of seven &mdash; it IS the anchor, the United States federal minimum wage. Divide a local hour by the anchor rate and the token costs exactly one dollar in Austin, 2.21 in New York, 2.28 in California, and 8 minutes 17 seconds of work in every one of them. The whole number in the first row is the tell that the fraction was derived rather than picked. Correcting it re-opened the unit error and showed our own first correction was itself imprecise: r11 published 0.138 &#50883;, and 0.138 is 1 &divide; 7.25 &mdash; the NUMBER was right to three decimal places all along. What was wrong was the symbol on it: a fraction of an hour wearing the &#50883; label, low by exactly one missing 4.807&times; conversion. Release 56 said understated by 4.8; the truer sentence is mislabelled, not miscounted. Both are now in the register as defect 23, because a document whose entire thesis is the unit does not get to fix a unit quietly, and does not get to fix its own fix quietly either. The second directive lands on the same page. Every immediate family member may PURCHASE a Seed Token &mdash; and the verb is the whole sentence. They do not inherit worth. They receive an option to join, in their own year, at their own local price, on exactly the same terms as any stranger. Not a payout, not a transfer, not a discount, not a place in a queue. A framework that gave a grieving family more than society gets would have begun building the dynasty engine &sect;1 exists to prevent, gently, one exception at a time. At the corrected price eight family members paying in is 8.00 against 754,000 released &mdash; 94,250 to one, inward &mdash; and forty is still 18,850 to one. And &sect;0 loses the last live line that funded this &lsquo;one dollar at a time&rsquo;, which was named at r56 and is closed here rather than carried forward again.",
+ stats:{clauses:271, jur:103, shields:5, defects:17, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Our own correction is corrected in public, in the same notice, permanently. That is the only version of this that is worth anything."},
+  {n:"Asar",   g:"A",  f:"Exactly one dollar at the anchor, exactly 8m 17s everywhere. The price now says what the unit says, with no remainder left over."},
+  {n:"Athena", g:"A",  f:"7.25 is the anchor rate, so the divisor is derived rather than chosen. A whole number in the first row is what a derived fraction looks like."},
+  {n:"Christo",g:"A",  f:"They do not inherit worth; they receive an option to join. The family is offered the same door as everyone, which is the most any of us gets."},
+  {n:"Enki",   g:"A",  f:"94,250 to one with eight, 18,850 with forty. The money still flows inward by five orders of magnitude and the cap was still doing nothing."},
+  {n:"Enlil",  g:"A",  f:"Same settlement function, same lookup, one divisor. Nothing was rebuilt to change a price, which is the test of whether the first design was right."},
+  {n:"Krishna",g:"A",  f:"Section 0, section 15, the death rule and the register now agree on one price. Four surfaces stating one number is the minimum bar for a ledger."},
+  {n:"Odin",   g:"A-", f:"We corrected an error at r56 and got the correction slightly wrong. The lesson is that the second look must be as adversarial as the first."},
+  {n:"Pangu",  g:"A",  f:"1.04 was close, and close is the failure mode. At the one point every reader checks by hand, an approximation reads as arithmetic nobody did."},
+  {n:"Sofia",  g:"A",  f:"Purchase, not inherit. One verb carries the entire distinction between an invitation and a bequest, and it is now the load-bearing word."},
+  {n:"Thoth",  g:"A",  f:"0.138 = 1 &divide; 7.25 to three places. r11 measured correctly and labelled wrongly; 4.807 is the missing conversion, exactly and only."},
+  {n:"Thor",   g:"A",  f:"Repricing still touches nothing: no &#50883;, no conversion, no governance weight, no preference for family. Shield IV re-checked rather than assumed."}
+ ],
+ next:"Still owed: the 33 SPIRAL tests between releases, the 48-hour coverage audit, the Pod composition in code (three or more members, unanimous consent before the clock starts, an outcome required at stop, 333 words in exactly three paragraphs), and the per-section review with findings spent into the sections. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
 }
 ];
 
@@ -8362,6 +8383,490 @@ L(48,"fund.escrow","Four terms, operating income dropped, research carrying half
 '<tr><td>Retrospective only</td><td>P is computed for periods that have ended. Never forecast, never '+
 'stated to attract a stream.</td></tr>'+
 '</table></div>');
+
+/* ══════════ RELEASE 57 ══════════ */
+L(57,"fund.token","Operator correction: the fraction is one over seven point two five, not one over seven. It is the fraction that makes the anchor land on exactly one dollar &mdash; and it shows r11&rsquo;s number was right all along, only its unit was wrong.",
+'<h2>One over seven point two five</h2>'+
+'<p class="lede">The token is a slice of an hour. This release names the slice exactly, and the exactness turns out to matter</p>'+
+'<p>Everything above describes how contributed <em>time</em> is recognised. This section describes the '+
+'other input: <strong>money, contributed voluntarily</strong> &mdash; priced, since the last release, in time rather than in one country&rsquo;s currency.</p>'+
+'<div class="notice lock"><span class="tag">&#128274; The price &middot; class: Immutable</span>'+
+'<p><strong>One Seed Token = 1/7.25 of one local minimum-wage hour.</strong></p>'+
+'<p style="margin-bottom:0">Currency-free at the concept level, settled locally, <strong>stamped at '+
+'purchase and frozen for life</strong> &mdash; the same three steps &#50883; already uses. Nobody is '+
+'asked for a number of dollars. Everybody is asked for the same slice of a working hour.</p></div>'+
+'<h3>Why 7.25 and not 7</h3>'+
+'<p>Because <strong>7.25 is the anchor rate itself</strong>. The United States federal minimum wage is 7.25 an hour, so dividing a local hour by 7.25 makes the token cost <strong>exactly one dollar</strong> at the anchor and exactly the same slice of life everywhere else. A seventh would have priced it at 1.04 &mdash; close, and wrong, and wrong in the one place the whole document gets checked by hand.</p>'+
+'<p>The fraction is not arbitrary and it is not a rounding. It is the anchor written as a divisor, which is why the first row of the table below is a whole number and the others are not.</p>'+
+'<h3>What it actually costs</h3>'+
+'<p><strong>Eight minutes and seventeen seconds of minimum-wage work.</strong> Everywhere on earth, '+
+'without exception, and checkable by anyone with a clock. The money differs because the world does; the '+
+'cost in life does not.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Jurisdiction</th><th class="n">Minimum / hour</th><th class="n">Seed Token</th><th class="n">Cost in time</th></tr>'+
+'<tr><td>United States federal &middot; Texas <span class="meta">(the anchor)</span></td><td class="n">7.25</td><td class="n"><strong>1.00</strong></td><td class="n">8m 17s</td></tr>'+
+'<tr><td>New York</td><td class="n">16.00</td><td class="n">2.21</td><td class="n">8m 17s</td></tr>'+
+'<tr><td>Washington</td><td class="n">16.28</td><td class="n">2.25</td><td class="n">8m 17s</td></tr>'+
+'<tr><td>California</td><td class="n">16.50</td><td class="n">2.28</td><td class="n">8m 17s</td></tr>'+
+'</table><caption>Rates from the live settlement table (<code>backend/app/core/hi_rates.py</code>), '+
+'divided by 7.25. The last column never changes, which is the whole point; the third changes everywhere except the anchor, which is the second point.</caption></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Correction &mdash; the number was right, the unit was not</span>'+
+'<p>Release 11 said one dollar was <strong>&ldquo;0.138 &#50883; of equivalent value &mdash; roughly one '+
+'seventh of a minimum-wage hour.&rdquo;</strong> Release 56 called that number understated by a factor of 4.8. It was half right, and the wrong half is the interesting one.</p>'+
+'<pre><code>&#50883; = hours &times; 4.807\n\n'+
+'1 &divide; 7.25    =  0.137931 hr   &lt;-- r11 printed 0.138. the NUMBER was correct.\n'+
+'0.137931 hr    =  0.6631 &#50883;      &lt;-- the same quantity, in the unit it was labelled with\n'+
+'               =  8m 17s        &lt;-- and the same quantity again, as time\n\n'+
+'one missing conversion, not one wrong measurement</code></pre>'+
+'<p style="margin-bottom:0">So r11 published a <strong>fraction of an hour wearing the &#50883; symbol</strong>. Read as hours it was accurate to three decimal places for forty-six releases; read as &#50883; it was low by exactly 4.807&times;, the conversion that was never applied. The r11 wording stays readable where it was written, and this notice stays permanently &mdash; including the part where our own first correction was itself imprecise.</p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; What the token still is not</span>'+
+'<p style="margin-bottom:0">Repricing changes nothing else. The token is <strong>not &#50883;</strong>. '+
+'It does not mint &#50883;, does not convert to &#50883;, and carries <strong>no governance weight '+
+'whatsoever</strong>. &#50883; is earned by contributed time and by nothing else &mdash; Shield IV, '+
+'Immutable, and untouched by anything in this section.</p></div>');
+
+L(57,"fund.return","The reference line corrected to 1/7.25 of an hour. r11&rsquo;s 0.138 was the fraction itself and was right as a fraction; it was the unit symbol on it that was wrong.",
+'<h2>What a contributor gets back</h2>'+
+'<p>The operator&rsquo;s standard: <em>whoever contributes a token fuels Vision 2525 and is expected to '+
+'gain more than they gave &mdash; at minimum, more than the 1/7.25 of an hour it cost them.</em></p>'+
+'<p>That is the right standard. It needs one precision, and getting it wrong would undo every legal '+
+'protection in this document.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; Measured, never offered &mdash; the line, drawn precisely</span>'+
+'<p><strong>Return-on-contribution is a retrospective accountability metric. It is never an inducement, '+
+'a forecast, a target, or a reason given to anyone for contributing.</strong></p>'+
+'<p style="margin-bottom:0">The same sentence is safe as an audited historical fact and dangerous as a '+
+'forward-looking promise. A published expectation of gaining more than was contributed, offered '+
+'<em>in order to obtain</em> the contribution, supplies the expectation-of-profit limb that Shield IV and '+
+'the renunciation table exist to remove. This document treats the figure only as an account of what '+
+'already happened.</p></div>'+
+'<h3>The four rules that keep the line</h3>'+
+'<ol>'+
+'<li><strong>Backward-looking only.</strong> Published for periods that have ended. No projection, no '+
+'forecast, no &ldquo;expected&rdquo; figure for a future period, ever.</li>'+
+'<li><strong>Never in solicitation.</strong> The metric does not appear in any material that asks for a '+
+'contribution. It lives in the monthly accounting, where results live.</li>'+
+'<li><strong>Published when it fails.</strong> A ratio below 1.00 is published exactly as prominently as '+
+'one above it. A metric shown only when flattering is marketing.</li>'+
+'<li><strong>No individual attribution.</strong> Computed per region, never per contributor. Nobody is '+
+'told what <em>their</em> contribution returned, because that is the sentence that turns an account into '+
+'an entitlement.</li></ol>'+
+'<h3>The metric</h3>'+
+'<pre><code>return_on_contribution  =   value delivered to contributors and their regions\n'+
+'                            ------------------------------------------------\n'+
+'                                  contribution received, same period\n\n'+
+'floor      :  1.00        every token returned at least what it cost\n'+
+'reference  :  0.6631 &#50883;  one token = 1/7.25 hour = 8m 17s, in every jurisdiction\n'+
+'published  :  monthly, per region, in all 33 languages, with the method shown</code></pre>'+
+'<p class="meta">Corrected at release 56, refined at 57. r11 printed 0.138, which is 1 &divide; 7.25 and '+
+'is the correct FRACTION OF AN HOUR &mdash; it was the &#50883; symbol on it that was wrong. The same '+
+'quantity expressed in &#50883; is 0.6631, at 4.807 per hour.</p>'+
+'<p><strong>Value delivered</strong> is not money returned &mdash; nothing is paid back, and that is what '+
+'keeps this outside securities territory. It is what the contribution bought, counted honestly: &#50883; '+
+'settled to contributors in that region; open-licensed output the region now holds and did not pay to '+
+'license, at replacement cost; education delivered, valued against local tuition for equivalent hours; '+
+'and infrastructure the region keeps whether or not it keeps contributing.</p>'+
+'<p>If the ratio falls below 1.00 for a region, that region is subsidising the framework rather than the '+
+'other way round, and it is published the month it happens, in that region&rsquo;s language, without '+
+'waiting for anyone to notice.</p>'+
+'<blockquote>Nobody is promised a return. Everybody is owed an honest account of whether there was one.'+
+'<span class="attr">The line between an accountability metric and an unregistered security</span></blockquote>');
+
+L(57,"fund.membership","The Seed Token price follows &sect;15 exactly: 1/7.25 of a local minimum-wage hour. Everything else about the two instruments is unchanged, and membership still carries no gain of any kind.",
+'<h2>The key and the door</h2>'+
+'<p class="lede">A slice of an hour buys the right to buy a year. The year buys you nothing except '+
+'staying informed &mdash; and that is the point, not a shortfall.</p>'+
+'<div class="nose"><span class="ne">Needs</span>'+
+'<p>A framework funded one contribution at a time has a problem: <strong>one token, once, does not fund '+
+'anything twice.</strong> Contribution that arrives as a single gesture and never returns cannot refuel '+
+'innovation, and a treasury that only drains is a countdown dressed as a plan.</p>'+
+'<p style="margin-bottom:0">The obvious fix is the one that destroys everything upstream. A token that '+
+'entitles you to a share of reserves <em>and</em> is sold on an expectation of gain is a profit interest '+
+'in a common enterprise. That is the definition regulators apply, and it would put &sect;16 and all '+
+'eleven jurisdictions at risk to solve a cash-flow problem.</p></div>'+
+'<div class="nose"><span class="ne">Outcomes</span>'+
+'<p><strong>Two instruments, and the second one promises nothing at all.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>&nbsp;</th><th>&#127793; Seed Token</th><th>&#128231; Membership</th></tr>'+
+'<tr><td><strong>Price</strong></td><td><strong>1/7.25 of a local minimum-wage hour</strong>, once, ever</td><td>priced separately, per year</td></tr>'+
+'<tr><td><strong>Cost in time</strong></td><td>8m 17s, everywhere</td><td>set per region</td></tr>'+
+'<tr><td><strong>Term</strong></td><td>permanent</td><td><strong>365 days, or 366 in a leap year</strong></td></tr>'+
+'<tr><td><strong>What it is</strong></td><td>the record that you seeded this</td><td>staying in the loop</td></tr>'+
+'<tr><td><strong>What it grants</strong></td><td><strong>the right to buy a membership</strong>, nothing else</td><td>news and updates to Vision &#8226; 2525</td></tr>'+
+'<tr><td><strong>Gain attached</strong></td><td>none</td><td><strong>none</strong></td></tr>'+
+'<tr><td><strong>Reserve claim at shutdown</strong></td><td>yes &mdash; &sect;7</td><td><strong>none</strong></td></tr>'+
+'<tr><td><strong>Mints &#50883;</strong></td><td>no</td><td>no</td></tr>'+
+'</table><caption>The token is a key. The membership is the door. Nobody is sold a key on the promise of '+
+'what is behind the door &mdash; and behind the door is a newsletter, not a return.</caption></div>'+
+'<p style="margin-bottom:0">The recurring money attaches to the instrument with <strong>no claim on '+
+'reserves and no gain of any kind</strong>. The reserve claim attaches to the instrument that is never '+
+'sold on a return. Separated, both survive. Merged, neither does.</p></div>'+
+'<div class="nose"><span class="ne">Solution</span>'+
+'<div class="notice lock"><span class="tag">&#128274; No gain attached &mdash; locked</span>'+
+'<p><strong>A membership pays nothing, returns nothing, appreciates in nothing and owes the member '+
+'nothing.</strong> Not a yield. Not a multiple. Not a measured benefit floor. Not a claim on reserves, '+
+'revenue, tokens or anything else.</p>'+
+'<p style="margin-bottom:0">What it does is keep a person <strong>in the loop</strong>: each release, what '+
+'changed, why it changed, which defect was found, which decision is still open. The record every reader '+
+'can already see, <em>delivered</em> rather than searched for.</p></div>'+
+'<p><strong>An earlier draft proposed a ten-times utility floor.</strong> It was withdrawn at release 53 '+
+'and the reason is worth keeping. Even framed as usefulness rather than money, a promised multiple is a '+
+'promise, and a promise attached to a recurring payment is the exact shape a regulator looks for. '+
+'Removing it cost nothing that mattered and removed the last edge anyone could grip. The earlier wording '+
+'is still readable at release 52.</p>'+
+'<p style="margin-bottom:0">Membership revenue enters the innovation treasury and funds the next projects '+
+'on the four-term formula in &sect;15. It does not distribute, does not accrue to anyone personally, and '+
+'does not touch &#50883; &mdash; Shield IV, unchanged.</p></div>'+
+'<div class="nose"><span class="ne">Evidence</span>'+
+'<p>The arithmetic is unglamorous and needs no growth story. One token, once, from a million people funds '+
+'one round and then nothing. A membership renewed annually by the same million funds a round every year, '+
+'and the treasury stops being a countdown.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The obvious objection, stated rather than avoided</span>'+
+'<p style="margin-bottom:0">The document is public, at <code>/main/Vision-2525</code>, with no login and '+
+'no account. <strong>So why would anyone pay to be told what they can already read for free?</strong> '+
+'The honest answer is that they would not be paying for access. They would be funding the next projects, '+
+'and the membership is simply the mechanism that makes that recurring instead of one-time. Being kept '+
+'current without having to check is a small convenience, not a product. If people will not fund something '+
+'they believe in on those terms, the model fails &mdash; and it should, rather than being rescued by '+
+'attaching a return to it.</p></div>'+
+'<p style="margin-bottom:0"><span class="pill p-spec">Spec-only</span> Payment rails exist and are cited '+
+'(<code>backend/app/cubes/cube8_tokens/payment_service.py</code>); the local price resolves through the '+
+'same settlement lookup &#50883; already uses (<code>backend/app/core/hi_rates.py</code>). The membership '+
+'term, the renewal cycle and the update cadence are proposed and unbuilt. The 365/366 rule is stated '+
+'precisely because a membership that silently loses a day every fourth year is the kind of small '+
+'dishonesty that tells you what a system is like.</p></div>');
+
+L(57,"unit.death","Operator directive: every immediate family member may PURCHASE a Seed Token. They do not inherit worth. They receive an option to join, in their own year, on exactly the same terms as everyone else in society. Prices corrected to 1/7.25.",
+'<h2>Nothing inherits</h2>'+
+'<p>Every system that pays people eventually faces the same question, and most answer it badly: '+
+'<strong>what happens when a contributor dies?</strong></p>'+
+'<div class="pull">Answer it with inheritance and you have built a dynasty engine.'+
+'<cite>The second generation holds what the first earned. The third holds what neither earned. Within '+
+'four generations the framework is precisely the concentrated actor every other page of it was designed '+
+'to resist.</cite></div>'+
+'<div class="notice key"><span class="tag">The rule &middot; class: Immutable</span>'+
+'<p style="margin-bottom:0"><strong>&#50883; ends with the person who earned it.</strong> No transfer on '+
+'death, no beneficiary designation, no assignment, no trust instrument, no probate claim. Reserved '+
+'forward years extinguish with the rest. A lump sum accrued without work is never available to anyone, '+
+'at any point, by any route &mdash; and the simplest way to guarantee that is to make sure nothing '+
+'survives the person to be accrued.</p></div>'+
+'<h3>What extinction actually does</h3>'+
+'<pre><code>at death:   cumulative &#50883;        &rarr;  0\n'+
+'            reserved forward years &rarr;  0\n'+
+'            committed reserve      &rarr;  falls by the extinguished amount\n'+
+'            headroom               &rarr;  rises by the same amount\n\n'+
+'            no trustee &middot; no probate &middot; no discretion &middot; nothing to litigate</code></pre>'+
+'<div class="notice"><span class="tag">The scale of it, stated plainly</span>'+
+'<p style="margin-bottom:0">A contributor who had secured ten years and part of an eleventh holds '+
+'<strong>104,000 &#50883;</strong>. At the Austin anchor that is <strong>$754,000.00 of committed '+
+'reserve</strong>, and at death all of it returns to fund other people&rsquo;s security. The framework '+
+'does not keep it. It re-commits it.</p></div>'+
+'<h3>What passes instead &mdash; an invitation, not a bequest</h3>'+
+'<p><strong>Every immediate family member</strong> may purchase one Seed Token, permanently linked to the '+
+'person who died. As many as that person actually had; there is no cap and there never should have been '+
+'one. Note the direction: <strong>they pay in. Nothing is paid out.</strong></p>'+
+'<div class="scroll"><table>'+
+'<tr><th>What the family receives</th><th>What the family does not receive</th></tr>'+
+'<tr><td>The right &mdash; never the obligation &mdash; to <strong>purchase</strong> one token each, at '+
+'1/7.25 of a local minimum-wage hour: 8m 17s of work, the same slice everyone else pays.</td><td>Any &#50883;. Any settlement. Any instalment. Any claim of any kind.</td></tr>'+
+'<tr><td>A permanent memorial link on the record: this token stands beside that contributor&rsquo;s '+
+'work.</td><td>Governance weight. A Seed Token confers none, for them as for everyone.</td></tr>'+
+'<tr><td>The same standing every funder has, and not one degree more.</td><td>Preference, priority, or '+
+'any better term than a stranger would get.</td></tr>'+
+'</table><caption>At the Austin anchor a token is exactly 1.00. Eight family members paying in is 8.00 '+
+'against 754,000 released &mdash; <strong>94,250 to one, inward</strong>. Forty is 40.00, and still '+
+'<strong>18,850 to one</strong>. The direction survives an order of magnitude, which is how you can tell '+
+'the old cap of ten was never doing the work that sentence credited it with.</caption></div>'+
+'<div class="notice key"><span class="tag">Say it in one sentence, because it will be misread</span>'+
+'<p><strong>They do not inherit worth. They receive an option to join.</strong> Not a payout, not a '+
+'transfer, not a discount, not a place in a queue. An option &mdash; to buy, in their own year, at their '+
+'own local price, the identical instrument any stranger may buy on the identical terms.</p>'+
+'<p style="margin-bottom:0">That is the whole of it, and the smallness is deliberate. A framework that '+
+'gave a grieving family <em>more</em> than society gets would have started building the dynasty engine '+
+'this section exists to prevent &mdash; gently, and one exception at a time. What passes to them is a '+
+'name on the record beside the person who earned it, and the same door everyone else walks '+
+'through.</p></div>'+
+'<h3>Why the cap had to go</h3>'+
+'<div class="notice hot"><span class="tag">&#9888; Release 46 argued against itself, and we did not notice</span>'+
+'<p>That release promised, in its own words, that <em>&ldquo;a family is never asked to rank itself or to '+
+'choose which relationships qualify&rdquo;</em> &mdash; and then, two sentences later, said <em>&ldquo;where '+
+'more than ten are eligible, the family decides among themselves.&rdquo;</em></p>'+
+'<p style="margin-bottom:0"><strong>Under a cap, a family with eleven eligible people IS asked to rank '+
+'itself</strong>, at the worst possible moment, over a dollar. Removing the cap is the only way the '+
+'promise and the mechanism agree. The earlier wording stays readable at release 46.</p></div>'+
+'<h3>Who counts as immediate family</h3>'+
+'<p>The definition is not invented here, and it is what now does the bounding. It follows the '+
+'<strong>United States federal standard for bereavement and survivor benefits</strong> &mdash; a '+
+'published, checkable list: spouse or domestic partner; children, including step, adopted and foster; '+
+'parents, including step; siblings, including step and half; grandparents; grandchildren; and '+
+'parents-in-law. <strong>Bounded by biology and law rather than by a number we chose</strong>, which is '+
+'a better limit precisely because nobody has to enforce it and nobody has to argue about it.</p>'+
+'<div class="notice"><span class="tag">Two properties that matter more than a cap ever did</span>'+
+'<p style="margin-bottom:0"><strong>Nobody ranks anybody.</strong> The framework never adjudicates a '+
+'family list, because with no cap there is nothing left to adjudicate. And <strong>election is '+
+'free</strong>: any eligible person may decline, and declining costs them nothing and costs the family '+
+'nothing.</p></div>'+
+'<p><strong>Regional equivalents are required.</strong> The US standard is the reference definition, not '+
+'a global imposition. Each region adopts its own published bereavement or survivor standard, and where '+
+'none exists the framework uses the reference. Adaptive number, Immutable obligation &mdash; the same '+
+'pattern as the settlement floor.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The consequence, stated rather than buried</span>'+
+'<p style="margin-bottom:0">A Seed Token carries a claim on reserves at shutdown (&sect;7), so removing '+
+'the cap admits marginally more claimants. The dilution is bounded by real family sizes rather than by '+
+'ambition, and each token claims only the increase between its purchase year and the shutdown year. '+
+'<strong>We prefer a negligible dilution to making a grieving family choose which of its members '+
+'counts.</strong> Disagree with that trade if you like &mdash; it is written down so you can.</p></div>'+
+'<div class="notice hot"><span class="tag">&#9888; Defect 22 &mdash; two locked terms collide, and this does not decide between them</span>'+
+'<p>A contributor two years into a five-year payout has <strong>three instalments already earned and not '+
+'yet paid</strong> &mdash; $43,495.65 at the Austin anchor. Two Immutable rules reach for it.</p>'+
+'<p><strong>&ldquo;Paid out over five years, guaranteed&rdquo;</strong> says those instalments are owed. '+
+'<strong>&ldquo;Nothing inherits&rdquo;</strong> says nothing survives the person. Both are locked. They '+
+'cannot both hold.</p>'+
+'<p style="margin-bottom:0"><strong>The reading I would take, and it is not mine to settle:</strong> the '+
+'guarantee is a promise <em>to a person</em>, protecting them against next year &mdash; not a promise to '+
+'an estate, protecting it against their death. On that reading outstanding instalments extinguish with '+
+'everything else, and the Seed Token right replaces them. That narrows a locked term, which must be '+
+'ratified rather than assumed. <strong>Open for the operator.</strong></p></div>'+
+'<p>What makes this bearable is what it becomes. A family that cannot be paid can still be '+
+'<em>counted</em> &mdash; permanently, publicly, beside the person they lost, for eight and a half '+
+'minutes of work each. <strong>An ending turns into a beginning, which is the only honest thing an '+
+'ending can become in a framework built to run for five hundred years.</strong></p>');
+
+L(57,"paper.s0","The one remaining live line that still funded the framework &ldquo;one dollar at a time&rdquo;. Named at r56 as scheduled, corrected here: it is a slice of an hour at a time.",
+'<div class="secn">&sect;0 &middot; THE HOW <a href="#sec-0">&uarr; contents</a></div>'+
+'<h2 class="sech" id="sec-what">&sect;0 &nbsp; Vision &#8226; 2525 is the WHAT. This is the HOW.</h2>'+
+'<p class="lede">Which of the thirteen layers this document actually answers &mdash; and the nine it '+
+'does not</p>'+
+'<p><strong>Vision &#8226; 2525</strong> is a civilization coordination framework set out in thirteen '+
+'diagrams. It states what a coordinated civilization needs: humanity at the centre, a recursive '+
+'operational core, resilient communications, coordination that survives scale, intelligence at the edge, '+
+'preserved operational truth, one spatial reality, rehearsal before deployment, collective intelligence '+
+'guiding distributed action, balanced governance, qualification before scale, an adoption cycle, and '+
+'continual evolution.</p>'+
+'<p>That is the <strong>what</strong>. It is deliberately architectural, and it does not specify how a '+
+'single hour of a single person&rsquo;s contribution becomes a payment, a record, and a vote that money '+
+'cannot buy.</p>'+
+'<div class="pull">This document is the <strong>how</strong> &mdash; for four of those thirteen layers.'+
+'<cite>Three more it touches partially. Five it does not answer at all, and one it deliberately '+
+'contradicts. All of that is in the table below rather than left for a reader to discover.</cite></div>'+
+'<h3>The map</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Vision 2525 layer &mdash; the WHAT</th><th>What this document provides &mdash; the HOW</th><th>State</th></tr>'+
+
+'<tr><td class="n">01</td><td><strong>Humanity + Collective Intelligence</strong><br>'+
+'<span class="meta">Humanity central; human intent becomes shared priority</span></td>'+
+'<td>The unit &#50883;, the contribution receipt, and the multiple bands. A person&rsquo;s hour becomes '+
+'a record that exists whether or not any institution had a field for it. <strong>&sect;4</strong></td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">02</td><td><strong>R-CORE</strong><br><span class="meta">Observe, learn, simulate, '+
+'verify, improve, evolve</span></td>'+
+'<td>The replay engine you are reading. Append-only ledger, deterministic reconstruction, execution-mode '+
+'ladder with <code>live</code> permanently gated on a human signature.</td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">03</td><td><strong>COMM-2525</strong><br><span class="meta">Communications that '+
+'survive degradation</span></td>'+
+'<td><strong>Nothing.</strong> The live response path in the polling platform has three send routes and '+
+'four receive channels, which is resilience at application scale &mdash; not the RF, mesh, optical, '+
+'orbital and underwater fabric this layer describes.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'<tr><td class="n">04</td><td><strong>LINK-2525</strong><br><span class="meta">Mission intent and '+
+'authority survive scale</span></td>'+
+'<td>Partial. The three-layer separation, Human Primacy, the ten-year standing with recall, and the '+
+'scoping hierarchy carry authority and intent downward. Base-3600 recursive scaling is not implemented. '+
+'<strong>&sect;6</strong></td>'+
+'<td><span class="pill p-spec">Partial</span></td></tr>'+
+
+'<tr><td class="n">05</td><td><strong>EDGE-2525</strong><br><span class="meta">Intelligence at the point '+
+'of need</span></td>'+
+'<td><strong>Nothing.</strong> Sensor fusion, local AI and field intelligence are outside this '+
+'document&rsquo;s scope entirely.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'<tr><td class="n">06</td><td><strong>SYNC-2525</strong><br><span class="meta">Operational truth and '+
+'replay</span></td>'+
+'<td>This is not something the document describes &mdash; it is what the document <em>is</em>. Every '+
+'release reconstructable, every correction still visible, every change carrying the reason recorded at '+
+'the time. Verified across all releases, in your browser.</td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">07</td><td><strong>UCRS-2525</strong><br><span class="meta">One shared spatial '+
+'truth</span></td>'+
+'<td><strong>Nothing.</strong> The only spatial dimension here is jurisdiction, and only for settlement.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'<tr><td class="n">08</td><td><strong>Reality + Simulation Learning</strong><br><span class="meta">Rehearse '+
+'before deploying</span></td>'+
+'<td>Partial. Sandbox execution against a copy of the ledger, and the Austin pilot with published '+
+'stopping conditions written before the first contributor arrives. No digital twins, no synthetic '+
+'environments. <strong>&sect;10</strong></td>'+
+'<td><span class="pill p-spec">Partial</span></td></tr>'+
+
+'<tr><td class="n">09</td><td><strong>Collective Intelligence</strong><br><span class="meta">Many voices '+
+'become one verified direction</span></td>'+
+'<td>Implemented in running code: collection in 33 languages, deterministic compression, quadratic '+
+'ranking with an iterative 15% influence cap and redistribution. This is the layer with the most working '+
+'software behind it. <strong>&sect;6</strong></td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">10</td><td><strong>HI / AI / SI Governance</strong><br><span class="meta">Purpose, '+
+'capability, conscience in balance</span></td>'+
+'<td>The wall between sovereignty and prioritisation, the three-layer separation of recognition, '+
+'participation and funding, Human Primacy of Power, and <code>live</code> always requiring human '+
+'authority. <strong>&sect;6</strong></td>'+
+'<td><span class="pill p-impl">&#10003; Answered</span></td></tr>'+
+
+'<tr><td class="n">11</td><td><strong>SSSES qualification</strong><br><span class="meta">Readiness before '+
+'scale</span></td>'+
+'<td>Partial. The five pillars are applied to every cube and to this document &mdash; scored by the '+
+'<em>minimum</em>, not the mean, which is why we publish 85 and fail our own bar. What is missing is '+
+'independent qualification by anyone other than us. <strong>&sect;9</strong></td>'+
+'<td><span class="pill p-spec">Partial</span></td></tr>'+
+
+'<tr><td class="n">12</td><td><strong>Adoption flywheel</strong><br><span class="meta">Capital &rarr; '+
+'innovation &rarr; adoption &rarr; value</span></td>'+
+'<td><strong>We diverge here, deliberately.</strong> See below.</td>'+
+'<td><span class="pill p-live">&#8646; Divergent</span></td></tr>'+
+
+'<tr><td class="n">13</td><td><strong>Comprehensive framework</strong><br><span class="meta">All layers '+
+'as one architecture</span></td>'+
+'<td>Out of scope. This document is one layer&rsquo;s mechanism, not the integration of thirteen.</td>'+
+'<td><span class="pill p-prop">Not addressed</span></td></tr>'+
+
+'</table><caption><strong>Four answered, three partial, five not addressed, one divergent.</strong> '+
+'Publishing the five we do not touch is what makes the four worth reading.</caption></div>'+
+
+'<h3>The one place we disagree</h3>'+
+'<div class="notice hot"><span class="tag">&#8646; Diagram 12 &mdash; a genuine fork, not an oversight</span>'+
+'<p>Vision 2525&rsquo;s adoption flywheel runs on aligned capital: <em>investors deploy capital with '+
+'confidence, fund innovation, drive impact.</em> It is a careful, well-governed model and it is a '+
+'reasonable answer.</p>'+
+'<p style="margin-bottom:0"><strong>This document has no investors at all.</strong> No equity exists, '+
+'nothing appreciates, nothing trades, and there is no instrument to buy. Funding is 1/7.25 of an hour at a time '+
+'from people who receive a permanent public record and nothing else. That is slower by orders of '+
+'magnitude and it forecloses the entire adoption engine diagram 12 describes.</p></div>'+
+'<p>Both answers are defensible and they cannot both be taken. The question underneath them is whether '+
+'<em>aligned</em> capital stays aligned across five hundred years. Vision 2525 answers that with '+
+'governance: qualification gates, public dashboards, replay evidence, and staged adoption. This document '+
+'answers it with structure: there is nothing to acquire, so alignment does not have to be maintained. '+
+'One trusts governance to hold. The other refuses to depend on it holding.</p>'+
+'<p>Which is right depends on a question neither document can settle from inside itself: whether an '+
+'institution can stay honest for five centuries with something valuable to own. We assumed it cannot, '+
+'and paid for that assumption in speed. <strong>Anyone who thinks we are wrong should build the other '+
+'one &mdash; and the fork is written down here so the comparison stays possible.</strong></p>'+
+
+'<h3>What this means for a reader of the thirteen diagrams</h3>'+
+'<div class="scroll"><table>'+
+'<tr><th>If you came for&hellip;</th><th>Start at</th></tr>'+
+'<tr><td>Diagram 01 &mdash; how a person is actually counted</td><td><a href="#sec-4">&sect;4 The Unit</a> and '+
+'<a href="#sec-5">&sect;5 The Ceiling and the Floor</a></td></tr>'+
+'<tr><td>Diagram 06 &mdash; replay and operational truth</td><td>The <strong>Ledger</strong> view. It is '+
+'the mechanism, running.</td></tr>'+
+'<tr><td>Diagram 10 &mdash; governance that holds under pressure</td><td><a href="#sec-6">&sect;6 The '+
+'Wall</a> and <a href="#sec-7">&sect;7 The Shield</a></td></tr>'+
+'<tr><td>Diagram 11 &mdash; qualification before scale</td><td><a href="#sec-9">&sect;9 The Present</a>, '+
+'where we score ourselves and fail</td></tr>'+
+'<tr><td>Diagram 12 &mdash; adoption and capital</td><td><a href="#sec-8">&sect;8 Paths Considered</a>, '+
+'fork 1, where investor funding was refused and what it cost</td></tr>'+
+'<tr><td>Diagrams 03, 05, 07 &mdash; comms, edge, spatial</td><td>Not here. Those layers are open, and '+
+'this document neither claims nor blocks them.</td></tr>'+
+'</table><caption>The two documents are complementary, not competing &mdash; provided each says which '+
+'question it answers. This section exists so neither has to be read as claiming the '+
+'other&rsquo;s ground.</caption></div>');
+
+L(57,"open.defects","The r11 unit mislabel enters the register as defect 23, together with the imprecision in our first correction of it. A document whose thesis is the unit does not get to fix a unit quietly.",
+'<h2>Defect register</h2>'+
+'<p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse '+
+'than a known one, and that rule applies to this document before it applies to anything else.</p>'+
+'<div class="notice ok"><span class="tag">&#10003; Six closed in code &middot; every live item now needs a person</span>'+
+'<p style="margin-bottom:0">The money path was closed at releases 34 and 35 (<code>5c50425</code>, '+
+'<code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Everything still open is a decision or an '+
+'operational act, not a patch. Releases 37 to 39 added five defects of their own, each published in the '+
+'release that created or discovered it.</p></div>'+
+'<div class="scroll"><table>'+
+'<tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr>'+
+'<tr style="opacity:.6"><td class="n">20</td><td><strong>The masthead rewrote its own history</strong> '+
+'&mdash; the title was static HTML outside the replay, so every rename silently changed all earlier '+
+'releases, and the r35 claim that earlier titles remain readable by rewinding was false when written.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r39</span><br><span class="meta">found by operator screenshot</span></td>'+
+'<td>The masthead resolves from a table using the block ledger&rsquo;s own last-write-wins rule. The gate '+
+'now asserts the title at v1 differs from the title at the latest release.</td></tr>'+
+'<tr><td class="n">18</td><td><strong>An 8-digit numeric PIN is brute-forceable</strong> &mdash; '+
+'100,000,000 combinations is minutes of offline or unthrottled attack.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">new at r38</span></td>'+
+'<td>Five attempts, exponential lockout, alert on the third failure, one shot per carried mandate. '+
+'Longer term: a passphrase, or drop the PIN for a hardware key entirely.</td></tr>'+
+'<tr><td class="n">19</td><td><strong>A PIN is not a second factor</strong> if whoever holds the session '+
+'can type it &mdash; and any credential that has passed through a chat, email or ticket must be treated as '+
+'already compromised.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs an operational act &middot; new at r38</span></td>'+
+'<td>Bind key 2 to hardware (FIDO2 or TOTP on a separate device). <strong>Rotate the credential before the '+
+'first ceremony, not after.</strong></td></tr>'+
+'<tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index '+
+'0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop '+
+'funding, which makes it likelier.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td>'+
+'<td>Principal floor first, then the index split of the remainder. Changes a stated instruction, so it '+
+'needs the operator.</td></tr>'+
+'<tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, '+
+'quorum, carry, confirmation and effect are all proposals.</td>'+
+'<td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td>'+
+'<td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr>'+
+'<tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and '+
+'institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td>'+
+'<td>An undefined cap is not a cap. Publish numbers.</td></tr>'+
+'<tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at '+
+'every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td>'+
+'<td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td>'+
+'<td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; '+
+'purchasable with money; governance weight from a balance; local wage applied at mint; cross-border '+
+'arbitrage; a currency constant inside the mint.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td>'+
+'<td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr>'+
+'<tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; '+
+'weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr>'+
+'<tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td>'+
+'<td><span class="pill p-spec">Spec-only</span></td>'+
+'<td>Shield V, specified with its ramp at r30, now load-bearing in the shutdown split. Unbuilt.</td></tr>'+
+'<tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr>'+
+'<tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; sharper '+
+'now, because the shutdown rule depends on it surviving a majority.</td>'+
+'<td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language '+
+'count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10 and given a computable zero '+
+'at r38.</td><td><span class="pill p-impl">&#10003; Closed</span></td>'+
+'<td>A generated dependency map prevents recurrence.</td></tr>'+
+'<tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary '+
+'to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td>'+
+'<td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr>'+
+'<tr style="opacity:.6"><td class="n">23</td><td><strong>A unit mislabelled for forty-five '+
+'releases</strong> &mdash; r11 published &ldquo;0.138 &#50883;&rdquo;. 0.138 is 1 &divide; 7.25, a '+
+'fraction of an hour; the same quantity in &#50883; is 0.6631.</td>'+
+'<td><span class="pill p-impl">&#10003; Fixed r56&ndash;r57</span></td>'+
+'<td>Corrected in &sect;15 with the r11 wording left readable. Our first correction called the number '+
+'understated; it was the unit, not the number. Both are recorded.</td></tr>'+
+'</table><caption><strong>Six closed in code, two closed in the document, five live, two specification-only, '+
+'two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the '+
+'ledger was honest and the frame around it was not, and nobody audits the frame.</caption></div>');
+
+/* ══════════ RELEASE 40 ══════════ */
+/* The BRIEF view. Same ledger, same replay function, different ORDER. */
+
+L(57,"paper.s10","The reading does not count its own releases. The admission stays; the release number goes, because a white paper that keeps score of its own drafts is asking to be read as a changelog.",
+'<div class="secn">&sect;10 &middot; THE PRESENT <a href="#sec-0">&uarr; contents</a></div>'+
+'<h2 class="sech" id="sec-10">&sect;10 &nbsp; The Present</h2>'+
+'<p class="ext">Extends &sect;5</p>'+
+'<div class="nose"><span class="ne">Needs</span><p>There is a genre of visionary document that describes a destination and never states its own position, and the reason is obvious: position is embarrassing. A framework claiming to coordinate civilization while running on one operator, an AI, and no independent verification is in an awkward spot, and the ordinary solution is to write in the future tense until the awkwardness passes. It never passes. It becomes the permanent voice of the document, and readers learn to discount everything in it.</p></div>'+
+'<div class="nose"><span class="ne">Outcomes</span><p>You should be able to tell exactly how far along this is without inferring it from tone. Not a summary of progress but the actual numbers, including the ones that are bad, so that the difference between what is built and what is imagined is a matter of record rather than of reading between lines.</p></div>'+
+'<div class="nose"><span class="ne">Solution</span><p>We score against five pillars, and the composite is the minimum rather than the mean, because a system is as strong as its weakest dimension and averaging is how weak dimensions get hidden. Security, Stability, Scalability, Efficiency, Succinctness. We publish the number and we fail our own bar. Every defect found in our own money path is in the register with the date it was found, including the ones still open.</p></div>'+
+'<div class="nose"><span class="ne">Evidence</span><p>The uncomfortable specifics: money could once mint recognition, which contradicted the shield that says it never can, and it sat there unnoticed for a long time. Recognition briefly carried governance weight, which contradicted the wall. Both are closed and both are still readable at the release where they were wrong. Three governance decisions block operation today and are named rather than deferred quietly: the selection rule for thirty-five jurisdictions with sectoral rates, the standard value for the thirteen with no statutory rate, and the criteria for the multiple bands. The white paper you are reading restated the ledger in twenty-eight point seven per cent of its phrasing until this release, which was found by measurement rather than by reading, and is now held below twenty by a machine. This section is uncomfortable to read and accurate anyway, which is the only combination worth publishing.</p></div>'+
+'');
+
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 
