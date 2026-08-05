@@ -1,5 +1,9 @@
 # Vision • 2525 — Open Questions Register
-**Version 17 · standing at r72 · 2026-08-05 · Master of Thought**
+**Version 17 · standing at r73 · 2026-08-05 · Master of Thought**
+
+> **Q1–Q5 ANSWERED by the operator and shipped at r73.** Kept below with the answers attached,
+> because a question with its answer beside it is the record; a question deleted is not.
+> **Three of the five corrected me** — those corrections are the most useful part of this file.
 
 Durable record of every question that needs an answer. **Sections marked 📋 are written to be
 copy-pasted whole into Grok, DeepSeek or eXeL AI** — each carries enough context to be answered
@@ -12,6 +16,17 @@ and every defect listed by number. An hour of a human life is the unit; nobody m
 a ceiling that binds the authors first; money may fund and may never govern.
 
 ---
+
+## ✅ Q1 — ANSWERED · MW ÷ 7, region where the person lives
+
+> *"SI is multiple of minimum wage. We will do minimum wage of region where person lives and a Seed
+> token can be received with MW / 7. This applies for all regions with a posted min wage per hour."*
+
+**CORRECTED ME:** the rule was always REGION-level. Beijing's municipal rate, Moscow's regional
+supplement and India's state rate all *are* the posted rate of a region. I reported them as failures
+by asking a country-level question of a region-level rule. **Shipped r73.**
+
+<details><summary>original question, kept</summary>
 
 ## 📋 Q1 — The divisor. Blocking every number in the document.
 
@@ -29,6 +44,19 @@ a ceiling that binds the authors first; money may fund and may never govern.
 frame and every other country a conversion of it. **Shipped at r71, flagged as unconfirmed.**
 
 ---
+
+</details>
+
+## ✅ Q2 — DEFERRED by the operator · not solved now
+
+> *"we start with official min wage country, and find a way to create an agreed to wage for various
+> wages in countries that dont have em. **We will not solve this now**"*
+
+**CORRECTED ME:** my "pod declares a floor" proposal was withdrawn — it was not asked for. There is a
+difference between answering a question and filling a silence. Scope is stated as a boundary; the
+**Agreed Wage** is future work under **D2 · Global Agreed Standard**. **Shipped r73.**
+
+<details><summary>original question, kept</summary>
 
 ## 📋 Q2 — Most of the world has no single minimum wage. What do we do?
 
@@ -54,6 +82,23 @@ where a state that sets a floor makes its own people countable. (b) for the othe
 "lowest lawful" is checkable and never overstates. **Not implemented. Awaiting the operator.**
 
 ---
+
+</details>
+
+## ✅ Q3 — ANSWERED · be specific, and the phase ladder is the exposure
+
+> *"our language using all legal means to establish legal ways not to breach SEC guidelines for
+> security Seed Token get access to next phase $10 phase etc. Seed token must be legal in all key
+> financial districts we mentioned"*
+
+**NEW INFORMATION I DID NOT HAVE:** the Seed Token grants access to a later, dearer phase. Early
+cheap entry conferring the right to join a later round **is an option, and options have value** —
+the most exposed thing in the design, and untouched by the three locks. **Fix: every rung carries the
+same locks**, so it grants access to contribute more, never to gain more. Nine jurisdictions named
+with their regimes; China's finding is linguistic — a non-transferable *record* is a different object
+in law from a *token*. **Shipped r73.**
+
+<details><summary>original question, kept</summary>
 
 ## 📋 Q3 — Is this instrument a security? Attack the design.
 
@@ -84,6 +129,20 @@ document says so. **Shipped at r70. §7 still describes the reserve claim withou
 disagree and the operator must confirm the cap.**
 
 ---
+
+</details>
+
+## ⛔ Q4 — WITHDRAWN · the question was mine, not the operator's
+
+> *"I never said there were 5 or 6 or 7. **You MoT created Shield Concept.** thats idea of 33 round
+> iteration to standard slow of entire doc"*
+
+**CORRECTED ME, and it is the sharpest one.** The Shield concept and every count attached to it are
+**my constructs**. Asking "what is the sixth thing?" invited the operator to audit my own arithmetic
+about my own idea — that is not a question, it is a request for reassurance. **Hardening comes from
+the 33 rounds.** Counts come *out* of the passes as findings; they do not go *in* as doctrine.
+
+<details><summary>original question, kept</summary>
 
 ## 📋 Q4 — Execution without government, investor, or corporate interference
 
@@ -123,6 +182,8 @@ adversarial. **Shipped at r70.**
 
 ---
 
+</details>
+
 ## Non-review decisions — operator only
 
 | # | Decision | State |
@@ -138,8 +199,8 @@ adversarial. **Shipped at r70.**
 | D9 | Membership tier delineation | open since r57 |
 | D10 | **Rotate the master credential** | **not paperwork** — the publish script refuses to ship if it finds the PIN in the document. Rotate before first real use. |
 | D11 | §7 reserve refund capped at contribution? | **new at r70** — r70 says capped, §7 does not. They disagree today. |
-| D12 | Divisor 7 vs 7.25 (Q1) | **new at r71** |
-| D13 | Pricing rule for no-anchor jurisdictions (Q2) | **new at r71** |
+| D12 | Divisor 7 vs 7.25 (Q1) | **CLOSED at r73** — MW ÷ 7, region-level |
+| D13 | Pricing rule for no-anchor jurisdictions (Q2) | **folded into D2** — Agreed Wage, deferred by the operator |
 
 ---
 
