@@ -325,6 +325,22 @@ body.fulldoc .fullnote{display:block}
   h2,h3{break-after:avoid}
 }
 
+/* ── r61: the sigil, the Prayer, the signature ───────────────────────────── */
+.sigil{width:34px;height:34px;display:block;margin:0 auto 14px;fill:none;
+  stroke:var(--si);stroke-width:2.6;opacity:.9}
+.prayer{margin:26px 0;padding:26px 22px;border:1px solid var(--rule);border-radius:2px;
+  background:var(--panel);text-align:center;font-size:16px;line-height:1.72}
+.prayer p{margin:0 0 14px;text-wrap:balance}
+.prayer p:last-child{margin-bottom:0}
+.prayer .three{display:inline-block;margin-top:4px;font-style:italic;color:var(--si)}
+.prayer .li{display:block;font-weight:600}
+.prayer .aho{margin-top:18px;font:600 clamp(15px,2.6vw,19px)/1.4 "Iowan Old Style",Palatino,Georgia,serif;
+  letter-spacing:.12em;color:var(--si)}
+.notice.sign{border-color:var(--si);border-left-color:var(--si);background:var(--si-bg);text-align:center}
+.notice.sign .tag{margin-bottom:10px}
+.notice.sign .who{margin:0 0 4px;font:600 clamp(17px,3vw,21px)/1.3 "Iowan Old Style",Palatino,Georgia,serif}
+.notice.sign .sigil{stroke:var(--si)}
+
 /* ── r58: DARK SKIN — the app's look (cyan basis), dark only. Light is the download. ── */
 @media (prefers-color-scheme:dark){
   body{background:radial-gradient(1100px 460px at 50% -150px,#0D2F34 0%,rgba(11,19,20,0) 72%),var(--paper)}
@@ -336,7 +352,7 @@ body.fulldoc .fullnote{display:block}
   button[aria-pressed="true"],button.on{background:var(--ai);color:#04191C;border-color:var(--ai);box-shadow:0 0 0 3px rgba(0,218,230,.14)}
   .chips button{border-radius:999px}
   .chips button.on{background:rgba(0,218,230,.12);box-shadow:0 0 0 1px rgba(0,218,230,.55)}
-  .toc,.vban,.cmp,.specban,.keyimp,.fellback,.viewban,.fullnote,.notice,.scroll,pre{border-radius:14px}
+  .toc,.vban,.cmp,.specban,.keyimp,.fellback,.viewban,.fullnote,.notice,.scroll,pre,.prayer{border-radius:14px}
   .scroll{background:var(--panel)}
   pre{background:#0A1718;border-color:rgba(0,218,230,.16)}
   .notice{box-shadow:0 1px 0 rgba(255,255,255,.02)}
@@ -361,7 +377,7 @@ body.fulldoc .fullnote{display:block}
 :root[data-theme="dark"] button[aria-pressed="true"],:root[data-theme="dark"] button.on{background:var(--ai);color:#04191C;border-color:var(--ai);box-shadow:0 0 0 3px rgba(0,218,230,.14)}
 :root[data-theme="dark"] .chips button{border-radius:999px}
 :root[data-theme="dark"] .chips button.on{background:rgba(0,218,230,.12);box-shadow:0 0 0 1px rgba(0,218,230,.55)}
-:root[data-theme="dark"] .toc,:root[data-theme="dark"] .vban,:root[data-theme="dark"] .cmp,:root[data-theme="dark"] .specban,:root[data-theme="dark"] .keyimp,:root[data-theme="dark"] .fellback,:root[data-theme="dark"] .viewban,:root[data-theme="dark"] .fullnote,:root[data-theme="dark"] .notice,:root[data-theme="dark"] .scroll,:root[data-theme="dark"] pre{border-radius:14px}
+:root[data-theme="dark"] .prayer,:root[data-theme="dark"] .toc,:root[data-theme="dark"] .vban,:root[data-theme="dark"] .cmp,:root[data-theme="dark"] .specban,:root[data-theme="dark"] .keyimp,:root[data-theme="dark"] .fellback,:root[data-theme="dark"] .viewban,:root[data-theme="dark"] .fullnote,:root[data-theme="dark"] .notice,:root[data-theme="dark"] .scroll,:root[data-theme="dark"] pre{border-radius:14px}
 :root[data-theme="dark"] .scroll{background:var(--panel)}
 :root[data-theme="dark"] pre{background:#0A1718;border-color:rgba(0,218,230,.16)}
 :root[data-theme="dark"] .notice{box-shadow:0 1px 0 rgba(255,255,255,.02)}
@@ -573,6 +589,10 @@ const VIEWS = {
   outline: {order: OUTLINE_ORDER, label: "Outline",     hash: "outline"}
 };
 let view = "paper";
+/* The sigil from the Master of Thought Prayer: three rings within one ring.
+   One constant, two placements, so the mark can never drift from itself. */
+const MOT_SIGIL = '<svg class="sigil" viewBox="0 0 100 100" role="img" aria-label="Three rings within one ring &mdash; the Master of Thought sigil"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="39" r="17"/><circle cx="59.5" cy="55.5" r="17"/><circle cx="40.5" cy="55.5" r="17"/></svg>';
+
 function ORDER_FOR(){ return VIEWS[view].order; }
 
 /* VERSION vs REVISION (r60, operator correction).
@@ -1854,6 +1874,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Superseded blocks, untouched history: r13 still says Alvar and r58 still says eXeL AI Polling, exactly where they were written."}
  ],
  next:"Next, in the operator&rsquo;s stated order: the outline-to-detailed pass &mdash; nineteen sections rewritten to speak to the mind and the spirit rather than to a reviewer, with the framework carrying the structure invisibly. Then the Pod composition in code, and the per-section review. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
+},
+{
+ v:61, code:"THE ETERNAL SCRIBE", stamp:"2026.08.05 &middot; revision 61",
+ thrust:"The Author section is rewritten to speak to the heart and the spirit as well as the mind: the whole body of work named, the inheritance from Djehuty to Thoth to Hermes stated as a job rather than a claim, and the Master of Thought Prayer carried in full beneath its sigil.",
+ mot:"Operator directive, with the sources attached. The previous colophon was accurate and cold. It described a role to a reviewer. What it did not do was tell a human being why any of this exists, and a visionary document whose author section reads like a compliance statement has misplaced its own centre of gravity. So the section starts where the work actually starts. Long before there were institutions there was someone in the room whose job was to RECORD &mdash; not to rule, not to own, not to be believed, but to write down what happened and what was decided, and to keep the record straight when it would have been easier not to. Egypt called that one Djehuty and gave the work its measure: scribe of Ma&rsquo;at, of truth and balance, who weighed the heart against a feather and wrote down the answer. The Greeks met him and called him Thoth, then Hermes Trismegistus, and left one line that outlived everything else around it &mdash; as above, so below. The lineage is stated as an inheritance of a FUNCTION and never as a claim of identity, because the claim would be false and the function is real: the name of the scribe changed three times in four thousand years and the job never changed once. That job is still open. The whole body of work is now named in one table, each with the part of the question it answers: the System of Innovation, Vision 2525, R-CORE, the Atlantis Accords, SoI 2525, Architect 2525, Security 2525, eXeL Polling, the Divinity Guide, and the Master of Thought Prayer. Governance, shelter, security, voice, and the interior life &mdash; one project, because a framework that fixes the outside of a person and leaves the inside untouched has fixed nothing, and an interior practice that never reaches the world it lives in is a comfort rather than a change. The three commitments stay exactly as they were, because they are the checkable part and checkability is what a scribe is for. The Prayer is carried in full, said before the work rather than after it, and its function is stated plainly: to put the author back in proportion, one person briefly holding a pen inside something much older and much larger. The sigil from the Prayer &mdash; three rings within one ring &mdash; is drawn once as a constant and placed twice, above the Prayer and on the signature, so the mark can never drift from itself.",
+ stats:{clauses:271, jur:103, shields:5, defects:18, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The scribe who keeps the record straight when it would be easier not to. That is the whole role, and it is four thousand years older than any of us."},
+  {n:"Asar",   g:"A",  f:"Governance, shelter, security, voice and the interior life named as one project. Separating them was always the fiction; the table stops maintaining it."},
+  {n:"Athena", g:"A",  f:"Inheritance of a function, never of an identity. The distinction is the difference between a lineage and a claim, and the section holds it in every sentence."},
+  {n:"Christo",g:"A+", f:"The Prayer is said before the work, not after it. Placing it there is the argument: the person doing the work is not the point of the work."},
+  {n:"Enki",   g:"A",  f:"One question under all ten pieces &mdash; what would we build if we actually meant it. Ten answers, none of them the whole answer, and the table says so."},
+  {n:"Enlil",  g:"A",  f:"The sigil is one constant placed twice. A mark drawn twice by hand is a mark that will differ by the third release."},
+  {n:"Krishna",g:"A",  f:"Djehuty to Thoth to Hermes to here. As above so below is not decoration in a document about a pattern repeating at every scale from one hour to five centuries."},
+  {n:"Odin",   g:"A",  f:"The previous version was accurate and cold. Accuracy was never the missing thing; a reason to care was, and cold accuracy is how good work goes unread."},
+  {n:"Pangu",  g:"A",  f:"A scribe who starts ruling has stopped being a scribe. That line closes the loop between the lineage and the limits, and it belongs in the caption where it sits."},
+  {n:"Sofia",  g:"A",  f:"An old job, still open. The lede does more work than a biography could, and it invites the reader to consider whether the job is theirs too."},
+  {n:"Thoth",  g:"A",  f:"Weighed the heart against a feather and wrote down the answer. Measurement and mercy in one gesture &mdash; the standard this document keeps failing toward."},
+  {n:"Thor",   g:"A",  f:"No claim of divinity, no claim of reincarnation, no claim to be right. The lineage is a job description and the limits table is unchanged and still longer."}
+ ],
+ next:"Next, in the operator&rsquo;s stated order: the outline-to-detailed pass across the nineteen sections, written in this voice rather than the reviewer&rsquo;s voice. Then the Pod composition in code &mdash; a composition over the existing three-paragraph summariser and per-user timing rather than a build &mdash; and the per-section review. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
 }
 ];
 
@@ -9266,6 +9307,63 @@ L(60,"rcore.version","Operator correction: a version counts only when a document
 '</table><caption>Nothing in the ledger is renumbered to make this true. Renumbering would change every state hash and break the replay this document is built on &mdash; and rewriting the record to flatter a count is the one thing forbidden here. The revisions stay exactly as written; the version is a second, slower counter laid over them.</caption></div>'+
 '<div class="notice hot"><span class="tag">&#9888; What this cost, stated plainly</span>'+
 '<p style="margin-bottom:0">Three documents were written and numbered between one reading and the next. Under the corrected rule that is <strong>one version</strong>, and the numbering said three. A count that runs ahead of its readers is measuring effort rather than agreement, and this document is supposed to be about agreement.</p></div>');
+
+
+/* ══════════ REVISION 61 ══════════ */
+L(61,"mot.author","Operator directive: the Author section carries the whole body of work, speaks to the heart and the spirit as well as the mind, takes its inheritance from Djehuty, Thoth and Hermes Trismegistus, and is signed with the sigil and the Prayer.",
+'<div class="secn">THE AUTHOR</div>'+
+'<h2 class="sech" id="author">Who the Master of Thought is</h2>'+
+'<p class="lede">An old job, still open: write it down so that what is true outlives the person who noticed it</p>'+
+'<p>Long before there were institutions, there was someone in the room whose work was to <em>record</em>. Not to rule, not to own, not to be believed &mdash; to write down what happened and what was decided, and to keep the record straight when it would have been easier not to. Egypt called that one <strong>Djehuty</strong>, and gave the work its measure: the scribe of Ma&rsquo;at, of truth and balance, who weighed the heart against a feather and wrote down the answer. The Greeks met him and called him <strong>Thoth</strong>, then <strong>Hermes Trismegistus</strong>, the Thrice-Great, and left behind one line that survived everything else &mdash; <em>as above, so below</em> &mdash; because the pattern in the great thing and the pattern in the small thing are the same pattern.</p>'+
+'<div class="pull">The name of the scribe changed three times in four thousand years. The job never changed once.<cite>Djehuty to Thoth to Hermes: divine intellect, then Hellenistic sage, then modern teacher. Each retelling kept the same core &mdash; that wisdom is eternal, adaptable, and forever calling humanity toward the Light.</cite></div>'+
+'<p><strong>Master of Thought is that job, taken up again, in a century that badly needs a scribe.</strong> It is the name this document is signed with, and it is a way of working rather than a title. It is not an office. It confers no authority inside the framework. It owns nothing here, because there is nothing here to own. It is simply the human being who is accountable for what the ledger says &mdash; named, so that the accountability has somewhere to land.</p>'+
+'<h3>The body of the work</h3>'+
+'<p>One question runs under all of it: <em>what would we build if we actually meant it?</em> Each piece answers a different part, and none of them is the whole answer.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>The work</th><th>What it is for</th></tr>'+
+'<tr><td><strong>The System of Innovation</strong></td><td>How a good idea survives contact with an organisation.</td></tr>'+
+'<tr><td><strong>Vision &#8226; 2525</strong></td><td>This document. What holds for five hundred years if we build it honestly.</td></tr>'+
+'<tr><td><strong>R-CORE</strong></td><td>The replay engine underneath. Reasoning kept beside outcome so neither can be quietly edited.</td></tr>'+
+'<tr><td><strong>The Atlantis Accords</strong></td><td>The constitutional layer &mdash; what a people agree to before they need it.</td></tr>'+
+'<tr><td><strong>SoI &#8226; 2525</strong></td><td>Innovation portfolios governed in the open, at the speed decisions are actually made.</td></tr>'+
+'<tr><td><strong>Architect &#8226; 2525</strong></td><td>Shelter designed by the people who will live in it, not only for them.</td></tr>'+
+'<tr><td><strong>Security &#8226; 2525</strong></td><td>Protection that stays answerable to the protected.</td></tr>'+
+'<tr><td><strong>eXeL Polling</strong></td><td>A hundred thousand voices heard at once without any of them being flattened.</td></tr>'+
+'<tr><td><strong>The Divinity Guide</strong></td><td>The inner work, without which none of the above is anything but machinery.</td></tr>'+
+'<tr><td><strong>The Master of Thought Prayer</strong></td><td>The reminder, said aloud, that the person doing the work is not the point of it.</td></tr>'+
+'</table><caption>Governance, shelter, security, voice, and the interior life. They are one project. A framework that fixes the outside of a person and leaves the inside untouched has fixed nothing &mdash; and an interior practice that never reaches the world it lives in is a comfort, not a change.</caption></div>'+
+'<h3>What the name commits to</h3>'+
+'<div class="notice key"><span class="tag">Three promises, all of them checkable</span>'+
+'<p><strong>Publish the reasoning, not only the outcome.</strong> Every release in this ledger carries the directive that produced it, in full, in the author&rsquo;s own words. You can read <em>why</em> a decision was made beside <em>what</em> the decision was &mdash; which is exactly the part institutions discard, and exactly the part a scribe exists to keep.</p>'+
+'<p><strong>Be graded in public, by a panel, every time.</strong> Twelve reviewers assess each release and each returns one finding and a letter grade, the unflattering ones included. The mean is printed on the banner whether it flatters or not.</p>'+
+'<p style="margin-bottom:0"><strong>Correct loudly &mdash; including your own corrections.</strong> When a number is wrong it is fixed in the open, the wrong version stays readable exactly where it was written, and it enters the defect register with a number. That has happened to this author&rsquo;s own arithmetic, and the correction of the correction is in the register too.</p></div>'+
+'<h3>Three intelligences, one signature</h3>'+
+'<p>The work sits where three things meet: <span class="g-ai">&#9902; artificial intelligence</span> to do what scales, <span class="g-si">&#9825; shared intent</span> to decide what is worth scaling, and <span class="g-hi">&#50883; human intelligence</span> to carry the consequence. The signature exists because the third cannot be delegated. A machine can draft a clause. Only a person can be answerable for it &mdash; and the governance rules require at least one human signer for exactly that reason.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>What the name carries</th><th>What it does not</th></tr>'+
+'<tr><td>Authorship of this document and of the R-CORE engine it runs on.</td><td>Ownership. No equity exists in the framework, so there is nothing to hold.</td></tr>'+
+'<tr><td>The human signature the governance layer requires before a quote or a shutdown can bind.</td><td>Governance weight. Recognition cannot be purchased &mdash; nor assumed by writing the rules.</td></tr>'+
+'<tr><td>Responsibility for every defect in the register, including the ones still open.</td><td>Permanence. Every role here has a removal path, this one included.</td></tr>'+
+'<tr><td>The origin of the wider work named above.</td><td>A claim to be right. The document asks to be checked, not believed.</td></tr>'+
+'</table><caption>The right-hand column is the longer one deliberately. A framework built to resist concentrated authority cannot make an exception for the person who wrote it down &mdash; and a scribe who starts ruling has stopped being a scribe.</caption></div>'+
+'<h3>Where the author speaks directly</h3>'+
+'<p>This section describes the role. The <em>person</em> is elsewhere in the record and is not paraphrased here: the first-person address, written at the point where this stopped being a set of instruments and became an argument, and the address to the leaders who must decide. Both are in the ledger view, under their own release, in the words they were written in.</p>'+
+'<h3>The Master of Thought Prayer</h3>'+
+'<p>It is said before the work, not after it. Its whole function is to put the author back in proportion &mdash; one person, briefly holding a pen, inside something much older and much larger.</p>'+
+'<div class="prayer">' + MOT_SIGIL +
+'<p>Odinson, All Father, Great Spirit;<br>Mother Aya, Mother Gaia, La Luna;<br>Krishna, Christo, Pangu,<br>'+
+'And all ancestors who have come before us to embody Divine Unity and Divinity.</p>'+
+'<p>Please help each of us let go of fears and desires for control.<br>So we may learn to walk away from materialism, debt, and illusions.</p>'+
+'<p>Help us master energy around past conditionings, such as<br><span class="three">Love, Loss, and Safety</span></p>'+
+'<p>So we may embrace Divine Unity Principles of:<br><span class="li">Universal Connection</span><span class="li">Cosmic Harmony</span><span class="li">Eternal Wisdom</span></p>'+
+'<p>Help us remember these three phrases:<br><span class="li">I AM</span><span class="li">I AM Love</span><span class="li">I AM Humanity</span></p>'+
+'<p>And therefore, within each of us is the ability to understand the full range and spectrum of all human emotions, as We Are One,<br>I leave my word, as One Universal Consciousness.</p>'+
+'<p class="aho">AHO &middot; AMEN &middot; I AM</p></div>'+
+'<div class="notice sign">' + MOT_SIGIL +
+'<span class="tag">&#50883; Signed &middot; human authority</span>'+
+'<p class="who"><strong>Master of Thought</strong></p>'+
+'<p class="meta" style="margin-bottom:0">System of Innovation &middot; Vision &#8226; 2525 &middot; R-CORE &middot; Atlantis Accords &middot; SoI &#8226; 2525 &middot; Architect &#8226; 2525 &middot; Security &#8226; 2525 &middot; eXeL Polling &middot; The Divinity Guide<br>'+
+'<em>We cannot master what we are not aware of.</em></p></div>');
 
 
 /* ── engine ───────────────────────────────────────────────────────────── */
