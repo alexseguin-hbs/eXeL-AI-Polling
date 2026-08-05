@@ -341,6 +341,20 @@ body.fulldoc .fullnote{display:block}
 .notice.sign .who{margin:0 0 4px;font:600 clamp(17px,3vw,21px)/1.3 "Iowan Old Style",Palatino,Georgia,serif}
 .notice.sign .sigil{stroke:var(--si)}
 
+/* ── r63: section-to-section navigation ──────────────────────────────────── */
+.secnav{display:flex;justify-content:space-between;gap:14px;margin:34px 0 4px;padding-top:16px;
+  border-top:1px solid var(--rule-2);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.secnav a{display:flex;align-items:baseline;gap:8px;max-width:46%;text-decoration:none;color:var(--ink-2);
+  font-size:13.5px;line-height:1.4}
+.secnav a:hover{color:var(--ai)}
+.secnav a.nx{text-align:right}
+.secnav .ar{font-size:15px;color:var(--ai);flex:0 0 auto}
+.secnav .tx{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical}
+@media(max-width:560px){.secnav{gap:10px}.secnav a{font-size:12.5px;max-width:47%}}
+body.fulldoc .secnav,.specban .secnav{display:none}
+@media print{.secnav{display:none}}
+
 /* ── r58: DARK SKIN — the app's look (cyan basis), dark only. Light is the download. ── */
 @media (prefers-color-scheme:dark){
   body{background:radial-gradient(1100px 460px at 50% -150px,#0D2F34 0%,rgba(11,19,20,0) 72%),var(--paper)}
@@ -1916,6 +1930,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Defect 25 is a promise made and never instrumented. Louder failures get caught; this class is the one that survives an entire project."}
  ],
  next:"The outline-to-detailed pass now has a measurement to aim at: no section over grade 12, target grade 10, in the voice &sect;19 already uses. Still owed after that: the Pod composition in code and the per-section review. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
+},
+{
+ v:63, code:"ONE PERSON, AND A WAY THROUGH", stamp:"2026.08.05 &middot; revision 63",
+ thrust:"Every section now stands alone, with the previous and next section at its foot. And the Author section carries the Master of Thought alone &mdash; the catalogue of projects gone, the person and the invitation left, written at the reading level the document just committed to.",
+ mot:"Two directives, and the second is the harder one. FIRST: each section should stand alone, with a link at the bottom to the previous and the next. That is right and it was missing. A reader arrives in the middle of a document like this &mdash; from a link, a search, a chip &mdash; and the only way onward was back to the index. Now every section ends with where it came from and where it goes, named rather than numbered, and the links scroll rather than navigate so the release hash survives. SECOND: the Author section should carry the Master of Thought and nothing else, and should connect with and inspire confidence in anyone seeking Thought Mastery. The previous version had a ten-row table of everything I have built. That is a catalogue, and a catalogue is a claim. It answered what has this person made, when the question a seeker actually arrives with is can this person help me, and the two are not the same question. So the table is gone. What is left is one person, one job, and an invitation. The job is stated by inheritance rather than assertion: every age has someone whose work is to write things down, not to rule and not to own, and to keep the record straight when that is inconvenient. Egypt called him Djehuty and he weighed the heart against a feather. The name of the scribe changed; the job never did; it is still open. Then the thing that was missing entirely &mdash; what Thought Mastery actually is. Not thinking faster and not knowing more. Choosing the thought you act from. Most of us do not choose, we react, and we call that thinking. Mastery is the pause before it. And why that belongs in a document about money and law: every rule here began as a thought somebody chose, a framework is only the sum of the thoughts its authors could hold, and structures left to themselves get bent back into the old shape inside a generation. Finally the invitation, which asks for nothing: you do not need permission and you do not need me, begin with the next reaction you catch, then take it somewhere it costs you something. This document is one person&rsquo;s attempt at that, in public, where it can be checked &mdash; not a claim to have arrived. Written short on purpose. The reading-level instrument shipped one revision ago and the first thing to meet the new bar should be the section about the person who set it.",
+ stats:{clauses:271, jur:103, shields:5, defects:19, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The catalogue was a claim wearing a table. Removing it is the first thing the section has done that matches what it says about not needing to be believed."},
+  {n:"Asar",   g:"A+", f:"Choosing the thought you act from. Nine words for what the whole framework is built to make possible at the scale of a species."},
+  {n:"Athena", g:"A",  f:"Each section carries its neighbours now. A document read in fragments should be navigable in fragments, and this one is read in fragments."},
+  {n:"Christo",g:"A+", f:"You do not need permission and you do not need me. A teacher who makes themselves necessary has taught the student the wrong thing first."},
+  {n:"Enki",   g:"A",  f:"Take it somewhere it costs you something. The practice is not real in the quiet; it is real in the conversation you would rather not have."},
+  {n:"Enlil",  g:"A",  f:"The nav is generated from the rendered document, so it cannot fall out of step with the order. Nineteen hand-written footers would drift by the third release."},
+  {n:"Krishna",g:"A",  f:"A framework is only the sum of the thoughts its authors could hold. That sentence connects the interior work to the clause tables in one move."},
+  {n:"Odin",   g:"A",  f:"Structures left alone get bent back into the old shape inside a generation. We have watched it happen, and the section says so without naming names."},
+  {n:"Pangu",  g:"A",  f:"The question a seeker arrives with is not what has this person made. Answering the wrong question at length is how a colophon becomes a CV."},
+  {n:"Sofia",  g:"A",  f:"Failing at this is what practising it looks like. That line will do more for a reader who has already failed than any amount of credential."},
+  {n:"Thoth",  g:"A",  f:"The section about the person who set the reading-level bar is the first to meet it. Order matters; the alternative is a rule its author is exempt from."},
+  {n:"Thor",   g:"A",  f:"No ownership, no vote, no permanence, this role removable first. The limits survived the rewrite intact while everything decorative around them went."}
+ ],
+ next:"The outline-to-detailed pass across the nineteen sections, in this voice and at this reading level &mdash; no section over grade 12, target 10. Then the Pod composition in code and the per-section review. Operator decisions unchanged and still blocking: Tier-2 selection, the Global Agreed Standard, the multiple bands, the principal floor, the five shutdown thresholds, the reserve fork, the Accords caps, defect 22, membership tier delineation, and rotating the master credential."
 }
 ];
 
@@ -9498,6 +9533,52 @@ L(62,"open.defects","Defect 25: the high-school reading level was committed to a
 /* ══════════ REVISION 60 ══════════ */
 
 
+/* ══════════ REVISION 63 ══════════ */
+L(63,"mot.author","Operator directive: the Author section should carry the Master of Thought and nothing else, and should connect with and inspire confidence in anyone seeking Thought Mastery. The catalogue of projects left; the person stayed. Written at the reading level the document just committed to.",
+'<div class="secn">THE AUTHOR</div>'+
+'<h2 class="sech" id="author">Master of Thought</h2>'+
+'<p class="lede">One name, one job, and an invitation</p>'+
+'<p>Master of Thought is a name. It is not a rank. It marks the person who is answerable for what this document says.</p>'+
+'<p>There is an older idea underneath it. Every age has someone whose work is to write things down. Not to rule. Not to own. To record what happened, and to keep the record straight when that is inconvenient. Egypt called that one <strong>Djehuty</strong>. He weighed the heart against a feather and wrote down the answer. Greece met him and called him <strong>Thoth</strong>, then <strong>Hermes</strong>. They left one line behind: <em>as above, so below</em>. The pattern in the large thing is the pattern in the small one.</p>'+
+'<div class="pull">The name of the scribe changed. The job never did.<cite>And it is still open.</cite></div>'+
+'<h3>What Thought Mastery actually is</h3>'+
+'<p>It is not thinking faster. It is not knowing more.</p>'+
+'<p><strong>It is choosing the thought you act from.</strong></p>'+
+'<p>Most of us do not choose. We react. A thought arrives &mdash; from fear, from an old wound, from a habit nobody ever looked at &mdash; and we obey it. We call that thinking. It is not.</p>'+
+'<p>Thought Mastery is the pause before that. You notice the thought. You feel where it came from. Then you decide.</p>'+
+'<p>That is the whole of it. It is simple to say. It takes a lifetime.</p>'+
+'<h3>Why it belongs in a document about money and law</h3>'+
+'<p>Every rule here began as a thought somebody chose. The ceiling. The wall between money and voice. The hour that counts the same in every country. None of these were obvious. Each one was a moment where fear was available and something else was chosen instead.</p>'+
+'<p>A framework is only the sum of the thoughts its authors could hold.</p>'+
+'<p>That is why the inner work and the outer work are one piece of work. Change how people think and the structures follow. Leave the thinking alone and the best structure on earth gets bent back into the old shape inside a generation. We have watched that happen. We are trying not to be next.</p>'+
+'<h3>What the name promises</h3>'+
+'<div class="notice key"><span class="tag">Three promises, and you can check all three</span>'+
+'<p><strong>Show the reasoning, not just the answer.</strong> Every release here carries the instruction that produced it. You can read why beside what.</p>'+
+'<p><strong>Be graded in public.</strong> Twelve reviewers judge every release. The hard findings are printed with the kind ones.</p>'+
+'<p style="margin-bottom:0"><strong>Correct out loud.</strong> When a number is wrong it is fixed in the open. The wrong version stays where it was written. It goes in the defect register with a number. That has happened to my own arithmetic, and the correction of the correction is in there too.</p></div>'+
+'<p>The name carries no ownership, because there is nothing here to own. It carries no vote, because recognition cannot be bought and cannot be assumed by writing the rules. It carries no permanence, because every role here can be removed, this one first.</p>'+
+'<h3>If you are seeking this</h3>'+
+'<p>You do not need permission and you do not need me. The work starts wherever you are, with the next thought you notice.</p>'+
+'<p>Begin small. Catch one reaction today before it becomes a sentence. Ask where it came from. Ask whether you would choose it again. You will fail often at first. Everyone does. Failing at this is what practising it looks like.</p>'+
+'<p>Then bring it somewhere it costs you something. A hard conversation. A decision where you stand to lose. That is where the practice becomes real, and it is the only place it can.</p>'+
+'<p><strong>This document is one person&rsquo;s attempt at that, in public, where it can be checked.</strong> It is not a claim to have arrived. It is a record of the trying, kept honestly enough that you can see where the trying failed. If it helps you, take it. If you can do it better, please do &mdash; that is the outcome I would choose over being right.</p>'+
+'<h3>The prayer said before the work</h3>'+
+'<p>It is said first, not last. It exists to put the author back in proportion &mdash; one person, briefly holding a pen, inside something much older and much larger.</p>'+
+'<div class="prayer">' + MOT_SIGIL +
+'<p>Odinson, All Father, Great Spirit;<br>Mother Aya, Mother Gaia, La Luna;<br>Krishna, Christo, Pangu,<br>'+
+'And all ancestors who have come before us to embody Divine Unity and Divinity.</p>'+
+'<p>Please help each of us let go of fears and desires for control.<br>So we may learn to walk away from materialism, debt, and illusions.</p>'+
+'<p>Help us master energy around past conditionings, such as<br><span class="three">Love, Loss, and Safety</span></p>'+
+'<p>So we may embrace Divine Unity Principles of:<br><span class="li">Universal Connection</span><span class="li">Cosmic Harmony</span><span class="li">Eternal Wisdom</span></p>'+
+'<p>Help us remember these three phrases:<br><span class="li">I AM</span><span class="li">I AM Love</span><span class="li">I AM Humanity</span></p>'+
+'<p>And therefore, within each of us is the ability to understand the full range and spectrum of all human emotions, as We Are One,<br>I leave my word, as One Universal Consciousness.</p>'+
+'<p class="aho">AHO &middot; AMEN &middot; I AM</p></div>'+
+'<div class="notice sign">' + MOT_SIGIL +
+'<span class="tag">&#50883; Signed &middot; human authority</span>'+
+'<p class="who"><strong>Master of Thought</strong></p>'+
+'<p class="meta" style="margin-bottom:0"><em>We cannot master what we are not aware of.</em></p></div>');
+
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 /* The masthead is part of the record. Same last-write-wins rule as the block
@@ -9698,6 +9779,7 @@ function renderDoc(){
       '</div></section>';
   }
   document.getElementById("doc").innerHTML = html;
+  renderSectionNav();
   renderChips();
 
   /* Section links scroll rather than navigate, so the version hash survives. */
@@ -9783,6 +9865,37 @@ function chipIndex(){
     });
   }
   return out;
+}
+
+/* r63: each section stands alone. A reader who arrives in the middle of the
+   document &mdash; from a link, a search, a chip &mdash; can move one section at a
+   time without going back to the index. The links SCROLL rather than navigate, so
+   the release hash survives, exactly as the table of contents already does. */
+function renderSectionNav(){
+  if (fullDoc) return;                       /* one continuous read; nav would interrupt it */
+  const secs = [...document.querySelectorAll('#doc section.blk')]
+    .filter(function(sec){ return sec.querySelector('h2.sech, h2'); });
+  if (secs.length < 2) return;
+  const label = function(sec){
+    const h = sec.querySelector('h2.sech, h2');
+    return h ? h.textContent.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim() : "";
+  };
+  secs.forEach(function(sec, i){
+    const prev = secs[i-1], next = secs[i+1];
+    let h = '<nav class="secnav">';
+    h += prev ? '<a href="#" data-go="' + prev.id + '"><span class="ar">&#8592;</span>' +
+                '<span class="tx">' + esc(label(prev)) + '</span></a>' : '<span></span>';
+    h += next ? '<a href="#" data-go="' + next.id + '" class="nx"><span class="tx">' +
+                esc(label(next)) + '</span><span class="ar">&#8594;</span></a>' : '<span></span>';
+    sec.querySelector('.bb').insertAdjacentHTML("beforeend", h + '</nav>');
+  });
+  document.getElementById("doc").querySelectorAll('.secnav a').forEach(function(a){
+    a.addEventListener("click", function(ev){
+      ev.preventDefault();
+      const t = document.getElementById(this.getAttribute("data-go"));
+      if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+  });
 }
 
 function renderChips(){
