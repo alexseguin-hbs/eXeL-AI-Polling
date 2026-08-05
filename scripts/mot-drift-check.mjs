@@ -1,0 +1,57 @@
+/* Does the standalone Author extract still agree with the living document?
+   A second file is only safe if a machine proves it has not drifted. */
+/* playwright lives in frontend/node_modules; ESM resolves from THIS file's directory,
+   so import it by absolute path rather than by bare specifier. */
+const pw = await import('/home/user/eXeL-AI-Polling/frontend/node_modules/playwright/index.js');
+const { chromium } = pw.default ?? pw;
+const STANDALONE = process.argv[2] ||
+  '/home/user/eXeL-AI-Polling/frontend/public/whitepaper/mot-author.html';
+const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const norm = s => s.replace(/\s+/g,' ').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').trim();
+
+const p1 = await b.newPage();
+await p1.goto('file:///home/user/eXeL-AI-Polling/docs/SOI_VISION2525_LIVING_DOCUMENT.html');
+await p1.waitForTimeout(400);
+const live = await p1.evaluate(() => {
+  const e = LEDGER.filter(x => x.id === 'mot.author').sort((a,c)=>a.v-c.v).slice(-1)[0];
+  const d = document.createElement('div'); d.innerHTML = e.html;
+  return { v: e.v, text: d.textContent };
+});
+const p2 = await b.newPage();
+await p2.goto('file://' + STANDALONE);
+await p2.waitForTimeout(300);
+const sa = await p2.evaluate(() => document.body.textContent);
+await b.close();
+
+const L = norm(live.text), S = norm(sa);
+// sentence-level: which of the living block's sentences are missing from the standalone?
+const sents = L.split(/(?<=[.!?])\s+/).filter(s => s.split(/\s+/).length > 6);
+const missing = sents.filter(s => !S.includes(s.slice(0, 60)));
+console.log('living mot.author = v' + live.v);
+console.log('living sentences  :', sents.length);
+console.log('missing from file :', missing.length);
+missing.slice(0,6).forEach(s => console.log('   ✗ ' + s.slice(0,110)));
+const probes = {
+ 'A1 Anubis (r81)'      : 'Anubis',
+ 'A2 authority boundary': 'no spiritual, legal, economic or constitutional authority',
+ 'A3 Replay pairing'    : 'Replay creates the pause inside an institution',
+ 'A4 non-inheritable'   : 'temporary, removable and non-inheritable',
+ 'A5 prayer framing'    : 'not a creed, a constitutional requirement',
+ 'A6 timeline heading'  : 'not a universal timetable',
+ 'A7 subtitle'          : 'One name. One responsibility.',
+ 'r82 Trismegistus'     : 'Trismegistus',
+ 'r82 tongue of Ra'     : 'tongue of Ra',
+ 'r82 Doreal 1935'      : '1935',
+};
+console.log('\nedit-by-edit presence in the standalone:');
+let gone = 0;
+for (const [k,v] of Object.entries(probes)) {
+  const ok = S.includes(v); if (!ok) gone++;
+  console.log('  ' + (ok ? '\u2713' : '\u2717') + '  ' + k);
+}
+if (gone) {
+  console.log('\nFAIL — the standalone has drifted from the living document. ' + gone +
+    ' edit(s) missing. Regenerate the extract; never hand-patch it.');
+  process.exit(1);
+}
+console.log('\nPASS — the extract carries every r81/r82 edit. No drift.');
