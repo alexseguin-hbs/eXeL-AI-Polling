@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vision • 2525 — session record, 6 August 2026</title>
+<style>
+:root{
+  --paper:#f7f5f1; --panel:#fff; --ink:#1a1d21; --ink-2:#5a6169;
+  --rule:#d9dbd7; --ai:#0d6e86; --si:#8a6206; --hi:#6b4fa8;
+  --ok:#1d7a4c; --owe:#a2560d; --pend:#6b7280;
+}
+@media (prefers-color-scheme: dark){
+  :root{--paper:#0b1314;--panel:#101d1e;--ink:#f1f6f7;--ink-2:#8fa8ab;
+        --rule:#1d383a;--ai:#00dae6;--si:#e3be4a;--hi:#b79cff;
+        --ok:#3fd18b;--owe:#f0a83c;--pend:#7d9295}
+}
+:root[data-theme="dark"]{--paper:#0b1314;--panel:#101d1e;--ink:#f1f6f7;--ink-2:#8fa8ab;
+  --rule:#1d383a;--ai:#00dae6;--si:#e3be4a;--hi:#b79cff;--ok:#3fd18b;--owe:#f0a83c;--pend:#7d9295}
+:root[data-theme="light"]{--paper:#f7f5f1;--panel:#fff;--ink:#1a1d21;--ink-2:#5a6169;
+  --rule:#d9dbd7;--ai:#0d6e86;--si:#8a6206;--hi:#6b4fa8;--ok:#1d7a4c;--owe:#a2560d;--pend:#6b7280}
+
+*{box-sizing:border-box}
+body{margin:0;padding:0 20px 64px;background:var(--paper);color:var(--ink);
+  font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:74ch;margin:0 auto}
+h1,h2,h3{margin:0;letter-spacing:-.012em;text-wrap:balance}
+header{padding:44px 0 22px;border-bottom:3px solid var(--ink)}
+.kick{font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--ai)}
+h1{font:600 clamp(30px,6.4vw,46px)/1.08 "Iowan Old Style",Georgia,serif;margin-top:10px}
+.lede{font-size:clamp(17px,2.6vw,20px);line-height:1.5;color:var(--ink-2);margin:14px 0 0}
+
+.state{display:grid;gap:10px;margin:22px 0 0;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.st{border:1px solid var(--rule);border-left:4px solid var(--ai);border-radius:3px;
+  background:var(--panel);padding:11px 13px}
+.st b{display:block;font:700 10px/1.3 ui-monospace,monospace;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-2)}
+.st span{font:600 17px/1.35 ui-monospace,monospace;color:var(--ink);
+  word-break:break-all;font-variant-numeric:tabular-nums}
+.st.unv{border-left-color:var(--owe)} .st.unv span{color:var(--owe)}
+.st.ok  {border-left-color:var(--ok)} .st.ok span{color:var(--ok)}
+
+h2{font:600 clamp(21px,3.6vw,27px)/1.22 "Iowan Old Style",Georgia,serif;margin:46px 0 6px}
+h2 .n{color:var(--ink-2);font-variant-numeric:tabular-nums;margin-right:.5em}
+.sub{font:600 11px/1.3 ui-monospace,monospace;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-2);margin:0 0 14px}
+p{margin:0 0 13px}
+.q{border-left:3px solid var(--si);margin:16px 0;padding:2px 0 2px 16px;
+  font-style:italic;color:var(--ink-2)}
+.q b{font-style:normal;color:var(--ink)}
+
+.fx{border:1px solid var(--rule);border-radius:4px;background:var(--panel);
+  margin:16px 0;overflow:hidden}
+.fx > h3{font:600 17px/1.3 -apple-system,BlinkMacSystemFont,sans-serif;
+  padding:13px 16px 11px;border-bottom:1px solid var(--rule);display:flex;
+  flex-wrap:wrap;gap:8px;align-items:baseline}
+.fx > h3 .id{font:700 10px/1.6 ui-monospace,monospace;letter-spacing:.14em;
+  color:var(--ai);border:1px solid var(--rule);border-radius:2px;padding:0 6px}
+.fx .body{padding:14px 16px}
+.tag{font:700 10px/1.7 ui-monospace,monospace;letter-spacing:.13em;
+  text-transform:uppercase;border-radius:2px;padding:1px 7px;white-space:nowrap}
+.t-ship{color:var(--ok);border:1px solid var(--ok)}
+.t-owe {color:var(--owe);border:1px solid var(--owe)}
+.t-ask {color:var(--hi);border:1px solid var(--hi)}
+
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;margin:14px 0;
+  background:var(--panel)}
+table{width:100%;border-collapse:collapse;font:14px/1.45 -apple-system,sans-serif;
+  min-width:460px}
+th,td{padding:8px 11px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:700 10px/1.4 ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-2);background:color-mix(in srgb,var(--ink) 4%,transparent)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;
+  font-family:ui-monospace,monospace}
+tr:last-child td{border-bottom:0}
+.was{color:var(--ink-2)} .now{color:var(--ok);font-weight:600}
+
+.say{border:1px solid var(--rule);border-top:3px solid var(--hi);border-radius:3px;
+  background:var(--panel);padding:14px 16px;margin:16px 0}
+.say b{display:block;font:700 10px/1.6 ui-monospace,monospace;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--hi);margin-bottom:6px}
+
+.marks{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 0;
+  font:13px/1.5 -apple-system,sans-serif}
+.marks label{display:flex;gap:6px;align-items:center;color:var(--ink-2)}
+.marks input{width:17px;height:17px;accent-color:var(--ai)}
+textarea{width:100%;margin-top:10px;padding:9px 11px;border:1px solid var(--rule);
+  border-radius:3px;background:var(--paper);color:var(--ink);font:14px/1.5 inherit;
+  resize:vertical;min-height:52px}
+textarea:focus{outline:2px solid var(--ai);outline-offset:-2px}
+
+code{font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:color-mix(in srgb,var(--ink) 7%,transparent);padding:1px 5px;border-radius:2px}
+footer{border-top:1px solid var(--rule);margin-top:52px;padding-top:18px;
+  color:var(--ink-2);font-size:13.5px}
+a{color:var(--ai);text-underline-offset:3px}
+@media(max-width:560px){body{padding-left:15px;padding-right:15px}header{padding-top:32px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kick">Vision • 2525 · v.18 · session record</div>
+  <h1>Six releases, two defects I found in my own work, and one thing I did not do</h1>
+  <p class="lede">Thursday 6 August 2026 — r106 through r111. Every number below was
+  measured before and after, on the real build. Where I could not measure something, this
+  page says so instead of rounding it.</p>
+
+  <div class="state">
+    <div class="st"><b>Latest SHA</b><span id="sha">f9b7f86</span></div>
+    <div class="st ok"><b>Committed</b><span>✓ 13:06 CDT</span></div>
+    <div class="st ok"><b>Pushed</b><span>✓ both branches</span></div>
+    <div class="st unv"><b>Cloudflare</b><span>UNVERIFIED</span></div>
+  </div>
+  <p style="margin-top:14px;font-size:14px;color:var(--ink-2)">
+    The sandbox proxy blocks every outbound host, so I cannot fetch the site to confirm what
+    it serves. <strong>UNVERIFIED is not a pass.</strong> One tap to check:
+    <a href="https://exel-ai-polling.explore-096.workers.dev/vision-2525/white-paper">the
+    document</a> → Settings → Determinism proof. If the result now carries an
+    <code>order :</code> line, you are on r108 or later.</p>
+</header>
+
+<h2><span class="n">§1</span>What shipped</h2>
+<p class="sub">Six releases · 11:59 → 13:06 CDT</p>
+
+<div class="scroll"><table>
+<tr><th>SHA</th><th>Release</th><th>What changed</th></tr>
+<tr><td class="n">a879c4d</td><td class="n">r106</td><td>Landscape reading; the release stepper off the foot; the seal caption rewritten to the crown, the eagle, the primordial egg and the cuneiform ring</td></tr>
+<tr><td class="n">bb5684f</td><td class="n">r107</td><td>The grey eyebrow moved under the title; ALVAR folded into the Author's section</td></tr>
+<tr><td class="n">2a96ee8</td><td class="n">r108</td><td>The Brief cites the sections it condenses — 22 live jumps</td></tr>
+<tr><td class="n">4564b47</td><td class="n">—</td><td>Author extract regenerated from the ledger by a generator that had never existed</td></tr>
+<tr><td class="n">863cdfc</td><td class="n">r109</td><td>Outline gains §C and the Author; the feedback panel stops covering the words</td></tr>
+<tr><td class="n">f9b7f86</td><td class="n">r110</td><td>N.O.S.E. for §0, §C and the Closing; the Constitution frozen</td></tr>
+<tr><td class="n">pending</td><td class="n">r111</td><td>The Author's four N.O.S.E. entries — gating as this page is written</td></tr>
+</table></div>
+
+<h2><span class="n">§2</span>The four you can see immediately</h2>
+<p class="sub">Measured before and after · mark each one</p>
+
+<div class="fx">
+  <h3><span class="id">FX-1</span> The feedback panel no longer sits on the argument
+      <span class="tag t-ship">Shipped</span></h3>
+  <div class="body">
+    <p class="q">"place Feedback, Security-2525 and eXeL AI at bottom so it does not get
+    in way." <b>— asked four times</b></p>
+    <p>The trigger has honoured that since the footer was built. The <em>panel</em> never
+    did: it opened <code>fixed bottom-4 … w-80</code> on every surface, so the one control
+    whose purpose was to stop covering the content covered it the moment anyone used it.</p>
+    <div class="scroll"><table>
+      <tr><th>Viewport · route</th><th>Before</th><th>After</th></tr>
+      <tr><td>390 portrait · /</td><td class="was">fixed · 2 paragraphs covered · 82% of width</td><td class="now">static · 0 covered</td></tr>
+      <tr><td>390 portrait · /vision-2525</td><td class="was">fixed · 2 covered</td><td class="now">static · 0 covered</td></tr>
+      <tr><td>844 landscape · /</td><td class="was">fixed · 2 covered · 70% of viewport height</td><td class="now">static · 0 covered</td></tr>
+      <tr><td>844 landscape · /vision-2525</td><td class="was">fixed · 2 covered</td><td class="now">static · 0 covered</td></tr>
+    </table></div>
+    <p>It now opens in flow, on its own line beneath the footer row. The page grows
+    downward; nothing is laid over the words. Every surface the shared footer reaches.</p>
+    <div class="marks">
+      <label><input type="checkbox"> Accept</label>
+      <label><input type="checkbox"> Change</label>
+      <label><input type="checkbox"> Reject</label>
+    </div>
+    <textarea placeholder="FX-1 — what you actually saw on the phone"></textarea>
+  </div>
+</div>
+
+<div class="fx">
+  <h3><span class="id">FX-2</span> The grey line sits under the title, not the number
+      <span class="tag t-ship">Shipped</span></h3>
+  <div class="body">
+    <p class="q">"§3 The Wall / EXTENDS §1 — should be indented to be right under
+    'The Wall'." <b>— with a sketch</b></p>
+    <p>Measured first. At 390 the heading box and the eyebrow shared a left edge at 20px
+    while the words <em>The Wall</em> began at 53.4 — the eyebrow was hanging under the
+    NUMBER. At 1280 it was 325.5 against 369. A fixed indent could never work, because §0
+    and §19 are different widths. The heading became a real two-column grid at render time.</p>
+    <div class="scroll"><table>
+      <tr><th>Width</th><th class="n">Before (offset)</th><th class="n">After</th><th class="n">Headings</th></tr>
+      <tr><td>390</td><td class="n was">33.4px</td><td class="n now">0.00px</td><td class="n">19</td></tr>
+      <tr><td>768</td><td class="n was">—</td><td class="n now">0.00px</td><td class="n">19</td></tr>
+      <tr><td>1280</td><td class="n was">43.5px</td><td class="n now">0.00px</td><td class="n">19</td></tr>
+    </table></div>
+    <p>The five headings that carry no § are untouched — the split keys on the section sign.</p>
+    <div class="marks">
+      <label><input type="checkbox"> Accept</label>
+      <label><input type="checkbox"> Change</label>
+      <label><input type="checkbox"> Reject</label>
+    </div>
+    <textarea placeholder="FX-2"></textarea>
+  </div>
+</div>
+
+<div class="fx">
+  <h3><span class="id">FX-3</span> The Brief says which sections it condenses
+      <span class="tag t-ship">Shipped</span></h3>
+  <div class="body">
+    <p class="q">"in brief reference section numbers these belong to."</p>
+    <p>The Brief is eight parts; the paper is twenty-one sections. Nothing connected them,
+    so a reader who came in by the short read had no way into the long one. At r107:
+    <strong>8 parts, 0 references, 0 taps that led anywhere.</strong> Now every part opens
+    with the sections it condenses — 22 references, 16 distinct targets, every one a live
+    jump through the same handler the Outline has used since r97.</p>
+    <p><strong>What this does not do, said plainly:</strong> the Brief still has eight parts
+    and the paper twenty-one sections, so the two rails still differ.</p>
+    <div class="marks">
+      <label><input type="checkbox"> Accept</label>
+      <label><input type="checkbox"> Change</label>
+      <label><input type="checkbox"> Reject</label>
+    </div>
+    <textarea placeholder="FX-3"></textarea>
+  </div>
+</div>
+
+<div class="fx">
+  <h3><span class="id">FX-4</span> The Outline describes the document, not the geometry
+      <span class="tag t-ship">Shipped</span></h3>
+  <div class="body">
+    <p class="q">"yes to both §C and AUTHOR; they are missing."</p>
+    <p>r80 refused this deliberately — the outline was nineteen entries because the Flower
+    of Life is nineteen circles. Sound reasoning, wrong conclusion: the rail offers
+    twenty-one things to open. Both new entries were <strong>counted by machine before the
+    append</strong> — 111 and 111, not adjusted afterwards. The rail reads
+    <code>PLAN §C §1…§19 AUTHOR</code>.</p>
+    <p>A chip-label defect surfaced here and was caught by the probe rather than by a
+    reader: the label map knew <code>sec-c</code> but not <code>out-c</code>, so the
+    Constitution's chip rendered <code>§CTHE</code>.</p>
+    <div class="marks">
+      <label><input type="checkbox"> Accept</label>
+      <label><input type="checkbox"> Change</label>
+      <label><input type="checkbox"> Reject</label>
+    </div>
+    <textarea placeholder="FX-4"></textarea>
+  </div>
+</div>
+
+<h2><span class="n">§3</span>Two defects I found in my own work</h2>
+<p class="sub">Neither was reported · both are on the record now</p>
+
+<div class="fx">
+  <h3><span class="id">D-1</span> The determinism proof was correct and misleading
+      <span class="tag t-ship">Fixed in r108</span></h3>
+  <div class="body">
+    <p>The proof panel printed the <em>same hash</em> for r107 and r108 even though the
+    Brief visibly changed — because <code>stateHash</code> resolves the order through
+    whichever reading you are standing in, and the record's order contains no Brief block.
+    The proof was right; the reader was misled, which is the worse of the two.</p>
+    <p>Both proof buttons now name the order:
+    <code>order : Ledger — 88 ids of 139. A change confined to another reading leaves these
+    hashes alone.</code></p>
+    <p><strong>You hit this on your first try.</strong> <code>7f98526a</code> is the
+    white-paper order, and it is identical at r106, r107 and r108, because none of them
+    changed the white paper. The Brief order is the discriminator:
+    <code>6d665fcc</code> = r107 or earlier · <code>f7ca350d</code> = r108.</p>
+    <div class="marks">
+      <label><input type="checkbox"> Accept</label>
+      <label><input type="checkbox"> Change</label>
+    </div>
+    <textarea placeholder="D-1"></textarea>
+  </div>
+</div>
+
+<div class="fx">
+  <h3><span class="id">D-2</span> The Author extract had drifted, and ten probes never saw it
+      <span class="tag t-ship">Fixed</span></h3>
+  <div class="body">
+    <p>The standalone Author page is a second copy of a ledger block. Its own drift check
+    has said since r81: <em>regenerate the extract; never hand-patch it.</em>
+    <strong>There was no generator.</strong> Every update was a hand-patch — and it drifted:
+    the file still carried the r99 seal caption while the document carried your r106
+    rewrite, and it was missing the Thought Mastery reference added at r105.</p>
+    <p>All ten existing probes passed the whole time, because they stop at r82. There is a
+    generator now, four probes covering r105 and r106, and the fix is at the source rather
+    than in the alarm.</p>
+    <div class="marks">
+      <label><input type="checkbox"> Accept</label>
+      <label><input type="checkbox"> Change</label>
+    </div>
+    <textarea placeholder="D-2"></textarea>
+  </div>
+</div>
+
+<h2><span class="n">§4</span>The Constitution is frozen</h2>
+<p class="sub">A reversal, recorded as a reversal</p>
+<p class="q">"freeze so we can reference… we just need to decide on order today and moving
+forward never change."</p>
+<p>Earlier in the same session the decision was the opposite — renumber freely whenever the
+logic improves. The later instruction wins.</p>
+<p><strong>The order frozen is the one already shipped, I through X — not a better one.</strong>
+A more persuasive sequence exists; sovereignty and capture would read better adjacent.
+Adopting it would break every reference anyone has already made, which is exactly what
+freezing exists to prevent. Permanence beat elegance, and the section now says so in its own
+Solution entry.</p>
+<div class="scroll"><table>
+  <tr><th class="n">№</th><th>Principle</th><th class="n">Lives at</th></tr>
+  <tr><td class="n">I</td><td>Humanity remains sovereign</td><td class="n">§7</td></tr>
+  <tr><td class="n">II</td><td>Authority shall always be reviewable</td><td class="n">§9</td></tr>
+  <tr><td class="n">III</td><td>The record cannot be secretly altered</td><td class="n">§5</td></tr>
+  <tr><td class="n">IV</td><td>No intelligence supersedes human dignity</td><td class="n">§18</td></tr>
+  <tr><td class="n">V</td><td>No institution owns civilization</td><td class="n">§4</td></tr>
+  <tr><td class="n">VI</td><td>Participation must remain voluntary</td><td class="n">§0</td></tr>
+  <tr><td class="n">VII</td><td>Evidence outranks opinion</td><td class="n">§13</td></tr>
+  <tr><td class="n">VIII</td><td>Qualification precedes scale</td><td class="n">§17</td></tr>
+  <tr><td class="n">IX</td><td>Every generation inherits the ledger, and nothing else</td><td class="n">§5 · §1</td></tr>
+  <tr><td class="n">X</td><td>No single actor may capture the framework</td><td class="n">§3</td></tr>
+</table></div>
+<p>A gate now fails on a renumbering, a reworded claim, or a citation to a section that does
+not exist. Mutation-proven: moving IV to IX fails by position; rewording VII fails by numeral.</p>
+<div class="marks">
+  <label><input type="checkbox"> Freeze confirmed</label>
+  <label><input type="checkbox"> Reorder before freezing</label>
+</div>
+<textarea placeholder="The order — confirm or change it now, because after this it does not move"></textarea>
+
+<h2><span class="n">§5</span>What I did not do</h2>
+<p class="sub">Flagged rather than discovered</p>
+
+<div class="fx">
+  <h3><span class="id">OWED-1</span> The 33 readability passes
+      <span class="tag t-owe">Not started</span></h3>
+  <div class="body">
+    <p>You asked for 33 passes weighted to Full Doc read-through after the coding issues
+    were resolved. The coding issues took the session. Not started, not partially done.</p>
+  </div>
+</div>
+
+<div class="fx">
+  <h3><span class="id">OWED-2</span> The Visionary White Paper prose
+      <span class="tag t-owe">Measured, not written</span></h3>
+  <div class="body">
+    <p>Measured: the paper is <strong>1,962 prose words against 7,047 of N.O.S.E.</strong> —
+    78% scaffold. A section, structurally, <em>is</em> its four N.O.S.E. blocks and nothing
+    else. Hiding the labels does not produce prose; it produces four unlabelled fragments.
+    Roughly 7,500 words are needed, and §1 should be written alone as a specimen you react to
+    before the other eighteen are drafted.</p>
+  </div>
+</div>
+
+<div class="fx">
+  <h3><span class="id">ASK-1</span> Does the Brief carry the section rail?
+      <span class="tag t-ask">Needs your word</span></h3>
+  <div class="body">
+    <p class="q">"Brief image 1 should have same sections as others: S0, SC, s1-19, Author"</p>
+    <p>Two readings. <strong>(a)</strong> the Brief should <em>reference</em> the sections —
+    done in r108. <strong>(b)</strong> the Brief should carry the same twenty-one-cell rail,
+    which means <strong>twenty-one short readings to write</strong> — content, not layout,
+    roughly 2,300 words. I built (a) and did not assume (b).</p>
+    <div class="marks">
+      <label><input type="checkbox"> (a) is what I meant — done</label>
+      <label><input type="checkbox"> (b) — write the 21</label>
+    </div>
+    <textarea placeholder="ASK-1"></textarea>
+  </div>
+</div>
+
+<h2><span class="n">§6</span>What is still measurably wrong</h2>
+<p class="sub">Numbers, so they can be checked later</p>
+<div class="scroll"><table>
+  <tr><th>Finding</th><th class="n">Measured</th><th>State</th></tr>
+  <tr><td>Taps that go nowhere — five readings, five indexes</td><td class="n">261 of 693</td><td>Reduced by r108, not closed</td></tr>
+  <tr><td>Paper blocks carrying all four N.O.S.E. labels</td><td class="n">23 of 26</td><td>3 remaining are deliberate</td></tr>
+  <tr><td>Prose vs scaffold in the white paper</td><td class="n">1,962 / 7,047</td><td>Open — OWED-2</td></tr>
+  <tr><td>Diary-language instances in reader-visible prose</td><td class="n">1,007</td><td>Open</td></tr>
+  <tr><td>Section readings never written</td><td class="n">33</td><td>Open</td></tr>
+  <tr><td>Outline entries at exactly 111 words</td><td class="n">21 of 21</td><td>Closed</td></tr>
+</table></div>
+
+<div class="say">
+  <b>Anything this page got wrong</b>
+  <textarea placeholder="Including anything I marked shipped that does not look shipped to you"></textarea>
+</div>
+
+<footer>
+  <p><strong>Gates, every release:</strong> lv-gate PASS across 3 viewports × 2 themes ×
+  every release · spiral33 33/33 · full replay identical · publish 3 identical copies ·
+  mot-drift clean · every new gate rule mutation-proven against a baseline taken before
+  any edit. Append-only throughout: every earlier release still replays byte-identical.</p>
+  <p>Master of Thought · Vision • 2525 · v.18 · 6 August 2026 ·
+  <a href="https://exel-ai-polling.explore-096.workers.dev/vision-2525/white-paper">the
+  document</a></p>
+</footer>
+
+</div>
+</body>
+</html>

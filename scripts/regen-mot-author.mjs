@@ -11,7 +11,12 @@
    VMAX, and writes the block into the extract's <main>. The shell — head,
    stylesheet, topbar, footer — is preserved byte for byte, because it is the
    extract's own presentation and not content. Content has exactly one source. */
-import {chromium} from 'playwright';
+/* playwright lives in frontend/node_modules; ESM resolves from THIS file's
+   directory, so import it by absolute path rather than by bare specifier —
+   the same fix mot-drift-check.mjs already carries. Caught the first time
+   this script was run from scripts/ rather than the scratchpad. */
+const pw = await import('/home/user/eXeL-AI-Polling/frontend/node_modules/playwright/index.js');
+const { chromium } = pw.default ?? pw;
 import {readFileSync, writeFileSync} from 'fs';
 const MASTER='file:///home/user/eXeL-AI-Polling/docs/SOI_VISION2525_LIVING_DOCUMENT.html';
 const OUT='/home/user/eXeL-AI-Polling/frontend/public/whitepaper/mot-author.html';
