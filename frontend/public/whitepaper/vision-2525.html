@@ -303,6 +303,22 @@ body.straight .chips{display:flex}
 .nose p{margin:0}
 p.ext{font:600 11px ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;
   color:var(--ink-2);margin:-6px 0 4px}
+/* ── r113 · THE BRIEF'S LABEL COLLIDED WITH ITS OWN HEADING ────────────────
+   Operator, with four photographs: "Brief format is off for section & header
+   labels."
+
+   The negative top margin above is correct for the WHITE PAPER, where r107
+   moves .ext INSIDE the heading as row two of a grid, so it never touches the
+   line above. The Brief's headings are plain <h2> with no section sign to
+   split on, so .ext stays a SIBLING — and −6px pulls it up into the serif
+   descenders of the line above it. MEASURED at 390, 844-landscape and 1280:
+   the gap between heading bottom and label top was −6.0px at all three, which
+   is the label sitting inside the heading's box. In the photograph it reads
+   as part of the title.
+
+   The sibling case gets positive space. The grid case is untouched, because
+   there .ext is a CHILD of the h2 and this selector cannot reach it. */
+h2 + p.ext{margin-top:9px}
 /* r108 · the section numbers in the brief's eyebrow are live jumps, so they
    have to look tappable without turning a whisper into a shout. Accent colour,
    no underline until touched, and padding cancelled by an equal negative margin
