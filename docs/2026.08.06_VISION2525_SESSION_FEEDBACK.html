@@ -105,27 +105,30 @@ a{color:var(--ai);text-underline-offset:3px}
 
 <header>
   <div class="kick">Vision • 2525 · v.18 · session record</div>
-  <h1>Six releases, two defects I found in my own work, and one thing I did not do</h1>
-  <p class="lede">Thursday 6 August 2026 — r106 through r111. Every number below was
+  <h1>Seven releases, three defects I found in my own work, and one thing I did not do</h1>
+  <p class="lede">Thursday 6 August 2026 — r106 through r112, all live. Every number below was
   measured before and after, on the real build. Where I could not measure something, this
   page says so instead of rounding it.</p>
 
   <div class="state">
-    <div class="st"><b>Latest SHA</b><span id="sha">f9b7f86</span></div>
-    <div class="st ok"><b>Committed</b><span>✓ 13:06 CDT</span></div>
+    <div class="st ok"><b>Latest SHA</b><span id="sha">fa164e9</span></div>
+    <div class="st ok"><b>Committed</b><span>✓ 13:21 CDT</span></div>
     <div class="st ok"><b>Pushed</b><span>✓ both branches</span></div>
-    <div class="st unv"><b>Cloudflare</b><span>UNVERIFIED</span></div>
+    <div class="st ok"><b>Cloudflare</b><span>LIVE fa164e9</span></div>
   </div>
   <p style="margin-top:14px;font-size:14px;color:var(--ink-2)">
-    The sandbox proxy blocks every outbound host, so I cannot fetch the site to confirm what
-    it serves. <strong>UNVERIFIED is not a pass.</strong> One tap to check:
+    <strong>Confirmed live by the operator at 13:23 CST</strong>, two minutes after the push —
+    all three states agree and none is inferred. Every release below is serving. Earlier in the
+    session the same line read UNVERIFIED, because the sandbox proxy blocks every outbound host
+    and I could not fetch the site; that is recorded rather than overwritten, because
+    <strong>UNVERIFIED was never a pass</strong> and the moment it stopped being true is part of
+    the record. The deck reads <code>v.18 r112 latest</code> —
     <a href="https://exel-ai-polling.explore-096.workers.dev/vision-2525/white-paper">the
-    document</a> → Settings → Determinism proof. If the result now carries an
-    <code>order :</code> line, you are on r108 or later.</p>
+    document</a>.</p>
 </header>
 
 <h2><span class="n">§1</span>What shipped</h2>
-<p class="sub">Six releases · 11:59 → 13:06 CDT</p>
+<p class="sub">Seven releases · 11:59 → 13:21 CDT · live 13:23</p>
 
 <div class="scroll"><table>
 <tr><th>SHA</th><th>Release</th><th>What changed</th></tr>
@@ -135,7 +138,8 @@ a{color:var(--ai);text-underline-offset:3px}
 <tr><td class="n">4564b47</td><td class="n">—</td><td>Author extract regenerated from the ledger by a generator that had never existed</td></tr>
 <tr><td class="n">863cdfc</td><td class="n">r109</td><td>Outline gains §C and the Author; the feedback panel stops covering the words</td></tr>
 <tr><td class="n">f9b7f86</td><td class="n">r110</td><td>N.O.S.E. for §0, §C and the Closing; the Constitution frozen</td></tr>
-<tr><td class="n">pending</td><td class="n">r111</td><td>The Author's four N.O.S.E. entries — gating as this page is written</td></tr>
+<tr><td class="n">0970219</td><td class="n">r111</td><td>The Author's four N.O.S.E. entries; this session record</td></tr>
+<tr><td class="n">fa164e9</td><td class="n">r112</td><td>The motto under Master of Thought: <em>We Can Not Master What We Are Not Aware Of</em></td></tr>
 </table></div>
 
 <h2><span class="n">§2</span>The four you can see immediately</h2>
