@@ -76,7 +76,7 @@ const data = await p.evaluate((TESTS) => {
       blocks: document.querySelectorAll('#doc section.blk').length,
       words: W(rec),
       hash: stateHash(v, ALL_ORDER, true),
-      sections: 0, outline111: 0, minSection: 0, dupWorst: 0
+      sections: 0, outlineAll: 0, outline111: 0, minSection: 0, dupWorst: 0
     };
 
     setView('paper'); goto(v);
@@ -100,7 +100,14 @@ const data = await p.evaluate((TESTS) => {
     }
 
     setView('outline'); goto(v);
-    m.outline111 = [...document.querySelectorAll('#doc p.olw')].filter(e => W(e.textContent) === 111).length;   /* .olw is body text; no chrome inside it */
+    /* r109 · TWO NUMBERS, NOT ONE. This counted only the entries that ARE 111
+       words and then asserted the count equals nineteen, which conflates two
+       different contracts: "every entry is exactly 111" and "there are this
+       many entries". With one number, adding a twentieth correct entry looks
+       identical to breaking one of the nineteen. Both are measured now. */
+    const olw = [...document.querySelectorAll('#doc p.olw')];   /* .olw is body text; no chrome inside it */
+    m.outlineAll = olw.length;
+    m.outline111 = olw.filter(e => W(e.textContent) === 111).length;
 
     return m;
   }
@@ -135,7 +142,7 @@ const data = await p.evaluate((TESTS) => {
 
    1. HARD FLOORS — the contracts the operator set. Absolute, per release:
         a paper section is never under 333 words
-        the outline is exactly 19 entries at 111 words
+        every outline entry is exactly 111 words, and there are never fewer than 19
         no paper section exceeds 20% duplication against the record
       A breach is a breach. The LATEST release must be clean, and any historical
       breach must be closed by a named later release and disclosed as a defect.
@@ -176,7 +183,18 @@ function breaches(m) {
   const out = [];
   if (m.sections > 0 && m.minSection < FLOOR_SECTION) out.push(`minSection ${m.minSection}<${FLOOR_SECTION}`);
   if (m.sections > 0 && m.dupWorst > CEILING_DUP)      out.push(`dupWorst ${m.dupWorst}%>${CEILING_DUP}%`);
-  if (m.outline111 > 0 && m.outline111 !== 19)         out.push(`outline ${m.outline111}!=19`);
+  /* r109 · the contract is EVERY ENTRY AT 111 WORDS, and never fewer than the
+     nineteen that were promised. Stated as two assertions because they fail for
+     different reasons and a reader of the failure needs to know which:
+       * an entry off 111 words is a broken promise about the entry;
+       * fewer than 19 entries is a broken promise about the outline.
+     Strictly stronger than the `=== 19` it replaces (that rule could not see a
+     twentieth entry written at 90 words), and it stops punishing growth: the
+     operator asked for §C and the Author, which makes twenty-one. */
+  if (m.outlineAll > 0 && m.outline111 !== m.outlineAll)
+    out.push(`outline ${m.outlineAll - m.outline111} of ${m.outlineAll} entries not at 111 words`);
+  if (m.outlineAll > 0 && m.outlineAll < 19)
+    out.push(`outline ${m.outlineAll}<19 entries`);
   return out;
 }
 
@@ -200,7 +218,7 @@ for (const v of data.pairs) {
   const bwd = [];
   for (const w of [v, v + 1]) {
     const before = data.M[w], after = data.back[w];
-    for (const k of ['blocks', 'words', 'sections', 'outline111', 'minSection', 'hash', 'dupWorst']) {
+    for (const k of ['blocks', 'words', 'sections', 'outlineAll', 'outline111', 'minSection', 'hash', 'dupWorst']) {
       if (String(before[k]) !== String(after[k])) bwd.push(`v${w}.${k}: ${before[k]} -> ${after[k]}`);
     }
   }

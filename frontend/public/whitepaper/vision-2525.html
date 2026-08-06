@@ -1001,10 +1001,11 @@ const PAPER_ORDER = [
    and the delivery can be held against each other. Fourth view, zero engine
    changes — a view is an ORDER. */
 const OUTLINE_ORDER = [
- "outline.open",
+ "outline.open","outline.c",
  "outline.s1","outline.s2","outline.s3","outline.s4","outline.s5","outline.s6","outline.s7",
  "outline.s8","outline.s9","outline.s10","outline.s11","outline.s12","outline.s13",
- "outline.s14","outline.s15","outline.s16","outline.s17","outline.s18","outline.s19"
+ "outline.s14","outline.s15","outline.s16","outline.s17","outline.s18","outline.s19",
+ "outline.author"
 ];
 
 /* Every block, exactly once — the id sets are disjoint, so the union IS the
@@ -3554,6 +3555,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Additive. r107 replays byte-identical, and a broken reference would fail the gate by name."}
  ],
  next:"The Outline gains &sect;C and the Author, and the four sections still missing N.O.S.E. get it."
+},
+{
+ v:109, code:"TWENTY-ONE PROMISES, NOT NINETEEN", stamp:"2026.08.06 &middot; revision 109",
+ thrust:"The outline described nineteen sections while the rail offered twenty-one. &sect;C and the Author are things a reader can open and had no entry saying what they promise. Both are now written to the same contract as the nineteen &mdash; exactly 111 words, measured.",
+ mot:"The operator asked twice, and the second time without a question mark: yes to both &sect;C and AUTHOR; they are missing. Release eighty refused this deliberately and that refusal stays in the record, because it was not careless. The outline was nineteen entries because the Flower of Life is nineteen circles, and the Constitution and the Author were held to be front and back matter rather than sections of the argument. The reasoning was sound and the conclusion was wrong, for a reason only a reader could see: the rail offers twenty-one things to open, and an index that describes nineteen of them is not an index of this document. It is an index of the geometry that inspired it. So the two are written, to the same contract and with no discount for being late: exactly one hundred and eleven words each, each stating the Need, the Outcome, the Solution and the Evidence, and each counted by machine rather than by eye. The heading is superseded from Nineteen circles to Twenty-one promises, and the geometry paragraph underneath it is kept word for word, because the flower is still the reason the nineteen are nineteen. One more thing changed, and it is the part worth reading twice. The test that enforced this floor asserted that the number of entries at 111 words EQUALS nineteen &mdash; one number doing two jobs. Under that rule a correct twentieth entry and a broken nineteenth were the same failure, and writing anything new was punished. It now measures both: every entry must be exactly 111 words, and there must never be fewer than nineteen. Strictly stronger &mdash; the old rule could not see a twentieth entry written at ninety words &mdash; and it no longer stands in the way of the document growing.",
+ stats:{clauses:303, jur:103, shields:5, defects:40, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Two entries missing for twenty-nine releases. The rail said so the whole time."},
+  {n:"Asar",   g:"A",  f:"An outline that skips the ending is not an outline. It ends on the Author now."},
+  {n:"Athena", g:"A",  f:"The floor was rewritten BEFORE the entries were written, not after they broke it."},
+  {n:"Christo",g:"A",  f:"A reader can now see what every openable thing promises. No exceptions, no back matter."},
+  {n:"Enki",   g:"A",  f:"r80's refusal is kept as history rather than quietly deleted. The reversal is on the record."},
+  {n:"Enlil",  g:"A+", f:"111 and 111, counted by machine before the append, not adjusted afterwards."},
+  {n:"Krishna",g:"A",  f:"OUTLINE_ORDER, the heading, the entries and the floor moved together. None can drift alone."},
+  {n:"Odin",   g:"A+", f:"One number doing two jobs is the bug that hides the next one. Two numbers now."},
+  {n:"Pangu",  g:"A&minus;", f:"Correct, and modest. The larger question &mdash; whether every reading shares one index &mdash; is still open."},
+  {n:"Sofia",  g:"A",  f:"Nineteen was the geometry; twenty-one is the document. Both are said, in that order."},
+  {n:"Thoth",  g:"A",  f:"19 -> 21 entries, every one at exactly 111 words. The metric now reports total and exact."},
+  {n:"Thor",   g:"A",  f:"Append-only, floor loosened in the safe direction and tightened in the strict one."}
+ ],
+ next:"The four sections still missing N.O.S.E. get it, and the Constitution order is frozen."
 }
 ];
 
@@ -7819,6 +7841,8 @@ L(41,"corpus.iterations","A third view. The white paper answers what this is and
 
 /* ── OUTLINE (r50) — the skeleton, 111 words per section ── */
 L(50,"outline.open","The method itself becomes a view: outline at 111 words, body at 333 or more, so the skeleton can be checked before the prose is written.",'<div class="secn">THE OUTLINE</div>'+'<h2 class="sech" id="out-0">Nineteen circles, one hundred and eleven words each</h2>'+'<p class="lede">The skeleton, published before the body was written &mdash; and kept, so the two can be held against each other</p>'+'<p>The Seed of Life is seven circles. Vision &#8226; 2525 is thirteen: the seven, plus the six that complete the middle ring. The full <strong>Flower of Life is nineteen</strong> &mdash; one centre, six that touch it, twelve that the six make possible. This document takes the whole flower, and the geometry is the architecture rather than an ornament laid over it.</p>'+'<p><strong>&sect;1 is the centre.</strong> Everything touches the unit. <strong>&sect;2 to &sect;7 are the inner ring</strong> &mdash; each touches the centre directly. <strong>&sect;8 to &sect;19 are the outer ring</strong>, and each names the inner section it extends, so the structure can be traced in both directions rather than asserted.</p>'+'<div class="notice key"><span class="tag">The contract this view exists to keep</span>'+'<p>Every entry below is <strong>exactly 111 words</strong> &mdash; not approximately, and a machine checks it. Each states the Need, the Outcome, the Solution in one line, and the Evidence its section will carry.</p>'+'<p style="margin-bottom:0">Each then becomes a section of <strong>333 words or more</strong>, structured Needs &middot; Outcomes &middot; Solution &middot; Evidence. Publishing the outline beside the finished text is what makes the expansion auditable: you can see what was promised and what was delivered, and they are not permitted to drift.</p></div>');
+
+L(109,"outline.open","Twenty-one entries, not nineteen. The heading counted the geometry; the reader counts what opens.",'<div class="secn">THE OUTLINE</div>'+'<h2 class="sech" id="out-0">Twenty-one promises, one hundred and eleven words each</h2>'+'<p class="lede">The skeleton, published before the body was written &mdash; and kept, so the two can be held against each other</p>'+'<p>The Seed of Life is seven circles. Vision &#8226; 2525 is thirteen: the seven, plus the six that complete the middle ring. The full <strong>Flower of Life is nineteen</strong> &mdash; one centre, six that touch it, twelve that the six make possible. This document takes the whole flower, and the geometry is the architecture rather than an ornament laid over it.</p>'+'<p><strong>&sect;1 is the centre.</strong> Everything touches the unit. <strong>&sect;2 to &sect;7 are the inner ring</strong> &mdash; each touches the centre directly. <strong>&sect;8 to &sect;19 are the outer ring</strong>, and each names the inner section it extends, so the structure can be traced in both directions rather than asserted.</p>'+'<div class="notice key"><span class="tag">The contract this view exists to keep</span>'+'<p>Every entry below is <strong>exactly 111 words</strong> &mdash; not approximately, and a machine checks it. Each states the Need, the Outcome, the Solution in one line, and the Evidence its section will carry.</p>'+'<p>The count is twenty-one rather than nineteen because the Constitution and the Author are sections a reader can open, and an outline that skips two of the things on the rail is not an outline of this document. The nineteen numbered sections are still the flower; the two additions are still held to the same 111 words.</p>'+'<p style="margin-bottom:0">Each then becomes a section of <strong>333 words or more</strong>, structured Needs &middot; Outcomes &middot; Solution &middot; Evidence. Publishing the outline beside the finished text is what makes the expansion auditable: you can see what was promised and what was delivered, and they are not permitted to drift.</p></div>');
 
 L(50,"outline.s1","The 111-word outline for section 1, written before the body so the expansion can be checked against it.",
 '<h2 class="sech" id="out-1">&sect;1 &nbsp; The Unit</h2>'+
@@ -14992,6 +15016,32 @@ L(108,"brief.why","Replay is a section of the paper; the brief points at it.",
 'own deliverables, and it is why there is now one document with two doors rather than two documents '+
 'telling the same story.</p></div>');
 
+/* ══════════ RELEASE 109 ══════════ */
+/* THE OUTLINE COUNTS WHAT THE DOCUMENT ACTUALLY HAS.
+   Operator: "also add outline for author" and then, asked directly, "yes to
+   both §C and AUTHOR; they are missing."
+
+   r80 REFUSED THIS ON PURPOSE and that note stays in the record: the outline
+   was nineteen entries because the flower is nineteen circles, and the
+   Constitution and the Author were held to be front and back matter rather
+   than sections. The operator counted the rail, saw twenty-one things a
+   reader can open, and decided the outline should describe the document that
+   exists rather than the geometry that inspired it. Both are now written to
+   the same contract as the nineteen: exactly 111 words, stating the Need, the
+   Outcome, the Solution and the Evidence, measured rather than asserted.
+   The r80 heading said 'Nineteen circles'; it is superseded below, and the
+   geometry paragraph it carried is kept word for word, because the flower is
+   still why the nineteen are nineteen. */
+
+L(109,"outline.c","&sect;C joins the outline. The Constitution is a section a reader can open, so it gets an entry like every other.",
+'<h2 class="sech" id="out-c">&sect;C &nbsp; The Constitution</h2>'+
+'<p class="olw">Rules that can be switched off by whoever holds power are not rules at all; they are permissions. A ceiling on recognition and a floor under a life have to survive the government that dislikes them, and survive the founder too. The Constitution states what no majority may amend: the unit stays an hour, the ceiling stays fixed, nothing purchases recognition, nothing inherits it, and no single jurisdiction can switch the record off. Every numbered section afterwards extends a clause written here, and where the two disagree, this text wins. The evidence is the amendment log itself, which shows plainly what changed, what never could, and who signed for each one.</p>');
+
+L(109,"outline.author","The Author joins the outline. Operator: \"also add outline for author\" &mdash; the last thing a reader reaches had no entry describing it.",
+'<h2 class="sech" id="out-author">Author &nbsp; Master of Thought</h2>'+
+'<p class="olw">A document that asks the world to change how it counts must say who is asking. Anonymous authorship is the oldest way to escape a claim: no name, and no one to answer when a sentence turns out wrong. This section carries one name, one responsibility and one prayer, and it delegates none of the three. The seal is an eagle inside a ring of cuneiform, sight and record, which is the whole job; it was drawn by the author and embedded rather than linked, because a mark that vanishes when the file leaves its server was never part of the document. Every error here is attributable. That is the point.</p>');
+
+
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 
@@ -15418,7 +15468,15 @@ let specOpen = false;
    Now: an explicit map, and a fallback that CANNOT LIE. An unknown heading is
    labelled from its own text, never from a label that belongs to another
    section. Wrong-ish beats somebody else's name. */
+/* The fallback below takes the heading's first word, which is right for most
+   headings and wrong for every heading whose first word is a number or an
+   article. These are the exceptions, named rather than pattern-matched.
+   r109: the outline's two new entries need their own rows. The paper's \u00a7C was
+   already here as `sec-c`; the outline's is `out-c`, a different id, and
+   without a row the fallback read "\u00a7C The Constitution" and produced \u00a7CTHE \u2014
+   caught by the probe, not by a reader, which is the point of the probe. */
 const CHIP_LABEL = {"sec-0":"TOC", "sec-c":"\u00a7C", "out-0":"PLAN",
+                    "out-c":"\u00a7C", "out-author":"AUTHOR",
                     "author":"AUTHOR", "sec-end":"END"};
 function chipLabelFor(id, raw){
   if (CHIP_LABEL[id]) return CHIP_LABEL[id];

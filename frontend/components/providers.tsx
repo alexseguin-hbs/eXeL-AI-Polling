@@ -113,7 +113,11 @@ function SiteFooter() {
           the box was. Dropping the cap and keeping the padding pins each end to its own edge.
           PHONE IS UNAFFECTED: below 1024px the cap never bound, so this changes nothing there — the reason
           it is safe to widen rather than special-case a breakpoint. */}
-      <div className="flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      {/* flex-wrap is load-bearing: the docked feedback panel is `basis-full`,
+          so opening it wraps to a new line under the row instead of squeezing
+          the three links or spilling over the page. Closed, nothing wraps and
+          this row is identical to what it has always been. */}
+      <div className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <FeedbackWidget screen={screen} docked />
         {/* SECURITY-2525 lives on the footer line with Feedback + eXeL AI, tool-wide (operator ask). */}
         <a

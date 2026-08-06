@@ -141,10 +141,34 @@ export function FeedbackWidget({
         </button>
       )}
 
-      {/* Feedback panel */}
+      {/* Feedback panel.
+          ------------------------------------------------------------------
+          DOCKED MEANS DOCKED — FOR THE PANEL TOO, NOT JUST THE TRIGGER.
+          The trigger has honoured `docked` since the footer was built; the
+          PANEL never did. It opened `fixed bottom-4 … z-50 w-80` on every
+          surface, so the one control whose whole purpose was to stop covering
+          the content covered it the moment anyone used it. At 390px a 320px
+          panel is 82% of the width; in landscape at 390px tall it is most of
+          the readable height. That is the operator's complaint — "so it does
+          not get in way" — reappearing one tap later.
+
+          Docked now opens IN FLOW, on its own full-width line beneath the
+          footer row (the row is `flex-wrap`, this is `basis-full`). The page
+          grows downward; nothing is ever laid over the words. The reader is
+          already at the foot of the page, because that is where they tapped.
+
+          Undocked keeps the fixed corner exactly as it was — that mode is for
+          surfaces with no footer, and nothing about it changes. The panel is
+          also height-capped and scrollable in both modes, because a short
+          landscape viewport could not show the form otherwise. */}
       {open && (
         <div
-          className={`fixed bottom-4 ${posClass} z-50 w-80 rounded-xl border border-border bg-card shadow-2xl`}
+          className={
+            (docked
+              ? "mt-3 w-full basis-full rounded-xl border border-border bg-card shadow-lg sm:max-w-sm"
+              : `fixed bottom-4 ${posClass} z-50 w-80 rounded-xl border border-border bg-card shadow-2xl`) +
+            " max-h-[70vh] overflow-y-auto"
+          }
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-3">
