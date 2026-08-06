@@ -197,6 +197,29 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 .part h2{font-size:clamp(22px,4.2vw,31px);margin:9px 0 9px}
 .part .lede{color:var(--ink-2);font-size:16px;font-style:italic;margin:0}
 
+/* ── r105 · THE SITE ROW, AT THE BOTTOM, AFTER THE TEXT ────────────────────
+   The operator asked four times that Feedback, SECURITY-2525 and eXeL AI sit
+   at the bottom and stay out of the way. They could not, because the document
+   was rendered inside an iframe: the text scrolled in one document while the
+   row was pinned in another. It is now part of THIS file, in normal flow,
+   after the closing footer — the last thing on the page, reachable by
+   scrolling to the end of the argument and by no other means.
+
+   Never fixed. Never an overlay. Budgeted so it cannot eat the screen in
+   portrait or in landscape, which was the second half of the same ask. */
+.sitelinks{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin:26px 0 0;padding:14px 0 4px;border-top:1px solid var(--rule-2);
+  max-height:10vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.sitelinks a{text-decoration:none;white-space:nowrap;font-size:12.5px;font-weight:600}
+.sitelinks .pill{border:1px solid var(--ai);color:var(--ai);border-radius:999px;padding:7px 15px}
+.sitelinks .pill:hover{background:var(--ai-bg)}
+.sitelinks .mid{color:var(--ink-2);letter-spacing:.04em}
+.sitelinks .mid:hover{color:var(--ink)}
+@media(max-width:420px){.sitelinks{gap:8px}.sitelinks a{font-size:11.5px}
+  .sitelinks .pill{padding:6px 12px}}
+/* Landscape on a phone has ~390px of height to spend. The row measured exactly
+   at its 10% ceiling there; this buys the reading back the difference. */
+@media(max-height:500px){.sitelinks{margin-top:18px;padding:9px 0 2px}}
 footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font-size:13px;color:var(--ink-2);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 /* ---------- full-document reading mode ---------- */
@@ -524,7 +547,8 @@ body.paged:not(.lastcell) #ledger{display:none}
    cell, and reading straight through never had this rule at all. */
 body.paged:not(.lastcell) .wrap > .meta-part,
 body.paged:not(.lastcell) #rcore,
-body.paged:not(.lastcell) footer.end{display:none}
+body.paged:not(.lastcell) footer.end,
+body.paged:not(.lastcell) .sitelinks{display:none}
 body.paged.notfirst #cover,
 body.paged.notfirst header.mast,
 body.paged.notfirst #howto,
@@ -841,6 +865,15 @@ header.mast{position:relative}
   named requires qualified local counsel.</p>
   <p style="margin-bottom:0">Live: <a href="https://exel-ai-polling.explore-096.workers.dev">exel-ai-polling.explore-096.workers.dev</a></p>
 </footer>
+
+<!-- r105 · the site row. Last element in the document, in normal flow, after
+     every word of the argument. Absolute URLs so it still works when this file
+     is downloaded and opened from a desktop with no server. -->
+<nav class="sitelinks" aria-label="Related sites">
+  <a class="pill" href="https://exel-ai-polling.explore-096.workers.dev/#feedback">Feedback</a>
+  <a class="mid" href="https://exel-ai-polling.explore-096.workers.dev/main/Security-2525/">SECURITY-2525</a>
+  <a class="pill" href="https://exel-ai-polling.explore-096.workers.dev/">eXeL AI</a>
+</nav>
 
 </div>
 
