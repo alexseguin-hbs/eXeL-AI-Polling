@@ -209,7 +209,7 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
 .specban table{font-size:13.5px}
 .specban .close{float:right;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-2);cursor:pointer;text-decoration:underline;background:none;border:0;font-weight:700}
-body.fulldoc .specban{display:none}
+body.straight .specban{display:none}
 
 .deck-sec{max-width:74ch;margin:7px auto 0}
 .chips{display:flex;gap:6px;overflow-x:auto;padding:0 0 2px;margin:0;
@@ -222,7 +222,7 @@ body.fulldoc .specban{display:none}
 .chips button.lead{color:var(--hi);border-color:var(--hi)}
 .chips .lbl{flex:0 0 auto;font:700 10px ui-sans-serif,system-ui;letter-spacing:.16em;
   text-transform:uppercase;color:var(--ink-2);align-self:center;padding-right:2px}
-body.fulldoc .deck-sec{display:none}
+body.straight .deck-sec{display:none}
 .fellback{border:1px solid var(--hi);border-left:3px solid var(--hi);background:var(--panel);
   padding:13px 16px;margin:0 0 14px;border-radius:2px;font-size:14px;line-height:1.6}
 .fellback b{color:var(--hi)}
@@ -232,7 +232,7 @@ body.fulldoc .deck-sec{display:none}
    one mode that scrolls through the whole argument was the one with no way to
    jump within it. Now that Full Doc is the white paper rather than all 138
    blocks, its rail is the same twenty-four cells as the White Paper's. */
-body.fulldoc .chips{display:flex}
+body.straight .chips{display:flex}
 
 .nose{margin:24px 0;padding:0 0 0 18px;border-left:1px solid var(--rule-2)}
 .nose .ne{display:block;font:600 9.5px ui-sans-serif,system-ui;letter-spacing:.26em;text-transform:uppercase;
@@ -299,7 +299,7 @@ h2.sech{scroll-margin-top:calc(var(--deckh,42px) + 52px)}
    never been emitted by anything. Full doc is the DEFAULT view and a four-hour
    read; it now states its size and offers the two shorter ways in, so the rule
    is inverted rather than deleted. */
-body.fulldoc .viewban{display:block}
+body.straight .viewban{display:block}
 
 .keyimp{border:1px solid var(--rule);border-left:5px solid var(--si);background:var(--si-bg);
   padding:15px 17px;margin:0 0 20px;border-radius:2px}
@@ -338,32 +338,61 @@ section.blk.cmp-rev{background:linear-gradient(90deg,var(--si-bg),transparent 62
    operator did not ask to lose" failure. The deck stays; in full doc it carries
    the one control that leaves, and nothing else. (`.fullnote` styling has been
    dead since it was written — no element ever used it — so it is not the exit.) */
-body.fulldoc .deck{display:block;padding-top:6px;padding-bottom:6px}
-body.fulldoc .deck-in > *{display:none}
-body.fulldoc .deck-in > #bFull{display:inline-block}
-/* r96: the ground toggle stays visible in full doc. The document now OPENS dark
-   on the operator's instruction, and a forced ground with no way out is a trap —
-   a reader on a bright train platform must be able to say so in one tap. */
-body.fulldoc .deck-in > #bTheme{display:inline-block}
+body.straight .deck{display:block;padding-top:6px;padding-bottom:6px}
+body.straight .deck-in > *{display:none}
+/* r104 · THE TWO EXCEPTIONS MOVED, AND THE DECK WENT DARK. Reading straight
+   through has hidden every deck control since r95, with #bFull and #bTheme
+   named as the two that stay. Both are now in the Settings drawer — so the
+   landing state, which IS straight-through, had a deck of twelve hidden
+   controls and no opener. Every control measured 0x0 with display:none. The
+   probe caught it before the operator did.
+   The two that stay are now the two that answer the two questions: what am I
+   reading (#bView), and what am I checking (#bSet). The ground toggle did not
+   fall out — it is one tap further in, inside the drawer that #bSet opens. */
+body.straight .deck-in > #bView,
+body.straight .deck-in > #bSet{display:inline-block}
 /* r102 · ZERO TOGGLES IN FULL DOC. The button was full-doc-only, which is the
    exact inverse of what was asked: Full Doc is the one mode that reads straight
    through, and the four views are where a reader needs one section at a time.
    It is not removed — it moves, and it disappears from the mode that must not
    have it. */
-.deck-in > #bPage{display:inline-block}
-body.fulldoc .deck-in > #bPage{display:none}
+/* r104 · drawn icons sit on the text baseline of their own label. */
+.deck-in button .ic,.setbody button .ic{vertical-align:-3px;margin-right:6px}
+.deck-in button > .ic:only-child,.setbody header button > .ic:only-child{margin-right:0}
+/* r104 · SETTINGS drawer — moderator-settings.tsx geometry, in one file. */
+.setwrap{position:fixed;inset:0;z-index:80}
+.setwrap[hidden]{display:none}
+.setscrim{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.setpanel{position:absolute;inset-block:0;right:0;width:min(100%,26rem);
+  background:var(--paper);border-left:1px solid var(--rule);
+  box-shadow:-8px 0 32px rgba(0,0,0,.35);display:flex;flex-direction:column}
+.setpanel header{display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:14px 18px;border-bottom:1px solid var(--rule)}
+.setpanel h2{margin:0;font-size:17px;font-weight:600;color:var(--ink)}
+.setbody{padding:16px 18px 28px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.setbody h5{margin:14px 0 2px;font:600 10.5px/1.2 ui-sans-serif,system-ui,sans-serif;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.setbody h5:first-child{margin-top:0}
+.setbody button{display:flex;align-items:center;width:100%;margin:0;padding:9px 11px;
+  border:1px solid var(--rule);border-radius:9px;background:transparent;
+  font:500 13.5px/1.3 ui-sans-serif,system-ui,sans-serif;color:var(--ink);
+  text-align:left;cursor:pointer}
+.setbody button:hover,.setbody button:focus-visible{background:var(--ai-bg);color:var(--ai);border-color:var(--ai)}
+.setbody button[aria-pressed="true"]{border-color:var(--ai);color:var(--ai)}
+.setbody .regwrap{position:relative;display:block}
+.setbody .regmenu{position:static;margin-top:6px;box-shadow:none}
 
-body.fulldoc #keyimp,
-body.fulldoc #cmp,
-body.fulldoc .meta-part,
-body.fulldoc #review,
-body.fulldoc #ledger,
-body.fulldoc #rcore,
-body.fulldoc #vban,
-body.fulldoc .chgtag{display:none}
-body.fulldoc section.blk{grid-template-columns:1fr;background:none;margin-left:0;padding-left:0}
-body.fulldoc section.blk>.bn{display:none}
-body.fulldoc .fullnote{display:block}
+body.straight #keyimp,
+body.straight #cmp,
+body.straight .meta-part,
+body.straight #review,
+body.straight #ledger,
+body.straight #rcore,
+body.straight #vban,
+body.straight .chgtag{display:none}
+body.straight section.blk{grid-template-columns:1fr;background:none;margin-left:0;padding-left:0}
+body.straight section.blk>.bn{display:none}
+body.straight .fullnote{display:block}
 .fullnote{display:none;border:1px solid var(--rule);border-left:5px solid var(--ai);background:var(--ai-bg);
   padding:14px 16px;margin:24px 0;border-radius:2px;font-size:14px}
 @media print{
@@ -439,14 +468,25 @@ body.fulldoc .fullnote{display:block}
   font-size:13.5px;line-height:1.4}
 .secnav a:hover{color:var(--ai)}
 .secnav a.nx,.secnav .end.nx{align-items:flex-end;text-align:right}
-.secnav .end{opacity:.28;pointer-events:none}
+/* r104 · THE ARROWS ARE THE DIVINITY GUIDE'S ARROWS. Geometry lifted from
+   frontend/app/divinity-guide/page.tsx:1102-1120 — w-12 h-12 rounded-full with
+   a bordered ring, a 20x20 stroked chevron inside, and disabled:opacity-15 at
+   the two ends. The Vision document is one standalone file and cannot import
+   the React component, so this is MATCHED geometry, not shared code — the same
+   constraint the drawn deck icons work under. The chevron comes from the one
+   ICON map, so the arrows and the deck are drawn in a single language. */
+.secnav .ar{width:48px;height:48px;flex:0 0 auto;border-radius:999px;
+  border:1px solid var(--rule);background:var(--panel);color:var(--ai);
+  display:flex;align-items:center;justify-content:center}
+.secnav .ar .ic{width:20px;height:20px;margin:0}
+.secnav a:hover .ar{border-color:var(--ai)}
+.secnav .end{opacity:.15;pointer-events:none}
 .secnav .cnt{flex:0 0 auto;align-self:center;font:600 11px ui-monospace,monospace;
   letter-spacing:.12em;color:var(--ink-2);opacity:.6;font-variant-numeric:tabular-nums}
-.secnav .ar{font-size:15px;color:var(--ai);flex:0 0 auto}
 .secnav .tx{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;
   -webkit-box-orient:vertical}
 @media(max-width:560px){.secnav{gap:10px}.secnav a{font-size:12.5px;max-width:47%}}
-body.fulldoc .secnav,.specban .secnav{display:none}
+body.straight .secnav,.specban .secnav{display:none}
 /* r98 · PAGED. One section on screen, the rest still in the document and still
    in the DOM — display only, so replay, compare, search-in-page after expanding,
    and every id stay exactly as they were. Print is deliberately whole: a PDF of
@@ -472,6 +512,19 @@ body.paged #doc section.blk.pg{display:block}
    reason. */
 body.paged:not(.lastcell) #review > :not(#relnav),
 body.paged:not(.lastcell) #ledger{display:none}
+/* r104 · NOTHING AFTER THE ARROWS. This reverses the paragraph above, and the
+   reversal is the operator's: the arrows are the end of the section, so the end
+   of the section is where the page must stop. r102 measured the remainder at
+   1,577px and called it free. It is not free — it is three panel headings whose
+   panels are already hidden, an 825px proof block and a 251px footer sitting
+   BELOW the "next section" arrow, which tells a reader the section did not end
+   where the arrow said it did.
+   #relnav still stands, for r102's reason, which was always the right one: a
+   mode must never hide the way out of itself. Everything returns on the last
+   cell, and reading straight through never had this rule at all. */
+body.paged:not(.lastcell) .wrap > .meta-part,
+body.paged:not(.lastcell) #rcore,
+body.paged:not(.lastcell) footer.end{display:none}
 body.paged.notfirst #cover,
 body.paged.notfirst header.mast,
 body.paged.notfirst #howto,
@@ -658,25 +711,51 @@ header.mast{position:relative}
 <div class="deck" role="region" aria-label="Version replay controls">
  <div class="deck-in">
   <span class="lab">Replay</span>
-  <button id="bPrev" title="Previous version">&#9668;</button>
-  <button id="bPlay" title="Play through every version">&#9654; Play</button>
-  <button id="bNext" title="Next version">&#9658;</button>
+  <button id="bPrev" title="Previous version" aria-label="Previous version"></button>
+  <button id="bPlay" title="Play through every version"></button>
+  <button id="bNext" title="Next version" aria-label="Next version"></button>
   <input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version">
   <span class="vnow" id="vNow">v1</span>
   <button id="bLatest" title="Jump to the latest release">Latest</button>
-  <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">&#9679; Changes</button>
-  <button id="bSpec" title="Document architecture and release information">&#9881;</button>
-  <span class="regwrap"><button id="bReg" aria-expanded="false" aria-haspopup="true"
-    title="Jump to a register, or to another view">&#9662; Registers</button>
-   <div class="regmenu" id="regMenu" role="menu" hidden></div></span>
-  <button id="bView" title="Cycle the views — white paper, ledger, brief, outline">&#9636; Brief</button>
-  <button id="bCmp" aria-pressed="false" title="Compare any two releases">&#8646; Compare</button>
-  <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
-  <button id="bTheme" title="Switch between the dark and light reading grounds">&#9789; Dark</button>
-  <button id="bPage" aria-pressed="false" title="Read one section at a time, with arrows to the sections either side">&#9707; Pages</button>
+  <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version"></button>
+  <button id="bCmp" aria-pressed="false" title="Compare any two releases"></button>
+  <button id="bView" title="What you are reading &mdash; Brief, White paper, N.O.S.E."></button>
+  <button id="bSet" aria-expanded="false" title="Settings &mdash; reading, audit trail, about this document" aria-label="Settings"></button>
   <span class="hash" id="vHash">state &mdash;</span>
  </div>
  <div class="deck-sec"><div id="chips"></div></div>
+</div>
+
+<!-- r104 · SETTINGS. Geometry from components/moderator-settings.tsx:451 — a
+     right-hand slide-over, one column, uppercase tracked section heads. The
+     toggle answers "what am I READING". This answers "what am I CHECKING, and
+     how should it behave". Outline, Ledger and Registers moved here from the
+     deck: they are apparatus, not readings. Nothing was deleted — #bFull,
+     #bTheme, #bReg and #bSpec are the same elements with the same handlers,
+     rehoused. -->
+<div class="setwrap" id="setWrap" hidden>
+  <div class="setscrim" id="setScrim"></div>
+  <aside class="setpanel" role="dialog" aria-modal="true" aria-label="Settings">
+    <header><h2>Settings</h2><button id="bSetClose" aria-label="Close settings"></button></header>
+    <div class="setbody">
+      <h5>Reading</h5>
+      <button id="bFull" aria-pressed="false" title="One continuous scroll, or one section at a time">Read straight through</button>
+      <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
+      <h5>Audit trail</h5>
+      <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
+      <button id="bLedger" title="The complete record — every clause, register and defect">Ledger</button>
+      <!-- r104 · the proof got a door. Hiding the tail on a middle cell put the
+           R-CORE determinism block behind the last cell of whatever view was
+           open, which is not a place a reader looks. It is something you CHECK,
+           so it belongs here beside the Ledger. -->
+      <button id="bProof" title="Replay every release and compare the hashes, in this browser">Determinism proof</button>
+      <span class="regwrap"><button id="bReg" aria-expanded="false" aria-haspopup="true"
+        title="Jump to a register">Registers</button>
+       <div class="regmenu" id="regMenu" role="menu" hidden></div></span>
+      <h5>About this document</h5>
+      <button id="bSpec" title="Document architecture and release information">Architecture &amp; release</button>
+    </div>
+  </aside>
 </div>
 
 <div class="wrap">
@@ -858,7 +937,18 @@ const VIEWS = {
   paper:   {order: PAPER_ORDER,   label: "White paper", hash: "paper",    spine: /^paper\./},
   ledger:  {order: LEDGER_ORDER,  label: "Ledger",      hash: "",         spine: /./},
   brief:   {order: BRIEF_ORDER,   label: "Brief",       hash: "brief",    spine: /^brief\./},
-  outline: {order: OUTLINE_ORDER, label: "Outline",     hash: "outline",  spine: /^outline\./}
+  outline: {order: OUTLINE_ORDER, label: "Outline",     hash: "outline",  spine: /^outline\./},
+  /* r104 · N.O.S.E. is NOT a fifth order. Measured: the white paper is 78% NOSE
+     already — 1,962 words of prose against 7,047 of Needs/Outcome/Solution/
+     Evidence across the nineteen sections. The framework is inside the paper
+     blocks. So this is the SAME order with the labels turned up, and the white
+     paper is the same order with them turned down. One source, two
+     presentations, replay untouched.
+
+     Naming the honest limit here where it will be read: turning the labels down
+     does not by itself make prose. Authoring that prose is r105, and it is
+     writing, not engineering. */
+  nose:    {order: PAPER_ORDER,   label: "N.O.S.E.",    hash: "nose",    spine: /^paper\./}
 };
 let view = "paper";
 /* The sigil from the Master of Thought Prayer: three rings within one ring.
@@ -3257,6 +3347,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Three failed verifications were reported, not buried. A green tick nobody believes is worse than none."}
  ],
  next:"Reading modes: Brief, White Paper, N.O.S.E., Outline, Ledger &mdash; in that order, with the page count gone."
+},
+{
+ v:104, code:"THREE READINGS, ONE DRAWER", stamp:"2026.08.06 &middot; revision 104",
+ thrust:"The toggle was answering two questions at once, so it answered neither. It offered four views, two of which were the same document; beside it sat a Full-doc button, a Registers menu, a Pages toggle and a gear &mdash; twelve controls and 273 pixels of machinery on a phone before a word of the argument. Now the toggle answers one question, <em>what am I reading</em>, with three genuinely different readings; everything you check rather than read is behind one drawer; and the bottom of a section is a rule, two round arrows and nothing after.",
+ mot:"Full Doc and White Paper were byte-identical. Not similar &mdash; identical: the same twenty-five blocks, which the gate has printed on every run since r102, when the operator asked that Full Doc be the White Paper with zero toggles and I made it so and then left both on the menu. A reader choosing from a list expects each entry to be a different thing to read. Two of them were the same thing with a different scroll behaviour, and that is not a mode, it is a preference. So there is no Full Doc entry any more. There is White Paper, and inside Settings a preference called Read straight through. Nothing was removed; the sweep reading is the same reading, it simply stopped pretending to be a second document. The toggle now cycles Brief, White paper, N.O.S.E. &mdash; eight blocks, twenty-five, and the same twenty-five with the Needs / Outcome / Solution / Evidence labels at full strength. N.O.S.E. is a presentation over the paper order rather than a fifth order, because the content is already inside those blocks; one source, two presentations, replay untouched. Outline, Ledger, Registers, the architecture panel and the determinism proof moved into the drawer, and every one of them still exists, which is the difference between moving a control and deleting one &mdash; the gate names each by id rather than counting them, so a deletion cannot pass as a move. Every icon is now drawn: sixteen inline SVGs at stroke width two, defined once and injected by key, because a gear and a crescent moon are substituted with colour emoji on Apple platforms whatever the CSS says. The Settings icon is sliders, not a gear. And the probe caught something I had done to myself: the two controls exempted from the full-doc blackout since r95 were #bFull and #bTheme, and I had just moved both into the drawer &mdash; so the landing state, which IS straight-through, had twelve hidden controls and no opener. Every one measured 0 by 0. The two exemptions are now the two questions: what am I reading, and what am I checking. Deck 273px to 44 on arrival, 153 in a view. The arrows are the Divinity Guide&rsquo;s arrows &mdash; 48 by 48, a 20-pixel chevron, disabled at fifteen per cent &mdash; with &sect;12 under the left and &sect;14 under the right when you are reading &sect;13, taken from the same cellsIn() that draws the rail so the label and the rail cannot disagree. The page count is gone, on the operator&rsquo;s instruction. And the 1,577 pixels r102 left below the arrows and called free &mdash; three panel headings, the proof block, the footer &mdash; are gone from a middle cell, because a section that ends with an arrow should end there. What this release does NOT do: hiding the N.O.S.E. labels does not produce prose. Measured, the white paper is 78 per cent N.O.S.E. &mdash; 1,962 words of prose against 7,047 &mdash; so White Paper today reads as unlabelled fragments, not as a visionary white paper. That is roughly 6,300 words of authorship, it is r105, and it gets its own draft before a word is committed. Shipping this and calling the white paper readable would be the same error as calling Full Doc a mode.",
+ stats:{clauses:303, jur:103, shields:5, defects:40, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Two menu entries naming one document is the reader&rsquo;s problem, not the engine&rsquo;s. Cutting one is the fix."},
+  {n:"Asar",   g:"A",  f:"Read versus check. One question each, and every control sorted by which it answers."},
+  {n:"Athena", g:"A+", f:"N.O.S.E. as a presentation over PAPER_ORDER, not a fifth order. No new replay surface at all."},
+  {n:"Christo",g:"A",  f:"A section that ends with a &lsquo;next&rsquo; arrow must end there. 1,577px said otherwise for two releases."},
+  {n:"Enki",   g:"A",  f:"The drawer needed a door in the one state that hides every door. That is exactly where it broke."},
+  {n:"Enlil",  g:"B+", f:"Seven staged edits, three of which failed on an em-dash or a double space. Assertions caught all three."},
+  {n:"Krishna",g:"A",  f:"cellsIn() feeds the rail, the arrows and the neighbour labels. One walk, three surfaces, no drift."},
+  {n:"Odin",   g:"A",  f:"Naming each moved control by id future-proofs the move. A count would have passed a deletion."},
+  {n:"Pangu",  g:"C+", f:"I hid the deck from the landing state and the probe found it, not me. That was a shipped-blind near miss."},
+  {n:"Sofia",  g:"A",  f:"Twelve controls to eight, and the reader is asked one question instead of four."},
+  {n:"Thoth",  g:"A+", f:"Deck 273&rarr;44 on arrival, 153 in a view of 160. Tail after the arrows 1,577&rarr;0. 3,399/3,399 replays identical."},
+  {n:"Thor",   g:"A",  f:"The 78 per cent measurement is in the release note, so nobody can call this white paper finished."}
+ ],
+ next:"r105 &mdash; author the prose. 6,300 words, draft first, so the White Paper reads as one."
 }
 ];
 
@@ -14511,7 +14622,7 @@ function blocksFor(v){
      The paper spine keeps the historical fallback honest: before r41 no
      paper.* block existed, so early releases show the record instead of an
      empty page, exactly as the four views already do. */
-  if (fullDoc){
+  if (straight){
     const fd = replay(v, PAPER_ORDER);
     if (fd.some(function(b){ return /^paper\./.test(b.id); })){
       fellBack = null; return {blocks: fd, order: PAPER_ORDER};
@@ -14545,6 +14656,61 @@ function stateHash(v, order, fresh){
 
 /* esc  — MACHINE STRINGS (block ids). Every & escaped: an id containing an
           entity is a defect, and showing it raw is the correct alarm. */
+/* ── r104 · DRAWN ICONS ───────────────────────────────────────────────────
+   Operator: "setting icons must be drawn; never use emojis; we solved that
+   problem in Security-2525." The doctrine there, verbatim: "Self-contained
+   inline SVG (no external assets — CSP-safe, works offline / slow links)."
+
+   It matters more here than anywhere else in the estate. This document is ONE
+   FILE that is meant to be downloaded and opened with no network, no icon font
+   and no stylesheet — and on Apple platforms U+2699 (gear) and U+263D (moon)
+   are substituted with COLOUR EMOJI, which ignore the theme, ignore the type
+   scale, and make a governance document look like a chat message.
+
+   16x16, stroke=currentColor, width 2, round caps and joins — the same
+   construction as the Divinity Guide chevrons the section arrows copy, so the
+   deck and the arrows share one drawing language. currentColor means there is
+   no second palette to keep in sync with the theme. */
+const ICON = (function(){
+  const w = function(d, extra){
+    return '<svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" ' +
+           'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+           'stroke-linejoin="round" aria-hidden="true" focusable="false">' + d +
+           (extra || '') + '</svg>';
+  };
+  return {
+    prev:  w('<path d="M15 18l-6-6 6-6"/>'),
+    next:  w('<path d="M9 18l6-6-6-6"/>'),
+    play:  w('<path d="M6 4l14 8-14 8V4z"/>'),
+    pause: w('<path d="M8 5v14M16 5v14"/>'),
+    /* Changes: a filled dot, drawn rather than U+25CF so its weight matches. */
+    dot:   w('<circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"/>'),
+    /* Compare: two opposed arrows. */
+    cmp:   w('<path d="M4 8h13M14 5l3 3-3 3M20 16H7M10 13l-3 3 3 3"/>'),
+    /* Reading: an open book — what you are reading, not which file. */
+    read:  w('<path d="M12 6.5C10.5 5 8.5 4.5 4 4.5v13c4.5 0 6.5.5 8 2 1.5-1.5 3.5-2 8-2v-13c-4.5 0-6.5.5-8 2zM12 6.5v13"/>'),
+    /* Settings: sliders, not a gear. A gear is the character Apple replaces. */
+    set:   w('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/>'),
+    sun:   w('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>'),
+    moon:  w('<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z"/>'),
+    close: w('<path d="M6 6l12 12M18 6L6 18"/>'),
+    list:  w('<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>'),
+    book:  w('<path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4zM4 17h14"/>'),
+    ledger:w('<path d="M5 3h11l4 4v14H5V3zM16 3v4h4M9 12h7M9 16h7"/>'),
+    reg:   w('<path d="M4 5h16v14H4zM4 9h16M9 9v10"/>'),
+    info:  w('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>'),
+    /* Latest: skip-to-end. The only deck control that still had no drawing. */
+    last:  w('<path d="M6 5l8 7-8 7V5zM18 5v14"/>'),
+    /* Disclosure carets for the release stepper — same drawing language as
+       the deck, so the two arrow pairs cannot drift apart in weight. */
+    down:  w('<path d="M6 9l6 6 6-6"/>'),
+    up:    w('<path d="M6 15l6-6 6 6"/>')
+  };
+})();
+/* Paint the drawn icons into the deck once, by id. Kept as data rather than
+   markup so a symbol is defined in exactly one place. */
+const DECK_ICONS = {bPrev:"prev", bNext:"next", bLatest:"last", bDiff:"dot", bCmp:"cmp", bSet:"set"};
+
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 /* escw — AUTHORED PROSE. `why` is a sentence a person wrote, in the document's
@@ -14761,8 +14927,8 @@ function cellsIn(){
      mirrors carry the same \u00a71..\u00a719 as the sections themselves. Both navigate
      correctly and a rail with two \u00a77 chips is still not an index \u2014 the mirrors
      drop out and PLAN remains as the one door into the outline run. */
-  if (fullDoc) heads = heads.filter(h => !/^out-[1-9]/.test(h.id));
-  const skipMirror = function(h){ return fullDoc && /^out-[1-9]/.test(h.id); };
+  if (straight) heads = heads.filter(h => !/^out-[1-9]/.test(h.id));
+  const skipMirror = function(h){ return straight && /^out-[1-9]/.test(h.id); };
   /* r58 saw this hazard and guarded it with "more than one anchored heading":
      the colophon carries a .sech anchor and also appears in the record, where a
      single head would hijack the index and collapse it to one chip.
@@ -14873,7 +15039,7 @@ function renderSectionNav(){
      other mode gets them, always, whether or not one-cell reading is on: with
      it on they turn the page, with it off they scroll, and either way the
      reader never has to go back to the index to move one step. */
-  if (fullDoc) return;
+  if (straight) return;
   const cells = cellsIn();
   if (cells.length < 2) return;
   const nm = function(c){
@@ -14890,15 +15056,18 @@ function renderSectionNav(){
     const bb = c.blocks.length && c.blocks[c.blocks.length-1].querySelector('.bb');
     if (!bb) return;
     let h = '<nav class="secnav">';
-    h += prev ? '<a href="#" data-go="' + prev.target + '"><span class="ar">&#8592;</span>' +
+    h += prev ? '<a href="#" data-go="' + prev.target + '"><span class="ar">' + ICON.prev + '</span>' +
                 '<span class="tx">' + escw(nm(prev)) + '</span></a>'
-              : '<span class="end"><span class="ar">&#8592;</span><span class="tx">start</span></span>';
+              : '<span class="end"><span class="ar">' + ICON.prev + '</span><span class="tx">start</span></span>';
     /* r100: the place, then how far along. r102: the place is the cell, and the
        cell is what the rail chip says, so the counter and the rail agree. */
-    h += '<span class="cnt">' + escw(c.label) + ' &middot; ' + (i+1) + ' of ' + cells.length + '</span>';
-    h += next ? '<a href="#" data-go="' + next.target + '" class="nx"><span class="ar">&#8594;</span>' +
+    /* r104 · no page count. Operator: "we do not want a page count." The rail
+       above already says where you are; a second counter beside the arrows is
+       the document telling you how long it is while you are trying to read it. */
+    h += '<span class="cnt">' + escw(c.label) + '</span>';
+    h += next ? '<a href="#" data-go="' + next.target + '" class="nx"><span class="ar">' + ICON.next + '</span>' +
                 '<span class="tx">' + escw(nm(next)) + '</span></a>'
-              : '<span class="end nx"><span class="ar">&#8594;</span><span class="tx">end</span></span>';
+              : '<span class="end nx"><span class="ar">' + ICON.next + '</span><span class="tx">end</span></span>';
     bb.insertAdjacentHTML("beforeend", h + '</nav>');
   });
   document.getElementById("doc").querySelectorAll('.secnav a').forEach(function(a){
@@ -14997,7 +15166,6 @@ function goTo(id){
        nothing becomes unreachable because a mode is on. */
     if (i < 0){
       paged = false;
-      document.getElementById("bPage").setAttribute("aria-pressed", "false");
       applyPaging();
       t.scrollIntoView({behavior:"smooth", block:"start"});
       return;
@@ -15046,9 +15214,13 @@ function renderOutlineLinks(){
     if (!n || n[1] === "0") return;   /* out-0 is the outline's own opening, not a section */
     const bb = h.closest(".bb");
     if (!bb || bb.querySelector(".outlink")) return;
-    bb.insertAdjacentHTML("beforeend",
-      '<p class="outlink"><a href="#sec-' + n[1] + '" data-sec="' + n[1] + '">' +
-      'Read &sect;' + n[1] + ' in full &rarr;</a></p>');
+    /* r104 · the arrows are LAST. This link is the cell's own content, so it
+       goes above them whichever function ran first. */
+    const html = '<p class="outlink"><a href="#sec-' + n[1] + '" data-sec="' + n[1] + '">' +
+      'Read &sect;' + n[1] + ' in full &rarr;</a></p>';
+    const nav = bb.querySelector(".secnav");
+    if (nav) nav.insertAdjacentHTML("beforebegin", html);
+    else bb.insertAdjacentHTML("beforeend", html);
   });
   document.getElementById("doc").querySelectorAll(".outlink a").forEach(function(a){
     a.addEventListener("click", function(ev){
@@ -15269,7 +15441,7 @@ function renderViewBanner(){
     if (el) el.addEventListener("click", function(){ setView(to); });
   };
 
-  if (fullDoc){
+  if (straight){
     const e = est(ALL_ORDER);
     host.innerHTML = '<div class="viewban"><b>Full document.</b> Every block from every order, ' +
       'read straight through &mdash; the argument, the outline, the brief and the complete change ' +
@@ -15424,13 +15596,13 @@ function renderReview(){
      of itself. */
   let pills = '<div id="relnav"><div class="relstep">' +
     '<button data-goto="' + (rPrev || 1) + '"' + (rPrev ? '' : ' disabled') +
-      ' title="Previous release">&#9668;</button>' +
+      ' title="Previous release">' + ICON.prev + '</button>' +
     '<span class="cur"><b>r' + active + '</b> &middot; <span class="code">' + escw(V.code) + '</span>' +
       ' &middot; v.' + versionAt(active) + (active === VMAX ? ' &middot; latest' : '') + '</span>' +
     '<button data-goto="' + (rNext || VMAX) + '"' + (rNext ? '' : ' disabled') +
-      ' title="Next release">&#9658;</button>' +
+      ' title="Next release">' + ICON.next + '</button>' +
     '<button id="bRelAll" aria-expanded="false" title="Show every release">' +
-      '&#9662; all ' + VMAX + ' releases</button>' +
+      ICON.down + 'all ' + VMAX + ' releases</button>' +
     '</div><div class="relall" id="relAll"><div class="pills">';
   for (const W of VERSIONS){
     pills += '<button data-goto="' + W.v + '"' + (W.v === active ? ' class="on"' : '') +
@@ -15512,7 +15684,7 @@ function renderReview(){
     relBtn.addEventListener("click", function(){
       const open = relBox.classList.toggle("open");
       relBtn.setAttribute("aria-expanded", open ? "true" : "false");
-      relBtn.innerHTML = (open ? "&#9652; hide" : "&#9662; all " + VMAX) + " releases";
+      relBtn.innerHTML = (open ? ICON.up + "hide" : ICON.down + "all " + VMAX) + " releases";
     });
   }
 }
@@ -15595,7 +15767,7 @@ function goto(v){
   active = Math.max(1, Math.min(VMAX, v));
   renderDoc();
 }
-function stop(){ if (playing){ clearInterval(playing); playing = null; document.getElementById("bPlay").innerHTML = "&#9654; Play"; } }
+function stop(){ if (playing){ clearInterval(playing); playing = null; document.getElementById("bPlay").innerHTML = ICON.play + "Play"; } }
 
 document.getElementById("bPrev").addEventListener("click", function(){ stop(); goto(active-1); });
 document.getElementById("bNext").addEventListener("click", function(){ stop(); goto(active+1); });
@@ -15604,18 +15776,25 @@ document.getElementById("vSlide").addEventListener("input", function(){ stop(); 
 document.getElementById("bDiff").addEventListener("click", function(){
   showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
 });
-const VIEW_CYCLE = ["paper","ledger","brief","outline"];
+/* r104 · the toggle offers three READINGS. Outline and Ledger are still full
+   views — they are reached from Settings, because they are what you CHECK
+   rather than what you READ. Full doc is gone from here entirely: it was the
+   same 25 blocks as the white paper, and a list entry that names the document
+   twice is a list that lies. It is a Settings preference now. */
+const VIEW_CYCLE = ["brief","paper","nose"];
 function viewBtnLabel(v){
-  const nxt = VIEW_CYCLE[(VIEW_CYCLE.indexOf(v)+1) % VIEW_CYCLE.length];
-  return "&#9636; " + VIEWS[nxt].label;
+  /* The button says what you are READING now, not what tapping it will do —
+     a control that names its own future state is the commonest way to make a
+     reader unsure where they already are. */
+  return ICON.read + (VIEWS[v] ? VIEWS[v].label : "White paper");
 }
 function setView(v){
   if (!VIEWS[v]) return;
   /* asking for a view means asking to read THAT view — full doc ignores the
      open view by design, so it must stand down rather than silently win. */
-  if (fullDoc){
-    fullDoc = false;
-    document.body.classList.remove("fulldoc");
+  if (straight){
+    straight = false;
+    document.body.classList.remove("straight");
     document.getElementById("bFull").setAttribute("aria-pressed","false");
   }
   /* r102: choosing a view is choosing to READ it, and reading is one cell at a
@@ -15625,8 +15804,8 @@ function setView(v){
      deliberate change of what you are reading, not a scroll position to keep. */
   paged = true;
   cellIx = 0;
-  document.getElementById("bPage").setAttribute("aria-pressed","true");
   view = v;
+  document.body.classList.toggle("nose", v === "nose");
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(v);
   btn.title = "Currently reading: " + VIEWS[v].label + ". Click for the next view.";
@@ -15655,6 +15834,11 @@ document.getElementById("bSpec").addEventListener("click", function(){
   specOpen = !specOpen;
   this.setAttribute("aria-pressed", specOpen ? "true" : "false");
   renderSpecBanner();
+  /* r104: the panel it opens is behind the drawer, so the drawer stands down —
+     the same rule Outline, Ledger and the proof follow. Asking to see something
+     is asking for the thing, not for the menu that named it. */
+  const w = document.getElementById("setWrap");
+  if (w && !w.hidden) document.getElementById("bSetClose").click();
   if (specOpen) window.scrollTo(0,0);
 });
 
@@ -15682,7 +15866,11 @@ var THEME_KEY = "v2525.ground";
 function setTheme(t, remember){
   document.documentElement.setAttribute("data-theme", t);
   const btn = document.getElementById("bTheme");
-  btn.innerHTML = t === "dark" ? "&#9789; Dark" : "&#9788; Light";
+  /* r104 · DRAWN, never a glyph. U+263D and U+2600 are substituted with a
+     colour emoji on Apple platforms, which is exactly the failure the operator
+     named. The moon/sun come from the one ICON map, like every other control. */
+  btn.innerHTML = (t === "dark" ? ICON.moon : ICON.sun) +
+                  (t === "dark" ? "Dark ground" : "Light ground");
   btn.title = "Reading on the " + t + " ground. Click for " +
               (t === "dark" ? "light" : "dark") + ".";
   if (remember){ try { localStorage.setItem(THEME_KEY, t); } catch (e) {} }
@@ -15699,13 +15887,56 @@ document.getElementById("bTheme").addEventListener("click", function(){
    Arrow keys are NOT taken. They have stepped the RELEASE since r30 and that
    binding is not being quietly reassigned; pages get [ and ], the on-screen
    arrows, and a swipe at the Divinity Guide's fifty-pixel threshold. */
+/* r104 · the Pages BUTTON is gone. Operator: "just get rid of pages". Reading
+   one section at a time is simply how a view behaves; reading straight through
+   is a Settings preference. `paged` survives as the internal flag both of those
+   resolve to — it is no longer a thing the reader has to find and understand. */
 var paged = false;
-document.getElementById("bPage").addEventListener("click", function(){
-  paged = !paged;
-  this.setAttribute("aria-pressed", paged ? "true" : "false");
-  applyPaging();
-  window.scrollTo(0, 0);
-});
+/* ── r104 · SETTINGS ──────────────────────────────────────────────────────
+   Opens the drawer that now houses Full-doc-as-a-preference, the theme, the
+   Outline, the Ledger, the Registers and the architecture panel. Escape and a
+   scrim click both close it, because a drawer with one exit is a trap. */
+(function(){
+  const wrap = document.getElementById("setWrap");
+  const open = function(v){
+    wrap.hidden = !v;
+    document.getElementById("bSet").setAttribute("aria-expanded", v ? "true" : "false");
+    if (v) document.getElementById("bSetClose").focus();
+  };
+  document.getElementById("bSet").addEventListener("click", function(){ open(wrap.hidden); });
+  document.getElementById("bSetClose").addEventListener("click", function(){ open(false); });
+  document.getElementById("setScrim").addEventListener("click", function(){ open(false); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") open(false); });
+  /* Outline and Ledger are still full views; only the door moved. Choosing one
+     closes the drawer, because you asked to read something. */
+  document.getElementById("bOutline").addEventListener("click", function(){
+    stop(); setView("outline"); open(false);
+  });
+  document.getElementById("bLedger").addEventListener("click", function(){
+    stop(); setView("ledger"); open(false);
+  });
+  /* The proof lives at the foot of the document, and the foot of the document
+     is the last cell. Go there, then put it on screen. */
+  document.getElementById("bProof").addEventListener("click", function(){
+    stop(); open(false);
+    const cells = cellsIn();
+    if (cells.length) goTo(cells[cells.length - 1].target);
+    const el = document.getElementById("rcore");
+    if (el) el.scrollIntoView({block:"start"});
+  });
+  /* Paint the drawn icons once. Data-driven so a symbol lives in one place. */
+  for (const id in DECK_ICONS){
+    const el = document.getElementById(id);
+    if (el) el.insertAdjacentHTML("afterbegin", ICON[DECK_ICONS[id]]);
+  }
+  document.getElementById("bPlay").insertAdjacentHTML("afterbegin", ICON.play);
+  document.getElementById("bSetClose").innerHTML = ICON.close;
+  const setIcons = {bFull:"list", bOutline:"book", bLedger:"ledger", bProof:"dot", bReg:"reg", bSpec:"info"};
+  for (const id in setIcons){
+    const el = document.getElementById(id);
+    if (el) el.insertAdjacentHTML("afterbegin", ICON[setIcons[id]]);
+  }
+})();
 document.addEventListener("keydown", function(e){
   if (e.target.tagName === "INPUT" || !paged) return;
   if (e.key === "[") pageStep(-1);
@@ -15729,19 +15960,28 @@ document.addEventListener("keydown", function(e){
   }, {passive:true});
 })();
 
-var fullDoc = false;
+var straight = false;
 document.getElementById("bFull").addEventListener("click", function(){
-  fullDoc = !fullDoc;
-  document.body.classList.toggle("fulldoc", fullDoc);
-  this.setAttribute("aria-pressed", fullDoc ? "true" : "false");
-  if (fullDoc && active !== VMAX) active = VMAX;
+  straight = !straight;
+  document.body.classList.toggle("straight", straight);
+  this.setAttribute("aria-pressed", straight ? "true" : "false");
+  /* r104 · READING ONE CELL AT A TIME IS THE INVERSE OF READING STRAIGHT
+     THROUGH. Until r103 these were two controls, so this handler never had to
+     touch `paged` — #bPage owned it. #bPage is gone on the operator's
+     instruction, which makes the two states one axis: paged = !straight.
+     Leaving it out put the body in `paged straight` at the same time, and the
+     pinned section eyebrow rode at y=0 with the whole deck on top of it —
+     forty-four pixels of burial, in every view but the landing one, at every
+     width and both grounds. The gate found it thirty-two times. */
+  paged = !straight;
+  if (straight && active !== VMAX) active = VMAX;
   renderDoc();          /* the ORDER changes, not just the chrome */
   window.scrollTo(0,0);
 });
 document.getElementById("bPlay").addEventListener("click", function(){
   if (playing){ stop(); return; }
   if (active === VMAX) active = 1;
-  this.innerHTML = "&#10073;&#10073; Pause";
+  this.innerHTML = ICON.pause + "Pause";
   renderDoc();
   playing = setInterval(function(){
     if (active >= VMAX){ stop(); return; }
@@ -15771,8 +16011,8 @@ document.addEventListener("keydown", function(e){
      someone shared must land where they meant it to; and choosing any view
      turns full-doc off, so nothing is trapped in it. */
   if (!m || !m[1]){
-    fullDoc = true;
-    document.body.classList.add("fulldoc");
+    straight = true;
+    document.body.classList.add("straight");
     document.getElementById("bFull").setAttribute("aria-pressed","true");
   }
   /* r102 · READING IS THE DEFAULT, AND FULL DOC CANNOT HAVE IT.
@@ -15781,8 +16021,7 @@ document.addEventListener("keydown", function(e){
      opposite, three times in one message. Full doc reads straight through with
      no toggles at all; every view opens in one-cell reading, and the button is
      there to turn it off for anyone who wants the whole thing at once. */
-  paged = !fullDoc;
-  document.getElementById("bPage").setAttribute("aria-pressed", paged ? "true" : "false");
+  paged = !straight;
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(view);
   /* r94: --deckh is the height of the sticky deck, measured rather than assumed. It is
