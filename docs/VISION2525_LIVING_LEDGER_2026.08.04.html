@@ -3161,6 +3161,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"A heading with no id cannot be cited. For a document whose case rests on being auditable, that is a real gap."}
  ],
  next:"One rail across all five modes, then six stale registers, then 114 of 228 readings with six owed passes."
+},
+{
+ v:101, code:"THE PROSE IS PROSE", stamp:"2026.08.06 &middot; revision 101",
+ thrust:"The renderer was printing the source code of its own typography. One escaper treated an author&rsquo;s sentence as a machine string, so seventy-nine of two hundred and eighty-five release notes showed the section sign, the apostrophe and the em dash spelled out under their own names wherever a reader looked at the record.",
+ mot:"The operator photographed the Compare table and it read: one seventh hour equals eight minutes thirty-four seconds equals nought point six eight six seven, ampersand hash five zero eight eight three semicolon, at four point eight zero seven per hour. That is the HI glyph, printed as its own numeric character reference. Beside it the r56 note called nought point one three eight, ampersand-l-d-q-u-o, the correct fraction, ampersand-r-d-q-u-o. The quotation marks were printing as their own names. And in the release banner under the author&rsquo;s seal, the sentence explaining the coin said the emblem, ampersand-r-s-q-u-o, s ink &mdash; the apostrophe spelled out in the middle of a word. One line caused all of it. The escaper replaced every ampersand with its entity, which is exactly right for a machine string and exactly wrong for a sentence a person wrote. A block identifier has no business containing an entity, and if one ever does, seeing it raw is the correct alarm. But the why field is not an identifier. It is prose, written in the same typography as the document it describes, and it was being shown as source. Measured before touching it: seventy-nine of two hundred and eighty-five entries carry entities &mdash; the em dash seventy-one times, the right single quote twenty-five, the section sign twenty-four, the two curly double quotes fifteen each, the HI glyph six, the middle dot five. Ten of the release codes carry them too, which is why the compare selector and every release pill were affected as well. And two entries carry a deliberate inline tag: r68 names the document&rsquo;s address in a code span and r82 names its source book in an emphasis span, both of which printed as literal angle brackets. There are now two escapers rather than one, so the choice is explicit wherever a string is written to the page. Identifiers keep the strict one. Prose gets an escaper where a well-formed entity passes through, a bare ampersand is still escaped, and of every possible tag exactly five survive &mdash; emphasis, italic, bold, strong, code &mdash; opening or closing, with no attributes admitted by the pattern at all. So there is no link, no image, no event handler, no script, no style: nothing whatsoever to hang a payload on. It is strictly narrower than rendering the HTML and strictly wider than printing its source. Two attribute values get a third variant that also escapes the double quote, which the old escaper never did, so those two are tighter than what they replace rather than looser. Not one character of the ledger changed. This is the renderer learning to read what was already written.",
+ stats:{clauses:303, jur:103, shields:5, defects:37, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The record is the product. A record that prints its own markup is not yet a record."},
+  {n:"Asar",   g:"A",  f:"One function served two purposes that were never the same purpose. Splitting it was the whole answer."},
+  {n:"Athena", g:"A",  f:"Machine strings keep the strict escaper. The choice is now made at each call site, not by accident."},
+  {n:"Christo",g:"A+", f:"A reader who meets a quotation mark spelled out mid-sentence stops reading and starts debugging. That is a real cost."},
+  {n:"Enki",   g:"A",  f:"Two entries had authored a code span and an emphasis span years apart. Both were silently broken."},
+  {n:"Enlil",  g:"A",  f:"Ten call sites moved, two deliberately left. Every one named and justified in the script."},
+  {n:"Krishna",g:"A",  f:"Banner, key improvements, compare table, record index, selector, pill, arrows &mdash; one cause, seven surfaces."},
+  {n:"Odin",   g:"A",  f:"Five bare tags with no attributes permitted is a ceiling, not a promise. It cannot widen by accident."},
+  {n:"Pangu",  g:"B+", f:"This shipped in a photograph from the operator, not from a gate. The gate came second."},
+  {n:"Sofia",  g:"A",  f:"79 of 285 is not an edge case. It was the normal appearance of the register, for a long time."},
+  {n:"Thoth",  g:"A+", f:"&mdash; 71 &middot; &rsquo; 25 &middot; &sect; 24 &middot; quotes 15+15 &middot; HI glyph 6 &middot; &middot; 5. Counted before, verified after."},
+  {n:"Thor",   g:"A",  f:"Wider than esc, far narrower than innerHTML, and the attribute variant closes a quote hole esc left open."}
+ ],
+ next:"One rail across all five reading modes &mdash; the operator&rsquo;s standing ask, stated three times."
 }
 ];
 
@@ -14366,7 +14387,33 @@ function stateHash(v, order, fresh){
   return h;
 }
 
+/* esc  — MACHINE STRINGS (block ids). Every & escaped: an id containing an
+          entity is a defect, and showing it raw is the correct alarm. */
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* escw — AUTHORED PROSE. `why` is a sentence a person wrote, in the document's
+   own typography: 79 of 285 entries carry entities (&mdash; 71, &rsquo; 25,
+   &sect; 24, &ldquo;/&rdquo; 15 each, the HI glyph 6). esc() escaped the
+   ampersand, so the reader was shown "&sect;4" and "&ldquo;" as source code —
+   visible in the Compare table and in every release banner.
+
+   A well-formed entity passes. A BARE ampersand is still escaped. And of every
+   possible tag exactly five survive, opening or closing, with no attributes
+   admitted by the pattern: em i b strong code. So there is no href, no src, no
+   on-anything, no script, style, img or iframe — nothing to hang a payload on.
+   Narrower than rendering the HTML; wider than printing its source. */
+var WHY_TAG = /^<\/?(?:em|i|b|strong|code)>$/;
+function escw(s){
+  return String(s)
+    .replace(/&(?!#?[0-9A-Za-z]+;)/g, "&amp;")
+    .replace(/<[^>]*>?/g, function(m){
+      return WHY_TAG.test(m) ? m : m.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    });
+}
+
+/* escAttr — the same, for a value inside title="...". Also escapes the double
+   quote, which esc() never did: tighter than what it replaces, not looser. */
+function escAttr(s){ return escw(s).replace(/"/g, "&quot;"); }
 
 /* Comparison: a pure function of two version numbers over the same ledger.
    Built from replay(), so it can never disagree with what is rendered. */
@@ -14458,7 +14505,7 @@ function renderDoc(){
     html += '<section class="blk' + (chg && showDiff && !cmpOn ? ' chg' : '') + cc + '" id="blk-' + b.id + '">' +
       '<div class="bn">' + ("0"+n).slice(-2) + '</div><div class="bb">' + b.html +
       (chg && showDiff ? '<p style="margin-top:14px"><span class="chgtag">changed in v' + active + '</span> ' +
-        '<span class="meta" style="font-size:13px">' + esc(b.why) + '</span></p>' : '') +
+        '<span class="meta" style="font-size:13px">' + escw(b.why) + '</span></p>' : '') +
       '</div></section>';
   }
   document.getElementById("doc").innerHTML = html;
@@ -14623,14 +14670,14 @@ function renderSectionNav(){
     const prev = secs[i-1], next = secs[i+1];
     let h = '<nav class="secnav">';
     h += prev ? '<a href="#" data-go="' + prev.id + '"><span class="ar">&#8592;</span>' +
-                '<span class="tx">' + esc(label(prev)) + '</span></a>'
+                '<span class="tx">' + escw(label(prev)) + '</span></a>'
               : '<span class="end"><span class="ar">&#8592;</span><span class="tx">start</span></span>';
     /* r100: "§3 · 4 of 20", not "4 / 138". The section is the place; the index
        is only how far along the twenty you are. */
     h += '<span class="cnt">' + (paged ? pageLabel(sec) + ' &middot; ' : '') +
          (i+1) + ' of ' + secs.length + '</span>';
     h += next ? '<a href="#" data-go="' + next.id + '" class="nx"><span class="ar">&#8594;</span>' +
-                '<span class="tx">' + esc(label(next)) + '</span></a>'
+                '<span class="tx">' + escw(label(next)) + '</span></a>'
               : '<span class="end nx"><span class="ar">&#8594;</span><span class="tx">end</span></span>';
     sec.querySelector('.bb').insertAdjacentHTML("beforeend", h + '</nav>');
   });
@@ -14769,7 +14816,7 @@ function renderChips(){
   if (secs.length < 2){ host.innerHTML = ""; return; }
   let h = '<div class="chips"><span class="lbl">Jump</span>';
   secs.forEach(function(sec, i){
-    h += '<button data-sec="' + sec.target + '" title="' + esc(sec.title) + '"' +
+    h += '<button data-sec="' + sec.target + '" title="' + escAttr(sec.title) + '"' +
          (i === 0 ? ' class="lead"' : '') + '>' + sec.label + '</button>';
   });
   host.innerHTML = h + '</div>';
@@ -15024,7 +15071,7 @@ function renderKeyImp(){
          'sequence stays unbroken, but the document text is identical to v' + (active-1) + '.</p>';
   } else {
     h += '<ol>';
-    for (const e of imp) h += '<li><b>' + esc(e.id) + '</b> &mdash; ' + esc(e.why) + '</li>';
+    for (const e of imp) h += '<li><b>' + esc(e.id) + '</b> &mdash; ' + escw(e.why) + '</li>';
     h += '</ol>';
   }
   document.getElementById("keyimp").innerHTML = h + '</div>';
@@ -15039,7 +15086,7 @@ function renderCompare(){
   for (const r of rows) c[r.kind]++;
 
   let opts = "";
-  for (let v=1; v<=VMAX; v++) opts += '<option value="' + v + '">v' + v + ' — ' + esc(VERSIONS[v-1].code) + '</option>';
+  for (let v=1; v<=VMAX; v++) opts += '<option value="' + v + '">v' + v + ' — ' + escw(VERSIONS[v-1].code) + '</option>';
 
   let h = '<div class="cmp"><h4>&#8646; Compare releases</h4>' +
     '<div class="cmp-ctl">' +
@@ -15065,7 +15112,7 @@ function renderCompare(){
       const cls = r.kind === "added" ? "k-add" : r.kind === "revised" ? "k-rev" : "k-rem";
       h += '<tr><td><code>' + esc(r.id) + '</code></td>' +
            '<td><span class="pill ' + cls + '">' + r.kind + '</span></td>' +
-           '<td class="n">v' + r.v + '</td><td>' + esc(r.why) + '</td></tr>';
+           '<td class="n">v' + r.v + '</td><td>' + escw(r.why) + '</td></tr>';
     }
     h += '</table><caption>Sections highlighted below: <strong>green</strong> first written in this range, ' +
          '<strong>gold</strong> revised in it. The removed column reads zero because an append-only ledger ' +
@@ -15107,7 +15154,7 @@ function renderReview(){
   let pills = '<div class="relstep">' +
     '<button data-goto="' + (rPrev || 1) + '"' + (rPrev ? '' : ' disabled') +
       ' title="Previous release">&#9668;</button>' +
-    '<span class="cur"><b>r' + active + '</b> &middot; <span class="code">' + esc(V.code) + '</span>' +
+    '<span class="cur"><b>r' + active + '</b> &middot; <span class="code">' + escw(V.code) + '</span>' +
       ' &middot; v.' + versionAt(active) + (active === VMAX ? ' &middot; latest' : '') + '</span>' +
     '<button data-goto="' + (rNext || VMAX) + '"' + (rNext ? '' : ' disabled') +
       ' title="Next release">&#9658;</button>' +
@@ -15116,7 +15163,7 @@ function renderReview(){
     '</div><div class="relall" id="relAll"><div class="pills">';
   for (const W of VERSIONS){
     pills += '<button data-goto="' + W.v + '"' + (W.v === active ? ' class="on"' : '') +
-             ' title="' + esc(W.code) + ' &middot; v.' + versionAt(W.v) + '">r' + W.v + '</button>';
+             ' title="' + escAttr(W.code) + ' &middot; v.' + versionAt(W.v) + '">r' + W.v + '</button>';
   }
   pills += '</div><p class="meta" style="margin:8px 0 0">Releases are appends to the ledger. ' +
     'A VERSION is a document that was delivered, read and answered &mdash; there have been ' +
@@ -15213,7 +15260,7 @@ function renderLedger(){
     rows += '<tr style="' + (future ? 'opacity:.38' : '') + '">' +
       '<td class="n">v' + e.v + '</td>' +
       '<td><code>' + e.id + '</code></td>' +
-      '<td>' + esc(e.why) + '</td>' +
+      '<td>' + escw(e.why) + '</td>' +
       '<td class="n">' + e.html.length + '</td>' +
       '<td class="n">' + (future ? 'future' : (e.v === active ? 'THIS' : 'applied')) + '</td></tr>';
   }
