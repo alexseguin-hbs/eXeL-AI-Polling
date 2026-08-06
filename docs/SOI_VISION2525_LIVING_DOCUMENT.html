@@ -339,6 +339,7 @@ body.fulldoc .deck-in > #bFull{display:inline-block}
    on the operator's instruction, and a forced ground with no way out is a trap —
    a reader on a bright train platform must be able to say so in one tap. */
 body.fulldoc .deck-in > #bTheme{display:inline-block}
+body.fulldoc .deck-in > #bPage{display:inline-block}
 
 body.fulldoc #keyimp,
 body.fulldoc #cmp,
@@ -412,17 +413,37 @@ body.fulldoc .fullnote{display:block}
 .notice.sign .sigil{stroke:var(--si)}
 
 /* ── r63: section-to-section navigation ──────────────────────────────────── */
-.secnav{display:flex;justify-content:space-between;gap:14px;margin:34px 0 4px;padding-top:16px;
+/* r98 · the arrow goes ABOVE its title, per the operator: "make S2 text below
+   left arrow and S4 below right arrow". Reading §3, the bottom of the page reads
+   ← over "§2 The Ceiling and the Floor" and → over "§4 The Wall", with the
+   position counter between them — the Divinity Guide's shape, which is where the
+   operator pointed. Titles keep their two-line clamp so a long one cannot blow
+   the row open. */
+.secnav{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+  margin:34px 0 4px;padding-top:16px;
   border-top:1px solid var(--rule-2);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-.secnav a{display:flex;align-items:baseline;gap:8px;max-width:46%;text-decoration:none;color:var(--ink-2);
+.secnav a,.secnav .end{display:flex;flex-direction:column;align-items:flex-start;gap:5px;
+  max-width:42%;text-decoration:none;color:var(--ink-2);
   font-size:13.5px;line-height:1.4}
 .secnav a:hover{color:var(--ai)}
-.secnav a.nx{text-align:right}
+.secnav a.nx,.secnav .end.nx{align-items:flex-end;text-align:right}
+.secnav .end{opacity:.28;pointer-events:none}
+.secnav .cnt{flex:0 0 auto;align-self:center;font:600 11px ui-monospace,monospace;
+  letter-spacing:.12em;color:var(--ink-2);opacity:.6;font-variant-numeric:tabular-nums}
 .secnav .ar{font-size:15px;color:var(--ai);flex:0 0 auto}
 .secnav .tx{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;
   -webkit-box-orient:vertical}
 @media(max-width:560px){.secnav{gap:10px}.secnav a{font-size:12.5px;max-width:47%}}
 body.fulldoc .secnav,.specban .secnav{display:none}
+/* r98 · PAGED. One section on screen, the rest still in the document and still
+   in the DOM — display only, so replay, compare, search-in-page after expanding,
+   and every id stay exactly as they were. Print is deliberately whole: a PDF of
+   one block is not the document. */
+body.paged #doc section.blk{display:none}
+body.paged #doc section.blk.pg{display:block}
+body.paged .secnav{display:flex}
+body.paged #doc section.blk.pg .bn{opacity:.34}
+@media print{body.paged #doc section.blk{display:block}}
 /* r97 · the way from a 111-word entry into the section it stands for. Generated
    by the engine from the heading id, so it can never point at the wrong section
    and no ledger block had to be rewritten to carry it. */
@@ -609,6 +630,7 @@ header.mast{position:relative}
   <button id="bCmp" aria-pressed="false" title="Compare any two releases">&#8646; Compare</button>
   <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
   <button id="bTheme" title="Switch between the dark and light reading grounds">&#9789; Dark</button>
+  <button id="bPage" aria-pressed="false" title="Read one section at a time, with arrows to the sections either side">&#9707; Pages</button>
   <span class="hash" id="vHash">state &mdash;</span>
  </div>
  <div class="deck-sec"><div id="chips"></div></div>
@@ -3058,6 +3080,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"A banner that misidentifies the view is a provenance failure. The reader could not tell which artefact they held."}
  ],
  next:"The section pager, six stale registers, and 114 of 228 readings with six owed passes."
+},
+{
+ v:98, code:"ONE SECTION AT A TIME", stamp:"2026.08.06 &middot; revision 98",
+ thrust:"Full doc opens one section to a screen, with the previous and next section named under their own arrows and the position between them. The whole document is still there; it simply stops arriving all at once.",
+ mot:"The operator pointed at the Divinity Guide and described the shape exactly: if you are on section three, the bottom carries a left arrow with section two under it and a right arrow with section four under it, and full doc becomes digestible in chunks. Most of what that needs already existed and none of it has been rebuilt. The section navigation function has emitted a previous link and a next link, each carrying the NEIGHBOUR&rsquo;S OWN HEADING, since release sixty-three. Two things were wrong for the ask and only two: it returned immediately in full doc, on the reasoning that a continuous read should not be interrupted, and the arrow sat beside its title rather than above it. Both are changed. What is genuinely new is small. A body class hides every section except the one carrying a marker, which is display only &mdash; every block stays in the document and in the page, so replay, comparison, deep links and identifiers are all untouched, and print is deliberately left whole because a PDF of one block is not the document. The page unit is the same section this function already walked, which matters more than it sounds: the pager and the navigation cannot disagree about what a section is, because they ask the same question. One hundred and thirty-eight pages in full doc, twenty-four in the white paper, twenty in the outline, eight in the brief, eighty-seven in the ledger. The counter between the arrows is the Guide&rsquo;s, and the ends are disabled stubs rather than dead links. The harder half was navigation. Three separate handlers used to scroll on their own &mdash; the section navigation, the jump chips, and every section cross-reference in the prose &mdash; and in paged mode a scroll is useless, because the target is hidden until its page is the page. All three now come through one function, so the contents link, the table of contents, the jump rail and every reference behave identically whichever mode is on, and a jump opens the page that owns its target before it scrolls. Two frames are waited, for the same measured reason as the outline links. Arrow keys were deliberately NOT taken: they have stepped the release since release thirty and reassigning them quietly would be the kind of change this document does not make. Pages get the bracket keys, the on-screen arrows, and a swipe at the Guide&rsquo;s fifty-pixel threshold with a diagonal guard, so a thumb moving while reading is still a scroll. Paging is ON by default in full doc and off everywhere else, and the toggle stays visible in full doc, because a mode with no exit is a trap. One consequence is stated rather than discovered: in paged mode the change marks show only on the page you are on. The banner counts stay whole-document and correct. That is inherent to paging, and it is why paging is a toggle rather than a rule.",
+ stats:{clauses:303, jur:103, shields:5, defects:36, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The neighbour is named, not numbered. You always know what you are about to leave and what you are about to meet."},
+  {n:"Asar",   g:"A+", f:"Four hours became a hundred and thirty-eight arrivals. The document did not shrink; the demand on the reader did."},
+  {n:"Athena", g:"A+", f:"Reused the function that already knew what a section was. Pager and navigation cannot disagree because they ask one question."},
+  {n:"Christo",g:"A+", f:"A reader can finish something. That is the whole difference between a document and a wall."},
+  {n:"Enki",   g:"A",  f:"Display only &mdash; every block stays in the page. Replay, deep links and identifiers never noticed."},
+  {n:"Enlil",  g:"A",  f:"Three scroll handlers became one goTo. In paged mode a scroll to a hidden element is a silent no-op; that had to be centralised."},
+  {n:"Krishna",g:"A",  f:"Chips, contents, cross-references and the pager all move the reader the same way now."},
+  {n:"Odin",   g:"B+", f:"Arrow keys were left alone on purpose. The next person to want them for pages should read this note first."},
+  {n:"Pangu",  g:"A",  f:"Swipe with a diagonal guard. Without it every thumb scroll would have turned the page."},
+  {n:"Sofia",  g:"A",  f:"Some readers want the wall and some want the chunks. The toggle refuses to decide for them."},
+  {n:"Thoth",  g:"A",  f:"138 / 24 / 20 / 8 / 87 pages. The counter is the position, asserted against the index rather than printed."},
+  {n:"Thor",   g:"A",  f:"Print stays whole and nothing leaves the DOM, so no archival or evidentiary property was traded for the convenience."}
+ ],
+ next:"Six stale registers, then 114 of 228 readings with six owed passes, then Version 18."
 }
 ];
 
@@ -14217,6 +14260,7 @@ function renderDoc(){
   document.getElementById("doc").innerHTML = html;
   renderSectionNav();
   renderOutlineLinks();   /* r97: outline -> details */
+  applyPaging();          /* r98: one section at a time */
   renderChips();
 
   /* Section links scroll rather than navigate, so the version hash survives. */
@@ -14224,8 +14268,7 @@ function renderDoc(){
   docEl.querySelectorAll('a[href^="#sec-"]').forEach(function(a){
     a.addEventListener("click", function(ev){
       ev.preventDefault();
-      const t = document.getElementById(this.getAttribute("href").slice(1));
-      if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
+      goTo(this.getAttribute("href").slice(1));   /* r98 */
     });
   });
 
@@ -14333,8 +14376,23 @@ function chipIndex(){
    document &mdash; from a link, a search, a chip &mdash; can move one section at a
    time without going back to the index. The links SCROLL rather than navigate, so
    the release hash survives, exactly as the table of contents already does. */
+/* ── r98 · ONE SECTION AT A TIME ─────────────────────────────────────────
+   Operator: "remember divinity guide arrow pages for sections? For Full Doc ...
+   lets make UX so sections only are viewable ... if on Section 3, bottom has S4
+   right arrow and S2 left arrow, make S2 text below left arrow and S4 below
+   right arrow. This makes the Full Doc more digestible in chunks."
+
+   Most of this already existed and has NOT been rebuilt. This function has
+   emitted a prev and a next link carrying the NEIGHBOUR'S OWN HEADING since r63.
+   Two things were wrong for the ask: it returned early in full doc, and the
+   arrow sat beside the title instead of above it. Both are fixed here; the page
+   unit is the same section this function already walks, so the pager and the nav
+   agree by construction rather than by coincidence.
+
+   The counter is the Divinity Guide's, whose shape the operator pointed at:
+   disabled stub at each end, "n / total" between the arrows. */
 function renderSectionNav(){
-  if (fullDoc) return;                       /* one continuous read; nav would interrupt it */
+  if (fullDoc && !paged) return;             /* one continuous read; nav would interrupt it */
   const secs = [...document.querySelectorAll('#doc section.blk')]
     .filter(function(sec){ return sec.querySelector('h2.sech, h2'); });
   if (secs.length < 2) return;
@@ -14346,18 +14404,65 @@ function renderSectionNav(){
     const prev = secs[i-1], next = secs[i+1];
     let h = '<nav class="secnav">';
     h += prev ? '<a href="#" data-go="' + prev.id + '"><span class="ar">&#8592;</span>' +
-                '<span class="tx">' + esc(label(prev)) + '</span></a>' : '<span></span>';
-    h += next ? '<a href="#" data-go="' + next.id + '" class="nx"><span class="tx">' +
-                esc(label(next)) + '</span><span class="ar">&#8594;</span></a>' : '<span></span>';
+                '<span class="tx">' + esc(label(prev)) + '</span></a>'
+              : '<span class="end"><span class="ar">&#8592;</span><span class="tx">start</span></span>';
+    h += '<span class="cnt">' + (i+1) + ' / ' + secs.length + '</span>';
+    h += next ? '<a href="#" data-go="' + next.id + '" class="nx"><span class="ar">&#8594;</span>' +
+                '<span class="tx">' + esc(label(next)) + '</span></a>'
+              : '<span class="end nx"><span class="ar">&#8594;</span><span class="tx">end</span></span>';
     sec.querySelector('.bb').insertAdjacentHTML("beforeend", h + '</nav>');
   });
   document.getElementById("doc").querySelectorAll('.secnav a').forEach(function(a){
     a.addEventListener("click", function(ev){
       ev.preventDefault();
-      const t = document.getElementById(this.getAttribute("data-go"));
-      if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
+      goTo(this.getAttribute("data-go"));
     });
   });
+}
+
+/* r98 · ONE WAY TO GET SOMEWHERE. Three handlers used to scroll on their own —
+   the section nav, the jump chips and every #sec- link. In paged mode a scroll
+   is useless: the target is display:none until its page is the page. All three
+   now come through here, so the contents link, the table of contents, the jump
+   rail and every §-cross-reference behave identically whichever mode is on. */
+function pageOf(id){
+  const el = document.getElementById(id);
+  return el ? el.closest("section.blk") : null;
+}
+function showPage(sec){
+  if (!sec) return;
+  document.getElementById("doc").querySelectorAll("section.blk.pg")
+    .forEach(function(s){ s.classList.remove("pg"); });
+  sec.classList.add("pg");
+}
+function goTo(id){
+  const t = document.getElementById(id);
+  if (!t) return;
+  if (paged){
+    showPage(pageOf(id));
+    window.scrollTo(0, 0);
+    /* Two frames: the page has just been un-hidden and has no box until the
+       second. The same measurement that r97's outline links needed. */
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      const h = document.getElementById(id);
+      if (h && !/^blk-/.test(id)) h.scrollIntoView({block:"start"});
+    }); });
+    return;
+  }
+  t.scrollIntoView({behavior:"smooth", block:"start"});
+}
+function pageStep(d){
+  if (!paged) return;
+  const secs = [...document.getElementById("doc").querySelectorAll("section.blk")];
+  const i = secs.findIndex(function(s){ return s.classList.contains("pg"); });
+  const n = secs[Math.max(0, Math.min(secs.length - 1, (i < 0 ? 0 : i) + d))];
+  if (n && n !== secs[i]){ showPage(n); window.scrollTo(0, 0); }
+}
+function applyPaging(){
+  document.body.classList.toggle("paged", paged);
+  const secs = [...document.getElementById("doc").querySelectorAll("section.blk")];
+  if (paged && !secs.some(function(s){ return s.classList.contains("pg"); }) && secs.length)
+    showPage(secs[0]);
 }
 
 /* r97 · DEFECT 36 — OUTLINE → DETAILS.  The outline is nineteen sections at 111
@@ -14386,10 +14491,7 @@ function renderOutlineLinks(){
       /* In full doc both orders are present, so this is a scroll. In the outline
          view the section itself is not rendered, so the view has to change first
          and the scroll waits one frame for the new document to exist. */
-      if (document.getElementById(id)){
-        document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"});
-        return;
-      }
+      if (document.getElementById(id)){ goTo(id); return; }   /* r98 */
       setView("paper");
       /* Two frames, not one. setView replaces ~290 KB of document; the first
          frame paints it and the second is the earliest the new element has a
@@ -14414,8 +14516,7 @@ function renderChips(){
   host.innerHTML = h + '</div>';
   host.querySelectorAll('button').forEach(function(b){
     b.addEventListener("click", function(){
-      const t = document.getElementById(this.getAttribute("data-sec"));
-      if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
+      goTo(this.getAttribute("data-sec"));   /* r98 */
       markChip(this);
     });
   });
@@ -15000,6 +15101,44 @@ document.getElementById("bTheme").addEventListener("click", function(){
   setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark", true);
 });
 
+/* ── r98 · the paging toggle ─────────────────────────────────────────────
+   Default ON in full doc, which is what the operator asked for: "this makes the
+   Full Doc more digestible in chunks." Any view can turn it off, and the button
+   stays visible in full doc, because a mode with no exit is a trap.
+
+   Arrow keys are NOT taken. They have stepped the RELEASE since r30 and that
+   binding is not being quietly reassigned; pages get [ and ], the on-screen
+   arrows, and a swipe at the Divinity Guide's fifty-pixel threshold. */
+var paged = false;
+document.getElementById("bPage").addEventListener("click", function(){
+  paged = !paged;
+  this.setAttribute("aria-pressed", paged ? "true" : "false");
+  applyPaging();
+  window.scrollTo(0, 0);
+});
+document.addEventListener("keydown", function(e){
+  if (e.target.tagName === "INPUT" || !paged) return;
+  if (e.key === "[") pageStep(-1);
+  if (e.key === "]") pageStep(1);
+});
+(function(){
+  let x0 = null, y0 = null;
+  const doc = document.getElementById("doc");
+  doc.addEventListener("touchstart", function(e){
+    if (e.touches.length !== 1) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, {passive:true});
+  doc.addEventListener("touchend", function(e){
+    if (!paged || x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    /* horizontal intent only — a diagonal thumb while reading is a scroll */
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    pageStep(dx < 0 ? 1 : -1);
+  }, {passive:true});
+})();
+
 var fullDoc = false;
 document.getElementById("bFull").addEventListener("click", function(){
   fullDoc = !fullDoc;
@@ -15045,6 +15184,13 @@ document.addEventListener("keydown", function(e){
     fullDoc = true;
     document.body.classList.add("fulldoc");
     document.getElementById("bFull").setAttribute("aria-pressed","true");
+  }
+  /* r98: full doc opens PAGED. 138 blocks and four hours read straight through
+     is the thing the operator asked to break into chunks. Choosing a view leaves
+     full doc and paging stays where the reader left it. */
+  if (fullDoc){
+    paged = true;
+    document.getElementById("bPage").setAttribute("aria-pressed","true");
   }
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(view);
