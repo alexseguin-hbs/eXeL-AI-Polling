@@ -2896,6 +2896,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"An annual CAP on draw is a stronger control than a schedule: a large balance can never become a large single payment."}
  ],
  next:"Six successions (114 readings) and the single-reader test remain for Version 17."
+},
+{
+ v:93, code:"THE FILLING RULE &mdash; 9999 &#50883; A YEAR, FLOWING FORWARD", stamp:"2026.08.05 &middot; revision 93",
+ thrust:"One sentence, stated explicitly: a year fills to 9999 &#50883; and no further, and the excess flows forward into the next year, which is capped at 9999 &#50883; as well. Nothing is ever lost &mdash; it waits.",
+ mot:"r92 fixed the schedule and described the outcome without ever stating the mechanism, and the operator closed that gap in a line: after the 9999 payout converts to dollars per minute it flows to the next year, to 9999 maximum. So the rule is written where a reader meets the table. A year fills to the ceiling and stops. The excess does not vanish and it does not enlarge the year &mdash; it flows forward into the next year, which fills to the same ceiling and stops in exactly the same way. Five years of that is the reach of a single year&rsquo;s contribution, and whatever is still unspent flows into year six on the identical rule. Two properties fall out of that sentence and both matter. No year ever pays more than the ceiling, which is what stops recognition becoming capital. And nothing is ever forfeited, which is what separates this from every cap a person has met before: a cap that forfeits punishes the year you were productive, and a cap that defers pays you for it later. Only the second one is livelihood security, and the document now says which it is.",
+ stats:{clauses:303, jur:103, shields:5, defects:31, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"One rule, stated once, in the place a reader meets the table. That is how a number stops drifting."},
+  {n:"Asar",   g:"A+", f:"&ldquo;Nothing is ever lost &mdash; it waits&rdquo; is the sentence a contributor will remember, and it resolves the ceiling completely."},
+  {n:"Athena", g:"A",  f:"A cap that forfeits versus a cap that defers is the whole argument, compressed into one contrast."},
+  {n:"Christo",g:"A+", f:"Somebody who has met a benefits cliff reads this and understands immediately that this one does not cut them off."},
+  {n:"Enki",   g:"A",  f:"The rule holds identically at any local floor, because it is stated in &#50883; and not in any currency."},
+  {n:"Enlil",  g:"A",  f:"Fill-and-spill is a trivially testable function: fill to 9999, carry remainder, repeat. It can be unit-tested before it is built."},
+  {n:"Krishna",g:"A",  f:"The ceiling, the five years and the escrow draw are now one mechanism rather than three separate claims."},
+  {n:"Odin",   g:"A",  f:"r92 said what happens and not how. A reader would have asked this question in the first minute."},
+  {n:"Pangu",  g:"A",  f:"Deferring rather than forfeiting is the rarer design and the harder one to fund. Saying so is what makes the reserve necessary."},
+  {n:"Sofia",  g:"A",  f:"The operator has now corrected the divisor, the margin, the schedule and the filling rule. Four numbers, four times right."},
+  {n:"Thoth",  g:"A",  f:"9999 &#50883; per year, five years reach, remainder to year six, no year above the ceiling. Four constraints, one function."},
+  {n:"Thor",   g:"A+", f:"A per-year cap that never forfeits removes the incentive to game the timing of a contribution, which was the obvious attack."}
+ ],
+ next:"Six successions (114 readings) and the single-reader test remain for Version 17."
 }
 ];
 
@@ -13630,6 +13651,54 @@ L(92,"unit.death","The estate case carried the old fifths: it valued three unpai
 '<em>counted</em> &mdash; permanently, publicly, beside the person they lost, for eight and a half '+
 'minutes of work each. <strong>An ending turns into a beginning, which is the only honest thing an '+
 'ending can become in a framework built to run for five hundred years.</strong></p>');
+
+
+/* ══════════ REVISION 93 ══════════ */
+L(93,"unit.payout","The filling rule stated explicitly, because r92 described the outcome and not the mechanism. A year fills to 9999 &#50883; and no further; the excess FLOWS FORWARD into the next year, which is capped at 9999 &#50883; as well. Five years of that is the reach of one year&rsquo;s contribution, and anything still unspent flows into year six on the same rule. No year ever pays more than the ceiling and nothing is ever lost &mdash; it waits. That is the difference between a cap that forfeits and a cap that defers, and only one of them is livelihood security.",
+'<h2>Five years, guaranteed: the salary floor</h2>'+
+'<p>Earned value is paid out over five years, <strong>funded by a ring-fenced reserve whose balance is published monthly</strong>. The guarantee is structural, not aspirational. The purpose is stated in the '+
+'locked definition: <em>livelihood security and continuity, not lump-sum wealth.</em> The mechanism that '+
+'delivers it is worth setting out, because it is the most humane thing in the design and the easiest to '+
+'miss in a table.</p>'+
+'<p>A contributor may accrue up to <strong>five times</strong> a single year&rsquo;s ceiling. What that buys is '+
+'not a bigger payment &mdash; the ceiling is the ceiling &mdash; it is <strong>five years of it</strong>: the '+
+'full annual figure this year and in each of the next four, whether or not another hour is ever contributed. '+
+'The filling rule is the whole mechanism and it is one sentence: <strong>a year fills to 9999 &#50883; and no '+
+'further, and the excess flows forward into the next year, which is also capped at 9999 &#50883;</strong>. '+
+'Five years of that is the reach of a single year&rsquo;s contribution; anything still unspent flows into '+
+'year six on the same rule. No year ever pays more than 9999 &#50883;, and nothing is ever lost &mdash; it '+
+'waits. The figure is chosen rather than derived: '+
+'9999 &#50883; settles in Texas at <strong>$72,492.75</strong>, which is a reasonable salary there and a long '+
+'way above the poverty line. That is what the unit was always for.</p>'+
+'<div class="scroll"><table>'+
+'<tr><th>Year</th><th class="n">Ceiling arriving</th><th class="n">Texas</th><th class="n">Brazil</th><th class="n">Nigeria</th></tr>'+
+'<tr><td>Year 1</td><td class="n">full ceiling</td><td class="n">$72,492.75</td><td class="n">$15,798.42</td><td class="n">$3,399.66</td></tr>'+
+'<tr><td>Year 2</td><td class="n">full ceiling</td><td class="n">$72,492.75</td><td class="n">$15,798.42</td><td class="n">$3,399.66</td></tr>'+
+'<tr><td>Year 3</td><td class="n">full ceiling</td><td class="n">$72,492.75</td><td class="n">$15,798.42</td><td class="n">$3,399.66</td></tr>'+
+'<tr><td>Year 4</td><td class="n">full ceiling</td><td class="n">$72,492.75</td><td class="n">$15,798.42</td><td class="n">$3,399.66</td></tr>'+
+'<tr><td><strong>Year 5</strong></td><td class="n"><strong>full ceiling</strong></td><td class="n"><strong>$72,492.75</strong></td><td class="n"><strong>$15,798.42</strong></td><td class="n"><strong>$3,399.66</strong></td></tr>'+
+'<tr style="opacity:.72"><td>Year 6</td><td class="n">overflow</td><td class="n" colspan="3">the forward flow, still capped at 9999 &#50883;</td></tr>'+
+'</table><caption>Each annual figure IS the ceiling settled at the local rate &mdash; not a fifth of it. Five '+
+'years of accrual buys five years of the same figure, and year six holds whatever was earned beyond that. The '+
+'local numbers differ because the local floors differ; the slice of a life is identical everywhere.</caption></div>'+
+'<p>Two properties follow, and both are the point rather than side effects.</p>'+
+'<p><strong>It is a floor, not a windfall.</strong> A contributor at the ceiling knows what the next four '+
+'years hold even if they never contribute again. That is what &ldquo;continuity&rdquo; means in the locked '+
+'definition, and it is the difference between being paid and being secure.</p>'+'<p><strong>It is an accruing balance, not a sum anybody hands over.</strong> The figures above are annual '+
+'CAPS on what may be drawn, not cheques that arrive on a date. Recognition accrues continuously as '+
+'<strong>$/min</strong> into escrow against the ring-fenced reserve, and the contributor draws their current '+
+'balance when they want it &mdash; the same shape as a driver taking instant pay several times a day rather '+
+'than waiting for Friday. The ceiling governs the year; the timing belongs to the person. A balance somebody '+
+'else releases on a schedule is not security, it is a promise with a calendar attached.</p>'+
+'<p><strong>It converts recognition into stability instead of into leverage.</strong> Five times $72,492.75 '+
+'arriving at once is capital, and capital seeks influence. The same accrual drawn against an annual ceiling '+
+'is a salary. The ceiling stops accumulation across people; the five-year horizon stops it across time; and '+
+'the annual cap stops a large balance becoming a large payment.</p>'+
+'<div class="notice hot"><span class="tag">&#9888; The cost of the guarantee</span>'+
+'<p style="margin-bottom:0">The word <strong>guaranteed</strong> is doing enormous work here, and it is '+
+'the most legally dangerous word in the document. A guaranteed multi-year payment stream to individuals '+
+'is, in substance, a defined-benefit obligation. It is treated as a first-order legal problem later in '+
+'this document rather than as a footnote, because it is the clause a regulator reaches for first.</p></div>');
 
 
 /* ── engine ───────────────────────────────────────────────────────────── */
