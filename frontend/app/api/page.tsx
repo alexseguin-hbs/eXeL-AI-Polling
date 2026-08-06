@@ -226,7 +226,12 @@ export default function ApiPage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
-        <div className="w-full md:w-1/2 md:border-r flex flex-col items-center px-6 py-4 md:h-screen">
+        {/* Height minus the site footer: the shared layout appends the Feedback /
+            SECURITY-2525 / eXeL AI row below every route, so a naked `md:h-screen`
+            makes the document taller than the screen and the row reads as a bar on
+            the content (operator, asked tool-wide). `--site-footer-h` is measured
+            and published by that footer; the 0px default is the old behaviour. */}
+        <div className="w-full md:w-1/2 md:border-r flex flex-col items-center px-6 py-4 md:h-[calc(100vh-var(--site-chrome-h,0px))]">
           {/* Header */}
           <div className="flex items-center justify-between w-full mb-2 shrink-0">
             <Link href="/" className="flex items-center gap-1.5 hover:opacity-80">

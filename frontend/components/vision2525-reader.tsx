@@ -85,7 +85,19 @@ export function Vision2525Reader() {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col" style={{ background: mode === "dark" ? "#0b1314" : "#f7f6f2" }}>
+    /* Height = viewport MINUS the site footer, which is appended below this page by
+       the shared layout. Claiming the full 100dvh made the page 57px taller than the
+       screen at 390x844, so the browser scrolled and the footer read as a bar over
+       the document (operator, asked repeatedly). The footer measures itself and
+       publishes `--site-footer-h`; the 0px default keeps this identical to today if
+       the variable is ever absent. */
+    <div
+      className="flex flex-col"
+      style={{
+        height: "calc(100dvh - var(--site-chrome-h, 0px))",
+        background: mode === "dark" ? "#0b1314" : "#f7f6f2",
+      }}
+    >
       {/* ── Bar: identity, theme, download. Deliberately slim — the document
              carries its own deck and two sets of chrome would fight. ── */}
       <header

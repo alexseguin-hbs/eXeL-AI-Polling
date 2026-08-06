@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, useLayoutEffect, useRef, Suspense } from "react";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider, useTheme } from "@/lib/theme-context";
@@ -39,7 +39,57 @@ function ThemeAuthSync({ children }: { children: React.ReactNode }) {
  * The eXeL-AI easter-egg (music/portal) still activates from the badge and, when in
  * Simulation Mode, PoweredBadge renders its own fixed overlay — untouched by docking.
  */
+/* SHARED CHROME, MEASURED — published as `--site-chrome-h`.
+   ---------------------------------------------------------------------------
+   OPERATOR, ASKED REPEATEDLY: "feedback security 2525 and eXeL AI are at bottom
+   of page." They ARE in flow — this footer has never been `position: fixed`.
+   The defect is arithmetic, not placement.
+
+   Every route is wrapped in two strips it does not own: the build-stamp banner
+   above (`#site-build-banner` in app/layout.tsx) and this footer below. A page
+   that claims the WHOLE viewport therefore produces a document of
+
+        banner + 100dvh + footer
+
+   The browser scrolls, the page's own header slides off the top, and the footer
+   reads as a bar sitting on the content. MEASURED on the Vision reader at
+   390x844: banner 41 + reader 787 + footer 57 = 885 against an 844 viewport.
+   Subtracting only the footer left 41px — which is why this measures BOTH.
+   Desktop differs (banner 25, not 41), so a constant would have been wrong on
+   one of them no matter which number was picked.
+
+   One producer, N consumers:
+        h-[calc(100dvh-var(--site-chrome-h,0px))]
+   The 0px default means a surface that has not adopted it behaves exactly as it
+   does today, so adoption can be incremental and never breaks a page. */
+function useSiteChrome() {
+  const ref = useRef<HTMLElement | null>(null);
+  // Layout effect, not effect: publish BEFORE paint so no frame renders at the
+  // wrong height and jumps. SSR has no layout, hence the typeof guard.
+  const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
+  useIso(() => {
+    const footer = ref.current;
+    if (!footer) return;
+    const banner = document.getElementById("site-build-banner");
+    const h = (el: Element | null) => (el ? el.getBoundingClientRect().height : 0);
+    const publish = () => {
+      const root = document.documentElement.style;
+      root.setProperty("--site-header-h", `${Math.round(h(banner))}px`);
+      root.setProperty("--site-footer-h", `${Math.round(h(footer))}px`);
+      root.setProperty("--site-chrome-h", `${Math.round(h(banner) + h(footer))}px`);
+    };
+    publish();
+    if (typeof ResizeObserver === "undefined") return; // measured once; still correct
+    const ro = new ResizeObserver(publish);
+    ro.observe(footer);
+    if (banner) ro.observe(banner);
+    return () => ro.disconnect();
+  }, []);
+  return ref;
+}
+
 function SiteFooter() {
+  const footerRef = useSiteChrome();
   // Use window.location since this runs client-side only
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   const screen = path.startsWith("/dashboard")
@@ -54,7 +104,7 @@ function SiteFooter() {
     ? "landing"
     : "other";
   return (
-    <footer className="w-full border-t border-border/40 bg-background/60">
+    <footer ref={footerRef} className="w-full border-t border-border/40 bg-background/60">
       {/* H5 · THE ROW SPANS THE VIEWPORT (operator, asked twice: "Ensure Feedback and eXeL AI are moved to
           edges of screen Left = Feedback, Right = eXeL AI").
           The cause was `mx-auto max-w-5xl` — a 1024px centred container. On a 1900px screen that parks

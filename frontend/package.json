@@ -56,7 +56,7 @@
     "test:rcore-gestures": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/rcore-gestures.test.mjs",
     "test:asset-kinematics": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/asset-kinematics.test.mjs",
     "test:realtime-ranking": "node --experimental-strip-types tests/use-realtime-ranking.test.mjs",
-    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:room-scope && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim && npm run test:bom && npm run test:room-row-actions && npm run test:security-file && npm run test:security-guard && npm run test:security-paris && npm run test:cube-partitions && npm run test:innovation-time && npm run test:soi-i18n && npm run test:soi-section && npm run test:hwr-client && npm run test:economy && npm run test:house && npm run test:layers && npm run test:framing && npm run test:estimate && npm run test:trinity-palette && npm run test:room-program && npm run test:project && npm run test:adapt-themes && npm run test:realtime-ranking && npm run test:voxel-fingerprint && npm run test:sim-parity && npm run test:embed-webc && npm run test:viewport && npm run test:settings-egg && npm run test:slide-shots && npm run test:pdf-gate && npm run test:zoom-gate",
+    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:room-scope && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim && npm run test:bom && npm run test:room-row-actions && npm run test:security-file && npm run test:security-guard && npm run test:security-paris && npm run test:cube-partitions && npm run test:innovation-time && npm run test:soi-i18n && npm run test:soi-section && npm run test:hwr-client && npm run test:economy && npm run test:house && npm run test:layers && npm run test:framing && npm run test:estimate && npm run test:trinity-palette && npm run test:room-program && npm run test:project && npm run test:adapt-themes && npm run test:realtime-ranking && npm run test:voxel-fingerprint && npm run test:sim-parity && npm run test:embed-webc && npm run test:viewport && npm run test:settings-egg && npm run test:slide-shots && npm run test:pdf-gate && npm run test:zoom-gate && npm run test:site-footer",
     "test:adapt-themes": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/adapt-live-themes.test.mjs",
     "test:viewport": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/use-viewport.test.mjs",
     "deploy": "npx wrangler@4.115.0 deploy",
@@ -64,7 +64,8 @@
     "ship": "bash scripts/ship.sh",
     "status": "node scripts/status.mjs",
     "feedback": "node scripts/feedback-artifact.mjs",
-    "test:input-census": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/input-census.mjs"
+    "test:input-census": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/input-census.mjs",
+    "test:site-footer": "node tests/site-footer-height.test.mjs"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",

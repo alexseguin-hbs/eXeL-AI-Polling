@@ -585,7 +585,7 @@ function Board() {
     // Ease-of-viewing (operator): on phone/tablet (portrait + landscape) the whole PAGE scrolls so nothing —
     // including the bottom controls — is ever clipped by a fixed height; on desktop (lg+) keep the fixed
     // app-shell with an internal scroll rail. Mirrors the Architect-2525 / Security-2525 responsive pattern.
-    <div data-orientation={vp.orientation} data-vpclass={vp.aspectClass} className="flex min-h-[100dvh] w-full flex-col bg-[#0b0f14] text-slate-100 lg:h-[100dvh] lg:overflow-hidden">
+    <div data-orientation={vp.orientation} data-vpclass={vp.aspectClass} className="flex min-h-[100dvh] w-full flex-col bg-[#0b0f14] text-slate-100 lg:h-[calc(100dvh-var(--site-chrome-h,0px))] lg:overflow-hidden">
     {/* Consistent max-width band (phone → desktop) — every section shares these bounds; full-bleed bg behind. */}
     <div className="mx-auto flex w-full max-w-[1600px] flex-col lg:min-h-0 lg:flex-1">
       {/* Header */}

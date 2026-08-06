@@ -24,7 +24,13 @@ const CYAN = "#22d3ee";
 
 export default function MoTPage() {
   return (
-    <div className="flex h-[100dvh] flex-col" style={{ background: "#0b1314" }}>
+    /* Same footer arithmetic as the white-paper reader: the shared layout appends the
+       Feedback / SECURITY-2525 / eXeL AI row BELOW this page, so claiming the whole
+       viewport makes the document taller than the screen. Subtract the measured row. */
+    <div
+      className="flex flex-col"
+      style={{ height: "calc(100dvh - var(--site-chrome-h, 0px))", background: "#0b1314" }}
+    >
       <header
         className="z-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2.5 sm:px-6"
         style={{
