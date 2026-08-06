@@ -308,6 +308,12 @@ p.dl{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--rule)}
 p.dl a{font-weight:600}
 p.dl .meta{display:block;margin-top:5px;font-size:13.5px;color:var(--ink-2)}
 
+/* r114 · the handoff sits slightly apart from the argument, and quieter than
+   it, because it is a door rather than a claim. */
+p.handoff{margin:20px 0 0;padding-top:13px;border-top:1px solid var(--rule);
+  color:var(--ink-2);font-size:.97em}
+@media(max-height:500px){p.handoff{margin-top:13px;padding-top:9px}}
+
 p.ext{font:600 11px ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;
   color:var(--ink-2);margin:-6px 0 4px}
 /* ── r113 · THE BRIEF'S LABEL COLLIDED WITH ITS OWN HEADING ────────────────
@@ -3683,6 +3689,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Append-only, one block, no artwork duplicated. Smallest safe change."}
  ],
  next:"The spine, rebuilt from parsed structure rather than string surgery."
+},
+{
+ v:114, code:"THE DOCUMENT TURNS TO FACE THE READER", stamp:"2026.08.06 &middot; revision 114",
+ thrust:"Nineteen of twenty sections opened cold and the whole paper addressed a reader twenty-three times in eight thousand four hundred and seventy-four words. Every section now hands the reader to the next. Direct address across the paper goes from 23 to 102.",
+ mot:"Twelve masters read all twenty-two sections and converged before any of them was read separately. The finding was not that the paper is thin. Seven thousand one hundred and twenty-nine of its section words live inside the N.O.S.E. blocks and those blocks are real paragraphs &mdash; I had called it seventy-eight per cent scaffold twice and built an argument on it, and that framing was wrong. The paper is written. It did not speak. Nineteen of twenty sections began as though the reader had just arrived, so the read-through was twenty-two excellent standalone pages in a row rather than one argument, and eleven sections addressed nobody at all: the Shield where the founders renounce ownership, the Off Switch which hands a reader the power to end this, and the Closing, the last thing anybody reads. A handoff at the END of each section gives the read-through its spine while every section keeps a clean opening for somebody arriving by chip, and it is one-way by rule: a section may reach forward, never back. This release is also the fourth attempt at it. Three earlier ones spliced the prose into the ledger and failed, the last leaving three sections rendering with no N.O.S.E. blocks at all &mdash; nineteen of twenty-two correct, which is not a release, and it was reverted rather than shipped. The fault never changed: string surgery into a chain of quoted literals, anchored on a guessed close or a miscounted terminator. renderHeadingRows and foldAlvar do their work on the parsed DOM and have never broken a block, so the spine is built the same way and verified the same way &mdash; twenty-one handoffs rendered, twenty-two of twenty-two sections still carrying four N.O.S.E. blocks, arrows still last. The honest cost is stated in the code rather than buried: this is reader-facing prose living in the engine instead of the ledger, so it does not replay with a release the way the sections do. renderOutlineLinks set that precedent already. It should migrate into the ledger once the append can be done safely.",
+ stats:{clauses:303, jur:103, shields:5, defects:40, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"One rule, twenty-two sections, no exceptions. A spine with gaps is not a spine."},
+  {n:"Asar",   g:"A+", f:"Twenty-two standalone pages became one argument and none of them lost standalone."},
+  {n:"Athena", g:"A+", f:"Fourth attempt, first success, because the mechanism changed rather than the prose."},
+  {n:"Christo",g:"A+", f:"Eleven sections addressed nobody. The Shield and the Off Switch now speak to the person."},
+  {n:"Enki",   g:"A",  f:"Forward-only. A backward reach would break chip arrival, which is how most readers land."},
+  {n:"Enlil",  g:"A+", f:"21 rendered &middot; 22 of 22 still at four N.O.S.E. blocks &middot; 0 broken. Verified, not assumed."},
+  {n:"Krishna",g:"A",  f:"Inserted before .secnav, so r104&rsquo;s arrows-are-last rule still holds everywhere."},
+  {n:"Odin",   g:"A&minus;", f:"Prose in the engine does not replay. Disclosed in the code and owed to the ledger."},
+  {n:"Pangu",  g:"A",  f:"The last page now tells a reader to start with an hour of their own. That is the door."},
+  {n:"Sofia",  g:"A",  f:"23 addresses to 102. The document stopped describing and started speaking."},
+  {n:"Thoth",  g:"A+", f:"8,474 words &middot; 19 cold opens &middot; 23 addresses before &middot; 102 after. All counted."},
+  {n:"Thor",   g:"A",  f:"Three reverts preceded this. The fourth changed the mechanism instead of retrying the fault."}
+ ],
+ next:"The nineteen per-section rewrites, &sect;17 and &sect;18 first, and the 114 readings still owed."
 }
 ];
 
@@ -15859,6 +15886,7 @@ function renderDoc(){
   renderSectionNav();
   renderOutlineLinks();   /* r97: outline -> details */
   renderHeadingRows();    /* r107: the eyebrow under the title */
+  renderHandoffs();       /* r114: every section hands the reader to the next */
   applyPaging();          /* r98: one section at a time */
   renderChips();
   /* r102: renderChips REPLACES the rail's markup, so the "you are here" class
@@ -16294,6 +16322,90 @@ function renderHeadingRows(){
     const ext = h.nextElementSibling;
     if (ext && ext.classList.contains("ext")) h.appendChild(ext);   /* row 2, col 2 */
   });
+}
+
+/* ── r114 · THE SPINE ──────────────────────────────────────────────────────
+   MEASURED across the twenty sections before a word was written: NINETEEN OF
+   TWENTY open cold, with no tie to what came before, and the whole paper
+   addresses a reader twenty-three times in 8,474 words — one every 368, with
+   eleven sections addressing nobody at all. Those eleven include the Shield,
+   where the founders renounce ownership; the Off Switch, which hands a reader
+   the power to end the framework; and the Closing, the last thing anybody
+   reads. A document that has been written and does not speak.
+
+   A handoff at the END of each section gives the read-through its spine while
+   every section keeps a clean opening for somebody arriving by chip. The rule
+   is one-way: a section may reach forward, never back.
+
+   WHY THIS IS RENDER-TIME AND NOT A LEDGER APPEND. It was tried as a ledger
+   append three times and failed three times, the last one leaving §2, §4 and
+   §5 rendering with zero N.O.S.E. blocks — nineteen of twenty-two correct,
+   which is not a release. The fault was always the same: string surgery into
+   a chain of quoted literals, anchored on a guessed close or a miscounted
+   terminator. renderHeadingRows() and foldAlvar() do their work on the parsed
+   DOM and have never broken a block, so the spine is built the same way.
+
+   The honest cost, stated rather than buried: this is reader-facing prose that
+   lives in code instead of the ledger, so it does not replay with a release
+   the way the sections do. renderOutlineLinks() already sets that precedent
+   with "Read §N in full →". It should migrate into the ledger once the append
+   can be done safely, and until then this comment is the disclosure. */
+const HANDOFF = {
+  "paper.s0":
+    "Scope came first because a framework that never says what it cannot do will be read as promising everything, and you would be right to stop trusting it at the first gap. Now the law, which is the part no majority may amend.",
+  "front.constitution":
+    "The clause you will feel first is the sixth: nobody enrolls you. Everything else here defends a single sentence about an hour, and that sentence is the next page.",
+  "paper.s2":
+    "The contradiction above is left standing on purpose. We could reconcile it in a paragraph and the reconciliation would be cleverness rather than a decision, so it waits for a person. Next, what keeps money from deciding this for you.",
+  "paper.s3":
+    "What the wall protects is your judgement: the possibility that the best idea in the room can come from whoever has the least in it. Money is the loudest way that fails. Founders are the quietest, and they are next.",
+  "paper.s4":
+    "Read the renunciation as it is written, because it is written about us and it binds us to you: no supervoting class, no founder allocation, no reserved seat, no perpetual role, agreed in advance and in public. What remains is the record, and the record is next.",
+  "paper.s5":
+    "You are holding the proof. This page reconstructs in the browser you are reading it in, from the same append-only list every other page comes from, and you can run it yourself in the panel at the foot. Next, what an hour is worth where you live.",
+  "paper.s6":
+    "If you are in one of the thirteen jurisdictions with no statutory rate, you can still mint and you cannot yet settle, and we would rather tell you that plainly than let you discover it. Next, the mechanism that lets you end all of this.",
+  "paper.s7":
+    "The switch is yours. Not the council&rsquo;s, not the funders&rsquo;, not the author&rsquo;s: any enrolled person may petition, and every vote weighs the same regardless of what anyone has given. Next, the reason a system that can be ended must also be able to see itself.",
+  "paper.s8":
+    "The register is open now. Every defect above has a date and an entry, including the two still unresolved, and you can read them before you decide whether to believe anything else here. Next, why we accept a slower path.",
+  "paper.s9":
+    "The asymmetry is the whole argument, and it is your argument too: build slowly and you may waste time, build fast and wrong and you take people with you. Next, what the numbers say about now rather than then.",
+  "paper.s10":
+    "None of that was pleasant to publish, and it is here because a framework that reports only what flatters it is not reporting. Next, the rate we can be caught missing.",
+  "paper.s11":
+    "The first checkpoint is not five centuries away. It is the first published year in which the rate can be compared to the target, and you will be able to check it yourself. Next, how a person with no title starts.",
+  "paper.s12":
+    "The first step is smaller than the ladder makes it look: contribute one hour, and let it be recorded. That is level one, it needs nobody&rsquo;s permission, and the levels above it are proposed and unbuilt and marked as such. Next, what has to be proven before anything is replaced.",
+  "paper.s13":
+    "Nothing here replaces anything until it has beaten it on real rendered data, which is a standard we would rather be held to than exempt from. Next, where new work actually happens.",
+  "paper.s14":
+    "On day one a pod does the least glamorous thing available: it takes one real problem, records the hours honestly, and publishes what it found. That is all. Next, where the money for it comes from.",
+  "paper.s15":
+    "If you think the weighting is wrong, say so — the terms are published and the arithmetic is four lines, and disagreement you can compute is the only kind worth having. Next, whether any of this is lawful.",
+  "paper.s16":
+    "This is the least inspiring section in the document and the one most likely to decide whether it survives, which is usually true of the parts nobody wants to read. Next, how something like this wins.",
+  "paper.s17":
+    "If you lead anything, this is the section to take away: it wins by being endable, not by being bigger, and nobody has to lose for it to work. That is what makes it hard to stop. Next, the question of who decides.",
+  "paper.s18":
+    "A model can advise you and a majority can outvote you, and neither may reduce you to an input — that is the line, and it is held by a person rather than a mechanism. The person is you, more often than the word governance suggests. Next, what we are actually asking.",
+  "paper.s19":
+    "The one first action is the smallest one: give an hour to something that matters to you, and let it be recorded where it can be checked. Nobody has to approve that. What follows is the last page.",
+  "paper.close":
+    "So: whoever is reading this, in whatever role you hold and whatever year you hold it in — you do not need permission, and you were never going to be given it. An hour is an hour. Start with one of yours."
+};
+function renderHandoffs(){
+  const doc = document.getElementById("doc");
+  for (const id in HANDOFF){
+    const sec = doc.querySelector('section.blk[id="blk-' + id + '"]');
+    if (!sec || sec.querySelector("p.handoff")) continue;
+    const host = sec.querySelector(".bb") || sec;
+    const nav  = host.querySelector(".secnav");   /* r104: the arrows stay last */
+    const p = document.createElement("p");
+    p.className = "handoff";
+    p.innerHTML = HANDOFF[id];
+    if (nav) host.insertBefore(p, nav); else host.appendChild(p);
+  }
 }
 
 function renderOutlineLinks(){
