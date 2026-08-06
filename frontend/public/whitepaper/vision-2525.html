@@ -226,7 +226,13 @@ body.fulldoc .deck-sec{display:none}
 .fellback{border:1px solid var(--hi);border-left:3px solid var(--hi);background:var(--panel);
   padding:13px 16px;margin:0 0 14px;border-radius:2px;font-size:14px;line-height:1.6}
 .fellback b{color:var(--hi)}
-body.fulldoc .chips{display:none}
+/* r102 · THE RAIL IS IN EVERY MODE, FULL DOC INCLUDED. The operator listed the
+   five modes and the rail together: "For Brief, Outline, Ledger, White Paper
+   and Full Doc … JUMP TOC §0 §C §1 … END AUTHOR". It was hidden here, so the
+   one mode that scrolls through the whole argument was the one with no way to
+   jump within it. Now that Full Doc is the white paper rather than all 138
+   blocks, its rail is the same twenty-four cells as the White Paper's. */
+body.fulldoc .chips{display:flex}
 
 .nose{margin:24px 0;padding:0 0 0 18px;border-left:1px solid var(--rule-2)}
 .nose .ne{display:block;font:600 9.5px ui-sans-serif,system-ui;letter-spacing:.26em;text-transform:uppercase;
@@ -339,7 +345,13 @@ body.fulldoc .deck-in > #bFull{display:inline-block}
    on the operator's instruction, and a forced ground with no way out is a trap —
    a reader on a bright train platform must be able to say so in one tap. */
 body.fulldoc .deck-in > #bTheme{display:inline-block}
-body.fulldoc .deck-in > #bPage{display:inline-block}
+/* r102 · ZERO TOGGLES IN FULL DOC. The button was full-doc-only, which is the
+   exact inverse of what was asked: Full Doc is the one mode that reads straight
+   through, and the four views are where a reader needs one section at a time.
+   It is not removed — it moves, and it disappears from the mode that must not
+   have it. */
+.deck-in > #bPage{display:inline-block}
+body.fulldoc .deck-in > #bPage{display:none}
 
 body.fulldoc #keyimp,
 body.fulldoc #cmp,
@@ -445,10 +457,31 @@ body.paged #doc section.blk.pg{display:block}
    view banner 212 = 2,135px, 2.53 phone screens, standing above EVERY page. That
    is why the bottom of a section could not be reached. It belongs to the first
    page only. The deck, which is the navigation, stays on all of them. */
+/* r102 · the tail is 110,554px and it belongs to the LAST cell, not to all of
+   them. Same rule as the front matter, other end of the document.
+
+   ONLY THE HEAVY CONTENT, NEVER A CONTROL. The first cut of this rule hid
+   #rcore and the footer too, and the gate failed twice in a row — first because
+   the release stepper lives inside #review, then because the determinism proof
+   button lives inside #rcore. Both are navigation. A mode must never hide the
+   way out of itself, and the cheap way to guarantee that is to hide only what
+   is actually large: the twelve-reviewer panels at 76,805px and the record at
+   32,172px. That is 108,977 of the 110,554; the 1,577px that remain are the
+   R-CORE note, the rules and the footer, and they cost nothing.
+   #relnav — the release stepper — is exempted inside #review for the same
+   reason. */
+body.paged:not(.lastcell) #review > :not(#relnav),
+body.paged:not(.lastcell) #ledger{display:none}
 body.paged.notfirst #cover,
 body.paged.notfirst header.mast,
 body.paged.notfirst #howto,
 body.paged.notfirst #keyimp,
+/* r102 · #vban is the release banner — the thrust and the Master-of-Thought note
+   for the open release, measured at 1,742px. It belongs to the RELEASE, not to
+   each of its cells, and r100 missed it: the front matter was still 2,005px
+   above every cell after the fix that was meant to reduce it to 74. The gate
+   caught the residue on the first honest run. */
+body.paged.notfirst #vban,
 body.paged.notfirst #viewban{display:none}
 body.paged .secnav{margin-bottom:40px}
 body.paged .secnav{display:flex}
@@ -3182,6 +3215,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Wider than esc, far narrower than innerHTML, and the attribute variant closes a quote hole esc left open."}
  ],
  next:"One rail across all five reading modes &mdash; the operator&rsquo;s standing ask, stated three times."
+},
+{
+ v:102, code:"ONE RAIL, ONE WALK, FIVE MODES", stamp:"2026.08.06 &middot; revision 102",
+ thrust:"Reading is the mode now, not a button somebody has to find. Every view opens in one section with arrows either side and a rail that says which one; Full Doc is the white paper end to end with no toggles at all. And the reason a section could not be scrolled to its bottom was never the section &mdash; it was the hundred and ten thousand pixels of audit trail sitting under every one of them.",
+ mot:"The operator wrote the same paragraph three times in one message, which is what a person does when they have said a thing twice and been handed something else. For Brief, Outline, Ledger, White Paper and Full Doc, I must be able to read each section and switch between them with toggle arrows. Full Doc should be the White Paper with zero toggles so I can scroll all the way through. Clicking any section takes me to that section only and I scroll down; once read, back or forward to the next. Release ninety-eight and release one hundred each had a piece of this and neither had the shape. Ninety-eight put the pager in Full Doc alone, which is the one mode that should read straight through, and left the four views as a single unbroken scroll with no arrows whatsoever &mdash; precisely backwards. One hundred fixed the unit the pager counted and did not move it. Three things change. Reading is now the default in every view and impossible in Full Doc, which reads the white paper whole with no button on screen at all. Full Doc IS the white paper: it used to render the union of every order, a hundred and thirty-eight blocks, the paper and the outline and the brief and all eighty-seven ledger entries in one scroll, which is not the document but every view at once, and is why section one appeared twice. Nothing falls out and it was measured before a line was written: twenty-five plus twenty plus eight plus eighty-seven is a hundred and forty, less the author&rsquo;s seal and ALVAR which appear in two orders each, is a hundred and thirty-eight &mdash; exactly the union, exactly the live set. Not one block lived only in Full Doc, and a gate rule now fails the build if that ever stops being true. And the rail and the arrows are one list. They were computed by two functions over two collections &mdash; the rail from headings, the walk from blocks &mdash; so a chip and a step could point at different things, and in the record they did. There is one function now, and both are projections of it, so they cannot disagree. Then the measurement that mattered. The operator said they could not easily scroll to the bottom of a section, and release one hundred answered by removing two thousand one hundred and thirty-five pixels of front matter. Measured again in the white paper at three hundred and ninety by eight hundred and forty: below the section sat the twelve-reviewer panel at seventy-six thousand eight hundred and five pixels, the record at thirty-two thousand one hundred and seventy-two, the R-CORE note and the footer &mdash; a hundred and ten thousand five hundred and fifty-four pixels under EVERY cell. A reader on section eight was looking at two thousand two hundred and forty-nine pixels of argument inside a hundred-and-seventeen-thousand-pixel page, with the arrows three per cent down the scrollbar. The audit trail belongs at the END, symmetric with the front matter, and it is there now: the page is three thousand nine hundred and seventy-one pixels, the arrows are on screen, and the twelve reviewers are waiting under the last cell where a reader would look for them.",
+ stats:{clauses:303, jur:103, shields:5, defects:39, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Same gesture in all five modes. What differs is the content, which is the only thing that should."},
+  {n:"Asar",   g:"A+", f:"The rail and the walk are one list. Two lists over one document is a disagreement waiting."},
+  {n:"Athena", g:"A",  f:"r98 paged the one mode that should scroll and left the four that needed it alone. Exactly inverted."},
+  {n:"Christo",g:"A+", f:"110,554px under every section. The reader was not failing to scroll; the page was failing them."},
+  {n:"Enki",   g:"A",  f:"Cells are total by construction, so reading cannot hide a block. That is what makes it safe."},
+  {n:"Enlil",  g:"A",  f:"117,032px to 3,971. Front matter 2,135 to 240, of which 208 is the deck. Measured, not felt."},
+  {n:"Krishna",g:"A+", f:"Coverage 138/138 proved BEFORE the change. Full Doc could shrink because nothing lived only there."},
+  {n:"Odin",   g:"B+", f:"Brief and Ledger still carry their own cells, not &sect; numbers. Ninety-five blocks need a map."},
+  {n:"Pangu",  g:"B",  f:"Third attempt at this shape. The operator wrote the same paragraph three times to get it."},
+  {n:"Sofia",  g:"A",  f:"&ldquo;Where am I&rdquo; is half of being lost. The rail now answers it in every mode."},
+  {n:"Thoth",  g:"A+", f:"25 / 20 / 8 / 18 cells, each walked by clicking its own chip, at 320 and 390. No cell unvisited."},
+  {n:"Thor",   g:"A",  f:"The gate caught me hiding the release stepper, then the proof button. A mode must not hide its exit."}
+ ],
+ next:"The &sect; map for the eight brief blocks and the eighty-seven record blocks, so their rails read &sect;0 &sect;C &sect;1 &hellip; too."
 }
 ];
 
@@ -14360,9 +14414,32 @@ function viewFirstRelease(k){
 }
 let fellBack = null;
 function blocksFor(v){
-  /* "Full" means full. Full doc ignores the open view and reads every block
-     from every order — the union is the complete record, once each. */
-  if (fullDoc){ fellBack = null; return {blocks: replay(v, ALL_ORDER), order: ALL_ORDER}; }
+  /* r102 · FULL DOC IS THE WHITE PAPER, WHOLE — the operator, three times in
+     one message: "Full Doc should be White Paper with Zero Toggles so I can
+     scroll all the way through entire Visionary White Paper."
+
+     It used to read ALL_ORDER: 138 blocks, the paper AND the outline AND the
+     brief AND all eighty-seven ledger entries in one scroll. That is not the
+     document, it is every view at once, and it is why §1 appeared twice — the
+     outline's nineteen 111-word mirrors carry the same headings as the sections.
+
+     Nothing falls out, and it is measured rather than asserted: paper 25 +
+     outline 20 + brief 8 + ledger 87 = 140, less mot.author and front.alvar
+     which appear in two orders each, is 138 — exactly ALL_ORDER and exactly the
+     live set. Every block is still reachable, in the mode that owns it. The
+     COVERAGE gate rule fails the build if that ever stops being true.
+
+     The paper spine keeps the historical fallback honest: before r41 no
+     paper.* block existed, so early releases show the record instead of an
+     empty page, exactly as the four views already do. */
+  if (fullDoc){
+    const fd = replay(v, PAPER_ORDER);
+    if (fd.some(function(b){ return /^paper\./.test(b.id); })){
+      fellBack = null; return {blocks: fd, order: PAPER_ORDER};
+    }
+    fellBack = {view:"paper", label:"White paper", first:viewFirstRelease("paper")};
+    return {blocks: replay(v, LEDGER_ORDER), order: LEDGER_ORDER};
+  }
   const own = replay(v, VIEWS[view].order);
   if (own.some(function(b){ return VIEWS[view].spine.test(b.id); })){
     fellBack = null; return {blocks:own, order:VIEWS[view].order};
@@ -14513,6 +14590,12 @@ function renderDoc(){
   renderOutlineLinks();   /* r97: outline -> details */
   applyPaging();          /* r98: one section at a time */
   renderChips();
+  /* r102: renderChips REPLACES the rail's markup, so the "you are here" class
+     showCell() just set is destroyed by the very next line. Re-assert it after
+     the rail exists. Measured before this line: railOn was null on entering
+     every view — the reader was handed twenty-five identical chips and no
+     answer to "which one am I in", which is half of being lost. */
+  markRail();
 
   /* Section links scroll rather than navigate, so the version hash survives. */
   const docEl = document.getElementById("doc");
@@ -14572,14 +14655,35 @@ function chipLabelFor(id, raw){
   const w = raw.replace(/^(the|a|an)\s+/i,"").split(/\s+/)[0] || id;
   return w.toUpperCase().slice(0,8);
 }
-function chipIndex(){
-  const out = [];
+/* ── r102 · THE RAIL AND THE WALK ARE ONE LIST ───────────────────────────
+   The rail was built from HEADINGS and the arrows from BLOCKS. Two collections,
+   two functions, one document — so a rail cell and an arrow step could point at
+   different things, and in the record they did.
+
+   cellsIn() is now the single answer to "what are the navigable units of what is
+   currently rendered". A CELL is one rail chip, one arrow stop, and the set of
+   blocks shown together when it is open. Both the rail and the nav are
+   projections of it, so they cannot disagree.
+
+   It is TOTAL by construction: every rendered block belongs to exactly one cell.
+   That is the property that makes one-cell reading safe — a block that belonged
+   to no cell would be unreachable the moment reading was switched on.
+
+   Three shapes, because the four views genuinely have three shapes, and the
+   branch conditions are r58's and r100's, unchanged and still audited:
+     · §-numbered  (paper, outline, full doc) — one cell per anchored heading
+     · family runs (the record)               — MOT FRONT UNIT FUND GOV LEGAL …
+     · per block   (the brief)                — one family for the whole view */
+function cellsIn(){
+  const secs = [...document.querySelectorAll('#doc section.blk')];
+  const cells = [];
   let heads = [...document.querySelectorAll('#doc h2.sech[id]')];
   /* Full doc reads every order at once, so the outline's nineteen 111-word
      mirrors carry the same \u00a71..\u00a719 as the sections themselves. Both navigate
      correctly and a rail with two \u00a77 chips is still not an index \u2014 the mirrors
      drop out and PLAN remains as the one door into the outline run. */
   if (fullDoc) heads = heads.filter(h => !/^out-[1-9]/.test(h.id));
+  const skipMirror = function(h){ return fullDoc && /^out-[1-9]/.test(h.id); };
   /* r58 saw this hazard and guarded it with "more than one anchored heading":
      the colophon carries a .sech anchor and also appears in the record, where a
      single head would hijack the index and collapse it to one chip.
@@ -14596,43 +14700,72 @@ function chipIndex(){
            /^\u00a7\s*\d+/.test(h.textContent.replace(/\u00a0/g," ").trim());
   });
   if (numbered.length > 1){
-    heads.forEach(function(h){
-      const raw = h.textContent.replace(/\u00a0/g," ").trim();
-      const m = /^\u00a7\s*(\d+)/.exec(raw);
-      out.push({target:h.id,
-                label: m ? "\u00a7" + m[1] : chipLabelFor(h.id, raw),
-                title: m ? raw.replace(/^\u00a7\s*\d+\s*/,"") : raw});
+    /* Walk the BLOCKS and open a cell at each anchored heading. Same chips as
+       the heading walk it replaces — one anchored head per block here — but now
+       every block in between is carried, so the cell knows what to show. */
+    let cur = null;
+    secs.forEach(function(sec){
+      const h = sec.querySelector('h2.sech[id]');
+      if (h && !skipMirror(h)){
+        const raw = h.textContent.replace(/\u00a0/g," ").trim();
+        const m = /^\u00a7\s*(\d+)/.exec(raw);
+        cur = {target:h.id,
+               label: m ? "\u00a7" + m[1] : chipLabelFor(h.id, raw),
+               title: m ? raw.replace(/^\u00a7\s*\d+\s*/,"") : raw,
+               blocks: []};
+        cells.push(cur);
+      }
+      /* A block before the first anchored heading still has to live somewhere,
+         or one-cell reading would hide it. It opens a cell of its own. */
+      if (!cur){
+        const hh = sec.querySelector('h2,h3');
+        cur = {target:sec.id, label:"TOP",
+               title:(hh ? hh.textContent.trim() : sec.id), blocks:[]};
+        cells.push(cur);
+      }
+      cur.blocks.push(sec);
     });
-    return out;
+    return cells;
   }
-  let last = null;
+  let last = null, cur = null;
   const seen = {};
-  [...document.querySelectorAll('#doc section.blk')].forEach(function(sec){
+  secs.forEach(function(sec){
     const fam = sec.id.replace(/^blk-/,"").split(".")[0];
-    if (fam === last) return;
-    last = fam;
-    seen[fam] = (seen[fam] || 0) + 1;
-    const h = sec.querySelector('h2,h3');
-    /* A family can run more than once — governance appears before, inside and
-       after the legal sections. The suffix says which run, rather than pretending
-       the record is tidier than it is. */
-    out.push({target:sec.id,
-              label:fam.toUpperCase() + (seen[fam] > 1 ? "\u00b7" + seen[fam] : ""),
-              title:(h ? h.textContent.trim() : fam)});
+    if (fam !== last){
+      last = fam;
+      seen[fam] = (seen[fam] || 0) + 1;
+      const h = sec.querySelector('h2,h3');
+      /* A family can run more than once — governance appears before, inside and
+         after the legal sections. The suffix says which run, rather than
+         pretending the record is tidier than it is. */
+      cur = {target:sec.id,
+             label:fam.toUpperCase() + (seen[fam] > 1 ? "\u00b7" + seen[fam] : ""),
+             title:(h ? h.textContent.trim() : fam), blocks:[]};
+      cells.push(cur);
+    }
+    cur.blocks.push(sec);
   });
   /* One family for the whole view — the brief is all brief.* — so the run
      index degenerates to a single chip. Index the blocks themselves instead. */
-  if (out.length < 2){
-    out.length = 0;
-    [...document.querySelectorAll('#doc section.blk')].forEach(function(sec){
+  if (cells.length < 2){
+    cells.length = 0;
+    secs.forEach(function(sec){
       const part = sec.id.replace(/^blk-/,"").split(".").slice(1).join(".");
       const h = sec.querySelector('h2,h3');
-      out.push({target:sec.id,
-                label:(part || sec.id).replace(/_/g," ").toUpperCase(),
-                title:(h ? h.textContent.trim() : sec.id)});
+      cells.push({target:sec.id,
+                  label:(part || sec.id).replace(/_/g," ").toUpperCase(),
+                  title:(h ? h.textContent.trim() : sec.id), blocks:[sec]});
     });
   }
-  return out;
+  return cells;
+}
+
+/* The rail is the cells, minus what they contain. Kept as its own name because
+   five call sites ask for chips and should not have to know about blocks. */
+function chipIndex(){
+  return cellsIn().map(function(c){
+    return {target:c.target, label:c.label, title:c.title};
+  });
 }
 
 /* r63: each section stands alone. A reader who arrives in the middle of the
@@ -14655,31 +14788,39 @@ function chipIndex(){
    The counter is the Divinity Guide's, whose shape the operator pointed at:
    disabled stub at each end, "n / total" between the arrows. */
 function renderSectionNav(){
-  if (fullDoc && !paged) return;             /* one continuous read; nav would interrupt it */
-  /* r100: in paged mode the arrows walk the TWENTY SECTIONS and nothing else.
-     Unpaged they keep r63's behaviour and walk whatever the view rendered. */
-  const secs = paged ? pageList()
-    : [...document.querySelectorAll('#doc section.blk')]
-        .filter(function(sec){ return sec.querySelector('h2.sech, h2'); });
-  if (secs.length < 2) return;
-  const label = function(sec){
-    const h = sec.querySelector('h2.sech, h2');
-    return h ? h.textContent.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim() : "";
+  /* r102 · FULL DOC HAS NO ARROWS AT ALL. The operator: "Full Doc should be
+     White Paper with Zero Toggles so I can scroll all the way through entire
+     Visionary White Paper." Not "arrows that happen to be off" — none. Every
+     other mode gets them, always, whether or not one-cell reading is on: with
+     it on they turn the page, with it off they scroll, and either way the
+     reader never has to go back to the index to move one step. */
+  if (fullDoc) return;
+  const cells = cellsIn();
+  if (cells.length < 2) return;
+  const nm = function(c){
+    if (!c) return "";
+    const t = (c.title || "").replace(/\u00a0/g," ").replace(/\s+/g," ").trim();
+    /* "§4 The Shield", not "§4" and not "The Shield" — the neighbour's own
+       heading, which is what r63 promised and what the Divinity Guide shows. */
+    return t && t !== c.label ? c.label + " " + t : c.label;
   };
-  secs.forEach(function(sec, i){
-    const prev = secs[i-1], next = secs[i+1];
+  cells.forEach(function(c, i){
+    const prev = cells[i-1], next = cells[i+1];
+    /* The arrows go at the END of the LAST block of the cell — after everything
+       the reader came to read, which is the only place a "next" means anything. */
+    const bb = c.blocks.length && c.blocks[c.blocks.length-1].querySelector('.bb');
+    if (!bb) return;
     let h = '<nav class="secnav">';
-    h += prev ? '<a href="#" data-go="' + prev.id + '"><span class="ar">&#8592;</span>' +
-                '<span class="tx">' + escw(label(prev)) + '</span></a>'
+    h += prev ? '<a href="#" data-go="' + prev.target + '"><span class="ar">&#8592;</span>' +
+                '<span class="tx">' + escw(nm(prev)) + '</span></a>'
               : '<span class="end"><span class="ar">&#8592;</span><span class="tx">start</span></span>';
-    /* r100: "§3 · 4 of 20", not "4 / 138". The section is the place; the index
-       is only how far along the twenty you are. */
-    h += '<span class="cnt">' + (paged ? pageLabel(sec) + ' &middot; ' : '') +
-         (i+1) + ' of ' + secs.length + '</span>';
-    h += next ? '<a href="#" data-go="' + next.id + '" class="nx"><span class="ar">&#8594;</span>' +
-                '<span class="tx">' + escw(label(next)) + '</span></a>'
+    /* r100: the place, then how far along. r102: the place is the cell, and the
+       cell is what the rail chip says, so the counter and the rail agree. */
+    h += '<span class="cnt">' + escw(c.label) + ' &middot; ' + (i+1) + ' of ' + cells.length + '</span>';
+    h += next ? '<a href="#" data-go="' + next.target + '" class="nx"><span class="ar">&#8594;</span>' +
+                '<span class="tx">' + escw(nm(next)) + '</span></a>'
               : '<span class="end nx"><span class="ar">&#8594;</span><span class="tx">end</span></span>';
-    sec.querySelector('.bb').insertAdjacentHTML("beforeend", h + '</nav>');
+    bb.insertAdjacentHTML("beforeend", h + '</nav>');
   });
   document.getElementById("doc").querySelectorAll('.secnav a').forEach(function(a){
     a.addEventListener("click", function(ev){
@@ -14702,48 +14843,88 @@ function renderSectionNav(){
    Derived from the rendered document rather than listed, so a section cannot be
    in the progression without being on the page, or on the page without being in
    the progression. */
-function pageList(){
-  return [...document.getElementById("doc").querySelectorAll("section.blk")]
-    .filter(function(s){
-      const h = s.querySelector('h2.sech[id]');
-      return h && /^sec-(c|[1-9]|1[0-9])$/.test(h.id);
-    });
+/* ── r102 · THE PAGE IS THE CELL ─────────────────────────────────────────
+   r100 hard-coded the page set to sec-c and sec-1..sec-19 — correct for the
+   white paper and meaningless everywhere else, which is why one-cell reading
+   only ever worked in Full Doc. The page is now whatever cellsIn() says the
+   navigable unit of THIS view is: a §-section in the paper and the outline, a
+   family in the record, a topic in the brief. Same code, four views, and the
+   rail cannot disagree with it because the rail is the same list.
+
+   `cellIx` is the reader's place. It survives a re-render (stepping the release
+   does not throw you back to the top of the argument) and is clamped on every
+   use, so a view with fewer cells cannot strand it past the end. */
+var cellIx = 0;
+function cellAt(i){
+  const cells = cellsIn();
+  if (!cells.length) return null;
+  return cells[Math.max(0, Math.min(cells.length - 1, i))];
 }
-function pageLabel(sec){
-  const h = sec.querySelector('h2.sech[id]');
-  if (!h) return "";
-  return h.id === "sec-c" ? "&sect;C" : "&sect;" + h.id.slice(4);
-}
-function pageOf(id){
+function cellIndexOf(id){
   const el = document.getElementById(id);
-  if (!el) return null;
+  if (!el) return -1;
   const blk = el.closest("section.blk");
-  return blk && pageList().indexOf(blk) >= 0 ? blk : null;
+  if (!blk) return -1;
+  const cells = cellsIn();
+  for (let i = 0; i < cells.length; i++)
+    if (cells[i].blocks.indexOf(blk) >= 0) return i;
+  return -1;
 }
-function showPage(sec){
-  if (!sec) return;
-  document.getElementById("doc").querySelectorAll("section.blk.pg")
-    .forEach(function(s){ s.classList.remove("pg"); });
-  sec.classList.add("pg");
-  document.body.classList.toggle("notfirst", pageList().indexOf(sec) > 0);
+function showCell(i){
+  const cells = cellsIn();
+  if (!cells.length) return;
+  cellIx = Math.max(0, Math.min(cells.length - 1, i));
+  const doc = document.getElementById("doc");
+  doc.querySelectorAll("section.blk.pg").forEach(function(s){ s.classList.remove("pg"); });
+  cells[cellIx].blocks.forEach(function(s){ s.classList.add("pg"); });
+  /* r100: the front matter belongs to the first cell, not to all of them. It was
+     2,135px — two and a half phone screens of cover, masthead, key improvements
+     and banner — standing above every single page turn. */
+  document.body.classList.toggle("notfirst", cellIx > 0);
+  /* r102 · AND THE TAIL BELONGS TO THE LAST CELL. r100 fixed the front matter and
+     left the far larger half untouched. MEASURED in the white paper at 390x844:
+     below the section sat the twelve-reviewer panel at 76,805px, the record at
+     32,172, the R-CORE note at 825 and the footer, with their rules — 110,554px
+     under EVERY cell. A reader on §8 was looking at 2,249px of section inside a
+     117,032px page, with the arrows three per cent down the scrollbar. That is
+     the operator's report — "I can't easily scroll to bottom of a section" — and
+     it is why r100's front-matter fix alone did not settle it.
+
+     Symmetric with the front matter, and for the same reason: the audit trail is
+     not removed, it belongs at the END. Finish the argument and the twelve
+     reviewers, the record and the R-CORE note are waiting under the last cell,
+     which is exactly where a reader would look for them. */
+  document.body.classList.toggle("lastcell", cellIx === cells.length - 1);
+  markRail();
+}
+/* The rail says where you are. Without this the chips are a list of places you
+   could go and give no answer to "where am I" — which is half of being lost. */
+function markRail(){
+  const cells = cellsIn();
+  const t = paged && cells[cellIx] ? cells[cellIx].target : null;
+  if (!t) return;      /* not reading: scroll-spy owns the indicator */
+  document.querySelectorAll('#chips button[data-sec]').forEach(function(b){
+    b.classList.toggle("on", b.getAttribute("data-sec") === t);
+  });
 }
 function goTo(id){
   const t = document.getElementById(id);
   if (!t) return;
   if (paged){
-    const own = pageOf(id);
-    if (!own){
-      /* r100: the target is not one of the twenty — the author block, a ledger
-         entry, an outline mirror. Paging stands down rather than hiding it.
-         Nothing in the document becomes unreachable because a mode is on. */
+    const i = cellIndexOf(id);
+    /* Cells are TOTAL — every rendered block is in exactly one — so a rendered
+       target always has a cell. The guard is for a target that is not rendered
+       in this view at all, where standing paging down is the honest response:
+       nothing becomes unreachable because a mode is on. */
+    if (i < 0){
       paged = false;
       document.getElementById("bPage").setAttribute("aria-pressed", "false");
       applyPaging();
       t.scrollIntoView({behavior:"smooth", block:"start"});
       return;
     }
-    showPage(own);
-    /* r100: no deferred scroll. With the front matter gone the section starts at
+    showCell(i);
+    /* r100: no deferred scroll. With the front matter gone the cell starts at
        the top of the page, so landing at zero IS landing on the heading — and
        the two-frame scroll r98 used kept running after the reader had started
        scrolling and pulled them back. */
@@ -14754,21 +14935,21 @@ function goTo(id){
 }
 function pageStep(d){
   if (!paged) return;
-  const secs = pageList();
-  const i = secs.findIndex(function(s){ return s.classList.contains("pg"); });
-  const n = secs[Math.max(0, Math.min(secs.length - 1, (i < 0 ? 0 : i) + d))];
-  if (n && n !== secs[i]){ showPage(n); window.scrollTo(0, 0); }
+  const cells = cellsIn();
+  const n = Math.max(0, Math.min(cells.length - 1, cellIx + d));
+  if (n !== cellIx){ showCell(n); window.scrollTo(0, 0); }
 }
 function applyPaging(){
   document.body.classList.toggle("paged", paged);
-  const secs = pageList();
-  if (!paged || !secs.length){ document.body.classList.remove("notfirst"); return; }
-  if (!secs.some(function(s){ return s.classList.contains("pg"); })) showPage(secs[0]);
-  /* r100: the front matter belongs to the first page, not to all twenty. It was
-     2,135px — two and a half phone screens of cover, masthead, key improvements
-     and banner — standing above every single one. */
-  const i = secs.findIndex(function(s){ return s.classList.contains("pg"); });
-  document.body.classList.toggle("notfirst", i > 0);
+  if (!paged){
+    document.body.classList.remove("notfirst");
+    document.body.classList.remove("lastcell");
+    document.getElementById("doc").querySelectorAll("section.blk.pg")
+      .forEach(function(s){ s.classList.remove("pg"); });
+    markRail();
+    return;
+  }
+  showCell(cellIx);
 }
 
 /* r97 · DEFECT 36 — OUTLINE → DETAILS.  The outline is nineteen sections at 111
@@ -14850,6 +15031,10 @@ function markChip(btn){
 /* Which section am I in? Last target whose top has passed under the deck. */
 let spyPending = false;
 function spyChips(){
+  /* r102: when one cell is on screen, scroll position says nothing about which
+     cell it is — everything else is display:none. showCell() sets the indicator
+     directly; letting the spy also run would fight it on every scroll frame. */
+  if (paged) return;
   const host = document.getElementById("chips");
   const btns = [...host.querySelectorAll('button')];
   if (!btns.length) return;
@@ -15151,7 +15336,14 @@ function renderReview(){
      disclosure: collapsed, never deleted. */
   const rPrev = active > 1 ? active - 1 : null;
   const rNext = active < VMAX ? active + 1 : null;
-  let pills = '<div class="relstep">' +
+  /* r102 · THE STEPPER IS NAVIGATION, NOT CONTENT. It has always lived inside
+     #review, which was harmless while #review was always on screen. The moment
+     the 76,805px review panel became a tail that belongs to the last cell, this
+     went with it — and the reader lost the way to step releases from seventeen
+     of the eighteen record cells. The gate caught it on the first run.
+     #relnav is exempted from the tail rule: a mode must never hide the way out
+     of itself. */
+  let pills = '<div id="relnav"><div class="relstep">' +
     '<button data-goto="' + (rPrev || 1) + '"' + (rPrev ? '' : ' disabled') +
       ' title="Previous release">&#9668;</button>' +
     '<span class="cur"><b>r' + active + '</b> &middot; <span class="code">' + escw(V.code) + '</span>' +
@@ -15167,7 +15359,7 @@ function renderReview(){
   }
   pills += '</div><p class="meta" style="margin:8px 0 0">Releases are appends to the ledger. ' +
     'A VERSION is a document that was delivered, read and answered &mdash; there have been ' +
-    versionAt(VMAX) + ' of those across these ' + VMAX + ' releases.</p></div>';
+    versionAt(VMAX) + ' of those across these ' + VMAX + ' releases.</p></div></div>';
 
   let rows = "";
   for (const a of V.asm){
@@ -15347,16 +15539,14 @@ function setView(v){
     document.body.classList.remove("fulldoc");
     document.getElementById("bFull").setAttribute("aria-pressed","false");
   }
-  /* r100: paging is a FULL-DOC mode. r98 said "default on in full doc, off
-     elsewhere" and only implemented the first half, so paging followed the
-     reader into the white paper — where the table of contents is a block like
-     any other and was therefore display:none. Choosing a view is choosing to
-     read that view whole; the pager stands down with full doc. */
-  if (paged){
-    paged = false;
-    document.getElementById("bPage").setAttribute("aria-pressed","false");
-    applyPaging();
-  }
+  /* r102: choosing a view is choosing to READ it, and reading is one cell at a
+     time with arrows either side. r100 stood the pager down here, which was
+     right while paging was a full-doc mode and is wrong now that it is the
+     normal way to read a view. Start at the first cell: a mode switch is a
+     deliberate change of what you are reading, not a scroll position to keep. */
+  paged = true;
+  cellIx = 0;
+  document.getElementById("bPage").setAttribute("aria-pressed","true");
   view = v;
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(v);
@@ -15506,13 +15696,14 @@ document.addEventListener("keydown", function(e){
     document.body.classList.add("fulldoc");
     document.getElementById("bFull").setAttribute("aria-pressed","true");
   }
-  /* r98: full doc opens PAGED. 138 blocks and four hours read straight through
-     is the thing the operator asked to break into chunks. Choosing a view leaves
-     full doc and paging stays where the reader left it. */
-  if (fullDoc){
-    paged = true;
-    document.getElementById("bPage").setAttribute("aria-pressed","true");
-  }
+  /* r102 · READING IS THE DEFAULT, AND FULL DOC CANNOT HAVE IT.
+     r98 had this exactly backwards: it opened Full Doc paged and left the four
+     views as one long scroll with no arrows. The operator asked for the
+     opposite, three times in one message. Full doc reads straight through with
+     no toggles at all; every view opens in one-cell reading, and the button is
+     there to turn it off for anyone who wants the whole thing at once. */
+  paged = !fullDoc;
+  document.getElementById("bPage").setAttribute("aria-pressed", paged ? "true" : "false");
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(view);
   /* r94: --deckh is the height of the sticky deck, measured rather than assumed. It is
