@@ -330,6 +330,10 @@ section.blk.cmp-rev{background:linear-gradient(90deg,var(--si-bg),transparent 62
 body.fulldoc .deck{display:block;padding-top:6px;padding-bottom:6px}
 body.fulldoc .deck-in > *{display:none}
 body.fulldoc .deck-in > #bFull{display:inline-block}
+/* r96: the ground toggle stays visible in full doc. The document now OPENS dark
+   on the operator's instruction, and a forced ground with no way out is a trap —
+   a reader on a bright train platform must be able to say so in one tap. */
+body.fulldoc .deck-in > #bTheme{display:inline-block}
 
 body.fulldoc #keyimp,
 body.fulldoc #cmp,
@@ -493,8 +497,18 @@ body.fulldoc .secnav,.specban .secnav{display:none}
    answered; it is an identifier, not part of the sentence the title makes. */
 header.mast{position:relative}
 .regwrap{position:relative;display:inline-block}
+/* r96 · DEFECT 32 — the register menu was invisible, and had been since it shipped.
+   It was styled with --card, --line and --tint: three custom properties this
+   document has NEVER defined. Each was used exactly once and declared zero times,
+   so the menu had no background at all — the deck showed straight through it and
+   its own heading printed on top of the Full-doc button, which is precisely what
+   the operator photographed. The names come from the Next.js application, where
+   they do exist; the menu was written there and moved here without translating
+   its palette. This document's names are --panel, --rule and --ai-bg.
+   The registers are the audit trail. Six of them were reachable only through a
+   menu a reader could not see. */
 .regmenu{position:absolute;z-index:60;top:calc(100% + 6px);left:0;min-width:232px;padding:8px;
-  border-radius:12px;border:1px solid var(--line);background:var(--card);
+  border-radius:12px;border:1px solid var(--rule);background:var(--panel);
   box-shadow:0 18px 44px rgba(0,0,0,.30);text-align:left}
 .regmenu[hidden]{display:none}
 .regmenu h5{margin:2px 6px 6px;font:600 10.5px/1.2 ui-sans-serif,system-ui,sans-serif;
@@ -503,7 +517,7 @@ header.mast{position:relative}
 .regmenu button{display:block;width:100%;margin:0;padding:6px 8px;border:0;border-radius:8px;
   background:none;text-align:left;font:500 12.5px/1.35 ui-sans-serif,system-ui,sans-serif;
   color:var(--ink);cursor:pointer}
-.regmenu button:hover,.regmenu button:focus-visible{background:var(--tint);color:var(--ai)}
+.regmenu button:hover,.regmenu button:focus-visible{background:var(--ai-bg);color:var(--ai)}
 .regmenu button .rid{display:block;font:400 10.5px/1.3 ui-monospace,monospace;color:var(--ink-2)}
 @media(max-width:600px){.regmenu{min-width:190px}}
 .doct{display:block;margin-bottom:6px}
@@ -582,6 +596,7 @@ header.mast{position:relative}
   <button id="bView" title="Cycle the views — white paper, ledger, brief, outline">&#9636; Brief</button>
   <button id="bCmp" aria-pressed="false" title="Compare any two releases">&#8646; Compare</button>
   <button id="bFull" aria-pressed="false" title="Read as one continuous white paper, without version chrome">&#9776; Full doc</button>
+  <button id="bTheme" title="Switch between the dark and light reading grounds">&#9789; Dark</button>
   <span class="hash" id="vHash">state &mdash;</span>
  </div>
  <div class="deck-sec"><div id="chips"></div></div>
@@ -2989,6 +3004,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"An embedded rim cannot be stripped by a hostile stylesheet, which is the same threat model the embedding itself answers."}
  ],
  next:"Four unique reading experiences, outline coverage for every section, the dark default, the pager, six stale registers, and 114 of 228 readings."
+},
+{
+ v:96, code:"DEFECT 32 &mdash; THE REGISTER MENU WAS INVISIBLE", stamp:"2026.08.06 &middot; revision 96",
+ thrust:"The dropdown that reaches all six registers &mdash; the entire audit trail &mdash; was styled with three custom properties this document has never defined, so it had no background and the deck showed straight through it. And the document now opens on the dark ground.",
+ mot:"The operator photographed the register menu open on a phone, and in the photograph its own heading is printed on top of the Full-doc button, both legible, neither behind the other. That is not an overlap and it is not a z-index: it is a menu with NO BACKGROUND. The cause took one grep. The menu is styled background var(--card), border one pixel solid var(--line), and hover background var(--tint). This document defines none of those three. Each is used exactly once and declared exactly zero times. Those names belong to the Next.js application, where they do exist; the menu was written there and moved here without translating its palette to the names this file actually uses, which are --panel, --rule and --ai-bg. A var() that resolves to nothing is the worst-behaved failure a stylesheet has: no console error, no validator warning, no visible break at the point of the mistake &mdash; the property simply does not apply, and what you see is whatever was underneath. The consequence is not cosmetic. Six registers hang off that menu: defects, decisions, open questions, operator asks, proposed, external reviews. That is the audit trail of the entire document, and the only route to it was a control the reader could not see. A gate rule now fails the build on any bare var() naming a property that is never declared. It exempts the fallback form, var(--x, something), because a fallback cannot fail silently &mdash; that is how --deckh is legitimately fed from JavaScript. Proven against the r95 file before the fix: it fails on exactly --card, --line and --tint and on nothing else. Second, the ground. The operator asked that the document default to dark, and until now it followed whatever the reader&rsquo;s phone was set to. It opens dark. Three rules in order, so nothing is trapped: a data-theme already stamped on the root wins, because that is the host frame driving its own control and a host that has chosen is not overruled by the page it frames; then a choice this reader made earlier; then dark. A toggle sits in the deck and stays visible in full doc, because a forced ground with no way out is worse than the wrong default.",
+ stats:{clauses:303, jur:103, shields:5, defects:32, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The audit trail was behind a door with no handle. That is the finding, not the CSS."},
+  {n:"Asar",   g:"A",  f:"Three names from another codebase, carried across and never translated. Provenance is a defect class."},
+  {n:"Athena", g:"A+", f:"A grep answered what a photograph asked. Diagnose before redesigning &mdash; there was nothing wrong with the layout."},
+  {n:"Christo",g:"A",  f:"Dark by default with a visible way back to light. The reader is not made to live with either choice."},
+  {n:"Enki",   g:"A",  f:"var() failing silently is a language design decision we cannot change, so we assert around it."},
+  {n:"Enlil",  g:"A+", f:"The rule exempts var(--x, fallback) on purpose. A blanket ban would have outlawed --deckh, which is correct code."},
+  {n:"Krishna",g:"A",  f:"Host stamp, then reader memory, then default. Three layers that cannot contradict each other."},
+  {n:"Odin",   g:"A",  f:"This shipped invisible and nobody noticed for as long as it existed. Ask what else is styled from the wrong palette."},
+  {n:"Pangu",  g:"B+", f:"Found by a photograph rather than by the gate. The gate now covers it; it should not have needed the phone."},
+  {n:"Sofia",  g:"A",  f:"Two readers, two grounds, one document. The toggle is the smallest honest answer to that."},
+  {n:"Thoth",  g:"A",  f:"Used once, declared zero times, three properties. The whole diagnosis is four integers."},
+  {n:"Thor",   g:"A",  f:"An invisible control is an availability failure on the audit surface. That is a security property, not a style one."}
+ ],
+ next:"Four unique reading experiences, an outline entry for &sect;0, the section pager, six stale registers, and 114 of 228 readings."
 }
 ];
 
@@ -14807,6 +14843,32 @@ document.getElementById("bCmp").addEventListener("click", function(){
   if (cmpOn){ cmpB = active; cmpA = Math.max(1, active-1); }
   renderDoc();
 });
+/* ── r96 · THE GROUND ────────────────────────────────────────────────────
+   Operator: "default full doc to dark mode." Until now the document followed
+   prefers-color-scheme, which means the reader the operator was showing it to
+   got whatever their phone happened to be set to. It opens DARK.
+
+   Three rules, in this order, so nothing is trapped:
+     1. a data-theme already stamped on <html> wins — that is the host frame
+        at /vision-2525 driving its own sun/moon control, and a host that has
+        made a choice is not overridden by the page it is framing;
+     2. otherwise a choice this reader made earlier wins;
+     3. otherwise dark.
+   The toggle is in the deck and stays visible in full doc, because a forced
+   ground with no way out is worse than the wrong default. */
+var THEME_KEY = "v2525.ground";
+function setTheme(t, remember){
+  document.documentElement.setAttribute("data-theme", t);
+  const btn = document.getElementById("bTheme");
+  btn.innerHTML = t === "dark" ? "&#9789; Dark" : "&#9788; Light";
+  btn.title = "Reading on the " + t + " ground. Click for " +
+              (t === "dark" ? "light" : "dark") + ".";
+  if (remember){ try { localStorage.setItem(THEME_KEY, t); } catch (e) {} }
+}
+document.getElementById("bTheme").addEventListener("click", function(){
+  setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark", true);
+});
+
 var fullDoc = false;
 document.getElementById("bFull").addEventListener("click", function(){
   fullDoc = !fullDoc;
@@ -14833,6 +14895,12 @@ document.addEventListener("keydown", function(e){
 });
 
 (function init(){
+  /* r96: the ground, before anything paints. Host stamp wins, then the reader's
+     own earlier choice, then dark. */
+  let ground = document.documentElement.getAttribute("data-theme");
+  if (!ground){ try { ground = localStorage.getItem(THEME_KEY); } catch (e) {} }
+  setTheme(ground === "light" ? "light" : "dark", false);
+
   document.getElementById("vSlide").max = VMAX;
   const m = /^#(?:(brief|paper)\/)?v(\d+)$/.exec(location.hash);
   if (m){ view = m[1] ? m[1] : "ledger"; }
