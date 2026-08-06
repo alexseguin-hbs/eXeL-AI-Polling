@@ -905,7 +905,7 @@ const LEDGER_ORDER = [
  "reach.intelligence","reach.worlds","reach.accelerate",
  "open.defects","open.decisions","open.questions","open.asks","open.proposed",
   "open.external","close.synthesis","mot.tenses","mot.address",
- "mot.author"
+ "mot.author","mot.companion"
 ];
 
 /* The BRIEF is not a second document. It is a second ORDER over the same
@@ -924,7 +924,7 @@ const PAPER_ORDER = [
  "paper.s1","paper.s2","paper.s3","paper.s4","paper.s5","paper.s6","paper.s7","paper.s8","paper.s9",
  "paper.s10","paper.s11","paper.s12","paper.s13","paper.s14","paper.s15","paper.s16","paper.s17",
  "paper.s18","paper.s19",
- "paper.close","mot.author","front.alvar"
+ "paper.close","mot.author","mot.companion","front.alvar"
 ];
 
 /* The OUTLINE: the method made visible. 19 sections, each stated in exactly
@@ -3401,6 +3401,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"The 78 per cent measurement is in the release note, so nobody can call this white paper finished."}
  ],
  next:"r105 &mdash; author the prose. 6,300 words, draft first, so the White Paper reads as one."
+},
+{
+ v:105, code:"ONE DOCUMENT, ONE SCROLL", stamp:"2026.08.06 &middot; revision 105",
+ thrust:"The document was being served inside an iframe. That single decision is why the site row could never sit at the bottom after the text, why landscape on a phone was unreadable, and why the page opened light when the document itself has opened dark since r96 &mdash; the text was a different document from the chrome around it. The frame is gone. One page, one scroll, the row last.",
+ mot:"The operator asked four times that Feedback, SECURITY-2525 and eXeL AI sit at the bottom and stay out of the way. Four times it was treated as a styling problem. It was not. The reader component rendered this entire document inside an iframe fixed to the viewport height minus the surrounding chrome, which means the argument scrolled in one document while the row was pinned in another. No amount of CSS can put a footer after text it cannot see. Everything else followed from the same line. Landscape was unreadable because the frame was capped at viewport height and landscape has almost no height to give. There were two scrollbars, two theme owners, two footers. And the page opened light because the wrapper defaulted to light, overriding a document that has opened dark since r96. So the route now hands the reader the document instead of a window onto it, and the row moved into the file itself, in normal flow, immediately after the closing footer &mdash; the last element on the page, with absolute addresses so it still works when the file is downloaded and opened with no server at all. Measured rather than asserted: position static, never fixed; fifty pixels and six per cent of the viewport in portrait, thirty-nine and ten in landscape; nothing rendered after it; and the document opens dark whether the operating system asks for light or for dark. It joins the r104 tail rule, so it is hidden on a middle cell and returns on the last, and never appears above the section arrows. What the old frame carried is not lost: the Outline and the Author are in the document&rsquo;s own Settings drawer and section rail since r104, and the download is the browser&rsquo;s own save. This release also adds one block. The operator has written a second document under the same name &mdash; Thought Mastery in the Age of AI, a Civilization Blueprint for 2525, thirty-three sections &mdash; and it opens on the exact ground the author&rsquo;s section already stands on: Sumer&rsquo;s ME and Egypt&rsquo;s Ma&rsquo;at as governance architecture rather than superstition, the same Ma&rsquo;at whose scribe was Thoth three paragraphs earlier. It is referenced, not summarised. A reader who wants that argument should be sent to it.",
+ stats:{clauses:303, jur:103, shields:5, defects:40, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"Asked four times and diagnosed as styling four times. The cause was one line of layout, never read."},
+  {n:"Asar",   g:"A",  f:"One document, one scroll. Everything the operator reported was a symptom of the frame."},
+  {n:"Athena", g:"A",  f:"The route hands over the document rather than framing it. Fewer parts, fewer ways to disagree."},
+  {n:"Christo",g:"A+", f:"A panel sitting on the words tells a reader their reading matters less than our feedback form."},
+  {n:"Enki",   g:"A",  f:"Landscape, download-and-open-offline, and no-JavaScript all had to keep working. All three do."},
+  {n:"Enlil",  g:"A",  f:"Static, 6% portrait, 10% landscape, nothing after it, dark under both OS preferences. Measured."},
+  {n:"Krishna",g:"A",  f:"Two theme owners became one. The document has decided its own ground since r96; now nothing overrides it."},
+  {n:"Odin",   g:"A",  f:"Absolute addresses in the row, so a downloaded copy still reaches the family five years from now."},
+  {n:"Pangu",  g:"B+", f:"The fix was available at r95. It took a screenshot of the row sitting on the word &ldquo;argument&rdquo;."},
+  {n:"Sofia",  g:"A",  f:"The companion document asks why this must exist. This one only ever said how. They need each other."},
+  {n:"Thoth",  g:"A",  f:"138 live blocks becomes 139. Replay unchanged for all 104 prior releases."},
+  {n:"Thor",   g:"A",  f:"Removing a frame removes an origin boundary. Same-origin static file, no new surface."}
+ ],
+ next:"Landscape budget, the eyebrow under the title, and the Outline&rsquo;s two missing entries."
 }
 ];
 
@@ -14402,6 +14423,13 @@ L(99,"mot.author","Three operator corrections. The seal was not centred, and the
 '<p class="who"><strong>Master of Thought</strong></p>'+
 '<p class="meta" style="margin-bottom:0"><em>We cannot master what we are not aware of.</em></p></div>');
 
+
+L(105,"mot.companion","The operator supplied a second document of his own: <em>Thought Mastery in the Age of AI &mdash; A Civilization Blueprint for 2525</em>, thirty-three sections under the same name. It opens on the ground this section already stands on &mdash; Sumer&rsquo;s ME and Egypt&rsquo;s Ma&rsquo;at as governance architecture rather than superstition &mdash; and it names, in plain words, the constraint this whole framework is built around: execution accelerates and conscience does not. Referenced here rather than summarised, because a reader who wants the argument should be sent to it, not given a paraphrase of it.",
+'<div class="notice key"><span class="tag">The companion document</span>'+
+'<p><strong>Thought Mastery in the Age of AI &mdash; A Civilization Blueprint for 2525.</strong> Thirty-three sections, written under this same name. Where Vision &#8226; 2525 specifies mechanism &mdash; the unit, the ceiling, the ledger, the off switch &mdash; that document asks the prior question: what must a civilisation <em>become</em> in order to deserve the tools it is building?</p>'+
+'<p>It opens where this section already stands. Sumer encoded survival in <strong>ME</strong>, sacred assignments of role and covenant. Egypt upheld <strong>Ma&rsquo;at</strong>, the living equilibrium between truth and force &mdash; the same Ma&rsquo;at whose scribe was Thoth, three paragraphs above. Neither was superstition; both were governance architecture, and the task it sets is translation: what does ME look like in algorithmic design, and Ma&rsquo;at in audit systems and public accountability?</p>'+
+'<p>It also names the constraint everything here is built around. Execution accelerates; conscience does not. The gap between what can be produced and what can be meaningfully evaluated is where accountability quietly dies, and a civilisation that fails to close that gap arrives at abundance without agency &mdash; output without oversight. <span class="meta">Economists have reached the same structure in formal notation: Catalini, Hui and Wu, February 2026, name that gap the Measurability Gap and that failure state the Hollow Economy. Different vocabulary, same finding, and the closest thing to outside corroboration this work has.</span></p>'+
+'<p style="margin-bottom:0">Read it if the mechanism here interests you but the reason for it does not yet. This document is the <em>how</em>. That one is the <em>why we must</em>.</p></div>');
 
 /* ══════════ REVISION 100 ══════════ */
 L(100,"front.alvar","ALVAR had nowhere a reader could find it. The block is live, 661 words, and sits fifth of eighty-seven in the ledger order &mdash; but it was in NO other order, so the white paper simply did not contain it, and its heading carried no identifier at all, so nothing could link to it and no chip could point at it. Its sibling mark, the Master of Thought seal, has been in the paper order and addressable as &ldquo;author&rdquo; the whole time. The heading is now anchored and the block joins the paper beside that seal, where the two marks close the argument together &mdash; which is where r95 and r99 had already struck them as a matched pair, on the same black disc with the same rim and the same thirty-four pixels of air.",
