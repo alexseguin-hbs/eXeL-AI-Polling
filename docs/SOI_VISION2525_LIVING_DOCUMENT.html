@@ -256,11 +256,29 @@ p.ext{font:600 11px ui-monospace,monospace;letter-spacing:.13em;text-transform:u
 .toc .sn{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--ai);font-weight:700;
   min-width:34px;flex:0 0 auto}
 .toc .tg{display:block;font-size:12px;color:var(--ink-2);font-style:italic;margin-top:2px}
+/* r94, operator: "For each section right justify ... Right Justify '↑ CONTENTS'" and
+   "easy legibility in NOSE section (under constitution) to easily get back and forth".
+   The link used to TRAIL the title, so it landed at a different horizontal position in
+   every one of the twenty-one eyebrows — 403px of dead space to its right at 1440, 109px
+   at 375. Flex with an auto left margin puts it on the right edge of the column, the same
+   place every time. flex-wrap matters: two eyebrows already run to two lines at 375 and
+   six at 320, and on a wrapped line the auto margin still right-aligns it.
+   Sticky matters more. §1 is 1,907px tall, so the four NOSE blocks under the Constitution
+   were read with the way back off-screen. .secn is the first child of div.bb inside
+   section.blk and every ancestor is overflow:visible, so each eyebrow pins for the length
+   of its OWN section and then hands off to the next. */
 .secn{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--ai);font-weight:700;border-top:1px solid var(--rule);padding-top:10px;margin:0 0 6px}
-.secn a{color:var(--ai);text-decoration:none;opacity:.55}
+  color:var(--ai);font-weight:700;border-top:1px solid var(--rule);padding-top:10px;margin:0 0 6px;
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;
+  position:sticky;top:var(--deckh,42px);z-index:20;background:var(--paper);padding-bottom:8px}
+.secn a{color:var(--ai);text-decoration:none;opacity:.55;margin-left:auto}
 .secn a:hover{opacity:1;text-decoration:underline}
-h2.sech{scroll-margin-top:132px}   /* r58: clears the three-row deck, not the two-row one */
+@media print{.secn{position:static}}
+/* r94: one source for the offset. 132px was measured by hand at r58 against the three-row
+   deck and is wrong in the other four states — the deck is 42px in full doc, 148 at 768+,
+   184 at 375 and 240 at 320. --deckh is set from the live element, so the landing point
+   follows the chrome instead of guessing at it, and it also carries the pinned eyebrow. */
+h2.sech{scroll-margin-top:calc(var(--deckh,42px) + 52px)}
 .pull{border-left:3px solid var(--hi);padding:2px 0 2px 18px;margin:26px 0;
   font-size:clamp(18px,2.9vw,22px);line-height:1.42;color:var(--ink);font-style:italic}
 .pull cite{display:block;margin-top:8px;font-size:13px;font-style:normal;color:var(--ink-2);
@@ -950,10 +968,17 @@ const PASS_MOT = {w:333, text:'Four questions were put to this pass, and the hon
 const VERSION_AT = [
   {version:16, from:57},  /* r57, r58 and r59 were written between one reading and
                              the next: three revisions, one version. */
-  {version:17, from:68}   /* Version 16 was delivered, read and answered. Everything
-                             from r68 belongs to Version 17 until the next answer.
-                             Version 17 is NOT finished: the 33 passes are in progress
-                             and the version does not move again until it is delivered. */
+  {version:17, from:68},  /* Version 16 was delivered, read and answered. Everything
+                             from r68 belongs to Version 17 until the next answer. */
+  {version:18, from:94}   /* r94. Version 17 was delivered at r93 and the operator read
+                             it and answered — the portrait header, the section links, the
+                             ceiling, the filling rule, the right-justified contents link,
+                             the pager, the coin. By the rule directly above, an answered
+                             delivery moves the counter, so everything from r94 is Version
+                             18. It is NOT finished: 114 of the 228 readings and 27 of the
+                             33 passes are done, and the version does not move again until
+                             this one is delivered in turn. The counters are printed on the
+                             release rather than described, so the gap is never a claim. */
 ];
 function versionAt(rev){
   let v = 1;
@@ -2917,6 +2942,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"A per-year cap that never forfeits removes the incentive to game the timing of a contribution, which was the obvious attack."}
  ],
  next:"Six successions (114 readings) and the single-reader test remain for Version 17."
+},
+{
+ v:94, code:"THE CONTENTS LINK GOES RIGHT &mdash; AND STAYS ON SCREEN", stamp:"2026.08.06 &middot; revision 94",
+ thrust:"The way back to the contents now sits on the right edge of every section and stays there while the section is read, instead of trailing the title and scrolling away at the first paragraph.",
+ mot:"The operator asked for this twice, which is once more than it should have taken. Two faults, both measured rather than guessed. First, the link was not right-justified at all: it simply followed the section title, so it landed at a different horizontal position in every one of the twenty-one eyebrows &mdash; four hundred and three pixels of empty space to its right at desktop width, a hundred and nine on a phone. A reader looking for the way back had to find it somewhere new each time. It is now flush right, the same place in every section, and where an eyebrow already wraps to two lines it right-aligns on the second line rather than drifting into the middle of the first. Second, and this is the part the operator named: the link only ever existed at the TOP. Section one is one thousand nine hundred and seven pixels tall, so by the time a reader is inside the Needs, Outcomes, Solution and Evidence blocks under the Constitution, the way back is far off-screen and the only route is scrolling up past everything just read. The eyebrow is now pinned. It stays under the deck for the length of its own section and then hands off to the next, so the section you are in is always named and the way out is always one tap. Nothing about the Needs and Outcomes labels changed: r60 quieted them on the operator&rsquo;s instruction and quieting them was right. Legibility here is the way back staying on screen, not the labels shouting again. One number was retired in passing. The landing offset for a section heading was a hand-measured hundred and thirty-two pixels from r58, correct for the three-row deck and wrong for the other four states &mdash; the deck is forty-two pixels in full doc, a hundred and forty-eight at tablet width and above, a hundred and eighty-four at 375 and two hundred and forty at 320 once the chip row wraps. It is now measured from the live element, so the landing point follows the chrome instead of guessing at it. Two gate rules were added, both proven by mutation against the r93 file before any edit: the contents link must sit within one and a half pixels of the eyebrow&rsquo;s right edge in every view, and a pinned eyebrow may never rise behind the deck. Right-justification that nothing asserts is right-justification that comes back next release.",
+ stats:{clauses:303, jur:103, shields:5, defects:31, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The same mark in the same place in every section is what makes it a landmark instead of a link."},
+  {n:"Asar",   g:"A",  f:"The eyebrow now names the section you are inside for as long as you are inside it. That is orientation, not decoration."},
+  {n:"Athena", g:"A",  f:"Flush right and pinned are one decision, not two: the way out has to be findable AND present. Either alone fails."},
+  {n:"Christo",g:"A+", f:"A reader deep in a long section is not lost any more. Small change; it is the difference between reading and enduring."},
+  {n:"Enki",   g:"A",  f:"It behaves the same at 320 as at 1440 because the wrap case was designed rather than discovered."},
+  {n:"Enlil",  g:"A",  f:"No ledger block moved, so all ninety-four releases inherit it and replay is byte-identical. That is the cheap way to fix a surface."},
+  {n:"Krishna",g:"A",  f:"One variable now feeds both the pinned eyebrow and the heading landing offset, so the two can no longer disagree."},
+  {n:"Odin",   g:"A",  f:"The hand-measured hundred and thirty-two was going to be wrong again the next time the deck changed. It is measured now."},
+  {n:"Pangu",  g:"B+", f:"Correct and overdue rather than new. The operator had to ask twice, and that is the finding."},
+  {n:"Sofia",  g:"A",  f:"Asked from a phone, verified on a phone at three widths and in both themes. The complaint and the check were in the same place."},
+  {n:"Thoth",  g:"A",  f:"403px, 109px, 1,907px, 42/148/184/240 &mdash; every claim in this release is a measurement, and every one is in the note."},
+  {n:"Thor",   g:"A",  f:"Two assertions added and mutation-proven against the pre-fix file. A rule that has never failed has never been tested."}
+ ],
+ next:"Version 18 opens here. Remaining: the two seals re-cut from the Architect-2525 rasters, the section pager, six stale registers, and 114 of 228 readings with six owed passes."
 }
 ];
 
@@ -14640,6 +14686,18 @@ document.addEventListener("keydown", function(e){
   }
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(view);
+  /* r94: --deckh is the height of the sticky deck, measured rather than assumed. It is
+     42px in full doc but 148px at 768+, 184px at 375 and 240px at 320 once the chip row
+     wraps, and it changes when the view changes or the window resizes. A ResizeObserver
+     on the element itself catches every one of those without hooking three call sites.
+     Two things read it: the pinned section eyebrow, and h2.sech's landing offset — which
+     was a hand-measured 132px from r58 and wrong in four of the five states. */
+  const dk = document.querySelector(".deck");
+  if (dk && window.ResizeObserver){
+    new ResizeObserver(function(){
+      document.documentElement.style.setProperty("--deckh", dk.offsetHeight + "px");
+    }).observe(dk);
+  }
   renderDoc();
 })();
 </script>
