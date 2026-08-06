@@ -343,6 +343,20 @@ p.ext{font:600 11px ui-monospace,monospace;letter-spacing:.13em;text-transform:u
    184 at 375 and 240 at 320. --deckh is set from the live element, so the landing point
    follows the chrome instead of guessing at it, and it also carries the pinned eyebrow. */
 h2.sech{scroll-margin-top:calc(var(--deckh,42px) + 52px)}
+/* r107 · the heading is a two-column grid once renderHeadingRows() has split
+   it: the number in column one, the title in column two, and the eyebrow on
+   the second row of column two — directly beneath the first word of the title,
+   which is what was asked for. Headings without a § never get .sn and fall
+   through to the plain block layout untouched. */
+/* r107 · a folded heading is still a heading — same face, one step quieter,
+   because it now opens a passage inside a section rather than a section. */
+h2.sech-fold{font:600 20px "Iowan Old Style",Georgia,serif;margin:34px 0 10px;
+  scroll-margin-top:calc(var(--deckh,42px) + 52px)}
+@media(max-height:500px){h2.sech-fold{font-size:17px;margin:16px 0 8px}}
+h2.sech:has(> .sn){display:grid;grid-template-columns:auto 1fr;column-gap:.55em;align-items:baseline}
+h2.sech > .sn{grid-row:1;grid-column:1;color:var(--ink-2);font-variant-numeric:tabular-nums}
+h2.sech > .stt{grid-row:1;grid-column:2}
+h2.sech > .ext{grid-row:2;grid-column:2;margin:2px 0 0}
 .pull{border-left:3px solid var(--hi);padding:2px 0 2px 18px;margin:26px 0;
   font-size:clamp(18px,2.9vw,22px);line-height:1.42;color:var(--ink);font-style:italic}
 .pull cite{display:block;margin-top:8px;font-size:13px;font-style:normal;color:var(--ink-2);
@@ -3486,6 +3500,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Nothing deleted. Every control returns at height, so no capability is lost on any device."}
  ],
  next:"The Outline&rsquo;s two missing entries, the eyebrow under the title, and ALVAR&rsquo;s proper home."
+},
+{
+ v:107, code:"UNDER THE TITLE, AND ALVAR COMES HOME", stamp:"2026.08.06 &middot; revision 107",
+ thrust:"The grey line under a section heading was hanging under the NUMBER rather than under the TITLE &mdash; twenty pixels against fifty-three, measured. And ALVAR held a tab of its own after Section 19 and the Author, which is a place no emblem earns. Both are fixed at render time, so the record is untouched and no artwork is duplicated.",
+ mot:"The operator drew it rather than described it: section three, The Wall, and beneath it EXTENDS &sect;1, indented to sit under the word Wall. Measured before touching anything. At 390 the heading box and the eyebrow share a left edge at twenty; the words The Wall begin at fifty-three point four, because the section sign, the number and two non-breaking spaces push them right. At 1280 it is 325.5 against 369. So the eyebrow was hanging under the number. A fixed indent cannot fix that, because &sect;0 and &sect;19 are different widths and the serif face resizes with the viewport; it needs a real column. The heading is now split at render time into its number and its title, and the eyebrow becomes the second row of the same grid. Nineteen eyebrows, three widths, and the offset is zero point zero zero at every one. The six headings that carry no section sign &mdash; the Constitution, the Master of Thought, the close and three more &mdash; never get the split and are left exactly as they were. Second, ALVAR. The operator: it does not warrant its own tab. He is right, and the right place is the author&rsquo;s section, beside the other emblem. Both are marks drawn by the same hand: one says who is answerable for the record, the other says what is guarded. Reading straight through, they now arrive together, which is how they were always meant to be met. The block did not move and was not rewritten &mdash; its heading was demoted, so the cell walk folds it into the section before it. The rail goes from twenty-five cells to twenty-four and ends where a document should end, on the author. The anchor stays exactly where it was, so every link that ever pointed at ALVAR still resolves. Sixty-five kilobytes of artwork stayed where they were rather than being copied to change one class name.",
+ stats:{clauses:303, jur:103, shields:5, defects:40, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"An eyebrow under the wrong word teaches a reader the document is careless. It compounds."},
+  {n:"Asar",   g:"A",  f:"The document now ends on the author. That is where a signed thing should end."},
+  {n:"Athena", g:"A",  f:"Both fixes are render-time. No ledger edit, no supersede, no duplicated artwork."},
+  {n:"Christo",g:"A",  f:"Seal and guardian meet on the same page &mdash; who is answerable, and what is guarded."},
+  {n:"Enki",   g:"A",  f:"Six unnumbered headings had to be untouched, and are. The split keys on the section sign."},
+  {n:"Enlil",  g:"A+", f:"Nineteen eyebrows, three widths, offset 0.00 at every one. Measured, not eyeballed."},
+  {n:"Krishna",g:"A",  f:"Folding by class rather than by order keeps the anchor alive; every old link still lands."},
+  {n:"Odin",   g:"A",  f:"A measured column survives a new section number; a hard-coded indent would not."},
+  {n:"Pangu",  g:"A",  f:"Demoting a heading to move a block is cheaper than moving it, and reversible in one line."},
+  {n:"Sofia",  g:"A",  f:"25 cells to 24, and the one that went was the one that was never a section."},
+  {n:"Thoth",  g:"A",  f:"20 vs 53.4 at 390 &middot; 325.5 vs 369 at 1280 &middot; 0.00 after. Before and after both recorded."},
+  {n:"Thor",   g:"A",  f:"Nothing deleted, nothing rewritten, 65 KB not duplicated. The cheapest safe version."}
+ ],
+ next:"The Brief carries its section numbers, and the Outline gets &sect;C and the Author."
 }
 ];
 
@@ -15035,8 +15070,16 @@ function renderDoc(){
       '</div></section>';
   }
   document.getElementById("doc").innerHTML = html;
+  /* r107 · foldAlvar FIRST, and the order is load-bearing. Both cellsIn() and
+     renderSectionNav() count cells by `h2.sech`; folding demotes ALVAR's
+     heading to `h2.sech-fold`, which removes a cell. Run after the arrows and
+     the walk is built from a stale 25-cell document, so AUTHOR — the true last
+     cell — renders a live "next" pointing at a cell that no longer opens.
+     That is exactly what the gate caught: "paper: last cell has a live next". */
+  foldAlvar();            /* r107: ALVAR joins the author's section */
   renderSectionNav();
   renderOutlineLinks();   /* r97: outline -> details */
+  renderHeadingRows();    /* r107: the eyebrow under the title */
   applyPaging();          /* r98: one section at a time */
   renderChips();
   /* r102: renderChips REPLACES the rail's markup, so the "you are here" class
@@ -15412,6 +15455,60 @@ function applyPaging(){
    Generated here rather than written into nineteen ledger blocks, so replay stays
    byte-identical and the link cannot drift from the section it points at — it is
    derived from the heading id, which is the same number in both orders. */
+/* ── r107 · THE EYEBROW SITS UNDER THE TITLE ──────────────────────────────
+   Operator, with a sketch: "§3 The Wall / EXTENDS §1 — should be indented to
+   be right under 'The Wall'."
+
+   Measured before touching it. At 390 the heading box and the eyebrow share a
+   left edge at 20; the words "The Wall" start at 53.4, because "§3" plus two
+   non-breaking spaces push them right. At 1280 it is 325.5 against 369. So the
+   eyebrow hangs under the NUMBER, not the TITLE. A fixed indent cannot fix it:
+   §0 and §19 are different widths and the serif face resizes with the viewport.
+   It has to be a real column.
+
+   Done at render time, like the outline links above, so the ledger is never
+   touched and the layout cannot drift from the number it aligns to. The heading
+   splits into its number and its title, and the eyebrow becomes the second row
+   of the same grid — under the title, at every width and every section number.
+
+   39 headings carry a §; 6 do not (the Constitution, Master of Thought, ALVAR
+   and three more) and are left exactly as they are. */
+/* ── r107 · ALVAR IS NOT A SECTION ────────────────────────────────────────
+   Operator: "ALVAR does not warrant its own tab (after Section 19 and Author).
+   Find the right place to put it in the entire document."
+
+   The right place is the author's section, next to the other emblem. Both are
+   marks drawn by the same hand: the Master of Thought seal says who is
+   answerable, ALVAR says what is guarded. Reading straight through, they arrive
+   together, which is how they were always meant to be met.
+
+   Done by demoting the heading rather than moving the block, so the ledger is
+   untouched and the 65 KB of artwork is not duplicated. cellsIn() opens a cell
+   at every h2.sech; drop that class and the block folds into the cell before
+   it. The id stays exactly where it was, so #alvar and every link to it still
+   resolve — nothing that pointed at it is broken. */
+function foldAlvar(){
+  const h = document.querySelector("#doc h2.sech#alvar");
+  if (h) h.className = "sech-fold";
+}
+
+function renderHeadingRows(){
+  document.getElementById("doc").querySelectorAll("h2.sech").forEach(function(h){
+    if (h.dataset.rowed) return;
+    const tn = [...h.childNodes].find(n => n.nodeType === 3 && /\u00a7/.test(n.textContent));
+    if (!tn) return;                                  /* no § — leave it alone */
+    const m = /^\s*(\u00a7\s*[0-9A-Za-z]+)\s+([\s\S]+)$/.exec(
+                tn.textContent.replace(/\u00a0/g, " "));
+    if (!m) return;
+    h.dataset.rowed = "1";
+    const sn = document.createElement("span"); sn.className = "sn";  sn.textContent = m[1];
+    const st = document.createElement("span"); st.className = "stt"; st.textContent = m[2];
+    h.replaceChild(st, tn); h.insertBefore(sn, st);
+    const ext = h.nextElementSibling;
+    if (ext && ext.classList.contains("ext")) h.appendChild(ext);   /* row 2, col 2 */
+  });
+}
+
 function renderOutlineLinks(){
   document.getElementById("doc").querySelectorAll('h2.sech[id^="out-"]').forEach(function(h){
     const n = /^out-(\d+)$/.exec(h.id);
