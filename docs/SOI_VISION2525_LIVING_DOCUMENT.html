@@ -301,6 +301,13 @@ body.straight .chips{display:flex}
    is unchanged and still traceable; it simply stops interrupting the reading.
    CSS rather than nineteen rewritten sections — the same shape, quieter. */
 .nose p{margin:0}
+/* r113 · the companion is a real file a reader can take away. Sized like a
+   link rather than a button, because it is one of several ways out of the
+   section and not the point of it. */
+p.dl{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--rule)}
+p.dl a{font-weight:600}
+p.dl .meta{display:block;margin-top:5px;font-size:13.5px;color:var(--ink-2)}
+
 p.ext{font:600 11px ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;
   color:var(--ink-2);margin:-6px 0 4px}
 /* ── r113 · THE BRIEF'S LABEL COLLIDED WITH ITS OWN HEADING ────────────────
@@ -3655,6 +3662,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Append-only. r111 replays byte-identical, and no superseded block was opened."}
  ],
  next:"The readability passes weighted to Full Doc read-through, and the white-paper prose."
+},
+{
+ v:113, code:"THE COMPANION IS A FILE YOU CAN TAKE", stamp:"2026.08.06 &middot; revision 114",
+ thrust:"<em>Thought Mastery in the Age of AI</em> has been named in the Author&rsquo;s section since r105 with no way to reach it. It is now a download: 38 pages, 2.8&nbsp;MB, served beside the document.",
+ mot:"A reference a reader cannot follow is a claim rather than a citation, and this one stood for nine releases. The companion is now a real file at /whitepaper/thought-mastery-in-the-age-of-ai.pdf, linked from the paragraph that describes it. Two things about the form are deliberate. It is a LINK and not an embed, because Vision 2525 is one page that carries everything it needs and opens with no network at all &mdash; that is the rule the seal obeys, and the ALVAR mark, and every diagram. A thirty-eight-page companion at nearly three megabytes is not something a single self-contained page should swallow, and pretending otherwise would break the rule everywhere else in order to honour it in one place. The link is the honest form and the section now says so in a sentence rather than leaving a reader to wonder why one artefact is embedded and another is not. The second thing is that the link is stated with its weight: pages, megabytes, format, before a reader taps it on a phone on a train. A download that surprises somebody with its size is a small discourtesy, and this document is supposed to be better at small courtesies than it is at large claims.",
+ stats:{clauses:303, jur:103, shields:5, defects:40, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Named since r105, reachable since now. The gap between those two is the finding."},
+  {n:"Asar",   g:"A",  f:"The section said read it. A reader could not. It can now."},
+  {n:"Athena", g:"A",  f:"Link rather than embed, and the reason is written into the section rather than assumed."},
+  {n:"Christo",g:"A",  f:"Size and page count stated before the tap. A courtesy to somebody on a phone."},
+  {n:"Enki",   g:"A",  f:"The one-file rule and a 2.8&nbsp;MB companion genuinely conflict. The conflict is resolved out loud."},
+  {n:"Enlil",  g:"A",  f:"38 pages and 2,898,876 bytes counted from the file, not from the covering note."},
+  {n:"Krishna",g:"A",  f:"Served from the same directory the document is published to, so publish carries both."},
+  {n:"Odin",   g:"A&minus;", f:"A link can rot. Everything else here is embedded for exactly that reason; this one cannot be."},
+  {n:"Pangu",  g:"A",  f:"The <em>why we must</em> is now one tap from the <em>how</em>."},
+  {n:"Sofia",  g:"A",  f:"A reader who wants the reason before the mechanism finally has a door to it."},
+  {n:"Thoth",  g:"A",  f:"38 pages &middot; 2.8&nbsp;MB &middot; one link &middot; one supersede. Counted, not estimated."},
+  {n:"Thor",   g:"A",  f:"Append-only, one block, no artwork duplicated. Smallest safe change."}
+ ],
+ next:"The spine, rebuilt from parsed structure rather than string surgery."
 }
 ];
 
@@ -15081,6 +15109,13 @@ L(105,"mot.companion","The operator supplied a second document of his own: <em>T
 '<p>It opens where this section already stands. Sumer encoded survival in <strong>ME</strong>, sacred assignments of role and covenant. Egypt upheld <strong>Ma&rsquo;at</strong>, the living equilibrium between truth and force &mdash; the same Ma&rsquo;at whose scribe was Thoth, three paragraphs above. Neither was superstition; both were governance architecture, and the task it sets is translation: what does ME look like in algorithmic design, and Ma&rsquo;at in audit systems and public accountability?</p>'+
 '<p>It also names the constraint everything here is built around. Execution accelerates; conscience does not. The gap between what can be produced and what can be meaningfully evaluated is where accountability quietly dies, and a civilisation that fails to close that gap arrives at abundance without agency &mdash; output without oversight. <span class="meta">Economists have reached the same structure in formal notation: Catalini, Hui and Wu, February 2026, name that gap the Measurability Gap and that failure state the Hollow Economy. Different vocabulary, same finding, and the closest thing to outside corroboration this work has.</span></p>'+
 '<p style="margin-bottom:0">Read it if the mechanism here interests you but the reason for it does not yet. This document is the <em>how</em>. That one is the <em>why we must</em>.</p></div>');
+
+L(113,"mot.companion","The companion document is downloadable. It was referenced for nine releases with no way to reach it.",
+'<div class="notice key"><span class="tag">The companion document</span>'+
+'<p><strong>Thought Mastery in the Age of AI &mdash; A Civilization Blueprint for 2525.</strong> Thirty-three sections, written under this same name. Where Vision &#8226; 2525 specifies mechanism &mdash; the unit, the ceiling, the ledger, the off switch &mdash; that document asks the prior question: what must a civilisation <em>become</em> in order to deserve the tools it is building?</p>'+
+'<p>It opens where this section already stands. Sumer encoded survival in <strong>ME</strong>, sacred assignments of role and covenant. Egypt upheld <strong>Ma&rsquo;at</strong>, the living equilibrium between truth and force &mdash; the same Ma&rsquo;at whose scribe was Thoth, three paragraphs above. Neither was superstition; both were governance architecture, and the task it sets is translation: what does ME look like in algorithmic design, and Ma&rsquo;at in audit systems and public accountability?</p>'+
+'<p>It also names the constraint everything here is built around. Execution accelerates; conscience does not. The gap between what can be produced and what can be meaningfully evaluated is where accountability quietly dies, and a civilisation that fails to close that gap arrives at abundance without agency &mdash; output without oversight. <span class="meta">Economists have reached the same structure in formal notation: Catalini, Hui and Wu, February 2026, name that gap the Measurability Gap and that failure state the Hollow Economy. Different vocabulary, same finding, and the closest thing to outside corroboration this work has.</span></p>'+
+'<p>Read it if the mechanism here interests you but the reason for it does not yet. This document is the <em>how</em>. That one is the <em>why we must</em>.</p><p class="dl" style="margin-bottom:0"><a href="/whitepaper/thought-mastery-in-the-age-of-ai.pdf" download>Download <strong>Thought Mastery in the Age of AI</strong></a><span class="meta"> &nbsp;PDF &middot; 38 pages &middot; 2.8&nbsp;MB &mdash; a separate file, deliberately. Vision &#8226; 2525 is one page that carries everything it needs and works with no network; a companion of thirty-eight pages is not that, and pretending otherwise would break the rule this document keeps everywhere else. The link is the honest form.</span></p></div>');
 
 /* ══════════ REVISION 100 ══════════ */
 L(100,"front.alvar","ALVAR had nowhere a reader could find it. The block is live, 661 words, and sits fifth of eighty-seven in the ledger order &mdash; but it was in NO other order, so the white paper simply did not contain it, and its heading carried no identifier at all, so nothing could link to it and no chip could point at it. Its sibling mark, the Master of Thought seal, has been in the paper order and addressable as &ldquo;author&rdquo; the whole time. The heading is now anchored and the block joins the paper beside that seal, where the two marks close the argument together &mdash; which is where r95 and r99 had already struck them as a matched pair, on the same black disc with the same rim and the same thirty-four pixels of air.",
