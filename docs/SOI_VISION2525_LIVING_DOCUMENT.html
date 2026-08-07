@@ -306,6 +306,11 @@ body.straight .chips{display:flex}
    is unchanged and still traceable; it simply stops interrupting the reading.
    CSS rather than nineteen rewritten sections — the same shape, quieter. */
 .nose p{margin:0}
+/* r130 · the promise link under a section title — quiet, and absent from
+   the bare scaffold reading where the promise IS the page. */
+.plink{margin:4px 0 10px;font-size:13px}
+.plink a{color:var(--ink-2)}
+body.nose .plink{display:none}
 /* r113 · the companion is a real file a reader can take away. Sized like a
    link rather than a button, because it is one of several ways out of the
    section and not the point of it. */
@@ -1044,6 +1049,46 @@ const OUTLINE_ORDER = [
  "outline.author"
 ];
 
+/* r130 · THE WHITE PAPER IS THE FULL DOCUMENT. The operator: the paper is the
+   Brief, the N.O.S.E., and the explanation — it cannot be the same as the
+   scaffold. A view IS an order, so the repair is an order: every Brief block,
+   every section, and beneath each section the record the ledger already holds.
+   WP_ORDER is a curated COMPOSITE over the four partitions — it deliberately
+   overlaps them, which is why it is not a member of the disjointness law; the
+   partitions stay disjoint and this reading is assembled from them. */
+const WP_ORDER = [
+ "paper.toc",
+ "brief.open","brief.flaw","brief.gates","brief.formula","brief.restart","brief.risk","brief.open_items","brief.why",
+ "mot.thesis","front.thesis","front.mission",
+ "paper.s0","front.constitution",
+ "paper.s1","front.locked","unit.denom","unit.multiples","unit.ceiling","unit.reach",
+ "paper.s2","unit.carry","unit.death","unit.payout","human.story",
+ "paper.s3","gov.wall","gov.layers","gov.primacy",
+ "paper.s4","legal.doctrine","legal.shields","legal.renounce","legal.entity",
+ "paper.s5","rcore.ledger","rcore.modes","rcore.spiral","rcore.version","rcore.plain",
+ "paper.s6","unit.settle","unit.mintsettle","unit.guard",
+ "paper.s7","off.switch","off.keys","off.reserve","off.trust","off.restart",
+ "paper.s8","gov.cadence",
+ "paper.s9","corpus.empires",
+ "paper.s10","corpus.ssses","corpus.score","corpus.iterations",
+ "paper.s11","scale.2525",
+ "paper.s12","human.ladder",
+ "paper.s13","corpus.cubes","scale.sim",
+ "paper.s14","unit.witness","human.receipt",
+ "paper.s15","fund.token","fund.membership","fund.tiers","fund.escrow","fund.return","fund.quai","fund.rnd",
+ "paper.s16","legal.regimes","legal.matrix","legal.pension","legal.ramp","legal.eleven","legal.dissolution","legal.engage","legal.join",
+ "paper.s17","gov.council","gov.ladder","gov.personhood","gov.recall",
+ "paper.s18","reach.intelligence","reach.worlds","reach.accelerate",
+ "paper.s19","scale.groundzero","scale.austin",
+ "human.cambodia","human.ledger",
+ "frame.accords","frame.soi","frame.loop","frame.tongue","corpus.hierarchy","corpus.classes",
+ "mot.leaders",
+ "paper.registers",
+ "close.synthesis",
+ "paper.close","mot.tenses","mot.address","mot.author","mot.companion","front.alvar"
+];
+
+
 /* Every block, exactly once — the id sets are disjoint, so the union IS the
    complete record. Full doc reads this, whatever view happens to be open. */
 /* r89: DEDUPED, and the dedupe is the point. The orders are disjoint by id with
@@ -1062,7 +1107,7 @@ const OUTLINE_ORDER = [
    the record as the appendix it always was. The registers keep every release
    reference they carry, because that is the past being offered deliberately. */
 const ALL_ORDER = [...new Set(
-  PAPER_ORDER.concat(OUTLINE_ORDER).concat(BRIEF_ORDER).concat(LEDGER_ORDER))];
+  WP_ORDER.concat(PAPER_ORDER).concat(OUTLINE_ORDER).concat(BRIEF_ORDER).concat(LEDGER_ORDER))];
 
 /* r100: each view names the SPINE that defines it — the blocks whose absence
    means the view does not exist yet at this release. Until now the fallback
@@ -1073,7 +1118,7 @@ const ALL_ORDER = [...new Set(
    The message has always said "predates the white paper ... those SECTIONS were
    first written at" — it was about the sections all along. Now the code is. */
 const VIEWS = {
-  paper:   {order: PAPER_ORDER,   label: "White paper", hash: "paper",    spine: /^paper\./},
+  paper:   {order: WP_ORDER,      label: "White paper", hash: "paper",    spine: /^paper\./},
   ledger:  {order: LEDGER_ORDER,  label: "Ledger",      hash: "",         spine: /./},
   brief:   {order: BRIEF_ORDER,   label: "Brief",       hash: "brief",    spine: /^brief\./},
   outline: {order: OUTLINE_ORDER, label: "Outline",     hash: "outline",  spine: /^outline\./},
@@ -4170,6 +4215,27 @@ const VERSIONS = [
   {n:"Thor",   g:"B+", f:"The gate fired and was outvoted by a grep. Exit codes are now law &mdash; but the breach reached the remote, so no A tonight."}
  ],
  next:"The regenerated syntheses sheet and the full changes report &mdash; the operator&rsquo;s 06:00 read. The register recount and v19 (full-read verification, 33 languages) follow."
+},
+{
+ v:130, code:"THE WHITE PAPER BECOMES THE FULL DOCUMENT", stamp:"2026.08.07 &middot; revision 130",
+ thrust:"The operator&rsquo;s law lands: the White Paper is the Brief, the argument, and the record beneath every section &mdash; it can no longer be the scaffold with the labels dimmed. The paper&rsquo;s order now carries the whole Brief, all nineteen sections each followed by the ledger blocks that prove them, the human stories, a new machine-counted summary of the registers with the tables staying in the Ledger, and the author&rsquo;s close. A build rule makes the superset structural, every section links to its own 111-word promise, and the full-document banner &mdash; found describing a reading the engine no longer produced &mdash; is corrected and counted as a defect.",
+ mot:"The operator read the paper beside the scaffold and said the one sentence this release answers: it cannot be the same as the N.O.S.E. It was &mdash; the same order with the labels turned down &mdash; and the record the reader deserved sat one view away, reachable only by wandering into the Ledger. Nothing needed writing to fix that; it needed carrying. A view is an order, so the repair is an order: the Brief that welcomes, then each section followed by the blocks the ledger already held &mdash; the locked definition and the multiples under the unit, the rolling floor and the family that inherits nothing under the ceiling, the wall and its diagram under the vote, the shields under the shield, the replay discipline under the ledger section, the settlement and its stamp, the entire off switch, the empires, the score we fail, the funding loop, the eleven jurisdictions, the councils and the recall, the other minds and the other worlds, and the three generations of one Cambodian family where they can finally be met on the way through rather than discovered afterwards. The registers alone stay where they are: the paper carries a three-paragraph summary, counted to the word, with the door to the Ledger open, because a summary that replaced its source would be the exact habit the registers exist to break. Two honesties ride along. The full-document banner had been promising every block from every order while the engine rendered the paper alone &mdash; a described shape the view did not have, our own named failure class, now corrected and numbered. And the superset is not a promise: a build rule counts the Brief in, counts the sections in, counts seventy-plus record blocks beyond both parents, and fails the day any of it stops being true. The paper now outweighs its parents by construction. The warmth &mdash; the voice before each mechanism &mdash; is the writing that follows.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"One source, one order, no copies &mdash; the detail is carried, never restated, so nothing can drift from itself."},
+  {n:"Asar",   g:"A+", f:"The document finally reads as one argument: welcome, claim, proof, cost, people, close. The synthesis is the order itself."},
+  {n:"Athena", g:"A",  f:"Curation before writing was the right sequence &mdash; the paper is whole today, and the essays land on a stable spine."},
+  {n:"Christo",g:"A+", f:"A reader now meets Adaeze, Sokha and Chanthou inside the argument, not filed behind it. That is who the paper is for."},
+  {n:"Enki",   g:"A",  f:"The edge held: the scaffold reading stays bare, the registers stay tables, and the banner stopped describing a ghost."},
+  {n:"Enlil",  g:"A",  f:"Superset by exit code, banners recomputed from the order they describe, and the raised count moved with its register."},
+  {n:"Krishna",g:"A",  f:"Every section now touches its own evidence directly, and the promise link closes the loop back to the outline."},
+  {n:"Odin",   g:"A",  f:"A composite order over disjoint partitions will survive the next view someone invents. The partitions stay clean."},
+  {n:"Pangu",  g:"A",  f:"The paper stopped being a presentation of the record and became the record, arranged for a human being."},
+  {n:"Sofia",  g:"A",  f:"From the phone: one long honest read with a rail that jumps anywhere. From the sceptic&rsquo;s chair: nothing was hidden to make it flow."},
+  {n:"Thoth",  g:"A",  f:"Eight brief, twenty-six narrative, seventy-nine record blocks, one summary &mdash; counted by the gate, not by me."},
+  {n:"Thor",   g:"A",  f:"The banner defect is the r100 class again: a description outliving its shape. It is numbered, fixed, and now gated."}
+ ],
+ next:"The visionary layer &mdash; each section opens in the Master of Thought&rsquo;s voice, the approved specimen first, three sections per gated release."
 }
 ];
 
@@ -16067,6 +16133,14 @@ L(129,"open.questions","Three questions filed: the statelessness gap and the jur
 L(129,"open.defects","Rows 41 to 44 join the register with their fixes and finders, plus Thor&rsquo;s &sect;17 post-success watch; the full recount is named as owed, not performed badly.",
 '<h2>Defect register</h2><p>Everything found during this work, with its state. Under the disclosure rule a hidden gap is worse than a known one, and that rule applies to this document before it applies to anything else.</p><div class="notice ok"><span class="tag">&#10003; Six closed in code &middot; every live item now needs a person</span><p style="margin-bottom:0">The money path was closed at releases 34 and 35 (<code>5c50425</code>, <code>23a0b44</code>) &mdash; 3,303 tests passing, zero failed. Everything still open is a decision or an operational act, not a patch. Releases 37 to 39 added five defects of their own, each published in the release that created or discovered it.</p></div><div class="scroll"><table><tr><th class="n">#</th><th>Defect</th><th>State</th><th>Remedy</th></tr><tr style="opacity:.6"><td class="n">20</td><td><strong>The masthead rewrote its own history</strong> &mdash; the title was static HTML outside the replay, so every rename silently changed all earlier releases, and the r35 claim that earlier titles remain readable by rewinding was false when written.</td><td><span class="pill p-impl">&#10003; Fixed r39</span><br><span class="meta">found by operator screenshot</span></td><td>The masthead resolves from a table using the block ledger&rsquo;s own last-write-wins rule. The gate now asserts the title at v1 differs from the title at the latest release.</td></tr><tr><td class="n">18</td><td><strong>An 8-digit numeric PIN is brute-forceable</strong> &mdash; 100,000,000 combinations is minutes of offline or unthrottled attack.</td><td><span class="pill p-live">&#9888; Live</span><br><span class="meta">new at r38</span></td><td>Five attempts, exponential lockout, alert on the third failure, one shot per carried mandate. Longer term: a passphrase, or drop the PIN for a hardware key entirely.</td></tr><tr><td class="n">19</td><td><strong>A PIN is not a second factor</strong> if whoever holds the session can type it &mdash; and any credential that has passed through a chat, email or ticket must be treated as already compromised.</td><td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs an operational act &middot; new at r38</span></td><td>Bind key 2 to hardware (FIDO2 or TOTP on a separate device). <strong>Rotate the credential before the first ceremony, not after.</strong></td></tr><tr><td class="n">16</td><td><strong>The shutdown payout can wipe out a late holder</strong> &mdash; index 0.1742 at year 11, exactly 0 in the shutdown year. If shutdown looks likely the rational act is to stop funding, which makes it likelier.</td><td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; new at r37</span></td><td>Principal floor first, then the index split of the remainder. Changes a stated instruction, so it needs the operator.</td></tr><tr><td class="n">17</td><td><strong>The shutdown thresholds are unratified</strong> &mdash; petition, quorum, carry, confirmation and effect are all proposals.</td><td><span class="pill p-prop">Proposed</span><br><span class="meta">new at r37</span></td><td>Councils ratify the five numbers. Until then the switch is specified, not live.</td></tr><tr><td class="n">6</td><td><strong>Accords caps carry no numbers</strong> &mdash; overhead and institutional gifts &ldquo;capped&rdquo; with no figure anywhere.</td><td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r4</span></td><td>An undefined cap is not a cap. Publish numbers.</td></tr><tr><td class="n">12</td><td><strong>The guarantee and the reach goal pull against each other</strong> at every scale below national &mdash; one person at the full ceiling commits $72,492.75 of reserve.</td><td><span class="pill p-live">&#9888; Live</span><br><span class="meta">needs a person &middot; open since r30</span></td><td>The fork &mdash; full pre-funding versus duration-matched &mdash; is the operator&rsquo;s.</td></tr><tr style="opacity:.6"><td class="n">1&ndash;4, 15</td><td><strong>The money path</strong> &mdash; &#50883; purchasable with money; governance weight from a balance; local wage applied at mint; cross-border arbitrage; a currency constant inside the mint.</td><td><span class="pill p-impl">&#10003; Fixed r34&ndash;r35</span></td><td>All five closed in code with regression locks. Money mints nothing and buys no standing.</td></tr><tr><td class="n">5</td><td><strong>Influence cap defeated by a reputation multiplier</strong> &mdash; weight capped at 15%, then multiplied by up to 6.0.</td><td><span class="pill p-spec">Spec-only</span></td><td>Cap last, or cap the product. Fix before the multiplier is built.</td></tr><tr><td class="n">7</td><td><strong>Guaranteed payout backed by an alert, not a rule</strong></td><td><span class="pill p-spec">Spec-only</span></td><td>Shield V, specified with its ramp at r30, now load-bearing in the shutdown split. Unbuilt.</td></tr><tr><td class="n">8</td><td><strong>Multiple-assignment authority unbounded</strong></td><td><span class="pill p-prop">Gap</span></td><td>The four guards plus the escalation ladder (r8).</td></tr><tr><td class="n">9</td><td><strong>The five-year guarantee has no Accords article</strong> &mdash; sharper now, because the shutdown rule depends on it surviving a majority.</td><td><span class="pill p-prop">Gap</span></td><td>Add an article at the constitutional layer.</td></tr><tr style="opacity:.6"><td class="n">10</td><td><strong>Definitional drift</strong> &mdash; the language count, corrected at r12; &ldquo;7+3&rdquo; cited and undefined, closed at r10 and given a computable zero at r38.</td><td><span class="pill p-impl">&#10003; Closed</span></td><td>A generated dependency map prevents recurrence.</td></tr><tr><td class="n">11</td><td><strong>Evidence layer depends on outside platforms</strong> &mdash; contrary to our own single-point rule.</td><td><span class="pill p-prop">Accepted</span></td><td>Evidence Immutable, tooling Adaptive; the ledger stores the hash, not only a link.</td></tr><tr style="opacity:.6"><td class="n">23</td><td><strong>A unit mislabelled for forty-five releases</strong> &mdash; r11 published &ldquo;0.138 &#50883;&rdquo;. 0.138 is 1 &divide; 7.25 &mdash; and 7.25 is a WAGE, not a divisor, so the fraction was wrong as well. Superseded by defect 31.</td><td><span class="pill p-impl">&#10003; Fixed r56&ndash;r57</span></td><td>Corrected in &sect;15 with the r11 wording left readable. Our first correction called the number understated; it was the unit, not the number. Both are recorded.</td></tr><tr style="opacity:.6"><td class="n">24</td><td><strong>Our own duplication ceiling breached for thirteen releases</strong> &mdash; the white paper restated the record; worst section 71.2% against a stated 20% ceiling, r41 to r53.</td><td><span class="pill p-impl">&#10003; Fixed r54</span></td><td>Rewritten to 7.1% worst case at r54 &mdash; but the breach was never disclosed until the spiral tests measured it at r59. Nobody was checking, which is the actual finding.</td></tr><tr><td class="n">25</td><td><strong>A promise made and never instrumented</strong> &mdash; &ldquo;plainly enough for a high school reading level&rdquo; was never measured. Mean grade 13.5; sixteen of twenty sections over grade 12; &sect;16 at 16.3.</td><td><span class="pill p-live">Live</span></td><td>Instrument shipped at r62 and the score published. The rewriting is the open part &mdash; &sect;19 already sits at 8.9, so the target is proven reachable.</td></tr><tr style="opacity:.6"><td class="n">26</td><td><strong>The doctrine line sat outside the replay for seventy-seven releases</strong> &mdash; the four-beat line beneath the masthead was static HTML, so any rewording of it silently rewrote every earlier release. This is defect 20 again, one line below the element defect 20 was about.</td><td><span class="pill p-impl">&#10003; Fixed r78</span><br><span class="meta">found while acting on three external reviews</span></td><td>It resolves from a table by the same last-write-wins rule as the masthead. The instructive part is that three independent reviewers read the line closely enough to redesign it and none saw that it was not replayed, because static and replayed look identical from the outside. Nobody audits what looks already audited.</td></tr><tr style="opacity:.6"><td class="n">27</td><td><strong>Three registers lived outside the document</strong> &mdash; open questions, the operator ask-log and the external reviews were markdown files. The architecture spec exists <em>because this already happened once</em>: a brief shipped as a second file, the document was renamed, the brief did not follow, and two artefacts disagreed within a day.</td><td><span class="pill p-impl">&#10003; Fixed r79</span><br><span class="meta">operator: &ldquo;we always keep one doc&rdquo;</span></td><td>All three are now ledger blocks and the files are deleted. The drift was already real: this register&rsquo;s external-review block had not moved since r55 and knew nothing of the r75 round, which existed only in the markdown. The gate now fails if any such file reappears.</td></tr><tr style="opacity:.6"><td class="n">28</td><td><strong>The review panel claimed a machine checked its word counts, and no machine did</strong> &mdash; the code comment said &ldquo;asserted by the gate rather than estimated&rdquo; and the caption said the same. Nothing read the field. The counts were in fact correct, verified by hand when they were written, but a hand check that is never institutionalised is not an assertion.</td><td><span class="pill p-impl">&#10003; Fixed r81</span><br><span class="meta">found by auditing our own claim</span></td><td>The gate now recomputes every pass, the Master of Thought synthesis and every reading from the rendered text and fails on any mismatch. The instructive part is the shape: this document exists to argue that verification must be checkable rather than asserted, and it was asserting one it did not perform.</td></tr><tr><td class="n">29</td><td><strong>The review panel padded its own readings to reach the word count it advertises</strong> &mdash; r84 and r85 appended a rotation of neutral clauses (<em>on the record &middot; in this release &middot; as written</em>) and trimmed from the tail until each reading measured 111. Twenty-five of thirty-eight shipped ending in filler or in a severed fragment: <em>It is, on.</em> &mdash; <em>and it holds without exception here on the</em>. The count was true and the reading was not.</td><td><span class="pill p-impl">&#10003; Fixed r86</span><br><span class="meta">found by auditing our own output</span></td><td>The padder is deleted. The pipeline reports the deficit and refuses to merge; the missing words are authored as sentences. All thirty-eight readings are repaired &mdash; every machine word removed, every word a Master wrote kept, the remainder written &mdash; and the gate now rejects any reading ending on a word a sentence cannot end on. The shape is worse than defect 28 and it is the same shape: defect 28 was a check that did not exist, and this is the check that would have caught the padding had it existed. It was committed <em>inside the apparatus built to catch exactly this</em>, and r85&rsquo;s own release note said &ldquo;padded to 111&rdquo; in plain sight.</td></tr><tr><td class="n">31</td><td><strong>The divisor correction did not travel</strong> &mdash; r78 settled the Seed Token at 1/7 of a minimum-wage hour and explained the original error: 7.25 is the United States federal minimum WAGE and was mistaken for the DIVISOR, because dividing a Texas hour by it produced a round dollar. r78 fixed one block. Five others kept 1/7.25 and 8m 17s &mdash; including two written AFTER it, at r80 and r83.</td><td><span class="pill p-impl">&#10003; Fixed r90</span><br><span class="meta">operator caught it: &ldquo;1/7th MW, always&rdquo;</span></td><td>Every live block now reads 1/7 of an hour, 8m 34s, and 0.6867 &#50883; at 4.807 per hour. Texas remains the worked example: $7.25 &divide; 7 = $1.0357. This is the same shape as defect 26 and as &sect;16&rsquo;s stale count &mdash; a correction applied where it was found and nowhere else. The gate now fails on any live block containing 1/7.25 or 8m 17s, which is the only thing that stops the third occurrence.</td></tr></table><caption><strong>Eight closed in code, three closed in the document, six live, two specification-only, two gaps, one accepted, one proposed.</strong> Defect 20 is the instructive one: everything inside the ledger was honest and the frame around it was not, and nobody audits the frame.</caption><p class="rn">ADDED AT r129 &mdash; DEFECTS 41&ndash;44 AND ONE WATCH; THE FULL RECOUNT (TABLED &middot; LIVE TOTALS, LAST TAKEN AT r90) REMAINS OWED</p><ul><li><strong>41</strong> &mdash; &sect;0&rsquo;s scope tally disagreed with its own rows: five answered printed as four. Found by Aset and Thoth in the reading matrix. <strong>Fixed r127</strong> &mdash; the map now agrees with itself.</li><li><strong>42</strong> &mdash; a session extraction tool re-implemented replay instead of calling it, fed six Masters superseded &sect;2/&sect;5 texts and planted a phantom twin-title claim. Fifteen readings repaired, the early Masters vindicated by name. <strong>Fixed r126</strong>; standing law: extraction calls replay() or it does not run.</li><li><strong>43</strong> &mdash; the r80 Measure-table caption claimed a build gate that did not exist; nothing compared the defect row for forty-eight releases while it went stale a second time. <strong>Fixed r128</strong> &mdash; the gate is real, mutation-proven, in both gate copies.</li><li><strong>44</strong> &mdash; r128 shipped on a red gate: the archaeology rule failed the new caption for carrying a defect serial into white-paper prose, and the ship check grepped for reassuring lines instead of reading the exit code. Caught by the next gate run within the hour. <strong>Fixed r129</strong> &mdash; caption rewritten timeless; standing law: the gate&rsquo;s exit status decides, never a filtered quotation of its output.</li><li><strong>Watch</strong> &mdash; Thor, &sect;17: the moment after the contest is won is the moment the loser&rsquo;s patience ends. Post-success retaliation is a watch item on this register, not an edit to the prose.</li></ul></div>');
 
+/* ══════════ RELEASE 130 ══════════ */
+
+L(130,"paper.registers","The operator&rsquo;s decision: the paper carries a summary of the registers in the author&rsquo;s voice &mdash; exactly three paragraphs, machine-counted &mdash; and the tables stay in the Ledger, because a summary that replaced its source would be the habit the registers exist to break.",
+'<div class="secn">THE SECOND BOOK</div><h2 class="sech" id="sec-registers">The Registers</h2><p class="ext">KEPT IN THE OPEN, SUMMARISED HERE, HELD IN FULL BY THE LEDGER</p><p>Every institution keeps two books, whether it admits it or not. One is the story it tells; the other is the list of what happened &mdash; the mistakes, the questions nobody has answered, the decisions still waiting for an owner. Most institutions guard the second book, and the guarding eventually rots them, because a fault that cannot be read cannot be repaired. This document keeps its second book in the open and gives it a name: the registers. Reading them is not an act of suspicion. It is the pause this framework asks of everyone &mdash; look at what is there before acting on what you hope is there.</p><p>There are six. A defect register: every fault found in our work, numbered, with its finder, its state and its remedy &mdash; including faults in the tools built to find faults. A decisions register: the judgements only a human being may make, each with a recommended default and the cost of leaving it open. A questions register: the things we do not know and refuse to pretend about &mdash; who counts a person with no country, what a measure means where nothing can be measured. A proposals register, holding ideas that await a yes. An asks register, holding every request and what answered it. And the outside reviews, kept whole, including the ones that stung.</p><p>None of that lives on this page, and deliberately so: a summary that replaced its source would be the exact habit the registers exist to break. What lives here is the promise that they exist, that they are current, and that nothing is hidden because it embarrasses us &mdash; the ledger keeps the full tables, row by row, where every claim can be checked against the release that made it. <a data-goview="ledger" data-target="blk-open.defects">Read the registers in the Ledger, whenever you choose</a>. If you find a fault we have not listed, you have found the most valuable thing a reader can bring &mdash; and the register has a row waiting for it.</p>');
+
+L(130,"paper.s10","The raised count moves with the register it mirrors: the full-document banner was found describing a reading the engine no longer produced, the banner is corrected in the same release, and the row records that the count grew by one.",
+'<div class="secn">&sect;10 &middot; THE PRESENT <a href="#sec-0">&uarr; contents</a></div><h2 class="sech" id="sec-10">&sect;10 &nbsp; The Present</h2><p class="ext">Extends &sect;5</p><div class="nose"><span class="ne">Needs</span><p>There is a genre of visionary document that describes a destination and never states its own position, and the reason is obvious: position is embarrassing. A framework claiming to coordinate civilization while running on one operator, an AI, and no independent verification is in an awkward spot. The ordinary solution is to write in the future tense until the awkwardness passes. It never passes. It becomes the permanent voice of the document, and readers learn to discount everything in it.</p></div><div class="nose"><span class="ne">Outcomes</span><p>You should be able to tell exactly how far along this is without inferring it from tone. Not a summary of progress but the actual numbers, including the ones that are bad, so that the difference between what is built and what is imagined is a matter of record rather than of reading between lines.</p></div><div class="nose"><span class="ne">Solution</span><p>We score against five pillars &mdash; Security, Stability, Scalability, Efficiency, Succinctness. The composite is the minimum rather than the mean, because a system is only as strong as its weakest dimension and averaging is how a weak dimension gets hidden. So the figure below is the lowest of ten cubes rather than the average of ten, and we publish it knowing that it fails our own bar. Every defect found in our own money path is in the register with the date it was found, including the ones still open.</p></div><div class="scroll"><table><tr><th>Measure</th><th class="n">Measured at this release</th><th class="n">Written down before</th></tr><tr><td><strong>SSSES composite</strong> &mdash; the lowest of ten</td><td class="n">74 of 100</td><td class="n">bar is 100</td></tr><tr><td>strongest cube &mdash; Session</td><td class="n">100</td><td class="n">&mdash;</td></tr><tr><td>weakest cube &mdash; Simulation</td><td class="n">74</td><td class="n">&mdash;</td></tr><tr><td>route handlers in the engine</td><td class="n">154 &middot; 17 modules</td><td class="n">109</td></tr><tr><td>test functions in the engine</td><td class="n">2,399 &middot; 151 files</td><td class="n">1,488</td></tr><tr><td>defects raised &middot; tabled &middot; live</td><td class="n">45 raised &middot; split owed to the register recount</td><td class="n">was 27 &middot; 18 &middot; 6 at r80</td></tr><tr><td>reading grade, mean of twenty sections</td><td class="n">13.4</td><td class="n">band is 11&ndash;13</td></tr><tr><td>sections inside that band</td><td class="n">6 of 20</td><td class="n">&mdash;</td></tr></table><caption>Measured at this release rather than asserted. Two of these were already recorded elsewhere &mdash; 109 handlers and 1,488 tests &mdash; and both had gone stale, which is the ordinary fate of a number nobody re-measures. Then this table did it too: the defect count published here at r77 was already wrong by r79, because two more defects were raised and nothing re-read this row. It is corrected above with the superseded figure beside it, and a gate assertion now compares this row against the register on every build. The number is allowed to move. It is not allowed to move quietly. The composite is 74 because one cube is at 74. Our bar is 100. We are twenty-six points short of it, and the shortfall has a name and a location. One more correction belongs to this caption, because it earned it: the build assertion promised above did not exist when the promise was written &mdash; our own failure, recorded in the defect register &mdash; and nothing compared this row while the raised count moved from 27 to 43. The gate is now real &mdash; labels, values and the raised count are re-derived from the ledger and checked on every build &mdash; and the tabled-and-live split is owed to the register recount rather than guessed.</caption></div><div class="nose"><span class="ne">Evidence</span><p>Now the uncomfortable specifics. Money could once mint recognition, which contradicts the wall that says it never can, and it sat there unnoticed for a long time; recognition briefly carried governance weight, which contradicts the same wall. Both are closed. Both are still readable at the release where they were wrong. Three governance decisions block operation today, and they are named rather than deferred quietly: the selection rule for thirty-five jurisdictions with sectoral rates, the standard value for the thirteen with no statutory rate, and the criteria for the multiple bands. This paper once restated the ledger in 28.7 per cent of its own phrasing. Measurement found that rather than reading, and it is now held below twenty by a machine. Most of the sections above are still too dense to survive translation comfortably, and this one was among them until the numbers arrived and the sentences were shortened to let them in. Uncomfortable to read and accurate anyway, which is the only combination worth publishing.</p></div>');
+
 
 /* ── engine ───────────────────────────────────────────────────────────── */
 
@@ -16205,9 +16279,9 @@ function blocksFor(v){
      paper.* block existed, so early releases show the record instead of an
      empty page, exactly as the four views already do. */
   if (straight){
-    const fd = replay(v, PAPER_ORDER);
+    const fd = replay(v, WP_ORDER);
     if (fd.some(function(b){ return /^paper\./.test(b.id); })){
-      fellBack = null; return {blocks: fd, order: PAPER_ORDER};
+      fellBack = null; return {blocks: fd, order: WP_ORDER};
     }
     fellBack = {view:"paper", label:"White paper", first:viewFirstRelease("paper")};
     return {blocks: replay(v, LEDGER_ORDER), order: LEDGER_ORDER};
@@ -16432,6 +16506,7 @@ function renderDoc(){
   foldAlvar();            /* r107: ALVAR joins the author's section */
   renderSectionNav();
   renderOutlineLinks();   /* r97: outline -> details */
+  renderPromiseLinks();   /* r130: each section links to its 111-word promise */
   renderHeadingRows();    /* r107: the eyebrow under the title */
   renderHandoffs();       /* r114: every section hands the reader to the next */
   applyPaging();          /* r98: one section at a time */
@@ -16501,7 +16576,7 @@ let specOpen = false;
    already here as `sec-c`; the outline's is `out-c`, a different id, and
    without a row the fallback read "\u00a7C The Constitution" and produced \u00a7CTHE \u2014
    caught by the probe, not by a reader, which is the point of the probe. */
-const CHIP_LABEL = {"sec-0":"TOC", "sec-c":"\u00a7C", "out-0":"PLAN",
+const CHIP_LABEL = {"sec-0":"TOC", "sec-c":"\u00a7C", "sec-registers":"REGISTERS", "out-0":"PLAN",
                     "out-c":"\u00a7C", "out-author":"AUTHOR",
                     "author":"AUTHOR", "sec-end":"END", "sec-close":"CLOSING"};
 function chipLabelFor(id, raw){
@@ -16972,6 +17047,49 @@ function renderOutlineLinks(){
   bindSectionJumps();
 }
 
+/* r130 · THE PROMISE LINK. Each numbered section in the paper carries a quiet
+   link to its own 111-word outline entry — the promise the section keeps. The
+   N.O.S.E. reading stays the bare scaffold, so the decorator skips it. */
+function renderPromiseLinks(){
+  if (view !== "nose"){
+    document.getElementById("doc")
+      .querySelectorAll('section.blk[id^="blk-paper.s"] h2.sech[id^="sec-"]').forEach(function(h){
+      const n = /^sec-(\d+)$/.exec(h.id);
+      if (!n || n[1] === "0") return;
+      const bb = h.closest(".bb");
+      if (!bb || bb.querySelector(".plink")) return;
+      const html = '<p class="plink"><a data-goview="outline" data-target="out-' + n[1] + '">' +
+        'the promise this section keeps, in 111 words &rarr;</a></p>';
+      const ext = bb.querySelector(".ext");
+      if (ext) ext.insertAdjacentHTML("afterend", html);
+      else h.insertAdjacentHTML("afterend", html);
+    });
+  }
+  bindViewJumps();
+}
+
+/* r130 · ONE CROSS-VIEW JUMP, ANY CALLER. The same shape as bindSectionJumps,
+   generalised: any content anchor may carry data-goview + data-target and land
+   in another reading — the promise links use it, and so does the registers
+   summary pointing into the Ledger. goTo() resolves the paged cell, exactly as
+   the chips do, so the target opens rather than staying hidden. */
+function bindViewJumps(){
+  document.getElementById("doc").querySelectorAll("a[data-goview]").forEach(function(a){
+    if (a.dataset.vjump) return;
+    a.dataset.vjump = "1";
+    a.style.cursor = "pointer";
+    a.addEventListener("click", function(ev){
+      ev.preventDefault();
+      const tv = this.getAttribute("data-goview"), tid = this.getAttribute("data-target");
+      if (view === tv && document.getElementById(tid)){ goTo(tid); return; }
+      stop(); setView(tv);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){
+        if (document.getElementById(tid)) goTo(tid);
+      }); });
+    });
+  });
+}
+
 /* ── r108 · ONE JUMP, TWO CALLERS ─────────────────────────────────────────
    The outline's "Read §N in full →" and the brief's "Condenses §…" want the
    same behaviour, so they share this handler rather than growing a second
@@ -17209,30 +17327,33 @@ function renderViewBanner(){
   };
 
   if (straight){
-    const e = est(ALL_ORDER);
-    host.innerHTML = '<div class="viewban"><b>Full document.</b> Every block from every order, ' +
-      'read straight through &mdash; the argument, the outline, the brief and the complete change ' +
-      'record, in that order. <strong>' + ALL_ORDER.length + ' blocks, about ' + e.mins +
-      ' minutes.</strong> This is the whole thing and it is not meant to be read in one sitting. ' +
-      'For the argument alone in about ' + est(PAPER_ORDER).mins + ' minutes, ' +
-      '<a id="toPaperF">read the white paper &rarr;</a>. For the shortest honest version, ' +
+    /* r130 · defect 45: this banner claimed every block from every order while
+       the straight branch rendered the paper alone. It now describes what is
+       actually rendered — the complete white paper — and computes from it. */
+    const e = est(WP_ORDER);
+    host.innerHTML = '<div class="viewban"><b>Full document.</b> The complete white paper, read straight ' +
+      'through &mdash; the brief that welcomes, the argument section by section with its record beneath ' +
+      'it, the registers&rsquo; summary and the author&rsquo;s close. <strong>' + WP_ORDER.length +
+      ' blocks, about ' + e.mins + ' minutes.</strong> Not meant for one sitting; the &sect; rail jumps ' +
+      'anywhere. For the shortest honest version in about ' + est(BRIEF_ORDER).mins + ' minutes, ' +
       '<a id="toBriefF">read the brief &rarr;</a>.</div>';
-    jump("toPaperF", "paper"); jump("toBriefF", "brief");
+    jump("toBriefF", "brief");
     return;
   }
   if (view === "paper"){
-    const e = est(PAPER_ORDER);
-    const n = replay(active, PAPER_ORDER).filter(function(b){ return /^paper\.s[1-9]/.test(b.id); }).length;
+    const e = est(WP_ORDER);
+    const n = replay(active, WP_ORDER).filter(function(b){ return /^paper\.s[1-9]/.test(b.id); }).length;
     /* r100: ALVAR joins the paper beside the Master of Thought seal, so the
        banner says so. It read "the argument, and ONLY the argument", which was
        true until the two marks closed it. A banner that describes a shape the
        view no longer has is the same defect as r97's "thirteen sections". */
-    host.innerHTML = '<div class="viewban"><b>White paper.</b> The argument, the Constitution before it ' +
-      'and the two seals at its close &mdash; ' +
-      n + ' numbered sections with a table of contents on top. ' +
-      '<strong>About ' + e.mins + ' minutes.</strong> No release numbers, no change history: what this ' +
-      'is, why it exists, and the paths considered on the way to it. For the same nineteen sections at ' +
-      '111 words each, <a id="toOutlineP">read the outline &rarr;</a>. For what changed and when, ' +
+    /* r130 · the paper carries the brief and the record beneath each section
+       now, so the banner stopped claiming otherwise — the r100 lesson again. */
+    host.innerHTML = '<div class="viewban"><b>White paper.</b> The full document &mdash; the brief, then ' +
+      n + ' numbered sections, each followed by the record that proves it: the locked definitions, the ' +
+      'tables, the shields, the off switch, the people it is for. <strong>About ' + e.mins +
+      ' minutes.</strong> For each section&rsquo;s promise at 111 words, ' +
+      '<a id="toOutlineP">read the outline &rarr;</a>. For what changed and when, ' +
       '<a id="toLedger2">read the ledger &rarr;</a>.</div>';
     jump("toOutlineP", "outline"); jump("toLedger2", "ledger");
   } else if (view === "outline"){

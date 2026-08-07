@@ -485,9 +485,15 @@ const fails=[];
   /* The "changed in vN" marker is engine chrome and belongs to every view of a
      ledger document; the rule the operator set is about PROSE. Strip the marker
      and its recorded reason, then test what is left to read. */
+  /* r130 · the paper now carries the record beneath each section, and the
+     record keeps its release references BY r90's own doctrine — "the past
+     being offered deliberately." The archaeology law binds what was authored
+     as timeless narrative: the paper.* blocks, the Constitution, and the
+     registers summary. Everything imported from the ledger is record. */
   const dirty=await p.evaluate((src)=>{
     const re=new RegExp(src,'i');
-    return [...document.querySelectorAll('#doc section.blk')].map(b=>{
+    return [...document.querySelectorAll('#doc section.blk')]
+      .filter(b=>/^blk-(paper\.|front\.constitution)/.test(b.id)).map(b=>{
       const c=b.cloneNode(true);
       c.querySelectorAll('.chgtag').forEach(t=>t.parentElement.remove());
       return re.test(c.textContent) ? b.id+': '+(c.textContent.match(re)||[])[0] : null;
@@ -858,10 +864,10 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
       const hid = all.filter(s => getComputedStyle(s).display === 'none');
       if (hid.length) out.errors.push(`${hid.length} blocks hidden in full doc; it must read straight through`);
       const ids = all.map(s => s.id.replace(/^blk-/,''));
-      const want = PAPER_ORDER.filter(id => ids.indexOf(id) >= 0);
+      const want = WP_ORDER.filter(id => ids.indexOf(id) >= 0);
       if (all.length !== want.length)
         out.errors.push(`full doc has ${all.length} blocks; the white paper has ${want.length}`);
-      const stray = ids.filter(id => PAPER_ORDER.indexOf(id) < 0);
+      const stray = ids.filter(id => WP_ORDER.indexOf(id) < 0);
       if (stray.length) out.errors.push('full doc carries non-paper blocks: ' + stray.slice(0,4).join(', '));
       out.notes.push(`full doc = white paper, ${all.length} blocks, zero toggles`);
       if (!document.querySelectorAll('#chips button').length)
@@ -870,7 +876,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
 
     /* ── 2 · COVERAGE: nothing lives only in full doc ────────────────────── */
     {
-      const union = new Set([...PAPER_ORDER, ...OUTLINE_ORDER, ...BRIEF_ORDER, ...LEDGER_ORDER]);
+      const union = new Set([...WP_ORDER, ...PAPER_ORDER, ...OUTLINE_ORDER, ...BRIEF_ORDER, ...LEDGER_ORDER]);
       const live = replay(VMAX, ALL_ORDER).map(x => x.id);
       const orphan = live.filter(id => !union.has(id));
       if (orphan.length)
@@ -960,7 +966,12 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
 
     /* ── 4 · the bottom of a cell, with its arrows on screen ─────────────── */
     setView('paper'); await new Promise(r=>setTimeout(r,260));
-    showCell(10); window.scrollTo(0,0); await new Promise(r=>setTimeout(r,120));
+    /* r130 · ANCHOR BY CONTENT, NEVER BY INDEX. showCell(10) was §8's cell
+       when the paper had 24 of them; the full-document order moved the
+       indices and cell 10 became §3's — which rule 5 below also opens, so
+       this rule's bottom-scroll leaked into that one's measurement. The
+       cell this rule always meant is §8's, so it is named. */
+    goTo('sec-8'); window.scrollTo(0,0); await new Promise(r=>setTimeout(r,120));
     {
       const chrome = Math.round(document.getElementById('doc').getBoundingClientRect().top + window.scrollY);
       /* The budget is the DECK plus a little, not a flat number: the deck is the
@@ -1005,11 +1016,17 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
 
     /* ── 5 · NO BURIAL while reading: the pinned eyebrow clears the deck ─── */
     if (document.getElementById('sec-3')){
-      goTo('sec-3'); await new Promise(r=>setTimeout(r,200));
+      goTo('sec-3'); await settle();
+      /* r130 · the rule owns its scroll state, and it WAITS for it: the page
+         scrolls smoothly by stylesheet, so a fixed sleep samples mid-flight —
+         with the taller full-document cells the animation outlives 200ms and
+         the eyebrow is measured somewhere it never rests. settle() after
+         every scroll, exactly as the cell-bottom rule above already does. */
+      window.scrollTo(0,0); await settle();
       const own = document.getElementById('sec-3').closest('section.blk');
       const eb = own && own.querySelector('.secn');
       if (eb){
-        window.scrollBy(0, 400); await new Promise(r=>setTimeout(r,200));
+        window.scrollBy(0, 400); await settle();
         const deck = document.querySelector('.deck').getBoundingClientRect();
         const q = eb.getBoundingClientRect();
         if (q.top < deck.bottom - 1.5)
@@ -1234,6 +1251,56 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   if(!r.missing.length && r.lock && r.nRows===8 && !r.unmatched.length && !r.extra.length
      && !r.emptyVals && r.raised===r.statsDefects)
     console.log('commissioned gates ok — §4 five absences + lock present; §10 measure table 8/8 rows, defect row '+r.raised+' == stats.defects');
+}
+
+/* ── r130 · SUPERSET (the MoT-333 commitment, made an exit code) ─────────
+   The operator's law: the White Paper is the full document — the Brief, the
+   sections, and the record beneath them. It cannot be the scaffold with the
+   labels dimmed. So the paper's order must carry every Brief block and every
+   narrative block, plus at least seventy blocks neither parent carries; the
+   register TABLES stay in the Ledger (the paper carries their 333-word
+   summary); and the rendered paper must be strictly larger than the bare
+   N.O.S.E. scaffold. More comprehensive is not an opinion here — it fails
+   the build the day it stops being true, and nothing is trimmed to fit. */
+{
+  const p=await b.newPage({viewport:{width:1440,height:900}});
+  await p.goto(f); await p.waitForTimeout(600);
+  const r=await p.evaluate(()=>{
+    const missB = BRIEF_ORDER.filter(id=>WP_ORDER.indexOf(id)<0);
+    const missP = PAPER_ORDER.filter(id=>WP_ORDER.indexOf(id)<0);
+    const extra = WP_ORDER.filter(id=>PAPER_ORDER.indexOf(id)<0 && BRIEF_ORDER.indexOf(id)<0);
+    const dupes = WP_ORDER.filter((id,i)=>WP_ORDER.indexOf(id)!==i);
+    const regs  = WP_ORDER.filter(id=>/^open\./.test(id));
+    /* THE LAW BINDS TO WHAT IS RENDERED, not to the constant — a mutant that
+       reverts the view while the constant stays perfect must die here. */
+    setView('paper');
+    const rids = [...document.querySelectorAll('#doc section.blk')].map(s=>s.id.replace(/^blk-/,''));
+    const rMissB = BRIEF_ORDER.filter(id=>rids.indexOf(id)<0);
+    const rExtra = rids.filter(id=>PAPER_ORDER.indexOf(id)<0 && BRIEF_ORDER.indexOf(id)<0).length;
+    const rHasReg = rids.indexOf('paper.registers')>=0;
+    setView('nose');
+    const nids = [...document.querySelectorAll('#doc section.blk')].map(s=>s.id.replace(/^blk-/,''));
+    const nExtra = nids.filter(id=>PAPER_ORDER.indexOf(id)<0).length;
+    setView('paper');
+    return {missB, missP, extraN: extra.length, dupes, regs,
+            rMissB, rExtra, rHasReg, nExtra,
+            hasReg: WP_ORDER.indexOf('paper.registers')>=0, total: WP_ORDER.length};
+  });
+  await p.close();
+  if(r.missB.length) fails.push('SUPERSET: brief block(s) missing from the white paper — '+r.missB.join(', '));
+  if(r.missP.length) fails.push('SUPERSET: narrative block(s) missing from the white paper — '+r.missP.join(', '));
+  if(r.extraN<70)    fails.push('SUPERSET: only '+r.extraN+' blocks beyond the two parents; the floor is 70');
+  if(r.dupes.length) fails.push('SUPERSET: duplicate ids in the paper order — '+[...new Set(r.dupes)].join(', '));
+  if(r.regs.length)  fails.push('SUPERSET: register tables inlined ('+r.regs.join(', ')+') — the paper carries the summary, the Ledger the tables');
+  if(!r.hasReg)      fails.push('SUPERSET: the registers summary is missing from the paper order');
+  if(r.rMissB.length) fails.push('SUPERSET: RENDERED paper is missing brief block(s) — '+r.rMissB.join(', '));
+  if(r.rExtra<70)     fails.push('SUPERSET: RENDERED paper carries only '+r.rExtra+' blocks beyond the parents; the floor is 70');
+  if(!r.rHasReg)      fails.push('SUPERSET: RENDERED paper is missing the registers summary');
+  if(r.nExtra)        fails.push('SUPERSET: the scaffold reading gained '+r.nExtra+' non-scaffold block(s)');
+  if(!r.missB.length && !r.missP.length && r.extraN>=70 && !r.dupes.length && !r.regs.length && r.hasReg
+     && !r.rMissB.length && r.rExtra>=70 && r.rHasReg && !r.nExtra)
+    console.log('superset ok — rendered paper carries the brief 8/8 + narrative + '+r.rExtra+
+      ' record blocks ('+r.total+' ids), registers summarised not inlined, scaffold stays bare');
 }
 
 await b.close();
