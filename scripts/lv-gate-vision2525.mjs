@@ -1314,7 +1314,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
    day any section reads as a replica of its scaffold reading, the build
    dies here. */
 {
-  const WP_ESSAYS = 16;         /* §1-§7 speak; rises with each batch, locks at nineteen */
+  const WP_ESSAYS = 19;  /* terminal — every section speaks */         /* §1-§7 speak; rises with each batch, locks at nineteen */
   const MIN_EXTRA = 150;       /* every section's paper reading exceeds its scaffold reading by at least this many rendered words */
   const p=await b.newPage({viewport:{width:1440,height:900}});
   await p.goto(f); await p.waitForTimeout(600);
@@ -1351,6 +1351,20 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   if(r.essays!==WP_ESSAYS) fails.push('EXTENSION: '+r.essays+' sections speak in the voice; this release binds exactly '+WP_ESSAYS+
     (r.essays<WP_ESSAYS?' — a voice was lost':' — raise the ratchet with the release, never silently'));
   if(r.leaks) fails.push('EXTENSION: '+r.leaks+' essay(s) visible in the scaffold reading');
+  const links = await (async () => {
+    const p2=await b.newPage({viewport:{width:1440,height:900}});
+    await p2.goto(f); await p2.waitForTimeout(600);
+    const r2=await p2.evaluate(() => {
+      setView('paper');
+      const ls=[...document.querySelectorAll('.plink111 a')];
+      const good=ls.filter(a=>/111\s*\u2022\s*Outline/.test(a.textContent)).length;
+      const notes=[...document.querySelectorAll('.chgtag')].filter(e=>getComputedStyle(e).display!=='none'&&e.offsetHeight>0).length;
+      return {links:ls.length, good, notes};
+    });
+    await p2.close(); return r2;
+  })();
+  if(links.links!==19||links.good!==19) fails.push('EXTENSION: '+links.good+'/19 sections carry the 111 \u2022 Outline link');
+  if(links.notes) fails.push('EXTENSION: '+links.notes+' release note(s) visible to a fresh reader');
   if(!thin.length && r.essays===WP_ESSAYS && !r.leaks)
     console.log('extension ok — 19/19 sections render beyond their scaffold reading (min +'+MIN_EXTRA+'w), '+
       r.essays+'/19 speak in the voice, none leak into the scaffold');
