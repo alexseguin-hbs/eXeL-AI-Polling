@@ -1177,6 +1177,65 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     console.log('drawn icons ok — '+r.total+' controls, every one an svg, zero pictographic glyphs; deck '+deckH+'px of 160');
 }
 
+/* ── r128 · COMMISSIONED GATES (Enlil) ──────────────────────────────────
+   FIVE ABSENCES — §4's shield is five absences plus a lock sentence. An
+   absence that quietly leaves the text is the exact capture §4 warns about,
+   so the rule re-derives the section from replay() — never from the source
+   file (the r116/defect-42 law) — and fails on any missing instrument.
+   MEASURE TABLE — §10's numbers table went stale at r79, and the r80 caption
+   then CLAIMED a build assertion that never existed (defect 43): no gate in
+   the repository compared that row until this one. Built 48 releases late,
+   its first honest run caught the row stale again (27 against 42). It checks
+   every row label, every value cell, and the raised-defect count against the
+   latest release's own stats — the ledger checking the ledger. The
+   commission said ten rows; the table has eight and a header; the rule binds
+   to the eight that exist, because a count that flatters a mandate is
+   padding (defect-29 doctrine). */
+{
+  const p=await b.newPage({viewport:{width:1440,height:900}});
+  await p.goto(f); await p.waitForTimeout(600);
+  const r=await p.evaluate(()=>{
+    const win={}; for(const e of replay(VMAX,['paper.s4','paper.s10'],true)) win[e.id]=e;
+    const t4=(()=>{const d=document.createElement('div');d.innerHTML=win['paper.s4'].html;
+                   return d.textContent.replace(/\s+/g,' ');})();
+    const ABSENCES=[
+      'no equity exists, so there is nothing to buy',
+      'Assets are locked against distribution',
+      'no single jurisdiction holds the whole',
+      'Recognition can never be purchased at any price',
+      'Reserves are funded rather than pledged'];
+    const d10=document.createElement('div'); d10.innerHTML=win['paper.s10'].html;
+    const rows=[...d10.querySelectorAll('tr')].slice(1);   /* drop the header row */
+    const LABELS=['SSSES composite','strongest cube','weakest cube',
+      'route handlers in the engine','test functions in the engine',
+      'defects raised','reading grade','sections inside that band'];
+    const labels=rows.map(tr=>tr.children[0].textContent.trim());
+    const defRow=rows.find(tr=>/defects raised/.test(tr.children[0].textContent));
+    return {
+      missing: ABSENCES.filter(a=>!t4.includes(a)),
+      lock: t4.includes('The list is locked at five'),
+      nRows: rows.length,
+      unmatched: LABELS.filter(L=>!labels.some(x=>x.startsWith(L))),
+      extra: labels.filter(x=>!LABELS.some(L=>x.startsWith(L))),
+      emptyVals: rows.filter(tr=>!(tr.children[1]&&tr.children[1].textContent.trim())).length,
+      raised: defRow?parseInt((defRow.children[1].textContent.match(/\d+/)||['NaN'])[0],10):NaN,
+      statsDefects: VERSIONS[VERSIONS.length-1].stats.defects
+    };
+  });
+  await p.close();
+  if(r.missing.length) fails.push('FIVE ABSENCES: §4 lost — '+r.missing.join(' | '));
+  if(!r.lock) fails.push('FIVE ABSENCES: §4 no longer locks the list at five');
+  if(r.nRows!==8) fails.push('MEASURE TABLE: §10 has '+r.nRows+' data rows; the bound set is 8');
+  if(r.unmatched.length) fails.push('MEASURE TABLE: row missing — '+r.unmatched.join(', '));
+  if(r.extra.length) fails.push('MEASURE TABLE: unbound row — '+r.extra.join(', '));
+  if(r.emptyVals) fails.push('MEASURE TABLE: '+r.emptyVals+' empty value cell(s)');
+  if(r.raised!==r.statsDefects) fails.push('MEASURE TABLE: defect row says '+r.raised+
+    ' raised; the latest release stats say '+r.statsDefects+' — the row went stale in silence again');
+  if(!r.missing.length && r.lock && r.nRows===8 && !r.unmatched.length && !r.extra.length
+     && !r.emptyVals && r.raised===r.statsDefects)
+    console.log('commissioned gates ok — §4 five absences + lock present; §10 measure table 8/8 rows, defect row '+r.raised+' == stats.defects');
+}
+
 await b.close();
 
 if(fails.length){ console.log('\nFAIL:\n'+fails.join('\n')); process.exit(1); }
