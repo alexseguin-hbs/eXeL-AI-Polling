@@ -125,7 +125,7 @@ export function WorkspaceSelect({ onClose }: { onClose?: () => void }) {
             )}
 
             {innoState === "open" && (
-              <a className="wsel-enter" href="/innovation/">Open Innovation</a>
+              <a className="wsel-enter" href="/SoI-2525/">Open SoI-2525</a>
             )}
           </li>
 
