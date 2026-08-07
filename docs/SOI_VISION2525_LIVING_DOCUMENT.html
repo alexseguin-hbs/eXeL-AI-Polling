@@ -651,6 +651,7 @@ body.paged.notfirst #cover,
 body.paged.notfirst header.mast,
 body.paged.notfirst #howto,
 body.paged.notfirst #keyimp,
+body.paged.notfirst #cmp,
 /* r102 · #vban is the release banner — the thrust and the Master-of-Thought note
    for the open release, measured at 1,742px. It belongs to the RELEASE, not to
    each of its cells, and r100 missed it: the front matter was still 2,005px
@@ -4037,6 +4038,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"An error in the scope table is a trust attack surface; found by our own fleet before a hostile reader. Ideal."}
  ],
  next:"The MoT 333-word syntheses — twenty-one sections, each weighing its twelve readings and ending in a concrete edit decision — then the &sect;0 recount repair ships with the edit round."
+},
+{
+ v:124, code:"THE CLOSING IS CALLED CLOSING, AND THE AUTHOR PAGE IS THE AUTHOR&rsquo;S", stamp:"2026.08.07 &middot; revision 124",
+ thrust:"Two operator-reported defects on the white paper&rsquo;s rail, fixed at the render layer and mutation-proven against the pre-edit baseline. The Closing chip read WHERE &mdash; the fallback taking its heading&rsquo;s first word &mdash; and the compare panel sat above every one-cell page, so opening AUTHOR showed a table before the name.",
+ mot:"Both defects were one screenshot from the operator&rsquo;s phone, and both trace to the same class of omission: a rule written correctly once and not extended when the document grew. The chip rail labels every cell from an explicit map, with a fallback that takes the heading&rsquo;s first word &mdash; right for most headings, and wrong for the one heading that begins with the motto. The Closing&rsquo;s id was never given a row, so the rail called the last page of the argument WHERE. The operator decided at r105 that the end is called Closing; the map now says so, and the fallback goes back to covering only what it should. The second defect is r106&rsquo;s omission rather than r105&rsquo;s: when the compare panel was built, the front-matter rule &mdash; cover, masthead, key improvements and banners belong to the FIRST cell only &mdash; already existed, and the new panel was simply never added to that list. So a reader who toggled compare and then tapped AUTHOR got the baseline-and-target table above Master of Thought&rsquo;s name, which is precisely the page where nothing should stand in front of the person taking responsibility. One selector joins the existing list; the panel now lives where the apparatus lives, on the first cell, and every other page opens on its own words. The proof is the operator&rsquo;s own scenario replayed against both files: the pre-edit baseline reproduces WHERE and the table over the author at 390 by 844; the fixed file shows CLOSING, opens AUTHOR clean, and keeps compare fully usable on the first cell. No ledger block was touched; both fixes are render-time, so all 123 releases replay byte-identical beneath them.",
+ stats:{clauses:303, jur:103, shields:5, defects:41, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The rail now agrees with the r105 decision: the end is called Closing everywhere a reader can see."},
+  {n:"Asar",   g:"A",  f:"The author page opens on the name and the responsibility, nothing standing in front of either."},
+  {n:"Athena", g:"A",  f:"One selector, one map row. The smallest possible move for each defect, both proven before shipping."},
+  {n:"Christo",g:"A+", f:"The page where a person accepts fault for the whole document deserved to open unobstructed. Now it does."},
+  {n:"Enki",   g:"A",  f:"The one heading that begins with the motto was the edge the fallback could not see. Named and mapped."},
+  {n:"Enlil",  g:"A+", f:"Mutation-proven: baseline reproduces both defects, fixed file passes both, same probe, same viewport."},
+  {n:"Krishna",g:"A",  f:"The compare panel joins the front-matter list it always belonged to. The rule is whole again."},
+  {n:"Odin",   g:"A",  f:"Fallbacks age badly at the edges; explicit maps age well. One more edge moved into the map."},
+  {n:"Pangu",  g:"A",  f:"No new mechanism invented where an existing rule sufficed. Restraint is the right innovation here."},
+  {n:"Sofia",  g:"A",  f:"The phone reader who filed this sees exactly what they asked for: CLOSING on the rail, the author unobscured."},
+  {n:"Thoth",  g:"A",  f:"Probe counts: WHERE 1 to 0, CLOSING 0 to 1, compare-on-author true to false, compare-on-first true to true."},
+  {n:"Thor",   g:"A",  f:"Render-only surface, zero ledger writes, replay untouched. The safest possible fix class for both."}
+ ],
+ next:"The MoT 333 syntheses artifact, then the edit round: &sect;0 recount, &sect;11&rsquo;s compounding word, the &sect;2/&sect;8 twinning line."
 }
 ];
 
@@ -16309,7 +16331,7 @@ let specOpen = false;
    caught by the probe, not by a reader, which is the point of the probe. */
 const CHIP_LABEL = {"sec-0":"TOC", "sec-c":"\u00a7C", "out-0":"PLAN",
                     "out-c":"\u00a7C", "out-author":"AUTHOR",
-                    "author":"AUTHOR", "sec-end":"END"};
+                    "author":"AUTHOR", "sec-end":"END", "sec-close":"CLOSING"};
 function chipLabelFor(id, raw){
   if (CHIP_LABEL[id]) return CHIP_LABEL[id];
   const w = raw.replace(/^(the|a|an)\s+/i,"").split(/\s+/)[0] || id;

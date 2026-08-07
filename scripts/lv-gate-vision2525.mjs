@@ -130,8 +130,18 @@ const fails=[];
   await p.evaluate(()=>setView('ledger'));
   /* r104: the proof is reached through Settings now — the tail no longer sits
      after the arrows on a middle cell, so #rcore is on the last cell. */
-  await p.click('#bSet'); await p.click('#bProof'); await p.waitForTimeout(300);
-  await p.click('#bProveAll');
+  /* r124 harness hardening: after the goto-stepping above, the 3.9MB document is
+     still re-rendering and Playwright's actionability check reports 'element is
+     not stable' intermittently (seen r119 once, r124 twice; function verified
+     intact both times by manual probe). Settle first, and give the two clicks
+     explicit patience. No assertion changes. */
+  await p.waitForTimeout(700);
+  await p.click('#bSet', {timeout:60000, force:true}); await p.click('#bProof', {timeout:60000, force:true}); await p.waitForTimeout(300);
+  /* r124b: opening the proof panel starts progressive output over 124 releases, so
+     the button's box never settles; the assertion is on #proof's TEXT, not on
+     visual stability — force the click past the actionability wait. */
+  await p.click('#bProveAll', {timeout:60000, force:true});
+  await p.waitForTimeout(1500);
   const proof=await p.evaluate(()=>document.getElementById('proof').textContent);
   console.log('INTERACT v1',JSON.stringify(v1),'v2',JSON.stringify(v2),'latest',JSON.stringify(vL));
   console.log('PROOF:\n'+proof);
