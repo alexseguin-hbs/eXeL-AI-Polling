@@ -1303,6 +1303,59 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
       ' record blocks ('+r.total+' ids), registers summarised not inlined, scaffold stays bare');
 }
 
+/* ── r133 · PER-SECTION EXTENSION (the operator's law of 2026-08-07) ─────
+   The instruction, verbatim in spirit: ensure the White Paper is extended
+   beyond N.O.S.E. — not globally, section by section. For every one of the
+   nineteen sections the RENDERED White Paper must carry strictly more than
+   the rendered scaffold: the record blocks beneath it, and, as they land,
+   the essay in the author's voice. WP_ESSAYS is a ratchet bound exactly —
+   a lost essay fails, and a new essay shipped without raising the number
+   fails too, so the count moves only with a release, never silently. The
+   day any section reads as a replica of its scaffold reading, the build
+   dies here. */
+{
+  const WP_ESSAYS = 7;         /* §1-§7 speak; rises with each batch, locks at nineteen */
+  const MIN_EXTRA = 150;       /* every section's paper reading exceeds its scaffold reading by at least this many rendered words */
+  const p=await b.newPage({viewport:{width:1440,height:900}});
+  await p.goto(f); await p.waitForTimeout(600);
+  const r=await p.evaluate(()=>{
+    const wc=t=>t.trim().split(/\s+/).filter(x=>x).length;
+    const words=id=>{const el=document.getElementById('blk-'+id);return el?wc(el.innerText||''):0};
+    const wp=VIEWS.paper.order;
+    const idx={}; for(let n=1;n<=19;n++) idx[n]=wp.indexOf('paper.s'+n);
+    setView('paper');
+    const per={}; let essays=0;
+    for(let n=1;n<=19;n++){
+      if(idx[n]<0){ per[n]={paper:0,nose:0}; continue; }
+      let to=wp.length; for(let m=n+1;m<=19;m++) if(idx[m]>idx[n]){ to=idx[m]; break; }
+      const span=wp.slice(idx[n],to);
+      const blk=document.getElementById('blk-paper.s'+n);
+      const wpEl=blk&&blk.querySelector('.wp');
+      if(wpEl&&getComputedStyle(wpEl).display!=='none') essays++;
+      per[n]={paper:span.reduce((a,id)=>a+words(id),0)};
+    }
+    setView('nose');
+    let leaks=0;
+    for(let n=1;n<=19;n++){
+      per[n].nose=words('paper.s'+n);
+      const el=document.querySelector('#blk-paper\\.s'+n+' .wp');
+      if(el&&getComputedStyle(el).display!=='none') leaks++;
+    }
+    setView('paper');
+    return {per,essays,leaks};
+  });
+  await p.close();
+  const thin=Object.entries(r.per).filter(([n,x])=>x.paper<x.nose+MIN_EXTRA);
+  if(thin.length) fails.push('EXTENSION: section(s) read as near-replicas of the scaffold — '+
+    thin.map(([n,x])=>'§'+n+' (paper '+x.paper+'w vs scaffold '+x.nose+'w)').join(', '));
+  if(r.essays!==WP_ESSAYS) fails.push('EXTENSION: '+r.essays+' sections speak in the voice; this release binds exactly '+WP_ESSAYS+
+    (r.essays<WP_ESSAYS?' — a voice was lost':' — raise the ratchet with the release, never silently'));
+  if(r.leaks) fails.push('EXTENSION: '+r.leaks+' essay(s) visible in the scaffold reading');
+  if(!thin.length && r.essays===WP_ESSAYS && !r.leaks)
+    console.log('extension ok — 19/19 sections render beyond their scaffold reading (min +'+MIN_EXTRA+'w), '+
+      r.essays+'/19 speak in the voice, none leak into the scaffold');
+}
+
 await b.close();
 
 if(fails.length){ console.log('\nFAIL:\n'+fails.join('\n')); process.exit(1); }
