@@ -1372,7 +1372,41 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
       r.essays+'/19 speak in the voice, none leak into the scaffold');
 }
 
+/* ── r140 · SACRED TOTALS (the operator's numbers, made exit codes) ─────────
+   brief 3,333 · nose 9,999 · paper 66,666 — measured by the canonical counter:
+   per view, straight mode (paged off), visible words only, summed over the
+   view's own order. Estimates and intentions do not count; the render does. */
+{
+  const p=await b.newPage({viewport:{width:1440,height:2000}});
+  await p.goto(f); await p.waitForTimeout(1200);
+  const t=await p.evaluate(()=>{
+    const wcount=s=>s.trim().split(/\s+/).filter(x=>x).length;
+    function visText(el){ if(el.nodeType===3) return el.nodeValue;
+      if(el.nodeType!==1) return '';
+      const st=getComputedStyle(el);
+      if(st.display==='none'||st.visibility==='hidden') return '';
+      let s=''; for(const c of el.childNodes) s+=visText(c); return s+' '; }
+    const out={};
+    for(const v of ['brief','nose','paper']){
+      setView(v); paged=false; renderDoc();
+      let tot=0;
+      for(const id of VIEWS[v].order){
+        const el=document.getElementById('blk-'+id);
+        if(el) tot+=wcount(visText(el));
+      }
+      out[v]=tot; paged=true; renderDoc();
+    }
+    return out;
+  });
+  await p.close();
+  if(t.brief!==3333)  fails.push('SACRED TOTALS: brief '+t.brief+' != 3333');
+  if(t.nose!==9999)   fails.push('SACRED TOTALS: nose '+t.nose+' != 9999');
+  if(t.paper!==66666) fails.push('SACRED TOTALS: paper '+t.paper+' != 66666');
+  console.log('sacred totals — brief '+t.brief+' · nose '+t.nose+' · paper '+t.paper);
+}
+
 await b.close();
+
 
 if(fails.length){ console.log('\nFAIL:\n'+fails.join('\n')); process.exit(1); }
 console.log('\nPASS — engine deterministic, versions distinct, no overflow at 3 viewports x 2 themes x all versions');
