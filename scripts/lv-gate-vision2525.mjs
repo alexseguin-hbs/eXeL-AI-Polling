@@ -1314,7 +1314,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
    day any section reads as a replica of its scaffold reading, the build
    dies here. */
 {
-  const WP_ESSAYS = 7;         /* §1-§7 speak; rises with each batch, locks at nineteen */
+  const WP_ESSAYS = 10;         /* §1-§7 speak; rises with each batch, locks at nineteen */
   const MIN_EXTRA = 150;       /* every section's paper reading exceeds its scaffold reading by at least this many rendered words */
   const p=await b.newPage({viewport:{width:1440,height:900}});
   await p.goto(f); await p.waitForTimeout(600);
