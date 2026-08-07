@@ -876,7 +876,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
 
     /* ── 2 · COVERAGE: nothing lives only in full doc ────────────────────── */
     {
-      const union = new Set([...WP_ORDER, ...PAPER_ORDER, ...OUTLINE_ORDER, ...BRIEF_ORDER, ...LEDGER_ORDER]);
+      const union = new Set([...WP_ORDER, ...PAPER_ORDER, ...OUTLINE_ORDER, ...BRIEF_ORDER, ...LEDGER_ORDER, ...NOSE_ORDER]);  /* r139: the scaffold owns its own order */
       const live = replay(VMAX, ALL_ORDER).map(x => x.id);
       const orphan = live.filter(id => !union.has(id));
       if (orphan.length)
@@ -1280,7 +1280,9 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     const rHasReg = rids.indexOf('paper.registers')>=0;
     setView('nose');
     const nids = [...document.querySelectorAll('#doc section.blk')].map(s=>s.id.replace(/^blk-/,''));
-    const nExtra = nids.filter(id=>PAPER_ORDER.indexOf(id)<0).length;
+    /* r139: the scaffold reads NOSE_ORDER — exactly the operator&rsquo;s cell list,
+       nothing more. A block outside it is a leak whichever partition it came from. */
+    const nExtra = nids.filter(id=>NOSE_ORDER.indexOf(id)<0).length;
     setView('paper');
     return {missB, missP, extraN: extra.length, dupes, regs,
             rMissB, rExtra, rHasReg, nExtra,
