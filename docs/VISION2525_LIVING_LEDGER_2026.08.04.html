@@ -463,6 +463,7 @@ body.straight .deck-in > *{display:none}
    reading (#bView), and what am I checking (#bSet). The ground toggle did not
    fall out — it is one tap further in, inside the drawer that #bSet opens. */
 body.straight .deck-in > #bView,
+body.straight .deck-in > #bFull,
 body.straight .deck-in > #bSet{display:inline-block}
 /* r102 · ZERO TOGGLES IN FULL DOC. The button was full-doc-only, which is the
    exact inverse of what was asked: Full Doc is the one mode that reads straight
@@ -840,7 +841,7 @@ header.mast{position:relative}
   <input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version">
   <span class="vnow" id="vNow">v1</span>
   <button id="bLatest" title="Jump to the latest release">Latest</button>
-  <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version"></button>
+  <button id="bFull" aria-pressed="false" title="Reading mode &mdash; the dot reads one section at a time; the book reads the whole document straight through"></button>
   <button id="bCmp" aria-pressed="false" title="Compare any two releases"></button>
   <button id="bView" title="What you are reading &mdash; Brief, White paper, N.O.S.E."></button>
   <button id="bSet" aria-expanded="false" title="Settings &mdash; reading, audit trail, about this document" aria-label="Settings"></button>
@@ -862,9 +863,9 @@ header.mast{position:relative}
     <header><h2>Settings</h2><button id="bSetClose" aria-label="Close settings"></button></header>
     <div class="setbody">
       <h5>Reading</h5>
-      <button id="bFull" aria-pressed="false" title="One continuous scroll, or one section at a time">Read straight through</button>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <h5>Audit trail</h5>
+      <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
       <button id="bLedger" title="The complete record — every clause, register and defect">Ledger</button>
       <!-- r104 · the proof got a door. Hiding the tail on a middle cell put the
@@ -4059,6 +4060,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Render-only surface, zero ledger writes, replay untouched. The safest possible fix class for both."}
  ],
  next:"The MoT 333 syntheses artifact, then the edit round: &sect;0 recount, &sect;11&rsquo;s compounding word, the &sect;2/&sect;8 twinning line."
+},
+{
+ v:125, code:"THE DOT AND THE BOOK — THE READING MODE WEARS ITS OWN SYMBOL", stamp:"2026.08.07 &middot; revision 125",
+ thrust:"The operator designed the control and it is built exactly as drawn: a dot on the deck means one section at a time, a book means the whole document straight through, and the tab you are reading &mdash; Brief, White paper, N.O.S.E. &mdash; wears the same symbol before its name. One glance answers both questions: what am I reading, and how.",
+ mot:"Two controls answered one question badly. The reading-mode toggle lived a tap deep in the Settings drawer as a sentence &mdash; Read straight through &mdash; while the deck showed a dot button that actually toggled change-highlights, and the operator read that dot as the mode control because that is what a dot beside a book-labelled tab OUGHT to mean. The operator was right and the layout was wrong, so the layout moved to the reader&rsquo;s model rather than the other way around. The mode toggle now sits on the deck where the dot was: it shows a filled dot when you are reading one section at a time, and the drawn book when the document runs straight through. Pressing it flips both the mode and the symbol. The view tab wears the same symbol before its name &mdash; dot White paper, book White paper &mdash; so the pair can never disagree, because both are painted by the same function from the same variable. In book mode the section chips remain and do what a spine should: clicking &sect;3 scrolls the one long page to &sect;3, all twenty-six blocks still rendered. In dot mode the same chip opens &sect;3 as its own page. Nothing was deleted in the rearrangement: the change-highlight toggle kept its element, its handler and its pressed state, and moved to the Settings drawer under Audit trail &mdash; the r104 rule, a control moves and never dies, applied to the control that had been squatting in the mode toggle&rsquo;s rightful seat. The blackout exemption followed the move, because a mode with no visible exit is a trap: in book mode the deck keeps exactly three controls lit &mdash; the tab, the mode, and Settings. Probed end to end at 390 by 844: landing wears the book, choosing a view wears the dot and shows one block of twenty-six, the toggle flips both symbols, and the &sect;3 chip in book mode leaves all twenty-six rendered. Zero page errors.",
+ stats:{clauses:303, jur:103, shields:5, defects:41, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A+", f:"The tab and the toggle are painted by one function from one variable. They cannot drift apart."},
+  {n:"Asar",   g:"A",  f:"One glance now answers what and how. The reading resolves before the first word is read."},
+  {n:"Athena", g:"A",  f:"The layout moved to the reader&rsquo;s model. That is the only direction a layout should ever move."},
+  {n:"Christo",g:"A",  f:"The operator drew the control from their own hand&rsquo;s experience. Building it as drawn honours that."},
+  {n:"Enki",   g:"A",  f:"The trap case was caught: the toggle stays lit inside the very mode it needs to exit."},
+  {n:"Enlil",  g:"A+", f:"Probed at phone width: dot state, book state, flip, chip scroll, zero errors. Built and verified."},
+  {n:"Krishna",g:"A",  f:"bDiff kept element, handler and state through the move. The r104 rehousing rule holds again."},
+  {n:"Odin",   g:"A",  f:"A symbol pair a reader can learn in one tap will still be legible when the labels are translated."},
+  {n:"Pangu",  g:"A",  f:"The dot and the book are the oldest reading symbols there are. No invention needed, and none used."},
+  {n:"Sofia",  g:"A",  f:"The phone reader who designed this sees exactly what they drew: dot for a page, book for the whole."},
+  {n:"Thoth",  g:"A",  f:"Counts: 1 of 26 blocks visible in dot mode, 26 of 26 in book, three controls lit in blackout."},
+  {n:"Thor",   g:"A",  f:"Render-only, zero ledger writes, every prior release replays untouched. Same safe class as r124."}
+ ],
+ next:"The operator&rsquo;s reaction to the 21 syntheses drives the edit round; the Fleet 48 &sect;1 specimen lands beside it."
 }
 ];
 
@@ -16129,7 +16151,7 @@ const ICON = (function(){
 })();
 /* Paint the drawn icons into the deck once, by id. Kept as data rather than
    markup so a symbol is defined in exactly one place. */
-const DECK_ICONS = {bPrev:"prev", bNext:"next", bLatest:"last", bDiff:"dot", bCmp:"cmp", bSet:"set"};
+const DECK_ICONS = {bPrev:"prev", bNext:"next", bLatest:"last", bCmp:"cmp", bSet:"set"};
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
@@ -17392,7 +17414,9 @@ function viewBtnLabel(v){
   /* The button says what you are READING now, not what tapping it will do —
      a control that names its own future state is the commonest way to make a
      reader unsure where they already are. */
-  return ICON.read + (VIEWS[v] ? VIEWS[v].label : "White paper");
+  /* r125 · the tab wears the reading mode (operator): a dot before the name means
+     one section at a time; the book means the whole document, straight through. */
+  return (straight ? ICON.book : ICON.dot) + (VIEWS[v] ? VIEWS[v].label : "White paper");
 }
 function setView(v){
   if (!VIEWS[v]) return;
@@ -17402,6 +17426,7 @@ function setView(v){
     straight = false;
     document.body.classList.remove("straight");
     document.getElementById("bFull").setAttribute("aria-pressed","false");
+    document.getElementById("bFull").innerHTML = ICON.dot;
   }
   /* r102: choosing a view is choosing to READ it, and reading is one cell at a
      time with arrows either side. r100 stood the pager down here, which was
@@ -17537,7 +17562,7 @@ var paged = false;
   }
   document.getElementById("bPlay").insertAdjacentHTML("afterbegin", ICON.play);
   document.getElementById("bSetClose").innerHTML = ICON.close;
-  const setIcons = {bFull:"list", bOutline:"book", bLedger:"ledger", bProof:"dot", bReg:"reg", bSpec:"info"};
+  const setIcons = {bDiff:"dot", bOutline:"book", bLedger:"ledger", bProof:"dot", bReg:"reg", bSpec:"info"};
   for (const id in setIcons){
     const el = document.getElementById(id);
     if (el) el.insertAdjacentHTML("afterbegin", ICON[setIcons[id]]);
@@ -17571,6 +17596,8 @@ document.getElementById("bFull").addEventListener("click", function(){
   straight = !straight;
   document.body.classList.toggle("straight", straight);
   this.setAttribute("aria-pressed", straight ? "true" : "false");
+  this.innerHTML = straight ? ICON.book : ICON.dot;
+  document.getElementById("bView").innerHTML = viewBtnLabel(view);
   /* r104 · READING ONE CELL AT A TIME IS THE INVERSE OF READING STRAIGHT
      THROUGH. Until r103 these were two controls, so this handler never had to
      touch `paged` — #bPage owned it. #bPage is gone on the operator's
@@ -17630,6 +17657,7 @@ document.addEventListener("keydown", function(e){
   paged = !straight;
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(view);
+  document.getElementById("bFull").innerHTML = straight ? ICON.book : ICON.dot;
   /* r94: --deckh is the height of the sticky deck, measured rather than assumed. It is
      42px in full doc but 148px at 768+, 184px at 375 and 240px at 320 once the chip row
      wraps, and it changes when the view changes or the window resizes. A ResizeObserver

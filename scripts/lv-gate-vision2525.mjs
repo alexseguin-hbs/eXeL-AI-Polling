@@ -1142,10 +1142,16 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
       total: ctl.length,
       noSvg: ctl.filter(b=>!b.querySelector('svg')).map(b=>b.id||b.textContent.trim().slice(0,18)),
       glyph: ctl.filter(b=>G.test(b.textContent||'')).map(b=>(b.id||'?')+':'+b.textContent.trim().slice(0,18)),
-      moved: ['bFull','bTheme','bReg','bSpec','bOutline','bLedger','bProof']
+      /* r125 · the operator moved the reading-mode toggle (bFull) INTO the deck and
+         the change-highlight toggle (bDiff) into the drawer. The law flips with the
+         design: every control still exists, bDiff may not sit in the deck, and bFull
+         MUST — a mode toggle a reader cannot see is a trap. */
+      moved: ['bFull','bDiff','bTheme','bReg','bSpec','bOutline','bLedger','bProof']
                .filter(id=>!document.getElementById(id)),
-      inDeck: ['bFull','bTheme','bReg','bSpec']
+      inDeck: ['bDiff','bTheme','bReg','bSpec']
                .filter(id=>{const e=document.getElementById(id);return e&&e.closest('.deck-in');}),
+      mustDeck: ['bFull','bView','bSet']
+               .filter(id=>{const e=document.getElementById(id);return !e||!e.closest('.deck-in');}),
       /* COVERAGE, extended (r104): the toggle now cycles three of the five
          views. The other two are full views reached from Settings, so the rule
          has to count Settings as a route — otherwise moving Outline and Ledger
@@ -1163,10 +1169,11 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   if(r.noSvg.length) fails.push('DRAWN ICONS: control with no inline svg — '+r.noSvg.join(', '));
   if(r.moved.length) fails.push('NO ORPHAN CONTROL: '+r.moved.join(', ')+' left the deck and does not exist anywhere');
   if(r.inDeck.length) fails.push('NO ORPHAN CONTROL: '+r.inDeck.join(', ')+' is still in the deck; it belongs in Settings');
+  if(r.mustDeck.length) fails.push('NO ORPHAN CONTROL: '+r.mustDeck.join(', ')+' is missing from the deck; the reading-mode toggle must stay visible (r125)');
   if(r.unreachable.length) fails.push('COVERAGE: view(s) '+r.unreachable.join(', ')+
     ' are on neither the toggle nor in Settings — their blocks are unreachable');
   if(deckH>160) fails.push('DECK BUDGET: deck is '+deckH+'px at 390x844, ceiling is 160px');
-  if(!r.glyph.length && !r.noSvg.length && !r.moved.length && !r.inDeck.length && !r.unreachable.length && deckH<=160)
+  if(!r.glyph.length && !r.noSvg.length && !r.moved.length && !r.inDeck.length && !r.mustDeck.length && !r.unreachable.length && deckH<=160)
     console.log('drawn icons ok — '+r.total+' controls, every one an svg, zero pictographic glyphs; deck '+deckH+'px of 160');
 }
 
