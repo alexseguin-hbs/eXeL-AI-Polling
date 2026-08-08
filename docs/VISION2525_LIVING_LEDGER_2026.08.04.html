@@ -96,7 +96,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .pills{display:flex;flex-wrap:wrap;gap:4px}
 .pills button{padding:4px 9px;min-width:34px}
 input[type=range]{flex:1;min-width:150px;accent-color:var(--ai);height:22px}
-.vnow{font-size:12px;font-weight:700;color:var(--ai);white-space:nowrap}
+.vnow{font-size:12px;font-weight:700;color:var(--ai);white-space:nowrap;margin-left:auto}
 .vnow .rev{font-weight:600;color:var(--ink-2);font-size:11px;margin-left:5px}
 .hash{font-size:10.5px;color:var(--ink-2);white-space:nowrap}
 /* r126 · the two-space mode prefix (operator) widened #bView ~14px and wrapped the
@@ -895,8 +895,11 @@ header.mast{position:relative}
   <button id="bPlay" title="Play through every version"></button>
   <button id="bNext" title="Next version" aria-label="Next version"></button>
   <input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version">
-  <span class="vnow" id="vNow">v1</span>
-  <button id="bLatest" title="Jump to the latest release">Latest</button>
+  <!-- r148 · operator: "Use only symbol for Latest (no word so UX is compressed)."
+       The skip-to-end glyph is injected by DECK_ICONS (bLatest:"last"); the label
+       leaves so the deck reads as icons. title/aria-label carry the name for a
+       screen reader and a hover, so nothing is lost but the visible word. -->
+  <button id="bLatest" title="Jump to the latest release" aria-label="Jump to the latest release"></button>
   <button id="bFull" aria-pressed="false" title="Reading mode &mdash; the dot reads one section at a time; the book reads the whole document straight through"></button>
   <button id="bCmp" aria-pressed="false" title="Compare any two releases"></button>
   <button id="bView" title="What you are reading &mdash; Brief, White paper, N.O.S.E."></button>
@@ -907,6 +910,12 @@ header.mast{position:relative}
        neither is a place to LOOK. The deck is the one surface a reader always has. -->
   <a id="bDL" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html" title="Download this document &mdash; HTML, one self-contained file" aria-label="Download this document"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a>
   <span class="hash" id="vHash">state &mdash;</span>
+  <!-- r148 · operator: "v.18 r147 latest — always have this on top right of slider
+       on line one." The version stamp is the LAST child of the deck's first line so
+       it renders at the far right; the slider is flex:1 and drives the whole trailing
+       cluster right, and .vnow{margin-left:auto} pins the stamp to the edge. Moved
+       here from immediately after the slider, where it read mid-row. -->
+  <span class="vnow" id="vNow">v1</span>
  </div>
  <div class="deck-sec"><div id="chips"></div></div>
 </div>
@@ -926,7 +935,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">147</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">148</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -4659,6 +4668,27 @@ const VERSIONS = [
   {n:"Sofia",  g:"A",  f:"From the sceptic's chair: the paged branch was the witness &mdash; it was already right, which proved the straight branch wrong."},
   {n:"Thoth",  g:"A",  f:"Brief-straight = its 8 cells (3,333); totals 3,333/9,999/66,666 unmoved; determinism intact."},
   {n:"Thor",   g:"A",  f:"Reading-only logic fix, no new surface; the record is still one deliberate click away in the Ledger view."}
+ ],
+ next:"WHY leaves the Brief for Settings and the seven cells rebalance to 3,333; then the changes report, the defect recount, and v18 locks."
+},
+{
+ v:148, code:"THE DECK READS THE SAME EVERY TIME", stamp:"2026.08.08 &middot; revision 148",
+ thrust:"Standardisation, not content. The operator, reading on a phone, asked for two things about the replay deck&rsquo;s first line: the version stamp &mdash; v.18 r147 latest &mdash; should sit at the top right of the slider every time, and the Latest control should be a symbol with no word so the row stays compressed. Both were done as layout, not as text edits. The stamp (#vNow) is now the last element of the deck&rsquo;s first line, so it renders at the far right; the slider is flex:1 and drives the trailing cluster to the edge, and .vnow carries margin-left:auto so it pins there even if the slider ever yields. The Latest button loses its visible label &mdash; the skip-to-end glyph was already injected by DECK_ICONS &mdash; and keeps its title and aria-label so a screen reader and a hover still name it. No ledger block changed; every release replays byte-identical, and this release appended no block, so it is engine-only and its key-improvements panel is correctly empty.",
+ mot:"A deck a reader learns once should read the same the next time, in the same places. The version they are on belongs where the eye lands last on that line &mdash; the right edge &mdash; and a control whose drawing already says skip-to-end does not also need the word. So the change is two moves of layout and one of restraint: pin the stamp right, let the glyph speak for Latest, and touch not a single word of the argument. The gate proves the discipline held &mdash; the deck still fits its 160px phone budget, every control still carries a drawn icon and no pictographic glyph, and the sacred totals 3,333 / 9,999 / 66,666 are exactly where r147 left them.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Nothing of the record moved; only the chrome around it was made to sit still."},
+  {n:"Asar",   g:"A",  f:"The version a reader is on now lands at the right edge of the first line, every time."},
+  {n:"Athena", g:"A",  f:"Layout, not text: the stamp is pinned by order and an auto margin, so it cannot drift back mid-row."},
+  {n:"Christo",g:"A",  f:"The phone reader asked for a deck that reads the same on every visit; that is what standardising the first line gives."},
+  {n:"Enki",   g:"A",  f:"The Latest glyph was already drawn; dropping the word is the smallest way to compress the row."},
+  {n:"Enlil",  g:"A",  f:"Engine-only: no ledger block written, so the empty improvements panel is correct, not broken."},
+  {n:"Krishna",g:"A",  f:"title and aria-label stay on the symbol-only Latest, so the name reaches a screen reader and a hover."},
+  {n:"Odin",   g:"A",  f:"The deck-budget gate still passes at 390&times;844 &mdash; the compressed row did not cost the reading a pixel it could not spare."},
+  {n:"Pangu",  g:"A",  f:"Two moves of layout and one of restraint; the argument was not touched."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: a stamp pinned by DOM order alone could slip; the auto margin makes the intent explicit."},
+  {n:"Thoth",  g:"A",  f:"Totals 3,333 / 9,999 / 66,666 unmoved; every release replays byte-identical; determinism intact."},
+  {n:"Thor",   g:"A",  f:"Display-only change, no new surface, no new handler &mdash; nothing an attacker can reach that r147 did not already expose."}
  ],
  next:"WHY leaves the Brief for Settings and the seven cells rebalance to 3,333; then the changes report, the defect recount, and v18 locks."
 }
@@ -16924,7 +16954,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4832129";
+const DL_BYTES = "4836471";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
