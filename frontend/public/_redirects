@@ -1,7 +1,9 @@
 # r145 · the operator typed these variants — Cloudflare Pages matches case-sensitively,
 # so the canonical lowercase route needs explicit aliases, and the extensionless
-# /whitepaper/vision-2525 needs to reach the .html the site actually serves.
-/whitepaper/vision-2525 /whitepaper/vision-2525.html 301
+# r147 · REMOVED the looping rule `/whitepaper/vision-2525 -> /whitepaper/vision-2525.html`.
+# On this Cloudflare WORKER, Static Assets auto-strips `.html` -> clean URL, so that rule
+# bounced .html -> clean -> .html forever (ERR_TOO_MANY_REDIRECTS). Workers serves the
+# clean `/whitepaper/vision-2525` directly from the .html asset; no redirect is needed.
 /Vision-2525/white-Paper /vision-2525/white-paper/ 301
 /Vision-2525/white-Paper/ /vision-2525/white-paper/ 301
 /Vision-2525/White-Paper /vision-2525/white-paper/ 301
