@@ -260,6 +260,26 @@ export default function Vision2525Page() {
               <span style={{ color: GOLD }}>Open it &rarr;</span>
             </p>
           </a>
+
+          {/* r142 · the operator asked for a download link on the page. The document
+              has argued since r105 that it is meant to be kept on a drive and opened
+              in ten years with no network — this is the link that lets a reader do
+              that without hunting through a Save As dialog. Outside the card above,
+              because tapping "download" should never be a mis-tap on "open". */}
+          <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-slate-400">
+            <a
+              href="/whitepaper/vision-2525.html"
+              download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html"
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:border-cyan-400 hover:text-cyan-300"
+              style={{ borderColor: "rgba(34,211,238,0.45)", color: CYAN }}
+            >
+              &darr; Download the living document
+            </a>
+            <span className="text-xs">
+              HTML &middot; one self-contained file &middot; 4.8&nbsp;MB &mdash; every release, the replay
+              engine and the images included. Opens with no network and no account.
+            </span>
+          </p>
         </section>
 
         {/* ── WORLDS (inter-site nav) ──────────────────────────────────────── */}

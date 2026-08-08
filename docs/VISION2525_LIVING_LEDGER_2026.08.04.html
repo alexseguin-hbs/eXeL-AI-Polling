@@ -220,6 +220,10 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 .sitelinks .pill:hover{background:var(--ai-bg)}
 .sitelinks .mid{color:var(--ink-2);letter-spacing:.04em}
 .sitelinks .mid:hover{color:var(--ink)}
+/* r142 \u00b7 a fourth item joins the row. The 10vh ceiling is unchanged, so the
+   row wraps rather than grows, and the download keeps the pill affordance. */
+.sitelinks .dlpill{border-color:var(--hi);color:var(--hi)}
+.sitelinks .dlpill:hover{background:var(--hi-bg)}
 @media(max-width:420px){.sitelinks{gap:8px}.sitelinks a{font-size:11.5px}
   .sitelinks .pill{padding:6px 12px}}
 /* Landscape on a phone has ~390px of height to spend. The row measured exactly
@@ -984,7 +988,13 @@ header.mast{position:relative}
   <p>Analysis and architecture only. <strong>Not legal advice.</strong> No security, token, or investment
   is offered, solicited, or marketed anywhere in this document. Every legal form and every jurisdiction
   named requires qualified local counsel.</p>
-  <p style="margin-bottom:0">Live: <a href="https://exel-ai-polling.explore-096.workers.dev">exel-ai-polling.explore-096.workers.dev</a></p>
+  <p>Live: <a href="https://exel-ai-polling.explore-096.workers.dev">exel-ai-polling.explore-096.workers.dev</a></p>
+  <!-- r142 · the operator asked for a download link on the page. Until now the
+       document argued that saving it was "the browser's own save" — which is true
+       and is not the same as offering it. Absolute URL so the link still works
+       from a copy opened off a desktop with no server, and the weight is stated
+       before anyone taps it on a phone on a train. -->
+  <p class="dl" style="margin-bottom:0"><a href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">Download this document</a><span class="meta">HTML &middot; one self-contained file &middot; <span id="dlsize">4.8</span>&nbsp;MB &mdash; every release, every superseded version, the replay engine and the images, in the file. Opens with no network, no server and no account.</span></p>
 </footer>
 
 <!-- r105 · the site row. Last element in the document, in normal flow, after
@@ -994,6 +1004,7 @@ header.mast{position:relative}
   <a class="pill" href="https://exel-ai-polling.explore-096.workers.dev/#feedback">Feedback</a>
   <a class="mid" href="https://exel-ai-polling.explore-096.workers.dev/main/Security-2525/">SECURITY-2525</a>
   <a class="pill" href="https://exel-ai-polling.explore-096.workers.dev/">eXeL AI</a>
+  <a class="pill dlpill" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595; Download</a>
 </nav>
 
 </div>
@@ -4486,8 +4497,30 @@ const VERSIONS = [
   {n:"Thor",   g:"A+", f:"Found the self-verification that fails its own instruction &mdash; a promise to be checkable, printed beside an uncheckable number."}
  ],
  next:"The changes report, the defect recount, and the living document delivered &mdash; v18 locks, and v19 is translations only."
+},
+{
+ v:142, code:"THE DOCUMENT CAN BE TAKEN &mdash; A DOWNLOAD LINK, WITH ITS WEIGHT STATED", stamp:"2026.08.08 &middot; revision 142",
+ thrust:"A reader can now take this file. Two links, both on the page a reader actually reads: one in the foot after every word of the argument, one in the site row beside Feedback, SECURITY-2525 and eXeL AI. Both carry the download attribute, so they save rather than navigate; both use absolute addresses, so they still work from a copy opened off a desktop with no server; both name the file they save. The weight is stated before anyone taps it &mdash; HTML, one self-contained file, the megabytes printed &mdash; and a new gate rule reads the size of the published file and fails the build if the advertised number has drifted by more than a tenth of a megabyte. This is an engine and chrome release: no ledger block changed, so every section replays byte-identical to revision 141, and the three sacred totals are untouched at three thousand three hundred thirty-three, nine thousand nine hundred ninety-nine and sixty-six thousand six hundred sixty-six.",
+ mot:"The document has been arguing for two releases that it is meant to be downloaded, forwarded, kept on a drive and opened in ten years with no network. It said so in the seal note, in the images note, and in the site-row note. And there was no download link. The reader component even wrote the excuse down in a comment &mdash; Download is the browser&rsquo;s own save &mdash; which is true, and is not the same as offering it. A document that tells you it is portable and then makes you find File, Save As, choose a format and hope you picked the one with the images is a document that has confused a property with a courtesy. The operator asked for the link, and the ask was right. What I added beyond the link is the part that keeps it honest: the size is printed, and the gate now measures the file and refuses to build if the printed number stops matching. A stale megabyte figure is the same defect class as the stale cross-references the fleet caught yesterday &mdash; a claim that fails the moment somebody checks it &mdash; and the way not to repeat a defect is to make its recurrence an exit code rather than a resolution.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The portability claim now has a mechanism behind it. Three notes argued for it; none of them offered it."},
+  {n:"Asar",   g:"A",  f:"The link sits after the argument, not over it &mdash; the operator&rsquo;s standing rule about the foot of the page is kept."},
+  {n:"Athena", g:"A",  f:"One release, one capability, no scope bleed. Chrome only, ledger untouched, totals unmoved."},
+  {n:"Christo",g:"A",  f:"A courtesy to the reader on a train: the weight is stated before the tap, not discovered during it."},
+  {n:"Enki",   g:"A-", f:"Two releases argued portability with no way to act on it. The gap was in front of us and the operator saw it first."},
+  {n:"Enlil",  g:"A",  f:"Absolute addresses on both links, verified &mdash; the download still resolves from a copy with no server behind it."},
+  {n:"Krishna",g:"A",  f:"The site row takes a fourth item and keeps its ten-per-cent ceiling; it wraps rather than grows."},
+  {n:"Odin",   g:"A",  f:"The size gate is the durable part. In five centuries the file will be a different size and the number will still be true."},
+  {n:"Pangu",  g:"A",  f:"The smallest possible feature, and the one that decides whether any of the rest travels."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: an offered download is a testable promise; a browser&rsquo;s save menu is an assumption about the reader."},
+  {n:"Thoth",  g:"A",  f:"Engine-only release, declared as such: content hash identical to r141 by design, and the gate prints it rather than hiding it."},
+  {n:"Thor",   g:"A",  f:"No new surface: a static anchor to a file already served publicly, no script, no handler, no cross-origin anything."}
+ ],
+ next:"The changes report, the defect recount &mdash; and v18 locks."
 }
 ];
+
 
 
 

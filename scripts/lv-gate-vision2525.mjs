@@ -1405,6 +1405,34 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   console.log('sacred totals — brief '+t.brief+' · nose '+t.nose+' · paper '+t.paper);
 }
 
+/* ── r142 · DOWNLOAD (the operator's ask, made an exit code) ────────────────
+   A download link must exist on the page a reader actually reads, it must
+   carry the download attribute (so it saves rather than navigates), and the
+   megabytes it advertises must match the file it serves. A stale size is the
+   same class of defect as a stale cross-reference: a claim that fails when
+   checked. */
+{
+  const p=await b.newPage({viewport:{width:1440,height:2000}});
+  await p.goto(f); await p.waitForTimeout(900);
+  const d=await p.evaluate(()=>{
+    const as=[...document.querySelectorAll('a[download]')]
+      .filter(a=>/vision-2525\.html$/.test(a.getAttribute('href')||''));
+    const el=document.getElementById('dlsize');
+    return {n:as.length, abs:as.every(a=>/^https:\/\//.test(a.getAttribute('href'))),
+            named:as.every(a=>/\.html$/.test(a.getAttribute('download')||'')),
+            stated:el?parseFloat(el.textContent):null};
+  });
+  await p.close();
+  const bytes=(await import('node:fs')).statSync(f.replace('file://','')).size;
+  const mb=bytes/1e6;
+  if(d.n<2) fails.push('DOWNLOAD: '+d.n+' self-download link(s) on the page; the foot and the site row both carry one');
+  if(!d.abs) fails.push('DOWNLOAD: a link is relative — it breaks in a downloaded copy');
+  if(!d.named) fails.push('DOWNLOAD: a link has no filename on its download attribute');
+  if(d.stated===null) fails.push('DOWNLOAD: the advertised size is missing');
+  else if(Math.abs(d.stated-mb)>0.1) fails.push('DOWNLOAD: advertises '+d.stated+' MB but the file is '+mb.toFixed(2)+' MB');
+  console.log('download \u2014 '+d.n+' link(s), advertised '+d.stated+' MB, actual '+mb.toFixed(2)+' MB');
+}
+
 await b.close();
 
 
