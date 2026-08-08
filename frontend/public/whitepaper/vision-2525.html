@@ -678,6 +678,13 @@ body.paged #doc section.blk.pg{display:block}
    the last cell with the rest of the record. */
 body.paged:not(.lastcell) #review,
 body.paged:not(.lastcell) #ledger{display:none}
+/* r146 \u00b7 the operator's law: a summary shows only its own words. The review
+   loop (twelve reviews + the 252 readings), the ledger and key-improvements are
+   the full record's audit tail; they render in the White Paper and the Ledger
+   view, and NEVER in the Brief or the NOSE, in any mode. Without this, #review
+   fell under whichever cell was last \u2014 32,315 words beneath a 444-word cell. */
+body.brief #review, body.brief #ledger, body.brief #keyimp,
+body.nose  #review, body.nose  #ledger, body.nose  #keyimp{display:none}
 /* r104 · NOTHING AFTER THE ARROWS. This reverses the paragraph above, and the
    reversal is the operator's: the arrows are the end of the section, so the end
    of the section is where the page must stop. r102 measured the remainder at
@@ -914,7 +921,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">145</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">146</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -4607,8 +4614,30 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"An inline SVG and a static note &mdash; no script, no handler, no new surface an attacker can reach."}
  ],
  next:"WHY leaves the Brief for Settings and the seven cells rebalance to 3,333; then the changes report, the defect recount, and v18 locks."
+},
+{
+ v:146, code:"THE BRIEF SHOWS ONLY THE BRIEF", stamp:"2026.08.08 &middot; revision 146",
+ thrust:"The operator, reading the Brief on a phone, found the review loop under it &mdash; twelve reviews and the two hundred fifty-two per-revision readings, thirty-two thousand three hundred fifteen words &mdash; and read it, rightly, as the change register of every revision dumped beneath a summary. The cause was a rule that shows the review loop and the ledger on the last cell of a paged view; WHY is the last Brief cell, so the whole record fell under it. Moving WHY would not have fixed it: the panel would simply fall under the next-last cell. The fix is that a summary shows only its own words. The review loop, the ledger and key-improvements now render in the White Paper and the Ledger view, and never in the Brief or the NOSE, in any mode. A new gate rule walks every Brief and NOSE cell and fails the build if any audit tail appears. The sacred totals are untouched at 3,333, 9,999 and 66,666; no ledger block of the argument changed.",
+ mot:"The operator asked a precise question &mdash; the review loop is in WHY, does moving it over fix the problem &mdash; and the honest answer was no, and worth proving rather than asserting. I measured it: under the WHY cell the review panel rendered thirty-two thousand words, and on any non-last cell it vanished. So the fault was never WHY&rsquo;s four hundred forty-four words; it was a display rule that treated the last cell of a summary as the right place to append the entire audit history. A brief that ends by reprinting the project&rsquo;s revision log is not a brief. The rule now scopes to the document a reader is actually in: the White Paper carries its own record, the Ledger view is the record, and the two summaries carry themselves. WHY still moves to Settings and the seven cells still rebalance to three thousand three hundred thirty-three &mdash; that is the next release &mdash; but the thing the operator actually saw is fixed now, at the root, and a gate keeps it fixed.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"A summary shows only its own words. The audit tail returns to the full record where it belongs."},
+  {n:"Asar",   g:"A",  f:"The answer to the operator&rsquo;s question was measured, not asserted: 32,315 words under WHY, gone on any other cell."},
+  {n:"Athena", g:"A",  f:"Scoped to the view a reader is in &mdash; Brief and NOSE clean, White Paper and Ledger unchanged. No scope bleed."},
+  {n:"Christo",g:"A",  f:"The phone reader who met a revision log under a summary now meets the summary. That was the whole complaint."},
+  {n:"Enki",   g:"A-", f:"The last-cell dump had been the review loop&rsquo;s only home since r104; the operator found the leak the gate never named."},
+  {n:"Enlil",  g:"A",  f:"CSS and one class toggle; no ledger block touched, every section replays identical to r145."},
+  {n:"Krishna",g:"A",  f:"body.brief joins body.nose as a per-view scope; the hide rule reads both and nothing else."},
+  {n:"Odin",   g:"A",  f:"The READER-PURITY gate walks every Brief and NOSE cell in both modes &mdash; the dump cannot silently return."},
+  {n:"Pangu",  g:"A",  f:"The smallest correct change: two selectors and a class, and 32k words leave the summary."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: moving WHY would have relocated the bug and looked like a fix. Naming the real rule is the fix."},
+  {n:"Thoth",  g:"A",  f:"Gate now asserts no review/ledger/keyimp on any Brief or NOSE cell; totals 3,333/9,999/66,666 unmoved."},
+  {n:"Thor",   g:"A",  f:"Display-only change, no new surface; the record is still one click away in its proper place."}
+ ],
+ next:"WHY leaves the Brief for Settings and the seven cells rebalance to 3,333; then the changes report, the defect recount, and v18 locks."
 }
 ];
+
 
 
 
@@ -16869,7 +16898,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4822506";
+const DL_BYTES = "4827033";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -18452,6 +18481,7 @@ function setView(v){
   cellIx = 0;
   view = v;
   document.body.classList.toggle("nose", v === "nose");
+  document.body.classList.toggle("brief", v === "brief");  /* r146 · scope reader-purity rules */
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(v);
   btn.title = "Currently reading: " + VIEWS[v].label + ". Click for the next view.";

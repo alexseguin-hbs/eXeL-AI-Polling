@@ -940,10 +940,19 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
            display flag. #review itself stays on screen at all times because the
            release stepper lives inside it; what must not follow a middle cell is
            the 108,977px of twelve-reviewer panels and record. */
+        /* r146 · the audit tail belongs to the FULL-RECORD views only (White
+           Paper, Outline, Ledger). The Brief and the NOSE are summaries: they
+           render their own cells and nothing else — the review loop, the ledger
+           and key-improvements are hidden there by body.brief/body.nose CSS, so
+           the tail-height assertions below (both "not under a middle cell" and
+           "returns on the last cell") are scoped away from the reader views.
+           The "arrows are last" check further down still runs for ALL views —
+           a summary must have nothing after its arrows either. */
+        const fullRecord = (v !== 'brief' && v !== 'nose');
         const tailH = Math.round(
           document.getElementById('review').getBoundingClientRect().height +
           document.getElementById('ledger').getBoundingClientRect().height);
-        if (i < n-1 && tailH > 0)
+        if (fullRecord && i < n-1 && tailH > 0)
           out.errors.push(`${v} cell ${i}: ${tailH}px of audit trail sits under a middle cell (budget 900)`);
         /* r104 · ARROWS ARE LAST. The operator's shape for the bottom of a
            section is a rule, two round arrows, and nothing after. r102 left
@@ -960,7 +969,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
           if(seen.length)
             out.errors.push(`${v} cell ${i}: ${seen.length} element(s) render after the arrows — ${seen.slice(0,4).join(', ')}`);
         }
-        if (i === n-1 && tailH < 5000)
+        if (fullRecord && i === n-1 && tailH < 5000)
           out.errors.push(`${v}: the audit trail does not return on the last cell (${tailH}px)`);
       }
       out.notes.push(`${v}: ${n} cells, each read alone, rail and counter agree`);
@@ -1497,6 +1506,36 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     if(!v.inSet)fails.push('REACHABLE: the Settings drawer copy is missing');
     console.log('reachable \u2014 deck download visible at y='+v.top+', '+v.h+'px tall, landing state straight='+v.straight+', drawer copy present');
   }
+}
+
+/* ── r146 · READER PURITY (a summary shows only its own words) ──────────────
+   In the Brief and the NOSE, no audit tail may render: not the review loop, not
+   the ledger, not key-improvements — on any cell, in any mode. And every jump
+   chip must resolve in both bullet (paged) and full-doc (straight) modes. */
+{
+  const p5=await b.newPage({viewport:{width:390,height:844}});
+  await p5.goto(f); await p5.waitForTimeout(1000);
+  const r5=await p5.evaluate(()=>{
+    const out={bad:[]};
+    const vis=el=>el&&getComputedStyle(el).display!=='none'&&el.offsetHeight>0;
+    for(const v of ['brief','nose']){
+      setView(v);
+      const cells=VIEWS[v].order;
+      for(let i=0;i<cells.length;i++){
+        showCell(i);
+        for(const id of ['review','ledger','keyimp']){
+          if(vis(document.getElementById(id))) out.bad.push(v+' cell '+i+' shows #'+id);
+        }
+      }
+      // every jump chip resolves to a rendered block, paged and straight
+      showCell(cells.length-1);
+      for(const id of cells){ if(!document.getElementById('blk-'+id)) out.bad.push(v+' missing block '+id); }
+    }
+    setView('brief'); return out;
+  });
+  await p5.close();
+  if(r5.bad.length) fails.push('READER PURITY: '+r5.bad.slice(0,8).join(' · '));
+  else console.log('reader purity \u2014 Brief & NOSE render only their own cells, no review/ledger/keyimp tail, all blocks resolve');
 }
 
 await b.close();
