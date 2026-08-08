@@ -93,3 +93,4 @@ frontend/probe.*
 # The reference PNGs in the same directory ARE tracked; only the PDFs churn.
 docs/feedback/shots/*.pdf
 frontend/scripts/_probe-*.mjs
+docs/i18n/build/
