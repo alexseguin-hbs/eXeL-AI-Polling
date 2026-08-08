@@ -33,12 +33,30 @@ import { useEffect } from "react";
 
 const PAPER = "/whitepaper/vision-2525.html";
 
+/* v19 · the white paper follows the SAME language the rest of the app uses —
+   the existing navbar globe / Settings selector, which persists the choice in
+   localStorage["exel-active-locale"] (lexicon-context.tsx LOCALE_KEY). No new
+   control: pick a language in the globe, the paper opens in that language.
+   SHIPPED lists the languages whose per-language build is actually deployed at
+   /whitepaper/vision-2525.<lang>.html — a locale not yet shipped falls back to
+   English so a reader never hits a 404. Add each code here as its build ships. */
+const SHIPPED = new Set<string>(["en"]);
+const LOCALE_KEY = "exel-active-locale";
+
+function paperForLocale(): string {
+  try {
+    const loc = (localStorage.getItem(LOCALE_KEY) || "en").toLowerCase();
+    if (loc && loc !== "en" && SHIPPED.has(loc)) return `/whitepaper/vision-2525.${loc}.html`;
+  } catch { /* SSR / storage blocked — English */ }
+  return PAPER;
+}
+
 export function Vision2525Reader() {
   /* replace(), not assign(): the frame-less document IS this route, so Back
      should return to whatever the reader came from rather than bouncing them
      through an empty shell they never saw. */
   useEffect(() => {
-    window.location.replace(PAPER);
+    window.location.replace(paperForLocale());
   }, []);
 
   return (
