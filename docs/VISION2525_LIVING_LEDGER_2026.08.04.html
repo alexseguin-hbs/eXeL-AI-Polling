@@ -503,7 +503,11 @@ body.straight .deck-in > #bSet,
    thing with them. Landing state is straight-through, so an unexempted control
    here would measure zero by zero on arrival &mdash; the r104 trap, avoided by
    naming it rather than by hoping. */
-body.straight .deck-in > #bDL{display:inline-block}
+body.straight .deck-in > #bDL,
+/* r149 · a fourth exemption, same reasoning as the download: choosing the
+   language you read in is navigation, not machinery, so it stays visible while
+   reading straight through. */
+body.straight .deck-in > .langwrap{display:inline-block}
 /* r102 · ZERO TOGGLES IN FULL DOC. The button was full-doc-only, which is the
    exact inverse of what was asked: Full Doc is the one mode that reads straight
    through, and the four views are where a reader needs one section at a time.
@@ -829,6 +833,18 @@ header.mast{position:relative}
 .regmenu button:hover,.regmenu button:focus-visible{background:var(--ai-bg);color:var(--ai)}
 .regmenu button .rid{display:block;font:400 10.5px/1.3 ui-monospace,monospace;color:var(--ink-2)}
 @media(max-width:600px){.regmenu{min-width:190px}}
+/* r149 · v19 · the deck language chooser. It reuses the regmenu drawing but
+   anchors to the RIGHT edge (the globe sits at the right of the deck) and scrolls
+   when the full 33-language set is longer than the viewport. A built language is a
+   live link; one not yet built is shown disabled so the reader sees the whole set
+   and exactly what is ready. The current language is marked, not a link. */
+.langwrap{position:relative;display:inline-block}
+.langmenu{left:auto;right:0;min-width:210px;max-height:min(70vh,520px);overflow-y:auto}
+.langmenu button .lc{display:block;font:400 10.5px/1.3 ui-monospace,monospace;color:var(--ink-2)}
+.langmenu button[aria-current="true"]{background:var(--ai-bg);color:var(--ai);font-weight:700}
+.langmenu button[disabled]{opacity:.42;cursor:default}
+.langmenu button[disabled]:hover{background:none;color:var(--ink)}
+.langmenu button[disabled] .lc::after{content:" \00b7 soon";color:var(--ink-2)}
 .doct{display:block;margin-bottom:6px}
 .doct b{color:var(--ink)}
 .doct i{font-style:normal;color:var(--ink-2)}
@@ -909,6 +925,18 @@ header.mast{position:relative}
        screen, and in the site row under that. Both are correct places to END and
        neither is a place to LOOK. The deck is the one surface a reader always has. -->
   <a id="bDL" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html" title="Download this document &mdash; HTML, one self-contained file" aria-label="Download this document"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a>
+  <!-- r149 · v19 · LANGUAGE. Operator: "show globe to change language." The
+       document is a standalone file with no app navbar, so the language control
+       lives here on its own deck, the one surface a reader always has (same logic
+       as the r144 download). The globe opens a chooser built from the 33-language
+       registry (docs/i18n/vision2525-languages.ts); a language whose per-language
+       build is served is a live link to its sibling file, one not yet built is
+       shown but disabled so the reader sees the whole set and what is ready.
+       The menu is built lazily on open (like the Registers menu) so its items are
+       not deck controls at rest. -->
+  <span class="langwrap"><button id="bLang" aria-expanded="false" aria-haspopup="true"
+     title="Language &mdash; read this document in another language" aria-label="Language"></button>
+   <div class="langmenu regmenu" id="langMenu" role="menu" hidden></div></span>
   <span class="hash" id="vHash">state &mdash;</span>
   <!-- r148 · operator: "v.18 r147 latest — always have this on top right of slider
        on line one." The version stamp is the LAST child of the deck's first line so
@@ -935,7 +963,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">148</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">149</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -4691,6 +4719,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Display-only change, no new surface, no new handler &mdash; nothing an attacker can reach that r147 did not already expose."}
  ],
  next:"WHY leaves the Brief for Settings and the seven cells rebalance to 3,333; then the changes report, the defect recount, and v18 locks."
+},
+{
+ v:149, code:"THE DOCUMENT CARRIES ITS OWN LANGUAGE", stamp:"2026.08.08 &middot; revision 149",
+ thrust:"The opening move of v19 &mdash; translation. The operator asked, reading on a phone, to be shown a globe to change language. This document is a standalone file with no application navbar, so the language control has to live where the reader already is: on the deck, the one surface always present, exactly as the r144 download does. The globe opens a chooser built from the 33-language registry (docs/i18n/vision2525-languages.ts, the same source the per-language build and validator read); a language whose per-language sibling file is served is a live link, one not yet built is shown but disabled so the reader sees the whole set and precisely what is ready. The choice is remembered in the same localStorage key the application's own navbar globe uses, so a reader's language follows them between the app and the document. English stays the source of truth; every other language is a deterministic build from the English ledger plus a per-language block map, never live machine translation, so replay stays reproducible. No ledger block changed; this release appended none, so it is engine-only and its key-improvements panel is correctly empty.",
+ mot:"Translation begins not with the words but with the door to them. A reader who cannot find the language control never reaches the translated words, however well made. So v19 opens by giving the document its own globe, in the place the operator pointed to, built from the one registry the whole pipeline already shares &mdash; no parallel list, no new source of drift. It tells the truth about its own state: six languages are built and live today, the remaining twenty-seven are named and marked to come, because a chooser that offers a language it cannot serve is a promise the file breaks the moment it is tapped. The words themselves now follow, language by language, each its own gated release; the sacred English totals 3,333 / 9,999 / 66,666 are asserted on English alone, since every other tongue differs in length by nature.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The door to the translated words is where the reader already stands; nothing of the record moved to make room for it."},
+  {n:"Asar",   g:"A",  f:"One registry feeds the chooser, the build and the validator &mdash; the language set cannot disagree with itself."},
+  {n:"Athena", g:"A",  f:"Built languages are live links, unbuilt ones disabled and named; the chooser never offers what the file cannot serve."},
+  {n:"Christo",g:"A",  f:"The phone reader who asked to see a globe to change language now sees one, on the deck, in every reading mode."},
+  {n:"Enki",   g:"A",  f:"The globe is drawn, not an emoji &mdash; a circle, an equator, a meridian &mdash; so it renders the same offline on every platform."},
+  {n:"Enlil",  g:"A",  f:"Engine-only: no ledger block written, so the empty improvements panel is correct, and every prior release replays byte-identical."},
+  {n:"Krishna",g:"A",  f:"The chooser writes the same localStorage locale the app's navbar globe uses, so language follows the reader across both."},
+  {n:"Odin",   g:"A",  f:"The chooser resolves the sibling relative to the path it was opened from, so it works served and from a folder of downloads alike."},
+  {n:"Pangu",  g:"A",  f:"The menu is built on open, like the Registers menu, so its items are not deck controls at rest and the icon law still holds."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: naming the unbuilt languages disabled is honesty, not decoration &mdash; it states what is owed."},
+  {n:"Thoth",  g:"A",  f:"Sacred totals 3,333 / 9,999 / 66,666 asserted on English only; determinism intact; six built, twenty-seven to come."},
+  {n:"Thor",   g:"A",  f:"A link and a lazily-built menu &mdash; no fetch, no eval, no new payload surface; the file is still one self-contained page."}
+ ],
+ next:"The 48-agent fleet translates NOSE and White Paper language by language into the per-language maps; each built language turns live in the chooser as its release ships."
 }
 ];
 
@@ -16954,7 +17003,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4836471";
+const DL_BYTES = "4846810";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -17198,6 +17247,10 @@ const ICON = (function(){
     info:  w('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>'),
     /* Latest: skip-to-end. The only deck control that still had no drawing. */
     last:  w('<path d="M6 5l8 7-8 7V5zM18 5v14"/>'),
+    /* r149 · Language: a globe — a circle, its equator, and a meridian ellipse.
+       The one deck control the operator asked to SEE ("show globe to change
+       language"); it opens the language chooser. currentColor, offline-safe. */
+    globe: w('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 4 6 4 9s-1.4 6.3-4 9c-2.6-2.7-4-6-4-9s1.4-6.3 4-9z"/>'),
     /* Disclosure carets for the release stepper — same drawing language as
        the deck, so the two arrow pairs cannot drift apart in weight. */
     down:  w('<path d="M6 9l6 6 6-6"/>'),
@@ -17206,7 +17259,7 @@ const ICON = (function(){
 })();
 /* Paint the drawn icons into the deck once, by id. Kept as data rather than
    markup so a symbol is defined in exactly one place. */
-const DECK_ICONS = {bPrev:"prev", bNext:"next", bLatest:"last", bCmp:"cmp", bSet:"set"};
+const DECK_ICONS = {bPrev:"prev", bNext:"next", bLatest:"last", bCmp:"cmp", bSet:"set", bLang:"globe"};
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
@@ -18084,6 +18137,72 @@ document.addEventListener("click", function(e){
   if (!e.target.closest(".regwrap")) regClose();
 });
 document.addEventListener("keydown", function(e){ if (e.key === "Escape") regClose(); });
+
+/* r149 · v19 · LANGUAGE CHOOSER (the deck globe). The document is a standalone
+   file with no app navbar, so it carries its own language control. The registry
+   mirrors docs/i18n/vision2525-languages.ts (one source of truth); V2525_BUILT
+   lists the codes whose per-language sibling file is actually served, so only
+   those are live links and the rest show disabled ("soon") — the reader sees the
+   whole 33-language set and exactly what is ready. The choice persists in
+   localStorage["exel-active-locale"], the SAME key the app's navbar globe uses, so
+   language stays consistent across the app and this document. Built lazily on open
+   (like the Registers menu) so its items are not deck controls at rest. */
+const V2525_LANGS = [
+  {c:"en",n:"English"},{c:"fr",n:"Français"},{c:"es",n:"Español"},{c:"de",n:"Deutsch"},
+  {c:"it",n:"Italiano"},{c:"pt",n:"Português"},{c:"nl",n:"Nederlands"},{c:"ru",n:"Русский"},
+  {c:"zh",n:"中文"},{c:"ja",n:"日本語"},{c:"ko",n:"한국어"},{c:"ar",n:"العربية"},
+  {c:"hi",n:"हिन्दी"},{c:"bn",n:"বাংলা"},{c:"pa",n:"ਪੰਜਾਬੀ"},{c:"th",n:"ไทย"},
+  {c:"vi",n:"Tiếng Việt"},{c:"id",n:"Bahasa Indonesia"},{c:"ms",n:"Bahasa Melayu"},{c:"tl",n:"Filipino"},
+  {c:"tr",n:"Türkçe"},{c:"pl",n:"Polski"},{c:"uk",n:"Українська"},{c:"ro",n:"Română"},
+  {c:"el",n:"Ελληνικά"},{c:"cs",n:"Čeština"},{c:"sv",n:"Svenska"},{c:"da",n:"Dansk"},
+  {c:"fi",n:"Suomi"},{c:"no",n:"Norsk"},{c:"he",n:"עברית"},{c:"sw",n:"Kiswahili"},{c:"ne",n:"नेपाली"}
+];
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar"]);
+const V2525_LOCALE_KEY = "exel-active-locale";
+function v2525CurrentLang(){
+  const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
+  return (m && m[1]) ? m[1].toLowerCase() : "en";
+}
+function v2525LangHref(code){
+  /* Resolve the sibling relative to whatever path this copy was opened from, so it
+     works served and from a folder of downloaded siblings alike. */
+  const dir = location.pathname.replace(/[^/]*$/, "");
+  return dir + "vision-2525" + (code === "en" ? "" : "." + code) + ".html";
+}
+function renderLangMenu(){
+  const cur = v2525CurrentLang();
+  document.getElementById("langMenu").innerHTML =
+    '<h5>Language</h5>' +
+    V2525_LANGS.map(function(l){
+      const built = V2525_BUILT.has(l.c);
+      return '<button role="menuitem" data-lang="' + l.c + '"' +
+        (built ? '' : ' disabled') + (l.c === cur ? ' aria-current="true"' : '') + '>' +
+        esc(l.n) + '<span class="lc">' + l.c.toUpperCase() + '</span></button>';
+    }).join("");
+}
+function langClose(){
+  document.getElementById("langMenu").hidden = true;
+  document.getElementById("bLang").setAttribute("aria-expanded", "false");
+}
+document.getElementById("bLang").addEventListener("click", function(e){
+  e.stopPropagation();
+  const m = document.getElementById("langMenu");
+  if (!m.hidden){ langClose(); return; }
+  renderLangMenu();
+  m.hidden = false;
+  this.setAttribute("aria-expanded", "true");
+});
+document.getElementById("langMenu").addEventListener("click", function(e){
+  const b = e.target.closest("button"); if (!b || b.disabled) return;
+  const code = b.getAttribute("data-lang"); if (!code) return;
+  try { localStorage.setItem(V2525_LOCALE_KEY, code); } catch (_){ /* storage blocked */ }
+  if (code === v2525CurrentLang()){ langClose(); return; }
+  location.assign(v2525LangHref(code));
+});
+document.addEventListener("click", function(e){
+  if (!e.target.closest(".langwrap")) langClose();
+});
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") langClose(); });
 
 function renderSpecBanner(){
   const host = document.getElementById("specban");
