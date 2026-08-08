@@ -683,8 +683,13 @@ body.paged:not(.lastcell) #ledger{display:none}
    the full record's audit tail; they render in the White Paper and the Ledger
    view, and NEVER in the Brief or the NOSE, in any mode. Without this, #review
    fell under whichever cell was last \u2014 32,315 words beneath a 444-word cell. */
-body.brief #review, body.brief #ledger, body.brief #keyimp,
-body.nose  #review, body.nose  #ledger, body.nose  #keyimp{display:none}
+/* r147 · COMPLETE the apparatus hide. r146 hid #review/#ledger/#keyimp in the
+   Brief and NOSE but MISSED #rcore (the "R-CORE — Determinism, demonstrated live"
+   panel), #cmp (compare) and #vban (the release banner) — so the operator still
+   saw R-CORE below the Brief. A summary shows only its own cells: hide the FULL
+   apparatus set (the same set body.straight hides) in both summaries, every mode. */
+body.brief #review, body.brief #ledger, body.brief #keyimp, body.brief #rcore, body.brief #cmp, body.brief #vban, body.brief .meta-part,
+body.nose  #review, body.nose  #ledger, body.nose  #keyimp, body.nose  #rcore, body.nose  #cmp, body.nose  #vban, body.nose  .meta-part{display:none}
 /* r104 · NOTHING AFTER THE ARROWS. This reverses the paragraph above, and the
    reversal is the operator's: the arrows are the end of the section, so the end
    of the section is where the page must stop. r102 measured the remainder at
@@ -921,7 +926,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">146</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">147</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -4633,6 +4638,27 @@ const VERSIONS = [
   {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: moving WHY would have relocated the bug and looked like a fix. Naming the real rule is the fix."},
   {n:"Thoth",  g:"A",  f:"Gate now asserts no review/ledger/keyimp on any Brief or NOSE cell; totals 3,333/9,999/66,666 unmoved."},
   {n:"Thor",   g:"A",  f:"Display-only change, no new surface; the record is still one click away in its proper place."}
+ ],
+ next:"WHY leaves the Brief for Settings and the seven cells rebalance to 3,333; then the changes report, the defect recount, and v18 locks."
+},
+{
+ v:147, code:"THE BRIEF READS AS THE BRIEF IN EVERY MODE", stamp:"2026.08.08 &middot; revision 147",
+ thrust:"The operator, reading straight through on a phone, found the Brief and the White paper rendering the same document. The cause was a single hard-coded probe in blocksFor: in full-doc (straight) reading, the code decided whether to show the chosen view or fall back to the whole record by testing each block id against /^paper./ &mdash; correct for the White paper, wrong for every other view. The Brief has no paper.* blocks (its cells are brief.*), so the probe always failed and the Brief fell back to the full ledger, rendering the entire document instead of its eight cells &mdash; which also made it read as far more than 3,333 words. The paged branch immediately below already used VIEWS[view].spine; straight mode now uses the same spine, because straight is a reading PREFERENCE over one order, not a different order. Brief-straight renders its eight cells; White paper its 114; N.O.S.E. its 24. No ledger block changed; every release replays identical.",
+ mot:"A summary that turns into the whole document when you switch to full-doc is not a summary, and the operator caught it in the one mode I had not measured with the spine in mind. The tell was that the paged branch was already correct: it asked whether the view's OWN spine appeared before falling back, while the straight branch hard-coded the paper spine from the r102 days when Full Doc WAS the White paper. Those days are over &mdash; straight is a preference now &mdash; so the two branches must ask the same question. One line: /^paper./ becomes VIEWS[view].spine, and the historical-fallback banner now names the view a reader actually chose rather than always saying White paper. Measured after: Brief eight cells, White paper 114, N.O.S.E. 24, each distinct, the Brief its own three thousand three hundred thirty-three. The gate now checks the two summaries in straight mode as well as paged, so full-doc can never again quietly serve the whole record in place of a summary.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The Brief reads as the Brief in both modes now; the whole-record substitution is gone."},
+  {n:"Asar",   g:"A",  f:"Measured after the fix: Brief 8, White paper 114, N.O.S.E. 24 &mdash; three distinct readings, not one."},
+  {n:"Athena", g:"A",  f:"Straight and paged now ask the same question &mdash; the view's own spine &mdash; so the two branches cannot disagree."},
+  {n:"Christo",g:"A",  f:"The phone reader who saw two identical documents now sees a summary and a paper. That was the complaint."},
+  {n:"Enki",   g:"A",  f:"The hard-coded /^paper./ had hidden since r102 when Full Doc was the paper; the operator found it in full-doc reading."},
+  {n:"Enlil",  g:"A",  f:"One line of logic; no ledger block touched; every historical release replays byte-identical."},
+  {n:"Krishna",g:"A",  f:"blocksFor's two branches unified on VIEWS[view].spine; the fallback banner names the chosen view."},
+  {n:"Odin",   g:"A",  f:"The gate now walks Brief and NOSE in straight mode too &mdash; full-doc cannot serve the whole record for a summary again."},
+  {n:"Pangu",  g:"A",  f:"Smallest correct change: swap a constant regex for the per-view spine already defined on every view."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic's chair: the paged branch was the witness &mdash; it was already right, which proved the straight branch wrong."},
+  {n:"Thoth",  g:"A",  f:"Brief-straight = its 8 cells (3,333); totals 3,333/9,999/66,666 unmoved; determinism intact."},
+  {n:"Thor",   g:"A",  f:"Reading-only logic fix, no new surface; the record is still one deliberate click away in the Ledger view."}
  ],
  next:"WHY leaves the Brief for Settings and the seven cells rebalance to 3,333; then the changes report, the defect recount, and v18 locks."
 }
@@ -16898,7 +16924,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4827033";
+const DL_BYTES = "4832129";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -17046,11 +17072,19 @@ function blocksFor(v){
      paper.* block existed, so early releases show the record instead of an
      empty page, exactly as the four views already do. */
   if (straight){
+    /* r147 · BUG FIX (operator: "Brief and White paper look the same in full-doc
+       mode"). The historical-fallback probe hardcoded /^paper\./ here, so a view
+       with NO paper.* blocks — the Brief (brief.*), the Outline (outline.*) —
+       always failed it and fell back to the full record, rendering the whole
+       document instead of its own cells. Straight mode is a READING PREFERENCE,
+       not a different order: it must honour VIEWS[view].spine exactly as the
+       paged branch below does. Now Brief-straight renders its 8 cells (~3,333),
+       distinct from the White paper. */
     const fd = replay(v, VIEWS[view].order);
-    if (fd.some(function(b){ return /^paper\./.test(b.id); })){
+    if (fd.some(function(b){ return VIEWS[view].spine.test(b.id); })){
       fellBack = null; return {blocks: fd, order: VIEWS[view].order};
     }
-    fellBack = {view:"paper", label:"White paper", first:viewFirstRelease("paper")};
+    fellBack = {view: view, label: VIEWS[view].label, first: viewFirstRelease(view)};
     return {blocks: replay(v, LEDGER_ORDER), order: LEDGER_ORDER};
   }
   const own = replay(v, VIEWS[view].order);

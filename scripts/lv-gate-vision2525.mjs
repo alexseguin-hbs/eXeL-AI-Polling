@@ -1523,7 +1523,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
       const cells=VIEWS[v].order;
       for(let i=0;i<cells.length;i++){
         showCell(i);
-        for(const id of ['review','ledger','keyimp']){
+        for(const id of ['review','ledger','keyimp','rcore','cmp','vban']){
           if(vis(document.getElementById(id))) out.bad.push(v+' cell '+i+' shows #'+id);
         }
       }
@@ -1536,6 +1536,34 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   await p5.close();
   if(r5.bad.length) fails.push('READER PURITY: '+r5.bad.slice(0,8).join(' · '));
   else console.log('reader purity \u2014 Brief & NOSE render only their own cells, no review/ledger/keyimp tail, all blocks resolve');
+}
+
+/* ── r147 · DISTINCT-STRAIGHT (a summary must not become the whole document) ──
+   The full-doc (straight) reader must render each view's OWN cells, never fall
+   back to the whole record. Regression guard for the r147 bug where blocksFor's
+   straight branch hard-coded /^paper./ and the Brief (brief.*) fell back to the
+   full ledger — making Brief and White paper identical in full-doc mode. */
+{
+  const p7=await b.newPage({viewport:{width:390,height:844}});
+  await p7.goto(f); await p7.waitForTimeout(900);
+  const r7=await p7.evaluate(()=>{
+    const out={};
+    for (const v of ['brief','paper','nose']){
+      setView(v); straight = true; renderDoc();
+      const ids=[...document.querySelectorAll('#doc section.blk')].map(x=>x.id.replace('blk-',''));
+      out[v]={n:ids.length, first:ids[0]||'', spineOk: ids.length>0 && VIEWS[v].spine.test(ids.find(id=>VIEWS[v].spine.test(id))||'')};
+    }
+    setView('brief'); straight=false; renderDoc();
+    return out;
+  });
+  await p7.close();
+  const bad=[];
+  if (r7.brief.n === r7.paper.n) bad.push(`brief and paper render the same count in straight (${r7.brief.n})`);
+  if (r7.brief.n !== 8) bad.push(`brief-straight is ${r7.brief.n} cells, expected 8`);
+  if (!/^brief\./.test(r7.brief.first)) bad.push(`brief-straight first cell is ${r7.brief.first}, not a brief.* cell`);
+  if (r7.paper.n < 100) bad.push(`paper-straight is only ${r7.paper.n} cells`);
+  if (bad.length) fails.push('DISTINCT-STRAIGHT: '+bad.join(' · '));
+  else console.log(`distinct-straight — full-doc renders brief ${r7.brief.n} / paper ${r7.paper.n} / nose ${r7.nose.n}, each its own spine`);
 }
 
 await b.close();
