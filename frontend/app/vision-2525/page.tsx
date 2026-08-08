@@ -276,12 +276,10 @@ export default function Vision2525Page() {
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:border-cyan-400 hover:text-cyan-300"
               style={{ borderColor: "rgba(34,211,238,0.45)", color: CYAN }}
             >
-              &darr; Download the living document
+              {/* r145 · icon is sufficient (operator) — verbose meta removed; the
+                 identity proof lives in the document's own Settings drawer. */}
+              &darr; Download
             </a>
-            <span className="text-xs">
-              HTML &middot; one self-contained file &middot; 4.8&nbsp;MB &mdash; every release, the replay
-              engine and the images included. Opens with no network and no account.
-            </span>
           </p>
         </section>
 

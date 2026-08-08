@@ -1,3 +1,12 @@
+# r145 · the operator typed these variants — Cloudflare Pages matches case-sensitively,
+# so the canonical lowercase route needs explicit aliases, and the extensionless
+# /whitepaper/vision-2525 needs to reach the .html the site actually serves.
+/whitepaper/vision-2525 /whitepaper/vision-2525.html 301
+/Vision-2525/white-Paper /vision-2525/white-paper/ 301
+/Vision-2525/white-Paper/ /vision-2525/white-paper/ 301
+/Vision-2525/White-Paper /vision-2525/white-paper/ 301
+/vision-2525/White-Paper /vision-2525/white-paper/ 301
+
 /innovation /SoI-2525/ 301
 /innovation/ /SoI-2525/ 301
 /main/SoI-2525 /SoI-2525/ 301

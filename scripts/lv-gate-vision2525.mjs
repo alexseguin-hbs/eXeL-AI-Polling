@@ -1419,7 +1419,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   const d=await p.evaluate(()=>{
     const as=[...document.querySelectorAll('a[download]')]
       .filter(a=>/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||''));
-    const el=document.getElementById('dlsize');
+    const el=document.getElementById('dlsize2');
     return {n:as.length, abs:as.every(a=>/^https:\/\//.test(a.getAttribute('href'))),
             named:as.every(a=>/\.html$/.test(a.getAttribute('download')||'')),
             stated:el?parseFloat(el.textContent):null};
@@ -1458,8 +1458,8 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   const p3=await b.newPage(); await p3.goto(f); await p3.waitForTimeout(900);
   const st=await p3.evaluate(()=>({
     dl:[...document.querySelectorAll('a[download]')].filter(a=>/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||'')).length,
-    bytes:(document.getElementById('dlbytes')||{}).textContent,
-    rel:(document.getElementById('dlrel')||{}).textContent }));
+    bytes:(document.getElementById('dlbytes2')||{}).textContent,
+    rel:(document.getElementById('dlrel2')||{}).textContent }));
   await p3.close();
   const actual=fs.statSync(f.replace('file://','')).size;
   if(st.dl<2) fails.push('CONTENT: '+st.dl+' link(s) on the attachment path, expected 2');
