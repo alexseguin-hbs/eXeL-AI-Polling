@@ -40,7 +40,7 @@ const PAPER = "/whitepaper/vision-2525.html";
    SHIPPED lists the languages whose per-language build is actually deployed at
    /whitepaper/vision-2525.<lang>.html — a locale not yet shipped falls back to
    English so a reader never hits a 404. Add each code here as its build ships. */
-const SHIPPED = new Set<string>(["en"]);
+const SHIPPED = new Set<string>(["en", "es"]);
 const LOCALE_KEY = "exel-active-locale";
 
 function paperForLocale(): string {
