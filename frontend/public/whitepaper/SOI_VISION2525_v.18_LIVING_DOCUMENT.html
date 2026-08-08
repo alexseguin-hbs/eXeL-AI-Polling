@@ -476,6 +476,14 @@ section.blk.cmp-rev{background:linear-gradient(90deg,var(--si-bg),transparent 62
    operator did not ask to lose" failure. The deck stays; in full doc it carries
    the one control that leaves, and nothing else. (`.fullnote` styling has been
    dead since it was written — no element ever used it — so it is not the exit.) */
+/* r144 · the download control. Human-intelligence violet so it reads as the one
+   thing on the deck that is not a replay control, and 44px tall because that is
+   the smallest target a thumb hits reliably. */
+#bDL{display:inline-flex;align-items:center;gap:2px;min-height:34px;padding:6px 12px;
+  border:1px solid var(--hi);border-radius:8px;color:var(--hi);text-decoration:none;
+  font:600 12.5px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
+#bDL:hover{background:var(--hi-bg)}
+@media(max-width:420px){#bDL{padding:6px 9px;font-size:11.5px}}
 body.straight .deck{display:block;padding-top:6px;padding-bottom:6px}
 body.straight .deck-in > *{display:none}
 /* r104 · THE TWO EXCEPTIONS MOVED, AND THE DECK WENT DARK. Reading straight
@@ -489,7 +497,13 @@ body.straight .deck-in > *{display:none}
    fall out — it is one tap further in, inside the drawer that #bSet opens. */
 body.straight .deck-in > #bView,
 body.straight .deck-in > #bFull,
-body.straight .deck-in > #bSet{display:inline-block}
+body.straight .deck-in > #bSet,
+/* r144 · a third exemption. The blackout exists so a straight-through reader is
+   not shown machinery; a download is not machinery, it is the reader taking the
+   thing with them. Landing state is straight-through, so an unexempted control
+   here would measure zero by zero on arrival &mdash; the r104 trap, avoided by
+   naming it rather than by hoping. */
+body.straight .deck-in > #bDL{display:inline-block}
 /* r102 · ZERO TOGGLES IN FULL DOC. The button was full-doc-only, which is the
    exact inverse of what was asked: Full Doc is the one mode that reads straight
    through, and the four views are where a reader needs one section at a time.
@@ -498,6 +512,11 @@ body.straight .deck-in > #bSet{display:inline-block}
 /* r104 · drawn icons sit on the text baseline of their own label. */
 .deck-in button .ic,.setbody button .ic{vertical-align:-3px;margin-right:6px}
 .deck-in button > .ic:only-child,.setbody header button > .ic:only-child{margin-right:0}
+/* r144 · the drawer copy of the download, with the weight stated. */
+.setdl{display:block;margin:2px 0 4px;padding:11px 13px;border:1px solid var(--hi);
+  border-radius:9px;color:var(--hi);text-decoration:none;font-weight:600;font-size:13.5px}
+.setdl:hover{background:var(--hi-bg)}
+.setnote{margin:0 0 14px;font-size:12px;line-height:1.5;color:var(--ink-2)}
 /* r104 · SETTINGS drawer — moderator-settings.tsx geometry, in one file. */
 .setwrap{position:fixed;inset:0;z-index:80}
 .setwrap[hidden]{display:none}
@@ -870,6 +889,11 @@ header.mast{position:relative}
   <button id="bCmp" aria-pressed="false" title="Compare any two releases"></button>
   <button id="bView" title="What you are reading &mdash; Brief, White paper, N.O.S.E."></button>
   <button id="bSet" aria-expanded="false" title="Settings &mdash; reading, audit trail, about this document" aria-label="Settings"></button>
+  <!-- r144 · the operator opened the document on a phone and asked where the
+       download was. It was in the foot, sixty-six thousand words below the first
+       screen, and in the site row under that. Both are correct places to END and
+       neither is a place to LOOK. The deck is the one surface a reader always has. -->
+  <a id="bDL" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html" title="Download this document &mdash; HTML, one self-contained file" aria-label="Download this document">&#8595;&nbsp;HTML</a>
   <span class="hash" id="vHash">state &mdash;</span>
  </div>
  <div class="deck-sec"><div id="chips"></div></div>
@@ -889,6 +913,9 @@ header.mast{position:relative}
     <div class="setbody">
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
+      <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
+      <p class="setnote">HTML document &middot; one self-contained file &middot; <span id="dlsize2">4.8</span>&nbsp;MB.
+      Release <span id="dlrel2">144</span>, <span id="dlbytes2">0</span> bytes &mdash; the same bytes the site serves.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -994,7 +1021,7 @@ header.mast{position:relative}
        and is not the same as offering it. Absolute URL so the link still works
        from a copy opened off a desktop with no server, and the weight is stated
        before anyone taps it on a phone on a train. -->
-  <p class="dl" style="margin-bottom:0"><a href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">Download this document</a><span class="meta">HTML document &middot; one self-contained file &middot; <span id="dlsize">4.8</span>&nbsp;MB &mdash; every release, every superseded version, the replay engine and the images, in the file. Opens with no network, no server and no account.<br>This copy is <strong>v.18 &middot; release <span id="dlrel">143</span></strong>, <strong><span id="dlbytes">0</span> bytes</strong>. The site serves these same bytes and no others: if the release and the byte count on your copy match the page you are reading, they are the same document. Nothing here is cached &mdash; the download is revalidated on every request.</span></p>
+  <p class="dl" style="margin-bottom:0"><a href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">Download this document</a><span class="meta">HTML document &middot; one self-contained file &middot; <span id="dlsize">4.8</span>&nbsp;MB &mdash; every release, every superseded version, the replay engine and the images, in the file. Opens with no network, no server and no account.<br>This copy is <strong>v.18 &middot; release <span id="dlrel">144</span></strong>, <strong><span id="dlbytes">0</span> bytes</strong>. The site serves these same bytes and no others: if the release and the byte count on your copy match the page you are reading, they are the same document. Nothing here is cached &mdash; the download is revalidated on every request.</span></p>
 </footer>
 
 <!-- r105 · the site row. Last element in the document, in normal flow, after
@@ -4539,8 +4566,30 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"A static file, a static header, no script and no new surface. The attachment path adds nothing an attacker can reach."}
  ],
  next:"The changes report, the defect recount &mdash; and v18 locks."
+},
+{
+ v:144, code:"THE DOWNLOAD IS WHERE THE READER IS", stamp:"2026.08.08 &middot; revision 144",
+ thrust:"The download moves to the deck. It now sits beside Settings on the one strip of the page a reader always has, it is exempt from the straight-through blackout so it is present in the landing state rather than hidden by it, and it repeats inside the Settings drawer with the weight and the byte count stated. The foot and the site row keep their copies, because the end of the argument is a fair place to offer the file to somebody who has just finished it. What changed is that finishing is no longer the price of finding it. A new gate rule opens the document at three hundred and ninety by eight hundred and forty &mdash; a phone &mdash; and fails the build unless the download is visible, above the fold, at least thirty pixels tall, pointed at the attachment path and carrying a filename.",
+ mot:"The operator opened the document on a phone, looked at the first screen, and asked where the download link was. It was two taps and sixty-six thousand words away, in the foot, exactly where I had put it and exactly where nobody would look for it. I had checked that it existed, that its address was absolute, that it carried a filename and that the megabytes it advertised matched the file. Every one of those checks passed while the control was, for practical purposes, invisible. That is a lesson about what a gate proves: presence is not reachability, and a rule that measures the former while claiming the latter is a rule that lies politely. So the new rule measures the thing the reader experiences &mdash; is it on the screen when the page opens, on the smallest screen we support, in the mode the page actually lands in. The old placement stays, because it was never wrong, only insufficient. And the deck exemption is named explicitly, because the last time a control moved without its exemption every one of twelve measured zero by zero on arrival, and the way not to repeat that is to write the exemption down at the same moment as the control.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The file is now offered where the reader stands rather than where the author stopped writing."},
+  {n:"Asar",   g:"A",  f:"Four placements, one address: deck, drawer, foot, site row. A reader meets it whenever they want it."},
+  {n:"Athena", g:"A",  f:"The blackout exemption was written in the same edit as the control &mdash; the r104 trap answered by procedure, not by luck."},
+  {n:"Christo",g:"A",  f:"A thumb target of at least thirty pixels, on the screen the operator actually reads from. The courtesy is measured, not assumed."},
+  {n:"Enki",   g:"A-", f:"Presence passed three gate rules while reachability failed the only test that counts: a person looking for it."},
+  {n:"Enlil",  g:"A",  f:"One byte stamp now feeds every printed copy of the number, so the deck, the drawer and the foot cannot disagree."},
+  {n:"Krishna",g:"A",  f:"Deck, drawer, foot and site row all resolve to the attachment path; no second address to drift."},
+  {n:"Odin",   g:"A",  f:"The REACHABLE rule will outlive this layout: it asks whether a reader can see the control, not where the control was put."},
+  {n:"Pangu",  g:"A",  f:"The smallest control on the page, and the one that decides whether the other sixty-six thousand words travel."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: a gate that checks existence and reports reachability is the most flattering kind of wrong."},
+  {n:"Thoth",  g:"A",  f:"Measured at 390 by 844 in the landing state: visible, above the fold, thumb-sized, named, addressed."},
+  {n:"Thor",   g:"A",  f:"A static anchor on the deck. No handler, no script, no new surface &mdash; the same file already served publicly."}
+ ],
+ next:"The changes report, the defect recount &mdash; and v18 locks."
 }
 ];
+
 
 
 
@@ -16799,10 +16848,12 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4812256";
+const DL_BYTES = "4818644";
 document.addEventListener("DOMContentLoaded", function(){
-  var b = document.getElementById("dlbytes");
-  if (b) b.textContent = Number(DL_BYTES).toLocaleString("en-US");
+  var n = Number(DL_BYTES).toLocaleString("en-US");
+  ["dlbytes","dlbytes2"].forEach(function(id){
+    var e = document.getElementById(id); if (e) e.textContent = n;
+  });
 });
 
 /* ── engine ───────────────────────────────────────────────────────────── */

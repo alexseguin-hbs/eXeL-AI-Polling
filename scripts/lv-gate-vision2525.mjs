@@ -1470,6 +1470,35 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     +actual+' bytes printed and measured, release '+st.rel);
 }
 
+/* ── r144 · REACHABLE (a control a reader cannot find is not a control) ─────
+   The download must be visible in the landing state, above the fold, at phone
+   width — not only in the foot of a sixty-six-thousand-word document. */
+{
+  const p4=await b.newPage({viewport:{width:390,height:844}});
+  await p4.goto(f); await p4.waitForTimeout(1100);
+  const v=await p4.evaluate(()=>{
+    const d=document.getElementById('bDL');
+    if(!d) return {ok:false,why:'#bDL missing from the deck'};
+    const r=d.getBoundingClientRect(), st=getComputedStyle(d);
+    return {ok:true, straight:document.body.classList.contains('straight'),
+            vis:st.display!=='none'&&r.height>0, top:Math.round(r.top),
+            h:Math.round(r.height), fold:r.top<844,
+            href:d.getAttribute('href')||'', dl:d.getAttribute('download')||'',
+            inSet:!!document.getElementById('bDLset')};
+  });
+  await p4.close();
+  if(!v.ok) fails.push('REACHABLE: '+v.why);
+  else {
+    if(!v.vis)  fails.push('REACHABLE: the deck download is not visible in the landing state');
+    if(!v.fold) fails.push('REACHABLE: the deck download sits at y='+v.top+', below the first screen');
+    if(v.h<30)  fails.push('REACHABLE: the deck download is '+v.h+'px tall — under a thumb target');
+    if(!/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(v.href)) fails.push('REACHABLE: deck download points at '+v.href);
+    if(!v.dl)   fails.push('REACHABLE: deck download has no filename');
+    if(!v.inSet)fails.push('REACHABLE: the Settings drawer copy is missing');
+    console.log('reachable \u2014 deck download visible at y='+v.top+', '+v.h+'px tall, landing state straight='+v.straight+', drawer copy present');
+  }
+}
+
 await b.close();
 
 
