@@ -5,6 +5,7 @@ import { chromium } from 'playwright';
 const f='file://'+(process.argv[2]||'/home/user/eXeL-AI-Polling/docs/SOI_VISION2525_LIVING_DOCUMENT.html');
 const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
 const fails=[];
+let VMAXCHK=null;
 // 1. engine correctness
 {
   const p=await b.newPage({viewport:{width:1200,height:900}});
@@ -74,6 +75,7 @@ const fails=[];
     return out;
   });
   console.log('ENGINE', JSON.stringify(r,null,1));
+  VMAXCHK = r.vmax;
   if(errs.length) fails.push('JS ERRORS: '+errs.join(' | '));
   if(!r.det) fails.push('NONDETERMINISTIC replay');
   if(!r.distinct) fails.push('releases that appended to the ledger produced identical content: r'+r.collisions.join(', r'));
@@ -1416,7 +1418,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   await p.goto(f); await p.waitForTimeout(900);
   const d=await p.evaluate(()=>{
     const as=[...document.querySelectorAll('a[download]')]
-      .filter(a=>/vision-2525\.html$/.test(a.getAttribute('href')||''));
+      .filter(a=>/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||''));
     const el=document.getElementById('dlsize');
     return {n:as.length, abs:as.every(a=>/^https:\/\//.test(a.getAttribute('href'))),
             named:as.every(a=>/\.html$/.test(a.getAttribute('download')||'')),
@@ -1431,6 +1433,41 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   if(d.stated===null) fails.push('DOWNLOAD: the advertised size is missing');
   else if(Math.abs(d.stated-mb)>0.1) fails.push('DOWNLOAD: advertises '+d.stated+' MB but the file is '+mb.toFixed(2)+' MB');
   console.log('download \u2014 '+d.n+' link(s), advertised '+d.stated+' MB, actual '+mb.toFixed(2)+' MB');
+}
+
+/* ── r143 · SAME EXACT CONTENT (the operator's rule, made an exit code) ─────
+   Four copies, one hash. The download links point at the attachment path. The
+   byte count the document prints is the byte count of the file on disk. */
+{
+  const fs=await import('node:fs'), cp=await import('node:crypto');
+  const root='/home/user/eXeL-AI-Polling/';
+  const copies=['docs/SOI_VISION2525_LIVING_DOCUMENT.html',
+                'docs/VISION2525_LIVING_LEDGER_2026.08.04.html',
+                'frontend/public/whitepaper/vision-2525.html',
+                'frontend/public/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html'];
+  const seen=new Set();
+  for(const c of copies){
+    if(!fs.existsSync(root+c)){ fails.push('CONTENT: missing published copy '+c); continue; }
+    seen.add(cp.createHash('sha256').update(fs.readFileSync(root+c)).digest('hex'));
+  }
+  if(seen.size>1) fails.push('CONTENT: the published copies are NOT the same bytes ('+seen.size+' distinct hashes)');
+  const hdr=fs.readFileSync(root+'frontend/public/_headers','utf8');
+  if(!/Content-Disposition: attachment/.test(hdr)) fails.push('CONTENT: no attachment header — the download would render instead of saving');
+  if(!/\/whitepaper\/vision-2525\.html\n\s+Cache-Control: no-cache/.test(hdr))
+    fails.push('CONTENT: the reading copy is cacheable — LIVE can go stale against the file');
+  const p3=await b.newPage(); await p3.goto(f); await p3.waitForTimeout(900);
+  const st=await p3.evaluate(()=>({
+    dl:[...document.querySelectorAll('a[download]')].filter(a=>/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||'')).length,
+    bytes:(document.getElementById('dlbytes')||{}).textContent,
+    rel:(document.getElementById('dlrel')||{}).textContent }));
+  await p3.close();
+  const actual=fs.statSync(f.replace('file://','')).size;
+  if(st.dl<2) fails.push('CONTENT: '+st.dl+' link(s) on the attachment path, expected 2');
+  if(String(st.bytes||'').replace(/,/g,'')!==String(actual))
+    fails.push('CONTENT: the document prints '+st.bytes+' bytes but the file is '+actual);
+  if(String(st.rel)!==String(VMAXCHK)) fails.push('CONTENT: printed release '+st.rel+' != VMAX '+VMAXCHK);
+  console.log('same exact content \u2014 '+seen.size+' hash across '+copies.length+' copies, '
+    +actual+' bytes printed and measured, release '+st.rel);
 }
 
 await b.close();

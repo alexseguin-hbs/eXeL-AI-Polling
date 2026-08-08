@@ -5,6 +5,25 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(self), geolocation=()
 
+# r143 · THE LIVING DOCUMENT — never cached, always the current release.
+# The operator's rule is that the HTML they hold and the HTML the site serves are
+# the same exact content. A CDN or browser cache holding yesterday's build breaks
+# that rule without anyone editing a byte, which is exactly how a push once read as
+# shipped while the site served a four-hour-old copy. no-cache does not mean "do not
+# store" — it means "revalidate before reuse", so a reader always gets the release
+# that is actually deployed.
+/whitepaper/vision-2525.html
+  Cache-Control: no-cache, must-revalidate
+  Content-Type: text/html; charset=utf-8
+
+# The download copy: same bytes, forced to SAVE rather than render. Content-Disposition
+# is the only mechanism every browser honours — the HTML download attribute is ignored
+# cross-origin and unreliable on iOS Safari, which is where the operator reads.
+/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html
+  Cache-Control: no-cache, must-revalidate
+  Content-Type: text/html; charset=utf-8
+  Content-Disposition: attachment; filename="SOI_VISION2525_v.18_LIVING_DOCUMENT.html"
+
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
