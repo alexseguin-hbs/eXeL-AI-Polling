@@ -315,7 +315,7 @@ body.straight .chips{display:flex}
 /* r137 · operator: hyperlink without a lot of detail — right-justified on the
    section title line. The scaffold never shows it. */
 .plink111{float:right;font:500 12.5px ui-sans-serif,system-ui;letter-spacing:.06em;margin-top:14px}
-.plink111 a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--rule)}
+.plink111 a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule)}
 body.nose .plink111{display:none}
 /* r139 \u00b7 the operator's law: the scaffold shows Needs, Outcomes, Solution,
    Evidence ONLY. Everything else a section carries \u2014 tables, pulls, notices,
@@ -419,10 +419,15 @@ h2.sech{scroll-margin-top:calc(var(--deckh,42px) + 52px)}
 h2.sech-fold{font:600 20px "Iowan Old Style",Georgia,serif;margin:34px 0 10px;
   scroll-margin-top:calc(var(--deckh,42px) + 52px)}
 @media(max-height:500px){h2.sech-fold{font-size:17px;margin:16px 0 8px}}
-h2.sech:has(> .sn){display:grid;grid-template-columns:auto 1fr;column-gap:.55em;align-items:baseline}
+h2.sech:has(> .sn){display:grid;grid-template-columns:auto 1fr auto;column-gap:.55em;align-items:baseline}
 h2.sech > .sn{grid-row:1;grid-column:1;color:var(--ink-2);font-variant-numeric:tabular-nums}
 h2.sech > .stt{grid-row:1;grid-column:2}
 h2.sech > .ext{grid-row:2;grid-column:2;margin:2px 0 0}
+/* r150 · operator: the "111 · Outline" promise link belongs ON the title line,
+   right-justified, directly under "↑ CONTENTS" — not stranded on a third line.
+   It is already a child of the header (renderPromiseLinks); giving it the third
+   grid column at row 1, end-justified, lands it there. Overrides its float. */
+h2.sech > .plink111{grid-row:1;grid-column:3;justify-self:end;align-self:baseline;float:none;margin:0}
 .pull{border-left:3px solid var(--hi);padding:2px 0 2px 18px;margin:26px 0;
   font-size:clamp(18px,2.9vw,22px);line-height:1.42;color:var(--ink);font-style:italic}
 .pull cite{display:block;margin-top:8px;font-size:13px;font-style:normal;color:var(--ink-2);
@@ -963,7 +968,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">149</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">150</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -4740,6 +4745,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"A link and a lazily-built menu &mdash; no fetch, no eval, no new payload surface; the file is still one self-contained page."}
  ],
  next:"The 48-agent fleet translates NOSE and White Paper language by language into the per-language maps; each built language turns live in the chooser as its release ships."
+},
+{
+ v:150, code:"THE OUTLINE LINK RIDES THE TITLE LINE", stamp:"2026.08.08 &middot; revision 150",
+ thrust:"A layout correction the operator asked for while reading the White Paper. Each numbered section carries a quiet &lsquo;111 &middot; Outline&rsquo; link to its own hundred-and-eleven-word outline. Since r137 that link was meant to sit on the section&rsquo;s title line, right-justified, directly under the &lsquo;&uarr; contents&rsquo; link &mdash; but the header grid never gave it a cell, so it stranded on a third line below the title with a float. The fix is pure layout: the title header is a grid, and it gains a third column; the link is placed at row one, end-justified, in that column, and its float is dropped. It now rides the title line at the right, under contents, as r137 declared. The operator also asked for the link in white; its colour moves from muted ink to primary ink. No ledger block changed &mdash; this is CSS on the render, so it is engine-only and every release replays byte-identical.",
+ mot:"r137 said the shape out loud &mdash; &lsquo;a quiet right-justified 111 &middot; Outline link on the section title line&rsquo; &mdash; and then the layout never landed it there, because the promise link was appended into the header but the header grid had no column to receive it. Three lines where two belong is exactly the kind of small untidiness that erodes a reading, and the operator caught it on a phone. The correction is three declarations: a third grid column, the link placed end-justified in it, the float removed &mdash; and one more for the colour the operator named. The words did not move; only the furniture around them did.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The promise link rejoins the title it belongs to; nothing of the argument moved."},
+  {n:"Asar",   g:"A",  f:"Two lines where there were three &mdash; the section reads as one title, not a title with an orphan beneath it."},
+  {n:"Athena", g:"A",  f:"The link is placed by an explicit grid cell now, not left to float and auto-flow, so it cannot drift back to a third row."},
+  {n:"Christo",g:"A",  f:"The reader who met the outline link stranded below the title now meets it on the title line, under contents. That was the ask."},
+  {n:"Enki",   g:"A",  f:"r137 declared the shape and the grid never received it; the operator found the gap on a phone, where the third line cost the most."},
+  {n:"Enlil",  g:"A",  f:"Engine-only: CSS on the render, no ledger block written, every prior release replays byte-identical."},
+  {n:"Krishna",g:"A",  f:"The link stays a child of the header (renderPromiseLinks); only the grid placement and colour change, so the cross-view jump is untouched."},
+  {n:"Odin",   g:"A",  f:"The header grid gains a column and the &lsquo;.ext&rsquo; eyebrow keeps its row-two cell &mdash; no collision, the deck budget and reader purity hold."},
+  {n:"Pangu",  g:"A",  f:"The smallest correct change: three grid declarations and one colour, no markup and no JS touched."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: the r137 intent was on the record, so this completes a stated shape rather than inventing one."},
+  {n:"Thoth",  g:"A",  f:"Sacred totals 3,333 / 9,999 / 66,666 unmoved; the link text is render-injected, not block content, so counts do not change; determinism intact."},
+  {n:"Thor",   g:"A",  f:"Layout-only, no new surface, no handler &mdash; nothing an attacker can reach that r149 did not already expose."}
+ ],
+ next:"The token model: Seed (one-time membership, MW/7, Texas $1.03571428571429) kept distinct from 웃 (H.I. live time-accrual), plus Upside Cash Accelerators and the ◬ A.I. accelerator token, ♡ S.I. named &mdash; authored under the 48-agent 3-pass method."
 }
 ];
 
@@ -17003,7 +17029,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4846810";
+const DL_BYTES = "4851053";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
