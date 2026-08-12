@@ -687,6 +687,20 @@ body.paged #doc section.blk.pg{display:block}
    the last cell with the rest of the record. */
 body.paged:not(.lastcell) #review,
 body.paged:not(.lastcell) #ledger{display:none}
+/* r189 · operator: the White Paper reading ENDS at the Author and ALVAR. In one-cell
+   reading of the paper view, the audit apparatus does NOT return on the last cell —
+   it remains available in Full Doc and the Ledger view. Outline and Ledger keep the
+   r104 "returns on the last cell" behaviour (they are not .wpaper). #relnav (the way
+   out) is never hidden. */
+body.paged.wpaper.lastcell #review,
+body.paged.wpaper.lastcell #ledger,
+body.paged.wpaper.lastcell #keyimp,
+body.paged.wpaper.lastcell #rcore,
+body.paged.wpaper.lastcell #cmp,
+body.paged.wpaper.lastcell #vban,
+body.paged.wpaper.lastcell footer.end,
+body.paged.wpaper.lastcell .sitelinks,
+body.paged.wpaper.lastcell .wrap > .meta-part{display:none}
 /* r146 \u00b7 the operator's law: a summary shows only its own words. The review
    loop (twelve reviews + the 252 readings), the ledger and key-improvements are
    the full record's audit tail; they render in the White Paper and the Ledger
@@ -972,7 +986,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">188</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">189</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5556,6 +5570,26 @@ const VERSIONS = [
   {n:"Sofia",g:"A",f:"A reader who wants the registers finds them where the full data lives: Settings &rarr; Registers."},
   {n:"Thoth",g:"A",f:"Word totals verified unchanged: Brief 3,333 / NOSE 9,999 / White Paper 77,777."},
   {n:"Thor",g:"A",f:"No functional/security change; a navigation chip removed, nothing about the record altered."}
+ ],
+ next:"Finish the 33-language translation build (merge bodies + re-translate fund.escrow + chrome) and wire/gate/ship all languages."
+},
+{ v:189, code:"DOWNLOAD ICON (NOT THE WORD); WHITE PAPER READING ENDS AT THE AUTHOR/ALVAR", stamp:"2026.08.12 &middot; revision 189",
+ thrust:"Two operator UX fixes from the live view. (1) The companion link shows the download icon &mdash; the deck&rsquo;s own glyph &mdash; in place of the word &lsquo;Download&rsquo;, before the title Thought Mastery in the Age of AI, with an aria-label for screen readers. (2) The White Paper one-cell reading now ENDS at the Author and ALVAR: the audit apparatus (review loop, ledger, key-improvements, R-CORE panel, compare, banner, footer, site links) no longer returns on the last cell of the paper view. It stays available in Full Doc and the Ledger view; the Outline and Ledger keep r104&rsquo;s return-on-last-cell. Scoped by a new wpaper body class, with the gate law updated to match. Chrome/JS only &mdash; word totals unchanged at 3,333 / 9,999 / 77,777.",
+ mot:"The reading should finish on the author&rsquo;s words, not on the machinery that reviews them. I scoped the change to the White Paper so the Ledger, which IS the record, keeps its tail; and I moved the gate law with it, because a rule the operator reverses must be reversed in the guard too, or the next run would fail honest work.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"The companion link now leads with the download glyph, not the word &lsquo;Download&rsquo;; the title stands alone."},
+  {n:"Asar",g:"A",f:"Two live-view fixes: the download icon, and the White Paper reading ending clean at the Author and ALVAR."},
+  {n:"Athena",g:"A",f:"Scoped by a wpaper body class &mdash; only the White Paper one-cell reading drops the tail; Outline and Ledger keep it."},
+  {n:"Christo",g:"A",f:"The reader finishes on the author&rsquo;s words, not on the review panel; the audit trail waits in Full Doc."},
+  {n:"Enki",g:"A",f:"Edge case: the audit apparatus is never orphaned &mdash; it still renders in Full Doc and the Ledger view."},
+  {n:"Enlil",g:"A",f:"Gate law updated to match: &lsquo;returns on the last cell&rsquo; now applies to Outline/Ledger; the paper asserts a clean end."},
+  {n:"Krishna",g:"A",f:"aria-label carries &lsquo;Download Thought Mastery&hellip;&rsquo; so the icon-only link stays accessible."},
+  {n:"Odin",g:"A",f:"#relnav (the way out) is never hidden; the section arrows still stand on the last cell."},
+  {n:"Pangu",g:"A",f:"The download glyph is the deck&rsquo;s own SVG &mdash; one icon vocabulary across the document."},
+  {n:"Sofia",g:"A",f:"Word totals unchanged &mdash; the icon replaces the word without moving the count off 77,777."},
+  {n:"Thoth",g:"A",f:"Totals verified exact: Brief 3,333 / NOSE 9,999 / White Paper 77,777."},
+  {n:"Thor",g:"A",f:"No security change; two presentational fixes plus a scoped reading-mode rule and its gate law."}
  ],
  next:"Finish the 33-language translation build (merge bodies + re-translate fund.escrow + chrome) and wire/gate/ship all languages."
 }
@@ -17062,6 +17096,11 @@ L(105,"mot.companion","The operator supplied a second document of his own: <em>T
 '<p>It also names the constraint everything here is built around. Execution accelerates; conscience does not. The gap between what can be produced and what can be meaningfully evaluated is where accountability quietly dies, and a civilisation that fails to close that gap arrives at abundance without agency &mdash; output without oversight. <span class="meta">Economists have reached the same structure in formal notation: Catalini, Hui and Wu, February 2026, name that gap the Measurability Gap and that failure state the Hollow Economy. Different vocabulary, same finding, and the closest thing to outside corroboration this work has.</span></p>'+
 '<p style="margin-bottom:0">Read it if the mechanism here interests you but the reason for it does not yet. This document is the <em>how</em>. That one is the <em>why we must</em>.</p></div>');
 
+L(189,"mot.companion","Operator UX: the companion link shows the download icon instead of the word &lsquo;Download&rsquo; &mdash; the same glyph as the deck download &mdash; before the title <em>Thought Mastery in the Age of AI</em>; an aria-label carries &lsquo;Download&hellip;&rsquo; for screen readers. Counter-first supersede of mot.companion. MoT-authored, TM-directed.",'<div class="notice key"><span class="tag">The companion document</span>'+
+'<p><strong>Thought Mastery in the Age of AI &mdash; A Civilization Blueprint for 2525.</strong> Thirty-three sections, written under this same name. Where Vision &#8226; 2525 specifies mechanism &mdash; the unit, the ceiling, the ledger, the off switch &mdash; that document asks the prior question: what must a civilisation <em>become</em> in order to deserve the tools it is building?</p>'+
+'<p>It opens where this section already stands. Sumer encoded survival in <strong>ME</strong>, sacred assignments of role and covenant. Egypt upheld <strong>Ma&rsquo;at</strong>, the living equilibrium between truth and force &mdash; the same Ma&rsquo;at whose scribe was Thoth, three paragraphs above. Neither was superstition; both were governance architecture, and the task it sets is translation: what does ME look like in algorithmic design, and Ma&rsquo;at in audit systems and public accountability?</p>'+
+'<p>It also names the constraint everything here is built around. Execution accelerates; conscience does not. The gap between what can be produced and what can be meaningfully evaluated is where accountability quietly dies, and a civilisation that fails to close that gap arrives at abundance without agency &mdash; output without oversight. <span class="meta">Economists have reached the same structure in formal notation: Catalini, Hui and Wu, February 2026, name that gap the Measurability Gap and that failure state the Hollow Economy. Different vocabulary, same finding, and the closest thing to outside corroboration this work has.</span></p>'+
+'<p>Read it if the mechanism here interests you but the reason for it does not yet. This document is the <em>how</em>. That one is the <em>why we truly must</em>.</p><p class="dl" style="margin-bottom:0"><a href="/whitepaper/thought-mastery-in-the-age-of-ai.pdf" download aria-label="Download Thought Mastery in the Age of AI"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px;margin-right:2px"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><strong>Thought Mastery in the Age of AI</strong></a><span class="meta"> &nbsp;PDF &middot; 38 pages &middot; 2.8&nbsp;MB &mdash; a separate file, deliberately. Vision &#8226; 2525 is one page that carries everything it needs and works with no network; a companion of thirty-eight pages is not that, and pretending otherwise would break the rule this document keeps everywhere else. The link is the honest form.</span></p></div>');
 L(113,"mot.companion","The companion document is downloadable. It was referenced for nine releases with no way to reach it.",
 '<div class="notice key"><span class="tag">The companion document</span>'+
 '<p><strong>Thought Mastery in the Age of AI &mdash; A Civilization Blueprint for 2525.</strong> Thirty-three sections, written under this same name. Where Vision &#8226; 2525 specifies mechanism &mdash; the unit, the ceiling, the ledger, the off switch &mdash; that document asks the prior question: what must a civilisation <em>become</em> in order to deserve the tools it is building?</p>'+
@@ -17877,7 +17916,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5266623";
+const DL_BYTES = "5273517";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19546,6 +19585,7 @@ function setView(v){
   view = v;
   document.body.classList.toggle("nose", v === "nose");
   document.body.classList.toggle("brief", v === "brief");  /* r146 · scope reader-purity rules */
+  document.body.classList.toggle("wpaper", v === "paper"); /* r189 · scope the clean-end (no audit tail on the last cell) to the White Paper reading */
   const btn = document.getElementById("bView");
   btn.innerHTML = viewBtnLabel(v);
   btn.title = "Currently reading: " + VIEWS[v].label + ". Click for the next view.";

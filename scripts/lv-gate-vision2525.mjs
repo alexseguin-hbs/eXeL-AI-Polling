@@ -969,8 +969,13 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
           if(seen.length)
             out.errors.push(`${v} cell ${i}: ${seen.length} element(s) render after the arrows — ${seen.slice(0,4).join(', ')}`);
         }
-        if (fullRecord && i === n-1 && tailH < 5000)
+        /* r189 · operator: the WHITE PAPER reading ends clean at the Author/ALVAR — the
+           audit trail does NOT return on its last cell (it lives in Full Doc and the
+           Ledger). The Outline and Ledger keep r104's "returns on the last cell". */
+        if ((v === 'outline' || v === 'ledger') && i === n-1 && tailH < 5000)
           out.errors.push(`${v}: the audit trail does not return on the last cell (${tailH}px)`);
+        if (v === 'paper' && i === n-1 && tailH > 900)
+          out.errors.push(`paper: the audit trail still trails the last cell (${tailH}px) — the reading must end at the author`);
       }
       out.notes.push(`${v}: ${n} cells, each read alone, rail and counter agree`);
     }
