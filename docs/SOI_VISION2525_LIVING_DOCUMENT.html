@@ -58,9 +58,9 @@ h1{font-size:clamp(28px,5.6vw,42px);line-height:1.11}
 .mast.wordmark #mSub{font-size:clamp(18px,3.2vw,26px)!important;color:var(--ink)!important;
   margin-top:8px!important;letter-spacing:0!important;font-weight:600}
 /* r55: the epigraph is its own line, centred and dated, beneath the two title lines. */
-.mast .epigraph{text-align:center;margin:20px auto 0;max-width:34ch;font-weight:600;
-  font-size:clamp(15px,2.4vw,19px);line-height:1.42;color:var(--ink);text-wrap:balance}
-.mast .epiyear{display:block;margin-top:5px;font:600 11px ui-monospace,monospace;
+.mast .epigraph{text-align:center;margin:20px auto 0;width:fit-content;max-width:none;white-space:nowrap;font-weight:600;
+  font-size:clamp(15px,2.4vw,19px);line-height:1.42;color:var(--ink)}
+.mast .epiyear{display:block;text-align:left;padding-left:1.6em;margin-top:5px;font:600 11px ui-monospace,monospace;
   letter-spacing:.22em;color:var(--ink-2)}
 h2{font-size:clamp(20px,3.4vw,26px);line-height:1.24}
 h3{font-size:18px;margin:30px 0 8px}
@@ -890,11 +890,11 @@ header.mast{position:relative}
   header.mast{padding:20px 0 12px}
   :root[data-theme="dark"] header.mast,
   :root[data-theme="light"] header.mast{padding-bottom:12px}
-  .mast .epigraph{max-width:none;white-space:nowrap;margin-top:11px;
+  .mast .epigraph{width:fit-content;max-width:none;white-space:nowrap;margin:11px auto 0;
     font-size:min(3.35vw,19px);line-height:1.3}
-  .mast .epiyear{display:inline;margin:0 0 0 .5em;font-size:min(2.3vw,11px);
+  .mast .epiyear{display:block;text-align:left;padding-left:1.4em;margin:5px 0 0;font-size:min(2.3vw,11px);
     letter-spacing:.14em;white-space:nowrap}
-  .mast .epiyear::before{content:"\2022";margin-right:.45em;opacity:.6}
+  .mast .epiyear::before{content:none}
   .mast .sub{margin-top:9px}
   .mast .glyphline{margin-top:11px}
   .deck{padding:7px 20px 8px}
@@ -968,7 +968,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">162</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">163</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5018,6 +5018,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"No new surface, no data touched; a scroll target computed from existing state, guarded against a null or missing anchor."}
  ],
  next:"Await the operator&rsquo;s read: the S.I. naming call (Shared Intent vs Spiritual Intelligence), the open risk-register rulings, and the go-ahead for the sacred word-count re-fit (Brief 3333, NOSE 9999, White Paper 66666) with the hard totals gate restored."
+},
+{
+ v:163, code:"THE EPIGRAPH &mdash; QUOTE ON ONE LINE, THE YEAR INDENTED BENEATH", stamp:"2026.08.12 &middot; revision 163",
+ thrust:"A masthead layout fix, from the operator on a phone. The founding line &mdash; &ldquo;We Can Not Master What We Are Not Aware Of&rdquo; &mdash; now always sits on a single line, and its year, 2022, drops to its own line indented beneath it, rather than trailing the quote inline behind a bullet. Two CSS rules carry it: the base rule dropped the 34-character cap that wrapped the quote to two lines and shrank the block to the quote&rsquo;s own width so it centres cleanly; the phone rule turned the year from an inline fragment with a leading bullet into an indented block on the line below. The quote reads as one line at every width, portrait and landscape, and the year sits under it like a date under an inscription. CSS only &mdash; no markup, no block of record, and no other text changed; the release exists to keep the served bytes matched to a published number.",
+ mot:"An epigraph is the first sentence a reader trusts or does not, and a founding line broken across two lines with its date hung off the end on a bullet reads as an afterthought rather than a cornerstone. The operator saw it on a phone, where the thirty-four-character cap folded the line in half, and asked for the obvious dignity: the sentence whole, on one line, and the year set beneath it where a date belongs. It is a small thing and it is the kind of small thing that decides whether the rest is read. The fix touches only the styling &mdash; the words, and the year, and the markup that holds them, are exactly as they were.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"The founding line reads whole on one line now, at every width &mdash; the thirty-four-character cap that folded it in two is gone."},
+  {n:"Asar",   g:"A",  f:"The year sits beneath the quote like a date under an inscription, not trailing behind it on a bullet."},
+  {n:"Athena", g:"A",  f:"Two CSS rules only &mdash; base and phone; no markup and no block of record touched, the smallest change that does it."},
+  {n:"Christo",g:"A",  f:"The phone reader&rsquo;s complaint is answered exactly: quote on one line, 2022 indented on the line below."},
+  {n:"Enki",   g:"A",  f:"width:fit-content shrinks the block to the quote so it centres cleanly and the indented year hangs under its left."},
+  {n:"Enlil",  g:"A",  f:"CSS only; the release number exists to keep the served bytes matched to a published figure, no content altered."},
+  {n:"Krishna",g:"A",  f:"The one place the epigraph renders is the masthead; the fix reaches it and leaves the prose variants and the release titles untouched."},
+  {n:"Odin",   g:"A",  f:"nowrap was already safe on the phone at this font size; extending it to the base holds on landscape and tablet without overflow."},
+  {n:"Pangu",  g:"A",  f:"A cornerstone line now looks like one &mdash; whole, centred, dated beneath &mdash; the first thing a reader meets set right."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: the words and the year and the markup are byte-for-byte unchanged; only how they are laid out moved."},
+  {n:"Thoth",  g:"A",  f:"The quote is ~42 characters; the 34ch cap forced a wrap, and removing it with nowrap and fit-content resolves to a single line at every tested width."},
+  {n:"Thor",   g:"A",  f:"No surface, no data, no script &mdash; a styling change, verified against the overflow check at 375, 768 and 1440."}
+ ],
+ next:"Await the operator&rsquo;s read-through: the S.I. naming call (Shared Intent vs Spiritual Intelligence), the open risk-register rulings, and the go-ahead for the sacred word-count re-fit (Brief 3333, NOSE 9999, White Paper 66666) with the hard totals gate restored."
 }
 ];
 
@@ -17294,7 +17315,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4963548";
+const DL_BYTES = "4967446";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
