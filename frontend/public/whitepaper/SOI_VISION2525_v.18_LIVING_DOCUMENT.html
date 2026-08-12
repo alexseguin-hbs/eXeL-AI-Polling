@@ -972,7 +972,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">187</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">188</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5538,6 +5538,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"No governance/security change; the guards table (settlement-origin, ceiling, floor, non-transferable) is untouched."}
  ],
  next:"Rebalance the White Paper to exactly 77,777 after this correctness edit; re-translate fund.escrow in the 33-language pass; then finish the language build."
+},
+{ v:188, code:"JUMP RAIL &mdash; REGISTERS CHIP REMOVED (KEPT IN SETTINGS); CLOSING KEPT", stamp:"2026.08.12 &middot; revision 188",
+ thrust:"Operator UX request from the live view: drop the REGISTERS pill from the scrollable jump rail, since the registers already open from Settings; keep CLOSING. Implemented by folding the registers heading (like ALVAR) so cellsIn() no longer treats it as a cell: the REGISTERS pill leaves the rail and the summary text folds into the preceding cell, still reachable in full-doc and the Ledger view. Chrome-only: no ledger block changes, replay byte-identical, and the 3,333 / 9,999 / 77,777 word totals are untouched. MoT-authored (AI), TM-directed.",
+ mot:"A small navigation tidy from a phone screenshot: the registers have a home in Settings, so the jump rail need not carry a REGISTERS pill beside the sections. The section itself is left exactly where it was; only the redundant chip is gone, and CLOSING stays.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"The REGISTERS pill leaves the jump rail; the registers themselves are unchanged, in Settings and the ledger."},
+  {n:"Asar",g:"A",f:"Rail and reading stay whole &mdash; the section still renders and the arrows still walk it; only the chip is gone."},
+  {n:"Athena",g:"A",f:"Removes a redundant nav door: registers open from Settings, so the rail need not carry them too."},
+  {n:"Christo",g:"A",f:"CLOSING is kept; only REGISTERS is dropped, exactly as asked."},
+  {n:"Enki",g:"A",f:"Other views are unaffected &mdash; paper.registers is only in the White Paper order, so no chip existed elsewhere."},
+  {n:"Enlil",g:"A",f:"Chrome-only render filter; no ledger block changed, replay byte-identical, word totals untouched."},
+  {n:"Krishna",g:"A",f:"The gate&rsquo;s index checks (no duplicate label, no duplicate id) still pass &mdash; one fewer chip, nothing doubled."},
+  {n:"Odin",g:"A",f:"Reachability preserved: the section is still walk-reachable and scroll-spy-tracked, just not a pill."},
+  {n:"Pangu",g:"A",f:"A one-line filter in renderChips, keyed on the sec-registers target &mdash; minimal surface."},
+  {n:"Sofia",g:"A",f:"A reader who wants the registers finds them where the full data lives: Settings &rarr; Registers."},
+  {n:"Thoth",g:"A",f:"Word totals verified unchanged: Brief 3,333 / NOSE 9,999 / White Paper 77,777."},
+  {n:"Thor",g:"A",f:"No functional/security change; a navigation chip removed, nothing about the record altered."}
+ ],
+ next:"Finish the 33-language translation build (merge bodies + re-translate fund.escrow + chrome) and wire/gate/ship all languages."
 }
 ];
 
@@ -17502,6 +17522,7 @@ L(129,"open.defects","Rows 41 to 44 join the register with their fixes and finde
 
 /* ══════════ RELEASE 130 ══════════ */
 
+L(188,"paper.registers","Word-count re-balance for r188&rsquo;s registers fold (&minus;7): a seven-word pointer added to the registers summary &mdash; the second book &lsquo;opens from the Settings menu&rsquo; &mdash; restoring the White Paper to 77,777 and reinforcing that the full registers live in Settings. Counter-first supersede of paper.registers. MoT-authored, TM-directed.",'<div class="secn">THE SECOND BOOK</div><h2 class="sech" id="sec-registers">The Registers</h2><p class="ext">KEPT IN THE OPEN, SUMMARISED HERE, HELD IN FULL BY THE LEDGER</p><p>Every institution keeps two books, whether it admits it or not. One is the story it tells; the other is the list of what happened &mdash; the mistakes, the questions nobody has answered, the decisions still waiting for an owner. Most institutions guard the second book, and the guarding eventually rots them, because a fault that cannot be read cannot be repaired. This document keeps its second book in the open and gives it a name: the registers, and opens them from the Settings menu. Reading them is not an act of suspicion. It is the pause this framework asks of everyone &mdash; look at what is there before acting on what you hope is there.</p><p>There are six. A defect register: every fault found in our work, numbered, with its finder, its state and its remedy &mdash; including faults in the tools built to find faults. A decisions register: the judgements only a human being may make, each with a recommended default and the cost of leaving it open. A questions register: the things we do not know and refuse to pretend about &mdash; who counts a person with no country, what a measure means where nothing can be measured. A proposals register, holding ideas that await a yes. An asks register, holding every request and what answered it. And the outside reviews, kept whole, including the ones that stung.</p><p>None of that lives on this page, and deliberately so: a summary that replaced its source would be the exact habit the registers exist to break. What lives here is the promise that they exist, that they are current, and that nothing is hidden because it embarrasses us &mdash; the ledger keeps the full tables, row by row, where every claim can be checked against the release that made it. <a data-goview="ledger" data-target="blk-open.defects">Read the registers in the Ledger, whenever you choose</a>. If you find a fault we have not listed, you have found the most valuable thing a reader can bring &mdash; and the register has a row waiting for it.</p>');
 L(130,"paper.registers","The operator&rsquo;s decision: the paper carries a summary of the registers in the author&rsquo;s voice &mdash; exactly three paragraphs, machine-counted &mdash; and the tables stay in the Ledger, because a summary that replaced its source would be the habit the registers exist to break.",
 '<div class="secn">THE SECOND BOOK</div><h2 class="sech" id="sec-registers">The Registers</h2><p class="ext">KEPT IN THE OPEN, SUMMARISED HERE, HELD IN FULL BY THE LEDGER</p><p>Every institution keeps two books, whether it admits it or not. One is the story it tells; the other is the list of what happened &mdash; the mistakes, the questions nobody has answered, the decisions still waiting for an owner. Most institutions guard the second book, and the guarding eventually rots them, because a fault that cannot be read cannot be repaired. This document keeps its second book in the open and gives it a name: the registers. Reading them is not an act of suspicion. It is the pause this framework asks of everyone &mdash; look at what is there before acting on what you hope is there.</p><p>There are six. A defect register: every fault found in our work, numbered, with its finder, its state and its remedy &mdash; including faults in the tools built to find faults. A decisions register: the judgements only a human being may make, each with a recommended default and the cost of leaving it open. A questions register: the things we do not know and refuse to pretend about &mdash; who counts a person with no country, what a measure means where nothing can be measured. A proposals register, holding ideas that await a yes. An asks register, holding every request and what answered it. And the outside reviews, kept whole, including the ones that stung.</p><p>None of that lives on this page, and deliberately so: a summary that replaced its source would be the exact habit the registers exist to break. What lives here is the promise that they exist, that they are current, and that nothing is hidden because it embarrasses us &mdash; the ledger keeps the full tables, row by row, where every claim can be checked against the release that made it. <a data-goview="ledger" data-target="blk-open.defects">Read the registers in the Ledger, whenever you choose</a>. If you find a fault we have not listed, you have found the most valuable thing a reader can bring &mdash; and the register has a row waiting for it.</p>');
 
@@ -17856,7 +17877,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5260912";
+const DL_BYTES = "5266623";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -18669,6 +18690,13 @@ function applyPaging(){
 function foldAlvar(){
   const h = document.querySelector("#doc h2.sech#alvar");
   if (h) h.className = "sech-fold";
+  /* r188 · operator: the registers already live in Settings, so the White Paper&rsquo;s
+     registers summary is no longer its own jump-rail chip. Its heading is folded
+     (like ALVAR) so cellsIn() stops treating it as a cell &mdash; the REGISTERS pill
+     leaves the rail while the summary text and the word count stay exactly as they
+     were, folded into the preceding cell. CLOSING is untouched. */
+  const hr = document.querySelector("#doc h2.sech#sec-registers");
+  if (hr) hr.className = "sech-fold";
 }
 
 function renderHeadingRows(){
