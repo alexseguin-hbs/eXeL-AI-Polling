@@ -95,3 +95,6 @@ docs/feedback/shots/*.pdf
 frontend/scripts/_probe-*.mjs
 docs/i18n/build/
 scripts/lv-*.png
+
+# session scratch tooling (word-count measurer; gate already covers CI)
+/_measure.mjs
