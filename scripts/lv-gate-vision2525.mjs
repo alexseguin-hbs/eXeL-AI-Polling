@@ -1417,9 +1417,9 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
      During the rewrite these totals WARN rather than fail, so the correct content
      can land before it is trimmed back to the sacred counts. Restore the hard
      `fails.push` once the re-fit pass is done. */
-  if(t.brief!==3333)  console.log('SACRED TOTALS (warn, re-fit pending): brief '+t.brief+' != 3333');
-  if(t.nose!==9999)   console.log('SACRED TOTALS (warn, re-fit pending): nose '+t.nose+' != 9999');
-  if(t.paper!==77777) console.log('SACRED TOTALS (warn, re-fit pending): paper '+t.paper+' != 77777');
+  if(t.brief!==3333)  fails.push('SACRED TOTALS: brief '+t.brief+' != 3333');
+  if(t.nose!==9999)   fails.push('SACRED TOTALS: nose '+t.nose+' != 9999');
+  if(t.paper!==77777) fails.push('SACRED TOTALS: paper '+t.paper+' != 77777');
   console.log('sacred totals — brief '+t.brief+' · nose '+t.nose+' · paper '+t.paper);
 }
 
