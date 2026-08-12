@@ -59,10 +59,27 @@ const overlay =
   '  }); }; })();';
 
 let out = src.replace(ANCHOR, overlay);
-// RTL languages get dir on <html>
-if (lang === 'ar' || lang === 'he') out = out.replace('<html', '<html dir="rtl"');
+
+// Chrome overlay (masthead, deck labels, settings headings) from an ANCHORED per-language map.
+// docs/i18n/chrome/<lang>.json = [ [anchorString, translatedString], ... ] — each anchor is a
+// distinctive English chrome substring (with enough surrounding markup to be unique) and is
+// replaced by its translation. Applied as exact, unique string replacements so a chrome phrase
+// that also appears in body prose is never touched (anchors carry their own tags/ids).
+const chromePath = `${ROOT}/docs/i18n/chrome/${lang}.json`;
+let chromeApplied = 0, chromeMissed = 0;
+if (existsSync(chromePath)) {
+  const pairs = JSON.parse(readFileSync(chromePath, 'utf8'));
+  for (const [anchor, translated] of pairs) {
+    if (out.split(anchor).length === 2) { out = out.replace(anchor, translated); chromeApplied++; }
+    else chromeMissed++;
+  }
+}
+
+// <html lang> (and dir for RTL) so screen readers, browsers, and hyphenation know the language.
+const rtl = (lang === 'ar' || lang === 'he');
+out = out.replace('<html', '<html lang="' + lang + '"' + (rtl ? ' dir="rtl"' : ''));
 
 const dest = `${ROOT}/docs/i18n/build/SOI_VISION2525_v.18_${lang}.html`;
 writeFileSync(dest, out);
-console.log(`built ${lang}: ${out.length} bytes | translated ${have.length}/${enIds.length} blocks | fallback ${fallback.length}`);
+console.log(`built ${lang}: ${out.length} bytes | translated ${have.length}/${enIds.length} blocks | fallback ${fallback.length} | chrome ${chromeApplied} applied${chromeMissed ? ', ' + chromeMissed + ' anchors missed' : ''}`);
 if (fallback.length) console.log('  EN-fallback ids:', fallback.slice(0, 12).join(', ') + (fallback.length > 12 ? ' …' : ''));
