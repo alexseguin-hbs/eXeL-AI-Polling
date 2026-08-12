@@ -968,7 +968,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">161</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">162</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">4.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -4997,6 +4997,27 @@ const VERSIONS = [
   {n:"Thor",   g:"A",  f:"Text only, a new illustrative block and two reading notes &mdash; no mechanism, handler, or figure of record changed."}
  ],
  next:"Read the three inspiration sources for any further text alignment; resolve the S.I. naming (Shared Intent vs Spiritual Intelligence) with the operator; then the sacred word-count re-fit (Brief 3333, NOSE 9999, White Paper 66666) and restore the hard totals gate."
+},
+{
+ v:162, code:"THE BOOK REMEMBERS WHERE YOU WERE READING", stamp:"2026.08.12 &middot; revision 162",
+ thrust:"A reading-location fix, from the operator on a phone. Reading one section at a time (the dot) and then opening the whole document (the book) used to throw the reader back to the masthead &mdash; eighty-odd blocks above where they were. Now the book lands on the section they were reading. The section&rsquo;s anchor is captured the instant before the mode flips, while the viewer still knows which cell is on screen, and after the full document renders that anchor is scrolled to the top of the view instead of the page being reset to zero. One handler changed (#bFull), nothing else: the reverse direction and the first-open behaviour are untouched, and every section id the fix relies on already existed. A viewer change, not a content one &mdash; no block of record is altered, and the release exists only so the served bytes still match a published number.",
+ mot:"The smallest broken thing a reader meets is the one that decides whether they keep reading, and this was that thing: you follow the argument down to section eight, you open the book to see it whole, and the book drops you at the title page with eighty blocks between you and your place. The document&rsquo;s whole claim is that nothing is lost and everything stays where it was put; a control that forgets where you were reading quietly contradicts it. The fix is four lines and no new machinery &mdash; the section anchors were already there, the scroll helper was already there; all that was missing was remembering the place before the mode changed and going to it after. A document meant to be read in its entirety should keep the reader&rsquo;s place when they change how they are reading it.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",   g:"A",  f:"Opening the book from a section now lands on that section &mdash; the reader keeps their place instead of being returned to the masthead."},
+  {n:"Asar",   g:"A",  f:"The mode change no longer loses the reading location; the whole-document view opens where the section view left off."},
+  {n:"Athena", g:"A",  f:"One handler touched (#bFull), the section anchors and the scroll helper reused &mdash; the smallest change that fixes the reported behaviour."},
+  {n:"Christo",g:"A",  f:"The phone reader&rsquo;s complaint is answered directly: section eight to full doc lands on section eight, not the title page."},
+  {n:"Enki",   g:"A",  f:"The anchor is captured before the flip, while cellsIn() still returns the section cells, so the correct target survives the mode change."},
+  {n:"Enlil",  g:"A",  f:"A viewer change, not a content one: no block of record altered; the release number exists only to keep the served bytes matched to a published figure."},
+  {n:"Krishna",g:"A",  f:"sec-N ids are stable across both modes, so the captured anchor still resolves after renderDoc rebuilds the document."},
+  {n:"Odin",   g:"A",  f:"The reverse direction and first-open behaviour are left exactly as they were &mdash; the fix adds a path, it does not change the defaults."},
+  {n:"Pangu",  g:"A",  f:"Four lines, no new machinery &mdash; the section anchors and the scrollIntoView helper already existed; only the remembering was missing."},
+  {n:"Sofia",  g:"A",  f:"From the sceptic&rsquo;s chair: it guards on the anchor existing before scrolling, so a missing id falls back to the old scroll-to-top rather than erroring."},
+  {n:"Thoth",  g:"A",  f:"savedSec = cellsIn()[cellIx].target when paged; scrolled into view when straight becomes true &mdash; the condition is exact and side-effect-free."},
+  {n:"Thor",   g:"A",  f:"No new surface, no data touched; a scroll target computed from existing state, guarded against a null or missing anchor."}
+ ],
+ next:"Await the operator&rsquo;s read: the S.I. naming call (Shared Intent vs Spiritual Intelligence), the open risk-register rulings, and the go-ahead for the sacred word-count re-fit (Brief 3333, NOSE 9999, White Paper 66666) with the hard totals gate restored."
 }
 ];
 
@@ -17273,7 +17294,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "4958965";
+const DL_BYTES = "4963548";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19091,6 +19112,10 @@ document.addEventListener("keydown", function(e){
 
 var straight = false;
 document.getElementById("bFull").addEventListener("click", function(){
+  /* r162 · remember the reading location — entering full doc from a section,
+     land on the section being read, not the masthead (operator 2026.08.12).
+     Captured BEFORE the flip, while cellsIn() still returns the section cells. */
+  var savedSec = (paged && cellsIn()[cellIx]) ? cellsIn()[cellIx].target : null;
   straight = !straight;
   document.body.classList.toggle("straight", straight);
   this.setAttribute("aria-pressed", straight ? "true" : "false");
@@ -19107,7 +19132,11 @@ document.getElementById("bFull").addEventListener("click", function(){
   paged = !straight;
   if (straight && active !== VMAX) active = VMAX;
   renderDoc();          /* the ORDER changes, not just the chrome */
-  window.scrollTo(0,0);
+  if (straight && savedSec && document.getElementById(savedSec)) {
+    document.getElementById(savedSec).scrollIntoView({block:"start"});
+  } else {
+    window.scrollTo(0,0);
+  }
 });
 document.getElementById("bPlay").addEventListener("click", function(){
   if (playing){ stop(); return; }
