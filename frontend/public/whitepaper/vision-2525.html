@@ -968,7 +968,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">182</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">183</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5434,6 +5434,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"Risk/security: consensus requires all three (no 2-of-3 quorum); &#50883;/&#9708; still gated by witnessing and the ceiling."}
  ],
  next:"Word-count re-fit to 3333/9999/66666 and SACRED-TOTALS flipped to hard-fail &mdash; last; then the pod-of-three working-session UI in the polling frontend (settings menu, Trinity logo, leader QR); then Chinese chrome i18n."
+},
+{ v:183, code:"SACRED TOTAL RETARGET &mdash; WHITE PAPER 66,666 &rarr; 77,777 (OPERATOR)", stamp:"2026.08.12 &middot; revision 183",
+ thrust:"The operator retargets the White-Paper sacred total from 66,666 to 77,777 words; Brief 3,333 and NOSE 9,999 are unchanged. Recorded here on the release log and enforced by the gate&rsquo;s SACRED-TOTALS check (now warning against 77,777). This is a target change, not a content change: no ledger block is altered, so every release at or below 182 replays byte-identical and replay(183) equals replay(182). The twenty historical mentions of 66,666 in earlier release notes are left exactly as written &mdash; append-only means we never rewrite what a past release said.",
+ mot:"A number moved, and the honest way to move it is to say so and leave the old number where it stood. The re-fit stays last; its direction simply flips &mdash; the White Paper now grows to 77,777 rather than trimming to 66,666, which lets the new economic detail and the pod earn their place instead of being cut for the count.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"Consistency: the White-Paper target is now 77,777 everywhere the live gate and forward pointer read it."},
+  {n:"Asar",g:"A",f:"Synthesis: no historical note is edited &mdash; past releases keep their 66,666 record; only the forward target moves."},
+  {n:"Athena",g:"A",f:"Strategy: a larger White Paper (77,777) means the re-fit ADDS about 5,100 words rather than trimming to 66,666."},
+  {n:"Christo",g:"A",f:"Consensus: Brief 3,333 and NOSE 9,999 are unchanged; only the White Paper total is retargeted."},
+  {n:"Enki",g:"A",f:"Edge cases: the current paper count 72,676 is between the old and new targets, so the re-fit direction flips to growth."},
+  {n:"Enlil",g:"A",f:"Build: gate SACRED-TOTALS check now warns against 77,777; no ledger block changed, so replay(183) equals replay(182)."},
+  {n:"Krishna",g:"A",f:"Integration: gate script and forward pointer agree on 77,777, closing the doc-vs-tool drift risk (defect 27 shape)."},
+  {n:"Odin",g:"A",f:"Foresight: recorded as a decision on the release log, so the retarget is replayable and never a silent edit."},
+  {n:"Pangu",g:"A",f:"Cutting edge: the extra headroom lets the added economic detail (D4-D14, the pod) stay rather than be trimmed away."},
+  {n:"Sofia",g:"A",f:"Sceptic&rsquo;s chair: this is a target change, not a content change &mdash; nothing a reader reads has moved yet."},
+  {n:"Thoth",g:"A",f:"Data: targets brief 3,333 / nose 9,999 / paper 77,777; live counts 3,354 / 9,999 / 72,676; re-fit still LAST."},
+  {n:"Thor",g:"A",f:"Risk/security: append-only preserved &mdash; the twenty historical 66,666 mentions are the honest record and stay put."}
+ ],
+ next:"Word-count re-fit to 3,333 / 9,999 / 77,777 (White Paper now GROWS ~5,100 words) and SACRED-TOTALS flipped to hard-fail &mdash; last; then the pod-of-three working-session UI in the polling frontend; then Chinese chrome i18n."
 }
 ];
 
@@ -17740,7 +17760,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5195239";
+const DL_BYTES = "5198254";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
