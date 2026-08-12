@@ -96,7 +96,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .pills{display:flex;flex-wrap:wrap;gap:4px}
 .pills button{padding:4px 9px;min-width:34px}
 input[type=range]{flex:1;min-width:150px;accent-color:var(--ai);height:22px}
-.vnow{font-size:12px;font-weight:700;color:var(--ai);white-space:nowrap;margin-left:auto}
+.vnow{font-size:12px;font-weight:700;color:var(--ai);white-space:nowrap}
 .vnow .rev{font-weight:600;color:var(--ink-2);font-size:11px;margin-left:5px}
 .hash{font-size:10.5px;color:var(--ink-2);white-space:nowrap}
 /* r126 · the two-space mode prefix (operator) widened #bView ~14px and wrapped the
@@ -844,6 +844,9 @@ header.mast{position:relative}
    live link; one not yet built is shown disabled so the reader sees the whole set
    and exactly what is ready. The current language is marked, not a link. */
 .langwrap{position:relative;display:inline-block}
+/* r186 · deck right edge: Language + Settings pinned right, Settings furthest right. */
+.deck-in .langwrap{margin-left:auto}
+.deck-in #bSet{margin-left:0}
 .langmenu{left:auto;right:0;min-width:210px;max-height:min(70vh,520px);overflow-y:auto}
 .langmenu button .lc{display:block;font:400 10.5px/1.3 ui-monospace,monospace;color:var(--ink-2)}
 .langmenu button[aria-current="true"]{background:var(--ai-bg);color:var(--ai);font-weight:700}
@@ -924,7 +927,6 @@ header.mast{position:relative}
   <button id="bFull" aria-pressed="false" title="Reading mode &mdash; the dot reads one section at a time; the book reads the whole document straight through"></button>
   <button id="bCmp" aria-pressed="false" title="Compare any two releases"></button>
   <button id="bView" title="What you are reading &mdash; Brief, White paper, N.O.S.E."></button>
-  <button id="bSet" aria-expanded="false" title="Settings &mdash; reading, audit trail, about this document" aria-label="Settings"></button>
   <!-- r144 · the operator opened the document on a phone and asked where the
        download was. It was in the foot, sixty-six thousand words below the first
        screen, and in the site row under that. Both are correct places to END and
@@ -939,16 +941,18 @@ header.mast{position:relative}
        shown but disabled so the reader sees the whole set and what is ready.
        The menu is built lazily on open (like the Registers menu) so its items are
        not deck controls at rest. -->
-  <span class="langwrap"><button id="bLang" aria-expanded="false" aria-haspopup="true"
-     title="Language &mdash; read this document in another language" aria-label="Language"></button>
-   <div class="langmenu regmenu" id="langMenu" role="menu" hidden></div></span>
   <span class="hash" id="vHash">state &mdash;</span>
   <!-- r148 · operator: "v.18 r147 latest — always have this on top right of slider
        on line one." The version stamp is the LAST child of the deck's first line so
        it renders at the far right; the slider is flex:1 and drives the whole trailing
-       cluster right, and .vnow{margin-left:auto} pins the stamp to the edge. Moved
+       cluster right, and .vnow{margin-left:0} pins the stamp to the edge. Moved
        here from immediately after the slider, where it read mid-row. -->
   <span class="vnow" id="vNow">v1</span>
+  <!-- r186 · operator: language selector right-justified; Settings furthest right, Language just
+       left of it (mirrors the eXeL AI Polling navbar). .langwrap carries margin-left:auto so the
+       [globe][settings] pair pins to the deck's right edge; Settings is the last child. -->
+  <span class="langwrap"><button id="bLang" aria-expanded="false" aria-haspopup="true" title="Language &mdash; read this document in another language" aria-label="Language"></button><div class="langmenu regmenu" id="langMenu" role="menu" hidden></div></span>
+  <button id="bSet" aria-expanded="false" title="Settings &mdash; reading, audit trail, about this document" aria-label="Settings"></button>
  </div>
  <div class="deck-sec"><div id="chips"></div></div>
 </div>
@@ -968,7 +972,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">185</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">186</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5494,6 +5498,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"Risk/security: the hard totals gate closes the last WARN &mdash; the document&rsquo;s size discipline is enforced again."}
  ],
  next:"Deliver the standalone download for TM&rsquo;s HI review; then translate to 33 languages (extend the generator to cover chrome + the eXeL Poll lexicon, then build all 33); a later count-neutral polish pass applies the remaining Spiral trims."
+},
+{ v:186, code:"DECK RIGHT EDGE &mdash; LANGUAGE + SETTINGS PINNED RIGHT (SETTINGS FURTHEST)", stamp:"2026.08.12 &middot; revision 186",
+ thrust:"Operator UX request from the live view: the global language selector is right-justified and Settings is moved furthest to the right, with the language globe just left of it &mdash; mirroring the Settings placement in the eXeL AI Polling navbar. Implemented as a deck DOM reorder (Language wrapper then Settings as the last child) plus margin-left:auto on the deck&rsquo;s language wrapper so the pair pins to the right edge in both reading and replay modes; the version stamp drops its own right-pin so it no longer competes. Chrome-only: no ledger block changes, replay is byte-identical, and the 3,333 / 9,999 / 77,777 word totals are untouched. MoT-authored (AI), TM-directed.",
+ mot:"A small, exact placement fix from a screenshot: Settings belongs at the far right, the language globe beside it, both pinned to the edge like the app the reader already knows. Two existing controls moved; nothing else changed, and the translated builds will inherit the new edge.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"Deck right edge now reads Language then Settings, Settings furthest right &mdash; consistent with the polling navbar."},
+  {n:"Asar",g:"A",f:"Chrome-only change; no ledger block touched, so replay is byte-identical at every release at or below 185."},
+  {n:"Athena",g:"A",f:"Settings is the last, rightmost control; the globe sits just left of it, both pinned to the deck edge."},
+  {n:"Christo",g:"A",f:"Mirrors eXeL AI Polling so a reader moving between the app and the paper meets the same layout."},
+  {n:"Enki",g:"A",f:"Works in reading mode and replay mode &mdash; margin-left:auto on the language wrapper pins the pair right in both."},
+  {n:"Enlil",g:"A",f:"Word totals untouched (deck is chrome, not in WP_ORDER); the 3,333 / 9,999 / 77,777 hard gate still holds."},
+  {n:"Krishna",g:"A",f:"Translations inherit the new deck automatically when built &mdash; the generator overlays onto this base."},
+  {n:"Odin",g:"A",f:"The version stamp drops its right-pin so it no longer competes with the language+settings cluster."},
+  {n:"Pangu",g:"A",f:"One DOM reorder plus two CSS lines; ids unchanged, so all deck JS keeps working by id."},
+  {n:"Sofia",g:"A",f:"A first-time reader finds Settings where they expect it &mdash; the far right, next to the language globe."},
+  {n:"Thoth",g:"A",f:"Deck order now: reading, view, download, then right-justified language, then settings."},
+  {n:"Thor",g:"A",f:"No functional or security change; purely the position of two existing controls."}
+ ],
+ next:"Merge the 33-language body + chrome translations and build/wire/gate all languages; a later count-neutral polish pass applies the remaining Spiral trims."
 }
 ];
 
@@ -17811,7 +17835,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5247161";
+const DL_BYTES = "5250450";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
