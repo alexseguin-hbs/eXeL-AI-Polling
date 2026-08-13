@@ -142,8 +142,16 @@ let VMAXCHK=null;
   /* r124b: opening the proof panel starts progressive output over 124 releases, so
      the button's box never settles; the assertion is on #proof's TEXT, not on
      visual stability — force the click past the actionability wait. */
-  await p.click('#bProveAll', {timeout:60000, force:true});
-  await p.waitForTimeout(1500);
+  /* r202: the doc now replays 200+ releases 33 times each, a synchronous burst that
+     blocks the main thread past the old 60s click budget as the ledger grows. Give the
+     click and the proof settle generous patience (a performance limit of a growing
+     document, not a correctness change) and poll #proof until it reports a verdict. */
+  await p.click('#bProveAll', {timeout:240000, force:true});
+  await p.waitForFunction(() => {
+    const t=(document.getElementById('proof')||{}).textContent||'';
+    return /identical|FAILED/.test(t);
+  }, {timeout:240000}).catch(()=>{});
+  await p.waitForTimeout(500);
   const proof=await p.evaluate(()=>document.getElementById('proof').textContent);
   console.log('INTERACT v1',JSON.stringify(v1),'v2',JSON.stringify(v2),'latest',JSON.stringify(vL));
   console.log('PROOF:\n'+proof);
