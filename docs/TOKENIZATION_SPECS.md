@@ -58,6 +58,39 @@ terminates **before** sovereignty.
 | **TOK-25** | Funding/governance ceilings (D14) + zero-min-wage pod rate | Cube 8 funding validation + `hi_rates.py`; Cube 16 | GAP: rolling-window 20%/10%/15% ceilings; pod-proposed dated/sourced rate for zero-min-wage jurisdictions. |
 | **TOK-26** | Contribution receipt as four artefacts in one ledger record | Cube 9 Reports (four-view export) | GAP: one ledger record → transcript / portfolio / governance / settlement views; portfolio blurb via Cube 6. |
 | **TOK-27** | Anchor 1/3/5-yr payout guarantee in a constitutional Accords article | Living-document ledger (Accords article) + Cube 16 | GAP: append-only ledger block anchoring the guarantee as Immutable (TOK-24), cross-ref Shield V (TOK-11). |
+| **TOK-28** | POD-join identity verification to US REAL standard (operator, 2026-08-13) | Cube 1 Session join + `core/auth.py`; new Supabase `identity_verification` table (RLS-sealed) | GAP — NEW. Extends TOK-13 (anti-sybil) to POD JOIN. See detail below. |
+
+## TOK-28 — POD-join identity verification (US REAL standard)
+
+**Operator directive (2026-08-13).** The POD Lead creates a session and a scannable QR code. When a
+person joins who is **not logged in**, capture their **email**, then require a **verified driver's-license
+number** proving identity to **United States REAL ID standards**. The DL number must be held **behind a
+super-secure Supabase firewall** — never exposed to the client, other participants, or ordinary queries.
+
+**Design (extends, does not replace, TOK-13 / D5).** TOK-13 keeps *ordinary participation anonymous* and
+puts personhood proof at *settlement*. TOK-28 adds an **optional, POD-scoped** identity gate the Lead can
+require for a given session (e.g. when the outcome carries real value), consistent with D5: still no
+biometric harvesting, minimum data, verify to the standard the law already recognizes.
+
+- **Capture (join flow, Cube 1 / `/soi-session`):** logged-in joiners are already identified via Auth0;
+  non-logged-in joiners provide `email` + a `dl_number` + issuing `state`. The client sends these once
+  over TLS to a server endpoint; the client **never stores** and **never receives back** the DL number.
+- **Verification to REAL standard:** validate the DL against the REAL ID rules for the issuing state
+  (format/checksum now; pluggable AAMVA/DMV verification provider later via the circuit-breaker pattern).
+  Store only a **verification verdict + a salted hash**, plus the minimum needed for lawful audit.
+- **Supabase firewall (the "super-secure" store):** a dedicated `identity_verification` table with
+  **RLS default-deny** (no `anon`/`authenticated` read; **service-role only**), the DL number **encrypted
+  at rest** (pgcrypto / KMS-wrapped column) and **never selected** by any client query or view. A
+  Postgres migration ships the table, the RLS policies, and a `SECURITY DEFINER` function that writes the
+  record and returns only `{verified: bool, verification_id}` — the number never crosses the API boundary.
+- **Maps to:** Cube 1 join endpoints + `core/auth.py` (verdict gate) · Supabase migration
+  (`identity_verification` + RLS) · `/soi-session` join UI (email + DL fields for non-logged-in joiners) ·
+  reuses the settlement personhood gate from TOK-13 so a POD-verified person needs no re-proof at settlement.
+- **First step:** ship the `identity_verification` migration (RLS default-deny, encrypted `dl_number`,
+  `SECURITY DEFINER` writer returning verdict only), then add the server verify endpoint and gate POD join
+  on it when the Lead marks a session "identity-required."
+- **Non-negotiables:** DL number is write-only from the client's perspective; never logged, never in an
+  error message, never returned; RLS proven by a test that a client role cannot read the column.
 
 ## Notes for executors
 - The White Paper is the **specification of the target state**; several TOK items narrate *past* corrections

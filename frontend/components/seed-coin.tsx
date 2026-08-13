@@ -20,6 +20,8 @@ const GREEN = "#22c55e";
 const GREEN_DK = "#14532d";
 const CYAN = "#19c8cf";
 const ALVAR_CYAN = "/architect/alvar-ai-cyan.png";
+/** The White Paper ALVAR section — the runes on the snake body link here. */
+const ALVAR_SECTION = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525#alvar";
 
 // Seed of Life geometry — matches SeedOfLifeLogo (cx=cy=50, R=20).
 const CX = 50, CY = 50, R = 20;
@@ -37,9 +39,11 @@ export interface SeedCoinProps {
   defaultFlipped?: boolean;
   /** Notified whenever the coin flips. */
   onFlip?: (flipped: boolean) => void;
+  /** Where the Alvar runes link. Defaults to the White Paper ALVAR section (#alvar). */
+  alvarHref?: string;
 }
 
-export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip }: SeedCoinProps) {
+export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip, alvarHref = ALVAR_SECTION }: SeedCoinProps) {
   const [flipped, setFlipped] = useState(defaultFlipped);
   const toggle = () => {
     const next = !flipped;
@@ -123,6 +127,7 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
         {/* BACK — Alvar cyan raster ────────────────────────────────────── */}
         <CoinFace back>
           <div style={{
+            position: "relative",
             width: "100%", height: "100%", borderRadius: "50%",
             background: "radial-gradient(circle at 38% 34%, #0b2b2c 0%, #041718 70%, #020c0d 100%)",
             display: "grid", placeItems: "center", overflow: "hidden",
@@ -135,6 +140,31 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
               width={size} height={size}
               style={{ width: "86%", height: "86%", objectFit: "contain", filter: `drop-shadow(0 0 8px ${CYAN}66)` }}
             />
+            {/* The runes on the snake body (Ansuz → Raidho) link to the White
+                Paper ALVAR section. stopPropagation so it navigates instead of
+                flipping the coin back. */}
+            <a
+              href={alvarHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Read the ALVAR section of the White Paper"
+              title="ALVAR — the guardian who does not take → read §ALVAR in the White Paper"
+              style={{
+                position: "absolute", left: "18%", right: "18%", bottom: "6%",
+                height: "20%", display: "grid", placeItems: "end center",
+                textDecoration: "none", cursor: "pointer",
+              }}
+            >
+              <span style={{
+                fontSize: Math.max(9, size * 0.05), lineHeight: 1,
+                color: CYAN, opacity: 0.85, fontWeight: 600,
+                letterSpacing: "0.04em", textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+                background: "rgba(2,12,13,0.55)", padding: "2px 8px", borderRadius: 999,
+              }}>
+                ᚨ ᛚ ᚹ ᚨ ᚱ — read ↗
+              </span>
+            </a>
           </div>
         </CoinFace>
       </div>
