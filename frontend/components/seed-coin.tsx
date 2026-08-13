@@ -19,7 +19,9 @@ import { SeedOfLifeLogo } from "./seed-of-life-logo";
 
 const CYAN = "#19c8cf";
 const CYAN_DK = "#0b3d40";
-const ALVAR_CYAN = "/architect/alvar-ai-cyan.png";
+// The EXACT Alvar image from White Paper block 33 (operator) — extracted from the
+// living document's front.alvar block, not the larger /architect raster.
+const ALVAR_CYAN = "/architect/alvar-block33.png";
 /** The White Paper ALVAR section — the clean Alvar links here (R-Core usage, as block 33). */
 const ALVAR_SECTION = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525#alvar";
 

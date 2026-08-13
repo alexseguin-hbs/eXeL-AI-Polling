@@ -110,10 +110,11 @@ export default function SoISessionPage() {
     return [a || "YOUR", b || "TRINITY", c || "POD"];
   }, [members]);
 
-  // The lead runs it only once intent + outcome are filled and the trio is
-  // documented (all three leads named — the minimum record of who ran the pod).
-  const canOpen = !!(intent.trim() && outcome.trim() && members.every((m) => m.name.trim()));
-  const allAgreed = members.every((m) => m.agreed);
+  // Leader-only setup: the lead runs it once the intent + outcome are filled and
+  // the lead is named. The other two join by scanning the QR.
+  const canOpen = !!(intent.trim() && outcome.trim() && members[0].name.trim());
+  const allJoined = members.every((m) => m.name.trim());
+  const allAgreed = allJoined && members.every((m) => m.agreed);
   const recommendations = members.filter((m) => !m.agreed && m.recommend.trim());
 
   const setMember = (i: number, patch: Partial<Member>) =>
@@ -213,29 +214,29 @@ export default function SoISessionPage() {
               className="mb-5 w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
 
-            {/* The trio of leads → Trinity. The lead documents all three (name +
-                contact) so the pod has a minimum record of who ran it. */}
+            {/* Leader only sets the session up. The lead's email imports from their
+                OAuth login; the other two JOIN by scanning the QR — their info
+                imports and they enter their name (operator, 2026-08-13). */}
             <div className="mb-2 flex items-baseline justify-between">
-              <label className="text-sm font-medium">The trio — three leads, documented</label>
-              <span className="text-[11px] text-muted-foreground">lead + 2 minimum</span>
+              <label className="text-sm font-medium">You — the lead</label>
+              <span className="text-[11px] text-muted-foreground">the other two join by QR</span>
             </div>
-            <div className="mb-5 grid gap-3 sm:grid-cols-3">
-              {members.map((m, i) => (
-                <div key={i} className="rounded-lg border border-cyan-400/30 p-3">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">{m.role}</div>
-                  <input
-                    value={m.name} onChange={(e) => setMember(i, { name: e.target.value })}
-                    placeholder={i === 0 ? "You (lead) — name" : "Lead name"}
-                    className="mb-2 w-full rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <input
-                    value={m.contact} onChange={(e) => setMember(i, { contact: e.target.value })}
-                    placeholder="email or contact"
-                    inputMode="email"
-                    className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
-                  />
-                </div>
-              ))}
+            <div className="mb-5 rounded-lg border border-cyan-400/40 p-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">Lead</div>
+              <input
+                value={members[0].name} onChange={(e) => setMember(0, { name: e.target.value })}
+                placeholder="Your name"
+                className="mb-2 w-full rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+              />
+              <input
+                value={members[0].contact} onChange={(e) => setMember(0, { contact: e.target.value })}
+                placeholder="your email (imports from your login)"
+                inputMode="email"
+                className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Your email imports from your OAuth login. You share the QR next — the other two scan to join, their info imports, and they enter their name.
+              </p>
             </div>
 
             {/* Projects — pick 1–3, then a task each */}
@@ -294,11 +295,11 @@ export default function SoISessionPage() {
               onClick={() => setPhase("invite")}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
-              Start the pod &amp; invite the others
+              Share QR &amp; open the pod
             </button>
             {!canOpen && (
               <p className="mt-2 text-[11px] text-muted-foreground">
-                The lead can only start once the <strong>intent</strong> and <strong>outcome</strong> are filled and the <strong>trio is documented</strong> (all three leads named).
+                The lead opens it once the <strong>intent</strong> and <strong>outcome</strong> are filled and the <strong>lead is named</strong>. The other two join by scanning the QR.
               </p>
             )}
           </>
@@ -314,29 +315,54 @@ export default function SoISessionPage() {
               <p className="text-muted-foreground">{outcome}</p>
             </div>
 
-            <div className="mb-4 flex flex-col items-center gap-2 rounded-lg border border-border bg-background p-4">
-              <div className="text-xs text-muted-foreground">Others scan this to review the intent &amp; outcome:</div>
-              <div className="rounded-md bg-white p-2"><QRCodeSVG value={joinUrl} size={128} level="M" /></div>
+            {/* Leader shares the QR; the other two scan to join. */}
+            <div className="mb-4 flex flex-col items-center gap-2 rounded-lg border border-cyan-400/40 bg-background p-4">
+              <div className="text-sm font-medium text-cyan-400">Share this QR</div>
+              <div className="text-center text-xs text-muted-foreground">
+                The other two scan to join — their info imports from their login (email / OAuth); they enter their name.
+              </div>
+              <div className="rounded-md bg-white p-2"><QRCodeSVG value={joinUrl} size={140} level="M" /></div>
               <code className="text-sm tracking-widest">{podCode}</code>
             </div>
 
+            {/* The trio — lead is set; the other two join, then all comment & approve. */}
             <div className="mb-4 rounded-lg border border-cyan-400/30 p-3">
-              <div className="mb-1 text-sm font-medium">Round of comments &amp; approvals</div>
+              <div className="mb-1 text-sm font-medium">The trio — join, comment &amp; approve</div>
               <div className="mb-3 text-xs text-muted-foreground">
-                Each of the trio approves the intent &amp; outcome, or leaves a comment recommending a change (it goes to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
+                The lead is set. The other two join by scanning; on join their email imports from their login and they enter their name. Each approves the intent &amp; outcome or comments a recommended change (to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
               </div>
               <div className="grid gap-3">
                 {members.map((m, i) => (
                   <div key={i} className="rounded-md border border-border p-2">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={m.agreed}
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-cyan-400">{i === 0 ? "Lead" : `Member ${i + 1}`}</span>
+                      <span className="text-[11px] text-muted-foreground">{m.name.trim() ? (i === 0 ? "set" : "joined ✓") : "not joined yet"}</span>
+                    </div>
+                    {i === 0 ? (
+                      <div className="text-sm"><span className="font-medium">{m.name}</span>{m.contact ? ` · ${m.contact}` : ""}</div>
+                    ) : (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <input
+                          value={m.contact} onChange={(e) => setMember(i, { contact: e.target.value })}
+                          placeholder="email (imports from login)" inputMode="email"
+                          className="rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
+                        />
+                        <input
+                          value={m.name} onChange={(e) => setMember(i, { name: e.target.value })}
+                          placeholder="enter your name"
+                          className="rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                        />
+                      </div>
+                    )}
+                    <label className="mt-2 flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={m.agreed} disabled={!m.name.trim()}
                         onChange={(e) => setMember(i, { agreed: e.target.checked, recommend: e.target.checked ? "" : m.recommend })} />
-                      <span className="font-medium">{m.name || m.role}</span> agrees to the intent &amp; outcome
+                      <span className="font-medium">{m.name || `Member ${i + 1}`}</span> approves the intent &amp; outcome
                     </label>
-                    {!m.agreed && (
+                    {!m.agreed && m.name.trim() && (
                       <input
                         value={m.recommend} onChange={(e) => setMember(i, { recommend: e.target.value })}
-                        placeholder="…or recommend a change (goes to the lead)"
+                        placeholder="…or comment a change (goes to the lead)"
                         className="mt-2 w-full rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
                       />
                     )}
