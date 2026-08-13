@@ -309,7 +309,7 @@ body.straight .chips{display:flex}
    so the labels lose their colour coding and step back to a whisper. The structure
    is unchanged and still traceable; it simply stops interrupting the reading.
    CSS rather than nineteen rewritten sections — the same shape, quieter. */
-.nose p{margin:0}
+.nose p{margin:0 0 15px}
 /* r130 · the promise link under a section title — quiet, and absent from
    the bare scaffold reading where the promise IS the page. */
 /* r137 · operator: hyperlink without a lot of detail — right-justified on the
@@ -324,7 +324,7 @@ body.nose section.blk[id^="blk-paper.s"] .bb>:not(.secn):not(.sech):not(.ext):no
 /* r131 · the section essays — the voice before the mechanism. The bare
    scaffold reading stays bare: the essay layer is paper-only. */
 .wp{margin:20px 0 8px}
-.wp p{margin:0 0 14px}
+.wp p{margin:0 0 15px}
 body.nose .wp{display:none}
 /* r113 · the companion is a real file a reader can take away. Sized like a
    link rather than a button, because it is one of several ways out of the
@@ -986,7 +986,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">190</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">191</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.3</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1086,13 +1086,10 @@ header.mast{position:relative}
   <p>Analysis and architecture only. <strong>Not legal advice.</strong> No security, token, or investment
   is offered, solicited, or marketed anywhere in this document. Every legal form and every jurisdiction
   named requires qualified local counsel.</p>
-  <p>Live: <a href="https://exel-ai-polling.explore-096.workers.dev">exel-ai-polling.explore-096.workers.dev</a></p>
-  <!-- r142 · the operator asked for a download link on the page. Until now the
-       document argued that saving it was "the browser's own save" — which is true
-       and is not the same as offering it. Absolute URL so the link still works
-       from a copy opened off a desktop with no server, and the weight is stated
-       before anyone taps it on a phone on a train. -->
-  <p class="dl" style="margin-bottom:0"><a href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html" aria-label="Download this document" title="Download this document &mdash; HTML, one self-contained file"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a></p>
+  <p style="margin-bottom:0">Live: <a href="https://exel-ai-polling.explore-096.workers.dev">exel-ai-polling.explore-096.workers.dev</a></p>
+  <!-- r191 · operator: the bottom download buttons are removed — the download
+       lives at the top (the deck #bDL and the Settings drawer #bDLset). One
+       affordance, not four; no redundant icon after the argument or in the row. -->
 </footer>
 
 <!-- r105 · the site row. Last element in the document, in normal flow, after
@@ -1102,7 +1099,6 @@ header.mast{position:relative}
   <a class="pill" href="https://exel-ai-polling.explore-096.workers.dev/#feedback">Feedback</a>
   <a class="mid" href="https://exel-ai-polling.explore-096.workers.dev/main/Security-2525/">SECURITY-2525</a>
   <a class="pill" href="https://exel-ai-polling.explore-096.workers.dev/">eXeL AI</a>
-  <a class="pill dlpill" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html" aria-label="Download this document" title="Download this document"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a>
 </nav>
 
 </div>
@@ -5610,6 +5606,26 @@ const VERSIONS = [
   {n:"Sofia",g:"A",f:"Easier to find a language by its ISO code, which travellers know better than the native spelling."},
   {n:"Thoth",g:"A",f:"No count change: the language menu is chrome, not a ledger block."},
   {n:"Thor",g:"A",f:"No behaviour/security change; a presentational reflow of the language rows."}
+ ],
+ next:"Finish the 33-language translation build (merge bodies + chrome) and wire/gate/ship all languages."
+},
+{ v:191, code:"READING LEGIBILITY &mdash; PARAGRAPH SPACING UNIFIED; BOTTOM DOWNLOAD REMOVED", stamp:"2026.08.13 &middot; revision 191",
+ thrust:"Operator legibility pass. The N.O.S.E. reading carried &lsquo;.nose p{margin:0}&rsquo; &mdash; paragraphs ran together with no gap &mdash; while the White Paper used 14px and the Brief the base 15px. All three now use the same 15px inter-paragraph rhythm, so the same spacing method reads across Brief, N.O.S.E. and White Paper. Separately, the two download affordances at the FOOT of the page (the icon after the argument and the pill in the site row) are removed; the download stays at the TOP (the deck button and the Settings drawer copy), so it is offered once, not four times. Chrome-only &mdash; no ledger block changed, replay byte-identical, word totals unchanged at 3,333 / 9,999 / 77,777.",
+ mot:"Legibility is a courtesy to the reader: one paragraph rhythm everywhere, and one place to save the file instead of four.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"The N.O.S.E. reading breathes again &mdash; paragraphs are spaced as in the Brief, not run together."},
+  {n:"Asar",g:"A",f:"One spacing method across all three readings; the eye is not asked to relearn the rhythm per view."},
+  {n:"Athena",g:"A",f:"Download offered once at the top, not repeated at the foot; a cleaner close to the argument."},
+  {n:"Christo",g:"A",f:"The site row keeps Feedback, SECURITY-2525 and eXeL AI; only the redundant download icon leaves it."},
+  {n:"Enki",g:"A",f:"Edge case checked: the gate still finds two download links on the attachment path (deck + drawer)."},
+  {n:"Enlil",g:"A",f:"Chrome-only: two CSS values and two removed elements; replay byte-identical, totals untouched."},
+  {n:"Krishna",g:"A",f:"NOSE, White Paper and Brief now share the 15px inter-paragraph margin from the base rule."},
+  {n:"Odin",g:"A",f:"Foresight: removing the foot download cannot strand a reader &mdash; the deck download is above the fold."},
+  {n:"Pangu",g:"A",f:"A quieter foot: the argument ends, the site row follows, nothing repeats the top."},
+  {n:"Sofia",g:"A",f:"Readers move between summaries without a spacing jolt; legibility is uniform."},
+  {n:"Thoth",g:"A",f:"No count change: paragraph margins and chrome are presentation, not ledger content."},
+  {n:"Thor",g:"A",f:"No behaviour/security change; a presentational spacing fix and a redundant-control removal."}
  ],
  next:"Finish the 33-language translation build (merge bodies + chrome) and wire/gate/ship all languages."
 }
@@ -17936,7 +17952,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5275794";
+const DL_BYTES = "5277274";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
