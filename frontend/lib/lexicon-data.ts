@@ -49,6 +49,7 @@ const shared: TranslationEntry[] = [
   { key: "shared.nav.settings", englishDefault: "Settings", context: "Settings menu item", cubeId: 0 },
   { key: "shared.nav.soi", englishDefault: "SoI Framework", context: "SoI Framework menu item", cubeId: 0 },
   { key: "shared.nav.soi_title", englishDefault: "System of Innovation", context: "SoI Framework modal title (opens from the menu item)", cubeId: 0 },
+  { key: "shared.nav.soi_session", englishDefault: "Session", context: "◬ ♡ 웃 Session menu item — the POD (pod-of-3) Task•Outcome prototype, under Sol Framework", cubeId: 0 },
   { key: "shared.nav.sign_out", englishDefault: "Sign out", context: "Logout menu item", cubeId: 0 },
   { key: "shared.nav.loading", englishDefault: "Loading...", context: "Loading spinner text", cubeId: 0 },
   { key: "shared.nav.continue", englishDefault: "Continue", context: "Continue button", cubeId: 0 },
