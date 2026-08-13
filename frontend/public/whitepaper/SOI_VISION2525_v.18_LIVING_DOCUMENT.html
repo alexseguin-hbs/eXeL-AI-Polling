@@ -468,6 +468,21 @@ body.straight .viewban{display:block}
 .k-rev{background:var(--si-bg);border-color:var(--si)!important;color:var(--si)}
 .k-rem{background:var(--alert-bg);border-color:var(--alert)!important;color:var(--alert)}
 .k-car{color:var(--ink-2)}
+/* r193 · Difference Intelligence — impact badge (L1-L5) + top-improvements list.
+   Reuses declared palette vars only; see docs/COMPARE_UX_SPEC.md. */
+.imp{font:600 10px ui-monospace,monospace;padding:1px 5px;border-radius:2px;border:1px solid var(--rule);white-space:nowrap}
+.imp.l5{color:var(--hi);border-color:var(--hi)}
+.imp.l4{color:var(--si);border-color:var(--si)}
+.imp.l3{color:var(--ai);border-color:var(--ai)}
+.imp.l2,.imp.l1{color:var(--ink-2)}
+.cmp-hi{font-size:12px;color:var(--ink-2);margin:0 0 12px}
+.cmp-hi b{color:var(--ink);font-weight:700}
+.cmp-top{margin:0 0 14px;padding:0;list-style:none;border:1px solid var(--rule);border-radius:3px}
+.cmp-top li{display:flex;gap:8px;align-items:baseline;padding:6px 10px;border-top:1px solid var(--rule);font-size:12.5px}
+.cmp-top li:first-child{border-top:0}
+.cmp-top .rk{font:700 11px ui-monospace,monospace;color:var(--ink-2);min-width:18px}
+.cmp-top .ti{color:var(--ink);flex:1}
+.cmp-top h5{margin:0;padding:7px 10px;font:700 10px ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--ai);border-bottom:1px solid var(--rule)}
 .cmp .none{font-size:14px;color:var(--ink-2);font-style:italic;margin:0}
 section.blk.cmp-add{background:linear-gradient(90deg,var(--ok-bg),transparent 62%);
   border-left:3px solid var(--ok);margin-left:-16px;padding-left:13px}
@@ -994,7 +1009,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">192</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.3</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">193</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.3</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5656,6 +5671,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"No behaviour/security change; a presentational height unification and a menu reorder."}
  ],
  next:"Finish the 33-language translation build (merge bodies + chrome) and wire/gate/ship all languages."
+},
+{ v:193, code:"REVISION DIFFERENCE INTELLIGENCE &mdash; SLICE 1: DETERMINISTIC IMPACT + KEY IMPROVEMENTS", stamp:"2026.08.13 &middot; revision 193",
+ thrust:"First slice of the R-CORE Changes Protocol (docs/COMPARE_UX_SPEC.md), consolidated from the Grok and eXeL AI specs. Extends &mdash; never replaces &mdash; the existing replay()/compare() engine: a pure diffResult(from,to) annotates each changed block with a DETERMINISTIC impact level (L1 editorial &rarr; L5 constitutional/ontology) and a category, derives the highest-impact areas and the top-seven Key Improvements, and reports how many sections and releases the interval crossed. The Compare panel now answers what changed, how important it was, and where &mdash; from the ledger alone, with no AI. compare() is untouched, so its counts, order-independence and the changed-block highlighting are byte-identical. Chrome/engine-only: no ledger block changed, replay byte-identical, word totals unchanged at 3,333 / 9,999 / 77,777.",
+ mot:"The reader can now open Compare and see not just what changed but how much it mattered and where &mdash; the first layer of the difference view, deterministic and auditable before any AI interpretation.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"Every changed block now carries a deterministic impact badge (L1-L5) and a category."},
+  {n:"Asar",g:"A",f:"Top-seven Key Improvements synthesised by impact rank &mdash; the &lsquo;what mattered most&rsquo; answer."},
+  {n:"Athena",g:"A",f:"Strategy honoured: extend compare(), do not fork it; the counts and highlights are unchanged."},
+  {n:"Christo",g:"A",f:"Consensus with both external specs: deterministic first, AI a later optional layer."},
+  {n:"Enki",g:"A",f:"Edge case: diffResult&rsquo;s changed-id set and counts equal compare()&rsquo;s exactly."},
+  {n:"Enlil",g:"A",f:"Engine-only: pure functions + panel render; replay byte-identical, totals untouched."},
+  {n:"Krishna",g:"A",f:"Impact/category derive from block-id rules over the ledger, integrated with replay state."},
+  {n:"Odin",g:"A",f:"Foresight: AI, Diff Strip, Change Cards and Evolution are the next gated slices, scaffolded by the spec."},
+  {n:"Pangu",g:"A",f:"A civilisation-scale memory interface begins: comprehension of change without losing auditability."},
+  {n:"Sofia",g:"A",f:"Readers see sections-affected and highest-impact areas, not just raw counts."},
+  {n:"Thoth",g:"A",f:"No count change: the difference intelligence is derived analysis, not new ledger content."},
+  {n:"Thor",g:"A",f:"No behaviour/security change to compare(); the deterministic diff remains the source of truth."}
+ ],
+ next:"Difference Intelligence slice 2+: auto Compare-to-Current on past-revision select, the Difference Overview Card, Diff Strip with jump-to-block, Before/After Change Cards, then the optional provider-neutral AI Meaning layer."
 }
 ];
 
@@ -17980,7 +18015,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5280810";
+const DL_BYTES = "5289231";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -18297,6 +18332,66 @@ function improvements(v){
     for (const e of LEDGER){ if (e.id === id && e.v === v) out.push(e); }
   }
   return out;
+}
+
+/* r193 · DIFFERENCE INTELLIGENCE (deterministic layer). Pure, derived only from
+   compare() + the ledger — never authored, never AI. Classifies each changed block
+   by impact (L1-L5) and category, and derives the highest-impact "top improvements".
+   AI is a later optional interpretation layer. See docs/COMPARE_UX_SPEC.md. */
+const DIFF_L5_IDS = {"unit.ceiling":1,"unit.ontology":1,"unit.denom":1,"unit.tranche":1,
+  "gov.wall":1,"gov.layers":1,"gov.aidoor":1,"off.switch":1,"off.keys":1,"off.reserve":1};
+function diffImpact(id, kind){
+  if (DIFF_L5_IDS[id]) return "L5";
+  if (/^unit\.|^gov\.|^off\./.test(id)) return "L5";
+  if (/^legal\.|^fund\./.test(id)) return "L4";
+  if (/^rcore\./.test(id)) return "L4";
+  if (/^(paper|brief|outline|nose)\./.test(id)) return kind === "added" ? "L2" : "L1";
+  if (id.indexOf("open.") === 0) return "L2";
+  return kind === "added" ? "L3" : "L2";
+}
+function diffCategory(id){
+  if (/^unit\./.test(id)) return "definition";
+  if (/^fund\./.test(id)) return "economics";
+  if (/^gov\.|^off\./.test(id)) return "governance";
+  if (/^legal\./.test(id)) return "legal";
+  if (/^rcore\./.test(id)) return "rcore";
+  if (/^(paper|brief|outline|nose)\./.test(id)) return "reader";
+  if (id === "open.defects") return "correction";
+  return "other";
+}
+/* A readable title for a changed block: the winning entry's own heading if it has
+   one, else the id itself. Derived from replay state, never invented. */
+function diffTitle(id, v){
+  for (const e of LEDGER){ if (e.id === id && e.v === v){
+    const m = /<h2[^>]*>([\s\S]*?)<\/h2>/.exec(e.html || "");
+    if (m) return m[1].replace(/<[^>]+>/g, "").replace(/&mdash;/g, "—").trim().slice(0, 60);
+  }}
+  return id;
+}
+/* diffResult(from,to): compare() enriched with impact/category/sections/top. The
+   changed-id set and counts are IDENTICAL to compare() — this only annotates. */
+function diffResult(from, to){
+  const lo = Math.min(from, to), hi = Math.max(from, to);
+  const rows = compare(lo, hi);
+  const counts = {added:0, revised:0, removed:0, carried:0};
+  const cats = {}, secs = {}, changed = [];
+  for (const r of rows){
+    counts[r.kind]++;
+    if (r.kind === "carried") continue;
+    const impact = diffImpact(r.id, r.kind), category = diffCategory(r.id);
+    const section = id2 => id2.split(".")[0];
+    const d = {id:r.id, kind:r.kind, v:r.v, why:r.why, impact:impact,
+               category:category, section:section(r.id), title:diffTitle(r.id, r.v)};
+    changed.push(d);
+    cats[category] = (cats[category] || 0) + 1;
+    secs[d.section] = true;
+  }
+  const rank = {L5:5, L4:4, L3:3, L2:2, L1:1};
+  const top = changed.slice().sort(function(a, b){
+    return (rank[b.impact] - rank[a.impact]) || (b.v - a.v);
+  }).slice(0, 7);
+  return {from:lo, to:hi, releasesCrossed:hi - lo, counts:counts, changed:changed,
+          sectionsAffected:Object.keys(secs), categories:cats, top:top};
 }
 
 function gradeCls(g){
@@ -19350,14 +19445,16 @@ function renderCompare(){
   const host = document.getElementById("cmp");
   if (!cmpOn){ host.innerHTML = ""; return; }
   const lo = Math.min(cmpA, cmpB), hi = Math.max(cmpA, cmpB);
-  const rows = compare(lo, hi);
-  const c = {added:0, revised:0, removed:0, carried:0};
-  for (const r of rows) c[r.kind]++;
+  /* r193 · Difference Intelligence: compare() enriched with impact/category/top.
+     Counts and changed-id set are identical to compare() — this only annotates. */
+  const dr = diffResult(lo, hi);
+  const c = dr.counts;
 
   let opts = "";
   for (let v=1; v<=VMAX; v++) opts += '<option value="' + v + '">v' + v + ' — ' + escw(VERSIONS[v-1].code) + '</option>';
 
-  let h = '<div class="cmp"><h4>&#8646; Compare releases</h4>' +
+  const isCur = hi === VMAX;
+  let h = '<div class="cmp"><h4>&#8646; ' + (isCur ? 'What changed &mdash; r' + lo + ' &rarr; current r' + hi : 'Compare releases') + '</h4>' +
     '<div class="cmp-ctl">' +
       '<label>Baseline <select id="cmpA">' + opts + '</select></label>' +
       '<label>Target <select id="cmpB">' + opts + '</select></label>' +
@@ -19369,23 +19466,41 @@ function renderCompare(){
       '<span class="k-rev">revised <b>' + c.revised + '</b></span>' +
       '<span class="k-rem">removed <b>' + c.removed + '</b></span>' +
       '<span class="k-car">carried unchanged <b>' + c.carried + '</b></span>' +
+      '<span class="k-car">' + dr.releasesCrossed + ' release' + (dr.releasesCrossed===1?'':'s') + ' crossed</span>' +
       '<span class="k-car">v' + lo + ' &rarr; v' + hi + '</span>' +
     '</div>';
 
-  const changed = rows.filter(function(r){ return r.kind === "added" || r.kind === "revised" || r.kind === "removed"; });
+  const changed = dr.changed;
   if (!changed.length){
     h += '<p class="none">Nothing changed between v' + lo + ' and v' + hi + '. Identical bytes.</p>';
   } else {
-    h += '<div class="scroll"><table><tr><th>Block</th><th>Change</th><th class="n">At</th><th>Recorded reason</th></tr>';
+    /* Highest impact + sections affected — the "how important / where" answer. */
+    const hiIds = dr.top.filter(function(d){ return d.impact === "L5" || d.impact === "L4"; })
+                        .map(function(d){ return '<b>' + esc(d.id) + '</b>'; }).slice(0, 4);
+    h += '<p class="cmp-hi">' + changed.length + ' change' + (changed.length===1?'':'s') +
+         ' across <b>' + dr.sectionsAffected.length + '</b> section' + (dr.sectionsAffected.length===1?'':'s') +
+         (hiIds.length ? ' &middot; highest impact: ' + hiIds.join(', ') : '') + '</p>';
+
+    /* Key improvements — the top 7 by deterministic impact (highest first). */
+    h += '<ul class="cmp-top"><h5>Key improvements &middot; r' + lo + ' &rarr; r' + hi + '</h5>';
+    dr.top.forEach(function(d, i){
+      h += '<li><span class="rk">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
+           '<span class="ti">' + escw(d.title) + '</span>' +
+           '<span class="imp ' + d.impact.toLowerCase() + '" title="' + d.category + '">' + d.impact + '</span></li>';
+    });
+    h += '</ul>';
+
+    h += '<div class="scroll"><table><tr><th>Block</th><th>Change</th><th>Impact</th><th class="n">At</th><th>Recorded reason</th></tr>';
     for (const r of changed){
       const cls = r.kind === "added" ? "k-add" : r.kind === "revised" ? "k-rev" : "k-rem";
       h += '<tr><td><code>' + esc(r.id) + '</code></td>' +
            '<td><span class="pill ' + cls + '">' + r.kind + '</span></td>' +
+           '<td><span class="imp ' + r.impact.toLowerCase() + '" title="' + r.category + '">' + r.impact + '</span></td>' +
            '<td class="n">v' + r.v + '</td><td>' + escw(r.why) + '</td></tr>';
     }
-    h += '</table><caption>Sections highlighted below: <strong>green</strong> first written in this range, ' +
-         '<strong>gold</strong> revised in it. The removed column reads zero because an append-only ledger ' +
-         'has no delete &mdash; see &ldquo;Reading the ninety-nine&rdquo;.</caption></div>';
+    h += '</table><caption>Impact is deterministic (L1 editorial &rarr; L5 constitutional/ontology), derived from the ' +
+         'block, not from any AI. <strong>green</strong> first written in this range, <strong>gold</strong> revised in it. ' +
+         'The removed column reads zero because an append-only ledger has no delete.</caption></div>';
   }
   host.innerHTML = h + '</div>';
 
