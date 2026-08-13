@@ -75,12 +75,13 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
             display: "grid", placeItems: "center", overflow: "hidden",
             boxShadow: `inset 0 0 22px ${CYAN}18`,
           }}>
-            {/* The exact site mark — thin translucent cyan strokes on dark. */}
-            <SeedOfLifeLogo accentColor={CYAN} size={size * 0.72} />
+            {/* The exact site mark — thin translucent cyan strokes on dark. Sized
+                to nearly fill so the ring sits just outside it (little spacing). */}
+            <SeedOfLifeLogo accentColor={CYAN} size={size * 0.9} />
             {/* The circle drawn around it, with a little spacing (Trinity-style). */}
             <svg viewBox="0 0 100 100" aria-hidden="true"
                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
-              <circle cx="50" cy="50" r="46.5" fill="none" stroke={CYAN} strokeWidth="1.1" strokeOpacity="0.7" />
+              <circle cx="50" cy="50" r="47" fill="none" stroke={CYAN} strokeWidth="1.1" strokeOpacity="0.7" />
             </svg>
           </div>
         </CoinFace>
