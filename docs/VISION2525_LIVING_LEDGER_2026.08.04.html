@@ -862,11 +862,11 @@ header.mast{position:relative}
 .deck-in .langwrap{margin-left:auto}
 .deck-in #bSet{margin-left:0}
 .langmenu{left:auto;right:0;min-width:210px;max-height:min(70vh,520px);overflow-y:auto}
-.langmenu button .lc{display:block;font:400 10.5px/1.3 ui-monospace,monospace;color:var(--ink-2)}
+.langmenu button .lc{display:inline;font:600 11px/1.3 ui-monospace,monospace;color:var(--ai)}
 .langmenu button[aria-current="true"]{background:var(--ai-bg);color:var(--ai);font-weight:700}
 .langmenu button[disabled]{opacity:.42;cursor:default}
 .langmenu button[disabled]:hover{background:none;color:var(--ink)}
-.langmenu button[disabled] .lc::after{content:" \00b7 soon";color:var(--ink-2)}
+.langmenu button[disabled]::after{content:" \00b7 soon";color:var(--ink-2)}
 .doct{display:block;margin-bottom:6px}
 .doct b{color:var(--ink)}
 .doct i{font-style:normal;color:var(--ink-2)}
@@ -986,7 +986,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">189</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">190</span></strong>, <strong><span id="dlbytes2">0</span> bytes</strong> (<span id="dlsize2">5.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5592,6 +5592,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"No security change; two presentational fixes plus a scoped reading-mode rule and its gate law."}
  ],
  next:"Finish the 33-language translation build (merge bodies + re-translate fund.escrow + chrome) and wire/gate/ship all languages."
+},
+{ v:190, code:"LANGUAGE MENU &mdash; ONE-LINE ROWS (CODE &bull; NAME)", stamp:"2026.08.13 &middot; revision 190",
+ thrust:"Operator UX: the language menu shows each language on ONE line as CODE &bull; Name (EN &bull; English, FR &bull; Fran&ccedil;ais, ES &bull; Espa&ntilde;ol) instead of the native name stacked over its code. renderLangMenu now emits the code span first, a bullet, then the name; the .lc code span becomes inline and AI-coloured; the disabled &lsquo;&middot; soon&rsquo; suffix moves to the button end. Chrome-only &mdash; replay byte-identical, word totals unchanged at 3,333 / 9,999 / 77,777.",
+ mot:"A shorter, faster-scanning language list: the ISO code leads &mdash; the key a traveller recognises &mdash; then the native name, all on one line.",
+ stats:{clauses:303, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"Language menu now reads CODE &bull; Name on one line (EN &bull; English), not name stacked over code."},
+  {n:"Asar",g:"A",f:"One-line entries make the 33-language list scan faster and shorter."},
+  {n:"Athena",g:"A",f:"Operator&rsquo;s format: the code leads, highlighted, then the native name."},
+  {n:"Christo",g:"A",f:"Consistent across all 33 rows; disabled (unbuilt) rows still show &lsquo;&middot; soon&rsquo;."},
+  {n:"Enki",g:"A",f:"Edge case: RTL entries (ar, he) keep the code-first inline order."},
+  {n:"Enlil",g:"A",f:"Chrome-only: renderLangMenu markup + two CSS lines; replay byte-identical, word totals untouched."},
+  {n:"Krishna",g:"A",f:"The globe menu and the built-language set are unchanged &mdash; only the row layout."},
+  {n:"Odin",g:"A",f:"Code coloured in the AI accent so it reads as the stable key beside the shifting name."},
+  {n:"Pangu",g:"A",f:"Inline .lc replaces the block .lc; the &lsquo;soon&rsquo; suffix moved to the button end."},
+  {n:"Sofia",g:"A",f:"Easier to find a language by its ISO code, which travellers know better than the native spelling."},
+  {n:"Thoth",g:"A",f:"No count change: the language menu is chrome, not a ledger block."},
+  {n:"Thor",g:"A",f:"No behaviour/security change; a presentational reflow of the language rows."}
+ ],
+ next:"Finish the 33-language translation build (merge bodies + chrome) and wire/gate/ship all languages."
 }
 ];
 
@@ -17916,7 +17936,7 @@ L(141,"mot.author","The promise says correct out loud and tells the reader to ch
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5273517";
+const DL_BYTES = "5275794";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19077,7 +19097,7 @@ const V2525_LANGS = [
   {c:"el",n:"Ελληνικά"},{c:"cs",n:"Čeština"},{c:"sv",n:"Svenska"},{c:"da",n:"Dansk"},
   {c:"fi",n:"Suomi"},{c:"no",n:"Norsk"},{c:"he",n:"עברית"},{c:"sw",n:"Kiswahili"},{c:"ne",n:"नेपाली"}
 ];
-const V2525_BUILT = new Set(["en","fr","es","de","zh","ar"]);
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it"]);
 const V2525_LOCALE_KEY = "exel-active-locale";
 function v2525CurrentLang(){
   const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
@@ -19097,7 +19117,7 @@ function renderLangMenu(){
       const built = V2525_BUILT.has(l.c);
       return '<button role="menuitem" data-lang="' + l.c + '"' +
         (built ? '' : ' disabled') + (l.c === cur ? ' aria-current="true"' : '') + '>' +
-        esc(l.n) + '<span class="lc">' + l.c.toUpperCase() + '</span></button>';
+        '<span class="lc">' + l.c.toUpperCase() + '</span> &bull; ' + esc(l.n) + '</button>';
     }).join("");
 }
 function langClose(){
