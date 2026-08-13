@@ -30,8 +30,8 @@ export const DEFAULT_SOI: SoiFramework = {
   thesis: "Value what people bring, not only what they produce. ♡ carries the why · 웃 powers the how · ◬ multiplies the what — so shared intention becomes shared progress for every learner, maker, and community on Earth.",
   coins: [
     { sym: "♡", key: "SI", name: "Shared Intention", law: "1 minute given = 1 ♡", purpose: "Time offered in good faith — the trust and belonging that let people build together." },
-    { sym: "웃", key: "HI", name: "Human Intelligence", law: "1 hour of fair work ≈ 7.25 웃", purpose: "Skill, craft, and care — honored so people and their families can thrive." },
-    { sym: "◬", key: "AI", name: "Artificial Intelligence", law: "1 min SI = 5 ◬ (5× leverage)", purpose: "Time saved by the tools we create together — leverage returned to everyone, not the few." },
+    { sym: "웃", key: "HI", name: "Human Intelligence", law: "1 hour of qualified work ≈ 4.807 웃", purpose: "Skill, craft, and care — honored so people and their families can thrive." },
+    { sym: "◬", key: "AI", name: "Artificial Intelligence", law: "◬ = witnessed acceleration · variable ~5–10× leverage", purpose: "Time saved by the tools we create together — leverage returned to everyone, not the few." },
   ],
   flow: [
     { k: "Redeem", d: "웃 becomes real-world value when the treasury allows." },
