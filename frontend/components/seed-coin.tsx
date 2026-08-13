@@ -1,38 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { SeedOfLifeLogo } from "./seed-of-life-logo";
 
 /**
  * SeedCoin — a two-sided Seed token you can flip.
  *
- *  FRONT  a CYAN Seed of Life (7 circles: 1 centre + 6 at 60°, identical
- *         geometry to <SeedOfLifeLogo>) ringed by a LARGER enclosing circle so
- *         the whole mark reads as a struck coin — raised rim, milled edge,
- *         radial metallic-cyan face.
- *  BACK   the operator's clean Alvar cyan raster (ouroboros dragon + Yggdrasil
- *         framing the Texas outline + Lone Star) — /architect/alvar-ai-cyan.png,
+ *  FRONT  the site's own Seed of Life (<SeedOfLifeLogo>, the exact mark from
+ *         /main and /vision-2525 — thin translucent cyan strokes on a dark
+ *         ground) with a circle drawn around it and a little spacing, the way
+ *         the Trinity logo rings its inner marks (operator, 2026-08-13).
+ *  BACK   the operator's clean Alvar cyan raster — /architect/alvar-ai-cyan.png,
  *         the same emblem as White Paper block 33. The whole face links to §ALVAR.
  *
  * Click / Enter / Space flips it. Pure CSS 3D (transform-style: preserve-3d),
  * self-contained, theme-agnostic.
  */
 
-// AI Cyan — the Seed of Life face (operator: cyan, not green).
 const CYAN = "#19c8cf";
-const CYAN_LT = "#5ee7ec";
 const CYAN_DK = "#0b3d40";
 const ALVAR_CYAN = "/architect/alvar-ai-cyan.png";
 /** The White Paper ALVAR section — the clean Alvar links here (R-Core usage, as block 33). */
 const ALVAR_SECTION = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525#alvar";
-
-// Seed of Life geometry — matches SeedOfLifeLogo (cx=cy=50, R=20).
-const CX = 50, CY = 50, R = 20;
-const PETALS = Array.from({ length: 6 }, (_, i) => {
-  const a = (i * 60 * Math.PI) / 180;
-  return { x: CX + R * Math.cos(a), y: CY + R * Math.sin(a) };
-});
-// The "milled" edge — short ticks around the rim, the way a coin's edge is knurled.
-const MILL = Array.from({ length: 72 }, (_, i) => (i * 360) / 72);
 
 export interface SeedCoinProps {
   size?: number;
@@ -41,7 +30,7 @@ export interface SeedCoinProps {
   defaultFlipped?: boolean;
   /** Notified whenever the coin flips. */
   onFlip?: (flipped: boolean) => void;
-  /** Where the Alvar runes link. Defaults to the White Paper ALVAR section (#alvar). */
+  /** Where the Alvar links. Defaults to the White Paper ALVAR section (#alvar). */
   alvarHref?: string;
 }
 
@@ -76,57 +65,27 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
           transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
         }}
       >
-        {/* FRONT — CYAN Seed-of-Life coin ──────────────────────────────── */}
+        {/* FRONT — the site's Seed of Life, ringed by a circle with a gap ──── */}
         <CoinFace>
-          <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
-            <defs>
-              <radialGradient id="seedFace" cx="38%" cy="34%" r="75%">
-                <stop offset="0%" stopColor={CYAN_LT} />
-                <stop offset="55%" stopColor={CYAN} />
-                <stop offset="100%" stopColor={CYAN_DK} />
-              </radialGradient>
-              <radialGradient id="seedRim" cx="50%" cy="50%" r="50%">
-                <stop offset="82%" stopColor={CYAN_DK} stopOpacity="0" />
-                <stop offset="90%" stopColor="#072b2e" />
-                <stop offset="100%" stopColor="#041a1c" />
-              </radialGradient>
-            </defs>
-
-            {/* Coin body + raised rim */}
-            <circle cx={CX} cy={CY} r={49} fill="url(#seedFace)" />
-            <circle cx={CX} cy={CY} r={49} fill="url(#seedRim)" />
-            {/* Milled edge */}
-            {MILL.map((deg, i) => {
-              const a = (deg * Math.PI) / 180;
-              const r1 = 46.5, r2 = 49;
-              return (
-                <line
-                  key={i}
-                  x1={CX + r1 * Math.cos(a)} y1={CY + r1 * Math.sin(a)}
-                  x2={CX + r2 * Math.cos(a)} y2={CY + r2 * Math.sin(a)}
-                  stroke="#072b2e" strokeWidth={0.7} strokeOpacity={0.6}
-                />
-              );
-            })}
-            {/* The LARGER enclosing circle around all 7 circles (operator ask) */}
-            <circle cx={CX} cy={CY} r={44} fill="none" stroke="#eafff2" strokeOpacity={0.55} strokeWidth={1} />
-            <circle cx={CX} cy={CY} r={41} fill="none" stroke="#eafff2" strokeOpacity={0.28} strokeWidth={0.6} />
-
-            {/* Seed of Life — 7 circles, bright on the cyan face */}
-            <circle cx={CX} cy={CY} r={R} fill="#ffffff10" stroke="#eafff2" strokeWidth={1.4} strokeOpacity={0.95} />
-            {PETALS.map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r={R} fill="none" stroke="#eafff2" strokeWidth={1.4} strokeOpacity={0.9} />
-            ))}
-
-            {/* Struck legend */}
-            <text x={CX} y={13} textAnchor="middle" fontSize={5.2} fill="#eafff2" fillOpacity={0.85}
-                  fontFamily="ui-monospace, monospace" letterSpacing={0.5}>SEED</text>
-            <text x={CX} y={92} textAnchor="middle" fontSize={4.4} fill="#eafff2" fillOpacity={0.75}
-                  fontFamily="ui-monospace, monospace" letterSpacing={0.4}>1&frasl;7 HOUR</text>
-          </svg>
+          <div style={{
+            position: "relative",
+            width: "100%", height: "100%", borderRadius: "50%",
+            background: "radial-gradient(circle at 42% 34%, #17223400 0%, #0d152400 70%, #0a112000 100%)",
+            backgroundColor: "#0e1727",
+            display: "grid", placeItems: "center", overflow: "hidden",
+            boxShadow: `inset 0 0 22px ${CYAN}18`,
+          }}>
+            {/* The exact site mark — thin translucent cyan strokes on dark. */}
+            <SeedOfLifeLogo accentColor={CYAN} size={size * 0.72} />
+            {/* The circle drawn around it, with a little spacing (Trinity-style). */}
+            <svg viewBox="0 0 100 100" aria-hidden="true"
+                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+              <circle cx="50" cy="50" r="46.5" fill="none" stroke={CYAN} strokeWidth="1.1" strokeOpacity="0.7" />
+            </svg>
+          </div>
         </CoinFace>
 
-        {/* BACK — Alvar cyan raster ────────────────────────────────────── */}
+        {/* BACK — clean Alvar cyan raster (same as White Paper block 33) ───── */}
         <CoinFace back>
           <div style={{
             position: "relative",
