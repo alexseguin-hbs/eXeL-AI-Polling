@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -51,7 +51,14 @@ export function useRealtimeRanking(
     onOverride?: (payload: Record<string, unknown>) => void;
   },
 ) {
-  const { onProgress, onComplete, onOverride } = handlers;
+  /* Supabase optimization: keep the handlers in a ref and depend only on
+     shortCode, so the channel subscribes ONCE per session instead of tearing
+     down and rebuilding on every render when the caller passes fresh handler
+     closures (channel thrash). This mirrors the proven ref pattern in
+     use-session-broadcast.ts and avoids colliding with that hook's
+     same-named `session:${shortCode}` channel. */
+  const cbs = useRef(handlers);
+  cbs.current = handlers;
 
   useEffect(() => {
     if (!shortCode || !supabase) return;
@@ -63,21 +70,21 @@ export function useRealtimeRanking(
         "broadcast" as never,
         { event: "ranking_progress" },
         (msg: { payload: RankingProgressPayload }) => {
-          if (onProgress && msg.payload) onProgress(msg.payload);
+          if (cbs.current.onProgress && msg.payload) cbs.current.onProgress(msg.payload);
         },
       )
       .on(
         "broadcast" as never,
         { event: "ranking_complete" },
         (msg: { payload: RankingCompletePayload }) => {
-          if (onComplete && msg.payload) onComplete(msg.payload);
+          if (cbs.current.onComplete && msg.payload) cbs.current.onComplete(msg.payload);
         },
       )
       .on(
         "broadcast" as never,
         { event: "ranking_override" },
         (msg: { payload: Record<string, unknown> }) => {
-          if (onOverride && msg.payload) onOverride(msg.payload);
+          if (cbs.current.onOverride && msg.payload) cbs.current.onOverride(msg.payload);
         },
       )
       .subscribe();
@@ -85,5 +92,5 @@ export function useRealtimeRanking(
     return () => {
       supabase?.removeChannel(channel);
     };
-  }, [shortCode, onProgress, onComplete, onOverride]);
+  }, [shortCode]);
 }
