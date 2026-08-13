@@ -43,7 +43,7 @@ import {
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
 type Phase = "compose" | "invite" | "sync" | "active" | "record" | "closed";
-type Member = { role: string; name: string; agreed: boolean; recommend: string; startedAt: number | null };
+type Member = { role: string; name: string; contact: string; agreed: boolean; recommend: string; startedAt: number | null };
 
 /* CRS list DERIVED from Vision • 2525 — kept as a collapsible DEMO (operator). */
 const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string }[] = [
@@ -87,9 +87,9 @@ export default function SoISessionPage() {
   const [intent, setIntent] = useState("");
   const [outcome, setOutcome] = useState("");
   const [members, setMembers] = useState<Member[]>([
-    { role: "Lead", name: "", agreed: false, recommend: "", startedAt: null },
-    { role: "Member 2", name: "", agreed: false, recommend: "", startedAt: null },
-    { role: "Member 3", name: "", agreed: false, recommend: "", startedAt: null },
+    { role: "Lead", name: "", contact: "", agreed: false, recommend: "", startedAt: null },
+    { role: "Lead 2", name: "", contact: "", agreed: false, recommend: "", startedAt: null },
+    { role: "Lead 3", name: "", contact: "", agreed: false, recommend: "", startedAt: null },
   ]);
   const [projects, setProjects] = useState<Set<string>>(new Set());
   const [tasks, setTasks] = useState<Record<string, string>>({}); // projectId -> taskId
@@ -110,7 +110,9 @@ export default function SoISessionPage() {
     return [a || "YOUR", b || "TRINITY", c || "POD"];
   }, [members]);
 
-  const canOpen = intent.trim() && outcome.trim() && members[0].name.trim();
+  // The lead runs it only once intent + outcome are filled and the trio is
+  // documented (all three leads named — the minimum record of who ran the pod).
+  const canOpen = !!(intent.trim() && outcome.trim() && members.every((m) => m.name.trim()));
   const allAgreed = members.every((m) => m.agreed);
   const recommendations = members.filter((m) => !m.agreed && m.recommend.trim());
 
@@ -211,15 +213,26 @@ export default function SoISessionPage() {
               className="mb-5 w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
 
-            {/* Three leads → Trinity */}
+            {/* The trio of leads → Trinity. The lead documents all three (name +
+                contact) so the pod has a minimum record of who ran it. */}
+            <div className="mb-2 flex items-baseline justify-between">
+              <label className="text-sm font-medium">The trio — three leads, documented</label>
+              <span className="text-[11px] text-muted-foreground">lead + 2 minimum</span>
+            </div>
             <div className="mb-5 grid gap-3 sm:grid-cols-3">
               {members.map((m, i) => (
-                <div key={i} className="rounded-lg border border-border p-3">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{m.role}</div>
+                <div key={i} className="rounded-lg border border-cyan-400/30 p-3">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">{m.role}</div>
                   <input
                     value={m.name} onChange={(e) => setMember(i, { name: e.target.value })}
-                    placeholder={i === 0 ? "You (lead)" : "Lead name"}
-                    className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                    placeholder={i === 0 ? "You (lead) — name" : "Lead name"}
+                    className="mb-2 w-full rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <input
+                    value={m.contact} onChange={(e) => setMember(i, { contact: e.target.value })}
+                    placeholder="email or contact"
+                    inputMode="email"
+                    className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
                   />
                 </div>
               ))}
@@ -285,7 +298,7 @@ export default function SoISessionPage() {
             </button>
             {!canOpen && (
               <p className="mt-2 text-[11px] text-muted-foreground">
-                The lead can only start once the <strong>intent</strong> and <strong>outcome</strong> are filled (and the lead is named).
+                The lead can only start once the <strong>intent</strong> and <strong>outcome</strong> are filled and the <strong>trio is documented</strong> (all three leads named).
               </p>
             )}
           </>
@@ -307,8 +320,11 @@ export default function SoISessionPage() {
               <code className="text-sm tracking-widest">{podCode}</code>
             </div>
 
-            <div className="mb-4 rounded-lg border border-border p-3">
-              <div className="mb-2 text-sm font-medium">Each member: agree, or recommend a change to the lead</div>
+            <div className="mb-4 rounded-lg border border-cyan-400/30 p-3">
+              <div className="mb-1 text-sm font-medium">Round of comments &amp; approvals</div>
+              <div className="mb-3 text-xs text-muted-foreground">
+                Each of the trio approves the intent &amp; outcome, or leaves a comment recommending a change (it goes to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
+              </div>
               <div className="grid gap-3">
                 {members.map((m, i) => (
                   <div key={i} className="rounded-md border border-border p-2">
@@ -328,8 +344,8 @@ export default function SoISessionPage() {
                 ))}
               </div>
               {recommendations.length > 0 && (
-                <div className="mt-3 rounded-md border border-amber-500/40 bg-amber-500/5 p-2 text-xs">
-                  <div className="mb-1 font-medium text-amber-500">Recommendations for the lead</div>
+                <div className="mt-3 rounded-md border border-cyan-400/40 bg-cyan-400/5 p-2 text-xs">
+                  <div className="mb-1 font-medium text-cyan-400">Recommendations for the lead</div>
                   <ul className="list-disc pl-4 text-muted-foreground">
                     {recommendations.map((m, i) => <li key={i}><strong>{m.name || m.role}:</strong> {m.recommend}</li>)}
                   </ul>
@@ -343,7 +359,7 @@ export default function SoISessionPage() {
                 onClick={() => { setSyncMsg(""); setPhase("sync"); }}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
-                All agreed — go to synchronized start
+                Accepted by the trio — go to synchronized start
               </button>
               <button onClick={() => setPhase("compose")} className="rounded-md border border-border px-4 py-2 text-sm">
                 Back to edit (apply recommendations)
@@ -362,7 +378,7 @@ export default function SoISessionPage() {
               {members.map((m, i) => (
                 <button
                   key={i} onClick={() => pressStart(i)} disabled={m.startedAt != null}
-                  className={`rounded-lg border p-3 text-sm font-medium transition ${m.startedAt != null ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-border hover:border-emerald-500/60"}`}
+                  className={`rounded-lg border p-3 text-sm font-medium transition ${m.startedAt != null ? "border-cyan-500 bg-cyan-500/10 text-cyan-500" : "border-border hover:border-cyan-500/60"}`}
                 >
                   {m.name || m.role}
                   <span className="mt-1 block text-xs font-normal">{m.startedAt != null ? "started ✓" : "tap to start"}</span>
@@ -377,8 +393,8 @@ export default function SoISessionPage() {
         {/* ── ACTIVE ───────────────────────────────────────────────── */}
         {phase === "active" && (
           <>
-            <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 text-sm">
-              <div className="font-medium text-emerald-500">Session running — all three started together.</div>
+            <div className="mb-4 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm">
+              <div className="font-medium text-cyan-500">Session running — all three started together.</div>
               <p className="text-muted-foreground">When the work is done, any member stops the session for everyone and records the outcome.</p>
             </div>
             <button onClick={() => setPhase("record")} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
@@ -426,11 +442,22 @@ export default function SoISessionPage() {
 
         {/* ── CLOSED ───────────────────────────────────────────────── */}
         {phase === "closed" && (
-          <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-4 text-sm">
-            <div className="mb-1 font-medium text-emerald-500">Outcome recorded by the pod.</div>
+          <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-4 text-sm">
+            <div className="mb-1 font-medium text-cyan-500">Outcome recorded by the pod.</div>
             <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
             <p className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> {outcome}</p>
             <p className="text-muted-foreground break-words"><span className="font-medium text-foreground">Recorded ({recordMethod}):</span> {recordValue}</p>
+            <div className="mt-2 rounded-md border border-cyan-400/30 p-2 text-xs">
+              <div className="mb-1 font-medium text-cyan-400">Trio — accepted &amp; documented</div>
+              <ul className="text-muted-foreground">
+                {members.map((m, i) => (
+                  <li key={i}>
+                    <span className="text-foreground">{m.role}:</span> {m.name || "—"}
+                    {m.contact ? ` · ${m.contact}` : ""} {m.agreed ? "· ✓ approved" : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
             <p className="mt-2 text-xs text-muted-foreground">
               A Pod Project auto-writes a 333-word (3 × 111) synthesis — Intent · Outcome · Feedback — via the Cube 6 pipeline; ♡ accrues to all three, per the living document.
             </p>
@@ -507,7 +534,7 @@ function SeedMembership() {
     <section className="rounded-xl border border-border bg-card p-5">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Seed membership</h2>
-        <span className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs uppercase tracking-wide text-emerald-500">
+        <span className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs uppercase tracking-wide text-cyan-500">
           entry credential
         </span>
       </div>
@@ -555,7 +582,7 @@ function SeedMembership() {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <div className="text-2xl font-semibold text-emerald-500">
+            <div className="text-2xl font-semibold text-cyan-500">
               {fmtUsd(region.seed)}<span className="ml-1 text-sm font-normal text-muted-foreground">/ year</span>
             </div>
             <div className="text-xs text-muted-foreground">= {fmtUsd(region.minWage)} ÷ 7</div>
@@ -565,7 +592,7 @@ function SeedMembership() {
             <div className="mt-3">
               <button
                 onClick={() => setEnabled(true)}
-                className="rounded-md border border-emerald-500/50 px-4 py-2 text-sm font-medium text-emerald-500 hover:bg-emerald-500/10"
+                className="rounded-md border border-cyan-500/50 px-4 py-2 text-sm font-medium text-cyan-500 hover:bg-cyan-500/10"
               >
                 Enable Seed membership purchase
               </button>
@@ -575,7 +602,7 @@ function SeedMembership() {
             </div>
           ) : (
             <div className="mt-3">
-              <button className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600">
+              <button className="rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-600">
                 Buy Seed — {fmtUsd(region.seed)}
               </button>
               <p className="mt-2 text-[11px] text-muted-foreground">
