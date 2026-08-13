@@ -23,14 +23,20 @@
  * the shared SoITrinity mark, the SeedCoin, and the polling tool's QR + V2T —
  * nothing new is minted here; the pod is a gate on ◬ ♡ 웃 that already exist.
  *
- * Prototype: local state only, no backend yet.
+ * Real session: reuses the poll's own live channel (useSessionBroadcast over
+ * session:<code>) — the lead opens a pod code, shares the QR; joiners scan
+ * (?pod=<code>), and the lead's start/stop broadcasts move all three phones
+ * together (same code method as the poll, scoped to 3, one is lead). Degrades to
+ * a local single-phone prototype when Supabase is unreachable. SACRED live-delivery
+ * files are untouched — this is an additive consumer of the shared hook.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { SeedCoin } from "@/components/seed-coin";
 import { SoITrinity } from "@/components/soi-trinity";
+import { useSessionBroadcast } from "@/lib/use-session-broadcast";
 import {
   DEFAULT_PROJECTS, projectTasks, findProject, RECORD_METHODS,
   SYNC_START_SECONDS, type RecordMethod,
@@ -98,11 +104,43 @@ export default function SoISessionPage() {
   const [syncMsg, setSyncMsg] = useState("");
   const [showCrs, setShowCrs] = useState(false);
 
-  const podCode = useMemo(() => randomCode((intent.length + outcome.length + 7) * 977 + 104729), [intent, outcome]);
+  // Real session over the poll's own live channel (session:<code>), scoped to a pod
+  // of 3 (operator: same code+login method as the poll, one is lead). A joiner opens
+  // /soi-session?pod=<code>; the lead generates the code when opening the pod. Start
+  // and stop broadcast over the channel so all three phones move together; if Supabase
+  // is unavailable the page still works as a local single-phone prototype.
+  const [podCode, setPodCode] = useState("");
+  const [isJoiner, setIsJoiner] = useState(false);
+  const [liveCount, setLiveCount] = useState(1);
+
+  // On load, a scanned QR carries ?pod=<code> → this phone is a joiner.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const code = new URLSearchParams(window.location.search).get("pod");
+    if (code) { setIsJoiner(true); setPodCode(code); setPhase("invite"); }
+  }, []);
+
   const joinUrl = useMemo(() => {
-    if (typeof window === "undefined") return `/soi-session?pod=${podCode}`;
-    return `${window.location.origin}/soi-session?pod=${podCode}`;
+    const c = podCode || "PENDING";
+    if (typeof window === "undefined") return `/soi-session?pod=${c}`;
+    return `${window.location.origin}/soi-session?pod=${c}`;
   }, [podCode]);
+
+  // Follow the lead's start/stop across phones. Joiners (and the lead's other devices)
+  // move phase when a status broadcast arrives; the lead is the only one that emits.
+  const onStatus = useCallback((p: { status?: string }) => {
+    const s = p?.status;
+    if (s === "sync") setPhase("sync");
+    else if (s === "active") setPhase("active");
+    else if (s === "record") setPhase("record");
+    else if (s === "closed") setPhase("closed");
+  }, []);
+  const onPresence = useCallback((n: number) => setLiveCount(n), []);
+  const { broadcast, connected } = useSessionBroadcast(podCode || null, onStatus, onPresence);
+  // The lead drives start/stop; broadcast is a no-op when not connected (graceful degrade).
+  const drive = useCallback((status: "sync" | "active" | "record" | "closed") => {
+    if (!isJoiner) broadcast("status", { status }).catch(() => {});
+  }, [isJoiner, broadcast]);
 
   // Trinity labels = the three leads' first names (auto-drawn), with gentle fallbacks.
   const trinityLabels = useMemo<[string, string, string]>(() => {
@@ -138,7 +176,7 @@ export default function SoISessionPage() {
         const spread = Math.max(...times) - Math.min(...times);
         if (spread <= SYNC_START_SECONDS * 1000) {
           setSyncMsg(`Synced — all three started within ${(spread / 1000).toFixed(1)}s.`);
-          setTimeout(() => setPhase("active"), 400);
+          setTimeout(() => { setPhase("active"); drive("active"); }, 400);
         } else {
           setSyncMsg(`Too far apart (${(spread / 1000).toFixed(1)}s > ${SYNC_START_SECONDS}s). Reset and start together.`);
           return next.map((m) => ({ ...m, startedAt: null }));
@@ -292,7 +330,7 @@ export default function SoISessionPage() {
 
             <button
               disabled={!canOpen}
-              onClick={() => setPhase("invite")}
+              onClick={() => { if (!podCode) setPodCode(randomCode((Date.now() % 1e9) + intent.length * 31 + 7)); setPhase("invite"); }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
               Share QR &amp; open the pod
@@ -322,7 +360,14 @@ export default function SoISessionPage() {
                 The other two scan to join — their info imports from their login (email / OAuth); they enter their name.
               </div>
               <div className="rounded-md bg-white p-2"><QRCodeSVG value={joinUrl} size={140} level="M" /></div>
-              <code className="text-sm tracking-widest">{podCode}</code>
+              <code className="text-sm tracking-widest">{podCode || "…"}</code>
+              <div className="text-[11px] text-muted-foreground">
+                {connected
+                  ? <span className="text-cyan-400">● live</span>
+                  : <span>○ local (live sync when Supabase is reachable)</span>}
+                {connected && liveCount > 1 ? ` · ${liveCount} on the channel` : ""}
+                {isJoiner ? " · you joined by QR" : " · you are the lead"}
+              </div>
             </div>
 
             {/* The trio — lead is set; the other two join, then all comment & approve. */}
@@ -382,7 +427,7 @@ export default function SoISessionPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 disabled={!allAgreed}
-                onClick={() => { setSyncMsg(""); setPhase("sync"); }}
+                onClick={() => { setSyncMsg(""); setPhase("sync"); drive("sync"); }}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
                 Accepted by the trio — go to synchronized start
@@ -423,7 +468,7 @@ export default function SoISessionPage() {
               <div className="font-medium text-cyan-500">Session running — all three started together.</div>
               <p className="text-muted-foreground">When the work is done, any member stops the session for everyone and records the outcome.</p>
             </div>
-            <button onClick={() => setPhase("record")} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+            <button onClick={() => { setPhase("record"); drive("record"); }} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
               Stop &amp; record the outcome
             </button>
           </>
@@ -458,7 +503,7 @@ export default function SoISessionPage() {
             )}
             <button
               disabled={!recordValue.trim()}
-              onClick={() => setPhase("closed")}
+              onClick={() => { setPhase("closed"); drive("closed"); }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
               Close with recorded outcome
