@@ -62,15 +62,17 @@ export function WorkspaceSelect({ onClose }: { onClose?: () => void }) {
     <div className="wsel-root">
       <style>{WSEL_CSS}</style>
 
-      {onClose && (
-        <button className="wsel-x" type="button" aria-label="Close" onClick={onClose}>✕</button>
-      )}
-
       <header className="wsel-topbar">
         <div className="wsel-wordmark"><b>eXeL</b><span>AI Polling</span></div>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2DF3EF" strokeWidth="1.8" aria-hidden="true">
-          <path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6C19 15.4 12 20 12 20z" />
-        </svg>
+        {/* Heart sits to the LEFT of the close (✕) button (operator, 2026-08-13). */}
+        <div className="wsel-actions">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2DF3EF" strokeWidth="1.8" aria-hidden="true">
+            <path d="M12 20s-7-4.6-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.6C19 15.4 12 20 12 20z" />
+          </svg>
+          {onClose && (
+            <button className="wsel-x" type="button" aria-label="Close" onClick={onClose}>✕</button>
+          )}
+        </div>
       </header>
 
       <main className="wsel-main">
@@ -164,7 +166,8 @@ const WSEL_CSS = `
   -webkit-font-smoothing:antialiased;
 }
 .wsel-root *{ box-sizing:border-box; }
-.wsel-x{ position:absolute; top:12px; right:14px; z-index:2; background:transparent; border:1px solid var(--wsel-edge);
+.wsel-actions{ display:flex; align-items:center; gap:12px; }
+.wsel-x{ z-index:2; background:transparent; border:1px solid var(--wsel-edge);
   color:var(--wsel-muted); width:36px; height:36px; border-radius:10px; cursor:pointer; font-size:15px; }
 .wsel-x:hover{ border-color:var(--wsel-cyan-dim); color:var(--wsel-ink); }
 .wsel-topbar{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--wsel-edge); }
