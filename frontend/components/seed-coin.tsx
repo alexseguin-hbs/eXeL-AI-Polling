@@ -5,22 +5,24 @@ import { useState } from "react";
 /**
  * SeedCoin — a two-sided Seed token you can flip.
  *
- *  FRONT  a GREEN Seed of Life (7 circles: 1 centre + 6 at 60°, identical
+ *  FRONT  a CYAN Seed of Life (7 circles: 1 centre + 6 at 60°, identical
  *         geometry to <SeedOfLifeLogo>) ringed by a LARGER enclosing circle so
  *         the whole mark reads as a struck coin — raised rim, milled edge,
- *         radial metallic-green face.
- *  BACK   the operator's Alvar cyan raster (ouroboros dragon + Yggdrasil framing
- *         the Texas outline + Lone Star + Alvar runes) — /architect/alvar-ai-cyan.png.
+ *         radial metallic-cyan face.
+ *  BACK   the operator's clean Alvar cyan raster (ouroboros dragon + Yggdrasil
+ *         framing the Texas outline + Lone Star) — /architect/alvar-ai-cyan.png,
+ *         the same emblem as White Paper block 33. The whole face links to §ALVAR.
  *
  * Click / Enter / Space flips it. Pure CSS 3D (transform-style: preserve-3d),
  * self-contained, theme-agnostic.
  */
 
-const GREEN = "#22c55e";
-const GREEN_DK = "#14532d";
+// AI Cyan — the Seed of Life face (operator: cyan, not green).
 const CYAN = "#19c8cf";
+const CYAN_LT = "#5ee7ec";
+const CYAN_DK = "#0b3d40";
 const ALVAR_CYAN = "/architect/alvar-ai-cyan.png";
-/** The White Paper ALVAR section — the runes on the snake body link here. */
+/** The White Paper ALVAR section — the clean Alvar links here (R-Core usage, as block 33). */
 const ALVAR_SECTION = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525#alvar";
 
 // Seed of Life geometry — matches SeedOfLifeLogo (cx=cy=50, R=20).
@@ -74,19 +76,19 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
           transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
         }}
       >
-        {/* FRONT — green Seed-of-Life coin ─────────────────────────────── */}
+        {/* FRONT — CYAN Seed-of-Life coin ──────────────────────────────── */}
         <CoinFace>
           <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
             <defs>
               <radialGradient id="seedFace" cx="38%" cy="34%" r="75%">
-                <stop offset="0%" stopColor="#4ade80" />
-                <stop offset="55%" stopColor={GREEN} />
-                <stop offset="100%" stopColor={GREEN_DK} />
+                <stop offset="0%" stopColor={CYAN_LT} />
+                <stop offset="55%" stopColor={CYAN} />
+                <stop offset="100%" stopColor={CYAN_DK} />
               </radialGradient>
               <radialGradient id="seedRim" cx="50%" cy="50%" r="50%">
-                <stop offset="82%" stopColor={GREEN_DK} stopOpacity="0" />
-                <stop offset="90%" stopColor="#0b3d1f" />
-                <stop offset="100%" stopColor="#052e16" />
+                <stop offset="82%" stopColor={CYAN_DK} stopOpacity="0" />
+                <stop offset="90%" stopColor="#072b2e" />
+                <stop offset="100%" stopColor="#041a1c" />
               </radialGradient>
             </defs>
 
@@ -102,7 +104,7 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
                   key={i}
                   x1={CX + r1 * Math.cos(a)} y1={CY + r1 * Math.sin(a)}
                   x2={CX + r2 * Math.cos(a)} y2={CY + r2 * Math.sin(a)}
-                  stroke="#0b3d1f" strokeWidth={0.7} strokeOpacity={0.6}
+                  stroke="#072b2e" strokeWidth={0.7} strokeOpacity={0.6}
                 />
               );
             })}
@@ -110,7 +112,7 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
             <circle cx={CX} cy={CY} r={44} fill="none" stroke="#eafff2" strokeOpacity={0.55} strokeWidth={1} />
             <circle cx={CX} cy={CY} r={41} fill="none" stroke="#eafff2" strokeOpacity={0.28} strokeWidth={0.6} />
 
-            {/* Seed of Life — 7 circles, bright on the green face */}
+            {/* Seed of Life — 7 circles, bright on the cyan face */}
             <circle cx={CX} cy={CY} r={R} fill="#ffffff10" stroke="#eafff2" strokeWidth={1.4} strokeOpacity={0.95} />
             {PETALS.map((p, i) => (
               <circle key={i} cx={p.x} cy={p.y} r={R} fill="none" stroke="#eafff2" strokeWidth={1.4} strokeOpacity={0.9} />
@@ -131,39 +133,30 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
             width: "100%", height: "100%", borderRadius: "50%",
             background: "radial-gradient(circle at 38% 34%, #0b2b2c 0%, #041718 70%, #020c0d 100%)",
             display: "grid", placeItems: "center", overflow: "hidden",
-            boxShadow: `inset 0 0 0 2px ${GREEN_DK}, inset 0 0 22px ${CYAN}44`,
+            boxShadow: `inset 0 0 0 2px ${CYAN_DK}, inset 0 0 22px ${CYAN}44`,
           }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={ALVAR_CYAN}
-              alt="Alvar — ouroboros dragon and tree of life framing the Lone Star (cyan)"
-              width={size} height={size}
-              style={{ width: "86%", height: "86%", objectFit: "contain", filter: `drop-shadow(0 0 8px ${CYAN}66)` }}
-            />
-            {/* The runes on the snake body (Ansuz → Raidho) link to the White
-                Paper ALVAR section. stopPropagation so it navigates instead of
-                flipping the coin back. */}
+            {/* The clean Alvar (same emblem as White Paper block 33 — no added
+                marks). The whole face is the R-Core link to §ALVAR; stopPropagation
+                so tapping it opens the section instead of flipping the coin back. */}
             <a
               href={alvarHref}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               aria-label="Read the ALVAR section of the White Paper"
-              title="ALVAR — the guardian who does not take → read §ALVAR in the White Paper"
+              title="ALVAR — read §ALVAR in the White Paper"
               style={{
-                position: "absolute", left: "18%", right: "18%", bottom: "6%",
-                height: "20%", display: "grid", placeItems: "end center",
+                position: "absolute", inset: 0, display: "grid", placeItems: "center",
                 textDecoration: "none", cursor: "pointer",
               }}
             >
-              <span style={{
-                fontSize: Math.max(9, size * 0.05), lineHeight: 1,
-                color: CYAN, opacity: 0.85, fontWeight: 600,
-                letterSpacing: "0.04em", textShadow: "0 1px 3px rgba(0,0,0,0.8)",
-                background: "rgba(2,12,13,0.55)", padding: "2px 8px", borderRadius: 999,
-              }}>
-                ᚨ ᛚ ᚹ ᚨ ᚱ — read ↗
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={ALVAR_CYAN}
+                alt="Alvar — ouroboros dragon and tree of life framing the Lone Star (cyan)"
+                width={size} height={size}
+                style={{ width: "86%", height: "86%", objectFit: "contain", filter: `drop-shadow(0 0 8px ${CYAN}66)` }}
+              />
             </a>
           </div>
         </CoinFace>
