@@ -1009,7 +1009,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">202</span></strong>, <strong><span id="dlbytes2">5514639</span> bytes</strong> (<span id="dlsize2">5.5</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">203</span></strong>, <strong><span id="dlbytes2">5517324</span> bytes</strong> (<span id="dlsize2">5.5</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5871,6 +5871,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"The maximum rate is enforced by MoT, so real-time cannot breach the ceiling."}
  ],
  next:"Re-fit paper to 77,777 and nose to 9,999 (operator&rsquo;s word-count-LAST) and restore the hard SACRED-TOTALS gate; continue translations across all 33 languages."
+},
+{ v:203, code:"KOREAN + HINDI ADDED TO THE LANGUAGE MENU (V2525_BUILT)", stamp:"2026.08.13 &middot; revision 203",
+ thrust:"Two more sibling files go live in the globe menu. An AsM fleet (full-doc &rarr; targeted fill &rarr; merge-and-CLEAN) translated the 162 non-giant blocks, dropping any stripped-image, escaped, or truncated block back to English rather than shipping it broken. Coverage at ship: de 98%, it 89%, hi 88%, ko 67% &mdash; the three giants (paper.toc SVG, mot.author, the front.alvar base64 plate) stay English by design, and every missing block falls back cleanly. Each per-language file renders with zero page errors. V2525_BUILT now carries en, fr, es, de, zh, ar, it, pt, ru, ja, ko, hi. Chrome-only &mdash; the built-language set is a menu flag, no ledger block changed, replay byte-identical, totals unmoved (paper still WARN pending the operator&rsquo;s re-fit).",
+ mot:"German shipped whole; Italian and Hindi are nearly whole; Korean is two-thirds there and honest about the rest. The rule that made them safe to ship was the cleaner, not the translator: a block that came back with its image stripped or its sentence cut is dropped to English, because a reader is better served by one clean language than two half-spoken ones.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"Korean and Hindi join the ten already live; twelve of thirty-three now linked."},
+  {n:"Asar",g:"A",f:"Each language renders whole, English filling any gap without a seam."},
+  {n:"Athena",g:"A",f:"The merge-and-clean pass is the safeguard: no broken image, no cut sentence ships."},
+  {n:"Christo",g:"A",f:"More readers meet the paper in their own language."},
+  {n:"Enki",g:"A",f:"Edge case handled: rate-limited garbage chunks are rejected, not shipped."},
+  {n:"Enlil",g:"A",f:"Chrome-only: V2525_BUILT is a menu flag; replay byte-identical."},
+  {n:"Krishna",g:"A",f:"One source of truth: the built-set mirrors the served sibling files."},
+  {n:"Odin",g:"A",f:"The disabled &lsquo;soon&rsquo; entries still show the reader the whole 33-language horizon."},
+  {n:"Pangu",g:"A",f:"Devanagari and Hangul now render from the same engine, same determinism."},
+  {n:"Sofia",g:"A",f:"Honest coverage: ko at 67% is labelled by what it shows, not oversold."},
+  {n:"Thoth",g:"A",f:"Totals unmoved by a menu flag; paper WARN unchanged, brief/nose exact."},
+  {n:"Thor",g:"A",f:"No security change; per-language files are the same bytes-checked engine."}
+ ],
+ next:"Top off it/ko/hi&rsquo;s remaining rate-limited chunks; translate the remaining 21 languages as the rate allows; then the operator&rsquo;s word-count re-fit."
 }
 ];
 
@@ -18256,7 +18276,7 @@ L(201,"coin.seed.value","Operator: &ldquo;Seed Token value would increase, but b
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5514639";
+const DL_BYTES = "5517324";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19484,7 +19504,7 @@ const V2525_LANGS = [
   {c:"el",n:"Ελληνικά"},{c:"cs",n:"Čeština"},{c:"sv",n:"Svenska"},{c:"da",n:"Dansk"},
   {c:"fi",n:"Suomi"},{c:"no",n:"Norsk"},{c:"he",n:"עברית"},{c:"sw",n:"Kiswahili"},{c:"ne",n:"नेपाली"}
 ];
-const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja"]);
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi"]);
 const V2525_LOCALE_KEY = "exel-active-locale";
 function v2525CurrentLang(){
   const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
