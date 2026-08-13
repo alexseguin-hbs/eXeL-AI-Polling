@@ -97,7 +97,12 @@ export default function SoISessionPage() {
           <span className="text-pink-400">&#9825;</span>{" "}
           <span className="text-violet-400">&#50883;</span>
         </div>
-        <h1 className="text-2xl font-semibold">◬ ♡ 웃 Session</h1>
+        <h1 className="text-2xl font-semibold">
+          <span className="text-cyan-400">&#9708;</span>{" "}
+          <span className="text-pink-400">&#9825;</span>{" "}
+          <span className="text-violet-400">&#50883;</span> Session{" "}
+          <span className="font-normal text-muted-foreground">&bull; POD &bull; Task &bull; Outcome</span>
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Recursive Coordination for Human Continuity — the POD working session.
         </p>

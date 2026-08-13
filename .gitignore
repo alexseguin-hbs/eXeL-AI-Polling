@@ -98,3 +98,7 @@ scripts/lv-*.png
 
 # session scratch tooling (word-count measurer; gate already covers CI)
 /_measure.mjs
+
+# scratch build/measure tools (session)
+_*.mjs
+_*.py
