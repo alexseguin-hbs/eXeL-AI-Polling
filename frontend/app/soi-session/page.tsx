@@ -39,7 +39,8 @@ import { SoITrinity } from "@/components/soi-trinity";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
 import {
   DEFAULT_PROJECTS, projectTasks, findProject, RECORD_METHODS,
-  SYNC_START_SECONDS, type RecordMethod,
+  SYNC_START_SECONDS, POD_SIZE, FREE_TOOLS_NOTE, EVIDENCE_CHAIN,
+  type RecordMethod, type ReceiptArtefacts, type Synthesis333,
 } from "@/lib/pod-projects";
 import {
   detectRegion, DEFAULT_REGION, REGION_OPTIONS,
@@ -48,8 +49,13 @@ import {
 
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
-type Phase = "compose" | "invite" | "sync" | "active" | "record" | "closed";
-type Member = { role: string; name: string; contact: string; agreed: boolean; recommend: string; startedAt: number | null };
+type Phase = "compose" | "invite" | "sync" | "active" | "record" | "audit" | "closed";
+type Member = {
+  role: string; name: string; contact: string; agreed: boolean; recommend: string; startedAt: number | null;
+  hours: string;              // TOK-17 self-audit: hours this member claims
+  did: string;                // TOK-17 self-audit: what they did (one line)
+  witnessedBy: boolean[];     // TOK-17 cross-review: witnessedBy[j] = member j attests this claim
+};
 
 /* CRS list DERIVED from Vision • 2525 — kept as a collapsible DEMO (operator). */
 const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string }[] = [
@@ -92,10 +98,11 @@ export default function SoISessionPage() {
   const [phase, setPhase] = useState<Phase>("compose");
   const [intent, setIntent] = useState("");
   const [outcome, setOutcome] = useState("");
+  const mkMember = (role: string): Member =>
+    ({ role, name: "", contact: "", agreed: false, recommend: "", startedAt: null,
+       hours: "", did: "", witnessedBy: [false, false, false] });
   const [members, setMembers] = useState<Member[]>([
-    { role: "Lead", name: "", contact: "", agreed: false, recommend: "", startedAt: null },
-    { role: "Lead 2", name: "", contact: "", agreed: false, recommend: "", startedAt: null },
-    { role: "Lead 3", name: "", contact: "", agreed: false, recommend: "", startedAt: null },
+    mkMember("Lead"), mkMember("Lead 2"), mkMember("Lead 3"),
   ]);
   const [projects, setProjects] = useState<Set<string>>(new Set());
   const [tasks, setTasks] = useState<Record<string, string>>({}); // projectId -> taskId
@@ -103,6 +110,12 @@ export default function SoISessionPage() {
   const [recordValue, setRecordValue] = useState("");
   const [syncMsg, setSyncMsg] = useState("");
   const [showCrs, setShowCrs] = useState(false);
+
+  // TOK-18 accelerator: the frozen-baseline estimate (hours) the pod set BEFORE work,
+  // and the conflict-excluded signer. ◬ is the delta actual-vs-baseline only — never a
+  // profit metric — so it sits outside the securities perimeter (D4).
+  const [baselineHrs, setBaselineHrs] = useState("");
+  const [signerIdx, setSignerIdx] = useState(0);
 
   // Real session over the poll's own live channel (session:<code>), scoped to a pod
   // of 3 (operator: same code+login method as the poll, one is lead). A joiner opens
@@ -133,12 +146,13 @@ export default function SoISessionPage() {
     if (s === "sync") setPhase("sync");
     else if (s === "active") setPhase("active");
     else if (s === "record") setPhase("record");
+    else if (s === "audit") setPhase("audit");
     else if (s === "closed") setPhase("closed");
   }, []);
   const onPresence = useCallback((n: number) => setLiveCount(n), []);
   const { broadcast, connected } = useSessionBroadcast(podCode || null, onStatus, onPresence);
   // The lead drives start/stop; broadcast is a no-op when not connected (graceful degrade).
-  const drive = useCallback((status: "sync" | "active" | "record" | "closed") => {
+  const drive = useCallback((status: "sync" | "active" | "record" | "audit" | "closed") => {
     if (!isJoiner) broadcast("status", { status }).catch(() => {});
   }, [isJoiner, broadcast]);
 
@@ -189,7 +203,59 @@ export default function SoISessionPage() {
   const reset = () => {
     setPhase("compose");
     setSyncMsg("");
-    setMembers((ms) => ms.map((m) => ({ ...m, agreed: false, recommend: "", startedAt: null })));
+    setBaselineHrs("");
+    setMembers((ms) => ms.map((m) => ({ ...m, agreed: false, recommend: "", startedAt: null, hours: "", did: "", witnessedBy: [false, false, false] })));
+  };
+
+  // TOK-17 cross-review: a member's hours count only when BOTH other members witness.
+  const witnessedCount = (i: number) => members[i].witnessedBy.filter((w, j) => w && j !== i).length;
+  const isWitnessed = (i: number) => witnessedCount(i) >= POD_SIZE - 1; // both others
+  const toggleWitness = (memberIdx: number, reviewerIdx: number) =>
+    setMembers((ms) => ms.map((m, i) => i === memberIdx
+      ? { ...m, witnessedBy: m.witnessedBy.map((w, j) => (j === reviewerIdx ? !w : w)) } : m));
+
+  // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = hours × M, ceiling-noted).
+  const M = 1;
+  const witnessedHours = members.reduce((s, m, i) => s + (isWitnessed(i) ? (parseFloat(m.hours) || 0) : 0), 0);
+  const totalYugYok = witnessedHours * M;                       // 웃 that would settle
+  const allSelfAudited = members.every((m) => (parseFloat(m.hours) || 0) > 0 && m.did.trim());
+  const allWitnessed = members.every((_, i) => isWitnessed(i));
+
+  // TOK-18 ◬ accelerator: delta of the frozen baseline estimate vs the witnessed actual.
+  // Delta-only input — never a profit metric (D4). Positive delta = time saved = ◬ recognised.
+  const baseline = parseFloat(baselineHrs) || 0;
+  const accelDelta = baseline > 0 ? Math.max(0, baseline - witnessedHours) : 0; // hours saved
+  const yaTriangle = accelDelta * M;                            // ◬ recognised (illustrative 웃-equiv)
+  // D11 conflict-excluded signer: the signer is not the sole beneficiary of the ◬.
+  const signerName = firstName(members[signerIdx]?.name || "") || members[signerIdx]?.role || "—";
+
+  // TOK-26 — one record, four artefacts.
+  const receipt: ReceiptArtefacts = {
+    transcript:
+      `Pod ${podCode || "(local)"} — ${members.map((m) => firstName(m.name) || m.role).join(" · ")}. ` +
+      `Intent: ${intent || "—"}. Outcome: ${outcome || "—"}. ` +
+      `Recorded (${recordMethod}): ${recordValue || "—"}. Self-audited hours: ` +
+      members.map((m) => `${firstName(m.name) || m.role} ${parseFloat(m.hours) || 0}h`).join(", ") + ".",
+    portfolio:
+      `Contributed to "${outcome || intent || "a pod task"}" in a witnessed pod of three, ` +
+      `${witnessedHours}h cross-reviewed` + (yaTriangle > 0 ? `, ${accelDelta}h ahead of a frozen baseline.` : "."),
+    governance:
+      `Witnessed by the pod: ${members.filter((_, i) => isWitnessed(i)).length}/${POD_SIZE} claims cross-reviewed. ` +
+      `Accelerator signed by ${signerName} (conflict-excluded). ` +
+      `AI-authority: Advisory — every settlement stays human-signed (Sovereign closed to machines).`,
+    settlement:
+      `${totalYugYok.toFixed(3)} 웃 settle (hours × M=${M}), each person bound by 9,999/yr with rollforward; ` +
+      (yaTriangle > 0 ? `${yaTriangle.toFixed(0)} ◬ recognised (delta only, no profit input). ` : "no ◬ this task. ") +
+      `MoT keeps the actual minutes separately. Nothing new is minted — this gates existing currencies.`,
+  };
+
+  // The 333-word (3 × 111) synthesis, in the operator's three sections.
+  const synthesis: Synthesis333 = {
+    results: `Results — the pod produced: ${outcome || "the agreed outcome"}. Recorded via ${recordMethod}. (Cube 6 writes the full 111 words.)`,
+    changed: `What changed — ${witnessedHours}h of witnessed contribution settled as ${totalYugYok.toFixed(1)} 웃` +
+      (yaTriangle > 0 ? `, ${accelDelta}h ahead of the frozen baseline (${yaTriangle.toFixed(0)} ◬).` : ".") +
+      " (Cube 6 writes the full 111 words.)",
+    next: `What next — the outcome feeds the backlog; the pod can adopt the next Task • Outcome. (Cube 6 writes the full 111 words.)`,
   };
 
   return (
@@ -239,6 +305,9 @@ export default function SoISessionPage() {
         {/* ── COMPOSE ─────────────────────────────────────────────── */}
         {phase === "compose" && (
           <>
+            <p className="mb-4 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground">
+              A pod is <span className="font-medium text-foreground">exactly three</span> — one lead + two invited. Three is the minimum that lets two people witness a third, so no one settles their own hours (TOK-17 · D5 anti-sybil).
+            </p>
             <label className="mb-1 block text-sm font-medium">Intent — what the pod is trying to do</label>
             <textarea
               value={intent} onChange={(e) => setIntent(e.target.value)} rows={2}
@@ -503,36 +572,183 @@ export default function SoISessionPage() {
             )}
             <button
               disabled={!recordValue.trim()}
-              onClick={() => { setPhase("closed"); drive("closed"); }}
+              onClick={() => { setPhase("audit"); drive("audit"); }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
-              Close with recorded outcome
+              Next — witness the hours
             </button>
           </>
         )}
 
-        {/* ── CLOSED ───────────────────────────────────────────────── */}
+        {/* ── AUDIT — TOK-17 self-audit + cross-review; TOK-18 accelerator ─── */}
+        {phase === "audit" && (
+          <>
+            {/* the eight-step evidence chain, with progress */}
+            <div className="mb-4 rounded-lg border border-border p-3">
+              <div className="mb-2 text-sm font-medium">The evidence chain <span className="text-xs font-normal text-muted-foreground">— clock-in → cross-review (TOK-17)</span></div>
+              <ol className="grid gap-1.5 sm:grid-cols-2">
+                {EVIDENCE_CHAIN.map((s) => {
+                  const done = s.step <= 5 || (s.key === "selfaudit" && allSelfAudited) || (s.key === "crossreview" && allWitnessed) || (s.key === "mint" && allWitnessed);
+                  return (
+                    <li key={s.key} className="flex items-start gap-2 text-xs">
+                      <span className={`mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] ${done ? "bg-cyan-500 text-white" : "border border-border text-muted-foreground"}`}>
+                        {done ? "✓" : s.step}
+                      </span>
+                      <span><span className="font-medium text-foreground">{s.label}</span> — <span className="text-muted-foreground">{s.note}</span></span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+
+            {/* self-audit + cross-review, per member */}
+            <div className="mb-4 space-y-3">
+              {members.map((m, i) => (
+                <div key={i} className="rounded-lg border border-border p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-medium">{firstName(m.name) || m.role}</span>
+                    <span className={`rounded px-2 py-0.5 text-[11px] ${isWitnessed(i) ? "bg-cyan-500/15 text-cyan-500" : "bg-muted text-muted-foreground"}`}>
+                      {isWitnessed(i) ? "witnessed ✓" : `${witnessedCount(i)}/${POD_SIZE - 1} witnesses`}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="number" min="0" step="0.25" value={m.hours}
+                      onChange={(e) => setMember(i, { hours: e.target.value })}
+                      placeholder="hours" className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    <input
+                      value={m.did} onChange={(e) => setMember(i, { did: e.target.value })}
+                      placeholder="what you did (one line)"
+                      className="min-w-[10rem] flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                    />
+                  </div>
+                  {/* the other two attest */}
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Cross-review:</span>
+                    {members.map((r, j) => j === i ? null : (
+                      <button
+                        key={j} onClick={() => toggleWitness(i, j)}
+                        className={`rounded-md border px-2 py-1 ${m.witnessedBy[j] ? "border-cyan-400 bg-cyan-400/10 text-cyan-400" : "border-border text-muted-foreground"}`}
+                      >
+                        {m.witnessedBy[j] ? "✓ " : ""}{firstName(r.name) || r.role} witnesses
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* TOK-18 accelerator — delta only, conflict-excluded signer */}
+            <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3">
+              <div className="mb-2 text-sm font-medium text-cyan-500">Accelerator <span className="text-xs font-normal text-muted-foreground">— ◬ vs a frozen baseline (TOK-18)</span></div>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <label className="text-xs text-muted-foreground">Frozen baseline (hours the pod estimated up front):</label>
+                <input
+                  type="number" min="0" step="0.25" value={baselineHrs}
+                  onChange={(e) => setBaselineHrs(e.target.value)}
+                  placeholder="est. hours" className="w-28 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Signer (conflict-excluded):</span>
+                {members.map((r, j) => (
+                  <button
+                    key={j} onClick={() => setSignerIdx(j)}
+                    className={`rounded-md border px-2 py-1 ${signerIdx === j ? "border-cyan-400 bg-cyan-400/10 text-cyan-400" : "border-border text-muted-foreground"}`}
+                  >{firstName(r.name) || r.role}</button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {baseline > 0
+                  ? (accelDelta > 0
+                      ? `${accelDelta}h ahead of the ${baseline}h baseline → ${yaTriangle.toFixed(0)} ◬ recognised (delta only — never a profit metric), signed by ${signerName}.`
+                      : `No time saved against the ${baseline}h baseline — no ◬ this task.`)
+                  : "Enter the frozen baseline to compute ◬. ◬ is the hours delta only — never Revenue / Gross Profit / Operating Income / R&D — so it stays outside the securities perimeter."}
+              </p>
+            </div>
+
+            <div className="mb-3 rounded-md border border-border p-3 text-sm">
+              <span className="font-medium text-foreground">{witnessedHours} witnessed hours</span>
+              <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (hours × M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
+            </div>
+
+            <button
+              disabled={!allWitnessed || !allSelfAudited}
+              onClick={() => { setPhase("closed"); drive("closed"); }}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+            >
+              Settle &amp; issue the receipt
+            </button>
+            {(!allWitnessed || !allSelfAudited) && (
+              <p className="mt-2 text-xs text-muted-foreground">Every member self-audits their hours, and both others must witness each claim, before settlement.</p>
+            )}
+          </>
+        )}
+
+        {/* ── CLOSED — TOK-26 four-artefact receipt + 333 synthesis ─── */}
         {phase === "closed" && (
-          <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-4 text-sm">
-            <div className="mb-1 font-medium text-cyan-500">Outcome recorded by the pod.</div>
-            <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
-            <p className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> {outcome}</p>
-            <p className="text-muted-foreground break-words"><span className="font-medium text-foreground">Recorded ({recordMethod}):</span> {recordValue}</p>
-            <div className="mt-2 rounded-md border border-cyan-400/30 p-2 text-xs">
-              <div className="mb-1 font-medium text-cyan-400">Trio — accepted &amp; documented</div>
+          <div className="space-y-4 text-sm">
+            <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-4">
+              <div className="mb-1 font-medium text-cyan-500">Settled &amp; receipted by the pod.</div>
+              <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
+              <p className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> {outcome}</p>
+              <p className="text-muted-foreground break-words"><span className="font-medium text-foreground">Recorded ({recordMethod}):</span> {recordValue}</p>
+            </div>
+
+            {/* TOK-26 — one record, four artefacts */}
+            <div className="rounded-lg border border-border p-4">
+              <div className="mb-2 text-sm font-medium">The receipt <span className="text-xs font-normal text-muted-foreground">— one ledger record, read four ways (TOK-26)</span></div>
+              <dl className="space-y-2 text-xs">
+                {([
+                  ["Transcript", receipt.transcript],
+                  ["Portfolio", receipt.portfolio],
+                  ["Governance", receipt.governance],
+                  ["Settlement", receipt.settlement],
+                ] as const).map(([label, body]) => (
+                  <div key={label} className="rounded-md border border-border p-2">
+                    <dt className="font-medium text-cyan-400">{label}</dt>
+                    <dd className="mt-0.5 text-muted-foreground">{body}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            {/* the 333-word (3 × 111) synthesis, in the operator's three sections */}
+            <div className="rounded-lg border border-border p-4">
+              <div className="mb-2 text-sm font-medium">333-word synthesis <span className="text-xs font-normal text-muted-foreground">— 3 × 111: Results · What changed · What next (Cube 6)</span></div>
+              <div className="space-y-2 text-xs">
+                {([
+                  ["Results (111)", synthesis.results],
+                  ["What changed (111)", synthesis.changed],
+                  ["What next (111)", synthesis.next],
+                ] as const).map(([label, body]) => (
+                  <div key={label}>
+                    <div className="font-medium text-foreground">{label}</div>
+                    <p className="text-muted-foreground">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-md border border-cyan-400/30 p-3 text-xs">
+              <div className="mb-1 font-medium text-cyan-400">Trio — accepted, witnessed &amp; documented</div>
               <ul className="text-muted-foreground">
                 {members.map((m, i) => (
                   <li key={i}>
                     <span className="text-foreground">{m.role}:</span> {m.name || "—"}
-                    {m.contact ? ` · ${m.contact}` : ""} {m.agreed ? "· ✓ approved" : ""}
+                    {m.contact ? ` · ${m.contact}` : ""} {m.agreed ? "· ✓ approved" : ""} {isWitnessed(i) ? "· ✓ witnessed" : ""}
+                    {parseFloat(m.hours) > 0 ? ` · ${parseFloat(m.hours)}h` : ""}
                   </li>
                 ))}
               </ul>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              A Pod Project auto-writes a 333-word (3 × 111) synthesis — Intent · Outcome · Feedback — via the Cube 6 pipeline; ♡ accrues to all three, per the living document.
+
+            <p className="text-xs text-muted-foreground">{FREE_TOOLS_NOTE}</p>
+            <p className="text-[11px] text-muted-foreground">
+              ♡ accrues to all three on the witnessed outcome; 웃 settles from witnessed hours under the 9,999/yr ceiling; ◬ only from the frozen-baseline delta. Nothing new is minted — the pod gates currencies that already exist. — MoT
             </p>
-            <button onClick={reset} className="mt-3 rounded-md border border-border px-4 py-2 text-sm">New pod</button>
+            <button onClick={reset} className="rounded-md border border-border px-4 py-2 text-sm">New pod</button>
           </div>
         )}
       </section>

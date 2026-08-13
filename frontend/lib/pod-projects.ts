@@ -80,3 +80,48 @@ export const RECORD_METHODS: { id: RecordMethod; label: string; hint: string }[]
 
 /** The synchronized-start window: all pod members must start within this many seconds. */
 export const SYNC_START_SECONDS = 15;
+
+/**
+ * POD is exactly three — the minimum that lets two people witness a third.
+ * One lead + two invited. Fewer than three cannot cross-review; more than three
+ * is a different instrument. (Living document: unit.witness, D5 two-tier anti-sybil.)
+ */
+export const POD_SIZE = 3;
+
+/** The pod runs on free tools — nothing here needs a purchase to witness an outcome. */
+export const FREE_TOOLS_NOTE =
+  "The pod runs on free tools: the polling tool's voice-to-text, an unlisted video link, or plain text. " +
+  "No purchase is needed to witness and record an outcome — the Seed is membership, not a paywall on contribution.";
+
+/**
+ * TOK-17 — the eight-step witnessed-hours evidence chain (POD of 3) that mints 웃.
+ * Clock-in → cross-review. The last three steps (self-audit, cross-review, mint) are
+ * what turn a finished task into evidence a settlement can stand on: no hour counts as
+ * 웃 until the two other members have witnessed it. MoT records the actual minutes
+ * separately from the 웃 that settle.
+ */
+export const EVIDENCE_CHAIN: { step: number; key: string; label: string; note: string }[] = [
+  { step: 1, key: "clockin",     label: "Clock-in",         note: "All three lock one shared start time." },
+  { step: 2, key: "intent",      label: "Intent + outcome", note: "One measurable outcome is declared before work begins." },
+  { step: 3, key: "work",        label: "Work",             note: "The pod does the task together." },
+  { step: 4, key: "clockout",    label: "Clock-out",        note: "Any member stops the session for all three." },
+  { step: 5, key: "record",      label: "Record",           note: "The outcome is captured — video, written, or voice." },
+  { step: 6, key: "selfaudit",   label: "Self-audit",       note: "Each member states their own hours and what they did." },
+  { step: 7, key: "crossreview", label: "Cross-review",     note: "The other two witness each claim — a self-attestation alone counts for nothing." },
+  { step: 8, key: "mint",        label: "Settle 웃",         note: "Witnessed hours × M settle as 웃 under the 9,999/yr ceiling; MoT keeps the actual minutes." },
+];
+
+/** TOK-26 — one ledger record, read four ways. The receipt a contribution leaves behind. */
+export interface ReceiptArtefacts {
+  transcript: string;   // what happened, in order
+  portfolio: string;    // a profile blurb (Cube-6 33-word tier in production)
+  governance: string;   // who witnessed, who signed, which AI-authority state
+  settlement: string;   // the 웃 / ◬ that settle, under the ceiling, at the local rate
+}
+
+/** The 333-word (3 × 111) synthesis, in the three sections the operator asked for. */
+export interface Synthesis333 {
+  results: string;      // 111 — what the pod produced
+  changed: string;      // 111 — what changed because of it
+  next: string;         // 111 — what happens next
+}
