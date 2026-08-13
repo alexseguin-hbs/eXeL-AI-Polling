@@ -269,7 +269,7 @@ let VMAXCHK=null;
   await p.evaluate(()=>setView('paper'));
   const cyc=[];
   for(let i=0;i<4;i++){ await p.click('#bView'); cyc.push(await p.evaluate(()=>view)); }
-  if(cyc.join(',')!=='nose,brief,paper,nose')
+  if(cyc.join(',')!=='brief,nose,paper,brief')
     fails.push('view toggle does not cycle the three readings: '+cyc.join(','));
   // section anchors + ToC
   await p.evaluate(()=>setView('paper'));
