@@ -125,6 +125,8 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                             onClick={() => { setActiveLocale(lang.code); setLangOpen(false); }}
                             className={`flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent ${activeLocale === lang.code ? "bg-accent font-medium" : ""}`}
                           >
+                            <span className="text-xs font-mono uppercase text-primary">{lang.code}</span>
+                            <span className="text-muted-foreground">&bull;</span>
                             <span>{lang.nameNative}</span>
                             <span className="text-muted-foreground text-xs">({lang.nameEn})</span>
                           </button>

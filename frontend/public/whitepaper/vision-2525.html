@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">207</span></strong>, <strong><span id="dlbytes2">5655061</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">208</span></strong>, <strong><span id="dlbytes2">5657384</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5973,6 +5973,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"Non-custodial and classify-before-delivery invariants preserved verbatim in substance."}
  ],
  next:"Re-translate the r207 blocks into the built languages; continue the remaining languages overnight; add the gate ontology-invariant machine-check."
+},
+{ v:208, code:"UNIFIED LANGUAGE-MENU FORMAT &mdash; LL &middot; NATIVE (ENGLISH) EVERYWHERE", stamp:"2026.08.14 &middot; revision 208",
+ thrust:"Operator: the two global language dropdowns disagreed &mdash; the main app showed Native (English) with no two-digit code, the white paper showed CODE &middot; Native with no English spelling. Merged into one format across both: <strong>LL &middot; Native (English)</strong> (two-digit code, native name, English spelling in parentheses), shown for every language including English. The doc menu now renders the English parenthetical for all entries; the app navbar gains the two-digit code prefix. Chrome only &mdash; no ledger, figure or word-count change; totals held 3,333 / 9,999 / 77,777.",
+ mot:"A small thing that mattered: a person choosing their language should meet the same shape wherever they are in the system. Two dropdowns that almost agreed is worse than two that plainly do, because the reader notices the seam. One format now, in the app and in the paper.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"One menu shape across app and paper; the reader meets no seam."},
+  {n:"Asar",g:"A",f:"Format synthesised from both prior forms, losing nothing from either."},
+  {n:"Athena",g:"A",f:"Chrome-only change; the ledger, figures and totals are untouched."},
+  {n:"Christo",g:"A",f:"Choosing a language feels the same everywhere &mdash; small dignity, consistently kept."},
+  {n:"Enki",g:"A",f:"English shows (English) too, so no entry is a special case."},
+  {n:"Enlil",g:"A",f:"Render-line change only; replay byte-identical for all prior releases."},
+  {n:"Krishna",g:"A",f:"App navbar and doc menu now derive the same LL &middot; Native (English) form."},
+  {n:"Odin",g:"A",f:"Future languages inherit the format automatically on build."},
+  {n:"Pangu",g:"A",f:"The two-digit code returns to the app; the English spelling returns to the paper."},
+  {n:"Sofia",g:"A",f:"Both the newcomer and the returning reader read the list the same way."},
+  {n:"Thoth",g:"A",f:"Totals held; zero content words moved."},
+  {n:"Thor",g:"A",f:"No security surface touched; a presentation-layer unification."}
+ ],
+ next:"Rebuild all built languages at r208 with the re-translated r207 blocks; continue the remaining languages overnight."
 }
 ];
 
@@ -18387,7 +18407,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5655061";
+const DL_BYTES = "5657384";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19635,7 +19655,7 @@ function renderLangMenu(){
       const built = V2525_BUILT.has(l.c);
       return '<button role="menuitem" data-lang="' + l.c + '"' +
         (built ? '' : ' disabled') + (l.c === cur ? ' aria-current="true"' : '') + '>' +
-        '<span class="lc">' + l.c.toUpperCase() + '</span> &bull; ' + esc(l.n) + (l.e && l.c !== 'en' ? ' <span class="le">(' + esc(l.e) + ')</span>' : '') + '</button>';
+        '<span class="lc">' + l.c.toUpperCase() + '</span> &bull; ' + esc(l.n) + (l.e ? ' <span class="le">(' + esc(l.e) + ')</span>' : '') + '</button>';
     }).join("");
 }
 function langClose(){
