@@ -48,17 +48,30 @@ const enIds = Object.keys(en);
 const have = enIds.filter((id) => typeof map[id] === 'string' && map[id].length);
 const fallback = enIds.filter((id) => !have.includes(id));
 
+// Safe JSON-in-<script>: JSON is not a subset of JS. U+2028/U+2029 are legal in JSON
+// strings but are line terminators in a JS string literal, and a literal "</script>"
+// (or any "<") in a translation would end the inline script. Escape all three so the
+// injected map can never break the page. The browser decodes < back to "<" at parse
+// time, so innerHTML still renders real tags. Deterministic (pure string transform).
+const safeJson = (o) => JSON.stringify(o)
+  .replace(/</g, '\\u003c')
+  .replace(/\u2028/g, '\\u2028')
+  .replace(/\u2029/g, '\\u2029');
 const overlay =
   ANCHOR + '\n' +
   '/* v19 i18n overlay (' + lang + ') — fixed per-language map over the English winners.\n' +
   '   Deterministic: no clock, no MT; missing id -> English fallback. */\n' +
-  'const I18N_MAP = ' + JSON.stringify(map) + ';\n' +
+  'const I18N_MAP = ' + safeJson(map) + ';\n' +
   '(function(){ var __raw = replay; replay = function(v, order, fresh){\n' +
   '  return __raw(v, order, fresh).map(function(e){\n' +
   '    return (I18N_MAP[e.id] != null) ? Object.assign({}, e, { html: I18N_MAP[e.id] }) : e;\n' +
   '  }); }; })();';
 
-let out = src.replace(ANCHOR, overlay);
+// Replacement FUNCTION, not string: a string replacement interprets $&, $`, $', $$
+// as patterns, and a translated block containing "$&" (e.g. "100 000&nbsp;$&nbsp;/mois")
+// would splice the matched anchor into the map and break the inline JS. A function
+// replacement is inserted verbatim.
+let out = src.replace(ANCHOR, () => overlay);
 
 // Chrome overlay (masthead, deck labels, settings headings) from an ANCHORED per-language map.
 // docs/i18n/chrome/<lang>.json = [ [anchorString, translatedString], ... ] — each anchor is a
@@ -70,7 +83,7 @@ let chromeApplied = 0, chromeMissed = 0;
 if (existsSync(chromePath)) {
   const pairs = JSON.parse(readFileSync(chromePath, 'utf8'));
   for (const [anchor, translated] of pairs) {
-    if (out.split(anchor).length === 2) { out = out.replace(anchor, translated); chromeApplied++; }
+    if (out.split(anchor).length === 2) { out = out.replace(anchor, () => translated); chromeApplied++; }
     else chromeMissed++;
   }
 }
