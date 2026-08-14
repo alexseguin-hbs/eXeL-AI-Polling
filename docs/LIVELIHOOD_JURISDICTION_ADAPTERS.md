@@ -6,7 +6,7 @@
 > cards the architecture switches on. Cards are data for implementation (Cube 16 Accords / Cube 14
 > Payments / Cube 5 Gateway), deliberately kept OUT of the 77,777-word paper budget.
 >
-> **Nothing here is legal advice.** Every capability marked `ALLOW` or `LICENSED-PARTNER` requires
+> **Design for jurisdiction-specific qualification and fail-closed deployment — never “compliant” as a blanket claim. Nothing here is legal advice.** Every capability marked `ALLOW` or `LICENSED-PARTNER` requires
 > securities, payments, tax, employment, and (for housing) lending/source-of-funds counsel sign-off in
 > that jurisdiction **before any live money moves**. A card whose `reviewed` date is stale **fails closed**.
 
@@ -31,7 +31,7 @@ retention) · 12. Accounting/custody (who holds funds, when, under what fiduciar
 ## Capability manifest (per card)
 `recognition · HI-compensation · Bonus · Livelihood-Direct · Housing-Bonus · transferability · custody ·
 cross-border-payment · public-offering · AML/KYC · tax · sanctions · Human-Authority · Replay`
-— each: **ALLOW / MODIFY / LICENSED-PARTNER / BLOCK**. Plus: `controlling-law`, `counsel`, `reviewed`
+— each: **UNREVIEWED → COUNSEL-REVIEW → ALLOW / MODIFY / LICENSED-PARTNER / BLOCK → EXPIRED → FAIL-CLOSED** (default-deny; a stale review fails closed). Plus: `controlling-law`, `counsel`, `reviewed`
 (date), `expires` (fail-closed), `replay-hash`.
 
 ---
@@ -40,7 +40,7 @@ cross-border-payment · public-offering · AML/KYC · tax · sanctions · Human-
 
 ### 🇺🇸 United States — controlling: SEC (Howey/Reves) · FinCEN + state MTLs · IRS (§119/§132/§409A/§83) · ERISA · CFPB
 - recognition ALLOW · HI-compensation ALLOW (W-2/1099, withhold first) · Bonus ALLOW (supplemental wage;
-  Home Continuity Bonus vests at closing §83, pay in §409A short-term-deferral window) · Livelihood-Direct
+  Home Continuity Bonus DESIGNED to vest at closing (§83) and pay in the §409A short-term-deferral window — actual forfeiture/timing counsel-reviewed) · Livelihood-Direct
   ALLOW (post-tax split-deposit via licensed processor; in-kind hub via §119) · Housing-Bonus
   LICENSED-PARTNER (EAH papering; lender/underwriting + source-of-funds gate) · transferability BLOCK ·
   custody LICENSED-PARTNER (payroll/bank/escrow moves money; framework non-custodial) · cross-border
