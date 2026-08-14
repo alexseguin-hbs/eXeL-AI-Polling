@@ -1432,10 +1432,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
      `fails.push` once the re-fit pass is done. */
   if(t.brief!==3333)  fails.push('SACRED TOTALS: brief '+t.brief+' != 3333');
   if(t.nose!==9999)   fails.push('SACRED TOTALS: nose '+t.nose+' != 9999');
-  // PAPER relaxed to WARN for the r201 tokenomics content pass (operator's "write freely,
-  // re-fit word count LAST"). The worked four-number equation + Seed-opportunity blocks land
-  // now; a dedicated re-fit restores paper to 77777 and this line to a hard fails.push.
-  if(t.paper!==77777) console.warn('SACRED TOTALS (WARN, re-fit pending): paper '+t.paper+' != 77777');
+  if(t.paper!==77777) fails.push('SACRED TOTALS: paper '+t.paper+' != 77777');
   console.log('sacred totals — brief '+t.brief+' · nose '+t.nose+' · paper '+t.paper);
 }
 
