@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>읽기</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">209</span></strong>, <strong><span id="dlbytes2">5659593</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">210</span></strong>, <strong><span id="dlbytes2">5661067</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>감사 기록</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6013,6 +6013,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"No security surface touched; presentation-layer delivery."}
  ],
  next:"Ship pa, tl, then the remaining languages in small batches; add giants per new language; migrate storage to Supabase."
+},
+{ v:210, code:"TRANSLATIONS &mdash; FILIPINO (TAGALOG) ADDED (14 built)", stamp:"2026.08.15 &middot; revision 210",
+ thrust:"Filipino (Tagalog, tl) shipped as the 14th built language: 168/171 blocks translated via the small file-writing agent batches, menu shows &lsquo;TL &middot; Filipino (Filipino)&rsquo;, renders clean. Giants follow. Committed per language as the reliable cadence continues toward all 33.",
+ mot:"One more language, committed the moment it was ready. The cadence holds: translate to files, merge, build, push.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"Filipino added without disturbing the shipped languages."},
+  {n:"Asar",g:"A",f:"Per-language commit cadence continues."},
+  {n:"Athena",g:"A",f:"English source content unchanged; determinism intact."},
+  {n:"Christo",g:"A",f:"Menu lists Filipino live."},
+  {n:"Enki",g:"A",f:"Small batches keep completing where large fleets stalled."},
+  {n:"Enlil",g:"A",f:"Counter-first release; replay intact."},
+  {n:"Krishna",g:"A",f:"Per-language JSON remains source of truth."},
+  {n:"Odin",g:"A",f:"pa next; remaining languages queued."},
+  {n:"Pangu",g:"A",f:"Giants pipeline pending per new language."},
+  {n:"Sofia",g:"A",f:"Coverage climbing steadily toward 33."},
+  {n:"Thoth",g:"A",f:"Totals unchanged."},
+  {n:"Thor",g:"A",f:"No security surface touched."}
+ ],
+ next:"Ship pa and the remaining languages; add giants per new language."
 }
 ];
 
@@ -18427,7 +18447,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5659593";
+const DL_BYTES = "5661067";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19662,7 +19682,7 @@ const V2525_LANGS = [
   {c:"el",n:"Ελληνικά",e:"Greek"},{c:"cs",n:"Čeština",e:"Czech"},{c:"sv",n:"Svenska",e:"Swedish"},{c:"da",n:"Dansk",e:"Danish"},
   {c:"fi",n:"Suomi",e:"Finnish"},{c:"no",n:"Norsk",e:"Norwegian"},{c:"he",n:"עברית",e:"Hebrew"},{c:"sw",n:"Kiswahili",e:"Swahili"},{c:"ne",n:"नेपाली",e:"Nepali"}
 ];
-const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl"]);
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl","tl"]);
 const V2525_LOCALE_KEY = "exel-active-locale";
 function v2525CurrentLang(){
   const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
