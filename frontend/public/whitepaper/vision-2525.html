@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">208</span></strong>, <strong><span id="dlbytes2">5657384</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">209</span></strong>, <strong><span id="dlbytes2">5659593</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -5993,6 +5993,26 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"No security surface touched; a presentation-layer unification."}
  ],
  next:"Rebuild all built languages at r208 with the re-translated r207 blocks; continue the remaining languages overnight."
+},
+{ v:209, code:"TRANSLATIONS &mdash; GIANTS FOR THE 12 LIVE LANGUAGES + POLISH ADDED (13 built)", stamp:"2026.08.15 &middot; revision 209",
+ thrust:"Translation delivery, committed per language. The 3 image-heavy blocks (paper.toc/mot.author/front.alvar) are now translated for the 12 live languages by stripping the base64 image, translating the text, and restoring the image &mdash; paper.toc is in NOSE, so this completes NOSE for them (de/pt/ru now full 171/171). Polish (pl) is added as the 13th built language (168/171; its giants follow). Method fix: small file-writing agent batches that complete in the active window, committed the instant each language is ready.",
+ mot:"Two days of over-parallelised fleets produced nothing committed because they stalled when the session idled and I never shipped incrementally. The fix is unglamorous and it works: translate in small batches to files, merge, build, and push per language. This entry is the first of that cadence.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"NOSE completed for the 12 live languages (paper.toc translated)."},
+  {n:"Asar",g:"A",f:"Each language committed the moment it is ready &mdash; durable against restarts."},
+  {n:"Athena",g:"A",f:"Base64 images restored byte-for-byte; only the text is translated."},
+  {n:"Christo",g:"A",f:"Polish joins the built set; menu lists it live."},
+  {n:"Enki",g:"A",f:"Small agent batches complete where 36-agent fleets stalled."},
+  {n:"Enlil",g:"A",f:"English source unchanged in content; determinism intact."},
+  {n:"Krishna",g:"A",f:"Per-language JSON remains the source of truth (Supabase-ready)."},
+  {n:"Odin",g:"A",f:"Remaining languages queued in small batches toward 33."},
+  {n:"Pangu",g:"A",f:"Giants pipeline reusable for every remaining language."},
+  {n:"Sofia",g:"A",f:"de/pt/ru fully complete; others improved."},
+  {n:"Thoth",g:"A",f:"Totals unchanged; translations do not touch the English word count."},
+  {n:"Thor",g:"A",f:"No security surface touched; presentation-layer delivery."}
+ ],
+ next:"Ship pa, tl, then the remaining languages in small batches; add giants per new language; migrate storage to Supabase."
 }
 ];
 
@@ -18407,7 +18427,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5657384";
+const DL_BYTES = "5659593";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19635,7 +19655,7 @@ const V2525_LANGS = [
   {c:"el",n:"Ελληνικά",e:"Greek"},{c:"cs",n:"Čeština",e:"Czech"},{c:"sv",n:"Svenska",e:"Swedish"},{c:"da",n:"Dansk",e:"Danish"},
   {c:"fi",n:"Suomi",e:"Finnish"},{c:"no",n:"Norsk",e:"Norwegian"},{c:"he",n:"עברית",e:"Hebrew"},{c:"sw",n:"Kiswahili",e:"Swahili"},{c:"ne",n:"नेपाली",e:"Nepali"}
 ];
-const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi"]);
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl"]);
 const V2525_LOCALE_KEY = "exel-active-locale";
 function v2525CurrentLang(){
   const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
