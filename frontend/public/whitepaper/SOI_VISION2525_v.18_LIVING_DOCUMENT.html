@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">214</span></strong>, <strong><span id="dlbytes2">5666069</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">215</span></strong>, <strong><span id="dlbytes2">5667270</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6089,6 +6089,20 @@ const VERSIONS = [
   {n:"Thoth",g:"A",f:"Totals unchanged."},{n:"Thor",g:"A",f:"No security surface touched."}
  ],
  next:"Ship uk and the remaining 11; add giants for the new languages."
+},
+{ v:215, code:"TRANSLATIONS &mdash; UKRAINIAN ADDED (21 built)", stamp:"2026.08.15 &middot; revision 215",
+ thrust:"Ukrainian (uk) shipped: 168/171 blocks, added to V2525_BUILT, menu shows &lsquo;UK &middot; &#1059;&#1082;&#1088;&#1072;&#1111;&#1085;&#1089;&#1100;&#1082;&#1072; (Ukrainian)&rsquo;. 21 of 33 built. Giants follow per language.",
+ mot:"Cadence holds. da/fi/no in flight.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"Ukrainian added cleanly."},{n:"Asar",g:"A",f:"Committed per language."},
+  {n:"Athena",g:"A",f:"English source unchanged; determinism intact."},{n:"Christo",g:"A",f:"Menu lists Ukrainian live."},
+  {n:"Enki",g:"A",f:"Small batches keep completing."},{n:"Enlil",g:"A",f:"Replay intact."},
+  {n:"Krishna",g:"A",f:"Per-language JSON source of truth."},{n:"Odin",g:"A",f:"da fi no next; then nl he sw ne id bn vi tr th."},
+  {n:"Pangu",g:"A",f:"Giants pipeline pending per new language."},{n:"Sofia",g:"A",f:"21/33 built."},
+  {n:"Thoth",g:"A",f:"Totals unchanged."},{n:"Thor",g:"A",f:"No security surface touched."}
+ ],
+ next:"Ship da, fi, no; then nl he sw ne id bn vi tr th; add giants for the new languages."
 }
 ];
 
@@ -18503,7 +18517,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5666069";
+const DL_BYTES = "5667270";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19731,7 +19745,7 @@ const V2525_LANGS = [
   {c:"el",n:"Ελληνικά",e:"Greek"},{c:"cs",n:"Čeština",e:"Czech"},{c:"sv",n:"Svenska",e:"Swedish"},{c:"da",n:"Dansk",e:"Danish"},
   {c:"fi",n:"Suomi",e:"Finnish"},{c:"no",n:"Norsk",e:"Norwegian"},{c:"he",n:"עברית",e:"Hebrew"},{c:"sw",n:"Kiswahili",e:"Swahili"},{c:"ne",n:"नेपाली",e:"Nepali"}
 ];
-const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl","tl","ro","pa","ms","el","cs","sv"]);
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl","tl","ro","pa","ms","el","cs","sv","uk"]);
 const V2525_LOCALE_KEY = "exel-active-locale";
 function v2525CurrentLang(){
   const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
