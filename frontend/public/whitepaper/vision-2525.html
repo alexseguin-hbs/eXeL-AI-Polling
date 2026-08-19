@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">224</span></strong>, <strong><span id="dlbytes2">5841826</span> bytes</strong> (<span id="dlsize2">5.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">225</span></strong>, <strong><span id="dlbytes2">5842867</span> bytes</strong> (<span id="dlsize2">5.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6236,6 +6236,18 @@ const VERSIONS = [
   {n:"Thoth",g:"A",f:"Totals unmoved 3,333 / 9,999 / 77,777."}
  ],
  next:"he (RTL), sw, ne to reach 33 built; then rotated review + read-through passes across all."
+},
+{ v:225, code:"SWAHILI LIVE &mdash; sw (PASS-1 DRAFT)",
+ stamp:"2026.08.19 &middot; revision 225",
+ thrust:"Swahili joins the built-language menu (V2525_BUILT 30 &rarr; 31), rendered from a full 171/171-block translation (168 chunk blocks + 3 giants, tokens preserved). Completed Pass-1 draft; rotated review and read-through refine later. Chrome-only in the source, replay byte-identical, totals unmoved at 3,333 / 9,999 / 77,777. Doc stays v.18.",
+ mot:"Thirty-one of thirty-three built. Hebrew (RTL) and Nepali are the last two drafts, running now; each ships the moment it is whole.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Krishna",g:"A",f:"sw renders 171/171; menu flag only, no content moved."},
+  {n:"Enlil",g:"A",f:"Chrome-only supersede; prior releases replay byte-identical."},
+  {n:"Thoth",g:"A",f:"Totals unmoved 3,333 / 9,999 / 77,777."}
+ ],
+ next:"he (RTL) and ne to reach 33 built; then the eXeL + Grok semantic-hardening release; then rotated review + read-through passes."
 }
 ];
 
@@ -18670,7 +18682,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5841826";
+const DL_BYTES = "5842867";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19898,7 +19910,7 @@ const V2525_LANGS = [
   {c:"el",n:"Ελληνικά",e:"Greek"},{c:"cs",n:"Čeština",e:"Czech"},{c:"sv",n:"Svenska",e:"Swedish"},{c:"da",n:"Dansk",e:"Danish"},
   {c:"fi",n:"Suomi",e:"Finnish"},{c:"no",n:"Norsk",e:"Norwegian"},{c:"he",n:"עברית",e:"Hebrew"},{c:"sw",n:"Kiswahili",e:"Swahili"},{c:"ne",n:"नेपाली",e:"Nepali"}
 ];
-const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl","tl","ro","pa","ms","el","cs","sv","uk","da","no","id","nl","tr","vi","th","bn","fi"]);
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl","tl","ro","pa","ms","el","cs","sv","uk","da","no","id","nl","tr","vi","th","bn","fi","sw"]);
 const V2525_LOCALE_KEY = "exel-active-locale";
 function v2525CurrentLang(){
   const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
