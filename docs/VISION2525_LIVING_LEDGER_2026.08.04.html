@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">219</span></strong>, <strong><span id="dlbytes2">5706105</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">220</span></strong>, <strong><span id="dlbytes2">5712976</span> bytes</strong> (<span id="dlsize2">5.7</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6165,6 +6165,21 @@ const VERSIONS = [
   {n:"Thor",g:"A",f:"No security surface touched; presentation only."}
  ],
  next:"Add the QIS+MoT LaTeX equation section; run the 12-AsM+MoT risk report on Brief/NOSE/&sect;1-19; update Innovation Pod accrual + SoI-2525 tokenomics to \u25ec\u2661\uc6c3 with A.B..C; translate the reordered + changed blocks for the complete languages; revert totals to 3,333/9,999/77,777."
+},
+{ v:220, code:"ROTATION READING-SPOT ANCHOR &mdash; HOLD THE TOP LINE ACROSS PORTRAIT &harr; LANDSCAPE",
+ stamp:"2026.08.19 &middot; revision 220",
+ thrust:"Operator: hold the reading spot when the screen rotates. A browser keeps pixel scrollTop across a rotation, but the column reflows to a new width, so a different line lands at the top. A small anchor now tracks the block crossing the top of the reading area (just under the sticky deck) and, after the reflow, returns that same block and line to the top &mdash; portrait&rarr;landscape and landscape&rarr;portrait alike. Keyed to real orientation change only (screen.orientation / orientationchange), so the gate&rsquo;s viewport sizing is untouched. A viewer change, not a content one: no block of record altered, replay byte-identical, totals hold at 3,333 / 9,999 / 77,777. Doc stays v.18.",
+ mot:"The phone reader&rsquo;s rotation now behaves: the line you were on stays the line you are on, both ways. It captures the top block on scroll and restores it after the reflow, guarded so a missing anchor falls back to no-op rather than a jump. No content moved; the release number only keeps the served bytes matched to the source.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Athena",g:"A",f:"One anchor, both directions; captured before the flip, restored after the reflow."},
+  {n:"Enki",g:"A",f:"Edge cases hold: missing/detached anchor falls back to no-op, never a jump."},
+  {n:"Enlil",g:"A",f:"Viewer-only; no block of record altered, prior releases replay byte-identical."},
+  {n:"Odin",g:"A",f:"Keyed to screen.orientation, so setViewportSize in the gate never triggers it."},
+  {n:"Sofia",g:"A",f:"Ratio within the top block keeps the same first line, not just the same section."},
+  {n:"Thor",g:"A",f:"No data surface; a scroll target computed from live geometry, guarded against null."}
+ ],
+ next:"Merge the 9 rotating languages pass by pass (draft, then rotated review, then read-through), each committed; then ne + coverage top-offs to close all 33; then the QIS+MoT LaTeX section and the 12-AsM/MoT risk report."
 }
 ];
 
@@ -18584,7 +18599,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5706105";
+const DL_BYTES = "5712976";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20596,5 +20611,89 @@ document.addEventListener("keydown", function(e){
     }).observe(dk);
   }
   renderDoc();
+})();
+/* r220 — ROTATION READING-SPOT ANCHOR. The browser keeps pixel scrollTop across a
+   portrait<->landscape rotation, but the column reflows to a new width, so a different
+   line lands at the top. This tracks the block crossing the top of the reading area
+   (just under the sticky deck) and, after the reflow a rotation triggers, returns that
+   same block+line to the top — both directions. Keyed to real orientation change only
+   (screen.orientation / orientationchange), never to the gate's setViewportSize resizes. */
+(function(){
+  var ANCH=["P","LI","H1","H2","H3","H4","TD","TR","FIGURE","PRE","BLOCKQUOTE","CAPTION","SECTION","DIV"];
+  var anchor=null, locked=false, raf=0, relT=0;
+  var vpW=window.innerWidth, vpH=window.innerHeight;   /* dims at which capturing is trusted */
+  function orientBase(){
+    var t=(window.screen&&window.screen.orientation&&window.screen.orientation.type)||"";
+    if(t) return t.split("-")[0];
+    return window.innerWidth>window.innerHeight?"landscape":"portrait";
+  }
+  var lastBase=orientBase();
+  function docEl(){ return document.getElementById("doc"); }
+  function isChrome(el){
+    if(!el||el.nodeType!==1) return true;
+    if(el.classList&&(el.classList.contains("secn")||el.classList.contains("deck"))) return true;
+    var pos="";
+    try{ pos=getComputedStyle(el).position; }catch(e){}
+    return pos==="sticky"||pos==="fixed";
+  }
+  function contentTop(){                              /* first Y below the deck AND any pinned section eyebrow */
+    var d=document.querySelector(".deck");
+    var y=d?d.getBoundingClientRect().bottom:42;
+    var secs=document.querySelectorAll(".secn");
+    for(var i=0;i<secs.length;i++){
+      var r=secs[i].getBoundingClientRect();
+      if(r.top<=y+4 && r.bottom>y) y=r.bottom;        /* an eyebrow pinned at the top */
+    }
+    return y+2;
+  }
+  function pick(y){                                   /* topmost CONTENT element at the reading top, skipping chrome */
+    var x=Math.round(window.innerWidth/2), el=document.elementFromPoint(x,y), n=0;
+    while(el&&isChrome(el)&&n<8){ y+=8; el=document.elementFromPoint(x,y); n++; }
+    return el;
+  }
+  function lock(){ locked=true; if(relT){ clearTimeout(relT); relT=0; } }        /* freeze the anchor + stop capturing */
+  function unlock(ms){ if(relT) clearTimeout(relT); relT=setTimeout(function(){ locked=false; relT=0; }, ms||320); }
+  function capture(){
+    if(locked) return;                               /* never re-capture mid-rotation */
+    var d=docEl(); if(!d) return;
+    var y=contentTop(), el=pick(y);
+    if(!el||!d.contains(el)) return;                 /* keep last good anchor */
+    var b=el;
+    while(b&&b!==d&&(ANCH.indexOf(b.tagName)<0||isChrome(b))) b=b.parentElement;
+    if(!b||b===d||isChrome(b)) b=el;
+    if(isChrome(b)) return;                           /* still chrome -> keep last good anchor */
+    var r=b.getBoundingClientRect();
+    if(r.height<=0) return;
+    anchor={el:b, ratio:Math.max(0,Math.min(1,(y-r.top)/r.height))};
+  }
+  function restore(){
+    if(!anchor||!anchor.el||!anchor.el.isConnected){ unlock(60); return; }
+    var y=contentTop(), r=anchor.el.getBoundingClientRect();
+    var to=Math.max(0,Math.round(window.pageYOffset+r.top+anchor.ratio*r.height-y));
+    try{ window.scrollTo({top:to, left:0, behavior:"instant"}); }   /* bypass html{scroll-behavior:smooth} */
+    catch(e){ window.scrollTo(0,to); }
+    vpW=window.innerWidth; vpH=window.innerHeight;   /* new dims are now the trusted baseline */
+    unlock(320);                                     /* release the lock after the restore settles */
+  }
+  function afterReflow(){                             /* anchor is already frozen by lock() */
+    requestAnimationFrame(function(){ requestAnimationFrame(restore); });
+    setTimeout(restore, 260);
+  }
+  window.addEventListener("scroll", function(){
+    if(locked||raf) return;
+    raf=requestAnimationFrame(function(){ raf=0;
+      if(window.innerWidth!==vpW||window.innerHeight!==vpH) return;  /* viewport just changed -> don't capture the clamp */
+      capture();
+    });
+  }, {passive:true});
+  window.addEventListener("orientationchange", function(){ lock(); lastBase=orientBase(); afterReflow(); });
+  function onResize(){                                /* rotation only (gate-safe): key on orientation, not aspect */
+    var b=orientBase();
+    if(b!==lastBase){ lock(); lastBase=b; afterReflow(); }  /* real rotation -> restore the frozen spot */
+    else { vpW=window.innerWidth; vpH=window.innerHeight; } /* non-rotation (e.g. URL bar) -> accept, keep capturing */
+  }
+  window.addEventListener("resize", onResize);
+  if(window.visualViewport) window.visualViewport.addEventListener("resize", onResize);
+  capture();
 })();
 </script>
