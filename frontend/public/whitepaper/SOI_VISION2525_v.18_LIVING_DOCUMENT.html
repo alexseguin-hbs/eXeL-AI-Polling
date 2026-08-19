@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">226</span></strong>, <strong><span id="dlbytes2">5843885</span> bytes</strong> (<span id="dlsize2">5.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">227</span></strong>, <strong><span id="dlbytes2">5845461</span> bytes</strong> (<span id="dlsize2">5.8</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6260,6 +6260,19 @@ const VERSIONS = [
   {n:"Thoth",g:"A",f:"Totals unmoved 3,333 / 9,999 / 77,777."}
  ],
  next:"he (RTL) to reach 33 built; then the eXeL + Grok semantic-hardening release; then rotated review + read-through passes."
+},
+{ v:227, code:"HEBREW LIVE &mdash; he (RTL) &middot; ALL 33 LANGUAGES BUILT",
+ stamp:"2026.08.19 &middot; revision 227",
+ thrust:"Hebrew (right-to-left) joins the built-language menu (V2525_BUILT 32 &rarr; 33), rendered from a full 171/171-block translation with dir=&quot;rtl&quot; set on the document element. This completes the set: ALL 33 languages are now built. These remain Pass-1 drafts; the rotated review and read-through passes refine them next. Chrome-only in the source, replay byte-identical, totals unmoved at 3,333 / 9,999 / 77,777. Doc stays v.18.",
+ mot:"Thirty-three of thirty-three. Every language the framework declares now renders the whole white paper rather than English fallback &mdash; each shipped the moment its draft was whole. What remains is quality: the rotated review and read-through, and the eXeL + Grok semantic-hardening of the economic layer.",
+ stats:{clauses:305, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Krishna",g:"A",f:"he renders 171/171 with dir=rtl; the set is complete at 33."},
+  {n:"Christo",g:"A",f:"Every declared language now reaches its reader in full."},
+  {n:"Enlil",g:"A",f:"Chrome-only supersede; prior releases replay byte-identical."},
+  {n:"Thoth",g:"A",f:"Totals unmoved 3,333 / 9,999 / 77,777; 33/33 built."}
+ ],
+ next:"The eXeL + Grok semantic-hardening release (single 웃 issuance path, ontology cash fix, fund.rnd to QIS R/3, ownership firewall, Seed securities language, the human line above QIS); then rotated review + read-through across all 33; re-translate the changed blocks."
 }
 ];
 
@@ -18694,7 +18707,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5843885";
+const DL_BYTES = "5845461";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19922,7 +19935,7 @@ const V2525_LANGS = [
   {c:"el",n:"Ελληνικά",e:"Greek"},{c:"cs",n:"Čeština",e:"Czech"},{c:"sv",n:"Svenska",e:"Swedish"},{c:"da",n:"Dansk",e:"Danish"},
   {c:"fi",n:"Suomi",e:"Finnish"},{c:"no",n:"Norsk",e:"Norwegian"},{c:"he",n:"עברית",e:"Hebrew"},{c:"sw",n:"Kiswahili",e:"Swahili"},{c:"ne",n:"नेपाली",e:"Nepali"}
 ];
-const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl","tl","ro","pa","ms","el","cs","sv","uk","da","no","id","nl","tr","vi","th","bn","fi","sw","ne"]);
+const V2525_BUILT = new Set(["en","fr","es","de","zh","ar","it","pt","ru","ja","ko","hi","pl","tl","ro","pa","ms","el","cs","sv","uk","da","no","id","nl","tr","vi","th","bn","fi","sw","ne","he"]);
 const V2525_LOCALE_KEY = "exel-active-locale";
 function v2525CurrentLang(){
   const m = location.pathname.match(/vision-2525(?:\.([a-z]{2}))?\.html$/i);
