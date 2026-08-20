@@ -1,13 +1,13 @@
 {
-  "release": 231,
-  "blockCount": 171,
+  "release": 232,
+  "blockCount": 172,
   "views": {
-    "all": 171,
+    "all": 172,
     "paper": 139,
     "outline": 22,
     "brief": 8,
     "nose": 24,
-    "ledger": 88
+    "ledger": 89
   },
   "viewOrders": {
     "all": [
@@ -172,6 +172,7 @@
       "outline.s18",
       "outline.s19",
       "outline.author",
+      "mode.r-core",
       "open.defects",
       "open.decisions",
       "open.questions",
@@ -450,6 +451,7 @@
       "rcore.spiral",
       "rcore.version",
       "rcore.plain",
+      "mode.r-core",
       "human.story",
       "human.cambodia",
       "human.ledger",
