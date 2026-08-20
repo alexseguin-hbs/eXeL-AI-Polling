@@ -106,3 +106,32 @@ export function parseABC(input: string, scale: number = SUB): ABC {
 
 /** Canonical full reference at one whole A: `1.3600..3600` semantics — mirror of UCRS FULL_ORBIT. */
 export const FULL_UNIT_ABC = `${SUB}.${SUB}..${SUB}`;
+
+// ── Spatial / drone-swarm coordinates (Master of Thought spec, 2026-08-19; FUTURE use) ────────
+// Radial positioning on the same Base-3600 system as celestial UCRS-2525.
+// GENERAL directional coordinate = Azimuth.Elevation..Radius = A.B..C, each a 4-digit integer:
+//   A = Azimuth        0000..3600  (full circle)
+//   B = Elevation      0000..1800  (NADIR 0000 · EQUATOR 0900 · ZENITH 1800)
+//   C = Radius/Altitude 0000..(max) (e.g. 3333 on the equator plane, or 1111 for a bounded sphere)
+// DETAILED (e.g. solar-system-scale) location nests three triplets: A.B..C • A.B..C • A.B..C
+//   (coarse frame • mid frame • fine frame) — one origin, one frame, total swarm control.
+export const AZIMUTH_MAX = 3600;
+export const ELEVATION_NADIR = 0, ELEVATION_EQUATOR = 900, ELEVATION_ZENITH = 1800, ELEVATION_MAX = 1800;
+
+/** A spatial coordinate: azimuth (A), elevation (B), radius/altitude (C) — 4-digit Base-3600 integers. */
+export interface Coord { a: number; b: number; c: number; }
+
+/** Format ONE spatial coordinate as `AAAA.BBBB..CCCC` (all three zero-padded to 4 digits). */
+export function fmtCoord({ a, b, c }: Coord): string {
+  return `${pad4(a)}.${pad4(b)}..${pad4(c)}`;
+}
+
+/** Format a DETAILED (nested) location as `A.B..C • A.B..C • A.B..C` (coarse → fine). */
+export function fmtDetailed(frames: Coord[]): string {
+  return frames.map(fmtCoord).join(" • ");
+}
+
+/** Parse `AAAA.BBBB..CCCC` (or the `.5` shorthand) into a spatial Coord. */
+export function parseCoord(input: string, scale: number = SUB): Coord {
+  return parseABC(input, scale);
+}
