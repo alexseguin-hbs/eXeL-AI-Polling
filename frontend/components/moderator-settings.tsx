@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
 import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -426,42 +425,6 @@ function V2TProviderSelector() {
   );
 }
 
-// ─── Vision • 2525 White Paper QR (Settings first item) ─────────
-// Same QRCodeSVG format as the Atlantis Accords and the eXeL AI Polling Session.
-const WP_BRIEF_QR_URL = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525.html#brief/qr";
-
-function WhitePaperQr() {
-  const { t } = useLexicon();
-  const [open, setOpen] = useState(false);
-  return (
-    <section className="rounded-lg border border-border p-3">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between text-left"
-        aria-expanded={open}
-      >
-        <span>
-          <span className="text-sm font-medium">{t("shared.wpqr.title")}</span>
-          <span className="block text-[11px] text-muted-foreground">{t("shared.wpqr.subtitle")}</span>
-        </span>
-        {open ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
-      </button>
-      {open && (
-        <div className="mt-3 flex flex-col items-center gap-2">
-          <div className="rounded-md bg-white p-2">
-            <QRCodeSVG value={WP_BRIEF_QR_URL} size={148} level="M" />
-          </div>
-          <p className="text-center text-[11px] text-muted-foreground">{t("shared.wpqr.hint")}</p>
-          <a href={WP_BRIEF_QR_URL} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
-            {t("shared.wpqr.open")}
-          </a>
-        </div>
-      )}
-    </section>
-  );
-}
-
 // ─── Settings Panel ─────────────────────────────────────────────
 
 interface ModeratorSettingsProps {
@@ -503,12 +466,6 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
             looked like it had a badge slot, so nobody checked whether a badge was in it. The badge is now a
             real row at the foot of this list, so the padding it was standing in for is gone with it. */}
         <div className="flex-1 overflow-y-auto px-6 pt-6 pb-6 space-y-6">
-          {/* FIRST ITEM (operator 2026-08-21): the Vision • 2525 White Paper QR —
-              scanning lands on the Brief view as pure reading (#brief/qr: version
-              badge/epigraph/deck collapsed behind an expander, no ToC). UX shape
-              converged by the 12 AsMs: first in Settings, plain label, direct hash
-              deep-link, doctrine text first. */}
-          <WhitePaperQr />
           {/* All users see language + theme; moderators also see admin sections */}
           <SettingsLanguageSelector />
           <Separator />
