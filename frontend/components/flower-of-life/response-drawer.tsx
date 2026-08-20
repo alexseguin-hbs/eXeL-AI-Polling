@@ -224,7 +224,7 @@ export function ResponseDrawer({
             }}
           >
             {theme.count.toLocaleString()} responses &middot;{" "}
-            {theme.avgConfidence}% avg confidence
+            {theme.avgConfidence}% avg classification confidence
           </div>
         </div>
 
