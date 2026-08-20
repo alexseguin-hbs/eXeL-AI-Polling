@@ -62,6 +62,17 @@ for (const s of ACCORD_SECTIONS_EN) {
     `EN "${s.id}" carries the citizen thread`);
 }
 
+// ── drawn house, never the emoji (operator 2026-08-20) ────────────────────────────
+// 🏠 in the tier text is a counted placeholder; BOTH surfaces must render the drawn
+// Vision-2525 house (path M3 11.5 12 4l9 7.5) in its place.
+const HOUSE_PATH = "M3 11.5 12 4l9 7.5";
+ok(viewerSrc.includes(HOUSE_PATH) && /function AccordBody/.test(viewerSrc) && /<AccordBody text=/.test(viewerSrc),
+  "viewer substitutes 🏠 with the drawn Vision-2525 house (AccordBody)");
+ok(html.includes(HOUSE_PATH) && html.includes("replace(/🏠/g,HOUSE)"),
+  "package reader substitutes 🏠 with the same drawn house");
+ok(ACCORD_SECTIONS_EN.some((s) => [33, 111, 333, 999].some((t) => s.content[t].includes("🏠"))),
+  "the 🏠 placeholder exists in the EN tiers (so the substitution is exercised)");
+
 // ── the viewer builds downloads from the live module at click time ────────────────
 ok(/buildAtlantisPackageHtml\(ACCORD_TRANSLATIONS,/.test(viewerSrc),
   "viewer builds the download from ACCORD_TRANSLATIONS at click time (site update ⇒ next download updates)");

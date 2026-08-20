@@ -63,6 +63,36 @@ function sectionTheme(idx: number, seven: string): ThemeInfo {
   return { label: s.tag, count: 0, avgConfidence: 0, summary33: seven };
 }
 
+// ── Drawn house (Vision 2525) ─────────────────────────────────────
+// The 🏠 in accord text is a COUNTED placeholder token (part of the sacred
+// 33/111/333/999 word counts); it must RENDER as the drawn Vision-2525 house,
+// never the emoji (operator 2026-08-20). Same paths as the living document's icon.
+function HouseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      role="img" aria-label="Livelihood home"
+      style={{ display: "inline-block", verticalAlign: "-0.12em" }}
+    >
+      <path d="M3 11.5 12 4l9 7.5" /><path d="M5.5 10.5V20h13v-9.5" /><path d="M10 20v-5h4v5" />
+    </svg>
+  );
+}
+
+/** Accord tier body: renders text verbatim, substituting each 🏠 with the drawn house. */
+function AccordBody({ text }: { text: string }) {
+  const parts = text.split("🏠");
+  if (parts.length === 1) return <>{text}</>;
+  return (
+    <>
+      {parts.map((p, i) => (
+        <span key={i}>{i > 0 && <HouseIcon />}{p}</span>
+      ))}
+    </>
+  );
+}
+
 // A soft halo ring marking the ACTIVE section on the flower (operator 2026-08-20:
 // the selected accord — e.g. CERTIFY — should read visibly in the visual, not only
 // in the text below). Drawn AFTER the petals so overlapping circles never cover it;
@@ -520,7 +550,7 @@ function FullscreenViewer({
                 key={`${activeIdx}-${tier}`}
                 className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line md:overflow-y-auto pr-2 md:flex-1 md:min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
-                {section.content[tier] ?? ACCORD_SECTIONS_EN[activeIdx]?.content[tier] ?? section.content[333]}
+                <AccordBody text={section.content[tier] ?? ACCORD_SECTIONS_EN[activeIdx]?.content[tier] ?? section.content[333]} />
               </div>
             </>
           ) : view === "approvals" ? (

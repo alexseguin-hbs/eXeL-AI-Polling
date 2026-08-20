@@ -612,7 +612,10 @@ function __initSeal(){
     if(sec<n){var s=CT.sections[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc((DATA&&DATA.msg)?s.tag:((UIc||FB_UI).steps[sec]||s.tag))+'</span> <span class="title">· '+esc(s.title)+'</span>';
       var body=(DATA&&DATA.msg)?(s.content[333]||s.content[tier]||''):(tier===999?(c999(sec)||s.content[333]||''):(s.content[tier]||s.content[333]||''));
-      if(DATA&&DATA.fmt==='html')document.getElementById('rcontent').innerHTML=body;else document.getElementById('rcontent').textContent=body;
+      // The house placeholder renders as the drawn Vision-2525 icon, never the emoji
+      // (operator 2026-08-20) — same paths as the living document and the live viewer.
+      var HOUSE='<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Livelihood home" style="display:inline-block;vertical-align:-0.12em"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M10 20v-5h4v5"/></svg>';
+      if(DATA&&DATA.fmt==='html')document.getElementById('rcontent').innerHTML=body;else document.getElementById('rcontent').innerHTML=esc(body).replace(/🏠/g,HOUSE);
       ti.style.display=(DATA&&DATA.msg)?'none':'flex';}
     else{var nv=CT.nav[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc((DATA&&DATA.msg)?(nv.tag||''):((UIc||FB_UI).steps[sec]||nv.tag))+'</span>';
