@@ -50,7 +50,10 @@ for (const s of ACCORD_SECTIONS_EN) {
 }
 
 // ── the sacred counts: EN tiers are EXACTLY their names (operator hard requirement) ──
-const words = (t) => t.trim().split(/\s+/).filter(Boolean).length;
+// The brand bullet in "Vision • 2525" is a glyph, not a word — excluded so the
+// branding (operator 2026-08-21) never disturbs the sacred counts. Em-dashes etc.
+// keep counting exactly as they did when the tiers were tuned.
+const words = (t) => t.trim().split(/\s+/).filter((w) => w !== "•").length;
 for (const s of ACCORD_SECTIONS_EN) {
   for (const t of [33, 111, 333, 999]) {
     ok(words(s.content[t]) === t, `EN "${s.id}" tier ${t} is EXACTLY ${t} words (got ${words(s.content[t])})`);
