@@ -108,7 +108,7 @@ export const EVIDENCE_CHAIN: { step: number; key: string; label: string; note: s
   { step: 5, key: "record",      label: "Record",           note: "The outcome is captured — video, written, or voice." },
   { step: 6, key: "selfaudit",   label: "Self-audit",       note: "Each member states their own hours and what they did." },
   { step: 7, key: "crossreview", label: "Cross-review",     note: "The other two witness each claim — a self-attestation alone counts for nothing." },
-  { step: 8, key: "mint",        label: "Settle 웃",         note: "Witnessed hours × M settle as 웃 under the 9,999/yr ceiling; MoT keeps the actual minutes." },
+  { step: 8, key: "mint",        label: "Settle 웃",         note: "Witnessed M × hours settle as 웃 under the 9,999/yr ceiling; MoT keeps the actual minutes." },
 ];
 
 /** TOK-26 — one ledger record, read four ways. The receipt a contribution leaves behind. */

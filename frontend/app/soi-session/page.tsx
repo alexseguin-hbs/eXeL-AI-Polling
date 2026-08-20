@@ -64,7 +64,7 @@ const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string
   { id: "CRS-V02", title: "♡ S.I. earned only on POD-witnessed outcome", source: "§12 / unit.ontology (D12)",
     spec: "Shared Intent accrues only when a pod establishes and records an outcome. Clockless contributions score on a capped ladder — Noted 1 / Adopted 3 / Foundational 7." },
   { id: "CRS-V03", title: "웃 H.I. denomination + 9,999/yr ceiling", source: "§2 / unit.ceiling · unit.tranche (D7/D10)",
-    spec: "1 웃 = one hour × local minimum wage; earned = hours × M. Wage-floor tranche paid immediately (never clawed back); acceleration tranche locked until witnessed; 9,999 웃/yr settlement boundary with rollforward." },
+    spec: "1 웃 = one hour × local minimum wage; earned = M × hours. Wage-floor tranche paid immediately (never clawed back); acceleration tranche locked until witnessed; 9,999 웃/yr settlement boundary with rollforward." },
   { id: "CRS-V04", title: "◬ A.I. = witnessed acceleration, delinked from profit", source: "§14/§18 / unit.accel (D4/D11)",
     spec: "◬ recognizes independently witnessed AI acceleration vs a frozen baseline. The accelerator's only input is the task-scoped hours delta — never Revenue/Gross Profit/Operating Income/R&D Spend — so it sits outside the securities perimeter." },
   { id: "CRS-V05", title: "Pod-of-3 Task • Outcome", source: "open.proposed → frame.pod (this prototype)",
@@ -214,7 +214,7 @@ export default function SoISessionPage() {
     setMembers((ms) => ms.map((m, i) => i === memberIdx
       ? { ...m, witnessedBy: m.witnessedBy.map((w, j) => (j === reviewerIdx ? !w : w)) } : m));
 
-  // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = hours × M, ceiling-noted).
+  // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = M × hours, ceiling-noted).
   const M = 1;
   const witnessedHours = members.reduce((s, m, i) => s + (isWitnessed(i) ? (parseFloat(m.hours) || 0) : 0), 0);
   const totalYugYok = witnessedHours * M;                       // 웃 that would settle
@@ -244,7 +244,7 @@ export default function SoISessionPage() {
       `Accelerator signed by ${signerName} (conflict-excluded). ` +
       `AI-authority: Advisory — every settlement stays human-signed (Sovereign closed to machines).`,
     settlement:
-      `${totalYugYok.toFixed(3)} 웃 settle (hours × M=${M}), each person bound by 9,999/yr with rollforward; ` +
+      `${totalYugYok.toFixed(3)} 웃 settle (M × hours, M=${M}), each person bound by 9,999/yr with rollforward; ` +
       (yaTriangle > 0 ? `${yaTriangle.toFixed(0)} ◬ recognised (delta only, no profit input). ` : "no ◬ this task. ") +
       `MoT keeps the actual minutes separately. Nothing new is minted — this gates existing currencies.`,
   };
@@ -670,7 +670,7 @@ export default function SoISessionPage() {
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
               <span className="font-medium text-foreground">{witnessedHours} witnessed hours</span>
-              <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (hours × M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
+              <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (M × hours, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
             </div>
 
             <button
