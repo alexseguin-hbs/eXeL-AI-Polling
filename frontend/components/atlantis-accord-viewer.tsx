@@ -80,14 +80,47 @@ function HouseIcon() {
   );
 }
 
-/** Accord tier body: renders text verbatim, substituting each 🏠 with the drawn house. */
-function AccordBody({ text }: { text: string }) {
+// Drawn Seed of Life — placed inline BEFORE the word "Seed" in the current tier
+// color (operator 2026-08-21: like we did the house; red/emerald/blue/violet
+// follows the selected tier). "Seed" is a canon term kept in English across all
+// 33 languages, so the \bSeed\b match works in every translation.
+function SeedIcon({ color }: { color?: string }) {
+  const pts = [0, 60, 120, 180, 240, 300].map((deg) => {
+    const a = (deg * Math.PI) / 180;
+    return [32 + 10 * Math.cos(a), 32 + 10 * Math.sin(a)] as const;
+  });
+  return (
+    <svg
+      viewBox="0 0 64 64" width="1em" height="1em" fill="none"
+      stroke={color || "currentColor"} strokeWidth={2.5}
+      role="img" aria-label="Seed of Life"
+      style={{ display: "inline-block", verticalAlign: "-0.12em", marginRight: "0.15em" }}
+    >
+      <circle cx={32} cy={32} r={10} />
+      {pts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={10} />)}
+    </svg>
+  );
+}
+
+/** Accord tier body: text verbatim — 🏠 renders as the drawn house, and each
+ *  standalone "Seed" gains the drawn Seed of Life in the tier color before it. */
+function AccordBody({ text, accent }: { text: string; accent?: string }) {
+  const withSeed = (chunk: string, keyBase: string) => {
+    const segs = chunk.split(/\b(Seed)\b/);
+    if (segs.length === 1) return <span key={keyBase}>{chunk}</span>;
+    return (
+      <span key={keyBase}>
+        {segs.map((s, j) =>
+          s === "Seed" ? <span key={j} style={{ whiteSpace: "nowrap" }}><SeedIcon color={accent} />Seed</span> : <span key={j}>{s}</span>
+        )}
+      </span>
+    );
+  };
   const parts = text.split("🏠");
-  if (parts.length === 1) return <>{text}</>;
   return (
     <>
       {parts.map((p, i) => (
-        <span key={i}>{i > 0 && <HouseIcon />}{p}</span>
+        <span key={i}>{i > 0 && <HouseIcon />}{withSeed(p, `s${i}`)}</span>
       ))}
     </>
   );
@@ -265,6 +298,14 @@ function FullscreenViewer({
     setView(v);
     setActiveIdx(0);
   };
+  // On every section change, return the reader to the top — the Seed-of-Life
+  // selector and sentence one (operator 2026-08-21: next/prev left you at the
+  // bottom of the page). The outer panel is the scroller on mobile; the inner
+  // text div remounts per section (its key), so it resets itself on desktop.
+  const mainScrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    mainScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [activeIdx, view]);
   const goPrev = () => {
     if (activeIdx > 0) setActiveIdx(activeIdx - 1);
   };
@@ -472,7 +513,7 @@ function FullscreenViewer({
           Phone landscape + desktop (>=md): flex-row two-pane split, each pane
           scrolls internally. Extra bottom padding keeps the pager clear of the
           floating eXeL badge (fixed bottom-6 right-6) when scrolled to the bottom. */}
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-4 md:gap-6 px-4 md:px-6 pt-6 md:pt-8 pb-16 md:pb-16 [@media(max-height:600px)]:pt-2 [@media(max-height:600px)]:pb-2 [@media(max-height:600px)]:gap-3 overflow-y-auto md:overflow-hidden">
+      <div ref={mainScrollRef} className="flex-1 min-h-0 flex flex-col md:flex-row gap-4 md:gap-6 px-4 md:px-6 pt-6 md:pt-8 pb-16 md:pb-16 [@media(max-height:600px)]:pt-2 [@media(max-height:600px)]:pb-2 [@media(max-height:600px)]:gap-3 overflow-y-auto md:overflow-hidden">
         {/* LEFT (md+) / TOP (mobile) — mode tabs (pinned top) + flower */}
         <div className="w-full md:w-1/2 shrink-0 flex flex-col items-center gap-3 md:min-h-0">
           <div className="flex flex-wrap justify-center gap-2 shrink-0">
@@ -550,7 +591,7 @@ function FullscreenViewer({
                 key={`${activeIdx}-${tier}`}
                 className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line md:overflow-y-auto pr-2 md:flex-1 md:min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
-                <AccordBody text={section.content[tier] ?? ACCORD_SECTIONS_EN[activeIdx]?.content[tier] ?? section.content[333]} />
+                <AccordBody text={section.content[tier] ?? ACCORD_SECTIONS_EN[activeIdx]?.content[tier] ?? section.content[333]} accent={color.stroke} />
               </div>
             </>
           ) : view === "approvals" ? (
