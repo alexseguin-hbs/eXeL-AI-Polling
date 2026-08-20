@@ -38,6 +38,7 @@ import { SeedCoin } from "@/components/seed-coin";
 import { SoITrinity } from "@/components/soi-trinity";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
 import { format as fmtABC } from "@/lib/abc-3600";
+import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import {
   DEFAULT_PROJECTS, projectTasks, findProject, RECORD_METHODS,
   SYNC_START_SECONDS, POD_SIZE, FREE_TOOLS_NOTE, EVIDENCE_CHAIN,
@@ -264,9 +265,9 @@ export default function SoISessionPage() {
       {/* Header ────────────────────────────────────────────────────────── */}
       <header className="mb-8 text-center">
         <div className="mb-3 font-mono text-3xl tracking-[0.3em]" aria-hidden="true">
-          <span className="text-cyan-400">&#9708;</span>{" "}
-          <span className="text-pink-400">&#9825;</span>{" "}
-          <span className="text-violet-400">&#50883;</span>
+          <span style={{ color: TRINITY_COLORS.consciousness }}>&#9708;</span>{" "}
+          <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span>{" "}
+          <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span>
         </div>
         <h1 className="text-2xl font-semibold">
           Session <span className="font-normal text-muted-foreground">&middot; POD &middot; Task &middot; Outcome</span>
@@ -786,7 +787,7 @@ export default function SoISessionPage() {
       </section>
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
-        Prototype · local state only · &#9708; &#9825; &#50883; mint nothing new here — the pod is a gate on the
+        Prototype · local state only · <span style={{ color: TRINITY_COLORS.consciousness }}>&#9708;</span> <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span> <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span> mint nothing new here — the pod is a gate on the
         currencies that already exist. — MoT
       </p>
     </div>
