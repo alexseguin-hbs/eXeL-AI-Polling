@@ -112,6 +112,18 @@ export function SoISection() {
             </div>
           </div>
         )}
+
+        {/* QIS — the canonical financial-innovation measurement (White Paper §18). Projects earn 웃
+            through budgeted/approved tasks; QIS measures the project's growth and sizes the ΔQIS
+            Reward Pool — it mints no 웃 (웃 = M × hours). Static (canonical, not operator-editable). */}
+        <div data-soi-section-qis>
+          <div className="mb-2 text-sm font-semibold text-foreground">{t("soi.qis.title")}</div>
+          <div className="rounded-lg border p-2 text-xs space-y-1">
+            <div className="font-mono text-muted-foreground">{t("soi.qis.spine")}</div>
+            <div className="font-mono text-foreground">{t("soi.qis.equation")}</div>
+            <div className="text-muted-foreground">{t("soi.qis.note")}</div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

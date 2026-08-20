@@ -759,7 +759,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.coin.AI.law", englishDefault: "◬ = witnessed acceleration · variable ~5–10× leverage", context: "SoI coin ◬ AI earning rule — ◬ recognizes independently witnessed AI acceleration vs a frozen baseline; the multiple is VARIABLE (≈5× baseline, up to 10× for AI super-users), illustrative not fixed. Keep the ◬ glyph.", cubeId: 8 },
   { key: "soi.coin.AI.purpose", englishDefault: "Time saved by the tools we create together — leverage returned to everyone, not the few.", context: "SoI coin ◬ AI purpose", cubeId: 8 },
   { key: "soi.flow.redeem.k", englishDefault: "Redeem", context: "SoI value-flow step label", cubeId: 8 },
-  { key: "soi.flow.redeem.d", englishDefault: "웃 becomes real-world value when the treasury allows.", context: "SoI value-flow: Redeem", cubeId: 8 },
+  { key: "soi.flow.redeem.d", englishDefault: "웃 becomes lawful compensation — calculated and settled under applicable law once the work is budgeted and approved.", context: "SoI value-flow: Redeem (웃 is a contribution record used to calculate compensation, not redeemed for cash — matches White Paper r228 + the budget-approval gate). Keep the 웃 glyph.", cubeId: 8 },
   { key: "soi.flow.exchange.k", englishDefault: "Exchange", context: "SoI value-flow step label", cubeId: 8 },
   { key: "soi.flow.exchange.d", englishDefault: "Trade within the community — services, tools, and mentorship.", context: "SoI value-flow: Exchange", cubeId: 8 },
   { key: "soi.flow.stake.k", englishDefault: "Stake", context: "SoI value-flow step label", cubeId: 8 },
@@ -774,6 +774,10 @@ const cube8: TranslationEntry[] = [
   { key: "soi.nose.solution.d", englishDefault: "Fast, inclusive polling + AI clustering + a tokenized Tri-Coin of shared value.", context: "SoI NOSE: Solution", cubeId: 8 },
   { key: "soi.nose.evidence.k", englishDefault: "Evidence", context: "SoI NOSE frame label", cubeId: 8 },
   { key: "soi.nose.evidence.d", englishDefault: "Live pilots since 2026 — an open model educators and innovators everywhere can build on.", context: "SoI NOSE: Evidence", cubeId: 8 },
+  { key: "soi.qis.title", englishDefault: "QIS — how innovation growth is measured", context: "SoI Framework: QIS panel heading (Qualified Innovation Score, White Paper §18). Keep 'QIS'.", cubeId: 8 },
+  { key: "soi.qis.spine", englishDefault: "R | GP | OI | QRD → ERD → QIS → ΔQIS", context: "SoI Framework: QIS measurement spine — keep the symbols and arrows exactly (R, GP, OI, QRD, ERD, QIS, ΔQIS).", cubeId: 8 },
+  { key: "soi.qis.equation", englishDefault: "QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS", context: "SoI Framework: QIS equation — keep the formula exactly.", cubeId: 8 },
+  { key: "soi.qis.note", englishDefault: "A project earns 웃 through budgeted, approved tasks. QIS measures the project's financial-innovation growth and sizes the ΔQIS Reward Pool — it mints no 웃 (웃 = M × hours).", context: "SoI Framework: QIS note — ties the budget-approval gate (a project earns 웃 only once tasks are scoped + approved) with the r228 single 웃 issuance path (QIS mints no 웃). Keep 웃 and ΔQIS.", cubeId: 8 },
 ];
 
 const cube9: TranslationEntry[] = [
