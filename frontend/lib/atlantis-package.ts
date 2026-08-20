@@ -586,7 +586,7 @@ function __initSeal(){
     if(e=document.getElementById('doneFresh'))e.textContent=u.doneFresh;
     if(e=document.getElementById('burn'))e.textContent=u.burn;
     if(e=document.getElementById('badge'))e.textContent=u.clearance+' '+LVL;}
-  var TC={7:'#c084fc',33:'#ef4444',111:'#22c55e',333:'#3b82f6'};
+  var TC={7:'#c084fc',33:'#ef4444',111:'#22c55e',333:'#3b82f6',999:'#8b5cf6'};
   // Original AccordFlower geometry: 6 petals (idx 0-5) + EXPAND hub (idx 6).
   var POS=(function(){var CX=300,CY=250,a=[];for(var i=0;i<6;i++){var d=(-120+i*60)*Math.PI/180;a.push({cx:CX+130*Math.cos(d),cy:CY+130*Math.sin(d),r:85});}a.push({cx:CX,cy:CY,r:50});return a;})();
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -604,11 +604,14 @@ function __initSeal(){
     document.getElementById('left').innerHTML='<svg viewBox="0 0 600 500" width="100%" style="max-height:74vh;overflow:visible">'+g+'</svg>';
     Array.prototype.forEach.call(document.querySelectorAll('#left circle[data-i]'),function(c){c.onclick=function(){var t=+c.dataset.i;if(DATA&&DATA.msg&&t>=CT.sections.length)return;sec=t;render();};});
   }
-  function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[33,111,333].forEach(function(n){var b=document.createElement('button');b.className='tier';b.textContent=n+' '+(UIc||FB_UI).words;b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
+  // 999 resolves current-language content first, then the English 999 (translations
+  // land later), matching the live viewer's fallback — the package must match exactly.
+  function c999(i){var s=CT&&CT.sections[i];if(s&&s.content[999])return s.content[999];var e=I18N&&I18N.en&&I18N.en.sections&&I18N.en.sections[i];return (e&&e.content[999])||'';}
+  function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[33,111,333,999].forEach(function(n){if(n===999&&!c999(sec))return;var b=document.createElement('button');b.className='tier';b.textContent=n+' '+(UIc||FB_UI).words;b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
   function render(){var n=CT.sections.length,ti=document.getElementById('tiers');
     if(sec<n){var s=CT.sections[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc((DATA&&DATA.msg)?s.tag:((UIc||FB_UI).steps[sec]||s.tag))+'</span> <span class="title">· '+esc(s.title)+'</span>';
-      var body=(DATA&&DATA.msg)?(s.content[333]||s.content[tier]||''):(s.content[tier]||s.content[333]||'');
+      var body=(DATA&&DATA.msg)?(s.content[333]||s.content[tier]||''):(tier===999?(c999(sec)||s.content[333]||''):(s.content[tier]||s.content[333]||''));
       if(DATA&&DATA.fmt==='html')document.getElementById('rcontent').innerHTML=body;else document.getElementById('rcontent').textContent=body;
       ti.style.display=(DATA&&DATA.msg)?'none':'flex';}
     else{var nv=CT.nav[sec];
