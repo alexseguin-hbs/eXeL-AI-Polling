@@ -2,14 +2,16 @@
 // 7 sections × 4 word tiers (7 / 33 / 111 / 333)
 // Source of truth: docs/ATLANTIS_ACCORDS.md v2.0
 
-export type WordLevel = 7 | 33 | 111 | 333;
+export type WordLevel = 7 | 33 | 111 | 333 | 999;
 
 export interface AccordSection {
   id: string;
   page: number;
   tag: string; // PILOT
   title: string; // Where Innovation Begins
-  content: Record<WordLevel, string>;
+  // 7/33/111/333 are always present; 999 is the deepest tier (English source first,
+  // other languages fall back to the English 999 until translations land).
+  content: Record<7 | 33 | 111 | 333, string> & { 999?: string };
 }
 
 // 7 sections × 4 tiers, English source. Other languages fall back to English

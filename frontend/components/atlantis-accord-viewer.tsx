@@ -34,11 +34,13 @@ import {
 // ─── Word tier → color ─────────────────────────────────────────
 // The tier selector doubles as the flower's color theme, reusing the
 // dashboard Theme1 palette: 33 = Red, 111 = Blue, 333 = Green.
-type Tier = 33 | 111 | 333;
+type Tier = 33 | 111 | 333 | 999;
 const TIER_COLORS: Record<Tier, { label: string; fill: string; stroke: string }> = {
   33: { label: "33 words", fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
   111: { label: "111 words", fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
   333: { label: "333 words", fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+  // 999 — the deepest tier, drawn from the white paper. Trinity violet (H.I. 웃).
+  999: { label: "999 words", fill: "rgba(139, 92, 246, 0.2)", stroke: "#8B5CF6" },
 };
 
 // Region palette for the triangle flower (mirrors the Theme1 Risk/Neutral/Support
@@ -461,7 +463,11 @@ function FullscreenViewer({
 
               {/* Tier selector — colors the overview AND the flower */}
               <div className="shrink-0 flex gap-2 mb-3 [@media(max-height:600px)]:mb-1.5">
-                {([33, 111, 333] as Tier[]).map((n) => {
+                {([33, 111, 333, 999] as Tier[])
+                  // 999 pill appears only once the deepest tier has content (English source),
+                  // so the selector never offers a tier that would fall back to 333.
+                  .filter((n) => n !== 999 || !!ACCORD_SECTIONS_EN[activeIdx]?.content[999])
+                  .map((n) => {
                   const c = TIER_COLORS[n];
                   const active = tier === n;
                   return (
@@ -485,7 +491,7 @@ function FullscreenViewer({
                 key={`${activeIdx}-${tier}`}
                 className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line md:overflow-y-auto pr-2 md:flex-1 md:min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
-                {section.content[tier]}
+                {section.content[tier] ?? ACCORD_SECTIONS_EN[activeIdx]?.content[tier] ?? section.content[333]}
               </div>
             </>
           ) : view === "approvals" ? (
