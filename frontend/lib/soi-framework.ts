@@ -31,10 +31,10 @@ export const DEFAULT_SOI: SoiFramework = {
   coins: [
     { sym: "♡", key: "SI", name: "Shared Intention", law: "1 minute given = 1 ♡", purpose: "Time offered in good faith — the trust and belonging that let people build together." },
     { sym: "웃", key: "HI", name: "Human Intelligence", law: "1 웃 = 1 hour at 1× local min wage · earned = M × hours (Multiple × Time)", purpose: "Skill, craft, and care — honored so people and their families can thrive." },
-    { sym: "◬", key: "AI", name: "Artificial Intelligence", law: "◬ = witnessed acceleration · variable ~5–10× leverage", purpose: "Time saved by the tools we create together — leverage returned to everyone, not the few." },
+    { sym: "◬", key: "AI", name: "Artificial Intelligence", law: "◬ = witnessed acceleration · 1 min SI = 5 ◬ illustrative, variable to ~10×", purpose: "Time saved by the tools we create together — leverage returned to everyone, not the few." },
   ],
   flow: [
-    { k: "Redeem", d: "웃 becomes real-world value when the treasury allows." },
+    { k: "Redeem", d: "웃 becomes lawful compensation — calculated and settled under applicable law once the work is budgeted and approved." },
     { k: "Exchange", d: "Trade within the community — services, tools, and mentorship." },
     { k: "Stake", d: "Shape decisions, earn bonuses, and unlock what comes next." },
     { k: "Amplify", d: "♡ grows into ◬ when your work becomes a tool others reuse." },
