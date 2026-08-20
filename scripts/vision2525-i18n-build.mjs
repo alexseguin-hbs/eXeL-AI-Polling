@@ -92,6 +92,18 @@ if (existsSync(chromePath)) {
 const rtl = (lang === 'ar' || lang === 'he');
 out = out.replace('<html', '<html lang="' + lang + '"' + (rtl ? ' dir="rtl"' : ''));
 
+// A language page must DOWNLOAD ITSELF (operator 2026-08-20: the download includes only
+// the selected language, and any of the 33 downloads). Repoint the download anchors from
+// the English attachment to this language's own reading copy — same-origin `download`
+// attribute forces the save, and the saved name is language-stamped.
+if (lang !== 'en') {
+  const enAnchor = 'whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html"';
+  const langAnchor = `whitepaper/vision-2525.${lang}.html" download="SOI_VISION2525_v.18_${lang}.html"`;
+  const n = out.split(enAnchor).length - 1;
+  out = out.split(enAnchor).join(langAnchor);
+  console.log(`  download anchors repointed to ${lang}: ${n}`);
+}
+
 const dest = `${ROOT}/docs/i18n/build/SOI_VISION2525_v.18_${lang}.html`;
 writeFileSync(dest, out);
 console.log(`built ${lang}: ${out.length} bytes | translated ${have.length}/${enIds.length} blocks | fallback ${fallback.length} | chrome ${chromeApplied} applied${chromeMissed ? ', ' + chromeMissed + ' anchors missed' : ''}`);
