@@ -49,6 +49,19 @@ for (const s of ACCORD_SECTIONS_EN) {
     `EN section "${s.id}" carries all five tiers (7/33/111/333/999)`);
 }
 
+// ── the sacred counts: EN tiers are EXACTLY their names (operator hard requirement) ──
+const words = (t) => t.trim().split(/\s+/).filter(Boolean).length;
+for (const s of ACCORD_SECTIONS_EN) {
+  for (const t of [33, 111, 333, 999]) {
+    ok(words(s.content[t]) === t, `EN "${s.id}" tier ${t} is EXACTLY ${t} words (got ${words(s.content[t])})`);
+  }
+}
+// …and the citizen thread holds in every section
+for (const s of ACCORD_SECTIONS_EN) {
+  ok(/citizen/i.test(s.content[33] + s.content[111] + s.content[333] + s.content[999]),
+    `EN "${s.id}" carries the citizen thread`);
+}
+
 // ── the viewer builds downloads from the live module at click time ────────────────
 ok(/buildAtlantisPackageHtml\(ACCORD_TRANSLATIONS,/.test(viewerSrc),
   "viewer builds the download from ACCORD_TRANSLATIONS at click time (site update ⇒ next download updates)");
