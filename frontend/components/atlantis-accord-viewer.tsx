@@ -63,6 +63,19 @@ function sectionTheme(idx: number, seven: string): ThemeInfo {
   return { label: s.tag, count: 0, avgConfidence: 0, summary33: seven };
 }
 
+// A soft halo ring marking the ACTIVE section on the flower (operator 2026-08-20:
+// the selected accord — e.g. CERTIFY — should read visibly in the visual, not only
+// in the text below). Drawn AFTER the petals so overlapping circles never cover it;
+// pointer-events off so clicks still pass through to the circles beneath.
+function ActiveHalo({ cx, cy, r, stroke }: { cx: number; cy: number; r: number; stroke: string }) {
+  return (
+    <g pointerEvents="none" aria-hidden="true">
+      <circle cx={cx} cy={cy} r={r + 7} fill="none" stroke={stroke} strokeWidth={1.5} strokeOpacity={0.35} />
+      <circle cx={cx} cy={cy} r={r + 3.5} fill="none" stroke={stroke} strokeWidth={2.5} className="accord-halo" />
+    </g>
+  );
+}
+
 // ── Accord flower: 6 petals (PILOT..EDUCATE) + EXPAND hub ────────
 function AccordFlower({
   activeIdx,
@@ -109,6 +122,10 @@ function AccordFlower({
           bloomDelay={i * 80}
         />
       ))}
+      {(() => {
+        const pos = activeIdx === CENTER_IDX ? HUB_POSITION : HEX_POSITIONS[activeIdx];
+        return pos ? <ActiveHalo cx={pos.cx} cy={pos.cy} r={pos.r} stroke={color.stroke} /> : null;
+      })()}
     </svg>
   );
 }
@@ -149,6 +166,14 @@ function TriangleFlower({
           />
         );
       })}
+      {TRIAD_POSITIONS[activeIdx] && items[activeIdx] && (
+        <ActiveHalo
+          cx={TRIAD_POSITIONS[activeIdx].cx}
+          cy={TRIAD_POSITIONS[activeIdx].cy}
+          r={TRIAD_POSITIONS[activeIdx].r}
+          stroke={(REGION_COLORS[activeIdx] ?? REGION_COLORS[0]).stroke}
+        />
+      )}
     </svg>
   );
 }

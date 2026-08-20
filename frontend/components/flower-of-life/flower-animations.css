@@ -138,3 +138,19 @@
 .flower-circle-interactive:hover {
   filter: brightness(1.2) drop-shadow(0 0 8px currentColor);
 }
+
+/* Active-section halo (Atlantis Accords) — a gentle breathe on the selected circle
+   so the chosen accord reads in the flower itself, not only in the text below. */
+.accord-halo {
+  stroke-opacity: 0.9;
+  animation: accord-halo-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes accord-halo-breathe {
+  0%, 100% { stroke-opacity: 0.9; }
+  50% { stroke-opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accord-halo { animation: none; }
+}
