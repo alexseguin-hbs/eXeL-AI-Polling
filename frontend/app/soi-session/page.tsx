@@ -37,6 +37,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { SeedCoin } from "@/components/seed-coin";
 import { SoITrinity } from "@/components/soi-trinity";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
+import { useSpeechRecognition } from "@/lib/use-speech-recognition";
+import { buildSynthesis333 } from "@/lib/pod-synthesis";
 import { format as fmtABC } from "@/lib/abc-3600";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import {
@@ -158,6 +160,14 @@ export default function SoISessionPage() {
     if (!isJoiner) broadcast("status", { status }).catch(() => {});
   }, [isJoiner, broadcast]);
 
+  // Voice-to-text for the RECORD phase — browser-native (Web Speech API), local-first
+  // so it works in the pod's degraded single-phone mode. Committed segments append to
+  // whatever is already typed; the caller shows the plain textarea when unsupported.
+  const voice = useSpeechRecognition({
+    baseText: recordValue,
+    onCommit: (full) => setRecordValue(full),
+  });
+
   // Trinity labels = the three leads' first names (auto-drawn), with gentle fallbacks.
   const trinityLabels = useMemo<[string, string, string]>(() => {
     const [a, b, c] = members.map((m) => firstName(m.name));
@@ -251,14 +261,19 @@ export default function SoISessionPage() {
       `MoT keeps the actual minutes separately. Nothing new is minted — this gates existing currencies.`,
   };
 
-  // The 333-word (3 × 111) synthesis, in the operator's three sections.
-  const synthesis: Synthesis333 = {
-    results: `Results — the pod produced: ${outcome || "the agreed outcome"}. Recorded via ${recordMethod}. (Cube 6 writes the full 111 words.)`,
-    changed: `What changed — ${witnessedHours}h of witnessed contribution settled as ${totalYugYok.toFixed(1)} 웃` +
-      (yaTriangle > 0 ? `, ${accelDelta}h ahead of the frozen baseline (${yaTriangle.toFixed(0)} ◬).` : ".") +
-      " (Cube 6 writes the full 111 words.)",
-    next: `What next — the outcome feeds the backlog; the pod can adopt the next Task • Outcome. (Cube 6 writes the full 111 words.)`,
-  };
+  // The 333-word (3 × 111) synthesis. Cube 6 (the AI pipeline) writes these tiers
+  // from the recording in production; this is the local-first deterministic fallback
+  // (same pod → same synthesis, so it replays) — each paragraph is EXACTLY 111 words,
+  // grounded in this pod's own intent, outcome, recording, witnessed hours, and tokens.
+  const synthesis: Synthesis333 = useMemo(() => buildSynthesis333({
+    intent, outcome, recordMethod, recordValue,
+    members: members.map((m, i) => ({
+      name: m.name, role: m.role, hours: parseFloat(m.hours) || 0, did: m.did, witnessed: isWitnessed(i),
+    })),
+    witnessedHours, totalYugYok, M, baseline, accelDelta, yaTriangle, signerName, podCode,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [intent, outcome, recordMethod, recordValue, members, witnessedHours, totalYugYok, M, baseline, accelDelta, yaTriangle, signerName, podCode]);
+  const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -563,11 +578,44 @@ export default function SoISessionPage() {
                 className="mb-4 w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
               />
             ) : (
-              <textarea
-                value={recordValue} onChange={(e) => setRecordValue(e.target.value)} rows={3}
-                placeholder={recordMethod === "voice" ? "Voice-to-text captures the outcome here (polling tool V2T)…" : "Write the outcome…"}
-                className="mb-4 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
+              <>
+                {recordMethod === "voice" && (
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    {voice.supported ? (
+                      <button
+                        type="button"
+                        onClick={() => (voice.listening ? voice.stop() : voice.start())}
+                        aria-pressed={voice.listening}
+                        className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition ${voice.listening ? "border-red-500 bg-red-500/10 text-red-500" : "border-cyan-400 text-cyan-400 hover:bg-cyan-400/10"}`}
+                      >
+                        <span aria-hidden="true" className={voice.listening ? "animate-pulse" : ""}>
+                          {voice.listening ? "●" : "🎤"}
+                        </span>
+                        {voice.listening ? "Listening — tap to stop" : "Speak the outcome"}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        Voice-to-text isn&rsquo;t available in this browser — type the outcome below.
+                      </span>
+                    )}
+                    {voice.listening && (
+                      <span className="text-[11px] text-muted-foreground">on-device transcription · no upload</span>
+                    )}
+                  </div>
+                )}
+                <textarea
+                  value={recordValue} onChange={(e) => setRecordValue(e.target.value)} rows={3}
+                  placeholder={recordMethod === "voice" ? "Tap “Speak the outcome”, or type it here…" : "Write the outcome…"}
+                  className="mb-1 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
+                {recordMethod === "voice" && voice.interim && (
+                  <p className="mb-3 text-xs italic text-muted-foreground" aria-live="polite">…{voice.interim}</p>
+                )}
+                {recordMethod === "voice" && voice.error && (
+                  <p className="mb-3 text-xs text-red-500">{voice.error}</p>
+                )}
+                <div className="mb-4" />
+              </>
             )}
             <button
               disabled={!recordValue.trim()}
@@ -715,19 +763,30 @@ export default function SoISessionPage() {
 
             {/* the 333-word (3 × 111) synthesis, in the operator's three sections */}
             <div className="rounded-lg border border-border p-4">
-              <div className="mb-2 text-sm font-medium">333-word synthesis <span className="text-xs font-normal text-muted-foreground">— 3 × 111: Results · What changed · What next (Cube 6)</span></div>
+              <div className="mb-2 flex items-baseline justify-between gap-2">
+                <div className="text-sm font-medium">333-word synthesis <span className="text-xs font-normal text-muted-foreground">— 3 × 111: Results · What changed · What next</span></div>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {wordCount(synthesis.results) + wordCount(synthesis.changed) + wordCount(synthesis.next)} words
+                </span>
+              </div>
               <div className="space-y-2 text-xs">
                 {([
-                  ["Results (111)", synthesis.results],
-                  ["What changed (111)", synthesis.changed],
-                  ["What next (111)", synthesis.next],
+                  ["Results", synthesis.results],
+                  ["What changed", synthesis.changed],
+                  ["What next", synthesis.next],
                 ] as const).map(([label, body]) => (
                   <div key={label}>
-                    <div className="font-medium text-foreground">{label}</div>
+                    <div className="flex items-baseline justify-between">
+                      <div className="font-medium text-foreground">{label}</div>
+                      <span className="font-mono text-[10px] text-muted-foreground">{wordCount(body)} words</span>
+                    </div>
                     <p className="text-muted-foreground">{body}</p>
                   </div>
                 ))}
               </div>
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                Cube 6 (the AI pipeline) writes these tiers from the recording in production; this is the local-first deterministic synthesis, grounded in the pod&rsquo;s own record.
+              </p>
             </div>
 
             <div className="rounded-md border border-cyan-400/30 p-3 text-xs">
