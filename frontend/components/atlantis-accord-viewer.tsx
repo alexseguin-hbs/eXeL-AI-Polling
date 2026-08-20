@@ -88,8 +88,10 @@ function AccordFlower({
   color: { fill: string; stroke: string };
   sevenLabels: string[];
 }) {
+  // Selected circle gets a solid mask (~50% of the stroke color) so the active
+  // section reads instantly; unselected petals stay the light tier fill.
   const fillFor = (idx: number) =>
-    idx === activeIdx ? color.stroke + "44" : color.fill;
+    idx === activeIdx ? color.stroke + "80" : color.fill;
 
   return (
     <svg
@@ -158,7 +160,7 @@ function TriangleFlower({
             cy={pos.cy}
             r={pos.r}
             theme={{ label: it.label, count: 0, avgConfidence: 0, summary33: it.subtitle }}
-            fill={i === activeIdx ? c.stroke + "44" : c.fill}
+            fill={i === activeIdx ? c.stroke + "80" : c.fill}
             stroke={c.stroke}
             onClick={() => onSelect(i)}
             bloom
@@ -343,7 +345,9 @@ function FullscreenViewer({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] bg-background/98 backdrop-blur-md flex flex-col">
+    <div className="fixed inset-0 z-[70] bg-background flex flex-col">
+      {/* Fully opaque — the viewer is its own page; the app behind must never ghost
+          through (operator 2026-08-20: no blur to the page behind it). */}
       {/* Top bar */}
       <div className="flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-3">
