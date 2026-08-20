@@ -38,7 +38,7 @@ const bad = (m) => { fails++; console.error('FAIL  ' + m); };
 const ok = (m) => console.log('ok    ' + m);
 
 // ── parse the ledger: id → {maxV, idxOfMax} ──────────────────────────────────────
-const re = /L\((\d+),"([a-z0-9._]+)",/g;
+const re = /L\((\d+),"([a-z0-9._-]+)",/g;
 const wins = {};
 let m, total = 0, vmax = 0;
 while ((m = re.exec(s))) {
@@ -135,7 +135,7 @@ else console.warn('warn  possible jurisdiction-card content in the paper — ver
 
 // ── 4. replay determinism: re-parse yields identical winning-set ──────────────────
 const wins2 = {};
-{ const r2 = /L\((\d+),"([a-z0-9._]+)",/g; let mm; while ((mm = r2.exec(s))) { const v = +mm[1], id = mm[2]; if (!wins2[id] || v > wins2[id].v) wins2[id] = { v, idx: mm.index }; } }
+{ const r2 = /L\((\d+),"([a-z0-9._-]+)",/g; let mm; while ((mm = r2.exec(s))) { const v = +mm[1], id = mm[2]; if (!wins2[id] || v > wins2[id].v) wins2[id] = { v, idx: mm.index }; } }
 const drift = Object.keys(wins).filter((id) => !wins2[id] || wins2[id].v !== wins[id].v || sha8(bodyOf(id)) !== fp[id] && fp[id]);
 if (!drift.length) ok(`replay determinism — winning-set is a pure function of the file (${Object.keys(wins).length} ids stable)`);
 else bad(`replay non-determinism on: ${drift.slice(0, 8).join(', ')}`);

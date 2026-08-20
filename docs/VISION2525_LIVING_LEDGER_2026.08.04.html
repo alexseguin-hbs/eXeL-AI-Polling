@@ -1011,7 +1011,7 @@ header.mast{position:relative}
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
       <a class="setdl" id="bDLset" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html">&#8595;&nbsp;Download this document</a>
-      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">231</span></strong>, <strong><span id="dlbytes2">5888626</span> bytes</strong> (<span id="dlsize2">5.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote">This copy is <strong>v.18 &middot; release <span id="dlrel2">232</span></strong>, <strong><span id="dlbytes2">5891776</span> bytes</strong> (<span id="dlsize2">5.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1150,7 +1150,7 @@ const LEDGER_ORDER = [
  "off.switch","off.keys","off.reserve","off.trust","off.restart","gov.cadence",
  "frame.accords","frame.soi","frame.loop","frame.tongue",
  "corpus.hierarchy","corpus.classes","corpus.ssses","corpus.score","corpus.iterations","corpus.cubes","corpus.empires",
- "rcore.ledger","rcore.modes","rcore.spiral","rcore.version","rcore.plain",
+ "rcore.ledger","rcore.modes","rcore.spiral","rcore.version","rcore.plain","mode.r-core",
  "human.story","human.cambodia","human.ledger","human.receipt","human.ladder",
  "scale.groundzero","scale.austin","scale.2525","scale.sim",
  "reach.intelligence","reach.worlds","reach.accelerate",
@@ -6328,6 +6328,19 @@ const VERSIONS = [
   {n:"Enlil",g:"A",f:"Word-neutral supersede; paper holds 77,777; replay intact; orphans still flagged, not hidden."}
  ],
  next:"Re-translate frame.accords across the 33 languages; anchor the two escalated orphans in a later Accords article."
+},
+{ v:232, code:"OPERATING MODES &mdash; MANUAL &rarr; SEMI-AUTOMATED &rarr; AUTONOMOUS (11.1% RULE)",
+ stamp:"2026.08.20 &middot; revision 232",
+ thrust:"New ledger block mode.r-core (&sect;5 R-CORE): the cadence at which the framework&rsquo;s own toolsets improve. Manual (today) &mdash; a person commits every append; Semi-Automated &mdash; AI proposes with diff/tests/impact, a person accepts/modifies/blocks; Autonomous &mdash; people vote the priority queue and recursive toolsets deliver overnight, but only after tests pass and the cube clears the 11.1% (1/9) measured-improvement gate on a metric fixed before the run, fail-closed. Autonomy is earned per cube; Human Authority keeps meaning, money, and law; QIS stays measurement, not payment; autonomy of the toolset never becomes autonomy of settlement. Complements rcore.modes (the per-write approval ladder); full per-cube metric families + 11.1% arithmetic in docs/MODE_R-CORE_SPEC.md. Word-neutral: offset by tightening rcore.spiral, so paper holds 77,777. Doc stays v.18.",
+ mot:"The framework now names its own path from hand-built to voted-and-recursive without ever letting the machine take the wheel on meaning, money, or law. Manual today, honestly said; the 11.1% gate is what earns a cube the right to move faster. Operator, Grok, and eXeL converged on the same shape. Next: re-translate mode.r-core + rcore.spiral.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Odin",g:"A",f:"Autonomy earned by qualification, not asserted by capability; fail-closed default."},
+  {n:"Enlil",g:"A",f:"11.1% (1/9) gate is executable and pre-declared; no metric changed after the run."},
+  {n:"Krishna",g:"A",f:"mode.r-core composes with rcore.modes; live still requires a human."},
+  {n:"Thoth",g:"A",f:"Word-neutral supersede; paper holds 77,777; replay intact; detail in the sidecar spec."}
+ ],
+ next:"Re-translate mode.r-core + rcore.spiral across the 33 languages; wire the per-cube metric families as Mode 2 lands."
 }
 ];
 
@@ -13947,6 +13960,9 @@ L(62,"rcore.plain","A 33-round sweep of the last two days of feedback against th
 '<div class="notice key"><span class="tag">The rule, from here</span>'+
 '<p style="margin-bottom:0"><strong>No section over grade 12. Target grade 10.</strong> Measured by <code>scripts/readability-vision2525.mjs</code> on the rendered reading, published whether it flatters or not. It reports rather than blocks, deliberately: a gate that failed the build today would hide the number it exists to publish, and the number is the point until the rewriting is done.</p></div>'+
 '<p>Logged as <strong>defect 25</strong> &mdash; not a wrong number this time, but a promise made and never instrumented, which is the quieter and more common failure.</p>');
+L(232,"mode.r-core","New in r232. The cadence at which the framework&rsquo;s own toolsets improve &mdash; Manual &rarr; Semi-Automated &rarr; Autonomous, gated by the 11.1% rule. Complements rcore.modes (per-write approval); detail in docs/MODE_R-CORE_SPEC.md. Operator + Grok + eXeL convergence.",
+'<h2>How the framework itself changes</h2>'+
+'<p>Who may append is settled above; this is the cadence at which the ledger&rsquo;s own toolsets improve, in three modes earned per cube. <strong>Manual</strong> is today: a person commits every append. <strong>Semi-Automated</strong>: people and AI propose a change with its diff and tests; a person accepts, modifies, or blocks. <strong>Autonomous</strong>: people vote the queue and recursive toolsets deliver overnight, but only after tests pass and the cube clears the <strong>11.1% rule</strong> &mdash; one-ninth measured improvement on a metric fixed beforehand, fail-closed (<code>docs/MODE_R-CORE_SPEC.md</code>). Human Authority keeps meaning, money, and law; QIS stays measurement, not payment; autonomy of the toolset never becomes autonomy of settlement.</p>');
 
 L(62,"open.defects","Defect 25: the high-school reading level was committed to and never measured. Found by the 33-round coverage sweep of the last two days of feedback.",
 '<h2>Defect register</h2>'+
@@ -18789,7 +18805,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5888626";
+const DL_BYTES = "5891776";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
