@@ -62,6 +62,28 @@ for (const s of ACCORD_SECTIONS_EN) {
     `EN "${s.id}" carries the citizen thread`);
 }
 
+// ── all 33 languages complete in the download (operator 2026-08-20) ────────────────
+// The standalone package embeds ACCORD_TRANSLATIONS wholesale: every language must
+// carry all 7 sections × all 5 tiers (7/33/111/333/999), genuinely translated.
+const measure = (t) => Math.max((t || "").trim().split(/\s+/).filter(Boolean).length,
+  Math.floor((t || "").replace(/\s/g, "").length / 3));   // CJK/Thai have no word spaces
+const allLangs = Object.keys(ACCORD_TRANSLATIONS);
+ok(allLangs.length === 33, `download embeds 33 languages (got ${allLangs.length})`);
+for (const [lc, secs] of Object.entries(ACCORD_TRANSLATIONS)) {
+  let bad = null;
+  if (!Array.isArray(secs) || secs.length !== 7) bad = `sections=${secs?.length}`;
+  else for (const s of secs) {
+    for (const t of [7, 33, 111, 333, 999]) {
+      // the 7-word petal is tiny — in compact scripts (ja/zh/ar/he) it can measure ~2-4
+      if (measure(s.content[t]) < (t === 7 ? 2 : 5)) { bad = `${s.id}:${t} empty`; break; }
+    }
+    if (!bad && lc !== "en" && s.content[999].trim() === ACCORD_SECTIONS_EN.find((e) => e.id === s.id).content[999].trim())
+      bad = `${s.id}:999 untranslated`;
+    if (bad) break;
+  }
+  ok(!bad, `${lc}: all 7 sections × 5 tiers complete + translated${bad ? ` (${bad})` : ""}`);
+}
+
 // ── drawn house, never the emoji (operator 2026-08-20) ────────────────────────────
 // 🏠 in the tier text is a counted placeholder; BOTH surfaces must render the drawn
 // Vision-2525 house (path M3 11.5 12 4l9 7.5) in its place.
