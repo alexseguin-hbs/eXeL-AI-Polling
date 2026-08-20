@@ -61,21 +61,28 @@ function bodyOf(id) {
   try { return new Function('return (' + stmt.slice(h) + ')')(); } catch { return stmt.slice(h); }
 }
 
-// ── 1. VMAX consistency: L() max == VERSIONS max == #dlrel2 ───────────────────────
+// ── 1. release-pointer consistency ───────────────────────────────────────────────
+// VMAX is the RELEASE pointer (max VERSIONS entry == #dlrel2), which legitimately
+// runs AHEAD of the max ledger-block version: chrome-only, gate, word-count-refit,
+// and translation releases bump the release without superseding any L() block. The
+// hard invariants are: dlrel2 == VERSIONS max, and NO block claims a future release.
+const ledgerMax = vmax;                                   // highest L() block version
 const versEntries = [...s.matchAll(/\{\s*v:(\d+),\s*code:/g)].map((x) => +x[1]);
 const versMax = versEntries.length ? Math.max(...versEntries) : 0;
 const dlrel2 = +((s.match(/id="dlrel2">(\d+)/) || [])[1] || 0);
-if (versMax === vmax) ok(`VERSIONS max == ledger VMAX (r${vmax})`); else bad(`VERSIONS max r${versMax} != ledger VMAX r${vmax}`);
-if (dlrel2 === vmax) ok(`#dlrel2 == VMAX (r${vmax})`); else bad(`#dlrel2 r${dlrel2} != VMAX r${vmax}`);
-// integrity: no ledger record may sit ABOVE the declared VMAX (that WOULD be a phantom).
+vmax = versMax;                                           // the release pointer
+if (dlrel2 === versMax) ok(`#dlrel2 == VERSIONS max (release r${versMax})`); else bad(`#dlrel2 r${dlrel2} != VERSIONS max r${versMax}`);
+if (ledgerMax <= versMax) ok(`ledger max block r${ledgerMax} <= release r${versMax} (no block claims a future release)`);
+else bad(`a ledger block r${ledgerMax} sits ABOVE the release pointer r${versMax}`);
+// integrity: no ledger record may sit ABOVE the release pointer (that WOULD be a phantom).
 const lVersions = new Set([...s.matchAll(/L\((\d+),"/g)].map((x) => +x[1]));
-const above = [...lVersions].filter((v) => v > vmax);
-if (!above.length) ok(`no ledger record above VMAX (append-only integrity)`);
-else bad(`ledger records above VMAX r${vmax}: ${above.join(', ')}`);
+const above = [...lVersions].filter((v) => v > versMax);
+if (!above.length) ok(`no ledger record above the release pointer (append-only integrity)`);
+else bad(`ledger records above release r${versMax}: ${above.join(', ')}`);
 // informational: releases that bumped the version WITHOUT superseding a block are normal
 // (chrome / gate / word-count re-fit / translation-only releases) — reported, not failed.
 const noSupersede = versEntries.filter((v) => !lVersions.has(v));
-console.log(`      ${versEntries.length} releases; ${noSupersede.length} bumped version without a block supersede (chrome/gate/re-fit/translation — expected)`);
+console.log(`      ${versEntries.length} releases; ${noSupersede.length} bumped version without a block supersede (chrome/gate/re-fit/translation — expected); ledger max block r${ledgerMax}`);
 
 // ── 2. canonical doctrine blocks + winning versions + fingerprints ────────────────
 console.log('\nWINNING DOCTRINE BLOCKS (id · winning version · body sha8):');
