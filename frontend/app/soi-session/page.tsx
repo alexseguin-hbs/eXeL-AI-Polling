@@ -64,7 +64,7 @@ const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string
   { id: "CRS-V02", title: "♡ S.I. earned only on POD-witnessed outcome", source: "§12 / unit.ontology (D12)",
     spec: "Shared Intent accrues only when a pod establishes and records an outcome. Clockless contributions score on a capped ladder — Noted 1 / Adopted 3 / Foundational 7." },
   { id: "CRS-V03", title: "웃 H.I. denomination + budget-approval gate + 9,999/yr ceiling", source: "§2 / unit.ceiling · unit.tranche (D7/D10)",
-    spec: "1 웃 = one hour × local minimum wage; earned = M × hours. 웃 issues ONLY on witnessed work under a scoped, budget-approved task (hours + local currency, like a CRS split into approved dev tasks) — before approval it is planning, not 웃. Wage-floor tranche paid immediately (never clawed back); acceleration tranche locked until witnessed; 9,999 웃/yr settlement boundary with rollforward." },
+    spec: "1 웃 = one hour × local minimum wage; earned = M × hours (Multiple × Time). 웃 issues ONLY on witnessed work under a scoped, budget-approved task (hours + local currency, like a CRS split into approved dev tasks) — before approval it is planning, not 웃. Wage-floor tranche paid immediately (never clawed back); acceleration tranche locked until witnessed; 9,999 웃/yr settlement boundary with rollforward." },
   { id: "CRS-V04", title: "◬ A.I. = witnessed acceleration, delinked from profit", source: "§14/§18 / unit.accel (D4/D11)",
     spec: "◬ recognizes independently witnessed AI acceleration vs a frozen baseline. The accelerator's only input is the task-scoped hours delta — never Revenue/Gross Profit/Operating Income/R&D Spend — so it sits outside the securities perimeter." },
   { id: "CRS-V05", title: "Pod-of-3 Task • Outcome", source: "open.proposed → frame.pod (this prototype)",
@@ -73,8 +73,8 @@ const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string
     spec: "No expectation of profit from the efforts of others; no common enterprise; nothing trades or appreciates idle. The 웃 rail is a Marketplace Escrow Settlement under a per-task Independent Contributor Agreement, not employment." },
   { id: "CRS-V07", title: "Jurisdictional resilience & lawful portability", source: "§16 / legal.sovereign_ledger · legal.iran_workaround (D6/D8)",
     spec: "Ledger logically sovereign from its settlement transport: China participates without crypto (fiat/local rails); Iran has a lawful, crypto-free path. External timestamp anchor + non-operator mirror for tamper-evidence." },
-  { id: "CRS-V08", title: "Four continuity metrics (health, not appreciation)", source: "§15 / fund.metrics · fund.escrow (r187)",
-    spec: "Revenue, Gross Profit, Operating Income, R&D Spend (absolute) benchmark project/framework health and score P = 0.25(g+gp+oi+rds). They never make Seed an appreciating investment." },
+  { id: "CRS-V08", title: "QIS — Qualified Innovation Score (measurement, not appreciation)", source: "§15/§18 / fund.metrics · fund.reward (r217/r228)",
+    spec: "A project's financial-innovation growth is measured by QIS = (R + GP + OI + ERD) ÷ 4, where ERD = QRD − ½·max(0, QRD − R/3) (R&D target = R/3). Growth = ΔQIS; ΔQIS sizes the Reward Pool — it mints no 웃 (웃 = M × hours). Measurement ≠ payment; QIS creates no recognition, ownership, or appreciation." },
   { id: "CRS-V09", title: "Human Primacy — Adaptive AI-Authority Door", source: "§3 / gov.aidoor (D13)",
     spec: "AI authority has three states — Advisory, Bounded-Autonomous (human-signed, reversible envelope), and Sovereign — with Sovereign (vote/signature/settlement) permanently closed to every machine agent." },
   { id: "CRS-V10", title: "MoT + Replay — append-only, deterministic", source: "§5 / rcore.ledger",
@@ -214,7 +214,7 @@ export default function SoISessionPage() {
     setMembers((ms) => ms.map((m, i) => i === memberIdx
       ? { ...m, witnessedBy: m.witnessedBy.map((w, j) => (j === reviewerIdx ? !w : w)) } : m));
 
-  // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = M × hours, ceiling-noted).
+  // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = M × hours (Multiple × Time), ceiling-noted).
   const M = 1;
   const witnessedHours = members.reduce((s, m, i) => s + (isWitnessed(i) ? (parseFloat(m.hours) || 0) : 0), 0);
   const totalYugYok = witnessedHours * M;                       // 웃 that would settle
