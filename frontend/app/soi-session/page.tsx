@@ -37,6 +37,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { SeedCoin } from "@/components/seed-coin";
 import { SoITrinity } from "@/components/soi-trinity";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
+import { format as fmtABC } from "@/lib/abc-3600";
 import {
   DEFAULT_PROJECTS, projectTasks, findProject, RECORD_METHODS,
   SYNC_START_SECONDS, POD_SIZE, FREE_TOOLS_NOTE, EVIDENCE_CHAIN,
@@ -669,7 +670,7 @@ export default function SoISessionPage() {
             </div>
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
-              <span className="font-medium text-foreground">{witnessedHours} witnessed hours</span>
+              <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· MoT {fmtABC(witnessedHours)}</span></span>
               <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (M × hours, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
             </div>
 
