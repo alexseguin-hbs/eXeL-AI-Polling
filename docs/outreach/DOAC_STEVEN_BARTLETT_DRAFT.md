@@ -55,3 +55,11 @@ https://exel-ai-polling.explore-096.workers.dev
 - **Claims audit (everything above is real):** 33 languages × 33/111/333/999 tiers live and parity-locked · Cambodia/Honduras/Austin are the named founding regions · citizen funding + monthly accounting + traceability are §5/ADOPT doctrine · accelerator economics (early delivery = contributor upside) is unit.accel canon · weaponization-refusal is QUALIFY doctrine · 500-year horizon + replay is core · "one ontology, many lawful rails, no indispensable intermediary" is shield.continuity canon.
 - **Not claimed:** signed signatories, revenue, user counts — the accord is presented as a working covenant and running software, not an adopted treaty. Keep it that way until signatures exist.
 - Correct spelling: **Steven Bartlett** (not Stephen Barlett).
+
+## Routing (operator confirms before sending — sandbox cannot verify live)
+
+- **Handle:** `@stevenbartlett` (Instagram / X / LinkedIn / TikTok — same handle across platforms).
+- **Website:** stevenbartlett.com (has a contact route); the show's site is thediaryofaceo.com.
+- **Production company:** Flight Story (produces DOAC) — their site carries a business/guest contact path; pitches routed through the researcher/booking team land better than DMs.
+- **Recommended send order:** (1) Flight Story / DOAC guest-pitch route with this email; (2) a short LinkedIn note to @stevenbartlett referencing the pitch, one sentence + the live link; (3) never both on the same day.
+- **Verify addresses yourself before sending** — I have not invented any email address here, and none should be guessed; use the contact forms or a verified address only.
