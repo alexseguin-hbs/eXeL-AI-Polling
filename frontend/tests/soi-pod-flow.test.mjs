@@ -59,10 +59,12 @@ const synth = buildSynthesis333({
   witnessedHours, totalYugYok, M, baseline, accelDelta, yaTriangle,
   signerName: "Mireille", podCode: "AB12CD",
 });
-ok(words(synth.results) === 111, `Results = 111 words (got ${words(synth.results)})`);
-ok(words(synth.changed) === 111, `What changed = 111 words (got ${words(synth.changed)})`);
-ok(words(synth.next) === 111, `What next = 111 words (got ${words(synth.next)})`);
-ok(words(synth.results) + words(synth.changed) + words(synth.next) === 333, "total synthesis = 333 words");
+// 3 paragraphs, ~333 words total (operator: need NOT be exactly 111 per paragraph)
+const synthTotal = words(synth.results) + words(synth.changed) + words(synth.next);
+ok(synth.results && synth.changed && synth.next, "three non-empty paragraphs");
+ok(synthTotal >= 300 && synthTotal <= 345, `total synthesis ~333 words (got ${synthTotal})`);
+ok(words(synth.results) >= 30 && words(synth.changed) >= 30 && words(synth.next) >= 30,
+  `each paragraph is substantive (${words(synth.results)}/${words(synth.changed)}/${words(synth.next)})`);
 
 // grounded: names, the outcome, the settled 웃, and the ◬ appear in the prose
 ok(/Adaeze/.test(synth.results), "synthesis names the pod members");
@@ -85,7 +87,7 @@ const synth2 = buildSynthesis333({
 ok(synth.results === synth2.results && synth.changed === synth2.changed && synth.next === synth2.next,
   "synthesis is deterministic (identical pod → identical text)");
 
-// a no-accelerator pod still produces exactly 333 words
+// a no-accelerator pod still produces a full ~333-word synthesis
 const synthNoAccel = buildSynthesis333({
   intent: "Run a quick volunteer brainstorm", outcome: "Three ideas captured and ranked",
   recordMethod: "written", recordValue: "Three ideas captured.",
@@ -93,8 +95,8 @@ const synthNoAccel = buildSynthesis333({
   witnessedHours: 3, totalYugYok: 3, M: 1, baseline: 0, accelDelta: 0, yaTriangle: 0,
   signerName: "—", podCode: "",
 });
-ok(words(synthNoAccel.results) + words(synthNoAccel.changed) + words(synthNoAccel.next) === 333,
-  "no-accelerator pod still lands 333 words");
+const naTotal = words(synthNoAccel.results) + words(synthNoAccel.changed) + words(synthNoAccel.next);
+ok(naTotal >= 300 && naTotal <= 345, `no-accelerator pod still lands ~333 words (got ${naTotal})`);
 ok(/no ◬ were recognised/.test(synthNoAccel.changed), "no-accelerator pod states no ◬ this task");
 
 console.log(`\nsoi-pod-flow: ${pass} passed, ${fail} failed`);

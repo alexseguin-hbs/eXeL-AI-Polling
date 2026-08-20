@@ -9,15 +9,15 @@
  * the pod's own data (intent, outcome, the recorded words, witnessed hours, the 웃
  * that settled, the ◬ delta), and written in the Master-of-Thought register.
  *
- * Each of the three paragraphs lands on EXACTLY 111 words:
+ * Three paragraphs summing to ~333 words total (operator: the 3-paragraph summary
+ * need NOT be exactly 111 words per paragraph — natural lengths are fine):
  *   1. Results     — what the pod produced.
  *   2. What changed — what changed because of it (the settled 웃 / ◬).
  *   3. What next    — where the outcome goes.
  *
- * The exact count is reached deterministically: data-driven core sentences first,
- * then whole doctrine sentences (largest that still fits), then one exact-length
- * closing clause from a 1..15-word bank. No sentence is reused within a paragraph,
- * so the prose reads cleanly at any pod size of contribution.
+ * Deterministically: data-driven core sentences first, then whole doctrine sentences
+ * added to whichever paragraph is currently shortest until the TOTAL reaches ~333.
+ * No sentence is reused, so the prose reads cleanly at any size of contribution.
  */
 
 import type { Synthesis333 } from "./pod-projects";
@@ -46,7 +46,7 @@ export interface SynthesisInput {
   podCode: string;
 }
 
-const TARGET = 111;
+const TOTAL_TARGET = 333;   // ~333 words across the three paragraphs (not per-paragraph)
 
 const countWords = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
@@ -56,9 +56,9 @@ const frag = (s: string) => {
   return t ? t.charAt(0).toLowerCase() + t.slice(1) : "";
 };
 
-/** First N words of a string, for a short verbatim excerpt of the recording. */
+/** First N words of a string (trailing sentence punctuation stripped, for a quoted excerpt). */
 const firstWords = (s: string, n: number) => {
-  const w = (s || "").trim().split(/\s+/).filter(Boolean);
+  const w = (s || "").trim().replace(/[.。!?！？]+$/, "").split(/\s+/).filter(Boolean);
   return w.length <= n ? w.join(" ") : w.slice(0, n).join(" ") + "…";
 };
 
@@ -73,66 +73,45 @@ const methodPhrase = (m: string) =>
 
 /** Section-agnostic doctrine sentences — each self-contained and true in any order. */
 const POOL: string[] = [
-  "Recognition is not money; qualification is not conversion.",                 // 8
-  "Every hour that counted was witnessed by two before it settled.",            // 11
-  "A self-attestation alone settles nothing here.",                             // 6
-  "Seed is membership, not a paywall on contribution.",                         // 8
-  "Classification precedes settlement, always.",                               // 4
-  "The append-only ledger keeps every correction visible.",                     // 7
-  "No single government, bank, or founder is indispensable to it.",             // 10
-  "The reward pool is sized by growth, and mints no token.",                    // 11
-  "Human hands wield the tools; the tools never replace the hands.",            // 11
-  "This is coordination without capture.",                                      // 5
+  "Recognition is not money, and qualification is not conversion.",
+  "Every hour that counted was witnessed by two other members before it settled.",
+  "A self-attestation alone, unwitnessed, settles nothing here.",
+  "Seed is membership, an entry credential beside the Trinity, never a paywall on contribution.",
+  "Classification precedes settlement, always, so changing a destination never changes what a thing legally is.",
+  "The append-only ledger keeps every correction visible, with the reason recorded at the time.",
+  "No single government, bank, founder, or model is indispensable to it.",
+  "The reward pool is sized by qualified growth after qualification, and it mints no token by itself.",
+  "Human hands wield the tools, and the tools never replace the hands that wield them.",
+  "This is coordination without capture, resilient by lawful portability rather than evasion.",
+  "Value reaches the person first, and then flows through qualified rails to where they elect.",
+  "Where a capability is not yet lawful in a place, it fails closed rather than falling over.",
+  "Measurement of Time keeps the actual minutes on the record, separate from the tokens that settled.",
+  "The whole session replays deterministically, so anyone can reconstruct exactly what happened.",
+  "Human authority remains accountable for every consequential decision, and the sovereign layer stays closed to machines.",
 ];
 
-/** Exact-length closing clauses, one per word-count 1..15 (self-contained fragments). */
-const BANK: Record<number, string> = {
-  1: "Witnessed.",
-  2: "It holds.",
-  3: "Nothing was minted.",
-  4: "The pod bore witness.",
-  5: "Continuity, not dependency, is served.",
-  6: "The record replays exactly as written.",
-  7: "Two witnessed the third before it counted.",
-  8: "Recognition is not money; qualification is not conversion.",
-  9: "Every correction stays visible on the append-only ledger forever.",
-  10: "Human authority stays accountable, and the sovereign layer stays closed.",
-  11: "The pod is three, so two can witness a third fairly.",
-  12: "One ontology, many lawful rails, and no single indispensable intermediary stands anywhere.",
-  13: "Value accrues to the person first, and then flows to where they elect.",
-  14: "Measurement of Time keeps every actual minute, separate from the tokens that finally settled.",
-  15: "Shared intention moved at the speed of thought, witnessed, recorded, and kept on the ledger.",
-};
-
 /**
- * Assemble a paragraph of EXACTLY `target` words: core sentences, then the largest
- * doctrine sentences that fit (each once), then one exact-length bank clause.
- * If the core already meets/exceeds the target, it is returned as-is.
+ * Build three paragraphs from their data cores, then top up to ~TOTAL_TARGET words
+ * across all three by adding whole doctrine sentences (each used at most once) to
+ * whichever paragraph is currently shortest. Natural paragraph lengths — no forced
+ * per-paragraph count — deterministic, and it stops once the total is close enough.
  */
-function assemble(core: string[], target: number): string {
-  const sentences = core.filter(Boolean);
-  let total = sentences.reduce((n, s) => n + countWords(s), 0);
-  if (total >= target) return sentences.join(" ");
+function assembleAll(cores: string[][]): string[] {
+  const paras = cores.map((c) => c.filter(Boolean));
+  const wc = (p: string[]) => p.reduce((n, s) => n + countWords(s), 0);
+  let total = paras.reduce((n, p) => n + wc(p), 0);
 
-  const used = new Set<string>();
-  // Largest-that-fits, so the remaining gap shrinks below the smallest pool sentence.
+  // doctrine sentences, largest first, each placed once
   const avail = [...POOL].sort((a, b) => countWords(b) - countWords(a));
-  let progressed = true;
-  while (total < target && progressed) {
-    progressed = false;
-    for (const s of avail) {
-      if (used.has(s)) continue;
-      const w = countWords(s);
-      if (total + w <= target) { sentences.push(s); used.add(s); total += w; progressed = true; }
-    }
+  for (const sentence of avail) {
+    if (total >= TOTAL_TARGET) break;
+    const w = countWords(sentence);
+    // place on the currently-shortest paragraph, if it keeps the total from overshooting badly
+    let shortest = 0;
+    for (let i = 1; i < paras.length; i++) if (wc(paras[i]) < wc(paras[shortest])) shortest = i;
+    if (total + w <= TOTAL_TARGET + 8) { paras[shortest].push(sentence); total += w; }
   }
-  let gap = target - total;
-  while (gap > 0) {
-    const take = Math.min(gap, 15);
-    sentences.push(BANK[take]);
-    gap -= take;
-  }
-  return sentences.join(" ");
+  return paras.map((p) => p.join(" "));
 }
 
 export function buildSynthesis333(inp: SynthesisInput): Synthesis333 {
@@ -167,9 +146,6 @@ export function buildSynthesis333(inp: SynthesisInput): Synthesis333 {
     "Where the work grows a project's financial-innovation, the Qualified Innovation Score measures it and its growth sizes the reward pool — a measurement, never a second mint.",
   ];
 
-  return {
-    results: assemble(resultsCore, TARGET),
-    changed: assemble(changedCore, TARGET),
-    next: assemble(nextCore, TARGET),
-  };
+  const [results, changed, next] = assembleAll([resultsCore, changedCore, nextCore]);
+  return { results, changed, next };
 }

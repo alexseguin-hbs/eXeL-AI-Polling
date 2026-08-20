@@ -173,6 +173,34 @@ export const api = {
       `/sessions/${sessionId}/questions`
     ),
 
+  /**
+   * ◬ ♡ 웃 Pod close-out synthesis (Semi-Automated / Autonomous path). Hands the
+   * recorded outcome to the real Cube 6 provider (Gemini/OpenAI, keys server-side).
+   * Returns null in MOCK mode or when the backend has no provider key — the caller
+   * then keeps its deterministic Manual-mode synthesis (lib/pod-synthesis.ts).
+   */
+  synthesizePodOutcome: async (payload: {
+    intent: string; outcome: string; record_text: string; provider?: string;
+    facts: {
+      witnessed_hours: number; yug_yok: number; m: number; baseline_hours: number;
+      accel_delta: number; ya_triangle: number; signer_name: string;
+      member_names: string[]; pod_code: string;
+    };
+  }): Promise<{ results: string; changed: string; next: string } | null> => {
+    if (MOCK_MODE) return null;                       // Manual mode → deterministic synthesis
+    try {
+      const r = await request<{ source: string; results?: string; changed?: string; next?: string }>(
+        "POST", `/pod/synthesis`, { body: { provider: "openai", ...payload } },
+      );
+      if (r?.source === "ai" && r.results && r.changed && r.next) {
+        return { results: r.results, changed: r.changed, next: r.next };
+      }
+      return null;                                    // offline provider → deterministic
+    } catch {
+      return null;                                    // provider outage → deterministic
+    }
+  },
+
   startTimeTracking: (sessionId: string, participantId: string) =>
     request<{ id: string }>("POST", `/time/start`, {
       body: { session_id: sessionId, participant_id: participantId, action_type: "responding" },

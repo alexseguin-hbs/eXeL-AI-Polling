@@ -24,6 +24,7 @@ from app.cubes.cube3_voice.router import router as voice_router
 from app.cubes.cube4_collector.router import router as collector_router
 from app.cubes.cube5_gateway.router import router as gateway_router
 from app.cubes.cube6_ai.router import router as ai_router
+from app.cubes.cube6_ai.pod_router import router as pod_synthesis_router
 from app.cubes.cube7_ranking.router import router as ranking_router
 from app.cubes.cube8_tokens.router import router as tokens_router
 from app.core.realtime_ws import router as realtime_router
@@ -114,6 +115,7 @@ app.include_router(voice_router, prefix=PREFIX)
 app.include_router(collector_router, prefix=PREFIX)
 app.include_router(gateway_router, prefix=PREFIX)
 app.include_router(ai_router, prefix=PREFIX)
+app.include_router(pod_synthesis_router, prefix=PREFIX)
 app.include_router(ranking_router, prefix=PREFIX)
 app.include_router(tokens_router, prefix=PREFIX)
 app.include_router(reports_router, prefix=PREFIX)

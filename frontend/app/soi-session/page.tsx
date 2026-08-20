@@ -39,6 +39,7 @@ import { SoITrinity } from "@/components/soi-trinity";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { buildSynthesis333 } from "@/lib/pod-synthesis";
+import { api } from "@/lib/api";
 import { format as fmtABC } from "@/lib/abc-3600";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import {
@@ -274,6 +275,30 @@ export default function SoISessionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [intent, outcome, recordMethod, recordValue, members, witnessedHours, totalYugYok, M, baseline, accelDelta, yaTriangle, signerName, podCode]);
   const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+
+  // Semi-Automated / Autonomous path: when the pod closes and the AI backend is
+  // reachable (real Cube 6 provider, keys server-side), let it write the synthesis.
+  // In Manual mode (mock / no key) the call returns null and the deterministic
+  // synthesis above stands. No stub — the AI path is genuinely wired for when it lands.
+  const [aiSynthesis, setAiSynthesis] = useState<Synthesis333 | null>(null);
+  useEffect(() => {
+    if (phase !== "closed") { setAiSynthesis(null); return; }
+    let live = true;
+    api.synthesizePodOutcome({
+      intent, outcome, record_text: recordValue,
+      facts: {
+        witnessed_hours: witnessedHours, yug_yok: totalYugYok, m: M,
+        baseline_hours: baseline, accel_delta: accelDelta, ya_triangle: yaTriangle,
+        signer_name: signerName,
+        member_names: members.map((m) => firstName(m.name) || m.role).filter(Boolean),
+        pod_code: podCode,
+      },
+    }).then((r) => { if (live && r) setAiSynthesis(r); }).catch(() => {});
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+  const shownSynthesis = aiSynthesis || synthesis;
+  const synthesisSource = aiSynthesis ? "ai" : "local";
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -764,16 +789,16 @@ export default function SoISessionPage() {
             {/* the 333-word (3 × 111) synthesis, in the operator's three sections */}
             <div className="rounded-lg border border-border p-4">
               <div className="mb-2 flex items-baseline justify-between gap-2">
-                <div className="text-sm font-medium">333-word synthesis <span className="text-xs font-normal text-muted-foreground">— 3 × 111: Results · What changed · What next</span></div>
+                <div className="text-sm font-medium">333-word synthesis <span className="text-xs font-normal text-muted-foreground">— 3 paragraphs: Results · What changed · What next</span></div>
                 <span className="font-mono text-[11px] text-muted-foreground">
-                  {wordCount(synthesis.results) + wordCount(synthesis.changed) + wordCount(synthesis.next)} words
+                  {wordCount(shownSynthesis.results) + wordCount(shownSynthesis.changed) + wordCount(shownSynthesis.next)} words
                 </span>
               </div>
               <div className="space-y-2 text-xs">
                 {([
-                  ["Results", synthesis.results],
-                  ["What changed", synthesis.changed],
-                  ["What next", synthesis.next],
+                  ["Results", shownSynthesis.results],
+                  ["What changed", shownSynthesis.changed],
+                  ["What next", shownSynthesis.next],
                 ] as const).map(([label, body]) => (
                   <div key={label}>
                     <div className="flex items-baseline justify-between">
@@ -785,7 +810,9 @@ export default function SoISessionPage() {
                 ))}
               </div>
               <p className="mt-2 text-[10px] text-muted-foreground">
-                Cube 6 (the AI pipeline) writes these tiers from the recording in production; this is the local-first deterministic synthesis, grounded in the pod&rsquo;s own record.
+                {synthesisSource === "ai"
+                  ? "Written by Cube 6 (Gemini/OpenAI) from the recorded outcome."
+                  : "Manual mode — deterministic synthesis grounded in the pod’s own record. Cube 6 (Gemini/OpenAI) writes these tiers once the AI backend is online (Semi-Automated → Autonomous)."}
               </p>
             </div>
 
