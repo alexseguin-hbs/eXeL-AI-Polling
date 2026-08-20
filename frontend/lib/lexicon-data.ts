@@ -181,6 +181,11 @@ const shared: TranslationEntry[] = [
   { key: "shared.atlantis.tab_countries", englishDefault: "Target Countries", context: "Atlantis viewer tab — target countries", cubeId: 0 },
   { key: "shared.atlantis.tab_approvals", englishDefault: "Proposed Approvals", context: "Atlantis viewer tab — proposed approvals/signatories", cubeId: 0 },
   { key: "shared.atlantis.words", englishDefault: "words", context: "Word-count tier suffix, e.g. '33 words'", cubeId: 0 },
+  // Vision • 2525 White Paper QR — Settings first item (operator 2026-08-21)
+  { key: "shared.wpqr.title", englishDefault: "Vision • 2525 — White Paper", context: "Settings first item: QR to the White Paper Brief", cubeId: 0 },
+  { key: "shared.wpqr.subtitle", englishDefault: "Scan for the Brief — the program's front door", cubeId: 0, context: "Settings QR subtitle (Sofia's UX line)" },
+  { key: "shared.wpqr.hint", englishDefault: "Scanning opens the Brief directly — pure reading, version details one tap away.", context: "Under the QR code", cubeId: 0 },
+  { key: "shared.wpqr.open", englishDefault: "Open the Brief ↗", context: "Link under the QR", cubeId: 0 },
   { key: "shared.atlantis.sections", englishDefault: "sections", context: "Section count suffix, e.g. '7 sections'", cubeId: 0 },
   { key: "shared.atlantis.signed", englishDefault: "Signed", context: "Signature status — signed", cubeId: 0 },
   { key: "shared.atlantis.pending", englishDefault: "Pending", context: "Signature status — pending ratification", cubeId: 0 },
