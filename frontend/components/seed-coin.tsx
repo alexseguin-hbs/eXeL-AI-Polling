@@ -22,8 +22,6 @@ const CYAN_DK = "#0b3d40";
 // The EXACT Alvar image from White Paper block 33 (operator) — extracted from the
 // living document's front.alvar block, not the larger /architect raster.
 const ALVAR_CYAN = "/architect/alvar-block33.png";
-/** The White Paper ALVAR section — the clean Alvar links here (R-Core usage, as block 33). */
-const ALVAR_SECTION = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525#alvar";
 
 export interface SeedCoinProps {
   size?: number;
@@ -32,11 +30,9 @@ export interface SeedCoinProps {
   defaultFlipped?: boolean;
   /** Notified whenever the coin flips. */
   onFlip?: (flipped: boolean) => void;
-  /** Where the Alvar links. Defaults to the White Paper ALVAR section (#alvar). */
-  alvarHref?: string;
 }
 
-export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip, alvarHref = ALVAR_SECTION }: SeedCoinProps) {
+export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip }: SeedCoinProps) {
   const [flipped, setFlipped] = useState(defaultFlipped);
   const toggle = () => {
     const next = !flipped;
@@ -98,18 +94,12 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
             boxShadow: `inset 0 0 0 2px ${CYAN_DK}, inset 0 0 22px ${CYAN}44`,
           }}>
             {/* The clean Alvar (same emblem as White Paper block 33 — no added
-                marks). The whole face is the R-Core link to §ALVAR; stopPropagation
-                so tapping it opens the section instead of flipping the coin back. */}
-            <a
-              href={alvarHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              aria-label="Read the ALVAR section of the White Paper"
-              title="ALVAR — read §ALVAR in the White Paper"
+                marks). Tapping the Alvar face flips the coin back to the Seed of
+                Life; it does NOT navigate to the White Paper (operator). */}
+            <div
+              aria-label="Alvar face — tap to flip back to the Seed of Life"
               style={{
                 position: "absolute", inset: 0, display: "grid", placeItems: "center",
-                textDecoration: "none", cursor: "pointer",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -119,7 +109,7 @@ export function SeedCoin({ size = 220, className, defaultFlipped = false, onFlip
                 width={size} height={size}
                 style={{ width: "86%", height: "86%", objectFit: "contain", filter: `drop-shadow(0 0 8px ${CYAN}66)` }}
               />
-            </a>
+            </div>
           </div>
         </CoinFace>
       </div>
