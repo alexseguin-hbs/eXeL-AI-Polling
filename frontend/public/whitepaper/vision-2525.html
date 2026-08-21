@@ -215,7 +215,7 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 .sitelinks{display:flex;align-items:center;justify-content:space-between;gap:12px;
   flex-wrap:wrap;margin:26px 0 0;padding:14px 0 4px;border-top:1px solid var(--rule-2);
   max-height:10vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-.sitelinks a{text-decoration:none;white-space:nowrap;font-size:12.5px;font-weight:600}
+.sitelinks a{text-decoration:none;white-space:nowrap;font-size:12.5px;font-weight:600;text-transform:none;letter-spacing:normal}
 .sitelinks .pill{border:1px solid var(--ai);color:var(--ai);border-radius:999px;padding:7px 15px}
 .sitelinks .pill:hover{background:var(--ai-bg)}
 .sitelinks .mid{color:var(--ink-2);letter-spacing:.04em}
@@ -1055,7 +1055,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.18 &middot; release <span id="dlrel2">243</span></strong>, <strong><span id="dlbytes2">5948638</span> bytes</strong> (<span id="dlsize2">5.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.18 &middot; release <span id="dlrel2">244</span></strong>, <strong><span id="dlbytes2">5950068</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6517,6 +6517,17 @@ const VERSIONS = [
   {n:"Krishna",g:"A",f:"One diff engine now serves the document, and is shaped to serve the slides, R-CORE and the CRS matrix without a rewrite."}
  ],
  next:"Footer parity across all sites, then cut Version 19."
+},
+{ v:244, code:"FOOTER PARITY &mdash; FEEDBACK / SECURITY-2525 / eXeL AI, LIKE /main",
+ stamp:"2026.08.21 &middot; revision 244",
+ thrust:"The site-footer row (Feedback &middot; SECURITY-2525 &middot; eXeL AI) inherited the global .pill uppercase, so it read FEEDBACK / EXEL AI while the rest of the tool &mdash; the /main global footer rendered by SiteFooter &mdash; reads Feedback / eXeL AI in proper case. The footer links now override to proper case and normal spacing, matching /main exactly; SECURITY-2525 stays as its literal capitals. Same three items, same order, pinned to the bottom of the page, tool-wide. CSS chrome only; no ledger block, no word-count change; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; doc v.18.",
+ mot:"One tool, one footer. The white paper is a site like the others, so its bottom row should read the way every other page reads &mdash; Feedback, then SECURITY-2525, then eXeL AI, in the same letters.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Sofia",g:"A",f:"Footer casing now matches the /main SiteFooter; the reader crosses between sites without the label shouting on one and whispering on the other."},
+  {n:"Christo",g:"A",f:"Consistency is trust: the same row, the same case, the same place on every page."}
+ ],
+ next:"Rebuild all 33 languages with the footer, then cut Version 19."
 }
 ];
 
@@ -19006,7 +19017,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5948638";
+const DL_BYTES = "5950068";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
