@@ -1406,18 +1406,22 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   await p.goto(f); await p.waitForTimeout(1200);
   const t=await p.evaluate(()=>{
     const wcount=s=>s.trim().split(/\s+/).filter(x=>x).length;
-    function visText(el){ if(el.nodeType===3) return el.nodeValue;
+    /* r237 · operator law: TABLES DO NOT COUNT toward the Brief's 3,333. Numbers
+       that live in columns are arithmetic, not argument — the Brief's word budget
+       measures its prose. skipTables applies to the brief view only. */
+    function visText(el, skipTables){ if(el.nodeType===3) return el.nodeValue;
       if(el.nodeType!==1) return '';
+      if(skipTables && el.tagName==='TABLE') return ' ';
       const st=getComputedStyle(el);
       if(st.display==='none'||st.visibility==='hidden') return '';
-      let s=''; for(const c of el.childNodes) s+=visText(c); return s+' '; }
+      let s=''; for(const c of el.childNodes) s+=visText(c, skipTables); return s+' '; }
     const out={};
     for(const v of ['brief','nose','paper']){
       setView(v); paged=false; renderDoc();
       let tot=0;
       for(const id of VIEWS[v].order){
         const el=document.getElementById('blk-'+id);
-        if(el) tot+=wcount(visText(el));
+        if(el) tot+=wcount(visText(el, v==='brief'));
       }
       out[v]=tot; paged=true; renderDoc();
     }
@@ -1456,7 +1460,8 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   await p.close();
   const bytes=(await import('node:fs')).statSync(f.replace('file://','')).size;
   const mb=bytes/1e6;
-  if(d.n<2) fails.push('DOWNLOAD: '+d.n+' self-download link(s) on the page; the foot and the site row both carry one');
+  /* r237 · operator: one download door — the deck. The drawer duplicate was removed. */
+  if(d.n<1) fails.push('DOWNLOAD: '+d.n+' self-download link(s) on the page; the deck carries one');
   if(!d.abs) fails.push('DOWNLOAD: a link is relative — it breaks in a downloaded copy');
   if(!d.named) fails.push('DOWNLOAD: a link has no filename on its download attribute');
   if(d.stated===null) fails.push('DOWNLOAD: the advertised size is missing');
@@ -1491,7 +1496,8 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     rel:(document.getElementById('dlrel2')||{}).textContent }));
   await p3.close();
   const actual=fs.statSync(f.replace('file://','')).size;
-  if(st.dl<2) fails.push('CONTENT: '+st.dl+' link(s) on the attachment path, expected 2');
+  /* r237 · operator: one download door — the deck. The settings duplicate was removed. */
+  if(st.dl<1) fails.push('CONTENT: '+st.dl+' link(s) on the attachment path, expected 1 (the deck)');
   if(String(st.bytes||'').replace(/,/g,'')!==String(actual))
     fails.push('CONTENT: the document prints '+st.bytes+' bytes but the file is '+actual);
   if(String(st.rel)!==String(VMAXCHK)) fails.push('CONTENT: printed release '+st.rel+' != VMAX '+VMAXCHK);
@@ -1513,7 +1519,9 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
             vis:st.display!=='none'&&r.height>0, top:Math.round(r.top),
             h:Math.round(r.height), fold:r.top<844,
             href:d.getAttribute('href')||'', dl:d.getAttribute('download')||'',
-            inSet:!!document.getElementById('bDLset')};
+            /* r237: the drawer download is GONE by law; the machine stamps stay. */
+            drawerClean:!document.getElementById('bDLset'),
+            stamps:!!(document.getElementById('dlbytes2')&&document.getElementById('dlrel2'))};
   });
   await p4.close();
   if(!v.ok) fails.push('REACHABLE: '+v.why);
@@ -1523,8 +1531,9 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     if(v.h<30)  fails.push('REACHABLE: the deck download is '+v.h+'px tall — under a thumb target');
     if(!/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(v.href)) fails.push('REACHABLE: deck download points at '+v.href);
     if(!v.dl)   fails.push('REACHABLE: deck download has no filename');
-    if(!v.inSet)fails.push('REACHABLE: the Settings drawer copy is missing');
-    console.log('reachable \u2014 deck download visible at y='+v.top+', '+v.h+'px tall, landing state straight='+v.straight+', drawer copy present');
+    if(!v.drawerClean)fails.push('REACHABLE: the Settings drawer still carries a download \u2014 removed by law at r237');
+    if(!v.stamps)fails.push('REACHABLE: the machine stamps (#dlbytes2/#dlrel2) are missing');
+    console.log('reachable \u2014 deck download visible at y='+v.top+', '+v.h+'px tall, landing state straight='+v.straight+', drawer clean, stamps present');
   }
 }
 
