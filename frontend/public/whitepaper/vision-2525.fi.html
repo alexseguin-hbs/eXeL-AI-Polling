@@ -561,6 +561,12 @@ body.straight .deck-in > .langwrap{display:inline-block}
   border-radius:9px;color:var(--hi);text-decoration:none;font-weight:600;font-size:13.5px}
 .setdl:hover{background:var(--hi-bg)}
 .qrmodal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center}
+.cmpscrim{position:fixed;inset:0;z-index:91;background:rgba(0,0,0,.55)}
+.cmpscrim[hidden]{display:none}
+body.cmpshow #cmp{display:block!important;position:fixed;inset:5% 3% 3%;z-index:92;overflow:auto;background:var(--panel);border:1px solid var(--ai);border-radius:10px;box-shadow:0 24px 64px rgba(0,0,0,.6);padding:14px 16px 22px;-webkit-overflow-scrolling:touch}
+@media(min-width:820px){body.cmpshow #cmp{inset:6% 12% 6%}}
+.cmp-x{position:sticky;top:-2px;float:right;margin:-4px -4px 0 8px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);border-radius:7px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.cmp-x:hover{color:var(--ink)}
 .qrmodal[hidden]{display:none}
 .qrmscrim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
 .qrmcard{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:16px;
@@ -1055,7 +1061,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lukeminen</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">247</span></strong>, <strong><span id="dlbytes2">5955780</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">248</span></strong>, <strong><span id="dlbytes2">5958844</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Tarkastusloki</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1133,6 +1139,7 @@ body.qrlead #qrAbout{display:inline-block}
 <div id="viewban"></div>
 <div id="vban"></div>
 <div id="keyimp"></div>
+<div class="cmpscrim" id="cmpScrim" hidden></div>
 <div id="cmp"></div>
 <main id="doc"></main>
 
@@ -6574,7 +6581,18 @@ const VERSIONS = [
   {n:"Sofia",g:"A",f:"Every audit-trail control now reads by its own drawn icon; consistency with Outline/Ledger/Registers."}
  ],
  next:"Reproduce the operator&rsquo;s compare-mode arrow report with exact reading mode."
-}
+},
+{ v:248, code:"COMPARE PULLS UP &mdash; PICK TWO VERSIONS, SEE THEM SIDE BY SIDE",
+  stamp:"2026.08.21 &middot; revision 248",
+  thrust:"Operator: tapping the compare icon should let you choose which two versions to compare, and then the side-by-side of version one against version two should pull up. It did not &mdash; the compare panel was display:none in the straight, brief and nose readings and only ever appeared inline, below the fold, in paged mode, so &lsquo;compare&rsquo; looked like it merely highlighted a block. Compare is now a pull-up MODAL (the QR / Accords pattern): tap &#8646;, a panel rises over the reading with the Baseline and Target pickers, the vs-previous and v1-vs-latest shortcuts, and the side-by-side word diff &mdash; removed red, added green &mdash; and it works in every reading mode. A scrim and a drawn close button dismiss it. Chrome/JS + CSS only; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; v.19 r1.003.",
+  mot:"Choosing the two versions is the whole act of comparing, so the choice has to be in front of the reader the moment they ask for it &mdash; not hidden in a mode they had to already be in.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Sofia",g:"A",f:"Compare now surfaces the pickers and the side-by-side on tap, in every reading mode &mdash; not only paged."},
+   {n:"Christo",g:"A",f:"Same modal grammar as the QR and the Accords; one gesture, one pull-up."}
+  ],
+  next:"Live-verify the modal on Cloudflare across the reading modes."
+ }
 ];
 
 
@@ -19063,7 +19081,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5955780";
+const DL_BYTES = "5958844";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20570,7 +20588,8 @@ function renderCompare(){
   for (let v=1; v<=VMAX; v++) opts += '<option value="' + v + '">v' + v + ' — ' + escw(VERSIONS[v-1].code) + '</option>';
 
   const isCur = hi === VMAX;
-  let h = '<div class="cmp"><h4>&#8646; ' + (isCur ? 'What changed &mdash; ' + relLabel(lo) + ' &rarr; current ' + relLabel(hi) : 'Compare releases') + '</h4>' +
+  let h = '<div class="cmp"><button class="cmp-x" id="cmpClose" aria-label="Close compare" title="Close">' + ICON.close + '</button>' +
+    '<h4>&#8646; ' + (isCur ? 'What changed &mdash; ' + relLabel(lo) + ' &rarr; current ' + relLabel(hi) : 'Compare releases') + '</h4>' +
     '<div class="cmp-ctl">' +
       '<label>Perusversio <select id="cmpA">' + opts + '</select></label>' +
       '<label>Kohde <select id="cmpB">' + opts + '</select></label>' +
@@ -20644,6 +20663,8 @@ function renderCompare(){
   document.getElementById("cmpPrev").addEventListener("click", function(){
     cmpB = active; cmpA = Math.max(1, active-1); goto(cmpB);
   });
+  var cx = document.getElementById("cmpClose");
+  if (cx) cx.addEventListener("click", function(){ document.getElementById("bCmp").click(); });
   document.getElementById("cmpFirst").addEventListener("click", function(){
     cmpA = 1; cmpB = VMAX; goto(VMAX);
   });
@@ -20959,7 +20980,15 @@ document.getElementById("bCmp").addEventListener("click", function(){
   cmpOn = !cmpOn;
   this.setAttribute("aria-pressed", cmpOn ? "true" : "false");
   if (cmpOn){ cmpB = active; cmpA = Math.max(1, active-1); }
+  /* r248 - Compare is a pull-up modal, so it surfaces in every reading mode
+     (it used to be display:none in straight/brief/nose and buried in paged). */
+  document.body.classList.toggle("cmpshow", cmpOn);
+  document.getElementById("cmpScrim").hidden = !cmpOn;
   renderDoc();
+  if (cmpOn){ var c = document.getElementById("cmp"); if (c) c.scrollTop = 0; }
+});
+document.getElementById("cmpScrim").addEventListener("click", function(){
+  if (cmpOn) document.getElementById("bCmp").click();
 });
 /* ── r96 · THE GROUND ────────────────────────────────────────────────────
    Operator: "default full doc to dark mode." Until now the document followed
