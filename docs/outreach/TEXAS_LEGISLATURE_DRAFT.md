@@ -1,69 +1,71 @@
-# Outreach draft — Texas Senate & House (full chambers) — v2
+# Outreach — Texas Senate & House — FINAL (operator-locked 2026-08-21)
 
-**Status:** DRAFT — operator review required before anything is sent. Nothing sends from this file.
-**Sender:** Master of Thought (anonymous — same voice and reveal-path as the DOAC send)
-**Letterhead / title block (above the salutation, not the subject):**
-`Vision • 2525   |   Atlantis Accords`
-**Enclosures:** the Vision • 2525 link, and (optional) the sealed Atlantis Accords file — **generate a FRESH code; never reuse 7213** (that key belongs to the Bartlett copy).
-
----
-
-## Subject line — recommendation first
-
-1. **`Cambodia. Honduras. Austin. — why your capital is on this list`** ← RECOMMENDED
-   Three regions, one of them theirs. The open loop a staffer cannot triage away, and it reads like substance, not marketing. 56 characters.
-2. `Austin is named in a 500-year covenant. You should read it first.`
-   Stakes + primacy — "you saw it before it asked anything of you" is the whole courtesy of the letter in one line.
-3. `The Atlantis Accords — Austin named among three founding regions`
-   The safest for official-correspondence triage; reads like a filing, not a pitch. Use this if deliverability is the top fear.
-4. `Texas + the Atlantis Accords — what starts here can change the world`
-   The operator's working title. The UT Austin motto resonance is real and local — but "change the world" is the softest phrase in the set and the most spam-adjacent. Keep the motto INSIDE the letter (it lands harder mid-argument than in a subject).
+**Status:** FINAL — ready to send. Nothing sends from this file; the operator sends.
+**Subject / letterhead:** `Vision • 2525   |   What Starts in Texas Can Change the World`
+**Sender:** Master of Thought (anonymous — the letter itself now discloses the architect is a Texan; intentional)
+**Enclosure:** sealed Atlantis Accords package — **fresh code generated (5•••, Clearance: Level 1)**. The four digits travel with the email and nowhere else; they are never stored in this repository (same law as the Bartlett 7••• record). One attached copy serves all recipients — the one-open seal is per-download on each reader's device.
+**`image` placeholder:** the Vision • 2525 QR card (QR + clean URL + "Open the Brief") — verified live in the r236 modal.
 
 ---
 
-## Email body (operator draft v2 — verbatim, with one required insert marked)
+## Email body — FINAL (verbatim)
+
+Vision • 2525   |   What Starts in Texas Can Change the World
 
 Dear Members of the Texas Senate and House,
 
-I write as Master of Thought rather than leading with a personal name for one reason: judge the work before the person behind it. I invite you to examine the Atlantis Accords, a citizen-centered covenant within Vision • 2525—a living framework for helping humanity coordinate artificial intelligence, education, innovation, and human responsibility. Its premise is simple: the next great agreement does not have to begin between governments. It can begin between people—and invite governments and institutions to participate through lawful, transparent cooperation. The proposed first three regions are Cambodia • Honduras • Austin, Texas.
+I write as Master of Thought for one reason:
 
-Vision • 2525 asks what becomes possible when we give the next generation the tools of the future—and teach them to use those tools responsibly. The framework begins with a few commitments:
+Judge the work before the Texan behind it.
 
-* AI increases human capability rather than making humanity irrelevant.
-* Simulation before consequence: practice, fail, Replay, learn, and improve safely before real-world deployment.
-* Transparency before trust: important decisions, resources, and results remain traceable and auditable.
-* Manual → Semi-Automated → Autonomous toolsets, while Human Authority remains human.
-* Continuity across generations: preserve what humanity learns so the future can build upon the past.
+I invite you to examine the Atlantis Accords, part of Vision • 2525—a framework asking how humanity can use artificial intelligence to expand human capability without surrendering human authority. Its proposed first regions are Cambodia • Honduras • Austin, Texas. Different places. One experiment: build locally, prove what works, and allow what earns trust to travel.
 
-> **[REQUIRED INSERT — the letter asks them to "read it, test it, and challenge it" but hands them nothing to read. Insert here:]**
->
-> The full document is public and lives at one address: https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525 — the Brief inside it is the whole argument in one sitting; the Accords are readable at four depths, 33 words to 999, in 33 languages. *(Optional second sentence if attaching the sealed file:)* Attached is a sealed copy of the Atlantis Accords; it opens with this code: **____** — the four digits travel with this email and nowhere else.
+The idea is practical:
 
-Texas has always carried an idea larger than its borders: build boldly, prove what works, and let others decide whether to follow. This is an opportunity to do that for the age of AI. I am not asking for legislation, funding, endorsement, or political commitment. I am asking you to read it, test it, and challenge it. Ask what works. Ask what fails. Ask what Texas law requires. Ask what parents would demand. Ask what young Texans could build. No one should have to trust Vision • 2525 blindly; we should be able to prove what we are doing. If the Atlantis Accords earn a conversation, reply to this address. Because if we can prove a better way here, what starts in Texas can change the world.
+AI should make people more capable, not less necessary.
+Children should practice in simulation before consequences become real.
+Important decisions should be transparent, measurable, and replayable.
+Technology may become increasingly autonomous; Human Authority does not.
+What one generation learns should become usable knowledge for the next.
+
+I am not asking Texas for money, legislation, endorsement, or belief. I am asking you to read it, test it, and challenge it. Find what fails. Strengthen what works. Ask what Texas law requires, what parents would demand, and what young Texans could build if they were given powerful tools with equally powerful responsibility. Vision • 2525 should never require blind trust—it should earn trust through proof. Texas does not need permission to explore a better future. It needs the courage to test one. And if we can prove something here that genuinely improves human life, what starts in Texas can change the world.
 
 Honor the Past • Measure the Present • Build the Future
 
-••• Master of Thought
-Vision • 2525 · The Atlantis Accords
-"We Can Not Master What We Are Not Aware Of"
+[image — Vision • 2525 QR card]
 
-P.S. Our first promise to every parent is simple: let every child practice a thousand times in safety before touching anything that could harm them.
+••• Master of Thought
+
+Vision • 2525 — The Atlantis Accords
+
+"We Can Not Master What We Are Not Aware Of"
 
 Best Regards,
 _________________________
 Master of Thought
 
-Humans Helping Humans — Connect
+
+Humans Helping Humans - Connect
+
+P.S. One promise to every parent: let a child practice a thousand times in safety before asking them to face the consequence once.
+
+---
+
+## Two lines the final body still needs (deliverability, not prose)
+
+1. **The attachment has no introduction and no key.** The sealed file arrives unnamed and unopenable — nowhere does the letter say what the attachment is or give the code. One line above the signature solves it, e.g.:
+   *"Attached is a sealed copy of the Atlantis Accords. It opens once, with this code: 5304 — the four digits travel with this email and nowhere else."*
+   (Sharing the code "privately, verbal · text" per the modal is right for one recipient; for a 180-member BCC the email IS the private channel.)
+2. **The link must survive image-blocking.** Most .gov clients block inline images by default — if the QR card is the only carrier of the URL, a blocked image means no link at all. Keep the plain-text URL once in the body or under the image:
+   `https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525`
 
 ---
 
 ## Recipients — BCC (operator-supplied, full chambers)
 
-### Texas Senate — 30 addresses (31 seats; one seat not on the list — verify before send, never guess an address)
+### Texas Senate — 30 addresses (31 seats; one seat not on the list — verify on senate.texas.gov before send, never guess an address)
 
 bryan.hughes@senate.texas.gov, bob.hall@senate.texas.gov, robert.nichols@senate.texas.gov, brett.ligon@senate.texas.gov, charles.schwertner@senate.texas.gov, carol.alvarado@senate.texas.gov, paul.bettencourt@senate.texas.gov, angela.paxton@senate.texas.gov, taylor.rehmet@senate.texas.gov, phil.king@senate.texas.gov, mayes.middleton@senate.texas.gov, tan.parker@senate.texas.gov, borris.miles@senate.texas.gov, sarah.eckhardt@senate.texas.gov, molly.cook@senate.texas.gov, nathan.johnson@senate.texas.gov, joan.huffman@senate.texas.gov, lois.kolkhorst@senate.texas.gov, roland.gutierrez@senate.texas.gov, juan.hinojosa@senate.texas.gov, judith.zaffirini@senate.texas.gov, royce.west@senate.texas.gov, pete.flores@senate.texas.gov, donna.campbell@senate.texas.gov, jose.menendez@senate.texas.gov, adam.hinojosa@senate.texas.gov, charles.perry@senate.texas.gov, cesar.blanco@senate.texas.gov, brent.hagenbuch@senate.texas.gov, kevin.sparks@senate.texas.gov
-
-*(cleaned: trailing period removed from the last address as supplied)*
 
 ### Texas House — 150 addresses (full chamber, 150/150, no duplicates)
 
@@ -71,11 +73,12 @@ gary.vandeaver@house.texas.gov, brent.money@house.texas.gov, cecil.bell@house.te
 
 ---
 
-## Send notes (operator — read before sending)
+## Send notes (final)
 
-- **BCC, never To/CC** — yourself in To. **180 addresses is too many for one send:** batch at 30–40 BCC per message (e.g. Senate in one batch, House in four), a few minutes apart, or gov mail systems will score it as bulk. Same subject + body every batch keeps the thread story coherent.
-- **The letter must hand them the object.** The v2 draft says "read it, test it, challenge it" — the marked INSERT carries the link (and the optional sealed file). Without it the only action is "reply," and most won't.
-- **Fresh code if attaching the sealed file.** 7213 belongs to the Bartlett copy; a code never travels twice. Anonymous sender + attachment on .gov mail often quarantines — **link-first is the deliverable path**, sealed file offered on reply.
-- **Superseded list retired:** the earlier 49-address list (mixed TX + five U.S. Congress + Talarico campaign addresses) is replaced by these full-chamber lists. Talarico now appears at his official house.texas.gov address; the congressional five are NOT on this list — that's a separate letter to a separate jurisdiction if wanted.
-- **One Senate seat is absent** (30 of 31). Verify which and add the address from senate.texas.gov directly — never guess a mailbox.
-- **Claims audit:** unchanged canon — "proposed first three regions" keeps the honest tense; no signatories, revenue, or endorsements claimed; nothing asked beyond reading.
+- **BCC, never To/CC** — yourself in To. **Batch at 30–40 BCC per message** (Senate as one batch, House as four), a few minutes apart — 180 in one send scores as bulk on .gov mail. Same subject + body each batch.
+- **Attachment + anonymity on .gov mail can quarantine.** If deliverability worries you, send link-first and offer the sealed file on reply; if attaching, the code line (fix #1 above) is mandatory or the file is a brick.
+- **The QR card image**: embed inline, but the plain-text URL must also appear (fix #2) — image-blocking is the default posture on government clients.
+- **"the Texan behind it"** — deliberate disclosure narrowing the anonymity from "someone" to "a Texan." Confirmed as intended by the operator's final text.
+- **One Senate seat absent** (30 of 31) — verify and add from senate.texas.gov; never guess a mailbox.
+- **Claims audit:** "proposed first regions" keeps the honest tense; nothing asked beyond reading; no signatories/revenue/endorsements claimed.
+- **Code hygiene:** 5••• belongs to THIS audience's package; 7••• belonged to Bartlett's. A code never travels twice; neither is ever stored unredacted in the repo.
