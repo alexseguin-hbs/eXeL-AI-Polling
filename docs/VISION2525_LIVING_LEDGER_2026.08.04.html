@@ -1043,7 +1043,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.18 &middot; release <span id="dlrel2">241</span></strong>, <strong><span id="dlbytes2">5940630</span> bytes</strong> (<span id="dlsize2">5.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.18 &middot; release <span id="dlrel2">242</span></strong>, <strong><span id="dlbytes2">5941850</span> bytes</strong> (<span id="dlsize2">5.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6483,6 +6483,17 @@ const VERSIONS = [
   {n:"Krishna",g:"A",f:"Diagram, heading, formula, and brief.formula agree on the split."}
  ],
  next:"Translate the QIS table (brief.formula) into all 32 languages."
+},
+{ v:242, code:"§C, NOT §CTHE &mdash; THE CONSTITUTION CHIP IS FIXED",
+ stamp:"2026.08.21 &middot; revision 242",
+ thrust:"The NOSE view&rsquo;s jump chip for the Constitution read &lsquo;§CTHE&rsquo;: its heading id (nose-c) was missing from the CHIP_LABEL map, so the fallback took the first token of the glued heading text (§CThe Constitution) and upper-cased it. The same defect was fixed for sec-c and out-c earlier; nose-c was the one that escaped. One row added &mdash; nose-c → §C &mdash; and the chip reads §C in every view. Render-JS only; no ledger block, no word-count change; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; doc v.18.",
+ mot:"A mark used once is an invention; used consistently it is an identifier. §C now means the same in the contents, the outline, the paper, and the NOSE rail.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"§C is identical across all four views now; the last glued chip is gone."},
+  {n:"Thoth",g:"A",f:"Chip-label probe passes: no chip reads §C+letters; every label is unique."}
+ ],
+ next:"Finish the 32-language brief.formula QIS translation, then cut Version 19."
 }
 ];
 
@@ -18972,7 +18983,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5940630";
+const DL_BYTES = "5941850";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19491,7 +19502,7 @@ let specOpen = false;
    without a row the fallback read "\u00a7C The Constitution" and produced \u00a7CTHE \u2014
    caught by the probe, not by a reader, which is the point of the probe. */
 const CHIP_LABEL = {"sec-0":"TOC", "sec-c":"\u00a7C", "sec-registers":"REGISTERS", "out-0":"PLAN",
-                    "out-c":"\u00a7C", "out-author":"AUTHOR",
+                    "out-c":"\u00a7C", "out-author":"AUTHOR", "nose-c":"\u00a7C",
                     "author":"AUTHOR", "sec-end":"END", "sec-close":"CLOSING"};
 function chipLabelFor(id, raw){
   if (CHIP_LABEL[id]) return CHIP_LABEL[id];
