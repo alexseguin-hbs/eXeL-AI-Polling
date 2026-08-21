@@ -489,6 +489,10 @@ function FullscreenViewer({
                             activeLocale === lang.code ? "bg-accent font-medium" : ""
                           }`}
                         >
+                          {/* Master language-row format (matches the home navbar):
+                              CODE • Native (English) — operator 2026-08-21. */}
+                          <span className="text-xs font-mono uppercase text-primary">{lang.code}</span>
+                          <span className="text-muted-foreground">&bull;</span>
                           <span>{lang.nameNative}</span>
                           <span className="text-muted-foreground text-xs">({lang.nameEn})</span>
                         </button>
