@@ -75,7 +75,9 @@ export default function CrsMatrixPage() {
       ts: new Date().toISOString().slice(0, 10).replace(/-/g, "."),
       rows: working.map((r) => ({ ...r })),
     };
-    persist([...versions, v]);
+    // Operator rule: CRS keeps the date/time of change so a user can see 2–3 past
+    // versions — cap the edited history at the last 3 (the Original baseline is always kept).
+    persist([...versions, v].slice(-3));
     setBId(v.id);
     setAId("base");
     setMode("compare");

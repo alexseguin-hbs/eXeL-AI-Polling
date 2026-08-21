@@ -5250,6 +5250,13 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
     }
     const fin = finSnapOf(p);
     const prior = [...versions].filter((v) => v.slide === spec.code).sort((a, b) => b.ts.localeCompare(a.ts))[0];
+    // Operator rule: SLIDES only document when there IS a change — but a GATE REVIEW
+    // (approved / change-pending) is always captured, so gate-over-gate comparison never
+    // has a hole. A no-op non-gate save creates no version.
+    const finKeys = ["nreK", "revM", "marginM", "npvM"] as const;
+    const noChange = !!prior && JSON.stringify(fields) === JSON.stringify(prior.fields) && finKeys.every((k) => prior.fin[k] === fin[k]);
+    const isGateReview = vstatus === "approved" || vstatus === "change-pending";
+    if (prior && noChange && !isGateReview) return false;
     const substantial = prior ? isSubstantial(versionDelta(prior.fin, fin)) : false;
     const v = makeSlideVersion({ ts: new Date().toISOString(), projectId: p.id, slide: spec.code, gate: p.gate, by, status: vstatus, comment, substantial, fields, fin });
     const next = mergeSlideVersions(versions, [v]);
