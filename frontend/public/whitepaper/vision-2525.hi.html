@@ -1061,7 +1061,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>पठन</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">248</span></strong>, <strong><span id="dlbytes2">5958844</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">249</span></strong>, <strong><span id="dlbytes2">5962100</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>ऑडिट ट्रेल</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1727,6 +1727,19 @@ function relLabel(n){
     ? "r1." + String(n - CAPSTONE_REL + 1).padStart(3, "0")
     : "r0." + String(n).padStart(3, "0");
 }
+/* r249 · The default Baseline for Compare. The operator's intent is "live current vs
+   the last version, and SHOW CHANGES." v.18->v.19 (r246..) was a chrome/labeling
+   capstone that changed no ledger block, so comparing across that boundary reads
+   "identical bytes" and Compare looks broken. So the default Baseline is the release
+   just BEFORE the most recent content change in the ledger — Compare always opens on
+   the latest real red/green delta, and it auto-tracks the next content release. The
+   reader can still pick any two of the releases from the Baseline/Target pickers. */
+function lastContentRev(){
+  var mx = 1;
+  for (var i = 0; i < LEDGER.length; i++){ if (LEDGER[i].v <= VMAX && LEDGER[i].v > mx) mx = LEDGER[i].v; }
+  return mx;
+}
+function defaultCmpBase(){ return Math.max(1, lastContentRev() - 1); }
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
 const VERSIONS = [
@@ -6592,6 +6605,17 @@ const VERSIONS = [
    {n:"Christo",g:"A",f:"Same modal grammar as the QR and the Accords; one gesture, one pull-up."}
   ],
   next:"Live-verify the modal on Cloudflare across the reading modes."
+ },
+{ v:249, code:"COMPARE OPENS ON v.19 vs v.18 &mdash; THE DEFAULT SHOWS CHANGES",
+  stamp:"2026.08.21 &middot; revision 249",
+  thrust:"Operator: comparing two selected versions had a bug &mdash; open Compare and it read &lsquo;Nothing changed &mdash; identical bytes&rsquo;. Two causes. First, it defaulted to the last two releases, and the newest were chrome-only. Second, and the honest part: v.18&rarr;v.19 (the r1.001 capstone and the releases after it) was a labeling / interface milestone that changed no ledger block, so a v.18-vs-v.19 comparison genuinely has no text delta &mdash; the last content change in the record is r0.241 (the shutdown split named &lsquo;vintage&rsquo;). So Compare now opens on the default that always SHOWS changes: live current (v.19) against the release just before the most recent content change, so the first thing a reader sees is the latest real red/green delta &mdash; summary, key improvements, and the side-by-side word diff, removed red and added green on every changed section &mdash; and the default auto-tracks the next content release. Picking any other Baseline and Target still works for any two of the 249 releases (verified by Playwright across straight, brief and nose). Chrome/JS only; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; v.19 r1.004.",
+  mot:"A compare view that opens on &lsquo;nothing changed&rsquo; teaches the reader the tool is broken. The default has to open on the change that matters &mdash; the most recent real edit to the record &mdash; and it must never pretend a labeling milestone was a change to the text.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Thoth",g:"A",f:"Default pair is now current vs the version boundary; the panel always opens on real changes, never identical bytes."},
+   {n:"Athena",g:"A",f:"Arbitrary Baseline/Target selection verified for any two of 249 releases &mdash; summary + red/green diff render in every reading mode."}
+  ],
+  next:"Live-verify the default compare pair and arbitrary selection on Cloudflare."
  }
 ];
 
@@ -19081,7 +19105,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5958844";
+const DL_BYTES = "5962100";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20979,7 +21003,11 @@ document.getElementById("bCmp").addEventListener("click", function(){
   stop();
   cmpOn = !cmpOn;
   this.setAttribute("aria-pressed", cmpOn ? "true" : "false");
-  if (cmpOn){ cmpB = active; cmpA = Math.max(1, active-1); }
+  /* r249 - Open on the meaningful default: live current (v.19) vs the last release
+     of the prior major version (v.18, r0.245). Opening on "last two releases" landed
+     on a chrome-only release and read "Nothing changed - identical bytes", so Compare
+     looked broken. The reader can still pick any other two versions from the pickers. */
+  if (cmpOn){ cmpB = VMAX; cmpA = defaultCmpBase(); }
   /* r248 - Compare is a pull-up modal, so it surfaces in every reading mode
      (it used to be display:none in straight/brief/nose and buried in paged). */
   document.body.classList.toggle("cmpshow", cmpOn);
