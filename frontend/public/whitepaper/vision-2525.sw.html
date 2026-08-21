@@ -1061,7 +1061,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Usomaji</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">249</span></strong>, <strong><span id="dlbytes2">5962158</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">249</span></strong>, <strong><span id="dlbytes2">5963698</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Rekodi ya Ukaguzi</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1710,16 +1710,16 @@ const VERSION_AT = [
   {version:19, from:246}  /* r246 — the Version 19 capstone: the full 33-language QIS pass, the shared version-compare engine across the ledger, the CRS matrix and the SoI-2525 slides, footer parity, and the r0.###→r1.### series. Delivered as v.19 r1.001. */
 ];
 function versionAt(rev){
-  /* operator 2026-08-21: the whole record is Version 19 now. Every release reads v.19;
-     the release SERIES (relLabel) carries the position, not the version number. The
-     historical VERSION_AT table is retained above for provenance but no longer branches. */
-  return 19;
+  /* operator 2026-08-21: THIS version — the newest release — is Version 19; every other
+     (older) release is Version 18. So the masthead reads v.19 on the live document and
+     v.18 on any historical release. The release SERIES (relLabel) carries the position. */
+  return rev >= VMAX ? 19 : 18;
 }
 /* r1.### RELEASE LABELS (operator 2026-08-21): the internal counter stays a plain integer
-   for replay and the gate; readers see a release SERIES under Version 19. THIS version —
-   the newest release — is v.19 r1.001, and each older release counts UP from there, so the
-   oldest of N releases reads r1.<N> (with 249 releases the oldest is r1.249). r1.001 is
-   always "this version"; the number tells you how many revisions back a release sits.
+   for replay and the gate; readers see a release SERIES. THIS version — the newest release —
+   is v.19 r1.001, and each older (v.18) release counts UP from there, so the oldest of N
+   releases reads r1.<N> (with 249 releases the oldest is v.18 r1.249). r1.001 is always
+   "this version"; the number tells you how many revisions back a release sits.
    CAPSTONE_REL is retained for the compare default helper's provenance only. */
 const CAPSTONE_REL = 246;
 function relLabel(n){
@@ -1737,7 +1737,11 @@ function lastContentRev(){
   for (var i = 0; i < LEDGER.length; i++){ if (LEDGER[i].v <= VMAX && LEDGER[i].v > mx) mx = LEDGER[i].v; }
   return mx;
 }
-function defaultCmpBase(){ return Math.max(1, lastContentRev() - 1); }
+/* operator 2026-08-21: Compare opens on THIS version vs the LAST version — v.19 (newest)
+   against v.18 (the release before it). When those two share identical content (the v.19
+   capstone changed the interface, not the text) the panel says so plainly and uses the
+   ledger release notes to highlight what each crossed release actually changed. */
+function defaultCmpBase(){ return Math.max(1, VMAX - 1); }
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
 const VERSIONS = [
@@ -19103,7 +19107,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5962158";
+const DL_BYTES = "5963698";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20629,7 +20633,25 @@ function renderCompare(){
 
   const changed = dr.changed;
   if (!changed.length){
-    h += '<p class="none">Hakuna kilichobadilika kati ya v' + lo + ' and v' + hi + '. Baiti zinazofanana.</p>';
+    if (hi > lo){
+      /* operator 2026-08-21: "if no content changed say so and use ledger to highlight
+         changes." The paper/brief/registers are byte-identical across this range, so no
+         red/green text diff exists — say that plainly, then read the ledger (the release
+         notes) to show what each crossed release DID change (interface / record only). */
+      h += '<p class="none">No document content changed between ' + relLabel(lo) + ' and ' + relLabel(hi) +
+           ' &mdash; the paper, brief and registers are byte-identical. These releases changed the interface and the record only. From the ledger, what each one did:</p>';
+      h += '<ul class="cmp-top"><h5>&#8646; From the ledger &middot; ' + relLabel(hi) + ' &larr; ' + relLabel(lo) + '</h5>';
+      for (var lv = hi; lv > lo; lv--){
+        var LV = VERSIONS[lv - 1];
+        if (!LV) continue;
+        h += '<li><span class="rk">' + relLabel(lv) + '</span>' +
+             '<span class="ti">' + escw(LV.code) + '</span>' +
+             '<span class="imp l1" title="interface / record">REC</span></li>';
+      }
+      h += '</ul>';
+    } else {
+      h += '<p class="none">' + relLabel(lo) + ' is a single release &mdash; choose a different Baseline and Target to compare two.</p>';
+    }
   } else {
     /* Highest impact + sections affected — the "how important / where" answer. */
     const hiIds = dr.top.filter(function(d){ return d.impact === "L5" || d.impact === "L4"; })
