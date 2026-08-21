@@ -1061,7 +1061,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lectura</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">249</span></strong>, <strong><span id="dlbytes2">5962100</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">249</span></strong>, <strong><span id="dlbytes2">5962158</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Registro de auditoría</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1710,22 +1710,20 @@ const VERSION_AT = [
   {version:19, from:246}  /* r246 — the Version 19 capstone: the full 33-language QIS pass, the shared version-compare engine across the ledger, the CRS matrix and the SoI-2525 slides, footer parity, and the r0.###→r1.### series. Delivered as v.19 r1.001. */
 ];
 function versionAt(rev){
-  let v = 1;
-  for (const e of VERSION_AT) if (rev >= e.from) v = e.version;
-  /* Before the first recorded delivery the two counters were the same number,
-     which is the defect this correction closes. */
-  return rev < VERSION_AT[0].from ? rev : v;
+  /* operator 2026-08-21: the whole record is Version 19 now. Every release reads v.19;
+     the release SERIES (relLabel) carries the position, not the version number. The
+     historical VERSION_AT table is retained above for provenance but no longer branches. */
+  return 19;
 }
-/* r0.### / r1.### RELEASE LABELS (operator 2026-08-21): the internal counter stays an
-   integer for replay and the gate; readers see a release SERIES. Everything up to the
-   Version 19 capstone is the pre-1.0 series r0.###; the capstone and after are r1.###,
-   so the completed Version 19 reads v.19 r1.001. CAPSTONE_REL is set to the capstone
-   release integer when it ships; until then it is unreached and all releases read r0.###. */
+/* r1.### RELEASE LABELS (operator 2026-08-21): the internal counter stays a plain integer
+   for replay and the gate; readers see a release SERIES under Version 19. THIS version —
+   the newest release — is v.19 r1.001, and each older release counts UP from there, so the
+   oldest of N releases reads r1.<N> (with 249 releases the oldest is r1.249). r1.001 is
+   always "this version"; the number tells you how many revisions back a release sits.
+   CAPSTONE_REL is retained for the compare default helper's provenance only. */
 const CAPSTONE_REL = 246;
 function relLabel(n){
-  return n >= CAPSTONE_REL
-    ? "r1." + String(n - CAPSTONE_REL + 1).padStart(3, "0")
-    : "r0." + String(n).padStart(3, "0");
+  return "r1." + String(Math.max(1, VMAX - n + 1)).padStart(3, "0");
 }
 /* r249 · The default Baseline for Compare. The operator's intent is "live current vs
    the last version, and SHOW CHANGES." v.18->v.19 (r246..) was a chrome/labeling
@@ -19105,7 +19103,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5962100";
+const DL_BYTES = "5962158";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
