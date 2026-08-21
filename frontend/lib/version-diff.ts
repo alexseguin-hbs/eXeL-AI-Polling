@@ -17,7 +17,7 @@ export type Op = { t: -1 | 0 | 1; s: string }; // -1 removed · 0 equal · 1 add
 export function tokenize(text: string): string[] {
   return (
     text.match(
-      /[぀-ヿ㐀-鿿가-힯豈-﫿]|[0-9]+(?:[.,][0-9]+)*|[^\s぀-ヿ㐀-鿿가-힯豈-﫿]+/gu,
+      /[぀-ヿ㐀-鿿가-힯豈-﫿]|[0-9]+(?:[.,][0-9]+)*|[^\s぀-ヿ㐀-鿿가-힯豈-﫿]+/g,
     ) || []
   );
 }
@@ -89,7 +89,7 @@ export function diffCollection<T extends Record<string, string>>(
     B = new Map<string, T>();
   for (const r of oldArr) A.set(String(r[keyField]), r);
   for (const r of newArr) B.set(String(r[keyField]), r);
-  const keys = Array.from(new Set([...A.keys(), ...B.keys()]));
+  const keys = Array.from(new Set(Array.from(A.keys()).concat(Array.from(B.keys()))));
   return keys.map((key) => {
     const from = A.get(key) ?? null,
       to = B.get(key) ?? null;
