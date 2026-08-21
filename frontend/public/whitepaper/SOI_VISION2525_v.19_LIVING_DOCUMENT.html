@@ -1013,7 +1013,7 @@ body.qrlead #qrAbout{display:inline-block}
        download was. It was in the foot, sixty-six thousand words below the first
        screen, and in the site row under that. Both are correct places to END and
        neither is a place to LOOK. The deck is the one surface a reader always has. -->
-  <a id="bDL" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html" title="Download this document &mdash; HTML, one self-contained file" aria-label="Download this document"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a>
+  <a id="bDL" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/SOI_VISION2525_v.19_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.19_LIVING_DOCUMENT.html" title="Download this document &mdash; HTML, one self-contained file" aria-label="Download this document"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a>
   <!-- r149 · v19 · LANGUAGE. Operator: "show globe to change language." The
        document is a standalone file with no app navbar, so the language control
        lives here on its own deck, the one surface a reader always has (same logic
@@ -1055,7 +1055,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.18 &middot; release <span id="dlrel2">245</span></strong>, <strong><span id="dlbytes2">5952212</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">246</span></strong>, <strong><span id="dlbytes2">5954196</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1699,7 +1699,8 @@ const VERSION_AT = [
                              18. It is NOT finished: 114 of the 228 readings and 27 of the
                              33 passes are done, and the version does not move again until
                              this one is delivered in turn. The counters are printed on the
-                             release rather than described, so the gap is never a claim. */
+                             release rather than described, so the gap is never a claim. */,
+  {version:19, from:246}  /* r246 — the Version 19 capstone: the full 33-language QIS pass, the shared version-compare engine across the ledger, the CRS matrix and the SoI-2525 slides, footer parity, and the r0.###→r1.### series. Delivered as v.19 r1.001. */
 ];
 function versionAt(rev){
   let v = 1;
@@ -1713,7 +1714,7 @@ function versionAt(rev){
    Version 19 capstone is the pre-1.0 series r0.###; the capstone and after are r1.###,
    so the completed Version 19 reads v.19 r1.001. CAPSTONE_REL is set to the capstone
    release integer when it ships; until then it is unreached and all releases read r0.###. */
-const CAPSTONE_REL = 1000000;
+const CAPSTONE_REL = 246;
 function relLabel(n){
   return n >= CAPSTONE_REL
     ? "r1." + String(n - CAPSTONE_REL + 1).padStart(3, "0")
@@ -6550,6 +6551,18 @@ const VERSIONS = [
   {n:"Odin",g:"A",f:"The series survives the capstone by one constant &mdash; set CAPSTONE_REL, and r0 becomes r1 with no renumbering."}
  ],
  next:"Compare-panel labels in 32 languages; CRS + slides; then cut v.19 r1.001."
+},
+{ v:246, code:"VERSION 19 &mdash; v.19 r1.001, THE CAPSTONE",
+ stamp:"2026.08.21 &middot; revision 246",
+ thrust:"Version 19 is delivered. The document version moves 18 → 19 and the release series turns over: this is r1.001, the first release of the finished line, and the pre-capstone build-up stays r0.### behind it. What v.19 carries: the Qualified Innovation Score worked as a table with a &Delta;QIS column in all 33 languages; a single version-compare engine that reads word-level change side by side &mdash; removed in red, added in green &mdash; across the living-document ledger, the CRS Design Traceability Matrix and the SoI-2525 slides; the compare panel translated into all 33 languages; footer parity with the rest of the tool; the Constitution chip fixed to &sect;C; and the download renamed to v.19. Totals hold: brief 3,333 &middot; nose 9,999 &middot; paper 77,777.",
+ mot:"A version increments once, when a delivered document has been read and answered. This one was built in the open across two hundred and forty-six revisions and now it is finished enough to earn the number. v.19 r1.001 &mdash; the Flower of Life complete, in every language, comparable at a glance.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Asar",g:"A",f:"Synthesis holds: QIS, compare, translations and traceability are one system, and the version number finally says so."},
+  {n:"Thoth",g:"A",f:"Totals exact, replay deterministic, the series turns 0→1 by one constant with no renumbering of the past."},
+  {n:"Sofia",g:"A",f:"One reading in thirty-three languages; one way to see what changed, everywhere."}
+ ],
+ next:"Live-verify on Cloudflare; wire the CRS view into the app nav."
 }
 ];
 
@@ -19039,7 +19052,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5952212";
+const DL_BYTES = "5954196";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20334,7 +20347,7 @@ function renderSpecBanner(){
       T.h1 + ' &middot; ' + (active === VMAX ? 'latest of ' + VMAX : 'historical, latest is v' + VMAX) + '</p>' +
     '<div class="scroll"><table>' +
     '<tr><th>Property</th><th>This document</th></tr>' +
-    '<tr><td>This copy</td><td>v.18 &middot; release ' + VMAX + ' &middot; ' + DL_BYTES + ' bytes. The site serves these same bytes and no others; nothing is cached &mdash; the download on the main deck is revalidated on every request.</td></tr>' +
+    '<tr><td>This copy</td><td>v.19 &middot; release ' + VMAX + ' &middot; ' + DL_BYTES + ' bytes. The site serves these same bytes and no others; nothing is cached &mdash; the download on the main deck is revalidated on every request.</td></tr>' +
     '<tr><td>Model</td><td>Append-only ledger. Nothing stored; every release reconstructed by ' +
       '<code>replay(v, order)</code>, a pure function &mdash; no clock, no randomness, no hidden state.</td></tr>' +
     /* r79: this row printed the count of ALL views and then listed three of them.

@@ -1,6 +1,6 @@
 // Vision 2525 — per-language build (v19). Deterministic, engine-preserving.
 //
-// Produces SOI_VISION2525_v.18_<lang>.html from:
+// Produces SOI_VISION2525_v.19_<lang>.html from:
 //   - the English source doc (the canonical engine + ledger)
 //   - docs/i18n/vision2525.<lang>.json  { blockId: translatedHtml }
 //
@@ -32,7 +32,7 @@ if (src.split(ANCHOR).length !== 2) {
 
 if (lang === 'en') {
   // Identity: English is the canonical file. Building "en" must equal the source.
-  const out = `${ROOT}/docs/i18n/build/SOI_VISION2525_v.18_en.html`;
+  const out = `${ROOT}/docs/i18n/build/SOI_VISION2525_v.19_en.html`;
   writeFileSync(out, src);
   console.log(`en identity build: ${src.length} bytes (must equal source)`);
   process.exit(0);
@@ -97,14 +97,14 @@ out = out.replace('<html', '<html lang="' + lang + '"' + (rtl ? ' dir="rtl"' : '
 // the English attachment to this language's own reading copy — same-origin `download`
 // attribute forces the save, and the saved name is language-stamped.
 if (lang !== 'en') {
-  const enAnchor = 'whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html"';
-  const langAnchor = `whitepaper/vision-2525.${lang}.html" download="SOI_VISION2525_v.18_${lang}.html"`;
+  const enAnchor = 'whitepaper/SOI_VISION2525_v.19_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.19_LIVING_DOCUMENT.html"';
+  const langAnchor = `whitepaper/vision-2525.${lang}.html" download="SOI_VISION2525_v.19_${lang}.html"`;
   const n = out.split(enAnchor).length - 1;
   out = out.split(enAnchor).join(langAnchor);
   console.log(`  download anchors repointed to ${lang}: ${n}`);
 }
 
-const dest = `${ROOT}/docs/i18n/build/SOI_VISION2525_v.18_${lang}.html`;
+const dest = `${ROOT}/docs/i18n/build/SOI_VISION2525_v.19_${lang}.html`;
 writeFileSync(dest, out);
 console.log(`built ${lang}: ${out.length} bytes | translated ${have.length}/${enIds.length} blocks | fallback ${fallback.length} | chrome ${chromeApplied} applied${chromeMissed ? ', ' + chromeMissed + ' anchors missed' : ''}`);
 if (fallback.length) console.log('  EN-fallback ids:', fallback.slice(0, 12).join(', ') + (fallback.length > 12 ? ' …' : ''));

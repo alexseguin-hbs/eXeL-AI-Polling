@@ -215,7 +215,7 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
 .sitelinks{display:flex;align-items:center;justify-content:space-between;gap:12px;
   flex-wrap:wrap;margin:26px 0 0;padding:14px 0 4px;border-top:1px solid var(--rule-2);
   max-height:10vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-.sitelinks a{text-decoration:none;white-space:nowrap;font-size:12.5px;font-weight:600}
+.sitelinks a{text-decoration:none;white-space:nowrap;font-size:12.5px;font-weight:600;text-transform:none;letter-spacing:normal}
 .sitelinks .pill{border:1px solid var(--ai);color:var(--ai);border-radius:999px;padding:7px 15px}
 .sitelinks .pill:hover{background:var(--ai-bg)}
 .sitelinks .mid{color:var(--ink-2);letter-spacing:.04em}
@@ -1013,7 +1013,7 @@ body.qrlead #qrAbout{display:inline-block}
        download was. It was in the foot, sixty-six thousand words below the first
        screen, and in the site row under that. Both are correct places to END and
        neither is a place to LOOK. The deck is the one surface a reader always has. -->
-  <a id="bDL" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525.id.html" download="SOI_VISION2525_v.18_id.html" title="Download this document &mdash; HTML, one self-contained file" aria-label="Download this document"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a>
+  <a id="bDL" href="https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525.id.html" download="SOI_VISION2525_v.19_id.html" title="Download this document &mdash; HTML, one self-contained file" aria-label="Download this document"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></a>
   <!-- r149 · v19 · LANGUAGE. Operator: "show globe to change language." The
        document is a standalone file with no app navbar, so the language control
        lives here on its own deck, the one surface a reader always has (same logic
@@ -1055,7 +1055,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Bacaan</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.18 &middot; release <span id="dlrel2">243</span></strong>, <strong><span id="dlbytes2">5948638</span> bytes</strong> (<span id="dlsize2">5.9</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">246</span></strong>, <strong><span id="dlbytes2">5954196</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Jejak Audit</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1699,7 +1699,8 @@ const VERSION_AT = [
                              18. It is NOT finished: 114 of the 228 readings and 27 of the
                              33 passes are done, and the version does not move again until
                              this one is delivered in turn. The counters are printed on the
-                             release rather than described, so the gap is never a claim. */
+                             release rather than described, so the gap is never a claim. */,
+  {version:19, from:246}  /* r246 — the Version 19 capstone: the full 33-language QIS pass, the shared version-compare engine across the ledger, the CRS matrix and the SoI-2525 slides, footer parity, and the r0.###→r1.### series. Delivered as v.19 r1.001. */
 ];
 function versionAt(rev){
   let v = 1;
@@ -1707,6 +1708,17 @@ function versionAt(rev){
   /* Before the first recorded delivery the two counters were the same number,
      which is the defect this correction closes. */
   return rev < VERSION_AT[0].from ? rev : v;
+}
+/* r0.### / r1.### RELEASE LABELS (operator 2026-08-21): the internal counter stays an
+   integer for replay and the gate; readers see a release SERIES. Everything up to the
+   Version 19 capstone is the pre-1.0 series r0.###; the capstone and after are r1.###,
+   so the completed Version 19 reads v.19 r1.001. CAPSTONE_REL is set to the capstone
+   release integer when it ships; until then it is unreached and all releases read r0.###. */
+const CAPSTONE_REL = 246;
+function relLabel(n){
+  return n >= CAPSTONE_REL
+    ? "r1." + String(n - CAPSTONE_REL + 1).padStart(3, "0")
+    : "r0." + String(n).padStart(3, "0");
 }
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
@@ -6517,6 +6529,40 @@ const VERSIONS = [
   {n:"Krishna",g:"A",f:"One diff engine now serves the document, and is shaped to serve the slides, R-CORE and the CRS matrix without a rewrite."}
  ],
  next:"Footer parity across all sites, then cut Version 19."
+},
+{ v:244, code:"FOOTER PARITY &mdash; FEEDBACK / SECURITY-2525 / eXeL AI, LIKE /main",
+ stamp:"2026.08.21 &middot; revision 244",
+ thrust:"The site-footer row (Feedback &middot; SECURITY-2525 &middot; eXeL AI) inherited the global .pill uppercase, so it read FEEDBACK / EXEL AI while the rest of the tool &mdash; the /main global footer rendered by SiteFooter &mdash; reads Feedback / eXeL AI in proper case. The footer links now override to proper case and normal spacing, matching /main exactly; SECURITY-2525 stays as its literal capitals. Same three items, same order, pinned to the bottom of the page, tool-wide. CSS chrome only; no ledger block, no word-count change; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; doc v.18.",
+ mot:"One tool, one footer. The white paper is a site like the others, so its bottom row should read the way every other page reads &mdash; Feedback, then SECURITY-2525, then eXeL AI, in the same letters.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Sofia",g:"A",f:"Footer casing now matches the /main SiteFooter; the reader crosses between sites without the label shouting on one and whispering on the other."},
+  {n:"Christo",g:"A",f:"Consistency is trust: the same row, the same case, the same place on every page."}
+ ],
+ next:"Rebuild all 33 languages with the footer, then cut Version 19."
+},
+{ v:245, code:"RELEASES READ r0.### &mdash; THE PRE-CAPSTONE SERIES",
+ stamp:"2026.08.21 &middot; revision 245",
+ thrust:"Operator versioning scheme: every release now reads as a SERIES label &mdash; r0.### through the Version 19 capstone (the pre-1.0 build-up), and r1.### from the capstone on, so the finished Version 19 will read v.19 r1.001. The internal counter stays a plain integer &mdash; replay, the gate, dlrel2 and every state hash are untouched &mdash; and relLabel() is a pure display formatter (r0. + three digits until CAPSTONE_REL, r1. after). The masthead, the compare header and the word-diff column headers all read the series label now. Chrome/JS only; no ledger block, no word-count change; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; doc still v.18 until the capstone.",
+ mot:"A version number should tell a reader where they are in the story. r0.### says still building; r1.001 will say the first finished Version 19. The audit counter underneath never moves in name, so nothing that proves the past is disturbed.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Thoth",g:"A",f:"relLabel is a pure function of the integer; determinism and every hash are unchanged."},
+  {n:"Odin",g:"A",f:"The series survives the capstone by one constant &mdash; set CAPSTONE_REL, and r0 becomes r1 with no renumbering."}
+ ],
+ next:"Compare-panel labels in 32 languages; CRS + slides; then cut v.19 r1.001."
+},
+{ v:246, code:"VERSION 19 &mdash; v.19 r1.001, THE CAPSTONE",
+ stamp:"2026.08.21 &middot; revision 246",
+ thrust:"Version 19 is delivered. The document version moves 18 → 19 and the release series turns over: this is r1.001, the first release of the finished line, and the pre-capstone build-up stays r0.### behind it. What v.19 carries: the Qualified Innovation Score worked as a table with a &Delta;QIS column in all 33 languages; a single version-compare engine that reads word-level change side by side &mdash; removed in red, added in green &mdash; across the living-document ledger, the CRS Design Traceability Matrix and the SoI-2525 slides; the compare panel translated into all 33 languages; footer parity with the rest of the tool; the Constitution chip fixed to &sect;C; and the download renamed to v.19. Totals hold: brief 3,333 &middot; nose 9,999 &middot; paper 77,777.",
+ mot:"A version increments once, when a delivered document has been read and answered. This one was built in the open across two hundred and forty-six revisions and now it is finished enough to earn the number. v.19 r1.001 &mdash; the Flower of Life complete, in every language, comparable at a glance.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Asar",g:"A",f:"Synthesis holds: QIS, compare, translations and traceability are one system, and the version number finally says so."},
+  {n:"Thoth",g:"A",f:"Totals exact, replay deterministic, the series turns 0→1 by one constant with no renumbering of the past."},
+  {n:"Sofia",g:"A",f:"One reading in thirty-three languages; one way to see what changed, everywhere."}
+ ],
+ next:"Live-verify on Cloudflare; wire the CRS view into the app nav."
 }
 ];
 
@@ -19006,7 +19052,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5948638";
+const DL_BYTES = "5954196";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19491,7 +19537,7 @@ function renderDoc(){
      answered. The revision is the append count and stays visible beside it,
      because it is the audit trail; it is simply no longer the headline. */
   document.getElementById("vNow").innerHTML =
-    "v." + versionAt(active) + ' <span class="rev">r' + active +
+    "v." + versionAt(active) + ' <span class="rev">' + relLabel(active) +
     (active === VMAX ? " latest" : "") + "</span>";
   /* The corner badge always shows the version of the release being read, so
      stepping back through the record moves it too. It is a fact about the
@@ -20308,7 +20354,7 @@ function renderSpecBanner(){
       T.h1 + ' &middot; ' + (active === VMAX ? 'latest of ' + VMAX : 'historical, latest is v' + VMAX) + '</p>' +
     '<div class="scroll"><table>' +
     '<tr><th>Property</th><th>This document</th></tr>' +
-    '<tr><td>This copy</td><td>v.18 &middot; release ' + VMAX + ' &middot; ' + DL_BYTES + ' bytes. The site serves these same bytes and no others; nothing is cached &mdash; the download on the main deck is revalidated on every request.</td></tr>' +
+    '<tr><td>This copy</td><td>v.19 &middot; release ' + VMAX + ' &middot; ' + DL_BYTES + ' bytes. The site serves these same bytes and no others; nothing is cached &mdash; the download on the main deck is revalidated on every request.</td></tr>' +
     '<tr><td>Model</td><td>Append-only ledger. Nothing stored; every release reconstructed by ' +
       '<code>replay(v, order)</code>, a pure function &mdash; no clock, no randomness, no hidden state.</td></tr>' +
     /* r79: this row printed the count of ALL views and then listed three of them.
@@ -20492,8 +20538,8 @@ function dfPair(id, lo, hi){
     else if (o[0] === -1){ Lc += '<del>' + e + '</del> '; }
     else { Rc += '<ins>' + e + '</ins> '; }
   }
-  return '<div class="df-cols"><div class="df-col df-old"><h6>r' + lo + '</h6><p>' + (Lc.trim() || '&mdash;') + '</p></div>' +
-         '<div class="df-col df-new"><h6>r' + hi + '</h6><p>' + (Rc.trim() || '&mdash;') + '</p></div></div>';
+  return '<div class="df-cols"><div class="df-col df-old"><h6>' + relLabel(lo) + '</h6><p>' + (Lc.trim() || '&mdash;') + '</p></div>' +
+         '<div class="df-col df-new"><h6>' + relLabel(hi) + '</h6><p>' + (Rc.trim() || '&mdash;') + '</p></div></div>';
 }
 function renderCompare(){
   const host = document.getElementById("cmp");
@@ -20508,35 +20554,35 @@ function renderCompare(){
   for (let v=1; v<=VMAX; v++) opts += '<option value="' + v + '">v' + v + ' — ' + escw(VERSIONS[v-1].code) + '</option>';
 
   const isCur = hi === VMAX;
-  let h = '<div class="cmp"><h4>&#8646; ' + (isCur ? 'What changed &mdash; r' + lo + ' &rarr; current r' + hi : 'Compare releases') + '</h4>' +
+  let h = '<div class="cmp"><h4>&#8646; ' + (isCur ? 'What changed &mdash; ' + relLabel(lo) + ' &rarr; current ' + relLabel(hi) : 'Compare releases') + '</h4>' +
     '<div class="cmp-ctl">' +
       '<label>Baseline <select id="cmpA">' + opts + '</select></label>' +
       '<label>Target <select id="cmpB">' + opts + '</select></label>' +
-      '<button id="cmpPrev">vs previous</button>' +
-      '<button id="cmpFirst">v1 vs latest</button>' +
+      '<button id="cmpPrev">vs sebelumnya</button>' +
+      '<button id="cmpFirst">v1 vs terbaru</button>' +
     '</div>' +
     '<div class="cmp-sum">' +
-      '<span class="k-add">added <b>' + c.added + '</b></span>' +
-      '<span class="k-rev">revised <b>' + c.revised + '</b></span>' +
-      '<span class="k-rem">removed <b>' + c.removed + '</b></span>' +
-      '<span class="k-car">carried unchanged <b>' + c.carried + '</b></span>' +
+      '<span class="k-add">ditambahkan <b>' + c.added + '</b></span>' +
+      '<span class="k-rev">direvisi <b>' + c.revised + '</b></span>' +
+      '<span class="k-rem">dihapus <b>' + c.removed + '</b></span>' +
+      '<span class="k-car">dibawa tanpa perubahan <b>' + c.carried + '</b></span>' +
       '<span class="k-car">' + dr.releasesCrossed + ' release' + (dr.releasesCrossed===1?'':'s') + ' crossed</span>' +
       '<span class="k-car">v' + lo + ' &rarr; v' + hi + '</span>' +
     '</div>';
 
   const changed = dr.changed;
   if (!changed.length){
-    h += '<p class="none">Nothing changed between v' + lo + ' and v' + hi + '. Identical bytes.</p>';
+    h += '<p class="none">Tidak ada yang berubah antara v' + lo + ' and v' + hi + '. Byte identik.</p>';
   } else {
     /* Highest impact + sections affected — the "how important / where" answer. */
     const hiIds = dr.top.filter(function(d){ return d.impact === "L5" || d.impact === "L4"; })
                         .map(function(d){ return '<b>' + esc(d.id) + '</b>'; }).slice(0, 4);
     h += '<p class="cmp-hi">' + changed.length + ' change' + (changed.length===1?'':'s') +
          ' across <b>' + dr.sectionsAffected.length + '</b> section' + (dr.sectionsAffected.length===1?'':'s') +
-         (hiIds.length ? ' &middot; highest impact: ' + hiIds.join(', ') : '') + '</p>';
+         (hiIds.length ? ' &middot; dampak tertinggi: ' + hiIds.join(', ') : '') + '</p>';
 
     /* Key improvements — the top 7 by deterministic impact (highest first). */
-    h += '<ul class="cmp-top"><h5>Key improvements &middot; r' + lo + ' &rarr; r' + hi + '</h5>';
+    h += '<ul class="cmp-top"><h5>Peningkatan utama &middot; r' + lo + ' &rarr; r' + hi + '</h5>';
     dr.top.forEach(function(d, i){
       h += '<li><span class="rk">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
            '<span class="ti">' + escw(d.title) + '</span>' +
@@ -20544,7 +20590,7 @@ function renderCompare(){
     });
     h += '</ul>';
 
-    h += '<div class="scroll"><table><tr><th>Block</th><th>Change</th><th>Impact</th><th class="n">At</th><th>Recorded reason</th></tr>';
+    h += '<div class="scroll"><table><tr><th>Blok</th><th>Perubahan</th><th>Dampak</th><th class="n">Pada</th><th>Alasan tercatat</th></tr>';
     for (const r of changed){
       const cls = r.kind === "added" ? "k-add" : r.kind === "revised" ? "k-rev" : "k-rem";
       h += '<tr><td><code>' + esc(r.id) + '</code></td>' +
@@ -20561,8 +20607,8 @@ function renderCompare(){
     var dfList = dfByImp.filter(function(d){ return d.kind !== "removed"; });
     var dfShown = dfList.slice(0, 14);
     if (dfShown.length){
-      h += '<div class="df-wrap"><h5>&#8646; Text changes &middot; canonical record</h5>' +
-           '<p class="df-note">Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.</p>';
+      h += '<div class="df-wrap"><h5>&#8646; Perubahan teks &middot; catatan kanonis</h5>' +
+           '<p class="df-note">Riwayat versi disimpan dalam bahasa sumber, sehingga perubahan tingkat kata ditampilkan pada teks Inggris kanonis; setiap bahasa mengikuti rilis terbaru. Coretan merah berarti dihapus, hijau berarti ditambahkan.</p>';
       dfShown.forEach(function(d){
         h += '<div class="df-blk"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
              '<span class="pill ' + (d.kind === "added" ? "k-add" : "k-rev") + '">' + d.kind + '</span></div>' +

@@ -1451,7 +1451,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   await p.goto(f); await p.waitForTimeout(900);
   const d=await p.evaluate(()=>{
     const as=[...document.querySelectorAll('a[download]')]
-      .filter(a=>/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||''));
+      .filter(a=>/SOI_VISION2525_v\.19_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||''));
     const el=document.getElementById('dlsize2');
     return {n:as.length, abs:as.every(a=>/^https:\/\//.test(a.getAttribute('href'))),
             named:as.every(a=>/\.html$/.test(a.getAttribute('download')||'')),
@@ -1478,7 +1478,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   const copies=['docs/SOI_VISION2525_LIVING_DOCUMENT.html',
                 'docs/VISION2525_LIVING_LEDGER_2026.08.04.html',
                 'frontend/public/whitepaper/vision-2525.html',
-                'frontend/public/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html'];
+                'frontend/public/whitepaper/SOI_VISION2525_v.19_LIVING_DOCUMENT.html'];
   const seen=new Set();
   for(const c of copies){
     if(!fs.existsSync(root+c)){ fails.push('CONTENT: missing published copy '+c); continue; }
@@ -1491,7 +1491,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     fails.push('CONTENT: the reading copy is cacheable — LIVE can go stale against the file');
   const p3=await b.newPage(); await p3.goto(f); await p3.waitForTimeout(900);
   const st=await p3.evaluate(()=>({
-    dl:[...document.querySelectorAll('a[download]')].filter(a=>/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||'')).length,
+    dl:[...document.querySelectorAll('a[download]')].filter(a=>/SOI_VISION2525_v\.19_LIVING_DOCUMENT\.html$/.test(a.getAttribute('href')||'')).length,
     bytes:(document.getElementById('dlbytes2')||{}).textContent,
     rel:(document.getElementById('dlrel2')||{}).textContent }));
   await p3.close();
@@ -1529,7 +1529,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     if(!v.vis)  fails.push('REACHABLE: the deck download is not visible in the landing state');
     if(!v.fold) fails.push('REACHABLE: the deck download sits at y='+v.top+', below the first screen');
     if(v.h<30)  fails.push('REACHABLE: the deck download is '+v.h+'px tall — under a thumb target');
-    if(!/SOI_VISION2525_v\.18_LIVING_DOCUMENT\.html$/.test(v.href)) fails.push('REACHABLE: deck download points at '+v.href);
+    if(!/SOI_VISION2525_v\.19_LIVING_DOCUMENT\.html$/.test(v.href)) fails.push('REACHABLE: deck download points at '+v.href);
     if(!v.dl)   fails.push('REACHABLE: deck download has no filename');
     if(!v.drawerClean)fails.push('REACHABLE: the Settings drawer still carries a download \u2014 removed by law at r237');
     if(!v.stamps)fails.push('REACHABLE: the machine stamps (#dlbytes2/#dlrel2) are missing');
