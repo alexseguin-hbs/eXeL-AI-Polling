@@ -60,6 +60,7 @@ import {
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
 import { SoiSlideCompare } from "@/components/soi-slide-compare";
+import { SoiProjectCrs } from "@/components/soi-project-crs";
 import { Settings, FileText, Lightbulb, Save, Trash2 } from "lucide-react"; // settings gear + Template/New-Idea icons + W-7 disk Save (the ONE save glyph, matching Architect-2525)
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
@@ -221,7 +222,7 @@ function Board() {
   }, []);
   const [selId, setSelId] = useState(order[0].id);
   const [risks, setRisks] = useState<Risk[]>(DEMO_RISKS);
-  const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup">("portfolio");
+  const [view, setView] = useState<"portfolio" | "gates" | "dashboards" | "setup" | "crs">("portfolio");
   const [persona, setPersona] = useState<Persona>("sbu");
   const [detailMax, setDetailMax] = useState(false); // maximize the selected-project deep dive full-width
   const [portfolioMax, setPortfolioMax] = useState(false); // expand the Rack & Stack card to full screen (phone: see all columns)
@@ -676,7 +677,7 @@ function Board() {
 
       {/* View tabs — Portfolio (Rack/Stack/Risk/Growth) ⟷ Dashboards (ROI Visuals) */}
       <nav className="flex gap-1 border-b border-slate-800 px-5 overflow-x-auto">
-        {([["portfolio", stackName], ["gates", t("innovation.tab.gates")], ["dashboards", t("innovation.tab.dashboards")], ["setup", t("innovation.tab.setup")]] as const).map(([v, label]) => (
+        {([["portfolio", stackName], ["gates", t("innovation.tab.gates")], ["dashboards", t("innovation.tab.dashboards")], ["crs", t("innovation.tab.crs")], ["setup", t("innovation.tab.setup")]] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${view === v ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400 hover:text-slate-200"}`}>
             {v === "setup"
@@ -998,6 +999,12 @@ function Board() {
         <div className="p-5">
           <Dashboards projects={scoped} funded={fundedRows.map((r) => r.p)} availK={avail} budgetOverrideK={budgetOverrideK} cadence={cadence} showUnfunded={showUnfunded} onShowUnfunded={setShowUnfunded} onSelect={(id) => { selectProject(id); setView("portfolio"); }}
             allProjects={order} hierFilter={hierFilter} onScope={setHierFilter} />
+        </div>
+      )}
+
+      {view === "crs" && (
+        <div className="p-5">
+          <SoiProjectCrs projects={order} />
         </div>
       )}
 
