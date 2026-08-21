@@ -59,6 +59,7 @@ import {
   PLANNING_HORIZON_YEARS,
 } from "@/lib/innovation-data";
 import { useViewport, pinchZoom, touchDistance, ZOOM_MIN, ZOOM_MAX } from "@/lib/use-viewport";
+import { SoiSlideCompare } from "@/components/soi-slide-compare";
 import { Settings, FileText, Lightbulb, Save, Trash2 } from "lucide-react"; // settings gear + Template/New-Idea icons + W-7 disk Save (the ONE save glyph, matching Architect-2525)
 import { SPREAD_BASES, spreadPerMin, spreadDaysOf, type SpreadKey } from "@/lib/soi-calendar"; // MoT time-spread → $/min
 import { loadImageLibrary, addToImageLibrary, removeFromImageLibrary, signedDataURL, type LibImage } from "@/lib/image-library"; // shared CONOPS image pool (Light-Codex signed)
@@ -6778,6 +6779,11 @@ function SlideShowModal({ p, startSlide, onClose, onEditSource, openSource }: { 
                   </div>
                 );
               })())}
+              {showReplay && slideVersions.length >= 2 && (
+                <div className="border-t border-slate-800 px-3 py-2">
+                  <SoiSlideCompare versions={slideVersions} />
+                </div>
+              )}
             </div>
           </div>
         )}
