@@ -221,7 +221,7 @@ function __initSeal(){
     if(e=document.getElementById('doneFresh'))e.textContent=u.doneFresh;
     if(e=document.getElementById('burn'))e.textContent=u.burn;
     if(e=document.getElementById('badge'))e.textContent=u.clearance+' '+LVL;}
-  var TC={7:'#c084fc',33:'#ef4444',111:'#22c55e',333:'#3b82f6'};
+  var TC={7:'#c084fc',33:'#FF0000',111:'#10B981',333:'#3B82F6',999:'#8B5CF6'};
   // Original AccordFlower geometry: 6 petals (idx 0-5) + EXPAND hub (idx 6).
   var POS=(function(){var CX=300,CY=250,a=[];for(var i=0;i<6;i++){var d=(-120+i*60)*Math.PI/180;a.push({cx:CX+130*Math.cos(d),cy:CY+130*Math.sin(d),r:85});}a.push({cx:CX,cy:CY,r:50});return a;})();
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -239,12 +239,21 @@ function __initSeal(){
     document.getElementById('left').innerHTML='<svg viewBox="0 0 600 500" width="100%" style="max-height:74vh;overflow:visible">'+g+'</svg>';
     Array.prototype.forEach.call(document.querySelectorAll('#left circle[data-i]'),function(c){c.onclick=function(){var t=+c.dataset.i;if(DATA&&DATA.msg&&t>=CT.sections.length)return;sec=t;render();};});
   }
-  function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[33,111,333].forEach(function(n){var b=document.createElement('button');b.className='tier';b.textContent=n+' '+(UIc||FB_UI).words;b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
+  // 999 resolves current-language content first, then the English 999 (translations
+  // land later), matching the live viewer's fallback — the package must match exactly.
+  function c999(i){var s=CT&&CT.sections[i];if(s&&s.content[999])return s.content[999];var e=I18N&&I18N.en&&I18N.en.sections&&I18N.en.sections[i];return (e&&e.content[999])||'';}
+  function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[33,111,333,999].forEach(function(n){if(n===999&&!c999(sec))return;var b=document.createElement('button');b.className='tier';b.textContent=n+' '+(UIc||FB_UI).words;b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
   function render(){var n=CT.sections.length,ti=document.getElementById('tiers');
     if(sec<n){var s=CT.sections[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc((DATA&&DATA.msg)?s.tag:((UIc||FB_UI).steps[sec]||s.tag))+'</span> <span class="title">· '+esc(s.title)+'</span>';
-      var body=(DATA&&DATA.msg)?(s.content[333]||s.content[tier]||''):(s.content[tier]||s.content[333]||'');
-      if(DATA&&DATA.fmt==='html')document.getElementById('rcontent').innerHTML=body;else document.getElementById('rcontent').textContent=body;
+      var body=(DATA&&DATA.msg)?(s.content[333]||s.content[tier]||''):(tier===999?(c999(sec)||s.content[333]||''):(s.content[tier]||s.content[333]||''));
+      // The house placeholder renders as the drawn Vision-2525 icon, never the emoji
+      // (operator 2026-08-20) — same paths as the living document and the live viewer.
+      var HOUSE='<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Livelihood home" style="display:inline-block;vertical-align:-0.12em"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M10 20v-5h4v5"/></svg>';
+      // Drawn Seed of Life before each canon word "Seed", in the current tier color
+      // (operator 2026-08-21) — matches the live viewer exactly.
+      var SEED='<svg viewBox="0 0 64 64" width="1em" height="1em" fill="none" stroke="'+(TC[tier]||'#8B5CF6')+'" stroke-width="2.5" role="img" aria-label="Seed of Life" style="display:inline-block;vertical-align:-0.12em;margin-right:0.15em"><circle cx="32" cy="32" r="10"/><circle cx="42" cy="32" r="10"/><circle cx="37" cy="40.66" r="10"/><circle cx="27" cy="40.66" r="10"/><circle cx="22" cy="32" r="10"/><circle cx="27" cy="23.34" r="10"/><circle cx="37" cy="23.34" r="10"/></svg>';
+      if(DATA&&DATA.fmt==='html')document.getElementById('rcontent').innerHTML=body;else document.getElementById('rcontent').innerHTML=esc(body).replace(/🏠/g,HOUSE).replace(/\bSeed\b/g,'<span style="white-space:nowrap">'+SEED+'Seed</span>');
       ti.style.display=(DATA&&DATA.msg)?'none':'flex';}
     else{var nv=CT.nav[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc((DATA&&DATA.msg)?(nv.tag||''):((UIc||FB_UI).steps[sec]||nv.tag))+'</span>';

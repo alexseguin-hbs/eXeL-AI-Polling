@@ -77,13 +77,16 @@ export function SoiSlideCompare({ versions }: { versions: SlideVersion[] }) {
   const finKeys = ["nreK", "revM", "marginM", "npvM"] as const;
   const finChanged = finKeys.filter((k) => a.fin?.[k] !== b.fin?.[k]).map((k) => ({ k, from: a.fin?.[k], to: b.fin?.[k] }));
 
-  const counts = useMemo(() => {
+  // Plain computed value (NOT a hook): this runs after the early return above, so it must
+  // never be a useMemo — a conditionally-called hook is a rules-of-hooks error that fails the
+  // Next build. The work is a tiny array tally, so memoization bought nothing anyway.
+  const counts: Record<string, number> = (() => {
     const c: Record<string, number> = {};
     for (const f of fieldChanges) c[f.type] = (c[f.type] || 0) + 1;
     if (finChanged.length) c.Data = (c.Data || 0) + finChanged.length;
     if (meaning.length) c.Meaning = (c.Meaning || 0) + meaning.length;
     return c;
-  }, [fieldChanges, finChanged.length, meaning.length]);
+  })();
 
   const impact = meaning.length ? "Doctrine / gate change" : counts.Visual ? "Visual change" : counts.Data ? "Data change" : counts.Text ? "Content change" : "No change";
   const whatChanged = Object.entries(counts).map(([t, n]) => `${n} ${t.toLowerCase()}`).join(" · ") || "nothing";
