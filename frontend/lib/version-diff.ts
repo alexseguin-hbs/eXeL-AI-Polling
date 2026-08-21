@@ -98,6 +98,20 @@ export function diffCollection<T extends Record<string, string>>(
   });
 }
 
+export type KeyChange = { key: string; kind: "added" | "removed" | "changed" | "carried"; from: string; to: string };
+
+// Diff two string-keyed maps (e.g. two slide versions' fields, flattened key->text).
+// The workhorse for slide-version compare and any key/value snapshot pair.
+export function diffMaps(a: Record<string, string>, b: Record<string, string>): KeyChange[] {
+  const keys = Array.from(new Set(Object.keys(a || {}).concat(Object.keys(b || {})))).sort();
+  return keys.map((key) => {
+    const from = (a && a[key]) || "";
+    const to = (b && b[key]) || "";
+    const kind = !from && to ? "added" : from && !to ? "removed" : from !== to ? "changed" : "carried";
+    return { key, kind, from, to };
+  });
+}
+
 // Convenience: split diffText ops into old-side and new-side HTML fragments
 // (removed struck-through, added marked) for a side-by-side view. Caller supplies esc.
 export function sideBySide(ops: Op[] | null, esc: (s: string) => string): { left: string; right: string } | null {
