@@ -1055,7 +1055,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lectură</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">246</span></strong>, <strong><span id="dlbytes2">5954196</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">247</span></strong>, <strong><span id="dlbytes2">5955780</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Jurnal de audit</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6563,6 +6563,17 @@ const VERSIONS = [
   {n:"Sofia",g:"A",f:"One reading in thirty-three languages; one way to see what changed, everywhere."}
  ],
  next:"Live-verify on Cloudflare; wire the CRS view into the app nav."
+},
+{ v:247, code:"THE DOT MEANS ONE THING &mdash; SETTINGS ICONS DRAWN",
+ stamp:"2026.08.21 &middot; revision 247",
+ thrust:"Operator: the filled dot is the reading-mode mark (one section at a time), so it should not also stand in as a Settings icon. Highlight changes and Determinism proof were both drawn as the dot; each now has its own drawn glyph &mdash; a diff mark (added over removed) for Highlight changes, a shield-and-check for Determinism proof &mdash; matching Outline, Ledger and Registers. The dot now means only one thing. Chrome/JS only; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; v.19 r1.002.",
+ mot:"An icon that means two things means neither. The dot is reading mode; the audit-trail controls carry their own marks now.",
+ stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+ asm:[
+  {n:"Aset",g:"A",f:"One glyph, one meaning &mdash; the dot no longer doubles between reading mode and Settings."},
+  {n:"Sofia",g:"A",f:"Every audit-trail control now reads by its own drawn icon; consistency with Outline/Ledger/Registers."}
+ ],
+ next:"Reproduce the operator&rsquo;s compare-mode arrow report with exact reading mode."
 }
 ];
 
@@ -19052,7 +19063,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5954196";
+const DL_BYTES = "5955780";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19286,8 +19297,13 @@ const ICON = (function(){
     next:  w('<path d="M9 18l6-6-6-6"/>'),
     play:  w('<path d="M6 4l14 8-14 8V4z"/>'),
     pause: w('<path d="M8 5v14M16 5v14"/>'),
-    /* Changes: a filled dot, drawn rather than U+25CF so its weight matches. */
+    /* Reading mode ONLY: a filled dot (one section at a time), drawn rather than U+25CF. */
     dot:   w('<circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"/>'),
+    /* Highlight changes: a diff mark — added over removed (+ / −). Its own glyph so the
+       reading-mode dot never doubles as a Settings icon. */
+    changes: w('<path d="M6 6h6M9 3v6M6 18h6"/>'),
+    /* Determinism proof: a shield with a check — verify, replay, prove. */
+    proof: w('<path d="M12 3l7 3v5c0 4.2-3 7.2-7 9-4-1.8-7-4.8-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/>'),
     /* Compare: two opposed arrows. */
     cmp:   w('<path d="M4 8h13M14 5l3 3-3 3M20 16H7M10 13l-3 3 3 3"/>'),
     /* Reading: an open book — what you are reading, not which file. */
@@ -21056,7 +21072,7 @@ var paged = false;
   }
   document.getElementById("bPlay").insertAdjacentHTML("afterbegin", ICON.play);
   document.getElementById("bSetClose").innerHTML = ICON.close;
-  const setIcons = {bQr:"qr", bDiff:"dot", bOutline:"book", bLedger:"ledger", bProof:"dot", bReg:"reg", bSpec:"info"};
+  const setIcons = {bQr:"qr", bDiff:"changes", bOutline:"book", bLedger:"ledger", bProof:"proof", bReg:"reg", bSpec:"info"};
   for (const id in setIcons){
     const el = document.getElementById(id);
     if (el) el.insertAdjacentHTML("afterbegin", ICON[setIcons[id]]);
