@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">denne visningen vs. nåværende<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Speil</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Trykk for å justere den andre ruten\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Ruter justert\""
  ]
 ]

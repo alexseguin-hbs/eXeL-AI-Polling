@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">αυτή η προβολή έναντι της τρέχουσας<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Καθρέφτης</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Πατήστε για ευθυγράμμιση του άλλου παραθύρου\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Τα παράθυρα ευθυγραμμίστηκαν\""
  ]
 ]

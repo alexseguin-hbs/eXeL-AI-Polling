@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">toto zobrazení vs. aktuální<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Zrcadlit</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Klepnutím zarovnáte druhý panel\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Panely zarovnány\""
  ]
 ]

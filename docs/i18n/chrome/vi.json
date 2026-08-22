@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">chế độ xem này so với hiện tại<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Phản chiếu</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Chạm để căn chỉnh khung còn lại\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Đã căn chỉnh các khung\""
  ]
 ]

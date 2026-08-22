@@ -579,6 +579,18 @@ body.cmpshow #cmp{display:block!important;position:fixed;inset:0;z-index:92;over
 .dd-sec .df-h{margin-bottom:2px}
 .dd-sec.dd-hot{background:linear-gradient(90deg,var(--ai-bg,rgba(56,189,248,.09)),transparent 70%)}
 .dd-pane p{line-height:1.7;margin:4px 0}
+/* r260 · MANUAL MIRROR button — fixed at the bottom-centre of the full-screen compare,
+   shown only in side-by-side mode. Muted when the panes are aligned; highlighted (the
+   Security-2525 cyan) the moment a scroll leaves them out of sync — highlighted means a
+   sync is waiting for one tap. */
+#cmpMirror{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:95;
+  display:none;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;
+  border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);cursor:pointer;
+  font:inherit;font-size:.8rem;font-weight:600;letter-spacing:.04em;
+  box-shadow:0 3px 14px rgba(0,0,0,.35)}
+#cmpMirror .ic{width:15px;height:15px}
+body.cmpshow.cmp-side #cmpMirror{display:inline-flex}
+#cmpMirror.mir-on{border-color:var(--ai);color:var(--ai);box-shadow:0 0 0 1px var(--ai),0 3px 16px rgba(25,200,207,.35)}
 .cmp-mode{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;margin-left:10px;vertical-align:middle}
 .cmp-mode button{border:0;background:transparent;color:var(--ink-2);padding:3px 10px;cursor:pointer;font-size:.75rem}
 .cmp-mode button[aria-pressed="true"]{background:var(--ai);color:#06202a;font-weight:600}
@@ -1137,7 +1149,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lesen</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">259</span></strong>, <strong><span id="dlbytes2">6020460</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">260</span></strong>, <strong><span id="dlbytes2">6027797</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Prüfpfad</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6810,6 +6822,20 @@ const VERSIONS = [
    {n:"Sofia",g:"A",f:"Four strings, thirty-two languages, same release; the once-only anchor rule respected &mdash; the navigator&rsquo;s labels untouched."}
   ],
   next:"Jump-to-block links from passages; then the labeled AI interpretation layer (fail-closed, provider-neutral)."
+ },
+{ v:260, code:"THE MIRROR BECOMES A BUTTON &mdash; SIDE-BY-SIDE STOPS DRIFTING",
+  stamp:"2026.08.22 &middot; revision 260",
+  thrust:"Operator, from the live read: the side-by-side auto-mirror drifted &mdash; a bidirectional scroll-sync that fought the reading hand, one pane forever chasing the other. Root cause named and removed: the two panes now scroll FREELY. In its place, the Security-2525 pattern you already know &mdash; a manual MIRROR button at the bottom of the read, carrying the two-pane glyph. Whichever pane you last moved is the LEAD; the button LIGHTS the moment the panes fall out of sync, telling you a single tap is waiting; tap it and the other pane aligns to the section you are reading, then the light goes out. It works whichever pane you scrolled &mdash; scroll the Before, tap, the After follows; scroll the After, tap, the Before follows. Tapping a section still flashes its counterpart, but flash ONLY &mdash; nothing except the button ever moves a pane, so there is one rule and no fight. The alignment is the same measured section-anchor math as before, fired once instead of on every scroll tick, so there is no loop left to drift. The button&rsquo;s own scroll is guarded so it never re-arms itself, clamped so an absent counterpart or an uneven pane can never overscroll, and its label is semantic &mdash; Before and After, never left/right &mdash; so Arabic and Hebrew read true. Unified still answers &lsquo;what changed between versions&rsquo;; side-by-side answers &lsquo;what changed from the left read to the right&rsquo;; the Trinity rides both. This is the R-CORE reading surface the training layer will trust &mdash; the diff a human can align, by hand, without the picture sliding out from under them. Three new strings in all 32 languages this same release. Verified: r260 battery green twice on source and published EN + AR, r259 26/26, r255 26/26, parity, conformance, replay audit; totals hold; v.19 r1.001.",
+  mot:"A sync the reader ARMS is a sync the reader trusts. The instrument aligns on the tap and then holds still &mdash; it never decides the reading for the hand that is doing it.",
+  stats:{clauses:309, jur:103, shields:5, defects:41, reach:"full"},
+  asm:[
+   {n:"Christo",g:"A",f:"One rule &mdash; only the button moves a pane; tap-to-flash is flash-only. The model teaches itself: lit means a sync waits, dark means aligned."},
+   {n:"Thor",g:"A",f:"The programmatic scroll is guarded and the guard clears on a timer &mdash; it can never stick and re-arm; every dynamic string escaped; clamp prevents overscroll."},
+   {n:"Sofia",g:"A",f:"Label is semantic (Before/After), never positional &mdash; three strings shipped in 32 languages, RTL reads true."},
+   {n:"Athena",g:"A",f:"Bottom-centre, thumb-reachable at any depth; two moves to any aligned read &mdash; scroll, tap the glow."},
+   {n:"Enki",g:"A",f:"Absent counterpart, uneven heights, single-section and over-cap panes all handled by the clamp &mdash; no overscroll, no throw."}
+  ],
+  next:"r261 &mdash; reconcile the version-accounting gate (compare rows vs blocks, defect-row parity) so the R-CORE training substrate is provably 100% accurate."
  }
 ];
 
@@ -19299,7 +19325,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6020460";
+const DL_BYTES = "6027797";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19364,6 +19390,14 @@ let cmpSlim = false, cmpFilter = null, cmpShowAll = false, cmpDetOpen = false;
 /* r255 · cmpView: 'unified' hunks (default) or 'side' — Before pane left (removals red),
    After pane right (additions green). cmpNavI = the change-navigator cursor. */
 let cmpView = 'unified', cmpNavI = -1, cmpPendingScroll = null;
+/* r260 · MANUAL MIRROR (operator: the auto-sync drifted). Panes scroll freely; the pane
+   you last moved is the LEAD; the mirror button highlights while the other pane is out of
+   sync; one tap aligns the follower to the lead's section. cmpMirrorProg guards the
+   button's own programmatic scroll from re-flagging out-of-sync. */
+let cmpMirrorLead = null, cmpMirrorSynced = true, cmpMirrorProg = false;
+/* r260 · mirror button strings (translatable chrome anchors, ×32). Semantic only — no
+   "left"/"right" so the label reads true in RTL builds. */
+const MIR_SYNC = "Tippen, um das andere Fenster auszurichten", MIR_ALIGNED = "Fenster ausgerichtet";
 
 function fnv1a(s){
   let h = 0x811c9dc5;
@@ -19570,7 +19604,10 @@ const ICON = (function(){
     /* Disclosure carets for the release stepper — same drawing language as
        the deck, so the two arrow pairs cannot drift apart in weight. */
     down:  w('<path d="M6 9l6 6 6-6"/>'),
-    up:    w('<path d="M6 15l6-6 6 6"/>')
+    up:    w('<path d="M6 15l6-6 6 6"/>'),
+    /* r260 · Mirror: two panes with a centre divider (the Security-2525 Columns2
+       glyph, reused verbatim). Arms the manual side-by-side sync. */
+    mirror:w('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/>')
   };
 })();
 /* Paint the drawn icons into the deck once, by id. Kept as data rather than
@@ -21118,6 +21155,9 @@ function renderCompare(){
         });
         h += '<div class="dd-wrap"><div class="dd-pane" id="ddL"><h6>Before &middot; ' + relLabel(lo) + '</h6>' + Lp + '</div>' +
              '<div class="dd-pane" id="ddR"><h6>After &middot; ' + relLabel(hi) + '</h6>' + Rp + '</div></div>';
+        /* r260 · the manual MIRROR button lives at the bottom of the side-by-side read —
+           reachable at any scroll depth. It carries the Security-2525 Columns2 glyph. */
+        h += '<button id="cmpMirror" type="button">' + ICON.mirror + '<span id="cmpMirrorTxt">Spiegeln</span></button>';
       } else {
         dfShown.forEach(function(d){
           h += '<div class="df-blk" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
@@ -21259,37 +21299,68 @@ function renderCompare(){
   var vu = document.getElementById('cmpVU'), vs = document.getElementById('cmpVS');
   if (vu) vu.addEventListener('click', function(){ if (cmpView !== 'unified'){ cmpView = 'unified'; cmpNavI = -1; renderDoc(); } });
   if (vs) vs.addEventListener('click', function(){ if (cmpView !== 'side'){ cmpView = 'side'; cmpNavI = -1; renderDoc(); } });
-  /* r255 · MIRROR SCROLL (Security-2525 pattern, bidirectional with a guard): scrolling
-     either pane aligns the other to the counterpart section + fractional offset. Tap a
-     section to flash its counterpart (bilingual-reader coupling). Fail-closed: any error
-     detaches nothing and simply stops syncing that tick. */
+  /* r260 · MANUAL MIRROR (operator: the r255 auto-sync drifted — a bidirectional feedback
+     loop fought the reading hand). Now the panes scroll FREELY. Whichever pane you last
+     moved is the LEAD; the bottom MIRROR button highlights while the other pane is out of
+     sync; one tap aligns the FOLLOWER to the lead's section (the reused anchor+offset math,
+     fired ONCE). Tap a section to flash its counterpart (FLASH-ONLY — only the button
+     moves a pane). Fail-closed throughout. */
+  document.body.classList.toggle('cmp-side', cmpView === 'side');
   var ddL = document.getElementById('ddL'), ddR = document.getElementById('ddR');
+  var mirBtn = document.getElementById('cmpMirror');
   if (ddL && ddR){
-    var ddSyncing = false;
-    var mirror = function(src, dst){
-      if (ddSyncing) return; ddSyncing = true;
+    cmpMirrorLead = null; cmpMirrorSynced = true;   /* a fresh render starts aligned (panes at top) */
+    var progTimer = null;
+    /* align the follower to the lead's current section + fractional offset. Enki: clamp to
+       [0, max] so an absent counterpart or unequal heights never overscroll. Thor: the
+       programmatic scrollTop fires an ASYNC 'scroll'; hold the guard up briefly and always
+       clear it on a timer so it can never stick true (even if the try threw). */
+    var alignPanes = function(lead, follow){
+      cmpMirrorProg = true;
+      if (progTimer) clearTimeout(progTimer);
       try {
-        var secs = src.querySelectorAll('.dd-sec'), top = src.scrollTop, pick = null;
+        var secs = lead.querySelectorAll('.dd-sec'), top = lead.scrollTop, pick = null;
         for (var si = 0; si < secs.length; si++){ if (secs[si].offsetTop <= top + 8) pick = secs[si]; else break; }
         if (pick){
           var frac = (top - pick.offsetTop) / Math.max(1, pick.offsetHeight);
-          var mate = dst.querySelector('.dd-sec[data-id="' + (pick.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
-          if (mate) dst.scrollTop = mate.offsetTop + frac * mate.offsetHeight;
+          var mate = follow.querySelector('.dd-sec[data-id="' + (pick.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
+          var want = mate ? (mate.offsetTop + frac * mate.offsetHeight) : top;
+          follow.scrollTop = Math.max(0, Math.min(want, follow.scrollHeight - follow.clientHeight));
         }
       } catch (e) {}
-      ddSyncing = false;
+      progTimer = setTimeout(function(){ cmpMirrorProg = false; }, 160);
     };
-    ddL.addEventListener('scroll', function(){ mirror(ddL, ddR); }, { passive: true });
-    ddR.addEventListener('scroll', function(){ mirror(ddR, ddL); }, { passive: true });
+    var setMir = function(){
+      if (!mirBtn) return;
+      var on = !cmpMirrorSynced && !!cmpMirrorLead;    /* highlighted == a sync is waiting */
+      mirBtn.classList.toggle('mir-on', on);
+      mirBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      var label = on ? MIR_SYNC : MIR_ALIGNED;         /* Sofia: semantic only — never left/right, so RTL reads true */
+      mirBtn.title = label; mirBtn.setAttribute('aria-label', label);
+    };
+    var onLeadScroll = function(which){
+      if (cmpMirrorProg) return;                        /* ignore the button's own programmatic scroll */
+      cmpMirrorLead = which; cmpMirrorSynced = false; setMir();
+    };
+    ddL.addEventListener('scroll', function(){ onLeadScroll('L'); }, { passive: true });
+    ddR.addEventListener('scroll', function(){ onLeadScroll('R'); }, { passive: true });
+    if (mirBtn) mirBtn.addEventListener('click', function(){
+      if (!cmpMirrorLead) return;
+      if (cmpMirrorLead === 'R') alignPanes(ddR, ddL); else alignPanes(ddL, ddR);
+      cmpMirrorSynced = true; setMir();
+    });
     var couple = function(ev){
       var sec = ev.target.closest ? ev.target.closest('.dd-sec') : null;
       if (!sec) return;
       var pane = sec.parentElement === ddL ? ddR : ddL;
       var mate = pane.querySelector('.dd-sec[data-id="' + (sec.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
-      if (mate){ mate.scrollIntoView({ block: 'nearest' }); mate.classList.add('dd-hot'); setTimeout(function(){ mate.classList.remove('dd-hot'); }, 900); }
+      if (mate){ mate.classList.add('dd-hot'); setTimeout(function(){ mate.classList.remove('dd-hot'); }, 900); }
     };
     ddL.addEventListener('click', couple);
     ddR.addEventListener('click', couple);
+    setMir();
+  } else {
+    document.body.classList.remove('cmp-side');
   }
   /* r255 · CHANGE NAVIGATOR — walk every red/green cluster like a PDF reader walks search
      hits: ‹ n / N ›, scroll + flash on arrival, tick marks on the right rail showing where
@@ -21554,6 +21625,9 @@ function setCompare(on, base, target){
   }
   /* r254 · fresh open shows the pickers expanded, unfiltered, unexpanded */
   cmpSlim = false; cmpFilter = null; cmpShowAll = false;
+  /* r260 · a fresh open/close starts the mirror aligned; leaving compare drops cmp-side. */
+  cmpMirrorLead = null; cmpMirrorSynced = true; cmpMirrorProg = false;
+  if (!cmpOn) document.body.classList.remove("cmp-side");
   document.body.classList.toggle("cmpshow", cmpOn);
   var scrim = document.getElementById("cmpScrim"); if (scrim) scrim.hidden = !cmpOn;
   renderDoc();

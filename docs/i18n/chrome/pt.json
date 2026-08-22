@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">esta vista vs atual<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Espelho</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Toque para alinhar o outro painel\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Painéis alinhados\""
  ]
 ]

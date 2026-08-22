@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">deze weergave vs huidige<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Spiegel</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Tik om het andere venster uit te lijnen\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Vensters uitgelijnd\""
  ]
 ]

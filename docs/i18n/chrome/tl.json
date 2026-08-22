@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">ang tanaw na ito vs kasalukuyan<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Salamin</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"I-tap para ihanay ang kabilang pane\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Nakahanay ang mga pane\""
  ]
 ]

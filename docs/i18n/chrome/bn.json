@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">এই দৃশ্য বনাম বর্তমান<"
+ ],
+ [
+  ">Mirror</span>",
+  ">মিরর</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"অন্য প্যানেল সারিবদ্ধ করতে ট্যাপ করুন\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"প্যানেলগুলি সারিবদ্ধ\""
  ]
 ]

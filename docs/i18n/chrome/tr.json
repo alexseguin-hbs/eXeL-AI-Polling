@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">bu görünüm vs güncel<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Aynala</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Diğer bölmeyi hizalamak için dokunun\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Bölmeler hizalandı\""
  ]
 ]

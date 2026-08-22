@@ -60,15 +60,18 @@ ok(s.delL > 0 && s.insL === 0, `LEFT pane: removals red only (del ${s.delL}, ins
 ok(s.insR > 0 && s.delR === 0, `RIGHT pane: additions green only (ins ${s.insR}, del ${s.delR})`);
 ok(s.secL === s.secR && s.secL > 0, `panes carry the same changed sections (${s.secL})`);
 ok(s.beforeH && s.afterH, 'pane headers read Before / After');
-// mirror scroll
+// mirror is now MANUAL (r260) — panes scroll independently; scrolling one does NOT move the
+// other. The one-tap alignment contract is owned by r260-battery.mjs. Here we only assert the
+// r260 replacement of the old auto-drift: the follower stays put on a lead scroll.
 s = await pg.evaluate(async () => {
   const L = document.getElementById('ddL'), R = document.getElementById('ddR');
+  const r0 = R.scrollTop;
   L.scrollTop = Math.max(0, L.scrollHeight / 2);
   L.dispatchEvent(new Event('scroll'));
   await new Promise(r => setTimeout(r, 60));
-  return { l: L.scrollTop, r: R.scrollTop };
+  return { l: L.scrollTop, rMoved: R.scrollTop !== r0 };
 });
-ok(s.l > 0 && s.r > 0, `mirror scroll: right pane followed (L=${Math.round(s.l)} R=${Math.round(s.r)})`);
+ok(s.l > 0 && !s.rMoved, `panes scroll independently — no auto-drift (r260 manual mirror; L=${Math.round(s.l)})`);
 // coupling flash
 s = await pg.evaluate(async () => {
   const sec = document.querySelector('#ddL .dd-sec');

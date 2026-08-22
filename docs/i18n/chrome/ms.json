@@ -150,5 +150,17 @@
  [
   ">this view vs current<",
   ">paparan ini vs semasa<"
+ ],
+ [
+  ">Mirror</span>",
+  ">Cermin</span>"
+ ],
+ [
+  "MIR_SYNC = \"Tap to align the other pane\"",
+  "MIR_SYNC = \"Ketik untuk menjajarkan panel lain\""
+ ],
+ [
+  "MIR_ALIGNED = \"Panes aligned\"",
+  "MIR_ALIGNED = \"Panel dijajarkan\""
  ]
 ]
