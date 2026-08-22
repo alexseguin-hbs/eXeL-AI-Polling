@@ -1155,7 +1155,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lukeminen</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">263</span></strong>, <strong><span id="dlbytes2">6036631</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">264</span></strong>, <strong><span id="dlbytes2">6040955</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Tarkastusloki</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1783,10 +1783,16 @@ const PASS_MOT = {w:333, text:'Four questions were put to this pass, and the hon
 
 /* VERSION vs REVISION (r60, operator correction).
    A revision is one append to the ledger. A VERSION is a delivered document the
-   operator read and answered. VERSION_AT lists the revision each version was
-   delivered at; a revision written between two deliveries belongs to the version
-   still under discussion. Reconstructed from the record and open to correction —
-   the operator is the only authority on which documents they answered. */
+   operator read and answered. VERSION_AT below is the ORIGINAL delivery record —
+   the revisions at which versions 16–19 were read and answered, reconstructed from
+   the record. The operator is the only authority on version boundaries.
+
+   SUPERSEDED r264 (operator ratified 2026-08-22): the DISPLAY version now graduates
+   through eighteen natural bands (see VBANDS / versionAt below), renumbering the old
+   16–19 delivery count into a sequential v.01→v.18 across the whole history. This
+   VERSION_AT record is kept as historical provenance of the original deliveries —
+   note the two recorded deliveries (r68, r94) still fall exactly on the new band
+   edges — but it no longer drives the label. VBANDS is the live scheme. */
 const VERSION_AT = [
   {version:16, from:57},  /* r57, r58 and r59 were written between one reading and
                              the next: three revisions, one version. */
@@ -1803,12 +1809,26 @@ const VERSION_AT = [
                              release rather than described, so the gap is never a claim. */,
   {version:19, from:246}  /* r246 — the Version 19 capstone: the full 33-language QIS pass, the shared version-compare engine across the ledger, the CRS matrix and the SoI-2525 slides, footer parity, and the r0.###→r1.### series. Delivered as v.19 r1.001. */
 ];
+/* r264 · GRADUATED VERSIONS (operator 2026-08-22, ratified): the history no longer reads a
+   flat "v.18" — it increments through eighteen natural bands as you scroll back through time,
+   v.01 at the beginning to v.18 at the most recent history, with THIS newest release alone at
+   v.19 r1.001. The bands are the record's own natural breaks: each working day is a band, the
+   four busiest days split at a mega-milestone, and the two RECORDED deliveries (old v.17 at
+   r68, old v.18 at r94) land exactly on band edges — so the graduated numbering honours where
+   deliveries actually happened while giving the sequential 1→18 the operator asked for. This
+   RENUMBERS the earlier v.16–19 delivery count into the new sequential scheme; per this
+   document's own rule the operator is the sole authority on version boundaries, and they
+   ratified these. The revision SERIES (relLabel, r0.NNN global index) is unchanged — only the
+   version prefix graduates. VBANDS[i] = the first revision of version (i+1). */
+const VBANDS = [1, 40, 56, 68, 94, 108, 123, 141, 161, 174, 190, 204, 209, 218, 219, 229, 233, 250];
 function versionAt(rev){
-  /* operator 2026-08-21: THIS version — the newest release — is Version 19; every other
-     (older) release is Version 18. So the masthead reads v.19 on the live document and
-     v.18 on any historical release. The release SERIES (relLabel) carries the position. */
-  return rev >= VMAX ? 19 : 18;
+  if (rev >= VMAX) return 19;                 /* the newest release alone is v.19 r1.001 */
+  var v = 1;
+  for (var i = 0; i < VBANDS.length; i++){ if (rev >= VBANDS[i]) v = i + 1; else break; }
+  return v;                                    /* 1..18 across the history, by natural band */
 }
+/* r264 · version LABEL, zero-padded to two digits (operator wrote "v.01"): v.01..v.19. */
+function verN(rev){ return "v." + String(versionAt(rev)).padStart(2, "0"); }
 /* RELEASE LABELS (operator 2026-08-22 — "order is backward, first is on the very far
    left"): the series must read FORWARD with time. The v.18 history ascends r0.001 →
    r0.<N-1> from the first release on the far left, and THIS version — the newest release
@@ -6877,6 +6897,19 @@ const VERSIONS = [
    {n:"Enki",g:"A",f:"First, middle and last passages all land clamped; absent counterpart and uneven panes never overscroll."}
   ],
   next:"Version rebanding (v.01..v.18 across the history) awaits the operator&rsquo;s ratification of the epoch boundaries; then the per-section feedback layer."
+ },
+{ v:264, code:"THE HISTORY LEARNS ITS VERSIONS &mdash; v.01 THROUGH v.18, AND v.19 TODAY",
+  stamp:"2026.08.22 &middot; revision 264",
+  thrust:"Operator, the version now increments through the history instead of reading a flat v.18 on everything old. Scroll back and the masthead counts down through eighteen natural bands &mdash; v.01 at the very beginning, v.18 at the most recent history &mdash; while THIS newest release stands alone at v.19 r1.001. The bands are the record&rsquo;s own natural breaks, not an arbitrary slicing: each working day is a band, the four busiest days split at a mega-milestone, and the two deliveries the record actually noted &mdash; the old v.17 at r0.068, the old v.18 at r0.094 &mdash; fall exactly on band edges, so the graduated numbering honours where deliveries truly happened. The revision series is untouched: r0.001 is still the first release and r1.001 is still today; only the version prefix graduates, zero-padded so v.01 reads beside v.19 without a jag. This renumbers the earlier v.16&ndash;19 delivery count into the sequential v.01&ndash;v.18 &mdash; the operator&rsquo;s call, ratified, and this document names the operator the only authority on version boundaries. The original delivery record is kept as provenance beside the new scheme, not erased. Every download still carries v.19, the current major. Tested: the bands are monotonic, exactly eighteen, each boundary a clean step of one, the labels two-digit, and the masthead and the compare pickers both read the graduated version at every point in the timeline. Totals hold; gate clean; v.19 r1.001.",
+  mot:"A history that shows one flat number hides its own growth. Let the version climb with the work, band by natural band, so a reader scrolling back can see how far the thing has come.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Thoth",g:"A",f:"Eighteen bands, monotonic, each boundary a step of one; the two recorded deliveries land on edges &mdash; the numbering is grounded in the record, not invented."},
+   {n:"Odin",g:"A",f:"The old v.16-19 delivery record is kept as provenance beside the new scheme, not erased; the renumber is the operator&rsquo;s ratified authority."},
+   {n:"Sofia",g:"A",f:"Labels zero-padded v.01..v.19 so no jag; the graduated prefix rides every surface (masthead, compare) through one function."},
+   {n:"Athena",g:"A",f:"One band array drives every display; nudging a boundary later is a one-line edit &mdash; the scheme is correctable, as the doc promises."}
+  ],
+  next:"The per-section feedback layer (bottom-left button + resolution timelines); wire the gate + batteries into CI."
  }
 ];
 
@@ -19366,7 +19399,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6036631";
+const DL_BYTES = "6040955";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19897,13 +19930,13 @@ function renderDoc(){
      answered. The revision is the append count and stays visible beside it,
      because it is the audit trail; it is simply no longer the headline. */
   document.getElementById("vNow").innerHTML =
-    "v." + versionAt(active) + ' <span class="rev">' + relLabel(active) +
+    verN(active) + ' <span class="rev">' + relLabel(active) +
     (active === VMAX ? " latest" : "") + "</span>";
   /* The corner badge always shows the version of the release being read, so
      stepping back through the record moves it too. It is a fact about the
      release, not a decoration on the page. */
   const vb = document.getElementById("vBadge");
-  if (vb) vb.textContent = "v." + versionAt(active);
+  if (vb) vb.textContent = verN(active);
   document.getElementById("vSlide").value = active;
   document.getElementById("vHash").innerHTML = "state " + stateHash(active, res.order) +
     " &middot; " + blocks.length + " blocks";
@@ -21081,7 +21114,7 @@ function renderCompare(){
      UX"). Each picker is the same range-slider idiom as the deck's version slider: drag
      to scrub, the label above tracks live (v.18 r0.### · release title), and the diff
      recomputes when the thumb is released. */
-  const cmpLbl = (v) => 'v.' + versionAt(v) + ' ' + relLabel(v) + ' &middot; ' + escw(VERSIONS[v-1].code);
+  const cmpLbl = (v) => verN(v) + ' ' + relLabel(v) + ' &middot; ' + escw(VERSIONS[v-1].code);
 
   /* r254 · ONE vocabulary, ONE direction (operator: "clean this up — don't even know
      what you are trying to compare"). The header ALWAYS states the pair plainly, oldest
@@ -21089,7 +21122,7 @@ function renderCompare(){
      integers, never a countdown. Zero-count chips are noise and are dropped; the chip
      row appears only when something actually changed, and only the non-zero kinds. */
   const isCur = hi === VMAX;
-  const vLbl = (v) => 'v.' + versionAt(v) + ' ' + relLabel(v);
+  const vLbl = (v) => verN(v) + ' ' + relLabel(v);
   /* r256 · PICK BOTH THUMBS FREELY (operator: "user must be able to select 2 revisions").
      The pickers NEVER collapse on a thumb release — both header forms render always and a
      CSS class flips between them, so collapsing is a pure class toggle with no re-render:
@@ -21492,7 +21525,7 @@ function renderReview(){
     '<button data-goto="' + (rPrev || 1) + '"' + (rPrev ? '' : ' disabled') +
       ' title="Previous release">' + ICON.prev + '</button>' +
     '<span class="cur"><b>r' + active + '</b> &middot; <span class="code">' + escw(V.code) + '</span>' +
-      ' &middot; v.' + versionAt(active) + (active === VMAX ? ' &middot; latest' : '') + '</span>' +
+      ' &middot; ' + verN(active) + (active === VMAX ? ' &middot; latest' : '') + '</span>' +
     '<button data-goto="' + (rNext || VMAX) + '"' + (rNext ? '' : ' disabled') +
       ' title="Next release">' + ICON.next + '</button>' +
     '<button id="bRelAll" aria-expanded="false" title="Show every release">' +
@@ -21500,7 +21533,7 @@ function renderReview(){
     '</div><div class="relall" id="relAll"><div class="pills">';
   for (const W of VERSIONS){
     pills += '<button data-goto="' + W.v + '"' + (W.v === active ? ' class="on"' : '') +
-             ' title="' + escAttr(W.code) + ' &middot; v.' + versionAt(W.v) + '">r' + W.v + '</button>';
+             ' title="' + escAttr(W.code) + ' &middot; ' + verN(W.v) + '">r' + W.v + '</button>';
   }
   pills += '</div><p class="meta" style="margin:8px 0 0">Releases are appends to the ledger. ' +
     'A VERSION is a document that was delivered, read and answered &mdash; there have been ' +

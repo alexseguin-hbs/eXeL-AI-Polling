@@ -9,12 +9,13 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } 
 const DIR = new URL("../public/whitepaper/", import.meta.url).pathname;
 const LANGS = ["ar","bn","cs","da","de","el","es","fi","fr","he","hi","id","it","ja","ko","ms","ne","nl","no","pa","pl","pt","ro","ru","sv","sw","th","tl","tr","uk","vi","zh"];
 
-// ONE version source (Sofia D1, fleet-48 2026-08-22): the living document IS the canon.
-// Its versionAt() ternary names the current major — the test derives V from it instead of
-// hardcoding a literal that drifts (v.18 hardcode went stale when v.19 published).
+// ONE version source (Sofia D1, 2026-08-22): the living document IS the canon. versionAt()
+// names the CURRENT major in its latest branch — the test derives V from it instead of
+// hardcoding a literal that drifts. (r264: versionAt became a graduated band function; the
+// current-version literal now lives in its `if (rev >= VMAX) return NN;` branch.)
 const DOC = readFileSync(new URL("../../docs/SOI_VISION2525_LIVING_DOCUMENT.html", import.meta.url), "utf8");
-const vm = DOC.match(/rev >= VMAX \? (\d+) : \d+/);
-ok(!!vm, "living doc carries the versionAt canon (rev >= VMAX ? NN : NN)");
+const vm = DOC.match(/rev >= VMAX\)\s*return (\d+)/);
+ok(!!vm, "living doc carries the versionAt canon (rev >= VMAX -> current major)");
 const V = vm ? vm[1] : "??";
 const EN_ATTACH = `SOI_VISION2525_v.${V}_LIVING_DOCUMENT.html" download="SOI_VISION2525_v.${V}_LIVING_DOCUMENT.html"`;
 
