@@ -635,11 +635,9 @@ body.cmpshow.cmp-side #cmpMirror{display:inline-flex}
    smear. On the deck it is now a whisper: uniform, neutral, thin hairlines — a measured
    scale you can still tap, not a smudge, and with no yellow. The COMPARE pickers keep the
    gold marks (unchanged), where they guide revision selection and were never the problem. */
-/* r265 · the DECK keyframe rail is GONE in reading mode (operator: "there should be no
-   blur"). Even faint hairlines read as a smear under the slider; the reading deck is now
-   clean. The keyframe marks live only in the COMPARE pickers, where they guide revision
-   selection (and were never the surface flagged). */
-#vTicks{display:none}
+/* r266 · the DECK keyframe rail is REMOVED entirely (operator: "get rid of it, I never
+   asked for it") — the element and its wiring are gone, not merely hidden. Keyframe marks
+   live only in the COMPARE pickers, where they guide revision selection. */
 .sl-row{display:flex;align-items:center;gap:6px}
 .sl-row .slwrap{flex:1}
 .sl-step{font:inherit;font-size:15px;line-height:1;padding:3px 9px;border:1px solid var(--rule);border-radius:8px;background:transparent;color:var(--ink-2);cursor:pointer}
@@ -1106,7 +1104,7 @@ body.qrlead #qrAbout{display:inline-block}
   <button id="bPrev" title="Previous version" aria-label="Previous version"></button>
   <button id="bPlay" title="Play through every version"></button>
   <button id="bNext" title="Next version" aria-label="Next version"></button>
-  <span class="slwrap"><input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version"><span class="sl-ticks tap" id="vTicks"></span></span>
+  <span class="slwrap"><input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version"></span>
   <!-- r148 · operator: "Use only symbol for Latest (no word so UX is compressed)."
        The skip-to-end glyph is injected by DECK_ICONS (bLatest:"last"); the label
        leaves so the deck reads as icons. title/aria-label carry the name for a
@@ -1161,7 +1159,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lectura</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">265</span></strong>, <strong><span id="dlbytes2">6043187</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">266</span></strong>, <strong><span id="dlbytes2">6044750</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Registro de auditoría</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6927,6 +6925,17 @@ const VERSIONS = [
    {n:"Aset",g:"A",f:"Presentation only; record, measurement and version bands untouched &mdash; the reading is clearer, the truth unchanged."}
   ],
   next:"The per-section feedback layer (bottom-left button + resolution timelines); wire the gate + batteries into CI."
+ },
+{ v:266, code:"THE BAND UNDER THE SLIDER IS DELETED &mdash; NOT HIDDEN, GONE",
+  stamp:"2026.08.22 &middot; revision 266",
+  thrust:"Operator, the keyframe rail under the deck slider is removed at the root &mdash; the element and its wiring are deleted from the document, not merely styled out of sight. There is now nothing under the reading slider but the slider. The rail was never asked for; it is gone, and it cannot come back on a stray style. The measured keyframes still exist where they were actually useful &mdash; inside the compare pickers, marking the releases that changed while you choose two revisions &mdash; but the reading deck carries only prev, play, next, the slider, latest, and the controls, with a solid ground behind them and no band, no blur, no ornament. If the live site still shows the band, it is the deploy lagging the push, not the code: the published file no longer contains the element at all. Nothing else changed &mdash; the slider still scrubs, the deck still navigates, the version scheme and the record are untouched. Totals hold; gate clean; v.19 r1.001.",
+  mot:"When a reader says an ornament was never wanted, the answer is deletion, not a lower opacity. Remove the thing, not the symptom.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Element and wiring deleted, not hidden &mdash; the reading deck carries only the slider; no stray style can bring the band back."},
+   {n:"Aset",g:"A",f:"Compare pickers keep the marks where they guide selection; the record, the version bands and the slider are untouched."}
+  ],
+  next:"The per-section feedback layer (bottom-left button + resolution timelines)."
  }
 ];
 
@@ -19416,7 +19425,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6043187";
+const DL_BYTES = "6044750";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -22057,10 +22066,9 @@ document.addEventListener("keydown", function(e){
   setTheme(ground === "light" ? "light" : "dark", false);
 
   document.getElementById("vSlide").max = VMAX;
-  /* r259 · the replay slider carries the measured keyframes; tapping the rail jumps
-     to the nearest content-changing release (steppers-as-replay, fleet-adopted). */
-  var vt = document.getElementById("vTicks");
-  if (vt) railWire(vt, function(v){ stop(); goto(v); });
+  /* r266 · the deck keyframe rail is REMOVED (operator: "get rid of it, I never asked for
+     it"). No element, no wiring — the reading deck carries only the slider. Keyframe marks
+     remain in the compare pickers, where they guide revision selection. */
   /* r233 · QR clean-arrival: a shared QR lands on the Brief as pure reading. */
   const qrlead = /^#brief\/qr$/.test(location.hash);
   if (qrlead){ document.body.classList.add("qrlead");
