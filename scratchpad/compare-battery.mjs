@@ -81,8 +81,20 @@ console.log(`\nBATTERY(core): ${passes} passed, ${fails} failed`);
   await pg2.evaluate(() => document.getElementById('bCmp').click());
   // pick a content pair: Before=240, After=252 — commit collapses to the sticky bar
   await pg2.evaluate(() => { const e = document.getElementById('cmpA'); e.value = '240'; e.dispatchEvent(new Event('change', { bubbles: true })); });
+  // r256 · releasing ONE thumb must NOT collapse the pickers — the user sets the second freely
+  let pre = await pg2.evaluate(() => ({
+    pickVisible: getComputedStyle(document.querySelector('.cmp-pick')).display !== 'none',
+    barVisible: getComputedStyle(document.querySelector('.cmp-bar')).display !== 'none',
+    sliders: document.querySelectorAll('#cmp input[type=range]').length }));
+  ok2(pre.pickVisible && !pre.barVisible && pre.sliders === 2, 'first thumb release keeps BOTH pickers usable (no collapse)');
+  await pg2.evaluate(() => { const e = document.getElementById('cmpB'); e.value = '252'; e.dispatchEvent(new Event('change', { bubbles: true })); });
+  const two = await pg2.evaluate(() => ({ a: cmpA, b: cmpB, pickVisible: getComputedStyle(document.querySelector('.cmp-pick')).display !== 'none' }));
+  ok2(two.a === 240 && two.b === 252 && two.pickVisible, `two revisions selected on sliders without resetting (${two.a} → ${two.b})`);
+  // scrolling the results is what minimizes
+  await pg2.evaluate(() => { const h = document.getElementById('cmp'); h.scrollTop = 400; h.dispatchEvent(new Event('scroll')); });
   let s = await pg2.evaluate(() => ({
-    slim: !!document.querySelector('.cmp-bar'), sliders: document.querySelectorAll('#cmp input[type=range]').length,
+    slim: getComputedStyle(document.querySelector('.cmp-bar')).display !== 'none' && getComputedStyle(document.querySelector('.cmp-pick')).display === 'none',
+    sliders: 0,
     barText: (document.querySelector('.cmp-bar-t') || {}).textContent || '',
     changeBtn: (document.getElementById('cmpEdit') || {}).textContent || '',
     passFirst: (() => { const p = document.getElementById('cmpPass'), d = document.querySelector('details.cmp-det');
@@ -94,8 +106,8 @@ console.log(`\nBATTERY(core): ${passes} passed, ${fails} failed`);
     gaps: document.querySelectorAll('#cmpPass .df-gap').length,
     beforeAfter: /Before|After/.test((document.querySelector('.cmp-bar-t') || document.getElementById('cmp')).textContent) || true,
   }));
-  ok2(s.slim && s.sliders === 0, 'commit collapses pickers into the sticky bar');
-  ok2(/r0\.240/.test(s.barText) && /r1\.001/.test(s.barText), `bar states the pair forward (${s.barText.trim().slice(0, 44)})`);
+  ok2(s.slim, 'scrolling the results collapses pickers into the sticky bar');
+  ok2(/r0\.240/.test(s.barText) && /r0\.252/.test(s.barText), `bar states the pair forward (${s.barText.trim().slice(0, 44)})`);
   ok2(s.changeBtn.trim().length > 0, `Change is a labeled text button ("${s.changeBtn.trim()}")`);
   ok2(s.passFirst, 'passages section precedes Details in the DOM');
   ok2(s.detOpen === false, 'Details is collapsed by default');
@@ -121,7 +133,7 @@ console.log(`\nBATTERY(core): ${passes} passed, ${fails} failed`);
   const e2 = await pg2.evaluate(() => ({ sliders: document.querySelectorAll('#cmp input[type=range]').length, vmax: VMAX,
     a: +(document.getElementById('cmpA') || {}).value, b: +(document.getElementById('cmpB') || {}).value,
     before: /Before/.test(document.getElementById('cmp').innerHTML), after: /After/.test(document.getElementById('cmp').innerHTML) }));
-  ok2(e2.sliders === 2 && e2.a === 240 && e2.b === e2.vmax, `Change re-expands with thumbs intact (${e2.a}/${e2.b})`);
+  ok2(e2.sliders === 2 && e2.a === 240 && e2.b === 252, `Change re-expands with thumbs intact (${e2.a}/${e2.b})`);
   ok2(e2.before && e2.after, 'pickers speak Before / After');
   const ov = await pg2.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   ok2(ov <= 0, `375px zero horizontal overflow (${ov}px)`);

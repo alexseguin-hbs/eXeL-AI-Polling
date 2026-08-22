@@ -597,8 +597,11 @@ body.cmpshow #cmp{display:block!important;position:fixed;inset:0;z-index:92;over
 .cmp-sl label{display:block;font-size:.78rem;color:var(--ink-2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmp-sl label span{color:var(--ink)}
 .cmp-sl input[type=range]{width:100%;display:block;min-width:0}
-/* r254 · compact selection bar — the pair statement stays pinned while passages scroll */
-.cmp-bar{position:sticky;top:-2px;z-index:3;display:flex;gap:10px;align-items:center;background:var(--panel);padding:6px 0;border-bottom:1px solid var(--rule)}
+/* r254/r256 · compact selection bar — hidden while picking; scrolling the results flips
+   .cmp → .slim (pure class toggle, no re-render) so both thumbs are always settable */
+.cmp-bar{position:sticky;top:-2px;z-index:3;display:none;gap:10px;align-items:center;background:var(--panel);padding:6px 0;border-bottom:1px solid var(--rule)}
+.cmp.slim .cmp-bar{display:flex}
+.cmp.slim .cmp-pick{display:none}
 .cmp-bar-t{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .cmp-bar button{border:1px solid var(--ai);background:transparent;color:var(--ai);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:.78rem;flex:none}
 /* r254 · kind chips are filters */
@@ -1109,7 +1112,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>ਪੜ੍ਹਨਾ</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">255</span></strong>, <strong><span id="dlbytes2">6003121</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">256</span></strong>, <strong><span id="dlbytes2">6005491</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>ਆਡਿਟ ਟ੍ਰੇਲ</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6734,6 +6737,17 @@ const VERSIONS = [
    {n:"Sofia",g:"A-",f:"Ten new strings in 32 languages same-release; the play-card metric phrases remain canonical-English &mdash; named, queued."}
   ],
   next:"Keyframe ticks on the three sliders + prev/next-change steppers (the fleet blueprint, measured KEYS)."
+ },
+{ v:256, code:"PICK BOTH THUMBS FREELY &mdash; ONLY READING MINIMIZES THE PICKERS",
+  stamp:"2026.08.22 &middot; revision 256",
+  thrust:"Operator, from the live build: releasing the first slider collapsed the pickers before the second could be set &mdash; selecting two revisions meant fighting the interface. The space-saver was interrupting the very act it existed to serve. Fixed at the root: a thumb release NEVER collapses the pickers &mdash; set Before, set After, adjust either, as many times as you like. The compact bar now appears only when you begin SCROLLING the results &mdash; the moment your attention moves from choosing to reading &mdash; and it is a pure class flip with no re-render, so nothing jumps and no thumb moves. The labeled Change button restores the pickers instantly, both thumbs exactly where you left them. One rule, one meaning: choosing keeps the controls; reading reclaims the screen. Verified: the two-thumb selection walk (set 240, then 252, no reset), scroll-collapse, instant re-expand with state intact &mdash; 28-check battery green twice. Totals hold; v.19 r1.001.",
+  mot:"An instrument must never interrupt the hand that is using it. The controls yield to the reading only when the reading has begun.",
+  stats:{clauses:309, jur:103, shields:5, defects:41, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Set both thumbs in one motion; the bar waits for the scroll; Change restores instantly with zero re-render."},
+   {n:"Christo",g:"A",f:"One rule: choosing keeps the pickers, reading minimizes them. No control fights the reader again."}
+  ],
+  next:"Fleet index lands; then keyframe ticks + prev/next-change steppers on the measured KEYS."
  }
 ];
 
@@ -19223,7 +19237,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6003121";
+const DL_BYTES = "6005491";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20867,15 +20881,16 @@ function renderCompare(){
      row appears only when something actually changed, and only the non-zero kinds. */
   const isCur = hi === VMAX;
   const vLbl = (v) => 'v.' + versionAt(v) + ' ' + relLabel(v);
-  /* r254 · COMPACT SELECTION BAR: once a pair is committed the pickers collapse into one
-     sticky line so the passages own the screen; the labeled Change button re-expands with
-     both thumbs intact. Deterministic — no timers. */
-  let h = '<div class="cmp"><button class="cmp-x" id="cmpClose" aria-label="Close compare" title="Close">' + ICON.close + '</button>';
-  if (cmpSlim){
-    h += '<div class="cmp-bar"><span class="cmp-bar-t">&#8646; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</span>' +
-         '<button id="cmpEdit" type="button">ਬਦਲੋ</button></div>';
-  } else {
-    h += '<h4>&#8646; What changed &mdash; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</h4>' +
+  /* r256 · PICK BOTH THUMBS FREELY (operator: "user must be able to select 2 revisions").
+     The pickers NEVER collapse on a thumb release — both header forms render always and a
+     CSS class flips between them, so collapsing is a pure class toggle with no re-render:
+     scrolling the results minimizes to the sticky pair bar; the labeled Change button
+     brings the pickers back with both thumbs intact. */
+  let h = '<div class="cmp' + (cmpSlim ? ' slim' : '') + '"><button class="cmp-x" id="cmpClose" aria-label="Close compare" title="Close">' + ICON.close + '</button>' +
+    '<div class="cmp-bar"><span class="cmp-bar-t">&#8646; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</span>' +
+      '<button id="cmpEdit" type="button">ਬਦਲੋ</button></div>' +
+    '<div class="cmp-pick">' +
+    '<h4>&#8646; What changed &mdash; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</h4>' +
     '<div class="cmp-sl"><label for="cmpA">ਪਹਿਲਾਂ &middot; <span id="cmpALbl">' + cmpLbl(cmpA) + '</span></label>' +
       '<input type="range" id="cmpA" min="1" max="' + VMAX + '" step="1" aria-label="Before release"></div>' +
     '<div class="cmp-sl"><label for="cmpB">ਬਾਅਦ &middot; <span id="cmpBLbl">' + cmpLbl(cmpB) + '</span></label>' +
@@ -20883,8 +20898,8 @@ function renderCompare(){
     '<div class="cmp-ctl">' +
       '<button id="cmpPrev">ਪਿਛਲੇ ਦੇ ਮੁਕਾਬਲੇ</button>' +
       '<button id="cmpFirst">v1 ਬਨਾਮ ਨਵੀਨਤਮ</button>' +
+    '</div>' +
     '</div>';
-  }
   h += (dr.changed.length ? '<div class="cmp-sum">' +
       (c.added ? '<span class="k-add">ਸ਼ਾਮਲ ਕੀਤਾ <b>' + c.added + '</b></span>' : '') +
       (c.revised ? '<span class="k-rev">ਸੋਧਿਆ <b>' + c.revised + '</b></span>' : '') +
@@ -21013,16 +21028,25 @@ function renderCompare(){
     slA.value = cmpA; slB.value = cmpB;
     slA.addEventListener("input", function(){ document.getElementById("cmpALbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
     slB.addEventListener("input", function(){ document.getElementById("cmpBLbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
-    slA.addEventListener("change", function(){ cmpA = parseInt(this.value,10); cmpSlim = true; cmpShowAll = false; renderDoc(); });
-    slB.addEventListener("change", function(){ cmpB = parseInt(this.value,10); cmpSlim = true; cmpShowAll = false; renderDoc(); });
+    slA.addEventListener("change", function(){ cmpA = parseInt(this.value,10); cmpShowAll = false; renderDoc(); });
+    slB.addEventListener("change", function(){ cmpB = parseInt(this.value,10); cmpShowAll = false; renderDoc(); });
   }
   var pv = document.getElementById("cmpPrev");
-  if (pv) pv.addEventListener("click", function(){ cmpA = Math.max(1, Math.max(cmpA, cmpB) - 1); cmpSlim = true; cmpShowAll = false; renderDoc(); });
+  if (pv) pv.addEventListener("click", function(){ cmpA = Math.max(1, Math.max(cmpA, cmpB) - 1); cmpShowAll = false; renderDoc(); });
   var f1 = document.getElementById("cmpFirst");
-  if (f1) f1.addEventListener("click", function(){ cmpA = 1; cmpB = VMAX; cmpSlim = true; cmpShowAll = false; renderDoc(); });
-  /* r254 · the labeled Change button re-expands the pickers with both thumbs intact */
+  if (f1) f1.addEventListener("click", function(){ cmpA = 1; cmpB = VMAX; cmpShowAll = false; renderDoc(); });
+  /* r256 · Change re-expands instantly (class toggle, thumbs untouched); scrolling the
+     results is the ONLY thing that minimizes the pickers — a thumb release never does. */
   var ed = document.getElementById("cmpEdit");
-  if (ed) ed.addEventListener("click", function(){ cmpSlim = false; renderDoc(); });
+  if (ed) ed.addEventListener("click", function(){
+    cmpSlim = false; var c0 = host.querySelector('.cmp'); if (c0) c0.classList.remove('slim');
+    host.scrollTop = 0;
+  });
+  host.onscroll = function(){
+    if (cmpOn && !cmpSlim && host.scrollTop > 220){
+      cmpSlim = true; var c1 = host.querySelector('.cmp'); if (c1) c1.classList.add('slim');
+    }
+  };
   var cx = document.getElementById("cmpClose");
   if (cx) cx.addEventListener("click", function(){ setCompare(false); var b = document.getElementById("bCmp"); if (b) b.focus(); });
   /* r254 · kind chips are FILTERS. Behavior + a11y are attached AFTER render (setAttribute,
