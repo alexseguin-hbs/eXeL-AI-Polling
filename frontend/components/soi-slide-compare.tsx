@@ -10,9 +10,9 @@
 
 import { useMemo, useState } from "react";
 import type { SlideVersion, SlideFieldValue } from "@/lib/innovation-data";
-import { diffMaps, diffText, sideBySide, type KeyChange } from "@/lib/version-diff";
+import { diffMaps, diffText, sideBySide, escHtml, type KeyChange } from "@/lib/version-diff";
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const esc = escHtml; // one shared, hardened escaper (was a local duplicate)
 
 type ChangeType = "Text" | "Visual" | "Data" | "Order" | "Meaning";
 

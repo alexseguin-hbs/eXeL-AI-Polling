@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { type Project, briefOf, GATE_STAGE, GATE_REVIEW, confidenceOf, type Gate } from "@/lib/innovation-data";
-import { diffCollection, diffText, sideBySide } from "@/lib/version-diff";
+import { diffCollection, diffText, sideBySide, escHtml } from "@/lib/version-diff";
 
 // One traceability row, in the canonical CRS Design-Matrix format.
 type CrsRow = {
@@ -24,7 +24,7 @@ type CrsRow = {
 };
 type Version = { id: string; label: string; ts: string; rows: CrsRow[] };
 const STORE = "v2525.soi.crs.versions";
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const esc = escHtml; // one shared, hardened escaper (was a local duplicate)
 
 // The traceability fields shown/compared, in order.
 const FIELDS: { k: keyof CrsRow; label: string }[] = [

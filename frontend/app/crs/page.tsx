@@ -9,11 +9,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CRS_MATRIX, type CrsEntry } from "@/lib/crs-matrix-data";
-import { diffCollection, diffText, sideBySide } from "@/lib/version-diff";
+import { diffCollection, diffText, sideBySide, escHtml } from "@/lib/version-diff";
 
 type Version = { id: string; label: string; ts: string; rows: CrsEntry[] };
 const STORE = "v2525.crs.versions";
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const esc = escHtml; // one shared, hardened escaper (was a local duplicate)
 
 // The traceability fields shown/compared, in order.
 const FIELDS: { k: keyof CrsEntry; label: string }[] = [
