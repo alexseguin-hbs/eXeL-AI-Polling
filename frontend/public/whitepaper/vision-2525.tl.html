@@ -1061,7 +1061,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Pagbasa</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">251</span></strong>, <strong><span id="dlbytes2">5969526</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">252</span></strong>, <strong><span id="dlbytes2">5971466</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Talaan ng Pag-audit</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1715,15 +1715,17 @@ function versionAt(rev){
      v.18 on any historical release. The release SERIES (relLabel) carries the position. */
   return rev >= VMAX ? 19 : 18;
 }
-/* r1.### RELEASE LABELS (operator 2026-08-21): the internal counter stays a plain integer
-   for replay and the gate; readers see a release SERIES. THIS version — the newest release —
-   is v.19 r1.001, and each older (v.18) release counts UP from there, so the oldest of N
-   releases reads r1.<N> (with 249 releases the oldest is v.18 r1.249). r1.001 is always
-   "this version"; the number tells you how many revisions back a release sits.
-   CAPSTONE_REL is retained for the compare default helper's provenance only. */
+/* RELEASE LABELS (operator 2026-08-22 — "order is backward, first is on the very far
+   left"): the series must read FORWARD with time. The v.18 history ascends r0.001 →
+   r0.<N-1> from the first release on the far left, and THIS version — the newest release
+   alone — is v.19 r1.001. So the slider's far left is v.18 r0.001, the far right is
+   v.19 r1.001, and a compare column pair always reads older-smaller → newer-larger
+   (e.g. r0.240 → r1.001), never counting down. The internal counter stays a plain
+   integer for replay and the gate; r1.001 is always "this version" — when the next
+   release ships it becomes v.19 r1.001 and today's joins the v.18 history as r0.<n>. */
 const CAPSTONE_REL = 246;
 function relLabel(n){
-  return "r1." + String(Math.max(1, VMAX - n + 1)).padStart(3, "0");
+  return n >= VMAX ? "r1.001" : "r0." + String(n).padStart(3, "0");
 }
 /* operator 2026-08-21: Compare opens on THIS version vs the LAST version — v.19 (newest)
    against v.18 (the release before it). When those two share identical content (a chrome-
@@ -6634,6 +6636,17 @@ const VERSIONS = [
    {n:"Enki",g:"A",f:"Version-bumped-but-identical blocks read carried, and markup-only edits declare themselves."}
   ],
   next:"Fleet gap 5: route the React kind labels through the lexicon (33 languages) and unify the changed-badge colour."
+ },
+{ v:252, code:"THE SERIES READS FORWARD &mdash; r0.001 AT THE START, r1.001 AT THE END",
+  stamp:"2026.08.22 &middot; revision 252",
+  thrust:"Operator, on the live site: the order was backward &mdash; the FIRST release, on the very far left of the slider, carried the LARGEST number (v.18 r1.251) and moving forward through history counted DOWN to r1.001. Fixed: the release series now reads forward with time. The v.18 history ascends r0.001 &rarr; r0.251 from the first release, and THIS version &mdash; the newest release alone &mdash; is v.19 r1.001. The slider&rsquo;s far left is v.18 r0.001, its far right is v.19 r1.001, and every compare column pair reads older-smaller on the left to newer-larger on the right (r0.240 &rarr; r1.001), never counting down. When the next release ships it becomes v.19 r1.001 and today&rsquo;s joins the v.18 history in sequence. Verified by Playwright: first/mid/prev/latest labels, masthead, and compare-column order all forward; 13-check battery green. Display formatter only &mdash; the internal counter, replay and every hash untouched; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777.",
+  mot:"Time runs left to right. A version series that counts down against its own timeline asks the reader to distrust it; the numbers now walk the same direction as the history they name.",
+  stats:{clauses:309, jur:103, shields:5, defects:43, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Slider far-left reads r0.001, far-right r1.001 &mdash; the timeline and the numbering finally agree."},
+   {n:"Aset",g:"A",f:"One rule everywhere: history ascends r0.###, the living release alone is v.19 r1.001."}
+  ],
+  next:"Fleet gap 5: React kind-labels through the lexicon (33 languages) + one changed-badge colour."
  }
 ];
 
@@ -19123,7 +19136,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5969526";
+const DL_BYTES = "5971466";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
