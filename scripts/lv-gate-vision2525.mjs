@@ -1355,7 +1355,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   const p=await b.newPage({viewport:{width:1440,height:900}});
   await p.goto(f); await p.waitForTimeout(600);
   const r=await p.evaluate(()=>{
-    const wc=t=>t.trim().split(/\s+/).filter(x=>x).length;
+    const wc=t=>t.trim().split(/\s+/).filter(x=>x && !/^[—–-]+$/.test(x)).length;
     const words=id=>{const el=document.getElementById('blk-'+id);return el?wc(el.innerText||''):0};
     const wp=VIEWS.paper.order;
     const idx={}; for(let n=1;n<=19;n++) idx[n]=wp.indexOf('paper.s'+n);
@@ -1415,7 +1415,7 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   const p=await b.newPage({viewport:{width:1440,height:2000}});
   await p.goto(f); await p.waitForTimeout(1200);
   const t=await p.evaluate(()=>{
-    const wcount=s=>s.trim().split(/\s+/).filter(x=>x).length;
+    const wcount=s=>s.trim().split(/\s+/).filter(x=>x && !/^[—–-]+$/.test(x)).length;
     /* r237 · operator law: TABLES DO NOT COUNT toward the Brief's 3,333. Numbers
        that live in columns are arithmetic, not argument — the Brief's word budget
        measures its prose. skipTables applies to the brief view only. */
