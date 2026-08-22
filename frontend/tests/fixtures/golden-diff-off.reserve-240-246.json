@@ -1,6 +1,7 @@
 {
   "frozenPair": "off.reserve 240<->246 (append-only: frozen forever)",
-  "dfPair_sha256": "0b5814d19deb371f4e32fb1500726a62d6f93f369d16e6ecab24fce034ec7eae",
-  "dfPassage_sha256": "952e16b4f918915b69878b9f966238af969559bcb6c40266f160dea3ed42e51e",
-  "dfSides_sha256": "61908f6b0d0ed9ad0d4c84efe3f01dd2fdd57b7125b63b977d3e524b50a1ecf8"
+  "note": "regenerated r257 — dfText gained block/SVG-text boundary spacing (word-fusion fix); intentional renderer change",
+  "dfPair_sha256": "2fc54c5836ee4448e65525940317edf0ebb8a2bc6da6b3c697f151ceed056deb",
+  "dfPassage_sha256": "a06737c54263961f37d7350a9f3648caf7caa6cc66d6f36d825f9f11c074d8be",
+  "dfSides_sha256": "4b0ecb86f451d3540d36fb9ead7de488ec950180ba5ce09942bb6846684106bf"
 }

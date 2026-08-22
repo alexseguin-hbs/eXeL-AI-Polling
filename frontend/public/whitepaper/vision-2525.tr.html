@@ -493,6 +493,11 @@ body.straight .viewban{display:block}
 .df-col{flex:1;min-width:238px}
 .df-col h6{margin:0 0 4px;font:700 10px ui-monospace,monospace;color:var(--ink-2)}
 .df-col p{margin:0;font-size:13px;line-height:1.55}
+/* r257 · red/green ride EVERY del/ins in the panel (operator: the colour vanished in the
+   hunks — it was scoped to the old two-column view only). One rule, every container:
+   hunk passages, dual panes, legacy columns alike. */
+#cmp del{background:var(--alert-bg);color:var(--alert);text-decoration:line-through;border-radius:2px;padding:0 1px}
+#cmp ins{background:var(--ok-bg);color:var(--ok);text-decoration:none;border-radius:2px;padding:0 1px}
 .df-old del{background:var(--alert-bg);color:var(--alert);text-decoration:line-through;border-radius:2px;padding:0 1px}
 .df-new ins{background:var(--ok-bg);color:var(--ok);text-decoration:none;border-radius:2px;padding:0 1px}
 .df-big{font-size:12.5px;color:var(--ink-2);font-style:italic;margin:0}
@@ -1112,7 +1117,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Okuma</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">256</span></strong>, <strong><span id="dlbytes2">6005491</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">257</span></strong>, <strong><span id="dlbytes2">6008314</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Denetim İzi</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6748,6 +6753,18 @@ const VERSIONS = [
    {n:"Christo",g:"A",f:"One rule: choosing keeps the pickers, reading minimizes them. No control fights the reader again."}
   ],
   next:"Fleet index lands; then keyframe ticks + prev/next-change steppers on the measured KEYS."
+ },
+{ v:257, code:"THE COLOURS RIDE EVERY CHANGE &mdash; AND WORDS STOP FUSING",
+  stamp:"2026.08.22 &middot; revision 257",
+  thrust:"Operator, from the live hunks: the red and green highlights had vanished &mdash; only strikethrough and underline remained &mdash; and adjacent labels were fusing into non-words like &lsquo;byContinuity&rsquo;. Two root causes, both fixed. The colour rules were scoped to the old two-column view only; now one rule paints every removed run red and every added run green in every container the panel owns &mdash; hunk passages, dual panes and columns alike. The fusing came from text extraction across block boundaries: adjacent table cells, list items and the inline diagrams&rsquo; SVG text labels concatenated without a space; extraction now inserts the boundary space for every block-level and SVG text closing tag while leaving inline emphasis untouched, so no word is ever split and no two labels ever merge. And the Unified / Side-by-side toggle moved into the sticky navigator row &mdash; the dual-pane reading, the Divinity-style side-by-side the operator asked after, is now one thumb away at any scroll depth. The golden fixtures were regenerated for the intentional renderer change &mdash; which is precisely the job they exist to do. Battery 31/31 twice; totals hold; v.19 r1.001.",
+  mot:"Evidence must look like evidence at every depth of the reading &mdash; red for what left, green for what arrived, and never a word the record did not write.",
+  stats:{clauses:309, jur:103, shields:5, defects:41, reach:"full"},
+  asm:[
+   {n:"Aset",g:"A",f:"One colour rule for every container; the panel can no longer lose its palette in a new view."},
+   {n:"Thoth",g:"A",f:"Boundary-spacing is deterministic and tag-scoped; goldens regenerated with the change named &mdash; the lock did its job."},
+   {n:"Athena",g:"A",f:"Side-by-side rides the sticky row now; the reading mode is never out of reach."}
+  ],
+  next:"Fleet CRS index lands; then keyframe ticks + steppers on the measured KEYS."
  }
 ];
 
@@ -19237,7 +19254,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6005491";
+const DL_BYTES = "6008314";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20730,7 +20747,11 @@ function enHtmlAt(id, v){
   return pick ? pick.html : "";
 }
 function dfText(html){
-  const d = document.createElement("div"); d.innerHTML = html || "";
+  /* r257 · block/cell boundaries become spaces BEFORE text extraction — adjacent table
+     cells and list items used to fuse ("split by"+"Continuity" read "byContinuity").
+     Inline tags (em/strong/a) stay untouched so words are never split mid-token. */
+  const d = document.createElement("div");
+  d.innerHTML = (html || "").replace(/<\/(td|th|li|p|h[1-6]|tr|div|caption|figcaption|text|tspan|dt|dd)>/gi, "$& ").replace(/<(br|hr)\s*\/?>/gi, " ");
   /* r251 · strip bidi-control + zero-width marks (U+202A-202E, U+2066-2069, U+200B-200F,
      U+2028-2029, U+FEFF) before diffing — Trojan-Source reordering must never be able to
      visually invert removed-red/added-green on the trust surface. Matches the React
@@ -20950,12 +20971,12 @@ function renderCompare(){
     var dfList = dfByImp.filter(function(d){ return d.kind !== "removed"; });
     var dfShown = cmpShowAll ? dfList : dfList.slice(0, 20);
     if (dfList.length){
-      h += '<div class="df-wrap" id="cmpPass"><h5>&#8646; Metin değişiklikleri &middot; standart kayıt' +
-           /* r255 · Unified (hunks) vs Side by side (Before left / After right) — one measurement, two projections */
-           '<span class="cmp-mode" role="group"><button id="cmpVU" type="button" aria-pressed="' + (cmpView === 'unified') + '">Birleşik</button>' +
-           '<button id="cmpVS" type="button" aria-pressed="' + (cmpView === 'side') + '">Yan yana</button></span></h5>' +
-           /* r255 · change navigator — the PDF search-rail pattern: ‹ n / N › walks every red/green cluster */
-           '<div class="cmp-nav"><button id="cmpNvP" type="button" aria-label="Önceki değişiklik">&lsaquo;</button>' +
+      h += '<div class="df-wrap" id="cmpPass"><h5>&#8646; Metin değişiklikleri &middot; standart kayıt</h5>' +
+           /* r257 · mode toggle lives IN the sticky navigator row — Side by side must be one
+              thumb away at any scroll depth (operator scrolled past it in the heading). */
+           '<div class="cmp-nav"><span class="cmp-mode" role="group"><button id="cmpVU" type="button" aria-pressed="' + (cmpView === 'unified') + '">Birleşik</button>' +
+           '<button id="cmpVS" type="button" aria-pressed="' + (cmpView === 'side') + '">Yan yana</button></span>' +
+           '<button id="cmpNvP" type="button" aria-label="Önceki değişiklik">&lsaquo;</button>' +
            '<span class="n" id="cmpNvN">&ndash; / &ndash;</span>' +
            '<button id="cmpNvX" type="button" aria-label="Sonraki değişiklik">&rsaquo;</button></div>' +
            '<p class="df-note">Sürüm geçmişi kaynak dilde tutulur, bu nedenle kelime düzeyindeki değişiklik standart İngilizce metinde gösterilir; her dil en son sürümü izler. Üstü çizili kırmızı kaldırılanları, yeşil eklenenleri gösterir.</p>';
