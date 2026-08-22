@@ -1,4 +1,4 @@
-import { tokenize, diffText, diffRecord, diffCollection, sideBySide } from '/home/user/eXeL-AI-Polling/frontend/lib/version-diff.ts';
+import { tokenize, diffText, diffRecord, diffCollection, sideBySide, stripBidi, escAttr, escHtml, DIFF_CAP } from '/home/user/eXeL-AI-Polling/frontend/lib/version-diff.ts';
 const esc = (s:string)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 let pass=0, fail=0;
 const ok=(c:boolean,m:string)=>{ if(c){pass++;} else {fail++; console.log('FAIL:',m);} };
@@ -28,5 +28,12 @@ ok(col.find(r=>r.key==='c')!.kind==='added', 'c added');
 const sb = sideBySide(diffText('red green','red blue'), esc)!;
 ok(sb.left.includes('<del>green</del>'), 'left del');
 ok(sb.right.includes('<ins>blue</ins>'), 'right ins');
+// r251 hardening — escapers + bidi neutralization + unified cap
+ok(escHtml('a & <b>')==='a &amp; &lt;b&gt;', 'escHtml escapes & < >');
+ok(escAttr('x"y\'z')==='x&quot;y&#39;z', 'escAttr escapes quotes');
+ok(stripBidi('a‮b​c')==='abc', 'stripBidi removes bidi + zero-width');
+const sbBidi = sideBySide(diffText('safe','sa‮fe'), (s:string)=>s)!;
+ok(!/[‪-‮⁦-⁩]/.test(sbBidi.left + sbBidi.right), 'sideBySide output carries no bidi controls');
+ok(DIFF_CAP===3000, 'unified DIFF_CAP=3000');
 console.log(`version-diff: ${pass} passed, ${fail} failed`);
 process.exit(fail?1:0);

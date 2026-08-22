@@ -12,6 +12,29 @@
 
 export type Op = { t: -1 | 0 | 1; s: string }; // -1 removed · 0 equal · 1 added
 
+// The one LCS cap, shared by every surface (was 3000 here, 2600 in the doc — unified).
+export const DIFF_CAP = 3000;
+
+// Neutralize bidirectional-control and zero-width codepoints before rendering a diff.
+// Trojan-Source (U+202A–202E, U+2066–2069, U+200E/200F) can visually reorder a diff so it
+// reads differently than it diffs — unacceptable for a trust-critical version display. Normal
+// LTR/RTL text uses none of these control marks, so stripping them never harms real content.
+export function stripBidi(s: string): string {
+  return (s || "").replace(/[‪-‮⁦-⁩‎‏​-‍﻿]/g, "");
+}
+
+// Element-content escaper (the one every surface should share).
+export function escHtml(s: string): string {
+  return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Attribute-context escaper — adds quotes on top of escHtml. REQUIRED for any value rendered
+// into title/aria/data-* via string concatenation; a bare content-escape leaves " and ' live,
+// which is an attribute-injection hole. Ported from the living document's escAttr.
+export function escAttr(s: string): string {
+  return escHtml(s).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 // Cross-language tokenizer: CJK/Hangul/Kana as single tokens, numbers grouped,
 // everything else split on runs of non-space non-CJK. Works in every language.
 export function tokenize(text: string): string[] {
@@ -119,7 +142,7 @@ export function sideBySide(ops: Op[] | null, esc: (s: string) => string): { left
   let left = "",
     right = "";
   for (const o of ops) {
-    const e = esc(o.s);
+    const e = esc(stripBidi(o.s)); // defense-in-depth: neutralize bidi/zero-width before escaping
     if (o.t === 0) {
       left += e + " ";
       right += e + " ";
