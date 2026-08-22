@@ -187,7 +187,14 @@ let VMAXCHK=null;
          Only flag a blank panel when the record actually holds something for v. */
       if (want.size && !got.size) impGaps.push('v' + v + ' panel blank but record has ' + want.size);
     }
-    return {full:t(1,VM), same:t(7,7), total:compare(1,VM).length, blocks:replay(VM).length,
+    /* r261 · TWO block universes, because two checks need two projections (both stale
+       since r243 conflated them onto one number):
+       · blocksAll = replay over ALL_ORDER (172) — the domain compare() walks, so the
+         diff-accounting checks (rows==blocks, kinds sum) measure the same union the diff
+         does, not one view's slice.
+       · blocks = replay in the active view (89/139) — the domain the RENDERED highlights
+         live in, so the highlights check compares like with like. */
+    return {full:t(1,VM), same:t(7,7), total:compare(1,VM).length, blocks:replay(VM).length, blocksAll:replay(VM,ALL_ORDER).length,
             symm:JSON.stringify(t(1,VM))===JSON.stringify(t(VM,1)), imp:improvements(VM).length,
             /* engine-only: this release appended no ledger block, so an empty
                improvements panel is correct rather than broken (r69, r74). */
@@ -195,9 +202,9 @@ let VMAXCHK=null;
             impGaps};
   });
   if(r.impGaps.length) fails.push('improvements() does not match the record: ' + r.impGaps.slice(0,6).join(' · ') + (r.impGaps.length>6?` (+${r.impGaps.length-6} more)`:''));
-  if(r.total!==r.blocks) fails.push(`compare(1,VMAX) rows ${r.total} != blocks ${r.blocks}`);
+  if(r.total!==r.blocksAll) fails.push(`compare(1,VMAX) rows ${r.total} != blocks ${r.blocksAll}`);
   if(r.full.removed!==0) fails.push('compare reported a removal; the ledger has no delete');
-  if(r.full.added+r.full.revised+r.full.carried!==r.blocks) fails.push('compare kinds do not sum to block count');
+  if(r.full.added+r.full.revised+r.full.carried!==r.blocksAll) fails.push('compare kinds do not sum to block count');
   if(r.same.added||r.same.revised||r.same.removed) fails.push('compare(v,v) reported a change');
   if(!r.symm) fails.push('compare is not order-independent');
   if(!r.imp && !r.vmaxIsEngineOnly)

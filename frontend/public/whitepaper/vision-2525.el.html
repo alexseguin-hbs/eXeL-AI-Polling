@@ -1149,7 +1149,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Ανάγνωση</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">260</span></strong>, <strong><span id="dlbytes2">6027797</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">261</span></strong>, <strong><span id="dlbytes2">6030649</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Ίχνος ελέγχου</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6836,6 +6836,18 @@ const VERSIONS = [
    {n:"Enki",g:"A",f:"Absent counterpart, uneven heights, single-section and over-cap panes all handled by the clamp &mdash; no overscroll, no throw."}
   ],
   next:"r261 &mdash; reconcile the version-accounting gate (compare rows vs blocks, defect-row parity) so the R-CORE training substrate is provably 100% accurate."
+ },
+{ v:261, code:"THE RECORD COUNTS ITSELF RIGHT &mdash; ACCURACY BEFORE THE GREEN LIGHT",
+  stamp:"2026.08.22 &middot; revision 261",
+  thrust:"Operator, before building outward on Replay &amp; Compare &mdash; the layer that will teach the machines &mdash; the record had to be made exactly true, because a training substrate that miscounts itself teaches a lie. Two accounting faults, both pre-existing, both now reconciled to the truth rather than silenced. First: the gate had asserted that the full diff (v.18 r0.001 &rarr; latest) should hold as many rows as one view renders. But since r243 the diff walks the UNION of every view &mdash; 172 blocks, the complete record &mdash; precisely so it can show a change wherever it lives, in the paper or the brief or the reading order. The gate was still measuring against a single view&rsquo;s 139. The diff was right; the ruler was stale. The ruler now measures the same union the diff does, so 172 rows meet 172 blocks and the kinds sum exactly &mdash; added 166, revised 6, removed 0, for an append-only record has no delete. Second: the count of defects raised. This framework keeps every fault it has ever found ON the record, fixed ones included &mdash; that is the whole point of the second book. So the count only ever rises. It rose to 45 by release 130, then four later releases quietly decremented it to 41 as faults were fixed &mdash; treating a tally of what was RAISED as if it were a tally of what remained OPEN. A raised count cannot fall. It is restored to 45, matching the measure table and the peak, and this correction is itself written down here rather than smoothed away &mdash; the register catching a drift in its own accounting is the second book working as designed. No document text, no clause, no jurisdiction changed; only the record&rsquo;s count of itself is made honest. Totals hold 3,333 / 9,999 / 77,777; replay deterministic; gate now truly clean. v.19 r1.001.",
+  mot:"Truth before the green light. A gate that passes on a false number is worse than a gate that fails on a true one &mdash; make the count right, then let it pass because it is right.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Thoth",g:"A",f:"172 diff rows now meet 172 union blocks; the ruler measures the same domain the diff walks. Accounting reconciled, not silenced."},
+   {n:"Odin",g:"A",f:"Defects raised is monotonic by the framework&rsquo;s own doctrine; the 45&rarr;41 decrements were the error. Restored to 45 &mdash; the record counts itself right."},
+   {n:"Athena",g:"A",f:"Two stale assertions, two true fixes, zero doctrine touched &mdash; the smallest correct move to a clean gate."}
+  ],
+  next:"Wire the gate + batteries into CI so the record checks itself every release; then the per-section feedback layer with resolution timelines."
  }
 ];
 
@@ -19325,7 +19337,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6027797";
+const DL_BYTES = "6030649";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
