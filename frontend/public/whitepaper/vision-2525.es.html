@@ -83,8 +83,11 @@ header.mast{border-bottom:3px solid var(--ink);padding:40px 0 18px}
 .g-ai{color:var(--ai)} .g-si{color:var(--si)} .g-hi{color:var(--hi)}
 
 /* ── replay deck (sticky) ── */
+/* r265 · SOLID deck (operator: "no blur ... use solid background for entire reading
+   experience"). The sticky deck no longer frosts the reading behind it — opaque
+   background, no backdrop-filter — so nothing blurs through as you scroll. */
 .deck{position:sticky;top:0;z-index:40;background:var(--chrome);border-bottom:1px solid var(--rule);
-  margin:0 -20px 0;padding:10px 20px 11px;backdrop-filter:saturate(1.3) blur(6px)}
+  margin:0 -20px 0;padding:10px 20px 11px}
 .deck-in{max-width:74ch;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 .deck .lab{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);font-weight:700;
   font-family:ui-monospace,monospace}
@@ -632,7 +635,11 @@ body.cmpshow.cmp-side #cmpMirror{display:inline-flex}
    smear. On the deck it is now a whisper: uniform, neutral, thin hairlines — a measured
    scale you can still tap, not a smudge, and with no yellow. The COMPARE pickers keep the
    gold marks (unchanged), where they guide revision selection and were never the problem. */
-#vTicks i,#vTicks i.hi{width:1px;height:3px;background:var(--ink-2);opacity:.22}
+/* r265 · the DECK keyframe rail is GONE in reading mode (operator: "there should be no
+   blur"). Even faint hairlines read as a smear under the slider; the reading deck is now
+   clean. The keyframe marks live only in the COMPARE pickers, where they guide revision
+   selection (and were never the surface flagged). */
+#vTicks{display:none}
 .sl-row{display:flex;align-items:center;gap:6px}
 .sl-row .slwrap{flex:1}
 .sl-step{font:inherit;font-size:15px;line-height:1;padding:3px 9px;border:1px solid var(--rule);border-radius:8px;background:transparent;color:var(--ink-2);cursor:pointer}
@@ -913,7 +920,7 @@ body.paged #doc section.blk.pg .bn{opacity:.34}
   body{background:radial-gradient(1100px 460px at 50% -150px,#0D2F34 0%,rgba(11,19,20,0) 72%),var(--paper)}
   header.mast{border-bottom:1px solid rgba(0,218,230,.34);padding-bottom:24px}
   header.mast h1{text-shadow:0 0 34px rgba(0,218,230,.13)}
-  .deck{background:rgba(16,29,30,.84);border-bottom:1px solid rgba(0,218,230,.20);backdrop-filter:saturate(1.5) blur(14px);-webkit-backdrop-filter:saturate(1.5) blur(14px)}
+  .deck{background:var(--chrome);border-bottom:1px solid rgba(0,218,230,.20)}
   button{border-radius:9px;background:rgba(16,29,30,.92);border-color:var(--rule)}
   button:hover{border-color:var(--ai);color:var(--ai);background:rgba(0,218,230,.09)}
   button[aria-pressed="true"],button.on{background:var(--ai);color:#04191C;border-color:var(--ai);box-shadow:0 0 0 3px rgba(0,218,230,.14)}
@@ -938,7 +945,7 @@ body.paged #doc section.blk.pg .bn{opacity:.34}
 :root[data-theme="dark"] body{background:radial-gradient(1100px 460px at 50% -150px,#0D2F34 0%,rgba(11,19,20,0) 72%),var(--paper)}
 :root[data-theme="dark"] header.mast{border-bottom:1px solid rgba(0,218,230,.34);padding-bottom:24px}
 :root[data-theme="dark"] header.mast h1{text-shadow:0 0 34px rgba(0,218,230,.13)}
-:root[data-theme="dark"] .deck{background:rgba(16,29,30,.84);border-bottom:1px solid rgba(0,218,230,.20);backdrop-filter:saturate(1.5) blur(14px);-webkit-backdrop-filter:saturate(1.5) blur(14px)}
+:root[data-theme="dark"] .deck{background:var(--chrome);border-bottom:1px solid rgba(0,218,230,.20)}
 :root[data-theme="dark"] button{border-radius:9px;background:rgba(16,29,30,.92);border-color:var(--rule)}
 :root[data-theme="dark"] button:hover{border-color:var(--ai);color:var(--ai);background:rgba(0,218,230,.09)}
 :root[data-theme="dark"] button[aria-pressed="true"],:root[data-theme="dark"] button.on{background:var(--ai);color:#04191C;border-color:var(--ai);box-shadow:0 0 0 3px rgba(0,218,230,.14)}
@@ -964,8 +971,7 @@ body.paged #doc section.blk.pg .bn{opacity:.34}
 :root[data-theme="light"] body{background:var(--paper)}
 :root[data-theme="light"] header.mast{border-bottom:3px solid var(--ink);padding-bottom:18px}
 :root[data-theme="light"] header.mast h1{text-shadow:none}
-:root[data-theme="light"] .deck{background:var(--chrome);border-bottom:1px solid var(--rule);
-  backdrop-filter:saturate(1.3) blur(6px);-webkit-backdrop-filter:saturate(1.3) blur(6px)}
+:root[data-theme="light"] .deck{background:var(--chrome);border-bottom:1px solid var(--rule)}
 :root[data-theme="light"] button{border-radius:3px;background:var(--panel)}
 :root[data-theme="light"] .chips button{border-radius:7px}
 :root[data-theme="light"] .toc,:root[data-theme="light"] .vban,:root[data-theme="light"] .cmp,
@@ -1155,7 +1161,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lectura</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">264</span></strong>, <strong><span id="dlbytes2">6040955</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">265</span></strong>, <strong><span id="dlbytes2">6043187</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Registro de auditoría</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6908,6 +6914,17 @@ const VERSIONS = [
    {n:"Odin",g:"A",f:"The old v.16-19 delivery record is kept as provenance beside the new scheme, not erased; the renumber is the operator&rsquo;s ratified authority."},
    {n:"Sofia",g:"A",f:"Labels zero-padded v.01..v.19 so no jag; the graduated prefix rides every surface (masthead, compare) through one function."},
    {n:"Athena",g:"A",f:"One band array drives every display; nudging a boundary later is a one-line edit &mdash; the scheme is correctable, as the doc promises."}
+  ],
+  next:"The per-section feedback layer (bottom-left button + resolution timelines); wire the gate + batteries into CI."
+ },
+{ v:265, code:"NO BLUR &mdash; A SOLID READING GROUND, THE DECK RAIL GONE",
+  stamp:"2026.08.22 &middot; revision 265",
+  thrust:"Operator, the reading experience is solid now &mdash; nothing frosts, nothing smears. The sticky deck used to be a pane of frosted glass: a translucent background with a fourteen-pixel blur, so the words scrolling beneath it showed through as a haze, and the keyframe rail rode that haze as a yellow smudge. Both are gone. The deck carries an opaque, solid background in every theme, with no backdrop blur, so the reading passes cleanly behind it with a hard edge and no bleed. And the keyframe rail is removed from the reading deck entirely &mdash; not dimmed, gone &mdash; because even faint marks read as a smear under the slider; the measured keyframes still live in the compare pickers, where they guide you to pick two revisions and were never the thing that blurred. The slider still scrubs, the deck still navigates, the budget still holds. This is presentation only &mdash; no record, no measurement, no version math touched. On the version scheme you set: the history reads v.01 through v.18 by natural band, and this newest release is v.19 r1.001 &mdash; so when the next release ships, today&rsquo;s becomes v.18 r0.265, exactly as the counter promises. Totals hold; gate clean; v.19 r1.001.",
+  mot:"A reading surface should be a surface, not a window. Solid ground behind the words, and no ornament that reads as a smudge &mdash; clarity is the whole point of a document meant to be trusted.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Solid opaque deck, no backdrop blur, rail removed from the reading surface &mdash; the words pass behind a hard edge, clean."},
+   {n:"Aset",g:"A",f:"Presentation only; record, measurement and version bands untouched &mdash; the reading is clearer, the truth unchanged."}
   ],
   next:"The per-section feedback layer (bottom-left button + resolution timelines); wire the gate + batteries into CI."
  }
@@ -19399,7 +19416,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6040955";
+const DL_BYTES = "6043187";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){

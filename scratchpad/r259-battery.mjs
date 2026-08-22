@@ -29,42 +29,31 @@ ok(s.inRange, 'all keys within [2, VMAX]');
 ok(s.real, `sampled key ${s.kv}: record byte-changed vs ${s.kv - 1}`);
 ok(!s.nonkey || s.clean, `sampled non-key ${s.nonkey}: zero record byte-change (record-only release)`);
 
-// ── 2 · deck rail: hidden with its slider on landing (straight mode, r104 design);
-//        VISIBLE with real geometry once a view is chosen ──
+// ── 2 · deck rail is GONE in reading mode (r265: "there should be no blur") ──
 s = await pg.evaluate(() => {
-  const wrapHiddenOnLanding = document.body.classList.contains('straight') &&
-    document.querySelector('.deck-in > .slwrap').getBoundingClientRect().width === 0;
-  setView('paper');                                   // choosing a view exits straight mode
+  setView('paper');                                   // reading mode, deck slider visible
   const r = document.getElementById('vTicks');
-  const rc = r.getBoundingClientRect();
-  const marks = r ? r.querySelectorAll('i') : [];
-  const hi = r ? r.querySelectorAll('i.hi').length : 0;
-  const titles = [...marks].slice(0, 5).map(i => i.getAttribute('title'));
-  return { wrapHiddenOnLanding, has: !!r, w: rc.width, n: marks.length, hi, keys: keysList().length,
-    rOK: titles.every(t => /^r[01]\.\d{3}$/.test(t)), tip: r ? r.title : '' };
+  const vis = r ? getComputedStyle(r).display !== 'none' : false;
+  const marksVisible = r ? [...r.querySelectorAll('i')].some(i => i.getClientRects().length > 0) : false;
+  const sliderThere = !!document.getElementById('vSlide') &&
+    document.querySelector('.deck-in > .slwrap').getBoundingClientRect().width > 100;
+  return { vis, marksVisible, sliderThere };
 });
-ok(s.wrapHiddenOnLanding, 'straight-mode landing hides the rail WITH its slider (no orphan)');
-ok(s.has && s.n === s.keys, `deck rail renders one mark per keyframe (${s.n})`);
-ok(s.w > 100, `rail has real geometry once a view is chosen (${Math.round(s.w)}px wide)`);
-ok(s.hi > 0 && s.hi < s.n, `gold high-impact marks are a strict subset (${s.hi}/${s.n})`);
-ok(s.rOK, 'mark titles are r-numbers');
-ok(/measured content changes/.test(s.tip), 'rail tooltip states the derived-measure honestly');
+ok(!s.vis && !s.marksVisible, 'deck keyframe rail is hidden in reading mode — no marks, no blur');
+ok(s.sliderThere, 'the version slider itself still renders (only the tick rail is gone)');
 
-// ── 3 · deck rail tap IS the replay: lands exactly on the NEAREST keyframe ──
+// ── 3 · the deck still navigates: slider drag moves the release ──
 s = await pg.evaluate(() => {
-  const r = document.getElementById('vTicks');
-  const rc = r.getBoundingClientRect();
-  const frac = 0.35;
-  r.dispatchEvent(new PointerEvent('pointerdown', { clientX: rc.left + rc.width * frac, bubbles: true }));
-  const ks = keysList(), vv = 1 + frac * (VMAX - 1);
-  let best = ks[0];
-  for (const k of ks) if (Math.abs(k - vv) < Math.abs(best - vv)) best = k;
-  return { active, expected: best, isKey: ks.includes(active) };
+  const sl = document.getElementById('vSlide');
+  sl.value = '120'; sl.dispatchEvent(new Event('input', { bubbles: true }));
+  const at120 = active;
+  goto(VMAX);
+  return { at120 };
 });
-ok(s.isKey && s.active === s.expected, `rail tap jumps replay to the NEAREST keyframe (${s.active} = expected ${s.expected})`);
+ok(s.at120 === 120, `deck slider still navigates (drag → r${s.at120})`);
 await pg.evaluate(() => goto(VMAX));
 
-// ── 4 · deck budget still holds with the rail ──
+// ── 4 · deck budget still holds ──
 s = await pg.evaluate(() => document.querySelector('.deck').getBoundingClientRect().height);
 ok(s <= 160, `deck height within the 160px budget (${Math.round(s)}px)`);
 
@@ -151,7 +140,11 @@ s = await pg.evaluate(() => ({
   prevAria: document.getElementById('cmpAL').getAttribute('aria-label'),
 }));
 ok(s.vInts === 0, 'no bare v-integers in the panel');
-ok(/previous changed release/i.test(s.prevAria), 'stepper aria names the measured semantics');
+// locale-tolerant: the stepper carries a non-empty aria-label — English on the EN build,
+// its translation on a language build (the r259 strings ship in all 32 languages).
+ok(!!s.prevAria && s.prevAria.trim().length > 0 &&
+   (/previous changed release/i.test(s.prevAria) || !/^[\x00-\x7F]*$/.test(s.prevAria)),
+   `stepper aria present (measured semantics; translated on non-EN) ("${(s.prevAria || '').slice(0, 28)}")`);
 await pg.evaluate(() => { setCompare(false); goto(VMAX); });
 
 // ── 11 · r-label series still forward, latest r1.001 ──
