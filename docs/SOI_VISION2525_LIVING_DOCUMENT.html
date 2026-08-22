@@ -627,6 +627,12 @@ body.cmpshow.cmp-side #cmpMirror{display:inline-flex}
 .sl-ticks.tap{pointer-events:auto;cursor:pointer;height:10px;bottom:-3px}
 .sl-ticks i{position:absolute;bottom:2px;width:2px;height:4px;border-radius:1px;background:var(--ink-2);opacity:.45;transform:translateX(-1px)}
 .sl-ticks i.hi{background:var(--si);opacity:.95;height:6px}
+/* r262 · the DECK keyframe rail read as a bright-gold BLUR under the slider in reading mode
+   (operator: "yellow blur ... looks odd") — 89 gold marks at high opacity merged into a
+   smear. On the deck it is now a whisper: uniform, neutral, thin hairlines — a measured
+   scale you can still tap, not a smudge, and with no yellow. The COMPARE pickers keep the
+   gold marks (unchanged), where they guide revision selection and were never the problem. */
+#vTicks i,#vTicks i.hi{width:1px;height:3px;background:var(--ink-2);opacity:.22}
 .sl-row{display:flex;align-items:center;gap:6px}
 .sl-row .slwrap{flex:1}
 .sl-step{font:inherit;font-size:15px;line-height:1;padding:3px 9px;border:1px solid var(--rule);border-radius:8px;background:transparent;color:var(--ink-2);cursor:pointer}
@@ -1149,7 +1155,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">261</span></strong>, <strong><span id="dlbytes2">6030649</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">262</span></strong>, <strong><span id="dlbytes2">6032901</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6848,6 +6854,17 @@ const VERSIONS = [
    {n:"Athena",g:"A",f:"Two stale assertions, two true fixes, zero doctrine touched &mdash; the smallest correct move to a clean gate."}
   ],
   next:"Wire the gate + batteries into CI so the record checks itself every release; then the per-section feedback layer with resolution timelines."
+ },
+{ v:262, code:"THE DECK RAIL BECOMES A WHISPER &mdash; THE YELLOW BLUR IS GONE",
+  stamp:"2026.08.22 &middot; revision 262",
+  thrust:"Operator, from the phone: the keyframe rail under the deck slider read as a bright-gold blur in plain reading mode &mdash; eighty-nine high-impact marks at near-full opacity merged into a smear that looked odd beneath the scrubber. Fixed with a light touch: on the DECK the rail is now a whisper &mdash; uniform, neutral, one-pixel hairlines at low opacity, a measured scale you can still tap to jump, but no smudge and no yellow. The COMPARE pickers are untouched: there the gold marks stay, because that is where they earn their colour &mdash; guiding your eye to the releases that matter while you choose two revisions to compare. One rail, two homes, each dressed for its job: quiet under the reading deck, vivid under the compare sliders. Pure presentation &mdash; no measurement, no record, no navigation changed; every keyframe is still exactly where history put it. Totals hold; gate clean; v.19 r1.001.",
+  mot:"An instrument at rest should not shout. The scale that guides a choice may glow; the same scale, while you are only reading, should barely be there.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"The rail is dressed for context &mdash; a whisper under the reading deck, gold under the compare pickers where it guides selection."},
+   {n:"Aset",g:"A",f:"Presentation only; the measured keyframes are unchanged, so the deck and the compare rails still agree on where history lives."}
+  ],
+  next:"Wire the gate + batteries into CI; then the per-section feedback layer with resolution timelines."
  }
 ];
 
@@ -19337,7 +19354,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6030649";
+const DL_BYTES = "6032901";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
