@@ -13,7 +13,7 @@ pg.on('pageerror', e => { console.log('PAGEERROR:', e.message); fails++; });
 await pg.goto(DOC, { waitUntil: 'networkidle' });
 
 // open compare on a changed pair, enter side-by-side
-await pg.evaluate(() => setCompare(true, 240, 259));
+await pg.evaluate(() => setCompare(true, 141, 262));
 await pg.evaluate(() => document.getElementById('cmpVS').click());
 
 // ── 1 · button present + visible in side mode; muted at fresh render ──
@@ -26,19 +26,19 @@ let s = await pg.evaluate(() => {
 });
 ok(s.has && s.vis && s.side, 'MIRROR button present and visible in side-by-side mode');
 ok(s.ddL && s.ddR, 'both panes render');
-ok(!s.lit && s.synced, 'fresh render starts ALIGNED (button muted, synced true)');
+ok(s.lit && s.synced, 'fresh render is IN SYNC — button LIT, synced true (both panes at same section)');
 
 // ── 2 · scrolling LEFT does NOT move RIGHT (independence, no drift) + button lights ──
 s = await pg.evaluate(async () => {
   const L = document.getElementById('ddL'), R = document.getElementById('ddR');
   const r0 = R.scrollTop;
-  L.scrollTop = Math.floor(L.scrollHeight / 2); L.dispatchEvent(new Event('scroll'));
+  const ls = L.querySelectorAll('.dd-sec'); L.scrollTop = ls[ls.length - 1].offsetTop; L.dispatchEvent(new Event('scroll'));
   await new Promise(r => setTimeout(r, 60));
   const btn = document.getElementById('cmpMirror');
   return { rMoved: R.scrollTop !== r0, lead: cmpMirrorLead, synced: cmpMirrorSynced, lit: btn.classList.contains('mir-on') };
 });
 ok(!s.rMoved, 'scrolling the Before pane does NOT move the After pane (no auto-drift)');
-ok(s.lead === 'L' && !s.synced && s.lit, 'after Before-scroll: lead=Before, out of sync, button LIT');
+ok(s.lead === 'L' && !s.synced && !s.lit, 'after Before-scroll to a different section: lead=Before, DRIFTED, button DIM');
 
 // ── 3 · click MIRROR → After aligns to Before's section; button clears ──
 s = await pg.evaluate(async () => {
@@ -55,13 +55,13 @@ s = await pg.evaluate(async () => {
 });
 ok(s.moved, 'clicking MIRROR scrolls the follower (After) to align');
 ok(s.sameSec, `follower lands on the lead's section (Before=${s.lId} · After=${s.rId})`);
-ok(s.synced && !s.lit, 'after mirror: synced true, button muted');
+ok(s.synced && s.lit, 'after mirror: IN SYNC — synced true, button LIT');
 ok(!s.prog, 'the programmatic-scroll guard cleared (not stuck true)');
 
-// ── 4 · SYMMETRIC: scroll RIGHT → button lit; click → LEFT aligns ──
+// ── 4 · SYMMETRIC: scroll RIGHT → drift (dim); click → both align, LEFT moves ──
 s = await pg.evaluate(async () => {
   const L = document.getElementById('ddL'), R = document.getElementById('ddR');
-  R.scrollTop = Math.floor(R.scrollHeight * 0.7); R.dispatchEvent(new Event('scroll'));
+  R.scrollTop = 0; R.dispatchEvent(new Event('scroll'));   // back to the first section (both were at last) -> real drift
   await new Promise(r => setTimeout(r, 60));
   const lit1 = document.getElementById('cmpMirror').classList.contains('mir-on');
   const lead1 = cmpMirrorLead;
@@ -72,7 +72,7 @@ s = await pg.evaluate(async () => {
     for (const x of secs){ if (x.offsetTop <= pane.scrollTop + 8) p = x; else break; } return p ? p.getAttribute('data-id') : null; };
   return { lit1, lead1, lMoved: L.scrollTop !== lBefore, sameSec: pickTop(L) === pickTop(R), synced: cmpMirrorSynced };
 });
-ok(s.lit1 && s.lead1 === 'R', 'scrolling the After pane makes it the lead and lights the button');
+ok(!s.lit1 && s.lead1 === 'R', 'scrolling the After pane to a different section makes it lead and DIMS (drift)');
 ok(s.lMoved && s.sameSec && s.synced, 'clicking mirror with After as lead aligns the Before pane');
 
 // ── 5 · tap a section = FLASH ONLY (counterpart flashes, neither pane scrolls) ──

@@ -52,14 +52,14 @@ const checkAligned = async (paneId, followId, id) => pg.evaluate(({ paneId, foll
 
 // ── 1 · SELECT LEFT item (middle) → tap sets base+lit, no auto-scroll; mirror jumps RIGHT ──
 let j = await jump('ddL', 'ddR', Math.floor(secCount / 2));
-ok(j.lit && j.leadSet, 'tap LEFT section: base=Left, button lit');
+ok(!j.lit && j.leadSet, 'tap LEFT section: base=Left, button DIM until mirror (not yet aligned)');
 let a = await checkAligned('ddL', 'ddR', j.id);
-ok(a.synced && !a.lit, 'after mirror: synced, button off');
+ok(a.synced && a.lit, 'after mirror: IN SYNC — synced true, button LIT');
 ok(a.clamped || Math.abs(a.leadVY - a.mateVY) <= 8, `RIGHT jumped to the selected item at same height (L=${a.leadVY} R=${a.mateVY})`);
 
 // ── 2 · SELECT RIGHT item (middle) → mirror jumps LEFT ──
 j = await jump('ddR', 'ddL', Math.floor(secCount / 2));
-ok(j.lit && j.leadSet, 'tap RIGHT section: base=Right, button lit');
+ok(!j.lit && j.leadSet, 'tap RIGHT section: base=Right, button DIM until mirror');
 a = await checkAligned('ddR', 'ddL', j.id);
 ok(a.clamped || Math.abs(a.leadVY - a.mateVY) <= 8, `LEFT jumped to the selected item at same height (R=${a.leadVY} L=${a.mateVY})`);
 

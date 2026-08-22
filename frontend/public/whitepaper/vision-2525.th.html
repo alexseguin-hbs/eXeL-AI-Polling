@@ -11,6 +11,7 @@
   --hi:#7A2C8C;  --hi-bg:#F1E6F4;
   --ok:#2F6144;  --ok-bg:#E2ECE6;
   --alert:#A3341F; --alert-bg:#F8E6E1;
+  --emerald:#047857; --emerald-bg:#D1FAE5; --crimson:#BE123C; --crimson-bg:#FFE4E6;
   --chrome:#EFEEE9;
 }
 @media (prefers-color-scheme:dark){:root{
@@ -21,6 +22,7 @@
   --hi:#D18BE0;  --hi-bg:#1E1125;
   --ok:#7FBE96;  --ok-bg:#0E1E15;
   --alert:#E4886A; --alert-bg:#25110B;
+  --emerald:#34D399; --emerald-bg:rgba(16,185,129,.17); --crimson:#FB7185; --crimson-bg:rgba(244,63,94,.17);
   --chrome:#101D1E;
 }}
 :root[data-theme="dark"]{
@@ -31,6 +33,7 @@
   --hi:#D18BE0;  --hi-bg:#1E1125;
   --ok:#7FBE96;  --ok-bg:#0E1E15;
   --alert:#E4886A; --alert-bg:#25110B;
+  --emerald:#34D399; --emerald-bg:rgba(16,185,129,.17); --crimson:#FB7185; --crimson-bg:rgba(244,63,94,.17);
   --chrome:#101D1E;
 }
 :root[data-theme="light"]{
@@ -40,6 +43,7 @@
   --hi:#7A2C8C;  --hi-bg:#F1E6F4;
   --ok:#2F6144;  --ok-bg:#E2ECE6;
   --alert:#A3341F; --alert-bg:#F8E6E1;
+  --emerald:#047857; --emerald-bg:#D1FAE5; --crimson:#BE123C; --crimson-bg:#FFE4E6;
   --chrome:#EFEEE9;
 }
 
@@ -499,8 +503,10 @@ body.straight .viewban{display:block}
 /* r257 · red/green ride EVERY del/ins in the panel (operator: the colour vanished in the
    hunks — it was scoped to the old two-column view only). One rule, every container:
    hunk passages, dual panes, legacy columns alike. */
-#cmp del{background:var(--alert-bg);color:var(--alert);text-decoration:line-through;border-radius:2px;padding:0 1px}
-#cmp ins{background:var(--ok-bg);color:var(--ok);text-decoration:none;border-radius:2px;padding:0 1px}
+/* r269 · removed = CRIMSON, added = EMERALD (operator) — vivid, theme-aware, replacing the
+   muted sage/salmon. Scoped to the compare panel so the rest of the document is untouched. */
+#cmp del{background:var(--crimson-bg);color:var(--crimson);text-decoration:line-through;border-radius:2px;padding:0 1px}
+#cmp ins{background:var(--emerald-bg);color:var(--emerald);text-decoration:none;border-radius:2px;padding:0 1px}
 .df-old del{background:var(--alert-bg);color:var(--alert);text-decoration:line-through;border-radius:2px;padding:0 1px}
 .df-new ins{background:var(--ok-bg);color:var(--ok);text-decoration:none;border-radius:2px;padding:0 1px}
 .df-big{font-size:12.5px;color:var(--ink-2);font-style:italic;margin:0}
@@ -1163,7 +1169,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>การอ่าน</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">268</span></strong>, <strong><span id="dlbytes2">6050810</span> bytes</strong> (<span id="dlsize2">6.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">269</span></strong>, <strong><span id="dlbytes2">6054657</span> bytes</strong> (<span id="dlsize2">6.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>ประวัติการตรวจสอบ</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6964,6 +6970,20 @@ const VERSIONS = [
    {n:"Enki",g:"A",f:"Edges hold: left-drag clamps, raise-top pushes bottom, top caps at VMAX-1 &mdash; no pair inverts."}
   ],
   next:"12-AsM assessment of the change-finding UX; then the per-section feedback layer."
+ },
+{ v:269, code:"EMERALD AND CRIMSON, EVEN PANES, AND A MIRROR THAT KNOWS WHEN IT IS IN SYNC",
+  stamp:"2026.08.22 &middot; revision 269",
+  thrust:"Operator, three fixes to the side-by-side read. First, the diff colours: removed text is now CRIMSON and added text is EMERALD &mdash; vivid and clear in both themes &mdash; replacing the muted sage-and-salmon that read as neither red nor green. Second, the two panes now carry the SAME text size left to right; the recorded-intent line that only sat in the right pane &mdash; and made it read smaller and busier &mdash; is gone from the panes (it still rides the Unified view and the Details), so Before and After are a true like-for-like column pair at one size. Third, and most important: the MIRROR button is now an honest sync light. It glows only while both panes are reading the SAME section, and it AUTOMATICALLY dims the moment you scroll one pane onto a different section. So the loop is exactly what you described: scroll the left to the next change, watch the mirror dim, press it, the right jumps to that same section and the light comes back &mdash; as many times as you scroll. Same section is the tolerance: nudging within one section stays lit; crossing into another drifts. Pressing brings the reference section to the top of both panes, so what the light claims is what the eye sees. Tested: emerald and crimson, equal pane text, lit-when-same-section, auto-dim-on-drift, press-to-resync both directions, and the within-section tolerance. Totals hold; gate clean; v.19 r1.001.",
+  mot:"A sync light must tell the truth about sync. Not &lsquo;you scrolled&rsquo; but &lsquo;you are, right now, reading the same section on both sides&rsquo; &mdash; lit when true, dark when not.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Christo",g:"A",f:"The light now means what a reader assumes: lit = same section both sides; dim = drifted. No false comfort."},
+   {n:"Sofia",g:"A",f:"Emerald/crimson read true in both themes and every language; even pane text; label stays semantic for RTL."},
+   {n:"Athena",g:"A",f:"Scroll, watch it dim, press, it lights &mdash; the resync loop is legible and endlessly repeatable."},
+   {n:"Thoth",g:"A",f:"Sync is measured (same top-section id both panes), not a flag; press brings the section to both tops exactly."},
+   {n:"Enki",g:"A",f:"Tolerance is the section: within-section nudge stays lit; clamp holds; guard clears then re-reads sync."}
+  ],
+  next:"Optional: stack the panes full-width on phones for even more room; then the per-section feedback layer."
  }
 ];
 
@@ -19453,7 +19473,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6050810";
+const DL_BYTES = "6054657";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21288,8 +21308,12 @@ function renderCompare(){
             Lp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + fb + '</div>';
             Rp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + fb + '</div>';
           } else {
+            /* r269 · SYMMETRIC panes (operator: "standardize text size from left to right").
+               Both panes are now head + the measured text at the same 17px — the trinity
+               why-line is dropped here (it made the right pane read smaller/cluttered); the
+               recorded intent still rides the Unified view and the Details table. */
             Lp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + '<p dir="auto" title="&#9708; measured">' + s2.left + '</p></div>';
-            Rp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + trin(d) + '<p dir="auto" title="&#9708; measured">' + s2.right + '</p></div>';
+            Rp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + '<p dir="auto" title="&#9708; measured">' + s2.right + '</p></div>';
           }
         });
         h += '<div class="dd-wrap"><div class="dd-pane" id="ddL"><h6>Before &middot; ' + relLabel(lo) + '</h6>' + Lp + '</div>' +
@@ -21470,53 +21494,54 @@ function renderCompare(){
        [0, max] so an absent counterpart or unequal heights never overscroll. Thor: the
        programmatic scrollTop fires an ASYNC 'scroll'; hold the guard up briefly and always
        clear it on a timer so it can never stick true (even if the try threw). */
-    var mirItem = null;   /* r263 · the specifically SELECTED item (a tap); null when the base was set by a scroll */
-    /* align the FOLLOWER to the LEAD (the base). If an item was SELECTED (tapped), the
-       follower's counterpart lands at the SAME on-screen height as the selected item — the
-       other side jumps to exactly what you picked. Otherwise it follows the lead's scroll
-       position (section anchor + fractional offset, r260). Enki: clamp to [0,max] so an
-       absent counterpart or uneven panes never overscroll. Thor: the programmatic scrollTop
-       fires an ASYNC 'scroll' — hold the guard briefly and always clear it on a timer. */
-    var alignPanes = function(lead, follow){
+    var mirItem = null;   /* the SELECTED section (a tap); null when the base is a scroll */
+    function topSecId(pane){
+      var secs = pane.querySelectorAll('.dd-sec'); if (!secs.length) return '';
+      var top = pane.scrollTop, pick = secs[0];        /* above the first section, the top section IS the first */
+      for (var i = 0; i < secs.length; i++){ if (secs[i].offsetTop <= top + 8) pick = secs[i]; else break; }
+      return pick.getAttribute('data-id') || '';
+    }
+    /* r269 · IN SYNC = the SAME section sits at the top of BOTH panes (operator: "de-highlight
+       if right side is not on same section as left"). Tolerance is the section itself —
+       scrolling within one section stays in sync; crossing into another drifts. */
+    function inSync(){ var a = topSecId(ddL); return a !== '' && a === topSecId(ddR); }
+    /* MIRROR press: bring the reference section to the TOP of BOTH panes (clamped) so the two
+       reads land on the same section — exactly what the lit state then reports. Reference is
+       the tapped section if one was selected, else the lead's current top section. Thor: guard
+       the async programmatic scroll and always clear it on a timer, then re-read sync. */
+    var alignPanes = function(){
       cmpMirrorProg = true;
       if (progTimer) clearTimeout(progTimer);
       try {
-        var top = lead.scrollTop, pick = null;
-        if (mirItem) pick = lead.querySelector('.dd-sec[data-id="' + mirItem.replace(/"/g, '') + '"]');
-        if (!pick){
-          var secs = lead.querySelectorAll('.dd-sec');
-          for (var si = 0; si < secs.length; si++){ if (secs[si].offsetTop <= top + 8) pick = secs[si]; else break; }
-        }
-        if (pick){
-          var mate = follow.querySelector('.dd-sec[data-id="' + (pick.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
-          if (mate){
-            var want = mirItem
-              ? (mate.offsetTop - (pick.offsetTop - top))                                   /* selected item → same on-screen height */
-              : (mate.offsetTop + ((top - pick.offsetTop) / Math.max(1, pick.offsetHeight)) * mate.offsetHeight);  /* scroll → anchor+offset */
-            follow.scrollTop = Math.max(0, Math.min(want, follow.scrollHeight - follow.clientHeight));
-          }
+        var refId = mirItem || topSecId(cmpMirrorLead === 'R' ? ddR : ddL);
+        if (refId){
+          var l = ddL.querySelector('.dd-sec[data-id="' + refId.replace(/"/g, '') + '"]');
+          var r = ddR.querySelector('.dd-sec[data-id="' + refId.replace(/"/g, '') + '"]');
+          if (l) ddL.scrollTop = Math.max(0, Math.min(l.offsetTop, ddL.scrollHeight - ddL.clientHeight));
+          if (r) ddR.scrollTop = Math.max(0, Math.min(r.offsetTop, ddR.scrollHeight - ddR.clientHeight));
         }
       } catch (e) {}
-      progTimer = setTimeout(function(){ cmpMirrorProg = false; }, 160);
+      progTimer = setTimeout(function(){ cmpMirrorProg = false; setMir(); }, 170);
     };
     var setMir = function(){
       if (!mirBtn) return;
-      var on = !cmpMirrorSynced && !!cmpMirrorLead;    /* highlighted == a sync is waiting */
+      var on = inSync();                                /* r269: LIT == panes on the SAME section */
+      cmpMirrorSynced = on;
       mirBtn.classList.toggle('mir-on', on);
       mirBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      var label = on ? MIR_SYNC : MIR_ALIGNED;         /* Sofia: semantic only — never left/right, so RTL reads true */
+      var label = on ? MIR_ALIGNED : MIR_SYNC;          /* in sync -> aligned; drifted -> tap to align (semantic; RTL-true) */
       mirBtn.title = label; mirBtn.setAttribute('aria-label', label);
     };
-    var onLeadScroll = function(which){
+    var onScroll = function(which){
       if (cmpMirrorProg) return;                        /* ignore the button's own programmatic scroll */
-      cmpMirrorLead = which; mirItem = null; cmpMirrorSynced = false; setMir();   /* scroll base: no pinned item */
+      cmpMirrorLead = which; mirItem = null; setMir();  /* last-scrolled = base; recompute sync live (dims on drift) */
     };
-    ddL.addEventListener('scroll', function(){ onLeadScroll('L'); }, { passive: true });
-    ddR.addEventListener('scroll', function(){ onLeadScroll('R'); }, { passive: true });
+    ddL.addEventListener('scroll', function(){ onScroll('L'); }, { passive: true });
+    ddR.addEventListener('scroll', function(){ onScroll('R'); }, { passive: true });
     if (mirBtn) mirBtn.addEventListener('click', function(){
-      if (!cmpMirrorLead) return;
-      if (cmpMirrorLead === 'R') alignPanes(ddR, ddL); else alignPanes(ddL, ddR);
-      cmpMirrorSynced = true; setMir();
+      if (!cmpMirrorLead) cmpMirrorLead = 'L';
+      alignPanes();                                     /* bring the reference section to the top of both panes */
+      setMir();                                         /* aligned -> same section -> lit */
     });
     /* r263 · tap a section to SELECT it as the base (operator: "the last scrolled or selected
        column item is the base the other side jumps to"). The tapped pane becomes the lead, the
@@ -21528,7 +21553,7 @@ function renderCompare(){
       var inL = (sec.parentElement === ddL);
       cmpMirrorLead = inL ? 'L' : 'R';
       mirItem = sec.getAttribute('data-id') || null;
-      cmpMirrorSynced = false; setMir();
+      setMir();                                         /* selecting may drift the indicator until MIRROR is pressed */
       var mate = (inL ? ddR : ddL).querySelector('.dd-sec[data-id="' + (sec.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
       if (mate){ mate.classList.add('dd-hot'); setTimeout(function(){ mate.classList.remove('dd-hot'); }, 900); }
     };
