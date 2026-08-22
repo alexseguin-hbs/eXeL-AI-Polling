@@ -1061,7 +1061,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lectură</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">250</span></strong>, <strong><span id="dlbytes2">5965595</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">251</span></strong>, <strong><span id="dlbytes2">5969526</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Jurnal de audit</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1725,22 +1725,13 @@ const CAPSTONE_REL = 246;
 function relLabel(n){
   return "r1." + String(Math.max(1, VMAX - n + 1)).padStart(3, "0");
 }
-/* r249 · The default Baseline for Compare. The operator's intent is "live current vs
-   the last version, and SHOW CHANGES." v.18->v.19 (r246..) was a chrome/labeling
-   capstone that changed no ledger block, so comparing across that boundary reads
-   "identical bytes" and Compare looks broken. So the default Baseline is the release
-   just BEFORE the most recent content change in the ledger — Compare always opens on
-   the latest real red/green delta, and it auto-tracks the next content release. The
-   reader can still pick any two of the releases from the Baseline/Target pickers. */
-function lastContentRev(){
-  var mx = 1;
-  for (var i = 0; i < LEDGER.length; i++){ if (LEDGER[i].v <= VMAX && LEDGER[i].v > mx) mx = LEDGER[i].v; }
-  return mx;
-}
 /* operator 2026-08-21: Compare opens on THIS version vs the LAST version — v.19 (newest)
-   against v.18 (the release before it). When those two share identical content (the v.19
-   capstone changed the interface, not the text) the panel says so plainly and uses the
-   ledger release notes to highlight what each crossed release actually changed. */
+   against v.18 (the release before it). When those two share identical content (a chrome-
+   only release) the panel SAYS SO plainly — a measured claim since r251, compare() now
+   reads content, not version integers — and uses the ledger release notes to highlight
+   what each crossed release actually changed. The reader picks any other pair from the
+   Baseline/Target selects. (r251 removed the orphaned lastContentRev() helper the fleet
+   flagged as dead code; the operator's this-vs-last directive is the default, by design.) */
 function defaultCmpBase(){ return Math.max(1, VMAX - 1); }
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
@@ -6630,6 +6621,19 @@ const VERSIONS = [
    {n:"Thor",g:"A",f:"ESC / scrim / close all route through one dismiss and restore focus; 375px shows zero horizontal overflow."}
   ],
   next:"Unify the four compare surfaces onto one engine + kit (Workstream C)."
+ },
+{ v:251, code:"ONE DEFINITION OF CHANGED &mdash; MEASURED, NEVER INFERRED",
+  stamp:"2026.08.22 &middot; revision 251",
+  thrust:"The 48-agent fleet (12 AsM pods, one Voting &amp; Summarizer each, 12 MoT seniors) returned CONDITIONAL GO on the compare design and named the root cause: the summary classified &lsquo;revised&rsquo; from the version integer while the word-diff read the text &mdash; two definitions of changed, so the panel could assert a forensic verdict the engine never verified. Fixed four fleet gaps: (1) compare() now marks &lsquo;revised&rsquo; only when the winning content actually differs, so summary chips, block tints and the side-by-side agree, and &lsquo;no content changed&rsquo; is a MEASURED byte-equality claim; (2) a markup-only change (html moved, visible text identical) says so plainly instead of rendering an empty all-equal diff; (3) the diff text now strips bidirectional-control and zero-width marks before tokenizing &mdash; Trojan-Source reordering can never visually invert removed-red/added-green &mdash; and both columns carry dir=auto; (4) the word-LCS cap is unified at 3,000 tokens with the shared React engine, and the orphaned helper the fleet flagged as dead code is removed. Verified: 13-check Playwright battery 13/13 at 375px, plus three targeted proofs &mdash; a chrome-only range measures zero content changes, a real edit still reads revised with red/green, a markup-only pair states itself honestly. Totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; v.19 r1.001.",
+  mot:"A trust surface may only say what it has measured. One comparison drives both the summary and the evidence &mdash; the verdict and the proof can no longer disagree.",
+  stats:{clauses:309, jur:103, shields:5, defects:43, reach:"full"},
+  asm:[
+   {n:"Asar",g:"A",f:"Summary and evidence now run on one definition of changed; no verdict the diff did not verify."},
+   {n:"Thor",g:"A",f:"Bidi/zero-width stripped on the shipped surface; red/green can no longer be visually inverted."},
+   {n:"Thoth",g:"A-",f:"Cap unified at 3,000 with the shared engine; identical inputs give identical diffs on both."},
+   {n:"Enki",g:"A",f:"Version-bumped-but-identical blocks read carried, and markup-only edits declare themselves."}
+  ],
+  next:"Fleet gap 5: route the React kind labels through the lexicon (33 languages) and unify the changed-badge colour."
  }
 ];
 
@@ -19119,7 +19123,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5965595";
+const DL_BYTES = "5969526";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19435,7 +19439,16 @@ function compare(a, b){
     if (!x && !y) continue;
     if (!x &&  y) rows.push({id:id, kind:"added",   v:y.v, why:y.why});
     else if (x && !y) rows.push({id:id, kind:"removed", v:x.v, why:x.why});
-    else if (x.v !== y.v) rows.push({id:id, kind:"revised", v:y.v, why:y.why});
+    /* r251 · ONE definition of "changed": CONTENT, not the version integer. A block
+       re-appended with a new v but byte-identical html used to read "revised" over an
+       empty word-diff — a forensic verdict the engine never verified (fleet root cause).
+       "Revised" is asserted only when the CANONICAL record's winning html actually
+       differs — read via enHtmlAt (BY_ID), never via the replayed entries, because the
+       per-language builds overlay the same translation onto every winner of an id, which
+       would erase every revision from view. The record is the authority; the overlay is
+       display. So summary chips, block tints and the side-by-side agree in all 33 builds,
+       and "no content changed" is a MEASURED byte-equality claim, never inferred. */
+    else if (x.v !== y.v && enHtmlAt(id, a) !== enHtmlAt(id, b)) rows.push({id:id, kind:"revised", v:y.v, why:y.why});
     else rows.push({id:id, kind:"carried", v:x.v, why:""});
   }
   return rows;
@@ -20576,13 +20589,17 @@ function enHtmlAt(id, v){
 }
 function dfText(html){
   const d = document.createElement("div"); d.innerHTML = html || "";
-  return (d.textContent || "").replace(/\s+/g, " ").trim();
+  /* r251 · strip bidi-control + zero-width marks (U+202A-202E, U+2066-2069, U+200B-200F,
+     U+2028-2029, U+FEFF) before diffing — Trojan-Source reordering must never be able to
+     visually invert removed-red/added-green on the trust surface. Matches the React
+     engine's stripBidi so both engines see the same text. */
+  return (d.textContent || "").replace(/[\u202a-\u202e\u2066-\u2069\u200b-\u200f\u2028\u2029\ufeff]/g, "").replace(/\s+/g, " ").trim();
 }
 function dfTok(t){
   return t.match(/[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\uf900-\ufaff]|[0-9]+(?:[.,][0-9]+)*|[^\s\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\uf900-\ufaff]+/gu) || [];
 }
 function dfDiff(a, b){
-  const n = a.length, m = b.length, CAP = 2600;
+  const n = a.length, m = b.length, CAP = 3000; /* r251 · parity with version-diff.ts DIFF_CAP — one cap, both engines */
   if (n > CAP || m > CAP) return null;                 /* word LCS too large — caller shows a summary */
   const dp = []; for (let i = 0; i <= n; i++) dp.push(new Uint16Array(m + 1));
   for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
@@ -20599,6 +20616,12 @@ function dfDiff(a, b){
 }
 function dfPair(id, lo, hi){
   const oldT = dfText(enHtmlAt(id, lo)), newT = dfText(enHtmlAt(id, hi));
+  /* r251 · honesty short-circuit: a block can be "revised" (html differs) while its VISIBLE
+     text is identical — a markup/link/diagram-only edit. Say that plainly instead of
+     rendering an all-equal diff that looks like the panel failed. */
+  if (oldT === newT){
+    return '<p class="df-big">Markup-only change &mdash; the visible text is identical between these two releases; what moved is formatting, a link or a diagram. The recorded reason above states what changed.</p>';
+  }
   const ops = dfDiff(dfTok(oldT), dfTok(newT));
   if (!ops){
     return '<p class="df-big">Too large for a word view &mdash; ' + oldT.split(/\s+/).filter(Boolean).length +
@@ -20610,8 +20633,10 @@ function dfPair(id, lo, hi){
     else if (o[0] === -1){ Lc += '<del>' + e + '</del> '; }
     else { Rc += '<ins>' + e + '</ins> '; }
   }
-  return '<div class="df-cols"><div class="df-col df-old"><h6>' + relLabel(lo) + '</h6><p>' + (Lc.trim() || '&mdash;') + '</p></div>' +
-         '<div class="df-col df-new"><h6>' + relLabel(hi) + '</h6><p>' + (Rc.trim() || '&mdash;') + '</p></div></div>';
+  /* r251 · dir="auto" — the canonical record is English, but quoted RTL fragments inside a
+     block must not scramble the columns; the browser picks direction per paragraph. */
+  return '<div class="df-cols"><div class="df-col df-old"><h6>' + relLabel(lo) + '</h6><p dir="auto">' + (Lc.trim() || '&mdash;') + '</p></div>' +
+         '<div class="df-col df-new"><h6>' + relLabel(hi) + '</h6><p dir="auto">' + (Rc.trim() || '&mdash;') + '</p></div></div>';
 }
 function renderCompare(){
   const host = document.getElementById("cmp");
