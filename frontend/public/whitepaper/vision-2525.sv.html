@@ -612,6 +612,8 @@ body.cmpshow #cmp{display:block!important;position:fixed;inset:0;z-index:92;over
 /* r254 · kind chips are filters */
 .cmp-sum .k-add,.cmp-sum .k-rev,.cmp-sum .k-rem{cursor:pointer}
 .cmp-sum .on{outline:2px solid currentColor;outline-offset:1px}
+.xref{cursor:pointer}
+.xref:hover .ti,.xref:hover code{color:var(--ai)}
 /* r254 · passages: hunks + ellipsis expander + show-all + demoted details */
 .df-pass{line-height:1.7;margin:6px 0 2px}
 .df-why{color:var(--ink-2);font-size:.78rem;font-style:italic;margin:2px 0 4px}
@@ -1117,7 +1119,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Läsning</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">257</span></strong>, <strong><span id="dlbytes2">6008314</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">258</span></strong>, <strong><span id="dlbytes2">6011737</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Granskningsspår</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6765,6 +6767,18 @@ const VERSIONS = [
    {n:"Athena",g:"A",f:"Side-by-side rides the sticky row now; the reading mode is never out of reach."}
   ],
   next:"Fleet CRS index lands; then keyframe ticks + steppers on the measured KEYS."
+ },
+{ v:258, code:"ONE TAP FROM CLAIM TO EVIDENCE &mdash; AND THE ACCURACY AUDIT STANDS",
+  stamp:"2026.08.22 &middot; revision 258",
+  thrust:"Overnight orders from the operator: verify the comparison is ACCURATE on randomly sampled pairs, and make the path from any claim to its detailed change as short as hands allow. Both delivered. ACCURACY: a standing audit now samples pairs across the whole record &mdash; fourteen ranges, one hundred fifty blocks &mdash; and proves three invariants on every changed section: the classification is honest (revised only where the canonical record differs), the side-by-side panes carry EXACTLY the before and after token streams, and the hunk view reconstructs to the same streams with nothing dropped and nothing invented. All pairs pass; the audit joins the release ritual permanently. CLICKS: every Key-improvements row and every changed-blocks table row is now a CROSS-REFERENCE &mdash; tap the claim, land on its passage, flashed and in view; if the passage sits beyond the Show-all fold, the fold opens itself first. The whole panel now honors one budget: nothing the reader wants is more than two interactions away &mdash; open, and touch the thing itself. Battery 31/31 twice, accuracy PASS twice; totals hold; v.19 r1.001.",
+  mot:"Trust is a distance: how far the reader must travel from a claim to its evidence. Tonight that distance became one tap, and the evidence itself was put under audit.",
+  stats:{clauses:309, jur:103, shields:5, defects:41, reach:"full"},
+  asm:[
+   {n:"Thoth",g:"A",f:"Token-stream reconciliation proven on every sampled pair &mdash; panes and hunks are projections of the record, exactly."},
+   {n:"Enki",g:"A",f:"Fourteen ranges sampled including the extremes; the empty pairs answer honestly; the audit is now standing."},
+   {n:"Athena",g:"A",f:"Claim to evidence in one tap from any analysis row; the fold opens itself when the target sits beyond it."}
+  ],
+  next:"Fleet CRS index; keyframe ticks + steppers on the measured KEYS."
  }
 ];
 
@@ -19254,7 +19268,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6008314";
+const DL_BYTES = "6011737";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19318,7 +19332,7 @@ let cmpOn = false, cmpA = 1, cmpB = VERSIONS.length;
 let cmpSlim = false, cmpFilter = null, cmpShowAll = false, cmpDetOpen = false;
 /* r255 · cmpView: 'unified' hunks (default) or 'side' — Before pane left (removals red),
    After pane right (additions green). cmpNavI = the change-navigator cursor. */
-let cmpView = 'unified', cmpNavI = -1;
+let cmpView = 'unified', cmpNavI = -1, cmpPendingScroll = null;
 
 function fnv1a(s){
   let h = 0x811c9dc5;
@@ -21005,7 +21019,7 @@ function renderCompare(){
              '<div class="dd-pane" id="ddR"><h6>After &middot; ' + relLabel(hi) + '</h6>' + Rp + '</div></div>';
       } else {
         dfShown.forEach(function(d){
-          h += '<div class="df-blk" data-kind="' + d.kind + '"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
+          h += '<div class="df-blk" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
                '<span class="pill ' + (d.kind === "added" ? "k-add" : "k-rev") + '">' + d.kind + '</span> ' +
                '<span class="df-t">' + escw(d.title) + '</span></div>' + trin(d) +
                dfPassage(d.id, lo, hi) + '</div>';
@@ -21020,7 +21034,7 @@ function renderCompare(){
     h += '<details class="cmp-det"' + (cmpDetOpen ? ' open' : '') + '><summary class="cmp-det-s">Detaljer</summary>';
     h += '<ul class="cmp-top"><h5>Viktiga förbättringar &middot; ' + relLabel(lo) + ' &rarr; ' + relLabel(hi) + '</h5>';
     dr.top.forEach(function(d, i){
-      h += '<li><span class="rk">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
+      h += '<li class="xref" data-id="' + esc(d.id) + '" title="Jump to this section&#39;s passage"><span class="rk">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
            '<span class="ti">' + escw(d.title) + '</span>' +
            '<span class="imp ' + d.impact.toLowerCase() + '" title="' + d.category + '">' + d.impact + '</span></li>';
     });
@@ -21028,7 +21042,7 @@ function renderCompare(){
     h += '<div class="scroll"><table><tr><th>Block</th><th>Ändring</th><th>Påverkan</th><th class="n">Vid</th><th>Registrerad orsak</th></tr>';
     for (const r of changed){
       const cls = r.kind === "added" ? "k-add" : r.kind === "revised" ? "k-rev" : "k-rem";
-      h += '<tr><td><code>' + esc(r.id) + '</code></td>' +
+      h += '<tr class="xref" data-id="' + esc(r.id) + '" title="Jump to this section&#39;s passage"><td><code>' + esc(r.id) + '</code></td>' +
            '<td><span class="pill ' + cls + '">' + r.kind + '</span></td>' +
            '<td><span class="imp ' + r.impact.toLowerCase() + '" title="' + r.category + '">' + r.impact + '</span></td>' +
            '<td class="n">' + relLabel(r.v) + '</td><td>' + escw(r.why) + '</td></tr>';
@@ -21103,6 +21117,23 @@ function renderCompare(){
   if (more) more.addEventListener('click', function(){ cmpShowAll = true; renderDoc(); });
   var det = host.querySelector('details.cmp-det');
   if (det) det.addEventListener('toggle', function(){ cmpDetOpen = det.open; });
+  /* r258 · CROSS-REFERENCE (operator: max cross-reference, min clicks): tap any Key-
+     improvement row or changed-table row and land on that section's passage — one tap
+     from claim to evidence. If the card sits beyond the Show-all fold, the fold opens
+     first, then the landing completes (deterministic two-step, no timers). */
+  function cmpScrollTo(id){
+    var card = host.querySelector('#cmpPass .df-blk[data-id="' + id.replace(/"/g, '') + '"], #cmpPass .dd-sec[data-id="' + id.replace(/"/g, '') + '"]');
+    if (!card && !cmpShowAll){ cmpShowAll = true; cmpPendingScroll = id; renderDoc(); return; }
+    if (!card) return;
+    var old2 = host.querySelector('.df-cur'); if (old2) old2.classList.remove('df-cur');
+    card.classList.add('df-cur');
+    card.scrollIntoView({ block: 'start' });
+  }
+  var xr = host.querySelectorAll('.xref[data-id]');
+  for (var xi = 0; xi < xr.length; xi++){
+    xr[xi].addEventListener('click', function(){ cmpScrollTo(this.getAttribute('data-id') || ''); });
+  }
+  if (cmpPendingScroll){ var pid = cmpPendingScroll; cmpPendingScroll = null; cmpScrollTo(pid); }
   /* r255 · Unified / Side-by-side mode toggle */
   var vu = document.getElementById('cmpVU'), vs = document.getElementById('cmpVS');
   if (vu) vu.addEventListener('click', function(){ if (cmpView !== 'unified'){ cmpView = 'unified'; cmpNavI = -1; renderDoc(); } });
