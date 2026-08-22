@@ -32,6 +32,23 @@ done
 # The document must never carry a credential to a public path.
 if grep -q "00086615" "$SRC"; then echo "PUBLISH BLOCKED — credential present in $SRC"; exit 1; fi
 
+# r259 · Sofia D4 (fleet-48): the 32 language pages used to reach public/whitepaper by
+# unscripted hand-copy — no byte-check, no credential scan. Now the same ritual that
+# publishes English publishes every built language: copy, cmp, scan, or fail loudly.
+LBUILT=0
+VNN="$(basename "$DL" | sed 's/^SOI_VISION2525_\(v\.[0-9]*\)_.*$/\1/')"   # one version source: the DL name
+for f in docs/i18n/build/SOI_VISION2525_"$VNN"_*.html; do
+  [ -f "$f" ] || continue
+  lc="$(basename "$f" .html)"; lc="${lc##*_}"
+  [ "$lc" = "en" ] && continue                      # English is the canonical 4-copy set above
+  dest="frontend/public/whitepaper/vision-2525.${lc}.html"
+  if grep -q "00086615" "$f"; then echo "PUBLISH BLOCKED — credential present in $f"; exit 1; fi
+  cp "$f" "$dest"
+  cmp -s "$f" "$dest" || { echo "PUBLISH FAILED — $dest differs from its build"; exit 1; }
+  LBUILT=$((LBUILT+1))
+done
+[ "$LBUILT" -gt 0 ] && echo "  ok   $LBUILT language pages copied + byte-verified + scanned"
+
 echo "PUBLISH OK — $(wc -c < "$SRC") bytes, 4 identical copies"
 echo "  sha256 $(sha256sum "$SRC" | cut -c1-16)  — the same bytes at every destination"
 echo "  read     /whitepaper/vision-2525.html   (/vision-2525/white-paper redirects here — no iframe, no login)"

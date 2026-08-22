@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Điều Phối Đệ Quy vì Sự Tiếp Nối của Nhân Loại</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Nhân loại quyết định &middot; Công nghệ hỗ trợ &middot; Trí tuệ dẫn dắt &middot; Niềm tin phải được chứng minh"
-],
-[
-"label: \"White paper\"",
-"label: \"Sách trắng\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Sổ cái\""
-],
-[
-"label: \"Brief\"",
-"label: \"Tóm tắt\""
-],
-[
-"label: \"Outline\"",
-"label: \"Dàn ý\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Cài đặt</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Đọc</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Nhật ký kiểm toán</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Về tài liệu này</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">so với bản trước</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 so với bản mới nhất</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">đã thêm <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">đã sửa <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">đã xóa <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">giữ nguyên không đổi <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Khối</th><th>Thay đổi</th><th>Tác động</th><th class=\"n\">Tại</th><th>Lý do được ghi nhận</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Thay đổi văn bản &middot; bản ghi chuẩn"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Cải tiến chính &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; tác động cao nhất: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Lịch sử phiên bản được lưu giữ bằng ngôn ngữ gốc, vì vậy thay đổi ở cấp độ từ được hiển thị trong văn bản tiếng Anh chuẩn; mọi ngôn ngữ đều theo dõi phiên bản mới nhất. Chữ gạch ngang màu đỏ là phần đã xóa, màu xanh lá là phần đã thêm."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Trước &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Sau &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Chi tiết</summary>"
-],
-[
-"\">Unified</button>",
-"\">Hợp nhất</button>"
-],
-[
-"\">Side by side</button>",
-"\">Song song</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Thay đổi</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Hiện tất cả ' + dfList.length + ' phần đã thay đổi</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Tạm dừng · mở so sánh</button>"
-],
-[
-"'This view begins at <b>'",
-"'Chế độ xem này bắt đầu từ <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; chưa có gì để hiển thị ở '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Bước tiếp, hoặc nhảy đến mới nhất.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Thay đổi trước\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Thay đổi tiếp theo\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Điều Phối Đệ Quy vì Sự Tiếp Nối của Nhân Loại</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Nhân loại quyết định &middot; Công nghệ hỗ trợ &middot; Trí tuệ dẫn dắt &middot; Niềm tin phải được chứng minh"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Sách trắng\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Sổ cái\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Tóm tắt\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Dàn ý\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Cài đặt</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Đọc</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Nhật ký kiểm toán</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Về tài liệu này</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">so với bản trước</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 so với bản mới nhất</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">đã thêm <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">đã sửa <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">đã xóa <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">giữ nguyên không đổi <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Khối</th><th>Thay đổi</th><th>Tác động</th><th class=\"n\">Tại</th><th>Lý do được ghi nhận</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Thay đổi văn bản &middot; bản ghi chuẩn"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Cải tiến chính &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; tác động cao nhất: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Lịch sử phiên bản được lưu giữ bằng ngôn ngữ gốc, vì vậy thay đổi ở cấp độ từ được hiển thị trong văn bản tiếng Anh chuẩn; mọi ngôn ngữ đều theo dõi phiên bản mới nhất. Chữ gạch ngang màu đỏ là phần đã xóa, màu xanh lá là phần đã thêm."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Trước &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Sau &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Chi tiết</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Hợp nhất</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Song song</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Thay đổi</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Hiện tất cả ' + dfList.length + ' phần đã thay đổi</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Tạm dừng · mở so sánh</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Chế độ xem này bắt đầu từ <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; chưa có gì để hiển thị ở '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Bước tiếp, hoặc nhảy đến mới nhất.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Thay đổi trước\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Thay đổi tiếp theo\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Lùi về bản phát hành có thay đổi trước\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Tiến tới bản phát hành có thay đổi tiếp theo\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Các vạch là thay đổi nội dung được đo; vạch vàng mang tác động cao (suy ra từ hồ sơ)\""
+ ],
+ [
+  ">this view vs current<",
+  ">chế độ xem này so với hiện tại<"
+ ]
 ]

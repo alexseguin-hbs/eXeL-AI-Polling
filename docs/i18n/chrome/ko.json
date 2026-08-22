@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">인류의 지속을 위한 재귀적 조정</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"인류가 결정한다 &middot; 기술은 보조한다 &middot; 지혜가 이끈다 &middot; 신뢰는 증명되어야 한다"
-],
-[
-"label: \"White paper\"",
-"label: \"백서\""
-],
-[
-"label: \"Ledger\"",
-"label: \"원장\""
-],
-[
-"label: \"Brief\"",
-"label: \"요약\""
-],
-[
-"label: \"Outline\"",
-"label: \"개요\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>설정</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>읽기</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>감사 기록</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>이 문서에 대하여</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">이전 버전 대비</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 대 최신 버전</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">추가됨 <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">수정됨 <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">삭제됨 <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">변경 없이 유지 <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>블록</th><th>변경</th><th>영향도</th><th class=\"n\">위치</th><th>기록된 사유</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; 텍스트 변경 &middot; 정본 기록"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>주요 개선 사항 &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; 최고 영향도: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"버전 이력은 원문 언어로 보관되므로, 단어 단위 변경 사항은 정본 영어 텍스트로 표시됩니다. 모든 언어는 최신 릴리스를 따릅니다. 취소선 빨간색은 삭제, 초록색은 추가를 의미합니다."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">변경 전 &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">변경 후 &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">상세</summary>"
-],
-[
-"\">Unified</button>",
-"\">통합 보기</button>"
-],
-[
-"\">Side by side</button>",
-"\">나란히 보기</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">변경</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">모두 보기 ' + dfList.length + ' 변경된 섹션</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">일시정지 · 비교 열기</button>"
-],
-[
-"'This view begins at <b>'",
-"'이 보기의 시작은 <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; 아직 표시할 내용 없음: '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". 앞으로 이동하거나 최신으로 건너뛰세요.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"이전 변경\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"다음 변경\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">인류의 지속을 위한 재귀적 조정</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "인류가 결정한다 &middot; 기술은 보조한다 &middot; 지혜가 이끈다 &middot; 신뢰는 증명되어야 한다"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"백서\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"원장\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"요약\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"개요\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>설정</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>읽기</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>감사 기록</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>이 문서에 대하여</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">이전 버전 대비</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 대 최신 버전</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">추가됨 <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">수정됨 <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">삭제됨 <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">변경 없이 유지 <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>블록</th><th>변경</th><th>영향도</th><th class=\"n\">위치</th><th>기록된 사유</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; 텍스트 변경 &middot; 정본 기록"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>주요 개선 사항 &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; 최고 영향도: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "버전 이력은 원문 언어로 보관되므로, 단어 단위 변경 사항은 정본 영어 텍스트로 표시됩니다. 모든 언어는 최신 릴리스를 따릅니다. 취소선 빨간색은 삭제, 초록색은 추가를 의미합니다."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">변경 전 &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">변경 후 &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">상세</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">통합 보기</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">나란히 보기</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">변경</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">모두 보기 ' + dfList.length + ' 변경된 섹션</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">일시정지 · 비교 열기</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'이 보기의 시작은 <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; 아직 표시할 내용 없음: '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". 앞으로 이동하거나 최신으로 건너뛰세요.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"이전 변경\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"다음 변경\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"이전 변경 릴리스로 이동\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"다음 변경 릴리스로 이동\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"표시는 측정된 콘텐츠 변경입니다. 금색 표시는 높은 영향(기록에서 도출)\""
+ ],
+ [
+  ">this view vs current<",
+  ">이 보기 vs 현재<"
+ ]
 ]

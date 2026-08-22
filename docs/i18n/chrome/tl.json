@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Paulit-ulit na Koordinasyon Para sa Pagpapatuloy ng Sangkatauhan</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Ang sangkatauhan ang nagpapasya &middot; Ang teknolohiya ang tumutulong &middot; Ang karunungan ang gumagabay &middot; Dapat patunayan ang tiwala"
-],
-[
-"label: \"White paper\"",
-"label: \"Puting Papel\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Talaan\""
-],
-[
-"label: \"Brief\"",
-"label: \"Buod\""
-],
-[
-"label: \"Outline\"",
-"label: \"Balangkas\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Mga Setting</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Pagbasa</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Talaan ng Pag-audit</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Tungkol sa Dokumentong Ito</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">kumpara sa nauna</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 kumpara sa pinakabago</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">idinagdag <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">binago <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">inalis <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">hindi nagbago <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Bloke</th><th>Pagbabago</th><th>Epekto</th><th class=\"n\">Sa</th><th>Naitalang dahilan</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Mga pagbabago sa teksto &middot; opisyal na rekord"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Mahahalagang pagpapahusay &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; pinakamataas na epekto: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Ang kasaysayan ng bersyon ay iniingatan sa orihinal na wika, kaya ang pagbabago sa antas ng salita ay ipinapakita sa kanonikal na tekstong Ingles; sinusubaybayan ng bawat wika ang pinakabagong release. Ang may guhit na pula ay inalis, ang berde ay idinagdag."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Bago &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Pagkatapos &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Detalye</summary>"
-],
-[
-"\">Unified</button>",
-"\">Pinag-isa</button>"
-],
-[
-"\">Side by side</button>",
-"\">Magkatabi</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Baguhin</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Ipakita lahat ng ' + dfList.length + ' nabagong seksyon</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">I-pause · buksan ang paghahambing</button>"
-],
-[
-"'This view begins at <b>'",
-"'Nagsisimula ang view na ito sa <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; wala pang maipapakita sa '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Sumulong, o tumalon sa pinakabago.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Nakaraang pagbabago\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Susunod na pagbabago\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Paulit-ulit na Koordinasyon Para sa Pagpapatuloy ng Sangkatauhan</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Ang sangkatauhan ang nagpapasya &middot; Ang teknolohiya ang tumutulong &middot; Ang karunungan ang gumagabay &middot; Dapat patunayan ang tiwala"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Puting Papel\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Talaan\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Buod\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Balangkas\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Mga Setting</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Pagbasa</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Talaan ng Pag-audit</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Tungkol sa Dokumentong Ito</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">kumpara sa nauna</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 kumpara sa pinakabago</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">idinagdag <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">binago <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">inalis <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">hindi nagbago <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Bloke</th><th>Pagbabago</th><th>Epekto</th><th class=\"n\">Sa</th><th>Naitalang dahilan</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Mga pagbabago sa teksto &middot; opisyal na rekord"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Mahahalagang pagpapahusay &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; pinakamataas na epekto: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Ang kasaysayan ng bersyon ay iniingatan sa orihinal na wika, kaya ang pagbabago sa antas ng salita ay ipinapakita sa kanonikal na tekstong Ingles; sinusubaybayan ng bawat wika ang pinakabagong release. Ang may guhit na pula ay inalis, ang berde ay idinagdag."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Bago &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Pagkatapos &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Detalye</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Pinag-isa</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Magkatabi</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Baguhin</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Ipakita lahat ng ' + dfList.length + ' nabagong seksyon</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">I-pause · buksan ang paghahambing</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Nagsisimula ang view na ito sa <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; wala pang maipapakita sa '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Sumulong, o tumalon sa pinakabago.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Nakaraang pagbabago\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Susunod na pagbabago\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Bumalik sa naunang binagong labas\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Sumulong sa susunod na binagong labas\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Ang mga marka ay sinukat na pagbabago ng nilalaman; ang ginto ay may mataas na epekto (hango sa talaan)\""
+ ],
+ [
+  ">this view vs current<",
+  ">ang tanaw na ito vs kasalukuyan<"
+ ]
 ]

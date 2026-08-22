@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Rekurzivní koordinace pro kontinuitu lidstva</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Lidstvo rozhoduje &middot; Technologie asistuje &middot; Moudrost vede &middot; Důvěra musí být prokázána"
-],
-[
-"label: \"White paper\"",
-"label: \"Bílá kniha\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Účetní kniha\""
-],
-[
-"label: \"Brief\"",
-"label: \"Přehled\""
-],
-[
-"label: \"Outline\"",
-"label: \"Osnova\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Nastavení</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Čtení</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Auditní stopa</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>O tomto dokumentu</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">oproti předchozí</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 vs. nejnovější</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">přidáno <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">upraveno <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">odebráno <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">přeneseno beze změny <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Blok</th><th>Změna</th><th>Dopad</th><th class=\"n\">V</th><th>Zaznamenaný důvod</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Textové změny &middot; kanonický záznam"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Klíčová vylepšení &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; nejvyšší dopad: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Historie verzí se uchovává ve zdrojovém jazyce, proto je změna na úrovni slov zobrazena v kanonickém anglickém textu; každý jazyk sleduje nejnovější vydání. Červeně přeškrtnuté je odebráno, zeleně je přidáno."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Před &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Po &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Podrobnosti</summary>"
-],
-[
-"\">Unified</button>",
-"\">Sjednocené</button>"
-],
-[
-"\">Side by side</button>",
-"\">Vedle sebe</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Změnit</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Zobrazit všech ' + dfList.length + ' změněných sekcí</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Pauza · otevřít porovnání</button>"
-],
-[
-"'This view begins at <b>'",
-"'Toto zobrazení začíná na <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; zatím není co zobrazit na '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Krok vpřed, nebo skočte na nejnovější.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Předchozí změna\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Další změna\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Rekurzivní koordinace pro kontinuitu lidstva</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Lidstvo rozhoduje &middot; Technologie asistuje &middot; Moudrost vede &middot; Důvěra musí být prokázána"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Bílá kniha\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Účetní kniha\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Přehled\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Osnova\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Nastavení</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Čtení</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Auditní stopa</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>O tomto dokumentu</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">oproti předchozí</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 vs. nejnovější</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">přidáno <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">upraveno <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">odebráno <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">přeneseno beze změny <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Blok</th><th>Změna</th><th>Dopad</th><th class=\"n\">V</th><th>Zaznamenaný důvod</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Textové změny &middot; kanonický záznam"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Klíčová vylepšení &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; nejvyšší dopad: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Historie verzí se uchovává ve zdrojovém jazyce, proto je změna na úrovni slov zobrazena v kanonickém anglickém textu; každý jazyk sleduje nejnovější vydání. Červeně přeškrtnuté je odebráno, zeleně je přidáno."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Před &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Po &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Podrobnosti</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Sjednocené</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Vedle sebe</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Změnit</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Zobrazit všech ' + dfList.length + ' změněných sekcí</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Pauza · otevřít porovnání</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Toto zobrazení začíná na <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; zatím není co zobrazit na '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Krok vpřed, nebo skočte na nejnovější.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Předchozí změna\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Další změna\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Krok zpět na předchozí změněné vydání\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Krok vpřed na další změněné vydání\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Značky jsou měřené změny obsahu; zlaté značky nesou vysoký dopad (odvozeno ze záznamu)\""
+ ],
+ [
+  ">this view vs current<",
+  ">toto zobrazení vs. aktuální<"
+ ]
 ]

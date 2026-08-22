@@ -245,7 +245,7 @@ figcaption{font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-top:10px;
    afford it. Everything returns the moment there is height for it. */
 @media(max-height:500px){
   .deck-in > .lab,
-  .deck-in > #vSlide,
+  .deck-in > .slwrap,
   .deck-in > #vNow,
   .deck-in > #vHash{display:none}
   .deck-in{gap:5px 8px}
@@ -602,6 +602,24 @@ body.cmpshow #cmp{display:block!important;position:fixed;inset:0;z-index:92;over
 .cmp-sl label{display:block;font-size:.78rem;color:var(--ink-2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmp-sl label span{color:var(--ink)}
 .cmp-sl input[type=range]{width:100%;display:block;min-width:0}
+/* r259 · KEYFRAME TICKS + CHANGE STEPPERS (fleet blueprint; operator adopted
+   steppers-no-snap + steppers-as-replay). A mark sits ONLY where the English
+   record byte-changed against the release before — measured once from the
+   ledger, never authored. Gold = highest ledger impact L4/L5, a DERIVED label.
+   Dragging never snaps; jumping is always an explicit tap or stepper. */
+.slwrap{position:relative;display:inline-flex;align-items:center}
+.slwrap input[type=range]{flex:1;min-width:0}
+.deck-in > .slwrap{flex:1;min-width:150px}
+.cmp .slwrap{width:100%}
+.sl-ticks{position:absolute;left:8px;right:8px;bottom:0;height:5px;pointer-events:none}
+.sl-ticks.tap{pointer-events:auto;cursor:pointer;height:10px;bottom:-3px}
+.sl-ticks i{position:absolute;bottom:2px;width:2px;height:4px;border-radius:1px;background:var(--ink-2);opacity:.45;transform:translateX(-1px)}
+.sl-ticks i.hi{background:var(--si);opacity:.95;height:6px}
+.sl-row{display:flex;align-items:center;gap:6px}
+.sl-row .slwrap{flex:1}
+.sl-step{font:inherit;font-size:15px;line-height:1;padding:3px 9px;border:1px solid var(--rule);border-radius:8px;background:transparent;color:var(--ink-2);cursor:pointer}
+.sl-step:hover{color:var(--ink)}
+.sl-step:disabled{opacity:.3;cursor:default}
 /* r254/r256 · compact selection bar — hidden while picking; scrolling the results flips
    .cmp → .slim (pure class toggle, no re-render) so both thumbs are always settable */
 .cmp-bar{position:sticky;top:-2px;z-index:3;display:none;gap:10px;align-items:center;background:var(--panel);padding:6px 0;border-bottom:1px solid var(--rule)}
@@ -1064,7 +1082,7 @@ body.qrlead #qrAbout{display:inline-block}
   <button id="bPrev" title="Previous version" aria-label="Previous version"></button>
   <button id="bPlay" title="Play through every version"></button>
   <button id="bNext" title="Next version" aria-label="Next version"></button>
-  <input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version">
+  <span class="slwrap"><input id="vSlide" type="range" min="1" max="1" step="1" value="1" aria-label="Version"><span class="sl-ticks tap" id="vTicks"></span></span>
   <!-- r148 · operator: "Use only symbol for Latest (no word so UX is compressed)."
        The skip-to-end glyph is injected by DECK_ICONS (bLatest:"last"); the label
        leaves so the deck reads as icons. title/aria-label carry the name for a
@@ -1119,7 +1137,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lezen</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">258</span></strong>, <strong><span id="dlbytes2">6011737</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">259</span></strong>, <strong><span id="dlbytes2">6020460</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Auditspoor</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6779,6 +6797,19 @@ const VERSIONS = [
    {n:"Athena",g:"A",f:"Claim to evidence in one tap from any analysis row; the fold opens itself when the target sits beyond it."}
   ],
   next:"Fleet CRS index; keyframe ticks + steppers on the measured KEYS."
+ },
+{ v:259, code:"THE SLIDER LEARNS WHERE HISTORY LIVES &mdash; TICKS, STEPPERS, ONE-TAP CURRENT",
+  stamp:"2026.08.22 &middot; revision 259",
+  thrust:"Operator, the fleet&rsquo;s replay blueprint lands. Every slider &mdash; the deck&rsquo;s replay and both compare pickers &mdash; now carries a keyframe rail: one mark per release whose English record MEASURABLY byte-changed against the release before, gold where the ledger&rsquo;s own impact classing reads constitutional or legal weight. Nothing is authored; a release that only touched the interface or the record earns no mark, exactly as the compare panel already says in words. Chevron steppers flank the compare pickers &mdash; one tap moves a thumb to the previous or next measured change, skipping the record-only releases a drag would wade through; at the ends they disable instead of lying. Dragging never snaps &mdash; the fleet argued and the operator agreed: a magnet under a thumb is the interface deciding for the reader. Tap any rail and the nearest keyframe commits &mdash; on the deck that IS the replay, arriving at the release where something true happened. And when you are reading an old revision, the panel offers the one comparison you almost always want: this view against current, one tap. Right-to-left builds mirror the geometry &mdash; marks anchor from the right, taps mirror &mdash; so position stays true in Arabic and Hebrew. Four new interface strings ship in all 32 languages in this same release. Verified on the built pages: r259 battery green twice, r255 26/26, parity, conformance, replay audit. Totals hold; v.19 r1.001.",
+  mot:"A timeline that knows where its own history lives owes the reader that knowledge at the surface &mdash; a mark for every true change, and a step that lands only on truth.",
+  stats:{clauses:309, jur:103, shields:5, defects:41, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Fewest taps to any real change: steppers skip record-only releases, rails jump, current is one tap."},
+   {n:"Thoth",g:"A",f:"Every mark is a byte-inequality against the prior winner &mdash; the rail cannot show a change the record did not make."},
+   {n:"Odin",g:"A",f:"Fail-closed keys, disabled ends, RTL mirrored by measurement &mdash; the future reader inherits no lie."},
+   {n:"Sofia",g:"A",f:"Four strings, thirty-two languages, same release; the once-only anchor rule respected &mdash; the navigator&rsquo;s labels untouched."}
+  ],
+  next:"Jump-to-block links from passages; then the labeled AI interpretation layer (fail-closed, provider-neutral)."
  }
 ];
 
@@ -19268,7 +19299,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6011737";
+const DL_BYTES = "6020460";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20755,6 +20786,71 @@ function renderKeyImp(){
    language build. Reusable: the same dfTok/dfDiff/dfPair diff ANY two texts —
    ledger versions here, and by design SoI-2525 slide versions, R-CORE snapshots and
    CRS spec revisions elsewhere. */
+/* r259 · KEYS — the measured keyframes. A release earns a mark ONLY if at least one
+   of its ledger writes byte-changed the canonical English record vs the release
+   before (an entry that rewrites identical html is record-keeping, not change).
+   Computed lazily once, fail-closed: any error means no ticks, sliders untouched. */
+var _KEYS = null, _KEYIMP = null;
+function keysList(){
+  if (_KEYS) return _KEYS;
+  _KEYS = []; _KEYIMP = {};
+  try {
+    var by = {}, i, e;
+    for (i = 0; i < LEDGER.length; i++){ e = LEDGER[i]; (by[e.v] = by[e.v] || []).push(e); }
+    var rank = { L1: 1, L2: 2, L3: 3, L4: 4, L5: 5 };
+    for (var v = 2; v <= VMAX; v++){
+      var ent = by[v] || [], top = 0;
+      for (var k = 0; k < ent.length; k++){
+        var prev = enHtmlAt(ent[k].id, v - 1);
+        if (enHtmlAt(ent[k].id, v) !== prev){
+          var r = rank[diffImpact(ent[k].id, prev === "" ? "added" : "revised")] || 1;
+          if (r > top) top = r;
+        }
+      }
+      if (top){ _KEYS.push(v); _KEYIMP[v] = top; }
+    }
+  } catch (err){ _KEYS = []; _KEYIMP = {}; }
+  return _KEYS;
+}
+function stepKey(cur, dir){
+  var ks = keysList();
+  if (dir > 0){ for (var i = 0; i < ks.length; i++) if (ks[i] > cur) return ks[i]; return cur; }
+  for (var j = ks.length - 1; j >= 0; j--) if (ks[j] < cur) return ks[j];
+  return cur;
+}
+/* RTL: the range track runs right-to-left, so marks anchor from the right and a
+   tap's fraction mirrors — red stays removal, gold stays impact, position stays true. */
+function slRTL(){ return (document.documentElement.getAttribute('dir') || '').toLowerCase() === 'rtl'; }
+function ticksHtml(){
+  var ks = keysList(), side = slRTL() ? 'right' : 'left', h = '';
+  for (var i = 0; i < ks.length; i++){
+    var v = ks[i], pct = ((v - 1) / Math.max(1, VMAX - 1)) * 100;
+    h += '<i style="' + side + ':' + pct.toFixed(2) + '%"' + (_KEYIMP[v] >= 4 ? ' class="hi"' : '') +
+         ' title="' + relLabel(v) + '"></i>';
+  }
+  return h;
+}
+var SL_PREV = "Terug naar de vorige gewijzigde release";
+var SL_NEXT = "Vooruit naar de volgende gewijzigde release";
+var TICK_TIP = "Markeringen zijn gemeten inhoudswijzigingen; gouden dragen hoge impact (afgeleid uit het register)";
+function slStepBtn(id, dir){
+  var t = dir < 0 ? SL_PREV : SL_NEXT;
+  return '<button type="button" class="sl-step" id="' + id + '" aria-label="' + t + '" title="' + t + '">' +
+         (dir < 0 ? '&lsaquo;' : '&rsaquo;') + '</button>';
+}
+function railWire(rail, commit){
+  rail.title = TICK_TIP;
+  rail.innerHTML = ticksHtml();
+  rail.addEventListener('pointerdown', function(ev){
+    var ks = keysList(); if (!ks.length) return;
+    var rc = rail.getBoundingClientRect();
+    var x = (ev.clientX - rc.left) / Math.max(1, rc.width);
+    if (slRTL()) x = 1 - x;
+    var vv = 1 + x * (VMAX - 1), best = ks[0];
+    for (var i = 1; i < ks.length; i++) if (Math.abs(ks[i] - vv) < Math.abs(best - vv)) best = ks[i];
+    commit(best);
+  });
+}
 function enHtmlAt(id, v){
   const a = BY_ID.get(id); if (!a) return "";
   let pick = null; for (const e of a){ if (e.v <= v) pick = e; else break; }
@@ -20927,12 +21023,17 @@ function renderCompare(){
     '<div class="cmp-pick">' +
     '<h4>&#8646; What changed &mdash; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</h4>' +
     '<div class="cmp-sl"><label for="cmpA">Voor &middot; <span id="cmpALbl">' + cmpLbl(cmpA) + '</span></label>' +
-      '<input type="range" id="cmpA" min="1" max="' + VMAX + '" step="1" aria-label="Before release"></div>' +
+      '<div class="sl-row">' + slStepBtn('cmpAL', -1) +
+      '<span class="slwrap"><input type="range" id="cmpA" min="1" max="' + VMAX + '" step="1" aria-label="Before release"><span class="sl-ticks tap" data-sl="cmpA"></span></span>' +
+      slStepBtn('cmpAR', 1) + '</div></div>' +
     '<div class="cmp-sl"><label for="cmpB">Na &middot; <span id="cmpBLbl">' + cmpLbl(cmpB) + '</span></label>' +
-      '<input type="range" id="cmpB" min="1" max="' + VMAX + '" step="1" aria-label="After release"></div>' +
+      '<div class="sl-row">' + slStepBtn('cmpBL', -1) +
+      '<span class="slwrap"><input type="range" id="cmpB" min="1" max="' + VMAX + '" step="1" aria-label="After release"><span class="sl-ticks tap" data-sl="cmpB"></span></span>' +
+      slStepBtn('cmpBR', 1) + '</div></div>' +
     '<div class="cmp-ctl">' +
       '<button id="cmpPrev">vs vorige</button>' +
       '<button id="cmpFirst">v1 vs laatste</button>' +
+      (active < VMAX ? '<button id="cmpCur">deze weergave vs huidige</button>' : '') +
     '</div>' +
     '</div>';
   h += (dr.changed.length ? '<div class="cmp-sum">' +
@@ -21066,6 +21167,26 @@ function renderCompare(){
     slA.addEventListener("change", function(){ cmpA = parseInt(this.value,10); cmpShowAll = false; renderDoc(); });
     slB.addEventListener("change", function(){ cmpB = parseInt(this.value,10); cmpShowAll = false; renderDoc(); });
   }
+  /* r259 · CHANGE STEPPERS + TICK RAILS (steppers-no-snap): the flanking chevrons move
+     a thumb to the previous/next MEASURED content change; dragging never snaps. Tapping
+     a rail commits that slider to the nearest keyframe — the deck's replay idiom. */
+  function cmpCommit(which, v){
+    if (which === 'A') cmpA = v; else cmpB = v;
+    cmpShowAll = false; renderDoc();
+  }
+  [['cmpAL', 'A', -1], ['cmpAR', 'A', 1], ['cmpBL', 'B', -1], ['cmpBR', 'B', 1]].forEach(function(cfg){
+    var b = document.getElementById(cfg[0]); if (!b) return;
+    var cur = cfg[1] === 'A' ? cmpA : cmpB;
+    var nx = stepKey(cur, cfg[2]);
+    if (nx === cur){ b.disabled = true; return; }
+    b.addEventListener('click', function(){ cmpCommit(cfg[1], nx); });
+  });
+  var railA = host.querySelector('.sl-ticks[data-sl="cmpA"]');
+  var railB = host.querySelector('.sl-ticks[data-sl="cmpB"]');
+  if (railA) railWire(railA, function(v){ cmpCommit('A', v); });
+  if (railB) railWire(railB, function(v){ cmpCommit('B', v); });
+  var cc = document.getElementById("cmpCur");
+  if (cc) cc.addEventListener("click", function(){ cmpA = Math.min(active, VMAX - 1); cmpB = VMAX; cmpShowAll = false; renderDoc(); });
   var pv = document.getElementById("cmpPrev");
   if (pv) pv.addEventListener("click", function(){ cmpA = Math.max(1, Math.max(cmpA, cmpB) - 1); cmpShowAll = false; renderDoc(); });
   var f1 = document.getElementById("cmpFirst");
@@ -21750,6 +21871,10 @@ document.addEventListener("keydown", function(e){
   setTheme(ground === "light" ? "light" : "dark", false);
 
   document.getElementById("vSlide").max = VMAX;
+  /* r259 · the replay slider carries the measured keyframes; tapping the rail jumps
+     to the nearest content-changing release (steppers-as-replay, fleet-adopted). */
+  var vt = document.getElementById("vTicks");
+  if (vt) railWire(vt, function(v){ stop(); goto(v); });
   /* r233 · QR clean-arrival: a shared QR lands on the Brief as pure reading. */
   const qrlead = /^#brief\/qr$/.test(location.hash);
   if (qrlead){ document.body.classList.add("qrlead");

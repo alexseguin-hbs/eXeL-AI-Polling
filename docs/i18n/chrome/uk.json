@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Рекурсивна координація заради безперервності людства</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Людство вирішує &middot; Технологія допомагає &middot; Мудрість спрямовує &middot; Довіру треба довести"
-],
-[
-"label: \"White paper\"",
-"label: \"Біла книга\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Реєстр\""
-],
-[
-"label: \"Brief\"",
-"label: \"Стислий виклад\""
-],
-[
-"label: \"Outline\"",
-"label: \"Структура\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Налаштування</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Читання</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Журнал аудиту</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Про цей документ</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">порівняно з попередньою</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 проти останньої</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">додано <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">змінено <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">видалено <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">перенесено без змін <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Блок</th><th>Зміна</th><th>Вплив</th><th class=\"n\">У</th><th>Зафіксована причина</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Текстові зміни &middot; канонічний запис"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Ключові покращення &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; найвищий вплив: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Історія версій ведеться мовою оригіналу, тому зміни на рівні слів показано в канонічному англійському тексті; кожна мова відстежує останній реліз. Закреслений червоний — видалено, зелений — додано."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">До &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Після &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Деталі</summary>"
-],
-[
-"\">Unified</button>",
-"\">Єдиний</button>"
-],
-[
-"\">Side by side</button>",
-"\">Поруч</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Змінити</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Показати всі ' + dfList.length + ' змінені розділи</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Пауза · відкрити порівняння</button>"
-],
-[
-"'This view begins at <b>'",
-"'Цей вигляд починається з <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; поки нічого показувати на '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Крок уперед або перейдіть до останньої.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Попередня зміна\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Наступна зміна\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Рекурсивна координація заради безперервності людства</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Людство вирішує &middot; Технологія допомагає &middot; Мудрість спрямовує &middot; Довіру треба довести"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Біла книга\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Реєстр\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Стислий виклад\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Структура\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Налаштування</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Читання</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Журнал аудиту</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Про цей документ</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">порівняно з попередньою</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 проти останньої</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">додано <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">змінено <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">видалено <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">перенесено без змін <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Блок</th><th>Зміна</th><th>Вплив</th><th class=\"n\">У</th><th>Зафіксована причина</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Текстові зміни &middot; канонічний запис"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Ключові покращення &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; найвищий вплив: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Історія версій ведеться мовою оригіналу, тому зміни на рівні слів показано в канонічному англійському тексті; кожна мова відстежує останній реліз. Закреслений червоний — видалено, зелений — додано."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">До &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Після &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Деталі</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Єдиний</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Поруч</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Змінити</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Показати всі ' + dfList.length + ' змінені розділи</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Пауза · відкрити порівняння</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Цей вигляд починається з <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; поки нічого показувати на '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Крок уперед або перейдіть до останньої.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Попередня зміна\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Наступна зміна\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Назад до попереднього зміненого випуску\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Вперед до наступного зміненого випуску\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Позначки — виміряні зміни змісту; золоті несуть високий вплив (виведено із запису)\""
+ ],
+ [
+  ">this view vs current<",
+  ">цей вигляд проти поточного<"
+ ]
 ]

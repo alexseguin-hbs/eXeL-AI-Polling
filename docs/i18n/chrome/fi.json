@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Rekursiivinen koordinaatio ihmiskunnan jatkuvuudelle</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Ihmiskunta päättää &middot; Teknologia avustaa &middot; Viisaus opastaa &middot; Luottamus on todistettava"
-],
-[
-"label: \"White paper\"",
-"label: \"Valkoinen kirja\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Pääkirja\""
-],
-[
-"label: \"Brief\"",
-"label: \"Tiivistelmä\""
-],
-[
-"label: \"Outline\"",
-"label: \"Jäsennys\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Asetukset</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Lukeminen</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Tarkastusloki</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Tietoja tästä asiakirjasta</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">edelliseen verrattuna</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 vs uusin</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">lisätty <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">muokattu <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">poistettu <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">säilynyt muuttumattomana <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Lohko</th><th>Muutos</th><th>Vaikutus</th><th class=\"n\">Kohdassa</th><th>Kirjattu syy</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Tekstimuutokset &middot; kanoninen tietue"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Keskeiset parannukset &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; suurin vaikutus: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Versiohistoria säilytetään lähdekielellä, joten sanatason muutos näytetään kanonisessa englanninkielisessä tekstissä; jokainen kieli seuraa uusinta julkaisua. Punainen yliviivaus tarkoittaa poistoa, vihreä lisäystä."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Ennen &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Jälkeen &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Tiedot</summary>"
-],
-[
-"\">Unified</button>",
-"\">Yhtenäinen</button>"
-],
-[
-"\">Side by side</button>",
-"\">Rinnakkain</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Muuta</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Näytä kaikki ' + dfList.length + ' muuttunutta osiota</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Tauko · avaa vertailu</button>"
-],
-[
-"'This view begins at <b>'",
-"'Tämä näkymä alkaa kohdasta <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; ei vielä näytettävää kohdassa '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Astu eteenpäin tai siirry uusimpaan.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Edellinen muutos\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Seuraava muutos\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Rekursiivinen koordinaatio ihmiskunnan jatkuvuudelle</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Ihmiskunta päättää &middot; Teknologia avustaa &middot; Viisaus opastaa &middot; Luottamus on todistettava"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Valkoinen kirja\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Pääkirja\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Tiivistelmä\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Jäsennys\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Asetukset</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Lukeminen</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Tarkastusloki</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Tietoja tästä asiakirjasta</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">edelliseen verrattuna</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 vs uusin</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">lisätty <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">muokattu <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">poistettu <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">säilynyt muuttumattomana <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Lohko</th><th>Muutos</th><th>Vaikutus</th><th class=\"n\">Kohdassa</th><th>Kirjattu syy</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Tekstimuutokset &middot; kanoninen tietue"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Keskeiset parannukset &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; suurin vaikutus: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Versiohistoria säilytetään lähdekielellä, joten sanatason muutos näytetään kanonisessa englanninkielisessä tekstissä; jokainen kieli seuraa uusinta julkaisua. Punainen yliviivaus tarkoittaa poistoa, vihreä lisäystä."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Ennen &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Jälkeen &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Tiedot</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Yhtenäinen</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Rinnakkain</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Muuta</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Näytä kaikki ' + dfList.length + ' muuttunutta osiota</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Tauko · avaa vertailu</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Tämä näkymä alkaa kohdasta <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; ei vielä näytettävää kohdassa '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Astu eteenpäin tai siirry uusimpaan.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Edellinen muutos\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Seuraava muutos\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Siirry edelliseen muuttuneeseen julkaisuun\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Siirry seuraavaan muuttuneeseen julkaisuun\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Merkit ovat mitattuja sisältömuutoksia; kultaiset kantavat suurta vaikutusta (johdettu tallenteesta)\""
+ ],
+ [
+  ">this view vs current<",
+  ">tämä näkymä vs. nykyinen<"
+ ]
 ]

@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">人類の継続性のための再帰的協調</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"人類が決定する · 技術が支援する · 知恵が導く · 信頼は証明されねばならない"
-],
-[
-"label: \"White paper\"",
-"label: \"ホワイトペーパー\""
-],
-[
-"label: \"Ledger\"",
-"label: \"台帳\""
-],
-[
-"label: \"Brief\"",
-"label: \"概要\""
-],
-[
-"label: \"Outline\"",
-"label: \"アウトライン\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>設定</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>閲覧</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>監査証跡</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>この文書について</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">前バージョン比</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 vs 最新</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">追加 <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">変更 <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">削除 <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">変更なし <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>ブロック</th><th>変更</th><th>影響</th><th class=\"n\">日時</th><th>記録された理由</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; テキスト変更 &middot; 正式記録"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>主な改善点 &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; 最大の影響: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"バージョン履歴は原文言語で保持されるため、単語レベルの変更は正式な英語テキストに表示されます。各言語は常に最新リリースに追従します。取り消し線の赤字は削除、緑字は追加を示します。"
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">変更前 &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">変更後 &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">詳細</summary>"
-],
-[
-"\">Unified</button>",
-"\">統合表示</button>"
-],
-[
-"\">Side by side</button>",
-"\">左右並列</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">変更</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">すべて表示 ' + dfList.length + ' 変更されたセクション</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">一時停止 · 比較を開く</button>"
-],
-[
-"'This view begins at <b>'",
-"'このビューの開始は <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; まだ表示するものがありません: '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". 先に進むか、最新へ移動してください。</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"前の変更\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"次の変更\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">人類の継続性のための再帰的協調</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "人類が決定する · 技術が支援する · 知恵が導く · 信頼は証明されねばならない"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"ホワイトペーパー\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"台帳\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"概要\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"アウトライン\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>設定</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>閲覧</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>監査証跡</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>この文書について</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">前バージョン比</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 vs 最新</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">追加 <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">変更 <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">削除 <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">変更なし <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>ブロック</th><th>変更</th><th>影響</th><th class=\"n\">日時</th><th>記録された理由</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; テキスト変更 &middot; 正式記録"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>主な改善点 &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; 最大の影響: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "バージョン履歴は原文言語で保持されるため、単語レベルの変更は正式な英語テキストに表示されます。各言語は常に最新リリースに追従します。取り消し線の赤字は削除、緑字は追加を示します。"
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">変更前 &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">変更後 &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">詳細</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">統合表示</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">左右並列</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">変更</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">すべて表示 ' + dfList.length + ' 変更されたセクション</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">一時停止 · 比較を開く</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'このビューの開始は <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; まだ表示するものがありません: '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". 先に進むか、最新へ移動してください。</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"前の変更\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"次の変更\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"前の変更されたリリースへ戻る\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"次の変更されたリリースへ進む\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"目盛りは計測された内容変更。金色は高影響（記録から導出）\""
+ ],
+ [
+  ">this view vs current<",
+  ">この表示 vs 現在<"
+ ]
 ]

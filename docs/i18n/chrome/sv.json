@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Rekursiv koordinering för mänsklighetens kontinuitet</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Mänskligheten beslutar &middot; Tekniken assisterar &middot; Visdomen vägleder &middot; Förtroende måste bevisas"
-],
-[
-"label: \"White paper\"",
-"label: \"Vitbok\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Liggare\""
-],
-[
-"label: \"Brief\"",
-"label: \"Sammanfattning\""
-],
-[
-"label: \"Outline\"",
-"label: \"Översikt\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Inställningar</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Läsning</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Granskningsspår</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Om detta dokument</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">jämfört med föregående</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 mot senaste</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">tillagd <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">reviderad <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">borttagen <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">oförändrad <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Block</th><th>Ändring</th><th>Påverkan</th><th class=\"n\">Vid</th><th>Registrerad orsak</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Textändringar &middot; kanonisk post"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Viktiga förbättringar &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; störst påverkan: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Versionshistoriken förs på källspråket, så ändringen på ordnivå visas i den kanoniska engelska texten; alla språk följer den senaste versionen. Rödgenomstruket är borttaget, grönt är tillagt."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Före &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Efter &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Detaljer</summary>"
-],
-[
-"\">Unified</button>",
-"\">Samlad</button>"
-],
-[
-"\">Side by side</button>",
-"\">Sida vid sida</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Ändra</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Visa alla ' + dfList.length + ' ändrade avsnitt</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Paus · öppna jämförelsen</button>"
-],
-[
-"'This view begins at <b>'",
-"'Denna vy börjar vid <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; inget att visa ännu vid '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Stega framåt, eller hoppa till senaste.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Föregående ändring\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Nästa ändring\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Rekursiv koordinering för mänsklighetens kontinuitet</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Mänskligheten beslutar &middot; Tekniken assisterar &middot; Visdomen vägleder &middot; Förtroende måste bevisas"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Vitbok\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Liggare\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Sammanfattning\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Översikt\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Inställningar</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Läsning</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Granskningsspår</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Om detta dokument</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">jämfört med föregående</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 mot senaste</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">tillagd <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">reviderad <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">borttagen <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">oförändrad <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Block</th><th>Ändring</th><th>Påverkan</th><th class=\"n\">Vid</th><th>Registrerad orsak</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Textändringar &middot; kanonisk post"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Viktiga förbättringar &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; störst påverkan: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Versionshistoriken förs på källspråket, så ändringen på ordnivå visas i den kanoniska engelska texten; alla språk följer den senaste versionen. Rödgenomstruket är borttaget, grönt är tillagt."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Före &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Efter &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Detaljer</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Samlad</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Sida vid sida</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Ändra</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Visa alla ' + dfList.length + ' ändrade avsnitt</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Paus · öppna jämförelsen</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Denna vy börjar vid <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; inget att visa ännu vid '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Stega framåt, eller hoppa till senaste.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Föregående ändring\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Nästa ändring\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Tillbaka till föregående ändrade utgåva\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Framåt till nästa ändrade utgåva\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Markeringar är uppmätta innehållsändringar; guldmarkeringar bär hög verkan (härledd ur registret)\""
+ ],
+ [
+  ">this view vs current<",
+  ">denna vy vs. nuvarande<"
+ ]
 ]

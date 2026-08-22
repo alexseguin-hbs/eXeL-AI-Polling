@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">İnsanlığın Sürekliliği İçin Özyinelemeli Koordinasyon</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"İnsanlık karar verir &middot; Teknoloji destek olur &middot; Bilgelik yol gösterir &middot; Güven kanıtlanmalıdır"
-],
-[
-"label: \"White paper\"",
-"label: \"Beyaz Kitap\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Defter\""
-],
-[
-"label: \"Brief\"",
-"label: \"Özet\""
-],
-[
-"label: \"Outline\"",
-"label: \"Ana Hatlar\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Ayarlar</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Okuma</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Denetim İzi</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Bu belge hakkında</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">öncekine göre</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 - son sürüm</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">eklendi <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">revize edildi <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">kaldırıldı <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">değişmeden korundu <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Blok</th><th>Değişiklik</th><th>Etki</th><th class=\"n\">Konum</th><th>Kayıtlı gerekçe</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Metin değişiklikleri &middot; standart kayıt"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Temel iyileştirmeler &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; en yüksek etki: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Sürüm geçmişi kaynak dilde tutulur, bu nedenle kelime düzeyindeki değişiklik standart İngilizce metinde gösterilir; her dil en son sürümü izler. Üstü çizili kırmızı kaldırılanları, yeşil eklenenleri gösterir."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Önce &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Sonra &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Ayrıntılar</summary>"
-],
-[
-"\">Unified</button>",
-"\">Birleşik</button>"
-],
-[
-"\">Side by side</button>",
-"\">Yan yana</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Değiştir</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Tümünü göster ' + dfList.length + ' değişen bölümler</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Duraklat · karşılaştırmayı aç</button>"
-],
-[
-"'This view begins at <b>'",
-"'Bu görünüm şurada başlar <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; henüz gösterilecek bir şey yok: '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". İleri adım atın veya en yeniye geçin.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Önceki değişiklik\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Sonraki değişiklik\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">İnsanlığın Sürekliliği İçin Özyinelemeli Koordinasyon</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "İnsanlık karar verir &middot; Teknoloji destek olur &middot; Bilgelik yol gösterir &middot; Güven kanıtlanmalıdır"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Beyaz Kitap\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Defter\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Özet\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Ana Hatlar\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Ayarlar</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Okuma</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Denetim İzi</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Bu belge hakkında</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">öncekine göre</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 - son sürüm</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">eklendi <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">revize edildi <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">kaldırıldı <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">değişmeden korundu <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Blok</th><th>Değişiklik</th><th>Etki</th><th class=\"n\">Konum</th><th>Kayıtlı gerekçe</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Metin değişiklikleri &middot; standart kayıt"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Temel iyileştirmeler &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; en yüksek etki: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Sürüm geçmişi kaynak dilde tutulur, bu nedenle kelime düzeyindeki değişiklik standart İngilizce metinde gösterilir; her dil en son sürümü izler. Üstü çizili kırmızı kaldırılanları, yeşil eklenenleri gösterir."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Önce &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Sonra &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Ayrıntılar</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Birleşik</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Yan yana</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Değiştir</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Tümünü göster ' + dfList.length + ' değişen bölümler</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Duraklat · karşılaştırmayı aç</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Bu görünüm şurada başlar <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; henüz gösterilecek bir şey yok: '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". İleri adım atın veya en yeniye geçin.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Önceki değişiklik\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Sonraki değişiklik\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Önceki değişen sürüme geri dön\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Sonraki değişen sürüme ilerle\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"İşaretler ölçülmüş içerik değişiklikleridir; altın işaretler yüksek etki taşır (kayıttan türetilmiş)\""
+ ],
+ [
+  ">this view vs current<",
+  ">bu görünüm vs güncel<"
+ ]
 ]

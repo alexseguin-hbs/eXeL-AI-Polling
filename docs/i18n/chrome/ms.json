@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Koordinasi Rekursif untuk Kesinambungan Manusia</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Manusia membuat keputusan &middot; Teknologi membantu &middot; Kebijaksanaan memandu &middot; Kepercayaan mesti dibuktikan"
-],
-[
-"label: \"White paper\"",
-"label: \"Kertas Putih\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Lejar\""
-],
-[
-"label: \"Brief\"",
-"label: \"Ringkasan\""
-],
-[
-"label: \"Outline\"",
-"label: \"Garis Besar\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Tetapan</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Bacaan</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Jejak Audit</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Mengenai Dokumen Ini</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">berbanding sebelumnya</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 berbanding terkini</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">ditambah <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">disemak <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">dibuang <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">dikekalkan tanpa perubahan <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Blok</th><th>Perubahan</th><th>Kesan</th><th class=\"n\">Pada</th><th>Sebab direkodkan</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Perubahan teks &middot; rekod kanonik"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Penambahbaikan utama &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; kesan tertinggi: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Sejarah versi disimpan dalam bahasa sumber, jadi perubahan pada peringkat perkataan ditunjukkan dalam teks Inggeris kanonik; setiap bahasa menjejaki keluaran terkini. Merah bergaris lorek ialah dibuang, hijau ialah ditambah."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Sebelum &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Selepas &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Butiran</summary>"
-],
-[
-"\">Unified</button>",
-"\">Bersatu</button>"
-],
-[
-"\">Side by side</button>",
-"\">Bersebelahan</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Ubah</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Tunjukkan semua ' + dfList.length + ' bahagian yang berubah</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Jeda · buka perbandingan</button>"
-],
-[
-"'This view begins at <b>'",
-"'Paparan ini bermula pada <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; tiada apa untuk dipaparkan lagi pada '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Mara, atau lompat ke terkini.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Perubahan sebelumnya\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Perubahan seterusnya\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Koordinasi Rekursif untuk Kesinambungan Manusia</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Manusia membuat keputusan &middot; Teknologi membantu &middot; Kebijaksanaan memandu &middot; Kepercayaan mesti dibuktikan"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Kertas Putih\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Lejar\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Ringkasan\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Garis Besar\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Tetapan</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Bacaan</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Jejak Audit</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Mengenai Dokumen Ini</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">berbanding sebelumnya</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 berbanding terkini</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">ditambah <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">disemak <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">dibuang <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">dikekalkan tanpa perubahan <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Blok</th><th>Perubahan</th><th>Kesan</th><th class=\"n\">Pada</th><th>Sebab direkodkan</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Perubahan teks &middot; rekod kanonik"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Penambahbaikan utama &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; kesan tertinggi: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Sejarah versi disimpan dalam bahasa sumber, jadi perubahan pada peringkat perkataan ditunjukkan dalam teks Inggeris kanonik; setiap bahasa menjejaki keluaran terkini. Merah bergaris lorek ialah dibuang, hijau ialah ditambah."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Sebelum &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Selepas &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Butiran</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Bersatu</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Bersebelahan</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Ubah</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Tunjukkan semua ' + dfList.length + ' bahagian yang berubah</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Jeda · buka perbandingan</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Paparan ini bermula pada <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; tiada apa untuk dipaparkan lagi pada '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Mara, atau lompat ke terkini.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Perubahan sebelumnya\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Perubahan seterusnya\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Undur ke keluaran berubah sebelumnya\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Mara ke keluaran berubah seterusnya\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Tanda ialah perubahan kandungan terukur; tanda emas berimpak tinggi (diterbitkan daripada rekod)\""
+ ],
+ [
+  ">this view vs current<",
+  ">paparan ini vs semasa<"
+ ]
 ]

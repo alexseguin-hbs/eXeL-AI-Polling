@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Coordonare recursivă pentru continuitatea umană</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Umanitatea decide &middot; Tehnologia asistă &middot; Înțelepciunea ghidează &middot; Încrederea trebuie dovedită"
-],
-[
-"label: \"White paper\"",
-"label: \"Carte albă\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Registru\""
-],
-[
-"label: \"Brief\"",
-"label: \"Rezumat\""
-],
-[
-"label: \"Outline\"",
-"label: \"Schiță\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Setări</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Lectură</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Jurnal de audit</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Despre acest document</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">față de precedenta</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 vs cea mai recentă</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">adăugat <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">revizuit <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">eliminat <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">preluat nemodificat <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Bloc</th><th>Modificare</th><th>Impact</th><th class=\"n\">La</th><th>Motiv înregistrat</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Modificări de text &middot; înregistrare canonică"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Îmbunătățiri cheie &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; cel mai mare impact: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Istoricul versiunilor este păstrat în limba sursă, astfel încât modificarea la nivel de cuvânt este afișată în textul canonic în engleză; fiecare limbă urmărește cea mai recentă versiune. Textul tăiat cu roșu este eliminat, cel verde este adăugat."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Înainte &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">După &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Detalii</summary>"
-],
-[
-"\">Unified</button>",
-"\">Unificat</button>"
-],
-[
-"\">Side by side</button>",
-"\">Alăturate</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Schimbă</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Arată toate ' + dfList.length + ' secțiunile modificate</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Pauză · deschide comparația</button>"
-],
-[
-"'This view begins at <b>'",
-"'Această vizualizare începe la <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; nimic de arătat încă la '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Pas înainte, sau sari la cea mai recentă.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Modificarea anterioară\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Modificarea următoare\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Coordonare recursivă pentru continuitatea umană</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Umanitatea decide &middot; Tehnologia asistă &middot; Înțelepciunea ghidează &middot; Încrederea trebuie dovedită"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Carte albă\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Registru\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Rezumat\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Schiță\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Setări</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Lectură</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Jurnal de audit</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Despre acest document</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">față de precedenta</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 vs cea mai recentă</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">adăugat <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">revizuit <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">eliminat <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">preluat nemodificat <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Bloc</th><th>Modificare</th><th>Impact</th><th class=\"n\">La</th><th>Motiv înregistrat</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Modificări de text &middot; înregistrare canonică"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Îmbunătățiri cheie &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; cel mai mare impact: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Istoricul versiunilor este păstrat în limba sursă, astfel încât modificarea la nivel de cuvânt este afișată în textul canonic în engleză; fiecare limbă urmărește cea mai recentă versiune. Textul tăiat cu roșu este eliminat, cel verde este adăugat."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Înainte &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">După &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Detalii</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Unificat</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Alăturate</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Schimbă</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Arată toate ' + dfList.length + ' secțiunile modificate</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Pauză · deschide comparația</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Această vizualizare începe la <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; nimic de arătat încă la '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Pas înainte, sau sari la cea mai recentă.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Modificarea anterioară\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Modificarea următoare\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Înapoi la versiunea modificată anterioară\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Înainte la următoarea versiune modificată\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Semnele sunt schimbări de conținut măsurate; cele aurii poartă impact ridicat (derivat din registru)\""
+ ],
+ [
+  ">this view vs current<",
+  ">această vizualizare vs. curentă<"
+ ]
 ]

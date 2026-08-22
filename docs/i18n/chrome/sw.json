@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Uratibu Unaojirudia kwa Uendelevu wa Kibinadamu</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"Binadamu huamua &middot; Teknolojia husaidia &middot; Hekima huongoza &middot; Uaminifu lazima uthibitishwe"
-],
-[
-"label: \"White paper\"",
-"label: \"Karatasi Nyeupe\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Daftari\""
-],
-[
-"label: \"Brief\"",
-"label: \"Muhtasari\""
-],
-[
-"label: \"Outline\"",
-"label: \"Muundo\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Mipangilio</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Usomaji</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Rekodi ya Ukaguzi</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Kuhusu Hati Hii</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">dhidi ya iliyotangulia</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 dhidi ya ya hivi punde</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">imeongezwa <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">imerekebishwa <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">imeondolewa <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">imebaki bila mabadiliko <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Sehemu</th><th>Badiliko</th><th>Athari</th><th class=\"n\">Kwenye</th><th>Sababu iliyorekodiwa</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Mabadiliko ya maandishi &middot; rekodi rasmi"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Maboresho muhimu &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; athari kubwa zaidi: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"Historia ya matoleo huhifadhiwa katika lugha asilia, hivyo mabadiliko ya kila neno yanaonyeshwa kwenye maandishi rasmi ya Kiingereza; kila lugha hufuatilia toleo la hivi punde. Nyekundu yenye mstari wa kufuta ni kilichoondolewa, kijani ni kilichoongezwa."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Kabla &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Baada &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Maelezo</summary>"
-],
-[
-"\">Unified</button>",
-"\">Umoja</button>"
-],
-[
-"\">Side by side</button>",
-"\">Ubavu kwa ubavu</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Badilisha</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Onyesha zote ' + dfList.length + ' sehemu zilizobadilika</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Simamisha · fungua ulinganisho</button>"
-],
-[
-"'This view begins at <b>'",
-"'Mwonekano huu unaanza <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; hakuna cha kuonyesha bado '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Songa mbele, au ruka hadi ya hivi punde.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Badiliko lililopita\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Badiliko lijalo\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Uratibu Unaojirudia kwa Uendelevu wa Kibinadamu</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "Binadamu huamua &middot; Teknolojia husaidia &middot; Hekima huongoza &middot; Uaminifu lazima uthibitishwe"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Karatasi Nyeupe\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Daftari\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Muhtasari\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Muundo\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Mipangilio</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Usomaji</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Rekodi ya Ukaguzi</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Kuhusu Hati Hii</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">dhidi ya iliyotangulia</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 dhidi ya ya hivi punde</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">imeongezwa <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">imerekebishwa <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">imeondolewa <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">imebaki bila mabadiliko <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Sehemu</th><th>Badiliko</th><th>Athari</th><th class=\"n\">Kwenye</th><th>Sababu iliyorekodiwa</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Mabadiliko ya maandishi &middot; rekodi rasmi"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Maboresho muhimu &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; athari kubwa zaidi: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "Historia ya matoleo huhifadhiwa katika lugha asilia, hivyo mabadiliko ya kila neno yanaonyeshwa kwenye maandishi rasmi ya Kiingereza; kila lugha hufuatilia toleo la hivi punde. Nyekundu yenye mstari wa kufuta ni kilichoondolewa, kijani ni kilichoongezwa."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Kabla &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Baada &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Maelezo</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Umoja</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Ubavu kwa ubavu</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Badilisha</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Onyesha zote ' + dfList.length + ' sehemu zilizobadilika</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Simamisha · fungua ulinganisho</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Mwonekano huu unaanza <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; hakuna cha kuonyesha bado '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Songa mbele, au ruka hadi ya hivi punde.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Badiliko lililopita\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Badiliko lijalo\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Rudi kwenye toleo lililobadilika lililotangulia\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Endelea kwenye toleo lililobadilika linalofuata\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Alama ni mabadiliko ya maudhui yaliyopimwa; alama za dhahabu zina athari kubwa (imetokana na rekodi)\""
+ ],
+ [
+  ">this view vs current<",
+  ">mwonekano huu dhidi ya wa sasa<"
+ ]
 ]

@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">मानव निरन्तरताका लागि पुनरावृत्त समन्वय</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"मानवताले निर्णय गर्छ &middot; प्रविधिले सहयोग गर्छ &middot; बुद्धिले मार्गदर्शन गर्छ &middot; विश्वास प्रमाणित हुनुपर्छ"
-],
-[
-"label: \"White paper\"",
-"label: \"श्वेतपत्र\""
-],
-[
-"label: \"Ledger\"",
-"label: \"लेजर\""
-],
-[
-"label: \"Brief\"",
-"label: \"संक्षिप्त विवरण\""
-],
-[
-"label: \"Outline\"",
-"label: \"रूपरेखा\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>सेटिङहरू</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>पठन</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>लेखापरीक्षण ट्रेल</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>यस कागजातको बारेमा</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">अघिल्लोसँग तुलना</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 बनाम पछिल्लो</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">थपियो <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">संशोधित <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">हटाइयो <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">अपरिवर्तित रूपमा कायम <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>ब्लक</th><th>परिवर्तन</th><th>प्रभाव</th><th class=\"n\">मा</th><th>अभिलेखित कारण</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; पाठ परिवर्तनहरू &middot; आधिकारिक अभिलेख"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>मुख्य सुधारहरू &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; सबैभन्दा उच्च प्रभाव: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"संस्करण इतिहास स्रोत भाषामै राखिन्छ, त्यसैले शब्द-स्तरको परिवर्तन आधिकारिक अङ्ग्रेजी पाठमा देखाइन्छ; हरेक भाषाले पछिल्लो रिलीज ट्र्याक गर्छ। रातो स्ट्राइकथ्रु भनेको हटाइएको हो, हरियो भनेको थपिएको हो।"
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">पहिले &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">पछि &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">विवरण</summary>"
-],
-[
-"\">Unified</button>",
-"\">एकीकृत</button>"
-],
-[
-"\">Side by side</button>",
-"\">सँगसँगै</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">परिवर्तन</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">सबै देखाउनुहोस् ' + dfList.length + ' परिवर्तित खण्डहरू</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">रोक्नुहोस् · तुलना खोल्नुहोस्</button>"
-],
-[
-"'This view begins at <b>'",
-"'यो दृश्य सुरु हुन्छ <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; अहिले देखाउन केही छैन '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". अगाडि बढ्नुहोस् वा नवीनतममा जानुहोस्।</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"अघिल्लो परिवर्तन\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"अर्को परिवर्तन\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">मानव निरन्तरताका लागि पुनरावृत्त समन्वय</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "मानवताले निर्णय गर्छ &middot; प्रविधिले सहयोग गर्छ &middot; बुद्धिले मार्गदर्शन गर्छ &middot; विश्वास प्रमाणित हुनुपर्छ"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"श्वेतपत्र\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"लेजर\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"संक्षिप्त विवरण\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"रूपरेखा\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>सेटिङहरू</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>पठन</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>लेखापरीक्षण ट्रेल</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>यस कागजातको बारेमा</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">अघिल्लोसँग तुलना</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 बनाम पछिल्लो</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">थपियो <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">संशोधित <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">हटाइयो <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">अपरिवर्तित रूपमा कायम <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>ब्लक</th><th>परिवर्तन</th><th>प्रभाव</th><th class=\"n\">मा</th><th>अभिलेखित कारण</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; पाठ परिवर्तनहरू &middot; आधिकारिक अभिलेख"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>मुख्य सुधारहरू &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; सबैभन्दा उच्च प्रभाव: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "संस्करण इतिहास स्रोत भाषामै राखिन्छ, त्यसैले शब्द-स्तरको परिवर्तन आधिकारिक अङ्ग्रेजी पाठमा देखाइन्छ; हरेक भाषाले पछिल्लो रिलीज ट्र्याक गर्छ। रातो स्ट्राइकथ्रु भनेको हटाइएको हो, हरियो भनेको थपिएको हो।"
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">पहिले &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">पछि &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">विवरण</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">एकीकृत</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">सँगसँगै</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">परिवर्तन</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">सबै देखाउनुहोस् ' + dfList.length + ' परिवर्तित खण्डहरू</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">रोक्नुहोस् · तुलना खोल्नुहोस्</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'यो दृश्य सुरु हुन्छ <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; अहिले देखाउन केही छैन '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". अगाडि बढ्नुहोस् वा नवीनतममा जानुहोस्।</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"अघिल्लो परिवर्तन\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"अर्को परिवर्तन\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"अघिल्लो परिवर्तित रिलिजमा फर्कनुहोस्\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"अर्को परिवर्तित रिलिजमा बढ्नुहोस्\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"चिन्हहरू मापन गरिएका सामग्री परिवर्तन हुन्; सुनौला चिन्हले उच्च प्रभाव बोक्छ (अभिलेखबाट व्युत्पन्न)\""
+ ],
+ [
+  ">this view vs current<",
+  ">यो दृश्य बनाम हालको<"
+ ]
 ]

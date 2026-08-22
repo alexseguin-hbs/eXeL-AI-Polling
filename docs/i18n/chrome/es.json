@@ -1,138 +1,154 @@
 [
-[
-">Recursive Coordination for Human Continuity</h1>",
-">Coordinación recursiva para la continuidad humana</h1>"
-],
-[
-"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
-"La humanidad decide &middot; La tecnología asiste &middot; La sabiduría guía &middot; La confianza debe demostrarse"
-],
-[
-"label: \"White paper\"",
-"label: \"Libro blanco\""
-],
-[
-"label: \"Ledger\"",
-"label: \"Registro\""
-],
-[
-"label: \"Brief\"",
-"label: \"Resumen\""
-],
-[
-"label: \"Outline\"",
-"label: \"Esquema\""
-],
-[
-"<h2>Settings</h2>",
-"<h2>Configuración</h2>"
-],
-[
-"<h5>Reading</h5>",
-"<h5>Lectura</h5>"
-],
-[
-"<h5>Audit trail</h5>",
-"<h5>Registro de auditoría</h5>"
-],
-[
-"<h5>About this document</h5>",
-"<h5>Acerca de este documento</h5>"
-],
-[
-"<button id=\"cmpPrev\">vs previous</button>",
-"<button id=\"cmpPrev\">vs. anterior</button>"
-],
-[
-"<button id=\"cmpFirst\">v1 vs latest</button>",
-"<button id=\"cmpFirst\">v1 vs. última</button>"
-],
-[
-"<span class=\"k-add\">added <b>",
-"<span class=\"k-add\">añadido <b>"
-],
-[
-"<span class=\"k-rev\">revised <b>",
-"<span class=\"k-rev\">revisado <b>"
-],
-[
-"<span class=\"k-rem\">removed <b>",
-"<span class=\"k-rem\">eliminado <b>"
-],
-[
-"<span class=\"k-car\">carried unchanged <b>",
-"<span class=\"k-car\">sin cambios <b>"
-],
-[
-"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
-"<th>Bloque</th><th>Cambio</th><th>Impacto</th><th class=\"n\">En</th><th>Motivo registrado</th>"
-],
-[
-"&#8646; Text changes &middot; canonical record",
-"&#8646; Cambios de texto &middot; registro canónico"
-],
-[
-"<h5>Key improvements &middot; ",
-"<h5>Mejoras clave &middot; "
-],
-[
-" &middot; highest impact: ",
-" &middot; mayor impacto: "
-],
-[
-"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
-"El historial de versiones se mantiene en el idioma de origen, por lo que el cambio a nivel de palabra se muestra en el texto canónico en inglés; cada idioma sigue la última versión publicada. El texto tachado en rojo indica lo eliminado y el verde lo añadido."
-],
-[
-"<label for=\"cmpA\">Before &middot; ",
-"<label for=\"cmpA\">Antes &middot; "
-],
-[
-"<label for=\"cmpB\">After &middot; ",
-"<label for=\"cmpB\">Después &middot; "
-],
-[
-"<summary class=\"cmp-det-s\">Details</summary>",
-"<summary class=\"cmp-det-s\">Detalles</summary>"
-],
-[
-"\">Unified</button>",
-"\">Unificado</button>"
-],
-[
-"\">Side by side</button>",
-"\">Lado a lado</button>"
-],
-[
-"id=\"cmpEdit\" type=\"button\">Change</button>",
-"id=\"cmpEdit\" type=\"button\">Cambiar</button>"
-],
-[
-"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
-"class=\"df-more\">Mostrar las ' + dfList.length + ' secciones cambiadas</button>"
-],
-[
-">Pause &middot; open the comparison</button>",
-">Pausa · abrir la comparación</button>"
-],
-[
-"'This view begins at <b>'",
-"'Esta vista comienza en <b>'"
-],
-[
-"'</b> &mdash; nothing to show yet at '",
-"'</b> &mdash; nada que mostrar aún en '"
-],
-[
-". Step forward, or jump to the latest.</p>",
-". Avanza o salta a la más reciente.</p>"
-],
-[
-"aria-label=\"Previous change\"",
-"aria-label=\"Cambio anterior\""
-],
-[
-"aria-label=\"Next change\"",
-"aria-label=\"Cambio siguiente\""
-]
+ [
+  ">Recursive Coordination for Human Continuity</h1>",
+  ">Coordinación recursiva para la continuidad humana</h1>"
+ ],
+ [
+  "Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+  "La humanidad decide &middot; La tecnología asiste &middot; La sabiduría guía &middot; La confianza debe demostrarse"
+ ],
+ [
+  "label: \"White paper\"",
+  "label: \"Libro blanco\""
+ ],
+ [
+  "label: \"Ledger\"",
+  "label: \"Registro\""
+ ],
+ [
+  "label: \"Brief\"",
+  "label: \"Resumen\""
+ ],
+ [
+  "label: \"Outline\"",
+  "label: \"Esquema\""
+ ],
+ [
+  "<h2>Settings</h2>",
+  "<h2>Configuración</h2>"
+ ],
+ [
+  "<h5>Reading</h5>",
+  "<h5>Lectura</h5>"
+ ],
+ [
+  "<h5>Audit trail</h5>",
+  "<h5>Registro de auditoría</h5>"
+ ],
+ [
+  "<h5>About this document</h5>",
+  "<h5>Acerca de este documento</h5>"
+ ],
+ [
+  "<button id=\"cmpPrev\">vs previous</button>",
+  "<button id=\"cmpPrev\">vs. anterior</button>"
+ ],
+ [
+  "<button id=\"cmpFirst\">v1 vs latest</button>",
+  "<button id=\"cmpFirst\">v1 vs. última</button>"
+ ],
+ [
+  "<span class=\"k-add\">added <b>",
+  "<span class=\"k-add\">añadido <b>"
+ ],
+ [
+  "<span class=\"k-rev\">revised <b>",
+  "<span class=\"k-rev\">revisado <b>"
+ ],
+ [
+  "<span class=\"k-rem\">removed <b>",
+  "<span class=\"k-rem\">eliminado <b>"
+ ],
+ [
+  "<span class=\"k-car\">carried unchanged <b>",
+  "<span class=\"k-car\">sin cambios <b>"
+ ],
+ [
+  "<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+  "<th>Bloque</th><th>Cambio</th><th>Impacto</th><th class=\"n\">En</th><th>Motivo registrado</th>"
+ ],
+ [
+  "&#8646; Text changes &middot; canonical record",
+  "&#8646; Cambios de texto &middot; registro canónico"
+ ],
+ [
+  "<h5>Key improvements &middot; ",
+  "<h5>Mejoras clave &middot; "
+ ],
+ [
+  " &middot; highest impact: ",
+  " &middot; mayor impacto: "
+ ],
+ [
+  "Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+  "El historial de versiones se mantiene en el idioma de origen, por lo que el cambio a nivel de palabra se muestra en el texto canónico en inglés; cada idioma sigue la última versión publicada. El texto tachado en rojo indica lo eliminado y el verde lo añadido."
+ ],
+ [
+  "<label for=\"cmpA\">Before &middot; ",
+  "<label for=\"cmpA\">Antes &middot; "
+ ],
+ [
+  "<label for=\"cmpB\">After &middot; ",
+  "<label for=\"cmpB\">Después &middot; "
+ ],
+ [
+  "<summary class=\"cmp-det-s\">Details</summary>",
+  "<summary class=\"cmp-det-s\">Detalles</summary>"
+ ],
+ [
+  "\">Unified</button>",
+  "\">Unificado</button>"
+ ],
+ [
+  "\">Side by side</button>",
+  "\">Lado a lado</button>"
+ ],
+ [
+  "id=\"cmpEdit\" type=\"button\">Change</button>",
+  "id=\"cmpEdit\" type=\"button\">Cambiar</button>"
+ ],
+ [
+  "class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+  "class=\"df-more\">Mostrar las ' + dfList.length + ' secciones cambiadas</button>"
+ ],
+ [
+  ">Pause &middot; open the comparison</button>",
+  ">Pausa · abrir la comparación</button>"
+ ],
+ [
+  "'This view begins at <b>'",
+  "'Esta vista comienza en <b>'"
+ ],
+ [
+  "'</b> &mdash; nothing to show yet at '",
+  "'</b> &mdash; nada que mostrar aún en '"
+ ],
+ [
+  ". Step forward, or jump to the latest.</p>",
+  ". Avanza o salta a la más reciente.</p>"
+ ],
+ [
+  "aria-label=\"Previous change\"",
+  "aria-label=\"Cambio anterior\""
+ ],
+ [
+  "aria-label=\"Next change\"",
+  "aria-label=\"Cambio siguiente\""
+ ],
+ [
+  "SL_PREV = \"Step back to the previous changed release\"",
+  "SL_PREV = \"Retroceder a la versión modificada anterior\""
+ ],
+ [
+  "SL_NEXT = \"Step forward to the next changed release\"",
+  "SL_NEXT = \"Avanzar a la siguiente versión modificada\""
+ ],
+ [
+  "TICK_TIP = \"Marks are measured content changes; gold marks carry high impact (derived from the record)\"",
+  "TICK_TIP = \"Las marcas son cambios de contenido medidos; las doradas llevan alto impacto (derivado del registro)\""
+ ],
+ [
+  ">this view vs current<",
+  ">esta vista vs. actual<"
+ ]
 ]
