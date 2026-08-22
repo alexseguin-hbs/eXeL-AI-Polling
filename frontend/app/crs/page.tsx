@@ -123,7 +123,7 @@ export default function CrsMatrixPage() {
         ) : (
           <>
             <label className="flex items-center gap-1">
-              Baseline
+              Before
               <select value={aId} onChange={(e) => setAId(e.target.value)} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
                 {allVersions.map((v) => (
                   <option key={v.id} value={v.id}>
@@ -133,7 +133,7 @@ export default function CrsMatrixPage() {
               </select>
             </label>
             <label className="flex items-center gap-1">
-              Target
+              After
               <select value={bId} onChange={(e) => setBId(e.target.value)} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
                 {allVersions.map((v) => (
                   <option key={v.id} value={v.id}>
@@ -202,7 +202,7 @@ function CompareView({ a, b }: { a: Version; b: Version }) {
   const rows = diffCollection(a.rows as unknown as Record<string, string>[], b.rows as unknown as Record<string, string>[], "crs");
   const changed = rows.filter((r) => r.kind !== "carried");
   if (a.id === b.id)
-    return <p className="text-sm italic text-zinc-500">Baseline and Target are the same version — choose two different versions to see changes.</p>;
+    return <p className="text-sm italic text-zinc-500">Before and After are the same version — choose two different versions to see changes.</p>;
   if (!changed.length) return <p className="text-sm italic text-zinc-500">No changes between {a.label} and {b.label}.</p>;
 
   return (

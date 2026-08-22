@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">Coordonare recursivă pentru continuitatea umană</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","Umanitatea decide &middot; Tehnologia asistă &middot; Înțelepciunea ghidează &middot; Încrederea trebuie dovedită"],["label: \"White paper\"","label: \"Carte albă\""],["label: \"Ledger\"","label: \"Registru\""],["label: \"Brief\"","label: \"Rezumat\""],["label: \"Outline\"","label: \"Schiță\""],["<h2>Settings</h2>","<h2>Setări</h2>"],["<h5>Reading</h5>","<h5>Lectură</h5>"],["<h5>Audit trail</h5>","<h5>Jurnal de audit</h5>"],["<h5>About this document</h5>","<h5>Despre acest document</h5>"],["<label>Baseline <select","<label>Referință <select"],["<label>Target <select","<label>Țintă <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">față de precedenta</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 vs cea mai recentă</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">adăugat <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">revizuit <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">eliminat <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">preluat nemodificat <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>Bloc</th><th>Modificare</th><th>Impact</th><th class=\"n\">La</th><th>Motiv înregistrat</th>"],["&#8646; Text changes &middot; canonical record","&#8646; Modificări de text &middot; înregistrare canonică"],["<h5>Key improvements &middot; ","<h5>Îmbunătățiri cheie &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">Nimic nu s-a schimbat între v"],[". Identical bytes.</p>",". Octeți identici.</p>"],[" &middot; highest impact: "," &middot; cel mai mare impact: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","Istoricul versiunilor este păstrat în limba sursă, astfel încât modificarea la nivel de cuvânt este afișată în textul canonic în engleză; fiecare limbă urmărește cea mai recentă versiune. Textul tăiat cu roșu este eliminat, cel verde este adăugat."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">Coordonare recursivă pentru continuitatea umană</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"Umanitatea decide &middot; Tehnologia asistă &middot; Înțelepciunea ghidează &middot; Încrederea trebuie dovedită"
+],
+[
+"label: \"White paper\"",
+"label: \"Carte albă\""
+],
+[
+"label: \"Ledger\"",
+"label: \"Registru\""
+],
+[
+"label: \"Brief\"",
+"label: \"Rezumat\""
+],
+[
+"label: \"Outline\"",
+"label: \"Schiță\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>Setări</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>Lectură</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>Jurnal de audit</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>Despre acest document</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">față de precedenta</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 vs cea mai recentă</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">adăugat <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">revizuit <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">eliminat <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">preluat nemodificat <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>Bloc</th><th>Modificare</th><th>Impact</th><th class=\"n\">La</th><th>Motiv înregistrat</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; Modificări de text &middot; înregistrare canonică"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>Îmbunătățiri cheie &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">Nimic nu s-a schimbat între v"
+],
+[
+". Identical bytes.</p>",
+". Octeți identici.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; cel mai mare impact: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"Istoricul versiunilor este păstrat în limba sursă, astfel încât modificarea la nivel de cuvânt este afișată în textul canonic în engleză; fiecare limbă urmărește cea mai recentă versiune. Textul tăiat cu roșu este eliminat, cel verde este adăugat."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">Înainte &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">După &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">Detalii</summary>"
+]
+]

@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">Rekurzivní koordinace pro kontinuitu lidstva</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","Lidstvo rozhoduje &middot; Technologie asistuje &middot; Moudrost vede &middot; Důvěra musí být prokázána"],["label: \"White paper\"","label: \"Bílá kniha\""],["label: \"Ledger\"","label: \"Účetní kniha\""],["label: \"Brief\"","label: \"Přehled\""],["label: \"Outline\"","label: \"Osnova\""],["<h2>Settings</h2>","<h2>Nastavení</h2>"],["<h5>Reading</h5>","<h5>Čtení</h5>"],["<h5>Audit trail</h5>","<h5>Auditní stopa</h5>"],["<h5>About this document</h5>","<h5>O tomto dokumentu</h5>"],["<label>Baseline <select","<label>Výchozí verze <select"],["<label>Target <select","<label>Cílová verze <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">oproti předchozí</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 vs. nejnovější</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">přidáno <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">upraveno <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">odebráno <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">přeneseno beze změny <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>Blok</th><th>Změna</th><th>Dopad</th><th class=\"n\">V</th><th>Zaznamenaný důvod</th>"],["&#8646; Text changes &middot; canonical record","&#8646; Textové změny &middot; kanonický záznam"],["<h5>Key improvements &middot; ","<h5>Klíčová vylepšení &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">Nic se nezměnilo mezi v"],[". Identical bytes.</p>",". Identické bajty.</p>"],[" &middot; highest impact: "," &middot; nejvyšší dopad: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","Historie verzí se uchovává ve zdrojovém jazyce, proto je změna na úrovni slov zobrazena v kanonickém anglickém textu; každý jazyk sleduje nejnovější vydání. Červeně přeškrtnuté je odebráno, zeleně je přidáno."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">Rekurzivní koordinace pro kontinuitu lidstva</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"Lidstvo rozhoduje &middot; Technologie asistuje &middot; Moudrost vede &middot; Důvěra musí být prokázána"
+],
+[
+"label: \"White paper\"",
+"label: \"Bílá kniha\""
+],
+[
+"label: \"Ledger\"",
+"label: \"Účetní kniha\""
+],
+[
+"label: \"Brief\"",
+"label: \"Přehled\""
+],
+[
+"label: \"Outline\"",
+"label: \"Osnova\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>Nastavení</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>Čtení</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>Auditní stopa</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>O tomto dokumentu</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">oproti předchozí</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 vs. nejnovější</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">přidáno <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">upraveno <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">odebráno <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">přeneseno beze změny <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>Blok</th><th>Změna</th><th>Dopad</th><th class=\"n\">V</th><th>Zaznamenaný důvod</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; Textové změny &middot; kanonický záznam"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>Klíčová vylepšení &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">Nic se nezměnilo mezi v"
+],
+[
+". Identical bytes.</p>",
+". Identické bajty.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; nejvyšší dopad: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"Historie verzí se uchovává ve zdrojovém jazyce, proto je změna na úrovni slov zobrazena v kanonickém anglickém textu; každý jazyk sleduje nejnovější vydání. Červeně přeškrtnuté je odebráno, zeleně je přidáno."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">Před &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">Po &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">Podrobnosti</summary>"
+]
+]

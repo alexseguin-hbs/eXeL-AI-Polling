@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">인류의 지속을 위한 재귀적 조정</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","인류가 결정한다 &middot; 기술은 보조한다 &middot; 지혜가 이끈다 &middot; 신뢰는 증명되어야 한다"],["label: \"White paper\"","label: \"백서\""],["label: \"Ledger\"","label: \"원장\""],["label: \"Brief\"","label: \"요약\""],["label: \"Outline\"","label: \"개요\""],["<h2>Settings</h2>","<h2>설정</h2>"],["<h5>Reading</h5>","<h5>읽기</h5>"],["<h5>Audit trail</h5>","<h5>감사 기록</h5>"],["<h5>About this document</h5>","<h5>이 문서에 대하여</h5>"],["<label>Baseline <select","<label>기준선 <select"],["<label>Target <select","<label>대상 <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">이전 버전 대비</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 대 최신 버전</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">추가됨 <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">수정됨 <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">삭제됨 <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">변경 없이 유지 <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>블록</th><th>변경</th><th>영향도</th><th class=\"n\">위치</th><th>기록된 사유</th>"],["&#8646; Text changes &middot; canonical record","&#8646; 텍스트 변경 &middot; 정본 기록"],["<h5>Key improvements &middot; ","<h5>주요 개선 사항 &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">변경 사항 없음: v"],[". Identical bytes.</p>",". 바이트 단위로 동일합니다.</p>"],[" &middot; highest impact: "," &middot; 최고 영향도: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","버전 이력은 원문 언어로 보관되므로, 단어 단위 변경 사항은 정본 영어 텍스트로 표시됩니다. 모든 언어는 최신 릴리스를 따릅니다. 취소선 빨간색은 삭제, 초록색은 추가를 의미합니다."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">인류의 지속을 위한 재귀적 조정</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"인류가 결정한다 &middot; 기술은 보조한다 &middot; 지혜가 이끈다 &middot; 신뢰는 증명되어야 한다"
+],
+[
+"label: \"White paper\"",
+"label: \"백서\""
+],
+[
+"label: \"Ledger\"",
+"label: \"원장\""
+],
+[
+"label: \"Brief\"",
+"label: \"요약\""
+],
+[
+"label: \"Outline\"",
+"label: \"개요\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>설정</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>읽기</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>감사 기록</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>이 문서에 대하여</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">이전 버전 대비</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 대 최신 버전</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">추가됨 <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">수정됨 <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">삭제됨 <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">변경 없이 유지 <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>블록</th><th>변경</th><th>영향도</th><th class=\"n\">위치</th><th>기록된 사유</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; 텍스트 변경 &middot; 정본 기록"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>주요 개선 사항 &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">변경 사항 없음: v"
+],
+[
+". Identical bytes.</p>",
+". 바이트 단위로 동일합니다.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; 최고 영향도: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"버전 이력은 원문 언어로 보관되므로, 단어 단위 변경 사항은 정본 영어 텍스트로 표시됩니다. 모든 언어는 최신 릴리스를 따릅니다. 취소선 빨간색은 삭제, 초록색은 추가를 의미합니다."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">변경 전 &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">변경 후 &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">상세</summary>"
+]
+]

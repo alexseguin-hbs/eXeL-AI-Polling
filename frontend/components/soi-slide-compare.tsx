@@ -97,13 +97,13 @@ export function SoiSlideCompare({ versions }: { versions: SlideVersion[] }) {
       <div className="flex flex-wrap items-center gap-3 border-b border-zinc-800 bg-zinc-900/50 px-3 py-2">
         <span className="font-semibold text-cyan-300">Compare slide versions</span>
         <label className="flex items-center gap-1">
-          Historical
+          Before
           <select value={aIdx} onChange={(e) => setAIdx(+e.target.value)} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
             {ordered.map((v, i) => (<option key={v.id} value={i}>{label(v)}</option>))}
           </select>
         </label>
         <label className="flex items-center gap-1">
-          Current
+          After
           <select value={bIdx} onChange={(e) => setBIdx(+e.target.value)} className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
             {ordered.map((v, i) => (<option key={v.id} value={i}>{label(v)}</option>))}
           </select>
@@ -111,7 +111,7 @@ export function SoiSlideCompare({ versions }: { versions: SlideVersion[] }) {
       </div>
 
       {a.id === b.id ? (
-        <p className="px-3 py-3 italic text-zinc-500">Historical and Current are the same version — pick two different versions.</p>
+        <p className="px-3 py-3 italic text-zinc-500">Before and After are the same version — pick two different versions.</p>
       ) : nothing ? (
         <p className="px-3 py-3 italic text-zinc-500">No differences between these two versions.</p>
       ) : (
@@ -152,7 +152,7 @@ export function SoiSlideCompare({ versions }: { versions: SlideVersion[] }) {
                   <div className="flex items-center gap-2 border-b border-zinc-800 bg-zinc-900/40 px-2 py-1">
                     <span className="font-mono text-zinc-300">{c.key}</span>
                     <span className={"rounded border px-1.5 py-0.5 " + TYPE_STYLE[c.type]}>{c.type}</span>
-                    <span className={"rounded px-1.5 py-0.5 " + (c.kind === "added" ? "bg-emerald-500/20 text-emerald-300" : c.kind === "removed" ? "bg-red-500/20 text-red-300" : "bg-zinc-700 text-zinc-300")}>{c.kind}</span>
+                    <span className={"rounded px-1.5 py-0.5 " + (c.kind === "added" ? "bg-emerald-500/20 text-emerald-300" : c.kind === "removed" ? "bg-red-500/20 text-red-300" : "bg-amber-500/20 text-amber-300")}>{c.kind}</span>
                   </div>
                   {wordDiff ? (
                     <div className="grid grid-cols-1 gap-2 px-2 py-2 sm:grid-cols-2">

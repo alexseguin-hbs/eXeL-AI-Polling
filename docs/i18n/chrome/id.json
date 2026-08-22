@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">Koordinasi Rekursif untuk Keberlangsungan Manusia</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","Manusia memutuskan &middot; Teknologi membantu &middot; Kebijaksanaan memandu &middot; Kepercayaan harus dibuktikan"],["label: \"White paper\"","label: \"Kertas Putih\""],["label: \"Ledger\"","label: \"Buku Besar\""],["label: \"Brief\"","label: \"Ringkasan\""],["label: \"Outline\"","label: \"Garis Besar\""],["<h2>Settings</h2>","<h2>Pengaturan</h2>"],["<h5>Reading</h5>","<h5>Bacaan</h5>"],["<h5>Audit trail</h5>","<h5>Jejak Audit</h5>"],["<h5>About this document</h5>","<h5>Tentang Dokumen Ini</h5>"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">vs sebelumnya</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 vs terbaru</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">ditambahkan <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">direvisi <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">dihapus <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">dibawa tanpa perubahan <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>Blok</th><th>Perubahan</th><th>Dampak</th><th class=\"n\">Pada</th><th>Alasan tercatat</th>"],["&#8646; Text changes &middot; canonical record","&#8646; Perubahan teks &middot; catatan kanonis"],["<h5>Key improvements &middot; ","<h5>Peningkatan utama &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">Tidak ada yang berubah antara v"],[". Identical bytes.</p>",". Byte identik.</p>"],[" &middot; highest impact: "," &middot; dampak tertinggi: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","Riwayat versi disimpan dalam bahasa sumber, sehingga perubahan tingkat kata ditampilkan pada teks Inggris kanonis; setiap bahasa mengikuti rilis terbaru. Coretan merah berarti dihapus, hijau berarti ditambahkan."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">Koordinasi Rekursif untuk Keberlangsungan Manusia</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"Manusia memutuskan &middot; Teknologi membantu &middot; Kebijaksanaan memandu &middot; Kepercayaan harus dibuktikan"
+],
+[
+"label: \"White paper\"",
+"label: \"Kertas Putih\""
+],
+[
+"label: \"Ledger\"",
+"label: \"Buku Besar\""
+],
+[
+"label: \"Brief\"",
+"label: \"Ringkasan\""
+],
+[
+"label: \"Outline\"",
+"label: \"Garis Besar\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>Pengaturan</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>Bacaan</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>Jejak Audit</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>Tentang Dokumen Ini</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">vs sebelumnya</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 vs terbaru</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">ditambahkan <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">direvisi <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">dihapus <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">dibawa tanpa perubahan <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>Blok</th><th>Perubahan</th><th>Dampak</th><th class=\"n\">Pada</th><th>Alasan tercatat</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; Perubahan teks &middot; catatan kanonis"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>Peningkatan utama &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">Tidak ada yang berubah antara v"
+],
+[
+". Identical bytes.</p>",
+". Byte identik.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; dampak tertinggi: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"Riwayat versi disimpan dalam bahasa sumber, sehingga perubahan tingkat kata ditampilkan pada teks Inggris kanonis; setiap bahasa mengikuti rilis terbaru. Coretan merah berarti dihapus, hijau berarti ditambahkan."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">Sebelum &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">Sesudah &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">Rincian</summary>"
+]
+]

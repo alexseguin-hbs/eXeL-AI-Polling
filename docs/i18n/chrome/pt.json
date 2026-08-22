@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">Coordenação Recursiva para a Continuidade Humana</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","A Humanidade decide &middot; A Tecnologia assiste &middot; A Sabedoria guia &middot; A Confiança deve ser provada"],["label: \"White paper\"","label: \"Livro branco\""],["label: \"Ledger\"","label: \"Registro\""],["label: \"Brief\"","label: \"Resumo\""],["label: \"Outline\"","label: \"Esboço\""],["<h2>Settings</h2>","<h2>Configurações</h2>"],["<h5>Reading</h5>","<h5>Leitura</h5>"],["<h5>Audit trail</h5>","<h5>Trilha de auditoria</h5>"],["<h5>About this document</h5>","<h5>Sobre este documento</h5>"],["<label>Target <select","<label>Destino <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">vs. anterior</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 vs. mais recente</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">adicionado <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">revisado <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">removido <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">mantido sem alteração <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>Bloco</th><th>Alteração</th><th>Impacto</th><th class=\"n\">Em</th><th>Motivo registrado</th>"],["&#8646; Text changes &middot; canonical record","&#8646; Alterações de texto &middot; registro canônico"],["<h5>Key improvements &middot; ","<h5>Principais melhorias &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">Nada mudou entre v"],[". Identical bytes.</p>",". Bytes idênticos.</p>"],[" &middot; highest impact: "," &middot; maior impacto: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","O histórico de versões é mantido no idioma de origem, então a alteração em nível de palavra é exibida no texto canônico em inglês; todos os idiomas acompanham a versão mais recente. Vermelho tachado é removido, verde é adicionado."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">Coordenação Recursiva para a Continuidade Humana</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"A Humanidade decide &middot; A Tecnologia assiste &middot; A Sabedoria guia &middot; A Confiança deve ser provada"
+],
+[
+"label: \"White paper\"",
+"label: \"Livro branco\""
+],
+[
+"label: \"Ledger\"",
+"label: \"Registro\""
+],
+[
+"label: \"Brief\"",
+"label: \"Resumo\""
+],
+[
+"label: \"Outline\"",
+"label: \"Esboço\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>Configurações</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>Leitura</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>Trilha de auditoria</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>Sobre este documento</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">vs. anterior</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 vs. mais recente</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">adicionado <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">revisado <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">removido <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">mantido sem alteração <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>Bloco</th><th>Alteração</th><th>Impacto</th><th class=\"n\">Em</th><th>Motivo registrado</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; Alterações de texto &middot; registro canônico"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>Principais melhorias &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">Nada mudou entre v"
+],
+[
+". Identical bytes.</p>",
+". Bytes idênticos.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; maior impacto: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"O histórico de versões é mantido no idioma de origem, então a alteração em nível de palavra é exibida no texto canônico em inglês; todos os idiomas acompanham a versão mais recente. Vermelho tachado é removido, verde é adicionado."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">Antes &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">Depois &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">Detalhes</summary>"
+]
+]

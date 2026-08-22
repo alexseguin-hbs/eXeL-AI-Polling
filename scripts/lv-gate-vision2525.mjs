@@ -204,9 +204,12 @@ let VMAXCHK=null;
     fails.push('improvements(VMAX) is empty — key improvements would render blank');
   else if(r.vmaxIsEngineOnly) console.log('VMAX is engine-only — empty improvements panel is correct');
   await p.click('#bCmp');
-  const ui=await p.evaluate(()=>({panel:!!document.querySelector('.cmp'),sel:document.querySelectorAll('.cmp-ctl select').length}));
+  /* r254 · the pickers are two range SLIDERS (Before/After), not selects — r253 replaced
+     the dropdowns with the deck's slider idiom, and r254 renamed the vocabulary. */
+  const ui=await p.evaluate(()=>({panel:!!document.querySelector('.cmp'),sl:document.querySelectorAll('#cmp input[type=range]').length,before:/>Before /.test(document.getElementById('cmp').innerHTML),after:/>After /.test(document.getElementById('cmp').innerHTML)}));
   if(!ui.panel) fails.push('compare panel did not render');
-  if(ui.sel!==2) fails.push('compare panel missing its two selects');
+  if(ui.sl!==2) fails.push('compare panel missing its two Before/After sliders');
+  if(!ui.before||!ui.after) fails.push('compare pickers are not labeled Before/After');
   await p.click('#cmpFirst');
   const hl=await p.evaluate(()=>document.querySelectorAll('section.blk.cmp-add,section.blk.cmp-rev').length);
   if(hl!==r.blocks-r.full.carried) fails.push(`compare highlights ${hl} != changed ${r.blocks-r.full.carried}`);

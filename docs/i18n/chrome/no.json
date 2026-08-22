@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">Rekursiv koordinering for menneskehetens kontinuitet</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","Menneskeheten bestemmer &middot; Teknologi bistår &middot; Visdom veileder &middot; Tillit må bevises"],["label: \"White paper\"","label: \"Hvitbok\""],["label: \"Ledger\"","label: \"Hovedbok\""],["label: \"Brief\"","label: \"Sammendrag\""],["label: \"Outline\"","label: \"Disposisjon\""],["<h2>Settings</h2>","<h2>Innstillinger</h2>"],["<h5>Reading</h5>","<h5>Lesing</h5>"],["<h5>Audit trail</h5>","<h5>Revisjonsspor</h5>"],["<h5>About this document</h5>","<h5>Om dette dokumentet</h5>"],["<label>Baseline <select","<label>Basislinje <select"],["<label>Target <select","<label>Mål <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">vs. forrige</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 vs. siste</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">lagt til <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">revidert <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">fjernet <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">videreført uendret <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>Blokk</th><th>Endring</th><th>Konsekvens</th><th class=\"n\">Ved</th><th>Registrert begrunnelse</th>"],["&#8646; Text changes &middot; canonical record","&#8646; Tekstendringer &middot; kanonisk register"],["<h5>Key improvements &middot; ","<h5>Viktige forbedringer &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">Ingen endringer mellom v"],[". Identical bytes.</p>",". Identiske bytes.</p>"],[" &middot; highest impact: "," &middot; høyest konsekvens: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","Versjonshistorikken føres på kildespråket, så endringen på ordnivå vises i den kanoniske engelske teksten; alle språk følger siste versjon. Rødt gjennomstreket er fjernet, grønt er lagt til."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">Rekursiv koordinering for menneskehetens kontinuitet</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"Menneskeheten bestemmer &middot; Teknologi bistår &middot; Visdom veileder &middot; Tillit må bevises"
+],
+[
+"label: \"White paper\"",
+"label: \"Hvitbok\""
+],
+[
+"label: \"Ledger\"",
+"label: \"Hovedbok\""
+],
+[
+"label: \"Brief\"",
+"label: \"Sammendrag\""
+],
+[
+"label: \"Outline\"",
+"label: \"Disposisjon\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>Innstillinger</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>Lesing</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>Revisjonsspor</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>Om dette dokumentet</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">vs. forrige</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 vs. siste</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">lagt til <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">revidert <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">fjernet <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">videreført uendret <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>Blokk</th><th>Endring</th><th>Konsekvens</th><th class=\"n\">Ved</th><th>Registrert begrunnelse</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; Tekstendringer &middot; kanonisk register"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>Viktige forbedringer &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">Ingen endringer mellom v"
+],
+[
+". Identical bytes.</p>",
+". Identiske bytes.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; høyest konsekvens: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"Versjonshistorikken føres på kildespråket, så endringen på ordnivå vises i den kanoniske engelske teksten; alle språk følger siste versjon. Rødt gjennomstreket er fjernet, grønt er lagt til."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">Før &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">Etter &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">Detaljer</summary>"
+]
+]

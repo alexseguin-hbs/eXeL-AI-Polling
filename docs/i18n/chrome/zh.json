@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">人类延续的递归协调</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","人类决策 · 技术辅助 · 智慧引导 · 信任须经验证"],["label: \"White paper\"","label: \"白皮书\""],["label: \"Ledger\"","label: \"总账\""],["label: \"Brief\"","label: \"简报\""],["label: \"Outline\"","label: \"大纲\""],["<h2>Settings</h2>","<h2>设置</h2>"],["<h5>Reading</h5>","<h5>阅读</h5>"],["<h5>Audit trail</h5>","<h5>审计记录</h5>"],["<h5>About this document</h5>","<h5>关于本文档</h5>"],["<label>Baseline <select","<label>基线 <select"],["<label>Target <select","<label>目标 <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">较上一版本</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 对比最新版</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">新增 <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">修订 <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">删除 <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">保持不变 <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>区块</th><th>变更</th><th>影响</th><th class=\"n\">位置</th><th>记录原因</th>"],["&#8646; Text changes &middot; canonical record","&#8646; 文本变更 &middot; 权威记录"],["<h5>Key improvements &middot; ","<h5>关键改进 &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">之间没有变化 v"],[". Identical bytes.</p>",". 字节完全相同。</p>"],[" &middot; highest impact: "," &middot; 影响最大： "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","版本历史以源语言保存，因此逐词级别的变更以权威英文文本呈现；所有语言版本均跟踪最新版本。红色删除线表示已删除，绿色表示新增。"]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">人类延续的递归协调</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"人类决策 · 技术辅助 · 智慧引导 · 信任须经验证"
+],
+[
+"label: \"White paper\"",
+"label: \"白皮书\""
+],
+[
+"label: \"Ledger\"",
+"label: \"总账\""
+],
+[
+"label: \"Brief\"",
+"label: \"简报\""
+],
+[
+"label: \"Outline\"",
+"label: \"大纲\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>设置</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>阅读</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>审计记录</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>关于本文档</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">较上一版本</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 对比最新版</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">新增 <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">修订 <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">删除 <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">保持不变 <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>区块</th><th>变更</th><th>影响</th><th class=\"n\">位置</th><th>记录原因</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; 文本变更 &middot; 权威记录"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>关键改进 &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">之间没有变化 v"
+],
+[
+". Identical bytes.</p>",
+". 字节完全相同。</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; 影响最大： "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"版本历史以源语言保存，因此逐词级别的变更以权威英文文本呈现；所有语言版本均跟踪最新版本。红色删除线表示已删除，绿色表示新增。"
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">之前 &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">之后 &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">详情</summary>"
+]
+]

@@ -571,6 +571,22 @@ body.cmpshow #cmp{display:block!important;position:fixed;inset:5% 3% 3%;z-index:
 .cmp-sl label{display:block;font-size:.78rem;color:var(--ink-2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmp-sl label span{color:var(--ink)}
 .cmp-sl input[type=range]{width:100%;display:block;min-width:0}
+/* r254 · compact selection bar — the pair statement stays pinned while passages scroll */
+.cmp-bar{position:sticky;top:-2px;z-index:3;display:flex;gap:10px;align-items:center;background:var(--panel);padding:6px 0;border-bottom:1px solid var(--rule)}
+.cmp-bar-t{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cmp-bar button{border:1px solid var(--ai);background:transparent;color:var(--ai);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:.78rem;flex:none}
+/* r254 · kind chips are filters */
+.cmp-sum .k-add,.cmp-sum .k-rev,.cmp-sum .k-rem{cursor:pointer}
+.cmp-sum .on{outline:2px solid currentColor;outline-offset:1px}
+/* r254 · passages: hunks + ellipsis expander + show-all + demoted details */
+.df-pass{line-height:1.7;margin:6px 0 2px}
+.df-t{color:var(--ink-2);font-size:.78rem;margin-left:6px}
+.df-gap{border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:9px;padding:0 8px;margin:0 4px;cursor:pointer;font-size:.75rem;line-height:1.5}
+.df-gap:hover{color:var(--ink);border-color:var(--ink-2)}
+.df-more{display:block;margin:10px auto 2px;border:1px solid var(--rule);background:transparent;color:var(--ai);border-radius:7px;padding:6px 14px;cursor:pointer}
+details.cmp-det{margin-top:14px;border-top:1px solid var(--rule);padding-top:8px}
+details.cmp-det>summary{cursor:pointer;color:var(--ink-2);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
+details.cmp-det>summary:hover{color:var(--ink)}
 .qrmodal[hidden]{display:none}
 .qrmscrim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
 .qrmcard{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:16px;
@@ -1065,7 +1081,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>पठन</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">253</span></strong>, <strong><span id="dlbytes2">5974656</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">254</span></strong>, <strong><span id="dlbytes2">5985889</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>ऑडिट ट्रेल</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6662,6 +6678,20 @@ const VERSIONS = [
    {n:"Christo",g:"A",f:"Pickers no longer move the reading underneath; vs-previous keys off the chosen target, not hidden state."}
   ],
   next:"Fleet gap 5: React kind-labels through the lexicon (33 languages) + one changed-badge colour."
+ },
+{ v:254, code:"THE PASSAGES &mdash; BEFORE / AFTER, PROOF BEFORE ANALYSIS",
+  stamp:"2026.08.22 &middot; revision 254",
+  thrust:"Operator, three directives in one sitting: show the PASSAGES that changed, not statistics; stop taking the whole screen once a pair is chosen; and retire the engineer-speak &mdash; Before and After, the only change-vocabulary every human already trusts. Delivered. The pickers are two sliders named Before and After; commit a pair and they collapse into one sticky line &mdash; the pair statement plus a labeled Change button &mdash; so the passages own the screen. The proof is now a HUNK VIEW: one card per changed section, only the changed sentences with eight words of context, removed struck red, added green, long unchanged runs folded into a tappable ellipsis that expands in place. The kind chips became FILTERS &mdash; tap revised, see only revised; tap again, all return; keyboard-operable, fail-closed. The analysis (key improvements, the changed-block table) is demoted into a collapsed Details drawer below the passages. Every remaining internal integer became a series label. The 48-agent fleet&rsquo;s binding conditions shipped with it: the parity test locks Before/After and one amber changed-token across the document and all three React surfaces; a conformance suite proves the document&rsquo;s inline diff and the shared library emit byte-identical operations; the gate assertion now expects the two sliders it will find. Verified: 26-check battery green at 375px, parity 52/52, conformance 22/22. Totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; v.19 r1.001.",
+  mot:"A citizen asking what changed deserves the sentence that changed &mdash; not a chart about it. Answer, proof, analysis: in that order, in their words, on their screen.",
+  stats:{clauses:309, jur:103, shields:5, defects:42, reach:"full"},
+  asm:[
+   {n:"Asar",g:"A+",f:"Answer then passages then analysis; the card count always equals the promised count."},
+   {n:"Athena",g:"A",f:"Commit collapses to the sticky bar; Change is a labeled button; thumbs restore exactly; 375px one-thumb clean."},
+   {n:"Christo",g:"A",f:"Chips filter and announce their state; every interactive element goes somewhere."},
+   {n:"Sofia",g:"A",f:"Before/After translated in all 32 chrome files in the same pass that repaired the broken picker anchors."},
+   {n:"Thoth",g:"A",f:"Doc and library diff engines proven byte-identical on a shared vector corpus; caps unified."}
+  ],
+  next:"r255 &mdash; the dual-pane deep dive: full changed sections side by side, mirror-scrolled, phrase-coupled."
  }
 ];
 
@@ -19151,7 +19181,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5974656";
+const DL_BYTES = "5985889";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19209,6 +19239,10 @@ const VMAX = VERSIONS.length;
    by default. Process narration is for the one who ASKS. Changes is opt-in. */
 let active = VMAX, showDiff = false, playing = null;
 let cmpOn = false, cmpA = 1, cmpB = VERSIONS.length;
+/* r254 · panel state: cmpSlim collapses the pickers into the sticky pair bar once a pair
+   is committed (deterministic — set on commit, cleared only by the labeled Change button
+   or by reopening Compare); cmpFilter is the kind-chip filter over the passage cards. */
+let cmpSlim = false, cmpFilter = null, cmpShowAll = false, cmpDetOpen = false;
 
 function fnv1a(s){
   let h = 0x811c9dc5;
@@ -20666,6 +20700,55 @@ function dfPair(id, lo, hi){
   return '<div class="df-cols"><div class="df-col df-old"><h6>' + relLabel(lo) + '</h6><p dir="auto">' + (Lc.trim() || '&mdash;') + '</p></div>' +
          '<div class="df-col df-new"><h6>' + relLabel(hi) + '</h6><p dir="auto">' + (Rc.trim() || '&mdash;') + '</p></div></div>';
 }
+/* r254 · THE PASSAGES (operator: "how can we see what passages changed?"). Collapse an op
+   stream into HUNKS: every changed run kept with ±K context words; unchanged runs longer
+   than the context window fold into a tappable ellipsis that expands in place. Pure
+   function of the ops — no clock, no inference. */
+function dfHunks(ops, K){
+  K = K || 8;
+  var parts = [], i = 0, n = ops.length;
+  while (i < n){
+    var eq = ops[i][0] === 0, j = i;
+    while (j < n && (ops[j][0] === 0) === eq) j++;
+    parts.push({ eq: eq, a: i, b: j }); i = j;
+  }
+  var html = '';
+  for (var p = 0; p < parts.length; p++){
+    var pt = parts[p], len = pt.b - pt.a;
+    if (!pt.eq){
+      for (var x = pt.a; x < pt.b; x++){
+        var o = ops[x], e = esc(o[1]);
+        html += (o[0] === -1 ? '<del>' + e + '</del> ' : '<ins>' + e + '</ins> ');
+      }
+      continue;
+    }
+    var head = (p === 0) ? 0 : K, tail = (p === parts.length - 1) ? 0 : K;
+    if (len <= head + tail + 6){
+      for (var y = pt.a; y < pt.b; y++) html += esc(ops[y][1]) + ' ';
+    } else {
+      for (var h1 = pt.a; h1 < pt.a + head; h1++) html += esc(ops[h1][1]) + ' ';
+      var hid = '';
+      for (var h2 = pt.a + head; h2 < pt.b - tail; h2++) hid += esc(ops[h2][1]) + ' ';
+      html += '<button class="df-gap" type="button">&#8943;&nbsp;' + (len - head - tail) + '</button><span class="df-hid" hidden>' + hid + '</span>';
+      for (var h3 = pt.b - tail; h3 < pt.b; h3++) html += esc(ops[h3][1]) + ' ';
+    }
+  }
+  return html.trim();
+}
+/* One passage card body for a changed block: honest at every rung — markup-only says so,
+   over-cap says so, otherwise the hunks. */
+function dfPassage(id, lo, hi){
+  var oldT = dfText(enHtmlAt(id, lo)), newT = dfText(enHtmlAt(id, hi));
+  if (oldT === newT){
+    return '<p class="df-big">Markup-only change &mdash; the visible text is identical between these two releases; what moved is formatting, a link or a diagram. The recorded reason above states what changed.</p>';
+  }
+  var ops = dfDiff(dfTok(oldT), dfTok(newT));
+  if (!ops){
+    return '<p class="df-big">Too large for a word view &mdash; ' + oldT.split(/\s+/).filter(Boolean).length +
+           ' &rarr; ' + newT.split(/\s+/).filter(Boolean).length + ' words. The recorded reason above states what changed.</p>';
+  }
+  return '<p class="df-pass" dir="auto">' + dfHunks(ops, 8) + '</p>';
+}
 function renderCompare(){
   const host = document.getElementById("cmp");
   if (!cmpOn){ host.innerHTML = ""; return; }
@@ -20681,25 +20764,39 @@ function renderCompare(){
      recomputes when the thumb is released. */
   const cmpLbl = (v) => 'v.' + versionAt(v) + ' ' + relLabel(v) + ' &middot; ' + escw(VERSIONS[v-1].code);
 
+  /* r254 · ONE vocabulary, ONE direction (operator: "clean this up — don't even know
+     what you are trying to compare"). The header ALWAYS states the pair plainly, oldest
+     to newest, in the series labels (v.18 r0.242 → v.19 r1.001) — never bare internal
+     integers, never a countdown. Zero-count chips are noise and are dropped; the chip
+     row appears only when something actually changed, and only the non-zero kinds. */
   const isCur = hi === VMAX;
-  let h = '<div class="cmp"><button class="cmp-x" id="cmpClose" aria-label="Close compare" title="Close">' + ICON.close + '</button>' +
-    '<h4>&#8646; ' + (isCur ? 'What changed &mdash; ' + relLabel(lo) + ' &rarr; current ' + relLabel(hi) : 'Compare releases') + '</h4>' +
-    '<div class="cmp-sl"><label for="cmpA">Baseline &middot; <span id="cmpALbl">' + cmpLbl(cmpA) + '</span></label>' +
-      '<input type="range" id="cmpA" min="1" max="' + VMAX + '" step="1" aria-label="Baseline release"></div>' +
-    '<div class="cmp-sl"><label for="cmpB">Target &middot; <span id="cmpBLbl">' + cmpLbl(cmpB) + '</span></label>' +
-      '<input type="range" id="cmpB" min="1" max="' + VMAX + '" step="1" aria-label="Target release"></div>' +
+  const vLbl = (v) => 'v.' + versionAt(v) + ' ' + relLabel(v);
+  /* r254 · COMPACT SELECTION BAR: once a pair is committed the pickers collapse into one
+     sticky line so the passages own the screen; the labeled Change button re-expands with
+     both thumbs intact. Deterministic — no timers. */
+  let h = '<div class="cmp"><button class="cmp-x" id="cmpClose" aria-label="Close compare" title="Close">' + ICON.close + '</button>';
+  if (cmpSlim){
+    h += '<div class="cmp-bar"><span class="cmp-bar-t">&#8646; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</span>' +
+         '<button id="cmpEdit" type="button">Change</button></div>';
+  } else {
+    h += '<h4>&#8646; What changed &mdash; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</h4>' +
+    '<div class="cmp-sl"><label for="cmpA">पहले &middot; <span id="cmpALbl">' + cmpLbl(cmpA) + '</span></label>' +
+      '<input type="range" id="cmpA" min="1" max="' + VMAX + '" step="1" aria-label="Before release"></div>' +
+    '<div class="cmp-sl"><label for="cmpB">बाद में &middot; <span id="cmpBLbl">' + cmpLbl(cmpB) + '</span></label>' +
+      '<input type="range" id="cmpB" min="1" max="' + VMAX + '" step="1" aria-label="After release"></div>' +
     '<div class="cmp-ctl">' +
       '<button id="cmpPrev">पिछले की तुलना में</button>' +
       '<button id="cmpFirst">v1 बनाम नवीनतम</button>' +
-    '</div>' +
-    '<div class="cmp-sum">' +
-      '<span class="k-add">जोड़ा गया <b>' + c.added + '</b></span>' +
-      '<span class="k-rev">संशोधित <b>' + c.revised + '</b></span>' +
-      '<span class="k-rem">हटाया गया <b>' + c.removed + '</b></span>' +
+    '</div>';
+  }
+  h += (dr.changed.length ? '<div class="cmp-sum">' +
+      (c.added ? '<span class="k-add">जोड़ा गया <b>' + c.added + '</b></span>' : '') +
+      (c.revised ? '<span class="k-rev">संशोधित <b>' + c.revised + '</b></span>' : '') +
+      (c.removed ? '<span class="k-rem">हटाया गया <b>' + c.removed + '</b></span>' : '') +
       '<span class="k-car">अपरिवर्तित रखा गया <b>' + c.carried + '</b></span>' +
       '<span class="k-car">' + dr.releasesCrossed + ' release' + (dr.releasesCrossed===1?'':'s') + ' crossed</span>' +
-      '<span class="k-car">v' + lo + ' &rarr; v' + hi + '</span>' +
-    '</div>';
+      (cmpFilter ? '<span class="k-car" id="cmpState">Filtered: ' + esc(cmpFilter) + '</span>' : '') +
+    '</div>' : '');
 
   const changed = dr.changed;
   if (!changed.length){
@@ -20710,8 +20807,10 @@ function renderCompare(){
          notes) to show what each crossed release DID change (interface / record only). */
       h += '<p class="none">No document content changed between ' + relLabel(lo) + ' and ' + relLabel(hi) +
            ' &mdash; the paper, brief and registers are byte-identical. These releases changed the interface and the record only. From the ledger, what each one did:</p>';
-      h += '<ul class="cmp-top"><h5>&#8646; From the ledger &middot; ' + relLabel(hi) + ' &larr; ' + relLabel(lo) + '</h5>';
-      for (var lv = hi; lv > lo; lv--){
+      /* r254 · the ledger list reads FORWARD — oldest crossed release first, arrow
+         pointing the way time runs, same as the header and the slider. */
+      h += '<ul class="cmp-top"><h5>&#8646; From the ledger &middot; ' + relLabel(lo) + ' &rarr; ' + relLabel(hi) + '</h5>';
+      for (var lv = lo + 1; lv <= hi; lv++){
         var LV = VERSIONS[lv - 1];
         if (!LV) continue;
         h += '<li><span class="rk">' + relLabel(lv) + '</span>' +
@@ -20720,74 +20819,117 @@ function renderCompare(){
       }
       h += '</ul>';
     } else {
-      h += '<p class="none">' + relLabel(lo) + ' is a single release &mdash; choose a different Baseline and Target to compare two.</p>';
+      h += '<p class="none">' + relLabel(lo) + ' is a single release &mdash; choose a different Before and After to compare two.</p>';
     }
   } else {
-    /* Highest impact + sections affected — the "how important / where" answer. */
+    /* r254 · THE ANSWER, one sentence — then THE PASSAGES, then analysis. Proof before
+       analysis is the trust spine; the append-only fact is stated up front, not buried. */
     const hiIds = dr.top.filter(function(d){ return d.impact === "L5" || d.impact === "L4"; })
                         .map(function(d){ return '<b>' + esc(d.id) + '</b>'; }).slice(0, 4);
     h += '<p class="cmp-hi">' + changed.length + ' change' + (changed.length===1?'':'s') +
          ' across <b>' + dr.sectionsAffected.length + '</b> section' + (dr.sectionsAffected.length===1?'':'s') +
-         (hiIds.length ? ' &middot; सर्वाधिक प्रभाव: ' + hiIds.join(', ') : '') + '</p>';
+         (hiIds.length ? ' &middot; सर्वाधिक प्रभाव: ' + hiIds.join(', ') : '') +
+         ' &middot; removed 0 &mdash; append-only</p>';
 
-    /* Key improvements — the top 7 by deterministic impact (highest first). */
-    h += '<ul class="cmp-top"><h5>मुख्य सुधार &middot; r' + lo + ' &rarr; r' + hi + '</h5>';
+    /* r254 · THE PASSAGES — one card per changed block, hunks only (changed runs with
+       ±8 context words, long unchanged runs folded into a tappable ellipsis). Uncapped:
+       first 20 render eagerly, the rest behind one deterministic "Show all" tap. */
+    var dfByImp = changed.slice().sort(function(a, b){ var rk = {L5:5,L4:4,L3:3,L2:2,L1:1};
+      return (rk[b.impact] - rk[a.impact]) || (b.v - a.v); });
+    var dfList = dfByImp.filter(function(d){ return d.kind !== "removed"; });
+    var dfShown = cmpShowAll ? dfList : dfList.slice(0, 20);
+    if (dfList.length){
+      h += '<div class="df-wrap" id="cmpPass"><h5>&#8646; टेक्स्ट परिवर्तन &middot; प्रामाणिक रिकॉर्ड</h5>' +
+           '<p class="df-note">संस्करण इतिहास मूल भाषा में रखा जाता है, इसलिए शब्द-स्तरीय परिवर्तन प्रामाणिक अंग्रेज़ी टेक्स्ट में दिखाया जाता है; हर भाषा नवीनतम रिलीज़ को ट्रैक करती है। स्ट्राइकथ्रू लाल हटाया गया है, हरा जोड़ा गया है।</p>';
+      dfShown.forEach(function(d){
+        h += '<div class="df-blk" data-kind="' + d.kind + '"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
+             '<span class="pill ' + (d.kind === "added" ? "k-add" : "k-rev") + '">' + d.kind + '</span> ' +
+             '<span class="df-t">' + escw(d.title) + '</span></div>' +
+             dfPassage(d.id, lo, hi) + '</div>';
+      });
+      if (dfList.length > dfShown.length)
+        h += '<button id="cmpMore" type="button" class="df-more">Show all ' + dfList.length + ' changed sections</button>';
+      h += '</div>';
+    }
+
+    /* r254 · THE ANALYSIS — demoted below the passages, collapsed by default. */
+    h += '<details class="cmp-det"' + (cmpDetOpen ? ' open' : '') + '><summary class="cmp-det-s">विवरण</summary>';
+    h += '<ul class="cmp-top"><h5>मुख्य सुधार &middot; ' + relLabel(lo) + ' &rarr; ' + relLabel(hi) + '</h5>';
     dr.top.forEach(function(d, i){
       h += '<li><span class="rk">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
            '<span class="ti">' + escw(d.title) + '</span>' +
            '<span class="imp ' + d.impact.toLowerCase() + '" title="' + d.category + '">' + d.impact + '</span></li>';
     });
     h += '</ul>';
-
     h += '<div class="scroll"><table><tr><th>ब्लॉक</th><th>परिवर्तन</th><th>प्रभाव</th><th class="n">पर</th><th>दर्ज कारण</th></tr>';
     for (const r of changed){
       const cls = r.kind === "added" ? "k-add" : r.kind === "revised" ? "k-rev" : "k-rem";
       h += '<tr><td><code>' + esc(r.id) + '</code></td>' +
            '<td><span class="pill ' + cls + '">' + r.kind + '</span></td>' +
            '<td><span class="imp ' + r.impact.toLowerCase() + '" title="' + r.category + '">' + r.impact + '</span></td>' +
-           '<td class="n">v' + r.v + '</td><td>' + escw(r.why) + '</td></tr>';
+           '<td class="n">' + relLabel(r.v) + '</td><td>' + escw(r.why) + '</td></tr>';
     }
     h += '</table><caption>Impact is deterministic (L1 editorial &rarr; L5 constitutional/ontology), derived from the ' +
          'block, not from any AI. <strong>green</strong> first written in this range, <strong>gold</strong> revised in it. ' +
          'The removed column reads zero because an append-only ledger has no delete.</caption></div>';
-    /* r243 · the actual text change, canonical English, side by side. */
-    var dfByImp = changed.slice().sort(function(a, b){ var rk = {L5:5,L4:4,L3:3,L2:2,L1:1};
-      return (rk[b.impact] - rk[a.impact]) || (b.v - a.v); });
-    var dfList = dfByImp.filter(function(d){ return d.kind !== "removed"; });
-    var dfShown = dfList.slice(0, 14);
-    if (dfShown.length){
-      h += '<div class="df-wrap"><h5>&#8646; टेक्स्ट परिवर्तन &middot; प्रामाणिक रिकॉर्ड</h5>' +
-           '<p class="df-note">संस्करण इतिहास मूल भाषा में रखा जाता है, इसलिए शब्द-स्तरीय परिवर्तन प्रामाणिक अंग्रेज़ी टेक्स्ट में दिखाया जाता है; हर भाषा नवीनतम रिलीज़ को ट्रैक करती है। स्ट्राइकथ्रू लाल हटाया गया है, हरा जोड़ा गया है।</p>';
-      dfShown.forEach(function(d){
-        h += '<div class="df-blk"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
-             '<span class="pill ' + (d.kind === "added" ? "k-add" : "k-rev") + '">' + d.kind + '</span></div>' +
-             '<div class="scroll">' + dfPair(d.id, lo, hi) + '</div></div>';
-      });
-      if (dfList.length > dfShown.length)
-        h += '<p class="df-note">Showing the ' + dfShown.length + ' highest-impact of ' + dfList.length + ' changed blocks &mdash; narrow the Baseline/Target range to read the rest.</p>';
-      h += '</div>';
-    }
+    h += '</details>';
   }
   host.innerHTML = h + '</div>';
 
   /* r253 · slider wiring: 'input' scrubs the label live (no recompute mid-drag — a word-
-     LCS per tick would jank a phone); 'change' (thumb released) recomputes the panel.
-     Pickers no longer call goto() — choosing a compare pair must never navigate the deck
-     underneath the modal (fleet: one control, one meaning). */
+     LCS per tick would jank a phone); 'change' (thumb released) recomputes the panel and
+     collapses the pickers into the sticky bar (r254). Pickers never call goto() — choosing
+     a pair must never navigate the deck underneath the modal (one control, one meaning). */
   var slA = document.getElementById("cmpA"), slB = document.getElementById("cmpB");
-  slA.value = cmpA; slB.value = cmpB;
-  slA.addEventListener("input", function(){ document.getElementById("cmpALbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
-  slB.addEventListener("input", function(){ document.getElementById("cmpBLbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
-  slA.addEventListener("change", function(){ cmpA = parseInt(this.value,10); renderDoc(); });
-  slB.addEventListener("change", function(){ cmpB = parseInt(this.value,10); renderDoc(); });
-  document.getElementById("cmpPrev").addEventListener("click", function(){
-    cmpA = Math.max(1, Math.max(cmpA, cmpB) - 1); renderDoc();
-  });
+  if (slA && slB){
+    slA.value = cmpA; slB.value = cmpB;
+    slA.addEventListener("input", function(){ document.getElementById("cmpALbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
+    slB.addEventListener("input", function(){ document.getElementById("cmpBLbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
+    slA.addEventListener("change", function(){ cmpA = parseInt(this.value,10); cmpSlim = true; cmpShowAll = false; renderDoc(); });
+    slB.addEventListener("change", function(){ cmpB = parseInt(this.value,10); cmpSlim = true; cmpShowAll = false; renderDoc(); });
+  }
+  var pv = document.getElementById("cmpPrev");
+  if (pv) pv.addEventListener("click", function(){ cmpA = Math.max(1, Math.max(cmpA, cmpB) - 1); cmpSlim = true; cmpShowAll = false; renderDoc(); });
+  var f1 = document.getElementById("cmpFirst");
+  if (f1) f1.addEventListener("click", function(){ cmpA = 1; cmpB = VMAX; cmpSlim = true; cmpShowAll = false; renderDoc(); });
+  /* r254 · the labeled Change button re-expands the pickers with both thumbs intact */
+  var ed = document.getElementById("cmpEdit");
+  if (ed) ed.addEventListener("click", function(){ cmpSlim = false; renderDoc(); });
   var cx = document.getElementById("cmpClose");
   if (cx) cx.addEventListener("click", function(){ setCompare(false); var b = document.getElementById("bCmp"); if (b) b.focus(); });
-  document.getElementById("cmpFirst").addEventListener("click", function(){
-    cmpA = 1; cmpB = VMAX; renderDoc();
+  /* r254 · kind chips are FILTERS. Behavior + a11y are attached AFTER render (setAttribute,
+     never markup) so the 32-language translation anchors on the chip markup stay intact.
+     Fail-closed: any filter error clears the filter and shows everything. */
+  function applyCmpFilter(){
+    try {
+      var cards = host.querySelectorAll('#cmpPass .df-blk');
+      for (var ci = 0; ci < cards.length; ci++){
+        cards[ci].style.display = (!cmpFilter || cards[ci].getAttribute('data-kind') === cmpFilter) ? '' : 'none';
+      }
+    } catch (e){ cmpFilter = null; var all = host.querySelectorAll('#cmpPass .df-blk'); for (var ai = 0; ai < all.length; ai++) all[ai].style.display = ''; }
+  }
+  var chipKinds = { 'k-add': 'added', 'k-rev': 'revised', 'k-rem': 'removed' };
+  Object.keys(chipKinds).forEach(function(cls){
+    var chip = host.querySelector('.cmp-sum .' + cls);
+    if (!chip) return;
+    var kind = chipKinds[cls];
+    chip.setAttribute('role', 'button'); chip.setAttribute('tabindex', '0');
+    chip.setAttribute('aria-pressed', cmpFilter === kind ? 'true' : 'false');
+    chip.classList.toggle('on', cmpFilter === kind);
+    var act = function(){ cmpFilter = (cmpFilter === kind) ? null : kind; renderDoc(); };
+    chip.addEventListener('click', act);
+    chip.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); act(); } });
   });
+  applyCmpFilter();
+  /* r254 · ellipsis expanders + show-all + Details memory */
+  var gaps = host.querySelectorAll('.df-gap');
+  for (var gi = 0; gi < gaps.length; gi++){
+    gaps[gi].addEventListener('click', function(){ var s = this.nextElementSibling; if (s) s.hidden = false; this.remove(); });
+  }
+  var more = document.getElementById('cmpMore');
+  if (more) more.addEventListener('click', function(){ cmpShowAll = true; renderDoc(); });
+  var det = host.querySelector('details.cmp-det');
+  if (det) det.addEventListener('toggle', function(){ cmpDetOpen = det.open; });
 }
 
 function panelMean(V){
@@ -21010,6 +21152,8 @@ function setCompare(on, base){
   cmpOn = !!on;
   document.getElementById("bCmp").setAttribute("aria-pressed", cmpOn ? "true" : "false");
   if (cmpOn){ cmpB = VMAX; cmpA = (base != null ? Math.max(1, Math.min(VMAX, base)) : defaultCmpBase()); }
+  /* r254 · fresh open shows the pickers expanded, unfiltered, unexpanded */
+  cmpSlim = false; cmpFilter = null; cmpShowAll = false;
   document.body.classList.toggle("cmpshow", cmpOn);
   var scrim = document.getElementById("cmpScrim"); if (scrim) scrim.hidden = !cmpOn;
   renderDoc();

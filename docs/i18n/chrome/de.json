@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">Rekursive Koordination für menschliche Kontinuität</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","Die Menschheit entscheidet &middot; Technologie unterstützt &middot; Weisheit leitet &middot; Vertrauen muss bewiesen werden"],["label: \"White paper\"","label: \"Whitepaper\""],["label: \"Ledger\"","label: \"Hauptbuch\""],["label: \"Brief\"","label: \"Kurzfassung\""],["label: \"Outline\"","label: \"Gliederung\""],["<h2>Settings</h2>","<h2>Einstellungen</h2>"],["<h5>Reading</h5>","<h5>Lesen</h5>"],["<h5>Audit trail</h5>","<h5>Prüfpfad</h5>"],["<h5>About this document</h5>","<h5>Über dieses Dokument</h5>"],["<label>Target <select","<label>Ziel <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">vs. vorherige</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 vs. aktuell</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">hinzugefügt <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">überarbeitet <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">entfernt <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">unverändert übernommen <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>Block</th><th>Änderung</th><th>Auswirkung</th><th class=\"n\">Am</th><th>Dokumentierter Grund</th>"],["&#8646; Text changes &middot; canonical record","&#8646; Textänderungen &middot; maßgebliche Fassung"],["<h5>Key improvements &middot; ","<h5>Wichtigste Verbesserungen &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">Keine Änderungen zwischen v"],[". Identical bytes.</p>",". Identische Bytes.</p>"],[" &middot; highest impact: "," &middot; höchste Auswirkung: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","Der Versionsverlauf wird in der Ausgangssprache geführt, daher wird die Änderung auf Wortebene im maßgeblichen englischen Text angezeigt; jede Sprache verfolgt die neueste Version. Durchgestrichenes Rot ist entfernt, Grün ist hinzugefügt."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">Rekursive Koordination für menschliche Kontinuität</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"Die Menschheit entscheidet &middot; Technologie unterstützt &middot; Weisheit leitet &middot; Vertrauen muss bewiesen werden"
+],
+[
+"label: \"White paper\"",
+"label: \"Whitepaper\""
+],
+[
+"label: \"Ledger\"",
+"label: \"Hauptbuch\""
+],
+[
+"label: \"Brief\"",
+"label: \"Kurzfassung\""
+],
+[
+"label: \"Outline\"",
+"label: \"Gliederung\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>Einstellungen</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>Lesen</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>Prüfpfad</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>Über dieses Dokument</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">vs. vorherige</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 vs. aktuell</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">hinzugefügt <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">überarbeitet <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">entfernt <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">unverändert übernommen <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>Block</th><th>Änderung</th><th>Auswirkung</th><th class=\"n\">Am</th><th>Dokumentierter Grund</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; Textänderungen &middot; maßgebliche Fassung"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>Wichtigste Verbesserungen &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">Keine Änderungen zwischen v"
+],
+[
+". Identical bytes.</p>",
+". Identische Bytes.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; höchste Auswirkung: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"Der Versionsverlauf wird in der Ausgangssprache geführt, daher wird die Änderung auf Wortebene im maßgeblichen englischen Text angezeigt; jede Sprache verfolgt die neueste Version. Durchgestrichenes Rot ist entfernt, Grün ist hinzugefügt."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">Vorher &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">Nachher &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">Details</summary>"
+]
+]

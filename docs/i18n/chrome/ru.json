@@ -1,1 +1,106 @@
-[[">Recursive Coordination for Human Continuity</h1>",">Рекурсивная координация ради непрерывности человечества</h1>"],["Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven","Человечество решает &middot; Технологии помогают &middot; Мудрость направляет &middot; Доверие нужно доказать"],["label: \"White paper\"","label: \"Белая книга\""],["label: \"Ledger\"","label: \"Реестр\""],["label: \"Brief\"","label: \"Сводка\""],["label: \"Outline\"","label: \"Оглавление\""],["<h2>Settings</h2>","<h2>Настройки</h2>"],["<h5>Reading</h5>","<h5>Чтение</h5>"],["<h5>Audit trail</h5>","<h5>Журнал аудита</h5>"],["<h5>About this document</h5>","<h5>Об этом документе</h5>"],["<label>Baseline <select","<label>Базовая версия <select"],["<label>Target <select","<label>Целевая версия <select"],["<button id=\"cmpPrev\">vs previous</button>","<button id=\"cmpPrev\">по сравнению с предыдущей</button>"],["<button id=\"cmpFirst\">v1 vs latest</button>","<button id=\"cmpFirst\">v1 vs последняя</button>"],["<span class=\"k-add\">added <b>","<span class=\"k-add\">добавлено <b>"],["<span class=\"k-rev\">revised <b>","<span class=\"k-rev\">изменено <b>"],["<span class=\"k-rem\">removed <b>","<span class=\"k-rem\">удалено <b>"],["<span class=\"k-car\">carried unchanged <b>","<span class=\"k-car\">перенесено без изменений <b>"],["<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>","<th>Блок</th><th>Изменение</th><th>Влияние</th><th class=\"n\">В</th><th>Указанная причина</th>"],["&#8646; Text changes &middot; canonical record","&#8646; Изменения текста &middot; каноническая запись"],["<h5>Key improvements &middot; ","<h5>Ключевые улучшения &middot; "],["<p class=\"none\">Nothing changed between v","<p class=\"none\">Ничего не изменилось между v"],[". Identical bytes.</p>",". Идентичные байты.</p>"],[" &middot; highest impact: "," &middot; наибольшее влияние: "],["Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.","История версий ведётся на исходном языке, поэтому изменения на уровне слов показаны в каноническом английском тексте; каждый язык отслеживает последний релиз. Зачёркнутый красный текст — удалено, зелёный — добавлено."]]
+[
+[
+">Recursive Coordination for Human Continuity</h1>",
+">Рекурсивная координация ради непрерывности человечества</h1>"
+],
+[
+"Humanity decides &middot; Technology assists &middot; Wisdom guides &middot; Trust must be proven",
+"Человечество решает &middot; Технологии помогают &middot; Мудрость направляет &middot; Доверие нужно доказать"
+],
+[
+"label: \"White paper\"",
+"label: \"Белая книга\""
+],
+[
+"label: \"Ledger\"",
+"label: \"Реестр\""
+],
+[
+"label: \"Brief\"",
+"label: \"Сводка\""
+],
+[
+"label: \"Outline\"",
+"label: \"Оглавление\""
+],
+[
+"<h2>Settings</h2>",
+"<h2>Настройки</h2>"
+],
+[
+"<h5>Reading</h5>",
+"<h5>Чтение</h5>"
+],
+[
+"<h5>Audit trail</h5>",
+"<h5>Журнал аудита</h5>"
+],
+[
+"<h5>About this document</h5>",
+"<h5>Об этом документе</h5>"
+],
+[
+"<button id=\"cmpPrev\">vs previous</button>",
+"<button id=\"cmpPrev\">по сравнению с предыдущей</button>"
+],
+[
+"<button id=\"cmpFirst\">v1 vs latest</button>",
+"<button id=\"cmpFirst\">v1 vs последняя</button>"
+],
+[
+"<span class=\"k-add\">added <b>",
+"<span class=\"k-add\">добавлено <b>"
+],
+[
+"<span class=\"k-rev\">revised <b>",
+"<span class=\"k-rev\">изменено <b>"
+],
+[
+"<span class=\"k-rem\">removed <b>",
+"<span class=\"k-rem\">удалено <b>"
+],
+[
+"<span class=\"k-car\">carried unchanged <b>",
+"<span class=\"k-car\">перенесено без изменений <b>"
+],
+[
+"<th>Block</th><th>Change</th><th>Impact</th><th class=\"n\">At</th><th>Recorded reason</th>",
+"<th>Блок</th><th>Изменение</th><th>Влияние</th><th class=\"n\">В</th><th>Указанная причина</th>"
+],
+[
+"&#8646; Text changes &middot; canonical record",
+"&#8646; Изменения текста &middot; каноническая запись"
+],
+[
+"<h5>Key improvements &middot; ",
+"<h5>Ключевые улучшения &middot; "
+],
+[
+"<p class=\"none\">Nothing changed between v",
+"<p class=\"none\">Ничего не изменилось между v"
+],
+[
+". Identical bytes.</p>",
+". Идентичные байты.</p>"
+],
+[
+" &middot; highest impact: ",
+" &middot; наибольшее влияние: "
+],
+[
+"Version history is kept in the source language, so the word-level change is shown in the canonical English text; every language tracks the latest release. Struck-through red is removed, green is added.",
+"История версий ведётся на исходном языке, поэтому изменения на уровне слов показаны в каноническом английском тексте; каждый язык отслеживает последний релиз. Зачёркнутый красный текст — удалено, зелёный — добавлено."
+],
+[
+"<label for=\"cmpA\">Before &middot; ",
+"<label for=\"cmpA\">До &middot; "
+],
+[
+"<label for=\"cmpB\">After &middot; ",
+"<label for=\"cmpB\">После &middot; "
+],
+[
+"<summary class=\"cmp-det-s\">Details</summary>",
+"<summary class=\"cmp-det-s\">Подробности</summary>"
+]
+]
