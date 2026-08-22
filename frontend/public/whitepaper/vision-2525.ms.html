@@ -1169,7 +1169,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Bacaan</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">269</span></strong>, <strong><span id="dlbytes2">6054657</span> bytes</strong> (<span id="dlsize2">6.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">270</span></strong>, <strong><span id="dlbytes2">6057064</span> bytes</strong> (<span id="dlsize2">6.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Jejak Audit</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1862,7 +1862,13 @@ function relLabel(n){
    what each crossed release actually changed. The reader picks any other pair from the
    Baseline/Target selects. (r251 removed the orphaned lastContentRev() helper the fleet
    flagged as dead code; the operator's this-vs-last directive is the default, by design.) */
-function defaultCmpBase(){ return Math.max(1, VMAX - 1); }
+/* r270 · the default compare pair is the WHOLE evolution (operator): Before = the first
+   release (top slider all the way LEFT), After = the latest (bottom slider all the way
+   RIGHT). The old VMAX-1 default paired the two newest releases — interface-only, so it
+   showed "nothing changed", and with the r268 guardrail its After slider collapsed to a
+   single point (thumb jammed left). r0.001 -> latest shows real changes and reads
+   top-left -> bottom-right. */
+function defaultCmpBase(){ return 1; }
 
 /* ── VERSIONS ─────────────────────────────────────────────────────────── */
 const VERSIONS = [
@@ -6984,6 +6990,18 @@ const VERSIONS = [
    {n:"Enki",g:"A",f:"Tolerance is the section: within-section nudge stays lit; clamp holds; guard clears then re-reads sync."}
   ],
   next:"Optional: stack the panes full-width on phones for even more room; then the per-section feedback layer."
+ },
+{ v:270, code:"THE DEFAULT COMPARES THE WHOLE STORY &mdash; FIRST RELEASE TO LATEST",
+  stamp:"2026.08.22 &middot; revision 270",
+  thrust:"Operator, the compare panel now opens on the whole evolution: Before is the FIRST release with its slider all the way LEFT, After is the LATEST with its slider all the way RIGHT. The old default paired the two newest releases &mdash; which are interface-only, so it opened on &lsquo;nothing changed&rsquo; &mdash; and, worse, the r268 guardrail collapsed that pair&rsquo;s After slider to a single point so its thumb jammed to the far left, which read as broken. Both are fixed by one honest default: r0.001 &rarr; latest. Open compare and you immediately see everything the document has become &mdash; the summary, the ranked key improvements, and the passages &mdash; with the two thumbs reading top-left to bottom-right exactly as the eye expects. The buttons still offer the narrower cuts (vs previous, this view vs current) for when you want them. This was my error to introduce and mine to fix; the default is now locked by the battery so it cannot regress. Totals hold; gate clean; v.19 r1.001.",
+  mot:"A comparison tool should open on the most useful question, not the emptiest. First release to latest &mdash; the whole story &mdash; is the honest default, and the sliders should read the way the eye reads: left to right.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Opens on the whole evolution, thumbs top-left to bottom-right; the narrower cuts stay one tap away."},
+   {n:"Thor",g:"A",f:"The degenerate single-point After slider (my r268 guardrail x the VMAX-1 default) is gone; default locked by battery."},
+   {n:"Christo",g:"A",f:"No more opening on \"nothing changed\" &mdash; the first thing seen is real change, ranked."}
+  ],
+  next:"Fleet-48 residual gaps (in flight); optional mobile pane stacking; per-section feedback layer."
  }
 ];
 
@@ -19473,7 +19491,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6054657";
+const DL_BYTES = "6057064";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){

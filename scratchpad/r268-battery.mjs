@@ -52,6 +52,18 @@ s = await pg.evaluate(() => {
 });
 ok(s.length === 0, `After > Before holds across sampled pairs (${s.length ? s.join(',') : 'all valid'})`);
 
+// r270 · default pair = the WHOLE evolution: Before far-LEFT (r0.001), After far-RIGHT (latest)
+s = await pg.evaluate(() => { document.getElementById('bCmp').click();
+  const A = document.getElementById('cmpA'), B = document.getElementById('cmpB');
+  const o = { a: +A.value, b: +B.value, vmax: VMAX,
+    aLeft: (A.value - A.min) / (A.max - A.min) < 0.05,
+    bRight: (B.value - B.min) / (B.max - B.min) > 0.95,
+    degen: (A.max === A.min || B.max === B.min) };
+  setCompare(false); return o; });
+ok(s.a === 1 && s.b === s.vmax, `default pair is r0.001 -> latest (Before ${s.a}, After ${s.b})`);
+ok(s.aLeft && s.bRight, 'default: top slider far-LEFT, bottom slider far-RIGHT');
+ok(!s.degen, 'no degenerate (single-point) slider at the default');
+
 console.log(`\nR268 BATTERY: ${passes} passed, ${fails} failed`);
 await b.close();
 process.exit(fails ? 1 : 0);
