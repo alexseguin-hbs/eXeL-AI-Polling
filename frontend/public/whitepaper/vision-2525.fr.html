@@ -1155,7 +1155,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lecture</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">262</span></strong>, <strong><span id="dlbytes2">6032901</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">263</span></strong>, <strong><span id="dlbytes2">6036631</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Piste d&rsquo;audit</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6865,6 +6865,18 @@ const VERSIONS = [
    {n:"Aset",g:"A",f:"Presentation only; the measured keyframes are unchanged, so the deck and the compare rails still agree on where history lives."}
   ],
   next:"Wire the gate + batteries into CI; then the per-section feedback layer with resolution timelines."
+ },
+{ v:263, code:"SELECT THE BASE &mdash; THE OTHER SIDE JUMPS TO WHAT YOU PICKED",
+  stamp:"2026.08.22 &middot; revision 263",
+  thrust:"Operator, the mirror now honours a selection, not only a scroll. In side-by-side, the last thing you touched &mdash; a SCROLL or a TAP &mdash; makes that column the base, and tapping MIRROR brings the other side to it. Tap a passage in the left and the right jumps so the same passage sits at the same height; tap one in the right and the left comes to meet it; scroll either column and the base follows your scroll instead. Whichever you did last wins, so the base is always the thing you are actually looking at. The tap still only marks and flashes &mdash; nothing moves until you choose MIRROR &mdash; so there is never a surprise slide, and the button lights to tell you a jump is waiting. The jump is clamped so a passage near the end never overscrolls, guarded so the button&rsquo;s own move never re-arms it, and re-tapping is idempotent &mdash; the same pick lands in the same place every time. Tested across the panes: left-selects and right-selects, first passage, middle and last, and the scroll-then-select last-wins rule &mdash; ten checks green, and the r255/r259/r260 batteries still pass. Totals hold; gate clean; v.19 r1.001.",
+  mot:"The base is whatever the reader last touched. An instrument that follows the hand&rsquo;s last intent &mdash; a scroll or a pick &mdash; never has to be told which side to trust.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Christo",g:"A",f:"One rule extended cleanly: last touch &mdash; scroll or tap &mdash; is the base; only MIRROR moves a pane; the pick lands at the same height."},
+   {n:"Athena",g:"A",f:"Tap the passage you care about, tap MIRROR, the other side is there &mdash; the fewest moves to compare a specific passage."},
+   {n:"Enki",g:"A",f:"First, middle and last passages all land clamped; absent counterpart and uneven panes never overscroll."}
+  ],
+  next:"Version rebanding (v.01..v.18 across the history) awaits the operator&rsquo;s ratification of the epoch boundaries; then the per-section feedback layer."
  }
 ];
 
@@ -19354,7 +19366,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6032901";
+const DL_BYTES = "6036631";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21344,17 +21356,31 @@ function renderCompare(){
        [0, max] so an absent counterpart or unequal heights never overscroll. Thor: the
        programmatic scrollTop fires an ASYNC 'scroll'; hold the guard up briefly and always
        clear it on a timer so it can never stick true (even if the try threw). */
+    var mirItem = null;   /* r263 · the specifically SELECTED item (a tap); null when the base was set by a scroll */
+    /* align the FOLLOWER to the LEAD (the base). If an item was SELECTED (tapped), the
+       follower's counterpart lands at the SAME on-screen height as the selected item — the
+       other side jumps to exactly what you picked. Otherwise it follows the lead's scroll
+       position (section anchor + fractional offset, r260). Enki: clamp to [0,max] so an
+       absent counterpart or uneven panes never overscroll. Thor: the programmatic scrollTop
+       fires an ASYNC 'scroll' — hold the guard briefly and always clear it on a timer. */
     var alignPanes = function(lead, follow){
       cmpMirrorProg = true;
       if (progTimer) clearTimeout(progTimer);
       try {
-        var secs = lead.querySelectorAll('.dd-sec'), top = lead.scrollTop, pick = null;
-        for (var si = 0; si < secs.length; si++){ if (secs[si].offsetTop <= top + 8) pick = secs[si]; else break; }
+        var top = lead.scrollTop, pick = null;
+        if (mirItem) pick = lead.querySelector('.dd-sec[data-id="' + mirItem.replace(/"/g, '') + '"]');
+        if (!pick){
+          var secs = lead.querySelectorAll('.dd-sec');
+          for (var si = 0; si < secs.length; si++){ if (secs[si].offsetTop <= top + 8) pick = secs[si]; else break; }
+        }
         if (pick){
-          var frac = (top - pick.offsetTop) / Math.max(1, pick.offsetHeight);
           var mate = follow.querySelector('.dd-sec[data-id="' + (pick.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
-          var want = mate ? (mate.offsetTop + frac * mate.offsetHeight) : top;
-          follow.scrollTop = Math.max(0, Math.min(want, follow.scrollHeight - follow.clientHeight));
+          if (mate){
+            var want = mirItem
+              ? (mate.offsetTop - (pick.offsetTop - top))                                   /* selected item → same on-screen height */
+              : (mate.offsetTop + ((top - pick.offsetTop) / Math.max(1, pick.offsetHeight)) * mate.offsetHeight);  /* scroll → anchor+offset */
+            follow.scrollTop = Math.max(0, Math.min(want, follow.scrollHeight - follow.clientHeight));
+          }
         }
       } catch (e) {}
       progTimer = setTimeout(function(){ cmpMirrorProg = false; }, 160);
@@ -21369,7 +21395,7 @@ function renderCompare(){
     };
     var onLeadScroll = function(which){
       if (cmpMirrorProg) return;                        /* ignore the button's own programmatic scroll */
-      cmpMirrorLead = which; cmpMirrorSynced = false; setMir();
+      cmpMirrorLead = which; mirItem = null; cmpMirrorSynced = false; setMir();   /* scroll base: no pinned item */
     };
     ddL.addEventListener('scroll', function(){ onLeadScroll('L'); }, { passive: true });
     ddR.addEventListener('scroll', function(){ onLeadScroll('R'); }, { passive: true });
@@ -21378,11 +21404,18 @@ function renderCompare(){
       if (cmpMirrorLead === 'R') alignPanes(ddR, ddL); else alignPanes(ddL, ddR);
       cmpMirrorSynced = true; setMir();
     });
+    /* r263 · tap a section to SELECT it as the base (operator: "the last scrolled or selected
+       column item is the base the other side jumps to"). The tapped pane becomes the lead, the
+       tapped item becomes the pinned sync target, the button lights, and the counterpart flashes.
+       Motion stays FLASH-ONLY — nothing scrolls until you tap MIRROR. */
     var couple = function(ev){
       var sec = ev.target.closest ? ev.target.closest('.dd-sec') : null;
       if (!sec) return;
-      var pane = sec.parentElement === ddL ? ddR : ddL;
-      var mate = pane.querySelector('.dd-sec[data-id="' + (sec.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
+      var inL = (sec.parentElement === ddL);
+      cmpMirrorLead = inL ? 'L' : 'R';
+      mirItem = sec.getAttribute('data-id') || null;
+      cmpMirrorSynced = false; setMir();
+      var mate = (inL ? ddR : ddL).querySelector('.dd-sec[data-id="' + (sec.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
       if (mate){ mate.classList.add('dd-hot'); setTimeout(function(){ mate.classList.remove('dd-hot'); }, 900); }
     };
     ddL.addEventListener('click', couple);
