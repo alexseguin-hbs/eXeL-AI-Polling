@@ -77,6 +77,30 @@ s = await pg.evaluate(() => ({ title: document.getElementById('cmpMirror').title
 ok(!/\bleft\b|\bright\b/i.test(s.title), `button label is semantic, no left/right ("${s.title}")`);
 await pg.evaluate(() => setCompare(false));
 
+// r271 · coordinate fix (Fleet-48 HIGH): on a SMALL diff (pane barely scrolls) drift must
+// still DIM and MIRROR must align to the section TOP, not jam to the bottom. Before the
+// .dd-pane position:relative fix, section offsets were measured against #cmp, so small diffs
+// never dimmed and alignment clamped to the bottom.
+s = await pg.evaluate(async () => {
+  setCompare(true, 200, 240); document.getElementById('cmpVS').click();
+  const L = document.getElementById('ddL'), R = document.getElementById('ddR');
+  const btn = document.getElementById('cmpMirror');
+  const secs = L.querySelectorAll('.dd-sec');
+  const fresh = btn.classList.contains('mir-on');
+  const s2 = secs[Math.min(1, secs.length - 1)];
+  L.scrollTop = s2 ? s2.offsetTop : 40; L.dispatchEvent(new Event('scroll'));
+  await new Promise(r => setTimeout(r, 60));
+  const drift = !btn.classList.contains('mir-on');
+  btn.click(); await new Promise(r => setTimeout(r, 260));
+  const maxR = R.scrollHeight - R.clientHeight;
+  const notJammed = maxR < 5 || R.scrollTop < maxR - 5;
+  const relit = btn.classList.contains('mir-on');
+  setCompare(false);
+  return { fresh, drift, relit, notJammed };
+});
+ok(s.fresh && s.drift && s.relit, 'small-diff mirror: fresh lit, drift dims, press re-lights (coordinate fix)');
+ok(s.notJammed, 'small-diff mirror: press aligns to the section, not jammed to the bottom');
+
 console.log(`\nR269 BATTERY: ${passes} passed, ${fails} failed`);
 await b.close();
 process.exit(fails ? 1 : 0);

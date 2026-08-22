@@ -581,17 +581,22 @@ body.straight .deck-in > .langwrap{display:inline-block}
 body.cmpshow #cmp{display:block!important;position:fixed;inset:0;z-index:92;overflow:auto;background:var(--panel);border:0;border-radius:0;box-shadow:none;padding:14px 16px 26px;-webkit-overflow-scrolling:touch}
 /* r255 · side-by-side panes: Before left (removals red), After right (additions green) */
 .dd-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
-.dd-pane{max-height:62vh;overflow:auto;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;-webkit-overflow-scrolling:touch}
+/* r271 · position:relative makes each pane the offsetParent of its .dd-sec children, so
+   section offsets are measured INSIDE the pane (not against the fixed #cmp). Without it the
+   mirror's topSecId/alignPanes compared #cmp-relative offsets to pane.scrollTop — a
+   coordinate mismatch that stopped drift-dimming and jammed alignment to the bottom on
+   medium diffs (Fleet-48, Enlil+Thoth HIGH, confirmed). */
+.dd-pane{position:relative;max-height:62vh;overflow:auto;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;-webkit-overflow-scrolling:touch}
 .dd-pane h6{margin:2px 0 6px;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase;font-size:.72rem}
 .dd-sec{border-top:1px solid var(--rule);padding:8px 0 4px}
 .dd-sec:first-of-type{border-top:0}
 .dd-sec .df-h{margin-bottom:2px}
 .dd-sec.dd-hot{background:linear-gradient(90deg,var(--ai-bg,rgba(56,189,248,.09)),transparent 70%)}
 .dd-pane p{line-height:1.7;margin:4px 0}
-/* r260 · MANUAL MIRROR button — fixed at the bottom-centre of the full-screen compare,
-   shown only in side-by-side mode. Muted when the panes are aligned; highlighted (the
-   Security-2525 cyan) the moment a scroll leaves them out of sync — highlighted means a
-   sync is waiting for one tap. */
+/* r260/r269 · MANUAL MIRROR button — fixed at the bottom-centre of the full-screen compare,
+   shown only in side-by-side mode. r269 polarity: HIGHLIGHTED (Security-2525 cyan) while both
+   panes read the SAME section (in sync); it auto-dims the moment a scroll drifts them onto
+   different sections, and one tap brings the reference section to the top of both panes. */
 #cmpMirror{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:95;
   display:none;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;
   border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);cursor:pointer;
@@ -1169,7 +1174,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Bacaan</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">270</span></strong>, <strong><span id="dlbytes2">6057064</span> bytes</strong> (<span id="dlsize2">6.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">271</span></strong>, <strong><span id="dlbytes2">6060726</span> bytes</strong> (<span id="dlsize2">6.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Jejak Audit</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -7002,6 +7007,19 @@ const VERSIONS = [
    {n:"Christo",g:"A",f:"No more opening on \"nothing changed\" &mdash; the first thing seen is real change, ranked."}
   ],
   next:"Fleet-48 residual gaps (in flight); optional mobile pane stacking; per-section feedback layer."
+ },
+{ v:271, code:"COMPARE COMPLETE &mdash; THE FLEET-48 SPIRAL CLOSES A HIDDEN MIRROR BUG",
+  stamp:"2026.08.22 &middot; revision 271",
+  thrust:"Operator, the 48-agent SPIRAL over the compare function found and confirmed a real bug my own mirror work had shipped &mdash; caught before it reached you, which is exactly what the fleet is for. The side-by-side panes scroll internally, but the pane element carried no positioning, so every section&rsquo;s offset was being measured against the full-screen container instead of the pane itself. On a medium-sized diff that meant the sync light never dimmed when the two reads drifted apart, and pressing MIRROR jammed both panes to the bottom instead of the shared section. My batteries had passed only because they used very tall panes that hid the mismatch. One line fixes it &mdash; the pane is now the frame its sections are measured in &mdash; and a new small-diff test locks it so it cannot return. Four smaller fixes rode along: the change navigator now walks only the visible marks when a kind filter is on; a stale filter that matches nothing is dropped so the passages are never stranded; the summary line now states the measured removed count rather than a hard-coded zero; and the mirror&rsquo;s own comment now describes the shipped in-sync polarity. Verified: every compare battery green (r255/r259/r260/r263/r264/r267/r268/r269) plus the new coordinate lock; totals hold 3,333/9,999/77,777. Compares are complete. The em-dash correction is the last release. v.19 r1.001.",
+  mot:"The spiral earns its cost the day it catches a bug the author could not see. A pane must be the frame its own sections are measured in &mdash; anything else is a coordinate lie the eye will eventually catch.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Enlil",g:"A",f:"The offsetParent mismatch is closed by one CSS declaration; drift dims and alignment lands on the section, on every diff size."},
+   {n:"Thoth",g:"A",f:"Sync is measured in the pane\u2019s own coordinates now; the small-diff lock proves it and guards the regression."},
+   {n:"Enki",g:"A",f:"Filter no longer strands the passages; the navigator counts only visible marks."},
+   {n:"Odin",g:"A",f:"Removed-count is measured, the mirror comment matches the shipped polarity \u2014 the record stops drifting from the code."}
+  ],
+  next:"THE LAST RELEASE: the em-dash correction \u2014 a dash is no longer a word, 2/3 removed, prose expanded to 3,333/9,999/77,777 real words; then every language."
  }
 ];
 
@@ -19491,7 +19509,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6057064";
+const DL_BYTES = "6060726";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21201,6 +21219,9 @@ function renderCompare(){
      Counts and changed-id set are identical to compare() — this only annotates. */
   const dr = diffResult(lo, hi);
   const c = dr.counts;
+  /* r271 · if a kind filter is active but that kind now has zero changes for this pair,
+     drop it so the passages are never stranded behind an invisible filter (Fleet-48, Enki). */
+  if (cmpFilter && !c[cmpFilter]) cmpFilter = null;
 
   /* r253 · TWO SLIDERS, not dropdowns (operator: "2 scroll bars for two — we use THAT
      UX"). Each picker is the same range-slider idiom as the deck's version slider: drag
@@ -21279,7 +21300,7 @@ function renderCompare(){
     h += '<p class="cmp-hi">' + changed.length + ' change' + (changed.length===1?'':'s') +
          ' across <b>' + dr.sectionsAffected.length + '</b> section' + (dr.sectionsAffected.length===1?'':'s') +
          (hiIds.length ? ' &middot; kesan tertinggi: ' + hiIds.join(', ') : '') +
-         ' &middot; removed 0 &mdash; append-only</p>';
+         ' &middot; removed ' + c.removed + (c.removed === 0 ? ' &mdash; append-only' : '') + '</p>';
 
     /* r267 · KEY IMPROVEMENTS FIRST (operator): what mattered, ranked by impact, is the
        first thing after picking two revisions — before the raw passages. Tap a row to
@@ -21585,7 +21606,11 @@ function renderCompare(){
      hits: ‹ n / N ›, scroll + flash on arrival, tick marks on the right rail showing where
      the changes live. Deterministic; fail-closed to plain scrolling. */
   try {
-    var clus = Array.prototype.slice.call(host.querySelectorAll('#cmpPass del, #cmpPass ins'));
+    /* r271 · the change navigator walks only LAID-OUT del/ins — a kind filter that hides
+       cards (display:none) must not leave the navigator counting or jumping to hidden marks
+       (Fleet-48, Enki). offsetParent is null for a display:none node. */
+    var clus = Array.prototype.slice.call(host.querySelectorAll('#cmpPass del, #cmpPass ins'))
+      .filter(function(n){ return n.offsetParent !== null; });
     var nvN = document.getElementById('cmpNvN');
     var nvGo = function(step){
       if (!clus.length) return;
