@@ -567,6 +567,10 @@ body.cmpshow #cmp{display:block!important;position:fixed;inset:5% 3% 3%;z-index:
 @media(min-width:820px){body.cmpshow #cmp{inset:6% 12% 6%}}
 .cmp-x{position:sticky;top:-2px;float:right;margin:-4px -4px 0 8px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);border-radius:7px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
 .cmp-x:hover{color:var(--ink)}
+.cmp-sl{margin:10px 0 2px}
+.cmp-sl label{display:block;font-size:.78rem;color:var(--ink-2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-sl label span{color:var(--ink)}
+.cmp-sl input[type=range]{width:100%;display:block;min-width:0}
 .qrmodal[hidden]{display:none}
 .qrmscrim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
 .qrmcard{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:16px;
@@ -1061,7 +1065,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>閲覧</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">252</span></strong>, <strong><span id="dlbytes2">5971466</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">253</span></strong>, <strong><span id="dlbytes2">5974656</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>監査証跡</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6645,6 +6649,17 @@ const VERSIONS = [
   asm:[
    {n:"Athena",g:"A",f:"Slider far-left reads r0.001, far-right r1.001 &mdash; the timeline and the numbering finally agree."},
    {n:"Aset",g:"A",f:"One rule everywhere: history ascends r0.###, the living release alone is v.19 r1.001."}
+  ],
+  next:"Fleet gap 5: React kind-labels through the lexicon (33 languages) + one changed-badge colour."
+ },
+{ v:253, code:"TWO SLIDERS &mdash; PICK BOTH VERSIONS THE WAY YOU SCRUB THE DECK",
+  stamp:"2026.08.22 &middot; revision 253",
+  thrust:"Operator: the comparison populates, but selecting was not easy &mdash; two scroll bars instead of dropdowns, since the document already uses that UX for the version deck. Done: the Baseline and Target pickers are now two range sliders, the same idiom as the deck&rsquo;s version slider. Drag a thumb and its label scrubs live &mdash; v.18 r0.240 &middot; the release&rsquo;s title &mdash; with no recompute mid-drag (a word-diff per tick would jank a phone); release the thumb and the whole panel recomputes. Choosing a pair no longer navigates the deck underneath the modal (one control, one meaning &mdash; a fleet gap), and the vs-previous chip now means target-vs-one-back instead of keying off the hidden reading position. Verified: 13 slider/chip checks &mdash; sliders present, dropdowns gone, live scrub, commit-on-release, deck untouched, modal stays open, zero overflow at 375px, chips sync both thumbs. Chrome/JS + CSS only; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777.",
+  mot:"A reader already knows how to scrub this document&rsquo;s history &mdash; one thumb, one timeline. Choosing two versions should feel like doing the thing they already know, twice.",
+  stats:{clauses:309, jur:103, shields:5, defects:43, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Same gesture as the deck; labels scrub live; the diff lands when the thumb does."},
+   {n:"Christo",g:"A",f:"Pickers no longer move the reading underneath; vs-previous keys off the chosen target, not hidden state."}
   ],
   next:"Fleet gap 5: React kind-labels through the lexicon (33 languages) + one changed-badge colour."
  }
@@ -19136,7 +19151,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5971466";
+const DL_BYTES = "5974656";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20660,15 +20675,20 @@ function renderCompare(){
   const dr = diffResult(lo, hi);
   const c = dr.counts;
 
-  let opts = "";
-  for (let v=1; v<=VMAX; v++) opts += '<option value="' + v + '">v' + v + ' — ' + escw(VERSIONS[v-1].code) + '</option>';
+  /* r253 · TWO SLIDERS, not dropdowns (operator: "2 scroll bars for two — we use THAT
+     UX"). Each picker is the same range-slider idiom as the deck's version slider: drag
+     to scrub, the label above tracks live (v.18 r0.### · release title), and the diff
+     recomputes when the thumb is released. */
+  const cmpLbl = (v) => 'v.' + versionAt(v) + ' ' + relLabel(v) + ' &middot; ' + escw(VERSIONS[v-1].code);
 
   const isCur = hi === VMAX;
   let h = '<div class="cmp"><button class="cmp-x" id="cmpClose" aria-label="Close compare" title="Close">' + ICON.close + '</button>' +
     '<h4>&#8646; ' + (isCur ? 'What changed &mdash; ' + relLabel(lo) + ' &rarr; current ' + relLabel(hi) : 'Compare releases') + '</h4>' +
+    '<div class="cmp-sl"><label for="cmpA">Baseline &middot; <span id="cmpALbl">' + cmpLbl(cmpA) + '</span></label>' +
+      '<input type="range" id="cmpA" min="1" max="' + VMAX + '" step="1" aria-label="Baseline release"></div>' +
+    '<div class="cmp-sl"><label for="cmpB">Target &middot; <span id="cmpBLbl">' + cmpLbl(cmpB) + '</span></label>' +
+      '<input type="range" id="cmpB" min="1" max="' + VMAX + '" step="1" aria-label="Target release"></div>' +
     '<div class="cmp-ctl">' +
-      '<label>ベースライン <select id="cmpA">' + opts + '</select></label>' +
-      '<label>ターゲット <select id="cmpB">' + opts + '</select></label>' +
       '<button id="cmpPrev">前バージョン比</button>' +
       '<button id="cmpFirst">v1 vs 最新</button>' +
     '</div>' +
@@ -20750,17 +20770,23 @@ function renderCompare(){
   }
   host.innerHTML = h + '</div>';
 
-  document.getElementById("cmpA").value = cmpA;
-  document.getElementById("cmpB").value = cmpB;
-  document.getElementById("cmpA").addEventListener("change", function(){ cmpA = parseInt(this.value,10); goto(cmpB); });
-  document.getElementById("cmpB").addEventListener("change", function(){ cmpB = parseInt(this.value,10); goto(cmpB); });
+  /* r253 · slider wiring: 'input' scrubs the label live (no recompute mid-drag — a word-
+     LCS per tick would jank a phone); 'change' (thumb released) recomputes the panel.
+     Pickers no longer call goto() — choosing a compare pair must never navigate the deck
+     underneath the modal (fleet: one control, one meaning). */
+  var slA = document.getElementById("cmpA"), slB = document.getElementById("cmpB");
+  slA.value = cmpA; slB.value = cmpB;
+  slA.addEventListener("input", function(){ document.getElementById("cmpALbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
+  slB.addEventListener("input", function(){ document.getElementById("cmpBLbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
+  slA.addEventListener("change", function(){ cmpA = parseInt(this.value,10); renderDoc(); });
+  slB.addEventListener("change", function(){ cmpB = parseInt(this.value,10); renderDoc(); });
   document.getElementById("cmpPrev").addEventListener("click", function(){
-    cmpB = active; cmpA = Math.max(1, active-1); goto(cmpB);
+    cmpA = Math.max(1, Math.max(cmpA, cmpB) - 1); renderDoc();
   });
   var cx = document.getElementById("cmpClose");
   if (cx) cx.addEventListener("click", function(){ setCompare(false); var b = document.getElementById("bCmp"); if (b) b.focus(); });
   document.getElementById("cmpFirst").addEventListener("click", function(){
-    cmpA = 1; cmpB = VMAX; goto(VMAX);
+    cmpA = 1; cmpB = VMAX; renderDoc();
   });
 }
 
