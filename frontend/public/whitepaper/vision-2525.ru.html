@@ -602,6 +602,10 @@ body.cmpshow.cmp-side #cmpMirror{display:inline-flex}
 .cmp-nav button{border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:6px;min-width:34px;height:30px;cursor:pointer}
 .cmp-nav .n{color:var(--ink-2);font-size:.78rem;font-variant-numeric:tabular-nums}
 .df-cur{outline:2px solid var(--si,#f0b429);outline-offset:2px;border-radius:3px}
+/* r267 · a jumped-to section (from a Key-improvement tap) also gets a soft highlight
+   background so it clearly stands out in the reading — scoped to block cards only, so the
+   change navigator's inline del/ins marks keep their own red/green. */
+#cmpPass .df-blk.df-cur, #cmpPass .dd-sec.df-cur{background:var(--si-bg,rgba(240,180,41,.13));scroll-margin-top:44px}
 #cmpRail{position:fixed;right:2px;top:0;bottom:0;width:8px;z-index:93;pointer-events:none}
 #cmpRail i{position:absolute;right:0;width:8px;height:3px;border-radius:2px;background:var(--si,#f0b429);opacity:.85}
 /* r255 · play narration card — what this revision changed, at a glance */
@@ -1159,7 +1163,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Чтение</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">266</span></strong>, <strong><span id="dlbytes2">6044750</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">267</span></strong>, <strong><span id="dlbytes2">6047654</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Журнал аудита</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6934,6 +6938,18 @@ const VERSIONS = [
   asm:[
    {n:"Athena",g:"A",f:"Element and wiring deleted, not hidden &mdash; the reading deck carries only the slider; no stray style can bring the band back."},
    {n:"Aset",g:"A",f:"Compare pickers keep the marks where they guide selection; the record, the version bands and the slider are untouched."}
+  ],
+  next:"The per-section feedback layer (bottom-left button + resolution timelines)."
+ },
+{ v:267, code:"KEY IMPROVEMENTS LEAD &mdash; TAP ONE, LAND ON IT IN THE READING",
+  stamp:"2026.08.22 &middot; revision 267",
+  thrust:"Operator, Key Improvements is now the first thing you see after picking two revisions &mdash; the ranked list of what mattered, highest impact first, sits directly under the summary line, before the raw passages. It used to be demoted into the collapsed Details at the bottom; the reader had to hunt for the one thing that answers &lsquo;what actually changed and why&rsquo;. Now it leads. And each row is a doorway: tap it and the reading below scrolls to exactly that section and highlights it &mdash; a soft gold ground plus the outline &mdash; so the claim in the list and the evidence in the text are one tap apart. If the section sits below the fold, the fold opens first and then the landing completes, deterministically, no timers. The full per-block table &mdash; every change, its impact, its release, its recorded reason &mdash; stays in Details for whoever wants the exhaustive record. Claim first, ranked; evidence one tap away, highlighted; the exhaustive table on demand. Tested: Key Improvements lead the panel, the tap lands and highlights the right section (including one below the fold), exactly one section marked at a time, no duplicate list left in Details. Totals hold; gate clean; v.19 r1.001.",
+  mot:"Put the answer first. A reader comparing two versions wants to know what mattered before they read a word of the diff &mdash; then let one tap carry them from the claim to the evidence, lit.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"The answer leads; claim to evidence is one tap; the exhaustive table waits in Details for who wants it &mdash; fewest moves to what matters."},
+   {n:"Christo",g:"A",f:"Tap a claim, the section lights below &mdash; the list and the reading are one object now, not two screens apart."},
+   {n:"Enki",g:"A",f:"A lower-ranked pick beyond the fold still lands: the fold opens, then the jump completes; exactly one section is marked."}
   ],
   next:"The per-section feedback layer (bottom-left button + resolution timelines)."
  }
@@ -19425,7 +19441,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6044750";
+const DL_BYTES = "6047654";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21215,6 +21231,17 @@ function renderCompare(){
          (hiIds.length ? ' &middot; наибольшее влияние: ' + hiIds.join(', ') : '') +
          ' &middot; removed 0 &mdash; append-only</p>';
 
+    /* r267 · KEY IMPROVEMENTS FIRST (operator): what mattered, ranked by impact, is the
+       first thing after picking two revisions — before the raw passages. Tap a row to
+       jump to that section in the reading below and highlight it (cmpScrollTo). */
+    h += '<ul class="cmp-top"><h5>Ключевые улучшения &middot; ' + relLabel(lo) + ' &rarr; ' + relLabel(hi) + '</h5>';
+    dr.top.forEach(function(d, i){
+      h += '<li class="xref" data-id="' + esc(d.id) + '" title="Jump to this section&#39;s passage"><span class="rk">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
+           '<span class="ti">' + escw(d.title) + '</span>' +
+           '<span class="imp ' + d.impact.toLowerCase() + '" title="' + d.category + '">' + d.impact + '</span></li>';
+    });
+    h += '</ul>';
+
     /* r254 · THE PASSAGES — one card per changed block, hunks only (changed runs with
        ±8 context words, long unchanged runs folded into a tappable ellipsis). Uncapped:
        first 20 render eagerly, the rest behind one deterministic "Show all" tap. */
@@ -21271,15 +21298,9 @@ function renderCompare(){
       h += '</div>';
     }
 
-    /* r254 · THE ANALYSIS — demoted below the passages, collapsed by default. */
+    /* r254/r267 · THE ANALYSIS — the full per-block table, collapsed by default (Key
+       improvements now lead the panel above; this holds the exhaustive record). */
     h += '<details class="cmp-det"' + (cmpDetOpen ? ' open' : '') + '><summary class="cmp-det-s">Подробности</summary>';
-    h += '<ul class="cmp-top"><h5>Ключевые улучшения &middot; ' + relLabel(lo) + ' &rarr; ' + relLabel(hi) + '</h5>';
-    dr.top.forEach(function(d, i){
-      h += '<li class="xref" data-id="' + esc(d.id) + '" title="Jump to this section&#39;s passage"><span class="rk">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
-           '<span class="ti">' + escw(d.title) + '</span>' +
-           '<span class="imp ' + d.impact.toLowerCase() + '" title="' + d.category + '">' + d.impact + '</span></li>';
-    });
-    h += '</ul>';
     h += '<div class="scroll"><table><tr><th>Блок</th><th>Изменение</th><th>Влияние</th><th class="n">В</th><th>Указанная причина</th></tr>';
     for (const r of changed){
       const cls = r.kind === "added" ? "k-add" : r.kind === "revised" ? "k-rev" : "k-rem";
