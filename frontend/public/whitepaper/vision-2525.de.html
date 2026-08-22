@@ -1163,7 +1163,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Lesen</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">267</span></strong>, <strong><span id="dlbytes2">6047654</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">268</span></strong>, <strong><span id="dlbytes2">6050810</span> bytes</strong> (<span id="dlsize2">6.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Prüfpfad</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6952,6 +6952,18 @@ const VERSIONS = [
    {n:"Enki",g:"A",f:"A lower-ranked pick beyond the fold still lands: the fold opens, then the jump completes; exactly one section is marked."}
   ],
   next:"The per-section feedback layer (bottom-left button + resolution timelines)."
+ },
+{ v:268, code:"AFTER CANNOT SIT LEFT OF BEFORE &mdash; THE PAIR STAYS HONEST",
+  stamp:"2026.08.22 &middot; revision 268",
+  thrust:"Operator, the compare pair can no longer invert. Before is the top slider, After is the bottom, and After is now always at least one release later than Before &mdash; if the top is r123, the bottom cannot go below r124. The floor rises live: drag the top up and the bottom&rsquo;s minimum follows it under your finger; drag the bottom toward the top and it stops one release short instead of crossing; and if you raise the top past where the bottom sits, the bottom is carried up to stay one ahead. The top itself stops at the second-newest release, because After must always have somewhere later to be. It is impossible now to ask the document to compare a release with itself or with something older-labelled-newer &mdash; the question the reader poses is always well-formed, oldest on top, newest on the bottom, exactly as the panel reads it. Nothing else changed. Tested: the floor initialises to Before+1, a left-drag clamps, a commit never inverts, raising the top pushes the bottom, and the top caps at VMAX-1. Totals hold; gate clean; v.19 r1.001.",
+  mot:"An instrument should make the malformed question unaskable. If After must follow Before, the slider itself should refuse to place it earlier &mdash; not correct it after the fact.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Thor",g:"A",f:"The inverted pair is now unreachable at the control, not repaired downstream &mdash; the malformed question cannot be posed."},
+   {n:"Athena",g:"A",f:"The floor follows the top thumb live; the bottom stops one short &mdash; the constraint teaches itself in the drag."},
+   {n:"Enki",g:"A",f:"Edges hold: left-drag clamps, raise-top pushes bottom, top caps at VMAX-1 &mdash; no pair inverts."}
+  ],
+  next:"12-AsM assessment of the change-finding UX; then the per-section feedback layer."
  }
 ];
 
@@ -19441,7 +19453,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "6047654";
+const DL_BYTES = "6050810";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21322,11 +21334,33 @@ function renderCompare(){
      a pair must never navigate the deck underneath the modal (one control, one meaning). */
   var slA = document.getElementById("cmpA"), slB = document.getElementById("cmpB");
   if (slA && slB){
+    /* r268 · GUARDRAIL (operator: "bottom slider can't go left of top slider"). Before (top)
+       is always strictly earlier than After (bottom): After >= Before + 1. The After slider's
+       floor rises live with the Before thumb, and committing either can never invert the pair
+       — if you drag Before up to/past After, After is pushed up to Before + 1. */
+    slA.max = VMAX - 1;                 // Before can be at most the second-newest release
+    slB.min = cmpA + 1;                 // After can never sit at or left of Before
     slA.value = cmpA; slB.value = cmpB;
-    slA.addEventListener("input", function(){ document.getElementById("cmpALbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
-    slB.addEventListener("input", function(){ document.getElementById("cmpBLbl").innerHTML = cmpLbl(parseInt(this.value,10)); });
-    slA.addEventListener("change", function(){ cmpA = parseInt(this.value,10); cmpShowAll = false; renderDoc(); });
-    slB.addEventListener("change", function(){ cmpB = parseInt(this.value,10); cmpShowAll = false; renderDoc(); });
+    slA.addEventListener("input", function(){
+      var a = parseInt(this.value, 10);
+      document.getElementById("cmpALbl").innerHTML = cmpLbl(a);
+      slB.min = a + 1;                                                   // the floor follows Before, live
+      if (parseInt(slB.value, 10) <= a){ slB.value = a + 1; document.getElementById("cmpBLbl").innerHTML = cmpLbl(a + 1); }
+    });
+    slB.addEventListener("input", function(){
+      var v = Math.max(cmpA + 1, parseInt(this.value, 10));             // preview clamped to >= Before + 1
+      if (v !== parseInt(this.value, 10)) this.value = v;
+      document.getElementById("cmpBLbl").innerHTML = cmpLbl(v);
+    });
+    slA.addEventListener("change", function(){
+      cmpA = Math.min(VMAX - 1, parseInt(this.value, 10));
+      if (cmpB <= cmpA) cmpB = Math.min(VMAX, cmpA + 1);               // raising Before pushes After up
+      cmpShowAll = false; renderDoc();
+    });
+    slB.addEventListener("change", function(){
+      cmpB = Math.max(cmpA + 1, parseInt(this.value, 10));             // After can never invert the pair
+      cmpShowAll = false; renderDoc();
+    });
   }
   /* r259 · CHANGE STEPPERS + TICK RAILS (steppers-no-snap): the flanking chevrons move
      a thumb to the previous/next MEASURED content change; dragging never snaps. Tapping
