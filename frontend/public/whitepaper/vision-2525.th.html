@@ -1061,7 +1061,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>การอ่าน</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">249</span></strong>, <strong><span id="dlbytes2">5963698</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">250</span></strong>, <strong><span id="dlbytes2">5965595</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>ประวัติการตรวจสอบ</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6618,6 +6618,18 @@ const VERSIONS = [
    {n:"Athena",g:"A",f:"Arbitrary Baseline/Target selection verified for any two of 249 releases &mdash; summary + red/green diff render in every reading mode."}
   ],
   next:"Live-verify the default compare pair and arbitrary selection on Cloudflare."
+ },
+{ v:250, code:"ARROWS JUST NAVIGATE &mdash; COMPARE OPENS THROUGH ONE PATH",
+  stamp:"2026.08.22 &middot; revision 250",
+  thrust:"Operator: going back with the arrow rendered weird. The cause: the deck arrows and the slider ran through autoCmp(), which turned compare state ON (painting diff bars on the blocks) but never opened the modal &mdash; a half-rendered &lsquo;coloured blocks, no panel&rsquo; state. Fixed: the prev/next/latest arrows and the slider now JUST NAVIGATE (pure goto), and Compare is entered ONLY through a single setCompare() choke point that keeps the state, the button, the pull-up panel and the scrim in lockstep so they can never desync again. ESC, the scrim and the drawn close button all dismiss through the same path and restore focus to the compare button. Picking any two of the releases still shows the side-by-side word diff &mdash; removed red, added green. Verified by a 13-check Playwright battery at 375px (arrows leave no compare bars, modal opens/closes cleanly, no horizontal overflow). Chrome/JS only; totals hold brief 3,333 &middot; nose 9,999 &middot; paper 77,777; v.19 r1.001.",
+  mot:"One gesture, one meaning. Stepping through versions is not comparing them; comparing is a deliberate act with one door in and one door out.",
+  stats:{clauses:309, jur:103, shields:5, defects:44, reach:"full"},
+  asm:[
+   {n:"Athena",g:"A",f:"Arrows navigate; compare is a deliberate modal &mdash; the half-rendered back-arrow state is gone."},
+   {n:"Krishna",g:"A",f:"setCompare() is the sole path that sets cmpOn + button + cmpshow + scrim together; no call site can desync them."},
+   {n:"Thor",g:"A",f:"ESC / scrim / close all route through one dismiss and restore focus; 375px shows zero horizontal overflow."}
+  ],
+  next:"Unify the four compare surfaces onto one engine + kit (Workstream C)."
  }
 ];
 
@@ -19107,7 +19119,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5963698";
+const DL_BYTES = "5965595";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -20708,7 +20720,7 @@ function renderCompare(){
     cmpB = active; cmpA = Math.max(1, active-1); goto(cmpB);
   });
   var cx = document.getElementById("cmpClose");
-  if (cx) cx.addEventListener("click", function(){ document.getElementById("bCmp").click(); });
+  if (cx) cx.addEventListener("click", function(){ setCompare(false); var b = document.getElementById("bCmp"); if (b) b.focus(); });
   document.getElementById("cmpFirst").addEventListener("click", function(){
     cmpA = 1; cmpB = VMAX; goto(VMAX);
   });
@@ -20924,25 +20936,27 @@ function goto(v){
   active = Math.max(1, Math.min(VMAX, v));
   renderDoc();
 }
-/* r195 · Difference Intelligence slice 2 — AUTO COMPARE-TO-CURRENT. Selecting a
-   past revision from the deck (slider / prev / next) activates the deterministic
-   Difference view against the latest release; returning to the latest clears it.
-   The slider stays Replay authority (active); the diff is derived on top. Only the
-   reader-facing nav routes through here — goto()/#cmpFirst/#bCmp are untouched, so
-   the explicit Compare panel and every gate assertion behave exactly as before. */
-function autoCmp(v){
-  v = Math.max(1, Math.min(VMAX, v));
-  if (v < VMAX){ cmpOn = true; cmpA = v; cmpB = VMAX; }
-  else { cmpOn = false; }
+/* r250 · Deck navigation JUST NAVIGATES (operator). The prev/next/latest buttons and the
+   slider move `active` and nothing else — they no longer flip compare on. The old autoCmp()
+   set cmpOn=true WITHOUT opening the modal (it never set body.cmpshow / the scrim), which left
+   a half-rendered "colored blocks, no panel" state on the back arrow. Compare is entered ONLY
+   through setCompare(), the single choke point that keeps cmpOn, the button, body.cmpshow and
+   the scrim in lockstep so they can never desync again. */
+function setCompare(on, base){
+  cmpOn = !!on;
   document.getElementById("bCmp").setAttribute("aria-pressed", cmpOn ? "true" : "false");
-  goto(v);
+  if (cmpOn){ cmpB = VMAX; cmpA = (base != null ? Math.max(1, Math.min(VMAX, base)) : defaultCmpBase()); }
+  document.body.classList.toggle("cmpshow", cmpOn);
+  var scrim = document.getElementById("cmpScrim"); if (scrim) scrim.hidden = !cmpOn;
+  renderDoc();
+  if (cmpOn){ var c = document.getElementById("cmp"); if (c) c.scrollTop = 0; }
 }
 function stop(){ if (playing){ clearInterval(playing); playing = null; document.getElementById("bPlay").innerHTML = ICON.play + "Play"; } }
 
-document.getElementById("bPrev").addEventListener("click", function(){ stop(); autoCmp(active-1); });
-document.getElementById("bNext").addEventListener("click", function(){ stop(); autoCmp(active+1); });
-document.getElementById("bLatest").addEventListener("click", function(){ stop(); autoCmp(VMAX); });
-document.getElementById("vSlide").addEventListener("input", function(){ stop(); autoCmp(parseInt(this.value,10)); });
+document.getElementById("bPrev").addEventListener("click", function(){ stop(); goto(active-1); });
+document.getElementById("bNext").addEventListener("click", function(){ stop(); goto(active+1); });
+document.getElementById("bLatest").addEventListener("click", function(){ stop(); goto(VMAX); });
+document.getElementById("vSlide").addEventListener("input", function(){ stop(); goto(parseInt(this.value,10)); });
 document.getElementById("bDiff").addEventListener("click", function(){
   showDiff = !showDiff; this.setAttribute("aria-pressed", showDiff ? "true" : "false"); renderDoc();
 });
@@ -21019,24 +21033,15 @@ document.getElementById("bSpec").addEventListener("click", function(){
   if (specOpen) window.scrollTo(0,0);
 });
 
-document.getElementById("bCmp").addEventListener("click", function(){
-  stop();
-  cmpOn = !cmpOn;
-  this.setAttribute("aria-pressed", cmpOn ? "true" : "false");
-  /* r249 - Open on the meaningful default: live current (v.19) vs the last release
-     of the prior major version (v.18, r0.245). Opening on "last two releases" landed
-     on a chrome-only release and read "Nothing changed - identical bytes", so Compare
-     looked broken. The reader can still pick any other two versions from the pickers. */
-  if (cmpOn){ cmpB = VMAX; cmpA = defaultCmpBase(); }
-  /* r248 - Compare is a pull-up modal, so it surfaces in every reading mode
-     (it used to be display:none in straight/brief/nose and buried in paged). */
-  document.body.classList.toggle("cmpshow", cmpOn);
-  document.getElementById("cmpScrim").hidden = !cmpOn;
-  renderDoc();
-  if (cmpOn){ var c = document.getElementById("cmp"); if (c) c.scrollTop = 0; }
-});
-document.getElementById("cmpScrim").addEventListener("click", function(){
-  if (cmpOn) document.getElementById("bCmp").click();
+/* r250 · Compare opens ONLY here, through the one setCompare() choke point (default pair =
+   live current vs the last content-changing release; the reader can pick any other two from
+   the Baseline/Target pickers). The modal is a pull-up (r248) so it surfaces in every reading
+   mode; the ledger-highlight (r249) covers the byte-identical case. */
+document.getElementById("bCmp").addEventListener("click", function(){ stop(); setCompare(!cmpOn); });
+document.getElementById("cmpScrim").addEventListener("click", function(){ if (cmpOn) setCompare(false); });
+/* ESC closes the compare modal and restores focus to the ⇄ button. */
+document.addEventListener("keydown", function(e){
+  if ((e.key === "Escape" || e.key === "Esc") && cmpOn){ setCompare(false); var b = document.getElementById("bCmp"); if (b) b.focus(); }
 });
 /* ── r96 · THE GROUND ────────────────────────────────────────────────────
    Operator: "default full doc to dark mode." Until now the document followed
