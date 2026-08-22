@@ -76,14 +76,6 @@
 "<h5>Penambahbaikan utama &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Tiada perubahan antara v"
-],
-[
-". Identical bytes.</p>",
-". Bait yang sama.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; kesan tertinggi: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Butiran</summary>"
+],
+[
+"\">Unified</button>",
+"\">Bersatu</button>"
+],
+[
+"\">Side by side</button>",
+"\">Bersebelahan</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Ubah</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Tunjukkan semua ' + dfList.length + ' bahagian yang berubah</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Jeda · buka perbandingan</button>"
+],
+[
+"'This view begins at <b>'",
+"'Paparan ini bermula pada <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; tiada apa untuk dipaparkan lagi pada '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Mara, atau lompat ke terkini.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Perubahan sebelumnya\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Perubahan seterusnya\""
 ]
 ]

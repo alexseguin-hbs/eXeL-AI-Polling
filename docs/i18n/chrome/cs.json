@@ -76,14 +76,6 @@
 "<h5>Klíčová vylepšení &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Nic se nezměnilo mezi v"
-],
-[
-". Identical bytes.</p>",
-". Identické bajty.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; nejvyšší dopad: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Podrobnosti</summary>"
+],
+[
+"\">Unified</button>",
+"\">Sjednocené</button>"
+],
+[
+"\">Side by side</button>",
+"\">Vedle sebe</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Změnit</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Zobrazit všech ' + dfList.length + ' změněných sekcí</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Pauza · otevřít porovnání</button>"
+],
+[
+"'This view begins at <b>'",
+"'Toto zobrazení začíná na <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; zatím není co zobrazit na '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Krok vpřed, nebo skočte na nejnovější.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Předchozí změna\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Další změna\""
 ]
 ]

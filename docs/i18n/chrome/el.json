@@ -76,14 +76,6 @@
 "<h5>Βασικές βελτιώσεις &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Καμία αλλαγή μεταξύ v"
-],
-[
-". Identical bytes.</p>",
-". Πανομοιότυπα bytes.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; υψηλότερη επίπτωση: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Λεπτομέρειες</summary>"
+],
+[
+"\">Unified</button>",
+"\">Ενιαία</button>"
+],
+[
+"\">Side by side</button>",
+"\">Δίπλα-δίπλα</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Αλλαγή</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Εμφάνιση όλων ' + dfList.length + ' αλλαγμένων ενοτήτων</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Παύση · άνοιγμα σύγκρισης</button>"
+],
+[
+"'This view begins at <b>'",
+"'Αυτή η προβολή ξεκινά στο <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; τίποτα ακόμη στο '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Προχωρήστε ή μεταβείτε στην τελευταία.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Προηγούμενη αλλαγή\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Επόμενη αλλαγή\""
 ]
 ]

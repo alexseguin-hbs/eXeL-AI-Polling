@@ -76,14 +76,6 @@
 "<h5>Maboresho muhimu &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Hakuna kilichobadilika kati ya v"
-],
-[
-". Identical bytes.</p>",
-". Baiti zinazofanana.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; athari kubwa zaidi: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Maelezo</summary>"
+],
+[
+"\">Unified</button>",
+"\">Umoja</button>"
+],
+[
+"\">Side by side</button>",
+"\">Ubavu kwa ubavu</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Badilisha</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Onyesha zote ' + dfList.length + ' sehemu zilizobadilika</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Simamisha · fungua ulinganisho</button>"
+],
+[
+"'This view begins at <b>'",
+"'Mwonekano huu unaanza <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; hakuna cha kuonyesha bado '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Songa mbele, au ruka hadi ya hivi punde.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Badiliko lililopita\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Badiliko lijalo\""
 ]
 ]

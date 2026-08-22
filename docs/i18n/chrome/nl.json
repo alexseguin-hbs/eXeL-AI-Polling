@@ -76,14 +76,6 @@
 "<h5>Belangrijkste verbeteringen &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Niets veranderd tussen v"
-],
-[
-". Identical bytes.</p>",
-". Identieke bytes.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; hoogste impact: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Details</summary>"
+],
+[
+"\">Unified</button>",
+"\">Verenigd</button>"
+],
+[
+"\">Side by side</button>",
+"\">Naast elkaar</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Wijzig</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Toon alle ' + dfList.length + ' gewijzigde secties</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Pauze · open de vergelijking</button>"
+],
+[
+"'This view begins at <b>'",
+"'Deze weergave begint bij <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; nog niets te tonen bij '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Stap vooruit, of spring naar de nieuwste.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Vorige wijziging\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Volgende wijziging\""
 ]
 ]

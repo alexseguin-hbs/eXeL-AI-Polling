@@ -76,14 +76,6 @@
 "<h5>Cải tiến chính &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Không có gì thay đổi giữa v"
-],
-[
-". Identical bytes.</p>",
-". Byte giống hệt nhau.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; tác động cao nhất: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Chi tiết</summary>"
+],
+[
+"\">Unified</button>",
+"\">Hợp nhất</button>"
+],
+[
+"\">Side by side</button>",
+"\">Song song</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Thay đổi</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Hiện tất cả ' + dfList.length + ' phần đã thay đổi</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Tạm dừng · mở so sánh</button>"
+],
+[
+"'This view begins at <b>'",
+"'Chế độ xem này bắt đầu từ <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; chưa có gì để hiển thị ở '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Bước tiếp, hoặc nhảy đến mới nhất.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Thay đổi trước\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Thay đổi tiếp theo\""
 ]
 ]

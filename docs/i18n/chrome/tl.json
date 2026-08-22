@@ -76,14 +76,6 @@
 "<h5>Mahahalagang pagpapahusay &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Walang nagbago sa pagitan ng v"
-],
-[
-". Identical bytes.</p>",
-". Magkaparehong byte.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; pinakamataas na epekto: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Detalye</summary>"
+],
+[
+"\">Unified</button>",
+"\">Pinag-isa</button>"
+],
+[
+"\">Side by side</button>",
+"\">Magkatabi</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Baguhin</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Ipakita lahat ng ' + dfList.length + ' nabagong seksyon</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">I-pause · buksan ang paghahambing</button>"
+],
+[
+"'This view begins at <b>'",
+"'Nagsisimula ang view na ito sa <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; wala pang maipapakita sa '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Sumulong, o tumalon sa pinakabago.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Nakaraang pagbabago\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Susunod na pagbabago\""
 ]
 ]

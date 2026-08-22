@@ -76,14 +76,6 @@
 "<h5>Keskeiset parannukset &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Ei muutoksia välillä v"
-],
-[
-". Identical bytes.</p>",
-". Identtiset tavut.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; suurin vaikutus: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Tiedot</summary>"
+],
+[
+"\">Unified</button>",
+"\">Yhtenäinen</button>"
+],
+[
+"\">Side by side</button>",
+"\">Rinnakkain</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Muuta</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Näytä kaikki ' + dfList.length + ' muuttunutta osiota</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Tauko · avaa vertailu</button>"
+],
+[
+"'This view begins at <b>'",
+"'Tämä näkymä alkaa kohdasta <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; ei vielä näytettävää kohdassa '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Astu eteenpäin tai siirry uusimpaan.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Edellinen muutos\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Seuraava muutos\""
 ]
 ]

@@ -76,14 +76,6 @@
 "<h5>שיפורים עיקריים &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">לא חל שינוי בין v"
-],
-[
-". Identical bytes.</p>",
-". בייטים זהים.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; ההשפעה הגבוהה ביותר: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">פרטים</summary>"
+],
+[
+"\">Unified</button>",
+"\">מאוחד</button>"
+],
+[
+"\">Side by side</button>",
+"\">זה לצד זה</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">שינוי</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">הצג את כל ' + dfList.length + ' הקטעים שהשתנו</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">השהיה · פתח את ההשוואה</button>"
+],
+[
+"'This view begins at <b>'",
+"'תצוגה זו מתחילה ב- <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; אין עדיין מה להציג ב- '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". התקדם או דלג לעדכני ביותר.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"השינוי הקודם\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"השינוי הבא\""
 ]
 ]

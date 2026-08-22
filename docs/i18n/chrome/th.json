@@ -76,14 +76,6 @@
 "<h5>การปรับปรุงสำคัญ &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">ไม่มีการเปลี่ยนแปลงระหว่าง v"
-],
-[
-". Identical bytes.</p>",
-". ไบต์เหมือนกันทุกประการ</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; ผลกระทบสูงสุด: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">รายละเอียด</summary>"
+],
+[
+"\">Unified</button>",
+"\">รวมเป็นหนึ่ง</button>"
+],
+[
+"\">Side by side</button>",
+"\">เคียงข้างกัน</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">เปลี่ยน</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">แสดงทั้งหมด ' + dfList.length + ' ส่วนที่เปลี่ยนแปลง</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">หยุดชั่วคราว · เปิดการเปรียบเทียบ</button>"
+],
+[
+"'This view begins at <b>'",
+"'มุมมองนี้เริ่มที่ <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; ยังไม่มีอะไรแสดงที่ '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". ก้าวไปข้างหน้า หรือข้ามไปยังล่าสุด</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"การเปลี่ยนแปลงก่อนหน้า\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"การเปลี่ยนแปลงถัดไป\""
 ]
 ]

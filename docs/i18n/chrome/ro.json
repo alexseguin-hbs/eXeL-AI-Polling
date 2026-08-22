@@ -76,14 +76,6 @@
 "<h5>Îmbunătățiri cheie &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Nimic nu s-a schimbat între v"
-],
-[
-". Identical bytes.</p>",
-". Octeți identici.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; cel mai mare impact: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Detalii</summary>"
+],
+[
+"\">Unified</button>",
+"\">Unificat</button>"
+],
+[
+"\">Side by side</button>",
+"\">Alăturate</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Schimbă</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Arată toate ' + dfList.length + ' secțiunile modificate</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Pauză · deschide comparația</button>"
+],
+[
+"'This view begins at <b>'",
+"'Această vizualizare începe la <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; nimic de arătat încă la '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Pas înainte, sau sari la cea mai recentă.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Modificarea anterioară\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Modificarea următoare\""
 ]
 ]

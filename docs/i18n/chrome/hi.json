@@ -76,14 +76,6 @@
 "<h5>मुख्य सुधार &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">इसके बीच कुछ भी नहीं बदला v"
-],
-[
-". Identical bytes.</p>",
-". समान बाइट्स।</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; सर्वाधिक प्रभाव: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">विवरण</summary>"
+],
+[
+"\">Unified</button>",
+"\">एकीकृत</button>"
+],
+[
+"\">Side by side</button>",
+"\">आमने-सामने</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">बदलें</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">सभी दिखाएँ ' + dfList.length + ' बदले हुए खंड</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">रोकें · तुलना खोलें</button>"
+],
+[
+"'This view begins at <b>'",
+"'यह दृश्य शुरू होता है <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; अभी दिखाने को कुछ नहीं '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". आगे बढ़ें या नवीनतम पर जाएँ।</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"पिछला बदलाव\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"अगला बदलाव\""
 ]
 ]

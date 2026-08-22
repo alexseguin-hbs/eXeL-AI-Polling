@@ -76,14 +76,6 @@
 "<h5>主な改善点 &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">次の間に変更はありません: v"
-],
-[
-". Identical bytes.</p>",
-". バイト列は同一です。</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; 最大の影響: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">詳細</summary>"
+],
+[
+"\">Unified</button>",
+"\">統合表示</button>"
+],
+[
+"\">Side by side</button>",
+"\">左右並列</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">変更</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">すべて表示 ' + dfList.length + ' 変更されたセクション</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">一時停止 · 比較を開く</button>"
+],
+[
+"'This view begins at <b>'",
+"'このビューの開始は <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; まだ表示するものがありません: '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". 先に進むか、最新へ移動してください。</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"前の変更\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"次の変更\""
 ]
 ]

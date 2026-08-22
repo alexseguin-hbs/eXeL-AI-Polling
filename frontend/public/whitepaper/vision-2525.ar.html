@@ -563,8 +563,34 @@ body.straight .deck-in > .langwrap{display:inline-block}
 .qrmodal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center}
 .cmpscrim{position:fixed;inset:0;z-index:91;background:rgba(0,0,0,.55)}
 .cmpscrim[hidden]{display:none}
-body.cmpshow #cmp{display:block!important;position:fixed;inset:5% 3% 3%;z-index:92;overflow:auto;background:var(--panel);border:1px solid var(--ai);border-radius:10px;box-shadow:0 24px 64px rgba(0,0,0,.6);padding:14px 16px 22px;-webkit-overflow-scrolling:touch}
-@media(min-width:820px){body.cmpshow #cmp{inset:6% 12% 6%}}
+/* r255 · FULL SCREEN (operator): compare is a room, not a card — every pixel serves the changes. */
+body.cmpshow #cmp{display:block!important;position:fixed;inset:0;z-index:92;overflow:auto;background:var(--panel);border:0;border-radius:0;box-shadow:none;padding:14px 16px 26px;-webkit-overflow-scrolling:touch}
+/* r255 · side-by-side panes: Before left (removals red), After right (additions green) */
+.dd-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.dd-pane{max-height:62vh;overflow:auto;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;-webkit-overflow-scrolling:touch}
+.dd-pane h6{margin:2px 0 6px;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase;font-size:.72rem}
+.dd-sec{border-top:1px solid var(--rule);padding:8px 0 4px}
+.dd-sec:first-of-type{border-top:0}
+.dd-sec .df-h{margin-bottom:2px}
+.dd-sec.dd-hot{background:linear-gradient(90deg,var(--ai-bg,rgba(56,189,248,.09)),transparent 70%)}
+.dd-pane p{line-height:1.7;margin:4px 0}
+.cmp-mode{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;margin-left:10px;vertical-align:middle}
+.cmp-mode button{border:0;background:transparent;color:var(--ink-2);padding:3px 10px;cursor:pointer;font-size:.75rem}
+.cmp-mode button[aria-pressed="true"]{background:var(--ai);color:#06202a;font-weight:600}
+/* r255 · change navigator (the PDF search-rail pattern, made ours) */
+.cmp-nav{position:sticky;top:34px;z-index:2;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:2px 0}
+.cmp-nav button{border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:6px;min-width:34px;height:30px;cursor:pointer}
+.cmp-nav .n{color:var(--ink-2);font-size:.78rem;font-variant-numeric:tabular-nums}
+.df-cur{outline:2px solid var(--si,#f0b429);outline-offset:2px;border-radius:3px}
+#cmpRail{position:fixed;right:2px;top:0;bottom:0;width:8px;z-index:93;pointer-events:none}
+#cmpRail i{position:absolute;right:0;width:8px;height:3px;border-radius:2px;background:var(--si,#f0b429);opacity:.85}
+/* r255 · play narration card — what this revision changed, at a glance */
+#playCard{position:fixed;left:12px;right:12px;bottom:14px;z-index:80;background:var(--panel);border:1px solid var(--ai);border-radius:10px;padding:10px 12px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#playCard h6{margin:0 0 4px;color:var(--ai);font-size:.78rem;letter-spacing:.06em}
+#playCard ul{margin:0;padding-left:18px;font-size:.82rem;line-height:1.5}
+#playCard .pc-m{color:var(--ink-2);font-size:.75rem;margin-top:4px}
+#playCard button{margin-top:6px;border:1px solid var(--ai);background:transparent;color:var(--ai);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:.75rem}
+@media(min-width:700px){#playCard{left:auto;max-width:420px}}
 .cmp-x{position:sticky;top:-2px;float:right;margin:-4px -4px 0 8px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);border-radius:7px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
 .cmp-x:hover{color:var(--ink)}
 .cmp-sl{margin:10px 0 2px}
@@ -580,6 +606,8 @@ body.cmpshow #cmp{display:block!important;position:fixed;inset:5% 3% 3%;z-index:
 .cmp-sum .on{outline:2px solid currentColor;outline-offset:1px}
 /* r254 · passages: hunks + ellipsis expander + show-all + demoted details */
 .df-pass{line-height:1.7;margin:6px 0 2px}
+.df-why{color:var(--ink-2);font-size:.78rem;font-style:italic;margin:2px 0 4px}
+.df-at{color:var(--ink-2);font-size:.72rem;margin-left:8px;white-space:nowrap}
 .df-t{color:var(--ink-2);font-size:.78rem;margin-left:6px}
 .df-gap{border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:9px;padding:0 8px;margin:0 4px;cursor:pointer;font-size:.75rem;line-height:1.5}
 .df-gap:hover{color:var(--ink);border-color:var(--ink-2)}
@@ -1081,7 +1109,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>القراءة</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">254</span></strong>, <strong><span id="dlbytes2">5985889</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">255</span></strong>, <strong><span id="dlbytes2">6003121</span> bytes</strong> (<span id="dlsize2">6.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>سجل التدقيق</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -6692,6 +6720,20 @@ const VERSIONS = [
    {n:"Thoth",g:"A",f:"Doc and library diff engines proven byte-identical on a shared vector corpus; caps unified."}
   ],
   next:"r255 &mdash; the dual-pane deep dive: full changed sections side by side, mirror-scrolled, phrase-coupled."
+ },
+{ v:255, code:"SEE THE CHANGES &mdash; SIDE BY SIDE, NAVIGATED, NARRATED",
+  stamp:"2026.08.22 &middot; revision 255",
+  thrust:"Operator, in one sitting: full screen for compare; a side-by-side mode where what was removed reads red in the LEFT viewer and what was added reads green in the RIGHT; a change navigator like a PDF reader&rsquo;s search rail; Play must never blank a view; and when Play runs, narrate each revision &mdash; three to nine changes and a metric against the last, pausable into detail. Delivered, and the Trinity now rides every change: &#9825; the recorded intent beside each passage, &#9708; the measured word diff as the evidence, &#50883; the release that authorized it. Compare fills the screen edge to edge. Side by side renders only the sections that changed &mdash; Before pane left with removals struck red, After pane right with additions green, both derived from the one measured op stream; scroll either pane and the other follows by section anchor (the Security-2525 mirror, made bidirectional); tap a section and its counterpart flashes (the bilingual reader&rsquo;s coupling). The navigator walks every change run &mdash; one of N, flash on arrival &mdash; with pixel-bucketed marks on the rail showing where history&rsquo;s edits sit before you travel. Play now clamps its page and a view replayed to before its birth says when it begins instead of rendering nothing; each step surfaces a card &mdash; release, changed blocks, metric versus previous &mdash; and one tap pauses into the full comparison of exactly that pair. Change marks wrap runs, not tokens, so counts read human. Ten new interface strings shipped in all 32 languages in this same release. Verified: 26-check r255 battery green three iterations to zero, the r254 battery still 26/26, parity, conformance, i18n gates all green. Totals hold; v.19 r1.001.",
+  mot:"Show the change where it lives, in both worlds at once &mdash; the world before and the world after &mdash; and let the reader walk between them like turning pages of the same book.",
+  stats:{clauses:309, jur:103, shields:5, defects:41, reach:"full"},
+  asm:[
+   {n:"Krishna",g:"A",f:"The mirror and the coupling finally serve the constitution they were practiced on; one op stream, two panes, reconciling exactly."},
+   {n:"Athena",g:"A",f:"Full screen, one-thumb navigator, run-scale counts; the reader is carried, never hunting."},
+   {n:"Pangu",g:"A",f:"The search-rail and the narrated replay &mdash; borrowed instruments the hand already knows, serving proof."},
+   {n:"Enki",g:"A",f:"Play can no longer blank a view; a view born later says so; zero-cell paging shows the notice."},
+   {n:"Sofia",g:"A-",f:"Ten new strings in 32 languages same-release; the play-card metric phrases remain canonical-English &mdash; named, queued."}
+  ],
+  next:"Keyframe ticks on the three sliders + prev/next-change steppers (the fleet blueprint, measured KEYS)."
  }
 ];
 
@@ -19181,7 +19223,7 @@ L(204,"reg.adapters","Jurisdiction-adapter architecture: a per-jurisdiction capa
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "5985889";
+const DL_BYTES = "6003121";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19243,6 +19285,9 @@ let cmpOn = false, cmpA = 1, cmpB = VERSIONS.length;
    is committed (deterministic — set on commit, cleared only by the labeled Change button
    or by reopening Compare); cmpFilter is the kind-chip filter over the passage cards. */
 let cmpSlim = false, cmpFilter = null, cmpShowAll = false, cmpDetOpen = false;
+/* r255 · cmpView: 'unified' hunks (default) or 'side' — Before pane left (removals red),
+   After pane right (additions green). cmpNavI = the change-navigator cursor. */
+let cmpView = 'unified', cmpNavI = -1;
 
 function fnv1a(s){
   let h = 0x811c9dc5;
@@ -19649,6 +19694,20 @@ function renderDoc(){
         '<span class="meta" style="font-size:13px">' + escw(b.why) + '</span></p>' : '') +
       '</div></section>';
   }
+  /* r255 · A VIEW THAT DOES NOT EXIST YET SAYS SO (operator: Play blanked brief/nose).
+     Replaying to a release before this view's first block used to render nothing —
+     a blank trust surface. Honest instead: name when the view begins. */
+  if (!blocks.length){
+    var fv = VMAX;
+    try {
+      var ordSet = {};
+      (res.order || []).forEach(function(id2){ ordSet[id2] = 1; });
+      for (var li = 0; li < LEDGER.length; li++){ if (ordSet[LEDGER[li].id] && LEDGER[li].v < fv) fv = LEDGER[li].v; }
+    } catch (e) {}
+    html = '<section class="blk pg" id="blk-__none"><div class="bb"><p class="none">' +
+           'يبدأ هذا العرض عند <b>' + relLabel(fv) + '</b> &mdash; لا شيء لعرضه بعد عند ' + relLabel(active) +
+           '. تقدّم للأمام أو انتقل إلى الأحدث.</p></div></section>';
+  }
   document.getElementById("doc").innerHTML = html;
   /* r107 · foldAlvar FIRST, and the order is load-bearing. Both cellsIn() and
      renderSectionNav() count cells by `h2.sech`; folding demotes ALVAR's
@@ -19962,7 +20021,14 @@ function cellIndexOf(id){
 }
 function showCell(i){
   const cells = cellsIn();
-  if (!cells.length) return;
+  if (!cells.length){
+    /* r255 · zero cells (a view replayed to before its birth): show whatever renderDoc
+       emitted — the honest empty-view notice — instead of hiding every block. */
+    document.body.classList.remove("notfirst");
+    document.body.classList.remove("lastcell");
+    document.querySelectorAll("#doc section.blk").forEach(function(s){ s.classList.add("pg"); });
+    return;
+  }
   cellIx = Math.max(0, Math.min(cells.length - 1, i));
   const doc = document.getElementById("doc");
   doc.querySelectorAll("section.blk.pg").forEach(function(s){ s.classList.remove("pg"); });
@@ -20690,10 +20756,16 @@ function dfPair(id, lo, hi){
            ' &rarr; ' + newT.split(/\s+/).filter(Boolean).length + ' words. The recorded reason above states what changed.</p>';
   }
   let Lc = "", Rc = "";
-  for (const o of ops){ const e = esc(o[1]);
-    if (o[0] === 0){ Lc += e + " "; Rc += e + " "; }
-    else if (o[0] === -1){ Lc += '<del>' + e + '</del> '; }
-    else { Rc += '<ins>' + e + '</ins> '; }
+  /* r255 · run-batched marks (one <del>/<ins> per contiguous change), same as the hunks */
+  { let i2 = 0;
+    while (i2 < ops.length){
+      const t0 = ops[i2][0];
+      if (t0 === 0){ Lc += esc(ops[i2][1]) + " "; Rc += esc(ops[i2][1]) + " "; i2++; continue; }
+      let run = "";
+      while (i2 < ops.length && ops[i2][0] === t0){ run += esc(ops[i2][1]) + " "; i2++; }
+      if (t0 === -1) Lc += '<del>' + run.trim() + '</del> ';
+      else Rc += '<ins>' + run.trim() + '</ins> ';
+    }
   }
   /* r251 · dir="auto" — the canonical record is English, but quoted RTL fragments inside a
      block must not scramble the columns; the browser picks direction per paragraph. */
@@ -20716,9 +20788,14 @@ function dfHunks(ops, K){
   for (var p = 0; p < parts.length; p++){
     var pt = parts[p], len = pt.b - pt.a;
     if (!pt.eq){
-      for (var x = pt.a; x < pt.b; x++){
-        var o = ops[x], e = esc(o[1]);
-        html += (o[0] === -1 ? '<del>' + e + '</del> ' : '<ins>' + e + '</ins> ');
+      /* r255 · wrap RUNS, not tokens: one <del>/<ins> per contiguous change, so the
+         change navigator and the scroll rail count human-scale changes, and the DOM
+         stays light on giant ranges. */
+      var x = pt.a;
+      while (x < pt.b){
+        var t0 = ops[x][0], run = '';
+        while (x < pt.b && ops[x][0] === t0){ run += esc(ops[x][1]) + ' '; x++; }
+        html += (t0 === -1 ? '<del>' + run.trim() + '</del> ' : '<ins>' + run.trim() + '</ins> ');
       }
       continue;
     }
@@ -20749,6 +20826,25 @@ function dfPassage(id, lo, hi){
   }
   return '<p class="df-pass" dir="auto">' + dfHunks(ops, 8) + '</p>';
 }
+/* r255 · SIDE BY SIDE (operator: "new if added on right viewer and red on left viewer").
+   Both panes derive from the SAME ops as the hunks — left = equals + removals (struck red),
+   right = equals + additions (green) — one measurement, two projections, reconciling exactly. */
+function dfSides(id, lo, hi){
+  var oldT = dfText(enHtmlAt(id, lo)), newT = dfText(enHtmlAt(id, hi));
+  if (oldT === newT || !oldT && !newT) return null;
+  var ops = dfDiff(dfTok(oldT), dfTok(newT));
+  if (!ops) return null; /* over cap — caller falls back to the unified message */
+  var L = '', R = '', i = 0;
+  while (i < ops.length){
+    var t0 = ops[i][0];
+    if (t0 === 0){ L += esc(ops[i][1]) + ' '; R += esc(ops[i][1]) + ' '; i++; continue; }
+    var run = '';
+    while (i < ops.length && ops[i][0] === t0){ run += esc(ops[i][1]) + ' '; i++; }
+    if (t0 === -1) L += '<del>' + run.trim() + '</del> ';
+    else R += '<ins>' + run.trim() + '</ins> ';
+  }
+  return { left: L.trim() || '&mdash;', right: R.trim() || '&mdash;' };
+}
 function renderCompare(){
   const host = document.getElementById("cmp");
   if (!cmpOn){ host.innerHTML = ""; return; }
@@ -20777,7 +20873,7 @@ function renderCompare(){
   let h = '<div class="cmp"><button class="cmp-x" id="cmpClose" aria-label="Close compare" title="Close">' + ICON.close + '</button>';
   if (cmpSlim){
     h += '<div class="cmp-bar"><span class="cmp-bar-t">&#8646; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</span>' +
-         '<button id="cmpEdit" type="button">Change</button></div>';
+         '<button id="cmpEdit" type="button">تغيير</button></div>';
   } else {
     h += '<h4>&#8646; What changed &mdash; ' + vLbl(lo) + ' &rarr; ' + vLbl(hi) + (isCur ? ' (current)' : '') + '</h4>' +
     '<div class="cmp-sl"><label for="cmpA">قبل &middot; <span id="cmpALbl">' + cmpLbl(cmpA) + '</span></label>' +
@@ -20839,16 +20935,48 @@ function renderCompare(){
     var dfList = dfByImp.filter(function(d){ return d.kind !== "removed"; });
     var dfShown = cmpShowAll ? dfList : dfList.slice(0, 20);
     if (dfList.length){
-      h += '<div class="df-wrap" id="cmpPass"><h5>&#8646; تغييرات النص &middot; السجل المرجعي</h5>' +
+      h += '<div class="df-wrap" id="cmpPass"><h5>&#8646; تغييرات النص &middot; السجل المرجعي' +
+           /* r255 · Unified (hunks) vs Side by side (Before left / After right) — one measurement, two projections */
+           '<span class="cmp-mode" role="group"><button id="cmpVU" type="button" aria-pressed="' + (cmpView === 'unified') + '">موحّد</button>' +
+           '<button id="cmpVS" type="button" aria-pressed="' + (cmpView === 'side') + '">جنبًا إلى جنب</button></span></h5>' +
+           /* r255 · change navigator — the PDF search-rail pattern: ‹ n / N › walks every red/green cluster */
+           '<div class="cmp-nav"><button id="cmpNvP" type="button" aria-label="التغيير السابق">&lsaquo;</button>' +
+           '<span class="n" id="cmpNvN">&ndash; / &ndash;</span>' +
+           '<button id="cmpNvX" type="button" aria-label="التغيير التالي">&rsaquo;</button></div>' +
            '<p class="df-note">يُحفظ سجل الإصدارات باللغة المصدر، لذا يظهر التغيير على مستوى الكلمات في النص الإنجليزي المرجعي؛ وتتبع كل لغة أحدث إصدار. الأحمر المشطوب يعني الحذف، والأخضر يعني الإضافة.</p>';
-      dfShown.forEach(function(d){
-        h += '<div class="df-blk" data-kind="' + d.kind + '"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
-             '<span class="pill ' + (d.kind === "added" ? "k-add" : "k-rev") + '">' + d.kind + '</span> ' +
-             '<span class="df-t">' + escw(d.title) + '</span></div>' +
-             dfPassage(d.id, lo, hi) + '</div>';
-      });
+      /* r255 · Trinity on every change: ♡ the recorded intent · ◬ the measured diff · 웃 the release authority */
+      var trin = function(d){
+        return '<span class="df-at" title="release">&#50883; ' + relLabel(d.v) + '</span>' +
+               (d.why ? '<p class="df-why" title="recorded intent">&#9825; ' + escw(d.why) + '</p>' : '');
+      };
+      if (cmpView === 'side'){
+        var Lp = '', Rp = '';
+        dfShown.forEach(function(d){
+          var s2 = dfSides(d.id, lo, hi);
+          var head = '<div class="df-h"><code>' + esc(d.id) + '</code> ' +
+                     '<span class="pill ' + (d.kind === "added" ? "k-add" : "k-rev") + '">' + d.kind + '</span> ' +
+                     '<span class="df-t">' + escw(d.title) + '</span></div>';
+          if (!s2){
+            var fb = dfPassage(d.id, lo, hi); /* markup-only / over-cap message, honest in both panes */
+            Lp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + fb + '</div>';
+            Rp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + fb + '</div>';
+          } else {
+            Lp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + '<p dir="auto" title="&#9708; measured">' + s2.left + '</p></div>';
+            Rp += '<div class="dd-sec" data-id="' + esc(d.id) + '" data-kind="' + d.kind + '">' + head + trin(d) + '<p dir="auto" title="&#9708; measured">' + s2.right + '</p></div>';
+          }
+        });
+        h += '<div class="dd-wrap"><div class="dd-pane" id="ddL"><h6>Before &middot; ' + relLabel(lo) + '</h6>' + Lp + '</div>' +
+             '<div class="dd-pane" id="ddR"><h6>After &middot; ' + relLabel(hi) + '</h6>' + Rp + '</div></div>';
+      } else {
+        dfShown.forEach(function(d){
+          h += '<div class="df-blk" data-kind="' + d.kind + '"><div class="df-h"><code>' + esc(d.id) + '</code> ' +
+               '<span class="pill ' + (d.kind === "added" ? "k-add" : "k-rev") + '">' + d.kind + '</span> ' +
+               '<span class="df-t">' + escw(d.title) + '</span></div>' + trin(d) +
+               dfPassage(d.id, lo, hi) + '</div>';
+        });
+      }
       if (dfList.length > dfShown.length)
-        h += '<button id="cmpMore" type="button" class="df-more">Show all ' + dfList.length + ' changed sections</button>';
+        h += '<button id="cmpMore" type="button" class="df-more">عرض كل ' + dfList.length + ' الأقسام المتغيرة</button>';
       h += '</div>';
     }
 
@@ -20902,11 +21030,11 @@ function renderCompare(){
      Fail-closed: any filter error clears the filter and shows everything. */
   function applyCmpFilter(){
     try {
-      var cards = host.querySelectorAll('#cmpPass .df-blk');
+      var cards = host.querySelectorAll('#cmpPass .df-blk, #cmpPass .dd-sec');
       for (var ci = 0; ci < cards.length; ci++){
         cards[ci].style.display = (!cmpFilter || cards[ci].getAttribute('data-kind') === cmpFilter) ? '' : 'none';
       }
-    } catch (e){ cmpFilter = null; var all = host.querySelectorAll('#cmpPass .df-blk'); for (var ai = 0; ai < all.length; ai++) all[ai].style.display = ''; }
+    } catch (e){ cmpFilter = null; var all = host.querySelectorAll('#cmpPass .df-blk, #cmpPass .dd-sec'); for (var ai = 0; ai < all.length; ai++) all[ai].style.display = ''; }
   }
   var chipKinds = { 'k-add': 'added', 'k-rev': 'revised', 'k-rem': 'removed' };
   Object.keys(chipKinds).forEach(function(cls){
@@ -20930,6 +21058,78 @@ function renderCompare(){
   if (more) more.addEventListener('click', function(){ cmpShowAll = true; renderDoc(); });
   var det = host.querySelector('details.cmp-det');
   if (det) det.addEventListener('toggle', function(){ cmpDetOpen = det.open; });
+  /* r255 · Unified / Side-by-side mode toggle */
+  var vu = document.getElementById('cmpVU'), vs = document.getElementById('cmpVS');
+  if (vu) vu.addEventListener('click', function(){ if (cmpView !== 'unified'){ cmpView = 'unified'; cmpNavI = -1; renderDoc(); } });
+  if (vs) vs.addEventListener('click', function(){ if (cmpView !== 'side'){ cmpView = 'side'; cmpNavI = -1; renderDoc(); } });
+  /* r255 · MIRROR SCROLL (Security-2525 pattern, bidirectional with a guard): scrolling
+     either pane aligns the other to the counterpart section + fractional offset. Tap a
+     section to flash its counterpart (bilingual-reader coupling). Fail-closed: any error
+     detaches nothing and simply stops syncing that tick. */
+  var ddL = document.getElementById('ddL'), ddR = document.getElementById('ddR');
+  if (ddL && ddR){
+    var ddSyncing = false;
+    var mirror = function(src, dst){
+      if (ddSyncing) return; ddSyncing = true;
+      try {
+        var secs = src.querySelectorAll('.dd-sec'), top = src.scrollTop, pick = null;
+        for (var si = 0; si < secs.length; si++){ if (secs[si].offsetTop <= top + 8) pick = secs[si]; else break; }
+        if (pick){
+          var frac = (top - pick.offsetTop) / Math.max(1, pick.offsetHeight);
+          var mate = dst.querySelector('.dd-sec[data-id="' + (pick.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
+          if (mate) dst.scrollTop = mate.offsetTop + frac * mate.offsetHeight;
+        }
+      } catch (e) {}
+      ddSyncing = false;
+    };
+    ddL.addEventListener('scroll', function(){ mirror(ddL, ddR); }, { passive: true });
+    ddR.addEventListener('scroll', function(){ mirror(ddR, ddL); }, { passive: true });
+    var couple = function(ev){
+      var sec = ev.target.closest ? ev.target.closest('.dd-sec') : null;
+      if (!sec) return;
+      var pane = sec.parentElement === ddL ? ddR : ddL;
+      var mate = pane.querySelector('.dd-sec[data-id="' + (sec.getAttribute('data-id') || '').replace(/"/g, '') + '"]');
+      if (mate){ mate.scrollIntoView({ block: 'nearest' }); mate.classList.add('dd-hot'); setTimeout(function(){ mate.classList.remove('dd-hot'); }, 900); }
+    };
+    ddL.addEventListener('click', couple);
+    ddR.addEventListener('click', couple);
+  }
+  /* r255 · CHANGE NAVIGATOR — walk every red/green cluster like a PDF reader walks search
+     hits: ‹ n / N ›, scroll + flash on arrival, tick marks on the right rail showing where
+     the changes live. Deterministic; fail-closed to plain scrolling. */
+  try {
+    var clus = Array.prototype.slice.call(host.querySelectorAll('#cmpPass del, #cmpPass ins'));
+    var nvN = document.getElementById('cmpNvN');
+    var nvGo = function(step){
+      if (!clus.length) return;
+      cmpNavI = ((cmpNavI + step) % clus.length + clus.length) % clus.length;
+      var el = clus[cmpNavI];
+      var old = host.querySelector('.df-cur'); if (old) old.classList.remove('df-cur');
+      el.classList.add('df-cur');
+      el.scrollIntoView({ block: 'center' });
+      if (nvN) nvN.textContent = (cmpNavI + 1) + ' / ' + clus.length;
+    };
+    if (nvN) nvN.textContent = (clus.length ? (cmpNavI >= 0 && cmpNavI < clus.length ? cmpNavI + 1 : 0) : 0) + ' / ' + clus.length;
+    var nvP = document.getElementById('cmpNvP'), nvX = document.getElementById('cmpNvX');
+    if (nvP) nvP.addEventListener('click', function(){ nvGo(-1); });
+    if (nvX) nvX.addEventListener('click', function(){ nvGo(1); });
+    /* rail marks (unified mode: one scroll body) — PIXEL-BUCKETED like a PDF reader's
+       search rail: one mark per 0.5% band, so a thousand changes still read as a clean
+       density map instead of a solid bar. */
+    var oldRail = document.getElementById('cmpRail'); if (oldRail) oldRail.remove();
+    if (cmpView === 'unified' && clus.length){
+      var rail = document.createElement('div'); rail.id = 'cmpRail';
+      var total = Math.max(1, host.scrollHeight), seen = {};
+      for (var ri = 0; ri < clus.length; ri++){
+        var bucket = Math.round(clus[ri].offsetTop / total * 200);
+        if (seen[bucket]) continue; seen[bucket] = 1;
+        var m = document.createElement('i');
+        m.style.top = (bucket / 2) + '%';
+        rail.appendChild(m);
+      }
+      host.appendChild(rail);
+    }
+  } catch (e) {}
 }
 
 function panelMean(V){
@@ -21148,10 +21348,13 @@ function goto(v){
    a half-rendered "colored blocks, no panel" state on the back arrow. Compare is entered ONLY
    through setCompare(), the single choke point that keeps cmpOn, the button, body.cmpshow and
    the scrim in lockstep so they can never desync again. */
-function setCompare(on, base){
+function setCompare(on, base, target){
   cmpOn = !!on;
   document.getElementById("bCmp").setAttribute("aria-pressed", cmpOn ? "true" : "false");
-  if (cmpOn){ cmpB = VMAX; cmpA = (base != null ? Math.max(1, Math.min(VMAX, base)) : defaultCmpBase()); }
+  if (cmpOn){
+    cmpB = (target != null ? Math.max(1, Math.min(VMAX, target)) : VMAX);
+    cmpA = (base != null ? Math.max(1, Math.min(VMAX, base)) : defaultCmpBase());
+  }
   /* r254 · fresh open shows the pickers expanded, unfiltered, unexpanded */
   cmpSlim = false; cmpFilter = null; cmpShowAll = false;
   document.body.classList.toggle("cmpshow", cmpOn);
@@ -21159,7 +21362,7 @@ function setCompare(on, base){
   renderDoc();
   if (cmpOn){ var c = document.getElementById("cmp"); if (c) c.scrollTop = 0; }
 }
-function stop(){ if (playing){ clearInterval(playing); playing = null; document.getElementById("bPlay").innerHTML = ICON.play + "Play"; } }
+function stop(){ if (playing){ clearInterval(playing); playing = null; document.getElementById("bPlay").innerHTML = ICON.play + "Play"; } var pc = document.getElementById('playCard'); if (pc) pc.remove(); }
 
 document.getElementById("bPrev").addEventListener("click", function(){ stop(); goto(active-1); });
 document.getElementById("bNext").addEventListener("click", function(){ stop(); goto(active+1); });
@@ -21419,6 +21622,33 @@ document.getElementById("bFull").addEventListener("click", function(){
     window.scrollTo(0,0);
   }
 });
+/* r255 · PLAY NARRATION (operator: "3-9 changes with key metric from that revision versus
+   last; pause and enter detail"). Each step surfaces a compact card — release label, up to
+   nine changed blocks from improvements() (no diff computed on the play path), one metric
+   versus the previous release — and one tap pauses into the full comparison of that pair. */
+function renderPlayCard(v){
+  try {
+    var old = document.getElementById('playCard'); if (old) old.remove();
+    if (!playing || v <= 1) return;
+    var imp = improvements(v);
+    var card = document.createElement('div'); card.id = 'playCard';
+    var items = '', topImp = 'L1', rk = {L5:5,L4:4,L3:3,L2:2,L1:1};
+    imp.slice(0, 9).forEach(function(e){
+      var im = diffImpact(e.id, 'revised');
+      if (rk[im] > rk[topImp]) topImp = im;
+      items += '<li>' + escw(diffTitle(e.id, v)) + '</li>';
+    });
+    card.innerHTML = '<h6>' + relLabel(v) + ' &middot; ' + escw(VERSIONS[v-1].code) + '</h6>' +
+      (imp.length ? '<ul>' + items + '</ul>' +
+        '<p class="pc-m">' + imp.length + ' block' + (imp.length===1?'':'s') + ' changed vs ' + relLabel(v-1) + ' &middot; top impact ' + topImp + '</p>'
+        : '<p class="pc-m">Interface and record only vs ' + relLabel(v-1) + ' &mdash; no content block changed.</p>') +
+      '<button type="button">إيقاف مؤقت · افتح المقارنة</button>';
+    card.querySelector('button').addEventListener('click', function(){
+      stop(); setCompare(true, v - 1, v);
+    });
+    document.body.appendChild(card);
+  } catch (e) {}
+}
 document.getElementById("bPlay").addEventListener("click", function(){
   if (playing){ stop(); return; }
   if (active === VMAX) active = 1;
@@ -21427,6 +21657,7 @@ document.getElementById("bPlay").addEventListener("click", function(){
   playing = setInterval(function(){
     if (active >= VMAX){ stop(); return; }
     goto(active+1);
+    renderPlayCard(active);
   }, 2600);
 });
 document.addEventListener("keydown", function(e){

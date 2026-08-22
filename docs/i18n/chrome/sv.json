@@ -76,14 +76,6 @@
 "<h5>Viktiga förbättringar &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Inget ändrades mellan v"
-],
-[
-". Identical bytes.</p>",
-". Identiska byte.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; störst påverkan: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Detaljer</summary>"
+],
+[
+"\">Unified</button>",
+"\">Samlad</button>"
+],
+[
+"\">Side by side</button>",
+"\">Sida vid sida</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Ändra</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Visa alla ' + dfList.length + ' ändrade avsnitt</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Paus · öppna jämförelsen</button>"
+],
+[
+"'This view begins at <b>'",
+"'Denna vy börjar vid <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; inget att visa ännu vid '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Stega framåt, eller hoppa till senaste.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Föregående ändring\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Nästa ändring\""
 ]
 ]

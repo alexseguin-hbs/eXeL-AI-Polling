@@ -76,14 +76,6 @@
 "<h5>주요 개선 사항 &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">변경 사항 없음: v"
-],
-[
-". Identical bytes.</p>",
-". 바이트 단위로 동일합니다.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; 최고 영향도: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">상세</summary>"
+],
+[
+"\">Unified</button>",
+"\">통합 보기</button>"
+],
+[
+"\">Side by side</button>",
+"\">나란히 보기</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">변경</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">모두 보기 ' + dfList.length + ' 변경된 섹션</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">일시정지 · 비교 열기</button>"
+],
+[
+"'This view begins at <b>'",
+"'이 보기의 시작은 <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; 아직 표시할 내용 없음: '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". 앞으로 이동하거나 최신으로 건너뛰세요.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"이전 변경\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"다음 변경\""
 ]
 ]

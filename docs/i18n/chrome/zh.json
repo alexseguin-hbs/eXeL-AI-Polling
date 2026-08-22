@@ -76,14 +76,6 @@
 "<h5>关键改进 &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">之间没有变化 v"
-],
-[
-". Identical bytes.</p>",
-". 字节完全相同。</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; 影响最大： "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">详情</summary>"
+],
+[
+"\">Unified</button>",
+"\">统一视图</button>"
+],
+[
+"\">Side by side</button>",
+"\">并排对照</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">更改</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">显示全部 ' + dfList.length + ' 已更改的章节</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">暂停 · 打开对比</button>"
+],
+[
+"'This view begins at <b>'",
+"'此视图始于 <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; 此处尚无内容: '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". 向前一步，或跳至最新。</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"上一处更改\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"下一处更改\""
 ]
 ]

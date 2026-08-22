@@ -76,14 +76,6 @@
 "<h5>Ключові покращення &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Нічого не змінилося між v"
-],
-[
-". Identical bytes.</p>",
-". Байти ідентичні.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; найвищий вплив: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Деталі</summary>"
+],
+[
+"\">Unified</button>",
+"\">Єдиний</button>"
+],
+[
+"\">Side by side</button>",
+"\">Поруч</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Змінити</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Показати всі ' + dfList.length + ' змінені розділи</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Пауза · відкрити порівняння</button>"
+],
+[
+"'This view begins at <b>'",
+"'Цей вигляд починається з <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; поки нічого показувати на '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Крок уперед або перейдіть до останньої.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Попередня зміна\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Наступна зміна\""
 ]
 ]

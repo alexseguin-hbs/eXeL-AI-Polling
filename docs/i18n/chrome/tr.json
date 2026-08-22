@@ -76,14 +76,6 @@
 "<h5>Temel iyileştirmeler &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Şunlar arasında hiçbir şey değişmedi: v"
-],
-[
-". Identical bytes.</p>",
-". Bayt bazında aynı.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; en yüksek etki: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Ayrıntılar</summary>"
+],
+[
+"\">Unified</button>",
+"\">Birleşik</button>"
+],
+[
+"\">Side by side</button>",
+"\">Yan yana</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Değiştir</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Tümünü göster ' + dfList.length + ' değişen bölümler</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Duraklat · karşılaştırmayı aç</button>"
+],
+[
+"'This view begins at <b>'",
+"'Bu görünüm şurada başlar <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; henüz gösterilecek bir şey yok: '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". İleri adım atın veya en yeniye geçin.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Önceki değişiklik\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Sonraki değişiklik\""
 ]
 ]

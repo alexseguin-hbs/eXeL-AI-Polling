@@ -76,14 +76,6 @@
 "<h5>Ключевые улучшения &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">Ничего не изменилось между v"
-],
-[
-". Identical bytes.</p>",
-". Идентичные байты.</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; наибольшее влияние: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">Подробности</summary>"
+],
+[
+"\">Unified</button>",
+"\">Единый</button>"
+],
+[
+"\">Side by side</button>",
+"\">Бок о бок</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">Изменить</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">Показать все ' + dfList.length + ' изменённые разделы</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">Пауза · открыть сравнение</button>"
+],
+[
+"'This view begins at <b>'",
+"'Этот вид начинается с <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; пока нечего показать на '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". Шагните вперёд или перейдите к последней.</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"Предыдущее изменение\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"Следующее изменение\""
 ]
 ]

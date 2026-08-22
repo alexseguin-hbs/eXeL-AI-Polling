@@ -76,14 +76,6 @@
 "<h5>मुख्य सुधारहरू &middot; "
 ],
 [
-"<p class=\"none\">Nothing changed between v",
-"<p class=\"none\">बीच कुनै परिवर्तन भएन v"
-],
-[
-". Identical bytes.</p>",
-". समान बाइटहरू।</p>"
-],
-[
 " &middot; highest impact: ",
 " &middot; सबैभन्दा उच्च प्रभाव: "
 ],
@@ -102,5 +94,45 @@
 [
 "<summary class=\"cmp-det-s\">Details</summary>",
 "<summary class=\"cmp-det-s\">विवरण</summary>"
+],
+[
+"\">Unified</button>",
+"\">एकीकृत</button>"
+],
+[
+"\">Side by side</button>",
+"\">सँगसँगै</button>"
+],
+[
+"id=\"cmpEdit\" type=\"button\">Change</button>",
+"id=\"cmpEdit\" type=\"button\">परिवर्तन</button>"
+],
+[
+"class=\"df-more\">Show all ' + dfList.length + ' changed sections</button>",
+"class=\"df-more\">सबै देखाउनुहोस् ' + dfList.length + ' परिवर्तित खण्डहरू</button>"
+],
+[
+">Pause &middot; open the comparison</button>",
+">रोक्नुहोस् · तुलना खोल्नुहोस्</button>"
+],
+[
+"'This view begins at <b>'",
+"'यो दृश्य सुरु हुन्छ <b>'"
+],
+[
+"'</b> &mdash; nothing to show yet at '",
+"'</b> &mdash; अहिले देखाउन केही छैन '"
+],
+[
+". Step forward, or jump to the latest.</p>",
+". अगाडि बढ्नुहोस् वा नवीनतममा जानुहोस्।</p>"
+],
+[
+"aria-label=\"Previous change\"",
+"aria-label=\"अघिल्लो परिवर्तन\""
+],
+[
+"aria-label=\"Next change\"",
+"aria-label=\"अर्को परिवर्तन\""
 ]
 ]
