@@ -139,6 +139,25 @@ console.log(`\nBATTERY(core): ${passes} passed, ${fails} failed`);
   ok2(ov <= 0, `375px zero horizontal overflow (${ov}px)`);
   await pg2.close();
 }
+
+// ── GOLDEN LOCK (Odin): the diff renderers' exact output on a forever-frozen pair.
+// Any refactor that changes a byte of dfPair/dfPassage/dfSides output fails here first.
+{
+  const { createHash } = await import('node:crypto');
+  const { readFileSync } = await import('node:fs');
+  const fx = JSON.parse(readFileSync('/home/user/eXeL-AI-Polling/frontend/tests/fixtures/golden-diff-off.reserve-240-246.json', 'utf8'));
+  const pg3 = await b.newPage();
+  await pg3.goto(DOC, { waitUntil: 'networkidle' });
+  const out = await pg3.evaluate(() => ({
+    pair: dfPair('off.reserve', 240, 246), passage: dfPassage('off.reserve', 240, 246),
+    sides: JSON.stringify(dfSides('off.reserve', 240, 246)) }));
+  const h = (x) => createHash('sha256').update(x).digest('hex');
+  const g = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + 'golden: ' + m); c ? passes++ : fails++; };
+  g(h(out.pair) === fx.dfPair_sha256, 'dfPair output byte-identical to the pinned hash');
+  g(h(out.passage) === fx.dfPassage_sha256, 'dfPassage (hunks) byte-identical to the pinned hash');
+  g(h(out.sides) === fx.dfSides_sha256, 'dfSides (dual panes) byte-identical to the pinned hash');
+  await pg3.close();
+}
 console.log(`\nFULL BATTERY: ${passes} passed, ${fails} failed`);
 await b.close();
 process.exit(fails === 0 ? 0 : 1);
