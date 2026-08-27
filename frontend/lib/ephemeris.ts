@@ -64,3 +64,33 @@ export function trueAnomaly(planetId: string, jd: number): number {
 }
 
 export const HAS_EPHEMERIS = (id: string) => id in EL;
+
+// Semi-major axes (AU, J2000) — needed for 3D positions (heliocentricLon needs only angles; geocentric needs distance).
+const A: Record<string, number> = { mercury: 0.38709927, venus: 0.72333566, earth: 1.00000261, mars: 1.52371034, jupiter: 5.20288700, saturn: 9.53667594, uranus: 19.18916464, neptune: 30.06992276, pluto: 39.48211675 };
+
+/** Heliocentric ecliptic rectangular coords (AU) for a planet — full 3D (inclination-correct). */
+export function heliocentricEclXYZ(planetId: string, jd: number): { x: number; y: number; z: number } {
+  const el = EL[planetId]; const a = A[planetId];
+  if (!el || a === undefined) return { x: 0, y: 0, z: 0 };
+  const T = (jd - J2000) / 36525;
+  const e = el.e[0] + el.e[1] * T;
+  const i = (el.i[0] + el.i[1] * T) * DEG;
+  const om = (el.om[0] + el.om[1] * T) * DEG;
+  const vp = (el.vp[0] + el.vp[1] * T) * DEG;
+  const nu = trueAnomaly(planetId, jd) * DEG;
+  const r = a * (1 - e * e) / (1 + e * Math.cos(nu));   // heliocentric distance
+  const u = (vp - om) + nu;                              // argument of latitude
+  return {
+    x: r * (Math.cos(om) * Math.cos(u) - Math.sin(om) * Math.sin(u) * Math.cos(i)),
+    y: r * (Math.sin(om) * Math.cos(u) + Math.cos(om) * Math.sin(u) * Math.cos(i)),
+    z: r * (Math.sin(u) * Math.sin(i)),
+  };
+}
+
+/** GEOCENTRIC ecliptic longitude/latitude (deg) + Earth-distance (AU) of a planet — the sky-position of a planet as
+ * seen from Earth (planet helio − Earth helio). Feeds RA/Dec → alt-az for the Sky Dome. */
+export function geocentricEcl(planetId: string, jd: number): { lon: number; lat: number; dist: number } {
+  const p = heliocentricEclXYZ(planetId, jd), e = heliocentricEclXYZ("earth", jd);
+  const gx = p.x - e.x, gy = p.y - e.y, gz = p.z - e.z;
+  return { lon: ((Math.atan2(gy, gx) / DEG) % 360 + 360) % 360, lat: Math.atan2(gz, Math.hypot(gx, gy)) / DEG, dist: Math.hypot(gx, gy, gz) };
+}

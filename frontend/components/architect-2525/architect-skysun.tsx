@@ -12,6 +12,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ArchitectCelestial } from "./architect-celestial";
 import { moonState } from "@/lib/astro-moon";
 import { overWindow, bestDateForWindow } from "@/lib/celestial";
+import { geocentricEcl, dateToJD } from "@/lib/ephemeris";
+import { PRIORITY_CONSTELLATIONS, ZODIAC } from "@/lib/constellations";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const RAD = Math.PI / 180;
@@ -132,6 +134,24 @@ const BRIGHT_STARS: { n: string; ra: number; dec: number }[] = [
   { n: "Sirius", ra: 6.75, dec: -16.7 }, { n: "Betelgeuse", ra: 5.92, dec: 7.4 }, { n: "Rigel", ra: 5.24, dec: -8.2 },
   { n: "Vega", ra: 18.62, dec: 38.8 }, { n: "Arcturus", ra: 14.26, dec: 19.2 }, { n: "Capella", ra: 5.28, dec: 46.0 },
   { n: "Aldebaran", ra: 4.60, dec: 16.5 }, { n: "Antares", ra: 16.49, dec: -26.4 }, { n: "Deneb", ra: 20.69, dec: 45.3 },
+];
+
+// Deterministic PLANET alt-az from the real geocentric ephemeris (lib/ephemeris) — same shared-LST sky as Moon + stars,
+// so Saturn/Neptune/etc. sit exactly where a sky atlas (e.g. Sky Guide) shows them for this place + time.
+function planetSky(id: string, lat: number, dayOfYear: number, hour: number, year: number) {
+  const g = geocentricEcl(id, dateToJD(year, dayOfYear, hour));   // geocentric ecliptic lon/lat (deg)
+  const ms = moonState(year, dayOfYear, hour);
+  const sun = eclToRaDec(ms.eclLonSun, 0), pl = eclToRaDec(g.lon, g.lat);  // dome eclToRaDec → RA/dec in DEGREES
+  const Hs = 15 * (hour - 12);
+  let H = Hs - (pl.ra - sun.ra); H = ((H + 180) % 360 + 360) % 360 - 180;
+  const dR = pl.dec * RAD, lR = lat * RAD, HR = H * RAD;
+  const el = Math.asin(Math.max(-1, Math.min(1, Math.sin(dR) * Math.sin(lR) + Math.cos(dR) * Math.cos(lR) * Math.cos(HR)))) / RAD;
+  const az = (Math.atan2(-Math.cos(dR) * Math.sin(HR), Math.sin(dR) * Math.cos(lR) - Math.cos(dR) * Math.sin(lR) * Math.cos(HR)) / RAD + 360) % 360;
+  return { az, el };
+}
+const PLANETS: { id: string; n: string; c: string }[] = [
+  { id: "mercury", n: "Mercury", c: "#d98a5a" }, { id: "venus", n: "Venus", c: "#f5e6c8" }, { id: "mars", n: "Mars", c: "#e0674a" },
+  { id: "jupiter", n: "Jupiter", c: "#e3c48a" }, { id: "saturn", n: "Saturn", c: "#e8d59a" }, { id: "neptune", n: "Neptune", c: "#6aa6ff" }, { id: "uranus", n: "Uranus", c: "#8fe0e0" },
 ];
 
 // Sky-dome projection: zenith at centre, horizon at radius R. az 0=N (top), clockwise.
@@ -287,6 +307,18 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
           {/* Real bright stars (RA/Dec → alt-az), only those above the horizon — the same sky as the Solar-System map */}
           {BRIGHT_STARS.map((s) => { const p = starSky(s.ra, s.dec, lat, doy, hour, year); if (p.el <= 0) return null; const [x, y] = dome(p.az, p.el); return (
             <g key={s.n} data-el="star"><circle cx={x} cy={y} r="0.55" fill="#9fd" /><text x={x + 1.4} y={y + 0.6} fontSize="1.9" fill="#7fb8c8" style={{ fontFamily: "monospace" }}>{s.n}</text></g>
+          ); })}
+          {/* Constellation labels at their real alt-az — recognisable figures (Cygnus, Orion…) + the zodiac band
+              (Aquarius, Capricornus, Pisces…), placed exactly where a sky atlas shows them for this place + time. */}
+          {PRIORITY_CONSTELLATIONS.map((cn) => { const p = starSky(cn.ra, cn.dec, lat, doy, hour, year); if (p.el <= 4) return null; const [x, y] = dome(p.az, p.el); return (
+            <text key={cn.name} data-el="constellation" x={x} y={y} fontSize="1.7" fill="#556685" textAnchor="middle" style={{ fontFamily: "monospace" }}>{cn.name}</text>
+          ); })}
+          {ZODIAC.filter((z) => !PRIORITY_CONSTELLATIONS.some((c) => c.name === z.name)).map((z) => { const rd = eclToRaDec(z.lonDeg, 0); const p = starSky(rd.ra / 15, rd.dec, lat, doy, hour, year); if (p.el <= 4) return null; const [x, y] = dome(p.az, p.el); return (
+            <text key={z.name} data-el="zodiac" x={x} y={y} fontSize="1.7" fill="#7a6ba8" textAnchor="middle" style={{ fontFamily: "monospace", letterSpacing: "0.6px" }}>{z.name}</text>
+          ); })}
+          {/* Planets at real geocentric positions (Saturn, Neptune, Jupiter…) — the same sky the atlas shows */}
+          {PLANETS.map((pl) => { const p = planetSky(pl.id, lat, doy, hour, year); if (p.el <= 0) return null; const [x, y] = dome(p.az, p.el); return (
+            <g key={pl.id} data-el="planet"><circle cx={x} cy={y} r="0.85" fill={pl.c} stroke="#000" strokeWidth="0.12" /><text x={x + 1.4} y={y + 0.6} fontSize="1.9" fill={pl.c} style={{ fontFamily: "monospace" }}>{pl.n}</text></g>
           ); })}
         </svg>
         {/* GPS ENTRY — paste coordinates in ANY format (decimal · DMS · N/S/E/W), or tap 📍 for device location.
