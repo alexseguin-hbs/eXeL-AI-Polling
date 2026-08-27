@@ -14,6 +14,8 @@ import { moonState } from "@/lib/astro-moon";
 import { overWindow, bestDateForWindow } from "@/lib/celestial";
 import { geocentricEcl, dateToJD } from "@/lib/ephemeris";
 import { PRIORITY_CONSTELLATIONS, ZODIAC } from "@/lib/constellations";
+import { latLonToUtm, latLonToMgrs, utmToLatLon, mgrsToLatLon, latBand } from "@/components/security-2525/mgrs";
+import { fmtLLV, fmtUcrsDms } from "@/lib/voxel-grid";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const RAD = Math.PI / 180;
@@ -90,6 +92,22 @@ function parseGps(raw: string): { lat: number; lon: number } | null {
   else if (lon === undefined) lon = ca.axis ? cb.v : ca.v;
   if (lat === undefined || lon === undefined || Math.abs(lat) > 90 || Math.abs(lon) > 180 || isNaN(lat) || isNaN(lon)) return null;
   return { lat: Math.round(lat * 1e6) / 1e6, lon: Math.round(lon * 1e6) / 1e6 };
+}
+// UTM entry (Security-2525 style): "14 620805E 3350823N" · "14N 620805 3350823" · "14 620805 3350823".
+function parseUtm(s: string): { lat: number; lon: number } | null {
+  const m = s.trim().match(/^(\d{1,2})\s*([C-HJ-NP-Xc-hj-np-x]?)\s+(\d{3,7})\s*[Ee]?\s+(\d{3,8})\s*[Nn]?$/);
+  if (!m) return null;
+  const zone = +m[1], band = (m[2] || "").toUpperCase(), e = +m[3], n = +m[4];
+  if (zone < 1 || zone > 60) return null;
+  const south = band ? band < "N" : false;   // MGRS lat-bands C–M are southern, N–X northern
+  try { const r = utmToLatLon(zone, e, n, south); return Math.abs(r.lat) <= 90 && Math.abs(r.lon) <= 180 ? { lat: Math.round(r.lat * 1e6) / 1e6, lon: Math.round(r.lon * 1e6) / 1e6 } : null; } catch { return null; }
+}
+// ANY Security-2525 coordinate format → {lat,lon}: MGRS → UTM → LLV-DMS/decimal/hemisphere. refLat resolves the
+// MGRS 100 km northing-band ambiguity from the current position.
+function parseAnyCoord(s: string, refLat = 0): { lat: number; lon: number } | null {
+  const t = (s || "").trim(); if (!t) return null;
+  if (/^\d{1,2}\s*[C-HJ-NP-Xc-hj-np-x]\s*[A-HJ-NP-Za-hj-np-z]{2}\s*\d/.test(t)) { const r = mgrsToLatLon(t.toUpperCase(), refLat); if (r) return { lat: Math.round(r.lat * 1e6) / 1e6, lon: Math.round(r.lon * 1e6) / 1e6 }; }
+  return parseUtm(t) || parseGps(t);
 }
 
 // Ecliptic (λ,β) → equatorial (RA, dec), obliquity ε.
@@ -205,8 +223,9 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
   // Snap the whole sky (date + hour) to the CURRENT local apparent-solar time at a longitude — so the dome shows
   // exactly what is overhead now (moon + stars included), not a noon default. Longitude alone fixes the sky.
   const syncNow = (atLon: number) => { const s = nowSkyAt(atLon); setYear(s.year); setDoy(s.doy); setHour(s.hour); };
-  // Apply a free-form GPS string → set the lot coordinate AND re-sync the sky to now at that place.
-  const applyGps = (raw: string) => { const p = parseGps(raw); if (!p) { setGpsErr(true); return; } setGpsErr(false); setLat(p.lat); setLon(p.lon); syncNow(p.lon); };
+  // Apply a coordinate string in ANY Security-2525 format (MGRS · UTM · LLV-DMS · UCRS-decimal · N/S/E/W) → set the lot
+  // AND re-sync the sky to now at that place. Current lat resolves the MGRS band.
+  const applyGps = (raw: string) => { const p = parseAnyCoord(raw, lat); if (!p) { setGpsErr(true); return; } setGpsErr(false); setLat(p.lat); setLon(p.lon); syncNow(p.lon); };
   // Device GPS hardware → set the lot from the phone/computer's own location (one tap at the actual site). Asks the OS
   // for permission; guides the user to turn ON GPS / Location Services and allow access if it is off or blocked.
   const locate = () => {
@@ -284,6 +303,15 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
   // 4-corner property lot from the placed centre (±15 m ≈ 30 m lot) — the reference frame the whole site shares.
   const dLat = 15 / 111320, dLon = dLat / Math.max(0.2, Math.cos(lat * RAD));
   const corners = [{ k: "NW", la: lat + dLat, lo: lon - dLon }, { k: "NE", la: lat + dLat, lo: lon + dLon }, { k: "SE", la: lat - dLat, lo: lon + dLon }, { k: "SW", la: lat - dLat, lo: lon - dLon }];
+  // Security-2525 coordinate call-up for the placed lot — the same MGRS · UTM · LLV-DMS · UCRS formats as the Security map.
+  const utmC = latLonToUtm(lat, lon);
+  const coordCallup: [string, string][] = [
+    ["MGRS", latLonToMgrs(lat, lon)],
+    ["UTM", `${utmC.zone}${latBand(lat)} ${Math.round(utmC.easting)}E ${Math.round(utmC.northing)}N`],
+    ["LLV-DMS", fmtLLV(lat, lon)],
+    ["UCRS", fmtUcrsDms(lat, lon)],
+    ["DEC", `${lat.toFixed(5)}, ${lon.toFixed(5)}`],
+  ];
 
   return (
     <div className="space-y-2">
@@ -348,13 +376,13 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
           <span className="text-[8px]" style={{ color: C.dim }}>or type →</span>
           <input data-arch-gps-input value={gps} onChange={(e) => { setGps(e.target.value); setGpsErr(false); }}
             onKeyDown={(e) => { if (e.key === "Enter") applyGps(gps); }}
-            placeholder="31.44, -97.74  ·  31°26′N 97°44′W  ·  N31.44 W97.74"
+            placeholder="MGRS · UTM · LLV-DMS · 31.44,-97.74 · 31°26′N 97°44′W"
             className="min-w-0 flex-1 rounded border bg-transparent px-1.5 py-0.5 text-[9px]" style={{ borderColor: gpsErr ? "#ef4444" : C.border, color: C.text }} />
           <button data-arch-gps-set onClick={() => applyGps(gps)} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.border, color: C.cyan }}>Set</button>
         </div>
         {locState !== "idle" && locState !== "ok" && <div data-arch-gps-locmsg className="text-[8px]" style={{ color: locState === "locating" ? C.dim : "#f59e0b" }}>{LOC_MSG[locState]}</div>}
         {locState === "ok" && locAcc != null && <div className="text-[8px]" style={{ color: C.green }}>📍 Device GPS locked · ±{locAcc} m · sky synced to now.</div>}
-        {gpsErr && locState !== "denied" && locState !== "unavailable" && locState !== "timeout" && locState !== "unsupported" && <div className="text-[8px]" style={{ color: "#ef4444" }}>Couldn&rsquo;t read that — try &ldquo;lat, lon&rdquo; (e.g. 31.44, -97.74) or DMS with N/S/E/W.</div>}
+        {gpsErr && locState !== "denied" && locState !== "unavailable" && locState !== "timeout" && locState !== "unsupported" && <div className="text-[8px]" style={{ color: "#ef4444" }}>Couldn&rsquo;t read that — try MGRS (14R PU 20805 50823), UTM (14 620805E 3350823N), LLV-DMS, or &ldquo;lat, lon&rdquo;.</div>}
         <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lat<input type="number" value={lat} step={0.5} onChange={(e) => setLat(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lon<input type="number" value={lon} step={0.5} onChange={(e) => setLon(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
@@ -376,6 +404,12 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
             <span style={{ color: C.dim }}>click map → set lot · {lat.toFixed(2)}, {lon.toFixed(2)}</span>
           </div>
           <WorldPlacement lat={lat} lon={lon} onPick={(la, lo) => { setLat(la); setLon(lo); }} />
+          {/* Security-2525 COORDINATE CALL-UP — the placed lot in every format the Security map speaks (MGRS · UTM · LLV-DMS · UCRS · decimal). */}
+          <div data-arch-coord-callup className="mt-1 rounded border p-1" style={{ borderColor: C.border, background: "#0c1420", fontFamily: "monospace" }}>
+            {coordCallup.map(([k, v]) => (
+              <div key={k} className="flex gap-2 text-[8px]"><span className="w-14 shrink-0" style={{ color: C.violet }}>{k}</span><span className="truncate" style={{ color: C.text }}>{v}</span></div>
+            ))}
+          </div>
           <div data-arch-lot className="mt-1 grid grid-cols-2 gap-1 text-[8px]" style={{ fontFamily: "monospace" }}>
             {corners.map((c) => (
               <span key={c.k} data-lot-corner style={{ color: C.dim }}><span style={{ color: C.gold }}>◱ {c.k}</span> {c.la.toFixed(5)}, {c.lo.toFixed(5)}</span>
