@@ -199,15 +199,32 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
   const [facingAz, setFacingAz] = useState(180); // a house face / window azimuth (0=N,90=E,180=S,270=W) to align to the sun
   const [gps, setGps] = useState("");            // free-form GPS entry (decimal · DMS · N/S/E/W) — any format
   const [gpsErr, setGpsErr] = useState(false);
+  const [locState, setLocState] = useState<"idle" | "locating" | "ok" | "denied" | "unavailable" | "timeout" | "unsupported">("idle");
+  const [locAcc, setLocAcc] = useState<number | null>(null); // GPS fix accuracy (m), when device location is used
 
   // Snap the whole sky (date + hour) to the CURRENT local apparent-solar time at a longitude — so the dome shows
   // exactly what is overhead now (moon + stars included), not a noon default. Longitude alone fixes the sky.
   const syncNow = (atLon: number) => { const s = nowSkyAt(atLon); setYear(s.year); setDoy(s.doy); setHour(s.hour); };
   // Apply a free-form GPS string → set the lot coordinate AND re-sync the sky to now at that place.
   const applyGps = (raw: string) => { const p = parseGps(raw); if (!p) { setGpsErr(true); return; } setGpsErr(false); setLat(p.lat); setLon(p.lon); syncNow(p.lon); };
-  // Device geolocation → same effect (one tap on a phone at the actual site).
-  const locate = () => { if (typeof navigator === "undefined" || !navigator.geolocation) { setGpsErr(true); return; }
-    navigator.geolocation.getCurrentPosition((pos) => { const la = Math.round(pos.coords.latitude * 1e6) / 1e6, lo = Math.round(pos.coords.longitude * 1e6) / 1e6; setLat(la); setLon(lo); setGps(`${la}, ${lo}`); setGpsErr(false); syncNow(lo); }, () => setGpsErr(true), { enableHighAccuracy: true, timeout: 8000 }); };
+  // Device GPS hardware → set the lot from the phone/computer's own location (one tap at the actual site). Asks the OS
+  // for permission; guides the user to turn ON GPS / Location Services and allow access if it is off or blocked.
+  const locate = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) { setLocState("unsupported"); setGpsErr(true); return; }
+    setLocState("locating"); setGpsErr(false);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { const la = Math.round(pos.coords.latitude * 1e6) / 1e6, lo = Math.round(pos.coords.longitude * 1e6) / 1e6; setLat(la); setLon(lo); setGps(`${la}, ${lo}`); setLocAcc(Math.round(pos.coords.accuracy)); setLocState("ok"); setGpsErr(false); syncNow(lo); },
+      (err) => setLocState(err.code === err.PERMISSION_DENIED ? "denied" : err.code === err.POSITION_UNAVAILABLE ? "unavailable" : "timeout"),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  };
+  const LOC_MSG: Record<string, string> = {
+    locating: "Locating… allow the location prompt if it appears.",
+    denied: "Location is blocked. Turn ON GPS / Location Services and allow this site to access location, then tap 📍 again.",
+    unavailable: "No GPS fix. Turn ON your device GPS / Location hardware (and step near a window / outside), then tap 📍 again.",
+    timeout: "GPS timed out. Make sure Location is ON with signal, then tap 📍 again — or type your coordinates.",
+    unsupported: "This browser can't read GPS — type your coordinates instead.",
+  };
 
   // Default: open on the CURRENT sky at the placed location (client-only → no SSR hydration mismatch). Everything
   // (sun · moon · stars · dome · solar map) shows what is overhead right now; the operator can scrub any date/hour after.
@@ -321,18 +338,23 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
             <g key={pl.id} data-el="planet"><circle cx={x} cy={y} r="0.85" fill={pl.c} stroke="#000" strokeWidth="0.12" /><text x={x + 1.4} y={y + 0.6} fontSize="1.9" fill={pl.c} style={{ fontFamily: "monospace" }}>{pl.n}</text></g>
           ); })}
         </svg>
-        {/* GPS ENTRY — paste coordinates in ANY format (decimal · DMS · N/S/E/W), or tap 📍 for device location.
-            Setting it moves the lot AND snaps the sky to the current time at that place (moon + stars overhead now). */}
-        <div data-arch-gps className="mt-1 flex items-center gap-1 text-[10px]">
-          <span style={{ color: C.violet }} className="font-bold tracking-wider">GPS</span>
+        {/* GPS — CHOOSE: (1) this device's own GPS hardware (phone/computer), or (2) type coordinates in ANY format.
+            Either moves the lot AND snaps the sky to the current time there (moon · planets · stars overhead now). */}
+        <div data-arch-gps className="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
+          <button data-arch-gps-locate onClick={locate} disabled={locState === "locating"} title="Use this device's GPS (asks permission; turn on Location Services)"
+            className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030", opacity: locState === "locating" ? 0.6 : 1 }}>
+            {locState === "locating" ? "📍 Locating…" : "📍 Use my GPS"}
+          </button>
+          <span className="text-[8px]" style={{ color: C.dim }}>or type →</span>
           <input data-arch-gps-input value={gps} onChange={(e) => { setGps(e.target.value); setGpsErr(false); }}
             onKeyDown={(e) => { if (e.key === "Enter") applyGps(gps); }}
             placeholder="31.44, -97.74  ·  31°26′N 97°44′W  ·  N31.44 W97.74"
             className="min-w-0 flex-1 rounded border bg-transparent px-1.5 py-0.5 text-[9px]" style={{ borderColor: gpsErr ? "#ef4444" : C.border, color: C.text }} />
           <button data-arch-gps-set onClick={() => applyGps(gps)} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.border, color: C.cyan }}>Set</button>
-          <button data-arch-gps-locate onClick={locate} title="Use my device location" className="rounded border px-2 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.violet }}>📍</button>
         </div>
-        {gpsErr && <div className="text-[8px]" style={{ color: "#ef4444" }}>Couldn&rsquo;t read that — try &ldquo;lat, lon&rdquo; (e.g. 31.44, -97.74) or DMS with N/S/E/W.</div>}
+        {locState !== "idle" && locState !== "ok" && <div data-arch-gps-locmsg className="text-[8px]" style={{ color: locState === "locating" ? C.dim : "#f59e0b" }}>{LOC_MSG[locState]}</div>}
+        {locState === "ok" && locAcc != null && <div className="text-[8px]" style={{ color: C.green }}>📍 Device GPS locked · ±{locAcc} m · sky synced to now.</div>}
+        {gpsErr && locState !== "denied" && locState !== "unavailable" && locState !== "timeout" && locState !== "unsupported" && <div className="text-[8px]" style={{ color: "#ef4444" }}>Couldn&rsquo;t read that — try &ldquo;lat, lon&rdquo; (e.g. 31.44, -97.74) or DMS with N/S/E/W.</div>}
         <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lat<input type="number" value={lat} step={0.5} onChange={(e) => setLat(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lon<input type="number" value={lon} step={0.5} onChange={(e) => setLon(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
