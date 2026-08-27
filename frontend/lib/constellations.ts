@@ -34,6 +34,20 @@ export const PRIORITY_CONSTELLATIONS: Constellation[] = [
   { name: "Orion", ra: 5.5, dec: 3, angle: 200, radius: 0.85, stars: [[-4, -5], [4, -5], [-1, 0], [0, 0], [1, 0], [-4, 5], [4, 4]], lines: [[0, 2], [1, 4], [2, 3], [3, 4], [2, 5], [4, 6]] }, // belt = 2,3,4
   { name: "Taurus", ra: 4.5, dec: 18, angle: 225, radius: 0.60, stars: [[-5, -3], [-2, 0], [0, 2], [3, 0], [5, -2]], lines: [[0, 1], [1, 2], [2, 3], [3, 4]] }, // V · Aldebaran
   { name: "Scorpius", ra: 16.9, dec: -30, angle: 250, radius: 0.55, stars: [[-6, -3], [-3, -1], [0, 1], [2, 3], [4, 4], [5, 2]], lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]] }, // Antares · curved tail
+  // — zodiac constellations completed with REAL RA/Dec centroids (so all 12 signs render true on dome + map) —
+  { name: "Aries", ra: 2.6, dec: 21, angle: 210, radius: 0.45, stars: [[-4, 0], [0, -1], [3, 1], [5, 2]], lines: [[0, 1], [1, 2], [2, 3]] },
+  { name: "Cancer", ra: 8.7, dec: 20, angle: 135, radius: 0.50, stars: [[0, -3], [-2, 1], [2, 1], [0, 4]], lines: [[0, 1], [0, 2], [1, 3], [2, 3]] },
+  { name: "Virgo", ra: 13.4, dec: -4, angle: 100, radius: 0.72, stars: [[-5, -3], [-2, -1], [1, 0], [4, 2], [2, 4]], lines: [[0, 1], [1, 2], [2, 3], [2, 4]] }, // Spica
+  { name: "Libra", ra: 15.2, dec: -16, angle: 195, radius: 0.50, stars: [[-3, -2], [3, -2], [-2, 3], [2, 3]], lines: [[0, 1], [0, 2], [1, 3]] },
+  { name: "Sagittarius", ra: 19.0, dec: -28, angle: 240, radius: 0.55, stars: [[-4, 2], [-1, -2], [2, -2], [4, 1], [0, 3], [3, 3]], lines: [[0, 1], [1, 2], [2, 3], [0, 4], [3, 5]] }, // teapot
+  { name: "Capricornus", ra: 21.0, dec: -18, angle: 265, radius: 0.50, stars: [[-5, -1], [-2, 2], [2, 3], [5, 0], [0, -2]], lines: [[0, 4], [4, 3], [3, 2], [2, 1], [1, 0]] },
+  { name: "Aquarius", ra: 22.5, dec: -10, angle: 300, radius: 0.55, stars: [[-4, -2], [-1, 0], [2, -1], [4, 1], [0, 3]], lines: [[0, 1], [1, 2], [2, 3], [1, 4]] },
+  { name: "Pisces", ra: 0.85, dec: 10, angle: 330, radius: 0.72, stars: [[-6, 3], [-2, 1], [1, -1], [4, -3], [6, -5]], lines: [[0, 1], [1, 2], [2, 3], [3, 4]] },
+  // — a few more bright, recognisable figures (extend this list over time) —
+  { name: "Pegasus", ra: 22.7, dec: 18, angle: 310, radius: 0.60, stars: [[-3, -3], [3, -3], [3, 3], [-3, 3]], lines: [[0, 1], [1, 2], [2, 3], [3, 0]] }, // Great Square
+  { name: "Andromeda", ra: 0.8, dec: 38, angle: 345, radius: 0.55, stars: [[-4, -2], [-1, 0], [2, 1], [5, 3]], lines: [[0, 1], [1, 2], [2, 3]] },
+  { name: "Perseus", ra: 3.4, dec: 45, angle: 20, radius: 0.55, stars: [[-3, -4], [-1, -1], [1, 1], [0, 4], [3, 2]], lines: [[0, 1], [1, 2], [2, 3], [2, 4]] },
+  { name: "Auriga", ra: 5.9, dec: 42, angle: 40, radius: 0.55, stars: [[0, -4], [3, 0], [1, 4], [-2, 3], [-3, -1]], lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]] }, // Capella pentagon
 ];
 
 /** Polaris — the true north star, at its real position (Dec +89.3° ≈ the celestial pole). */
