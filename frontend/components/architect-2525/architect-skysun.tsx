@@ -47,6 +47,49 @@ function sunRiseSet(lat: number, doy: number): { rise: number | null; set: numbe
 const SEASON_DOY = { winterSolstice: 355, springEquinox: 80, summerSolstice: 172, fallEquinox: 266 };
 const fmtHM = (h: number | null): string => { if (h == null) return "—"; const tm = Math.round(h * 60); return `${String(Math.floor(tm / 60) % 24).padStart(2, "0")}:${String(tm % 60).padStart(2, "0")}`; };
 
+// Equation of time (minutes) — mean→apparent solar-time correction, so the current-sky read lands within ~a minute.
+const eqOfTime = (doy: number) => { const B = RAD * 360 * (doy - 81) / 365; return 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B); };
+// Current LOCAL APPARENT SOLAR sky at a longitude → {year, doy, hour}. Longitude sets the sky (no timezone db needed):
+// LMST = UTC + lon/15; +EoT gives apparent solar time — the hour the dome/moon/stars math already expects.
+function nowSkyAt(lon: number): { year: number; doy: number; hour: number } {
+  const now = new Date();
+  const utcH = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+  const uy = now.getUTCFullYear();
+  const utcMid = Date.UTC(uy, now.getUTCMonth(), now.getUTCDate());
+  const doyUtc = Math.round((utcMid - Date.UTC(uy, 0, 0)) / 86400000);
+  let h = utcH + lon / 15 + eqOfTime(doyUtc) / 60;   // local apparent solar time (hours)
+  let shift = 0; while (h < 0) { h += 24; shift -= 1; } while (h >= 24) { h -= 24; shift += 1; }
+  const baseMs = utcMid + shift * 86400000, d = new Date(baseMs), y = d.getUTCFullYear();
+  return { year: y, doy: Math.round((baseMs - Date.UTC(y, 0, 0)) / 86400000), hour: Math.round(h * 100) / 100 };
+}
+// Flexible GPS parse (like Security-2525's LLV-DMS): decimal "31.44, -97.74" · DMS "31 26 24 N, 97 44 06 W" ·
+// hemisphere "N31.44 W97.74" · symbols "31°26′N 97°44′W" → {lat, lon} | null.
+function parseGps(raw: string): { lat: number; lon: number } | null {
+  const s = (raw || "").trim(); if (!s) return null;
+  const chunk = (t: string): { v: number; axis: "lat" | "lon" | null } | null => {
+    const hemi = (t.match(/[NSEWnsew]/) || [])[0];
+    const nums = (t.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+    if (!nums.length) return null;
+    let v = Math.abs(nums[0]) + Math.abs(nums[1] || 0) / 60 + Math.abs(nums[2] || 0) / 3600;
+    if (nums[0] < 0) v = -v;
+    let axis: "lat" | "lon" | null = null;
+    if (hemi) { const H = hemi.toUpperCase(); v = Math.abs(v) * (H === "S" || H === "W" ? -1 : 1); axis = H === "N" || H === "S" ? "lat" : "lon"; }
+    return { v, axis };
+  };
+  let a: string, b: string;
+  if (s.includes(",")) { const p = s.split(","); a = p[0]; b = p.slice(1).join(","); }
+  else { const parts = s.split(/\s+/); if (parts.length < 2 || (s.match(/-?\d+(?:\.\d+)?/g) || []).length < 2) return null; const half = Math.ceil(parts.length / 2); a = parts.slice(0, half).join(" "); b = parts.slice(half).join(" "); }
+  const ca = chunk(a), cb = chunk(b); if (!ca || !cb) return null;
+  let lat: number | undefined, lon: number | undefined;
+  if (ca.axis === "lat") lat = ca.v; if (ca.axis === "lon") lon = ca.v;
+  if (cb.axis === "lat") lat = cb.v; if (cb.axis === "lon") lon = cb.v;
+  if (lat === undefined && lon === undefined) { lat = ca.v; lon = cb.v; }
+  else if (lat === undefined) lat = ca.axis ? cb.v : ca.v;
+  else if (lon === undefined) lon = ca.axis ? cb.v : ca.v;
+  if (lat === undefined || lon === undefined || Math.abs(lat) > 90 || Math.abs(lon) > 180 || isNaN(lat) || isNaN(lon)) return null;
+  return { lat: Math.round(lat * 1e6) / 1e6, lon: Math.round(lon * 1e6) / 1e6 };
+}
+
 // Ecliptic (λ,β) → equatorial (RA, dec), obliquity ε.
 function eclToRaDec(lonDeg: number, latDeg: number) {
   const e = 23.4397 * RAD, l = lonDeg * RAD, b = latDeg * RAD;
@@ -134,15 +177,21 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
   const [skyView, setSkyView] = useState<"dome" | "solar">(forceView ?? "dome"); // SUN·SKY sub-view: sky dome ↔ UCRS-2525 solar system
   const view = forceView ?? skyView;       // engine-pinned view wins over the internal toggle
   const [facingAz, setFacingAz] = useState(180); // a house face / window azimuth (0=N,90=E,180=S,270=W) to align to the sun
+  const [gps, setGps] = useState("");            // free-form GPS entry (decimal · DMS · N/S/E/W) — any format
+  const [gpsErr, setGpsErr] = useState(false);
 
-  // Default to TODAY (client-only → no SSR hydration mismatch). Everything (sun · moon · dome · solar map)
-  // adjusts to the current date at the placed location; the operator can still scrub any date afterwards.
-  useEffect(() => {
-    const now = new Date();
-    const y = now.getFullYear();
-    setYear(y);
-    setDoy(Math.round((Date.UTC(y, now.getMonth(), now.getDate()) - Date.UTC(y, 0, 0)) / 86400000));
-  }, []);
+  // Snap the whole sky (date + hour) to the CURRENT local apparent-solar time at a longitude — so the dome shows
+  // exactly what is overhead now (moon + stars included), not a noon default. Longitude alone fixes the sky.
+  const syncNow = (atLon: number) => { const s = nowSkyAt(atLon); setYear(s.year); setDoy(s.doy); setHour(s.hour); };
+  // Apply a free-form GPS string → set the lot coordinate AND re-sync the sky to now at that place.
+  const applyGps = (raw: string) => { const p = parseGps(raw); if (!p) { setGpsErr(true); return; } setGpsErr(false); setLat(p.lat); setLon(p.lon); syncNow(p.lon); };
+  // Device geolocation → same effect (one tap on a phone at the actual site).
+  const locate = () => { if (typeof navigator === "undefined" || !navigator.geolocation) { setGpsErr(true); return; }
+    navigator.geolocation.getCurrentPosition((pos) => { const la = Math.round(pos.coords.latitude * 1e6) / 1e6, lo = Math.round(pos.coords.longitude * 1e6) / 1e6; setLat(la); setLon(lo); setGps(`${la}, ${lo}`); setGpsErr(false); syncNow(lo); }, () => setGpsErr(true), { enableHighAccuracy: true, timeout: 8000 }); };
+
+  // Default: open on the CURRENT sky at the placed location (client-only → no SSR hydration mismatch). Everything
+  // (sun · moon · stars · dome · solar map) shows what is overhead right now; the operator can scrub any date/hour after.
+  useEffect(() => { syncNow(lon); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sun = sunPos(lat, doy, hour);
   const dayPath = Array.from({ length: 29 }, (_, i) => 5 + i * 0.5).map((h) => sunPos(lat, doy, h)).filter((p) => p.el > -2);
@@ -240,18 +289,30 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
             <g key={s.n} data-el="star"><circle cx={x} cy={y} r="0.55" fill="#9fd" /><text x={x + 1.4} y={y + 0.6} fontSize="1.9" fill="#7fb8c8" style={{ fontFamily: "monospace" }}>{s.n}</text></g>
           ); })}
         </svg>
+        {/* GPS ENTRY — paste coordinates in ANY format (decimal · DMS · N/S/E/W), or tap 📍 for device location.
+            Setting it moves the lot AND snaps the sky to the current time at that place (moon + stars overhead now). */}
+        <div data-arch-gps className="mt-1 flex items-center gap-1 text-[10px]">
+          <span style={{ color: C.violet }} className="font-bold tracking-wider">GPS</span>
+          <input data-arch-gps-input value={gps} onChange={(e) => { setGps(e.target.value); setGpsErr(false); }}
+            onKeyDown={(e) => { if (e.key === "Enter") applyGps(gps); }}
+            placeholder="31.44, -97.74  ·  31°26′N 97°44′W  ·  N31.44 W97.74"
+            className="min-w-0 flex-1 rounded border bg-transparent px-1.5 py-0.5 text-[9px]" style={{ borderColor: gpsErr ? "#ef4444" : C.border, color: C.text }} />
+          <button data-arch-gps-set onClick={() => applyGps(gps)} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.border, color: C.cyan }}>Set</button>
+          <button data-arch-gps-locate onClick={locate} title="Use my device location" className="rounded border px-2 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.violet }}>📍</button>
+        </div>
+        {gpsErr && <div className="text-[8px]" style={{ color: "#ef4444" }}>Couldn&rsquo;t read that — try &ldquo;lat, lon&rdquo; (e.g. 31.44, -97.74) or DMS with N/S/E/W.</div>}
         <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lat<input type="number" value={lat} step={0.5} onChange={(e) => setLat(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lon<input type="number" value={lon} step={0.5} onChange={(e) => setLon(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
           <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Day <input type="range" min={1} max={365} value={doy} onChange={(e) => setDoy(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} /><span style={{ color: C.gold }}>{monthDay}</span></label>
-          <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Hour <input type="range" min={0} max={24} step={0.5} value={hour} onChange={(e) => setHour(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} /><span style={{ color: C.cyan }}>{hour}:00 · {sun.el > 0 ? `el ${sun.el.toFixed(0)}°` : "night"}</span></label>
+          <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Hour <input type="range" min={0} max={24} step={0.1} value={hour} onChange={(e) => setHour(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} /><span style={{ color: C.cyan }}>{fmtHM(hour)} · {sun.el > 0 ? `sun el ${sun.el.toFixed(0)}°` : moon.el > 0 ? `☾ el ${moon.el.toFixed(0)}°` : "night"}</span></label>
         </div>
         {/* SPECIAL-DATE PRESETS — jump the sky to the key times of year a homeowner designs around */}
         <div data-arch-presets className="mt-1 flex flex-wrap gap-1 text-[8px]">
           {([["Winter Solstice", SEASON_DOY.winterSolstice], ["Spring Equinox", SEASON_DOY.springEquinox], ["Summer Solstice", SEASON_DOY.summerSolstice], ["Fall Equinox", SEASON_DOY.fallEquinox]] as const).map(([lab, d]) => (
             <button key={lab} data-preset onClick={() => setDoy(d)} className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: doy === d ? C.gold : C.dim, background: doy === d ? "#241a06" : "transparent" }}>{lab}</button>
           ))}
-          <button data-preset onClick={() => { const n = new Date(); setYear(n.getFullYear()); setDoy(Math.round((Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) - Date.UTC(n.getFullYear(), 0, 0)) / 86400000)); }} className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>Today</button>
+          <button data-preset onClick={() => syncNow(lon)} title="Snap date + hour to the current local sky" className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>Now</button>
         </div>
         {/* WORLD PLACEMENT — click the map to place the property; its lat/lon is the single coordinate
             source feeding the sun + moon above (and, later, structure + terrain). */}
