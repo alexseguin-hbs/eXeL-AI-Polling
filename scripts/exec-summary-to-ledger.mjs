@@ -59,6 +59,20 @@ const ent = s => s
 const lit = s => { if (s.includes("'")) throw new Error('raw apostrophe would break the literal: ' + s.slice(0,60)); return s; };
 
 const blocks = [];
+
+/* exec r1.002 · the summary's OWN opening. With the document's front matter
+   suppressed in this view, the reading needs a head of its own — the same three
+   lines the standalone page opens with (eyebrow, wordmark, subtitle) and nothing
+   more. The operator: "should not have all the fluff ... but start with formatted
+   text." This is the formatted text it starts with. */
+blocks.push({
+  id: 'exec.head',
+  why: 'exec r1.002 &mdash; the Executive Summary&rsquo;s own opening, so the view reads as itself rather than behind the document&rsquo;s front door.',
+  html: '<p class="meta" style="margin:0 0 10px;letter-spacing:.22em;text-transform:uppercase">' + ent(EN.k01) + '</p>' +
+        '<h2 style="margin:0 0 6px">Vision &#8226; 2525</h2>' +
+        '<p class="sub" style="margin:0 0 4px">' + ent(EN.k02) + '</p>',
+});
+
 PAGES.forEach((p, i) => {
   let h = '';
   if (p.eyebrow) h += '<p class="meta" style="margin-bottom:6px">' + ent(EN[p.eyebrow]) + '</p>';
