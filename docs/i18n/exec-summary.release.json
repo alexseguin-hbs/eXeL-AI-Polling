@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.024",
+  "release": "r1.025",
   "editions": [
     {
       "r": "r1.001",
@@ -139,6 +139,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Operator, on the globe: 'Use SUM not SUX reduce all other text.' The code already ships SUM (r1.019); the note under the row is now one line — 'Scholarly draft — corrections invited; method on the page.' — reduced in the template AND its generator in the same edition, so the two cannot drift (Krishna's rule). Text unchanged."
+    },
+    {
+      "r": "r1.025",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "Security: the sign table's VALUES are now validated. Thor's voter found the one input the r1.021 injection fixes didn't cover — signmap.json values are emitted into HTML raw, so a poisoned value (reachable via the correction PR the page invites) shipped live img/onerror nodes and both gates passed it. The builder now fails closed unless every sign value is pure cuneiform (U+12000–U+1254F); all 156 real entries pass. And the pre-commit gate is made real: chmod +x on the hook, core.hooksPath set to .githooks (Thor: the hook was committed non-executable with no hooksPath, so it never fired). English master unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."

@@ -21,6 +21,15 @@ const EN_RAW = fs.readFileSync('docs/i18n/exec-summary.en.json', 'utf8');
 const EN = JSON.parse(EN_RAW);
 const SUM = JSON.parse(fs.readFileSync('docs/i18n/exec-summary.sum.json', 'utf8'));
 const SIGN = JSON.parse(fs.readFileSync('docs/i18n/sum/signmap.json', 'utf8'));
+/* Thor r1.025: sign values are emitted into HTML raw, so the table itself is an
+   input — a poisoned value was a live injection reachable through a correction PR.
+   Fail closed: every value must be pure cuneiform (the Sumero-Akkadian blocks). */
+for (const [rd, v] of Object.entries(SIGN)) {
+  if (!/^[\u{12000}-\u{1254F}]+$/u.test(v)) {
+    console.error(`SIGNMAP POISONED — reading "${rd}" carries a non-cuneiform value; refusing.`);
+    process.exit(1);
+  }
+}
 const RELREC = JSON.parse(fs.readFileSync('docs/i18n/exec-summary.release.json', 'utf8'));
 const REL = RELREC.release, VER = RELREC.version;
 

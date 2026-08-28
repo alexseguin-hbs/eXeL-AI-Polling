@@ -149,6 +149,18 @@ export default function Vision2525Page() {
           </div>
           <h2 className="mt-3 font-serif text-2xl font-bold sm:text-3xl" style={{ color: GOLD }}>Humanity Decides</h2>
           <p className="mt-2 text-sm text-slate-300 sm:text-base">Technology assists — <span className="font-semibold text-slate-100">trust must be proven</span>. Nothing scales until it earns its place through evidence.</p>
+          {/* Operator (2026-08-28): "I like this phrase; can we place in Vision-2525 landing?"
+              The Master of Thought line sits beneath the doctrine it leads into. */}
+          <blockquote className="mx-auto mt-6 max-w-2xl border-l-2 pl-4 text-left sm:pl-5" style={{ borderColor: CYAN }}>
+            <p className="font-serif text-base italic leading-relaxed text-slate-200 sm:text-lg">
+              Master of Thought is the disciplined human intelligence that turns imagination into
+              responsible, coordinated progress while keeping humanity — not technology — as the
+              final authority.
+            </p>
+            <footer className="mt-2 text-xs uppercase tracking-[0.25em] text-slate-500">
+              Master of Thought · Vision <span style={{ color: CYAN }}>•</span> 2525
+            </footer>
+          </blockquote>
         </section>
 
         {/* ── TRINITY OF INTELLIGENCES ─────────────────────────────────────── */}
