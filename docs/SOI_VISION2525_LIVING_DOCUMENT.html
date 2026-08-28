@@ -1183,7 +1183,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">276</span></strong>, <strong><span id="dlbytes2">7062887</span> bytes</strong> (<span id="dlsize2">7.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">277</span></strong>, <strong><span id="dlbytes2">7067045</span> bytes</strong> (<span id="dlsize2">7.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -7108,6 +7108,19 @@ const VERSIONS = [
    {n:"Odin",g:"A",f:"The sentence-ID sidecar and the source hash are what make the Sumerian rebuild auditable later; without them that work would have had no fixed ground."}
   ],
   next:"The Executive Summary&rsquo;s own language menu with Cuneiform pinned beneath English, in every language&rsquo;s copy; then the last six translations; then the operator&rsquo;s ruling on the bullet counting law, which is not free."
+ },
+ { v:277, code:"THE RELEASE NAVIGATOR LEARNS THE SERIES LABEL",
+  stamp:"2026.08.28 &middot; revision 277",
+  thrust:"Operator: &lsquo;release r1.001 and above should also be viewable&rsquo;. They were not. The masthead has read the SERIES label since r246 &mdash; v.19 r1.004 &mdash; but the release navigator never did: it printed the raw integer, so the stepper said r276 and the disclosure listed r1 through r276. A reader looking for r1.001 could not find it anywhere, because the name the release actually carries was shown in one place and withheld in the other. Both now read relLabel(), the same pure formatter, and each pill&rsquo;s tooltip carries the raw release number beside it so the internal counter stays auditable &mdash; replay, the gate and every state hash still speak integers and are untouched. The disclosure also opens on the release being read rather than at the top of two hundred and seventy-six: nothing is reordered and nothing is removed, the box simply starts where the reader already is. Chrome only. No ledger block moved; totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"A name shown in one place and withheld in another is not a naming scheme, it is a leak. We separated VERSION from REVISION, then built a series label on top of the revision counter, then taught exactly one control to speak it &mdash; and the control a reader actually uses to move through the history went on reciting the integer. The operator found it the way operators always find these things: by looking for something he had been promised and not seeing it. The deeper lesson is the one r107 already recorded about a one-character prefix in a loop nobody re-read. A display formatter is only true where it is called, and the gate cannot catch a label that is merely absent. So the correction is small and the discipline is not: when a naming rule is introduced, every surface that names the thing has to be walked, not just the one that prompted the rule.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Sofia",g:"A",f:"One name, every surface. A reader can now find r1.001 where they were told it exists, instead of translating integers in their head."},
+   {n:"Thoth",g:"A",f:"Display only &mdash; relLabel is a pure function of the integer, and the raw counter moves into the tooltip rather than out of the document. Every hash unchanged."},
+   {n:"Christo",g:"A",f:"The disclosure opens where the reader stands. Nothing reordered, nothing removed &mdash; the fix is to the starting position, not to the record."},
+   {n:"Enlil",g:"B+",f:"Correct, and late. The label shipped at r246 and this surface was never walked; thirty releases read the wrong name before an operator had to ask."}
+  ],
+  next:"The two Supabase secrets, so the deploy gate stops refusing and the site can serve what is on main; then the last five translations from the frozen English."
  }
 ];
 
@@ -19754,7 +19767,7 @@ L(276,"exec.close","r276 &mdash; the Executive Summary&rsquo;s close: the ten-li
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7062887";
+const DL_BYTES = "7067045";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21915,7 +21928,14 @@ function renderReview(){
   let pills = '<div id="relnav"><div class="relstep">' +
     '<button data-goto="' + (rPrev || 1) + '"' + (rPrev ? '' : ' disabled') +
       ' title="Previous release">' + ICON.prev + '</button>' +
-    '<span class="cur"><b>r' + active + '</b> &middot; <span class="code">' + escw(V.code) + '</span>' +
+    /* r277 · operator: "release r1.001 and above should also be viewable". The
+       masthead has read the SERIES label since r246, but this navigator never did —
+       it printed the raw integer, so a reader stepping releases saw r276 and could
+       not find r1.004 anywhere, even though that is the name the release actually
+       carries. relLabel() is the same pure formatter the masthead uses; the raw
+       counter stays visible in each pill's tooltip, because replay, the gate and
+       every state hash still speak integers. */
+    '<span class="cur"><b>' + relLabel(active) + '</b> &middot; <span class="code">' + escw(V.code) + '</span>' +
       ' &middot; ' + verN(active) + (active === VMAX ? ' &middot; latest' : '') + '</span>' +
     '<button data-goto="' + (rNext || VMAX) + '"' + (rNext ? '' : ' disabled') +
       ' title="Next release">' + ICON.next + '</button>' +
@@ -21924,7 +21944,8 @@ function renderReview(){
     '</div><div class="relall" id="relAll"><div class="pills">';
   for (const W of VERSIONS){
     pills += '<button data-goto="' + W.v + '"' + (W.v === active ? ' class="on"' : '') +
-             ' title="' + escAttr(W.code) + ' &middot; ' + verN(W.v) + '">r' + W.v + '</button>';
+             ' title="' + relLabel(W.v) + ' &middot; release ' + W.v + ' &middot; ' +
+             escAttr(W.code) + ' &middot; ' + verN(W.v) + '">' + relLabel(W.v) + '</button>';
   }
   pills += '</div><p class="meta" style="margin:8px 0 0">Releases are appends to the ledger. ' +
     'A VERSION is a document that was delivered, read and answered &mdash; there have been ' +
@@ -22003,6 +22024,15 @@ function renderReview(){
       const open = relBox.classList.toggle("open");
       relBtn.setAttribute("aria-expanded", open ? "true" : "false");
       relBtn.innerHTML = (open ? ICON.up + "hide" : ICON.down + "all " + VMAX) + " releases";
+      /* r277 · open ON the release you are reading. The list runs oldest first and
+         scrolls inside 168px, so opening it at 276 releases put r0.001 on screen and
+         the r1 series 272 chips below the fold — present, but not viewable without
+         hunting for it. Nothing is reordered and nothing is removed; the box simply
+         starts where the reader already is, which at the latest release is r1.004. */
+      if (open){
+        const here = relBox.querySelector('[data-goto].on');
+        if (here && here.scrollIntoView) here.scrollIntoView({block: "center"});
+      }
     });
   }
 }
