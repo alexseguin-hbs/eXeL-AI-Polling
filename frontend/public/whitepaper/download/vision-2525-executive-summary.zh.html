@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.017"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 致人类的执行摘要</title>
+<!doctype html><html lang=zh><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.018"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 致人类的执行摘要</title>
 <script>/* exec r1.016 · operator: "go to dark, and only light if light is highlighted in
 Vision-2525 setting bar." The summary follows the living document's ground, not the OS:
 v2525.ground is the SAME localStorage key the document's Settings toggle writes, so one
@@ -8,9 +8,9 @@ flash of the wrong ground. */
 try{document.documentElement.setAttribute("data-theme",localStorage.getItem("v2525.ground")==="light"?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
 <link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0D6E86;--accent-bg:#E3F0F3;--plate:#111719;--plate-ink:#E9ECE7}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#00DAE6;--accent-bg:#062227;--plate:#080C0D}}
-:root[data-theme=dark]{--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#00DAE6;--accent-bg:#062227;--plate:#080C0D}
+<style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0D6E86;--accent-bg:#E3F0F3;--hi:#7A2C8C;--hi-bg:#F1E6F4;--plate:#111719;--plate-ink:#E9ECE7}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#00DAE6;--accent-bg:#062227;--hi:#D18BE0;--hi-bg:#1E1125;--plate:#080C0D}}
+:root[data-theme=dark]{--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#00DAE6;--accent-bg:#062227;--hi:#D18BE0;--hi-bg:#1E1125;--plate:#080C0D}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Spectral",Georgia,serif;font-size:18px;line-height:1.64;-webkit-font-smoothing:antialiased}
 .wrap{max-width:42rem;margin:0 auto;padding:0 1.4rem 5rem}header.mast{max-width:42rem;margin:0 auto;padding:2.2rem 1.4rem 1.1rem;text-align:center}
 /* exec r1.003 · operator: "when executive summary is clicked I dont want to see all the
@@ -65,14 +65,16 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
    16px stroke-2, in the deck-button chrome — 1px rule border, 3px radius (9px in dark,
    as the document does it), 31px control height, accent on hover and while the menu is
    open.
-   exec r1.015 · operator: "I never said to change flcolor." r1.014 had also recoloured
-   the DOWNLOAD to the deck's HI-violet — a change nobody asked for. The download is
-   back to its approved r1.007 drawing: ink on a line-coloured circle, accent on hover.
-   Only the globe and the dropdown were ever named; only they carry the deck grammar. */
+   exec r1.015 · operator: "I never said to change flcolor" — the r1.014 violet was
+   reverted as unasked. exec r1.018 · operator, with both pages side by side: "match
+   download violet and style to Vision 2525" — now it IS asked, and the download takes
+   the living document's #bDL grammar exactly: HI-violet border and glyph, 8px radius,
+   hi-bg on hover, the deck's 31px control height and 16px stroke-2 drawing. */
 .rgroup{display:inline-flex;align-items:center;gap:.5rem;position:relative}
-.dl{display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;
-  color:var(--ink);border:1px solid var(--line);border-radius:999px;text-decoration:none}
-.dl:hover{color:var(--accent);border-color:var(--accent)}
+.dl{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-height:31px;
+  box-sizing:border-box;padding:6px 10px;border:1px solid var(--hi);border-radius:8px;
+  color:var(--hi);text-decoration:none}
+.dl:hover{background:var(--hi-bg)}
 .dl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #bLang{display:inline-flex;align-items:center;justify-content:center;min-height:31px;
   box-sizing:border-box;font-size:12px;padding:5px 10px;border:1px solid var(--line);
@@ -107,7 +109,7 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
 #langMenu .sux-note{margin:2px 8px 8px;font:400 11px/1.45 ui-sans-serif,system-ui,sans-serif;color:var(--soft)}
 @media print{.langwrap{display:none}}
 </style></head><body>
-<div class="langwrap"><a class="back" href="vision-2525.html" title="Back to the Vision • 2525 living document">&larr;&nbsp;Vision • 2525</a><span class="rgroup"><a class="dl" href="download/vision-2525-executive-summary.zh.html" title="Download this page as HTML" aria-label="Download this page as HTML"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a><button id="bLang" aria-expanded="false" aria-haspopup="menu" title="Language — read this summary in another tongue" aria-label="Language"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 4 6 4 9s-1.4 6.3-4 9c-2.6-2.7-4-6-4-9s1.4-6.3 4-9z"/></svg></button><div id="langMenu" role="menu" hidden></div></span></div>
+<div class="langwrap"><a class="back" href="vision-2525.html" title="Back to the Vision • 2525 living document">&larr;&nbsp;Vision • 2525</a><span class="rgroup"><a class="dl" href="download/vision-2525-executive-summary.zh.html" title="Download this page as HTML" aria-label="Download this page as HTML"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a><button id="bLang" aria-expanded="false" aria-haspopup="menu" title="Language — read this summary in another tongue" aria-label="Language"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 4 6 4 9s-1.4 6.3-4 9c-2.6-2.7-4-6-4-9s1.4-6.3 4-9z"/></svg></button><div id="langMenu" role="menu" hidden></div></span></div>
 <header class=mast><p class=kick>致人类的执行摘要</p><h1>Vision • 2525</h1><p class=subt>人类的协同框架</p></header>
 <div class=wrap><article><header class=ph><span class=pn>序言</span></header><h2>人类生命的度量</h2><p>每一个文明都始于思维。在一部法律被写下、一座桥梁被建起、一台机器被造出、一个未来被改变之前，总有人先想象出尚不存在的事物。思维成为意图。意图成为行动。行动进入时间，这是任何人都无法追回的唯一资源。Vision • 2525 正是从这里开始。不是从技术、金钱、政府或人工智能开始，而是从人类以及每一个人类生命所经历的时间开始。我们把连接觉察、意图、时间、行动、后果与学习的这门修养称为思维掌控。一个接受持续责任、践行这门修养的人，便成为思维掌控者。思维大师所命名的，是这份实践背后的责任。它不是凌驾于人类之上的王座，也不是智力优越的宣称。它是人类内部的一份邀请：觉察你所想的，理解你所建的，为随之而来的一切保持担当，在证据改变你所知时予以承认，并留下足够的真相，让另一个人能够从你的经历中学习。</p><p>这正是时间度量之所以重要的原因。时钟记录实际流逝的时间。人类智能记录在那段时间中产生了怎样的经鉴定的贡献。二者绝不可混淆。一个基础 HI 单位可以锚定于一个人类小时，而经鉴定的贡献则通过一个明确的倍数获得更高的认可。实际时间始终是实际时间。认可始终是认可。结算始终是结算。该框架将它们分开，使任何一者都无法悄然冒充另一者。这门修养向外延伸。民意调查不是工程学的真理。仿真不是现实。人工智能不是人类权威。金钱不是主权。经验不是验证。信心不是鉴定。思维掌控始于把这些区别看得足够清楚，以致权力无法藏身于混淆之中。</p><p>Vision • 2525 将这门修养一路带向 2525，不是因为今天有谁能预测五个世纪，而是因为责任可以比确定性延伸得更远。人类所建造的，应当保存发生了什么、改变了什么、为何改变、存在过什么证据，以及学到了什么。后代应当继承的不止是结论。他们还应当继承质疑这些结论的能力。这就是文明尺度上的思维掌控：觉察先于行动，证据先于信心，人类先于技术，学习穿越时间被传承。我们无法掌控我们未曾觉察的事物。我们无法改进我们拒绝度量的事物。如果每一代人都必须从头再来，我们就无法建成一个值得信任的未来。</p></article>
 <article><header class=ph><span class=pn>01</span></header><h2>时间 • 第一个共同度量</h2><p>每个人以不同的方式进入生命。地理、语言、家庭、财富、机会、健康、教育与境遇从一开始就不平等。Vision • 2525 并不假装事实并非如此。它从更简单的事实开始：每一个人类生命都在时间中展开。在 Austin 度过的一分钟与在 Phnom Penh 度过的一分钟包含同样的时长，即便各地经济对劳动的估值不同。时间度量诚实地记录这一时长。它并不声称每个小时都产出相同的工作、创造相同的贡献，或购买相同的商品。它建立了一个共同参照，使贡献得以被理解，而不让地理因素独自决定一个人类生命或人类努力是否被看见。时间提供了一个共享的度量，却不假装境遇是共享的。这一区别之所以重要，是因为时长的平等并不意味着机会、贡献、需要、难度或后果的平等。</p><p data-source="SOI_VISION2525_v.19_LIVING_DOCUMENT.html">这一区别造就了 HI 架构。基础单位锚定于一小时，但 HI 并不等同于流逝的时间。实际时间被单独记录。经鉴定的贡献可以获得一个透明的倍数，表达为 HI earned = M × hours，而时钟保持不变。一百个实际小时始终是一百小时，即便经鉴定的贡献产生了超过一百 HI。年度 9,999 HI 上限度量的是该框架运行政策下被认可的贡献；它并不是宣称有人工作了 9,999 小时。时间度量守护时钟。HI 认可经鉴定的贡献。本地结算将符合条件的价值转化为合法的经济现实。这些层面保持分离，因为每一层回答的都是不同的问题。</p><p>这不止是记账。它表达的是人类尊严。时间不应被夸大以渲染贡献，贡献也不应因提供者生活在更贫穷的地方而消失。金钱不应改写一个人所付出的历史记录。思维掌控者学会分辨看似相似却含义不同的事物。时间度量时长。HI 认可经鉴定的贡献。结算处理经济价值。Replay 保存已发生的事。一旦这些区别变得可见，人类便获得了一种共同语言，人们可以借此以不同方式做出贡献，而不必先被简化为财富、国籍、头衔、地理或权力通道。因此，思维掌控的第一件工具不是机器。而是对人类时间的诚实度量。</p></article>
