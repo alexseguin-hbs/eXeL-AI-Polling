@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.018",
+  "release": "r1.019",
   "editions": [
     {
       "r": "r1.001",
@@ -103,6 +103,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "The violet download, now asked. Operator, with both pages side by side: 'match download violet and style to Vision 2525.' The download takes the living document's #bDL grammar exactly — HI-violet border and glyph (#7A2C8C light / #D18BE0 dark), 8px radius, hi-bg on hover, the deck's 31px control height and 16px stroke-2 drawing. (r1.014 had done this unasked and r1.015 reverted it; this time it is the operator's instruction, on the record.) Text unchanged."
+    },
+    {
+      "r": "r1.019",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "𒅴𒂠 The Sumerian edition ships — a SCHOLARLY DRAFT, and the operator's 'final attempt to show cuneiform Sumerian' done as meaning, never English spelled in signs (the prior attempt's failure, diagnosed in SUM_METHOD). 70 body+spine keys / 485 sentence records: transliteration is the Sumerian master, cuneiform derives from a Unicode-name-verified 155-reading sign table, locked 2025 names honored (EN SAG.KI), three-term hierarchy carried. The page reuses the shared chrome; a translit toggle shows a selected sentence's transliteration + literal gloss left, English master phrase right; DRAFT banner routes corrections to GitHub issues. Spiral-tested by the 48-fleet's first waves — findings fixed before ship: -ak genitive spellings, k70 punctuation, .pn card host, scroll drift, responsive sizing, correction channel, method drift. The globe's 𒅴𒂠 row goes LIVE as SUM · draft on all 34 pages. English master unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."

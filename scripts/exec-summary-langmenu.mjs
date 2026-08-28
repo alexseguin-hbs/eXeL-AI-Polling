@@ -33,7 +33,7 @@ const LANGS = [
 // menu that promises a file the reader cannot open is worse than one that says "soon".
 const built = new Set(
   fs.readdirSync('frontend/public/whitepaper')
-    .map(f => /^vision-2525-executive-summary(?:\.([a-z]{2}))?\.html$/.exec(f))
+    .map(f => /^vision-2525-executive-summary(?:\.([a-z]{2,3}))?\.html$/.exec(f))
     .filter(Boolean)
     .map(m => m[1] || 'en')
 );

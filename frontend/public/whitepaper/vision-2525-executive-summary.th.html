@@ -1,4 +1,4 @@
-<!doctype html><html lang=th><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.018"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — บทสรุปผู้บริหารถึงมนุษยชาติ</title>
+<!doctype html><html lang=th><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.019"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — บทสรุปผู้บริหารถึงมนุษยชาติ</title>
 <script>/* exec r1.016 · operator: "go to dark, and only light if light is highlighted in
 Vision-2525 setting bar." The summary follows the living document's ground, not the OS:
 v2525.ground is the SAME localStorage key the document's Settings toggle writes, so one
@@ -133,8 +133,8 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
    works offline with no server. */
 (function(){
   var LANGS = [{"c":"en","n":"English","e":"English"},{"c":"fr","n":"Français","e":"French"},{"c":"es","n":"Español","e":"Spanish"},{"c":"de","n":"Deutsch","e":"German"},{"c":"it","n":"Italiano","e":"Italian"},{"c":"pt","n":"Português","e":"Portuguese"},{"c":"nl","n":"Nederlands","e":"Dutch"},{"c":"ru","n":"Русский","e":"Russian"},{"c":"zh","n":"中文","e":"Chinese"},{"c":"ja","n":"日本語","e":"Japanese"},{"c":"ko","n":"한국어","e":"Korean"},{"c":"ar","n":"العربية","e":"Arabic"},{"c":"hi","n":"हिन्दी","e":"Hindi"},{"c":"bn","n":"বাংলা","e":"Bengali"},{"c":"pa","n":"ਪੰਜਾਬੀ","e":"Punjabi"},{"c":"th","n":"ไทย","e":"Thai"},{"c":"vi","n":"Tiếng Việt","e":"Vietnamese"},{"c":"id","n":"Bahasa Indonesia","e":"Indonesian"},{"c":"ms","n":"Bahasa Melayu","e":"Malay"},{"c":"tl","n":"Filipino","e":"Filipino"},{"c":"tr","n":"Türkçe","e":"Turkish"},{"c":"pl","n":"Polski","e":"Polish"},{"c":"uk","n":"Українська","e":"Ukrainian"},{"c":"ro","n":"Română","e":"Romanian"},{"c":"el","n":"Ελληνικά","e":"Greek"},{"c":"cs","n":"Čeština","e":"Czech"},{"c":"sv","n":"Svenska","e":"Swedish"},{"c":"da","n":"Dansk","e":"Danish"},{"c":"fi","n":"Suomi","e":"Finnish"},{"c":"no","n":"Norsk","e":"Norwegian"},{"c":"he","n":"עברית","e":"Hebrew"},{"c":"sw","n":"Kiswahili","e":"Swahili"},{"c":"ne","n":"नेपाली","e":"Nepali"}];
-  var BUILT = ["ar","bn","cs","da","de","el","en","es","fi","fr","he","hi","id","it","ja","ko","ms","ne","nl","no","pa","pl","pt","ro","ru","sv","sw","th","tl","tr","uk","vi","zh"];
-  var SUX   = {"c":"sux","n":"𒅴𒂠","e":"Sumerian · cuneiform","note":"in preparation"};
+  var BUILT = ["ar","bn","cs","da","de","el","en","es","fi","fr","he","hi","id","it","ja","ko","ms","ne","nl","no","pa","pl","pt","ro","ru","sum","sv","sw","th","tl","tr","uk","vi","zh"];
+  var SUX   = {"c":"sum","n":"𒅴𒂠","e":"Sumerian · cuneiform","note":"draft"};
   var KEY   = "exel-active-locale";
   var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
@@ -160,8 +160,8 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
     var en = LANGS[0], rest = LANGS.slice(1);
     menu.innerHTML = '<h5>Language</h5>' +
       row(en, BUILT.indexOf("en") >= 0) +
-      row(SUX, false, SUX.note) +
-      '<p class="sux-note">The Sumerian edition is being composed from the frozen English, sentence by sentence. It is not published until the cuneiform is Sumerian rather than English written in Sumerian signs.</p>' +
+      row(SUX, BUILT.indexOf(SUX.c) >= 0, SUX.note) +
+      '<p class="sux-note">The Sumerian edition is a scholarly DRAFT — composed meaning for meaning from the frozen English, never English spelled in signs. Method and review invitation are on the page itself.</p>' +
       rest.map(function(l){ return row(l, BUILT.indexOf(l.c) >= 0); }).join("");
   }
   function close(){ menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }

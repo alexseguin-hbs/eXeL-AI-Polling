@@ -50,7 +50,11 @@ No "web Sumerian translators," no esoteric sign lists. Where this draft must coi
 ### Grammar conventions of the draft
 - **Word order:** verb-final (SOV); modifiers follow the noun (lugal gal, "great king").
 - **Alignment:** ergative — agent takes **-e**, patient/subject of intransitive is unmarked.
-- **Cases:** genitive **-ak** (surfacing as -a(k)), dative **-ra**, locative **-a**,
+- **Cases:** genitive **/-ak/**, written as it surfaces: **-a** at phrase end (gesz-hur
+  nam-lu2-ulu3-a), **-ka** before a following element (nam-lu2-ulu3-ka szu…); the
+  abstract -ak never appears as a sign. Ergative **-e**, with the **-ke4** allomorph
+  where genitive and ergative stack (e2-dub-ba-a-ke4) — a reviewer seeing -ke4 is
+  seeing the composed /-ak+e/, not an error. Dative **-ra**, locative **-a**,
   terminative **-še₃**, ablative **-ta**, comitative **-da**, equative **-gin₇**.
 - **Copula:** enclitic **-am₃** ("it is").
 - **Verbal chain (simplified for the draft):** finite forms carry a conjugation prefix
@@ -78,14 +82,15 @@ never a phonetic loan. The load-bearing ones:
 | Artificial Intelligence | **ĝeštug₂ dim₂-ma** ⚘ | "fashioned understanding" |
 | machine | **ĝeš dim₂-ma** ⚘ | "fashioned wood/implement" |
 | Replay (the record replayed) | **dub gi₄-gi₄** ⚘ | "the tablet that returns" |
+| Engineering (the craft) | **nam-dim₂** ⚘ | "the -ship of fashioning" |
 | record / ledger | **dub** | tablet (attested) |
-| simulation / rehearsal | **igi-bar u₄ nu-um-ma** ⚘ | flagged — weakest coinage, review first |
+| simulation | **igi-bar** ⚘ | "the looking-upon" — also carries "vision/imagine" in the litany; glosses disambiguate |
 | hour (the recorded hour) | **danna-bar** ⚘ | "half a danna" (danna = attested double-hour) |
 
 ### What stays verbatim (identical rule to the other 32 editions)
 `Vision • 2525` · `R-CORE` · `HI earned = M × hours` · `9,999` · `360 → 33 → 11` ·
-`2525` · `Austin` · `Phnom Penh` · `Replay` (as branded token where the master uses it as
-one) — Latin script, untranslated. Numbers keep Arabic numerals; the companion
+`2525` · `Austin` · `Phnom Penh` · `Replay` — as a HEADING or label it stays the Latin branded token ⟦Replay⟧; in running prose it is the
+coined calque **dub gi₄-gi₄**. One rule, two registers, stated here so the two uses cannot read as drift. Numbers keep Arabic numerals; the companion
 *Sumerian Numerology* document (operator source) governs any future sexagesimal
 presentation, which this draft does not attempt.
 
@@ -96,7 +101,19 @@ pattern) opens study mode: selecting a sentence highlights it and shows its
 reviewer, anywhere, can fault a line against its source with one tap. The page carries a
 permanent DRAFT banner naming this method file and inviting correction.
 
-### Review invitation
+### Review invitation — and where to send it
 Corrections are expected and wanted, at the level of: lexeme choice, case chain, verbal
-prefix, sign value, or the whole approach to a sentence. The transliteration file is the
-single thing to correct; everything else regenerates.
+prefix, sign value, or the whole approach to a sentence. **Send corrections as GitHub
+issues: https://github.com/alexseguin-hbs/eXeL-AI-Polling/issues** (public), quoting the
+sentence's English line. The transliteration file is the single thing to correct;
+everything else regenerates.
+
+### Known limitations of the draft (stated, not hidden)
+- The seal caption and author line render as caption/alt text and are not tappable in
+  study mode; every sentence of the running text is.
+- The genitive is written only as it surfaces (-a / -ka); the abstract -ak never appears
+  as a sign.
+- A downloaded offline copy needs a cuneiform-capable font installed (Noto Sans
+  Cuneiform); without network or such a font the signs render as boxes — the
+  transliteration in study mode remains fully readable.
+- Determinatives are omitted; danna is pressed into service for "hour" as danna-bar.

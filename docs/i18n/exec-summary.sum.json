@@ -1,156 +1,2568 @@
 {
   "_method": "docs/i18n/sum/SUM_METHOD.md — SCHOLARLY DRAFT. Transliteration is the Sumerian master; cuneiform derives from docs/i18n/sum/signmap.json (Unicode-name-verified). Tokens in ⟦…⟧ pass through in Latin (verbatim terms per the frozen English master). Each record: e = English master sentence (verbatim), t = draft transliteration (ePSD2 ASCII: sz=š, digits as written), g = literal back-gloss of the Sumerian so a reviewer sees what the draft actually says.",
   "k01": [
-    { "e": "Executive Summary to Humanity",
+    {
+      "e": "Executive Summary to Humanity",
       "t": "dub sag nam-lu2-ulu3-ra",
-      "g": "the head tablet, to humankind" }
+      "g": "the head tablet, to humankind"
+    }
   ],
   "k02": [
-    { "e": "Humanity’s Coordination Framework",
-      "t": "gesz-hur nam-lu2-ulu3-ak",
-      "g": "the design/plan of humankind" }
+    {
+      "e": "Humanity’s Coordination Framework",
+      "t": "gesz-hur nam-lu2-ulu3-a",
+      "g": "the design/plan of humankind"
+    }
   ],
   "k03": [
-    { "e": "Preamble", "t": "inim sag", "g": "the opening word" }
+    {
+      "e": "Preamble",
+      "t": "inim sag",
+      "g": "the opening word"
+    }
   ],
   "k04": [
-    { "e": "The Measure of a Human Life",
+    {
+      "e": "The Measure of a Human Life",
       "t": "nig2-szid zi lu2-ka",
-      "g": "the reckoning of the life of a person" }
+      "g": "the reckoning of the life of a person"
+    }
   ],
   "k05": [
-    { "e": "Time • The First Common Measure",
+    {
+      "e": "Time • The First Common Measure",
       "t": "u4 • nig2-szid sag kalam-ma",
-      "g": "time — the head reckoning of the land" }
+      "g": "time — the head reckoning of the land"
+    }
   ],
   "k06": [
-    { "e": "Thought Mastery • From Awareness to Action",
+    {
+      "e": "Thought Mastery • From Awareness to Action",
       "t": "nam-gesztu2 • zu-a-ta kin-sze3",
-      "g": "thought-mastery — from the known to the work" }
+      "g": "thought-mastery — from the known to the work"
+    }
   ],
   "k07": [
-    { "e": "Humanity • The Authority Technology Serves",
+    {
+      "e": "Humanity • The Authority Technology Serves",
       "t": "nam-lu2-ulu3 • nam-en gesz dim2-ma-ka",
-      "g": "humankind — the lordship over the fashioned implement" }
+      "g": "humankind — the lordship over the fashioned implement"
+    }
   ],
   "k08": [
-    { "e": "Collective Intelligence • Humanity Learning to Listen",
+    {
+      "e": "Collective Intelligence • Humanity Learning to Listen",
       "t": "gesztu2 un-ka • nam-lu2-ulu3 gesztu2-sze3 zu-zu",
-      "g": "the understanding of the people — humankind learning toward the ear" }
+      "g": "the understanding of the people — humankind learning toward the ear"
+    }
   ],
   "k09": [
-    { "e": "Simulation • Let Thought Experience Consequence",
+    {
+      "e": "Simulation • Let Thought Experience Consequence",
       "t": "igi-bar • gesztu2-e egir-bi he2-zu",
-      "g": "the looking-upon — may thought know its aftermath" }
+      "g": "the looking-upon — may thought know its aftermath"
+    }
   ],
   "k10": [
-    { "e": "Replay • Memory That Can Outlive Us",
+    {
+      "e": "Replay • Memory That Can Outlive Us",
       "t": "⟦Replay⟧ • dub egir-me-sze3 til3-la",
-      "g": "Replay — the tablet that lives on after us" }
+      "g": "Replay — the tablet that lives on after us"
+    }
   ],
   "k11": [
-    { "e": "R-CORE • Turning Experience into Learning",
+    {
+      "e": "R-CORE • Turning Experience into Learning",
       "t": "⟦R-CORE⟧ • zu-a-ta zu-zu-sze3 bal-e",
-      "g": "R-CORE — turning the known into learning" }
+      "g": "R-CORE — turning the known into learning"
+    }
   ],
   "k12": [
-    { "e": "Humanity Innovation Engine • From Thought to Qualified Reality",
-      "t": "gesz dim2-ma nam-lu2-ulu3-ak • gesztu2-ta ki zi-sze3",
-      "g": "humankind’s fashioned engine — from thought to the true ground" }
+    {
+      "e": "Humanity Innovation Engine • From Thought to Qualified Reality",
+      "t": "gesz dim2-ma nam-lu2-ulu3-a • gesztu2-ta ki zi-sze3",
+      "g": "humankind’s fashioned engine — from thought to the true ground"
+    }
   ],
   "k13": [
-    { "e": "Proof • Before Scale",
+    {
+      "e": "Proof • Before Scale",
       "t": "nig2-gi-na • igi nam-gal-la-ka",
-      "g": "the firm truth — before greatness" }
+      "g": "the firm truth — before greatness"
+    }
   ],
   "k14": [
-    { "e": "Power • Stewardship That Can Let Go",
+    {
+      "e": "Power • Stewardship That Can Let Go",
       "t": "a2 mah • nam-sipa szu bar-ra zu-a",
-      "g": "great strength — the shepherdship that knows releasing" }
+      "g": "great strength — the shepherdship that knows releasing"
+    }
   ],
   "k15": [
-    { "e": "Education • Teach How We Learned",
+    {
+      "e": "Education • Teach How We Learned",
       "t": "e2-dub-ba-a • nig2 zu-a-me he2-zu-zu",
-      "g": "the tablet-house — may what we learned be taught" }
+      "g": "the tablet-house — may what we learned be taught"
+    }
   ],
   "k16": [
-    { "e": "One Recorded Hour • Where the Future Begins",
+    {
+      "e": "One Recorded Hour • Where the Future Begins",
       "t": "danna-bar disz sar-ra • ki sag u4 egir-ra-ka",
-      "g": "one written half-danna — the head-place of the days after" }
+      "g": "one written half-danna — the head-place of the days after"
+    }
+  ],
+  "k17": [
+    {
+      "e": "Every civilization begins with thought.",
+      "t": "kalam du3-a-bi gesztu2-ta mu-un-e3",
+      "g": "every land comes forth from thought"
+    },
+    {
+      "e": "Before a law is written, a bridge is built, a machine is made, or a future is changed, someone imagines what does not yet exist.",
+      "t": "di nu-sar • e2 nu-du3 • gesz dim2-ma nu-dim2 • u4 egir-ra nu-bal • lu2-e nig2 nu-gal2-la igi-bar mu-un-gar",
+      "g": "the judgment not yet written, the house not yet built, the implement not yet fashioned, the after-days not yet turned — a person sets a vision upon what does not exist"
+    },
+    {
+      "e": "Thought becomes intention.",
+      "t": "gesztu2 nig2 sza3-ga-sze3 mu-un-bal",
+      "g": "thought turns into the thing of the heart (intent)"
+    },
+    {
+      "e": "Intention becomes action.",
+      "t": "nig2 sza3-ga kin-sze3 mu-un-bal",
+      "g": "the heart-thing turns into work"
+    },
+    {
+      "e": "Action enters time, the one resource no person can recover.",
+      "t": "kin u4-sze3 mu-un-du • u4 zal-la lu2 nu-mu-un-gi4",
+      "g": "the work goes into time — time passed, no person brings back"
+    },
+    {
+      "e": "Vision • 2525 begins there.",
+      "t": "⟦Vision • 2525⟧ ki-bi-ta mu-un-gub",
+      "g": "Vision • 2525 stands up from that place"
+    },
+    {
+      "e": "Not with technology, money, government, or Artificial Intelligence, but with Humanity and the time through which every Human life is lived.",
+      "t": "gesz dim2-ma-ta nu • ku3-ta nu • nam-lugal-ta nu • gesztu2 dim2-ma-ta nu • nam-lu2-ulu3-ta u3 u4 zi lu2-ka til3-la-ta-am3",
+      "g": "not from the fashioned implement, not from silver, not from kingship, not from fashioned understanding — it is from humankind and from the time in which a person's life is lived"
+    },
+    {
+      "e": "We call the discipline connecting awareness, intention, time, action, consequence, and learning Thought Mastery.",
+      "t": "zu-a • sza3 • u4 • kin • egir-bi • zu-zu • kaskal-bi disz-am3 • mu-bi nam-gesztu2-am3",
+      "g": "the known, the heart, time, work, its aftermath, learning — their road is one; its name is Thought Mastery"
+    },
+    {
+      "e": "A person who accepts the continuing responsibility to practice that discipline becomes a Thought Master.",
+      "t": "lu2 nam-kin kaskal-bi-ka szu ti-a lu2 gesztu2-ga-am3",
+      "g": "the person who receives in hand the charge of that road is a Thought Master"
+    },
+    {
+      "e": "Master of Thought names the responsibility behind the practice.",
+      "t": "en sag ki • mu nam-kin-ka-am3",
+      "g": "EN SAG.KI — it is the name of the charge"
+    },
+    {
+      "e": "It is not a throne above Humanity, nor a claim of intellectual superiority.",
+      "t": "dur2 nam-lu2-ulu3-ka an-ta in-nu • inim mah gesztu2-ka in-nu",
+      "g": "it is not a seat above humankind; it is not a proud word of understanding"
+    },
+    {
+      "e": "It is an invitation within Humanity: become aware of what you think, understand what you build, remain accountable for what follows, recognize when evidence changes what you know, and leave enough truth for another person to learn from what you experienced.",
+      "t": "inim sza3 nam-lu2-ulu3-ka-am3 • gesztu2-zu he2-zu • nig2 du3-a-zu he2-zu • egir-bi-ra en he2-me • nig2-gi-na-e zu-a bal-a he2-zu • nig2-gi-na lu2 egir-ra-ra he2-gal2",
+      "g": "it is a word inside humankind: may you know your thought; may you know what you build; may you be lord to its aftermath; may you know when proof turns the known; may firm truth remain for the person after"
+    }
+  ],
+  "k18": [
+    {
+      "e": "That is why Measurement of Time matters.",
+      "t": "ur5-sze3 nig2-szid u4-ka mah-am3",
+      "g": "therefore the reckoning of time is great"
+    },
+    {
+      "e": "The clock records what actually passed.",
+      "t": "gesz u4 szid-da-ke4 u4 zal-la gi-na mu-un-sar",
+      "g": "the day-counting implement writes the time that truly passed"
+    },
+    {
+      "e": "Human Intelligence records what qualified contribution emerged through that time.",
+      "t": "gesztu2 nam-lu2-ulu3-ka-ke4 nig2 sum-ma gi-na u4-bi-ta e3-a mu-un-sar",
+      "g": "the understanding of humankind writes the proven given-thing that came forth in that time"
+    },
+    {
+      "e": "The two must never be confused.",
+      "t": "asz u3 asz • disz-sze3 na-an-bal",
+      "g": "the one and the other — may they not be turned into one"
+    },
+    {
+      "e": "A base HI unit can be anchored to one Human hour while qualified contribution recognizes greater value through an explicit multiple.",
+      "t": "⟦HI⟧ asz danna-bar disz lu2-ka-ta mu-un-gub • nig2 sum-ma gi-na szid mah igi-a gal2-la-ta mi2 du11-ga-am3",
+      "g": "one HI stands from one human half-danna; the proven given-thing is honored through a great count standing in view"
+    },
+    {
+      "e": "Actual time remains actual time.",
+      "t": "u4 gi-na u4 gi-na-am3",
+      "g": "true time is true time"
+    },
+    {
+      "e": "Recognition remains recognition.",
+      "t": "mi2 du11-ga mi2 du11-ga-am3",
+      "g": "the honoring is the honoring"
+    },
+    {
+      "e": "Settlement remains settlement.",
+      "t": "ku3-sze3 bal-a ku3-sze3 bal-a-am3",
+      "g": "the turning-into-silver is the turning-into-silver"
+    },
+    {
+      "e": "The framework separates them so none can quietly impersonate another.",
+      "t": "gesz-hur-e bar-sze3 mu-un-gar • disz disz-gin7 lul-la nu-mu-un-du",
+      "g": "the design sets them apart — one does not go falsely as another"
+    },
+    {
+      "e": "The discipline extends outward.",
+      "t": "nam-gesztu2 bar-sze3 mu-un-e3",
+      "g": "thought-mastery goes forth outward"
+    },
+    {
+      "e": "Polling is not engineering truth.",
+      "t": "inim un-ka nig2-gi-na nam-dim2-ka in-nu",
+      "g": "the people's word is not the firm truth of the craft"
+    },
+    {
+      "e": "Simulation is not reality.",
+      "t": "igi-bar ki gi-na in-nu",
+      "g": "the looking-upon is not the firm ground"
+    },
+    {
+      "e": "Artificial Intelligence is not Human Authority.",
+      "t": "gesztu2 dim2-ma nam-en nam-lu2-ulu3-ka in-nu",
+      "g": "the fashioned understanding is not the lordship of humankind"
+    },
+    {
+      "e": "Money is not sovereignty.",
+      "t": "ku3 nam-lugal in-nu",
+      "g": "silver is not kingship"
+    },
+    {
+      "e": "Experience is not verification.",
+      "t": "zu-a igi-ka szid gi-na in-nu",
+      "g": "what the eye has known is not the firm count"
+    },
+    {
+      "e": "Confidence is not qualification.",
+      "t": "sza3 gi-na kiszib nig2-gi-na-ka in-nu",
+      "g": "the firm heart is not the seal of proof"
+    },
+    {
+      "e": "Thought Mastery begins by seeing distinctions clearly enough that power cannot hide inside confusion.",
+      "t": "nam-gesztu2-e bar-bar igi-ta mu-un-pad3 • a2 mah sza3 lul-la-ka nu-mu-un-ku",
+      "g": "thought-mastery finds the separations with the eye — great strength cannot sit inside the heart of falsehood"
+    }
+  ],
+  "k19": [
+    {
+      "e": "Vision • 2525 carries this discipline toward 2525, not because anyone today can predict five centuries, but because responsibility can reach farther than certainty.",
+      "t": "⟦Vision • 2525⟧-e kaskal-bi ⟦2525⟧-sze3 mu-un-tum2 • lu2 u4-ne-ka egir nu-mu-un-zu • nam-kin zu-a-ta gid2-da-am3",
+      "g": "Vision • 2525 carries this road toward 2525; the person of today does not know the after; the charge is longer than the known"
+    },
+    {
+      "e": "What Humanity builds should preserve what happened, what changed, why it changed, what evidence existed, and what was learned.",
+      "t": "nig2 nam-lu2-ulu3-e du3-a-e • nig2 gal2-la • nig2 bal-a • inim sag bal-a-ka • nig2-gi-na gal2-la • u3 nig2 zu-a szu he2-tuku",
+      "g": "what humankind builds — may it hold in hand what was, what turned, the head-word of the turning, the proof that existed, and what was learned"
+    },
+    {
+      "e": "Future generations should inherit more than conclusions.",
+      "t": "dumu egir-ra-e-ne inim egir-ra-ta mah szu he2-ti",
+      "g": "may the children of after receive in hand more than the final word"
+    },
+    {
+      "e": "They should inherit the ability to question them.",
+      "t": "a2 inim tar-ra-ka szu he2-ti",
+      "g": "may they receive in hand the arm of cutting questions at them"
+    },
+    {
+      "e": "That is Thought Mastery at civilization scale: awareness before action, evidence before confidence, Humanity before technology, and learning carried through time.",
+      "t": "nam-gesztu2 kalam-ma-am3 • zu-a igi kin-ka • nig2-gi-na igi sza3 gi-na-ka • nam-lu2-ulu3 igi gesz dim2-ma-ka • zu-zu u4-ta tum2-ma",
+      "g": "it is thought-mastery of the land: the known before the work, proof before the firm heart, humankind before the fashioned implement, learning carried through time"
+    },
+    {
+      "e": "We cannot master what we are not aware of.",
+      "t": "nig2 nu-zu-a en-bi nu-gal2",
+      "g": "over the unknown thing, no lordship exists"
+    },
+    {
+      "e": "We cannot improve what we refuse to measure.",
+      "t": "nig2 nu-szid-da sig5-sze3 nu-mu-un-bal",
+      "g": "the uncounted thing is not turned toward the better"
+    },
+    {
+      "e": "We cannot build a trustworthy future if every generation must begin again.",
+      "t": "dumu-e sag-ta mu-un-gi4-gi4-a • u4 egir-ra gi-na nu-mu-un-du3",
+      "g": "if the children return ever to the start, a firm future is not built"
+    }
+  ],
+  "k20": [
+    {
+      "e": "Every person enters life differently.",
+      "t": "lu2 du3-a-bi kaskal bar-ra-ta zi-sze3 mu-un-du",
+      "g": "every person goes into life by a separate road"
+    },
+    {
+      "e": "Geography, language, family, wealth, opportunity, health, education, and circumstance are unequal from the beginning.",
+      "t": "ki • eme • e2 • ku3 • kaskal gal2-la • nam-til3 • e2-dub-ba-a • ki gub-ba • sag-ta sa2 nu-gal2",
+      "g": "place, tongue, house, silver, the open road, life, the tablet-house, the standing-place — from the start no equality exists"
+    },
+    {
+      "e": "Vision • 2525 does not pretend otherwise.",
+      "t": "⟦Vision • 2525⟧-e inim lul nu-mu-un-du11",
+      "g": "Vision • 2525 speaks no false word about it"
+    },
+    {
+      "e": "It begins with something simpler: every Human life unfolds through time.",
+      "t": "nig2 tur-ta mu-un-gub • zi lu2 du3-a-bi u4-ta mu-un-du",
+      "g": "it stands from a small thing: every person's life goes through time"
+    },
+    {
+      "e": "A minute lived in Austin and a minute lived in Phnom Penh contain the same duration, even when economies value labor differently.",
+      "t": "u4 tur ⟦Austin⟧-a til3-la u3 u4 tur ⟦Phnom Penh⟧-a til3-la • nig2-szid-bi disz-am3 • ku3 kin-ka bar-bar-am3",
+      "g": "a small time lived in Austin and a small time lived in Phnom Penh — their measure is one, though the silver of work is various"
+    },
+    {
+      "e": "Measurement of Time records that duration honestly.",
+      "t": "nig2-szid u4-ka-ke4 u4-bi gi-na-sze3 mu-un-sar",
+      "g": "the reckoning of time writes that time toward the truth"
+    },
+    {
+      "e": "It does not claim every hour produces identical work, creates identical contribution, or buys identical goods.",
+      "t": "danna-bar du3-a-bi kin disz-am3 nu-mu-un-du11 • nig2 sum-ma disz-am3 nu-mu-un-du11 • ku3 disz-am3 nu-mu-un-du11",
+      "g": "it does not say every half-danna is one same work, one same given-thing, one same silver"
+    },
+    {
+      "e": "It establishes a common reference from which contribution can be understood without allowing geography alone to determine whether a Human life or Human effort becomes visible.",
+      "t": "nig2-szid disz kalam-sze3 mu-un-gar • ki asz-e zi lu2-ka igi-sze3 gal2-la ka-asz nu-mu-un-bar",
+      "g": "it sets one measure for the land — place alone does not cut the decision whether a person's life stands in view"
+    },
+    {
+      "e": "Time provides a shared measure without pretending circumstances are shared.",
+      "t": "u4-e nig2-szid disz mu-un-sum • ki gub-ba disz-am3 nu-mu-un-du11",
+      "g": "time gives one measure; it does not say the standing-places are one"
+    },
+    {
+      "e": "That distinction matters because equality of duration does not mean equality of opportunity, contribution, need, difficulty, or consequence.",
+      "t": "bar-bi mah-am3 • u4 sa2-am3 • kaskal gal2-la • nig2 sum-ma • nig2 al du11-ga • kin husz • u3 egir-bi sa2 nu-me-a",
+      "g": "that separation is great: time is equal — the open road, the given thing, the demanded thing, the fierce work, and the aftermath being not equal"
+    }
+  ],
+  "k21": [
+    {
+      "e": "This distinction creates the HI architecture.",
+      "t": "bar-bi-ta gesz-hur ⟦HI⟧ mu-un-dim2",
+      "g": "from this separation the HI design is fashioned"
+    },
+    {
+      "e": "The base denomination is anchored to an hour, but HI is not identical to elapsed time.",
+      "t": "szid sag danna-bar-ta mu-un-gub • ⟦HI⟧ u4 zal-la in-nu",
+      "g": "the head count stands from the half-danna; HI is not the time that passed"
+    },
+    {
+      "e": "Actual time remains separately recorded.",
+      "t": "u4 gi-na bar-ta sar-ra-am3",
+      "g": "true time is written apart"
+    },
+    {
+      "e": "Qualified contribution may receive a transparent multiple, expressed as HI earned = M × hours, while the clock remains unchanged.",
+      "t": "nig2 sum-ma gi-na-e szid mah igi-a gal2-la szu he2-ti • ⟦HI earned = M × hours⟧ • gesz u4 szid-da nu-mu-un-bal",
+      "g": "the proven given-thing may receive in hand a great count standing in view — HI earned = M × hours — the day-counting implement does not turn"
+    },
+    {
+      "e": "One hundred actual hours remain one hundred hours even when qualified contribution produces more than one hundred HI.",
+      "t": "danna-bar ⟦100⟧ danna-bar ⟦100⟧-am3 • nig2 sum-ma gi-na ⟦HI⟧ ⟦100⟧-ta mah he2-dim2",
+      "g": "100 half-danna are 100 half-danna, even when the proven given-thing fashions more than 100 HI"
+    },
+    {
+      "e": "The annual 9,999 HI boundary measures recognized contribution under the framework’s operating policy; it is not a claim that anyone works 9,999 hours.",
+      "t": "bar mu-ka ⟦9,999⟧ ⟦HI⟧-e nig2 sum-ma mi2 du11-ga mu-un-szid • lu2-e danna-bar ⟦9,999⟧ kin-sze3 nu-mu-un-du11",
+      "g": "the year-boundary of 9,999 HI counts the honored given-thing; it does not say a person works 9,999 half-danna"
+    },
+    {
+      "e": "Measurement of Time preserves the clock.",
+      "t": "nig2-szid u4-ka-ke4 gesz u4 szid-da szu mu-un-tuku",
+      "g": "the reckoning of time holds the day-counting implement in hand"
+    },
+    {
+      "e": "HI recognizes qualified contribution.",
+      "t": "⟦HI⟧-e nig2 sum-ma gi-na mi2 mu-un-du11",
+      "g": "HI honors the proven given-thing"
+    },
+    {
+      "e": "Local settlement translates eligible value into lawful economic reality.",
+      "t": "ki-bi-a nig2 gal2-la di kalam-ma-ta ku3-sze3 mu-un-bal",
+      "g": "in its place, the eligible thing is turned into silver under the land's law"
+    },
+    {
+      "e": "These layers remain separate because each answers a different question.",
+      "t": "bar-bi bar-ta gub-ba-am3 • disz disz-e inim bar-ra mu-un-gi4",
+      "g": "these stand apart — each returns (answers) a separate word"
+    }
+  ],
+  "k22": [
+    {
+      "e": "This is more than accounting.",
+      "t": "nig2-szid-ta mah-am3",
+      "g": "it is greater than reckoning"
+    },
+    {
+      "e": "It expresses Human dignity.",
+      "t": "sag il2-la nam-lu2-ulu3-ka mu-un-du11",
+      "g": "it speaks the lifted head of humankind"
+    },
+    {
+      "e": "Time should not be inflated to exaggerate contribution, and contribution should not disappear because the person providing it lives somewhere poorer.",
+      "t": "u4 lul-sze3 na-an-gal-e • nig2 sum-ma lu2 ki ku3 tur-ra til3-la-ka na-an-zal-e",
+      "g": "may time not be made falsely great; may the given-thing of a person living in a place of little silver not flow away"
+    },
+    {
+      "e": "Money should not rewrite the historical record of what someone gave.",
+      "t": "ku3-e dub nig2 sum-ma-ka na-an-bal-e",
+      "g": "may silver not overturn the tablet of what was given"
+    },
+    {
+      "e": "A Thought Master learns to distinguish what appears similar but carries different meaning.",
+      "t": "lu2 gesztu2-ga-e nig2 igi-sze3 disz-gin7 sza3-bi bar-ra mu-un-zu-zu",
+      "g": "the Thought Master learns the things one-like to the eye whose insides are apart"
+    },
+    {
+      "e": "Time measures duration.",
+      "t": "u4-e u4 zal-la mu-un-szid",
+      "g": "time counts the time passed"
+    },
+    {
+      "e": "HI recognizes qualified contribution.",
+      "t": "⟦HI⟧-e nig2 sum-ma gi-na mi2 mu-un-du11",
+      "g": "HI honors the proven given-thing"
+    },
+    {
+      "e": "Settlement addresses economic value.",
+      "t": "ku3-sze3 bal-e ku3-bi mu-un-szid",
+      "g": "the turning-into-silver counts its silver"
+    },
+    {
+      "e": "Replay preserves what occurred.",
+      "t": "dub gi4-gi4-e nig2 gal2-la szu mu-un-tuku",
+      "g": "the returning tablet holds in hand what happened"
+    },
+    {
+      "e": "Once these distinctions become visible, Humanity gains a common language through which people can contribute differently without first being reduced to wealth, nationality, title, geography, or access to power.",
+      "t": "bar-bi igi-a gub-ba-ta • nam-lu2-ulu3-e eme disz mu-un-tuku • lu2-e bar-bar-ta he2-sum • ku3-ta kalam-ta mu-ta ki-ta a2-ta igi-sze3 nu-szid-da",
+      "g": "when these separations stand in view, humankind holds one tongue: a person may give in his own way, not counted first by silver, land, name, place, or power"
+    },
+    {
+      "e": "The first instrument of Thought Mastery is therefore not the machine.",
+      "t": "ur5-sze3 gesz sag nam-gesztu2-ka gesz dim2-ma in-nu",
+      "g": "therefore the head tool of thought-mastery is not the fashioned implement"
+    },
+    {
+      "e": "It is honest measurement of Human time.",
+      "t": "nig2-szid gi-na u4 lu2-ka-am3",
+      "g": "it is the true reckoning of a person's time"
+    }
+  ],
+  "k23": [
+    {
+      "e": "A thought can become a sentence, a design, an institution, a machine, a law, or a war.",
+      "t": "gesztu2 inim-sze3 • gesz-hur-sze3 • e2 gal-sze3 • gesz dim2-ma-sze3 • di-sze3 • a2 husz-sze3 he2-bal-e",
+      "g": "a thought may turn into a word, a design, a great house, a fashioned implement, a judgment, a furious arm (war)"
+    },
+    {
+      "e": "Humanity nevertheless spends remarkably little effort examining the path between thought and consequence.",
+      "t": "nam-lu2-ulu3-e kaskal gesztu2-ta egir-bi-sze3 igi tur-ta mu-un-bar",
+      "g": "humankind looks with a small eye at the road from thought to its aftermath"
+    },
+    {
+      "e": "Vision • 2525 calls that path Thought Mastery.",
+      "t": "⟦Vision • 2525⟧-e kaskal-bi-ra nam-gesztu2 mu-sze3 mu-un-sum",
+      "g": "Vision • 2525 gives to that road the name Thought Mastery"
+    },
+    {
+      "e": "It does not mean controlling every thought, eliminating uncertainty, or declaring one person intellectually superior to another.",
+      "t": "gesztu2 du3-a-bi szu dab5-ba in-nu • nig2 nu-zu-a zal-la in-nu • lu2 disz lu2 disz-ta mah du11-ga in-nu",
+      "g": "it is not the seizing of every thought; not the driving away of the unknown; not declaring one person greater than another"
+    },
+    {
+      "e": "It means developing enough awareness to notice assumptions before they become decisions, distinguish reaction from judgment, connect choices to consequences, and change direction when evidence proves an idea wrong.",
+      "t": "sza3-bi ne-e-am3 • inim sza3-ga igi ka-asz bar-ra-ka he2-pad3 • gu3 husz di-ta he2-bar • kaskal egir-bi-sze3 he2-du • nig2-gi-na-e inim lul-sze3 mu-un-gar-ra kaskal he2-bal",
+      "g": "its heart is this: may the heart-word be found before the decision-cutting; may the furious voice be set apart from judgment; may the chosen road be followed to its aftermath; when proof sets the word as false, may the road be turned"
+    },
+    {
+      "e": "The Master of Thought is therefore not a ruler.",
+      "t": "ur5-sze3 en sag ki lugal in-nu",
+      "g": "therefore EN SAG.KI is not a king"
+    },
+    {
+      "e": "Master of Thought names a responsibility to remain answerable for thought as it becomes action.",
+      "t": "en sag ki • mu nam-kin-ka-am3 • gesztu2 kin-sze3 bal-a-ra en-bi he2-me",
+      "g": "EN SAG.KI is the name of a charge: to be lord (answerable) over thought as it turns to work"
+    },
+    {
+      "e": "A Thought Master practices that responsibility through awareness rather than suppression, curiosity rather than certainty, and accountability rather than control.",
+      "t": "lu2 gesztu2-ga-e nam-kin-bi zu-a-ta • inim tar-ta • u3 en egir-ra-ta mu-un-kin • szu dab5-ba-ta in-nu",
+      "g": "the Thought Master works that charge through awareness, through question-cutting, and through lordship over the aftermath — not through the seizing hand"
+    }
+  ],
+  "k24": [
+    {
+      "e": "At civilization scale, the same principle becomes architecture.",
+      "t": "kalam-ma sza3-bi gesz-hur-sze3 mu-un-bal",
+      "g": "in the land, this same heart turns into a design"
+    },
+    {
+      "e": "Human need becomes intent.",
+      "t": "nig2 al du11-ga lu2-ka sza3-sze3 mu-un-bal",
+      "g": "a person's demanded thing turns into the heart-aim"
+    },
+    {
+      "e": "Intent can be heard through Collective Intelligence.",
+      "t": "sza3-bi gesztu2 un-ka-ta he2-tuku",
+      "g": "that heart may be grasped through the people's understanding"
+    },
+    {
+      "e": "Polling reveals signal.",
+      "t": "inim un-ka-e gu3 mu-un-pad3",
+      "g": "the people's word finds the voice"
+    },
+    {
+      "e": "Human disposition interprets it.",
+      "t": "sza3 lu2-ka-ke4 sza3-bi mu-un-bar",
+      "g": "the person's heart opens up its inside"
+    },
+    {
+      "e": "User stories make needs understandable.",
+      "t": "inim lu2-ka-ta nig2 al du11-ga igi-sze3 mu-un-gub",
+      "g": "through the person's word the demanded thing stands into view"
+    },
+    {
+      "e": "Requirements and risk turn intention into testable questions.",
+      "t": "inim gi-na u3 nig2 husz-e sza3-bi inim tar-ra-sze3 mu-un-bal",
+      "g": "the firm word and the fierce thing turn that heart into cuttable questions"
+    },
+    {
+      "e": "Design gives thought form.",
+      "t": "gesz-hur-e gesztu2-ra su mu-un-sum",
+      "g": "the design gives a body to thought"
+    },
+    {
+      "e": "Simulation explores consequences before unnecessary exposure.",
+      "t": "igi-bar-e egir-bi igi kaskal husz-ka mu-un-pad3",
+      "g": "the looking-upon finds the aftermath before the fierce road"
+    },
+    {
+      "e": "Human experience reveals what models may miss.",
+      "t": "zu-a lu2-ka-e nig2 gesz-hur-ta zal-la mu-un-pad3",
+      "g": "human experience finds what flows past the design"
+    },
+    {
+      "e": "Verification asks whether outputs meet defined inputs.",
+      "t": "szid gi-na-e inim mu-un-tar • nig2 dim2-ma inim gar-ra-gin7 he2-gal2",
+      "g": "the firm count cuts the question: is the fashioned thing as the placed word?"
+    },
+    {
+      "e": "Validation asks whether the result serves its intended purpose.",
+      "t": "szid zi-e inim mu-un-tar • nig2 dim2-ma sag sza3-ga-bi-sze3 he2-du",
+      "g": "the true count cuts the question: does the fashioned thing go toward its heart-aim?"
+    },
+    {
+      "e": "Qualification states what the evidence permits.",
+      "t": "kiszib nig2-gi-na-ke4 nig2 gal2-la mu-un-du11",
+      "g": "the seal of proof speaks what is permitted"
+    },
+    {
+      "e": "Replay preserves what happened.",
+      "t": "dub gi4-gi4-e nig2 gal2-la szu mu-un-tuku",
+      "g": "the returning tablet holds in hand what happened"
+    },
+    {
+      "e": "Compare shows what changed.",
+      "t": "szid sa2-e nig2 bal-a mu-un-pad3",
+      "g": "the matching count finds what turned"
+    },
+    {
+      "e": "Cause records why a change was made.",
+      "t": "inim sag-e sag nig2 bal-a-ka mu-un-sar",
+      "g": "the head-word writes the head (reason) of the changed thing"
+    },
+    {
+      "e": "Learning returns into the next cycle.",
+      "t": "zu-zu har egir-ra-sze3 mu-un-gi4",
+      "g": "learning returns into the next ring"
+    },
+    {
+      "e": "Thought no longer disappears when the meeting ends.",
+      "t": "gu2 gar-ra zal-la-ta gesztu2 nu-mu-un-zal",
+      "g": "when the gathering has passed, thought does not flow away"
+    },
+    {
+      "e": "It leaves a path another Human can examine, challenge, understand, and improve.",
+      "t": "kaskal mu-un-gar • lu2 egir-ra-e igi he2-bar • inim he2-tar • he2-zu • sig5-sze3 he2-bal",
+      "g": "it sets down a road — the person after may look upon it, cut questions at it, know it, turn it toward the better"
+    }
+  ],
+  "k25": [
+    {
+      "e": "This is the deeper meaning of Innovation at the Speed of Thought.",
+      "t": "ne-e sza3 gid2-da nig2 dim2-ma gesztu2-gin7 du-a-ka-am3",
+      "g": "this is the long inside (deeper meaning) of the making that goes like thought"
+    },
+    {
+      "e": "It is not the speed with which AI generates an answer.",
+      "t": "u4 tur inim gi4-a gesztu2 dim2-ma-ka in-nu",
+      "g": "it is not the small time of the fashioned understanding's returned word"
+    },
+    {
+      "e": "Speed without awareness can accelerate error.",
+      "t": "du husz zu-a nu-gal2-la-ta nig2 nu-si-sa2 gal-sze3 mu-un-du",
+      "g": "fierce going without awareness makes the crooked thing go greater"
+    },
+    {
+      "e": "The objective is to shorten the distance between imagination and qualified learning while preserving the disciplines that make learning trustworthy.",
+      "t": "sag-bi • kaskal igi-bar sza3-ga-ta zu-zu gi-na-sze3 he2-tur • kaskal gi-na zu-zu-ka szu he2-tuku",
+      "g": "its aim: may the road from heart-vision to proven learning become small, while the firm way of learning is held in hand"
+    },
+    {
+      "e": "Thought Mastery is available to every person: see clearly, imagine freely, question assumptions, listen beyond yourself, test before claiming, admit uncertainty, preserve mistakes, and improve through evidence.",
+      "t": "nam-gesztu2 lu2 du3-a-bi-ra gal2-la-am3 • igi gi-na-ta he2-bar • sza3-ta igi-bar he2-gar • inim sza3-ga he2-tar • gu3 bar-ra he2-tuku • igi inim-ka he2-szid • nig2 nu-zu-a he2-du11 • nig2 nu-si-sa2 szu he2-tuku • nig2-gi-na-ta sig5-sze3 he2-bal",
+      "g": "thought-mastery exists for every person: may one look with a true eye; set vision forth from the heart; cut questions at the heart-word; grasp the outside voice; count before the word (test before claiming); speak the unknown; hold the crooked things in hand; turn toward the better through proof"
+    },
+    {
+      "e": "Anyone willing to practice those habits can become a Thought Master.",
+      "t": "lu2 kaskal-bi-ta du-a lu2 gesztu2-ga-am3",
+      "g": "the person who walks these roads is a Thought Master"
+    },
+    {
+      "e": "When millions can practice them while technology assists coordination, Humanity gains something greater than faster machines: the capacity to think together without requiring everyone to think alike.",
+      "t": "un gal-gal kaskal-bi du-a-ta • gesz dim2-ma a2 sum-ma-ta • nam-lu2-ulu3-e nig2 mah szu mu-un-ti • gesztu2 gu2-sze3 gar-ra • sza3 disz-sze3 nu-dab5-ba",
+      "g": "when great numbers of people walk these roads, the implement giving its arm, humankind receives a great thing in hand: thought gathered together, the heart not seized into one"
+    }
+  ],
+  "k26": [
+    {
+      "e": "Vision • 2525 begins with Humanity because every other layer is a means.",
+      "t": "⟦Vision • 2525⟧ nam-lu2-ulu3-ta mu-un-gub • nig2 bar-ra du3-a-bi kaskal-am3",
+      "g": "Vision • 2525 stands from humankind — every other thing is a way (means)"
+    },
+    {
+      "e": "Markets are means.",
+      "t": "ki ku3-ka kaskal-am3",
+      "g": "the place of silver is a way"
+    },
+    {
+      "e": "Governments are means.",
+      "t": "nam-lugal kaskal-am3",
+      "g": "kingship is a way"
+    },
+    {
+      "e": "Institutions are means.",
+      "t": "e2 gal kaskal-am3",
+      "g": "the great house is a way"
+    },
+    {
+      "e": "AI is a means.",
+      "t": "gesztu2 dim2-ma kaskal-am3",
+      "g": "the fashioned understanding is a way"
+    },
+    {
+      "e": "Even Vision • 2525 is a means.",
+      "t": "⟦Vision • 2525⟧ kaskal-am3",
+      "g": "Vision • 2525 is a way"
+    },
+    {
+      "e": "The purpose is Human flourishing across generations while preserving dignity, freedom, responsibility, agency, and the ability of people to shape systems affecting their lives.",
+      "t": "sag-bi nam-til3 sig5 nam-lu2-ulu3-ka dumu-ta dumu-sze3-am3 • sag il2-la u3 szu bar-ra szu tuku-am3 • un-e gesz-hur zi-bi-ka a2 he2-tuku",
+      "g": "its aim is humankind's good life from child to child — the lifted head and the released hand held fast — may the people hold power over the designs of their lives"
+    },
+    {
+      "e": "Human Authority therefore occupies a protected position in the architecture.",
+      "t": "ur5-sze3 nam-en nam-lu2-ulu3-ka ki gi-na gesz-hur-ka mu-un-gub",
+      "g": "therefore the lordship of humankind stands in a firm place of the design"
+    },
+    {
+      "e": "Technology can expand perception, organize complexity, simulate possibilities, translate languages, identify patterns, preserve knowledge, and challenge Human reasoning.",
+      "t": "gesz dim2-ma-e igi gal-sze3 he2-gar • nig2 gal-gal si he2-sa2 • igi-bar he2-gar • eme-ta eme-sze3 he2-bal • gesz-hur he2-pad3 • nig2 zu-a szu he2-tuku • inim lu2-ka inim he2-tar",
+      "g": "the fashioned implement may make the eye great, set the great things in order, set forth lookings-upon, turn tongue into tongue, find the designs, hold knowledge in hand, and cut questions at human words"
+    },
+    {
+      "e": "It should become extraordinarily capable.",
+      "t": "a2 mah-sze3 he2-du",
+      "g": "may it go toward great strength"
+    },
+    {
+      "e": "But capability and authority are different questions.",
+      "t": "a2 u3 nam-en inim bar-bar-am3",
+      "g": "strength and lordship are separate words"
+    },
+    {
+      "e": "A system may know more, calculate faster, or detect patterns beyond ordinary Human perception without acquiring the right to determine what Humanity should value, become, accept, or surrender.",
+      "t": "gesz dim2-ma-e mah he2-zu • u4 tur-ta he2-szid • gesz-hur igi lu2-ka-ta zal-la he2-pad3 • nam-en ka-asz nam-lu2-ulu3-ka-ka szu nu-mu-un-ti",
+      "g": "the implement may know more, count in smaller time, find designs that pass the human eye — yet it does not receive in hand the lordship over humankind's decision"
+    }
+  ],
+  "k27": [
+    {
+      "e": "This distinction becomes more important as AI grows more powerful.",
+      "t": "gesztu2 dim2-ma a2 mah-sze3 du-a-ta bar-bi mah-sze3 mu-un-du",
+      "g": "as the fashioned understanding goes toward great strength, this separation goes toward greatness"
+    },
+    {
+      "e": "Artificial Intelligence may discover an option no Human considered.",
+      "t": "gesztu2 dim2-ma-e kaskal lu2 nu-igi-bar-ra he2-pad3",
+      "g": "the fashioned understanding may find a road no person looked upon"
+    },
+    {
+      "e": "Collective Intelligence may reveal priorities no leader expected.",
+      "t": "gesztu2 un-ka-e nig2 sag lu2 sag-e nu-zu-a he2-pad3",
+      "g": "the people's understanding may find head-things the head-person did not know"
+    },
+    {
+      "e": "Spiritual Intelligence may challenge whether an efficient course remains worthy.",
+      "t": "gesztu2 zi-ka-e inim he2-tar • kaskal u4 tur-ra zi-sze3 he2-gal2",
+      "g": "the spirit's understanding may cut the question: does the swift road remain true?"
+    },
+    {
+      "e": "Human Intelligence integrates lived experience, responsibility, imagination, judgment, and consequence.",
+      "t": "gesztu2 lu2-ka-e zu-a til3-la • nam-kin • igi-bar sza3-ga • di • u3 egir-bi gu2-sze3 mu-un-gar",
+      "g": "human understanding gathers together lived knowledge, the charge, heart-vision, judgment, and the aftermath"
+    },
+    {
+      "e": "Vision • 2525 welcomes contribution from these forms of intelligence while keeping consequential authority attached to accountable Human governance.",
+      "t": "⟦Vision • 2525⟧-e nig2 sum-ma gesztu2-bi-e-ne-ka hul2-ta szu mu-un-ti • ka-asz gal nam-en lu2 gi-na-ka-ta gub-ba-am3",
+      "g": "Vision • 2525 receives with joy the given-things of these understandings; the great decision stands with the lordship of the answerable person"
+    },
+    {
+      "e": "That authority must itself remain bounded: reviewable, explainable, reversible where possible, subject to applicable law, and capable of being withdrawn.",
+      "t": "nam-en-bi bar tuku-am3 • igi-sze3 he2-bar • sza3-bi he2-du11 • he2-gi4-gi4 • di kalam-ma-ka he2-gub • szu-ta he2-e3",
+      "g": "that lordship holds a boundary: it may be looked into, its inside spoken, returned (reversed), it stands under the land's law, and it may go out of the hand (be withdrawn)"
+    },
+    {
+      "e": "Human Authority is not permission for Human domination.",
+      "t": "nam-en nam-lu2-ulu3-ka szu dab5-ba lu2-ta lu2-sze3 in-nu",
+      "g": "humankind's lordship is not a seizing hand of person over person"
+    },
+    {
+      "e": "It is the place where responsibility must ultimately remain answerable.",
+      "t": "ki nam-kin-e inim mu-un-gi4-a-am3",
+      "g": "it is the place where the charge returns the word (answers)"
+    }
+  ],
+  "k28": [
+    {
+      "e": "Thought Mastery stands inside this relationship as discipline rather than supremacy.",
+      "t": "nam-gesztu2 sza3-bi-a kaskal gi-na-gin7 mu-un-gub • nam-mah-sze3 in-nu",
+      "g": "thought-mastery stands inside this as a firm way; it is not for supremacy"
+    },
+    {
+      "e": "It asks Humanity to become capable enough to govern increasingly capable tools.",
+      "t": "nam-lu2-ulu3-ra inim mu-un-tar • gesz a2 mah-sze3 du-a-e-ne en-bi he2-me",
+      "g": "it cuts a word to humankind: may you be lord over the implements going toward great strength"
+    },
+    {
+      "e": "AI should not become control.",
+      "t": "gesztu2 dim2-ma szu dab5-ba-sze3 na-an-bal-e",
+      "g": "may the fashioned understanding not turn into the seizing hand"
+    },
+    {
+      "e": "Spiritual Intelligence should not become compulsory belief.",
+      "t": "gesztu2 zi-ka inim a2 dab5-ba-sze3 na-an-bal-e",
+      "g": "may the spirit's understanding not turn into a word seized by force"
+    },
+    {
+      "e": "Human Intelligence should not become ego.",
+      "t": "gesztu2 lu2-ka sza3 mah-sze3 na-an-bal-e",
+      "g": "may human understanding not turn into a swollen heart"
+    },
+    {
+      "e": "Collective Intelligence should not become mob authority.",
+      "t": "gesztu2 un-ka nam-en un husz-a-sze3 na-an-bal-e",
+      "g": "may the people's understanding not turn into the lordship of a furious crowd"
+    },
+    {
+      "e": "Each contributes something the others cannot supply alone.",
+      "t": "disz disz-e nig2-bi mu-un-sum • lu2 asz-e du3-a-bi nu-mu-un-sum",
+      "g": "each gives its own thing; one alone does not give all"
+    },
+    {
+      "e": "The task is integration without confusion.",
+      "t": "kin-bi gu2-sze3 gar-ra-am3 • lul-la nu-gal2-la",
+      "g": "the task is the gathering together, with no muddle in it"
+    },
+    {
+      "e": "Vision • 2525 therefore reduces its doctrine to three sentences: Humanity decides. Technology assists. Trust must be proven.",
+      "t": "⟦Vision • 2525⟧-e inim-bi inim tur-sze3 mu-un-tur • nam-lu2-ulu3-e ka-asz mu-un-bar • gesz dim2-ma-e a2 mu-un-sum • nig2 gi-na igi-a he2-gal2",
+      "g": "Vision • 2525 makes its word small into short words: humankind cuts the decision • the fashioned implement gives its arm • may the firm thing stand in view"
+    },
+    {
+      "e": "Thought Mastery carries the responsibility beneath them: know what you are deciding, understand what is assisting you, preserve evidence behind the decision, recognize uncertainty, and remain willing to change when reality teaches something better.",
+      "t": "nam-gesztu2-e nam-kin sig-bi szu mu-un-tuku • nig2 ka-asz bar-ra-zu he2-zu • nig2 a2 sum-ma-zu he2-zu • nig2-gi-na ka-asz-ka szu he2-tuku • nig2 nu-zu-a he2-du11 • ki gi-na-e nig2 sig5 zu-zu-a-ta kaskal he2-bal",
+      "g": "thought-mastery holds in hand the low (underlying) charge: may you know your decision-cutting; know what gives you its arm; hold in hand the proof of the decision; speak the unknown; and when the firm ground teaches a better thing, may the road be turned"
+    }
+  ],
+  "k29": [
+    {
+      "e": "No leader, institution, company, model, or nation can contain Humanity’s total experience.",
+      "t": "lu2 sag • e2 gal • e2 kin-ka • gesztu2 dim2-ma • kalam • disz-e zu-a du3-a-bi nam-lu2-ulu3-ka szu nu-mu-un-ti",
+      "g": "head-person, great house, house of work, fashioned understanding, land — no one of them receives in hand all humankind's knowledge"
+    },
+    {
+      "e": "Knowledge lives everywhere: in classrooms and workshops, farms and laboratories, families and communities, professions and cultures, successes and failures.",
+      "t": "nig2 zu-a ki du3-a-bi-a til3-la-am3 • e2-dub-ba-a u3 e2 kin-ka • a-sza3-ga u3 e2 igi-bar-ka • e2-a u3 un-na • nam-kin-a u3 kalam-kalam-a • nig2 sa2-a u3 nig2 nu-sa2-a",
+      "g": "the known thing lives in every place: in the tablet-house and the work-house, in the field and the looking-house, in the household and among the people, in the professions and in the lands, in the attained thing and the unattained thing"
+    },
+    {
+      "e": "Much of that knowledge never reaches the place where decisions are made.",
+      "t": "zu-a-bi gal ki ka-asz bar-ra-sze3 nu-mu-un-du",
+      "g": "much of that knowledge does not go to the place of decision-cutting"
+    },
+    {
+      "e": "Collective Intelligence is Vision • 2525’s method for helping distributed Human experience become visible without pretending that the loudest, richest, largest, most powerful, or most popular signal must be correct.",
+      "t": "gesztu2 un-ka kaskal ⟦Vision • 2525⟧-ka-am3 • zu-a lu2 bar-bar-ka igi-sze3 mu-un-tum2 • gu3 gal • ku3 gal • un gal • a2 gal • gi-na-am3 nu-mu-un-du11",
+      "g": "the people's understanding is Vision • 2525's road: it brings the knowledge of scattered persons into view; it does not say the great voice, the great silver, the great crowd, the great power is thereby true"
+    },
+    {
+      "e": "Humanity must learn to listen at scale while preserving the ability to think critically about what it hears.",
+      "t": "nam-lu2-ulu3 gal-sze3 gesztu2-sze3 he2-zu-zu • nig2 gesztu2-e tuku-a-ra inim he2-tar",
+      "g": "may humankind learn to listen at great scale — and may it cut questions at what the ear grasps"
+    },
+    {
+      "e": "Participation can reveal knowledge that centralized systems miss, but participation alone does not convert opinion into evidence.",
+      "t": "un du-a-ta zu-a ki sag-ta zal-la he2-pad3 • inim un-ka asz-bi nig2-gi-na-sze3 nu-mu-un-bal",
+      "g": "through the people's coming, knowledge that flows past the head-place may be found; the people's word alone does not turn into proof"
+    },
+    {
+      "e": "Collective Intelligence becomes valuable when diverse signals can enter a process without losing their origin, disagreement, uncertainty, or meaning.",
+      "t": "gesztu2 un-ka ku3-am3 • gu3 bar-bar kaskal-sze3 du-a-ta • ki-bi • inim bar-ra-bi • nig2 nu-zu-a-bi • sza3-bi nu-mu-un-zal",
+      "g": "the people's understanding is precious when the various voices go into the road (process) and their place (origin), their apart-word (disagreement), their unknown, and their inside (meaning) do not flow away"
+    }
+  ],
+  "k30": [
+    {
+      "e": "Polling is therefore a listening instrument, not a truth machine.",
+      "t": "szid gu3 un-ka gesz gesztu2-ka-am3 • gesz dim2-ma nig2-gi-na-ka nu-am3",
+      "g": "the counting of the people's voice is an instrument of the ear; it is not a machine of the firm truth"
+    },
+    {
+      "e": "It can reveal needs, priorities, disagreements, fears, opportunities, and ideas.",
+      "t": "nig2 al-di • nig2 sag • inim bar-ra • nig2 husz • kaskal sig5 • u3 inim sza3-ga pa mu-un-e3",
+      "g": "it brings to light the desired things, the head-things (priorities), the divided words, the fearsome things, the good roads (opportunities), and the heart's words (ideas)"
+    },
+    {
+      "e": "AI can help translate languages, organize responses, expose patterns, and make participation understandable.",
+      "t": "gesztu2 dim2-ma-e eme mu-un-bal • inim un-ka si mu-un-sa2 • gesz-hur pa mu-un-e3 • kaskal un-ra mu-un-zu-zu",
+      "g": "the fashioned understanding turns the tongue (translates) • sets the people's words in order • brings the pattern to light • teaches the road to the people"
+    },
+    {
+      "e": "But popularity does not determine physics.",
+      "t": "hul2 un-ka-ke4 nig2-gi-na ki-ka nu-mu-un-tar",
+      "g": "the people's delight does not decide the firm truth of the earth"
+    },
+    {
+      "e": "A majority cannot vote an unsafe bridge into being safe.",
+      "t": "un gal-e nig2 nu-gi-na inim-ta gi-na nu-mu-un-dim2",
+      "g": "the many people cannot, by word alone, fashion the un-firm thing into a firm one"
+    },
+    {
+      "e": "A leader may disagree with a poll, but should preserve the disagreement and the reason for choosing differently.",
+      "t": "lugal-e inim un-ka he2-tar • inim bar-ra-bi u3 inim sza3-bi he2-sar",
+      "g": "a king may cut against the people's word • let him write down the divided word and the word of his heart (his reason)"
+    },
+    {
+      "e": "Minority concerns should remain visible because today’s minority warning can become tomorrow’s discovered truth.",
+      "t": "gu3 un tur-ra igi-a he2-gub • gu3 un tur-ra u4-ne-ka nig2-gi-na pad3-da u4 egir-ra-ka he2-gal2",
+      "g": "let the small people's cry stand in view • the small people's cry of today may come to exist as the found truth of the after-days"
+    },
+    {
+      "e": "The record should show what Humanity expressed, what evidence existed, what accountable Humans ultimately decided, and what happened afterward.",
+      "t": "dub-e inim nam-lu2-ulu3-ka • nig2-gi-na gal2-la • ka-asz bar-ra lu2-ne-ka • u3 nig2 egir-ra gal2-la he2-sar",
+      "g": "let the tablet write the word of humankind, the proof that existed, the decision of the answerable persons, and what came to exist afterward"
+    }
+  ],
+  "k31": [
+    {
+      "e": "Thought Mastery turns listening into learning.",
+      "t": "nam-gesztu2-e gesztu2-ta zu-zu-sze3 mu-un-bal",
+      "g": "thought-mastery turns the ear into learning"
+    },
+    {
+      "e": "It asks participants to distinguish being heard from automatically being obeyed, and leaders to distinguish authority from the power to erase disagreement.",
+      "t": "un-e he2-zu • inim szu tuku-a inim-sze3 gub-ba nu-am3 • lugal-e he2-zu • nam-en a2 inim bar-ra usz-a nu-am3",
+      "g": "let the people know: a word received in the hand is not a standing-under-the-word (obedience) • let the leader know: lordship is not an arm that puts the divided word to death"
+    },
+    {
+      "e": "This is how Vision • 2525 approaches unity without uniformity.",
+      "t": "ur5-gin7 ⟦Vision • 2525⟧ sza3 disz-sze3 kaskal mu-un-pad3 • igi disz nu-mu-un-al-di",
+      "g": "thus Vision • 2525 finds the road toward one heart • it does not desire one face"
+    },
+    {
+      "e": "Humanity does not need one worldview.",
+      "t": "nam-lu2-ulu3-e igi kalam-ma disz nu-mu-un-al-di",
+      "g": "humankind does not require a single eye upon the world"
+    },
+    {
+      "e": "It needs enough shared language to coordinate across difference while protecting legitimate sovereignty, identity, culture, and responsibility.",
+      "t": "inim disz szu-sze3 he2-tuku • un bar-bar-ra kin disz-sze3 he2-gen • nam-lugal-bi mu-bi me-bi nam-kin-bi szu he2-tuku",
+      "g": "may it hold one word in hand • may the divided peoples go toward one work • may their kingship, their name, their ME (culture), and their duty be held safe"
+    },
+    {
+      "e": "Collective Intelligence gathers signal.",
+      "t": "gesztu2 un-ka-ke4 gu3 mu-un-dab5",
+      "g": "the people's understanding seizes the voice (gathers the signal)"
+    },
+    {
+      "e": "AI helps Humanity understand it.",
+      "t": "gesztu2 dim2-ma-e nam-lu2-ulu3-ra zu-a mu-un-sum",
+      "g": "the fashioned understanding gives humankind the knowing of it"
+    },
+    {
+      "e": "Human judgment weighs consequence.",
+      "t": "gesztu2 lu2-ka-ke4 egir-bi mu-un-la2",
+      "g": "the person's understanding weighs the aftermath"
+    },
+    {
+      "e": "Replay preserves the choice.",
+      "t": "dub gi4-gi4-e ka-asz bar-ra szu mu-un-tuku",
+      "g": "the returning tablet holds the decision in hand"
+    },
+    {
+      "e": "Reality supplies evidence.",
+      "t": "ki zi-e nig2-gi-na mu-un-sum",
+      "g": "the true ground gives the proof"
+    },
+    {
+      "e": "The next cycle begins better informed.",
+      "t": "kaskal gi4-gi4 egir-bi zu-a gal-ta mu-un-gub",
+      "g": "the returning road that follows stands upon greater knowing"
+    },
+    {
+      "e": "Civilization becomes more intelligent not when everyone agrees, but when disagreement can enter a trustworthy process, remain visible through decision, encounter reality, and leave learning behind.",
+      "t": "sza3 disz-e kalam gesztu2 nu-mu-un-sum • inim bar-ra kaskal gi-na-sze3 he2-gen • igi-a he2-gub • ki zi he2-te • zu-zu egir-bi-sze3 he2-sum • ur5-ta kalam gesztu2 mu-un-tuku",
+      "g": "one-heartedness alone does not give the land understanding • let the divided word go into a firm road • let it stand in view • let it approach the true ground • let it give learning to what follows • from this the land gains understanding"
+    }
+  ],
+  "k32": [
+    {
+      "e": "Human imagination is powerful because it can visit futures that do not yet exist.",
+      "t": "igi sza3-ga lu2-ka a2 mah tuku-am3 • u4 egir-ra nu-gal2-la-sze3 mu-un-gen",
+      "g": "the heart's eye (imagination) of a person has great strength • it goes to after-days that do not yet exist"
+    },
+    {
+      "e": "For most of history, however, testing those futures required exposing the physical world to them.",
+      "t": "u4-bi-ta ki zi-e u4 egir-ra-bi mu-un-la2",
+      "g": "in the former days, the true ground itself weighed those futures"
+    },
+    {
+      "e": "Buildings failed after construction.",
+      "t": "e2 du3-a egir-ra-bi nu-mu-un-gub",
+      "g": "the built house afterward did not stand"
+    },
+    {
+      "e": "Systems revealed weaknesses after deployment.",
+      "t": "gesz dim2-ma gub-ba-ta nig2 sig-bi pa mu-un-e3",
+      "g": "the fashioned implement, once set up, brought its weakness to light"
+    },
+    {
+      "e": "Policies exposed consequences after affecting people.",
+      "t": "inim lugal-la un-ra te-a-ta egir-bi pa mu-un-e3",
+      "g": "the king's word, after touching the people, brought forth its aftermath"
+    },
+    {
+      "e": "Modern simulation creates another possibility: thought can encounter some consequences before Humanity must.",
+      "t": "u4-ne-a igi-bar gal2-am3 • gesztu2-e egir-bi igi nam-lu2-ulu3-ka he2-zu",
+      "g": "today the looking-upon (simulation) exists • may thought know its aftermath before humankind must"
+    },
+    {
+      "e": "Designs can be modeled.",
+      "t": "gesz-hur igi-bar-ra he2-dim2",
+      "g": "may the design be fashioned within the looking-upon"
+    },
+    {
+      "e": "Missions can be rehearsed.",
+      "t": "kin igi-bar-ra he2-gi4-gi4",
+      "g": "may the task be repeated within the looking-upon"
+    },
+    {
+      "e": "Assumptions can be challenged.",
+      "t": "inim sza3-ga he2-la2",
+      "g": "may the heart's word (assumption) be weighed"
+    },
+    {
+      "e": "Interfaces can be experienced.",
+      "t": "szu gesz dim2-ma-ka lu2-e he2-zu",
+      "g": "may a person come to know the hand of the fashioned implement"
+    },
+    {
+      "e": "Failure can occur digitally before people, infrastructure, resources, or environments are unnecessarily placed at risk.",
+      "t": "nig2 nu-gub-ba igi-bar-ra he2-gal2 • un e2 nig2 u3 ki-bi nu-mu-un-te",
+      "g": "let the failing occur within the looking-upon • it does not touch the people, the houses, the goods, or the ground"
+    },
+    {
+      "e": "Simulation therefore gives imagination a place to meet constraint.",
+      "t": "igi-bar-e igi sza3-ga-ra ki esh2-ka mu-un-sum",
+      "g": "the looking-upon gives the heart's eye the place of the rope (constraint)"
+    },
+    {
+      "e": "It allows a proposed future to encounter models of reality before Humanity decides whether greater exposure is justified, while preserving the obligation to remember that a model remains a model.",
+      "t": "u4 egir-ra gesz-hur-ra ki zi igi-bar-ra mu-un-te • igi ka-asz bar-ra nam-lu2-ulu3-ka • u3 he2-zu • igi-bar igi-bar-am3 • ki zi nu-am3",
+      "g": "the planned after-day meets the true ground within the looking-upon, before humankind's decision • and know this: the looking-upon is a looking-upon — it is not the true ground"
+    }
+  ],
+  "k33": [
+    {
+      "e": "Vision • 2525 places simulation between imagination and increasing levels of exposure.",
+      "t": "⟦Vision • 2525⟧ igi-bar sza3 igi sza3-ga u3 ki zi-ka mu-un-gub",
+      "g": "Vision • 2525 stands the looking-upon in the midst between the heart's eye and the true ground"
+    },
+    {
+      "e": "But it protects an equally important boundary: simulation is not reality.",
+      "t": "inim gal he2-gub • igi-bar ki zi nu-am3",
+      "g": "let the great word stand: the looking-upon is not the true ground"
+    },
+    {
+      "e": "Visualization may help Humans understand a design without proving it works.",
+      "t": "igi-ta lu2-e gesz-hur mu-un-zu • nig2-gi-na-bi nu-mu-un-sum",
+      "g": "by the eye a person comes to know the design • it does not give its proof"
+    },
+    {
+      "e": "Simulation may test assumptions without validating a physical system.",
+      "t": "igi-bar-e inim sza3-ga mu-un-la2 • nig2-gi-na gesz dim2-ma-ka nu-mu-un-gar",
+      "g": "the looking-upon weighs the heart's word • it does not establish the firm truth of the physical implement"
+    },
+    {
+      "e": "Human experience may reveal confusion or opportunity without becoming engineering evidence.",
+      "t": "zu-a lu2-ka-ke4 sza3 bar-bar u3 kaskal sig5 pa mu-un-e3 • nig2-gi-na kin-ka nu-am3",
+      "g": "a person's lived knowing brings to light the divided heart (confusion) or the good road (opportunity) • it is not the proof of the craft"
+    },
+    {
+      "e": "Verification, validation, qualification, and real-world testing remain distinct responsibilities.",
+      "t": "nig2-szid • la2-a • inim nig2-gi-na-ka • u3 la2 ki zi-ka • nam-kin bar-ra disz-disz-am3",
+      "g": "the reckoning (verification), the weighing (validation), the word-of-proof (qualification), and the weighing on the true ground — each is a separate duty, one by one"
+    },
+    {
+      "e": "Simulation does not eliminate reality.",
+      "t": "igi-bar-e ki zi nu-mu-un-usz",
+      "g": "the looking-upon does not make the true ground die"
+    },
+    {
+      "e": "Its value is that Humanity can arrive at reality with better questions, fewer avoidable mistakes, clearer assumptions, explicit predictions, and a visible record of what it expected to happen.",
+      "t": "nig2 sig5-bi ur5-am3 • nam-lu2-ulu3 zu-a-ta ki zi-sze3 mu-un-gen • inim tar-ra sig5-ta • inim sza3-ga zu-a-ta • inim u4 egir-ra sar-ra-ta • u3 dub igi-a gub-ba-ta",
+      "g": "its goodness is this: humankind goes to the true ground from knowledge — with better questions, with known assumptions, with written words about the after-day, and with a record standing in view"
+    }
+  ],
+  "k34": [
+    {
+      "e": "A Thought Master uses simulation as disciplined imagination.",
+      "t": "lu2 gesztu2-ga-e igi-bar igi sza3-ga si sa2-a-gin7 szu-sze3 mu-un-tuku",
+      "g": "the person of understanding holds the looking-upon in hand as the heart's eye set in order"
+    },
+    {
+      "e": "Ask what might happen.",
+      "t": "nig2 egir-ra-sze3 inim he2-tar",
+      "g": "let the question be cut toward what may follow"
+    },
+    {
+      "e": "State assumptions.",
+      "t": "inim sza3-ga he2-du11",
+      "g": "let the heart's word (assumption) be spoken"
+    },
+    {
+      "e": "Create alternatives.",
+      "t": "kaskal bar-bar he2-dim2",
+      "g": "let divided (alternative) roads be fashioned"
+    },
+    {
+      "e": "Experience them.",
+      "t": "he2-zu",
+      "g": "may they be known (experienced)"
+    },
+    {
+      "e": "Measure them.",
+      "t": "he2-szid",
+      "g": "may they be counted (measured)"
+    },
+    {
+      "e": "Record predictions.",
+      "t": "inim u4 egir-ra-ka he2-sar",
+      "g": "let the word about the after-days (the prediction) be written"
+    },
+    {
+      "e": "Compare prediction with reality.",
+      "t": "inim sar-ra ki zi-da he2-la2",
+      "g": "let the written word be weighed together with the true ground"
+    },
+    {
+      "e": "Difference becomes learning rather than embarrassment.",
+      "t": "nig2 bar-ra zu-zu-sze3 he2-bal • sza3 sig-ga-sze3 nu-bal",
+      "g": "may the divergence turn into learning • may it not turn into a lowered heart (shame)"
+    },
+    {
+      "e": "A failed simulation can be valuable when it exposes a weak assumption early.",
+      "t": "igi-bar nu-gub-ba nig2 sig5-am3 • inim sza3-ga sig u4 sag-ka pa mu-un-e3",
+      "g": "a looking-upon that did not stand is a good thing • it brings the weak heart-word to light in the head-days (early)"
+    },
+    {
+      "e": "A successful simulation remains provisional until evidence earns greater confidence.",
+      "t": "igi-bar sa2-dug4-ga nig2-gi-na nu-am3 • nig2-gi-na gal-sze3 he2-la2",
+      "g": "a looking-upon that has succeeded is not yet firm truth • let it go on being weighed toward greater proof"
+    },
+    {
+      "e": "This is how Innovation at the Speed of Thought becomes responsible acceleration: imagination moves quickly, consequence enters earlier, and physical exposure follows progressively stronger evidence.",
+      "t": "ur5-gin7 kin gesztu2-gin7 kaskal gi-na-am3 • igi sza3-ga u4 tur-ra mu-un-gen • egir-bi igi-sze3 mu-un-te • ki zi nig2-gi-na gal-ta mu-un-us2",
+      "g": "thus the work as swift as thought is a firm road: the heart's eye goes in a short time • the aftermath draws near to the front • the true ground follows upon ever greater proof"
+    },
+    {
+      "e": "Imagine boldly.",
+      "t": "igi sza3-ga gal he2-gar",
+      "g": "set forth the heart's eye greatly"
+    },
+    {
+      "e": "Simulate honestly.",
+      "t": "igi-bar gi-na he2-gar",
+      "g": "set forth a firm (honest) looking-upon"
+    },
+    {
+      "e": "Test rigorously.",
+      "t": "mah-ta he2-la2",
+      "g": "may it be weighed mightily"
+    },
+    {
+      "e": "Qualify carefully.",
+      "t": "inim nig2-gi-na-ka sza3 zu-a-ta he2-du11",
+      "g": "let the word-of-proof be spoken with a knowing heart"
+    },
+    {
+      "e": "The purpose is not to remove failure from innovation.",
+      "t": "sag kaskal-la-bi ur5 nu-am3 • nig2 nu-gub-ba kin-ta zal-e",
+      "g": "the head of the road is not this: making the failing pass away from the work"
+    },
+    {
+      "e": "It is to move avoidable failure toward places where failure can teach more than it harms, then carry that learning forward.",
+      "t": "nig2 nu-gub-ba ki zu-zu-sze3 he2-gen • ki-ba nig2 nu-gub-ba mu-un-zu-zu • nu-mu-un-usz • zu-zu-bi egir-sze3 he2-tum2",
+      "g": "let the failing go to the place of learning • in that place the failing teaches and does not kill • let its lesson be carried onward"
+    }
+  ],
+  "k35": [
+    {
+      "e": "Thought disappears quickly.",
+      "t": "gesztu2 u4 tur-ra ba-zal",
+      "g": "thought passes away in a short day"
+    },
+    {
+      "e": "Memory changes it.",
+      "t": "sza3-e mu-un-bal",
+      "g": "the heart (memory) changes it"
+    },
+    {
+      "e": "Institutions simplify it.",
+      "t": "e2 gal-e tur-sze3 mu-un-dim2",
+      "g": "the great house fashions it small"
+    },
+    {
+      "e": "Success makes it heroic.",
+      "t": "nig2 sa2-dug4-ga-e mah-sze3 mu-un-dim2",
+      "g": "the achieved thing (success) fashions it into something mighty"
+    },
+    {
+      "e": "Failure makes it inconvenient.",
+      "t": "nig2 nu-gub-ba-e nig2 husz-sze3 mu-un-dim2",
+      "g": "the failed thing fashions it into a hateful thing"
+    },
+    {
+      "e": "Over generations, decisions can survive while their reasons disappear entirely.",
+      "t": "dumu-dumu-ne-ka ka-asz bar-ra mu-un-til3 • inim sza3-bi ba-zal",
+      "g": "through the generations the decision lives on • the word of its heart (its reason) passes away"
+    },
+    {
+      "e": "Humanity then inherits rules without knowing what problem they once solved and technologies without understanding what failures shaped them.",
+      "t": "nam-lu2-ulu3-e inim gub-ba szu-sze3 mu-un-tuku • sag-bi nu-mu-un-zu • gesz dim2-ma szu-sze3 mu-un-tuku • nig2 nu-gub-ba dim2-bi nu-mu-un-zu",
+      "g": "humankind receives the standing words (rules) but does not know their head (origin) • it receives the fashioned implements but does not know the failures that fashioned them"
+    },
+    {
+      "e": "Vision • 2525 treats this loss of context as a civilization-scale risk.",
+      "t": "⟦Vision • 2525⟧ zal inim-ma-bi nig2 husz kalam-ma-gin7 mu-un-szid",
+      "g": "Vision • 2525 counts this passing-away of the word as a danger to the whole land"
+    },
+    {
+      "e": "If Humanity wants to master thought across generations, consequential thought must leave enough evidence to be reconstructed after the thinker is gone.",
+      "t": "nam-lu2-ulu3 dumu-dumu-ne-ta nam-gesztu2 al-di-a • gesztu2 gal-e nig2-gi-na he2-sum • u4 lu2-bi ba-usz-a-ta lu2 egir-ra-ke4 he2-du3",
+      "g": "if humankind desires thought-mastery across the generations, let great thought give its proof • after its person has died, let the person of after build it anew"
+    },
+    {
+      "e": "The objective is not perfect memory.",
+      "t": "sag-bi dub nig2 gal2-la-ka nu-am3",
+      "g": "the aim is not a tablet of all that exists (perfect memory)"
+    },
+    {
+      "e": "No record captures everything.",
+      "t": "dub disz-e nig2 gal2-la nu-mu-un-dab5",
+      "g": "no single tablet seizes everything that exists"
+    },
+    {
+      "e": "The objective is sufficient continuity: enough evidence, context, decision history, and uncertainty for another Human to understand what happened without being forced to accept the conclusions of those who came before.",
+      "t": "sag-bi ur5-am3 • nig2-gi-na • inim sza3-ba • ka-asz bar-ra sar-ra • u3 nig2 nu-zu-a he2-gal2 • lu2 egir-ra-ke4 nig2 gal2-la mu-un-zu • inim u4-bi-ta-ka ki-ta nu-mu-un-gub",
+      "g": "the aim is this: let the proof, the surrounding word (context), the written decisions, and the unknown remain • the person of after comes to know what happened • he does not stand beneath the word of the former days"
+    }
+  ],
+  "k36": [
+    {
+      "e": "Replay provides that memory.",
+      "t": "dub gi4-gi4-e sza3-bi mu-un-sum",
+      "g": "the returning tablet gives that heart (memory)"
+    },
+    {
+      "e": "It preserves successive states rather than quietly replacing yesterday with today.",
+      "t": "u4 us2-sa u4 us2-sa-bi mu-un-sar • u4-ne-e u4-bi-ta nu-mu-un-zal",
+      "g": "it writes day upon following day • today does not make yesterday pass away"
+    },
+    {
+      "e": "Compare shows what changed.",
+      "t": "la2-e nig2 bal-a pa mu-un-e3",
+      "g": "the weighing (Compare) brings to light what turned (changed)"
+    },
+    {
+      "e": "Cause preserves recorded reasons for change.",
+      "t": "dub inim sza3-ka-ke4 inim bal-a-ka sar-ra szu mu-un-tuku",
+      "g": "the tablet of the heart's word (Cause) holds in hand the written word of the change"
+    },
+    {
+      "e": "Qualification shows what evidence permitted at a particular moment.",
+      "t": "inim nig2-gi-na-ka-ke4 nig2 u4-ba sum-ma pa mu-un-e3",
+      "g": "the word-of-proof (Qualification) brings to light what was granted on that day"
+    },
+    {
+      "e": "These functions are intentionally separate.",
+      "t": "kin-bi bar-bar disz-disz-am3",
+      "g": "these tasks are separate, one by one, by intent"
+    },
+    {
+      "e": "Replay can establish what happened without claiming to know every cause.",
+      "t": "dub gi4-gi4-e nig2 gal2-la mu-un-gar • inim sza3-bi nig2-nig2 nu-mu-un-zu",
+      "g": "the returning tablet establishes what happened • it does not claim to know every heart-word (cause)"
+    },
+    {
+      "e": "A Cause record can preserve why someone acted without proving the reasoning correct.",
+      "t": "dub inim sza3-ka-ke4 sag kin-ka szu mu-un-tuku • gi-na-bi nu-mu-un-gar",
+      "g": "the Cause tablet holds why one worked • it does not establish that the reasoning was firm"
+    },
+    {
+      "e": "Qualification can state readiness under defined conditions without promising universal success.",
+      "t": "inim nig2-gi-na-ka-ke4 nig2 gub-ba ki zu-a-ka mu-un-du11 • sa2-dug4 kalam-ma-ka nu-mu-un-du11",
+      "g": "the word-of-proof speaks readiness in a known place • it does not speak success for the whole land"
+    },
+    {
+      "e": "Separation helps keep the historical record from becoming mythology.",
+      "t": "bar-bar-ta dub u4-bi-ta inim lul-sze3 nu-bal",
+      "g": "through separation the tablet of the former days does not turn into a false word (mythology)"
+    },
+    {
+      "e": "Master of Thought is responsibility rather than rank: the responsibility to remain answerable for the record, especially when the record becomes inconvenient.",
+      "t": "en sag ki nam-kin-am3 • nam-lugal nu-am3 • lu2-bi dub-sze3 mu-un-gub • u4 dub husz-a-ka",
+      "g": "EN SAG.KI is duty, not kingship • its person stands for the tablet • even on the day the tablet is hateful"
+    }
+  ],
+  "k37": [
+    {
+      "e": "The five-century horizon depends on this more than on any technology used today.",
+      "t": "kaskal mu ⟦500⟧ ur5-ta mu-un-gub • gesz dim2-ma u4-ne-ka-ta nu-mu-un-gub",
+      "g": "the road of five hundred years stands upon this • it does not stand upon the implements of today"
+    },
+    {
+      "e": "Servers will change.",
+      "t": "e2 dub-bi ba-bal-e",
+      "g": "the houses of the tablets (servers) will change"
+    },
+    {
+      "e": "Programming languages will disappear.",
+      "t": "eme gesz dim2-ma-ka ba-zal-e",
+      "g": "the tongues of the implements (programming languages) will pass away"
+    },
+    {
+      "e": "Institutions will dissolve.",
+      "t": "e2 gal-gal-bi ba-zal-e",
+      "g": "the great houses (institutions) will pass away"
+    },
+    {
+      "e": "AI models will be replaced.",
+      "t": "gesztu2 dim2-ma-bi ba-bal-e",
+      "g": "the fashioned understandings (AI models) will be exchanged"
+    },
+    {
+      "e": "Future generations may reject assumptions we consider obvious.",
+      "t": "dumu egir-ra-ke4 inim sza3-ga-me he2-tar",
+      "g": "the children of after may cut away the heart-words we hold obvious"
+    },
+    {
+      "e": "They should be free to do so.",
+      "t": "ur5 szu-bi-a he2-gal2",
+      "g": "let this lie in their own hand (they are free to do so)"
+    },
+    {
+      "e": "What we owe them is not obedience to our conclusions, but access to our reasoning.",
+      "t": "nig2 sum-ma-me ur5-am3 • inim-me-sze3 gub-ba nu-am3 • kaskal sza3 gesztu2-me-ka-am3",
+      "g": "what we give them is this: not a standing-under our word, but the road into the heart of our thought"
+    },
+    {
+      "e": "What did you know?",
+      "t": "a-na mu-un-zu",
+      "g": "what did you know?"
+    },
+    {
+      "e": "What did you decide?",
+      "t": "a-na ka-asz mu-un-bar",
+      "g": "on what did you cut a decision?"
+    },
+    {
+      "e": "Why?",
+      "t": "sag-bi a-na-am3",
+      "g": "what was its head (its reason)?"
+    },
+    {
+      "e": "What happened?",
+      "t": "a-na ba-gal2",
+      "g": "what came to exist?"
+    },
+    {
+      "e": "What did you learn?",
+      "t": "a-na mu-un-zu-zu",
+      "g": "what did you learn?"
+    },
+    {
+      "e": "Thought Mastery includes leaving those questions answerable.",
+      "t": "nam-gesztu2-a inim tar-ra-bi inim gi4-a he2-tuku",
+      "g": "within thought-mastery, those questions must have a returned word (an answer)"
+    },
+    {
+      "e": "A Thought Master leaves enough evidence for another Human to reconstruct what was known, decided, and observed.",
+      "t": "lu2 gesztu2-ga-e nig2-gi-na mu-un-sum • lu2 egir-ra-ke4 nig2 zu-a ka-asz bar-ra u3 nig2 igi-a gub-ba mu-un-du3",
+      "g": "the person of understanding gives proof • the person of after builds again what was known, what was decided, and what stood before the eye"
+    },
+    {
+      "e": "Civilization capable of Replay accumulates more than information.",
+      "t": "kalam dub gi4-gi4 tuku-a-ke4 nig2 nig2-szid-ta gal-la mu-un-tuku",
+      "g": "a land that holds the returning tablet holds something greater than countings (information)"
+    },
+    {
+      "e": "It accumulates qualified learning, allowing the next generation to begin upon what the past learned rather than beneath what the past declared.",
+      "t": "zu-zu gi-na mu-un-tuku • dumu egir-ra nig2 u4-bi-ta zu-a-ta mu-un-gub • inim u4-bi-ta du11-ga ki-ta nu-mu-un-gub",
+      "g": "it holds firm learning • the children of after stand upon what the former days learned • they do not stand beneath the word the former days decreed"
+    }
+  ],
+  "k38": [
+    {
+      "e": "A civilization does not become intelligent simply because it generates data.",
+      "t": "kalam-e nig2-szid dim2-ma-ta gesztu2 nu-mu-un-tuku",
+      "g": "a land does not gain understanding merely from fashioned countings (data)"
+    },
+    {
+      "e": "Intelligence appears when experience can change what happens next.",
+      "t": "u4 zu-a-e nig2 egir-ra mu-un-bal-a • gesztu2 pa mu-un-e3",
+      "g": "when lived knowing turns what comes after, understanding comes to light"
+    },
+    {
+      "e": "Vision • 2525 calls the architecture supporting that recursion R-CORE: signals become context, context becomes evidence, evidence supports simulation and decision, outcomes enter Replay, and qualified lessons return into future action.",
+      "t": "⟦Vision • 2525⟧ gesz-hur-ba mu mu-un-sum • mu-bi ⟦R-CORE⟧ • gu3 inim-sze3 ba-bal • inim nig2-gi-na-sze3 ba-bal • nig2-gi-na-e igi-bar u3 ka-asz bar-ra mu-un-gub • egir-bi dub gi4-gi4-sze3 ba-gen • zu-zu gi-na kin u4 egir-ra-sze3 ba-gi4",
+      "g": "Vision • 2525 gives that design a name; its name: R-CORE • the cry turns into word • the word turns into proof • the proof stands the looking-upon and the decision upright • the aftermath goes into the returning tablet • firm lessons return into the work of the after-days"
+    },
+    {
+      "e": "R-CORE is not required to be one platform, one institution, one AI model, or one enormous database.",
+      "t": "⟦R-CORE⟧ e2 disz nu-am3 • gesztu2 dim2-ma disz nu-am3 • dub gal disz nu-am3",
+      "g": "R-CORE is not one house, not one fashioned understanding, not one great tablet (database)"
+    },
+    {
+      "e": "It is a coordination architecture: a way for different systems to share enough durable meaning that events can become reusable learning without requiring every participant to surrender independent responsibility.",
+      "t": "gesz-hur kaskal disz-am3 • e2 bar-bar-ra inim disz szu-sze3 mu-un-tuku-ne • nig2 gal2-la zu-zu-sze3 ba-bal • lu2 disz-disz-e nam-kin-bi szu-ta nu-mu-un-sum",
+      "g": "it is a design of one road: the separate houses hold one word in hand • what happens turns into reusable learning • no single person gives his own duty out of his hand"
+    },
+    {
+      "e": "Its purpose is continuity across boundaries.",
+      "t": "sag-bi ur5-am3 • kaskal-bi ki bar-ra-ta he2-gid2",
+      "g": "its head (purpose) is this: may its road run long across the divided places (boundaries)"
+    },
+    {
+      "e": "Different technologies may come and go, but the relationships among intent, evidence, authority, decision, consequence, Replay, and learning should remain understandable.",
+      "t": "gesz dim2-ma mu-un-gen mu-un-zal • kaskal sza3 al-di • nig2-gi-na • nam-en • ka-asz bar-ra • egir-bi • dub gi4-gi4 • u3 zu-zu-ka he2-zu",
+      "g": "implements come and pass away • may the road among the heart's desire (intent), the proof, the lordship, the decision, the aftermath, the returning tablet, and the learning remain knowable"
+    }
+  ],
+  "k39": [
+    {
+      "e": "Its durable elements are simple.",
+      "t": "nig2 gub-ba-bi si sa2-am3",
+      "g": "its enduring parts are set straight (simple)"
+    },
+    {
+      "e": "Intent says what Humanity was trying to accomplish.",
+      "t": "sza3 al-di-e nig2 nam-lu2-ulu3-e al-di-a mu-un-du11",
+      "g": "the heart's desire (Intent) speaks what humankind was desiring to do"
+    },
+    {
+      "e": "Identity establishes who or what participated where necessary.",
+      "t": "mu-e lu2 kin-a gub-ba mu-un-gar",
+      "g": "the name (Identity) sets down which person stood in the work, where needed"
+    },
+    {
+      "e": "Provenance shows where information came from.",
+      "t": "ki inim-ma-ke4 ki sag inim-ma pa mu-un-e3",
+      "g": "the place-of-the-word (Provenance) brings to light the head-place from which the word came"
+    },
+    {
+      "e": "Requirements state what must be true.",
+      "t": "inim gub-ba-e nig2 gi-na-sze3 al-di-a mu-un-du11",
+      "g": "the standing word (Requirements) speaks what must be firm"
+    },
+    {
+      "e": "Risk records what may go wrong.",
+      "t": "dub nig2 husz-ka-ke4 nig2 nu-gub-ba mu-un-sar",
+      "g": "the tablet of dangers (Risk) writes what may fail to stand"
+    },
+    {
+      "e": "Evidence records what was observed.",
+      "t": "nig2-gi-na-e nig2 igi-a gub-ba mu-un-sar",
+      "g": "the proof (Evidence) writes what stood before the eye"
+    },
+    {
+      "e": "Authority shows who was permitted to decide.",
+      "t": "nam-en-e lu2 ka-asz bar-ra-ka pa mu-un-e3",
+      "g": "the lordship (Authority) brings to light the person permitted the decision"
+    },
+    {
+      "e": "Qualification states what evidence permits.",
+      "t": "inim nig2-gi-na-ka-ke4 nig2 sum-ma mu-un-du11",
+      "g": "the word-of-proof (Qualification) speaks what is granted"
+    },
+    {
+      "e": "Replay reconstructs the event.",
+      "t": "dub gi4-gi4-e nig2 gal2-la mu-un-du3",
+      "g": "the returning tablet builds again what happened"
+    },
+    {
+      "e": "Learning carries qualified lessons forward.",
+      "t": "zu-zu-e nig2 zu-a gi-na egir-sze3 mu-un-tum2",
+      "g": "learning carries the firm known-things onward"
+    },
+    {
+      "e": "Communications keep signals moving.",
+      "t": "kaskal inim-ma-ke4 gu3 mu-un-tum2",
+      "g": "the road of words (Communications) keeps carrying the voice"
+    },
+    {
+      "e": "Simulation explores alternatives.",
+      "t": "igi-bar-e kaskal bar-bar igi mu-un-bar",
+      "g": "the looking-upon looks upon the divided (alternative) roads"
+    },
+    {
+      "e": "Human judgment remains responsible for consequence.",
+      "t": "gesztu2 lu2-ka egir-bi-sze3 mu-un-gub",
+      "g": "the person's understanding stands answerable for the aftermath"
+    },
+    {
+      "e": "Together these functions create a recursive coordination system in which experience does not disappear after a mission, project, experiment, or decision ends.",
+      "t": "kin-bi disz-sze3 gesz-hur gi4-gi4-da mu-un-dim2 • u4 kin ba-zal-a-ta zu-a nu-ba-zal",
+      "g": "together these tasks fashion the returning design • when the work has passed, the lived knowing does not pass away"
+    }
+  ],
+  "k40": [
+    {
+      "e": "Thought Mastery gives R-CORE its Human meaning.",
+      "t": "nam-gesztu2-e ⟦R-CORE⟧ sza3 lu2-ka mu-un-sum",
+      "g": "thought-mastery gives R-CORE the heart of a person"
+    },
+    {
+      "e": "The purpose is not to remember everything.",
+      "t": "sag-bi ur5 nu-am3 • nig2-nig2 szu-sze3 tuku-a",
+      "g": "the aim is not this: holding everything in hand"
+    },
+    {
+      "e": "The purpose is to remember what helps Humanity become more aware.",
+      "t": "sag-bi ur5-am3 • nig2 nam-lu2-ulu3 zu-a gal-sze3 tum2-a szu-sze3 tuku-a",
+      "g": "the aim is this: holding in hand what carries humankind toward greater awareness"
+    },
+    {
+      "e": "Every project should be capable of teaching the next project something.",
+      "t": "kin disz-disz-e kin egir-ra-ra nig2 he2-zu-zu",
+      "g": "may each work teach something to the work that follows"
+    },
+    {
+      "e": "Every failure should have an opportunity to reduce repeated failure.",
+      "t": "nig2 nu-gub-ba disz-disz-e nig2 nu-gub-ba gi4-a tur-sze3 he2-dim2",
+      "g": "may each failing fashion the returning failure toward smallness"
+    },
+    {
+      "e": "Every successful method should remain challengeable rather than becoming unquestioned tradition.",
+      "t": "kaskal sa2-dug4-ga disz-disz he2-la2 • inim u4-bi-ta gub-ba-sze3 nu-bal",
+      "g": "may every road that succeeded still be weighed • may it not turn into a standing word of the former days (unquestioned tradition)"
+    },
+    {
+      "e": "Every consequential decision should retain enough context for future Humans to understand its boundaries.",
+      "t": "ka-asz bar-ra gal disz-disz-e inim sza3-ba he2-tuku • lu2 egir-ra-ke4 esh2-bi he2-zu",
+      "g": "may each great decision keep its surrounding word • may the person of after know its rope (its boundaries)"
+    },
+    {
+      "e": "The cycle is technical and deeply Human: Observe.",
+      "t": "kaskal gi4-gi4-bi kin-am3 u3 sza3 lu2-ka-am3 • igi he2-bar",
+      "g": "that cycle is craft and is deeply of the human heart: look upon it"
+    },
+    {
+      "e": "Understand.",
+      "t": "he2-zu",
+      "g": "know it"
+    },
+    {
+      "e": "Imagine.",
+      "t": "igi sza3-ga he2-gar",
+      "g": "set forth the heart's eye (imagine)"
+    },
+    {
+      "e": "Simulate.",
+      "t": "igi-bar he2-gar",
+      "g": "set forth the looking-upon (simulate)"
+    },
+    {
+      "e": "Decide.",
+      "t": "ka-asz he2-bar",
+      "g": "cut the decision"
+    },
+    {
+      "e": "Act.",
+      "t": "kin he2-dim2",
+      "g": "do the work (act)"
+    },
+    {
+      "e": "Replay.",
+      "t": "dub he2-gi4",
+      "g": "return the tablet (replay)"
+    },
+    {
+      "e": "Compare.",
+      "t": "he2-la2",
+      "g": "weigh it (compare)"
+    },
+    {
+      "e": "Learn.",
+      "t": "he2-zu-zu",
+      "g": "learn"
+    },
+    {
+      "e": "Improve.",
+      "t": "sig5-sze3 he2-bal",
+      "g": "turn it toward the better (improve)"
+    },
+    {
+      "e": "When that cycle becomes repeatable, civilization begins converting experience into continuity.",
+      "t": "u4 kaskal gi4-gi4-bi gi4-gi4-da • kalam-e zu-a nig2 gid2-da-sze3 mu-un-bal",
+      "g": "when that returning road returns again and again, the land turns lived knowing into a long-enduring thing (continuity)"
+    },
+    {
+      "e": "R-CORE provides architecture beneath the cycle.",
+      "t": "⟦R-CORE⟧ gesz-hur ki kaskal-la-ka mu-un-sum",
+      "g": "R-CORE gives the design at the place beneath the road"
+    },
+    {
+      "e": "Thought Mastery provides the Human discipline that gives the cycle purpose and Human Authority determines what may responsibly advance.",
+      "t": "nam-gesztu2-e sza3 lu2-ka mu-un-sum • nam-en lu2-ka-ke4 nig2 gen-na ka-asz mu-un-bar",
+      "g": "thought-mastery gives the human heart (its purpose) • the human lordship cuts the decision on what may go forward"
+    }
+  ],
+  "k41": [
+    {
+      "e": "Humanity has no shortage of ideas.",
+      "t": "nam-lu2-ulu3-e gesztu2 mah mu-un-tuku",
+      "g": "humankind holds thought in abundance (no shortage of ideas)"
+    },
+    {
+      "e": "The greater problem is converting ideas into qualified reality without losing intent, wasting years through avoidable rediscovery, or allowing enthusiasm to outrun evidence.",
+      "t": "kin gal-bi ur5-am3 • gesztu2 ki zi gi-na-sze3 bal-e • sza3 al-di nu-ba-zal • mu pad3 gi4-gi4-ta nu-ba-zal • sza3 hul2 nig2-gi-na-ta igi-sze3 nu-gen",
+      "g": "the great task is this: turning thought into firm true ground • the heart's desire is not lost • the years do not pass away in finding-again • the joyful heart does not go out ahead of the proof"
+    },
+    {
+      "e": "The Humanity Innovation Engine connects the pieces already introduced into one recursive path.",
+      "t": "gesz dim2-ma nam-lu2-ulu3-ka-ke4 nig2-bi kaskal disz gi4-gi4-sze3 mu-un-la2",
+      "g": "humankind's fashioned engine binds the pieces into one returning road"
+    },
+    {
+      "e": "Human need becomes intent.",
+      "t": "nig2 al-di lu2-ka sza3 al-di-sze3 ba-bal",
+      "g": "the person's need turns into the heart's desire (intent)"
+    },
+    {
+      "e": "Collective Intelligence listens.",
+      "t": "gesztu2 un-ka-ke4 gu3 mu-un-dab5",
+      "g": "the people's understanding seizes the voice (listens)"
+    },
+    {
+      "e": "Human disposition interprets.",
+      "t": "sza3 lu2-ka-ke4 inim-bi mu-un-bal",
+      "g": "the human heart turns (interprets) the word"
+    },
+    {
+      "e": "User stories clarify.",
+      "t": "inim lu2-ne-ka-ke4 si mu-un-sa2",
+      "g": "the words of the persons (user stories) set it in order (make it clear)"
+    },
+    {
+      "e": "Requirements, risk, and estimates discipline the idea.",
+      "t": "inim gub-ba nig2 husz u3 nig2-szid-e gesztu2 si mu-un-sa2",
+      "g": "the standing words, the dangers, and the reckonings set the thought in order"
+    },
+    {
+      "e": "Design gives it form.",
+      "t": "gesz-hur-e su-bi mu-un-dim2",
+      "g": "the design fashions its body (gives it form)"
+    },
+    {
+      "e": "Simulation explores it.",
+      "t": "igi-bar-e igi mu-un-bar",
+      "g": "the looking-upon looks upon it (explores it)"
+    },
+    {
+      "e": "Human experience challenges it.",
+      "t": "zu-a lu2-ka-ke4 mu-un-la2",
+      "g": "the person's lived knowing weighs (challenges) it"
+    },
+    {
+      "e": "Verification and validation test it.",
+      "t": "nig2-szid u3 la2-a-e mu-un-la2",
+      "g": "the reckoning and the weighing (verification and validation) test it"
+    },
+    {
+      "e": "Qualification establishes what can responsibly advance.",
+      "t": "inim nig2-gi-na-ka-ke4 nig2 gen-na mu-un-gar",
+      "g": "the word-of-proof establishes what may go forward"
+    },
+    {
+      "e": "Physical reality returns actual results.",
+      "t": "ki zi-e nig2 gal2-la mu-un-gi4",
+      "g": "the true ground returns what really is"
+    },
+    {
+      "e": "Replay preserves the cycle.",
+      "t": "dub gi4-gi4-e kaskal-bi szu mu-un-tuku",
+      "g": "the returning tablet holds the road in hand"
+    },
+    {
+      "e": "Learning begins again.",
+      "t": "zu-zu ki sag-sze3 ba-gi4",
+      "g": "learning returns to the head-place (begins again)"
+    },
+    {
+      "e": "The engine is therefore not a machine that invents for Humanity.",
+      "t": "gesz dim2-ma-bi nam-lu2-ulu3-ra gesztu2 nu-mu-un-dim2",
+      "g": "this engine does not fashion thought in humankind's stead"
+    },
+    {
+      "e": "It is a coordination method through which Humanity can move from imagination toward evidence while preserving authority, responsibility, and the ability to learn from every meaningful attempt.",
+      "t": "kaskal disz-am3 • nam-lu2-ulu3 igi sza3-ga-ta nig2-gi-na-sze3 mu-un-gen • nam-en nam-kin u3 zu-zu szu-sze3 mu-un-tuku",
+      "g": "it is one road: humankind goes from the heart's eye toward the proof • it keeps the lordship, the duty, and the learning in its own hand"
+    }
+  ],
+  "k42": [
+    {
+      "e": "Artificial Intelligence can accelerate almost every stage without owning the process.",
+      "t": "gesztu2 dim2-ma-e kaskal-bi u4 tur-sze3 mu-un-dim2 • kaskal-bi szu-sze3 nu-mu-un-tuku",
+      "g": "the fashioned understanding makes the road short in time • it does not take the road into its own hand"
+    },
+    {
+      "e": "It can help synthesize polling, draft requirements, search prior Replay, identify contradictions, generate design candidates, assist simulations, compare versions, analyze evidence, and retrieve qualified lessons from earlier projects.",
+      "t": "inim un-ka si mu-un-sa2 • inim gub-ba mu-un-sar • dub gi4-gi4 u4-bi-ta igi mu-un-bar • inim bar-ra pa mu-un-e3 • gesz-hur mu-un-dim2 • igi-bar-ra a2 mu-un-sum • dub dub-da mu-un-la2 • nig2-gi-na mu-un-szid • zu-zu kin u4-bi-ta-ka mu-un-tum2",
+      "g": "it sets the people's words in order • writes the standing words • looks upon the returning tablets of former days • brings the divided word (contradiction) to light • fashions designs • gives its arm to the looking-upon • weighs tablet against tablet • counts the proof • carries forward the lessons of former works"
+    },
+    {
+      "e": "This creates the possibility of dramatic compression in innovation cycles.",
+      "t": "ur5-ta gid2 kaskal gi4-gi4-ka tur-sze3 ba-gen",
+      "g": "from this, the length of the returning road may go toward smallness (compression)"
+    },
+    {
+      "e": "A first generation might require hundreds of exploratory iterations.",
+      "t": "dumu sag-e kin gi4-a mah mu-un-al-di",
+      "g": "the first generation requires very many repeated workings (hundreds)"
+    },
+    {
+      "e": "A second may inherit enough qualified learning to require dozens.",
+      "t": "dumu us2-sa-e zu-zu gi-na szu-sze3 mu-un-tuku • kin gi4-a-bi tur-am3",
+      "g": "the following generation receives firm learning in hand • its repeated workings are fewer (dozens)"
+    },
+    {
+      "e": "A mature third generation may require fewer still.",
+      "t": "dumu egir-bi-ra kin gi4-a tur-tur-am3",
+      "g": "for the generation after that, the repeated workings are fewer still"
+    },
+    {
+      "e": "The 360 → 33 → 11 hypothesis expresses that possibility, not a promised outcome.",
+      "t": "inim ⟦360 → 33 → 11⟧ inim sza3-ga-am3 • inim gi-na sum-ma nu-am3",
+      "g": "the word 360 → 33 → 11 is a heart-word (a hypothesis) • it is not a firm word given (a promised outcome)"
+    },
+    {
+      "e": "It must be allowed to fail honestly.",
+      "t": "nig2 nu-gub-ba-sze3 gi-na he2-bal",
+      "g": "let it be free to turn, honestly, into a thing that did not stand (to fail)"
+    },
+    {
+      "e": "If evidence rejects the hypothesis, the framework should preserve that result rather than protect the number.",
+      "t": "u4 nig2-gi-na-e inim sza3-ga mu-un-tar-a • dub-e nig2 gal2-la he2-sar • nig2-szid szu-sze3 nu-mu-un-tuku",
+      "g": "on the day the proof cuts away the heart-word, let the tablet write what happened • it does not take the number into a shielding hand"
+    }
+  ],
+  "k43": [
+    {
+      "e": "The real measure is not fewer version numbers.",
+      "t": "nig2-szid zi • szid tur-ra in-nu",
+      "g": "the true reckoning — it is not the smaller count"
+    },
+    {
+      "e": "It is less avoidable rework, clearer intent, earlier risk discovery, stronger first-pass quality, better estimates, more predictive simulation, fewer repeated failures, greater reuse of qualified lessons, and shorter time between frozen Human intent and a qualified working prototype.",
+      "t": "kin gi4-gi4 tur • nig2 husz-a igi-ta mu-un-pad3 • zu-zu gi-na szu-sze3 mah • kaskal inim sza3-ga-ta nig2 dim2-ma zi-sze3 tur-am3",
+      "g": "less work done over • the danger is found early • firm learning is greater at hand • the road from the heart's word to the true fashioned thing is short"
+    },
+    {
+      "e": "This is Innovation at the Speed of Thought properly understood.",
+      "t": "kin dim2-ma gesztu2-gin7 du-a • zi-bi ur5-am3",
+      "g": "the making-work that moves like thought — its true sense is this"
+    },
+    {
+      "e": "It does not erase the distance between thought and reality by pretending they are the same.",
+      "t": "gesztu2 u3 ki zi disz-am3 nu-du11 • kaskal-bi nu-mu-un-zal",
+      "g": "it does not say 'thought and the true ground are one' • it does not make their road vanish"
+    },
+    {
+      "e": "It makes the journey between them increasingly intelligent.",
+      "t": "kaskal-bi gesztu2-sze3 mu-un-bal",
+      "g": "it turns their road toward understanding"
+    },
+    {
+      "e": "A Thought Master asks after every generation: what did we learn that means the next Human does not have to begin where we began?",
+      "t": "lu2 gesztu2-ga-e inim mu-un-du11 • a-na mu-un-zu • lu2 egir-ra ki-me-ta nu-mu-un-gub",
+      "g": "the thought master speaks the word: what did we learn — so the person after does not start from our place"
+    },
+    {
+      "e": "When that answer becomes measurable and reusable, innovation stops being isolated invention and becomes civilization learning deliberately across generations.",
+      "t": "inim-bi he2-szid he2-dab5 • kin dim2-ma lu2 disz-ka in-nu • zu-zu kalam-ma dumu-ta dumu-sze3-am3",
+      "g": "may that word be counted and grasped • the making-work is no longer one person's • it is the land's learning from generation to generation"
+    }
+  ],
+  "k44": [
+    {
+      "e": "Powerful ideas become dangerous when confidence grows faster than evidence.",
+      "t": "sza3 mah nig2-gi-na-ta igi-sze3 du-a • gesztu2 mah husz-sze3 mu-un-bal",
+      "g": "when the proud heart walks ahead of the proof, great thought turns to danger"
+    },
+    {
+      "e": "Vision • 2525 therefore separates possibility from readiness.",
+      "t": "⟦Vision • 2525⟧-e nig2 gal2-la u3 nig2 zi gub-ba mu-un-bar",
+      "g": "Vision • 2525 sets apart the possible thing and the truly-standing (ready) thing"
+    },
+    {
+      "e": "Something may be imagined without being designed, designed without being simulated, simulated without being verified, verified without being validated, validated without being qualified for every use, and qualified in one context without being ready for global scale.",
+      "t": "igi-bar gar-ra gesz-hur in-nu • gesz-hur igi-bar in-nu • igi-bar nig2-gi-na in-nu • nig2-gi-na disz kalam-sze3 zi gub-ba in-nu",
+      "g": "the vision set forth is not the plan • the plan is not the looking-upon • the looking-upon is not the proof • one proof is not readiness for the whole land"
+    },
+    {
+      "e": "These distinctions can feel slow when enthusiasm is high.",
+      "t": "sza3 hul2-la mah-a • bar-bar-bi u4 gid2-da-gin7 igi-a gal2",
+      "g": "when joy of heart is great, these separations appear like long days (slow)"
+    },
+    {
+      "e": "They are precisely what allows responsible innovation to move faster over time because uncertainty becomes visible before it turns into expensive or harmful surprise.",
+      "t": "nig2 nu-zu-a igi-a mu-un-gal2 • husz-sze3 nu-mu-un-bal • ur5-ta kin dim2-ma u4-ta u4-sze3 mu-un-du",
+      "g": "the unknown becomes visible • it does not turn to harm • therefore the making-work walks on from day to day (ever faster)"
+    },
+    {
+      "e": "Language matters here.",
+      "t": "inim-e a2 mah tuku",
+      "g": "the word holds great power"
+    },
+    {
+      "e": "Calling something possible, demonstrated, verified, validated, qualified, or ready should communicate different evidence states.",
+      "t": "mu-bi bar-bar-am3 • nig2 gal2-la • nig2 igi-a gub-ba • nig2-gi-na • nig2-szid gi-na • nig2 zi gub-ba • inim disz in-nu",
+      "g": "their names are separate: the possible, the shown, the proven, the firm reckoning, the truly-standing — they are not one word"
+    },
+    {
+      "e": "When those states collapse into one another, confidence can travel farther than proof and people may accept risks they were never given a fair opportunity to understand.",
+      "t": "mu-bi disz-sze3 bal-a • sza3 mah nig2-gi-na-ta igi-sze3 mu-un-du • un-e nig2 husz-a nu-zu-a szu-sze3 mu-un-tuku",
+      "g": "when those names turn into one, the proud heart walks ahead of proof, and the people take unknown dangers into their hands"
+    }
+  ],
+  "k45": [
+    {
+      "e": "The same discipline governs replacement.",
+      "t": "ki-bi-sze3 gar-ra-ke4 nam-gesztu2-bi disz-am3",
+      "g": "for the putting-in-place (replacement) the discipline is the same one"
+    },
+    {
+      "e": "Humanity should neither preserve an inferior system because it is familiar nor adopt a new one because it is exciting.",
+      "t": "nam-lu2-ulu3-e e2 sig zu-a-bi-sze3 nu-mu-un-dab5 • e2 egir-ra hul2-bi-sze3 nu-mu-un-dab5",
+      "g": "humankind does not keep the weak house for being familiar • does not seize the later house for its excitement"
+    },
+    {
+      "e": "Challenger and incumbent should meet meaningful evidence.",
+      "t": "e2 gub-ba u3 e2 egir-ra • disz-gin7 nig2-gi-na-sze3 he2-gub",
+      "g": "the standing house and the later house — may both alike stand before the proof"
+    },
+    {
+      "e": "Comparable work should use comparable measures.",
+      "t": "kin sa2-a-ra nig2-szid sa2-a he2-gal2",
+      "g": "for equal work may there be equal measures"
+    },
+    {
+      "e": "Tests should resist being designed merely to produce a desired winner.",
+      "t": "nig2-szid-bi lu2 al du11-ga-ra nu-mu-un-hur-e",
+      "g": "the measure is not drawn up for the man one desires (the wished winner)"
+    },
+    {
+      "e": "Refusals and failures should remain visible.",
+      "t": "inim nu u3 nig2 lul-la igi-a he2-gal2",
+      "g": "the no-word and the thing gone wrong — may they remain in view"
+    },
+    {
+      "e": "Where appropriate, thresholds can establish what improvement justifies transition.",
+      "t": "nig2-szid-e ka-asz mu-un-bar • sig5 gal2-la-gin7 e2 egir-ra-sze3 he2-bal",
+      "g": "the measure cuts a decision: when the better exists, let it pass to the later house"
+    },
+    {
+      "e": "Yet no numerical gate can remove Human responsibility for context, risk, law, ethics, and unintended consequence.",
+      "t": "nig2-szid-e nam-kin lu2-ka nu-mu-un-dab5 • nig2 husz-a u3 di kalam-ma lu2-ra mu-un-gub",
+      "g": "the count does not seize the human's responsibility • the danger and the land's law still stand upon the human"
+    },
+    {
+      "e": "Qualification informs authority; it does not become authority.",
+      "t": "nig2-szid gi-na-e nam-en-ra inim mu-un-sum • nam-en-sze3 nu-mu-un-bal",
+      "g": "the firm reckoning gives its word to the lordship • it does not turn into the lordship"
+    },
+    {
+      "e": "Evidence narrows uncertainty.",
+      "t": "nig2-gi-na-e nig2 nu-zu-a tur-sze3 mu-un-bal",
+      "g": "the proof turns the unknown small"
+    },
+    {
+      "e": "Humans remain responsible for deciding what that evidence permits in context.",
+      "t": "lu2-e nig2-gi-na-ta ka-asz mu-un-bar • nam-kin-bi lu2-ra mu-un-gub",
+      "g": "the human cuts the decision from the proof • that responsibility stands upon the human"
+    }
+  ],
+  "k46": [
+    {
+      "e": "A Thought Master must be willing to lose a favorite idea.",
+      "t": "lu2 gesztu2-ga-e gesztu2 sza3-ga-ni szu he2-bar-e",
+      "g": "may the thought master release the thought of his own heart from the hand"
+    },
+    {
+      "e": "That may be the hardest form of Thought Mastery.",
+      "t": "nam-gesztu2-a ur5 kin mah-bi-am3",
+      "g": "within thought-mastery this is its greatest labor"
+    },
+    {
+      "e": "Architects become attached to architecture.",
+      "t": "lu2 gesz-hur-ra-ke4 gesz-hur-bi sza3-sze3 mu-un-dab5",
+      "g": "the man of the plan seizes his plan to the heart"
+    },
+    {
+      "e": "Founders become attached to vision.",
+      "t": "lu2 e2 du3-a-ke4 igi-bar-bi sza3-sze3 mu-un-dab5",
+      "g": "the house-founder seizes his vision to the heart"
+    },
+    {
+      "e": "Engineers become attached to design.",
+      "t": "lu2 dim2-ma-ke4 nig2 dim2-ma-bi sza3-sze3 mu-un-dab5",
+      "g": "the maker seizes his fashioned thing to the heart"
+    },
+    {
+      "e": "Communities become attached to tradition.",
+      "t": "un-e kaskal u4-bi-ta sza3-sze3 mu-un-dab5",
+      "g": "the people seize the road of former days to the heart"
+    },
+    {
+      "e": "Humans can also become attached to AI answers.",
+      "t": "lu2-e inim gesztu2 dim2-ma-ka sza3-sze3 mu-un-dab5",
+      "g": "the human seizes the word of the fashioned understanding to the heart"
+    },
+    {
+      "e": "Evidence provides a common discipline against every attachment.",
+      "t": "nig2-gi-na-e sza3 dab5-ba-bi-ta szu mu-un-bar",
+      "g": "the proof releases the hand from every heart-seizure"
+    },
+    {
+      "e": "Do not ask whether the idea is ours.",
+      "t": "gesztu2-bi ge26-ka-am3 nu-du11",
+      "g": "do not say: this thought is mine"
+    },
+    {
+      "e": "Ask whether it works, what it risks, what evidence supports, where evidence ends, and whether something better has earned the right to replace it.",
+      "t": "kin-bi zi-am3 • husz-bi a-na-am3 • nig2-gi-na-bi me-a gub • nig2 sig5 ki-bi-sze3 gar-ra zi-am3 • ur5 he2-du11",
+      "g": "is its work true • what is its danger • where does its proof stand • is the better thing true for its place — say this"
+    },
+    {
+      "e": "Vision • 2525 must submit to the same standard it asks of everything else.",
+      "t": "⟦Vision • 2525⟧ nig2-szid disz-bi-sze3 he2-gub",
+      "g": "may Vision • 2525 stand under that same measure"
+    },
+    {
+      "e": "Trust must be proven.",
+      "t": "nig2 gi-na igi-a he2-gal2",
+      "g": "may the firm thing stand in view"
+    },
+    {
+      "e": "Proof must remain challengeable.",
+      "t": "nig2-gi-na-ra inim tar he2-gal2",
+      "g": "against the proof may the cutting word (questioning) remain"
+    },
+    {
+      "e": "Scale must be earned through evidence, responsibility, and learning.",
+      "t": "nam-gal nig2-gi-na-ta nam-kin-ta u3 zu-zu-ta he2-dab5",
+      "g": "may greatness be taken through proof, through responsibility, and through learning"
+    }
+  ],
+  "k47": [
+    {
+      "e": "Every system that lasts eventually encounters power.",
+      "t": "e2 u4 gid2-da gub-ba a2 mah-e mu-un-te",
+      "g": "the house standing long days draws near to great power"
+    },
+    {
+      "e": "Someone controls resources.",
+      "t": "lu2 disz-e nig2 kalam-ma szu-a mu-un-tuku",
+      "g": "one person holds the land's goods in hand"
+    },
+    {
+      "e": "Someone interprets rules.",
+      "t": "lu2 disz-e inim di-ka mu-un-du11",
+      "g": "one person speaks the word of the law"
+    },
+    {
+      "e": "Someone possesses expertise others depend upon.",
+      "t": "lu2 disz-e zu-a mu-un-tuku • un-bi ur5-ra mu-un-gub",
+      "g": "one person holds the knowing • the people stand upon it"
+    },
+    {
+      "e": "Someone becomes difficult to replace.",
+      "t": "lu2 disz ki-bi-sze3 gar-ra kin mah-am3",
+      "g": "to put one person in his place becomes a great labor"
+    },
+    {
+      "e": "The danger is not limited to malicious leaders.",
+      "t": "husz-bi lu2 sag lul-la-ka disz-am3 in-nu",
+      "g": "the danger is not that of the false leader alone"
+    },
+    {
+      "e": "It can begin with capable people remaining because their presence appears necessary.",
+      "t": "lu2 zu-a ki-bi-ta nu-mu-un-e3 • un-e ur5 he2-gal2 mu-un-du11 • husz-bi ur5-ta mu-un-gub",
+      "g": "the capable person does not go out from his place • the people say 'let him remain' • the danger stands up from this"
+    },
+    {
+      "e": "Vision • 2525 therefore treats power as something to structure before personalities are known.",
+      "t": "⟦Vision • 2525⟧-e lu2-bi nu-zu-a-ta a2 mah-ra gesz-hur mu-un-gar",
+      "g": "Vision • 2525 sets the plan over great power while its persons are not yet known"
+    },
+    {
+      "e": "Capital should not purchase sovereignty.",
+      "t": "ku3-e nam-en nu-mu-un-sum",
+      "g": "silver does not give lordship"
+    },
+    {
+      "e": "Technical dependency should not become constitutional authority.",
+      "t": "gesz dim2-ma-ra gub-ba nam-en-sze3 nu-mu-un-bal",
+      "g": "standing upon the fashioned implement does not turn into lordship"
+    },
+    {
+      "e": "Corporate participation should not convert into Human voting rights.",
+      "t": "e2 ku3-ka inim-bi ka-asz nam-lu2-ulu3-ka-sze3 nu-mu-un-bal",
+      "g": "the word of the house of silver does not turn into humankind's decision"
+    },
+    {
+      "e": "Leadership should carry an end date.",
+      "t": "nam-sag lu2-ka u4 til3-la-bi he2-gal2",
+      "g": "may headship hold its finishing day"
+    },
+    {
+      "e": "Stewardship should create successors rather than dependence.",
+      "t": "nam-sipa-e lu2 egir-ra mu-un-du3 • gub-ba-bi-sze3 nu-mu-un-bal",
+      "g": "the shepherdship builds the person who follows • it does not turn them into leaners-upon"
+    },
+    {
+      "e": "These boundaries matter because capture rarely announces itself as capture.",
+      "t": "szu dab5-e mu-bi nu-mu-un-du11 • ur5-ta bar-bar-bi a2 mah tuku",
+      "g": "the seizing hand does not speak its own name • therefore these separations hold great power"
+    },
+    {
+      "e": "It can emerge gradually through money, infrastructure, expertise, convenience, access, or institutional memory until formal Human Authority exists on paper while practical authority has moved somewhere else.",
+      "t": "ku3-ta zu-a-ta u4-bi-ta-ta tur-tur-bi mu-un-du • nam-en dub-a mu-un-gub • a2 mah ki kur-sze3 mu-un-du",
+      "g": "through silver, through knowing, through old days it comes little by little • the lordship stands on the tablet • the power has walked to a foreign place"
+    }
+  ],
+  "k48": [
+    {
+      "e": "The same principle produces the Off Switch.",
+      "t": "inim disz-bi-ta gesz til3-la mu-un-e3",
+      "g": "from that same word the implement of ending (the Off Switch) comes forth"
+    },
+    {
+      "e": "A framework built for Humanity must remain subject to Humanity.",
+      "t": "gesz-hur nam-lu2-ulu3-ra du3-a nam-lu2-ulu3-ra he2-gub",
+      "g": "may the plan built for humankind stand under humankind"
+    },
+    {
+      "e": "People need lawful mechanisms to challenge, amend, reverse, or ultimately end what no longer serves them.",
+      "t": "un-e nig2 a2 nu-sum-ma-bi • inim-ta he2-tar • he2-sig5 • he2-gi4 • u4 til3-la-sze3 he2-tum2",
+      "g": "what no longer gives them its arm — may the people question it by word, mend it, turn it back, and bring it to its ending day"
+    },
+    {
+      "e": "Exact thresholds belong to governance and applicable law, but the deeper invariant is simple: no system should become immortal because its founders forgot to design an ending.",
+      "t": "nig2-szid-bi di kalam-ma-ra mu-un-gub • inim sza3-bi ur5-am3 • lu2 du3-a-ke4 u4 til3-la he2-hur • e2 na-me u4 egir-ra-sze3 nu-gub",
+      "g": "its counts stand with the land's law • the heart of the word is this: may the builder draw up the ending day • no house stands into the days after (forever)"
+    },
+    {
+      "e": "Human Authority must also be distributed carefully enough that no single person, machine, company, government, platform, or infrastructure dependency can quietly become indispensable to the whole.",
+      "t": "nam-en nam-lu2-ulu3-ka szu-ta szu-sze3 he2-bar-bar • lu2 disz gesz dim2-ma disz e2 disz • kalam-ra gub-ba mah nu-mu-un-tuku",
+      "g": "may humankind's lordship be divided from hand to hand • one person, one machine, one house — none holds the great standing over the land"
+    },
+    {
+      "e": "Reversibility is not evidence of weak commitment.",
+      "t": "kaskal gi4-gi4 gal2-la • sza3 sig-ga in-nu",
+      "g": "that the road can return is not a weak heart"
+    },
+    {
+      "e": "It is evidence that stewardship remembers whom the system serves.",
+      "t": "nam-sipa-e lu2 a2 sum-ma-bi mu-un-zu • ur5 nig2-gi-na-bi-am3",
+      "g": "the shepherdship knows the person to whom it gives its arm • that is its proof"
+    }
+  ],
+  "k49": [
+    {
+      "e": "A Thought Master is tested most clearly by willingness to relinquish control.",
+      "t": "lu2 gesztu2-ga szu bar-ra-ta igi-a mu-un-gub",
+      "g": "the thought master stands in view through releasing the hand"
+    },
+    {
+      "e": "Thought Mastery is not proving that your thought should survive forever.",
+      "t": "nam-gesztu2 • gesztu2-zu u4 egir-ra-sze3 gub-ba in-nu",
+      "g": "thought-mastery is not that your own thought stand into the days after (forever)"
+    },
+    {
+      "e": "It is creating conditions under which a better thought can replace it without destroying learning that came before.",
+      "t": "gesztu2 sig5-e ki-bi-sze3 he2-gar • zu-zu u4-bi-ta nu-mu-un-zal",
+      "g": "may the better thought be set in its place • the learning of former days does not vanish"
+    },
+    {
+      "e": "A steward leaves reasons, evidence, Replay, capable people, and an open door behind.",
+      "t": "sipa-e egir-ni inim sza3-ga nig2-gi-na dub gi4-gi4 lu2 zu-a u3 kaskal gal2-la mu-un-gub",
+      "g": "the shepherd sets behind him the heart's word, the proof, the returning tablet, knowing people, and an open road"
+    },
+    {
+      "e": "Master of Thought is responsibility rather than rank; that distinction is fundamental.",
+      "t": "en sag ki nam-kin-am3 • nam-lugal in-nu • bar-bi sag inim-ma-am3",
+      "g": "EN SAG.KI is responsibility • it is not kingship • that separation is the head of the word"
+    },
+    {
+      "e": "The highest mastery is not control over others.",
+      "t": "nam-gesztu2 mah • szu dab5 lu2-ne-ka in-nu",
+      "g": "the highest thought-mastery is not the seizing hand over other people"
+    },
+    {
+      "e": "It is awareness sufficient to know when to lead, when to listen, when to change, and when to let go.",
+      "t": "u4 sag-sze3 du-a • u4 gesztu2-sze3 gub-ba • u4 bal-a • u4 szu bar-ra • zu-bi-am3",
+      "g": "the day to walk at the head, the day to stand toward the ear, the day to change, the day to release the hand — it is the knowing of these"
+    },
+    {
+      "e": "A five-century framework cannot depend upon a five-century ruler.",
+      "t": "gesz-hur mu ⟦500⟧-ka lugal mu ⟦500⟧-ka-ra nu-mu-un-gub",
+      "g": "the plan of 500 years does not stand upon a king of 500 years"
+    },
+    {
+      "e": "It must depend upon generations capable of governing themselves, questioning inherited authority, preserving earned knowledge, and transferring stewardship without transferring permanent control.",
+      "t": "dumu-dumu-ne-ra mu-un-gub • sza3-bi-ta ka-asz mu-un-bar • nam-en u4-bi-ta he2-tar • zu-a he2-dab5 • nam-sipa szu-sze3 he2-sum • szu dab5-ba nu-mu-un-sum",
+      "g": "it stands upon the generations • they cut decisions from their own heart • may they question the lordship of former days • may they grasp the knowing • may they give the shepherdship into the hand • the seizing hand they do not pass on"
+    }
+  ],
+  "k50": [
+    {
+      "e": "Civilization usually teaches the answer after hiding the journey.",
+      "t": "kalam-e inim egir-bi mu-un-zu-zu • kaskal-bi mu-un-dab5",
+      "g": "the land teaches the final word • the road it holds back"
+    },
+    {
+      "e": "Students see the successful machine but not the failed prototypes.",
+      "t": "dumu e2-dub-ba-a-ke4 gesz dim2-ma zi igi mu-un-bar • nig2 dim2 lul-la igi nu-mu-un-bar",
+      "g": "the tablet-house child looks upon the true machine • upon the failed fashionings he does not look"
+    },
+    {
+      "e": "They learn accepted theory without experiencing uncertainty that preceded it.",
+      "t": "inim zu-a mu-un-zu-zu • nig2 nu-zu-a igi-bi-ta nu-mu-un-zu",
+      "g": "they learn the accepted word • the unknown that stood before it they do not come to know"
+    },
+    {
+      "e": "They read final policy without seeing disagreement, evidence, alternatives, and consequences that shaped it.",
+      "t": "di egir-bi mu-un-szid • inim nu-sa2-a nig2-gi-na u3 kaskal-kaskal-bi igi nu-mu-un-bar",
+      "g": "they recite the final ruling • the unequal words, the proof, and its many roads they do not see"
+    },
+    {
+      "e": "This makes knowledge easier to package but harder to extend.",
+      "t": "ur5-ta zu-a szu-sze3 sum-ma kin tur-am3 • zu-a gid2-da kin mah-am3",
+      "g": "thus handing knowledge over is a small labor • stretching it further is a great labor"
+    },
+    {
+      "e": "Vision • 2525 proposes that Replay can change education by preserving not only what Humanity knows, but how Humanity came to know it.",
+      "t": "⟦Vision • 2525⟧-e mu-un-du11 • dub gi4-gi4-e e2-dub-ba-a mu-un-bal • nig2 zu-a u3 kaskal zu-a-bi-sze3 mu-un-dab5",
+      "g": "Vision • 2525 speaks: the returning tablet changes the tablet-house • it holds both the known thing and the road of its knowing"
+    },
+    {
+      "e": "Learning then becomes more than receiving conclusions.",
+      "t": "zu-zu • inim egir-bi szu-sze3 tuku-a-ta mah-am3",
+      "g": "learning is greater than taking the final word into the hand"
+    },
+    {
+      "e": "Students can examine the path through uncertainty, understand why alternatives failed, identify assumptions that changed, and see how evidence earned confidence.",
+      "t": "dumu e2-dub-ba-a-ke4 kaskal-bi mu-un-szid • kaskal lul-la-bi mu-un-zu • inim bal-a-bi mu-un-pad3 • nig2-gi-na sza3 gub-ba-sze3 du-a igi mu-un-bar",
+      "g": "the tablet-house child examines the road • knows the roads that went wrong • finds the words that changed • sees the proof walking toward the firm heart"
+    },
+    {
+      "e": "Education becomes an encounter with the process of knowing rather than a transfer of answers stripped from the conditions that produced them.",
+      "t": "e2-dub-ba-a kaskal zu-a-sze3 mu-un-bal • szu-sze3 sum-ma inim-ka in-nu",
+      "g": "the tablet-house turns into the road of knowing • it is not the mere handing-over of words"
+    }
+  ],
+  "k51": [
+    {
+      "e": "Imagine learning engineering by entering the history of a real design: Human need, Collective Intelligence signals, original requirements, first AI proposal, Human objections, risks, simulations, failures, revisions, physical tests, differences between prediction and reality, and eventual qualification.",
+      "t": "nam-dim2 zu-zu-sze3 sza3 dub gesz-hur zi-ka he2-du • nig2 al du11-ga inim un-ka inim gesztu2 dim2-ma-ka inim nu lu2-ka nig2 husz-a igi-bar lul-la u3 nig2-szid gi-na egir-bi igi he2-bar",
+      "g": "to learn the craft may one walk into the heart of a true design's tablet • may one look upon the desired thing, the people's word, the fashioned understanding's word, the human no-word, the dangers, the failed lookings-upon, and the firm reckoning at the end"
+    },
+    {
+      "e": "Imagine learning governance by examining why a leader rejected a popular proposal and what happened afterward.",
+      "t": "nam-en zu-zu-sze3 • lu2 sag-e inim un-ka nu-mu-un-dab5 • egir-bi a-na-am3 • dub-bi he2-szid",
+      "g": "to learn governance: the leader did not take the people's word — why, and what came after — may that tablet be read"
+    },
+    {
+      "e": "Imagine learning AI through examples where the machine was correct, examples where Humans corrected it, and examples where neither possessed enough evidence.",
+      "t": "gesztu2 dim2-ma zu-zu-sze3 • u4 gesz dim2-ma zi-a • u4 lu2-e mu-un-sig5-a • u4 nig2-gi-na nu-gal2-la • igi he2-bar",
+      "g": "to learn the fashioned understanding: the day the machine was right, the day the human set it right, the day no proof existed — may these be looked upon"
+    },
+    {
+      "e": "The student no longer receives certainty as a finished product.",
+      "t": "dumu e2-dub-ba-a-ra sza3 gub-ba nig2 til3-la-gin7 nu-mu-un-sum",
+      "g": "to the tablet-house child the firm heart is not given like a finished thing"
+    },
+    {
+      "e": "The student learns how certainty should be earned, bounded, questioned, revised, and responsibly communicated.",
+      "t": "dumu-e sza3 gub-ba kaskal-bi mu-un-zu-zu • nig2-gi-na-ta dab5 • inim-ta tar • u4-ta sig5 • gi-na-sze3 du11",
+      "g": "the child learns the road of the firm heart: grasped through proof, questioned by word, mended over the days, spoken truthfully"
+    }
+  ],
+  "k52": [
+    {
+      "e": "That is Thought Mastery transferred between generations.",
+      "t": "ur5 nam-gesztu2 dumu-ta dumu-sze3 sum-ma-am3",
+      "g": "this is thought-mastery given from generation to generation"
+    },
+    {
+      "e": "Imagine.",
+      "t": "igi-bar he2-gar",
+      "g": "may the vision be set forth"
+    },
+    {
+      "e": "Build.",
+      "t": "he2-du3",
+      "g": "may it be built"
+    },
+    {
+      "e": "Simulate.",
+      "t": "igi he2-bar",
+      "g": "may the looking-upon be made"
+    },
+    {
+      "e": "Fail safely.",
+      "t": "lul-bi ki tur-ra he2-gal2",
+      "g": "may the going-wrong happen in a small place"
+    },
+    {
+      "e": "Replay.",
+      "t": "dub he2-gi4-gi4",
+      "g": "may the tablet return"
+    },
+    {
+      "e": "Understand.",
+      "t": "he2-zu",
+      "g": "may it be known"
+    },
+    {
+      "e": "Improve.",
+      "t": "sig5-sze3 he2-bal",
+      "g": "may it be turned toward the good"
+    },
+    {
+      "e": "Education becomes the mechanism through which qualified learning escapes the project that produced it.",
+      "t": "e2-dub-ba-a-ta zu-zu gi-na kin-bi-ta mu-un-e3",
+      "g": "through the tablet-house, firm learning goes out from the work that bore it"
+    },
+    {
+      "e": "Translation allows learning to cross language without requiring cultural uniformity.",
+      "t": "eme bal-e zu-zu eme-ta eme-sze3 mu-un-tum2 • un disz-gin7 nu-mu-un-dim2",
+      "g": "the tongue-turning (translation) carries learning from tongue to tongue • it does not fashion the peoples as one"
+    },
+    {
+      "e": "AI can tutor, retrieve, simulate, and personalize.",
+      "t": "gesztu2 dim2-ma-e mu-un-zu-zu • dub mu-un-pad3 • igi mu-un-bar • lu2-ra mu-un-sa2",
+      "g": "the fashioned understanding teaches • finds the tablet • makes the looking-upon • fits it to the person"
+    },
+    {
+      "e": "Human teachers preserve context, judgment, care, and responsibility.",
+      "t": "lu2 zu-zu-ke4 sza3 di mi2 u3 nam-kin szu-a mu-un-tuku",
+      "g": "the human teacher holds in hand the heart (context), the judgment, the care, and the responsibility"
+    },
+    {
+      "e": "Spiritual Intelligence keeps meaning and stewardship visible.",
+      "t": "gesztu2 dingir-ra-ke4 sza3 inim-ma u3 nam-sipa igi-a mu-un-gal2",
+      "g": "the divine understanding keeps the word's heart and the shepherdship in view"
+    },
+    {
+      "e": "Collective Intelligence allows learners to contribute.",
+      "t": "gesztu2 un-ka-ta dumu zu-zu-ne inim mu-un-sum",
+      "g": "through the people's understanding the learners give their word"
+    },
+    {
+      "e": "Master of Thought is no longer the name of one person writing a framework.",
+      "t": "en sag ki • mu dub-sar disz-ka in-nu",
+      "g": "EN SAG.KI is no longer the name of one scribe"
+    },
+    {
+      "e": "Thought Mastery becomes a capability Humanity can teach: awareness of thought, discipline of evidence, courage to revise, responsibility for consequence, and stewardship of what others inherit.",
+      "t": "nam-gesztu2 nig2 zu-zu nam-lu2-ulu3-ka-sze3 mu-un-bal • gesztu2-bi zu • nig2-gi-na dab5 • bal-sze3 sza3 gub • egir-ra nam-kin • u3 nam-sipa nig2 dumu-ne-ka",
+      "g": "thought-mastery turns into a thing humankind can teach: knowing one's thought, grasping proof, a heart firm enough to change, responsibility for the aftermath, and shepherdship of what the children receive"
+    },
+    {
+      "e": "The future advances when children do not merely know more than we knew, but understand how we learned, recognize where we were wrong, and possess the freedom and capability to surpass us.",
+      "t": "dumu-ne kaskal zu-a-me mu-un-zu • ki lul-la-me mu-un-pad3 • a2-bi-ta igi-me-ta mu-un-du • u4 egir-ra ur5-ta mu-un-du",
+      "g": "the children know the road of our learning • they find where we went wrong • by their own strength they walk ahead of us • thus the days after move forward"
+    }
+  ],
+  "k53": [
+    {
+      "e": "A five-century vision should be able to begin in one hour.",
+      "t": "igi-bar mu ⟦500⟧-ka danna-bar disz-ta he2-gub",
+      "g": "may the vision of 500 years stand up from one hour"
+    },
+    {
+      "e": "Otherwise its first step is already too large.",
+      "t": "nu-me-a • kaskal sag-bi mah-am3",
+      "g": "if not, its first step is too great"
+    },
+    {
+      "e": "Vision • 2525 therefore returns to the unit with which it began: Human time.",
+      "t": "⟦Vision • 2525⟧ nig2-szid sag-bi-sze3 mu-un-gi4 • u4 lu2-ka",
+      "g": "Vision • 2525 returns to its first measure: the human's time"
+    },
+    {
+      "e": "Not 9,999 hours.",
+      "t": "danna-bar ⟦9,999⟧ in-nu",
+      "g": "it is not 9,999 hours"
+    },
+    {
+      "e": "Not a lifetime pledged to an institution.",
+      "t": "nam-til3 e2-ra sum-ma in-nu",
+      "g": "it is not a life given over to a house"
+    },
+    {
+      "e": "One actual hour, recorded honestly through Measurement of Time, given freely to a problem worth improving.",
+      "t": "danna-bar disz zi • gi-na-bi sar-ra • sza3-ta kin sig5-ra sum-ma",
+      "g": "one true hour, written faithfully, given from the heart to a work to be bettered"
+    },
+    {
+      "e": "Three people can begin.",
+      "t": "lu2 ⟦3⟧ he2-gub",
+      "g": "may three persons stand up (begin)"
+    },
+    {
+      "e": "State the intent before starting.",
+      "t": "igi kin-ka inim sza3-ga he2-du11",
+      "g": "before the work may the heart's word be spoken"
+    },
+    {
+      "e": "Work.",
+      "t": "kin he2-du3",
+      "g": "may the work be done"
+    },
+    {
+      "e": "Use AI if it helps.",
+      "t": "gesztu2 dim2-ma a2 sum-ma-bi szu-a he2-tuku",
+      "g": "if the fashioned understanding gives its arm, may it be taken in hand"
+    },
+    {
+      "e": "Disagree if necessary.",
+      "t": "inim nu-sa2-a he2-du11",
+      "g": "may the unequal word be spoken when needed"
+    },
+    {
+      "e": "Record the outcome.",
+      "t": "egir-bi he2-sar",
+      "g": "may the aftermath be written"
+    },
+    {
+      "e": "Preserve what changed.",
+      "t": "nig2 bal-a szu-a he2-tuku",
+      "g": "may what changed be held in hand"
+    },
+    {
+      "e": "Ask what was learned.",
+      "t": "a-na zu-a inim he2-du11",
+      "g": "may it be asked: what was learned"
+    },
+    {
+      "e": "The purpose is not to manufacture a token or prove an economic theory in sixty minutes.",
+      "t": "sza3-bi ku3 dim2-ma in-nu • danna-bar disz-a nig2-szid ku3-ka nu-mu-un-gub",
+      "g": "its heart is not the fashioning of silver • in one hour no reckoning of silver is established"
+    },
+    {
+      "e": "It is to test whether thought, time, contribution, disagreement, decision, and learning can become more visible when people coordinate deliberately.",
+      "t": "gesztu2 u4 kin inim nu-sa2-a ka-asz u3 zu-zu • un gu2 disz-sze3 gar-ra-ta igi-a he2-gal2 • ur5 he2-zu",
+      "g": "thought, time, work, the unequal word, decision, and learning — when the people set their necks together, may these stand in view • may this be tested"
+    },
+    {
+      "e": "A civilization-scale framework should prove that its smallest meaningful act can still preserve its largest principles.",
+      "t": "gesz-hur kalam-ma-ka kin tur-bi-e inim gal-bi szu-a he2-tuku",
+      "g": "in the land's plan may its smallest work hold its greatest word in hand"
+    }
+  ],
+  "k54": [
+    {
+      "e": "Then Replay the hour.",
+      "t": "egir-bi danna-bar-bi dub he2-gi4-gi4",
+      "g": "afterward may the hour's tablet be returned (replayed)"
+    },
+    {
+      "e": "Could someone who was not present understand what you attempted?",
+      "t": "lu2 nu-gub-ba kin-zu mu-un-zu",
+      "g": "does the person who did not stand there know your work"
+    },
+    {
+      "e": "Did the record distinguish Human judgment from AI assistance?",
+      "t": "dub-e di lu2-ka u3 a2 gesztu2 dim2-ma-ka mu-un-bar",
+      "g": "did the tablet set apart the human's judgment and the fashioned understanding's arm"
+    },
+    {
+      "e": "Was actual time preserved honestly?",
+      "t": "u4 zi gi-na-bi sar-ra-am3",
+      "g": "was the true time written faithfully"
+    },
+    {
+      "e": "Did someone contribute an insight that might otherwise have disappeared?",
+      "t": "inim zal-a-gin7 lu2 disz-e mu-un-sum",
+      "g": "did one person give the word that else would have slipped away"
+    },
+    {
+      "e": "Did disagreement remain visible?",
+      "t": "inim nu-sa2-a igi-a mu-un-gal2",
+      "g": "did the unequal word remain in view"
+    },
+    {
+      "e": "Did the group discover an assumption?",
+      "t": "un-e inim nu-szid-da mu-un-pad3",
+      "g": "did the group find the uncounted (unexamined) word"
+    },
+    {
+      "e": "Could another group understand why something changed?",
+      "t": "un disz-e nig2 bal-a sza3-bi mu-un-zu",
+      "g": "does another group know the heart (reason) of what changed"
+    },
+    {
+      "e": "Would the next group begin better informed because this group left evidence behind?",
+      "t": "un egir-ra nig2-gi-na gub-ba-zu-ta zu-a mu-un-gub",
+      "g": "does the next group stand up knowing, from the proof you set down"
+    },
+    {
+      "e": "If not, improve the method.",
+      "t": "nu-me-a kaskal-bi sig5-sze3 he2-bal",
+      "g": "if not, may the road be turned toward the good"
+    },
+    {
+      "e": "If so, repeat it.",
+      "t": "ur5-gin7 gal2-la he2-gi4-gi4",
+      "g": "if it is so, may it be done again"
+    },
+    {
+      "e": "One hour becomes another cycle.",
+      "t": "danna-bar disz bal egir-ra-sze3 mu-un-bal",
+      "g": "one hour turns into the next cycle"
+    },
+    {
+      "e": "Cycles become qualified learning.",
+      "t": "bal-bal zu-zu gi-na-sze3 mu-un-bal",
+      "g": "the cycles turn into firm learning"
+    },
+    {
+      "e": "Qualified learning becomes education.",
+      "t": "zu-zu gi-na e2-dub-ba-a-sze3 mu-un-du",
+      "g": "firm learning walks into the tablet-house"
+    },
+    {
+      "e": "Education improves the next generation.",
+      "t": "e2-dub-ba-a-ke4 dumu egir-ra sig5-sze3 mu-un-bal",
+      "g": "the tablet-house turns the next generation toward the good"
+    },
+    {
+      "e": "The architecture grows only as evidence earns expansion.",
+      "t": "e2-bi nig2-gi-na-ta-am3 mah-sze3 mu-un-du",
+      "g": "only through proof does the house walk toward greatness"
+    },
+    {
+      "e": "Scale begins not with size, but with a small process worth repeating.",
+      "t": "nam-gal nig2 gal-ta nu-mu-un-gub • kaskal tur gi4-gi4-da-ta mu-un-gub",
+      "g": "greatness does not stand up from the big thing • it stands up from a small road worth returning to"
+    }
+  ],
+  "k55": [
+    {
+      "e": "This is where Master of Thought returns to Humanity.",
+      "t": "ki-bi-a en sag ki nam-lu2-ulu3-sze3 mu-un-gi4",
+      "g": "in this place EN SAG.KI returns to humankind"
+    },
+    {
+      "e": "It was never meant to remain the name of one author.",
+      "t": "mu dub-sar disz-ka gub-ba in-nu",
+      "g": "it is not the standing name of one scribe"
+    },
+    {
+      "e": "It names a responsibility any person can accept, while Thought Mastery names the discipline through which that responsibility is practiced.",
+      "t": "en sag ki mu nam-kin-ka-am3 • lu2 na-me szu-a he2-tuku • nam-gesztu2 mu kaskal-bi-ka-am3",
+      "g": "EN SAG.KI is the name of the responsibility — any person may take it in hand • thought-mastery is the name of its road (discipline)"
+    },
+    {
+      "e": "A person who lives that discipline becomes a Thought Master: aware of thought before turning it into consequence; honest about time and contribution; willing to listen beyond the self; able to use technology without surrendering authority; committed to preserving what happened; willing to learn from reality; and determined to leave the next person a better beginning.",
+      "t": "lu2 kaskal-bi du-a lu2 gesztu2-ga-sze3 mu-un-bal • gesztu2-bi igi egir-bi-ka mu-un-zu • u4 u3 kin-bi gi-na • gesztu2-sze3 gub-ba • gesz dim2-ma szu-a tuku-a nam-en nu-sum-ma • nig2 gal2-la sar-ra • ki zi-ta zu-a • lu2 egir-ra-ra sag sig5 mu-un-gub",
+      "g": "the person who walks that road turns into a thought master • he knows his thought before its aftermath • his time and his work are honest • he stands toward the ear • he holds the machine in hand without giving over the lordship • what happened is written • he learns from the true ground • for the person after he sets a better beginning"
+    },
+    {
+      "e": "That is Thought Mastery.",
+      "t": "ur5 nam-gesztu2-am3",
+      "g": "this is thought-mastery"
+    },
+    {
+      "e": "That is the responsibility of a Master of Thought.",
+      "t": "ur5 nam-kin en sag ki-ka-am3",
+      "g": "this is the responsibility of EN SAG.KI"
+    },
+    {
+      "e": "That is Measurement of Time transformed into meaning.",
+      "t": "ur5 nig2-szid u4-ka sza3 inim-ma-sze3 bal-a-am3",
+      "g": "this is the reckoning of time turned into the word's heart (meaning)"
+    },
+    {
+      "e": "That is Innovation at the Speed of Thought disciplined by evidence.",
+      "t": "ur5 kin dim2-ma gesztu2-gin7 du-a nig2-gi-na-e dab5-ba-am3",
+      "g": "this is the making-work that moves like thought, held fast by proof"
+    },
+    {
+      "e": "That is Vision • 2525 reduced to its Human beginning: one person, one thought, one measured hour, one honest record, and a future that does not have to start over.",
+      "t": "ur5 ⟦Vision • 2525⟧ sag lu2-ka-sze3 gi4-a-am3 • lu2 disz gesztu2 disz danna-bar disz sar-ra dub disz gi-na • u4 egir-ra ki sag-ta nu-mu-un-gi4",
+      "g": "this is Vision • 2525 returned to its human beginning: one person, one thought, one recorded hour, one honest tablet • the days after do not go back to the starting place"
+    }
   ],
   "k56": [
-    { "e": "Humanity imagines.",
+    {
+      "e": "Humanity imagines.",
       "t": "nam-lu2-ulu3-e igi-bar mu-un-gar",
-      "g": "humankind sets forth the vision" }
+      "g": "humankind sets forth the vision"
+    }
   ],
   "k57": [
-    { "e": "Thought gives direction.",
+    {
+      "e": "Thought gives direction.",
       "t": "gesztu2-e kaskal mu-un-pad3",
-      "g": "thought finds the road" }
+      "g": "thought finds the road"
+    }
   ],
   "k58": [
-    { "e": "Time records the contribution.",
+    {
+      "e": "Time records the contribution.",
       "t": "u4-e kin mu-un-sar",
-      "g": "time writes the work" }
+      "g": "time writes the work"
+    }
   ],
   "k59": [
-    { "e": "AI expands possibility.",
+    {
+      "e": "AI expands possibility.",
       "t": "gesztu2 dim2-ma-e nig2 gal2-la gal mu-un-gar",
-      "g": "the fashioned understanding sets what-exists larger" }
+      "g": "the fashioned understanding sets what-exists larger"
+    }
   ],
   "k60": [
-    { "e": "Simulation prepares.",
+    {
+      "e": "Simulation prepares.",
       "t": "igi-bar-e si mu-un-sa2",
-      "g": "the looking-upon sets in order" }
+      "g": "the looking-upon sets in order"
+    }
   ],
   "k61": [
-    { "e": "Engineering proves.",
+    {
+      "e": "Engineering proves.",
       "t": "nam-dim2-e nig2-gi-na mu-un-gar",
-      "g": "the craft establishes the firm truth" }
+      "g": "the craft establishes the firm truth"
+    }
   ],
   "k62": [
-    { "e": "Humanity decides.",
+    {
+      "e": "Humanity decides.",
       "t": "nam-lu2-ulu3-e ka-asz mu-un-bar",
-      "g": "humankind cuts the decision" }
+      "g": "humankind cuts the decision"
+    }
   ],
   "k63": [
-    { "e": "Replay remembers.",
+    {
+      "e": "Replay remembers.",
       "t": "dub gi4-gi4-e u4-bi szu mu-un-tuku",
-      "g": "the returning tablet holds its days in hand" }
+      "g": "the returning tablet holds its days in hand"
+    }
   ],
   "k64": [
-    { "e": "Education transfers.",
+    {
+      "e": "Education transfers.",
       "t": "e2-dub-ba-a-ke4 szu-sze3 mu-un-sum",
-      "g": "the tablet-house gives into the hand" }
+      "g": "the tablet-house gives into the hand"
+    }
   ],
   "k65": [
-    { "e": "The next generation begins ahead.",
+    {
+      "e": "The next generation begins ahead.",
       "t": "dumu egir-ra-ke4 igi-ta mu-un-gub",
-      "g": "the children of after stand at the front" }
+      "g": "the children of after stand at the front"
+    }
   ],
   "k66": [
-    { "e": "We Cannot Master What We Are Not Aware Of.",
+    {
+      "e": "We Cannot Master What We Are Not Aware Of.",
       "t": "nig2 nu-zu-a en-bi nu-gal2",
-      "g": "over the unknown thing, no lordship exists" }
+      "g": "over the unknown thing, no lordship exists"
+    }
   ],
   "k67": [
-    { "e": "Honor the Past • Measure the Present • Build the Future.",
+    {
+      "e": "Honor the Past • Measure the Present • Build the Future.",
       "t": "u4-bi-ta mi2 he2-du11 • u4-ne-a he2-szid • u4 egir-ra he2-du3",
-      "g": "may the former days be honored • may today be counted • may the after-days be built" }
+      "g": "may the former days be honored • may today be counted • may the after-days be built"
+    }
   ],
   "k68": [
-    { "e": "Humanity decides • Technology assists • Wisdom guides • Trust must be proven.",
-      "t": "nam-lu2-ulu3-e ka-asz mu-un-bar • gesz dim2-ma-e a2 mu-un-sum • gesztu2-e kaskal mu-un-pad3 • nig2 gi-na igi-a he2-gal2",
-      "g": "humankind cuts the decision • the fashioned implement gives its arm • wisdom finds the road • may the firm thing stand in view" }
+    {
+      "e": "Humanity decides • Technology assists • Wisdom guides • Trust must be proven.",
+      "t": "nam-lu2-ulu3-e ka-asz mu-un-bar • gesz dim2-ma-e a2 mu-un-sum • gesztu2-e kaskal mu-un-pad3 • nig2-gi-na igi-a he2-gal2",
+      "g": "humankind cuts the decision • the fashioned implement gives its arm • wisdom finds the road • may the firm thing stand in view"
+    }
   ],
   "k69": [
-    { "e": "The Author • Master of Thought →",
+    {
+      "e": "The Author • Master of Thought →",
       "t": "dub-sar • en sag ki ⟦→⟧",
-      "g": "the scribe — EN SAG.KI →" }
+      "g": "the scribe — EN SAG.KI →"
+    }
   ],
   "k70": [
-    { "e": "The Master of Thought seal — an eagle within a ring of cuneiform, joining a modern responsibility with one of Humanity’s earliest enduring traditions of recorded thought.",
-      "t": "kiszib en sag ki — muszen gal sza3 har inim sar-ra-ka; nam-kin u4-ne-ka inim sar-ra u4-bi-ta nam-lu2-ulu3-ka szu mu-un-da-tuku",
-      "g": "the seal of EN SAG.KI — a great bird within a ring of written words; the task of today holds hands with humankind’s written words of old" }
+    {
+      "e": "The Master of Thought seal — an eagle within a ring of cuneiform, joining a modern responsibility with one of Humanity’s earliest enduring traditions of recorded thought.",
+      "t": "kiszib en sag ki • muszen gal sza3 har inim sar-ra-ka • nam-kin u4-ne-ka inim sar-ra u4-bi-ta nam-lu2-ulu3-ka szu mu-un-da-tuku",
+      "g": "the seal of EN SAG.KI — a great bird within a ring of written words; the task of today holds hands with humankind’s written words of old"
+    }
   ]
 }
