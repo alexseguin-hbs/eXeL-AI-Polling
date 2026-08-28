@@ -85,6 +85,17 @@ header.mast{border-bottom:3px solid var(--ink);padding:40px 0 18px}
 .mast .sub{font-size:clamp(16px,2.5vw,19px);color:var(--ink-2);margin:12px 0 0;font-style:italic}
 .glyphline{display:flex;flex-wrap:wrap;gap:9px 20px;margin:20px 0 0;font-size:13px}
 .g-ai{color:var(--ai)} .g-si{color:var(--si)} .g-hi{color:var(--hi)}
+/* r282 · the two doors under the masthead — operator: "update main/Vision-2525 with two
+   pills: Executive Summary / Detailed Framework." The choice a reader makes on arrival,
+   offered where the reading starts. Deck-control grammar: 1px AI border, 9px radius,
+   mono caps, ai-bg on hover. Both doors reuse existing routes — no new machinery. */
+.docdoors{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 2px}
+.docdoors a{display:inline-flex;align-items:center;min-height:34px;box-sizing:border-box;
+  padding:7px 14px;border:1px solid var(--ai);border-radius:9px;color:var(--ai);
+  text-decoration:none;font:600 12.5px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.06em;text-transform:uppercase}
+.docdoors a:hover,.docdoors a:focus-visible{background:var(--ai-bg)}
+[id="blk-paper.toc"]{scroll-margin-top:calc(var(--deckh,42px) + 14px)}
 
 /* ── replay deck (sticky) ── */
 /* r265 · SOLID deck (operator: "no blur ... use solid background for entire reading
@@ -1200,7 +1211,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.006</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">281</span>)</span>, <strong><span id="dlbytes2">7163271</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.010</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">282</span>)</span>, <strong><span id="dlbytes2">7166960</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1256,6 +1267,16 @@ body.qrlead #qrAbout{display:inline-block}
     Vision &amp; White Paper, written by <span class="byline"><a href="#author" id="authorLink"><strong>Master of Thought</strong></a></span><br>
     R-CORE &middot; SoI-2525 &middot; Atlantis Accords &middot; eXeL Polling
   </div>
+  <!-- r282 · operator: "update main/Vision-2525 with two pills: Executive Summary /
+       Detailed Framework." Executive Summary is the same relative sibling href the
+       Settings door opens (a downloaded folder works offline, because the summary's
+       twin ships beside this document's); Detailed Framework enters this document at
+       its table of contents, with a scroll margin so the sticky deck never covers
+       the landing. -->
+  <nav class="docdoors" aria-label="Choose a reading">
+    <a href="vision-2525-executive-summary.html" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary</a>
+    <a href="#blk-paper.toc" title="The full white paper &mdash; nineteen sections over the append-only ledger">Detailed Framework</a>
+  </nav>
 </header>
 
 <div class="notice key" id="howto">
@@ -7215,6 +7236,20 @@ const VERSIONS = [
    {n:"Odin",g:"B+",f:"A door that changes what it opens, silently, is the failure mode to watch for as more views are added. Name the door for the reading, not for the feature."}
   ],
   next:"The thirty-two translations from the frozen English &mdash; after which this door becomes locale-aware again, driven by the directory rather than by a guess."
+ },
+ { v:282, code:"TWO DOORS ON THE FRONT PAGE",
+  stamp:"2026.08.28 &middot; revision 282",
+  thrust:"Operator: &lsquo;update main/Vision-2525 with two pills: Executive Summary / Detailed Framework.&rsquo; The choice a reader makes on arrival &mdash; the one-hour summary or the full framework &mdash; now stands at the foot of the masthead as two pills in the deck&rsquo;s control grammar. Neither door is new machinery: Executive Summary is the same relative sibling href the Settings door opens, so a downloaded folder works offline; Detailed Framework enters this document at its table of contents, with a scroll margin so the sticky deck never covers the landing. Chrome only &mdash; no ledger block, every release replays byte-identical, totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"A front door should offer the reading, not hide it in a drawer. The summary door existed one tap deep in Settings, and the framework door existed as scrolling. Naming both, side by side, where the reading begins, is the smallest change that makes the choice visible &mdash; and neither pill invents a route, so there is nothing new to break.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Christo",g:"A",f:"The first decision a reader faces is now the first thing they are offered."},
+   {n:"Athena",g:"A",f:"Both pills reuse existing routes &mdash; the sibling page and the TOC anchor; nothing new to drift."},
+   {n:"Krishna",g:"A",f:"Settings door unchanged, deck unchanged; the pills are additive chrome inside the masthead."},
+   {n:"Thor",g:"B+",f:"The relative href survives the downloaded-folder case because the summary&rsquo;s twin ships beside the document&rsquo;s."},
+   {n:"Sofia",g:"B",f:"English-only labels for now &mdash; the chrome translation pass owes these two strings in 32 languages."}
+  ],
+  next:"Chrome translations for the two door labels; the locale-aware summary href once the standalone translations are wired to the doors."
  }
 ];
 
@@ -19890,7 +19925,7 @@ L(280,"exec.close","exec r1.002 &mdash; the Executive Summary&rsquo;s close: the
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7163271";
+const DL_BYTES = "7166960";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
