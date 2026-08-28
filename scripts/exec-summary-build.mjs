@@ -65,13 +65,25 @@ for (const key of Object.keys(EN)) {
 }
 /* REL and SHA are deliberately NOT kNN keys — they never enter a translation file,
    so they cannot drift per language and no translator is ever asked to render them. */
-h = h.split('{{REL}}').join(REL).split('{{VER}}').join(VER).split('{{SHA}}').join(SHA);
+h = h.split('{{REL}}').join(REL).split('{{VER}}').join(VER).split('{{SHA}}').join(SHA).split('{{DLHREF}}').join('download/' + (lang === 'en' ? 'vision-2525-executive-summary.html' : `vision-2525-executive-summary.${lang}.html`));
 
 // <html lang=en> -> <html lang=xx [dir=rtl]>
 h = h.replace('<html lang=en>', `<html lang=${lang}${RTL.has(lang) ? ' dir=rtl' : ''}>`);
 
-const OUT = `frontend/public/whitepaper/vision-2525-executive-summary.${lang}.html`;
+/* en is the base page, not a sibling — writing it directly removes the rename
+   step every caller used to need (and once forgot). */
+const BASE = lang === 'en'
+  ? 'vision-2525-executive-summary.html'
+  : `vision-2525-executive-summary.${lang}.html`;
+const OUT = `frontend/public/whitepaper/${BASE}`;
 fs.writeFileSync(OUT, h);
+/* exec r1.007 · the download twin. Same bytes at /whitepaper/download/<same name>,
+   which _headers serves with Content-Disposition: attachment — the one mechanism
+   every browser honours (the HTML download attribute is unreliable on iOS Safari,
+   which is where the operator reads). Byte-identical by construction: one string,
+   two writes. */
+fs.mkdirSync('frontend/public/whitepaper/download', { recursive: true });
+fs.writeFileSync(`frontend/public/whitepaper/download/${BASE}`, h);
 /* Guard: no unresolved token may remain — ANY token, not just kNN. The old pattern
    matched only /\{\{k\d\d\}\}/, so a stray {{REL}} would have shipped in silence. */
 const leftover = (h.match(/\{\{[A-Za-z0-9_]+\}\}/g) || []);

@@ -31,3 +31,12 @@
   Cache-Control: public, max-age=31536000, immutable
   Content-Type: audio/mpeg
   Accept-Ranges: bytes
+
+# exec r1.007 · the Executive Summary's download twins — byte-identical copies of
+# each language's page, forced to SAVE. Same rationale as the living document's
+# download copy above: Content-Disposition is the only mechanism every browser
+# honours; the download attribute is unreliable on iOS Safari.
+/whitepaper/download/*
+  Content-Disposition: attachment
+  Content-Type: text/html; charset=utf-8
+  Cache-Control: no-cache, must-revalidate

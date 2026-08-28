@@ -35,6 +35,9 @@ for (const l of langs) {
     if (!h.includes(`content="${REL}"`)) problems.push('release stamp missing');
     if (!h.includes(SHA12)) problems.push('source hash missing');
     if (/\{\{[A-Za-z0-9_]+\}\}/.test(h)) problems.push('unresolved token');
+    const twin = `frontend/public/whitepaper/download/vision-2525-executive-summary.${l}.html`;
+    if (!fs.existsSync(twin)) problems.push('download twin missing');
+    else if (fs.readFileSync(twin,'utf8') !== h) problems.push('download twin not byte-identical');
   }
   if (problems.length) { console.log(`FAIL  ${l}  ${problems.join(' · ')}`); bad++; }
   else console.log(`ok    ${l}`);
