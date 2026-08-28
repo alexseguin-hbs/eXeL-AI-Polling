@@ -274,8 +274,8 @@ export default function Vision2525Page() {
               /* r143 · the attachment path: Cloudflare serves this one with
                  Content-Disposition, so it saves as an HTML document on every
                  browser instead of relying on the download attribute alone. */
-              href="/whitepaper/SOI_VISION2525_v.18_LIVING_DOCUMENT.html"
-              download="SOI_VISION2525_v.18_LIVING_DOCUMENT.html"
+              href="/whitepaper/SOI_VISION2525_v.19_LIVING_DOCUMENT.html"
+              download="SOI_VISION2525_v.19_LIVING_DOCUMENT.html"
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:border-cyan-400 hover:text-cyan-300"
               style={{ borderColor: "rgba(34,211,238,0.45)", color: CYAN }}
             >
