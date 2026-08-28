@@ -168,7 +168,7 @@ body.study .snt:hover{background:var(--accent-bg)}
 
 /* the study toggle joins the control row, left of the globe */
 h = h.replace('<button id="bLang"',
-  '<button id="bStudy" aria-pressed="false" title="Study mode — select a sentence to see its transliteration and the English phrase">translit</button><button id="bLang"');
+  '<button id="bStudy" aria-pressed="false" title="Study — tap a sentence for its gloss, English, and reference">study</button><button id="bLang"');
 
 /* DRAFT banner under the masthead */
 h = h.replace('</header>\n<div class=wrap>', `</header>
@@ -177,7 +177,7 @@ This is a composed Sumerian translation — meaning, not English spelled in sign
 transliteration is the master and the cuneiform derives from a Unicode-verified sign
 table; the method, sources (ETCSL · ePSD2 · CDLI), grammar conventions and flagged
 coinages are stated in <a href="https://github.com/alexseguin-hbs/eXeL-AI-Polling/blob/main/docs/i18n/sum/SUM_METHOD.md">SUM_METHOD</a>.
-Toggle <strong>translit</strong> above, then select any sentence of the running text: its
+The reading sits above every sign. Toggle <strong>study</strong> above, then select any sentence of the running text: its
 transliteration and literal gloss appear on the left, the English master phrase on the
 right. Corrections are wanted — send them as
 <a href="https://github.com/alexseguin-hbs/eXeL-AI-Polling/issues">GitHub issues</a>,
@@ -186,7 +186,7 @@ quoting the English line.</div>\n<div class=wrap>`);
 /* study data + behaviour */
 h = h.replace('</body>', `<script>
 (function(){
-  var D = ${JSON.stringify(D).replace(/</g,'\\u003c')}; /* Thor r1.021: a closing script tag inside a record must not end this script (hence the u003c escape — and no literal tag in this comment either, which is exactly how r1.021 broke itself) */
+  var D = ${JSON.stringify(D).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029')}; /* Thor r1.021: a closing script tag inside a record must not end this script (hence the u003c escape — and no literal tag in this comment either, which is exactly how r1.021 broke itself) */
   var btn = document.getElementById('bStudy');
   if (!btn) return;
   var on = false;
