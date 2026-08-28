@@ -300,9 +300,21 @@ let VMAXCHK=null;
   await p.click('#bSpec');
   const spec=await p.evaluate(()=>({open:!!document.querySelector('.specban'),
     rel:(document.querySelector('.specban .rel')||{}).textContent||'',
+    sub:(document.querySelector('.specban .relsub')||{}).textContent||'',
     rows:document.querySelectorAll('.specban table tr').length-1}));
   if(!spec.open) fails.push('spec panel did not open');
-  if(!/Release\s+\d+/.test(spec.rel)) fails.push('spec panel does not state the release number: '+spec.rel);
+  /* r278 · operator: "STOP INCREASING r0.275 ... YOU NEED TO CHANGE SETTINGS OF version."
+     This assertion encoded the OLD naming law — it demanded /Release \d+/, the raw
+     internal counter, in the one panel a reader opens to ask which release they hold.
+     A release's NAME is its series label. Both are now required, which is STRICTER
+     than what stood here: the panel must state the name a reader reads AND keep the
+     counter the machine depends on visible, so an audit never has to trust a
+     formatter. Demanding only the integer is what let "Release 277" survive
+     thirty-two releases without a single check objecting. */
+  if(!/^r[01]\.\d{3}\b/.test(spec.rel.trim()))
+    fails.push('spec panel does not state the release SERIES label: '+spec.rel);
+  if(!/\b\d{2,}\b/.test(spec.sub))
+    fails.push('spec panel never states the internal release counter — the raw number must stay auditable');
   if(spec.rows<6) fails.push('spec panel has only '+spec.rows+' rows');
   if(await p.evaluate(()=>!document.getElementById('setWrap').hidden))
     fails.push('the Settings drawer stayed open behind the panel it opened');

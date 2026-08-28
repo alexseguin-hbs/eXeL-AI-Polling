@@ -279,6 +279,7 @@ footer.end{border-top:3px solid var(--ink);margin-top:58px;padding-top:22px;font
 .specban h4{margin:0 0 4px;font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--ai)}
 .specban .rel{font-family:ui-monospace,monospace;font-size:clamp(22px,4vw,30px);font-weight:700;
   color:var(--ink);line-height:1.1;margin:0 0 2px}
+.relraw{color:var(--ink-2);font-size:.9em}
 .specban .relsub{font-size:13px;color:var(--ink-2);margin:0 0 14px}
 .specban table{font-size:13.5px}
 .specban .close{float:right;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
@@ -1183,7 +1184,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">277</span></strong>, <strong><span id="dlbytes2">7067045</span> bytes</strong> (<span id="dlsize2">7.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.006</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">278</span>)</span>, <strong><span id="dlbytes2">7072876</span> bytes</strong> (<span id="dlsize2">7.1</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1881,6 +1882,17 @@ function relLabel(n){
   return n >= R1_ORIGIN
     ? "r1." + String(n - R1_ORIGIN + 1).padStart(3, "0")
     : "r0." + String(n).padStart(3, "0");
+}
+/* r278 · operator: "STOP INCREASING r0.275 ... everything from here on out starts
+   on Version 19 and gets added to revision 1.001 and higher." The stamp strings in
+   VERSIONS are append-only DATA — 277 of them, written at the time, and rewriting
+   one would be the very thing this document forbids. So the correction is at the
+   DISPLAY layer, where it belongs: a stamp is rendered with its raw revision number
+   swapped for the series label the release actually carries. The stored string is
+   untouched; replay, every state hash and the gate still read what was written. */
+function relStamp(V){
+  return String(V.stamp).replace(/(?:&middot;\s*)?\b(?:revision|release)\s*(\d+)/i,
+    function(_, n){ return "&middot; " + relLabel(parseInt(n, 10)); });
 }
 /* operator 2026-08-21: Compare opens on THIS version vs the LAST version — v.19 (newest)
    against v.18 (the release before it). When those two share identical content (a chrome-
@@ -7121,6 +7133,27 @@ const VERSIONS = [
    {n:"Enlil",g:"B+",f:"Correct, and late. The label shipped at r246 and this surface was never walked; thirty releases read the wrong name before an operator had to ask."}
   ],
   next:"The two Supabase secrets, so the deploy gate stops refusing and the site can serve what is on main; then the last five translations from the frozen English."
+ },
+ { v:278, code:"THE VERSION SETTINGS READ THE SERIES, NOT THE COUNTER",
+  stamp:"2026.08.28 &middot; revision 278",
+  thrust:"Operator, twice, in capitals: &lsquo;STOP INCREASING r0.275 &hellip; everything from here on out starts on Version 19 and gets added to revision 1.001 and higher&rsquo;, and &lsquo;YOU NEED TO CHANGE SETTINGS OF version&rsquo;. He was pointing at Settings &rarr; Architecture &amp; release, which printed the raw internal counter in three places at once: a headline reading &lsquo;Release 277&rsquo;, a sub-line reading &lsquo;latest of 277&rsquo;, and a This-copy row reading &lsquo;v.19 &middot; release 277&rsquo;. Nowhere in that panel did the release say the name it actually carries. r277 taught the stepper and the disclosure to speak the series label and stopped there; this teaches the panel, the download note and the stamp line, and adds relStamp() so a stored stamp string renders as its series label without a stored byte changing. The raw counter survives as the machine stamp the gate checks and as a tooltip, because replay, every state hash and the release ledger still speak integers. Display layer only. No ledger block moved; totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"The operator asked the twelve why something this trivial was being blocked, and the finding is not flattering. Nothing was blocking it. r246 introduced a name, and every surface that already printed a number was left printing a number &mdash; not by decision, but because nobody enumerated the surfaces. Then r277 fixed two of them and I reported the naming as done, which is how a partial fix becomes a false all-clear: I mistook the two I had touched for the set. The panel the operator was actually reading is the one called SETTINGS, and he said the word twice. The deeper failure is that a display formatter cannot be tested by its own absence &mdash; a gate can prove a label is wrong, but not that a label is missing, so thirty-two releases printed the counter and no check ever objected. That is the lesson worth keeping: when a naming rule is introduced, walk every surface that names the thing and write the enumeration down, because the next person to trust &lsquo;it reads the label now&rsquo; will be me.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Sofia",g:"A",f:"One name, every surface, at last. A reader is never again asked to translate 277 into r1.006 in their head."},
+   {n:"Enlil",g:"C",f:"Blunt: nothing blocked this. The work was four string edits. What blocked it was never listing the surfaces, so each fix looked complete from inside itself."},
+   {n:"Krishna",g:"B",f:"r277 and r278 are one change split across two releases because the first was scoped by what I had noticed rather than by what names a release. Integration failure, not implementation failure."},
+   {n:"Thoth",g:"A",f:"Display only. relStamp rewrites nothing stored &mdash; 278 stamp strings byte-identical, every hash unchanged, dlrel2 still equals VMAX for the gate."},
+   {n:"Odin",g:"A",f:"The label is now DERIVED from VMAX at runtime rather than typed, so it cannot drift at the next release the way the counter silently did at this one."},
+   {n:"Thor",g:"B+",f:"The raw counter is demoted, not hidden. A number the machine depends on must stay readable, or the next audit has to trust a formatter."},
+   {n:"Athena",g:"B",f:"The right sequence was: introduce the name, enumerate its surfaces, then ship. We shipped the name and discovered the surfaces one operator complaint at a time."},
+   {n:"Aset",g:"A",f:"Consistency restored across masthead, stepper, disclosure, panel and download note &mdash; the five places a release is named."},
+   {n:"Asar",g:"B+",f:"The outcome is correct and the route to it was three releases long. Correct still counts; the route is the finding."},
+   {n:"Christo",g:"A",f:"The operator had to ask twice, in capitals, for something trivial. That is the measure that matters here, and it is on us rather than on him."},
+   {n:"Enki",g:"A",f:"relStamp handles both wordings, revision and release, so the older stamp strings render correctly without any of them being touched."},
+   {n:"Pangu",g:"B+",f:"The real fix is procedural: a naming rule now ships with the enumeration of its surfaces, or it has not shipped."}
+  ],
+  next:"The word counter takes the bullet law &mdash; &bull; and &middot; stop counting as words &mdash; and the totals are re-fitted forward with real prose in the de-dash manner, not by patching the past."
  }
 ];
 
@@ -19767,7 +19800,7 @@ L(276,"exec.close","r276 &mdash; the Executive Summary&rsquo;s close: the ten-li
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7067045";
+const DL_BYTES = "7072876";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21113,13 +21146,13 @@ function renderSpecBanner(){
   host.innerHTML =
     '<div class="specban"><button class="close" id="specClose">close &times;</button>' +
     '<h4>Document architecture &amp; release</h4>' +
-    '<p class="rel">Release ' + V.v + ' &nbsp;<span style="font-size:.5em;letter-spacing:.12em;' +
+    '<p class="rel" title="internal release counter ' + V.v + '">' + relLabel(V.v) + ' &nbsp;<span style="font-size:.5em;letter-spacing:.12em;' +
       'text-transform:uppercase;color:var(--ai);vertical-align:middle">' + V.code + '</span></p>' +
-    '<p class="relsub">' + V.stamp.replace("&middot; release " + V.v, "") + ' &middot; ' +
-      T.h1 + ' &middot; ' + (active === VMAX ? 'latest of ' + VMAX : 'historical, latest is v' + VMAX) + '</p>' +
+    '<p class="relsub">' + relStamp(V) + ' &middot; ' +
+      T.h1 + ' &middot; ' + (active === VMAX ? 'latest of ' + VMAX + ' releases' : 'historical &mdash; latest is ' + relLabel(VMAX)) + '</p>' +
     '<div class="scroll"><table>' +
     '<tr><th>Property</th><th>This document</th></tr>' +
-    '<tr><td>This copy</td><td>v.19 &middot; release ' + VMAX + ' &middot; ' + DL_BYTES + ' bytes. The site serves these same bytes and no others; nothing is cached &mdash; the download on the main deck is revalidated on every request.</td></tr>' +
+    '<tr><td>This copy</td><td>v.19 &middot; ' + relLabel(VMAX) + ' &middot; ' + DL_BYTES + ' bytes. The site serves these same bytes and no others; nothing is cached &mdash; the download on the main deck is revalidated on every request.</td></tr>' +
     '<tr><td>Model</td><td>Append-only ledger. Nothing stored; every release reconstructed by ' +
       '<code>replay(v, order)</code>, a pure function &mdash; no clock, no randomness, no hidden state.</td></tr>' +
     /* r79: this row printed the count of ALL views and then listed three of them.
@@ -22018,6 +22051,11 @@ function renderReview(){
     document.getElementById("review").insertAdjacentHTML("beforeend", ph);
   }
 
+  /* r278 · the series label is DERIVED, never typed. dlrel2 stays the machine stamp
+     the gate checks against VMAX; this is the name a reader reads, and it cannot
+     drift from the counter because it is computed from it. */
+  const relSer = document.getElementById("dlrelser");
+  if (relSer) relSer.textContent = relLabel(VMAX);
   const relBtn = document.getElementById("bRelAll"), relBox = document.getElementById("relAll");
   if (relBtn && relBox){
     relBtn.addEventListener("click", function(){
