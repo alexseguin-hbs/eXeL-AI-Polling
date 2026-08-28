@@ -130,6 +130,13 @@ export default function Vision2525Page() {
             <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: GOLD }}>
               Enter the framework <ArrowRight className="h-4 w-4" />
             </Link>
+            {/* Operator: "remember executive summary must be here" — the summary is the
+                framework's companion reading, so its door stands beside the framework's.
+                Static sibling page, same file the living document's pill and Settings
+                door open, so every route lands on the one summary. */}
+            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+              Executive Summary
+            </a>
             <a href="#worlds" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
               Explore the worlds
             </a>
