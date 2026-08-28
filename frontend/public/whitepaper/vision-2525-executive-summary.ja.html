@@ -1,9 +1,9 @@
-<!doctype html><html lang=ja><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.013"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 人類へのエグゼクティブ・サマリー</title>
+<!doctype html><html lang=ja><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.014"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 人類へのエグゼクティブ・サマリー</title>
 <link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
 <link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0B6E73;--accent-bg:#E3F0F3;--plate:#111719;--plate-ink:#E9ECE7}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--accent-bg:#062227;--plate:#080C0D}}
-:root[data-theme=dark]{--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--accent-bg:#062227;--plate:#080C0D}
+<style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0B6E73;--accent-bg:#E3F0F3;--hi:#7A2C8C;--hi-bg:#F1E6F4;--plate:#111719;--plate-ink:#E9ECE7}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--accent-bg:#062227;--hi:#D18BE0;--hi-bg:#1E1125;--plate:#080C0D}}
+:root[data-theme=dark]{--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--accent-bg:#062227;--hi:#D18BE0;--hi-bg:#1E1125;--plate:#080C0D}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Spectral",Georgia,serif;font-size:18px;line-height:1.64;-webkit-font-smoothing:antialiased}
 .wrap{max-width:42rem;margin:0 auto;padding:0 1.4rem 5rem}header.mast{max-width:42rem;margin:0 auto;padding:2.2rem 1.4rem 1.1rem;text-align:center}
 /* exec r1.003 · operator: "when executive summary is clicked I dont want to see all the
@@ -53,16 +53,25 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
 .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* exec r1.007 · download, beside the globe. The href is the language's own
    twin under download/, which _headers forces to save rather than render. */
+/* exec r1.014 · operator: "notice globe standard for language and dropdown standard."
+   The controls now carry the living document's deck grammar rather than this page's own
+   pills: the globe is ICON-ONLY (no code label) with the deck's exact globe drawing at
+   16px stroke-2, in the deck-button chrome — 1px rule border, 3px radius (9px in dark,
+   as the document does it), 31px control height, accent on hover and while the menu is
+   open; the download is the deck's #bDL — HI-violet border, 8px radius, hi-bg on hover. */
 .rgroup{display:inline-flex;align-items:center;gap:.5rem;position:relative}
-.dl{display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;
-  color:var(--ink);border:1px solid var(--line);border-radius:999px;text-decoration:none}
-.dl:hover{color:var(--accent);border-color:var(--accent)}
+.dl{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-height:31px;
+  box-sizing:border-box;padding:6px 10px;border:1px solid var(--hi);border-radius:8px;
+  color:var(--hi);text-decoration:none}
+.dl:hover{background:var(--hi-bg)}
 .dl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.langwrap>button{display:flex;align-items:center;gap:.4rem;background:var(--raise);color:var(--ink);
-  border:1px solid var(--line);border-radius:999px;padding:.5rem .8rem;cursor:pointer;font:inherit;
-  font-size:.82rem;font-family:"IBM Plex Mono",monospace;letter-spacing:.06em}
-.langwrap>button:hover{border-color:var(--accent);color:var(--accent)}
-.langwrap>button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#bLang{display:inline-flex;align-items:center;justify-content:center;min-height:31px;
+  box-sizing:border-box;font-size:12px;padding:5px 10px;border:1px solid var(--line);
+  background:var(--raise);color:var(--ink);border-radius:3px;cursor:pointer;line-height:1.4}
+#bLang:hover,#bLang[aria-expanded=true]{border-color:var(--accent);color:var(--accent)}
+#bLang:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) #bLang{border-radius:9px}}
+:root[data-theme=dark] #bLang{border-radius:9px}
 /* exec r1.013 · operator: "same here for drop down; never recreate what was already
    executed." The r276 lift took the living document's globe LOGIC but redrew its
    panel; this finishes the lift. Every rule below is the living document's .regmenu/
@@ -89,7 +98,7 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
 #langMenu .sux-note{margin:2px 8px 8px;font:400 11px/1.45 ui-sans-serif,system-ui,sans-serif;color:var(--soft)}
 @media print{.langwrap{display:none}}
 </style></head><body>
-<div class="langwrap"><a class="back" href="vision-2525.html" title="Back to the Vision • 2525 living document">&larr;&nbsp;Vision • 2525</a><span class="rgroup"><a class="dl" href="download/vision-2525-executive-summary.ja.html" title="Download this page as HTML" aria-label="Download this page as HTML"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a><button id="bLang" aria-expanded="false" aria-haspopup="menu" title="Language — read this summary in another tongue" aria-label="Language"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg><span id="bLangCode">EN</span></button><div id="langMenu" role="menu" hidden></div></span></div>
+<div class="langwrap"><a class="back" href="vision-2525.html" title="Back to the Vision • 2525 living document">&larr;&nbsp;Vision • 2525</a><span class="rgroup"><a class="dl" href="download/vision-2525-executive-summary.ja.html" title="Download this page as HTML" aria-label="Download this page as HTML"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a><button id="bLang" aria-expanded="false" aria-haspopup="menu" title="Language — read this summary in another tongue" aria-label="Language"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 4 6 4 9s-1.4 6.3-4 9c-2.6-2.7-4-6-4-9s1.4-6.3 4-9z"/></svg></button><div id="langMenu" role="menu" hidden></div></span></div>
 <header class=mast><p class=kick>人類へのエグゼクティブ・サマリー</p><h1>Vision • 2525</h1><p class=subt>人類の協調フレームワーク</p></header>
 <div class=wrap><article><header class=ph><span class=pn>序文</span></header><h2>人間の生の尺度</h2><p>あらゆる文明は思考から始まる。法が書かれ、橋が架けられ、機械が作られ、未来が変えられるその前に、誰かがまだ存在しないものを想像している。思考は意図となる。意図は行動となる。行動は時間へと入っていくが、時間は誰ひとり取り戻すことのできない唯一の資源である。Vision • 2525 はそこから始まる。テクノロジーからでも、金からでも、政府からでも、人工知能からでもなく、人類と、あらゆる人間の生がその中を生きる時間から始まるのだ。気づき、意図、時間、行動、帰結、学習をつなぐ修練を、私たちは思考修練と呼ぶ。その修練を実践し続ける責任を引き受けた人は、思考修練者となる。思考の司とは、その実践の背後にある責任を名づけたものである。それは人類の上に置かれた玉座でもなければ、知的優越の主張でもない。それは人類の内側からの招きである。すなわち、自分が何を考えているかに気づき、自分が何を作っているかを理解し、そこから生じるものへの責任を持ち続け、証拠が自分の知を変えたときにはそれを認め、そして自分が経験したことから別の人が学べるだけの真実を残すこと。</p><p>だからこそ時間計測が重要なのだ。時計は実際に経過したものを記録する。人間知能は、その時間を通じてどのような適格認定された貢献が生まれたかを記録する。この二つは決して混同されてはならない。基礎となる HI 単位は人間の一時間に係留されうる一方で、適格認定された貢献は明示的な倍率を通じてより大きな価値を認められる。実際の時間はあくまで実際の時間である。承認はあくまで承認である。決済はあくまで決済である。フレームワークはそれらを分離し、どれひとつとして別のものにひそかに成りすませないようにする。この修練は外へと広がっていく。ポーリングは工学的真理ではない。シミュレーションは現実ではない。人工知能は人間の権威ではない。金は主権ではない。経験は検証ではない。自信は適格認定ではない。思考修練は、権力が混同の中に隠れられなくなるほど明晰に区別を見ることから始まる。</p><p>Vision • 2525 はこの修練を 2525 へと運んでいく。今日の誰かが五世紀を予測できるからではなく、責任は確実性よりも遠くへ届きうるからである。人類が築くものは、何が起きたか、何が変わったか、なぜ変わったか、どんな証拠が存在したか、何が学ばれたかを保存すべきである。未来の世代が受け継ぐべきものは、結論だけではない。彼らは結論を問い直す能力をも受け継ぐべきである。それが文明規模の思考修練である。すなわち、行動の前に気づきを、自信の前に証拠を、テクノロジーの前に人類を、そして時間を貫いて運ばれる学習を。私たちは、気づいていないものを修めることはできない。私たちは、測ることを拒むものを改善することはできない。すべての世代が一からやり直さねばならないなら、私たちは信頼に足る未来を築くことはできない。</p></article>
 <article><header class=ph><span class=pn>01</span></header><h2>時間 • 最初の共通の尺度</h2><p>人はそれぞれ異なるかたちで生に入ってくる。地理、言語、家族、富、機会、健康、教育、境遇は、初めから不平等である。Vision • 2525 はそうでないふりをしない。それはもっと単純なことから始める。すなわち、あらゆる人間の生は時間の中で展開するということから。Austin で生きられた一分と Phnom Penh で生きられた一分は、経済が労働を異なって評価するときでさえ、同じ長さを含んでいる。時間計測はその長さを正直に記録する。それは、どの一時間も同一の仕事を生み、同一の貢献を生み、同一の品物を買えると主張するものではない。それは、地理だけが人間の生や人間の努力が見えるものになるかどうかを決めることを許さずに、貢献が理解されうる共通の基準点を確立する。時間は、境遇が共有されているふりをすることなく、共有された尺度を提供する。この区別が重要なのは、持続時間の平等が、機会、貢献、必要、困難、帰結の平等を意味しないからである。</p><p data-source="SOI_VISION2525_v.19_LIVING_DOCUMENT.html">この区別が HI アーキテクチャを生む。基礎単位は一時間に係留されるが、HI は経過時間と同一ではない。実際の時間は別個に記録され続ける。適格認定された貢献は、HI earned = M × hours と表される透明な倍率を受け取ることができるが、時計は変わらないままである。適格認定された貢献が百 HI を超えるものを生んだときでも、百の実時間は百時間のままである。年間 9,999 HI という境界は、フレームワークの運用方針のもとで承認された貢献を測るものであり、誰かが 9,999 時間働くという主張ではない。時間計測は時計を守る。HI は適格認定された貢献を承認する。ローカルな決済は、適格な価値を合法的な経済的現実へと変換する。これらの層が分離されたままであるのは、それぞれが異なる問いに答えるからである。</p><p>これは会計以上のものである。それは人間の尊厳を表現している。時間は貢献を誇張するために膨らまされるべきではなく、貢献は、それを提供する人がより貧しい土地に住んでいるからといって消えるべきではない。金は、誰かが与えたものの歴史的記録を書き換えるべきではない。思考修練者は、似て見えるが異なる意味を持つものを見分けることを学ぶ。時間は持続を測る。HI は適格認定された貢献を承認する。決済は経済的価値を扱う。Replay は起きたことを保存する。これらの区別が見えるようになったとき、人類は共通言語を得る。人々はそれを通じて、富、国籍、肩書き、地理、権力への回路にまず還元されることなく、それぞれ異なるかたちで貢献できる。ゆえに、思考修練の最初の道具は機械ではない。それは人間の時間の正直な計測である。</p></article>
@@ -128,9 +137,7 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
   }
   var btn = document.getElementById("bLang");
   var menu = document.getElementById("langMenu");
-  var codeEl = document.getElementById("bLangCode");
   if (!btn || !menu) return;
-  codeEl.textContent = cur().toUpperCase();
   function row(l, ready, note){
     return '<button role="menuitem" data-lang="' + l.c + '"' + (ready ? '' : ' disabled') +
       (l.c === cur() ? ' aria-current="true"' : '') + '>' +
