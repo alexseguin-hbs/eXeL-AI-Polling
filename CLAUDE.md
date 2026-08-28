@@ -51,6 +51,13 @@
   `prefers-color-scheme` on these pages; never default to light; stamp `data-theme` before first paint
   so there is no flash; when storage is unreadable (downloaded `file://` copies), fall back to dark.
   Implemented: living document (`v2525.ground` init) · Executive Summary (exec r1.016 head script).
+- **ONE MASTER FOR THE EXECUTIVE SUMMARY (operator 2026-08-28).** The single source of the summary's text is
+  `docs/i18n/exec-summary.en.json` (frozen, SHA-locked). Every carrier derives from it: the standalone page +
+  32 translations (built from it), and the living document's `exec.*` ledger blocks (the toggle's fourth
+  reading). **A new edition = update the master → re-freeze → rebuild the pages → APPEND superseding
+  `exec.*` ledger blocks.** Never edit one carrier alone. Proof: `node scripts/exec-summary-one-master.mjs`
+  fails on any drift (master hash, 70 body keys verbatim in the ledger, ±2% word parity) — run it whenever
+  either carrier is touched. Its first run caught a real drift (k69 missing from the ledger close; fixed r284).
 
 ## Release Process (Mandatory)
 
