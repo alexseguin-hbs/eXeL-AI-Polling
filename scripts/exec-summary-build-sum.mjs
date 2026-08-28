@@ -73,6 +73,7 @@ const PLAIN = new Set(['k00', 'k69', 'k70']);
 const html = {};
 for (const k of Object.keys(EN)) {
   if (k === 'k00') { html.k00 = 'Vision • 2525 — 𒅴𒂠 Executive Summary · Sumerian draft'; continue; }
+  if (!Array.isArray(SUM[k])) continue; /* missing keys are reported by the completeness check, not a TypeError */
   if (PLAIN.has(k)) { html[k] = SUM[k].map(r => cune(r.t, true)).join(' '); continue; }
   html[k] = SUM[k].map(r => {
     const i = D.push({ t: r.t, e: r.e, g: r.g }) - 1;
