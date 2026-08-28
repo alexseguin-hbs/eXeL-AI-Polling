@@ -92,7 +92,15 @@ function cune(t, plain) {
 /* Build per-key HTML: every sentence is a tappable span carrying its index into
    the study data. Plain keys (title, image alt, caption) carry no markup. */
 const D = [];          // study data: [{r, t, e, g}] — r = page.paragraph.sentence
-const PLAIN = new Set(['k00', 'k69', 'k70']);
+/* k00 is the <title> (browser tab) and k70 is the seal image's alt attribute —
+   both must stay reading-free plain glyphs (ruby markup cannot live in either). */
+const PLAIN = new Set(['k00', 'k70']);
+/* r1.030 · operator: "is there transliteration mode throughout?" The seal caption
+   (k69, the author line under the eagle) was plain — the one visible phrase with no
+   reading above its signs. It renders ruby now like everything else, but WITHOUT the
+   tappable .snt wrapper, because it sits inside the author link and a study-card tap
+   there would fight the navigation. Readings above; no card. */
+const RUBY_ONLY = new Set(['k69']);
 /* operator: "section out work in smaller chunks page.paragraph.sentence number first —
    00.01.01 page 0 preamble paragraph 1 sentence 1 … 12.03.06". Every sentence carries
    an addressable reference so a reviewer can cite one chunk exactly. */
@@ -116,6 +124,7 @@ for (const k of Object.keys(EN)) {
   if (k === 'k00') { html.k00 = 'Vision • 2525 — 𒅴𒂠 Executive Summary · Sumerian draft'; continue; }
   if (!Array.isArray(SUM[k])) continue; /* missing keys are reported by the completeness check, not a TypeError */
   if (PLAIN.has(k)) { html[k] = SUM[k].map(r => cune(r.t, true)).join(' '); continue; }
+  if (RUBY_ONLY.has(k)) { html[k] = SUM[k].map(r => cune(r.t)).join(' '); continue; }
   html[k] = SUM[k].map(r => {
     const i = D.push({ r: refFor(k, SUM[k].indexOf(r)), t: r.t, e: r.e, g: r.g }) - 1;
     return `<span class="snt" data-i="${i}">${cune(r.t)}</span>`;
