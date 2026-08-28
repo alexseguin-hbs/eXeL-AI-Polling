@@ -124,22 +124,19 @@ export default function Vision2525Page() {
             <p className="max-w-xl text-sm text-slate-400">Preparing AI to serve humanity — coordinate, amplify, and advance civilization while preserving the dignity of every person.</p>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            {/* Operator: "Enter the framework" must open the Vision-2525 White Paper, not
-                the polling console. The polling console keeps its own entry (the Collective
-                Intelligence card -> /dashboard/). */}
-            <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: GOLD }}>
-              Enter the framework <ArrowRight className="h-4 w-4" />
+            {/* Operator (2026-08-28, with the live hero screenshot): the hero carries the
+                same two doors as the Vision-2525 masthead, reversed to lead with the
+                summary — "Executive Summary" (gold, was Enter the framework's slot) and
+                "Detailed Framework" (outline, opens the White Paper). "Explore the
+                worlds" left the row on his instruction; the worlds section itself is
+                unchanged below. Both doors open the same pages every other route opens,
+                so none of the four summary doors can drift. */}
+            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.03]" style={{ background: GOLD }}>
+              Executive Summary <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link href="/vision-2525/white-paper/" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
+              Detailed Framework
             </Link>
-            {/* Operator: "remember executive summary must be here" — the summary is the
-                framework's companion reading, so its door stands beside the framework's.
-                Static sibling page, same file the living document's pill and Settings
-                door open, so every route lands on the one summary. */}
-            <a href="/whitepaper/vision-2525-executive-summary.html" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
-              Executive Summary
-            </a>
-            <a href="#worlds" className="inline-flex items-center gap-2 rounded-full border border-slate-600 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300">
-              Explore the worlds
-            </a>
           </div>
         </section>
 
