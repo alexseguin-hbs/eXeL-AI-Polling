@@ -937,6 +937,10 @@ body.paged.notfirst #viewban{display:none}
    already uses, applied to the view rather than to the cell.
    #viewban is deliberately NOT hidden: it carries the honest "this view did not
    exist yet at this release" message, and a mode must never hide its own limits. */
+/* r286 · operator: "also format Cyan." The standalone summary speaks its accents in
+   the document's AI cyan (exec r1.017); the in-document reading now matches — the
+   opening eyebrow and every section label render cyan, the seal caption stays quiet. */
+body.execview section.blk .bb > .meta:first-child{color:var(--ai);font-weight:700}
 body.execview #cover,
 body.execview header.mast,
 body.execview #howto,
@@ -1207,11 +1211,11 @@ body.qrlead #qrAbout{display:inline-block}
            href resolves against whatever directory this copy was opened from, the
            same idiom v2525LangHref uses, so it works served and from a folder of
            downloaded siblings alike and hard-codes no site path. -->
-      <h5>Executive summary</h5>
+      <h5>Executive Summary</h5>
       <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.013</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">285</span>)</span>, <strong><span id="dlbytes2">7174557</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.014</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">286</span>)</span>, <strong><span id="dlbytes2">7177402</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1511,7 +1515,7 @@ const VIEWS = {
   /* r276 · the Executive Summary is a view like any other, not a payload.
      Its spine is its own, so stepping back before r276 shows the honest
      "this view did not exist yet" banner rather than silently falling back. */
-  exec:    {order: EXEC_ORDER,   label: "Executive summary", hash: "exec", spine: /^exec\./}
+  exec:    {order: EXEC_ORDER,   label: "Executive Summary", hash: "exec", spine: /^exec\./}
 };
 let view = "paper";
 /* The sigil from the Master of Thought Prayer: three rings within one ring.
@@ -7292,6 +7296,20 @@ const VERSIONS = [
    {n:"Odin",g:"B",f:"Watch: any future route into setView that assumes it lands paged must now say so itself."}
   ],
   next:"The SUM (Sumerian) edition ships as its own page; chrome translations for the door pills and toggle label."
+ },
+ { v:286, code:"THE SUMMARY READS AS ITSELF, IN ITS OWN COLOURS",
+  stamp:"2026.08.28 &middot; revision 286",
+  thrust:"Operator, reading the Executive Summary straight through on the toggle: &lsquo;Executive Summary is capitalized and does not need the intro section; also format Cyan.&rsquo; Three corrections, all to the frame rather than the text. The toggle cell and the Settings door now say Executive Summary with both capitals. The Full-document banner &mdash; which describes the white paper&rsquo;s 139 blocks and 321 minutes &mdash; no longer stands above a reading it does not describe; the summary opens with its own head, and the paged this-view-did-not-exist fallback is untouched. And the in-document reading now speaks the same AI cyan the standalone page adopted at exec r1.017: the opening eyebrow and every section label render cyan, the seal caption stays quiet. Chrome only &mdash; no ledger block, replay byte-identical, totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"A reading reached by a second door should be the same reading &mdash; same name, same opening, same colours. The r285 change that let full mode survive the switch exposed exactly where the frame still disagreed with itself, and these three lines close the gap.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Christo",g:"A",f:"Both doors now open the same-looking reading; the banner that described a different document is gone from above this one."},
+   {n:"Aset",g:"A",f:"One accent across both carriers &mdash; the cyan the operator chose for the page now speaks in the view."},
+   {n:"Athena",g:"A",f:"Three scoped changes; the not-exist fallback and every other view&rsquo;s banner untouched."},
+   {n:"Enki",g:"B+",f:"Edge kept honest: paged exec still shows the fallback banner when a pre-r276 release is replayed."},
+   {n:"Odin",g:"B+",f:"The straight-branch early return is the pattern for any future view that opens with its own head."}
+  ],
+  next:"Formal gate over r285+r286 on a quiet box; MoT synthesis of the 48-fleet; chrome translations."
  }
 ];
 
@@ -19968,7 +19986,7 @@ L(284,"exec.close","ONE MASTER (operator: &lsquo;make sure there is one master f
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7174557";
+const DL_BYTES = "7177402";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -21384,6 +21402,11 @@ function renderViewBanner(){
   };
 
   if (straight){
+    /* r286 · operator, reading the Executive Summary straight through: it "does not
+       need the intro section." The Full-document banner describes the WHITE PAPER
+       (139 blocks, ~321 minutes) — above the summary it is both wrong and noise; the
+       summary opens with its own head. The paged not-exist fallback is untouched. */
+    if (view === "exec"){ host.innerHTML = ""; return; }
     /* r130 · defect 45: this banner claimed every block from every order while
        the straight branch rendered the paper alone. It now describes what is
        actually rendered — the complete white paper — and computes from it. */
