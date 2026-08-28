@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Humanity Innovation Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#F4F6F4; --raise:#FFFFFF; --ink:#13181B; --ink-soft:#525a5e; --faint:#7b8388;
+    --line:#Dcdfda; --line-soft:#E7E9E4;
+    --accent:#0B6E73; --accent-soft:#0b6e731a;
+    --si:#B14A6C; --hi:#9C7016; --ai:#0E7C83;
+    --plate:#111719; --plate-ink:#E9ECE7; --plate-soft:#9aa4a3; --plate-line:#2b3436;
+    --shadow:0 1px 2px #13181b0a, 0 8px 30px #13181b0d;
+  }
+  :root:not([data-theme="light"]){ }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0C1113; --raise:#121A1D; --ink:#E7ECE9; --ink-soft:#A7B0AE; --faint:#78827f;
+      --line:#242d2f; --line-soft:#1c2426;
+      --accent:#42B4B8; --accent-soft:#42b4b81f;
+      --si:#DE7E9C; --hi:#D4A63E; --ai:#54BFC4;
+      --plate:#080C0D; --plate-ink:#E9ECE7; --plate-soft:#8b9694; --plate-line:#20292b;
+      --shadow:0 1px 2px #0006, 0 10px 34px #0004;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0C1113; --raise:#121A1D; --ink:#E7ECE9; --ink-soft:#A7B0AE; --faint:#78827f;
+    --line:#242d2f; --line-soft:#1c2426;
+    --accent:#42B4B8; --accent-soft:#42b4b81f;
+    --si:#DE7E9C; --hi:#D4A63E; --ai:#54BFC4;
+    --plate:#080C0D; --plate-ink:#E9ECE7; --plate-soft:#8b9694; --plate-line:#20292b;
+    --shadow:0 1px 2px #0006, 0 10px 34px #0004;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Spectral", Georgia, serif; font-weight:400;
+    font-size:19px; line-height:1.66; letter-spacing:.002em;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:44rem; margin:0 auto; padding:0 1.5rem 8rem; }
+  @media (max-width:640px){ body{ font-size:18px; } .wrap{ padding:0 1.2rem 5rem; } }
+
+  /* ---- masthead ---- */
+  header.mast{ max-width:44rem; margin:0 auto; padding:5.5rem 1.5rem 2.5rem; }
+  @media (max-width:640px){ header.mast{ padding:3.5rem 1.2rem 2rem; } }
+  .kicker{
+    font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:.72rem; font-weight:500;
+    letter-spacing:.28em; text-transform:uppercase; color:var(--accent); margin:0 0 1.4rem;
+  }
+  h1.title{
+    font-family:"Fraunces", Georgia, serif; font-optical-sizing:auto;
+    font-weight:900; font-size:clamp(2.7rem,8vw,4.5rem); line-height:.98; letter-spacing:-.02em;
+    margin:0 0 1.1rem; text-wrap:balance;
+  }
+  .title .thin{ font-weight:400; font-style:italic; }
+  .standfirst{
+    font-size:1.22rem; line-height:1.5; color:var(--ink-soft); font-weight:300;
+    margin:0 0 2rem; max-width:34rem; text-wrap:pretty;
+  }
+  .metabar{
+    display:flex; flex-wrap:wrap; gap:.5rem 1.4rem; align-items:center;
+    padding-top:1.4rem; border-top:1px solid var(--line);
+    font-family:"IBM Plex Mono", monospace; font-size:.74rem; letter-spacing:.04em; color:var(--faint);
+  }
+  .metabar b{ color:var(--ink-soft); font-weight:500; }
+  .seal{
+    display:inline-flex; align-items:center; gap:.45rem; color:var(--accent);
+    border:1px solid var(--accent); border-radius:2rem; padding:.2rem .7rem; letter-spacing:.16em;
+  }
+
+  /* ---- structure ---- */
+  section{ margin-top:3.6rem; }
+  .sec-no{
+    font-family:"IBM Plex Mono", monospace; font-size:.72rem; letter-spacing:.24em;
+    text-transform:uppercase; color:var(--faint); display:block; margin-bottom:.5rem;
+  }
+  h2{
+    font-family:"Fraunces", Georgia, serif; font-weight:600; font-optical-sizing:auto;
+    font-size:clamp(1.7rem,4.5vw,2.3rem); line-height:1.08; letter-spacing:-.015em;
+    margin:.1rem 0 1.1rem; text-wrap:balance;
+  }
+  h3{
+    font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:1.16rem;
+    letter-spacing:-.01em; margin:2.2rem 0 .5rem;
+  }
+  p{ margin:0 0 1.15rem; text-wrap:pretty; }
+  .lede::first-letter{
+    font-family:"Fraunces", Georgia, serif; font-weight:900; float:left; font-size:3.4rem;
+    line-height:.76; padding:.35rem .55rem 0 0; color:var(--accent);
+  }
+  em{ font-style:italic; }
+  strong{ font-weight:500; color:var(--ink); }
+  a{ color:var(--accent); }
+  .rule{ height:1px; background:var(--line); border:0; margin:3.6rem 0 0; }
+
+  /* ---- the inscribed plate: the paper's signature device ---- */
+  .plate{
+    background:var(--plate); color:var(--plate-ink); border-radius:.5rem;
+    border:1px solid var(--plate-line); border-left:3px solid var(--accent);
+    padding:1.5rem 1.6rem; margin:1.8rem 0; box-shadow:var(--shadow);
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  .plate .plabel{ font-size:.66rem; letter-spacing:.24em; text-transform:uppercase; color:var(--plate-soft); margin-bottom:.7rem; }
+  .plate .prop{ font-size:1.06rem; line-height:1.5; letter-spacing:-.01em; color:var(--plate-ink); }
+  .plate.center .prop{ text-align:center; font-size:1.14rem; }
+  .plate .prop b{ color:#fff; font-weight:500; }
+  .plate .arrow{ color:var(--accent); }
+
+  /* ---- the recursive loop ---- */
+  .loop{ display:flex; flex-wrap:wrap; gap:.4rem; margin:1.6rem 0 .4rem; align-items:stretch; }
+  .loop .step{
+    font-family:"IBM Plex Mono", monospace; font-size:.8rem; letter-spacing:.01em;
+    background:var(--raise); border:1px solid var(--line); border-radius:.35rem;
+    padding:.4rem .6rem; color:var(--ink-soft); display:flex; align-items:center; gap:.4rem;
+  }
+  .loop .step .n{ color:var(--accent); font-weight:500; }
+  .loop .step.key{ border-color:var(--accent); color:var(--ink); background:var(--accent-soft); }
+  .loopnote{ font-size:.92rem; color:var(--faint); font-style:italic; margin-top:.6rem; }
+
+  /* ---- three intelligences triad ---- */
+  .triad{ display:grid; grid-template-columns:repeat(3,1fr); gap:.9rem; margin:1.8rem 0; }
+  @media (max-width:560px){ .triad{ grid-template-columns:1fr; } }
+  .glyphcard{
+    background:var(--raise); border:1px solid var(--line); border-radius:.6rem; padding:1.2rem 1.1rem;
+    box-shadow:var(--shadow);
+  }
+  .glyphcard .g{ font-size:2rem; line-height:1; display:block; margin-bottom:.55rem; }
+  .glyphcard .gname{ font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); }
+  .glyphcard h4{ font-family:"Fraunces",serif; font-weight:600; font-size:1.15rem; margin:.15rem 0 .5rem; }
+  .glyphcard p{ font-size:.94rem; line-height:1.5; color:var(--ink-soft); margin:0; }
+  .gc-si .g{ color:var(--si); } .gc-hi .g{ color:var(--hi); } .gc-ai .g{ color:var(--ai); }
+  .gc-si{ border-top:2px solid var(--si); } .gc-hi{ border-top:2px solid var(--hi); } .gc-ai{ border-top:2px solid var(--ai); }
+  .authority{
+    border:1px dashed var(--accent); border-radius:.6rem; padding:1.1rem 1.2rem; margin:.4rem 0 0;
+    background:var(--accent-soft);
+  }
+  .authority .gname{ font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); }
+  .authority p{ margin:.35rem 0 0; font-size:.96rem; color:var(--ink); }
+
+  /* ---- proving grounds ---- */
+  .grounds{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.6rem 0; }
+  @media (max-width:560px){ .grounds{ grid-template-columns:1fr; } }
+  .ground{ background:var(--raise); border:1px solid var(--line); border-radius:.6rem; padding:1.2rem 1.2rem; box-shadow:var(--shadow); }
+  .ground .gt{ font-family:"Fraunces",serif; font-weight:600; font-size:1.2rem; margin:0 0 .1rem; }
+  .ground .gs{ font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:.7rem; }
+  .ground ul{ margin:0; padding-left:1.05rem; }
+  .ground li{ font-size:.92rem; line-height:1.45; color:var(--ink-soft); margin-bottom:.25rem; }
+
+  /* ---- invariants list ---- */
+  .inv{ display:grid; gap:.55rem; margin:1.6rem 0; }
+  .inv .row{
+    display:grid; grid-template-columns:1fr auto 1fr; gap:.8rem; align-items:center;
+    font-family:"IBM Plex Mono",monospace; font-size:.86rem;
+    background:var(--raise); border:1px solid var(--line); border-radius:.4rem; padding:.7rem .9rem;
+  }
+  @media (max-width:560px){ .inv .row{ font-size:.78rem; gap:.5rem; } }
+  .inv .neq{ color:var(--si); font-weight:500; }
+  .inv .l{ text-align:right; color:var(--ink); }
+  .inv .r{ text-align:left; color:var(--ink-soft); }
+  .defn{ display:grid; grid-template-columns:auto 1fr; gap:.3rem 1rem; margin:1.4rem 0; font-family:"IBM Plex Mono",monospace; font-size:.9rem; }
+  .defn dt{ color:var(--accent); font-weight:500; }
+  .defn dd{ margin:0; color:var(--ink-soft); }
+
+  /* ---- hypothesis figure ---- */
+  .funnel{ display:flex; align-items:center; justify-content:center; gap:.9rem; margin:1.7rem 0 .6rem; flex-wrap:wrap; }
+  .funnel .n{ font-family:"Fraunces",serif; font-weight:900; font-size:clamp(1.9rem,7vw,3rem); line-height:1; color:var(--ink); }
+  .funnel .n small{ display:block; font-family:"IBM Plex Mono",monospace; font-size:.6rem; font-weight:400; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-top:.4rem; }
+  .funnel .to{ color:var(--accent); font-size:1.6rem; }
+  .funnel .n.end{ color:var(--accent); }
+
+  /* ---- council ---- */
+  .council{ display:flex; flex-wrap:wrap; gap:.4rem; margin:1.2rem 0; }
+  .council span{ font-family:"IBM Plex Mono",monospace; font-size:.74rem; color:var(--ink-soft); border:1px solid var(--line); border-radius:2rem; padding:.2rem .7rem; }
+  .council span.mot{ color:var(--accent); border-color:var(--accent); }
+
+  blockquote{
+    margin:1.8rem 0; padding:.2rem 0 .2rem 1.3rem; border-left:2px solid var(--accent);
+    font-family:"Fraunces",serif; font-weight:400; font-style:italic; font-size:1.28rem; line-height:1.4; color:var(--ink);
+  }
+  blockquote cite{ display:block; font-family:"IBM Plex Mono",monospace; font-style:normal; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin-top:.7rem; }
+
+  footer{ max-width:44rem; margin:4.5rem auto 0; padding:2.2rem 1.5rem; border-top:1px solid var(--line); }
+  .colophon{ font-family:"IBM Plex Mono",monospace; font-size:.74rem; line-height:1.7; color:var(--faint); }
+  .colophon b{ color:var(--ink-soft); font-weight:500; }
+  .motto{ font-family:"Fraunces",serif; font-weight:600; font-size:1.2rem; text-align:center; letter-spacing:.01em; color:var(--ink); margin:0 0 1.6rem; }
+  .motto span{ color:var(--accent); }
+</style>
+</head>
+<body>
+<header class="mast">
+  <p class="kicker">Vision · 2525 — Master of Thought · 1 + 12</p>
+  <h1 class="title">The Humanity<br><span class="thin">Innovation Engine</span></h1>
+  <p class="standfirst">An executive paper on using artificial intelligence to de-risk the path from human imagination to qualified reality — and to keep what was learned.</p>
+  <div class="metabar">
+    <span class="seal">◆ FROZEN</span>
+    <span>Translated from <b>v.19 r1.001</b></span>
+    <span>The North Star · read first</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section id="preface">
+    <span class="sec-no">Preface</span>
+    <h2>It begins with hearts, minds, and spirit</h2>
+    <p class="lede">This system is not, in the end, being built for software, for models, for engineering organisations, or for individual products. It is being built to improve humanity's ability to imagine, coordinate, engineer, learn, and carry qualified knowledge across people, projects, institutions, and generations. Every mechanism that follows exists to serve that, and is answerable to it.</p>
+    <p>Read this paper as the <em>North Star</em>: the mission, the meaning, the principles, the human boundaries, and the hypotheses that any implementation must eventually earn. It is deliberately not a software specification. A concept named here does not oblige a new service, class, schema, API, database, agent, or application into existence. It states the outcome; reality decides the smallest way to reach it.</p>
+    <p>The question underneath the whole document is simple to ask and hard to answer:</p>
+    <div class="plate center">
+      <div class="plabel">The core proposition</div>
+      <div class="prop">Use AI to help de-risk the path from<br><b>human imagination</b> <span class="arrow">→</span> <b>qualified reality</b>.</div>
+    </div>
+    <p>What would it mean for humanity to build an innovation system in which human intelligence, artificial intelligence, and shared intent can move together from a shared intention toward a qualified reality — while preserving what was learned so the next attempt starts further along than the last?</p>
+  </section>
+
+  <section id="loop">
+    <span class="sec-no">§1 · The Recursive Loop</span>
+    <h2>One motion, from need to reusable learning</h2>
+    <p>The engine is a loop, not a pipeline. A human need enters; a qualified outcome and a durable lesson leave; the lesson re-enters the next turn. Each stage produces evidence the next stage can check, and the whole is replayable end to end.</p>
+    <div class="loop">
+      <span class="step"><span class="n">01</span> Human need / intent</span>
+      <span class="step"><span class="n">02</span> Polling</span>
+      <span class="step"><span class="n">03</span> Human disposition</span>
+      <span class="step"><span class="n">04</span> User story</span>
+      <span class="step"><span class="n">05</span> CRS + risk</span>
+      <span class="step"><span class="n">06</span> Estimate</span>
+      <span class="step"><span class="n">07</span> Design</span>
+      <span class="step"><span class="n">08</span> Simulation / test</span>
+      <span class="step"><span class="n">09</span> Human experience</span>
+      <span class="step"><span class="n">10</span> Verification / validation</span>
+      <span class="step key"><span class="n">11</span> Qualification</span>
+      <span class="step"><span class="n">12</span> Prototype / actual</span>
+      <span class="step key"><span class="n">13</span> Replay</span>
+      <span class="step key"><span class="n">14</span> Compare</span>
+      <span class="step key"><span class="n">15</span> Cause</span>
+      <span class="step"><span class="n">16</span> Lesson</span>
+      <span class="step"><span class="n">17</span> Reusable learning</span>
+    </div>
+    <p class="loopnote">The last step is the point of the first. A framework that qualifies outcomes but forgets why they qualified has built a pipeline, not an engine.</p>
+    <p>The loop is where every concept in this paper finds its place: <strong>polling and collective intelligence</strong> read human disposition without mistaking a majority for a fact; <strong>user stories and CRS</strong> turn disposition into stated requirements; <strong>risk and estimates</strong> price the path before it is walked; <strong>3D engineering, simulation, and human experience</strong> let a thing be lived before it is built; <strong>verification and validation</strong> ask, in turn, "did we build it right?" and "did we build the right thing?"; and <strong>qualification</strong> states only what the evidence actually permits.</p>
+  </section>
+
+  <section id="intelligences">
+    <span class="sec-no">§2 · The Three Intelligences</span>
+    <h2>H.I., A.I., and S.I. — one engine, three minds</h2>
+    <p>Vision · 2525 recognises three kinds of contribution and gives each its own instrument. They are siblings, not rivals: each does one thing the others cannot. None of them is money, and none of them is authority.</p>
+    <div class="triad">
+      <div class="glyphcard gc-si">
+        <span class="g">&#9825;</span>
+        <div class="gname">S.I. · Shared Intent</div>
+        <h4>The why</h4>
+        <p>Evidence of voluntary contribution toward a shared purpose — ideas, feedback, mentoring, mission framing. Recorded when a pod of three witnesses that the help landed. Not money; no redemption.</p>
+      </div>
+      <div class="glyphcard gc-hi">
+        <span class="g">&#50883;</span>
+        <div class="gname">H.I. · Human Intelligence</div>
+        <h4>The how</h4>
+        <p>Qualified human contribution, denominated in one hour at the local minimum wage. Compensation follows applicable law; the human hour is the anchor the whole edifice rests on.</p>
+      </div>
+      <div class="glyphcard gc-ai">
+        <span class="g">&#9708;</span>
+        <div class="gname">A.I. · Artificial Intelligence</div>
+        <h4>The leverage</h4>
+        <p>Independently witnessed acceleration against a baseline frozen beforehand. Using a tool does not mint it; a measured, attributed leap does. The tool earns nothing — it can be used, never witnessed.</p>
+      </div>
+    </div>
+    <div class="authority">
+      <div class="gname">웃 Human Authority — above all three</div>
+      <p><strong>Every intelligence may contribute; only a natural person may decide.</strong> Contribution and authority are two different doors. The first is open to humans, machines, and collectives alike, recorded and attributed. The second — the signing of any irreversible act — is reserved to a person who can be asked why, and from whom standing can be taken away. Authority is withheld from non-human intelligence not because it is worth less, but because we do not yet know how to hold it to account.</p>
+    </div>
+    <p>Cash is the blood that moves quietly between them — the settlement rail, not a fourth intelligence — and it never appears until one of the three has made the case for it.</p>
+  </section>
+
+  <section id="invariants">
+    <span class="sec-no">§3 · The Governing Invariants</span>
+    <h2>Distinctions that must never quietly collapse</h2>
+    <p>An innovation engine fails not by getting an answer wrong but by confusing two things that look alike. These separations are load-bearing. They may be challenged in the open; they may never be silently merged.</p>
+    <div class="inv">
+      <div class="row"><span class="l">Polling popularity</span><span class="neq">≠</span><span class="r">engineering truth</span></div>
+      <div class="row"><span class="l">AI proposal</span><span class="neq">≠</span><span class="r">human authority</span></div>
+      <div class="row"><span class="l">Human experience</span><span class="neq">≠</span><span class="r">engineering evidence</span></div>
+      <div class="row"><span class="l">Simulation</span><span class="neq">≠</span><span class="r">reality</span></div>
+      <div class="row"><span class="l">Verification</span><span class="neq">≠</span><span class="r">validation</span></div>
+      <div class="row"><span class="l">Qualification</span><span class="neq">≠</span><span class="r">a successful simulation</span></div>
+      <div class="row"><span class="l">Replay evidence</span><span class="neq">≠</span><span class="r">eligible AI training data</span></div>
+    </div>
+    <p>And four positive definitions the rest of the architecture leans on:</p>
+    <dl class="defn">
+      <dt>Replay</dt><dd>what happened</dd>
+      <dt>Compare</dt><dd>what changed</dd>
+      <dt>Cause</dt><dd>why</dd>
+      <dt>Qualification</dt><dd>what the evidence permits</dd>
+    </dl>
+  </section>
+
+  <section id="rcore">
+    <span class="sec-no">§4 · R-CORE</span>
+    <h2>The recursive evidence-and-learning architecture</h2>
+    <p>R-CORE is the connective tissue between Replay, Compare, Cause, and Qualification — the discipline by which the framework improves <em>itself</em> without ever letting the toolset's autonomy become autonomy over meaning, money, or law. Whether it should exist technically as a service, a logical plane, a set of linked primitives, or projections is precisely the kind of question the engineering challenge must decide; the paper only fixes what it must guarantee.</p>
+    <p>It changes at a cadence earned per unit of work, in three modes:</p>
+    <div class="plate">
+      <div class="plabel">Three modes of change</div>
+      <div class="prop"><b>Manual</b> — a person commits every append.<br><b>Semi-automated</b> — people and AI propose a change with its diff and tests; a person accepts, modifies, or blocks.<br><b>Autonomous</b> — the recursive toolset delivers overnight, but only after tests pass and the work clears the <b>11.1%</b> rule: one-ninth measured improvement on a metric fixed beforehand, fail-closed.</div>
+    </div>
+    <p>Two instruments run before every release and answer two genuinely different questions. A <strong>determinism proof</strong> replays one release many times and shows every read is identical — nothing depends on a clock, a random number, or state left behind. A <strong>spiral test</strong> measures each transition in both directions: forward, the newer release must carry more than the older; backward, the older must still replay byte-for-byte as it always did. Append-only is a claim about the past, and the backward pass is the measurement that either substantiates it or does not.</p>
+    <blockquote>Is the reconstruction trustworthy? Is the document improving? Two separate questions. Neither ever substitutes for the other, and a failure in either stops the release.<cite>R-CORE, on why both instruments exist</cite></blockquote>
+  </section>
+
+  <section id="grounds">
+    <span class="sec-no">§5 · The Two Proving Grounds</span>
+    <h2>Manta and Drone — the same grammar, stressed differently</h2>
+    <p>There are two proving grounds because one is not enough to test the claim. They deliberately stress different dimensions of the same proposed innovation grammar, and neither should be forced into the other's schema or physics.</p>
+    <div class="grounds">
+      <div class="ground">
+        <div class="gt">Manta&nbsp;·&nbsp;2525</div>
+        <div class="gs">Modular physical engineering</div>
+        <ul>
+          <li>Modular physical engineering</li>
+          <li>Risk &amp; interfaces</li>
+          <li>Simulation</li>
+          <li>Prediction vs. actual</li>
+          <li>Qualification</li>
+        </ul>
+      </div>
+      <div class="ground">
+        <div class="gt">Drone&nbsp;·&nbsp;2525</div>
+        <div class="gs">Distributed coordination</div>
+        <ul>
+          <li>Distributed coordination &amp; gaming</li>
+          <li>Simulation &amp; telemetry</li>
+          <li>Human experience</li>
+          <li>Robotics</li>
+          <li>Replay</li>
+        </ul>
+      </div>
+    </div>
+    <p>The objective is not identical systems. It is to find whether the two can share durable primitives — <strong>intent, identity, provenance, requirements, risk, evidence, authority, qualification, replay, learning</strong> — while each keeps its own domain-specific engineering. If the same architecture can serve both only by becoming excessively generic or monolithic, that is itself a finding worth stating plainly.</p>
+  </section>
+
+  <section id="hypothesis">
+    <span class="sec-no">§6 · The Hypothesis</span>
+    <h2>360 → 33 → 11, stated as something that can be wrong</h2>
+    <p>The efficiency claim is written as a <em>falsifiable hypothesis</em>, not a slogan: that a disciplined, evidence-preserving innovation loop can compress the effort of getting from many candidate ideas to a few qualified ones by roughly an order of magnitude — and again.</p>
+    <div class="funnel">
+      <span class="n">360<small>candidates</small></span>
+      <span class="to">→</span>
+      <span class="n">33<small>qualified paths</small></span>
+      <span class="to">→</span>
+      <span class="n end">11<small>proven</small></span>
+    </div>
+    <p>The paper's duty is to state the claim so it can be measured; the engineering challenge's duty is to determine how to measure it <em>without gaming the numbers</em>. A hypothesis that cannot be falsified is not a hypothesis, and an efficiency figure that can be reached by relabelling the inputs proves nothing at all.</p>
+  </section>
+
+  <section id="governance">
+    <span class="sec-no">§7 · The 1 + 12</span>
+    <h2>One responsibility, twelve lenses, and a hard limit on power</h2>
+    <p>The paper is authored by <strong>Master of Thought</strong> and reviewed through twelve enduring lenses — the council that reads every release against strategy, synthesis, diversity, integration, risk, and the rest. One responsibility; twelve ways of seeing; a single record they all answer to.</p>
+    <div class="council">
+      <span class="mot">Master of Thought</span>
+      <span>Aset</span><span>Asar</span><span>Athena</span><span>Christo</span><span>Enki</span><span>Enlil</span><span>Krishna</span><span>Odin</span><span>Pangu</span><span>Sofia</span><span>Thoth</span><span>Thor</span>
+    </div>
+    <p>Above every role sits one immutable article — <strong>Human Primacy of Power</strong>: no entity, corporate, governmental, algorithmic, or aggregated, shall hold governing authority exceeding that of one natural person. An organisation cannot vote; nothing stops it directing a thousand people who can — so its disclosed influence is bounded by one regardless of its size, and undisclosed direction of votes is itself the violation. The distinction between contributing and deciding is the whole architecture compressed into a line.</p>
+    <p>All of it answers to the <strong>Atlantis Accords</strong> principles: citizen funding, with no contribution ever buying governance influence; deliberate independence from any single indispensable channel; open publication inherited by non-signatory regions; and value that reaches a person through qualified local rails, never a fund the system custodies — so an adverse ruling fails one rail closed rather than the whole. Portability is resilience, not evasion: comply locally rather than escape globally.</p>
+  </section>
+
+  <section id="ask">
+    <span class="sec-no">§8 · What We Ask</span>
+    <h2>The North Star does not describe the repository</h2>
+    <p>This paper establishes direction; it does not claim to describe what is currently built. It is deliberately paired with a second document — the <em>Final Architecture Challenge</em> — whose job is the opposite of this one's: to inspect reality, challenge this architecture, and determine the smallest credible implementation capable of proving it.</p>
+    <p>So this paper should be read as inspiration toward coherence, and the challenge as the search for contradiction. The instruction to the engineering intelligence that reads them is exact:</p>
+    <div class="plate">
+      <div class="plabel">The engineering assignment</div>
+      <div class="prop">Inspect <span class="arrow">→</span> Trace <span class="arrow">→</span> Challenge <span class="arrow">→</span> Simplify <span class="arrow">→</span> Test <span class="arrow">→</span> Measure</div>
+    </div>
+    <p>Where existing architecture already provides the required invariant, reuse it. Where a small extension suffices, extend it. Where an abstraction is premature, defer it. Where implementation is needlessly complex, simplify or delete it. Where the vision conflicts with security, privacy, physics, professional responsibility, or sound architecture, name the conflict. And where a decision cannot properly be delegated to a machine, return it to Human Authority.</p>
+    <p>The desired outcome of that exercise is not a larger roadmap. It is greater certainty — about what already works, what the repository actually proves, what the vision currently overstates, what can be reused, what should be deleted, what should not yet be built, the smallest Manta proof, the smallest Drone proof, what could be demonstrated within ninety days, how success will be measured, and what evidence would falsify the whole design.</p>
+    <div class="plate center">
+      <div class="plabel">The relationship, in one line</div>
+      <div class="prop"><b>Vision</b> + <b>Evidence</b> + <b>Challenge</b> + <b>Qualification</b><br><span class="arrow">=</span> trustworthy progress</div>
+    </div>
+    <p>The Executive Paper exists to protect the engineering effort from becoming software without human purpose. The Challenge exists to protect this paper from becoming aspiration without evidence. The vision provides direction; the code provides evidence; the experiment provides truth; and humanity determines what should advance.</p>
+  </section>
+
+  <hr class="rule">
+</div>
+
+<footer>
+  <p class="motto">Honor the Past <span>·</span> Measure the Present <span>·</span> Build the Future</p>
+  <p class="colophon">
+    <b>Vision · 2525 — Humanity Innovation Engine</b><br>
+    Master of Thought · 1 + 12 Executive Paper · <b>FROZEN</b><br>
+    Translated from the living document at <b>v.19 r1.001</b>. This is the first of a paired set; read it as the North Star, then read the Final Architecture Challenge as the engineering assignment.<br>
+    Analysis and architecture only — never advice on legal, tax, or investment matters. No security, token, or investment is offered anywhere in this document; every figure referenced is illustrative of a formula, never a projection of a result.
+  </p>
+</footer>
+</body>
+</html>
