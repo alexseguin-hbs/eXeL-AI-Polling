@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.011",
+  "release": "r1.012",
   "editions": [
     {
       "r": "r1.001",
@@ -61,6 +61,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Finnish lands — 30 of 32 verified. Correction to r1.010's note on the record: ja had already shipped at r1.008; the remainder then was fi vi th, not ja vi th. Remaining now: vi th. Text unchanged."
+    },
+    {
+      "r": "r1.012",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "Headers match the living document. Operator: 'use the same format as vision - 2525 for headers.' The heading grammar is copied from Vision • 2525 rather than approximated — Iowan Old Style serif stack at weight 600 with -.012em tracking, wordmark h1 at clamp(38,8.4vw,66)/1.02 +.02em, section h2 at clamp(20,3.4vw,26)/1.24, eyebrows as 700 11px ui-monospace at .16em; Fraunces retired. Vietnamese also lands — 31 of 32 verified; remaining: th. Text unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."

@@ -1,6 +1,6 @@
-<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.011"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — ملخص تنفيذي إلى البشرية</title>
+<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.012"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — ملخص تنفيذي إلى البشرية</title>
 <link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
-<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0B6E73;--plate:#111719;--plate-ink:#E9ECE7}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--plate:#080C0D}}
 :root[data-theme=dark]{--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--plate:#080C0D}
@@ -13,18 +13,24 @@
    does not need the full between-section rhythm above it. Only the opening is tightened;
    the separation between sections 01-12 is untouched, because that rhythm is the reading. */
 article:first-of-type{margin-top:1.1rem;padding-top:1.3rem}
-.kick{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin:0 0 1.2rem}
-h1{font-family:"Fraunces",serif;font-weight:900;font-size:clamp(2.6rem,9vw,4.4rem);line-height:1;letter-spacing:-.02em;margin:0 0 .6rem;text-wrap:balance}
-.subt{font-family:"Fraunces",serif;font-weight:400;font-style:italic;font-size:1.3rem;color:var(--soft);margin:0}
+/* exec r1.012 · operator: "use the same format as vision - 2525 for headers." The header
+   grammar below is copied from the living document, not approximated: the Iowan Old
+   Style serif stack at weight 600 with -.012em tracking (its global h1-h4 rule), the
+   wordmark h1 at clamp(38px,8.4vw,66px)/1.02 with +.02em (its .mast.wordmark h1), the
+   section h2 at clamp(20px,3.4vw,26px)/1.24, and the .secn eyebrow — 700 11px
+   ui-monospace, .16em tracking, accent, rule above. Fraunces is retired with them. */
+.kick{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--accent);margin:0 0 1.2rem}
+h1{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(38px,8.4vw,66px);line-height:1.02;letter-spacing:.02em;margin:0 0 .6rem;text-wrap:balance}
+.subt{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(18px,3.2vw,26px);color:var(--ink);letter-spacing:0;margin:8px 0 0}
 article,.close{border-top:1px solid var(--line);padding-top:2.1rem;margin-top:2.5rem}
 .ph{display:flex;align-items:baseline}
-.pn{font-family:"IBM Plex Mono",monospace;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:500}
-h2{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(1.5rem,4vw,2rem);line-height:1.1;letter-spacing:-.015em;margin:.3rem 0 1rem;text-wrap:balance}
+.pn{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h2{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(20px,3.4vw,26px);line-height:1.24;letter-spacing:-.012em;margin:.3rem 0 1rem;text-wrap:balance}
 p{margin:0 0 1.05rem;text-wrap:pretty}
 ul.seal{list-style:none;margin:1rem auto 1.6rem;padding:1.4rem 1.5rem;background:var(--plate);color:var(--plate-ink);border-radius:.5rem;border-left:3px solid var(--accent);max-width:34rem}
-ul.seal li{font-family:"Fraunces",serif;font-size:1.12rem;line-height:1.55;margin:0}
-.banner{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(1.5rem,5vw,2.1rem);line-height:1.15;letter-spacing:-.01em;text-align:center;color:var(--accent);margin:1.8rem 0 1.6rem;text-wrap:balance}
-.motto{font-family:"Fraunces",serif;font-weight:600;font-size:1.25rem;color:var(--ink);text-align:center;margin:0 0 .7rem;text-wrap:balance}
+ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;font-size:1.12rem;line-height:1.55;margin:0}
+.banner{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(1.5rem,5vw,2.1rem);line-height:1.15;letter-spacing:-.012em;text-align:center;color:var(--accent);margin:1.8rem 0 1.6rem;text-wrap:balance}
+.motto{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;font-weight:600;font-size:1.25rem;color:var(--ink);text-align:center;margin:0 0 .7rem;text-wrap:balance}
 .motto2{font-family:"IBM Plex Mono",monospace;font-size:.82rem;letter-spacing:.04em;color:var(--soft);text-align:center;margin:0}
 .close{text-align:center}.sealwrap{text-align:center;margin:2.4rem 0 .2rem}.sealwrap a{display:inline-block;text-decoration:none;transition:transform .2s ease}.sealwrap a:hover,.sealwrap a:focus-visible{transform:scale(1.04)}.sealwrap img{width:132px;height:auto;display:block;margin:0 auto .55rem}.sealcap{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}.sealwrap a:hover .sealcap,.sealwrap a:focus-visible .sealcap{color:var(--accent)}
 /* exec r1.005 · the language globe sits IN the page flow, a slim row above the
@@ -98,7 +104,7 @@ ul.seal li{font-family:"Fraunces",serif;font-size:1.12rem;line-height:1.55;margi
    works offline with no server. */
 (function(){
   var LANGS = [{"c":"en","n":"English","e":"English"},{"c":"fr","n":"Français","e":"French"},{"c":"es","n":"Español","e":"Spanish"},{"c":"de","n":"Deutsch","e":"German"},{"c":"it","n":"Italiano","e":"Italian"},{"c":"pt","n":"Português","e":"Portuguese"},{"c":"nl","n":"Nederlands","e":"Dutch"},{"c":"ru","n":"Русский","e":"Russian"},{"c":"zh","n":"中文","e":"Chinese"},{"c":"ja","n":"日本語","e":"Japanese"},{"c":"ko","n":"한국어","e":"Korean"},{"c":"ar","n":"العربية","e":"Arabic"},{"c":"hi","n":"हिन्दी","e":"Hindi"},{"c":"bn","n":"বাংলা","e":"Bengali"},{"c":"pa","n":"ਪੰਜਾਬੀ","e":"Punjabi"},{"c":"th","n":"ไทย","e":"Thai"},{"c":"vi","n":"Tiếng Việt","e":"Vietnamese"},{"c":"id","n":"Bahasa Indonesia","e":"Indonesian"},{"c":"ms","n":"Bahasa Melayu","e":"Malay"},{"c":"tl","n":"Filipino","e":"Filipino"},{"c":"tr","n":"Türkçe","e":"Turkish"},{"c":"pl","n":"Polski","e":"Polish"},{"c":"uk","n":"Українська","e":"Ukrainian"},{"c":"ro","n":"Română","e":"Romanian"},{"c":"el","n":"Ελληνικά","e":"Greek"},{"c":"cs","n":"Čeština","e":"Czech"},{"c":"sv","n":"Svenska","e":"Swedish"},{"c":"da","n":"Dansk","e":"Danish"},{"c":"fi","n":"Suomi","e":"Finnish"},{"c":"no","n":"Norsk","e":"Norwegian"},{"c":"he","n":"עברית","e":"Hebrew"},{"c":"sw","n":"Kiswahili","e":"Swahili"},{"c":"ne","n":"नेपाली","e":"Nepali"}];
-  var BUILT = ["ar","bn","cs","da","de","el","en","es","fi","fr","he","hi","id","it","ja","ko","ms","ne","nl","no","pa","pl","pt","ro","ru","sv","sw","tl","tr","uk","zh"];
+  var BUILT = ["ar","bn","cs","da","de","el","en","es","fi","fr","he","hi","id","it","ja","ko","ms","ne","nl","no","pa","pl","pt","ro","ru","sv","sw","tl","tr","uk","vi","zh"];
   var SUX   = {"c":"sux","n":"𒅴𒂠","e":"Sumerian · cuneiform","note":"in preparation"};
   var KEY   = "exel-active-locale";
   var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
