@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.015",
+  "release": "r1.016",
   "editions": [
     {
       "r": "r1.001",
@@ -85,6 +85,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Overreach reverted. Operator: 'Use the same globe icon and drop down format. I never said to change flcolor.' r1.014 had recoloured the DOWNLOAD to the deck's HI-violet — a change nobody asked for. The download is back to its approved r1.007 drawing: ink icon on a line-coloured circle, accent on hover. The globe icon and the dropdown keep the living document's format, exactly as named. Text unchanged."
+    },
+    {
+      "r": "r1.016",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "Dark by default. Operator: 'go to dark, and only light if light is highlighted in Vision-2525 setting bar.' The summary now follows the living document's ground rather than the OS: it reads v2525.ground — the same localStorage key the document's Settings toggle writes — and stamps data-theme before first paint. Dark everywhere, including a downloaded file:// copy where storage is unreadable; light only when the reader chose light in the document's Settings. Text unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."

@@ -1,4 +1,11 @@
-<!doctype html><html lang=sw><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.015"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — Muhtasari Mkuu kwa Ubinadamu</title>
+<!doctype html><html lang=sw><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.016"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — Muhtasari Mkuu kwa Ubinadamu</title>
+<script>/* exec r1.016 · operator: "go to dark, and only light if light is highlighted in
+Vision-2525 setting bar." The summary follows the living document's ground, not the OS:
+v2525.ground is the SAME localStorage key the document's Settings toggle writes, so one
+choice governs both pages. Dark is the default — including when storage is unreadable
+(a downloaded file:// copy) — and the stamp lands before first paint, so there is no
+flash of the wrong ground. */
+try{document.documentElement.setAttribute("data-theme",localStorage.getItem("v2525.ground")==="light"?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
 <link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0B6E73;--accent-bg:#E3F0F3;--plate:#111719;--plate-ink:#E9ECE7}
