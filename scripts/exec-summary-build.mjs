@@ -19,19 +19,20 @@ const L = JSON.parse(fs.readFileSync(LP, 'utf8'));
    Operator: "everything from here on out with executive summary starts on Version
    19 and gets added to revision 1.001 and higher. 273 = 1.001."
 
-   The label is DERIVED, never typed. It is read from the living document's own
-   machine stamp and formatted by the same rule relLabel() uses there, so a summary
-   page cannot claim a release the document is not on. A typed number is precisely
-   how "Release 277" survived thirty-two releases without anyone noticing. */
-const R1_ORIGIN = 273;
-const relLabel = n => n >= R1_ORIGIN
-  ? 'r1.' + String(n - R1_ORIGIN + 1).padStart(3, '0')
-  : 'r0.' + String(n).padStart(3, '0');
-
-const DOC = fs.readFileSync('docs/SOI_VISION2525_LIVING_DOCUMENT.html', 'utf8');
-const relMatch = DOC.match(/<span id="dlrel2">(\d+)<\/span>/);
-if (!relMatch) { console.error('cannot read the release stamp (#dlrel2) from the living document'); process.exit(1); }
-const REL = relLabel(parseInt(relMatch[1], 10));
+   r1.002 · CORRECTED SOURCE. This first read the LIVING DOCUMENT's release counter,
+   so the summary printed v.19 r1.006 — a number that moves whenever the DOCUMENT
+   changes and tells a reader nothing about the text in front of them. Derived rather
+   than typed was right; derived from the right thing was not. The summary versions
+   ITSELF now, from its own append-only release record: r1.001 was the first edition,
+   r1.002 is the operator's final approved text. */
+const RELREC = JSON.parse(fs.readFileSync('docs/i18n/exec-summary.release.json', 'utf8'));
+const REL = RELREC.release;
+const VER = RELREC.version;
+if (!/^r\d+\.\d{3}$/.test(REL)) { console.error('release record holds a malformed release:', REL); process.exit(1); }
+if (RELREC.editions[RELREC.editions.length - 1].r !== REL) {
+  console.error('release record disagrees with itself: release is', REL, 'but the last edition is', RELREC.editions[RELREC.editions.length - 1].r);
+  process.exit(1);
+}
 
 /* The hash a reader can check against the text they are holding. Computed from the
    bytes actually being built, then asserted against the recorded freeze — if those
@@ -39,11 +40,18 @@ const REL = relLabel(parseInt(relMatch[1], 10));
    which is the one thing the freeze exists to catch. */
 const SHA = crypto.createHash('sha256').update(EN_RAW, 'utf8').digest('hex');
 const FROZEN = JSON.parse(fs.readFileSync('docs/i18n/exec-summary.sentences.json', 'utf8')).sha256;
+const EDITION_SHA = (RELREC.editions.find(e => e.r === REL) || {}).sha256;
+if (EDITION_SHA && EDITION_SHA !== SHA) {
+  console.error('RELEASE RECORD DRIFT — edition ' + REL + ' names a different source than the one being built.');
+  console.error('  building ' + SHA);
+  console.error('  edition  ' + EDITION_SHA);
+  process.exit(1);
+}
 if (SHA !== FROZEN) {
   console.error('CANONICAL SOURCE DRIFT — exec-summary.en.json no longer hashes to the recorded freeze.');
   console.error('  built  ' + SHA);
   console.error('  frozen ' + FROZEN);
-  console.error('Re-run scripts/exec-summary-canonicalize.mjs to re-freeze, or restore the source.');
+  console.error('Re-run scripts/exec-summary-freeze.mjs --write to re-freeze, or restore the source.');
   process.exit(1);
 }
 
@@ -57,7 +65,7 @@ for (const key of Object.keys(EN)) {
 }
 /* REL and SHA are deliberately NOT kNN keys — they never enter a translation file,
    so they cannot drift per language and no translator is ever asked to render them. */
-h = h.split('{{REL}}').join(REL).split('{{SHA}}').join(SHA);
+h = h.split('{{REL}}').join(REL).split('{{VER}}').join(VER).split('{{SHA}}').join(SHA);
 
 // <html lang=en> -> <html lang=xx [dir=rtl]>
 h = h.replace('<html lang=en>', `<html lang=${lang}${RTL.has(lang) ? ' dir=rtl' : ''}>`);

@@ -144,7 +144,24 @@ const JS = `
 `;
 
 let t = fs.readFileSync(TPL, 'utf8');
-if (t.includes('id="bLang"')) { console.log('language globe already present — nothing to do'); process.exit(0); }
+/* r1.002 · IDEMPOTENT. This used to exit here the moment the globe existed, which
+   made the ready-list a hand-maintained literal that went stale the instant a
+   language was added or removed — the same class of failure as "Release 277"
+   surviving thirty-two releases. Now a second run REFRESHES the list in place from
+   what is actually on disk, so the menu can never advertise a page a reader cannot
+   open, nor hide one they can. */
+if (t.includes('id="bLang"')) {
+  const want = 'var BUILT = ' + JSON.stringify([...built].sort()) + ';';
+  const re = /var BUILT = \[[^\]]*\];/;
+  if (!re.test(t)) { console.error('globe present but its BUILT list is unreadable — refusing to guess'); process.exit(1); }
+  const had = (t.match(re) || [''])[0];
+  if (had === want) { console.log(`language globe present and current — ${built.size} ready`); process.exit(0); }
+  t = t.replace(re, want);
+  if (!WRITE) { console.log('would refresh:\n  from ' + had + '\n  to   ' + want + '\n(dry run)'); process.exit(0); }
+  fs.writeFileSync(TPL, t);
+  console.log(`refreshed the ready-list: ${built.size} language(s) — ${[...built].sort().join(' ')}`);
+  process.exit(0);
+}
 
 const once = (needle, replacement, what) => {
   const n = t.split(needle).length - 1;
