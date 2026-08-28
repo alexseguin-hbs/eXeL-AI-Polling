@@ -69,12 +69,18 @@ function cune(t, plain) {
          gap, and adjacent wedges fused into what read as one denser sign. A narrow
          no-break space (U+202F) between them gives a stable in-word seam (~2.8px at
          390px vs the ~6px word gap) that never breaks a sign run across a line. */
+      /* r1.027 · operator: "default like divinity guide with sumerian pronunciation
+         above each character." Each reading's sign(s) become a <ruby> with the reading
+         as the <rt> annotation above — the pinyin-over-hanzi pattern, always visible.
+         The plain path (alt/caption) keeps reading-free glyphs, U+202F-separated. */
       const parts = [];
       for (const tok of chunk.split('-').filter(Boolean)) {
-        if (!(tok in SIGN)) { problems.push(`unmapped reading "${tok}" in "${chunk}"`); parts.push('?'); }
-        else parts.push(SIGN[tok]);
+        if (!(tok in SIGN)) { problems.push(`unmapped reading "${tok}" in "${chunk}"`); parts.push({ g: '?', r: tok }); }
+        else parts.push({ g: SIGN[tok], r: tok });
       }
-      words.push(parts.join(' '));
+      if (plain) words.push(parts.map(p => p.g).join(' '));
+      else words.push('<span class="cw">' +
+        parts.map(p => '<ruby>' + p.g + '<rt>' + esc(p.r) + '</rt></ruby>').join('') + '</span>');
     }
     out.push(words.join(' '));
   }
@@ -139,7 +145,7 @@ h = h.replace('family=Spectral', 'family=Noto+Sans+Cuneiform&family=Spectral');
 h = h.replace('</style>', `
 /* ── SUM edition · cuneiform + study apparatus ─────────────────────────────── */
 article p,.subt,h2,.kick,.pn,ul.seal li,.banner,.motto,.motto2,.sealcap{font-family:"Noto Sans Cuneiform","Segoe UI Historic",Georgia,serif}
-article p{font-size:clamp(19px,5.5vw,25px);line-height:2.05;letter-spacing:.02em}\n.snt{padding:3px 2px;display:inline}
+article p{font-size:clamp(21px,5.5vw,27px);line-height:2.9;letter-spacing:.02em}\n.snt{padding:2px 0;display:inline}\n/* r1.027 · ruby: the reading rides above each sign, pinyin-over-hanzi. */\n.cw{display:inline-block;margin:0 .16em}\narticle ruby{ruby-position:over;-webkit-ruby-position:before;margin:0 .02em}\narticle ruby rt{font:600 .40em/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em;color:var(--accent);text-transform:none}\nul.seal li ruby rt,.banner ruby rt,.motto ruby rt{color:var(--accent)}
 ul.seal li{font-size:21px;line-height:2}
 .lat{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.62em;letter-spacing:.04em;color:var(--accent);vertical-align:.14em}
 .sep{color:var(--accent)}
