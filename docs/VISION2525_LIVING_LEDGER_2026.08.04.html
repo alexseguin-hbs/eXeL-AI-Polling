@@ -1174,7 +1174,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">273</span></strong>, <strong><span id="dlbytes2">7018709</span> bytes</strong> (<span id="dlsize2">7.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">274</span></strong>, <strong><span id="dlbytes2">7021394</span> bytes</strong> (<span id="dlsize2">7.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -7051,6 +7051,19 @@ const VERSIONS = [
    {n:"Asar",g:"A",f:"Delta, not rewrite: the correction touched only the dashes, and the translations keep their own voice. Synthesis complete in all 33."}
   ],
   next:"Formalised. A separate, out-of-scope pass could reconcile pre-existing localisation differences (native numerals, paragraph structure) if the operator wants strict structural parity."
+ },
+ { v:274, code:"THE EXECUTIVE SUMMARY TO HUMANITY &mdash; A DEEP DIVE UNDER THE FRAMEWORK LINK",
+  stamp:"2026.08.28 &middot; revision 274",
+  thrust:"Operator, r1.002 ships the Executive Summary to Humanity: a self-contained, thirteen-page deep dive &mdash; Preamble, twelve sections, and a close &mdash; that carries the whole thesis in plain international English, written to reach the mind, the heart and the spirit. It reads under the Vision &bull; 2525 framework link in Settings, and it stands on its own page a reader can save and open offline anywhere. The closing line is corrected to read &lsquo;We Cannot Master What We Are Not Aware Of.&rsquo;, and the Master of Thought seal &mdash; the same eagle within a ring of cuneiform that closes the Author section &mdash; now sits at the foot of the summary, linked back to the Author &middot; Master of Thought reading. This release also lays the deterministic pipeline that will carry the summary into all thirty-two other languages from one frozen template, so structure, styling and the seal can never drift &mdash; only the prose translates. No ledger block changes; the three reading totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"The living document is the whole record; the executive summary is the door a first reader can walk through in one sitting, and then choose to go deeper. It claims nothing the record does not already hold &mdash; it only says it once, briefly, to a person who has not yet been given a reason to care. The seal at its foot is a promise kept in one image: sight and record, the eagle and the oldest writing, pointing back to the one who is answerable for the whole.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Asar",g:"A",f:"A summary that carries the argument in one reading, then hands the reader to the full record rather than replacing it &mdash; synthesis, not abridgement."},
+   {n:"Sofia",g:"A",f:"Written to mind, heart and spirit at once, in plain international English, so the door is open to a reader in any tongue before a single translation lands."},
+   {n:"Enlil",g:"A",f:"One frozen template, machine-proven to round-trip English byte-identical; the thirty-two languages can only differ in prose, never in structure or seal."},
+   {n:"Thoth",g:"A",f:"No ledger block moved; the totals are untouched and true. This release is a door and a pipeline, not a change to the record it opens."}
+  ],
+  next:"The thirty-two translations build and ship from the frozen template, committed per language; then wire the deep-dive link to follow the site&rsquo;s language selector so each reader meets the summary in their own tongue."
  }
 ];
 
@@ -19683,7 +19696,7 @@ L(272,"nose.author","r272 &mdash; the em-dash correction (operator, last release
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7018709";
+const DL_BYTES = "7021394";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
