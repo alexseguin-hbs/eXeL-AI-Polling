@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.021",
+  "release": "r1.022",
   "editions": [
     {
       "r": "r1.001",
@@ -121,6 +121,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Fleet wave-3 hardening, led by Thor's two empirically proven injection holes: ⟦…⟧ passthrough content is now escaped on the plain path too (the k69/k70 alt/caption vector), and the study data embeds with < escaped so a crafted record can never end the script early — both mattered because the public correction channel is an edit path. Odin's stale-page case closed structurally: the page now carries an exel-sum-src stamp (hash of sum.json + signmap) that verify-sum recomputes, so a corrected transliteration with an unrebuilt page fails loudly; and the gate is ENFORCED — pre-commit now runs verify-sum. Study card left-aligns under centered hosts (Enki); k18's 'sit' verb reads tusz (the KU sign's sitting reading — Thoth's hapax audit); METHOD states the coinage flags live in its glossary and that the automated gates are structural, with meaning guarded by the invited review (Sofia). English master unchanged."
+    },
+    {
+      "r": "r1.022",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "RTL menu anchoring (Sofia w2): the language menu's two text-align:left rules become text-align:start, so the open menu's rows follow the page direction on the Arabic and Hebrew editions instead of staying LTR-anchored. Two tokens; all 34 pages rebuilt. On the record as standing debt, not fixed here: the globe chrome (back link, tooltips, Language heading, draft note) is English on all 34 editions — the chrome-translation pass — and the back arrow is unmirrored on RTL. Text unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."
