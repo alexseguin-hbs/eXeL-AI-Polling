@@ -1172,9 +1172,18 @@ body.qrlead #qrAbout{display:inline-block}
     <div class="setbody">
       <h5>Share &middot; Vision &#8226; 2525</h5>
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
+      <!-- r275 · operator: "we just need a section for executive summary". The deep
+           dive is a companion PAGE, not a view over this ledger, so it gets its own
+           section rather than a cell on the reading toggle — a door that leads OUT
+           of the document does not belong on the rail that moves within it. The
+           href resolves against whatever directory this copy was opened from, the
+           same idiom v2525LangHref uses, so it works served and from a folder of
+           downloaded siblings alike and hard-codes no site path. -->
+      <h5>Executive summary</h5>
+      <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">274</span></strong>, <strong><span id="dlbytes2">7021394</span> bytes</strong> (<span id="dlsize2">7.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">275</span></strong>, <strong><span id="dlbytes2">7025194</span> bytes</strong> (<span id="dlsize2">7.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -7064,6 +7073,19 @@ const VERSIONS = [
    {n:"Thoth",g:"A",f:"No ledger block moved; the totals are untouched and true. This release is a door and a pipeline, not a change to the record it opens."}
   ],
   next:"The thirty-two translations build and ship from the frozen template, committed per language; then wire the deep-dive link to follow the site&rsquo;s language selector so each reader meets the summary in their own tongue."
+ },
+ { v:275, code:"THE EXECUTIVE SUMMARY GETS ITS OWN SECTION IN SETTINGS",
+  stamp:"2026.08.28 &middot; revision 275",
+  thrust:"Operator, in one line: &lsquo;we just need a section for executive summary&rsquo;. Settings now carries it &mdash; its own heading directly beneath the QR code, opening the 1 + 12 deep dive: the Preamble, twelve sections and a close, in plain international English. It is a section rather than a cell on the reading toggle because the summary is a companion page and not a view over this ledger; a door that leads out of the document does not belong on the rail that moves within it. The link resolves against whatever directory this copy was opened from &mdash; the same idiom the language menu uses &mdash; so it works served and from a folder of downloaded siblings alike, and hard-codes no site path. The control carries a drawn page-and-ribbon, distinct from the ledger&rsquo;s ruled page: the record is what you check, the summary is the one reading you keep. Chrome only; no ledger block changed and the three totals hold.",
+  mot:"A document that cannot be entered is not read, only admired. The summary exists so a first reader can cross the whole argument in one sitting and then choose to go deeper, and a door they cannot find is the same as no door at all. This is the smallest change that makes the deep dive reachable from the document it summarises &mdash; one heading, one control, one relative path &mdash; and it deliberately adds no new claim to the record it opens.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Krishna",g:"A",f:"The door sits where a reader actually looks, under the QR, and it leaves the document cleanly rather than faking a view."},
+   {n:"Enlil",g:"A",f:"Relative resolution, not a site path: served and downloaded copies both reach the sibling. No absolute link left to rot."},
+   {n:"Thoth",g:"A",f:"Chrome only. No ledger block moved; every prior release replays byte-identical."},
+   {n:"Athena",g:"A",f:"A section, not a toggle cell &mdash; the line between a view over the ledger and a companion page is preserved rather than blurred."}
+  ],
+  next:"The Executive Summary&rsquo;s own language menu (33 + Cuneiform) and a per-language download, then the remaining translations."
  }
 ];
 
@@ -19696,7 +19718,7 @@ L(272,"nose.author","r272 &mdash; the em-dash correction (operator, last release
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7021394";
+const DL_BYTES = "7025194";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -19959,6 +19981,10 @@ const ICON = (function(){
     ledger:w('<path d="M5 3h11l4 4v14H5V3zM16 3v4h4M9 12h7M9 16h7"/>'),
     reg:   w('<path d="M4 5h16v14H4zM4 9h16M9 9v10"/>'),
     info:  w('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>'),
+    /* r275 · Executive summary: a page carrying a ribbon. Deliberately distinct
+       from the ledger page (folded corner, ruled lines) because it is not the
+       record — it is the one reading you keep, and a ribbon is what marks that. */
+    exec:  w('<path d="M6 3h12v18H6z"/><path d="M10 3v8l2-1.5 2 1.5V3"/>'),
     /* Latest: skip-to-end. The only deck control that still had no drawing. */
     last:  w('<path d="M6 5l8 7-8 7V5zM18 5v14"/>'),
     /* r149 · Language: a globe — a circle, its equator, and a meridian ellipse.
@@ -22214,6 +22240,13 @@ var paged = false;
   var openQr = function(v){ qrModal.hidden = !v; };
   var bQr = document.getElementById("bQr");
   if (bQr) bQr.addEventListener("click", function(){ open(false); openQr(true); });
+  /* r275 · the Executive Summary is a sibling FILE, so resolve it against the
+     directory this copy was opened from rather than a site-absolute path. */
+  var bExec = document.getElementById("bExec");
+  if (bExec) bExec.addEventListener("click", function(){
+    var dir = location.pathname.replace(/[^/]*$/, "");
+    location.href = dir + "vision-2525-executive-summary.html";
+  });
   document.getElementById("bQrClose").addEventListener("click", function(){ openQr(false); });
   document.getElementById("qrScrim").addEventListener("click", function(){ openQr(false); });
   document.addEventListener("keydown", function(e){ if (e.key === "Escape") openQr(false); });
@@ -22260,7 +22293,7 @@ var paged = false;
   }
   document.getElementById("bPlay").insertAdjacentHTML("afterbegin", ICON.play);
   document.getElementById("bSetClose").innerHTML = ICON.close;
-  const setIcons = {bQr:"qr", bDiff:"changes", bOutline:"book", bLedger:"ledger", bProof:"proof", bReg:"reg", bSpec:"info"};
+  const setIcons = {bQr:"qr", bExec:"exec", bDiff:"changes", bOutline:"book", bLedger:"ledger", bProof:"proof", bReg:"reg", bSpec:"info"};
   for (const id in setIcons){
     const el = document.getElementById(id);
     if (el) el.insertAdjacentHTML("afterbegin", ICON[setIcons[id]]);

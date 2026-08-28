@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles, BookOpen } from "lucide-react";
+import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -503,25 +503,15 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
                 </div>
                 <span className="text-xs text-muted-foreground">→</span>
               </a>
-              {/* EXECUTIVE SUMMARY DEEP DIVE (operator: "the Executive summary to place in settings as a
-                  deep dive ... under the QR code link"). Sits directly beneath the Vision • 2525 entry —
-                  the framework link — and opens the standalone, self-contained deep-dive page served at
-                  /whitepaper/vision-2525-executive-summary.html. Content is the operator-frozen eXeL text,
-                  verbatim ("don't change anything"). */}
-              <a
-                data-executive-summary-link
-                href="/whitepaper/vision-2525-executive-summary.html"
-                className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
-              >
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-5 w-5 shrink-0 text-primary" />
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">Executive Summary to Humanity</div>
-                    <div className="text-xs text-muted-foreground">A deep dive &mdash; Vision &bull; 2525</div>
-                  </div>
-                </div>
-                <span className="text-xs text-muted-foreground">→</span>
-              </a>
+              {/* r275 · THE EXECUTIVE SUMMARY DOES NOT BELONG HERE — removed deliberately.
+                  It briefly lived in this drawer because "settings" was read as the polling app's
+                  settings. The operator corrected it against the live site: the entry belongs in the
+                  Vision • 2525 document's OWN Settings, the panel carrying the QR code, at
+                  /whitepaper/vision-2525 — and it is there now, as its own section directly beneath
+                  "QR code — share the Brief" (docs/SOI_VISION2525_LIVING_DOCUMENT.html, #bExec).
+                  Kept as a note rather than silently deleted because two drawers offering the same
+                  door is exactly how defect 27 began: copies drift, and the reader stops knowing
+                  which one is canonical. One entry, one place. Do not re-add it here. */}
               {/* Light Codex — hidden until the Easter-egg unlock; the row
                   renders null otherwise, so no Separator artifact when locked. */}
               <LightCodexSettingsRow />
