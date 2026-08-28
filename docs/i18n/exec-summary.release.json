@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.028",
+  "release": "r1.029",
   "editions": [
     {
       "r": "r1.001",
@@ -163,6 +163,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Clarity + hardening after r1.027's ruby. Since the reading now rides above every sign by default, the control labeled 'translit' was misleading (transliteration is always visible) — relabeled 'study', its job now stated plainly: tap a sentence for its literal gloss, English, and page.paragraph.sentence reference. The draft banner says the reading sits above every sign. The inline study-data embed is hardened further — U+2028/U+2029 escaped alongside the existing < → u003c — closing the one remaining way a record could ever break the script in a stricter parser. (The operator's 'random text below the logo' screenshot was a stale cached build from the r1.021–r1.022 window, before r1.023 fixed exactly that leak; the shipped bytes since are balanced 3/3 scripts, headless-verified no leak, toggle works.) English master unchanged."
+    },
+    {
+      "r": "r1.029",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "The cuneiform now renders everywhere. Operator: 'cuneiform needs updates.' The highest-impact update: the signs no longer depend on a Google font that tofus offline and on devices without a system cuneiform face. A 25.2KB subset of Noto Sans Cuneiform — exactly the 118 signs this edition uses — is inlined as a data-URI @font-face (Pangu's measured recommendation; +~11% page weight). SIL OFL 1.1 honored (docs/i18n/sum/font/OFL-NOTICE.md); regenerator scripts/exec-summary-sum-font.py re-subsets to the current signmap; verify-sum fails closed unless the page carries the current subset AND it covers every signmap codepoint, so a new reading can never tofu silently. The download twin is now fully self-contained. English master unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."

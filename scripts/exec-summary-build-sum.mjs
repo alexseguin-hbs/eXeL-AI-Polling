@@ -140,11 +140,16 @@ h = h.split('{{REL}}').join(REL).split('{{VER}}').join(VER).split('{{SHA}}').joi
      .split('{{DLHREF}}').join('download/vision-2525-executive-summary.sum.html');
 h = h.replace('<html lang=en>', '<html lang=sux>');
 
-/* the cuneiform face + study styles ride on the shared stylesheet */
-h = h.replace('family=Spectral', 'family=Noto+Sans+Cuneiform&family=Spectral');
+/* r1.029 · the cuneiform face is EMBEDDED, not fetched. A ~25KB subset of Noto
+   Sans Cuneiform (only the 118 signs this edition uses) is inlined as a data-URI
+   @font-face, so the signs render offline, in the download twin, and on devices
+   with no system cuneiform font — the Google Fonts pull for it is dropped. SIL OFL
+   1.1: docs/i18n/sum/font/OFL-NOTICE.md. */
+const FONT_B64 = fs.readFileSync('docs/i18n/sum/font/noto-sans-cuneiform.subset.woff2').toString('base64');
 h = h.replace('</style>', `
 /* ── SUM edition · cuneiform + study apparatus ─────────────────────────────── */
-article p,.subt,h2,.kick,.pn,ul.seal li,.banner,.motto,.motto2,.sealcap{font-family:"Noto Sans Cuneiform","Segoe UI Historic",Georgia,serif}
+@font-face{font-family:"NotoCuneiSubset";src:url(data:font/woff2;base64,${FONT_B64}) format("woff2");font-display:swap;unicode-range:U+12000-1254F}
+article p,.subt,h2,.kick,.pn,ul.seal li,.banner,.motto,.motto2,.sealcap{font-family:"NotoCuneiSubset","Noto Sans Cuneiform","Segoe UI Historic",Georgia,serif}
 article p{font-size:clamp(21px,5.5vw,27px);line-height:2.9;letter-spacing:.02em}\n.snt{padding:2px 0;display:inline}\n/* r1.027 · ruby: the reading rides above each sign, pinyin-over-hanzi. */\n.cw{display:inline-block;margin:0 .16em}\narticle ruby{ruby-position:over;-webkit-ruby-position:before;margin:0 .02em}\narticle ruby rt{font:600 .40em/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em;color:var(--accent);text-transform:none}\nul.seal li ruby rt,.banner ruby rt,.motto ruby rt{color:var(--accent)}
 ul.seal li{font-size:21px;line-height:2}
 .lat{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.62em;letter-spacing:.04em;color:var(--accent);vertical-align:.14em}

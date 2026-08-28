@@ -57,6 +57,13 @@ else {
   if (!h.includes(SHA12)) problems.push('master sha stamp missing from page');
   if (/\{\{[A-Za-z0-9_]+\}\}/.test(h)) problems.push('unresolved token in page');
   if (!h.includes('exel-sum-src content="' + SUMSHA + '"')) problems.push('page was built from DIFFERENT data than the current sum.json/signmap — rebuild (Odin: the stale-page-after-correction case)');
+  /* r1.029 · the embedded cuneiform subset must cover every signmap codepoint —
+     add a reading with a new codepoint and forget to regenerate the font, and the
+     new sign would tofu while every other check passed. */
+  const wantCps = new Set();
+  for (const v of Object.values(SIGN)) for (const ch of v) wantCps.add(ch.codePointAt(0));
+  const fontB64 = fs.readFileSync('docs/i18n/sum/font/noto-sans-cuneiform.subset.woff2').toString('base64');
+  if (!h.includes(fontB64)) problems.push('embedded font in page is not the current subset — rebuild');
   const twin = 'frontend/public/whitepaper/download/vision-2525-executive-summary.sum.html';
   if (!fs.existsSync(twin)) problems.push('download twin missing');
   else if (fs.readFileSync(twin, 'utf8') !== h) problems.push('download twin not byte-identical');
