@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles } from "lucide-react";
+import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -499,6 +499,25 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
                   <div>
                     <div className="text-sm font-semibold text-foreground">Vision &bull; 2525</div>
                     <div className="text-xs text-muted-foreground">Humanity&apos;s Coordination Framework</div>
+                  </div>
+                </div>
+                <span className="text-xs text-muted-foreground">→</span>
+              </a>
+              {/* EXECUTIVE SUMMARY DEEP DIVE (operator: "the Executive summary to place in settings as a
+                  deep dive ... under the QR code link"). Sits directly beneath the Vision • 2525 entry —
+                  the framework link — and opens the standalone, self-contained deep-dive page served at
+                  /whitepaper/vision-2525-executive-summary.html. Content is the operator-frozen eXeL text,
+                  verbatim ("don't change anything"). */}
+              <a
+                data-executive-summary-link
+                href="/whitepaper/vision-2525-executive-summary.html"
+                className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="h-5 w-5 shrink-0 text-primary" />
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">Executive Summary to Humanity</div>
+                    <div className="text-xs text-muted-foreground">A deep dive &mdash; Vision &bull; 2525</div>
                   </div>
                 </div>
                 <span className="text-xs text-muted-foreground">→</span>
