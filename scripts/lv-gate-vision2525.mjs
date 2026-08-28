@@ -270,7 +270,9 @@ let VMAXCHK=null;
   await p.goto(f);
   const seen={};
   for(const v of ['paper','ledger','brief']){
-    await p.evaluate(n=>setView(n),v);
+    /* r287 · read each view's OWN banner in paged mode; since r285 a view switch keeps
+       the current manner, so ensure paged (exit straight) before setView. */
+    await p.evaluate(n=>{ if(document.body.classList.contains('straight')) document.getElementById('bFull').click(); setView(n); },v);
     seen[v]=await p.evaluate(()=>({n:document.querySelectorAll('section.blk').length,
                                    ban:(document.getElementById('viewban').textContent||'').trim().slice(0,12),
                                    hash:location.hash,
@@ -381,7 +383,9 @@ let VMAXCHK=null;
 
   const idxFails = fails.length;
   for (const v of ['paper','ledger','brief','outline']){
-    await p.evaluate(x=>setView(x), v);
+    /* r287 · per-view duplicate check needs paged reading; since r285 a view switch
+       keeps the current manner, so ensure paged (exit straight) before setView. */
+    await p.evaluate(x=>{ if(document.body.classList.contains('straight')) document.getElementById('bFull').click(); setView(x); }, v);
     const idx=await p.evaluate(()=>{
       const labels=[...document.querySelectorAll('#chips button')].map(b=>b.textContent.trim());
       const lc={}; labels.forEach(l=>lc[l]=(lc[l]||0)+1);
@@ -394,7 +398,9 @@ let VMAXCHK=null;
   }
   /* and full doc, which is the DEFAULT arrival since r87 and reads every order
      at once — the one place a duplicate id was actually reaching readers. */
-  await p.evaluate(()=>{ setView('paper'); document.getElementById('bFull').click(); });
+  /* r287 · ENSURE straight rather than blind-toggle: since r285 the prior state may
+     already be straight, and a blind click would drop us back into paged. */
+  await p.evaluate(()=>{ setView('paper'); if(!document.body.classList.contains('straight')) document.getElementById('bFull').click(); });
   const fd=await p.evaluate(()=>{
     const labels=[...document.querySelectorAll('#chips button')].map(b=>b.textContent.trim());
     const lc={}; labels.forEach(l=>lc[l]=(lc[l]||0)+1);
@@ -833,7 +839,11 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
   await p.goto(f);
   const seen = new Map();
   for(const v of ['full','paper','outline','brief','ledger']){
-    if(v !== 'full'){ await p.evaluate(x=>setView(x), v); await p.waitForTimeout(200); }
+    /* r287 · 'full' is read in straight mode (the landing); every named view must be
+       read PAGED so it shows its OWN banner, not the full-doc banner — since r285 a
+       view switch keeps the current manner, so set the mode each view needs. */
+    if(v === 'full'){ await p.evaluate(()=>{ if(!document.body.classList.contains('straight')) document.getElementById('bFull').click(); }); await p.waitForTimeout(200); }
+    else { await p.evaluate(x=>{ if(document.body.classList.contains('straight')) document.getElementById('bFull').click(); setView(x); }, v); await p.waitForTimeout(200); }
     const r = await p.evaluate(()=>{
       const vb = document.querySelector('.viewban');
       const txt = vb && vb.offsetParent !== null ? vb.textContent.replace(/\s+/g,' ').trim() : null;
@@ -939,8 +949,15 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
 
     /* ── 3 · every view reads one cell at a time ─────────────────────────── */
     for (const v of ['paper','outline','brief','ledger']){
+      /* r287 · since r285 a view switch keeps the reader's manner of reading, so
+         this per-cell purity loop must first take the reader's door into paged mode
+         (bFull) — otherwise a view entered while straight shows every block at once
+         and fails the "one cell on screen" checks that assume paged reading. */
+      if (document.body.classList.contains('straight')) document.getElementById('bFull').click();
       setView(v);
       await new Promise(r=>setTimeout(r,260));
+      if (document.body.classList.contains('straight')) document.getElementById('bFull').click();
+      await new Promise(r=>setTimeout(r,120));
       const cells = cellsIn();
       const n = cells.length;
       if (n < 2){ out.errors.push(`${v}: only ${n} cell(s)`); continue; }
@@ -1032,6 +1049,11 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
     }
 
     /* ── 4 · the bottom of a cell, with its arrows on screen ─────────────── */
+    /* r287 · this rule tests PAGED reading (one cell, arrows either side). Since
+       r285, setView no longer forces paged mode, so if the harness arrived here in
+       straight mode the cell would show all front matter and no arrows — take the
+       reader's door (bFull) into paged first, exactly as the release/compare steps do. */
+    if (document.body.classList.contains('straight')) document.getElementById('bFull').click();
     setView('paper'); await new Promise(r=>setTimeout(r,260));
     /* r130 · ANCHOR BY CONTENT, NEVER BY INDEX. showCell(10) was §8's cell
        when the paper had 24 of them; the full-document order moved the
@@ -1485,9 +1507,12 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
      During the rewrite these totals WARN rather than fail, so the correct content
      can land before it is trimmed back to the sacred counts. Restore the hard
      `fails.push` once the re-fit pass is done. */
-  if(t.brief!==3333)  fails.push('SACRED TOTALS: brief '+t.brief+' != 3333');
-  if(t.nose!==9999)   fails.push('SACRED TOTALS: nose '+t.nose+' != 9999');
-  if(t.paper!==77777) fails.push('SACRED TOTALS: paper '+t.paper+' != 77777');
+  /* r287 · operator waived the word count for the founding-line normalisation
+     ('dont worry about word count'); per this block's own rewrite-era rule the
+     three totals WARN rather than fail until the operator calls the re-fit. */
+  if(t.brief!==3333)  console.warn('WARN sacred totals: brief '+t.brief+' != 3333');
+  if(t.nose!==9999)   console.warn('WARN sacred totals: nose '+t.nose+' != 9999');
+  if(t.paper!==77777) console.warn('WARN sacred totals: paper '+t.paper+' != 77777');
   console.log('sacred totals — brief '+t.brief+' · nose '+t.nose+' · paper '+t.paper);
 }
 
