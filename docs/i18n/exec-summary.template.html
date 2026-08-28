@@ -161,7 +161,7 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
     menu.innerHTML = '<h5>Language</h5>' +
       row(en, BUILT.indexOf("en") >= 0) +
       row(SUX, BUILT.indexOf(SUX.c) >= 0, SUX.note) +
-      '<p class="sux-note">The Sumerian edition is a scholarly DRAFT — composed meaning for meaning from the frozen English, never English spelled in signs. Method and review invitation are on the page itself.</p>' +
+      '<p class="sux-note">Scholarly draft — corrections invited; method on the page.</p>' +
       rest.map(function(l){ return row(l, BUILT.indexOf(l.c) >= 0); }).join("");
   }
   function close(){ menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
