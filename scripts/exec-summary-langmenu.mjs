@@ -39,11 +39,13 @@ const built = new Set(
 );
 
 // Sumerian sits 34th, directly beneath English, exactly where the operator placed it.
-// It is deliberately NOT marked ready. The cuneiform edition supplied so far is
-// English respelled syllable by syllable (ki-bi-li-za-ti-u-na = "civilization"), not
-// Sumerian, and shipping that as Sumerian would misrepresent the language it means to
-// honour. The slot exists; it fills when the EN.SAG.KI composition is real.
-const SUX = { c:'sux', n:'𒅴𒂠', e:'Sumerian · cuneiform', note:'in preparation' };
+// exec r1.019: the composition IS real now — meaning-translated, sign-table-derived,
+// shipped as a scholarly DRAFT at vision-2525-executive-summary.sum.html. The row is
+// live whenever the page exists in BUILT (the {2,3} scan admits 'sum'); the note reads
+// draft, and the sux-note names the method instead of the old in-preparation promise.
+// (Krishna-w2 caught this generator still carrying the pre-ship row — a re-run would
+// have silently reverted the ship on all 34 pages. Generator and output now agree.)
+const SUX = { c:'sum', n:'𒅴𒂠', e:'Sumerian · cuneiform', note:'draft' };
 
 const globe =
   '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" ' +
@@ -120,8 +122,8 @@ const JS = `
     var en = LANGS[0], rest = LANGS.slice(1);
     menu.innerHTML = '<h5>Language</h5>' +
       row(en, BUILT.indexOf("en") >= 0) +
-      row(SUX, false, SUX.note) +
-      '<p class="sux-note">The Sumerian edition is being composed from the frozen English, sentence by sentence. It is not published until the cuneiform is Sumerian rather than English written in Sumerian signs.</p>' +
+      row(SUX, BUILT.indexOf(SUX.c) >= 0, SUX.note) +
+      '<p class="sux-note">The Sumerian edition is a scholarly DRAFT — composed meaning for meaning from the frozen English, never English spelled in signs. Method and review invitation are on the page itself.</p>' +
       rest.map(function(l){ return row(l, BUILT.indexOf(l.c) >= 0); }).join("");
   }
   function close(){ menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
@@ -174,7 +176,7 @@ once('\n</body></html>', '\n' + JS + '</body></html>', 'script');
 
 console.log(`languages: ${LANGS.length} in registry, ${built.size} built (${[...built].sort().join(' ')})`);
 console.log(`not yet built: ${LANGS.map(l => l[0]).filter(c => !built.has(c)).join(' ') || 'none'}`);
-console.log(`Sumerian slot: present, pinned 34th beneath English, marked "${SUX.note}"`);
+console.log(`Sumerian slot: LIVE when built (${SUX.c}), pinned beneath English, marked "${SUX.note}"`);
 if (!WRITE) { console.log('\n(dry run — pass --write to apply)'); process.exit(0); }
 fs.writeFileSync(TPL, t);
 console.log(`\nwrote ${TPL} (+${(t.length / 1024).toFixed(1)} KB total)`);

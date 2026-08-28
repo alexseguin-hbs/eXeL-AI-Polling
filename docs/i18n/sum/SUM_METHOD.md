@@ -85,7 +85,7 @@ never a phonetic loan. The load-bearing ones:
 | Engineering (the craft) | **nam-dim₂** ⚘ | "the -ship of fashioning" |
 | record / ledger | **dub** | tablet (attested) |
 | simulation | **igi-bar** ⚘ | "the looking-upon" — also carries "vision/imagine" in the litany; glosses disambiguate |
-| hour (the recorded hour) | **danna-bar** ⚘ | "half a danna" (danna = attested double-hour) |
+| hour (the recorded hour) | **danna-bar** ⚘ | "half a danna" (danna = attested double-hour, written KASKAL.BU — so the compound renders as the three-sign run 𒆜𒁍𒁇) |
 
 ### What stays verbatim (identical rule to the other 32 editions)
 `Vision • 2525` · `R-CORE` · `HI earned = M × hours` · `9,999` · `360 → 33 → 11` ·
