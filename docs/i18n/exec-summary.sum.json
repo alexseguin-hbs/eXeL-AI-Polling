@@ -1,0 +1,156 @@
+{
+  "_method": "docs/i18n/sum/SUM_METHOD.md — SCHOLARLY DRAFT. Transliteration is the Sumerian master; cuneiform derives from docs/i18n/sum/signmap.json (Unicode-name-verified). Tokens in ⟦…⟧ pass through in Latin (verbatim terms per the frozen English master). Each record: e = English master sentence (verbatim), t = draft transliteration (ePSD2 ASCII: sz=š, digits as written), g = literal back-gloss of the Sumerian so a reviewer sees what the draft actually says.",
+  "k01": [
+    { "e": "Executive Summary to Humanity",
+      "t": "dub sag nam-lu2-ulu3-ra",
+      "g": "the head tablet, to humankind" }
+  ],
+  "k02": [
+    { "e": "Humanity’s Coordination Framework",
+      "t": "gesz-hur nam-lu2-ulu3-ak",
+      "g": "the design/plan of humankind" }
+  ],
+  "k03": [
+    { "e": "Preamble", "t": "inim sag", "g": "the opening word" }
+  ],
+  "k04": [
+    { "e": "The Measure of a Human Life",
+      "t": "nig2-szid zi lu2-ka",
+      "g": "the reckoning of the life of a person" }
+  ],
+  "k05": [
+    { "e": "Time • The First Common Measure",
+      "t": "u4 • nig2-szid sag kalam-ma",
+      "g": "time — the head reckoning of the land" }
+  ],
+  "k06": [
+    { "e": "Thought Mastery • From Awareness to Action",
+      "t": "nam-gesztu2 • zu-a-ta kin-sze3",
+      "g": "thought-mastery — from the known to the work" }
+  ],
+  "k07": [
+    { "e": "Humanity • The Authority Technology Serves",
+      "t": "nam-lu2-ulu3 • nam-en gesz dim2-ma-ka",
+      "g": "humankind — the lordship over the fashioned implement" }
+  ],
+  "k08": [
+    { "e": "Collective Intelligence • Humanity Learning to Listen",
+      "t": "gesztu2 un-ka • nam-lu2-ulu3 gesztu2-sze3 zu-zu",
+      "g": "the understanding of the people — humankind learning toward the ear" }
+  ],
+  "k09": [
+    { "e": "Simulation • Let Thought Experience Consequence",
+      "t": "igi-bar • gesztu2-e egir-bi he2-zu",
+      "g": "the looking-upon — may thought know its aftermath" }
+  ],
+  "k10": [
+    { "e": "Replay • Memory That Can Outlive Us",
+      "t": "⟦Replay⟧ • dub egir-me-sze3 til3-la",
+      "g": "Replay — the tablet that lives on after us" }
+  ],
+  "k11": [
+    { "e": "R-CORE • Turning Experience into Learning",
+      "t": "⟦R-CORE⟧ • zu-a-ta zu-zu-sze3 bal-e",
+      "g": "R-CORE — turning the known into learning" }
+  ],
+  "k12": [
+    { "e": "Humanity Innovation Engine • From Thought to Qualified Reality",
+      "t": "gesz dim2-ma nam-lu2-ulu3-ak • gesztu2-ta ki zi-sze3",
+      "g": "humankind’s fashioned engine — from thought to the true ground" }
+  ],
+  "k13": [
+    { "e": "Proof • Before Scale",
+      "t": "nig2-gi-na • igi nam-gal-la-ka",
+      "g": "the firm truth — before greatness" }
+  ],
+  "k14": [
+    { "e": "Power • Stewardship That Can Let Go",
+      "t": "a2 mah • nam-sipa szu bar-ra zu-a",
+      "g": "great strength — the shepherdship that knows releasing" }
+  ],
+  "k15": [
+    { "e": "Education • Teach How We Learned",
+      "t": "e2-dub-ba-a • nig2 zu-a-me he2-zu-zu",
+      "g": "the tablet-house — may what we learned be taught" }
+  ],
+  "k16": [
+    { "e": "One Recorded Hour • Where the Future Begins",
+      "t": "danna-bar disz sar-ra • ki sag u4 egir-ra-ka",
+      "g": "one written half-danna — the head-place of the days after" }
+  ],
+  "k56": [
+    { "e": "Humanity imagines.",
+      "t": "nam-lu2-ulu3-e igi-bar mu-un-gar",
+      "g": "humankind sets forth the vision" }
+  ],
+  "k57": [
+    { "e": "Thought gives direction.",
+      "t": "gesztu2-e kaskal mu-un-pad3",
+      "g": "thought finds the road" }
+  ],
+  "k58": [
+    { "e": "Time records the contribution.",
+      "t": "u4-e kin mu-un-sar",
+      "g": "time writes the work" }
+  ],
+  "k59": [
+    { "e": "AI expands possibility.",
+      "t": "gesztu2 dim2-ma-e nig2 gal2-la gal mu-un-gar",
+      "g": "the fashioned understanding sets what-exists larger" }
+  ],
+  "k60": [
+    { "e": "Simulation prepares.",
+      "t": "igi-bar-e si mu-un-sa2",
+      "g": "the looking-upon sets in order" }
+  ],
+  "k61": [
+    { "e": "Engineering proves.",
+      "t": "nam-dim2-e nig2-gi-na mu-un-gar",
+      "g": "the craft establishes the firm truth" }
+  ],
+  "k62": [
+    { "e": "Humanity decides.",
+      "t": "nam-lu2-ulu3-e ka-asz mu-un-bar",
+      "g": "humankind cuts the decision" }
+  ],
+  "k63": [
+    { "e": "Replay remembers.",
+      "t": "dub gi4-gi4-e u4-bi szu mu-un-tuku",
+      "g": "the returning tablet holds its days in hand" }
+  ],
+  "k64": [
+    { "e": "Education transfers.",
+      "t": "e2-dub-ba-a-ke4 szu-sze3 mu-un-sum",
+      "g": "the tablet-house gives into the hand" }
+  ],
+  "k65": [
+    { "e": "The next generation begins ahead.",
+      "t": "dumu egir-ra-ke4 igi-ta mu-un-gub",
+      "g": "the children of after stand at the front" }
+  ],
+  "k66": [
+    { "e": "We Cannot Master What We Are Not Aware Of.",
+      "t": "nig2 nu-zu-a en-bi nu-gal2",
+      "g": "over the unknown thing, no lordship exists" }
+  ],
+  "k67": [
+    { "e": "Honor the Past • Measure the Present • Build the Future.",
+      "t": "u4-bi-ta mi2 he2-du11 • u4-ne-a he2-szid • u4 egir-ra he2-du3",
+      "g": "may the former days be honored • may today be counted • may the after-days be built" }
+  ],
+  "k68": [
+    { "e": "Humanity decides • Technology assists • Wisdom guides • Trust must be proven.",
+      "t": "nam-lu2-ulu3-e ka-asz mu-un-bar • gesz dim2-ma-e a2 mu-un-sum • gesztu2-e kaskal mu-un-pad3 • nig2 gi-na igi-a he2-gal2",
+      "g": "humankind cuts the decision • the fashioned implement gives its arm • wisdom finds the road • may the firm thing stand in view" }
+  ],
+  "k69": [
+    { "e": "The Author • Master of Thought →",
+      "t": "dub-sar • en sag ki ⟦→⟧",
+      "g": "the scribe — EN SAG.KI →" }
+  ],
+  "k70": [
+    { "e": "The Master of Thought seal — an eagle within a ring of cuneiform, joining a modern responsibility with one of Humanity’s earliest enduring traditions of recorded thought.",
+      "t": "kiszib en sag ki — muszen gal sza3 har inim sar-ra-ka; nam-kin u4-ne-ka inim sar-ra u4-bi-ta nam-lu2-ulu3-ka szu mu-un-da-tuku",
+      "g": "the seal of EN SAG.KI — a great bird within a ring of written words; the task of today holds hands with humankind’s written words of old" }
+  ]
+}
