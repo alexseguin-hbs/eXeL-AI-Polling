@@ -65,16 +65,22 @@ function cune(t, plain) {
     for (const chunk of seg.split(/(\s+|•|—|–|[;,:.!?])/)) {
       if (!chunk || /^\s+$/.test(chunk)) continue;
       if (chunk === '•' || /^(—|–|[;,:.!?])$/.test(chunk)) { words.push(plain ? chunk : '<span class="sep">' + chunk + '</span>'); continue; }
-      let signs = '';
+      /* Pangu r1.026: signs within one hyphenated word were concatenated with a zero
+         gap, and adjacent wedges fused into what read as one denser sign. A narrow
+         no-break space (U+202F) between them gives a stable in-word seam (~2.8px at
+         390px vs the ~6px word gap) that never breaks a sign run across a line. */
+      const parts = [];
       for (const tok of chunk.split('-').filter(Boolean)) {
-        if (!(tok in SIGN)) { problems.push(`unmapped reading "${tok}" in "${chunk}"`); signs += '?'; }
-        else signs += SIGN[tok];
+        if (!(tok in SIGN)) { problems.push(`unmapped reading "${tok}" in "${chunk}"`); parts.push('?'); }
+        else parts.push(SIGN[tok]);
       }
-      words.push(signs);
+      words.push(parts.join(' '));
     }
     out.push(words.join(' '));
   }
-  return out.join(' ').replace(/\s+/g, ' ').trim();
+  /* Collapse ASCII whitespace only — NOT \s, which eats the U+202F in-word seams
+     above (the naive /\s+/ silently rewrote every narrow space back to a plain one). */
+  return out.join(' ').replace(/[ \t\n\r\f\v]+/g, ' ').trim();
 }
 
 /* Build per-key HTML: every sentence is a tappable span carrying its index into

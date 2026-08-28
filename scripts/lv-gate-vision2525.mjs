@@ -215,6 +215,11 @@ let VMAXCHK=null;
   if(!r.imp && !r.vmaxIsEngineOnly)
     fails.push('improvements(VMAX) is empty — key improvements would render blank');
   else if(r.vmaxIsEngineOnly) console.log('VMAX is engine-only — empty improvements panel is correct');
+  /* r285: #bCmp is a deck control, hidden in straight (full-doc) mode. Since a view
+     switch no longer forces paged mode, this step must take the reader's door itself
+     before it can press Compare. */
+  await p.evaluate(()=>{ if(document.body.classList.contains('straight')) document.getElementById('bFull').click(); });
+  await p.waitForTimeout(200);
   await p.click('#bCmp');
   /* r254 · the pickers are two range SLIDERS (Before/After), not selects — r253 replaced
      the dropdowns with the deck's slider idiom, and r254 renamed the vocabulary. */
