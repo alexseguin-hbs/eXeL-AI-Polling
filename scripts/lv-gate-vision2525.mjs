@@ -896,7 +896,15 @@ if(!fails.length) console.log('right rail ok — contents link flush right and p
 
     /* ── 2 · COVERAGE: nothing lives only in full doc ────────────────────── */
     {
-      const union = new Set([...WP_ORDER, ...PAPER_ORDER, ...OUTLINE_ORDER, ...BRIEF_ORDER, ...LEDGER_ORDER, ...NOSE_ORDER]);  /* r139: the scaffold owns its own order */
+      /* r139: the scaffold owns its own order, so PAPER_ORDER is named explicitly.
+         r276: the other six were a hand-kept list of view orders, and a hand-kept
+         list goes stale the moment a view is added — which is exactly what happened
+         when the Executive Summary became a view and its fourteen blocks were
+         reported as orphans while sitting in a perfectly good order. Derive the
+         union from VIEWS instead. This is STRICTER, not looser: the rule still
+         refuses to trust ALL_ORDER (the thing being checked), it still fails a block
+         that belongs to no view, and it now covers every view that will ever exist. */
+      const union = new Set([...Object.keys(VIEWS).flatMap(k => VIEWS[k].order), ...PAPER_ORDER]);
       const live = replay(VMAX, ALL_ORDER).map(x => x.id);
       const orphan = live.filter(id => !union.has(id));
       if (orphan.length)
