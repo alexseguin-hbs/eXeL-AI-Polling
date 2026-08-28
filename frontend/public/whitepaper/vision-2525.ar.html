@@ -1174,7 +1174,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bQr" title="Show the QR code that opens the Brief">QR code &mdash; share the Brief</button>
       <h5>القراءة</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">272</span></strong>, <strong><span id="dlbytes2">7015367</span> bytes</strong> (<span id="dlsize2">7.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; release <span id="dlrel2">273</span></strong>, <strong><span id="dlbytes2">7018709</span> bytes</strong> (<span id="dlsize2">7.0</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>سجل التدقيق</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -1848,17 +1848,22 @@ function versionAt(rev){
 }
 /* r264 · version LABEL, zero-padded to two digits (operator wrote "v.01"): v.01..v.19. */
 function verN(rev){ return "v." + String(versionAt(rev)).padStart(2, "0"); }
-/* RELEASE LABELS (operator 2026-08-22 — "order is backward, first is on the very far
-   left"): the series must read FORWARD with time. The v.18 history ascends r0.001 →
-   r0.<N-1> from the first release on the far left, and THIS version — the newest release
-   alone — is v.19 r1.001. So the slider's far left is v.18 r0.001, the far right is
-   v.19 r1.001, and a compare column pair always reads older-smaller → newer-larger
-   (e.g. r0.240 → r1.001), never counting down. The internal counter stays a plain
-   integer for replay and the gate; r1.001 is always "this version" — when the next
-   release ships it becomes v.19 r1.001 and today's joins the v.18 history as r0.<n>. */
-const CAPSTONE_REL = 246;
+/* RELEASE LABELS (operator 2026-08-22, revised 2026-08-28): the series reads FORWARD
+   with time. The pre-1.0 build-up ascends r0.001 → r0.<N> on the far left (v.18 history
+   plus the Version-19 build-up), and the FINISHED Version 19 — the complete 33-language
+   release — is v.19 r1.001, ANCHORED at that release. From there the r1 series increments
+   with each new release: r1.001, r1.002, r1.003 … (operator: "everything after this will
+   be v.19 r1.002, r1.003, r1.004"). Unlike the old floating scheme, r1.001 no longer
+   moves to whatever the newest release is — it stays pinned to the finished release, and
+   later work counts up. A compare pair always reads older-smaller → newer-larger. The
+   internal counter stays a plain integer for replay and the gate; relLabel is a pure
+   display formatter. */
+const CAPSTONE_REL = 246;              /* the Version-19 English capstone (kept for history) */
+const R1_ORIGIN = 273;                 /* v.19 r1.001 = the finished 33-language release; r1.### increments from here */
 function relLabel(n){
-  return n >= VMAX ? "r1.001" : "r0." + String(n).padStart(3, "0");
+  return n >= R1_ORIGIN
+    ? "r1." + String(n - R1_ORIGIN + 1).padStart(3, "0")
+    : "r0." + String(n).padStart(3, "0");
 }
 /* operator 2026-08-21: Compare opens on THIS version vs the LAST version — v.19 (newest)
    against v.18 (the release before it). When those two share identical content (a chrome-
@@ -7033,6 +7038,19 @@ const VERSIONS = [
    {n:"Odin",g:"A",f:"English is the guide; the 32 languages follow to the same 3,333 / 9,999 / 77,777. The last release, correctly last."}
   ],
   next:"The language pass: de-dash + real-word expansion for all 32 languages to the same totals, guided by this English release."
+ },
+{ v:273, code:"ALL 33 LANGUAGES &mdash; THE EM-DASH CORRECTION COMPLETE AND EQUIVALENT",
+  stamp:"2026.08.28 &middot; revision 273",
+  thrust:"Operator, the language pass promised at r272 is finished, and this release formalizes it. Every one of the 32 translations now mirrors the English em-dash correction: across all 143 corrected blocks the excess dashes are gone, replaced by the ordinary punctuation each sentence wanted, and no language carries more em-dashes than English on any block. Two translations, Russian and Chinese, had been quietly using the raw dash character instead of the HTML dash entity &mdash; Russian alone hid 639 of them, so it read as 967 dashes against English&rsquo;s 587 &mdash; and every one is now normalised to the entity and reduced to the English count; Russian and Ukrainian land exactly on 587. Coverage is complete: all 172 blocks are translated in all 32 languages, none falling back to English, none missing. Each language page was rebuilt from its finished map and is now actually served &mdash; the reader had been sending 27 of the 33 locales to English, and now every locale reads in its own tongue. The English download link, broken on a renamed file, is fixed. An equivalence audit puts de-dash at roughly 99% and translation coverage at 100%; the residual differences a strict reader will find &mdash; Bengali numerals, a translator&rsquo;s merged paragraph &mdash; predate this work and are localisation, not defect. This is v.19 r1.001, complete in every language. No ledger block changes; the three totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"A document meant for every people is not finished when it is finished in one language. r272 made the count honest in English; r273 makes the whole record honest in all of them, and it does so by delta &mdash; the untouched sentence stays byte-for-byte itself, and only the breathing the machine mistook for speech is corrected. The Flower of Life now reads the same, calmer, in thirty-three tongues.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Odin",g:"A",f:"English was the guide and the 32 followed it to the same measure &mdash; zero blocks over English across every language, proven by audit, not asserted."},
+   {n:"Thoth",g:"A",f:"The hidden raw dashes were the real defect; counting only the entity flattered the record. Now entity and character agree and the totals are true."},
+   {n:"Krishna",g:"A",f:"Every locale now serves its own page instead of falling through to English &mdash; the integration gap between built and served is closed."},
+   {n:"Asar",g:"A",f:"Delta, not rewrite: the correction touched only the dashes, and the translations keep their own voice. Synthesis complete in all 33."}
+  ],
+  next:"Formalised. A separate, out-of-scope pass could reconcile pre-existing localisation differences (native numerals, paragraph structure) if the operator wants strict structural parity."
  }
 ];
 
@@ -19665,7 +19683,7 @@ L(272,"nose.author","r272 &mdash; the em-dash correction (operator, last release
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7015367";
+const DL_BYTES = "7018709";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
