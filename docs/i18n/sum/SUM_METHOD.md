@@ -23,7 +23,7 @@ translates meaning, not letters.
 - The **cuneiform is derived mechanically** from the transliteration by
   `docs/i18n/sum/signmap.json` — a table generated from Unicode's own
   Sumero-Akkadian sign inventory (each reading resolved by Unicode sign *name*,
-  so a wrong glyph is structurally impossible). The builder **fails closed** on any
+  so a wrong glyph FOR A GIVEN READING is structurally impossible — a wrongly chosen reading still yields its own, confidently wrong, sign; that choice is what review corrects). The builder **fails closed** on any
   reading the table does not carry. A reviewer corrects the transliteration; the
   signs regenerate. No human ever hand-picks a glyph.
 
@@ -59,7 +59,8 @@ No "web Sumerian translators," no esoteric sign lists. Where this draft must coi
 - **Copula:** enclitic **-am₃** ("it is").
 - **Verbal chain (simplified for the draft):** finite forms carry a conjugation prefix
   (**mu-**, **ba-**, **i₃-**) + agreement; the draft prefers the simplest defensible chain
-  and flags anything doubtful rather than inventing morphology. Habitual/gnomic statements
+  rather than inventing morphology; where a form is doubtful the reviewer should treat the
+  whole chain as open — the draft does not mark per-word doubt, and claims not to. Habitual/gnomic statements
   use the marû base where a clean form is attested; otherwise nominal sentences with -am₃.
 - **Abstracts:** **nam-** prefix (nam-lugal "kingship" → nam-ĝeštug₂ "thought-mastery").
 - **Plural (animate):** **-ene**; inanimate plurality unmarked or reduplicated.
@@ -108,8 +109,10 @@ permanent DRAFT banner naming this method file and inviting correction.
 ### Review invitation — and where to send it
 Corrections are expected and wanted, at the level of: lexeme choice, case chain, verbal
 prefix, sign value, or the whole approach to a sentence. **Send corrections as GitHub
-issues: https://github.com/alexseguin-hbs/eXeL-AI-Polling/issues** (public), quoting the
-sentence's English line. The transliteration file is the single thing to correct;
+issues: https://github.com/alexseguin-hbs/eXeL-AI-Polling/issues** (public), citing the
+sentence's reference — the `page.paragraph.sentence` number the study card shows first
+(00.01.01 = Preamble, paragraph 1, sentence 1 · 12.03.06 = section 12, paragraph 3,
+sentence 6 · 13.01.01–10 = the litany) — plus the English line. The transliteration file is the single thing to correct;
 everything else regenerates.
 
 ### Known limitations of the draft (stated, not hidden)

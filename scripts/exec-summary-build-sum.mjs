@@ -70,15 +70,33 @@ function cune(t, plain) {
 
 /* Build per-key HTML: every sentence is a tappable span carrying its index into
    the study data. Plain keys (title, image alt, caption) carry no markup. */
-const D = [];          // study data: [{t, e}]
+const D = [];          // study data: [{r, t, e, g}] — r = page.paragraph.sentence
 const PLAIN = new Set(['k00', 'k69', 'k70']);
+/* operator: "section out work in smaller chunks page.paragraph.sentence number first —
+   00.01.01 page 0 preamble paragraph 1 sentence 1 … 12.03.06". Every sentence carries
+   an addressable reference so a reviewer can cite one chunk exactly. */
+const P2 = n => String(n).padStart(2, '0');
+function refFor(k, i) {
+  const n = +k.slice(1);
+  if (n >= 1 && n <= 4)   return `00.00.${P2(n)}`;                        // masthead + preamble head
+  if (n >= 5 && n <= 16)  return `${P2(n - 4)}.00.01`;                    // section heads 01-12
+  if (n >= 17 && n <= 19) return `00.${P2(n - 16)}.${P2(i + 1)}`;         // preamble paragraphs
+  if (n >= 20 && n <= 55) return `${P2(Math.floor((n - 20) / 3) + 1)}.${P2(((n - 20) % 3) + 1)}.${P2(i + 1)}`;
+  if (n >= 56 && n <= 65) return `13.01.${P2(n - 55)}`;                   // the litany, ten sentences
+  if (n === 66) return '13.02.01';
+  if (n === 67) return '13.03.01';
+  if (n === 68) return '13.04.01';
+  if (n === 69) return '13.05.01';
+  if (n === 70) return '13.06.01';
+  return `xx.xx.${P2(i + 1)}`;
+}
 const html = {};
 for (const k of Object.keys(EN)) {
   if (k === 'k00') { html.k00 = 'Vision • 2525 — 𒅴𒂠 Executive Summary · Sumerian draft'; continue; }
   if (!Array.isArray(SUM[k])) continue; /* missing keys are reported by the completeness check, not a TypeError */
   if (PLAIN.has(k)) { html[k] = SUM[k].map(r => cune(r.t, true)).join(' '); continue; }
   html[k] = SUM[k].map(r => {
-    const i = D.push({ t: r.t, e: r.e, g: r.g }) - 1;
+    const i = D.push({ r: refFor(k, SUM[k].indexOf(r)), t: r.t, e: r.e, g: r.g }) - 1;
     return `<span class="snt" data-i="${i}">${cune(r.t)}</span>`;
   }).join(' ');
 }
@@ -120,7 +138,7 @@ ul.seal li{font-size:21px;line-height:2}
 body.study .snt{cursor:pointer;border-radius:6px}
 body.study .snt:hover{background:var(--accent-bg)}
 .snt.sel{background:var(--accent-bg);box-shadow:0 0 0 1px var(--accent);border-radius:6px}
-.stcard{display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
+.stcard .st-id{grid-column:1 / -1;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--accent);margin-bottom:.15rem}\n.stcard{display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
 .stcard .st-t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.6;color:var(--accent);word-break:break-word}
 .stcard .st-e{font-family:"Spectral",Georgia,serif;font-size:.95rem;line-height:1.6;color:var(--ink)}
 .stcard .gh{margin-top:.5rem}\n.stcard .gg{font-family:\"Spectral\",Georgia,serif;font-style:italic;font-size:.85rem;color:var(--soft)}\n.stcard h5{margin:0 0 .3rem;font:600 9.5px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
@@ -147,7 +165,7 @@ quoting the English line.</div>\n<div class=wrap>`);
 /* study data + behaviour */
 h = h.replace('</body>', `<script>
 (function(){
-  var D = ${JSON.stringify(D).replace(/</g,'\\u003c')}; /* Thor r1.021: a </script> in a record must not end the script */
+  var D = ${JSON.stringify(D).replace(/</g,'\\u003c')}; /* Thor r1.021: a closing script tag inside a record must not end this script (hence the u003c escape — and no literal tag in this comment either, which is exactly how r1.021 broke itself) */
   var btn = document.getElementById('bStudy');
   if (!btn) return;
   var on = false;
@@ -170,7 +188,8 @@ h = h.replace('</body>', `<script>
     var d = D[+s.getAttribute('data-i')]; if (!d) return;
     var card = document.createElement('div');
     card.className = 'stcard';
-    card.innerHTML = '<div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div>';
+    card.innerHTML = '<div class="st-id"></div><div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div>';
+    card.querySelector('.st-id').textContent = d.r || '';
     card.querySelector('.tt').appendChild(document.createTextNode(d.t));
     card.querySelector('.gg').appendChild(document.createTextNode(d.g || ''));
     card.querySelector('.st-e').appendChild(document.createTextNode(d.e));
