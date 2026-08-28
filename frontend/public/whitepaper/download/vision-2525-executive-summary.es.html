@@ -1,9 +1,9 @@
-<!doctype html><html lang=es><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.012"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — Resumen Ejecutivo a la Humanidad</title>
+<!doctype html><html lang=es><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.013"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — Resumen Ejecutivo a la Humanidad</title>
 <link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
 <link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0B6E73;--plate:#111719;--plate-ink:#E9ECE7}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--plate:#080C0D}}
-:root[data-theme=dark]{--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--plate:#080C0D}
+<style>:root{--paper:#F4F6F4;--raise:#fff;--ink:#13181B;--soft:#525a5e;--faint:#7b8388;--line:#dcdfda;--accent:#0B6E73;--accent-bg:#E3F0F3;--plate:#111719;--plate-ink:#E9ECE7}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--accent-bg:#062227;--plate:#080C0D}}
+:root[data-theme=dark]{--paper:#0C1113;--raise:#121A1D;--ink:#E7ECE9;--soft:#A7B0AE;--faint:#78827f;--line:#242d2f;--accent:#42B4B8;--accent-bg:#062227;--plate:#080C0D}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Spectral",Georgia,serif;font-size:18px;line-height:1.64;-webkit-font-smoothing:antialiased}
 .wrap{max-width:42rem;margin:0 auto;padding:0 1.4rem 5rem}header.mast{max-width:42rem;margin:0 auto;padding:2.2rem 1.4rem 1.1rem;text-align:center}
 /* exec r1.003 · operator: "when executive summary is clicked I dont want to see all the
@@ -63,21 +63,30 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
   font-size:.82rem;font-family:"IBM Plex Mono",monospace;letter-spacing:.06em}
 .langwrap>button:hover{border-color:var(--accent);color:var(--accent)}
 .langwrap>button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-#langMenu{position:absolute;top:calc(100% + .5rem);right:0;width:min(19rem,calc(100vw - 1.8rem));
-  max-height:min(30rem,70vh);overflow-y:auto;background:var(--raise);border:1px solid var(--line);
-  border-radius:14px;padding:.5rem;box-shadow:0 18px 40px rgba(0,0,0,.18)}
-#langMenu h5{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--faint);margin:.5rem .6rem .35rem;font-weight:500}
-#langMenu button{display:flex;align-items:baseline;gap:.5rem;width:100%;text-align:left;background:none;border:0;
-  color:var(--ink);font:inherit;font-size:.92rem;padding:.42rem .6rem;border-radius:8px;cursor:pointer}
-#langMenu button:hover:not([disabled]){background:var(--paper);color:var(--accent)}
-#langMenu button[disabled]{color:var(--faint);cursor:default}
-#langMenu button[aria-current=true]{color:var(--accent);font-weight:600}
-#langMenu .lc{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.1em;color:var(--faint);min-width:2.1rem}
-#langMenu .le{color:var(--faint);font-size:.82rem}
-#langMenu .soon{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--faint)}
-#langMenu .sux-note{margin:.15rem .6rem .5rem;font-size:.76rem;line-height:1.45;color:var(--faint)}
+/* exec r1.013 · operator: "same here for drop down; never recreate what was already
+   executed." The r276 lift took the living document's globe LOGIC but redrew its
+   panel; this finishes the lift. Every rule below is the living document's .regmenu/
+   .langmenu grammar verbatim, with only the token names mapped to this page's palette
+   (--panel→--raise, --rule→--line, --ai→--accent, --ai-bg→--accent-bg): the 8px/12px
+   panel, 10.5px sans h5, 500 12.5px sans rows, inline 600 11px mono AI-coloured code,
+   the one-line "LC • Native (English)" row, .42-opacity disabled rows. */
+#langMenu{position:absolute;z-index:60;top:calc(100% + 6px);left:auto;right:0;min-width:210px;
+  max-width:calc(100vw - 2.8rem);max-height:min(70vh,520px);overflow-y:auto;padding:8px;
+  border-radius:12px;border:1px solid var(--line);background:var(--raise);
+  box-shadow:0 18px 44px rgba(0,0,0,.30);text-align:left}
+#langMenu h5{margin:2px 6px 6px;font:600 10.5px/1.2 ui-sans-serif,system-ui,sans-serif;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+#langMenu button{display:block;width:100%;margin:0;padding:6px 8px;border:0;border-radius:8px;
+  background:none;text-align:left;font:500 12.5px/1.35 ui-sans-serif,system-ui,sans-serif;
+  color:var(--ink);cursor:pointer}
+#langMenu button:hover:not([disabled]),#langMenu button:focus-visible:not([disabled]){background:var(--accent-bg);color:var(--accent)}
+#langMenu button[aria-current=true]{background:var(--accent-bg);color:var(--accent);font-weight:700}
+#langMenu button[disabled]{opacity:.42;cursor:default}
+#langMenu button[disabled]:hover{background:none;color:var(--ink)}
+#langMenu .lc{display:inline;font:600 11px/1.3 ui-monospace,monospace;color:var(--accent)}
+#langMenu .le{display:inline;font:400 11px/1.3 ui-sans-serif,system-ui;color:var(--soft)}
+#langMenu .soon{color:var(--soft)}#langMenu .soon::before{content:" \00b7 "}
+#langMenu .sux-note{margin:2px 8px 8px;font:400 11px/1.45 ui-sans-serif,system-ui,sans-serif;color:var(--soft)}
 @media print{.langwrap{display:none}}
 </style></head><body>
 <div class="langwrap"><a class="back" href="vision-2525.html" title="Back to the Vision • 2525 living document">&larr;&nbsp;Vision • 2525</a><span class="rgroup"><a class="dl" href="download/vision-2525-executive-summary.es.html" title="Download this page as HTML" aria-label="Download this page as HTML"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="M6 9l6 6 6-6"/><path d="M5 21h14"/></svg></a><button id="bLang" aria-expanded="false" aria-haspopup="menu" title="Language — read this summary in another tongue" aria-label="Language"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg><span id="bLangCode">EN</span></button><div id="langMenu" role="menu" hidden></div></span></div>
@@ -104,7 +113,7 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
    works offline with no server. */
 (function(){
   var LANGS = [{"c":"en","n":"English","e":"English"},{"c":"fr","n":"Français","e":"French"},{"c":"es","n":"Español","e":"Spanish"},{"c":"de","n":"Deutsch","e":"German"},{"c":"it","n":"Italiano","e":"Italian"},{"c":"pt","n":"Português","e":"Portuguese"},{"c":"nl","n":"Nederlands","e":"Dutch"},{"c":"ru","n":"Русский","e":"Russian"},{"c":"zh","n":"中文","e":"Chinese"},{"c":"ja","n":"日本語","e":"Japanese"},{"c":"ko","n":"한국어","e":"Korean"},{"c":"ar","n":"العربية","e":"Arabic"},{"c":"hi","n":"हिन्दी","e":"Hindi"},{"c":"bn","n":"বাংলা","e":"Bengali"},{"c":"pa","n":"ਪੰਜਾਬੀ","e":"Punjabi"},{"c":"th","n":"ไทย","e":"Thai"},{"c":"vi","n":"Tiếng Việt","e":"Vietnamese"},{"c":"id","n":"Bahasa Indonesia","e":"Indonesian"},{"c":"ms","n":"Bahasa Melayu","e":"Malay"},{"c":"tl","n":"Filipino","e":"Filipino"},{"c":"tr","n":"Türkçe","e":"Turkish"},{"c":"pl","n":"Polski","e":"Polish"},{"c":"uk","n":"Українська","e":"Ukrainian"},{"c":"ro","n":"Română","e":"Romanian"},{"c":"el","n":"Ελληνικά","e":"Greek"},{"c":"cs","n":"Čeština","e":"Czech"},{"c":"sv","n":"Svenska","e":"Swedish"},{"c":"da","n":"Dansk","e":"Danish"},{"c":"fi","n":"Suomi","e":"Finnish"},{"c":"no","n":"Norsk","e":"Norwegian"},{"c":"he","n":"עברית","e":"Hebrew"},{"c":"sw","n":"Kiswahili","e":"Swahili"},{"c":"ne","n":"नेपाली","e":"Nepali"}];
-  var BUILT = ["ar","bn","cs","da","de","el","en","es","fi","fr","he","hi","id","it","ja","ko","ms","ne","nl","no","pa","pl","pt","ro","ru","sv","sw","tl","tr","uk","vi","zh"];
+  var BUILT = ["ar","bn","cs","da","de","el","en","es","fi","fr","he","hi","id","it","ja","ko","ms","ne","nl","no","pa","pl","pt","ro","ru","sv","sw","th","tl","tr","uk","vi","zh"];
   var SUX   = {"c":"sux","n":"𒅴𒂠","e":"Sumerian · cuneiform","note":"in preparation"};
   var KEY   = "exel-active-locale";
   var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
@@ -125,7 +134,7 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
   function row(l, ready, note){
     return '<button role="menuitem" data-lang="' + l.c + '"' + (ready ? '' : ' disabled') +
       (l.c === cur() ? ' aria-current="true"' : '') + '>' +
-      '<span class="lc">' + esc(l.c.toUpperCase()) + '</span>' + esc(l.n) +
+      '<span class="lc">' + esc(l.c.toUpperCase()) + '</span> • ' + esc(l.n) +
       (l.e ? ' <span class="le">(' + esc(l.e) + ')</span>' : '') +
       (ready ? '' : '<span class="soon">' + esc(note || 'soon') + '</span>') + '</button>';
   }
