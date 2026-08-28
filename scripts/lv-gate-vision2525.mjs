@@ -103,7 +103,12 @@ let VMAXCHK=null;
   {
     /* r106: the release stepper left the foot of every section — the deck
        carries prev/play/next/Latest at all times now. The disclosure lives on
-       the last cell with the rest of the record, so the test goes there. */
+       the last cell with the rest of the record, so the test goes there.
+       r285: switching views no longer exits straight-through, so this step can
+       no longer inherit paged mode from an earlier setView — it takes the
+       reader's actual door (the mode toggle) before visiting the last cell. */
+    await p.evaluate(()=>{ if(document.body.classList.contains('straight')) document.getElementById('bFull').click(); });
+    await p.waitForTimeout(200);
     await p.evaluate(()=>{ const c=cellsIn(); if(c.length) goTo(c[c.length-1].target); });
     await p.waitForTimeout(300);
     const before = await p.evaluate(()=>({
