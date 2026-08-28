@@ -43,6 +43,14 @@
   3. **If it partially exists → state which part is done and implement only the gap.**
   4. **Never re-report a shipped item as remaining.** A backlog line is only "remaining" once step 1 proves the gap.
   5. **Scope check first:** confirm the item belongs to the app under work (e.g. `/innovation` = `app/innovation/page.tsx` · `lib/innovation-data.ts` · the slide seeds). Items belonging to other apps/cubes are out of scope, not silently absorbed.
+- **DARK IS THE DEFAULT GROUND (operator 2026-08-28).** Every Vision-2525 reading surface — the living
+  document, the Executive Summary, and any future view or companion page — renders **dark by default and
+  goes light ONLY when the reader has explicitly selected light** in the living document's Settings bar.
+  One source of truth: localStorage `v2525.ground === "light"` (the key the document's `bTheme` toggle
+  writes; `setTheme(ground === "light" ? "light" : "dark")`). Never derive the ground from
+  `prefers-color-scheme` on these pages; never default to light; stamp `data-theme` before first paint
+  so there is no flash; when storage is unreadable (downloaded `file://` copies), fall back to dark.
+  Implemented: living document (`v2525.ground` init) · Executive Summary (exec r1.016 head script).
 
 ## Release Process (Mandatory)
 
