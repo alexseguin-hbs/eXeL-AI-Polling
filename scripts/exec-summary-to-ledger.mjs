@@ -19,7 +19,7 @@ import fs from 'fs';
 
 const DOC   = 'docs/SOI_VISION2525_LIVING_DOCUMENT.html';
 const EN    = JSON.parse(fs.readFileSync('docs/i18n/exec-summary.en.json', 'utf8'));
-const REL   = 276;
+const REL   = 279;   /* living-document release carrying exec r1.002 */
 const WRITE = process.argv.includes('--write');
 
 // Page layout, read straight off the frozen template's token order:
@@ -43,8 +43,11 @@ const LITANY = ['k56','k57','k58','k59','k60','k61','k62','k63','k64','k65'];
 
 // The four source filenames were deliberately stripped from the prose in the
 // canonicalization pass; they ride as data-source, exactly as in the template.
-const SOURCES = { k21:'SOI_VISION2525_v.19_LIVING_DOCUMENT.html', k23:'Divinity Guide.txt',
-                  k36:'SOI_VISION2525_v.19_LIVING_DOCUMENT.html', k49:'SOI_VISION2525_v.19_LIVING_DOCUMENT.html' };
+/* r1.002 · empty by design. The approved text carries no source filenames in its
+   prose, so there is nothing to move into data-source. Kept as a map rather than
+   deleted, because provenance may return and the mechanism should not have to be
+   rebuilt when it does. */
+const SOURCES = {};
 
 const ent = s => s
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -67,7 +70,7 @@ PAGES.forEach((p, i) => {
   });
   blocks.push({
     id: 'exec.s' + i,
-    why: 'r276 &mdash; the Executive Summary enters the ledger. Page ' + (i + 1) + ' of thirteen, generated from the frozen canonical English so the saved page and the in-document view can never drift.',
+    why: 'exec r1.002 &mdash; the operator&rsquo;s final approved text. Page ' + (i + 1) + ' of thirteen, generated from the frozen canonical English so the saved page and the in-document view can never drift.',
     html: h,
   });
 });
@@ -80,13 +83,17 @@ c += '<p>' + ent(EN.k68) + '</p>';
 c += '<p class="meta" style="margin-bottom:0">' + ent(EN.k70) + '</p>';
 blocks.push({
   id: 'exec.close',
-  why: 'r276 &mdash; the Executive Summary&rsquo;s close: the ten-line litany, the two mottos, and the Master of Thought seal.',
+  why: 'exec r1.002 &mdash; the Executive Summary&rsquo;s close: the ten-line litany, the two mottos, and the Master of Thought seal.',
   html: c,
 });
 
 const Lcalls = blocks.map(b => `L(${REL},"${b.id}","${b.why}",'${lit(b.html)}');`).join('\n');
 const ORDER  = 'const EXEC_ORDER = [\n ' + blocks.map(b => '"' + b.id + '"').join(', ') + '\n];\n';
 
+/* --emit prints ONLY the L() calls, so a re-generation can replace the existing
+   blocks in place. The first run inserts the machinery; every run after that is a
+   content refresh, and the two must not be the same code path. */
+if (process.argv.includes('--emit')) { console.log(Lcalls); process.exit(0); }
 if (!WRITE) {
   console.log(ORDER);
   console.log(`${blocks.length} blocks, ${Lcalls.length} bytes of L() calls`);

@@ -1,6 +1,26 @@
 # Claude Code - Project Instructions
 
 ## Workflow Rules
+- **PERSIST FIRST, PLAN SECOND, APPROVE THIRD (AAR 2026-08-28, MoT-enforced).** Anything the operator hands
+  over that he cannot easily reproduce — approved copy, a decision, a specification — is **written to a file
+  before any analysis, planning, or request for approval**. Proof of persistence is a **hash the operator can
+  check**, never an assurance he must trust.
+  This rule exists because a **4,895-word approved Executive Summary sat unsaved in conversation across six
+  planning rounds** while the session discussed what to do with it. The operator had to ask *"how do i know
+  you have the final executive summary saved correctly?"* — and the honest answer was that he could not,
+  because it was not saved at all. The container had already destroyed thirteen uncommitted files earlier in
+  that same session.
+  1. **Approval is not preservation. A plan is not a record.** Deciding what to do with something is not the
+     same act as keeping it. Intent that exists only in conversation has not entered time.
+  2. **Assert invariants BEFORE the write**, so a malformed transcription refuses rather than persists.
+  3. **Commit the artefact alone**, in its own commit, before anything touches it.
+  4. **When the operator repeats himself, the last answer missed.** Change what you do, not how you describe
+     it. He should never have to ask five ways.
+  5. See `docs/AAR_2026-08-28_MOTION_WITHOUT_RECORD.md` and the `mot:` field of release 279.
+- **A NEW EDITION IS AN APPEND, NEVER AN EDIT (same AAR).** `replay()` picks the last ledger entry at or
+  below the release being read. Changing an existing `L(v,…)` in place silently removes that block from every
+  release that already shipped with it. Append `L(newer,"same.id",…)` instead — the past then replays what it
+  actually shipped, which is the document's entire thesis. Verify with a replay test, not by memory.
 - **ALWAYS commit and push to GitHub after each change.** Do not wait — commit and push immediately after every modification.
 - **REPORT THE SHA AND THE DEPLOY STATE ON EVERY UPDATE (AAR 2026-07-29, MoT-enforced).** For four hours a
   push was reported as a ship: five commits announced "done" while the live site served a build four hours old.
