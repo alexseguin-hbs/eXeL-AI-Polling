@@ -281,14 +281,17 @@ let VMAXCHK=null;
     if(!seen[k].chg) fails.push('compare reports no change in the '+k+' view');
   }
   /* r104 · THE TOGGLE ANSWERS ONE QUESTION. It cycled four views, two of which
-     were the same twenty-five blocks. It now cycles the three readings, and
-     Outline and Ledger are reached from Settings — asserted separately by
-     COVERAGE, which counts Settings as a route. */
+     were the same twenty-five blocks. It now cycles the readings, and Outline
+     and Ledger are reached from Settings — asserted separately by COVERAGE,
+     which counts Settings as a route.
+     r283 · the operator added the Executive Summary as the fourth cell, in his
+     exact order: White Paper, Brief, N.O.S.E., Executive Summary. The rule now
+     asserts THAT cycle — four distinct readings, none of them the same blocks. */
   await p.evaluate(()=>setView('paper'));
   const cyc=[];
-  for(let i=0;i<4;i++){ await p.click('#bView'); cyc.push(await p.evaluate(()=>view)); }
-  if(cyc.join(',')!=='brief,nose,paper,brief')
-    fails.push('view toggle does not cycle the three readings: '+cyc.join(','));
+  for(let i=0;i<5;i++){ await p.click('#bView'); cyc.push(await p.evaluate(()=>view)); }
+  if(cyc.join(',')!=='brief,nose,exec,paper,brief')
+    fails.push('view toggle does not cycle the four readings: '+cyc.join(','));
   // section anchors + ToC
   await p.evaluate(()=>setView('paper'));
   const toc=await p.evaluate(()=>({

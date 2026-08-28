@@ -1211,7 +1211,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Læsning</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.010</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">282</span>)</span>, <strong><span id="dlbytes2">7166960</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.011</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">283</span>)</span>, <strong><span id="dlbytes2">7169505</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Revisionsspor</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -7250,6 +7250,20 @@ const VERSIONS = [
    {n:"Sofia",g:"B",f:"English-only labels for now &mdash; the chrome translation pass owes these two strings in 32 languages."}
   ],
   next:"Chrome translations for the two door labels; the locale-aware summary href once the standalone translations are wired to the doors."
+ },
+ { v:283, code:"THE FOURTH CELL ON THE TOGGLE",
+  stamp:"2026.08.28 &middot; revision 283",
+  thrust:"Operator: &lsquo;place executive summary as 4th of toggle &hellip; duplicate executive summary on toggle with its newly created icon, and also keep at settings below QR code.&rsquo; The reading toggle now cycles his exact order &mdash; White Paper, Brief, N.O.S.E., Executive Summary &mdash; and the summary cell wears the r275 page-with-ribbon mark so the fourth reading is recognisable at a glance. Nothing new was built: the exec view has existed since r276 and stays in Registers &rarr; Views; the Settings door below the QR code stays exactly where a friend was just sent through it. Chrome only &mdash; two lines changed (the cycle and the label), no ledger block, replay byte-identical, totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"Two doors to one reading is redundancy a reader benefits from; two doors that drift apart is the failure r281 recorded. Both routes here call the same setView, so they cannot disagree &mdash; the toggle is for the reader inside the document, the Settings door for the one being handed a page.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Christo",g:"A",f:"The fourth reading is one tap from the first three, in the order the operator wrote."},
+   {n:"Athena",g:"A",f:"Two lines changed; the view, its spine, and its blocks were already built at r276."},
+   {n:"Krishna",g:"A",f:"Toggle and Settings door call the same setView &mdash; the r281 divergence cannot recur."},
+   {n:"Odin",g:"B+",f:"The gate&rsquo;s COVERAGE rule reads VIEW_CYCLE live, so the fourth cell strengthens it rather than fighting it."},
+   {n:"Sofia",g:"B",f:"The toggle label &lsquo;Executive summary&rsquo; is chrome &mdash; owed to the 32 languages with the two door pills."}
+  ],
+  next:"Chrome translations for the door pills and the toggle label; the locale-aware summary href."
  }
 ];
 
@@ -19925,7 +19939,7 @@ L(280,"exec.close","exec r1.002 &mdash; the Executive Summary&rsquo;s close: the
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7166960";
+const DL_BYTES = "7169505";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -22333,7 +22347,12 @@ document.getElementById("bDiff").addEventListener("click", function(){
    rather than what you READ. Full doc is gone from here entirely: it was the
    same 25 blocks as the white paper, and a list entry that names the document
    twice is a list that lies. It is a Settings preference now. */
-const VIEW_CYCLE = ["brief","nose","paper"];
+/* r283 · operator: the Executive Summary joins the reading toggle as the fourth
+   cell, in his exact order — White Paper, Brief, N.O.S.E., Executive Summary —
+   and ALSO stays in Settings below the QR code (that door was just handed to a
+   friend; both routes live). The view itself has existed since r276; this only
+   adds it to the cycle, so there is no new machinery. */
+const VIEW_CYCLE = ["paper","brief","nose","exec"];
 function viewBtnLabel(v){
   /* The button says what you are READING now, not what tapping it will do —
      a control that names its own future state is the commonest way to make a
@@ -22342,7 +22361,9 @@ function viewBtnLabel(v){
      one section at a time; the book means the whole document, straight through. */
   /* r126 · operator: two spaces between the mode symbol and the name, so the mode
      reads at a glance — •  White paper / book  White paper. */
-  return (straight ? ICON.book : ICON.dot) + "&nbsp;&nbsp;" + (VIEWS[v] ? VIEWS[v].label : "White paper");
+  /* r283 · the Executive Summary cell wears its own mark — the r275 page-with-
+     ribbon — so the fourth reading is recognisable at a glance on the toggle. */
+  return (v === "exec" ? ICON.exec : (straight ? ICON.book : ICON.dot)) + "&nbsp;&nbsp;" + (VIEWS[v] ? VIEWS[v].label : "White paper");
 }
 function setView(v){
   if (!VIEWS[v]) return;
