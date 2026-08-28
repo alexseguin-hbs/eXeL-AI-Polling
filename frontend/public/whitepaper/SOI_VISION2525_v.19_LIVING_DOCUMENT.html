@@ -1200,7 +1200,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Reading</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.006</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">280</span>)</span>, <strong><span id="dlbytes2">7158809</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.006</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">281</span>)</span>, <strong><span id="dlbytes2">7163271</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Audit trail</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -7201,6 +7201,20 @@ const VERSIONS = [
    {n:"Sofia",g:"B+",f:"Correct, and found by the operator rather than by us. The tests proved it rendered; nobody asked what it feels like to arrive."}
   ],
   next:"The thirty-two translations from the frozen English, and the Cloudflare token that lets a deploy be proven rather than awaited."
+ },
+ { v:281, code:"SETTINGS OPENS THE SUMMARY AS IT WAS DESIGNED",
+  stamp:"2026.08.28 &middot; revision 281",
+  thrust:"Operator, with a screenshot of the standalone page beside the request: &lsquo;this format is how I expect &hellip; you had it, then digressed in Vision 2525 settings.&rsquo; He is right, and the digression was mine. The Executive Summary has two readings. One is the designed page: its own masthead, its own serif, the teal eyebrow, the ten-line litany set apart, the two mottos centred, the seal, and the author line &mdash; the reading he approved and has been showing back to me. The other is the in-document view, which renders the same words through the living document&rsquo;s typography so the summary travels inside the 7 MB download and can be read offline. Both are legitimate; only one is the door. r276 repointed Settings at the VIEW, and the designed reading quietly stopped being what a reader meets. Settings goes back to the page. The view is unchanged and still reachable from Registers &rarr; Views, so nothing is lost and the download still carries the summary. Chrome only; no ledger block moved; totals hold 3,333 &middot; 9,999 &middot; 77,777.",
+  mot:"Two readings of one text is a good design. Two doors that behave differently, with no way to tell which one you opened, is not &mdash; and I built the second without noticing I had replaced the first. The error is subtle in a way worth recording: making the summary a view was correct, and pointing the existing door at it was not. A new capability does not inherit the door of the old one just because they share a name. The operator caught it the only way it can be caught, by opening the door he always opens and finding something else behind it. Also recorded: my first version of this fix honoured the reader&rsquo;s stored locale and would have sent a French reader to a file deleted three releases ago. The globe reads the directory and knows what exists; this door does not, so it must not guess. English only until the translations return.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Christo",g:"A",f:"The door a reader actually uses now opens the reading he approved. That is the whole test, and it failed for five releases."},
+   {n:"Athena",g:"B",f:"Two readings, two doors, each named for what it opens. The mistake was letting a new capability inherit an existing door by proximity."},
+   {n:"Thor",g:"A",f:"Caught before shipping: the locale-aware href would have 404&rsquo;d every non-English reader, because those pages were deleted at r1.002."},
+   {n:"Krishna",g:"A",f:"Nothing removed. The in-document view stays in Registers &rarr; Views and still travels inside the download; only the Settings door moved back."},
+   {n:"Odin",g:"B+",f:"A door that changes what it opens, silently, is the failure mode to watch for as more views are added. Name the door for the reading, not for the feature."}
+  ],
+  next:"The thirty-two translations from the frozen English &mdash; after which this door becomes locale-aware again, driven by the directory rather than by a guess."
  }
 ];
 
@@ -19876,7 +19890,7 @@ L(280,"exec.close","exec r1.002 &mdash; the Executive Summary&rsquo;s close: the
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7158809";
+const DL_BYTES = "7163271";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
@@ -22429,9 +22443,26 @@ var paged = false;
      directory this copy was opened from rather than a site-absolute path. */
   var bExec = document.getElementById("bExec");
   if (bExec) bExec.addEventListener("click", function(){
-    /* r276 · in-document. The operator asked "WHERE CAN in-read executive
-       summary?" — here, as a view over ledger blocks, inside the download. */
-    open(false); setView("exec");
+    /* exec r1.003 · operator, with a screenshot of the standalone page: "this format
+       is how I expect ... you had it, then digressed in Vision 2525 settings."
+       He is right, and the digression was mine. r276 repointed this door at the
+       in-document VIEW, which renders the summary in the living document's own
+       typography. The standalone page is the summary set as itself — its own
+       masthead, its own serif, the litany, the mottos and the seal — and it is the
+       reading he approved. This door goes back to that page.
+       Nothing is lost by doing so: the in-document view still exists, still travels
+       inside the 7 MB download, and is still reachable from Registers → Views. One
+       door to the designed reading, one to the ledger reading. Resolved relative to
+       the directory this copy was opened from, so a downloaded folder works offline. */
+    /* English only, deliberately. The twenty-seven translations were deleted when
+       the approved text superseded them, so honouring a stored locale here would
+       send a French reader to a file that no longer exists. The summary's own globe
+       is the place that knows what is built — it reads the directory — and this door
+       must not guess. When the translations return, this becomes locale-aware again
+       and the globe stays the single source of that truth. */
+    var dir = location.pathname.replace(/[^/]*$/, "");
+    open(false);
+    location.href = dir + "vision-2525-executive-summary.html";
   });
   document.getElementById("bQrClose").addEventListener("click", function(){ openQr(false); });
   document.getElementById("qrScrim").addEventListener("click", function(){ openQr(false); });
