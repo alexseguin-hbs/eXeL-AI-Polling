@@ -75,8 +75,9 @@ No "web Sumerian translators," no esoteric sign lists. Where this draft must coi
 | Master of Thought (responsibility/seal) | **EN SAG.KI** | locked, operator 2025 |
 
 ### Coinage rules (modern concepts an Old Babylonian scribe never met)
-A coinage is a transparent calque from attested lexemes, marked **⚘** in the glossary,
-never a phonetic loan. The load-bearing ones:
+A coinage is a transparent calque from attested lexemes, **marked ⚘ in this glossary** (the
+flag lives here, where the coinages are defined — the page itself shows transliteration and
+gloss, and links back here), never a phonetic loan. The load-bearing ones:
 | Concept | Draft Sumerian | Literal reading |
 |---|---|---|
 | Artificial Intelligence | **ĝeštug₂ dim₂-ma** ⚘ | "fashioned understanding" |
@@ -120,3 +121,6 @@ everything else regenerates.
   Cuneiform); without network or such a font the signs render as boxes — the
   transliteration in study mode remains fully readable.
 - Determinatives are omitted; danna is pressed into service for "hour" as danna-bar.
+- The automated gates are STRUCTURAL — sign-table membership, master alignment, hashes.
+  No machine checks that the Sumerian *means* what the gloss claims; that is exactly what
+  the scholarly review this draft invites is for.

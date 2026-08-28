@@ -15,7 +15,7 @@ NAMES = {
  'a':'A','a2':'A2','ab':'AB','ad':'AD','al':'AL','an':'AN','asz':'ASH',
  'ba':'BA','bad':'BAD','bal':'BAL','bar':'BAR','bi':'BI','bu':'BU',
  'da':'DA','dab5':'DIB','dag':'DAG','di':'DI','dib':'DIB','dim2':'DIM2','dingir':'AN',
- 'du':'DU','du3':'RU','du11':'KA','dub':'DUB','dug4':'KA','dumu':'TUR','dur2':'KU',
+ 'du':'DU','du3':'RU','du11':'KA','dub':'DUB','dug4':'KA','dumu':'TUR','dur2':'KU','tusz':'KU',
  'e':'E','e2':'E2','e3':'UD DU',  # e3 "to go out" = UD.DU ligature -> two signs
  'en':'EN','eme':'KA TIMES ME','eger':'EGIR','egir':'EGIR','esh2':'ESH2',
  'ga':'GA','ga2':'GA2','gal':'GAL','gal2':'IG','gar':'GAR','ge26':'GA2',

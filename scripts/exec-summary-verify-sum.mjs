@@ -46,6 +46,9 @@ for (const k of Object.keys(EN)) {
   if (joined !== master) problems.push(`${k}: e-concatenation drifted from the CURRENT master (${joined.length} vs ${master.length} chars) — stale Sumerian after a re-freeze?`);
 }
 
+const SUMSHA = crypto.createHash('sha256')
+  .update(fs.readFileSync('docs/i18n/exec-summary.sum.json'))
+  .update(fs.readFileSync('docs/i18n/sum/signmap.json')).digest('hex').slice(0, 12);
 const page = 'frontend/public/whitepaper/vision-2525-executive-summary.sum.html';
 if (!fs.existsSync(page)) problems.push('page not built');
 else {
@@ -53,6 +56,7 @@ else {
   if (!h.includes(`content="${REL}"`)) problems.push(`release stamp ${REL} missing from page`);
   if (!h.includes(SHA12)) problems.push('master sha stamp missing from page');
   if (/\{\{[A-Za-z0-9_]+\}\}/.test(h)) problems.push('unresolved token in page');
+  if (!h.includes('exel-sum-src content="' + SUMSHA + '"')) problems.push('page was built from DIFFERENT data than the current sum.json/signmap — rebuild (Odin: the stale-page-after-correction case)');
   const twin = 'frontend/public/whitepaper/download/vision-2525-executive-summary.sum.html';
   if (!fs.existsSync(twin)) problems.push('download twin missing');
   else if (fs.readFileSync(twin, 'utf8') !== h) problems.push('download twin not byte-identical');

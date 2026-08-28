@@ -47,7 +47,9 @@ function cune(t, plain) {
     if (!seg) continue;
     if (seg.startsWith('⟦')) {
       const lat = seg.slice(1, -1);
-      out.push(plain ? lat : '<span class="lat">' + esc(lat) + '</span>');
+      /* Thor r1.021: NEVER emit ⟦…⟧ content unescaped — the plain path lands in
+         alt attributes and captions, an empirically proven injection point. */
+      out.push(plain ? esc(lat) : '<span class="lat">' + esc(lat) + '</span>');
       continue;
     }
     const words = [];
@@ -89,7 +91,11 @@ if (problems.length || missing.length) {
   process.exit(1);
 }
 
+const SUMSHA = crypto.createHash('sha256')
+  .update(fs.readFileSync('docs/i18n/exec-summary.sum.json'))
+  .update(fs.readFileSync('docs/i18n/sum/signmap.json')).digest('hex').slice(0, 12);
 let h = TPL;
+h = h.replace('<meta name=exel-source-sha256', '<meta name=exel-sum-src content="' + SUMSHA + '"><meta name=exel-source-sha256');
 for (const k of Object.keys(EN)) h = h.split('{{' + k + '}}').join(html[k]);
 h = h.split('{{REL}}').join(REL).split('{{VER}}').join(VER).split('{{SHA}}').join(SHA)
      .split('{{DLHREF}}').join('download/vision-2525-executive-summary.sum.html');
@@ -114,7 +120,7 @@ ul.seal li{font-size:21px;line-height:2}
 body.study .snt{cursor:pointer;border-radius:6px}
 body.study .snt:hover{background:var(--accent-bg)}
 .snt.sel{background:var(--accent-bg);box-shadow:0 0 0 1px var(--accent);border-radius:6px}
-.stcard{display:grid;grid-template-columns:1fr 1fr;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
+.stcard{display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
 .stcard .st-t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.6;color:var(--accent);word-break:break-word}
 .stcard .st-e{font-family:"Spectral",Georgia,serif;font-size:.95rem;line-height:1.6;color:var(--ink)}
 .stcard .gh{margin-top:.5rem}\n.stcard .gg{font-family:\"Spectral\",Georgia,serif;font-style:italic;font-size:.85rem;color:var(--soft)}\n.stcard h5{margin:0 0 .3rem;font:600 9.5px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
@@ -141,7 +147,7 @@ quoting the English line.</div>\n<div class=wrap>`);
 /* study data + behaviour */
 h = h.replace('</body>', `<script>
 (function(){
-  var D = ${JSON.stringify(D)};
+  var D = ${JSON.stringify(D).replace(/</g,'\\u003c')}; /* Thor r1.021: a </script> in a record must not end the script */
   var btn = document.getElementById('bStudy');
   if (!btn) return;
   var on = false;

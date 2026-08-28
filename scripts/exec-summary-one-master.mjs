@@ -1,6 +1,8 @@
 // exec-summary-one-master.mjs — ONE MASTER proof for the Executive Summary.
 //
 // Operator (2026-08-28): "make sure there is one master for executive summary."
+// Scope: this proof binds the ENGLISH master to the living document's ledger blocks.
+// The SUM (Sumerian) edition is verified separately by exec-summary-verify-sum.mjs.
 // The summary's text exists in TWO carriers:
 //   1. docs/i18n/exec-summary.en.json — THE MASTER (frozen, SHA-locked); the
 //      standalone page and all 32 translations are built from it.

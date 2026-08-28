@@ -5,3 +5,10 @@ if [ -f frontend/scripts/integrity-guard.mjs ]; then
     echo "commit blocked by integrity-guard (frontend/scripts/integrity-guard.mjs)"; exit 1;
   }
 fi
+# SUM edition gate — a correction or master change must never ship unverified
+# (fleet r1.021: Enlil/Odin found the gate existed but nothing invoked it).
+if [ -f scripts/exec-summary-verify-sum.mjs ] && [ -f docs/i18n/exec-summary.sum.json ]; then
+  node scripts/exec-summary-verify-sum.mjs || {
+    echo "commit blocked by exec-summary-verify-sum (SUM edition out of step)"; exit 1;
+  }
+fi
