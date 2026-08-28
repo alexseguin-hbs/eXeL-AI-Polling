@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.019",
+  "release": "r1.020",
   "editions": [
     {
       "r": "r1.001",
@@ -109,6 +109,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "𒅴𒂠 The Sumerian edition ships — a SCHOLARLY DRAFT, and the operator's 'final attempt to show cuneiform Sumerian' done as meaning, never English spelled in signs (the prior attempt's failure, diagnosed in SUM_METHOD). 70 body+spine keys / 485 sentence records: transliteration is the Sumerian master, cuneiform derives from a Unicode-name-verified 155-reading sign table, locked 2025 names honored (EN SAG.KI), three-term hierarchy carried. The page reuses the shared chrome; a translit toggle shows a selected sentence's transliteration + literal gloss left, English master phrase right; DRAFT banner routes corrections to GitHub issues. Spiral-tested by the 48-fleet's first waves — findings fixed before ship: -ak genitive spellings, k70 punctuation, .pn card host, scroll drift, responsive sizing, correction channel, method drift. The globe's 𒅴𒂠 row goes LIVE as SUM · draft on all 34 pages. English master unchanged."
+    },
+    {
+      "r": "r1.020",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "Fleet wave-2 consolidation on the Sumerian draft. Terminology locked one-verb-one-string across the two parallel step-lists (Observe = igi he2-bar · Imagine = igi sza3-ga he2-gar · Simulate = igi-bar he2-gar — the k40/k52 collisions Aset's voter caught); Spiritual Intelligence unified to gesztu2 zi-ka; the one bare dub he2-gi4 restored to the reduplicated coinage; three load-bearing coinages added to the METHOD glossary (Collective Intelligence, Spiritual Intelligence, imagination) and HI joined the verbatim list. The litany's study card now inserts after the seal plate, never inside the ul (invalid HTML, Enki). New standing gate exec-summary-verify-sum.mjs (Enlil/Odin/Krishna convergence) re-runs token lint + e-concat-vs-current-master + stamp/twin parity over all 70 keys on demand — the stale-after-refreeze silent failure is closed. Langmenu generator synced to the shipped SUM row (Krishna's time-bomb). English master unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."

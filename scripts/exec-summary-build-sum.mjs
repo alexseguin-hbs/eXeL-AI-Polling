@@ -169,6 +169,7 @@ h = h.replace('</body>', `<script>
     card.querySelector('.gg').appendChild(document.createTextNode(d.g || ''));
     card.querySelector('.st-e').appendChild(document.createTextNode(d.e));
     var host = s.closest('p,h2,li,.banner,.motto,.motto2,header.ph') || s.parentElement;
+    if (host.tagName === 'LI') host = host.parentElement; /* a div inside ul.seal is invalid HTML — the card follows the plate */
     host.insertAdjacentElement('afterend', card);
     var drift = s.getBoundingClientRect().top - before;
     if (drift) window.scrollBy(0, drift);

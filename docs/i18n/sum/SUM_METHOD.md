@@ -83,12 +83,15 @@ never a phonetic loan. The load-bearing ones:
 | machine | **ĝeš dim₂-ma** ⚘ | "fashioned wood/implement" |
 | Replay (the record replayed) | **dub gi₄-gi₄** ⚘ | "the tablet that returns" |
 | Engineering (the craft) | **nam-dim₂** ⚘ | "the -ship of fashioning" |
+| Collective Intelligence | **ĝeštug₂ un-ka** ⚘ | "the understanding of the people" |
+| Spiritual Intelligence | **ĝeštug₂ zi-ka** ⚘ | "the understanding of the breath/spirit" |
+| imagination / Imagine | **igi šag₄-ga** ⚘ | "the heart's eye" — kept distinct from igi-bar (simulate) and igi—bar (observe) |
 | record / ledger | **dub** | tablet (attested) |
 | simulation | **igi-bar** ⚘ | "the looking-upon" — also carries "vision/imagine" in the litany; glosses disambiguate |
 | hour (the recorded hour) | **danna-bar** ⚘ | "half a danna" (danna = attested double-hour, written KASKAL.BU — so the compound renders as the three-sign run 𒆜𒁍𒁇) |
 
 ### What stays verbatim (identical rule to the other 32 editions)
-`Vision • 2525` · `R-CORE` · `HI earned = M × hours` · `9,999` · `360 → 33 → 11` ·
+`Vision • 2525` · `R-CORE` · `HI earned = M × hours` · `9,999` · `360 → 33 → 11` · `HI` ·
 `2525` · `Austin` · `Phnom Penh` · `Replay` — as a HEADING or label it stays the Latin branded token ⟦Replay⟧; in running prose it is the
 coined calque **dub gi₄-gi₄**. One rule, two registers, stated here so the two uses cannot read as drift. Numbers keep Arabic numerals; the companion
 *Sumerian Numerology* document (operator source) governs any future sexagesimal
