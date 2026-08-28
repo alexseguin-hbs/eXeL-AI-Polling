@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.002",
+  "release": "r1.003",
   "editions": [
     {
       "r": "r1.001",
@@ -13,6 +13,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Final approved text. The three-term hierarchy is now stated rather than implied — Thought Mastery the discipline, a Thought Master the person, Master of Thought the responsibility behind both. Vision • 2525 throughout. Master of Thought is responsibility rather than rank; that distinction is fundamental. The seal caption no longer claims cuneiform is the oldest writing we still have. Source filenames are out of the visible prose."
+    },
+    {
+      "r": "r1.003",
+      "date": "2026.08.28",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "Opening tightened so the reading starts at the Preamble. Operator: 'when executive summary is clicked I dont want to see all the vision 2525 explanation; it should go straight to preamble.' Measured at 390px: the first sentence moved from 417px to 313px, and the Preamble now lands on the first screen. Text unchanged — same source hash as r1.002. Between-section spacing untouched at 40px."
     }
   ]
 }
