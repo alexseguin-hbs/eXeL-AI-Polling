@@ -1,4 +1,4 @@
-<!doctype html><html lang=sux><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.031"><meta name=exel-sum-src content="6305b8d79868"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 𒅴𒂠 Executive Summary · Sumerian draft</title>
+<!doctype html><html lang=sux><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.032"><meta name=exel-sum-src content="6305b8d79868"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 𒅴𒂠 Executive Summary · Sumerian draft</title>
 <script>/* exec r1.016 · operator: "go to dark, and only light if light is highlighted in
 Vision-2525 setting bar." The summary follows the living document's ground, not the OS:
 v2525.ground is the SAME localStorage key the document's Settings toggle writes, so one
@@ -310,9 +310,12 @@ quoting the English line.</div>
     card.querySelector('.gg').appendChild(document.createTextNode(d.g || ''));
     card.querySelector('.st-e').appendChild(document.createTextNode(d.e));
     card.querySelector('.fbopen').addEventListener('click', function(){ openFeedback(card, d); });
-    var host = s.closest('p,h2,li,.banner,.motto,.motto2,header.ph') || s.parentElement;
-    if (host.tagName === 'LI') host = host.parentElement; /* a div inside ul.seal is invalid HTML — the card follows the plate */
-    host.insertAdjacentElement('afterend', card);
+    /* r1.032 · operator: the card must sit UNDER the selected sentence, not after its
+       whole paragraph — a paragraph holds several sentences, so host-after dropped the
+       card 2-3 sentences below the one picked. Insert right after the span itself; a
+       block card created via the DOM renders on its own line directly beneath the
+       highlighted sentence, inside whatever holds it (p, li, h2, motto). */
+    s.insertAdjacentElement('afterend', card);
     var drift = s.getBoundingClientRect().top - before;
     if (drift) window.scrollBy(0, drift);
   });

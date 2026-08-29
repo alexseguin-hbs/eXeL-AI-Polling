@@ -285,9 +285,12 @@ h = h.replace('</body>', `<script>
     card.querySelector('.gg').appendChild(document.createTextNode(d.g || ''));
     card.querySelector('.st-e').appendChild(document.createTextNode(d.e));
     card.querySelector('.fbopen').addEventListener('click', function(){ openFeedback(card, d); });
-    var host = s.closest('p,h2,li,.banner,.motto,.motto2,header.ph') || s.parentElement;
-    if (host.tagName === 'LI') host = host.parentElement; /* a div inside ul.seal is invalid HTML — the card follows the plate */
-    host.insertAdjacentElement('afterend', card);
+    /* r1.032 · operator: the card must sit UNDER the selected sentence, not after its
+       whole paragraph — a paragraph holds several sentences, so host-after dropped the
+       card 2-3 sentences below the one picked. Insert right after the span itself; a
+       block card created via the DOM renders on its own line directly beneath the
+       highlighted sentence, inside whatever holds it (p, li, h2, motto). */
+    s.insertAdjacentElement('afterend', card);
     var drift = s.getBoundingClientRect().top - before;
     if (drift) window.scrollBy(0, drift);
   });
