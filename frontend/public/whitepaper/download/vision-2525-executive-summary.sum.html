@@ -1,4 +1,4 @@
-<!doctype html><html lang=sux><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.032"><meta name=exel-sum-src content="6305b8d79868"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 𒅴𒂠 Executive Summary · Sumerian draft</title>
+<!doctype html><html lang=sux><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.033"><meta name=exel-sum-src content="6305b8d79868"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — 𒅴𒂠 Executive Summary · Sumerian draft</title>
 <script>/* exec r1.016 · operator: "go to dark, and only light if light is highlighted in
 Vision-2525 setting bar." The summary follows the living document's ground, not the OS:
 v2525.ground is the SAME localStorage key the document's Settings toggle writes, so one
@@ -133,7 +133,9 @@ body.study .snt{cursor:pointer;border-radius:6px}
 body.study .snt:hover{background:var(--accent-bg)}
 .snt.sel{background:var(--accent-bg);box-shadow:0 0 0 1px var(--accent);border-radius:6px}
 .stcard .st-id{grid-column:1 / -1;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--accent);margin-bottom:.15rem}
-.stcard{display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
+.stcard{position:relative;display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 2.4rem .85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
+.stcard .stx{position:absolute;top:.4rem;right:.5rem;width:1.9rem;height:1.9rem;display:flex;align-items:center;justify-content:center;font:400 20px/1 ui-sans-serif,system-ui,sans-serif;background:none;border:0;border-radius:8px;color:var(--soft);cursor:pointer}
+.stcard .stx:hover{background:var(--paper);color:var(--accent)}
 .stcard .st-t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.6;color:var(--accent);word-break:break-word}
 .stcard .st-e{font-family:"Spectral",Georgia,serif;font-size:.95rem;line-height:1.6;color:var(--ink)}
 .stfb{grid-column:1/-1;margin-top:.5rem;border-top:1px solid var(--line);padding-top:.6rem}
@@ -297,14 +299,19 @@ quoting the English line.</div>
   }
   document.addEventListener('click', function(e){
     if (!on) return;
+    /* r1.033 · operator: "add x in upper right or click highlight to deselect."
+       Tapping the already-selected sentence (or the card's X) closes the card and
+       clears the highlight. */
+    if (e.target.closest('.stx')) { clear(); return; }
     var s = e.target.closest('.snt'); if (!s) return;
+    if (s.classList.contains('sel')) { clear(); return; }
     var before = s.getBoundingClientRect().top;
     clear();
     s.classList.add('sel');
     var d = D[+s.getAttribute('data-i')]; if (!d) return;
     var card = document.createElement('div');
     card.className = 'stcard';
-    card.innerHTML = '<div class="st-id"></div><div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div><div class="stfb"><button type="button" class="fbopen">&#9998; Suggest a correction</button></div>';
+    card.innerHTML = '<button type="button" class="stx" aria-label="Close">&times;</button><div class="st-id"></div><div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div><div class="stfb"><button type="button" class="fbopen">&#9998; Suggest a correction</button></div>';
     card.querySelector('.st-id').textContent = d.r || '';
     card.querySelector('.tt').appendChild(document.createTextNode(d.t));
     card.querySelector('.gg').appendChild(document.createTextNode(d.g || ''));

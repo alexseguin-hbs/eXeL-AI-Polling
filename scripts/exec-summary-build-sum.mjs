@@ -173,7 +173,7 @@ ul.seal li{font-size:21px;line-height:2}
 body.study .snt{cursor:pointer;border-radius:6px}
 body.study .snt:hover{background:var(--accent-bg)}
 .snt.sel{background:var(--accent-bg);box-shadow:0 0 0 1px var(--accent);border-radius:6px}
-.stcard .st-id{grid-column:1 / -1;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--accent);margin-bottom:.15rem}\n.stcard{display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
+.stcard .st-id{grid-column:1 / -1;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--accent);margin-bottom:.15rem}\n.stcard{position:relative;display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 2.4rem .85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}\n.stcard .stx{position:absolute;top:.4rem;right:.5rem;width:1.9rem;height:1.9rem;display:flex;align-items:center;justify-content:center;font:400 20px/1 ui-sans-serif,system-ui,sans-serif;background:none;border:0;border-radius:8px;color:var(--soft);cursor:pointer}\n.stcard .stx:hover{background:var(--paper);color:var(--accent)}
 .stcard .st-t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.6;color:var(--accent);word-break:break-word}
 .stcard .st-e{font-family:"Spectral",Georgia,serif;font-size:.95rem;line-height:1.6;color:var(--ink)}
 .stfb{grid-column:1/-1;margin-top:.5rem;border-top:1px solid var(--line);padding-top:.6rem}
@@ -272,14 +272,19 @@ h = h.replace('</body>', `<script>
   }
   document.addEventListener('click', function(e){
     if (!on) return;
+    /* r1.033 · operator: "add x in upper right or click highlight to deselect."
+       Tapping the already-selected sentence (or the card's X) closes the card and
+       clears the highlight. */
+    if (e.target.closest('.stx')) { clear(); return; }
     var s = e.target.closest('.snt'); if (!s) return;
+    if (s.classList.contains('sel')) { clear(); return; }
     var before = s.getBoundingClientRect().top;
     clear();
     s.classList.add('sel');
     var d = D[+s.getAttribute('data-i')]; if (!d) return;
     var card = document.createElement('div');
     card.className = 'stcard';
-    card.innerHTML = '<div class="st-id"></div><div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div><div class="stfb"><button type="button" class="fbopen">&#9998; Suggest a correction</button></div>';
+    card.innerHTML = '<button type="button" class="stx" aria-label="Close">&times;</button><div class="st-id"></div><div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div><div class="stfb"><button type="button" class="fbopen">&#9998; Suggest a correction</button></div>';
     card.querySelector('.st-id').textContent = d.r || '';
     card.querySelector('.tt').appendChild(document.createTextNode(d.t));
     card.querySelector('.gg').appendChild(document.createTextNode(d.g || ''));
