@@ -176,6 +176,17 @@ body.study .snt:hover{background:var(--accent-bg)}
 .stcard .st-id{grid-column:1 / -1;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--accent);margin-bottom:.15rem}\n.stcard{display:grid;grid-template-columns:1fr 1fr;text-align:start;gap:0 1.1rem;margin:.7rem 0 1rem;padding:.85rem 1rem;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;background:var(--raise)}
 .stcard .st-t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.6;color:var(--accent);word-break:break-word}
 .stcard .st-e{font-family:"Spectral",Georgia,serif;font-size:.95rem;line-height:1.6;color:var(--ink)}
+.stfb{grid-column:1/-1;margin-top:.5rem;border-top:1px solid var(--line);padding-top:.6rem}
+.stfb .fbopen,.fbform button{font:600 11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:1px solid var(--line);background:var(--raise);color:var(--accent);border-radius:8px;padding:7px 12px}
+.stfb .fbopen:hover,.fbform button:hover{border-color:var(--accent)}
+.fbform{grid-column:1/-1;display:flex;flex-direction:column;gap:.5rem;margin-top:.55rem;font-family:"Spectral",Georgia,serif}
+.fbform label{font:600 9.5px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.fbform textarea,.fbform input{font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:.55rem;width:100%;box-sizing:border-box}
+.fbform textarea{min-height:3.2rem;resize:vertical}
+.fbrow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.fbform .send{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+.fbmsg{font:13.5px/1.5 "Spectral",Georgia,serif;color:var(--soft)}
+.fbmsg a{color:var(--accent)}
 .stcard .gh{margin-top:.5rem}\n.stcard .gg{font-family:\"Spectral\",Georgia,serif;font-style:italic;font-size:.85rem;color:var(--soft)}\n.stcard h5{margin:0 0 .3rem;font:600 9.5px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
 @media(max-width:560px){.stcard{grid-template-columns:1fr;gap:.7rem 0}}
 </style>`);
@@ -204,6 +215,51 @@ h = h.replace('</body>', `<script>
   var btn = document.getElementById('bStudy');
   if (!btn) return;
   var on = false;
+  /* r1.031 · per-sentence feedback — the human annotation loop. A reader in study
+     mode suggests a corrected transliteration; it POSTs to the Supabase-backed
+     Pages Function, keyed to the sentence's page.paragraph.sentence reference. If
+     the backend is unreachable (a downloaded offline copy), it falls back to a
+     prefilled GitHub issue so the correction is never lost. */
+  var PAGE_SHA = ${JSON.stringify(SHA.slice(0, 12))};
+  var FB_ENDPOINT = '/api/sum-feedback';
+  var GH_ISSUE = 'https://github.com/alexseguin-hbs/eXeL-AI-Polling/issues/new';
+  function esc(x){ return String(x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function openFeedback(card, d){
+    var fb = card.querySelector('.stfb');
+    fb.innerHTML =
+      '<form class="fbform">' +
+        '<label>Corrected transliteration (' + esc(d.r) + ')</label>' +
+        '<textarea class="sug" spellcheck="false"></textarea>' +
+        '<label>Note &middot; source (optional)</label>' +
+        '<input class="note" type="text" placeholder="e.g. ePSD2 reading, ETCSL parallel, case-chain fix">' +
+        '<div class="fbrow"><button type="submit" class="send">Send correction</button>' +
+        '<button type="button" class="cancel">Cancel</button>' +
+        '<span class="fbmsg"></span></div>' +
+      '</form>';
+    var form = fb.querySelector('form');
+    form.querySelector('.sug').value = d.t;
+    form.querySelector('.cancel').addEventListener('click', function(){
+      fb.innerHTML = '<button type="button" class="fbopen">&#9998; Suggest a correction</button>';
+      fb.querySelector('.fbopen').addEventListener('click', function(){ openFeedback(card, d); });
+    });
+    form.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var msg = form.querySelector('.fbmsg');
+      var suggested = form.querySelector('.sug').value.trim();
+      var note = form.querySelector('.note').value.trim();
+      if (!suggested){ msg.textContent = 'Enter a corrected transliteration first.'; return; }
+      msg.textContent = 'Sending…';
+      var payload = { ref:d.r, lang:'sum', current_t:d.t, suggested_t:suggested, note:note, sentence_e:d.e, page_sha:PAGE_SHA };
+      fetch(FB_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+        .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function(){ fb.innerHTML = '<span class="fbmsg">Thank you — your correction for <b>' + esc(d.r) + '</b> is recorded for review.</span>'; })
+        .catch(function(){
+          var title = encodeURIComponent('SUM correction ' + d.r);
+          var bodyq = encodeURIComponent('Reference: ' + d.r + '\\nEnglish: ' + d.e + '\\nCurrent: ' + d.t + '\\nSuggested: ' + suggested + (note ? '\\nNote: ' + note : ''));
+          msg.innerHTML = 'Offline — <a href="' + GH_ISSUE + '?title=' + title + '&body=' + bodyq + '" target="_blank" rel="noopener">open a GitHub issue</a> to record it.';
+        });
+    });
+  }
   btn.addEventListener('click', function(){
     on = !on;
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -223,11 +279,12 @@ h = h.replace('</body>', `<script>
     var d = D[+s.getAttribute('data-i')]; if (!d) return;
     var card = document.createElement('div');
     card.className = 'stcard';
-    card.innerHTML = '<div class="st-id"></div><div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div>';
+    card.innerHTML = '<div class="st-id"></div><div class="st-t"><h5>Transliteration</h5><div class="tt"></div><h5 class="gh">Literal gloss</h5><div class="gg"></div></div><div class="st-e"><h5>English</h5></div><div class="stfb"><button type="button" class="fbopen">&#9998; Suggest a correction</button></div>';
     card.querySelector('.st-id').textContent = d.r || '';
     card.querySelector('.tt').appendChild(document.createTextNode(d.t));
     card.querySelector('.gg').appendChild(document.createTextNode(d.g || ''));
     card.querySelector('.st-e').appendChild(document.createTextNode(d.e));
+    card.querySelector('.fbopen').addEventListener('click', function(){ openFeedback(card, d); });
     var host = s.closest('p,h2,li,.banner,.motto,.motto2,header.ph') || s.parentElement;
     if (host.tagName === 'LI') host = host.parentElement; /* a div inside ul.seal is invalid HTML — the card follows the plate */
     host.insertAdjacentElement('afterend', card);

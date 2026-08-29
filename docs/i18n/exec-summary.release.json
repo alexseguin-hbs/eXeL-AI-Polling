@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.030",
+  "release": "r1.031",
   "editions": [
     {
       "r": "r1.001",
@@ -175,6 +175,12 @@
       "date": "2026.08.28",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Transliteration above every visible phrase. Operator: 'is there transliteration mode throughout? It works for title; some phrases dont work.' The one visible phrase still lacking readings was the seal caption (k69, the author line under the eagle) — it was plain. It now renders ruby like everything else, but WITHOUT the tappable study wrapper, because it sits inside the author link where a study-card tap would fight the navigation. k00 (browser-tab title) and k70 (seal image alt) stay plain — neither can carry ruby. Every visible cuneiform phrase on the page now carries its reading above each sign. English master unchanged."
+    },
+    {
+      "r": "r1.031",
+      "date": "2026.08.29",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "The human annotation loop. Operator: 'add Feedback on button to open up to each sentence so we can correct over time in Transliteration mode; input goes to Supabase for later recall and correction (like a human label / annotation system).' In study mode each sentence's card now carries a 'Suggest a correction' button that opens an inline form prefilled with the current transliteration, plus a note/source field. Sending POSTs to a new Supabase-backed Cloudflare Pages Function (functions/api/sum-feedback.js) keyed to the sentence's page.paragraph.sentence reference — a curator recalls every suggestion for one chunk and applies it to exec-summary.sum.json. Server-side keys only (SUPABASE_URL + SERVICE_ROLE), KV fallback so nothing is ever lost, and a prefilled GitHub-issue fallback on a downloaded offline copy. Table: backend/app/migrations/020_sum_feedback.sql. English master unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."
