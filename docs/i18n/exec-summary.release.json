@@ -1,7 +1,7 @@
 {
   "_why": "The Executive Summary versions ITSELF. Until r1.002 the page took its label from the living document's release counter, so it read v.19 r1.006 — a number that moves whenever the DOCUMENT changes and tells a reader nothing about the text in front of them. The operator's correction: 'this version is the default for executive summary, if easier maybe this should be r1.002'. Append an edition when the text changes; never renumber one that has shipped.",
   "version": "v.19",
-  "release": "r1.033",
+  "release": "r1.034",
   "editions": [
     {
       "r": "r1.001",
@@ -193,6 +193,12 @@
       "date": "2026.08.29",
       "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
       "note": "Two ways to dismiss the study card. Operator: 'add x in upper right or click highlight to deselect.' The card now carries a × close button in its upper right, and tapping the already-selected sentence again closes the card and clears the highlight. Card is position:relative with right padding so the × never overlaps the reference. English master unchanged."
+    },
+    {
+      "r": "r1.034",
+      "date": "2026.08.29",
+      "sha256": "237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61",
+      "note": "Back to English made obvious. Operator: 'going back to english seems to be a challenge.' The globe stays icon-only on the English page (as asked), but on any TRANSLATION it now shows the current language code beside the globe (e.g. PT) and names the language in its title — so a reader always sees which language they are in and that the globe is the way home, with English at the top of the menu. Navigation was already correct; this closes the discoverability gap. English master unchanged."
     }
   ],
   "_tracking": "ONE SHA = ONE EDITION (operator rule, 2026-08-28). Every commit that changes the Executive Summary — text, chrome, or translations — increments r1.### here in the same commit, and the commit subject carries the label, so git history IS the version ledger. Editions are appended, never renumbered."
