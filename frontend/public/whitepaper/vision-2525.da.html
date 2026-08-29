@@ -941,6 +941,20 @@ body.paged.notfirst #viewban{display:none}
    the document's AI cyan (exec r1.017); the in-document reading now matches — the
    opening eyebrow and every section label render cyan, the seal caption stays quiet. */
 body.execview section.blk .bb > .meta:first-child{color:var(--ai);font-weight:700}
+/* r288 : the in-document Executive Summary (the toggle 4th reading) must match the standalone page - its twelve sections carry a cyan 01..12 eyebrow, which the plain h2 exec blocks lacked. Numbered by id so it is correct in any mode (a CSS counter would read 01 for every cell in paged reading). */
+body.execview section.blk[id^="blk-exec.s"] h2::before{display:block;font:700 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.16em;color:var(--ai);margin-bottom:8px}
+body.execview section.blk[id="blk-exec.s1"] h2::before{content:"01"}
+body.execview section.blk[id="blk-exec.s2"] h2::before{content:"02"}
+body.execview section.blk[id="blk-exec.s3"] h2::before{content:"03"}
+body.execview section.blk[id="blk-exec.s4"] h2::before{content:"04"}
+body.execview section.blk[id="blk-exec.s5"] h2::before{content:"05"}
+body.execview section.blk[id="blk-exec.s6"] h2::before{content:"06"}
+body.execview section.blk[id="blk-exec.s7"] h2::before{content:"07"}
+body.execview section.blk[id="blk-exec.s8"] h2::before{content:"08"}
+body.execview section.blk[id="blk-exec.s9"] h2::before{content:"09"}
+body.execview section.blk[id="blk-exec.s10"] h2::before{content:"10"}
+body.execview section.blk[id="blk-exec.s11"] h2::before{content:"11"}
+body.execview section.blk[id="blk-exec.s12"] h2::before{content:"12"}
 body.execview #cover,
 body.execview header.mast,
 body.execview #howto,
@@ -1215,7 +1229,7 @@ body.qrlead #qrAbout{display:inline-block}
       <button id="bExec" title="The 1 + 12 deep dive &mdash; Preamble, twelve sections and a close, in plain international English">Executive Summary to Humanity</button>
       <h5>Læsning</h5>
       <button id="bTheme" title="Switch between the dark and light reading grounds">Dark ground</button>
-      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.015</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">287</span>)</span>, <strong><span id="dlbytes2">7177391</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
+      <p class="setnote" hidden aria-hidden="true">This copy is <strong>v.19 &middot; <span id="dlrelser">r1.016</span></strong> <span class="relraw" title="internal release counter">(release <span id="dlrel2">288</span>)</span>, <strong><span id="dlbytes2">7182403</span> bytes</strong> (<span id="dlsize2">7.2</span>&nbsp;MB). The site serves these same bytes and no others &mdash; match the release and byte count here against the page you are reading and they are the same document. Nothing is cached; the download is revalidated on every request.</p>
       <h5>Revisionsspor</h5>
       <button id="bDiff" aria-pressed="true" title="Highlight what changed in this version">Highlight changes</button>
       <button id="bOutline" title="The nineteen sections, each in exactly 111 words, written before the section">Outline</button>
@@ -7310,6 +7324,34 @@ const VERSIONS = [
    {n:"Odin",g:"B+",f:"The straight-branch early return is the pattern for any future view that opens with its own head."}
   ],
   next:"Formal gate over r285+r286 on a quiet box; MoT synthesis of the 48-fleet; chrome translations."
+ },
+ { v:287, code:"THE FOUNDING LINE, ONE WORD",
+  stamp:"2026.08.28 &middot; revision 287",
+  thrust:"Operator: &lsquo;change this everywhere in 77777 version &mdash; We Cannot Master What We Are Not Aware Of &mdash; dont worry about word count.&rsquo; The founding line read &lsquo;We Can Not Master&hellip;&rsquo; (two words) in eleven places across the living document &mdash; the masthead epigraph, the author&rsquo;s motto, the masthead-in-ledger, the Executive-Summary close, and the release notes that quote it &mdash; while the standalone Executive Summary already read &lsquo;Cannot&rsquo; (one word). Normalised to one word everywhere, so the founding line is spelled the same wherever a reader meets it. A spelling normalisation of a fixed motto: nothing lost, no doctrine touched. Per the operator&rsquo;s explicit waiver the three reading totals are not held to 3,333 / 9,999 / 77,777 for this change; the sacred-totals gate WARNs rather than fails, as its own rewrite-era rule provides.",
+  mot:"A civilisation&rsquo;s founding line should be spelled one way. It was written two ways by accident of history; it is written one way now, and replay still holds the record of both.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Aset",g:"A",f:"One motto, one spelling, everywhere a reader meets it &mdash; paper and summary agree."},
+   {n:"Thoth",g:"A",f:"Eleven occurrences normalised; the phrase is a fixed literal, replay stays deterministic."},
+   {n:"Sofia",g:"A",f:"The founding line now matches the Executive Summary&rsquo;s &lsquo;Cannot&rsquo; across every view."},
+   {n:"Enlil",g:"B+",f:"Word count drops by design; the operator waived it and the gate WARNs per its own rule."},
+   {n:"Odin",g:"B+",f:"Release notes quoting the old spelling are normalised too, so no view contradicts another."}
+  ],
+  next:"Operator ruling on re-fitting the reading totals to the sacred numbers, or holding WARN."
+ },
+ { v:288, code:"THE IN-DOCUMENT SUMMARY MATCHES THE STANDALONE",
+  stamp:"2026.08.29 &middot; revision 288",
+  thrust:"Operator: &lsquo;full reader mode during toggle of white paper to brief to nose to executive summary is different than settings as numbers did not show in cyan; should match.&rsquo; Two doors open the Executive Summary &mdash; the reading toggle opens the in-document view (the exec.* ledger blocks), while Settings opens the standalone page. The standalone numbers its twelve sections 01..12 in cyan; the in-document blocks are plain headings and showed no number at all. The in-document view now carries the same cyan 01..12 eyebrow on its twelve sections, numbered by block id so it is correct whether read straight-through or one cell at a time. Chrome/CSS only &mdash; no ledger block changed, replay byte-identical, the Preamble keeps its label and the close its byline.",
+  mot:"One reading, reached two ways, must look like one reading. The number was the last thing the two doors did not share.",
+  stats:{clauses:309, jur:103, shields:5, defects:45, reach:"full"},
+  asm:[
+   {n:"Aset",g:"A",f:"The section numbers now read the same cyan in the document as on the standalone page."},
+   {n:"Athena",g:"A",f:"Numbered by id, not a counter, so paged and straight reading both show 01..12 correctly."},
+   {n:"Christo",g:"A",f:"Both doors to the summary now open the same-looking reading."},
+   {n:"Enlil",g:"B+",f:"CSS-only; no exec.* block edited, so the one-master equality is untouched."},
+   {n:"Odin",g:"B+",f:"Future exec sections need a matching id rule; a counter is the eventual generalisation."}
+  ],
+  next:"Chrome translations of the door labels; the standing sacred-totals ruling."
  }
 ];
 
@@ -19986,7 +20028,7 @@ L(284,"exec.close","ONE MASTER (operator: &lsquo;make sure there is one master f
    author. A number a human maintains is a number that goes stale; this one is
    written into the file after the file is final, and the gate re-reads the
    published bytes and fails the build if the two ever disagree. */
-const DL_BYTES = "7177391";
+const DL_BYTES = "7182403";
 document.addEventListener("DOMContentLoaded", function(){
   var n = Number(DL_BYTES).toLocaleString("en-US");
   ["dlbytes2"].forEach(function(id){
