@@ -5,6 +5,7 @@
 // Run: node scripts/exec-summary-build.mjs fr
 import fs from 'fs';
 import crypto from 'crypto';
+import { annotate, chrome } from './exec-summary-reading.mjs';
 const lang = process.argv[2];
 if (!lang) { console.error('usage: exec-summary-build.mjs <lang>'); process.exit(1); }
 
@@ -58,10 +59,15 @@ if (SHA !== FROZEN) {
 const RTL = new Set(['ar', 'he', 'ur', 'fa']);
 let h = TPL;
 let translated = 0, fallback = 0;
+/* k00 is the <title> (browser tab) and k70 the seal image's alt — plain-text slots
+   where reading markup cannot live, so a pronunciation reader skips them. */
+const PLAIN = new Set(['k00', 'k70']);
 for (const key of Object.keys(EN)) {
   const val = (L[key] != null && String(L[key]).trim() !== '') ? L[key] : (fallback++, EN[key]);
   if (L[key] != null && String(L[key]).trim() !== '') translated++;
-  h = h.split('{{' + key + '}}').join(val);
+  /* For a reading language (e.g. zh → pinyin) wrap the readable script in <ruby>;
+     a no-op for every other language, so their pages build byte-identical. */
+  h = h.split('{{' + key + '}}').join(annotate(lang, key, val, PLAIN));
 }
 /* REL and SHA are deliberately NOT kNN keys — they never enter a translation file,
    so they cannot drift per language and no translator is ever asked to render them. */
@@ -69,6 +75,9 @@ h = h.split('{{REL}}').join(REL).split('{{VER}}').join(VER).split('{{SHA}}').joi
 
 // <html lang=en> -> <html lang=xx [dir=rtl]>
 h = h.replace('<html lang=en>', `<html lang=${lang}${RTL.has(lang) ? ' dir=rtl' : ''}>`);
+
+/* Reading chrome (pinyin toggle for zh, and any future reader) — no-op otherwise. */
+h = chrome(h, lang);
 
 /* en is the base page, not a sibling — writing it directly removes the rename
    step every caller used to need (and once forgot). */
