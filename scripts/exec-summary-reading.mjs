@@ -15,12 +15,20 @@
 //   annotate(lang, key, value, PLAIN)  — wrap the readable script inside one value
 //   chrome(html, lang)                 — inject the toggle button + CSS + script
 import { createRequire } from 'module';
+import crypto from 'crypto';
 import path from 'path';
+import fs from 'fs';
 
 // Which editions get a reading, and how the control reads. Add a row to extend.
 export const READERS = {
-  zh: { kind: 'pinyin', glyph: '拼', label: 'Pinyin',
-        tip: 'Pinyin — pronunciation above each character' },
+  zh: { kind: 'pinyin',   glyph: '拼', label: 'Pinyin',
+        tip: 'Pinyin — pronunciation above each character',
+        // Latin letters with tone marks: a mono face keeps the diacritics even.
+        rtFont: '600 .52em/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace' },
+  ja: { kind: 'furigana', glyph: 'ふ', label: 'Furigana',
+        tip: 'Furigana — readings above the kanji',
+        // Kana need a Japanese face, never a Latin mono one.
+        rtFont: '500 .5em/1.15 "Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",Meiryo,sans-serif' },
 };
 
 // Han characters we annotate: CJK Unified (+ Ext A) and the compatibility block.
@@ -54,13 +62,40 @@ function annotatePinyin(value) {
   }).join('');
 }
 
+/* Japanese readings are PRE-GENERATED and committed (see exec-summary-furigana.mjs):
+   a kanji's reading depends on the word it sits in, so it takes a dictionary rather
+   than a per-character rule, and the result deserves review before it ships. The
+   build only reads that committed file — and refuses it if it does not describe the
+   Japanese text currently on disk, so a re-translation can never quietly ship the old
+   readings over new words. */
+let _furi = null;
+function furiganaFor(key, value) {
+  if (!_furi) {
+    const CACHE = 'docs/i18n/exec-summary.ja.furigana.json';
+    const SRC   = 'docs/i18n/exec-summary.ja.json';
+    if (!fs.existsSync(CACHE)) {
+      throw new Error(`furigana: ${CACHE} is missing — run: node scripts/exec-summary-furigana.mjs --write`);
+    }
+    const c   = JSON.parse(fs.readFileSync(CACHE, 'utf8'));
+    const sha = crypto.createHash('sha256').update(fs.readFileSync(SRC, 'utf8'), 'utf8').digest('hex');
+    if (c._source_sha256 !== sha) {
+      throw new Error('furigana: the readings were generated from a different Japanese text.\n' +
+        `  ja.json  ${sha.slice(0, 12)}\n  readings ${String(c._source_sha256).slice(0, 12)}\n` +
+        '  Re-run: node scripts/exec-summary-furigana.mjs --write');
+    }
+    _furi = c.keys || {};
+  }
+  return _furi[key] != null ? _furi[key] : value;
+}
+
 // Annotate one token's value for a language, unless the token is a plain-text slot
 // (a <title> or an alt="" attribute, where ruby markup cannot live).
 export function annotate(lang, key, value, PLAIN) {
   const r = READERS[lang];
   if (!r) return value;
   if (PLAIN && PLAIN.has(key)) return value;
-  if (r.kind === 'pinyin') return annotatePinyin(value);
+  if (r.kind === 'pinyin')   return annotatePinyin(value);
+  if (r.kind === 'furigana') return furiganaFor(key, value);
   return value;
 }
 
@@ -75,7 +110,7 @@ export function chrome(html, lang) {
 /* r1.036 · reading (${lang}) — the Divinity Guide's pinyin-over-hanzi, as a toggle.
    Off by default; the ${r.glyph} control reveals the reading above every character. */
 article ruby{ruby-position:over;-webkit-ruby-position:before}
-article ruby rt{font:600 .52em/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+article ruby rt{font:${r.rtFont};
   letter-spacing:.01em;color:var(--accent);text-transform:none;-webkit-user-select:none;user-select:none}
 body:not(.showread) article ruby rt{display:none}
 body.showread article p,body.showread article li,body.showread article .subt{line-height:2.5}
