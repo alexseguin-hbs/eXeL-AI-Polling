@@ -118,8 +118,15 @@ everything else regenerates.
 The reference follows the same **A.B..C** grammar Vision • 2525 uses everywhere else
 (celestial coordinates, the Base-3600 tokenomics figures): one dot down to the
 paragraph, two dots down to the sentence. Page `00` is the Preamble, `01`–`12` the
-twelve sections, `13` the close; paragraph `00` marks a heading rather than a numbered
-paragraph.
+twelve sections, `13` the close.
+
+**The paragraph is always 1, 2 or 3 — there is no paragraph zero.** A heading is not a
+paragraph of its own; it *opens* the paragraph it heads, so it is sentence `01` of
+paragraph 1. A section title is `NN.01..01` and that section's first prose sentence
+follows at `NN.01..02`. Page `00` opens with four heading lines — the wordmark, the
+subtitle, "Preamble", and the preamble's own title — so its prose begins at
+`00.01..05`. In the close, the two mottos are one closing plate and share paragraph 3
+(`13.03..01`, `13.03..02`), with the author line and seal after them.
 
 ### Known limitations of the draft (stated, not hidden)
 - The seal caption and author line render as caption/alt text and are not tappable in

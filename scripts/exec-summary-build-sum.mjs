@@ -112,20 +112,41 @@ const RUBY_ONLY = new Set(['k69']);
    (celestial A.B..C, the Base-3600 tokenomics figures). So 00.01..01 is the Preamble,
    paragraph 1, sentence 1; 12.03..06 is section 12, paragraph 3, sentence 6. The three
    fields and their meanings are unchanged; only the grammar that joins them moved. */
+/* r1.039 · PARAGRAPHS ARE 1-3, ALWAYS (operator: "ensure paragraphs are 1-3 only,
+   there is no zero paragraph"). Two things used to break that rule and both are gone:
+
+   · Paragraph 00 held the HEADINGS — the masthead and the twelve section titles. A
+     heading is not a paragraph, but it is not homeless either: it OPENS the paragraph
+     it heads, so it is now sentence 01 of paragraph 1. A section title is 'NN.01..01'
+     and that section's first prose sentence follows at 'NN.01..02'. Page 00 opens with
+     four heading lines (wordmark, subtitle, "Preamble", the preamble's own title), so
+     its prose begins at '00.01..05'.
+   · The close ran to paragraph 04. Its two mottos are one closing plate, so they share
+     paragraph 3 — 13.03..01 and 13.03..02 — with the author line and seal after them.
+
+   Every reference is therefore page.PARAGRAPH(1-3)..sentence, and no two collide. */
 const P2 = n => String(n).padStart(2, '0');
+const HEAD00 = 4;   // page 00's heading lines, which open its first paragraph
 function refFor(k, i) {
   const n = +k.slice(1);
-  if (n >= 1 && n <= 4)   return `00.00..${P2(n)}`;                        // masthead + preamble head
-  if (n >= 5 && n <= 16)  return `${P2(n - 4)}.00..01`;                    // section heads 01-12
-  if (n >= 17 && n <= 19) return `00.${P2(n - 16)}..${P2(i + 1)}`;         // preamble paragraphs
-  if (n >= 20 && n <= 55) return `${P2(Math.floor((n - 20) / 3) + 1)}.${P2(((n - 20) % 3) + 1)}..${P2(i + 1)}`;
+  if (n >= 1 && n <= 4)   return `00.01..${P2(n)}`;                        // masthead + preamble head
+  if (n >= 5 && n <= 16)  return `${P2(n - 4)}.01..01`;                    // section titles 01-12
+  if (n >= 17 && n <= 19) {                                               // preamble paragraphs 1-3
+    const para = n - 16;
+    return `00.${P2(para)}..${P2(i + 1 + (para === 1 ? HEAD00 : 0))}`;
+  }
+  if (n >= 20 && n <= 55) {                                               // section paragraphs 1-3
+    const sec  = Math.floor((n - 20) / 3) + 1;
+    const para = ((n - 20) % 3) + 1;
+    return `${P2(sec)}.${P2(para)}..${P2(i + 1 + (para === 1 ? 1 : 0))}`;  // para 1 follows its title
+  }
   if (n >= 56 && n <= 65) return `13.01..${P2(n - 55)}`;                   // the litany, ten sentences
-  if (n === 66) return '13.02..01';
-  if (n === 67) return '13.03..01';
-  if (n === 68) return '13.04..01';
-  if (n === 69) return '13.05..01';
-  if (n === 70) return '13.06..01';
-  return `xx.xx..${P2(i + 1)}`;
+  if (n === 66) return '13.02..01';                                       // the banner
+  if (n === 67) return '13.03..01';                                       // motto
+  if (n === 68) return '13.03..02';                                       // motto
+  if (n === 69) return '13.03..03';                                       // author line
+  if (n === 70) return '13.03..04';                                       // seal
+  return `xx.01..${P2(i + 1)}`;
 }
 const html = {};
 for (const k of Object.keys(EN)) {
