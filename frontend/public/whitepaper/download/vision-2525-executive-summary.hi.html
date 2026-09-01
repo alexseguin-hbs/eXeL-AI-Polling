@@ -1,4 +1,4 @@
-<!doctype html><html lang=hi><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.034"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — मानवता के नाम कार्यकारी सारांश</title>
+<!doctype html><html lang=hi><head><meta charset=utf-8><meta name=viewport content="width=device-width, initial-scale=1"><meta name=exel-release content="r1.035"><meta name=exel-source-sha256 content="237b6ca33c30f90d7d8a0bc1cd8710d6df44fccca592f2778ac293cf727c3f61"><title>Vision • 2525 — मानवता के नाम कार्यकारी सारांश</title>
 <script>/* exec r1.016 · operator: "go to dark, and only light if light is highlighted in
 Vision-2525 setting bar." The summary follows the living document's ground, not the OS:
 v2525.ground is the SAME localStorage key the document's Settings toggle writes, so one
@@ -97,13 +97,13 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
   box-shadow:0 18px 44px rgba(0,0,0,.30);text-align:start}
 #langMenu h5{margin:2px 6px 6px;font:600 10.5px/1.2 ui-sans-serif,system-ui,sans-serif;
   letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
-#langMenu button{display:block;width:100%;margin:0;padding:6px 8px;border:0;border-radius:8px;
-  background:none;text-align:start;font:500 12.5px/1.35 ui-sans-serif,system-ui,sans-serif;
+#langMenu .lrow{display:block;box-sizing:border-box;width:100%;margin:0;padding:6px 8px;border:0;border-radius:8px;
+  background:none;text-align:start;text-decoration:none;font:500 12.5px/1.35 ui-sans-serif,system-ui,sans-serif;
   color:var(--ink);cursor:pointer}
-#langMenu button:hover:not([disabled]),#langMenu button:focus-visible:not([disabled]){background:var(--accent-bg);color:var(--accent)}
-#langMenu button[aria-current=true]{background:var(--accent-bg);color:var(--accent);font-weight:700}
-#langMenu button[disabled]{opacity:.42;cursor:default}
-#langMenu button[disabled]:hover{background:none;color:var(--ink)}
+#langMenu a.lrow:hover,#langMenu a.lrow:focus-visible{background:var(--accent-bg);color:var(--accent)}
+#langMenu .lrow[aria-current=true]{background:var(--accent-bg);color:var(--accent);font-weight:700}
+#langMenu .lrow[aria-disabled=true]{opacity:.42;cursor:default}
+#langMenu .lrow[aria-disabled=true]:hover{background:none;color:var(--ink)}
 #langMenu .lc{display:inline;font:600 11px/1.3 ui-monospace,monospace;color:var(--accent)}
 #langMenu .le{display:inline;font:400 11px/1.3 ui-sans-serif,system-ui;color:var(--soft)}
 #langMenu .soon{color:var(--soft)}#langMenu .soon::before{content:" \00b7 "}
@@ -140,7 +140,12 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
   var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
   function cur(){
-    var m = location.pathname.match(/vision-2525-executive-summary(?:\.([a-z]{2,3}))?\.html$/i);
+    /* r1.035 · match with OR without the ".html" suffix. Cloudflare Pages serves
+       ".html" files at clean URLs (…executive-summary.pt with no extension), and the
+       old ".html$"-only pattern then failed to detect the language, fell back to "en",
+       and marked English as current — so clicking English did nothing. Optional suffix
+       fixes detection on both the downloaded file and the live clean URL. */
+    var m = location.pathname.match(/vision-2525-executive-summary(?:\.([a-z]{2,3}))?(?:\.html)?$/i);
     return (m && m[1]) ? m[1].toLowerCase() : "en";
   }
   function href(code){
@@ -166,11 +171,18 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
     btn.setAttribute("aria-label", "Language — currently " + (meta && meta.e ? meta.e : here) + ". Tap to change, English is at the top.");
   }
   function row(l, ready, note){
-    return '<button role="menuitem" data-lang="' + l.c + '"' + (ready ? '' : ' disabled') +
-      (l.c === cur() ? ' aria-current="true"' : '') + '>' +
-      '<span class="lc">' + esc(l.c.toUpperCase()) + '</span> • ' + esc(l.n) +
+    /* r1.035 · rows are native <a href> anchors, so a tap ALWAYS navigates to that
+       language's page — even if cur() ever misreads the current one. A not-built
+       language renders as an inert <span>. This is what makes "click English" reliable
+       from any translation: the anchor carries the real destination, not a JS guess. */
+    var body = '<span class="lc">' + esc(l.c.toUpperCase()) + '</span> • ' + esc(l.n) +
       (l.e ? ' <span class="le">(' + esc(l.e) + ')</span>' : '') +
-      (ready ? '' : '<span class="soon">' + esc(note || 'soon') + '</span>') + '</button>';
+      (ready ? '' : '<span class="soon">' + esc(note || 'soon') + '</span>');
+    if (!ready){
+      return '<span class="lrow" role="menuitem" aria-disabled="true">' + body + '</span>';
+    }
+    return '<a class="lrow" role="menuitem" href="' + esc(href(l.c)) + '" data-lang="' + l.c + '"' +
+      (l.c === cur() ? ' aria-current="true"' : '') + '>' + body + '</a>';
   }
   function render(){
     var en = LANGS[0], rest = LANGS.slice(1);
@@ -187,11 +199,13 @@ ul.seal li{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Anti
     render(); menu.hidden = false; btn.setAttribute("aria-expanded", "true");
   });
   menu.addEventListener("click", function(e){
-    var b = e.target.closest("button"); if (!b || b.disabled) return;
-    var code = b.getAttribute("data-lang"); if (!code) return;
-    try { localStorage.setItem(KEY, code); } catch(_){ /* storage blocked — still navigate */ }
-    if (code === cur()){ close(); return; }
-    location.assign(href(code));
+    /* r1.035 · record the choice, then let the native <a> navigate. No cur() short-
+       circuit — that was the "stuck on the current language" bug: when cur() misread a
+       clean URL as English, the English row was treated as current and the tap was
+       swallowed. The anchor's href always carries the true destination. */
+    var b = e.target.closest("a.lrow"); if (!b) return;
+    var code = b.getAttribute("data-lang");
+    if (code){ try { localStorage.setItem(KEY, code); } catch(_){ /* storage blocked — still navigate */ } }
   });
   document.addEventListener("click", function(e){ if (!e.target.closest(".langwrap")) close(); });
   document.addEventListener("keydown", function(e){ if (e.key === "Escape") close(); });
