@@ -1,14 +1,14 @@
 -- 020_sum_feedback.sql
 -- Human annotation store for the Sumerian (SUM) Executive Summary — a scholarly
 -- DRAFT that scholars correct over time. Each row is one suggested transliteration
--- correction, keyed to the sentence's page.paragraph.sentence reference so a curator
+-- correction, keyed to the sentence's page.paragraph..sentence reference so a curator
 -- can recall every suggestion for one chunk and apply it to docs/i18n/exec-summary.sum.json.
 --
 -- Written by the Cloudflare Pages Function functions/api/sum-feedback.js (service role).
 
 CREATE TABLE IF NOT EXISTS sum_feedback (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  ref          text NOT NULL,               -- page.paragraph.sentence, e.g. 00.01.01
+  ref          text NOT NULL,               -- page.paragraph..sentence, e.g. 00.01..01
   lang         text NOT NULL DEFAULT 'sum',
   current_t    text,                         -- transliteration the reader saw
   suggested_t  text NOT NULL,                -- their corrected transliteration

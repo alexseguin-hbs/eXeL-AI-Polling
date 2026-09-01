@@ -91,7 +91,7 @@ function cune(t, plain) {
 
 /* Build per-key HTML: every sentence is a tappable span carrying its index into
    the study data. Plain keys (title, image alt, caption) carry no markup. */
-const D = [];          // study data: [{r, t, e, g}] — r = page.paragraph.sentence
+const D = [];          // study data: [{r, t, e, g}] — r = page.paragraph..sentence
 /* k00 is the <title> (browser tab) and k70 is the seal image's alt attribute —
    both must stay reading-free plain glyphs (ruby markup cannot live in either). */
 const PLAIN = new Set(['k00', 'k70']);
@@ -102,22 +102,30 @@ const PLAIN = new Set(['k00', 'k70']);
    there would fight the navigation. Readings above; no card. */
 const RUBY_ONLY = new Set(['k69']);
 /* operator: "section out work in smaller chunks page.paragraph.sentence number first —
-   00.01.01 page 0 preamble paragraph 1 sentence 1 … 12.03.06". Every sentence carries
-   an addressable reference so a reviewer can cite one chunk exactly. */
+   page 0 preamble paragraph 1 sentence 1 … section 12 paragraph 3 sentence 6". Every
+   sentence carries an addressable reference so a reviewer can cite one chunk exactly.
+
+   r1.037 · renumbered to the house A.B..C grammar (operator: "00 is page for preamble ·
+   .01 to .03 is paragraph 1-3 · ..01 is sentence one of ##.##..01 paragraph"). The
+   separator now reads PAGE.PARAGRAPH..SENTENCE — one dot down to the paragraph, TWO
+   dots down to the sentence — the same notation Vision • 2525 uses everywhere else
+   (celestial A.B..C, the Base-3600 tokenomics figures). So 00.01..01 is the Preamble,
+   paragraph 1, sentence 1; 12.03..06 is section 12, paragraph 3, sentence 6. The three
+   fields and their meanings are unchanged; only the grammar that joins them moved. */
 const P2 = n => String(n).padStart(2, '0');
 function refFor(k, i) {
   const n = +k.slice(1);
-  if (n >= 1 && n <= 4)   return `00.00.${P2(n)}`;                        // masthead + preamble head
-  if (n >= 5 && n <= 16)  return `${P2(n - 4)}.00.01`;                    // section heads 01-12
-  if (n >= 17 && n <= 19) return `00.${P2(n - 16)}.${P2(i + 1)}`;         // preamble paragraphs
-  if (n >= 20 && n <= 55) return `${P2(Math.floor((n - 20) / 3) + 1)}.${P2(((n - 20) % 3) + 1)}.${P2(i + 1)}`;
-  if (n >= 56 && n <= 65) return `13.01.${P2(n - 55)}`;                   // the litany, ten sentences
-  if (n === 66) return '13.02.01';
-  if (n === 67) return '13.03.01';
-  if (n === 68) return '13.04.01';
-  if (n === 69) return '13.05.01';
-  if (n === 70) return '13.06.01';
-  return `xx.xx.${P2(i + 1)}`;
+  if (n >= 1 && n <= 4)   return `00.00..${P2(n)}`;                        // masthead + preamble head
+  if (n >= 5 && n <= 16)  return `${P2(n - 4)}.00..01`;                    // section heads 01-12
+  if (n >= 17 && n <= 19) return `00.${P2(n - 16)}..${P2(i + 1)}`;         // preamble paragraphs
+  if (n >= 20 && n <= 55) return `${P2(Math.floor((n - 20) / 3) + 1)}.${P2(((n - 20) % 3) + 1)}..${P2(i + 1)}`;
+  if (n >= 56 && n <= 65) return `13.01..${P2(n - 55)}`;                   // the litany, ten sentences
+  if (n === 66) return '13.02..01';
+  if (n === 67) return '13.03..01';
+  if (n === 68) return '13.04..01';
+  if (n === 69) return '13.05..01';
+  if (n === 70) return '13.06..01';
+  return `xx.xx..${P2(i + 1)}`;
 }
 const html = {};
 for (const k of Object.keys(EN)) {
@@ -217,7 +225,7 @@ h = h.replace('</body>', `<script>
   var on = false;
   /* r1.031 · per-sentence feedback — the human annotation loop. A reader in study
      mode suggests a corrected transliteration; it POSTs to the Supabase-backed
-     Pages Function, keyed to the sentence's page.paragraph.sentence reference. If
+     Pages Function, keyed to the sentence's page.paragraph..sentence reference. If
      the backend is unreachable (a downloaded offline copy), it falls back to a
      prefilled GitHub issue so the correction is never lost. */
   var PAGE_SHA = ${JSON.stringify(SHA.slice(0, 12))};

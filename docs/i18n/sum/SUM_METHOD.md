@@ -110,10 +110,16 @@ permanent DRAFT banner naming this method file and inviting correction.
 Corrections are expected and wanted, at the level of: lexeme choice, case chain, verbal
 prefix, sign value, or the whole approach to a sentence. **Send corrections as GitHub
 issues: https://github.com/alexseguin-hbs/eXeL-AI-Polling/issues** (public), citing the
-sentence's reference — the `page.paragraph.sentence` number the study card shows first
-(00.01.01 = Preamble, paragraph 1, sentence 1 · 12.03.06 = section 12, paragraph 3,
-sentence 6 · 13.01.01–10 = the litany) — plus the English line. The transliteration file is the single thing to correct;
+sentence's reference — the `page.paragraph..sentence` number the study card shows first
+(00.01..01 = Preamble, paragraph 1, sentence 1 · 12.03..06 = section 12, paragraph 3,
+sentence 6 · 13.01..01–10 = the litany) — plus the English line. The transliteration file is the single thing to correct;
 everything else regenerates.
+
+The reference follows the same **A.B..C** grammar Vision • 2525 uses everywhere else
+(celestial coordinates, the Base-3600 tokenomics figures): one dot down to the
+paragraph, two dots down to the sentence. Page `00` is the Preamble, `01`–`12` the
+twelve sections, `13` the close; paragraph `00` marks a heading rather than a numbered
+paragraph.
 
 ### Known limitations of the draft (stated, not hidden)
 - The seal caption and author line render as caption/alt text and are not tappable in
