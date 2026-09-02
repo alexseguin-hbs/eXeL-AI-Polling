@@ -97,3 +97,49 @@ future overlay if the operator wants a pronunciation aid for non-Korean readers.
 Both readers share one control, one localStorage key, and one CSS grammar — they differ
 only in how the reading is produced (per-character rule vs. committed dictionary pass)
 and in the `rt` font, since kana must not be set in a Latin monospace face.
+
+## Decision: the remaining editions get NO reader (2026-09-02)
+
+Operator asked whether to replicate the Mandarin/cuneiform pattern across the other
+Asian and non-Latin editions — Korean, Thai, Hindi/Nepali, Bengali, Punjabi, Arabic,
+Hebrew, Greek, Cyrillic — and delegated the call. **Decision: no**, with a gate built
+in its place.
+
+**The principle.** A reading aid is warranted where the script is LOGOGRAPHIC: the
+pronunciation is not derivable from the shape, *even by a native reader*. That is why
+Japanese newspapers print furigana over uncommon kanji **for Japanese readers**, and why
+a fluent Chinese reader still reaches for pinyin on a rare character. The need is real
+and it is native. Every other script in the thirty-four editions is an alphabet or an
+abugida — the writing already *is* the pronunciation — so a reading line would tell
+those readers nothing they had not just read.
+
+**The audience settles it.** The summary exists in 33 languages, so no reader is
+stranded in a script they cannot read: the person who opens the Arabic edition is the
+person who reads Arabic. Romanising it would serve a reader with no reason to be on that
+page, while cluttering it for everyone who belongs there.
+
+**The honest counter-cases, and why they still fail:**
+
+- **Arabic · Hebrew** — normally written *without* short vowels; vocalisation
+  (tashkeel / niqqud) is a genuine aid, used in the Qur'an, Torah, poetry and
+  children's books. The strongest case of the group. Rejected because fluent readers
+  read unvocalised text fluently, auto-vocalisation needs a morphological analyser, and
+  **a wrong vowel changes the meaning** — the risk exceeds the value.
+- **Thai** — no spaces between words; tone follows from consonant class × tone mark ×
+  syllable structure; silent letters in Pali/Sanskrit loans. Genuinely not one-to-one.
+  Rejected because literate Thai readers apply those rules automatically, and correct
+  transcription needs dictionary + word segmentation — Japanese-level cost for a
+  fraction of the value.
+- **Korean** — would warrant a reader **if hanja appeared**. Verified: the Korean
+  edition is pure Hangul, zero Han characters.
+- **Devanagari · Bengali · Gurmukhi · Greek · Cyrillic · Latin** — transparent scripts.
+  Nothing to reveal.
+
+**What was built instead.** The standing risk was never the phonetic editions; it is a
+future re-translation quietly introducing logographic script into an edition with no
+reader (hanja into Korean, a Chinese term quoted inside Vietnamese) with nothing to
+catch it. `scripts/exec-summary-verify-readers.mjs` now fails the build if any edition
+carries a logographic character that is not carrying a reading, and it runs in
+`.githooks/pre-commit`. Verified fail-closed: hanja injected into the Korean edition
+fails with exit 1, names the characters, and says what to do. The question "is any
+edition missing a reader?" is now answered automatically rather than by inspection.

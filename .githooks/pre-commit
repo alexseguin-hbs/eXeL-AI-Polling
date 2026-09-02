@@ -12,3 +12,12 @@ if [ -f scripts/exec-summary-verify-sum.mjs ] && [ -f docs/i18n/exec-summary.sum
     echo "commit blocked by exec-summary-verify-sum (SUM edition out of step)"; exit 1;
   }
 fi
+
+# Reader-coverage gate — a logographic symbol must never ship without its reading.
+# Guards the real risk: a re-translation slipping Han/cuneiform into an edition that
+# has no reader (hanja into Korean, a Chinese term inside Vietnamese).
+if [ -f scripts/exec-summary-verify-readers.mjs ] && [ -d frontend/public/whitepaper ]; then
+  node scripts/exec-summary-verify-readers.mjs || {
+    echo "commit blocked by exec-summary-verify-readers (a symbol is shipping unread)"; exit 1;
+  }
+fi
