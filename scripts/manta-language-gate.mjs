@@ -18,6 +18,9 @@ const rx = new RegExp('\\b(' + TERMS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g,
 
 for (const f of files) {
   const lines = fs.readFileSync(f, 'utf8').split('\n');
+  // A file whose provenance header says it is VERBATIM (the operator's handoff, an external
+  // review) is evidence, not our claim — the gate reads it, it does not police it.
+  if (lines.slice(0, 15).some((l) => /verbatim/i.test(l))) { console.log(`skip ${f}  (verbatim input — evidence, not claims)`); continue; }
   let inHandoffQuoteBlock = false;
   let negList = false;   // inside a "They are not:" / "It is not:" bullet list — the package naming what it is NOT
   lines.forEach((line, i) => {
