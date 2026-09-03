@@ -5,6 +5,7 @@
 // this proves the deterministic core the live channel drives. Run:
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-pod-flow.test.mjs
 import { buildSynthesis333 } from "../lib/pod-synthesis.ts";
+import { OPEN_TOPIC, SAMPLE_POD, DEFAULT_PROJECTS, projectTasks, findProject } from "../lib/pod-projects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -98,6 +99,12 @@ const synthNoAccel = buildSynthesis333({
 const naTotal = words(synthNoAccel.results) + words(synthNoAccel.changed) + words(synthNoAccel.next);
 ok(naTotal >= 300 && naTotal <= 345, `no-accelerator pod still lands ~333 words (got ${naTotal})`);
 ok(/no ◬ were recognised/.test(synthNoAccel.changed), "no-accelerator pod states no ◬ this task");
+
+// ── Any topic is the DEFAULT + a sample to test with (operator, 2026-09-03) ──────────
+ok(DEFAULT_PROJECTS[0].id === OPEN_TOPIC.id, "Open topic is the first (default) project — a pod can be about anything");
+ok(projectTasks(OPEN_TOPIC).length === 1 && projectTasks(OPEN_TOPIC)[0].id === "brainstorm", "open topic offers only the pod's own brainstorm item");
+ok(findProject("open-topic") === OPEN_TOPIC, "open topic resolves by id");
+ok(SAMPLE_POD.intent.length > 20 && SAMPLE_POD.outcome.length > 20, "sample pod carries a ready intent + outcome for a first-time trio");
 
 console.log(`\nsoi-pod-flow: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

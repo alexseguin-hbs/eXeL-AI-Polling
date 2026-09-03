@@ -31,7 +31,31 @@ export const BRAINSTORM_TASK: PodTask = {
   outcome: "The pod agrees one new intent + a measurable outcome, together.",
 };
 
+/**
+ * OPEN TOPIC — the DEFAULT. A pod can be about anything (operator, 2026-09-03: "a pod
+ * can have any topic as well, as the default option for people to log in and test").
+ * The intent + measurable outcome the lead writes IS the topic; a Domain Play is an
+ * optional tag on top, never a prerequisite. This mirrors the polling engine, where a
+ * session's question is whatever the moderator types.
+ */
+export const OPEN_TOPIC: PodProject = {
+  id: "open-topic",
+  name: "Open topic",
+  blurb: "Any subject — your intent + outcome is the topic.",
+  tasks: [],
+};
+
+/**
+ * A ready sample so a first-time trio can dial in and run a whole pod in a minute
+ * without inventing a task — the pod-of-3 equivalent of the poll's demo sessions.
+ */
+export const SAMPLE_POD = {
+  intent: "Test the pod together: three of us dial in, agree this, start in sync, and record one line each.",
+  outcome: "All three joined by code or QR, approved, started within 15 seconds, and each recorded what they did.",
+};
+
 export const DEFAULT_PROJECTS: PodProject[] = [
+  OPEN_TOPIC,
   {
     id: "architect-2525",
     name: "Architect-2525",

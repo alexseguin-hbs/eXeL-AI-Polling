@@ -750,6 +750,18 @@ const cube8: TranslationEntry[] = [
   { key: "soi.section.flow", englishDefault: "Value & Flow", context: "SoI Framework: heading for how contribution converts to real value (Redeem/Exchange/Stake/Amplify)", cubeId: 8 },
   { key: "soi.section.nose", englishDefault: "Why It Matters", context: "SoI Framework: heading for the Need/Outcome/Solution/Evidence (NOSE) frame", cubeId: 8 },
   { key: "soi.tricoin", englishDefault: "Tri-Coin", context: "SoI Framework sub-header label after the ◬ ♡ 웃 glyphs (brand term; falls back to English where untranslated)", cubeId: 8 },
+  // ◬ ♡ 웃 Session (pod) — dial-in + any-topic default (operator 2026-09-03). Mirrors the poll's join-by-code.
+  { key: "soi.pod.join.title", englishDefault: "Join a pod — enter the code", context: "Pod page landing: heading of the join-by-code panel (same mechanic as the poll's session code)", cubeId: 8 },
+  { key: "soi.pod.join.hint", englishDefault: "Someone already opened a pod? Type its code — the same way you dial into a poll — or scan their QR.", context: "Pod page: hint under the join-by-code heading", cubeId: 8 },
+  { key: "soi.pod.join.placeholder", englishDefault: "POD CODE", context: "Pod page: placeholder in the code input (6 characters, uppercase)", cubeId: 8 },
+  { key: "soi.pod.join.button", englishDefault: "Join", context: "Pod page: join-by-code submit button", cubeId: 8 },
+  { key: "soi.pod.join.or_lead", englishDefault: "No code? Start one below — any topic — and share the code or QR with two others.", context: "Pod page: line under the join panel pointing to the lead flow", cubeId: 8 },
+  { key: "soi.pod.topic.label", englishDefault: "Topic — open by default; tag up to 3 Domain Plays if you like", context: "Pod page compose: label of the topic/project picker (Open topic is pre-selected)", cubeId: 8 },
+  { key: "soi.pod.topic.hint", englishDefault: "Your intent and outcome are the topic. A pod can be about anything.", context: "Pod page compose: hint under the topic picker", cubeId: 8 },
+  { key: "soi.pod.sample", englishDefault: "Use a sample topic", context: "Pod page compose: button that fills a ready test intent + outcome so a trio can try the flow", cubeId: 8 },
+  { key: "soi.pod.seat.waiting", englishDefault: "joined — waiting for the lead to seat you", context: "Pod page invite: joiner status before the lead's roster assigns their seat", cubeId: 8 },
+  { key: "soi.pod.seat.full", englishDefault: "This pod already has three. Ask the lead to open another.", context: "Pod page invite: shown to a fourth phone that dials in (pod floor is three; more is a separate ruling)", cubeId: 8 },
+  { key: "soi.pod.seat.you", englishDefault: "you", context: "Pod page invite: small tag on the row that belongs to this phone", cubeId: 8 },
   // SoI Framework — the default framework CONTENT (thesis · 3 Tri-Coins · Value/Flow · NOSE). englishDefault MUST
   // mirror DEFAULT_SOI in lib/soi-framework.ts exactly (soi-section renders defaults via t() so they translate 33 langs).
   { key: "soi.thesis", englishDefault: "Value what people bring, not only what they produce. ♡ carries the why · 웃 powers the how · ◬ multiplies the what — so shared intention becomes shared progress for every learner, maker, and community on Earth.", context: "SoI Framework thesis — the one-line vision", cubeId: 8 },
