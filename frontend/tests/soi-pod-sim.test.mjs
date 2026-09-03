@@ -101,6 +101,12 @@ ok(A.state.mySeat === 1 && B.state.mySeat === 2 && A.state.members[0].name === "
   "an impostor's roster is dropped — seats, names and phase untouched");
 bus.publish(X, { pod: { kind: "phase", from: "evil-99", phase: "closed" } }); bus.drain();
 ok(trio().every((p) => p.state.phase !== "closed"), "an impostor's phase is dropped");
+// A stranger claims the LEAD's chair, or a giant revision (Thor, round 3) — both refused.
+const revBefore = L.state.rev;
+bus.publish(X, { pod: { kind: "claim", from: "evil-99", seat: 0, rev: 5 } }); bus.drain();
+ok(L.state.seats["evil-99"] === undefined && !canEditSeat(0, { ...L.state, seats: { ...L.state.seats, "evil-99": 0 } }, { ...X.ctx, role: "joiner" }) || L.state.seats["evil-99"] === undefined, "seat 0 can never be claimed — a stranger cannot become the lead");
+bus.publish(X, { pod: { kind: "claim", from: "evil-99", seat: 7, rev: 1e12 } }); bus.drain();
+ok(L.state.seats["evil-99"] === undefined && L.state.rev < revBefore + 20_000, `an out-of-range seat is refused and a forged giant rev is capped (rev ${L.state.rev})`);
 
 // ── 1b · HOSTILE POLL FRAMES on the same channel (Krishna, round 2): the poll's bare status and
 //        presence must never touch the pod's phase, roster, seats — or its count of phones.
@@ -158,6 +164,16 @@ const Lx = L2; // continue with the reloaded lead
 
 // ── 4 · OUTCOMES: record, self-audit, cross-witness on each phone ─────────────────────
 Lx.move("record"); bus.drain(); Lx.move("audit"); bus.drain();
+{ // the lead reloads AGAIN, now at audit (Enki, round 3): nobody rewinds, nobody vanishes
+  const L3 = new Phone("lead", "lead-01");
+  bus.listeners[bus.listeners.indexOf(Lx)] = L3; L3.bus = bus;
+  L3.apply(patchAll(L3.state, {}, L3.ctx)); bus.drain(); bus.drain();
+  ok(A.state.phase === "audit" && B.state.phase === "audit", "a reloaded lead's compose-roster never rewinds the joiners' phase");
+  ok(podPresence(A.state) === 3 && podPresence(B.state) === 3, "the joiners keep their seat map until the lead republishes — the pod does not shrink to one");
+  ok(L3.state.seats["phone-A"] === 1 && L3.state.seats["phone-B"] === 2 && L3.state.phase === "audit", "the reloaded lead rebuilds the seats AND is carried forward to the pod's real phase");
+  // continue with the reloaded lead
+  Object.assign(Lx, { state: L3.state, ctx: L3.ctx, sent: L3.sent }); bus.listeners[bus.listeners.indexOf(L3)] = Lx; Lx.bus = bus;
+}
 Lx.set(0, { hours: "4", did: "Framed the spec" });
 A.set(1, { hours: "3.5", did: "Validated on the HAL" });
 B.set(2, { hours: "2", did: "Reviewed and recorded" }); bus.drain();

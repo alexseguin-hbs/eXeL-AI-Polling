@@ -42,7 +42,7 @@ export const PHASE_ORDER: Record<Phase, number> =
 
 export type PodMsg =
   | { kind: "hello";  from: string }
-  | { kind: "claim";  from: string; seat: number; rev: number }
+  | { kind: "claim";  from: string; seat: number; rev: number; phase: Phase }   // "I hold seat N, at rev R, in phase P"
   | { kind: "roster"; from: string; rev: number; members: Member[]; seats: Record<string, number>; phase: Phase }
   | { kind: "member"; from: string; seat: number; patch: Partial<Member> }   // own seat only
   | { kind: "attest"; from: string; target: number; on: boolean }            // the reviewer's own bit only
@@ -162,10 +162,15 @@ export function reducePod(state: PodState, msg: PodMsg, ctx: PodCtx): Step {
     // saw, so the reloaded lead's next roster is newer than everyone's memory. Honour the chair
     // when it is free or already theirs; otherwise the joiner re-hellos and is re-seated.
     if (ctx.role !== "lead") return { state, send: [] };
-    const rev = Math.max(state.rev, msg.rev);
+    // Seat 0 is the lead's and is never claimable; a claim outside 1..podSize-1 is a stranger
+    // reaching for the lead's chair (Thor, round 3). A forged giant rev cannot freeze propagation.
+    if (!Number.isInteger(msg.seat) || msg.seat < 1 || msg.seat >= ctx.podSize) return { state, send: [] };
+    const rev = Math.max(state.rev, Math.min(Number(msg.rev) || 0, state.rev + 10_000));
+    // A reloaded lead sits at `compose`; the claimant tells it where the pod really is (Enki, round 3).
+    const phase = PHASE_ORDER[msg.phase] > PHASE_ORDER[state.phase] ? msg.phase : state.phase;
     const holder = Object.entries(state.seats).find(([, s]) => s === msg.seat)?.[0];
-    if (holder && holder !== msg.from) return publish({ ...state, rev }, ctx);
-    return publish({ ...state, rev, seats: { ...state.seats, [msg.from]: msg.seat } }, ctx);
+    if (holder && holder !== msg.from) return publish({ ...state, rev, phase }, ctx);
+    return publish({ ...state, rev, phase, seats: { ...state.seats, [msg.from]: msg.seat } }, ctx);
   }
   if (msg.kind === "roster") {
     if (ctx.role !== "joiner") return { state, send: [] };
@@ -183,7 +188,7 @@ export function reducePod(state: PodState, msg: PodMsg, ctx: PodCtx): Step {
           mySeat: seated ? mine : (state.mySeat > 0 ? state.mySeat : 0),
           full: !seated && state.mySeat === 0 && Object.keys(msg.seats).length >= ctx.podSize - 1,
         },
-        send: !seated && state.mySeat > 0 && ctx.connected ? [{ kind: "claim", from: me, seat: state.mySeat, rev: state.rev }] : [],
+        send: !seated && state.mySeat > 0 && ctx.connected ? [{ kind: "claim", from: me, seat: state.mySeat, rev: state.rev, phase: state.phase }] : [],
       };
     }
     // An OLDER roster can only come from a lead that reloaded and lost its memory: merge so
@@ -193,11 +198,15 @@ export function reducePod(state: PodState, msg: PodMsg, ctx: PodCtx): Step {
     let mySeat = seated ? mine : 0;
     if (!seated && state.mySeat > 0) {
       mySeat = state.mySeat;
-      if (ctx.connected) send.push({ kind: "claim", from: me, seat: mySeat, rev: state.rev });
+      if (ctx.connected) send.push({ kind: "claim", from: me, seat: mySeat, rev: state.rev, phase: state.phase });
     }
     if (mySeat > 0 && ctx.connected) send.push({ kind: "member", from: me, seat: mySeat, patch: stripWitness(state.members[mySeat]) });
+    // A reloaded lead sits at `compose` with an empty seat map: keep the LATER phase and the seats
+    // we already know until the lead republishes, or every joiner rewinds and the pod "shrinks" to
+    // one (Enki, round 3).
+    const phase = PHASE_ORDER[msg.phase] > PHASE_ORDER[state.phase] ? msg.phase : state.phase;
     return {
-      state: { members, seats: msg.seats, mySeat, lead, phase: msg.phase, rev: state.rev,
+      state: { members, seats: { ...state.seats, ...msg.seats }, mySeat, lead, phase, rev: state.rev,
                full: !seated && state.mySeat === 0 && Object.keys(msg.seats).length >= ctx.podSize - 1 },
       send,
     };

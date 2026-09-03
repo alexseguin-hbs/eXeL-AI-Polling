@@ -587,7 +587,7 @@ export default function SoISessionPage() {
                 {connected
                   ? <span className="text-cyan-400">● live</span>
                   : <span>○ local (live sync when Supabase is reachable)</span>}
-                {connected && liveCount > 1 ? ` · ${liveCount} on the channel` : ""}
+                {connected && liveCount > 1 ? ` · ${liveCount} in the pod` : ""}
                 {isJoiner
                   ? (mySeat > 0 ? ` · you are seat ${mySeat + 1}` : connected ? ` · ${t("soi.pod.seat.waiting")}` : " · you joined by code")
                   : " · you are the lead"}
