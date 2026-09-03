@@ -191,18 +191,41 @@ export default function SoISessionPage() {
     clientId: clientId.current, connected: connectedRef.current, podSize: POD_SIZE,
   }), []);
   // Apply a pure step: its state into React, its messages onto the channel.
+  // The lead's intent + outcome ride along with every roster so the joiners review the real
+  // brief, not two empty boxes (three-phone live run, 2026-09-03). Additive: `brief` beside `pod`.
+  const briefRef = useRef({ intent: "", outcome: "" });
+  briefRef.current = { intent, outcome };
+  // The recorded outcome travels the same way: the phone that recorded it sends it with its
+  // phase move, the lead's rosters carry it on, and every receipt shows the same words — the
+  // three-phone live run found the other two receipts empty (2026-09-03).
+  const recordRef = useRef<{ method: RecordMethod; value: string }>({ method: "written", value: "" });
+  recordRef.current = { method: recordMethod, value: recordValue };
   const apply = useCallback((step: { state: PodState; send: PodMsg[] }) => {
     podRef.current = step.state;
     setMembers(step.state.members); setMySeat(step.state.mySeat); setJoinFull(step.state.full);
     setLiveCount(podPresence(step.state));                     // from the roster, never the poll's presence
     if (DRIVEN.has(step.state.phase)) setPhase(step.state.phase);
     else if (step.state.phase === "invite" && isJoinerRef.current) setPhase("invite");   // a lead's Reset
-    for (const m of step.send) broadcastRef.current("session_update", { pod: m }).catch(() => {});
+    for (const m of step.send) {
+      const brief = m.kind === "roster" && !isJoinerRef.current ? { brief: briefRef.current } : {};
+      const record = recordRef.current.value.trim() ? { record: recordRef.current } : {};
+      broadcastRef.current("session_update", { pod: m, ...brief, ...record }).catch(() => {});
+    }
   }, []);
 
   const onStatus = useCallback((p: SessionBroadcastPayload) => {
     const msg = (p as { pod?: unknown })?.pod as PodMsg | undefined;
     if (!msg) return;                                          // a poll frame — never ours
+    const brief = (p as { brief?: { intent?: string; outcome?: string } }).brief;
+    if (brief && isJoinerRef.current) {                        // the lead's brief, for review
+      if (typeof brief.intent === "string") setIntent(brief.intent);
+      if (typeof brief.outcome === "string") setOutcome(brief.outcome);
+    }
+    const record = (p as { record?: { method?: RecordMethod; value?: string } }).record;
+    if (record && typeof record.value === "string" && record.value.trim() && record.value !== recordRef.current.value) {
+      if (record.method) setRecordMethod(record.method);
+      setRecordValue(record.value);
+    }
     apply(reducePod(podRef.current, msg, ctx()));
   }, [apply, ctx]);
   // The channel's presence count is the POLL's participant number; the pod counts its roster.
@@ -211,8 +234,11 @@ export default function SoISessionPage() {
   connectedRef.current = connected;
 
   // The lead's own identity is its pin; a joiner pins the lead from the first roster.
+  // A page mounts as a lead (the URL is read in an effect), so a joiner must UNPIN itself when it
+  // learns it joined by code — otherwise it holds its own id as "lead" and rejects the real lead's
+  // roster as an impostor (found by the three-phone live run, 2026-09-03).
   useEffect(() => {
-    if (!isJoiner) podRef.current = { ...podRef.current, lead: clientId.current || podRef.current.lead };
+    podRef.current = { ...podRef.current, lead: isJoiner ? null : (clientId.current || podRef.current.lead) };
   }, [isJoiner]);
 
   // A joiner announces itself as soon as the channel is live; the lead answers with a seat.
@@ -609,7 +635,7 @@ export default function SoISessionPage() {
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-cyan-400">
                         {i === 0 ? "Lead" : `Member ${i + 1}`}
-                        {connected && i === mySeat && <span className="ml-1 rounded bg-cyan-400/15 px-1 font-normal normal-case tracking-normal">{t("soi.pod.seat.you")}</span>}
+                        {connected && (!isJoiner || mySeat > 0) && i === mySeat && <span className="ml-1 rounded bg-cyan-400/15 px-1 font-normal normal-case tracking-normal">{t("soi.pod.seat.you")}</span>}
                       </span>
                       <span className="text-[11px] text-muted-foreground">{m.name.trim() ? (i === 0 ? "set" : "joined ✓") : "not joined yet"}</span>
                     </div>

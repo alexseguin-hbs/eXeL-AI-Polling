@@ -31,8 +31,10 @@ export function SeedOfLifeLogo({
   const surroundingCircles = Array.from({ length: 6 }, (_, i) => {
     const angle = (i * 60 * Math.PI) / 180;
     return {
-      x: cx + R * Math.cos(angle),
-      y: cy + R * Math.sin(angle),
+      // three decimals — server and client stringify the raw float differently, and React
+      // reported a hydration mismatch on every page that draws the seed (2026-09-03)
+      x: Math.round((cx + R * Math.cos(angle)) * 1000) / 1000,
+      y: Math.round((cy + R * Math.sin(angle)) * 1000) / 1000,
     };
   });
 

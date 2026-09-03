@@ -45,6 +45,8 @@
     "test:soi-i18n": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-i18n-contract.test.mjs",
     "test:soi-section": "node tests/soi-section-guard.test.mjs",
     "test:soi-pod": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-pod-flow.test.mjs",
+    "pod:relay": "node scripts/realtime-relay.mjs",
+    "test:soi-pod-live": "node scripts/pod-live-run.mjs",
     "test:soi-pod-sim": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-pod-sim.test.mjs",
     "test:vision-lang-dl": "node tests/vision-lang-downloads.test.mjs",
     "test:atlantis-parity": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/atlantis-package-parity.test.mjs",

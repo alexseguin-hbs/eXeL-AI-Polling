@@ -84,10 +84,13 @@ export function SoITrinity({
   const bgColor = "var(--background, #0a1628)";
 
   // Ring centers: Son (top), Mother Aset (BR), Father Asar (BL)
+  // Three decimals: server and client stringify long floats differently, which React reports
+  // as a hydration mismatch on every page that draws the mark (three-phone live run, 2026-09-03).
+  const r3 = (n: number) => Math.round(n * 1000) / 1000;
   const rings = [
-    { cx: cx, cy: cy - spread, label: labels[0] },
-    { cx: cx + spread * 0.866, cy: cy + spread * 0.5, label: labels[1] },
-    { cx: cx - spread * 0.866, cy: cy + spread * 0.5, label: labels[2] },
+    { cx: r3(cx), cy: r3(cy - spread), label: labels[0] },
+    { cx: r3(cx + spread * 0.866), cy: r3(cy + spread * 0.5), label: labels[1] },
+    { cx: r3(cx - spread * 0.866), cy: r3(cy + spread * 0.5), label: labels[2] },
   ];
 
   // Text at 0° (12 o'clock), 120° (4 o'clock), 240° (8 o'clock)
