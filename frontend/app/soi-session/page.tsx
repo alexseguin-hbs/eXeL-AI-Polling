@@ -49,19 +49,22 @@ import {
   type RecordMethod, type ReceiptArtefacts, type Synthesis333,
 } from "@/lib/pod-projects";
 import {
+  initialPod, reducePod, patchPod, patchAll, attest, movePhase, resetPod, randomPodCode, podPresence,
+  syncVerdict, canEditSeat, canWitnessAs, witnessedCount as podWitnessedCount, isWitnessed as podIsWitnessed, WITNESS_FLOOR,
+  type Member as PodMember, type PodMsg, type PodState, type Phase as PodPhase,
+} from "@/lib/pod-roster";
+import {
   detectRegion, DEFAULT_REGION, REGION_OPTIONS,
   type ResolvedRegion,
 } from "@/lib/min-wage";
 
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
-type Phase = "compose" | "invite" | "sync" | "active" | "record" | "audit" | "closed";
-type Member = {
-  role: string; name: string; contact: string; agreed: boolean; recommend: string; startedAt: number | null;
-  hours: string;              // TOK-17 self-audit: hours this member claims
-  did: string;                // TOK-17 self-audit: what they did (one line)
-  witnessedBy: boolean[];     // TOK-17 cross-review: witnessedBy[j] = member j attests this claim
-};
+// The pod's types and its whole protocol live in lib/pod-roster.ts (pure; simulated in
+// tests/soi-pod-sim.test.mjs). This page holds React state and the channel, nothing more.
+type Phase = PodPhase;
+type Member = PodMember;
+const DRIVEN: ReadonlySet<Phase> = new Set<Phase>(["sync", "active", "record", "audit", "closed"]);
 
 /* CRS list DERIVED from Vision • 2525 — kept as a collapsible DEMO (operator). */
 const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string }[] = [
@@ -91,11 +94,12 @@ const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string
     spec: "No single institutional source above 20% of a project or 10% of framework funding in a rolling year; overhead ≤ 15%; zero-min-wage jurisdictions use a locally-agreed floor (never $0)." },
 ];
 
-function randomCode(seed: number): string {
-  const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  let n = seed, out = "";
-  for (let i = 0; i < 6; i++) { out += A[n % A.length]; n = Math.floor(n / A.length) + (i + 1) * 131; }
-  return out;
+// A pod code from real randomness — never the clock, which was guessable (Thor, round 1).
+function randomCode(): string {
+  const bytes = new Uint8Array(6);
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") crypto.getRandomValues(bytes);
+  else for (let i = 0; i < 6; i++) bytes[i] = Math.floor(Math.random() * 256);
+  return randomPodCode(bytes);
 }
 
 const firstName = (full: string) => (full.trim().split(/\s+/)[0] || "").toUpperCase();
@@ -104,12 +108,7 @@ export default function SoISessionPage() {
   const [phase, setPhase] = useState<Phase>("compose");
   const [intent, setIntent] = useState("");
   const [outcome, setOutcome] = useState("");
-  const mkMember = (role: string): Member =>
-    ({ role, name: "", contact: "", agreed: false, recommend: "", startedAt: null,
-       hours: "", did: "", witnessedBy: [false, false, false] });
-  const [members, setMembers] = useState<Member[]>([
-    mkMember("Lead"), mkMember("Lead 2"), mkMember("Lead 3"),
-  ]);
+  const [members, setMembers] = useState<Member[]>(() => initialPod(POD_SIZE).members);
   // Open topic is pre-selected: a pod can be about anything (operator, 2026-09-03).
   const [projects, setProjects] = useState<Set<string>>(new Set([OPEN_TOPIC.id]));
   const [tasks, setTasks] = useState<Record<string, string>>({}); // projectId -> taskId
@@ -147,8 +146,9 @@ export default function SoISessionPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      let id = sessionStorage.getItem("exel-pod-client");
-      if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("exel-pod-client", id); }
+      // localStorage, not sessionStorage: a second tab must be the same phone, not a fourth seat (Enki).
+      let id = localStorage.getItem("exel-pod-client");
+      if (!id) { id = Math.random().toString(36).slice(2, 10); localStorage.setItem("exel-pod-client", id); }
       clientId.current = id;
     } catch { clientId.current = Math.random().toString(36).slice(2, 10); }
   }, []);
@@ -173,96 +173,64 @@ export default function SoISessionPage() {
   }, [podCode]);
 
   /* ── The pod's roster, synced across phones (operator, 2026-09-03) ────────────────
-     Before this, `members` was local React state and only the PHASE travelled over the
-     channel — so a joiner's name and approval never reached the lead's phone, and
-     "accepted by all three" could only ever be satisfied on one device. Now the three
-     phones share one roster over the poll's own channel, additively, through the
-     `session_update` event the hook already routes here (its payload carries an index
-     signature, so no SACRED file changes):
-       hello   joiner → lead   "I'm here" (a per-phone id)
-       roster  lead → all      the full members list + who sits where
-       member  any → all       one seat's patch (name, approval, start, hours, witness)
-     The lead is the single source of truth for seating; every phone applies patches
-     locally; the lead re-sends the roster after each change so late phones converge.
-     With no Supabase the broadcasts are no-ops and the page still works as the local
-     single-phone prototype it was. */
-  type PodMsg =
-    | { kind: "hello"; clientId: string }
-    | { kind: "roster"; members: Member[]; seats: Record<string, number> }
-    | { kind: "member"; seat: number; patch: Partial<Member> };
-  const membersRef = useRef<Member[]>(members);
-  useEffect(() => { membersRef.current = members; }, [members]);
-  const seatsRef = useRef<Record<string, number>>({});
+     The protocol is PURE and lives in lib/pod-roster.ts — the very functions the three-user
+     simulation drives (tests/soi-pod-sim.test.mjs). This component holds React state, the
+     channel, and the wiring between them, nothing more. Every message travels INSIDE a
+     { pod } envelope on the hook's `session_update` event — never as the poll's bare
+     `status`, so a pod on the poll's channel can never move a live poll (Krishna, round 1).
+     The lead is pinned on the first roster and forged messages are dropped (Thor); an
+     incoming roster merges, so a reloaded lead cannot erase the trio's work (Enki). Offline,
+     every send is dropped and the page is the single-phone prototype it was. */
+  const podRef = useRef<PodState>(initialPod(POD_SIZE));
   const isJoinerRef = useRef(false);
   useEffect(() => { isJoinerRef.current = isJoiner; }, [isJoiner]);
   const connectedRef = useRef(false);
-  const broadcastRef = useRef<(event: "session_update" | "status", payload: SessionBroadcastPayload) => Promise<void>>(async () => {});
-  const send = (msg: PodMsg) => broadcastRef.current("session_update", { pod: msg }).catch(() => {});
-
-  // Commit a roster: state + ref together (so a broadcast never reads a stale ref), and
-  // the lead re-publishes it so every phone converges on the same three.
-  const commit = useCallback((next: Member[]) => {
-    membersRef.current = next;
-    setMembers(next);
-    if (!isJoinerRef.current && connectedRef.current) send({ kind: "roster", members: next, seats: seatsRef.current });
+  const broadcastRef = useRef<(event: "session_update", payload: SessionBroadcastPayload) => Promise<void>>(async () => {});
+  const ctx = useCallback(() => ({
+    role: (isJoinerRef.current ? "joiner" : "lead") as "lead" | "joiner",
+    clientId: clientId.current, connected: connectedRef.current, podSize: POD_SIZE,
+  }), []);
+  // Apply a pure step: its state into React, its messages onto the channel.
+  const apply = useCallback((step: { state: PodState; send: PodMsg[] }) => {
+    podRef.current = step.state;
+    setMembers(step.state.members); setMySeat(step.state.mySeat); setJoinFull(step.state.full);
+    setLiveCount(podPresence(step.state));                     // from the roster, never the poll's presence
+    if (DRIVEN.has(step.state.phase)) setPhase(step.state.phase);
+    else if (step.state.phase === "invite" && isJoinerRef.current) setPhase("invite");   // a lead's Reset
+    for (const m of step.send) broadcastRef.current("session_update", { pod: m }).catch(() => {});
   }, []);
 
-  const onStatus = useCallback((p: { status?: string; pod?: unknown }) => {
-    const s = p?.status;
-    if (s === "sync") setPhase("sync");
-    else if (s === "active") setPhase("active");
-    else if (s === "record") setPhase("record");
-    else if (s === "audit") setPhase("audit");
-    else if (s === "closed") setPhase("closed");
-    const msg = p?.pod as PodMsg | undefined;
-    if (!msg) return;
-    if (msg.kind === "hello" && !isJoinerRef.current) {
-      // Seat the newcomer in the first open chair (1 or 2). A fourth phone gets no seat:
-      // three is the witness floor; a larger pod is a separate ruling (unit.witness says
-      // "three or more" — the cap here follows the r182 proposal until the operator locks it).
-      const seats = seatsRef.current;
-      if (seats[msg.clientId] == null) {
-        const taken = new Set(Object.values(seats));
-        const open = Array.from({ length: POD_SIZE - 1 }, (_, k) => k + 1)
-          .find((i) => !taken.has(i) && !membersRef.current[i]?.name.trim());
-        if (open == null) { send({ kind: "roster", members: membersRef.current, seats }); return; }
-        seats[msg.clientId] = open;
-      }
-      commit(membersRef.current);                       // publishes the roster with the new seat map
-    } else if (msg.kind === "roster" && isJoinerRef.current) {
-      membersRef.current = msg.members;
-      setMembers(msg.members);
-      const mine = msg.seats[clientId.current];
-      setMySeat(typeof mine === "number" ? mine : 0);
-      setJoinFull(typeof mine !== "number" && Object.keys(msg.seats).length >= POD_SIZE - 1);
-    } else if (msg.kind === "member") {
-      const next = membersRef.current.map((m, j) => (j === msg.seat ? { ...m, ...msg.patch } : m));
-      if (isJoinerRef.current) { membersRef.current = next; setMembers(next); }
-      else commit(next);
-    }
-  }, [commit]);
-  const onPresence = useCallback((n: number) => setLiveCount(n), []);
-  const { broadcast, connected } = useSessionBroadcast(podCode || null, onStatus, onPresence);
+  const onStatus = useCallback((p: SessionBroadcastPayload) => {
+    const msg = (p as { pod?: unknown })?.pod as PodMsg | undefined;
+    if (!msg) return;                                          // a poll frame — never ours
+    apply(reducePod(podRef.current, msg, ctx()));
+  }, [apply, ctx]);
+  // The channel's presence count is the POLL's participant number; the pod counts its roster.
+  const { broadcast, connected } = useSessionBroadcast(podCode || null, onStatus, undefined);
   broadcastRef.current = broadcast;
   connectedRef.current = connected;
+
+  // The lead's own identity is its pin; a joiner pins the lead from the first roster.
+  useEffect(() => {
+    if (!isJoiner) podRef.current = { ...podRef.current, lead: clientId.current || podRef.current.lead };
+  }, [isJoiner]);
 
   // A joiner announces itself as soon as the channel is live; the lead answers with a seat.
   useEffect(() => {
     if (!connected || !isJoiner) return;
-    send({ kind: "hello", clientId: clientId.current });
+    broadcast("session_update", { pod: { kind: "hello", from: clientId.current } }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, isJoiner]);
 
-  // Phase moves travel to every phone. Any member may stop and record — the copy has
-  // always said "any member stops the session for everyone"; now that is true.
+  // Phase moves travel to every phone inside the pod envelope. Any member may move the pod —
+  // the copy has always said "any member stops the session for everyone"; now that is true.
   const drive = useCallback((status: "sync" | "active" | "record" | "audit" | "closed") => {
-    broadcast("status", { status }).catch(() => {});
-  }, [broadcast]);
+    apply(movePhase(podRef.current, status, ctx()));
+  }, [apply, ctx]);
 
   // Which rows this phone may edit: offline, the lead fills all three (the original
   // single-phone prototype); live, the lead owns seat 0 and a joiner owns its own seat.
-  const canEdit = (i: number) =>
-    !connected ? !isJoiner : (isJoiner ? mySeat > 0 && i === mySeat : i === 0);
+  const canEdit = (i: number) => canEditSeat(i, podRef.current, ctx());
 
   // Voice-to-text for the RECORD phase — browser-native (Web Speech API), local-first
   // so it works in the pod's degraded single-phone mode. Committed segments append to
@@ -285,16 +253,9 @@ export default function SoISessionPage() {
   const allAgreed = allJoined && members.every((m) => m.agreed);
   const recommendations = members.filter((m) => !m.agreed && m.recommend.trim());
 
-  // One seat's change, applied here and sent to the other phones.
-  const setMember = (i: number, patch: Partial<Member>) => {
-    const next = membersRef.current.map((m, j) => (j === i ? { ...m, ...patch } : m));
-    if (isJoiner) {
-      membersRef.current = next; setMembers(next);
-      if (connected && mySeat > 0 && i === mySeat) send({ kind: "member", seat: i, patch });
-    } else {
-      commit(next);
-    }
-  };
+  // One seat's change, applied here and sent to the other phones (the pure module decides
+  // whether this phone may, and what travels).
+  const setMember = (i: number, patch: Partial<Member>) => apply(patchPod(podRef.current, i, patch, ctx()));
 
   const toggleProject = (id: string) =>
     setProjects((s) => {
@@ -310,37 +271,45 @@ export default function SoISessionPage() {
   const pressStart = (i: number) => setMember(i, { startedAt: Date.now() });
   useEffect(() => {
     if (phase !== "sync") return;
-    const times = members.map((m) => m.startedAt).filter((v): v is number => v != null);
-    if (times.length !== members.length) return;
-    const spread = Math.max(...times) - Math.min(...times);
-    if (spread <= SYNC_START_SECONDS * 1000) {
-      setSyncMsg(`Synced — all three started within ${(spread / 1000).toFixed(1)}s.`);
-      const tmr = setTimeout(() => { setPhase("active"); drive("active"); }, 400);
+    const v = syncVerdict(members, SYNC_START_SECONDS);
+    if (v.status === "waiting") return;
+    if (v.status === "synced") {
+      setSyncMsg(`Synced — all three started within ${(v.spreadMs / 1000).toFixed(1)}s.`);
+      const tmr = setTimeout(() => drive("active"), 400);
       return () => clearTimeout(tmr);
     }
-    setSyncMsg(`Too far apart (${(spread / 1000).toFixed(1)}s > ${SYNC_START_SECONDS}s). Reset and start together.`);
-    if (!isJoiner) commit(members.map((m) => ({ ...m, startedAt: null })));   // the lead clears; joiners converge on the roster
+    setSyncMsg(`Too far apart (${(v.spreadMs / 1000).toFixed(1)}s > ${SYNC_START_SECONDS}s). Reset and start together.`);
+    // Each phone clears its OWN press (a merge never erases another phone's start — Enki);
+    // offline, the lead clears all three.
+    const mine = connected ? (isJoiner ? mySeat : 0) : -1;
+    if (mine >= 0) { if (members[mine].startedAt != null) setMember(mine, { startedAt: null }); }
+    else apply(patchAll(podRef.current, { startedAt: null }, ctx()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [members, phase]);
 
   const reset = () => {
-    setPhase("compose");
     setSyncMsg("");
     setBaselineHrs("");
-    // Through commit, so a lead's Reset reaches the other two phones as a roster.
-    commit(membersRef.current.map((m) => ({ ...m, agreed: false, recommend: "", startedAt: null, hours: "", did: "", witnessedBy: [false, false, false] })));
+    // An explicit reset message — a lead's Reset clears every phone and returns them to the invite.
+    apply(resetPod(podRef.current, ctx()));
+    setPhase(isJoiner ? "invite" : "compose");
   };
 
-  // TOK-17 cross-review: a member's hours count only when BOTH other members witness.
-  const witnessedCount = (i: number) => members[i].witnessedBy.filter((w, j) => w && j !== i).length;
-  const isWitnessed = (i: number) => witnessedCount(i) >= POD_SIZE - 1; // both others
+  // TOK-17 cross-review: a claim counts only when at least two OTHER members witness it. The rule
+  // lives in lib/pod-roster.ts (WITNESS_FLOOR) so the page and the settlement can never disagree.
+  const witnessedCount = (i: number) => podWitnessedCount(members, i);
+  const isWitnessed = (i: number) => podIsWitnessed(members, i);
   // A reviewer's attestation travels like any other patch — but only the reviewer's own
   // phone may flip it (offline, the lead flips all, as before).
+  // Live: a reviewer flips only its own bit (attest). Offline: the lead flips any reviewer's bit
+  // on one phone — the original single-phone prototype.
   const toggleWitness = (memberIdx: number, reviewerIdx: number) => {
-    const m = membersRef.current[memberIdx];
-    setMember(memberIdx, { witnessedBy: m.witnessedBy.map((w, j) => (j === reviewerIdx ? !w : w)) });
+    const m = podRef.current.members[memberIdx];
+    const on = !m.witnessedBy[reviewerIdx];
+    if (connected) apply(attest(podRef.current, memberIdx, on, ctx()));
+    else apply(patchPod(podRef.current, memberIdx, { witnessedBy: m.witnessedBy.map((w, j) => (j === reviewerIdx ? on : w)) }, ctx()));
   };
-  const canWitness = (reviewerIdx: number) => !connected ? !isJoiner : reviewerIdx === mySeat;
+  const canWitness = (reviewerIdx: number) => canWitnessAs(reviewerIdx, podRef.current, ctx());
 
   // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = M × hours (Multiple × Time), ceiling-noted).
   const M = 1;
@@ -583,7 +552,7 @@ export default function SoISessionPage() {
 
             <button
               disabled={!canOpen}
-              onClick={() => { if (!podCode) setPodCode(randomCode((Date.now() % 1e9) + intent.length * 31 + 7)); setPhase("invite"); }}
+              onClick={() => { if (!podCode) setPodCode(randomCode()); podRef.current = { ...podRef.current, phase: "invite" }; setPhase("invite"); }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
               Share QR &amp; open the pod
@@ -834,7 +803,7 @@ export default function SoISessionPage() {
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-sm font-medium">{firstName(m.name) || m.role}</span>
                     <span className={`rounded px-2 py-0.5 text-[11px] ${isWitnessed(i) ? "bg-cyan-500/15 text-cyan-500" : "bg-muted text-muted-foreground"}`}>
-                      {isWitnessed(i) ? "witnessed ✓" : `${witnessedCount(i)}/${POD_SIZE - 1} witnesses`}
+                      {isWitnessed(i) ? "witnessed ✓" : `${witnessedCount(i)}/${WITNESS_FLOOR} witnesses`}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">

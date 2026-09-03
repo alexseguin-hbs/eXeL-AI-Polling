@@ -21,3 +21,9 @@ if [ -f scripts/exec-summary-verify-readers.mjs ] && [ -d frontend/public/whitep
     echo "commit blocked by exec-summary-verify-readers (a symbol is shipping unread)"; exit 1;
   }
 fi
+# Model↔migration parity — a table the backend declares must be created by a migration
+# (the 2026-09-02 assessment found four orphans; the gate then found four more).
+if [ -f scripts/verify-migrations-vs-models.mjs ] && [ -d supabase/migrations ]; then
+  node scripts/verify-migrations-vs-models.mjs > /tmp/parity.txt 2>&1 || { cat /tmp/parity.txt; echo "commit blocked: a backend table has no migration"; exit 1; }
+  grep -qE '^[0-9]+ model table' /tmp/parity.txt || { echo "commit blocked: parity gate found no models (empty walk cannot pass)"; exit 1; }
+fi
