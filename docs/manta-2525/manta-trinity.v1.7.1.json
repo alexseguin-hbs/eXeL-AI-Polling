@@ -1,0 +1,156 @@
+{
+  "_warning": "This output is for conceptual critique only. It is not a design baseline, safety case, certification approval, procurement authority, construction authorization, operational doctrine, hurricane-safety advice, or human-test plan. All safety-critical domains remain Red until validated by qualified human experts.",
+  "_source": "docs/manta-2525/MANTA_TRINITY_HANDOFF_v1.7.1.md (sha256 5b6099ec8ca909ecd02c383447d6a2b815a092847e581e33b134259fbf2671e8). The full v1.7.1 package is not in the repository; this model is parsed from the handoff summary only.",
+  "_render": "docs/manta-2525/REVIEW_GATES.md, ASSUMPTIONS_REGISTER.md and RISK_MATRIX.md are GENERATED from this file by scripts/manta-render.mjs — edit here, never there.",
+
+  "project": {
+    "name": "eXeL MANTIS TRINITY",
+    "family": "Manta",
+    "version": "1.7.1",
+    "domain_play": "Manta-2525 (Level-3 Domain Play on the shared WIREFRAME-CORE)",
+    "status": { "conceptual_critique": "Yellow", "build": "Red", "procurement": "Red", "human_testing": "Red", "operations": "Red" },
+    "doctrine": "Humanity decides. Technology assists. Wisdom guides. Trust must be proven.",
+    "ladder": ["Pilot", "Replay", "Qualify", "Certify", "Adopt", "Educate", "Expand"],
+    "not_a": ["design baseline", "engineering release", "safety case", "certification approval", "procurement authority", "construction authorization", "human-test plan", "operational doctrine", "investment solicitation", "hurricane-safety advice"]
+  },
+
+  "platforms": [
+    { "id": "mini-99-33", "name": "Manta Mini 99-33", "role": "Entry coastal travel pod", "depth_target_m": 33, "range_km": 99, "vehicle_capacity": "1 Tesla Model 3-class dimensional reference vehicle", "battery": "350 kWh LFP", "battery_kwh": 350, "crew": [2, 4], "refuge_h": [12, 24], "status": "Red" },
+    { "id": "mini-99-66", "name": "Manta Mini 99-66", "role": "Extended coastal travel pod", "depth_target_m": 66, "range_km": 99, "vehicle_capacity": "1 Tesla Model 3-class dimensional reference vehicle", "battery": "420 kWh LFP", "battery_kwh": 420, "crew": [2, 4], "refuge_h": [12, 24], "status": "Red" },
+    { "id": "sail-ark-22", "name": "Sail Ark 22", "role": "Surface carrier / range extender", "depth_target_m": 0, "range_km": 1200, "range_note": "1,200+ km concept", "vehicle_capacity": "1–2 Mini pods", "battery": "400–800 kWh LiFePO₄", "battery_kwh": [400, 800], "crew": [2, 4], "status": "Red" },
+    { "id": "sentinel-400", "name": "Manta Sentinel 400 BE", "role": "Regional expedition / hurricane resilience concept", "depth_target_m": 400, "range_note": "400+ BE concept", "vehicle_capacity": "Multiple Mini pods", "battery": "80–150 MWh", "battery_kwh": [80000, 150000], "crew": [12, 20], "refuge_days": 14, "status": "Red" },
+    { "id": "sentinel-800", "name": "Manta Sentinel 800 BE", "role": "Mid-range expedition / hurricane resilience concept", "depth_target_m": 800, "range_note": "800+ BE concept", "vehicle_capacity": "Multiple Mini pods", "battery": "250–375 MWh", "battery_kwh": [250000, 375000], "crew": [12, 20], "refuge_days": 14, "status": "Red" },
+    { "id": "sentinel-1600", "name": "Manta Sentinel 1600 BE", "role": "Deep-ocean research / maximum protection concept", "depth_target_m": 1600, "range_note": "1,600+ BE concept", "vehicle_capacity": "Multiple Mini pods", "battery": "400–500+ MWh", "battery_kwh": [400000, 500000], "crew": [12, 20], "refuge_days": 30, "status": "Red" }
+  ],
+
+  "nested_stack": ["sentinel-400|sentinel-800|sentinel-1600", "sail-ark-22 [optional]", "mini-99-33|mini-99-66", "Tesla Model 3-class dimensional reference vehicle (dimensional only; no partnership, endorsement, approval or certification implied)"],
+
+  "roles": [
+    { "mission": "Coastal commuting", "primary": "mini-99-33", "secondary": null, "depth_m": 33 },
+    { "mission": "Extended coastal refuge", "primary": "mini-99-66", "secondary": null, "depth_m": 66 },
+    { "mission": "Surface carrier / charging", "primary": "sail-ark-22", "secondary": "mini-99-33|mini-99-66", "depth_m": 0 },
+    { "mission": "Regional expedition", "primary": "sentinel-400", "secondary": "mini-99-66", "depth_m": 400 },
+    { "mission": "Mid-range expedition", "primary": "sentinel-800", "secondary": "mini-99-66", "depth_m": 800 },
+    { "mission": "Deep-ocean research", "primary": "sentinel-1600", "secondary": "mini-99-66", "depth_m": 1600 }
+  ],
+
+  "first_gate": { "name": "Hydrostatics – Mini 99-33", "platform": "mini-99-33", "required_validator": "Licensed naval architect", "required_output": "Signed mass, displacement, trim, reserve buoyancy, and stability model", "status": "Red", "why_first": "Smallest, shallowest, simplest platform. Nothing else proceeds until floating, trimming, displacement, reserve buoyancy and stability are professionally validated." },
+
+  "gates": [
+    { "lane": "Hydrostatics", "reviewer": "Licensed naval architect", "required_output": "Signed mass, displacement, trim, reserve buoyancy, stability model", "status": "Red" },
+    { "lane": "Dock Transition", "reviewer": "Naval architect / simulation engineer", "required_output": "Flooding, latch, trim, abort, recovery, failure-mode model", "status": "Red" },
+    { "lane": "Deep Submersion", "reviewer": "Naval architect / class society", "required_output": "Pressure-hull certification at 400 m, 800 m, 1,600 m", "status": "Red" },
+    { "lane": "Mini Submersion", "reviewer": "Naval architect / class society", "required_output": "Pressure-hull certification at 33 m and 66 m", "status": "Red" },
+    { "lane": "Sail Ark Surface Operations", "reviewer": "Naval architect", "required_output": "Seakeeping, launch/recovery, cradle design", "status": "Red" },
+    { "lane": "Battery Safety", "reviewer": "Marine battery safety expert", "required_output": "Hazard analysis and DNV Battery(Safety) + Battery(Power) pathway", "status": "Red" },
+    { "lane": "Rescue & Egress", "reviewer": "Rescue planner / human factors expert", "required_output": "Depth-specific rescue doctrine and validated drills", "status": "Red" },
+    { "lane": "Certification", "reviewer": "ABS/DNV/class pre-consultant", "required_output": "Written pre-consultation pathway", "status": "Red" }
+  ],
+  "decision_rule": "All eight review lanes must reach Green before build, procurement, or human testing on any platform.",
+
+  "hydrostatics": {
+    "equation": "ρ_sw · V_d = M_dry + M_ballast + M_payload",
+    "rho_sw_kg_m3": 1025,
+    "bounds": [
+      { "platform": "mini-99-33", "displacement_t": 45, "dry_t": 33, "payload_t": 1.8, "ballast_t": 10.2, "status": "Red" },
+      { "platform": "mini-99-66", "displacement_t": 52, "dry_t": 38, "payload_t": 1.8, "ballast_t": 12.2, "status": "Red" },
+      { "platform": "sail-ark-22", "displacement_t": 220, "dry_t": 180, "payload_t": 40, "ballast_t": null, "ballast_note": "Variable", "status": "Red" },
+      { "platform": "sentinel-400", "displacement_t": 4500, "dry_t": 3500, "payload_t": 500, "ballast_t": 500, "status": "Red" },
+      { "platform": "sentinel-800", "displacement_t": 8000, "dry_t": 6200, "payload_t": 800, "ballast_t": 1000, "status": "Red" },
+      { "platform": "sentinel-1600", "displacement_t": 15000, "dry_t": 11500, "payload_t": 1200, "ballast_t": 2000, "status": "Red" }
+    ]
+  },
+
+  "pressure_hull": {
+    "equation": "t_min = (P · R · SF) / σ_y",
+    "assumptions": { "sigma_y_MPa": 500, "safety_factor": 2.5, "radius_m": 4, "g_m_s2": 9.81 },
+    "governed_by_not_the_equation": ["collapse", "buckling", "geometry", "stiffeners", "weld quality", "endcaps", "penetrations", "fatigue", "inspection", "class rules"],
+    "bounds": [
+      { "depth_m": 33, "pressure_MPa": 0.33, "thickness_mm": 6.5, "status": "Red until class review" },
+      { "depth_m": 66, "pressure_MPa": 0.66, "thickness_mm": 13, "status": "Red until class review" },
+      { "depth_m": 400, "pressure_MPa": 4.0, "thickness_mm": 80, "status": "Red" },
+      { "depth_m": 800, "pressure_MPa": 8.0, "thickness_mm": 163, "status": "Red" },
+      { "depth_m": 1600, "pressure_MPa": 16.1, "thickness_mm": 322, "status": "Red" }
+    ]
+  },
+
+  "life_support": {
+    "scope": "Bounds oxygen-generation ENERGY only.",
+    "not_solved": ["CO₂ removal", "humidity", "condensation", "hydrogen handling", "fire safety", "toxic gas", "potable water", "waste", "thermal rejection", "medical contingencies", "psychological endurance", "emergency power isolation"],
+    "constants_reverse_engineered_from_table": { "o2_L_per_person_hour": 16.8, "kwh_per_m3_o2_base": 5.2, "margin": 2, "note": "These constants reproduce every row of the handoff's table exactly; they are inferred, not stated in the handoff." },
+    "bounds": [
+      { "platform": "mini-99-33", "crew": [2, 4], "duration_h": 24, "o2_L": [806, 1612], "energy_kwh": [8.4, 16.8] },
+      { "platform": "mini-99-66", "crew": [2, 4], "duration_h": 24, "o2_L": [806, 1612], "energy_kwh": [8.4, 16.8] },
+      { "platform": "sentinel-400", "crew": [12, 20], "duration_h": 336, "o2_L": [67700, 112800], "energy_kwh": [704, 1173] },
+      { "platform": "sentinel-800", "crew": [12, 20], "duration_h": 336, "o2_L": [67700, 112800], "energy_kwh": [704, 1173] },
+      { "platform": "sentinel-1600", "crew": [12, 20], "duration_h": 720, "o2_L": [145000, 241800], "energy_kwh": [1508, 2515] }
+    ]
+  },
+
+  "battery_safety": {
+    "status": "Red",
+    "chemistries": { "mini": "LFP", "sail_ark": "LiFePO₄ / marine battery systems", "sentinel": "high-capacity battery banks" },
+    "required_validation": ["thermal runaway analysis", "gas detection", "toxic gas handling", "fire suppression", "pressure relief", "battery compartment isolation", "passenger-space separation", "emergency power independence", "DNV Battery(Safety) / Battery(Power) or equivalent pathway", "class-society review"],
+    "ev_battery_is_a_separate_hazard": true,
+    "ev_handling": ["Traction battery disconnected", "High-voltage isolation verified", "Thermal monitoring active", "Dedicated gas sensing", "Physical containment", "Emergency vent path", "No charging while submerged unless certified"]
+  },
+
+  "dock_transition": {
+    "status": "Red",
+    "risks": ["Mini entering/exiting Sentinel bay", "floodable dock dynamics", "free-surface effects", "trim shift", "buoyancy shift", "center-of-gravity movement", "center-of-buoyancy movement", "latch loads", "stuck latch", "trapped air", "emergency abort", "pod floating/cradled/locked states", "sea-state effects", "vehicle payload shift"],
+    "required_model": "Hydrostatic + dynamic launch/recovery simulation with failure modes and abort states."
+  },
+
+  "depth_doctrine": {
+    "rule": "Mini pods may only be exposed, launched, recovered, flooded, or ejected within their certified pressure envelope. Sentinel must ascend to Mini-certified depth before any dock operation involving the Mini.",
+    "interlock": "Hardware interlocks must physically prevent dock exposure below the Mini's certified depth."
+  },
+
+  "egress_doctrine": {
+    "principle": "No reliance on ambient-pressure escape at operating depth.",
+    "hierarchy": ["Vehicle ascends to surface, then occupants exit.", "Mothership ascends to shallow rescue condition.", "Rescue vessel / ROV assists recovery.", "Certified escape capsule or rescue trunk, if separately approved.", "Technical diving escape only as last resort, not design basis."],
+    "status": "Design doctrine only; rescue and human-factors validation Red."
+  },
+
+  "assumptions": [
+    { "id": "A1", "assumption": "33 m hull estimate", "platform": "mini-99-33", "status": "Red", "validator": "Naval architect / class society", "evidence_required": "Class-rule collapse/buckling calculation with stiffeners, endcaps, penetrations; material certs; weld procedure", "failure_modes": ["collapse below rated depth", "buckling at penetrations/endcaps", "weld defect propagation"] },
+    { "id": "A2", "assumption": "66 m hull estimate", "platform": "mini-99-66", "status": "Red", "validator": "Naval architect / class society", "evidence_required": "As A1 at 66 m; fatigue spectrum for repeated cycling", "failure_modes": ["collapse", "buckling", "fatigue cracking"] },
+    { "id": "A3", "assumption": "400 m hull estimate", "platform": "sentinel-400", "status": "Red", "validator": "Class society", "evidence_required": "Full class submersible rules; FE collapse analysis; inspection plan", "failure_modes": ["catastrophic implosion", "stiffener tripping", "endcap failure"] },
+    { "id": "A4", "assumption": "800 m hull estimate", "platform": "sentinel-800", "status": "Red", "validator": "Class society", "evidence_required": "As A3 at 800 m", "failure_modes": ["catastrophic implosion", "stiffener tripping", "endcap failure"] },
+    { "id": "A5", "assumption": "1,600 m hull estimate", "platform": "sentinel-1600", "status": "Red", "validator": "Class society", "evidence_required": "As A3 at 1,600 m; material selection review (steel thickness ~322 mm bound is itself a red flag for fabricability)", "failure_modes": ["catastrophic implosion", "fabrication defect", "weld inspection infeasibility at thickness"] },
+    { "id": "A6", "assumption": "Mass / buoyancy targets", "platform": "all", "status": "Red", "validator": "Naval architect", "evidence_required": "Signed weight estimate, hydrostatic curves, trim/stability booklet, reserve buoyancy", "failure_modes": ["negative reserve buoyancy", "trim excursion with vehicle aboard", "free-surface loss of GM"] },
+    { "id": "A7", "assumption": "Life-support energy", "platform": "all", "status": "Yellow (arithmetic) / Red (system)", "validator": "Life-support specialist", "evidence_required": "Full ECLSS design: O₂, CO₂ scrubbing, humidity, thermal, fire, toxic gas, power isolation", "failure_modes": ["CO₂ accumulation", "hypoxia on power loss", "hydrogen from electrolysis", "thermal overload"] },
+    { "id": "A8", "assumption": "No ambient egress doctrine", "platform": "all", "status": "Red", "validator": "Rescue planner", "evidence_required": "Depth-specific rescue doctrine; drills; rescue-asset availability analysis", "failure_modes": ["no rescue asset within survivable window", "occupants trapped at depth"] },
+    { "id": "A9", "assumption": "EV battery safety", "platform": "mini|sentinel", "status": "Red", "validator": "Battery expert + class society", "evidence_required": "Thermal-runaway analysis of a Tesla-class pack inside a sealed hull; containment; venting; isolation verification", "failure_modes": ["thermal runaway in sealed volume", "toxic gas in habitable space", "HV fault while submerged"] },
+    { "id": "A10", "assumption": "Dock transition", "platform": "sentinel|mini|sail-ark-22", "status": "Red", "validator": "Simulation engineer", "evidence_required": "Hydrostatic + dynamic launch/recovery simulation with failure modes and abort states", "failure_modes": ["stuck latch", "trapped air", "free-surface capsize", "CG/CB excursion"] },
+    { "id": "A11", "assumption": "Sail Ark launch/recovery", "platform": "sail-ark-22", "status": "Red", "validator": "Naval architect", "evidence_required": "Seakeeping analysis; cradle loads; launch/recovery envelope by sea state", "failure_modes": ["cradle load exceedance", "recovery in sea state", "hydrofoil failure with pod aboard"] },
+    { "id": "A12", "assumption": "Deep rescue", "platform": "sentinel", "status": "Red", "validator": "Rescue planner", "evidence_required": "Rescue doctrine at 400/800/1,600 m; asset availability; time-to-rescue vs life-support endurance", "failure_modes": ["no capable rescue asset", "endurance exceeded before rescue"] },
+    { "id": "A13", "assumption": "Battery certification", "platform": "all", "status": "Red", "validator": "Battery expert", "evidence_required": "DNV Battery(Safety) + Battery(Power) or equivalent pathway, written", "failure_modes": ["uncertifiable chemistry/arrangement", "no class pathway"] },
+    { "id": "A14", "assumption": "Nested class pathway", "platform": "all", "status": "Red", "validator": "ABS/DNV", "evidence_required": "Written pre-consultation: does a nested Sentinel→Ark→Mini→EV system have any existing class pathway at all", "failure_modes": ["no rule set exists", "each nesting level certified in isolation only"] }
+  ],
+
+  "risks": [
+    { "id": "R1", "risk": "Pressure-hull collapse / implosion at depth", "platforms": "sentinel-400|sentinel-800|sentinel-1600", "severity": "Catastrophic", "likelihood_if_unvalidated": "High", "validator": "Class society", "assumptions": ["A3", "A4", "A5"] },
+    { "id": "R2", "risk": "Pressure-hull failure at 33/66 m", "platforms": "mini-99-33|mini-99-66", "severity": "Catastrophic", "likelihood_if_unvalidated": "Medium", "validator": "Naval architect / class society", "assumptions": ["A1", "A2"] },
+    { "id": "R3", "risk": "EV traction battery thermal runaway inside a sealed hull", "platforms": "mini|sentinel", "severity": "Catastrophic", "likelihood_if_unvalidated": "Medium", "validator": "Battery expert + class society", "assumptions": ["A9", "A13"] },
+    { "id": "R4", "risk": "Occupants trapped at depth with no rescue asset within endurance", "platforms": "sentinel", "severity": "Catastrophic", "likelihood_if_unvalidated": "High", "validator": "Rescue planner", "assumptions": ["A8", "A12"] },
+    { "id": "R5", "risk": "Dock transition capsize / stuck latch / trapped air", "platforms": "sentinel|mini|sail-ark-22", "severity": "Critical", "likelihood_if_unvalidated": "High", "validator": "Simulation engineer", "assumptions": ["A10"] },
+    { "id": "R6", "risk": "Negative reserve buoyancy or trim excursion with vehicle aboard", "platforms": "mini-99-33|mini-99-66", "severity": "Critical", "likelihood_if_unvalidated": "Medium", "validator": "Naval architect", "assumptions": ["A6"] },
+    { "id": "R7", "risk": "Life-support failure beyond O₂ (CO₂, thermal, toxic gas, hydrogen)", "platforms": "all", "severity": "Critical", "likelihood_if_unvalidated": "High", "validator": "Life-support specialist", "assumptions": ["A7"] },
+    { "id": "R8", "risk": "Public misreads 'Family Protector' as hurricane evacuation advice", "platforms": "sentinel (concept)", "severity": "Critical", "likelihood_if_unvalidated": "High", "validator": "Emergency-management authority + communications review", "assumptions": [] },
+    { "id": "R9", "risk": "Sail Ark launch/recovery or hydrofoil failure with a Mini in the cradle", "platforms": "sail-ark-22", "severity": "Critical", "likelihood_if_unvalidated": "Medium", "validator": "Naval architect", "assumptions": ["A11"] },
+    { "id": "R10", "risk": "No class pathway exists for a nested Sentinel→Ark→Mini→EV system", "platforms": "all", "severity": "Major", "likelihood_if_unvalidated": "Medium", "validator": "ABS/DNV pre-consultant", "assumptions": ["A14"] },
+    { "id": "R11", "risk": "Infographics and handoff disagree on depth, battery and displacement (see CRITIQUE)", "platforms": "mini-99-66|sail-ark-22", "severity": "Major", "likelihood_if_unvalidated": "Certain", "validator": "Document owner", "assumptions": [] },
+    { "id": "R12", "risk": "Marketing language ('safe', 'stealth', 'engineered for real oceans') outruns the Red gates ⟦quoted⟧", "platforms": "all", "severity": "Moderate", "likelihood_if_unvalidated": "Certain", "validator": "Communications review", "assumptions": [] }
+  ],
+
+  "forbidden_language": ["feasible", "closed", "safe", "proven", "operational", "hurricane avoidance", "descend during storm", "ready for build"],
+  "do_not_distribute": "When the storm comes, you do not run. You descend. You wait. You rise.",
+
+  "trinity": [
+    { "intelligence": "eXeL AI", "role": "Coordination toolset", "manta": "Polling, simulation bounds, convergence logs, R-CORE replay" },
+    { "intelligence": "eXeL SI", "role": "Wisdom, conscience, restraint", "manta": "No Heroic Assumptions, safety-first posture, depth doctrine" },
+    { "intelligence": "eXeL HI", "role": "Human authority and creativity", "manta": "Licensed naval architects, class societies, human final authority" }
+  ],
+  "polling": { "url": "https://exel-ai-polling.explore-096.workers.dev/", "boundary": "Polling informs critique. It does not validate engineering, replace experts, or authorize physical development.", "flow": ["eXeL Poll", "Theming & Prioritization", "Expert Validation", "Review Lanes", "Formal Gates"] }
+}

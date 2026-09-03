@@ -27,3 +27,8 @@ if [ -f scripts/verify-migrations-vs-models.mjs ] && [ -d supabase/migrations ];
   node scripts/verify-migrations-vs-models.mjs > /tmp/parity.txt 2>&1 || { cat /tmp/parity.txt; echo "commit blocked: a backend table has no migration"; exit 1; }
   grep -qE '^[0-9]+ model table' /tmp/parity.txt || { echo "commit blocked: parity gate found no models (empty walk cannot pass)"; exit 1; }
 fi
+# Manta-2525 — generated views must match the JSON; language must not outrun the Red gates.
+if [ -f scripts/manta-render.mjs ] && [ -f docs/manta-2525/manta-trinity.v1.7.1.json ]; then
+  node scripts/manta-render.mjs --check || { echo "commit blocked: a Manta view is stale — run node scripts/manta-render.mjs"; exit 1; }
+  node scripts/manta-language-gate.mjs > /tmp/manta-lang.txt 2>&1 || { cat /tmp/manta-lang.txt; echo "commit blocked: Manta language outruns the gates"; exit 1; }
+fi
