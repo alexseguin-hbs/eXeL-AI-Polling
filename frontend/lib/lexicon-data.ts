@@ -834,6 +834,8 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.name_ph", englishDefault: "Full name", context: "Sign Doc: Signers step: name placeholder", cubeId: 8 },
   { key: "soi.sign.contact_ph", englishDefault: "email or mobile number", context: "Sign Doc: Signers step: contact placeholder", cubeId: 8 },
   { key: "soi.sign.add_signer", englishDefault: "Add another signer", context: "Sign Doc: Signers step: add-row button", cubeId: 8 },
+  { key: "soi.sign.remove_signer", englishDefault: "Remove this signer", context: "Sign Doc: aria-label of the ✕ on a signer row", cubeId: 8 },
+  { key: "soi.sign.solo_hint", englishDefault: "Only you? Fine — the file is stamped on this phone and downloadable at once.", context: "Sign Doc: hint under the signers when there is a single signer", cubeId: 8 },
   { key: "soi.sign.back", englishDefault: "Back", context: "Sign Doc: Any step: back button", cubeId: 8 },
   { key: "soi.sign.next_place", englishDefault: "Next — place your signature", context: "Sign Doc: Signers step: primary button", cubeId: 8 },
   { key: "soi.sign.next_draw", englishDefault: "Next — draw your signature", context: "Sign Doc: Place step: primary button", cubeId: 8 },

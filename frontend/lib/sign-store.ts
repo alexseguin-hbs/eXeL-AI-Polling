@@ -25,7 +25,15 @@ export class SignStoreError extends Error {
 const LOCAL_KEY = (token: string) => `exel-sign:${token}`;
 export const storeMode = (): StoreMode => (supabase ? "supabase" : "local");
 
+/** PostgREST's "function not found" — migration 036 has not been applied on this Supabase project. */
+export const isMissingRpc = (e: unknown): boolean => {
+  const m = ((e as { message?: string })?.message ?? String(e)).toLowerCase();
+  const code = String((e as { code?: string })?.code ?? "");
+  return code === "PGRST202" || /could not find the function|does not exist|schema cache/.test(m);
+};
+
 const rpcError = (e: unknown): never => {
+  if (isMissingRpc(e)) throw new SignStoreError("no_backend", "This site has not applied migration 036 yet.");
   const m = (e as { message?: string })?.message ?? String(e);
   const code = /not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
   throw new SignStoreError(code, m);
@@ -33,18 +41,19 @@ const rpcError = (e: unknown): never => {
 
 /** Persist a fresh envelope. Multi-signer requires Supabase; single-signer may stay on this device. */
 export async function createEnvelope(env: Envelope): Promise<{ token: string; mode: StoreMode }> {
-  if (!supabase) {
-    if (env.signers.length > 1) throw new SignStoreError("no_backend", "Supabase is not configured on this build — a hand-off link cannot be minted.");
+  const local = () => {
+    if (env.signers.length > 1) throw new SignStoreError("no_backend", "This site cannot mint a hand-off link yet (no backend, or migration 036 not applied).");
     localStorage.setItem(LOCAL_KEY(env.token), JSON.stringify(env));
-    return { token: env.token, mode: "local" };
-  }
+    return { token: env.token, mode: "local" as StoreMode };
+  };
+  if (!supabase) return local();
   const { data, error } = await supabase.rpc("sign_envelope_create", {
     p_token: env.token, p_title: env.title, p_created_by: env.created_by,
     p_signers: env.signers.map((s, i) => ({ name: s.name, contact: s.contact, secret: i === 0 ? s.secret : undefined })),
     p_files: env.files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
     p_expires_at: env.expires_at ?? null,
   });
-  if (error) rpcError(error);
+  if (error) { if (isMissingRpc(error)) return local(); rpcError(error); }   // one signer signs alone even before 036
   return { token: (data as { token: string }).token, mode: "supabase" };
 }
 
@@ -62,14 +71,15 @@ const fromLocal = (token: string, secret: string): PublicEnvelope | null => {
 };
 
 export async function getEnvelope(token: string, secret: string): Promise<PublicEnvelope> {
-  if (!supabase) { const e = fromLocal(token, secret); if (!e) throw new SignStoreError("not_found"); return e; }
+  const l = fromLocal(token, secret);                        // a locally-kept envelope is answered from this device
+  if (!supabase || l) { if (!l) throw new SignStoreError("not_found"); return l; }
   const { data, error } = await supabase.rpc("sign_envelope_get", { p_token: token, p_secret: secret || null, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300) });
   if (error) rpcError(error);
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };
 }
 
 export async function signEnvelope(token: string, idx: number, secret: string, files: SignFile[], chain: string, localNext?: Envelope): Promise<PublicEnvelope> {
-  if (!supabase) {
+  if (!supabase || (localNext && localStorage.getItem(LOCAL_KEY(token)))) {
     if (!localNext) throw new SignStoreError("no_backend");
     localStorage.setItem(LOCAL_KEY(token), JSON.stringify(localNext));
     const e = fromLocal(token, secret); if (!e) throw new SignStoreError("not_found");

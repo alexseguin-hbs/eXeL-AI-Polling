@@ -46,7 +46,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const [signed, setSigned] = useState<{ name: string; bytes: Uint8Array }[]>([]);
   const envRef = useRef<Envelope | null>(null);
   const pendingToken = useRef("");                              // minted before stamping so the PDF can carry it
-  const mode = storeMode();
+  const [localFallback, setLocalFallback] = useState(false);
+  const mode = localFallback ? "local" : storeMode();
 
   // ── seed from Create Doc ─────────────────────────────────────────────────────
   useEffect(() => { if (seed) void addBytes(seed.name, seed.bytes); }, [seed]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -120,7 +121,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       if (!countersign) {
         const env = { ...newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) }), token: pendingToken.current };
         envRef.current = env;
-        await createEnvelope(env);
+        const created = await createEnvelope(env);
+        if (created.mode === "local") setLocalFallback(true);
         const next = applySignature(env, 0, env.signers[0].secret, isoDate, stamped, chain);
         envRef.current = next;
         result = await signEnvelope(env.token, 0, env.signers[0].secret, stamped, chain, next);
@@ -231,7 +233,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
             <div key={i} className="mb-2 rounded-md border border-border p-3">
               <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-cyan-400">
                 <span>{i === 0 ? t("soi.sign.me") : `${t("soi.sign.signer")} ${i + 1}`}</span>
-                {i > 1 && <button type="button" onClick={() => setSigners((x) => x.filter((_, j) => j !== i))} className="text-muted-foreground">✕</button>}
+                {i > 0 && <button type="button" onClick={() => setSigners((x) => x.filter((_, j) => j !== i))} className="min-h-[36px] px-2 text-muted-foreground" aria-label={t("soi.sign.remove_signer")}>✕</button>}
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 <input value={s.name} onChange={(e) => setSigner(i, { name: e.target.value })} placeholder={t("soi.sign.name_ph")} className="rounded-md border border-border bg-background px-2 py-2 text-sm" data-testid={`signer-name-${i}`} />
@@ -241,6 +243,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
           ))}
           <button type="button" onClick={() => setSigners((x) => [...x, { name: "", contact: "" }])} className="min-h-[44px] text-sm text-cyan-400">+ {t("soi.sign.add_signer")}</button>
           {multi && mode === "local" && <p className="mt-2 text-xs text-amber-500">{t("soi.sign.err.no_backend")}</p>}
+          {!multi && <p className="mt-2 text-xs text-muted-foreground">{t("soi.sign.solo_hint")}</p>}
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setStep("upload")} className="min-h-[44px] rounded-md border border-border px-4 text-sm">{t("soi.sign.back")}</button>
             <button type="button" disabled={!signersOk || (multi && mode === "local")} onClick={() => setStep("place")} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">{t("soi.sign.next_place")}</button>
