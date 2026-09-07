@@ -14,6 +14,8 @@ export async function startDonation(opts: {
   description?: string;
   successUrl?: string;
   cancelUrl?: string;
+  /** One key per modal open — a double-tap replays the same Checkout instead of minting two. */
+  clientKey?: string;
 }): Promise<string | null> {
   const res = await fetch("/api/donate", {
     method: "POST",
@@ -24,6 +26,7 @@ export async function startDonation(opts: {
       description: opts.description,
       success_url: opts.successUrl,
       cancel_url: opts.cancelUrl,
+      client_key: opts.clientKey,
     }),
   });
 
@@ -45,4 +48,29 @@ export async function startDonation(opts: {
   if (data.configured === false || res.status === 404) return null;   // no key / route absent → demo
   if (!parsed) return null;                                           // HTML or empty body → not deployed → demo
   throw new Error(data.error || "Donation could not be started. Please try again.");
+}
+
+/** A same-page return URL carrying ?donated=true so the page can say thank you (never before Stripe confirms). */
+export function donatedReturnUrl(): string {
+  if (typeof window === "undefined") return "/?donated=true";
+  const u = new URL(window.location.href);
+  u.searchParams.set("donated", "true");
+  return u.toString();
+}
+
+/** One idempotency key per open; base64url-ish, 22 chars. */
+export function newClientKey(): string {
+  const b = new Uint8Array(16);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(b); else for (let i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256);
+  return Array.from(b, (x) => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"[x % 64]).join("").slice(0, 22);
+}
+
+/** True once, when the page is opened with ?donated=true; the flag is then removed from the URL. */
+export function consumeDonatedFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  const u = new URL(window.location.href);
+  if (u.searchParams.get("donated") !== "true") return false;
+  u.searchParams.delete("donated");
+  try { window.history.replaceState(null, "", u.toString()); } catch { /* ignore */ }
+  return true;
 }

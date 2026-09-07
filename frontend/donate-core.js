@@ -21,20 +21,31 @@
  * acknowledgement instead of an error — which is the correct state until the secret is set.
  */
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+// Same-origin only (Thor/Pangu, round 1): a payment endpoint that answers any Origin lets a third-party
+// page mint Checkout sessions on this account with its own branding and redirect. The allowed set is
+// the request's own origin plus DONATE_ALLOWED_ORIGINS (comma-separated) for a preview deployment.
+const allowedOrigins = (request, env) => {
+  const own = new URL(request.url).origin;
+  const extra = String((env && env.DONATE_ALLOWED_ORIGINS) || "").split(",").map((s) => s.trim()).filter(Boolean);
+  return new Set([own, ...extra]);
 };
+const corsFor = (request, env) => {
+  const origin = request.headers.get("Origin");
+  const ok = !origin || allowedOrigins(request, env).has(origin);
+  return { ok, headers: ok && origin ? { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {} };
+};
+const jsonWith = (headers) => (data, status = 200) =>
+  new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", ...headers } });
+const MAX_CENTS = 999_900;                       // $9,999.00 — a donation, not a wire
+const sameOrigin = (u, origin) => { try { return new URL(u).origin === origin; } catch { return false; } };
 
-const json = (data, status = 200) =>
-  new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", ...CORS } });
-
-/** Prefer a restricted key (RAK) over the unrestricted secret key — Stripe's own guidance. */
 const resolveKey = (env) => (env && (env.STRIPE_RESTRICTED_KEY || env.STRIPE_SECRET_KEY)) || "";
 
 export async function handleDonate(request, env) {
-  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
+  const cors = corsFor(request, env);
+  const json = jsonWith(cors.headers);
+  if (!cors.ok) return new Response(JSON.stringify({ error: "Origin not allowed" }), { status: 403, headers: { "Content-Type": "application/json" } });
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors.headers });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const key = resolveKey(env);
@@ -47,12 +58,18 @@ export async function handleDonate(request, env) {
 
   const amount = Math.round(Number(body.amount_cents) || 0);
   if (!Number.isFinite(amount) || amount < 50) return json({ error: "Minimum donation is $0.50" }, 400);
+  if (amount > MAX_CENTS) return json({ error: "Maximum donation is $9,999.00" }, 400);
 
   const origin = new URL(request.url).origin;
   const label = String(body.label || "eXeL AI Polling — Community Contribution").slice(0, 250);
   const description = String(body.description || "Support the SoI Governance platform").slice(0, 250);
   const successUrl = String(body.success_url || env.STRIPE_SUCCESS_URL || `${origin}/?donated=true`);
   const cancelUrl = String(body.cancel_url || env.STRIPE_CANCEL_URL || origin);
+  // The post-payment redirect must come back to this site — never an arbitrary caller-supplied host.
+  if (!sameOrigin(successUrl, origin) || !sameOrigin(cancelUrl, origin)) return json({ error: "Redirect URLs must be on this site" }, 400);
+  // Idempotency that actually works: the CLIENT supplies one key per modal open, so a double-tap
+  // replays the same Checkout session instead of minting two. A fresh UUID is the fallback only.
+  const clientKey = typeof body.client_key === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(body.client_key) ? body.client_key : crypto.randomUUID();
 
   const form = new URLSearchParams();
   form.set("mode", "payment");
@@ -75,7 +92,7 @@ export async function handleDonate(request, env) {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/x-www-form-urlencoded",
         // A double-tap on mobile must not create two sessions.
-        "Idempotency-Key": crypto.randomUUID(),
+        "Idempotency-Key": clientKey,
       },
       body: form.toString(),
     });

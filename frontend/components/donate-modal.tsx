@@ -5,12 +5,13 @@
  *
  * A fixed-overlay modal (never embedded inline in page content) that anyone — logged in or
  * not — can open from the persistent navbar Donate button. Uses the anonymous
- * `/payments/divinity-donate` Checkout path (no auth, no session) and redirects to Stripe's
- * hosted page. Presets include $1.11; custom amount honored (min $0.50).
+ * `/api/donate` edge Checkout path (no auth, no session) and redirects to Stripe's hosted page.
+ * Presets include $1.11; custom amount honored (min $0.50, max $9,999). The return carries
+ * `?donated=true`, which the navbar turns into a thank-you toast — never claimed before Stripe confirms.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, X } from "lucide-react";
-import { startDonation } from "@/lib/donate";
+import { startDonation, donatedReturnUrl, newClientKey } from "@/lib/donate";
 import { useLexicon } from "@/lib/lexicon-context";
 
 const PRESETS_CENTS = [111, 333, 999, 2525]; // $1.11 · $3.33 · $9.99 · $25.25
@@ -22,6 +23,9 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [demoDone, setDemoDone] = useState(false);
+  // One idempotency key per open — a double-tap on the button replays the same Checkout session.
+  const clientKey = useRef("");
+  useEffect(() => { if (open) clientKey.current = newClientKey(); }, [open]);
 
   if (!open) return null;
 
@@ -53,8 +57,9 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
         amountCents: amount,
         label: "eXeL AI Polling — Community Contribution",
         description: "Support the SoI Governance platform",
-        successUrl: here,
+        successUrl: donatedReturnUrl(),   // back here with ?donated=true, so the page can say thank you
         cancelUrl: here,
+        clientKey: clientKey.current,
       });
       if (url) {
         window.location.href = url; // live Stripe hosted Checkout

@@ -4,12 +4,13 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { LogOut, User, Menu, Settings, Code, Globe, Sparkles, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DonateModal } from "@/components/donate-modal";
+import { consumeDonatedFlag } from "@/lib/donate";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { SoISection } from "@/components/soi-section";
 import { TokenHUD } from "@/components/token-hud";
 import { useLexicon } from "@/lib/lexicon-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { useTheme } from "@/lib/theme-context";
@@ -28,6 +29,14 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [donateOpen, setDonateOpen] = useState(false);
+  // Back from Stripe with ?donated=true → one thank-you, shown only when Stripe actually returned us.
+  const [thanks, setThanks] = useState(false);
+  useEffect(() => {
+    if (!consumeDonatedFlag()) return;
+    setThanks(true);
+    const id = setTimeout(() => setThanks(false), 8000);
+    return () => clearTimeout(id);
+  }, []);
   const { t, activeLocale, setActiveLocale, languages, romanizationEnabled, setRomanizationEnabled } = useLexicon();
   const { currentTheme } = useTheme();
 
@@ -301,6 +310,11 @@ export function Navbar({ sessionTitle }: NavbarProps) {
 
       {/* Universal donate popup — anyone, anytime, from any page */}
       <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
+      {thanks && (
+        <div role="status" className="fixed bottom-20 left-1/2 z-[90] -translate-x-1/2 rounded-full border border-primary/40 bg-card px-4 py-2 text-sm shadow-lg">
+          ♡ {t("cube8.donate.thanks")}
+        </div>
+      )}
 
       {/* API & SDK Panel — Developer access for Lead/Developer/Admin */}
       {apiSdkOpen && (
