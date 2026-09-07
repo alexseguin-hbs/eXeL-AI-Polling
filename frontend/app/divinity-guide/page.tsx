@@ -14,6 +14,8 @@
  */
 
 import React, { Suspense, useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { startDonation, newClientKey } from "@/lib/donate";
+import { useLexicon } from "@/lib/lexicon-context";
 import Link from "next/link";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { useSearchParams } from "next/navigation";
@@ -1691,29 +1693,34 @@ function DivinityGuidePage() {
   }, [selectedChapter]);
 
   const [donationAmount, setDonationAmount] = useState(333); // cents
+  const { t } = useLexicon();
 
+  // Donate through the same edge Checkout as the navbar (/api/donate → donate-core.js). The previous
+  // POST to /api/v1/payments/divinity-donate hit the static site's SPA fallback, threw on res.json(),
+  // and the catch marked "donated" locally with a "you earned 1.0 웃" toast — a fake success with no
+  // charge (found 2026-09-07). Now: a real Checkout URL → redirect; no key → an honest notice, nothing
+  // unlocked; the reward shows only when Stripe returns the visitor with ?donated=true.
+  const donateKey = useRef("");
+  const [donateNotice, setDonateNotice] = useState("");
+  useEffect(() => { if (showDonationPrompt) donateKey.current = newClientKey(); }, [showDonationPrompt]);
   const handleDonate = async () => {
+    setDonateNotice("");
     try {
-      const res = await fetch("/api/v1/payments/divinity-donate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount_cents: donationAmount }),
+      const url = await startDonation({
+        amountCents: donationAmount,
+        label: "The Divinity Guide — donation",
+        description: "The Return to Wholeness and Living Divinity",
+        successUrl: `${window.location.origin}/divinity-guide/?donated=true`,
+        cancelUrl: window.location.href,
+        clientKey: donateKey.current,
       });
-      const data = await res.json();
-      if (data.checkout_url) {
-        localStorage.setItem("divinity-guide-donated", "true");
-        window.location.href = data.checkout_url;
-        return;
-      }
-    } catch {
-      // Stripe unavailable — fall back to local acknowledgment
+      if (url) { window.location.href = url; return; }
+      setShowDonationPrompt(false);
+      setDonateNotice(t("cube8.donate.demo_thanks"));
+    } catch (e) {
+      setDonateNotice(e instanceof Error ? e.message : "Donation could not be started.");
     }
-    // Fallback: mark as donated locally
-    localStorage.setItem("divinity-guide-donated", "true");
-    setDonated(true);
-    setShowDonationPrompt(false);
-    setTimeout(() => setShowReward(true), 500);
-    setTimeout(() => setShowReward(false), 5000);
+    setTimeout(() => setDonateNotice(""), 8000);
   };
 
   const activeSection = SECTIONS.find((s) => s.id === selectedSection) ?? null;
@@ -1732,6 +1739,9 @@ function DivinityGuidePage() {
       )}
 
       {/* Sacred contribution prompt — 12 Ascended Masters approved */}
+      {donateNotice && (
+        <div role="status" className="fixed bottom-20 left-1/2 z-[90] -translate-x-1/2 max-w-sm rounded-full border border-primary/40 bg-card px-4 py-2 text-center text-sm shadow-lg">{donateNotice}</div>
+      )}
       {showDonationPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-700">
           <div className="relative max-w-md mx-auto px-8 py-8 rounded-2xl border bg-card shadow-2xl text-center space-y-6">
