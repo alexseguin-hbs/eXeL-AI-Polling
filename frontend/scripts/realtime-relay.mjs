@@ -4,7 +4,10 @@
 // service. Test scaffolding only — never production.
 import { WebSocketServer } from 'ws';
 import http from 'http';
-const server = http.createServer((req, res) => { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true}'); });
+// REST RPCs (migration 036) are served by a real PGlite Postgres when the module loads; see local-rpc.mjs.
+let rpcHandler = null;
+try { const m = await import('./local-rpc.mjs'); rpcHandler = m.handleHttp; await m.db(); } catch (e) { console.log('local-rpc unavailable:', String(e.message || e).slice(0, 120)); }
+const server = http.createServer(async (req, res) => { if (rpcHandler && await rpcHandler(req, res)) return; res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true}'); });
 const wss = new WebSocketServer({ server });
 const topics = new Map();     // topic -> Set<ws>
 const log = (...a) => console.log(new Date().toISOString().slice(11, 23), ...a);

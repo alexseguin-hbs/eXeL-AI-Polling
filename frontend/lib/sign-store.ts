@@ -14,6 +14,8 @@ export interface PublicSigner { name: string; contact_masked: string; order: num
 export interface PublicEnvelope {
   token: string; title: string; status: string; current_signer_idx: number; signers: PublicSigner[];
   chain: string; expires_at: string | null; party: number; files: SignFile[] | null; mode: StoreMode;
+  /** The baton: returned once to the signer who just signed, for the NEXT signer's link. */
+  next_secret?: string | null;
 }
 export class SignStoreError extends Error { constructor(public code: string, msg?: string) { super(msg ?? code); } }
 
@@ -35,7 +37,7 @@ export async function createEnvelope(env: Envelope): Promise<{ token: string; mo
   }
   const { data, error } = await supabase.rpc("sign_envelope_create", {
     p_token: env.token, p_title: env.title, p_created_by: env.created_by,
-    p_signers: env.signers.map((s) => ({ name: s.name, contact: s.contact, secret: s.secret })),
+    p_signers: env.signers.map((s, i) => ({ name: s.name, contact: s.contact, secret: i === 0 ? s.secret : undefined })),
     p_files: env.files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
     p_expires_at: env.expires_at ?? null,
   });
@@ -67,7 +69,8 @@ export async function signEnvelope(token: string, idx: number, secret: string, f
   if (!supabase) {
     if (!localNext) throw new SignStoreError("no_backend");
     localStorage.setItem(LOCAL_KEY(token), JSON.stringify(localNext));
-    const e = fromLocal(token, secret); if (!e) throw new SignStoreError("not_found"); return e;
+    const e = fromLocal(token, secret); if (!e) throw new SignStoreError("not_found");
+    return { ...e, next_secret: localNext.status === "awaiting" ? localNext.signers[localNext.current_signer_idx]?.secret ?? null : null };
   }
   const { data, error } = await supabase.rpc("sign_envelope_sign", {
     p_token: token, p_signer_idx: idx, p_secret: secret,

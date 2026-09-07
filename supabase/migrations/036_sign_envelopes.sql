@@ -14,6 +14,10 @@
 --     anon/authenticated ON PURPOSE: the countersigner has no account (Sofia) and every call
 --     carries the envelope token, and — for anything beyond title/status/masked names — a
 --     per-signer secret. Failed secret checks count; 20 lock the envelope (`locked`).
+--   * THE BATON: only signer 0's secret is minted by the client. Each later signer's secret is
+--     minted HERE at the moment the previous signer signs, stored as a hash, and returned ONCE
+--     to that previous signer so they can hand it on. Nobody — not even the creator — ever holds
+--     a secret that is not theirs to pass.
 --   * File bytes are returned ONLY to a party (a matching secret). Non-parties get the masked
 --     roster, never a PDF.
 --   * Envelopes expire 30 days after creation; the creator (signer 0) may revoke.
@@ -134,9 +138,10 @@ begin
   if jsonb_typeof(p_files) <> 'array' or jsonb_array_length(p_files) < 1 or jsonb_array_length(p_files) > 5 then raise exception 'file_count'; end if;
   v_signers := '[]'::jsonb;
   for s in select * from jsonb_array_elements(p_signers) loop
-    if coalesce(s->>'secret', '') !~ '^[A-Za-z0-9_-]{22}$' then raise exception 'bad_secret'; end if;
+    -- signer 0 brings its own secret; every later secret is minted at hand-off (the baton)
+    if n = 0 and coalesce(s->>'secret', '') !~ '^[A-Za-z0-9_-]{22}$' then raise exception 'bad_secret'; end if;
     v_signers := v_signers || jsonb_build_object('name', left(coalesce(s->>'name', ''), 120), 'contact', left(coalesce(s->>'contact', ''), 200),
-      'order', n, 'secret_hash', sign__hash(s->>'secret'), 'signed_at', null);
+      'order', n, 'secret_hash', case when n = 0 then sign__hash(s->>'secret') else null end, 'signed_at', null);
     n := n + 1;
   end loop;
   insert into sign_envelopes (token, title, created_by, signers, expires_at)
@@ -189,7 +194,7 @@ create or replace function sign_envelope_sign(
   p_token text, p_signer_idx int, p_secret text, p_files jsonb, p_chain text, p_ip_hash text default null, p_user_agent text default null
 ) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
-declare e sign_envelopes; v_h text; v_cur int; v_n int; f jsonb; v_last boolean; v_ver int; v_signers jsonb;
+declare e sign_envelopes; v_h text; v_cur int; v_n int; f jsonb; v_last boolean; v_ver int; v_signers jsonb; v_next text := null;
 begin
   select * into e from sign_envelopes where token = p_token for update;
   if not found then raise exception 'not_found'; end if;
@@ -215,6 +220,11 @@ begin
   end loop;
   v_last := p_signer_idx = jsonb_array_length(e.signers) - 1;
   v_signers := jsonb_set(e.signers, array[p_signer_idx::text, 'signed_at'], to_jsonb(now()), true);
+  if not v_last then
+    -- mint the next signer's secret now; store the hash; hand the plaintext back exactly once
+    v_next := replace(translate(encode(gen_random_bytes(16), 'base64'), '+/', '-_'), '=', '');
+    v_signers := jsonb_set(v_signers, array[(p_signer_idx + 1)::text, 'secret_hash'], to_jsonb(sign__hash(v_next)), true);
+  end if;
   update sign_envelopes set signers = v_signers, chain = coalesce(p_chain, chain),
     current_signer_idx = case when v_last then current_signer_idx else current_signer_idx + 1 end,
     status = case when v_last then 'complete' else 'awaiting' end,
@@ -222,7 +232,7 @@ begin
   where id = e.id returning * into e;
   insert into sign_events (envelope_id, signer_idx, kind, contact_hash, ip_hash, user_agent)
   values (e.id, p_signer_idx, 'signed', sign__hash(e.signers->p_signer_idx->>'contact'), p_ip_hash, left(p_user_agent, 300));
-  return sign__shape(e, p_signer_idx, true);
+  return sign__shape(e, p_signer_idx, true) || jsonb_build_object('next_secret', v_next);
 end $$;
 
 -- ============================================================
