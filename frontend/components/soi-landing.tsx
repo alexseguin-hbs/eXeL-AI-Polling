@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { SoITrinity } from "@/components/soi-trinity";
 import { SeedMembership } from "@/components/seed-membership";
 import { useLexicon } from "@/lib/lexicon-context";
-import { TRINITY_COLORS } from "@/lib/trinity-palette";
+import { useThemeHue } from "@/lib/theme-hue";
 
 export const SIGN_PATH = "/soi-session/sign/";
 export const CREATE_PATH = "/soi-session/create/";
@@ -23,10 +23,11 @@ export const CREATE_PATH = "/soi-session/create/";
 export function SoiLanding({ onEnter }: { onEnter: () => void }) {
   const { t } = useLexicon();
   const router = useRouter();
+  const hue = useThemeHue();
   const doors = [
-    { key: "session", glyph: "♡", color: TRINITY_COLORS.temporal, title: t("soi.landing.btn.session"), desc: t("soi.landing.desc.session"), go: onEnter },
-    { key: "sign", glyph: "웃", color: TRINITY_COLORS.family, title: t("soi.landing.btn.sign"), desc: t("soi.landing.desc.sign"), href: SIGN_PATH },
-    { key: "create", glyph: "◬", color: TRINITY_COLORS.consciousness, title: t("soi.landing.btn.create"), desc: t("soi.landing.desc.create"), href: CREATE_PATH },
+    { key: "session", glyph: "♡", color: hue.bright, title: t("soi.landing.btn.session"), desc: t("soi.landing.desc.session"), go: onEnter },
+    { key: "sign", glyph: "웃", color: hue.mid, title: t("soi.landing.btn.sign"), desc: t("soi.landing.desc.sign"), href: SIGN_PATH },
+    { key: "create", glyph: "◬", color: hue.dim, title: t("soi.landing.btn.create"), desc: t("soi.landing.desc.create"), href: CREATE_PATH },
   ] as const;
   const onRing = (i: 0 | 1 | 2) => {
     if (i === 0) onEnter();
@@ -37,9 +38,9 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <header className="mb-6 text-center">
         <div className="mb-3 font-mono text-3xl tracking-[0.3em]" aria-hidden="true">
-          <span style={{ color: TRINITY_COLORS.consciousness }}>&#9708;</span>{" "}
-          <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span>{" "}
-          <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span>
+          <span style={{ color: hue.bright }}>&#9708;</span>{" "}
+          <span style={{ color: hue.bright }}>&#9825;</span>{" "}
+          <span style={{ color: hue.bright }}>&#50883;</span>
         </div>
         <h1 className="text-2xl font-semibold">{t("soi.landing.title")}</h1>
       </header>
@@ -49,9 +50,9 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
         <SoITrinity
           size={300}
           labels={[t("soi.landing.ring.session"), t("soi.landing.ring.sign"), t("soi.landing.ring.create")]}
-          colors={[TRINITY_COLORS.temporal, TRINITY_COLORS.family, TRINITY_COLORS.consciousness]}
-          color="#19c8cf"
-          textColor="#04121a"
+          colors={[hue.bright, hue.mid, hue.dim]}
+          color={hue.bright}
+          textColor={hue.ink}
           fontSize={10}
           centerGlyphs={["♡", "웃", "◬"]}
           onRingClick={onRing}
@@ -74,9 +75,9 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
           );
           const cls = "block min-h-[44px] w-full rounded-xl border p-4 text-left transition-colors hover:bg-cyan-400/5 focus:outline-none focus:ring-2 focus:ring-cyan-400";
           return "href" in d ? (
-            <Link key={d.key} href={d.href} className={cls} style={{ borderColor: d.color + "66" }}>{inner}</Link>
+            <Link key={d.key} href={d.href} className={cls} style={{ borderColor: hue.dim }}>{inner}</Link>
           ) : (
-            <button key={d.key} type="button" onClick={d.go} className={cls} style={{ borderColor: d.color + "66" }}>{inner}</button>
+            <button key={d.key} type="button" onClick={d.go} className={cls} style={{ borderColor: hue.dim }}>{inner}</button>
           );
         })}
       </div>

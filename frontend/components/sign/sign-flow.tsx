@@ -12,7 +12,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
-import { TRINITY_COLORS } from "@/lib/trinity-palette";
+import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope } from "@/lib/sign-store";
 import { stampSignature, pageCount, type StampBox } from "@/lib/pdf-stamp";
@@ -30,6 +30,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   seed?: { name: string; bytes: Uint8Array } | null;
 }) {
   const { t } = useLexicon();
+  const hue = useThemeHue();
   const countersign = !!token;
   const [step, setStep] = useState<Step>(countersign ? "loading" : "upload");
   const [err, setErr] = useState("");
@@ -190,7 +191,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       {/* rail */}
       <ol className="mb-3 flex flex-wrap gap-1 text-[10px] uppercase tracking-wide" aria-label={t("soi.sign.steps_aria")}>
         {rail.map((r) => (
-          <li key={r.k} className="rounded-full border px-2 py-0.5" style={{ borderColor: r.on ? TRINITY_COLORS.family : r.past ? TRINITY_COLORS.temporal : "var(--border)", color: r.on ? TRINITY_COLORS.family : r.past ? TRINITY_COLORS.temporal : "var(--muted-foreground)" }}>{t(`soi.sign.step.${r.k}`)}</li>
+          <li key={r.k} className="rounded-full border px-2 py-0.5" style={{ borderColor: r.on ? hue.bright : r.past ? hue.dim : "var(--border)", color: r.on ? hue.bright : r.past ? hue.mid : "var(--muted-foreground)", background: r.on ? hue.faint : undefined }}>{t(`soi.sign.step.${r.k}`)}</li>
         ))}
       </ol>
       <div className="mb-3 flex items-baseline justify-between gap-2">
@@ -258,7 +259,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
           {files.length > 1 && (
             <div className="mt-2 mb-2 flex flex-wrap gap-1">
               {files.map((f, i) => (
-                <button key={i} type="button" onClick={() => setFileIdx(i)} className="min-h-[44px] rounded-full border px-3 text-xs" style={{ borderColor: i === fileIdx ? TRINITY_COLORS.family : boxes[i] ? TRINITY_COLORS.temporal : "var(--border)" }}>{boxes[i] ? "✓ " : ""}{f.name}</button>
+                <button key={i} type="button" onClick={() => setFileIdx(i)} className="min-h-[44px] rounded-full border px-3 text-xs" style={{ borderColor: i === fileIdx ? hue.bright : boxes[i] ? hue.dim : "var(--border)" }}>{boxes[i] ? "✓ " : ""}{f.name}</button>
               ))}
             </div>
           )}

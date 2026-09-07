@@ -46,7 +46,7 @@ import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { buildSynthesis333 } from "@/lib/pod-synthesis";
 import { api } from "@/lib/api";
 import { format as fmtABC } from "@/lib/abc-3600";
-import { TRINITY_COLORS } from "@/lib/trinity-palette";
+import { useThemeHue } from "@/lib/theme-hue";
 import {
   DEFAULT_PROJECTS, OPEN_TOPIC, SAMPLE_POD, projectTasks, findProject, RECORD_METHODS,
   SYNC_START_SECONDS, POD_SIZE, FREE_TOOLS_NOTE, EVIDENCE_CHAIN,
@@ -133,6 +133,7 @@ export default function SoISessionPage() {
   const [isJoiner, setIsJoiner] = useState(false);
   const [liveCount, setLiveCount] = useState(1);
   const { t } = useLexicon();
+  const hue = useThemeHue();
 
   // Dial-in by code (operator, 2026-09-03: "the default option for people to log in and
   // test, similar to how the polling engine allows multiple people to dial in"). A
@@ -473,9 +474,9 @@ export default function SoISessionPage() {
       {/* Header ────────────────────────────────────────────────────────── */}
       <header className="mb-8 text-center">
         <div className="mb-3 font-mono text-3xl tracking-[0.3em]" aria-hidden="true">
-          <span style={{ color: TRINITY_COLORS.consciousness }}>&#9708;</span>{" "}
-          <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span>{" "}
-          <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span>
+          <span style={{ color: hue.bright }}>&#9708;</span>{" "}
+          <span style={{ color: hue.bright }}>&#9825;</span>{" "}
+          <span style={{ color: hue.bright }}>&#50883;</span>
         </div>
         <h1 className="text-2xl font-semibold">{t("soi.landing.title")}</h1>
       </header>
@@ -495,9 +496,9 @@ export default function SoISessionPage() {
         <div className="mb-5 flex flex-col items-center gap-1">
           <SoITrinity
             labels={trinityLabels}
-            color={TRINITY_COLORS.consciousness}
-            colors={[TRINITY_COLORS.temporal, TRINITY_COLORS.family, TRINITY_COLORS.consciousness]}
-            textColor="#04121a"
+            color={hue.bright}
+            colors={[hue.bright, hue.mid, hue.dim]}
+            textColor={hue.ink}
             size={190}
           />
           <span className="text-[11px] text-muted-foreground">Your Trinity — the three leads who gather the pod&rsquo;s feedback</span>
@@ -1057,7 +1058,7 @@ export default function SoISessionPage() {
       {phase !== "compose" && (
         <div className="fixed inset-x-0 bottom-14 z-[60] mx-auto flex max-w-3xl items-center gap-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden" data-testid="pod-strip">
           <span className="min-w-0 flex-1 truncate">{intent || t("soi.pod.strip.no_intent")}</span>
-          <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: POD_PHASES[Math.max(phaseIndex(phase), 0)].color, color: POD_PHASES[Math.max(phaseIndex(phase), 0)].color }}>{t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}</span>
+          <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}</span>
           {phase === "active" && <button type="button" onClick={() => { setPhase("record"); drive("record"); }} className="min-h-[36px] rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("soi.pod.strip.stop")}</button>}
         </div>
       )}
@@ -1100,7 +1101,7 @@ export default function SoISessionPage() {
       </section>
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
-        Prototype · {connected ? "live — one roster across the pod" : "local state"} · <span style={{ color: TRINITY_COLORS.consciousness }}>&#9708;</span> <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span> <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span> mint nothing new here — the pod is a gate on the
+        Prototype · {connected ? "live — one roster across the pod" : "local state"} · <span style={{ color: hue.bright }}>&#9708;</span> <span style={{ color: hue.bright }}>&#9825;</span> <span style={{ color: hue.bright }}>&#50883;</span> mint nothing new here — the pod is a gate on the
         currencies that already exist. — MoT
       </p>
     </div>

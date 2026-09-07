@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLexicon } from "@/lib/lexicon-context";
-import { TRINITY_COLORS } from "@/lib/trinity-palette";
+import { useThemeHue } from "@/lib/theme-hue";
 import { buildDocPdf, promissoryNote, solvePayment, usd, type DocSpec } from "@/lib/doc-pdf";
 import { bytesToBase64 } from "@/lib/pdf-render";
 
@@ -17,6 +17,7 @@ type Mode = "write" | "note";
 
 export default function CreateDocPage() {
   const { t } = useLexicon();
+  const hue = useThemeHue();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("write");
   const [title, setTitle] = useState("");
@@ -77,9 +78,9 @@ export default function CreateDocPage() {
     <div className="mx-auto max-w-3xl px-4 py-6">
       <header className="mb-6 text-center">
         <div className="mb-2 font-mono text-2xl tracking-[0.3em]" aria-hidden="true">
-          <span style={{ color: TRINITY_COLORS.consciousness }}>&#9708;</span>{" "}
-          <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span>{" "}
-          <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span>
+          <span style={{ color: hue.bright }}>&#9708;</span>{" "}
+          <span style={{ color: hue.bright }}>&#9825;</span>{" "}
+          <span style={{ color: hue.bright }}>&#50883;</span>
         </div>
         <Link href="/soi-session/" className="text-xs text-muted-foreground hover:text-cyan-400">&larr; {t("soi.landing.title")}</Link>
       </header>
@@ -88,7 +89,7 @@ export default function CreateDocPage() {
         <p className="mt-1 text-sm text-cyan-400">{preview ? t("soi.doc.x.ready") : canGenerate ? t("soi.doc.x.generate") : mode === "note" ? t("soi.doc.x.note") : t("soi.doc.x.write")}</p>
         <div className="mt-3 flex gap-2">
           {(["write", "note"] as Mode[]).map((m) => (
-            <button key={m} type="button" onClick={() => setMode(m)} className="min-h-[44px] rounded-full border px-4 text-sm" style={{ borderColor: mode === m ? TRINITY_COLORS.consciousness : "var(--border)", color: mode === m ? TRINITY_COLORS.consciousness : undefined }}>{t(`soi.doc.mode.${m}`)}</button>
+            <button key={m} type="button" onClick={() => setMode(m)} className="min-h-[44px] rounded-full border px-4 text-sm" style={{ borderColor: mode === m ? hue.bright : "var(--border)", color: mode === m ? hue.bright : undefined, background: mode === m ? hue.faint : undefined }}>{t(`soi.doc.mode.${m}`)}</button>
           ))}
         </div>
 
@@ -129,7 +130,7 @@ export default function CreateDocPage() {
           {preview && <>
             <span className="self-center text-xs text-muted-foreground" data-testid="preview">{preview.name} · {preview.pages} {t("soi.sign.pages")}</span>
             <button type="button" onClick={download} className="min-h-[44px] rounded-md border border-border px-4 text-sm">⤓ {t("soi.sign.download")}</button>
-            <button type="button" onClick={toSign} className="min-h-[44px] rounded-md border px-4 text-sm font-medium" style={{ borderColor: TRINITY_COLORS.family, color: TRINITY_COLORS.family }} data-testid="to-sign">{t("soi.doc.to_sign")}</button>
+            <button type="button" onClick={toSign} className="min-h-[44px] rounded-md border px-4 text-sm font-medium" style={{ borderColor: hue.bright, color: hue.bright }} data-testid="to-sign">{t("soi.doc.to_sign")}</button>
           </>}
         </div>
         <p className="mt-5 text-[11px] text-muted-foreground">{t("soi.doc.note")}</p>

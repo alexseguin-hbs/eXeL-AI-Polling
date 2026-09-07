@@ -17,7 +17,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { SignFlow } from "@/components/sign/sign-flow";
 import { useLexicon } from "@/lib/lexicon-context";
 import { AUTH0_CLIENT_ID, AUTH0_DOMAIN } from "@/lib/constants";
-import { TRINITY_COLORS } from "@/lib/trinity-palette";
+import { useThemeHue } from "@/lib/theme-hue";
 import { base64ToBytes } from "@/lib/pdf-render";
 import { secretFromLocation } from "@/lib/sign-envelope";
 
@@ -25,12 +25,13 @@ const AUTH_OFF = !AUTH0_DOMAIN || !AUTH0_CLIENT_ID || process.env.NEXT_PUBLIC_SI
 
 function Header() {
   const { t } = useLexicon();
+  const hue = useThemeHue();
   return (
     <header className="mb-6 text-center">
       <div className="mb-2 font-mono text-2xl tracking-[0.3em]" aria-hidden="true">
-        <span style={{ color: TRINITY_COLORS.consciousness }}>&#9708;</span>{" "}
-        <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span>{" "}
-        <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span>
+        <span style={{ color: hue.bright }}>&#9708;</span>{" "}
+        <span style={{ color: hue.bright }}>&#9825;</span>{" "}
+        <span style={{ color: hue.bright }}>&#50883;</span>
       </div>
       <Link href="/soi-session/" className="text-xs text-muted-foreground hover:text-cyan-400">&larr; {t("soi.landing.title")}</Link>
     </header>

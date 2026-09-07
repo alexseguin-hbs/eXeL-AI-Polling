@@ -7,11 +7,13 @@
  */
 import { useLexicon } from "@/lib/lexicon-context";
 import { POD_PHASES, phaseIndex } from "@/lib/pod-phases";
+import { useThemeHue } from "@/lib/theme-hue";
 
 export interface PodCounts { joined: number; agreed: number; started: number; witnessed: number; size: number }
 
 export function PodPhaseRail({ phase, counts }: { phase: string; counts: PodCounts }) {
   const { t } = useLexicon();
+  const hue = useThemeHue();
   const cur = phaseIndex(phase);
   const countFor = (k: string): string | null => {
     switch (k) {
@@ -28,14 +30,14 @@ export function PodPhaseRail({ phase, counts }: { phase: string; counts: PodCoun
           const on = i === cur, past = i < cur, c = countFor(p.key);
           return (
             <li key={p.key} className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide"
-              style={{ borderColor: on || past ? p.color : "var(--border)", color: on ? p.color : past ? p.color : "var(--muted-foreground)", opacity: on ? 1 : past ? 0.75 : 0.6, fontWeight: on ? 600 : 400 }}
+              style={{ borderColor: on ? hue.bright : past ? hue.dim : "var(--border)", color: on ? hue.bright : past ? hue.mid : "var(--muted-foreground)", background: on ? hue.faint : undefined, fontWeight: on ? 600 : 400 }}
               aria-current={on ? "step" : undefined}>
-              <span aria-hidden="true" style={{ color: p.color, opacity: 1 }}>{p.glyph} </span>{t(p.labelKey)}{c ? ` ${c}` : ""}{past ? " ✓" : ""}
+              <span aria-hidden="true">{p.glyph} </span>{t(p.labelKey)}{c ? ` ${c}` : ""}{past ? " ✓" : ""}
             </li>
           );
         })}
       </ol>
-      {cur >= 0 && <p className="mt-1 text-xs" data-testid="phase-earns"><span aria-hidden="true" style={{ color: POD_PHASES[cur].color }}>{POD_PHASES[cur].glyph}</span> <span className="text-muted-foreground">{t(POD_PHASES[cur].earnsKey)}</span></p>}
+      {cur >= 0 && <p className="mt-1 text-xs" data-testid="phase-earns"><span aria-hidden="true" style={{ color: hue.bright }}>{POD_PHASES[cur].glyph}</span> <span className="text-muted-foreground">{t(POD_PHASES[cur].earnsKey)}</span></p>}
     </div>
   );
 }
