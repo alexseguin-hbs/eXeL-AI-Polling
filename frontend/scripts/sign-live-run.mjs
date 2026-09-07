@@ -27,7 +27,23 @@ const log = []; const t0 = Date.now();
 const step = (who, what, ok = true, extra = '') => { const l = `${String(Date.now() - t0).padStart(6)}ms  ${who.padEnd(5)} ${ok ? 'OK ' : 'FAIL'} ${what}${extra ? '  ' + extra : ''}`; console.log(l); log.push(l); if (!ok) { fs.writeFileSync(OUT + '/log.txt', log.join('\n')); throw new Error(what); } };
 const shot = (p, who, name) => p.screenshot({ path: `${OUT}/${name}-${who}.jpg`, type: 'jpeg', quality: 55, fullPage: true });
 const ready = async (p) => { await p.waitForSelector('next-route-announcer', { state: 'attached', timeout: 90000 }); await p.waitForTimeout(400); };
-const TAPS = { alex: { x: 0.3, y: 0.75 }, dan: { x: 0.7, y: 0.6 } };   // each phone taps its own spot — read back from the PDF at the end (Asar)
+// Each phone taps ITS signature line — the box must fit the rule (operator, 2026-09-07). Rules are read from the
+// rendered page's pixels in the browser: rows whose longest dark run spans ≥ 15 % of the width (a header rule too).
+const rules = {};                                            // who → { page, y, x0, x1 } read back from the PDF at the end (Asar)
+const findRules = (p) => p.evaluate(() => {
+  const c = document.querySelector('[data-testid="pdf-page"] canvas'); const ctx = c.getContext('2d'); const W = c.width, H = c.height;
+  const d = ctx.getImageData(0, 0, W, H).data; const dark = (x, y) => { const i = (y * W + x) * 4; return (d[i] + d[i + 1] + d[i + 2]) / 3 < 200; };
+  const out = [];                                            // EVERY run ≥ 15 % of the width — two rules share a row in a two-column block
+  for (let y = 0; y < H; y++) {
+    let x0 = -1, gap = 0;
+    for (let x = 0; x <= W; x++) {
+      if (x < W && dark(x, y)) { if (x0 < 0) x0 = x; gap = 0; }
+      else if (x0 >= 0 && (++gap > 3 || x === W)) { const x1 = x - gap; if (x1 - x0 >= 0.15 * W) out.push({ y: y / H, x0: x0 / W, x1: x1 / W }); x0 = -1; gap = 0; }
+    }
+  }
+  const merged = []; for (const r of out) { if (merged.some((l) => r.y - l.y < 3 / H && Math.abs(r.x0 - l.x0) < 0.01)) continue; merged.push(r); }
+  return merged;
+});
 const draw = async (p) => {
   const c = p.locator('canvas[aria-label]').first(); const b = await c.boundingBox();
   await p.mouse.move(b.x + 20, b.y + 80); await p.mouse.down();
@@ -36,14 +52,38 @@ const draw = async (p) => {
 };
 const placeAndSign = async (p, who) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 }); step(who, 'PDF page rendered (pdfjs)');
-  const TAP = TAPS[who];
   const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3);
   await p.getByTestId('sig-box').waitFor();
   // a misplaced signature can be removed and placed again (Enki)
   await p.getByTestId('remove-mark').click(); step(who, 'misplaced signature removed', (await p.getByTestId('sig-box').count()) === 0);
+  // find the signature lines: the lender's (left column) for Alex, the borrower's (right column) for Daniel;
+  // the block sits in the lower half of the page — turn pages (› ) until a page has two rules on one row
+  let pageNo = 1, pair = null;
+  if (who === 'alex') {
+    // the Divinity Guide reader's gesture, reused: a swipe left turns the page (R-CORE) — never from inside a mark
+    const pb0 = await page.boundingBox();
+    const touch = (type, x, y) => page.evaluate((el, [type, x, y]) => { const t = new Touch({ identifier: 1, target: el, clientX: x, clientY: y }); el.dispatchEvent(new TouchEvent(type, { touches: type === 'touchend' ? [] : [t], changedTouches: [t], bubbles: true, cancelable: true })); }, [type, x, y]);
+    await touch('touchstart', pb0.x + pb0.width * 0.8, pb0.y + pb0.height * 0.2); await touch('touchend', pb0.x + pb0.width * 0.2, pb0.y + pb0.height * 0.22);
+    await p.waitForFunction(() => /Page 2 \/ 2/.test(document.querySelector('[data-testid="pdf-page"]')?.previousElementSibling?.textContent || ''), null, { timeout: 10000 });
+    step(who, 'swipe left turns the page (Divinity Guide gesture, reused)  Page 2 / 2'); pageNo = 2; await p.waitForTimeout(500);
+  }
+  for (let tries = 0; tries < 4 && !pair; tries++) {
+    const all = (await findRules(p)).filter((r) => r.y > 0.3 && r.x1 - r.x0 < 0.6);
+    // a signature rule stands alone — a table's borders come in stacks (the schedule on page 1)
+    const rs = all.filter((r) => !all.some((o) => o !== r && Math.abs(o.y - r.y) > 0.002 && Math.abs(o.y - r.y) < 0.012));
+    const byRow = new Map(); for (const r of rs) { const k = Math.round(r.y * 200); byRow.set(k, [...(byRow.get(k) ?? []), r]); }
+    pair = [...byRow.values()].map((v) => v.sort((a, b) => a.x0 - b.x0)).find((v) => v.length >= 2 && v[1].x0 - v[0].x0 > 0.3) ?? null;
+    if (!pair) { await p.getByTestId('page-next').click(); pageNo++; await p.waitForTimeout(600); }
+  }
+  step(who, 'signature block found: two rules on one row (lender | borrower)', !!pair, pair ? `page ${pageNo} y=${pair[0].y.toFixed(3)} x=[${pair[0].x0.toFixed(2)}–${pair[0].x1.toFixed(2)}] [${pair[1].x0.toFixed(2)}–${pair[1].x1.toFixed(2)}]` : 'none');
+  const rule = who === 'alex' ? pair[0] : pair[1]; rules[who] = { page: pageNo, ...rule };
   const bb2 = await page.boundingBox();                       // the page scrolls when the toolbar shrinks — never reuse a stale box
-  await p.mouse.click(bb2.x + bb2.width * TAP.x, bb2.y + bb2.height * TAP.y);
+  await p.mouse.click(bb2.x + bb2.width * (rule.x0 + rule.x1) / 2, bb2.y + bb2.height * (rule.y - 0.012));   // the thumb lands just above the rule
   await p.getByTestId('sig-box').waitFor(); step(who, 'signature box placed by tap');
+  const fit = await p.getByTestId('sig-box').getAttribute('data-fit'); const sb = await p.getByTestId('sig-box').boundingBox(); const pb = await page.boundingBox();
+  const bx0 = (sb.x - pb.x) / pb.width, bx1 = (sb.x + sb.width - pb.x) / pb.width, bBottom = (sb.y + sb.height - pb.y) / pb.height;
+  step(who, 'box FITS the signature line: rule width, bottom on the rule, no taller than the text above', fit === 'underline' && Math.abs(bx0 - rule.x0) < 0.02 && Math.abs(bx1 - rule.x1) < 0.02 && Math.abs(bBottom - rule.y) < 0.012 && sb.height / pb.height < 0.12, `fit=${fit} x=[${bx0.toFixed(3)}–${bx1.toFixed(3)}] bottom=${bBottom.toFixed(3)} rule=[${rule.x0.toFixed(3)}–${rule.x1.toFixed(3)}] y=${rule.y.toFixed(3)} h=${(sb.height / pb.height).toFixed(3)}`);
+  step(who, 'the hint says the box was sized to the line', /signature line/i.test(await p.locator('[data-testid="marks-toolbar"] + p').innerText()));
   step(who, 'toolbar names the selected box', /signature/i.test(await p.getByTestId('sizing-chip').innerText()));
   // a vertical swipe over the page must NOT move or add a box (Christo, wave 1: pan-y scroll survives)
   const bb3 = await page.boundingBox();
@@ -127,11 +167,11 @@ const [dl] = await Promise.all([D.waitForEvent('download'), D.getByTestId('downl
 const file = path.join(OUT, 'signed-sample.pdf'); await dl.saveAs(file);
 const bytes = new Uint8Array(fs.readFileSync(file));
 const n = await countSignatureImages(bytes); step('dan', 'downloaded PDF carries two signature images', n === 2, `SoISig count = ${n}`);
-// geometry (Asar, wave 1): each stamp sits on page 1 where the thumb tapped — the box is centred on the tap
+// geometry (Asar, wave 1 → 4): each stamp sits on ITS signature line — the lender's for Alex, the borrower's for
+// Daniel — starting at the rule's left edge, bottom on the rule, widened by the corner drag (distinct boxes)
 const boxes = await signatureBoxes(bytes);
-const near = (a, b) => Math.abs(a - b) < 0.06;
-const expect = [TAPS.alex, TAPS.dan];
-step('dan', 'each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)', boxes.length === 2 && boxes.every((b, i) => b.page === 1 && Math.abs(b.x - (expect[i].x - 0.2)) < 0.06 && Math.abs(b.y - (expect[i].y - 0.04)) < 0.06 && b.w > 0.45) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
+const expect = [rules.alex, rules.dan];
+step('dan', 'each stamp sits on ITS signature line (left edge + bottom on the rule), resized wider, distinct', boxes.length === 2 && boxes.every((b, i) => b.page === expect[i].page && Math.abs(b.x - expect[i].x0) < 0.03 && Math.abs(b.y + b.h - expect[i].y) < 0.03 && b.w > expect[i].x1 - expect[i].x0 + 0.05) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
 const rows = await codexRows(bytes); step('dan', 'signatory block: two CAC-style timestamp rows, bottom-right of the last page', rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows.every((r) => /^\d{4}-\d{2}-\d{2}T/.test(r.isoDate)), JSON.stringify(rows.map((r) => [r.rowIndex, r.isoDate, r.hash])));
 // offline verify (Pangu): the DONE block reads the downloaded file back — green; the unsigned fixture — "no signatures"

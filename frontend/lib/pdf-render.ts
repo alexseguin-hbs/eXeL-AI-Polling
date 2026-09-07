@@ -31,7 +31,8 @@ export async function renderPage(doc: Awaited<ReturnType<typeof openPdf>>, n: nu
   const page = await doc.getPage(n);
   const base = page.getViewport({ scale: 1 });
   const scale = cssWidth / base.width;
-  const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 3) : 1;
+  // at least 2× so a 0.7-pt rule survives as ink the tap can fit to (lib/sign-fit) on a 1× screen; at most 3×
+  const dpr = typeof window !== "undefined" ? Math.min(Math.max(window.devicePixelRatio || 1, 2), 3) : 1;
   const viewport = page.getViewport({ scale: scale * dpr });
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(viewport.width);

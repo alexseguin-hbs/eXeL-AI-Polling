@@ -15,6 +15,8 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { ArrowRight } from "lucide-react";
+import { SIGN_STEPS, CREATOR_STEPS, COUNTERSIGN_STEPS } from "@/lib/sign-steps";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
@@ -151,7 +153,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const multi = signers.length > 1;
 
   // ── place + draw ─────────────────────────────────────────────────────────────
-  const sigOf = (i: number): StampBox | undefined => marks[i]?.find((m) => m.kind === "sig");
+  const sigOf = (i: number): Mark | undefined => marks[i]?.find((m) => m.kind === "sig");
   const allPlaced = files.length > 0 && files.every((_, i) => !!sigOf(i));
   // Text marks: a date or a note placed beside the signature, movable and resizable like it.
   const addText = (text: string) => {
@@ -247,7 +249,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
 
   // ── the phase rail + one explainer line (R-CORE gate block) ──────────────────
   const rail = useMemo(() => {
-    const keys = countersign ? ["open", "place", "draw", "sign", "done"] : ["upload", "signers", "place", "draw", "sign", "handoff", "done"];
+    const keys = countersign ? COUNTERSIGN_STEPS : CREATOR_STEPS;
     const cur = step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" || step === "login" ? "sign" : step;
     return keys.map((k) => ({ k, on: k === cur, past: keys.indexOf(k) < keys.indexOf(cur) }));
   }, [step, countersign]);
@@ -286,7 +288,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       {/* rail */}
       <ol className="mb-3 flex flex-wrap gap-1 text-[10px] uppercase tracking-wide" aria-label={t("soi.sign.steps_aria")}>
         {rail.map((r) => (
-          <li key={r.k} className="rounded-full border px-2 py-0.5" style={{ borderColor: r.on ? hue.bright : r.past ? hue.dim : "var(--border)", color: r.on ? hue.bright : r.past ? hue.mid : "var(--muted-foreground)", background: r.on ? hue.faint : undefined }}>{t(`soi.sign.step.${r.k}`)}</li>
+          <li key={r.k} className="rounded-full border px-2 py-0.5" style={{ borderColor: r.on ? hue.bright : r.past ? hue.dim : "var(--border)", color: r.on ? hue.bright : r.past ? hue.mid : "var(--muted-foreground)", background: r.on ? hue.faint : undefined, fontWeight: r.on ? 600 : 400 }} aria-current={r.on ? "step" : undefined}><span aria-hidden="true">{SIGN_STEPS[r.k].glyph} </span>{t(SIGN_STEPS[r.k].labelKey)}{r.past ? " ✓" : ""}</li>
         ))}
       </ol>
       <div className="mb-3 flex items-baseline justify-between gap-2">
@@ -321,7 +323,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               ))}
             </ul>
           )}
-          <button type="button" disabled={!files.length} onClick={() => setStep("signers")} className="mt-4 min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">{t("soi.sign.next_signers")}</button>
+          <button type="button" disabled={!files.length} onClick={() => setStep("signers")} className="mt-4 inline-flex min-h-[44px] items-center gap-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">{t("soi.sign.next_signers")} <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
           <div className="mt-5 border-t border-border pt-3"><VerifyFile /></div>
         </div>
       )}
@@ -345,8 +347,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
           {multi && mode === "local" && <p className="mt-2 text-xs text-amber-500">{t("soi.sign.err.no_backend")}</p>}
           {!multi && <p className="mt-2 text-xs text-muted-foreground">{t("soi.sign.solo_hint")}</p>}
           <div className="mt-3 flex gap-2">
-            <button type="button" onClick={() => setStep("upload")} className="min-h-[44px] rounded-md border border-border px-4 text-sm">{t("soi.sign.back")}</button>
-            <button type="button" disabled={!signersOk || (multi && mode === "local")} onClick={() => setStep("place")} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">{t("soi.sign.next_place")}</button>
+            <button type="button" onClick={() => setStep("upload")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>
+            <button type="button" disabled={!signersOk || (multi && mode === "local")} onClick={() => setStep("place")} className="inline-flex min-h-[44px] items-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">{t("soi.sign.next_place")} <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
           </div>
         </div>
       )}
@@ -375,10 +377,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark">✕</button>
             </>}
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.marks_hint")}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{sigOf(fileIdx)?.fit === "underline" ? t("soi.sign.fit.underline") : t("soi.sign.marks_hint")}</p>
           <div className="mt-3 flex gap-2">
-            {!countersign && <button type="button" onClick={() => setStep("signers")} className="min-h-[44px] rounded-md border border-border px-4 text-sm">{t("soi.sign.back")}</button>}
-            <button type="button" disabled={!allPlaced} onClick={() => setStep("draw")} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="to-draw">{t("soi.sign.next_draw")}</button>
+            {!countersign && <button type="button" onClick={() => setStep("signers")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>}
+            <button type="button" disabled={!allPlaced} onClick={() => setStep("draw")} className="inline-flex min-h-[44px] items-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="to-draw">{t("soi.sign.next_draw")} <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
           </div>
         </div>
       )}
@@ -390,8 +392,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
           {resumed && png && <p className="mb-2 text-[11px] text-cyan-300" data-testid="stroke-kept">{t("soi.sign.x.stroke_kept")}</p>}
           <SignaturePad onChange={(p) => { if (p !== null || !resumed) setPng(p); }} />
           <div className="mt-3 flex gap-2">
-            <button type="button" onClick={() => setStep("place")} className="min-h-[44px] rounded-md border border-border px-4 text-sm">{t("soi.sign.back")}</button>
-            <button type="button" disabled={!png} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button">{t("soi.sign.stamp")}</button>
+            <button type="button" onClick={() => setStep("place")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>
+            <button type="button" disabled={!png} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button"><span aria-hidden="true">◬ </span>{t("soi.sign.stamp")}</button>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">{t("soi.sign.consent")}</p>
         </div>
@@ -441,7 +443,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       )}
 
       {step === "error" && <Roster />}
-      <p className="mt-5 text-[11px] text-muted-foreground">{t("soi.sign.no_fee")}</p>
+      <p className="mt-5 text-[11px] text-muted-foreground"><strong className="text-foreground" data-testid="stance">{t("soi.sign.stance")}</strong> {t("soi.sign.no_fee")}</p>
     </section>
   );
 }

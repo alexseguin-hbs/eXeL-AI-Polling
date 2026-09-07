@@ -111,3 +111,24 @@ page — pull to refresh. "Copy this report" puts the six rows, the sentence and
 **Known red outside this scope:** `test:ci` was already failing at HEAD before this wave on two steps that are
 not Sign Doc's — `test:vision-lexicon` had no package script (added now; 24/24) and `test:innovation-time`
 fails four waterfall-geometry cases on the /innovation deck (untouched, out of scope, reported).
+
+## Wave 4 — fit to the signature line · swipe to turn · iconology · "no one collects a tax on signatures"
+
+Operator ask (persisted first, `docs/asks/2026-09-07_2140_sign_doc_underline_iconology.md`, sha256
+d8f0f024…f393e8e). Two-phone proof **44/44**, three-phone pod **45/45**, scratch production build green.
+
+- **The first box fits the rule under the thumb** (`lib/sign-fit.ts`, pure, 12 unit cases): on the rendered
+  page's pixels — so a drawn rule, a run of underscores or a line in a scanned PDF all count — the nearest
+  line within 6 % of the tap becomes the box's width; the top stops 2 px under the text above it (never
+  taller than the bottom of that text; default height when nothing is above within 12 %); the bottom sits
+  1 px above the rule. No line → the default box, as before. The page now renders at ≥ 2× so a 0.7-pt rule
+  survives as ink on a 1× screen. Proof: Alex's box `x=[0.120–0.451]` on the lender's rule
+  `[0.117–0.450]`, Daniel's `[0.500–0.832]` on the borrower's, both bottoms on the rule, height 0.035.
+- **Go to next, reused (R-CORE):** a horizontal swipe on the PDF turns the page — the Divinity Guide reader's
+  gesture (`onTouchStart`/`onTouchEnd`, ±50 px, never from inside a mark) — beside the ‹ › buttons; every
+  "Next" button carries Vision 2525's `ArrowRight`, every "Back" a ‹.
+- **Iconology:** the rail is one table (`lib/sign-steps.ts`, POD_PHASES shape) — ⤒ upload · 웃 signers ·
+  ⌖ place · ✎ draw · ◬ sign · ♡ hand off · ✓ done (⤓ open for a countersigner), past steps ticked; the
+  hand-off acts read 💬 / ✉ / ⧉; glyphs are `aria-hidden`, every label stays a `t()` key.
+- **The stance,** first words of the page's footer, bold, in 33 languages: *No one collects a tax on
+  signatures.* (`soi.sign.stance`, 11th seeded string; parity gate 130/130).

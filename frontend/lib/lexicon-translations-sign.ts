@@ -2,9 +2,10 @@
 // the consent line, completion, download, the no-fee footer, turn lines, the creator's own link and the
 // hand-off message. Overlaid on SEEDED_TRANSLATIONS in lexicon-context.tsx after SOI_R228_TRANSLATIONS.
 // {sender} {title} {link} in the hand-off template are filled by lib/sign-envelope handoffMessage().
-export const SIGN_KEYS = ["soi.sign.stamp", "soi.sign.consent", "soi.sign.complete", "soi.sign.download", "soi.sign.no_fee", "soi.sign.err.not_your_turn", "soi.sign.turn_you", "soi.sign.mylink.title", "soi.sign.mylink.hint", "soi.sign.handoff.template"] as const;
+export const SIGN_KEYS = ["soi.sign.stamp", "soi.sign.consent", "soi.sign.complete", "soi.sign.download", "soi.sign.no_fee", "soi.sign.err.not_your_turn", "soi.sign.turn_you", "soi.sign.mylink.title", "soi.sign.mylink.hint", "soi.sign.handoff.template", "soi.sign.stance"] as const;
 export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
   "ar": {
+    "soi.sign.stance": "لا أحد يجبي ضريبة على التوقيعات.",
     "soi.sign.stamp": "توقيع وحفظ",
     "soi.sign.consent": "بالضغط على «توقيع وحفظ» تقرّ بأن هذا التوقيع المرسوم هو توقيعك وأنه يُطبَّق على كل ملف أعلاه مع اسمك والوقت وبصمة تجزئة.",
     "soi.sign.complete": "وقّع جميع الموقّعين. هذا المستند مكتمل.",
@@ -17,6 +18,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} يطلب منك توقيع «{title}» على eXeL AI Polling — بلا حساب وبلا رسوم. هذا الرابط لك وحدك (يحمل مفتاحك؛ لا تعد إرساله) وتنتهي صلاحيته خلال 30 يومًا: {link}",
   },
   "bn": {
+    "soi.sign.stance": "স্বাক্ষরের উপর কেউ কর আদায় করে না।",
     "soi.sign.stamp": "স্বাক্ষর করুন ও সংরক্ষণ করুন",
     "soi.sign.consent": "«স্বাক্ষর করুন ও সংরক্ষণ করুন» চাপলে আপনি সম্মত হচ্ছেন যে এই আঁকা স্বাক্ষরটি আপনার এবং এটি উপরের প্রতিটি ফাইলে আপনার নাম, সময় ও একটি হ্যাশসহ প্রয়োগ হবে।",
     "soi.sign.complete": "প্রত্যেক স্বাক্ষরকারী স্বাক্ষর করেছেন। এই নথিটি সম্পূর্ণ।",
@@ -29,6 +31,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} আপনাকে eXeL AI Polling-এ «{title}» স্বাক্ষর করতে বলছেন — অ্যাকাউন্ট নেই, ফি নেই। এই লিংকটি শুধু আপনার (এতে আপনার চাবি আছে; ফরওয়ার্ড করবেন না) এবং ৩০ দিনে মেয়াদ শেষ হয়: {link}",
   },
   "cs": {
+    "soi.sign.stance": "Na podpisy nikdo nevybírá daň.",
     "soi.sign.stamp": "Podepsat a uložit",
     "soi.sign.consent": "Klepnutím na „Podepsat a uložit“ potvrzujete, že tento nakreslený podpis je váš a bude vložen do každého souboru výše spolu s vaším jménem, časem a hashem.",
     "soi.sign.complete": "Všichni podepisující podepsali. Tento dokument je dokončen.",
@@ -41,6 +44,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} vás žádá o podpis „{title}“ na eXeL AI Polling — bez účtu, bez poplatku. Tento odkaz je jen váš (obsahuje váš klíč; nepřeposílejte ho) a vyprší za 30 dní: {link}",
   },
   "da": {
+    "soi.sign.stance": "Ingen opkræver skat på underskrifter.",
     "soi.sign.stamp": "Underskriv og gem",
     "soi.sign.consent": "Ved at trykke på Underskriv og gem bekræfter du, at denne tegnede underskrift er din, og at den sættes på hver fil ovenfor med dit navn, tidspunktet og en hash.",
     "soi.sign.complete": "Alle underskrivere har underskrevet. Dokumentet er færdigt.",
@@ -53,6 +57,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} beder dig underskrive \"{title}\" på eXeL AI Polling — ingen konto, intet gebyr. Dette link er dit alene (det rummer din nøgle; send det ikke videre) og udløber om 30 dage: {link}",
   },
   "de": {
+    "soi.sign.stance": "Niemand erhebt eine Steuer auf Unterschriften.",
     "soi.sign.stamp": "Unterschreiben & speichern",
     "soi.sign.consent": "Mit „Unterschreiben & speichern“ bestätigen Sie, dass diese gezeichnete Unterschrift Ihre ist und auf jede Datei oben mit Ihrem Namen, der Uhrzeit und einem Hash gesetzt wird.",
     "soi.sign.complete": "Alle haben unterschrieben. Dieses Dokument ist vollständig.",
@@ -65,6 +70,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} bittet Sie, „{title}“ auf eXeL AI Polling zu unterschreiben — ohne Konto, ohne Gebühr. Dieser Link gehört Ihnen allein (er enthält Ihren Schlüssel; nicht weiterleiten) und läuft in 30 Tagen ab: {link}",
   },
   "el": {
+    "soi.sign.stance": "Κανείς δεν εισπράττει φόρο στις υπογραφές.",
     "soi.sign.stamp": "Υπογραφή & αποθήκευση",
     "soi.sign.consent": "Πατώντας «Υπογραφή & αποθήκευση» δηλώνετε ότι αυτή η σχεδιασμένη υπογραφή είναι δική σας και ότι θα τεθεί σε κάθε αρχείο παραπάνω με το όνομά σας, την ώρα και ένα hash.",
     "soi.sign.complete": "Όλοι οι υπογράφοντες υπέγραψαν. Το έγγραφο ολοκληρώθηκε.",
@@ -77,6 +83,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "Ο/Η {sender} σας ζητά να υπογράψετε το «{title}» στο eXeL AI Polling — χωρίς λογαριασμό, χωρίς χρέωση. Ο σύνδεσμος είναι μόνο δικός σας (περιέχει το κλειδί σας· μην τον προωθήσετε) και λήγει σε 30 ημέρες: {link}",
   },
   "es": {
+    "soi.sign.stance": "Nadie cobra un impuesto por firmar.",
     "soi.sign.stamp": "Firmar y guardar",
     "soi.sign.consent": "Al tocar «Firmar y guardar» aceptas que esta firma dibujada es tuya y que se aplica a cada archivo de arriba con tu nombre, la hora y un hash.",
     "soi.sign.complete": "Todos los firmantes han firmado. Este documento está completo.",
@@ -89,6 +96,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} te pide firmar «{title}» en eXeL AI Polling — sin cuenta, sin costo. Este enlace es solo tuyo (contiene tu clave; no lo reenvíes) y vence en 30 días: {link}",
   },
   "fi": {
+    "soi.sign.stance": "Kukaan ei peri veroa allekirjoituksista.",
     "soi.sign.stamp": "Allekirjoita ja tallenna",
     "soi.sign.consent": "Napauttamalla Allekirjoita ja tallenna vahvistat, että tämä piirretty allekirjoitus on sinun ja että se liitetään jokaiseen yllä olevaan tiedostoon nimesi, ajan ja tiivisteen kanssa.",
     "soi.sign.complete": "Kaikki allekirjoittajat ovat allekirjoittaneet. Asiakirja on valmis.",
@@ -101,6 +109,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} pyytää sinua allekirjoittamaan asiakirjan ”{title}” eXeL AI Polling -palvelussa — ei tiliä, ei maksua. Tämä linkki on vain sinun (se sisältää avaimesi; älä välitä sitä eteenpäin) ja vanhenee 30 päivässä: {link}",
   },
   "fr": {
+    "soi.sign.stance": "Personne ne prélève de taxe sur les signatures.",
     "soi.sign.stamp": "Signer et enregistrer",
     "soi.sign.consent": "En touchant « Signer et enregistrer », vous confirmez que cette signature dessinée est la vôtre et qu'elle est apposée sur chaque fichier ci-dessus avec votre nom, l'heure et une empreinte.",
     "soi.sign.complete": "Tous les signataires ont signé. Ce document est complet.",
@@ -113,6 +122,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} vous demande de signer « {title} » sur eXeL AI Polling — sans compte, sans frais. Ce lien est à vous seul (il contient votre clé ; ne le transférez pas) et expire dans 30 jours : {link}",
   },
   "he": {
+    "soi.sign.stance": "אף אחד לא גובה מס על חתימות.",
     "soi.sign.stamp": "חתימה ושמירה",
     "soi.sign.consent": "בלחיצה על «חתימה ושמירה» אתם מאשרים שהחתימה המצוירת הזו היא שלכם ושהיא תוטבע בכל קובץ למעלה עם שמכם, השעה ו-hash.",
     "soi.sign.complete": "כל החותמים חתמו. המסמך הושלם.",
@@ -125,6 +135,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} מבקש/ת שתחתמו על «{title}» ב-eXeL AI Polling — בלי חשבון, בלי עמלה. הקישור הזה שלכם בלבד (הוא מכיל את המפתח שלכם; אל תעבירו אותו) ותוקפו פג בעוד 30 יום: {link}",
   },
   "hi": {
+    "soi.sign.stance": "हस्ताक्षर पर कोई कर नहीं वसूलता।",
     "soi.sign.stamp": "हस्ताक्षर करें और सहेजें",
     "soi.sign.consent": "«हस्ताक्षर करें और सहेजें» दबाकर आप सहमत होते हैं कि यह बनाया गया हस्ताक्षर आपका है और ऊपर की हर फ़ाइल पर आपके नाम, समय और एक हैश के साथ लगाया जाएगा।",
     "soi.sign.complete": "सभी हस्ताक्षरकर्ताओं ने हस्ताक्षर कर दिए हैं। यह दस्तावेज़ पूर्ण है।",
@@ -137,6 +148,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} आपसे eXeL AI Polling पर «{title}» पर हस्ताक्षर करने का अनुरोध करते हैं — न खाता, न शुल्क। यह लिंक केवल आपका है (इसमें आपकी कुंजी है; इसे आगे न भेजें) और 30 दिनों में समाप्त हो जाएगा: {link}",
   },
   "id": {
+    "soi.sign.stance": "Tidak ada yang memungut pajak atas tanda tangan.",
     "soi.sign.stamp": "Tanda tangani & simpan",
     "soi.sign.consent": "Dengan mengetuk Tanda tangani & simpan, Anda menyatakan bahwa tanda tangan yang digambar ini milik Anda dan dibubuhkan pada setiap berkas di atas beserta nama Anda, waktu, dan sebuah hash.",
     "soi.sign.complete": "Semua penandatangan telah menandatangani. Dokumen ini selesai.",
@@ -149,6 +161,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} meminta Anda menandatangani \"{title}\" di eXeL AI Polling — tanpa akun, tanpa biaya. Tautan ini hanya milik Anda (berisi kunci Anda; jangan diteruskan) dan kedaluwarsa dalam 30 hari: {link}",
   },
   "it": {
+    "soi.sign.stance": "Nessuno riscuote una tassa sulle firme.",
     "soi.sign.stamp": "Firma e salva",
     "soi.sign.consent": "Toccando Firma e salva confermi che questa firma disegnata è tua e che viene apposta su ogni file qui sopra con il tuo nome, l'ora e un hash.",
     "soi.sign.complete": "Tutti i firmatari hanno firmato. Questo documento è completo.",
@@ -161,6 +174,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} ti chiede di firmare «{title}» su eXeL AI Polling — senza account, senza costi. Questo link è solo tuo (contiene la tua chiave; non inoltrarlo) e scade tra 30 giorni: {link}",
   },
   "ja": {
+    "soi.sign.stance": "署名に税を課す者はいません。",
     "soi.sign.stamp": "署名して保存",
     "soi.sign.consent": "「署名して保存」をタップすると、この手書きの署名があなたのものであり、上のすべてのファイルに氏名・時刻・ハッシュとともに付与されることに同意したことになります。",
     "soi.sign.complete": "すべての署名者が署名しました。この文書は完了です。",
@@ -173,6 +187,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} さんが eXeL AI Polling で「{title}」への署名を求めています。アカウント不要・手数料なし。このリンクはあなた専用です（あなたの鍵を含みます。転送しないでください）。有効期限は30日です: {link}",
   },
   "ko": {
+    "soi.sign.stance": "서명에 세금을 걷는 사람은 없습니다.",
     "soi.sign.stamp": "서명 및 저장",
     "soi.sign.consent": "서명 및 저장을 누르면 이 손으로 그린 서명이 본인의 것이며 위의 모든 파일에 이름, 시각, 해시와 함께 적용되는 데 동의하는 것입니다.",
     "soi.sign.complete": "모든 서명자가 서명했습니다. 이 문서는 완료되었습니다.",
@@ -185,6 +200,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} 님이 eXeL AI Polling에서 \"{title}\" 서명을 요청합니다 — 계정 없음, 수수료 없음. 이 링크는 본인 전용이며(키가 포함되어 있으니 전달하지 마세요) 30일 후 만료됩니다: {link}",
   },
   "ms": {
+    "soi.sign.stance": "Tiada sesiapa mengutip cukai atas tandatangan.",
     "soi.sign.stamp": "Tandatangan & simpan",
     "soi.sign.consent": "Dengan mengetik Tandatangan & simpan, anda bersetuju bahawa tandatangan yang dilukis ini milik anda dan diletakkan pada setiap fail di atas bersama nama anda, masa dan satu hash.",
     "soi.sign.complete": "Semua penandatangan telah menandatangani. Dokumen ini lengkap.",
@@ -197,6 +213,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} meminta anda menandatangani \"{title}\" di eXeL AI Polling — tiada akaun, tiada yuran. Pautan ini milik anda seorang (ia mengandungi kunci anda; jangan majukan) dan luput dalam 30 hari: {link}",
   },
   "ne": {
+    "soi.sign.stance": "हस्ताक्षरमा कसैले कर उठाउँदैन।",
     "soi.sign.stamp": "हस्ताक्षर गर्नुहोस् र सुरक्षित गर्नुहोस्",
     "soi.sign.consent": "«हस्ताक्षर गर्नुहोस् र सुरक्षित गर्नुहोस्» थिचेर तपाईं सहमत हुनुहुन्छ कि यो कोरिएको हस्ताक्षर तपाईंकै हो र माथिका हरेक फाइलमा तपाईंको नाम, समय र एउटा ह्यास सहित लगाइनेछ।",
     "soi.sign.complete": "सबै हस्ताक्षरकर्ताले हस्ताक्षर गरिसके। यो कागजात पूरा भयो।",
@@ -209,6 +226,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} ले तपाईंलाई eXeL AI Polling मा «{title}» मा हस्ताक्षर गर्न अनुरोध गर्नुभएको छ — खाता छैन, शुल्क छैन। यो लिंक तपाईंको मात्र हो (यसमा तपाईंको कुञ्जी छ; अगाडि नपठाउनुहोस्) र ३० दिनमा समाप्त हुन्छ: {link}",
   },
   "nl": {
+    "soi.sign.stance": "Niemand heft belasting op handtekeningen.",
     "soi.sign.stamp": "Ondertekenen & opslaan",
     "soi.sign.consent": "Door op Ondertekenen & opslaan te tikken bevestigt u dat deze getekende handtekening van u is en op elk bestand hierboven wordt gezet met uw naam, de tijd en een hash.",
     "soi.sign.complete": "Alle ondertekenaars hebben getekend. Dit document is compleet.",
@@ -221,6 +239,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} vraagt u \"{title}\" te ondertekenen op eXeL AI Polling — geen account, geen kosten. Deze link is alleen van u (hij bevat uw sleutel; stuur hem niet door) en verloopt over 30 dagen: {link}",
   },
   "no": {
+    "soi.sign.stance": "Ingen krever skatt på signaturer.",
     "soi.sign.stamp": "Signer og lagre",
     "soi.sign.consent": "Ved å trykke Signer og lagre bekrefter du at denne tegnede signaturen er din og at den settes på hver fil ovenfor med navnet ditt, tidspunktet og en hash.",
     "soi.sign.complete": "Alle signatarer har signert. Dokumentet er fullført.",
@@ -233,6 +252,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} ber deg signere «{title}» på eXeL AI Polling — ingen konto, ingen gebyr. Denne lenken er din alene (den inneholder nøkkelen din; ikke videresend den) og utløper om 30 dager: {link}",
   },
   "pa": {
+    "soi.sign.stance": "ਦਸਤਖ਼ਤਾਂ 'ਤੇ ਕੋਈ ਟੈਕਸ ਨਹੀਂ ਵਸੂਲਦਾ।",
     "soi.sign.stamp": "ਦਸਤਖ਼ਤ ਕਰੋ ਅਤੇ ਸੰਭਾਲੋ",
     "soi.sign.consent": "«ਦਸਤਖ਼ਤ ਕਰੋ ਅਤੇ ਸੰਭਾਲੋ» ਦਬਾ ਕੇ ਤੁਸੀਂ ਮੰਨਦੇ ਹੋ ਕਿ ਇਹ ਬਣਾਏ ਦਸਤਖ਼ਤ ਤੁਹਾਡੇ ਹਨ ਅਤੇ ਉੱਪਰਲੀ ਹਰ ਫ਼ਾਈਲ 'ਤੇ ਤੁਹਾਡੇ ਨਾਂ, ਸਮੇਂ ਅਤੇ ਇੱਕ ਹੈਸ਼ ਨਾਲ ਲਾਏ ਜਾਣਗੇ।",
     "soi.sign.complete": "ਸਾਰੇ ਦਸਤਖ਼ਤ ਕਰਨ ਵਾਲਿਆਂ ਨੇ ਦਸਤਖ਼ਤ ਕਰ ਦਿੱਤੇ ਹਨ। ਇਹ ਦਸਤਾਵੇਜ਼ ਪੂਰਾ ਹੈ।",
@@ -245,6 +265,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} ਤੁਹਾਨੂੰ eXeL AI Polling 'ਤੇ «{title}» 'ਤੇ ਦਸਤਖ਼ਤ ਕਰਨ ਲਈ ਕਹਿ ਰਹੇ ਹਨ — ਨਾ ਖਾਤਾ, ਨਾ ਫ਼ੀਸ। ਇਹ ਲਿੰਕ ਸਿਰਫ਼ ਤੁਹਾਡਾ ਹੈ (ਇਸ ਵਿੱਚ ਤੁਹਾਡੀ ਕੁੰਜੀ ਹੈ; ਅੱਗੇ ਨਾ ਭੇਜੋ) ਅਤੇ 30 ਦਿਨਾਂ ਵਿੱਚ ਖ਼ਤਮ ਹੋ ਜਾਵੇਗਾ: {link}",
   },
   "pl": {
+    "soi.sign.stance": "Nikt nie pobiera podatku od podpisów.",
     "soi.sign.stamp": "Podpisz i zapisz",
     "soi.sign.consent": "Dotykając Podpisz i zapisz, potwierdzasz, że ten narysowany podpis jest Twój i zostanie naniesiony na każdy plik powyżej wraz z Twoim imieniem i nazwiskiem, godziną i hashem.",
     "soi.sign.complete": "Wszyscy podpisujący podpisali. Ten dokument jest kompletny.",
@@ -257,6 +278,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} prosi Cię o podpisanie „{title}” w eXeL AI Polling — bez konta, bez opłat. Ten link jest tylko Twój (zawiera Twój klucz; nie przekazuj go dalej) i wygasa za 30 dni: {link}",
   },
   "pt": {
+    "soi.sign.stance": "Ninguém cobra imposto sobre assinaturas.",
     "soi.sign.stamp": "Assinar e guardar",
     "soi.sign.consent": "Ao tocar em Assinar e guardar, confirma que esta assinatura desenhada é sua e que é aplicada a cada ficheiro acima com o seu nome, a hora e um hash.",
     "soi.sign.complete": "Todos os signatários assinaram. Este documento está completo.",
@@ -269,6 +291,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} pede-lhe que assine «{title}» no eXeL AI Polling — sem conta, sem taxa. Este link é só seu (contém a sua chave; não o reencaminhe) e expira em 30 dias: {link}",
   },
   "ro": {
+    "soi.sign.stance": "Nimeni nu percepe taxă pe semnături.",
     "soi.sign.stamp": "Semnează și salvează",
     "soi.sign.consent": "Atingând Semnează și salvează, confirmați că această semnătură desenată este a dumneavoastră și că se aplică pe fiecare fișier de mai sus cu numele, ora și un hash.",
     "soi.sign.complete": "Toți semnatarii au semnat. Acest document este complet.",
@@ -281,6 +304,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} vă roagă să semnați „{title}” pe eXeL AI Polling — fără cont, fără taxă. Acest link este doar al dumneavoastră (conține cheia dumneavoastră; nu îl redirecționați) și expiră în 30 de zile: {link}",
   },
   "ru": {
+    "soi.sign.stance": "Никто не берёт налог за подписи.",
     "soi.sign.stamp": "Подписать и сохранить",
     "soi.sign.consent": "Нажимая «Подписать и сохранить», вы подтверждаете, что эта нарисованная подпись — ваша и что она ставится на каждый файл выше вместе с вашим именем, временем и хешем.",
     "soi.sign.complete": "Все подписанты подписали. Этот документ завершён.",
@@ -293,6 +317,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} просит вас подписать «{title}» на eXeL AI Polling — без аккаунта, без оплаты. Эта ссылка только ваша (в ней ваш ключ; не пересылайте её) и истекает через 30 дней: {link}",
   },
   "sv": {
+    "soi.sign.stance": "Ingen tar ut skatt på underskrifter.",
     "soi.sign.stamp": "Signera och spara",
     "soi.sign.consent": "Genom att trycka på Signera och spara bekräftar du att den ritade signaturen är din och att den sätts på varje fil ovan med ditt namn, tidpunkten och en hash.",
     "soi.sign.complete": "Alla undertecknare har signerat. Dokumentet är klart.",
@@ -305,6 +330,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} ber dig signera ”{title}” på eXeL AI Polling — inget konto, ingen avgift. Länken är bara din (den innehåller din nyckel; vidarebefordra den inte) och går ut om 30 dagar: {link}",
   },
   "sw": {
+    "soi.sign.stance": "Hakuna anayekusanya kodi kwa saini.",
     "soi.sign.stamp": "Saini na uhifadhi",
     "soi.sign.consent": "Kwa kugusa Saini na uhifadhi unakubali kuwa saini hii uliyochora ni yako na inawekwa kwenye kila faili hapo juu pamoja na jina lako, muda na hashi.",
     "soi.sign.complete": "Wasaini wote wamesaini. Hati hii imekamilika.",
@@ -317,6 +343,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} anakuomba usaini \"{title}\" kwenye eXeL AI Polling — hakuna akaunti, hakuna ada. Kiungo hiki ni chako pekee (kina ufunguo wako; usikitume mbele) na kinaisha baada ya siku 30: {link}",
   },
   "th": {
+    "soi.sign.stance": "ไม่มีใครเก็บภาษีจากลายเซ็น",
     "soi.sign.stamp": "ลงนามและบันทึก",
     "soi.sign.consent": "การแตะ ลงนามและบันทึก ถือว่าคุณยืนยันว่าลายเซ็นที่วาดนี้เป็นของคุณ และจะถูกประทับลงในทุกไฟล์ด้านบนพร้อมชื่อของคุณ เวลา และแฮช",
     "soi.sign.complete": "ผู้ลงนามทุกคนลงนามแล้ว เอกสารนี้เสร็จสมบูรณ์",
@@ -329,6 +356,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} ขอให้คุณลงนาม \"{title}\" บน eXeL AI Polling — ไม่ต้องมีบัญชี ไม่มีค่าธรรมเนียม ลิงก์นี้เป็นของคุณคนเดียว (มีกุญแจของคุณอยู่ อย่าส่งต่อ) และจะหมดอายุใน 30 วัน: {link}",
   },
   "tl": {
+    "soi.sign.stance": "Walang naniningil ng buwis sa mga pirma.",
     "soi.sign.stamp": "Pumirma at i-save",
     "soi.sign.consent": "Sa pag-tap sa Pumirma at i-save, sumasang-ayon ka na sa iyo ang iginuhit na pirmang ito at ilalagay ito sa bawat file sa itaas kasama ang iyong pangalan, ang oras at isang hash.",
     "soi.sign.complete": "Nakapirma na ang lahat ng pumipirma. Kumpleto na ang dokumentong ito.",
@@ -341,6 +369,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "Hinihiling ni {sender} na pirmahan mo ang \"{title}\" sa eXeL AI Polling — walang account, walang bayad. Sa iyo lang ang link na ito (dala nito ang iyong susi; huwag ipasa) at mag-e-expire ito sa loob ng 30 araw: {link}",
   },
   "tr": {
+    "soi.sign.stance": "Kimse imzalardan vergi almaz.",
     "soi.sign.stamp": "İmzala ve kaydet",
     "soi.sign.consent": "İmzala ve kaydet'e dokunarak bu çizilen imzanın size ait olduğunu ve yukarıdaki her dosyaya adınız, saat ve bir hash ile işleneceğini kabul edersiniz.",
     "soi.sign.complete": "Tüm imzacılar imzaladı. Bu belge tamamlandı.",
@@ -353,6 +382,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender}, eXeL AI Polling'de \"{title}\" belgesini imzalamanızı istiyor — hesap yok, ücret yok. Bu bağlantı yalnızca sizindir (anahtarınızı içerir; iletmeyin) ve 30 gün içinde sona erer: {link}",
   },
   "uk": {
+    "soi.sign.stance": "Ніхто не збирає податок за підписи.",
     "soi.sign.stamp": "Підписати й зберегти",
     "soi.sign.consent": "Натискаючи «Підписати й зберегти», ви підтверджуєте, що цей намальований підпис — ваш і що він ставиться на кожен файл вище разом із вашим іменем, часом і хешем.",
     "soi.sign.complete": "Усі підписанти підписали. Цей документ завершено.",
@@ -365,6 +395,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} просить вас підписати «{title}» на eXeL AI Polling — без облікового запису, без оплати. Це посилання лише ваше (у ньому ваш ключ; не пересилайте його) і спливає за 30 днів: {link}",
   },
   "vi": {
+    "soi.sign.stance": "Không ai thu thuế chữ ký.",
     "soi.sign.stamp": "Ký và lưu",
     "soi.sign.consent": "Khi chạm Ký và lưu, bạn xác nhận chữ ký vẽ này là của bạn và sẽ được đóng lên mọi tệp ở trên cùng với tên bạn, thời gian và một mã băm.",
     "soi.sign.complete": "Mọi người ký đều đã ký. Tài liệu này đã hoàn tất.",
@@ -377,6 +408,7 @@ export const SIGN_TRANSLATIONS: Record<string, Record<string, string>> = {
     "soi.sign.handoff.template": "{sender} mời bạn ký \"{title}\" trên eXeL AI Polling — không tài khoản, không phí. Liên kết này chỉ dành cho bạn (chứa khóa của bạn; đừng chuyển tiếp) và hết hạn sau 30 ngày: {link}",
   },
   "zh": {
+    "soi.sign.stance": "没有人对签名征税。",
     "soi.sign.stamp": "签名并保存",
     "soi.sign.consent": "点按“签名并保存”即表示您确认此手绘签名属于您本人，并将连同您的姓名、时间和哈希值加盖到上方的每个文件。",
     "soi.sign.complete": "所有签署人均已签名。此文件已完成。",
