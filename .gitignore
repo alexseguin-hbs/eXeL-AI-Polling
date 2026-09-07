@@ -102,3 +102,4 @@ scripts/lv-*.png
 # scratch build/measure tools (session)
 _*.mjs
 _*.py
+frontend/public/pdf.worker.min.mjs
