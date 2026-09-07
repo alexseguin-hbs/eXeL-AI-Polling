@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
+import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { buildDocPdf, promissoryNote, solvePayment, usd, type DocSpec } from "@/lib/doc-pdf";
 import { bytesToBase64 } from "@/lib/pdf-render";
 
@@ -77,11 +78,7 @@ export default function CreateDocPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <header className="mb-6 text-center">
-        <div className="mb-2 font-mono text-2xl tracking-[0.3em]" aria-hidden="true">
-          <span style={{ color: hue.bright }}>&#9708;</span>{" "}
-          <span style={{ color: hue.bright }}>&#9825;</span>{" "}
-          <span style={{ color: hue.bright }}>&#50883;</span>
-        </div>
+        <TrinityGlyphs size="text-2xl" className="mb-2" />
         <Link href="/soi-session/" className="text-xs text-muted-foreground hover:text-cyan-400">&larr; {t("soi.landing.title")}</Link>
       </header>
       <section className="rounded-xl border border-border bg-card p-4 sm:p-5">
