@@ -132,3 +132,30 @@ d8f0f024…f393e8e). Two-phone proof **44/44**, three-phone pod **45/45**, scrat
   hand-off acts read 💬 / ✉ / ⧉; glyphs are `aria-hidden`, every label stays a `t()` key.
 - **The stance,** first words of the page's footer, bold, in 33 languages: *No one collects a tax on
   signatures.* (`soi.sign.stance`, 11th seeded string; parity gate 130/130).
+
+## Wave 5 — the scribble, shown
+
+Operator: *have all AsM ensured signature works. Simulate placing some scribbled and show me result.*
+The proof now scribbles like a thumb (three jittered strokes per phone, ink ≥ 1.5 % of the pad spanning
+≥ 60 % of it), shows the stroke previewing inside the fitted box on the rule (`3b-preview-*.jpg`), and
+renders the signed PDF to PNG through pdfjs in Chromium (`scripts/render-pdf-page.mjs`): `signed-page.png`,
+`signed-block.png` (the two signature rows), `signed-codex.png` (the signatory block). **49 steps, 0
+failures**, three consecutive runs; the twelve-master verification is in
+`2026-09-07_signature_asm_verification.md`.
+
+Looking at the render caught three defects the counters had passed, all fixed in this wave: the pad
+exported its whole canvas so the stroke shrank to a third of the line (now the ink's bounding box); the
+caption under the box landed on the name printed under the rule (on a fitted box the caption sits inside,
+bottom-right, 5 pt, and the document's own rule is the line); `+ Date` dropped a 27-pt date over the
+"Date:" line (it now snaps to that underline through the same pixel fit, 7 pt). Coming back from Draw also
+opened page 1 while the box sat on page 2 — the view opens on the signed page now.
+A fourth came from the independent agent's look at the render: the proof's corner drag pushed the fitted
+box below its rule, so the caption grazed the printed name — a fitted box now grows in width only, its
+bottom pinned to the rule, and − / + scale it about its bottom-left corner.
+
+**Independent re-run (general-purpose agent, blind, final code):** "SIGN 2-PHONE LIVE RUN: 49 steps, 0
+failures"; on `signed-block.png`: "Two dark hand-drawn zigzag scribbles sit on two horizontal rules under
+Lender and Borrower headings; each Date: line carries Sep 7, 2026; small grey captions appear at right."
+The proof's own finder also had to learn that Daniel's page already carries Alex's ink on the lender's
+row — the borrower's rule is now found by row and column, not by the clean-pair shape (three consecutive
+green runs after the change).

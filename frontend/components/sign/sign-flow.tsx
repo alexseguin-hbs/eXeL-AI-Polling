@@ -25,7 +25,7 @@ import { stampSignature, stampText, stampCodexBlock, codexRows, pageCount, type 
 import { codexText, codexStripPng } from "@/lib/codex-strip";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
 import { SignaturePad } from "@/components/sign/signature-pad";
-import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark } from "@/components/sign/pdf-page-view";
+import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
 import { VerifyFile } from "@/components/sign/verify-file";
@@ -71,6 +71,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const [signed, setSigned] = useState<{ name: string; bytes: Uint8Array }[]>([]);
   const envRef = useRef<Envelope | null>(null);
   const pendingToken = useRef("");                              // minted before stamping so the PDF can carry it
+  const fitRef = useRef<FitAt | null>(null);                    // the page view's pixel fit, for + Date / + Text
   const [localFallback, setLocalFallback] = useState(false);
   const mode = localFallback ? "local" : storeMode();
   // Outside an Auth0Provider this is the library's inert default context — it is only ACTED on when requireLogin.
@@ -161,7 +162,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
     const onSigPage = sig && sig.page === viewedPage;
     const page = viewedPage; const below = onSigPage ? sig.y + sig.h + 0.01 : 0.5; const x = onSigPage ? sig.x : 0.4;
     const id = `t${Date.now().toString(36)}`;
-    const mark: Mark = { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text };
+    // the document's own "Date: ____" line, just under the signature, takes the mark (same fit as the signature box)
+    const f = sig && onSigPage ? fitRef.current?.({ x: sig.x + Math.min(0.1, sig.w / 2), y: sig.y + sig.h + 0.03 }) : null;
+    const fitted = !!(sig && f && f.lineY > sig.y + sig.h && f.h < sig.h * 1.5 && !cur.some((m) => m.kind === "text" && Math.abs(m.y - f.y) < 0.01));
+    const mark: Mark = fitted && f ? { id, kind: "text", page, x: f.x, y: f.y, w: f.w, h: f.h, text, fit: "underline" } : { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text, fit: "default" };
     setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
     setTimeout(() => { const boxes = document.querySelectorAll('[data-testid="text-box"]'); boxes[boxes.length - 1]?.scrollIntoView({ block: "center", behavior: "smooth" }); }, 50);
   };
@@ -169,7 +173,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
   const setSelText = (text: string) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, text } : m)) }));
   const removeSel = () => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== selected) })); setSelected(null); };
-  const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, w: Math.min(1, Math.max(0.08, m.w * f)), h: Math.min(1, Math.max(0.02, m.h * f)) } : m)) }));
+  // − / + scale the selected mark; a mark fitted to a rule scales about its bottom-left corner, so it stays on the line
+  const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => { if (m.id !== selected) return m; const w = Math.min(1, Math.max(0.08, m.w * f)), h = Math.min(1, Math.max(0.02, m.h * f)); return m.fit === "underline" ? { ...m, w, h, y: Math.max(0, m.y + m.h - h) } : { ...m, w, h }; }) }));
   const myIdx = countersign ? (pub?.party ?? 0) : 0;
   const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[0]?.name ?? "";
 
@@ -364,7 +369,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               ))}
             </div>
           )}
-          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} />
+          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} fitRef={fitRef} />
           {/* marks toolbar: add a date or a note; size the selected mark; edit its text */}
           <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="marks-toolbar">
             <button type="button" onClick={() => addText(todayText())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-date">+ {t("soi.sign.add_date")}</button>

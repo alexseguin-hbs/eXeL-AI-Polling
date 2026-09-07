@@ -19,9 +19,11 @@ import type { StampBox } from "@/lib/pdf-stamp";
 export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string; /** how the box got its size: fitted to a rule, or the default */ fit?: "underline" | "default" }
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.035, MIN_W = 0.08, MIN_H = 0.02;
 
-export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly, onPage }: {
+export type FitAt = (q: { x: number; y: number }) => ReturnType<typeof fitToUnderline>;
+export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly, onPage, fitRef }: {
   bytes: Uint8Array; marks: Mark[]; onMarks: (m: Mark[]) => void; selectedId: string | null; onSelect: (id: string | null) => void;
   preview?: string | null; readOnly?: boolean; onPage?: (page: number) => void;
+  /** lends the pixel fit to the flow (+ Date snaps to the document's own "Date:" line) */ fitRef?: React.MutableRefObject<FitAt | null>;
 }) {
   const { t } = useLexicon();
   const host = useRef<HTMLDivElement>(null);
@@ -35,7 +37,8 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   useEffect(() => {
     let live = true;
     (async () => {
-      try { const doc = await openPdf(bytes); if (!live) return; docRef.current = doc; setPages(doc.numPages); setPage(1); }
+      // open on the page that already holds the signature (coming back from Draw), else page 1
+      try { const doc = await openPdf(bytes); if (!live) return; docRef.current = doc; setPages(doc.numPages); setPage(Math.min(doc.numPages, Math.max(1, marksRef.current.find((m) => m.kind === "sig")?.page ?? 1))); }
       catch (e) { setErr(String((e as Error).message || e)); }
     })();
     return () => { live = false; };
@@ -66,6 +69,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
       return fitToUnderline({ width: c.width, height: c.height, data: ctx.getImageData(0, 0, c.width, c.height).data }, q);
     } catch { return null; }
   };
+  if (fitRef) fitRef.current = fitAt;
   // Divinity Guide reader gesture: swipe left → next page, swipe right → previous (never from inside a mark)
   const swipe = useRef<{ x: number; y: number; onMark: boolean } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => { const t0 = e.touches[0]; swipe.current = { x: t0.clientX, y: t0.clientY, onMark: !!hit(frac(t0.clientX, t0.clientY)) }; };
@@ -88,7 +92,8 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
       if (!m) return;
       ev.preventDefault();
       const q = frac(ev.clientX, ev.clientY);
-      if (resizing) update(m.id, { w: Math.max(MIN_W, q.x - m.x), h: Math.max(MIN_H, q.y - m.y) });
+      // a box fitted to a rule keeps its bottom ON the rule: the corner drag changes its width only
+      if (resizing) update(m.id, m.fit === "underline" ? { w: Math.max(MIN_W, q.x - m.x) } : { w: Math.max(MIN_W, q.x - m.x), h: Math.max(MIN_H, q.y - m.y) });
       else update(m.id, { x: q.x - off!.dx, y: q.y - off!.dy });
     };
     const end = (ev: PointerEvent, cancelled: boolean) => {
@@ -122,7 +127,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
           return (
             <div key={m.id} className={`pointer-events-none absolute rounded ${sel ? "border-[3px] border-cyan-400 shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-cyan-500/50"} ${m.kind === "sig" ? (sel ? "bg-cyan-400/15" : "border-dashed bg-cyan-400/10") : (sel ? "bg-amber-300/20" : "border-dotted bg-amber-300/10")}`}
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%` }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
-              {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className="h-full w-full object-contain" />}
+              {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className={`h-full w-full object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
               {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "min(14px, 100%)", lineHeight: 1.2 }}>{m.text}</span>}
               {sel && !readOnly && <span className="absolute -bottom-2.5 -right-2.5 h-6 w-6 rounded-md border-2 border-white bg-cyan-500 shadow" aria-hidden="true" data-testid="resize-handle" />}
             </div>

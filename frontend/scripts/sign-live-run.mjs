@@ -17,6 +17,7 @@
 import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
+import { execFileSync } from 'child_process';
 import { countSignatureImages, signatureBoxes, textBoxes, codexRows } from '../lib/pdf-stamp.ts';
 
 const BASE = process.env.POD_BASE || 'http://127.0.0.1:3210';
@@ -44,12 +45,24 @@ const findRules = (p) => p.evaluate(() => {
   const merged = []; for (const r of out) { if (merged.some((l) => r.y - l.y < 3 / H && Math.abs(r.x0 - l.x0) < 0.01)) continue; merged.push(r); }
   return merged;
 });
-const draw = async (p) => {
+// A thumb's scribble, not a sine: a looping cursive run with per-point jitter, a fast cross-stroke, a dot —
+// a different seed per phone. Drawn with the pointer on the SignaturePad canvas, so the pad's own smoothing ships.
+const scribble = async (p, who) => {
   const c = p.locator('canvas[aria-label]').first(); const b = await c.boundingBox();
-  await p.mouse.move(b.x + 20, b.y + 80); await p.mouse.down();
-  for (let i = 1; i <= 12; i++) await p.mouse.move(b.x + 20 + i * 18, b.y + 80 + Math.sin(i) * 25, { steps: 3 });
-  await p.mouse.up();
+  let seed = who === 'alex' ? 7 : 31; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280 - 0.5; };
+  const W = b.width - 30, mid = b.height * 0.55;
+  const stroke = async (pts, steps = 2) => { await p.mouse.move(b.x + pts[0][0], b.y + pts[0][1]); await p.mouse.down(); for (const [x, y] of pts.slice(1)) await p.mouse.move(b.x + x, b.y + y, { steps }); await p.mouse.up(); };
+  const run = []; for (let i = 0; i <= 44; i++) { const t = i / 44; const loop = Math.sin(t * Math.PI * 7) * (34 - 18 * t); const back = i % 11 === 5 ? -14 : 0; run.push([15 + t * W * 0.82 + back + rnd() * 5, mid + loop + rnd() * 6]); }
+  await stroke(run);
+  await stroke([[W * 0.28, mid + 26 + rnd() * 4], [W * 0.78, mid - 30 + rnd() * 4]], 1);            // the cross-stroke
+  await stroke([[W * 0.86, mid + 8], [W * 0.87, mid + 11], [W * 0.85, mid + 12]], 1);                // the dot
 };
+/** Ink on the pad: share of pixels that are not paper, and the width the stroke spans — a blank pad never passes. */
+const inkOnPad = (p) => p.locator('canvas[aria-label]').first().evaluate((c) => {
+  const ctx = c.getContext('2d'); const d = ctx.getImageData(0, 0, c.width, c.height).data; let ink = 0, x0 = c.width, x1 = 0;
+  for (let i = 0; i < d.length; i += 4) { const a = d[i + 3], lum = (d[i] + d[i + 1] + d[i + 2]) / 3; if (a > 40 && lum < 200) { ink++; const x = (i / 4) % c.width; if (x < x0) x0 = x; if (x > x1) x1 = x; } }
+  return { share: ink / (c.width * c.height), span: (x1 - x0) / c.width };
+});
 const placeAndSign = async (p, who) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 }); step(who, 'PDF page rendered (pdfjs)');
   const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3);
@@ -67,16 +80,24 @@ const placeAndSign = async (p, who) => {
     await p.waitForFunction(() => /Page 2 \/ 2/.test(document.querySelector('[data-testid="pdf-page"]')?.previousElementSibling?.textContent || ''), null, { timeout: 10000 });
     step(who, 'swipe left turns the page (Divinity Guide gesture, reused)  Page 2 / 2'); pageNo = 2; await p.waitForTimeout(500);
   }
-  for (let tries = 0; tries < 4 && !pair; tries++) {
+  let rule = null;
+  for (let tries = 0; tries < 4 && !rule; tries++) {
     const all = (await findRules(p)).filter((r) => r.y > 0.3 && r.x1 - r.x0 < 0.6);
-    // a signature rule stands alone — a table's borders come in stacks (the schedule on page 1)
-    const rs = all.filter((r) => !all.some((o) => o !== r && Math.abs(o.y - r.y) > 0.002 && Math.abs(o.y - r.y) < 0.012));
-    const byRow = new Map(); for (const r of rs) { const k = Math.round(r.y * 200); byRow.set(k, [...(byRow.get(k) ?? []), r]); }
-    pair = [...byRow.values()].map((v) => v.sort((a, b) => a.x0 - b.x0)).find((v) => v.length >= 2 && v[1].x0 - v[0].x0 > 0.3) ?? null;
-    if (!pair) { await p.getByTestId('page-next').click(); pageNo++; await p.waitForTimeout(600); }
+    if (who === 'dan' && rules.alex) {
+      // Daniel's page already carries Alex's ink and caption on the lender's row — so the borrower's rule is
+      // found by ROW (Alex's recorded y) and column (right of the lender's line), not by the clean-pair shape
+      if (pageNo === rules.alex.page) rule = all.find((r) => Math.abs(r.y - rules.alex.y) < 0.006 && r.x0 > rules.alex.x1) ?? null;
+    } else {
+      // a signature rule stands alone — a table's borders come in stacks (the schedule on page 1)
+      const rs = all.filter((r) => !all.some((o) => o !== r && Math.abs(o.y - r.y) > 0.002 && Math.abs(o.y - r.y) < 0.012));
+      const byRow = new Map(); for (const r of rs) { const k = Math.round(r.y * 200); byRow.set(k, [...(byRow.get(k) ?? []), r]); }
+      pair = [...byRow.values()].map((v) => v.sort((a, b) => a.x0 - b.x0)).find((v) => v.length >= 2 && v[1].x0 - v[0].x0 > 0.3) ?? null;
+      if (pair) rule = pair[0];
+    }
+    if (!rule) { await p.getByTestId('page-next').click(); pageNo++; await p.waitForTimeout(600); }
   }
-  step(who, 'signature block found: two rules on one row (lender | borrower)', !!pair, pair ? `page ${pageNo} y=${pair[0].y.toFixed(3)} x=[${pair[0].x0.toFixed(2)}–${pair[0].x1.toFixed(2)}] [${pair[1].x0.toFixed(2)}–${pair[1].x1.toFixed(2)}]` : 'none');
-  const rule = who === 'alex' ? pair[0] : pair[1]; rules[who] = { page: pageNo, ...rule };
+  step(who, who === 'alex' ? 'signature block found: two rules on one row (lender | borrower)' : "the borrower's rule found on the lender's row, right column (the page already carries Alex's ink)", !!rule, rule ? `page ${pageNo} y=${rule.y.toFixed(3)} x=[${rule.x0.toFixed(2)}–${rule.x1.toFixed(2)}]` + (pair ? ` | [${pair[1].x0.toFixed(2)}–${pair[1].x1.toFixed(2)}]` : '') : 'none');
+  rules[who] = { page: pageNo, ...rule };
   const bb2 = await page.boundingBox();                       // the page scrolls when the toolbar shrinks — never reuse a stale box
   await p.mouse.click(bb2.x + bb2.width * (rule.x0 + rule.x1) / 2, bb2.y + bb2.height * (rule.y - 0.012));   // the thumb lands just above the rule
   await p.getByTestId('sig-box').waitFor(); step(who, 'signature box placed by tap');
@@ -84,6 +105,7 @@ const placeAndSign = async (p, who) => {
   const bx0 = (sb.x - pb.x) / pb.width, bx1 = (sb.x + sb.width - pb.x) / pb.width, bBottom = (sb.y + sb.height - pb.y) / pb.height;
   step(who, 'box FITS the signature line: rule width, bottom on the rule, no taller than the text above', fit === 'underline' && Math.abs(bx0 - rule.x0) < 0.02 && Math.abs(bx1 - rule.x1) < 0.02 && Math.abs(bBottom - rule.y) < 0.012 && sb.height / pb.height < 0.12, `fit=${fit} x=[${bx0.toFixed(3)}–${bx1.toFixed(3)}] bottom=${bBottom.toFixed(3)} rule=[${rule.x0.toFixed(3)}–${rule.x1.toFixed(3)}] y=${rule.y.toFixed(3)} h=${(sb.height / pb.height).toFixed(3)}`);
   step(who, 'the hint says the box was sized to the line', /signature line/i.test(await p.locator('[data-testid="marks-toolbar"] + p').innerText()));
+  await shot(p, who, '2b-placed');
   step(who, 'toolbar names the selected box', /signature/i.test(await p.getByTestId('sizing-chip').innerText()));
   // a vertical swipe over the page must NOT move or add a box (Christo, wave 1: pan-y scroll survives)
   const bb3 = await page.boundingBox();
@@ -91,12 +113,20 @@ const placeAndSign = async (p, who) => {
   step(who, 'a swipe over the page places nothing', (await p.getByTestId('sig-box').count()) === 1);
   // resize the signature box by its corner handle, then add a date beside it (operator, 2026-09-07)
   const before = await p.getByTestId('sig-box').boundingBox(); const h = await p.getByTestId('resize-handle').boundingBox();
-  await p.mouse.move(h.x + h.width / 2, h.y + h.height / 2); await p.mouse.down(); await p.mouse.move(h.x + h.width / 2 + 40, h.y + h.height / 2 + 12, { steps: 5 }); await p.mouse.up();
-  const after = await p.getByTestId('sig-box').boundingBox(); step(who, 'signature box resized by its corner', after.width > before.width + 20 && after.height > before.height + 5, `${Math.round(before.width)}→${Math.round(after.width)} px`);
+  await p.mouse.move(h.x + h.width / 2, h.y + h.height / 2); await p.mouse.down(); await p.mouse.move(h.x + h.width / 2 + 14, h.y + h.height / 2 + 12, { steps: 5 }); await p.mouse.up();
+  const after = await p.getByTestId('sig-box').boundingBox();
+  step(who, 'corner drag widens the fitted box; its bottom stays ON the rule (height unchanged)', after.width > before.width + 8 && Math.abs(after.height - before.height) < 2 && Math.abs((after.y + after.height) - (before.y + before.height)) < 2, `${Math.round(before.width)}→${Math.round(after.width)} px wide, ${Math.round(before.height)}→${Math.round(after.height)} px tall`);
   await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor(); step(who, 'date mark added beside the signature', /\d{4}/.test(await p.getByTestId('mark-text').inputValue()));
+  const tb = await p.getByTestId('text-box').boundingBox(), sbb = await p.getByTestId('sig-box').boundingBox();
+  step(who, 'the date SNAPS to the document\'s own "Date:" line under the signature (fitted, below the box, one text line tall)', (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline' && tb.y > sbb.y + sbb.height - 2 && tb.height < sbb.height, `date box ${Math.round(tb.width)}×${Math.round(tb.height)} px at +${Math.round(tb.y - (sbb.y + sbb.height))} px under the signature box`);
   await p.getByTestId('to-draw').click();
-  await draw(p); step(who, 'signature drawn with the pointer');
+  await scribble(p, who); const ink = await inkOnPad(p);
+  step(who, 'signature SCRIBBLED with the pointer — ink on the pad, spanning it', ink.share > 0.015 && ink.span > 0.6, `ink ${(ink.share * 100).toFixed(1)} % of the pad, span ${(ink.span * 100).toFixed(0)} %`);
   await shot(p, who, '3-draw');
+  // back to the page: the scribble previews inside the fitted box, on the rule (what the PDF will carry)
+  await p.getByRole('button', { name: /Back/ }).click(); await p.getByTestId('sig-box').locator('img').waitFor({ timeout: 10000 });
+  step(who, 'the scribble previews inside the box, on the signature line'); await shot(p, who, '3b-preview');
+  await p.getByTestId('to-draw').click();
   if (who === 'alex') {
     // the draft survives a reload (and, on the live site, the Auth0 redirect at save) — Enki's gap, wave 3
     await p.reload({ waitUntil: 'domcontentloaded' }); await ready(p);
@@ -171,8 +201,12 @@ const n = await countSignatureImages(bytes); step('dan', 'downloaded PDF carries
 // Daniel — starting at the rule's left edge, bottom on the rule, widened by the corner drag (distinct boxes)
 const boxes = await signatureBoxes(bytes);
 const expect = [rules.alex, rules.dan];
-step('dan', 'each stamp sits on ITS signature line (left edge + bottom on the rule), resized wider, distinct', boxes.length === 2 && boxes.every((b, i) => b.page === expect[i].page && Math.abs(b.x - expect[i].x0) < 0.03 && Math.abs(b.y + b.h - expect[i].y) < 0.03 && b.w > expect[i].x1 - expect[i].x0 + 0.05) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
+step('dan', 'each stamp sits on ITS signature line (left edge + bottom on the rule), widened, distinct', boxes.length === 2 && boxes.every((b, i) => b.page === expect[i].page && Math.abs(b.x - expect[i].x0) < 0.03 && Math.abs(b.y + b.h - expect[i].y) < 0.012 && b.w > expect[i].x1 - expect[i].x0 + 0.02) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
+// SHOW the result: the signed page, the signature rows and the signatory block rendered to PNG (pdfjs in Chromium)
+const render = (name, env) => { execFileSync('node', ['scripts/render-pdf-page.mjs'], { env: { ...process.env, PDF: file, OUT: path.join(OUT, name), ...env }, stdio: 'pipe' }); return fs.existsSync(path.join(OUT, name)) && fs.statSync(path.join(OUT, name)).size > 5000; };
+const pg = String(boxes[0]?.page ?? 2);
+step('dan', 'signed page rendered to PNG (whole page · signature rows · signatory block)', render('signed-page.png', { PAGE: pg, SCALE: '1.4' }) && render('signed-block.png', { PAGE: pg, SCALE: '3', CROP: `0.08,${(expect[0].y - 0.045).toFixed(3)},0.84,0.10` }) && render('signed-codex.png', { PAGE: pg, SCALE: '3', CROP: '0.46,0.895,0.52,0.09' }));
 const rows = await codexRows(bytes); step('dan', 'signatory block: two CAC-style timestamp rows, bottom-right of the last page', rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows.every((r) => /^\d{4}-\d{2}-\d{2}T/.test(r.isoDate)), JSON.stringify(rows.map((r) => [r.rowIndex, r.isoDate, r.hash])));
 // offline verify (Pangu): the DONE block reads the downloaded file back — green; the unsigned fixture — "no signatures"
 await D.getByTestId('verify-input').setInputFiles(file); await D.getByTestId('verify-result').waitFor({ timeout: 30000 });

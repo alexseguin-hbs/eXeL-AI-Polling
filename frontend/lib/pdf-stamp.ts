@@ -7,7 +7,7 @@
  */
 import { PDFDocument, PDFName, StandardFonts, degrees, rgb } from "pdf-lib";
 
-export interface StampBox { page: number; x: number; y: number; w: number; h: number }   // page 1-based; fractions 0..1
+export interface StampBox { page: number; x: number; y: number; w: number; h: number; /** "underline": the box was fitted to a rule on the page — bottom ON the line */ fit?: string }   // page 1-based; fractions 0..1
 export interface StampSig { pngDataUrl: string; name: string; isoDate: string; hash: string; /** ties the PDF to its envelope: token + the chain BEFORE this pass (Odin, wave 2) */ envelope?: { token: string; chain: string } }
 
 const dataUrlBytes = (dataUrl: string): Uint8Array => {
@@ -53,8 +53,11 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const { rot } = placeOnPage(page, box);
   // Two display-frame sub-boxes — the image above, the caption below — each mapped through the
   // page's rotation on its own, so both read upright however the page is turned.
-  const imgBox = { ...box, h: box.h * 0.7 };
-  const capBox = { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
+  // On a fitted rule the whole box is the signature (it is already "no taller than the text above"); the caption
+  // goes INSIDE, bottom-right, so it never lands on the name printed under the line (rendered proof, wave 5).
+  const onRule = box.fit === "underline";
+  const imgBox = onRule ? { ...box } : { ...box, h: box.h * 0.7 };
+  const capBox = onRule ? { ...box, y: box.y + box.h * 0.6, h: box.h * 0.4 } : { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
   const I = placeOnPage(page, imgBox, 24, 8), C = placeOnPage(page, capBox, 24, 4);
   const png = await doc.embedPng(dataUrlBytes(sig.pngDataUrl));
   const swap = rot === 90 || rot === 270;
@@ -63,17 +66,21 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const iw = png.width * scale, ih = png.height * scale;
   const key = PDFName.of(`SoISig${maxSignatureIndex(page.node.Resources()?.lookup(PDFName.of("XObject"))) + 1}`);
   page.node.setXObject(key, png.ref);
-  if (rot === 0) page.drawImage(png, { x: I.bx + (I.bw - iw) / 2, y: I.by + (I.bh - ih) / 2, width: iw, height: ih });
+  if (rot === 0) page.drawImage(png, { x: onRule ? I.bx + 2 : I.bx + (I.bw - iw) / 2, y: I.by + (onRule ? 1 : (I.bh - ih) / 2), width: iw, height: ih });   // a signature starts where the line starts
   else { const o = oriented(rot, I.bx, I.by, I.bw, I.bh); page.drawImage(png, { ...o, width: iw, height: ih }); }
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const caption = `${sig.name} · ${sig.isoDate} · #${sig.hash}`;
   const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
-  let capSize = Math.max(4, Math.min(9, capDispH * 0.9));
-  while (capSize > 4 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
+  let capSize = onRule ? 5 : Math.max(4, Math.min(9, capDispH * 0.9));
+  const room = onRule ? Math.max(0, capDispW - iw - 6) : capDispW;                 // to the right of the ink
+  while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > room) capSize -= 0.5;
   const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
-  page.drawText(caption, { x: co.x, y: co.y, size: capSize, font, color: rgb(0.1, 0.1, 0.1), rotate: co.rotate });
-  const lo = oriented(rot, C.bx, C.by, C.bw, C.bh);
-  page.drawLine({ start: { x: lo.x, y: lo.y }, end: rot === 90 ? { x: lo.x, y: lo.y + C.bh } : rot === 270 ? { x: lo.x, y: lo.y - C.bh } : rot === 180 ? { x: lo.x - C.bw, y: lo.y } : { x: lo.x + C.bw, y: lo.y }, thickness: 0.5, color: rgb(0.2, 0.2, 0.2) });
+  if (onRule && rot === 0) page.drawText(caption, { x: C.bx + C.bw - font.widthOfTextAtSize(caption, capSize) - 2, y: C.by + 1.5, size: capSize, font, color: rgb(0.35, 0.35, 0.38) });
+  else page.drawText(caption, { x: co.x, y: co.y, size: capSize, font, color: rgb(0.1, 0.1, 0.1), rotate: co.rotate });
+  if (!onRule) {                                                                    // the document's own rule is the line
+    const lo = oriented(rot, C.bx, C.by, C.bw, C.bh);
+    page.drawLine({ start: { x: lo.x, y: lo.y }, end: rot === 90 ? { x: lo.x, y: lo.y + C.bh } : rot === 270 ? { x: lo.x, y: lo.y - C.bh } : rot === 180 ? { x: lo.x - C.bw, y: lo.y } : { x: lo.x + C.bw, y: lo.y }, thickness: 0.5, color: rgb(0.2, 0.2, 0.2) });
+  }
   // Record the placement as page-fraction metadata so `signatureBoxes()` can read it back (Asar, wave 1).
   addKeyword(doc, `SoISig:${box.page}:${box.x.toFixed(4)}:${box.y.toFixed(4)}:${box.w.toFixed(4)}:${box.h.toFixed(4)}:r${rot}`);
   if (sig.envelope) addKeyword(doc, `SoIEnv:${sig.envelope.token}:${sig.envelope.chain || "genesis"}`);
