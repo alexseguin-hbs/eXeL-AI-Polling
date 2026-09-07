@@ -802,10 +802,10 @@ const cube8: TranslationEntry[] = [
   // ◬ ♡ 웃 landing — three doors before any session (operator 2026-09-07): Session (♡ top) · Sign Doc (웃 bottom-right) · Create Doc (◬ bottom-left).
   { key: "soi.landing.title", englishDefault: "Session", context: "Landing + pod header: the single word under the three glyphs", cubeId: 8 },
   { key: "soi.landing.tagline", englishDefault: "Recursive coordination for human continuity.", context: "Landing footer line (moved out of the header)", cubeId: 8 },
-  { key: "soi.landing.ring.session", englishDefault: "SESSION", context: "Landing: arc label on the top (♡) ring — uppercase, short", cubeId: 8 },
+  { key: "soi.landing.ring.session", englishDefault: "POD SESSION", context: "Landing: arc label on the top (♡) ring — uppercase, short", cubeId: 8 },
   { key: "soi.landing.ring.sign", englishDefault: "SIGN DOC", context: "Landing: arc label on the bottom-right (웃) ring — uppercase, short", cubeId: 8 },
   { key: "soi.landing.ring.create", englishDefault: "CREATE DOC", context: "Landing: arc label on the bottom-left (◬) ring — uppercase, short", cubeId: 8 },
-  { key: "soi.landing.btn.session", englishDefault: "◬ ♡ 웃 Session", context: "Landing: the Session door (card title and ring aria-label)", cubeId: 8 },
+  { key: "soi.landing.btn.session", englishDefault: "◬ ♡ 웃 POD Session", context: "Landing: the Session door (card title and ring aria-label)", cubeId: 8 },
   { key: "soi.landing.btn.sign", englishDefault: "Sign Doc", context: "Landing: the Sign Doc door (card title and ring aria-label)", cubeId: 8 },
   { key: "soi.landing.btn.create", englishDefault: "Create Doc", context: "Landing: the Create Doc door (card title and ring aria-label)", cubeId: 8 },
   { key: "soi.landing.desc.session", englishDefault: "Three people, one task, one witnessed outcome — ♡ time, 웃 settlement, ◬ synthesis.", context: "Landing: one line under the Session door", cubeId: 8 },

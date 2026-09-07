@@ -11,7 +11,7 @@ export function TrinityGlyphs({ size = "text-3xl", className = "" }: { size?: st
   return (
     <div className={`${size} font-mono font-bold tracking-[0.3em] ${className}`} aria-hidden="true" style={{ lineHeight: 1 }}>
       <span style={{ color: TRINITY_COLORS.consciousness, fontSize: "1.22em", verticalAlign: "-0.06em" }}>&#9708;</span>{" "}
-      <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span>{" "}
+      <span style={{ color: TRINITY_COLORS.temporal, fontSize: "1.1em", WebkitTextStroke: "0.05em currentColor", verticalAlign: "-0.03em" }}>&#9825;</span>{" "}
       <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span>
     </div>
   );

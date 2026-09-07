@@ -188,7 +188,7 @@ export function SoITrinity({
       ))}
 
       {/* Centre glyphs — the ring keeps its identity (◬ ♡ 웃) even when the arc names an action. */}
-      {centerGlyphs && rings.map((ring, i) => (
+      {centerGlyphs && rings.map((ring, i) => centerGlyphs[i] && (
         <text key={`g-${i}`} x={ring.cx} y={ring.cy} fill={colors?.[i] ?? color} fontSize={ringR * 0.5}
           fontFamily="system-ui, sans-serif" textAnchor="middle" dominantBaseline="central" aria-hidden="true">
           {centerGlyphs[i]}

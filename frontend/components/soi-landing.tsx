@@ -2,9 +2,9 @@
 
 /**
  * ◬ ♡ 웃 — the three doors before any session (operator, 2026-09-07):
- *   ♡ Session   (top)          → the pod-of-three working session
- *   웃 Sign Doc  (bottom-right) → upload, sign with a finger, hand off — no fees
- *   ◬ Create Doc (bottom-left)  → write or template a document, then sign it
+ *   POD Session (top)          → the pod-of-three working session
+ *   Create Doc  (bottom-right) → write or template a document, then sign it
+ *   Sign Doc    (bottom-left)  → upload, sign with a finger, hand off — no fees
  * The Trinity mark keeps its glyph identity (Aset, round 1); the arcs name the action, the
  * centre shows the glyph, and three plain cards repeat the choice for anyone who does not
  * read a diagram. Seed membership sits below, collapsed — nothing removed (Rule 6).
@@ -27,12 +27,12 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
   const hue = useThemeHue();
   const doors = [
     { key: "session", glyph: "♡", color: hue.bright, title: t("soi.landing.btn.session"), desc: t("soi.landing.desc.session"), go: onEnter },
-    { key: "sign", glyph: "웃", color: hue.bright, title: t("soi.landing.btn.sign"), desc: t("soi.landing.desc.sign"), href: SIGN_PATH },
     { key: "create", glyph: "◬", color: hue.bright, title: t("soi.landing.btn.create"), desc: t("soi.landing.desc.create"), href: CREATE_PATH },
+    { key: "sign", glyph: "웃", color: hue.bright, title: t("soi.landing.btn.sign"), desc: t("soi.landing.desc.sign"), href: SIGN_PATH },
   ] as const;
   const onRing = (i: 0 | 1 | 2) => {
     if (i === 0) onEnter();
-    else router.push(i === 1 ? SIGN_PATH : CREATE_PATH);
+    else router.push(i === 1 ? CREATE_PATH : SIGN_PATH);   // bottom-right = Create Doc, bottom-left = Sign Doc (operator)
   };
 
   return (
@@ -46,14 +46,14 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
       <div className="flex flex-col items-center gap-2">
         <SoITrinity
           size={300}
-          labels={[t("soi.landing.ring.session"), t("soi.landing.ring.sign"), t("soi.landing.ring.create")]}
+          labels={[t("soi.landing.ring.session"), t("soi.landing.ring.create"), t("soi.landing.ring.sign")]}
           colors={[hue.bright, hue.bright, hue.bright]}   /* all cyan (operator): the black edges separate the rings */
           color={hue.bright}
           textColor={hue.ink}
           fontSize={10}
-          centerGlyphs={["♡", "웃", "◬"]}
+          centerGlyphs={["", "◬", "웃"]}
           onRingClick={onRing}
-          ringAriaLabels={[t("soi.landing.btn.session"), t("soi.landing.btn.sign"), t("soi.landing.btn.create")]}
+          ringAriaLabels={[t("soi.landing.btn.session"), t("soi.landing.btn.create"), t("soi.landing.btn.sign")]}
         />
         <p className="text-xs text-muted-foreground">{t("soi.landing.choose")}</p>
       </div>
