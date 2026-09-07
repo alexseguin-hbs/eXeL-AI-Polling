@@ -21,32 +21,37 @@ complete · revoke-after-complete refused. The hosted Supabase project still has
 Auth0 login on the creator path is bypassed locally (`NEXT_PUBLIC_SIGN_NO_AUTH=1`) and is
 **UNVERIFIED** until the operator signs in on the live site.
 
-## Outcome — 23 steps, 0 failures
+## Outcome — 28 steps, 0 failures
 
 ```
-  3453ms  alex  OK  landing → Sign Doc
-  3496ms  alex  OK  PDF uploaded, hashed, page-counted
-  3616ms  alex  OK  two signers named (email + phone)
-  4012ms  alex  OK  PDF page rendered (pdfjs)
-  4030ms  alex  OK  signature box placed by tap
-  4143ms  alex  OK  a swipe over the page places nothing
-  4809ms  alex  OK  signature drawn with the pointer
-  4973ms  alex  OK  Sign & save pressed
-  5062ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=GZmWm--rNJ8L4dPNxf…
-  5102ms  alex  OK  creator keeps his own return link
-  5105ms  alex  OK  sms: composer prefilled to Daniel
-  7221ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
-  8790ms  dan   OK  opened the hand-off link, no login
-  8793ms  dan   OK  roster: Alex signed, Daniel now
-  8850ms  dan   OK  PDF page rendered (pdfjs)
-  8868ms  dan   OK  signature box placed by tap
-  8975ms  dan   OK  a swipe over the page places nothing
-  9642ms  dan   OK  signature drawn with the pointer
-  9814ms  dan   OK  Sign & save pressed
-  9863ms  dan   OK  COMPLETE — every signer has signed
-  9929ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
-  9934ms  dan   OK  both stamps landed on page 1 at the tapped spot  [[1,0.1,0.71],[1,0.1,0.71]]
- 10365ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
+  4248ms  alex  OK  landing → Sign Doc
+  4289ms  alex  OK  PDF uploaded, hashed, page-counted
+  4418ms  alex  OK  two signers named (email + phone)
+  4805ms  alex  OK  PDF page rendered (pdfjs)
+  4822ms  alex  OK  signature box placed by tap
+  4942ms  alex  OK  a swipe over the page places nothing
+  5050ms  alex  OK  signature box resized by its corner  123→159 px
+  5112ms  alex  OK  date mark added beside the signature
+  5776ms  alex  OK  signature drawn with the pointer
+  5947ms  alex  OK  Sign & save pressed
+  6023ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=pIpj0PqAre-LKymGN4…
+  6067ms  alex  OK  creator keeps his own return link
+  6070ms  alex  OK  sms: composer prefilled to Daniel
+  8057ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+  9647ms  dan   OK  opened the hand-off link, no login
+  9650ms  dan   OK  roster: Alex signed, Daniel now
+  9705ms  dan   OK  PDF page rendered (pdfjs)
+  9722ms  dan   OK  signature box placed by tap
+  9841ms  dan   OK  a swipe over the page places nothing
+  9950ms  dan   OK  signature box resized by its corner  123→159 px
+ 10012ms  dan   OK  date mark added beside the signature
+ 10675ms  dan   OK  signature drawn with the pointer
+ 10870ms  dan   OK  Sign & save pressed
+ 10902ms  dan   OK  COMPLETE — every signer has signed
+ 10973ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+ 10977ms  dan   OK  both stamps landed on page 1 where tapped (resized, so the box grew right/down from the tap)  [[1,0.1,0.71,0.52],[1,0.1,0.71,0.52]]
+ 10979ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
+ 11411ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
 ```
 
 Reproduce: `cd frontend && npm run pod:relay` ·

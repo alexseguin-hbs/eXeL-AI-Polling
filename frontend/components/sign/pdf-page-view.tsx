@@ -1,19 +1,23 @@
 "use client";
 
 /**
- * One PDF, one page at a time, rendered by pdfjs to a canvas that fits the phone. A tap places the
- * signature box (40% × 8% of the page); a drag moves it. The box is kept as page FRACTIONS so
- * pdf-stamp lands it on the real page. Page arrows step through the document.
+ * One PDF, one page at a time, rendered by pdfjs to a canvas that fits the phone. MARKS live on it:
+ * one signature box per file and any number of text marks (a date, a name, a note). Tap an empty
+ * spot to place the signature (when there is none yet); drag inside a mark to move it; drag its
+ * bottom-right handle to resize it (operator, 2026-09-07). Vertical swipes scroll (`pan-y`); a box
+ * is placed on a TAP, never on pointer-down. Boxes are page FRACTIONS so pdf-stamp lands them.
  */
 import { useEffect, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { openPdf, renderPage } from "@/lib/pdf-render";
 import type { StampBox } from "@/lib/pdf-stamp";
 
-const BOX_W = 0.4, BOX_H = 0.08;
+export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string }
+export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.035, MIN_W = 0.08, MIN_H = 0.02;
 
-export function PdfPageView({ bytes, box, onBox, preview, readOnly }: {
-  bytes: Uint8Array; box: StampBox | null; onBox: (b: StampBox) => void; preview?: string | null; readOnly?: boolean;
+export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly }: {
+  bytes: Uint8Array; marks: Mark[]; onMarks: (m: Mark[]) => void; selectedId: string | null; onSelect: (id: string | null) => void;
+  preview?: string | null; readOnly?: boolean;
 }) {
   const { t } = useLexicon();
   const host = useRef<HTMLDivElement>(null);
@@ -21,15 +25,13 @@ export function PdfPageView({ bytes, box, onBox, preview, readOnly }: {
   const [pages, setPages] = useState(0);
   const [err, setErr] = useState("");
   const docRef = useRef<Awaited<ReturnType<typeof openPdf>> | null>(null);
-  const drag = useRef<{ dx: number; dy: number } | null>(null);
+  const marksRef = useRef(marks); marksRef.current = marks;
 
   useEffect(() => {
     let live = true;
     (async () => {
-      try {
-        const doc = await openPdf(bytes); if (!live) return;
-        docRef.current = doc; setPages(doc.numPages); setPage(1);
-      } catch (e) { setErr(String((e as Error).message || e)); }
+      try { const doc = await openPdf(bytes); if (!live) return; docRef.current = doc; setPages(doc.numPages); setPage(1); }
+      catch (e) { setErr(String((e as Error).message || e)); }
     })();
     return () => { live = false; };
   }, [bytes]);
@@ -39,51 +41,51 @@ export function PdfPageView({ bytes, box, onBox, preview, readOnly }: {
     (async () => {
       const doc = docRef.current, el = host.current; if (!doc || !el) return;
       const width = Math.min(el.clientWidth || 343, 640);
-      try {
-        const r = await renderPage(doc, page, width); if (!live) return;
-        el.querySelectorAll("canvas").forEach((c) => c.remove());
-        el.insertBefore(r.canvas, el.firstChild);
-      } catch (e) { setErr(String((e as Error).message || e)); }
+      try { const r = await renderPage(doc, page, width); if (!live) return; el.querySelectorAll("canvas").forEach((c) => c.remove()); el.insertBefore(r.canvas, el.firstChild); }
+      catch (e) { setErr(String((e as Error).message || e)); }
     })();
     return () => { live = false; };
   }, [page, pages]);
 
-  const frac = (e: React.PointerEvent) => {
-    const r = host.current!.getBoundingClientRect();
-    return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
-  };
-  const clamp = (x: number, y: number): StampBox => ({ page, x: Math.min(Math.max(x, 0), 1 - BOX_W), y: Math.min(Math.max(y, 0), 1 - BOX_H), w: BOX_W, h: BOX_H });
+  const frac = (cx: number, cy: number) => { const r = host.current!.getBoundingClientRect(); return { x: (cx - r.left) / r.width, y: (cy - r.top) / r.height }; };
+  const clampBox = (m: Mark): Mark => ({ ...m, w: Math.min(Math.max(m.w, MIN_W), 1), h: Math.min(Math.max(m.h, MIN_H), 1), x: Math.min(Math.max(m.x, 0), 1 - Math.min(Math.max(m.w, MIN_W), 1)), y: Math.min(Math.max(m.y, 0), 1 - Math.min(Math.max(m.h, MIN_H), 1)) });
+  const update = (id: string, patch: Partial<Mark>) => onMarks(marksRef.current.map((m) => (m.id === id ? clampBox({ ...m, ...patch }) : m)));
+  const hit = (p: { x: number; y: number }) => [...marksRef.current].reverse().find((m) => m.page === page && p.x >= m.x && p.x <= m.x + m.w && p.y >= m.y && p.y <= m.y + m.h) ?? null;
+  const onHandle = (p: { x: number; y: number }, m: Mark) => { const r = host.current!.getBoundingClientRect(); const hx = (m.x + m.w) - p.x, hy = (m.y + m.h) - p.y; return hx * r.width < 28 && hy * r.height < 28 && hx >= -0.01 && hy >= -0.01; };
 
-  // Placement rules (Christo, wave 1): vertical scroll keeps working over the page (`pan-y`);
-  // a box is placed on a TAP — pointer-up with no travel — never on pointer-down, so a scroll
-  // attempt or a cancelled gesture cannot stamp a box under the thumb. A down inside an existing
-  // box starts a drag that moves it.
   const onDown = (e: React.PointerEvent) => {
     if (readOnly) return;
-    const p = frac(e);
-    const inside = !!(box && box.page === page && p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h);
+    const p = frac(e.clientX, e.clientY);
+    const m = hit(p);
+    const resizing = !!(m && onHandle(p, m));
     const start = { x: e.clientX, y: e.clientY }; let moved = false;
-    drag.current = inside ? { dx: p.x - box!.x, dy: p.y - box!.y } : null;
+    const off = m ? { dx: p.x - m.x, dy: p.y - m.y } : null;
+    if (m) onSelect(m.id);
     const move = (ev: PointerEvent) => {
       if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 6) moved = true;
-      if (!drag.current) return;
+      if (!m) return;
       ev.preventDefault();
-      const r = host.current!.getBoundingClientRect(); const x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
-      onBox(clamp(x - drag.current.dx, y - drag.current.dy));
+      const q = frac(ev.clientX, ev.clientY);
+      if (resizing) update(m.id, { w: Math.max(MIN_W, q.x - m.x), h: Math.max(MIN_H, q.y - m.y) });
+      else update(m.id, { x: q.x - off!.dx, y: q.y - off!.dy });
     };
     const end = (ev: PointerEvent, cancelled: boolean) => {
       document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", cancel);
-      if (!cancelled && !moved && !drag.current) {
-        const r = host.current!.getBoundingClientRect(); const x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
-        onBox(clamp(x - BOX_W / 2, y - BOX_H / 2));
+      if (!cancelled && !moved && !m) {
+        // a TAP on empty page: place the signature if this file has none yet, else leave the page alone
+        if (!marksRef.current.some((k) => k.kind === "sig")) {
+          const q = frac(ev.clientX, ev.clientY);
+          const sig = clampBox({ id: "sig", kind: "sig", page, x: q.x - SIG_W / 2, y: q.y - SIG_H / 2, w: SIG_W, h: SIG_H });
+          onMarks([...marksRef.current, sig]); onSelect("sig");
+        } else onSelect(null);
       }
-      drag.current = null;
     };
     const up = (ev: PointerEvent) => end(ev, false);
     const cancel = (ev: PointerEvent) => end(ev, true);
     document.addEventListener("pointermove", move, { passive: false }); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", cancel);
   };
 
+  const sigHere = marks.some((m) => m.kind === "sig" && m.page === page);
   return (
     <div>
       <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
@@ -92,14 +94,20 @@ export function PdfPageView({ bytes, box, onBox, preview, readOnly }: {
         <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="min-h-[44px] rounded-md border border-border px-3 disabled:opacity-40">›</button>
       </div>
       <div ref={host} className="relative w-full select-none overflow-hidden rounded-md border border-border bg-white" style={{ touchAction: readOnly ? "auto" : "pan-y" }} onPointerDown={onDown} data-testid="pdf-page">
-        {box && box.page === page && (
-          <div className="pointer-events-none absolute rounded border-2 border-dashed border-cyan-500 bg-cyan-400/10" style={{ left: `${box.x * 100}%`, top: `${box.y * 100}%`, width: `${box.w * 100}%`, height: `${box.h * 100}%` }} data-testid="sig-box">
-            {preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className="h-full w-full object-contain" />}
-          </div>
-        )}
+        {marks.filter((m) => m.page === page).map((m) => {
+          const sel = m.id === selectedId;
+          return (
+            <div key={m.id} className={`pointer-events-none absolute rounded border-2 ${sel ? "border-cyan-500" : "border-cyan-500/60"} ${m.kind === "sig" ? "border-dashed bg-cyan-400/10" : "border-dotted bg-amber-300/10"}`}
+              style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%` }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"}>
+              {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className="h-full w-full object-contain" />}
+              {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "min(14px, 100%)", lineHeight: 1.2 }}>{m.text}</span>}
+              {sel && !readOnly && <span className="absolute -bottom-1.5 -right-1.5 h-4 w-4 rounded-sm border-2 border-white bg-cyan-500" aria-hidden="true" data-testid="resize-handle" />}
+            </div>
+          );
+        })}
         {err && <p className="p-3 text-xs text-red-500">{err}</p>}
       </div>
-      {!readOnly && <p className="mt-1 text-[11px] text-muted-foreground">{box && box.page === page ? t("soi.sign.place_move") : t("soi.sign.place_hint")}</p>}
+      {!readOnly && <p className="mt-1 text-[11px] text-muted-foreground">{sigHere ? t("soi.sign.place_move") : t("soi.sign.place_hint")}</p>}
     </div>
   );
 }

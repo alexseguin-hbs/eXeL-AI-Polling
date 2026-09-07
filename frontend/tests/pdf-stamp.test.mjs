@@ -1,7 +1,7 @@
 // Sign Doc PDF engine — headless gate (Asar, round 1): a stamp is countable, the note's money holds.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/pdf-stamp.test.mjs
 import { buildDocPdf, solvePayment, amortize, promissoryNote } from "../lib/doc-pdf.ts";
-import { stampSignature, countSignatureImages, pageCount } from "../lib/pdf-stamp.ts";
+import { stampSignature, stampText, textBoxes, countSignatureImages, pageCount } from "../lib/pdf-stamp.ts";
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 
 // money — the operator's real note: $11,049 at 11.35% over 42 months
@@ -31,4 +31,7 @@ ok((await countSignatureImages(s2)) === 2, "two stamps → two signature images"
 ok((await pageCount(s2)) === pages, "stamping adds no pages");
 ok(s2.length > s1.length && s1.length > pdf.length, "each stamp grows the file");
 
+// a date mark beside the signature — text fitted into its box, recorded as SoITxt
+const s3 = await stampText(s2, { page: 1, x: 0.1, y: 0.9, w: 0.22, h: 0.035 }, "Sep 7, 2026");
+ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2, "a text mark stamps without touching the signatures");
 console.log(`pdf-stamp: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

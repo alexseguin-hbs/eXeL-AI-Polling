@@ -17,7 +17,7 @@
 import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
-import { countSignatureImages, signatureBoxes } from '../lib/pdf-stamp.ts';
+import { countSignatureImages, signatureBoxes, textBoxes } from '../lib/pdf-stamp.ts';
 
 const BASE = process.env.POD_BASE || 'http://127.0.0.1:3210';
 const OUT = process.env.OUT || '../docs/assessments/sign-live-run';
@@ -41,6 +41,11 @@ const placeAndSign = async (p, who) => {
   // a vertical swipe over the page must NOT move or add a box (Christo, wave 1: pan-y scroll survives)
   await p.mouse.move(bb.x + bb.width * 0.8, bb.y + bb.height * 0.2); await p.mouse.down(); await p.mouse.move(bb.x + bb.width * 0.8, bb.y + bb.height * 0.5, { steps: 6 }); await p.mouse.up();
   step(who, 'a swipe over the page places nothing', (await p.getByTestId('sig-box').count()) === 1);
+  // resize the signature box by its corner handle, then add a date beside it (operator, 2026-09-07)
+  const before = await p.getByTestId('sig-box').boundingBox(); const h = await p.getByTestId('resize-handle').boundingBox();
+  await p.mouse.move(h.x + h.width / 2, h.y + h.height / 2); await p.mouse.down(); await p.mouse.move(h.x + h.width / 2 + 40, h.y + h.height / 2 + 12, { steps: 5 }); await p.mouse.up();
+  const after = await p.getByTestId('sig-box').boundingBox(); step(who, 'signature box resized by its corner', after.width > before.width + 20 && after.height > before.height + 5, `${Math.round(before.width)}→${Math.round(after.width)} px`);
+  await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor(); step(who, 'date mark added beside the signature', /\d{4}/.test(await p.getByTestId('mark-text').inputValue()));
   await p.getByTestId('to-draw').click();
   await draw(p); step(who, 'signature drawn with the pointer');
   await shot(p, who, '3-draw');
@@ -103,7 +108,8 @@ const n = await countSignatureImages(bytes); step('dan', 'downloaded PDF carries
 // geometry (Asar, wave 1): each stamp sits on page 1 where the thumb tapped — the box is centred on the tap
 const boxes = await signatureBoxes(bytes);
 const near = (a, b) => Math.abs(a - b) < 0.06;
-step('dan', 'both stamps landed on page 1 at the tapped spot', boxes.length === 2 && boxes.every((b) => b.page === 1 && near(b.x + b.w / 2, TAP.x) && near(b.y + b.h / 2, TAP.y)), JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2)])));
+step('dan', 'both stamps landed on page 1 where tapped (resized, so the box grew right/down from the tap)', boxes.length === 2 && boxes.every((b) => b.page === 1 && Math.abs(b.x - (TAP.x - 0.2)) < 0.06 && Math.abs(b.y - (TAP.y - 0.04)) < 0.06), JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
+const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document
 await A.goto(myLink, { waitUntil: 'domcontentloaded' }); await ready(A);

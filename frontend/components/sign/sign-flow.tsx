@@ -15,10 +15,10 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope } from "@/lib/sign-store";
-import { stampSignature, pageCount, type StampBox } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, pageCount, type StampBox } from "@/lib/pdf-stamp";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
 import { SignaturePad } from "@/components/sign/signature-pad";
-import { PdfPageView } from "@/components/sign/pdf-page-view";
+import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
 
 type Step = "upload" | "signers" | "place" | "draw" | "saving" | "handoff" | "done" | "error" | "loading" | "waiting" | "not_party";
@@ -37,7 +37,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const [title, setTitle] = useState("");
   const [files, setFiles] = useState<Loaded[]>([]);
   const [signers, setSigners] = useState<{ name: string; contact: string }[]>([{ name: defaultName ?? "", contact: defaultContact ?? "" }, { name: "", contact: "" }]);
-  const [boxes, setBoxes] = useState<Record<number, StampBox>>({});
+  const [marks, setMarks] = useState<Record<number, Mark[]>>({});      // per file: one "sig" + any text marks
+  const [selected, setSelected] = useState<string | null>(null);
   const [fileIdx, setFileIdx] = useState(0);
   const [png, setPng] = useState<string | null>(null);
   const [pub, setPub] = useState<PublicEnvelope | null>(null);
@@ -86,8 +87,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const onFiles = async (list: FileList | null) => { for (const f of Array.from(list ?? [])) await addBytes(f.name, new Uint8Array(await f.arrayBuffer())); };
   const removeFile = (i: number) => {
     setFiles((fs) => fs.filter((_, j) => j !== i));
-    // re-key the boxes above the removed file, or file N+1 inherits file N's box (Enki, wave 2)
-    setBoxes((b) => { const n: Record<number, StampBox> = {}; for (const [k, v] of Object.entries(b)) { const j = Number(k); if (j < i) n[j] = v; else if (j > i) n[j - 1] = v; } return n; });
+    // re-key the marks above the removed file, or file N+1 inherits file N's marks (Enki, wave 2)
+    setMarks((b) => { const n: Record<number, Mark[]> = {}; for (const [k, v] of Object.entries(b)) { const j = Number(k); if (j < i) n[j] = v; else if (j > i) n[j - 1] = v; } return n; });
   };
 
   // ── signers ──────────────────────────────────────────────────────────────────
@@ -96,7 +97,21 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const multi = signers.length > 1;
 
   // ── place + draw ─────────────────────────────────────────────────────────────
-  const allPlaced = files.length > 0 && files.every((_, i) => !!boxes[i]);
+  const sigOf = (i: number): StampBox | undefined => marks[i]?.find((m) => m.kind === "sig");
+  const allPlaced = files.length > 0 && files.every((_, i) => !!sigOf(i));
+  // Text marks: a date or a note placed beside the signature, movable and resizable like it.
+  const addText = (text: string) => {
+    const cur = marks[fileIdx] ?? []; const sig = cur.find((m) => m.kind === "sig");
+    const page = sig?.page ?? 1; const below = sig ? sig.y + sig.h + 0.01 : 0.5; const x = sig ? sig.x : 0.4;
+    const id = `t${Date.now().toString(36)}`;
+    const mark: Mark = { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text };
+    setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
+  };
+  const todayText = () => new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
+  const setSelText = (text: string) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, text } : m)) }));
+  const removeSel = () => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== selected) })); setSelected(null); };
+  const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, w: Math.min(1, Math.max(0.08, m.w * f)), h: Math.min(1, Math.max(0.02, m.h * f)) } : m)) }));
   const myIdx = countersign ? (pub?.party ?? 0) : 0;
   const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[0]?.name ?? "";
 
@@ -112,7 +127,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       const stampedBytes: { name: string; bytes: Uint8Array }[] = [];
       for (let i = 0; i < files.length; i++) {
         const f = files[i];
-        const out = await stampSignature(f.bytes, boxes[i], { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
+        let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
+        for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim());
         const sha = await sha256Hex(out);
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });
@@ -142,7 +158,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       setErr(ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex));
       setStep(countersign ? "place" : "draw");
     }
-  }, [png, allPlaced, files, boxes, myName, countersign, pub, title, signers, token, secret, myIdx, t]);
+  }, [png, allPlaced, files, marks, myName, countersign, pub, title, signers, token, secret, myIdx, t]);
 
   const download = (f: { name: string; bytes: Uint8Array }, final = true) => {
     const url = URL.createObjectURL(new Blob([f.bytes as BlobPart], { type: "application/pdf" }));
@@ -259,11 +275,23 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
           {files.length > 1 && (
             <div className="mt-2 mb-2 flex flex-wrap gap-1">
               {files.map((f, i) => (
-                <button key={i} type="button" onClick={() => setFileIdx(i)} className="min-h-[44px] rounded-full border px-3 text-xs" style={{ borderColor: i === fileIdx ? hue.bright : boxes[i] ? hue.dim : "var(--border)" }}>{boxes[i] ? "✓ " : ""}{f.name}</button>
+                <button key={i} type="button" onClick={() => setFileIdx(i)} className="min-h-[44px] rounded-full border px-3 text-xs" style={{ borderColor: i === fileIdx ? hue.bright : sigOf(i) ? hue.dim : "var(--border)" }}>{sigOf(i) ? "✓ " : ""}{f.name}</button>
               ))}
             </div>
           )}
-          <PdfPageView bytes={files[fileIdx].bytes} box={boxes[fileIdx] ?? null} onBox={(b) => setBoxes((x) => ({ ...x, [fileIdx]: b }))} preview={png} />
+          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} />
+          {/* marks toolbar: add a date or a note; size the selected mark; edit its text */}
+          <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="marks-toolbar">
+            <button type="button" onClick={() => addText(todayText())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-date">+ {t("soi.sign.add_date")}</button>
+            <button type="button" onClick={() => addText(t("soi.sign.text_default"))} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-text">+ {t("soi.sign.add_text")}</button>
+            {selMark && <>
+              <button type="button" onClick={() => resizeSel(0.85)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.smaller")}>−</button>
+              <button type="button" onClick={() => resizeSel(1.18)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.larger")}>+</button>
+              {selMark.kind === "text" && <input value={selMark.text ?? ""} onChange={(e) => setSelText(e.target.value)} placeholder={t("soi.sign.text_ph")} className="min-h-[44px] min-w-[140px] flex-1 rounded-md border border-border bg-background px-2 text-sm" data-testid="mark-text" />}
+              {selMark.kind === "text" && <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.remove_mark")}>✕</button>}
+            </>}
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.marks_hint")}</p>
           <div className="mt-3 flex gap-2">
             {!countersign && <button type="button" onClick={() => setStep("signers")} className="min-h-[44px] rounded-md border border-border px-4 text-sm">{t("soi.sign.back")}</button>}
             <button type="button" disabled={!allPlaced} onClick={() => setStep("draw")} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="to-draw">{t("soi.sign.next_draw")}</button>
