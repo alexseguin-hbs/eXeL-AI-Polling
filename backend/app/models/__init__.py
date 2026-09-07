@@ -17,6 +17,7 @@ from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
 from app.models.scoping import Differentiator, Project, Specification
 from app.models.session import Session
+from app.models.sign_envelope import SignEnvelope, SignEvent, SignFile
 from app.models.simulation_run import SimulationRun
 from app.models.stt_provider import STTProviderConfig
 from app.models.text_response import TextResponse
@@ -31,6 +32,9 @@ from app.models.voice_response import VoiceResponse
 from app.models.webhook import WebhookDelivery, WebhookSubscription
 
 __all__ = [
+    "SignEnvelope",
+    "SignEvent",
+    "SignFile",
     "AICostLog",
     "ApiKey",
     "AuditLog",
