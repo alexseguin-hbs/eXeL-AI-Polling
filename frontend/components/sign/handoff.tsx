@@ -12,10 +12,10 @@ import { contactKind, normalizeContact, handoffMessage } from "@/lib/sign-envelo
 export function Handoff({ link, sender, title, nextName, nextContact }: { link: string; sender: string; title: string; nextName: string; nextContact: string }) {
   const { t } = useLexicon();
   const [copied, setCopied] = useState(false);
-  const msg = handoffMessage(sender || "Someone", title, link);
+  const msg = handoffMessage(sender || t("soi.sign.handoff.someone"), title, link, t("soi.sign.handoff.template"));
   const kind = contactKind(nextContact);
   const sms = `sms:${kind === "phone" ? normalizeContact(nextContact) : ""}?&body=${encodeURIComponent(msg)}`;
-  const mail = `mailto:${kind === "email" ? normalizeContact(nextContact) : ""}?subject=${encodeURIComponent(`Please sign: ${title}`)}&body=${encodeURIComponent(msg)}`;
+  const mail = `mailto:${kind === "email" ? normalizeContact(nextContact) : ""}?subject=${encodeURIComponent(`${t("soi.sign.handoff.subject")} ${title}`)}&body=${encodeURIComponent(msg)}`;
   const copy = async () => { try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* no clipboard */ } };
   return (
     <div className="rounded-lg border border-cyan-400/40 bg-cyan-400/5 p-4">

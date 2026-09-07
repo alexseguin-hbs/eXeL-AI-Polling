@@ -113,6 +113,8 @@ export function solvePayment(principal: number, apr: number, months: number): nu
  * instead; a stated residual in the last row is the honest form of the same intent.)
  */
 export function amortize(principal: number, apr: number, months: number, payment: number, firstDate: Date): AmortRow[] {
+  if (!(principal > 0) || !(months >= 1) || !(payment > 0)) throw new Error("bad_terms");
+  if (payment <= r2(principal * apr / 100 / 12)) throw new Error("payment_too_small");   // never a growing balance (Athena, wave 1)
   const rows: AmortRow[] = []; let bal = r2(principal);
   for (let n = 1; n <= months; n++) {
     const d = new Date(Date.UTC(firstDate.getUTCFullYear(), firstDate.getUTCMonth() + n - 1, firstDate.getUTCDate()));

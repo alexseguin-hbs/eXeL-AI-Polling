@@ -1,3 +1,9 @@
+# The pdfjs worker (copied by scripts/copy-pdf-worker.mjs) must load as JavaScript under nosniff —
+# a MIME mismatch here is a hard worker-load failure for every PDF render (Athena, wave 1).
+/pdf.worker.min.mjs
+  Content-Type: text/javascript; charset=utf-8
+  Cache-Control: public, max-age=86400
+
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN

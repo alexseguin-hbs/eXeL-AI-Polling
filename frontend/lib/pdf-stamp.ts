@@ -22,8 +22,11 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const page = pages[Math.min(Math.max(box.page, 1), pages.length) - 1];
   const { width, height } = page.getSize();
   const png = await doc.embedPng(dataUrlBytes(sig.pngDataUrl));
-  const bw = Math.max(24, box.w * width), bh = Math.max(12, box.h * height);
-  const bx = box.x * width, by = height - box.y * height - bh;                 // PDF origin is bottom-left
+  // Record the placement as page-fraction metadata so `signatureBoxes()` can read it back (Asar, wave 1).
+  const bw = Math.min(Math.max(24, box.w * width), width), bh = Math.min(Math.max(12, box.h * height), height);
+  // Clamp to the page (Athena, wave 1): a box tapped at the edge stays on the page, never off it.
+  const bx = Math.min(Math.max(box.x * width, 0), width - bw);
+  const by = Math.min(Math.max(height - box.y * height - bh, 0), height - bh);   // PDF origin is bottom-left
   // Keep the image's aspect inside the box; caption below it.
   const capH = Math.min(9, bh * 0.28);
   const imgH = bh - capH - 2;
@@ -37,7 +40,19 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const caption = `${sig.name} · ${sig.isoDate} · #${sig.hash}`;
   page.drawText(caption, { x: bx, y: by, size: capH * 0.9, font, color: rgb(0.1, 0.1, 0.1), maxWidth: bw });
   page.drawLine({ start: { x: bx, y: by + capH + 1 }, end: { x: bx + bw, y: by + capH + 1 }, thickness: 0.5, color: rgb(0.2, 0.2, 0.2) });
+  const prev = doc.getKeywords() ?? "";
+  doc.setKeywords([...(prev ? prev.split(" ") : []), `SoISig:${box.page}:${(bx / width).toFixed(4)}:${(1 - (by + bh) / height).toFixed(4)}:${(bw / width).toFixed(4)}:${(bh / height).toFixed(4)}`]);
   return doc.save({ useObjectStreams: false });
+}
+
+/** Every stamp's page + rect (page fractions, top-left origin) as recorded at stamp time. */
+export async function signatureBoxes(pdf: Uint8Array): Promise<StampBox[]> {
+  const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
+  const kw = doc.getKeywords() ?? "";
+  return kw.split(/\s+/).filter((k) => k.startsWith("SoISig:")).map((k) => {
+    const [, page, x, y, w, h] = k.split(":");
+    return { page: Number(page), x: Number(x), y: Number(y), w: Number(w), h: Number(h) };
+  });
 }
 
 function countSignatureNames(xobj: unknown): number {

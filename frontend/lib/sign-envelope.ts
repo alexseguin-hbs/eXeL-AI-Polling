@@ -8,7 +8,7 @@
  * the same rules server-side.
  */
 
-export type SignStatus = "awaiting" | "complete" | "revoked" | "expired";
+export type SignStatus = "awaiting" | "complete" | "revoked" | "expired" | "locked";
 
 export interface Signer {
   name: string;
@@ -38,7 +38,7 @@ export interface Envelope {
   expires_at?: string | null;
 }
 
-export type SignRefusal = "complete" | "revoked" | "expired" | "not_your_turn" | "bad_secret";
+export type SignRefusal = "complete" | "revoked" | "expired" | "locked" | "not_your_turn" | "bad_secret";
 
 export const ENVELOPE_TTL_DAYS = 30;
 export const MAX_FILE_BYTES = 3 * 1024 * 1024;     // Thoth, round 1: keep one RPC body under the PostgREST limit
@@ -79,6 +79,7 @@ export function whoseTurn(env: Envelope): Signer | null {
 export function canSign(env: Envelope, idx: number, secret: string): { ok: true } | { ok: false; reason: SignRefusal } {
   if (env.status === "complete") return { ok: false, reason: "complete" };
   if (env.status === "revoked") return { ok: false, reason: "revoked" };
+  if (env.status === "locked") return { ok: false, reason: "locked" };
   if (env.status === "expired" || (env.expires_at && Date.parse(env.expires_at) < Date.now())) return { ok: false, reason: "expired" };
   if (idx !== env.current_signer_idx) return { ok: false, reason: "not_your_turn" };
   const s = env.signers[idx];
@@ -148,8 +149,9 @@ export function signLink(origin: string, token: string, secret: string): string 
   return `${origin}/soi-session/sign/?e=${encodeURIComponent(token)}&s=${encodeURIComponent(secret)}`;
 }
 
-export function handoffMessage(sender: string, title: string, link: string): string {
-  return `${sender} asks you to sign "${title}" on eXeL — no account, no fee. Open: ${link}`;
+export const HANDOFF_TEMPLATE = '{sender} asks you to sign "{title}" on eXeL — no account, no fee. Open: {link}';
+export function handoffMessage(sender: string, title: string, link: string, template: string = HANDOFF_TEMPLATE): string {
+  return template.replace("{sender}", sender).replace("{title}", title).replace("{link}", link);
 }
 
 /** Build a fresh envelope from the creator's inputs; secrets are minted here, one per signer. */

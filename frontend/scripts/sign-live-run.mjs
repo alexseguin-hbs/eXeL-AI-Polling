@@ -17,7 +17,7 @@
 import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
-import { countSignatureImages } from '../lib/pdf-stamp.ts';
+import { countSignatureImages, signatureBoxes } from '../lib/pdf-stamp.ts';
 
 const BASE = process.env.POD_BASE || 'http://127.0.0.1:3210';
 const OUT = process.env.OUT || '../docs/assessments/sign-live-run';
@@ -27,6 +27,7 @@ const log = []; const t0 = Date.now();
 const step = (who, what, ok = true, extra = '') => { const l = `${String(Date.now() - t0).padStart(6)}ms  ${who.padEnd(5)} ${ok ? 'OK ' : 'FAIL'} ${what}${extra ? '  ' + extra : ''}`; console.log(l); log.push(l); if (!ok) { fs.writeFileSync(OUT + '/log.txt', log.join('\n')); throw new Error(what); } };
 const shot = (p, who, name) => p.screenshot({ path: `${OUT}/${name}-${who}.jpg`, type: 'jpeg', quality: 55, fullPage: true });
 const ready = async (p) => { await p.waitForSelector('next-route-announcer', { state: 'attached', timeout: 90000 }); await p.waitForTimeout(400); };
+const TAP = { x: 0.3, y: 0.75 };            // where each phone taps, as page fractions — read back from the PDF at the end
 const draw = async (p) => {
   const c = p.locator('canvas[aria-label]').first(); const b = await c.boundingBox();
   await p.mouse.move(b.x + 20, b.y + 80); await p.mouse.down();
@@ -35,8 +36,11 @@ const draw = async (p) => {
 };
 const placeAndSign = async (p, who) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 }); step(who, 'PDF page rendered (pdfjs)');
-  const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * 0.3, bb.y + bb.height * 0.75);
+  const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * TAP.x, bb.y + bb.height * TAP.y);
   await p.getByTestId('sig-box').waitFor(); step(who, 'signature box placed by tap');
+  // a vertical swipe over the page must NOT move or add a box (Christo, wave 1: pan-y scroll survives)
+  await p.mouse.move(bb.x + bb.width * 0.8, bb.y + bb.height * 0.2); await p.mouse.down(); await p.mouse.move(bb.x + bb.width * 0.8, bb.y + bb.height * 0.5, { steps: 6 }); await p.mouse.up();
+  step(who, 'a swipe over the page places nothing', (await p.getByTestId('sig-box').count()) === 1);
   await p.getByTestId('to-draw').click();
   await draw(p); step(who, 'signature drawn with the pointer');
   await shot(p, who, '3-draw');
@@ -73,6 +77,7 @@ await placeAndSign(A, 'alex');
 const linkEl = A.getByTestId('handoff-link'); await linkEl.waitFor({ timeout: 60000 });
 const link = (await linkEl.innerText()).trim(); step('alex', 'saved — hand-off link minted for Daniel', /\/soi-session\/sign\/\?e=[A-Za-z0-9_-]{22}&s=[A-Za-z0-9_-]{22}$/.test(link), link.slice(0, 60) + '…');
 await shot(A, 'alex', '4-handoff');
+const myLink = (await A.getByTestId('my-link').locator('code').innerText()).trim(); step('alex', 'creator keeps his own return link', /\?e=[A-Za-z0-9_-]{22}&s=[A-Za-z0-9_-]{22}$/.test(myLink) && myLink !== link);
 const smsHref = await A.getByRole('link', { name: /Send by text/ }).getAttribute('href');
 step('alex', 'sms: composer prefilled to Daniel', smsHref.startsWith('sms:5125550100') && /Alex%20Seguin%20asks%20you%20to%20sign/.test(smsHref));
 
@@ -96,7 +101,15 @@ const [dl] = await Promise.all([D.waitForEvent('download'), D.getByTestId('downl
 const file = path.join(OUT, 'signed-sample.pdf'); await dl.saveAs(file);
 const bytes = new Uint8Array(fs.readFileSync(file));
 const n = await countSignatureImages(bytes); step('dan', 'downloaded PDF carries two signature images', n === 2, `SoISig count = ${n}`);
+// geometry (Asar, wave 1): each stamp sits on page 1 where the thumb tapped — the box is centred on the tap
+const boxes = await signatureBoxes(bytes);
+const near = (a, b) => Math.abs(a - b) < 0.06;
+step('dan', 'both stamps landed on page 1 at the tapped spot', boxes.length === 2 && boxes.every((b) => b.page === 1 && near(b.x + b.w / 2, TAP.x) && near(b.y + b.h / 2, TAP.y)), JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2)])));
 
-// 5 · Alex, reopening his own creator secret would need the secret he never saw again; the stranger path already proved refusal.
+// 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document
+await A.goto(myLink, { waitUntil: 'domcontentloaded' }); await ready(A);
+await A.getByTestId('downloads').waitFor({ timeout: 60000 }); step('alex', 'creator reopens with his own link → COMPLETE, downloads offered');
+await shot(A, 'alex', '7-complete');
+
 fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
 await browser.close(); console.log(`\nSIGN 2-PHONE LIVE RUN: ${log.length} steps, 0 failures`);

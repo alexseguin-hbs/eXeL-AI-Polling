@@ -54,18 +54,34 @@ export function PdfPageView({ bytes, box, onBox, preview, readOnly }: {
   };
   const clamp = (x: number, y: number): StampBox => ({ page, x: Math.min(Math.max(x, 0), 1 - BOX_W), y: Math.min(Math.max(y, 0), 1 - BOX_H), w: BOX_W, h: BOX_H });
 
+  // Placement rules (Christo, wave 1): vertical scroll keeps working over the page (`pan-y`);
+  // a box is placed on a TAP — pointer-up with no travel — never on pointer-down, so a scroll
+  // attempt or a cancelled gesture cannot stamp a box under the thumb. A down inside an existing
+  // box starts a drag that moves it.
   const onDown = (e: React.PointerEvent) => {
     if (readOnly) return;
     const p = frac(e);
-    const inside = box && box.page === page && p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h;
-    drag.current = inside ? { dx: p.x - box!.x, dy: p.y - box!.y } : { dx: BOX_W / 2, dy: BOX_H / 2 };
-    onBox(clamp(p.x - drag.current.dx, p.y - drag.current.dy));
+    const inside = !!(box && box.page === page && p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h);
+    const start = { x: e.clientX, y: e.clientY }; let moved = false;
+    drag.current = inside ? { dx: p.x - box!.x, dy: p.y - box!.y } : null;
     const move = (ev: PointerEvent) => {
+      if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 6) moved = true;
+      if (!drag.current) return;
+      ev.preventDefault();
       const r = host.current!.getBoundingClientRect(); const x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
-      onBox(clamp(x - drag.current!.dx, y - drag.current!.dy));
+      onBox(clamp(x - drag.current.dx, y - drag.current.dy));
     };
-    const up = () => { drag.current = null; document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); };
-    document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+    const end = (ev: PointerEvent, cancelled: boolean) => {
+      document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", cancel);
+      if (!cancelled && !moved && !drag.current) {
+        const r = host.current!.getBoundingClientRect(); const x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+        onBox(clamp(x - BOX_W / 2, y - BOX_H / 2));
+      }
+      drag.current = null;
+    };
+    const up = (ev: PointerEvent) => end(ev, false);
+    const cancel = (ev: PointerEvent) => end(ev, true);
+    document.addEventListener("pointermove", move, { passive: false }); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", cancel);
   };
 
   return (
@@ -75,7 +91,7 @@ export function PdfPageView({ bytes, box, onBox, preview, readOnly }: {
         <span>{t("soi.sign.page")} {page} / {pages || "…"}</span>
         <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="min-h-[44px] rounded-md border border-border px-3 disabled:opacity-40">›</button>
       </div>
-      <div ref={host} className="relative w-full select-none overflow-hidden rounded-md border border-border bg-white" style={{ touchAction: readOnly ? "auto" : "none" }} onPointerDown={onDown} data-testid="pdf-page">
+      <div ref={host} className="relative w-full select-none overflow-hidden rounded-md border border-border bg-white" style={{ touchAction: readOnly ? "auto" : "pan-y" }} onPointerDown={onDown} data-testid="pdf-page">
         {box && box.page === page && (
           <div className="pointer-events-none absolute rounded border-2 border-dashed border-cyan-500 bg-cyan-400/10" style={{ left: `${box.x * 100}%`, top: `${box.y * 100}%`, width: `${box.w * 100}%`, height: `${box.h * 100}%` }} data-testid="sig-box">
             {preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className="h-full w-full object-contain" />}

@@ -9,8 +9,10 @@ taps **Sign Doc**, uploads a two-page promissory note (synthetic names), names i
 signer (one e-mail, one phone), taps the page to place the box, draws a stroke, stamps, saves — and
 is handed the second signer's link, prefilled into the phone's own text composer. Phone B opens
 that link **with no account and no login**, sees that it is its turn, places, draws, stamps; the
-envelope completes; the downloaded PDF carries **exactly two** signature images. A wrong secret
-sees the masked roster and no file bytes.
+envelope completes; the downloaded PDF carries **exactly two** signature images, **each on page 1 at
+the tapped spot** (read back from the PDF). A vertical swipe over the page places nothing. A wrong
+secret sees the masked roster and no file bytes. Alex reopens with **his own kept link** and finds the
+completed document.
 
 **On real SQL.** The relay serves migration `036_sign_envelopes.sql` from a real Postgres (PGlite),
 so the RPCs — not a mock — decided every step: create · get · sign · the baton (each signer's secret
@@ -19,27 +21,32 @@ complete · revoke-after-complete refused. The hosted Supabase project still has
 Auth0 login on the creator path is bypassed locally (`NEXT_PUBLIC_SIGN_NO_AUTH=1`) and is
 **UNVERIFIED** until the operator signs in on the live site.
 
-## Outcome — 18 steps, 0 failures
+## Outcome — 23 steps, 0 failures
 
 ```
-  5956ms  alex  OK  landing → Sign Doc
-  6002ms  alex  OK  PDF uploaded, hashed, page-counted
-  6120ms  alex  OK  two signers named (email + phone)
-  7028ms  alex  OK  PDF page rendered (pdfjs)
-  7045ms  alex  OK  signature box placed by tap
-  7714ms  alex  OK  signature drawn with the pointer
-  7884ms  alex  OK  Sign & save pressed
-  7946ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=YAR0qnkqrBwd1oIs8e…
-  7989ms  alex  OK  sms: composer prefilled to Daniel
- 10054ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
- 12277ms  dan   OK  opened the hand-off link, no login
- 12280ms  dan   OK  roster: Alex signed, Daniel now
- 12338ms  dan   OK  PDF page rendered (pdfjs)
- 12356ms  dan   OK  signature box placed by tap
- 13028ms  dan   OK  signature drawn with the pointer
- 13200ms  dan   OK  Sign & save pressed
- 13232ms  dan   OK  COMPLETE — every signer has signed
- 13314ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+  3716ms  alex  OK  landing → Sign Doc
+  3763ms  alex  OK  PDF uploaded, hashed, page-counted
+  3877ms  alex  OK  two signers named (email + phone)
+  4266ms  alex  OK  PDF page rendered (pdfjs)
+  4283ms  alex  OK  signature box placed by tap
+  4395ms  alex  OK  a swipe over the page places nothing
+  5062ms  alex  OK  signature drawn with the pointer
+  5235ms  alex  OK  Sign & save pressed
+  5297ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=b0KNsSSrPF4MkrBKjz…
+  5337ms  alex  OK  creator keeps his own return link
+  5341ms  alex  OK  sms: composer prefilled to Daniel
+  6923ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+  9043ms  dan   OK  opened the hand-off link, no login
+  9046ms  dan   OK  roster: Alex signed, Daniel now
+  9106ms  dan   OK  PDF page rendered (pdfjs)
+  9125ms  dan   OK  signature box placed by tap
+  9243ms  dan   OK  a swipe over the page places nothing
+  9910ms  dan   OK  signature drawn with the pointer
+ 10092ms  dan   OK  Sign & save pressed
+ 10123ms  dan   OK  COMPLETE — every signer has signed
+ 10194ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+ 10199ms  dan   OK  both stamps landed on page 1 at the tapped spot  [[1,0.1,0.71],[1,0.1,0.71]]
+ 12164ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
 ```
 
 Reproduce: `cd frontend && npm run pod:relay` ·

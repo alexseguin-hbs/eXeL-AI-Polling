@@ -41,6 +41,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const [png, setPng] = useState<string | null>(null);
   const [pub, setPub] = useState<PublicEnvelope | null>(null);
   const [nextLink, setNextLink] = useState("");
+  const [myLink, setMyLink] = useState("");                     // the creator's own return link — "yours, keep it" (Christo, wave 1)
   const [nextName, setNextName] = useState(""); const [nextContact, setNextContact] = useState("");
   const [signed, setSigned] = useState<{ name: string; bytes: Uint8Array }[]>([]);
   const envRef = useRef<Envelope | null>(null);
@@ -124,6 +125,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       const nextSecret = result.next_secret ?? (envRef.current?.signers[result.current_signer_idx]?.secret ?? "");
       setNextName(nxt?.name ?? ""); setNextContact(countersign ? "" : signers[result.current_signer_idx]?.contact ?? "");
       setNextLink(signLink(window.location.origin, result.token, nextSecret));
+      setMyLink(signLink(window.location.origin, result.token, countersign ? secret! : envRef.current?.signers[0]?.secret ?? ""));
       setStep("handoff");
     } catch (ex) {
       setErr(ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex));
@@ -131,9 +133,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
     }
   }, [png, allPlaced, files, boxes, myName, countersign, pub, title, signers, token, secret, myIdx, t]);
 
-  const download = (f: { name: string; bytes: Uint8Array }) => {
+  const download = (f: { name: string; bytes: Uint8Array }, final = true) => {
     const url = URL.createObjectURL(new Blob([f.bytes as BlobPart], { type: "application/pdf" }));
-    const a = document.createElement("a"); a.href = url; a.download = f.name.replace(/\.pdf$/i, "") + "-signed.pdf"; document.body.appendChild(a); a.click(); a.remove();
+    // A half-signed file is named as such, so two downloads never look alike (Christo, wave 1).
+    const a = document.createElement("a"); a.href = url; a.download = f.name.replace(/\.pdf$/i, "") + (final ? "-signed.pdf" : "-partly-signed.pdf"); document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   };
 
@@ -165,7 +168,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         <li key={i} className="flex items-center justify-between rounded border border-border px-2 py-1">
           <span>{i + 1}. {s.name} <span className="text-muted-foreground">{s.contact_masked}</span>{s.me && <span className="ml-1 rounded bg-cyan-400/15 px-1 text-[10px]">{t("soi.sign.you")}</span>}</span>
           <span className={s.signed_at ? "text-green-500" : i === pub.current_signer_idx && pub.status === "awaiting" ? "text-cyan-400" : "text-muted-foreground"}>
-            {s.signed_at ? `✓ ${t("soi.sign.signed")}` : i === pub.current_signer_idx && pub.status === "awaiting" ? t("soi.sign.turn_now") : t("soi.sign.pending")}
+            {s.signed_at ? `✓ ${t("soi.sign.signed")}` : i === pub.current_signer_idx && pub.status === "awaiting" ? (s.me ? t("soi.sign.turn_you") : t("soi.sign.turn_now")) : t("soi.sign.pending")}
           </span>
         </li>
       ))}
@@ -175,7 +178,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   return (
     <section className="rounded-xl border border-border bg-card p-4 sm:p-5">
       {/* rail */}
-      <ol className="mb-3 flex flex-wrap gap-1 text-[10px] uppercase tracking-wide" aria-label="steps">
+      <ol className="mb-3 flex flex-wrap gap-1 text-[10px] uppercase tracking-wide" aria-label={t("soi.sign.steps_aria")}>
         {rail.map((r) => (
           <li key={r.k} className="rounded-full border px-2 py-0.5" style={{ borderColor: r.on ? TRINITY_COLORS.family : r.past ? TRINITY_COLORS.temporal : "var(--border)", color: r.on ? TRINITY_COLORS.family : r.past ? TRINITY_COLORS.temporal : "var(--muted-foreground)" }}>{t(`soi.sign.step.${r.k}`)}</li>
         ))}
@@ -204,7 +207,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
               {files.map((f, i) => (
                 <li key={i} className="flex items-center justify-between rounded border border-border px-2 py-1">
                   <span>{f.name} <span className="text-xs text-muted-foreground">· {f.pages} {t("soi.sign.pages")} · #{shortHash(f.sha256)}</span></span>
-                  <button type="button" onClick={() => removeFile(i)} className="min-h-[36px] px-2 text-xs text-muted-foreground">✕</button>
+                  <button type="button" onClick={() => removeFile(i)} className="min-h-[44px] px-3 text-xs text-muted-foreground">✕</button>
                 </li>
               ))}
             </ul>
@@ -244,7 +247,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
           {files.length > 1 && (
             <div className="mt-2 mb-2 flex flex-wrap gap-1">
               {files.map((f, i) => (
-                <button key={i} type="button" onClick={() => setFileIdx(i)} className="min-h-[36px] rounded-full border px-3 text-xs" style={{ borderColor: i === fileIdx ? TRINITY_COLORS.family : boxes[i] ? TRINITY_COLORS.temporal : "var(--border)" }}>{boxes[i] ? "✓ " : ""}{f.name}</button>
+                <button key={i} type="button" onClick={() => setFileIdx(i)} className="min-h-[44px] rounded-full border px-3 text-xs" style={{ borderColor: i === fileIdx ? TRINITY_COLORS.family : boxes[i] ? TRINITY_COLORS.temporal : "var(--border)" }}>{boxes[i] ? "✓ " : ""}{f.name}</button>
               ))}
             </div>
           )}
@@ -276,7 +279,17 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         <div>
           <Roster />
           <div className="mt-3"><Handoff link={nextLink} sender={myName} title={pub?.title ?? title} nextName={nextName} nextContact={nextContact} /></div>
-          <div className="mt-3 flex flex-wrap gap-2">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="min-h-[44px] rounded-md border border-border px-3 text-sm">⤓ {f.name}</button>)}</div>
+          {myLink && (
+            <div className="mt-3 rounded-lg border border-border p-3 text-xs" data-testid="my-link">
+              <div className="font-medium">{t("soi.sign.mylink.title")}</div>
+              <p className="text-muted-foreground">{t("soi.sign.mylink.hint")}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <code className="break-all text-[11px] text-muted-foreground">{myLink}</code>
+                <button type="button" onClick={() => { try { navigator.clipboard.writeText(myLink); } catch { /* no clipboard */ } }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("soi.sign.handoff.copy")}</button>
+              </div>
+            </div>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f, false)} className="min-h-[44px] rounded-md border border-border px-3 text-sm">⤓ {f.name} · {t("soi.sign.partly")}</button>)}</div>
         </div>
       )}
 
