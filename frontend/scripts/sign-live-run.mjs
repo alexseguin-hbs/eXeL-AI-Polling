@@ -124,8 +124,16 @@ const placeAndSign = async (p, who) => {
   const tb = await p.getByTestId('text-box').boundingBox(), sbb = await p.getByTestId('sig-box').boundingBox();
   step(who, 'the date SNAPS to the document\'s own "Date:" line under the signature (fitted, below the box, one text line tall)', (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline' && tb.y > sbb.y + sbb.height - 2 && tb.height < sbb.height, `date box ${Math.round(tb.width)}×${Math.round(tb.height)} px at +${Math.round(tb.y - (sbb.y + sbb.height))} px under the signature box`);
   await p.getByTestId('to-draw').click();
-  await scribble(p, who); const ink = await inkOnPad(p);
-  step(who, 'signature SCRIBBLED with the pointer — ink on the pad, spanning it', ink.share > 0.015 && ink.span > 0.6, `ink ${(ink.share * 100).toFixed(1)} % of the pad, span ${(ink.span * 100).toFixed(0)} %`);
+  if (who === 'dan' && fs.existsSync(path.join(OUT, 'alex-stroke.png'))) {
+    // the OTHER way to sign: upload a signature image (Asar's gap) — Daniel uploads a PNG of a stroke
+    await p.locator('input[type="file"][accept*="image/png"]').setInputFiles(path.join(OUT, 'alex-stroke.png'));
+    await p.locator('img[src^="data:image/png"]').first().waitFor({ timeout: 10000 });
+    step(who, 'signature UPLOADED as a PNG image (the second way to sign) — preview shown on the pad');
+  } else {
+    await scribble(p, who); const ink = await inkOnPad(p);
+    step(who, 'signature SCRIBBLED with the pointer — ink on the pad, spanning it', ink.share > 0.015 && ink.span > 0.6, `ink ${(ink.share * 100).toFixed(1)} % of the pad, span ${(ink.span * 100).toFixed(0)} %`);
+    if (who === 'alex') { const durl = await p.locator('canvas[aria-label]').first().evaluate((c) => c.toDataURL('image/png')); fs.writeFileSync(path.join(OUT, 'alex-stroke.png'), Buffer.from(durl.split(',')[1], 'base64')); }
+  }
   await shot(p, who, '3-draw');
   // back to the page: the scribble previews inside the fitted box, on the rule (what the PDF will carry)
   await p.getByRole('button', { name: /Back/ }).click(); await p.getByTestId('sig-box').locator('img').waitFor({ timeout: 10000 });

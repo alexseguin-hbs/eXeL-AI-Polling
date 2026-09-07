@@ -953,6 +953,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.diag.todo.worker", englishDefault: "The PDF renderer did not load, so no page can be drawn. Reload once; if it stays missing, this build is stale — wait for the next deploy.", context: "Sign Doc diag sentence: pdf worker missing", cubeId: 8 },
   { key: "soi.sign.err.slow", englishDefault: "Still stamping after 30 seconds. The save is bounded to 45 s and will report; if it fails, tap Sign & save again — your draft is kept on this device.", context: "Sign Doc: watchdog line while saving takes long", cubeId: 8 },
   { key: "soi.sign.err.timeout", englishDefault: "Supabase did not answer in 45 seconds.", context: "Sign Doc: Error — RPC timeout", cubeId: 8 },
+  { key: "soi.sign.err.auth_loading", englishDefault: "Still signing you in — one moment, then tap Sign & save again.", context: "Sign Doc: the Auth0 SDK is still hydrating after the redirect", cubeId: 8 },
   { key: "soi.sign.err.draft_too_large", englishDefault: "These files are too large to keep across the login. Sign in first (link above), then upload again.", context: "Sign Doc: Error — sessionStorage quota", cubeId: 8 },
   { key: "soi.sign.stage.open", englishDefault: "Opening", context: "Sign Doc: error prefix — the step that failed", cubeId: 8 },
   { key: "soi.sign.stage.stamp", englishDefault: "Stamping", context: "Sign Doc: error prefix — the step that failed", cubeId: 8 },

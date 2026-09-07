@@ -22,6 +22,9 @@ ok(pdf.length > 2000 && String.fromCharCode(...pdf.slice(0, 5)) === "%PDF-", "PD
 const pages = await pageCount(pdf); ok(pages >= 2, `note + schedule spans ≥ 2 pages (got ${pages})`);
 ok((await countSignatureImages(pdf)) === 0, "fresh document carries no signature image");
 
+// the CAC-style stamp is a pure function of the instant — fixed clock, UTC, second precision (Odin)
+ok(cacStamp("2026-09-07T23:22:39.655Z") === "2026.09.07 23:22:39 UTC" && cacStamp("2026-01-01T00:00:00Z") === "2026.01.01 00:00:00 UTC", `cacStamp fixed-clock (got ${cacStamp("2026-09-07T23:22:39.655Z")})`);
+
 // stamp once → exactly one SoISig image; twice → two
 const png1x1 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 const s1 = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.08 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-07T12:00:00Z", hash: "ba7816bf" });

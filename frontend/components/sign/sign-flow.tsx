@@ -183,6 +183,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const passMarks = () => files.map((_, i) => (marks[i] ?? []).map((m) => ({ kind: m.kind, page: m.page, x: +m.x.toFixed(4), y: +m.y.toFixed(4), w: +m.w.toFixed(4), h: +m.h.toFixed(4), ...(m.kind === "text" ? { text: (m.text ?? "").slice(0, 200) } : {}) })));
   const sign = useCallback(async () => {
     if (!png || !allPlaced) return;
+    if (requireLogin && auth.isLoading) { setErr(t("soi.sign.err.auth_loading")); return; }   // the SDK is still hydrating after the redirect — a second tap must not loop the login (fleet, Krishna)
     if (requireLogin && !auth.isAuthenticated) {                // the login comes at the moment of saving, the draft rides along
       if (!keepDraft(snapshot())) { setErr(t("soi.sign.err.draft_too_large")); return; }
       setStep("login"); setErr("");
@@ -400,7 +401,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
           <SignaturePad onChange={(p) => { if (p !== null || !resumed) setPng(p); }} />
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setStep("place")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>
-            <button type="button" disabled={!png} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button"><span aria-hidden="true">◬ </span>{t("soi.sign.stamp")}</button>
+            <button type="button" disabled={!png || (!!requireLogin && auth.isLoading)} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button"><span aria-hidden="true">◬ </span>{t("soi.sign.stamp")}</button>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">{t("soi.sign.consent")}</p>
         </div>
