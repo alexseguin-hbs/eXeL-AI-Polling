@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { setTokenGetter } from "@/lib/api";
+import { takeReturnTo } from "@/lib/auth-return";
 import { useLexicon } from "@/lib/lexicon-context";
 
 export default function CallbackPage() {
@@ -17,9 +18,10 @@ export default function CallbackPage() {
     if (!isLoading && isAuthenticated) {
       // Wire up token getter for API calls
       setTokenGetter(getAccessTokenSilently);
-      // Land on the workspace selector (mode of operation) BEFORE polling — the moderator
+      // Land where the guard said (a signing link survives the round trip — Christo, round 1);
+      // otherwise the workspace selector (mode of operation) BEFORE polling — the moderator
       // chooses Polling (→ /dashboard) or Innovation (key → /innovation) there.
-      router.replace("/workspace/");
+      router.replace(takeReturnTo("/workspace/"));
     }
   }, [isLoading, isAuthenticated, getAccessTokenSilently, router]);
 

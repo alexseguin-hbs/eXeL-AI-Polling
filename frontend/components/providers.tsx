@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, Suspense } from "react";
+import { stashReturnTo } from "@/lib/auth-return";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider, useTheme } from "@/lib/theme-context";
@@ -161,6 +162,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         scope: "openid profile email",
       }}
       cacheLocation="localstorage"
+      onRedirectCallback={(appState) => stashReturnTo(appState?.returnTo)}
     >
       <ThemeProvider>
         <ThemeAuthSync>

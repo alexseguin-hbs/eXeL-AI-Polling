@@ -7,17 +7,19 @@ import { useLexicon } from "@/lib/lexicon-context";
 
 interface AuthGuardProps {
   children: React.ReactNode;
+  /** Same-origin path to land on after login (e.g. a signing link) — default: the workspace selector. */
+  returnTo?: string;
 }
 
-export function AuthGuard({ children }: AuthGuardProps) {
+export function AuthGuard({ children, returnTo }: AuthGuardProps) {
   const { isAuthenticated, isLoading, loginWithRedirect, error } = useAuth0();
   const { t } = useLexicon();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !error) {
-      loginWithRedirect();
+      loginWithRedirect(returnTo ? { appState: { returnTo } } : undefined);
     }
-  }, [isLoading, isAuthenticated, error, loginWithRedirect]);
+  }, [isLoading, isAuthenticated, error, loginWithRedirect, returnTo]);
 
   if (isLoading) {
     return (
@@ -39,7 +41,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
           </p>
           <p className="text-sm text-muted-foreground">{error.message}</p>
           <button
-            onClick={() => loginWithRedirect()}
+            onClick={() => loginWithRedirect(returnTo ? { appState: { returnTo } } : undefined)}
             className="text-sm text-primary hover:underline"
           >
             {t("shared.auth.try_again")}
