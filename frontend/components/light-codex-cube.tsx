@@ -55,6 +55,13 @@ function imageDataToCanvas(d: ImageData): HTMLCanvasElement {
 
 type Mode = "encode" | "decode";
 
+/** The same strip sits on every signed page — one card per strip, listing its pages, ALL first. */
+function groupStrips(list: CodexPdfResult[]): (CodexPdfResult & { pages: number[] })[] {
+  const by = new Map<string, CodexPdfResult & { pages: number[] }>();
+  for (const s of list) { const g = by.get(s.name); if (g) { g.pages.push(s.page); if (!g.result && s.result) g.result = s.result; } else by.set(s.name, { ...s, pages: [s.page] }); }
+  return Array.from(by.values()).sort((a, b) => (a.name === "SoICodexAll" ? -1 : b.name === "SoICodexAll" ? 1 : a.name.localeCompare(b.name)));
+}
+
 export function LightCodexCube({ onClose }: { onClose: () => void }) {
   const [mode, setMode] = useState<Mode>("encode");
 
@@ -249,11 +256,11 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
             {pdfDecoded && pdfDecoded.length > 0 && (
               <div className="space-y-2" data-testid="codex-pdf-results">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("soi.sign.codex.pdf_strips")} · {pdfDecoded.length}</div>
-                {[...pdfDecoded].sort((a, b) => (a.name === "SoICodexAll" ? -1 : b.name === "SoICodexAll" ? 1 : a.name.localeCompare(b.name))).map((s) => (
-                  <div key={`${s.page}-${s.name}`} className="rounded-lg border border-border p-3" data-testid={s.name === "SoICodexAll" ? "codex-all" : "codex-row"}>
+                {groupStrips(pdfDecoded).map((s) => (
+                  <div key={s.name} className="rounded-lg border border-border p-3" data-testid={s.name === "SoICodexAll" ? "codex-all" : "codex-row"}>
                     <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
                       {s.result?.verified && <Check className="h-4 w-4 text-green-500" />}
-                      {s.name === "SoICodexAll" ? t("soi.sign.codex.all") : `${t("soi.sign.codex.row")} ${Number(s.name.replace("SoICodexRow", "")) + 1}`} · p.{s.page}{s.result ? ` · ${s.result.style} · ${s.result.blockSize}×${s.result.blockSize}` : ""}
+                      {s.name === "SoICodexAll" ? t("soi.sign.codex.all") : `${t("soi.sign.codex.row")} ${Number(s.name.replace("SoICodexRow", "")) + 1}`} · p.{s.pages.join(", ")}{s.result ? ` · ${s.result.style} · ${s.result.blockSize}×${s.result.blockSize}` : ""}
                     </div>
                     <div className="mt-1 break-words font-mono text-sm text-foreground">{s.result?.messageForward ?? t("soi.sign.codex.unreadable")}</div>
                   </div>

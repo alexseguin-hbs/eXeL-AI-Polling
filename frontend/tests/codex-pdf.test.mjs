@@ -18,9 +18,10 @@ let p1 = await stampCodexBlock(pdf, { total: 2, rows: [{ ...rows[0], codex: code
 const withCodex = rows.map((r) => ({ ...r, codex: codexImage(codexText(r.name, r.isoDate)) }));
 const p2 = await stampCodexBlock(p1, { total: 2, rows: withCodex, all: codexImage(codexAllText(rows)) });
 const strips = await extractCodexStrips(p2, inflate);
-ok(strips.length === 3 && strips.every((s) => s.page === 2), `three strips on the last page after two passes: row0, row1, ALL (got ${strips.map((s) => s.name).join(",")})`);
+ok(strips.length === 6 && [1, 2].every((pg) => ["SoICodexRow0", "SoICodexRow1", "SoICodexAll"].every((n) => strips.some((s) => s.page === pg && s.name === n))), `row0, row1 and ALL on EVERY page (2 pages × 3) — operator 23:25 (got ${strips.map((s) => s.page + ":" + s.name).join(",")})`);
 const dec = await decodeCodexPdf(p2, inflate);
-const byName = Object.fromEntries(dec.map((d) => [d.name, d.result]));
+ok(dec.every((d) => d.result?.verified), "every strip on every page decodes, reverse-verified");
+const byName = Object.fromEntries(dec.filter((d) => d.page === 1).map((d) => [d.name, d.result]));
 ok(byName.SoICodexRow0?.messageForward === "ALEX SEGUIN 20260907230201" && byName.SoICodexRow0.verified, `row 0 decodes, reverse-verified (got ${byName.SoICodexRow0?.messageForward})`);
 ok(byName.SoICodexRow1?.messageForward === "DANIEL VAIL 20260907230209" && byName.SoICodexRow1.verified, `row 1 decodes, reverse-verified (got ${byName.SoICodexRow1?.messageForward})`);
 ok(byName.SoICodexAll?.messageForward === "ALEX SEGUIN 20260907230201 . DANIEL VAIL 20260907230209" && byName.SoICodexAll.verified, `the ALL strip carries every signatory (got ${byName.SoICodexAll?.messageForward})`);

@@ -19,7 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import zlib from 'zlib';
-import { countSignatureImages, signatureBoxes, textBoxes, codexRows } from '../lib/pdf-stamp.ts';
+import { countSignatureImages, signatureBoxes, textBoxes, codexRows, pageCount as pageCountOf } from '../lib/pdf-stamp.ts';
 import { decodeCodexPdf } from '../lib/codex-pdf.ts';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 const pdfText = async (bytes) => { const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: path.resolve('node_modules/pdfjs-dist/standard_fonts/') + '/', verbosity: 0 }).promise; let t = ''; for (let i = 1; i <= doc.numPages; i++) t += (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(' ') + '\n'; return t; };
@@ -228,6 +228,9 @@ step('dan', 'digital signature pairs with each physical one: 2 SoISig images ↔
 const codex = await decodeCodexPdf(bytes, (b) => new Uint8Array(zlib.inflateSync(b))); const byName = Object.fromEntries(codex.map((c) => [c.name, c.result?.messageForward]));
 step('dan', 'Light Codex from the PDF: row strips decode to ALEX SEGUIN / DANIEL VAIL + UTC time, reverse-verified', /^ALEX SEGUIN 2026\d{10}$/.test(byName.SoICodexRow0 || '') && /^DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexRow1 || '') && codex.every((c) => c.result?.verified), JSON.stringify(byName));
 step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
+const pagesWithCodex = [...new Set(codex.map((c) => c.page))].sort();
+step('dan', 'the 2×2 Light Codex block is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length * 3, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
+step('dan', 'page 1 signatory block rendered to PNG', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.895,0.52,0.09' }));
 await D.getByTestId('verify-input').setInputFiles(FIXTURE); await D.waitForFunction(() => document.querySelector('[data-testid="verify-result"]')?.getAttribute('data-ok') === '0', null, { timeout: 30000 });
 step('dan', 'verify-a-signed-file: the unsigned fixture reads "no signatures"', /No eXeL signatures/.test(await vr.innerText()));
 await shot(D, 'dan', '6b-verify');

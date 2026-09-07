@@ -186,3 +186,9 @@ uploads in addition to PNG is enabled for light codex decode feature.* **55 step
 - **PDF upload on the Light Codex page:** Decode accepts a PDF beside PNG; a PDF signed with eXeL lists the
   ALL strip first, then one strip per signatory, each reverse-verified (`6c-codex-pdf-dan.jpg`). An unsigned
   PDF says so. PNG decoding is unchanged.
+
+**23:25 ask, applied:** the signatory block — CAC-style rows, the 2×2 Light Codex strip per signatory and the
+ALL strip — is drawn on **every** page of the signed PDF, not only the last (`stampCodexBlock` loops the pages;
+the keyword record stays one per row). Proof: 6 strips over 2 pages, every one reverse-verified; the Light
+Codex page groups the same strip across pages ("p.1, 2"); `signed-codex-p1.png` shows page 1's block.
+**57 steps, 0 failures.**

@@ -5,7 +5,7 @@
  * image XObject registered under a name starting with "SoISig", which is how
  * `countSignatureImages` proves how many signatures a file carries (Asar's headless gate).
  */
-import { PDFDocument, PDFName, StandardFonts, degrees, rgb } from "pdf-lib";
+import { PDFDocument, PDFName, StandardFonts, degrees, rgb, PDFPage, PDFFont } from "pdf-lib";
 
 export interface StampBox { page: number; x: number; y: number; w: number; h: number; /** "underline": the box was fitted to a rule on the page — bottom ON the line */ fit?: string }   // page 1-based; fractions 0..1
 export interface StampSig { pngDataUrl: string; name: string; isoDate: string; hash: string; /** ties the PDF to its envelope: token + the chain BEFORE this pass (Odin, wave 2) */ envelope?: { token: string; chain: string } }
@@ -151,7 +151,8 @@ export async function envelopeMarks(pdf: Uint8Array): Promise<{ token: string; c
   return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIEnv:")).map((k) => { const [, token, chain] = k.split(":"); return { token, chain }; });
 }
 
-/* ── Signatory block — CAC-style digital timestamp + Light Codex 2×2 strip, bottom-right of the last page ──
+/* ── Signatory block — CAC-style digital timestamp + Light Codex 2×2 strip, bottom-right of EVERY page ──
+ * (operator 23:25: "on each signed page of pdf not just last page")
  * One row per signer: NAME · "Digitally signed" · YYYY.MM.DD HH:MM:SS UTC · #hash. Each pass draws
  * its own row (rowIndex = signer index) and redraws the frame, so the block accumulates across the
  * envelope. The Light Codex strip (lib/light-codex, block size 2, double helix) is rendered in the
@@ -174,19 +175,23 @@ export const cacStamp = (iso: string): string => {
  */
 export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<Uint8Array> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
-  const pages = doc.getPages(); const page = pages[pages.length - 1];
+  const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const prev = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:"));
+  for (const page of doc.getPages()) drawCodexBlock(doc, page, e, font, bold);
+  for (const r of e.rows) { const kw = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`; if (!prev.includes(kw)) addKeyword(doc, kw); }   // a redrawn earlier row is not a new record
+  return doc.save({ useObjectStreams: false });
+}
+function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PDFFont, bold: PDFFont): void {
   const { width } = page.getSize();
   const rows = Math.max(2, e.total, ...e.rows.map((r) => r.rowIndex + 1));   // "2×2": two rows minimum, name | timestamp
   const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), footH = e.all ? 14 : 0, blockH = rows * rowH + 22 + footH;
   const bx = width - blockW - 18, by = 18;                 // bottom-right, inside a half-inch margin
-  const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
   page.drawRectangle({ x: bx, y: by, width: blockW, height: blockH, borderColor: rgb(0.1, 0.25, 0.45), borderWidth: 0.8, color: rgb(1, 1, 1), opacity: 1 });
   page.drawText("Signatories — digital timestamps", { x: bx + pad, y: by + blockH - 12, size: 7.5, font: bold, color: rgb(0.1, 0.25, 0.45) });
   page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 + footH }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
   // the ALL strip: every signatory so far in one Light Codex line along the block's foot — readable back from the PDF
   if (e.all) { embedCodexImage(doc, page, "SoICodexAll", e.all, bx + pad, by + 3, blockW - pad * 2, 9); }
   const nameW = blockW * 0.42 - pad * 2;
-  const prev = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:"));
   for (const r of e.rows) {
     const y = by + blockH - 16 - rowH * (r.rowIndex + 1) + 4;
     let ns = 8; while (ns > 5 && bold.widthOfTextAtSize(r.name, ns) > nameW) ns -= 0.5;
@@ -196,10 +201,7 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
     let ss = 6.5; while (ss > 4.5 && font.widthOfTextAtSize(stamp, ss) > stampW) ss -= 0.25;
     page.drawText(stamp, { x: bx + blockW * 0.42 + pad, y, size: ss, font, color: rgb(0.1, 0.1, 0.12) });
     if (r.codex) embedCodexImage(doc, page, `SoICodexRow${r.rowIndex}`, r.codex, bx + blockW - pad - 30, y - 2, 30, 10);   // raw pixels, decodable
-    const kw = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`;
-    if (!prev.includes(kw)) addKeyword(doc, kw);        // a redrawn earlier row is not a new record
   }
-  return doc.save({ useObjectStreams: false });
 }
 
 /** The signatory rows recorded in the file, from the keywords. */
