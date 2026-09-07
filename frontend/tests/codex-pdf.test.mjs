@@ -25,6 +25,7 @@ const byName = Object.fromEntries(dec.filter((d) => d.page === 1).map((d) => [d.
 ok(byName.SoICodexRow0?.messageForward === "ALEX SEGUIN 20260907230201" && byName.SoICodexRow0.verified, `row 0 decodes, reverse-verified (got ${byName.SoICodexRow0?.messageForward})`);
 ok(byName.SoICodexRow1?.messageForward === "DANIEL VAIL 20260907230209" && byName.SoICodexRow1.verified, `row 1 decodes, reverse-verified (got ${byName.SoICodexRow1?.messageForward})`);
 ok(byName.SoICodexAll?.messageForward === "ALEX SEGUIN 20260907230201 . DANIEL VAIL 20260907230209" && byName.SoICodexAll.verified, `the ALL strip carries every signatory (got ${byName.SoICodexAll?.messageForward})`);
-ok(dec.every((d) => d.result?.style === "Double Helix" && d.result.blockSize === 2), "every strip is a 2×2 Double Helix");
+ok(dec.every((d) => d.result?.style === "Single Helix" && d.result.blockSize === 2), `every strip is a 2×2 SINGLE Helix — one line (got ${[...new Set(dec.map((d) => d.result?.style))].join(",")})`);
+ok(strips.every((s) => s.image.height === 2), "each strip image is exactly one 2-px line tall");
 const kw = await codexRows(p2); ok(kw.length === 2, "the two signatory rows are still recorded as keywords");
 console.log(`codex-pdf: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

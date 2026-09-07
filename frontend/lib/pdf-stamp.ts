@@ -184,13 +184,13 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
 function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PDFFont, bold: PDFFont): void {
   const { width } = page.getSize();
   const rows = Math.max(2, e.total, ...e.rows.map((r) => r.rowIndex + 1));   // "2×2": two rows minimum, name | timestamp
-  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), footH = e.all ? 14 : 0, blockH = rows * rowH + 22 + footH;
+  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), footH = e.all ? 8 : 0, blockH = rows * rowH + 22 + footH;
   const bx = width - blockW - 18, by = 18;                 // bottom-right, inside a half-inch margin
   page.drawRectangle({ x: bx, y: by, width: blockW, height: blockH, borderColor: rgb(0.1, 0.25, 0.45), borderWidth: 0.8, color: rgb(1, 1, 1), opacity: 1 });
   page.drawText("Signatories — digital timestamps", { x: bx + pad, y: by + blockH - 12, size: 7.5, font: bold, color: rgb(0.1, 0.25, 0.45) });
   page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 + footH }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
   // the ALL strip: every signatory so far in one Light Codex line along the block's foot — readable back from the PDF
-  if (e.all) { embedCodexImage(doc, page, "SoICodexAll", e.all, bx + pad, by + 3, blockW - pad * 2, 9); }
+  if (e.all) { const w = blockW - pad * 2; embedCodexImage(doc, page, "SoICodexAll", e.all, bx + pad, by + 3, w, Math.max(1.2, (w * e.all.height) / e.all.width) * 2); }   // one line; blocks kept near-square
   const nameW = blockW * 0.42 - pad * 2;
   for (const r of e.rows) {
     const y = by + blockH - 16 - rowH * (r.rowIndex + 1) + 4;
@@ -200,7 +200,7 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PD
     const stampW = blockW * 0.58 - pad * 2 - (r.codex ? 34 : 0);
     let ss = 6.5; while (ss > 4.5 && font.widthOfTextAtSize(stamp, ss) > stampW) ss -= 0.25;
     page.drawText(stamp, { x: bx + blockW * 0.42 + pad, y, size: ss, font, color: rgb(0.1, 0.1, 0.12) });
-    if (r.codex) embedCodexImage(doc, page, `SoICodexRow${r.rowIndex}`, r.codex, bx + blockW - pad - 30, y - 2, 30, 10);   // raw pixels, decodable
+    if (r.codex) embedCodexImage(doc, page, `SoICodexRow${r.rowIndex}`, r.codex, bx + blockW - pad - 30, y + 2, 30, 1.6);   // one line, raw pixels, decodable
   }
 }
 

@@ -206,3 +206,9 @@ Codex page groups the same strip across pages ("p.1, 2"); `signed-codex-p1.png` 
   0.556, width 0.33 = the whole run); the stamp sits on it in the file. The fit now follows a rule that drifts a
   row as it goes (sign-fit 13/13). 8 steps, 0 failures; `docs/assessments/sign-scan-run/`.
 - `cacStamp` fixed-clock test (Odin).
+
+**23:50 ask, applied:** every Light Codex strip in the signatory block is a **Single Helix, one line, 2×2 blocks**
+— the framed, reversed line only; the strip image is exactly one block tall, so however it is drawn it is a
+single line. The ALL strip runs along the block's foot, blocks kept near-square; each row's strip is a 30-pt
+line beside its timestamp. Decoder unchanged (Single Helix is detected by the bottom-right frame). 57/57;
+codex-pdf 11/11.

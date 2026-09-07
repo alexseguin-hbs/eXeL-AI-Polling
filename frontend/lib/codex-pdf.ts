@@ -24,11 +24,13 @@ export function codexText(name: string, isoDate: string): string {
 /** Every signatory in one strip — " . " separates them (space and full stop are codex characters). */
 export const codexAllText = (rows: { name: string; isoDate: string }[]): string => rows.map((r) => codexText(r.name, r.isoDate)).join(" . ");
 
-/** The Double-Helix strip (block 2, style "2") for a text, as raw RGBA pixels on white. */
+/** ONE line, Single Helix, 2×2 blocks (operator 23:50): the reversed, framed line only — the image is exactly
+ *  one block tall, so whatever it is drawn as, it is a single line. Raw RGBA pixels on white. */
+export const CODEX_BLOCK = 2 as const;
 export function codexImage(text: string): CodexImage {
-  const blocks = text.length * 4 + 16, w = blocks * 3 + 6, h = 12;
+  const blocks = text.length * 4 + 8, w = blocks * (CODEX_BLOCK + 1) + 2, h = CODEX_BLOCK;
   const data = new Uint8ClampedArray(w * h * 4).fill(255);
-  const out = placeSignature(new ImageData(data, w, h), text, 2, "2");
+  const out = placeSignature(new ImageData(data, w, h), text, CODEX_BLOCK, "1");
   return { width: out.width, height: out.height, data: out.data };
 }
 
