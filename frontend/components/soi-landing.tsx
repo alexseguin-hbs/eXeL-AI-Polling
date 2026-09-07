@@ -27,8 +27,8 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
   const hue = useThemeHue();
   const doors = [
     { key: "session", glyph: "♡", color: hue.bright, title: t("soi.landing.btn.session"), desc: t("soi.landing.desc.session"), go: onEnter },
-    { key: "sign", glyph: "웃", color: hue.mid, title: t("soi.landing.btn.sign"), desc: t("soi.landing.desc.sign"), href: SIGN_PATH },
-    { key: "create", glyph: "◬", color: hue.dim, title: t("soi.landing.btn.create"), desc: t("soi.landing.desc.create"), href: CREATE_PATH },
+    { key: "sign", glyph: "웃", color: hue.bright, title: t("soi.landing.btn.sign"), desc: t("soi.landing.desc.sign"), href: SIGN_PATH },
+    { key: "create", glyph: "◬", color: hue.bright, title: t("soi.landing.btn.create"), desc: t("soi.landing.desc.create"), href: CREATE_PATH },
   ] as const;
   const onRing = (i: 0 | 1 | 2) => {
     if (i === 0) onEnter();
@@ -47,7 +47,7 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
         <SoITrinity
           size={300}
           labels={[t("soi.landing.ring.session"), t("soi.landing.ring.sign"), t("soi.landing.ring.create")]}
-          colors={[hue.bright, hue.mid, hue.dim]}
+          colors={[hue.bright, hue.bright, hue.bright]}   /* all cyan (operator): the black edges separate the rings */
           color={hue.bright}
           textColor={hue.ink}
           fontSize={10}

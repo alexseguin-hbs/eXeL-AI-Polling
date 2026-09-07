@@ -494,7 +494,7 @@ export default function SoISessionPage() {
           <SoITrinity
             labels={trinityLabels}
             color={hue.bright}
-            colors={[hue.bright, hue.mid, hue.dim]}
+            colors={[hue.bright, hue.bright, hue.bright]}   /* all cyan (operator): the black edges separate the rings */
             textColor={hue.ink}
             size={190}
           />
