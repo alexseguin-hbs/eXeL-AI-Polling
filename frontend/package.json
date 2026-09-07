@@ -96,6 +96,8 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.564.0",
     "next": "^14.2.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
     "pinyin-pro": "^3.28.1",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.0",

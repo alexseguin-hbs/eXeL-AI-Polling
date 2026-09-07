@@ -762,6 +762,20 @@ const cube8: TranslationEntry[] = [
   { key: "soi.pod.seat.waiting", englishDefault: "joined — waiting for the lead to seat you", context: "Pod page invite: joiner status before the lead's roster assigns their seat", cubeId: 8 },
   { key: "soi.pod.seat.full", englishDefault: "This pod already has three. Ask the lead to open another.", context: "Pod page invite: shown to a fourth phone that dials in (pod floor is three; more is a separate ruling)", cubeId: 8 },
   { key: "soi.pod.seat.you", englishDefault: "you", context: "Pod page invite: small tag on the row that belongs to this phone", cubeId: 8 },
+  // ◬ ♡ 웃 landing — three doors before any session (operator 2026-09-07): Session (♡ top) · Sign Doc (웃 bottom-right) · Create Doc (◬ bottom-left).
+  { key: "soi.landing.title", englishDefault: "Session", context: "Landing + pod header: the single word under the three glyphs", cubeId: 8 },
+  { key: "soi.landing.tagline", englishDefault: "Recursive coordination for human continuity.", context: "Landing footer line (moved out of the header)", cubeId: 8 },
+  { key: "soi.landing.ring.session", englishDefault: "SESSION", context: "Landing: arc label on the top (♡) ring — uppercase, short", cubeId: 8 },
+  { key: "soi.landing.ring.sign", englishDefault: "SIGN DOC", context: "Landing: arc label on the bottom-right (웃) ring — uppercase, short", cubeId: 8 },
+  { key: "soi.landing.ring.create", englishDefault: "CREATE DOC", context: "Landing: arc label on the bottom-left (◬) ring — uppercase, short", cubeId: 8 },
+  { key: "soi.landing.btn.session", englishDefault: "◬ ♡ 웃 Session", context: "Landing: the Session door (card title and ring aria-label)", cubeId: 8 },
+  { key: "soi.landing.btn.sign", englishDefault: "Sign Doc", context: "Landing: the Sign Doc door (card title and ring aria-label)", cubeId: 8 },
+  { key: "soi.landing.btn.create", englishDefault: "Create Doc", context: "Landing: the Create Doc door (card title and ring aria-label)", cubeId: 8 },
+  { key: "soi.landing.desc.session", englishDefault: "Three people, one task, one witnessed outcome — ♡ time, 웃 settlement, ◬ synthesis.", context: "Landing: one line under the Session door", cubeId: 8 },
+  { key: "soi.landing.desc.sign", englishDefault: "Upload a PDF, sign with your finger, hand it to the next signer. No fees.", context: "Landing: one line under the Sign Doc door", cubeId: 8 },
+  { key: "soi.landing.desc.create", englishDefault: "Write a document — or start from a template — and send it for signature.", context: "Landing: one line under the Create Doc door", cubeId: 8 },
+  { key: "soi.landing.choose", englishDefault: "Tap a ring, or choose below.", context: "Landing: hint between the Trinity mark and the three cards", cubeId: 8 },
+  { key: "soi.landing.seed.summary", englishDefault: "Seed membership", context: "Collapsed Seed membership row title (tap to expand)", cubeId: 8 },
   // SoI Framework — the default framework CONTENT (thesis · 3 Tri-Coins · Value/Flow · NOSE). englishDefault MUST
   // mirror DEFAULT_SOI in lib/soi-framework.ts exactly (soi-section renders defaults via t() so they translate 33 langs).
   { key: "soi.thesis", englishDefault: "Value what people bring, not only what they produce. ♡ carries the why · 웃 powers the how · ◬ multiplies the what — so shared intention becomes shared progress for every learner, maker, and community on Earth.", context: "SoI Framework thesis — the one-line vision", cubeId: 8 },

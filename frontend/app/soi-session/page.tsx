@@ -34,7 +34,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import { SeedCoin } from "@/components/seed-coin";
+import { SeedMembership } from "@/components/seed-membership";
+import { SoiLanding } from "@/components/soi-landing";
 import { SoITrinity } from "@/components/soi-trinity";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useSessionBroadcast, type SessionBroadcastPayload } from "@/lib/use-session-broadcast";
@@ -53,10 +54,6 @@ import {
   syncVerdict, canEditSeat, canWitnessAs, witnessedCount as podWitnessedCount, isWitnessed as podIsWitnessed, WITNESS_FLOOR,
   type Member as PodMember, type PodMsg, type PodState, type Phase as PodPhase,
 } from "@/lib/pod-roster";
-import {
-  detectRegion, DEFAULT_REGION, REGION_OPTIONS,
-  type ResolvedRegion,
-} from "@/lib/min-wage";
 
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
@@ -106,6 +103,7 @@ const firstName = (full: string) => (full.trim().split(/\s+/)[0] || "").toUpperC
 
 export default function SoISessionPage() {
   const [phase, setPhase] = useState<Phase>("compose");
+  const [entered, setEntered] = useState(false);
   const [intent, setIntent] = useState("");
   const [outcome, setOutcome] = useState("");
   const [members, setMembers] = useState<Member[]>(() => initialPod(POD_SIZE).members);
@@ -159,6 +157,9 @@ export default function SoISessionPage() {
     const q = new URLSearchParams(window.location.search);
     const code = (q.get("pod") || q.get("code") || "").toUpperCase();
     if (code) { setIsJoiner(true); setPodCode(code); setPhase("invite"); }
+    // A scanned QR, a typed code, or ?enter=session goes straight to the pod; otherwise the
+    // three-door landing (Session · Sign Doc · Create Doc) comes first (operator, 2026-09-07).
+    if (code || q.get("enter") === "session") setEntered(true);
   }, []);
   const joinByCode = (raw: string) => {
     const code = raw.trim().toUpperCase();
@@ -410,6 +411,8 @@ export default function SoISessionPage() {
   const shownSynthesis = aiSynthesis || synthesis;
   const synthesisSource = aiSynthesis ? "ai" : "local";
 
+  if (!entered) return <SoiLanding onEnter={() => setEntered(true)} />;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       {/* Header ────────────────────────────────────────────────────────── */}
@@ -419,16 +422,8 @@ export default function SoISessionPage() {
           <span style={{ color: TRINITY_COLORS.temporal }}>&#9825;</span>{" "}
           <span style={{ color: TRINITY_COLORS.family }}>&#50883;</span>
         </div>
-        <h1 className="text-2xl font-semibold">
-          Session <span className="font-normal text-muted-foreground">&middot; POD &middot; Task &middot; Outcome</span>
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Recursive coordination for human continuity.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("soi.landing.title")}</h1>
       </header>
-
-      {/* Seed membership — the entry credential (beside the Trinity) ─────── */}
-      <SeedMembership />
 
       {/* Task • Outcome POD flow ────────────────────────────────────────── */}
       <section className="mt-8 rounded-xl border border-border bg-card p-5">
@@ -987,6 +982,9 @@ export default function SoISessionPage() {
         )}
       </section>
 
+      {/* Seed membership — the entry credential, collapsed below the pod (moved 2026-09-07) */}
+      <div className="mt-6"><SeedMembership /></div>
+
       {/* CRS list — DEMO, hidden by default ─────────────────────────────── */}
       <section className="mt-8 rounded-xl border border-border bg-card p-5">
         <button
@@ -1026,113 +1024,5 @@ export default function SoISessionPage() {
         currencies that already exist. — MoT
       </p>
     </div>
-  );
-}
-
-const fmtUsd = (n: number) => `$${n.toFixed(n < 1 ? 3 : 2)}`;
-
-/**
- * Seed membership panel — entry credential beside the Trinity. Region is
- * auto-assigned from the visitor's IP (Cloudflare /api/geo) so the correct
- * minimum wage prices the Seed; purchase must first be enabled.
- */
-function SeedMembership() {
-  const [region, setRegion] = useState<ResolvedRegion>(DEFAULT_REGION);
-  const [detecting, setDetecting] = useState(true);
-  const [manual, setManual] = useState(false);
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    const ac = new AbortController();
-    detectRegion(ac.signal).then((r) => {
-      if (!ac.signal.aborted && !manual) setRegion(r);
-    }).finally(() => { if (!ac.signal.aborted) setDetecting(false); });
-    return () => ac.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <section className="rounded-xl border border-border bg-card p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Seed membership</h2>
-        <span className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs uppercase tracking-wide text-cyan-500">
-          entry credential
-        </span>
-      </div>
-
-      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
-        <div className="flex flex-col items-center gap-1">
-          <SeedCoin size={200} />
-          <span className="text-[11px] text-muted-foreground">tap the coin to flip</span>
-        </div>
-
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground">
-            Seed is a one-time membership priced at <span className="font-medium text-foreground">one-seventh of your
-            local minimum-wage hour</span> — the same formula everywhere; only the local hour changes by region.
-            Non-transferable, no vote, no economic claim.
-          </p>
-
-          <div className="mt-4 rounded-lg border border-border bg-background p-3">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Your region</span>
-              <span className="text-[11px] text-muted-foreground">
-                {detecting ? "detecting…" : region.detected && !manual ? "auto-detected from your location" : manual ? "manually selected" : "default (detection unavailable)"}
-              </span>
-            </div>
-            <div className="mt-1 text-sm font-medium">{region.label}</div>
-            <div className="mt-0.5 text-xs text-muted-foreground">local minimum wage {fmtUsd(region.minWage)}/hr</div>
-
-            <label className="mt-3 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Change region</label>
-            <select
-              value={region.label}
-              onChange={(e) => {
-                const r = REGION_OPTIONS.find((o) => o.label === e.target.value)
-                  ?? (e.target.value === DEFAULT_REGION.label ? DEFAULT_REGION : undefined);
-                if (r) { setManual(true); setRegion(r); }
-              }}
-              className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-            >
-              {!REGION_OPTIONS.some((o) => o.label === region.label) && (
-                <option value={region.label}>{region.label} (detected)</option>
-              )}
-              {REGION_OPTIONS.map((o) => (
-                <option key={o.label} value={o.label}>{o.label} — {fmtUsd(o.minWage)}/hr</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <div className="text-2xl font-semibold text-cyan-500">
-              {fmtUsd(region.seed)}<span className="ml-1 text-sm font-normal text-muted-foreground">/ year</span>
-            </div>
-            <div className="text-xs text-muted-foreground">= {fmtUsd(region.minWage)} ÷ 7</div>
-          </div>
-
-          {!enabled ? (
-            <div className="mt-3">
-              <button
-                onClick={() => setEnabled(true)}
-                className="rounded-md border border-cyan-500/50 px-4 py-2 text-sm font-medium text-cyan-500 hover:bg-cyan-500/10"
-              >
-                Enable Seed membership purchase
-              </button>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                Purchase is disabled until you enable it — a deliberate first step, so nobody buys by accident.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-3">
-              <button className="rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-600">
-                Buy Seed — {fmtUsd(region.seed)}
-              </button>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                Prototype — checkout wires into the Cube 8 payment service. Seed grants membership only; it mints no ◬ ♡ 웃.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
   );
 }

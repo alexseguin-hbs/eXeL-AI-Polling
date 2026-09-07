@@ -30,7 +30,7 @@ const L = phones.lead, A = phones.ana, B = phones.bo;
 const NAMES = { lead: 'Lea', ana: 'Ana', bo: 'Bo' };
 
 // 1 · lead composes and opens the pod
-await L.goto(BASE, { waitUntil: 'domcontentloaded' }); await ready(L); step('lead', 'login/open /soi-session');
+await L.goto(BASE + '?enter=session', { waitUntil: 'domcontentloaded' }); await ready(L); step('lead', 'login/open /soi-session');
 await L.getByPlaceholder(/De-risk the first/).fill('Prove the pod works with three live phones.');
 await L.getByPlaceholder(/One spec validated/).fill('One settled receipt witnessed by all three, screenshot on every phone.');
 await L.getByPlaceholder('Your name').fill(NAMES.lead);
@@ -45,7 +45,7 @@ await shot(L, 'lead', '2-invite');
 
 // 2 · two joiners dial in by code (one via ?pod= link, one by typing the code)
 await A.goto(`${BASE}?pod=${code}`, { waitUntil: 'domcontentloaded' }); await ready(A); step('ana', 'opened join link ?pod=' + code);
-await B.goto(BASE, { waitUntil: 'domcontentloaded' }); await ready(B);
+await B.goto(BASE + '?enter=session', { waitUntil: 'domcontentloaded' }); await ready(B);
 await B.getByPlaceholder(/code/i).first().fill(code); await B.getByRole('button', { name: /join/i }).first().click(); step('bo', 'typed the code and joined');
 await A.getByText(/you are seat 2/).waitFor({ timeout: 15000 }); step('ana', 'assigned seat 2 by the lead roster');
 await B.getByText(/you are seat 3/).waitFor({ timeout: 15000 }); step('bo', 'assigned seat 3 by the lead roster');

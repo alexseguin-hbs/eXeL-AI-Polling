@@ -46,6 +46,11 @@ export interface SoITrinityProps {
   rightTextOffset?: number;
   className?: string;
   onClick?: () => void;
+  /** Optional glyph drawn at each ring's centre — [top, bottom-right, bottom-left]. */
+  centerGlyphs?: [string, string, string];
+  /** Optional per-ring hit targets (top, bottom-right, bottom-left). Each ring becomes a button. */
+  onRingClick?: (i: 0 | 1 | 2) => void;
+  ringAriaLabels?: [string, string, string];
 }
 
 export function SoITrinity({
@@ -68,6 +73,9 @@ export function SoITrinity({
   rightTextOffset = 2,    // HARMONY: +2 outward (corrected)
   className = "",
   onClick,
+  centerGlyphs,
+  onRingClick,
+  ringAriaLabels,
 }: SoITrinityProps) {
   const uid = useId().replace(/:/g, "");
 
@@ -178,6 +186,31 @@ export function SoITrinity({
           </textPath>
         </text>
       ))}
+
+      {/* Centre glyphs — the ring keeps its identity (◬ ♡ 웃) even when the arc names an action. */}
+      {centerGlyphs && rings.map((ring, i) => (
+        <text key={`g-${i}`} x={ring.cx} y={ring.cy} fill={colors?.[i] ?? color} fontSize={ringR * 0.5}
+          fontFamily="system-ui, sans-serif" textAnchor="middle" dominantBaseline="central" aria-hidden="true">
+          {centerGlyphs[i]}
+        </text>
+      ))}
+
+      {/* Per-ring hit targets — transparent discs, keyboard-reachable. The rings overlap (their
+          centres sit `spread` apart, their radii are `ringR`), so a disc centred ON a ring would
+          cover its neighbours' centres and the last one drawn would win every tap. Each disc is
+          pushed outward from the unity centre and shrunk so the three never overlap, while still
+          covering the ring's glyph and its arc label. */}
+      {onRingClick && rings.map((ring, i) => {
+        const dx = ring.cx - cx, dy = ring.cy - cy, d = Math.hypot(dx, dy) || 1;
+        const push = ringR * 0.35, hr = ringR * 0.62;
+        const hx = r3(ring.cx + (dx / d) * push), hy = r3(ring.cy + (dy / d) * push);
+        return (
+        <circle key={`h-${i}`} cx={hx} cy={hy} r={hr} fill="transparent" role="button" tabIndex={0}
+          aria-label={ringAriaLabels?.[i] ?? ring.label} style={{ cursor: "pointer" }}
+          onClick={(e) => { e.stopPropagation(); onRingClick(i as 0 | 1 | 2); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRingClick(i as 0 | 1 | 2); } }} />
+        );
+      })}
     </svg>
   );
 }
