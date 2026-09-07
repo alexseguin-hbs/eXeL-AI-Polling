@@ -57,6 +57,13 @@ const placeAndSign = async (p, who) => {
   await p.getByTestId('to-draw').click();
   await draw(p); step(who, 'signature drawn with the pointer');
   await shot(p, who, '3-draw');
+  if (who === 'alex') {
+    // the draft survives a reload (and, on the live site, the Auth0 redirect at save) — Enki's gap, wave 3
+    await p.reload({ waitUntil: 'domcontentloaded' }); await ready(p);
+    await p.getByTestId('resumed').waitFor({ timeout: 60000 });
+    const kept = (await p.getByTestId('stroke-kept').count()) === 1 && (await p.getByTestId('sign-button').isEnabled());
+    step(who, 'reload mid-flow → draft restored (files, signers, boxes, stroke) at the draw step', kept);
+  }
   const btn = p.getByTestId('sign-button'); await p.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 });
   await btn.click(); step(who, 'Sign & save pressed');
 };
@@ -74,6 +81,13 @@ const A = phones.alex, D = phones.dan;
 // 1 · Alex: landing → Sign Doc → upload → signers
 await A.goto(BASE + '/soi-session/', { waitUntil: 'domcontentloaded' }); await ready(A);
 await A.getByRole('link', { name: /Sign Doc/ }).click(); await A.waitForURL(/soi-session\/sign/); await ready(A); step('alex', 'landing → Sign Doc');
+// the page diagnoses itself: "Why can't I sign?" → six live rows + one sentence (operator, "I still cannot sign")
+await A.getByTestId('diag-toggle').click(); await A.getByTestId('diag-panel').waitFor();
+await A.waitForFunction(() => !/checking/.test(document.querySelector('[data-testid="diag-todo"]')?.textContent || ''), null, { timeout: 30000 });
+const diag = { rpc: await A.getByTestId('diag-rpc').innerText(), worker: await A.getByTestId('diag-worker').innerText(), auth: await A.getByTestId('diag-auth').innerText(), build: await A.getByTestId('diag-build').innerText(), todo: await A.getByTestId('diag-todo').innerText() };
+step('alex', 'diag: 036 RPC answers · pdf worker loaded · login not required · build named', /036 is applied/.test(diag.rpc) && /loaded/.test(diag.worker) && /not required/.test(diag.auth) && diag.build.length >= 3 && /Everything this page depends on answers/.test(diag.todo), JSON.stringify(diag));
+await shot(A, 'alex', '0-diag');
+await A.getByTestId('diag-toggle').click();
 await A.getByPlaceholder(/Promissory/).fill('Promissory Note');
 await A.getByTestId('file-input').setInputFiles(FIXTURE);
 await A.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 }); step('alex', 'PDF uploaded, hashed, page-counted');
@@ -120,6 +134,12 @@ const expect = [TAPS.alex, TAPS.dan];
 step('dan', 'each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)', boxes.length === 2 && boxes.every((b, i) => b.page === 1 && Math.abs(b.x - (expect[i].x - 0.2)) < 0.06 && Math.abs(b.y - (expect[i].y - 0.04)) < 0.06 && b.w > 0.45) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
 const rows = await codexRows(bytes); step('dan', 'signatory block: two CAC-style timestamp rows, bottom-right of the last page', rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows.every((r) => /^\d{4}-\d{2}-\d{2}T/.test(r.isoDate)), JSON.stringify(rows.map((r) => [r.rowIndex, r.isoDate, r.hash])));
+// offline verify (Pangu): the DONE block reads the downloaded file back — green; the unsigned fixture — "no signatures"
+await D.getByTestId('verify-input').setInputFiles(file); await D.getByTestId('verify-result').waitFor({ timeout: 30000 });
+const vr = D.getByTestId('verify-result'); step('dan', 'verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)', (await vr.getAttribute('data-ok')) === '1' && /2 signatures/.test(await vr.innerText()), (await vr.innerText()).replace(/\s+/g, ' ').slice(0, 120));
+await D.getByTestId('verify-input').setInputFiles(FIXTURE); await D.waitForFunction(() => document.querySelector('[data-testid="verify-result"]')?.getAttribute('data-ok') === '0', null, { timeout: 30000 });
+step('dan', 'verify-a-signed-file: the unsigned fixture reads "no signatures"', /No eXeL signatures/.test(await vr.innerText()));
+await shot(D, 'dan', '6b-verify');
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document
 await A.goto(myLink, { waitUntil: 'domcontentloaded' }); await ready(A);

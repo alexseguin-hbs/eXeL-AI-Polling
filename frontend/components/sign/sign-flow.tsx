@@ -9,8 +9,12 @@
  * The baton: each signer receives the NEXT signer's secret exactly once, when they sign — the
  * server mints it (migration 036). Stamps are page-fraction boxes → lib/pdf-stamp. Every step's
  * explainer line changes with state (R-CORE gate block), and nothing here charges a fee.
+ * Never silent (operator 2026-09-07, "I still cannot sign"): every failure names its step, a hanging
+ * save is bounded and reported, the page diagnoses itself (SignDiag), and the login — when the site
+ * has one — is asked at "Sign & save", the draft riding across the redirect in sessionStorage.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
@@ -21,14 +25,29 @@ import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
 import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
+import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
+import { VerifyFile } from "@/components/sign/verify-file";
 
-type Step = "upload" | "signers" | "place" | "draw" | "saving" | "handoff" | "done" | "error" | "loading" | "waiting" | "not_party";
+type Step = "upload" | "signers" | "place" | "draw" | "login" | "saving" | "handoff" | "done" | "error" | "loading" | "waiting" | "not_party";
 interface Loaded { name: string; bytes: Uint8Array; base64: string; sha256: string; pages: number }
 
-export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
+/** The creator's draft — kept on this device across a login redirect or a reload (Enki's gap, wave 2). */
+export const DRAFT_KEY = "exel-sign-draft";
+interface Draft { title: string; files: { name: string; base64: string }[]; signers: { name: string; contact: string }[]; marks: Record<number, Mark[]>; png: string | null; token: string }
+const readDraft = (): Draft | null => { try { const raw = sessionStorage.getItem(DRAFT_KEY); return raw ? (JSON.parse(raw) as Draft) : null; } catch { return null; } };
+/** Best effort — a draft over the storage quota is simply not kept; the page still works. */
+const keepDraft = (d: Draft): boolean => { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d)); return true; } catch { return false; } };
+const dropDraft = () => { try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* storage unreadable */ } };
+
+/** Two signers named on a build without a shared store: the hand-off cannot be minted — say why. */
+const multiLocal = (signers: number, mode: string, step: Step) => signers > 1 && mode === "local" && step === "signers";
+
+export function SignFlow({ token, secret, defaultName, defaultContact, seed, requireLogin, returnTo }: {
   token?: string; secret?: string; defaultName?: string; defaultContact?: string;
   /** Create Doc hands a generated PDF in as file 1. */
   seed?: { name: string; bytes: Uint8Array } | null;
+  /** The site has Auth0: ask for the login at "Sign & save" (creator path only). */
+  requireLogin?: boolean; returnTo?: string;
 }) {
   const { t } = useLexicon();
   const hue = useThemeHue();
@@ -52,6 +71,39 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const pendingToken = useRef("");                              // minted before stamping so the PDF can carry it
   const [localFallback, setLocalFallback] = useState(false);
   const mode = localFallback ? "local" : storeMode();
+  // Outside an Auth0Provider this is the library's inert default context — it is only ACTED on when requireLogin.
+  const auth = useAuth0();
+  const loggedIn = !!requireLogin && auth.isAuthenticated;
+  const authState: AuthState = requireLogin ? (loggedIn ? "in" : "guarded") : "bypassed";
+  const [diagOpen, setDiagOpen] = useState(false);
+  const [resumed, setResumed] = useState(false);
+  const snapshot = (): Draft => ({ title, files: files.map((f) => ({ name: f.name, base64: f.base64 })), signers, marks, png, token: pendingToken.current });
+  const login = () => { keepDraft(snapshot()); setStep("login"); void auth.loginWithRedirect({ appState: { returnTo: returnTo ?? window.location.pathname } }); };
+
+  // ── login prefill (never over what was typed) + draft restore + never-silent guards ──────────
+  useEffect(() => {
+    const u = auth.user; if (!u || countersign) return;
+    setSigners((s) => s.map((x, i) => (i === 0 ? { name: x.name || (u.name && !u.name.includes("@") ? u.name : ""), contact: x.contact || u.email || "" } : x)));
+  }, [auth.user, countersign]);
+  useEffect(() => {
+    if (countersign) return;
+    const d = readDraft(); if (!d || !d.files.length) return;
+    (async () => {                                             // idempotent, so a strict-mode double run restores the same draft
+      const fs: Loaded[] = [];
+      for (const f of d.files) { const b = base64ToBytes(f.base64); fs.push({ name: f.name, bytes: b, base64: f.base64, sha256: await sha256Hex(b), pages: await pageCount(b) }); }
+      setTitle(d.title); setFiles(fs); setSigners(d.signers.length ? d.signers : [{ name: "", contact: "" }]); setMarks(d.marks ?? {}); setPng(d.png ?? null); pendingToken.current = d.token ?? "";
+      setStep(d.png ? "draw" : "place"); setResumed(true); dropDraft();
+    })();
+  }, [countersign]);
+  // the draft is kept from the draw step on (files, signers, boxes, stroke) — a reload comes back to it
+  useEffect(() => { if (!countersign && step === "draw" && files.length) keepDraft(snapshot()); }, [step, png]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (err) setDiagOpen(true); }, [err]);                                            // any error opens the diagnosis
+  useEffect(() => { if (multiLocal(signers.length, mode, step)) setDiagOpen(true); }, [signers.length, mode, step]);
+  useEffect(() => {                                                                                    // 30-s watchdog: the page says so instead of hanging
+    if (step !== "saving") return;
+    const id = setTimeout(() => setErr(t("soi.sign.err.slow")), 30_000);
+    return () => clearTimeout(id);
+  }, [step, t]);
 
   // ── seed from Create Doc ─────────────────────────────────────────────────────
   useEffect(() => { if (seed) void addBytes(seed.name, seed.bytes); }, [seed]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -71,7 +123,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         if (e.status === "complete") { setSigned(fs.map((f) => ({ name: f.name, bytes: f.bytes }))); setStep("done"); return; }
         if (e.status !== "awaiting") { setErr(t(`soi.sign.status.${e.status}`)); setStep("error"); return; }
         setStep(e.current_signer_idx === e.party ? "place" : "waiting");
-      } catch (ex) { if (live) { setErr(ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String(ex)); setStep("error"); } }
+      } catch (ex) { if (live) { setErr(`${t("soi.sign.stage.open")}: ${ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex)}`); setStep("error"); } }
     })();
     return () => { live = false; };
   }, [countersign, token, secret]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -124,7 +176,15 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const passMarks = () => files.map((_, i) => (marks[i] ?? []).map((m) => ({ kind: m.kind, page: m.page, x: +m.x.toFixed(4), y: +m.y.toFixed(4), w: +m.w.toFixed(4), h: +m.h.toFixed(4), ...(m.kind === "text" ? { text: (m.text ?? "").slice(0, 200) } : {}) })));
   const sign = useCallback(async () => {
     if (!png || !allPlaced) return;
+    if (requireLogin && !auth.isAuthenticated) {                // the login comes at the moment of saving, the draft rides along
+      if (!keepDraft(snapshot())) { setErr(t("soi.sign.err.draft_too_large")); return; }
+      setStep("login"); setErr("");
+      void auth.loginWithRedirect({ appState: { returnTo: returnTo ?? window.location.pathname } });
+      return;
+    }
+    if (!countersign) keepDraft(snapshot());                    // a reload mid-save restores the draft (dropped on success)
     setStep("saving"); setErr("");
+    let stage: "stamp" | "create" | "save" = "stamp";
     try {
       const isoDate = new Date().toISOString();
       const prevChain = countersign ? (pub?.chain ?? "") : "";
@@ -150,14 +210,18 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       if (!countersign) {
         const env = { ...newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) }), token: pendingToken.current };
         envRef.current = env;
+        stage = "create";
         const created = await createEnvelope(env);
         if (created.mode === "local") setLocalFallback(true);
         const next = applySignature(env, 0, env.signers[0].secret, isoDate, stamped, chain);
         envRef.current = next;
+        stage = "save";
         result = await signEnvelope(env.token, 0, env.signers[0].secret, stamped, chain, next, passMarks());
       } else {
+        stage = "save";
         result = await signEnvelope(token!, myIdx, secret!, stamped, chain, undefined, passMarks());
       }
+      dropDraft(); setErr("");
       setPub(result); setSigned(stampedBytes);
       if (result.status === "complete") { setStep("done"); return; }
       const nxt = result.signers[result.current_signer_idx];
@@ -167,11 +231,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       setMyLink(signLink(window.location.origin, result.token, countersign ? secret! : envRef.current?.signers[0]?.secret ?? ""));
       setStep("handoff");
     } catch (ex) {
-      setErr(ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex));
+      // never silent: the step that failed, then the reason
+      setErr(`${t(`soi.sign.stage.${stage}`)}: ${ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex)}`);
       setStep(countersign ? "place" : "draw");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [png, allPlaced, files, marks, myName, countersign, pub, title, signers, token, secret, myIdx, t]);
+  }, [png, allPlaced, files, marks, myName, countersign, pub, title, signers, token, secret, myIdx, t, requireLogin, auth.isAuthenticated, returnTo]);
 
   const download = (f: { name: string; bytes: Uint8Array }, final = true) => {
     const url = URL.createObjectURL(new Blob([f.bytes as BlobPart], { type: "application/pdf" }));
@@ -183,7 +248,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   // ── the phase rail + one explainer line (R-CORE gate block) ──────────────────
   const rail = useMemo(() => {
     const keys = countersign ? ["open", "place", "draw", "sign", "done"] : ["upload", "signers", "place", "draw", "sign", "handoff", "done"];
-    const cur = step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" ? "sign" : step;
+    const cur = step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" || step === "login" ? "sign" : step;
     return keys.map((k) => ({ k, on: k === cur, past: keys.indexOf(k) < keys.indexOf(cur) }));
   }, [step, countersign]);
   const explain = (() => {
@@ -193,6 +258,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       case "place": return allPlaced ? t("soi.sign.x.placed") : t("soi.sign.x.place");
       case "draw": return png ? t("soi.sign.x.drawn") : t("soi.sign.x.draw");
       case "saving": return t("soi.sign.saving");
+      case "login": return t("soi.sign.x.login");
       case "handoff": return t("soi.sign.x.handoff");
       case "done": return t("soi.sign.x.done");
       case "waiting": return `${t("soi.sign.turn_of")} ${pub?.signers[pub.current_signer_idx]?.name ?? "…"}`;
@@ -229,6 +295,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       </div>
       <p className="mb-4 text-sm text-cyan-400" data-testid="explain" aria-live="polite">{explain}</p>
       {err && <p className="mb-3 rounded-md border border-red-500/40 bg-red-500/5 p-2 text-xs text-red-500" data-testid="error">{err}</p>}
+      {resumed && <p className="mb-3 rounded-md border border-cyan-400/40 bg-cyan-400/5 p-2 text-xs text-cyan-300" data-testid="resumed">{t("soi.sign.x.resumed")}</p>}
+      <SignDiag d={{ mode, auth: authState, authName: auth.user?.email ?? auth.user?.name, multi: countersign ? (pub?.signers.length ?? 2) > 1 : multi, err, step }} open={diagOpen} onToggle={() => setDiagOpen((o) => !o)} />
 
       {/* ── UPLOAD ── */}
       {step === "upload" && (
@@ -242,6 +310,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
             <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} data-testid="file-input" />
           </label>
           <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.upload_hint")}</p>
+          {requireLogin && !loggedIn && <p className="mt-1 text-[11px] text-muted-foreground" data-testid="login-later">{t("soi.sign.login.later")} <button type="button" onClick={login} className="min-h-[36px] text-cyan-400 underline-offset-2 hover:underline">{t("soi.sign.login.now")}</button></p>}
           {files.length > 0 && (
             <ul className="mt-3 grid gap-1 text-sm" data-testid="file-list">
               {files.map((f, i) => (
@@ -253,6 +322,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
             </ul>
           )}
           <button type="button" disabled={!files.length} onClick={() => setStep("signers")} className="mt-4 min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">{t("soi.sign.next_signers")}</button>
+          <div className="mt-5 border-t border-border pt-3"><VerifyFile /></div>
         </div>
       )}
 
@@ -317,7 +387,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       {step === "draw" && (
         <div>
           <p className="mb-2 text-sm">{t("soi.sign.signing_as")} <strong>{myName}</strong></p>
-          <SignaturePad onChange={setPng} />
+          {resumed && png && <p className="mb-2 text-[11px] text-cyan-300" data-testid="stroke-kept">{t("soi.sign.x.stroke_kept")}</p>}
+          <SignaturePad onChange={(p) => { if (p !== null || !resumed) setPng(p); }} />
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setStep("place")} className="min-h-[44px] rounded-md border border-border px-4 text-sm">{t("soi.sign.back")}</button>
             <button type="button" disabled={!png} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button">{t("soi.sign.stamp")}</button>
@@ -327,6 +398,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       )}
 
       {step === "saving" && <p className="text-sm text-muted-foreground">{t("soi.sign.saving")}</p>}
+      {step === "login" && <p className="text-sm text-muted-foreground" data-testid="login-redirect">{t("soi.sign.x.login")}</p>}
 
       {/* ── HANDOFF ── */}
       {step === "handoff" && (
@@ -364,6 +436,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
           </div>
           <Roster />
           <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="min-h-[44px] rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">⤓ {t("soi.sign.download")} {f.name}</button>)}</div>
+          <div className="mt-4"><VerifyFile /></div>
         </div>
       )}
 

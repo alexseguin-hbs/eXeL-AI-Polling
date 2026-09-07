@@ -19,6 +19,7 @@ import {
 } from "@/lib/lexicon-data";
 import { SEEDED_TRANSLATIONS } from "@/lib/lexicon-translations";
 import { SOI_R228_TRANSLATIONS } from "@/lib/lexicon-translations-soi-r228";
+import { SIGN_TRANSLATIONS } from "@/lib/lexicon-translations-sign";
 import { PINYIN_MAP } from "@/lib/pinyin-data";
 import { ROMANIZATION_KM_MAP } from "@/lib/romanization-km-data";
 import { hasRomanization } from "@/lib/romanization-config";
@@ -146,6 +147,10 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
       }
       // Overlay r228 SoI Framework translations (QIS panel · 웃 M×Time law · Redeem doctrine)
       for (const [lang, entries] of Object.entries(SOI_R228_TRANSLATIONS)) {
+        merged[lang] = { ...(merged[lang] ?? {}), ...entries };
+      }
+      // Overlay Sign Doc translations (the ten strings a countersigner reads first)
+      for (const [lang, entries] of Object.entries(SIGN_TRANSLATIONS)) {
         merged[lang] = { ...(merged[lang] ?? {}), ...entries };
       }
       // Overlay localStorage translations (user edits take priority)

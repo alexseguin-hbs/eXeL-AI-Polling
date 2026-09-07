@@ -73,3 +73,41 @@ Reproduce: `cd frontend && npm run pod:relay` ·
 No e-mail or SMS is sent by the server (no carrier exists); the hand-off is your own composer. The
 stamp records name, time, and a hash — a record, not a legal opinion on UETA/ESIGN. Files are held
 as base64 in Postgres (3 MB each) behind default-deny RLS; `storage_url` is reserved for R2.
+
+## Wave 3 — "I still cannot sign" (autonomous run, evening)
+
+The operator, on his phone, reported that he still could not sign, with no screen to show. Wave 3 makes the
+page diagnose itself and removes every way left to fail silently; the two-phone proof re-ran at **37/37**
+(was 33) and the three-phone pod at **45/45**, over the same real SQL (migration 036 in PGlite).
+
+**What changed**
+- `Why can't I sign?` under the rail (`components/sign/sign-diag.tsx`): build SHA · storage mode · a live probe
+  of the 036 RPC (`sign_envelope_get` with a nonsense token — a `bad_token` refusal proves the function exists,
+  `PGRST202` proves the migration is missing) · the pdf worker (`HEAD /pdf.worker.min.mjs`) · the login state ·
+  the step and its error — then one sentence saying what to do. Opens by itself on any error.
+- Never silent: every catch names its step (`Opening: …`, `Stamping: …`, `Creating the document: …`,
+  `Saving the signature: …`); every RPC is bounded to 45 s (`withTimeout`) and a 30-s watchdog says so while
+  saving; a `timeout` is a named error, not a hang.
+- Login at save, not before upload: the creator path is unguarded; with Auth0 configured, "Sign & save" keeps
+  the draft (files, signers, boxes, stroke) in `sessionStorage["exel-sign-draft"]` and redirects; the draft
+  comes back after the login (or a reload — proved in the run: reload mid-flow → draw step restored).
+- Offline verify (`lib/sign-verify.ts` + the DONE block and the upload step): the four accounts a signed file
+  carries (images, boxes, passes, timestamp rows) must agree, every later row must carry the chain it signed
+  over, and the closing chain is recomputed; the downloaded proof PDF reads green, the unsigned fixture reads
+  "no signatures" (6 unit cases, `tests/sign-verify.test.mjs`).
+- Ten strings a countersigner reads first, in the 32 non-English lexicon languages
+  (`lib/lexicon-translations-sign.ts`, parity gate `tests/sign-i18n.test.mjs`, 130 cases).
+
+**The three sentences the live site can show (what each means)**
+| Diag row `Sign backend` | Sentence | What it means for the operator |
+|---|---|---|
+| `answers — migration 036 is applied` | *Everything this page depends on answers. Upload, place, draw, then Sign & save.* | Two-signer hand-off works on the live site. |
+| `migration 036 is NOT applied on this site's Supabase` | *Migration 036 is not applied on this site's Supabase — a hand-off link cannot be made until it is (supabase/migrations/036_sign_envelopes.sql). Signing alone on this phone still works.* | Apply 036 in the Supabase SQL editor; solo signing already works. |
+| `unreachable from this phone` | *Supabase did not answer from this phone. Check the connection (Wi-Fi vs mobile data) and open this page again.* | Network, not the app. |
+
+If the `Build` row shows an older SHA than the footer of the landing page, the phone is holding a cached
+page — pull to refresh. "Copy this report" puts the six rows, the sentence and the user agent on the clipboard.
+
+**Known red outside this scope:** `test:ci` was already failing at HEAD before this wave on two steps that are
+not Sign Doc's — `test:vision-lexicon` had no package script (added now; 24/24) and `test:innovation-time`
+fails four waterfall-geometry cases on the /innovation deck (untouched, out of scope, reported).

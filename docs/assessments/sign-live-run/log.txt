@@ -1,33 +1,37 @@
-  3109ms  alex  OK  landing → Sign Doc
-  3153ms  alex  OK  PDF uploaded, hashed, page-counted
-  3268ms  alex  OK  two signers named (email + phone)
-  3663ms  alex  OK  PDF page rendered (pdfjs)
-  3723ms  alex  OK  misplaced signature removed
-  3737ms  alex  OK  signature box placed by tap
-  3740ms  alex  OK  toolbar names the selected box
-  3866ms  alex  OK  a swipe over the page places nothing
-  3973ms  alex  OK  signature box resized by its corner  123→158 px
-  4020ms  alex  OK  date mark added beside the signature
-  4684ms  alex  OK  signature drawn with the pointer
-  4887ms  alex  OK  Sign & save pressed
-  4938ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=Ak6VYlgO4HqPDE7ueX…
-  4993ms  alex  OK  creator keeps his own return link
-  4996ms  alex  OK  sms: composer prefilled to Daniel
-  7128ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
-  9046ms  dan   OK  opened the hand-off link, no login
-  9049ms  dan   OK  roster: Alex signed, Daniel now
-  9117ms  dan   OK  PDF page rendered (pdfjs)
-  9176ms  dan   OK  misplaced signature removed
-  9192ms  dan   OK  signature box placed by tap
-  9194ms  dan   OK  toolbar names the selected box
-  9316ms  dan   OK  a swipe over the page places nothing
-  9423ms  dan   OK  signature box resized by its corner  123→157 px
-  9471ms  dan   OK  date mark added beside the signature
- 10134ms  dan   OK  signature drawn with the pointer
- 10361ms  dan   OK  Sign & save pressed
- 10393ms  dan   OK  COMPLETE — every signer has signed
- 10452ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
- 10458ms  dan   OK  each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)  [[1,0.1,0.71,0.51],[1,0.49,0.56,0.51]]
- 10461ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
- 10466ms  dan   OK  signatory block: two CAC-style timestamp rows, bottom-right of the last page  [[0,"2026-09-07T20:39:49.358Z","91d05b18"],[1,"2026-09-07T20:39:54.808Z","837ef8ab"]]
- 10891ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
+ 11677ms  alex  OK  landing → Sign Doc
+ 11763ms  alex  OK  diag: 036 RPC answers · pdf worker loaded · login not required · build named  {"rpc":"answers — migration 036 is applied","worker":"loaded","auth":"not required on this build","build":"19b956c","todo":"Everything this page depends on answers. Upload, place, draw, then Sign & save."}
+ 11908ms  alex  OK  PDF uploaded, hashed, page-counted
+ 12058ms  alex  OK  two signers named (email + phone)
+ 12516ms  alex  OK  PDF page rendered (pdfjs)
+ 12593ms  alex  OK  misplaced signature removed
+ 12606ms  alex  OK  signature box placed by tap
+ 12608ms  alex  OK  toolbar names the selected box
+ 12739ms  alex  OK  a swipe over the page places nothing
+ 12844ms  alex  OK  signature box resized by its corner  123→158 px
+ 12911ms  alex  OK  date mark added beside the signature
+ 13573ms  alex  OK  signature drawn with the pointer
+ 15813ms  alex  OK  reload mid-flow → draft restored (files, signers, boxes, stroke) at the draw step
+ 15961ms  alex  OK  Sign & save pressed
+ 16054ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=bppShw-Mtzi4F_Q-Rg…
+ 16099ms  alex  OK  creator keeps his own return link
+ 16102ms  alex  OK  sms: composer prefilled to Daniel
+ 17581ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+ 19785ms  dan   OK  opened the hand-off link, no login
+ 19787ms  dan   OK  roster: Alex signed, Daniel now
+ 19850ms  dan   OK  PDF page rendered (pdfjs)
+ 19914ms  dan   OK  misplaced signature removed
+ 19931ms  dan   OK  signature box placed by tap
+ 19934ms  dan   OK  toolbar names the selected box
+ 20054ms  dan   OK  a swipe over the page places nothing
+ 20162ms  dan   OK  signature box resized by its corner  123→157 px
+ 20224ms  dan   OK  date mark added beside the signature
+ 20889ms  dan   OK  signature drawn with the pointer
+ 21108ms  dan   OK  Sign & save pressed
+ 21145ms  dan   OK  COMPLETE — every signer has signed
+ 21273ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+ 21280ms  dan   OK  each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)  [[1,0.1,0.71,0.51],[1,0.49,0.56,0.51]]
+ 21285ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
+ 21289ms  dan   OK  signatory block: two CAC-style timestamp rows, bottom-right of the last page  [[0,"2026-09-07T21:32:18.097Z","91d05b18"],[1,"2026-09-07T21:32:23.244Z","f9b98290"]]
+ 21323ms  dan   OK  verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)  Consistent — every signature has its box, its pass and its timestamp row; the chain holds. 1 · Recorded signed-sample.pd
+ 21352ms  dan   OK  verify-a-signed-file: the unsigned fixture reads "no signatures"
+ 21834ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered

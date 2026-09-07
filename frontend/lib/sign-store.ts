@@ -32,10 +32,29 @@ export const isMissingRpc = (e: unknown): boolean => {
   return code === "PGRST202" || /could not find the function/.test(m);   // ONLY "not found" — a schema-cache reload is transient, never a downgrade (Thor)
 };
 
+/** A hanging RPC is a silent failure — bound every call so the page can say "timeout" instead (never silent). */
+export const RPC_TIMEOUT_MS = 45_000;
+export const withTimeout = <T,>(p: PromiseLike<T>, ms = RPC_TIMEOUT_MS): Promise<T> =>
+  new Promise<T>((res, rej) => { const id = setTimeout(() => rej(new SignStoreError("timeout", `No answer from Supabase in ${Math.round(ms / 1000)} s.`)), ms); Promise.resolve(p).then((v) => { clearTimeout(id); res(v); }, (e) => { clearTimeout(id); rej(e); }); });
+
+/** What the "Why can't I sign?" panel shows — a live probe, not an assumption. A refusal such as
+ *  bad_token proves the function exists; PGRST202 proves migration 036 is missing on this project. */
+export type Probe = "no_supabase" | "rpc_ok" | "rpc_missing" | "unreachable";
+export async function probeRpc(): Promise<{ state: Probe; detail: string }> {
+  if (!supabase) return { state: "no_supabase", detail: "NEXT_PUBLIC_SUPABASE_URL is not set on this build" };
+  try {
+    const { error } = await withTimeout(supabase.rpc("sign_envelope_get", { p_token: "probe", p_secret: null, p_ip_hash: null, p_user_agent: "diag" }), 15_000);
+    if (!error) return { state: "rpc_ok", detail: "" };
+    if (isMissingRpc(error)) return { state: "rpc_missing", detail: error.message };
+    return { state: "rpc_ok", detail: error.message };
+  } catch (e) { return { state: "unreachable", detail: String((e as Error).message ?? e) }; }
+}
+
 const rpcError = (e: unknown): never => {
+  if (e instanceof SignStoreError) throw e;
   if (isMissingRpc(e)) throw new SignStoreError("no_backend", "This site has not applied migration 036 yet.");
   const m = (e as { message?: string })?.message ?? String(e);
-  const code = /not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
+  const code = /timeout|not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
   throw new SignStoreError(code, m);
 };
 
@@ -47,12 +66,12 @@ export async function createEnvelope(env: Envelope): Promise<{ token: string; mo
     return { token: env.token, mode: "local" as StoreMode };
   };
   if (!supabase) return local();
-  const { data, error } = await supabase.rpc("sign_envelope_create", {
+  const { data, error } = await withTimeout(supabase.rpc("sign_envelope_create", {
     p_token: env.token, p_title: env.title, p_created_by: env.created_by,
     p_signers: env.signers.map((s, i) => ({ name: s.name, contact: s.contact, secret: i === 0 ? s.secret : undefined })),
     p_files: env.files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
     p_expires_at: env.expires_at ?? null,
-  });
+  }));
   if (error) { if (isMissingRpc(error)) return local(); rpcError(error); }   // one signer signs alone even before 036
   return { token: (data as { token: string }).token, mode: "supabase" };
 }
@@ -73,7 +92,7 @@ const fromLocal = (token: string, secret: string): PublicEnvelope | null => {
 export async function getEnvelope(token: string, secret: string): Promise<PublicEnvelope> {
   const l = fromLocal(token, secret);                        // a locally-kept envelope is answered from this device
   if (!supabase || l) { if (!l) throw new SignStoreError("not_found"); return l; }
-  const { data, error } = await supabase.rpc("sign_envelope_get", { p_token: token, p_secret: secret || null, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300) });
+  const { data, error } = await withTimeout(supabase.rpc("sign_envelope_get", { p_token: token, p_secret: secret || null, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300) }));
   if (error) rpcError(error);
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };
 }
@@ -85,17 +104,17 @@ export async function signEnvelope(token: string, idx: number, secret: string, f
     const e = fromLocal(token, secret); if (!e) throw new SignStoreError("not_found");
     return { ...e, next_secret: localNext.status === "awaiting" ? localNext.signers[localNext.current_signer_idx]?.secret ?? null : null };
   }
-  const { data, error } = await supabase.rpc("sign_envelope_sign", {
+  const { data, error } = await withTimeout(supabase.rpc("sign_envelope_sign", {
     p_token: token, p_signer_idx: idx, p_secret: secret,
     p_files: files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
     p_chain: chain, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300), p_marks: marks ?? null,
-  });
+  }));
   if (error) rpcError(error);
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };
 }
 
 export async function revokeEnvelope(token: string, creatorSecret: string): Promise<void> {
   if (!supabase) { localStorage.removeItem(LOCAL_KEY(token)); return; }
-  const { error } = await supabase.rpc("sign_envelope_revoke", { p_token: token, p_secret: creatorSecret });
+  const { error } = await withTimeout(supabase.rpc("sign_envelope_revoke", { p_token: token, p_secret: creatorSecret }));
   if (error) rpcError(error);
 }
