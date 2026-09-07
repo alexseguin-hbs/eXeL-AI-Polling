@@ -22,13 +22,15 @@ export function fitToUnderline(bmp: Bitmap, tap: { x: number; y: number }, o: Fi
   const isDark = (x: number, y: number) => { const i = (y * W + x) * 4; return (data[i] + data[i + 1] + data[i + 2]) / 3 < opt.dark; };
   const tx = Math.min(W - 1, Math.max(0, Math.round(tap.x * W))), ty = Math.min(H - 1, Math.max(0, Math.round(tap.y * H)));
   const reach = Math.round(opt.reach * H), minW = Math.round(opt.minLineW * W);
-  // the horizontal dark run through (x, y) — small gaps (≤ 3 px) bridge dashed rules and underscores
+  // the horizontal dark run through (x, y) — small gaps (≤ 3 px) bridge dashed rules and underscores, and the
+  // run may drift one row up or down as it goes (a scanned or photographed page is never perfectly level)
   const runAt = (x: number, y: number): [number, number] | null => {
     if (!isDark(x, y)) return null;
-    let x0 = x, x1 = x, gap = 0;
-    for (let i = x - 1; i >= 0; i--) { if (isDark(i, y)) { x0 = i; gap = 0; } else if (++gap > 3) break; }
-    gap = 0;
-    for (let i = x + 1; i < W; i++) { if (isDark(i, y)) { x1 = i; gap = 0; } else if (++gap > 3) break; }
+    let x0 = x, x1 = x, gap = 0, yy = y;
+    const follow = (i: number): boolean => { if (isDark(i, yy)) return true; if (yy > 0 && isDark(i, yy - 1)) { yy--; return true; } if (yy < H - 1 && isDark(i, yy + 1)) { yy++; return true; } return false; };
+    for (let i = x - 1; i >= 0; i--) { if (follow(i)) { x0 = i; gap = 0; } else if (++gap > 3) break; }
+    gap = 0; yy = y;
+    for (let i = x + 1; i < W; i++) { if (follow(i)) { x1 = i; gap = 0; } else if (++gap > 3) break; }
     return [x0, x1];
   };
   // the nearest row to the tap whose run through the tap's column is a line (below the tap first — the thumb

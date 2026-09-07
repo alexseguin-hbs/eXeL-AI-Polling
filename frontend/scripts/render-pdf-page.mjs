@@ -21,6 +21,15 @@ const size = await p.evaluate(async ({ pdfB64, pdfjs, worker, n, scale }) => {
   await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
   return { w: vp.width, h: vp.height };
 }, { pdfB64, pdfjs, worker, n, scale });
+// a "scan": tilt the page by ROTATE degrees over a grey ground (BG), as a phone photo or a flatbed would
+if (process.env.ROTATE || process.env.BG) {
+  await p.evaluate(({ rot, bg }) => {
+    const c = document.getElementById('c'); const o = document.createElement('canvas'); o.width = c.width; o.height = c.height;
+    const ctx = o.getContext('2d'); ctx.fillStyle = bg; ctx.fillRect(0, 0, o.width, o.height);
+    ctx.translate(o.width / 2, o.height / 2); ctx.rotate((rot * Math.PI) / 180); ctx.drawImage(c, -c.width / 2, -c.height / 2);
+    c.getContext('2d').drawImage(o, 0, 0);
+  }, { rot: Number(process.env.ROTATE || 0), bg: process.env.BG || '#ffffff' });
+}
 await p.setViewportSize({ width: Math.ceil(size.w), height: Math.ceil(size.h) });
 if (process.env.CROP) {
   const [x, y, w, h] = process.env.CROP.split(',').map(Number);

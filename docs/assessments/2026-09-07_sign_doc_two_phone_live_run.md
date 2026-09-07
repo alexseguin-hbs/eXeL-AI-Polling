@@ -192,3 +192,17 @@ ALL strip — is drawn on **every** page of the signed PDF, not only the last (`
 the keyword record stays one per row). Proof: 6 strips over 2 pages, every one reverse-verified; the Light
 Codex page groups the same strip across pages ("p.1, 2"); `signed-codex-p1.png` shows page 1's block.
 **57 steps, 0 failures.**
+
+## Wave 7 — autonomous, while the 48-agent fleet runs: the fleet's first finding, the second way to sign, a scanned contract
+
+- **No login loop while Auth0 hydrates** (a fleet specialist's finding, Krishna lens): Sign & save is disabled
+  while the SDK is still loading after the redirect, and a tap then says so instead of redirecting again.
+- **The uploaded-image way to sign, walked:** Daniel uploads a PNG of a stroke instead of drawing; the upload is
+  trimmed to its ink before the hidden codex rows are written into it, so it stamps at the same size as a drawn
+  one (first pass stamped it at a third — caught in the render). 57/57.
+- **A scanned contract** (`scripts/sign-scan-run.mjs`, `npm run test:soi-sign-scan`): the signature page rendered,
+  tilted 0.4°, laid on a grey ground and wrapped back into an image-only PDF — no text, no rules as objects. One
+  signer uploads it, taps near the lender's line, and the box still fits the rule from pixels (bottom 0.554 vs
+  0.556, width 0.33 = the whole run); the stamp sits on it in the file. The fit now follows a rule that drifts a
+  row as it goes (sign-fit 13/13). 8 steps, 0 failures; `docs/assessments/sign-scan-run/`.
+- `cacStamp` fixed-clock test (Odin).

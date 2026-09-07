@@ -40,4 +40,9 @@ const b5 = page(); ink(b5, 30, 190, 300, 300); ink(b5, 210, 370, 300, 300);
 const l = fitToUnderline(b5, { x: 0.25, y: 0.59 }), r = fitToUnderline(b5, { x: 0.75, y: 0.59 });
 ok(l && r && near(l.x, 30 / W) && near(l.w, 161 / W) && near(r.x, 210 / W) && near(r.w, 161 / W), "left tap → left rule, right tap → right rule");
 
+// a scanned page is never level: a rule that drifts one row every 40 px (≈ 1.4°) is still ONE line
+const b6 = page(); for (let x = 40; x <= 280; x++) ink(b6, x, x, 300 + Math.floor((x - 40) / 40), 300 + Math.floor((x - 40) / 40));
+const f6 = fitToUnderline(b6, { x: 0.4, y: 0.6 });
+ok(f6 && near(f6.x, 40 / W) && near(f6.w, 241 / W, 0.01), `a tilted (scanned) rule is followed end to end (w=${f6?.w.toFixed(3)}, want 0.6025)`);
+
 console.log(`sign-fit: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
