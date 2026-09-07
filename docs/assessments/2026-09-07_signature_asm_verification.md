@@ -32,7 +32,7 @@ signatory block), `signed-page.png` (page 2), `3b-preview-*.jpg` (the scribble p
 | Krishna | yes | solo before 036, two-signer over 036, Auth0 at save, seed after login | hosted Supabase has not applied 036 |
 | Odin | yes | SoIEnv token+chain, marks bound to pass, server-side chain | — |
 | Pangu | yes | verify-a-signed-file green/red; Light Codex ALL strip decodes from the PDF upload | — |
-| Sofia | yes | glyph rail, 💬 ✉ ⧉, the stance in 33 languages | 36 diag/verify keys still English-only |
+| Sofia | yes | glyph rail, 💬 ✉ ⧉, the stance + 12 diag/verify sentences in 33 languages | 24 rarer diag/verify labels still English-only |
 | Thoth | yes | box on the rule: bottom 0.556 vs rule 0.557, h 0.035; date 7 pt | scanned-PDF fixture not in the run |
 | Thor | yes | wrong secret refused, 45-s bound, lock, no silent downgrade | LIVE unverified from the sandbox |
 

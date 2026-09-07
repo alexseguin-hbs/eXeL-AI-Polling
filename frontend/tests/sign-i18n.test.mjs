@@ -8,7 +8,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; con
 const en = new Map(Object.values(DEFAULT_ENGLISH_TRANSLATIONS).map((k) => [k.key, k.englishDefault]));
 const langs = Object.keys(SOI_R228_TRANSLATIONS);
 ok(langs.length === 32 && langs.every((l) => l in SIGN_TRANSLATIONS), `the same 32 languages as the r228 seed (${Object.keys(SIGN_TRANSLATIONS).length})`);
-ok(SIGN_KEYS.length === 11 && SIGN_KEYS.every((k) => en.has(k)), "all eleven keys exist in lexicon-data");
+ok(SIGN_KEYS.length === 23 && SIGN_KEYS.every((k) => en.has(k)), "all twenty-three keys exist in lexicon-data");
 for (const [l, e] of Object.entries(SIGN_TRANSLATIONS)) {
   ok(SIGN_KEYS.every((k) => typeof e[k] === "string" && e[k].trim().length > 0), `${l}: every key present and non-empty`);
   // one loanword is allowed per language ("Download" IS the Danish word) — never a whole untranslated set
