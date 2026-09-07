@@ -79,11 +79,11 @@ export const DEFAULT_PROJECTS: PodProject[] = [
   {
     id: "manta-2525",
     name: "Manta-2525",
-    blurb: "Plan and de-risk an autonomous drone mission.",
+    blurb: "De-risk the Manta family — Mini 66-33 first. Concept critique only; every gate is Red.",
     tasks: [
-      { id: "man-1", title: "Plan a survey mission", outcome: "A flight plan with waypoints + objective, agreed by the pod." },
-      { id: "man-2", title: "Validate the safety envelope", outcome: "Flight-path safety envelope checked; no exceedances." },
-      { id: "man-3", title: "Estimate mission cost & duration", outcome: "Cost + duration estimate produced and agreed by all 3." },
+      { id: "man-1", title: "Reconcile the Rev D boards into one number register", outcome: "Every printed number from the five Rev D boards in one table with its source; conflicts listed; agreed by all 3." },
+      { id: "man-2", title: "Bound the life-support budget (5 people × 72 h / 7 d)", outcome: "O₂, CO₂ scrubbing, thermal and hotel load in kg and kWh from manta-bounds.mjs; reviewed by all 3; marked 'bounding estimate only'." },
+      { id: "man-3", title: "Can Ark Sail 33 carry a Mini 66-33?", outcome: "Mini mass bounded from its envelope vs. a 33 × 13 m catamaran's displacement; written as a Red/Yellow gate with the number." },
     ],
   },
 ];
