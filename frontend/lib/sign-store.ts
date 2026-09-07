@@ -29,7 +29,7 @@ export const storeMode = (): StoreMode => (supabase ? "supabase" : "local");
 export const isMissingRpc = (e: unknown): boolean => {
   const m = ((e as { message?: string })?.message ?? String(e)).toLowerCase();
   const code = String((e as { code?: string })?.code ?? "");
-  return code === "PGRST202" || /could not find the function|does not exist|schema cache/.test(m);
+  return code === "PGRST202" || /could not find the function/.test(m);   // ONLY "not found" — a schema-cache reload is transient, never a downgrade (Thor)
 };
 
 const rpcError = (e: unknown): never => {
@@ -78,7 +78,7 @@ export async function getEnvelope(token: string, secret: string): Promise<Public
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };
 }
 
-export async function signEnvelope(token: string, idx: number, secret: string, files: SignFile[], chain: string, localNext?: Envelope): Promise<PublicEnvelope> {
+export async function signEnvelope(token: string, idx: number, secret: string, files: SignFile[], chain: string, localNext?: Envelope, marks?: unknown): Promise<PublicEnvelope> {
   if (!supabase || (localNext && localStorage.getItem(LOCAL_KEY(token)))) {
     if (!localNext) throw new SignStoreError("no_backend");
     localStorage.setItem(LOCAL_KEY(token), JSON.stringify(localNext));
@@ -88,7 +88,7 @@ export async function signEnvelope(token: string, idx: number, secret: string, f
   const { data, error } = await supabase.rpc("sign_envelope_sign", {
     p_token: token, p_signer_idx: idx, p_secret: secret,
     p_files: files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
-    p_chain: chain, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300),
+    p_chain: chain, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300), p_marks: marks ?? null,
   });
   if (error) rpcError(error);
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };

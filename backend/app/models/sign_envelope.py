@@ -61,6 +61,7 @@ class SignEvent(Base):
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
     file_shas: Mapped[list | None] = mapped_column(ARRAY(String(64)))
     version: Mapped[int | None] = mapped_column(Integer)
+    marks: Mapped[list | None] = mapped_column(JSONB)
     contact_hash: Mapped[str | None] = mapped_column(String(64))
     ip_hash: Mapped[str | None] = mapped_column(String(64))
     user_agent: Mapped[str | None] = mapped_column(String(300))

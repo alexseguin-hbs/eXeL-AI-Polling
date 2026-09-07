@@ -34,4 +34,16 @@ ok(s2.length > s1.length && s1.length > pdf.length, "each stamp grows the file")
 // a date mark beside the signature — text fitted into its box, recorded as SoITxt
 const s3 = await stampText(s2, { page: 1, x: 0.1, y: 0.9, w: 0.22, h: 0.035 }, "Sep 7, 2026");
 ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2, "a text mark stamps without touching the signatures");
+
+// ── a /Rotate 90 page: stamp + date land without error, recorded with r90 (Enki, Asar) ──
+{
+  const { PDFDocument, degrees } = await import("pdf-lib");
+  const d = await PDFDocument.load(pdf); d.getPage(0).setRotation(degrees(90));
+  const rotated = await d.save({ useObjectStreams: false });
+  const r1 = await stampSignature(rotated, { page: 1, x: 0.2, y: 0.6, w: 0.4, h: 0.08 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-07T12:00:00Z", hash: "ba7816bf" });
+  const r2 = await stampText(r1, { page: 1, x: 0.2, y: 0.7, w: 0.22, h: 0.035 }, "Sep 7, 2026", { signerIdx: 0, isoDate: "2026-09-07T12:00:00Z", chain: "" });
+  const kw = (await PDFDocument.load(r2)).getKeywords() ?? "";
+  ok((await countSignatureImages(r2)) === 1 && /SoISig:1:[^ ]*:r90/.test(kw) && /SoITxt:1:[^ ]*:r90:s0:2026-09-07T12:00:00Z:genesis/.test(kw), "rotated page: stamp + bound date mark recorded with r90");
+}
+
 console.log(`pdf-stamp: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

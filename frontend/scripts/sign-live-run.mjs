@@ -27,7 +27,7 @@ const log = []; const t0 = Date.now();
 const step = (who, what, ok = true, extra = '') => { const l = `${String(Date.now() - t0).padStart(6)}ms  ${who.padEnd(5)} ${ok ? 'OK ' : 'FAIL'} ${what}${extra ? '  ' + extra : ''}`; console.log(l); log.push(l); if (!ok) { fs.writeFileSync(OUT + '/log.txt', log.join('\n')); throw new Error(what); } };
 const shot = (p, who, name) => p.screenshot({ path: `${OUT}/${name}-${who}.jpg`, type: 'jpeg', quality: 55, fullPage: true });
 const ready = async (p) => { await p.waitForSelector('next-route-announcer', { state: 'attached', timeout: 90000 }); await p.waitForTimeout(400); };
-const TAP = { x: 0.3, y: 0.75 };            // where each phone taps, as page fractions — read back from the PDF at the end
+const TAPS = { alex: { x: 0.3, y: 0.75 }, dan: { x: 0.7, y: 0.6 } };   // each phone taps its own spot — read back from the PDF at the end (Asar)
 const draw = async (p) => {
   const c = p.locator('canvas[aria-label]').first(); const b = await c.boundingBox();
   await p.mouse.move(b.x + 20, b.y + 80); await p.mouse.down();
@@ -36,10 +36,18 @@ const draw = async (p) => {
 };
 const placeAndSign = async (p, who) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 }); step(who, 'PDF page rendered (pdfjs)');
-  const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * TAP.x, bb.y + bb.height * TAP.y);
+  const TAP = TAPS[who];
+  const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3);
+  await p.getByTestId('sig-box').waitFor();
+  // a misplaced signature can be removed and placed again (Enki)
+  await p.getByTestId('remove-mark').click(); step(who, 'misplaced signature removed', (await p.getByTestId('sig-box').count()) === 0);
+  const bb2 = await page.boundingBox();                       // the page scrolls when the toolbar shrinks — never reuse a stale box
+  await p.mouse.click(bb2.x + bb2.width * TAP.x, bb2.y + bb2.height * TAP.y);
   await p.getByTestId('sig-box').waitFor(); step(who, 'signature box placed by tap');
+  step(who, 'toolbar names the selected box', /signature/i.test(await p.getByTestId('sizing-chip').innerText()));
   // a vertical swipe over the page must NOT move or add a box (Christo, wave 1: pan-y scroll survives)
-  await p.mouse.move(bb.x + bb.width * 0.8, bb.y + bb.height * 0.2); await p.mouse.down(); await p.mouse.move(bb.x + bb.width * 0.8, bb.y + bb.height * 0.5, { steps: 6 }); await p.mouse.up();
+  const bb3 = await page.boundingBox();
+  await p.mouse.move(bb3.x + bb3.width * 0.8, bb3.y + bb3.height * 0.2); await p.mouse.down(); await p.mouse.move(bb3.x + bb3.width * 0.8, bb3.y + bb3.height * 0.5, { steps: 6 }); await p.mouse.up();
   step(who, 'a swipe over the page places nothing', (await p.getByTestId('sig-box').count()) === 1);
   // resize the signature box by its corner handle, then add a date beside it (operator, 2026-09-07)
   const before = await p.getByTestId('sig-box').boundingBox(); const h = await p.getByTestId('resize-handle').boundingBox();
@@ -108,7 +116,8 @@ const n = await countSignatureImages(bytes); step('dan', 'downloaded PDF carries
 // geometry (Asar, wave 1): each stamp sits on page 1 where the thumb tapped — the box is centred on the tap
 const boxes = await signatureBoxes(bytes);
 const near = (a, b) => Math.abs(a - b) < 0.06;
-step('dan', 'both stamps landed on page 1 where tapped (resized, so the box grew right/down from the tap)', boxes.length === 2 && boxes.every((b) => b.page === 1 && Math.abs(b.x - (TAP.x - 0.2)) < 0.06 && Math.abs(b.y - (TAP.y - 0.04)) < 0.06), JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
+const expect = [TAPS.alex, TAPS.dan];
+step('dan', 'each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)', boxes.length === 2 && boxes.every((b, i) => b.page === 1 && Math.abs(b.x - (expect[i].x - 0.2)) < 0.06 && Math.abs(b.y - (expect[i].y - 0.04)) < 0.06 && b.w > 0.45) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document

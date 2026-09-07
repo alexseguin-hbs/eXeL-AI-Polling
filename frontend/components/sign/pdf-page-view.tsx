@@ -15,9 +15,9 @@ import type { StampBox } from "@/lib/pdf-stamp";
 export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string }
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.035, MIN_W = 0.08, MIN_H = 0.02;
 
-export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly }: {
+export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly, onPage }: {
   bytes: Uint8Array; marks: Mark[]; onMarks: (m: Mark[]) => void; selectedId: string | null; onSelect: (id: string | null) => void;
-  preview?: string | null; readOnly?: boolean;
+  preview?: string | null; readOnly?: boolean; onPage?: (page: number) => void;
 }) {
   const { t } = useLexicon();
   const host = useRef<HTMLDivElement>(null);
@@ -26,6 +26,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   const [err, setErr] = useState("");
   const docRef = useRef<Awaited<ReturnType<typeof openPdf>> | null>(null);
   const marksRef = useRef(marks); marksRef.current = marks;
+  useEffect(() => { onPage?.(page); }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let live = true;
@@ -51,7 +52,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   const clampBox = (m: Mark): Mark => ({ ...m, w: Math.min(Math.max(m.w, MIN_W), 1), h: Math.min(Math.max(m.h, MIN_H), 1), x: Math.min(Math.max(m.x, 0), 1 - Math.min(Math.max(m.w, MIN_W), 1)), y: Math.min(Math.max(m.y, 0), 1 - Math.min(Math.max(m.h, MIN_H), 1)) });
   const update = (id: string, patch: Partial<Mark>) => onMarks(marksRef.current.map((m) => (m.id === id ? clampBox({ ...m, ...patch }) : m)));
   const hit = (p: { x: number; y: number }) => [...marksRef.current].reverse().find((m) => m.page === page && p.x >= m.x && p.x <= m.x + m.w && p.y >= m.y && p.y <= m.y + m.h) ?? null;
-  const onHandle = (p: { x: number; y: number }, m: Mark) => { const r = host.current!.getBoundingClientRect(); const hx = (m.x + m.w) - p.x, hy = (m.y + m.h) - p.y; return hx * r.width < 28 && hy * r.height < 28 && hx >= -0.01 && hy >= -0.01; };
+  const onHandle = (p: { x: number; y: number }, m: Mark) => { const r = host.current!.getBoundingClientRect(); const hx = (m.x + m.w) - p.x, hy = (m.y + m.h) - p.y; return hx * r.width < 44 && hy * r.height < 44 && hx >= -0.02 && hy >= -0.02; };   // 44 px thumb slop (Thoth)
 
   const onDown = (e: React.PointerEvent) => {
     if (readOnly) return;
@@ -97,11 +98,11 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
         {marks.filter((m) => m.page === page).map((m) => {
           const sel = m.id === selectedId;
           return (
-            <div key={m.id} className={`pointer-events-none absolute rounded border-2 ${sel ? "border-cyan-500" : "border-cyan-500/60"} ${m.kind === "sig" ? "border-dashed bg-cyan-400/10" : "border-dotted bg-amber-300/10"}`}
+            <div key={m.id} className={`pointer-events-none absolute rounded ${sel ? "border-[3px] border-cyan-400 shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-cyan-500/50"} ${m.kind === "sig" ? (sel ? "bg-cyan-400/15" : "border-dashed bg-cyan-400/10") : (sel ? "bg-amber-300/20" : "border-dotted bg-amber-300/10")}`}
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%` }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className="h-full w-full object-contain" />}
               {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "min(14px, 100%)", lineHeight: 1.2 }}>{m.text}</span>}
-              {sel && !readOnly && <span className="absolute -bottom-1.5 -right-1.5 h-4 w-4 rounded-sm border-2 border-white bg-cyan-500" aria-hidden="true" data-testid="resize-handle" />}
+              {sel && !readOnly && <span className="absolute -bottom-2.5 -right-2.5 h-6 w-6 rounded-md border-2 border-white bg-cyan-500 shadow" aria-hidden="true" data-testid="resize-handle" />}
             </div>
           );
         })}

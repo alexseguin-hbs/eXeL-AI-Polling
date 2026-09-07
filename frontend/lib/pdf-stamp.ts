@@ -5,7 +5,7 @@
  * image XObject registered under a name starting with "SoISig", which is how
  * `countSignatureImages` proves how many signatures a file carries (Asar's headless gate).
  */
-import { PDFDocument, PDFName, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFName, StandardFonts, degrees, rgb } from "pdf-lib";
 
 export interface StampBox { page: number; x: number; y: number; w: number; h: number }   // page 1-based; fractions 0..1
 export interface StampSig { pngDataUrl: string; name: string; isoDate: string; hash: string; /** ties the PDF to its envelope: token + the chain BEFORE this pass (Odin, wave 2) */ envelope?: { token: string; chain: string } }
@@ -30,6 +30,18 @@ function placeOnPage(page: ReturnType<PDFDocument["getPage"]>, box: StampBox, mi
   return { rot, width, height, bx, by, bw, bh };
 }
 
+/**
+ * Draw options that put a W×H (display-frame) box into the media-frame rect returned by placeOnPage
+ * on a page with /Rotate — pdf-lib rotates around the drawn origin, counter-clockwise, so the origin
+ * walks around the rect with the angle (Enki, wave 3: a 90° page drew the signature sideways).
+ */
+function oriented(rot: number, bx: number, by: number, bw: number, bh: number) {
+  if (rot === 90)  return { x: bx + bw, y: by, width: bh, height: bw, rotate: degrees(90) };
+  if (rot === 180) return { x: bx + bw, y: by + bh, width: bw, height: bh, rotate: degrees(180) };
+  if (rot === 270) return { x: bx, y: by + bh, width: bh, height: bw, rotate: degrees(270) };
+  return { x: bx, y: by, width: bw, height: bh, rotate: degrees(0) };
+}
+
 const addKeyword = (doc: PDFDocument, kw: string) => { const prev = doc.getKeywords() ?? ""; doc.setKeywords([...(prev ? prev.split(" ") : []), kw]); };
 
 export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampSig): Promise<Uint8Array> {
@@ -38,20 +50,30 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const page = pages[Math.min(Math.max(box.page, 1), pages.length) - 1];
   // The signer tapped on the page AS DISPLAYED — pdfjs applies /Rotate, pdf-lib's coordinates do not
   // (Enki, wave 2). placeOnPage maps the displayed-fraction box back onto the media box first.
-  const { rot, bx, by, bw, bh } = placeOnPage(page, box);
+  const { rot } = placeOnPage(page, box);
+  // Two display-frame sub-boxes — the image above, the caption below — each mapped through the
+  // page's rotation on its own, so both read upright however the page is turned.
+  const imgBox = { ...box, h: box.h * 0.7 };
+  const capBox = { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
+  const I = placeOnPage(page, imgBox, 24, 8), C = placeOnPage(page, capBox, 24, 4);
   const png = await doc.embedPng(dataUrlBytes(sig.pngDataUrl));
-  // Keep the image's aspect inside the box; caption below it.
-  const capH = Math.min(9, bh * 0.28);
-  const imgH = bh - capH - 2;
-  const scale = Math.min(bw / png.width, imgH / png.height);
+  const swap = rot === 90 || rot === 270;
+  const dispW = swap ? I.bh : I.bw, dispH = swap ? I.bw : I.bh;           // the box as the signer saw it
+  const scale = Math.min(dispW / png.width, dispH / png.height);
   const iw = png.width * scale, ih = png.height * scale;
   const key = PDFName.of(`SoISig${maxSignatureIndex(page.node.Resources()?.lookup(PDFName.of("XObject"))) + 1}`);
   page.node.setXObject(key, png.ref);
-  page.drawImage(png, { x: bx + (bw - iw) / 2, y: by + capH + 2, width: iw, height: ih });
+  if (rot === 0) page.drawImage(png, { x: I.bx + (I.bw - iw) / 2, y: I.by + (I.bh - ih) / 2, width: iw, height: ih });
+  else { const o = oriented(rot, I.bx, I.by, I.bw, I.bh); page.drawImage(png, { ...o, width: iw, height: ih }); }
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const caption = `${sig.name} · ${sig.isoDate} · #${sig.hash}`;
-  page.drawText(caption, { x: bx, y: by, size: capH * 0.9, font, color: rgb(0.1, 0.1, 0.1), maxWidth: bw });
-  page.drawLine({ start: { x: bx, y: by + capH + 1 }, end: { x: bx + bw, y: by + capH + 1 }, thickness: 0.5, color: rgb(0.2, 0.2, 0.2) });
+  const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
+  let capSize = Math.max(4, Math.min(9, capDispH * 0.9));
+  while (capSize > 4 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
+  const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
+  page.drawText(caption, { x: co.x, y: co.y, size: capSize, font, color: rgb(0.1, 0.1, 0.1), rotate: co.rotate });
+  const lo = oriented(rot, C.bx, C.by, C.bw, C.bh);
+  page.drawLine({ start: { x: lo.x, y: lo.y }, end: rot === 90 ? { x: lo.x, y: lo.y + C.bh } : rot === 270 ? { x: lo.x, y: lo.y - C.bh } : rot === 180 ? { x: lo.x - C.bw, y: lo.y } : { x: lo.x + C.bw, y: lo.y }, thickness: 0.5, color: rgb(0.2, 0.2, 0.2) });
   // Record the placement as page-fraction metadata so `signatureBoxes()` can read it back (Asar, wave 1).
   addKeyword(doc, `SoISig:${box.page}:${box.x.toFixed(4)}:${box.y.toFixed(4)}:${box.w.toFixed(4)}:${box.h.toFixed(4)}:r${rot}`);
   if (sig.envelope) addKeyword(doc, `SoIEnv:${sig.envelope.token}:${sig.envelope.chain || "genesis"}`);
@@ -59,17 +81,24 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
 }
 
 /** A text mark — a date, a name, a note — fitted into its box on the page (operator, 2026-09-07). */
-export async function stampText(pdf: Uint8Array, box: StampBox, text: string): Promise<Uint8Array> {
+export interface TextMeta { signerIdx: number; isoDate: string; chain: string }
+export async function stampText(pdf: Uint8Array, box: StampBox, text: string, meta?: TextMeta): Promise<Uint8Array> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
   const pages = doc.getPages();
   const page = pages[Math.min(Math.max(box.page, 1), pages.length) - 1];
-  const { bx, by, bw, bh } = placeOnPage(page, box, 12, 8);
+  const { rot, bx, by, bw, bh } = placeOnPage(page, box, 12, 8);
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const clean = text.replace(/[\r\n]+/g, " ").slice(0, 200);
-  let size = Math.max(6, Math.min(bh * 0.72, 24));
-  while (size > 6 && font.widthOfTextAtSize(clean, size) > bw - 4) size -= 0.5;   // shrink to fit the box width
-  page.drawText(clean, { x: bx + 2, y: by + (bh - size) / 2 + size * 0.12, size, font, color: rgb(0.06, 0.06, 0.08) });
-  addKeyword(doc, `SoITxt:${box.page}:${box.x.toFixed(4)}:${box.y.toFixed(4)}:${box.w.toFixed(4)}:${box.h.toFixed(4)}`);
+  const swap = rot === 90 || rot === 270;
+  const dispW = swap ? bh : bw, dispH = swap ? bw : bh;
+  let size = Math.max(6, Math.min(dispH * 0.72, 24));
+  while (size > 6 && font.widthOfTextAtSize(clean, size) > dispW - 4) size -= 0.5;   // shrink to fit the box width
+  const pad = (dispH - size) / 2 + size * 0.12;
+  const o = oriented(rot, bx, by, bw, bh);
+  const at = rot === 0 ? { x: bx + 2, y: by + pad } : rot === 90 ? { x: o.x - pad, y: o.y + 2 } : rot === 180 ? { x: o.x - 2, y: o.y - pad } : { x: o.x + pad, y: o.y - 2 };
+  page.drawText(clean, { ...at, size, font, color: rgb(0.06, 0.06, 0.08), rotate: o.rotate });
+  // bound to the signer's pass: index, time, chain-before (Odin, Thor) — a date can never pass as a later edit
+  addKeyword(doc, `SoITxt:${box.page}:${box.x.toFixed(4)}:${box.y.toFixed(4)}:${box.w.toFixed(4)}:${box.h.toFixed(4)}:r${rot}` + (meta ? `:s${meta.signerIdx}:${meta.isoDate}:${meta.chain || "genesis"}` : ""));
   return doc.save({ useObjectStreams: false });
 }
 

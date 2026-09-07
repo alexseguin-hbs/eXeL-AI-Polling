@@ -35,14 +35,26 @@ function Header() {
   );
 }
 
-function CreatorWithLogin({ seed }: { seed: { name: string; bytes: Uint8Array } | null }) {
+/** The Create-Doc seed is read only once someone is actually on the creator path — after Auth0 returns,
+ *  never on the mount that precedes the redirect (Krishna: it was consumed before the login and lost). */
+function takeSeed(): { name: string; bytes: Uint8Array } | null {
+  try {
+    const raw = sessionStorage.getItem("exel-sign-seed");
+    if (!raw) return null;
+    const j = JSON.parse(raw) as { name: string; base64: string }; sessionStorage.removeItem("exel-sign-seed");
+    return { name: j.name, bytes: base64ToBytes(j.base64) };
+  } catch { return null; }
+}
+
+function CreatorWithLogin() {
   const { user } = useAuth0();
+  const [seed] = useState(() => takeSeed());
   return <SignFlow defaultName={user?.name && !user.name.includes("@") ? user.name : ""} defaultContact={user?.email ?? ""} seed={seed} />;
 }
 
 export default function SignPage() {
   const [q, setQ] = useState<{ e: string; s: string } | null>(null);
-  const [seed, setSeed] = useState<{ name: string; bytes: Uint8Array } | null>(null);
+  const [seed, setSeed] = useState<{ name: string; bytes: Uint8Array } | null>(null);   // AUTH_OFF path only
   useEffect(() => {
     // The secret lives in the fragment, and a fragment-only navigation does not reload the page —
     // so re-read on hashchange/popstate too, and remount the flow (key below) when the link changes.
@@ -50,10 +62,7 @@ export default function SignPage() {
     read();
     window.addEventListener("hashchange", read); window.addEventListener("popstate", read);
     const off = () => { window.removeEventListener("hashchange", read); window.removeEventListener("popstate", read); };
-    try {
-      const raw = sessionStorage.getItem("exel-sign-seed");
-      if (raw) { const j = JSON.parse(raw) as { name: string; base64: string }; setSeed({ name: j.name, bytes: base64ToBytes(j.base64) }); sessionStorage.removeItem("exel-sign-seed"); }
-    } catch { /* no seed */ }
+    if (AUTH_OFF && !new URLSearchParams(window.location.search).get("e")) setSeed(takeSeed());
     return off;
   }, []);
   if (!q) return <div className="mx-auto max-w-3xl px-4 py-10"><Header /></div>;
@@ -66,7 +75,7 @@ export default function SignPage() {
       ) : AUTH_OFF ? (
         <SignFlow seed={seed} />
       ) : (
-        <AuthGuard returnTo={path}><CreatorWithLogin seed={seed} /></AuthGuard>
+        <AuthGuard returnTo={path}><CreatorWithLogin /></AuthGuard>
       )}
     </div>
   );

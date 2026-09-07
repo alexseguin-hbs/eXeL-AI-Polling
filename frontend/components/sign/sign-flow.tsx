@@ -39,6 +39,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const [signers, setSigners] = useState<{ name: string; contact: string }[]>([{ name: defaultName ?? "", contact: defaultContact ?? "" }, { name: "", contact: "" }]);
   const [marks, setMarks] = useState<Record<number, Mark[]>>({});      // per file: one "sig" + any text marks
   const [selected, setSelected] = useState<string | null>(null);
+  const [viewedPage, setViewedPage] = useState(1);            // + Date / + Text land on the page being looked at (Enki)
   const [fileIdx, setFileIdx] = useState(0);
   const [png, setPng] = useState<string | null>(null);
   const [pub, setPub] = useState<PublicEnvelope | null>(null);
@@ -102,10 +103,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   // Text marks: a date or a note placed beside the signature, movable and resizable like it.
   const addText = (text: string) => {
     const cur = marks[fileIdx] ?? []; const sig = cur.find((m) => m.kind === "sig");
-    const page = sig?.page ?? 1; const below = sig ? sig.y + sig.h + 0.01 : 0.5; const x = sig ? sig.x : 0.4;
+    const onSigPage = sig && sig.page === viewedPage;
+    const page = viewedPage; const below = onSigPage ? sig.y + sig.h + 0.01 : 0.5; const x = onSigPage ? sig.x : 0.4;
     const id = `t${Date.now().toString(36)}`;
     const mark: Mark = { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text };
     setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
+    setTimeout(() => { const boxes = document.querySelectorAll('[data-testid="text-box"]'); boxes[boxes.length - 1]?.scrollIntoView({ block: "center", behavior: "smooth" }); }, 50);
   };
   const todayText = () => new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
   const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
@@ -116,6 +119,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[0]?.name ?? "";
 
   // ── stamp + save ─────────────────────────────────────────────────────────────
+  // The marks of this pass, per file, as the record keeps them (page, box, text) — sign_events.marks
+  const passMarks = () => files.map((_, i) => (marks[i] ?? []).map((m) => ({ kind: m.kind, page: m.page, x: +m.x.toFixed(4), y: +m.y.toFixed(4), w: +m.w.toFixed(4), h: +m.h.toFixed(4), ...(m.kind === "text" ? { text: (m.text ?? "").slice(0, 200) } : {}) })));
   const sign = useCallback(async () => {
     if (!png || !allPlaced) return;
     setStep("saving"); setErr("");
@@ -128,7 +133,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       for (let i = 0; i < files.length; i++) {
         const f = files[i];
         let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
-        for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim());
+        // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
+        for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: myIdx, isoDate, chain: prevChain });
         const sha = await sha256Hex(out);
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });
@@ -142,9 +148,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         if (created.mode === "local") setLocalFallback(true);
         const next = applySignature(env, 0, env.signers[0].secret, isoDate, stamped, chain);
         envRef.current = next;
-        result = await signEnvelope(env.token, 0, env.signers[0].secret, stamped, chain, next);
+        result = await signEnvelope(env.token, 0, env.signers[0].secret, stamped, chain, next, passMarks());
       } else {
-        result = await signEnvelope(token!, myIdx, secret!, stamped, chain);
+        result = await signEnvelope(token!, myIdx, secret!, stamped, chain, undefined, passMarks());
       }
       setPub(result); setSigned(stampedBytes);
       if (result.status === "complete") { setStep("done"); return; }
@@ -158,6 +164,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       setErr(ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex));
       setStep(countersign ? "place" : "draw");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [png, allPlaced, files, marks, myName, countersign, pub, title, signers, token, secret, myIdx, t]);
 
   const download = (f: { name: string; bytes: Uint8Array }, final = true) => {
@@ -169,8 +176,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
 
   // ── the phase rail + one explainer line (R-CORE gate block) ──────────────────
   const rail = useMemo(() => {
-    const keys = countersign ? ["open", "place", "draw", "sign", "done"] : ["upload", "signers", "place", "draw", "sign", "handoff"];
-    const cur = step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" ? "sign" : step === "done" ? (countersign ? "done" : "handoff") : step;
+    const keys = countersign ? ["open", "place", "draw", "sign", "done"] : ["upload", "signers", "place", "draw", "sign", "handoff", "done"];
+    const cur = step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" ? "sign" : step;
     return keys.map((k) => ({ k, on: k === cur, past: keys.indexOf(k) < keys.indexOf(cur) }));
   }, [step, countersign]);
   const explain = (() => {
@@ -279,16 +286,17 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
               ))}
             </div>
           )}
-          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} />
+          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} />
           {/* marks toolbar: add a date or a note; size the selected mark; edit its text */}
           <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="marks-toolbar">
             <button type="button" onClick={() => addText(todayText())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-date">+ {t("soi.sign.add_date")}</button>
             <button type="button" onClick={() => addText(t("soi.sign.text_default"))} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-text">+ {t("soi.sign.add_text")}</button>
             {selMark && <>
+              <span className="rounded-full border border-cyan-400/60 px-2 py-1 text-[11px] text-cyan-300" data-testid="sizing-chip">{t("soi.sign.sizing")} {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</span>
               <button type="button" onClick={() => resizeSel(0.85)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.smaller")}>−</button>
               <button type="button" onClick={() => resizeSel(1.18)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.larger")}>+</button>
               {selMark.kind === "text" && <input value={selMark.text ?? ""} onChange={(e) => setSelText(e.target.value)} placeholder={t("soi.sign.text_ph")} className="min-h-[44px] min-w-[140px] flex-1 rounded-md border border-border bg-background px-2 text-sm" data-testid="mark-text" />}
-              {selMark.kind === "text" && <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.remove_mark")}>✕</button>}
+              <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark">✕</button>
             </>}
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.marks_hint")}</p>

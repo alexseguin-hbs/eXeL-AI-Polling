@@ -81,6 +81,7 @@ create table if not exists sign_events (
   kind          text not null,                    -- created|viewed|signed|revoked|refused|locked
   file_shas     text[],                           -- sha256 of every file version this event produced (computed server-side)
   version       int,                              -- the file version this event refers to
+  marks         jsonb,                            -- the pass's marks per file: [{kind,page,x,y,w,h,text?}] (Thor, wave 3)
   contact_hash  text,
   ip_hash       text,
   user_agent    text,
@@ -200,7 +201,7 @@ end $$;
 -- sign_envelope_sign — the current signer, with its secret, replaces every file with its stamped version
 -- ============================================================
 create or replace function sign_envelope_sign(
-  p_token text, p_signer_idx int, p_secret text, p_files jsonb, p_chain text, p_ip_hash text default null, p_user_agent text default null
+  p_token text, p_signer_idx int, p_secret text, p_files jsonb, p_chain text, p_ip_hash text default null, p_user_agent text default null, p_marks jsonb default null
 ) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare e sign_envelopes; v_h text; v_cur int; v_n int; f jsonb; v_last boolean; v_ver int; v_signers jsonb; v_next text := null; v_shas text[]; v_chain text;
@@ -251,8 +252,8 @@ begin
     status = case when v_last then 'complete' else 'awaiting' end,
     completed_at = case when v_last then now() else null end, updated_at = now()
   where id = e.id returning * into e;
-  insert into sign_events (envelope_id, signer_idx, kind, file_shas, version, contact_hash, ip_hash, user_agent)
-  values (e.id, p_signer_idx, 'signed', v_shas, v_ver, sign__hash(e.signers->p_signer_idx->>'contact'), p_ip_hash, left(p_user_agent, 300));
+  insert into sign_events (envelope_id, signer_idx, kind, file_shas, version, marks, contact_hash, ip_hash, user_agent)
+  values (e.id, p_signer_idx, 'signed', v_shas, v_ver, p_marks, sign__hash(e.signers->p_signer_idx->>'contact'), p_ip_hash, left(p_user_agent, 300));
   return sign__shape(e, p_signer_idx, true) || jsonb_build_object('next_secret', v_next);
 end $$;
 
@@ -280,11 +281,11 @@ revoke all on function sign__mask(text) from public, anon, authenticated;
 revoke all on function sign__shape(sign_envelopes, int, boolean) from public, anon, authenticated;
 revoke all on function sign_envelope_create(text, text, text, jsonb, jsonb, timestamptz) from public;
 revoke all on function sign_envelope_get(text, text, text, text) from public;
-revoke all on function sign_envelope_sign(text, int, text, jsonb, text, text, text) from public;
+revoke all on function sign_envelope_sign(text, int, text, jsonb, text, text, text, jsonb) from public;
 revoke all on function sign_envelope_revoke(text, text) from public;
 grant execute on function sign_envelope_create(text, text, text, jsonb, jsonb, timestamptz) to anon, authenticated;
 grant execute on function sign_envelope_get(text, text, text, text) to anon, authenticated;
-grant execute on function sign_envelope_sign(text, int, text, jsonb, text, text, text) to anon, authenticated;
+grant execute on function sign_envelope_sign(text, int, text, jsonb, text, text, text, jsonb) to anon, authenticated;
 grant execute on function sign_envelope_revoke(text, text) to anon, authenticated;
 
 comment on table sign_envelopes is 'Sign Doc envelopes: per-signer secret hashes, turn order, 30-day expiry; RLS forced; four SECURITY DEFINER RPCs are the only client path.';

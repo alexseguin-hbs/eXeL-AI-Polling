@@ -55,6 +55,12 @@ jobs:
         run: npm ci
 
       # FAIL CLOSED. Building without these produces a site that loads fine and whose live-response path is dead.
+
+
+      - name: Test (headless suites — sign, pod, donate, lexicon, guards)
+
+        run: npm run test:ci
+
       - name: Check required build vars
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -69,11 +75,6 @@ jobs:
 
       - name: Test
         run: npm run test:innovation-time
-
-
-      - name: Test (headless suites — sign, pod, donate, lexicon, guards)
-
-        run: npm run test:ci
 
       # A build that exits 0 without compiling is exactly how a broken deploy got shipped before. Require the words.
       - name: Build
