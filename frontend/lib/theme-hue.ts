@@ -21,7 +21,9 @@ export const hueFrom = (primary: string): ThemeHue => ({
 });
 
 export function useThemeHue(): ThemeHue {
-  let primary = DEFAULT_PRIMARY;
-  try { primary = useTheme().currentTheme?.colors?.primary || DEFAULT_PRIMARY; } catch { /* outside the provider — default cyan */ }
-  return hueFrom(primary);
+  // Unconditional: every app page sits under ThemeProvider (components/providers.tsx wraps both the
+  // Auth0 and the no-Auth0 branches). A try/catch here read as a conditional hook to the build's
+  // lint gate and broke every production build after c5775b1 — the live site froze at 7938fab.
+  const { currentTheme } = useTheme();
+  return hueFrom(currentTheme?.colors?.primary || DEFAULT_PRIMARY);
 }
