@@ -143,3 +143,53 @@ export async function envelopeMarks(pdf: Uint8Array): Promise<{ token: string; c
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
   return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIEnv:")).map((k) => { const [, token, chain] = k.split(":"); return { token, chain }; });
 }
+
+/* ── Signatory block — CAC-style digital timestamp + Light Codex 2×2 strip, bottom-right of the last page ──
+ * One row per signer: NAME · "Digitally signed" · YYYY.MM.DD HH:MM:SS UTC · #hash. Each pass draws
+ * its own row (rowIndex = signer index) and redraws the frame, so the block accumulates across the
+ * envelope. The Light Codex strip (lib/light-codex, block size 2, double helix) is rendered in the
+ * browser and handed in as a PNG; the same text it encodes is printed beside it (operator, 2026-09-07).
+ */
+export interface CodexEntry { rowIndex: number; total: number; name: string; isoDate: string; hash: string; codexPngDataUrl?: string }
+
+export const cacStamp = (iso: string): string => {
+  const d = new Date(iso); const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}.${p(d.getUTCMonth() + 1)}.${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC`;
+};
+
+export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<Uint8Array> {
+  const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
+  const pages = doc.getPages(); const page = pages[pages.length - 1];
+  const { width, height } = page.getSize();
+  const rows = Math.max(2, e.total);                       // "2×2": two rows minimum, name | timestamp
+  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), blockH = rows * rowH + 22;
+  const bx = width - blockW - 18, by = 18;                 // bottom-right, inside a half-inch margin
+  const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  // frame + title (redrawn each pass — identical coordinates, so no ghosting)
+  page.drawRectangle({ x: bx, y: by, width: blockW, height: blockH, borderColor: rgb(0.1, 0.25, 0.45), borderWidth: 0.8, color: rgb(1, 1, 1), opacity: 1 });
+  page.drawText("Signatories — digital timestamps", { x: bx + pad, y: by + blockH - 12, size: 7.5, font: bold, color: rgb(0.1, 0.25, 0.45) });
+  page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
+  // this signer's row
+  const y = by + blockH - 16 - rowH * (e.rowIndex + 1) + 4;
+  const nameW = blockW * 0.42 - pad * 2;
+  let ns = 8; while (ns > 5 && bold.widthOfTextAtSize(e.name, ns) > nameW) ns -= 0.5;
+  page.drawText(e.name, { x: bx + pad, y, size: ns, font: bold, color: rgb(0.06, 0.06, 0.08) });
+  const stamp = `Digitally signed · ${cacStamp(e.isoDate)} · #${e.hash}`;
+  const stampW = blockW * 0.58 - pad * 2 - (e.codexPngDataUrl ? 34 : 0);
+  let ss = 6.5; while (ss > 4.5 && font.widthOfTextAtSize(stamp, ss) > stampW) ss -= 0.25;
+  page.drawText(stamp, { x: bx + blockW * 0.42 + pad, y, size: ss, font, color: rgb(0.1, 0.1, 0.12) });
+  if (e.codexPngDataUrl) {
+    try { const png = await doc.embedPng(dataUrlBytes(e.codexPngDataUrl)); page.drawImage(png, { x: bx + blockW - pad - 30, y: y - 2, width: 30, height: 10 }); } catch { /* strip optional */ }
+  }
+  addKeyword(doc, `SoICodex:${e.rowIndex}:${e.isoDate}:${e.hash}`);
+  return doc.save({ useObjectStreams: false });
+}
+
+/** The signatory rows recorded in the file, from the keywords. */
+export async function codexRows(pdf: Uint8Array): Promise<{ rowIndex: number; isoDate: string; hash: string }[]> {
+  const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
+  return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:")).map((k) => {
+    const m = /^SoICodex:(\d+):(.+):([0-9a-f]+)$/.exec(k);
+    return m ? { rowIndex: Number(m[1]), isoDate: m[2], hash: m[3] } : { rowIndex: -1, isoDate: "", hash: "" };
+  });
+}

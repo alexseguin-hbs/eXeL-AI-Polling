@@ -17,7 +17,7 @@
 import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
-import { countSignatureImages, signatureBoxes, textBoxes } from '../lib/pdf-stamp.ts';
+import { countSignatureImages, signatureBoxes, textBoxes, codexRows } from '../lib/pdf-stamp.ts';
 
 const BASE = process.env.POD_BASE || 'http://127.0.0.1:3210';
 const OUT = process.env.OUT || '../docs/assessments/sign-live-run';
@@ -119,6 +119,7 @@ const near = (a, b) => Math.abs(a - b) < 0.06;
 const expect = [TAPS.alex, TAPS.dan];
 step('dan', 'each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)', boxes.length === 2 && boxes.every((b, i) => b.page === 1 && Math.abs(b.x - (expect[i].x - 0.2)) < 0.06 && Math.abs(b.y - (expect[i].y - 0.04)) < 0.06 && b.w > 0.45) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
+const rows = await codexRows(bytes); step('dan', 'signatory block: two CAC-style timestamp rows, bottom-right of the last page', rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows.every((r) => /^\d{4}-\d{2}-\d{2}T/.test(r.isoDate)), JSON.stringify(rows.map((r) => [r.rowIndex, r.isoDate, r.hash])));
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document
 await A.goto(myLink, { waitUntil: 'domcontentloaded' }); await ready(A);

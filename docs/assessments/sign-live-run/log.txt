@@ -1,32 +1,33 @@
-  3675ms  alex  OK  landing → Sign Doc
-  3715ms  alex  OK  PDF uploaded, hashed, page-counted
-  3844ms  alex  OK  two signers named (email + phone)
-  4244ms  alex  OK  PDF page rendered (pdfjs)
-  4295ms  alex  OK  misplaced signature removed
-  4311ms  alex  OK  signature box placed by tap
-  4313ms  alex  OK  toolbar names the selected box
-  4437ms  alex  OK  a swipe over the page places nothing
-  4543ms  alex  OK  signature box resized by its corner  123→158 px
-  4595ms  alex  OK  date mark added beside the signature
-  5257ms  alex  OK  signature drawn with the pointer
-  5432ms  alex  OK  Sign & save pressed
-  5530ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=JIP8cme5_f8aDHWRN3…
-  5581ms  alex  OK  creator keeps his own return link
-  5585ms  alex  OK  sms: composer prefilled to Daniel
-  7437ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
-  9745ms  dan   OK  opened the hand-off link, no login
-  9747ms  dan   OK  roster: Alex signed, Daniel now
-  9822ms  dan   OK  PDF page rendered (pdfjs)
-  9880ms  dan   OK  misplaced signature removed
-  9896ms  dan   OK  signature box placed by tap
-  9898ms  dan   OK  toolbar names the selected box
- 10020ms  dan   OK  a swipe over the page places nothing
- 10129ms  dan   OK  signature box resized by its corner  123→157 px
- 10196ms  dan   OK  date mark added beside the signature
- 10855ms  dan   OK  signature drawn with the pointer
- 11066ms  dan   OK  Sign & save pressed
- 11098ms  dan   OK  COMPLETE — every signer has signed
- 11174ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
- 11178ms  dan   OK  each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)  [[1,0.1,0.71,0.51],[1,0.49,0.56,0.51]]
- 11183ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
- 11607ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
+  3408ms  alex  OK  landing → Sign Doc
+  3447ms  alex  OK  PDF uploaded, hashed, page-counted
+  3545ms  alex  OK  two signers named (email + phone)
+  3934ms  alex  OK  PDF page rendered (pdfjs)
+  3993ms  alex  OK  misplaced signature removed
+  4010ms  alex  OK  signature box placed by tap
+  4013ms  alex  OK  toolbar names the selected box
+  4136ms  alex  OK  a swipe over the page places nothing
+  4241ms  alex  OK  signature box resized by its corner  123→158 px
+  4289ms  alex  OK  date mark added beside the signature
+  4953ms  alex  OK  signature drawn with the pointer
+  5158ms  alex  OK  Sign & save pressed
+  5215ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=adJbekY6mqOt_k2AR2…
+  5263ms  alex  OK  creator keeps his own return link
+  5266ms  alex  OK  sms: composer prefilled to Daniel
+  7402ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+  9134ms  dan   OK  opened the hand-off link, no login
+  9137ms  dan   OK  roster: Alex signed, Daniel now
+  9199ms  dan   OK  PDF page rendered (pdfjs)
+  9261ms  dan   OK  misplaced signature removed
+  9275ms  dan   OK  signature box placed by tap
+  9277ms  dan   OK  toolbar names the selected box
+  9402ms  dan   OK  a swipe over the page places nothing
+  9511ms  dan   OK  signature box resized by its corner  123→157 px
+  9574ms  dan   OK  date mark added beside the signature
+ 10236ms  dan   OK  signature drawn with the pointer
+ 10447ms  dan   OK  Sign & save pressed
+ 10480ms  dan   OK  COMPLETE — every signer has signed
+ 10554ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+ 10559ms  dan   OK  each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)  [[1,0.1,0.71,0.51],[1,0.49,0.56,0.51]]
+ 10563ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
+ 10566ms  dan   OK  signatory block: two CAC-style timestamp rows, bottom-right of the last page  [[0,"2026-09-07T20:36:26.917Z","91d05b18"],[1,"2026-09-07T20:36:32.165Z","da5ede51"]]
+ 10993ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered

@@ -1,7 +1,7 @@
 // Sign Doc PDF engine — headless gate (Asar, round 1): a stamp is countable, the note's money holds.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/pdf-stamp.test.mjs
 import { buildDocPdf, solvePayment, amortize, promissoryNote } from "../lib/doc-pdf.ts";
-import { stampSignature, stampText, textBoxes, countSignatureImages, pageCount } from "../lib/pdf-stamp.ts";
+import { stampSignature, stampText, stampCodexBlock, codexRows, cacStamp, textBoxes, countSignatureImages, pageCount } from "../lib/pdf-stamp.ts";
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 
 // money — the operator's real note: $11,049 at 11.35% over 42 months
@@ -46,4 +46,13 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   ok((await countSignatureImages(r2)) === 1 && /SoISig:1:[^ ]*:r90/.test(kw) && /SoITxt:1:[^ ]*:r90:s0:2026-09-07T12:00:00Z:genesis/.test(kw), "rotated page: stamp + bound date mark recorded with r90");
 }
 
+// ── signatory block: two rows accumulate at the bottom-right of the last page ──
+{
+  const b1 = await stampCodexBlock(s2, { rowIndex: 0, total: 2, name: "Ada Lender", isoDate: "2026-09-07T20:03:56Z", hash: "91d05b18" });
+  const b2 = await stampCodexBlock(b1, { rowIndex: 1, total: 2, name: "Ben Borrower", isoDate: "2026-09-07T20:10:02Z", hash: "31813d77" });
+  const rows = await codexRows(b2);
+  ok(rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows[1].hash === "31813d77" && rows[0].isoDate === "2026-09-07T20:03:56Z", "signatory block: two rows recorded with time + hash");
+  ok(cacStamp("2026-09-07T20:03:56Z") === "2026.09.07 20:03:56 UTC", "CAC-style timestamp format");
+  ok((await countSignatureImages(b2)) === 2 && (await pageCount(b2)) === pages, "block adds no pages, keeps the signatures");
+}
 console.log(`pdf-stamp: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

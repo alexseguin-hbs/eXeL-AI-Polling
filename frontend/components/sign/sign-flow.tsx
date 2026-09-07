@@ -15,7 +15,8 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope } from "@/lib/sign-store";
-import { stampSignature, stampText, pageCount, type StampBox } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, stampCodexBlock, pageCount, type StampBox } from "@/lib/pdf-stamp";
+import { codexText, codexStripPng } from "@/lib/codex-strip";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
 import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark } from "@/components/sign/pdf-page-view";
@@ -135,6 +136,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: myIdx, isoDate, chain: prevChain });
+        // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
+        const total = countersign ? (pub?.signers.length ?? 2) : signers.length;
+        out = await stampCodexBlock(out, { rowIndex: myIdx, total, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), codexPngDataUrl: codexStripPng(codexText(myName, isoDate)) });
         const sha = await sha256Hex(out);
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });

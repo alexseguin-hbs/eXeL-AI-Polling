@@ -1,0 +1,20 @@
+// /api/notify — e-mail from eXeL: same-origin only, honest when unconfigured, link must be on-site, Resend call shape.
+import { handleNotify } from "../notify-core.js";
+let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
+const SITE = "https://exel-ai-polling.explore-096.workers.dev";
+const req = (body, origin = SITE, method = "POST") => new Request(SITE + "/api/notify", { method, headers: { "Content-Type": "application/json", ...(origin ? { Origin: origin } : {}) }, body: method === "POST" ? JSON.stringify(body) : undefined });
+const J = async (r) => ({ status: r.status, body: await r.json().catch(() => null) });
+const good = { to: "daniel@example.test", subject: "Please sign: Note", text: "Alex asks you to sign", link: SITE + "/soi-session/sign/?e=abc#s=def" };
+let r = await J(await handleNotify(req(good), {})); ok(r.status === 200 && r.body.configured === false, "no key → {configured:false}");
+r = await J(await handleNotify(req(good, null), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "eXeL <sign@exel.test>" })); ok(r.status === 403, "no Origin → 403");
+r = await J(await handleNotify(req(good, "https://evil.example"), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "x" })); ok(r.status === 403, "cross-origin → 403");
+r = await J(await handleNotify(req({ ...good, to: "not-an-email" }), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "x" })); ok(r.status === 400, "bad address → 400");
+r = await J(await handleNotify(req({ ...good, link: "https://evil.example/x" }), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "x" })); ok(r.status === 400, "off-site link → 400");
+const calls = []; globalThis.fetch = async (url, init) => { calls.push({ url, init }); return new Response(JSON.stringify({ id: "em_1" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
+r = await J(await handleNotify(req(good), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "eXeL <sign@exel.test>" }));
+ok(r.status === 200 && r.body.sent === true && r.body.id === "em_1", "configured → sent");
+const sent = JSON.parse(calls[0].init.body);
+ok(calls[0].url === "https://api.resend.com/emails" && calls[0].init.headers.Authorization === "Bearer re_x" && sent.to[0] === good.to && sent.from === "eXeL <sign@exel.test>" && sent.text === good.text, "Resend call carries from/to/text");
+globalThis.fetch = async () => new Response(JSON.stringify({ message: "Domain not verified" }), { status: 403, headers: { "Content-Type": "application/json" } });
+r = await J(await handleNotify(req(good), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "x" })); ok(r.status === 502 && /Domain/.test(r.body.error), "provider error surfaces");
+console.log(`notify-core: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

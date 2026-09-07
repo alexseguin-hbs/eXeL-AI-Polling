@@ -27,6 +27,7 @@
 //   Both fail OPEN: any error leaves the site fully live. Toggle the pause via
 //   KV `SITE_STATE:paused` (instant) or env `SITE_PAUSED` (both default OFF).
 import { handleDonate, handleDonateVerify } from "./donate-core.js";
+import { handleNotify } from "./notify-core.js";
 
 export default {
   async fetch(request, env) {
@@ -41,6 +42,10 @@ export default {
     // pause: a paused site must not take money (Thor, wave 3 — the earlier comment had it inverted).
     if (url.pathname.startsWith("/api/donate") && (await isPaused(env))) {
       return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
+    }
+    if (url.pathname === "/api/notify" || url.pathname === "/api/notify/") {
+      try { return await handleNotify(request, env); }
+      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
     }
     if (url.pathname === "/api/donate/verify" || url.pathname === "/api/donate/verify/") {
       try { return await handleDonateVerify(request, env); }
