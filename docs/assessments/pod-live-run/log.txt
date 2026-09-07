@@ -1,45 +1,45 @@
-  2368ms  lead   OK  login/open /soi-session
-  2532ms  lead   OK  open button enabled
-  2636ms  lead   OK  pod code issued  HKWEEV
-  2642ms  lead   OK  live channel subscribed (relay)
-  4412ms  ana    OK  opened join link ?pod=HKWEEV
-  6277ms  bo     OK  typed the code and joined
-  6290ms  ana    OK  assigned seat 2 by the lead roster
-  6309ms  bo     OK  assigned seat 3 by the lead roster
-  6316ms  lead   OK  lead sees 3 in the pod
-  6350ms  ana    OK  entered own name
-  6384ms  bo     OK  entered own name
-  6468ms  lead   OK  agreed (own checkbox)
-  6899ms  ana    OK  agreed (own checkbox)
-  6989ms  bo     OK  agreed (own checkbox)
-  6994ms  lead   OK  roster shows Bo (name replicated)
-  6998ms  ana    OK  roster shows Bo (peer replicated)
-  7007ms  lead   OK  all three agreed → sync unlocked
-  7413ms  lead   OK  reached SYNC
-  7418ms  ana    OK  reached SYNC
-  7423ms  bo     OK  reached SYNC
-  7840ms  lead   OK  pressed Start (own seat only)
-  7910ms  ana    OK  pressed Start (own seat only)
-  7986ms  bo     OK  pressed Start (own seat only)
-  8793ms  lead   OK  ACTIVE — all three started together
-  8798ms  ana    OK  ACTIVE — all three started together
-  8803ms  bo     OK  ACTIVE — all three started together
-  8937ms  ana    OK  joiner pressed Stop
-  8946ms  lead   OK  reached RECORD
-  8951ms  ana    OK  reached RECORD
-  8956ms  bo     OK  reached RECORD
-  9075ms  ana    OK  recorded outcome (words) → audit
-  9082ms  lead   OK  reached AUDIT
-  9087ms  ana    OK  reached AUDIT
-  9091ms  bo     OK  reached AUDIT
-  9246ms  lead   OK  self-audit (hours + what you did)
-  9302ms  ana    OK  self-audit (hours + what you did)
-  9387ms  bo     OK  self-audit (hours + what you did)
- 10510ms  lead   OK  witnessed the other two  clicked 2 of 2
- 11635ms  ana    OK  witnessed the other two  clicked 2 of 2
- 12763ms  bo     OK  witnessed the other two  clicked 2 of 2
- 12768ms  lead   OK  all witnessed + all self-audited → settle unlocked
- 12943ms  lead   OK  CLOSED — receipt on this phone
- 12949ms  ana    OK  CLOSED — receipt on this phone
- 12954ms  bo     OK  CLOSED — receipt on this phone
- 13091ms  lead   OK  receipt text  Recorded (written): Three phones, one pod: the receipt below is the outcome.
+  2787ms  lead   OK  login/open /soi-session
+  3052ms  lead   OK  open button enabled
+  3159ms  lead   OK  pod code issued  FYDEZ4
+  3165ms  lead   OK  live channel subscribed (relay)
+  5239ms  ana    OK  opened join link ?pod=FYDEZ4
+  7454ms  bo     OK  typed the code and joined
+  7472ms  ana    OK  assigned seat 2 by the lead roster
+  7509ms  bo     OK  assigned seat 3 by the lead roster
+  7517ms  lead   OK  lead sees 3 in the pod
+  7559ms  ana    OK  entered own name
+  7627ms  bo     OK  entered own name
+  7701ms  lead   OK  agreed (own checkbox)
+  8194ms  ana    OK  agreed (own checkbox)
+  8311ms  bo     OK  agreed (own checkbox)
+  8316ms  lead   OK  roster shows Bo (name replicated)
+  8323ms  ana    OK  roster shows Bo (peer replicated)
+  8331ms  lead   OK  all three agreed → sync unlocked
+  8879ms  lead   OK  reached SYNC
+  8894ms  ana    OK  reached SYNC
+  8900ms  bo     OK  reached SYNC
+  9312ms  lead   OK  pressed Start (own seat only)
+  9413ms  ana    OK  pressed Start (own seat only)
+  9506ms  bo     OK  pressed Start (own seat only)
+ 10317ms  lead   OK  ACTIVE — all three started together
+ 10322ms  ana    OK  ACTIVE — all three started together
+ 10328ms  bo     OK  ACTIVE — all three started together
+ 10584ms  ana    OK  joiner pressed Stop
+ 10589ms  lead   OK  reached RECORD
+ 10600ms  ana    OK  reached RECORD
+ 10605ms  bo     OK  reached RECORD
+ 10741ms  ana    OK  recorded outcome (words) → audit
+ 10784ms  lead   OK  reached AUDIT
+ 10793ms  ana    OK  reached AUDIT
+ 10799ms  bo     OK  reached AUDIT
+ 11234ms  lead   OK  self-audit (hours + what you did)
+ 11302ms  ana    OK  self-audit (hours + what you did)
+ 11388ms  bo     OK  self-audit (hours + what you did)
+ 12527ms  lead   OK  witnessed the other two  clicked 2 of 2
+ 13661ms  ana    OK  witnessed the other two  clicked 2 of 2
+ 14785ms  bo     OK  witnessed the other two  clicked 2 of 2
+ 14789ms  lead   OK  all witnessed + all self-audited → settle unlocked
+ 15230ms  lead   OK  CLOSED — receipt on this phone
+ 15236ms  ana    OK  CLOSED — receipt on this phone
+ 15241ms  bo     OK  CLOSED — receipt on this phone
+ 15482ms  lead   OK  receipt text  Recorded (written): Three phones, one pod: the receipt below is the outcome.

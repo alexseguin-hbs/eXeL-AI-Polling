@@ -28,6 +28,15 @@ const s1 = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.08
 ok((await countSignatureImages(s1)) === 1, "one stamp → one signature image");
 const s2 = await stampSignature(s1, { page: 1, x: 0.55, y: 0.8, w: 0.35, h: 0.08 }, { pngDataUrl: png1x1, name: "Ben Borrower", isoDate: "2026-09-07T13:00:00Z", hash: "deadbeef" });
 ok((await countSignatureImages(s2)) === 2, "two stamps → two signature images");
+// the digital signature ALWAYS pairs with the physical one (operator 23:15): the page text carries one
+// "name · time · #hash" line per SoISig image, for default boxes and for boxes fitted to a rule alike
+const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+const FONTS = new URL("../node_modules/pdfjs-dist/standard_fonts/", import.meta.url).pathname;
+const pageText = async (bytes) => { const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: FONTS, verbosity: 0 }).promise; let t = ""; for (let i = 1; i <= doc.numPages; i++) t += (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(" ") + "\n"; return t; };
+const txt2 = await pageText(s2);
+ok(/Ada Lender · 2026-09-07T12:00:00Z · #ba7816bf/.test(txt2) && /Ben Borrower · 2026-09-07T13:00:00Z · #deadbeef/.test(txt2), "each physical signature has its digital line (name · time · #hash) in the page text");
+const fitted = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "Cy Fitted", isoDate: "2026-09-07T14:00:00Z", hash: "0badf00d" });
+ok(/Cy Fitted · 2026-09-07T14:00:00Z · #0badf00d/.test(await pageText(fitted)) && (await countSignatureImages(fitted)) === 1, "a box fitted to a rule pairs too — the digital line sits under the physical one");
 ok((await pageCount(s2)) === pages, "stamping adds no pages");
 ok(s2.length > s1.length && s1.length > pdf.length, "each stamp grows the file");
 

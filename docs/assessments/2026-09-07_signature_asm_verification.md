@@ -31,7 +31,7 @@ signatory block), `signed-page.png` (page 2), `3b-preview-*.jpg` (the scribble p
 | Enlil | yes | tsc 0, lint 0, scratch build green, HEAD == origin | — |
 | Krishna | yes | solo before 036, two-signer over 036, Auth0 at save, seed after login | hosted Supabase has not applied 036 |
 | Odin | yes | SoIEnv token+chain, marks bound to pass, server-side chain | — |
-| Pangu | yes | verify-a-signed-file green on the download, red on the fixture | — |
+| Pangu | yes | verify-a-signed-file green/red; Light Codex ALL strip decodes from the PDF upload | — |
 | Sofia | yes | glyph rail, 💬 ✉ ⧉, the stance in 33 languages | 36 diag/verify keys still English-only |
 | Thoth | yes | box on the rule: bottom 0.556 vs rule 0.557, h 0.035; date 7 pt | scanned-PDF fixture not in the run |
 | Thor | yes | wrong secret refused, 45-s bound, lock, no silent downgrade | LIVE unverified from the sandbox |
@@ -61,7 +61,7 @@ Yes, with the seam named. Solo signing already works without any backend; the en
 Yes. Every stamp carries its envelope token and the chain it was signed over; every text mark carries the signer index, time and chain of its pass; every signatory row is a keyword the file can be read back from; the server recomputes the chain and mints the next signer's secret at sign time, so a phone cannot forge a baton. A file taken out of the system still testifies: the offline verifier recomputes the closing chain from the bytes and flags a row that does not carry its pass's chain. Before a court, not a customer: a fixed-clock test for the rows, and a scan fixture, because people sign scans.
 
 ## Pangu — innovation
-Yes, and the stance is now in the file. No one collects a tax on signatures: no account, no fee, no per-envelope charge, no watermark, and the receipt is printable from the PDF itself by anyone with the verifier, which is a drop zone on the page, not a service. The fit-to-line is what the paid tools never did well on a phone: the thumb lands near the rule and the box takes the rule's width and the height the document leaves for it. The swipe is the Divinity Guide's gesture, the arrows are Vision 2525's; nothing was invented twice. Next genuinely new: a Light Codex strip a camera reads back.
+Yes, and the stance is now in the file. No one collects a tax on signatures: no account, no fee, no per-envelope charge, no watermark, and the receipt is printable from the PDF itself by anyone with the verifier, which is a drop zone on the page, not a service. The fit-to-line is what the paid tools never did well on a phone: the thumb lands near the rule and the box takes the rule's width and the height the document leaves for it. The swipe is the Divinity Guide's gesture, the arrows are Vision 2525's; nothing was invented twice. New tonight: the PDF itself unlocks every signatory in Light Codex.
 
 ## Sofia — multi-perspective
 Yes, seen from a signer who reads no English: the rail's glyphs say upload, people, place, draw, record, hand off, done; the acts say text, mail, copy; the eleven sentences that matter are in their language, including the one that says nobody is taxing their signature. Seen from the operator on a phone: the result is now an image he can look at, and the first look caught three things the counts passed, the small stroke, the caption on the name, the date on the line, all fixed. Still English-only: the thirty-six diagnosis and verify strings, which a signer meets only when something fails. They should follow the same seed, next.

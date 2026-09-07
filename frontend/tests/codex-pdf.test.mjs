@@ -1,0 +1,29 @@
+// Light Codex ⇄ PDF (operator 23:15): the signatory strips are embedded as raw pixels and read back from the
+// PDF — per-row strips and the ALL strip decode to their texts, reverse-verified; a fresh PDF carries none.
+// Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/codex-pdf.test.mjs
+import fs from "fs";
+import zlib from "zlib";
+import { codexText, codexAllText, codexImage, extractCodexStrips, decodeCodexPdf } from "../lib/codex-pdf.ts";
+import { stampCodexBlock, codexRows } from "../lib/pdf-stamp.ts";
+let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
+const inflate = (b) => new Uint8Array(zlib.inflateSync(b));
+const pdf = new Uint8Array(fs.readFileSync(new URL("./fixtures/sign-sample.pdf", import.meta.url)));
+
+ok((await decodeCodexPdf(pdf, inflate)).length === 0, "an unsigned PDF carries no SoICodex strip");
+const rows = [{ rowIndex: 0, name: "Alex Seguin", isoDate: "2026-09-07T23:02:01.892Z", hash: "91d05b18" }, { rowIndex: 1, name: "Daniel Vail", isoDate: "2026-09-07T23:02:09.590Z", hash: "8ed387cc" }];
+ok(codexText(rows[0].name, rows[0].isoDate) === "ALEX SEGUIN 20260907230201", `codexText → ALEX SEGUIN 20260907230201 (got ${codexText(rows[0].name, rows[0].isoDate)})`);
+ok(codexAllText(rows) === "ALEX SEGUIN 20260907230201 . DANIEL VAIL 20260907230209", "the ALL text joins every signatory with ' . '");
+// pass 1 (Alex only), then pass 2 redraws both rows + the ALL strip — as sign-flow does
+let p1 = await stampCodexBlock(pdf, { total: 2, rows: [{ ...rows[0], codex: codexImage(codexText(rows[0].name, rows[0].isoDate)) }], all: codexImage(codexAllText([rows[0]])) });
+const withCodex = rows.map((r) => ({ ...r, codex: codexImage(codexText(r.name, r.isoDate)) }));
+const p2 = await stampCodexBlock(p1, { total: 2, rows: withCodex, all: codexImage(codexAllText(rows)) });
+const strips = await extractCodexStrips(p2, inflate);
+ok(strips.length === 3 && strips.every((s) => s.page === 2), `three strips on the last page after two passes: row0, row1, ALL (got ${strips.map((s) => s.name).join(",")})`);
+const dec = await decodeCodexPdf(p2, inflate);
+const byName = Object.fromEntries(dec.map((d) => [d.name, d.result]));
+ok(byName.SoICodexRow0?.messageForward === "ALEX SEGUIN 20260907230201" && byName.SoICodexRow0.verified, `row 0 decodes, reverse-verified (got ${byName.SoICodexRow0?.messageForward})`);
+ok(byName.SoICodexRow1?.messageForward === "DANIEL VAIL 20260907230209" && byName.SoICodexRow1.verified, `row 1 decodes, reverse-verified (got ${byName.SoICodexRow1?.messageForward})`);
+ok(byName.SoICodexAll?.messageForward === "ALEX SEGUIN 20260907230201 . DANIEL VAIL 20260907230209" && byName.SoICodexAll.verified, `the ALL strip carries every signatory (got ${byName.SoICodexAll?.messageForward})`);
+ok(dec.every((d) => d.result?.style === "Double Helix" && d.result.blockSize === 2), "every strip is a 2×2 Double Helix");
+const kw = await codexRows(p2); ok(kw.length === 2, "the two signatory rows are still recorded as keywords");
+console.log(`codex-pdf: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

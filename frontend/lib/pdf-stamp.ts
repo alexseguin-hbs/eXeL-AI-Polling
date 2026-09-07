@@ -157,8 +157,9 @@ export async function envelopeMarks(pdf: Uint8Array): Promise<{ token: string; c
  * envelope. The Light Codex strip (lib/light-codex, block size 2, double helix) is rendered in the
  * browser and handed in as a PNG; the same text it encodes is printed beside it (operator, 2026-09-07).
  */
-export interface CodexRow { rowIndex: number; name: string; isoDate: string; hash: string; codexPngDataUrl?: string }
-export interface CodexEntry { rows: CodexRow[]; total: number }
+import { embedCodexImage, type CodexImage } from "@/lib/codex-pdf";
+export interface CodexRow { rowIndex: number; name: string; isoDate: string; hash: string; /** this signatory's Light Codex strip, raw pixels */ codex?: CodexImage }
+export interface CodexEntry { rows: CodexRow[]; total: number; /** every signatory in one strip (operator 23:15) — drawn along the block's foot */ all?: CodexImage }
 
 export const cacStamp = (iso: string): string => {
   const d = new Date(iso); const p = (n: number) => String(n).padStart(2, "0");
@@ -176,12 +177,14 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
   const pages = doc.getPages(); const page = pages[pages.length - 1];
   const { width } = page.getSize();
   const rows = Math.max(2, e.total, ...e.rows.map((r) => r.rowIndex + 1));   // "2×2": two rows minimum, name | timestamp
-  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), blockH = rows * rowH + 22;
+  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), footH = e.all ? 14 : 0, blockH = rows * rowH + 22 + footH;
   const bx = width - blockW - 18, by = 18;                 // bottom-right, inside a half-inch margin
   const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
   page.drawRectangle({ x: bx, y: by, width: blockW, height: blockH, borderColor: rgb(0.1, 0.25, 0.45), borderWidth: 0.8, color: rgb(1, 1, 1), opacity: 1 });
   page.drawText("Signatories — digital timestamps", { x: bx + pad, y: by + blockH - 12, size: 7.5, font: bold, color: rgb(0.1, 0.25, 0.45) });
-  page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
+  page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 + footH }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
+  // the ALL strip: every signatory so far in one Light Codex line along the block's foot — readable back from the PDF
+  if (e.all) { embedCodexImage(doc, page, "SoICodexAll", e.all, bx + pad, by + 3, blockW - pad * 2, 9); }
   const nameW = blockW * 0.42 - pad * 2;
   const prev = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:"));
   for (const r of e.rows) {
@@ -189,12 +192,10 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
     let ns = 8; while (ns > 5 && bold.widthOfTextAtSize(r.name, ns) > nameW) ns -= 0.5;
     page.drawText(r.name, { x: bx + pad, y, size: ns, font: bold, color: rgb(0.06, 0.06, 0.08) });
     const stamp = `Digitally signed · ${cacStamp(r.isoDate)} · #${r.hash}`;
-    const stampW = blockW * 0.58 - pad * 2 - (r.codexPngDataUrl ? 34 : 0);
+    const stampW = blockW * 0.58 - pad * 2 - (r.codex ? 34 : 0);
     let ss = 6.5; while (ss > 4.5 && font.widthOfTextAtSize(stamp, ss) > stampW) ss -= 0.25;
     page.drawText(stamp, { x: bx + blockW * 0.42 + pad, y, size: ss, font, color: rgb(0.1, 0.1, 0.12) });
-    if (r.codexPngDataUrl) {
-      try { const png = await doc.embedPng(dataUrlBytes(r.codexPngDataUrl)); page.drawImage(png, { x: bx + blockW - pad - 30, y: y - 2, width: 30, height: 10 }); } catch { /* strip optional */ }
-    }
+    if (r.codex) embedCodexImage(doc, page, `SoICodexRow${r.rowIndex}`, r.codex, bx + blockW - pad - 30, y - 2, 30, 10);   // raw pixels, decodable
     const kw = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`;
     if (!prev.includes(kw)) addKeyword(doc, kw);        // a redrawn earlier row is not a new record
   }

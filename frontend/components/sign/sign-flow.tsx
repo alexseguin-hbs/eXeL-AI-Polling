@@ -22,7 +22,7 @@ import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope } from "@/lib/sign-store";
 import { stampSignature, stampText, stampCodexBlock, codexRows, pageCount, type StampBox } from "@/lib/pdf-stamp";
-import { codexText, codexStripPng } from "@/lib/codex-strip";
+import { codexText, codexAllText, codexImage } from "@/lib/codex-strip";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
 import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt } from "@/components/sign/pdf-page-view";
@@ -206,8 +206,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
         const total = countersign ? (pub?.signers.length ?? 2) : signers.length;
         const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? `Signer ${i + 1}`;
-        const earlier = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0 && r.rowIndex !== myIdx).map((r) => ({ ...r, name: nameOf(r.rowIndex), codexPngDataUrl: codexStripPng(codexText(nameOf(r.rowIndex), r.isoDate)) }));
-        out = await stampCodexBlock(out, { total, rows: [...earlier, { rowIndex: myIdx, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), codexPngDataUrl: codexStripPng(codexText(myName, isoDate)) }] });
+        const earlier = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0 && r.rowIndex !== myIdx).map((r) => ({ ...r, name: nameOf(r.rowIndex), codex: codexImage(codexText(nameOf(r.rowIndex), r.isoDate)) }));
+        const allRows = [...earlier, { rowIndex: myIdx, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), codex: codexImage(codexText(myName, isoDate)) }].sort((a, b) => a.rowIndex - b.rowIndex);
+        // one Light Codex strip with EVERY signatory so far (operator 23:15) — unlockable by uploading the PDF to Light Codex
+        out = await stampCodexBlock(out, { total, rows: allRows, all: codexImage(codexAllText(allRows)) });
         const sha = await sha256Hex(out);
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });

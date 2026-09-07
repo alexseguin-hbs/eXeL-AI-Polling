@@ -169,3 +169,20 @@ both (`ex***@exel-ai.com` · `***8745`). **51 steps, 0 failures.** Real delivery
 be exercised from the sandbox (its proxy refuses every host); the phone's own composer is what sends the
 text, and e-mail FROM eXeL needs `RESEND_API_KEY` + `NOTIFY_FROM` on the Worker (docs/DEPLOY_STRIPE.md
 procedure) — without them the button falls back to the phone's mail app and says so.
+
+## Wave 6 — the digital line always pairs; Light Codex of ALL signatories, unlocked by uploading the PDF
+
+Operator (23:15): *the mini digital signature is perfect (MUST ALWAYS PAIR WITH PHYSICAL SIGNATURE). and have
+light codex with all signatories that can be unlocked via upload feature of Light Codex. Also ensure PDF
+uploads in addition to PNG is enabled for light codex decode feature.* **55 steps, 0 failures.**
+
+- **Pairing, locked:** `stampSignature` always draws the digital line; the PDF-engine test and the live run
+  now read the page text back (pdfjs) and require one "name · time · #hash" line per SoISig image, for
+  default boxes and rule-fitted boxes alike (pdf-stamp 20/20; run: Alex ×1 · Daniel ×1).
+- **Light Codex in the PDF, pixel for pixel** (`lib/codex-pdf.ts`): the signatory strips are embedded as
+  raw DeviceRGB image XObjects named `SoICodexRow<n>` and `SoICodexAll` — no PNG round-trip, no canvas — and
+  read back from the file's own bytes, never from a render. The ALL strip along the block's foot carries
+  every signatory: `ALEX SEGUIN 20260907231800 . DANIEL VAIL 20260907231808` (9 unit cases, `tests/codex-pdf.test.mjs`).
+- **PDF upload on the Light Codex page:** Decode accepts a PDF beside PNG; a PDF signed with eXeL lists the
+  ALL strip first, then one strip per signatory, each reverse-verified (`6c-codex-pdf-dan.jpg`). An unsigned
+  PDF says so. PNG decoding is unchanged.

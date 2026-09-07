@@ -18,7 +18,11 @@ import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import zlib from 'zlib';
 import { countSignatureImages, signatureBoxes, textBoxes, codexRows } from '../lib/pdf-stamp.ts';
+import { decodeCodexPdf } from '../lib/codex-pdf.ts';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+const pdfText = async (bytes) => { const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: path.resolve('node_modules/pdfjs-dist/standard_fonts/') + '/', verbosity: 0 }).promise; let t = ''; for (let i = 1; i <= doc.numPages; i++) t += (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(' ') + '\n'; return t; };
 
 const BASE = process.env.POD_BASE || 'http://127.0.0.1:3210';
 const OUT = process.env.OUT || '../docs/assessments/sign-live-run';
@@ -217,9 +221,24 @@ const rows = await codexRows(bytes); step('dan', 'signatory block: two CAC-style
 // offline verify (Pangu): the DONE block reads the downloaded file back — green; the unsigned fixture — "no signatures"
 await D.getByTestId('verify-input').setInputFiles(file); await D.getByTestId('verify-result').waitFor({ timeout: 30000 });
 const vr = D.getByTestId('verify-result'); step('dan', 'verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)', (await vr.getAttribute('data-ok')) === '1' && /2 signatures/.test(await vr.innerText()), (await vr.innerText()).replace(/\s+/g, ' ').slice(0, 120));
+// the digital signature ALWAYS pairs with the physical one (operator 23:15): one "name · time · #hash" line per SoISig
+const txt = await pdfText(bytes); const dl1 = (txt.match(/Alex Seguin · 2026-\d\d-\d\dT[^ ]+ · #[0-9a-f]{8}/g) || []).length, dl2 = (txt.match(/Daniel Vail · 2026-\d\d-\d\dT[^ ]+ · #[0-9a-f]{8}/g) || []).length;
+step('dan', 'digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text', n === 2 && dl1 === 1 && dl2 === 1, `Alex ×${dl1} · Daniel ×${dl2}`);
+// the Light Codex strips read back from the PDF's own pixels: one per signatory + ALL signatories
+const codex = await decodeCodexPdf(bytes, (b) => new Uint8Array(zlib.inflateSync(b))); const byName = Object.fromEntries(codex.map((c) => [c.name, c.result?.messageForward]));
+step('dan', 'Light Codex from the PDF: row strips decode to ALEX SEGUIN / DANIEL VAIL + UTC time, reverse-verified', /^ALEX SEGUIN 2026\d{10}$/.test(byName.SoICodexRow0 || '') && /^DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexRow1 || '') && codex.every((c) => c.result?.verified), JSON.stringify(byName));
+step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
 await D.getByTestId('verify-input').setInputFiles(FIXTURE); await D.waitForFunction(() => document.querySelector('[data-testid="verify-result"]')?.getAttribute('data-ok') === '0', null, { timeout: 30000 });
 step('dan', 'verify-a-signed-file: the unsigned fixture reads "no signatures"', /No eXeL signatures/.test(await vr.innerText()));
 await shot(D, 'dan', '6b-verify');
+
+// 4b · the Light Codex page unlocks the signatories by UPLOADING THE PDF (PNG still works) — operator 23:15
+await D.goto(BASE + '/light-codex/', { waitUntil: 'domcontentloaded' }); await ready(D);
+await D.getByRole('button', { name: /^Decode$/ }).click(); await D.getByTestId('codex-decode-input').setInputFiles(file);
+await D.getByTestId('codex-pdf-results').waitFor({ timeout: 30000 });
+const allText = await D.getByTestId('codex-all').innerText(); const rowN = await D.getByTestId('codex-row').count();
+step('dan', 'Light Codex page: uploading the signed PDF lists ALL signatories + one strip per signatory', /ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}/.test(allText) && rowN === 2, allText.replace(/\s+/g, ' ').slice(0, 110));
+await shot(D, 'dan', '6c-codex-pdf');
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document
 await A.goto(myLink, { waitUntil: 'domcontentloaded' }); await ready(A);
