@@ -48,10 +48,11 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
 
 // ── signatory block: two rows accumulate at the bottom-right of the last page ──
 {
-  const b1 = await stampCodexBlock(s2, { rowIndex: 0, total: 2, name: "Ada Lender", isoDate: "2026-09-07T20:03:56Z", hash: "91d05b18" });
-  const b2 = await stampCodexBlock(b1, { rowIndex: 1, total: 2, name: "Ben Borrower", isoDate: "2026-09-07T20:10:02Z", hash: "31813d77" });
+  const b1 = await stampCodexBlock(s2, { total: 2, rows: [{ rowIndex: 0, name: "Ada Lender", isoDate: "2026-09-07T20:03:56Z", hash: "91d05b18" }] });
+  const prevRows = (await codexRows(b1)).map((r) => ({ ...r, name: "Ada Lender" }));
+  const b2 = await stampCodexBlock(b1, { total: 2, rows: [...prevRows, { rowIndex: 1, name: "Ben Borrower", isoDate: "2026-09-07T20:10:02Z", hash: "31813d77" }] });
   const rows = await codexRows(b2);
-  ok(rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows[1].hash === "31813d77" && rows[0].isoDate === "2026-09-07T20:03:56Z", "signatory block: two rows recorded with time + hash");
+  ok(rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows[1].hash === "31813d77" && rows[0].isoDate === "2026-09-07T20:03:56Z", "signatory block: two rows recorded with time + hash, the earlier row redrawn not re-recorded");
   ok(cacStamp("2026-09-07T20:03:56Z") === "2026.09.07 20:03:56 UTC", "CAC-style timestamp format");
   ok((await countSignatureImages(b2)) === 2 && (await pageCount(b2)) === pages, "block adds no pages, keeps the signatures");
 }

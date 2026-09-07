@@ -15,7 +15,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope } from "@/lib/sign-store";
-import { stampSignature, stampText, stampCodexBlock, pageCount, type StampBox } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, stampCodexBlock, codexRows, pageCount, type StampBox } from "@/lib/pdf-stamp";
 import { codexText, codexStripPng } from "@/lib/codex-strip";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
 import { SignaturePad } from "@/components/sign/signature-pad";
@@ -138,7 +138,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: myIdx, isoDate, chain: prevChain });
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
         const total = countersign ? (pub?.signers.length ?? 2) : signers.length;
-        out = await stampCodexBlock(out, { rowIndex: myIdx, total, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), codexPngDataUrl: codexStripPng(codexText(myName, isoDate)) });
+        const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? `Signer ${i + 1}`;
+        const earlier = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0 && r.rowIndex !== myIdx).map((r) => ({ ...r, name: nameOf(r.rowIndex), codexPngDataUrl: codexStripPng(codexText(nameOf(r.rowIndex), r.isoDate)) }));
+        out = await stampCodexBlock(out, { total, rows: [...earlier, { rowIndex: myIdx, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), codexPngDataUrl: codexStripPng(codexText(myName, isoDate)) }] });
         const sha = await sha256Hex(out);
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });

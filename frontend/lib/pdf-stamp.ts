@@ -150,38 +150,47 @@ export async function envelopeMarks(pdf: Uint8Array): Promise<{ token: string; c
  * envelope. The Light Codex strip (lib/light-codex, block size 2, double helix) is rendered in the
  * browser and handed in as a PNG; the same text it encodes is printed beside it (operator, 2026-09-07).
  */
-export interface CodexEntry { rowIndex: number; total: number; name: string; isoDate: string; hash: string; codexPngDataUrl?: string }
+export interface CodexRow { rowIndex: number; name: string; isoDate: string; hash: string; codexPngDataUrl?: string }
+export interface CodexEntry { rows: CodexRow[]; total: number }
 
 export const cacStamp = (iso: string): string => {
   const d = new Date(iso); const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getUTCFullYear()}.${p(d.getUTCMonth() + 1)}.${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC`;
 };
 
+/**
+ * Every pass redraws the WHOLE block — the frame and every row signed so far, this pass's included —
+ * because the frame is filled white to stay legible over page content, and a pass that drew only its
+ * own row painted over the earlier signer's (caught rendering the proof PDF, 2026-09-07). The caller
+ * reads the earlier rows back with `codexRows()` and supplies names from the roster.
+ */
 export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<Uint8Array> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
   const pages = doc.getPages(); const page = pages[pages.length - 1];
-  const { width, height } = page.getSize();
-  const rows = Math.max(2, e.total);                       // "2×2": two rows minimum, name | timestamp
+  const { width } = page.getSize();
+  const rows = Math.max(2, e.total, ...e.rows.map((r) => r.rowIndex + 1));   // "2×2": two rows minimum, name | timestamp
   const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), blockH = rows * rowH + 22;
   const bx = width - blockW - 18, by = 18;                 // bottom-right, inside a half-inch margin
   const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  // frame + title (redrawn each pass — identical coordinates, so no ghosting)
   page.drawRectangle({ x: bx, y: by, width: blockW, height: blockH, borderColor: rgb(0.1, 0.25, 0.45), borderWidth: 0.8, color: rgb(1, 1, 1), opacity: 1 });
   page.drawText("Signatories — digital timestamps", { x: bx + pad, y: by + blockH - 12, size: 7.5, font: bold, color: rgb(0.1, 0.25, 0.45) });
   page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
-  // this signer's row
-  const y = by + blockH - 16 - rowH * (e.rowIndex + 1) + 4;
   const nameW = blockW * 0.42 - pad * 2;
-  let ns = 8; while (ns > 5 && bold.widthOfTextAtSize(e.name, ns) > nameW) ns -= 0.5;
-  page.drawText(e.name, { x: bx + pad, y, size: ns, font: bold, color: rgb(0.06, 0.06, 0.08) });
-  const stamp = `Digitally signed · ${cacStamp(e.isoDate)} · #${e.hash}`;
-  const stampW = blockW * 0.58 - pad * 2 - (e.codexPngDataUrl ? 34 : 0);
-  let ss = 6.5; while (ss > 4.5 && font.widthOfTextAtSize(stamp, ss) > stampW) ss -= 0.25;
-  page.drawText(stamp, { x: bx + blockW * 0.42 + pad, y, size: ss, font, color: rgb(0.1, 0.1, 0.12) });
-  if (e.codexPngDataUrl) {
-    try { const png = await doc.embedPng(dataUrlBytes(e.codexPngDataUrl)); page.drawImage(png, { x: bx + blockW - pad - 30, y: y - 2, width: 30, height: 10 }); } catch { /* strip optional */ }
+  const prev = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:"));
+  for (const r of e.rows) {
+    const y = by + blockH - 16 - rowH * (r.rowIndex + 1) + 4;
+    let ns = 8; while (ns > 5 && bold.widthOfTextAtSize(r.name, ns) > nameW) ns -= 0.5;
+    page.drawText(r.name, { x: bx + pad, y, size: ns, font: bold, color: rgb(0.06, 0.06, 0.08) });
+    const stamp = `Digitally signed · ${cacStamp(r.isoDate)} · #${r.hash}`;
+    const stampW = blockW * 0.58 - pad * 2 - (r.codexPngDataUrl ? 34 : 0);
+    let ss = 6.5; while (ss > 4.5 && font.widthOfTextAtSize(stamp, ss) > stampW) ss -= 0.25;
+    page.drawText(stamp, { x: bx + blockW * 0.42 + pad, y, size: ss, font, color: rgb(0.1, 0.1, 0.12) });
+    if (r.codexPngDataUrl) {
+      try { const png = await doc.embedPng(dataUrlBytes(r.codexPngDataUrl)); page.drawImage(png, { x: bx + blockW - pad - 30, y: y - 2, width: 30, height: 10 }); } catch { /* strip optional */ }
+    }
+    const kw = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`;
+    if (!prev.includes(kw)) addKeyword(doc, kw);        // a redrawn earlier row is not a new record
   }
-  addKeyword(doc, `SoICodex:${e.rowIndex}:${e.isoDate}:${e.hash}`);
   return doc.save({ useObjectStreams: false });
 }
 

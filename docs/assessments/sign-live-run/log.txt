@@ -1,33 +1,33 @@
-  3408ms  alex  OK  landing → Sign Doc
-  3447ms  alex  OK  PDF uploaded, hashed, page-counted
-  3545ms  alex  OK  two signers named (email + phone)
-  3934ms  alex  OK  PDF page rendered (pdfjs)
-  3993ms  alex  OK  misplaced signature removed
-  4010ms  alex  OK  signature box placed by tap
-  4013ms  alex  OK  toolbar names the selected box
-  4136ms  alex  OK  a swipe over the page places nothing
-  4241ms  alex  OK  signature box resized by its corner  123→158 px
-  4289ms  alex  OK  date mark added beside the signature
-  4953ms  alex  OK  signature drawn with the pointer
-  5158ms  alex  OK  Sign & save pressed
-  5215ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=adJbekY6mqOt_k2AR2…
-  5263ms  alex  OK  creator keeps his own return link
-  5266ms  alex  OK  sms: composer prefilled to Daniel
-  7402ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
-  9134ms  dan   OK  opened the hand-off link, no login
-  9137ms  dan   OK  roster: Alex signed, Daniel now
-  9199ms  dan   OK  PDF page rendered (pdfjs)
-  9261ms  dan   OK  misplaced signature removed
-  9275ms  dan   OK  signature box placed by tap
-  9277ms  dan   OK  toolbar names the selected box
-  9402ms  dan   OK  a swipe over the page places nothing
-  9511ms  dan   OK  signature box resized by its corner  123→157 px
-  9574ms  dan   OK  date mark added beside the signature
- 10236ms  dan   OK  signature drawn with the pointer
- 10447ms  dan   OK  Sign & save pressed
- 10480ms  dan   OK  COMPLETE — every signer has signed
- 10554ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
- 10559ms  dan   OK  each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)  [[1,0.1,0.71,0.51],[1,0.49,0.56,0.51]]
- 10563ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
- 10566ms  dan   OK  signatory block: two CAC-style timestamp rows, bottom-right of the last page  [[0,"2026-09-07T20:36:26.917Z","91d05b18"],[1,"2026-09-07T20:36:32.165Z","da5ede51"]]
- 10993ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
+  3109ms  alex  OK  landing → Sign Doc
+  3153ms  alex  OK  PDF uploaded, hashed, page-counted
+  3268ms  alex  OK  two signers named (email + phone)
+  3663ms  alex  OK  PDF page rendered (pdfjs)
+  3723ms  alex  OK  misplaced signature removed
+  3737ms  alex  OK  signature box placed by tap
+  3740ms  alex  OK  toolbar names the selected box
+  3866ms  alex  OK  a swipe over the page places nothing
+  3973ms  alex  OK  signature box resized by its corner  123→158 px
+  4020ms  alex  OK  date mark added beside the signature
+  4684ms  alex  OK  signature drawn with the pointer
+  4887ms  alex  OK  Sign & save pressed
+  4938ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=Ak6VYlgO4HqPDE7ueX…
+  4993ms  alex  OK  creator keeps his own return link
+  4996ms  alex  OK  sms: composer prefilled to Daniel
+  7128ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+  9046ms  dan   OK  opened the hand-off link, no login
+  9049ms  dan   OK  roster: Alex signed, Daniel now
+  9117ms  dan   OK  PDF page rendered (pdfjs)
+  9176ms  dan   OK  misplaced signature removed
+  9192ms  dan   OK  signature box placed by tap
+  9194ms  dan   OK  toolbar names the selected box
+  9316ms  dan   OK  a swipe over the page places nothing
+  9423ms  dan   OK  signature box resized by its corner  123→157 px
+  9471ms  dan   OK  date mark added beside the signature
+ 10134ms  dan   OK  signature drawn with the pointer
+ 10361ms  dan   OK  Sign & save pressed
+ 10393ms  dan   OK  COMPLETE — every signer has signed
+ 10452ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+ 10458ms  dan   OK  each stamp sits on page 1 where ITS phone tapped, resized wider (distinct boxes)  [[1,0.1,0.71,0.51],[1,0.49,0.56,0.51]]
+ 10461ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
+ 10466ms  dan   OK  signatory block: two CAC-style timestamp rows, bottom-right of the last page  [[0,"2026-09-07T20:39:49.358Z","91d05b18"],[1,"2026-09-07T20:39:54.808Z","837ef8ab"]]
+ 10891ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
