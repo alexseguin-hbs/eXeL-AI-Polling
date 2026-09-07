@@ -65,12 +65,30 @@ export function newClientKey(): string {
   return Array.from(b, (x) => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"[x % 64]).join("").slice(0, 22);
 }
 
-/** True once, when the page is opened with ?donated=true; the flag is then removed from the URL. */
-export function consumeDonatedFlag(): boolean {
-  if (typeof window === "undefined") return false;
+export type DonatedReturn = "none" | "paid" | "unpaid" | "unverified";
+
+/**
+ * Read-once return from Stripe. `?donated=true&cs=<id>` → ask /api/donate/verify whether that
+ * Checkout session is PAID (Odin, wave 2). A bare `?donated=true` with no session id proves nothing
+ * and returns "unverified"; callers thank politely but unlock nothing. Both params are removed.
+ */
+export async function verifyDonatedReturn(): Promise<DonatedReturn> {
+  if (typeof window === "undefined") return "none";
   const u = new URL(window.location.href);
-  if (u.searchParams.get("donated") !== "true") return false;
-  u.searchParams.delete("donated");
+  if (u.searchParams.get("donated") !== "true") return "none";
+  const cs = u.searchParams.get("cs") || "";
+  u.searchParams.delete("donated"); u.searchParams.delete("cs");
   try { window.history.replaceState(null, "", u.toString()); } catch { /* ignore */ }
-  return true;
+  if (!cs) return "unverified";
+  try {
+    const res = await fetch(`/api/donate/verify?cs=${encodeURIComponent(cs)}`);
+    const ct = res.headers.get("content-type") || "";
+    if (!ct.includes("application/json")) return "unverified";
+    const data = (await res.json()) as { paid?: boolean; configured?: boolean };
+    if (data.configured === false) return "unverified";
+    return data.paid ? "paid" : "unpaid";
+  } catch { return "unverified"; }
 }
+
+/** @deprecated use verifyDonatedReturn — kept so older call sites compile; returns true only for a paid return. */
+export async function consumeDonatedFlag(): Promise<boolean> { return (await verifyDonatedReturn()) === "paid"; }

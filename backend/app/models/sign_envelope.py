@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -30,6 +30,7 @@ class SignEnvelope(Base):
     signers: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     chain: Mapped[str] = mapped_column(Text, nullable=False, default="")
     failed_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -46,6 +47,7 @@ class SignFile(Base):
     pdf_base64: Mapped[str] = mapped_column(Text, nullable=False)
     sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     storage_url: Mapped[str | None] = mapped_column(Text)
 
     __table_args__ = (Index("sign_files_envelope_version_idx", "envelope_id", "version"),)
@@ -57,6 +59,8 @@ class SignEvent(Base):
     envelope_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("sign_envelopes.id", ondelete="CASCADE"), nullable=False)
     signer_idx: Mapped[int | None] = mapped_column(Integer)
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    file_shas: Mapped[list | None] = mapped_column(ARRAY(String(64)))
+    version: Mapped[int | None] = mapped_column(Integer)
     contact_hash: Mapped[str | None] = mapped_column(String(64))
     ip_hash: Mapped[str | None] = mapped_column(String(64))
     user_agent: Mapped[str | None] = mapped_column(String(300))

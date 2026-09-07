@@ -43,6 +43,7 @@ export type SignRefusal = "complete" | "revoked" | "expired" | "locked" | "not_y
 export const ENVELOPE_TTL_DAYS = 30;
 export const MAX_FILE_BYTES = 3 * 1024 * 1024;     // Thoth, round 1: keep one RPC body under the PostgREST limit
 export const MAX_FILES = 5;
+export const MAX_ENVELOPE_BYTES = 12 * 1024 * 1024;  // all files together — one RPC body stays bounded (Thoth, wave 3)
 
 /** Email → lower-cased, trimmed. Phone → digits only. Empty → "". No country-code guessing (Sofia). */
 export function normalizeContact(c: string): string {
@@ -145,19 +146,28 @@ export async function chainHash(prev: string, fileShas: string[]): Promise<strin
 }
 
 /* ── hand-off text (Sofia: the message names the sender and the document) ───── */
+/** The secret rides in the FRAGMENT: a fragment is never sent to any server, never in a Referer, never in an access log (Thor, wave 3). */
 export function signLink(origin: string, token: string, secret: string): string {
-  return `${origin}/soi-session/sign/?e=${encodeURIComponent(token)}&s=${encodeURIComponent(secret)}`;
+  return `${origin}/soi-session/sign/?e=${encodeURIComponent(token)}#s=${encodeURIComponent(secret)}`;
+}
+/** Read a signer link's secret from the fragment (or, for links made before 2026-09-07, the query). */
+export function secretFromLocation(search: string, hash: string): string {
+  const h = new URLSearchParams(hash.replace(/^#/, "")).get("s");
+  if (h) return h;
+  return new URLSearchParams(search).get("s") ?? "";
 }
 
-export const HANDOFF_TEMPLATE = '{sender} asks you to sign "{title}" on eXeL — no account, no fee. Open: {link}';
+export const HANDOFF_TEMPLATE = '{sender} asks you to sign "{title}" on eXeL AI Polling — no account, no fee. This link is yours alone (it holds your key; do not forward it) and it expires in 30 days: {link}';
 export function handoffMessage(sender: string, title: string, link: string, template: string = HANDOFF_TEMPLATE): string {
-  return template.replace("{sender}", sender).replace("{title}", title).replace("{link}", link);
+  // function replacers: a title containing "$&" or "$1" must never expand (Enki, wave 2)
+  return template.replace("{sender}", () => sender).replace("{title}", () => title).replace("{link}", () => link);
 }
 
 /** Build a fresh envelope from the creator's inputs; secrets are minted here, one per signer. */
 export function newEnvelope(input: { title: string; created_by: string; signers: { name: string; contact: string }[]; files: SignFile[]; now?: Date }): Envelope {
   if (input.signers.length < 1) throw new Error("need_signer");
   if (input.files.length < 1 || input.files.length > MAX_FILES) throw new Error("file_count");
+  if (input.files.reduce((n, f) => n + f.pdf_base64.length, 0) > MAX_ENVELOPE_BYTES * 4 / 3) throw new Error("envelope_too_large");
   const now = input.now ?? new Date();
   const expires = new Date(now.getTime() + ENVELOPE_TTL_DAYS * 86_400_000);
   return {

@@ -14,7 +14,7 @@
  */
 
 import React, { Suspense, useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { startDonation, newClientKey } from "@/lib/donate";
+import { startDonation, newClientKey, verifyDonatedReturn } from "@/lib/donate";
 import { useLexicon } from "@/lib/lexicon-context";
 import Link from "next/link";
 import { ExelWordmark } from "@/components/exel-wordmark";
@@ -1335,24 +1335,25 @@ export default function DivinityGuidePageWrapper() {
 
 function DivinityGuidePage() {
   const searchParams = useSearchParams();
+  // A donation is believed only when Stripe's returned Checkout session verifies as PAID
+  // (Odin, wave 2). The earlier code persisted `donated` from a bare ?donated=true — forgeable by
+  // typing the URL. localStorage still remembers a verified donation between visits.
   const [donated, setDonated] = useState(() => {
     if (typeof window !== "undefined") {
-      // Check URL param (returning from Stripe) or localStorage
-      if (new URLSearchParams(window.location.search).get("donated") === "true") {
-        localStorage.setItem("divinity-guide-donated", "true");
-        return true;
-      }
-      return localStorage.getItem("divinity-guide-donated") === "true";
+      try { return localStorage.getItem("divinity-guide-donated") === "true"; } catch { return false; }
     }
     return false;
   });
-
-  // Show reward toast when returning from Stripe
   useEffect(() => {
-    if (searchParams.get("donated") === "true" && !showReward) {
+    let live = true;
+    verifyDonatedReturn().then((r) => {
+      if (!live || r !== "paid") return;
+      try { localStorage.setItem("divinity-guide-donated", "true"); } catch { /* ignore */ }
+      setDonated(true);
       setTimeout(() => setShowReward(true), 500);
       setTimeout(() => setShowReward(false), 5000);
-    }
+    });
+    return () => { live = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [showDonationPrompt, setShowDonationPrompt] = useState(false);
@@ -1732,7 +1733,7 @@ function DivinityGuidePage() {
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="rounded-xl border bg-card shadow-2xl px-6 py-4 text-center">
             <p className="text-2xl">웃</p>
-            <p className="text-sm font-semibold text-primary">You earned 1.0 웃 token!</p>
+            <p className="text-sm font-semibold text-primary">{t("cube8.donate.received")}</p>
             <p className="text-xs text-muted-foreground">Your contribution converted to a full Human Intelligence token.</p>
           </div>
         </div>

@@ -206,6 +206,7 @@ export function SoITrinity({
         const hx = r3(ring.cx + (dx / d) * push), hy = r3(ring.cy + (dy / d) * push);
         return (
         <circle key={`h-${i}`} cx={hx} cy={hy} r={hr} fill="transparent" role="button" tabIndex={0}
+          className="outline-none focus-visible:[stroke:#00ffff] focus-visible:[stroke-width:3px] focus-visible:[stroke-dasharray:4_3]"
           aria-label={ringAriaLabels?.[i] ?? ring.label} style={{ cursor: "pointer" }}
           onClick={(e) => { e.stopPropagation(); onRingClick(i as 0 | 1 | 2); }}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRingClick(i as 0 | 1 | 2); } }} />

@@ -1,6 +1,7 @@
 // Sign Doc — the pure envelope model: turn order, per-signer secrets, contacts, tokens, hashes.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/sign-envelope.test.mjs
 import {
+  secretFromLocation, MAX_ENVELOPE_BYTES,
   normalizeContact, contactMatches, contactKind, maskContact, whoseTurn, canSign, applySignature, partyIndex,
   randomToken, newToken, sha256Hex, shortHash, chainHash, signLink, handoffMessage, newEnvelope, ENVELOPE_TTL_DAYS,
 } from "../lib/sign-envelope.ts";
@@ -53,7 +54,10 @@ ok((await chainHash("", ["aa"])) === (await chainHash("", ["aa"])) && (await cha
 
 // hand-off
 const link = signLink("https://exel.example", "tok", "sec");
-ok(link === "https://exel.example/soi-session/sign/?e=tok&s=sec", "sign link shape");
+ok(link === "https://exel.example/soi-session/sign/?e=tok#s=sec", "sign link: token in the query, secret in the fragment");
 ok(handoffMessage("Alex", "Promissory Note", link).startsWith('Alex asks you to sign "Promissory Note"'), "hand-off names sender and document");
 
+ok(secretFromLocation("?e=tok", "#s=sec") === "sec" && secretFromLocation("?e=tok&s=old", "") === "old" && secretFromLocation("?e=tok", "") === "", "secret read from the fragment, legacy query, or none");
+let big = ""; try { newEnvelope({ title: "x", created_by: "a@x.com", signers: [{ name: "A", contact: "a@x.com" }], files: [{ ...file("big.pdf", "aa"), pdf_base64: "A".repeat(MAX_ENVELOPE_BYTES * 4 / 3 + 10) }] }); } catch (e) { big = e.message; }
+ok(big === "envelope_too_large", "aggregate envelope cap enforced in newEnvelope");
 console.log(`sign-envelope: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

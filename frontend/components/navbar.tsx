@@ -4,7 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { LogOut, User, Menu, Settings, Code, Globe, Sparkles, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DonateModal } from "@/components/donate-modal";
-import { consumeDonatedFlag } from "@/lib/donate";
+import { verifyDonatedReturn } from "@/lib/donate";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { SoISection } from "@/components/soi-section";
@@ -32,10 +32,9 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   // Back from Stripe with ?donated=true → one thank-you, shown only when Stripe actually returned us.
   const [thanks, setThanks] = useState(false);
   useEffect(() => {
-    if (!consumeDonatedFlag()) return;
-    setThanks(true);
-    const id = setTimeout(() => setThanks(false), 8000);
-    return () => clearTimeout(id);
+    let id: ReturnType<typeof setTimeout> | undefined;
+    verifyDonatedReturn().then((r) => { if (r !== "paid") return; setThanks(true); id = setTimeout(() => setThanks(false), 8000); });
+    return () => { if (id) clearTimeout(id); };
   }, []);
   const { t, activeLocale, setActiveLocale, languages, romanizationEnabled, setRomanizationEnabled } = useLexicon();
   const { currentTheme } = useTheme();

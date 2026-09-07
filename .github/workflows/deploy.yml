@@ -70,6 +70,11 @@ jobs:
       - name: Test
         run: npm run test:innovation-time
 
+
+      - name: Test (headless suites — sign, pod, donate, lexicon, guards)
+
+        run: npm run test:ci
+
       # A build that exits 0 without compiling is exactly how a broken deploy got shipped before. Require the words.
       - name: Build
         env:

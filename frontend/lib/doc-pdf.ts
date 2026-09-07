@@ -120,9 +120,15 @@ export function amortize(principal: number, apr: number, months: number, payment
     const d = new Date(Date.UTC(firstDate.getUTCFullYear(), firstDate.getUTCMonth() + n - 1, firstDate.getUTCDate()));
     let interest = r2(bal * apr / 100 / 12);
     let princ = r2(payment - interest);
-    if (n === months || princ >= bal) { princ = bal; interest = r2(payment - princ); }
+    let pay = payment;
+    if (n === months || princ >= bal) {
+      // last row: principal is the remaining balance; interest absorbs the cent residual but is never
+      // negative — when the level payment rounded DOWN, the last payment is a few cents smaller instead
+      // (Thoth, wave 3: 1,111 term combinations produced "$-0.02" interest before this clamp)
+      princ = bal; interest = Math.max(0, r2(payment - princ)); pay = r2(princ + interest);
+    }
     const end = r2(bal - princ);
-    rows.push({ n, date: d.toISOString().slice(0, 10), begin: bal, payment, interest, principal: princ, end });
+    rows.push({ n, date: d.toISOString().slice(0, 10), begin: bal, payment: pay, interest, principal: princ, end });
     bal = end; if (bal <= 0) break;
   }
   return rows;

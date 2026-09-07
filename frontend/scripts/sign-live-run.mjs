@@ -75,15 +75,14 @@ await A.getByRole('button', { name: /place your signature/ }).click();
 // 2 · Alex places, draws, signs → hand-off link
 await placeAndSign(A, 'alex');
 const linkEl = A.getByTestId('handoff-link'); await linkEl.waitFor({ timeout: 60000 });
-const link = (await linkEl.innerText()).trim(); step('alex', 'saved — hand-off link minted for Daniel', /\/soi-session\/sign\/\?e=[A-Za-z0-9_-]{22}&s=[A-Za-z0-9_-]{22}$/.test(link), link.slice(0, 60) + '…');
+const link = (await linkEl.innerText()).trim(); step('alex', 'saved — hand-off link minted for Daniel', /\/soi-session\/sign\/\?e=[A-Za-z0-9_-]{22}#s=[A-Za-z0-9_-]{22}$/.test(link), link.slice(0, 60) + '…');
 await shot(A, 'alex', '4-handoff');
-const myLink = (await A.getByTestId('my-link').locator('code').innerText()).trim(); step('alex', 'creator keeps his own return link', /\?e=[A-Za-z0-9_-]{22}&s=[A-Za-z0-9_-]{22}$/.test(myLink) && myLink !== link);
+const myLink = (await A.getByTestId('my-link').locator('code').innerText()).trim(); step('alex', 'creator keeps his own return link', /\?e=[A-Za-z0-9_-]{22}#s=[A-Za-z0-9_-]{22}$/.test(myLink) && myLink !== link);
 const smsHref = await A.getByRole('link', { name: /Send by text/ }).getAttribute('href');
 step('alex', 'sms: composer prefilled to Daniel', smsHref.startsWith('sms:5125550100') && /Alex%20Seguin%20asks%20you%20to%20sign/.test(smsHref));
 
 // 3 · Alex cannot act again: reopening his own link says it is Daniel's turn
-const alexLink = link.replace(/&s=[^&]+$/, '&s=' + (await A.evaluate(() => ''))); // (his secret is not in the link; a stranger secret check follows)
-await A.goto(link.replace(/&s=[^&]+$/, '&s=AAAAAAAAAAAAAAAAAAAAAA'), { waitUntil: 'domcontentloaded' }); await ready(A);
+await A.goto(link.replace(/#s=.+$/, '#s=AAAAAAAAAAAAAAAAAAAAAA'), { waitUntil: 'domcontentloaded' }); await ready(A);
 await A.getByTestId('explain').waitFor(); await A.waitForFunction(() => !/Opening/.test(document.querySelector('[data-testid="explain"]')?.textContent || ''), null, { timeout: 30000 });
 const strangerText = await A.getByTestId('explain').innerText();
 step('alex', 'a wrong secret sees no files and no turn', /does not match/.test(strangerText), strangerText);

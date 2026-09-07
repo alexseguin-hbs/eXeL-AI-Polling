@@ -159,6 +159,11 @@ export default function SoISessionPage() {
     if (typeof window === "undefined") return;
     const q = new URLSearchParams(window.location.search);
     const code = (q.get("pod") || q.get("code") || "").toUpperCase();
+    // The LEAD's own code rides in the URL as ?lead=<code> (written when it is minted), so a reload
+    // returns the lead to its pod instead of the landing with a fresh code that orphans the joiners
+    // (Enki, wave 2). Joiners reclaim the seats they held through the roster protocol.
+    const leadCode = (q.get("lead") || "").toUpperCase();
+    if (leadCode && !code) { setIsJoiner(false); setPodCode(leadCode); setPhase("invite"); setEntered(true); }
     if (code) { setIsJoiner(true); setPodCode(code); setPhase("invite"); }
     // A scanned QR, a typed code, or ?enter=session goes straight to the pod; otherwise the
     // three-door landing (Session · Sign Doc · Create Doc) comes first (operator, 2026-09-07).
@@ -484,7 +489,7 @@ export default function SoISessionPage() {
           </span>
         </div>
         <PodPhaseRail phase={phase} counts={counts} />
-        <p className="mb-4 text-sm text-cyan-400" data-testid="pod-explain">{explain}</p>
+        <p className="mb-4 text-sm text-cyan-400" data-testid="pod-explain" aria-live="polite">{explain}</p>
 
         {/* Trinity logo — auto-drawn from the three leads' first names */}
         <div className="mb-5 flex flex-col items-center gap-1">
@@ -625,7 +630,12 @@ export default function SoISessionPage() {
 
             <button
               disabled={!canOpen}
-              onClick={() => { if (!podCode) setPodCode(randomCode()); podRef.current = { ...podRef.current, phase: "invite" }; setPhase("invite"); }}
+              onClick={() => {
+                const c = podCode || randomCode();
+                if (!podCode) setPodCode(c);
+                try { const u = new URL(window.location.href); u.searchParams.set("lead", c); u.searchParams.delete("enter"); window.history.replaceState(null, "", u.toString()); } catch { /* no history */ }
+                podRef.current = { ...podRef.current, phase: "invite" }; setPhase("invite");
+              }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
               Share QR &amp; open the pod
@@ -770,6 +780,9 @@ export default function SoISessionPage() {
           <>
             <div className="mb-4 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm">
               <div className="font-medium text-cyan-500">Session running — all three started together.</div>
+              {/* The brief stays on screen while the work happens — a late third must never work blind (Sofia, wave 3). */}
+              <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent || "—"}</p>
+              <p className="text-muted-foreground"><span className="font-medium text-foreground">Measurable outcome:</span> {outcome || "—"}</p>
               <p className="text-muted-foreground">When the work is done, any member stops the session for everyone and records the outcome.</p>
             </div>
             <button onClick={() => { setPhase("record"); drive("record"); }} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">

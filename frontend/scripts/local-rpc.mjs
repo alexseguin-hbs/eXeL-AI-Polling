@@ -12,6 +12,7 @@ export function db() {
     // This PGlite build ships no pgcrypto; core Postgres has sha256() and gen_random_uuid(), which is
     // all migration 036 needs. Shim the two pgcrypto calls it makes, strip its `create extension`.
     await d.exec(`create or replace function digest(p text, algo text) returns bytea language sql immutable as $$ select sha256(convert_to(p, 'UTF8')) $$;
+      create or replace function digest(p bytea, algo text) returns bytea language sql immutable as $$ select sha256(p) $$;
       create or replace function gen_random_bytes(n int) returns bytea language sql volatile as $$ select decode(replace(gen_random_uuid()::text, '-', ''), 'hex') $$;`);
     await d.exec(`do $$ begin
       if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;

@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
-import { newEnvelope, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, type Envelope, type SignFile } from "@/lib/sign-envelope";
+import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope } from "@/lib/sign-store";
 import { stampSignature, pageCount, type StampBox } from "@/lib/pdf-stamp";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
@@ -45,6 +45,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   const [nextName, setNextName] = useState(""); const [nextContact, setNextContact] = useState("");
   const [signed, setSigned] = useState<{ name: string; bytes: Uint8Array }[]>([]);
   const envRef = useRef<Envelope | null>(null);
+  const pendingToken = useRef("");                              // minted before stamping so the PDF can carry it
   const mode = storeMode();
 
   // ── seed from Create Doc ─────────────────────────────────────────────────────
@@ -73,13 +74,19 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
   // ── upload ───────────────────────────────────────────────────────────────────
   const addBytes = async (name: string, bytes: Uint8Array) => {
     if (bytes.length > MAX_FILE_BYTES) { setErr(t("soi.sign.err.file_too_large")); return; }
+    if (files.reduce((n, f) => n + f.bytes.length, 0) + bytes.length > MAX_ENVELOPE_BYTES) { setErr(t("soi.sign.err.envelope_too_large")); return; }
+    if (files.length >= MAX_FILES) { setErr(t("soi.sign.err.file_count")); return; }
     if (bytes.length < 5 || String.fromCharCode.apply(null, Array.from(bytes.slice(0, 5))) !== "%PDF-") { setErr(t("soi.sign.err.not_pdf")); return; }
     const [sha256, pages] = await Promise.all([sha256Hex(bytes), pageCount(bytes)]);
     setErr("");
-    setFiles((fs) => (fs.length >= MAX_FILES ? fs : [...fs, { name, bytes, base64: bytesToBase64(bytes), sha256, pages }]));
+    setFiles((fs) => [...fs, { name, bytes, base64: bytesToBase64(bytes), sha256, pages }]);
   };
   const onFiles = async (list: FileList | null) => { for (const f of Array.from(list ?? [])) await addBytes(f.name, new Uint8Array(await f.arrayBuffer())); };
-  const removeFile = (i: number) => { setFiles((fs) => fs.filter((_, j) => j !== i)); setBoxes((b) => { const n = { ...b }; delete n[i]; return n; }); };
+  const removeFile = (i: number) => {
+    setFiles((fs) => fs.filter((_, j) => j !== i));
+    // re-key the boxes above the removed file, or file N+1 inherits file N's box (Enki, wave 2)
+    setBoxes((b) => { const n: Record<number, StampBox> = {}; for (const [k, v] of Object.entries(b)) { const j = Number(k); if (j < i) n[j] = v; else if (j > i) n[j - 1] = v; } return n; });
+  };
 
   // ── signers ──────────────────────────────────────────────────────────────────
   const setSigner = (i: number, patch: Partial<{ name: string; contact: string }>) => setSigners((s) => s.map((x, j) => (j === i ? { ...x, ...patch } : x)));
@@ -98,11 +105,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
     try {
       const isoDate = new Date().toISOString();
       const prevChain = countersign ? (pub?.chain ?? "") : "";
+      if (!countersign && !pendingToken.current) pendingToken.current = newToken();
       const stamped: SignFile[] = [];
       const stampedBytes: { name: string; bytes: Uint8Array }[] = [];
       for (let i = 0; i < files.length; i++) {
         const f = files[i];
-        const out = await stampSignature(f.bytes, boxes[i], { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256) });
+        const out = await stampSignature(f.bytes, boxes[i], { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
         const sha = await sha256Hex(out);
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });
@@ -110,7 +118,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
       const chain = await chainHash(prevChain, stamped.map((s) => s.sha256));
       let result: PublicEnvelope;
       if (!countersign) {
-        const env = newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) });
+        const env = { ...newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) }), token: pendingToken.current };
         envRef.current = env;
         await createEnvelope(env);
         const next = applySignature(env, 0, env.signers[0].secret, isoDate, stamped, chain);
@@ -187,7 +195,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         <h2 className="text-lg font-semibold">{countersign ? (title || t("soi.sign.title")) : t("soi.sign.title")}</h2>
         {mode === "local" && <span className="rounded-full border border-amber-500/50 px-2 py-0.5 text-[10px] uppercase text-amber-500">{t("soi.sign.local_only")}</span>}
       </div>
-      <p className="mb-4 text-sm text-cyan-400" data-testid="explain">{explain}</p>
+      <p className="mb-4 text-sm text-cyan-400" data-testid="explain" aria-live="polite">{explain}</p>
       {err && <p className="mb-3 rounded-md border border-red-500/40 bg-red-500/5 p-2 text-xs text-red-500" data-testid="error">{err}</p>}
 
       {/* ── UPLOAD ── */}
@@ -301,7 +309,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed }: {
         <div>
           <div className="rounded-lg border border-green-500/40 bg-green-500/5 p-3 text-sm">
             <div className="font-medium text-green-500">{t("soi.sign.complete")}</div>
-            <p className="mt-1 text-xs text-muted-foreground">{t("soi.sign.chain")} <code>{pub?.chain ? shortHash(pub.chain) : "—"}</code></p>
+            {/* The pod's receipt shape — recorded · witnessed · settles — so a signed document reads as one of eXeL's (Pangu). */}
+            <ol className="mt-2 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
+              <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {signed.map((f) => f.name).join(" · ")}</li>
+              <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {(pub?.signers ?? []).map((s) => `${s.name}${s.signed_at ? " ✓" : " ✗"}`).join(" · ")}</li>
+              <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {(pub?.signers ?? []).length} {t("soi.sign.signatures")} · ◬ {t("soi.sign.chain")} <code>{pub?.chain ? shortHash(pub.chain) : "—"}</code></li>
+            </ol>
           </div>
           <Roster />
           <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="min-h-[44px] rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">⤓ {t("soi.sign.download")} {f.name}</button>)}</div>

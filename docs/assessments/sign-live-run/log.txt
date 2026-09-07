@@ -1,23 +1,23 @@
-  3716ms  alex  OK  landing → Sign Doc
-  3763ms  alex  OK  PDF uploaded, hashed, page-counted
-  3877ms  alex  OK  two signers named (email + phone)
-  4266ms  alex  OK  PDF page rendered (pdfjs)
-  4283ms  alex  OK  signature box placed by tap
-  4395ms  alex  OK  a swipe over the page places nothing
-  5062ms  alex  OK  signature drawn with the pointer
-  5235ms  alex  OK  Sign & save pressed
-  5297ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=b0KNsSSrPF4MkrBKjz…
-  5337ms  alex  OK  creator keeps his own return link
-  5341ms  alex  OK  sms: composer prefilled to Daniel
-  6923ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
-  9043ms  dan   OK  opened the hand-off link, no login
-  9046ms  dan   OK  roster: Alex signed, Daniel now
-  9106ms  dan   OK  PDF page rendered (pdfjs)
-  9125ms  dan   OK  signature box placed by tap
-  9243ms  dan   OK  a swipe over the page places nothing
-  9910ms  dan   OK  signature drawn with the pointer
- 10092ms  dan   OK  Sign & save pressed
- 10123ms  dan   OK  COMPLETE — every signer has signed
- 10194ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
- 10199ms  dan   OK  both stamps landed on page 1 at the tapped spot  [[1,0.1,0.71],[1,0.1,0.71]]
- 12164ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
+  3453ms  alex  OK  landing → Sign Doc
+  3496ms  alex  OK  PDF uploaded, hashed, page-counted
+  3616ms  alex  OK  two signers named (email + phone)
+  4012ms  alex  OK  PDF page rendered (pdfjs)
+  4030ms  alex  OK  signature box placed by tap
+  4143ms  alex  OK  a swipe over the page places nothing
+  4809ms  alex  OK  signature drawn with the pointer
+  4973ms  alex  OK  Sign & save pressed
+  5062ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=GZmWm--rNJ8L4dPNxf…
+  5102ms  alex  OK  creator keeps his own return link
+  5105ms  alex  OK  sms: composer prefilled to Daniel
+  7221ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+  8790ms  dan   OK  opened the hand-off link, no login
+  8793ms  dan   OK  roster: Alex signed, Daniel now
+  8850ms  dan   OK  PDF page rendered (pdfjs)
+  8868ms  dan   OK  signature box placed by tap
+  8975ms  dan   OK  a swipe over the page places nothing
+  9642ms  dan   OK  signature drawn with the pointer
+  9814ms  dan   OK  Sign & save pressed
+  9863ms  dan   OK  COMPLETE — every signer has signed
+  9929ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+  9934ms  dan   OK  both stamps landed on page 1 at the tapped spot  [[1,0.1,0.71],[1,0.1,0.71]]
+ 10365ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered

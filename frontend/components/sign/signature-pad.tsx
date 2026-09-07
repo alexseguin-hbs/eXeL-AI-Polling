@@ -54,6 +54,11 @@ export function SignaturePad({ onChange, height = 160 }: { onChange: (png: strin
   };
   const upload = async (f: File | undefined) => {
     if (!f) return;
+    // Bound the image before it is decoded into a canvas: a 30,000 × 30,000 PNG is a tab-sized
+    // allocation (Thor, wave 3). 4 MB on disk, 4,096 px a side.
+    if (f.size > 4 * 1024 * 1024) return;
+    const dims = await new Promise<{ w: number; h: number } | null>((res) => { const im = new Image(); im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight }); im.onerror = () => res(null); im.src = URL.createObjectURL(f); });
+    if (!dims || dims.w > 4096 || dims.h > 4096) return;
     const url = await signedDataURL(f, "exel-sign");
     if (!url) return;
     setUploaded(url); setEmpty(false); onChange(url);

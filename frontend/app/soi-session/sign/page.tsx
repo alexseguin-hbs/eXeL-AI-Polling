@@ -19,6 +19,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { AUTH0_CLIENT_ID, AUTH0_DOMAIN } from "@/lib/constants";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { base64ToBytes } from "@/lib/pdf-render";
+import { secretFromLocation } from "@/lib/sign-envelope";
 
 const AUTH_OFF = !AUTH0_DOMAIN || !AUTH0_CLIENT_ID || process.env.NEXT_PUBLIC_SIGN_NO_AUTH === "1";
 
@@ -45,12 +46,17 @@ export default function SignPage() {
   const [q, setQ] = useState<{ e: string; s: string } | null>(null);
   const [seed, setSeed] = useState<{ name: string; bytes: Uint8Array } | null>(null);
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search);
-    setQ({ e: p.get("e") ?? "", s: p.get("s") ?? "" });
+    // The secret lives in the fragment, and a fragment-only navigation does not reload the page —
+    // so re-read on hashchange/popstate too, and remount the flow (key below) when the link changes.
+    const read = () => { const p = new URLSearchParams(window.location.search); setQ({ e: p.get("e") ?? "", s: secretFromLocation(window.location.search, window.location.hash) }); };
+    read();
+    window.addEventListener("hashchange", read); window.addEventListener("popstate", read);
+    const off = () => { window.removeEventListener("hashchange", read); window.removeEventListener("popstate", read); };
     try {
       const raw = sessionStorage.getItem("exel-sign-seed");
       if (raw) { const j = JSON.parse(raw) as { name: string; base64: string }; setSeed({ name: j.name, bytes: base64ToBytes(j.base64) }); sessionStorage.removeItem("exel-sign-seed"); }
     } catch { /* no seed */ }
+    return off;
   }, []);
   if (!q) return <div className="mx-auto max-w-3xl px-4 py-10"><Header /></div>;
   const path = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/soi-session/sign/";
@@ -58,7 +64,7 @@ export default function SignPage() {
     <div className="mx-auto max-w-3xl px-4 py-6">
       <Header />
       {q.e ? (
-        <SignFlow token={q.e} secret={q.s} />
+        <SignFlow key={`${q.e}:${q.s}`} token={q.e} secret={q.s} />
       ) : AUTH_OFF ? (
         <SignFlow seed={seed} />
       ) : (

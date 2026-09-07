@@ -17,14 +17,17 @@ export interface PublicEnvelope {
   /** The baton: returned once to the signer who just signed, for the NEXT signer's link. */
   next_secret?: string | null;
 }
-export class SignStoreError extends Error { constructor(public code: string, msg?: string) { super(msg ?? code); } }
+export class SignStoreError extends Error {
+  code: string;
+  constructor(code: string, msg?: string) { super(msg ?? code); this.code = code; }
+}
 
 const LOCAL_KEY = (token: string) => `exel-sign:${token}`;
 export const storeMode = (): StoreMode => (supabase ? "supabase" : "local");
 
 const rpcError = (e: unknown): never => {
   const m = (e as { message?: string })?.message ?? String(e);
-  const code = /not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count|file_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
+  const code = /not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
   throw new SignStoreError(code, m);
 };
 

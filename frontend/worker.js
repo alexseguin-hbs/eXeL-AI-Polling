@@ -26,7 +26,7 @@
 //      (/, /main, /main/*) and static assets returns paused.html with 503.
 //   Both fail OPEN: any error leaves the site fully live. Toggle the pause via
 //   KV `SITE_STATE:paused` (instant) or env `SITE_PAUSED` (both default OFF).
-import { handleDonate } from "./donate-core.js";
+import { handleDonate, handleDonateVerify } from "./donate-core.js";
 
 export default {
   async fetch(request, env) {
@@ -37,7 +37,15 @@ export default {
     // deploy never runs those (see the header above). The request therefore fell through to
     // env.ASSETS.fetch → SPA fallback → index.html with a 200, so the client got HTML where it
     // expected JSON and showed "Donation could not be started. Please try again." Stripe was never
-    // contacted. Handled before the security + pause checks so a paused site still cannot charge.
+    // contacted. Handled before the path-signature WAF (fixed paths need none) but NOT before the
+    // pause: a paused site must not take money (Thor, wave 3 — the earlier comment had it inverted).
+    if (url.pathname.startsWith("/api/donate") && (await isPaused(env))) {
+      return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
+    }
+    if (url.pathname === "/api/donate/verify" || url.pathname === "/api/donate/verify/") {
+      try { return await handleDonateVerify(request, env); }
+      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+    }
     if (url.pathname === "/api/donate" || url.pathname === "/api/donate/") {
       try {
         return await handleDonate(request, env);

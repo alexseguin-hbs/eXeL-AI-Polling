@@ -37,6 +37,7 @@ create table if not exists sign_envelopes (
   signers              jsonb not null default '[]'::jsonb,   -- [{name, contact, order, secret_hash, signed_at}]
   chain                text not null default '',             -- running hash across signature passes
   failed_attempts      int  not null default 0,
+  locked_until         timestamptz,                         -- a stranger's 20 wrong secrets lock for one hour, never for good (Thor, wave 3)
   expires_at           timestamptz,
   revoked_at           timestamptz,
   completed_at         timestamptz,
@@ -60,6 +61,7 @@ create table if not exists sign_files (
   pdf_base64    text not null check (length(pdf_base64) <= 4300000),  -- 3 MB binary, base64
   sha256        text not null,
   version       int  not null default 0,
+  ordinal       int  not null default 0,                              -- file order within the envelope (chain replays in this order)
   storage_url   text,                                                 -- reserved: R2/Storage object instead of base64
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
@@ -76,7 +78,9 @@ create table if not exists sign_events (
   id            uuid primary key default gen_random_uuid(),
   envelope_id   uuid not null references sign_envelopes(id) on delete cascade,
   signer_idx    int,
-  kind          text not null,                    -- viewed|signed|revoked|refused|locked
+  kind          text not null,                    -- created|viewed|signed|revoked|refused|locked
+  file_shas     text[],                           -- sha256 of every file version this event produced (computed server-side)
+  version       int,                              -- the file version this event refers to
   contact_hash  text,
   ip_hash       text,
   user_agent    text,
@@ -116,11 +120,13 @@ begin
   into v_signers from jsonb_array_elements(e.signers) with ordinality as t(s, ord);
   if p_with_files then
     select coalesce(jsonb_agg(jsonb_build_object('name', f.name, 'page_count', f.page_count, 'pdf_base64', f.pdf_base64,
-      'sha256', f.sha256, 'version', f.version) order by f.created_at), '[]'::jsonb)
+      'sha256', f.sha256, 'version', f.version) order by f.ordinal, f.created_at), '[]'::jsonb)
     into v_files from sign_files f
     where f.envelope_id = e.id and f.version = (select max(version) from sign_files where envelope_id = e.id);
   end if;
-  return jsonb_build_object('token', e.token, 'title', e.title, 'status', e.status, 'current_signer_idx', e.current_signer_idx,
+  return jsonb_build_object('token', e.token, 'title', e.title,
+    'status', case when e.status = 'awaiting' and e.locked_until is not null and e.locked_until > now() then 'locked' else e.status end,
+    'current_signer_idx', e.current_signer_idx,
     'signers', v_signers, 'chain', e.chain, 'expires_at', e.expires_at, 'party', p_party, 'files', v_files);
 end $$;
 
@@ -131,8 +137,10 @@ create or replace function sign_envelope_create(
   p_token text, p_title text, p_created_by text, p_signers jsonb, p_files jsonb, p_expires_at timestamptz
 ) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
-declare v_id uuid; v_signers jsonb; s jsonb; f jsonb; n int := 0; nf int := 0;
+declare v_id uuid; v_signers jsonb; s jsonb; f jsonb; n int := 0; nf int := 0; v_total bigint := 0;
 begin
+  select coalesce(sum(length(f2->>'pdf_base64')), 0) into v_total from jsonb_array_elements(coalesce(p_files, '[]'::jsonb)) as f2;
+  if v_total > 17000000 then raise exception 'envelope_too_large'; end if;   -- 12 MB binary across all files (Thoth, wave 3)
   if p_token !~ '^[A-Za-z0-9_-]{22}$' then raise exception 'bad_token'; end if;
   if jsonb_typeof(p_signers) <> 'array' or jsonb_array_length(p_signers) < 1 then raise exception 'need_signer'; end if;
   if jsonb_typeof(p_files) <> 'array' or jsonb_array_length(p_files) < 1 or jsonb_array_length(p_files) > 5 then raise exception 'file_count'; end if;
@@ -150,11 +158,12 @@ begin
   returning id into v_id;
   for f in select * from jsonb_array_elements(p_files) loop
     if length(coalesce(f->>'pdf_base64', '')) > 4300000 then raise exception 'file_too_large'; end if;
-    insert into sign_files (envelope_id, name, page_count, pdf_base64, sha256, version)
-    values (v_id, left(coalesce(f->>'name', 'document.pdf'), 200), coalesce((f->>'page_count')::int, 0), f->>'pdf_base64', coalesce(f->>'sha256', ''), 0);
+    insert into sign_files (envelope_id, name, page_count, pdf_base64, sha256, version, ordinal)
+    values (v_id, left(coalesce(f->>'name', 'document.pdf'), 200), coalesce((f->>'page_count')::int, 0), f->>'pdf_base64',
+            encode(digest(decode(f->>'pdf_base64', 'base64'), 'sha256'), 'hex'), 0, nf);
     nf := nf + 1;
   end loop;
-  insert into sign_events (envelope_id, signer_idx, kind, contact_hash) values (v_id, 0, 'created', sign__hash(p_created_by));
+  insert into sign_events (envelope_id, signer_idx, kind, version, contact_hash) values (v_id, 0, 'created', 0, sign__hash(p_created_by));
   return jsonb_build_object('token', p_token, 'files', nf, 'signers', n);
 end $$;
 
@@ -176,8 +185,8 @@ begin
     select (ord - 1) into v_party from jsonb_array_elements(e.signers) with ordinality as t(s, ord) where s->>'secret_hash' = v_h limit 1;
     if v_party is null then
       v_party := -1;
-      update sign_envelopes set failed_attempts = failed_attempts + 1,
-        status = case when failed_attempts + 1 >= 20 and status = 'awaiting' then 'locked' else status end, updated_at = now()
+      update sign_envelopes set failed_attempts = case when locked_until is not null and locked_until < now() then 1 else failed_attempts + 1 end,
+        locked_until = case when failed_attempts + 1 >= 20 then now() + interval '1 hour' else locked_until end, updated_at = now()
       where id = e.id returning * into e;
       insert into sign_events (envelope_id, kind, ip_hash, user_agent) values (e.id, 'refused', p_ip_hash, left(p_user_agent, 300));
     else
@@ -194,7 +203,7 @@ create or replace function sign_envelope_sign(
   p_token text, p_signer_idx int, p_secret text, p_files jsonb, p_chain text, p_ip_hash text default null, p_user_agent text default null
 ) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
-declare e sign_envelopes; v_h text; v_cur int; v_n int; f jsonb; v_last boolean; v_ver int; v_signers jsonb; v_next text := null;
+declare e sign_envelopes; v_h text; v_cur int; v_n int; f jsonb; v_last boolean; v_ver int; v_signers jsonb; v_next text := null; v_shas text[]; v_chain text;
 begin
   select * into e from sign_envelopes where token = p_token for update;
   if not found then raise exception 'not_found'; end if;
@@ -202,22 +211,34 @@ begin
     update sign_envelopes set status = 'expired', updated_at = now() where id = e.id; raise exception 'expired';
   end if;
   if e.status <> 'awaiting' then raise exception '%', e.status; end if;
+  if e.locked_until is not null and e.locked_until > now() then raise exception 'locked'; end if;
   if p_signer_idx <> e.current_signer_idx then raise exception 'not_your_turn'; end if;
   v_h := sign__hash(p_secret);
   if (e.signers->p_signer_idx->>'secret_hash') is distinct from v_h then
-    update sign_envelopes set failed_attempts = failed_attempts + 1,
-      status = case when failed_attempts + 1 >= 20 then 'locked' else status end, updated_at = now() where id = e.id;
+    update sign_envelopes set failed_attempts = case when locked_until is not null and locked_until < now() then 1 else failed_attempts + 1 end,
+      locked_until = case when failed_attempts + 1 >= 20 then now() + interval '1 hour' else locked_until end, updated_at = now() where id = e.id;
     insert into sign_events (envelope_id, signer_idx, kind, ip_hash, user_agent) values (e.id, p_signer_idx, 'refused', p_ip_hash, left(p_user_agent, 300));
     raise exception 'bad_secret';
   end if;
   select count(*) into v_n from sign_files where envelope_id = e.id and version = (select max(version) from sign_files where envelope_id = e.id);
   if jsonb_typeof(p_files) <> 'array' or jsonb_array_length(p_files) <> v_n then raise exception 'file_count_mismatch'; end if;
+  if (select coalesce(sum(length(f2->>'pdf_base64')), 0) from jsonb_array_elements(p_files) as f2) > 17000000 then raise exception 'envelope_too_large'; end if;
   select max(version) + 1 into v_ver from sign_files where envelope_id = e.id;
+  v_n := 0;
   for f in select * from jsonb_array_elements(p_files) loop
     if length(coalesce(f->>'pdf_base64', '')) > 4300000 then raise exception 'file_too_large'; end if;
-    insert into sign_files (envelope_id, name, page_count, pdf_base64, sha256, version)
-    values (e.id, left(coalesce(f->>'name', 'document.pdf'), 200), coalesce((f->>'page_count')::int, 0), f->>'pdf_base64', coalesce(f->>'sha256', ''), v_ver);
+    insert into sign_files (envelope_id, name, page_count, pdf_base64, sha256, version, ordinal)
+    values (e.id, left(coalesce(f->>'name', 'document.pdf'), 200), coalesce((f->>'page_count')::int, 0), f->>'pdf_base64',
+            encode(digest(decode(f->>'pdf_base64', 'base64'), 'sha256'), 'hex'), v_ver, v_n);
+    v_n := v_n + 1;
   end loop;
+  -- The chain is recomputed HERE from the files just stored, never trusted from the client (Odin,
+  -- wave 2): chain_n = sha256(chain_{n-1} || ':' || sha_1 ',' sha_2 ...) in file order — the same
+  -- formula lib/sign-envelope.ts chainHash() uses, so client and server agree or the client is wrong.
+  -- every sha is computed HERE from the stored bytes — the client's claimed digest is ignored
+  select array_agg(encode(digest(decode(fj->>'pdf_base64', 'base64'), 'sha256'), 'hex') order by ord) into v_shas
+    from jsonb_array_elements(p_files) with ordinality as t(fj, ord);    -- `fj`, not `f`: `f` is a plpgsql variable here
+  v_chain := sign__hash(e.chain || ':' || array_to_string(v_shas, ','));
   v_last := p_signer_idx = jsonb_array_length(e.signers) - 1;
   v_signers := jsonb_set(e.signers, array[p_signer_idx::text, 'signed_at'], to_jsonb(now()), true);
   if not v_last then
@@ -225,13 +246,13 @@ begin
     v_next := replace(translate(encode(gen_random_bytes(16), 'base64'), '+/', '-_'), '=', '');
     v_signers := jsonb_set(v_signers, array[(p_signer_idx + 1)::text, 'secret_hash'], to_jsonb(sign__hash(v_next)), true);
   end if;
-  update sign_envelopes set signers = v_signers, chain = coalesce(p_chain, chain),
+  update sign_envelopes set signers = v_signers, chain = v_chain,
     current_signer_idx = case when v_last then current_signer_idx else current_signer_idx + 1 end,
     status = case when v_last then 'complete' else 'awaiting' end,
     completed_at = case when v_last then now() else null end, updated_at = now()
   where id = e.id returning * into e;
-  insert into sign_events (envelope_id, signer_idx, kind, contact_hash, ip_hash, user_agent)
-  values (e.id, p_signer_idx, 'signed', sign__hash(e.signers->p_signer_idx->>'contact'), p_ip_hash, left(p_user_agent, 300));
+  insert into sign_events (envelope_id, signer_idx, kind, file_shas, version, contact_hash, ip_hash, user_agent)
+  values (e.id, p_signer_idx, 'signed', v_shas, v_ver, sign__hash(e.signers->p_signer_idx->>'contact'), p_ip_hash, left(p_user_agent, 300));
   return sign__shape(e, p_signer_idx, true) || jsonb_build_object('next_secret', v_next);
 end $$;
 

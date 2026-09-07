@@ -30,12 +30,12 @@ export function PodPhaseRail({ phase, counts }: { phase: string; counts: PodCoun
             <li key={p.key} className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide"
               style={{ borderColor: on || past ? p.color : "var(--border)", color: on ? p.color : past ? p.color : "var(--muted-foreground)", opacity: on ? 1 : past ? 0.75 : 0.6, fontWeight: on ? 600 : 400 }}
               aria-current={on ? "step" : undefined}>
-              {t(p.labelKey)}{c ? ` ${c}` : ""}{past ? " ✓" : ""}
+              <span aria-hidden="true" style={{ color: p.color, opacity: 1 }}>{p.glyph} </span>{t(p.labelKey)}{c ? ` ${c}` : ""}{past ? " ✓" : ""}
             </li>
           );
         })}
       </ol>
-      {cur >= 0 && <p className="mt-1 text-[11px] text-muted-foreground" data-testid="phase-earns">{t(POD_PHASES[cur].earnsKey)}</p>}
+      {cur >= 0 && <p className="mt-1 text-xs" data-testid="phase-earns"><span aria-hidden="true" style={{ color: POD_PHASES[cur].color }}>{POD_PHASES[cur].glyph}</span> <span className="text-muted-foreground">{t(POD_PHASES[cur].earnsKey)}</span></p>}
     </div>
   );
 }
