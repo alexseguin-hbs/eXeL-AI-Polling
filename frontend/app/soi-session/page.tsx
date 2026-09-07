@@ -37,6 +37,9 @@ import { QRCodeSVG } from "qrcode.react";
 import { SeedMembership } from "@/components/seed-membership";
 import { SoiLanding } from "@/components/soi-landing";
 import { SoITrinity } from "@/components/soi-trinity";
+import { PodPhaseRail } from "@/components/pod-phase-rail";
+import { POD_PHASES, phaseIndex } from "@/lib/pod-phases";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useSessionBroadcast, type SessionBroadcastPayload } from "@/lib/use-session-broadcast";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
@@ -345,6 +348,53 @@ export default function SoISessionPage() {
   const allSelfAudited = members.every((m) => (parseFloat(m.hours) || 0) > 0 && m.did.trim());
   const allWitnessed = members.every((_, i) => isWitnessed(i));
 
+  // ── One look: the rail's counts and the one line that says what to do next (R-CORE gate) ──
+  const counts = {
+    joined: members.filter((m) => m.name.trim()).length,
+    agreed: members.filter((m) => m.name.trim() && m.agreed).length,
+    started: members.filter((m) => m.startedAt != null).length,
+    witnessed: members.filter((_, i) => isWitnessed(i)).length,
+    size: POD_SIZE,
+  };
+  const firstOf = (s: string) => s.trim().split(/\s+/)[0] || "";
+  const names = (ms: Member[]) => ms.map((m) => firstOf(m.name) || m.role).join(", ");
+  const explain = ((): string => {
+    switch (phase) {
+      case "compose": return canOpen ? t("soi.pod.x.compose_ready") : t("soi.pod.x.compose");
+      case "invite": {
+        if (joinFull) return t("soi.pod.seat.full");
+        const missing = members.filter((m) => !m.name.trim());
+        if (missing.length) return t("soi.pod.x.invite_join").replace("{n}", String(missing.length));
+        const notAgreed = members.filter((m) => !m.agreed);
+        if (notAgreed.length) return t("soi.pod.x.invite_agree").replace("{who}", names(notAgreed));
+        return t("soi.pod.x.invite_ready");
+      }
+      case "sync": { const left = members.filter((m) => m.startedAt == null); return left.length ? t("soi.pod.x.sync").replace("{who}", names(left)) : t("soi.pod.x.sync_ready"); }
+      case "active": return t("soi.pod.x.active");
+      case "record": return t("soi.pod.x.record");
+      case "audit": {
+        if (!allSelfAudited) return t("soi.pod.x.audit_self");
+        const unwitnessed = members.filter((_, i) => !isWitnessed(i));
+        if (unwitnessed.length) return t("soi.pod.x.audit_witness").replace("{who}", names(unwitnessed));
+        return t("soi.pod.x.audit_ready");
+      }
+      case "closed": return t("soi.pod.x.closed").replace("{h}", witnessedHours.toFixed(2)).replace("{y}", totalYugYok.toFixed(3));
+      default: return "";
+    }
+  })();
+
+  // The lead's brief prefilled from the login (name + e-mail) — once, only while the seat is blank.
+  const { user: authUser, isAuthenticated } = useAuth0();
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (prefilled.current || !isAuthenticated || !authUser || isJoiner) return;
+    if (members[0].name.trim() || members[0].contact.trim()) return;
+    prefilled.current = true;
+    const nm = authUser.name && !authUser.name.includes("@") ? authUser.name : "";
+    setMember(0, { name: nm, contact: authUser.email ?? "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, authUser, isJoiner]);
+
   // TOK-18 ◬ accelerator: delta of the frozen baseline estimate vs the witnessed actual.
   // Delta-only input — never a profit metric (D4). Positive delta = time saved = ◬ recognised.
   const baseline = parseFloat(baselineHrs) || 0;
@@ -427,19 +477,21 @@ export default function SoISessionPage() {
 
       {/* Task • Outcome POD flow ────────────────────────────────────────── */}
       <section className="mt-8 rounded-xl border border-border bg-card p-5">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Task • Outcome</h2>
           <span className="rounded-full border border-border px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
             {phase}
           </span>
         </div>
+        <PodPhaseRail phase={phase} counts={counts} />
+        <p className="mb-4 text-sm text-cyan-400" data-testid="pod-explain">{explain}</p>
 
         {/* Trinity logo — auto-drawn from the three leads' first names */}
         <div className="mb-5 flex flex-col items-center gap-1">
           <SoITrinity
             labels={trinityLabels}
-            color="#19c8cf"
-            colors={["#19c8cf", "#ff6bd6", "#c084fc"]}
+            color={TRINITY_COLORS.consciousness}
+            colors={[TRINITY_COLORS.temporal, TRINITY_COLORS.family, TRINITY_COLORS.consciousness]}
             textColor="#04121a"
             size={190}
           />
@@ -907,6 +959,12 @@ export default function SoISessionPage() {
           <div className="space-y-4 text-sm">
             <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-4">
               <div className="mb-1 font-medium text-cyan-500">Settled &amp; receipted by the pod.</div>
+              {/* The three lines a person reads first — what was recorded, who witnessed whom, what settles. */}
+              <ol className="mb-3 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
+                <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
+                <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
+                <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> ♡ {witnessedHours.toFixed(2)} h → 웃 {totalYugYok.toFixed(3)} · ◬ {t("soi.pod.receipt.synthesis")}</li>
+              </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> {outcome}</p>
               <p className="text-muted-foreground break-words"><span className="font-medium text-foreground">Recorded ({recordMethod}):</span> {recordValue}</p>
@@ -981,6 +1039,15 @@ export default function SoISessionPage() {
           </div>
         )}
       </section>
+
+      {/* Phone strip — intent · phase · Stop, always in reach (CriticalStrip pattern); desktop has the rail. */}
+      {phase !== "compose" && (
+        <div className="fixed inset-x-0 bottom-14 z-[60] mx-auto flex max-w-3xl items-center gap-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden" data-testid="pod-strip">
+          <span className="min-w-0 flex-1 truncate">{intent || t("soi.pod.strip.no_intent")}</span>
+          <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: POD_PHASES[Math.max(phaseIndex(phase), 0)].color, color: POD_PHASES[Math.max(phaseIndex(phase), 0)].color }}>{t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}</span>
+          {phase === "active" && <button type="button" onClick={() => { setPhase("record"); drive("record"); }} className="min-h-[36px] rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("soi.pod.strip.stop")}</button>}
+        </div>
+      )}
 
       {/* Seed membership — the entry credential, collapsed below the pod (moved 2026-09-07) */}
       <div className="mt-6"><SeedMembership /></div>
