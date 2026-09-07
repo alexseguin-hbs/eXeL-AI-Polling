@@ -163,9 +163,10 @@ await A.getByTestId('file-input').setInputFiles(FIXTURE);
 await A.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 }); step('alex', 'PDF uploaded, hashed, page-counted');
 await shot(A, 'alex', '1-upload');
 await A.getByRole('button', { name: /who signs/ }).click();
-await A.getByTestId('signer-name-0').fill('Alex Seguin'); await A.getByTestId('signer-contact-0').fill('alex@example.test');
-await A.getByTestId('signer-name-1').fill('Daniel Vail'); await A.getByTestId('signer-contact-1').fill('(512) 555-0100');
-step('alex', 'two signers named (email + phone)');
+// the operator's real contacts (ask 23:05): the creator by e-mail, the second signer by phone
+await A.getByTestId('signer-name-0').fill('Alex Seguin'); await A.getByTestId('signer-contact-0').fill('explore@eXeL-AI.com');
+await A.getByTestId('signer-name-1').fill('Daniel Vail'); await A.getByTestId('signer-contact-1').fill('512.808.8745');
+step('alex', 'two signers named (explore@eXeL-AI.com · 512.808.8745)');
 await shot(A, 'alex', '2-signers');
 await A.getByRole('button', { name: /place your signature/ }).click();
 
@@ -176,7 +177,12 @@ const link = (await linkEl.innerText()).trim(); step('alex', 'saved — hand-off
 await shot(A, 'alex', '4-handoff');
 const myLink = (await A.getByTestId('my-link').locator('code').innerText()).trim(); step('alex', 'creator keeps his own return link', /\?e=[A-Za-z0-9_-]{22}#s=[A-Za-z0-9_-]{22}$/.test(myLink) && myLink !== link);
 const smsHref = await A.getByRole('link', { name: /Send by text/ }).getAttribute('href');
-step('alex', 'sms: composer prefilled to Daniel', smsHref.startsWith('sms:5125550100') && /Alex%20Seguin%20asks%20you%20to%20sign/.test(smsHref));
+step('alex', 'phone path: sms: composer prefilled to 512.808.8745 with the default script + the link', smsHref.startsWith('sms:5128088745') && /Alex%20Seguin%20asks%20you%20to%20sign/.test(smsHref) && smsHref.includes(encodeURIComponent(link)), smsHref.slice(0, 70) + '…');
+const mailHref = await A.getByRole('link', { name: /Send by e-mail/ }).getAttribute('href');
+step('alex', 'e-mail path (phone contact): mailto: composer carries the same script + link', mailHref.startsWith('mailto:?subject=') && mailHref.includes(encodeURIComponent(link)), mailHref.slice(0, 60) + '…');
+// the roster masks the operator's contacts — a countersigner sees ex***@exel-ai.com / ***8745, never the whole address
+const rosterA = await A.getByTestId('roster').innerText();
+step('alex', 'contacts masked on the roster (ex***@… · ***8745)', /ex\*\*\*@/i.test(rosterA) && /\*\*\*8745/.test(rosterA), rosterA.replace(/\s+/g, ' ').slice(0, 90));
 
 // 3 · Alex cannot act again: reopening his own link says it is Daniel's turn
 await A.goto(link.replace(/#s=.+$/, '#s=AAAAAAAAAAAAAAAAAAAAAA'), { waitUntil: 'domcontentloaded' }); await ready(A);

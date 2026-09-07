@@ -53,8 +53,9 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const { rot } = placeOnPage(page, box);
   // Two display-frame sub-boxes — the image above, the caption below — each mapped through the
   // page's rotation on its own, so both read upright however the page is turned.
-  // On a fitted rule the whole box is the signature (it is already "no taller than the text above"); the caption
-  // goes INSIDE, bottom-right, so it never lands on the name printed under the line (rendered proof, wave 5).
+  // On a fitted rule the whole box is the signature (it is already "no taller than the text above"); the digital
+  // signature — name · time · #hash — sits UNDER the physical one (operator, 23:05): a 4.5-pt grey line just below
+  // the document's own rule, starting where the ink starts, in the gap above the printed name.
   const onRule = box.fit === "underline";
   const imgBox = onRule ? { ...box } : { ...box, h: box.h * 0.7 };
   const capBox = onRule ? { ...box, y: box.y + box.h * 0.6, h: box.h * 0.4 } : { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
@@ -71,11 +72,10 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const caption = `${sig.name} · ${sig.isoDate} · #${sig.hash}`;
   const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
-  let capSize = onRule ? 5 : Math.max(4, Math.min(9, capDispH * 0.9));
-  const room = onRule ? Math.max(0, capDispW - iw - 6) : capDispW;                 // to the right of the ink
-  while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > room) capSize -= 0.5;
+  let capSize = onRule ? 4.5 : Math.max(4, Math.min(9, capDispH * 0.9));
+  while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
   const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
-  if (onRule && rot === 0) page.drawText(caption, { x: C.bx + C.bw - font.widthOfTextAtSize(caption, capSize) - 2, y: C.by + 1.5, size: capSize, font, color: rgb(0.35, 0.35, 0.38) });
+  if (onRule && rot === 0) page.drawText(caption, { x: I.bx + 2, y: I.by - 5.5, size: capSize, font, color: rgb(0.35, 0.35, 0.38) });   // under the rule, under the ink
   else page.drawText(caption, { x: co.x, y: co.y, size: capSize, font, color: rgb(0.1, 0.1, 0.1), rotate: co.rotate });
   if (!onRule) {                                                                    // the document's own rule is the line
     const lo = oriented(rot, C.bx, C.by, C.bw, C.bh);

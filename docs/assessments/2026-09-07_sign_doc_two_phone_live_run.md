@@ -159,3 +159,13 @@ Lender and Borrower headings; each Date: line carries Sep 7, 2026; small grey ca
 The proof's own finder also had to learn that Daniel's page already carries Alex's ink on the lender's
 row — the borrower's rule is now found by row and column, not by the clean-pair shape (three consecutive
 green runs after the change).
+
+**23:05 ask, applied:** the digital signature (name · ISO time · #hash) now sits UNDER the physical scribble —
+a 4.5-pt grey line just below the document's rule, starting where the ink starts — and the Light Codex 2×2
+strips stay in the signatory block at the bottom-right of the last page. The proof runs with the operator's
+contacts: creator `explore@eXeL-AI.com`, second signer `512.808.8745` — the sms: composer opens to
+5128088745 with the default script and the link, the mailto: composer carries the same, the roster masks
+both (`ex***@exel-ai.com` · `***8745`). **51 steps, 0 failures.** Real delivery to that inbox/phone cannot
+be exercised from the sandbox (its proxy refuses every host); the phone's own composer is what sends the
+text, and e-mail FROM eXeL needs `RESEND_API_KEY` + `NOTIFY_FROM` on the Worker (docs/DEPLOY_STRIPE.md
+procedure) — without them the button falls back to the phone's mail app and says so.

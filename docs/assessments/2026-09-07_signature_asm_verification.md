@@ -13,8 +13,9 @@ signatory block), `signed-page.png` (page 2), `3b-preview-*.jpg` (the scribble p
 1. The pad exported the whole canvas, so the stroke shrank to a third of the line — now the pad exports
    its ink's bounding box (`signature-pad.tsx` emit) and the scribble fills the rule.
 2. The caption under the box landed on the name printed under the rule — on a fitted box the image takes
-   the whole box, starts at the line's left end, and the caption sits inside, bottom-right, 5 pt grey,
-   with no second line under the document's own (`pdf-stamp.ts` stampSignature).
+   the whole box, starts at the line's left end, and the digital signature (name · time · #hash) sits
+   UNDER the physical one: a 4.5-pt grey line just below the document's own rule, in the gap above the
+   printed name (`pdf-stamp.ts` stampSignature; operator 23:05: "digital signature is under physical").
 3. `+ Date` dropped a 27-pt date over the "Date:" line — it now snaps to that underline through the same
    pixel fit the signature uses (`PdfPageView.fitRef` → `sign-flow.tsx` addText), 7 pt, on the line.
 4. Coming back from Draw opened page 1 while the box sat on page 2 — the view opens on the signed page.
@@ -39,7 +40,7 @@ signatory block), `signed-page.png` (page 2), `3b-preview-*.jpg` (the scribble p
 Yes, consistently. Every one of the forty-nine steps the two phones walked rendered through the lexicon; no label, hint, error or verdict is hard-coded, and the glyph rail carries the meaning ahead of the words, so a signer who reads none of our thirty-three languages still sees where they are. The eleven strings a countersigner meets first exist in all thirty-two non-English languages, gated by a parity test that refuses an untranslated set. The receipt keeps the pod's shape, recorded, witnessed, settles, so a signed note reads as one of eXeL's. Not yet seen: the rail in a right-to-left language on a real phone. That is a look, not a rebuild.
 
 ## Asar — synthesis & outcome
-Yes. I did not trust the counters; I opened the file. Page two of the rendered PDF shows two hand-drawn scribbles, each on its own rule under Lender and Borrower, each starting where the line starts and filling most of it; a date on each "Date:" line at the document's own size; two small grey captions inside the boxes; and, bottom-right, the signatory block with two CAC-style rows and two Light Codex strips. Read back from the bytes: two SoISig images, two SoITxt marks, two SoICodex rows, the chain recomputed and matching the receipt. Not yet exercised: a signature uploaded as an image file; the proof does not walk that path.
+Yes. I did not trust the counters; I opened the file. Page two of the rendered PDF shows two hand-drawn scribbles, each on its own rule under Lender and Borrower, each starting where the line starts and filling most of it; a date on each "Date:" line at the document's own size; two small grey digital lines under the scribbles; and, bottom-right, the signatory block with two CAC-style rows and two Light Codex strips. Read back from the bytes: two SoISig images, two SoITxt marks, two SoICodex rows, the chain recomputed and matching the receipt. Not yet exercised: a signature uploaded as an image file; the proof does not walk that path.
 
 ## Athena — strategic test planning
 Yes, with the gate stated. The continuous-integration chain runs every Sign Doc suite first, envelope, store, fit, verify, i18n, PDF engine, and the two live proofs run against a real Postgres, not a mock, so a broken migration fails the run. What the gate cannot claim: Cloudflare builds main by its own Git integration and does not wait for this chain, and the /innovation deck's test is red for reasons that predate this work and lie outside it. The honest sentence: everything Sign Doc ships is proven locally before it is pushed, and the live site is confirmed by Verify Live reading the footer SHA, never by a push exit code.
