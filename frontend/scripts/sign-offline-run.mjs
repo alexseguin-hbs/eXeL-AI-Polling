@@ -25,8 +25,10 @@ const phones = {};
 process.on('uncaughtException', async (e) => { console.log('FAILED:', e.message.split('\n')[0]); for (const [w, p] of Object.entries(phones)) await p.screenshot({ path: `${OUT}/FAIL-${w}.jpg`, type: 'jpeg', quality: 55, fullPage: true }).catch(() => {}); fs.writeFileSync(OUT + '/log.txt', log.join('\n')); process.exit(1); });
 for (const who of ['alex', 'dan']) { const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, acceptDownloads: true }); phones[who] = await ctx.newPage(); phones[who].on('pageerror', (e) => step(who, 'pageerror ' + e.message, false)); }
 const A = phones.alex, D = phones.dan;
-// the hosted site's answer: the create function does not exist (036 not applied)
-await A.route('**/rest/v1/rpc/sign_envelope_create', (r) => r.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST202', message: 'Could not find the function public.sign_envelope_create in the schema cache' }) }));
+// the hosted site's answer: the functions do not exist (036 not applied) — create AND the diag probe's get
+const missing = (fn) => (r) => r.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST202', message: `Could not find the function public.${fn} in the schema cache` }) });
+await A.route('**/rest/v1/rpc/sign_envelope_create', missing('sign_envelope_create'));
+await A.route('**/rest/v1/rpc/sign_envelope_get', missing('sign_envelope_get'));
 
 const placeDrawSign = async (p, who, tapX) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 });
@@ -41,6 +43,12 @@ const placeDrawSign = async (p, who, tapX) => {
 
 // 1 · Alex: two signers, the create is refused by name → the envelope stays on the phone, the file is offered
 await A.goto(BASE + '/soi-session/sign/', { waitUntil: 'domcontentloaded' }); await ready(A);
+// "Why can't I sign?" on a site without 036: the sentence says download works, and THE FIX is one tap away (operator 00:15)
+await A.getByTestId('diag-toggle').click(); await A.getByTestId('diag-fix').waitFor({ timeout: 30000 });
+const todo = await A.getByTestId('diag-todo').innerText(); const sqlHref = await A.getByTestId('diag-open-sql').getAttribute('href');
+const sql = await (await A.request.get(BASE + sqlHref)).text();
+step('alex', 'diag on a 036-less site: "signing works … downloads" + Copy migration SQL + Open the SQL (served, 20 kB, holds the create function)', /036/.test(todo) && /downloads/.test(todo) && (await A.getByTestId('diag-copy-sql').count()) === 1 && /create or replace function[\s\S]*sign_envelope_create/i.test(sql) && sql.length > 15000, `${sqlHref} · ${sql.length} bytes`);
+await shot(A, 'alex', '0-diag-fix'); await A.getByTestId('diag-toggle').click();
 await A.getByPlaceholder(/Promissory/).fill('Promissory Note'); await A.getByTestId('file-input').setInputFiles(FIXTURE); await A.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 });
 await A.getByRole('button', { name: /who signs/ }).click();
 await A.getByTestId('signer-name-0').fill('Alex Seguin'); await A.getByTestId('signer-contact-0').fill('explore@eXeL-AI.com');

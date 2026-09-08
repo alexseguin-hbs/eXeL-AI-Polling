@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "guard": "node scripts/integrity-guard.mjs",
-    "predev": "node scripts/integrity-guard.mjs && node scripts/copy-pdf-worker.mjs",
+    "predev": "node scripts/integrity-guard.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/lockcheck.mjs && node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs && node scripts/copy-pdf-worker.mjs",
+    "prebuild": "node scripts/lockcheck.mjs && node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

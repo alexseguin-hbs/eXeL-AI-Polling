@@ -235,3 +235,10 @@ Six asks, all applied; proofs: two-phone 57/57 · **offline hand-off 12/12 (new)
 three per person, in signing order) are stamped at the bottom-right of EVERY page, between the signatory block
 and the Light Codex strip, redrawn each pass, and recorded once as a keyword (`SoIInit:AS+DV`). Proof: the page
 text carries them on every page (2/2) in the two-phone run; codex-pdf 14/14.
+
+**00:15 ask, applied — "fix after download enabled":** the one fix left on the live site is applying migration
+036 on the hosted Supabase, which only the operator can do. The "Why can't I sign?" panel now says signing and
+download already work, and offers **the fix from the phone**: Copy migration 036 SQL (served at
+`/sql/036_sign_envelopes.sql`, copied into `public/` at predev/prebuild) → Supabase → SQL editor → Run → reload.
+The offline proof blocks the probe too and asserts the block, the served SQL (20 kB, holds the create
+function) — 13 steps, 0 failures. The sentence is updated in the 32 seeded languages.

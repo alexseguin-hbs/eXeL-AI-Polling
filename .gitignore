@@ -103,3 +103,4 @@ scripts/lv-*.png
 _*.mjs
 _*.py
 frontend/public/pdf.worker.min.mjs
+frontend/public/sql/

@@ -43,6 +43,9 @@ export function SignDiag({ d, open, onToggle }: { d: DiagInput; open: boolean; o
     [t("soi.sign.diag.step"), t(`soi.sign.step.${d.step === "saving" || d.step === "login" ? "sign" : d.step === "loading" || d.step === "waiting" || d.step === "not_party" ? "open" : d.step}`) + (d.err ? ` · ${d.err}` : ""), "diag-step"],
   ];
   const copy = () => { try { void navigator.clipboard.writeText(rows.map(([k, v]) => `${k}: ${v}`).join("\n") + `\n${todo}\n${rpc.detail}\n${navigator.userAgent}`); } catch { /* no clipboard */ } };
+  // the fix itself, from the phone: the migration's SQL to the clipboard → Supabase → SQL editor → Run → reload
+  const [sqlState, setSqlState] = useState<"" | "copied" | "failed">("");
+  const copySql = async () => { try { const r = await fetch("/sql/036_sign_envelopes.sql"); if (!r.ok) throw new Error(String(r.status)); await navigator.clipboard.writeText(await r.text()); setSqlState("copied"); } catch { setSqlState("failed"); } };
   return (
     <div className="mb-3 text-xs" data-testid="sign-diag">
       <button type="button" onClick={onToggle} className="min-h-[36px] text-cyan-400 underline-offset-2 hover:underline" aria-expanded={open} data-testid="diag-toggle">{open ? "▾" : "▸"} {t("soi.sign.diag.link")}</button>
@@ -53,6 +56,16 @@ export function SignDiag({ d, open, onToggle }: { d: DiagInput; open: boolean; o
           </dl>
           <p className="mt-2 font-medium text-foreground" data-testid="diag-todo" aria-live="polite">{todo}</p>
           <button type="button" onClick={copy} className="mt-2 min-h-[36px] rounded-md border border-border px-3">{t("soi.sign.diag.copy")}</button>
+          {rpc.state === "rpc_missing" && (
+            <div className="mt-3 rounded-md border border-cyan-400/40 p-2" data-testid="diag-fix">
+              <div className="font-medium text-foreground">{t("soi.sign.diag.fix_title")}</div>
+              <p className="mt-1 text-muted-foreground">{t("soi.sign.diag.sql_how")}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" onClick={copySql} className="min-h-[36px] rounded-md bg-primary px-3 text-primary-foreground" data-testid="diag-copy-sql">{sqlState === "copied" ? t("soi.sign.diag.sql_copied") : sqlState === "failed" ? t("soi.sign.diag.sql_failed") : t("soi.sign.diag.copy_sql")}</button>
+                <a href="/sql/036_sign_envelopes.sql" target="_blank" rel="noreferrer" className="min-h-[36px] rounded-md border border-border px-3 leading-[36px]" data-testid="diag-open-sql">{t("soi.sign.diag.open_sql")}</a>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
