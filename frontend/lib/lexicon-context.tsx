@@ -116,6 +116,15 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   const [activeLocale, setActiveLocaleState] = useState<string>("en");
   const [romanizationEnabled, setRomanizationEnabled] = useState<boolean>(false);
 
+  // The document follows the active language: <html lang> for screen readers and hyphenation, dir for RTL
+  // (Arabic, Hebrew, Persian, Urdu) so every page mirrors without per-component work (fleet pass 2, Aset).
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const lang = languages.find((l) => l.code === activeLocale);
+    document.documentElement.lang = activeLocale;
+    document.documentElement.dir = lang?.direction === "rtl" ? "rtl" : "ltr";
+  }, [activeLocale, languages]);
+
   // Hydrate from localStorage on mount, merging seeded translations as base
   useEffect(() => {
     try {

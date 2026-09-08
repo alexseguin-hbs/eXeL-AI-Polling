@@ -1041,7 +1041,7 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
    read-outs scored 3/3 = 100% and wore the emerald "done" badge every other tab has to EARN.            */
 {
   const F = await import("../lib/innovation-data.ts");
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const authorable = (sp) => sp.fields.some((f) => !f.linked);
   const noSignal = F.SLIDE_SCHEMA.filter((sp) => sp.code !== "S10" && !authorable(sp)).map((sp) => sp.code);
 
@@ -1067,7 +1067,7 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
    deleteProject|removeProject|onDelete|onRemove returned nothing across app/innovation/ and the lib. These
    locks hold the shape that makes a destructive action safe.                                            */
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
 
   // ONE WRITER — remove mutates the SAME `order` array createIdea appends to, so the SAME debounced
   // saveState("projects", …) persists it. A second persistence path is how two surfaces drift.
@@ -1200,7 +1200,7 @@ import { makeSlideVersion, mergeSlideVersions, slideVersionTimeline, versionDelt
   //    This exact trap is written into the Z2 section of the plan ("if the body itself becomes the scroll
   //    container, overflow stops being observable and that gate goes quietly green forever") and I walked
   //    into it anyway. So it becomes a lock rather than a lesson.
-  const pageSrcCsra = (await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8"));
+  const pageSrcCsra = (await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8"));
   // ⚠ BOTH ANCHORS MUST RESOLVE, AND THE SLICE MUST BE BOUNDED. The first draft used an end anchor that
   // did not exist, so indexOf returned -1, slice(a, -1) ran to END OF FILE, and the lock went red against
   // the zoom wrapper and two modal overlays — code nowhere near this panel. A `length > 500` guard passed
@@ -1651,7 +1651,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // would silently render nothing), and they prove every not-yet-built code still has a fallback to fall to.
 {
   const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const codes = SLIDE_SCHEMA.map((s) => s.code);
   // Every field id a built panel names must be a REAL field on that slide.
   const PANEL_FIELDS = {
@@ -1699,7 +1699,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // passes on a blank deck, which is worse than no gate at all.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
   const ship = await fsp.readFile("scripts/ship.sh", "utf8");
   const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
@@ -1740,7 +1740,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // leaving a void.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const { DEMO_PROJECTS, SLIDE_SEED, SLIDE_SCHEMA, linkedSlideField, aiSlideField } = await import("../lib/innovation-data.ts");
   const p1 = DEMO_PROJECTS.find((x) => x.id === "PRJ-01");
   ok(!!p1, "PRJ-01 exists in DEMO_PROJECTS");
@@ -1795,7 +1795,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // gap) can drift between the two. These locks pin the caps and the mechanism that guarantees them.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const css = await fsp.readFile("app/globals.css", "utf8");
   const PRINT_W = 1600;
 
@@ -1879,7 +1879,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // Also locked: the screenshot gate actually runs in CI. A gate nobody runs is not a gate.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
   // THIRD ATTEMPT, and the first that stops asserting a class name. `right-0` shipped broken; `left-0` fixed
   // the phone and then covered the level toggle on desktop while doing nothing for the Growth Model mount,
@@ -1914,7 +1914,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // ScopeFilter lock above made. Cardinality is checked by counting, so widening the gate ANY way fails it.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
 
   // 1. The gate names exactly one slide code, and it is S10.
   const gate = src.match(/\{onEditSource && ([^\n]*?) && \(\(\) => \{/);
@@ -2002,7 +2002,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fsp2 = await import("node:fs/promises");
-  const pageSrc = await fsp2.readFile("app/innovation/page.tsx", "utf8");
+  const pageSrc = await fsp2.readFile("app/SoI-2525/page.tsx", "utf8");
 
   const base = F.finBaseline(F.DEMO_PROJECTS[0], 2026);
   ok(base.years.length === F.FIN_SPAN, `a plan always stores ${F.FIN_SPAN} years regardless of stage`);
@@ -2239,7 +2239,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const BAN = /\b(Yr\s?\d|Year\s?[1-9]\b|L-[13]\b|Launch\s?\+?\d)/;
   const KNOWN_DEBT = ['id: "fte"', 'id: "ftedollar"'];
   const strip = (line) => line.replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "");   // code only, not commentary
-  for (const f of ["lib/innovation-data.ts", "app/innovation/page.tsx"]) {
+  for (const f of ["lib/innovation-data.ts", "app/SoI-2525/page.tsx"]) {
     const txt = await fsp3.readFile(f, "utf8");
     const hits = txt.split("\n")
       .map((line, i) => [i + 1, strip(line)])
@@ -2279,7 +2279,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // `finPlan`; that block wrote `revPlan`. Two money editors stacked on one panel disagree by construction.
 {
   const fsp0 = await import("node:fs/promises");
-  const src = await fsp0.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp0.readFile("app/SoI-2525/page.tsx", "utf8");
   const code = src.split("\n").map((l) => l.replace(/\/\/.*$/, "")).join("\n");   // ignore commentary
 
   // 1. Zero callers. The lib still EXPORTS these — deleting the engine is a separate commit that has to
@@ -2339,7 +2339,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fspv = await import("node:fs/promises");
-  const src = await fspv.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fspv.readFile("app/SoI-2525/page.tsx", "utf8");
   const field = (code, id) => F.SLIDE_SCHEMA.find((x) => x.code === code).fields.find((f) => f.id === id);
 
   // 1. Exactly one editable value-prop field across all 20 codes, and it is S8's.
@@ -2388,7 +2388,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // could not have held a number anyway.
 {
   const fspc = await import("node:fs/promises");
-  const src = await fspc.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fspc.readFile("app/SoI-2525/page.tsx", "utf8");
   // W-1b · RE-POINTED, NOT RELAXED. `S8ValueChart` and `ValueEquationPanel` merged into ONE `ValueProp`
   // (operator: "only one Value Prop visual that is source for everything including slide"), so this slice
   // named a function that no longer exists and `indexOf` returned -1 — slicing the TOP of the file and
@@ -2440,7 +2440,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fspE = await import("node:fs/promises");
-  const pageE = await fspE.readFile("app/innovation/page.tsx", "utf8");
+  const pageE = await fspE.readFile("app/SoI-2525/page.tsx", "utf8");
   const p0 = F.DEMO_PROJECTS[0];
   const BY = 2026;                                     // pinned, so the lock never depends on the wall clock
   const s10 = F.slideSpec("S10");
@@ -2507,7 +2507,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fspE1 = await import("node:fs/promises");
-  const pageE1 = await fspE1.readFile("app/innovation/page.tsx", "utf8");
+  const pageE1 = await fspE1.readFile("app/SoI-2525/page.tsx", "utf8");
 
   // 1. ASP IS A FIELD NOW, and typed ASP WINS. This reverses a decision this repo argued for in a comment;
   //    the lever is kept as a fallback so no seeded plan moves by a cent.
@@ -2663,7 +2663,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // has to be pinned instead. Structural here; measured in a browser by the E2 proof.
 {
   const fspE2 = await import("node:fs/promises");
-  const pageE2 = await fspE2.readFile("app/innovation/page.tsx", "utf8");
+  const pageE2 = await fspE2.readFile("app/SoI-2525/page.tsx", "utf8");
   const ed = pageE2.slice(pageE2.indexOf("const head = ("), pageE2.indexOf("Apply-rate strip"));
 
   // ⚠ THE STICKY GOES ON THE `td`, NOT ON A SPAN INSIDE IT. A sticky SPAN inside a `colSpan` cell of a
@@ -2729,7 +2729,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fspE3 = await import("node:fs/promises");
-  const pageE3 = await fspE3.readFile("app/innovation/page.tsx", "utf8");
+  const pageE3 = await fspE3.readFile("app/SoI-2525/page.tsx", "utf8");
   // Strip BOTH comment forms. A first draft stripped only `//` lines and went red on its own explanatory
   // JSX block comment, which quotes the retired badge text — the lock catching the person writing it.
   const code = pageE3.replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
@@ -2774,7 +2774,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // re-attach a transform to the body and this goes red; drop `* zoom` from the sheet and this goes red.
 {
   const fspZ = await import("node:fs/promises");
-  const pageZ = await fspZ.readFile("app/innovation/page.tsx", "utf8");
+  const pageZ = await fspZ.readFile("app/SoI-2525/page.tsx", "utf8");
   // ANCHOR ON THE JSX, not the first textual hit — `data-slide-zoom` appears in SLIDE_PRINT_CSS first, and
   // slicing from there measures the print reset instead of the markup. (Probe error #14's shape: never
   // anchor a slice on a string that also occurs in a comment or a CSS literal.)
@@ -2831,7 +2831,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // are inputting project data, we do not see commercial details, and vice versa."
 {
   const fspB = await import("node:fs/promises");
-  const pageB = await fspB.readFile("app/innovation/page.tsx", "utf8");
+  const pageB = await fspB.readFile("app/SoI-2525/page.tsx", "utf8");
 
   // 1. TWO BANNERS, in the operator's own words, over the right row sets.
   ok(/tone="tech" title="Technical Financials" sub="R&D · NRE"/.test(pageB), "the Technical banner is titled and scoped as asked");
@@ -2896,7 +2896,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fspC = await import("node:fs/promises");
-  const pageC = await fspC.readFile("app/innovation/page.tsx", "utf8");
+  const pageC = await fspC.readFile("app/SoI-2525/page.tsx", "utf8");
   const libC = await fspC.readFile("lib/innovation-data.ts", "utf8");
 
   // 1. THE MATRIX, EXECUTED — all nine cells, not a spot check. The anchors the operator named by hand
@@ -3001,7 +3001,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // which is the operator's actual question. `confidence` is deliberately here since E0c: it is derived
   // from the two risk levels, so mutating the stored copy is meant to change nothing.
   const fspR = await import("node:fs/promises");
-  const pageR = await fspR.readFile("app/innovation/page.tsx", "utf8");
+  const pageR = await fspR.readFile("app/SoI-2525/page.tsx", "utf8");
   const typeable = dead.filter((k) => new RegExp(`onEditSource\\(\\{ ${k}:|onEdit\\(\\{ ${k}:`).test(pageR));
   ok(typeable.length === 0,
      `nothing a human can EDIT is invisible to the board — editable-but-dead: [${typeable.join(", ")}]`);
@@ -3022,7 +3022,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   // `F` is block-scoped and re-imported per block in this file — every neighbouring block does the same.
   const F = await import("../lib/innovation-data.ts");
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const pd = src.slice(src.indexOf("function ProjectDetail("), src.indexOf("function GateCube("));
   ok(pd.length > 1000, "ProjectDetail was located — the slice is not empty");
   // Any input/textarea in ProjectDetail whose setD/onChange targets a MONEY scalar. Matched on the write,
@@ -3094,7 +3094,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // ASSERTED AS ARITHMETIC, not as the presence of a `T`. A constant can be added and then not used; what
 // matters is where the topmost label actually lands. This computes it from the source's own numbers.
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
   // The dimensions are declared across the measured-layout block now (W fixed, B and T derived from the
   // label metrics) rather than on one line, so they are read individually. The ARITHMETIC below is what
@@ -3149,7 +3149,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // (viewBox H 230 measured 41.7% fill, worse than the control). Widening the layout measured 95.8%.
 // These locks assert the MECHANISM, because the pixel outcome is measured elsewhere (scripts/slide-shots).
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
 
   // 1 · The slot is MEASURED, never assumed. A hardcoded 3.194 would be a design constant today and a lie
@@ -3210,7 +3210,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // figures move into a reserved band ON the chart, and the WTP strip is compacted — all of which is height
 // handed back to the chart. Verified across all 33 projects by measurement, not by looking at one slide.
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
 
   // 1 · VALUE CREATION starts at the NBA bar's RIGHT edge — that IS "between NBA and Price", expressed as
@@ -3258,7 +3258,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // slide · use full width waterfall for value prop section · ensure chart renders appropriately on both
 // versions OF PDF".
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const data = await (await import("node:fs/promises")).readFile("lib/innovation-data.ts", "utf8");
   const gate = await (await import("node:fs/promises")).readFile("scripts/pdf-gate.mjs", "utf8");
   const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
@@ -3359,7 +3359,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // Operator: "So value prop water fall upper right box · Key Customer benefits bottom left · Key Technical
 // Benefits bottom right using this slide view (as a basis) not pdf. then have pdf match."
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const gate = await (await import("node:fs/promises")).readFile("scripts/pdf-gate.mjs", "utf8");
   const veq = src.slice(src.indexOf("function ValueProp("), src.indexOf("function ValueEquationPanel("));
 
@@ -3487,7 +3487,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // ── G2/G3/G4 · DISPLAY ROUNDING · CONFIDENCE TONE · GRID ALIGNMENT ───────────────────────
 {
   const F = await import("../lib/innovation-data.ts");
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
 
   // G2 · Rounding is for the EYE, never for the RECORD. F2a derives seeded ASP/COGS from revenue so that
   // units × aspK === revK exactly; that makes them long floats, which the input rendered raw ("134.7804",
@@ -3620,7 +3620,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // title and the footer — the banner ate the viewport and pushed the content off-screen.
 {
   const fspz = await import("node:fs/promises");
-  const src = await fspz.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fspz.readFile("app/SoI-2525/page.tsx", "utf8");
   const vpSrc = await fspz.readFile("lib/use-viewport.ts", "utf8");
 
   // ⚠ 1. REWRITTEN BY Z5 — THE LAW INVERTED, ON THE OPERATOR'S INSTRUCTION. This block used to assert that
@@ -3689,7 +3689,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // and never looked at a bar. Labels are not bars. That is the same class as the stale slide-shots locator.
 {
   const fspP3 = await import("node:fs/promises");
-  const p3 = await fspP3.readFile("app/innovation/page.tsx", "utf8");
+  const p3 = await fspP3.readFile("app/SoI-2525/page.tsx", "utf8");
   ok(/\[data-slide-zoom\], \[data-slide-zoom\] \* \{ transform: none !important; overflow: visible !important; \}/.test(p3),
      "the zoom reset touches transform and overflow ONLY");
   ok(!/\[data-slide-zoom\][^\n]*width: auto !important/.test(p3),
@@ -3726,7 +3726,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const fspD3 = await import("node:fs/promises");
   const codeOnly = (x) => x.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").replace(/\/\/.*$/gm, "");
   const libD3 = codeOnly(await fspD3.readFile("lib/innovation-data.ts", "utf8"));
-  const pgD3 = codeOnly(await fspD3.readFile("app/innovation/page.tsx", "utf8"));
+  const pgD3 = codeOnly(await fspD3.readFile("app/SoI-2525/page.tsx", "utf8"));
   ok(!/competitiveIndex/.test(libD3), "ZERO competitiveIndex in the library — field, computation and prose");
   ok(!/competitiveIndex/.test(pgD3), "ZERO competitiveIndex in the deck — no display, no consumer");
   ok(!/Diff Index/.test(pgD3), "the `Diff Index` dog-tag row that rendered it is gone");
@@ -3757,7 +3757,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // converting both wrapper sites at once is safe rather than risky.
 {
   const fspD8 = await import("node:fs/promises");
-  const d8 = await fspD8.readFile("app/innovation/page.tsx", "utf8");
+  const d8 = await fspD8.readFile("app/SoI-2525/page.tsx", "utf8");
   const acc = d8.slice(d8.indexOf("function sectionAccent"), d8.indexOf("\n}", d8.indexOf("function sectionAccent")));
   ok(acc.length > 400 && acc.length < 2000, "the sectionAccent slice resolves and is bounded");
   ok(!/ring: "border-/.test(acc), "no accent returns a BORDER class — a border costs 2px of content box");
@@ -3807,7 +3807,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   //     want the VISUAL viewport, because they position against what the user can actually see. Banning
   //     those would be wrong, not safer. What must never read it is a LAYOUT-SIZING primitive, and there is
   //     exactly one of those.
-  ok(/from "@\/lib\/use-viewport"/.test(await fspV.readFile("app/innovation/page.tsx", "utf8")),
+  ok(/from "@\/lib\/use-viewport"/.test(await fspV.readFile("app/SoI-2525/page.tsx", "utf8")),
      "the deck sizes from the shared hook, not from its own viewport read");
 
   // 4 · THE GATE IS WIRED, or it protects nothing. This is the assertion that would have caught a gate
@@ -3843,7 +3843,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // Probe error #17. The probe now keys on structural path and refuses to report unless ≥80% of paths match.
 {
   const fspP1 = await import("node:fs/promises");
-  const p1 = await fspP1.readFile("app/innovation/page.tsx", "utf8");
+  const p1 = await fspP1.readFile("app/SoI-2525/page.tsx", "utf8");
 
   // 1 · TWO BUTTONS, ONE STACK. The versions differ by a class, never by a second renderer — a print-only
   //     renderer is exactly how a PDF ends up disagreeing with the projector.
@@ -4024,7 +4024,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // that fell through to the generic field grid. That is why it never looked like the operator's reference.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
 
   // 1. S10 has a panel, and it is the two Rack & Stack panels by their real names.
   const keys = [...src.matchAll(/^ {6}(S\d+|CS|RA): \(\) => \(/gm)].map((m) => m[1]);
@@ -4091,7 +4091,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // is reused (inline <style> + @media print + @page + print-color-adjust + a -noprint class).
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
   const { SLIDE_SCHEMA } = await import("../lib/innovation-data.ts");
 
@@ -4141,7 +4141,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const fsp = await import("node:fs/promises");
   const lex = await fsp.readFile("lib/lexicon-data.ts", "utf8");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const data = await fsp.readFile("lib/innovation-data.ts", "utf8");
   ok(/englishDefault: "Upside R&D"/.test(lex), "the KPI lexicon default is Upside R&D");
   ok(!/dry powder/i.test(lex) && !/dry powder/i.test(data), "no 'dry powder' survives in the lexicon or the data engine");
@@ -4156,7 +4156,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // of defect as the sm: grid that broke portrait in #3. The sheet is always a 16:9 landscape page.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const data = await fsp.readFile("lib/innovation-data.ts", "utf8");
   const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
   const { GATE_REQUIREMENTS, slideDef } = await import("../lib/innovation-data.ts");
@@ -4181,7 +4181,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // same Y on every slide — uniform geometry matters as much as uniform size.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
   const { DEMO_PROJECTS, SLIDE_SCHEMA, slideDef } = await import("../lib/innovation-data.ts");
 
@@ -4223,7 +4223,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // field whose name matches renders bare. One rule, all 20 slides, including the ones not built yet.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   ok(/const PanelTitleCtx = React\.createContext<string>\(""\);/.test(src), "AmtsPanel publishes its title through a context");
   ok(/<PanelTitleCtx.Provider value=\{title\}>\{children\}<\/PanelTitleCtx.Provider>/.test(src), "the provider wraps the panel BODY, so only that panel's fields see it");
   ok(/bare = bare \|\| \(!!panelTitle && sameName\(panelTitle, f\.name\)\)/.test(src), "a field whose name matches the panel title renders bare");
@@ -4249,7 +4249,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // left the arithmetic wrong. The roll-up is now funded-only, and revealing unfunded adds a SEPARATE segment.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const lex = await fsp.readFile("lib/lexicon-data.ts", "utf8");
   const { DEMO_PROJECTS, pipelineByGate, GATES } = await import("../lib/innovation-data.ts");
 
@@ -4308,7 +4308,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // fix: >90px of uncovered canvas on 20/20 slides, peaking at 689px on CS and 619px on RA.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
 
   // 22a · both levels stretch, and the children can actually take the height
@@ -4365,7 +4365,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // asserts on the bytes Chromium emits. Proven red against the pre-fix build: "REAL PDF pages: 2".
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const gate = await fsp.readFile("scripts/pdf-gate.mjs", "utf8");
   const ship = await fsp.readFile("scripts/ship.sh", "utf8");
   const pkg = JSON.parse(await fsp.readFile("package.json", "utf8"));
@@ -4460,7 +4460,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // row. Now it renders directly beneath the rollup that summarises it — one risk region, not two places.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
 
   ok(/function RiskRegister\(\{ risks, setRisks, p \}: \{ risks: Risk\[\]; setRisks: \(r: Risk\[\]\) => void; p: Project \}\)/.test(src),
      "RiskRegister takes ONE project — projects/selId/onSelect are gone from its signature");
@@ -4497,7 +4497,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const fsp = await import("node:fs/promises");
   const data = await fsp.readFile("lib/innovation-data.ts", "utf8");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const lex = await fsp.readFile("lib/lexicon-data.ts", "utf8");
   const M = await import("../lib/innovation-data.ts");
 
@@ -4587,7 +4587,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // to 30.9px, 90 ch and beyond wrap at the 19.2px floor.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const shot = await fsp.readFile("scripts/slide-shots.mjs", "utf8");
   const M = await import("../lib/innovation-data.ts");
   const S = 2.05, B = M.HEADER_NAME_BUDGET, F = M.HEADER_NAME_FLOOR;
@@ -4640,7 +4640,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // a 1600x900 page, i.e. it asserted the very assumption that was broken.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const gate = await fsp.readFile("scripts/pdf-gate.mjs", "utf8");
 
   // the @page rule
@@ -4686,7 +4686,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // progressively more fields surfaced — NOT three parallel tables that could drift.
 {
   const fsp = await import("node:fs/promises");
-  const src = await fsp.readFile("app/innovation/page.tsx", "utf8");
+  const src = await fsp.readFile("app/SoI-2525/page.tsx", "utf8");
   const M = await import("../lib/innovation-data.ts");
 
   ok(M.STORY_COLS.join(" | ") === "User Stories | POC | Alpha | MVP1 | MVP2 | MVP3 | CRS # | Customer Needs",
@@ -4793,7 +4793,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
 // ── Krishna #5 · the Risk Register cannot mount twice ────────────────────────────────────
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   ok(/\$\{detailMax \? "hidden" : detailOpen \? "block" : "hidden"\}/.test(src),
      "the inline detail rail UNMOUNTS while the maximize overlay is open — landscape kept both alive, giving two live RiskRegister forms in one aria-modal dialog");
   ok(/\$\{detailMax \? "" : "landscape:block"\}/.test(src), "landscape:block no longer forces the rail back on underneath the overlay");
@@ -4809,7 +4809,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // stop a future edit from (a) dropping the control, (b) forking a Gate-local scope state that drifts away from
 // the portfolio and the financial review, or (c) feeding the <select> the unscoped list again.
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const gs = src.indexOf("function GateRequirementsView(");
   const ge = src.indexOf("\nfunction ", gs + 10);
   ok(gs > 0 && ge > gs, "GateRequirementsView is still a top-level component we can isolate");
@@ -4905,7 +4905,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // screenshot and are very different in a screen reader.
 {
   const fspW2 = await import("node:fs/promises");
-  const srcW2 = await fspW2.readFile("app/innovation/page.tsx", "utf8");
+  const srcW2 = await fspW2.readFile("app/SoI-2525/page.tsx", "utf8");
   // ⚠ PROBE ERROR, RECORDED (the seventh in this workstream). The first draft asserted over the RAW block and
   // went red twice — on my own explanatory comment, which quotes `sm:grid-cols-2` and `grid-flow-col` to say
   // what changed and why. A negative assertion ("the row-major fill is gone") cannot be run against text that
@@ -4949,7 +4949,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // the DECLARATION (colgroup + table-fixed), never about the two tables looking similar.
 {
   const fspW3 = await import("node:fs/promises");
-  const srcW3 = await fspW3.readFile("app/innovation/page.tsx", "utf8");
+  const srcW3 = await fspW3.readFile("app/SoI-2525/page.tsx", "utf8");
   // COMMENTS STRIPPED FIRST — the W-2 lesson, applied here on the first run rather than after a red gate.
   // Three of the comments below quote `sm:whitespace-nowrap` to explain why it was removed, and a negative
   // assertion cannot be run against prose about the thing it forbids.
@@ -5111,7 +5111,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // Asserted as ORDER OF FIRST APPEARANCE in the rendered tree, so re-adding a panel above it fails.
 {
   const fspW6 = await import("node:fs/promises");
-  const srcW6 = await fspW6.readFile("app/innovation/page.tsx", "utf8");
+  const srcW6 = await fspW6.readFile("app/SoI-2525/page.tsx", "utf8");
   const dash = srcW6.slice(srcW6.indexOf('<DashCard title="Allocation & upside'));
   const at = (needle) => dash.indexOf(needle);
   const alloc = at('<DashCard title="Allocation & upside');
@@ -5131,7 +5131,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // ── W-12 · THE RACK HEADER FREEZES · H5 · THE FOOTER REACHES BOTH EDGES ─────────────────
 {
   const fspW12 = await import("node:fs/promises");
-  const srcW12 = await fspW12.readFile("app/innovation/page.tsx", "utf8");
+  const srcW12 = await fspW12.readFile("app/SoI-2525/page.tsx", "utf8");
   const prov = await fspW12.readFile("../frontend/components/providers.tsx", "utf8").catch(() =>
     fspW12.readFile("components/providers.tsx", "utf8"));
 
@@ -5155,7 +5155,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   const foot = prov.slice(prov.indexOf("function SiteFooter"), prov.indexOf("</footer>"))
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
   ok(!/max-w-5xl/.test(foot), "the footer row no longer caps itself at 1024px — that cap WAS the defect");
-  ok(/flex w-full items-center justify-between/.test(foot), "the row spans the viewport and still distributes its three items");
+  ok(/flex w-full (?:flex-wrap )?items-center justify-between/.test(foot), "the row spans the viewport and still distributes its three items (flex-wrap is load-bearing for the docked feedback panel)");
   ok(/<FeedbackWidget[\s\S]*SECURITY-2525[\s\S]*<PoweredBadge/.test(foot),
      "order is unchanged: Feedback left · SECURITY-2525 centre · eXeL AI right");
 }
@@ -5171,7 +5171,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const A = await import("../lib/innovation-data.ts");
   const fspW8 = await import("node:fs/promises");
-  const srcW8 = await fspW8.readFile("app/innovation/page.tsx", "utf8");
+  const srcW8 = await fspW8.readFile("app/SoI-2525/page.tsx", "utf8");
 
   // (a) THE EXCLUSIVITY, ON REAL DATA, EVERY NODE. This is the assertion that turns the operator's rule
   //     from an opinion into a property of the model.
@@ -5288,7 +5288,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fspW13 = await import("node:fs/promises");
-  const srcW13 = await fspW13.readFile("app/innovation/page.tsx", "utf8");
+  const srcW13 = await fspW13.readFile("app/SoI-2525/page.tsx", "utf8");
   // REUSE, NOT A NEAR-DUPLICATE ARRAY. The operator's own fallback clause points at the existing ladder,
   // and forking a second one would leave two rung lists free to drift.
   ok(F.BIZ_CONF_LADDER === F.CONF_LADDER, "Business Confidence reuses CONF_LADDER — one rung list, not two");
@@ -5316,7 +5316,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // Prop numbers." Their screenshot showed `VALUE CAPTURE % 3` after typing 33 — a DROPPED KEYSTROKE.
 {
   const fspW14 = await import("node:fs/promises");
-  const srcW14 = await fspW14.readFile("app/innovation/page.tsx", "utf8");
+  const srcW14 = await fspW14.readFile("app/SoI-2525/page.tsx", "utf8");
   const codeW14 = srcW14.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");   // the W-2 lesson
 
   // (a) THE UPDATER IS PURE. This is the defect itself: `writeFieldBags` JSON-serialises the whole portfolio
@@ -5344,7 +5344,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 {
   const F = await import("../lib/innovation-data.ts");
   const fspW7 = await import("node:fs/promises");
-  const srcW7 = await fspW7.readFile("app/innovation/page.tsx", "utf8");
+  const srcW7 = await fspW7.readFile("app/SoI-2525/page.tsx", "utf8");
   const codeW7 = srcW7.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");   // the W-2 lesson
 
   // (a) THE RENAME, and the old caption gone. Operator: "rename to: 'Price Performance: Competition'".
@@ -5396,7 +5396,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // ── W-7b · THE SAVE ICON IS A DISK, REPO-WIDE. "Never use a pin." ────────────────────────────────────
 {
   const fspSave = await import("node:fs/promises");
-  const pageSave = await fspSave.readFile("app/innovation/page.tsx", "utf8");
+  const pageSave = await fspSave.readFile("app/SoI-2525/page.tsx", "utf8");
   const code = pageSave.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   // The pin is banned by NAME, because that is the thing the operator called out. `MarkPin` was the glyph
   // on "Save version"; it is now the lucide disk that Architect-2525 already uses.
@@ -5414,7 +5414,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // `15 funded` as a whisper, so the headline was the number nobody acts on.
 {
   const fspW15 = await import("node:fs/promises");
-  const srcW15 = await fspW15.readFile("app/innovation/page.tsx", "utf8");
+  const srcW15 = await fspW15.readFile("app/SoI-2525/page.tsx", "utf8");
   const code = srcW15.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   ok(/label: "Projects", value: `\$\{funded\.length\} \/ \$\{projects\.length\}`/.test(code),
      "the Projects tile leads with funded / submitted, not the raw count");
@@ -5455,7 +5455,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 
   // ONE PRODUCER — the picker must not format its own label.
   const fspW17 = await import("node:fs/promises");
-  const codeW17 = (await fspW17.readFile("app/innovation/page.tsx", "utf8"))
+  const codeW17 = (await fspW17.readFile("app/SoI-2525/page.tsx", "utf8"))
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   ok(/scopedProjectLabel\(p, hierFilter\)/.test(codeW17), "the gate picker routes its label through the one producer");
 }
@@ -5466,7 +5466,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // same slide, in a COLLAPSED panel.
 {
   const fspW18 = await import("node:fs/promises");
-  const codeW18 = (await fspW18.readFile("app/innovation/page.tsx", "utf8"))
+  const codeW18 = (await fspW18.readFile("app/SoI-2525/page.tsx", "utf8"))
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   ok(/onClick=\{\(\) => \{ setSrcOpen\(true\);/.test(codeW18),
      "on the owning slide the ✎ badge OPENS the source panel — it is a control, not a caption");
@@ -5529,7 +5529,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // ── W-19 + W-20 · THE STACKED GOLDEN PRICE BAR, AND THE 3D BEVEL ─────────────────────────────────────
 {
   const fspW19 = await import("node:fs/promises");
-  const raw = await fspW19.readFile("app/innovation/page.tsx", "utf8");
+  const raw = await fspW19.readFile("app/SoI-2525/page.tsx", "utf8");
   const vp = raw.slice(raw.indexOf("function ValueProp("), raw.indexOf("function ProjectRevChart"))
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
@@ -5563,7 +5563,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // the minus was contradicting the word printed directly beneath it.
 {
   const fspW21 = await import("node:fs/promises");
-  const raw21 = await fspW21.readFile("app/innovation/page.tsx", "utf8");
+  const raw21 = await fspW21.readFile("app/SoI-2525/page.tsx", "utf8");
   const vp21 = raw21.slice(raw21.indexOf("function ValueProp("), raw21.indexOf("function ProjectRevChart"))
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   ok(/const barLabel = \(b: Bar\) => \(b\.kind === "give" \?/.test(vp21),
@@ -5611,7 +5611,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // outcome the number has not earned. Locked as ORDER + NAME + TONE, because all three were the ask.
 {
   const fspX9 = await import("node:fs/promises");
-  const srcX9 = await fspX9.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+  const srcX9 = await fspX9.readFile(new URL("../app/SoI-2525/page.tsx", import.meta.url), "utf8");
   const at = srcX9.indexOf("Funded incremental ·");
   ok(at > 0, "the funded-incremental risk table is still a locatable surface");
   const head = srcX9.slice(at, srcX9.indexOf("</thead>", at));
@@ -5639,7 +5639,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // nothing the moment ONE ancestor sizes to content. Measured cost of the last break: S8 clipped 258px.
 {
   const fspX1d = await import("node:fs/promises");
-  const srcX1d = await fspX1d.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+  const srcX1d = await fspX1d.readFile(new URL("../app/SoI-2525/page.tsx", import.meta.url), "utf8");
 
   // link 1+2 · the panel body gives the chart the whole box. X-2 removed the three capture figures from the
   // slide, so the value panel has ONE child and `content-stretch` hands it every pixel — which is what the
@@ -5673,7 +5673,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // FLIR twelve the lib already documents, and removing them deleted a LIVE BUG rather than relabelling one.
 {
   const fspX4 = await import("node:fs/promises");
-  const srcX4 = await fspX4.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+  const srcX4 = await fspX4.readFile(new URL("../app/SoI-2525/page.tsx", import.meta.url), "utf8");
   const at4 = srcX4.indexOf("const metrics: [string, string][] = [");
   ok(at4 > 0, "the project-metrics tile list is a locatable surface");
   const list = srcX4.slice(at4, srcX4.indexOf("];", at4));
@@ -5696,7 +5696,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // ── X-1c · THREE BANDS · X-5a · CAPTURE % IS AN INPUT ───────────────────────────────────────────────
 {
   const fspX5 = await import("node:fs/promises");
-  const srcX5 = await fspX5.readFile(new URL("../app/innovation/page.tsx", import.meta.url), "utf8");
+  const srcX5 = await fspX5.readFile(new URL("../app/SoI-2525/page.tsx", import.meta.url), "utf8");
   const libX5 = await fspX5.readFile(new URL("../lib/innovation-data.ts", import.meta.url), "utf8");
 
   // X-1c — the marker wrapper must NOT translate the dot+label STACK; that is what put the dot above the
@@ -5816,7 +5816,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // schedule … ensure input slide feeds present mode" + "calendar is key items needed for current year
 // + next 2 years". Every one of those is asserted here; the 33-project shape is gated in slide-shots.
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const s1 = src.slice(src.indexOf("      S1: () => ("), src.indexOf("      // S2 — Project Overview"));
   const panels = [...s1.matchAll(/<AmtsPanel ((?:\w+ )*)title="([^"]+)"/g)].map((m) => `${m[1]}${m[2]}`);
   // ⚠ Z-2 · PANEL ORDER IS THE LAYOUT, WHICH IS WHY IT IS PINNED CHARACTER-FOR-CHARACTER. Grid
@@ -6086,7 +6086,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   }
   ok(wrong.length === 0, `every linked field resolves the shape its kind promises (${wrong.join(" · ")})`);
   // And the renderer honours the same contract — a list is bulleted, never mapped as one-column rows.
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const lf = src.slice(src.indexOf("function LinkedField("), src.indexOf("function AttachEditor("));
   ok(lf.indexOf('f.kind === "list"') > -1 && lf.indexOf('f.kind === "list"') < lf.indexOf("const rows = v as string[][]"),
      "LinkedField branches on `list` BEFORE it assumes string[][] — the white-screen guard");
@@ -6096,7 +6096,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // Operator: "on table bottom with timelines, we should see current year, 2027, and 2028 (vertical lines
 // will mark year)" + "ensure zoom works on all slides; seems a little finicky on S1".
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const F = await import("../lib/innovation-data.ts");
 
   // 1 · THE AXIS IS THE HORIZON, NOT THE DATA. Deriving the columns from the rows present would delete a
@@ -6150,7 +6150,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // OUTLINES it by initiative; this tag had a uniformly dark body, so category was reduced to a dot and
 // every project read the same from across a room.
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const F = await import("../lib/innovation-data.ts");
 
   // 1 · ONE PALETTE, AND IT ALREADY MATCHED THE OPERATOR'S LEGEND — nothing new was invented.
@@ -6343,11 +6343,13 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
   // 2 · THE 웃 IS TIME-DENOMINATED. The number stays 7.25; what changes is that nothing calls it dollars.
   ok(/soi\.coin\.HI\.baseline/.test(lex), "a baseline key states where 7.25 came from");
   const baseline = (lex.match(/key: "soi\.coin\.HI\.baseline", englishDefault: "([^"]+)"/) || [])[1] || "";
-  ok(/7\.25/.test(baseline) && /웃/.test(baseline), "…keeping the number and the 웃 glyph");
-  ok(/Texas/i.test(baseline) && /minimum.wage/i.test(baseline),
-     "…naming the minimum-wage floor it was seeded from (the operator asked for the provenance)");
-  ok(/TIME/.test(baseline) && /no currency|pegged to no currency/i.test(baseline),
-     "…and saying plainly that it is denominated in TIME and pegged to no currency");
+  // The White Paper denomination superseded the "7.25 / Texas" seed: 1 웃 (base) = one hour at 1× the LOCAL
+  // minimum wage, earned 웃 = M × hours. The lock follows the operator's later decision, not the first draft.
+  ok(/1 웃/.test(baseline) && /웃/.test(baseline), "…keeping the unit and the 웃 glyph");
+  ok(/minimum.wage/i.test(baseline) && /hour/i.test(baseline),
+     "…naming the minimum-wage hour it is a multiple of (the operator asked for the provenance)");
+  ok(/Multiple × Time|M × hours/.test(baseline) && /currency-free|no currency|pegged to no currency/i.test(baseline),
+     "…and saying plainly that it is denominated in TIME and currency-free at minting");
   ok(!/\$/.test(baseline), "…with no dollar sign anywhere in it");
   ok(/data-hi-baseline/.test(soiSec) && /c\.key === "HI"/.test(soiSec),
      "the HI coin card renders that baseline, and only the HI card");
@@ -6374,7 +6376,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // marker on 33 of 33 projects. `slide-shots` now reads every `[data-wtp-label]` rect and fails on real
 // overlap; these assertions guard only the hook and the geometry that measurement proved necessary.
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const shots = await (await import("node:fs/promises")).readFile("scripts/slide-shots.mjs", "utf8");
   ok((src.match(/<div data-wtp-label/g) || []).length === 2,
      "both marker labels — the competitors' and ours — carry the collision gate's hook");
@@ -6405,7 +6407,7 @@ import { revPlanQuarters, revPlanFullM, profileWeights, perMinFinancials, revPla
 // painted yet. So the words go, and all three remaining cues are locked here so a later colour pass
 // cannot quietly take the last of them.
 {
-  const src = await (await import("node:fs/promises")).readFile("app/innovation/page.tsx", "utf8");
+  const src = await (await import("node:fs/promises")).readFile("app/SoI-2525/page.tsx", "utf8");
   const F = await import("../lib/innovation-data.ts");
 
   // 1 · THE WORDS ARE STRUCK — literally those two, and nothing else was rewritten in passing.

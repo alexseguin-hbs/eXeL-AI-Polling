@@ -33,8 +33,8 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
     | grep -v "Cannot find module\|Cannot find namespace\|JSX element\|implicitly has\|is of type 'unknown'\|TS2591\|TS2503" || true)
   [ -z "$ERRS" ] || { echo "$ERRS"; fail "new TypeScript errors — not shipping"; }
 
-  step "npm run test:innovation-time"
-  npm run --silent test:innovation-time || fail "tests red — not shipping"
+  step "npm run test:ci (every gated suite — Sign Doc, pod, lexicon, guards — not one deck test)"
+  npm run --silent test:ci || fail "tests red — not shipping"
 fi
 
 step "npm run build"

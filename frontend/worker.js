@@ -58,6 +58,7 @@ export default {
       catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
     }
     if (url.pathname === "/api/notify" || url.pathname === "/api/notify/") {
+      if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
       try { return await handleNotify(request, env); }
       catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
     }

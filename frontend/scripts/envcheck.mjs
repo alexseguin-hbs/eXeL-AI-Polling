@@ -28,6 +28,13 @@ const missing = (list) => list.filter((k) => !(process.env[k] ?? "").trim());
 const missOpt = missing(OPTIONAL);
 if (missOpt.length) console.warn(`⚠ optional build vars not set (feature degrades, deploy continues): ${missOpt.join(", ")}`);
 
+// Test scaffolding must never ship: NEXT_PUBLIC_SIGN_NO_AUTH=1 turns the Sign Doc creator login OFF for local
+// Playwright runs only. A deploy built with it would let anyone sign as the creator without Auth0.
+if ((process.env.NEXT_PUBLIC_SIGN_NO_AUTH ?? "").trim() === "1") {
+  console.error("✗ envcheck: NEXT_PUBLIC_SIGN_NO_AUTH=1 is local test scaffolding — refusing to build a deploy with the Sign Doc login off");
+  process.exit(warnOnly ? 0 : 1);
+}
+
 const missReq = missing(REQUIRED);
 if (!missReq.length) {
   // Never print values — presence only.
