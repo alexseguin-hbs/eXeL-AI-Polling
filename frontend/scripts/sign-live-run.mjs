@@ -127,7 +127,7 @@ const placeAndSign = async (p, who) => {
     await p.getByTestId('ai-find').click(); await p.getByTestId('sig-box').waitFor({ timeout: 15000 });
     const ab = await p.getByTestId('sig-box').boundingBox(); const apb = await page.boundingBox(); const ax0 = (ab.x - apb.x) / apb.width, aBottom = (ab.y + ab.height - apb.y) / apb.height;
     step(who, 'AI: find my line → the box lands on the lender\'s rule (provider answered through /api/ai)', (await p.getByTestId('sig-box').getAttribute('data-fit')) === 'ai' && Math.abs(ax0 - rule.x0) < 0.02 && Math.abs(aBottom - rule.y) < 0.012 && /AI placed it/.test(await p.locator('[data-testid="marks-toolbar"] + p').innerText()), `x=${ax0.toFixed(3)} bottom=${aBottom.toFixed(3)} rule=${rule.x0.toFixed(3)}/${rule.y.toFixed(3)}`);
-    await p.getByTestId('delete-badge').click(); await p.waitForTimeout(200);
+    await p.getByTestId('remove-mark').click(); await p.waitForTimeout(200);
   }
   const bb2 = await page.boundingBox();                       // the page scrolls when the toolbar shrinks — never reuse a stale box
   await p.mouse.click(bb2.x + bb2.width * (rule.x0 + rule.x1) / 2, bb2.y + bb2.height * (rule.y - 0.012));   // the thumb lands just above the rule
@@ -150,9 +150,9 @@ const placeAndSign = async (p, who) => {
   step(who, 'upper-right drag grows the box up and right; the BASELINE (bottom edge) stays where it was', after.width > before.width + 6 && after.height > before.height + 2 && Math.abs((after.y + after.height) - (before.y + before.height)) < 2, `${Math.round(before.width)}×${Math.round(before.height)} → ${Math.round(after.width)}×${Math.round(after.height)} px, bottom ${Math.round(before.y + before.height)}→${Math.round(after.y + after.height)}`);
   // an accidental mark goes with one tap on the ✕ badge on the box itself (operator 00:40) — then the date is added for real
   await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor();
-  await p.getByTestId('delete-badge').click(); step(who, 'an accidental date is deleted by the ✕ badge on the box', (await p.getByTestId('text-box').count()) === 0 && (await p.getByTestId('sig-box').count()) === 1);
+  await p.getByTestId('remove-mark').click(); step(who, 'an accidental date is deleted by the red Delete under the page (nothing sits on the box)', (await p.getByTestId('text-box').count()) === 0 && (await p.getByTestId('sig-box').count()) === 1 && (await p.getByTestId('delete-badge').count()) === 0);
   await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor(); step(who, 'date mark added beside the signature', /\d{4}/.test(await p.getByTestId('mark-text').inputValue()));
-  step(who, 'the toolbar delete is labelled', /Delete/.test(await p.getByTestId('remove-mark').innerText()));
+  step(who, 'the toolbar delete names what it deletes', /Delete · date/.test(await p.getByTestId('remove-mark').innerText()));
   const tb = await p.getByTestId('text-box').boundingBox(), sbb = await p.getByTestId('sig-box').boundingBox();
   step(who, 'the date SNAPS to the document\'s own "Date:" line under the signature (fitted, below the box, one text line tall)', (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline' && tb.y > sbb.y + sbb.height - 2 && tb.height < sbb.height, `date box ${Math.round(tb.width)}×${Math.round(tb.height)} px at +${Math.round(tb.y - (sbb.y + sbb.height))} px under the signature box`);
   await p.getByTestId('to-draw').click();

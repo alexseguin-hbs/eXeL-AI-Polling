@@ -482,11 +482,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
             <button type="button" onClick={() => addText(todayText())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-date">+ {t("soi.sign.add_date")}</button>
             <button type="button" onClick={() => addText(t("soi.sign.text_default"))} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-text">+ {t("soi.sign.add_text")}</button>
             {selMark && <>
+              <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md bg-red-500 px-3 text-xs font-medium text-white" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")} · {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</button>
               <span className="rounded-full border border-cyan-400/60 px-2 py-1 text-[11px] text-cyan-300" data-testid="sizing-chip">{t("soi.sign.sizing")} {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</span>
               <button type="button" onClick={() => resizeSel(0.85)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.smaller")}>−</button>
               <button type="button" onClick={() => resizeSel(1.18)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.larger")}>+</button>
               {selMark.kind === "text" && <input value={selMark.text ?? ""} onChange={(e) => setSelText(e.target.value)} placeholder={t("soi.sign.text_ph")} className="min-h-[44px] min-w-[140px] flex-1 rounded-md border border-border bg-background px-2 text-sm" data-testid="mark-text" />}
-              <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-red-500/60 px-3 text-xs text-red-500" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")}</button>
+
             </>}
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">{sigOf(fileIdx)?.fit === "underline" ? t("soi.sign.fit.underline") : sigOf(fileIdx)?.fit === "ai" ? t("soi.sign.ai.placed") : t("soi.sign.marks_hint")}</p>

@@ -330,3 +330,7 @@ Settings and Vision 2525) sits top-right of every Session page — landing, Sign
 proof switches to Español and reads "Añade el o los PDF a firmar." Every download is an icon: the drawn arrow-to-line
 glyph the Vision 2525 living document uses, a 44-px round button, the file name in the aria-label (no word). Two-phone
 57/57 · offline 17/17 · scan 8/8 · pod 45/45.
+
+**02:00 ask, applied:** nothing sits on a selected box any more (the red ✕ badge hid the text under it). The delete
+control is the first item of the toolbar right under the page whenever a box is selected: a red, filled "✕ Delete ·
+date / text / signature". Two-phone 57/57.
