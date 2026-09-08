@@ -1,58 +1,58 @@
-  5136ms  alex  OK  landing → Sign Doc
-  5214ms  alex  OK  diag: 036 RPC answers · pdf worker loaded · login not required · build named  {"rpc":"answers — migration 036 is applied","worker":"loaded","auth":"not required on this build","build":"94e63b5","todo":"Everything this page depends on answers. Upload, place, draw, then Sign & save."}
-  5372ms  alex  OK  PDF uploaded, hashed, page-counted
-  5532ms  alex  OK  two signers named (explore@eXeL-AI.com · 512.808.8745)
-  6527ms  alex  OK  PDF page rendered (pdfjs)
-  6591ms  alex  OK  misplaced signature removed
-  6624ms  alex  OK  swipe left turns the page (Divinity Guide gesture, reused)  Page 2 / 2
-  7141ms  alex  OK  signature block found: two rules on one row (lender | borrower)  page 2 y=0.557 x=[0.12–0.45] | [0.50–0.83]
-  7164ms  alex  OK  signature box placed by tap
-  7181ms  alex  OK  box FITS the signature line: rule width, bottom on the rule, no taller than the text above  fit=underline x=[0.120–0.451] bottom=0.556 rule=[0.117–0.450] y=0.557 h=0.035
-  7186ms  alex  OK  the hint says the box was sized to the line
-  7248ms  alex  OK  toolbar names the selected box
-  7366ms  alex  OK  a swipe over the page places nothing
-  7479ms  alex  OK  corner drag widens the fitted box; its bottom stays ON the rule (height unchanged)  103→112 px wide, 14→14 px tall
-  7547ms  alex  OK  date mark added beside the signature
-  7564ms  alex  OK  the date SNAPS to the document's own "Date:" line under the signature (fitted, below the box, one text line tall)  date box 56×7 px at +8 px under the signature box
-  9200ms  alex  OK  signature SCRIBBLED with the pointer — ink on the pad, spanning it  ink 3.6 % of the pad, span 74 %
-  9528ms  alex  OK  the scribble previews inside the box, on the signature line
- 12142ms  alex  OK  reload mid-flow → draft restored (files, signers, boxes, stroke) at the draw step
- 12278ms  alex  OK  Sign & save pressed
- 12346ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=x_mzj193Ey5YP6LCcl…
- 12395ms  alex  OK  creator keeps his own return link
- 12399ms  alex  OK  phone path: sms: composer prefilled to 512.808.8745 with the default script + the link  sms:5128088745?&body=Alex%20Seguin%20asks%20you%20to%20sign%20%22Promi…
- 12401ms  alex  OK  e-mail path (phone contact): mailto: composer carries the same script + link  mailto:?subject=Please%20sign%3A%20Promissory%20Note&body=Al…
- 12403ms  alex  OK  contacts masked on the roster (ex***@… · ***8745)  1. Alex Seguin ex***@exel-ai.comyou ✓ signed 2. Daniel Vail ***8745 their turn now
- 14127ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
- 16439ms  dan   OK  opened the hand-off link, no login
- 16442ms  dan   OK  roster: Alex signed, Daniel now
- 16515ms  dan   OK  PDF page rendered (pdfjs)
- 16591ms  dan   OK  misplaced signature removed
- 17253ms  dan   OK  the borrower's rule found on the lender's row, right column (the page already carries Alex's ink)  page 2 y=0.557 x=[0.50–0.83]
- 17278ms  dan   OK  signature box placed by tap
- 17293ms  dan   OK  box FITS the signature line: rule width, bottom on the rule, no taller than the text above  fit=underline x=[0.500–0.832] bottom=0.556 rule=[0.500–0.832] y=0.557 h=0.035
- 17296ms  dan   OK  the hint says the box was sized to the line
- 17381ms  dan   OK  toolbar names the selected box
- 17496ms  dan   OK  a swipe over the page places nothing
- 17607ms  dan   OK  corner drag widens the fitted box; its bottom stays ON the rule (height unchanged)  103→111 px wide, 14→14 px tall
- 17677ms  dan   OK  date mark added beside the signature
- 17692ms  dan   OK  the date SNAPS to the document's own "Date:" line under the signature (fitted, below the box, one text line tall)  date box 56×7 px at +8 px under the signature box
- 17789ms  dan   OK  signature UPLOADED as a PNG image (the second way to sign) — preview shown on the pad
- 18097ms  dan   OK  the scribble previews inside the box, on the signature line
- 18382ms  dan   OK  Sign & save pressed
- 18425ms  dan   OK  COMPLETE — every signer has signed
- 18536ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
- 18543ms  dan   OK  each stamp sits on ITS signature line (left edge + bottom on the rule), widened, distinct  [[2,0.12,0.52,0.36],[2,0.5,0.52,0.36]]
- 18549ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
- 23035ms  dan   OK  signed page rendered to PNG (whole page · signature rows · signatory block)
- 23047ms  dan   OK  signatory block: two CAC-style timestamp rows, bottom-right of the last page  [[0,"2026-09-08T00:05:35.040Z","91d05b18"],[1,"2026-09-08T00:05:41.103Z","9ad461c1"]]
- 23093ms  dan   OK  verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)  Consistent — every signature has its box, its pass and its timestamp row; the chain holds. 1 · Recorded signed-sample.pd
- 23388ms  dan   OK  digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text  Alex ×1 · Daniel ×1
- 23401ms  dan   OK  Light Codex from the PDF: row strips decode to ALEX SEGUIN / DANIEL VAIL + UTC time, reverse-verified  {"SoICodexAll":"ALEX SEGUIN 20260908000535 . DANIEL VAIL 20260908000541","SoICodexRow0":"ALEX SEGUIN 20260908000535","SoICodexRow1":"DANIEL VAIL 20260908000541"}
- 23402ms  dan   OK  Light Codex ALL strip carries every signatory in one line  ALEX SEGUIN 20260908000535 . DANIEL VAIL 20260908000541
- 23406ms  dan   OK  the 2×2 Light Codex block is on EVERY signed page, not just the last (operator 23:25)  pages 1,2 · 6 strips
- 24929ms  dan   OK  page 1 signatory block rendered to PNG
- 25003ms  dan   OK  initials AS · DV at the bottom-right of EVERY page  2/2 pages
- 25032ms  dan   OK  verify-a-signed-file: the unsigned fixture reads "no signatures"
- 29316ms  dan   OK  Light Codex page: uploading the signed PDF lists ALL signatories + one strip per signatory  All signatories · p.1, 2 · Single Helix · 2×2 ALEX SEGUIN 20260908000535 . DANIEL VAIL 20260908000541
- 29810ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
+  4791ms  alex  OK  landing → Sign Doc
+  4867ms  alex  OK  diag: 036 RPC answers · pdf worker loaded · login not required · build named  {"rpc":"answers — migration 036 is applied","worker":"loaded","auth":"not required on this build","build":"94e63b5","todo":"Everything this page depends on answers. Upload, place, draw, then Sign & save."}
+  5035ms  alex  OK  PDF uploaded, hashed, page-counted
+  5201ms  alex  OK  two signers named (explore@eXeL-AI.com · 512.808.8745)
+  6211ms  alex  OK  PDF page rendered (pdfjs)
+  6292ms  alex  OK  misplaced signature removed
+  6328ms  alex  OK  swipe left turns the page (Divinity Guide gesture, reused)  Page 2 / 2
+  6847ms  alex  OK  signature block found: two rules on one row (lender | borrower)  page 2 y=0.557 x=[0.12–0.45] | [0.50–0.83]
+  6873ms  alex  OK  signature box placed by tap
+  6892ms  alex  OK  box FITS the signature line: rule width, bottom on the rule, no taller than the text above  fit=underline x=[0.120–0.451] bottom=0.556 rule=[0.117–0.450] y=0.557 h=0.035
+  6896ms  alex  OK  the hint says the box was sized to the line
+  6962ms  alex  OK  toolbar names the selected box
+  7095ms  alex  OK  a swipe over the page places nothing
+  7204ms  alex  OK  corner drag widens the fitted box; its bottom stays ON the rule (height unchanged)  103→112 px wide, 14→14 px tall
+  7283ms  alex  OK  date mark added beside the signature
+  7301ms  alex  OK  the date SNAPS to the document's own "Date:" line under the signature (fitted, below the box, one text line tall)  date box 56×7 px at +8 px under the signature box
+  9158ms  alex  OK  signature SCRIBBLED with the pointer — ink on the pad, spanning it  ink 3.6 % of the pad, span 74 %
+  9466ms  alex  OK  the scribble previews inside the box, on the signature line
+ 11947ms  alex  OK  reload mid-flow → draft restored (files, signers, boxes, stroke) at the draw step
+ 12090ms  alex  OK  Sign & save pressed
+ 12184ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=sxxlw9gfS_e2_TEzqK…
+ 12224ms  alex  OK  creator keeps his own return link
+ 12228ms  alex  OK  phone path: sms: composer prefilled to 512.808.8745 with the default script + the link  sms:5128088745?&body=Alex%20Seguin%20asks%20you%20to%20sign%20%22Promi…
+ 12230ms  alex  OK  e-mail path (phone contact): mailto: composer carries the same script + link  mailto:?subject=Please%20sign%3A%20Promissory%20Note&body=Al…
+ 12232ms  alex  OK  contacts masked on the roster (ex***@… · ***8745)  1. Alex Seguin ex***@exel-ai.comyou ✓ signed 2. Daniel Vail ***8745 their turn now
+ 13887ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+ 16334ms  dan   OK  opened the hand-off link, no login
+ 16337ms  dan   OK  roster: Alex signed, Daniel now
+ 16412ms  dan   OK  PDF page rendered (pdfjs)
+ 16488ms  dan   OK  misplaced signature removed
+ 17149ms  dan   OK  the borrower's rule found on the lender's row, right column (the page already carries Alex's ink)  page 2 y=0.557 x=[0.50–0.83]
+ 17174ms  dan   OK  signature box placed by tap
+ 17189ms  dan   OK  box FITS the signature line: rule width, bottom on the rule, no taller than the text above  fit=underline x=[0.500–0.832] bottom=0.556 rule=[0.500–0.832] y=0.557 h=0.035
+ 17192ms  dan   OK  the hint says the box was sized to the line
+ 17270ms  dan   OK  toolbar names the selected box
+ 17377ms  dan   OK  a swipe over the page places nothing
+ 17488ms  dan   OK  corner drag widens the fitted box; its bottom stays ON the rule (height unchanged)  103→111 px wide, 14→14 px tall
+ 17564ms  dan   OK  date mark added beside the signature
+ 17580ms  dan   OK  the date SNAPS to the document's own "Date:" line under the signature (fitted, below the box, one text line tall)  date box 56×7 px at +8 px under the signature box
+ 17654ms  dan   OK  signature UPLOADED as a PNG image (the second way to sign) — preview shown on the pad
+ 18004ms  dan   OK  the scribble previews inside the box, on the signature line
+ 18278ms  dan   OK  Sign & save pressed
+ 18318ms  dan   OK  COMPLETE — every signer has signed
+ 18441ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+ 18446ms  dan   OK  each stamp sits on ITS signature line (left edge + bottom on the rule), widened, distinct  [[2,0.12,0.52,0.36],[2,0.5,0.52,0.36]]
+ 18452ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
+ 22948ms  dan   OK  signed page rendered to PNG (whole page · signature rows · signatory block)
+ 22957ms  dan   OK  signatory block: two CAC-style timestamp rows, bottom-right of the last page  [[0,"2026-09-08T00:08:40.899Z","91d05b18"],[1,"2026-09-08T00:08:47.063Z","b2d3e0bc"]]
+ 22996ms  dan   OK  verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)  Consistent — every signature has its box, its pass and its timestamp row; the chain holds. 1 · Recorded signed-sample.pd
+ 23221ms  dan   OK  digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text  Alex ×1 · Daniel ×1
+ 23235ms  dan   OK  Light Codex from the PDF: row strips decode to ALEX SEGUIN / DANIEL VAIL + UTC time, reverse-verified  {"SoICodexAll":"ALEX SEGUIN 20260908000840 . DANIEL VAIL 20260908000847","SoICodexRow0":"ALEX SEGUIN 20260908000840","SoICodexRow1":"DANIEL VAIL 20260908000847"}
+ 23235ms  dan   OK  Light Codex ALL strip carries every signatory in one line  ALEX SEGUIN 20260908000840 . DANIEL VAIL 20260908000847
+ 23239ms  dan   OK  the 2×2 Light Codex block is on EVERY signed page, not just the last (operator 23:25)  pages 1,2 · 6 strips
+ 24714ms  dan   OK  page 1 signatory block rendered to PNG
+ 24788ms  dan   OK  initials AS · DV at the bottom-right of EVERY page  2/2 pages
+ 24844ms  dan   OK  verify-a-signed-file: the unsigned fixture reads "no signatures"
+ 28216ms  dan   OK  Light Codex page: uploading the signed PDF lists ALL signatories + one strip per signatory  All signatories · p.1, 2 · Single Helix · 2×2 ALEX SEGUIN 20260908000840 . DANIEL VAIL 20260908000847
+ 28715ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered

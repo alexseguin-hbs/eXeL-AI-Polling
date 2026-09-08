@@ -202,8 +202,10 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PD
   // block and the strip, in signing order, redrawn each pass; also a keyword so a file can be read back
   const inits = [...e.rows].sort((a, b) => a.rowIndex - b.rowIndex).map((r) => initialsOf(r.name)).filter(Boolean);
   if (inits.length) {
-    const line = inits.join("   "); const size = 8.5;
-    page.drawText(line, { x: width - 18 - bold.widthOfTextAtSize(line, size), y: 8.5, size, font: bold, color: rgb(0.06, 0.06, 0.08) });
+    const line = inits.join("   "); const size = 8.5, tw = bold.widthOfTextAtSize(line, size);
+    // each pass redraws the whole line, so the earlier pass's initials are cleared first (the render caught "AS" under "AS DV")
+    page.drawRectangle({ x: width - 18 - Math.max(tw, 160) - 2, y: 6.5, width: Math.max(tw, 160) + 4, height: 11, color: rgb(1, 1, 1), opacity: 1 });
+    page.drawText(line, { x: width - 18 - tw, y: 8.5, size, font: bold, color: rgb(0.06, 0.06, 0.08) });
   }
   const nameW = blockW * 0.42 - pad * 2;
   for (const r of e.rows) {
