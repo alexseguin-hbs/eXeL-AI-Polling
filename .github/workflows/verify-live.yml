@@ -30,6 +30,26 @@ jobs:
 
       # Cloudflare builds then promotes; give it room before calling it stale. Reports the SHA it actually
       # sees on every attempt, so the log is a deployment timeline rather than a single pass/fail.
+      # Hosted migration 036 — measured after every deploy, never assumed (fleet pass 2, Athena). Runs only when the two
+      # secrets exist (Settings → Secrets → SUPABASE_URL, SUPABASE_ANON_KEY); a missing migration is a WARNING, not a
+      # failure — signing still works on one phone, the hand-off link does not.
+      - name: Probe hosted migration 036 (optional)
+        if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_ANON_KEY != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          body="$(curl -sS -m 20 -X POST "$SUPABASE_URL/rest/v1/rpc/sign_envelope_get" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" -H 'content-type: application/json' \
+            --data '{"p_token":"probe","p_secret":null,"p_ip_hash":null,"p_user_agent":"verify-live"}' || true)"
+          if printf '%s' "$body" | grep -q 'PGRST202'; then
+            echo "::warning title=036 MISSING::sign_envelope_get is not on this Supabase — apply migration 036 (Sign Doc → Why can't I sign? → Copy migration SQL)"
+            echo "### ⚠ migration 036 not applied on hosted Supabase" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::notice title=036 OK::sign_envelope_get answers on hosted Supabase"
+            echo "### ✅ migration 036 answers" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Poll live site for ${{ github.sha }}
         env:
           SITE: https://exel-ai-polling.explore-096.workers.dev
