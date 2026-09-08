@@ -184,6 +184,25 @@ const placeAndSign = async (p, who) => {
     step(who, '⌖ snaps the signature box back onto its rule', Math.abs((sb2.y + sb2.height) - (y0 + sb.height)) < 3 && (await p.getByTestId('sig-box').getAttribute('data-fit')) === 'underline', `bottom ${Math.round(y0 + sb.height)} → ${Math.round(sb1.y + sb1.height)} → ${Math.round(sb2.y + sb2.height)} px`);
     // the snap refits the box to the rule's width — widen it again by the handle (the stamp geometry step expects Alex's wider than the rule)
     const hh = await p.getByTestId('resize-handle').boundingBox(); await p.mouse.move(hh.x + hh.width / 2, hh.y + hh.height / 2); await p.mouse.down(); await p.mouse.move(hh.x + hh.width / 2 + 24, hh.y + hh.height / 2 - 6, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(150); }
+  // a REAL finger (CDP touch events, what iOS Safari and Chrome send): a drag that starts on a mark moves ONLY the mark — the
+  // page and the scroller do not pan (operator 2026-09-08 18:30: "PDF moves at same time"); a drag on empty page still pans
+  { const cdp = await p.context().newCDPSession(p);
+    const touch = async (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+    const drag = async (x, y, dx, dy) => { await touch('touchStart', x, y); for (let i = 1; i <= 5; i++) { await touch('touchMove', x + dx * i / 5, y + dy * i / 5); await p.waitForTimeout(20); } await touch('touchEnd', x + dx, y + dy); await p.waitForTimeout(250); };
+    const scrollState = () => p.evaluate(() => { const sc = document.querySelector('[data-testid="pdf-scroller"]'); return { y: window.scrollY, st: sc.scrollTop, sl: sc.scrollLeft }; });
+    const ta = await p.getByTestId('text-box').evaluate((n) => getComputedStyle(n).touchAction + '/' + getComputedStyle(n).pointerEvents);
+    await p.getByTestId('text-box').scrollIntoViewIfNeeded(); await p.waitForTimeout(150);
+    const tb = await p.getByTestId('text-box').boundingBox(); const s0 = await scrollState();
+    await drag(tb.x + tb.width * 0.3, tb.y + tb.height / 2, 0, -40);
+    const tb2 = await p.getByTestId('text-box').boundingBox(); const s1 = await scrollState();
+    step(who, 'a REAL finger drag on the date box moves ONLY the box — page and scroller do not pan (touch-action none on the mark)', ta === 'none/auto' && tb2.y < tb.y - 20 && s1.y === s0.y && s1.st === s0.st && s1.sl === s0.sl, `touch-action ${ta} · box top ${Math.round(tb.y)}→${Math.round(tb2.y)} · scroll ${JSON.stringify(s0)}→${JSON.stringify(s1)}`);
+    await p.getByTestId('snap-line').click(); await p.waitForTimeout(200);   // back onto its line for the steps that follow
+    // …and a real finger on EMPTY page at 150 % still pans the scroller (the page is not frozen)
+    const sc = await p.getByTestId('pdf-scroller').boundingBox(); const before = await scrollState();
+    await drag(sc.x + sc.width * 0.6, sc.y + sc.height * 0.85, -100, 0);   // sideways: at 150 % the page is wider than the scroller, so this pan is always possible
+    const after = await scrollState();
+    step(who, 'a real finger on empty page at 150 % pans the scroller sideways (only marks are pinned)', after.sl > before.sl + 5, `scroll ${JSON.stringify(before)}→${JSON.stringify(after)}`);
+    await cdp.detach(); }
   await p.getByTestId('zoom-reset').click(); await p.waitForTimeout(600);
   step(who, 'zoom reset returns the page to 100 %', Math.abs((await page.boundingBox()).width - w0) < 2 && (await p.getByTestId('zoom-reset').innerText()) === '100%');
   await p.getByTestId('to-draw').click();

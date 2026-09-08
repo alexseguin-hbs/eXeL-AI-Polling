@@ -10,6 +10,9 @@
  * The first box FITS the signature line under the thumb when there is one (lib/sign-fit — the rule's
  * width, no taller than the text above it; operator 2026-09-07); a horizontal swipe turns the page,
  * the Divinity Guide reader's gesture (R-CORE reuse), beside the ‹ › buttons.
+ * A MARK TAKES THE TOUCH (operator 2026-09-08: "I want to move that only, but PDF moves at same time"): every mark is
+ * touch-action none and receives pointer events, so a finger that lands on a mark never pans the page or the scroller —
+ * marks were pointer-events-none before, the finger hit the canvas (pan-y), and the browser scrolled while the drag moved.
  * ZOOM (operator 2026-09-08: "make sure one can zoom on PDF so signature and text can be centered and
  * aligned"): pinch, double-tap, or − / + zoom the page 1–4× inside a scroller; marks are page FRACTIONS so
  * they stay put at any zoom and a drag at 4× moves a quarter as far. ⌖ snaps the selected mark onto the
@@ -154,7 +157,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     const resizing = !!(m && onHandle(p, m));
     const start = { x: e.clientX, y: e.clientY }; let moved = false;
     const off = m ? { dx: p.x - m.x, dy: p.y - m.y } : null;
-    if (m) onSelect(m.id);
+    if (m) { onSelect(m.id); try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* not capturable */ } }
     const move = (ev: PointerEvent) => {
       if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 6) moved = true;
       if (!m) return;
@@ -200,9 +203,9 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
         {marks.filter((m) => m.page === page).map((m) => {
           const sel = m.id === selectedId;
           return (
-            <div key={m.id} className={`pointer-events-none absolute rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : "border-dotted bg-amber-300/10")}`}
-              style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size" }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
-              {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className={`h-full w-full object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
+            <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : "border-dotted bg-amber-300/10")}`}
+              style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
+              {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" draggable={false} className={`pointer-events-none h-full w-full select-none object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
               {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "72cqh", lineHeight: 1.35 }}>{m.text}</span>}
               {sel && !readOnly && <span className="absolute -top-2.5 -end-2.5 h-6 w-6 rounded-md border-2 border-white bg-primary shadow" aria-hidden="true" data-testid="resize-handle" />}
               {/* no delete badge ON the box — it covered the text (operator 02:00); the red Delete sits in the toolbar under the page */}
