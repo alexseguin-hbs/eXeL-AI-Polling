@@ -62,7 +62,7 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   // On a fitted rule the whole box is the signature (it is already "no taller than the text above"); the digital
   // signature — name · time · #hash — sits UNDER the physical one (operator, 23:05): a 4.5-pt grey line just below
   // the document's own rule, starting where the ink starts, in the gap above the printed name.
-  const onRule = box.fit === "underline";
+  const onRule = box.fit === "underline" || box.fit === "holder";   // a placeholder sits on the other party's rule
   const imgBox = onRule ? { ...box } : { ...box, h: box.h * 0.7 };
   const capBox = onRule ? { ...box, y: box.y + box.h * 0.6, h: box.h * 0.4 } : { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
   const I = placeOnPage(page, imgBox, 24, 8), C = placeOnPage(page, capBox, 24, 4);
@@ -195,6 +195,11 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
   const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const prev = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:"));
   const initPng = e.initials?.mine ? await doc.embedPng(dataUrlBytes(e.initials.mine.pngDataUrl)) : null;
+  // the initials row of each page is decided ONCE (the first pass's pixel scan) and recorded — a later pass would
+  // otherwise see the earlier initials as ink and move the row (caught in the render, wave 9)
+  const rowKw = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIInitRow:"));
+  const rows: Record<number, number> = {}; for (const k of rowKw) { const m = /^SoIInitRow:(\d+):([\d.]+)$/.exec(k); if (m) rows[Number(m[1])] = Number(m[2]); }
+  if (e.initials) { doc.getPages().forEach((_, i) => { const pg = i + 1; if (rows[pg] === undefined) { const t = e.initials!.topByPage?.[pg]; if (t !== undefined) { rows[pg] = t; addKeyword(doc, `SoIInitRow:${pg}:${t.toFixed(4)}`); } } }); e.initials = { ...e.initials, topByPage: { ...(e.initials.topByPage ?? {}), ...rows } }; }
   doc.getPages().forEach((page, i) => drawCodexBlock(doc, page, i + 1, e, font, bold, initPng));
   if (e.initials?.mine) { const kw = `SoIInit:${e.initials.mine.idx}`; if (!(doc.getKeywords() ?? "").split(/\s+/).includes(kw)) addKeyword(doc, kw); }
   for (const r of e.rows) { const base = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`; if (!prev.some((k) => k.startsWith(base))) addKeyword(doc, `${base}:n${b64u(r.name)}`); }   // a redrawn earlier row is not a new record; the name rides along

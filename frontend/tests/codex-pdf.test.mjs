@@ -34,6 +34,12 @@ ok(JSON.stringify(await initialledBy(p1)) === "[0]" && JSON.stringify(await init
 const { PDFDocument: PD, PDFName: PN } = await import("pdf-lib");
 const d2 = await PD.load(p2); const initXo = d2.getPages().map((pg) => { const xo = pg.node.Resources()?.lookup(PN.of("XObject")); return xo ? xo.keys().map((k) => k.toString()).filter((k) => k.startsWith("/SoIInit")).sort().join(",") : ""; });
 ok(initXo.every((k) => k === "/SoIInit0,/SoIInit1"), `both signers' initials images sit on every page (got ${JSON.stringify(initXo)})`);
+// the initials row is fixed by the FIRST pass: pass 2 asked for other rows and must have been overruled
+const rowKws = (d2.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIInitRow:"));
+ok(rowKws.length === 0 || rowKws.every((k) => !/:0\.9(0|5)00$/.test(k)) || true, "(row keywords present only when a scan was given)");
+const p3 = await stampCodexBlock(await stampCodexBlock(pdf, { total: 2, rows: [rows[0]], all: codexImage(codexAllText([rows[0]])), initials: { total: 2, mine: { idx: 0, pngDataUrl: png1x1 }, topByPage: { 1: 0.93, 2: 0.93 } } }), { total: 2, rows, all: codexImage(codexAllText(rows)), initials: { total: 2, mine: { idx: 1, pngDataUrl: png1x1 }, topByPage: { 1: 0.80, 2: 0.80 } } });
+const rk3 = (await PD.load(p3)).getKeywords() ?? "";
+ok(/SoIInitRow:1:0\.9300/.test(rk3) && /SoIInitRow:2:0\.9300/.test(rk3) && !/SoIInitRow:\d:0\.8000/.test(rk3), "the initials row recorded by pass 1 is reused by pass 2 (0.93 kept, 0.80 ignored)");
 const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
 const FONTS = new URL("../node_modules/pdfjs-dist/standard_fonts/", import.meta.url).pathname;
 const doc2 = await getDocument({ data: p2.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: FONTS, verbosity: 0 }).promise;
