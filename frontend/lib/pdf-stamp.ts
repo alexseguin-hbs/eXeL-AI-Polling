@@ -5,7 +5,7 @@
  * image XObject registered under a name starting with "SoISig", which is how
  * `countSignatureImages` proves how many signatures a file carries (Asar's headless gate).
  */
-import { PDFDocument, PDFName, PDFRef, StandardFonts, degrees, rgb, PDFPage, PDFFont, PDFImage } from "pdf-lib";
+import { PDFDocument, PDFName, PDFRef, PDFArray, PDFRawStream, decodePDFRawStream, StandardFonts, degrees, rgb, PDFPage, PDFFont, PDFImage } from "pdf-lib";
 import { embedCodexImage, captionName, pdfSafe, type CodexImage } from "@/lib/codex-pdf";
 
 export interface StampBox { page: number; x: number; y: number; w: number; h: number; /** "underline": the box was fitted to a rule on the page — bottom ON the line */ fit?: string; /** the box replaces a placeholder drawn for this signer — paint it white first */ clear?: boolean }   // page 1-based; fractions 0..1
@@ -147,6 +147,47 @@ export async function stampText(pdf: Uint8Array, box: StampBox, text: string, me
 /** A text mark as recorded: its box, and — when the file carries them — the text as drawn and the pass it was bound to. */
 export interface TextMark extends StampBox { text?: string; signerIdx?: number; isoDate?: string; chain?: string }
 /** Text marks stamped into the file, from the keywords (a keyword written before 2026-09-08 has no text: `text` undefined). */
+/**
+ * Remove ONE text mark a signer stamped in his own pass — the box is white-filled (the clearBox law: never below the box's
+ * bottom) and its SoITxt keyword dropped, so `textBoxes()` no longer lists it and the page text no longer holds it. The
+ * signature, caption, initials, codex row and hidden strip are untouched. Only the signer's OWN, LAST pass may be edited —
+ * the caller enforces that (a later signer's record is never altered). Operator 2026-09-08 22:40: a value typed into the
+ * wrong field of an already-signed form ("remove field and redo").
+ */
+export async function unstampText(pdf: Uint8Array, mark: StampBox): Promise<Uint8Array> {
+  const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
+  const pages = doc.getPages();
+  const page = pages[Math.min(Math.max(mark.page, 1), pages.length) - 1];
+  const head = `SoITxt:${mark.page}:${mark.x.toFixed(4)}:${mark.y.toFixed(4)}:${mark.w.toFixed(4)}:${mark.h.toFixed(4)}:`;
+  const kws = (doc.getKeywords() ?? "").split(/\s+/).filter(Boolean);
+  const hit = kws.findIndex((k) => k.startsWith(head));
+  if (hit < 0) return pdf;                                             // nothing of that shape here: the file is returned as it was
+  // The drawn glyphs must LEAVE the file, not hide under white: a painted-over value is still in the content stream and any
+  // text extractor reads it (an SSN under a white box is not removed). stampText shows the text as one `<hex> Tj`, so the
+  // matching show-text operator is blanked in place; the white fill is only the fallback when no such operator is found.
+  const tm = /:t([A-Za-z0-9_-]*)$/.exec(kws[hit]); const clean = tm ? b64uDecode(tm[1]) : "";
+  let stripped = false;
+  if (clean) {
+    const hex = Array.from(clean).map((c) => c.charCodeAt(0).toString(16).padStart(2, "0")).join("");   // Helvetica WinAnsi: ASCII bytes are the code points
+    const contents = page.node.Contents();
+    const refs: PDFRef[] = contents instanceof PDFArray ? (contents.asArray().filter((r) => r instanceof PDFRef) as PDFRef[]) : contents instanceof PDFRef ? [contents] : [];
+    for (const ref of refs) {
+      const stream = doc.context.lookup(ref);
+      if (!(stream instanceof PDFRawStream)) continue;
+      const bytes = decodePDFRawStream(stream).decode();
+      const src = new TextDecoder("latin1").decode(bytes);
+      const re = new RegExp(`<${hex}>\\s*Tj`, "i");
+      if (!re.test(src)) continue;
+      const out = src.replace(re, "<> Tj");
+      doc.context.assign(ref, doc.context.flateStream(new TextEncoder().encode(out)));
+      stripped = true; break;
+    }
+  }
+  if (!stripped) clearBox(page, mark, 1.5);
+  doc.setKeywords(kws.filter((_, i) => i !== hit));
+  return doc.save({ useObjectStreams: false });
+}
+
 export async function textBoxes(pdf: Uint8Array): Promise<TextMark[]> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
   return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoITxt:")).map((k) => {

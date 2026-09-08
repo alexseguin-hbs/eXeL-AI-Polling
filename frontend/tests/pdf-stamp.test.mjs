@@ -117,4 +117,23 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   ok(strips.some((s) => s.name === "SoICodexAll" && s.result?.verified && /ADA LENDER/.test(s.result.messageForward)), "the strip on a rotated page still decodes");
 }
 
+
+// unstampText — a signer removes one of his OWN text marks: the keyword and the drawn text go, everything else stays
+{
+  const { unstampText, textBoxes: tb2, countSignatureImages: csi } = await import("../lib/pdf-stamp.ts");
+  const base = pdf;
+  const meta = { signerIdx: 0, isoDate: "2026-09-07T12:00:00.000Z", chain: "" };
+  let f = await stampText(base, { page: 1, x: 0.2, y: 0.5, w: 0.22, h: 0.02 }, "WRONG VALUE 123", meta);
+  f = await stampText(f, { page: 1, x: 0.2, y: 0.55, w: 0.22, h: 0.02 }, "Cozumel, Mexico", meta);
+  f = await stampSignature(f, { page: 1, x: 0.1, y: 0.7, w: 0.4, h: 0.06 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: meta.isoDate, hash: "ba7816bf" });
+  const before = await tb2(f); ok(before.length === 2 && before.some((m) => m.text === "WRONG VALUE 123"), "two text marks stamped, the wrong one among them");
+  const wrong = before.find((m) => m.text === "WRONG VALUE 123");
+  const g = await unstampText(f, wrong);
+  const after = await tb2(g);
+  ok(after.length === 1 && after[0].text === "Cozumel, Mexico", `unstampText drops exactly that keyword (${after.map((m) => m.text).join(" | ")})`);
+  ok(!/WRONG VALUE 123/.test(await pageText(g)) && /Cozumel, Mexico/.test(await pageText(g)), "the wrong text is gone from the page, the other stays");
+  ok((await csi(g)) === 1 && (await codexRows(g)).length === 0, "the signature image count is unchanged");
+  ok((await unstampText(g, { page: 1, x: 0.9, y: 0.9, w: 0.1, h: 0.02 })).length === g.length, "a mark that is not there leaves the file exactly as it was");
+}
+
 console.log(`pdf-stamp: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

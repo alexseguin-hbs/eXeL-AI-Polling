@@ -24,7 +24,7 @@ import { openPdf, renderPage } from "@/lib/pdf-render";
 import { fitToUnderline } from "@/lib/sign-fit";
 import type { StampBox } from "@/lib/pdf-stamp";
 
-export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string; /** how the box got its size: fitted to a rule, the default, a placeholder, or the AI */ fit?: "underline" | "default" | "holder" | "ai" }
+export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string; /** how the box got its size: fitted to a rule, the default, a placeholder, or the AI */ fit?: "underline" | "default" | "holder" | "ai" | "stamped" }   // "stamped": the signer's OWN text from an earlier pass, loaded back for remove/redo (operator 2026-09-08 22:40)
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.02, MIN_W = 0.08, MIN_H = 0.012;   // TXT_H 0.02 = a 16-pt line on Letter: typed text prints at the document's own size (the live note printed a 27-pt date — operator 2026-09-08)
 
 export type FitAt = (q: { x: number; y: number }) => ReturnType<typeof fitToUnderline>;
@@ -50,7 +50,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     let live = true;
     (async () => {
       // open on the page that already holds the signature (coming back from Draw), else page 1
-      try { const doc = await openPdf(bytes); if (!live) return; docRef.current = doc; setPages(doc.numPages); setPage(Math.min(doc.numPages, Math.max(1, marksRef.current.find((m) => m.kind === "sig")?.page ?? 1))); }
+      try { const doc = await openPdf(bytes); if (!live) return; docRef.current = doc; setPages(doc.numPages); setPage(Math.min(doc.numPages, Math.max(1, marksRef.current.find((m) => m.kind === "sig")?.page ?? marksRef.current[0]?.page ?? 1))); /* else the first page that holds a mark (edit-own: stamped text, no signature box) */ }
       catch (e) { setErr(String((e as Error).message || e)); }
     })();
     return () => { live = false; };
@@ -203,7 +203,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
         {marks.filter((m) => m.page === page).map((m) => {
           const sel = m.id === selectedId;
           return (
-            <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : "border-dotted bg-amber-300/10")}`}
+            <div key={m.id} draggable={false} onDragStart={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className={`absolute rounded ${sel ? "border-[3px] border-primary shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-primary/50"} ${m.kind === "sig" ? (sel ? "bg-primary/15" : "border-dashed bg-primary/10") : (sel ? "bg-amber-300/20" : m.fit === "stamped" ? "border-solid border-amber-500/80 bg-amber-300/10" : "border-dotted bg-amber-300/10")}`}
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size", touchAction: "none" }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" draggable={false} className={`pointer-events-none h-full w-full select-none object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
               {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "72cqh", lineHeight: 1.35 }}>{m.text}</span>}

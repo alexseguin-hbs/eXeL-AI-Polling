@@ -153,6 +153,13 @@ const placeAndSign = async (p, who) => {
   await p.getByTestId('remove-mark').click(); step(who, 'an accidental date is deleted by the red Delete under the page (nothing sits on the box)', (await p.getByTestId('text-box').count()) === 0 && (await p.getByTestId('sig-box').count()) === 1 && (await p.getByTestId('delete-badge').count()) === 0);
   await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor(); step(who, 'date mark added beside the signature', /\d{4}/.test(await p.getByTestId('mark-text').inputValue()));
   step(who, 'the toolbar delete names what it deletes', /Delete · date/.test(await p.getByTestId('remove-mark').innerText()));
+  // ⌶ Same size (operator 2026-09-08 22:40): a second text mark, made taller, then every text mark to ONE height with its bottom kept
+  { await p.getByTestId('add-text').click(); await p.waitForTimeout(150); const bigger = p.getByTestId('marks-toolbar').locator('button', { hasText: /^\+$/ }); await bigger.click(); await bigger.click(); await p.waitForTimeout(100);
+    const hs0 = await p.getByTestId('text-box').evaluateAll((ns) => ns.map((n) => [parseFloat(n.style.height), parseFloat(n.style.top) + parseFloat(n.style.height)]));
+    await p.getByTestId('text-same-size').click(); await p.waitForTimeout(150);
+    const hs1 = await p.getByTestId('text-box').evaluateAll((ns) => ns.map((n) => [parseFloat(n.style.height), parseFloat(n.style.top) + parseFloat(n.style.height)]));
+    step(who, '⌶ Same size: two text marks of different heights become one height, each bottom where it was', hs0.length === 2 && Math.abs(hs0[0][0] - hs0[1][0]) > 0.3 && Math.abs(hs1[0][0] - hs1[1][0]) < 0.05 && hs1.every((h, i) => Math.abs(h[1] - hs0[i][1]) < 0.05), `heights ${hs0.map((h) => h[0].toFixed(2)).join('/')}% → ${hs1.map((h) => h[0].toFixed(2)).join('/')}%`);
+    await p.getByTestId('remove-mark').click(); await p.waitForTimeout(100); }   // the extra text goes; the date stays for the steps that follow
   const tb = await p.getByTestId('text-box').boundingBox(), sbb = await p.getByTestId('sig-box').boundingBox();
   step(who, 'the date SNAPS to the document\'s own "Date:" line under the signature (fitted, below the box, one text line tall)', (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline' && tb.y > sbb.y + sbb.height - 2 && tb.height < sbb.height, `date box ${Math.round(tb.width)}×${Math.round(tb.height)} px at +${Math.round(tb.y - (sbb.y + sbb.height))} px under the signature box`);
   // ZOOM (operator 2026-09-08): + zooms the page 1.5× inside the scroller; the marks keep their page fractions (they scale
@@ -362,4 +369,28 @@ await A.getByTestId('downloads').waitFor({ timeout: 60000 }); step('alex', 'crea
 await shot(A, 'alex', '7-complete');
 
 fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
+// ── remove a field and redo (operator 2026-09-08 22:40) — the LAST signer opens his own signed file, removes a text mark, types another,
+// saves: the glyphs leave the file, the new text is bound to the SAME pass, signature · initials · codex row · hidden strip unchanged
+{
+  const E = await D.context().newPage(); await E.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await E.getByText('Sign Doc', { exact: true }).first().waitFor({ timeout: 60000 });
+  await E.getByPlaceholder(/Promissory/).fill('Promissory Note'); await E.getByTestId('file-input').setInputFiles(file); await E.getByTestId('carried').waitFor({ timeout: 20000 });
+  step('dan', 'the finished file says who signed it and offers "I am Daniel Vail: fix my text"', /Daniel Vail/.test(await E.getByTestId('carried').innerText()) && (await E.getByTestId('carried-i-am').count()) === 1, (await E.getByTestId('carried').innerText()).replace(/\s+/g, ' '));
+  await E.getByTestId('carried-i-am').click(); await E.getByTestId('save-edits').waitFor({ timeout: 20000 });
+  await E.locator('[data-testid="text-box"][data-fit="stamped"]').first().waitFor({ timeout: 20000 }).catch(() => {});   // the page view opens on the page that holds the mark once pdfjs has the document
+  const stamped = await E.locator('[data-testid="text-box"][data-fit="stamped"]').count();
+  step('dan', "Daniel's own text marks load back as stamped marks; the explainer names the mode", stamped >= 1 && /own signed file/.test(await E.getByTestId('explain').innerText()), `${stamped} stamped mark(s)`);
+  const wasText = (await E.locator('[data-testid="text-box"][data-fit="stamped"]').first().innerText()).trim();
+  await E.locator('[data-testid="text-box"][data-fit="stamped"]').first().click(); await E.getByTestId('remove-mark').click(); await E.waitForTimeout(100);
+  await E.getByTestId('add-text').click(); await E.getByTestId('mark-text').fill('Redo: Cozumel'); await E.waitForTimeout(100);
+  await E.getByTestId('save-edits').click(); await E.getByTestId('downloads').waitFor({ timeout: 30000 });
+  const dl2 = E.waitForEvent('download'); await E.getByTestId('downloads').locator('button').first().click(); const file2 = path.join(OUT, 'signed-sample-redo.pdf'); await (await dl2).saveAs(file2);
+  const b2 = new Uint8Array(fs.readFileSync(file2));
+  const { textBoxes: tbx, codexRows: cr2, countSignatureImages: csi2 } = await import('../lib/pdf-stamp.ts');
+  const tb2 = await tbx(b2); const txt2 = await pdfText(b2);
+  step('dan', 'saved: the removed text is gone from the file (keyword and glyphs), the new text is there, bound to pass 1', !tb2.some((m) => m.signerIdx === 1 && m.text === wasText) && tb2.some((m) => m.text === 'Redo: Cozumel' && m.signerIdx === 1) && txt2.split(wasText).length - 1 === 1 && /Redo: Cozumel/.test(txt2), /* Alex's own date (same text) stays: exactly one copy left in the page text */ `was "${wasText}" · marks: ${tb2.map((m) => `${m.signerIdx}:${m.text}`).join(' | ')}`);
+  step('dan', 'signatures, codex rows and initials unchanged after the redo', (await csi2(b2)) === 2 && (await cr2(b2)).filter((r) => r.rowIndex >= 0).length === 2, `sigs ${await csi2(b2)} rows ${(await cr2(b2)).length}`);
+  await E.getByTestId('verify-input').setInputFiles(file2); await E.getByTestId('verify-result').waitFor({ timeout: 30000 });
+  step('dan', 'the redone file still reads green in the verifier', (await E.getByTestId('verify-result').getAttribute('data-ok')) === '1', (await E.getByTestId('verify-result').innerText()).replace(/\s+/g, ' ').slice(0, 100));
+  await shot(E, 'dan', '8-redo');
+}
 await browser.close(); console.log(`\nSIGN 2-PHONE LIVE RUN: ${log.length} steps, 0 failures`);

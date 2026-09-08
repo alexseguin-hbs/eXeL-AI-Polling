@@ -21,7 +21,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
-import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp, textBoxes, unstampText, type TextMark } from "@/lib/pdf-stamp";
 import { initialsSlotTop, partnerRule } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
@@ -270,6 +270,18 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // The SoICodex rows are the signers already in the file; the SoIHold placeholder names the next one — this reader.
   // Prefilled only over BLANK rows and an empty title, never over what was typed.
   const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
+  // "remove field and redo" (operator 2026-09-08 22:40): a carried file's LAST signer may open his own text marks again —
+  // remove or retype them — and save; the signature, initials, codex row and hidden strip stay. Never a later signer's record.
+  const [carried, setCarried] = useState<{ lastName: string; lastIdx: number; hasNext: boolean } | null>(null);
+  const [editOwn, setEditOwn] = useState<{ pass: number; isoDate: string; chain: string; marks: TextMark[] } | null>(null);
+  const [editReceipt, setEditReceipt] = useState<{ name: string; signed: boolean; stamp?: string }[]>([]);
+  const docTextH = useRef<number | null>(null);                                  // the document's text size the last fit measured (Same size uses it)
+  const enterEditOwn = async (f0: Loaded, last: { rowIndex: number; name?: string; isoDate: string }) => {
+    const tms = (await textBoxes(f0.bytes)).filter((m) => m.signerIdx === last.rowIndex);
+    setEditOwn({ pass: last.rowIndex, isoDate: tms[0]?.isoDate ?? last.isoDate, chain: tms[0]?.chain && tms[0].chain !== "genesis" ? tms[0].chain : "", marks: tms });
+    setMarks({ 0: tms.map((m, i) => ({ id: `st${i}`, kind: "text" as const, page: m.page, x: m.x, y: m.y, w: m.w, h: m.h, text: m.text ?? "", fit: "stamped" as const })) });
+    setFileIdx(0); setSelected(null); setStep("place");
+  };
   const prefilledRef = useRef<string>("");
   useEffect(() => {
     if (countersign || !files.length) return;
@@ -285,7 +297,11 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       if (!live) return;
       setTitle((cur) => cur || pdfTitle || f0.name.replace(/-(partly-)?signed(-[A-Z-]+)?\.pdf$/i, "").replace(/\.pdf$/i, ""));
       const taken = new Set(rows.map((r) => r.rowIndex));
-      const nextIdx = hs.length ? Math.min(...hs.map((h) => h.idx).filter((k) => !taken.has(k))) : rows.length;
+      const last = rows[rows.length - 1];
+      const free = hs.map((h) => h.idx).filter((k) => !taken.has(k));                    // placeholders nobody has filled yet
+      if (last) { setCarried({ lastName: last.name || fill(t("soi.sign.signer_n"), "n", last.rowIndex + 1), lastIdx: last.rowIndex, hasNext: free.length > 0 }); if (!free.length && !hs.length) { void enterEditOwn(f0, last); return; } }   // one signer, nobody next: the uploader is that signer
+      if (last && !free.length) return;                                                    // a FINISHED file: nobody is next; only its last signer may open his own text (the banner)
+      const nextIdx = free.length ? Math.min(...free) : rows.length;                       // Math.min() of nothing is Infinity — it crashed the signers array on a finished file
       const nextName = hs.find((h) => h.idx === nextIdx)?.name ?? "";
       const total = Math.max(rows.length + 1, nextIdx + 1);
       setSigners((cur) => {
@@ -329,6 +345,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     const fitted = !!(sig && f && f.lineY > sig.y + sig.h && f.h < sig.h * 1.5 && !cur.some((m) => m.kind === "text" && Math.abs(m.y - f.y) < 0.01));
     // a fitted text mark is one text line tall, its bottom ON the rule — the rule's full gap (up to the text above, 23–31 pt)
     // printed "Sep 7, 2026" at ~27 pt beside 11-pt body text (operator's live PDF, 2026-09-08)
+    if (f?.textH) docTextH.current = f.textH;
     const capped = f ? (() => { const h = f.textH ? Math.min(0.03, Math.max(0.012, f.textH * 1.9)) : Math.min(f.h, TXT_H); return { h, y: f.y + f.h - h }; })() : null;   // textH × 1.9 ≈ the document's em (the preview and stamp draw text at 72 % of the box)
     const mark: Mark = fitted && f && capped ? { id, kind: "text", page, x: f.x, y: capped.y, w: f.w, h: capped.h, text, fit: "underline" } : { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text, fit: "default" };
     setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
@@ -337,6 +354,34 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const todayText = () => dateIn(activeLocale, new Date(), { year: "numeric", month: "short", day: "numeric" });   // the Globe's language, Latin digits
   const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
   const setSelText = (text: string) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, text } : m)) }));
+  /** Every text mark on this file to ONE height (bottom kept on its line): the document's own text size when a fit measured it, else the
+   *  median of the marks; clamp [0.012, 0.03] (operator 2026-09-08: "set all text to same size at end of form completion"). */
+  const sameSize = () => setMarks((b) => {
+    const cur = b[fileIdx] ?? []; const texts = cur.filter((m) => m.kind === "text"); if (texts.length < 2) return b;
+    const hs = texts.map((m) => m.h).sort((a, c) => a - c); const median = hs[Math.floor(hs.length / 2)];
+    const h = Math.min(0.03, Math.max(0.012, docTextH.current ? docTextH.current * 1.9 : median));
+    return { ...b, [fileIdx]: cur.map((m) => (m.kind === "text" ? { ...m, y: m.y + m.h - h, h } : m)) };
+  });
+  /** Edit-own save: a removed or changed stamped mark leaves the file (its glyphs stripped, its keyword dropped); changed and new marks are
+   *  stamped with the SAME pass (index, time, chain-before) so the record stays one pass. No new signature, no new codex row. */
+  const saveEdits = async () => {
+    if (!editOwn || !files[0]) return;
+    setErr("");
+    try {
+      let out = files[0].bytes; const cur = marks[0] ?? [];
+      const near = (a: number, b: number) => Math.abs(a - b) < 1e-4;
+      const unchanged = (om: TextMark, m: Mark | undefined) => !!m && (m.text ?? "").trim() === (om.text ?? "").trim() && near(m.x, om.x) && near(m.y, om.y) && near(m.w, om.w) && near(m.h, om.h);
+      for (let i = 0; i < editOwn.marks.length; i++) { const om = editOwn.marks[i]; if (!unchanged(om, cur.find((m) => m.id === `st${i}`))) out = await unstampText(out, om); }
+      for (const m of cur.filter((k) => k.kind === "text" && (k.text ?? "").trim())) {
+        const idx = /^st(\d+)$/.exec(m.id); const om = idx ? editOwn.marks[Number(idx[1])] : undefined;
+        if (om && unchanged(om, m)) continue;
+        out = await stampText(out, m, m.text!.trim(), { signerIdx: editOwn.pass, isoDate: editOwn.isoDate, chain: editOwn.chain });
+      }
+      const rows = (await codexRows(out)).filter((r) => r.rowIndex >= 0).sort((a, b) => a.rowIndex - b.rowIndex);
+      setEditReceipt(rows.map((r) => ({ name: r.name || fill(t("soi.sign.signer_n"), "n", r.rowIndex + 1), signed: true, stamp: cacStamp(r.isoDate) })));
+      setSigned([{ name: files[0].name, bytes: out }]); setStep("done");
+    } catch (ex) { setErr(`${t("soi.sign.stage.stamp")}: ${String((ex as Error).message ?? ex)}`); setFailStage("stamp"); }
+  };
   const removeSel = () => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== selected) })); setSelected(null); };
   // − / + scale the selected mark about its bottom-left corner: the baseline never moves (operator 2026-09-08)
   const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => { if (m.id !== selected) return m; const w = Math.min(1, Math.max(0.08, m.w * f)), h = Math.min(1, Math.max(0.02, m.h * f)); return { ...m, w, h, y: Math.max(0, m.y + m.h - h) }; }) }));
@@ -498,12 +543,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     switch (step) {
       case "upload": return files.length ? t("soi.sign.x.upload_more") : t("soi.sign.x.upload");
       case "signers": return signersOk ? t("soi.sign.x.signers_ok") : t("soi.sign.x.signers");
-      case "place": return allPlaced ? t("soi.sign.x.placed") : t("soi.sign.x.place");
+      case "place": return editOwn ? t("soi.sign.x.edit_own") : allPlaced ? t("soi.sign.x.placed") : t("soi.sign.x.place");
       case "draw": return png && initialsPng ? t("soi.sign.x.drawn") : png ? t("soi.sign.x.initials") : t("soi.sign.x.draw");
       case "saving": return t("soi.sign.saving");
       case "login": return t("soi.sign.x.login");
       case "handoff": return offline ? t("soi.sign.x.handoff_offline") : t("soi.sign.x.handoff");
-      case "done": return t("soi.sign.x.done");
+      case "done": return editOwn ? t("soi.sign.x.edited") : t("soi.sign.x.done");
       case "waiting": return fill(t("soi.sign.turn_of"), "name", pub?.signers[pub.current_signer_idx]?.name ?? "…");
       case "not_party": return t("soi.sign.not_party");
       case "loading": return t("soi.sign.loading");
@@ -557,6 +602,13 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           {requireLogin && !loggedIn && <p className="mt-1 text-[11px] text-muted-foreground" data-testid="login-later">{t("soi.sign.login.later")} <button type="button" onClick={login} className="min-h-[36px] text-primary underline-offset-2 hover:underline">{t("soi.sign.login.now")}</button></p>}
           {files.length > 0 && (
             <ul className="mt-3 grid gap-1 text-sm" data-testid="file-list">
+              {carried && !editOwn && <li className="mb-1 rounded-md border border-amber-500/50 bg-amber-300/10 p-2 text-xs" data-testid="carried">
+                <div>{fill(t("soi.sign.carried.signed_by"), "name", carried.lastName)}</div>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => { const f0 = files[0]; void (async () => { const rows = (await codexRows(f0.bytes)).filter((r) => r.rowIndex === carried.lastIdx); if (rows[0]) await enterEditOwn(f0, rows[0]); })(); }} className="min-h-[44px] rounded-md border border-amber-500/70 px-3 text-xs" data-testid="carried-i-am">{fill(t("soi.sign.carried.i_am"), "name", carried.lastName)}</button>
+                  {carried.hasNext && <span className="self-center text-muted-foreground">· {t("soi.sign.carried.next")}: {t("soi.sign.next")} →</span>}
+                </div>
+              </li>}
               {files.map((f, i) => (
                 <li key={i} className="flex items-center justify-between rounded border border-border px-2 py-1">
                   <span>{f.name} <span className="text-xs text-muted-foreground">· {fill(t("soi.sign.pages"), "n", f.pages)} · #{shortHash(f.sha256)}</span></span>
@@ -611,6 +663,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="marks-toolbar">
             <button type="button" onClick={() => addText(todayText())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-date">+ {t("soi.sign.add_date")}</button>
             <button type="button" onClick={() => addText(t("soi.sign.text_default"))} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-text">+ {t("soi.sign.add_text")}</button>
+            {(marks[fileIdx] ?? []).filter((m) => m.kind === "text").length >= 2 && <button type="button" onClick={sameSize} className="min-h-[44px] rounded-md border border-border px-3 text-xs" title={t("soi.sign.same_size")} data-testid="text-same-size"><span aria-hidden="true">⌶ </span>{t("soi.sign.same_size")}</button>}
             {selMark && <>
               <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md bg-red-500 px-3 text-xs font-medium text-white" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")} · {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</button>
               <span className="rounded-full border border-primary/60 px-2 py-1 text-[11px] text-primary" data-testid="sizing-chip">{t("soi.sign.sizing")} {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</span>
@@ -633,7 +686,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           )}
           <div className="mt-3 flex gap-2">
             {!countersign && <button type="button" onClick={() => setStep("signers")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>}
-            <button type="button" disabled={!allPlaced} onClick={() => setStep("draw")} className="inline-flex min-h-[44px] items-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="to-draw">{t("soi.sign.next_draw")} <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
+            {editOwn ? <button type="button" onClick={() => void saveEdits()} className="inline-flex min-h-[44px] items-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground" data-testid="save-edits">{t("soi.sign.save_edits")}</button> :
+            <button type="button" disabled={!allPlaced} onClick={() => setStep("draw")} className="inline-flex min-h-[44px] items-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="to-draw">{t("soi.sign.next_draw")} <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>}
           </div>
         </div>
       )}
@@ -709,7 +763,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           <div className="rounded-lg border border-green-500/40 bg-green-500/5 p-3 text-sm">
             <div className="font-medium text-green-500">{t("soi.sign.complete")}</div>
             {/* The pod's receipt shape — recorded · witnessed · settles — so a signed document reads as one of eXeL's (Pangu). */}
-            <SignReceipt files={signed.map((f) => f.name)} signers={(pub?.signers ?? []).map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at) : undefined }))} count={(pub?.signers ?? []).filter((s) => s.signed_at).length} chain={pub?.chain} />
+            <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
           <div className="mt-3 flex flex-wrap items-center gap-3" data-testid="downloads">{signed.map((f) => <span key={f.name} className="inline-flex items-center gap-2 text-xs"><IconDownload label={`${t("soi.sign.download")} · ${f.name}`} onClick={() => void download(f)} /><span>{f.name}</span></span>)}
