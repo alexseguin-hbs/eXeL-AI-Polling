@@ -32,7 +32,7 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
   ] as const;
   const onRing = (i: 0 | 1 | 2) => {
     if (i === 0) onEnter();
-    else router.push(i === 1 ? CREATE_PATH : SIGN_PATH);   // bottom-right = Create Doc, bottom-left = Sign Doc (operator)
+    else router.push(i === 1 ? SIGN_PATH : CREATE_PATH);   // bottom-right = Sign Doc, bottom-left = Create Doc (operator 2026-09-08)
   };
 
   return (
@@ -42,18 +42,18 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
         <h1 className="text-2xl font-semibold">{t("soi.landing.title")}</h1>
       </header>
 
-      {/* The mark as the chooser — top ♡ Session · bottom-right 웃 Sign · bottom-left ◬ Create */}
+      {/* The mark as the chooser — top POD Session · bottom-left Create Doc · bottom-right Sign Doc (operator 2026-09-08) */}
       <div className="flex flex-col items-center gap-2">
         <SoITrinity
           size={300}
-          labels={[t("soi.landing.ring.session"), t("soi.landing.ring.create"), t("soi.landing.ring.sign")]}
+          labels={[t("soi.landing.ring.session"), t("soi.landing.ring.sign"), t("soi.landing.ring.create")]}   /* SoITrinity order: top, bottom-right, bottom-left */
           colors={[hue.bright, hue.bright, hue.bright]}   /* all cyan (operator): the black edges separate the rings */
           color={hue.bright}
           textColor={hue.ink}
           fontSize={10}
           centerGlyphs={["", "", ""]}
           onRingClick={onRing}
-          ringAriaLabels={[t("soi.landing.btn.session"), t("soi.landing.btn.create"), t("soi.landing.btn.sign")]}
+          ringAriaLabels={[t("soi.landing.btn.session"), t("soi.landing.btn.sign"), t("soi.landing.btn.create")]}
         />
         <p className="text-xs text-muted-foreground">{t("soi.landing.choose")}</p>
       </div>

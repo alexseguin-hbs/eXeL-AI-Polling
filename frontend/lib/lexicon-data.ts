@@ -875,7 +875,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.chain", englishDefault: "Chain hash", context: "Sign Doc: Done: label before the short chain hash", cubeId: 8 },
   { key: "soi.sign.signatures", englishDefault: "signatures", context: "Sign Doc receipt line 3: '웃 2 signatures'", cubeId: 8 },
   { key: "soi.sign.download", englishDefault: "Download", context: "Sign Doc: Done: download button prefix", cubeId: 8 },
-  { key: "soi.sign.no_fee", englishDefault: "No fees. No account needed to countersign. Signatures carry name, time and a hash — this is a record, not legal advice.", context: "Sign Doc: Footer line on the Sign Doc page", cubeId: 8 },
+  { key: "soi.sign.no_fee", englishDefault: "No fees. No account needed to countersign. Signatures carry name, time and a hash. This is a record, not legal advice.", context: "Sign Doc: Footer line on the Sign Doc page", cubeId: 8 },
   { key: "soi.sign.step.upload", englishDefault: "Upload", context: "Sign Doc: Rail step", cubeId: 8 },
   { key: "soi.sign.step.signers", englishDefault: "Signers", context: "Sign Doc: Rail step", cubeId: 8 },
   { key: "soi.sign.step.place", englishDefault: "Place", context: "Sign Doc: Rail step", cubeId: 8 },
