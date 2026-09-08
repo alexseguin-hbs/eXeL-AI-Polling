@@ -38,8 +38,8 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <header className="relative mb-6 text-center">
-        <SoiGlobe className="absolute right-0 top-0" />
+      <header className="mb-6 text-center">
+        <div className="mb-2 flex justify-end"><SoiGlobe /></div>
         <TrinityGlyphs size="text-3xl" className="mb-3" />
         <h1 className="text-2xl font-semibold">{t("soi.landing.title")}</h1>
       </header>

@@ -94,8 +94,8 @@ export default function CreateDocPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <header className="relative mb-6 text-center">
-        <SoiGlobe className="absolute right-0 top-0" />
+      <header className="mb-6 text-center">
+        <div className="mb-2 flex justify-end"><SoiGlobe /></div>
         <TrinityGlyphs size="text-2xl" className="mb-2" />
         <Link href="/soi-session/" className="text-xs text-muted-foreground hover:text-cyan-400">&larr; {t("soi.landing.title")}</Link>
       </header>

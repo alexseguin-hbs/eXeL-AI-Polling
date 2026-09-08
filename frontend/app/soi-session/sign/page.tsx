@@ -29,8 +29,8 @@ function TmpGone() { const { t } = useLexicon(); return <>{t("soi.sign.tmp.gone"
 function Header() {
   const { t } = useLexicon();
   return (
-    <header className="relative mb-6 text-center">
-      <SoiGlobe className="absolute right-0 top-0" />
+    <header className="mb-6 text-center">
+      <div className="mb-2 flex justify-end"><SoiGlobe /></div>
       <TrinityGlyphs size="text-2xl" className="mb-2" />
       <Link href="/soi-session/" className="text-xs text-muted-foreground hover:text-cyan-400">&larr; {t("soi.landing.title")}</Link>
     </header>
