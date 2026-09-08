@@ -384,7 +384,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               ))}
             </div>
           )}
-          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} fitRef={fitRef} />
+          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} fitRef={fitRef} onDelete={(id) => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== id) })); setSelected(null); }} />
           {/* marks toolbar: add a date or a note; size the selected mark; edit its text */}
           <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="marks-toolbar">
             <button type="button" onClick={() => addText(todayText())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-date">+ {t("soi.sign.add_date")}</button>
@@ -394,7 +394,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               <button type="button" onClick={() => resizeSel(0.85)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.smaller")}>−</button>
               <button type="button" onClick={() => resizeSel(1.18)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.larger")}>+</button>
               {selMark.kind === "text" && <input value={selMark.text ?? ""} onChange={(e) => setSelText(e.target.value)} placeholder={t("soi.sign.text_ph")} className="min-h-[44px] min-w-[140px] flex-1 rounded-md border border-border bg-background px-2 text-sm" data-testid="mark-text" />}
-              <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark">✕</button>
+              <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-red-500/60 px-3 text-xs text-red-500" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")}</button>
             </>}
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">{sigOf(fileIdx)?.fit === "underline" ? t("soi.sign.fit.underline") : t("soi.sign.marks_hint")}</p>

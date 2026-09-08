@@ -989,6 +989,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.codex.all", englishDefault: "All signatories", context: "Light Codex decode: the ALL strip (every signatory, name + UTC time)", cubeId: 8 },
   { key: "soi.sign.codex.row", englishDefault: "Signatory", context: "Light Codex decode: one signatory's strip", cubeId: 8 },
   { key: "soi.sign.codex.unreadable", englishDefault: "strip present, not readable", context: "Light Codex decode: a strip whose pixels did not decode", cubeId: 8 },
+  { key: "soi.sign.delete", englishDefault: "Delete", context: "Sign Doc: the labelled delete button for the selected box (an accidental date or signature)", cubeId: 8 },
   { key: "soi.sign.stance", englishDefault: "No one collects a tax on signatures.", context: "Sign Doc: the stance, first words of the footer (operator 2026-09-07)", cubeId: 8 },
   { key: "soi.sign.page_prev", englishDefault: "Previous page", context: "Sign Doc: aria-label of the ‹ page button (swipe right does the same)", cubeId: 8 },
   { key: "soi.sign.page_next", englishDefault: "Next page", context: "Sign Doc: aria-label of the › page button (swipe left does the same)", cubeId: 8 },

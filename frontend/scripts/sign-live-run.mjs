@@ -121,7 +121,11 @@ const placeAndSign = async (p, who) => {
   await p.mouse.move(h.x + h.width / 2, h.y + h.height / 2); await p.mouse.down(); await p.mouse.move(h.x + h.width / 2 + 14, h.y + h.height / 2 - 8, { steps: 5 }); await p.mouse.up();
   const after = await p.getByTestId('sig-box').boundingBox();
   step(who, 'upper-right drag grows the box up and right; the BASELINE (bottom edge) stays where it was', after.width > before.width + 6 && after.height > before.height + 2 && Math.abs((after.y + after.height) - (before.y + before.height)) < 2, `${Math.round(before.width)}×${Math.round(before.height)} → ${Math.round(after.width)}×${Math.round(after.height)} px, bottom ${Math.round(before.y + before.height)}→${Math.round(after.y + after.height)}`);
+  // an accidental mark goes with one tap on the ✕ badge on the box itself (operator 00:40) — then the date is added for real
+  await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor();
+  await p.getByTestId('delete-badge').click(); step(who, 'an accidental date is deleted by the ✕ badge on the box', (await p.getByTestId('text-box').count()) === 0 && (await p.getByTestId('sig-box').count()) === 1);
   await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor(); step(who, 'date mark added beside the signature', /\d{4}/.test(await p.getByTestId('mark-text').inputValue()));
+  step(who, 'the toolbar delete is labelled', /Delete/.test(await p.getByTestId('remove-mark').innerText()));
   const tb = await p.getByTestId('text-box').boundingBox(), sbb = await p.getByTestId('sig-box').boundingBox();
   step(who, 'the date SNAPS to the document\'s own "Date:" line under the signature (fitted, below the box, one text line tall)', (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline' && tb.y > sbb.y + sbb.height - 2 && tb.height < sbb.height, `date box ${Math.round(tb.width)}×${Math.round(tb.height)} px at +${Math.round(tb.y - (sbb.y + sbb.height))} px under the signature box`);
   await p.getByTestId('to-draw').click();

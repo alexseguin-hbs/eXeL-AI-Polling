@@ -21,10 +21,11 @@ export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.035, MIN_W = 0.08, MIN_H = 0.02;
 
 export type FitAt = (q: { x: number; y: number }) => ReturnType<typeof fitToUnderline>;
-export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly, onPage, fitRef }: {
+export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly, onPage, fitRef, onDelete }: {
   bytes: Uint8Array; marks: Mark[]; onMarks: (m: Mark[]) => void; selectedId: string | null; onSelect: (id: string | null) => void;
   preview?: string | null; readOnly?: boolean; onPage?: (page: number) => void;
   /** lends the pixel fit to the flow (+ Date snaps to the document's own "Date:" line) */ fitRef?: React.MutableRefObject<FitAt | null>;
+  /** the ✕ badge on the selected box: an accidental date or signature goes with one tap (operator 2026-09-08) */ onDelete?: (id: string) => void;
 }) {
   const { t } = useLexicon();
   const host = useRef<HTMLDivElement>(null);
@@ -131,6 +132,11 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className={`h-full w-full object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
               {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "72cqh", lineHeight: 1.35 }}>{m.text}</span>}
               {sel && !readOnly && <span className="absolute -top-2.5 -right-2.5 h-6 w-6 rounded-md border-2 border-white bg-cyan-500 shadow" aria-hidden="true" data-testid="resize-handle" />}
+              {sel && !readOnly && onDelete && (
+                <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(m.id); }}
+                  className="pointer-events-auto absolute -top-3 -left-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-red-500 text-[13px] font-bold leading-none text-white shadow"
+                  aria-label={t("soi.sign.remove_mark")} data-testid="delete-badge">✕</button>
+              )}
             </div>
           );
         })}

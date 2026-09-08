@@ -246,3 +246,7 @@ function) — 13 steps, 0 failures. The sentence is updated in the 32 seeded lan
 **00:25 ask, applied — resize from the upper-right:** the handle sits at the box's upper-right; a drag grows the box
 up and right and the bottom edge (the signature's baseline) never moves; − / + scale about the bottom-left corner
 for the same reason. Proof: 103×14 → 112×17 px with the bottom at 478 → 478. Two-phone 58/58, offline 13/13.
+
+**00:40 ask, applied — delete:** the selected box carries a red ✕ badge at its upper-left (44-px target) that removes
+it in one tap, and the toolbar's ✕ is now a labelled red "Delete". Proof: an accidental date deleted by the badge on
+both phones; 64/64.
