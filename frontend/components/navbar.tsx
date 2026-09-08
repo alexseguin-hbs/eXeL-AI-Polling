@@ -10,6 +10,7 @@ import { ModeratorSettings } from "@/components/moderator-settings";
 import { SoISection } from "@/components/soi-section";
 import { TokenHUD } from "@/components/token-hud";
 import { useLexicon } from "@/lib/lexicon-context";
+import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { useState, useEffect } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
@@ -270,11 +271,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                         onClick={() => setMenuOpen(false)}
                         className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
                       >
-                        <span className="shrink-0 font-mono text-[13px] leading-none tracking-wide" aria-hidden="true">
-                          <span className="text-cyan-400">&#9708;</span>{" "}
-                          <span className="text-pink-400">&#9825;</span>{" "}
-                          <span className="text-violet-400">&#50883;</span>
-                        </span>
+                        <TrinityGlyphs inline size="text-[13px]" className="shrink-0" />
                         {t("shared.nav.soi_session")}
                       </a>
                       <button

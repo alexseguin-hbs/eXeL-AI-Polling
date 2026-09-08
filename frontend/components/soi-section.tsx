@@ -14,6 +14,7 @@
  * selection cyan"). User-facing section labels flow through t() (Lexicon gate).
  */
 import { useEffect, useState } from "react";
+import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { SoITrinity } from "@/components/soi-trinity";
 import { useTheme } from "@/lib/theme-context";
@@ -46,7 +47,7 @@ export function SoISection() {
               The ◬ ♡ 웃 glyphs are universal symbols — kept literal. Sizes unchanged (S1 enlarged the
               RING glyphs only, not this header). */}
           <span>{t("shared.nav.soi_title")}</span>
-          <span className="font-normal text-muted-foreground">· <span className="text-3xl align-middle leading-none tracking-wide">◬ ♡ 웃</span> {t("soi.tricoin")}</span>
+          <span className="font-normal text-muted-foreground">· <TrinityGlyphs inline size="text-3xl" className="align-middle" /> {t("soi.tricoin")}</span>
         </CardTitle>
         <CardDescription>{tr(soi.thesis, DEFAULT_SOI.thesis, "soi.thesis")}</CardDescription>
       </CardHeader>

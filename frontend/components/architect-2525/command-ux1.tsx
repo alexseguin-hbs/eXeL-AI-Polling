@@ -10,6 +10,7 @@
  * Spec: docs/architecture-2525/MASTER_SPEC.md · "Innovation at the Speed of Thought".
  */
 import { useState, useEffect } from "react";
+import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, X, Gauge, LayoutDashboard, PencilRuler, Hammer, Boxes,
@@ -95,7 +96,7 @@ const resolveTab = (init: string): [string, string | undefined] => {
   const a = TAB_ALIAS[init]; return a ? [a[0], a[1]] : ["Overview", undefined];
 };
 
-function Tile({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
+function Tile({ label, value, sub, color }: { label: React.ReactNode; value: string; sub?: string; color?: string }) {
   return (
     <div className="rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
       <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>{label}</div>
@@ -327,7 +328,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               <Tile label="Project Cost" value={fmtUsd(econ.totalUsd)} sub={`${fmtUsd(econ.perMin)}/min`} color={C.text} />
               <Tile label="Time Donated" value={`${Math.round(donatedMin / 60)} h`} sub={`${econ.learningPoints} learning pts`} color={C.violet} />
               <Tile label="Time Capital" value={fmtUsd(econ.timeCapitalUsd)} sub="MoT × $/min" color={C.gold} />
-              <Tile label="◬ ♡ 웃" value={`${econ.trinity.unity} · ${econ.trinity.heart} · ${fmtUsd(econ.trinity.human)}`} sub="Trinity ledger" color={C.cyan} />
+              <Tile label={<TrinityGlyphs inline size="text-xs" />} value={`${econ.trinity.unity} · ${econ.trinity.heart} · ${fmtUsd(econ.trinity.human)}`} sub="Trinity ledger" color={C.cyan} />
               <Tile label="Fee" value={fmtUsd(econ.feeUsd)} sub="transparent · fair" color={C.green} />
               <Tile label="Model" value={designMetrics ? `${designMetrics.walls} walls` : "—"} sub={designMetrics ? `${designMetrics.studs} studs · ${designMetrics.linearFt} ft` : "open DESIGN"} color={C.cyan} />
             </div>

@@ -64,7 +64,7 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
           const inner = (
             <>
               <div className="flex items-center gap-2">
-                {d.key !== "session" && <span className="font-mono text-2xl" style={{ color: d.color }} aria-hidden="true">{d.glyph}</span>}
+                {d.key === "session" ? <TrinityGlyphs inline size="text-xl" /> : <span className="font-mono text-2xl" style={{ color: d.color }} aria-hidden="true">{d.glyph}</span>}
                 <span className="text-base font-semibold">{d.title}</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{d.desc}</p>

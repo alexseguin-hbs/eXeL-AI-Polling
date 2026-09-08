@@ -805,7 +805,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.landing.ring.session", englishDefault: "POD SESSION", context: "Landing: arc label on the top (♡) ring — uppercase, short", cubeId: 8 },
   { key: "soi.landing.ring.sign", englishDefault: "SIGN DOC", context: "Landing: arc label on the bottom-right (웃) ring — uppercase, short", cubeId: 8 },
   { key: "soi.landing.ring.create", englishDefault: "CREATE DOC", context: "Landing: arc label on the bottom-left (◬) ring — uppercase, short", cubeId: 8 },
-  { key: "soi.landing.btn.session", englishDefault: "◬ ♡ 웃 POD Session", context: "Landing: the Session door (card title and ring aria-label)", cubeId: 8 },
+  { key: "soi.landing.btn.session", englishDefault: "POD Session", context: "Landing: the Session door (card title and ring aria-label)", cubeId: 8 },
   { key: "soi.landing.btn.sign", englishDefault: "Sign Doc", context: "Landing: the Sign Doc door (card title and ring aria-label)", cubeId: 8 },
   { key: "soi.landing.btn.create", englishDefault: "Create Doc", context: "Landing: the Create Doc door (card title and ring aria-label)", cubeId: 8 },
   { key: "soi.landing.desc.session", englishDefault: "Three people, one task, one witnessed outcome — ♡ time, 웃 settlement, ◬ synthesis.", context: "Landing: one line under the Session door", cubeId: 8 },

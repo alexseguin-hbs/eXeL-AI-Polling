@@ -1098,7 +1098,7 @@ export default function SoISessionPage() {
       </section>
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
-        Prototype · {connected ? "live — one roster across the pod" : "local state"} · <span style={{ color: hue.bright }}>&#9708;</span> <span style={{ color: hue.bright }}>&#9825;</span> <span style={{ color: hue.bright }}>&#50883;</span> mint nothing new here — the pod is a gate on the
+        Prototype · {connected ? "live — one roster across the pod" : "local state"} · <TrinityGlyphs inline size="text-[11px]" /> mint nothing new here — the pod is a gate on the
         currencies that already exist. — MoT
       </p>
     </div>
