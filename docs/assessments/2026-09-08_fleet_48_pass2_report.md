@@ -1,6 +1,6 @@
 # Fleet pass 2 — 48-agent review of the Sign Doc backlog (2026-09-08 01:57–02:30 UTC), with today's dispositions
 
-Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the session limit (reset 04:10 UTC) stopped the rest; the 37 missing voters and MoTs are re-run after this ship (plan E). Every finding below carries what shipped today (commit after ddc5761) or what stays open. The 12 × 111 + 3 × 333 review of the plan that answered these is `2026-09-08_asm_plan_review_12x111_mot333.md`.
+Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the session limit (reset 04:10 UTC) stopped the rest; the 37 missing voters and MoTs are re-run after this ship (plan E). Every finding below carries what shipped today (d16ef66, then batches 1–2: 9161327, f6c9b2f) or what stays open. The 12 × 111 + 3 × 333 review of the plan that answered these is `2026-09-08_asm_plan_review_12x111_mot333.md`.
 
 ## Findings by specialist (severity · effort · disposition)
 
@@ -11,7 +11,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **medium · hour** · RTL never engaged on the Sign page: no dir anywhere, html lang fixed 'en', tracking-wide on Arabic, physical margins, unmirrored ‹ / ArrowRight / ← — `frontend/app/soi-session/sign/page.tsx:30`
   → FIXED in part — <html lang/dir> follow the Globe (lexicon-context); per-component mirroring open
 - **medium · hour** · Receipt shape still drifts across pod, Done panel and verifier (line 2 and line 3 disagree in content and glyph law) — `frontend/components/sign/sign-flow.tsx:580`
-  → OPEN (hour) — one SignReceipt component still owed
+  → FIXED (batch 2, f6c9b2f) — one SignReceipt for Done and Verify
 - **medium · hour** · Verifier prints raw issue codes ('images_vs_boxes, row_1_chain') instead of lexicon strings — `frontend/components/sign/verify-file.tsx:32`
   → FIXED — soi.sign.verify.issue.* (+ES), names from the row
 - **medium · minutes** · Diagnosis panel prints the raw key soi.sign.step.error on every error state — `frontend/components/sign/sign-diag.tsx:43`
@@ -21,9 +21,9 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **low · minutes** · Glyph law for the sign rail is undocumented and untyped, and ◬ now carries two meanings (record/chain AND the AI button) — `frontend/lib/sign-steps.ts:6`
   → FIXED — SignStep typed, glyph table, ✦ for AI
 - **low · hour** · Raw, untranslated error messages still reach the UI on the AI, open, save and mail paths — `frontend/components/sign/sign-flow.tsx:328`
-  → OPEN (hour) — codes map where keys exist; raw provider text still reaches the AI/open/save lines
+  → FIXED in part (batch 1) — the AI line is the lexicon sentence with the provider's words in brackets; open/save lines map every SignStoreError code, raw text only for unknown exceptions
 - **medium · hour** · Word-order and number-word concatenation cannot reorder or pluralise ('Waiting for NAME', 'Please sign: TITLE', '웃 1 signatures', 'N pages', 'Signer N') — `frontend/components/sign/handoff.tsx:34`
-  → OPEN (hour) — needs lexicon placeholders per language
+  → FIXED (batch 1, 9161327) — {name} / {n} placeholders; fill() never loses the value
 - **medium · minutes** · Stamped date follows the browser's locale, not the Globe's active language; the 24-hour link expiry uses the browser locale too — `frontend/components/sign/sign-flow.tsx:229`
   → FIXED — stamped date + link expiry follow activeLocale
 - **medium · hour** · Hand-off message, e-mail and link carry the sender's language; the server mail is English-only and the countersigner's first visit has no lang hint — `frontend/notify-core.js:29`
@@ -34,7 +34,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **medium · hour** · RTL never engaged anywhere: no dir attribute, physical-side classes, LTR-fixed arrows and globe; html lang hard-coded 'en' — `frontend/components/sign/sign-flow.tsx`
   → FIXED in part — <html lang/dir> follow the Globe (lexicon-context); per-component mirroring open
 - **medium · hour** · Receipt shape still drifts across pod, Done panel and verifier (three line-2 / line-3 forms, ♡ absent from the sign receipts) — `frontend/components/sign/sign-flow.tsx`
-  → OPEN (hour) — one SignReceipt component still owed
+  → FIXED (batch 2, f6c9b2f) — one SignReceipt for Done and Verify
 - **medium · hour** · Verifier prints raw issue codes, not lexicon strings — `frontend/components/sign/verify-file.tsx`
   → FIXED — soi.sign.verify.issue.* (+ES), names from the row
 - **medium · minutes** · Diagnosis panel prints the raw key `soi.sign.step.error` on every error state — `frontend/components/sign/sign-diag.tsx`
@@ -42,7 +42,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **medium · day** · 177 of 200 soi.sign.* keys are English-only in 31 languages (rail labels, every explainer, hand-off buttons); the parity gate pins 23 — `frontend/lib/lexicon-translations-sign.ts`
   → OPEN — see the item
 - **low · hour** · Word-order and number-word concatenations cannot reorder or pluralise — `frontend/components/sign/sign-flow.tsx`
-  → OPEN (hour) — needs lexicon placeholders per language
+  → FIXED (batch 1, 9161327) — {name} / {n} placeholders; fill() never loses the value
 - **low · minutes** · Two dates still follow the browser, not the lexicon: the stamped date's locale and the 24-hour link expiry — `frontend/components/sign/sign-flow.tsx`
   → OPEN — see the item
 - **low · hour** · Raw error messages reach the UI untranslated although lexicon keys exist for the codes — `frontend/components/sign/sign-flow.tsx`
@@ -102,7 +102,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **low · minutes** · Uploaded opaque PNG/JPEG still stamps as a white slab; upload path writes Light Codex pixels into the ink (pass-1, still true) — `frontend/components/sign/signature-pad.tsx:13-28 (trimToInk never clears background alpha), :97 (signedDataURL → lib/image-library.ts:88 placeSignature 1×1 double helix, framed rows top-left/bottom-right), :117 (accept image/jpeg)`
   → FIXED — near-white knocked out; uploads never pass the helix encoder
 - **low · hour** · Initials slots and hidden strip ignore /Rotate (pass-1, still true) — `frontend/lib/pdf-stamp.ts:241-258`
-  → OPEN (hour) — initials slots and the hidden strip on rotated pages
+  → FIXED (batch 2, f6c9b2f) — laid out in the displayed frame, mapped through /Rotate; test on a /Rotate 90 page
 
 ### Athena-2 — signature works today: yes
 
@@ -130,7 +130,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **high · minutes** · ship.sh (the manual wrangler door) still gates on test:innovation-time alone — red by construction, so the only way through is SKIP_TESTS=1, which runs nothing — `frontend/scripts/ship.sh:30-38`
   → FIXED — ship.sh gates on test:ci
 - **high · hour** · Cloudflare git build ships with no test at all — prebuild has no suite, and it is the door that actually promotes main today — `frontend/package.json:9`
-  → OPEN — Cloudflare git build still runs no suite (prebuild)
+  → FIXED (batch 1, 9161327) — prebuild runs test:build-gate (Sign Doc + core unit suites)
 - **medium · minutes** · Hosted Supabase 036 is still unmeasured — apply-migration.yml has never run and verify-live.yml has no RPC probe; every proof of the hand-off link ran over PGlite — `.github/workflows/apply-migration.yml:8 · .github/workflows/verify-live.yml:33-63 · frontend/scripts/sign-live-run.mjs:9-10,206`
   → OPEN — see the item
 - **medium · day** · Third signer, returning/early signer and the waiting screen remain unproven and partly unbuilt: the countersigner's hand-off has no recipient, 036 returns no next_contact, waiting never refreshes; no proof drives a third phone — `frontend/components/sign/sign-flow.tsx:322,166,572 · supabase/migrations/036_sign_envelopes.sql:257 · frontend/scripts/sign-live-run.mjs:1-7`
@@ -142,7 +142,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **medium · hour** · The Supabase branch of sign-store and the 036 SQL have no gated unit coverage (lockout, revoke, duplicate, wrong-secret paths) although a PGlite runner exists — `frontend/tests/sign-store.test.mjs:11 · frontend/scripts/local-rpc.mjs · supabase/migrations/036_sign_envelopes.sql:189-190,215-220`
   → OPEN — see the item
 - **low · hour** · Real-touch drag of a placed mark and a JPEG upload are still unproven in any run — `frontend/components/sign/pdf-page-view.tsx:95,126,130 · frontend/components/sign/signature-pad.tsx:97,117 · frontend/scripts/sign-live-run.mjs:58,136`
-  → OPEN — unproven in a run (mouse drags proven at 1× and 1.5×)
+  → FIXED (batch 1, 9161327) — a touch-pointer drag moves the box at zoom in the two-phone run
 - **low · minutes** · removeFile still does not clamp fileIdx; Clear after a draft resume is still ignored — `frontend/components/sign/sign-flow.tsx:202-206,479,516,519`
   → FIXED — fileIdx clamped; Clear after resume works
 
@@ -157,7 +157,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **high · minutes** · Receiving a partly-signed file by the 24-hour link puts the next signer on the CREATOR path, which demands the Auth0 login at Sign & save — the message promised 'No account' — `frontend/app/soi-session/sign/page.tsx:79`
   → FIXED in part — <html lang/dir> follow the Globe (lexicon-context); per-component mirroring open
 - **medium · hour** · Offline hand-off mints the 24-hour link for file 1 only; a multi-file envelope hands 1 of N files by link — `frontend/components/sign/sign-flow.tsx:311`
-  → OPEN (hour) — multi-file 24-hour link
+  → FIXED (batch 1, 9161327) — one link per file; the message carries them all
 - **medium · minutes** · Web Share is called only after async PDF parsing (signedName → codexRows), so on iOS Safari the share sheet can be refused for lost user activation; the real-phone share is unproven — `frontend/components/sign/sign-flow.tsx:348-352`
   → FIXED — signed name precomputed, share called synchronously
 - **medium · hour** · 'Why can't I sign?' sentence still ignores step and role: a waiting or not_party countersigner is told to Upload/Place; a failed-open signer is told to tap a Sign & save button that is not on the page — `frontend/components/sign/sign-diag.tsx:81-86`
@@ -221,7 +221,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **medium · hour** · Deleting a pre-placed placeholder and tapping a fresh box leaves the dotted placeholder printed on the final PDF (the fresh mark has no clear flag) — `frontend/components/sign/sign-flow.tsx:232 (removeSel) · frontend/components/sign/pdf-page-view.tsx:108 (fresh sig has no clear) · frontend/lib/pdf-stamp.ts:283 (dotted rectangle drawn into the page content)`
   → OPEN — see the item
 - **high · hour** · Vertical finger drag of a mark is still a browser pan, not a move (host touch-action pan-y, marks pointer-events-none, preventDefault only inside the document pointermove) — still no real-touch drag in any proof — `frontend/components/sign/pdf-page-view.tsx:126 (touchAction: pan-y), :130 (pointer-events-none), :95 (ev.preventDefault after the browser claimed the pan) · scripts/sign-live-run.mjs:143,148 (p.mouse drags only)`
-  → OPEN — unproven in a run (mouse drags proven at 1× and 1.5×)
+  → FIXED (batch 1, 9161327) — a touch-pointer drag moves the box at zoom in the two-phone run
 - **high · hour** · Host wider than the 640-px canvas (tablet/desktop under max-w-3xl): frac(), mark %, fitAt and onHandle use the host rect while the canvas is 640 px left-aligned — taps, fits, handles and stamps mis-scaled — `frontend/components/sign/pdf-page-view.tsx:53 (width = min(clientWidth, 640)), :60 (frac from host rect), :64 (onHandle from host rect), :126 (host w-full) · frontend/app/soi-session/sign/page.tsx:71 (max-w-3xl → ~736 px host)`
   → OPEN — see the item
 - **medium · hour** · Tilted scan: a tap at the LOW end of a drifting rule returns null (or a box the rule crosses) — lineY is the tapped row, the run's vertical envelope is not tracked, and the text scan at lineY−3 counts the rule's own higher pixels as text — `frontend/lib/sign-fit.ts:27-34 (runAt returns [x0,x1] only), :53 (lineY climbs from the tapped row), :58-62 (text scan from lineY−3 across the whole run), :64-65 (bottom = lineY−1; h<4 → null)`
