@@ -272,3 +272,10 @@ signatory rows stay in the keywords. Two-phone 64/64 · offline 13/13 · scan 8/
 - Proof: two-phone run — Daniel lands on the borrower line (x 0.500, same row as Alex), both signers' drawn initials
   on both pages, no placeholder text left; offline hand-off 13/13 (Daniel lands on the placeholders in the uploaded
   file); scan 8/8; pod 45/45; codex-pdf 17/17; sign-layout 7/7.
+
+**01:10 ask, applied — the file travels with the message:** mailto:/sms: links cannot attach a file; the phone's share
+sheet can. The offline hand-off has one action, "Send the file by text or e-mail" (📎), which hands the partly-signed
+PDF to Messages or Mail with the script as its text (Web Share with files, iOS 15+ / Android). Where no share sheet
+exists the file downloads and the composer opens with the script, and the page says so. DONE offers "Send the signed
+file" the same way. The script no longer says "attached" with nothing attached. Offline proof: the shared file is the
+one Daniel uploads — 13/13.

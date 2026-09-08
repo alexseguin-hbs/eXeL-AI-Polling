@@ -59,12 +59,16 @@ await A.getByRole('button', { name: /place your signature/ }).click();
 await placeDrawSign(A, 'alex', 0.28);
 await A.getByTestId('offline-handoff').waitFor({ timeout: 60000 });
 const off = await A.getByTestId('offline-handoff').innerText();
-step('alex', 'no link minted → the OFFLINE hand-off block: 036 named, hand the file over, sms/mail carry the script', /036/.test(off) && /Daniel Vail/.test(off) && (await A.getByRole('link', { name: /Send by text/ }).count()) === 1, off.replace(/\s+/g, ' ').slice(0, 120));
+step('alex', 'no link minted → the OFFLINE hand-off block: 036 named, hand the file over, one "Send the file" action', /036/.test(off) && /Daniel Vail/.test(off) && (await A.getByTestId('share-file').count()) === 1, off.replace(/\s+/g, ' ').slice(0, 120));
+// the file travels WITH the message (operator 01:10): the share sheet on a phone; here (no Web Share) the fallback —
+// the partly-signed PDF downloads and the composer opens with the script
+const [dlS] = await Promise.all([A.waitForEvent('download'), A.getByTestId('share-file').click()]);
+await A.getByTestId('share-fallback').waitFor({ timeout: 10000 });
+step('alex', 'Send the file: the partly-signed PDF is handed over with the message (share sheet on a phone; download + composer here)', /partly-signed\.pdf$/.test(dlS.suggestedFilename()), dlS.suggestedFilename());
 step('alex', 'explainer says: signed on this phone, download and send', /Download the partly-signed file/.test(await A.getByTestId('explain').innerText()));
 step('alex', 'the download is a Vision-2525 pill (↓, uppercase, rounded)', /↓/.test(await A.getByTestId('downloads-partly').innerText()) && /rounded-full/.test(await A.getByTestId('downloads-partly').locator('button').first().getAttribute('class')));
 await shot(A, 'alex', '1-offline-handoff');
-const [dl] = await Promise.all([A.waitForEvent('download'), A.getByTestId('downloads-partly').locator('button').first().click()]);
-const partly = path.join(OUT, 'partly-signed.pdf'); await dl.saveAs(partly);
+const partly = path.join(OUT, 'partly-signed.pdf'); await dlS.saveAs(partly);   // the very file the message carried
 const pb = new Uint8Array(fs.readFileSync(partly));
 step('alex', 'partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME', (await countSignatureImages(pb)) === 1 && (await codexRows(pb)).length === 1 && (await codexRows(pb))[0].name === 'Alex Seguin', JSON.stringify(await codexRows(pb)));
 

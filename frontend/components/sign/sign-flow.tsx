@@ -305,6 +305,20 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [png, initialsPng, allPlaced, files, marks, myName, countersign, pub, title, signers, token, secret, myIdx, t, requireLogin, auth.isAuthenticated, returnTo]);
 
+  // The phone's share sheet carries the FILE to Messages or Mail with the script as its text (operator 01:10:
+  // "should have attachment if emailed or texted"); mailto:/sms: never can. Without Web Share: download + composer.
+  const [shareState, setShareState] = useState<"" | "shared" | "fallback" | "failed">("");
+  const shareFiles = async (fs: { name: string; bytes: Uint8Array }[], final: boolean, text: string) => {
+    const files = fs.map((f) => new File([f.bytes as BlobPart], f.name.replace(/\.pdf$/i, "") + (final ? "-signed.pdf" : "-partly-signed.pdf"), { type: "application/pdf" }));
+    const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
+    if (nav.share && nav.canShare?.({ files })) {
+      try { await nav.share({ files, title: pub?.title ?? title, text }); setShareState("shared"); return; } catch (e) { if ((e as Error).name === "AbortError") return; setShareState("failed"); }
+    }
+    for (const f of fs) download(f, final);                     // no share sheet here: the file lands in Downloads, the composer opens with the script
+    setShareState("fallback");
+    const kind = contactKind(nextContact);
+    window.location.href = kind === "phone" ? `sms:${normalizeContact(nextContact)}?&body=${encodeURIComponent(text)}` : `mailto:${kind === "email" ? normalizeContact(nextContact) : ""}?subject=${encodeURIComponent(`${t("soi.sign.handoff.subject")} ${pub?.title ?? title}`)}&body=${encodeURIComponent(text)}`;
+  };
   const download = (f: { name: string; bytes: Uint8Array }, final = true) => {
     const url = URL.createObjectURL(new Blob([f.bytes as BlobPart], { type: "application/pdf" }));
     // A half-signed file is named as such, so two downloads never look alike (Christo, wave 1).
@@ -480,11 +494,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               <div className="text-sm font-medium text-amber-500">{t("soi.sign.handoff.offline_title")}</div>
               <p className="mt-1 text-xs text-muted-foreground">{t(`soi.sign.err.${offline || "no_backend"}`)}</p>
               <p className="mt-2 text-xs">{t("soi.sign.handoff.offline").replace("{next}", nextName || nextContact)}</p>
-              {(() => { const msg = handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); const kind = contactKind(nextContact); return (
+              {(() => { const msg = handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); return (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <a href={`sms:${kind === "phone" ? normalizeContact(nextContact) : ""}?&body=${encodeURIComponent(msg)}`} className="min-h-[44px] rounded-md border border-border px-4 py-2 text-sm"><span aria-hidden="true">💬 </span>{t("soi.sign.handoff.sms")}</a>
-                  <a href={`mailto:${kind === "email" ? normalizeContact(nextContact) : ""}?subject=${encodeURIComponent(`${t("soi.sign.handoff.subject")} ${pub?.title ?? title}`)}&body=${encodeURIComponent(msg)}`} className="min-h-[44px] rounded-md border border-border px-4 py-2 text-sm"><span aria-hidden="true">✉ </span>{t("soi.sign.handoff.mail")}</a>
+                  <button type="button" onClick={() => void shareFiles(signed, false, msg)} className="min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" data-testid="share-file"><span aria-hidden="true">📎 </span>{shareState === "shared" ? t("soi.sign.handoff.shared") : t("soi.sign.handoff.share_file")}</button>
                 </div>); })()}
+              {shareState === "fallback" && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="share-fallback">{t("soi.sign.handoff.share_fallback")}</p>}
+              {shareState === "failed" && <p className="mt-2 text-[11px] text-red-500">{t("soi.sign.handoff.share_failed")}</p>}
             </div>
           )}
           {holdersFor && <p className="mt-3 rounded-md border border-cyan-400/40 bg-cyan-400/5 p-2 text-xs" data-testid="holders-left">{t("soi.sign.holders").replace("{next}", holdersFor)}</p>}
@@ -518,7 +533,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
             </ol>
           </div>
           <Roster />
-          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name}</button>)}</div>
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name}</button>)}
+            <button type="button" onClick={() => void shareFiles(signed, true, `${t("soi.sign.complete")} ${pub?.title ?? title}`)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }} data-testid="share-signed"><span aria-hidden="true">📎</span> {t("soi.sign.handoff.share_signed")}</button></div>
           <div className="mt-4"><VerifyFile /></div>
         </div>
       )}
