@@ -174,6 +174,16 @@ const placeAndSign = async (p, who) => {
   await p.getByTestId('snap-line').click(); await p.waitForTimeout(200);
   const tb2 = await p.getByTestId('text-box').boundingBox();
   step(who, '⌖ snaps the moved date back onto its "Date:" line (bottom back on the rule, fit = underline)', Math.abs(tb1.y - tb0.y) > 6 && Math.abs((tb2.y + tb2.height) - (tb0.y + tb0.height)) < 3 && (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline', `bottom ${Math.round(tb0.y + tb0.height)} → moved ${Math.round(tb1.y + tb1.height)} → snapped ${Math.round(tb2.y + tb2.height)} px`);
+  // a FINGER drag (pointer events of type touch, as iOS sends them) moves the signature box too — the mouse path is not the only proven one
+  { const sb = await p.getByTestId('sig-box').boundingBox(); const y0 = sb.y;
+    await p.evaluate(([x, y]) => { const c = document.querySelector('[data-testid="pdf-page"] canvas'); const ev = (t, X, Y, el) => el.dispatchEvent(new PointerEvent(t, { bubbles: true, clientX: X, clientY: Y, pointerId: 7, pointerType: 'touch', isPrimary: true, button: 0, buttons: t === 'pointerup' ? 0 : 1 })); ev('pointerdown', x, y, c); ev('pointermove', x + 4, y - 5, document); ev('pointermove', x + 8, y - 12, document); ev('pointerup', x + 8, y - 12, document); }, [sb.x + sb.width * 0.3, sb.y + sb.height * 0.7]);
+    await p.waitForTimeout(250); const sb1 = await p.getByTestId('sig-box').boundingBox();
+    step(who, 'a finger drag (touch pointer) moves the signature box at zoom', sb1.y < y0 - 6 && Math.abs((sb1.y + sb1.height) - (y0 + sb.height) + 12) < 4, `top ${Math.round(y0)} → ${Math.round(sb1.y)} px`);
+    // ⌖ on the SIGNATURE box: back onto the rule it was fitted to (bottom where it was, fit = underline)
+    await p.getByTestId('snap-line').click(); await p.waitForTimeout(250); const sb2 = await p.getByTestId('sig-box').boundingBox();
+    step(who, '⌖ snaps the signature box back onto its rule', Math.abs((sb2.y + sb2.height) - (y0 + sb.height)) < 3 && (await p.getByTestId('sig-box').getAttribute('data-fit')) === 'underline', `bottom ${Math.round(y0 + sb.height)} → ${Math.round(sb1.y + sb1.height)} → ${Math.round(sb2.y + sb2.height)} px`);
+    // the snap refits the box to the rule's width — widen it again by the handle (the stamp geometry step expects Alex's wider than the rule)
+    const hh = await p.getByTestId('resize-handle').boundingBox(); await p.mouse.move(hh.x + hh.width / 2, hh.y + hh.height / 2); await p.mouse.down(); await p.mouse.move(hh.x + hh.width / 2 + 24, hh.y + hh.height / 2 - 6, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(150); }
   await p.getByTestId('zoom-reset').click(); await p.waitForTimeout(600);
   step(who, 'zoom reset returns the page to 100 %', Math.abs((await page.boundingBox()).width - w0) < 2 && (await p.getByTestId('zoom-reset').innerText()) === '100%');
   await p.getByTestId('to-draw').click();

@@ -43,6 +43,8 @@ async function pageBitmap(bytes: Uint8Array, n: number): Promise<Bitmap & { widt
 const CAPTION_PT = 12;
 /** The initials slot's own height as a page fraction (initialsSlotTop's hFrac default). */
 const SLOT_H_FRAC = 0.018;
+/** A lexicon string with its {placeholder} filled — and the value appended when a language's string forgot the placeholder, so nothing is ever lost. */
+const fill = (s: string, ph: string, v: string | number): string => (s.includes(`{${ph}}`) ? s.replace(`{${ph}}`, String(v)) : `${s} ${v}`);
 /** The rail step a flow state lights: an error keeps the LAST real step lit (reviewer 2026-09-08). */
 const railOf = (step: string): SignStep | null => step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" || step === "login" ? "sign" : step === "error" ? null : (step as SignStep);
 /** A date in the Globe's language, never the browser's (reviewer 2026-09-08); Latin digits: the PDF font has no others (fleet). */
@@ -99,7 +101,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const [png, setPng] = useState<string | null>(null);
   const [initialsPng, setInitialsPng] = useState<string | null>(null);   // the PHYSICAL initials, drawn once, stamped bottom-right of every page (operator 00:50)
   const [holdersFor, setHoldersFor] = useState("");                        // the next signer's name once placeholders were left for them
-  const [tmpLink, setTmpLink] = useState<TempLink | null>(null);           // the 24-hour file link, when the site has a store
+  const [tmpLinks, setTmpLinks] = useState<TempLink[]>([]);                // one 24-hour link PER FILE, when the site has a store (a multi-file envelope hands every file over)
+  const tmpLink = tmpLinks[0] ?? null;
   // AI placement (operator 01:25): OpenAI / Gemini / Grok through the Worker, keys never in the page; the pixel fit stays the fallback
   const [ai, setAi] = useState<AiConfigured>({ openai: false, gemini: false, grok: false });
   const [aiProvider, setAiProvider] = useState<AiProvider>("auto");
@@ -116,7 +119,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       const sig: Mark = { id: "sig", kind: "sig", page: viewedPage, x: b.x, y: b.y + b.h - Math.max(0.02, b.h), w: Math.max(0.08, b.w), h: Math.max(0.02, b.h), fit: "ai" as Mark["fit"] };   // a short box grows upward: the baseline stays
       const date: Mark[] = b.date ? [{ id: `t${Date.now().toString(36)}`, kind: "text", page: viewedPage, x: b.date.x, y: b.date.y, w: Math.max(0.05, b.date.w), h: Math.max(0.01, b.date.h), text: todayText(), fit: "ai" as Mark["fit"] }] : [];
       setMarks((m) => ({ ...m, [fileIdx]: [sig, ...date, ...(m[fileIdx] ?? []).filter((k) => k.kind === "text" && !date.length)] })); setSelected("sig"); setAiState("placed");
-    } catch (e) { setAiState("failed"); setErr(`${t("soi.sign.ai.title")}: ${String((e as Error).message ?? e)}`); }
+    } catch (e) { setAiState("failed"); const m = String((e as Error).message ?? e); setErr(`${t("soi.sign.ai.title")}: ${t("soi.sign.ai.failed")}${/\S/.test(m) ? ` (${m.slice(0, 80)})` : ""}`); }   // the sentence is the lexicon's; the provider's words follow in brackets, cut short
   };
   const [pub, setPub] = useState<PublicEnvelope | null>(null);
   const [nextLink, setNextLink] = useState("");
@@ -371,7 +374,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: meIdx, isoDate, chain: prevChain });
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
-        const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? `${t("soi.sign.signer")} ${i + 1}`;
+        const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? fill(t("soi.sign.signer_n"), "n", i + 1);
         // rows already in the file: a file carried by hand (offline hand-off) keeps its earlier signers by the NAME in
         // the keyword; this signer takes the next free row rather than overwriting one
         const total = Math.max(countersign ? (pub?.signers.length ?? 2) : signers.length, myRow + 1);
@@ -425,7 +428,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         try { created = await createEnvelope(env); }
         catch (ex) {
           // no link can be minted here — keep the envelope on this phone and hand the FILE over instead (operator 00:39)
-          if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); setTmpLink(stampedBytes[0] ? await putTempFile(stampedBytes[0].bytes, await signedName(stampedBytes[0], false)) : null); }
+          if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); setTmpLinks((await Promise.all(stampedBytes.map(async (f) => putTempFile(f.bytes, await signedName(f, false))))).filter((l): l is TempLink => !!l)); }
           // a retry after a half-landed save re-sent the same token (fleet, Krishna): mint a fresh one, once
           else if (ex instanceof SignStoreError && ex.code === "duplicate") { pendingToken.current = newToken(); const env2 = { ...env, token: pendingToken.current }; envRef.current = env2; created = await createEnvelope(env2); Object.assign(env, env2); }
           else throw ex;
@@ -500,7 +503,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       case "login": return t("soi.sign.x.login");
       case "handoff": return offline ? t("soi.sign.x.handoff_offline") : t("soi.sign.x.handoff");
       case "done": return t("soi.sign.x.done");
-      case "waiting": return `${t("soi.sign.turn_of")} ${pub?.signers[pub.current_signer_idx]?.name ?? "…"}`;
+      case "waiting": return fill(t("soi.sign.turn_of"), "name", pub?.signers[pub.current_signer_idx]?.name ?? "…");
       case "not_party": return t("soi.sign.not_party");
       case "loading": return t("soi.sign.loading");
       case "error": return err || t("soi.sign.x.error");
@@ -555,7 +558,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <ul className="mt-3 grid gap-1 text-sm" data-testid="file-list">
               {files.map((f, i) => (
                 <li key={i} className="flex items-center justify-between rounded border border-border px-2 py-1">
-                  <span>{f.name} <span className="text-xs text-muted-foreground">· {f.pages} {t("soi.sign.pages")} · #{shortHash(f.sha256)}</span></span>
+                  <span>{f.name} <span className="text-xs text-muted-foreground">· {fill(t("soi.sign.pages"), "n", f.pages)} · #{shortHash(f.sha256)}</span></span>
                   <button type="button" onClick={() => removeFile(i)} className="min-h-[44px] px-3 text-xs text-muted-foreground">✕</button>
                 </li>
               ))}
@@ -572,7 +575,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           {signers.map((s, i) => (
             <div key={i} className="mb-2 rounded-md border border-border p-3">
               <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-primary">
-                <span>{i === 0 ? t("soi.sign.me") : `${t("soi.sign.signer")} ${i + 1}`}</span>
+                <span>{i === 0 ? t("soi.sign.me") : fill(t("soi.sign.signer_n"), "n", i + 1)}</span>
                 {i > 0 && <button type="button" onClick={() => setSigners((x) => x.filter((_, j) => j !== i))} className="min-h-[36px] px-2 text-muted-foreground" aria-label={t("soi.sign.remove_signer")}>✕</button>}
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -668,10 +671,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
                 <div className="mt-3 rounded-md border border-border bg-background p-2" data-testid="tmp-link">
                   <div className="font-medium text-foreground">{t("soi.sign.tmp.title")}</div>
                   <p className="text-muted-foreground">{t("soi.sign.tmp.hint").replace("{expires}", dateIn(activeLocale, new Date(tmpLink.expires), { dateStyle: "medium", timeStyle: "short" }, true))}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2"><code className="break-all text-[11px]" data-testid="tmp-url">{tmpLink.url}</code><button type="button" onClick={() => { try { void navigator.clipboard.writeText(tmpLink.url); } catch { /* no clipboard */ } }} className="min-h-[36px] rounded-md border border-border px-3">{t("soi.sign.handoff.copy")}</button></div>
+                  {tmpLinks.map((l, i) => (
+                    <div key={l.url} className="mt-1 flex flex-wrap items-center gap-2">{tmpLinks.length > 1 && <span className="text-[11px] text-muted-foreground">{signed[i]?.name ?? i + 1}</span>}<code className="break-all text-[11px]" data-testid={i === 0 ? "tmp-url" : `tmp-url-${i + 1}`}>{l.url}</code><button type="button" onClick={() => { try { void navigator.clipboard.writeText(l.url); } catch { /* no clipboard */ } }} className="min-h-[36px] rounded-md border border-border px-3">{t("soi.sign.handoff.copy")}</button></div>
+                  ))}
                 </div>
               )}
-              {(() => { const msg = tmpLink ? handoffMessage(myName, pub?.title ?? title, tmpLink.url, t("soi.sign.handoff.offline_link_template")) : handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); return (
+              {(() => { const msg = tmpLink ? handoffMessage(myName, pub?.title ?? title, tmpLinks.map((l) => l.url).join("\n"), t("soi.sign.handoff.offline_link_template")) : handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); return (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button type="button" onClick={() => void shareFiles(signed, false, msg)} className="min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" data-testid="share-file"><span aria-hidden="true">📎 </span>{shareState === "shared" ? t("soi.sign.handoff.shared") : t("soi.sign.handoff.share_file")}</button>
                 </div>); })()}
@@ -706,7 +711,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <ol className="mt-2 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
               <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {signed.map((f) => f.name).join(" · ")}</li>
               <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {(pub?.signers ?? []).map((s) => `${s.name}${s.signed_at ? " ✓" : " ✗"}`).join(" · ")}</li>
-              <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {(pub?.signers ?? []).length} {t("soi.sign.signatures")} · ◬ {t("soi.sign.chain")} <code>{pub?.chain ? shortHash(pub.chain) : "—"}</code></li>
+              <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {fill(t("soi.sign.signatures"), "n", (pub?.signers ?? []).length)} · ◬ {t("soi.sign.chain")} <code>{pub?.chain ? shortHash(pub.chain) : "—"}</code></li>
             </ol>
           </div>
           <Roster />

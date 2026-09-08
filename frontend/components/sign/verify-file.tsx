@@ -50,7 +50,7 @@ export function VerifyFile() {
             <ol className="mt-1 grid gap-1">
               <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {r.name} · #{shortHash(r.sha256)}</li>
               <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {r.rows.map((x) => `${signerName(x as { rowIndex: number; name?: string })} · ${cacStamp(x.isoDate)}`).join(" · ")}</li>
-              <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {r.images} {t("soi.sign.signatures")} · ◬ {t("soi.sign.chain")} <code>{r.chain ? shortHash(r.chain) : "—"}</code></li>
+              <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {(t("soi.sign.signatures").includes("{n}") ? t("soi.sign.signatures").replace("{n}", String(r.images)) : `${r.images} ${t("soi.sign.signatures")}`)} · ◬ {t("soi.sign.chain")} <code>{r.chain ? shortHash(r.chain) : "—"}</code></li>
             </ol>
           )}
         </div>

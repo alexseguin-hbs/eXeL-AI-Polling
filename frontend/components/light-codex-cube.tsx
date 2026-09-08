@@ -153,10 +153,10 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
           <div className="rounded-md border border-border p-2 text-primary"><ScanLine className="h-4 w-4" /></div>
           <div>
             <h2 className="text-lg font-semibold">Light Codex</h2>
-            <p className="text-[11px] text-muted-foreground">Transmit short messages in plain sight — inside a shared image</p>
+            <p className="text-[11px] text-muted-foreground">{t("soi.codex.subtitle")}</p>
           </div>
         </div>
-        <button onClick={onClose} aria-label="Close" className="rounded-md p-2 hover:bg-accent/50"><X className="h-5 w-5" /></button>
+        <button onClick={onClose} aria-label={t("soi.codex.close")} className="rounded-md p-2 hover:bg-accent/50"><X className="h-5 w-5" /></button>
       </div>
 
       {/* Mode tabs */}
@@ -181,9 +181,9 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
           <div className="mx-auto max-w-lg space-y-4">
             {/* Signature */}
             <div>
-              <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Digital signature / message</label>
+              <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">{t("soi.codex.message_label")}</label>
               <input value={signature} onChange={(e) => setSignature(e.target.value)}
-                placeholder="Enter message here"
+                placeholder={t("soi.codex.message_placeholder")}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
               <p className="mt-1 text-[10px] text-muted-foreground">{t("soi.codex.chars")} {Object.keys(ALPHA).filter((c) => c.length === 1 && !/[A-Z]/.test(c)).map((c) => (c === " " ? "␣" : c)).join(" ")} · {signature.length} chars.</p>
               {bad.length > 0 && (
@@ -193,7 +193,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
 
             {/* Style */}
             <div>
-              <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Signature type</label>
+              <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">{t("soi.codex.type_label")}</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {(["1", "2", "3"] as Style[]).map((s) => (
                   <button key={s} onClick={() => setStyle(s)}
@@ -227,7 +227,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
             {/* Image picker */}
             <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-6 text-sm text-muted-foreground hover:bg-accent/30">
               <Upload className="h-5 w-5" />
-              {srcName ? <span className="text-foreground">{srcName} — {srcData?.width}×{srcData?.height}</span> : <span>Choose an image (PNG recommended)</span>}
+              {srcName ? <span className="text-foreground">{srcName} — {srcData?.width}×{srcData?.height}</span> : <span>{t("soi.codex.choose_image")}</span>}
               <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) loadSource(f); }} />
             </label>
 
@@ -241,7 +241,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
                 ◫ Add to SoI-2525 CONOPS library
               </button>
             )}
-            <p className="text-center text-[10px] text-muted-foreground/70">Keep it PNG — JPEG shifts colors and breaks decoding.</p>
+            <p className="text-center text-[10px] text-muted-foreground/70">{t("soi.codex.keep_png")}</p>
             <div ref={previewRef} className="flex justify-center" />
           </div>
         ) : (
@@ -281,11 +281,11 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
                   {decoded.style} · {decoded.blockSize}×{decoded.blockSize}
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Message</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("soi.codex.message")}</div>
                   <div className="mt-0.5 break-words font-mono text-lg text-foreground">{decoded.messageForward}</div>
                 </div>
                 <div className="border-t border-border/50 pt-2">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Reverse verification</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("soi.codex.reverse")}</div>
                   <div className="mt-0.5 break-words font-mono text-xs text-muted-foreground">{decoded.messageReverseVerify}</div>
                 </div>
               </div>
@@ -300,6 +300,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
 // ─── Gated Settings row (only visible once the Easter-egg is unlocked) ─────────
 export function LightCodexSettingsRow() {
   const { easterEggUnlocked } = useEasterEgg();
+  const { t } = useLexicon();
   const [open, setOpen] = useState(false);
   if (!easterEggUnlocked) return null;
 
@@ -313,7 +314,7 @@ export function LightCodexSettingsRow() {
           <ScanLine className="h-5 w-5 shrink-0 text-primary" />
           <div className="text-sm font-semibold text-foreground">Light Codex</div>
         </div>
-        <span className="text-xs text-muted-foreground">Unlocked</span>
+        <span className="text-xs text-muted-foreground">{t("soi.codex.unlocked")}</span>
       </button>
       {open && typeof document !== "undefined" &&
         createPortal(<LightCodexCube onClose={() => setOpen(false)} />, document.body)}
