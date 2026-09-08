@@ -19,8 +19,8 @@ import { ArrowRight } from "lucide-react";
 import { SIGN_STEPS, CREATOR_STEPS, COUNTERSIGN_STEPS } from "@/lib/sign-steps";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
-import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
-import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope } from "@/lib/sign-store";
+import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
+import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
 import { stampSignature, stampText, stampCodexBlock, codexRows, pageCount, type StampBox } from "@/lib/pdf-stamp";
 import { codexText, codexAllText, codexImage } from "@/lib/codex-strip";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
@@ -74,6 +74,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const fitRef = useRef<FitAt | null>(null);                    // the page view's pixel fit, for + Date / + Text
   const [localFallback, setLocalFallback] = useState(false);
   const mode = localFallback ? "local" : storeMode();
+  // the offline hand-off: no link could be minted (no Supabase / no 036) — the partly-signed file travels by hand
+  const [offline, setOffline] = useState<"" | "no_backend" | "no_migration">("");
   // Outside an Auth0Provider this is the library's inert default context — it is only ACTED on when requireLogin.
   const auth = useAuth0();
   const loggedIn = !!requireLogin && auth.isAuthenticated;
@@ -205,10 +207,14 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: myIdx, isoDate, chain: prevChain });
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
-        const total = countersign ? (pub?.signers.length ?? 2) : signers.length;
         const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? `Signer ${i + 1}`;
-        const earlier = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0 && r.rowIndex !== myIdx).map((r) => ({ ...r, name: nameOf(r.rowIndex), codex: codexImage(codexText(nameOf(r.rowIndex), r.isoDate)) }));
-        const allRows = [...earlier, { rowIndex: myIdx, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), codex: codexImage(codexText(myName, isoDate)) }].sort((a, b) => a.rowIndex - b.rowIndex);
+        // rows already in the file: a file carried by hand (offline hand-off) keeps its earlier signers by the NAME in
+        // the keyword; this signer takes the next free row rather than overwriting one
+        const recorded = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0);
+        const myRow = countersign || !recorded.some((r) => r.rowIndex === myIdx) ? myIdx : Math.max(...recorded.map((r) => r.rowIndex)) + 1;
+        const total = Math.max(countersign ? (pub?.signers.length ?? 2) : signers.length, myRow + 1);
+        const earlier = recorded.filter((r) => r.rowIndex !== myRow).map((r) => { const name = r.name || nameOf(r.rowIndex); return { ...r, name, codex: codexImage(codexText(name, r.isoDate)) }; });
+        const allRows = [...earlier, { rowIndex: myRow, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), codex: codexImage(codexText(myName, isoDate)) }].sort((a, b) => a.rowIndex - b.rowIndex);
         // one Light Codex strip with EVERY signatory so far (operator 23:15) — unlockable by uploading the PDF to Light Codex
         out = await stampCodexBlock(out, { total, rows: allRows, all: codexImage(codexAllText(allRows)) });
         const sha = await sha256Hex(out);
@@ -221,7 +227,13 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         const env = { ...newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) }), token: pendingToken.current };
         envRef.current = env;
         stage = "create";
-        const created = await createEnvelope(env);
+        let created: { token: string; mode: StoreMode };
+        try { created = await createEnvelope(env); }
+        catch (ex) {
+          // no link can be minted here — keep the envelope on this phone and hand the FILE over instead (operator 00:39)
+          if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); }
+          else throw ex;
+        }
         if (created.mode === "local") setLocalFallback(true);
         const next = applySignature(env, 0, env.signers[0].secret, isoDate, stamped, chain);
         envRef.current = next;
@@ -237,7 +249,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       const nxt = result.signers[result.current_signer_idx];
       const nextSecret = result.next_secret ?? (envRef.current?.signers[result.current_signer_idx]?.secret ?? "");
       setNextName(nxt?.name ?? ""); setNextContact(countersign ? "" : signers[result.current_signer_idx]?.contact ?? "");
-      setNextLink(signLink(window.location.origin, result.token, nextSecret));
+      setNextLink(result.mode === "local" && multi ? "" : signLink(window.location.origin, result.token, nextSecret));   // a device-local link opens nowhere else
       setMyLink(signLink(window.location.origin, result.token, countersign ? secret! : envRef.current?.signers[0]?.secret ?? ""));
       setStep("handoff");
     } catch (ex) {
@@ -269,7 +281,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       case "draw": return png ? t("soi.sign.x.drawn") : t("soi.sign.x.draw");
       case "saving": return t("soi.sign.saving");
       case "login": return t("soi.sign.x.login");
-      case "handoff": return t("soi.sign.x.handoff");
+      case "handoff": return offline ? t("soi.sign.x.handoff_offline") : t("soi.sign.x.handoff");
       case "done": return t("soi.sign.x.done");
       case "waiting": return `${t("soi.sign.turn_of")} ${pub?.signers[pub.current_signer_idx]?.name ?? "…"}`;
       case "not_party": return t("soi.sign.not_party");
@@ -414,7 +426,18 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       {step === "handoff" && (
         <div>
           <Roster />
-          <div className="mt-3"><Handoff link={nextLink} sender={myName} title={pub?.title ?? title} nextName={nextName} nextContact={nextContact} /></div>
+          {nextLink ? <div className="mt-3"><Handoff link={nextLink} sender={myName} title={pub?.title ?? title} nextName={nextName} nextContact={nextContact} /></div> : (
+            <div className="mt-3 rounded-lg border border-amber-500/50 bg-amber-500/5 p-4" data-testid="offline-handoff">
+              <div className="text-sm font-medium text-amber-500">{t("soi.sign.handoff.offline_title")}</div>
+              <p className="mt-1 text-xs text-muted-foreground">{t(`soi.sign.err.${offline || "no_backend"}`)}</p>
+              <p className="mt-2 text-xs">{t("soi.sign.handoff.offline").replace("{next}", nextName || nextContact)}</p>
+              {(() => { const msg = handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); const kind = contactKind(nextContact); return (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <a href={`sms:${kind === "phone" ? normalizeContact(nextContact) : ""}?&body=${encodeURIComponent(msg)}`} className="min-h-[44px] rounded-md border border-border px-4 py-2 text-sm"><span aria-hidden="true">💬 </span>{t("soi.sign.handoff.sms")}</a>
+                  <a href={`mailto:${kind === "email" ? normalizeContact(nextContact) : ""}?subject=${encodeURIComponent(`${t("soi.sign.handoff.subject")} ${pub?.title ?? title}`)}&body=${encodeURIComponent(msg)}`} className="min-h-[44px] rounded-md border border-border px-4 py-2 text-sm"><span aria-hidden="true">✉ </span>{t("soi.sign.handoff.mail")}</a>
+                </div>); })()}
+            </div>
+          )}
           {myLink && (
             <div className="mt-3 rounded-lg border border-border p-3 text-xs" data-testid="my-link">
               <div className="font-medium">{t("soi.sign.mylink.title")}</div>
@@ -425,7 +448,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               </div>
             </div>
           )}
-          <div className="mt-3 flex flex-wrap gap-2">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f, false)} className="min-h-[44px] rounded-md border border-border px-3 text-sm">⤓ {f.name} · {t("soi.sign.partly")}</button>)}</div>
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads-partly">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f, false)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name} · {t("soi.sign.partly")}</button>)}</div>
         </div>
       )}
 
@@ -445,7 +468,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
             </ol>
           </div>
           <Roster />
-          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="min-h-[44px] rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">⤓ {t("soi.sign.download")} {f.name}</button>)}</div>
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name}</button>)}</div>
           <div className="mt-4"><VerifyFile /></div>
         </div>
       )}

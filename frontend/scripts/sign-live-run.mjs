@@ -224,7 +224,7 @@ const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one p
 // SHOW the result: the signed page, the signature rows and the signatory block rendered to PNG (pdfjs in Chromium)
 const render = (name, env) => { execFileSync('node', ['scripts/render-pdf-page.mjs'], { env: { ...process.env, PDF: file, OUT: path.join(OUT, name), ...env }, stdio: 'pipe' }); return fs.existsSync(path.join(OUT, name)) && fs.statSync(path.join(OUT, name)).size > 5000; };
 const pg = String(boxes[0]?.page ?? 2);
-step('dan', 'signed page rendered to PNG (whole page · signature rows · signatory block)', render('signed-page.png', { PAGE: pg, SCALE: '1.4' }) && render('signed-block.png', { PAGE: pg, SCALE: '3', CROP: `0.08,${(expect[0].y - 0.045).toFixed(3)},0.84,0.10` }) && render('signed-codex.png', { PAGE: pg, SCALE: '3', CROP: '0.46,0.895,0.52,0.09' }));
+step('dan', 'signed page rendered to PNG (whole page · signature rows · signatory block)', render('signed-page.png', { PAGE: pg, SCALE: '1.4' }) && render('signed-block.png', { PAGE: pg, SCALE: '3', CROP: `0.08,${(expect[0].y - 0.045).toFixed(3)},0.84,0.10` }) && render('signed-codex.png', { PAGE: pg, SCALE: '3', CROP: '0.46,0.895,0.54,0.105' }));
 const rows = await codexRows(bytes); step('dan', 'signatory block: two CAC-style timestamp rows, bottom-right of the last page', rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows.every((r) => /^\d{4}-\d{2}-\d{2}T/.test(r.isoDate)), JSON.stringify(rows.map((r) => [r.rowIndex, r.isoDate, r.hash])));
 // offline verify (Pangu): the DONE block reads the downloaded file back — green; the unsigned fixture — "no signatures"
 await D.getByTestId('verify-input').setInputFiles(file); await D.getByTestId('verify-result').waitFor({ timeout: 30000 });
@@ -238,7 +238,7 @@ step('dan', 'Light Codex from the PDF: row strips decode to ALEX SEGUIN / DANIEL
 step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
 const pagesWithCodex = [...new Set(codex.map((c) => c.page))].sort();
 step('dan', 'the 2×2 Light Codex block is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length * 3, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
-step('dan', 'page 1 signatory block rendered to PNG', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.895,0.52,0.09' }));
+step('dan', 'page 1 signatory block rendered to PNG', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.895,0.54,0.105' }));
 await D.getByTestId('verify-input').setInputFiles(FIXTURE); await D.waitForFunction(() => document.querySelector('[data-testid="verify-result"]')?.getAttribute('data-ok') === '0', null, { timeout: 30000 });
 step('dan', 'verify-a-signed-file: the unsigned fixture reads "no signatures"', /No eXeL signatures/.test(await vr.innerText()));
 await shot(D, 'dan', '6b-verify');

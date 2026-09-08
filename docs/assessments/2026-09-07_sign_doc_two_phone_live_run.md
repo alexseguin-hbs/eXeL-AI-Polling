@@ -212,3 +212,21 @@ Codex page groups the same strip across pages ("p.1, 2"); `signed-codex-p1.png` 
 single line. The ALL strip runs along the block's foot, blocks kept near-square; each row's strip is a 30-pt
 line beside its timestamp. Decoder unchanged (Single Helix is detected by the bottom-right frame). 57/57;
 codex-pdf 11/11.
+
+## Wave 8 — the live test round (operator, 18:34–18:43 CST, on 94e63b5)
+
+Six asks, all applied; proofs: two-phone 57/57 · **offline hand-off 12/12 (new)** · scan 8/8 · pod 45/45.
+
+- **Download without Supabase.** On the live site two signers were named, the create was refused (036 missing)
+  and nothing was saved — so nothing to download. Now the refusal is BY NAME (`no_migration` when Supabase
+  answers but 036 is missing; `no_backend` when there is no Supabase) and the envelope stays on the phone: the
+  partly-signed PDF is offered for download with a file-hand-over script (💬 / ✉), the next signer uploads that
+  FILE, signs alone, and the final PDF carries both signatures, both digital lines, both names in the signatory
+  block (the keyword now carries the name) and in the Light Codex ALL strip. `scripts/sign-offline-run.mjs`
+  blocks the create RPC with PostgREST's "function not found" — the hosted site's exact answer — and walks it.
+- **Vision 2525's download pill** (↓, uppercase, rounded, the theme hue) on every download.
+- **The date auto-fits its box** in the preview (container-query font size), as the stamp already did.
+- **Glyph heights measured, not eyeballed:** ◬ ♡ 웃 ink was 21.5 / 21.5 / 27.5 px at different tops; now
+  24 / 23.75 / 23.75 px, all at one top edge (scratch `glyph-measure.mjs`, 4× screenshot, hue-classified pixels).
+- **No glyphs inside the rings** on the landing.
+- **Light Codex ALL strip at the very bottom-right of every page** (4 pt from the edges), below the block.

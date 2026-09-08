@@ -51,7 +51,7 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
           color={hue.bright}
           textColor={hue.ink}
           fontSize={10}
-          centerGlyphs={["", "◬", "웃"]}
+          centerGlyphs={["", "", ""]}
           onRingClick={onRing}
           ringAriaLabels={[t("soi.landing.btn.session"), t("soi.landing.btn.create"), t("soi.landing.btn.sign")]}
         />

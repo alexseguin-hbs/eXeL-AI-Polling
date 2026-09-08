@@ -126,9 +126,9 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
           const sel = m.id === selectedId;
           return (
             <div key={m.id} className={`pointer-events-none absolute rounded ${sel ? "border-[3px] border-cyan-400 shadow-[0_0_0_2px_rgba(0,0,0,.35)]" : "border-2 border-cyan-500/50"} ${m.kind === "sig" ? (sel ? "bg-cyan-400/15" : "border-dashed bg-cyan-400/10") : (sel ? "bg-amber-300/20" : "border-dotted bg-amber-300/10")}`}
-              style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%` }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
+              style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size" }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className={`h-full w-full object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
-              {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "min(14px, 100%)", lineHeight: 1.2 }}>{m.text}</span>}
+              {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "72cqh", lineHeight: 1.35 }}>{m.text}</span>}
               {sel && !readOnly && <span className="absolute -bottom-2.5 -right-2.5 h-6 w-6 rounded-md border-2 border-white bg-cyan-500 shadow" aria-hidden="true" data-testid="resize-handle" />}
             </div>
           );

@@ -54,25 +54,28 @@ const rpcError = (e: unknown): never => {
   if (e instanceof SignStoreError) throw e;
   if (isMissingRpc(e)) throw new SignStoreError("no_backend", "This site has not applied migration 036 yet.");
   const m = (e as { message?: string })?.message ?? String(e);
-  const code = /timeout|not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
+  const code = /timeout|no_migration|not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
   throw new SignStoreError(code, m);
 };
 
 /** Persist a fresh envelope. Multi-signer requires Supabase; single-signer may stay on this device. */
-export async function createEnvelope(env: Envelope): Promise<{ token: string; mode: StoreMode }> {
-  const local = () => {
-    if (env.signers.length > 1) throw new SignStoreError("no_backend", "This site cannot mint a hand-off link yet (no backend, or migration 036 not applied).");
+export async function createEnvelope(env: Envelope, opts: { localMulti?: boolean } = {}): Promise<{ token: string; mode: StoreMode }> {
+  // Without a shared store a multi-signer envelope refuses BY NAME (no_backend: no Supabase on the build;
+  // no_migration: Supabase answers but 036 is missing) — unless the caller asks for the offline path
+  // (localMulti): the envelope lives on this device, the partly-signed file travels by hand (operator 00:39).
+  const local = (why: "no_backend" | "no_migration") => {
+    if (env.signers.length > 1 && !opts.localMulti) throw new SignStoreError(why, why === "no_migration" ? "This site has not applied migration 036 yet." : "No Supabase on this build.");
     localStorage.setItem(LOCAL_KEY(env.token), JSON.stringify(env));
     return { token: env.token, mode: "local" as StoreMode };
   };
-  if (!supabase) return local();
+  if (!supabase) return local("no_backend");
   const { data, error } = await withTimeout(supabase.rpc("sign_envelope_create", {
     p_token: env.token, p_title: env.title, p_created_by: env.created_by,
     p_signers: env.signers.map((s, i) => ({ name: s.name, contact: s.contact, secret: i === 0 ? s.secret : undefined })),
     p_files: env.files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
     p_expires_at: env.expires_at ?? null,
   }));
-  if (error) { if (isMissingRpc(error)) return local(); rpcError(error); }   // one signer signs alone even before 036
+  if (error) { if (isMissingRpc(error)) return local("no_migration"); rpcError(error); }   // one signer signs alone even before 036
   return { token: (data as { token: string }).token, mode: "supabase" };
 }
 

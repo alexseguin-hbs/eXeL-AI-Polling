@@ -178,19 +178,20 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
   const font = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const prev = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:"));
   for (const page of doc.getPages()) drawCodexBlock(doc, page, e, font, bold);
-  for (const r of e.rows) { const kw = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`; if (!prev.includes(kw)) addKeyword(doc, kw); }   // a redrawn earlier row is not a new record
+  for (const r of e.rows) { const base = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`; if (!prev.some((k) => k.startsWith(base))) addKeyword(doc, `${base}:n${b64u(r.name)}`); }   // a redrawn earlier row is not a new record; the name rides along
   return doc.save({ useObjectStreams: false });
 }
 function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PDFFont, bold: PDFFont): void {
   const { width } = page.getSize();
   const rows = Math.max(2, e.total, ...e.rows.map((r) => r.rowIndex + 1));   // "2×2": two rows minimum, name | timestamp
-  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), footH = e.all ? 8 : 0, blockH = rows * rowH + 22 + footH;
+  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), footH = 0, blockH = rows * rowH + 22;
   const bx = width - blockW - 18, by = 18;                 // bottom-right, inside a half-inch margin
   page.drawRectangle({ x: bx, y: by, width: blockW, height: blockH, borderColor: rgb(0.1, 0.25, 0.45), borderWidth: 0.8, color: rgb(1, 1, 1), opacity: 1 });
   page.drawText("Signatories — digital timestamps", { x: bx + pad, y: by + blockH - 12, size: 7.5, font: bold, color: rgb(0.1, 0.25, 0.45) });
   page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 + footH }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
   // the ALL strip: every signatory so far in one Light Codex line along the block's foot — readable back from the PDF
-  if (e.all) { const w = blockW - pad * 2; embedCodexImage(doc, page, "SoICodexAll", e.all, bx + pad, by + 3, w, Math.max(1.2, (w * e.all.height) / e.all.width) * 2); }   // one line; blocks kept near-square
+  // the ALL strip at the VERY bottom-right of the page (operator 23:55) — one line, below the block, 4 pt from the edges
+  if (e.all) { const w = blockW; embedCodexImage(doc, page, "SoICodexAll", e.all, width - w - 4, 4, w, Math.max(1.2, (w * e.all.height) / e.all.width) * 2); }
   const nameW = blockW * 0.42 - pad * 2;
   for (const r of e.rows) {
     const y = by + blockH - 16 - rowH * (r.rowIndex + 1) + 4;
@@ -204,11 +205,13 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PD
   }
 }
 
-/** The signatory rows recorded in the file, from the keywords. */
-export async function codexRows(pdf: Uint8Array): Promise<{ rowIndex: number; isoDate: string; hash: string }[]> {
+/** The signatory rows recorded in the file, from the keywords (name when the file carries it — since 2026-09-08). */
+export async function codexRows(pdf: Uint8Array): Promise<{ rowIndex: number; isoDate: string; hash: string; name?: string }[]> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
   return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:")).map((k) => {
-    const m = /^SoICodex:(\d+):(.+):([0-9a-f]+)$/.exec(k);
-    return m ? { rowIndex: Number(m[1]), isoDate: m[2], hash: m[3] } : { rowIndex: -1, isoDate: "", hash: "" };
+    const m = /^SoICodex:(\d+):(.+?):([0-9a-f]+)(?::n([A-Za-z0-9_-]*))?$/.exec(k);   // the ISO time itself holds colons
+    return m ? { rowIndex: Number(m[1]), isoDate: m[2], hash: m[3], ...(m[4] !== undefined ? { name: b64uDecode(m[4]) } : {}) } : { rowIndex: -1, isoDate: "", hash: "" };
   });
 }
+const b64u = (s: string): string => (typeof btoa === "function" ? btoa(unescape(encodeURIComponent(s))) : Buffer.from(s, "utf8").toString("base64")).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const b64uDecode = (s: string): string => { try { const b = s.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (s.length % 4)) % 4); return typeof atob === "function" ? decodeURIComponent(escape(atob(b))) : Buffer.from(b, "base64").toString("utf8"); } catch { return ""; } };

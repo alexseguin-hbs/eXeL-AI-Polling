@@ -13,6 +13,8 @@ export interface VerifyReport {
   passes: { token: string; chain: string }[];
   /** chainHash(chain before the last pass, [this file's sha]) — equals the receipt's chain for a one-file envelope */
   chain: string;
+  /** distinct envelope tokens across the passes — 2+ means an offline hand-off (file carried by hand) */
+  envelopes: number;
   issues: string[];
   ok: boolean;
 }
@@ -25,12 +27,13 @@ export async function verifySignedPdf(name: string, bytes: Uint8Array): Promise<
   if (passes.length !== images) issues.push("passes_vs_signatures");
   if (rows.length !== images) issues.push("rows_vs_signatures");
   if (rows.some((r) => r.rowIndex < 0 || !/^\d{4}-\d{2}-\d{2}T/.test(r.isoDate))) issues.push("row_malformed");
-  if (passes.length > 1 && new Set(passes.map((p) => p.token)).size !== 1) issues.push("tokens_differ");
+  const envelopes = new Set(passes.map((p) => p.token)).size;   // > 1: a partly-signed file carried by hand and re-uploaded (offline hand-off) — a fact, not a fault
   // pass k (k ≥ 1) was signed over the chain after pass k-1; its row's hash is that chain's short form
   for (let k = 1; k < passes.length; k++) {
     const r = rows.find((x) => x.rowIndex === k);
-    if (r && r.hash !== shortHash(passes[k].chain)) issues.push(`row_${k}_chain`);
+    const genesis = !passes[k].chain || passes[k].chain === "genesis";   // a hand-carried file re-uploaded: a new envelope's first pass has no chain to carry
+    if (r && !genesis && r.hash !== shortHash(passes[k].chain)) issues.push(`row_${k}_chain`);
   }
   const chain = passes.length ? await chainHash(passes[passes.length - 1].chain, [sha256]) : "";
-  return { name, sha256, images, boxes: boxes.length, texts: texts.length, rows, passes, chain, issues, ok: issues.length === 0 };
+  return { name, sha256, images, boxes: boxes.length, texts: texts.length, rows, passes, chain, envelopes, issues, ok: issues.length === 0 };
 }

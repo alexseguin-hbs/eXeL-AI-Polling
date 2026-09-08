@@ -47,6 +47,7 @@
     "test:soi-pod": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-pod-flow.test.mjs",
     "pod:relay": "node scripts/realtime-relay.mjs",
     "test:soi-pod-live": "node scripts/pod-live-run.mjs",
+    "test:soi-sign-offline": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/sign-offline-run.mjs",
     "test:soi-sign-scan": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/sign-scan-run.mjs",
     "test:soi-sign-live": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/sign-live-run.mjs",
     "sign:fixture": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/make-sign-fixture.mjs",

@@ -15,7 +15,7 @@ export function VerifyFile() {
     if (!f) return;
     setBusy(true); setR(null);
     try { setR(await verifySignedPdf(f.name, new Uint8Array(await f.arrayBuffer()))); }
-    catch (e) { setR({ name: f.name, sha256: "", images: 0, boxes: 0, texts: 0, rows: [], passes: [], chain: "", issues: [String((e as Error).message ?? e)], ok: false }); }
+    catch (e) { setR({ name: f.name, sha256: "", images: 0, boxes: 0, texts: 0, rows: [], passes: [], chain: "", envelopes: 0, issues: [String((e as Error).message ?? e)], ok: false }); }
     finally { setBusy(false); }
   };
   return (
