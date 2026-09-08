@@ -230,3 +230,8 @@ Six asks, all applied; proofs: two-phone 57/57 · **offline hand-off 12/12 (new)
   24 / 23.75 / 23.75 px, all at one top edge (scratch `glyph-measure.mjs`, 4× screenshot, hue-classified pixels).
 - **No glyphs inside the rings** on the landing.
 - **Light Codex ALL strip at the very bottom-right of every page** (4 pt from the edges), below the block.
+
+**00:10 ask, applied — initials:** every signatory's initials ("AS   DV", from the names, letters only, at most
+three per person, in signing order) are stamped at the bottom-right of EVERY page, between the signatory block
+and the Light Codex strip, redrawn each pass, and recorded once as a keyword (`SoIInit:AS+DV`). Proof: the page
+text carries them on every page (2/2) in the two-phone run; codex-pdf 14/14.

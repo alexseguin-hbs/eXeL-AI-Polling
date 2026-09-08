@@ -239,6 +239,9 @@ step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX 
 const pagesWithCodex = [...new Set(codex.map((c) => c.page))].sort();
 step('dan', 'the 2×2 Light Codex block is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length * 3, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
 step('dan', 'page 1 signatory block rendered to PNG', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.895,0.54,0.105' }));
+// initials, always bottom-right of EACH page (operator 2026-09-08): "AS   DV" on every page's text, below the block
+{ const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: path.resolve('node_modules/pdfjs-dist/standard_fonts/') + '/', verbosity: 0 }).promise; let np = 0; for (let i = 1; i <= doc.numPages; i++) { const t = (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(' '); if (/AS\s+DV/.test(t)) np++; }
+  step('dan', 'initials AS · DV at the bottom-right of EVERY page', np === doc.numPages && np === 2, `${np}/${doc.numPages} pages`); }
 await D.getByTestId('verify-input').setInputFiles(FIXTURE); await D.waitForFunction(() => document.querySelector('[data-testid="verify-result"]')?.getAttribute('data-ok') === '0', null, { timeout: 30000 });
 step('dan', 'verify-a-signed-file: the unsigned fixture reads "no signatures"', /No eXeL signatures/.test(await vr.innerText()));
 await shot(D, 'dan', '6b-verify');

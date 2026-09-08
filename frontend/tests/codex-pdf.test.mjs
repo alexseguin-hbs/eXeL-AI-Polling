@@ -28,4 +28,13 @@ ok(byName.SoICodexAll?.messageForward === "ALEX SEGUIN 20260907230201 . DANIEL V
 ok(dec.every((d) => d.result?.style === "Single Helix" && d.result.blockSize === 2), `every strip is a 2×2 SINGLE Helix — one line (got ${[...new Set(dec.map((d) => d.result?.style))].join(",")})`);
 ok(strips.every((s) => s.image.height === 2), "each strip image is exactly one 2-px line tall");
 const kw = await codexRows(p2); ok(kw.length === 2, "the two signatory rows are still recorded as keywords");
+// initials, always bottom-right of EACH page (operator 2026-09-08)
+const { initialsOf } = await import("../lib/pdf-stamp.ts");
+ok(initialsOf("Alex Seguin") === "AS" && initialsOf("daniel lucas vail") === "DLV" && initialsOf("Ada-Marie O'Neil Ruiz Q") === "AOR" && initialsOf("  ") === "", "initialsOf: first letters, letters only, at most three");
+const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+const FONTS = new URL("../node_modules/pdfjs-dist/standard_fonts/", import.meta.url).pathname;
+const doc2 = await getDocument({ data: p2.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: FONTS, verbosity: 0 }).promise;
+let initPages = 0; for (let i = 1; i <= doc2.numPages; i++) { const t = (await (await doc2.getPage(i)).getTextContent()).items.map((x) => x.str).join(" "); if (/AS\s+DV/.test(t)) initPages++; }
+ok(initPages === doc2.numPages && doc2.numPages === 2, `initials "AS   DV" on every page (${initPages}/${doc2.numPages})`);
+const { PDFDocument: PD } = await import("pdf-lib"); ok(((await PD.load(p2)).getKeywords() ?? "").includes("SoIInit:AS+DV"), "initials recorded once as a keyword (SoIInit:AS+DV)");
 console.log(`codex-pdf: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

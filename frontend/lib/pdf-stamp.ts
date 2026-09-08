@@ -162,6 +162,10 @@ import { embedCodexImage, type CodexImage } from "@/lib/codex-pdf";
 export interface CodexRow { rowIndex: number; name: string; isoDate: string; hash: string; /** this signatory's Light Codex strip, raw pixels */ codex?: CodexImage }
 export interface CodexEntry { rows: CodexRow[]; total: number; /** every signatory in one strip (operator 23:15) — drawn along the block's foot */ all?: CodexImage }
 
+/** "Alex Seguin" → "AS": the first letter of each word, letters only, at most three (operator 2026-09-08: initials). */
+const isLetter = (c: string): boolean => c.toLowerCase() !== c.toUpperCase() || /[\u0600-\u06FF\u0900-\u0DFF\u0E00-\u0E7F\u3040-\u9FFF\uAC00-\uD7AF]/.test(c);   // cased scripts, plus the uncased ones
+export const initialsOf = (name: string): string => name.split(/\s+/).map((w) => Array.from(w).filter(isLetter).join("")).filter(Boolean).map((w) => w[0].toUpperCase()).slice(0, 3).join("");
+
 export const cacStamp = (iso: string): string => {
   const d = new Date(iso); const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getUTCFullYear()}.${p(d.getUTCMonth() + 1)}.${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC`;
@@ -179,6 +183,8 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
   const prev = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoICodex:"));
   for (const page of doc.getPages()) drawCodexBlock(doc, page, e, font, bold);
   for (const r of e.rows) { const base = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`; if (!prev.some((k) => k.startsWith(base))) addKeyword(doc, `${base}:n${b64u(r.name)}`); }   // a redrawn earlier row is not a new record; the name rides along
+  const initLine = [...e.rows].sort((a, b) => a.rowIndex - b.rowIndex).map((r) => initialsOf(r.name)).filter(Boolean).join("+");
+  if (initLine) { const prevI = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIInit:")); doc.setKeywords([...(doc.getKeywords() ?? "").split(/\s+/).filter((k) => k && !prevI.includes(k)), `SoIInit:${initLine}`]); }
   return doc.save({ useObjectStreams: false });
 }
 function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PDFFont, bold: PDFFont): void {
@@ -192,6 +198,13 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PD
   // the ALL strip: every signatory so far in one Light Codex line along the block's foot — readable back from the PDF
   // the ALL strip at the VERY bottom-right of the page (operator 23:55) — one line, below the block, 4 pt from the edges
   if (e.all) { const w = blockW; embedCodexImage(doc, page, "SoICodexAll", e.all, width - w - 4, 4, w, Math.max(1.2, (w * e.all.height) / e.all.width) * 2); }
+  // INITIALS of every signatory so far, always at the bottom-right of each page (operator 2026-09-08) — between the
+  // block and the strip, in signing order, redrawn each pass; also a keyword so a file can be read back
+  const inits = [...e.rows].sort((a, b) => a.rowIndex - b.rowIndex).map((r) => initialsOf(r.name)).filter(Boolean);
+  if (inits.length) {
+    const line = inits.join("   "); const size = 8.5;
+    page.drawText(line, { x: width - 18 - bold.widthOfTextAtSize(line, size), y: 8.5, size, font: bold, color: rgb(0.06, 0.06, 0.08) });
+  }
   const nameW = blockW * 0.42 - pad * 2;
   for (const r of e.rows) {
     const y = by + blockH - 16 - rowH * (r.rowIndex + 1) + 4;
