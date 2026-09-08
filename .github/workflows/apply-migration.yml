@@ -1,0 +1,43 @@
+# Apply one Supabase migration from a GitHub runner (the Claude sandbox cannot reach supabase.com).
+# One-time setup by the operator: GitHub → Settings → Secrets and variables → Actions → New repository secret
+#   SUPABASE_DB_URL = the project's connection string (Supabase → Project Settings → Database → Connection
+#   string → URI, with the password filled in; the "Session" pooler URI works too).
+# Then: Actions → "Apply Supabase migration" → Run workflow (default file = 036_sign_envelopes.sql), or ask MoT to trigger it.
+name: Apply Supabase migration
+on:
+  workflow_dispatch:
+    inputs:
+      file:
+        description: "migration file under supabase/migrations/"
+        required: true
+        default: "036_sign_envelopes.sql"
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require the secret
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$DB" ]; then
+            echo "::error::SUPABASE_DB_URL secret is missing. Supabase → Project Settings → Database → Connection string (URI, with password) → add it as a repository secret named SUPABASE_DB_URL, then re-run."
+            exit 1
+          fi
+      - name: Apply the migration
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -e
+          f="supabase/migrations/${{ inputs.file }}"
+          test -f "$f" || { echo "::error::$f not found"; exit 1; }
+          echo "applying $f ($(wc -c < "$f") bytes)"
+          psql "$DB" -v ON_ERROR_STOP=1 -f "$f"
+          psql "$DB" -v ON_ERROR_STOP=1 -c "NOTIFY pgrst, 'reload schema';"
+      - name: Prove the functions exist
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          psql "$DB" -Atc "select proname from pg_proc where proname like 'sign_envelope_%' order by 1" | tee /tmp/fns.txt
+          grep -q sign_envelope_create /tmp/fns.txt && grep -q sign_envelope_get /tmp/fns.txt && grep -q sign_envelope_sign /tmp/fns.txt || { echo "::error::sign_envelope_* functions not found after apply"; exit 1; }
+          echo "036 applied: sign_envelope_create / get / sign / revoke present. Reload Sign Doc → 'Why can't I sign?' shows 'answers — migration 036 is applied'."
