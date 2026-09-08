@@ -12,12 +12,13 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { buildDocPdf, promissoryNote, solvePayment, usd, type DocSpec } from "@/lib/doc-pdf";
+import { aiStatus, aiDraft, anyAi, type AiConfigured, type AiProvider } from "@/lib/ai";
 import { bytesToBase64 } from "@/lib/pdf-render";
 
 type Mode = "write" | "note";
 
 export default function CreateDocPage() {
-  const { t } = useLexicon();
+  const { t, activeLocale } = useLexicon();
   const hue = useThemeHue();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("write");
@@ -28,6 +29,20 @@ export default function CreateDocPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [preview, setPreview] = useState<{ pages: number; bytes: Uint8Array; name: string } | null>(null);
+  // Draft with AI (operator 01:25): OpenAI / Gemini / Grok through the Worker; the result lands in the fields, editable
+  const [ai, setAi] = useState<AiConfigured>({ openai: false, gemini: false, grok: false });
+  const [aiProvider, setAiProvider] = useState<AiProvider>("auto");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiState, setAiState] = useState<"" | "busy" | "done" | "failed">("");
+  useEffect(() => { void aiStatus().then(setAi); }, []);
+  const draftWithAi = async () => {
+    setAiState("busy"); setErr("");
+    try {
+      const r = await aiDraft(aiPrompt, activeLocale === "es" ? "Spanish" : "English", aiProvider);
+      if (!r) { setAiState("failed"); return; }
+      setMode("write"); setTitle(r.result.title); setBody(r.result.body); setSigners(r.result.signers.map((s) => (s.role ? `${s.role}: ${s.name}` : s.name)).join("\n")); setAiState("done");
+    } catch (e) { setAiState("failed"); setErr(String((e as Error).message ?? e)); }
+  };
 
   useEffect(() => { setPreview(null); }, [mode, title, body, signers, f]);
 
@@ -123,6 +138,21 @@ export default function CreateDocPage() {
 
         {err && <p className="mt-3 text-xs text-red-500">{err}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
+          {anyAi(ai) && (
+            <div className="mb-3 rounded-lg border p-3" style={{ borderColor: hue.dim }} data-testid="ai-draft">
+              <div className="text-sm font-medium" style={{ color: hue.bright }}><span aria-hidden="true">◬ </span>{t("soi.doc.ai.title")}</div>
+              <p className="text-[11px] text-muted-foreground">{t("soi.doc.ai.hint")}</p>
+              <textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} rows={3} placeholder={t("soi.doc.ai.ph")} className="mt-2 w-full rounded-md border border-border bg-background px-2 py-2 text-sm" data-testid="ai-prompt" />
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => void draftWithAi()} disabled={aiState === "busy" || aiPrompt.trim().length < 8} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="ai-draft-go">{aiState === "busy" ? t("soi.doc.ai.busy") : t("soi.doc.ai.go")}</button>
+                <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value as AiProvider)} className="min-h-[44px] rounded-md border border-border bg-background px-2 text-xs" aria-label={t("soi.sign.ai.provider")} data-testid="ai-draft-provider">
+                  <option value="auto">{t("soi.sign.ai.auto")}</option>{ai.openai && <option value="openai">OpenAI</option>}{ai.gemini && <option value="gemini">Gemini</option>}{ai.grok && <option value="grok">Grok</option>}
+                </select>
+                {aiState === "done" && <span className="text-[11px] text-muted-foreground">{t("soi.doc.ai.done")}</span>}
+                {aiState === "failed" && <span className="text-[11px] text-red-500">{t("soi.sign.ai.failed")}</span>}
+              </div>
+            </div>
+          )}
           <button type="button" disabled={!canGenerate || busy} onClick={generate} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="generate">{busy ? t("soi.doc.generating") : t("soi.doc.generate")}</button>
           {preview && <>
             <span className="self-center text-xs text-muted-foreground" data-testid="preview">{preview.name} · {preview.pages} {t("soi.sign.pages")}</span>

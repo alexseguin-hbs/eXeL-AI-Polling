@@ -81,7 +81,7 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   // On a fitted rule the whole box is the signature (it is already "no taller than the text above"); the digital
   // signature — name · time · #hash — sits UNDER the physical one (operator, 23:05): a 4.5-pt grey line just below
   // the document's own rule, starting where the ink starts, in the gap above the printed name.
-  const onRule = box.fit === "underline" || box.fit === "holder";   // a placeholder sits on the other party's rule
+  const onRule = box.fit === "underline" || box.fit === "holder" || box.fit === "ai";   // a placeholder or an AI-found box sits on the rule
   const imgBox = onRule ? { ...box } : { ...box, h: box.h * 0.7 };
   const capBox = onRule ? { ...box, y: box.y + box.h * 0.6, h: box.h * 0.4 } : { ...box, y: box.y + box.h * 0.72, h: box.h * 0.28 };
   const I = placeOnPage(page, imgBox, 24, 8), C = placeOnPage(page, capBox, 24, 4);

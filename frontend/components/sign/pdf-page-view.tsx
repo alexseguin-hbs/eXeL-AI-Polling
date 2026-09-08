@@ -17,7 +17,7 @@ import { openPdf, renderPage } from "@/lib/pdf-render";
 import { fitToUnderline } from "@/lib/sign-fit";
 import type { StampBox } from "@/lib/pdf-stamp";
 
-export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string; /** how the box got its size: fitted to a rule, or the default */ fit?: "underline" | "default" | "holder" }
+export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?: string; /** how the box got its size: fitted to a rule, the default, a placeholder, or the AI */ fit?: "underline" | "default" | "holder" | "ai" }
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.035, MIN_W = 0.08, MIN_H = 0.02;
 
 export type FitAt = (q: { x: number; y: number }) => ReturnType<typeof fitToUnderline>;

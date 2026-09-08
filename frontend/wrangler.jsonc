@@ -24,4 +24,7 @@
   // KV: create a namespace in the CF Dashboard, paste its real 32-hex id below,
   // and uncomment. Until then, leave this off so deploys succeed.
   // "kv_namespaces": [{ "binding": "RESPONSES", "id": "<paste-real-32-hex-kv-id>" }]
+  // Sign Doc's 24-hour file links (tmp-core.js): bind a KV namespace as SIGN_FILES — the files expire on their own
+  // (expirationTtl 86400). Without it /api/tmp answers {configured:false} and the page hands files over by the share sheet.
+  // "kv_namespaces": [{ "binding": "SIGN_FILES", "id": "<paste-real-32-hex-kv-id>" }]
 }

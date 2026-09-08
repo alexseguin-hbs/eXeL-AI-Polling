@@ -20,9 +20,11 @@ import { AUTH0_CLIENT_ID, AUTH0_DOMAIN } from "@/lib/constants";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { base64ToBytes } from "@/lib/pdf-render";
 import { secretFromLocation } from "@/lib/sign-envelope";
+import { getTempFile } from "@/lib/tmpfile";
 
 const AUTH_OFF = !AUTH0_DOMAIN || !AUTH0_CLIENT_ID || process.env.NEXT_PUBLIC_SIGN_NO_AUTH === "1";
 
+function TmpGone() { const { t } = useLexicon(); return <>{t("soi.sign.tmp.gone")}</>; }
 function Header() {
   const { t } = useLexicon();
   return (
@@ -46,6 +48,7 @@ function takeSeed(): { name: string; bytes: Uint8Array } | null {
 export default function SignPage() {
   const [q, setQ] = useState<{ e: string; s: string } | null>(null);
   const [seed, setSeed] = useState<{ name: string; bytes: Uint8Array } | null>(null);
+  const [tmpState, setTmpState] = useState<"" | "ok" | "gone">("");
   useEffect(() => {
     // The secret lives in the fragment, and a fragment-only navigation does not reload the page —
     // so re-read on hashchange/popstate too, and remount the flow (key below) when the link changes.
@@ -53,7 +56,12 @@ export default function SignPage() {
     read();
     window.addEventListener("hashchange", read); window.addEventListener("popstate", read);
     const off = () => { window.removeEventListener("hashchange", read); window.removeEventListener("popstate", read); };
-    if (!new URLSearchParams(window.location.search).get("e")) setSeed(takeSeed());
+    const f = new URLSearchParams(window.location.search).get("f");
+    if (!new URLSearchParams(window.location.search).get("e")) {
+      // ?f=<token>: a partly-signed file handed over by a 24-hour link (operator 01:25) — the token is the credential
+      if (f) { void getTempFile(f).then((got) => { if (got) setSeed({ name: got.name, bytes: got.bytes }); else setSeed(takeSeed()); setTmpState(got ? "ok" : "gone"); }); }
+      else setSeed(takeSeed());
+    }
     return off;
   }, []);
   if (!q) return <div className="mx-auto max-w-3xl px-4 py-10"><Header /></div>;
@@ -64,7 +72,10 @@ export default function SignPage() {
       {q.e ? (
         <SignFlow key={`${q.e}:${q.s}`} token={q.e} secret={q.s} />
       ) : (
-        <SignFlow seed={seed} requireLogin={!AUTH_OFF} returnTo={path} />
+        <>
+          {tmpState === "gone" && <p className="mb-3 rounded-md border border-red-500/40 bg-red-500/5 p-2 text-xs text-red-500" data-testid="tmp-gone"><TmpGone /></p>}
+          <SignFlow seed={seed} requireLogin={!AUTH_OFF} returnTo={path} />
+        </>
       )}
     </div>
   );

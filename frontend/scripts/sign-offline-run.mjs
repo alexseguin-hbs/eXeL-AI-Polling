@@ -29,6 +29,15 @@ const A = phones.alex, D = phones.dan;
 const missing = (fn) => (r) => r.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST202', message: `Could not find the function public.${fn} in the schema cache` }) });
 await A.route('**/rest/v1/rpc/sign_envelope_create', missing('sign_envelope_create'));
 await A.route('**/rest/v1/rpc/sign_envelope_get', missing('sign_envelope_get'));
+// the 24-hour file store (Worker /api/tmp, KV) — mocked in memory on both phones: the dev server has no Worker
+const TMP = new Map();
+const tmpRoute = async (r) => {
+  const u = new URL(r.request().url()); const m = /^\/api\/tmp\/([A-Za-z0-9_-]+)$/.exec(u.pathname);
+  if (r.request().method() === 'POST') { const tok = 'T' + Math.random().toString(36).slice(2, 12).padEnd(21, 'x'); TMP.set(tok, { body: r.request().postDataBuffer(), name: r.request().headers()['x-file-name'] || 'doc.pdf' }); return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: tok, url: `${BASE}/soi-session/sign/?f=${tok}`, expires: new Date(Date.now() + 86400000).toISOString() }) }); }
+  if (m && TMP.has(m[1])) { const e = TMP.get(m[1]); return r.fulfill({ status: 200, contentType: 'application/pdf', headers: { 'content-disposition': `inline; filename="${e.name}"` }, body: e.body }); }
+  return r.fulfill({ status: 410, contentType: 'application/json', body: JSON.stringify({ error: 'gone' }) });
+};
+await A.route('**/api/tmp**', tmpRoute); await D.route('**/api/tmp**', tmpRoute);
 
 const placeDrawSign = async (p, who, tapX) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 });
@@ -69,12 +78,16 @@ step('alex', 'explainer says: signed on this phone, download and send', /Downloa
 step('alex', 'the download is a Vision-2525 pill (↓, uppercase, rounded)', /↓/.test(await A.getByTestId('downloads-partly').innerText()) && /rounded-full/.test(await A.getByTestId('downloads-partly').locator('button').first().getAttribute('class')));
 await shot(A, 'alex', '1-offline-handoff');
 const partly = path.join(OUT, 'partly-signed.pdf'); await dlS.saveAs(partly);   // the very file the message carried
+// the 24-hour LINK (operator 01:25): the store took the file, the script carries the link, the token is the key
+await A.getByTestId('tmp-link').waitFor({ timeout: 10000 }); const tmpUrl = (await A.getByTestId('tmp-url').innerText()).trim();
+step('alex', 'a 24-hour file link was minted for the partly-signed file (…/soi-session/sign/?f=<token>)', /\/soi-session\/sign\/\?f=[A-Za-z0-9_-]{22}$/.test(tmpUrl) && TMP.size === 1, tmpUrl.slice(-40));
 const pb = new Uint8Array(fs.readFileSync(partly));
 step('alex', 'partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME', (await countSignatureImages(pb)) === 1 && (await codexRows(pb)).length === 1 && (await codexRows(pb))[0].name === 'Alex Seguin', JSON.stringify(await codexRows(pb)));
 
-// 2 · Daniel receives the FILE, uploads it as his own document, signs alone (no backend needed at all)
-await D.goto(BASE + '/soi-session/sign/', { waitUntil: 'domcontentloaded' }); await ready(D);
-await D.getByPlaceholder(/Promissory/).fill('Promissory Note'); await D.getByTestId('file-input').setInputFiles(partly); await D.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 });
+// 2 · Daniel opens the LINK: the file arrives by token with his places marked, he signs alone (no backend needed at all)
+await D.goto(tmpUrl, { waitUntil: 'domcontentloaded' }); await ready(D);
+await D.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 }); step('dan', 'the 24-hour link opened the partly-signed file on his phone (no upload, no account)');
+await D.getByPlaceholder(/Promissory/).fill('Promissory Note');
 await D.getByRole('button', { name: /who signs/ }).click();
 await D.getByTestId('signer-name-0').fill('Daniel Vail'); await D.getByTestId('signer-contact-0').fill('512.808.8745');
 const rm = D.getByRole('button', { name: /remove/i }); if (await rm.count()) await rm.first().click();

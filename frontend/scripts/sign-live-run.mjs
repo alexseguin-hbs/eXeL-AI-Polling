@@ -122,6 +122,13 @@ const placeAndSign = async (p, who) => {
   }
   step(who, who === 'alex' ? 'signature block found: two rules on one row (lender | borrower)' : "the borrower's rule found on the lender's row, right column (the page already carries Alex's ink)", !!rule, rule ? `page ${pageNo} y=${rule.y.toFixed(3)} x=[${rule.x0.toFixed(2)}–${rule.x1.toFixed(2)}]` + (pair ? ` | [${pair[1].x0.toFixed(2)}–${pair[1].x1.toFixed(2)}]` : '') : 'none');
   rules[who] = { page: pageNo, ...rule };
+  if (who === 'alex') {
+    // AI placement (operator 01:25): the model (mocked here) is asked, the box lands on the lender's rule, then it is removed so the thumb path is proven too
+    await p.getByTestId('ai-find').click(); await p.getByTestId('sig-box').waitFor({ timeout: 15000 });
+    const ab = await p.getByTestId('sig-box').boundingBox(); const apb = await page.boundingBox(); const ax0 = (ab.x - apb.x) / apb.width, aBottom = (ab.y + ab.height - apb.y) / apb.height;
+    step(who, 'AI: find my line → the box lands on the lender\'s rule (provider answered through /api/ai)', (await p.getByTestId('sig-box').getAttribute('data-fit')) === 'ai' && Math.abs(ax0 - rule.x0) < 0.02 && Math.abs(aBottom - rule.y) < 0.012 && /AI placed it/.test(await p.locator('[data-testid="marks-toolbar"] + p').innerText()), `x=${ax0.toFixed(3)} bottom=${aBottom.toFixed(3)} rule=${rule.x0.toFixed(3)}/${rule.y.toFixed(3)}`);
+    await p.getByTestId('delete-badge').click(); await p.waitForTimeout(200);
+  }
   const bb2 = await page.boundingBox();                       // the page scrolls when the toolbar shrinks — never reuse a stale box
   await p.mouse.click(bb2.x + bb2.width * (rule.x0 + rule.x1) / 2, bb2.y + bb2.height * (rule.y - 0.012));   // the thumb lands just above the rule
   await p.getByTestId('sig-box').waitFor(); step(who, 'signature box placed by tap');
@@ -186,6 +193,9 @@ for (const who of ['alex', 'dan']) {
 }
 const A = phones.alex, D = phones.dan;
 
+// the AI route (Worker /api/ai) mocked on Alex's phone: "openai configured"; placement answers the lender's rule
+await A.route('**/api/ai', (r) => { if (r.request().method() === 'GET') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ configured: { openai: true, gemini: false, grok: false } }) });
+  const body = JSON.parse(r.request().postData() || '{}'); const rl = rules.alex; return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ provider: 'openai', model: 'gpt-4o-mini', result: rl && body.task === 'place' ? { x: rl.x0, y: rl.y - 0.035, w: rl.x1 - rl.x0, h: 0.034, date: null, confidence: 0.9 } : null }) }); });
 // 1 · Alex: landing → Sign Doc → upload → signers
 await A.goto(BASE + '/soi-session/', { waitUntil: 'domcontentloaded' }); await ready(A);
 await A.getByRole('link', { name: /Sign Doc/ }).click(); await A.waitForURL(/soi-session\/sign/); await ready(A); step('alex', 'landing → Sign Doc');

@@ -303,3 +303,19 @@ Report: `2026-09-08_fleet_48_report.md` (11 of 12 MoTs READY within the proven b
 - **Spanish for the whole of Sign Doc, the landing, the POD session and Create Doc**: 272 strings in
   `lib/lexicon-translations-es-sign.ts`, overlaid in the lexicon; the parity gate now requires every `soi.sign.*`,
   `soi.landing.*`, `soi.pod.*`, `soi.doc.*` key in Spanish (sign-i18n 137/137).
+
+## Wave 11, part 2 — the 24-hour file link and the AI providers (operator 01:25)
+
+- **File by link, 24 hours:** the offline hand-off stores the partly-signed PDF on the Worker (`/api/tmp`, KV bound as
+  `SIGN_FILES`) under a 22-character random token; the script carries `…/soi-session/sign/?f=<token>`; the next
+  signer's page opens the file from it with their places marked; the token is the unique credential and the file
+  expires with it (`expirationTtl` 86400). Without the binding the share sheet carries the file instead. tmp-core 11/11;
+  offline proof 17/17 with the store mocked: Daniel opens the LINK, no upload, no account.
+- **AI placement + drafting through OpenAI, Gemini or Grok** (`/api/ai`, keys as Worker secrets OPENAI_API_KEY /
+  GEMINI_API_KEY / XAI_API_KEY, provider "auto" = first configured): Sign Doc's Place step gets "◬ AI: find my line"
+  (the page image goes to the model, the box lands on the line; the pixel fit stays the fallback); Create Doc gets
+  "◬ Draft with AI" (title, body, signers into the fields, in the active language). ai-core 15/15 (the three request
+  and response shapes, clamping, failures); two-phone proof 56/56 with the route mocked: the AI box lands on the
+  lender's rule.
+- Not reachable from this sandbox: a real provider call. The adapters are exercised against each provider's documented
+  shape; the first live call is the operator's, once a key is set.

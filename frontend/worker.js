@@ -28,6 +28,8 @@
 //   KV `SITE_STATE:paused` (instant) or env `SITE_PAUSED` (both default OFF).
 import { handleDonate, handleDonateVerify } from "./donate-core.js";
 import { handleNotify } from "./notify-core.js";
+import { handleTmp } from "./tmp-core.js";
+import { handleAi } from "./ai-core.js";
 
 export default {
   async fetch(request, env) {
@@ -42,6 +44,18 @@ export default {
     // pause: a paused site must not take money (Thor, wave 3 — the earlier comment had it inverted).
     if (url.pathname.startsWith("/api/donate") && (await isPaused(env))) {
       return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
+    }
+    // --- /api/ai — placement + drafting through OpenAI / Gemini / Grok (ai-core.js; keys are Worker secrets) ---
+    if (url.pathname === "/api/ai" || url.pathname === "/api/ai/") {
+      if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
+      try { return await handleAi(request, env); }
+      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
+    }
+    // --- /api/tmp — a partly-signed PDF handed over by a 24-hour link (tmp-core.js; KV SIGN_FILES) ---------
+    if (url.pathname === "/api/tmp" || url.pathname.startsWith("/api/tmp/")) {
+      if (await isPaused(env)) return new Response(JSON.stringify({ error: "Site paused" }), { status: 503, headers: { "content-type": "application/json" } });
+      try { return await handleTmp(request, env); }
+      catch (e) { return new Response(JSON.stringify({ error: String(e && e.message || e) }), { status: 502, headers: { "content-type": "application/json" } }); }
     }
     if (url.pathname === "/api/notify" || url.pathname === "/api/notify/") {
       try { return await handleNotify(request, env); }

@@ -25,8 +25,12 @@ import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as re
 import { initialsSlotTop, partnerRule } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
+import { putTempFile, type TempLink } from "@/lib/tmpfile";
+import { aiStatus, aiPlace, anyAi, type AiConfigured, type AiProvider } from "@/lib/ai";
 import { codexAllText, codexImage } from "@/lib/codex-strip";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
+/** A page as a PNG data URL at 612 px wide — what the AI placement looks at. */
+async function pageDataUrl(bytes: Uint8Array, n: number): Promise<string> { const doc = await openPdf(bytes); const r = await renderPage(doc, n, 306); return r.canvas.toDataURL("image/png"); }
 /** A page as pixels, rendered off-screen at half width (the fit and the layout read fractions). */
 async function pageBitmap(bytes: Uint8Array, n: number): Promise<Bitmap> {
   const doc = await openPdf(bytes); const r = await renderPage(doc, n, 306);
@@ -75,6 +79,25 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const [png, setPng] = useState<string | null>(null);
   const [initialsPng, setInitialsPng] = useState<string | null>(null);   // the PHYSICAL initials, drawn once, stamped bottom-right of every page (operator 00:50)
   const [holdersFor, setHoldersFor] = useState("");                        // the next signer's name once placeholders were left for them
+  const [tmpLink, setTmpLink] = useState<TempLink | null>(null);           // the 24-hour file link, when the site has a store
+  // AI placement (operator 01:25): OpenAI / Gemini / Grok through the Worker, keys never in the page; the pixel fit stays the fallback
+  const [ai, setAi] = useState<AiConfigured>({ openai: false, gemini: false, grok: false });
+  const [aiProvider, setAiProvider] = useState<AiProvider>("auto");
+  const [aiState, setAiState] = useState<"" | "busy" | "placed" | "none" | "failed">("");
+  useEffect(() => { void aiStatus().then(setAi); }, []);
+  const aiFind = async () => {
+    if (!files[fileIdx]) return;
+    setAiState("busy"); setErr("");
+    try {
+      const r = await aiPlace(await pageDataUrl(files[fileIdx].bytes, viewedPage), myName, aiProvider);
+      if (!r) { setAiState("failed"); return; }
+      if (!r.result) { setAiState("none"); return; }
+      const b = r.result;
+      const sig: Mark = { id: "sig", kind: "sig", page: viewedPage, x: b.x, y: b.y, w: Math.max(0.08, b.w), h: Math.max(0.02, b.h), fit: "ai" as Mark["fit"] };
+      const date: Mark[] = b.date ? [{ id: `t${Date.now().toString(36)}`, kind: "text", page: viewedPage, x: b.date.x, y: b.date.y, w: Math.max(0.05, b.date.w), h: Math.max(0.01, b.date.h), text: todayText(), fit: "ai" as Mark["fit"] }] : [];
+      setMarks((m) => ({ ...m, [fileIdx]: [sig, ...date, ...(m[fileIdx] ?? []).filter((k) => k.kind === "text" && !date.length)] })); setSelected("sig"); setAiState("placed");
+    } catch (e) { setAiState("failed"); setErr(`${t("soi.sign.ai.title")}: ${String((e as Error).message ?? e)}`); }
+  };
   const [pub, setPub] = useState<PublicEnvelope | null>(null);
   const [nextLink, setNextLink] = useState("");
   const [myLink, setMyLink] = useState("");                     // the creator's own return link — "yours, keep it" (Christo, wave 1)
@@ -276,7 +299,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         try { created = await createEnvelope(env); }
         catch (ex) {
           // no link can be minted here — keep the envelope on this phone and hand the FILE over instead (operator 00:39)
-          if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); }
+          if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); setTmpLink(stampedBytes[0] ? await putTempFile(stampedBytes[0].bytes, await signedName(stampedBytes[0], false)) : null); }
           // a retry after a half-landed save re-sent the same token (fleet, Krishna): mint a fresh one, once
           else if (ex instanceof SignStoreError && ex.code === "duplicate") { pendingToken.current = newToken(); const env2 = { ...env, token: pendingToken.current }; envRef.current = env2; created = await createEnvelope(env2); Object.assign(env, env2); }
           else throw ex;
@@ -465,7 +488,17 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md border border-red-500/60 px-3 text-xs text-red-500" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")}</button>
             </>}
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">{sigOf(fileIdx)?.fit === "underline" ? t("soi.sign.fit.underline") : t("soi.sign.marks_hint")}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{sigOf(fileIdx)?.fit === "underline" ? t("soi.sign.fit.underline") : sigOf(fileIdx)?.fit === "ai" ? t("soi.sign.ai.placed") : t("soi.sign.marks_hint")}</p>
+          {anyAi(ai) && (
+            <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="ai-place">
+              <button type="button" onClick={() => void aiFind()} disabled={aiState === "busy"} className="min-h-[44px] rounded-md border px-3 text-xs" style={{ borderColor: hue.dim, color: hue.bright }} data-testid="ai-find"><span aria-hidden="true">◬ </span>{aiState === "busy" ? t("soi.sign.ai.busy") : t("soi.sign.ai.find")}</button>
+              <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value as AiProvider)} className="min-h-[44px] rounded-md border border-border bg-background px-2 text-xs" aria-label={t("soi.sign.ai.provider")} data-testid="ai-provider">
+                <option value="auto">{t("soi.sign.ai.auto")}</option>{ai.openai && <option value="openai">OpenAI</option>}{ai.gemini && <option value="gemini">Gemini</option>}{ai.grok && <option value="grok">Grok</option>}
+              </select>
+              {aiState === "none" && <span className="text-[11px] text-muted-foreground">{t("soi.sign.ai.none")}</span>}
+              {aiState === "failed" && <span className="text-[11px] text-red-500">{t("soi.sign.ai.failed")}</span>}
+            </div>
+          )}
           <div className="mt-3 flex gap-2">
             {!countersign && <button type="button" onClick={() => setStep("signers")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>}
             <button type="button" disabled={!allPlaced} onClick={() => setStep("draw")} className="inline-flex min-h-[44px] items-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="to-draw">{t("soi.sign.next_draw")} <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
@@ -503,7 +536,14 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               <div className="text-sm font-medium text-amber-500">{t("soi.sign.handoff.offline_title")}</div>
               <p className="mt-1 text-xs text-muted-foreground">{t(`soi.sign.err.${offline || "no_backend"}`)}</p>
               <p className="mt-2 text-xs">{t("soi.sign.handoff.offline").replace("{next}", nextName || nextContact)}</p>
-              {(() => { const msg = handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); return (
+              {tmpLink && (
+                <div className="mt-3 rounded-md border border-border bg-background p-2" data-testid="tmp-link">
+                  <div className="font-medium text-foreground">{t("soi.sign.tmp.title")}</div>
+                  <p className="text-muted-foreground">{t("soi.sign.tmp.hint").replace("{expires}", new Date(tmpLink.expires).toLocaleString())}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2"><code className="break-all text-[11px]" data-testid="tmp-url">{tmpLink.url}</code><button type="button" onClick={() => { try { void navigator.clipboard.writeText(tmpLink.url); } catch { /* no clipboard */ } }} className="min-h-[36px] rounded-md border border-border px-3">{t("soi.sign.handoff.copy")}</button></div>
+                </div>
+              )}
+              {(() => { const msg = tmpLink ? handoffMessage(myName, pub?.title ?? title, tmpLink.url, t("soi.sign.handoff.offline_link_template")) : handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); return (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button type="button" onClick={() => void shareFiles(signed, false, msg)} className="min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" data-testid="share-file"><span aria-hidden="true">📎 </span>{shareState === "shared" ? t("soi.sign.handoff.shared") : t("soi.sign.handoff.share_file")}</button>
                 </div>); })()}

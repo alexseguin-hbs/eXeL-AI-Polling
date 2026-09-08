@@ -84,3 +84,13 @@ Test mode uses the non-`LIVE` variants (`STRIPE_RESTRICTED_KEY`, `STRIPE_SECRET_
 Rotate it: Dashboard → Developers → API keys → **Rotate** (7-day grace period, no downtime),
 then set the fresh value in the deploy env. Publishable keys don't need rotation — they're public
 by design. Restricted and secret keys **do**.
+
+
+## Sign Doc — Worker secrets and bindings (2026-09-08)
+
+| What | Where | Effect when set |
+|---|---|---|
+| `OPENAI_API_KEY` · `GEMINI_API_KEY` · `XAI_API_KEY` | Worker secrets (`wrangler secret put …`) | `/api/ai` answers; "AI: find my line" (Sign Doc) and "Draft with AI" (Create Doc) appear; provider Auto = first configured |
+| KV namespace bound as `SIGN_FILES` | `wrangler.jsonc` → `kv_namespaces` (sample line in the file) | `/api/tmp` stores partly-signed PDFs for 24 h; the hand-off script carries a `?f=<token>` link |
+| `RESEND_API_KEY` · `NOTIFY_FROM` | Worker secrets | "Send by e-mail" sends from eXeL (server-composed text, per-address throttle) |
+| migration `036_sign_envelopes.sql` | Supabase SQL editor (Copy button in "Why can't I sign?") | two-signer hand-off links |
