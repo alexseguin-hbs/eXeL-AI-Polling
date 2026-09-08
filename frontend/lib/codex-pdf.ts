@@ -14,15 +14,25 @@ if (typeof (globalThis as { ImageData?: unknown }).ImageData === "undefined") {
   (globalThis as { ImageData?: unknown }).ImageData = class { data: Uint8ClampedArray; width: number; height: number; constructor(data: Uint8ClampedArray, width: number, height?: number) { this.data = data; this.width = width; this.height = height ?? data.length / 4 / width; } };
 }
 
-/** "NAME YYYYMMDDHHMMSS" for one signatory — characters outside the codex alphabet are dropped. */
-export function codexText(name: string, isoDate: string): string {
-  const d = new Date(isoDate); const p = (n: number) => String(n).padStart(2, "0");
-  const raw = `${name.toUpperCase()} ${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}`;
+/** "NAME 2026.09.08 08.11CDT" for one signatory (operator 2026-09-08 01:50: "2026.09.08_08:11CST"): the codex alphabet has
+ *  letters, digits, space and the full stop, so the space stands for the underscore and the full stop for the colon;
+ *  the time is the signer's local time with its zone name (CST in winter, CDT in summer for Chicago). Characters
+ *  outside the alphabet are dropped. `timeZone` is for tests; the page uses the device's. */
+export function codexText(name: string, isoDate: string, timeZone?: string): string {
+  const d = new Date(isoDate);
+  let stamp: string;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, timeZoneName: "short" }).formatToParts(d);
+    const g = (t: string) => parts.find((x) => x.type === t)?.value ?? "";
+    const hour = g("hour") === "24" ? "00" : g("hour");
+    stamp = `${g("year")}.${g("month")}.${g("day")} ${hour}.${g("minute")}${g("timeZoneName").replace(/[^A-Z]/g, "")}`;
+  } catch { const p = (n: number) => String(n).padStart(2, "0"); stamp = `${d.getUTCFullYear()}.${p(d.getUTCMonth() + 1)}.${p(d.getUTCDate())} ${p(d.getUTCHours())}.${p(d.getUTCMinutes())}UTC`; }
+  const raw = `${name.toUpperCase()} ${stamp}`;
   const bad = new Set(unsupportedChars(raw));
-  return Array.from(raw).filter((c) => !bad.has(c)).join("").slice(0, 40);
+  return Array.from(raw).filter((c) => !bad.has(c)).join("").slice(0, 44);
 }
 /** Every signatory in one strip — " . " separates them (space and full stop are codex characters). */
-export const codexAllText = (rows: { name: string; isoDate: string }[]): string => rows.map((r) => codexText(r.name, r.isoDate)).join(" . ");
+export const codexAllText = (rows: { name: string; isoDate: string }[], timeZone?: string): string => rows.map((r) => codexText(r.name, r.isoDate, timeZone)).join(" . ");
 
 /** The Hidden Helix (style "3", 1 px, no frame) as a Light Codex PNG carries it (operator 00:45): a 1-px forward line
  *  on the top row and a 1-px reversed line on the bottom row, right-aligned — 2 px tall, at least a Letter page wide so

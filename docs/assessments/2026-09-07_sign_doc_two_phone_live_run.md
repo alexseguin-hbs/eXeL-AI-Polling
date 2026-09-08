@@ -319,3 +319,8 @@ Report: `2026-09-08_fleet_48_report.md` (11 of 12 MoTs READY within the proven b
   lender's rule.
 - Not reachable from this sandbox: a real provider call. The adapters are exercised against each provider's documented
   shape; the first live call is the operator's, once a key is set.
+
+**01:50 ask, applied — the Light Codex date format:** `NAME 2026.09.08 08.11CDT` — the codex alphabet has letters, digits,
+space and the full stop, so the space stands for the underscore and the full stop for the colon; the time is the
+signer's local time with its zone name (CST in winter, CDT in summer for Chicago; UTC in the sandbox proofs).
+codex-pdf 21/21 (Chicago summer/winter + UTC cases); two-phone 56/56; offline 17/17.

@@ -274,7 +274,7 @@ step('dan', 'digital signature pairs with each physical one: 2 SoISig images ↔
 // the Light Codex strips read back from the PDF's own pixels: one per signatory + ALL signatories
 const codex = await decodeCodexPdf(bytes, (b) => new Uint8Array(zlib.inflateSync(b))); const byName = Object.fromEntries(codex.map((c) => [c.name, c.result?.messageForward]));
 step('dan', 'Light Codex from the PDF: the HIDDEN helix on the bottom edge decodes, reverse-verified, no box drawn', codex.length > 0 && codex.every((c) => c.result?.verified && c.result.style === 'Hidden Helix') && !/Signatories|Digitally signed/.test(txt), JSON.stringify(byName));
-step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
+step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5} \. DANIEL VAIL 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
 const pagesWithCodex = [...new Set(codex.map((c) => c.page))].sort();
 step('dan', 'the hidden Light Codex is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
 step('dan', 'page 1 bottom-right rendered to PNG (initials; the codex line is invisible)', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.955,0.54,0.045' }));
@@ -292,7 +292,7 @@ await D.goto(BASE + '/light-codex/', { waitUntil: 'domcontentloaded' }); await r
 await D.getByRole('button', { name: /^Decode$/ }).click(); await D.getByTestId('codex-decode-input').setInputFiles(file);
 await D.getByTestId('codex-pdf-results').waitFor({ timeout: 30000 });
 const allText = await D.getByTestId('codex-all').innerText(); const rowN = await D.getByTestId('codex-row').count();
-step('dan', 'Light Codex page: uploading the signed PDF lists ALL signatories from the hidden line', /ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}/.test(allText) && /Hidden Helix/.test(allText) && rowN === 0, allText.replace(/\s+/g, ' ').slice(0, 110));
+step('dan', 'Light Codex page: uploading the signed PDF lists ALL signatories from the hidden line', /ALEX SEGUIN 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5} \. DANIEL VAIL 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5}/.test(allText) && /Hidden Helix/.test(allText) && rowN === 0, allText.replace(/\s+/g, ' ').slice(0, 110));
 await shot(D, 'dan', '6c-codex-pdf');
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document
