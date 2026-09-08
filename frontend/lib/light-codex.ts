@@ -22,6 +22,12 @@ export const ALPHA: Record<string, string> = {
   // spaces decoded as "0"). "WBWB" is unused by any letter/number/frame and
   // has no green (G), so it never trips frame detection.
   Y: "YRYR", Z: "YCRB", " ": "WBWB", ".": "BBBW",
+  // Four more symbols (operator 2026-09-08): hyphen, underscore, bullet, colon. Each group is UNUSED by every letter,
+  // digit and frame, has no green (frame colour), and its token-reversal is unused too, so a strand read in the
+  // wrong direction can never turn one of them into a taken character. Reported as BRYCVW:
+  //   -  = V C V C  (Violet Cyan Violet Cyan)      _  = V R V R  (Violet Red Violet Red)
+  //   •  = V Y V Y  (Violet Yellow Violet Yellow)   :  = V B V B  (Violet Black Violet Black; operator 17:15)
+  "-": "VCVC", "_": "VRVR", "•": "VYVY", ":": "VBVB",
 };
 export const NUMBERS: Record<string, string> = {
   "0": "BBBB", "1": "WBBB", "2": "WWBB", "3": "WWWB", "4": "WWWW",
@@ -57,7 +63,7 @@ export const STYLE_LABEL: Record<Style, string> = {
   "1": "Single Helix", "2": "Double Helix", "3": "Hidden Helix",
 };
 
-// Supported message characters — A–Z, digits, space, period (case-insensitive).
+// Supported message characters — A–Z, digits, space, period, hyphen, underscore, bullet, colon (case-insensitive).
 export function unsupportedChars(text: string): string[] {
   const bad: string[] = [];
   for (const ch of text) {

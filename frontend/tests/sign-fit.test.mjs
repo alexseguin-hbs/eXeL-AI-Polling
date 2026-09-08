@@ -45,4 +45,32 @@ const b6 = page(); for (let x = 40; x <= 280; x++) ink(b6, x, x, 300 + Math.floo
 const f6 = fitToUnderline(b6, { x: 0.4, y: 0.6 });
 ok(f6 && near(f6.x, 40 / W) && near(f6.w, 241 / W, 0.01), `a tilted (scanned) rule is followed end to end (w=${f6?.w.toFixed(3)}, want 0.6025)`);
 
+
+// textH — the document's own text size next to the line (operator 2026-09-08: "match pdf doc size for date and text")
+{
+  // "Date:" label LEFT of the rule on the same baseline: ink rows 330-339 (10 px tall), rule at 340-341 from x 140
+  const b = page(); ink(b, 60, 120, 330, 339); ink(b, 140, 300, 340, 341);
+  const f = fitToUnderline(b, { x: 0.5, y: 0.68 });
+  ok(f && f.textH !== undefined && near(f.textH, 10 / H), `textH follows the label left of the rule (${f && f.textH && (f.textH * H).toFixed(1)} px, want 10)`);
+  // no label beside it: the text line ABOVE the rule (rows 300-309) sets it
+  const f1 = fitToUnderline(b1, { x: 0.3, y: 0.66 });
+  ok(f1 && f1.textH !== undefined && near(f1.textH, 10 / H), `textH falls back to the text line above (${f1 && f1.textH && (f1.textH * H).toFixed(1)} px, want 10)`);
+  // a bare rule with nothing near it reports no textH (the caller keeps its default)
+  const b2 = page(); ink(b2, 40, 220, 340, 341);
+  const f2 = fitToUnderline(b2, { x: 0.3, y: 0.68 });
+  ok(f2 && f2.textH === undefined, "a bare rule carries no text size");
+}
+
+
+// scale-free: the same page at 2× (a zoomed render) fits the same fractions — dashed gaps and text heights double too
+{
+  const W2 = W * 2, H2 = H * 2; const b2 = { width: W2, height: H2, data: new Uint8ClampedArray(W2 * H2 * 4).fill(255) };
+  const ink2 = (x0, x1, y0, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const i = (y * W2 + x) * 4; b2.data[i] = b2.data[i + 1] = b2.data[i + 2] = 20; } };
+  ink2(120, 240, 660, 679); for (let x = 280; x <= 600; x += 6) ink2(x, x + 2, 680, 683);       // "Date:" label + a dashed rule (3 on / 3 off) at 2× — the 3-px bridge is fixed at every scale
+  const b1x = page(); ink(b1x, 60, 120, 330, 339); for (let x = 140; x <= 300; x += 6) ink(b1x, x, x + 2, 340, 341);   // the same page at 1× (3 on / 3 off)
+  const f1x = fitToUnderline(b1x, { x: 0.5, y: 0.68 }), f2x = fitToUnderline(b2, { x: 0.5, y: 0.68 });
+  ok(f1x && f2x, "a dashed rule is bridged at 1× and at 2×");
+  ok(f1x && f2x && near(f1x.x, f2x.x) && near(f1x.w, f2x.w) && near(f1x.lineY, f2x.lineY) && near(f1x.textH ?? 0, f2x.textH ?? 0), `1× and 2× agree: x ${f1x?.x.toFixed(3)}/${f2x?.x.toFixed(3)} w ${f1x?.w.toFixed(3)}/${f2x?.w.toFixed(3)} textH ${f1x?.textH?.toFixed(4)}/${f2x?.textH?.toFixed(4)}`);
+}
+
 console.log(`sign-fit: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

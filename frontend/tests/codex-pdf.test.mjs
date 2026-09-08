@@ -12,10 +12,18 @@ const pdf = new Uint8Array(fs.readFileSync(new URL("./fixtures/sign-sample.pdf",
 ok((await decodeCodexPdf(pdf, inflate)).length === 0, "an unsigned PDF carries no SoICodex strip");
 const rows = [{ rowIndex: 0, name: "Alex Seguin", isoDate: "2026-09-07T23:02:01.892Z", hash: "91d05b18" }, { rowIndex: 1, name: "Daniel Vail", isoDate: "2026-09-07T23:02:09.590Z", hash: "8ed387cc" }];
 // the operator's format "2026.09.08_08:11CST" in the codex alphabet: space for _, full stop for :, the local zone name
-ok(codexText(rows[0].name, rows[0].isoDate, "America/Chicago") === "ALEX SEGUIN 2026.09.07 18.02CDT", `codexText (Chicago) → ALEX SEGUIN 2026.09.07 18.02CDT (got ${codexText(rows[0].name, rows[0].isoDate, "America/Chicago")})`);
-ok(codexText("Ada Lender", "2026-01-15T14:05:00Z", "America/Chicago") === "ADA LENDER 2026.01.15 08.05CST", `winter → CST (got ${codexText("Ada Lender", "2026-01-15T14:05:00Z", "America/Chicago")})`);
-ok(codexText(rows[0].name, rows[0].isoDate, "UTC") === "ALEX SEGUIN 2026.09.07 23.02UTC", "UTC when asked");
-ok(codexAllText(rows, "America/Chicago") === "ALEX SEGUIN 2026.09.07 18.02CDT . DANIEL VAIL 2026.09.07 18.02CDT", "the ALL text joins every signatory with ' . '");
+ok(codexText(rows[0].name, rows[0].isoDate, "America/Chicago") === "ALEX SEGUIN 2026.09.07_18:02CDT", `codexText (Chicago) → ALEX SEGUIN 2026.09.07_18:02CDT (got ${codexText(rows[0].name, rows[0].isoDate, "America/Chicago")})`);
+ok(codexText("Ada Lender", "2026-01-15T14:05:00Z", "America/Chicago") === "ADA LENDER 2026.01.15_08:05CST", `winter → CST (got ${codexText("Ada Lender", "2026-01-15T14:05:00Z", "America/Chicago")})`);
+ok(codexText(rows[0].name, rows[0].isoDate, "UTC") === "ALEX SEGUIN 2026.09.07_23:02UTC", "UTC when asked");
+ok(codexAllText(rows, "America/Chicago") === "ALEX SEGUIN 2026.09.07_18:02CDT • DANIEL VAIL 2026.09.07_18:02CDT", "the ALL text joins every signatory with ' . '");
+// a long name is trimmed to what 44 characters leave after the timestamp — the timestamp itself is never cut (reviewer 2026-09-08)
+const long = codexText("A".repeat(60), rows[0].isoDate, "UTC");
+ok(long.length === 44 && long.endsWith(" 2026.09.07_23:02UTC") && /^A+ 2026/.test(long), `long name → name trimmed, stamp whole (got "${long}")`);
+ok(codexText("Maximilian Alexander von Habsburg-Lothringen", rows[0].isoDate, "UTC") === "MAXIMILIAN ALEXANDER VON 2026.09.07_23:02UTC", `trimmed on the character budget, trailing space dropped (got "${codexText("Maximilian Alexander von Habsburg-Lothringen", rows[0].isoDate, "UTC")}")`);
+// a name the codex alphabet cannot carry uses the caption's fallback, so the hidden line agrees with the visible one
+ok(codexText("علي حسن", rows[0].isoDate, "UTC") === "SIGNER 1 2026.09.07_23:02UTC", `non-Latin name → 'SIGNER 1' (got "${codexText("علي حسن", rows[0].isoDate, "UTC")}")`);
+ok(codexText("علي حسن", rows[0].isoDate, "UTC", { contact: "ali@x.io", idx: 2 }) === "ALIX.IO 2026.09.07_23:02UTC", `…the contact when given (@ is outside the alphabet) (got "${codexText("علي حسن", rows[0].isoDate, "UTC", { contact: "ali@x.io", idx: 2 })}")`);
+ok(codexAllText([{ name: "张伟", isoDate: rows[0].isoDate, rowIndex: 1 }], "UTC") === "SIGNER 2 2026.09.07_23:02UTC", "codexAllText passes the row index to the fallback");
 // pass 1 (Alex only), then pass 2 redraws both rows + the ALL strip — as sign-flow does
 const png1x1 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 let p1 = await stampCodexBlock(pdf, { total: 2, rows: [rows[0]], all: codexImage(codexAllText([rows[0]], "UTC")), initials: { total: 2, mine: { idx: 0, pngDataUrl: png1x1 } } });
@@ -26,7 +34,7 @@ ok(strips.every((s) => s.image.height === 2 && s.image.width >= 612), "the hidde
 const dec = await decodeCodexPdf(p2, inflate);
 ok(dec.every((d) => d.result?.verified), "every strip on every page decodes, reverse-verified");
 const byName = Object.fromEntries(dec.filter((d) => d.page === 1).map((d) => [d.name, d.result]));
-ok(byName.SoICodexAll?.messageForward === "ALEX SEGUIN 2026.09.07 23.02UTC . DANIEL VAIL 2026.09.07 23.02UTC" && byName.SoICodexAll.verified, `the ALL strip carries every signatory in the operator's format (got ${byName.SoICodexAll?.messageForward})`);
+ok(byName.SoICodexAll?.messageForward === "ALEX SEGUIN 2026.09.07_23:02UTC • DANIEL VAIL 2026.09.07_23:02UTC" && byName.SoICodexAll.verified, `the ALL strip carries every signatory in the operator's format (got ${byName.SoICodexAll?.messageForward})`);
 ok(dec.every((d) => d.result?.style === "Hidden Helix" && d.result.blockSize === 1), `the strip is the HIDDEN Helix, 1 px, as the PNG carries it (got ${[...new Set(dec.map((d) => d.result?.style))].join(",")})`);
 // nothing visible: no "Signatories" box text on any page
 { const { getDocument: gd } = await import("pdfjs-dist/legacy/build/pdf.mjs"); const F = new URL("../node_modules/pdfjs-dist/standard_fonts/", import.meta.url).pathname; const d2 = await gd({ data: p2.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: F, verbosity: 0 }).promise; let boxed = 0; for (let i = 1; i <= d2.numPages; i++) { const t = (await (await d2.getPage(i)).getTextContent()).items.map((x) => x.str).join(" "); if (/Signatories|Digitally signed/.test(t)) boxed++; } ok(boxed === 0, "no signatory box is drawn any more (the digital line sits under each signature)"); }
@@ -61,4 +69,19 @@ const t2 = (await (await dh.getPage(2)).getTextContent()).items.map((x) => x.str
 ok(!/Sign here/.test(t2), "no \"Sign here\" label on the page — a dotted box only, the line speaks for itself (operator 01:25)");
 const filled = await stampSig(withHolders, { page: 2, x: 0.5, y: 0.52, w: 0.33, h: 0.035, fit: "underline", clear: true }, { pngDataUrl: png1x1, name: "Daniel Vail", isoDate: "2026-09-07T23:02:09.590Z", hash: "8ed387cc" });
 ok((await countSignatureImagesOf(filled)) === 1, "the signature lands on the placeholder (clear:true) — one SoISig");
+
+// the four new Light Codex symbols (operator 2026-09-08): - _ • : — each decodes through the PDF strip, and no group in the
+// alphabet collides with another, contains the frame colour, or has a token-reversal that is a taken group
+{
+  const { ALPHA, NUMBERS, TRANSMISSION, unsupportedChars } = await import("../lib/light-codex.ts");
+  ok(unsupportedChars("A-B_C•D:E 1.").length === 0, "hyphen, underscore, bullet and colon are supported characters");
+  const groups = [...Object.values(ALPHA), ...Object.values(NUMBERS), ...Object.values(TRANSMISSION)];
+  ok(new Set(groups).size === groups.length, `every colour group is unique (${groups.length})`);
+  const rev = (g) => Array.from(g).reverse().join("");
+  for (const ch of ["-", "_", "•", ":"]) { const g = ALPHA[ch]; ok(g && !/G/.test(g) && (rev(g) === g || !groups.includes(rev(g))), `${JSON.stringify(ch)} = ${g}: no green, reversal free`); }
+  const sym = await stampCodexBlock(pdf, { total: 1, rows: [rows[0]], all: codexImage("A-B_C•D:E 2026.09.08_08:11CST"), initials: { total: 1, mine: { idx: 0, pngDataUrl: png1x1 } } });
+  const all = (await decodeCodexPdf(sym, inflate)).find((d) => d.page === 1 && d.name === "SoICodexAll")?.result;
+  ok(all?.messageForward === "A-B_C•D:E 2026.09.08_08:11CST" && all.verified, `the symbols round-trip through the PDF strip (got "${all?.messageForward}")`);
+}
+
 console.log(`codex-pdf: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

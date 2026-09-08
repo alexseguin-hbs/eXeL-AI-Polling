@@ -16,27 +16,40 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ArrowRight } from "lucide-react";
-import { SIGN_STEPS, CREATOR_STEPS, COUNTERSIGN_STEPS } from "@/lib/sign-steps";
+import { SIGN_STEPS, CREATOR_STEPS, COUNTERSIGN_STEPS, AI_GLYPH, type SignStep } from "@/lib/sign-steps";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
-import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths } from "@/lib/pdf-stamp";
 import { initialsSlotTop, partnerRule } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
 import { putTempFile, type TempLink } from "@/lib/tmpfile";
 import { aiStatus, aiPlace, anyAi, type AiConfigured, type AiProvider } from "@/lib/ai";
-import { codexAllText, codexImage } from "@/lib/codex-strip";
+import { codexAllText, codexImage } from "@/lib/codex-pdf";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
 /** A page as a PNG data URL at 612 px wide — what the AI placement looks at. */
 async function pageDataUrl(bytes: Uint8Array, n: number): Promise<string> { const doc = await openPdf(bytes); const r = await renderPage(doc, n, 306); return r.canvas.toDataURL("image/png"); }
-/** A page as pixels, rendered off-screen at half width (the fit and the layout read fractions). */
-async function pageBitmap(bytes: Uint8Array, n: number): Promise<Bitmap> {
+/** A page as pixels, rendered off-screen at half width (the fit and the layout read fractions), with its size in points. */
+async function pageBitmap(bytes: Uint8Array, n: number): Promise<Bitmap & { widthPt: number; heightPt: number }> {
   const doc = await openPdf(bytes); const r = await renderPage(doc, n, 306);
   const d = r.canvas.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, r.canvas.width, r.canvas.height);
-  return { width: d.width, height: d.height, data: d.data };
+  return { width: d.width, height: d.height, data: d.data, widthPt: r.widthPt, heightPt: r.heightPt };
 }
+// The PDF core's optional helpers, consumed defensively while they land (reviewer 2026-09-08): the initials row's width
+// fraction for the slot scan, and the initials-slot widths it is computed from.
+/** The caption under a signature box, in points — the slot scan must clear it too (pdf-stamp draws it under the image). */
+const CAPTION_PT = 12;
+/** The initials slot's own height as a page fraction (initialsSlotTop's hFrac default). */
+const SLOT_H_FRAC = 0.018;
+/** The rail step a flow state lights: an error keeps the LAST real step lit (reviewer 2026-09-08). */
+const railOf = (step: string): SignStep | null => step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" || step === "login" ? "sign" : step === "error" ? null : (step as SignStep);
+/** A date in the Globe's language, never the browser's (reviewer 2026-09-08); Latin digits: the PDF font has no others (fleet). */
+const dateIn = (locale: string, d: Date, opts: Intl.DateTimeFormatOptions, time = false): string => {
+  const f = time ? (l?: string, o?: Intl.DateTimeFormatOptions) => d.toLocaleString(l, o) : (l?: string, o?: Intl.DateTimeFormatOptions) => d.toLocaleDateString(l, o);
+  try { return f(locale || undefined, { ...opts, numberingSystem: "latn" } as Intl.DateTimeFormatOptions); } catch { try { return f(locale || undefined, opts); } catch { return f(undefined, opts); } }
+};
 import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
@@ -58,21 +71,27 @@ const dropDraft = () => { try { sessionStorage.removeItem(DRAFT_KEY); } catch { 
 /** Two signers named on a build without a shared store: the hand-off cannot be minted — say why. */
 const multiLocal = (signers: number, mode: string, step: Step) => signers > 1 && mode === "local" && step === "signers";
 
-export function SignFlow({ token, secret, defaultName, defaultContact, seed, requireLogin, returnTo }: {
+export function SignFlow({ token, secret, defaultName, defaultContact, seed, fileLink, requireLogin, returnTo }: {
   token?: string; secret?: string; defaultName?: string; defaultContact?: string;
-  /** Create Doc hands a generated PDF in as file 1. */
+  /** Create Doc hands a generated PDF in as file 1; a 24-hour link (?f=) hands a partly-signed one in the same way. */
   seed?: { name: string; bytes: Uint8Array } | null;
+  /** The ?f= token: this reader is a hand-off RECIPIENT — no account, the offline path (the file travels on), never the creator's login. */
+  fileLink?: string;
   /** The site has Auth0: ask for the login at "Sign & save" (creator path only). */
   requireLogin?: boolean; returnTo?: string;
 }) {
-  const { t } = useLexicon();
+  const { t, activeLocale } = useLexicon();
   const hue = useThemeHue();
   const countersign = !!token;
+  const handCarried = !!fileLink;                                          // a ?f= recipient signs like the offline hand-off: local envelope, no login
+  const needLogin = !!requireLogin && !handCarried;
   const [step, setStep] = useState<Step>(countersign ? "loading" : "upload");
   const [err, setErr] = useState("");
+  const [failStage, setFailStage] = useState<"" | "open" | "stamp" | "create" | "save">("");   // the phase the last failure happened in
+  const lastRail = useRef<SignStep>(countersign ? "open" : "upload");                             // the last real step, kept lit through an error
   const [title, setTitle] = useState("");
   const [files, setFiles] = useState<Loaded[]>([]);
-  const [signers, setSigners] = useState<{ name: string; contact: string }[]>([{ name: defaultName ?? "", contact: defaultContact ?? "" }, { name: "", contact: "" }]);
+  const [signers, setSigners] = useState<{ name: string; contact: string; signed?: boolean }[]>([{ name: defaultName ?? "", contact: defaultContact ?? "" }, { name: "", contact: "" }]);
   const [marks, setMarks] = useState<Record<number, Mark[]>>({});      // per file: one "sig" + any text marks
   const [selected, setSelected] = useState<string | null>(null);
   const [viewedPage, setViewedPage] = useState(1);            // + Date / + Text land on the page being looked at (Enki)
@@ -94,7 +113,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       if (!r) { setAiState("failed"); return; }
       if (!r.result) { setAiState("none"); return; }
       const b = r.result;
-      const sig: Mark = { id: "sig", kind: "sig", page: viewedPage, x: b.x, y: b.y, w: Math.max(0.08, b.w), h: Math.max(0.02, b.h), fit: "ai" as Mark["fit"] };
+      const sig: Mark = { id: "sig", kind: "sig", page: viewedPage, x: b.x, y: b.y + b.h - Math.max(0.02, b.h), w: Math.max(0.08, b.w), h: Math.max(0.02, b.h), fit: "ai" as Mark["fit"] };   // a short box grows upward: the baseline stays
       const date: Mark[] = b.date ? [{ id: `t${Date.now().toString(36)}`, kind: "text", page: viewedPage, x: b.date.x, y: b.date.y, w: Math.max(0.05, b.date.w), h: Math.max(0.01, b.date.h), text: todayText(), fit: "ai" as Mark["fit"] }] : [];
       setMarks((m) => ({ ...m, [fileIdx]: [sig, ...date, ...(m[fileIdx] ?? []).filter((k) => k.kind === "text" && !date.length)] })); setSelected("sig"); setAiState("placed");
     } catch (e) { setAiState("failed"); setErr(`${t("soi.sign.ai.title")}: ${String((e as Error).message ?? e)}`); }
@@ -113,8 +132,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const [offline, setOffline] = useState<"" | "no_backend" | "no_migration">("");
   // Outside an Auth0Provider this is the library's inert default context — it is only ACTED on when requireLogin.
   const auth = useAuth0();
-  const loggedIn = !!requireLogin && auth.isAuthenticated;
-  const authState: AuthState = requireLogin ? (loggedIn ? "in" : "guarded") : "bypassed";
+  const loggedIn = needLogin && auth.isAuthenticated;
+  const authState: AuthState = needLogin ? (loggedIn ? "in" : "guarded") : "bypassed";
   const [diagOpen, setDiagOpen] = useState(false);
   const [resumed, setResumed] = useState(false);
   const snapshot = (): Draft => ({ title, files: files.map((f) => ({ name: f.name, base64: f.base64 })), signers, marks, png, initialsPng, token: pendingToken.current });
@@ -145,8 +164,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
     return () => clearTimeout(id);
   }, [step, t]);
 
-  // ── seed from Create Doc ─────────────────────────────────────────────────────
-  useEffect(() => { if (seed) void addBytes(seed.name, seed.bytes); }, [seed]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── seed from Create Doc / a ?f= file link ───────────────────────────────────
+  // once per seed object, and never over a draft being restored (the draft already holds the file — reviewer 2026-09-08)
+  const seededRef = useRef<{ name: string; bytes: Uint8Array } | null>(null);
+  useEffect(() => { if (seed && seededRef.current !== seed) { seededRef.current = seed; if (!(readDraft()?.files.length)) void addBytes(seed.name, seed.bytes); } }, [seed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── countersign: open the envelope ───────────────────────────────────────────
   useEffect(() => {
@@ -162,12 +183,39 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         setFiles(fs);
         if (e.party >= 0) { const pre = await preplaced(fs, e.party); if (Object.keys(pre).length) setMarks(pre); }
         if (e.status === "complete") { setSigned(fs.map((f) => ({ name: f.name, bytes: f.bytes }))); setStep("done"); return; }
-        if (e.status !== "awaiting") { setErr(t(`soi.sign.status.${e.status}`)); setStep("error"); return; }
+        if (e.status !== "awaiting") { setErr(t(`soi.sign.status.${e.status}`)); setFailStage("open"); setStep("error"); return; }
         setStep(e.current_signer_idx === e.party ? "place" : "waiting");
-      } catch (ex) { if (live) { setErr(`${t("soi.sign.stage.open")}: ${ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex)}`); setStep("error"); } }
+      } catch (ex) { if (live) { setErr(`${t("soi.sign.stage.open")}: ${ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex)}`); setFailStage("open"); setStep("error"); } }
     })();
     return () => { live = false; };
   }, [countersign, token, secret]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── waiting for another signer: the roster refreshes by itself (reviewer 2026-09-08) ──────────
+  // on return to the tab, every 20 s, and on "Check again" — a turn that came while the phone slept is not missed
+  const [checking, setChecking] = useState(false);
+  const refreshEnvelope = useCallback(async () => {
+    if (!countersign || checking) return;
+    setChecking(true);
+    try {
+      const e = await getEnvelope(token!, secret ?? "");
+      setPub(e);
+      if (e.status === "complete") { setSigned(files.map((f) => ({ name: f.name, bytes: f.bytes }))); setStep("done"); return; }
+      if (e.status === "awaiting" && e.current_signer_idx === e.party && e.party >= 0) {
+        const fs: Loaded[] = (e.files ?? []).map((f) => { const b = base64ToBytes(f.pdf_base64); return { name: f.name, bytes: b, base64: f.pdf_base64, sha256: f.sha256, pages: f.page_count }; });
+        if (fs.length) { setFiles(fs); const pre = await preplaced(fs, e.party); if (Object.keys(pre).length) setMarks(pre); }
+        setStep("place");
+      }
+    } catch { /* a failed refresh keeps the roster as it was; the next tick tries again */ }
+    finally { setChecking(false); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countersign, token, secret, checking, files]);
+  useEffect(() => {
+    if (step !== "waiting") return;
+    const onVisible = () => { if (document.visibilityState === "visible") void refreshEnvelope(); };
+    document.addEventListener("visibilitychange", onVisible);
+    const id = setInterval(() => { if (document.visibilityState === "visible") void refreshEnvelope(); }, 20_000);
+    return () => { document.removeEventListener("visibilitychange", onVisible); clearInterval(id); };
+  }, [step, refreshEnvelope]);
 
   // ── upload ───────────────────────────────────────────────────────────────────
   const addBytes = async (name: string, bytes: Uint8Array) => {
@@ -182,6 +230,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const onFiles = async (list: FileList | null) => { for (const f of Array.from(list ?? [])) await addBytes(f.name, new Uint8Array(await f.arrayBuffer())); };
   /** The placeholders a partly-signed file carries for the NEXT signer (the first row nobody has taken), as marks —
    *  so the second signer's page opens with the signature on the other party's line and the date on its Date line. */
+  //  A holder's box is used AS STORED (y, h — the bottom on its line); its fit is "holder" (on a rule) only when a rule actually
+  //  runs under it, else "default" — the fallback the first signer's pass drew where no partner rule was found (reviewer 2026-09-08).
   const preplaced = async (fs: Loaded[], idx?: number): Promise<Record<number, Mark[]>> => {
     const out: Record<number, Mark[]> = {};
     for (let i = 0; i < fs.length; i++) {
@@ -189,7 +239,20 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       const taken = new Set((await codexRows(fs[i].bytes)).map((r) => r.rowIndex));
       const target = idx ?? Math.min(...hs.map((h) => h.idx).filter((k) => !taken.has(k)));
       const mine = hs.filter((h) => h.idx === target); if (!mine.length) continue;
-      out[i] = mine.map((h, k) => (h.kind === "sig" ? { id: "sig", kind: "sig", page: h.page, x: h.x, y: h.y, w: h.w, h: h.h, fit: "holder", clear: true } : { id: `h${k}`, kind: "text", page: h.page, x: h.x, y: h.y, w: h.w, h: h.h, text: todayText(), fit: "holder", clear: true }));
+      const bmps: Record<number, Bitmap> = {};
+      const onRule = async (h: Holder): Promise<boolean> => {
+        try {
+          bmps[h.page] ??= await pageBitmap(fs[i].bytes, h.page);
+          const f = fitToUnderline(bmps[h.page], { x: h.x + Math.min(0.1, h.w / 2), y: h.y + h.h - 0.012 });
+          return !!f && Math.abs(f.lineY - (h.y + h.h)) < 0.01;
+        } catch { return false; }
+      };
+      const marks: Mark[] = [];
+      for (let k = 0; k < mine.length; k++) {
+        const h = mine[k]; const fit: Mark["fit"] = (await onRule(h)) ? "holder" : "default";
+        marks.push(h.kind === "sig" ? { id: "sig", kind: "sig", page: h.page, x: h.x, y: h.y, w: h.w, h: h.h, fit, clear: true } : { id: `h${k}`, kind: "text", page: h.page, x: h.x, y: h.y, w: h.w, h: h.h, text: todayText(), fit, clear: true });
+      }
+      out[i] = marks;
     }
     return out;
   };
@@ -199,15 +262,53 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
     (async () => { const pre = await preplaced(files); if (live && Object.keys(pre).length) setMarks((m) => { const n = { ...m }; for (const [k, v] of Object.entries(pre)) if (!(n[Number(k)] ?? []).length) n[Number(k)] = v; return n; }); })();
     return () => { live = false; };
   }, [files, countersign]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── a hand-carried / linked partly-signed file names its own title and signers (reviewer 2026-09-08) ──
+  // The SoICodex rows are the signers already in the file; the SoIHold placeholder names the next one — this reader.
+  // Prefilled only over BLANK rows and an empty title, never over what was typed.
+  const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
+  const prefilledRef = useRef<string>("");
+  useEffect(() => {
+    if (countersign || !files.length) return;
+    const f0 = files[0]; if (prefilledRef.current === f0.sha256) return;
+    let live = true;
+    (async () => {
+      const rows = (await codexRows(f0.bytes)).filter((r) => r.rowIndex >= 0).sort((a, b) => a.rowIndex - b.rowIndex);
+      const hs = await readHolders(f0.bytes);
+      if (!live || (!rows.length && !hs.length)) return;
+      prefilledRef.current = f0.sha256;
+      let pdfTitle = "";
+      try { const { PDFDocument } = await import("pdf-lib"); pdfTitle = (await PDFDocument.load(f0.bytes, { updateMetadata: false, ignoreEncryption: true })).getTitle() ?? ""; } catch { /* no metadata */ }
+      if (!live) return;
+      setTitle((cur) => cur || pdfTitle || f0.name.replace(/-(partly-)?signed(-[A-Z-]+)?\.pdf$/i, "").replace(/\.pdf$/i, ""));
+      const taken = new Set(rows.map((r) => r.rowIndex));
+      const nextIdx = hs.length ? Math.min(...hs.map((h) => h.idx).filter((k) => !taken.has(k))) : rows.length;
+      const nextName = hs.find((h) => h.idx === nextIdx)?.name ?? "";
+      const total = Math.max(rows.length + 1, nextIdx + 1);
+      setSigners((cur) => {
+        if (cur.some((s) => s.name.trim() || s.contact.trim())) return cur;   // typed rows win
+        return Array.from({ length: total }, (_, i) => {
+          const r = rows.find((x) => x.rowIndex === i);
+          if (r) return { name: r.name ?? "", contact: "", signed: true };   // already signed in the carried file: no contact owed
+          if (i === nextIdx) return { name: nextName || defaultName || "", contact: defaultContact ?? "" };
+          return { name: "", contact: "" };
+        });
+      });
+      setCarriedIdx(Number.isFinite(nextIdx) ? nextIdx : null);
+    })();
+    return () => { live = false; };
+  }, [files, countersign]); // eslint-disable-line react-hooks/exhaustive-deps
   const removeFile = (i: number) => {
     setFiles((fs) => fs.filter((_, j) => j !== i));
     // re-key the marks above the removed file, or file N+1 inherits file N's marks (Enki, wave 2)
     setMarks((b) => { const n: Record<number, Mark[]> = {}; for (const [k, v] of Object.entries(b)) { const j = Number(k); if (j < i) n[j] = v; else if (j > i) n[j - 1] = v; } return n; });
+    // the viewed file index follows the removal, never past the last file (reviewer 2026-09-08)
+    setFileIdx((k) => Math.max(0, Math.min(k > i ? k - 1 : k, files.length - 2)));
+    setSelected(null);
   };
 
   // ── signers ──────────────────────────────────────────────────────────────────
   const setSigner = (i: number, patch: Partial<{ name: string; contact: string }>) => setSigners((s) => s.map((x, j) => (j === i ? { ...x, ...patch } : x)));
-  const signersOk = signers.every((s) => s.name.trim() && contactKind(s.contact)) && signers.length >= 1;
+  const signersOk = signers.every((s) => s.name.trim() && (s.signed || contactKind(s.contact))) && signers.length >= 1;
   const multi = signers.length > 1;
 
   // ── place + draw ─────────────────────────────────────────────────────────────
@@ -222,26 +323,31 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
     // the document's own "Date: ____" line, just under the signature, takes the mark (same fit as the signature box)
     const f = sig && onSigPage ? fitRef.current?.({ x: sig.x + Math.min(0.1, sig.w / 2), y: sig.y + sig.h + 0.03 }) : null;
     const fitted = !!(sig && f && f.lineY > sig.y + sig.h && f.h < sig.h * 1.5 && !cur.some((m) => m.kind === "text" && Math.abs(m.y - f.y) < 0.01));
-    const mark: Mark = fitted && f ? { id, kind: "text", page, x: f.x, y: f.y, w: f.w, h: f.h, text, fit: "underline" } : { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text, fit: "default" };
+    // a fitted text mark is one text line tall, its bottom ON the rule — the rule's full gap (up to the text above, 23–31 pt)
+    // printed "Sep 7, 2026" at ~27 pt beside 11-pt body text (operator's live PDF, 2026-09-08)
+    const capped = f ? (() => { const h = f.textH ? Math.min(0.03, Math.max(0.012, f.textH * 1.9)) : Math.min(f.h, TXT_H); return { h, y: f.y + f.h - h }; })() : null;   // textH × 1.9 ≈ the document's em (the preview and stamp draw text at 72 % of the box)
+    const mark: Mark = fitted && f && capped ? { id, kind: "text", page, x: f.x, y: capped.y, w: f.w, h: capped.h, text, fit: "underline" } : { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text, fit: "default" };
     setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
     setTimeout(() => { const boxes = document.querySelectorAll('[data-testid="text-box"]'); boxes[boxes.length - 1]?.scrollIntoView({ block: "center", behavior: "smooth" }); }, 50);
   };
-  const todayText = () => { try { return new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", numberingSystem: "latn" } as Intl.DateTimeFormatOptions); } catch { return new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } };   // Latin digits: the PDF font has no others (fleet)
+  const todayText = () => dateIn(activeLocale, new Date(), { year: "numeric", month: "short", day: "numeric" });   // the Globe's language, Latin digits
   const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
   const setSelText = (text: string) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, text } : m)) }));
   const removeSel = () => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== selected) })); setSelected(null); };
   // − / + scale the selected mark about its bottom-left corner: the baseline never moves (operator 2026-09-08)
   const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => { if (m.id !== selected) return m; const w = Math.min(1, Math.max(0.08, m.w * f)), h = Math.min(1, Math.max(0.02, m.h * f)); return { ...m, w, h, y: Math.max(0, m.y + m.h - h) }; }) }));
   const myIdx = countersign ? (pub?.party ?? 0) : 0;
-  const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[0]?.name ?? "";
+  // in a carried file this reader is the next free row, not row 0 (the earlier signers are already in the file)
+  const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[carriedIdx ?? 0]?.name ?? signers[0]?.name ?? "";
+  const meIdx = countersign ? myIdx : Math.min(carriedIdx ?? 0, Math.max(0, signers.length - 1));   // the row THIS pass signs in
 
   // ── stamp + save ─────────────────────────────────────────────────────────────
   // The marks of this pass, per file, as the record keeps them (page, box, text) — sign_events.marks
   const passMarks = () => files.map((_, i) => (marks[i] ?? []).map((m) => ({ kind: m.kind, page: m.page, x: +m.x.toFixed(4), y: +m.y.toFixed(4), w: +m.w.toFixed(4), h: +m.h.toFixed(4), ...(m.kind === "text" ? { text: (m.text ?? "").slice(0, 200) } : {}) })));
   const sign = useCallback(async () => {
     if (!png || !initialsPng || !allPlaced) return;
-    if (requireLogin && auth.isLoading) { setErr(t("soi.sign.err.auth_loading")); return; }   // the SDK is still hydrating after the redirect — a second tap must not loop the login (fleet, Krishna)
-    if (requireLogin && !auth.isAuthenticated) {                // the login comes at the moment of saving, the draft rides along
+    if (needLogin && auth.isLoading) { setErr(t("soi.sign.err.auth_loading")); return; }   // the SDK is still hydrating after the redirect — a second tap must not loop the login (fleet, Krishna)
+    if (needLogin && !auth.isAuthenticated) {                   // the login comes at the moment of saving, the draft rides along
       if (!keepDraft(snapshot())) { setErr(t("soi.sign.err.draft_too_large")); return; }
       setStep("login"); setErr("");
       void auth.loginWithRedirect({ appState: { returnTo: returnTo ?? window.location.pathname } });
@@ -258,32 +364,51 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       const stampedBytes: { name: string; bytes: Uint8Array }[] = [];
       for (let i = 0; i < files.length; i++) {
         const f = files[i];
-        let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
+        const recorded = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0);
+        const myRow = countersign || !recorded.some((r) => r.rowIndex === meIdx) ? meIdx : Math.max(...recorded.map((r) => r.rowIndex)) + 1;
+        const myContact = countersign ? pub?.signers[meIdx]?.contact_masked : signers[meIdx]?.contact;   // names a signer whose name the PDF font cannot draw
+        let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact, signerIdx: myRow, envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
-        for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: myIdx, isoDate, chain: prevChain });
+        for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: meIdx, isoDate, chain: prevChain });
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
         const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? `${t("soi.sign.signer")} ${i + 1}`;
         // rows already in the file: a file carried by hand (offline hand-off) keeps its earlier signers by the NAME in
         // the keyword; this signer takes the next free row rather than overwriting one
-        const recorded = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0);
-        const myRow = countersign || !recorded.some((r) => r.rowIndex === myIdx) ? myIdx : Math.max(...recorded.map((r) => r.rowIndex)) + 1;
         const total = Math.max(countersign ? (pub?.signers.length ?? 2) : signers.length, myRow + 1);
         const earlier = recorded.filter((r) => r.rowIndex !== myRow).map((r) => ({ ...r, name: r.name || nameOf(r.rowIndex) }));
-        const allRows = [...earlier, { rowIndex: myRow, name: myName, isoDate, hash: shortHash(prevChain || f.sha256) }].sort((a, b) => a.rowIndex - b.rowIndex);
-        // the initials slot on every page: below the lowest ink at the bottom-right, else the lowest clear gap (never over text)
+        const allRows = [...earlier, { rowIndex: myRow, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact }].sort((a, b) => a.rowIndex - b.rowIndex);
+        // the initials slot on every page: below the lowest ink at the bottom-right, else the lowest clear gap (never over text).
+        // The scan reads the UNSTAMPED page, so this pass's own signature, caption and date are invisible to it (reviewer
+        // 2026-09-08): once the marks are known, the slot is pushed below the bottom of this pass's boxes on that page
+        // (+ the caption's height), in page fractions. The row's own width fraction is handed to the scan when the core lends it.
         const topByPage: Record<number, number> = {};
-        for (let pg = 1; pg <= f.pages; pg++) { try { topByPage[pg] = initialsSlotTop(await pageBitmap(f.bytes, pg)); } catch { /* default: bottom margin */ } }
+        for (let pg = 1; pg <= f.pages; pg++) {
+          try {
+            const bmp = await pageBitmap(f.bytes, pg);
+            const scan = initialsSlotTop(bmp, { colFrac: initialsRowFrac(initialsSlotWidths(total), bmp.widthPt || 612) });   // the scan covers the whole initials row (3+ signers)
+            const own = (marks[i] ?? []).filter((m) => m.page === pg);
+            const captionFrac = CAPTION_PT / (bmp.heightPt || 792);
+            const ownBottom = own.length ? Math.max(...own.map((m) => m.y + m.h + (m.kind === "sig" ? captionFrac : 0))) : 0;
+            const pushed = ownBottom > scan && ownBottom < scan + SLOT_H_FRAC + captionFrac ? Math.min(ownBottom, 1 - SLOT_H_FRAC - 0.004) : scan;   // only when the slot would sit on this pass's ink
+            topByPage[pg] = ownBottom > scan ? Math.max(scan, pushed, ownBottom > 1 - SLOT_H_FRAC - 0.004 ? scan : ownBottom) : scan;
+          } catch { /* default: bottom margin */ }
+        }
         // one HIDDEN Light Codex line with EVERY signatory so far, on the bottom edge of every page (operator 23:15 / 00:45)
         out = await stampCodexBlock(out, { total, rows: allRows, all: codexImage(codexAllText(allRows)), initials: { total, mine: { idx: myRow, pngDataUrl: initialsPng }, topByPage } });
         // placeholders for the NEXT signer — signature on the other party's line of the same row, date on its Date line
         const nextIdx = myRow + 1;
         if (nextIdx < total && !(await readHolders(out)).some((h) => h.idx === nextIdx)) {
           const sig = sigOf(i)!; const bmp = await pageBitmap(f.bytes, sig.page);
+          // no partner rule on the page: the fallback beside the signature is a DEFAULT box, never treated as on-rule
+          // (preplaced() re-reads the page and tags a holder "default" when no rule runs under it — reviewer 2026-09-08)
           const partner = partnerRule(bmp, sig) ?? { x: Math.min(0.95 - sig.w, sig.x + sig.w + 0.06), y: sig.y, w: sig.w, h: sig.h, lineY: sig.y + sig.h };
           const nextName = nameOf(nextIdx);
           const hs: Holder[] = [{ idx: nextIdx, name: nextName, kind: "sig", page: sig.page, x: partner.x, y: partner.y, w: partner.w, h: partner.h }];
           const dateFit = fitToUnderline(bmp, { x: partner.x + Math.min(0.1, partner.w / 2), y: partner.y + partner.h + 0.03 });
-          hs.push(dateFit && dateFit.lineY > partner.y + partner.h ? { idx: nextIdx, name: nextName, kind: "date", page: sig.page, x: dateFit.x, y: dateFit.y, w: dateFit.w, h: dateFit.h } : { idx: nextIdx, name: nextName, kind: "date", page: sig.page, x: partner.x, y: Math.min(0.98, partner.y + partner.h + 0.012), w: TXT_W, h: TXT_H });
+          // the partner's date holder is one text line tall with its bottom ON the Date line — the rule's full gap overlapped
+          // the printed name above it (operator's live PDF, 2026-09-08)
+          const dateH = dateFit ? (dateFit.textH ? Math.min(0.03, Math.max(0.012, dateFit.textH * 1.9)) : Math.min(dateFit.h, TXT_H)) : TXT_H;
+          hs.push(dateFit && dateFit.lineY > partner.y + partner.h ? { idx: nextIdx, name: nextName, kind: "date", page: sig.page, x: dateFit.x, y: dateFit.y + dateFit.h - dateH, w: dateFit.w, h: dateH } : { idx: nextIdx, name: nextName, kind: "date", page: sig.page, x: partner.x, y: Math.min(0.98, partner.y + partner.h + 0.012), w: TXT_W, h: TXT_H });
           out = await stampHolders(out, hs); setHoldersFor(nextName);
         }
         const sha = await sha256Hex(out);
@@ -326,7 +451,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
     } catch (ex) {
       // never silent: the step that failed, then the reason
       setErr(`${t(`soi.sign.stage.${stage}`)}: ${ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex)}`);
-      setStep(countersign ? "place" : "draw");
+      setFailStage(stage); setStep("draw");   // the red line, the sentence and the Sign & save button share one screen (fleet: a countersigner landed on PLACE)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [png, initialsPng, allPlaced, files, marks, myName, countersign, pub, title, signers, token, secret, myIdx, t, requireLogin, auth.isAuthenticated, returnTo]);
@@ -362,7 +487,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   // ── the phase rail + one explainer line (R-CORE gate block) ──────────────────
   const rail = useMemo(() => {
     const keys = countersign ? COUNTERSIGN_STEPS : CREATOR_STEPS;
-    const cur = step === "loading" || step === "waiting" || step === "not_party" ? "open" : step === "saving" || step === "login" ? "sign" : step;
+    const r = railOf(step); if (r) lastRail.current = r; const cur = r ?? lastRail.current;   // an error keeps the last real step lit
     return keys.map((k) => ({ k, on: k === cur, past: keys.indexOf(k) < keys.indexOf(cur) }));
   }, [step, countersign]);
   const explain = (() => {
@@ -378,16 +503,17 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       case "waiting": return `${t("soi.sign.turn_of")} ${pub?.signers[pub.current_signer_idx]?.name ?? "…"}`;
       case "not_party": return t("soi.sign.not_party");
       case "loading": return t("soi.sign.loading");
+      case "error": return err || t("soi.sign.x.error");
       default: return "";
     }
   })();
 
-  const Roster = () => pub ? (
+  const Roster = () => pub && pub.party >= 0 ? (   // a wrong secret (not_party) never reads the roster (Christo, Thor)
     <ol className="mt-2 grid gap-1 text-xs" data-testid="roster">
       {pub.signers.map((s, i) => (
         <li key={i} className="flex items-center justify-between rounded border border-border px-2 py-1">
-          <span>{i + 1}. {s.name} <span className="text-muted-foreground">{s.contact_masked}</span>{s.me && <span className="ml-1 rounded bg-cyan-400/15 px-1 text-[10px]">{t("soi.sign.you")}</span>}</span>
-          <span className={s.signed_at ? "text-green-500" : i === pub.current_signer_idx && pub.status === "awaiting" ? "text-cyan-400" : "text-muted-foreground"}>
+          <span>{i + 1}. {s.name} <span className="text-muted-foreground">{s.contact_masked}</span>{s.me && <span className="ml-1 rounded bg-primary/15 px-1 text-[10px]">{t("soi.sign.you")}</span>}</span>
+          <span className={s.signed_at ? "text-green-500" : i === pub.current_signer_idx && pub.status === "awaiting" ? "text-primary" : "text-muted-foreground"}>
             {s.signed_at ? `✓ ${t("soi.sign.signed")}` : i === pub.current_signer_idx && pub.status === "awaiting" ? (s.me ? t("soi.sign.turn_you") : t("soi.sign.turn_now")) : t("soi.sign.pending")}
           </span>
         </li>
@@ -407,10 +533,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         <h2 className="text-lg font-semibold">{countersign ? (title || t("soi.sign.title")) : t("soi.sign.title")}</h2>
         {mode === "local" && <span className="rounded-full border border-amber-500/50 px-2 py-0.5 text-[10px] uppercase text-amber-500">{t("soi.sign.local_only")}</span>}
       </div>
-      <p className="mb-4 text-sm text-cyan-400" data-testid="explain" aria-live="polite">{explain}</p>
+      <p className="mb-4 text-sm text-primary" data-testid="explain" aria-live="polite">{explain}</p>
       {err && <p className="mb-3 rounded-md border border-red-500/40 bg-red-500/5 p-2 text-xs text-red-500" data-testid="error">{err}</p>}
-      {resumed && <p className="mb-3 rounded-md border border-cyan-400/40 bg-cyan-400/5 p-2 text-xs text-cyan-300" data-testid="resumed">{t("soi.sign.x.resumed")}</p>}
-      <SignDiag d={{ mode, auth: authState, authName: auth.user?.email ?? auth.user?.name, multi: countersign ? (pub?.signers.length ?? 2) > 1 : multi, err, step }} open={diagOpen} onToggle={() => setDiagOpen((o) => !o)} />
+      {resumed && <p className="mb-3 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs text-primary" data-testid="resumed">{t("soi.sign.x.resumed")}</p>}
+      <SignDiag d={{ mode, auth: authState, authName: auth.user?.email ?? auth.user?.name, multi: countersign ? (pub?.signers.length ?? 2) > 1 : multi, err, step, stage: failStage }} open={diagOpen} onToggle={() => setDiagOpen((o) => !o)} />
 
       {/* ── UPLOAD ── */}
       {step === "upload" && (
@@ -419,12 +545,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
             <span className="text-sm font-medium">{t("soi.sign.doc_title")}</span>
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("soi.sign.doc_title_ph")} className="mt-1 w-full rounded-md border border-border bg-background px-2 py-2 text-sm" />
           </label>
-          <label className="mt-3 flex min-h-[64px] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-cyan-400/50 p-4 text-sm text-cyan-400">
+          <label className="mt-3 flex min-h-[64px] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-primary/50 p-4 text-sm text-primary">
             {t("soi.sign.upload")}
             <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} data-testid="file-input" />
           </label>
           <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.upload_hint")}</p>
-          {requireLogin && !loggedIn && <p className="mt-1 text-[11px] text-muted-foreground" data-testid="login-later">{t("soi.sign.login.later")} <button type="button" onClick={login} className="min-h-[36px] text-cyan-400 underline-offset-2 hover:underline">{t("soi.sign.login.now")}</button></p>}
+          {requireLogin && !loggedIn && <p className="mt-1 text-[11px] text-muted-foreground" data-testid="login-later">{t("soi.sign.login.later")} <button type="button" onClick={login} className="min-h-[36px] text-primary underline-offset-2 hover:underline">{t("soi.sign.login.now")}</button></p>}
           {files.length > 0 && (
             <ul className="mt-3 grid gap-1 text-sm" data-testid="file-list">
               {files.map((f, i) => (
@@ -445,7 +571,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         <div>
           {signers.map((s, i) => (
             <div key={i} className="mb-2 rounded-md border border-border p-3">
-              <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-cyan-400">
+              <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-primary">
                 <span>{i === 0 ? t("soi.sign.me") : `${t("soi.sign.signer")} ${i + 1}`}</span>
                 {i > 0 && <button type="button" onClick={() => setSigners((x) => x.filter((_, j) => j !== i))} className="min-h-[36px] px-2 text-muted-foreground" aria-label={t("soi.sign.remove_signer")}>✕</button>}
               </div>
@@ -455,7 +581,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               </div>
             </div>
           ))}
-          <button type="button" onClick={() => setSigners((x) => [...x, { name: "", contact: "" }])} className="min-h-[44px] text-sm text-cyan-400">+ {t("soi.sign.add_signer")}</button>
+          <button type="button" onClick={() => setSigners((x) => [...x, { name: "", contact: "" }])} className="min-h-[44px] text-sm text-primary">+ {t("soi.sign.add_signer")}</button>
           {multi && mode === "local" && <p className="mt-2 text-xs text-amber-500">{t("soi.sign.err.no_backend")}</p>}
           {!multi && <p className="mt-2 text-xs text-muted-foreground">{t("soi.sign.solo_hint")}</p>}
           <div className="mt-3 flex gap-2">
@@ -483,7 +609,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
             <button type="button" onClick={() => addText(t("soi.sign.text_default"))} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-text">+ {t("soi.sign.add_text")}</button>
             {selMark && <>
               <button type="button" onClick={removeSel} className="min-h-[44px] rounded-md bg-red-500 px-3 text-xs font-medium text-white" aria-label={t("soi.sign.remove_mark")} data-testid="remove-mark"><span aria-hidden="true">✕ </span>{t("soi.sign.delete")} · {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</button>
-              <span className="rounded-full border border-cyan-400/60 px-2 py-1 text-[11px] text-cyan-300" data-testid="sizing-chip">{t("soi.sign.sizing")} {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</span>
+              <span className="rounded-full border border-primary/60 px-2 py-1 text-[11px] text-primary" data-testid="sizing-chip">{t("soi.sign.sizing")} {selMark.kind === "sig" ? t("soi.sign.mark.sig") : selMark.text?.trim() && /\d{4}/.test(selMark.text) ? t("soi.sign.mark.date") : t("soi.sign.mark.text")}</span>
               <button type="button" onClick={() => resizeSel(0.85)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.smaller")}>−</button>
               <button type="button" onClick={() => resizeSel(1.18)} className="min-h-[44px] rounded-md border border-border px-3 text-xs" aria-label={t("soi.sign.larger")}>+</button>
               {selMark.kind === "text" && <input value={selMark.text ?? ""} onChange={(e) => setSelText(e.target.value)} placeholder={t("soi.sign.text_ph")} className="min-h-[44px] min-w-[140px] flex-1 rounded-md border border-border bg-background px-2 text-sm" data-testid="mark-text" />}
@@ -493,7 +619,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
           <p className="mt-1 text-[11px] text-muted-foreground">{sigOf(fileIdx)?.fit === "underline" ? t("soi.sign.fit.underline") : sigOf(fileIdx)?.fit === "ai" ? t("soi.sign.ai.placed") : t("soi.sign.marks_hint")}</p>
           {anyAi(ai) && (
             <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="ai-place">
-              <button type="button" onClick={() => void aiFind()} disabled={aiState === "busy"} className="min-h-[44px] rounded-md border px-3 text-xs" style={{ borderColor: hue.dim, color: hue.bright }} data-testid="ai-find"><span aria-hidden="true">◬ </span>{aiState === "busy" ? t("soi.sign.ai.busy") : t("soi.sign.ai.find")}</button>
+              <button type="button" onClick={() => void aiFind()} disabled={aiState === "busy"} className="min-h-[44px] rounded-md border px-3 text-xs" style={{ borderColor: hue.dim, color: hue.bright }} data-testid="ai-find"><span aria-hidden="true">{AI_GLYPH} </span>{aiState === "busy" ? t("soi.sign.ai.busy") : t("soi.sign.ai.find")}</button>
               <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value as AiProvider)} className="min-h-[44px] rounded-md border border-border bg-background px-2 text-xs" aria-label={t("soi.sign.ai.provider")} data-testid="ai-provider">
                 <option value="auto">{t("soi.sign.ai.auto")}</option>{ai.openai && <option value="openai">OpenAI</option>}{ai.gemini && <option value="gemini">Gemini</option>}{ai.grok && <option value="grok">Grok</option>}
               </select>
@@ -512,12 +638,12 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       {step === "draw" && (
         <div>
           <p className="mb-2 text-sm">{t("soi.sign.signing_as")} <strong>{myName}</strong></p>
-          {resumed && png && <p className="mb-2 text-[11px] text-cyan-300" data-testid="stroke-kept">{t("soi.sign.x.stroke_kept")}</p>}
+          {resumed && png && <p className="mb-2 text-[11px] text-primary" data-testid="stroke-kept">{t("soi.sign.x.stroke_kept")}</p>}
           <SignaturePad onChange={(p) => { if (p !== null || !resumed) setPng(p); }} />
           {/* the PHYSICAL initials (operator 00:50): drawn once, stamped at the bottom-right of every page in a clear spot */}
           <p className="mt-3 mb-1 text-sm">{t("soi.sign.draw_initials")}</p>
           <SignaturePad height={90} label={t("soi.sign.draw_initials")} onChange={(p) => { if (p !== null || !resumed) setInitialsPng(p); }} />
-          {resumed && initialsPng && <p className="mt-1 text-[11px] text-cyan-300">{t("soi.sign.x.stroke_kept")}</p>}
+          {resumed && initialsPng && <p className="mt-1 text-[11px] text-primary">{t("soi.sign.x.stroke_kept")}</p>}
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setStep("place")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>
             <button type="button" disabled={!png || !initialsPng || (!!requireLogin && auth.isLoading)} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button"><span aria-hidden="true">◬ </span>{t("soi.sign.stamp")}</button>
@@ -541,7 +667,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               {tmpLink && (
                 <div className="mt-3 rounded-md border border-border bg-background p-2" data-testid="tmp-link">
                   <div className="font-medium text-foreground">{t("soi.sign.tmp.title")}</div>
-                  <p className="text-muted-foreground">{t("soi.sign.tmp.hint").replace("{expires}", new Date(tmpLink.expires).toLocaleString())}</p>
+                  <p className="text-muted-foreground">{t("soi.sign.tmp.hint").replace("{expires}", dateIn(activeLocale, new Date(tmpLink.expires), { dateStyle: "medium", timeStyle: "short" }, true))}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2"><code className="break-all text-[11px]" data-testid="tmp-url">{tmpLink.url}</code><button type="button" onClick={() => { try { void navigator.clipboard.writeText(tmpLink.url); } catch { /* no clipboard */ } }} className="min-h-[36px] rounded-md border border-border px-3">{t("soi.sign.handoff.copy")}</button></div>
                 </div>
               )}
@@ -553,7 +679,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               {shareState === "failed" && <p className="mt-2 text-[11px] text-red-500">{t("soi.sign.handoff.share_failed")}</p>}
             </div>
           )}
-          {holdersFor && <p className="mt-3 rounded-md border border-cyan-400/40 bg-cyan-400/5 p-2 text-xs" data-testid="holders-left">{t("soi.sign.holders").replace("{next}", holdersFor)}</p>}
+          {holdersFor && <p className="mt-3 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs" data-testid="holders-left">{t("soi.sign.holders").replace("{next}", holdersFor)}</p>}
           {myLink && (
             <div className="mt-3 rounded-lg border border-border p-3 text-xs" data-testid="my-link">
               <div className="font-medium">{t("soi.sign.mylink.title")}</div>
@@ -569,7 +695,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
       )}
 
       {/* ── WAITING / NOT PARTY ── */}
-      {(step === "waiting" || step === "not_party") && <Roster />}
+      {step === "waiting" && <div><Roster /><button type="button" onClick={() => void refreshEnvelope()} disabled={checking} className="mt-2 min-h-[44px] rounded-md border border-primary/60 px-3 text-xs text-primary disabled:opacity-40" data-testid="check-again">↻ {checking ? t("soi.sign.loading") : t("soi.sign.check_again")}</button></div>}
 
       {/* ── DONE ── */}
       {step === "done" && (
@@ -590,7 +716,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         </div>
       )}
 
-      {step === "error" && <Roster />}
+      {step === "error" && pub && pub.party >= 0 && <Roster />}
       <p className="mt-5 text-[11px] text-muted-foreground"><strong className="text-foreground" data-testid="stance">{t("soi.sign.stance")}</strong> {t("soi.sign.no_fee")}</p>
     </section>
   );

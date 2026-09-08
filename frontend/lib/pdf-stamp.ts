@@ -5,15 +5,26 @@
  * image XObject registered under a name starting with "SoISig", which is how
  * `countSignatureImages` proves how many signatures a file carries (Asar's headless gate).
  */
-import { PDFDocument, PDFName, StandardFonts, degrees, rgb, PDFPage, PDFFont, PDFImage } from "pdf-lib";
+import { PDFDocument, PDFName, PDFRef, StandardFonts, degrees, rgb, PDFPage, PDFFont, PDFImage } from "pdf-lib";
+import { embedCodexImage, captionName, pdfSafe, type CodexImage } from "@/lib/codex-pdf";
 
 export interface StampBox { page: number; x: number; y: number; w: number; h: number; /** "underline": the box was fitted to a rule on the page — bottom ON the line */ fit?: string; /** the box replaces a placeholder drawn for this signer — paint it white first */ clear?: boolean }   // page 1-based; fractions 0..1
-/** White-fill a box (page fractions, top-left origin) — clears a placeholder before the real mark lands on it. */
+/** White-fill a box (page fractions, top-left origin) — clears a placeholder before the real mark lands on it.
+ *  The clear grows `grow` pt above and sideways but NEVER below the box: a fitted box ends 1 px above the
+ *  document's own signature rule, and a clear that grew downward erased the rule (reviewer, 2026-09-08). "Below"
+ *  is the displayed frame's bottom, which /Rotate turns onto another media-box edge. */
 function clearBox(page: PDFPage, box: StampBox, grow = 1.5): void {
-  const { bx, by, bw, bh } = placeOnPage(page, box, 1, 1);
-  page.drawRectangle({ x: bx - grow, y: by - grow, width: bw + grow * 2, height: bh + grow * 2, color: rgb(1, 1, 1), opacity: 1 });
+  const { rot, bx, by, bw, bh } = placeOnPage(page, box, 1, 1);
+  const g = { l: grow, r: grow, t: grow, b: grow };                    // media-box sides
+  if (rot === 0) g.b = 0; else if (rot === 90) g.r = 0; else if (rot === 180) g.t = 0; else g.l = 0;
+  page.drawRectangle({ x: bx - g.l, y: by - g.b, width: bw + g.l + g.r, height: bh + g.b + g.t, color: rgb(1, 1, 1), opacity: 1 });
 }
-export interface StampSig { pngDataUrl: string; name: string; isoDate: string; hash: string; /** ties the PDF to its envelope: token + the chain BEFORE this pass (Odin, wave 2) */ envelope?: { token: string; chain: string } }
+export interface StampSig {
+  pngDataUrl: string; name: string; isoDate: string; hash: string;
+  /** ties the PDF to its envelope: token + the chain BEFORE this pass (Odin, wave 2) */ envelope?: { token: string; chain: string };
+  /** the signer's contact (email / phone): names the signer in the caption when the name has no Latin letter (reviewer 2026-09-08) */ contact?: string;
+  /** the signer's 0-based index in the roster: the "Signer N" caption fallback; default: this stamp's order in the file */ signerIdx?: number;
+}
 
 const dataUrlBytes = (dataUrl: string): Uint8Array => {
   const b64 = dataUrl.includes(",") ? dataUrl.slice(dataUrl.indexOf(",") + 1) : dataUrl;
@@ -47,25 +58,10 @@ function oriented(rot: number, bx: number, by: number, bw: number, bh: number) {
   return { x: bx, y: by, width: bw, height: bh, rotate: degrees(0) };
 }
 
-/** The standard fonts speak WinAnsi only: a name like علي, 张伟 or Алексей made pdf-lib throw "cannot encode" and the
- *  save died at the stamp (fleet, Aset + Asar + Sofia + Thor, agreed across pods). Every drawn string passes through here:
- *  accents are folded (é → e when the font lacks é, but Latin-1 letters stay), anything the font cannot draw becomes
- *  a middle dot. The Unicode name still rides intact in the keywords and the Light Codex. A real Unicode font is the
- *  day-sized follow-up the fleet named. */
-export const pdfSafe = (s: string): string => {
-  const latin1 = (cp: number) => cp >= 0x20 && cp < 0x0100 && !(cp >= 0x7f && cp <= 0x9f);
-  const out: string[] = [];
-  for (const ch of s.normalize("NFC")) {
-    const cp = ch.codePointAt(0) ?? 0;
-    if (latin1(cp)) { out.push(ch); continue; }                                            // é, ñ, Å: Helvetica has them
-    if ("‘’‚‛".includes(ch)) { out.push("'"); continue; } if ("“”„‟".includes(ch)) { out.push('"'); continue; }
-    if ("–—".includes(ch)) { out.push("-"); continue; } if (ch === "…") { out.push("..."); continue; } if (ch === "•") { out.push("·"); continue; }
-    if (ch === "\u20ac") { out.push("\u20ac"); continue; }
-    const base = Array.from(ch.normalize("NFKD")).filter((c) => { const k = c.codePointAt(0) ?? 0; return latin1(k) && !(k >= 0x0300 && k <= 0x036f); }).join("");   // ắ → a
-    out.push(base || "·");
-  }
-  return out.join("").replace(/·{3,}/g, "··");
-};
+// pdfSafe (every drawn string: WinAnsi-safe, non-Latin → middle dots) and captionName (the contact / "Signer N" fallback for a
+// name the font cannot print) live in lib/codex-pdf so the hidden Light Codex line and the caption use ONE rule; re-exported
+// here so callers keep importing them from pdf-stamp (reviewer 2026-09-08).
+export { pdfSafe, captionName } from "@/lib/codex-pdf";
 const addKeyword = (doc: PDFDocument, kw: string) => { const prev = doc.getKeywords() ?? ""; doc.setKeywords([...(prev ? prev.split(" ") : []), kw]); };
 
 export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampSig): Promise<Uint8Array> {
@@ -74,7 +70,7 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   const page = pages[Math.min(Math.max(box.page, 1), pages.length) - 1];
   // The signer tapped on the page AS DISPLAYED — pdfjs applies /Rotate, pdf-lib's coordinates do not
   // (Enki, wave 2). placeOnPage maps the displayed-fraction box back onto the media box first.
-  const { rot } = placeOnPage(page, box);
+  const { rot, width, height } = placeOnPage(page, box);
   if (box.clear) clearBox(page, box, 3);
   // Two display-frame sub-boxes — the image above, the caption below — each mapped through the
   // page's rotation on its own, so both read upright however the page is turned.
@@ -95,13 +91,24 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   if (rot === 0) page.drawImage(png, { x: onRule ? I.bx + 2 : I.bx + (I.bw - iw) / 2, y: I.by + (onRule ? 1 : (I.bh - ih) / 2), width: iw, height: ih });   // a signature starts where the line starts
   else { const o = oriented(rot, I.bx, I.by, I.bw, I.bh); page.drawImage(png, { ...o, width: iw, height: ih }); }
   const font = await doc.embedFont(StandardFonts.Helvetica);
-  const caption = pdfSafe(`${sig.name} · ${sig.isoDate} · #${sig.hash}`);
+  // ONE rendering of the instant: the caption prints the receipt's fixed UTC form (cacStamp), never the raw ISO string;
+  // the SoISig / SoICodex keywords keep the ISO value readers depend on (reviewer 2026-09-08)
+  const idx = sig.signerIdx ?? (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoISig:")).length;
+  const caption = pdfSafe(`${captionName(sig.name, sig.contact, idx)} · ${cacStamp(sig.isoDate)} · #${sig.hash}`);
   const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
   let capSize = onRule ? 4.5 : Math.max(4, Math.min(9, capDispH * 0.9));
   while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
-  const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
-  if (onRule && rot === 0) page.drawText(caption, { x: I.bx + 2, y: I.by - 5.5, size: capSize, font, color: rgb(0.35, 0.35, 0.38) });   // under the rule, under the ink
-  else page.drawText(caption, { x: co.x, y: co.y, size: capSize, font, color: rgb(0.1, 0.1, 0.1), rotate: co.rotate });
+  if (onRule) {
+    // under the rule, under the ink — placed in the DISPLAYED frame (a 5.5-pt strip whose top is the box's bottom edge) and
+    // mapped through /Rotate like every other sub-box, so a turned page reads it under its rule too (reviewer #11)
+    const U = placeOnPage(page, { ...box, y: box.y + box.h, h: 5.5 / (swap ? width : height) }, 24, 1);
+    const uo = oriented(rot, U.bx, U.by, U.bw, U.bh);
+    const at = rot === 0 ? { x: uo.x + 2, y: uo.y } : rot === 90 ? { x: uo.x, y: uo.y + 2 } : rot === 180 ? { x: uo.x - 2, y: uo.y } : { x: uo.x, y: uo.y - 2 };   // +2 pt along the text
+    page.drawText(caption, { ...at, size: capSize, font, color: rgb(0.35, 0.35, 0.38), rotate: uo.rotate });
+  } else {
+    const co = oriented(rot, C.bx, C.by, C.bw, C.bh);
+    page.drawText(caption, { x: co.x, y: co.y, size: capSize, font, color: rgb(0.1, 0.1, 0.1), rotate: co.rotate });
+  }
   if (!onRule) {                                                                    // the document's own rule is the line
     const lo = oriented(rot, C.bx, C.by, C.bw, C.bh);
     page.drawLine({ start: { x: lo.x, y: lo.y }, end: rot === 90 ? { x: lo.x, y: lo.y + C.bh } : rot === 270 ? { x: lo.x, y: lo.y - C.bh } : rot === 180 ? { x: lo.x - C.bw, y: lo.y } : { x: lo.x + C.bw, y: lo.y }, thickness: 0.5, color: rgb(0.2, 0.2, 0.2) });
@@ -130,15 +137,26 @@ export async function stampText(pdf: Uint8Array, box: StampBox, text: string, me
   const o = oriented(rot, bx, by, bw, bh);
   const at = rot === 0 ? { x: bx + 2, y: by + pad } : rot === 90 ? { x: o.x - pad, y: o.y + 2 } : rot === 180 ? { x: o.x - 2, y: o.y - pad } : { x: o.x + pad, y: o.y - 2 };
   page.drawText(clean, { ...at, size, font, color: rgb(0.06, 0.06, 0.08), rotate: o.rotate });
-  // bound to the signer's pass: index, time, chain-before (Odin, Thor) — a date can never pass as a later edit
-  addKeyword(doc, `SoITxt:${box.page}:${box.x.toFixed(4)}:${box.y.toFixed(4)}:${box.w.toFixed(4)}:${box.h.toFixed(4)}:r${rot}` + (meta ? `:s${meta.signerIdx}:${meta.isoDate}:${meta.chain || "genesis"}` : ""));
+  // bound to the signer's pass: index, time, chain-before (Odin, Thor) — a date can never pass as a later edit; the text as
+  // drawn rides along as `:t<base64url>` (the `:n<b64url>` convention of SoICodex / SoIHold) so a reader can show what was
+  // written, not only where (reviewer 2026-09-08)
+  addKeyword(doc, `SoITxt:${box.page}:${box.x.toFixed(4)}:${box.y.toFixed(4)}:${box.w.toFixed(4)}:${box.h.toFixed(4)}:r${rot}` + (meta ? `:s${meta.signerIdx}:${meta.isoDate}:${meta.chain || "genesis"}` : "") + `:t${b64u(clean)}`);
   return doc.save({ useObjectStreams: false });
 }
 
-/** Text marks stamped into the file, from the keywords. */
-export async function textBoxes(pdf: Uint8Array): Promise<StampBox[]> {
+/** A text mark as recorded: its box, and — when the file carries them — the text as drawn and the pass it was bound to. */
+export interface TextMark extends StampBox { text?: string; signerIdx?: number; isoDate?: string; chain?: string }
+/** Text marks stamped into the file, from the keywords (a keyword written before 2026-09-08 has no text: `text` undefined). */
+export async function textBoxes(pdf: Uint8Array): Promise<TextMark[]> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
-  return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoITxt:")).map((k) => { const [, page, x, y, w, h] = k.split(":"); return { page: Number(page), x: Number(x), y: Number(y), w: Number(w), h: Number(h) }; });
+  return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoITxt:")).map((k) => {
+    const m = /^SoITxt:(\d+):([\d.]+):([\d.]+):([\d.]+):([\d.]+):r(\d+)(?::s(\d+):(.+?):([^:]*))?(?::t([A-Za-z0-9_-]*))?$/.exec(k);   // the ISO time itself holds colons
+    if (!m) { const [, page, x, y, w, h] = k.split(":"); return { page: Number(page), x: Number(x), y: Number(y), w: Number(w), h: Number(h) }; }
+    const out: TextMark = { page: Number(m[1]), x: Number(m[2]), y: Number(m[3]), w: Number(m[4]), h: Number(m[5]) };
+    if (m[7] !== undefined) { out.signerIdx = Number(m[7]); out.isoDate = m[8]; out.chain = m[9]; }
+    if (m[10] !== undefined) out.text = b64uDecode(m[10]);
+    return out;
+  });
 }
 
 function signatureNames(xobj: unknown): string[] {
@@ -150,12 +168,18 @@ const countSignatureNames = (xobj: unknown): number => signatureNames(xobj).leng
 /** Highest existing SoISig<n> on the page, so a gap never overwrites an earlier stamp (Enki, wave 2). */
 const maxSignatureIndex = (xobj: unknown): number => signatureNames(xobj).reduce((m, k) => Math.max(m, Number(k.slice("/SoISig".length)) || 0), 0);
 
-/** How many SoISig* image XObjects the file carries across all pages. */
+/** How many DISTINCT SoISig* image XObjects the file carries across all pages — counted by object reference, so pages that
+ *  inherit one shared /Resources dict (or otherwise reference the same image) count a signature once, not once per page
+ *  (reviewer 2026-09-08). An image stored inline in the dict (no reference) counts per page and name. */
 export async function countSignatureImages(pdf: Uint8Array): Promise<number> {
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
-  let n = 0;
-  for (const p of doc.getPages()) n += countSignatureNames(p.node.Resources()?.lookup(PDFName.of("XObject")));
-  return n;
+  const seen = new Set<string>();
+  doc.getPages().forEach((p, pi) => {
+    const xo = p.node.Resources()?.lookup(PDFName.of("XObject")) as { keys?: () => PDFName[]; get?: (k: PDFName) => unknown } | undefined;
+    if (!xo || typeof xo.keys !== "function" || typeof xo.get !== "function") return;
+    for (const k of xo.keys()) { if (!k.toString().startsWith("/SoISig")) continue; const v = xo.get(k); seen.add(v instanceof PDFRef ? v.toString() : `${pi}${k.toString()}`); }
+  });
+  return seen.size;
 }
 
 export async function pageCount(pdf: Uint8Array): Promise<number> {
@@ -184,7 +208,6 @@ export async function envelopeMarks(pdf: Uint8Array): Promise<{ token: string; c
  * envelope. The Light Codex strip (lib/light-codex, block size 2, double helix) is rendered in the
  * browser and handed in as a PNG; the same text it encodes is printed beside it (operator, 2026-09-07).
  */
-import { embedCodexImage, type CodexImage } from "@/lib/codex-pdf";
 export interface CodexRow { rowIndex: number; name: string; isoDate: string; hash: string; /** this signatory's Light Codex strip, raw pixels */ codex?: CodexImage }
 /** Physical initials (operator 00:50): the signer's own drawn initials, one slot per signatory at the bottom-right of
  *  every page, in a spot the page's pixels showed to be clear of text; unfilled slots are dotted placeholders. */
@@ -194,8 +217,17 @@ export const INIT_SLOT = { w: 36, wMax: 96, h: 13, gap: 4, right: 18 } as const;
 /** Slot widths per signer: the stroke's own aspect at the slot height (36–96 pt), the default for signers still to come. */
 export const initialsSlotWidths = (total: number, mine?: { idx: number; aspect: number }, recorded: Record<number, number> = {}): number[] =>
   Array.from({ length: total }, (_, i) => recorded[i] ?? (mine && mine.idx === i ? Math.min(INIT_SLOT.wMax, Math.max(INIT_SLOT.w, Math.round(INIT_SLOT.h * mine.aspect))) : INIT_SLOT.w));
-/** The slot rectangle (PDF points, bottom-left origin) of signer `idx`, on a page of `width` with the row's top at `topY` (points from the bottom), given every slot's width. */
-export const initialsSlot = (width: number, topY: number, idx: number, widths: number[]) => ({ x: width - INIT_SLOT.right - widths.slice(idx).reduce((a, b) => a + b + INIT_SLOT.gap, 0) + INIT_SLOT.gap, y: topY - INIT_SLOT.h, w: widths[idx], h: INIT_SLOT.h });
+/** The slot rectangle (PDF points, bottom-left origin) of signer `idx`, on a page of `width` with the row's top at `topY` (points
+ *  from the bottom), given every slot's width. Signer 0 — the first, existing signature — sits at the RIGHT edge and each
+ *  additional signer starts LEFT of the previous one (operator 2026-09-08): x = width − right − Σ widths[0..idx] − idx·gap. */
+export const initialsSlot = (width: number, topY: number, idx: number, widths: number[]) => ({ x: width - INIT_SLOT.right - widths.slice(0, idx + 1).reduce((a, b) => a + b, 0) - idx * INIT_SLOT.gap, y: topY - INIT_SLOT.h, w: widths[idx], h: INIT_SLOT.h });
+/** The fraction of the page width (from the right edge) the initials row covers — every slot, the gaps, the right margin and
+ *  one gap of clearance — never narrower than the 0.45 band lib/sign-layout scans by default, at most the whole page. Hand it
+ *  to `initialsSlotTop(bmp, { colFrac })` so a row of 3+ signers is checked against the ink it actually spans. */
+export const initialsRowFrac = (widths: number[], pageWidthPt: number): number => {
+  const row = INIT_SLOT.right + widths.reduce((a, b) => a + b, 0) + Math.max(0, widths.length - 1) * INIT_SLOT.gap + INIT_SLOT.gap;
+  return Math.min(1, Math.max(0.45, pageWidthPt > 0 ? row / pageWidthPt : 1));
+};
 
 /** "Alex Seguin" → "AS": the first letter of each word, letters only, at most three (operator 2026-09-08: initials). */
 const isLetter = (c: string): boolean => c.toLowerCase() !== c.toUpperCase() || /[\u0600-\u06FF\u0900-\u0DFF\u0E00-\u0E7F\u3040-\u9FFF\uAC00-\uD7AF]/.test(c);   // cased scripts, plus the uncased ones
@@ -239,8 +271,9 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, pageNo: number, e: Code
   // signatories still to come, and the Light Codex of ALL signatories HIDDEN on the very bottom edge (the Hidden
   // Helix, as a Light Codex PNG carries it). The rows themselves live in the keywords (codexRows).
   const { width, height } = page.getSize();
-  // drawn 0.6 pt tall on the bottom edge — a hairline to the eye; the decoder reads the embedded pixels, not the drawing
-  if (e.all) { const w = Math.max(width, e.all.width); embedCodexImage(doc, page, "SoICodexAll", e.all, width - w, 0, w, 0.6); }
+  // drawn 0.25 pt tall on the bottom edge — below a hairline, so it no longer shows as a dashed line (reviewer 2026-09-08: at
+  // 0.6 pt it did); the decoder reads the embedded XObject pixels (2 px × ≥ 612 px), never the drawing
+  if (e.all) { const w = Math.max(width, e.all.width); embedCodexImage(doc, page, "SoICodexAll", e.all, width - w, 0, w, 0.25); }
   const ini = e.initials; if (!ini) return;
   const topFrac = ini.topByPage?.[pageNo];
   const topY = topFrac !== undefined ? height - topFrac * height : 3 + INIT_SLOT.h;   // default: the bottom margin (above the hidden line)
@@ -275,7 +308,6 @@ export interface Holder { idx: number; name: string; kind: "sig" | "date"; page:
 export async function stampHolders(pdf: Uint8Array, holders: Holder[]): Promise<Uint8Array> {
   if (!holders.length) return pdf;
   const doc = await PDFDocument.load(pdf, { ignoreEncryption: true });
-  const font = await doc.embedFont(StandardFonts.Helvetica);
   const pages = doc.getPages();
   for (const h of holders) {
     const page = pages[Math.min(Math.max(h.page, 1), pages.length) - 1];

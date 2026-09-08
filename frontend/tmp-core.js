@@ -25,7 +25,7 @@ export async function handleTmp(request, env) {
     const got = await kv.getWithMetadata(`tmp:${m[1]}`, { type: "arrayBuffer" });
     if (!got || !got.value) return json({ error: "This file link has expired or never existed." }, 410);
     const name = (got.metadata && got.metadata.name) || "document.pdf";
-    return new Response(got.value, { status: 200, headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="${name.replace(/[^\w.\- ]/g, "_")}"`, "cache-control": "private, no-store", "x-expires": String(got.metadata && got.metadata.expires || "") } });
+    return new Response(got.value, { status: 200, headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="${name.replace(/[^\w.\- ]/g, "_")}"`, "x-file-name": encodeURIComponent(name), "cache-control": "private, no-store", "x-expires": String(got.metadata && got.metadata.expires || "") } });
   }
   if (request.method === "POST" && (url.pathname === "/api/tmp" || url.pathname === "/api/tmp/")) {
     const origin = request.headers.get("Origin");
@@ -34,7 +34,9 @@ export async function handleTmp(request, env) {
     const bytes = new Uint8Array(await request.arrayBuffer());
     if (bytes.length < 5 || String.fromCharCode(...bytes.slice(0, 5)) !== "%PDF-") return json({ error: "Not a PDF" }, 400);
     if (bytes.length > MAX) return json({ error: "File over 12 MB" }, 413);
-    const name = String(request.headers.get("X-File-Name") || "document.pdf").slice(0, 120);
+    // the page URL-encodes the name (a header cannot carry "pagaré.pdf" raw); a plain name decodes to itself
+    let name = String(request.headers.get("X-File-Name") || "document.pdf"); try { name = decodeURIComponent(name); } catch { /* not encoded: keep as sent */ }
+    name = name.slice(0, 120);
     const token = mintToken(); const expires = new Date(Date.now() + TTL * 1000).toISOString();
     await kv.put(`tmp:${token}`, bytes, { expirationTtl: TTL, metadata: { name, size: bytes.length, expires } });
     return json({ token, url: `${url.origin}/soi-session/sign/?f=${token}`, expires, name, size: bytes.length }, 200);

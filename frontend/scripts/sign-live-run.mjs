@@ -101,7 +101,7 @@ const placeAndSign = async (p, who) => {
     const pb0 = await page.boundingBox();
     const touch = (type, x, y) => page.evaluate((el, [type, x, y]) => { const t = new Touch({ identifier: 1, target: el, clientX: x, clientY: y }); el.dispatchEvent(new TouchEvent(type, { touches: type === 'touchend' ? [] : [t], changedTouches: [t], bubbles: true, cancelable: true })); }, [type, x, y]);
     await touch('touchstart', pb0.x + pb0.width * 0.8, pb0.y + pb0.height * 0.2); await touch('touchend', pb0.x + pb0.width * 0.2, pb0.y + pb0.height * 0.22);
-    await p.waitForFunction(() => /Page 2 \/ 2/.test(document.querySelector('[data-testid="pdf-page"]')?.previousElementSibling?.textContent || ''), null, { timeout: 10000 });
+    await p.waitForFunction(() => /(^|[^0-9])2 \/ 2/.test(document.querySelector('[data-testid="pdf-scroller"]')?.previousElementSibling?.textContent || ''), null, { timeout: 10000 });
     step(who, 'swipe left turns the page (Divinity Guide gesture, reused)  Page 2 / 2'); pageNo = 2; await p.waitForTimeout(500);
   }
   let rule = null;
@@ -155,6 +155,27 @@ const placeAndSign = async (p, who) => {
   step(who, 'the toolbar delete names what it deletes', /Delete · date/.test(await p.getByTestId('remove-mark').innerText()));
   const tb = await p.getByTestId('text-box').boundingBox(), sbb = await p.getByTestId('sig-box').boundingBox();
   step(who, 'the date SNAPS to the document\'s own "Date:" line under the signature (fitted, below the box, one text line tall)', (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline' && tb.y > sbb.y + sbb.height - 2 && tb.height < sbb.height, `date box ${Math.round(tb.width)}×${Math.round(tb.height)} px at +${Math.round(tb.y - (sbb.y + sbb.height))} px under the signature box`);
+  // ZOOM (operator 2026-09-08): + zooms the page 1.5× inside the scroller; the marks keep their page fractions (they scale
+  // with the page), a drag at zoom moves finer, ⌖ snaps the selected mark onto its line, and the reset returns to 100 %
+  const fr = async (id) => { const el = p.getByTestId(id); return { x: parseFloat(await el.evaluate((n) => n.style.left)), w: parseFloat(await el.evaluate((n) => n.style.width)) }; };
+  const f0 = await fr('sig-box'), w0 = (await page.boundingBox()).width;
+  const probe = async (id, label) => { const b = await p.getByTestId(id).boundingBox(); const r = await p.evaluate(([x, y, id]) => { const c = document.querySelector('[data-testid="pdf-page"] canvas'); const box = document.querySelector(`[data-testid="${id}"]`); const before = box.style.top + '/' + box.style.left; const ev = (t, X, Y, el) => el.dispatchEvent(new PointerEvent(t, { bubbles: true, clientX: X, clientY: Y, pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0, buttons: t === 'pointerup' ? 0 : 1 })); ev('pointerdown', x, y, c); ev('pointermove', x + 5, y - 6, document); ev('pointermove', x + 9, y - 11, document); ev('pointerup', x + 9, y - 11, document); const after = document.querySelector(`[data-testid="${id}"]`); return { before, after: after.style.top + '/' + after.style.left }; }, [b.x + b.width / 2, b.y + b.height / 2, id]); console.log('PROBE', label, JSON.stringify(r)); };
+  await p.getByTestId('zoom-in').click(); await p.waitForTimeout(700);
+  const w1 = (await page.boundingBox()).width, f1 = await fr('sig-box');
+  step(who, 'zoom + renders the page 1.5× wide inside a scroller; the signature keeps its page fractions', Math.abs(w1 / w0 - 1.5) < 0.05 && Math.abs(f1.x - f0.x) < 0.01 && Math.abs(f1.w - f0.w) < 0.01 && (await p.getByTestId('pdf-scroller').getAttribute('data-zoom')) === '1.5', `page ${Math.round(w0)}→${Math.round(w1)} px, box left ${f0.x.toFixed(2)}%→${f1.x.toFixed(2)}%, ${await p.getByTestId('zoom-reset').innerText()}`);
+  await shot(p, who, '2c-zoom');
+  // nudge the date off its line, then ⌖ snaps it back — bottom on the rule again, centred on it
+  await p.getByTestId('text-box').scrollIntoViewIfNeeded(); await p.waitForTimeout(150);
+  const tb0 = await p.getByTestId('text-box').boundingBox(); const sc0 = await p.getByTestId('pdf-scroller').boundingBox();
+  const under = await p.evaluate(([x, y]) => document.elementFromPoint(x, y)?.getAttribute('data-testid') || document.elementFromPoint(x, y)?.tagName, [tb0.x + tb0.width / 2, tb0.y + tb0.height / 2]);
+  await p.mouse.move(tb0.x + tb0.width / 2, tb0.y + tb0.height / 2); await p.mouse.down(); await p.mouse.move(tb0.x + tb0.width / 2 + 9, tb0.y + tb0.height / 2 - 11, { steps: 4 }); await p.mouse.up();
+  const tb1 = await p.getByTestId('text-box').boundingBox();
+  step(who, 'at zoom the date box is on screen inside the scroller and a drag moves it', tb1.y < tb0.y - 6, `box (${Math.round(tb0.x)},${Math.round(tb0.y)}) scroller (${Math.round(sc0.x)},${Math.round(sc0.y)} ${Math.round(sc0.width)}×${Math.round(sc0.height)}) under pointer: ${under}`);
+  await p.getByTestId('snap-line').click(); await p.waitForTimeout(200);
+  const tb2 = await p.getByTestId('text-box').boundingBox();
+  step(who, '⌖ snaps the moved date back onto its "Date:" line (bottom back on the rule, fit = underline)', Math.abs(tb1.y - tb0.y) > 6 && Math.abs((tb2.y + tb2.height) - (tb0.y + tb0.height)) < 3 && (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline', `bottom ${Math.round(tb0.y + tb0.height)} → moved ${Math.round(tb1.y + tb1.height)} → snapped ${Math.round(tb2.y + tb2.height)} px`);
+  await p.getByTestId('zoom-reset').click(); await p.waitForTimeout(600);
+  step(who, 'zoom reset returns the page to 100 %', Math.abs((await page.boundingBox()).width - w0) < 2 && (await p.getByTestId('zoom-reset').innerText()) === '100%');
   await p.getByTestId('to-draw').click();
   if (who === 'dan' && fs.existsSync(path.join(OUT, 'alex-stroke.png'))) {
     // the OTHER way to sign: upload a signature image (Asar's gap) — Daniel uploads a PNG of a stroke
@@ -264,6 +285,12 @@ const expect = [rules.alex, rules.dan];
 step('dan', "each stamp sits on ITS signature line (Alex widened his; Daniel's is the placeholder, rule-wide), distinct", boxes.length === 2 && boxes.every((b, i) => b.page === expect[i].page && Math.abs(b.x - expect[i].x0) < 0.03 && Math.abs(b.y + b.h - expect[i].y) < 0.012 && (i === 0 ? b.w > expect[i].x1 - expect[i].x0 + 0.02 : Math.abs(b.w - (expect[i].x1 - expect[i].x0)) < 0.03)) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
 { const { initialledBy, holders } = await import('../lib/pdf-stamp.ts'); const ib = await initialledBy(bytes); const hs = await holders(bytes);
+  // C2 (operator 2026-09-08): the first signer's initials hold the RIGHT edge, each additional signer starts LEFT of the previous
+  { const { PDFDocument } = await import('pdf-lib'); const { initialsSlot, INIT_SLOT } = await import('../lib/pdf-stamp.ts');
+    const d = await PDFDocument.load(bytes, { updateMetadata: false }); const kws = (d.getKeywords() || '').split(/\s+/);
+    const ws = [0, 1].map((k) => Number((kws.find((x) => x.startsWith(`SoIInitW:${k}:`)) || '').split(':')[2]) || INIT_SLOT.w);
+    const s0 = initialsSlot(612, 100, 0, ws), s1 = initialsSlot(612, 100, 1, ws);
+    step('dan', 'Light Codex row: Alex (first) at the right edge, Daniel (additional) starts LEFT of him', Math.abs(s0.x + s0.w - (612 - INIT_SLOT.right)) < 0.01 && Math.abs(s1.x + s1.w + INIT_SLOT.gap - s0.x) < 0.01 && s1.x < s0.x, `alex ${s0.x.toFixed(1)}–${(s0.x + s0.w).toFixed(1)} pt · daniel ${s1.x.toFixed(1)}–${(s1.x + s1.w).toFixed(1)} pt`); }
   step('dan', 'both signers INITIALLED every page (drawn initials, SoIInit0 + SoIInit1) and the placeholders were recorded for signer 2', JSON.stringify(ib) === '[0,1]' && hs.length === 2 && hs.every((h) => h.idx === 1) && hs.map((h) => h.kind).sort().join() === 'date,sig', `initialled ${JSON.stringify(ib)} · holders ${JSON.stringify(hs.map((h) => [h.idx, h.kind]))}`); }
 // SHOW the result: the signed page, the signature rows and the signatory block rendered to PNG (pdfjs in Chromium)
 const render = (name, env) => { execFileSync('node', ['scripts/render-pdf-page.mjs'], { env: { ...process.env, PDF: file, OUT: path.join(OUT, name), ...env }, stdio: 'pipe' }); return fs.existsSync(path.join(OUT, name)) && fs.statSync(path.join(OUT, name)).size > 800; };   // the bottom-edge crop is mostly paper
@@ -274,12 +301,12 @@ const rows = await codexRows(bytes); step('dan', 'signatory rows recorded in the
 await D.getByTestId('verify-input').setInputFiles(file); await D.getByTestId('verify-result').waitFor({ timeout: 30000 });
 const vr = D.getByTestId('verify-result'); step('dan', 'verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)', (await vr.getAttribute('data-ok')) === '1' && /2 signatures/.test(await vr.innerText()), (await vr.innerText()).replace(/\s+/g, ' ').slice(0, 120));
 // the digital signature ALWAYS pairs with the physical one (operator 23:15): one "name · time · #hash" line per SoISig
-const txt = await pdfText(bytes); const dl1 = (txt.match(/Alex Seguin · 2026-\d\d-\d\dT[^ ]+ · #[0-9a-f]{8}/g) || []).length, dl2 = (txt.match(/Daniel Vail · 2026-\d\d-\d\dT[^ ]+ · #[0-9a-f]{8}/g) || []).length;
+const txt = await pdfText(bytes); const dl1 = (txt.match(/Alex Seguin · 2026\.\d\d\.\d\d \d\d:\d\d:\d\d UTC · #[0-9a-f]{8}/g) || []).length, dl2 = (txt.match(/Daniel Vail · 2026\.\d\d\.\d\d \d\d:\d\d:\d\d UTC · #[0-9a-f]{8}/g) || []).length;   // the caption prints the receipt's cacStamp form, one rendering of the instant (fleet pass 2)
 step('dan', 'digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text', n === 2 && dl1 === 1 && dl2 === 1, `Alex ×${dl1} · Daniel ×${dl2}`);
 // the Light Codex strips read back from the PDF's own pixels: one per signatory + ALL signatories
 const codex = await decodeCodexPdf(bytes, (b) => new Uint8Array(zlib.inflateSync(b))); const byName = Object.fromEntries(codex.map((c) => [c.name, c.result?.messageForward]));
 step('dan', 'Light Codex from the PDF: the HIDDEN helix on the bottom edge decodes, reverse-verified, no box drawn', codex.length > 0 && codex.every((c) => c.result?.verified && c.result.style === 'Hidden Helix') && !/Signatories|Digitally signed/.test(txt), JSON.stringify(byName));
-step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5} \. DANIEL VAIL 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
+step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\.\d\d\.\d\d_\d\d:\d\d[A-Z]{2,5} • DANIEL VAIL 2026\.\d\d\.\d\d_\d\d:\d\d[A-Z]{2,5}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
 const pagesWithCodex = [...new Set(codex.map((c) => c.page))].sort();
 step('dan', 'the hidden Light Codex is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
 step('dan', 'page 1 bottom-right rendered to PNG (initials; the codex line is invisible)', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.955,0.54,0.045' }));
@@ -297,7 +324,7 @@ await D.goto(BASE + '/light-codex/', { waitUntil: 'domcontentloaded' }); await r
 await D.getByRole('button', { name: /^Decode$/ }).click(); await D.getByTestId('codex-decode-input').setInputFiles(file);
 await D.getByTestId('codex-pdf-results').waitFor({ timeout: 30000 });
 const allText = await D.getByTestId('codex-all').innerText(); const rowN = await D.getByTestId('codex-row').count();
-step('dan', 'Light Codex page: uploading the signed PDF lists ALL signatories from the hidden line', /ALEX SEGUIN 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5} \. DANIEL VAIL 2026\.\d\d\.\d\d \d\d\.\d\d[A-Z]{2,5}/.test(allText) && /Hidden Helix/.test(allText) && rowN === 0, allText.replace(/\s+/g, ' ').slice(0, 110));
+step('dan', 'Light Codex page: uploading the signed PDF lists ALL signatories from the hidden line', /ALEX SEGUIN 2026\.\d\d\.\d\d_\d\d:\d\d[A-Z]{2,5} • DANIEL VAIL 2026\.\d\d\.\d\d_\d\d:\d\d[A-Z]{2,5}/.test(allText) && /Hidden Helix/.test(allText) && rowN === 0, allText.replace(/\s+/g, ' ').slice(0, 110));
 await shot(D, 'dan', '6c-codex-pdf');
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document

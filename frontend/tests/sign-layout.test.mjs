@@ -21,6 +21,12 @@ ok(t2 >= 261 && t2 + 9 <= 299, `table to the edge → the gap above it (top ${t2
 const b3 = page(); ink(b3, 10, 150, 470, 495);
 ok(Math.abs(initialsSlotTop(b3) - (H - 3 - 9) / H) < 0.003, "ink on the left only → right column free → bottom margin");
 
+// a row of 3+ signers reaches further left than the default 45 % band: ink at x 170..215 (inside a 60 % band, outside 45 %)
+const b5 = page(); ink(b5, 170, 215, 470, 495);
+ok(Math.abs(initialsSlotTop(b5) - (H - 3 - 9) / H) < 0.003, "ink left of the 45 % band is invisible to the default scan → bottom margin");
+const t5 = initialsSlotTop(b5, { colFrac: 0.6 }) * H;
+ok(t5 + 9 <= 470 && t5 > 300, `a 60 % band (initialsRowFrac for a wider row) sees the ink and moves the slot above it (top ${t5.toFixed(0)})`);
+
 // the partner's line: two rules on one row; the first signer's box on the left one
 const b4 = page(); ink(b4, 40, 180, 300, 300); ink(b4, 220, 360, 300, 300);
 const sigL = { x: 40 / W, y: 285 / H, w: 141 / W, h: 14 / H };

@@ -7,18 +7,27 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
-import { signedDataURL } from "@/lib/image-library";
 
-/** The ink's bounding box (+6 px) of an uploaded image as a new PNG file; null when the image is blank or unreadable. */
+/** A file as a plain data URL — the signature ink is NEVER run through a Light Codex pixel encoder (reviewer 2026-09-08):
+ *  the hidden codex rows live in the PDF's strip, not in the stroke. */
+const fileDataURL = (f: File): Promise<string> => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result ?? "")); r.onerror = () => rej(r.error); r.readAsDataURL(f); });
+
+/** The ink's bounding box (+6 px) of an uploaded image as a new PNG file; null when the image is blank or unreadable.
+ *  Near-white pixels (luma ≥ 235) are knocked out first: an opaque PNG/JPEG of a signature otherwise stamps as a white slab. */
+export const WHITE_LUMA = 235;
 async function trimToInk(f: File): Promise<File | null> {
   try {
     const bmp = await createImageBitmap(f);
     const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
     const ctx = c.getContext("2d", { willReadFrequently: true })!; ctx.drawImage(bmp, 0, 0);
-    const d = ctx.getImageData(0, 0, c.width, c.height).data;
+    const img = ctx.getImageData(0, 0, c.width, c.height); const d = img.data;
     let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
-    for (let i = 0; i < d.length; i += 4) { const ink = d[i + 3] > 30 && (d[i] + d[i + 1] + d[i + 2]) / 3 < 200; if (!ink) continue; const px = (i >> 2) % c.width, py = Math.floor((i >> 2) / c.width); if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
+    for (let i = 0; i < d.length; i += 4) {
+      if (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2] >= WHITE_LUMA) { d[i + 3] = 0; continue; }   // paper → transparent
+      const ink = d[i + 3] > 30 && (d[i] + d[i + 1] + d[i + 2]) / 3 < 200; if (!ink) continue; const px = (i >> 2) % c.width, py = Math.floor((i >> 2) / c.width); if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py;
+    }
     if (x1 < 0) return null;
+    ctx.putImageData(img, 0, 0);                                            // the crop below copies the knocked-out alpha
     const m = 6; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(c.width - 1, x1 + m); y1 = Math.min(c.height - 1, y1 + m);
     const o = document.createElement("canvas"); o.width = x1 - x0 + 1; o.height = y1 - y0 + 1;
     o.getContext("2d")!.drawImage(c, x0, y0, o.width, o.height, 0, 0, o.width, o.height);
@@ -92,9 +101,11 @@ export function SignaturePad({ onChange, height = 160, label }: { onChange: (png
     if (f.size > 4 * 1024 * 1024) return;
     const dims = await new Promise<{ w: number; h: number } | null>((res) => { const im = new Image(); im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight }); im.onerror = () => res(null); im.src = URL.createObjectURL(f); });
     if (!dims || dims.w > 4096 || dims.h > 4096) return;
-    // an uploaded signature is trimmed to its ink too (as the drawn one is) BEFORE the hidden codex rows are
-    // written into it — otherwise a photo's white margins shrink the stroke on the line (proof, wave 7)
-    const url = await signedDataURL((await trimToInk(f)) ?? f, "exel-sign");
+    // an uploaded signature is trimmed to its ink (as the drawn one is) with its paper knocked out — otherwise a photo's
+    // white margins shrink the stroke on the line (proof, wave 7) and an opaque file stamps as a white slab. Plain PNG:
+    // no Light Codex helix pixels in a signature (reviewer 2026-09-08).
+    let url = "";
+    try { url = await fileDataURL((await trimToInk(f)) ?? f); } catch { url = ""; }
     if (!url) return;
     setUploaded(url); setEmpty(false); onChange(url);
   };

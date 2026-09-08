@@ -36,6 +36,9 @@ for (const nm of ["علي حسن", "张伟", "Алексей Иванов", "א�
   try { const s = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: nm, isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d" }); const s2 = await stampText(s, { page: 1, x: 0.1, y: 0.86, w: 0.2, h: 0.03 }, nm + " ٨ سبتمبر"); if ((await countSignatureImages(s2)) === 1) nonLatinOk++; } catch (e) { console.log("  threw for", nm, String(e).slice(0, 80)); }
 }
 ok(nonLatinOk === 5, `five non-Latin signers stamp a signature and a note without a throw (${nonLatinOk}/5)`);
+// the caption names the signer even when the font cannot print the name: the contact, else "Signer N" (reviewer 2026-09-08)
+const { captionName, initialsSlot, initialsRowFrac, INIT_SLOT } = await import("../lib/pdf-stamp.ts");
+ok(captionName("Alex Seguin") === "Alex Seguin" && captionName("علي حسن", "ali@example.com") === "ali@example.com" && captionName("张伟", undefined, 1) === "Signer 2" && captionName("张伟", "٨٨٨", 0) === "Signer 1", "captionName: Latin name as is; non-Latin → contact → 'Signer N'");
 
 const s1 = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.08 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-07T12:00:00Z", hash: "ba7816bf" });
 ok((await countSignatureImages(s1)) === 1, "one stamp → one signature image");
@@ -47,15 +50,34 @@ const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
 const FONTS = new URL("../node_modules/pdfjs-dist/standard_fonts/", import.meta.url).pathname;
 const pageText = async (bytes) => { const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: FONTS, verbosity: 0 }).promise; let t = ""; for (let i = 1; i <= doc.numPages; i++) t += (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(" ") + "\n"; return t; };
 const txt2 = await pageText(s2);
-ok(/Ada Lender · 2026-09-07T12:00:00Z · #ba7816bf/.test(txt2) && /Ben Borrower · 2026-09-07T13:00:00Z · #deadbeef/.test(txt2), "each physical signature has its digital line (name · time · #hash) in the page text");
+// the caption prints the receipt's fixed UTC form (cacStamp), never the raw ISO string (reviewer 2026-09-08)
+ok(/Ada Lender · 2026\.09\.07 12:00:00 UTC · #ba7816bf/.test(txt2) && /Ben Borrower · 2026\.09\.07 13:00:00 UTC · #deadbeef/.test(txt2) && !/2026-09-07T1[23]:00:00Z/.test(txt2), "each physical signature has its digital line (name · cacStamp time · #hash) in the page text");
 const fitted = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "Cy Fitted", isoDate: "2026-09-07T14:00:00Z", hash: "0badf00d" });
-ok(/Cy Fitted · 2026-09-07T14:00:00Z · #0badf00d/.test(await pageText(fitted)) && (await countSignatureImages(fitted)) === 1, "a box fitted to a rule pairs too — the digital line sits under the physical one");
+ok(/Cy Fitted · 2026\.09\.07 14:00:00 UTC · #0badf00d/.test(await pageText(fitted)) && (await countSignatureImages(fitted)) === 1, "a box fitted to a rule pairs too — the digital line sits under the physical one");
+const arabic = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "علي حسن", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d", signerIdx: 1 });
+ok(/Signer 2 · 2026\.09\.08 01:00:00 UTC · #0badf00d/.test(await pageText(arabic)), "a name the font cannot print is captioned 'Signer N' (N from signerIdx), not a row of dots");
+const withContact = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: "张伟", contact: "wei@example.com", isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d" });
+ok(/wei@example\.com · 2026\.09\.08 01:00:00 UTC · #0badf00d/.test(await pageText(withContact)), "…or by the contact when the entry carries one");
 ok((await pageCount(s2)) === pages, "stamping adds no pages");
 ok(s2.length > s1.length && s1.length > pdf.length, "each stamp grows the file");
 
 // a date mark beside the signature — text fitted into its box, recorded as SoITxt
 const s3 = await stampText(s2, { page: 1, x: 0.1, y: 0.9, w: 0.22, h: 0.035 }, "Sep 7, 2026");
 ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2, "a text mark stamps without touching the signatures");
+// the mark records WHAT was written, not only where (SoITxt …:t<base64url>) — read back verbatim, no pass binding when none was given
+{ const [tm] = await textBoxes(s3); ok(tm.text === "Sep 7, 2026" && tm.signerIdx === undefined && Math.abs(tm.x - 0.1) < 1e-4 && tm.page === 1, `textBoxes returns the text (got ${JSON.stringify(tm)})`); }
+{ const uni = await stampText(s2, { page: 1, x: 0.1, y: 0.9, w: 0.22, h: 0.035 }, "Ünïcödé — “note”"); ok((await textBoxes(uni))[0].text === pdfSafe("Ünïcödé — “note”"), "the recorded text is the text as drawn (pdfSafe)"); }
+
+// ── initials slots (operator 2026-09-08): signer 0 at the RIGHT edge, each additional signer LEFT of the previous ──
+{
+  const ws = [36, 36, 36]; const s = [0, 1, 2].map((i) => initialsSlot(612, 100, i, ws));
+  ok(s[0].x === 612 - INIT_SLOT.right - 36 && s[1].x === 612 - INIT_SLOT.right - 72 - INIT_SLOT.gap && s[2].x === 612 - INIT_SLOT.right - 108 - 2 * INIT_SLOT.gap, `slot x: 558 / 518 / 478 on a Letter page (got ${s.map((q) => q.x).join("/")})`);
+  ok(s[0].x + s[0].w === 612 - INIT_SLOT.right && s[1].x + s[1].w + INIT_SLOT.gap === s[0].x && s[2].x + s[2].w + INIT_SLOT.gap === s[1].x && s.every((q) => q.y === 100 - INIT_SLOT.h && q.h === INIT_SLOT.h), "signer 0 ends at the right margin; each later slot ends one gap before the previous starts");
+  const wide = [96, 36]; const a = initialsSlot(612, 100, 0, wide), b = initialsSlot(612, 100, 1, wide);
+  ok(a.x === 498 && a.w === 96 && b.x === 458 && b.x + b.w + INIT_SLOT.gap === a.x, `a wide first slot pushes the second further left (got ${a.x}/${b.x})`);
+  // the band lib/sign-layout must scan grows with the row: two default slots stay inside the default 45 %, four wide ones do not
+  ok(initialsRowFrac([36, 36], 612) === 0.45 && Math.abs(initialsRowFrac([96, 96, 96, 96], 612) - 418 / 612) < 1e-9 && initialsRowFrac(Array(10).fill(96), 612) === 1, `initialsRowFrac: 0.45 floor, 418/612 for four wide slots, capped at 1 (got ${initialsRowFrac([96, 96, 96, 96], 612).toFixed(3)})`);
+}
 
 // ── a /Rotate 90 page: stamp + date land without error, recorded with r90 (Enki, Asar) ──
 {
@@ -65,7 +87,9 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   const r1 = await stampSignature(rotated, { page: 1, x: 0.2, y: 0.6, w: 0.4, h: 0.08 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-07T12:00:00Z", hash: "ba7816bf" });
   const r2 = await stampText(r1, { page: 1, x: 0.2, y: 0.7, w: 0.22, h: 0.035 }, "Sep 7, 2026", { signerIdx: 0, isoDate: "2026-09-07T12:00:00Z", chain: "" });
   const kw = (await PDFDocument.load(r2)).getKeywords() ?? "";
-  ok((await countSignatureImages(r2)) === 1 && /SoISig:1:[^ ]*:r90/.test(kw) && /SoITxt:1:[^ ]*:r90:s0:2026-09-07T12:00:00Z:genesis/.test(kw), "rotated page: stamp + bound date mark recorded with r90");
+  ok((await countSignatureImages(r2)) === 1 && /SoISig:1:[^ ]*:r90/.test(kw) && /SoITxt:1:[^ ]*:r90:s0:2026-09-07T12:00:00Z:genesis:t[A-Za-z0-9_-]+/.test(kw), "rotated page: stamp + bound date mark recorded with r90 (+ the text)");
+  const [tb] = await textBoxes(r2);
+  ok(tb.text === "Sep 7, 2026" && tb.signerIdx === 0 && tb.isoDate === "2026-09-07T12:00:00Z" && tb.chain === "genesis", `a bound mark reads back its pass and its text (got ${JSON.stringify(tb)})`);
 }
 
 // ── signatory block: two rows accumulate at the bottom-right of the last page ──

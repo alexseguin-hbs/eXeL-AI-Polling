@@ -11,7 +11,10 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { probeRpc, type Probe, type StoreMode } from "@/lib/sign-store";
 
 export type AuthState = "guarded" | "bypassed" | "in";
-export interface DiagInput { mode: StoreMode; auth: AuthState; authName?: string; multi: boolean; err: string; step: string }
+export interface DiagInput { mode: StoreMode; auth: AuthState; authName?: string; multi: boolean; err: string; step: string; /** the phase that failed (open · stamp · create · save), when the flow knows it */ stage?: string }
+
+/** The rail step a flow state belongs to; "error" is its own row, named with the failed phase when known. */
+const railOf = (step: string): string => step === "saving" || step === "login" ? "sign" : step === "loading" || step === "waiting" || step === "not_party" ? "open" : step;
 
 export const BUILD_SHA = (process.env.NEXT_PUBLIC_GIT_SHA ?? "dev").slice(0, 7);
 
@@ -40,7 +43,7 @@ export function SignDiag({ d, open, onToggle }: { d: DiagInput; open: boolean; o
     [t("soi.sign.diag.rpc"), rpc.state === "checking" ? t("soi.sign.diag.checking") : t(`soi.sign.diag.rpc.${rpc.state}`), "diag-rpc"],
     [t("soi.sign.diag.worker"), t(`soi.sign.diag.worker.${worker}`), "diag-worker"],
     [t("soi.sign.diag.auth"), t(`soi.sign.diag.auth.${d.auth}`) + (d.authName ? ` · ${d.authName}` : ""), "diag-auth"],
-    [t("soi.sign.diag.step"), t(`soi.sign.step.${d.step === "saving" || d.step === "login" ? "sign" : d.step === "loading" || d.step === "waiting" || d.step === "not_party" ? "open" : d.step}`) + (d.err ? ` · ${d.err}` : ""), "diag-step"],
+    [t("soi.sign.diag.step"), t(`soi.sign.step.${railOf(d.step)}`) + (d.step === "error" && d.stage ? ` · ${t(`soi.sign.stage.${d.stage}`)}` : "") + (d.err ? ` · ${d.err}` : ""), "diag-step"],
   ];
   const copy = () => { try { void navigator.clipboard.writeText(rows.map(([k, v]) => `${k}: ${v}`).join("\n") + `\n${todo}\n${rpc.detail}\n${navigator.userAgent}`); } catch { /* no clipboard */ } };
   // the fix itself, from the phone: the migration's SQL to the clipboard → Supabase → SQL editor → Run → reload
@@ -48,7 +51,7 @@ export function SignDiag({ d, open, onToggle }: { d: DiagInput; open: boolean; o
   const copySql = async () => { try { const r = await fetch("/sql/036_sign_envelopes.sql"); if (!r.ok) throw new Error(String(r.status)); await navigator.clipboard.writeText(await r.text()); setSqlState("copied"); } catch { setSqlState("failed"); } };
   return (
     <div className="mb-3 text-xs" data-testid="sign-diag">
-      <button type="button" onClick={onToggle} className="min-h-[36px] text-cyan-400 underline-offset-2 hover:underline" aria-expanded={open} data-testid="diag-toggle">{open ? "▾" : "▸"} {t("soi.sign.diag.link")}</button>
+      <button type="button" onClick={onToggle} className="min-h-[36px] text-primary underline-offset-2 hover:underline" aria-expanded={open} data-testid="diag-toggle">{open ? "▾" : "▸"} {t("soi.sign.diag.link")}</button>
       {open && (
         <div className="mt-1 rounded-md border border-border bg-background p-2" data-testid="diag-panel">
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
@@ -57,7 +60,7 @@ export function SignDiag({ d, open, onToggle }: { d: DiagInput; open: boolean; o
           <p className="mt-2 font-medium text-foreground" data-testid="diag-todo" aria-live="polite">{todo}</p>
           <button type="button" onClick={copy} className="mt-2 min-h-[36px] rounded-md border border-border px-3">{t("soi.sign.diag.copy")}</button>
           {rpc.state === "rpc_missing" && (
-            <div className="mt-3 rounded-md border border-cyan-400/40 p-2" data-testid="diag-fix">
+            <div className="mt-3 rounded-md border border-primary/40 p-2" data-testid="diag-fix">
               <div className="font-medium text-foreground">{t("soi.sign.diag.fix_title")}</div>
               <p className="mt-1 text-muted-foreground">{t("soi.sign.diag.sql_how")}</p>
               <div className="mt-2 flex flex-wrap gap-2">

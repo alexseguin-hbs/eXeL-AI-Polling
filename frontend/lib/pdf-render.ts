@@ -32,7 +32,11 @@ export async function renderPage(doc: Awaited<ReturnType<typeof openPdf>>, n: nu
   const base = page.getViewport({ scale: 1 });
   const scale = cssWidth / base.width;
   // at least 2× so a 0.7-pt rule survives as ink the tap can fit to (lib/sign-fit) on a 1× screen; at most 3×
-  const dpr = typeof window !== "undefined" ? Math.min(Math.max(window.devicePixelRatio || 1, 2), 3) : 1;
+  let dpr = typeof window !== "undefined" ? Math.min(Math.max(window.devicePixelRatio || 1, 2), 3) : 1;
+  // iOS refuses (renders blank) a canvas above ~16.7 MP; a 4× zoom at dpr 3 on Letter would be 22 MP. Cap the pixels at
+  // 12 MP — the zoomed page stays sharp enough and fitAt's getImageData stays under ~50 MB (Enki, plan review).
+  const MAX_PX = 12e6, px = (scale * dpr) ** 2 * base.width * base.height;
+  if (px > MAX_PX) dpr = Math.max(1, Math.sqrt(MAX_PX / (base.width * base.height)) / scale);
   const viewport = page.getViewport({ scale: scale * dpr });
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(viewport.width);

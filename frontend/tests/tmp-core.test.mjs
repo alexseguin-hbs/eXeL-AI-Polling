@@ -22,4 +22,10 @@ const gone = await J(await handleTmp(new Request(`${SITE}/api/tmp/AAAAAAAAAAAAAA
 const bad = await J(await handleTmp(new Request(`${SITE}/api/tmp/short`), { SIGN_FILES: kv })); ok(bad.status === 400, "malformed token → 400");
 const st = await J(await handleTmp(new Request(`${SITE}/api/tmp`), { SIGN_FILES: kv })); ok(st.status === 200 && st.body.configured === true && st.body.ttl_hours === 24, "GET /api/tmp → status");
 const rb = await J(await handleTmp(post(pdf), { RESPONSES: fakeKv() })); ok(rb.status === 200 && rb.body.token, "the RESPONSES binding is accepted as a fallback store");
+// an accented file name travels URL-encoded in the header (fetch refuses non-ISO-8859-1 header values) and is stored decoded
+const acc = await J(await handleTmp(post(pdf, SITE, encodeURIComponent("pagaré-firmado.pdf")), { SIGN_FILES: kv }));
+ok(acc.status === 200 && acc.body.name === "pagaré-firmado.pdf" && kv._m.get(`tmp:${acc.body.token}`).meta.name === "pagaré-firmado.pdf", `accented name decoded on receipt (got ${acc.body && acc.body.name})`);
+const accGet = await handleTmp(new Request(`${SITE}/api/tmp/${acc.body.token}`), { SIGN_FILES: kv });
+ok(accGet.status === 200 && /^[\x20-\x7e]*$/.test(accGet.headers.get("content-disposition") || ""), "GET of the accented file: the content-disposition header stays ASCII-safe");
+const plain = await J(await handleTmp(post(pdf, SITE, "note 2.pdf"), { SIGN_FILES: kv })); ok(plain.status === 200 && plain.body.name === "note 2.pdf", "a plain name is kept as sent");
 console.log(`tmp-core: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

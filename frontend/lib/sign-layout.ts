@@ -6,7 +6,10 @@
 import { fitToUnderline, type Bitmap, type FitBox } from "@/lib/sign-fit";
 
 /** Height (as a page fraction from the TOP) at which an initials group of `hFrac` fits in the right `colFrac` of the
- *  page without covering ink: first the bottom margin below the lowest ink, else the lowest clear gap above it. */
+ *  page without covering ink: first the bottom margin below the lowest ink, else the lowest clear gap above it.
+ *  `colFrac` is the band scanned, as a fraction of the page width from the RIGHT edge (default 0.45 — two 36-pt slots
+ *  on a Letter page); with 3+ signers the row reaches further left, so pass `initialsRowFrac(widths, pageWidthPt)`
+ *  from lib/pdf-stamp and the scan covers what the row actually spans (reviewer 2026-09-08). */
 export function initialsSlotTop(bmp: Bitmap, o: { colFrac?: number; hFrac?: number; padFrac?: number; dark?: number } = {}): number {
   const { width: W, height: H, data } = bmp;
   const col = Math.round(W * (1 - (o.colFrac ?? 0.45))), h = Math.max(4, Math.round(H * (o.hFrac ?? 0.018))), pad = Math.max(2, Math.round(H * (o.padFrac ?? 0.004))), dark = o.dark ?? 200;

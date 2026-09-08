@@ -20,6 +20,7 @@ import { decodeCodexPdf, browserInflate, type CodexPdfResult } from "@/lib/codex
 import {
   placeSignature, decodeImage, unsupportedChars, STYLE_LABEL,
   type Style, type BlockSize, type DecodeResult,
+  ALPHA,
 } from "@/lib/light-codex";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { addToImageLibrary } from "@/lib/image-library"; // share the loaded image into the SoI-2525 CONOPS pool
@@ -184,7 +185,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
               <input value={signature} onChange={(e) => setSignature(e.target.value)}
                 placeholder="Enter message here"
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
-              <p className="mt-1 text-[10px] text-muted-foreground">A–Z, digits, space, period. {signature.length} chars.</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">{t("soi.codex.chars")} {Object.keys(ALPHA).filter((c) => c.length === 1 && !/[A-Z]/.test(c)).map((c) => (c === " " ? "␣" : c)).join(" ")} · {signature.length} chars.</p>
               {bad.length > 0 && (
                 <p className="mt-1 text-[10px] text-destructive">Unsupported: {Array.from(new Set(bad)).map((c) => JSON.stringify(c)).join(" ")}</p>
               )}

@@ -334,3 +334,21 @@ glyph the Vision 2525 living document uses, a 44-px round button, the file name 
 **02:00 ask, applied:** nothing sits on a selected box any more (the red ✕ badge hid the text under it). The delete
 control is the first item of the toolbar right under the page whenever a box is selected: a red, filled "✕ Delete ·
 date / text / signature". Two-phone 57/57.
+
+## Wave 12 — 2026-09-08 17:45 UTC: every fleet item, zoom, Light Codex symbols and order, text at the document's size
+
+The pass-2 fleet findings (11 returned) and the 12 × 111 + 3 × 333 plan review both landed in one batch. What the
+two-phone run now proves, on top of waves 1–11 (**62 steps, 0 failures**):
+- **Zoom** — `+` renders the page 1.5× inside a scroller; the signature keeps its page fractions (11.73 % → 11.73 %);
+  a drag at zoom moves the date box; **⌖ snaps it back onto its "Date:" line** (bottom 407 → moved 396 → snapped 407 px);
+  the reset returns to 100 %. Two defects found by the run itself and fixed: a small box was all resize-handle (44-px
+  slop) and could never be moved — the handle is now the upper-right quadrant only; and a scale-aware dashed-rule bridge
+  turned the printed name into a rule at 2× — the bridge is 3 px at every scale.
+- **Light Codex row order** — Alex (first) holds the right edge (558–594 pt), Daniel (additional) starts left of him
+  (518–554 pt), one gap apart.
+- **Codex line** — `ALEX SEGUIN 2026.09.08_17:41UTC • DANIEL VAIL 2026.09.08_17:41UTC`: the alphabet carries
+  `-` (VCVC), `_` (VRVR), `•` (VYVY), `:` (VBVB); the hidden helix is 0.25 pt and reads back from the PDF bytes.
+- **Digital line** — `Alex Seguin · 2026.09.08 17:41:12 UTC · #hash`, the receipt's own form, one rendering of the instant.
+- **Text at the document's size** — a fitted date is sized from the ink height of the label beside the rule
+  (`textH × 1.9`), bottom on the rule; the live note's 27-pt date becomes an 11-pt one.
+Offline hand-off 17/17 · scan 8/8 · pod 45/45 · test:ci green (innovation-time 3680/3680 at `/SoI-2525`).
