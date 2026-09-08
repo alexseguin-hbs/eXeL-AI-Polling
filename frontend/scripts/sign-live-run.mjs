@@ -67,8 +67,28 @@ const inkOnPad = (p) => p.locator('canvas[aria-label]').first().evaluate((c) => 
   for (let i = 0; i < d.length; i += 4) { const a = d[i + 3], lum = (d[i] + d[i + 1] + d[i + 2]) / 3; if (a > 40 && lum < 200) { ink++; const x = (i / 4) % c.width; if (x < x0) x0 = x; if (x > x1) x1 = x; } }
   return { share: ink / (c.width * c.height), span: (x1 - x0) / c.width };
 });
+/** The physical initials, drawn on the second pad. */
+const drawInitials = async (p, who) => {
+  const c = p.locator('canvas[aria-label="Draw your initials"]'); await c.waitFor(); const b = await c.boundingBox();
+  await p.mouse.move(b.x + 20, b.y + 60); await p.mouse.down(); for (let i = 1; i <= 10; i++) await p.mouse.move(b.x + 20 + i * 9, b.y + 60 + (i % 2 ? -22 : 18), { steps: 2 }); await p.mouse.up();
+  step(who, 'initials DRAWN on the second pad (physical initials, operator 00:50)');
+};
 const placeAndSign = async (p, who) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 }); step(who, 'PDF page rendered (pdfjs)');
+  if (who === 'dan' && (await p.getByTestId('sig-box').count()) === 1) {
+    // Daniel LANDS on the placeholders Alex left: signature on the borrower's line, date on its Date line (operator 00:50)
+    const sb = await p.getByTestId('sig-box').boundingBox(); const pb = await page.boundingBox(); const tb = await p.getByTestId('text-box').boundingBox();
+    const fit = await p.getByTestId('sig-box').getAttribute('data-fit'); const x0 = (sb.x - pb.x) / pb.width, bottom = (sb.y + sb.height - pb.y) / pb.height;
+    rules.dan = { page: 2, y: bottom, x0, x1: (sb.x + sb.width - pb.x) / pb.width };
+    step(who, 'placeholders pre-placed: signature on the BORROWER line (right column, same row as Alex), date under it', fit === 'holder' && x0 > rules.alex.x1 && Math.abs(bottom - rules.alex.y) < 0.01 && tb && tb.y > sb.y + sb.height - 2, `sig x=${x0.toFixed(3)} bottom=${bottom.toFixed(3)} (Alex's rule y=${rules.alex.y.toFixed(3)})`);
+    await shot(p, who, '2b-placed');
+    await p.getByTestId('to-draw').click();
+    await scribble(p, who); const ink = await inkOnPad(p);
+    step(who, 'signature SCRIBBLED with the pointer — ink on the pad, spanning it', ink.share > 0.015 && ink.span > 0.6, `ink ${(ink.share * 100).toFixed(1)} % of the pad, span ${(ink.span * 100).toFixed(0)} %`);
+    await drawInitials(p, who);
+    const btn = p.getByTestId('sign-button'); await p.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 });
+    await btn.click(); step(who, 'Sign & save pressed'); return;
+  }
   const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3);
   await p.getByTestId('sig-box').waitFor();
   // a misplaced signature can be removed and placed again (Enki)
@@ -139,6 +159,7 @@ const placeAndSign = async (p, who) => {
     step(who, 'signature SCRIBBLED with the pointer — ink on the pad, spanning it', ink.share > 0.015 && ink.span > 0.6, `ink ${(ink.share * 100).toFixed(1)} % of the pad, span ${(ink.span * 100).toFixed(0)} %`);
     if (who === 'alex') { const durl = await p.locator('canvas[aria-label]').first().evaluate((c) => c.toDataURL('image/png')); fs.writeFileSync(path.join(OUT, 'alex-stroke.png'), Buffer.from(durl.split(',')[1], 'base64')); }
   }
+  await drawInitials(p, who);
   await shot(p, who, '3-draw');
   // back to the page: the scribble previews inside the fitted box, on the rule (what the PDF will carry)
   await p.getByRole('button', { name: /Back/ }).click(); await p.getByTestId('sig-box').locator('img').waitFor({ timeout: 10000 });
@@ -193,6 +214,7 @@ const linkEl = A.getByTestId('handoff-link'); await linkEl.waitFor({ timeout: 60
 const link = (await linkEl.innerText()).trim(); step('alex', 'saved — hand-off link minted for Daniel', /\/soi-session\/sign\/\?e=[A-Za-z0-9_-]{22}#s=[A-Za-z0-9_-]{22}$/.test(link), link.slice(0, 60) + '…');
 await shot(A, 'alex', '4-handoff');
 const myLink = (await A.getByTestId('my-link').locator('code').innerText()).trim(); step('alex', 'creator keeps his own return link', /\?e=[A-Za-z0-9_-]{22}#s=[A-Za-z0-9_-]{22}$/.test(myLink) && myLink !== link);
+step('alex', 'the hand-off says three placeholders were left for Daniel', /Daniel Vail/.test(await A.getByTestId('holders-left').innerText()));
 const smsHref = await A.getByRole('link', { name: /Send by text/ }).getAttribute('href');
 step('alex', 'phone path: sms: composer prefilled to 512.808.8745 with the default script + the link', smsHref.startsWith('sms:5128088745') && /Alex%20Seguin%20asks%20you%20to%20sign/.test(smsHref) && smsHref.includes(encodeURIComponent(link)), smsHref.slice(0, 70) + '…');
 const mailHref = await A.getByRole('link', { name: /Send by e-mail/ }).getAttribute('href');
@@ -224,8 +246,10 @@ const n = await countSignatureImages(bytes); step('dan', 'downloaded PDF carries
 // Daniel — starting at the rule's left edge, bottom on the rule, widened by the corner drag (distinct boxes)
 const boxes = await signatureBoxes(bytes);
 const expect = [rules.alex, rules.dan];
-step('dan', 'each stamp sits on ITS signature line (left edge + bottom on the rule), widened, distinct', boxes.length === 2 && boxes.every((b, i) => b.page === expect[i].page && Math.abs(b.x - expect[i].x0) < 0.03 && Math.abs(b.y + b.h - expect[i].y) < 0.012 && b.w > expect[i].x1 - expect[i].x0 + 0.02) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
+step('dan', "each stamp sits on ITS signature line (Alex widened his; Daniel's is the placeholder, rule-wide), distinct", boxes.length === 2 && boxes.every((b, i) => b.page === expect[i].page && Math.abs(b.x - expect[i].x0) < 0.03 && Math.abs(b.y + b.h - expect[i].y) < 0.012 && (i === 0 ? b.w > expect[i].x1 - expect[i].x0 + 0.02 : Math.abs(b.w - (expect[i].x1 - expect[i].x0)) < 0.03)) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
+{ const { initialledBy, holders } = await import('../lib/pdf-stamp.ts'); const ib = await initialledBy(bytes); const hs = await holders(bytes);
+  step('dan', 'both signers INITIALLED every page (drawn initials, SoIInit0 + SoIInit1) and the placeholders were recorded for signer 2', JSON.stringify(ib) === '[0,1]' && hs.length === 2 && hs.every((h) => h.idx === 1) && hs.map((h) => h.kind).sort().join() === 'date,sig', `initialled ${JSON.stringify(ib)} · holders ${JSON.stringify(hs.map((h) => [h.idx, h.kind]))}`); }
 // SHOW the result: the signed page, the signature rows and the signatory block rendered to PNG (pdfjs in Chromium)
 const render = (name, env) => { execFileSync('node', ['scripts/render-pdf-page.mjs'], { env: { ...process.env, PDF: file, OUT: path.join(OUT, name), ...env }, stdio: 'pipe' }); return fs.existsSync(path.join(OUT, name)) && fs.statSync(path.join(OUT, name)).size > 800; };   // the bottom-edge crop is mostly paper
 const pg = String(boxes[0]?.page ?? 2);
@@ -244,9 +268,10 @@ step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX 
 const pagesWithCodex = [...new Set(codex.map((c) => c.page))].sort();
 step('dan', 'the hidden Light Codex is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
 step('dan', 'page 1 bottom-right rendered to PNG (initials; the codex line is invisible)', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.955,0.54,0.045' }));
-// initials, always bottom-right of EACH page (operator 2026-09-08): "AS   DV" on every page's text, below the block
-{ const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: path.resolve('node_modules/pdfjs-dist/standard_fonts/') + '/', verbosity: 0 }).promise; let np = 0; for (let i = 1; i <= doc.numPages; i++) { const t = (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(' '); if (/AS\s+DV/.test(t)) np++; }
-  step('dan', 'initials AS · DV at the bottom-right of EVERY page', np === doc.numPages && np === 2, `${np}/${doc.numPages} pages`); }
+// PHYSICAL initials (operator 00:50): both signers' drawn initials images sit on EVERY page, and no "Initial" placeholder is left
+{ const { PDFDocument: PD, PDFName: PN } = await import('pdf-lib'); const d = await PD.load(bytes); const per = d.getPages().map((pg) => { const xo = pg.node.Resources()?.lookup(PN.of('XObject')); return xo ? xo.keys().map((k) => k.toString()).filter((k) => k.startsWith('/SoIInit')).sort().join(',') : ''; });
+  const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: path.resolve('node_modules/pdfjs-dist/standard_fonts/') + '/', verbosity: 0 }).promise; let left = 0; for (let i = 1; i <= doc.numPages; i++) { const t = (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(' '); if (/\bInitial\b|Sign here/.test(t)) left++; }
+  step('dan', 'both signers\' DRAWN initials on EVERY page (SoIInit0 + SoIInit1), every placeholder filled', per.length === 2 && per.every((k) => k === '/SoIInit0,/SoIInit1') && left === 0, `${JSON.stringify(per)} · placeholder text left on ${left} pages`); }
 await D.getByTestId('verify-input').setInputFiles(FIXTURE); await D.waitForFunction(() => document.querySelector('[data-testid="verify-result"]')?.getAttribute('data-ok') === '0', null, { timeout: 30000 });
 step('dan', 'verify-a-signed-file: the unsigned fixture reads "no signatures"', /No eXeL signatures/.test(await vr.innerText()));
 await shot(D, 'dan', '6b-verify');

@@ -1,13 +1,13 @@
-  2990ms  alex  OK  diag on a 036-less site: "signing works … downloads" + Copy migration SQL + Open the SQL (served, 20 kB, holds the create function)  /sql/036_sign_envelopes.sql · 20098 bytes
-  4810ms  alex  OK  signature box placed (underline)
-  5864ms  alex  OK  Sign & save pressed
-  5905ms  alex  OK  no link minted → the OFFLINE hand-off block: 036 named, hand the file over, sms/mail carry the script  No hand-off link on this site yet — hand the file over Migration 036 is not applied on this site's Supabase — no hand-of
-  5907ms  alex  OK  explainer says: signed on this phone, download and send
-  5911ms  alex  OK  the download is a Vision-2525 pill (↓, uppercase, rounded)
-  6039ms  alex  OK  partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME  [{"rowIndex":0,"isoDate":"2026-09-08T00:44:22.428Z","hash":"91d05b18","name":"Alex Seguin"}]
- 10274ms  dan   OK  signature box placed (underline)
- 11333ms  dan   OK  Sign & save pressed
- 11378ms  dan   OK  COMPLETE on his phone
- 11488ms  dan   OK  final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)  [[0,"Alex Seguin"],[1,"Daniel Vail"]]
- 11502ms  dan   OK  the hidden Light Codex names both signatories  ALEX SEGUIN 20260908004422 . DANIEL VAIL 20260908004427
- 11518ms  dan   OK  offline verify: consistent, two envelopes (the file was carried by hand)  []
+  3074ms  alex  OK  diag on a 036-less site: "signing works … downloads" + Copy migration SQL + Open the SQL (served, 20 kB, holds the create function)  /sql/036_sign_envelopes.sql · 20098 bytes
+  4930ms  alex  OK  signature box placed (underline)
+  6275ms  alex  OK  Sign & save pressed (signature + initials drawn)
+  7092ms  alex  OK  no link minted → the OFFLINE hand-off block: 036 named, hand the file over, sms/mail carry the script  No hand-off link on this site yet — hand the file over Migration 036 is not applied on this site's Supabase — no hand-of
+  7094ms  alex  OK  explainer says: signed on this phone, download and send
+  7101ms  alex  OK  the download is a Vision-2525 pill (↓, uppercase, rounded)
+  7233ms  alex  OK  partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME  [{"rowIndex":0,"isoDate":"2026-09-08T01:02:36.085Z","hash":"91d05b18","name":"Alex Seguin"}]
+ 10785ms  dan   OK  landed on the placeholders the partly-signed file carries (holder)
+ 12157ms  dan   OK  Sign & save pressed (signature + initials drawn)
+ 12991ms  dan   OK  COMPLETE on his phone
+ 13098ms  dan   OK  final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)  [[0,"Alex Seguin"],[1,"Daniel Vail"]]
+ 13112ms  dan   OK  the hidden Light Codex names both signatories  ALEX SEGUIN 20260908010236 . DANIEL VAIL 20260908010241
+ 13133ms  dan   OK  offline verify: consistent, two envelopes (the file was carried by hand)  []

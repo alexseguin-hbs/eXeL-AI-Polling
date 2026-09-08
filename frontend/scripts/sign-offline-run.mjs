@@ -32,13 +32,15 @@ await A.route('**/rest/v1/rpc/sign_envelope_get', missing('sign_envelope_get'));
 
 const placeDrawSign = async (p, who, tapX) => {
   const page = p.getByTestId('pdf-page'); await page.locator('canvas').first().waitFor({ timeout: 60000 });
-  await p.getByTestId('page-next').click(); await p.waitForTimeout(600);           // the signature block is on page 2
-  const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * tapX, bb.y + bb.height * 0.545);
-  await p.getByTestId('sig-box').waitFor(); step(who, `signature box placed (${(await p.getByTestId('sig-box').getAttribute('data-fit'))})`);
+  if (await p.getByTestId('page-next').isEnabled()) { await p.getByTestId('page-next').click(); await p.waitForTimeout(600); }   // the signature block is on page 2 (a pre-placed file already opens there)
+  if ((await p.getByTestId('sig-box').count()) === 1) step(who, `landed on the placeholders the partly-signed file carries (${await p.getByTestId('sig-box').getAttribute('data-fit')})`, (await p.getByTestId('sig-box').getAttribute('data-fit')) === 'holder' && (await p.getByTestId('text-box').count()) === 1);
+  else { const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * tapX, bb.y + bb.height * 0.545); await p.getByTestId('sig-box').waitFor(); step(who, `signature box placed (${(await p.getByTestId('sig-box').getAttribute('data-fit'))})`); }
   await p.getByTestId('to-draw').click();
   const c = p.locator('canvas[aria-label]').first(); const b = await c.boundingBox();
   await p.mouse.move(b.x + 20, b.y + 80); await p.mouse.down(); for (let i = 1; i <= 24; i++) await p.mouse.move(b.x + 20 + i * 10, b.y + 80 + Math.sin(i * (who === 'alex' ? 1.3 : 0.9)) * 28, { steps: 2 }); await p.mouse.up();
-  await p.waitForFunction(() => { const s = document.querySelector('[data-testid="sign-button"]'); return s && !s.disabled; }, null, { timeout: 5000 }); await p.getByTestId('sign-button').click(); step(who, 'Sign & save pressed');
+  const ci = p.locator('canvas[aria-label="Draw your initials"]'); const bi = await ci.boundingBox();
+  await p.mouse.move(bi.x + 20, bi.y + 60); await p.mouse.down(); for (let i = 1; i <= 10; i++) await p.mouse.move(bi.x + 20 + i * 9, bi.y + 60 + (i % 2 ? -22 : 18), { steps: 2 }); await p.mouse.up();
+  await p.waitForFunction(() => { const s = document.querySelector('[data-testid="sign-button"]'); return s && !s.disabled; }, null, { timeout: 5000 }); await p.getByTestId('sign-button').click(); step(who, 'Sign & save pressed (signature + initials drawn)');
 };
 
 // 1 · Alex: two signers, the create is refused by name → the envelope stays on the phone, the file is offered

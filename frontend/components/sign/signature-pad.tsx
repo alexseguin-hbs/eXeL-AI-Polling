@@ -27,7 +27,7 @@ async function trimToInk(f: File): Promise<File | null> {
   } catch { return null; }
 }
 
-export function SignaturePad({ onChange, height = 160 }: { onChange: (png: string | null) => void; height?: number }) {
+export function SignaturePad({ onChange, height = 160, label }: { onChange: (png: string | null) => void; height?: number; /** aria-label of the canvas (default: the signature prompt) */ label?: string }) {
   const { t } = useLexicon();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -106,7 +106,7 @@ export function SignaturePad({ onChange, height = 160 }: { onChange: (png: strin
           // eslint-disable-next-line @next/next/no-img-element
           <img src={uploaded} alt="" className="h-full w-full object-contain" />
         ) : (
-          <canvas ref={canvasRef} className="h-full w-full touch-none" style={{ touchAction: "none" }} onPointerDown={onDown} aria-label={t("soi.sign.draw")} />
+          <canvas ref={canvasRef} className="h-full w-full touch-none" style={{ touchAction: "none" }} onPointerDown={onDown} aria-label={label ?? t("soi.sign.draw")} />
         )}
         {empty && <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-xs text-neutral-400">{t("soi.sign.draw_hint")}</span>}
       </div>

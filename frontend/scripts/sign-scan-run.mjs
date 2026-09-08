@@ -55,6 +55,7 @@ await p.screenshot({ path: `${OUT}/1-fitted.jpg`, type: 'jpeg', quality: 55, ful
 await p.getByTestId('to-draw').click();
 const c = p.locator('canvas[aria-label]').first(); const b = await c.boundingBox();
 await p.mouse.move(b.x + 20, b.y + 80); await p.mouse.down(); for (let i = 1; i <= 24; i++) await p.mouse.move(b.x + 20 + i * 10, b.y + 80 + Math.sin(i * 1.3) * 28, { steps: 2 }); await p.mouse.up();
+{ const ci = p.locator('canvas[aria-label="Draw your initials"]'); const bi = await ci.boundingBox(); await p.mouse.move(bi.x + 20, bi.y + 60); await p.mouse.down(); for (let i = 1; i <= 10; i++) await p.mouse.move(bi.x + 20 + i * 9, bi.y + 60 + (i % 2 ? -22 : 18), { steps: 2 }); await p.mouse.up(); }
 await p.waitForFunction(() => { const s = document.querySelector('[data-testid="sign-button"]'); return s && !s.disabled; }, null, { timeout: 5000 }); await p.getByTestId('sign-button').click();
 await p.getByTestId('downloads').waitFor({ timeout: 60000 }); step('solo signature saved on the scan (no backend needed)');
 const [dl] = await Promise.all([p.waitForEvent('download'), p.getByTestId('downloads').locator('button').first().click()]);

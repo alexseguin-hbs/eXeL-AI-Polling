@@ -257,3 +257,18 @@ bottom-right and now carries the Light Codex of ALL signatories as the **Hidden 
 1-px forward line over a 1-px reversed line, right-aligned, no frame, 1 px = 1 pt, exactly as a Light Codex PNG
 carries it: invisible on the page, read back pixel-for-pixel by Light Codex → Decode ("Hidden Helix · 1×1"). The
 signatory rows stay in the keywords. Two-phone 64/64 · offline 13/13 · scan 8/8 · codex-pdf 13/13.
+
+## Wave 9 — physical initials in a clear spot; three placeholders for the second signatory (operator 00:50)
+
+- **Initials are drawn**, on a second pad after the signature, and stamped as the signer's own image in its slot at
+  the bottom-right of every page, in signing order. The slot row is chosen from the page's pixels
+  (`lib/sign-layout.ts` initialsSlotTop): under the lowest ink in the right column when there is room, else the
+  lowest clear gap above it — never over text (7 unit cases). Unfilled slots are dotted "Initial" placeholders,
+  cleared when that signer initials.
+- **Three placeholders** for the next signer after the first signs: signature on the OTHER party's line of the same
+  row (`partnerRule`, from pixels), date on that party's Date line, initial in the next slot. Recorded as `SoIHold`
+  keywords with the name; the next signer's page opens with the marks already placed (countersign link or the
+  hand-carried file alike), and the real marks clear the dotted boxes when they land.
+- Proof: two-phone run — Daniel lands on the borrower line (x 0.500, same row as Alex), both signers' drawn initials
+  on both pages, no placeholder text left; offline hand-off 13/13 (Daniel lands on the placeholders in the uploaded
+  file); scan 8/8; pod 45/45; codex-pdf 17/17; sign-layout 7/7.
