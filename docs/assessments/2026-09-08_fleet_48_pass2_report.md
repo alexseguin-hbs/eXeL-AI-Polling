@@ -130,7 +130,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **high · minutes** · ship.sh (the manual wrangler door) still gates on test:innovation-time alone — red by construction, so the only way through is SKIP_TESTS=1, which runs nothing — `frontend/scripts/ship.sh:30-38`
   → FIXED — ship.sh gates on test:ci
 - **high · hour** · Cloudflare git build ships with no test at all — prebuild has no suite, and it is the door that actually promotes main today — `frontend/package.json:9`
-  → FIXED (batch 1, 9161327) — prebuild runs test:build-gate (Sign Doc + core unit suites)
+  → OPEN (reverted) — prebuild ran the unit gate for three commits (9161327 · f6c9b2f · 8155941) and Cloudflare's builder failed all three (site stayed on d16ef66); the same builds were green here on Node 22.22. The gate stays as `npm run test:build-gate` for deploy.yml; the Cloudflare build log (Workers & Pages → exel-ai-polling → Builds) names the cause
 - **medium · minutes** · Hosted Supabase 036 is still unmeasured — apply-migration.yml has never run and verify-live.yml has no RPC probe; every proof of the hand-off link ran over PGlite — `.github/workflows/apply-migration.yml:8 · .github/workflows/verify-live.yml:33-63 · frontend/scripts/sign-live-run.mjs:9-10,206`
   → OPEN — see the item
 - **medium · day** · Third signer, returning/early signer and the waiting screen remain unproven and partly unbuilt: the countersigner's hand-off has no recipient, 036 returns no next_contact, waiting never refreshes; no proof drives a third phone — `frontend/components/sign/sign-flow.tsx:322,166,572 · supabase/migrations/036_sign_envelopes.sql:257 · frontend/scripts/sign-live-run.mjs:1-7`
