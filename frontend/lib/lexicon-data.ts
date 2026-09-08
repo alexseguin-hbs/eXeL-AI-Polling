@@ -800,6 +800,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.pod.strip.no_intent", englishDefault: "(no intent yet)", context: "Pod page: phone strip when intent is empty", cubeId: 8 },
   { key: "soi.pod.strip.stop", englishDefault: "Stop", context: "Pod page: phone strip stop button", cubeId: 8 },
   // ◬ ♡ 웃 landing — three doors before any session (operator 2026-09-07): Session (♡ top) · Sign Doc (웃 bottom-right) · Create Doc (◬ bottom-left).
+  { key: "soi.landing.language", englishDefault: "Language", context: "Session pages: the globe language switch (same as Settings and Vision 2525)", cubeId: 8 },
   { key: "soi.landing.title", englishDefault: "Session", context: "Landing + pod header: the single word under the three glyphs", cubeId: 8 },
   { key: "soi.landing.tagline", englishDefault: "Recursive coordination for human continuity.", context: "Landing footer line (moved out of the header)", cubeId: 8 },
   { key: "soi.landing.ring.session", englishDefault: "POD SESSION", context: "Landing: arc label on the top (♡) ring — uppercase, short", cubeId: 8 },

@@ -75,7 +75,7 @@ const [dlS] = await Promise.all([A.waitForEvent('download'), A.getByTestId('shar
 await A.getByTestId('share-fallback').waitFor({ timeout: 10000 });
 step('alex', 'Send the file: the partly-signed PDF is handed over with the message, named with the initials of who signed (…-partly-signed-AS.pdf)', /partly-signed-AS\.pdf$/.test(dlS.suggestedFilename()), dlS.suggestedFilename());
 step('alex', 'explainer says: signed on this phone, download and send', /Download the partly-signed file/.test(await A.getByTestId('explain').innerText()));
-step('alex', 'the download is a Vision-2525 pill (↓, uppercase, rounded)', /↓/.test(await A.getByTestId('downloads-partly').innerText()) && /rounded-full/.test(await A.getByTestId('downloads-partly').locator('button').first().getAttribute('class')));
+{ const b = A.getByTestId('downloads-partly').locator('button').first(); step('alex', 'the download is an ICON (the drawn arrow-to-line glyph Vision 2525 uses), round, named in aria-label', (await b.locator('svg path').count()) === 1 && /rounded-full/.test(await b.getAttribute('class')) && /Download/.test(await b.getAttribute('aria-label')) && (await b.innerText()).trim() === ''); }
 await shot(A, 'alex', '1-offline-handoff');
 const partly = path.join(OUT, 'partly-signed.pdf'); await dlS.saveAs(partly);   // the very file the message carried
 // the 24-hour LINK (operator 01:25): the store took the file, the script carries the link, the token is the key

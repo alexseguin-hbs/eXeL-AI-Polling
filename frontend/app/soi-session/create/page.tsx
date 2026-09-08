@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
+import { SoiGlobe } from "@/components/soi-globe";
+import { IconDownload } from "@/components/download-icon";
 import { buildDocPdf, promissoryNote, solvePayment, usd, type DocSpec } from "@/lib/doc-pdf";
 import { aiStatus, aiDraft, anyAi, type AiConfigured, type AiProvider } from "@/lib/ai";
 import { bytesToBase64 } from "@/lib/pdf-render";
@@ -92,7 +94,8 @@ export default function CreateDocPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <header className="mb-6 text-center">
+      <header className="relative mb-6 text-center">
+        <SoiGlobe className="absolute right-0 top-0" />
         <TrinityGlyphs size="text-2xl" className="mb-2" />
         <Link href="/soi-session/" className="text-xs text-muted-foreground hover:text-cyan-400">&larr; {t("soi.landing.title")}</Link>
       </header>
@@ -156,7 +159,7 @@ export default function CreateDocPage() {
           <button type="button" disabled={!canGenerate || busy} onClick={generate} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="generate">{busy ? t("soi.doc.generating") : t("soi.doc.generate")}</button>
           {preview && <>
             <span className="self-center text-xs text-muted-foreground" data-testid="preview">{preview.name} · {preview.pages} {t("soi.sign.pages")}</span>
-            <button type="button" onClick={download} className="min-h-[44px] rounded-md border border-border px-4 text-sm">⤓ {t("soi.sign.download")}</button>
+            <IconDownload label={`${t("soi.sign.download")} · ${preview.name}`} onClick={download} testId="doc-download" />
             <button type="button" onClick={toSign} className="min-h-[44px] rounded-md border px-4 text-sm font-medium" style={{ borderColor: hue.bright, color: hue.bright }} data-testid="to-sign">{t("soi.doc.to_sign")}</button>
           </>}
         </div>

@@ -206,6 +206,11 @@ const diag = { rpc: await A.getByTestId('diag-rpc').innerText(), worker: await A
 step('alex', 'diag: 036 RPC answers · pdf worker loaded · login not required · build named', /036 is applied/.test(diag.rpc) && /loaded/.test(diag.worker) && /not required/.test(diag.auth) && diag.build.length >= 3 && /Everything this page depends on answers/.test(diag.todo), JSON.stringify(diag));
 await shot(A, 'alex', '0-diag');
 await A.getByTestId('diag-toggle').click();
+// the globe (same method as Settings and Vision 2525): Spanish on, the page reads Spanish, then back (operator 01:55)
+await A.locator('[data-testid="soi-globe"] button').first().click(); await A.getByRole('option', { name: /Español/ }).click(); await A.waitForTimeout(300);
+const esLine = await A.getByTestId('explain').innerText(); await shot(A, 'alex', '0b-spanish');
+await A.locator('[data-testid="soi-globe"] button').first().click(); await A.getByRole('option', { name: /^English/ }).click(); await A.waitForTimeout(300);
+step('alex', 'globe → Español: the page reads Spanish ("Añade el o los PDF a firmar."), then English again', /Añade el o los PDF/.test(esLine) && /Add the PDF/.test(await A.getByTestId('explain').innerText()), esLine);
 await A.getByPlaceholder(/Promissory/).fill('Promissory Note');
 await A.getByTestId('file-input').setInputFiles(FIXTURE);
 await A.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 }); step('alex', 'PDF uploaded, hashed, page-counted');

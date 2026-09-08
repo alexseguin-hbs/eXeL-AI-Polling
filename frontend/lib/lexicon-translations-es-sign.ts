@@ -232,6 +232,7 @@ export const ES_SIGN: Record<string, string> = {
   "soi.pod.receipt.synthesis": "síntesis abajo",
   "soi.pod.strip.no_intent": "(aún sin intención)",
   "soi.pod.strip.stop": "Detener",
+  "soi.landing.language": "Idioma",
   "soi.landing.title": "Sesión",
   "soi.landing.tagline": "Coordinación recursiva para la continuidad humana.",
   "soi.landing.ring.session": "SESIÓN POD",

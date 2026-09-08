@@ -48,6 +48,7 @@ import { api } from "@/lib/api";
 import { format as fmtABC } from "@/lib/abc-3600";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
+import { SoiGlobe } from "@/components/soi-globe";
 import {
   DEFAULT_PROJECTS, OPEN_TOPIC, SAMPLE_POD, projectTasks, findProject, RECORD_METHODS,
   SYNC_START_SECONDS, POD_SIZE, FREE_TOOLS_NOTE, EVIDENCE_CHAIN,
@@ -473,7 +474,8 @@ export default function SoISessionPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       {/* Header ────────────────────────────────────────────────────────── */}
-      <header className="mb-8 text-center">
+      <header className="relative mb-8 text-center">
+        <SoiGlobe className="absolute right-0 top-0" />
         <TrinityGlyphs size="text-3xl" className="mb-3" />
         <h1 className="text-2xl font-semibold">{t("soi.landing.title")}</h1>
       </header>

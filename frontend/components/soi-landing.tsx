@@ -17,6 +17,7 @@ import { SeedMembership } from "@/components/seed-membership";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
+import { SoiGlobe } from "@/components/soi-globe";
 
 export const SIGN_PATH = "/soi-session/sign/";
 export const CREATE_PATH = "/soi-session/create/";
@@ -37,7 +38,8 @@ export function SoiLanding({ onEnter }: { onEnter: () => void }) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <header className="mb-6 text-center">
+      <header className="relative mb-6 text-center">
+        <SoiGlobe className="absolute right-0 top-0" />
         <TrinityGlyphs size="text-3xl" className="mb-3" />
         <h1 className="text-2xl font-semibold">{t("soi.landing.title")}</h1>
       </header>

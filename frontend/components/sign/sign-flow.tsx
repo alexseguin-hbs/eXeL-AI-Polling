@@ -41,6 +41,7 @@ import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
+import { IconDownload } from "@/components/download-icon";
 import { VerifyFile } from "@/components/sign/verify-file";
 
 type Step = "upload" | "signers" | "place" | "draw" | "login" | "saving" | "handoff" | "done" | "error" | "loading" | "waiting" | "not_party";
@@ -562,7 +563,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               </div>
             </div>
           )}
-          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads-partly">{signed.map((f) => <button key={f.name} type="button" onClick={() => void download(f, false)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name} · {t("soi.sign.partly")}</button>)}</div>
+          <div className="mt-3 flex flex-wrap items-center gap-3" data-testid="downloads-partly">{signed.map((f) => <span key={f.name} className="inline-flex items-center gap-2 text-xs text-muted-foreground"><IconDownload label={`${t("soi.sign.download")} · ${f.name} · ${t("soi.sign.partly")}`} onClick={() => void download(f, false)} /><span>{f.name} · {t("soi.sign.partly")}</span></span>)}</div>
         </div>
       )}
 
@@ -582,7 +583,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
             </ol>
           </div>
           <Roster />
-          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => void download(f)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name}</button>)}
+          <div className="mt-3 flex flex-wrap items-center gap-3" data-testid="downloads">{signed.map((f) => <span key={f.name} className="inline-flex items-center gap-2 text-xs"><IconDownload label={`${t("soi.sign.download")} · ${f.name}`} onClick={() => void download(f)} /><span>{f.name}</span></span>)}
             <button type="button" onClick={() => void shareFiles(signed, true, `${t("soi.sign.complete")} ${pub?.title ?? title}`)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }} data-testid="share-signed"><span aria-hidden="true">📎</span> {t("soi.sign.handoff.share_signed")}</button></div>
           <div className="mt-4"><VerifyFile /></div>
         </div>

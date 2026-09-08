@@ -324,3 +324,9 @@ Report: `2026-09-08_fleet_48_report.md` (11 of 12 MoTs READY within the proven b
 space and the full stop, so the space stands for the underscore and the full stop for the colon; the time is the
 signer's local time with its zone name (CST in winter, CDT in summer for Chicago; UTC in the sandbox proofs).
 codex-pdf 21/21 (Chicago summer/winter + UTC cases); two-phone 56/56; offline 17/17.
+
+**01:55 ask, applied:** the globe language switch (the lexicon's own selector, EN + ES pinned, the same method as
+Settings and Vision 2525) sits top-right of every Session page — landing, Sign Doc, Create Doc, the pod; the two-phone
+proof switches to Español and reads "Añade el o los PDF a firmar." Every download is an icon: the drawn arrow-to-line
+glyph the Vision 2525 living document uses, a 44-px round button, the file name in the aria-label (no word). Two-phone
+57/57 · offline 17/17 · scan 8/8 · pod 45/45.

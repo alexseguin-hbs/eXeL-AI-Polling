@@ -18,6 +18,7 @@ import { SignFlow } from "@/components/sign/sign-flow";
 import { useLexicon } from "@/lib/lexicon-context";
 import { AUTH0_CLIENT_ID, AUTH0_DOMAIN } from "@/lib/constants";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
+import { SoiGlobe } from "@/components/soi-globe";
 import { base64ToBytes } from "@/lib/pdf-render";
 import { secretFromLocation } from "@/lib/sign-envelope";
 import { getTempFile } from "@/lib/tmpfile";
@@ -28,7 +29,8 @@ function TmpGone() { const { t } = useLexicon(); return <>{t("soi.sign.tmp.gone"
 function Header() {
   const { t } = useLexicon();
   return (
-    <header className="mb-6 text-center">
+    <header className="relative mb-6 text-center">
+      <SoiGlobe className="absolute right-0 top-0" />
       <TrinityGlyphs size="text-2xl" className="mb-2" />
       <Link href="/soi-session/" className="text-xs text-muted-foreground hover:text-cyan-400">&larr; {t("soi.landing.title")}</Link>
     </header>
