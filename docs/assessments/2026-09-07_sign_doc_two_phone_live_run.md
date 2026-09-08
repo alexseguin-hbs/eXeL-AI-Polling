@@ -250,3 +250,10 @@ for the same reason. Proof: 103×14 → 112×17 px with the bottom at 478 → 47
 **00:40 ask, applied — delete:** the selected box carries a red ✕ badge at its upper-left (44-px target) that removes
 it in one tap, and the toolbar's ✕ is now a labelled red "Delete". Proof: an accidental date deleted by the badge on
 both phones; 64/64.
+
+**00:45 ask, applied — no box; hidden Light Codex on the bottom edge:** the "Signatories — digital timestamps" box is
+gone (the digital line already sits under each physical signature). Every page keeps the initials at the
+bottom-right and now carries the Light Codex of ALL signatories as the **Hidden Helix** on its very bottom edge — a
+1-px forward line over a 1-px reversed line, right-aligned, no frame, 1 px = 1 pt, exactly as a Light Codex PNG
+carries it: invisible on the page, read back pixel-for-pixel by Light Codex → Decode ("Hidden Helix · 1×1"). The
+signatory rows stay in the keywords. Two-phone 64/64 · offline 13/13 · scan 8/8 · codex-pdf 13/13.

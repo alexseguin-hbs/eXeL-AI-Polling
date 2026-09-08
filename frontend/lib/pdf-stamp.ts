@@ -151,8 +151,8 @@ export async function envelopeMarks(pdf: Uint8Array): Promise<{ token: string; c
   return (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIEnv:")).map((k) => { const [, token, chain] = k.split(":"); return { token, chain }; });
 }
 
-/* ── Signatory block — CAC-style digital timestamp + Light Codex 2×2 strip, bottom-right of EVERY page ──
- * (operator 23:25: "on each signed page of pdf not just last page")
+/* ── Per-page marks — initials bottom-right + the hidden Light Codex on the bottom edge of EVERY page ──
+ * (operator 23:25: "on each signed page"; 00:45: "remove box… Light Codex at very bottom of PDF like the PNG")
  * One row per signer: NAME · "Digitally signed" · YYYY.MM.DD HH:MM:SS UTC · #hash. Each pass draws
  * its own row (rowIndex = signer index) and redraws the frame, so the block accumulates across the
  * envelope. The Light Codex strip (lib/light-codex, block size 2, double helix) is rendered in the
@@ -187,36 +187,21 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
   if (initLine) { const prevI = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIInit:")); doc.setKeywords([...(doc.getKeywords() ?? "").split(/\s+/).filter((k) => k && !prevI.includes(k)), `SoIInit:${initLine}`]); }
   return doc.save({ useObjectStreams: false });
 }
-function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, font: PDFFont, bold: PDFFont): void {
+function drawCodexBlock(doc: PDFDocument, page: PDFPage, e: CodexEntry, _font: PDFFont, bold: PDFFont): void {
+  // No visible box (operator 2026-09-08 00:45: the digital line already sits under each physical signature).
+  // What every page carries: the initials of every signatory at the bottom-right, and the Light Codex of ALL
+  // signatories HIDDEN on the very bottom edge — the Hidden Helix, exactly as a Light Codex PNG carries it
+  // (1-px forward line above a 1-px reversed line, right-aligned, no frame): invisible to the eye, read back
+  // pixel-for-pixel from the PDF by Light Codex → Decode. The rows themselves live in the keywords (codexRows).
   const { width } = page.getSize();
-  const rows = Math.max(2, e.total, ...e.rows.map((r) => r.rowIndex + 1));   // "2×2": two rows minimum, name | timestamp
-  const rowH = 14, pad = 6, blockW = Math.min(300, width * 0.48), footH = 0, blockH = rows * rowH + 22;
-  const bx = width - blockW - 18, by = 18;                 // bottom-right, inside a half-inch margin
-  page.drawRectangle({ x: bx, y: by, width: blockW, height: blockH, borderColor: rgb(0.1, 0.25, 0.45), borderWidth: 0.8, color: rgb(1, 1, 1), opacity: 1 });
-  page.drawText("Signatories — digital timestamps", { x: bx + pad, y: by + blockH - 12, size: 7.5, font: bold, color: rgb(0.1, 0.25, 0.45) });
-  page.drawLine({ start: { x: bx + blockW * 0.42, y: by + 2 + footH }, end: { x: bx + blockW * 0.42, y: by + blockH - 16 }, thickness: 0.4, color: rgb(0.7, 0.75, 0.8) });
-  // the ALL strip: every signatory so far in one Light Codex line along the block's foot — readable back from the PDF
-  // the ALL strip at the VERY bottom-right of the page (operator 23:55) — one line, below the block, 4 pt from the edges
-  if (e.all) { const w = blockW; embedCodexImage(doc, page, "SoICodexAll", e.all, width - w - 4, 4, w, Math.max(1.2, (w * e.all.height) / e.all.width) * 2); }
-  // INITIALS of every signatory so far, always at the bottom-right of each page (operator 2026-09-08) — between the
-  // block and the strip, in signing order, redrawn each pass; also a keyword so a file can be read back
+  // drawn 0.6 pt tall on the bottom edge — a hairline to the eye; the decoder reads the embedded pixels, not the drawing
+  if (e.all) { const w = Math.max(width, e.all.width); embedCodexImage(doc, page, "SoICodexAll", e.all, width - w, 0, w, 0.6); }
   const inits = [...e.rows].sort((a, b) => a.rowIndex - b.rowIndex).map((r) => initialsOf(r.name)).filter(Boolean);
   if (inits.length) {
     const line = inits.join("   "); const size = 8.5, tw = bold.widthOfTextAtSize(line, size);
     // each pass redraws the whole line, so the earlier pass's initials are cleared first (the render caught "AS" under "AS DV")
     page.drawRectangle({ x: width - 18 - Math.max(tw, 160) - 2, y: 6.5, width: Math.max(tw, 160) + 4, height: 11, color: rgb(1, 1, 1), opacity: 1 });
     page.drawText(line, { x: width - 18 - tw, y: 8.5, size, font: bold, color: rgb(0.06, 0.06, 0.08) });
-  }
-  const nameW = blockW * 0.42 - pad * 2;
-  for (const r of e.rows) {
-    const y = by + blockH - 16 - rowH * (r.rowIndex + 1) + 4;
-    let ns = 8; while (ns > 5 && bold.widthOfTextAtSize(r.name, ns) > nameW) ns -= 0.5;
-    page.drawText(r.name, { x: bx + pad, y, size: ns, font: bold, color: rgb(0.06, 0.06, 0.08) });
-    const stamp = `Digitally signed · ${cacStamp(r.isoDate)} · #${r.hash}`;
-    const stampW = blockW * 0.58 - pad * 2 - (r.codex ? 34 : 0);
-    let ss = 6.5; while (ss > 4.5 && font.widthOfTextAtSize(stamp, ss) > stampW) ss -= 0.25;
-    page.drawText(stamp, { x: bx + blockW * 0.42 + pad, y, size: ss, font, color: rgb(0.1, 0.1, 0.12) });
-    if (r.codex) embedCodexImage(doc, page, `SoICodexRow${r.rowIndex}`, r.codex, bx + blockW - pad - 30, y + 2, 30, 1.6);   // one line, raw pixels, decodable
   }
 }
 

@@ -82,7 +82,7 @@ const rows = await codexRows(fb);
 step('dan', 'final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)', (await countSignatureImages(fb)) === 2 && rows.length === 2 && rows[0].name === 'Alex Seguin' && rows[1].name === 'Daniel Vail', JSON.stringify(rows.map((r) => [r.rowIndex, r.name])));
 const codex = await decodeCodexPdf(fb, (b) => new Uint8Array(zlib.inflateSync(b)));
 const all = codex.find((c) => c.name === 'SoICodexAll')?.result?.messageForward || '';
-step('dan', 'Light Codex ALL strip names both signatories', /^ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}$/.test(all), all);
+step('dan', 'the hidden Light Codex names both signatories', /^ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}$/.test(all), all);
 const v = await verifySignedPdf('fully-signed.pdf', fb);
 step('dan', 'offline verify: consistent, two envelopes (the file was carried by hand)', v.ok && v.envelopes === 2 && v.images === 2, JSON.stringify(v.issues));
 fs.writeFileSync(OUT + '/log.txt', log.join('\n')); await browser.close(); console.log(`\nSIGN OFFLINE HAND-OFF RUN: ${log.length} steps, 0 failures`);

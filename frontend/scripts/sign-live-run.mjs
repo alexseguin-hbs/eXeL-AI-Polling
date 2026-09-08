@@ -227,10 +227,10 @@ const expect = [rules.alex, rules.dan];
 step('dan', 'each stamp sits on ITS signature line (left edge + bottom on the rule), widened, distinct', boxes.length === 2 && boxes.every((b, i) => b.page === expect[i].page && Math.abs(b.x - expect[i].x0) < 0.03 && Math.abs(b.y + b.h - expect[i].y) < 0.012 && b.w > expect[i].x1 - expect[i].x0 + 0.02) && Math.abs(boxes[0].x - boxes[1].x) > 0.2, JSON.stringify(boxes.map((b) => [b.page, +b.x.toFixed(2), +b.y.toFixed(2), +b.w.toFixed(2)])));
 const texts = await textBoxes(bytes); step('dan', 'two date marks stamped (one per signer)', texts.length === 2, `SoITxt count = ${texts.length}`);
 // SHOW the result: the signed page, the signature rows and the signatory block rendered to PNG (pdfjs in Chromium)
-const render = (name, env) => { execFileSync('node', ['scripts/render-pdf-page.mjs'], { env: { ...process.env, PDF: file, OUT: path.join(OUT, name), ...env }, stdio: 'pipe' }); return fs.existsSync(path.join(OUT, name)) && fs.statSync(path.join(OUT, name)).size > 5000; };
+const render = (name, env) => { execFileSync('node', ['scripts/render-pdf-page.mjs'], { env: { ...process.env, PDF: file, OUT: path.join(OUT, name), ...env }, stdio: 'pipe' }); return fs.existsSync(path.join(OUT, name)) && fs.statSync(path.join(OUT, name)).size > 800; };   // the bottom-edge crop is mostly paper
 const pg = String(boxes[0]?.page ?? 2);
-step('dan', 'signed page rendered to PNG (whole page · signature rows · signatory block)', render('signed-page.png', { PAGE: pg, SCALE: '1.4' }) && render('signed-block.png', { PAGE: pg, SCALE: '3', CROP: `0.08,${(expect[0].y - 0.045).toFixed(3)},0.84,0.10` }) && render('signed-codex.png', { PAGE: pg, SCALE: '3', CROP: '0.46,0.895,0.54,0.105' }));
-const rows = await codexRows(bytes); step('dan', 'signatory block: two CAC-style timestamp rows, bottom-right of the last page', rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows.every((r) => /^\d{4}-\d{2}-\d{2}T/.test(r.isoDate)), JSON.stringify(rows.map((r) => [r.rowIndex, r.isoDate, r.hash])));
+step('dan', 'signed page rendered to PNG (whole page · signature rows · signatory block)', render('signed-page.png', { PAGE: pg, SCALE: '1.4' }) && render('signed-block.png', { PAGE: pg, SCALE: '3', CROP: `0.08,${(expect[0].y - 0.045).toFixed(3)},0.84,0.10` }) && render('signed-codex.png', { PAGE: pg, SCALE: '3', CROP: '0.46,0.955,0.54,0.045' }));
+const rows = await codexRows(bytes); step('dan', 'signatory rows recorded in the file (keywords): two, with time + hash', rows.length === 2 && rows[0].rowIndex === 0 && rows[1].rowIndex === 1 && rows.every((r) => /^\d{4}-\d{2}-\d{2}T/.test(r.isoDate)), JSON.stringify(rows.map((r) => [r.rowIndex, r.isoDate, r.hash])));
 // offline verify (Pangu): the DONE block reads the downloaded file back — green; the unsigned fixture — "no signatures"
 await D.getByTestId('verify-input').setInputFiles(file); await D.getByTestId('verify-result').waitFor({ timeout: 30000 });
 const vr = D.getByTestId('verify-result'); step('dan', 'verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)', (await vr.getAttribute('data-ok')) === '1' && /2 signatures/.test(await vr.innerText()), (await vr.innerText()).replace(/\s+/g, ' ').slice(0, 120));
@@ -239,11 +239,11 @@ const txt = await pdfText(bytes); const dl1 = (txt.match(/Alex Seguin · 2026-\d
 step('dan', 'digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text', n === 2 && dl1 === 1 && dl2 === 1, `Alex ×${dl1} · Daniel ×${dl2}`);
 // the Light Codex strips read back from the PDF's own pixels: one per signatory + ALL signatories
 const codex = await decodeCodexPdf(bytes, (b) => new Uint8Array(zlib.inflateSync(b))); const byName = Object.fromEntries(codex.map((c) => [c.name, c.result?.messageForward]));
-step('dan', 'Light Codex from the PDF: row strips decode to ALEX SEGUIN / DANIEL VAIL + UTC time, reverse-verified', /^ALEX SEGUIN 2026\d{10}$/.test(byName.SoICodexRow0 || '') && /^DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexRow1 || '') && codex.every((c) => c.result?.verified), JSON.stringify(byName));
+step('dan', 'Light Codex from the PDF: the HIDDEN helix on the bottom edge decodes, reverse-verified, no box drawn', codex.length > 0 && codex.every((c) => c.result?.verified && c.result.style === 'Hidden Helix') && !/Signatories|Digitally signed/.test(txt), JSON.stringify(byName));
 step('dan', 'Light Codex ALL strip carries every signatory in one line', /^ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}$/.test(byName.SoICodexAll || ''), byName.SoICodexAll);
 const pagesWithCodex = [...new Set(codex.map((c) => c.page))].sort();
-step('dan', 'the 2×2 Light Codex block is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length * 3, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
-step('dan', 'page 1 signatory block rendered to PNG', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.895,0.54,0.105' }));
+step('dan', 'the hidden Light Codex is on EVERY signed page, not just the last (operator 23:25)', pagesWithCodex.length === (await pageCountOf(bytes)) && codex.length === pagesWithCodex.length, `pages ${pagesWithCodex.join(',')} · ${codex.length} strips`);
+step('dan', 'page 1 bottom-right rendered to PNG (initials; the codex line is invisible)', render('signed-codex-p1.png', { PAGE: '1', SCALE: '3', CROP: '0.46,0.955,0.54,0.045' }));
 // initials, always bottom-right of EACH page (operator 2026-09-08): "AS   DV" on every page's text, below the block
 { const doc = await getDocument({ data: bytes.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: path.resolve('node_modules/pdfjs-dist/standard_fonts/') + '/', verbosity: 0 }).promise; let np = 0; for (let i = 1; i <= doc.numPages; i++) { const t = (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(' '); if (/AS\s+DV/.test(t)) np++; }
   step('dan', 'initials AS · DV at the bottom-right of EVERY page', np === doc.numPages && np === 2, `${np}/${doc.numPages} pages`); }
@@ -256,7 +256,7 @@ await D.goto(BASE + '/light-codex/', { waitUntil: 'domcontentloaded' }); await r
 await D.getByRole('button', { name: /^Decode$/ }).click(); await D.getByTestId('codex-decode-input').setInputFiles(file);
 await D.getByTestId('codex-pdf-results').waitFor({ timeout: 30000 });
 const allText = await D.getByTestId('codex-all').innerText(); const rowN = await D.getByTestId('codex-row').count();
-step('dan', 'Light Codex page: uploading the signed PDF lists ALL signatories + one strip per signatory', /ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}/.test(allText) && rowN === 2, allText.replace(/\s+/g, ' ').slice(0, 110));
+step('dan', 'Light Codex page: uploading the signed PDF lists ALL signatories from the hidden line', /ALEX SEGUIN 2026\d{10} \. DANIEL VAIL 2026\d{10}/.test(allText) && /Hidden Helix/.test(allText) && rowN === 0, allText.replace(/\s+/g, ' ').slice(0, 110));
 await shot(D, 'dan', '6c-codex-pdf');
 
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document

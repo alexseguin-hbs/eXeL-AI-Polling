@@ -24,13 +24,14 @@ export function codexText(name: string, isoDate: string): string {
 /** Every signatory in one strip — " . " separates them (space and full stop are codex characters). */
 export const codexAllText = (rows: { name: string; isoDate: string }[]): string => rows.map((r) => codexText(r.name, r.isoDate)).join(" . ");
 
-/** ONE line, Single Helix, 2×2 blocks (operator 23:50): the reversed, framed line only — the image is exactly
- *  one block tall, so whatever it is drawn as, it is a single line. Raw RGBA pixels on white. */
-export const CODEX_BLOCK = 2 as const;
-export function codexImage(text: string): CodexImage {
-  const blocks = text.length * 4 + 8, w = blocks * (CODEX_BLOCK + 1) + 2, h = CODEX_BLOCK;
+/** The Hidden Helix (style "3", 1 px, no frame) as a Light Codex PNG carries it (operator 00:45): a 1-px forward line
+ *  on the top row and a 1-px reversed line on the bottom row, right-aligned — 2 px tall, at least a Letter page wide so
+ *  1 px = 1 pt when drawn across the bottom edge. Raw RGBA pixels on white; invisible on the page, exact in the bytes. */
+export const CODEX_BLOCK = 1 as const;
+export function codexImage(text: string, minWidth = 612): CodexImage {
+  const w = Math.max(minWidth, text.length * 4 + 8), h = 2;
   const data = new Uint8ClampedArray(w * h * 4).fill(255);
-  const out = placeSignature(new ImageData(data, w, h), text, CODEX_BLOCK, "1");
+  const out = placeSignature(new ImageData(data, w, h), text, CODEX_BLOCK, "3");
   return { width: out.width, height: out.height, data: out.data };
 }
 
