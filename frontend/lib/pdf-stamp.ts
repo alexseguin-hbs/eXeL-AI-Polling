@@ -270,26 +270,35 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, pageNo: number, e: Code
   // signing order, in a spot the page's pixels showed clear of text (operator 00:50) — dotted placeholders for the
   // signatories still to come, and the Light Codex of ALL signatories HIDDEN on the very bottom edge (the Hidden
   // Helix, as a Light Codex PNG carries it). The rows themselves live in the keywords (codexRows).
+  // Everything is laid out in the DISPLAYED frame (what the signer sees, what the pixel scan measured) and mapped onto the
+  // media box through /Rotate, so a turned page carries its initials at ITS bottom-right and the strip on ITS bottom edge.
+  const rot = ((page.getRotation().angle % 360) + 360) % 360, swap = rot === 90 || rot === 270;
   const { width, height } = page.getSize();
+  const dispW = swap ? height : width, dispH = swap ? width : height;
+  /** a displayed-frame rectangle (points, bottom-left origin) → the media-box rectangle */
+  const toMedia = (x: number, y: number, w: number, h: number) => placeOnPage(page, { page: pageNo, x: x / dispW, y: 1 - (y + h) / dispH, w: w / dispW, h: h / dispH }, 0.1, 0.1);
   // drawn 0.25 pt tall on the bottom edge — below a hairline, so it no longer shows as a dashed line (reviewer 2026-09-08: at
   // 0.6 pt it did); the decoder reads the embedded XObject pixels (2 px × ≥ 612 px), never the drawing
-  if (e.all) { const w = Math.max(width, e.all.width); embedCodexImage(doc, page, "SoICodexAll", e.all, width - w, 0, w, 0.25); }
+  if (e.all) { const w = Math.max(dispW, e.all.width); const r = toMedia(dispW - w, 0, w, 0.25); embedCodexImage(doc, page, "SoICodexAll", e.all, r.bx, r.by, r.bw, r.bh, rot); }
   const ini = e.initials; if (!ini) return;
   const topFrac = ini.topByPage?.[pageNo];
-  const topY = topFrac !== undefined ? height - topFrac * height : 3 + INIT_SLOT.h;   // default: the bottom margin (above the hidden line)
+  const topY = topFrac !== undefined ? dispH - topFrac * dispH : 3 + INIT_SLOT.h;   // default: the bottom margin (above the hidden line)
   const xo = page.node.Resources()?.lookup(PDFName.of("XObject"));
   const has = (idx: number) => { const d = xo as { has?: (n: PDFName) => boolean } | undefined; return !!d && typeof d.has === "function" && d.has(PDFName.of(`SoIInit${idx}`)); };
   for (let idx = 0; idx < ini.total; idx++) {
-    const s = initialsSlot(width, topY, idx, slotWidths);
+    const s = initialsSlot(dispW, topY, idx, slotWidths);
     if (ini.mine && ini.mine.idx === idx && initPng) {
       // my slot: clear the placeholder, then my own drawn initials, kept to their aspect inside the slot
-      page.drawRectangle({ x: s.x - 1.5, y: s.y - 1.5, width: s.w + 3, height: s.h + 3, color: rgb(1, 1, 1), opacity: 1 });
+      const c = toMedia(s.x - 1.5, s.y - 1.5, s.w + 3, s.h + 3);
+      page.drawRectangle({ x: c.bx, y: c.by, width: c.bw, height: c.bh, color: rgb(1, 1, 1), opacity: 1 });
       const k = Math.min(s.w / initPng.width, s.h / initPng.height); const iw = initPng.width * k, ih = initPng.height * k;
       page.node.setXObject(PDFName.of(`SoIInit${idx}`), initPng.ref);
-      page.drawImage(initPng, { x: s.x + (s.w - iw) / 2, y: s.y + (s.h - ih) / 2, width: iw, height: ih });
+      const im = toMedia(s.x + (s.w - iw) / 2, s.y + (s.h - ih) / 2, iw, ih); const o = oriented(rot, im.bx, im.by, im.bw, im.bh);
+      page.drawImage(initPng, { ...o, width: iw, height: ih });
     } else if (!has(idx)) {
-      // a signatory still to initial: a dotted slot with a 4.5-pt "Initial" label — cleared when they do
-      page.drawRectangle({ x: s.x, y: s.y, width: s.w, height: s.h, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.5, borderDashArray: [1.5, 1.5], color: rgb(1, 1, 1), opacity: 1 });   // no label (operator 01:25)
+      // a signatory still to initial: a dotted slot — cleared when they do (no label, operator 01:25)
+      const r = toMedia(s.x, s.y, s.w, s.h);
+      page.drawRectangle({ x: r.bx, y: r.by, width: r.bw, height: r.bh, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.5, borderDashArray: [1.5, 1.5], color: rgb(1, 1, 1), opacity: 1 });
     }
   }
 }

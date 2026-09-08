@@ -21,7 +21,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
-import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp } from "@/lib/pdf-stamp";
 import { initialsSlotTop, partnerRule } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
@@ -56,6 +56,7 @@ import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
+import { SignReceipt } from "@/components/sign/receipt";
 import { IconDownload } from "@/components/download-icon";
 import { VerifyFile } from "@/components/sign/verify-file";
 
@@ -515,7 +516,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     <ol className="mt-2 grid gap-1 text-xs" data-testid="roster">
       {pub.signers.map((s, i) => (
         <li key={i} className="flex items-center justify-between rounded border border-border px-2 py-1">
-          <span>{i + 1}. {s.name} <span className="text-muted-foreground">{s.contact_masked}</span>{s.me && <span className="ml-1 rounded bg-primary/15 px-1 text-[10px]">{t("soi.sign.you")}</span>}</span>
+          <span>{i + 1}. {s.name} <span className="text-muted-foreground">{s.contact_masked}</span>{s.me && <span className="ms-1 rounded bg-primary/15 px-1 text-[10px]">{t("soi.sign.you")}</span>}</span>
           <span className={s.signed_at ? "text-green-500" : i === pub.current_signer_idx && pub.status === "awaiting" ? "text-primary" : "text-muted-foreground"}>
             {s.signed_at ? `✓ ${t("soi.sign.signed")}` : i === pub.current_signer_idx && pub.status === "awaiting" ? (s.me ? t("soi.sign.turn_you") : t("soi.sign.turn_now")) : t("soi.sign.pending")}
           </span>
@@ -708,11 +709,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           <div className="rounded-lg border border-green-500/40 bg-green-500/5 p-3 text-sm">
             <div className="font-medium text-green-500">{t("soi.sign.complete")}</div>
             {/* The pod's receipt shape — recorded · witnessed · settles — so a signed document reads as one of eXeL's (Pangu). */}
-            <ol className="mt-2 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
-              <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {signed.map((f) => f.name).join(" · ")}</li>
-              <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {(pub?.signers ?? []).map((s) => `${s.name}${s.signed_at ? " ✓" : " ✗"}`).join(" · ")}</li>
-              <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {fill(t("soi.sign.signatures"), "n", (pub?.signers ?? []).length)} · ◬ {t("soi.sign.chain")} <code>{pub?.chain ? shortHash(pub.chain) : "—"}</code></li>
-            </ol>
+            <SignReceipt files={signed.map((f) => f.name)} signers={(pub?.signers ?? []).map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at) : undefined }))} count={(pub?.signers ?? []).filter((s) => s.signed_at).length} chain={pub?.chain} />
           </div>
           <Roster />
           <div className="mt-3 flex flex-wrap items-center gap-3" data-testid="downloads">{signed.map((f) => <span key={f.name} className="inline-flex items-center gap-2 text-xs"><IconDownload label={`${t("soi.sign.download")} · ${f.name}`} onClick={() => void download(f)} /><span>{f.name}</span></span>)}

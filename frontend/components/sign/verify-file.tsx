@@ -6,6 +6,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { verifySignedPdf, type VerifyReport } from "@/lib/sign-verify";
 import { cacStamp } from "@/lib/pdf-stamp";
 import { shortHash } from "@/lib/sign-envelope";
+import { SignReceipt } from "@/components/sign/receipt";
 
 /** The issue codes sign-verify emits, each with a sentence of its own; `row_N_chain` carries the row in {n}. */
 const ISSUE_KEYS = new Set(["no_signatures", "images_vs_boxes", "passes_vs_signatures", "rows_vs_signatures", "row_malformed"]);
@@ -47,11 +48,7 @@ export function VerifyFile() {
             <details className="mt-1 text-muted-foreground" data-testid="verify-issues-other"><summary className="cursor-pointer">{t("soi.sign.verify.issue.other")}</summary><p className="mt-1 break-words">{unknown.join(" · ")}</p></details>
           )}
           {r.images > 0 && (
-            <ol className="mt-1 grid gap-1">
-              <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {r.name} · #{shortHash(r.sha256)}</li>
-              <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {r.rows.map((x) => `${signerName(x as { rowIndex: number; name?: string })} · ${cacStamp(x.isoDate)}`).join(" · ")}</li>
-              <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {(t("soi.sign.signatures").includes("{n}") ? t("soi.sign.signatures").replace("{n}", String(r.images)) : `${r.images} ${t("soi.sign.signatures")}`)} · ◬ {t("soi.sign.chain")} <code>{r.chain ? shortHash(r.chain) : "—"}</code></li>
-            </ol>
+            <SignReceipt className="mt-1" files={[`${r.name} · #${shortHash(r.sha256)}`]} signers={r.rows.map((x) => ({ name: signerName(x as { rowIndex: number; name?: string }), signed: true, stamp: cacStamp(x.isoDate) }))} count={r.images} chain={r.chain} />
           )}
         </div>
       )}

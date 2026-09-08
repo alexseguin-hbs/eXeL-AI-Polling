@@ -85,12 +85,15 @@ export function codexImage(text: string, minWidth = 612): CodexImage {
 }
 
 /** Embed `img` as a raw DeviceRGB Flate stream under `name` and draw it at (x, y, w, h) — pixel-exact. */
-export function embedCodexImage(doc: PDFDocument, page: PDFPage, name: string, img: CodexImage, x: number, y: number, w: number, h: number): void {
+/** `rot` = the page's /Rotate (0 · 90 · 180 · 270): the image is drawn turned so it reads upright in the displayed frame. (x, y, w, h) is the
+ *  media-box rectangle it covers. */
+export function embedCodexImage(doc: PDFDocument, page: PDFPage, name: string, img: CodexImage, x: number, y: number, w: number, h: number, rot = 0): void {
   const rgb = new Uint8Array(img.width * img.height * 3);
   for (let i = 0, j = 0; i < img.data.length; i += 4, j += 3) { rgb[j] = img.data[i]; rgb[j + 1] = img.data[i + 1]; rgb[j + 2] = img.data[i + 2]; }
   const stream = doc.context.flateStream(rgb, { Type: "XObject", Subtype: "Image", Width: img.width, Height: img.height, ColorSpace: "DeviceRGB", BitsPerComponent: 8 });
   page.node.setXObject(PDFName.of(name), doc.context.register(stream));
-  page.pushOperators(pushGraphicsState(), concatTransformationMatrix(w, 0, 0, h, x, y), drawObject(name), popGraphicsState());
+  const m = rot === 90 ? [0, h, -w, 0, x + w, y] : rot === 180 ? [-w, 0, 0, -h, x + w, y + h] : rot === 270 ? [0, -h, w, 0, x, y + h] : [w, 0, 0, h, x, y];   // for 90/270 the image's long side runs along the media box's h
+  page.pushOperators(pushGraphicsState(), concatTransformationMatrix(m[0], m[1], m[2], m[3], m[4], m[5]), drawObject(name), popGraphicsState());
 }
 
 export type Inflate = (b: Uint8Array) => Promise<Uint8Array> | Uint8Array;

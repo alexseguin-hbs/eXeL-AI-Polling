@@ -102,4 +102,19 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   ok(cacStamp("2026-09-07T20:03:56Z") === "2026.09.07 20:03:56 UTC", "CAC-style timestamp format");
   ok((await countSignatureImages(b2)) === 2 && (await pageCount(b2)) === pages, "block adds no pages, keeps the signatures");
 }
+
+// a page with /Rotate 90 (a landscape scan turned upright): the hidden strip and the initials land inside the media box in the
+// DISPLAYED frame's bottom-right, and the strip still decodes (fleet pass 2: rotated pages ignored /Rotate)
+{
+  const { codexImage: ci, codexAllText: cat, decodeCodexPdf: dcp } = await import("../lib/codex-pdf.ts");
+  const { degrees, PDFName: PN, PDFDocument } = await import("pdf-lib"); const zlib = await import("node:zlib");
+  const rd = await PDFDocument.create(); const rp = rd.addPage([792, 612]); rp.setRotation(degrees(90)); const rot = await rd.save();
+  const rows2 = [{ rowIndex: 0, name: "Ada Lender", isoDate: "2026-09-07T12:00:00.000Z", hash: "ba7816bf" }];
+  const out = await stampCodexBlock(rot, { total: 2, rows: rows2, all: ci(cat(rows2, "UTC")), initials: { total: 2, mine: { idx: 0, pngDataUrl: png1x1 }, topByPage: { 1: 0.9 } } });
+  const od = await PDFDocument.load(out); const op = od.getPage(0); const names = op.node.Resources()?.lookup(PN.of("XObject"))?.keys().map((k) => k.toString()) ?? [];
+  ok(names.includes("/SoICodexAll") && names.includes("/SoIInit0"), `rotated page carries the strip and the initials (${names.join(" ")})`);
+  const strips = await dcp(out, (b) => new Uint8Array(zlib.inflateSync(b)));
+  ok(strips.some((s) => s.name === "SoICodexAll" && s.result?.verified && /ADA LENDER/.test(s.result.messageForward)), "the strip on a rotated page still decodes");
+}
+
 console.log(`pdf-stamp: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
