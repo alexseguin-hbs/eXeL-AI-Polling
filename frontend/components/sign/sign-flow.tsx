@@ -57,7 +57,7 @@ import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt, type Vi
 import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
 import { SignReceipt } from "@/components/sign/receipt";
-import { IconDownload } from "@/components/download-icon";
+import { IconDownload, DownloadGlyph } from "@/components/download-icon";
 import { VerifyFile } from "@/components/sign/verify-file";
 
 type Step = "upload" | "signers" | "place" | "draw" | "login" | "saving" | "handoff" | "done" | "error" | "loading" | "waiting" | "not_party";
@@ -727,6 +727,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <button type="button" disabled={!png || !initialsPng || (!!requireLogin && auth.isLoading)} onClick={sign} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="sign-button"><span aria-hidden="true">◬ </span>{t("soi.sign.stamp")}</button>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">{t("soi.sign.consent")}</p>
+          <p className="mt-1 flex items-start gap-2 text-[11px] text-muted-foreground" data-testid="after-save-hint"><span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary/60 text-primary" aria-hidden="true"><DownloadGlyph size={12} /></span><span>{t("soi.sign.x.after_save")}</span></p>
         </div>
       )}
 

@@ -183,6 +183,7 @@ export const ES_SIGN: Record<string, string> = {
   "soi.sign.zoom_reset": "Ajustar la página",
   "soi.sign.snap_line": "Ajustar a la línea",
   "soi.sign.zoom_hint": "Pellizca o toca + para acercar; arrastra una casilla para centrarla en su línea.",
+  "soi.sign.x.after_save": "Después de Firmar y guardar: descarga el PDF firmado (lleva el Light Codex oculto de cada firmante) o entrégalo por texto, correo o enlace.",
   "soi.sign.x.edit_own": "Este es tu propio archivo firmado. Elimina o vuelve a escribir tu texto y guarda. La firma y el registro se conservan.",
   "soi.sign.save_edits": "Guardar cambios",
   "soi.sign.same_size": "Mismo tamaño",

@@ -862,6 +862,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.upload_png", englishDefault: "Upload signature image", context: "Sign Doc: Draw step: upload PNG button", cubeId: 8 },
   { key: "soi.sign.stamp", englishDefault: "Sign & save", context: "Sign Doc: Draw step: primary button — stamps every file and saves", cubeId: 8 },
   { key: "soi.sign.consent", englishDefault: "By tapping Sign & save you agree that this drawn signature is yours and is applied to every file above, with your name, the time and a hash.", context: "Sign Doc: Draw step: consent line under the button", cubeId: 8 },
+  { key: "soi.sign.x.after_save", englishDefault: "After Sign & save: download the signed PDF (it carries the hidden Light Codex of every signatory) or hand it off by text, e-mail or link.", context: "Sign Doc: draw step, under the consent line — where the download with the Light Codex appears (operator 2026-09-08: 'wheres my download option with Light Codex')", cubeId: 8 },
   { key: "soi.sign.saving", englishDefault: "Stamping and saving…", context: "Sign Doc: While stamping + saving", cubeId: 8 },
   { key: "soi.sign.handoff.title", englishDefault: "Your signature is on it. Now hand it to the next signer.", context: "Sign Doc: Hand-off: heading", cubeId: 8 },
   { key: "soi.sign.handoff.hint", englishDefault: "Send this link the way you already talk to", context: "Sign Doc: Hand-off: sentence before the next signer's name", cubeId: 8 },
