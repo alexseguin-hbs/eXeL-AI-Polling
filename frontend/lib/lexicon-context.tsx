@@ -20,6 +20,7 @@ import {
 import { SEEDED_TRANSLATIONS } from "@/lib/lexicon-translations";
 import { SOI_R228_TRANSLATIONS } from "@/lib/lexicon-translations-soi-r228";
 import { SIGN_TRANSLATIONS } from "@/lib/lexicon-translations-sign";
+import { ES_SIGN } from "@/lib/lexicon-translations-es-sign";
 import { PINYIN_MAP } from "@/lib/pinyin-data";
 import { ROMANIZATION_KM_MAP } from "@/lib/romanization-km-data";
 import { hasRomanization } from "@/lib/romanization-config";
@@ -153,6 +154,8 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
       for (const [lang, entries] of Object.entries(SIGN_TRANSLATIONS)) {
         merged[lang] = { ...(merged[lang] ?? {}), ...entries };
       }
+      // Spanish for the whole of Sign Doc (the first full second language, operator 2026-09-08)
+      merged.es = { ...(merged.es ?? {}), ...ES_SIGN };
       // Overlay localStorage translations (user edits take priority)
       const storedTrans = localStorage.getItem(TRANSLATIONS_KEY);
       if (storedTrans) {

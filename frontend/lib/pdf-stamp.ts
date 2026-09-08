@@ -190,9 +190,12 @@ export interface CodexRow { rowIndex: number; name: string; isoDate: string; has
  *  every page, in a spot the page's pixels showed to be clear of text; unfilled slots are dotted placeholders. */
 export interface InitialsEntry { total: number; mine?: { idx: number; pngDataUrl: string }; /** page (1-based) → top of the slot row, as a page fraction, from the pixel scan; default: the bottom margin */ topByPage?: Record<number, number> }
 export interface CodexEntry { rows: CodexRow[]; total: number; /** every signatory in one strip (operator 23:15) — drawn along the block's foot */ all?: CodexImage; initials?: InitialsEntry }
-export const INIT_SLOT = { w: 36, h: 13, gap: 4, right: 18 } as const;
-/** The slot rectangle (PDF points, bottom-left origin) of signer `idx` of `total`, on a page of `width` with the row's top at `topY` (points from the bottom). */
-export const initialsSlot = (width: number, topY: number, idx: number, total: number) => ({ x: width - INIT_SLOT.right - (total - idx) * (INIT_SLOT.w + INIT_SLOT.gap) + INIT_SLOT.gap, y: topY - INIT_SLOT.h, w: INIT_SLOT.w, h: INIT_SLOT.h });
+export const INIT_SLOT = { w: 36, wMax: 96, h: 13, gap: 4, right: 18 } as const;
+/** Slot widths per signer: the stroke's own aspect at the slot height (36–96 pt), the default for signers still to come. */
+export const initialsSlotWidths = (total: number, mine?: { idx: number; aspect: number }, recorded: Record<number, number> = {}): number[] =>
+  Array.from({ length: total }, (_, i) => recorded[i] ?? (mine && mine.idx === i ? Math.min(INIT_SLOT.wMax, Math.max(INIT_SLOT.w, Math.round(INIT_SLOT.h * mine.aspect))) : INIT_SLOT.w));
+/** The slot rectangle (PDF points, bottom-left origin) of signer `idx`, on a page of `width` with the row's top at `topY` (points from the bottom), given every slot's width. */
+export const initialsSlot = (width: number, topY: number, idx: number, widths: number[]) => ({ x: width - INIT_SLOT.right - widths.slice(idx).reduce((a, b) => a + b + INIT_SLOT.gap, 0) + INIT_SLOT.gap, y: topY - INIT_SLOT.h, w: widths[idx], h: INIT_SLOT.h });
 
 /** "Alex Seguin" → "AS": the first letter of each word, letters only, at most three (operator 2026-09-08: initials). */
 const isLetter = (c: string): boolean => c.toLowerCase() !== c.toUpperCase() || /[\u0600-\u06FF\u0900-\u0DFF\u0E00-\u0E7F\u3040-\u9FFF\uAC00-\uD7AF]/.test(c);   // cased scripts, plus the uncased ones
@@ -219,13 +222,17 @@ export async function stampCodexBlock(pdf: Uint8Array, e: CodexEntry): Promise<U
   const rowKw = (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoIInitRow:"));
   const rows: Record<number, number> = {}; for (const k of rowKw) { const m = /^SoIInitRow:(\d+):([\d.]+)$/.exec(k); if (m) rows[Number(m[1])] = Number(m[2]); }
   if (e.initials) { doc.getPages().forEach((_, i) => { const pg = i + 1; if (rows[pg] === undefined) { const t = e.initials!.topByPage?.[pg]; if (t !== undefined) { rows[pg] = t; addKeyword(doc, `SoIInitRow:${pg}:${t.toFixed(4)}`); } } }); e.initials = { ...e.initials, topByPage: { ...(e.initials.topByPage ?? {}), ...rows } }; }
-  doc.getPages().forEach((page, i) => drawCodexBlock(doc, page, i + 1, e, font, bold, initPng));
+  // each signer's slot width is decided by their stroke and recorded (SoIInitW:<idx>:<w>), so the row never reflows
+  const widthKw: Record<number, number> = {}; for (const k of (doc.getKeywords() ?? "").split(/\s+/)) { const m = /^SoIInitW:(\d+):(\d+)$/.exec(k); if (m) widthKw[Number(m[1])] = Number(m[2]); }
+  const slotWidths = e.initials ? initialsSlotWidths(e.initials.total, initPng && e.initials.mine ? { idx: e.initials.mine.idx, aspect: initPng.width / initPng.height } : undefined, widthKw) : [];
+  if (e.initials?.mine && widthKw[e.initials.mine.idx] === undefined) addKeyword(doc, `SoIInitW:${e.initials.mine.idx}:${slotWidths[e.initials.mine.idx]}`);
+  doc.getPages().forEach((page, i) => drawCodexBlock(doc, page, i + 1, e, font, bold, initPng, slotWidths));
   if (e.initials?.mine) { const kw = `SoIInit:${e.initials.mine.idx}`; if (!(doc.getKeywords() ?? "").split(/\s+/).includes(kw)) addKeyword(doc, kw); }
   for (const r of e.rows) { const base = `SoICodex:${r.rowIndex}:${r.isoDate}:${r.hash}`; if (!prev.some((k) => k.startsWith(base))) addKeyword(doc, `${base}:n${b64u(r.name)}`); }   // a redrawn earlier row is not a new record; the name rides along
 
   return doc.save({ useObjectStreams: false });
 }
-function drawCodexBlock(doc: PDFDocument, page: PDFPage, pageNo: number, e: CodexEntry, font: PDFFont, _bold: PDFFont, initPng: PDFImage | null): void {
+function drawCodexBlock(doc: PDFDocument, page: PDFPage, pageNo: number, e: CodexEntry, _font: PDFFont, _bold: PDFFont, initPng: PDFImage | null, slotWidths: number[]): void {
   // No visible box (operator 2026-09-08 00:45: the digital line already sits under each physical signature).
   // What every page carries: the PHYSICAL initials of every signatory at the bottom-right — each in its own slot, in
   // signing order, in a spot the page's pixels showed clear of text (operator 00:50) — dotted placeholders for the
@@ -240,7 +247,7 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, pageNo: number, e: Code
   const xo = page.node.Resources()?.lookup(PDFName.of("XObject"));
   const has = (idx: number) => { const d = xo as { has?: (n: PDFName) => boolean } | undefined; return !!d && typeof d.has === "function" && d.has(PDFName.of(`SoIInit${idx}`)); };
   for (let idx = 0; idx < ini.total; idx++) {
-    const s = initialsSlot(width, topY, idx, ini.total);
+    const s = initialsSlot(width, topY, idx, slotWidths);
     if (ini.mine && ini.mine.idx === idx && initPng) {
       // my slot: clear the placeholder, then my own drawn initials, kept to their aspect inside the slot
       page.drawRectangle({ x: s.x - 1.5, y: s.y - 1.5, width: s.w + 3, height: s.h + 3, color: rgb(1, 1, 1), opacity: 1 });
@@ -249,8 +256,7 @@ function drawCodexBlock(doc: PDFDocument, page: PDFPage, pageNo: number, e: Code
       page.drawImage(initPng, { x: s.x + (s.w - iw) / 2, y: s.y + (s.h - ih) / 2, width: iw, height: ih });
     } else if (!has(idx)) {
       // a signatory still to initial: a dotted slot with a 4.5-pt "Initial" label — cleared when they do
-      page.drawRectangle({ x: s.x, y: s.y, width: s.w, height: s.h, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.5, borderDashArray: [1.5, 1.5], color: rgb(1, 1, 1), opacity: 1 });
-      page.drawText("Initial", { x: s.x + 2, y: s.y + 4, size: 4.5, font, color: rgb(0.45, 0.5, 0.6) });
+      page.drawRectangle({ x: s.x, y: s.y, width: s.w, height: s.h, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.5, borderDashArray: [1.5, 1.5], color: rgb(1, 1, 1), opacity: 1 });   // no label (operator 01:25)
     }
   }
 }
@@ -274,10 +280,7 @@ export async function stampHolders(pdf: Uint8Array, holders: Holder[]): Promise<
   for (const h of holders) {
     const page = pages[Math.min(Math.max(h.page, 1), pages.length) - 1];
     const { bx, by, bw, bh } = placeOnPage(page, h, 12, 8);
-    page.drawRectangle({ x: bx, y: by, width: bw, height: bh, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.6, borderDashArray: [2, 2] });
-    const label = pdfSafe(h.kind === "sig" ? `Sign here · ${h.name}` : "Date"); let size = Math.min(6, bh * 0.5);
-    while (size > 3.5 && font.widthOfTextAtSize(label, size) > bw - 4) size -= 0.5;
-    page.drawText(label, { x: bx + 2, y: by + 2, size, font, color: rgb(0.45, 0.5, 0.6) });
+    page.drawRectangle({ x: bx, y: by, width: bw, height: bh, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.6, borderDashArray: [2, 2] });   // a dotted box, no "Sign here" (operator 01:25: the line speaks for itself)
     addKeyword(doc, `SoIHold:${h.idx}:${h.kind}:${h.page}:${h.x.toFixed(4)}:${h.y.toFixed(4)}:${h.w.toFixed(4)}:${h.h.toFixed(4)}:n${b64u(h.name)}`);
   }
   return doc.save({ useObjectStreams: false });

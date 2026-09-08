@@ -48,14 +48,14 @@ ok(typed === 0, "no typed initials any more — they are drawn");
 // after pass 1 the second slot is a dotted "Initial" placeholder; after pass 2 it is cleared and filled
 const doc1 = await getDocument({ data: p1.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: FONTS, verbosity: 0 }).promise;
 let ph1 = 0; for (let i = 1; i <= doc1.numPages; i++) { const t = (await (await doc1.getPage(i)).getTextContent()).items.map((x) => x.str).join(" "); if (/Initial/.test(t)) ph1++; }
-ok(ph1 === 2, `after pass 1 every page shows the "Initial" placeholder for signer 2 (${ph1}/2)`);
+ok(ph1 === 0, `no "Initial" label is printed any more — dotted slots only (operator 01:25) (${ph1} pages had it)`);
 // placeholders for the next signer's signature + date, recorded and readable; the real mark clears them
 const withHolders = await stampHolders(p1, [{ idx: 1, name: "Daniel Vail", kind: "sig", page: 2, x: 0.5, y: 0.52, w: 0.33, h: 0.035 }, { idx: 1, name: "Daniel Vail", kind: "date", page: 2, x: 0.54, y: 0.585, w: 0.18, h: 0.012 }]);
 const hs = await holders(withHolders);
 ok(hs.length === 2 && hs[0].kind === "sig" && hs[0].name === "Daniel Vail" && hs[1].kind === "date" && hs[0].page === 2 && Math.abs(hs[0].x - 0.5) < 1e-4, `two holders recorded for signer 2 with the name (got ${JSON.stringify(hs.map((h) => [h.idx, h.kind, h.name]))})`);
 const dh = await getDocument({ data: withHolders.slice(), useWorkerFetch: false, isEvalSupported: false, standardFontDataUrl: FONTS, verbosity: 0 }).promise;
 const t2 = (await (await dh.getPage(2)).getTextContent()).items.map((x) => x.str).join(" ");
-ok(/Sign here · Daniel Vail/.test(t2) && /\bDate\b/.test(t2), "the placeholders are labelled on the page (Sign here · Daniel Vail / Date)");
+ok(!/Sign here/.test(t2), "no \"Sign here\" label on the page — a dotted box only, the line speaks for itself (operator 01:25)");
 const filled = await stampSig(withHolders, { page: 2, x: 0.5, y: 0.52, w: 0.33, h: 0.035, fit: "underline", clear: true }, { pngDataUrl: png1x1, name: "Daniel Vail", isoDate: "2026-09-07T23:02:09.590Z", hash: "8ed387cc" });
 ok((await countSignatureImagesOf(filled)) === 1, "the signature lands on the placeholder (clear:true) — one SoISig");
 console.log(`codex-pdf: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

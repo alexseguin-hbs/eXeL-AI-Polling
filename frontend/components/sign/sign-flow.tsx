@@ -21,7 +21,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
 import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
-import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, type Holder } from "@/lib/pdf-stamp";
+import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder } from "@/lib/pdf-stamp";
 import { initialsSlotTop, partnerRule } from "@/lib/sign-layout";
 import { fitToUnderline, type Bitmap } from "@/lib/sign-fit";
 import { openPdf, renderPage } from "@/lib/pdf-render";
@@ -311,20 +311,27 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   // "should have attachment if emailed or texted"); mailto:/sms: never can. Without Web Share: download + composer.
   const [shareState, setShareState] = useState<"" | "shared" | "fallback" | "failed">("");
   const shareFiles = async (fs: { name: string; bytes: Uint8Array }[], final: boolean, text: string) => {
-    const files = fs.map((f) => new File([f.bytes as BlobPart], f.name.replace(/\.pdf$/i, "") + (final ? "-signed.pdf" : "-partly-signed.pdf"), { type: "application/pdf" }));
+    const files = await Promise.all(fs.map(async (f) => new File([f.bytes as BlobPart], await signedName(f, final), { type: "application/pdf" })));
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
     if (nav.share && nav.canShare?.({ files })) {
       try { await nav.share({ files, title: pub?.title ?? title, text }); setShareState("shared"); return; } catch (e) { if ((e as Error).name === "AbortError") return; setShareState("failed"); }
     }
-    for (const f of fs) download(f, final);                     // no share sheet here: the file lands in Downloads, the composer opens with the script
+    for (const f of fs) await download(f, final);               // no share sheet here: the file lands in Downloads, the composer opens with the script
     setShareState("fallback");
     const kind = contactKind(nextContact);
     window.location.href = kind === "phone" ? `sms:${normalizeContact(nextContact)}?&body=${encodeURIComponent(text)}` : `mailto:${kind === "email" ? normalizeContact(nextContact) : ""}?subject=${encodeURIComponent(`${t("soi.sign.handoff.subject")} ${pub?.title ?? title}`)}&body=${encodeURIComponent(text)}`;
   };
-  const download = (f: { name: string; bytes: Uint8Array }, final = true) => {
+  /** "<file>-partly-signed-AS.pdf" / "<file>-signed-AS-DLV.pdf" — the initials of everyone recorded in the file, in signing
+   *  order (operator 01:25); read from the file's own signatory rows, so a hand-carried file keeps the earlier signers'. */
+  const signedName = async (f: { name: string; bytes: Uint8Array }, final: boolean) => {
+    let who: string[] = [];
+    try { who = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0).sort((a, b) => a.rowIndex - b.rowIndex).map((r) => initialsOf(r.name || "")).filter(Boolean); } catch { /* unreadable: no initials */ }
+    return f.name.replace(/\.pdf$/i, "").replace(/-(partly-)?signed(-[A-Z-]+)?$/i, "") + (final ? "-signed" : "-partly-signed") + (who.length ? "-" + who.join("-") : "") + ".pdf";
+  };
+  const download = async (f: { name: string; bytes: Uint8Array }, final = true) => {
     const url = URL.createObjectURL(new Blob([f.bytes as BlobPart], { type: "application/pdf" }));
     // A half-signed file is named as such, so two downloads never look alike (Christo, wave 1).
-    const a = document.createElement("a"); a.href = url; a.download = f.name.replace(/\.pdf$/i, "") + (final ? "-signed.pdf" : "-partly-signed.pdf"); document.body.appendChild(a); a.click(); a.remove();
+    const a = document.createElement("a"); a.href = url; a.download = await signedName(f, final); document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   };
 
@@ -515,7 +522,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
               </div>
             </div>
           )}
-          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads-partly">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f, false)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name} · {t("soi.sign.partly")}</button>)}</div>
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads-partly">{signed.map((f) => <button key={f.name} type="button" onClick={() => void download(f, false)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name} · {t("soi.sign.partly")}</button>)}</div>
         </div>
       )}
 
@@ -535,7 +542,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
             </ol>
           </div>
           <Roster />
-          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => download(f)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name}</button>)}
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="downloads">{signed.map((f) => <button key={f.name} type="button" onClick={() => void download(f)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }}><span aria-hidden="true">↓</span> {t("soi.sign.download")} · {f.name}</button>)}
             <button type="button" onClick={() => void shareFiles(signed, true, `${t("soi.sign.complete")} ${pub?.title ?? title}`)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }} data-testid="share-signed"><span aria-hidden="true">📎</span> {t("soi.sign.handoff.share_signed")}</button></div>
           <div className="mt-4"><VerifyFile /></div>
         </div>

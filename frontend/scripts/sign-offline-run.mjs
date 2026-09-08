@@ -64,7 +64,7 @@ step('alex', 'no link minted → the OFFLINE hand-off block: 036 named, hand the
 // the partly-signed PDF downloads and the composer opens with the script
 const [dlS] = await Promise.all([A.waitForEvent('download'), A.getByTestId('share-file').click()]);
 await A.getByTestId('share-fallback').waitFor({ timeout: 10000 });
-step('alex', 'Send the file: the partly-signed PDF is handed over with the message (share sheet on a phone; download + composer here)', /partly-signed\.pdf$/.test(dlS.suggestedFilename()), dlS.suggestedFilename());
+step('alex', 'Send the file: the partly-signed PDF is handed over with the message, named with the initials of who signed (…-partly-signed-AS.pdf)', /partly-signed-AS\.pdf$/.test(dlS.suggestedFilename()), dlS.suggestedFilename());
 step('alex', 'explainer says: signed on this phone, download and send', /Download the partly-signed file/.test(await A.getByTestId('explain').innerText()));
 step('alex', 'the download is a Vision-2525 pill (↓, uppercase, rounded)', /↓/.test(await A.getByTestId('downloads-partly').innerText()) && /rounded-full/.test(await A.getByTestId('downloads-partly').locator('button').first().getAttribute('class')));
 await shot(A, 'alex', '1-offline-handoff');
@@ -83,6 +83,7 @@ await placeDrawSign(D, 'dan', 0.66);
 await D.getByTestId('downloads').waitFor({ timeout: 60000 }); step('dan', 'COMPLETE on his phone');
 await shot(D, 'dan', '2-complete');
 const [dl2] = await Promise.all([D.waitForEvent('download'), D.getByTestId('downloads').locator('button').first().click()]);
+step('dan', 'the final file is named with BOTH initials from the rows the file carries (…-signed-AS-DV.pdf)', /-signed-AS-DV\.pdf$/.test(dl2.suggestedFilename()), dl2.suggestedFilename());
 const final = path.join(OUT, 'fully-signed.pdf'); await dl2.saveAs(final); const fb = new Uint8Array(fs.readFileSync(final));
 const rows = await codexRows(fb);
 step('dan', 'final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)', (await countSignatureImages(fb)) === 2 && rows.length === 2 && rows[0].name === 'Alex Seguin' && rows[1].name === 'Daniel Vail', JSON.stringify(rows.map((r) => [r.rowIndex, r.name])));

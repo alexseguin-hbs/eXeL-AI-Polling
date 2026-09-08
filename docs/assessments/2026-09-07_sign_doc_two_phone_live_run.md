@@ -292,3 +292,14 @@ Report: `2026-09-08_fleet_48_report.md` (11 of 12 MoTs READY within the proven b
 - `/api/notify` is no longer a relay: the Worker composes subject and text from who · what · link, and throttles per
   address (notify-core 10/10).
 - Proofs re-run: two-phone, offline, pod; build green.
+
+## Wave 11 — the 01:25 batch, part 1 (file names, no labels, initials box, Spanish)
+
+- **File names carry the initials of everyone the file records**, in signing order, read from the file's own rows:
+  `…-partly-signed-AS.pdf`, then `…-signed-AS-DV.pdf` after Daniel (a hand-carried file keeps Alex's). Proof: offline 15/15.
+- **No "Sign here" / "Date" / "Initial" labels** in the PDF: dotted boxes only; the line speaks for itself.
+- **The initials box widens to the stroke** (36–96 pt at 13 pt tall), each signer's width recorded (`SoIInitW`) so the row
+  never reflows.
+- **Spanish for the whole of Sign Doc, the landing, the POD session and Create Doc**: 272 strings in
+  `lib/lexicon-translations-es-sign.ts`, overlaid in the lexicon; the parity gate now requires every `soi.sign.*`,
+  `soi.landing.*`, `soi.pod.*`, `soi.doc.*` key in Spanish (sign-i18n 137/137).
