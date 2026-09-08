@@ -154,12 +154,24 @@ const placeAndSign = async (p, who) => {
   await p.getByTestId('add-date').click(); await p.getByTestId('text-box').waitFor(); step(who, 'date mark added beside the signature', /\d{4}/.test(await p.getByTestId('mark-text').inputValue()));
   step(who, 'the toolbar delete names what it deletes', /Delete · date/.test(await p.getByTestId('remove-mark').innerText()));
   // ⌶ Same size (operator 2026-09-08 22:40): a second text mark, made taller, then every text mark to ONE height with its bottom kept
-  { await p.getByTestId('add-text').click(); await p.waitForTimeout(150); const bigger = p.getByTestId('marks-toolbar').locator('button', { hasText: /^\+$/ }); await bigger.click(); await bigger.click(); await p.waitForTimeout(100);
+  { await p.getByTestId('add-text').click(); await p.waitForTimeout(150);
+    // + Text lands BELOW the last entry (the date): same left edge, same size, one line down (operator 2026-09-08 22:55)
+    { const bx = await p.getByTestId('text-box').evaluateAll((ns) => ns.map((n) => ({ l: parseFloat(n.style.left), t: parseFloat(n.style.top), h: parseFloat(n.style.height) })));
+      step(who, '+ Text goes below the last entered date: same left edge, one line down, same size', bx.length === 2 && Math.abs(bx[1].l - bx[0].l) < 0.6 && bx[1].t > bx[0].t + bx[0].h - 0.05 && bx[1].t < bx[0].t + bx[0].h * 2.5 && Math.abs(bx[1].h - bx[0].h) < 0.05, `date at (${bx[0]?.l.toFixed(1)}%, ${bx[0]?.t.toFixed(1)}%) h ${bx[0]?.h.toFixed(2)} · text at (${bx[1]?.l.toFixed(1)}%, ${bx[1]?.t.toFixed(1)}%) h ${bx[1]?.h.toFixed(2)}`); }
+    const bigger = p.getByTestId('marks-toolbar').locator('button', { hasText: /^\+$/ }); await bigger.click(); await bigger.click(); await p.waitForTimeout(100);
     const hs0 = await p.getByTestId('text-box').evaluateAll((ns) => ns.map((n) => [parseFloat(n.style.height), parseFloat(n.style.top) + parseFloat(n.style.height)]));
     await p.getByTestId('text-same-size').click(); await p.waitForTimeout(150);
     const hs1 = await p.getByTestId('text-box').evaluateAll((ns) => ns.map((n) => [parseFloat(n.style.height), parseFloat(n.style.top) + parseFloat(n.style.height)]));
     step(who, '⌶ Same size: two text marks of different heights become one height, each bottom where it was', hs0.length === 2 && Math.abs(hs0[0][0] - hs0[1][0]) > 0.3 && Math.abs(hs1[0][0] - hs1[1][0]) < 0.05 && hs1.every((h, i) => Math.abs(h[1] - hs0[i][1]) < 0.05), `heights ${hs0.map((h) => h[0].toFixed(2)).join('/')}% → ${hs1.map((h) => h[0].toFixed(2)).join('/')}%`);
     await p.getByTestId('remove-mark').click(); await p.waitForTimeout(100); }   // the extra text goes; the date stays for the steps that follow
+  // with NOTHING to follow, + Text lands in the centre of the CURRENT VIEW (zoom + scroll), not the page centre: page 1 holds no mark
+  if (who === 'alex') { await p.getByTestId('page-prev').click(); await p.waitForTimeout(700); await p.getByTestId('zoom-in').click(); await p.waitForTimeout(600);
+    await p.getByTestId('pdf-scroller').evaluate((sc) => { sc.scrollTop = 90; sc.scrollLeft = 40; }); await p.waitForTimeout(150);
+    const want = await p.evaluate(() => { const h = document.querySelector('[data-testid="pdf-page"]').getBoundingClientRect(), s = document.querySelector('[data-testid="pdf-scroller"]').getBoundingClientRect(); const l = Math.max(h.left, s.left, 0), t = Math.max(h.top, s.top, 0), r = Math.min(h.right, s.right, innerWidth), b = Math.min(h.bottom, s.bottom, innerHeight); return { x: ((l + r) / 2 - h.left) / h.width, y: ((t + b) / 2 - h.top) / h.height }; });
+    await p.getByTestId('add-text').click(); await p.waitForTimeout(150);
+    const got = await p.getByTestId('text-box').first().evaluate((n) => ({ x: (parseFloat(n.style.left) + parseFloat(n.style.width) / 2) / 100, y: (parseFloat(n.style.top) + parseFloat(n.style.height) / 2) / 100 }));
+    step(who, '+ Text with no entry on the page lands at the centre of the current view (zoomed and scrolled), not the page centre', Math.abs(got.x - want.x) < 0.08 && Math.abs(got.y - want.y) < 0.08 && Math.hypot(got.x - 0.5, got.y - 0.5) > 0.03, `view centre (${want.x.toFixed(2)}, ${want.y.toFixed(2)}) · mark centre (${got.x.toFixed(2)}, ${got.y.toFixed(2)})`);
+    await p.getByTestId('remove-mark').click(); await p.getByTestId('zoom-reset').click(); await p.waitForTimeout(400); await p.getByTestId('page-next').click(); await p.waitForTimeout(700); }
   const tb = await p.getByTestId('text-box').boundingBox(), sbb = await p.getByTestId('sig-box').boundingBox();
   step(who, 'the date SNAPS to the document\'s own "Date:" line under the signature (fitted, below the box, one text line tall)', (await p.getByTestId('text-box').getAttribute('data-fit')) === 'underline' && tb.y > sbb.y + sbb.height - 2 && tb.height < sbb.height, `date box ${Math.round(tb.width)}×${Math.round(tb.height)} px at +${Math.round(tb.y - (sbb.y + sbb.height))} px under the signature box`);
   // ZOOM (operator 2026-09-08): + zooms the page 1.5× inside the scroller; the marks keep their page fractions (they scale

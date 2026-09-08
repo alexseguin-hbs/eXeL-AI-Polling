@@ -28,10 +28,13 @@ export interface Mark extends StampBox { id: string; kind: "sig" | "text"; text?
 export const SIG_W = 0.4, SIG_H = 0.08, TXT_W = 0.22, TXT_H = 0.02, MIN_W = 0.08, MIN_H = 0.012;   // TXT_H 0.02 = a 16-pt line on Letter: typed text prints at the document's own size (the live note printed a 27-pt date — operator 2026-09-08)
 
 export type FitAt = (q: { x: number; y: number }) => ReturnType<typeof fitToUnderline>;
-export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly, onPage, fitRef, onDelete }: {
+/** the centre of what the reader currently SEES of the page (page fractions): the host ∩ the scroller ∩ the window */
+export type ViewCenter = () => { x: number; y: number };
+export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, preview, readOnly, onPage, fitRef, viewRef, onDelete }: {
   bytes: Uint8Array; marks: Mark[]; onMarks: (m: Mark[]) => void; selectedId: string | null; onSelect: (id: string | null) => void;
   preview?: string | null; readOnly?: boolean; onPage?: (page: number) => void;
   /** lends the pixel fit to the flow (+ Date snaps to the document's own "Date:" line) */ fitRef?: React.MutableRefObject<FitAt | null>;
+  /** lends the visible centre to the flow (+ Text with nothing to follow lands in the CURRENT VIEW, not the page centre — operator 2026-09-08) */ viewRef?: React.MutableRefObject<ViewCenter | null>;
   /** kept for callers; the delete control lives in the toolbar under the page (operator 02:00: a badge on the box hid the text) */ onDelete?: (id: string) => void;
 }) {
   const { t } = useLexicon();
@@ -109,6 +112,14 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
     } catch { return null; }
   };
   if (fitRef) fitRef.current = fitAt;
+  const viewCenter: ViewCenter = () => {
+    const h = host.current, sc = scroller.current; if (!h) return { x: 0.5, y: 0.5 };
+    const r = h.getBoundingClientRect(); const s = sc ? sc.getBoundingClientRect() : r;
+    const l = Math.max(r.left, s.left, 0), t = Math.max(r.top, s.top, 0), rt = Math.min(r.right, s.right, window.innerWidth), b = Math.min(r.bottom, s.bottom, window.innerHeight);
+    if (rt <= l || b <= t) return { x: 0.5, y: 0.5 };                     // nothing of the page on screen: the page centre after all
+    return { x: ((l + rt) / 2 - r.left) / r.width, y: ((t + b) / 2 - r.top) / r.height };
+  };
+  if (viewRef) viewRef.current = viewCenter;
   // Divinity Guide reader gesture: swipe left → next page, swipe right → previous (never from inside a mark)
   const swipe = useRef<{ x: number; y: number; onMark: boolean } | null>(null);
   const pinch = useRef<{ d: number; z: number; at: { x: number; y: number } } | null>(null);

@@ -53,7 +53,7 @@ const dateIn = (locale: string, d: Date, opts: Intl.DateTimeFormatOptions, time 
   try { return f(locale || undefined, { ...opts, numberingSystem: "latn" } as Intl.DateTimeFormatOptions); } catch { try { return f(locale || undefined, opts); } catch { return f(undefined, opts); } }
 };
 import { SignaturePad } from "@/components/sign/signature-pad";
-import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt } from "@/components/sign/pdf-page-view";
+import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt, type ViewCenter } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
 import { SignReceipt } from "@/components/sign/receipt";
@@ -130,6 +130,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const envRef = useRef<Envelope | null>(null);
   const pendingToken = useRef("");                              // minted before stamping so the PDF can carry it
   const fitRef = useRef<FitAt | null>(null);                    // the page view's pixel fit, for + Date / + Text
+  const viewRef = useRef<ViewCenter | null>(null);              // the page view's visible centre, for + Text with nothing to follow
   const [localFallback, setLocalFallback] = useState(false);
   const mode = localFallback ? "local" : storeMode();
   // the offline hand-off: no link could be minted (no Supabase / no 036) — the partly-signed file travels by hand
@@ -335,19 +336,38 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const sigOf = (i: number): Mark | undefined => marks[i]?.find((m) => m.kind === "sig");
   const allPlaced = files.length > 0 && files.every((_, i) => !!sigOf(i));
   // Text marks: a date or a note placed beside the signature, movable and resizable like it.
+  /** + Text / + Date (operator 2026-09-08 22:55): the new mark goes BELOW the last text or date entered on this page (same left edge,
+   *  same size, one line down — snapped to the form's next rule when one is there); with no entry yet, under the signature's own
+   *  "Date:" line when the signature is on this page; else in the CENTRE OF THE CURRENT VIEW (what the reader sees at this zoom and
+   *  scroll), never the centre of the page. A fitted mark is one text line tall with its bottom on the rule. */
   const addText = (text: string) => {
     const cur = marks[fileIdx] ?? []; const sig = cur.find((m) => m.kind === "sig");
-    const onSigPage = sig && sig.page === viewedPage;
-    const page = viewedPage; const below = onSigPage ? sig.y + sig.h + 0.01 : 0.5; const x = onSigPage ? sig.x : 0.4;
+    const page = viewedPage; const onSigPage = sig && sig.page === viewedPage;
     const id = `t${Date.now().toString(36)}`;
-    // the document's own "Date: ____" line, just under the signature, takes the mark (same fit as the signature box)
-    const f = sig && onSigPage ? fitRef.current?.({ x: sig.x + Math.min(0.1, sig.w / 2), y: sig.y + sig.h + 0.03 }) : null;
-    const fitted = !!(sig && f && f.lineY > sig.y + sig.h && f.h < sig.h * 1.5 && !cur.some((m) => m.kind === "text" && Math.abs(m.y - f.y) < 0.01));
-    // a fitted text mark is one text line tall, its bottom ON the rule — the rule's full gap (up to the text above, 23–31 pt)
-    // printed "Sep 7, 2026" at ~27 pt beside 11-pt body text (operator's live PDF, 2026-09-08)
-    if (f?.textH) docTextH.current = f.textH;
-    const capped = f ? (() => { const h = f.textH ? Math.min(0.03, Math.max(0.012, f.textH * 1.9)) : Math.min(f.h, TXT_H); return { h, y: f.y + f.h - h }; })() : null;   // textH × 1.9 ≈ the document's em (the preview and stamp draw text at 72 % of the box)
-    const mark: Mark = fitted && f && capped ? { id, kind: "text", page, x: f.x, y: capped.y, w: f.w, h: capped.h, text, fit: "underline" } : { id, kind: "text", page, x, y: Math.min(below, 1 - TXT_H), w: TXT_W, h: TXT_H, text, fit: "default" };
+    const texts = cur.filter((m) => m.kind === "text" && m.page === page); const last = texts[texts.length - 1];
+    const gap = 0.004;
+    const cap = (f: NonNullable<ReturnType<FitAt>>) => { const h = f.textH ? Math.min(0.03, Math.max(0.012, f.textH * 1.9)) : Math.min(f.h, TXT_H); return { h, y: f.y + f.h - h }; };
+    const taken = (f: NonNullable<ReturnType<FitAt>>) => cur.some((m) => m.kind === "text" && m.page === page && Math.abs(m.y + m.h - (f.y + f.h)) < 0.006);   // that rule already carries a mark
+    let mark: Mark;
+    if (last) {
+      // below the last entry: its left edge and size, one line down; the form's next rule takes it when one sits there
+      const y = Math.min(1 - last.h, last.y + last.h + gap);
+      const f = fitRef.current?.({ x: last.x + Math.min(0.05, last.w / 2), y: y + last.h / 2 });
+      if (f?.textH) docTextH.current = f.textH;
+      // the next rule takes it only when it starts where the last entry starts (a form's column of lines); size stays the last entry's
+      mark = f && f.lineY > last.y + last.h && f.lineY < y + last.h * 2 && Math.abs(f.x - last.x) < 0.03 && !taken(f) ? { id, kind: "text", page, x: last.x, y: f.y + f.h - last.h, w: last.w, h: last.h, text, fit: "underline" } : { id, kind: "text", page, x: last.x, y, w: last.w, h: last.h, text, fit: "default" };
+    } else if (onSigPage && sig) {
+      // the document's own "Date: ____" line, just under the signature, takes the mark (same fit as the signature box)
+      const f = fitRef.current?.({ x: sig.x + Math.min(0.1, sig.w / 2), y: sig.y + sig.h + 0.03 });
+      if (f?.textH) docTextH.current = f.textH;
+      mark = f && f.lineY > sig.y + sig.h && f.h < sig.h * 1.5 && !taken(f) ? { id, kind: "text", page, x: f.x, ...cap(f), w: f.w, text, fit: "underline" } : { id, kind: "text", page, x: sig.x, y: Math.min(sig.y + sig.h + 0.01, 1 - TXT_H), w: TXT_W, h: TXT_H, text, fit: "default" };
+    } else {
+      // nothing to follow: the centre of what is on screen now (zoom + scroll), snapped to a rule there when one is under it
+      const c = viewRef.current?.() ?? { x: 0.5, y: 0.5 };
+      const f = fitRef.current?.(c);
+      if (f?.textH) docTextH.current = f.textH;
+      mark = f && !taken(f) ? { id, kind: "text", page, x: f.x, ...cap(f), w: f.w, text, fit: "underline" } : { id, kind: "text", page, x: Math.min(Math.max(c.x - TXT_W / 2, 0), 1 - TXT_W), y: Math.min(Math.max(c.y - TXT_H / 2, 0), 1 - TXT_H), w: TXT_W, h: TXT_H, text, fit: "default" };
+    }
     setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
     setTimeout(() => { const boxes = document.querySelectorAll('[data-testid="text-box"]'); boxes[boxes.length - 1]?.scrollIntoView({ block: "center", behavior: "smooth" }); }, 50);
   };
@@ -658,7 +678,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
               ))}
             </div>
           )}
-          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} fitRef={fitRef} onDelete={(id) => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== id) })); setSelected(null); }} />
+          <PdfPageView bytes={files[fileIdx].bytes} marks={marks[fileIdx] ?? []} onMarks={(m) => setMarks((x) => ({ ...x, [fileIdx]: m }))} selectedId={selected} onSelect={setSelected} preview={png} onPage={setViewedPage} fitRef={fitRef} viewRef={viewRef} onDelete={(id) => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== id) })); setSelected(null); }} />
           {/* marks toolbar: add a date or a note; size the selected mark; edit its text */}
           <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="marks-toolbar">
             <button type="button" onClick={() => addText(todayText())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="add-date">+ {t("soi.sign.add_date")}</button>
