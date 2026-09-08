@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings, Code, Globe, Sparkles, Heart } from "lucide-react";
+import { LogOut, User, Menu, Settings, Code, Sparkles, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DonateModal } from "@/components/donate-modal";
 import { verifyDonatedReturn } from "@/lib/donate";
@@ -15,7 +15,7 @@ import { useState, useEffect } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { useTheme } from "@/lib/theme-context";
-import { getSortedLanguages } from "@/lib/language-utils";
+import { LanguageGlobe } from "@/components/language-globe";
 import { hasRomanization, getRomanizationConfig } from "@/lib/romanization-config";
 
 interface NavbarProps {
@@ -28,7 +28,6 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [apiSdkOpen, setApiSdkOpen] = useState(false);
   const [soiOpen, setSoiOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
   const [donateOpen, setDonateOpen] = useState(false);
   // Back from Stripe with ?donated=true → one thank-you, shown only when Stripe actually returned us.
   const [thanks, setThanks] = useState(false);
@@ -37,7 +36,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
     verifyDonatedReturn().then((r) => { if (r !== "paid") return; setThanks(true); id = setTimeout(() => setThanks(false), 8000); });
     return () => { if (id) clearTimeout(id); };
   }, []);
-  const { t, activeLocale, setActiveLocale, languages, romanizationEnabled, setRomanizationEnabled } = useLexicon();
+  const { t, activeLocale, romanizationEnabled, setRomanizationEnabled } = useLexicon();
   const { currentTheme } = useTheme();
 
   let simulationMode = false;
@@ -111,44 +110,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
 
             {/* Language selector — visible only when NOT authenticated (visitors + pollers) */}
             {/* Moderators access language via Settings panel — no redundant Globe icon */}
-            {!isAuthenticated && <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLangOpen((p) => !p)}
-                title={t("cube1.join.select_language")}
-                className="flex items-center gap-1"
-              >
-                <Globe className="h-4 w-4" />
-                <span className="hidden sm:inline text-xs uppercase">{activeLocale}</span>
-              </Button>
-              {langOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                  <div className="absolute right-0 top-full z-50 mt-1 w-56 max-h-80 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
-                    {(() => {
-                      const { sorted, pinnedCount } = getSortedLanguages(languages);
-                      return sorted.map((lang, i) => (
-                        <div key={lang.code}>
-                          <button
-                            onClick={() => { setActiveLocale(lang.code); setLangOpen(false); }}
-                            className={`flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent ${activeLocale === lang.code ? "bg-accent font-medium" : ""}`}
-                          >
-                            <span className="text-xs font-mono uppercase text-primary">{lang.code}</span>
-                            <span className="text-muted-foreground">&bull;</span>
-                            <span>{lang.nameNative}</span>
-                            <span className="text-muted-foreground text-xs">({lang.nameEn})</span>
-                          </button>
-                          {i === pinnedCount - 1 && sorted.length > pinnedCount && (
-                            <div className="my-1 border-t" />
-                          )}
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                </>
-              )}
-            </div>}
+            {!isAuthenticated && <LanguageGlobe />}
 
             {/* Romanization toggle — config-driven, shows for zh (Pinyin), km (UNGEGN), etc. */}
             {hasRomanization(activeLocale) && (() => {

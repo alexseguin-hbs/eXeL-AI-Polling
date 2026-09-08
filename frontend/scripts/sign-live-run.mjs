@@ -52,7 +52,7 @@ const findRules = (p) => p.evaluate(() => {
 // A thumb's scribble, not a sine: a looping cursive run with per-point jitter, a fast cross-stroke, a dot —
 // a different seed per phone. Drawn with the pointer on the SignaturePad canvas, so the pad's own smoothing ships.
 const scribble = async (p, who) => {
-  const c = p.locator('canvas[aria-label]').first(); const b = await c.boundingBox();
+  const c = p.locator('canvas[aria-label]').first(); await c.waitFor({ state: 'visible' }); await c.scrollIntoViewIfNeeded(); await p.waitForTimeout(200); const b = await c.boundingBox();  // the pad on screen and hydrated before the pointer draws (a first run after a recompile once drew 0 % ink)
   let seed = who === 'alex' ? 7 : 31; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280 - 0.5; };
   const W = b.width - 30, mid = b.height * 0.55;
   const stroke = async (pts, steps = 2) => { await p.mouse.move(b.x + pts[0][0], b.y + pts[0][1]); await p.mouse.down(); for (const [x, y] of pts.slice(1)) await p.mouse.move(b.x + x, b.y + y, { steps }); await p.mouse.up(); };
@@ -207,9 +207,9 @@ step('alex', 'diag: 036 RPC answers · pdf worker loaded · login not required �
 await shot(A, 'alex', '0-diag');
 await A.getByTestId('diag-toggle').click();
 // the globe (same method as Settings and Vision 2525): Spanish on, the page reads Spanish, then back (operator 01:55)
-await A.locator('[data-testid="soi-globe"] button').first().click(); await A.getByRole('option', { name: /Español/ }).click(); await A.waitForTimeout(300);
+await A.locator('[data-testid="soi-globe"] button').first().click(); await A.locator('[data-testid="soi-globe"] [role="option"]', { hasText: 'Español' }).click(); await A.waitForTimeout(300);
 const esLine = await A.getByTestId('explain').innerText(); await shot(A, 'alex', '0b-spanish');
-await A.locator('[data-testid="soi-globe"] button').first().click(); await A.getByRole('option', { name: /^English/ }).click(); await A.waitForTimeout(300);
+await A.locator('[data-testid="soi-globe"] button').first().click(); await A.locator('[data-testid="soi-globe"] [role="option"]', { hasText: '(English)' }).click(); await A.waitForTimeout(300);
 step('alex', 'globe → Español: the page reads Spanish ("Añade el o los PDF a firmar."), then English again', /Añade el o los PDF/.test(esLine) && /Add the PDF/.test(await A.getByTestId('explain').innerText()), esLine);
 await A.getByPlaceholder(/Promissory/).fill('Promissory Note');
 await A.getByTestId('file-input').setInputFiles(FIXTURE);
