@@ -27,6 +27,16 @@ ok(cacStamp("2026-09-07T23:22:39.655Z") === "2026.09.07 23:22:39 UTC" && cacStam
 
 // stamp once → exactly one SoISig image; twice → two
 const png1x1 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+// non-Latin names must never crash the stamp (fleet #1, agreed across pods): every drawn string goes through pdfSafe
+const { pdfSafe } = await import("../lib/pdf-stamp.ts");
+ok(pdfSafe("José Núñez-Ålund") === "José Núñez-Ålund" && pdfSafe("Alex — “quoted” … ok") === 'Alex - "quoted" ... ok', "pdfSafe keeps Latin-1 letters and folds typographic punctuation");
+ok(pdfSafe("علي حسن") === "·· ··" && pdfSafe("张伟") === "··" && pdfSafe("Алексей") === "··" && pdfSafe("Đặng Văn Lâm") === "·ang Van Lâm", `pdfSafe replaces what Helvetica cannot draw, folds what it can (got ${JSON.stringify([pdfSafe("علي حسن"), pdfSafe("张伟"), pdfSafe("Алексей"), pdfSafe("Đặng Văn Lâm")])})`);
+let nonLatinOk = 0;
+for (const nm of ["علي حسن", "张伟", "Алексей Иванов", "אלכס", "Đặng Văn Lâm"]) {
+  try { const s = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.04, fit: "underline" }, { pngDataUrl: png1x1, name: nm, isoDate: "2026-09-08T01:00:00Z", hash: "0badf00d" }); const s2 = await stampText(s, { page: 1, x: 0.1, y: 0.86, w: 0.2, h: 0.03 }, nm + " ٨ سبتمبر"); if ((await countSignatureImages(s2)) === 1) nonLatinOk++; } catch (e) { console.log("  threw for", nm, String(e).slice(0, 80)); }
+}
+ok(nonLatinOk === 5, `five non-Latin signers stamp a signature and a note without a throw (${nonLatinOk}/5)`);
+
 const s1 = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.8, w: 0.35, h: 0.08 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-07T12:00:00Z", hash: "ba7816bf" });
 ok((await countSignatureImages(s1)) === 1, "one stamp → one signature image");
 const s2 = await stampSignature(s1, { page: 1, x: 0.55, y: 0.8, w: 0.35, h: 0.08 }, { pngDataUrl: png1x1, name: "Ben Borrower", isoDate: "2026-09-07T13:00:00Z", hash: "deadbeef" });

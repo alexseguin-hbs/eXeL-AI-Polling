@@ -71,3 +71,14 @@ Yes, by the numbers. The fitted box's bottom sat at 0.556 of the page against a 
 
 ## Thor — risk & security
 Yes, with the perimeter held. A wrong secret gets no files and no turn; a signer cannot act twice; the next secret is minted server-side and returned once; twenty failed secrets lock the envelope for an hour; every RPC is bounded to forty-five seconds, so a hang is a named error, not a silence; a build without the migration refuses a two-signer envelope loudly instead of downgrading to a device store. The pad's ink export and the pixel fit run entirely in the browser on the signer's own file; nothing leaves the phone before Sign & save. From this sandbox I cannot vouch for the live site; Verify Live proves LIVE.
+
+
+## Corrections after the 48-agent fleet (2026-09-08 01:20 UTC)
+- The fleet counted the seed at 23 keys of 181 `soi.sign.*` (not "36 diag/verify keys"); ~158 rarer keys remain
+  English-only in the 32 languages. Residual, named.
+- "Uploaded-image path not in the run" is stale: Daniel signs by upload in the two-phone proof (wave 7); JPEG /
+  opaque-background uploads are still unproven.
+- Fleet finding #1, agreed across pods: a non-Latin signer name, note or date made the PDF font throw and the save
+  died. Fixed the same hour (pdfSafe on every drawn string; five non-Latin signers stamp in the PDF-engine test); a
+  real Unicode font is the day-sized follow-up.
+- The full fleet report: `docs/assessments/2026-09-08_fleet_48_report.md`.

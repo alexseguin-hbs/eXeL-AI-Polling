@@ -47,6 +47,25 @@ function oriented(rot: number, bx: number, by: number, bw: number, bh: number) {
   return { x: bx, y: by, width: bw, height: bh, rotate: degrees(0) };
 }
 
+/** The standard fonts speak WinAnsi only: a name like علي, 张伟 or Алексей made pdf-lib throw "cannot encode" and the
+ *  save died at the stamp (fleet, Aset + Asar + Sofia + Thor, agreed across pods). Every drawn string passes through here:
+ *  accents are folded (é → e when the font lacks é, but Latin-1 letters stay), anything the font cannot draw becomes
+ *  a middle dot. The Unicode name still rides intact in the keywords and the Light Codex. A real Unicode font is the
+ *  day-sized follow-up the fleet named. */
+export const pdfSafe = (s: string): string => {
+  const latin1 = (cp: number) => cp >= 0x20 && cp < 0x0100 && !(cp >= 0x7f && cp <= 0x9f);
+  const out: string[] = [];
+  for (const ch of s.normalize("NFC")) {
+    const cp = ch.codePointAt(0) ?? 0;
+    if (latin1(cp)) { out.push(ch); continue; }                                            // é, ñ, Å: Helvetica has them
+    if ("‘’‚‛".includes(ch)) { out.push("'"); continue; } if ("“”„‟".includes(ch)) { out.push('"'); continue; }
+    if ("–—".includes(ch)) { out.push("-"); continue; } if (ch === "…") { out.push("..."); continue; } if (ch === "•") { out.push("·"); continue; }
+    if (ch === "\u20ac") { out.push("\u20ac"); continue; }
+    const base = Array.from(ch.normalize("NFKD")).filter((c) => { const k = c.codePointAt(0) ?? 0; return latin1(k) && !(k >= 0x0300 && k <= 0x036f); }).join("");   // ắ → a
+    out.push(base || "·");
+  }
+  return out.join("").replace(/·{3,}/g, "··");
+};
 const addKeyword = (doc: PDFDocument, kw: string) => { const prev = doc.getKeywords() ?? ""; doc.setKeywords([...(prev ? prev.split(" ") : []), kw]); };
 
 export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampSig): Promise<Uint8Array> {
@@ -76,7 +95,7 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   if (rot === 0) page.drawImage(png, { x: onRule ? I.bx + 2 : I.bx + (I.bw - iw) / 2, y: I.by + (onRule ? 1 : (I.bh - ih) / 2), width: iw, height: ih });   // a signature starts where the line starts
   else { const o = oriented(rot, I.bx, I.by, I.bw, I.bh); page.drawImage(png, { ...o, width: iw, height: ih }); }
   const font = await doc.embedFont(StandardFonts.Helvetica);
-  const caption = `${sig.name} · ${sig.isoDate} · #${sig.hash}`;
+  const caption = pdfSafe(`${sig.name} · ${sig.isoDate} · #${sig.hash}`);
   const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
   let capSize = onRule ? 4.5 : Math.max(4, Math.min(9, capDispH * 0.9));
   while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
@@ -102,7 +121,7 @@ export async function stampText(pdf: Uint8Array, box: StampBox, text: string, me
   const { rot, bx, by, bw, bh } = placeOnPage(page, box, 12, 8);
   if (box.clear) clearBox(page, box);
   const font = await doc.embedFont(StandardFonts.Helvetica);
-  const clean = text.replace(/[\r\n]+/g, " ").slice(0, 200);
+  const clean = pdfSafe(text.replace(/[\r\n]+/g, " ").slice(0, 200));
   const swap = rot === 90 || rot === 270;
   const dispW = swap ? bh : bw, dispH = swap ? bw : bh;
   let size = Math.max(6, Math.min(dispH * 0.72, 24));
@@ -256,7 +275,7 @@ export async function stampHolders(pdf: Uint8Array, holders: Holder[]): Promise<
     const page = pages[Math.min(Math.max(h.page, 1), pages.length) - 1];
     const { bx, by, bw, bh } = placeOnPage(page, h, 12, 8);
     page.drawRectangle({ x: bx, y: by, width: bw, height: bh, borderColor: rgb(0.35, 0.45, 0.6), borderWidth: 0.6, borderDashArray: [2, 2] });
-    const label = h.kind === "sig" ? `Sign here · ${h.name}` : "Date"; let size = Math.min(6, bh * 0.5);
+    const label = pdfSafe(h.kind === "sig" ? `Sign here · ${h.name}` : "Date"); let size = Math.min(6, bh * 0.5);
     while (size > 3.5 && font.widthOfTextAtSize(label, size) > bw - 4) size -= 0.5;
     page.drawText(label, { x: bx + 2, y: by + 2, size, font, color: rgb(0.45, 0.5, 0.6) });
     addKeyword(doc, `SoIHold:${h.idx}:${h.kind}:${h.page}:${h.x.toFixed(4)}:${h.y.toFixed(4)}:${h.w.toFixed(4)}:${h.h.toFixed(4)}:n${b64u(h.name)}`);

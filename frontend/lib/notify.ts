@@ -3,7 +3,8 @@
  * Worker holds RESEND_API_KEY + NOTIFY_FROM, "unconfigured" when it does not (the page falls back
  * to the phone's own mail composer), or throws with a user-safe message.
  */
-export async function sendSignerEmail(opts: { to: string; subject: string; text: string; link: string }): Promise<"sent" | "unconfigured"> {
+export async function sendSignerEmail(opts: { to: string; sender: string; title: string; link: string }): Promise<"sent" | "unconfigured"> {
+  // the Worker composes subject and text itself from who / what / link — this route carries nothing else (fleet, Thor)
   const res = await fetch("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(opts) });
   const ct = res.headers.get("content-type") || "";
   const data = ct.includes("application/json") ? ((await res.json().catch(() => ({}))) as { sent?: boolean; configured?: boolean; error?: string }) : {};

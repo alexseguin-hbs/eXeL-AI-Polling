@@ -279,3 +279,16 @@ PDF to Messages or Mail with the script as its text (Web Share with files, iOS 1
 exists the file downloads and the composer opens with the script, and the page says so. DONE offers "Send the signed
 file" the same way. The script no longer says "attached" with nothing attached. Offline proof: the shared file is the
 one Daniel uploads — 13/13.
+
+## Wave 10 — the 48-agent fleet's hour-or-less findings, applied (01:20 UTC)
+
+Report: `2026-09-08_fleet_48_report.md` (11 of 12 MoTs READY within the proven boundary; 7 AsMs yes, 5 partly).
+- **Non-Latin names no longer crash the stamp** (fleet #1): every drawn string passes `pdfSafe` — Latin-1 kept, accents
+  folded where the font lacks them, the rest a middle dot; the Unicode name rides in the keywords and the Light Codex.
+  Five non-Latin signers stamp in the PDF-engine test (24/24). A bundled Unicode font is the day-sized follow-up.
+- Dates in Latin digits; the "Signer N" fallback through the lexicon.
+- The diagnosis probe says **unreachable** on a dead network instead of "036 applied"; a retry after a half-landed save
+  mints a fresh token instead of a duplicate-key error.
+- `/api/notify` is no longer a relay: the Worker composes subject and text from who · what · link, and throttles per
+  address (notify-core 10/10).
+- Proofs re-run: two-phone, offline, pod; build green.

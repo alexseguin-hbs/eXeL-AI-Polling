@@ -40,12 +40,15 @@ export const withTimeout = <T,>(p: PromiseLike<T>, ms = RPC_TIMEOUT_MS): Promise
 /** What the "Why can't I sign?" panel shows — a live probe, not an assumption. A refusal such as
  *  bad_token proves the function exists; PGRST202 proves migration 036 is missing on this project. */
 export type Probe = "no_supabase" | "rpc_ok" | "rpc_missing" | "unreachable";
+/** supabase-js hands a dead network back as an error object, not a throw (fleet, Krishna): "Failed to fetch", "Load failed", "NetworkError". */
+export const isNetworkError = (e: unknown): boolean => /failed to fetch|load failed|networkerror|network request failed|fetch failed|ECONN|ENOTFOUND/i.test(((e as { message?: string })?.message ?? String(e)));
 export async function probeRpc(): Promise<{ state: Probe; detail: string }> {
   if (!supabase) return { state: "no_supabase", detail: "NEXT_PUBLIC_SUPABASE_URL is not set on this build" };
   try {
     const { error } = await withTimeout(supabase.rpc("sign_envelope_get", { p_token: "probe", p_secret: null, p_ip_hash: null, p_user_agent: "diag" }), 15_000);
     if (!error) return { state: "rpc_ok", detail: "" };
     if (isMissingRpc(error)) return { state: "rpc_missing", detail: error.message };
+    if (isNetworkError(error)) return { state: "unreachable", detail: error.message };
     return { state: "rpc_ok", detail: error.message };
   } catch (e) { return { state: "unreachable", detail: String((e as Error).message ?? e) }; }
 }
@@ -54,6 +57,8 @@ const rpcError = (e: unknown): never => {
   if (e instanceof SignStoreError) throw e;
   if (isMissingRpc(e)) throw new SignStoreError("no_backend", "This site has not applied migration 036 yet.");
   const m = (e as { message?: string })?.message ?? String(e);
+  if (/duplicate key|23505/i.test(m)) throw new SignStoreError("duplicate", m);
+  if (isNetworkError(e)) throw new SignStoreError("unreachable", m);
   const code = /timeout|no_migration|not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
   throw new SignStoreError(code, m);
 };

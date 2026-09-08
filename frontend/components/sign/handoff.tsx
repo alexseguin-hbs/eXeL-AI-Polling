@@ -23,7 +23,7 @@ export function Handoff({ link, sender, title, nextName, nextContact }: { link: 
   const sendFromExel = async () => {
     setMailState("sending"); setMailErr("");
     try {
-      const r = await sendSignerEmail({ to: normalizeContact(nextContact), subject: `${t("soi.sign.handoff.subject")} ${title}`, text: msg, link });
+      const r = await sendSignerEmail({ to: normalizeContact(nextContact), sender: sender || t("soi.sign.handoff.someone"), title, link });
       if (r === "sent") setMailState("sent"); else { setMailState("fallback"); window.location.href = mail; }
     } catch (e) { setMailState("error"); setMailErr(e instanceof Error ? e.message : "error"); }
   };

@@ -1,14 +1,14 @@
-  2909ms  alex  OK  diag on a 036-less site: "signing works … downloads" + Copy migration SQL + Open the SQL (served, 20 kB, holds the create function)  /sql/036_sign_envelopes.sql · 20098 bytes
-  4744ms  alex  OK  signature box placed (underline)
-  6120ms  alex  OK  Sign & save pressed (signature + initials drawn)
-  6930ms  alex  OK  no link minted → the OFFLINE hand-off block: 036 named, hand the file over, one "Send the file" action  No hand-off link on this site yet — hand the file over Migration 036 is not applied on this site's Supabase — no hand-of
-  7003ms  alex  OK  Send the file: the partly-signed PDF is handed over with the message (share sheet on a phone; download + composer here)  sign-sample-partly-signed.pdf
-  7006ms  alex  OK  explainer says: signed on this phone, download and send
-  7010ms  alex  OK  the download is a Vision-2525 pill (↓, uppercase, rounded)
-  7095ms  alex  OK  partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME  [{"rowIndex":0,"isoDate":"2026-09-08T01:11:41.715Z","hash":"91d05b18","name":"Alex Seguin"}]
- 10729ms  dan   OK  landed on the placeholders the partly-signed file carries (holder)
- 12143ms  dan   OK  Sign & save pressed (signature + initials drawn)
- 12992ms  dan   OK  COMPLETE on his phone
- 13100ms  dan   OK  final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)  [[0,"Alex Seguin"],[1,"Daniel Vail"]]
- 13115ms  dan   OK  the hidden Light Codex names both signatories  ALEX SEGUIN 20260908011141 . DANIEL VAIL 20260908011147
- 13136ms  dan   OK  offline verify: consistent, two envelopes (the file was carried by hand)  []
+  3195ms  alex  OK  diag on a 036-less site: "signing works … downloads" + Copy migration SQL + Open the SQL (served, 20 kB, holds the create function)  /sql/036_sign_envelopes.sql · 20098 bytes
+  5056ms  alex  OK  signature box placed (underline)
+  6418ms  alex  OK  Sign & save pressed (signature + initials drawn)
+  7222ms  alex  OK  no link minted → the OFFLINE hand-off block: 036 named, hand the file over, one "Send the file" action  No hand-off link on this site yet — hand the file over Migration 036 is not applied on this site's Supabase — no hand-of
+  7298ms  alex  OK  Send the file: the partly-signed PDF is handed over with the message (share sheet on a phone; download + composer here)  sign-sample-partly-signed.pdf
+  7300ms  alex  OK  explainer says: signed on this phone, download and send
+  7305ms  alex  OK  the download is a Vision-2525 pill (↓, uppercase, rounded)
+  7376ms  alex  OK  partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME  [{"rowIndex":0,"isoDate":"2026-09-08T01:19:45.378Z","hash":"91d05b18","name":"Alex Seguin"}]
+ 10965ms  dan   OK  landed on the placeholders the partly-signed file carries (holder)
+ 12332ms  dan   OK  Sign & save pressed (signature + initials drawn)
+ 13161ms  dan   OK  COMPLETE on his phone
+ 13263ms  dan   OK  final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)  [[0,"Alex Seguin"],[1,"Daniel Vail"]]
+ 13280ms  dan   OK  the hidden Light Codex names both signatories  ALEX SEGUIN 20260908011945 . DANIEL VAIL 20260908011951
+ 13299ms  dan   OK  offline verify: consistent, two envelopes (the file was carried by hand)  []

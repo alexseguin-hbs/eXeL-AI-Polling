@@ -202,7 +202,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
     setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
     setTimeout(() => { const boxes = document.querySelectorAll('[data-testid="text-box"]'); boxes[boxes.length - 1]?.scrollIntoView({ block: "center", behavior: "smooth" }); }, 50);
   };
-  const todayText = () => new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  const todayText = () => { try { return new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", numberingSystem: "latn" } as Intl.DateTimeFormatOptions); } catch { return new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } };   // Latin digits: the PDF font has no others (fleet)
   const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
   const setSelText = (text: string) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, text } : m)) }));
   const removeSel = () => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== selected) })); setSelected(null); };
@@ -238,7 +238,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: myIdx, isoDate, chain: prevChain });
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
-        const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? `Signer ${i + 1}`;
+        const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? `${t("soi.sign.signer")} ${i + 1}`;
         // rows already in the file: a file carried by hand (offline hand-off) keeps its earlier signers by the NAME in
         // the keyword; this signer takes the next free row rather than overwriting one
         const recorded = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0);
@@ -277,6 +277,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
         catch (ex) {
           // no link can be minted here — keep the envelope on this phone and hand the FILE over instead (operator 00:39)
           if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); }
+          // a retry after a half-landed save re-sent the same token (fleet, Krishna): mint a fresh one, once
+          else if (ex instanceof SignStoreError && ex.code === "duplicate") { pendingToken.current = newToken(); const env2 = { ...env, token: pendingToken.current }; envRef.current = env2; created = await createEnvelope(env2); Object.assign(env, env2); }
           else throw ex;
         }
         if (created.mode === "local") setLocalFallback(true);
