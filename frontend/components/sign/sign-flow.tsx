@@ -175,8 +175,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, req
   const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
   const setSelText = (text: string) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, text } : m)) }));
   const removeSel = () => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== selected) })); setSelected(null); };
-  // − / + scale the selected mark; a mark fitted to a rule scales about its bottom-left corner, so it stays on the line
-  const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => { if (m.id !== selected) return m; const w = Math.min(1, Math.max(0.08, m.w * f)), h = Math.min(1, Math.max(0.02, m.h * f)); return m.fit === "underline" ? { ...m, w, h, y: Math.max(0, m.y + m.h - h) } : { ...m, w, h }; }) }));
+  // − / + scale the selected mark about its bottom-left corner: the baseline never moves (operator 2026-09-08)
+  const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => { if (m.id !== selected) return m; const w = Math.min(1, Math.max(0.08, m.w * f)), h = Math.min(1, Math.max(0.02, m.h * f)); return { ...m, w, h, y: Math.max(0, m.y + m.h - h) }; }) }));
   const myIdx = countersign ? (pub?.party ?? 0) : 0;
   const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[0]?.name ?? "";
 

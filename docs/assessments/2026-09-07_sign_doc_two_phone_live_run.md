@@ -242,3 +242,7 @@ download already work, and offers **the fix from the phone**: Copy migration 036
 `/sql/036_sign_envelopes.sql`, copied into `public/` at predev/prebuild) → Supabase → SQL editor → Run → reload.
 The offline proof blocks the probe too and asserts the block, the served SQL (20 kB, holds the create
 function) — 13 steps, 0 failures. The sentence is updated in the 32 seeded languages.
+
+**00:25 ask, applied — resize from the upper-right:** the handle sits at the box's upper-right; a drag grows the box
+up and right and the bottom edge (the signature's baseline) never moves; − / + scale about the bottom-left corner
+for the same reason. Proof: 103×14 → 112×17 px with the bottom at 478 → 478. Two-phone 58/58, offline 13/13.

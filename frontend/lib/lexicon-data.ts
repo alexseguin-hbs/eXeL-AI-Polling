@@ -992,7 +992,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.stance", englishDefault: "No one collects a tax on signatures.", context: "Sign Doc: the stance, first words of the footer (operator 2026-09-07)", cubeId: 8 },
   { key: "soi.sign.page_prev", englishDefault: "Previous page", context: "Sign Doc: aria-label of the ‹ page button (swipe right does the same)", cubeId: 8 },
   { key: "soi.sign.page_next", englishDefault: "Next page", context: "Sign Doc: aria-label of the › page button (swipe left does the same)", cubeId: 8 },
-  { key: "soi.sign.fit.underline", englishDefault: "Sized to the signature line under your thumb — drag the corner to change it, + Date for the date.", context: "Sign Doc: hint after the box fitted a rule on the page", cubeId: 8 },
+  { key: "soi.sign.fit.underline", englishDefault: "Sized to the signature line under your thumb. Drag the upper-right corner to change it, + Date for the date.", context: "Sign Doc: hint after the box fitted a rule on the page", cubeId: 8 },
   { key: "soi.landing.seed.badge", englishDefault: "entry credential", context: "Seed card badge", cubeId: 8 },
   { key: "soi.landing.seed.flip", englishDefault: "tap the coin to flip", context: "Seed card: under the coin", cubeId: 8 },
   { key: "soi.landing.seed.blurb_1", englishDefault: "Seed is a one-time membership priced at", context: "Seed card blurb, part 1", cubeId: 8 },

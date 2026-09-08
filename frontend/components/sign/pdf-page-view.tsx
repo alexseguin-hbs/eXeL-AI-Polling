@@ -4,7 +4,8 @@
  * One PDF, one page at a time, rendered by pdfjs to a canvas that fits the phone. MARKS live on it:
  * one signature box per file and any number of text marks (a date, a name, a note). Tap an empty
  * spot to place the signature (when there is none yet); drag inside a mark to move it; drag its
- * bottom-right handle to resize it (operator, 2026-09-07). Vertical swipes scroll (`pan-y`); a box
+ * UPPER-right handle to resize it — the bottom edge, the signature's baseline, never moves (operator,
+ * 2026-09-08). Vertical swipes scroll (`pan-y`); a box
  * is placed on a TAP, never on pointer-down. Boxes are page FRACTIONS so pdf-stamp lands them.
  * The first box FITS the signature line under the thumb when there is one (lib/sign-fit — the rule's
  * width, no taller than the text above it; operator 2026-09-07); a horizontal swipe turns the page,
@@ -59,7 +60,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
   const clampBox = (m: Mark): Mark => ({ ...m, w: Math.min(Math.max(m.w, MIN_W), 1), h: Math.min(Math.max(m.h, MIN_H), 1), x: Math.min(Math.max(m.x, 0), 1 - Math.min(Math.max(m.w, MIN_W), 1)), y: Math.min(Math.max(m.y, 0), 1 - Math.min(Math.max(m.h, MIN_H), 1)) });
   const update = (id: string, patch: Partial<Mark>) => onMarks(marksRef.current.map((m) => (m.id === id ? clampBox({ ...m, ...patch }) : m)));
   const hit = (p: { x: number; y: number }) => [...marksRef.current].reverse().find((m) => m.page === page && p.x >= m.x && p.x <= m.x + m.w && p.y >= m.y && p.y <= m.y + m.h) ?? null;
-  const onHandle = (p: { x: number; y: number }, m: Mark) => { const r = host.current!.getBoundingClientRect(); const hx = (m.x + m.w) - p.x, hy = (m.y + m.h) - p.y; return hx * r.width < 44 && hy * r.height < 44 && hx >= -0.02 && hy >= -0.02; };   // 44 px thumb slop (Thoth)
+  const onHandle = (p: { x: number; y: number }, m: Mark) => { const r = host.current!.getBoundingClientRect(); const hx = (m.x + m.w) - p.x, hy = p.y - m.y; return hx * r.width < 44 && hy * r.height < 44 && hx >= -0.02 && hy >= -0.02; };   // upper-right corner, 44 px thumb slop (Thoth)
 
   /** The signature line under the thumb, read from the rendered page's pixels (a scan has no PDF structure). */
   const fitAt = (q: { x: number; y: number }) => {
@@ -92,8 +93,8 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
       if (!m) return;
       ev.preventDefault();
       const q = frac(ev.clientX, ev.clientY);
-      // a box fitted to a rule keeps its bottom ON the rule: the corner drag changes its width only
-      if (resizing) update(m.id, m.fit === "underline" ? { w: Math.max(MIN_W, q.x - m.x) } : { w: Math.max(MIN_W, q.x - m.x), h: Math.max(MIN_H, q.y - m.y) });
+      // the upper-right handle: width follows the finger, the TOP edge follows the finger, the bottom (baseline) stays
+      if (resizing) { const bottom = m.y + m.h; const h = Math.max(MIN_H, bottom - q.y); update(m.id, { w: Math.max(MIN_W, q.x - m.x), h, y: bottom - h }); }
       else update(m.id, { x: q.x - off!.dx, y: q.y - off!.dy });
     };
     const end = (ev: PointerEvent, cancelled: boolean) => {
@@ -129,7 +130,7 @@ export function PdfPageView({ bytes, marks, onMarks, selectedId, onSelect, previ
               style={{ left: `${m.x * 100}%`, top: `${m.y * 100}%`, width: `${m.w * 100}%`, height: `${m.h * 100}%`, containerType: "size" }} data-testid={m.kind === "sig" ? "sig-box" : "text-box"} data-fit={m.fit}>
               {m.kind === "sig" && preview && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview} alt="" className={`h-full w-full object-contain ${m.fit === "underline" ? "object-left" : ""}`} />}
               {m.kind === "text" && <span className="block h-full w-full overflow-hidden whitespace-nowrap px-0.5 text-neutral-900" style={{ fontSize: "72cqh", lineHeight: 1.35 }}>{m.text}</span>}
-              {sel && !readOnly && <span className="absolute -bottom-2.5 -right-2.5 h-6 w-6 rounded-md border-2 border-white bg-cyan-500 shadow" aria-hidden="true" data-testid="resize-handle" />}
+              {sel && !readOnly && <span className="absolute -top-2.5 -right-2.5 h-6 w-6 rounded-md border-2 border-white bg-cyan-500 shadow" aria-hidden="true" data-testid="resize-handle" />}
             </div>
           );
         })}
