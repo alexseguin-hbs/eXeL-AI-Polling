@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "已生成。下载，或继续签署。",
   "soi.doc.footer": "由 eXeL 创建文档生成。不构成法律建议。",
   "soi.doc.note": "不收费。PDF 在你的手机上生成；签署前不会上传任何内容。",
+  "soi.doc.mode.ai": "用 AI 起草",
+  "soi.doc.ai.names": "签署人",
+  "soi.doc.ai.ph2": "例如：孩子和家长约定，上学日孩子每天学习 60 分钟；家长每周检查；哪一周没做到，那个周末就不能用屏幕。",
+  "soi.doc.ai.unconfigured": "此站点尚未配置 AI 密钥。请自行撰写文档，或请站点所有者添加 Anthropic、OpenAI、Grok 或 Gemini 密钥。",
 };
 export default T;

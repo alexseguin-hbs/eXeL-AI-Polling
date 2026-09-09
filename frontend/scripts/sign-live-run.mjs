@@ -220,8 +220,8 @@ const placeAndSign = async (p, who) => {
     await p.getByTestId('snap-line').click(); await p.waitForTimeout(200);   // back onto its line for the steps that follow
     // …and a real finger on EMPTY page at 150 % still pans the scroller (the page is not frozen)
     const sc = await p.getByTestId('pdf-scroller').boundingBox(); const before = await scrollState();
-    await drag(sc.x + sc.width * 0.6, sc.y + sc.height * 0.85, -100, 0);   // sideways: at 150 % the page is wider than the scroller, so this pan is always possible
-    const after = await scrollState();
+    let after = before;   // sideways: at 150 % the page is wider than the scroller, so this pan is always possible — a synthetic touch occasionally misses, so up to three tries
+    for (let k = 0; k < 3 && !(after.sl > before.sl + 5); k++) { await drag(sc.x + sc.width * 0.6, sc.y + sc.height * (0.5 + 0.15 * k), -100, 0); after = await scrollState(); }
     step(who, 'a real finger on empty page at 150 % pans the scroller sideways (only marks are pinned)', after.sl > before.sl + 5, `scroll ${JSON.stringify(before)}→${JSON.stringify(after)}`);
     await cdp.detach(); }
   await p.getByTestId('zoom-reset').click(); await p.waitForTimeout(600);
@@ -329,6 +329,7 @@ step('dan', 'roster: Alex signed, Daniel now', /Alex Seguin[\s\S]*signed[\s\S]*D
 await shot(D, 'dan', '5-open');
 await placeAndSign(D, 'dan');
 await D.getByTestId('downloads').waitFor({ timeout: 60000 }); step('dan', 'COMPLETE — every signer has signed');
+step('dan', "037: the finished file's send row is prefilled with the CREATOR's contact, so it goes straight back to Alex", (await D.getByTestId('send-email-to').inputValue()).toLowerCase() === 'explore@exel-ai.com', await D.getByTestId('send-email-to').inputValue());
 await shot(D, 'dan', '6-complete');
 const [dl] = await Promise.all([D.waitForEvent('download'), D.getByTestId('downloads').locator('button').first().click()]);
 const file = path.join(OUT, 'signed-sample.pdf'); await dl.saveAs(file);

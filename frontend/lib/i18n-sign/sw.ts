@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Imetengenezwa. Ipakue, au endelea kuisaini.",
   "soi.doc.footer": "Imetengenezwa kwa eXeL Unda Hati. Si ushauri wa kisheria.",
   "soi.doc.note": "Hakuna ada. PDF inajengwa kwenye simu yako; hakuna kinachopakiwa hadi uisaini.",
+  "soi.doc.mode.ai": "Andika rasimu kwa AI",
+  "soi.doc.ai.names": "Nani anasaini",
+  "soi.doc.ai.ph2": "k.m. Mtoto na mzazi wanakubaliana kwamba mtoto anasoma dakika 60 kwa siku katika siku za shule; mzazi anakagua kila wiki; wiki iliyokosekana inamaanisha hakuna muda wa skrini wikendi hiyo.",
+  "soi.doc.ai.unconfigured": "Bado hakuna ufunguo wa AI kwenye tovuti hii. Andika hati mwenyewe, au mwombe mmiliki wa tovuti aongeze ufunguo wa Anthropic, OpenAI, Grok au Gemini.",
 };
 export default T;

@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Generat. Descarcă-l sau continuă să-l semnezi.",
   "soi.doc.footer": "Generat cu eXeL Creează document. Nu este consultanță juridică.",
   "soi.doc.note": "Fără taxe. PDF-ul este construit pe telefonul tău; nimic nu se încarcă până nu îl semnezi.",
+  "soi.doc.mode.ai": "Redactează cu AI",
+  "soi.doc.ai.names": "Cine semnează",
+  "soi.doc.ai.ph2": "ex. Un copil și un părinte convin ca, în zilele de școală, copilul să învețe 60 de minute pe zi; părintele verifică săptămânal; o săptămână ratată înseamnă fără ecrane în acel weekend.",
+  "soi.doc.ai.unconfigured": "Nu există încă o cheie AI pe acest site. Scrie documentul singur sau roagă proprietarul site-ului să adauge o cheie Anthropic, OpenAI, Grok sau Gemini.",
 };
 export default T;

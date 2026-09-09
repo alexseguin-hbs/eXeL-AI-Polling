@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Gerado. Baixe, ou continue para assinar.",
   "soi.doc.footer": "Gerado com eXeL Criar documento. Não é orientação jurídica.",
   "soi.doc.note": "Sem taxas. O PDF é montado no seu telefone; nada é enviado até você assinar.",
+  "soi.doc.mode.ai": "Redigir com IA",
+  "soi.doc.ai.names": "Quem assina",
+  "soi.doc.ai.ph2": "ex.: Um filho e um dos pais combinam que o filho estuda 60 minutos por dia nos dias de aula; o pai ou a mãe revisa toda semana; uma semana perdida significa sem telas naquele fim de semana.",
+  "soi.doc.ai.unconfigured": "Ainda não há chave de IA neste site. Escreva o documento você mesmo, ou peça ao dono do site para adicionar uma chave da Anthropic, OpenAI, Grok ou Gemini.",
 };
 export default T;

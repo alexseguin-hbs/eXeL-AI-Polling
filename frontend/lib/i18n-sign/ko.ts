@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "생성됨. 다운로드하거나 계속해서 서명하세요.",
   "soi.doc.footer": "eXeL 문서 만들기로 생성됨. 법률 자문이 아닙니다.",
   "soi.doc.note": "수수료 없음. PDF는 휴대전화에서 만들어지며, 서명하기 전까지 아무것도 업로드되지 않습니다.",
+  "soi.doc.mode.ai": "AI로 초안 작성",
+  "soi.doc.ai.names": "서명자",
+  "soi.doc.ai.ph2": "예: 자녀와 부모가 등교일에는 자녀가 하루 60분 공부하기로 합의. 부모가 매주 확인. 한 주를 지키지 못하면 그 주말은 화면 사용 없음.",
+  "soi.doc.ai.unconfigured": "이 사이트에는 아직 AI 키가 없습니다. 문서를 직접 쓰거나, 사이트 소유자에게 Anthropic, OpenAI, Grok 또는 Gemini 키를 추가해 달라고 요청하세요.",
 };
 export default T;

@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Đã tạo. Tải xuống, hoặc tiếp tục để ký.",
   "soi.doc.footer": "Tạo bằng eXeL Tạo tài liệu. Không phải tư vấn pháp lý.",
   "soi.doc.note": "Không mất phí. PDF được dựng trên điện thoại của bạn; không tải lên gì cho đến khi bạn ký.",
+  "soi.doc.mode.ai": "Soạn nháp với AI",
+  "soi.doc.ai.names": "Ai ký",
+  "soi.doc.ai.ph2": "ví dụ: Một đứa trẻ và phụ huynh thỏa thuận rằng trẻ học 60 phút mỗi ngày vào ngày đi học; phụ huynh kiểm tra hằng tuần; bỏ lỡ một tuần thì cuối tuần đó không dùng màn hình.",
+  "soi.doc.ai.unconfigured": "Trang này chưa có khóa AI. Hãy tự viết tài liệu, hoặc nhờ chủ trang thêm khóa Anthropic, OpenAI, Grok hoặc Gemini.",
 };
 export default T;

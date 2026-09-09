@@ -19,7 +19,7 @@ export function db() {
       if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
     end $$;`);
     const dir = path.resolve(process.cwd(), '..', 'supabase', 'migrations');
-    for (const f of fs.readdirSync(dir).filter((f) => /^036_/.test(f)).sort()) {
+    for (const f of fs.readdirSync(dir).filter((f) => /^03[6-9]_sign/.test(f)).sort()) {   // 036 and every later Sign Doc migration (037 …), in order
       await d.exec(fs.readFileSync(path.join(dir, f), 'utf8').replace(/^create extension if not exists pgcrypto;\s*$/m, ''));
       console.log('local-rpc: applied', f);
     }

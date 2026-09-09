@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Vygenerováno. Stáhněte ho, nebo pokračujte k podpisu.",
   "soi.doc.footer": "Vygenerováno pomocí eXeL Vytvořit dokument. Není to právní rada.",
   "soi.doc.note": "Bez poplatků. PDF se sestavuje ve vašem telefonu; nic se nenahrává, dokud ho nepodepíšete.",
+  "soi.doc.mode.ai": "Navrhnout s AI",
+  "soi.doc.ai.names": "Kdo podepisuje",
+  "soi.doc.ai.ph2": "např. Dítě a rodič se dohodnou, že dítě se ve školní dny učí 60 minut denně; rodič to každý týden zkontroluje; vynechaný týden znamená o víkendu žádné obrazovky.",
+  "soi.doc.ai.unconfigured": "Na tomto webu zatím není žádný klíč AI. Napište dokument sami, nebo požádejte majitele webu, aby přidal klíč Anthropic, OpenAI, Grok nebo Gemini.",
 };
 export default T;

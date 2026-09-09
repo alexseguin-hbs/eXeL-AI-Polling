@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Sudah dibuat. Unduh, atau lanjut untuk menandatanganinya.",
   "soi.doc.footer": "Dibuat dengan eXeL Create Doc. Bukan nasihat hukum.",
   "soi.doc.note": "Tanpa biaya. PDF dibuat di ponsel Anda; tidak ada yang diunggah sampai Anda menandatanganinya.",
+  "soi.doc.mode.ai": "Susun draf dengan AI",
+  "soi.doc.ai.names": "Siapa yang tanda tangan",
+  "soi.doc.ai.ph2": "mis. Seorang anak dan orang tua sepakat bahwa anak belajar 60 menit sehari pada hari sekolah; orang tua memeriksa tiap minggu; satu minggu terlewat berarti tanpa waktu layar di akhir pekan itu.",
+  "soi.doc.ai.unconfigured": "Belum ada kunci AI di situs ini. Tulis dokumennya sendiri, atau minta pemilik situs menambahkan kunci Anthropic, OpenAI, Grok, atau Gemini.",
 };
 export default T;

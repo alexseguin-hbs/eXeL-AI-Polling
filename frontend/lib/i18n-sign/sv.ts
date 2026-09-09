@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Genererad. Ladda ner den, eller fortsätt för att signera.",
   "soi.doc.footer": "Genererat med eXeL Skapa dokument. Inte juridisk rådgivning.",
   "soi.doc.note": "Inga avgifter. PDF-filen byggs på din telefon; inget laddas upp förrän du signerar.",
+  "soi.doc.mode.ai": "Utkast med AI",
+  "soi.doc.ai.names": "Vem signerar",
+  "soi.doc.ai.ph2": "t.ex. Ett barn och en förälder kommer överens om att barnet pluggar 60 minuter om dagen på skoldagar; föräldern följer upp varje vecka; en missad vecka betyder ingen skärmtid den helgen.",
+  "soi.doc.ai.unconfigured": "Ingen AI-nyckel på den här webbplatsen ännu. Skriv dokumentet själv, eller be webbplatsens ägare att lägga till en Anthropic-, OpenAI-, Grok- eller Gemini-nyckel.",
 };
 export default T;

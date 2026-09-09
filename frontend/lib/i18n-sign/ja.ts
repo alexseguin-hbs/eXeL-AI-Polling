@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "生成しました。ダウンロードするか、続けて署名してください。",
   "soi.doc.footer": "eXeL 文書を作成 で生成。法的助言ではありません。",
   "soi.doc.note": "手数料なし。PDF はあなたのスマートフォンで作られ、署名するまで何もアップロードされません。",
+  "soi.doc.mode.ai": "AI で下書き",
+  "soi.doc.ai.names": "署名者",
+  "soi.doc.ai.ph2": "例：子どもと親が、登校日は 1 日 60 分勉強することに合意する。親は毎週確認する。守れなかった週は、その週末はスクリーンタイムなし。",
+  "soi.doc.ai.unconfigured": "このサイトにはまだ AI キーがありません。文書をご自身で書くか、サイトの所有者に Anthropic、OpenAI、Grok、Gemini のいずれかのキーを追加するよう依頼してください。",
 };
 export default T;

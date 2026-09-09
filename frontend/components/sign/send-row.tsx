@@ -10,7 +10,7 @@
  *          typed address when the Worker holds the Resend key; else the file downloads and the mail composer opens — "attach the file".
  * Every branch ends in one visible state line. R-CORE: reuses IconDownload, handoffMessage, sendSignerEmail, contactKind.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { IconDownload } from "@/components/download-icon";
 import { handoffMessage, contactKind, normalizeContact } from "@/lib/sign-envelope";
@@ -30,6 +30,7 @@ export function SendRow({ files, final, title, sender, link, toDefault, download
 }) {
   const { t } = useLexicon();
   const [to, setTo] = useState(toDefault && contactKind(toDefault) === "email" ? toDefault : "");
+  useEffect(() => { if (toDefault && contactKind(toDefault) === "email") setTo(toDefault); }, [toDefault]);   // the creator's contact arrives with the completion result (037)
   const [state, setState] = useState<State>("");
   const [busy, setBusy] = useState(false);
   const isPhone = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);

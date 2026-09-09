@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Luotu. Lataa se tai jatka allekirjoittamaan.",
   "soi.doc.footer": "Luotu eXeL Luo asiakirja -toiminnolla. Ei oikeudellinen neuvo.",
   "soi.doc.note": "Ei maksuja. PDF rakennetaan puhelimessasi; mitään ei ladata palvelimelle ennen kuin allekirjoitat sen.",
+  "soi.doc.mode.ai": "Luonnostele tekoälyllä",
+  "soi.doc.ai.names": "Ketkä allekirjoittavat",
+  "soi.doc.ai.ph2": "esim. Lapsi ja vanhempi sopivat, että lapsi opiskelee koulupäivinä 60 minuuttia päivässä; vanhempi tarkistaa viikoittain; väliin jäänyt viikko tarkoittaa, ettei sinä viikonloppuna ole ruutuaikaa.",
+  "soi.doc.ai.unconfigured": "Tällä sivustolla ei ole vielä tekoälyavainta. Kirjoita asiakirja itse tai pyydä sivuston omistajaa lisäämään Anthropic-, OpenAI-, Grok- tai Gemini-avain.",
 };
 export default T;

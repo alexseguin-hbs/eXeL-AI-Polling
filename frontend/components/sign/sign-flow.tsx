@@ -275,6 +275,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // ── a hand-carried / linked partly-signed file names its own title and signers (reviewer 2026-09-08) ──
   // The SoICodex rows are the signers already in the file; the SoIHold placeholder names the next one — this reader.
   // Prefilled only over BLANK rows and an empty title, never over what was typed.
+  const [creatorContact, setCreatorContact] = useState("");                // 037: on completion, the creator's contact — the finished file goes back to them
   const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
   // "remove field and redo" (operator 2026-09-08 22:40): a carried file's LAST signer may open his own text marks again —
   // remove or retype them — and save; the signature, initials, codex row and hidden strip stay. Never a later signer's record.
@@ -515,10 +516,11 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       }
       dropDraft(); setErr("");
       setPub(result); setSigned(stampedBytes);
+      if (result.creator_contact) setCreatorContact(result.creator_contact);   // 037: the finished file goes back to the creator
       if (result.status === "complete") { setStep("done"); return; }
       const nxt = result.signers[result.current_signer_idx];
       const nextSecret = result.next_secret ?? (envRef.current?.signers[result.current_signer_idx]?.secret ?? "");
-      setNextName(nxt?.name ?? ""); setNextContact(countersign ? "" : signers[result.current_signer_idx]?.contact ?? "");
+      setNextName(nxt?.name ?? ""); setNextContact(countersign ? (result.next_contact ?? "") : signers[result.current_signer_idx]?.contact ?? "");   // 037: a middle signer gets the next signer's contact too
       setNextLink(result.mode === "local" && multi ? "" : signLink(window.location.origin, result.token, nextSecret));   // a device-local link opens nowhere else
       setMyLink(signLink(window.location.origin, result.token, countersign ? secret! : envRef.current?.signers[0]?.secret ?? ""));
       setStep("handoff");
@@ -802,7 +804,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
-          <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink || undefined} toDefault={countersign ? pub?.signers.find((x) => !x.me)?.contact_masked : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} /></div>
+          <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink || undefined} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} /></div>
           <div className="mt-4"><VerifyFile /></div>
         </div>
       )}

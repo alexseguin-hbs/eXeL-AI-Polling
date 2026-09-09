@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Erzeugt. Herunterladen, oder weiter zum Unterschreiben.",
   "soi.doc.footer": "Erstellt mit eXeL Dokument erstellen. Keine Rechtsberatung.",
   "soi.doc.note": "Keine Gebühren. Das PDF wird auf Ihrem Telefon erstellt; nichts wird hochgeladen, bis Sie es unterschreiben.",
+  "soi.doc.mode.ai": "Mit KI entwerfen",
+  "soi.doc.ai.names": "Wer unterschreibt",
+  "soi.doc.ai.ph2": "z. B. Ein Kind und ein Elternteil vereinbaren, dass das Kind an Schultagen 60 Minuten am Tag lernt; der Elternteil prüft wöchentlich; eine versäumte Woche bedeutet an dem Wochenende keine Bildschirmzeit.",
+  "soi.doc.ai.unconfigured": "Auf dieser Website gibt es noch keinen KI-Schlüssel. Schreiben Sie das Dokument selbst oder bitten Sie den Betreiber der Website, einen Schlüssel von Anthropic, OpenAI, Grok oder Gemini hinzuzufügen.",
 };
 export default T;

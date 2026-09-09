@@ -16,6 +16,10 @@ export interface PublicEnvelope {
   chain: string; expires_at: string | null; party: number; files: SignFile[] | null; mode: StoreMode;
   /** The baton: returned once to the signer who just signed, for the NEXT signer's link. */
   next_secret?: string | null;
+  /** 037: the NEXT signer's contact, as the creator typed it — so a middle signer can text or e-mail the hand-off (null on the last pass) */
+  next_contact?: string | null;
+  /** 037: on completion, signer 0's contact — so the finished file can go back to the creator */
+  creator_contact?: string | null;
 }
 export class SignStoreError extends Error {
   code: string;
@@ -102,6 +106,7 @@ export async function getEnvelope(token: string, secret: string): Promise<Public
   if (!supabase || l) { if (!l) throw new SignStoreError("not_found"); return l; }
   const { data, error } = await withTimeout(supabase.rpc("sign_envelope_get", { p_token: token, p_secret: secret || null, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300) }));
   if (error) rpcError(error);
+  if ((data as { error?: string } | null)?.error) rpcError(new Error((data as { error: string }).error));   // 037: a wrong secret is returned, not raised, so the lock counter commits
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };
 }
 
@@ -110,7 +115,8 @@ export async function signEnvelope(token: string, idx: number, secret: string, f
     if (!localNext) throw new SignStoreError("no_backend");
     localStorage.setItem(LOCAL_KEY(token), JSON.stringify(localNext));
     const e = fromLocal(token, secret); if (!e) throw new SignStoreError("not_found");
-    return { ...e, next_secret: localNext.status === "awaiting" ? localNext.signers[localNext.current_signer_idx]?.secret ?? null : null };
+    const done = localNext.status !== "awaiting";
+    return { ...e, next_secret: !done ? localNext.signers[localNext.current_signer_idx]?.secret ?? null : null, next_contact: !done ? localNext.signers[localNext.current_signer_idx]?.contact ?? null : null, creator_contact: done ? localNext.signers[0]?.contact ?? null : null };   // parity with 037
   }
   const { data, error } = await withTimeout(supabase.rpc("sign_envelope_sign", {
     p_token: token, p_signer_idx: idx, p_secret: secret,
@@ -118,6 +124,7 @@ export async function signEnvelope(token: string, idx: number, secret: string, f
     p_chain: chain, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300), p_marks: marks ?? null,
   }));
   if (error) rpcError(error);
+  if ((data as { error?: string } | null)?.error) rpcError(new Error((data as { error: string }).error));   // 037: a wrong secret is returned, not raised, so the lock counter commits
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };
 }
 

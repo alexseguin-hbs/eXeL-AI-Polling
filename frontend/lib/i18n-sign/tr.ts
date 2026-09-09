@@ -363,5 +363,9 @@ const T: Record<string, string> = {
   "soi.doc.x.ready": "Oluşturuldu. İndir ya da imzalamaya devam et.",
   "soi.doc.footer": "eXeL Belge Oluştur ile oluşturuldu. Hukuki tavsiye değildir.",
   "soi.doc.note": "Ücret yok. PDF telefonunda oluşturulur; sen imzalayana kadar hiçbir şey yüklenmez.",
+  "soi.doc.mode.ai": "Yapay zekâ ile taslak yaz",
+  "soi.doc.ai.names": "Kim imzalar",
+  "soi.doc.ai.ph2": "örn. Bir çocuk ile ebeveyni, çocuğun okul günlerinde günde 60 dakika ders çalışmasında anlaşır; ebeveyn her hafta kontrol eder; kaçırılan bir hafta, o hafta sonu ekran yok demektir.",
+  "soi.doc.ai.unconfigured": "Bu sitede henüz yapay zekâ anahtarı yok. Belgeyi kendin yaz ya da site sahibinden bir Anthropic, OpenAI, Grok veya Gemini anahtarı eklemesini iste.",
 };
 export default T;
