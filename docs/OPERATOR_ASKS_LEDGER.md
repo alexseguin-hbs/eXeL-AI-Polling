@@ -39,6 +39,21 @@ not written · N/A = physically impossible on the platform, with the workaround 
 | Text with a file on a **computer** | **N/A** | A web page cannot attach to an SMS composer. The file downloads and the message carries the link; the phone share sheet does carry files. |
 | A device-local record never rejoins the database | **OPEN (code)** | One "save to the database now" action on the Done panel of a local record. |
 
+
+## D · Operator evidence — the states already proven on his own phone
+Intaken at his instruction. Full detail in `docs/evidence/2026-09-09_operator_proof/README.md`.
+
+| Image | What it proves | Date |
+|---|---|---|
+| `01-done-panel-one-signer-local.png` | The Done panel working: download, text, e-mail, copy, verify, stance. **The baseline.** | 09-08 19:29 |
+| `02-light-codex-two-signatories.png` | **Two signatories on one document**, five minutes apart, decoded back out of the PDF: 3 strips, hidden helix, `ALEX SEGUIN … • DANIEL LUCAS …`. The mission outcome. | 09-08 14:17 |
+| `03-quota-exceeded-on-478f602.png` | The phone's storage refusing the write. Closed by 0687ebb. | 09-09 09:14 |
+| `04-saving-failed-on-9779def.png` | The RPC failing inside itself after 036/037 without 038. Closed by ecc3140, 74862b8, 3f6ac5d. | 09-09 04:02 |
+| `05-blank-pads-after-failure.png` | The pads rendering empty after a failure, reading as "sign again". Closed by 8cbb904 and 3f6ac5d. | 09-08 21:09 |
+
+**It was working before it broke, and what broke it was the database changing under the app, not a code revert.** The panel in
+image 01 is present element for element in the build today.
+
 ## C · The standing rules this thread produced
 1. **A completed signature is never discarded.** Once bytes are stamped the outcome panel renders whatever any backend does;
    every failure is a note on it, never a wall. Guarded by `tests/sign-invariant.test.mjs` in `test:ci`.
