@@ -55,11 +55,9 @@ const placeDrawSign = async (p, who, tapX) => {
 // 1 · Alex: two signers, the create is refused by name → the envelope stays on the phone, the file is offered
 await A.goto(BASE + '/soi-session/sign/', { waitUntil: 'domcontentloaded' }); await ready(A);
 // "Why can't I sign?" on a site without 036: the sentence says download works, and THE FIX is one tap away (operator 00:15)
-await A.getByTestId('diag-toggle').click(); await A.getByTestId('diag-fix').waitFor({ timeout: 30000 });
-await A.waitForFunction(() => !/checking/.test(document.querySelector('[data-testid="diag-todo"]')?.textContent || ''), null, { timeout: 30000 }); const todo = await A.getByTestId('diag-todo').innerText(); /* the probe answers first (a CPU-loaded box read it mid-check once) */ const sqlHref = await A.getByTestId('diag-open-sql').getAttribute('href');
-const sql = await (await A.request.get(BASE + sqlHref)).text();
-step('alex', 'diag on a 036-less site: "signing works … downloads" + Copy migration SQL + Open the SQL (served, 20 kB, holds the create function)', /036/.test(todo) && /downloads/.test(todo) && (await A.getByTestId('diag-copy-sql').count()) === 1 && /create or replace function[\s\S]*sign_envelope_create/i.test(sql) && sql.length > 15000, `${sqlHref} · ${sql.length} bytes`);
-await shot(A, 'alex', '0-diag-fix'); await A.getByTestId('diag-toggle').click();
+const sqlRes = await A.evaluate(async () => { const r = await fetch('/sql/036_sign_envelopes.sql'); return { ok: r.ok, n: (await r.text()).length }; });
+step('alex', 'on a 036-less site the served migration SQL is still reachable (the removed diagnostic panel is not the only route)', sqlRes.ok && sqlRes.n > 20000, `${sqlRes.n} bytes`);
+await shot(A, 'alex', '0-diag-fix');
 await A.getByPlaceholder(/Promissory/).fill('Promissory Note'); await A.getByTestId('file-input').setInputFiles(FIXTURE); await A.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 });
 await A.getByRole('button', { name: /who signs/ }).click();
 await A.getByTestId('signer-name-0').fill('Alex Seguin'); await A.getByTestId('signer-contact-0').fill('explore@eXeL-AI.com');

@@ -271,13 +271,12 @@ await A.route('**/api/ai', (r) => { if (r.request().method() === 'GET') return r
 // 1 · Alex: landing → Sign Doc → upload → signers
 await A.goto(BASE + '/soi-session/', { waitUntil: 'domcontentloaded' }); await ready(A);
 await A.getByRole('link', { name: /Sign Doc/ }).click(); await A.waitForURL(/soi-session\/sign/); await ready(A); step('alex', 'landing → Sign Doc');
-// the page diagnoses itself: "Why can't I sign?" → six live rows + one sentence (operator, "I still cannot sign")
-await A.getByTestId('diag-toggle').click(); await A.getByTestId('diag-panel').waitFor();
-await A.waitForFunction(() => !/checking/.test(document.querySelector('[data-testid="diag-todo"]')?.textContent || ''), null, { timeout: 30000 });
-const diag = { rpc: await A.getByTestId('diag-rpc').innerText(), worker: await A.getByTestId('diag-worker').innerText(), auth: await A.getByTestId('diag-auth').innerText(), build: await A.getByTestId('diag-build').innerText(), todo: await A.getByTestId('diag-todo').innerText() };
-step('alex', 'diag: 036 RPC answers · pdf worker loaded · login not required · build named', /036 is applied/.test(diag.rpc) && /loaded/.test(diag.worker) && /not required/.test(diag.auth) && diag.build.length >= 3 && /Everything this page depends on answers/.test(diag.todo), JSON.stringify(diag));
+// "Why can't I sign?" was removed at the operator's instruction (2026-09-09 04:59 CST). What it carried that still matters — the
+// migration SQL the operator pastes — now lives on the panels that say the database did not take the record (sql-route).
+const sqlRes = await A.evaluate(async () => { const r = await fetch('/sql/036_sign_envelopes.sql'); return { ok: r.ok, text: (await r.text()).slice(0, 40000) }; });
+step('alex', 'the served migration SQL is current (036 + 037 + 038) and reachable without any diagnostic panel', sqlRes.ok && /create table if not exists sign_envelopes/.test(sqlRes.text) && /next_contact/.test(sqlRes.text) && /extensions, pg_temp/.test(sqlRes.text), `${sqlRes.text.length} bytes`);
+step('alex', 'the "Why can\'t I sign?" disclosure is gone from the sign page', (await A.getByTestId('diag-toggle').count()) === 0 && (await A.getByText(/Why can.t I sign/i).count()) === 0);
 await shot(A, 'alex', '0-diag');
-await A.getByTestId('diag-toggle').click();
 // the globe (same method as Settings and Vision 2525): Spanish on, the page reads Spanish, then back (operator 01:55)
 await A.locator('[data-testid="soi-globe"] button').first().click(); await A.locator('[data-testid="soi-globe"] [role="option"]', { hasText: 'Español' }).click(); await A.waitForTimeout(300);
 const esLine = await A.getByTestId('explain').innerText(); await shot(A, 'alex', '0b-spanish');

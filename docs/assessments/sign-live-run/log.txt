@@ -1,84 +1,85 @@
-  4947ms  alex  OK  landing → Sign Doc
-  5033ms  alex  OK  diag: 036 RPC answers · pdf worker loaded · login not required · build named  {"rpc":"answers — migration 036 is applied","worker":"loaded","auth":"not required on this build","build":"478f602","todo":"Everything this page depends on answers. Upload, place, draw, then Sign & save."}
-  6016ms  alex  OK  globe → Español: the page reads Spanish ("Añade el o los PDF a firmar."), then English again  Añade el o los PDF a firmar.
-  6531ms  alex  OK  globe → Français: the Sign Doc strings arrive on demand and the page reads French, then English again  Ajoutez le ou les PDF à signer.
-  6605ms  alex  OK  PDF uploaded, hashed, page-counted
-  6760ms  alex  OK  two signers named (explore@eXeL-AI.com · 512.808.8745)
-  7738ms  alex  OK  PDF page rendered (pdfjs)
-  7810ms  alex  OK  misplaced signature removed
-  7840ms  alex  OK  swipe left turns the page (Divinity Guide gesture, reused)  Page 2 / 2
-  8357ms  alex  OK  signature block found: two rules on one row (lender | borrower)  page 2 y=0.557 x=[0.12–0.45] | [0.50–0.83]
-  8736ms  alex  OK  AI: find my line → the box lands on the lender's rule (provider answered through /api/ai)  x=0.117 bottom=0.556 rule=0.117/0.557
-  8982ms  alex  OK  signature box placed by tap
-  8996ms  alex  OK  box FITS the signature line: rule width, bottom on the rule, no taller than the text above  fit=underline x=[0.117–0.451] bottom=0.556 rule=[0.117–0.450] y=0.557 h=0.034
-  8998ms  alex  OK  the hint says the box was sized to the line
-  9069ms  alex  OK  toolbar names the selected box
-  9184ms  alex  OK  a swipe over the page places nothing
-  9198ms  alex  OK  the resize handle sits at the UPPER-right of the box  handle at (156,202) box top 209
-  9292ms  alex  OK  upper-right drag grows the box up and right; the BASELINE (bottom edge) stays where it was  103×13 → 112×16 px, bottom 222→222
-  9393ms  alex  OK  an accidental date is deleted by the red Delete under the page (nothing sits on the box)
-  9460ms  alex  OK  date mark added beside the signature
-  9462ms  alex  OK  the toolbar delete names what it deletes
-  9651ms  alex  OK  + Text goes below the last entered date: same left edge, one line down, same size  date at (16.1%, 56.4%) h 3.00 · text at (16.1%, 59.8%) h 3.00
- 10445ms  alex  OK  ⌶ Same size: two text marks of different heights become one height, each bottom where it was  heights 3.00/4.18% → 3.00/3.00%
- 12291ms  alex  OK  + Text with no entry on the page lands at the centre of the current view (zoomed and scrolled), not the page centre  view centre (0.42, 0.51) · mark centre (0.42, 0.51)
- 13668ms  alex  OK  the date SNAPS to the document's own "Date:" line under the signature (fitted, below the box, one text line tall)  date box 56×12 px at +3 px under the signature box
- 14437ms  alex  OK  zoom + renders the page 1.5× wide inside a scroller; the signature keeps its page fractions  page 307→461 px, box left 11.73%→11.73%, 150%
- 14810ms  alex  OK  at zoom the date box is on screen inside the scroller and a drag moves it  box (34,770) scroller (33,433 309×585) under pointer: SPAN
- 15087ms  alex  OK  ⌖ snaps the moved date back onto its "Date:" line (bottom back on the rule, fit = underline)  bottom 788 → moved 777 → snapped 788 px
- 15361ms  alex  OK  a finger drag (touch pointer) moves the signature box at zoom  top 741 → 729 px
- 15653ms  alex  OK  ⌖ snaps the signature box back onto its rule  bottom 766 → 754 → 766 px
- 16628ms  alex  OK  a REAL finger drag on the date box moves ONLY the box — page and scroller do not pan (touch-action none on the mark)  touch-action none/auto · box top 771→731 · scroll {"y":17,"st":0,"sl":74}→{"y":17,"st":0,"sl":74}
- 17350ms  alex  OK  a real finger on empty page at 150 % pans the scroller sideways (only marks are pinned)  scroll {"y":17,"st":0,"sl":74}→{"y":17,"st":0,"sl":154}
- 18004ms  alex  OK  zoom reset returns the page to 100 %
- 19946ms  alex  OK  signature SCRIBBLED with the pointer — ink on the pad, spanning it  ink 3.6 % of the pad, span 74 %
- 20303ms  alex  OK  initials DRAWN on the second pad (physical initials, operator 00:50)
- 20623ms  alex  OK  the scribble previews inside the box, on the signature line
- 24175ms  alex  OK  reload mid-flow → draft restored (files, signers, boxes, stroke) at the draw step
- 24291ms  alex  OK  Sign & save pressed
- 25686ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=1udIEzlhflGE3JCN3h…
- 25823ms  alex  OK  creator keeps his own return link
- 25825ms  alex  OK  the hand-off says three placeholders were left for Daniel
- 25830ms  alex  OK  phone path: sms: composer prefilled to 512.808.8745 with the default script + the link  sms:5128088745?&body=Alex%20Seguin%20asks%20you%20to%20sign%20%22Promi…
- 25833ms  alex  OK  e-mail path (phone contact): mailto: composer carries the same script + link  mailto:?subject=Please%20sign%3A%20Promissory%20Note&body=Al…
- 25836ms  alex  OK  contacts masked on the roster (ex***@… · ***8745)  1. Alex Seguin ex***@exel-ai.comyou ✓ signed 2. Daniel Vail ***8745 their turn now
- 27569ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
- 29710ms  dan   OK  opened the hand-off link, no login
- 29714ms  dan   OK  roster: Alex signed, Daniel now
- 29958ms  dan   OK  PDF page rendered (pdfjs)
- 29979ms  dan   OK  placeholders pre-placed: signature on the BORROWER line (right column, same row as Alex), date under it  sig x=0.500 bottom=0.555 (Alex's rule y=0.557)
- 31877ms  dan   OK  signature SCRIBBLED with the pointer — ink on the pad, spanning it  ink 3.7 % of the pad, span 75 %
- 32219ms  dan   OK  initials DRAWN on the second pad (physical initials, operator 00:50)
- 32226ms  dan   OK  the draw step offers the record's time zone: Central (Austin, Texas) by default, spelled now in CDT/CST, with the device option and the disclaimer  CDT · 2026.09.09 09:26:45 CDT
- 32361ms  dan   OK  Sign & save pressed
- 33158ms  dan   OK  COMPLETE — every signer has signed
- 33162ms  dan   OK  the creator is told: Dan's phone mailed the finished file to Alex through the site's mail, PDF attached (037 creator_contact)  explore@eXeL-AI.com · sign-sample-signed-AS-DV.pdf
- 33166ms  dan   OK  037: the finished file's send row is prefilled with the CREATOR's contact, so it goes straight back to Alex  explore@eXeL-AI.com
- 33308ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
- 33314ms  dan   OK  each stamp sits on ITS signature line (Alex widened his; Daniel's is the placeholder, rule-wide), distinct  [[2,0.12,0.52,0.38],[2,0.5,0.52,0.33]]
- 33320ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
- 33337ms  dan   OK  Light Codex row: Alex (first) at the right edge, Daniel (additional) starts LEFT of him  alex 558.0–594.0 pt · daniel 518.0–554.0 pt
- 33337ms  dan   OK  both signers INITIALLED every page (drawn initials, SoIInit0 + SoIInit1) and the placeholders were recorded for signer 2  initialled [0,1] · holders [[1,"sig"],[1,"date"]]
- 37546ms  dan   OK  signed page rendered to PNG (whole page · signature rows · signatory block)
- 37554ms  dan   OK  signatory rows recorded in the file (keywords): two, with time + hash  [[0,"2026-09-09T14:26:37.280Z","91d05b18"],[1,"2026-09-09T14:26:45.339Z","dcf0a071"]]
- 37604ms  dan   OK  verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)  Consistent — every signature has its box, its pass and its timestamp row; the chain holds. 1 · Recorded signed-sample.pd
- 37787ms  dan   OK  digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text  Alex ×1 · Daniel ×1
- 37801ms  dan   OK  Light Codex from the PDF: the HIDDEN helix on the bottom edge decodes, reverse-verified, no box drawn  {"SoICodexAll":"ALEX SEGUIN 2026.09.09_09:26CDT • DANIEL VAIL 2026.09.09_09:26CDT"}
- 37801ms  dan   OK  Light Codex ALL strip carries every signatory in one line  ALEX SEGUIN 2026.09.09_09:26CDT • DANIEL VAIL 2026.09.09_09:26CDT
- 37805ms  dan   OK  the hidden Light Codex is on EVERY signed page, not just the last (operator 23:25)  pages 1,2 · 2 strips
- 39032ms  dan   OK  page 1 bottom-right rendered to PNG (initials; the codex line is invisible)
- 39087ms  dan   OK  both signers' DRAWN initials on EVERY page (SoIInit0 + SoIInit1)  ["/SoIInit0,/SoIInit1","/SoIInit0,/SoIInit1"] · placeholder labels under paint on 0 pages
- 39132ms  dan   OK  verify-a-signed-file: the unsigned fixture reads "no signatures"
- 46385ms  dan   OK  Light Codex page: uploading the signed PDF lists ALL signatories from the hidden line  All signatories · p.1, 2 · Hidden Helix · 1×1 ALEX SEGUIN 2026.09.09_09:26CDT • DANIEL VAIL 2026.09.09_09:26CD
- 46857ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
- 47300ms  alex  OK  Text on the Done panel hands the signed PDF (with its initials in the name) and the message to the share sheet  [{"n":1,"names":["sign-sample-signed-AS-DV.pdf"],"text":"Alex Seguin signed \"Promissory Note\" on eXeL AI Polling. The signed PDF comes with this message; it carries every signatory's name, time and hash. http://127.0.0.1:3210/soi-session/sign/?e=1udIEzlhflGE3JCN3hFU5Q\n⧉ 298dc47e"}]
- 47372ms  alex  OK  E-mail on the Done panel sends through the site's mail WITH the signed PDF attached (base64, named with the initials, final)  to daniel@example.test · sign-sample-signed-AS-DV.pdf · 59896 b64 chars
- 47373ms  alex  OK  the outgoing message names the record (?e=token) WITHOUT any secret, and ends with the chain hash line  1:3210/soi-session/sign/?e=1udIEzlhflGE3JCN3hFU5Q
-⧉ 298dc47e
- 47432ms  alex  OK  Done panel: one saved link per file — token + own key + &file=<sha8> in the fragment  Q#s=8GcK2Iqw3oH3QzxINiBytw&file=a77d576a
- 47440ms  alex  OK  the link's file key IS the downloaded file's sha256 (first 8 hex) — the receipt's number  a77d576a
- 47869ms  alex  OK  opening the saved file link later: the record opens complete, THAT file is focused and downloads by itself  sign-sample-signed-AS-DV.pdf
- 51874ms  alex  OK  reopening the same file link does not download it again (once per device), the file stays focused
- 52311ms  alex  OK  a malformed or unknown file key is ignored: the record still opens complete, nothing focused
- 57413ms  alex  OK  a kept draft whose token already LANDED opens the completed record instead of asking for the signature again
- 60761ms  alex  OK  a restored draft comes back on the draw step with BOTH pads painted (signature + initials) and Sign & save lit  ink px 848/848
+  5062ms  alex  OK  landing → Sign Doc
+  5075ms  alex  OK  the served migration SQL is current (036 + 037 + 038) and reachable without any diagnostic panel  27921 bytes
+  5082ms  alex  OK  the "Why can't I sign?" disclosure is gone from the sign page
+  6047ms  alex  OK  globe → Español: the page reads Spanish ("Añade el o los PDF a firmar."), then English again  Añade el o los PDF a firmar.
+  6561ms  alex  OK  globe → Français: the Sign Doc strings arrive on demand and the page reads French, then English again  Ajoutez le ou les PDF à signer.
+  6619ms  alex  OK  PDF uploaded, hashed, page-counted
+  6776ms  alex  OK  two signers named (explore@eXeL-AI.com · 512.808.8745)
+  7795ms  alex  OK  PDF page rendered (pdfjs)
+  7854ms  alex  OK  misplaced signature removed
+  7886ms  alex  OK  swipe left turns the page (Divinity Guide gesture, reused)  Page 2 / 2
+  8403ms  alex  OK  signature block found: two rules on one row (lender | borrower)  page 2 y=0.557 x=[0.12–0.45] | [0.50–0.83]
+  8760ms  alex  OK  AI: find my line → the box lands on the lender's rule (provider answered through /api/ai)  x=0.117 bottom=0.556 rule=0.117/0.557
+  9003ms  alex  OK  signature box placed by tap
+  9017ms  alex  OK  box FITS the signature line: rule width, bottom on the rule, no taller than the text above  fit=underline x=[0.117–0.451] bottom=0.556 rule=[0.117–0.450] y=0.557 h=0.034
+  9019ms  alex  OK  the hint says the box was sized to the line
+  9073ms  alex  OK  toolbar names the selected box
+  9193ms  alex  OK  a swipe over the page places nothing
+  9207ms  alex  OK  the resize handle sits at the UPPER-right of the box  handle at (156,196) box top 203
+  9302ms  alex  OK  upper-right drag grows the box up and right; the BASELINE (bottom edge) stays where it was  103×13 → 112×16 px, bottom 216→216
+  9404ms  alex  OK  an accidental date is deleted by the red Delete under the page (nothing sits on the box)
+  9462ms  alex  OK  date mark added beside the signature
+  9464ms  alex  OK  the toolbar delete names what it deletes
+  9662ms  alex  OK  + Text goes below the last entered date: same left edge, one line down, same size  date at (16.1%, 56.4%) h 3.00 · text at (16.1%, 59.8%) h 3.00
+ 10452ms  alex  OK  ⌶ Same size: two text marks of different heights become one height, each bottom where it was  heights 3.00/4.18% → 3.00/3.00%
+ 12327ms  alex  OK  + Text with no entry on the page lands at the centre of the current view (zoomed and scrolled), not the page centre  view centre (0.42, 0.51) · mark centre (0.42, 0.51)
+ 13553ms  alex  OK  the date SNAPS to the document's own "Date:" line under the signature (fitted, below the box, one text line tall)  date box 56×12 px at +3 px under the signature box
+ 14329ms  alex  OK  zoom + renders the page 1.5× wide inside a scroller; the signature keeps its page fractions  page 307→461 px, box left 11.73%→11.73%, 150%
+ 14717ms  alex  OK  at zoom the date box is on screen inside the scroller and a drag moves it  box (34,423) scroller (33,86 309×585) under pointer: SPAN
+ 14994ms  alex  OK  ⌖ snaps the moved date back onto its "Date:" line (bottom back on the rule, fit = underline)  bottom 441 → moved 430 → snapped 441 px
+ 15265ms  alex  OK  a finger drag (touch pointer) moves the signature box at zoom  top 394 → 382 px
+ 15562ms  alex  OK  ⌖ snaps the signature box back onto its rule  bottom 419 → 407 → 419 px
+ 16534ms  alex  OK  a REAL finger drag on the date box moves ONLY the box — page and scroller do not pan (touch-action none on the mark)  touch-action none/auto · box top 424→384 · scroll {"y":316,"st":0,"sl":74}→{"y":316,"st":0,"sl":74}
+ 17241ms  alex  OK  a real finger on empty page at 150 % pans the scroller sideways (only marks are pinned)  scroll {"y":316,"st":0,"sl":74}→{"y":316,"st":0,"sl":154}
+ 17893ms  alex  OK  zoom reset returns the page to 100 %
+ 19746ms  alex  OK  signature SCRIBBLED with the pointer — ink on the pad, spanning it  ink 3.7 % of the pad, span 74 %
+ 20111ms  alex  OK  initials DRAWN on the second pad (physical initials, operator 00:50)
+ 20430ms  alex  OK  the scribble previews inside the box, on the signature line
+ 22829ms  alex  OK  reload mid-flow → draft restored (files, signers, boxes, stroke) at the draw step
+ 22917ms  alex  OK  Sign & save pressed
+ 23737ms  alex  OK  saved — hand-off link minted for Daniel  http://127.0.0.1:3210/soi-session/sign/?e=4Knj8KVIfiKcFoyLtq…
+ 23806ms  alex  OK  creator keeps his own return link
+ 23808ms  alex  OK  the hand-off says three placeholders were left for Daniel
+ 23811ms  alex  OK  phone path: sms: composer prefilled to 512.808.8745 with the default script + the link  sms:5128088745?&body=Alex%20Seguin%20asks%20you%20to%20sign%20%22Promi…
+ 23813ms  alex  OK  e-mail path (phone contact): mailto: composer carries the same script + link  mailto:?subject=Please%20sign%3A%20Promissory%20Note&body=Al…
+ 23815ms  alex  OK  contacts masked on the roster (ex***@… · ***8745)  1. Alex Seguin ex***@exel-ai.comyou ✓ signed 2. Daniel Vail ***8745 their turn now
+ 25391ms  alex  OK  a wrong secret sees no files and no turn  This link's secret does not match any signer of this document.
+ 27134ms  dan   OK  opened the hand-off link, no login
+ 27137ms  dan   OK  roster: Alex signed, Daniel now
+ 27373ms  dan   OK  PDF page rendered (pdfjs)
+ 27398ms  dan   OK  placeholders pre-placed: signature on the BORROWER line (right column, same row as Alex), date under it  sig x=0.500 bottom=0.555 (Alex's rule y=0.557)
+ 29336ms  dan   OK  signature SCRIBBLED with the pointer — ink on the pad, spanning it  ink 3.7 % of the pad, span 75 %
+ 29677ms  dan   OK  initials DRAWN on the second pad (physical initials, operator 00:50)
+ 29685ms  dan   OK  the draw step offers the record's time zone: Central (Austin, Texas) by default, spelled now in CDT/CST, with the device option and the disclaimer  CDT · 2026.09.09 09:34:10 CDT
+ 29834ms  dan   OK  Sign & save pressed
+ 30634ms  dan   OK  COMPLETE — every signer has signed
+ 30640ms  dan   OK  the creator is told: Dan's phone mailed the finished file to Alex through the site's mail, PDF attached (037 creator_contact)  explore@eXeL-AI.com · sign-sample-signed-AS-DV.pdf
+ 30657ms  dan   OK  037: the finished file's send row is prefilled with the CREATOR's contact, so it goes straight back to Alex  explore@eXeL-AI.com
+ 30766ms  dan   OK  downloaded PDF carries two signature images  SoISig count = 2
+ 30771ms  dan   OK  each stamp sits on ITS signature line (Alex widened his; Daniel's is the placeholder, rule-wide), distinct  [[2,0.12,0.52,0.38],[2,0.5,0.52,0.33]]
+ 30777ms  dan   OK  two date marks stamped (one per signer)  SoITxt count = 2
+ 30792ms  dan   OK  Light Codex row: Alex (first) at the right edge, Daniel (additional) starts LEFT of him  alex 558.0–594.0 pt · daniel 518.0–554.0 pt
+ 30792ms  dan   OK  both signers INITIALLED every page (drawn initials, SoIInit0 + SoIInit1) and the placeholders were recorded for signer 2  initialled [0,1] · holders [[1,"sig"],[1,"date"]]
+ 34593ms  dan   OK  signed page rendered to PNG (whole page · signature rows · signatory block)
+ 34602ms  dan   OK  signatory rows recorded in the file (keywords): two, with time + hash  [[0,"2026-09-09T14:34:03.373Z","91d05b18"],[1,"2026-09-09T14:34:10.254Z","3dda0999"]]
+ 34648ms  dan   OK  verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)  Consistent — every signature has its box, its pass and its timestamp row; the chain holds. 1 · Recorded signed-sample.pd
+ 34836ms  dan   OK  digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text  Alex ×1 · Daniel ×1
+ 34851ms  dan   OK  Light Codex from the PDF: the HIDDEN helix on the bottom edge decodes, reverse-verified, no box drawn  {"SoICodexAll":"ALEX SEGUIN 2026.09.09_09:34CDT • DANIEL VAIL 2026.09.09_09:34CDT"}
+ 34851ms  dan   OK  Light Codex ALL strip carries every signatory in one line  ALEX SEGUIN 2026.09.09_09:34CDT • DANIEL VAIL 2026.09.09_09:34CDT
+ 34854ms  dan   OK  the hidden Light Codex is on EVERY signed page, not just the last (operator 23:25)  pages 1,2 · 2 strips
+ 36050ms  dan   OK  page 1 bottom-right rendered to PNG (initials; the codex line is invisible)
+ 36102ms  dan   OK  both signers' DRAWN initials on EVERY page (SoIInit0 + SoIInit1)  ["/SoIInit0,/SoIInit1","/SoIInit0,/SoIInit1"] · placeholder labels under paint on 0 pages
+ 36137ms  dan   OK  verify-a-signed-file: the unsigned fixture reads "no signatures"
+ 38487ms  dan   OK  Light Codex page: uploading the signed PDF lists ALL signatories from the hidden line  All signatories · p.1, 2 · Hidden Helix · 1×1 ALEX SEGUIN 2026.09.09_09:34CDT • DANIEL VAIL 2026.09.09_09:34CD
+ 38964ms  alex  OK  creator reopens with his own link → COMPLETE, downloads offered
+ 39411ms  alex  OK  Text on the Done panel hands the signed PDF (with its initials in the name) and the message to the share sheet  [{"n":1,"names":["sign-sample-signed-AS-DV.pdf"],"text":"Alex Seguin signed \"Promissory Note\" on eXeL AI Polling. The signed PDF comes with this message; it carries every signatory's name, time and hash. http://127.0.0.1:3210/soi-session/sign/?e=4Knj8KVIfiKcFoyLtqwhiA\n⧉ f4422a98"}]
+ 39483ms  alex  OK  E-mail on the Done panel sends through the site's mail WITH the signed PDF attached (base64, named with the initials, final)  to daniel@example.test · sign-sample-signed-AS-DV.pdf · 60208 b64 chars
+ 39484ms  alex  OK  the outgoing message names the record (?e=token) WITHOUT any secret, and ends with the chain hash line  1:3210/soi-session/sign/?e=4Knj8KVIfiKcFoyLtqwhiA
+⧉ f4422a98
+ 39543ms  alex  OK  Done panel: one saved link per file — token + own key + &file=<sha8> in the fragment  A#s=17mx45dMAztJx1IGt_Jy5w&file=7f4e526a
+ 39552ms  alex  OK  the link's file key IS the downloaded file's sha256 (first 8 hex) — the receipt's number  7f4e526a
+ 39987ms  alex  OK  opening the saved file link later: the record opens complete, THAT file is focused and downloads by itself  sign-sample-signed-AS-DV.pdf
+ 43992ms  alex  OK  reopening the same file link does not download it again (once per device), the file stays focused
+ 44420ms  alex  OK  a malformed or unknown file key is ignored: the record still opens complete, nothing focused
+ 49042ms  alex  OK  a kept draft whose token already LANDED opens the completed record instead of asking for the signature again
+ 53301ms  alex  OK  a restored draft comes back on the draw step with BOTH pads painted (signature + initials) and Sign & save lit  ink px 848/848

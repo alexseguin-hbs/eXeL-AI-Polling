@@ -56,7 +56,7 @@ const dateIn = (locale: string, d: Date, opts: Intl.DateTimeFormatOptions, time 
 import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt, type ViewCenter } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
-import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
+import { type AuthState } from "@/components/sign/sign-diag";
 import { SignReceipt } from "@/components/sign/receipt";
 import { SendRow } from "@/components/sign/send-row";
 import { sendSignerEmail } from "@/lib/notify";
@@ -148,7 +148,6 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const auth = useAuth0();
   const loggedIn = needLogin && auth.isAuthenticated;
   const authState: AuthState = needLogin ? (loggedIn ? "in" : "guarded") : "bypassed";
-  const [diagOpen, setDiagOpen] = useState(false);
   const [resumed, setResumed] = useState(false);
   const snapshot = (): Draft => ({ title, files: files.map((f) => ({ name: f.name, base64: f.base64 })), signers, marks, png, initialsPng, token: pendingToken.current, secret: envRef.current?.signers[0]?.secret ?? "" });
   const login = () => { keepDraft(snapshot()); setStep("login"); void auth.loginWithRedirect({ appState: { returnTo: returnTo ?? window.location.pathname } }); };
@@ -177,8 +176,6 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   }, [countersign]);
   // the draft is kept from the draw step on (files, signers, boxes, stroke) — a reload comes back to it
   useEffect(() => { if (!countersign && step === "draw" && files.length) keepDraft(snapshot()); }, [step, png]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (err) setDiagOpen(true); }, [err]);                                            // any error opens the diagnosis
-  useEffect(() => { if (multiLocal(signers.length, mode, step)) setDiagOpen(true); }, [signers.length, mode, step]);
   useEffect(() => {                                                                                    // 30-s watchdog: the page says so instead of hanging
     if (step !== "saving") return;
     const id = setTimeout(() => setErr(t("soi.sign.err.slow")), 30_000);
@@ -320,6 +317,14 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     void download(signed[focusIdx], true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, focusIdx]);
+  // The route to the migration SQL, which used to live inside the removed "Why can't I sign?" disclosure (operator 04:59 CST).
+  // It appears only where it is actionable: on a panel that already says the database did not take the record.
+  const SqlRoute = () => (
+    <span className="mt-2 flex flex-wrap gap-2" data-testid="sql-route">
+      <button type="button" onClick={() => { void (async () => { try { const r = await fetch("/sql/036_sign_envelopes.sql"); if (r.ok) await navigator.clipboard.writeText(await r.text()); } catch { /* the link beside it still opens the file */ } })(); }} className="min-h-[44px] rounded-md bg-primary px-3 text-primary-foreground" data-testid="copy-sql">{t("soi.sign.diag.copy_sql")}</button>
+      <a href="/sql/036_sign_envelopes.sql" target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center rounded-md border border-border px-3" data-testid="open-sql">{t("soi.sign.diag.open_sql")}</a>
+    </span>
+  );
   const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
   // "remove field and redo" (operator 2026-09-08 22:40): a carried file's LAST signer may open his own text marks again —
   // remove or retype them — and save; the signature, initials, codex row and hidden strip stay. Never a later signer's record.
@@ -674,7 +679,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       <p className="mb-4 text-sm text-primary" data-testid="explain" aria-live="polite">{explain}</p>
       {err && <p className="mb-3 rounded-md border border-red-500/40 bg-red-500/5 p-2 text-xs text-red-500" data-testid="error">{err}</p>}
       {resumed && <p className="mb-3 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs text-primary" data-testid="resumed">{t("soi.sign.x.resumed")}</p>}
-      <SignDiag d={{ mode, auth: authState, authName: auth.user?.email ?? auth.user?.name, multi: countersign ? (pub?.signers.length ?? 2) > 1 : multi, err, step, stage: failStage }} open={diagOpen} onToggle={() => setDiagOpen((o) => !o)} />
+      {/* "Why can't I sign?" removed at the operator's explicit instruction (2026-09-09 04:59 CST). The red error line above
+          still names the step and the reason, and the outcome panel now always carries the file, so the disclosure had nothing
+          left to explain. SignDiag itself is kept for the diagnostics page. */}
 
       {/* ── UPLOAD ── */}
       {step === "upload" && (
@@ -824,6 +831,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
               <div className="text-sm font-medium text-amber-500">{t("soi.sign.handoff.offline_title")}</div>
               <p className="mt-1 text-xs text-muted-foreground">{t(`soi.sign.err.${offline || "no_backend"}`)}</p>
               <p className="mt-2 text-xs">{t("soi.sign.handoff.offline").replace("{next}", nextName || nextContact)}</p>
+              <SqlRoute />
               {tmpLink && (
                 <div className="mt-3 rounded-md border border-border bg-background p-2" data-testid="tmp-link">
                   <div className="font-medium text-foreground">{t("soi.sign.tmp.title")}</div>
@@ -866,7 +874,13 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
-          {offline && mode === "local" && <p className="mt-2 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-[11px]" data-testid="local-why">{t(`soi.sign.err.${offline}`)}</p>}
+          {offline && mode === "local" && (
+            <div className="mt-2 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-[11px]" data-testid="local-why">
+              {t(`soi.sign.err.${offline}`)}
+              {/* the disclosure that used to carry the migration SQL is gone (operator 04:59 CST); the route to it lives here now */}
+              {/no_migration|migration_incomplete|no_backend/.test(offline) && <SqlRoute />}
+            </div>
+          )}
           {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pub?.signers[0]?.name ?? "")}</p>}
           {/* the message carries the RECORD link (no secret — Thor) and the chain hash; the saved link below is the holder's own key */}
           <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink ? recordLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "") : undefined} chain={pub?.chain} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} focus={focusIdx} /></div>
