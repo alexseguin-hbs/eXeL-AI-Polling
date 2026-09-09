@@ -501,4 +501,30 @@ fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
   const dlR = P.waitForEvent('download', { timeout: 15000 }); await P.getByTestId('send-download').first().click(); const gotR = await dlR.then((d) => d.suggestedFilename()).catch(() => '');
   step('alex', 'and the stamped file downloads', /-signed-AS\.pdf$/.test(gotR), gotR);
   await shot(P, 'alex', '10-refused-at-create'); await F.close(); }
+// ONE signer vs SEVERAL (operator 10:05): (a) a solo signer with the store answering → a SHARED record: Done, no LOCAL ONLY badge, the saved
+// link block present; (b) two signers and the database refusing at create → the OFFLINE hand-off block with the reason and the send row
+{ const solo = async (P, refuse) => {
+    if (refuse) await P.route('**/rest/v1/rpc/sign_envelope_create', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: '42883', message: 'function digest(bytea, unknown) does not exist' }) }));
+    await P.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(P);
+    await P.getByPlaceholder(/Promissory/).fill(refuse ? 'Two signers, refused' : 'One signer, shared'); await P.getByTestId('file-input').setInputFiles(FIXTURE); await P.getByRole('button', { name: /who signs/ }).waitFor({ timeout: 20000 }); await P.getByRole('button', { name: /who signs/ }).click();
+    await P.getByTestId('signer-name-0').fill('Alex Seguin'); await P.getByTestId('signer-contact-0').fill('explore@exel-ai.com');
+    if (refuse) { await P.getByTestId('signer-name-1').fill('Daniel Vail'); await P.getByTestId('signer-contact-1').fill('512.808.8745'); } else await P.locator('button[aria-label]:has-text("✕")').first().click();
+    await P.getByRole('button', { name: /place your signature/ }).click();
+    const pg = P.getByTestId('pdf-page'); await pg.locator('canvas').first().waitFor({ timeout: 60000 });
+    const bb = await pg.boundingBox(); await P.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3); await P.getByTestId('sig-box').waitFor();
+    await P.getByTestId('to-draw').click(); await scribble(P, 'alex'); await drawInitials(P, 'alex');
+    await P.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 }); await P.getByTestId('sign-button').click();
+  };
+  const G = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, acceptDownloads: true }); const P1 = await G.newPage();
+  await solo(P1, false); await P1.getByTestId('downloads').waitFor({ timeout: 60000 }); await P1.getByTestId('saved-links').waitFor({ timeout: 20000 });
+  const badge = await P1.getByText(/LOCAL ONLY/i).count();
+  step('alex', 'ONE signer, the store answers → a SHARED record: Done panel, no LOCAL ONLY badge, the saved link to the file present', badge === 0 && (await P1.getByTestId('file-link-url-1').count()) === 1 && (await P1.getByTestId('local-why').count()) === 0 && (await P1.getByTestId('send-download').count()) === 1);
+  await shot(P1, 'alex', '11-one-signer-shared'); await G.close();
+  const H = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, acceptDownloads: true }); const P2 = await H.newPage();
+  await solo(P2, true); await P2.getByTestId('offline-handoff').waitFor({ timeout: 60000 });
+  const why2 = await P2.getByTestId('offline-handoff').innerText();
+  step('alex', 'TWO signers, the database refuses at create → the OFFLINE hand-off block: the reason named, the file travels by Download · Text · E-mail', /migration is incomplete|paste/i.test(why2) && /Daniel Vail|5128088745|512\.808\.8745/.test(why2) && (await P2.getByTestId('share-file').count()) === 1 && (await P2.getByTestId('send-text').count()) === 1 && (await P2.getByTestId('send-email-file').count()) === 1, why2.replace(/\s+/g, ' ').slice(0, 90));
+  const dl3 = P2.waitForEvent('download', { timeout: 15000 }); await P2.getByTestId('send-download').first().click(); const got3 = await dl3.then((d) => d.suggestedFilename()).catch(() => '');
+  step('alex', 'and the partly-signed file downloads for the hand-off', /-partly-signed-AS\.pdf$/.test(got3), got3);
+  await shot(P2, 'alex', '12-two-signers-refused'); await H.close(); }
 await browser.close(); console.log(`\nSIGN 2-PHONE LIVE RUN: ${log.length} steps, 0 failures`);
