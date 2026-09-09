@@ -352,3 +352,18 @@ two-phone run now proves, on top of waves 1–11 (**62 steps, 0 failures**):
 - **Text at the document's size** — a fitted date is sized from the ink height of the label beside the rule
   (`textH × 1.9`), bottom on the rule; the live note's 27-pt date becomes an 11-pt one.
 Offline hand-off 17/17 · scan 8/8 · pod 45/45 · test:ci green (innovation-time 3680/3680 at `/SoI-2525`).
+
+## Wave 13 — 2026-09-09 01:45 UTC: the whole Sign Doc / Session UX in 33 languages, Create Doc drafted by AI, migration 037, the creator told
+
+- **33 languages** — 31 files under `lib/i18n-sign/`, every one of the 369 strings, fetched on demand when the Globe selects the
+  language; the two-phone run switches to Français and reads "Ajoutez le ou les PDF à signer." before switching back. Strict gate:
+  `sign-i18n-all` 125/125.
+- **Create Doc** — "Draft with AI" first: a prompt and the names; Claude (claude-opus-5), OpenAI, Grok or Gemini writes the whole
+  document into editable fields; no promissory / lender / borrower defaults. Browser check: AI mode by default, Claude in the list,
+  the names in the request, the draft's sections in the fields.
+- **Migration 037** — `next_contact` for a middle signer, `creator_contact` on completion, and the wrong-secret refusal returned
+  instead of raised (under 036 the raise rolled the counter back and the lock never engaged). Proven on a real Postgres: `sign-rpc`
+  12/12 with three signers. The diag panel's SQL copy now carries 036 + 037 in one paste.
+- **The creator is told** — Dan's phone mails the finished `sign-sample-signed-AS-DV.pdf` to Alex through the site's mail on completion
+  (or the prefilled send row and a line say what to do). Two-phone **82 steps, 0 failures**.
+Offline 17/17 · scan 8/8 · pod 45/45. Live: 2c9bc51 ✓ (01:41Z); 6618b4a verifying.
