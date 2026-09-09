@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Nog geen AI-sleutel op deze site. Schrijf het document zelf, of vraag de eigenaar van de site om een sleutel van Anthropic, OpenAI, Grok of Gemini toe te voegen.",
   "soi.sign.creator_mailed": "Het voltooide bestand is via e-mail naar {name} gestuurd, met de PDF als bijlage.",
   "soi.sign.creator_mail_manual": "Stuur het voltooide bestand hieronder via Sms of E-mail terug naar {name}.",
+  "soi.sign.saved.title": "Opgeslagen link — dit bestand",
+  "soi.sign.saved.hint": "Opent later precies dit ondertekende bestand, als jou, vanaf elke telefoon of computer — een voltooid document verloopt nooit. Hij bevat je sleutel: bewaar hem en stuur hem nooit door. Om iemand het bestand te geven, gebruik je Sms of E-mail hierboven.",
+  "soi.sign.saved.file": "Bestand {n}",
+  "soi.sign.err.migration_incomplete": "De databasemigratie van deze site is onvolledig (036 is toegepast, 038 niet: plak de aangeleverde SQL opnieuw). Je handtekening is gezet en bewaard op deze telefoon: download het bestand en stuur het door via Sms of E-mail.",
 };
 export default T;

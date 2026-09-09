@@ -36,7 +36,7 @@ async function trimToInk(f: File): Promise<File | null> {
   } catch { return null; }
 }
 
-export function SignaturePad({ onChange, height = 160, label }: { onChange: (png: string | null) => void; height?: number; /** aria-label of the canvas (default: the signature prompt) */ label?: string }) {
+export function SignaturePad({ onChange, height = 160, label, value }: { onChange: (png: string | null) => void; height?: number; /** aria-label of the canvas (default: the signature prompt) */ label?: string; /** strokes already drawn (a restored draft, a save that failed) — painted on mount so the pad never asks for a signature it holds (operator 2026-09-09) */ value?: string | null }) {
   const { t } = useLexicon();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -52,7 +52,22 @@ export function SignaturePad({ onChange, height = 160, label }: { onChange: (png
     const ctx = c.getContext("2d"); if (!ctx) return;
     ctx.scale(dpr, dpr); ctx.lineWidth = 2.2; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#0b1a2a";
   };
-  useEffect(() => { setup(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setup();
+    // paint the strokes the flow already holds: fitted inside the pad, centred (the PNG is the ink's bounding box)
+    const c = canvasRef.current; if (!c || !value) return;
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const ctx = c.getContext("2d"); if (!ctx) return;
+        const w = c.clientWidth || 300, h = height, m = 8;
+        const k = Math.min((w - 2 * m) / img.width, (h - 2 * m) / img.height, 1);
+        ctx.drawImage(img, (w - img.width * k) / 2, (h - img.height * k) / 2, img.width * k, img.height * k);
+        setEmpty(false);
+      } catch { /* the pad stays blank; drawing still works */ }
+    };
+    img.src = value;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pos = (e: PointerEvent | React.PointerEvent) => {
     const c = canvasRef.current!; const r = c.getBoundingClientRect();

@@ -4,7 +4,7 @@
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
 Object.defineProperty(globalThis, "navigator", { value: { userAgent: "node-test" }, configurable: true });
-const { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError } = await import("../lib/sign-store.ts");
+const { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, rpcErrorCode } = await import("../lib/sign-store.ts");
 const { newEnvelope, applySignature } = await import("../lib/sign-envelope.ts");
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const file = { name: "n.pdf", page_count: 1, pdf_base64: "JVBERi0=", sha256: "aa", version: 0 };
@@ -21,4 +21,9 @@ const next = applySignature(one, 0, one.signers[0].secret, "2026-09-07T00:00:00Z
 const signed = await signEnvelope(one.token, 0, one.signers[0].secret, next.files, "c1", next);
 ok(signed.status === "complete" && signed.files?.[0].version === 1 && signed.next_secret === null, "local sign completes a one-signer envelope");
 let nf = ""; try { await getEnvelope("missing", ""); } catch (e) { nf = e.code; } ok(nf === "not_found", "unknown token → not_found");
+// the RPC error mapping (operator 2026-09-09, the signature loop): 42883 inside an RPC = the migration is incomplete (038 not pasted)
+ok(rpcErrorCode(new Error("function digest(bytea, unknown) does not exist")).code === "migration_incomplete", "42883 'function … does not exist' → migration_incomplete");
+ok(rpcErrorCode({ message: "42883: function extensions.gen_random_bytes(integer) does not exist", code: "42883" }).code === "migration_incomplete", "the code alone → migration_incomplete");
+ok(rpcErrorCode(new Error("relation sign_envelopes does not exist")).code === "rpc_error", "a missing table is not the function case");
+ok(rpcErrorCode(new Error("duplicate key value violates unique constraint")).code === "duplicate" && rpcErrorCode(new Error("bad_secret")).code === "bad_secret" && rpcErrorCode(new Error("Failed to fetch")).code === "unreachable", "the other codes are unchanged");
 console.log(`sign-store: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

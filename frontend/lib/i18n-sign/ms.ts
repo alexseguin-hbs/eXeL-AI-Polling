@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Belum ada kunci AI di laman ini. Tulis dokumen itu sendiri, atau minta pemilik laman menambah kunci Anthropic, OpenAI, Grok atau Gemini.",
   "soi.sign.creator_mailed": "Fail yang lengkap telah dihantar melalui e-mel kepada {name} dengan PDF dilampirkan.",
   "soi.sign.creator_mail_manual": "Hantar semula fail yang lengkap kepada {name} melalui Teks atau E-mel di bawah.",
+  "soi.sign.saved.title": "Pautan tersimpan — fail ini",
+  "soi.sign.saved.hint": "Membuka semula fail bertandatangan ini kemudian, sebagai anda, dari mana-mana telefon atau komputer — rekod yang lengkap tidak pernah luput. Ia mengandungi kunci anda: simpan, jangan sekali-kali majukan. Untuk memberikan fail kepada seseorang, gunakan Teks atau E-mel di atas.",
+  "soi.sign.saved.file": "Fail {n}",
+  "soi.sign.err.migration_incomplete": "Migrasi pangkalan data laman ini belum lengkap (036 telah digunakan, 038 belum: tampal semula SQL yang disediakan). Tandatangan anda telah dicap dan disimpan di telefon ini: muat turun fail dan hantarkannya melalui Teks atau E-mel.",
 };
 export default T;

@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "このサイトにはまだ AI キーがありません。文書をご自身で書くか、サイトの所有者に Anthropic、OpenAI、Grok、Gemini のいずれかのキーを追加するよう依頼してください。",
   "soi.sign.creator_mailed": "完了したファイルは PDF を添付して {name} にメールで送信されました。",
   "soi.sign.creator_mail_manual": "下の SMS またはメールで、完了したファイルを {name} に送り返してください。",
+  "soi.sign.saved.title": "保存済みリンク — このファイル",
+  "soi.sign.saved.hint": "後でこの署名済みファイルそのものを、あなたとして、どの電話やパソコンからでも開けます。完了した記録に期限はありません。このリンクにはあなたの鍵が含まれています。保管し、決して転送しないでください。ファイルを誰かに渡すには、上の SMS またはメールを使ってください。",
+  "soi.sign.saved.file": "ファイル {n}",
+  "soi.sign.err.migration_incomplete": "このサイトのデータベース移行が完了していません（036 は適用済みですが 038 は未適用です。配信された SQL をもう一度貼り付けてください）。あなたの署名は押印され、この電話に保存されています。ファイルをダウンロードして SMS またはメールで送ってください。",
 };
 export default T;

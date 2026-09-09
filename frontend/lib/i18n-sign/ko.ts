@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "이 사이트에는 아직 AI 키가 없습니다. 문서를 직접 쓰거나, 사이트 소유자에게 Anthropic, OpenAI, Grok 또는 Gemini 키를 추가해 달라고 요청하세요.",
   "soi.sign.creator_mailed": "완료된 파일을 PDF 첨부와 함께 {name}에게 이메일로 보냈습니다.",
   "soi.sign.creator_mail_manual": "아래 문자 또는 이메일로 완료된 파일을 {name}에게 다시 보내세요.",
+  "soi.sign.saved.title": "저장된 링크 — 이 파일",
+  "soi.sign.saved.hint": "나중에 어느 전화나 컴퓨터에서든 당신으로서 바로 이 서명된 파일을 엽니다. 완료된 기록은 만료되지 않습니다. 이 링크에는 당신의 키가 들어 있으니 잘 보관하고 절대 전달하지 마세요. 파일을 누군가에게 주려면 위의 문자 또는 이메일을 사용하세요.",
+  "soi.sign.saved.file": "파일 {n}",
+  "soi.sign.err.migration_incomplete": "이 사이트의 데이터베이스 마이그레이션이 완료되지 않았습니다(036은 적용되었지만 038은 아닙니다. 제공된 SQL을 다시 붙여넣으세요). 당신의 서명은 날인되어 이 전화에 보관되어 있습니다. 파일을 다운로드하여 문자 또는 이메일로 보내세요.",
 };
 export default T;

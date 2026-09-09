@@ -22,7 +22,7 @@ import { AUTH0_CLIENT_ID, AUTH0_DOMAIN } from "@/lib/constants";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoiGlobe } from "@/components/soi-globe";
 import { base64ToBytes } from "@/lib/pdf-render";
-import { secretFromLocation } from "@/lib/sign-envelope";
+import { secretFromLocation, fileFromLocation } from "@/lib/sign-envelope";
 import { getTempFile } from "@/lib/tmpfile";
 
 const AUTH_OFF = !AUTH0_DOMAIN || !AUTH0_CLIENT_ID || process.env.NEXT_PUBLIC_SIGN_NO_AUTH === "1";
@@ -56,14 +56,14 @@ const wasSeeded = (token: string): boolean => { try { return sessionStorage.getI
 const markSeeded = (token: string) => { try { sessionStorage.setItem(SEEDED_KEY(token), "1"); } catch { /* storage unreadable: the flow's own draft guard still holds */ } };
 
 export default function SignPage() {
-  const [q, setQ] = useState<{ e: string; s: string } | null>(null);
+  const [q, setQ] = useState<{ e: string; s: string; file: string } | null>(null);   // file: the saved link's one file (sha8), operator 2026-09-09
   const [seed, setSeed] = useState<{ name: string; bytes: Uint8Array } | null>(null);
   const [tmpState, setTmpState] = useState<"" | "ok" | "gone">("");
   const [fileLink, setFileLink] = useState("");                 // the ?f= token: this reader is a hand-off recipient, not a creator
   useEffect(() => {
     // The secret lives in the fragment, and a fragment-only navigation does not reload the page —
     // so re-read on hashchange/popstate too, and remount the flow (key below) when the link changes.
-    const read = () => { const p = new URLSearchParams(window.location.search); setQ({ e: p.get("e") ?? "", s: secretFromLocation(window.location.search, window.location.hash) }); };
+    const read = () => { const p = new URLSearchParams(window.location.search); setQ({ e: p.get("e") ?? "", s: secretFromLocation(window.location.search, window.location.hash), file: fileFromLocation(window.location.hash) }); };
     read();
     window.addEventListener("hashchange", read); window.addEventListener("popstate", read);
     const off = () => { window.removeEventListener("hashchange", read); window.removeEventListener("popstate", read); };
@@ -86,7 +86,7 @@ export default function SignPage() {
     <div className="mx-auto max-w-3xl px-4 py-6">
       <Header />
       {q.e ? (
-        <SignFlow key={`${q.e}:${q.s}`} token={q.e} secret={q.s} />
+        <SignFlow key={`${q.e}:${q.s}:${q.file}`} token={q.e} secret={q.s} file={q.file || undefined} />
       ) : (
         <>
           {tmpState === "gone" && <p className="mb-3 rounded-md border border-red-500/40 bg-red-500/5 p-2 text-xs text-red-500" data-testid="tmp-gone"><TmpGone /></p>}

@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Na tomto webu zatím není žádný klíč AI. Napište dokument sami, nebo požádejte majitele webu, aby přidal klíč Anthropic, OpenAI, Grok nebo Gemini.",
   "soi.sign.creator_mailed": "Dokončený soubor byl odeslán e-mailem na {name} s přiloženým PDF.",
   "soi.sign.creator_mail_manual": "Pošlete dokončený soubor zpět na {name} pomocí SMS nebo E-mailu níže.",
+  "soi.sign.saved.title": "Uložený odkaz — tento soubor",
+  "soi.sign.saved.hint": "Později otevře přesně tento podepsaný soubor jako vy, z jakéhokoli telefonu nebo počítače — dokončený záznam nikdy nevyprší. Obsahuje váš klíč: uschovejte ho, nikdy ho nepřeposílejte. Chcete-li soubor někomu předat, použijte SMS nebo E-mail výše.",
+  "soi.sign.saved.file": "Soubor {n}",
+  "soi.sign.err.migration_incomplete": "Migrace databáze tohoto webu je neúplná (036 je aplikována, 038 není: vložte poskytnuté SQL znovu). Váš podpis je orazítkován a uložen v tomto telefonu: stáhněte soubor a pošlete ho dál pomocí SMS nebo E-mailu.",
 };
 export default T;

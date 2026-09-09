@@ -13,20 +13,22 @@
 import { useEffect, useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { IconDownload } from "@/components/download-icon";
-import { handoffMessage, contactKind, normalizeContact } from "@/lib/sign-envelope";
-import { sendSignerEmail } from "@/lib/notify";
+import { handoffMessage, contactKind, normalizeContact, shortHash } from "@/lib/sign-envelope";
+import { sendSignerEmail, mailFits, type MailAttachment } from "@/lib/notify";
 import { bytesToBase64 } from "@/lib/pdf-render";
 
 export interface SendFile { name: string; bytes: Uint8Array }
 type State = "" | "shared" | "sent" | "composer" | "copied" | "mail_manual" | "failed";
 
-export function SendRow({ files, final, title, sender, link, toDefault, download, fileName, message }: {
+export function SendRow({ files, final, title, sender, link, toDefault, download, fileName, message, chain, focus }: {
   files: SendFile[]; final: boolean; title: string; sender: string;
   /** a record / hand-off / 24-hour link to put in the message, when one exists */ link?: string;
   /** the other party's contact, when known (prefills the e-mail address and the sms: number) */ toDefault?: string;
   download: (f: SendFile, final: boolean) => Promise<void>;
   /** the outgoing file name (with the signers' initials) */ fileName: (f: SendFile, final: boolean) => Promise<string>;
   /** the message text (script) — default: the lexicon's done / hand-off template */ message?: string;
+  /** the record's chain hash — one language-neutral line in the message so the recipient can verify what arrived (Pangu) */ chain?: string;
+  /** the file a saved link named: its ⤓ is marked (operator 2026-09-09) */ focus?: number;
 }) {
   const { t } = useLexicon();
   const [to, setTo] = useState(toDefault && contactKind(toDefault) === "email" ? toDefault : "");
@@ -34,7 +36,7 @@ export function SendRow({ files, final, title, sender, link, toDefault, download
   const [state, setState] = useState<State>("");
   const [busy, setBusy] = useState(false);
   const isPhone = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const msg = message ?? handoffMessage(sender, title, link ?? "", t(final ? "soi.sign.send.done_template" : "soi.sign.handoff.offline_template"));
+  const msg = (message ?? handoffMessage(sender, title, link ?? "", t(final ? "soi.sign.send.done_template" : "soi.sign.handoff.offline_template"))) + (chain ? `\n⧉ ${shortHash(chain)}` : "");
   const nav = typeof navigator !== "undefined" ? (navigator as Navigator & { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> }) : null;
   const asFiles = async () => Promise.all(files.map(async (f) => new File([f.bytes as BlobPart], await fileName(f, final), { type: "application/pdf" })));
   /** the phone's share sheet with the PDF(s) — true when it took them */
@@ -61,8 +63,12 @@ export function SendRow({ files, final, title, sender, link, toDefault, download
       const addr = to.trim();
       if (addr && contactKind(addr) === "email" && files[0]) {
         try {
-          const r = await sendSignerEmail({ to: addr, sender, title, link, final, attachment: { name: await fileName(files[0], final), base64: bytesToBase64(files[0].bytes) } });
-          if (r === "sent") { setState("sent"); return; }
+          // EVERY file rides along (operator 2026-09-09: "email with attachments"); over the Worker's caps the composer + downloads path below is the way
+          const all: MailAttachment[] = await Promise.all(files.map(async (f) => ({ name: await fileName(f, final), base64: bytesToBase64(f.bytes) })));
+          if (mailFits(all)) {
+            const r = await sendSignerEmail({ to: addr, sender, title, link, final, attachment: all[0], attachments: all.slice(1) });
+            if (r === "sent") { setState("sent"); return; }
+          }
         } catch { /* fall through to the composer */ }
       }
       await downloadAll();
@@ -74,7 +80,7 @@ export function SendRow({ files, final, title, sender, link, toDefault, download
   return (
     <div data-testid="send-row">
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {files.map((f) => <span key={f.name} className="inline-flex items-center gap-2 text-xs"><IconDownload label={`${t("soi.sign.download")} · ${f.name}`} onClick={() => void download(f, final)} testId="send-download" /><span className="max-w-[40vw] truncate">{f.name}</span></span>)}
+        {files.map((f, i) => <span key={f.name} className={`inline-flex items-center gap-2 text-xs ${focus === i ? "rounded-md ring-1 ring-primary" : ""}`} data-focus={focus === i ? "1" : undefined}><IconDownload label={`${t("soi.sign.download")} · ${f.name}`} onClick={() => void download(f, final)} testId="send-download" /><span className="max-w-[40vw] truncate">{f.name}</span></span>)}
         <button type="button" onClick={() => void text()} disabled={busy} className={B} data-testid="send-text"><span aria-hidden="true">💬 </span>{t("soi.sign.send.text")}</button>
         <button type="button" onClick={() => void email()} disabled={busy} className={B} data-testid="send-email-file"><span aria-hidden="true">✉ </span>{t("soi.sign.send.email")}</button>
         <button type="button" onClick={() => void copy()} className={B} data-testid="send-copy"><span aria-hidden="true">⧉ </span>{t("soi.sign.send.copy")}</button>

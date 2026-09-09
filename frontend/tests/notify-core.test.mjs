@@ -34,6 +34,16 @@ r = await J(await handleNotify(req({ ...good, to: "third@example.test" }), { RES
   ok(a.status === 413, "a 3 MB+ attachment → 413");
   a = await J(await handleNotify(req({ to: "att4@example.test", sender: "Alex", title: "Note", attachment: { name: "x.pdf", base64: "not base64!!" } }), env));
   ok(a.status === 400, "a malformed attachment → 400");
+  // attachments[] — every file of a multi-file envelope (operator 2026-09-09: "email with attachments")
+  a = await J(await handleNotify(req({ to: "att5@example.test", sender: "Alex", title: "Pack", final: true, attachment: { name: "a-signed.pdf", base64: pdf }, attachments: [{ name: "b-signed.pdf", base64: pdf }, { name: "c/../d.pdf", base64: pdf }] }), env));
+  const m = seen[seen.length - 1];
+  ok(a.status === 200 && m.attachments.length === 3 && m.attachments.map((x) => x.filename).join(",") === "a-signed.pdf,b-signed.pdf,c_.._d.pdf" && /PDFs are attached; they carry/.test(m.text), "attachment + attachments[] → three files ride to Resend, in order, sanitised, the text says PDFs");
+  a = await J(await handleNotify(req({ to: "att6@example.test", sender: "Alex", title: "Pack", final: true, attachments: [{ name: "only.pdf", base64: pdf }] }), env));
+  ok(a.status === 200 && seen[seen.length - 1].attachments.length === 1 && seen[seen.length - 1].subject === "Signed: Pack", "attachments[] alone satisfies the link-or-attachment guard");
+  a = await J(await handleNotify(req({ to: "att7@example.test", sender: "Alex", title: "Pack", attachments: [{ name: "1.pdf", base64: "A".repeat(4 * 1024 * 1024) }, { name: "2.pdf", base64: "A".repeat(4 * 1024 * 1024) }, { name: "3.pdf", base64: "A".repeat(4 * 1024 * 1024) }, { name: "4.pdf", base64: "A".repeat(4 * 1024 * 1024) }] }), env));
+  ok(a.status === 413 && /together/.test(a.body.error), "four 3 MB files → 413 (9 MB together)");
+  a = await J(await handleNotify(req({ to: "att8@example.test", sender: "Alex", title: "Pack", attachments: [{ name: "x.pdf", base64: pdf }, { name: "y.pdf", base64: "nope!" }] }), env));
+  ok(a.status === 400, "one malformed entry in attachments[] → 400, nothing sent");
 }
 
 console.log(`notify-core: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

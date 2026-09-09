@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Trang này chưa có khóa AI. Hãy tự viết tài liệu, hoặc nhờ chủ trang thêm khóa Anthropic, OpenAI, Grok hoặc Gemini.",
   "soi.sign.creator_mailed": "Tệp đã hoàn tất đã được gửi qua email tới {name} kèm theo PDF.",
   "soi.sign.creator_mail_manual": "Gửi lại tệp đã hoàn tất cho {name} bằng Tin nhắn hoặc Email bên dưới.",
+  "soi.sign.saved.title": "Liên kết đã lưu: tệp này",
+  "soi.sign.saved.hint": "Về sau mở lại đúng tệp đã ký này với tư cách của bạn, từ bất kỳ điện thoại hay máy tính nào; một hồ sơ đã hoàn tất không bao giờ hết hạn. Liên kết chứa khóa của bạn: hãy giữ lại, đừng bao giờ chuyển tiếp. Để đưa tệp cho ai đó, hãy dùng Tin nhắn hoặc Email ở trên.",
+  "soi.sign.saved.file": "Tệp {n}",
+  "soi.sign.err.migration_incomplete": "Việc di chuyển cơ sở dữ liệu của trang này chưa hoàn tất (đã áp dụng 036, chưa áp dụng 038: dán lại đoạn SQL được cung cấp). Chữ ký của bạn đã được đóng dấu và giữ trên điện thoại này: tải xuống tệp rồi gửi tiếp bằng Tin nhắn hoặc Email.",
 };
 export default T;

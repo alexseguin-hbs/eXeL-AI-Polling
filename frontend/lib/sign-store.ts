@@ -57,14 +57,22 @@ export async function probeRpc(): Promise<{ state: Probe; detail: string }> {
   } catch (e) { return { state: "unreachable", detail: String((e as Error).message ?? e) }; }
 }
 
+/** The SignStoreError code for an RPC failure — pure, so the mapping is unit-tested (operator 2026-09-09: the signature loop). */
+export const rpcErrorCode = (e: unknown): { code: string; message: string } => {
+  const m = (e as { message?: string })?.message ?? String(e);
+  if (/duplicate key|23505/i.test(m)) return { code: "duplicate", message: m };
+  if (isNetworkError(e)) return { code: "unreachable", message: m };
+  // 42883 (undefined_function) from INSIDE an RPC: 036 is applied but pgcrypto is off its search_path (038 not pasted) — the migration is
+  // incomplete; treated like no_migration so the signing completes on the device instead of failing at "create" on every tap
+  if (/42883|does not exist/i.test(m) && /function/i.test(m)) return { code: "migration_incomplete", message: m };
+  const code = /timeout|no_migration|not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
+  return { code, message: m };
+};
 const rpcError = (e: unknown): never => {
   if (e instanceof SignStoreError) throw e;
   if (isMissingRpc(e)) throw new SignStoreError("no_backend", "This site has not applied migration 036 yet.");
-  const m = (e as { message?: string })?.message ?? String(e);
-  if (/duplicate key|23505/i.test(m)) throw new SignStoreError("duplicate", m);
-  if (isNetworkError(e)) throw new SignStoreError("unreachable", m);
-  const code = /timeout|no_migration|not_found|expired|bad_secret|not_your_turn|complete|revoked|locked|file_count_mismatch|file_count|file_too_large|envelope_too_large|bad_token|need_signer/.exec(m)?.[0] ?? "rpc_error";
-  throw new SignStoreError(code, m);
+  const { code, message } = rpcErrorCode(e);
+  throw new SignStoreError(code, message);
 };
 
 /** Persist a fresh envelope. Multi-signer requires Supabase; single-signer may stay on this device. */
@@ -72,8 +80,8 @@ export async function createEnvelope(env: Envelope, opts: { localMulti?: boolean
   // Without a shared store a multi-signer envelope refuses BY NAME (no_backend: no Supabase on the build;
   // no_migration: Supabase answers but 036 is missing) — unless the caller asks for the offline path
   // (localMulti): the envelope lives on this device, the partly-signed file travels by hand (operator 00:39).
-  const local = (why: "no_backend" | "no_migration") => {
-    if (env.signers.length > 1 && !opts.localMulti) throw new SignStoreError(why, why === "no_migration" ? "This site has not applied migration 036 yet." : "No Supabase on this build.");
+  const local = (why: "no_backend" | "no_migration" | "migration_incomplete") => {
+    if (env.signers.length > 1 && !opts.localMulti) throw new SignStoreError(why, why === "no_migration" ? "This site has not applied migration 036 yet." : why === "migration_incomplete" ? "This site's migration is incomplete (paste the served SQL again: 036+037+038)." : "No Supabase on this build.");
     localStorage.setItem(LOCAL_KEY(env.token), JSON.stringify(env));
     return { token: env.token, mode: "local" as StoreMode };
   };
@@ -84,7 +92,11 @@ export async function createEnvelope(env: Envelope, opts: { localMulti?: boolean
     p_files: env.files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
     p_expires_at: env.expires_at ?? null,
   }));
-  if (error) { if (isMissingRpc(error)) return local("no_migration"); rpcError(error); }   // one signer signs alone even before 036
+  if (error) {
+    if (isMissingRpc(error)) return local("no_migration");                                  // one signer signs alone even before 036
+    if (rpcErrorCode(error).code === "migration_incomplete") return local("migration_incomplete");   // 036 applied, 038 not: pgcrypto off the RPC's path (operator 2026-09-09, the loop)
+    rpcError(error);
+  }
   return { token: (data as { token: string }).token, mode: "supabase" };
 }
 

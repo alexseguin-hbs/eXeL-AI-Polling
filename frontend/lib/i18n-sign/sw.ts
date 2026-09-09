@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Bado hakuna ufunguo wa AI kwenye tovuti hii. Andika hati mwenyewe, au mwombe mmiliki wa tovuti aongeze ufunguo wa Anthropic, OpenAI, Grok au Gemini.",
   "soi.sign.creator_mailed": "Faili iliyokamilika imetumwa kwa barua pepe kwa {name} ikiwa na PDF imeambatishwa.",
   "soi.sign.creator_mail_manual": "Rudisha faili iliyokamilika kwa {name} kwa Ujumbe mfupi au Barua pepe hapa chini.",
+  "soi.sign.saved.title": "Kiungo kilichohifadhiwa – faili hii",
+  "soi.sign.saved.hint": "Hufungua baadaye faili hii hii iliyosainiwa kama wewe, kutoka simu au kompyuta yoyote; rekodi iliyokamilika haiishi muda kamwe. Kina ufunguo wako: kihifadhi, usikitume kwa mtu yeyote. Ili kumpa mtu faili, tumia Ujumbe mfupi au Barua pepe hapo juu.",
+  "soi.sign.saved.file": "Faili {n}",
+  "soi.sign.err.migration_incomplete": "Uhamishaji wa hifadhidata ya tovuti hii haujakamilika (036 umetumika, 038 haujatumika: bandika tena SQL iliyotolewa). Saini yako imegongwa muhuri na kuhifadhiwa kwenye simu hii: pakua faili na uitume mbele kwa Ujumbe mfupi au Barua pepe.",
 };
 export default T;

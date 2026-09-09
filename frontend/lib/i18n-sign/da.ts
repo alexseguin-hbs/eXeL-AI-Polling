@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Der er endnu ingen AI-nøgle på dette websted. Skriv dokumentet selv, eller bed ejeren af webstedet om at tilføje en Anthropic-, OpenAI-, Grok- eller Gemini-nøgle.",
   "soi.sign.creator_mailed": "Den færdige fil blev sendt via e-mail til {name} med PDF'en vedhæftet.",
   "soi.sign.creator_mail_manual": "Send den færdige fil tilbage til {name} via Sms eller E-mail nedenfor.",
+  "soi.sign.saved.title": "Gemt link – denne fil",
+  "soi.sign.saved.hint": "Åbner senere præcis denne signerede fil som dig, fra enhver telefon eller computer – en færdig optegnelse udløber aldrig. Det indeholder din nøgle: gem det, videresend det aldrig. Brug Sms eller E-mail ovenfor for at give nogen filen.",
+  "soi.sign.saved.file": "Fil {n}",
+  "soi.sign.err.migration_incomplete": "Dette sites databasemigrering er ufuldstændig (036 er anvendt, 038 er det ikke: indsæt den leverede SQL igen). Din signatur er stemplet og gemt på denne telefon: download filen og send den videre via Sms eller E-mail.",
 };
 export default T;

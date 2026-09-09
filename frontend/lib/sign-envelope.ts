@@ -147,8 +147,19 @@ export async function chainHash(prev: string, fileShas: string[]): Promise<strin
 
 /* ── hand-off text (Sofia: the message names the sender and the document) ───── */
 /** The secret rides in the FRAGMENT: a fragment is never sent to any server, never in a Referer, never in an access log (Thor, wave 3). */
-export function signLink(origin: string, token: string, secret: string): string {
-  return `${origin}/soi-session/sign/?e=${encodeURIComponent(token)}#s=${encodeURIComponent(secret)}`;
+export function signLink(origin: string, token: string, secret: string, file?: string): string {
+  // `&file=<sha8>` names ONE file by content (operator 2026-09-09: "saved link to specific file") — the receipt's 8-hex short hash; in the
+  // fragment like the secret, so it never reaches a server (Pangu: content outlives ordinals and storage moves)
+  return `${origin}/soi-session/sign/?e=${encodeURIComponent(token)}#s=${encodeURIComponent(secret)}${file && /^[0-9a-f]{8}$/i.test(file) ? `&file=${file.toLowerCase()}` : ""}`;
+}
+/** The record link without any secret — status and the masked roster only; what an outgoing message may carry (Thor). */
+export function recordLink(origin: string, token: string): string {
+  return `${origin}/soi-session/sign/?e=${encodeURIComponent(token)}`;
+}
+/** The `file` a saved link points at (an 8-hex short hash), or "" — anything malformed is ignored (Enki). */
+export function fileFromLocation(hash: string): string {
+  const f = new URLSearchParams(hash.replace(/^#/, "")).get("file") ?? "";
+  return /^[0-9a-f]{8}$/i.test(f) ? f.toLowerCase() : "";
 }
 /** Read a signer link's secret from the fragment (or, for links made before 2026-09-07, the query). */
 export function secretFromLocation(search: string, hash: string): string {

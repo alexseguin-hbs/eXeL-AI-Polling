@@ -367,3 +367,28 @@ Offline hand-off 17/17 · scan 8/8 · pod 45/45 · test:ci green (innovation-tim
 - **The creator is told** — Dan's phone mails the finished `sign-sample-signed-AS-DV.pdf` to Alex through the site's mail on completion
   (or the prefilled send row and a line say what to do). Two-phone **82 steps, 0 failures**.
 Offline 17/17 · scan 8/8 · pod 45/45. Live: 2c9bc51 ✓ (01:41Z); 6618b4a verifying.
+
+## Wave 14 — 2026-09-09 09:45 UTC: Supabase applied — every PDF attached, the saved link to one file, the signature loop closed
+
+Operator asks (02:40, persisted 9c3f23c): *"supabase email with attachments, text with attachments, download and Saved link to specific file
+must be possible"* · *"review plan with all AsM … 111 words"* · *"currently loop keeps asking for signatures even though completed"*.
+Twelve 111-word AsM reviews + a 333-word MoT summary sit in the approved plan; every verdict was "proceed with change" and every change is in.
+
+- **Migration 038** (ecc3140, served as 036+037+038) — the RPCs' `search_path` includes `extensions`, where hosted Supabase keeps
+  pgcrypto. Without it `sign_envelope_create` fails with `42883 function digest(…) does not exist` on every tap.
+- **The loop** — three causes, three fixes: (D1) `rpcErrorCode` maps 42883-inside-an-RPC to `migration_incomplete` → the signing
+  completes on the device (LOCAL ONLY) and the error names the paste, instead of failing at "create" forever; (D2) `SignaturePad value=`
+  paints the strokes the flow already holds — a failed save or a restored draft never shows a blank pad with Sign & save lit
+  (proof: `ink px 848/848` after a reload); (D3) the draft keeps token + secret once minted, and a restore asks the store first — a draft
+  whose envelope already landed opens the completed record (proof: the kept draft lands on Done, `sign-button` count 0, draft dropped).
+- **Saved link to one file** — Done panel → "Saved link — this file": one row per file, `?e=<token>#s=<key>&file=<sha8>` (the receipt's
+  own 8-hex hash; secret and key in the fragment, never on a server). Opening it later: the record opens complete, that file is focused and
+  downloads once per device; a malformed key is ignored. Shown and copied by its holder only (Thor).
+- **The message never carries a secret** — Text / E-mail / Copy message now put the record link (`?e=<token>`, no `#s=`) and a trailing
+  `⧉ <chain sha8>` line in the message (the sender's own key used to ride in it at `:826`).
+- **E-mail with attachments** — the site's mail sends every PDF (`attachment` + `attachments[]`, each ≤ 3 MB, ≤ 9 MB together; over the
+  caps the composer + downloads path runs); `notify-core` 18/18. The creator-mail on completion sends every file the same way.
+- **refreshEnvelope** builds the downloads from the store's final version, not the bytes captured at open (Enki).
+- **33 languages** — four new keys in all 31 files + ES; `sign-i18n-all` 125/125 strict (SIGN_I18N_STRICT=1), `sign-i18n` 137/137.
+Two-phone **90 steps, 0 failures** (7b-saved-link, 7c-restored-draft) · offline 17/17 · sign-store 12 · sign-envelope 39 · sign-rpc 12 · tsc 0.
+Unprovable here: hosted Supabase, Resend, iOS share sheets — the operator pastes the new served SQL once and signs.

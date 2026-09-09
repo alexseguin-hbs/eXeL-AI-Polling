@@ -19,7 +19,7 @@ import { ArrowRight } from "lucide-react";
 import { SIGN_STEPS, CREATOR_STEPS, COUNTERSIGN_STEPS, AI_GLYPH, type SignStep } from "@/lib/sign-steps";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useThemeHue } from "@/lib/theme-hue";
-import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
+import { newEnvelope, newToken, applySignature, chainHash, sha256Hex, shortHash, signLink, recordLink, contactKind, handoffMessage, normalizeContact, MAX_FILE_BYTES, MAX_FILES, MAX_ENVELOPE_BYTES, type Envelope, type SignFile } from "@/lib/sign-envelope";
 import { createEnvelope, getEnvelope, signEnvelope, storeMode, SignStoreError, type PublicEnvelope, type StoreMode } from "@/lib/sign-store";
 import { stampSignature, stampText, stampCodexBlock, stampHolders, holders as readHolders, codexRows, pageCount, initialsOf, type Holder, initialsRowFrac, initialsSlotWidths, cacStamp, textBoxes, unstampText, type TextMark } from "@/lib/pdf-stamp";
 import { initialsSlotTop, partnerRule } from "@/lib/sign-layout";
@@ -29,6 +29,7 @@ import { putTempFile, type TempLink } from "@/lib/tmpfile";
 import { aiStatus, aiPlace, anyAi, type AiConfigured, type AiProvider } from "@/lib/ai";
 import { codexAllText, codexImage } from "@/lib/codex-pdf";
 import { bytesToBase64, base64ToBytes } from "@/lib/pdf-render";
+import { mailFits, type MailAttachment } from "@/lib/notify";
 /** A page as a PNG data URL at 612 px wide — what the AI placement looks at. */
 async function pageDataUrl(bytes: Uint8Array, n: number): Promise<string> { const doc = await openPdf(bytes); const r = await renderPage(doc, n, 306); return r.canvas.toDataURL("image/png"); }
 /** A page as pixels, rendered off-screen at half width (the fit and the layout read fractions), with its size in points. */
@@ -68,7 +69,7 @@ interface Loaded { name: string; bytes: Uint8Array; base64: string; sha256: stri
 
 /** The creator's draft — kept on this device across a login redirect or a reload (Enki's gap, wave 2). */
 export const DRAFT_KEY = "exel-sign-draft";
-interface Draft { title: string; files: { name: string; base64: string }[]; signers: { name: string; contact: string }[]; marks: Record<number, Mark[]>; png: string | null; initialsPng?: string | null; token: string }
+interface Draft { title: string; files: { name: string; base64: string }[]; signers: { name: string; contact: string }[]; marks: Record<number, Mark[]>; png: string | null; initialsPng?: string | null; token: string; /** the creator's secret once the envelope was minted — a restore can ask the store whether that token already completed (operator 2026-09-09: the loop) */ secret?: string }
 const readDraft = (): Draft | null => { try { const raw = sessionStorage.getItem(DRAFT_KEY); return raw ? (JSON.parse(raw) as Draft) : null; } catch { return null; } };
 /** Best effort — a draft over the storage quota is simply not kept; the page still works. */
 const keepDraft = (d: Draft): boolean => { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d)); return true; } catch { return false; } };
@@ -77,7 +78,7 @@ const dropDraft = () => { try { sessionStorage.removeItem(DRAFT_KEY); } catch { 
 /** Two signers named on a build without a shared store: the hand-off cannot be minted — say why. */
 const multiLocal = (signers: number, mode: string, step: Step) => signers > 1 && mode === "local" && step === "signers";
 
-export function SignFlow({ token, secret, defaultName, defaultContact, seed, fileLink, requireLogin, returnTo }: {
+export function SignFlow({ token, secret, defaultName, defaultContact, seed, fileLink, requireLogin, returnTo, file }: {
   token?: string; secret?: string; defaultName?: string; defaultContact?: string;
   /** Create Doc hands a generated PDF in as file 1; a 24-hour link (?f=) hands a partly-signed one in the same way. */
   seed?: { name: string; bytes: Uint8Array } | null;
@@ -85,6 +86,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   fileLink?: string;
   /** The site has Auth0: ask for the login at "Sign & save" (creator path only). */
   requireLogin?: boolean; returnTo?: string;
+  /** A saved link's ONE file (its 8-hex short hash): on a complete envelope that file is focused and downloaded once (operator 2026-09-09). */
+  file?: string;
 }) {
   const { t, activeLocale } = useLexicon();
   const hue = useThemeHue();
@@ -140,14 +143,14 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const [localFallback, setLocalFallback] = useState(false);
   const mode = localFallback ? "local" : storeMode();
   // the offline hand-off: no link could be minted (no Supabase / no 036) — the partly-signed file travels by hand
-  const [offline, setOffline] = useState<"" | "no_backend" | "no_migration">("");
+  const [offline, setOffline] = useState<"" | "no_backend" | "no_migration" | "migration_incomplete">("");
   // Outside an Auth0Provider this is the library's inert default context — it is only ACTED on when requireLogin.
   const auth = useAuth0();
   const loggedIn = needLogin && auth.isAuthenticated;
   const authState: AuthState = needLogin ? (loggedIn ? "in" : "guarded") : "bypassed";
   const [diagOpen, setDiagOpen] = useState(false);
   const [resumed, setResumed] = useState(false);
-  const snapshot = (): Draft => ({ title, files: files.map((f) => ({ name: f.name, base64: f.base64 })), signers, marks, png, initialsPng, token: pendingToken.current });
+  const snapshot = (): Draft => ({ title, files: files.map((f) => ({ name: f.name, base64: f.base64 })), signers, marks, png, initialsPng, token: pendingToken.current, secret: envRef.current?.signers[0]?.secret ?? "" });
   const login = () => { keepDraft(snapshot()); setStep("login"); void auth.loginWithRedirect({ appState: { returnTo: returnTo ?? window.location.pathname } }); };
 
   // ── login prefill (never over what was typed) + draft restore + never-silent guards ──────────
@@ -159,6 +162,13 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     if (countersign) return;
     const d = readDraft(); if (!d || !d.files.length) return;
     (async () => {                                             // idempotent, so a strict-mode double run restores the same draft
+      // a draft whose envelope already LANDED (the page died between the save and dropDraft): open the record instead of asking for
+      // the signature again (operator 2026-09-09: "loops asking for signatures even though completed"). Best effort — an unreachable
+      // store restores as before.
+      if (d.token && d.secret && storeMode() === "supabase") {
+        try { const e = await getEnvelope(d.token, d.secret); if (e.status !== "awaiting" || (e.signers[0]?.signed_at ?? null)) { dropDraft(); window.location.replace(signLink(window.location.origin, d.token, d.secret)); return; } }
+        catch { /* not there: nothing landed — restore the draft */ }
+      }
       const fs: Loaded[] = [];
       for (const f of d.files) { const b = base64ToBytes(f.base64); fs.push({ name: f.name, bytes: b, base64: f.base64, sha256: await sha256Hex(b), pages: await pageCount(b) }); }
       setTitle(d.title); setFiles(fs); setSigners(d.signers.length ? d.signers : [{ name: "", contact: "" }]); setMarks(d.marks ?? {}); setPng(d.png ?? null); setInitialsPng(d.initialsPng ?? null); pendingToken.current = d.token ?? "";
@@ -190,6 +200,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         if (!live) return;
         setPub(e); setTitle(e.title);
         if (e.party < 0) { setStep("not_party"); return; }
+        if (e.mode !== "local") setMyLink(signLink(window.location.origin, token!, secret ?? ""));   // the saved link exists on every reopen (Asar); a device-local link opens nowhere
         const fs: Loaded[] = (e.files ?? []).map((f) => { const b = base64ToBytes(f.pdf_base64); return { name: f.name, bytes: b, base64: f.pdf_base64, sha256: f.sha256, pages: f.page_count }; });
         setFiles(fs);
         if (e.party >= 0) { const pre = await preplaced(fs, e.party); if (Object.keys(pre).length) setMarks(pre); }
@@ -210,7 +221,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     try {
       const e = await getEnvelope(token!, secret ?? "");
       setPub(e);
-      if (e.status === "complete") { setSigned(files.map((f) => ({ name: f.name, bytes: f.bytes }))); setStep("done"); return; }
+      if (e.mode !== "local") setMyLink(signLink(window.location.origin, token!, secret ?? ""));
+      // the FINAL version from the store, not the files captured at open (Enki: a party who waited to completion downloaded the pre-final bytes)
+      if (e.status === "complete") { const fin = (e.files ?? []).map((f) => ({ name: f.name, bytes: base64ToBytes(f.pdf_base64) })); setSigned(fin.length ? fin : files.map((f) => ({ name: f.name, bytes: f.bytes }))); setStep("done"); return; }
       if (e.status === "awaiting" && e.current_signer_idx === e.party && e.party >= 0) {
         const fs: Loaded[] = (e.files ?? []).map((f) => { const b = base64ToBytes(f.pdf_base64); return { name: f.name, bytes: b, base64: f.pdf_base64, sha256: f.sha256, pages: f.page_count }; });
         if (fs.length) { setFiles(fs); const pre = await preplaced(fs, e.party); if (Object.keys(pre).length) setMarks(pre); }
@@ -287,13 +300,26 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     if (contactKind(creatorContact) !== "email") { setCreatorMail("manual"); return; }
     void (async () => {
       try {
-        const f = signed[0];
-        const r = await sendSignerEmail({ to: creatorContact, sender: myName, title: pub?.title ?? title, final: true, attachment: { name: await signedName(f, true), base64: bytesToBase64(f.bytes) } });
+        const all: MailAttachment[] = await Promise.all(signed.map(async (f) => ({ name: await signedName(f, true), base64: bytesToBase64(f.bytes) })));
+        if (!mailFits(all)) { setCreatorMail("manual"); return; }              // over the mail caps: the send row (Text / share sheet) is the way
+        const r = await sendSignerEmail({ to: creatorContact, sender: myName, title: pub?.title ?? title, final: true, attachment: all[0], attachments: all.slice(1) });
         setCreatorMail(r === "sent" ? "sent" : "manual");
       } catch { setCreatorMail("manual"); }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, countersign, creatorContact, signed]);
+  // the saved link per file (operator 2026-09-09): each finished file's sha256 → its sha8 key; a link that names one file focuses it and
+  // downloads it ONCE per device (sessionStorage guard — never again on every reopen, Pangu/Enki)
+  const [signedSha, setSignedSha] = useState<string[]>([]);
+  useEffect(() => { let live = true; void Promise.all(signed.map((f) => sha256Hex(f.bytes))).then((h) => { if (live) setSignedSha(h); }); return () => { live = false; }; }, [signed]);
+  const focusIdx = useMemo(() => (file && signedSha.length ? signedSha.findIndex((h) => h.startsWith(file)) : -1), [file, signedSha]);
+  useEffect(() => {
+    if (step !== "done" || focusIdx < 0 || !signed[focusIdx]) return;
+    const key = `exel-sign-dl:${token ?? ""}:${file ?? ""}`;
+    try { if (sessionStorage.getItem(key) === "1") return; sessionStorage.setItem(key, "1"); } catch { /* storage unreadable: download once now */ }
+    void download(signed[focusIdx], true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, focusIdx]);
   const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
   // "remove field and redo" (operator 2026-09-08 22:40): a carried file's LAST signer may open his own text marks again —
   // remove or retype them — and save; the signature, initials, codex row and hidden strip stay. Never a later signer's record.
@@ -512,13 +538,13 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       let result: PublicEnvelope;
       if (!countersign) {
         const env = { ...newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) }), token: pendingToken.current };
-        envRef.current = env;
+        envRef.current = env; keepDraft(snapshot());               // the draft now carries token + secret: a restore can find a landed save
         stage = "create";
         let created: { token: string; mode: StoreMode };
         try { created = await createEnvelope(env); }
         catch (ex) {
           // no link can be minted here — keep the envelope on this phone and hand the FILE over instead (operator 00:39)
-          if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); setTmpLinks((await Promise.all(stampedBytes.map(async (f) => putTempFile(f.bytes, await signedName(f, false))))).filter((l): l is TempLink => !!l)); }
+          if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration" || ex.code === "migration_incomplete") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); setTmpLinks((await Promise.all(stampedBytes.map(async (f) => putTempFile(f.bytes, await signedName(f, false))))).filter((l): l is TempLink => !!l)); }
           // a retry after a half-landed save re-sent the same token (fleet, Krishna): mint a fresh one, once
           else if (ex instanceof SignStoreError && ex.code === "duplicate") { pendingToken.current = newToken(); const env2 = { ...env, token: pendingToken.current }; envRef.current = env2; created = await createEnvelope(env2); Object.assign(env, env2); }
           else throw ex;
@@ -535,7 +561,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       dropDraft(); setErr("");
       setPub(result); setSigned(stampedBytes);
       if (result.creator_contact) setCreatorContact(result.creator_contact);   // 037: the finished file goes back to the creator
-      if (result.status === "complete") { setStep("done"); return; }
+      if (result.status === "complete") { if (result.mode !== "local") setMyLink(signLink(window.location.origin, result.token, countersign ? secret! : envRef.current?.signers[0]?.secret ?? "")); setStep("done"); return; }
       const nxt = result.signers[result.current_signer_idx];
       const nextSecret = result.next_secret ?? (envRef.current?.signers[result.current_signer_idx]?.secret ?? "");
       setNextName(nxt?.name ?? ""); setNextContact(countersign ? (result.next_contact ?? "") : signers[result.current_signer_idx]?.contact ?? "");   // 037: a middle signer gets the next signer's contact too
@@ -754,10 +780,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.tz.default_note")} {t("soi.sign.tz.disclaimer")}</p>
           </div>
           {resumed && png && <p className="mb-2 text-[11px] text-primary" data-testid="stroke-kept">{t("soi.sign.x.stroke_kept")}</p>}
-          <SignaturePad onChange={(p) => { if (p !== null || !resumed) setPng(p); }} />
+          <SignaturePad value={png} onChange={(p) => { if (p !== null || !resumed) setPng(p); }} />
           {/* the PHYSICAL initials (operator 00:50): drawn once, stamped at the bottom-right of every page in a clear spot */}
           <p className="mt-3 mb-1 text-sm">{t("soi.sign.draw_initials")}</p>
-          <SignaturePad height={90} label={t("soi.sign.draw_initials")} onChange={(p) => { if (p !== null || !resumed) setInitialsPng(p); }} />
+          <SignaturePad height={90} value={initialsPng} label={t("soi.sign.draw_initials")} onChange={(p) => { if (p !== null || !resumed) setInitialsPng(p); }} />
           {resumed && initialsPng && <p className="mt-1 text-[11px] text-primary">{t("soi.sign.x.stroke_kept")}</p>}
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setStep("place")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>
@@ -823,7 +849,21 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           </div>
           <Roster />
           {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pub?.signers[0]?.name ?? "")}</p>}
-          <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink || undefined} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} /></div>
+          {/* the message carries the RECORD link (no secret — Thor) and the chain hash; the saved link below is the holder's own key */}
+          <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink ? recordLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "") : undefined} chain={pub?.chain} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} focus={focusIdx} /></div>
+          {myLink && signedSha.length === signed.length && (
+            <div className="mt-3 rounded-lg border border-border p-3 text-xs" data-testid="saved-links">
+              <div className="font-medium">{t("soi.sign.saved.title")}</div>
+              <p className="text-muted-foreground">{t("soi.sign.saved.hint")}</p>
+              {signed.map((f, i) => (
+                <div key={f.name + i} className={`mt-2 flex flex-wrap items-center gap-2 rounded-md p-1 ${focusIdx === i ? "ring-1 ring-primary" : ""}`} data-testid={`file-link-${i + 1}`} data-focus={focusIdx === i ? "1" : undefined}>
+                  <span className="max-w-[60vw] truncate">{fill(t("soi.sign.saved.file"), "n", i + 1)} · {f.name} · <span className="font-mono">{shortHash(signedSha[i])}</span></span>
+                  <code dir="ltr" className="break-all text-[11px] text-muted-foreground" data-testid={`file-link-url-${i + 1}`}>{signLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "", countersign ? secret! : envRef.current?.signers[0]?.secret ?? "", shortHash(signedSha[i]))}</code>
+                  <button type="button" onClick={() => { try { void navigator.clipboard.writeText(signLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "", countersign ? secret! : envRef.current?.signers[0]?.secret ?? "", shortHash(signedSha[i]))); } catch { /* no clipboard */ } }} className="min-h-[44px] rounded-md border border-border px-3" data-testid={`file-link-copy-${i + 1}`}>{t("soi.sign.handoff.copy")}</button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="mt-4"><VerifyFile /></div>
         </div>
       )}

@@ -30,19 +30,28 @@ export async function handleNotify(request, env) {
   if (!EMAIL.test(to)) return json({ error: "Invalid e-mail address" }, 400, cors);
   // an optional PDF attachment (the signed file itself — operator 2026-09-09: "email and text with download … from phone or computer"):
   // base64, at most 3 MB decoded, a sanitised .pdf file name; with an attachment the link is optional and the mail says "Signed:"
-  let attachment = null;
-  if (body.attachment && typeof body.attachment === "object") {
-    const b64 = String(body.attachment.base64 || "").replace(/\s+/g, "");
-    if (!/^[A-Za-z0-9+/]+=*$/.test(b64) || b64.length < 8) return json({ error: "Bad attachment" }, 400, cors);
-    if (b64.length > 4 * 1024 * 1024) return json({ error: "Attachment too large (3 MB max)" }, 413, cors);
-    const name = (String(body.attachment.name || "signed.pdf").replace(/[^\w.\- ]/g, "_").slice(0, 120) || "signed.pdf").replace(/(\.pdf)?$/i, ".pdf");
-    attachment = { filename: name, content: b64 };
-  }
+  // one `attachment` (the first file) and, since 2026-09-09 (operator: "email with attachments"), `attachments[]` for the rest of a
+  // multi-file envelope: every entry sanitised the same way, each ≤ 3 MB decoded, all together ≤ 9 MB (Thoth)
+  const MAX_ONE = 4 * 1024 * 1024, MAX_ALL = 12 * 1024 * 1024;
+  const readOne = (a) => {
+    if (!a || typeof a !== "object") return { error: "Bad attachment" };
+    const b64 = String(a.base64 || "").replace(/\s+/g, "");
+    if (!/^[A-Za-z0-9+/]+=*$/.test(b64) || b64.length < 8) return { error: "Bad attachment" };
+    if (b64.length > MAX_ONE) return { error: "Attachment too large (3 MB max)", status: 413 };
+    const name = (String(a.name || "signed.pdf").replace(/[^\w.\- ]/g, "_").slice(0, 120) || "signed.pdf").replace(/(\.pdf)?$/i, ".pdf");
+    return { filename: name, content: b64 };
+  };
+  const attachments = [];
+  const list = [...(body.attachment ? [body.attachment] : []), ...(Array.isArray(body.attachments) ? body.attachments : [])];
+  if (list.length > 5) return json({ error: "Too many attachments (5 max)" }, 400, cors);
+  for (const a of list) { const r = readOne(a); if (r.error) return json({ error: r.error }, r.status || 400, cors); attachments.push(r); }
+  if (attachments.reduce((n, a) => n + a.content.length, 0) > MAX_ALL) return json({ error: "Attachments too large (9 MB max together)" }, 413, cors);
+  const attachment = attachments[0] || null;
   if (!link && !attachment) return json({ error: "Link is required" }, 400, cors);
   const final = body.final === true;
   const subject = attachment && (final || !link) ? `Signed: ${title}` : `Please sign: ${title}`;
   const text = attachment && (final || !link)
-    ? `${sender} signed "${title}" on eXeL AI Polling. The signed PDF is attached; it carries every signatory's name, time and hash.${link ? ` Record: ${link}` : ""}`
+    ? `${sender} signed "${title}" on eXeL AI Polling. The signed PDF${attachments.length > 1 ? "s are" : " is"} attached; ${attachments.length > 1 ? "they carry" : "it carries"} every signatory's name, time and hash.${link ? ` Record: ${link}` : ""}`
     : `${sender} asks you to sign "${title}" on eXeL AI Polling. No account, no fee.${attachment ? " The partly-signed PDF is attached." : ""}${link ? ` This link is yours alone (it holds your key; do not forward it) and it expires in 30 days: ${link}` : ""}`;
   // the link must point back to this site — the mail carries a bearer secret, never an arbitrary URL
   try { if (link && new URL(link).origin !== new URL(request.url).origin) return json({ error: "Link must be on this site" }, 400, cors); } catch { return json({ error: "Bad link" }, 400, cors); }
@@ -50,7 +59,7 @@ export async function handleNotify(request, env) {
   const now = Date.now(); const last = RECENT.get(to) || 0; if (now - last < 20000) return json({ error: "Too many requests for this address; wait a moment." }, 429, cors); RECENT.set(to, now); if (RECENT.size > 500) RECENT.clear();
   let res;
   try {
-    res = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, text, ...(attachment ? { attachments: [attachment] } : {}) }) });
+    res = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, text, ...(attachments.length ? { attachments } : {}) }) });
   } catch { return json({ error: "Could not reach the mail service" }, 502, cors); }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return json({ error: (data && (data.message || (data.error && data.error.message))) || "Mail service error" }, 502, cors);

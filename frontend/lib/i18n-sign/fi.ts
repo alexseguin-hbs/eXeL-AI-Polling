@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Tällä sivustolla ei ole vielä tekoälyavainta. Kirjoita asiakirja itse tai pyydä sivuston omistajaa lisäämään Anthropic-, OpenAI-, Grok- tai Gemini-avain.",
   "soi.sign.creator_mailed": "Valmis tiedosto lähetettiin sähköpostilla vastaanottajalle {name}, PDF liitteenä.",
   "soi.sign.creator_mail_manual": "Lähetä valmis tiedosto takaisin vastaanottajalle {name} alla olevalla Tekstiviesti- tai Sähköposti-painikkeella.",
+  "soi.sign.saved.title": "Tallennettu linkki – tämä tiedosto",
+  "soi.sign.saved.hint": "Avaa myöhemmin juuri tämän allekirjoitetun tiedoston sinuna, miltä tahansa puhelimelta tai tietokoneelta – valmis tallenne ei vanhene koskaan. Se sisältää avaimesi: säilytä se, älä koskaan välitä sitä eteenpäin. Jos haluat antaa tiedoston jollekulle, käytä yllä olevaa Tekstiviesti- tai Sähköposti-painiketta.",
+  "soi.sign.saved.file": "Tiedosto {n}",
+  "soi.sign.err.migration_incomplete": "Tämän sivuston tietokantamigraatio on kesken (036 on otettu käyttöön, 038 ei: liitä tarjottu SQL uudelleen). Allekirjoituksesi on leimattu ja tallessa tässä puhelimessa: lataa tiedosto ja lähetä se eteenpäin Tekstiviestillä tai Sähköpostilla.",
 };
 export default T;

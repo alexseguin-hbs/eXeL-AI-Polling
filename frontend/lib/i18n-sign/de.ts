@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Auf dieser Website gibt es noch keinen KI-Schlüssel. Schreiben Sie das Dokument selbst oder bitten Sie den Betreiber der Website, einen Schlüssel von Anthropic, OpenAI, Grok oder Gemini hinzuzufügen.",
   "soi.sign.creator_mailed": "Die fertige Datei wurde per E-Mail an {name} gesendet, mit dem PDF im Anhang.",
   "soi.sign.creator_mail_manual": "Senden Sie die fertige Datei mit SMS oder E-Mail unten an {name} zurück.",
+  "soi.sign.saved.title": "Gespeicherter Link: diese Datei",
+  "soi.sign.saved.hint": "Öffnet später genau diese unterschriebene Datei als Sie, von jedem Telefon oder Computer aus; ein abgeschlossener Vorgang läuft nie ab. Er enthält Ihren Schlüssel: behalten Sie ihn, leiten Sie ihn nie weiter. Um jemandem die Datei zu geben, nutzen Sie SMS oder E-Mail oben.",
+  "soi.sign.saved.file": "Datei {n}",
+  "soi.sign.err.migration_incomplete": "Die Datenbankmigration dieser Seite ist unvollständig (036 ist angewendet, 038 nicht: fügen Sie das bereitgestellte SQL erneut ein). Ihre Unterschrift ist gestempelt und bleibt auf diesem Telefon: laden Sie die Datei herunter und senden Sie sie per SMS oder E-Mail weiter.",
 };
 export default T;

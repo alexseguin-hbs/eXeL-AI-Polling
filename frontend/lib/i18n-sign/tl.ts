@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Wala pang AI key sa site na ito. Isulat mo mismo ang dokumento, o hilingin sa may-ari ng site na magdagdag ng Anthropic, OpenAI, Grok o Gemini key.",
   "soi.sign.creator_mailed": "Ipinadala na sa e-mail kay {name} ang tapos nang file, kalakip ang PDF.",
   "soi.sign.creator_mail_manual": "Ibalik ang tapos nang file kay {name} gamit ang I-text o I-email sa ibaba.",
+  "soi.sign.saved.title": "Naka-save na link – ang file na ito",
+  "soi.sign.saved.hint": "Muling nagbubukas sa dakong huli ng eksaktong pirmadong file na ito bilang ikaw, mula sa kahit anong telepono o computer – hindi kailanman nag-e-expire ang kumpletong record. Nakapaloob dito ang key mo: itago ito, huwag kailanman i-forward. Para ibigay sa iba ang file, gamitin ang I-text o I-email sa itaas.",
+  "soi.sign.saved.file": "File {n}",
+  "soi.sign.err.migration_incomplete": "Hindi pa kumpleto ang database migration ng site na ito (naka-apply ang 036, hindi pa ang 038: i-paste muli ang ipinakitang SQL). Natatakan at nakatago ang pirma mo sa teleponong ito: i-download ang file at ipasa ito gamit ang I-text o I-email.",
 };
 export default T;

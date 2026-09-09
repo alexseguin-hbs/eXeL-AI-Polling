@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Bu sitede henüz yapay zekâ anahtarı yok. Belgeyi kendin yaz ya da site sahibinden bir Anthropic, OpenAI, Grok veya Gemini anahtarı eklemesini iste.",
   "soi.sign.creator_mailed": "Tamamlanan dosya, PDF ekli olarak {name} adresine e-postayla gönderildi.",
   "soi.sign.creator_mail_manual": "Tamamlanan dosyayı aşağıdaki Mesaj ya da E-posta ile {name} adresine geri gönder.",
+  "soi.sign.saved.title": "Kaydedilen bağlantı: bu dosya",
+  "soi.sign.saved.hint": "Tam olarak bu imzalı dosyayı daha sonra, herhangi bir telefon ya da bilgisayardan, senin olarak yeniden açar; tamamlanmış bir kayıt asla sona ermez. Anahtarını içerir: sakla, kimseye iletme. Dosyayı birine vermek için yukarıdaki Mesaj ya da E-posta'yı kullan.",
+  "soi.sign.saved.file": "Dosya {n}",
+  "soi.sign.err.migration_incomplete": "Bu sitenin veritabanı geçişi eksik (036 uygulanmış, 038 uygulanmamış: sunulan SQL'i yeniden yapıştır). İmzan damgalandı ve bu telefonda tutuluyor: dosyayı indir ve Mesaj ya da E-posta ile ilet.",
 };
 export default T;

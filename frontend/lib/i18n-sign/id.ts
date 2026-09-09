@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Belum ada kunci AI di situs ini. Tulis dokumennya sendiri, atau minta pemilik situs menambahkan kunci Anthropic, OpenAI, Grok, atau Gemini.",
   "soi.sign.creator_mailed": "Berkas yang sudah selesai telah dikirim lewat email ke {name} dengan PDF terlampir.",
   "soi.sign.creator_mail_manual": "Kirim kembali berkas yang sudah selesai ke {name} lewat SMS atau Email di bawah.",
+  "soi.sign.saved.title": "Tautan tersimpan — berkas ini",
+  "soi.sign.saved.hint": "Membuka kembali persis berkas yang sudah ditandatangani ini nanti, sebagai Anda, dari ponsel atau komputer mana pun — catatan yang sudah lengkap tidak pernah kedaluwarsa. Tautan ini memuat kunci Anda: simpan, jangan pernah diteruskan. Untuk memberikan berkas kepada seseorang, gunakan SMS atau Email di atas.",
+  "soi.sign.saved.file": "Berkas {n}",
+  "soi.sign.err.migration_incomplete": "Migrasi basis data situs ini belum lengkap (036 sudah diterapkan, 038 belum: tempel lagi SQL yang disediakan). Tanda tangan Anda dicap dan disimpan di ponsel ini: unduh berkas dan kirimkan lewat SMS atau Email.",
 };
 export default T;

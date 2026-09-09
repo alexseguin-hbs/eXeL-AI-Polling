@@ -3,7 +3,7 @@
 import {
   secretFromLocation, MAX_ENVELOPE_BYTES,
   normalizeContact, contactMatches, contactKind, maskContact, whoseTurn, canSign, applySignature, partyIndex,
-  randomToken, newToken, sha256Hex, shortHash, chainHash, signLink, handoffMessage, newEnvelope, ENVELOPE_TTL_DAYS,
+  randomToken, newToken, sha256Hex, shortHash, chainHash, signLink, recordLink, fileFromLocation, handoffMessage, newEnvelope, ENVELOPE_TTL_DAYS,
 } from "../lib/sign-envelope.ts";
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const file = (name, sha) => ({ name, page_count: 1, pdf_base64: "JVBERi0=", sha256: sha, version: 0 });
@@ -58,6 +58,11 @@ ok(link === "https://exel.example/soi-session/sign/?e=tok#s=sec", "sign link: to
 ok(handoffMessage("Alex", "Promissory Note", link).startsWith('Alex asks you to sign "Promissory Note"'), "hand-off names sender and document");
 
 ok(secretFromLocation("?e=tok", "#s=sec") === "sec" && secretFromLocation("?e=tok&s=old", "") === "old" && secretFromLocation("?e=tok", "") === "", "secret read from the fragment, legacy query, or none");
+// the saved link to ONE file (operator 2026-09-09): sha8 in the fragment, malformed keys ignored, the record link carries no secret
+ok(signLink("https://exel.example", "tok", "sec", "ab12CD34") === "https://exel.example/soi-session/sign/?e=tok#s=sec&file=ab12cd34", "signLink with a file → &file=<sha8> in the fragment, lower-cased");
+ok(signLink("https://exel.example", "tok", "sec", "not-a-hash") === link && signLink("https://exel.example", "tok", "sec", "") === link, "a malformed or empty file key adds nothing");
+ok(fileFromLocation("#s=sec&file=AB12CD34") === "ab12cd34" && fileFromLocation("#s=sec") === "" && fileFromLocation("#s=sec&file=zz") === "" && fileFromLocation("") === "", "fileFromLocation reads only a valid sha8");
+ok(recordLink("https://exel.example", "tok") === "https://exel.example/soi-session/sign/?e=tok" && !recordLink("https://exel.example", "tok").includes("#"), "recordLink has no fragment, no secret");
 let big = ""; try { newEnvelope({ title: "x", created_by: "a@x.com", signers: [{ name: "A", contact: "a@x.com" }], files: [{ ...file("big.pdf", "aa"), pdf_base64: "A".repeat(MAX_ENVELOPE_BYTES * 4 / 3 + 10) }] }); } catch (e) { big = e.message; }
 ok(big === "envelope_too_large", "aggregate envelope cap enforced in newEnvelope");
 console.log(`sign-envelope: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

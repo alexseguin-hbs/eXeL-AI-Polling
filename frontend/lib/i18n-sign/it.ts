@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Nessuna chiave IA su questo sito, per ora. Scrivi il documento da solo, oppure chiedi al proprietario del sito di aggiungere una chiave Anthropic, OpenAI, Grok o Gemini.",
   "soi.sign.creator_mailed": "Il file completo è stato inviato via e-mail a {name} con il PDF allegato.",
   "soi.sign.creator_mail_manual": "Rimanda il file completo a {name} con SMS o E-mail qui sotto.",
+  "soi.sign.saved.title": "Link salvato — questo file",
+  "soi.sign.saved.hint": "Riapre più tardi esattamente questo file firmato, a tuo nome, da qualsiasi telefono o computer: un documento completato non scade mai. Contiene la tua chiave: conservalo e non inoltrarlo mai. Per dare il file a qualcuno, usa SMS o E-mail qui sopra.",
+  "soi.sign.saved.file": "File {n}",
+  "soi.sign.err.migration_incomplete": "La migrazione del database di questo sito è incompleta (la 036 è applicata, la 038 no: incolla di nuovo l'SQL fornito). La tua firma è apposta e conservata su questo telefono: scarica il file e inviatelo con SMS o E-mail.",
 };
 export default T;

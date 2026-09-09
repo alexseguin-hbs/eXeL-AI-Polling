@@ -369,5 +369,9 @@ const T: Record<string, string> = {
   "soi.doc.ai.unconfigured": "Nu există încă o cheie AI pe acest site. Scrie documentul singur sau roagă proprietarul site-ului să adauge o cheie Anthropic, OpenAI, Grok sau Gemini.",
   "soi.sign.creator_mailed": "Fișierul finalizat a fost trimis prin e-mail către {name}, cu PDF-ul atașat.",
   "soi.sign.creator_mail_manual": "Trimite fișierul finalizat înapoi către {name} prin SMS sau E-mail mai jos.",
+  "soi.sign.saved.title": "Link salvat – acest fișier",
+  "soi.sign.saved.hint": "Redeschide mai târziu exact acest fișier semnat, ca tine, de pe orice telefon sau calculator; o înregistrare finalizată nu expiră niciodată. Conține cheia ta: păstrează-l, nu-l trimite nimănui. Ca să dai cuiva fișierul, folosește SMS sau E-mail de mai sus.",
+  "soi.sign.saved.file": "Fișierul {n}",
+  "soi.sign.err.migration_incomplete": "Migrația bazei de date a acestui site este incompletă (036 este aplicată, 038 nu: lipește din nou SQL-ul afișat). Semnătura ta este ștampilată și păstrată pe acest telefon: descarcă fișierul și trimite-l mai departe prin SMS sau E-mail.",
 };
 export default T;

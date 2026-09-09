@@ -401,8 +401,47 @@ await A.getByTestId('downloads').waitFor({ timeout: 60000 }); step('alex', 'crea
   await A.getByTestId('send-email-to').fill('daniel@example.test'); await A.getByTestId('send-email-file').click(); await A.getByTestId('send-state').waitFor({ timeout: 10000 });
   const n0 = notified[0];
   step('alex', "E-mail on the Done panel sends through the site's mail WITH the signed PDF attached (base64, named with the initials, final)", !!n0 && n0.to === 'daniel@example.test' && n0.final === true && /-signed-AS-DV\.pdf$/.test(n0.attachment?.name || '') && (n0.attachment?.base64 || '').length > 1000 && /^JVBERi0/.test(n0.attachment.base64) && (await A.getByTestId('send-state').getAttribute('data-state')) === 'sent', `to ${n0?.to} · ${n0?.attachment?.name} · ${(n0?.attachment?.base64 || '').length} b64 chars`);
+  // the message carries the RECORD link (no secret — Thor) and the chain hash; the saved link is shown to its holder only (operator 2026-09-09)
+  const tok = /\?e=([A-Za-z0-9_-]{22})/.exec(myLink)[1];
+  step('alex', 'the outgoing message names the record (?e=token) WITHOUT any secret, and ends with the chain hash line', sh[0].text.includes(`/soi-session/sign/?e=${tok}`) && !/#s=|&file=/.test(sh[0].text) && /⧉ [0-9a-f]{8}$/m.test(sh[0].text) && Array.isArray(n0.attachments) && n0.attachments.length === 0, sh[0].text.slice(-60));
   await A.unroute('**/api/notify'); }
 await shot(A, 'alex', '7-complete');
+// ── the SAVED LINK to one file (operator 2026-09-09: "Saved link to specific file must be possible") ─────────────────────────────
+{ await A.getByTestId('saved-links').waitFor({ timeout: 20000 });
+  const fileUrl = (await A.getByTestId('file-link-url-1').innerText()).trim();
+  const tok = /\?e=([A-Za-z0-9_-]{22})/.exec(myLink)[1];
+  step('alex', 'Done panel: one saved link per file — token + own key + &file=<sha8> in the fragment', new RegExp(`\\?e=${tok}#s=[A-Za-z0-9_-]{22}&file=[0-9a-f]{8}$`).test(fileUrl) && (await A.getByTestId('file-link-copy-1').count()) === 1, fileUrl.slice(-40));
+  const { sha256Hex } = await import('../lib/sign-envelope.ts'); const sha8 = (await sha256Hex(new Uint8Array(fs.readFileSync(file)))).slice(0, 8);
+  step('alex', "the link's file key IS the downloaded file's sha256 (first 8 hex) — the receipt's number", fileUrl.endsWith(`&file=${sha8}`), sha8);
+  const dlF = A.waitForEvent('download', { timeout: 20000 });                        // armed BEFORE navigation (Athena)
+  await A.goto(fileUrl, { waitUntil: 'domcontentloaded' }); await ready(A); await A.getByTestId('downloads').waitFor({ timeout: 60000 });
+  const gotF = await dlF.then((d) => d.suggestedFilename()).catch(() => '');
+  step('alex', 'opening the saved file link later: the record opens complete, THAT file is focused and downloads by itself', /-signed-AS-DV\.pdf$/.test(gotF) && (await A.getByTestId('file-link-1').getAttribute('data-focus')) === '1', gotF);
+  const again = A.waitForEvent('download', { timeout: 4000 }).then(() => true).catch(() => false);
+  await A.reload({ waitUntil: 'domcontentloaded' }); await ready(A); await A.getByTestId('downloads').waitFor({ timeout: 60000 });
+  step('alex', 'reopening the same file link does not download it again (once per device), the file stays focused', !(await again) && (await A.getByTestId('file-link-1').getAttribute('data-focus')) === '1');
+  await A.goto(myLink.replace(/&file=.*$/, '') + '&file=zzzzzzzz', { waitUntil: 'domcontentloaded' }); await ready(A); await A.getByTestId('downloads').waitFor({ timeout: 60000 });
+  step('alex', 'a malformed or unknown file key is ignored: the record still opens complete, nothing focused', (await A.locator('[data-testid^="file-link-"][data-focus="1"]').count()) === 0);
+  await shot(A, 'alex', '7b-saved-link');
+  // the signature LOOP (operator 21:09 CDT): a draft whose envelope already landed opens the record, never the draw step again
+  const P = await A.context().newPage();
+  await P.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(P);
+  const secret = /#s=([A-Za-z0-9_-]{22})/.exec(myLink)[1];
+  await P.evaluate(({ tok, secret, b64 }) => { sessionStorage.setItem('exel-sign-draft', JSON.stringify({ title: 'Promissory Note', files: [{ name: 'sign-sample.pdf', base64: b64 }], signers: [{ name: 'Alex Seguin', contact: 'explore@exel-ai.com' }, { name: 'Daniel Vail', contact: '5128088745' }], marks: {}, png: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', initialsPng: null, token: tok, secret })); }, { tok, secret, b64: fs.readFileSync(FIXTURE).toString('base64') });
+  await P.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await P.waitForURL((u) => u.search.includes(`e=${tok}`), { timeout: 30000 }).catch(() => {}); await ready(P);
+  await P.getByTestId('downloads').waitFor({ timeout: 60000 });
+  step('alex', 'a kept draft whose token already LANDED opens the completed record instead of asking for the signature again', P.url().includes(`e=${tok}`) && (await P.getByTestId('sign-button').count()) === 0 && (await P.evaluate(() => sessionStorage.getItem('exel-sign-draft'))) === null);
+  await P.close();
+  // the pads keep their strokes (D2): a restored draft (reload on the draw step) paints the ink it holds — never a blank pad asking again
+  const Q = await A.context().newPage();
+  await Q.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(Q);
+  await Q.evaluate(({ b64 }) => { const c = document.createElement('canvas'); c.width = 60; c.height = 24; const x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(4, 4, 52, 16); const png = c.toDataURL('image/png');
+    sessionStorage.setItem('exel-sign-draft', JSON.stringify({ title: 'Loop check', files: [{ name: 'sign-sample.pdf', base64: b64 }], signers: [{ name: 'Alex Seguin', contact: 'explore@exel-ai.com' }], marks: { 0: [{ id: 'sig', kind: 'sig', page: 1, x: 0.1, y: 0.8, w: 0.3, h: 0.05 }] }, png, initialsPng: png, token: '', secret: '' })); }, { b64: fs.readFileSync(FIXTURE).toString('base64') });
+  await Q.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(Q); await Q.getByTestId('sign-button').waitFor({ timeout: 30000 });
+  const ink = await Q.evaluate(() => Array.from(document.querySelectorAll('canvas')).filter((c) => c.getAttribute('aria-label')).map((c) => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k] > 30) n++; return n; }));
+  step('alex', 'a restored draft comes back on the draw step with BOTH pads painted (signature + initials) and Sign & save lit', ink.length === 2 && ink.every((n) => n > 50) && (await Q.getByTestId('sign-button').isEnabled()), `ink px ${ink.join('/')}`);
+  await shot(Q, 'alex', '7c-restored-draft'); await Q.close();
+}
 
 fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
 // ── remove a field and redo (operator 2026-09-08 22:40) — the LAST signer opens his own signed file, removes a text mark, types another,
