@@ -24,6 +24,7 @@ export interface StampSig {
   /** ties the PDF to its envelope: token + the chain BEFORE this pass (Odin, wave 2) */ envelope?: { token: string; chain: string };
   /** the signer's contact (email / phone): names the signer in the caption when the name has no Latin letter (reviewer 2026-09-08) */ contact?: string;
   /** the signer's 0-based index in the roster: the "Signer N" caption fallback; default: this stamp's order in the file */ signerIdx?: number;
+  /** the time zone the caption is spelled in (IANA id); UTC when absent (operator 2026-09-09: default Central Time) */ tz?: string;
 }
 
 const dataUrlBytes = (dataUrl: string): Uint8Array => {
@@ -94,7 +95,7 @@ export async function stampSignature(pdf: Uint8Array, box: StampBox, sig: StampS
   // ONE rendering of the instant: the caption prints the receipt's fixed UTC form (cacStamp), never the raw ISO string;
   // the SoISig / SoICodex keywords keep the ISO value readers depend on (reviewer 2026-09-08)
   const idx = sig.signerIdx ?? (doc.getKeywords() ?? "").split(/\s+/).filter((k) => k.startsWith("SoISig:")).length;
-  const caption = pdfSafe(`${captionName(sig.name, sig.contact, idx)} · ${cacStamp(sig.isoDate)} · #${sig.hash}`);
+  const caption = pdfSafe(`${captionName(sig.name, sig.contact, idx)} · ${cacStamp(sig.isoDate, sig.tz)} · #${sig.hash}`);
   const capDispW = swap ? C.bh : C.bw, capDispH = swap ? C.bw : C.bh;
   let capSize = onRule ? 4.5 : Math.max(4, Math.min(9, capDispH * 0.9));
   while (capSize > 3.5 && font.widthOfTextAtSize(caption, capSize) > capDispW) capSize -= 0.5;
@@ -274,8 +275,18 @@ export const initialsRowFrac = (widths: number[], pageWidthPt: number): number =
 const isLetter = (c: string): boolean => c.toLowerCase() !== c.toUpperCase() || /[\u0600-\u06FF\u0900-\u0DFF\u0E00-\u0E7F\u3040-\u9FFF\uAC00-\uD7AF]/.test(c);   // cased scripts, plus the uncased ones
 export const initialsOf = (name: string): string => name.split(/\s+/).map((w) => Array.from(w).filter(isLetter).join("")).filter(Boolean).map((w) => w[0].toUpperCase()).slice(0, 3).join("");
 
-export const cacStamp = (iso: string): string => {
+/** `2026.09.08 19:29:28 CDT` — the fixed receipt form of an instant; UTC when no zone is given, else the zone the signer chose
+ *  (operator 2026-09-09: default Central Time, Austin). The keyword's ISO instant is never changed by this. */
+export const cacStamp = (iso: string, tz?: string): string => {
   const d = new Date(iso); const p = (n: number) => String(n).padStart(2, "0");
+  if (tz && tz !== "UTC") {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZoneName: "short" }).formatToParts(d);
+      const g = (t: string) => parts.find((x) => x.type === t)?.value ?? "";
+      const hour = g("hour") === "24" ? "00" : g("hour");
+      return `${g("year")}.${g("month")}.${g("day")} ${hour}:${g("minute")}:${g("second")} ${g("timeZoneName").replace(/\s+/g, "")}`;
+    } catch { /* unknown zone: UTC below */ }
+  }
   return `${d.getUTCFullYear()}.${p(d.getUTCMonth() + 1)}.${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC`;
 };
 

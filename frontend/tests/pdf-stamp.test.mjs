@@ -136,4 +136,13 @@ ok((await textBoxes(s3)).length === 1 && (await countSignatureImages(s3)) === 2,
   ok((await unstampText(g, { page: 1, x: 0.9, y: 0.9, w: 0.1, h: 0.02 })).length === g.length, "a mark that is not there leaves the file exactly as it was");
 }
 
+
+// cacStamp in a zone (operator 2026-09-09: default Central Time, Austin) — the same instant, spelled where the signer is
+ok(cacStamp("2026-09-09T00:29:28.000Z") === "2026.09.09 00:29:28 UTC", "no zone → UTC, as before");
+ok(cacStamp("2026-09-09T00:29:28.000Z", "America/Chicago") === "2026.09.08 19:29:28 CDT", `Central (Austin) → 2026.09.08 19:29:28 CDT (got ${cacStamp("2026-09-09T00:29:28.000Z", "America/Chicago")})`);
+ok(cacStamp("2026-01-15T14:05:00.000Z", "America/Chicago") === "2026.01.15 08:05:00 CST", "winter → CST");
+ok(cacStamp("2026-09-09T00:29:28.000Z", "Not/AZone") === "2026.09.09 00:29:28 UTC", "an unknown zone falls back to UTC");
+{ const z = await stampSignature(pdf, { page: 1, x: 0.1, y: 0.7, w: 0.4, h: 0.06 }, { pngDataUrl: png1x1, name: "Ada Lender", isoDate: "2026-09-09T00:29:28.000Z", hash: "ba7816bf", tz: "America/Chicago" });
+  ok(/Ada Lender · 2026\.09\.08 19:29:28 CDT · #ba7816bf/.test(await pageText(z)), "the caption is spelled in the signer's zone"); }
+
 console.log(`pdf-stamp: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

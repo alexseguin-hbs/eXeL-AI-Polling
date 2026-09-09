@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { verifySignedPdf, type VerifyReport } from "@/lib/sign-verify";
 import { cacStamp } from "@/lib/pdf-stamp";
+import { readTz } from "@/lib/timezone";
 import { shortHash } from "@/lib/sign-envelope";
 import { SignReceipt } from "@/components/sign/receipt";
 
@@ -48,7 +49,7 @@ export function VerifyFile() {
             <details className="mt-1 text-muted-foreground" data-testid="verify-issues-other"><summary className="cursor-pointer">{t("soi.sign.verify.issue.other")}</summary><p className="mt-1 break-words">{unknown.join(" · ")}</p></details>
           )}
           {r.images > 0 && (
-            <SignReceipt className="mt-1" files={[`${r.name} · #${shortHash(r.sha256)}`]} signers={r.rows.map((x) => ({ name: signerName(x as { rowIndex: number; name?: string }), signed: true, stamp: cacStamp(x.isoDate) }))} count={r.images} chain={r.chain} />
+            <SignReceipt className="mt-1" files={[`${r.name} · #${shortHash(r.sha256)}`]} signers={r.rows.map((x) => ({ name: signerName(x as { rowIndex: number; name?: string }), signed: true, stamp: cacStamp(x.isoDate, readTz()) }))} count={r.images} chain={r.chain} />
           )}
         </div>
       )}

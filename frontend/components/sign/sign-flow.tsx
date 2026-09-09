@@ -58,6 +58,7 @@ import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
 import { SignReceipt } from "@/components/sign/receipt";
 import { SendRow } from "@/components/sign/send-row";
+import { DEFAULT_TZ, ZONES, deviceTz, readTz, saveTz, isTz, zoneAbbr } from "@/lib/timezone";
 import { IconDownload, DownloadGlyph } from "@/components/download-icon";
 import { VerifyFile } from "@/components/sign/verify-file";
 
@@ -132,6 +133,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const pendingToken = useRef("");                              // minted before stamping so the PDF can carry it
   const fitRef = useRef<FitAt | null>(null);                    // the page view's pixel fit, for + Date / + Text
   const viewRef = useRef<ViewCenter | null>(null);              // the page view's visible centre, for + Text with nothing to follow
+  const [tz, setTzState] = useState<string>(DEFAULT_TZ);         // the zone the record is spelled in — Central (Austin) by default, chosen before signing (operator 2026-09-09)
+  useEffect(() => { setTzState(readTz()); }, []);
+  const setTz = (z: string) => { if (isTz(z)) { setTzState(z); saveTz(z); } };
   const [localFallback, setLocalFallback] = useState(false);
   const mode = localFallback ? "local" : storeMode();
   // the offline hand-off: no link could be minted (no Supabase / no 036) — the partly-signed file travels by hand
@@ -372,7 +376,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     setMarks((b) => ({ ...b, [fileIdx]: [...cur, mark] })); setSelected(id);
     setTimeout(() => { const boxes = document.querySelectorAll('[data-testid="text-box"]'); boxes[boxes.length - 1]?.scrollIntoView({ block: "center", behavior: "smooth" }); }, 50);
   };
-  const todayText = () => dateIn(activeLocale, new Date(), { year: "numeric", month: "short", day: "numeric" });   // the Globe's language, Latin digits
+  const todayText = () => dateIn(activeLocale, new Date(), { year: "numeric", month: "short", day: "numeric", timeZone: tz });   // the Globe's language, Latin digits
   const selMark = (marks[fileIdx] ?? []).find((m) => m.id === selected) ?? null;
   const setSelText = (text: string) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => (m.id === selected ? { ...m, text } : m)) }));
   /** Every text mark on this file to ONE height (bottom kept on its line): the document's own text size when a fit measured it, else the
@@ -399,7 +403,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         out = await stampText(out, m, m.text!.trim(), { signerIdx: editOwn.pass, isoDate: editOwn.isoDate, chain: editOwn.chain });
       }
       const rows = (await codexRows(out)).filter((r) => r.rowIndex >= 0).sort((a, b) => a.rowIndex - b.rowIndex);
-      setEditReceipt(rows.map((r) => ({ name: r.name || fill(t("soi.sign.signer_n"), "n", r.rowIndex + 1), signed: true, stamp: cacStamp(r.isoDate) })));
+      setEditReceipt(rows.map((r) => ({ name: r.name || fill(t("soi.sign.signer_n"), "n", r.rowIndex + 1), signed: true, stamp: cacStamp(r.isoDate, tz) })));
       setSigned([{ name: files[0].name, bytes: out }]); setStep("done");
     } catch (ex) { setErr(`${t("soi.sign.stage.stamp")}: ${String((ex as Error).message ?? ex)}`); setFailStage("stamp"); }
   };
@@ -437,7 +441,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         const recorded = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0);
         const myRow = countersign || !recorded.some((r) => r.rowIndex === meIdx) ? meIdx : Math.max(...recorded.map((r) => r.rowIndex)) + 1;
         const myContact = countersign ? pub?.signers[meIdx]?.contact_masked : signers[meIdx]?.contact;   // names a signer whose name the PDF font cannot draw
-        let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact, signerIdx: myRow, envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
+        let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact, signerIdx: myRow, tz, envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: meIdx, isoDate, chain: prevChain });
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
@@ -464,7 +468,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           } catch { /* default: bottom margin */ }
         }
         // one HIDDEN Light Codex line with EVERY signatory so far, on the bottom edge of every page (operator 23:15 / 00:45)
-        out = await stampCodexBlock(out, { total, rows: allRows, all: codexImage(codexAllText(allRows)), initials: { total, mine: { idx: myRow, pngDataUrl: initialsPng }, topByPage } });
+        out = await stampCodexBlock(out, { total, rows: allRows, all: codexImage(codexAllText(allRows, tz)), initials: { total, mine: { idx: myRow, pngDataUrl: initialsPng }, topByPage } });
         // placeholders for the NEXT signer — signature on the other party's line of the same row, date on its Date line
         const nextIdx = myRow + 1;
         if (nextIdx < total && !(await readHolders(out)).some((h) => h.idx === nextIdx)) {
@@ -717,6 +721,18 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       {step === "draw" && (
         <div>
           <p className="mb-2 text-sm">{t("soi.sign.signing_as")} <strong>{myName}</strong></p>
+          <div className="mb-3 rounded-md border border-border p-2 text-xs" data-testid="tz-box">
+            <label className="block text-[11px] uppercase tracking-wide text-muted-foreground" htmlFor="sign-tz">{t("soi.sign.tz.label")}</label>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <select id="sign-tz" value={ZONES.some((z) => z.id === tz) ? tz : "__device"} onChange={(e) => setTz(e.target.value === "__device" ? deviceTz() : e.target.value)} className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 text-sm" data-testid="tz-select">
+                {ZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+                {!ZONES.some((z) => z.id === tz) && <option value="__device">{tz}</option>}
+              </select>
+              <button type="button" onClick={() => setTz(deviceTz())} className="min-h-[44px] rounded-md border border-border px-3 text-xs" data-testid="tz-device">{t("soi.sign.tz.device")}</button>
+              <span className="text-muted-foreground" data-testid="tz-now">{zoneAbbr(new Date().toISOString(), tz)} · {cacStamp(new Date().toISOString(), tz)}</span>
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.tz.default_note")} {t("soi.sign.tz.disclaimer")}</p>
+          </div>
           {resumed && png && <p className="mb-2 text-[11px] text-primary" data-testid="stroke-kept">{t("soi.sign.x.stroke_kept")}</p>}
           <SignaturePad onChange={(p) => { if (p !== null || !resumed) setPng(p); }} />
           {/* the PHYSICAL initials (operator 00:50): drawn once, stamped at the bottom-right of every page in a clear spot */}
@@ -783,7 +799,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           <div className="rounded-lg border border-green-500/40 bg-green-500/5 p-3 text-sm">
             <div className="font-medium text-green-500">{t("soi.sign.complete")}</div>
             {/* The pod's receipt shape — recorded · witnessed · settles — so a signed document reads as one of eXeL's (Pangu). */}
-            <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
+            <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
           <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink || undefined} toDefault={countersign ? pub?.signers.find((x) => !x.me)?.contact_masked : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} /></div>

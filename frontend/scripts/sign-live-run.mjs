@@ -86,7 +86,9 @@ const placeAndSign = async (p, who) => {
     await scribble(p, who); const ink = await inkOnPad(p);
     step(who, 'signature SCRIBBLED with the pointer — ink on the pad, spanning it', ink.share > 0.015 && ink.span > 0.6, `ink ${(ink.share * 100).toFixed(1)} % of the pad, span ${(ink.span * 100).toFixed(0)} %`);
     await drawInitials(p, who);
-    const btn = p.getByTestId('sign-button'); await p.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 });
+    // the record's time zone (operator 2026-09-09): Central (Austin) by default, changeable here, the device's zone one tap away, no location read
+  step(who, 'the draw step offers the record\'s time zone: Central (Austin, Texas) by default, spelled now in CDT/CST, with the device option and the disclaimer', (await p.getByTestId('tz-select').inputValue()) === 'America/Chicago' && /C[DS]T · \d{4}\.\d\d\.\d\d \d\d:\d\d:\d\d C[DS]T/.test(await p.getByTestId('tz-now').innerText()) && (await p.getByTestId('tz-device').count()) === 1 && /never from your location/.test(await p.getByTestId('tz-box').innerText()), await p.getByTestId('tz-now').innerText());
+  const btn = p.getByTestId('sign-button'); await p.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 });
     await btn.click(); step(who, 'Sign & save pressed'); return;
   }
   const bb = await page.boundingBox(); await p.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3);
@@ -349,7 +351,7 @@ const rows = await codexRows(bytes); step('dan', 'signatory rows recorded in the
 await D.getByTestId('verify-input').setInputFiles(file); await D.getByTestId('verify-result').waitFor({ timeout: 30000 });
 const vr = D.getByTestId('verify-result'); step('dan', 'verify-a-signed-file: the downloaded PDF reads green (2 signatures, chain holds)', (await vr.getAttribute('data-ok')) === '1' && /2 signatures/.test(await vr.innerText()), (await vr.innerText()).replace(/\s+/g, ' ').slice(0, 120));
 // the digital signature ALWAYS pairs with the physical one (operator 23:15): one "name · time · #hash" line per SoISig
-const txt = await pdfText(bytes); const dl1 = (txt.match(/Alex Seguin · 2026\.\d\d\.\d\d \d\d:\d\d:\d\d UTC · #[0-9a-f]{8}/g) || []).length, dl2 = (txt.match(/Daniel Vail · 2026\.\d\d\.\d\d \d\d:\d\d:\d\d UTC · #[0-9a-f]{8}/g) || []).length;   // the caption prints the receipt's cacStamp form, one rendering of the instant (fleet pass 2)
+const txt = await pdfText(bytes); const dl1 = (txt.match(/Alex Seguin · 2026\.\d\d\.\d\d \d\d:\d\d:\d\d [A-Z]{2,5} · #[0-9a-f]{8}/g) || []).length, dl2 = (txt.match(/Daniel Vail · 2026\.\d\d\.\d\d \d\d:\d\d:\d\d [A-Z]{2,5} · #[0-9a-f]{8}/g) || []).length;   // the caption prints the receipt's cacStamp form, one rendering of the instant (fleet pass 2)
 step('dan', 'digital signature pairs with each physical one: 2 SoISig images ↔ 2 digital lines in the page text', n === 2 && dl1 === 1 && dl2 === 1, `Alex ×${dl1} · Daniel ×${dl2}`);
 // the Light Codex strips read back from the PDF's own pixels: one per signatory + ALL signatories
 const codex = await decodeCodexPdf(bytes, (b) => new Uint8Array(zlib.inflateSync(b))); const byName = Object.fromEntries(codex.map((c) => [c.name, c.result?.messageForward]));
