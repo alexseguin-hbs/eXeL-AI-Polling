@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Avaa myöhemmin juuri tämän allekirjoitetun tiedoston sinuna, miltä tahansa puhelimelta tai tietokoneelta – valmis tallenne ei vanhene koskaan. Se sisältää avaimesi: säilytä se, älä koskaan välitä sitä eteenpäin. Jos haluat antaa tiedoston jollekulle, käytä yllä olevaa Tekstiviesti- tai Sähköposti-painiketta.",
   "soi.sign.saved.file": "Tiedosto {n}",
   "soi.sign.err.migration_incomplete": "Tämän sivuston tietokantamigraatio on kesken (036 on otettu käyttöön, 038 ei: liitä tarjottu SQL uudelleen). Allekirjoituksesi on leimattu ja tallessa tässä puhelimessa: lataa tiedosto ja lähetä se eteenpäin Tekstiviestillä tai Sähköpostilla.",
+  "soi.sign.err.storage_full": "Tässä puhelimessa ei ollut enää tilaa säilyttää kopiota tallenteesta, joten vanhempia asiakirjoja poistettiin. Allekirjoituksesi on leimattu: lataa tiedosto nyt ja lähetä se eteenpäin Tekstiviestillä tai Sähköpostilla.",
 };
 export default T;

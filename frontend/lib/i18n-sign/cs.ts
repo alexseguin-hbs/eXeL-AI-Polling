@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Později otevře přesně tento podepsaný soubor jako vy, z jakéhokoli telefonu nebo počítače — dokončený záznam nikdy nevyprší. Obsahuje váš klíč: uschovejte ho, nikdy ho nepřeposílejte. Chcete-li soubor někomu předat, použijte SMS nebo E-mail výše.",
   "soi.sign.saved.file": "Soubor {n}",
   "soi.sign.err.migration_incomplete": "Migrace databáze tohoto webu je neúplná (036 je aplikována, 038 není: vložte poskytnuté SQL znovu). Váš podpis je orazítkován a uložen v tomto telefonu: stáhněte soubor a pošlete ho dál pomocí SMS nebo E-mailu.",
+  "soi.sign.err.storage_full": "V tomto telefonu nezbylo místo na uložení kopie záznamu, proto byly starší dokumenty vymazány. Váš podpis je orazítkován: stáhněte soubor hned teď a pošlete ho dál pomocí SMS nebo E-mailu.",
 };
 export default T;

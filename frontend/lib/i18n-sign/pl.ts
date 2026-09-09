@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Otwiera później dokładnie ten podpisany plik, jako ty, z dowolnego telefonu lub komputera — ukończony zapis nigdy nie wygasa. Zawiera twój klucz: zachowaj go i nigdy nie przekazuj dalej. Aby dać komuś plik, użyj SMS lub E-mail powyżej.",
   "soi.sign.saved.file": "Plik {n}",
   "soi.sign.err.migration_incomplete": "Migracja bazy danych tej witryny jest niekompletna (036 jest zastosowana, 038 nie: wklej ponownie dostarczony SQL). Twój podpis został złożony i zachowany na tym telefonie: pobierz plik i prześlij go dalej przez SMS lub E-mail.",
+  "soi.sign.err.storage_full": "W tym telefonie zabrakło miejsca na zachowanie kopii dokumentu, więc starsze dokumenty zostały usunięte. Twój podpis został złożony: pobierz teraz plik i prześlij go dalej przez SMS lub E-mail.",
 };
 export default T;

@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Rouvre plus tard exactement ce fichier signé, en votre nom, depuis n'importe quel téléphone ou ordinateur ; un dossier complété n'expire jamais. Il contient votre clé : gardez-le, ne le transférez jamais. Pour remettre le fichier à quelqu'un, utilisez SMS ou Courriel ci-dessus.",
   "soi.sign.saved.file": "Fichier {n}",
   "soi.sign.err.migration_incomplete": "La migration de la base de données de ce site est incomplète (036 est appliquée, 038 ne l'est pas : collez à nouveau le SQL fourni). Votre signature est scellée et conservée sur ce téléphone : téléchargez le fichier et transmettez-le par SMS ou Courriel.",
+  "soi.sign.err.storage_full": "Ce téléphone n'avait plus de place pour conserver une copie du registre, donc les documents plus anciens ont été effacés. Votre signature est scellée : téléchargez le fichier maintenant et transmettez-le par SMS ou Courriel.",
 };
 export default T;

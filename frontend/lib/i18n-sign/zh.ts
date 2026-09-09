@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "之后可从任意手机或电脑，以你的身份重新打开正是这份已签署的文件；已完成的记录永不过期。它包含你的密钥：请妥善保存，切勿转发。若要把文件交给他人，请使用上方的短信或邮件。",
   "soi.sign.saved.file": "文件 {n}",
   "soi.sign.err.migration_incomplete": "此站点的数据库迁移未完成（036 已应用，038 尚未应用：请再次粘贴提供的 SQL）。你的签名已在本手机上盖章并保存：请下载文件，并通过短信或邮件发送出去。",
+  "soi.sign.err.storage_full": "本手机已没有空间保存记录副本，因此较旧的文档已被清除。你的签名已盖章：请立即下载文件，并通过短信或邮件发送出去。",
 };
 export default T;

@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Membuka semula fail bertandatangan ini kemudian, sebagai anda, dari mana-mana telefon atau komputer — rekod yang lengkap tidak pernah luput. Ia mengandungi kunci anda: simpan, jangan sekali-kali majukan. Untuk memberikan fail kepada seseorang, gunakan Teks atau E-mel di atas.",
   "soi.sign.saved.file": "Fail {n}",
   "soi.sign.err.migration_incomplete": "Migrasi pangkalan data laman ini belum lengkap (036 telah digunakan, 038 belum: tampal semula SQL yang disediakan). Tandatangan anda telah dicap dan disimpan di telefon ini: muat turun fail dan hantarkannya melalui Teks atau E-mel.",
+  "soi.sign.err.storage_full": "Telefon ini tiada ruang lagi untuk menyimpan salinan rekod, jadi dokumen lama telah dipadamkan. Tandatangan anda telah dicap: muat turun fail itu sekarang dan hantarkannya melalui Teks atau E-mel.",
 };
 export default T;

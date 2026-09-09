@@ -442,7 +442,6 @@ await shot(A, 'alex', '7-complete');
   await shot(Q, 'alex', '7c-restored-draft'); await Q.close();
 }
 
-fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
 // ── remove a field and redo (operator 2026-09-08 22:40) — the LAST signer opens his own signed file, removes a text mark, types another,
 // saves: the glyphs leave the file, the new text is bound to the SAME pass, signature · initials · codex row · hidden strip unchanged
 {
@@ -565,4 +564,24 @@ fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
   await B2.goto(link2, { waitUntil: 'domcontentloaded' }); await ready(B2); await drawAndSign(B2);
   await assertOutcome(B2, 'dan', 'SAVE refused for the COUNTERSIGNER → the outcome panel still renders and his signed file downloads');
   await shot(B2, 'dan', '14-save-refused-countersigner'); await CB.close(); await CC.close(); }
+// A FULL PHONE (operator 2026-09-09 09:14 CST: "Creating the document: The quota has been exceeded"): localStorage is stuffed
+// until it refuses, then the document is signed. The signature must still stamp and download; old records are evicted, not the file.
+{ const C = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, acceptDownloads: true }); const P = await C.newPage();
+  await P.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(P);
+  const filled = await P.evaluate(() => { let n = 0; try { const blob = 'x'.repeat(256 * 1024); for (;;) { localStorage.setItem(`exel-sign:filler${n}`, JSON.stringify({ created_at: new Date(2020, 0, 1 + n).toISOString(), blob })); n++; if (n > 200) break; } } catch { /* full */ } return n; });
+  step('alex', 'the phone is filled until localStorage refuses another write', filled > 0, `${filled} filler records`);
+  await P.getByPlaceholder(/Promissory/).fill('Full phone'); await P.getByTestId('file-input').setInputFiles(FIXTURE);
+  await P.getByRole('button', { name: /who signs/ }).click();
+  await P.getByTestId('signer-name-0').fill('Alex Seguin'); await P.getByTestId('signer-contact-0').fill('explore@exel-ai.com');
+  await P.locator('button[aria-label]:has-text("✕")').first().click();
+  await P.getByRole('button', { name: /place your signature/ }).click();
+  const pg = P.getByTestId('pdf-page'); await pg.locator('canvas').first().waitFor({ timeout: 60000 });
+  const bb = await pg.boundingBox(); await P.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3); await P.getByTestId('sig-box').waitFor();
+  await P.getByTestId('to-draw').click(); await scribble(P, 'alex'); await drawInitials(P, 'alex');
+  await P.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 }); await P.getByTestId('sign-button').click();
+  await P.getByTestId('downloads').waitFor({ timeout: 60000 });
+  const dl = P.waitForEvent('download', { timeout: 15000 }); await P.getByTestId('send-download').first().click(); const got = await dl.then((d) => d.suggestedFilename()).catch(() => '');
+  step('alex', 'a FULL phone no longer costs the signature: the outcome panel renders and the signed file downloads', /-signed-AS\.pdf$/.test(got) && (await P.getByTestId('send-text').count()) === 1 && (await P.getByTestId('send-email-file').count()) === 1, got || 'no download');
+  await shot(P, 'alex', '15-full-phone'); await C.close(); }
+fs.writeFileSync(OUT + '/log.txt', log.join('\n'));   // written LAST so the committed evidence holds every step (Athena)
 await browser.close(); console.log(`\nSIGN 2-PHONE LIVE RUN: ${log.length} steps, 0 failures`);

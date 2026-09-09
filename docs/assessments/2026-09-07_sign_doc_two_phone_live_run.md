@@ -397,3 +397,35 @@ Twelve 111-word AsM reviews + a 333-word MoT summary sit in the approved plan; e
   `sign-sample-signed-AS.pdf` downloaded (10-refused-at-create).
 Two-phone **93 steps, 0 failures** (7b-saved-link, 7c-restored-draft, 10-refused-at-create) · offline 17/17 · sign-store 12 · sign-envelope 39 · sign-rpc 12 · tsc 0.
 Unprovable here: hosted Supabase, Resend, iOS share sheets — the operator pastes the new served SQL once and signs.
+
+## Wave 15 — 2026-09-09 14:50 UTC: a completed signature is never discarded, and a full phone cannot take it either
+
+Operator, 04:59 and 09:14 CST: *"this error comes up after signing"* · *"Creating the document: The quota has been exceeded"* ·
+*"get rid of error message 'why cant I sign'"* · *"Each AsM needs to do AAR and assess why its taking so long"*.
+
+**The AAR.** 74862b8 gave the CREATE step a fallback and left the SAVE step without one; `sign-flow`'s catch called
+`setStep("draw")` and threw away `stampedBytes` — the finished PDF already in memory. The countersigner had no local safety net
+at all. Thoth: one call site patched, the class never enumerated. Athena: the proof mocked the failure that was fixed. Odin: no
+invariant was written down. **MoT ruling: a completed signature is never discarded.**
+
+- **The invariant** (3f6ac5d) — `stampedBytes` hoisted out of the try; `setSigned()` the moment stamping ends, before any store
+  call; the catch lands on the outcome panel whenever a stamped file exists. Only a failure BEFORE stamping returns to the pads.
+  `signEnvelope` keeps a refused pass on the device when a local envelope exists; a wrong secret / not-your-turn / revoked /
+  expired still raises, because a refusal is not an outage.
+- **"Why can't I sign?" removed** (2ca7a54) — with its two auto-open effects. The one thing it carried that the operator needs,
+  Copy migration SQL / Open the SQL, is now a shared `SqlRoute` row on the two panels that say the database did not take the record.
+- **A full phone** — `localStorage` refused the write and killed the signing ("The quota has been exceeded"). `writeLocal` now
+  evicts the oldest record and retries; if the device still refuses, the flow continues from memory and the panel says so
+  (`soi.sign.err.storage_full`, 31 languages + ES).
+- **The panel never overclaims** (Christo/Aset) — `outcomeComplete` decides the heading, the file name and whether a saved link
+  is offered at all: a refused save mid-chain reads "hand the file over", names the file `-partly-signed`, and offers no link to
+  a record that does not exist.
+- **The server wins over a shadow** (Athena) — a save that committed and then timed out used to leave the device copy answering
+  for that token for ever; `getEnvelope` now asks the store first and falls back to the device only when it cannot answer.
+- **A gate that cannot be refactored away** (Odin/Enlil) — `tests/sign-invariant.test.mjs` (10 assertions) reads the shipped
+  source: the bytes are declared outside the try, `setSigned` precedes every store call, the catch guards on
+  `stampedBytes.length` and goes to `done`, `setStep("draw")` appears only after that guard, the download row is ungated, and the
+  store evicts rather than throws. Wired into `test:ci`.
+Two-phone **107 steps, 0 failures** (13-save-refused-creator · 14-save-refused-countersigner · 15-full-phone), log written last
+so the committed evidence holds every step. Offline 17/17 · sign-store 12 · sign-envelope 39 · sign-rpc 12 · notify-core 18 ·
+sign-invariant 10 · i18n strict 125/125 · sign-i18n 137 · tsc 0 · lint 0 · scratch build green.

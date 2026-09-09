@@ -27,6 +27,36 @@ export class SignStoreError extends Error {
 }
 
 const LOCAL_KEY = (token: string) => `exel-sign:${token}`;
+
+/**
+ * Writing a record to this device must never cost the signer his signature (operator 2026-09-09 09:14 CST:
+ * "Creating the document: The quota has been exceeded"). A phone's localStorage is a few megabytes and every envelope carries
+ * its PDFs as base64, so a busy phone fills up. On a quota error the OLDEST envelope is evicted and the write retried; if even
+ * an empty store cannot take it, the caller is told `false` and carries on from memory — the file still stamps and downloads.
+ */
+const evictOldestEnvelope = (keep: string): boolean => {
+  try {
+    let oldestKey = "", oldestAt = Infinity;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith("exel-sign:") || k === LOCAL_KEY(keep)) continue;
+      let at = 0; try { at = Date.parse((JSON.parse(localStorage.getItem(k) ?? "{}") as { created_at?: string }).created_at ?? "") || 0; } catch { at = 0; }
+      if (at < oldestAt) { oldestAt = at; oldestKey = k; }
+    }
+    if (!oldestKey) return false;
+    localStorage.removeItem(oldestKey);
+    return true;
+  } catch { return false; }
+};
+/** true when the record is on this device; false when the device would not take it (the flow continues from memory). */
+const writeLocal = (token: string, env: Envelope): boolean => {
+  const payload = JSON.stringify(env);
+  for (let i = 0; i < 8; i++) {
+    try { localStorage.setItem(LOCAL_KEY(token), payload); return true; }
+    catch { if (!evictOldestEnvelope(token)) return false; }
+  }
+  return false;
+};
 export const storeMode = (): StoreMode => (supabase ? "supabase" : "local");
 
 /** PostgREST's "function not found" — migration 036 has not been applied on this Supabase project. */
@@ -82,8 +112,9 @@ export async function createEnvelope(env: Envelope, opts: { localMulti?: boolean
   // (localMulti): the envelope lives on this device, the partly-signed file travels by hand (operator 00:39).
   const local = (why: "no_backend" | "no_migration" | "migration_incomplete") => {
     if (env.signers.length > 1 && !opts.localMulti) throw new SignStoreError(why, why === "no_migration" ? "This site has not applied migration 036 yet." : why === "migration_incomplete" ? "This site's migration is incomplete (paste the served SQL again: 036+037+038)." : "No Supabase on this build.");
-    localStorage.setItem(LOCAL_KEY(env.token), JSON.stringify(env));
-    return { token: env.token, mode: "local" as StoreMode, ...(supabase ? { why } : {}) };
+    const kept = writeLocal(env.token, env);
+    // a full device is not a failure: the page holds the envelope in memory, so the signature still stamps and downloads
+    return { token: env.token, mode: "local" as StoreMode, ...(supabase || !kept ? { why: kept ? why : "storage_full" } : {}) };
   };
   if (!supabase) return local("no_backend");
   const { data, error } = await withTimeout(supabase.rpc("sign_envelope_create", {
@@ -100,6 +131,15 @@ export async function createEnvelope(env: Envelope, opts: { localMulti?: boolean
   return { token: (data as { token: string }).token, mode: "supabase" };
 }
 
+/** The public shape of an envelope held in memory — used when the device would not store it (quota) so the pass still completes. */
+const shapeOf = (env: Envelope, secret: string): PublicEnvelope => {
+  const party = env.signers.findIndex((s) => s.secret === secret);
+  return {
+    token: env.token, title: env.title, status: env.status, current_signer_idx: env.current_signer_idx,
+    signers: env.signers.map((s, i) => ({ name: s.name, contact_masked: maskContact(s.contact), order: s.order, signed_at: s.signed_at ?? null, me: i === party })),
+    chain: env.chain, expires_at: env.expires_at ?? null, party, files: party >= 0 ? env.files : null, mode: "local",
+  };
+};
 const fromLocal = (token: string, secret: string): PublicEnvelope | null => {
   try {
     const raw = localStorage.getItem(LOCAL_KEY(token)); if (!raw) return null;
@@ -115,8 +155,13 @@ const fromLocal = (token: string, secret: string): PublicEnvelope | null => {
 
 export async function getEnvelope(token: string, secret: string): Promise<PublicEnvelope> {
   const l = fromLocal(token, secret);                        // a locally-kept envelope is answered from this device
-  if (!supabase || l) { if (!l) throw new SignStoreError("not_found"); return l; }
-  const { data, error } = await withTimeout(supabase.rpc("sign_envelope_get", { p_token: token, p_secret: secret || null, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300) }));
+  if (!supabase) { if (!l) throw new SignStoreError("not_found"); return l; }
+  // With a store reachable the SERVER is the truth: a save that committed and then timed out used to leave the device copy
+  // shadowing that token for ever (Athena, AAR 2026-09-09). The local copy is the fallback, not the answer.
+  let data: unknown = null, error: unknown = null;
+  try { ({ data, error } = await withTimeout(supabase.rpc("sign_envelope_get", { p_token: token, p_secret: secret || null, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300) }))); }
+  catch (e) { if (l) return l; throw e instanceof SignStoreError ? e : new SignStoreError("unreachable", String((e as Error).message ?? e)); }
+  if (error && l) return l;                                  // the record never reached the store (or it cannot answer): this device holds it
   if (error) rpcError(error);
   if ((data as { error?: string } | null)?.error) rpcError(new Error((data as { error: string }).error));   // 037: a wrong secret is returned, not raised, so the lock counter commits
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };
@@ -125,8 +170,8 @@ export async function getEnvelope(token: string, secret: string): Promise<Public
 export async function signEnvelope(token: string, idx: number, secret: string, files: SignFile[], chain: string, localNext?: Envelope, marks?: unknown): Promise<PublicEnvelope> {
   if (!supabase || (localNext && localStorage.getItem(LOCAL_KEY(token)))) {
     if (!localNext) throw new SignStoreError("no_backend");
-    localStorage.setItem(LOCAL_KEY(token), JSON.stringify(localNext));
-    const e = fromLocal(token, secret); if (!e) throw new SignStoreError("not_found");
+    writeLocal(token, localNext);                              // a full device does not stop the pass — the shape below comes from localNext
+    const e = fromLocal(token, secret) ?? shapeOf(localNext, secret);
     const done = localNext.status !== "awaiting";
     return { ...e, next_secret: !done ? localNext.signers[localNext.current_signer_idx]?.secret ?? null : null, next_contact: !done ? localNext.signers[localNext.current_signer_idx]?.contact ?? null : null, creator_contact: done ? localNext.signers[0]?.contact ?? null : null };   // parity with 037
   }
@@ -139,8 +184,8 @@ export async function signEnvelope(token: string, idx: number, secret: string, f
   // local envelope: keep it on this device rather than throwing away a finished signature (AAR 2026-09-09, the save stage had no
   // fallback while create did). A wrong secret / not-your-turn is a REFUSAL, not an outage — those still raise.
   if (error && localNext && !/bad_secret|not_your_turn|revoked|expired|complete/i.test(String((error as { message?: string }).message ?? ""))) {
-    localStorage.setItem(LOCAL_KEY(token), JSON.stringify(localNext));
-    const e = fromLocal(token, secret);
+    writeLocal(token, localNext);
+    const e = fromLocal(token, secret) ?? shapeOf(localNext, secret);
     if (e) { const done = localNext.status !== "awaiting"; return { ...e, next_secret: !done ? localNext.signers[localNext.current_signer_idx]?.secret ?? null : null, next_contact: !done ? localNext.signers[localNext.current_signer_idx]?.contact ?? null : null, creator_contact: done ? localNext.signers[0]?.contact ?? null : null }; }
   }
   if (error) rpcError(error);

@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Opent later precies dit ondertekende bestand, als jou, vanaf elke telefoon of computer — een voltooid document verloopt nooit. Hij bevat je sleutel: bewaar hem en stuur hem nooit door. Om iemand het bestand te geven, gebruik je Sms of E-mail hierboven.",
   "soi.sign.saved.file": "Bestand {n}",
   "soi.sign.err.migration_incomplete": "De databasemigratie van deze site is onvolledig (036 is toegepast, 038 niet: plak de aangeleverde SQL opnieuw). Je handtekening is gezet en bewaard op deze telefoon: download het bestand en stuur het door via Sms of E-mail.",
+  "soi.sign.err.storage_full": "Deze telefoon had geen ruimte meer om een kopie van het document te bewaren, dus oudere documenten zijn gewist. Je handtekening is gezet: download het bestand nu en stuur het door via Sms of E-mail.",
 };
 export default T;

@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Öffnet später genau diese unterschriebene Datei als Sie, von jedem Telefon oder Computer aus; ein abgeschlossener Vorgang läuft nie ab. Er enthält Ihren Schlüssel: behalten Sie ihn, leiten Sie ihn nie weiter. Um jemandem die Datei zu geben, nutzen Sie SMS oder E-Mail oben.",
   "soi.sign.saved.file": "Datei {n}",
   "soi.sign.err.migration_incomplete": "Die Datenbankmigration dieser Seite ist unvollständig (036 ist angewendet, 038 nicht: fügen Sie das bereitgestellte SQL erneut ein). Ihre Unterschrift ist gestempelt und bleibt auf diesem Telefon: laden Sie die Datei herunter und senden Sie sie per SMS oder E-Mail weiter.",
+  "soi.sign.err.storage_full": "Auf diesem Telefon war kein Platz mehr, um eine Kopie des Protokolls zu behalten, deshalb wurden ältere Dokumente entfernt. Ihre Unterschrift ist gestempelt: laden Sie die Datei jetzt herunter und senden Sie sie per SMS oder E-Mail weiter.",
 };
 export default T;

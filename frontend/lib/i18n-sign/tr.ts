@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Tam olarak bu imzalı dosyayı daha sonra, herhangi bir telefon ya da bilgisayardan, senin olarak yeniden açar; tamamlanmış bir kayıt asla sona ermez. Anahtarını içerir: sakla, kimseye iletme. Dosyayı birine vermek için yukarıdaki Mesaj ya da E-posta'yı kullan.",
   "soi.sign.saved.file": "Dosya {n}",
   "soi.sign.err.migration_incomplete": "Bu sitenin veritabanı geçişi eksik (036 uygulanmış, 038 uygulanmamış: sunulan SQL'i yeniden yapıştır). İmzan damgalandı ve bu telefonda tutuluyor: dosyayı indir ve Mesaj ya da E-posta ile ilet.",
+  "soi.sign.err.storage_full": "Bu telefonda kaydın bir kopyasını saklayacak yer kalmadı, bu yüzden daha eski belgeler temizlendi. İmzan damgalandı: dosyayı şimdi indir ve Mesaj ya da E-posta ile ilet.",
 };
 export default T;

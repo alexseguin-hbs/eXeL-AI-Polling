@@ -373,5 +373,6 @@ const T: Record<string, string> = {
   "soi.sign.saved.hint": "Åbner senere præcis denne signerede fil som dig, fra enhver telefon eller computer – en færdig optegnelse udløber aldrig. Det indeholder din nøgle: gem det, videresend det aldrig. Brug Sms eller E-mail ovenfor for at give nogen filen.",
   "soi.sign.saved.file": "Fil {n}",
   "soi.sign.err.migration_incomplete": "Dette sites databasemigrering er ufuldstændig (036 er anvendt, 038 er det ikke: indsæt den leverede SQL igen). Din signatur er stemplet og gemt på denne telefon: download filen og send den videre via Sms eller E-mail.",
+  "soi.sign.err.storage_full": "Der var ikke plads tilbage på denne telefon til at gemme en kopi af protokollen, så ældre dokumenter blev ryddet. Din signatur er stemplet: hent filen nu, og send den videre via Sms eller E-mail.",
 };
 export default T;

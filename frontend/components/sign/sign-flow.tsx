@@ -461,6 +461,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // − / + scale the selected mark about its bottom-left corner: the baseline never moves (operator 2026-09-08)
   const resizeSel = (f: number) => setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).map((m) => { if (m.id !== selected) return m; const w = Math.min(1, Math.max(0.08, m.w * f)), h = Math.min(1, Math.max(0.02, m.h * f)); return { ...m, w, h, y: Math.max(0, m.y + m.h - h) }; }) }));
   const myIdx = countersign ? (pub?.party ?? 0) : 0;
+  // Did the DOCUMENT complete, or did only THIS signer finish? The outcome panel renders either way (the invariant), but it may
+  // never claim more than happened: a refused save mid-chain is "hand the file over", not "every signer has signed" (Christo).
+  const outcomeComplete = pub?.status === "complete" || (!countersign ? signers.length === 1 : !!pub && myIdx === pub.signers.length - 1);
   // in a carried file this reader is the next free row, not row 0 (the earlier signers are already in the file)
   const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[carriedIdx ?? 0]?.name ?? signers[0]?.name ?? "";
   const meIdx = countersign ? myIdx : Math.min(carriedIdx ?? 0, Math.max(0, signers.length - 1));   // the row THIS pass signs in
@@ -831,7 +834,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
               <div className="text-sm font-medium text-amber-500">{t("soi.sign.handoff.offline_title")}</div>
               <p className="mt-1 text-xs text-muted-foreground">{t(`soi.sign.err.${offline || "no_backend"}`)}</p>
               <p className="mt-2 text-xs">{t("soi.sign.handoff.offline").replace("{next}", nextName || nextContact)}</p>
-              <SqlRoute />
+              {/no_migration|migration_incomplete|no_backend/.test(offline || "no_backend") && <SqlRoute />}
               {tmpLink && (
                 <div className="mt-3 rounded-md border border-border bg-background p-2" data-testid="tmp-link">
                   <div className="font-medium text-foreground">{t("soi.sign.tmp.title")}</div>
@@ -869,7 +872,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       {step === "done" && (
         <div>
           <div className="rounded-lg border border-green-500/40 bg-green-500/5 p-3 text-sm">
-            <div className="font-medium text-green-500">{t("soi.sign.complete")}</div>
+            <div className={`font-medium ${outcomeComplete ? "text-green-500" : "text-amber-500"}`} data-testid="outcome-title" data-complete={outcomeComplete ? "1" : "0"}>{outcomeComplete ? t("soi.sign.complete") : t("soi.sign.handoff.offline_title")}</div>
             {/* The pod's receipt shape — recorded · witnessed · settles — so a signed document reads as one of eXeL's (Pangu). */}
             <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
@@ -883,8 +886,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           )}
           {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pub?.signers[0]?.name ?? "")}</p>}
           {/* the message carries the RECORD link (no secret — Thor) and the chain hash; the saved link below is the holder's own key */}
-          <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink ? recordLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "") : undefined} chain={pub?.chain} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} focus={focusIdx} /></div>
-          {myLink && signedSha.length === signed.length && (
+          <div data-testid="downloads"><SendRow files={signed} final={outcomeComplete} title={pub?.title ?? title} sender={myName} link={myLink ? recordLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "") : undefined} chain={pub?.chain} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} focus={focusIdx} /></div>
+          {myLink && mode !== "local" && signedSha.length === signed.length && (
             <div className="mt-3 rounded-lg border border-border p-3 text-xs" data-testid="saved-links">
               <div className="font-medium">{t("soi.sign.saved.title")}</div>
               <p className="text-muted-foreground">{t("soi.sign.saved.hint")}</p>
