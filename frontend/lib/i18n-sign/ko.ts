@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "서명자",
   "soi.doc.ai.ph2": "예: 자녀와 부모가 등교일에는 자녀가 하루 60분 공부하기로 합의. 부모가 매주 확인. 한 주를 지키지 못하면 그 주말은 화면 사용 없음.",
   "soi.doc.ai.unconfigured": "이 사이트에는 아직 AI 키가 없습니다. 문서를 직접 쓰거나, 사이트 소유자에게 Anthropic, OpenAI, Grok 또는 Gemini 키를 추가해 달라고 요청하세요.",
+  "soi.sign.creator_mailed": "완료된 파일을 PDF 첨부와 함께 {name}에게 이메일로 보냈습니다.",
+  "soi.sign.creator_mail_manual": "아래 문자 또는 이메일로 완료된 파일을 {name}에게 다시 보내세요.",
 };
 export default T;

@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Ai ký",
   "soi.doc.ai.ph2": "ví dụ: Một đứa trẻ và phụ huynh thỏa thuận rằng trẻ học 60 phút mỗi ngày vào ngày đi học; phụ huynh kiểm tra hằng tuần; bỏ lỡ một tuần thì cuối tuần đó không dùng màn hình.",
   "soi.doc.ai.unconfigured": "Trang này chưa có khóa AI. Hãy tự viết tài liệu, hoặc nhờ chủ trang thêm khóa Anthropic, OpenAI, Grok hoặc Gemini.",
+  "soi.sign.creator_mailed": "Tệp đã hoàn tất đã được gửi qua email tới {name} kèm theo PDF.",
+  "soi.sign.creator_mail_manual": "Gửi lại tệp đã hoàn tất cho {name} bằng Tin nhắn hoặc Email bên dưới.",
 };
 export default T;

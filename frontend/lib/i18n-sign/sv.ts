@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Vem signerar",
   "soi.doc.ai.ph2": "t.ex. Ett barn och en förälder kommer överens om att barnet pluggar 60 minuter om dagen på skoldagar; föräldern följer upp varje vecka; en missad vecka betyder ingen skärmtid den helgen.",
   "soi.doc.ai.unconfigured": "Ingen AI-nyckel på den här webbplatsen ännu. Skriv dokumentet själv, eller be webbplatsens ägare att lägga till en Anthropic-, OpenAI-, Grok- eller Gemini-nyckel.",
+  "soi.sign.creator_mailed": "Den färdiga filen skickades via e-post till {name} med PDF-filen bifogad.",
+  "soi.sign.creator_mail_manual": "Skicka tillbaka den färdiga filen till {name} via Sms eller E-post nedan.",
 };
 export default T;

@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Cine semnează",
   "soi.doc.ai.ph2": "ex. Un copil și un părinte convin ca, în zilele de școală, copilul să învețe 60 de minute pe zi; părintele verifică săptămânal; o săptămână ratată înseamnă fără ecrane în acel weekend.",
   "soi.doc.ai.unconfigured": "Nu există încă o cheie AI pe acest site. Scrie documentul singur sau roagă proprietarul site-ului să adauge o cheie Anthropic, OpenAI, Grok sau Gemini.",
+  "soi.sign.creator_mailed": "Fișierul finalizat a fost trimis prin e-mail către {name}, cu PDF-ul atașat.",
+  "soi.sign.creator_mail_manual": "Trimite fișierul finalizat înapoi către {name} prin SMS sau E-mail mai jos.",
 };
 export default T;

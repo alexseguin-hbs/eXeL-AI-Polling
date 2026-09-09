@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "签署人",
   "soi.doc.ai.ph2": "例如：孩子和家长约定，上学日孩子每天学习 60 分钟；家长每周检查；哪一周没做到，那个周末就不能用屏幕。",
   "soi.doc.ai.unconfigured": "此站点尚未配置 AI 密钥。请自行撰写文档，或请站点所有者添加 Anthropic、OpenAI、Grok 或 Gemini 密钥。",
+  "soi.sign.creator_mailed": "已完成的文件已通过邮件发送给 {name}，并附上 PDF。",
+  "soi.sign.creator_mail_manual": "请用下方的短信或邮件把已完成的文件发回给 {name}。",
 };
 export default T;

@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Ketkä allekirjoittavat",
   "soi.doc.ai.ph2": "esim. Lapsi ja vanhempi sopivat, että lapsi opiskelee koulupäivinä 60 minuuttia päivässä; vanhempi tarkistaa viikoittain; väliin jäänyt viikko tarkoittaa, ettei sinä viikonloppuna ole ruutuaikaa.",
   "soi.doc.ai.unconfigured": "Tällä sivustolla ei ole vielä tekoälyavainta. Kirjoita asiakirja itse tai pyydä sivuston omistajaa lisäämään Anthropic-, OpenAI-, Grok- tai Gemini-avain.",
+  "soi.sign.creator_mailed": "Valmis tiedosto lähetettiin sähköpostilla vastaanottajalle {name}, PDF liitteenä.",
+  "soi.sign.creator_mail_manual": "Lähetä valmis tiedosto takaisin vastaanottajalle {name} alla olevalla Tekstiviesti- tai Sähköposti-painikkeella.",
 };
 export default T;

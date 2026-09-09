@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Sino ang pipirma",
   "soi.doc.ai.ph2": "hal. Nagkasundo ang isang anak at magulang na mag-aaral ang anak nang 60 minuto bawat araw tuwing may pasok; lingguhang susuriin ng magulang; kapag may lumampas na linggo, walang screen time sa katapusan ng linggong iyon.",
   "soi.doc.ai.unconfigured": "Wala pang AI key sa site na ito. Isulat mo mismo ang dokumento, o hilingin sa may-ari ng site na magdagdag ng Anthropic, OpenAI, Grok o Gemini key.",
+  "soi.sign.creator_mailed": "Ipinadala na sa e-mail kay {name} ang tapos nang file, kalakip ang PDF.",
+  "soi.sign.creator_mail_manual": "Ibalik ang tapos nang file kay {name} gamit ang I-text o I-email sa ibaba.",
 };
 export default T;

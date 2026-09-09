@@ -1,6 +1,6 @@
 # Fleet pass 2 — 48-agent review of the Sign Doc backlog (2026-09-08 01:57–02:30 UTC), with today's dispositions
 
-Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the session limit (reset 04:10 UTC) stopped the rest; the 37 missing voters and MoTs are re-run after this ship (plan E). Every finding below carries what shipped today (d16ef66, then batches 1–2: 9161327, f6c9b2f) or what stays open. The 12 × 111 + 3 × 333 review of the plan that answered these is `2026-09-08_asm_plan_review_12x111_mot333.md`.
+Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the session limit (reset 04:10 UTC) stopped the rest; the 37 missing voters and MoTs are re-run after this ship (plan E). Every finding below carries what shipped today (d16ef66, batches 1–2: 9161327, f6c9b2f; 037: 2c9bc51) or what stays open. A finding of the new PGlite test: under 036 a wrong secret RAISED, which rolled back the failed-attempt counter — the one-hour lock after 20 wrong secrets never engaged; 037 returns the refusal so the counter commits. The 12 × 111 + 3 × 333 review of the plan that answered these is `2026-09-08_asm_plan_review_12x111_mot333.md`.
 
 ## Findings by specialist (severity · effort · disposition)
 
@@ -111,7 +111,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **high · hour** · deploy.yml gate is red by construction: test:innovation-time runs inside test:ci and again at :77, and the live-run doc records it failing on the /innovation deck; test:notify-core is listed twice in test:ci — `.github/workflows/deploy.yml`
   → FIXED — innovation-time reads /SoI-2525, 3680/3680; duplicate notify-core removed
 - **medium · hour** · Supabase branch of sign-store (create/get/sign over the 036 RPCs), the duplicate-token retry, the 'unreachable' probe and the lockout have zero unit coverage in test:ci — all four are proven only through the Playwright run, which no door executes — `frontend/tests/sign-store.test.mjs`
-  → OPEN (hour) — sign-store Supabase branch still proven by live runs only
+  → FIXED (2c9bc51) — tests/sign-rpc.test.mjs on a real Postgres (PGlite, 036 + 037): 12 cases incl. the lock that 036 never committed
 - **medium · day** · No proof walks a third signer or a returning/early signer; 036 still returns no next_contact and the waiting screen has no poll — `frontend/scripts/sign-live-run.mjs`
   → OPEN — see the item
 - **medium · hour** · Hosted 036 presence is still never measured after a deploy — verify-live.yml checks the footer SHA only; apply-migration.yml is manual and one-shot — `.github/workflows/verify-live.yml`
@@ -149,7 +149,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 ### Christo-1 — signature works today: yes
 
 - **high · hour** · Middle signer's hand-off still has no recipient (3+ signers): next_contact never returned, sms:/mailto: open empty — `frontend/components/sign/sign-flow.tsx:334`
-  → OPEN (hour + 036 change) — third signer hand-off
+  → FIXED (037, 2c9bc51) — sign_envelope_sign returns next_contact; a middle signer texts or e-mails the hand-off; proven on PGlite with three signers
 - **high · hour** · 'Waiting for X' is still frozen: envelope fetched once on mount, no poll, no visibilitychange, no Check-again — `frontend/components/sign/sign-flow.tsx:148-170`
   → FIXED — visibilitychange + 20 s refetch + Check again
 - **high · minutes** · The 24-hour file link is not configured on the live Worker: SIGN_FILES KV is commented out, so /api/tmp answers {configured:false} and no ?f= link is ever minted live — `frontend/wrangler.jsonc:27-29`
@@ -163,7 +163,7 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 - **medium · hour** · 'Why can't I sign?' sentence still ignores step and role: a waiting or not_party countersigner is told to Upload/Place; a failed-open signer is told to tap a Sign & save button that is not on the page — `frontend/components/sign/sign-diag.tsx:81-86`
   → OPEN (hour) — diagnosis sentence per step/role
 - **medium · hour** · Creator is never told the document completed; the last signer's result carries no creator contact — `frontend/components/sign/sign-flow.tsx:325`
-  → OPEN (036 change)
+  → FIXED (037 + 2c9bc51 → next commit) — creator_contact on completion; the last signer's phone mails the finished file to the creator through the site's mail (PDF attached), else the send row is prefilled and says so
 - **medium · minutes** · After a failed save a countersigner lands on PLACE ('Next: draw.') while the red line says the save failed — `frontend/components/sign/sign-flow.tsx:344`
   → FIXED — failed save stays on the sign step
 - **medium · day** · Flow explainer lines, roster states, hand-off, tmp-link and share strings are English-only in 31 languages (Spanish now complete) — `frontend/lib/lexicon-translations-sign.ts:5`
@@ -184,11 +184,11 @@ Run `wf_1cd17ab4-e25` at HEAD 1ebadec. **11 of 48 agents returned** before the s
 ### Christo-2 — signature works today: yes
 
 - **high · hour** · Still true — middle signer (3+ signers) hands off to nobody: next contact blanked, 036 returns no next_contact — `frontend/components/sign/sign-flow.tsx`
-  → OPEN (hour + 036 change) — third signer hand-off
+  → FIXED (037, 2c9bc51) — sign_envelope_sign returns next_contact; a middle signer texts or e-mails the hand-off; proven on PGlite with three signers
 - **high · hour** · Still true — 'Waiting for X' never refreshes: one fetch on mount, no poll, no Check-again; the creator's hand-off screen never flips to done — `frontend/components/sign/sign-flow.tsx`
   → FIXED — visibilitychange + 20 s refetch + Check again
 - **medium · hour** · Still true — the creator is never told the document completed — `supabase/migrations/036_sign_envelopes.sql`
-  → OPEN (036 change)
+  → FIXED (037 + 2c9bc51 → next commit) — creator_contact on completion; the last signer's phone mails the finished file to the creator through the site's mail (PDF attached), else the send row is prefilled and says so
 - **medium · minutes** · NEW — the ?f= (24-hour link) recipient is asked to log in with Auth0, unlike the ?e= recipient; the ask says the token IS the unique login — `frontend/app/soi-session/sign/page.tsx`
   → OPEN — see the item
 - **medium · hour** · NEW — offline recipient must know to DELETE the second signer row, or the flow hands off again instead of completing; the message never says so — `frontend/components/sign/sign-flow.tsx`

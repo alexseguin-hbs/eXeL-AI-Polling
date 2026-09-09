@@ -183,6 +183,8 @@ export const ES_SIGN: Record<string, string> = {
   "soi.sign.zoom_reset": "Ajustar la página",
   "soi.sign.snap_line": "Ajustar a la línea",
   "soi.sign.zoom_hint": "Pellizca o toca + para acercar; arrastra una casilla para centrarla en su línea.",
+  "soi.sign.creator_mailed": "El archivo terminado se envió por correo a {name} con el PDF adjunto.",
+  "soi.sign.creator_mail_manual": "Envía el archivo terminado a {name} con Texto o Correo abajo.",
   "soi.sign.tz.label": "Zona horaria del registro",
   "soi.sign.tz.device": "Usar la zona horaria de mi dispositivo",
   "soi.sign.tz.disclaimer": "La zona sale de la configuración del reloj de este dispositivo, nunca de tu ubicación; no se lee ni se guarda nada sobre dónde estás.",

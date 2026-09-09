@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "מי חותם",
   "soi.doc.ai.ph2": "לדוגמה: ילד והורה מסכימים שהילד לומד 60 דקות ביום בימי לימודים; ההורה בודק מדי שבוע; שבוע שהוחמץ פירושו בלי זמן מסך באותו סוף שבוע.",
   "soi.doc.ai.unconfigured": "עדיין אין מפתח AI באתר הזה. כתבו את המסמך בעצמכם, או בקשו מבעל האתר להוסיף מפתח של Anthropic, OpenAI, Grok או Gemini.",
+  "soi.sign.creator_mailed": "הקובץ המושלם נשלח באימייל אל {name} עם ה-PDF מצורף.",
+  "soi.sign.creator_mail_manual": "שלחו את הקובץ המושלם חזרה אל {name} בהודעת טקסט או באימייל למטה.",
 };
 export default T;

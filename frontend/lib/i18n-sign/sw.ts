@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Nani anasaini",
   "soi.doc.ai.ph2": "k.m. Mtoto na mzazi wanakubaliana kwamba mtoto anasoma dakika 60 kwa siku katika siku za shule; mzazi anakagua kila wiki; wiki iliyokosekana inamaanisha hakuna muda wa skrini wikendi hiyo.",
   "soi.doc.ai.unconfigured": "Bado hakuna ufunguo wa AI kwenye tovuti hii. Andika hati mwenyewe, au mwombe mmiliki wa tovuti aongeze ufunguo wa Anthropic, OpenAI, Grok au Gemini.",
+  "soi.sign.creator_mailed": "Faili iliyokamilika imetumwa kwa barua pepe kwa {name} ikiwa na PDF imeambatishwa.",
+  "soi.sign.creator_mail_manual": "Rudisha faili iliyokamilika kwa {name} kwa Ujumbe mfupi au Barua pepe hapa chini.",
 };
 export default T;

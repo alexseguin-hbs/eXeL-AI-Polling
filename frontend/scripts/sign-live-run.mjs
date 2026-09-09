@@ -263,6 +263,7 @@ for (const who of ['alex', 'dan']) {
   phones[who].on('pageerror', (e) => step(who, 'pageerror ' + e.message, false));
 }
 const A = phones.alex, D = phones.dan;
+const creatorMails = []; await D.route('**/api/notify', async (route) => { creatorMails.push(route.request().postDataJSON()); await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sent: true, id: 'em_creator' }) }); });
 
 // the AI route (Worker /api/ai) mocked on Alex's phone: "openai configured"; placement answers the lender's rule
 await A.route('**/api/ai', (r) => { if (r.request().method() === 'GET') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ configured: { openai: true, gemini: false, grok: false } }) });
@@ -329,6 +330,8 @@ step('dan', 'roster: Alex signed, Daniel now', /Alex Seguin[\s\S]*signed[\s\S]*D
 await shot(D, 'dan', '5-open');
 await placeAndSign(D, 'dan');
 await D.getByTestId('downloads').waitFor({ timeout: 60000 }); step('dan', 'COMPLETE — every signer has signed');
+await D.waitForFunction(() => document.querySelector('[data-testid="creator-mail"]')?.getAttribute('data-state') === 'sent', null, { timeout: 15000 }).catch(() => {});
+step('dan', "the creator is told: Dan's phone mailed the finished file to Alex through the site's mail, PDF attached (037 creator_contact)", creatorMails.length === 1 && creatorMails[0].to.toLowerCase() === 'explore@exel-ai.com' && creatorMails[0].final === true && /-signed-AS-DV\.pdf$/.test(creatorMails[0].attachment?.name || '') && (await D.getByTestId('creator-mail').getAttribute('data-state')) === 'sent', `${creatorMails[0]?.to} · ${creatorMails[0]?.attachment?.name}`);
 step('dan', "037: the finished file's send row is prefilled with the CREATOR's contact, so it goes straight back to Alex", (await D.getByTestId('send-email-to').inputValue()).toLowerCase() === 'explore@exel-ai.com', await D.getByTestId('send-email-to').inputValue());
 await shot(D, 'dan', '6-complete');
 const [dl] = await Promise.all([D.waitForEvent('download'), D.getByTestId('downloads').locator('button').first().click()]);

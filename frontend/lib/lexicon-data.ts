@@ -1041,6 +1041,8 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.zoom_reset", englishDefault: "Fit the page", context: "Sign Doc: page view zoom reset", cubeId: 8 },
   { key: "soi.sign.snap_line", englishDefault: "Snap to the line", context: "Sign Doc: page view — centre the selected box on its rule", cubeId: 8 },
   { key: "soi.sign.zoom_hint", englishDefault: "Pinch or tap + to zoom; drag a box to centre it on its line.", context: "Sign Doc: page view zoom hint", cubeId: 8 },
+  { key: "soi.sign.creator_mailed", englishDefault: "The finished file was e-mailed to {name} with the PDF attached.", context: "Sign Doc: Done panel, the last signer's phone mailed the creator automatically (site mail configured; 037 creator_contact)", cubeId: 8 },
+  { key: "soi.sign.creator_mail_manual", englishDefault: "Send the finished file back to {name} with Text or E-mail below.", context: "Sign Doc: Done panel when the site has no mail key — the send row is prefilled with the creator's contact", cubeId: 8 },
   { key: "soi.sign.tz.label", englishDefault: "Time zone for the record", context: "Sign Doc draw step: the zone the signature's time is spelled in", cubeId: 8 },
   { key: "soi.sign.tz.device", englishDefault: "Use my device's time zone", context: "Sign Doc draw step: button \u2014 takes the device clock's zone", cubeId: 8 },
   { key: "soi.sign.tz.disclaimer", englishDefault: "The zone comes from this device's clock settings, never from your location; nothing about where you are is read or stored.", context: "Sign Doc draw step: disclaimer under the zone choice", cubeId: 8 },

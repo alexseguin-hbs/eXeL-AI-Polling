@@ -58,6 +58,7 @@ import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
 import { SignReceipt } from "@/components/sign/receipt";
 import { SendRow } from "@/components/sign/send-row";
+import { sendSignerEmail } from "@/lib/notify";
 import { DEFAULT_TZ, ZONES, deviceTz, readTz, saveTz, isTz, zoneAbbr } from "@/lib/timezone";
 import { IconDownload, DownloadGlyph } from "@/components/download-icon";
 import { VerifyFile } from "@/components/sign/verify-file";
@@ -276,6 +277,23 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // The SoICodex rows are the signers already in the file; the SoIHold placeholder names the next one — this reader.
   // Prefilled only over BLANK rows and an empty title, never over what was typed.
   const [creatorContact, setCreatorContact] = useState("");                // 037: on completion, the creator's contact — the finished file goes back to them
+  const [creatorMail, setCreatorMail] = useState<"" | "sent" | "manual">("");
+  const creatorMailed = useRef(false);
+  useEffect(() => {
+    // the creator is told the document completed (fleet pass 2, Christo): the last signer's phone mails the finished file to the
+    // creator through the site's own mail, once; without a mail key the send row (already prefilled) is the way, and the line says so
+    if (step !== "done" || !countersign || !creatorContact || !signed.length || creatorMailed.current) return;
+    creatorMailed.current = true;
+    if (contactKind(creatorContact) !== "email") { setCreatorMail("manual"); return; }
+    void (async () => {
+      try {
+        const f = signed[0];
+        const r = await sendSignerEmail({ to: creatorContact, sender: myName, title: pub?.title ?? title, final: true, attachment: { name: await signedName(f, true), base64: bytesToBase64(f.bytes) } });
+        setCreatorMail(r === "sent" ? "sent" : "manual");
+      } catch { setCreatorMail("manual"); }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, countersign, creatorContact, signed]);
   const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
   // "remove field and redo" (operator 2026-09-08 22:40): a carried file's LAST signer may open his own text marks again —
   // remove or retype them — and save; the signature, initials, codex row and hidden strip stay. Never a later signer's record.
@@ -804,6 +822,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
+          {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pub?.signers[0]?.name ?? "")}</p>}
           <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink || undefined} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} /></div>
           <div className="mt-4"><VerifyFile /></div>
         </div>

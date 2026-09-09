@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Kto podpisuje",
   "soi.doc.ai.ph2": "np. Dziecko i rodzic umawiają się, że dziecko uczy się 60 minut dziennie w dni szkolne; rodzic sprawdza co tydzień; opuszczony tydzień oznacza brak ekranów w ten weekend.",
   "soi.doc.ai.unconfigured": "Na tej stronie nie ma jeszcze klucza AI. Napisz dokument samodzielnie albo poproś właściciela strony o dodanie klucza Anthropic, OpenAI, Grok lub Gemini.",
+  "soi.sign.creator_mailed": "Gotowy plik został wysłany e-mailem do {name} z załączonym PDF.",
+  "soi.sign.creator_mail_manual": "Odeślij gotowy plik do {name} przez SMS lub E-mail poniżej.",
 };
 export default T;

@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Siapa yang tandatangan",
   "soi.doc.ai.ph2": "cth. Seorang anak dan ibu bapa bersetuju bahawa anak belajar 60 minit sehari pada hari persekolahan; ibu bapa menyemak setiap minggu; minggu yang terlepas bermakna tiada masa skrin pada hujung minggu itu.",
   "soi.doc.ai.unconfigured": "Belum ada kunci AI di laman ini. Tulis dokumen itu sendiri, atau minta pemilik laman menambah kunci Anthropic, OpenAI, Grok atau Gemini.",
+  "soi.sign.creator_mailed": "Fail yang lengkap telah dihantar melalui e-mel kepada {name} dengan PDF dilampirkan.",
+  "soi.sign.creator_mail_manual": "Hantar semula fail yang lengkap kepada {name} melalui Teks atau E-mel di bawah.",
 };
 export default T;

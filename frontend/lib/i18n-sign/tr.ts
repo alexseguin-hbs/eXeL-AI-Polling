@@ -367,5 +367,7 @@ const T: Record<string, string> = {
   "soi.doc.ai.names": "Kim imzalar",
   "soi.doc.ai.ph2": "örn. Bir çocuk ile ebeveyni, çocuğun okul günlerinde günde 60 dakika ders çalışmasında anlaşır; ebeveyn her hafta kontrol eder; kaçırılan bir hafta, o hafta sonu ekran yok demektir.",
   "soi.doc.ai.unconfigured": "Bu sitede henüz yapay zekâ anahtarı yok. Belgeyi kendin yaz ya da site sahibinden bir Anthropic, OpenAI, Grok veya Gemini anahtarı eklemesini iste.",
+  "soi.sign.creator_mailed": "Tamamlanan dosya, PDF ekli olarak {name} adresine e-postayla gönderildi.",
+  "soi.sign.creator_mail_manual": "Tamamlanan dosyayı aşağıdaki Mesaj ya da E-posta ile {name} adresine geri gönder.",
 };
 export default T;
