@@ -374,5 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "文件 {n}",
   "soi.sign.err.migration_incomplete": "此站点的数据库迁移未完成（036 已应用，038 尚未应用：请再次粘贴提供的 SQL）。你的签名已在本手机上盖章并保存：请下载文件，并通过短信或邮件发送出去。",
   "soi.sign.err.storage_full": "本手机已没有空间保存记录副本，因此较旧的文档已被清除。你的签名已盖章：请立即下载文件，并通过短信或邮件发送出去。",
+  "soi.sign.err.slow_done": "保存耗时过长，因此你已签署的文件直接放在这里，而不是继续等待。请立即下载；它带有每一个签名和哈希。",
+  "soi.sign.extras_failed": "你的签名、姓名、时间和哈希都已在文件中。有一项附加内容无法在本设备上添加，因此请打开文件核对后再发送出去。",
 };
 export default T;

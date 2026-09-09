@@ -190,6 +190,8 @@ export const ES_SIGN: Record<string, string> = {
   "soi.sign.saved.file": "Archivo {n}",
   "soi.sign.err.migration_incomplete": "La migración de la base de datos de este sitio está incompleta (036 está aplicada, 038 no: pega de nuevo el SQL servido). Tu firma queda sellada y guardada en este teléfono: descarga el archivo y envíalo con Texto o E-mail.",
   "soi.sign.err.storage_full": "Este teléfono no tenía espacio para guardar una copia del registro, así que se borraron documentos antiguos. Tu firma quedó sellada: descarga el archivo ahora y envíalo con Texto o E-mail.",
+  "soi.sign.err.slow_done": "El guardado tarda demasiado, así que aquí tienes tu archivo firmado en lugar de dejarte esperando. Descárgalo ahora; lleva todas las firmas y el hash.",
+  "soi.sign.extras_failed": "Tu firma, nombre, hora y hash están en el archivo. Un extra no se pudo añadir en este dispositivo: ábrelo y revísalo antes de enviarlo.",
   "soi.sign.tz.label": "Zona horaria del registro",
   "soi.sign.tz.device": "Usar la zona horaria de mi dispositivo",
   "soi.sign.tz.disclaimer": "La zona sale de la configuración del reloj de este dispositivo, nunca de tu ubicación; no se lee ni se guarda nada sobre dónde estás.",

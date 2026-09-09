@@ -374,5 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "File {n}",
   "soi.sign.err.migration_incomplete": "La migrazione del database di questo sito è incompleta (la 036 è applicata, la 038 no: incolla di nuovo l'SQL fornito). La tua firma è apposta e conservata su questo telefono: scarica il file e inviatelo con SMS o E-mail.",
   "soi.sign.err.storage_full": "Questo telefono non aveva più spazio per conservare una copia del documento, così i documenti più vecchi sono stati eliminati. La tua firma è apposta: scarica subito il file e inviatelo con SMS o E-mail.",
+  "soi.sign.err.slow_done": "Il salvataggio sta richiedendo troppo tempo, così il tuo file firmato è qui invece di farti aspettare. Scaricalo subito: porta ogni firma e ogni hash.",
+  "soi.sign.extras_failed": "La tua firma, il tuo nome, l'ora e l'hash sono nel file. Un elemento aggiuntivo non è stato inserito su questo dispositivo: apri il file e controllalo prima di inoltrarlo.",
 };
 export default T;

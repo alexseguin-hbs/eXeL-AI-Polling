@@ -1,17 +1,17 @@
-  2608ms  alex  OK  on a 036-less site the served migration SQL is still reachable (the removed diagnostic panel is not the only route)  27921 bytes
-  4367ms  alex  OK  signature box placed (underline)
-  5722ms  alex  OK  Sign & save pressed (signature + initials drawn)
-  6532ms  alex  OK  no link minted → the OFFLINE hand-off block: 036 named, hand the file over, one "Send the file" action  No hand-off link on this site yet — hand the file over Migration 036 is not applied on this site's Supabase — no hand-of
-  6581ms  alex  OK  Send the file: the partly-signed PDF is handed over with the message, named with the initials of who signed (…-partly-signed-AS.pdf)  sign-sample-partly-signed-AS.pdf
-  6583ms  alex  OK  explainer says: signed on this phone, download and send
-  6592ms  alex  OK  the download is an ICON (the drawn arrow-to-line glyph Vision 2525 uses), round, named in aria-label
-  6659ms  alex  OK  a 24-hour file link was minted for the partly-signed file (…/soi-session/sign/?f=<token>)  i-session/sign/?f=Tm4ilsz4vubxxxxxxxxxxx
-  6684ms  alex  OK  partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME  [{"rowIndex":0,"isoDate":"2026-09-09T14:47:36.291Z","hash":"91d05b18","name":"Alex Seguin"}]
-  8571ms  dan   OK  the 24-hour link opened the partly-signed file on his phone (no upload, no account)
-  9080ms  dan   OK  landed on the placeholders the partly-signed file carries (holder)
- 10443ms  dan   OK  Sign & save pressed (signature + initials drawn)
- 11247ms  dan   OK  COMPLETE on his phone
- 11342ms  dan   OK  the final file is named with BOTH initials from the rows the file carries (…-signed-AS-DV.pdf)  sign-sample-signed-AS-DV.pdf
- 11352ms  dan   OK  final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)  [[0,"Alex Seguin"],[1,"Daniel Vail"]]
- 11367ms  dan   OK  the hidden Light Codex names both signatories  ALEX SEGUIN 2026.09.09_09:47CDT • DANIEL VAIL 2026.09.09_09:47CDT
- 11393ms  dan   OK  offline verify: consistent, two envelopes (the file was carried by hand)  []
+  3032ms  alex  OK  on a 036-less site the served migration SQL is still reachable (the removed diagnostic panel is not the only route)  27921 bytes
+  4849ms  alex  OK  signature box placed (underline)
+  6231ms  alex  OK  Sign & save pressed (signature + initials drawn)
+  7041ms  alex  OK  no link minted → the OFFLINE hand-off block: 036 named, hand the file over, one "Send the file" action  No hand-off link on this site yet — hand the file over Migration 036 is not applied on this site's Supabase — no hand-of
+  7075ms  alex  OK  Send the file: the partly-signed PDF is handed over with the message, named with the initials of who signed (…-partly-signed-AS.pdf)  sign-sample-partly-signed-AS.pdf
+  7077ms  alex  OK  explainer says: signed on this phone, download and send
+  7085ms  alex  OK  the download is an ICON (the drawn arrow-to-line glyph Vision 2525 uses), round, named in aria-label
+  7149ms  alex  OK  a 24-hour file link was minted for the partly-signed file (…/soi-session/sign/?f=<token>)  i-session/sign/?f=Tj2i5x5ozxfxxxxxxxxxxx
+  7179ms  alex  OK  partly-signed PDF downloaded: 1 signature, 1 signatory row carrying the NAME  [{"rowIndex":0,"isoDate":"2026-09-09T15:08:21.774Z","hash":"91d05b18","name":"Alex Seguin"}]
+  9053ms  dan   OK  the 24-hour link opened the partly-signed file on his phone (no upload, no account)
+  9576ms  dan   OK  landed on the placeholders the partly-signed file carries (holder)
+ 10935ms  dan   OK  Sign & save pressed (signature + initials drawn)
+ 11752ms  dan   OK  COMPLETE on his phone
+ 11859ms  dan   OK  the final file is named with BOTH initials from the rows the file carries (…-signed-AS-DV.pdf)  sign-sample-signed-AS-DV.pdf
+ 11869ms  dan   OK  final PDF: 2 signatures, 2 signatory rows — Alex (row 0, kept by name) and Daniel (row 1)  [[0,"Alex Seguin"],[1,"Daniel Vail"]]
+ 11887ms  dan   OK  the hidden Light Codex names both signatories  ALEX SEGUIN 2026.09.09_10:08CDT • DANIEL VAIL 2026.09.09_10:08CDT
+ 11916ms  dan   OK  offline verify: consistent, two envelopes (the file was carried by hand)  []

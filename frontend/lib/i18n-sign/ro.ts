@@ -374,5 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Fișierul {n}",
   "soi.sign.err.migration_incomplete": "Migrația bazei de date a acestui site este incompletă (036 este aplicată, 038 nu: lipește din nou SQL-ul afișat). Semnătura ta este ștampilată și păstrată pe acest telefon: descarcă fișierul și trimite-l mai departe prin SMS sau E-mail.",
   "soi.sign.err.storage_full": "Acest telefon nu mai avea loc pentru a păstra o copie a înregistrării, așa că documentele mai vechi au fost șterse. Semnătura ta este ștampilată: descarcă fișierul acum și trimite-l mai departe prin SMS sau E-mail.",
+  "soi.sign.err.slow_done": "Salvarea durează prea mult, așa că fișierul tău semnat este aici, în loc să fie ținut în așteptare. Descarcă-l acum; poartă fiecare semnătură și hash.",
+  "soi.sign.extras_failed": "Semnătura, numele, ora și hash-ul tău sunt în fișier. Un element suplimentar nu a putut fi adăugat pe acest dispozitiv, așa că deschide fișierul și verifică-l înainte să-l trimiți mai departe.",
 };
 export default T;

@@ -35,4 +35,30 @@ ok(/const writeLocal = \(token: string, env: Envelope\): boolean/.test(store), '
 ok(/evictOldestEnvelope/.test(store), 'a quota error evicts the oldest record instead of failing the signature');
 ok(/bad_secret\|not_your_turn\|revoked\|expired\|complete/.test(store), 'a genuine refusal (wrong secret, not your turn, revoked) still raises — only outages fall back');
 
+// ── the CLASS, not the instance (R-CORE law, AAR 2026-09-09) ────────────────────────────────────────────────────────────
+// Each of these was a separate dead end found one at a time. The gate now holds every member.
+const flow = src;
+// H1 · a hang must end on the outcome panel, not on a spinner, and no fetch on this path may be untimed
+ok(/stampedRef/.test(flow) && /setStep\("done"\)/.test(flow.slice(flow.indexOf('step !== "saving"'), flow.indexOf('step !== "saving"') + 1200)), 'the watchdog hands over the stamped files instead of only printing "slow"');
+const tmp = fs.readFileSync(new URL('../lib/tmpfile.ts', import.meta.url), 'utf8');
+const notify = fs.readFileSync(new URL('../lib/notify.ts', import.meta.url), 'utf8');
+const untimed = (txt) => txt.split('\n').filter((l) => /await fetch\(/.test(l) && !/AbortSignal/.test(l));
+ok(untimed(tmp).length === 0, 'tmpfile: every fetch carries a timeout (a hang is a dead end): ' + untimed(tmp).join(' | ').slice(0, 90));
+ok(untimed(notify).length === 0, 'notify: every fetch carries a timeout');
+// H2 · a file already stamped is pushed even if an enhancement throws
+const loop = flow.slice(flow.indexOf('for (let i = 0; i < files.length; i++)'), flow.indexOf('setSigned(stampedBytes);'));
+ok(/setExtrasFailed/.test(loop) && loop.indexOf('try {') < loop.indexOf('stampCodexBlock'), 'the codex strip and the placeholders are best-effort, wrapped before stampCodexBlock');
+ok(loop.lastIndexOf('} catch') < loop.lastIndexOf('stampedBytes.push'), 'the push happens AFTER that catch, so file 2 of 3 is never lost');
+// H3 · the digest works without WebCrypto
+const env = fs.readFileSync(new URL('../lib/sign-envelope.ts', import.meta.url), 'utf8');
+ok(/function sha256Js/.test(env) && /crypto\.subtle/.test(env), 'sha256Hex falls back to pure JS when crypto.subtle is absent (plain http, WebView)');
+// H4 · a malformed response never blanks the render
+ok(/Array\.isArray\(pub\?\.signers\)/.test(flow), 'pub.signers is checked before it is mapped (a bad response must not white-screen the page)');
+ok(!/\bpub\.signers\.(map|filter|length)/.test(flow), 'no unguarded pub.signers dereference remains');
+// H6 · the draft survives a failed save, so an evicted tab does not lose the signature
+const tail2 = flow.slice(flow.lastIndexOf('} catch (ex) {'));
+ok(!/dropDraft\(\);[^\n]*setStep\("done"\)/.test(tail2), 'the failure path keeps the draft (this device may be the only copy)');
+// H9 · never a silent no-op
+ok(/if \(!allPlaced\) \{ setErr/.test(flow), 'a tap with nothing placed says so instead of doing nothing');
+
 console.log(`sign-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

@@ -11,15 +11,28 @@ export function db() {
     const d = new PGlite();
     // This PGlite build ships no pgcrypto; core Postgres has sha256() and gen_random_uuid(), which is
     // all migration 036 needs. Shim the two pgcrypto calls it makes, strip its `create extension`.
-    await d.exec(`create or replace function digest(p text, algo text) returns bytea language sql immutable as $$ select sha256(convert_to(p, 'UTF8')) $$;
-      create or replace function digest(p bytea, algo text) returns bytea language sql immutable as $$ select sha256(p) $$;
-      create or replace function gen_random_bytes(n int) returns bytea language sql volatile as $$ select decode(replace(gen_random_uuid()::text, '-', ''), 'hex') $$;`);
+    // WHERE the shim lives matters. Hosted Supabase keeps pgcrypto in the `extensions` schema, so an RPC pinned to
+    // `search_path = public, pg_temp` cannot see digest() — that is the operator's 42883 (R-CORE law: reproduce his
+    // environment, not our theory of it). SIGN_PGCRYPTO_SCHEMA=extensions puts the shim where Supabase puts it, so a run
+    // without migration 038 fails exactly as his phone did. Default `public` keeps every existing proof unchanged.
+    const cryptoSchema = (process.env.SIGN_PGCRYPTO_SCHEMA || 'public').trim();
+    if (cryptoSchema !== 'public') await d.exec(`create schema if not exists ${cryptoSchema};`);
+    await d.exec(`create or replace function ${cryptoSchema}.digest(p text, algo text) returns bytea language sql immutable as $$ select sha256(convert_to(p, 'UTF8')) $$;
+      create or replace function ${cryptoSchema}.digest(p bytea, algo text) returns bytea language sql immutable as $$ select sha256(p) $$;
+      create or replace function ${cryptoSchema}.gen_random_bytes(n int) returns bytea language sql volatile as $$ select decode(replace(gen_random_uuid()::text, '-', ''), 'hex') $$;`);
     await d.exec(`do $$ begin
       if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
       if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
     end $$;`);
+    // Supabase keeps `extensions` on the SESSION search_path, so the migrations CREATE cleanly; only the RPCs' own pinned
+    // `search_path = public, pg_temp` hides pgcrypto at CALL time. Reproduce both halves, or 036 fails at apply and the
+    // operator's actual failure is never exercised.
+    if (cryptoSchema !== 'public') await d.exec(`set search_path = public, ${cryptoSchema};`);
     const dir = path.resolve(process.cwd(), '..', 'supabase', 'migrations');
-    for (const f of fs.readdirSync(dir).filter((f) => /^03[6-9]_sign/.test(f)).sort()) {   // 036 and every later Sign Doc migration (037 …), in order
+    // SIGN_MIGRATIONS_UPTO reproduces the OPERATOR'S database, not ours (R-CORE law: fix the class, reproduce the environment).
+    // e.g. SIGN_MIGRATIONS_UPTO=037 applies 036+037 only — his state on 2026-09-09, where pgcrypto is off the RPCs' search path.
+    const upto = (process.env.SIGN_MIGRATIONS_UPTO || '').trim();
+    for (const f of fs.readdirSync(dir).filter((f) => /^03[6-9]_sign/.test(f)).filter((f) => !upto || f.slice(0, 3) <= upto).sort()) {   // 036 and every later Sign Doc migration (037 …), in order
       await d.exec(fs.readFileSync(path.join(dir, f), 'utf8').replace(/^create extension if not exists pgcrypto;\s*$/m, ''));
       console.log('local-rpc: applied', f);
     }

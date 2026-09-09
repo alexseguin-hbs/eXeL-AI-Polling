@@ -374,5 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Bestand {n}",
   "soi.sign.err.migration_incomplete": "De databasemigratie van deze site is onvolledig (036 is toegepast, 038 niet: plak de aangeleverde SQL opnieuw). Je handtekening is gezet en bewaard op deze telefoon: download het bestand en stuur het door via Sms of E-mail.",
   "soi.sign.err.storage_full": "Deze telefoon had geen ruimte meer om een kopie van het document te bewaren, dus oudere documenten zijn gewist. Je handtekening is gezet: download het bestand nu en stuur het door via Sms of E-mail.",
+  "soi.sign.err.slow_done": "Het opslaan duurt te lang, dus je ondertekende bestand staat hier klaar in plaats van te blijven wachten. Download het nu; het draagt elke handtekening en hash.",
+  "soi.sign.extras_failed": "Je handtekening, je naam, het tijdstip en de hash staan in het bestand. Eén extra kon op dit apparaat niet worden toegevoegd: open het bestand en controleer het voordat je het doorstuurt.",
 };
 export default T;

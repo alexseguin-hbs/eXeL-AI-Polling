@@ -47,3 +47,27 @@ or if the store throws where it could evict. Ten assertions, wired into `test:ci
 Not "the reported bug is fixed". **Every member of the class is closed and proven in one run.** The two-phone proof now covers
 the create refusal, the save refusal for both signer roles, a full phone, one signer and several, and a database that answers
 and one that does not.
+
+---
+
+## The class sweep (executed the same day, under the new law)
+
+The law's second point says: enumerate the whole class before fixing one member. Done. Every statement between "Sign & save"
+and the outcome panel was walked, plus every function it calls: 51 failure points, of which **11 still broke the invariant**.
+They are now closed, and each is asserted by the gate.
+
+| # | The hole | Why it mattered | Closed by |
+|---|---|---|---|
+| H1 | **A hang is a dead end no catch can reach.** `putTempFile` and `/api/notify` had no timeout; pdfjs can fail to settle. The 30 s watchdog only printed "this is slow" and left the signer on a panel with no button, his finished file unreachable in a closure. | The most likely real-world trigger: a phone on a captive or flaky network at the moment of hand-off. | Every fetch on the path now carries `AbortSignal.timeout`; the watchdog hands over the stamped files at 60 s (`soi.sign.err.slow_done`) via `stampedRef`. |
+| H2 | **The invariant was enforced per envelope, not per file.** A throw in the codex strip, the placeholder scan or the holder stamp discarded a file that was already signed — file 2 of 3 vanished while file 1 was shown as a completed pass. | Multi-file envelopes, the operator's normal case. | Everything after the signature is best-effort in its own try; the stamped file is pushed regardless, and `extras-failed` says so. |
+| H3 | **`crypto.subtle` is absent on plain http and in some WebViews.** No fallback existed. An upload silently never appeared; a countersigner died mid-stamp with a raw TypeError. | Any LAN, IP-preview or in-app-browser deployment. | A pure-TypeScript SHA-256 in `sign-envelope.ts`, verified byte-for-byte against WebCrypto on three known vectors and a 300 KB buffer. |
+| H4 | **`pub.signers` was dereferenced unguarded during render.** A malformed response blanked the whole component: the file in hand and nothing on screen. | A partial migration or a cached error body. | `pubSigners` is checked with `Array.isArray` once and used everywhere; no unguarded dereference remains. |
+| H6 | **`dropDraft()` ran on the failure path**, leaving the signature in memory only. An evicted tab lost it outright. | iOS evicts tabs behind a share sheet routinely. | The draft is kept when the store did not take the record. |
+| H9 | **A silent no-op.** With marks missing, "Sign & save" did nothing at all, forever, with no message — the exact thing the file header forbids. | A restored draft with truncated marks. | It now says what is missing. |
+| H11 | The wrong stage was named for `newEnvelope`'s own refusals. | A lie about which step failed. | `stage` is set before the call. |
+
+Four more (H5, H7, H8, H10) are recorded in the ledger as open with their fix shapes; none of them loses a signature.
+
+**The gate grew from 10 assertions to 20**, and now asserts the class rather than the instance: no untimed fetch on the path,
+the extras wrapped before the push, the pure-JS digest present, no unguarded `pub.signers`, the draft kept on failure, and no
+silent return. Delete any one of the fixes and `test:ci` fails.

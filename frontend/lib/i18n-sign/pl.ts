@@ -374,5 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Plik {n}",
   "soi.sign.err.migration_incomplete": "Migracja bazy danych tej witryny jest niekompletna (036 jest zastosowana, 038 nie: wklej ponownie dostarczony SQL). Twój podpis został złożony i zachowany na tym telefonie: pobierz plik i prześlij go dalej przez SMS lub E-mail.",
   "soi.sign.err.storage_full": "W tym telefonie zabrakło miejsca na zachowanie kopii dokumentu, więc starsze dokumenty zostały usunięte. Twój podpis został złożony: pobierz teraz plik i prześlij go dalej przez SMS lub E-mail.",
+  "soi.sign.err.slow_done": "Zapisywanie trwa zbyt długo, więc zamiast kazać ci czekać, twój podpisany plik jest tutaj. Pobierz go teraz; zawiera każdy podpis i hash.",
+  "soi.sign.extras_failed": "Twój podpis, imię, czas i hash są w pliku. Jednego dodatku nie udało się dołączyć na tym urządzeniu, więc otwórz plik i sprawdź go, zanim prześlesz go dalej.",
 };
 export default T;

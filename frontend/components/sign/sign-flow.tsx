@@ -178,8 +178,17 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   useEffect(() => { if (!countersign && step === "draw" && files.length) keepDraft(snapshot()); }, [step, png]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {                                                                                    // 30-s watchdog: the page says so instead of hanging
     if (step !== "saving") return;
-    const id = setTimeout(() => setErr(t("soi.sign.err.slow")), 30_000);
-    return () => clearTimeout(id);
+    // H1 (AAR class sweep): a HANG is a dead end no catch can reach — an untimed fetch, a pdfjs worker that never settles.
+    // The watchdog used to only print "this is slow" and leave the signer on a panel with no button while his finished file
+    // sat in a closure the UI could not reach. Now it HANDS HIM THE FILE: 30 s to say it is slow, 60 s to end the wait on the
+    // outcome panel if anything was stamped.
+    const slow = setTimeout(() => setErr(t("soi.sign.err.slow")), 30_000);
+    const out = setTimeout(() => {
+      const done = stampedRef.current;
+      if (!done.length) return;                                // nothing stamped yet: the pads are still the right place
+      setSigned(done); setLocalFallback(true); setOffline("slow_done"); setStep("done");
+    }, 60_000);
+    return () => { clearTimeout(slow); clearTimeout(out); };
   }, [step, t]);
 
   // ── seed from Create Doc / a ?f= file link ───────────────────────────────────
@@ -308,6 +317,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // the saved link per file (operator 2026-09-09): each finished file's sha256 → its sha8 key; a link that names one file focuses it and
   // downloads it ONCE per device (sessionStorage guard — never again on every reopen, Pangu/Enki)
   const [signedSha, setSignedSha] = useState<string[]>([]);
+  const stampedRef = useRef<{ name: string; bytes: Uint8Array }[]>([]);   // H1: what the watchdog hands over when a call hangs
+  const [extrasFailed, setExtrasFailed] = useState("");                   // H2: the signature stands, an enhancement did not
   useEffect(() => { let live = true; void Promise.all(signed.map((f) => sha256Hex(f.bytes))).then((h) => { if (live) setSignedSha(h); }); return () => { live = false; }; }, [signed]);
   const focusIdx = useMemo(() => (file && signedSha.length ? signedSha.findIndex((h) => h.startsWith(file)) : -1), [file, signedSha]);
   useEffect(() => {
@@ -463,7 +474,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const myIdx = countersign ? (pub?.party ?? 0) : 0;
   // Did the DOCUMENT complete, or did only THIS signer finish? The outcome panel renders either way (the invariant), but it may
   // never claim more than happened: a refused save mid-chain is "hand the file over", not "every signer has signed" (Christo).
-  const outcomeComplete = pub?.status === "complete" || (!countersign ? signers.length === 1 : !!pub && myIdx === pub.signers.length - 1);
+  // H4: `pub` comes from a network response — never dereference its array unchecked, or a malformed body blanks the whole
+  // component during render (the file in hand and nothing on screen).
+  const pubSigners = Array.isArray(pub?.signers) ? pub!.signers : [];
+  const outcomeComplete = pub?.status === "complete" || (!countersign ? signers.length === 1 : !!pub && pubSigners.length > 0 && myIdx === pubSigners.length - 1);
   // in a carried file this reader is the next free row, not row 0 (the earlier signers are already in the file)
   const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[carriedIdx ?? 0]?.name ?? signers[0]?.name ?? "";
   const meIdx = countersign ? myIdx : Math.min(carriedIdx ?? 0, Math.max(0, signers.length - 1));   // the row THIS pass signs in
@@ -472,7 +486,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // The marks of this pass, per file, as the record keeps them (page, box, text) — sign_events.marks
   const passMarks = () => files.map((_, i) => (marks[i] ?? []).map((m) => ({ kind: m.kind, page: m.page, x: +m.x.toFixed(4), y: +m.y.toFixed(4), w: +m.w.toFixed(4), h: +m.h.toFixed(4), ...(m.kind === "text" ? { text: (m.text ?? "").slice(0, 200) } : {}) })));
   const sign = useCallback(async () => {
-    if (!png || !initialsPng || !allPlaced) return;
+    if (!png || !initialsPng) return;
+    if (!allPlaced) { setErr(t("soi.sign.x.place")); return; }   // H9: never a silent no-op — say what is missing
     if (needLogin && auth.isLoading) { setErr(t("soi.sign.err.auth_loading")); return; }   // the SDK is still hydrating after the redirect — a second tap must not loop the login (fleet, Krishna)
     if (needLogin && !auth.isAuthenticated) {                   // the login comes at the moment of saving, the draft rides along
       if (!keepDraft(snapshot())) { setErr(t("soi.sign.err.draft_too_large")); return; }
@@ -485,6 +500,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     let stage: "stamp" | "create" | "save" = "stamp";
     // hoisted so the CATCH can see the finished files: a stamped signature is never discarded (MoT ruling, AAR 2026-09-09)
     const stampedBytes: { name: string; bytes: Uint8Array }[] = [];
+    stampedRef.current = stampedBytes; setExtrasFailed("");
     try {
       const isoDate = new Date().toISOString();
       const prevChain = countersign ? (pub?.chain ?? "") : "";
@@ -521,6 +537,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             topByPage[pg] = ownBottom > scan ? Math.max(scan, pushed, ownBottom > 1 - SLOT_H_FRAC - 0.004 ? scan : ownBottom) : scan;
           } catch { /* default: bottom margin */ }
         }
+        // ── H2 (AAR class sweep) · everything from here to the hash ENHANCES a file that is already signed: the codex strip
+        // and the next signer's placeholders. A throw in any of them used to discard `out` entirely, so file 2 of 3 vanished
+        // while file 1 was presented as a completed pass. Best-effort now; the stamped file is pushed no matter what.
+        try {
         // one HIDDEN Light Codex line with EVERY signatory so far, on the bottom edge of every page (operator 23:15 / 00:45)
         out = await stampCodexBlock(out, { total, rows: allRows, all: codexImage(codexAllText(allRows, tz)), initials: { total, mine: { idx: myRow, pngDataUrl: initialsPng }, topByPage } });
         // placeholders for the NEXT signer — signature on the other party's line of the same row, date on its Date line
@@ -539,9 +559,11 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           hs.push(dateFit && dateFit.lineY > partner.y + partner.h ? { idx: nextIdx, name: nextName, kind: "date", page: sig.page, x: dateFit.x, y: dateFit.y + dateFit.h - dateH, w: dateFit.w, h: dateH } : { idx: nextIdx, name: nextName, kind: "date", page: sig.page, x: partner.x, y: Math.min(0.98, partner.y + partner.h + 0.012), w: TXT_W, h: TXT_H });
           out = await stampHolders(out, hs); setHoldersFor(nextName);
         }
+        } catch (ex) { setExtrasFailed(String((ex as Error).message ?? ex).slice(0, 120)); }   // the signature stands; the extras did not
         const sha = await sha256Hex(out);
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });
+        stampedRef.current = stampedBytes;                     // H1: the watchdog can see the finished files from outside the closure
       }
       // ── THE INVARIANT (operator 2026-09-09 04:59 CST; MoT ruling after the AAR) ─────────────────────────────────────────
       // A completed signature is NEVER discarded. The bytes are stamped; from here the outcome panel is unconditional and the
@@ -551,6 +573,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       const chain = await chainHash(prevChain, stamped.map((s) => s.sha256));
       let result: PublicEnvelope;
       if (!countersign) {
+        stage = "create";                                      // H11: newEnvelope's own refusals are a CREATE failure, not a stamping one
         const env = { ...newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) }), token: pendingToken.current };
         envRef.current = env; keepDraft(snapshot());               // the draft now carries token + secret: a restore can find a landed save
         stage = "create";
@@ -596,7 +619,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       // THE INVARIANT: with a stamped file in hand the signer lands on the outcome panel — Download · Text · E-mail · Copy — and
       // the failure is a NOTE on it, never a wall that costs him the signature (operator 04:59 CST: "this error comes up after
       // signing"; the save stage had no fallback, only create did). Only a failure BEFORE stamping returns to the pads.
-      if (stampedBytes.length) { setSigned(stampedBytes); setLocalFallback(true); setOffline(code || "rpc_error"); dropDraft(); setStep("done"); return; }
+      // H6: the draft is KEPT here. The store did not take the record, so this device is the only copy; dropping it meant an
+      // evicted tab lost the signature outright.
+      if (stampedBytes.length) { setSigned(stampedBytes); setLocalFallback(true); setOffline(code || "rpc_error"); setStep("done"); return; }
       setStep("draw");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -656,7 +681,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
 
   const Roster = () => pub && pub.party >= 0 ? (   // a wrong secret (not_party) never reads the roster (Christo, Thor)
     <ol className="mt-2 grid gap-1 text-xs" data-testid="roster">
-      {pub.signers.map((s, i) => (
+      {pubSigners.map((s, i) => (
         <li key={i} className="flex items-center justify-between rounded border border-border px-2 py-1">
           <span>{i + 1}. {s.name} <span className="text-muted-foreground">{s.contact_masked}</span>{s.me && <span className="ms-1 rounded bg-primary/15 px-1 text-[10px]">{t("soi.sign.you")}</span>}</span>
           <span className={s.signed_at ? "text-green-500" : i === pub.current_signer_idx && pub.status === "awaiting" ? "text-primary" : "text-muted-foreground"}>
@@ -874,9 +899,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           <div className="rounded-lg border border-green-500/40 bg-green-500/5 p-3 text-sm">
             <div className={`font-medium ${outcomeComplete ? "text-green-500" : "text-amber-500"}`} data-testid="outcome-title" data-complete={outcomeComplete ? "1" : "0"}>{outcomeComplete ? t("soi.sign.complete") : t("soi.sign.handoff.offline_title")}</div>
             {/* The pod's receipt shape — recorded · witnessed · settles — so a signed document reads as one of eXeL's (Pangu). */}
-            <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
+            <SignReceipt files={signed.map((f) => f.name)} signers={pubSigners.length ? pubSigners.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pubSigners.length ? pubSigners.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
+          {extrasFailed && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="extras-failed">{t("soi.sign.extras_failed")}</p>}
           {offline && mode === "local" && (
             <div className="mt-2 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-[11px]" data-testid="local-why">
               {t(`soi.sign.err.${offline}`)}
