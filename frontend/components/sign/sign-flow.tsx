@@ -143,7 +143,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const [localFallback, setLocalFallback] = useState(false);
   const mode = localFallback ? "local" : storeMode();
   // the offline hand-off: no link could be minted (no Supabase / no 036) — the partly-signed file travels by hand
-  const [offline, setOffline] = useState<"" | "no_backend" | "no_migration" | "migration_incomplete">("");
+  const [offline, setOffline] = useState<string>("");   // the SignStoreError code that kept the record on this device ("" = a shared record)
   // Outside an Auth0Provider this is the library's inert default context — it is only ACTED on when requireLogin.
   const auth = useAuth0();
   const loggedIn = needLogin && auth.isAuthenticated;
@@ -540,16 +540,20 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         const env = { ...newEnvelope({ title: title || files[0].name.replace(/\.pdf$/i, ""), created_by: signers[0].contact, signers, files: files.map((f) => ({ name: f.name, page_count: f.pages, pdf_base64: f.base64, sha256: f.sha256, version: 0 })) }), token: pendingToken.current };
         envRef.current = env; keepDraft(snapshot());               // the draft now carries token + secret: a restore can find a landed save
         stage = "create";
-        let created: { token: string; mode: StoreMode };
+        let created: { token: string; mode: StoreMode; why?: string };
         try { created = await createEnvelope(env); }
         catch (ex) {
           // no link can be minted here — keep the envelope on this phone and hand the FILE over instead (operator 00:39)
           if (ex instanceof SignStoreError && (ex.code === "no_backend" || ex.code === "no_migration" || ex.code === "migration_incomplete") && multi) { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); setTmpLinks((await Promise.all(stampedBytes.map(async (f) => putTempFile(f.bytes, await signedName(f, false))))).filter((l): l is TempLink => !!l)); }
           // a retry after a half-landed save re-sent the same token (fleet, Krishna): mint a fresh one, once
           else if (ex instanceof SignStoreError && ex.code === "duplicate") { pendingToken.current = newToken(); const env2 = { ...env, token: pendingToken.current }; envRef.current = env2; created = await createEnvelope(env2); Object.assign(env, env2); }
+          // ANY other failure at create (operator 2026-09-09 04:02 CDT: "after signing I can't download, text or email — fix with
+          // urgency"): the signature is already stamped — the record stays on this device and the file travels by download / Text /
+          // E-mail; the block names the reason. A shared link can be minted by signing again once the site answers.
+          else if (ex instanceof SignStoreError && ex.code !== "duplicate") { created = await createEnvelope(env, { localMulti: true }); setOffline(ex.code); if (multi) setTmpLinks((await Promise.all(stampedBytes.map(async (f) => putTempFile(f.bytes, await signedName(f, false))))).filter((l): l is TempLink => !!l)); }
           else throw ex;
         }
-        if (created.mode === "local") setLocalFallback(true);
+        if (created.mode === "local") { setLocalFallback(true); if (created.why) setOffline(created.why); }   // the store degraded by itself (one signer): the Done panel names why
         const next = applySignature(env, 0, env.signers[0].secret, isoDate, stamped, chain);
         envRef.current = next;
         stage = "save";
@@ -848,6 +852,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
+          {offline && mode === "local" && <p className="mt-2 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-[11px]" data-testid="local-why">{t(`soi.sign.err.${offline}`)}</p>}
           {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pub?.signers[0]?.name ?? "")}</p>}
           {/* the message carries the RECORD link (no secret — Thor) and the chain hash; the saved link below is the holder's own key */}
           <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink ? recordLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "") : undefined} chain={pub?.chain} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} focus={focusIdx} /></div>

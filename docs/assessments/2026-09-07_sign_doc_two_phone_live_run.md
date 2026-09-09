@@ -390,5 +390,10 @@ Twelve 111-word AsM reviews + a 333-word MoT summary sit in the approved plan; e
   caps the composer + downloads path runs); `notify-core` 18/18. The creator-mail on completion sends every file the same way.
 - **refreshEnvelope** builds the downloads from the store's final version, not the bytes captured at open (Enki).
 - **33 languages** — four new keys in all 31 files + ES; `sign-i18n-all` 125/125 strict (SIGN_I18N_STRICT=1), `sign-i18n` 137/137.
-Two-phone **90 steps, 0 failures** (7b-saved-link, 7c-restored-draft) · offline 17/17 · sign-store 12 · sign-envelope 39 · sign-rpc 12 · tsc 0.
+- **Refused at create → still yours (operator 04:02 CDT, build 9779def: "Creating the document: Saving failed" — after signing, no download,
+  text or e-mail)** — any failure at create now keeps the stamped record on the device: the Done panel opens with LOCAL ONLY, the reason
+  named ("This site's database migration is incomplete … paste the served SQL again"), Download · Text · E-mail offered; a multi-signer
+  envelope gets the offline hand-off block with 24-hour links where the store exists. Proof: the create RPC answered 42883 → Done panel,
+  `sign-sample-signed-AS.pdf` downloaded (10-refused-at-create).
+Two-phone **93 steps, 0 failures** (7b-saved-link, 7c-restored-draft, 10-refused-at-create) · offline 17/17 · sign-store 12 · sign-envelope 39 · sign-rpc 12 · tsc 0.
 Unprovable here: hosted Supabase, Resend, iOS share sheets — the operator pastes the new served SQL once and signs.

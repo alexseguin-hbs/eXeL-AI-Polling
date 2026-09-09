@@ -482,4 +482,23 @@ fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
   await C.getByTestId('send-email-to').fill('alex@example.test'); await C.getByTestId('send-email-file').click(); await C.waitForFunction(() => document.querySelector('[data-testid="send-state"]')?.getAttribute('data-state') === 'sent', null, { timeout: 10000 });
   step('dan', "COMPUTER · E-mail: the site's mail carries the signed PDF as an attachment", sentC.length === 1 && sentC[0].to === 'alex@example.test' && /-signed-AS-DV\.pdf$/.test(sentC[0].attachment?.name || '') && /^JVBERi0/.test(sentC[0].attachment?.base64 || ''), `${sentC[0]?.attachment?.name} · ${(sentC[0]?.attachment?.base64 || '').length} b64 chars`);
   await shot(C, 'dan', '9-computer-send'); await ctxC.close(); }
+// the database refuses at CREATE (operator 2026-09-09 04:02 CDT, build 9779def: "Creating the document: Saving failed" — 42883 from inside the
+// RPC, 038 not pasted): the signature is already stamped, so the record stays on the phone and Download · Text · E-mail are THERE — never a
+// red line and blank pads again
+{ const F = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, acceptDownloads: true }); const P = await F.newPage();
+  await P.route('**/rest/v1/rpc/sign_envelope_create', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: '42883', message: 'function digest(bytea, unknown) does not exist', details: null, hint: 'No function matches the given name and argument types.' }) }));
+  await P.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(P);
+  await P.getByPlaceholder(/Promissory/).fill('Refused at create'); await P.getByTestId('file-input').setInputFiles(FIXTURE); await P.getByRole('button', { name: /who signs/ }).waitFor({ timeout: 20000 }); await P.getByRole('button', { name: /who signs/ }).click();
+  await P.getByTestId('signer-name-0').fill('Alex Seguin'); await P.getByTestId('signer-contact-0').fill('explore@exel-ai.com'); await P.locator('button[aria-label]:has-text("✕")').first().click();
+  await P.getByRole('button', { name: /place your signature/ }).click();
+  const pg = P.getByTestId('pdf-page'); await pg.locator('canvas').first().waitFor({ timeout: 60000 });
+  const bb = await pg.boundingBox(); await P.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3); await P.getByTestId('sig-box').waitFor();
+  await P.getByTestId('to-draw').click(); await scribble(P, 'alex'); await drawInitials(P, 'alex');
+  await P.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 }); await P.getByTestId('sign-button').click();
+  await P.getByTestId('downloads').waitFor({ timeout: 60000 });
+  const why = await P.getByTestId('local-why').innerText().catch(() => '');
+  step('alex', 'the database refused at create → the record stays on the phone: Done panel, LOCAL ONLY, the reason named, Download · Text · E-mail offered', (await P.getByTestId('send-download').count()) === 1 && (await P.getByTestId('send-text').count()) === 1 && (await P.getByTestId('send-email-file').count()) === 1 && /migration|paste/i.test(why), why.slice(0, 80));
+  const dlR = P.waitForEvent('download', { timeout: 15000 }); await P.getByTestId('send-download').first().click(); const gotR = await dlR.then((d) => d.suggestedFilename()).catch(() => '');
+  step('alex', 'and the stamped file downloads', /-signed-AS\.pdf$/.test(gotR), gotR);
+  await shot(P, 'alex', '10-refused-at-create'); await F.close(); }
 await browser.close(); console.log(`\nSIGN 2-PHONE LIVE RUN: ${log.length} steps, 0 failures`);

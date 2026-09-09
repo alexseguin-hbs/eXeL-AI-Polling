@@ -76,14 +76,14 @@ const rpcError = (e: unknown): never => {
 };
 
 /** Persist a fresh envelope. Multi-signer requires Supabase; single-signer may stay on this device. */
-export async function createEnvelope(env: Envelope, opts: { localMulti?: boolean } = {}): Promise<{ token: string; mode: StoreMode }> {
+export async function createEnvelope(env: Envelope, opts: { localMulti?: boolean } = {}): Promise<{ token: string; mode: StoreMode; /** why the record stayed on this device although the site has a store (the page names it) */ why?: string }> {
   // Without a shared store a multi-signer envelope refuses BY NAME (no_backend: no Supabase on the build;
   // no_migration: Supabase answers but 036 is missing) — unless the caller asks for the offline path
   // (localMulti): the envelope lives on this device, the partly-signed file travels by hand (operator 00:39).
   const local = (why: "no_backend" | "no_migration" | "migration_incomplete") => {
     if (env.signers.length > 1 && !opts.localMulti) throw new SignStoreError(why, why === "no_migration" ? "This site has not applied migration 036 yet." : why === "migration_incomplete" ? "This site's migration is incomplete (paste the served SQL again: 036+037+038)." : "No Supabase on this build.");
     localStorage.setItem(LOCAL_KEY(env.token), JSON.stringify(env));
-    return { token: env.token, mode: "local" as StoreMode };
+    return { token: env.token, mode: "local" as StoreMode, ...(supabase ? { why } : {}) };
   };
   if (!supabase) return local("no_backend");
   const { data, error } = await withTimeout(supabase.rpc("sign_envelope_create", {
