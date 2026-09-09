@@ -1042,6 +1042,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.sign.snap_line", englishDefault: "Snap to the line", context: "Sign Doc: page view — centre the selected box on its rule", cubeId: 8 },
   { key: "soi.sign.zoom_hint", englishDefault: "Pinch or tap + to zoom; drag a box to centre it on its line.", context: "Sign Doc: page view zoom hint", cubeId: 8 },
   { key: "soi.sign.send.text", englishDefault: "Text", context: "Send row: text message button (share sheet with the PDF on a phone; copy + download on a computer)", cubeId: 8 },
+  { key: "soi.sign.send.copy", englishDefault: "Copy message", context: "Send row: copies the message text (the file goes by download / share) — it read 'Copy link' on the operator's phone, which it is not", cubeId: 8 },
   { key: "soi.sign.send.email", englishDefault: "E-mail", context: "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)", cubeId: 8 },
   { key: "soi.sign.send.to_ph", englishDefault: "Their e-mail (for E-mail with the file attached)", context: "Send row: recipient address placeholder", cubeId: 8 },
   { key: "soi.sign.send.copied_computer", englishDefault: "Message copied and the file downloaded. Paste the message in your messages app and attach the downloaded file.", context: "Send row state: a computer has no text composer", cubeId: 8 },

@@ -184,6 +184,7 @@ export const ES_SIGN: Record<string, string> = {
   "soi.sign.snap_line": "Ajustar a la línea",
   "soi.sign.zoom_hint": "Pellizca o toca + para acercar; arrastra una casilla para centrarla en su línea.",
   "soi.sign.send.text": "Texto",
+  "soi.sign.send.copy": "Copiar mensaje",
   "soi.sign.send.email": "Correo",
   "soi.sign.send.to_ph": "Su correo (para enviar el archivo adjunto)",
   "soi.sign.send.copied_computer": "Mensaje copiado y archivo descargado. Pega el mensaje en tu app de mensajes y adjunta el archivo descargado.",

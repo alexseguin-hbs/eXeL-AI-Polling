@@ -76,7 +76,7 @@ export function SendRow({ files, final, title, sender, link, toDefault, download
         {files.map((f) => <span key={f.name} className="inline-flex items-center gap-2 text-xs"><IconDownload label={`${t("soi.sign.download")} · ${f.name}`} onClick={() => void download(f, final)} testId="send-download" /><span className="max-w-[40vw] truncate">{f.name}</span></span>)}
         <button type="button" onClick={() => void text()} disabled={busy} className={B} data-testid="send-text"><span aria-hidden="true">💬 </span>{t("soi.sign.send.text")}</button>
         <button type="button" onClick={() => void email()} disabled={busy} className={B} data-testid="send-email-file"><span aria-hidden="true">✉ </span>{t("soi.sign.send.email")}</button>
-        <button type="button" onClick={() => void copy()} className={B} data-testid="send-copy"><span aria-hidden="true">⧉ </span>{t("soi.sign.handoff.copy")}</button>
+        <button type="button" onClick={() => void copy()} className={B} data-testid="send-copy"><span aria-hidden="true">⧉ </span>{t("soi.sign.send.copy")}</button>
       </div>
       <input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder={t("soi.sign.send.to_ph")} className="mt-2 min-h-[44px] w-full max-w-sm rounded-md border border-border bg-background px-3 text-sm" aria-label={t("soi.sign.send.to_ph")} data-testid="send-email-to" />
       {state && <p className={`mt-2 text-[11px] ${state === "failed" ? "text-red-500" : "text-muted-foreground"}`} data-testid="send-state" data-state={state}>
