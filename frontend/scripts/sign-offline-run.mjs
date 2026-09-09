@@ -71,8 +71,9 @@ const off = await A.getByTestId('offline-handoff').innerText();
 step('alex', 'no link minted → the OFFLINE hand-off block: 036 named, hand the file over, one "Send the file" action', /036/.test(off) && /Daniel Vail/.test(off) && (await A.getByTestId('share-file').count()) === 1, off.replace(/\s+/g, ' ').slice(0, 120));
 // the file travels WITH the message (operator 01:10): the share sheet on a phone; here (no Web Share) the fallback —
 // the partly-signed PDF downloads and the composer opens with the script
-const [dlS] = await Promise.all([A.waitForEvent('download'), A.getByTestId('share-file').click()]);
-await A.getByTestId('share-fallback').waitFor({ timeout: 10000 });
+// the phone here has no share sheet: Text downloads the partly-signed file and opens the sms: composer (the send row, operator 2026-09-09)
+const [dlS] = await Promise.all([A.waitForEvent('download'), A.getByTestId('share-file').getByTestId('send-text').click()]);
+await A.getByTestId('share-file').getByTestId('send-state').waitFor({ timeout: 10000 });
 step('alex', 'Send the file: the partly-signed PDF is handed over with the message, named with the initials of who signed (…-partly-signed-AS.pdf)', /partly-signed-AS\.pdf$/.test(dlS.suggestedFilename()), dlS.suggestedFilename());
 step('alex', 'explainer says: signed on this phone, download and send', /Download the partly-signed file/.test(await A.getByTestId('explain').innerText()));
 { const b = A.getByTestId('downloads-partly').locator('button').first(); step('alex', 'the download is an ICON (the drawn arrow-to-line glyph Vision 2525 uses), round, named in aria-label', (await b.locator('svg path').count()) === 1 && /rounded-full/.test(await b.getAttribute('class')) && /Download/.test(await b.getAttribute('aria-label')) && (await b.innerText()).trim() === ''); }

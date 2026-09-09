@@ -26,17 +26,31 @@ export async function handleNotify(request, env) {
   // The page sends WHO (to), WHO ASKS (sender), WHAT (title) and the LINK; the server writes the subject and the text
   // itself, so this route can carry nothing but a signing request (fleet, Thor: it was an open relay on Origin alone).
   const to = String(body.to || "").trim(), sender = String(body.sender || "").replace(/[\r\n]/g, " ").slice(0, 80).trim() || "Someone", title = String(body.title || "").replace(/[\r\n]/g, " ").slice(0, 120).trim() || "a document", link = String(body.link || "");
-  const subject = `Please sign: ${title}`;
-  const text = `${sender} asks you to sign "${title}" on eXeL AI Polling. No account, no fee. This link is yours alone (it holds your key; do not forward it) and it expires in 30 days: ${link}`;
+
   if (!EMAIL.test(to)) return json({ error: "Invalid e-mail address" }, 400, cors);
-  if (!link) return json({ error: "Link is required" }, 400, cors);
+  // an optional PDF attachment (the signed file itself — operator 2026-09-09: "email and text with download … from phone or computer"):
+  // base64, at most 3 MB decoded, a sanitised .pdf file name; with an attachment the link is optional and the mail says "Signed:"
+  let attachment = null;
+  if (body.attachment && typeof body.attachment === "object") {
+    const b64 = String(body.attachment.base64 || "").replace(/\s+/g, "");
+    if (!/^[A-Za-z0-9+/]+=*$/.test(b64) || b64.length < 8) return json({ error: "Bad attachment" }, 400, cors);
+    if (b64.length > 4 * 1024 * 1024) return json({ error: "Attachment too large (3 MB max)" }, 413, cors);
+    const name = (String(body.attachment.name || "signed.pdf").replace(/[^\w.\- ]/g, "_").slice(0, 120) || "signed.pdf").replace(/(\.pdf)?$/i, ".pdf");
+    attachment = { filename: name, content: b64 };
+  }
+  if (!link && !attachment) return json({ error: "Link is required" }, 400, cors);
+  const final = body.final === true;
+  const subject = attachment && (final || !link) ? `Signed: ${title}` : `Please sign: ${title}`;
+  const text = attachment && (final || !link)
+    ? `${sender} signed "${title}" on eXeL AI Polling. The signed PDF is attached; it carries every signatory's name, time and hash.${link ? ` Record: ${link}` : ""}`
+    : `${sender} asks you to sign "${title}" on eXeL AI Polling. No account, no fee.${attachment ? " The partly-signed PDF is attached." : ""}${link ? ` This link is yours alone (it holds your key; do not forward it) and it expires in 30 days: ${link}` : ""}`;
   // the link must point back to this site — the mail carries a bearer secret, never an arbitrary URL
   try { if (link && new URL(link).origin !== new URL(request.url).origin) return json({ error: "Link must be on this site" }, 400, cors); } catch { return json({ error: "Bad link" }, 400, cors); }
   // a light per-address throttle: one request per address per 20 s per isolate (best effort; the real bound is the Resend account)
   const now = Date.now(); const last = RECENT.get(to) || 0; if (now - last < 20000) return json({ error: "Too many requests for this address; wait a moment." }, 429, cors); RECENT.set(to, now); if (RECENT.size > 500) RECENT.clear();
   let res;
   try {
-    res = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, text }) });
+    res = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, text, ...(attachment ? { attachments: [attachment] } : {}) }) });
   } catch { return json({ error: "Could not reach the mail service" }, 502, cors); }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return json({ error: (data && (data.message || (data.error && data.error.message))) || "Mail service error" }, 502, cors);

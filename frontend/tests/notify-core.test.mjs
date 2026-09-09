@@ -21,4 +21,19 @@ ok(calls[0].url === "https://api.resend.com/emails" && calls[0].init.headers.Aut
   const r3 = await J(await handleNotify(req({ ...good, to: "other@example.test" }), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "x" })); ok(r3.status === 429, "the same address again within 20 s → 429"); }
 globalThis.fetch = async () => new Response(JSON.stringify({ message: "Domain not verified" }), { status: 403, headers: { "Content-Type": "application/json" } });
 r = await J(await handleNotify(req({ ...good, to: "third@example.test" }), { RESEND_API_KEY: "re_x", NOTIFY_FROM: "x" })); ok(r.status === 502 && /Domain/.test(r.body.error), "provider error surfaces");
+
+// the signed PDF as an ATTACHMENT (operator 2026-09-09): forwarded to Resend, link optional, size capped, name sanitised
+{ const seen = []; globalThis.fetch = async (url, init) => { seen.push(JSON.parse(init.body)); return new Response(JSON.stringify({ id: "em_att" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
+  const env = { RESEND_API_KEY: "re_x", NOTIFY_FROM: "eXeL <sign@exel.test>" };
+  const pdf = Buffer.from("%PDF-1.4 tiny").toString("base64");
+  let a = await J(await handleNotify(req({ to: "att1@example.test", sender: "Alex", title: "Note", final: true, attachment: { name: "Note-signed-AS-DV.pdf", base64: pdf } }), env));
+  ok(a.status === 200 && a.body.sent === true && seen[0].attachments?.[0]?.filename === "Note-signed-AS-DV.pdf" && seen[0].attachments[0].content === pdf && seen[0].subject === "Signed: Note" && /signed PDF is attached/.test(seen[0].text) && !/link is yours/.test(seen[0].text), "an attachment rides to Resend, no link needed, the mail says Signed:");
+  a = await J(await handleNotify(req({ to: "att2@example.test", sender: "Alex", title: "Note", attachment: { name: "../evil name?.pdf", base64: pdf }, link: SITE + "/soi-session/sign/?e=x" }), env));
+  ok(a.status === 200 && seen[1].attachments[0].filename === ".._evil name_.pdf" && seen[1].subject === "Please sign: Note" && /partly-signed PDF is attached/.test(seen[1].text) && /link is yours/.test(seen[1].text), "with a link it is a signing request with the partly-signed file attached; the name is sanitised");
+  a = await J(await handleNotify(req({ to: "att3@example.test", sender: "Alex", title: "Note", attachment: { name: "big.pdf", base64: "A".repeat(4 * 1024 * 1024 + 4) } }), env));
+  ok(a.status === 413, "a 3 MB+ attachment → 413");
+  a = await J(await handleNotify(req({ to: "att4@example.test", sender: "Alex", title: "Note", attachment: { name: "x.pdf", base64: "not base64!!" } }), env));
+  ok(a.status === 400, "a malformed attachment → 400");
+}
+
 console.log(`notify-core: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

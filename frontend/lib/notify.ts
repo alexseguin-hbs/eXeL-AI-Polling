@@ -1,9 +1,10 @@
 /**
- * Send the next signer's link by e-mail from eXeL (/api/notify → Resend). Returns "sent" when the
+ * Send the next signer's link — or the signed PDF itself as an attachment (operator 2026-09-09) — by e-mail from eXeL (/api/notify → Resend). Returns "sent" when the
  * Worker holds RESEND_API_KEY + NOTIFY_FROM, "unconfigured" when it does not (the page falls back
  * to the phone's own mail composer), or throws with a user-safe message.
  */
-export async function sendSignerEmail(opts: { to: string; sender: string; title: string; link: string }): Promise<"sent" | "unconfigured"> {
+export interface MailAttachment { name: string; base64: string }
+export async function sendSignerEmail(opts: { to: string; sender: string; title: string; link?: string; final?: boolean; attachment?: MailAttachment }): Promise<"sent" | "unconfigured"> {
   // the Worker composes subject and text itself from who / what / link — this route carries nothing else (fleet, Thor)
   const res = await fetch("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(opts) });
   const ct = res.headers.get("content-type") || "";

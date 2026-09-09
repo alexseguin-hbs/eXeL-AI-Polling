@@ -378,6 +378,18 @@ await shot(D, 'dan', '6c-codex-pdf');
 // 5 · Alex reopens with HIS OWN link (kept from the hand-off) and sees the completed document
 await A.goto(myLink, { waitUntil: 'domcontentloaded' }); await ready(A);
 await A.getByTestId('downloads').waitFor({ timeout: 60000 }); step('alex', 'creator reopens with his own link → COMPLETE, downloads offered');
+// the END on a PHONE (operator 2026-09-09): Download · Text · E-mail · Copy on the Done panel — Text hands the PDF to the share sheet,
+// E-mail sends it through the site's own mail WITH THE FILE ATTACHED
+{ await A.evaluate(() => { window.__shared = []; navigator.canShare = () => true; navigator.share = async (d) => { window.__shared.push({ n: d.files?.length || 0, names: (d.files || []).map((f) => f.name), text: d.text || '' }); }; });
+  await A.getByTestId('send-text').click(); await A.waitForTimeout(400);
+  const sh = await A.evaluate(() => window.__shared);
+  step('alex', 'Text on the Done panel hands the signed PDF (with its initials in the name) and the message to the share sheet', sh.length === 1 && sh[0].n === 1 && /-signed-AS-DV\.pdf$/.test(sh[0].names[0]) && /signed/i.test(sh[0].text) && (await A.getByTestId('send-state').getAttribute('data-state')) === 'shared', JSON.stringify(sh));
+  await A.evaluate(() => { navigator.canShare = () => false; });
+  const notified = []; await A.route('**/api/notify', async (route) => { notified.push(route.request().postDataJSON()); await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sent: true, id: 'em_test' }) }); });
+  await A.getByTestId('send-email-to').fill('daniel@example.test'); await A.getByTestId('send-email-file').click(); await A.getByTestId('send-state').waitFor({ timeout: 10000 });
+  const n0 = notified[0];
+  step('alex', "E-mail on the Done panel sends through the site's mail WITH the signed PDF attached (base64, named with the initials, final)", !!n0 && n0.to === 'daniel@example.test' && n0.final === true && /-signed-AS-DV\.pdf$/.test(n0.attachment?.name || '') && (n0.attachment?.base64 || '').length > 1000 && /^JVBERi0/.test(n0.attachment.base64) && (await A.getByTestId('send-state').getAttribute('data-state')) === 'sent', `to ${n0?.to} · ${n0?.attachment?.name} · ${(n0?.attachment?.base64 || '').length} b64 chars`);
+  await A.unroute('**/api/notify'); }
 await shot(A, 'alex', '7-complete');
 
 fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
@@ -405,4 +417,18 @@ fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
   step('dan', 'the redone file still reads green in the verifier', (await E.getByTestId('verify-result').getAttribute('data-ok')) === '1', (await E.getByTestId('verify-result').innerText()).replace(/\s+/g, ' ').slice(0, 100));
   await shot(E, 'dan', '8-redo');
 }
+// the END on a COMPUTER (operator 2026-09-09: "from phone or computer"): a desktop browser — no share sheet, no sms: — Text downloads the
+// file and copies the message; E-mail sends it through the site's mail with the PDF attached
+{ const ctxC = await browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true, permissions: ['clipboard-read', 'clipboard-write'] });
+  const C = await ctxC.newPage(); await C.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await C.getByText('Sign Doc', { exact: true }).first().waitFor({ timeout: 60000 });
+  await C.getByPlaceholder(/Promissory/).fill('Promissory Note'); await C.getByTestId('file-input').setInputFiles(file); await C.getByTestId('carried-i-am').waitFor({ timeout: 20000 }); await C.getByTestId('carried-i-am').click();
+  await C.getByTestId('save-edits').waitFor({ timeout: 20000 }); await C.getByTestId('save-edits').click(); await C.getByTestId('downloads').waitFor({ timeout: 30000 });
+  const dlC = C.waitForEvent('download', { timeout: 10000 }).then((d) => d.suggestedFilename()).catch(() => '');
+  await C.getByTestId('send-text').click(); await C.getByTestId('send-state').waitFor({ timeout: 10000 });
+  const clip = await C.evaluate(() => navigator.clipboard.readText()).catch(() => '');
+  step('dan', 'COMPUTER · Text: the signed file downloads and the message is on the clipboard (a desktop has no text composer)', /-signed-AS-DV\.pdf$/.test(await dlC) && /signed/i.test(clip) && (await C.getByTestId('send-state').getAttribute('data-state')) === 'copied' && C.url().startsWith('http'), `download ${await dlC} · clipboard "${clip.slice(0, 60)}…"`);
+  const sentC = []; await C.route('**/api/notify', async (route) => { sentC.push(route.request().postDataJSON()); await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sent: true, id: 'em_c' }) }); });
+  await C.getByTestId('send-email-to').fill('alex@example.test'); await C.getByTestId('send-email-file').click(); await C.waitForFunction(() => document.querySelector('[data-testid="send-state"]')?.getAttribute('data-state') === 'sent', null, { timeout: 10000 });
+  step('dan', "COMPUTER · E-mail: the site's mail carries the signed PDF as an attachment", sentC.length === 1 && sentC[0].to === 'alex@example.test' && /-signed-AS-DV\.pdf$/.test(sentC[0].attachment?.name || '') && /^JVBERi0/.test(sentC[0].attachment?.base64 || ''), `${sentC[0]?.attachment?.name} · ${(sentC[0]?.attachment?.base64 || '').length} b64 chars`);
+  await shot(C, 'dan', '9-computer-send'); await ctxC.close(); }
 await browser.close(); console.log(`\nSIGN 2-PHONE LIVE RUN: ${log.length} steps, 0 failures`);

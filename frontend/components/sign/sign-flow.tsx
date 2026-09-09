@@ -57,6 +57,7 @@ import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt, type Vi
 import { Handoff } from "@/components/sign/handoff";
 import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
 import { SignReceipt } from "@/components/sign/receipt";
+import { SendRow } from "@/components/sign/send-row";
 import { IconDownload, DownloadGlyph } from "@/components/download-icon";
 import { VerifyFile } from "@/components/sign/verify-file";
 
@@ -753,9 +754,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
                 </div>
               )}
               {(() => { const msg = tmpLink ? handoffMessage(myName, pub?.title ?? title, tmpLinks.map((l) => l.url).join("\n"), t("soi.sign.handoff.offline_link_template")) : handoffMessage(myName, pub?.title ?? title, `${window.location.origin}/soi-session/sign/`, t("soi.sign.handoff.offline_template")); return (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void shareFiles(signed, false, msg)} className="min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" data-testid="share-file"><span aria-hidden="true">📎 </span>{shareState === "shared" ? t("soi.sign.handoff.shared") : t("soi.sign.handoff.share_file")}</button>
-                </div>); })()}
+                <div data-testid="share-file"><SendRow files={signed} final={false} title={pub?.title ?? title} sender={myName} link={tmpLink?.url} toDefault={nextContact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} message={msg} /></div>); })()}
               {shareState === "fallback" && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="share-fallback">{t("soi.sign.handoff.share_fallback")}</p>}
               {shareState === "failed" && <p className="mt-2 text-[11px] text-red-500">{t("soi.sign.handoff.share_failed")}</p>}
             </div>
@@ -787,8 +786,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <SignReceipt files={signed.map((f) => f.name)} signers={pub ? pub.signers.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at) : undefined })) : editReceipt} count={pub ? pub.signers.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
-          <div className="mt-3 flex flex-wrap items-center gap-3" data-testid="downloads">{signed.map((f) => <span key={f.name} className="inline-flex items-center gap-2 text-xs"><IconDownload label={`${t("soi.sign.download")} · ${f.name}`} onClick={() => void download(f)} /><span>{f.name}</span></span>)}
-            <button type="button" onClick={() => void shareFiles(signed, true, `${t("soi.sign.complete")} ${pub?.title ?? title}`)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.12em]" style={{ borderColor: hue.dim, color: hue.bright }} data-testid="share-signed"><span aria-hidden="true">📎</span> {t("soi.sign.handoff.share_signed")}</button></div>
+          <div data-testid="downloads"><SendRow files={signed} final title={pub?.title ?? title} sender={myName} link={myLink || undefined} toDefault={countersign ? pub?.signers.find((x) => !x.me)?.contact_masked : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} /></div>
           <div className="mt-4"><VerifyFile /></div>
         </div>
       )}
