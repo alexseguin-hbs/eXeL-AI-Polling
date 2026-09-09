@@ -37,6 +37,24 @@
      "live" without the SHA comparison. Never explain a stale site away as "deploy lag" without checking
      Cloudflare Build history first.
   5. **Always include the website URL** so the operator can check in one tap.
+- **FIX THE CLASS, NEVER THE INSTANCE (AAR 2026-09-09, MoT-enforced).** Sixteen hours went to one defect found three times,
+  because each fix answered the symptom in front of it. A signer hit a dead end at **create**; it was fixed. He hit the same
+  dead end at **save**; that was fixed. He hit it again when his **phone's storage was full**. Three fixes, one bug: *nothing
+  guaranteed the finished file survived a failure.* The proof each time mocked the branch just written, so a green run and a
+  broken phone coexisted.
+  1. **State the invariant before the code.** One sentence, in the user's terms, that must hold whatever any backend does.
+     Here: *a completed signature is never discarded.* Write it into the file as a comment and into the plan.
+  2. **Enumerate the whole class before fixing one member.** List EVERY point on that path that can throw, reject or hang.
+     Fix them together. A fix that names one call site is a symptom patch and is refused at review.
+  3. **Reproduce the operator's environment, not your theory of it.** His database state, his device state. A mock of the bug
+     you believe in proves only that you believe in it.
+  4. **Every invariant gets a gate.** A source-level or runtime assertion in `test:ci` that fails if the guarantee is removed.
+     An invariant defended only by a comment is already lost. See `frontend/tests/sign-invariant.test.mjs`.
+  5. **The AsM review the JOURNEY, before the ship — not the diff, after.** One reviewer is always assigned the question
+     "what else on this path can fail?" A review that only reads the change cannot find the member you missed.
+  6. **When the operator reports the same thing twice, stop fixing and start enumerating.** The second report is proof the
+     model of the bug is wrong, not that the fix was too small.
+  See `docs/AAR_2026-09-09_THREE_DEAD_ENDS.md`.
 - **NO REWORK — verify before you execute (R-CORE law, MoT-enforced).** Rework is the antithesis of R-CORE. Before opening code for ANY backlog item:
   1. **Grep-verify it isn't already shipped.** Search the real files for the feature's identifiers (state, handler, label, export). Cite the file:line as evidence.
   2. **If it exists → REUSE or EXTEND it. Never rebuild it.** Fold the new requirement into the existing primitive; do not fork a parallel implementation.
