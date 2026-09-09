@@ -527,4 +527,43 @@ fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
   const dl3 = P2.waitForEvent('download', { timeout: 15000 }); await P2.getByTestId('send-download').first().click(); const got3 = await dl3.then((d) => d.suggestedFilename()).catch(() => '');
   step('alex', 'and the partly-signed file downloads for the hand-off', /-partly-signed-AS\.pdf$/.test(got3), got3);
   await shot(P2, 'alex', '12-two-signers-refused'); await H.close(); }
+// THE INVARIANT (operator 2026-09-09 04:59 CST: "this error comes up after signing"): the SAVE step refuses — the stage that had no
+// fallback while create did — and the signer must still land on the outcome panel with his stamped file. Both roles.
+{ const mkPage = async () => { const C = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, acceptDownloads: true }); return [C, await C.newPage()]; };
+  const refuseSave = (P) => P.route('**/rest/v1/rpc/sign_envelope_sign', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: '42883', message: 'function digest(bytea, unknown) does not exist' }) }));
+  const drawAndSign = async (P) => {
+    const pg = P.getByTestId('pdf-page'); await pg.locator('canvas').first().waitFor({ timeout: 60000 });
+    const bb = await pg.boundingBox(); await P.mouse.click(bb.x + bb.width * 0.5, bb.y + bb.height * 0.3); await P.getByTestId('sig-box').waitFor();
+    await P.getByTestId('to-draw').click(); await scribble(P, 'alex'); await drawInitials(P, 'alex');
+    await P.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 }); await P.getByTestId('sign-button').click();
+  };
+  const assertOutcome = async (P, who, what) => {
+    await P.getByTestId('downloads').waitFor({ timeout: 60000 });
+    const ok = (await P.getByTestId('send-download').count()) >= 1 && (await P.getByTestId('send-text').count()) === 1 && (await P.getByTestId('send-email-file').count()) === 1 && (await P.getByTestId('send-copy').count()) === 1 && (await P.getByTestId('sign-button').count()) === 0;
+    const d = P.waitForEvent('download', { timeout: 15000 }); await P.getByTestId('send-download').first().click(); const got = await d.then((x) => x.suggestedFilename()).catch(() => '');
+    step(who, what, ok && /-signed-AS(-[A-Z-]+)?\.pdf$/.test(got), got || 'no download');
+  };
+  // A · the CREATOR: the save RPC refuses after the record was created
+  const [CA, A1] = await mkPage(); await refuseSave(A1);
+  await A1.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(A1);
+  await A1.getByPlaceholder(/Promissory/).fill('Save refused, creator'); await A1.getByTestId('file-input').setInputFiles(FIXTURE);
+  await A1.getByRole('button', { name: /who signs/ }).click();
+  await A1.getByTestId('signer-name-0').fill('Alex Seguin'); await A1.getByTestId('signer-contact-0').fill('explore@exel-ai.com');
+  await A1.locator('button[aria-label]:has-text("✕")').first().click();
+  await A1.getByRole('button', { name: /place your signature/ }).click(); await drawAndSign(A1);
+  await assertOutcome(A1, 'alex', 'SAVE refused for the CREATOR → the outcome panel still renders and the signed file downloads (the signature is never discarded)');
+  await shot(A1, 'alex', '13-save-refused-creator'); await CA.close();
+  // B · the COUNTERSIGNER: a real hand-off link, then the save RPC refuses on his phone
+  const [CB, B1] = await mkPage();
+  await B1.goto(`${BASE}/soi-session/sign/`, { waitUntil: 'domcontentloaded' }); await ready(B1);
+  await B1.getByPlaceholder(/Promissory/).fill('Save refused, countersigner'); await B1.getByTestId('file-input').setInputFiles(FIXTURE);
+  await B1.getByRole('button', { name: /who signs/ }).click();
+  await B1.getByTestId('signer-name-0').fill('Alex Seguin'); await B1.getByTestId('signer-contact-0').fill('explore@exel-ai.com');
+  await B1.getByTestId('signer-name-1').fill('Daniel Vail'); await B1.getByTestId('signer-contact-1').fill('512.808.8745');
+  await B1.getByRole('button', { name: /place your signature/ }).click(); await drawAndSign(B1);
+  const hl = B1.getByTestId('handoff-link'); await hl.waitFor({ timeout: 60000 }); const link2 = (await hl.innerText()).trim();
+  const [CC, B2] = await mkPage(); await refuseSave(B2);
+  await B2.goto(link2, { waitUntil: 'domcontentloaded' }); await ready(B2); await drawAndSign(B2);
+  await assertOutcome(B2, 'dan', 'SAVE refused for the COUNTERSIGNER → the outcome panel still renders and his signed file downloads');
+  await shot(B2, 'dan', '14-save-refused-countersigner'); await CB.close(); await CC.close(); }
 await browser.close(); console.log(`\nSIGN 2-PHONE LIVE RUN: ${log.length} steps, 0 failures`);

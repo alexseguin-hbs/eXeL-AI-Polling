@@ -135,6 +135,14 @@ export async function signEnvelope(token: string, idx: number, secret: string, f
     p_files: files.map((f) => ({ name: f.name, page_count: f.page_count, pdf_base64: f.pdf_base64, sha256: f.sha256 })),
     p_chain: chain, p_ip_hash: null, p_user_agent: navigator.userAgent.slice(0, 300), p_marks: marks ?? null,
   }));
+  // The save refused (an incomplete migration, a timeout, a dropped connection) but the pass is complete and the caller holds a
+  // local envelope: keep it on this device rather than throwing away a finished signature (AAR 2026-09-09, the save stage had no
+  // fallback while create did). A wrong secret / not-your-turn is a REFUSAL, not an outage — those still raise.
+  if (error && localNext && !/bad_secret|not_your_turn|revoked|expired|complete/i.test(String((error as { message?: string }).message ?? ""))) {
+    localStorage.setItem(LOCAL_KEY(token), JSON.stringify(localNext));
+    const e = fromLocal(token, secret);
+    if (e) { const done = localNext.status !== "awaiting"; return { ...e, next_secret: !done ? localNext.signers[localNext.current_signer_idx]?.secret ?? null : null, next_contact: !done ? localNext.signers[localNext.current_signer_idx]?.contact ?? null : null, creator_contact: done ? localNext.signers[0]?.contact ?? null : null }; }
+  }
   if (error) rpcError(error);
   if ((data as { error?: string } | null)?.error) rpcError(new Error((data as { error: string }).error));   // 037: a wrong secret is returned, not raised, so the lock counter commits
   return { ...(data as Omit<PublicEnvelope, "mode">), mode: "supabase" };

@@ -475,12 +475,13 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     if (!countersign) keepDraft(snapshot());                    // a reload mid-save restores the draft (dropped on success)
     setStep("saving"); setErr("");
     let stage: "stamp" | "create" | "save" = "stamp";
+    // hoisted so the CATCH can see the finished files: a stamped signature is never discarded (MoT ruling, AAR 2026-09-09)
+    const stampedBytes: { name: string; bytes: Uint8Array }[] = [];
     try {
       const isoDate = new Date().toISOString();
       const prevChain = countersign ? (pub?.chain ?? "") : "";
       if (!countersign && !pendingToken.current) pendingToken.current = newToken();
       const stamped: SignFile[] = [];
-      const stampedBytes: { name: string; bytes: Uint8Array }[] = [];
       for (let i = 0; i < files.length; i++) {
         const f = files[i];
         const recorded = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0);
@@ -534,6 +535,11 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         stamped.push({ name: f.name, page_count: f.pages, pdf_base64: bytesToBase64(out), sha256: sha, version: 0 });
         stampedBytes.push({ name: f.name, bytes: out });
       }
+      // ── THE INVARIANT (operator 2026-09-09 04:59 CST; MoT ruling after the AAR) ─────────────────────────────────────────
+      // A completed signature is NEVER discarded. The bytes are stamped; from here the outcome panel is unconditional and the
+      // file is downloadable, textable and e-mailable whatever any backend does. The store decides only whether a SHAREABLE
+      // LINK mints — never whether the signer gets his own document.
+      setSigned(stampedBytes);
       const chain = await chainHash(prevChain, stamped.map((s) => s.sha256));
       let result: PublicEnvelope;
       if (!countersign) {
@@ -559,6 +565,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         stage = "save";
         result = await signEnvelope(env.token, 0, env.signers[0].secret, stamped, chain, next, passMarks());
       } else {
+        // the countersigner has no local Envelope to fall back to (the secrets are not his to hold), so a refusal here is caught
+        // below and ends on the outcome panel with his stamped file — never back at the pads (Enki/Thor, AAR 2026-09-09)
         stage = "save";
         result = await signEnvelope(token!, myIdx, secret!, stamped, chain, undefined, passMarks());
       }
@@ -574,8 +582,14 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       setStep("handoff");
     } catch (ex) {
       // never silent: the step that failed, then the reason
-      setErr(`${t(`soi.sign.stage.${stage}`)}: ${ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex)}`);
-      setFailStage(stage); setStep("draw");   // the red line, the sentence and the Sign & save button share one screen (fleet: a countersigner landed on PLACE)
+      const code = ex instanceof SignStoreError ? ex.code : "";
+      setErr(`${t(`soi.sign.stage.${stage}`)}: ${code ? t(`soi.sign.err.${code}`) : String((ex as Error).message ?? ex)}`);
+      setFailStage(stage);
+      // THE INVARIANT: with a stamped file in hand the signer lands on the outcome panel — Download · Text · E-mail · Copy — and
+      // the failure is a NOTE on it, never a wall that costs him the signature (operator 04:59 CST: "this error comes up after
+      // signing"; the save stage had no fallback, only create did). Only a failure BEFORE stamping returns to the pads.
+      if (stampedBytes.length) { setSigned(stampedBytes); setLocalFallback(true); setOffline(code || "rpc_error"); dropDraft(); setStep("done"); return; }
+      setStep("draw");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [png, initialsPng, allPlaced, files, marks, myName, countersign, pub, title, signers, token, secret, myIdx, t, requireLogin, auth.isAuthenticated, returnTo]);
