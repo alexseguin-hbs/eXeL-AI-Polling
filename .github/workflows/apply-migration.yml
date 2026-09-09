@@ -11,6 +11,14 @@ on:
         description: "migration file under supabase/migrations/"
         required: true
         default: "036_sign_envelopes.sql"
+      project_ref:
+        description: "(no secret set) Supabase project ref, e.g. ppgfjplawtlrfqpnszyb"
+        required: false
+        default: ""
+      db_password:
+        description: "(no secret set) the database password (Project Settings → Database); masked in the log"
+        required: false
+        default: ""
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -19,7 +27,11 @@ jobs:
       - name: Require the secret
         env:
           DB: ${{ secrets.SUPABASE_DB_URL }}
+          REF: ${{ github.event.inputs.project_ref }}
+          PW: ${{ github.event.inputs.db_password }}
         run: |
+          # no secret? the ref + password inputs build the URL for this run only (the password is masked in the log, never stored)
+          if [ -z "$DB" ] && [ -n "$REF" ] && [ -n "$PW" ]; then echo "::add-mask::$PW"; DB="postgresql://postgres:${PW}@db.${REF}.supabase.co:5432/postgres"; echo "SUPABASE_DB_URL=$DB" >> "$GITHUB_ENV"; echo "::add-mask::$DB"; fi
           if [ -z "$DB" ]; then
             echo "::error::SUPABASE_DB_URL secret is missing. Supabase → Project Settings → Database → Connection string (URI, with password) → add it as a repository secret named SUPABASE_DB_URL, then re-run."
             exit 1

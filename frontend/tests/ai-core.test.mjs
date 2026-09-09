@@ -8,7 +8,7 @@ const J = async (r) => ({ status: r.status, body: await r.json() });
 const calls = []; const realFetch = globalThis.fetch;
 const mock = (reply) => { globalThis.fetch = async (url, init) => { calls.push({ url: String(url), init }); const body = typeof reply === "function" ? reply(String(url), init) : reply; return new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }); }; };
 
-ok(JSON.stringify(configured({})) === '{"openai":false,"gemini":false,"grok":false}' && configured({ GEMINI_API_KEY: "g" }).gemini === true, "configured() reads the three secrets");
+ok(JSON.stringify(configured({})) === '{"openai":false,"gemini":false,"grok":false,"claude":false}' && configured({ GEMINI_API_KEY: "g" }).gemini === true, "configured() reads the four secrets");
 let r = await J(await handleAi(new Request(SITE + "/api/ai"), { XAI_API_KEY: "x" })); ok(r.status === 200 && r.body.configured.grok === true && r.body.configured.openai === false, "GET → which providers are configured");
 r = await J(await handleAi(req({ task: "place", image: PNG, signer: "Alex" }), {})); ok(r.status === 200 && r.body.configured === false, "no key → {configured:false}");
 r = await J(await handleAi(req({ task: "place", image: PNG, signer: "Alex" }, null), { OPENAI_API_KEY: "k" })); ok(r.status === 403, "no Origin → 403");
@@ -45,4 +45,22 @@ mock({ choices: [{ message: { content: "sorry, no" } }] });
 r = await J(await handleAi(req({ task: "draft", prompt: "a lease for a bike, monthly" }), { OPENAI_API_KEY: "o" })); ok(r.status === 502, "an unparsable reply → 502 with the error text");
 r = await J(await handleAi(req({ task: "draft", prompt: "hi" }), { OPENAI_API_KEY: "o" })); ok(r.status === 400, "a draft needs a real request (≥ 8 chars)");
 globalThis.fetch = realFetch;
+
+// Claude (Anthropic Messages API): x-api-key + anthropic-version headers, claude-opus-5, text blocks read back; a refusal is an error;
+// Claude is first in the auto order; the typed names ride into the prompt and win over the model's own list (operator 2026-09-09)
+{ calls.length = 0;
+  mock({ id: "msg_1", stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ title: "Study Agreement", body: "## Recitals\n\nAlex Seguin (Parent) and Lucas Seguin (Child) agree...\n\n## Signatures\n\nParent: Alex Seguin ____ Date: ____", signers: [{ role: "Parent", name: "Model Guess" }] }) }] });
+  const d = await J(await handleAi(req({ task: "draft", prompt: "A child and a parent agree the child studies 60 minutes a day", signers: [{ role: "Parent", name: "Alex Seguin" }, { role: "Child", name: "Lucas Seguin" }] }), { ANTHROPIC_API_KEY: "sk-ant-x", OPENAI_API_KEY: "k" }));
+  const c = calls[0]; const sent = JSON.parse(c.init.body);
+  ok(d.status === 200 && d.body.provider === "claude" && d.body.model === "claude-opus-5", `auto picks Claude first and names the model (${d.body.provider} ${d.body.model})`);
+  ok(c.url === "https://api.anthropic.com/v1/messages" && c.init.headers["x-api-key"] === "sk-ant-x" && c.init.headers["anthropic-version"] === "2023-06-01" && sent.model === "claude-opus-5" && sent.max_tokens >= 4000 && sent.messages[0].role === "user", "the Messages API request has the right endpoint, headers, model and shape");
+  const promptText = sent.messages[0].content[0].text;
+  ok(/Parent: Alex Seguin; Child: Lucas Seguin/.test(promptText) && /WHOLE document/.test(promptText) && /Signatures/.test(promptText) && /governing law/i.test(promptText), "the draft prompt asks for a complete legal document and carries the typed names and roles");
+  ok(d.body.result.title === "Study Agreement" && /## Recitals/.test(d.body.result.body) && d.body.result.signers.length === 2 && d.body.result.signers[0].name === "Alex Seguin", "the typed names win over the model's own signer list");
+  mock({ id: "msg_2", stop_reason: "refusal", stop_details: { type: "refusal", category: null, explanation: "declined" }, content: [] });
+  const rf = await J(await handleAi(req({ task: "draft", prompt: "A child and a parent agree the child studies 60 minutes a day", provider: "claude" }), { ANTHROPIC_API_KEY: "sk-ant-x" }));
+  ok(rf.status === 502 && /declined/.test(rf.body.error), "a refusal stop reason is reported, never passed off as a document");
+  ok(JSON.stringify(configured({ ANTHROPIC_API_KEY: "a" })) === '{"openai":false,"gemini":false,"grok":false,"claude":true}', "configured() reads the Anthropic key");
+}
+
 console.log(`ai-core: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

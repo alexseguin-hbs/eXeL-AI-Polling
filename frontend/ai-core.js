@@ -1,7 +1,7 @@
 /**
  * ai-core.js — /api/ai — the AI helpers behind Sign Doc and Create Doc (operator 2026-09-08 01:25: "AI APIs for where
  * to place signature and create doc — Gemini, OpenAI, Grok"). Three adapters, one shape:
- *   GET  /api/ai                     → { configured: { openai, gemini, grok } }
+ *   GET  /api/ai                     → { configured: { openai, gemini, grok, claude } }
  *   POST /api/ai { task: "place", image: <data:image/png…>, signer, hint?, provider? }
  *                                    → { provider, model, result: { x, y, w, h, date?: {x,y,w,h}, confidence } }  (page fractions, top-left origin)
  *   POST /api/ai { task: "draft", prompt, lang?, provider? }
@@ -15,12 +15,17 @@ const MODELS = {
   openai: { place: "gpt-4o-mini", draft: "gpt-4o-mini" },
   gemini: { place: "gemini-1.5-flash", draft: "gemini-1.5-flash" },
   grok: { place: "grok-2-vision-1212", draft: "grok-2-latest" },
+  claude: { place: "claude-opus-5", draft: "claude-opus-5" },   // Anthropic Messages API (ANTHROPIC_API_KEY); operator 2026-09-09: "Grok, OpenAI, or Claude API"
 };
-export const configured = (env) => ({ openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, grok: !!env.XAI_API_KEY });
-const pick = (env, want) => { const c = configured(env); if (want && want !== "auto") return c[want] ? want : null; return ["openai", "gemini", "grok"].find((p) => c[p]) || null; };
+export const configured = (env) => ({ openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, grok: !!env.XAI_API_KEY, claude: !!env.ANTHROPIC_API_KEY });
+const pick = (env, want) => { const c = configured(env); if (want && want !== "auto") return c[want] ? want : null; return ["claude", "openai", "gemini", "grok"].find((p) => c[p]) || null; };
 
 const placePrompt = (signer, hint) => `This is one page of a document to be signed. Find where the signer "${signer}" should sign: the signature line or box meant for that person or role${hint ? ` (hint: ${hint})` : ""}. Answer with JSON only: {"x":0..1,"y":0..1,"w":0..1,"h":0..1,"date":{"x":..,"y":..,"w":..,"h":..} or null,"confidence":0..1}. x,y are the top-left corner and w,h the size of a signature box sitting ON that line (bottom edge on the line, no taller than the gap to the text above), all as fractions of the page width and height with the origin at the top-left. "date" is the box for the date line of the same signer if there is one. If the page has no place for this signer, return {"x":null,"confidence":0}.`;
-const draftPrompt = (prompt, lang) => `Draft a short, plain document from this request, written in ${lang || "English"}. Answer with JSON only: {"title": string, "body": string, "signers": [{"role": string, "name": string}]}. In "body", separate paragraphs with a blank line and start a heading line with "## ". Name the parties as roles (e.g. Lender, Borrower) and use the names given; leave a name empty when none was given. Do not claim to be legal advice. Request: ${prompt}`;
+const draftPrompt = (prompt, lang, signers) => `You draft complete, plain-language legal documents for two or more private parties to sign. Write in ${lang || "English"}.
+Request: ${prompt}
+${signers && signers.length ? `Signers (use these exact names and roles; every one gets a signature line): ${signers.map((x) => (x.role ? `${x.role}: ${x.name}` : x.name)).join("; ")}` : "Signers: name them from the request, one role each."}
+Write the WHOLE document, not a summary: a title; a recitals paragraph naming the parties, the date placeholder [DATE] and the purpose; numbered sections with headings covering the obligations of each party, amounts / schedules / durations from the request, conditions and consequences of non-performance, term and termination, amendments (in writing, signed by all), governing law as "[STATE/COUNTRY]" unless the request names one, entire agreement, and a closing sentence that the parties sign below. Keep sentences short and definite. Do not invent facts the request does not give: leave a bracketed placeholder like [AMOUNT] instead. End "body" with a "Signatures" heading followed by one line per signer: "Role: Name ____________________ Date: __________".
+Answer with JSON only: {"title": string, "body": string, "signers": [{"role": string, "name": string}]}. In "body", separate paragraphs with a blank line and start a heading line with "## ".`;
 
 const b64 = (dataUrl) => String(dataUrl || "").replace(/^data:image\/\w+;base64,/, "");
 const parseJson = (text) => { const t = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""); const s = t.indexOf("{"), e = t.lastIndexOf("}"); return JSON.parse(s >= 0 ? t.slice(s, e + 1) : t); };
@@ -33,6 +38,15 @@ async function call(provider, task, env, { text, image }) {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: [{ parts }], generationConfig: { response_mime_type: "application/json", temperature: 0 } }) });
     const d = await r.json(); if (!r.ok) throw new Error(`gemini ${r.status}: ${(d.error && d.error.message) || ""}`);
     return { model, text: d.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "" };
+  }
+  if (provider === "claude") {
+    // Anthropic Messages API (raw HTTP, like the three other adapters in this Worker): x-api-key + anthropic-version headers;
+    // thinking is adaptive by default on claude-opus-5; the answer is the text blocks; a refusal stop reason is an error, not a document
+    const content = image ? [{ type: "image", source: { type: "base64", media_type: "image/png", data: b64(image) } }, { type: "text", text }] : [{ type: "text", text }];
+    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" }, body: JSON.stringify({ model, max_tokens: 16000, messages: [{ role: "user", content }] }) });
+    const d = await r.json(); if (!r.ok) throw new Error(`claude ${r.status}: ${(d.error && d.error.message) || ""}`);
+    if (d.stop_reason === "refusal") throw new Error(`claude declined: ${(d.stop_details && d.stop_details.explanation) || "refusal"}`);
+    return { model, text: (d.content || []).filter((b) => b.type === "text").map((b) => b.text).join("") };
   }
   const url = provider === "openai" ? "https://api.openai.com/v1/chat/completions" : "https://api.x.ai/v1/chat/completions";
   const key = provider === "openai" ? env.OPENAI_API_KEY : env.XAI_API_KEY;
@@ -63,10 +77,11 @@ export async function handleAi(request, env) {
     }
     if (task === "draft") {
       const prompt = String(body.prompt || "").slice(0, 4000); if (prompt.trim().length < 8) return json({ error: "Say what the document is about" }, 400);
-      const { model, text } = await call(provider, "draft", env, { text: draftPrompt(prompt, String(body.lang || "English").slice(0, 40)) });
+      const want = Array.isArray(body.signers) ? body.signers.slice(0, 6).map((x) => ({ role: String((x && x.role) || "").slice(0, 40), name: String((x && x.name) || "").slice(0, 80) })).filter((x) => x.name) : [];
+      const { model, text } = await call(provider, "draft", env, { text: draftPrompt(prompt, String(body.lang || "English").slice(0, 40), want) });
       const p = parseJson(text);
       const title = String(p.title || "").slice(0, 160), bodyText = String(p.body || "").slice(0, 20000);
-      const signers = Array.isArray(p.signers) ? p.signers.slice(0, 6).map((s) => ({ role: String(s.role || "").slice(0, 40), name: String(s.name || "").slice(0, 80) })) : [];
+      const signers = want.length ? want : Array.isArray(p.signers) ? p.signers.slice(0, 6).map((s) => ({ role: String(s.role || "").slice(0, 40), name: String(s.name || "").slice(0, 80) })) : [];   // the names the operator typed win
       if (!title || !bodyText) return json({ error: "The model returned no document" }, 502);
       return json({ provider, model, result: { title, body: bodyText, signers } });
     }

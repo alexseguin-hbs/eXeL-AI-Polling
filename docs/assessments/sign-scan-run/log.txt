@@ -1,8 +1,8 @@
-  2102ms  OK  scan built: one image page, tilted 0.4°, grey ground, no text objects  303 kB
-  4775ms  OK  scan uploaded
-  5810ms  OK  scan page rendered (pdfjs, image page)
-  5829ms  OK  the lender's line is still found on the tilted scan  y=0.556 x=[0.12–0.35]
-  5877ms  OK  box FITS the scanned line (pixels, not PDF structure): bottom on it, width ≈ its run  fit=underline bottom=0.555 rule=0.556 w=0.33
-  8245ms  OK  solo signature saved on the scan (no backend needed)
-  8282ms  OK  the stamp sits on the scanned line in the file  [[1,0.12,0.555,0.33]]
-  9724ms  OK  signed scan rendered to PNG
+  2500ms  OK  scan built: one image page, tilted 0.4°, grey ground, no text objects  303 kB
+  5355ms  OK  scan uploaded
+  6410ms  OK  scan page rendered (pdfjs, image page)
+  6430ms  OK  the lender's line is still found on the tilted scan  y=0.556 x=[0.12–0.35]
+  6483ms  OK  box FITS the scanned line (pixels, not PDF structure): bottom on it, width ≈ its run  fit=underline bottom=0.555 rule=0.556 w=0.33
+  8773ms  OK  solo signature saved on the scan (no backend needed)
+  8823ms  OK  the stamp sits on the scanned line in the file  [[1,0.12,0.555,0.33]]
+ 10695ms  OK  signed scan rendered to PNG

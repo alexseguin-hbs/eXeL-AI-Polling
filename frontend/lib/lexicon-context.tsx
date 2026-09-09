@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useRef,
   useCallback,
   type ReactNode,
 } from "react";
@@ -21,6 +22,7 @@ import { SEEDED_TRANSLATIONS } from "@/lib/lexicon-translations";
 import { SOI_R228_TRANSLATIONS } from "@/lib/lexicon-translations-soi-r228";
 import { SIGN_TRANSLATIONS } from "@/lib/lexicon-translations-sign";
 import { ES_SIGN } from "@/lib/lexicon-translations-es-sign";
+import { loadSignLocale } from "@/lib/i18n-sign";
 import { PINYIN_MAP } from "@/lib/pinyin-data";
 import { ROMANIZATION_KM_MAP } from "@/lib/romanization-km-data";
 import { hasRomanization } from "@/lib/romanization-config";
@@ -116,6 +118,21 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   const [activeLocale, setActiveLocaleState] = useState<string>("en");
   const [romanizationEnabled, setRomanizationEnabled] = useState<boolean>(false);
 
+  // Sign Doc · Session UX in the active language: the language's file is fetched on demand the first time the Globe selects it and
+  // merged UNDER the reader's own localStorage edits (those keep priority) — operator 2026-09-09: every UX string in 33 languages
+  const signLoaded = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const code = activeLocale; if (code === "en" || code === "es" || signLoaded.current.has(code)) return;
+    let live = true;
+    void loadSignLocale(code).then((strings) => {
+      if (!live || !strings) return;
+      signLoaded.current.add(code);
+      let edits: Record<string, string> = {};
+      try { const stored = localStorage.getItem(TRANSLATIONS_KEY); if (stored) edits = (JSON.parse(stored) as LanguageTranslations)[code] ?? {}; } catch { /* no edits */ }
+      setTranslations((prev) => ({ ...prev, [code]: { ...(prev[code] ?? {}), ...strings, ...edits } }));
+    });
+    return () => { live = false; };
+  }, [activeLocale]);
   // The document follows the active language: <html lang> for screen readers and hyphenation, dir for RTL
   // (Arabic, Hebrew, Persian, Urdu) so every page mirrors without per-component work (fleet pass 2, Aset).
   useEffect(() => {

@@ -282,6 +282,12 @@ await A.locator('[data-testid="soi-globe"] button').first().click(); await A.loc
 const esLine = await A.getByTestId('explain').innerText(); await shot(A, 'alex', '0b-spanish');
 await A.locator('[data-testid="soi-globe"] button').first().click(); await A.locator('[data-testid="soi-globe"] [role="option"]', { hasText: '(English)' }).click(); await A.waitForTimeout(300);
 step('alex', 'globe → Español: the page reads Spanish ("Añade el o los PDF a firmar."), then English again', /Añade el o los PDF/.test(esLine) && /Add the PDF/.test(await A.getByTestId('explain').innerText()), esLine);
+// a THIRD language, fetched on demand the first time the Globe selects it (operator 2026-09-09: all UX strings in 33 languages)
+await A.locator('[data-testid="soi-globe"] button').first().click(); await A.locator('[data-testid="soi-globe"] [role="option"]', { hasText: 'Français' }).click();
+await A.waitForFunction(() => !/Add the PDF/.test(document.querySelector('[data-testid="explain"]')?.textContent || ''), null, { timeout: 15000 }).catch(() => {});
+const frLine = await A.getByTestId('explain').innerText();
+await A.locator('[data-testid="soi-globe"] button').first().click(); await A.locator('[data-testid="soi-globe"] [role="option"]', { hasText: '(English)' }).click(); await A.waitForTimeout(300);
+step('alex', 'globe → Français: the Sign Doc strings arrive on demand and the page reads French, then English again', !/Add the PDF/.test(frLine) && /PDF/.test(frLine) && /Add the PDF/.test(await A.getByTestId('explain').innerText()), frLine);
 await A.getByPlaceholder(/Promissory/).fill('Promissory Note');
 await A.getByTestId('file-input').setInputFiles(FIXTURE);
 await A.getByTestId('file-list').locator('li').first().waitFor({ timeout: 30000 }); step('alex', 'PDF uploaded, hashed, page-counted');

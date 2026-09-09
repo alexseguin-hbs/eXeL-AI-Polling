@@ -17,13 +17,13 @@ import { buildDocPdf, promissoryNote, solvePayment, usd, type DocSpec } from "@/
 import { aiStatus, aiDraft, anyAi, type AiConfigured, type AiProvider } from "@/lib/ai";
 import { bytesToBase64 } from "@/lib/pdf-render";
 
-type Mode = "write" | "note";
+type Mode = "ai" | "write" | "note";
 
 export default function CreateDocPage() {
   const { t, activeLocale } = useLexicon();
   const hue = useThemeHue();
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("write");
+  const [mode, setMode] = useState<Mode>("ai");                 // the AI writes the document from the prompt and the names (operator 2026-09-09); Write and the note template are the other two
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [signers, setSigners] = useState("");
@@ -32,7 +32,7 @@ export default function CreateDocPage() {
   const [err, setErr] = useState("");
   const [preview, setPreview] = useState<{ pages: number; bytes: Uint8Array; name: string } | null>(null);
   // Draft with AI (operator 01:25): OpenAI / Gemini / Grok through the Worker; the result lands in the fields, editable
-  const [ai, setAi] = useState<AiConfigured>({ openai: false, gemini: false, grok: false });
+  const [ai, setAi] = useState<AiConfigured>({ openai: false, gemini: false, grok: false, claude: false });
   const [aiProvider, setAiProvider] = useState<AiProvider>("auto");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiState, setAiState] = useState<"" | "busy" | "done" | "failed">("");
@@ -40,7 +40,8 @@ export default function CreateDocPage() {
   const draftWithAi = async () => {
     setAiState("busy"); setErr("");
     try {
-      const r = await aiDraft(aiPrompt, activeLocale === "es" ? "Spanish" : "English", aiProvider);
+      const names = signers.split(/\n/).map((x) => x.trim()).filter(Boolean).map((x) => { const [role, name] = x.includes(":") ? x.split(":").map((y) => y.trim()) : ["", x]; return { role, name }; });
+      const r = await aiDraft(aiPrompt, activeLocale === "es" ? "Spanish" : "English", aiProvider, names);
       if (!r) { setAiState("failed"); return; }
       setMode("write"); setTitle(r.result.title); setBody(r.result.body); setSigners(r.result.signers.map((s) => (s.role ? `${s.role}: ${s.name}` : s.name)).join("\n")); setAiState("done");
     } catch (e) { setAiState("failed"); setErr(String((e as Error).message ?? e)); }
@@ -103,10 +104,29 @@ export default function CreateDocPage() {
         <h2 className="text-lg font-semibold">{t("soi.doc.title")}</h2>
         <p className="mt-1 text-sm text-cyan-400">{preview ? t("soi.doc.x.ready") : canGenerate ? t("soi.doc.x.generate") : mode === "note" ? t("soi.doc.x.note") : t("soi.doc.x.write")}</p>
         <div className="mt-3 flex gap-2">
-          {(["write", "note"] as Mode[]).map((m) => (
+          {(["ai", "write", "note"] as Mode[]).map((m) => (
             <button key={m} type="button" onClick={() => setMode(m)} className="min-h-[44px] rounded-full border px-4 text-sm" style={{ borderColor: mode === m ? hue.bright : "var(--border)", color: mode === m ? hue.bright : undefined, background: mode === m ? hue.faint : undefined }}>{t(`soi.doc.mode.${m}`)}</button>
           ))}
         </div>
+
+        {mode === "ai" && (
+          <div className="mt-4 rounded-lg border p-3" style={{ borderColor: hue.dim }} data-testid="ai-draft">
+            <div className="text-sm font-medium" style={{ color: hue.bright }}><span aria-hidden="true">✦ </span>{t("soi.doc.ai.title")}</div>
+            <p className="text-[11px] text-muted-foreground">{t("soi.doc.ai.hint")}</p>
+            <textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} rows={4} placeholder={t("soi.doc.ai.ph2")} className="mt-2 w-full rounded-md border border-border bg-background px-2 py-2 text-sm" data-testid="ai-prompt" />
+            <label className="mt-2 block text-xs"><span className="font-medium text-muted-foreground">{t("soi.doc.ai.names")}</span>
+              <textarea value={signers} onChange={(e) => setSigners(e.target.value)} rows={2} placeholder={t("soi.doc.signers_ph")} className="mt-1 w-full rounded-md border border-border bg-background px-2 py-2 text-sm" data-testid="ai-names" /></label>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => void draftWithAi()} disabled={!anyAi(ai) || aiState === "busy" || aiPrompt.trim().length < 8} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="ai-draft-go">{aiState === "busy" ? t("soi.sign.ai.busy") : t("soi.doc.ai.title")}</button>
+              <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value as AiProvider)} className="min-h-[44px] rounded-md border border-border bg-background px-2 text-xs" aria-label={t("soi.sign.ai.provider")} data-testid="ai-provider">
+                <option value="auto">{t("soi.sign.ai.auto")}</option>{ai.claude && <option value="claude">Claude</option>}{ai.openai && <option value="openai">OpenAI</option>}{ai.grok && <option value="grok">Grok</option>}{ai.gemini && <option value="gemini">Gemini</option>}
+              </select>
+              {aiState === "done" && <span className="text-[11px] text-muted-foreground">{t("soi.doc.ai.done")}</span>}
+              {aiState === "failed" && <span className="text-[11px] text-red-500">{t("soi.sign.ai.failed")}</span>}
+              {!anyAi(ai) && <span className="text-[11px] text-muted-foreground" data-testid="ai-none">{t("soi.doc.ai.unconfigured")}</span>}
+            </div>
+          </div>
+        )}
 
         {mode === "write" && (
           <div className="mt-4 grid gap-3">
@@ -141,21 +161,6 @@ export default function CreateDocPage() {
 
         {err && <p className="mt-3 text-xs text-red-500">{err}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
-          {anyAi(ai) && (
-            <div className="mb-3 rounded-lg border p-3" style={{ borderColor: hue.dim }} data-testid="ai-draft">
-              <div className="text-sm font-medium" style={{ color: hue.bright }}><span aria-hidden="true">◬ </span>{t("soi.doc.ai.title")}</div>
-              <p className="text-[11px] text-muted-foreground">{t("soi.doc.ai.hint")}</p>
-              <textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} rows={3} placeholder={t("soi.doc.ai.ph")} className="mt-2 w-full rounded-md border border-border bg-background px-2 py-2 text-sm" data-testid="ai-prompt" />
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <button type="button" onClick={() => void draftWithAi()} disabled={aiState === "busy" || aiPrompt.trim().length < 8} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="ai-draft-go">{aiState === "busy" ? t("soi.doc.ai.busy") : t("soi.doc.ai.go")}</button>
-                <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value as AiProvider)} className="min-h-[44px] rounded-md border border-border bg-background px-2 text-xs" aria-label={t("soi.sign.ai.provider")} data-testid="ai-draft-provider">
-                  <option value="auto">{t("soi.sign.ai.auto")}</option>{ai.openai && <option value="openai">OpenAI</option>}{ai.gemini && <option value="gemini">Gemini</option>}{ai.grok && <option value="grok">Grok</option>}
-                </select>
-                {aiState === "done" && <span className="text-[11px] text-muted-foreground">{t("soi.doc.ai.done")}</span>}
-                {aiState === "failed" && <span className="text-[11px] text-red-500">{t("soi.sign.ai.failed")}</span>}
-              </div>
-            </div>
-          )}
           <button type="button" disabled={!canGenerate || busy} onClick={generate} className="min-h-[44px] rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="generate">{busy ? t("soi.doc.generating") : t("soi.doc.generate")}</button>
           {preview && <>
             <span className="self-center text-xs text-muted-foreground" data-testid="preview">{preview.name} · {preview.pages} {t("soi.sign.pages")}</span>
