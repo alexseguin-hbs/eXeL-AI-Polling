@@ -46,6 +46,8 @@ import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { buildSynthesis333 } from "@/lib/pod-synthesis";
 import { api } from "@/lib/api";
 import { format as fmtABC } from "@/lib/abc-3600";
+import { measure, supported, witnessedHours as spanHours, hhmmss, type ClockEvent } from "@/lib/pod-clock";
+import { lockBaseline, accelerate, noConditions, CONDITION_IDS, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoiGlobe } from "@/components/soi-globe";
@@ -104,6 +106,11 @@ function randomCode(): string {
   return randomPodCode(bytes);
 }
 
+/** The six conditions in the signer's words, not ours (§14 unit.accel). */
+const CONDITION_LABEL: Record<string, string> = {
+  scheduleImproved: "the schedule improved", scopePreserved: "the scope was preserved", qualityHeld: "quality held or improved",
+  riskNotWorse: "risk did not get worse", ssses: "SSSES qualification passed", humanAccepted: "a person accepted the outcome",
+};
 const firstName = (full: string) => (full.trim().split(/\s+/)[0] || "").toUpperCase();
 
 export default function SoISessionPage() {
@@ -125,6 +132,12 @@ export default function SoISessionPage() {
   // profit metric — so it sits outside the securities perimeter (D4).
   const [baselineHrs, setBaselineHrs] = useState("");
   const [signerIdx, setSignerIdx] = useState(0);
+  // §14 unit.witness — THE PLATFORM CLOCK: an append-only pair of events, so the duration is witnessed, not typed.
+  const [clockEvents, setClockEvents] = useState<ClockEvent[]>([]);
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  // §14 unit.accel — the estimate LOCKED BEFORE THE WORK, signed by a party with no stake, carrying a Replay hash.
+  const [lock, setLock] = useState<Baseline | null>(null);
+  const [conds, setConds] = useState<AccelConditions>(noConditions);
 
   // Real session over the poll's own live channel (session:<code>), scoped to a pod
   // of 3 (operator: same code+login method as the poll, one is lead). A joiner opens
@@ -307,11 +320,20 @@ export default function SoISessionPage() {
   // patches, and every phone checks the spread once all three are in. Live, this is
   // the first time the 15-second window is measured across three real devices.
   const pressStart = (i: number) => setMember(i, { startedAt: Date.now() });
+  useEffect(() => {                                    // one second, and only while running
+    if (phase !== "active") return;
+    const id = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [phase]);
+  const span = measure(clockEvents, nowTick);
+  const measuredHours = spanHours(span);
   useEffect(() => {
     if (phase !== "sync") return;
     const v = syncVerdict(members, SYNC_START_SECONDS);
     if (v.status === "waiting") return;
     if (v.status === "synced") {
+      // §14: "the clock is a platform event" — the clock-in, appended once, for the whole pod.
+      setClockEvents((e) => (e.some((x) => x.kind === "start") ? e : [...e, { kind: "start", at: Date.now(), by: "pod" }]));
       setSyncMsg(`Synced — all three started within ${(v.spreadMs / 1000).toFixed(1)}s.`);
       const tmr = setTimeout(() => drive("active"), 400);
       return () => clearTimeout(tmr);
@@ -351,7 +373,11 @@ export default function SoISessionPage() {
 
   // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = M × hours (Multiple × Time), ceiling-noted).
   const M = 1;
-  const witnessedHours = members.reduce((s, m, i) => s + (isWitnessed(i) ? (parseFloat(m.hours) || 0) : 0), 0);
+  // §14 unit.witness — "웃 is minted only for time CLOCKED BY THE PLATFORM", so a typed claim is bounded by the session the
+  // platform witnessed. Where no clock ran the claim stands and the panel SAYS SO: silently trusting an unwitnessed claim is
+  // the exact failure the rule exists to prevent.
+  const claimOf = (i: number) => supported(parseFloat(members[i]?.hours ?? "") || 0, span);
+  const witnessedHours = members.reduce((s, m, i) => s + (isWitnessed(i) ? claimOf(i).hours : 0), 0);
   const totalYugYok = witnessedHours * M;                       // 웃 that would settle
   const allSelfAudited = members.every((m) => (parseFloat(m.hours) || 0) > 0 && m.did.trim());
   const allWitnessed = members.every((_, i) => isWitnessed(i));
@@ -406,8 +432,11 @@ export default function SoISessionPage() {
   // TOK-18 ◬ accelerator: delta of the frozen baseline estimate vs the witnessed actual.
   // Delta-only input — never a profit metric (D4). Positive delta = time saved = ◬ recognised.
   const baseline = parseFloat(baselineHrs) || 0;
-  const accelDelta = baseline > 0 ? Math.max(0, baseline - witnessedHours) : 0; // hours saved
-  const yaTriangle = accelDelta * M;                            // ◬ recognised (illustrative 웃-equiv)
+  // When an estimate was LOCKED before the work (§14 unit.accel) the receipt reads from the lock and honours the six
+  // conditions; without one it falls back to the older typed figure so a pod opened before this change still settles.
+  const accelRead = accelerate(lock, witnessedHours, conds);
+  const accelDelta = lock ? Math.max(0, accelRead.delta) : (baseline > 0 ? Math.max(0, baseline - witnessedHours) : 0);
+  const yaTriangle = lock ? accelRead.earned : accelDelta * M;   // ◬ recognised
   // D11 conflict-excluded signer: the signer is not the sole beneficiary of the ◬.
   const signerName = firstName(members[signerIdx]?.name || "") || members[signerIdx]?.role || "—";
 
@@ -628,11 +657,29 @@ export default function SoISessionPage() {
               })}
             </div>
 
+            {/* §14 unit.accel · the estimate is frozen HERE, before the clock, or there is no accelerator at all. */}
+            <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-baseline">
+              <div className="font-medium">Estimate, before the work <span className="text-xs font-normal text-muted-foreground">— optional; ◬ is read against it</span></div>
+              <p className="mt-1 text-xs text-muted-foreground">Locked when the pod opens, signed by someone who does not gain from the result, and hashed. Leave it blank and this pod simply records time.</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input type="number" min="0" step="0.25" value={baselineHrs} onChange={(e) => setBaselineHrs(e.target.value)} placeholder="est. hours" data-testid="baseline-hours"
+                  className="w-28 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
+                <select value={signerIdx} onChange={(e) => setSignerIdx(Number(e.target.value))} data-testid="baseline-signer" className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
+                  {members.map((m, i) => <option key={i} value={i}>signed by {m.name.trim() || m.role}</option>)}
+                </select>
+              </div>
+            </div>
+
             <button
               disabled={!canOpen}
               onClick={() => {
                 const c = podCode || randomCode();
                 if (!podCode) setPodCode(c);
+                // §14 unit.accel — "set and signed BEFORE work begins by a party with no stake in the payout", locked with a
+                // Replay hash. Typed afterwards, as this pod used to, it cannot bound anything.
+                const est = parseFloat(baselineHrs) || 0;
+                if (est > 0) void lockBaseline({ id: `${c}-1`, version: 1, scope: outcome.trim() || intent.trim(), hours: est,
+                  signedBy: members[signerIdx]?.name?.trim() || members[signerIdx]?.role || "—", signedAt: new Date().toISOString() }).then(setLock).catch(() => setLock(null));
                 try { const u = new URL(window.location.href); u.searchParams.set("lead", c); u.searchParams.delete("enter"); window.history.replaceState(null, "", u.toString()); } catch { /* no history */ }
                 podRef.current = { ...podRef.current, phase: "invite" }; setPhase("invite");
               }}
@@ -779,13 +826,17 @@ export default function SoISessionPage() {
         {phase === "active" && (
           <>
             <div className="mb-4 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm">
-              <div className="font-medium text-cyan-500">Session running — all three started together.</div>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div className="font-medium text-cyan-500">Session running — all three started together.</div>
+                {/* the platform's own reading — this, not a typed number, is what 웃 may be minted for (§14 unit.witness) */}
+                <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="pod-clock" aria-label="time this pod has been witnessed">{hhmmss(span.ms)}</div>
+              </div>
               {/* The brief stays on screen while the work happens — a late third must never work blind (Sofia, wave 3). */}
               <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent || "—"}</p>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Measurable outcome:</span> {outcome || "—"}</p>
               <p className="text-muted-foreground">When the work is done, any member stops the session for everyone and records the outcome.</p>
             </div>
-            <button onClick={() => { setPhase("record"); drive("record"); }} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+            <button onClick={() => { setClockEvents((e) => (e.some((x) => x.kind === "stop") ? e : [...e, { kind: "stop", at: Date.now(), by: "pod" }])); setPhase("record"); drive("record"); }} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" data-testid="pod-stop">
               Stop &amp; record the outcome
             </button>
           </>
@@ -864,6 +915,12 @@ export default function SoISessionPage() {
         {/* ── AUDIT — TOK-17 self-audit + cross-review; TOK-18 accelerator ─── */}
         {phase === "audit" && (
           <>
+            {/* §14 unit.witness — what the PLATFORM measured, stated before any claim is read. */}
+            <div className="mb-3 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm" data-testid="pod-measured">
+              {span.startedAt !== null
+                ? <><span className="font-medium text-cyan-500">The platform witnessed this pod for {hhmmss(span.ms)}</span><span className="text-muted-foreground"> — {measuredHours.toFixed(2)} h. A claim above that is counted at the witnessed figure.</span></>
+                : <span className="text-amber-500">No session was clocked, so the hours below are claims this device cannot vouch for. They settle only on the pod&apos;s witness.</span>}
+            </div>
             {/* the eight-step evidence chain, with progress */}
             <div className="mb-4 rounded-lg border border-border p-3">
               <div className="mb-2 text-sm font-medium">The evidence chain <span className="text-xs font-normal text-muted-foreground">— clock-in → cross-review (TOK-17)</span></div>
@@ -898,6 +955,9 @@ export default function SoISessionPage() {
                       onChange={(e) => setMember(i, { hours: e.target.value })}
                       placeholder="hours" className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                     />
+                    {claimOf(i).capped && (
+                      <span className="text-[11px] text-amber-500" data-testid={`claim-capped-${i}`}>counted as {claimOf(i).hours.toFixed(2)} h — the pod was witnessed for {hhmmss(span.ms)}</span>
+                    )}
                     <input
                       value={m.did} onChange={(e) => setMember(i, { did: e.target.value })} disabled={!canEdit(i)}
                       placeholder="what you did (one line)"
@@ -920,33 +980,31 @@ export default function SoISessionPage() {
               ))}
             </div>
 
-            {/* TOK-18 accelerator — delta only, conflict-excluded signer */}
-            <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3">
-              <div className="mb-2 text-sm font-medium text-cyan-500">Accelerator <span className="text-xs font-normal text-muted-foreground">— ◬ vs a frozen baseline (TOK-18)</span></div>
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <label className="text-xs text-muted-foreground">Frozen baseline (hours the pod estimated up front):</label>
-                <input
-                  type="number" min="0" step="0.25" value={baselineHrs}
-                  onChange={(e) => setBaselineHrs(e.target.value)}
-                  placeholder="est. hours" className="w-28 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-muted-foreground">Signer (conflict-excluded):</span>
-                {members.map((r, j) => (
-                  <button
-                    key={j} onClick={() => setSignerIdx(j)}
-                    className={`rounded-md border px-2 py-1 ${signerIdx === j ? "border-cyan-400 bg-cyan-400/10 text-cyan-400" : "border-border text-muted-foreground"}`}
-                  >{firstName(r.name) || r.role}</button>
-                ))}
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {baseline > 0
-                  ? (accelDelta > 0
-                      ? `${accelDelta}h ahead of the ${baseline}h baseline → ${yaTriangle.toFixed(0)} ◬ recognised (delta only — never a profit metric), signed by ${signerName}.`
-                      : `No time saved against the ${baseline}h baseline — no ◬ this task.`)
-                  : "Enter the frozen baseline to compute ◬. ◬ is the hours delta only — never Revenue / Gross Profit / Operating Income / R&D — so it stays outside the securities perimeter."}
-              </p>
+            {/* §14 unit.accel — read AGAINST THE LOCKED ESTIMATE, and only when all six conditions hold. "Faster is not
+                automatically better; cheaper is not automatically better; and more AI is certainly not automatically better."
+                A negative delta is shown, never hidden: the hypothesis is allowed to fail honestly. */}
+            <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3" data-testid="pod-accel">
+              <div className="mb-2 text-sm font-medium text-cyan-500">Accelerator <span className="text-xs font-normal text-muted-foreground">— ◬ read against the estimate locked before the work</span></div>
+              {!lock ? (
+                <p className="text-xs text-muted-foreground" data-testid="accel-nolock">No estimate was locked before this pod opened, so there is no ◬ to read. The hours still settle.</p>
+              ) : (() => {
+                const a = accelerate(lock, witnessedHours, conds);
+                return (
+                  <>
+                    <p className="text-xs text-muted-foreground">Locked at <span className="font-medium text-foreground">{lock.hours} h</span> by <span className="font-medium text-foreground">{lock.signedBy}</span>, hash <span className="font-mono">{lock.hash.slice(0, 8)}</span>. Witnessed: <span className="font-medium text-foreground">{witnessedHours.toFixed(2)} h</span>.</p>
+                    <p className={`mt-1 text-sm font-medium ${a.delta > 0 ? "text-cyan-500" : "text-amber-500"}`} data-testid="accel-delta">{a.delta > 0 ? `${a.delta.toFixed(2)} h earlier than the estimate` : a.delta < 0 ? `${Math.abs(a.delta).toFixed(2)} h longer than the estimate — recorded, not hidden` : "exactly the estimate"}</p>
+                    <div className="mt-2 grid gap-1">
+                      {CONDITION_IDS.map((k) => (
+                        <label key={k} className="flex items-center gap-2 text-xs">
+                          <input type="checkbox" checked={conds[k]} onChange={(e) => setConds((c) => ({ ...c, [k]: e.target.checked }))} data-testid={`cond-${k}`} />
+                          <span className="text-muted-foreground">{CONDITION_LABEL[k]}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-sm" data-testid="accel-earned">{a.earned > 0 ? <span className="font-medium text-cyan-500">◬ {a.earned.toFixed(2)} recognised — held in escrow against the locked estimate.</span> : <span className="text-muted-foreground">◬ 0 — {a.reason === "conditions_unmet" ? "every condition must hold before a bonus is payable." : a.reason === "no_time_saved" ? "no time was saved against the estimate." : "no locked estimate."}</span>}</p>
+                  </>
+                );
+              })()}
             </div>
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
