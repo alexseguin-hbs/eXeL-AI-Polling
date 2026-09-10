@@ -50,7 +50,7 @@ export function Handoff({ link, sender, title, nextName, nextContact }: { link: 
       {mailState === "error" && <p className="mt-2 text-[11px] text-red-500">{mailErr}</p>}
       <div className="mt-3 flex items-start gap-3">
         <div className="rounded-md bg-white p-2"><QRCodeSVG value={link} size={96} level="M" /></div>
-        <code className="break-all text-[11px] text-muted-foreground" data-testid="handoff-link">{link}</code>
+        <code dir="ltr" className="break-all text-[11px] text-muted-foreground" data-testid="handoff-link">{link}</code>
       </div>
     </div>
   );

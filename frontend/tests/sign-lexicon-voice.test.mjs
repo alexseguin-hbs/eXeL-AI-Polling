@@ -26,6 +26,10 @@ ok(!/soi\.sign\.diag\./.test(render.replace(/\{diagOn &&[^\n]*\n/, '')), 'the di
 ok(/signerErr\(/.test(flow) && /DEVICE_ONLY/.test(flow), 'every store failure is funnelled through one signer-facing sentence');
 ok(!/SqlRoute/.test(flow), 'no SQL route on the signing surface');
 ok(/soi\.sign\.err\.device_only/.test(flow), 'the human sentence is the one the flow reaches for');
+// Aset, 2026-09-10: one retired key was still rendered verbatim on the signers step ("Supabase is not configured on this
+// build") and shipped in all 33 languages. The exemption list must never become a hiding place.
+const rendered = RETIRED.filter((k) => flow.includes(`"${k}"`) || flow.includes(`'${k}'`));
+ok(rendered.length === 0, `no retired infrastructure string is rendered by the flow — ${rendered.join(', ')}`);
 
 // 3 · every language, same rule
 const dir = new URL('../lib/i18n-sign/', import.meta.url);

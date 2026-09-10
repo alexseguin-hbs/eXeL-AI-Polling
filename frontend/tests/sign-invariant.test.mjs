@@ -62,4 +62,25 @@ ok(!/dropDraft\(\);[^\n]*setStep\("done"\)/.test(tail2), 'the failure path keeps
 // H9 · never a silent no-op
 ok(/if \(!allPlaced\) \{ setErr/.test(flow), 'a tap with nothing placed says so instead of doing nothing');
 
+// ── the gaps the twelve named on the final review (2026-09-10) ──────────────────────────────────────────────────────────
+// Enlil: three fixes had no gate at all — delete them and every suite stayed green.
+const store2 = fs.readFileSync(new URL('../lib/sign-store.ts', import.meta.url), 'utf8');
+const rpcCalls = store2.split('\n').filter((l) => /supabase\.rpc\(/.test(l));
+ok(rpcCalls.length > 0 && rpcCalls.every((l) => /withTimeout\(/.test(l) || /await withTimeout/.test(store2.slice(Math.max(0, store2.indexOf(l) - 120), store2.indexOf(l)))), `every store RPC is time-bounded (${rpcCalls.length} calls)`);
+ok(flow.indexOf('stage = "create";') < flow.indexOf('newEnvelope({'), 'the stage is named BEFORE newEnvelope can refuse (the panel cannot lie about the step)');
+// a directory-wide sweep: no untimed fetch anywhere on the signing path, not just in the two files we remembered
+const SIGN_LIB = ['sign-store.ts', 'tmpfile.ts', 'notify.ts', 'ai.ts', 'sign-envelope.ts', 'pdf-render.ts'];
+const untimedAnywhere = SIGN_LIB.flatMap((f) => { let t = ''; try { t = fs.readFileSync(new URL(`../lib/${f}`, import.meta.url), 'utf8'); } catch { return []; }
+  return t.split('\n').filter((l) => /await fetch\(|= fetch\(/.test(l) && !/AbortSignal|withTimeout/.test(l)).map((l) => `${f}: ${l.trim().slice(0, 60)}`); });
+ok(untimedAnywhere.length === 0, `no untimed fetch anywhere on the signing path — ${untimedAnywhere.join(' | ')}`);
+// Christo: a hung save must not read "complete" either
+const watch = flow.slice(flow.indexOf('step !== "saving"'), flow.indexOf('step !== "saving"') + 1400);
+ok(/setSaveRefused\(true\)/.test(watch), 'the 60s watchdog marks the save refused, so the panel cannot claim completion');
+// Krishna: no optional-chained dereference of the network array survives
+ok(!/pub\?\.signers\s*[[.]/.test(flow.replace('Array.isArray(pub?.signers)', '')), 'no pub?.signers[...] or pub?.signers.length read remains outside the checked array');
+// Sofia: thumb-sized targets and left-to-right links
+ok(!/min-h-\[3[0-9]px\]/.test(flow), 'every control on the sign flow is at least 44px tall');
+const codes = flow.split('\n').filter((l) => /<code/.test(l));
+ok(codes.every((l) => /dir="ltr"/.test(l)), 'every rendered link is direction-locked (Arabic and Hebrew must not reorder a URL)');
+
 console.log(`sign-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

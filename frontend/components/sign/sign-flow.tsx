@@ -186,7 +186,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     const out = setTimeout(() => {
       const done = stampedRef.current;
       if (!done.length) return;                                // nothing stamped yet: the pads are still the right place
-      setSigned(done); setLocalFallback(true); setOffline("slow_done"); setStep("done");
+      setSigned(done); setLocalFallback(true); setSaveRefused(true); setOffline("slow_done"); setStep("done");
     }, 60_000);
     return () => { clearTimeout(slow); clearTimeout(out); };
   }, [step, t]);
@@ -489,7 +489,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // (found walking the stages: the heading claimed completion while the roster said "your turn now").
   const outcomeComplete = !saveRefused && (pub?.status === "complete" || (!countersign ? signers.length === 1 : !!pub && pubSigners.length > 0 && myIdx === pubSigners.length - 1));
   // in a carried file this reader is the next free row, not row 0 (the earlier signers are already in the file)
-  const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[carriedIdx ?? 0]?.name ?? signers[0]?.name ?? "";
+  const myName = countersign ? (pubSigners[myIdx]?.name ?? "") : signers[carriedIdx ?? 0]?.name ?? signers[0]?.name ?? "";
   const meIdx = countersign ? myIdx : Math.min(carriedIdx ?? 0, Math.max(0, signers.length - 1));   // the row THIS pass signs in
 
   // ── stamp + save ─────────────────────────────────────────────────────────────
@@ -520,15 +520,15 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         const f = files[i];
         const recorded = (await codexRows(f.bytes)).filter((r) => r.rowIndex >= 0);
         const myRow = countersign || !recorded.some((r) => r.rowIndex === meIdx) ? meIdx : Math.max(...recorded.map((r) => r.rowIndex)) + 1;
-        const myContact = countersign ? pub?.signers[meIdx]?.contact_masked : signers[meIdx]?.contact;   // names a signer whose name the PDF font cannot draw
+        const myContact = countersign ? pubSigners[meIdx]?.contact_masked : signers[meIdx]?.contact;   // names a signer whose name the PDF font cannot draw
         let out = await stampSignature(f.bytes, sigOf(i)!, { pngDataUrl: png, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact, signerIdx: myRow, tz, envelope: { token: countersign ? token! : pendingToken.current, chain: prevChain } });
         // every text mark is bound to THIS signer's pass — index, time, chain-before (Odin, Thor)
         for (const m of (marks[i] ?? []).filter((m) => m.kind === "text" && (m.text ?? "").trim())) out = await stampText(out, m, m.text!.trim(), { signerIdx: meIdx, isoDate, chain: prevChain });
         // the signatory block: this signer's row, CAC-style timestamp + Light Codex 2×2 strip (operator)
-        const nameOf = (i: number) => (countersign ? pub?.signers[i]?.name : signers[i]?.name) ?? fill(t("soi.sign.signer_n"), "n", i + 1);
+        const nameOf = (i: number) => (countersign ? pubSigners[i]?.name : signers[i]?.name) ?? fill(t("soi.sign.signer_n"), "n", i + 1);
         // rows already in the file: a file carried by hand (offline hand-off) keeps its earlier signers by the NAME in
         // the keyword; this signer takes the next free row rather than overwriting one
-        const total = Math.max(countersign ? (pub?.signers.length ?? 2) : signers.length, myRow + 1);
+        const total = Math.max(countersign ? (pubSigners.length || 2) : signers.length, myRow + 1);
         const earlier = recorded.filter((r) => r.rowIndex !== myRow).map((r) => ({ ...r, name: r.name || nameOf(r.rowIndex) }));
         const allRows = [...earlier, { rowIndex: myRow, name: myName, isoDate, hash: shortHash(prevChain || f.sha256), contact: myContact }].sort((a, b) => a.rowIndex - b.rowIndex);
         // the initials slot on every page: below the lowest ink at the bottom-right, else the lowest clear gap (never over text).
@@ -613,6 +613,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       }
       dropDraft(); setErr("");
       setPub(result); setSigned(stampedBytes);
+      // The pass landed on THIS DEVICE rather than in the shared record (the store refused and signEnvelope kept it here).
+      // Say so: the badge and the one human sentence, and no saved link, because a link would serve the unsigned version.
+      if (result.mode === "local" && storeMode() === "supabase") { setLocalFallback(true); setOffline("rpc_error"); }
       if (result.creator_contact) setCreatorContact(result.creator_contact);   // 037: the finished file goes back to the creator
       if (result.status === "complete") { if (result.mode !== "local") setMyLink(signLink(window.location.origin, result.token, countersign ? secret! : envRef.current?.signers[0]?.secret ?? "")); setStep("done"); return; }
       const nxt = result.signers[result.current_signer_idx];
@@ -689,7 +692,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       case "login": return t("soi.sign.x.login");
       case "handoff": return offline ? t("soi.sign.x.handoff_offline") : t("soi.sign.x.handoff");
       case "done": return editOwn ? t("soi.sign.x.edited") : t("soi.sign.x.done");
-      case "waiting": return fill(t("soi.sign.turn_of"), "name", pub?.signers[pub.current_signer_idx]?.name ?? "…");
+      case "waiting": return fill(t("soi.sign.turn_of"), "name", pubSigners[pub?.current_signer_idx ?? 0]?.name ?? "…");
       case "not_party": return t("soi.sign.not_party");
       case "loading": return t("soi.sign.loading");
       case "error": return err || t("soi.sign.x.error");
@@ -742,7 +745,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} data-testid="file-input" />
           </label>
           <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.sign.upload_hint")}</p>
-          {requireLogin && !loggedIn && <p className="mt-1 text-[11px] text-muted-foreground" data-testid="login-later">{t("soi.sign.login.later")} <button type="button" onClick={login} className="min-h-[36px] text-primary underline-offset-2 hover:underline">{t("soi.sign.login.now")}</button></p>}
+          {requireLogin && !loggedIn && <p className="mt-1 text-[11px] text-muted-foreground" data-testid="login-later">{t("soi.sign.login.later")} <button type="button" onClick={login} className="min-h-[44px] text-primary underline-offset-2 hover:underline">{t("soi.sign.login.now")}</button></p>}
           {files.length > 0 && (
             <ul className="mt-3 grid gap-1 text-sm" data-testid="file-list">
               {carried && !editOwn && <li className="mb-1 rounded-md border border-amber-500/50 bg-amber-300/10 p-2 text-xs" data-testid="carried">
@@ -772,7 +775,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             <div key={i} className="mb-2 rounded-md border border-border p-3">
               <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-primary">
                 <span>{i === 0 ? t("soi.sign.me") : fill(t("soi.sign.signer_n"), "n", i + 1)}</span>
-                {i > 0 && <button type="button" onClick={() => setSigners((x) => x.filter((_, j) => j !== i))} className="min-h-[36px] px-2 text-muted-foreground" aria-label={t("soi.sign.remove_signer")}>✕</button>}
+                {i > 0 && <button type="button" onClick={() => setSigners((x) => x.filter((_, j) => j !== i))} className="min-h-[44px] px-2 text-muted-foreground" aria-label={t("soi.sign.remove_signer")}>✕</button>}
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 <input value={s.name} onChange={(e) => setSigner(i, { name: e.target.value })} placeholder={t("soi.sign.name_ph")} className="rounded-md border border-border bg-background px-2 py-2 text-sm" data-testid={`signer-name-${i}`} />
@@ -781,7 +784,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
             </div>
           ))}
           <button type="button" onClick={() => setSigners((x) => [...x, { name: "", contact: "" }])} className="min-h-[44px] text-sm text-primary">+ {t("soi.sign.add_signer")}</button>
-          {multi && mode === "local" && <p className="mt-2 text-xs text-amber-500">{t("soi.sign.err.no_backend")}</p>}
+          {multi && mode === "local" && <p className="mt-2 text-xs text-amber-500">{signerErr("no_backend")}</p>}
           {!multi && <p className="mt-2 text-xs text-muted-foreground">{t("soi.sign.solo_hint")}</p>}
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setStep("upload")} className="min-h-[44px] rounded-md border border-border px-4 text-sm"><span aria-hidden="true">‹ </span>{t("soi.sign.back")}</button>
@@ -884,7 +887,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
                   <div className="font-medium text-foreground">{t("soi.sign.tmp.title")}</div>
                   <p className="text-muted-foreground">{t("soi.sign.tmp.hint").replace("{expires}", dateIn(activeLocale, new Date(tmpLink.expires), { dateStyle: "medium", timeStyle: "short" }, true))}</p>
                   {tmpLinks.map((l, i) => (
-                    <div key={l.url} className="mt-1 flex flex-wrap items-center gap-2">{tmpLinks.length > 1 && <span className="text-[11px] text-muted-foreground">{signed[i]?.name ?? i + 1}</span>}<code className="break-all text-[11px]" data-testid={i === 0 ? "tmp-url" : `tmp-url-${i + 1}`}>{l.url}</code><button type="button" onClick={() => { try { void navigator.clipboard.writeText(l.url); } catch { /* no clipboard */ } }} className="min-h-[36px] rounded-md border border-border px-3">{t("soi.sign.handoff.copy")}</button></div>
+                    <div key={l.url} className="mt-1 flex flex-wrap items-center gap-2">{tmpLinks.length > 1 && <span className="text-[11px] text-muted-foreground">{signed[i]?.name ?? i + 1}</span>}<code dir="ltr" className="break-all text-[11px]" data-testid={i === 0 ? "tmp-url" : `tmp-url-${i + 1}`}>{l.url}</code><button type="button" onClick={() => { try { void navigator.clipboard.writeText(l.url); } catch { /* no clipboard */ } }} className="min-h-[44px] rounded-md border border-border px-3">{t("soi.sign.handoff.copy")}</button></div>
                   ))}
                 </div>
               )}
@@ -900,8 +903,8 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
               <div className="font-medium">{t("soi.sign.mylink.title")}</div>
               <p className="text-muted-foreground">{t("soi.sign.mylink.hint")}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <code className="break-all text-[11px] text-muted-foreground">{myLink}</code>
-                <button type="button" onClick={() => { try { navigator.clipboard.writeText(myLink); } catch { /* no clipboard */ } }} className="min-h-[36px] rounded-md border border-border px-3 text-xs">{t("soi.sign.handoff.copy")}</button>
+                <code dir="ltr" className="break-all text-[11px] text-muted-foreground">{myLink}</code>
+                <button type="button" onClick={() => { try { navigator.clipboard.writeText(myLink); } catch { /* no clipboard */ } }} className="min-h-[44px] rounded-md border border-border px-3 text-xs">{t("soi.sign.handoff.copy")}</button>
               </div>
             </div>
           )}
@@ -928,7 +931,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
               {/* the disclosure that used to carry the migration SQL is gone (operator 04:59 CST); the route to it lives here now */}
             </div>
           )}
-          {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pub?.signers[0]?.name ?? "")}</p>}
+          {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pubSigners[0]?.name ?? "")}</p>}
           {/* the message carries the RECORD link (no secret — Thor) and the chain hash; the saved link below is the holder's own key */}
           <div data-testid="downloads"><SendRow files={signed} final={outcomeComplete} title={pub?.title ?? title} sender={myName} link={myLink ? recordLink(window.location.origin, pub?.token ?? token ?? envRef.current?.token ?? "") : undefined} chain={pub?.chain} toDefault={countersign ? (creatorContact || undefined) : signers.find((x, i) => i !== meIdx)?.contact} download={(f, fin) => download(f, fin)} fileName={(f, fin) => signedName(f, fin)} focus={focusIdx} /></div>
           {myLink && mode !== "local" && signedSha.length === signed.length && (
