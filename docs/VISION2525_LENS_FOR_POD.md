@@ -96,3 +96,66 @@ text, not from preference.
 
 That is the pod's equivalent of "a completed signature is never discarded", and like it, it will be enforced by a gate in the
 build rather than by memory.
+
+---
+
+# Part 3 — The White Paper's own POD section, read at the source (added after the full 77,777-word read)
+
+The Executive Summary is the 4,895-word door. The White Paper view is 77,777 words across 139 blocks, one of three enforced
+sacred totals (Brief 3,333 · NOSE 9,999 · Paper 77,777, gated by `scripts/lv-gate-vision2525.mjs`). **§14 is the Innovation
+Pod.** It is not adjacent to this feature; it *is* this feature, and two of its blocks are stated as rules.
+
+## THE WITNESS RULE (`unit.witness`, verbatim)
+> "웃 is minted only for **time clocked by the platform**, worked in a pod of three or more, documented by that pod, audited by
+> that pod, and reviewed by people who gain nothing from the claim."
+
+Eight steps, six performed by the pod: start/clock-in → work → stop → outcome documented → self-audit → evidence attached
+(session link, unlisted recording, or a summary of at least sixty seconds) → cross review by one to three other pods or the
+tri-council → appended to the ledger. Three rather than two, because *"Two people can quietly agree on a lie in private; three
+must openly conspire."* Change class: **evidence must exist = Immutable; which tool carries it = Adaptive** — so store the
+**hash** of the evidence. Dispute rate and overturned-claim rate publish monthly.
+
+**THE VIOLATION IN TODAY'S POD.** `app/soi-session/page.tsx` has no clock at all — `grep setInterval|elapsed` returns zero —
+and mints 웃 from a **hand-typed** `hours` string (`lib/pod-roster.ts:34`, input at `page.tsx:896`). The rule says 웃 is minted
+*only* for time clocked by the platform. The pod currently mints for time **claimed by a person**. That is the single largest
+doctrinal gap in the feature, and it is what "document time" asks us to close.
+
+## THE ACCELERATOR MATHS (`unit.accel`)
+A project carries a **fixed estimate** plus a set bonus per unit of time delivered early; finishing early **adds to** pay
+rather than shrinking it. The estimate is **set and signed before work begins by a party with no stake in the payout**, and is
+locked carrying id, version, scope, estimated cost and duration, quality and risk thresholds, the signing authority, and a
+**Replay hash**. The outcome is witnessed by an **independent** party. The bonus is payable **only if ALL six hold**: schedule
+improved · scope preserved · quality maintained or improved · risk did not materially worsen · SSSES qualification passed ·
+Human Authority accepted the outcome. *"Faster is not automatically better; cheaper is not automatically better; and more AI is
+certainly not automatically better."*
+
+**THE GAP.** Today the baseline is typed at AUDIT time (`page.tsx:126`, panel at `:923`), after the work, by anyone, with no
+signature, no lock, no hash, and none of the six conditions. `unit.aitoken` adds that ◬ is read "from the witnessed
+acceleration **against a locked estimate** — not minted at a per-minute rate."
+
+## The other clauses this feature must obey
+- **§14:** three or more, agreed unanimously **before the clock starts**; the clock is a **platform event**; the session
+  **cannot close until each member records an outcome**; the summary is **exactly 333 words in three paragraphs** (results,
+  what changed, what is next) — already implemented in `lib/pod-synthesis.ts`.
+- **`unit.heart`:** one volunteered minute = one minute of S.I. time-evidence, and *"Without a POD to establish and record the
+  outcome, there is intent but no evidence."*
+- **`si.clockless-ladder` (D12):** clockless ♡ is a **capped ladder of three fixed rungs — Noted 1 ♡, Adopted 3 ♡,
+  Foundational 7 ♡** — "nothing in between, and nothing above," judged after the fact by the witnessing pod, feeding only the
+  S.I. ledger, never cash, settlement or governance weight. ♡ cannot be saved up, spent, traded or leveraged.
+- **`unit.aitoken`:** a minute is counted as ♡ **or** 웃, **never both**; ◬ is not a third claim on that minute; ◬ is not
+  directly redeemable for cash.
+- **`unit.ontology` machine-checkable invariants:** `웃/♡/◬.purchasable = no`, `recognition.redeemableForCash = no`,
+  `Bonus.fromRecognitionConversion = no`.
+- **`unit.tranche`:** the **Wage-Floor Tranche** is drawable immediately and **never clawed back**; the **Acceleration
+  Tranche** is everything M adds above the floor, held in escrow and released through Pilot → Refine → Qualify → Adopt against
+  the frozen baseline.
+- **`unit.ceiling`:** 9,999 웃 per person per year; Base-3600 notation `N.mmmm..ssss`, groups 0000–3599 — already imported by
+  the pod as `lib/abc-3600.ts`. Max rate 9,999 ÷ 525,600 min = **0.0190239726 웃/min**.
+- **`rcore.ledger`:** render = "take the newest entry where `e.v <= v`"; nothing overwritten; every change carries its cause.
+  Resume must be built this way, which is also the standing CLAUDE.md law.
+
+## One tension I will not silently resolve
+`unit.denom` states `웃 earned = M × hours`. `unit.mintsettle` states the currency-free mint is `웃 = hours × (9,999 ÷ 2,080)`
+= hours × 4.807, with settlement `$ = 웃 ÷ 4.807 × stamped rate`. The pod implements `hours × M` with `M = 1`. Whether M and
+the 4.807 reference coefficient compose or substitute is a doctrinal question, not an implementation detail. **Flagged for the
+operator; the build will keep the pod's existing `M × hours` and will not invent a reconciliation.**
