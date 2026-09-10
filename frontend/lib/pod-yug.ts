@@ -17,15 +17,23 @@
  *   3. THE MULTIPLE IS THE ROUTE TO THE CEILING, not the country. A higher band reaches 9,999 in fewer hours
  *      (unit.multiples). Reach — how many people can achieve 9,999 — is the goal the operator named.
  *
- * OPERATOR RULING, 2026-09-10, second (docs/asks/2026-09-10_financial_section_settles_the_coefficient.md):
- *   "read the financial section of Vision•2525 and this will be clear to you Master of Thought"
- * It is. The financial section fixes the mint coefficient and I had it wrong by 4.807×:
- *   fund.return — the Seed is 1/7 of an hour and "the same quantity expressed in 웃 is 0.6867, AT 4.807 PER HOUR".
- *   unit.mintsettle — MINT `웃 = hours × (9,999 ÷ 2,080)`, SETTLE `$ = 웃 ÷ 4.807 × stamped rate`, and the identity is
- *   LOCKED: "one full-time year lands exactly on 9,999". Defect 15 was opened for a coefficient that broke it.
- * This file previously minted one 웃 per hour at base, which put the ceiling 9,999 hours away at 1× — 4.8 full-time
- * years to fill a single year's payout. That is a treadmill, not the lifelong stability the operator asked for, and it
- * made 4.807 look like a band when it is the BASE COEFFICIENT that had been mistaken for one.
+ * OPERATOR RULING, 2026-09-10, second (docs/asks/2026-09-10_yug_is_multiple_times_time.md):
+ *   "Ensure the same nomenclature for global payment system is used
+ *    HI token = 웃 = M*T
+ *    where multiple is multiple of local min wage"
+ *
+ * THE MINT IS 웃 = M × T — Multiple × Time. Nothing else. The prose expansion, used by the paper and by the
+ * repository's own CI gates, is "earned = M × hours".
+ *
+ * 4.807 IS A MULTIPLE, NEVER A COEFFICIENT — and this comment exists because I got that wrong for one release.
+ * HISTORICAL: between 174047f and here this file minted `hours × (9,999 ÷ 2,080) × M`, from unit.mintsettle. The tell was
+ * in the formula itself: IT HAS NO M IN IT. A mint with no multiple cannot be the general mint; it is the mint at the
+ * one band where a full-time year lands on 9,999, which is 4.807×. unit.multiples and paper.s1 name it exactly that —
+ * "the reference multiple … arrived at by division rather than by choice". Ten blocks say M × hours, including
+ * front.locked (Immutable, Document 0) and exec.s1 at r280, the document's highest release; one block says otherwise.
+ *
+ * unit.mintsettle loses nothing that matters: its doctrine is that NO WAGE ENTERS THE MINT, and 웃 = M × T is
+ * currency-free too — M is a dimensionless multiple, T is hours, and no currency appears until settlement.
  */
 
 /** The annual PAYOUT ceiling per natural person. Not an earning cap (unit.ceiling, Immutable). */
@@ -34,13 +42,6 @@ export const YUG_CEILING = 9999;
 export const FTE_HOURS = 2080;
 /** Coverage stops at the edge of a lifetime: a reservation may not extend past the 99th year (unit.carry). */
 export const MAX_SECURED_YEARS = 99;
-/**
- * The mint coefficient — 웃 per hour of qualified time at 1×. DERIVED, never written as a literal: unit.mintsettle
- * closed defect 15 by deriving it precisely so "the identity cannot drift, and a test asserts it rather than a comment
- * claiming it". The identity is that one full-time year at base lands EXACTLY on 9,999. Cross-check from the other end:
- * the Seed is 1/7 hour and fund.return prices it at 0.6867 웃 — 0.142857 × 4.807115… = 0.6867. The two agree.
- */
-export const YUG_PER_HOUR = YUG_CEILING / FTE_HOURS;
 
 /**
  * The published bands (unit.multiples). Higher multiples never raise the ceiling — they only shorten the hours to reach it:
@@ -49,39 +50,44 @@ export const YUG_PER_HOUR = YUG_CEILING / FTE_HOURS;
  */
 export interface Band { m: number; label: string }
 /**
- * The published multiples are kept exactly as published — unit.guard forbids retroactive reclassification, so a band is
- * never quietly withdrawn even when, as with 4.807, it turns out to duplicate the base coefficient. What is NOT stored
- * is the hours-to-ceiling: that is derived, because a stored copy is how the old wrong figures survived.
+ * The published multiples, kept exactly as published — unit.guard forbids retroactive reclassification. The labels are
+ * unit.multiples' own words. What is NOT stored is the hours-to-ceiling: it is derived from 9,999 ÷ M, because a stored
+ * copy is how a wrong figure survives a correction. Derived, the table reproduces the paper's exactly.
  */
 export const BANDS: Band[] = [
-  { m: 1, label: "1× — one full-time year reaches the ceiling" },
-  { m: 2, label: "2×" }, { m: 3, label: "3×" },
-  { m: 4.807, label: "4.807×" },
-  { m: 6, label: "6×" }, { m: 8, label: "8×" }, { m: 10, label: "10×" },
+  { m: 1, label: "1× — the floor of the scale, not a working band" },
+  { m: 2, label: "2× — entry contribution" },
+  { m: 3, label: "3× — sustained competent contribution" },
+  { m: 4.807, label: "4.807× — the reference multiple: one full-time year lands exactly on the ceiling" },
+  { m: 6, label: "6× — scarce skill, or responsibility carried" },
+  { m: 8, label: "8× — rare expertise" },
+  { m: 10, label: "10× — exceptional contribution, and still capped at 9,999" },
 ];
 export const isBand = (m: number): boolean => BANDS.some((b) => b.m === m);
 /** Hours still needed to reach 9,999 at this band — what a person actually wants to know (unit.reach). */
 export const hoursToCeiling = (m: number, already = 0): number =>
-  m > 0 ? Math.max(0, YUG_CEILING - already) / (YUG_PER_HOUR * m) : Infinity;
+  m > 0 ? Math.max(0, YUG_CEILING - already) / m : Infinity;
 
 /**
- * 웃 = hours × (9,999 ÷ 2,080) × M. Currency-free, and the ONLY mint in the pod.
- * The multiple raises the RATE, which is what the operator asked for — "that way someone can earn at higher rates" —
- * because settlement then works out to hours × M × the local floor: three times the floor per hour at 3×, and the
- * ceiling reached in a third of the year.
+ * 웃 = M × T. Multiple × Time. Currency-free, and the ONLY mint in the pod.
+ * One 웃 is one hour at 1× the local minimum wage, so — unit.carry, verbatim — "the multiple is simply the 웃-per-hour
+ * rate". That is what the operator asked for: a person at 3× earns three times the local floor for the same hour, and
+ * reaches the ceiling on a third of the hours.
  */
 export const mint = (hours: number, m: number): number =>
-  hours > 0 && m > 0 ? hours * YUG_PER_HOUR * m : 0;
+  hours > 0 && m > 0 ? hours * m : 0;
 
 /**
- * Settlement — `$ = 웃 ÷ 4.807 × stamped rate` (unit.mintsettle). It reads a STAMPED rate, never a live lookup, which
- * is what closed the arbitrage: an hour earned in Lagos can no longer be redeemed at a Seattle rate.
+ * Settlement — `$ = 웃 × stamped local minimum-wage rate`. One 웃 is one hour at 1× that floor, so the ceiling settles
+ * at 9,999 × the rate: $72,492.75 in Texas, $3,399.66 in Nigeria (unit.settle, unit.payout, unit.example, human.story).
+ * It reads a STAMPED rate, never a live lookup — that is what closed the arbitrage, and it is the half of
+ * unit.mintsettle that was always right: an hour earned in Lagos cannot be redeemed at a Seattle rate.
  *
  * It has no call site in the pod, and that is deliberate rather than a gap: the pod is the mint, and the mint is
  * currency-free. Settlement happens on the settlement rail, which knows a jurisdiction; the pod never does.
  */
 export const settle = (yug: number, stampedRate: number): number =>
-  yug > 0 && stampedRate > 0 ? (yug / YUG_PER_HOUR) * stampedRate : 0;
+  yug > 0 && stampedRate > 0 ? yug * stampedRate : 0;
 
 /**
  * The three numbers a person must be shown, and never blended into one.

@@ -36,8 +36,8 @@ const witnessedHours = members.reduce((s, m) => s + (isWitnessed(m) ? m.hours : 
 const totalYugYok = mint(witnessedHours, M);
 ok(members.every(isWitnessed), "every claim cross-witnessed by both other members");
 ok(witnessedHours === 9.5, `witnessed hours = 9.5 (got ${witnessedHours})`);
-ok(Math.abs(totalYugYok - 9.5 * (9999 / 2080)) < 1e-9, `웃 settle = hours × (9,999÷2,080) × M (got ${totalYugYok})`);
-ok(Math.abs(mint(2080, 1) - 9999) < 1e-9, "the locked identity holds here too: one full-time year at 1× is 9,999 웃");
+ok(totalYugYok === 9.5, `웃 settle = M × T, M=1 → 9.5 (got ${totalYugYok})`);
+ok(mint(2, 3) === 6, "and the paper's own example holds here too: two hours at 3× draw 6 웃 (coin.family)");
 
 // a self-attestation alone (not witnessed by both) settles nothing
 const soloIdx = 0;

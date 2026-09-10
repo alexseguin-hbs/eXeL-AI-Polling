@@ -93,13 +93,12 @@ if (B.accelerate) {
   ok(slower.delta === -3 && slower.earned === 0, 'work that took LONGER records a negative delta and earns nothing');
   ok(B.accelerate(null, 9.5, all).reason === 'no_locked_baseline', 'no lock, no accelerator');
   const tr = B.split(9.5, 3, B.accelerate(b, 9.5, all));
-  const K = 9999 / 2080;
-  ok(Math.abs(tr.floor - 9.5 * K) < 1e-9, 'the wage floor is the witnessed hours at 1× — owed whatever the outcome');
-  ok(Math.abs(tr.escrow - 9.5 * K * 2) < 1e-9, 'the 웃 held is exactly what the band adds above the floor: 9.5 h × (3 − 1)');
+  ok(tr.floor === 9.5, 'the wage floor is the witnessed hours at 1× — one 웃 an hour, owed whatever the outcome');
+  ok(Math.abs(tr.escrow - 19) < 1e-9, 'the 웃 held is exactly what the multiple adds above the floor: 9.5 h × (3 − 1)');
   ok(Math.abs(tr.accelEscrow - 2.5) < 1e-9, 'the ◬ premium is held in its own unit, not folded into the 웃');
-  ok(Math.abs(B.trancheTotalYug(tr) - 9.5 * K * 3) < 1e-9, 'floor + escrow is exactly the 웃 minted for those hours at that band');
+  ok(Math.abs(B.trancheTotalYug(tr) - 9.5 * 3) < 1e-9, 'floor + escrow is exactly the 웃 minted for those hours at that multiple');
   const trLoss = B.split(9.5, 1, B.accelerate(b, 40, all));
-  ok(Math.abs(trLoss.floor - 9.5 * K) < 1e-9 && trLoss.escrow === 0 && trLoss.accelEscrow === 0,
+  ok(trLoss.floor === 9.5 && trLoss.escrow === 0 && trLoss.accelEscrow === 0,
      'a pod that ran long still draws its full floor — wages for witnessed hours are never clawed back by an outcome');
 } else ok(false, 'lib/pod-baseline.ts could not be imported');
 
@@ -141,7 +140,13 @@ ok(/YUG_CEILING = 9999/.test(yug) && /FTE_HOURS = 2080/.test(yug) && /MAX_SECURE
 
 const Y = await import('../lib/pod-yug.ts').catch(() => ({}));
 if (Y.standing) {
-  ok(Math.abs(Y.mint(10, 3) - 10 * (9999 / 2080) * 3) < 1e-9, '웃 = hours × (9,999 ÷ 2,080) × M — ten hours at 3×');
+  // THE RULING (operator, 2026-09-10): HI token = 웃 = M*T, the multiple being a multiple of local minimum wage.
+  // Asserted against the paper's OWN worked examples, so the gate fails if the pod drifts from the published numbers.
+  ok(Y.mint(2, 3) === 6, 'coin.family — the Manila analyst: two hours at a multiple of three draws 6 웃');
+  ok(Y.mint(1, 1) === 1, 'hi.floor.dignity — "one 웃 for the hour itself, with no multiple attached"');
+  ok(Y.mint(900, 6) === 5400, 'human.story — nine hundred hours at six times is 5,400 웃');
+  ok(Y.mint(400, 3) === 1200, 'human.cambodia — four hundred hours at 3× is 1,200 웃');
+  ok(Y.mint(10, 3) === 30 && Y.mint(10, 1) === 10, '웃 = M × T, and nothing else enters the mint');
   ok(Math.abs(Y.mint(10, 10) - Y.mint(10, 1) * 10) < 1e-9, 'the multiple is the only thing that changes the mint');
   // EARNING IS NEVER CAPPED, PAYOUT ALWAYS IS
   const big = Y.standing(0, 25000);
@@ -156,36 +161,42 @@ if (Y.standing) {
   ok(Y.standing(0, 0).payableThisYear === 0 && Y.standing(0, 0).carried === 0, 'nothing earned settles nothing');
   ok(Y.standing(0, 9999 * 200).securedYears === 99, 'a reservation stops at the 99th year — coverage ends at a lifetime');
   // REACH: the multiple is the route to the ceiling, never the geography
-  ok(Y.hoursToCeiling(1) === 2080, 'THE LOCKED IDENTITY, from the other side: at 1× the ceiling is one full-time year away');
-  ok(Math.abs(Y.hoursToCeiling(3) - 2080 / 3) < 1e-9, 'a band shortens the hours in exact proportion — 3× reaches it in a third of a year');
-  ok(Y.hoursToCeiling(10) < 209, 'at 10× it is a little over two hundred hours');
+  // unit.multiples, reproduced from the formula rather than stored: every row of the published table is 9,999 ÷ M.
+  ok(Y.hoursToCeiling(1) === 9999, 'unit.multiples 1× — 9,999 h, "unreachable in a year; the floor of the scale"');
+  ok(Y.hoursToCeiling(2) === 4999.5 && Math.round(Y.hoursToCeiling(2)) === 5000, 'unit.multiples 2× — 5,000 h');
+  ok(Math.round(Y.hoursToCeiling(3)) === 3333, 'unit.multiples 3× — 3,333 h');
+  ok(Math.round(Y.hoursToCeiling(4.807)) === 2080, 'unit.multiples 4.807× — 2,080 h, one full-time year exactly');
+  ok(Math.round(Y.hoursToCeiling(6)) === 1667 && Math.round(Y.hoursToCeiling(8)) === 1250, 'unit.multiples 6× and 8×');
+  ok(Math.round(Y.hoursToCeiling(10)) === 1000, 'unit.multiples 10× — 1,000 h, and still capped at 9,999');
   ok(Y.hoursToCeiling(3, 9999) === 0, 'someone already at the ceiling needs no further hours');
   ok(Y.BANDS.length === 7 && Y.BANDS.map((b) => b.m).join() === '1,2,3,4.807,6,8,10',
      'the published multiples are kept EXACTLY as published — unit.guard forbids retroactive reclassification');
   ok(!('hoursToCeiling' in Y.BANDS[0]),
      'and the hours are DERIVED, never stored beside them — a stored copy is how the wrong figure survived');
   ok(Y.isBand(4.807) && !Y.isBand(5), 'a band comes only from the published table');
-  // THE MINT COEFFICIENT — defect 15. unit.mintsettle: "The coefficient is now derived (9,999 ÷ 2,080 = 4.807), so the
-  // identity cannot drift, and A TEST ASSERTS IT RATHER THAN A COMMENT CLAIMING IT." This is that test.
-  ok(Y.YUG_PER_HOUR === 9999 / 2080, 'the coefficient is derived from the ceiling and the full-time year, never a literal');
-  ok(Y.mint(2080, 1) === 9999, 'THE LOCKED IDENTITY: one full-time year at 1× lands EXACTLY on 9,999 웃');
-  ok(Math.abs(Y.mint(1 / 7, 1) - 0.6867) < 0.0001,
-     'and it agrees with the financial section from the other end: one Seed, 1/7 of an hour, is 0.6867 웃 (fund.return)');
-  ok(Y.mint(693.4, 1) < 3335 && Y.mint(693.4, 3) > 9998,
-     'the multiple raises the RATE: 3× reaches the ceiling in a third of the year, which is what "earn at higher rates" means');
-  ok(!/4\.807[0-9]*;/.test(yug) && !/= 4\.807/.test(yug), 'the coefficient is nowhere hardcoded as 4.807');
-  // SETTLEMENT — unit.mintsettle's second half. Currency lives here and NOWHERE in the mint.
-  ok(Math.abs(Y.settle(9999, 7.25) - 15080) < 0.01, '9,999 웃 settles at $15,080.00 in Texas — 2,080 hours at $7.25');
-  ok(Math.abs(Y.settle(9999, 0.34) - 707.2) < 0.01, 'and at $707.20 in Nigeria — the same reach, a local value');
+  // 4.807 IS A MULTIPLE, NEVER A COEFFICIENT. unit.multiples and paper.s1 call it "the reference multiple", the band at
+  // which one full-time year lands on the ceiling. A mint carrying it as a per-hour rate has no M in it at all, which is
+  // exactly how the error was spotted. The gate now refuses to let it back in as a rate.
+  ok(Y.YUG_PER_HOUR === undefined, 'there is no per-hour mint coefficient — the multiple IS the 웃-per-hour rate (unit.carry)');
+  ok(Y.mint(2080, 4.807) > 9998 && Y.mint(2080, 4.807) < 10001,
+     'the reference multiple, restored to being a multiple: 2,080 h at 4.807× lands on the ceiling');
+  ok(Y.mint(2080, 1) === 2080, 'and at 1× a full-time year is 2,080 웃 — the floor of the scale, not a working band');
+  // SETTLEMENT — currency lives here and NOWHERE in the mint. unit.settle's own published table.
+  ok(Math.abs(Y.settle(9999, 7.25) - 72492.75) < 0.01, 'unit.settle — 9,999 웃 settles at $72,492.75 in Texas');
+  ok(Math.abs(Y.settle(9999, 0.34) - 3399.66) < 0.01, 'unit.settle — and at $3,399.66 in Nigeria');
+  ok(Math.abs(Y.settle(9999, 1.58) - 15798.42) < 0.01, 'unit.settle — and at $15,798.42 in Brazil');
+  ok(Math.abs(Y.settle(Y.mint(900, 6), 0.34) - 1836) < 0.01,
+     'human.story — 900 h at 6× is 5,400 웃, a settlement of $1,836 in Lagos');
+  ok(Math.abs(Y.settle(Y.mint(900, 6), 7.25) - 39150) < 0.01, 'and the same 5,400 웃 settles at $39,150 in Austin');
   ok(Math.abs(Y.settle(Y.mint(100, 3), 7.25) - 100 * 3 * 7.25) < 1e-6,
-     'settlement resolves to hours × M × the local floor: a person at 3× is paid three times the floor for their hour');
+     'settlement resolves to hours × M × the local floor: at 3× a person is paid three times the floor for their hour');
   // the vintage is written once, and the rate takes no part in the mint
   const v = Y.stamp(10, 3, '2026-09-10T00:00:00Z', 7.25, 'USD');
-  ok(Math.abs(v.yug - Y.mint(10, 3)) < 1e-9 && v.rate === 7.25, 'a vintage records the rate beside the 웃 without the rate touching the mint');
-  ok(Y.stamp(10, 3, '2026-09-10T00:00:00Z', 0.34, 'NGN').yug === v.yug,
-     'THE COMMON LANGUAGE: the same ten hours at 3× mint the SAME 웃 in Lagos and in Austin — only settlement differs');
-  ok(Math.abs(Y.settle(v.yug, 7.25) - 10 * 3 * 7.25) < 1e-6 && Math.abs(Y.settle(v.yug, 0.34) - 10 * 3 * 0.34) < 1e-6,
-     'and those identical 웃 settle at three times each local floor for the ten hours — the difference is the currency, not the person');
+  ok(v.yug === 30 && v.rate === 7.25, 'a vintage records the rate beside the 웃 without the rate touching the mint');
+  ok(Y.stamp(10, 3, '2026-09-10T00:00:00Z', 0.34, 'NGN').yug === 30,
+     'THE COMMON LANGUAGE: the same ten hours at 3× mint 30 웃 in Lagos and in Austin — only settlement differs');
+  ok(Math.abs(Y.settle(30, 7.25) - 217.5) < 1e-6 && Math.abs(Y.settle(30, 0.34) - 10.2) < 1e-6,
+     'and those identical 웃 settle at three times each local floor — the difference is the currency, not the person');
 } else ok(false, 'lib/pod-yug.ts could not be imported');
 
 
@@ -213,5 +224,31 @@ ok(/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEv
    'the clock starts whenever the pod is working, not only on a clean sync');
 ok((page.match(/kind: "start"/g) || []).length >= 2 && /e\.some\(\(x\) => x\.kind === "start"\)/.test(page),
    'and it starts exactly once, however many routes reach it');
+
+// ── ONE NOMENCLATURE (operator, 2026-09-10: "Ensure the same nomenclature for global payment system is used") ──
+// The mechanical half. A nomenclature defended only by taste is already lost: within a week someone restates the mint
+// in their own words and the carriers drift apart again. Lines marked HISTORICAL: are the record of a past error and
+// are deliberately exempt — that is the one place a superseded formula is allowed to appear.
+const POD_SOURCES = [['lib/pod-yug.ts', yug], ['lib/pod-baseline.ts', base], ['lib/pod-clock.ts', clock],
+                     ['lib/pod-synthesis.ts', read('../lib/pod-synthesis.ts')], ['app/soi-session/page.tsx', page]];
+const BANNED = [
+  [/9,?999\s*[÷\/]\s*2,?080/, 'the ceiling over the full-time year, stated as a mint rate'],
+  [/[×x*]\s*4\.807|4\.807\s*[×x*]\s*(?:hours|T\b)|÷\s*4\.807/, '4.807 used as a per-hour coefficient rather than a multiple'],
+  [/hours\s*×\s*multiple/, '"hours × multiple" — the operands are M × T, in that order'],
+  [/웃\s*=\s*(?:hours|T)\s*[×*]/, 'the mint written with time first'],
+];
+for (const [name, src] of POD_SOURCES) {
+  // Strip the JSDoc comment leader first, or every ' * 4.807' in prose reads as a multiplication.
+  const lines = String(src || '').split('\n').map((l) => l.replace(/^\s*\*\s?/, ''));
+  for (const [re, why] of BANNED) {
+    const bad = lines.filter((l) => re.test(l) && !l.includes('HISTORICAL:'));
+    ok(bad.length === 0, `${name} states the mint canonically — no ${why}`);
+  }
+}
+ok(/웃 = M × T/.test(yug) && /웃 = M × T/.test(page),
+   'and the canonical form IS present, in the mint and on the screen a person reads: 웃 = M × T');
+ok(/Multiple × Time/.test(page), 'with the gloss the operator used, on first use: (Multiple × Time)');
+ok(/\$ = 웃 × stamped local minimum-wage rate/.test(yug),
+   'settlement has one wording too: $ = 웃 × stamped local minimum-wage rate');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

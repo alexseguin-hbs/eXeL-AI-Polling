@@ -82,9 +82,9 @@ export interface Tranches {
   multiple: number;
 }
 export function split(supportedHours: number, multiple: number, accel: Acceleration): Tranches {
-  // Both tranches are in 웃, so both go through the ONE mint. Writing the arithmetic out here a second time is how the
-  // old one-웃-per-hour coefficient survived in two places at once; there is exactly one mint and this reads it.
-  const floor = mint(Math.max(0, supportedHours), 1);               // 1× — settles at once
+  // Both tranches are in 웃, so both go through the ONE mint (웃 = M × T). Writing the arithmetic out a second time
+  // here is how a wrong coefficient survives a correction in one place and not the other; there is exactly one mint.
+  const floor = mint(Math.max(0, supportedHours), 1);               // 1× — hi.floor.dignity: "one 웃 for the hour itself"
   const escrow = Math.max(0, mint(Math.max(0, supportedHours), multiple) - floor);  // what the band adds, held
   // ◬ is reported BESIDE the 웃 escrow and never inside it. They release through the same gateway stages, but a person
   // who is told "you are owed 30" must never be handed a number that is part wage and part recognition: one is owed for

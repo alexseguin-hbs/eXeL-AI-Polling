@@ -192,3 +192,63 @@ Neither is read by any code. Each needs a superseding append, which is the opera
 `coin.reach`'s "one 웃 base equals one hour of qualified human time" is the same drift stated as prose. The pod follows
 `unit.mintsettle` and `fund.return`, because those two agree with each other, with the locked identity, with `unit.reach`
 (FTE = 2,080 h, target reach 1.0) and with the operator's ruling that the multiple lets a person earn at a higher rate.
+
+---
+
+## SUPERSEDES THE SECTION ABOVE — 웃 = M × T (operator ruling, 2026-09-10)
+
+**The entry immediately above is wrong and is left in place only as the record of the error.** It asserts a
+4.807 웃/hour mint coefficient. There is no mint coefficient. The operator ruled:
+
+> Ensure the same nomenclature for global payment system is used
+> HI token = 웃 = M*T
+> where multiple is multiple of local min wage
+
+**How I got it wrong, so the next session does not.** I read `unit.mintsettle` — `웃 = hours × (9,999 ÷
+2,080)` — and treated it as the general mint. **The tell was in the formula itself: it has no M in it.** A
+mint with no multiple cannot be the general mint; it is the mint at the one band where a full-time year lands
+on 9,999, which is 4.807×. **4.807 is a multiple, never a coefficient** — `unit.multiples` and `paper.s1`
+call it exactly that: "the reference multiple … arrived at by division rather than by choice."
+
+**The weight of the text, swept block by block.** `웃 = M × hours` is the current text of ~10 blocks,
+including **`front.locked`** (Immutable, Document 0: "웃 is denominated in multiples of local or regional
+minimum wage … It is a multiple of a local hour") and **`exec.s1` at r280**, the document's highest release.
+`unit.carry` states the consequence outright: "웃 = hours × multiple, **so the multiple is simply the
+웃-per-hour rate**." It is the only formula from which `unit.multiples` (every row 9,999 ÷ M), `unit.carry`
+(every row 2,080 × M) and all five worked human examples derive. `웃 = hours × 4.807` is one block.
+
+**The repository's own gates already said so** — `scripts/exec-summary-verify-all.mjs:13` requires the
+verbatim `HI earned = M × hours` in 33 languages; `qis-semantic-check.mjs:62` and
+`replay-audit-vision2525.mjs:118` hard-assert it in `unit.ceiling`.
+
+**`unit.mintsettle` loses nothing that matters.** Its doctrine is that **no wage enters the mint**, and
+`웃 = M × T` is currency-free too: M is dimensionless, T is hours, no currency until settlement. Its stamped-
+rate rule — settlement reads the rate frozen at mint, never a live lookup — is what closed the arbitrage and
+is implemented unchanged.
+
+### Canonical nomenclature, now gated in `tests/pod-invariant.test.mjs`
+
+| | |
+|---|---|
+| **Mint** | `웃 = M × T` *(Multiple × Time)*; prose expansion `earned = M × hours`. Currency-free. |
+| **Settle** | `$ = 웃 × stamped local minimum-wage rate`. 9,999 웃 → $72,492.75 Texas · $3,399.66 Nigeria. |
+| **Ceiling** | 9,999 웃 payout per person per year, excess carried. Hours to ceiling = 9,999 ÷ M. |
+| **Words** | *multiple* (not band/multiplier) · *witnessed hours* (not qualified time) · *wage-floor tranche* for the 1× tranche alone. |
+
+The gate now fails the build on `9,999 ÷ 2,080`, on 4.807 used as a per-hour rate, on `hours × multiple`, and
+on the mint written time-first — in any pod source, except lines marked `HISTORICAL:`.
+
+### Out of scope by the operator's instruction ("Pod only"), and still true
+
+- `backend/app/core/hi_rates.py:29` mints `hours × 4.807` and **takes no M at all**; locked by
+  `backend/tests/cube8/test_ssses_optimization.py:122`. Frontend and backend no longer agree anywhere.
+- `lexicon-translations.ts` carries "≈ 4.807 웃" in 32 languages, dead at runtime (overridden by
+  `lexicon-translations-soi-r228.ts` at `lexicon-context.tsx:176`) but still shipped in the bundle.
+- A **third** formula survives in the pre-r35 reference docs — `웃 = minutes × (jurisdiction_rate / 60)`, the
+  wage-in-the-mint defect — in `Requirements.txt:1848`, `Cube_Flow_Table.md:242`, `docs/CUBES_4-6.md:348`,
+  `docs/CUBES_7-9.md:522`, and in live code at `components/architect-2525/architect-economy.ts:52`.
+- `human.cambodia` shows Dara, a Cambodian, settling at **$3,399.66** — 9,999 × **Nigeria's** $0.34, not
+  Cambodia's $1.04. Hedged as a "Tier-2 placeholder"; the placeholder is silently another country's rate.
+- `MAX_YUG_PER_MIN` (`lib/pod-clock.ts:27`) is `9,999 ÷ 525,600`, the ceiling over *calendar* minutes, but
+  its name reads as a per-minute mint cap. At `웃 = M × T` any multiple above 1.141× would exceed it. It is
+  declared and never enforced, so nothing breaks today.
