@@ -37,6 +37,19 @@
      "live" without the SHA comparison. Never explain a stale site away as "deploy lag" without checking
      Cloudflare Build history first.
   5. **Always include the website URL** so the operator can check in one tap.
+- **THE SIGNER NEVER MEETS THE MACHINE (operator 2026-09-10, MoT-enforced).** A person signing a legal document on their phone
+  was shown *"This site's database migration is incomplete (036 is applied, 038 is not: paste the served SQL again)"*, a
+  `Copy migration 036 SQL` button, and a `LOCAL ONLY` badge. He does not run our database and cannot paste SQL. Asking him to
+  is asking the human to operate the machine that was supposed to disappear — the exact inverse of Vision 2525, where the
+  technology recedes and the shared intent is what remains visible.
+  1. **No screen a signer can reach names a database, a migration, a schema number, an RPC, a storage quota, an environment
+     variable or a vendor.** It speaks about **their document** and **their next action**.
+  2. **One sentence for every infrastructure failure.** Whatever broke, the signer reads: the file is on this phone, take it
+     and send it, it carries every signature. The cause goes to the console and to the operator's own door.
+  3. **The operator's door is never on the signer's path.** `?diag=1` on the sign URL. Technical language is welcome there.
+  4. **Enforced mechanically, in all 33 languages** — `frontend/tests/sign-lexicon-voice.test.mjs` in `test:ci` fails the
+     build on a banned word in any signer-facing string. A principle defended only by taste is already lost.
+  5. **The panel never claims more than happened.** It may not say "complete" while the same screen shows a signer pending.
 - **FIX THE CLASS, NEVER THE INSTANCE (AAR 2026-09-09, MoT-enforced).** Sixteen hours went to one defect found three times,
   because each fix answered the symptom in front of it. A signer hit a dead end at **create**; it was fixed. He hit the same
   dead end at **save**; that was fixed. He hit it again when his **phone's storage was full**. Three fixes, one bug: *nothing

@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "File {n}",
   "soi.sign.err.migration_incomplete": "Hindi pa kumpleto ang database migration ng site na ito (naka-apply ang 036, hindi pa ang 038: i-paste muli ang ipinakitang SQL). Natatakan at nakatago ang pirma mo sa teleponong ito: i-download ang file at ipasa ito gamit ang I-text o I-email.",
   "soi.sign.err.storage_full": "Wala nang natitirang espasyo ang teleponong ito para magtago ng kopya ng talaan, kaya na-clear ang mga mas lumang dokumento. Natatakan na ang pirma mo: i-download ang file ngayon at ipasa ito gamit ang I-text o I-email.",
+  "soi.sign.err.device_only": "Pirmado na sa teleponong ito. Hindi nagawa ang kopyang maibabahagi sa ngayon, kaya nasa device na ito ang tanging file. I-download ito at ipasa — taglay nito ang bawat pirma, pangalan, oras, at hash.",
   "soi.sign.err.slow_done": "Masyadong matagal ang pag-save, kaya nandito na ang pirmado mong file sa halip na patuloy na paghintayin. I-download ito ngayon; taglay nito ang bawat pirma at hash.",
   "soi.sign.extras_failed": "Nasa file na ang pirma, pangalan, oras, at hash mo. May isang karagdagan na hindi naidagdag sa device na ito, kaya buksan ang file at suriin ito bago ipasa.",
 };

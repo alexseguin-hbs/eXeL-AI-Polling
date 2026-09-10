@@ -56,7 +56,7 @@ const dateIn = (locale: string, d: Date, opts: Intl.DateTimeFormatOptions, time 
 import { SignaturePad } from "@/components/sign/signature-pad";
 import { PdfPageView, SIG_W, SIG_H, TXT_W, TXT_H, type Mark, type FitAt, type ViewCenter } from "@/components/sign/pdf-page-view";
 import { Handoff } from "@/components/sign/handoff";
-import { type AuthState } from "@/components/sign/sign-diag";
+import { SignDiag, type AuthState } from "@/components/sign/sign-diag";
 import { SignReceipt } from "@/components/sign/receipt";
 import { SendRow } from "@/components/sign/send-row";
 import { sendSignerEmail } from "@/lib/notify";
@@ -213,7 +213,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
         if (e.status === "complete") { setSigned(fs.map((f) => ({ name: f.name, bytes: f.bytes }))); setStep("done"); return; }
         if (e.status !== "awaiting") { setErr(t(`soi.sign.status.${e.status}`)); setFailStage("open"); setStep("error"); return; }
         setStep(e.current_signer_idx === e.party ? "place" : "waiting");
-      } catch (ex) { if (live) { setErr(`${t("soi.sign.stage.open")}: ${ex instanceof SignStoreError ? t(`soi.sign.err.${ex.code}`) : String((ex as Error).message ?? ex)}`); setFailStage("open"); setStep("error"); } }
+      } catch (ex) { if (live) { setErr(`${t("soi.sign.stage.open")}: ${ex instanceof SignStoreError ? signerErr(ex.code) : t("soi.sign.err.device_only")}`); setFailStage("open"); setStep("error"); } }
     })();
     return () => { live = false; };
   }, [countersign, token, secret]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -319,6 +319,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   const [signedSha, setSignedSha] = useState<string[]>([]);
   const stampedRef = useRef<{ name: string; bytes: Uint8Array }[]>([]);   // H1: what the watchdog hands over when a call hangs
   const [extrasFailed, setExtrasFailed] = useState("");                   // H2: the signature stands, an enhancement did not
+  const [saveRefused, setSaveRefused] = useState(false);                  // the store did not take this pass: never claim completion
+  const [diagOn, setDiagOn] = useState(false);                            // ?diag=1 — the operator's door, off every signer path
+  useEffect(() => { try { setDiagOn(new URLSearchParams(window.location.search).get("diag") === "1"); } catch { /* no window */ } }, []);
   useEffect(() => { let live = true; void Promise.all(signed.map((f) => sha256Hex(f.bytes))).then((h) => { if (live) setSignedSha(h); }); return () => { live = false; }; }, [signed]);
   const focusIdx = useMemo(() => (file && signedSha.length ? signedSha.findIndex((h) => h.startsWith(file)) : -1), [file, signedSha]);
   useEffect(() => {
@@ -330,18 +333,23 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   }, [step, focusIdx]);
   // The route to the migration SQL, which used to live inside the removed "Why can't I sign?" disclosure (operator 04:59 CST).
   // It appears only where it is actionable: on a panel that already says the database did not take the record.
-  const SqlRoute = () => (
-    <span className="mt-2 flex flex-wrap gap-2" data-testid="sql-route">
-      <button type="button" onClick={() => { void (async () => { try { const r = await fetch("/sql/036_sign_envelopes.sql"); if (r.ok) await navigator.clipboard.writeText(await r.text()); } catch { /* the link beside it still opens the file */ } })(); }} className="min-h-[44px] rounded-md bg-primary px-3 text-primary-foreground" data-testid="copy-sql">{t("soi.sign.diag.copy_sql")}</button>
-      <a href="/sql/036_sign_envelopes.sql" target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center rounded-md border border-border px-3" data-testid="open-sql">{t("soi.sign.diag.open_sql")}</a>
-    </span>
-  );
+  /**
+   * THE SIGNER NEVER MEETS THE MACHINE (operator 2026-09-10).
+   * Everything that means "we could not make a shared copy" — no store on the build, an unapplied or incomplete migration,
+   * an RPC that errored, timed out or was unreachable, a full device, a save that outran the clock — is ONE sentence in the
+   * signer's own terms: the file is on this phone, take it and send it. The engineering cause never reaches this screen;
+   * it stays in the console and on the operator's own diagnostics door (?diag=1). Only codes the SIGNER can act on keep
+   * their own wording: a link that is not theirs, an expired or revoked document, not their turn, a file too large.
+   */
+  const DEVICE_ONLY = new Set(["no_backend", "no_migration", "migration_incomplete", "rpc_error", "unreachable", "timeout", "storage_full", "slow_done", "duplicate"]);
+  const signerErr = (code: string): string => t(DEVICE_ONLY.has(code) ? "soi.sign.err.device_only" : `soi.sign.err.${code}`);
   const [carriedIdx, setCarriedIdx] = useState<number | null>(null);     // which row this reader signs in a carried file
   // "remove field and redo" (operator 2026-09-08 22:40): a carried file's LAST signer may open his own text marks again —
   // remove or retype them — and save; the signature, initials, codex row and hidden strip stay. Never a later signer's record.
   const [carried, setCarried] = useState<{ lastName: string; lastIdx: number; hasNext: boolean } | null>(null);
   const [editOwn, setEditOwn] = useState<{ pass: number; isoDate: string; chain: string; marks: TextMark[] } | null>(null);
   const [editReceipt, setEditReceipt] = useState<{ name: string; signed: boolean; stamp?: string }[]>([]);
+  const [localReceipt, setLocalReceipt] = useState<{ name: string; signed: boolean; stamp?: string }[]>([]);   // what THIS device witnessed when the store took nothing
   const docTextH = useRef<number | null>(null);                                  // the document's text size the last fit measured (Same size uses it)
   const enterEditOwn = async (f0: Loaded, last: { rowIndex: number; name?: string; isoDate: string }) => {
     const tms = (await textBoxes(f0.bytes)).filter((m) => m.signerIdx === last.rowIndex);
@@ -466,7 +474,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       const rows = (await codexRows(out)).filter((r) => r.rowIndex >= 0).sort((a, b) => a.rowIndex - b.rowIndex);
       setEditReceipt(rows.map((r) => ({ name: r.name || fill(t("soi.sign.signer_n"), "n", r.rowIndex + 1), signed: true, stamp: cacStamp(r.isoDate, tz) })));
       setSigned([{ name: files[0].name, bytes: out }]); setStep("done");
-    } catch (ex) { setErr(`${t("soi.sign.stage.stamp")}: ${String((ex as Error).message ?? ex)}`); setFailStage("stamp"); }
+    } catch (ex) { console.info("[sign] page render:", (ex as Error).message); setErr(`${t("soi.sign.stage.stamp")}: ${t("soi.sign.err.device_only")}`); setFailStage("stamp"); }
   };
   const removeSel = () => { setMarks((b) => ({ ...b, [fileIdx]: (b[fileIdx] ?? []).filter((m) => m.id !== selected) })); setSelected(null); };
   // − / + scale the selected mark about its bottom-left corner: the baseline never moves (operator 2026-09-08)
@@ -477,7 +485,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
   // H4: `pub` comes from a network response — never dereference its array unchecked, or a malformed body blanks the whole
   // component during render (the file in hand and nothing on screen).
   const pubSigners = Array.isArray(pub?.signers) ? pub!.signers : [];
-  const outcomeComplete = pub?.status === "complete" || (!countersign ? signers.length === 1 : !!pub && pubSigners.length > 0 && myIdx === pubSigners.length - 1);
+  // A refused save means nothing landed, so the panel may not say "complete" however far down the roster this signer sits
+  // (found walking the stages: the heading claimed completion while the roster said "your turn now").
+  const outcomeComplete = !saveRefused && (pub?.status === "complete" || (!countersign ? signers.length === 1 : !!pub && pubSigners.length > 0 && myIdx === pubSigners.length - 1));
   // in a carried file this reader is the next free row, not row 0 (the earlier signers are already in the file)
   const myName = countersign ? (pub?.signers[myIdx]?.name ?? "") : signers[carriedIdx ?? 0]?.name ?? signers[0]?.name ?? "";
   const meIdx = countersign ? myIdx : Math.min(carriedIdx ?? 0, Math.max(0, signers.length - 1));   // the row THIS pass signs in
@@ -500,7 +510,7 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     let stage: "stamp" | "create" | "save" = "stamp";
     // hoisted so the CATCH can see the finished files: a stamped signature is never discarded (MoT ruling, AAR 2026-09-09)
     const stampedBytes: { name: string; bytes: Uint8Array }[] = [];
-    stampedRef.current = stampedBytes; setExtrasFailed("");
+    stampedRef.current = stampedBytes; setExtrasFailed(""); setSaveRefused(false);
     try {
       const isoDate = new Date().toISOString();
       const prevChain = countersign ? (pub?.chain ?? "") : "";
@@ -614,14 +624,22 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
     } catch (ex) {
       // never silent: the step that failed, then the reason
       const code = ex instanceof SignStoreError ? ex.code : "";
-      setErr(`${t(`soi.sign.stage.${stage}`)}: ${code ? t(`soi.sign.err.${code}`) : String((ex as Error).message ?? ex)}`);
+      // the cause is for us, not for him: it goes to the console; he reads one sentence about his document
+      if (code && DEVICE_ONLY.has(code)) console.info("[sign] store unavailable:", code, (ex as Error).message);
+      setErr(`${t(`soi.sign.stage.${stage}`)}: ${code ? signerErr(code) : t("soi.sign.err.device_only")}`);
       setFailStage(stage);
       // THE INVARIANT: with a stamped file in hand the signer lands on the outcome panel — Download · Text · E-mail · Copy — and
       // the failure is a NOTE on it, never a wall that costs him the signature (operator 04:59 CST: "this error comes up after
       // signing"; the save stage had no fallback, only create did). Only a failure BEFORE stamping returns to the pads.
       // H6: the draft is KEPT here. The store did not take the record, so this device is the only copy; dropping it meant an
       // evicted tab lost the signature outright.
-      if (stampedBytes.length) { setSigned(stampedBytes); setLocalFallback(true); setOffline(code || "rpc_error"); setStep("done"); return; }
+      if (stampedBytes.length) {
+        setSigned(stampedBytes); setLocalFallback(true); setSaveRefused(true); setOffline(code || "rpc_error");
+        // the record refused the pass, but this device witnessed it: the receipt says who signed, not "0 signatures"
+        setLocalReceipt((countersign ? pubSigners.map((x) => ({ name: x.name, signed: !!x.signed_at, stamp: x.signed_at ? cacStamp(x.signed_at, tz) : undefined })) : signers.map((x) => ({ name: x.name, signed: false })))
+          .map((r, i) => (i === meIdx ? { name: myName, signed: true, stamp: cacStamp(new Date().toISOString(), tz) } : r)));
+        setStep("done"); return;
+      }
       setStep("draw");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -707,9 +725,10 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
       <p className="mb-4 text-sm text-primary" data-testid="explain" aria-live="polite">{explain}</p>
       {err && <p className="mb-3 rounded-md border border-red-500/40 bg-red-500/5 p-2 text-xs text-red-500" data-testid="error">{err}</p>}
       {resumed && <p className="mb-3 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs text-primary" data-testid="resumed">{t("soi.sign.x.resumed")}</p>}
-      {/* "Why can't I sign?" removed at the operator's explicit instruction (2026-09-09 04:59 CST). The red error line above
-          still names the step and the reason, and the outcome panel now always carries the file, so the disclosure had nothing
-          left to explain. SignDiag itself is kept for the diagnostics page. */}
+      {/* The operator's own door, never on a signer's path (2026-09-10): /soi-session/sign/?diag=1 shows the technical panel
+          — store, backend, build and the migration SQL. A person signing a document never types that, and nothing on his own
+          screen names a database, a migration or a vendor. */}
+      {diagOn && <SignDiag d={{ mode, auth: authState, authName: auth.user?.email ?? auth.user?.name, multi: countersign ? pubSigners.length > 1 : multi, err, step, stage: failStage }} open onToggle={() => { /* always open on the operator's door */ }} />}
 
       {/* ── UPLOAD ── */}
       {step === "upload" && (
@@ -857,9 +876,9 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           {nextLink ? <div className="mt-3"><Handoff link={nextLink} sender={myName} title={pub?.title ?? title} nextName={nextName} nextContact={nextContact} /></div> : (
             <div className="mt-3 rounded-lg border border-amber-500/50 bg-amber-500/5 p-4" data-testid="offline-handoff">
               <div className="text-sm font-medium text-amber-500">{t("soi.sign.handoff.offline_title")}</div>
-              <p className="mt-1 text-xs text-muted-foreground">{t(`soi.sign.err.${offline || "no_backend"}`)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{signerErr(offline || "no_backend")}</p>
               <p className="mt-2 text-xs">{t("soi.sign.handoff.offline").replace("{next}", nextName || nextContact)}</p>
-              {/no_migration|migration_incomplete|no_backend/.test(offline || "no_backend") && <SqlRoute />}
+
               {tmpLink && (
                 <div className="mt-3 rounded-md border border-border bg-background p-2" data-testid="tmp-link">
                   <div className="font-medium text-foreground">{t("soi.sign.tmp.title")}</div>
@@ -899,15 +918,14 @@ export function SignFlow({ token, secret, defaultName, defaultContact, seed, fil
           <div className="rounded-lg border border-green-500/40 bg-green-500/5 p-3 text-sm">
             <div className={`font-medium ${outcomeComplete ? "text-green-500" : "text-amber-500"}`} data-testid="outcome-title" data-complete={outcomeComplete ? "1" : "0"}>{outcomeComplete ? t("soi.sign.complete") : t("soi.sign.handoff.offline_title")}</div>
             {/* The pod's receipt shape — recorded · witnessed · settles — so a signed document reads as one of eXeL's (Pangu). */}
-            <SignReceipt files={signed.map((f) => f.name)} signers={pubSigners.length ? pubSigners.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={pubSigners.length ? pubSigners.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
+            <SignReceipt files={signed.map((f) => f.name)} signers={localReceipt.length ? localReceipt : pubSigners.length ? pubSigners.map((s) => ({ name: s.name, signed: !!s.signed_at, stamp: s.signed_at ? cacStamp(s.signed_at, tz) : undefined })) : editReceipt} count={localReceipt.length ? localReceipt.filter((r) => r.signed).length : pubSigners.length ? pubSigners.filter((s) => s.signed_at).length : editReceipt.length} chain={pub?.chain} />
           </div>
           <Roster />
           {extrasFailed && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="extras-failed">{t("soi.sign.extras_failed")}</p>}
-          {offline && mode === "local" && (
+          {offline && mode === "local" && !err && (
             <div className="mt-2 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-[11px]" data-testid="local-why">
-              {t(`soi.sign.err.${offline}`)}
+              {signerErr(offline)}
               {/* the disclosure that used to carry the migration SQL is gone (operator 04:59 CST); the route to it lives here now */}
-              {/no_migration|migration_incomplete|no_backend/.test(offline) && <SqlRoute />}
             </div>
           )}
           {creatorMail && <p className="mt-2 text-[11px] text-muted-foreground" data-testid="creator-mail" data-state={creatorMail}>{fill(t(creatorMail === "sent" ? "soi.sign.creator_mailed" : "soi.sign.creator_mail_manual"), "name", pub?.signers[0]?.name ?? "")}</p>}

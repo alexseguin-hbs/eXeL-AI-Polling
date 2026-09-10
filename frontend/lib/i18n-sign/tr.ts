@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Dosya {n}",
   "soi.sign.err.migration_incomplete": "Bu sitenin veritabanı geçişi eksik (036 uygulanmış, 038 uygulanmamış: sunulan SQL'i yeniden yapıştır). İmzan damgalandı ve bu telefonda tutuluyor: dosyayı indir ve Mesaj ya da E-posta ile ilet.",
   "soi.sign.err.storage_full": "Bu telefonda kaydın bir kopyasını saklayacak yer kalmadı, bu yüzden daha eski belgeler temizlendi. İmzan damgalandı: dosyayı şimdi indir ve Mesaj ya da E-posta ile ilet.",
+  "soi.sign.err.device_only": "Bu telefonda imzalandı. Şu anda paylaşılacak bir kopya oluşturulamadı, bu yüzden tek dosya bu cihazda. Şimdi indir ve ilet — her imzayı, adı, saati ve hash'i taşıyor.",
   "soi.sign.err.slow_done": "Kaydetme çok uzun sürüyor, bu yüzden imzalı dosyan bekletilmek yerine burada. Şimdi indir; her imzayı ve hash'i taşıyor.",
   "soi.sign.extras_failed": "İmzan, adın, saat ve hash dosyanın içinde. Bir ek bu cihazda eklenemedi, bu yüzden dosyayı aç ve iletmeden önce kontrol et.",
 };

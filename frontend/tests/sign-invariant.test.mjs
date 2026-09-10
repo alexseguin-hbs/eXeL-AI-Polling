@@ -18,11 +18,12 @@ ok(setSignedIdx > 0 && createIdx > 0 && setSignedIdx < createIdx, 'setSigned(sta
 
 // 3 · the catch lands on the outcome panel whenever a stamped file exists, and only then may it fall back to the pads
 const catchIdx = src.lastIndexOf('} catch (ex) {');
-const tail = src.slice(catchIdx, catchIdx + 1600);
+const tail = src.slice(catchIdx, catchIdx + 3000);
 ok(/if \(stampedBytes\.length\)/.test(tail), 'the catch guards on stampedBytes.length');
-ok(/if \(stampedBytes\.length\)[^\n]*setStep\("done"\)/.test(tail), 'with a stamped file the catch goes to "done", never back to the pads');
+const guardAt = tail.indexOf('if (stampedBytes.length)');
+ok(guardAt >= 0 && tail.indexOf('setStep("done")', guardAt) > guardAt, 'with a stamped file the catch goes to "done", never back to the pads');
 const doneAt = tail.indexOf('setStep("done")'), drawAt = tail.indexOf('setStep("draw")');
-ok(doneAt > 0 && drawAt > doneAt, 'setStep("draw") appears only AFTER the stamped-file guard (a pre-stamp failure only)');
+ok(doneAt > 0 && drawAt > doneAt && guardAt >= 0 && guardAt < doneAt, 'setStep("draw") appears only AFTER the stamped-file guard (a pre-stamp failure only)');
 
 // 4 · the outcome panel's share controls are not conditional on any backend
 const downloads = src.indexOf('data-testid="downloads"');

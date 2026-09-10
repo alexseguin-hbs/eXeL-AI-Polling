@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Faili {n}",
   "soi.sign.err.migration_incomplete": "Uhamishaji wa hifadhidata ya tovuti hii haujakamilika (036 umetumika, 038 haujatumika: bandika tena SQL iliyotolewa). Saini yako imegongwa muhuri na kuhifadhiwa kwenye simu hii: pakua faili na uitume mbele kwa Ujumbe mfupi au Barua pepe.",
   "soi.sign.err.storage_full": "Simu hii haikuwa na nafasi iliyobaki ya kuhifadhi nakala ya kumbukumbu, kwa hivyo hati za zamani zilifutwa. Saini yako imegongwa muhuri: pakua faili sasa na uitume mbele kwa Ujumbe mfupi au Barua pepe.",
+  "soi.sign.err.device_only": "Imesainiwa kwenye simu hii. Nakala ya kushiriki haikuweza kutengenezwa sasa hivi, kwa hivyo kifaa hiki kina faili pekee. Ipakue na uitume mbele — inabeba kila saini, jina, muda na hashi.",
   "soi.sign.err.slow_done": "Kuhifadhi kunachukua muda mrefu mno, kwa hivyo faili yako iliyosainiwa ipo hapa badala ya kuendelea kusubiri. Ipakue sasa; inabeba kila saini na hashi.",
   "soi.sign.extras_failed": "Saini yako, jina, muda na hashi vipo ndani ya faili. Nyongeza moja haikuweza kuongezwa kwenye kifaa hiki, kwa hivyo fungua faili na uikague kabla ya kuituma mbele.",
 };

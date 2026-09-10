@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Soubor {n}",
   "soi.sign.err.migration_incomplete": "Migrace databáze tohoto webu je neúplná (036 je aplikována, 038 není: vložte poskytnuté SQL znovu). Váš podpis je orazítkován a uložen v tomto telefonu: stáhněte soubor a pošlete ho dál pomocí SMS nebo E-mailu.",
   "soi.sign.err.storage_full": "V tomto telefonu nezbylo místo na uložení kopie záznamu, proto byly starší dokumenty vymazány. Váš podpis je orazítkován: stáhněte soubor hned teď a pošlete ho dál pomocí SMS nebo E-mailu.",
+  "soi.sign.err.device_only": "Podepsáno v tomto telefonu. Sdílenou kopii se právě teď nepodařilo vytvořit, takže jediná je v tomto zařízení. Stáhněte soubor a pošlete ho dál — nese každý podpis, jméno, čas i hash.",
   "soi.sign.err.slow_done": "Ukládání trvá příliš dlouho, takže je tu váš podepsaný soubor, místo aby vás nechávalo čekat. Stáhněte si ho hned; nese všechny podpisy a hashe.",
   "soi.sign.extras_failed": "Váš podpis, jméno, čas a hash jsou v souboru. Jednu doplňkovou část se na tomto zařízení nepodařilo přidat, proto soubor otevřete a zkontrolujte, než ho pošlete dál.",
 };

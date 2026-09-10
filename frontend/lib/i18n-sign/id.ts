@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Berkas {n}",
   "soi.sign.err.migration_incomplete": "Migrasi basis data situs ini belum lengkap (036 sudah diterapkan, 038 belum: tempel lagi SQL yang disediakan). Tanda tangan Anda dicap dan disimpan di ponsel ini: unduh berkas dan kirimkan lewat SMS atau Email.",
   "soi.sign.err.storage_full": "Ponsel ini tidak punya ruang tersisa untuk menyimpan salinan catatan, jadi dokumen lama dihapus. Tanda tangan Anda sudah dicap: unduh berkas sekarang dan kirimkan lewat SMS atau Email.",
+  "soi.sign.err.device_only": "Sudah ditandatangani di ponsel ini. Salinan bersama tidak bisa dibuat saat ini, jadi hanya perangkat ini yang memilikinya. Unduh berkasnya dan kirimkan — berkas itu memuat setiap tanda tangan, nama, waktu, dan hash.",
   "soi.sign.err.slow_done": "Penyimpanan terlalu lama, jadi berkas Anda yang sudah ditandatangani ada di sini alih-alih membuat Anda menunggu. Unduh sekarang; berkas ini memuat setiap tanda tangan dan hash.",
   "soi.sign.extras_failed": "Tanda tangan, nama, waktu, dan hash Anda ada di dalam berkas. Satu bagian tambahan tidak dapat ditambahkan di perangkat ini, jadi buka berkas itu dan periksa sebelum mengirimkannya.",
 };

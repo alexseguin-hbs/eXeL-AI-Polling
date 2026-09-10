@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Datei {n}",
   "soi.sign.err.migration_incomplete": "Die Datenbankmigration dieser Seite ist unvollständig (036 ist angewendet, 038 nicht: fügen Sie das bereitgestellte SQL erneut ein). Ihre Unterschrift ist gestempelt und bleibt auf diesem Telefon: laden Sie die Datei herunter und senden Sie sie per SMS oder E-Mail weiter.",
   "soi.sign.err.storage_full": "Auf diesem Telefon war kein Platz mehr, um eine Kopie des Protokolls zu behalten, deshalb wurden ältere Dokumente entfernt. Ihre Unterschrift ist gestempelt: laden Sie die Datei jetzt herunter und senden Sie sie per SMS oder E-Mail weiter.",
+  "soi.sign.err.device_only": "Auf diesem Telefon unterschrieben. Eine geteilte Kopie ließ sich gerade nicht anlegen, deshalb hat dieses Gerät die einzige. Laden Sie die Datei herunter und senden Sie sie weiter — sie trägt jede Unterschrift, Name, Uhrzeit und einen Hash.",
   "soi.sign.err.slow_done": "Das Speichern dauert zu lange, deshalb ist Ihre unterschriebene Datei hier, statt Sie warten zu lassen. Laden Sie sie jetzt herunter; sie trägt jede Unterschrift und jeden Hash.",
   "soi.sign.extras_failed": "Ihre Unterschrift, Ihr Name, die Uhrzeit und der Hash sind in der Datei. Eine Ergänzung konnte auf diesem Gerät nicht hinzugefügt werden: öffnen Sie die Datei und prüfen Sie sie, bevor Sie sie weitersenden.",
 };

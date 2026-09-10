@@ -495,7 +495,7 @@ await shot(A, 'alex', '7-complete');
   await P.waitForFunction(() => { const b = document.querySelector('[data-testid="sign-button"]'); return b && !b.disabled; }, null, { timeout: 5000 }); await P.getByTestId('sign-button').click();
   await P.getByTestId('downloads').waitFor({ timeout: 60000 });
   const why = await P.getByTestId('local-why').innerText().catch(() => '');
-  step('alex', 'the database refused at create → the record stays on the phone: Done panel, LOCAL ONLY, the reason named, Download · Text · E-mail offered', (await P.getByTestId('send-download').count()) === 1 && (await P.getByTestId('send-text').count()) === 1 && (await P.getByTestId('send-email-file').count()) === 1 && /migration|paste/i.test(why), why.slice(0, 80));
+  step('alex', 'the database refused at create → the record stays on the phone: Done panel, LOCAL ONLY, one human sentence, Download · Text · E-mail offered', (await P.getByTestId('send-download').count()) === 1 && (await P.getByTestId('send-text').count()) === 1 && (await P.getByTestId('send-email-file').count()) === 1 && !/migration|supabase|SQL|03[6-9]/i.test(why) && /this (phone|device)|download/i.test(why), why.slice(0, 80));
   const dlR = P.waitForEvent('download', { timeout: 15000 }); await P.getByTestId('send-download').first().click(); const gotR = await dlR.then((d) => d.suggestedFilename()).catch(() => '');
   step('alex', 'and the stamped file downloads', /-signed-AS\.pdf$/.test(gotR), gotR);
   await shot(P, 'alex', '10-refused-at-create'); await F.close(); }
@@ -521,7 +521,7 @@ await shot(A, 'alex', '7-complete');
   const H = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, acceptDownloads: true }); const P2 = await H.newPage();
   await solo(P2, true); await P2.getByTestId('offline-handoff').waitFor({ timeout: 60000 });
   const why2 = await P2.getByTestId('offline-handoff').innerText();
-  step('alex', 'TWO signers, the database refuses at create → the OFFLINE hand-off block: the reason named, the file travels by Download · Text · E-mail', /migration is incomplete|paste/i.test(why2) && /Daniel Vail|5128088745|512\.808\.8745/.test(why2) && (await P2.getByTestId('share-file').count()) === 1 && (await P2.getByTestId('send-text').count()) === 1 && (await P2.getByTestId('send-email-file').count()) === 1, why2.replace(/\s+/g, ' ').slice(0, 90));
+  step('alex', 'TWO signers, the database refuses at create → the OFFLINE hand-off block in human words, the file travels by Download · Text · E-mail', !/migration|supabase|SQL|03[6-9]/i.test(why2) && /this (phone|device)|download/i.test(why2) && /Daniel Vail|5128088745|512\.808\.8745/.test(why2) && (await P2.getByTestId('share-file').count()) === 1 && (await P2.getByTestId('send-text').count()) === 1 && (await P2.getByTestId('send-email-file').count()) === 1, why2.replace(/\s+/g, ' ').slice(0, 90));
   const dl3 = P2.waitForEvent('download', { timeout: 15000 }); await P2.getByTestId('send-download').first().click(); const got3 = await dl3.then((d) => d.suggestedFilename()).catch(() => '');
   step('alex', 'and the partly-signed file downloads for the hand-off', /-partly-signed-AS\.pdf$/.test(got3), got3);
   await shot(P2, 'alex', '12-two-signers-refused'); await H.close(); }
@@ -538,6 +538,17 @@ await shot(A, 'alex', '7-complete');
   const assertOutcome = async (P, who, what) => {
     await P.getByTestId('downloads').waitFor({ timeout: 60000 });
     const ok = (await P.getByTestId('send-download').count()) >= 1 && (await P.getByTestId('send-text').count()) === 1 && (await P.getByTestId('send-email-file').count()) === 1 && (await P.getByTestId('send-copy').count()) === 1 && (await P.getByTestId('sign-button').count()) === 0;
+    // the panel may not claim more than happened, and it may never name the machine (operator 2026-09-10)
+    const title = P.getByTestId('outcome-title');
+    const claimed = (await title.count()) ? await title.getAttribute('data-complete') : '1';
+    // The panel must never claim completion while the same screen shows someone still to sign. (Walking the stages caught
+    // exactly that: "Every signer has signed" above a roster reading "your turn now" and a receipt printing a cross.)
+    const panel = await P.locator('[data-testid="downloads"]').locator('xpath=ancestor::div[1]').innerText().catch(() => '');
+    const pending = /turn now|your turn|✗/i.test(panel);
+    step(who, 'the panel is CONSISTENT: it never claims completion while a signer is still shown as pending', !(claimed === '1' && pending), `complete=${claimed} pending=${pending}`);
+    const body = await P.locator('body').innerText();
+    const leak = (body.match(/supabase|migration|\bSQL\b|\bRPC\b|03[6-9]|localStorage|backend/i) || [])[0];
+    step(who, "and nothing on the signer's screen names a database, a migration, SQL or a vendor", !leak, leak || 'clean');
     const d = P.waitForEvent('download', { timeout: 15000 }); await P.getByTestId('send-download').first().click(); const got = await d.then((x) => x.suggestedFilename()).catch(() => '');
     step(who, what, ok && /-signed-AS(-[A-Z-]+)?\.pdf$/.test(got), got || 'no download');
   };

@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Fil {n}",
   "soi.sign.err.migration_incomplete": "Databasemigreringen for dette nettstedet er ufullstendig (036 er tatt i bruk, 038 er det ikke: lim inn den leverte SQL-en på nytt). Signaturen din er stemplet og lagret på denne telefonen: last ned filen og send den videre via SMS eller E-post.",
   "soi.sign.err.storage_full": "Denne telefonen hadde ikke mer plass til å lagre en kopi av dokumentet, så eldre dokumenter ble slettet. Signaturen din er stemplet: last ned filen nå, og send den videre via SMS eller E-post.",
+  "soi.sign.err.device_only": "Signert på denne telefonen. Det gikk ikke å lage en delt kopi akkurat nå, så denne enheten har den eneste. Last ned filen og send den videre; den bærer hver signatur, navn, tidspunkt og hash.",
   "soi.sign.err.slow_done": "Lagringen tar for lang tid, så den signerte filen din ligger her i stedet for å holdes ventende. Last den ned nå; den bærer hver signatur og hash.",
   "soi.sign.extras_failed": "Signaturen din, navnet, tidspunktet og hashen ligger i filen. Ett tillegg kunne ikke legges til på denne enheten, så åpne filen og sjekk den før du sender den videre.",
 };

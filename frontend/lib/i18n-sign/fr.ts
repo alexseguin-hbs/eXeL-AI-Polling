@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Fichier {n}",
   "soi.sign.err.migration_incomplete": "La migration de la base de données de ce site est incomplète (036 est appliquée, 038 ne l'est pas : collez à nouveau le SQL fourni). Votre signature est scellée et conservée sur ce téléphone : téléchargez le fichier et transmettez-le par SMS ou Courriel.",
   "soi.sign.err.storage_full": "Ce téléphone n'avait plus de place pour conserver une copie du registre, donc les documents plus anciens ont été effacés. Votre signature est scellée : téléchargez le fichier maintenant et transmettez-le par SMS ou Courriel.",
+  "soi.sign.err.device_only": "Signé sur ce téléphone. Une copie partagée n'a pas pu être créée à l'instant, donc cet appareil détient la seule. Téléchargez le fichier et transmettez-le — il porte chaque signature, le nom, l'heure et un hash.",
   "soi.sign.err.slow_done": "L'enregistrement prend trop de temps, alors voici votre fichier signé plutôt que de vous faire attendre. Téléchargez-le maintenant ; il porte toutes les signatures et tous les hashs.",
   "soi.sign.extras_failed": "Votre signature, votre nom, l'heure et le hash sont dans le fichier. Un élément supplémentaire n'a pas pu être ajouté sur cet appareil : ouvrez le fichier et vérifiez-le avant de le transmettre.",
 };

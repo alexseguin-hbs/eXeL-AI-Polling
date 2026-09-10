@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Arquivo {n}",
   "soi.sign.err.migration_incomplete": "A migração do banco de dados deste site está incompleta (a 036 foi aplicada, a 038 não: cole de novo o SQL fornecido). Sua assinatura está carimbada e guardada neste telefone: baixe o arquivo e envie-o por SMS ou E-mail.",
   "soi.sign.err.storage_full": "Este telefone ficou sem espaço para guardar uma cópia do documento, por isso os documentos mais antigos foram apagados. Sua assinatura está carimbada: baixe o arquivo agora e envie-o por SMS ou E-mail.",
+  "soi.sign.err.device_only": "Assinado neste telefone. Não foi possível criar uma cópia compartilhada agora, por isso este dispositivo tem a única. Baixe o arquivo e envie-o; ele carrega cada assinatura, nome, hora e hash.",
   "soi.sign.err.slow_done": "O salvamento está demorando demais, por isso seu arquivo assinado está aqui em vez de ficar esperando. Baixe-o agora; ele carrega cada assinatura e cada hash.",
   "soi.sign.extras_failed": "Sua assinatura, seu nome, a hora e o hash estão no arquivo. Um item extra não pôde ser incluído neste dispositivo, então abra o arquivo e confira-o antes de enviá-lo adiante.",
 };

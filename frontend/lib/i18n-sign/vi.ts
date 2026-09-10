@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Tệp {n}",
   "soi.sign.err.migration_incomplete": "Việc di chuyển cơ sở dữ liệu của trang này chưa hoàn tất (đã áp dụng 036, chưa áp dụng 038: dán lại đoạn SQL được cung cấp). Chữ ký của bạn đã được đóng dấu và giữ trên điện thoại này: tải xuống tệp rồi gửi tiếp bằng Tin nhắn hoặc Email.",
   "soi.sign.err.storage_full": "Điện thoại này không còn chỗ để giữ một bản sao của hồ sơ, nên các tài liệu cũ hơn đã bị xóa. Chữ ký của bạn đã được đóng dấu: hãy tải xuống tệp ngay và gửi tiếp bằng Tin nhắn hoặc Email.",
+  "soi.sign.err.device_only": "Đã ký trên điện thoại này. Hiện chưa tạo được bản sao để chia sẻ, nên thiết bị này giữ tệp duy nhất. Hãy tải xuống và gửi đi — tệp mang theo mọi chữ ký, tên, thời gian và mã băm.",
   "soi.sign.err.slow_done": "Việc lưu đang mất quá nhiều thời gian, nên tệp đã ký của bạn có ở đây thay vì phải chờ tiếp. Hãy tải xuống ngay; tệp mang theo mọi chữ ký và mã băm.",
   "soi.sign.extras_failed": "Chữ ký, tên, thời gian và mã băm của bạn đều có trong tệp. Có một phần bổ sung không thể thêm được trên thiết bị này, nên hãy mở tệp và kiểm tra trước khi gửi tiếp.",
 };

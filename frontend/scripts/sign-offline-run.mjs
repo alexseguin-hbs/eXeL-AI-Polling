@@ -66,7 +66,7 @@ await A.getByRole('button', { name: /place your signature/ }).click();
 await placeDrawSign(A, 'alex', 0.28);
 await A.getByTestId('offline-handoff').waitFor({ timeout: 60000 });
 const off = await A.getByTestId('offline-handoff').innerText();
-step('alex', 'no link minted → the OFFLINE hand-off block: 036 named, hand the file over, one "Send the file" action', /036/.test(off) && /Daniel Vail/.test(off) && (await A.getByTestId('share-file').count()) === 1, off.replace(/\s+/g, ' ').slice(0, 120));
+step('alex', 'no link minted → the OFFLINE hand-off block: the file is on this phone, hand it over, one "Send the file" action', !/036|migration|supabase|SQL/i.test(off) && /this (phone|device)|download/i.test(off) && /Daniel Vail/.test(off) && (await A.getByTestId('share-file').count()) === 1, off.replace(/\s+/g, ' ').slice(0, 120));
 // the file travels WITH the message (operator 01:10): the share sheet on a phone; here (no Web Share) the fallback —
 // the partly-signed PDF downloads and the composer opens with the script
 // the phone here has no share sheet: Text downloads the partly-signed file and opens the sms: composer (the send row, operator 2026-09-09)

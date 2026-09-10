@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Tiedosto {n}",
   "soi.sign.err.migration_incomplete": "Tämän sivuston tietokantamigraatio on kesken (036 on otettu käyttöön, 038 ei: liitä tarjottu SQL uudelleen). Allekirjoituksesi on leimattu ja tallessa tässä puhelimessa: lataa tiedosto ja lähetä se eteenpäin Tekstiviestillä tai Sähköpostilla.",
   "soi.sign.err.storage_full": "Tässä puhelimessa ei ollut enää tilaa säilyttää kopiota tallenteesta, joten vanhempia asiakirjoja poistettiin. Allekirjoituksesi on leimattu: lataa tiedosto nyt ja lähetä se eteenpäin Tekstiviestillä tai Sähköpostilla.",
+  "soi.sign.err.device_only": "Allekirjoitettu tässä puhelimessa. Jaettua kopiota ei juuri nyt voitu tehdä, joten ainoa on tässä laitteessa. Lataa tiedosto ja lähetä se eteenpäin — se kantaa jokaisen allekirjoituksen, nimen, ajan ja tiivisteen.",
   "soi.sign.err.slow_done": "Tallennus kestää liian kauan, joten allekirjoitettu tiedostosi on tässä sen sijaan, että sinua pidettäisiin odottamassa. Lataa se nyt; se kantaa jokaisen allekirjoituksen ja tiivisteen.",
   "soi.sign.extras_failed": "Allekirjoituksesi, nimesi, aika ja tiiviste ovat tiedostossa. Yhtä lisäosaa ei voitu lisätä tällä laitteella, joten avaa tiedosto ja tarkista se ennen kuin lähetät sen eteenpäin.",
 };

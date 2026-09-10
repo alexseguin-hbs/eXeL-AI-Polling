@@ -374,6 +374,7 @@ const T: Record<string, string> = {
   "soi.sign.saved.file": "Fail {n}",
   "soi.sign.err.migration_incomplete": "Migrasi pangkalan data laman ini belum lengkap (036 telah digunakan, 038 belum: tampal semula SQL yang disediakan). Tandatangan anda telah dicap dan disimpan di telefon ini: muat turun fail dan hantarkannya melalui Teks atau E-mel.",
   "soi.sign.err.storage_full": "Telefon ini tiada ruang lagi untuk menyimpan salinan rekod, jadi dokumen lama telah dipadamkan. Tandatangan anda telah dicap: muat turun fail itu sekarang dan hantarkannya melalui Teks atau E-mel.",
+  "soi.sign.err.device_only": "Ditandatangani pada telefon ini. Salinan kongsi tidak dapat dibuat buat masa ini, jadi peranti inilah yang memegang satu-satunya salinan. Muat turunkannya dan hantarkannya; ia membawa setiap tandatangan, nama, masa dan hash.",
   "soi.sign.err.slow_done": "Simpanan mengambil masa terlalu lama, jadi fail anda yang telah ditandatangani ada di sini dan bukannya dibiarkan menunggu. Muat turunkannya sekarang; ia membawa setiap tandatangan dan hash.",
   "soi.sign.extras_failed": "Tandatangan, nama, masa dan hash anda ada di dalam fail itu. Satu tambahan tidak dapat dimasukkan pada peranti ini, jadi bukalah fail itu dan semaknya sebelum menghantarkannya.",
 };
