@@ -44,27 +44,53 @@ export const FTE_HOURS = 2080;
 export const MAX_SECURED_YEARS = 99;
 
 /**
- * The published bands (unit.multiples). Higher multiples never raise the ceiling — they only shorten the hours to reach it:
- * "The multiple recognises scarcity. The ceiling firmly refuses to convert scarcity into power."
- * unit.guard: bands are published in advance and changed PROSPECTIVELY only, never retroactively reclassified.
+ * unit.multiples — THE PUBLISHED BAND TABLE, QUOTED. Not derived.
+ *
+ * OPERATOR RULING, 2026-09-10 (docs/asks/2026-09-10_published_band_table_verbatim.md): "STOP MAKING UP MATH."
+ * He is right. This table used to derive its hours as 9,999 ÷ M and round them, which I called discipline. It is not
+ * discipline when the figures are PUBLISHED: Math.round(9999 / 6) is 1667 in JavaScript, and the paper says 1,666. The
+ * pod shipped 1,667 on the band picker. Six of the seven rows survived the derivation by luck, not by method.
+ *
+ * A PUBLISHED FIGURE IS READ, NEVER RE-DERIVED. Derivation is only for what the paper does not publish — how much
+ * further THIS person has to go from where they already stand, which is hoursToCeiling() below.
  */
-export interface Band { m: number; label: string }
-/**
- * The published multiples, kept exactly as published — unit.guard forbids retroactive reclassification. The labels are
- * unit.multiples' own words. What is NOT stored is the hours-to-ceiling: it is derived from 9,999 ÷ M, because a stored
- * copy is how a wrong figure survives a correction. Derived, the table reproduces the paper's exactly.
- */
+export interface Band {
+  m: number;            // MULTIPLE M
+  label: string;        // as printed in the first column
+  hours: number;        // HOURS TO REACH 9,999 — the published figure
+  years: string;        // IN FULL-TIME YEARS — the published figure
+  atMost: boolean;      // the 10x+ row is published as "<= 1,000" and "<= 0.48"
+  purpose: string;      // WHAT THIS BAND IS FOR — the published words, verbatim
+}
 export const BANDS: Band[] = [
-  { m: 1, label: "1× — the floor of the scale, not a working band" },
-  { m: 2, label: "2× — entry contribution" },
-  { m: 3, label: "3× — sustained competent contribution" },
-  { m: 4.807, label: "4.807× — the reference multiple: one full-time year lands exactly on the ceiling" },
-  { m: 6, label: "6× — scarce skill, or responsibility carried" },
-  { m: 8, label: "8× — rare expertise" },
-  { m: 10, label: "10× — exceptional contribution, and still capped at 9,999" },
+  { m: 1, label: "1x", hours: 9999, years: "4.81", atMost: false,
+    purpose: "Unreachable in a year. The floor of the scale, not a working band." },
+  { m: 2, label: "2x", hours: 5000, years: "2.40", atMost: false,
+    purpose: "Entry contribution; part-time and learning participation." },
+  { m: 3, label: "3x", hours: 3333, years: "1.60", atMost: false,
+    purpose: "Sustained competent contribution." },
+  { m: 4.807, label: "4.807x", hours: 2080, years: "1.00", atMost: false,
+    purpose: "The reference multiple. One full-time year lands exactly on the ceiling." },
+  { m: 6, label: "6x", hours: 1666, years: "0.80", atMost: false,
+    purpose: "Scarce skill, or responsibility carried." },
+  { m: 8, label: "8x", hours: 1250, years: "0.60", atMost: false,
+    purpose: "Rare expertise; the band where part-year work still reaches the ceiling." },
+  { m: 10, label: "10x+", hours: 1000, years: "0.48", atMost: true,
+    purpose: "Exceptional contribution. Permitted, published, and still capped at 9,999." },
 ];
-export const isBand = (m: number): boolean => BANDS.some((b) => b.m === m);
-/** Hours still needed to reach 9,999 at this band — what a person actually wants to know (unit.reach). */
+/**
+ * unit.ceiling: "M IS UNBOUNDED, but the annual 웃 PAYMENT is bound at 9,999 with excess rolling forward." The table's
+ * own last row is 10x+ — "Permitted, published, and still capped at 9,999". So this may not be a whitelist of seven:
+ * it was one, and that contradicted the paper. Any positive multiple is valid; the ceiling is what does the bounding.
+ */
+export const isBand = (m: number): boolean => Number.isFinite(m) && m > 0;
+/** The published row for a multiple, when the paper publishes one. Above 10x there is no row — the band is 10x+. */
+export const bandFor = (m: number): Band | undefined => BANDS.find((b) => b.m === m);
+/**
+ * Hours still needed to reach 9,999 FROM WHERE THIS PERSON ALREADY STANDS — the one thing the paper cannot publish,
+ * because it depends on their own balance. With `already` at zero it is the table's row, and the gate checks it agrees
+ * with the published figure to within the paper's own rounding; the table itself is still quoted, never computed.
+ */
 export const hoursToCeiling = (m: number, already = 0): number =>
   m > 0 ? Math.max(0, YUG_CEILING - already) / m : Infinity;
 

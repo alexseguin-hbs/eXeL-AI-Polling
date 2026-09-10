@@ -161,19 +161,44 @@ if (Y.standing) {
   ok(Y.standing(0, 0).payableThisYear === 0 && Y.standing(0, 0).carried === 0, 'nothing earned settles nothing');
   ok(Y.standing(0, 9999 * 200).securedYears === 99, 'a reservation stops at the 99th year — coverage ends at a lifetime');
   // REACH: the multiple is the route to the ceiling, never the geography
-  // unit.multiples, reproduced from the formula rather than stored: every row of the published table is 9,999 ÷ M.
-  ok(Y.hoursToCeiling(1) === 9999, 'unit.multiples 1× — 9,999 h, "unreachable in a year; the floor of the scale"');
-  ok(Y.hoursToCeiling(2) === 4999.5 && Math.round(Y.hoursToCeiling(2)) === 5000, 'unit.multiples 2× — 5,000 h');
-  ok(Math.round(Y.hoursToCeiling(3)) === 3333, 'unit.multiples 3× — 3,333 h');
-  ok(Math.round(Y.hoursToCeiling(4.807)) === 2080, 'unit.multiples 4.807× — 2,080 h, one full-time year exactly');
-  ok(Math.round(Y.hoursToCeiling(6)) === 1667 && Math.round(Y.hoursToCeiling(8)) === 1250, 'unit.multiples 6× and 8×');
-  ok(Math.round(Y.hoursToCeiling(10)) === 1000, 'unit.multiples 10× — 1,000 h, and still capped at 9,999');
+  // ── unit.multiples — THE PUBLISHED TABLE, checked ROW BY ROW against the paper, not against my arithmetic ──
+  // "STOP MAKING UP MATH" (operator, 2026-09-10). The pod used to derive these and round them, and JavaScript's
+  // Math.round(9999/6) is 1667 where the paper prints 1,666. A published figure is read, never re-derived.
+  const PUBLISHED = [
+    [1,     '1x',     9999, '4.81', false, 'Unreachable in a year. The floor of the scale, not a working band.'],
+    [2,     '2x',     5000, '2.40', false, 'Entry contribution; part-time and learning participation.'],
+    [3,     '3x',     3333, '1.60', false, 'Sustained competent contribution.'],
+    [4.807, '4.807x', 2080, '1.00', false, 'The reference multiple. One full-time year lands exactly on the ceiling.'],
+    [6,     '6x',     1666, '0.80', false, 'Scarce skill, or responsibility carried.'],
+    [8,     '8x',     1250, '0.60', false, 'Rare expertise; the band where part-year work still reaches the ceiling.'],
+    [10,    '10x+',   1000, '0.48', true,  'Exceptional contribution. Permitted, published, and still capped at 9,999.'],
+  ];
+  ok(Y.BANDS.length === PUBLISHED.length, `the table has the paper's seven rows — got ${Y.BANDS.length}`);
+  for (const [m, label, hours, years, atMost, purpose] of PUBLISHED) {
+    const b = Y.bandFor(m);
+    ok(!!b, `unit.multiples publishes a row for ${label}`);
+    if (!b) continue;
+    ok(b.hours === hours, `${label} — HOURS TO REACH 9,999 is the published ${hours.toLocaleString()}, got ${b.hours}`);
+    ok(b.years === years, `${label} — IN FULL-TIME YEARS is the published ${years}, got ${b.years}`);
+    ok(b.label === label, `${label} — the multiple is printed as the paper prints it`);
+    ok(b.atMost === atMost, `${label} — the "<=" qualifier matches the paper (only the 10x+ row carries one)`);
+    ok(b.purpose === purpose, `${label} — WHAT THIS BAND IS FOR is the published sentence, verbatim`);
+  }
+  // 6x is the row that caught me: it is the only one the derivation gets wrong, and it is asserted on its own.
+  ok(Y.bandFor(6).hours === 1666 && Math.round(Y.hoursToCeiling(6)) === 1667,
+     'the published 6x row is 1,666 h AND the derivation still returns 1,667 — which is exactly why the table is quoted');
+  // Live reach is the one figure the paper cannot publish: it depends on the person's own balance.
+  ok(Y.hoursToCeiling(3, 0) === 3333, 'from nothing at 3x, the live figure agrees with the published row');
   ok(Y.hoursToCeiling(3, 9999) === 0, 'someone already at the ceiling needs no further hours');
-  ok(Y.BANDS.length === 7 && Y.BANDS.map((b) => b.m).join() === '1,2,3,4.807,6,8,10',
+  ok(Y.hoursToCeiling(2, 4999.5) === 2499.75, 'and from part-way it is simply what remains, unrounded');
+  // unit.ceiling: "M is unbounded, but the annual 웃 PAYMENT is bound at 9,999 with excess rolling forward."
+  ok(Y.isBand(5) && Y.isBand(12.5) && Y.isBand(4.807), 'M IS UNBOUNDED — a multiple off the published table is still valid');
+  ok(!Y.isBand(0) && !Y.isBand(-3), 'a multiple must still be positive');
+  ok(Y.standing(0, Y.mint(2080, 12.5)).payableThisYear === 9999,
+     'and an unbounded multiple is bounded by the CEILING, not by a whitelist: 2,080 h at 12.5x still pays 9,999');
+  ok(Y.hoursToCeiling(3, 9999) === 0, 'someone already at the ceiling needs no further hours');
+  ok(Y.BANDS.map((b) => b.m).join() === '1,2,3,4.807,6,8,10',
      'the published multiples are kept EXACTLY as published — unit.guard forbids retroactive reclassification');
-  ok(!('hoursToCeiling' in Y.BANDS[0]),
-     'and the hours are DERIVED, never stored beside them — a stored copy is how the wrong figure survived');
-  ok(Y.isBand(4.807) && !Y.isBand(5), 'a band comes only from the published table');
   // 4.807 IS A MULTIPLE, NEVER A COEFFICIENT. unit.multiples and paper.s1 call it "the reference multiple", the band at
   // which one full-time year lands on the ceiling. A mint carrying it as a per-hour rate has no M in it at all, which is
   // exactly how the error was spotted. The gate now refuses to let it back in as a rate.

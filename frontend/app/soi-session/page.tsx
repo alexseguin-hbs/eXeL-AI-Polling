@@ -49,7 +49,7 @@ import { format as fmtABC } from "@/lib/abc-3600";
 import { measure, supported, witnessedHours as spanHours, hhmmss, heartsFor, RUNGS, type ClockEvent, type Rung } from "@/lib/pod-clock";
 import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
-import { BANDS, standing, hoursToCeiling, YUG_CEILING, mint, stamp, type Vintage } from "@/lib/pod-yug";
+import { BANDS, bandFor, standing, hoursToCeiling, YUG_CEILING, mint, stamp, type Vintage } from "@/lib/pod-yug";
 import { aiPodSummary } from "@/lib/ai";
 import { lockBaseline, accelerate, noConditions, CONDITION_IDS, split, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -1083,15 +1083,19 @@ export default function SoISessionPage() {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} data-testid="band-select"
                   className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
-                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {Math.round(hoursToCeiling(b.m)).toLocaleString()} h to 9,999 웃</option>)}
+                  {/* The PUBLISHED figures, read from unit.multiples — never Math.round(9,999 ÷ M), which prints 1,667 where the
+                      paper prints 1,666 (docs/asks/2026-09-10_published_band_table_verbatim.md). */}
+                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.atMost ? "≤ " : ""}{b.hours.toLocaleString()} h to 9,999 웃 · {b.atMost ? "≤ " : ""}{b.years} full-time years</option>)}
                 </select>
                 <input type="number" min="0" step="1" value={carriedIn} onChange={(e) => setCarriedIn(e.target.value)} placeholder="웃 already earned" data-testid="carried-in"
                   className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
               </div>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-reach">
-                At {bandM}× another <span className="font-medium text-foreground">{hoursToCeiling(bandM, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃.
-                One 웃 is one hour at 1× your local minimum wage, so the multiple is simply the 웃-per-hour rate. The
-                same hour mints the same 웃 everywhere; only what it settles as is local.
+                At {bandM}× another <span className="font-medium text-foreground">{hoursToCeiling(bandM, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃
+                {bandFor(bandM) ? <> — from nothing the published figure is {bandFor(bandM)!.atMost ? "≤ " : ""}{bandFor(bandM)!.hours.toLocaleString()} h. {bandFor(bandM)!.purpose}</> : null}
+                <br />One 웃 is one hour at 1× your local minimum wage, so the multiple is simply the 웃-per-hour rate.
+                M is unbounded; what is bound is the 9,999 웃 <span className="font-medium text-foreground">payment</span> each
+                year, with the excess rolling forward.
               </p>
             </div>
 
