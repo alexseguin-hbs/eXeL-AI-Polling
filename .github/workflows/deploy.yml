@@ -61,7 +61,28 @@ jobs:
 
         run: npm run test:ci
 
+      # Cloudflare's git build is the door that actually ships, and its prebuild now runs the two Sign Doc gates.
+      # This job's remaining value is the FULL test:ci above. When the two Supabase build vars are not present as Actions
+      # secrets, the build+deploy half cannot produce a working bundle, so it is SKIPPED and said out loud rather than failed:
+      # a permanently red light teaches everyone to ignore the one that matters (operator 2026-09-10).
+      - name: Can this runner build a working bundle?
+        id: canbuild
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            echo "Build vars present — this run gates AND deploys."
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy skipped::The Supabase build vars are not set as Actions secrets, so this runner cannot"
+            echo "::notice::produce a working bundle. The tests above still gated this commit. Cloudflare's git build ships the"
+            echo "::notice::site and its prebuild runs the Sign Doc invariant and voice gates. Set the two secrets to deploy here too."
+          fi
+
       - name: Check required build vars
+        if: steps.canbuild.outputs.ok == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -74,10 +95,12 @@ jobs:
         run: node scripts/envcheck.mjs
 
       - name: Test
+        if: steps.canbuild.outputs.ok == 'true'
         run: npm run test:innovation-time
 
       # A build that exits 0 without compiling is exactly how a broken deploy got shipped before. Require the words.
       - name: Build
+        if: steps.canbuild.outputs.ok == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -96,6 +119,7 @@ jobs:
       # `deploy` uploads AND routes 100% of traffic. `versions upload` stages at 0% and is what left the site
       # serving a stale version while every build looked fine. Do not change this verb.
       - name: Deploy
+        if: steps.canbuild.outputs.ok == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -106,6 +130,7 @@ jobs:
       # A deploy is not a ship. Cloudflare's edge needs a moment to propagate, so poll rather than fail on the
       # first miss — but if it never matches, the run goes RED. That is the whole point.
       - name: Verify live site serves ${{ github.sha }}
+        if: steps.canbuild.outputs.ok == 'true'
         run: |
           for i in 1 2 3 4 5 6; do
             if node scripts/verify-deploy.mjs "${{ github.sha }}"; then exit 0; fi

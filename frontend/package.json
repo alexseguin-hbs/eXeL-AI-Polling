@@ -6,7 +6,7 @@
     "guard": "node scripts/integrity-guard.mjs",
     "predev": "node scripts/integrity-guard.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs && node scripts/gen-i18n-index.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/lockcheck.mjs && node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs && node scripts/gen-i18n-index.mjs",
+    "prebuild": "node scripts/lockcheck.mjs && node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs && node scripts/copy-pdf-worker.mjs && node scripts/copy-migration.mjs && node scripts/gen-i18n-index.mjs && node tests/sign-invariant.test.mjs && node tests/sign-lexicon-voice.test.mjs",
     "test:build-gate": "node scripts/build-gate.mjs",
     "build": "next build",
     "start": "next start",
