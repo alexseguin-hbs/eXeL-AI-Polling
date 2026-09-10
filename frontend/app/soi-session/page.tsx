@@ -47,6 +47,8 @@ import { buildSynthesis333 } from "@/lib/pod-synthesis";
 import { api } from "@/lib/api";
 import { format as fmtABC } from "@/lib/abc-3600";
 import { measure, supported, witnessedHours as spanHours, hhmmss, type ClockEvent } from "@/lib/pod-clock";
+import { readProvider } from "@/lib/ai-provider";
+import { aiPodSummary } from "@/lib/ai";
 import { lockBaseline, accelerate, noConditions, CONDITION_IDS, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
@@ -492,6 +494,17 @@ export default function SoISessionPage() {
         pod_code: podCode,
       },
     }).then((r) => { if (live && r) setAiSynthesis(r); }).catch(() => {});
+    // The Worker path, using the provider chosen in Settings (operator 2026-09-10). It carries the MEASURED clock and any
+    // claim that was reduced to it, so the model cannot describe a longer session than the platform witnessed, and it is
+    // told to report an overrun plainly rather than dress it up. Whichever answers, the panel labels the text AI-written.
+    void aiPodSummary({
+      intent, outcome, code: podCode, witnessedFor: hhmmss(span.ms),
+      members: members.map((m, i) => ({ name: m.name.trim() || m.role, hours: claimOf(i).hours, claimed: parseFloat(m.hours) || 0, capped: claimOf(i).capped, did: m.did })),
+      yugYok: totalYugYok, hearts: witnessedHours, baselineHours: lock ? lock.hours : null,
+      deltaHours: lock ? accelRead.delta : null, accelEarned: yaTriangle, record: recordValue,
+    }, "English", readProvider())
+      .then((r) => { if (live && r && r.paragraphs.length === 3) setAiSynthesis({ results: r.paragraphs[0], changed: r.paragraphs[1], next: r.paragraphs[2] }); })
+      .catch(() => { /* the deterministic synthesis stands and the panel says which one this is */ });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);

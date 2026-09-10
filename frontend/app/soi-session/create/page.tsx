@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLexicon } from "@/lib/lexicon-context";
+import { readProvider } from "@/lib/ai-provider";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoiGlobe } from "@/components/soi-globe";
@@ -33,7 +34,10 @@ export default function CreateDocPage() {
   const [preview, setPreview] = useState<{ pages: number; bytes: Uint8Array; name: string } | null>(null);
   // Draft with AI (operator 01:25): OpenAI / Gemini / Grok through the Worker; the result lands in the fields, editable
   const [ai, setAi] = useState<AiConfigured>({ openai: false, gemini: false, grok: false, claude: false });
+  // The choice made in Settings is the default here, so a person states it once rather than on every visit; the picker on
+  // this page still overrides it for one draft (operator 2026-09-10: "or others via settings").
   const [aiProvider, setAiProvider] = useState<AiProvider>("auto");
+  useEffect(() => { setAiProvider(readProvider()); }, []);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiState, setAiState] = useState<"" | "busy" | "done" | "failed">("");
   useEffect(() => { void aiStatus().then(setAi); }, []);

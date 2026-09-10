@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,8 @@ import { LanguageLexicon } from "@/components/language-lexicon";
 import { AtlantisAccordViewer } from "@/components/atlantis-accord-viewer";
 import { LightCodexSettingsRow } from "@/components/light-codex-cube";
 import { CubeArchitectureStatus } from "@/components/cube-status";
+import { readProvider, saveProvider, PROVIDER_LABEL, type AiProvider } from "@/lib/ai-provider";
+import { aiStatus, type AiConfigured } from "@/lib/ai";
 import { FeedbackWidget } from "@/components/feedback-widget";
 import { PoweredBadge } from "@/components/powered-badge";
 import { TrinityColorPicker } from "@/components/trinity-color-picker";
@@ -307,6 +309,40 @@ const V2T_PROVIDERS = [
   { id: "aws", label: "AWS Transcribe", langCount: 23, ratePerMin: 0.024, est1k: "$8.88" },
 ] as const;
 
+/**
+ * Which AI writes — chosen once, remembered, and used by Create Doc and the pod's close-out summary (operator 2026-09-10:
+ * "AI summary using API into open AI or others via settings"). Keys never reach the page; a provider with no key on the
+ * Worker simply is not offered, and "Automatic" keeps the Worker's own order.
+ * Vision 2525 §18: a machine contributes and is attributed; it never decides — so whatever answers here, the text it
+ * produces is labelled as AI-written where it is shown.
+ */
+function AiProviderSelector() {
+  const [provider, setProvider] = useState<AiProvider>("auto");
+  const [have, setHave] = useState<AiConfigured | null>(null);
+  useEffect(() => { setProvider(readProvider()); void aiStatus().then(setHave).catch(() => setHave(null)); }, []);
+  const choose = (p: AiProvider) => { setProvider(p); saveProvider(p); };
+  const offered: AiProvider[] = ["auto", "claude", "openai", "gemini", "grok"];
+  const ready = (p: AiProvider) => p === "auto" || !!have?.[p as keyof AiConfigured];
+  return (
+    <section data-testid="ai-provider-settings">
+      <h3 className="mb-1 text-sm font-medium">Which AI writes</h3>
+      <p className="mb-2 text-xs text-muted-foreground">Used when Create Doc drafts a document and when a pod writes its closing summary. Anything an AI writes is shown as AI-written.</p>
+      <div className="space-y-1.5">
+        {offered.map((p) => (
+          <button key={p} type="button" onClick={() => choose(p)} disabled={!ready(p)} data-testid={`ai-provider-${p}`}
+            className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left text-sm transition-colors disabled:opacity-40 ${provider === p ? "border-primary bg-accent/30" : "border-border hover:bg-accent/50"}`}>
+            <span>{PROVIDER_LABEL[p]}</span>
+            <span className="text-xs text-muted-foreground">{p === "auto" ? "" : ready(p) ? "ready" : "no key on this site"}</span>
+          </button>
+        ))}
+      </div>
+      {have && !have.openai && !have.gemini && !have.grok && !have.claude && (
+        <p className="mt-2 text-xs text-amber-500">No AI key is set on this site yet, so drafting and summaries fall back to the built-in text.</p>
+      )}
+    </section>
+  );
+}
+
 function V2TProviderSelector() {
   const { t } = useLexicon();
   const [selectedProvider, setSelectedProvider] = useState("whisper");
@@ -475,6 +511,8 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
               <Separator />
               <CostEstimateTable />
               <Separator />
+              <AiProviderSelector />
+
               <V2TProviderSelector />
               <Separator />
               <CubeArchitectureStatus />
