@@ -46,12 +46,12 @@ import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { buildSynthesis333 } from "@/lib/pod-synthesis";
 import { api } from "@/lib/api";
 import { format as fmtABC } from "@/lib/abc-3600";
-import { measure, supported, witnessedHours as spanHours, hhmmss, type ClockEvent } from "@/lib/pod-clock";
+import { measure, supported, witnessedHours as spanHours, hhmmss, heartsFor, RUNGS, type ClockEvent, type Rung } from "@/lib/pod-clock";
 import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
-import { BANDS, standing, hoursToCeiling, YUG_CEILING, mint } from "@/lib/pod-yug";
+import { BANDS, standing, hoursToCeiling, YUG_CEILING, mint, stamp, type Vintage } from "@/lib/pod-yug";
 import { aiPodSummary } from "@/lib/ai";
-import { lockBaseline, accelerate, noConditions, CONDITION_IDS, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
+import { lockBaseline, accelerate, noConditions, CONDITION_IDS, split, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoiGlobe } from "@/components/soi-globe";
@@ -111,6 +111,12 @@ function randomCode(): string {
 }
 
 /** The six conditions in the signer's words, not ours (§14 unit.accel). */
+const RUNG_LABEL: Record<Rung, string> = {
+  none: "Nothing yet — the outcome has not been taken up",
+  noted: "Noted — someone recorded it and it informed a decision (1 ♡)",
+  adopted: "Adopted — it is now in use (3 ♡)",
+  foundational: "Foundational — other work is built on it (7 ♡)",
+};
 const CONDITION_LABEL: Record<string, string> = {
   scheduleImproved: "the schedule improved", scopePreserved: "the scope was preserved", qualityHeld: "quality held or improved",
   riskNotWorse: "risk did not get worse", ssses: "SSSES qualification passed", humanAccepted: "a person accepted the outcome",
@@ -142,6 +148,14 @@ export default function SoISessionPage() {
   // §14 unit.accel — the estimate LOCKED BEFORE THE WORK, signed by a party with no stake, carrying a Replay hash.
   const [lock, setLock] = useState<Baseline | null>(null);
   const [conds, setConds] = useState<AccelConditions>(noConditions);
+  // D12 · the clockless ladder. ♡ is NOT hours: "a minute is counted as ♡ or 웃, never both" (unit.aitoken). This pod
+  // settles 웃 for its measured minutes, so those same minutes carry no ♡ — the ♡ comes only from what the outcome
+  // became afterwards, which no clock can measure and only the pod can say. Nothing awarded is the honest default.
+  const [rung, setRung] = useState<Rung>("none");
+  // D9 · the vintage stamp. Written once at settlement with the hours, the multiple and the 웃 they minted, and never
+  // revised — deferral changes WHEN a 웃 settles, never what it recorded. No rate and no currency: the pod mints
+  // currency-free, and a rate entering here is the published defect that made the ceiling cost 47.9× more in Lagos.
+  const [vintage, setVintage] = useState<Vintage | null>(null);
   const [bandM, setBandM] = useState(1);                                  // unit.multiples — published bands only
   const [carriedIn, setCarriedIn] = useState("");                         // 웃 already recognised, for the carry maths
 
@@ -343,28 +357,43 @@ export default function SoISessionPage() {
   // have closed their phones — the record is no longer only in their memory.
   useEffect(() => {
     if (restored.current || !podCode) return;
-    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string }>(podCode);
+    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string; rung?: Rung; vintage?: Vintage | null }>(podCode);
     if (!e) return;
     restored.current = true; podRev.current = e.rev;
     setIntent(e.state.intent); setOutcome(e.state.outcome); setMembers(e.state.members);
     setClockEvents(e.state.clockEvents ?? []); setBaselineHrs(e.state.baselineHrs ?? ""); setSignerIdx(e.state.signerIdx ?? 0);
     setRecordMethod(e.state.recordMethod ?? "written"); setRecordValue(e.state.recordValue ?? "");
+    setRung(e.state.rung ?? "none");
+    // D9: a vintage is READ back, never re-derived. Re-deriving it on reopen would let a later band or a later hour
+    // silently rewrite what a past settlement recorded, which is the one thing a stamp exists to prevent.
+    setVintage(e.state.vintage ?? null);
     podRef.current = { ...podRef.current, phase: e.state.phase }; setPhase(e.state.phase);
     setResumed(`Reopened at revision ${e.rev} — everything recorded is as you left it.`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podCode]);
   useEffect(() => {
     if (!podCode) return;
-    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue }, Date.now());
+    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage }, Date.now());
     if (!ok) setSaveFailed(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [podCode, phase, members, clockEvents, recordValue]);
+  }, [podCode, phase, members, clockEvents, recordValue, rung, vintage]);
+  // OPERATOR RULING 2026-09-10: "Hours is always tracked." The clock is not a mode and not a reward for a clean sync —
+  // it starts the moment the pod begins working and it starts ONCE. A pod that never reaches a synced start, or that is
+  // reset and tried again, still has an honest record of the time it spent rather than nothing at all. Whether that time
+  // is WITNESSED is a separate question, answered by the sync verdict and by supported(), which caps every claim to the
+  // measured span. Tracking and crediting are not the same act, and conflating them is what lost the time before.
+  useEffect(() => {
+    if (phase === "compose" || phase === "invite") return;
+    setClockEvents((e) => (e.some((x) => x.kind === "start") ? e : [...e, { kind: "start", at: Date.now(), by: "pod" }]));
+  }, [phase]);
+
   useEffect(() => {
     if (phase !== "sync") return;
     const v = syncVerdict(members, SYNC_START_SECONDS);
     if (v.status === "waiting") return;
     if (v.status === "synced") {
-      // §14: "the clock is a platform event" — the clock-in, appended once, for the whole pod.
+      // §14: "the clock is a platform event" — appended once for the whole pod. The effect above has already started it
+      // on entry to sync, so this is a no-op guard kept for a pod that reaches "synced" by any other route.
       setClockEvents((e) => (e.some((x) => x.kind === "start") ? e : [...e, { kind: "start", at: Date.now(), by: "pod" }]));
       setSyncMsg(`Synced — all three started within ${(v.spreadMs / 1000).toFixed(1)}s.`);
       const tmr = setTimeout(() => drive("active"), 400);
@@ -473,6 +502,13 @@ export default function SoISessionPage() {
   const accelRead = accelerate(lock, witnessedHours, conds);
   const accelDelta = lock ? Math.max(0, accelRead.delta) : (baseline > 0 ? Math.max(0, baseline - witnessedHours) : 0);
   const yaTriangle = lock ? accelRead.earned : accelDelta * M;   // ◬ recognised
+  // unit.tranche — the accrual splits BEFORE anything is drawn. The floor is wages for witnessed hours and is owed
+  // whatever the outcome; everything the band adds above it is held until the work qualifies. A person must be able to
+  // see which part of their number can never be taken back, so the two are shown separately and never summed on screen.
+  const tranches = split(witnessedHours, bandM, accelRead);
+  // The pod settles 웃 for its measured minutes, so settles웃 is true and heartsFor returns the ladder alone — never the
+  // minutes again under a different glyph. If the pod ever stopped settling 웃, the same call would add them back.
+  const hearts = heartsFor({ settles웃: totalYugYok > 0, measured: span, rung });
   // D11 conflict-excluded signer: the signer is not the sole beneficiary of the ◬.
   const signerName = firstName(members[signerIdx]?.name || "") || members[signerIdx]?.role || "—";
 
@@ -534,7 +570,7 @@ export default function SoISessionPage() {
     void aiPodSummary({
       intent, outcome, code: podCode, witnessedFor: hhmmss(span.ms),
       members: members.map((m, i) => ({ name: m.name.trim() || m.role, hours: claimOf(i).hours, claimed: parseFloat(m.hours) || 0, capped: claimOf(i).capped, did: m.did })),
-      yugYok: totalYugYok, hearts: witnessedHours, baselineHours: lock ? lock.hours : null,
+      yugYok: totalYugYok, hearts, baselineHours: lock ? lock.hours : null,
       deltaHours: lock ? accelRead.delta : null, accelEarned: yaTriangle, record: recordValue,
     }, "English", readProvider())
       .then((r) => { if (live && r && r.paragraphs.length === 3) setAiSynthesis({ results: r.paragraphs[0], changed: r.paragraphs[1], next: r.paragraphs[2] }); })
@@ -1085,6 +1121,26 @@ export default function SoISessionPage() {
               })()}
             </div>
 
+            {/* D12 · the clockless ladder — the ONLY source of ♡ in a pod that settles 웃 (unit.aitoken). */}
+            <div className="mb-3 rounded-md border border-border p-3 text-sm" data-testid="pod-rung">
+              <div className="mb-1 font-medium text-foreground">What did this outcome become?</div>
+              <p className="mb-2 text-xs text-muted-foreground">
+                ♡ is not time. The minutes here already settle as 웃, and a minute is counted as one or the other, never both.
+                ♡ answers a question no clock can: whether the outcome was taken up. It may honestly be none.
+              </p>
+              <select
+                value={rung}
+                onChange={(e) => setRung(e.target.value as Rung)}
+                data-testid="rung-select"
+                className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+              >
+                {RUNGS.map((r) => <option key={r.id} value={r.id}>{RUNG_LABEL[r.id]}</option>)}
+              </select>
+              <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-hearts">
+                ♡ <span className="font-medium text-foreground">{hearts}</span> from the outcome{totalYugYok > 0 ? <> · none from the {witnessedHours} h, which settle as 웃</> : null}.
+              </p>
+            </div>
+
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
               <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· MoT {fmtABC(witnessedHours)}</span></span>
               <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (M × hours, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
@@ -1092,7 +1148,12 @@ export default function SoISessionPage() {
 
             <button
               disabled={!allWitnessed || !allSelfAudited}
-              onClick={() => { setPhase("closed"); drive("closed"); }}
+              onClick={() => {
+                // D9 — written ONCE. `v ?? …` is the whole rule: a second settlement of the same pod cannot overwrite
+                // what the first one recorded, so re-opening and re-settling changes nothing about the past.
+                setVintage((v) => v ?? stamp(witnessedHours, bandM, new Date().toISOString()));
+                setPhase("closed"); drive("closed");
+              }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
               Settle &amp; issue the receipt
@@ -1113,6 +1174,11 @@ export default function SoISessionPage() {
                 <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
                 <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} earned at {bandM}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year</> : null}</li>
+                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> held at {bandM}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> held separately — recognition, not wages</> : null}</li>
+                <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
+                {vintage ? (
+                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)}</span>. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
+                ) : null}
               </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> {outcome}</p>

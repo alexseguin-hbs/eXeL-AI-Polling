@@ -74,9 +74,21 @@ export function accelerate(baseline: Baseline | null, actualHours: number, c: Ac
    The WAGE-FLOOR tranche is the hours at the floor: drawable immediately and NEVER clawed back.
    The ACCELERATION tranche is everything the multiple adds above the floor: held in escrow and released through the
    De-Risk Gateway — Pilot → Refine → Qualify → Adopt — against the frozen baseline. */
-export interface Tranches { floor: number; escrow: number; multiple: number }
+export interface Tranches {
+  floor: number;        // 웃 — drawable now, never clawed back
+  escrow: number;       // 웃 — everything the multiple adds above the floor, held
+  accelEscrow: number;  // ◬ — the recognition premium, held; a DIFFERENT unit, never added to the 웃 above
+  multiple: number;
+}
 export function split(supportedHours: number, multiple: number, accel: Acceleration): Tranches {
   const floor = Math.max(0, supportedHours);                        // 1× — settles at once
-  const escrow = Math.max(0, supportedHours * (multiple - 1)) + Math.max(0, accel.earned);
-  return { floor, escrow, multiple };
+  const escrow = Math.max(0, supportedHours * (multiple - 1));      // M − 1 — held against the frozen baseline
+  // ◬ is reported BESIDE the 웃 escrow and never inside it. They release through the same gateway stages, but a person
+  // who is told "you are owed 30" must never be handed a number that is part wage and part recognition: one is owed for
+  // hours regardless of outcome, the other is not owed at all until the outcome qualifies. Blending them would make the
+  // floor look larger than the amount that can never be clawed back, which is the one number that must not be overstated.
+  const accelEscrow = Math.max(0, accel.earned);
+  return { floor, escrow, accelEscrow, multiple };
 }
+/** floor + escrow is exactly the 웃 minted for those hours at that band. Held where it is relied upon. */
+export const trancheTotalYug = (t: Tranches): number => t.floor + t.escrow;

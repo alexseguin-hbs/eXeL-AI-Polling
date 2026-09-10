@@ -57,6 +57,8 @@ ok(/reason: "no_locked_baseline"/.test(base) && /reason: "no_time_saved"/.test(b
 // 8 · the two tranches (unit.tranche)
 ok(/floor = Math\.max\(0, supportedHours\)/.test(base), 'the wage-floor tranche is the supported hours at 1x');
 ok(/escrow = /.test(base) && /multiple - 1/.test(base), 'everything the multiple adds above the floor is escrowed');
+ok(/accelEscrow/.test(base) && !/multiple - 1\)\) \+ Math\.max\(0, accel\.earned\)/.test(base),
+   'the ◬ premium is reported BESIDE the 웃 escrow, never added into it — one is owed for hours, the other is not owed at all');
 ok(/NEVER clawed back/.test(base), 'the floor is never clawed back — the rule is stated where it is implemented');
 
 /* ── behaviour, not just text: run the modules ─────────────────────────────────────────────────────────────────────── */
@@ -90,7 +92,13 @@ if (B.accelerate) {
   ok(slower.delta === -3 && slower.earned === 0, 'work that took LONGER records a negative delta and earns nothing');
   ok(B.accelerate(null, 9.5, all).reason === 'no_locked_baseline', 'no lock, no accelerator');
   const tr = B.split(9.5, 3, B.accelerate(b, 9.5, all));
-  ok(tr.floor === 9.5 && Math.abs(tr.escrow - (19 + 2.5)) < 1e-9, 'the floor draws 9.5 and the rest escrows');
+  ok(tr.floor === 9.5, 'the wage floor is the witnessed hours at 1× — owed whatever the outcome');
+  ok(Math.abs(tr.escrow - 19) < 1e-9, 'the 웃 held is exactly what the band adds above the floor: 9.5 × (3 − 1)');
+  ok(Math.abs(tr.accelEscrow - 2.5) < 1e-9, 'the ◬ premium is held in its own unit, not folded into the 웃');
+  ok(Math.abs(B.trancheTotalYug(tr) - 9.5 * 3) < 1e-9, 'floor + escrow is exactly the 웃 minted for those hours at that band');
+  const trLoss = B.split(9.5, 1, B.accelerate(b, 40, all));
+  ok(trLoss.floor === 9.5 && trLoss.escrow === 0 && trLoss.accelEscrow === 0,
+     'a pod that ran long still draws its full floor — wages for witnessed hours are never clawed back by an outcome');
 } else ok(false, 'lib/pod-baseline.ts could not be imported');
 
 /* ── the durable record: append, never edit (rcore.ledger + the standing law) ─────────────────────────────────────────── */
@@ -158,5 +166,31 @@ if (Y.standing) {
   ok(Y.stamp(10, 3, '2026-09-10T00:00:00Z', 0.34, 'NGN').yug === 30,
      'THE COMMON LANGUAGE: the same ten hours at 3× mint 30 웃 in Lagos and in Austin — only settlement differs');
 } else ok(false, 'lib/pod-yug.ts could not be imported');
+
+
+// 12 · THE WIRING — a primitive with no call site protects nobody. These read the shipped pod screen.
+const page = read('../app/soi-session/page.tsx');
+// D · the two tranches reach the person
+ok(/const tranches = split\(/.test(page), 'the pod actually calls split() — the tranches are not a library ornament');
+ok(/data-testid="tranche-floor"/.test(page) && /data-testid="tranche-escrow"/.test(page),
+   'the receipt shows the floor and the held amount as SEPARATE numbers');
+ok(/never clawed back/.test(page), 'the receipt says in words that the floor can never be taken back');
+ok(!/tranches\.floor \+ tranches\.escrow/.test(page), 'the two tranches are never summed on screen into one comfortable number');
+// E · ♡ stops being hours (unit.aitoken)
+ok(!/hearts: witnessedHours/.test(page), '♡ is NEVER the hours again under a different glyph');
+ok(/heartsFor\(\{ settles/.test(page), '♡ comes from the ladder via heartsFor(), which enforces the either-or');
+ok(/data-testid="rung-select"/.test(page), 'the pod asks what the outcome became — a question no clock can answer');
+ok(/setRung\(/.test(page) && /useState<Rung>\("none"\)/.test(page), 'nothing awarded is the honest default');
+// F · the vintage stamp, written once
+ok(/setVintage\(\(v\) => v \?\? stamp\(/.test(page), 'a vintage is written ONCE — a second settlement cannot overwrite the first');
+ok(/setVintage\(e\.state\.vintage \?\? null\)/.test(page), 'a reopened pod READS its vintage back rather than re-deriving it');
+ok(/vintage \}, Date\.now\(\)\)/.test(page), 'the vintage is appended to the pod ledger, so it survives the phone');
+ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\)\)/.test(page),
+   'the stamp carries the hours and the multiple, and no rate — the pod mints currency-free');
+// C · hours are always tracked (operator ruling 2026-09-10)
+ok(/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEvents/.test(page),
+   'the clock starts whenever the pod is working, not only on a clean sync');
+ok((page.match(/kind: "start"/g) || []).length >= 2 && /e\.some\(\(x\) => x\.kind === "start"\)/.test(page),
+   'and it starts exactly once, however many routes reach it');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
