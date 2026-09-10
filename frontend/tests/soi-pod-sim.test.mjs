@@ -18,6 +18,7 @@ import {
   syncVerdict, isWitnessed, canEditSeat, canWitnessAs, mergeMember,
 } from "../lib/pod-roster.ts";
 import { buildSynthesis333 } from "../lib/pod-synthesis.ts";
+import { mint } from "../lib/pod-yug.ts";
 import { SYNC_START_SECONDS, POD_SIZE, SAMPLE_POD } from "../lib/pod-projects.ts";
 
 let pass = 0, fail = 0;
@@ -239,7 +240,7 @@ const M = 1, baseline = 12;
 const settle = (p) => {
   const ms = p.state.members;
   const witnessedHours = ms.reduce((s, m, i) => s + (isWitnessed(ms, i) ? (parseFloat(m.hours) || 0) : 0), 0);
-  const totalYugYok = witnessedHours * M;
+  const totalYugYok = mint(witnessedHours, M);   // the shipped mint, never a local restatement
   const accelDelta = Math.max(0, baseline - witnessedHours);
   const yaTriangle = accelDelta * M;
   const synth = buildSynthesis333({
@@ -250,12 +251,13 @@ const settle = (p) => {
   return { witnessedHours, totalYugYok, accelDelta, yaTriangle, synth };
 };
 const [sL, sA, sB] = [Lx, A, B].map(settle);
-ok(sL.witnessedHours === 9.5 && sL.totalYugYok === 9.5, `witnessed 9.5h → 9.5 웃 settle (got ${sL.witnessedHours}h, ${sL.totalYugYok})`);
+ok(sL.witnessedHours === 9.5 && Math.abs(sL.totalYugYok - mint(9.5, 1)) < 1e-9, `witnessed 9.5h → ${mint(9.5, 1).toFixed(3)} 웃 settle (got ${sL.witnessedHours}h, ${sL.totalYugYok})`);
 ok(sL.accelDelta === 2.5 && sL.yaTriangle === 2.5, `12h baseline → 2.5 ◬ recognised (got ${sL.yaTriangle})`);
 ok(eq(sL, sA) && eq(sL, sB), "ALL THREE PHONES FINALIZE THE SAME SETTLEMENT AND SYNTHESIS — the outcome is one");
 const total = words(sL.synth.results) + words(sL.synth.changed) + words(sL.synth.next);
 ok(total >= 300 && total <= 345, `synthesis lands ~333 words (got ${total})`);
-ok(/9\.5 웃/.test(sL.synth.changed) && /2\.5 ◬/.test(sL.synth.changed), "synthesis states the settled 웃 and the ◬");
+const yfmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, ""));
+ok(sL.synth.changed.includes(`${yfmt(mint(9.5, 1))} 웃`) && /2\.5 ◬/.test(sL.synth.changed), "synthesis states the settled 웃 and the ◬");
 Lx.move("closed"); bus.drain();
 ok([Lx, A, B].every((p) => p.state.phase === "closed"), "close travels to every phone");
 ok(poll.status === "polling", `the live poll is still polling after ${poll.frames} pod frames — the channels do not collide`);

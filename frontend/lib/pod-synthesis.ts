@@ -132,7 +132,7 @@ export function buildSynthesis333(inp: SynthesisInput): Synthesis333 {
 
   // ── 2. What changed ─────────────────────────────────────────────────────
   const changedCore = [
-    `Because the work was witnessed, ${num(inp.witnessedHours)} cross-reviewed hours settled as ${num(inp.totalYugYok)} 웃, computed as M times hours with M of ${num(inp.M)}, and each person is bound by the 9,999-per-year ceiling with the rest rolling forward.`,
+    `Because the work was witnessed, ${num(inp.witnessedHours)} cross-reviewed hours settled as ${num(inp.totalYugYok)} 웃, computed as hours times 9,999 over 2,080 times M, with M of ${num(inp.M)}, and each person is bound by the 9,999-per-year ceiling with the rest rolling forward.`,
     inp.yaTriangle > 0
       ? `The pod also landed ${num(inp.accelDelta)} hours ahead of its ${num(inp.baseline)}-hour frozen baseline, so ${num(inp.yaTriangle)} ◬ were recognised — the hours delta alone, signed by ${inp.signerName || "the conflict-excluded signer"}, never a profit metric — which keeps the accelerator outside the securities perimeter.`
       : `No time was saved against the frozen baseline, so no ◬ were recognised for this task; the accelerator reads the hours delta only, never a profit metric.`,

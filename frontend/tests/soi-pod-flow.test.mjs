@@ -5,6 +5,7 @@
 // this proves the deterministic core the live channel drives. Run:
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-pod-flow.test.mjs
 import { buildSynthesis333 } from "../lib/pod-synthesis.ts";
+import { mint } from "../lib/pod-yug.ts";
 import { OPEN_TOPIC, SAMPLE_POD, DEFAULT_PROJECTS, projectTasks, findProject } from "../lib/pod-projects.ts";
 
 let pass = 0, fail = 0;
@@ -30,10 +31,13 @@ ok(members.every((m) => m.agreed), "all three agreed to intent + outcome");
 
 // ── witnessed hours → 웃 (each hour counts only when both others witness) ─────────
 const witnessedHours = members.reduce((s, m) => s + (isWitnessed(m) ? m.hours : 0), 0);
-const totalYugYok = witnessedHours * M;
+// The suite reads the SHIPPED mint rather than restating the arithmetic. A local copy is how the wrong coefficient
+// survived in two places at once, and a test that keeps its own copy stops being able to see the bug.
+const totalYugYok = mint(witnessedHours, M);
 ok(members.every(isWitnessed), "every claim cross-witnessed by both other members");
 ok(witnessedHours === 9.5, `witnessed hours = 9.5 (got ${witnessedHours})`);
-ok(totalYugYok === 9.5, `웃 settle = M × hours = 9.5 (got ${totalYugYok})`);
+ok(Math.abs(totalYugYok - 9.5 * (9999 / 2080)) < 1e-9, `웃 settle = hours × (9,999÷2,080) × M (got ${totalYugYok})`);
+ok(Math.abs(mint(2080, 1) - 9999) < 1e-9, "the locked identity holds here too: one full-time year at 1× is 9,999 웃");
 
 // a self-attestation alone (not witnessed by both) settles nothing
 const soloIdx = 0;
@@ -69,7 +73,8 @@ ok(words(synth.results) >= 30 && words(synth.changed) >= 30 && words(synth.next)
 
 // grounded: names, the outcome, the settled 웃, and the ◬ appear in the prose
 ok(/Adaeze/.test(synth.results), "synthesis names the pod members");
-ok(/9\.5 웃/.test(synth.changed), "synthesis states the settled 웃 (9.5)");
+const yfmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, ""));
+ok(synth.changed.includes(`${yfmt(mint(9.5, 1))} 웃`), "synthesis states the settled 웃");
 ok(/2\.5 ◬/.test(synth.changed), "synthesis states the ◬ recognised (2.5)");
 ok(/9,999/.test(synth.changed), "synthesis states the annual ceiling");
 ok(/AB12CD/.test(synth.results), "synthesis references the pod code");

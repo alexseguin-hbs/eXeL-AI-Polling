@@ -81,7 +81,7 @@ const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string
   { id: "CRS-V02", title: "♡ S.I. earned only on POD-witnessed outcome", source: "§12 / unit.ontology (D12)",
     spec: "Shared Intent accrues only when a pod establishes and records an outcome. Clockless contributions score on a capped ladder — Noted 1 / Adopted 3 / Foundational 7." },
   { id: "CRS-V03", title: "웃 H.I. denomination + budget-approval gate + 9,999/yr ceiling", source: "§2 / unit.ceiling · unit.tranche (D7/D10)",
-    spec: "1 웃 = one hour × local minimum wage; earned = M × hours (Multiple × Time). 웃 issues ONLY on witnessed work under a scoped, budget-approved task (hours + local currency, like a CRS split into approved dev tasks) — before approval it is planning, not 웃. Wage-floor tranche paid immediately (never clawed back); acceleration tranche locked until witnessed; 9,999 웃/yr settlement boundary with rollforward." },
+    spec: "웃 = hours × (9,999 ÷ 2,080) × M — currency-free at mint; one full-time year at 1× lands exactly on 9,999. Settlement is local and reads the stamp: $ = 웃 ÷ 4.807 × stamped rate. 웃 issues ONLY on witnessed work under a scoped, budget-approved task (hours + local currency, like a CRS split into approved dev tasks) — before approval it is planning, not 웃. Wage-floor tranche paid immediately (never clawed back); acceleration tranche locked until witnessed; 9,999 웃/yr settlement boundary with rollforward." },
   { id: "CRS-V04", title: "◬ A.I. = witnessed acceleration, delinked from profit", source: "§14/§18 / unit.accel (D4/D11)",
     spec: "◬ recognizes independently witnessed AI acceleration vs a frozen baseline. The accelerator's only input is the task-scoped hours delta — never Revenue/Gross Profit/Operating Income/R&D Spend — so it sits outside the securities perimeter." },
   { id: "CRS-V05", title: "Pod-of-3 Task • Outcome", source: "open.proposed → frame.pod (this prototype)",
@@ -91,7 +91,7 @@ const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string
   { id: "CRS-V07", title: "Jurisdictional resilience & lawful portability", source: "§16 / legal.sovereign_ledger · legal.iran_workaround (D6/D8)",
     spec: "Ledger logically sovereign from its settlement transport: China participates without crypto (fiat/local rails); Iran has a lawful, crypto-free path. External timestamp anchor + non-operator mirror for tamper-evidence." },
   { id: "CRS-V08", title: "QIS — Qualified Innovation Score (measurement, not appreciation)", source: "§15/§18 / fund.metrics · fund.reward (r217/r228)",
-    spec: "A project's financial-innovation growth is measured by QIS = (R + GP + OI + ERD) ÷ 4, where ERD = QRD − ½·max(0, QRD − R/3) (R&D target = R/3). Growth = ΔQIS; ΔQIS sizes the Reward Pool — it mints no 웃 (웃 = M × hours). Measurement ≠ payment; QIS creates no recognition, ownership, or appreciation." },
+    spec: "A project's financial-innovation growth is measured by QIS = (R + GP + OI + ERD) ÷ 4, where ERD = QRD − ½·max(0, QRD − R/3) (R&D target = R/3). Growth = ΔQIS; ΔQIS sizes the Reward Pool — it mints no 웃 (웃 = hours × 9,999/2,080 × M). Measurement ≠ payment; QIS creates no recognition, ownership, or appreciation." },
   { id: "CRS-V09", title: "Human Primacy — Adaptive AI-Authority Door", source: "§3 / gov.aidoor (D13)",
     spec: "AI authority has three states — Advisory, Bounded-Autonomous (human-signed, reversible envelope), and Sovereign — with Sovereign (vote/signature/settlement) permanently closed to every machine agent." },
   { id: "CRS-V10", title: "MoT + Replay — append-only, deterministic", source: "§5 / rcore.ledger",
@@ -432,7 +432,7 @@ export default function SoISessionPage() {
   };
   const canWitness = (reviewerIdx: number) => canWitnessAs(reviewerIdx, podRef.current, ctx());
 
-  // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = M × hours (Multiple × Time), ceiling-noted).
+  // Witnessed 웃 — hours × (9,999 ÷ 2,080) × M, the coefficient derived so the locked identity cannot drift.
   // OPERATOR RULING 2026-09-10: "Multiples of min wage are HI token 웃 … that way someone can earn at higher rates."
   // The band is the route to the ceiling; 1× remains the default so a pod opened before this change settles unchanged.
   const M = bandM;
@@ -441,7 +441,7 @@ export default function SoISessionPage() {
   // the exact failure the rule exists to prevent.
   const claimOf = (i: number) => supported(parseFloat(members[i]?.hours ?? "") || 0, span);
   const witnessedHours = members.reduce((s, m, i) => s + (isWitnessed(i) ? claimOf(i).hours : 0), 0);
-  const totalYugYok = witnessedHours * M;                       // 웃 that would settle
+  const totalYugYok = mint(witnessedHours, M);                  // 웃 that would settle — the one mint, never re-derived
   const allSelfAudited = members.every((m) => (parseFloat(m.hours) || 0) > 0 && m.did.trim());
   const allWitnessed = members.every((_, i) => isWitnessed(i));
 
@@ -527,7 +527,7 @@ export default function SoISessionPage() {
       `Accelerator signed by ${signerName} (conflict-excluded). ` +
       `AI-authority: Advisory — every settlement stays human-signed (Sovereign closed to machines).`,
     settlement:
-      `${totalYugYok.toFixed(3)} 웃 settle (M × hours, M=${M}), each person bound by 9,999/yr with rollforward; ` +
+      `${totalYugYok.toFixed(3)} 웃 settle (hours × 9,999/2,080 × M, M=${M}), each person bound by 9,999/yr with rollforward; ` +
       (yaTriangle > 0 ? `${yaTriangle.toFixed(0)} ◬ recognised (delta only, no profit input). ` : "no ◬ this task. ") +
       `MoT keeps the actual minutes separately. Nothing new is minted — this gates existing currencies.`,
   };
@@ -1079,18 +1079,19 @@ export default function SoISessionPage() {
             {/* unit.multiples — the band is published, and it is the route to the ceiling rather than the country a person
                 lives in. unit.guard: bands are published in advance and change prospectively only. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-band">
-              <div className="font-medium">Rate band <span className="text-xs font-normal text-muted-foreground">— 웃 = multiple × hours, currency-free</span></div>
+              <div className="font-medium">Rate band <span className="text-xs font-normal text-muted-foreground">— 웃 = hours × (9,999 ÷ 2,080) × multiple, currency-free</span></div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} data-testid="band-select"
                   className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
-                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.hoursToCeiling.toLocaleString()} h to 9,999 웃</option>)}
+                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {Math.round(hoursToCeiling(b.m)).toLocaleString()} h to 9,999 웃</option>)}
                 </select>
                 <input type="number" min="0" step="1" value={carriedIn} onChange={(e) => setCarriedIn(e.target.value)} placeholder="웃 already earned" data-testid="carried-in"
                   className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
               </div>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-reach">
                 At {bandM}× another <span className="font-medium text-foreground">{hoursToCeiling(bandM, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃.
-                The same hour mints the same 웃 everywhere; only what it settles as is local.
+                One full-time year — 2,080 h — reaches it at 1×, in every country. The same hour mints the same 웃
+                everywhere; the multiple is the route to the ceiling, and only what it settles as is local.
               </p>
             </div>
 
@@ -1143,7 +1144,7 @@ export default function SoISessionPage() {
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
               <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· MoT {fmtABC(witnessedHours)}</span></span>
-              <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (M × hours, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
+              <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (hours × 9,999/2,080 × M, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
             </div>
 
             <button

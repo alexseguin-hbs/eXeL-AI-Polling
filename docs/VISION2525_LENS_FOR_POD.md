@@ -159,3 +159,36 @@ acceleration **against a locked estimate** — not minted at a per-minute rate."
 = hours × 4.807, with settlement `$ = 웃 ÷ 4.807 × stamped rate`. The pod implements `hours × M` with `M = 1`. Whether M and
 the 4.807 reference coefficient compose or substitute is a doctrinal question, not an implementation detail. **Flagged for the
 operator; the build will keep the pod's existing `M × hours` and will not invent a reconciliation.**
+
+---
+
+## The mint coefficient — settled by the financial section (2026-09-10)
+
+The operator declined to rule on the settlement figure I flagged and said: *"read the financial section of Vision•2525
+and this will be clear to you Master of Thought."* It is clear, and the answer was already in the document.
+
+**The locked identity.** `unit.mintsettle` — `웃 = hours × (9,999 ÷ 2,080)` at mint, currency-free; `$ = 웃 ÷ 4.807 ×
+stamped rate` at settlement. "Everyone arrives at 9,999 웃 on the same 2,080 hours." Defect 15 was opened and closed in
+one release for a coefficient that broke this, and its own remedy is the rule I have now followed: *"The coefficient is
+now derived (9,999 ÷ 2,080 = 4.807), so the identity cannot drift, and a test asserts it rather than a comment claiming
+it."*
+
+**The independent cross-check.** `fund.return` prices the Seed — 1/7 of an hour — at **0.6867 웃**, "at 4.807 per hour".
+The Seed is $1.036 in Texas, so one 웃 is $1.5087, which is $7.25 ÷ 4.807. Two routes, four matching figures.
+
+**What the pod had wrong.** `lib/pod-yug.ts` minted one 웃 per hour at base, putting the ceiling 9,999 hours away at 1×
+— 4.8 full-time years to fill one year's payout. Corrected: `mint(hours, m) = hours × YUG_PER_HOUR × m` with
+`YUG_PER_HOUR = YUG_CEILING / FTE_HOURS`, derived. One full-time year at 1× now lands exactly on 9,999.
+
+### Two blocks that drifted from the financial section — flagged, not edited
+
+Neither is read by any code. Each needs a superseding append, which is the operator's to write.
+
+| Block | What it says | What the financial section says |
+|---|---|---|
+| `unit.settle` | "9,999 웃 settles at **$72,492.75**" in Texas | $15,080.00 — the figure its own next column prints as "Local full-time year (2,080 h)". The 4.81× ratio between the two columns *is* the coefficient; the first column is what would hold if one 웃 were one hour. |
+| `coin.family` | Manila: "two hours at a qualification multiple of three, drawing **6 웃**" | 28.8 웃 (2 × 4.807 × 3). The narrative's *structure* is right and is implemented — the wage-floor third settles at once and is never clawed back — only the figure is on the old coefficient. |
+
+`coin.reach`'s "one 웃 base equals one hour of qualified human time" is the same drift stated as prose. The pod follows
+`unit.mintsettle` and `fund.return`, because those two agree with each other, with the locked identity, with `unit.reach`
+(FTE = 2,080 h, target reach 1.0) and with the operator's ruling that the multiple lets a person earn at a higher rate.

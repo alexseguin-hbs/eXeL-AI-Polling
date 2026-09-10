@@ -55,8 +55,9 @@ ok(/reason: "no_locked_baseline"/.test(base) && /reason: "no_time_saved"/.test(b
    'when nothing is earned the record says WHY');
 
 // 8 · the two tranches (unit.tranche)
-ok(/floor = Math\.max\(0, supportedHours\)/.test(base), 'the wage-floor tranche is the supported hours at 1x');
-ok(/escrow = /.test(base) && /multiple - 1/.test(base), 'everything the multiple adds above the floor is escrowed');
+ok(/floor = mint\(Math\.max\(0, supportedHours\), 1\)/.test(base), 'the wage-floor tranche is the supported hours at 1x');
+ok(/escrow = Math\.max\(0, mint\(Math\.max\(0, supportedHours\), multiple\) - floor\)/.test(base),
+   'everything the band adds above the floor is escrowed, and BOTH tranches go through the one mint');
 ok(/accelEscrow/.test(base) && !/multiple - 1\)\) \+ Math\.max\(0, accel\.earned\)/.test(base),
    'the ◬ premium is reported BESIDE the 웃 escrow, never added into it — one is owed for hours, the other is not owed at all');
 ok(/NEVER clawed back/.test(base), 'the floor is never clawed back — the rule is stated where it is implemented');
@@ -92,12 +93,13 @@ if (B.accelerate) {
   ok(slower.delta === -3 && slower.earned === 0, 'work that took LONGER records a negative delta and earns nothing');
   ok(B.accelerate(null, 9.5, all).reason === 'no_locked_baseline', 'no lock, no accelerator');
   const tr = B.split(9.5, 3, B.accelerate(b, 9.5, all));
-  ok(tr.floor === 9.5, 'the wage floor is the witnessed hours at 1× — owed whatever the outcome');
-  ok(Math.abs(tr.escrow - 19) < 1e-9, 'the 웃 held is exactly what the band adds above the floor: 9.5 × (3 − 1)');
+  const K = 9999 / 2080;
+  ok(Math.abs(tr.floor - 9.5 * K) < 1e-9, 'the wage floor is the witnessed hours at 1× — owed whatever the outcome');
+  ok(Math.abs(tr.escrow - 9.5 * K * 2) < 1e-9, 'the 웃 held is exactly what the band adds above the floor: 9.5 h × (3 − 1)');
   ok(Math.abs(tr.accelEscrow - 2.5) < 1e-9, 'the ◬ premium is held in its own unit, not folded into the 웃');
-  ok(Math.abs(B.trancheTotalYug(tr) - 9.5 * 3) < 1e-9, 'floor + escrow is exactly the 웃 minted for those hours at that band');
+  ok(Math.abs(B.trancheTotalYug(tr) - 9.5 * K * 3) < 1e-9, 'floor + escrow is exactly the 웃 minted for those hours at that band');
   const trLoss = B.split(9.5, 1, B.accelerate(b, 40, all));
-  ok(trLoss.floor === 9.5 && trLoss.escrow === 0 && trLoss.accelEscrow === 0,
+  ok(Math.abs(trLoss.floor - 9.5 * K) < 1e-9 && trLoss.escrow === 0 && trLoss.accelEscrow === 0,
      'a pod that ran long still draws its full floor — wages for witnessed hours are never clawed back by an outcome');
 } else ok(false, 'lib/pod-baseline.ts could not be imported');
 
@@ -139,8 +141,8 @@ ok(/YUG_CEILING = 9999/.test(yug) && /FTE_HOURS = 2080/.test(yug) && /MAX_SECURE
 
 const Y = await import('../lib/pod-yug.ts').catch(() => ({}));
 if (Y.standing) {
-  ok(Y.mint(10, 3) === 30, '웃 = M × hours — ten hours at 3× mints 30');
-  ok(Y.mint(10, 1) === 10 && Y.mint(10, 10) === 100, 'the multiple is the only thing that changes the mint');
+  ok(Math.abs(Y.mint(10, 3) - 10 * (9999 / 2080) * 3) < 1e-9, '웃 = hours × (9,999 ÷ 2,080) × M — ten hours at 3×');
+  ok(Math.abs(Y.mint(10, 10) - Y.mint(10, 1) * 10) < 1e-9, 'the multiple is the only thing that changes the mint');
   // EARNING IS NEVER CAPPED, PAYOUT ALWAYS IS
   const big = Y.standing(0, 25000);
   ok(big.earned === 25000 && big.cumulative === 25000, 'earning is NOT capped — 25,000 웃 earned is 25,000 recognised');
@@ -154,17 +156,36 @@ if (Y.standing) {
   ok(Y.standing(0, 0).payableThisYear === 0 && Y.standing(0, 0).carried === 0, 'nothing earned settles nothing');
   ok(Y.standing(0, 9999 * 200).securedYears === 99, 'a reservation stops at the 99th year — coverage ends at a lifetime');
   // REACH: the multiple is the route to the ceiling, never the geography
-  ok(Y.hoursToCeiling(1) === 9999, 'at 1× the ceiling is 9,999 hours away');
-  ok(Math.abs(Y.hoursToCeiling(4.807) - 2080) < 0.5, 'at 4.807× it is one full-time year');
-  ok(Y.hoursToCeiling(10) < 1001, 'at 10× it is under a thousand hours');
+  ok(Y.hoursToCeiling(1) === 2080, 'THE LOCKED IDENTITY, from the other side: at 1× the ceiling is one full-time year away');
+  ok(Math.abs(Y.hoursToCeiling(3) - 2080 / 3) < 1e-9, 'a band shortens the hours in exact proportion — 3× reaches it in a third of a year');
+  ok(Y.hoursToCeiling(10) < 209, 'at 10× it is a little over two hundred hours');
   ok(Y.hoursToCeiling(3, 9999) === 0, 'someone already at the ceiling needs no further hours');
-  ok(Y.BANDS.length === 7 && Y.BANDS[3].hoursToCeiling === 2080, 'the published band table is the paper\'s seven');
+  ok(Y.BANDS.length === 7 && Y.BANDS.map((b) => b.m).join() === '1,2,3,4.807,6,8,10',
+     'the published multiples are kept EXACTLY as published — unit.guard forbids retroactive reclassification');
+  ok(!('hoursToCeiling' in Y.BANDS[0]),
+     'and the hours are DERIVED, never stored beside them — a stored copy is how the wrong figure survived');
   ok(Y.isBand(4.807) && !Y.isBand(5), 'a band comes only from the published table');
+  // THE MINT COEFFICIENT — defect 15. unit.mintsettle: "The coefficient is now derived (9,999 ÷ 2,080 = 4.807), so the
+  // identity cannot drift, and A TEST ASSERTS IT RATHER THAN A COMMENT CLAIMING IT." This is that test.
+  ok(Y.YUG_PER_HOUR === 9999 / 2080, 'the coefficient is derived from the ceiling and the full-time year, never a literal');
+  ok(Y.mint(2080, 1) === 9999, 'THE LOCKED IDENTITY: one full-time year at 1× lands EXACTLY on 9,999 웃');
+  ok(Math.abs(Y.mint(1 / 7, 1) - 0.6867) < 0.0001,
+     'and it agrees with the financial section from the other end: one Seed, 1/7 of an hour, is 0.6867 웃 (fund.return)');
+  ok(Y.mint(693.4, 1) < 3335 && Y.mint(693.4, 3) > 9998,
+     'the multiple raises the RATE: 3× reaches the ceiling in a third of the year, which is what "earn at higher rates" means');
+  ok(!/4\.807[0-9]*;/.test(yug) && !/= 4\.807/.test(yug), 'the coefficient is nowhere hardcoded as 4.807');
+  // SETTLEMENT — unit.mintsettle's second half. Currency lives here and NOWHERE in the mint.
+  ok(Math.abs(Y.settle(9999, 7.25) - 15080) < 0.01, '9,999 웃 settles at $15,080.00 in Texas — 2,080 hours at $7.25');
+  ok(Math.abs(Y.settle(9999, 0.34) - 707.2) < 0.01, 'and at $707.20 in Nigeria — the same reach, a local value');
+  ok(Math.abs(Y.settle(Y.mint(100, 3), 7.25) - 100 * 3 * 7.25) < 1e-6,
+     'settlement resolves to hours × M × the local floor: a person at 3× is paid three times the floor for their hour');
   // the vintage is written once, and the rate takes no part in the mint
   const v = Y.stamp(10, 3, '2026-09-10T00:00:00Z', 7.25, 'USD');
-  ok(v.yug === 30 && v.rate === 7.25, 'a vintage records the rate beside the 웃 without the rate touching the mint');
-  ok(Y.stamp(10, 3, '2026-09-10T00:00:00Z', 0.34, 'NGN').yug === 30,
-     'THE COMMON LANGUAGE: the same ten hours at 3× mint 30 웃 in Lagos and in Austin — only settlement differs');
+  ok(Math.abs(v.yug - Y.mint(10, 3)) < 1e-9 && v.rate === 7.25, 'a vintage records the rate beside the 웃 without the rate touching the mint');
+  ok(Y.stamp(10, 3, '2026-09-10T00:00:00Z', 0.34, 'NGN').yug === v.yug,
+     'THE COMMON LANGUAGE: the same ten hours at 3× mint the SAME 웃 in Lagos and in Austin — only settlement differs');
+  ok(Math.abs(Y.settle(v.yug, 7.25) - 10 * 3 * 7.25) < 1e-6 && Math.abs(Y.settle(v.yug, 0.34) - 10 * 3 * 0.34) < 1e-6,
+     'and those identical 웃 settle at three times each local floor for the ten hours — the difference is the currency, not the person');
 } else ok(false, 'lib/pod-yug.ts could not be imported');
 
 

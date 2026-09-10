@@ -14,6 +14,7 @@
  * Pure: no React, no storage, no network.
  */
 import { sha256Hex } from "@/lib/sign-envelope";
+import { mint } from "@/lib/pod-yug";
 
 /** What is frozen before the clock starts. Written once; a change is a NEW lock, never an edit (rcore.ledger). */
 export interface Baseline {
@@ -81,8 +82,10 @@ export interface Tranches {
   multiple: number;
 }
 export function split(supportedHours: number, multiple: number, accel: Acceleration): Tranches {
-  const floor = Math.max(0, supportedHours);                        // 1× — settles at once
-  const escrow = Math.max(0, supportedHours * (multiple - 1));      // M − 1 — held against the frozen baseline
+  // Both tranches are in 웃, so both go through the ONE mint. Writing the arithmetic out here a second time is how the
+  // old one-웃-per-hour coefficient survived in two places at once; there is exactly one mint and this reads it.
+  const floor = mint(Math.max(0, supportedHours), 1);               // 1× — settles at once
+  const escrow = Math.max(0, mint(Math.max(0, supportedHours), multiple) - floor);  // what the band adds, held
   // ◬ is reported BESIDE the 웃 escrow and never inside it. They release through the same gateway stages, but a person
   // who is told "you are owed 30" must never be handed a number that is part wage and part recognition: one is owed for
   // hours regardless of outcome, the other is not owed at all until the outcome qualifies. Blending them would make the
