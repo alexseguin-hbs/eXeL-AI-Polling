@@ -120,4 +120,43 @@ if (P.appendPod) {
   ok(P.replayPod('NOPE') === null, 'a pod this device never held reads back as nothing, not as an empty pod');
 } else ok(false, 'lib/pod-store.ts could not be imported');
 
+/* ── 웃, the ceiling and the carry — the operator's rulings of 2026-09-10 ──────────────────────────────────────────────
+   "max payout in year is 9999 웃, anything additional goes to next year, and the next, to allow someone to have lifelong
+   stability" and "this allows for common language even if 0.34 nigeria min wage and 7.25 Texas min wage differ". */
+const yug = read('../lib/pod-yug.ts');
+ok(/EARNING IS NEVER CAPPED\. PAYOUT IS ALWAYS CAPPED/.test(yug), 'the ruling is stated where it is implemented');
+ok(/THE MINT IS CURRENCY-FREE/.test(yug), 'the currency-free rule is stated at the mint');
+ok(!/[$£€]|usd|USD/.test(yug.replace(/\/\*[\s\S]*?\*\//g, '')), 'no currency symbol appears in the mint code itself');
+ok(/YUG_CEILING = 9999/.test(yug) && /FTE_HOURS = 2080/.test(yug) && /MAX_SECURED_YEARS = 99/.test(yug), 'the paper\'s constants, not invented ones');
+
+const Y = await import('../lib/pod-yug.ts').catch(() => ({}));
+if (Y.standing) {
+  ok(Y.mint(10, 3) === 30, '웃 = M × hours — ten hours at 3× mints 30');
+  ok(Y.mint(10, 1) === 10 && Y.mint(10, 10) === 100, 'the multiple is the only thing that changes the mint');
+  // EARNING IS NEVER CAPPED, PAYOUT ALWAYS IS
+  const big = Y.standing(0, 25000);
+  ok(big.earned === 25000 && big.cumulative === 25000, 'earning is NOT capped — 25,000 웃 earned is 25,000 recognised');
+  ok(big.payableThisYear === 9999, 'payout IS capped at 9,999 in the year');
+  ok(big.carried === 25000 - 9999, 'everything above the ceiling CARRIES; nothing evaporates');
+  ok(big.securedYears === 2, '25,000 웃 secures two whole years');
+  ok(Math.abs(big.remainderNextYear - (25000 - 2 * 9999)) < 1e-9, 'and the remainder opens the following year');
+  // the carry survives being added to, year on year — the operator's "lifelong stability"
+  const a = Y.standing(0, 9999), b = Y.standing(a.cumulative, 9999), c = Y.standing(b.cumulative, 9999);
+  ok(c.securedYears === 3 && c.cumulative === 29997, 'three ceilings earned secure three years, cumulatively');
+  ok(Y.standing(0, 0).payableThisYear === 0 && Y.standing(0, 0).carried === 0, 'nothing earned settles nothing');
+  ok(Y.standing(0, 9999 * 200).securedYears === 99, 'a reservation stops at the 99th year — coverage ends at a lifetime');
+  // REACH: the multiple is the route to the ceiling, never the geography
+  ok(Y.hoursToCeiling(1) === 9999, 'at 1× the ceiling is 9,999 hours away');
+  ok(Math.abs(Y.hoursToCeiling(4.807) - 2080) < 0.5, 'at 4.807× it is one full-time year');
+  ok(Y.hoursToCeiling(10) < 1001, 'at 10× it is under a thousand hours');
+  ok(Y.hoursToCeiling(3, 9999) === 0, 'someone already at the ceiling needs no further hours');
+  ok(Y.BANDS.length === 7 && Y.BANDS[3].hoursToCeiling === 2080, 'the published band table is the paper\'s seven');
+  ok(Y.isBand(4.807) && !Y.isBand(5), 'a band comes only from the published table');
+  // the vintage is written once, and the rate takes no part in the mint
+  const v = Y.stamp(10, 3, '2026-09-10T00:00:00Z', 7.25, 'USD');
+  ok(v.yug === 30 && v.rate === 7.25, 'a vintage records the rate beside the 웃 without the rate touching the mint');
+  ok(Y.stamp(10, 3, '2026-09-10T00:00:00Z', 0.34, 'NGN').yug === 30,
+     'THE COMMON LANGUAGE: the same ten hours at 3× mint 30 웃 in Lagos and in Austin — only settlement differs');
+} else ok(false, 'lib/pod-yug.ts could not be imported');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

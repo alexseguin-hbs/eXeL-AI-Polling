@@ -49,6 +49,7 @@ import { format as fmtABC } from "@/lib/abc-3600";
 import { measure, supported, witnessedHours as spanHours, hhmmss, type ClockEvent } from "@/lib/pod-clock";
 import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
+import { BANDS, standing, hoursToCeiling, YUG_CEILING, mint } from "@/lib/pod-yug";
 import { aiPodSummary } from "@/lib/ai";
 import { lockBaseline, accelerate, noConditions, CONDITION_IDS, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -141,6 +142,8 @@ export default function SoISessionPage() {
   // §14 unit.accel — the estimate LOCKED BEFORE THE WORK, signed by a party with no stake, carrying a Replay hash.
   const [lock, setLock] = useState<Baseline | null>(null);
   const [conds, setConds] = useState<AccelConditions>(noConditions);
+  const [bandM, setBandM] = useState(1);                                  // unit.multiples — published bands only
+  const [carriedIn, setCarriedIn] = useState("");                         // 웃 already recognised, for the carry maths
 
   // Real session over the poll's own live channel (session:<code>), scoped to a pod
   // of 3 (operator: same code+login method as the poll, one is lead). A joiner opens
@@ -401,7 +404,9 @@ export default function SoISessionPage() {
   const canWitness = (reviewerIdx: number) => canWitnessAs(reviewerIdx, podRef.current, ctx());
 
   // Witnessed 웃 (M = 1 wage-floor in this prototype; earned = M × hours (Multiple × Time), ceiling-noted).
-  const M = 1;
+  // OPERATOR RULING 2026-09-10: "Multiples of min wage are HI token 웃 … that way someone can earn at higher rates."
+  // The band is the route to the ceiling; 1× remains the default so a pod opened before this change settles unchanged.
+  const M = bandM;
   // §14 unit.witness — "웃 is minted only for time CLOCKED BY THE PLATFORM", so a typed claim is bounded by the session the
   // platform witnessed. Where no clock ran the claim stands and the panel SAYS SO: silently trusting an unwitnessed claim is
   // the exact failure the rule exists to prevent.
@@ -463,6 +468,8 @@ export default function SoISessionPage() {
   const baseline = parseFloat(baselineHrs) || 0;
   // When an estimate was LOCKED before the work (§14 unit.accel) the receipt reads from the lock and honours the six
   // conditions; without one it falls back to the older typed figure so a pod opened before this change still settles.
+  // OPERATOR RULING: earning is never capped, payout always is, and the excess carries to the next year and the next.
+  const stand = standing(parseFloat(carriedIn) || 0, mint(witnessedHours, bandM));
   const accelRead = accelerate(lock, witnessedHours, conds);
   const accelDelta = lock ? Math.max(0, accelRead.delta) : (baseline > 0 ? Math.max(0, baseline - witnessedHours) : 0);
   const yaTriangle = lock ? accelRead.earned : accelDelta * M;   // ◬ recognised
@@ -1033,6 +1040,24 @@ export default function SoISessionPage() {
               ))}
             </div>
 
+            {/* unit.multiples — the band is published, and it is the route to the ceiling rather than the country a person
+                lives in. unit.guard: bands are published in advance and change prospectively only. */}
+            <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-band">
+              <div className="font-medium">Rate band <span className="text-xs font-normal text-muted-foreground">— 웃 = multiple × hours, currency-free</span></div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} data-testid="band-select"
+                  className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
+                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.hoursToCeiling.toLocaleString()} h to 9,999 웃</option>)}
+                </select>
+                <input type="number" min="0" step="1" value={carriedIn} onChange={(e) => setCarriedIn(e.target.value)} placeholder="웃 already earned" data-testid="carried-in"
+                  className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-reach">
+                At {bandM}× another <span className="font-medium text-foreground">{hoursToCeiling(bandM, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃.
+                The same hour mints the same 웃 everywhere; only what it settles as is local.
+              </p>
+            </div>
+
             {/* §14 unit.accel — read AGAINST THE LOCKED ESTIMATE, and only when all six conditions hold. "Faster is not
                 automatically better; cheaper is not automatically better; and more AI is certainly not automatically better."
                 A negative delta is shown, never hidden: the hypothesis is allowed to fail honestly. */}
@@ -1087,7 +1112,7 @@ export default function SoISessionPage() {
               <ol className="mb-3 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
                 <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
-                <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> ♡ {witnessedHours.toFixed(2)} h → 웃 {totalYugYok.toFixed(3)} · ◬ {t("soi.pod.receipt.synthesis")}</li>
+                <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} earned at {bandM}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year</> : null}</li>
               </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> {outcome}</p>
@@ -1157,7 +1182,9 @@ export default function SoISessionPage() {
 
             <p className="text-xs text-muted-foreground">{FREE_TOOLS_NOTE}</p>
             <p className="text-[11px] text-muted-foreground">
-              ♡ accrues to all three on the witnessed outcome; 웃 settles from witnessed hours under the 9,999/yr ceiling; ◬ only from the frozen-baseline delta. Nothing new is minted — the pod gates currencies that already exist. — MoT
+              Earning is never capped; payout is. A year fills to 9,999 웃 and no further, and everything above it rolls to the next
+              year, and the next, so the record becomes lifelong stability rather than a single windfall. ◬ comes only from the estimate
+              locked before the work. The same hour mints the same 웃 in Lagos and in Austin — only what it settles as is local.
             </p>
             <button onClick={reset} className="rounded-md border border-border px-4 py-2 text-sm">New pod</button>
           </div>
