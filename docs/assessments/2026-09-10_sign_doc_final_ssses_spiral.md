@@ -72,3 +72,39 @@ Your technical panel: add `?diag=1` to the sign URL.
 ## 7 · Open, code-side, none of which loses a signature
 A reader view for a non-signer · QR beside the saved links · rotation of a completed record's secret · re-saving a
 device-local record once the database answers · the multi-signer hand-off texting a link rather than the file.
+
+---
+
+# 8 · The twelve, on the shipped journey (not the diff)
+
+Grades: **A A A A · B B B B B B B · C**. Every actionable finding was closed the same night; the closing commit is 6dbec41.
+
+| Master | Grade | What they found | State |
+|---|:--:|---|---|
+| **Thoth** | A | Counted the gates and the caps. The one number nobody measures: `addBytes` sums a stale files array, so eight PDFs chosen at once clear every cap and fail later at create. | **Open** — logged below |
+| **Odin** | A | The invariant is structural now; the Light Codex alphabet carries no version byte, so a future alphabet change would silently break decoding of your two executed PDFs. Three untimed fetches in `lib/ai.ts`. | Fetches **fixed**; codex version **open** |
+| **Enki** | B | Multi-select, storage pressure and a backgrounded phone are driven by no proof. Eviction may delete another unfinished document without warning. | **Open** |
+| **Thor** | B | The hand-off e-mail carries the full link including the `#s=` fragment to the mail vendor, so a bearer key lands in a third-party log. Secrets are plaintext in device storage. | **Open, accepted for now** — this is how a magic link works; the alternative is a server-side one-time handle |
+| **Christo** | B | The 60-second watchdog handed over the file but never marked the save refused, so a hung save could still read "complete". | **Fixed** |
+| **Aset** | C | The law was still broken in one place: `soi.sign.err.no_backend` rendered verbatim on the signers step, in all 33 languages. The gate's exemption list had become a hiding place. | **Fixed**, and the gate now fails on any retired string in the JSX |
+| **Krishna** | B | Five optional-chained `pub?.signers` reads bypassed the guard and could still blank the panel. Three fixes sat outside the build gate. | **Fixed** |
+| **Sofia** | B | Four controls at 36px under the 44px floor; rendered URLs had no direction, so Arabic and Hebrew reordered them. | **Fixed** |
+| **Athena** | B | The proof reproduces your world in shape but not in substrate: every run is Chromium. Your own database state on your own iPhone is still unproven. | **Open — yours to run** |
+| **Enlil** | B | Three fixes had no gate at all: delete them and everything stayed green. | **Fixed** — 20 → 27 assertions |
+| **Asar** | A | You have the outcome you asked for: you sign, and the file is yours whatever the database does. | — |
+| **Pangu** | A | Vision-2525 worthy now. The single change that would raise it further: let a device-held record rejoin the store by itself, so the promise needs no sentence at all. | **Open, recommended next** |
+
+## 9 · What I would do next, in order
+1. **Silent reconciliation** (Pangu). A device-held record rejoins the store on the next successful contact. The best remaining
+   change, because it removes a sentence rather than adding one.
+2. **Cap arithmetic on live totals** (Thoth, Enki). Refuse the sixth file at the picker, not at create.
+3. **A version byte in the Light Codex** (Odin), plus a frozen v1 fixture that must decode forever — so the two documents you
+   executed stay readable for good.
+4. **A server-side one-time handle for the hand-off mail** (Thor), so no bearer key reaches a vendor's log.
+5. **One run on your real iPhone against your real database** (Athena). Only you can do this one.
+
+## 10 · The morning check, in four taps
+1. Open the site, hard reload once. Footer should read **6dbec41** or later.
+2. Sign one document alone. You should get the Done panel, the file, and no word about any database.
+3. Paste the served SQL once in Supabase, reload, sign again. The badge should disappear and a hand-off link should mint.
+4. If anything looks wrong, add `?diag=1` to the sign URL: that panel is yours and it still speaks plainly.
