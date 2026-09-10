@@ -48,6 +48,7 @@ import { api } from "@/lib/api";
 import { format as fmtABC } from "@/lib/abc-3600";
 import { measure, supported, witnessedHours as spanHours, hhmmss, type ClockEvent } from "@/lib/pod-clock";
 import { readProvider } from "@/lib/ai-provider";
+import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
 import { aiPodSummary } from "@/lib/ai";
 import { lockBaseline, accelerate, noConditions, CONDITION_IDS, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -329,6 +330,32 @@ export default function SoISessionPage() {
   }, [phase]);
   const span = measure(clockEvents, nowTick);
   const measuredHours = spanHours(span);
+  // rcore.ledger — each move APPENDS a revision of the pod to this device. Nothing is overwritten, so an earlier revision
+  // still reads back exactly as it was, and a reload reopens what happened rather than a blank pod.
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [resumed, setResumed] = useState("");
+  const podRev = useRef(0);
+  const restored = useRef(false);
+  // Coming back to the same pod: replay the newest revision this device holds for the code in the link. The peers may all
+  // have closed their phones — the record is no longer only in their memory.
+  useEffect(() => {
+    if (restored.current || !podCode) return;
+    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string }>(podCode);
+    if (!e) return;
+    restored.current = true; podRev.current = e.rev;
+    setIntent(e.state.intent); setOutcome(e.state.outcome); setMembers(e.state.members);
+    setClockEvents(e.state.clockEvents ?? []); setBaselineHrs(e.state.baselineHrs ?? ""); setSignerIdx(e.state.signerIdx ?? 0);
+    setRecordMethod(e.state.recordMethod ?? "written"); setRecordValue(e.state.recordValue ?? "");
+    podRef.current = { ...podRef.current, phase: e.state.phase }; setPhase(e.state.phase);
+    setResumed(`Reopened at revision ${e.rev} — everything recorded is as you left it.`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [podCode]);
+  useEffect(() => {
+    if (!podCode) return;
+    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue }, Date.now());
+    if (!ok) setSaveFailed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [podCode, phase, members, clockEvents, recordValue]);
   useEffect(() => {
     if (phase !== "sync") return;
     const v = syncVerdict(members, SYNC_START_SECONDS);
@@ -670,6 +697,19 @@ export default function SoISessionPage() {
               })}
             </div>
 
+            {resumed && <p className="mb-3 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs text-primary" data-testid="pod-resumed">{resumed}</p>}
+            {saveFailed && <p className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-xs text-amber-500" data-testid="pod-save-failed">This device would not keep a copy of the pod, so closing this page would lose it. Finish here, or free some space and reopen.</p>}
+            {recentPods().length > 0 && (
+              <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-recent">
+                <div className="font-medium">Come back to a pod</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {recentPods().map((r) => (
+                    <button key={r.code} type="button" onClick={() => { setPodCode(r.code); restored.current = false; }} data-testid={`resume-${r.code}`}
+                      className="min-h-[44px] rounded-md border border-border px-3 text-xs">{r.code} <span className="text-muted-foreground">· r{r.rev}</span></button>
+                  ))}
+                </div>
+              </div>
+            )}
             {/* §14 unit.accel · the estimate is frozen HERE, before the clock, or there is no accelerator at all. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-baseline">
               <div className="font-medium">Estimate, before the work <span className="text-xs font-normal text-muted-foreground">— optional; ◬ is read against it</span></div>

@@ -93,4 +93,31 @@ if (B.accelerate) {
   ok(tr.floor === 9.5 && Math.abs(tr.escrow - (19 + 2.5)) < 1e-9, 'the floor draws 9.5 and the rest escrows');
 } else ok(false, 'lib/pod-baseline.ts could not be imported');
 
+/* ── the durable record: append, never edit (rcore.ledger + the standing law) ─────────────────────────────────────────── */
+const store = read('../lib/pod-store.ts');
+ok(/take the newest entry e where e\.rev <= v/.test(store), 'the store states the ledger render rule where it implements it');
+ok(/export function appendPod/.test(store) && !/function (update|edit|overwrite)Pod/.test(store), 'a revision is APPENDED; there is no edit');
+ok(/evictOldestPod/.test(store) && /never the one being written/.test(store), 'a full device drops the OLDEST pod, never the one in hand');
+ok(/return false/.test(store) && /carries on from memory and SAYS SO/.test(store), 'a failed save is reported, never silent');
+
+// behaviour: a real append-only log with replay
+globalThis.localStorage = (() => { const m = new Map();
+  return { get length() { return m.size; }, key: (i) => [...m.keys()][i] ?? null,
+    getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; })();
+const P = await import('../lib/pod-store.ts').catch(() => ({}));
+if (P.appendPod) {
+  ok(P.appendPod('ABC123', 1, { phase: 'compose', hours: 0 }, 1000), 'revision 1 is kept');
+  ok(P.appendPod('ABC123', 2, { phase: 'active', hours: 1 }, 2000), 'revision 2 is kept beside it');
+  ok(P.appendPod('ABC123', 3, { phase: 'closed', hours: 9.5 }, 3000), 'revision 3 is kept beside those');
+  ok(P.replayPod('ABC123').state.phase === 'closed', 'the latest reads back as the latest');
+  ok(P.replayPod('ABC123', 2).state.phase === 'active', 'replay(2) still returns what revision 2 actually held');
+  ok(P.replayPod('ABC123', 1).state.hours === 0, 'and revision 1 is unchanged by everything appended after it');
+  ok(P.podHistory('ABC123').length === 3, 'the whole history is walkable');
+  ok(P.appendPod('ABC123', 2, { phase: 'TAMPERED' }, 9999) && P.replayPod('ABC123', 2).state.phase === 'active',
+     're-appending an existing revision does NOT overwrite it — an append is idempotent');
+  P.appendPod('ZZZ999', 1, { phase: 'compose' }, 5000);
+  ok(P.recentPods()[0].code === 'ZZZ999', 'the most recent pod is offered first, so coming back is a list not a memory');
+  ok(P.replayPod('NOPE') === null, 'a pod this device never held reads back as nothing, not as an empty pod');
+} else ok(false, 'lib/pod-store.ts could not be imported');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
