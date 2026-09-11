@@ -21,7 +21,13 @@ export interface Baseline {
   id: string;               // pod code + sequence — the lock's own name
   version: number;          // a re-lock appends; it never overwrites
   scope: string;            // what was to be done, in the pod's words
-  hours: number;            // the estimated duration — the PLANNED time
+  /**
+   * THE PLANNED TIME, IN PERSON-HOURS ACROSS THE TRIO (fleet review 2026-09-11 — twelve masters found this quantity
+   * carried three meanings). It is the sum of the members' counted hours, because that is what the mint (M × T), the
+   * accelerator (delta = hours − actual) and the ceiling all read. It is NOT the pod's wall-clock span; that is printed
+   * beside it under its own name and is never compared to this figure.
+   */
+  hours: number;
   /**
    * THE TASK PLAN (operator 2026-09-11): "every task gets an M, accepted by scope of work or by team before starting
    * task … task gets plan so we can measure plans actual in time and HI TOKEN. This can be predetermined or established

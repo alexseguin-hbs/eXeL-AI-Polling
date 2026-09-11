@@ -41,6 +41,8 @@ const members = [
 const rows = members.map((m) => {
   const sup = supported(m.claim, span); const j = findJurisdiction(m.region);
   const yug = mint(sup.hours, plan.m); const cash = settleInRegion(yug, j);
+  // The vintage is stamped at EARNING with this person's elected floor; the current rate here is the same table at settlement,
+  // so in this scenario the two are equal — the D9 column says so plainly rather than implying a comparison happened.
   const d9 = settleD9(yug, { rate: j?.rate ?? null, currency: j?.currency ?? null }, j);
   return { ...m, sup, j, yug, cash, d9 };
 });
@@ -60,6 +62,10 @@ const md = `# POD time documented — volunteer (♡) vs paid (웃), against the
 
 *Generated 2026-09-11 by \`frontend/scripts/pod-time-report.mjs\` from the shipped functions — \`pod-clock.ts\`,
 \`pod-yug.ts\`, \`pod-baseline.ts\`, \`pod-rates.ts\`, \`abc-3600.ts\`. Fixed timestamps; reproducible; nothing restated.*
+
+*This is a COMPUTED SCENARIO — fixed inputs through the shipped code — not the live run. The three-phone run's own
+numbers (24 seconds of clocked segments, claims capped to 0.01 h) are in \`docs/assessments/pod-live-run-2026-09-11/log.txt\`.
+"Planned hours" here and in the pod are PERSON-HOURS across the trio, the quantity the mint and the accelerator read.*
 
 ## 1 · The agreed task, and its plan — accepted by all three before the clock
 
@@ -89,7 +95,7 @@ The same hours mint the same 웃 everywhere; **only what a 웃 settles as is loc
 
 | Member | Elected place | Claimed | Counted | Capped? | 웃 = ${plan.m} × counted | Settles as | D9 |
 |---|---|---:|---:|:--:|---:|---|---|
-${rows.map((r) => `| ${r.name} | ${r.j.name} (${r.j.rate} ${r.j.currency}/h) | ${r.claim.toFixed(2)} h | ${r.sup.hours.toFixed(4)} h | ${r.sup.capped ? '**yes**' : 'no'} | **${r.yug.toFixed(3)}** \`${abc(r.yug)}\` | **${formatLocal(r.cash, r.j.currency)}** | ${r.d9.which} rate |`).join('\n')}
+${rows.map((r) => `| ${r.name} | ${r.j.name} (${r.j.rate} ${r.j.currency}/h) | ${r.claim.toFixed(2)} h | ${r.sup.hours.toFixed(4)} h | ${r.sup.capped ? '**yes**' : 'no'} | **${r.yug.toFixed(3)}** \`${abc(r.yug)}\` | **${formatLocal(r.cash, r.j.currency)}** | ${r.d9.which === 'equal' ? 'vintage = current' : r.d9.which} |`).join('\n')}
 
 Ana claimed 1.50 h against a 1.25 h clock: counted **${rows[1].sup.hours.toFixed(4)} h**, flagged capped. Nothing was silently trusted.
 

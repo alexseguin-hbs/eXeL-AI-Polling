@@ -252,3 +252,35 @@ on the mint written time-first — in any pod source, except lines marked `HISTO
 - `MAX_YUG_PER_MIN` (`lib/pod-clock.ts:27`) is `9,999 ÷ 525,600`, the ceiling over *calendar* minutes, but
   its name reads as a per-minute mint cap. At `웃 = M × T` any multiple above 1.141× would exceed it. It is
   declared and never enforced, so nothing breaks today.
+
+---
+
+## 2026-09-11 — the clock as a button, the task plan with its M, outcomes by three, the region record reconciled, the showcase
+
+Operator instructions, persisted verbatim at `docs/asks/2026-09-11_clock_button_outcomes_by_three_fleet48.md` and
+`docs/asks/2026-09-11_election_of_locality.md`. What they became in the pod:
+
+| Ruling | Where it lives | Gate |
+|---|---|---|
+| "button should start and end clock … adding additional time" | `pod-clock.ts` `measure()` folds every Start→Stop into `segments[]`, `ms` is their **sum**; `page.tsx` `pressClock` / `toggleClock` / `stopAndRecord` — one handler for the desktop button and the phone strip; the clock no longer starts by side-effect | segments sum, gap not counted; Stop-while-stopped and Start-while-running change nothing; one stop path |
+| The clock is ONE for the pod | `pod-roster.ts` `PodMsg` gains `{ kind: "clock" }`; the page broadcasts every press and appends a received press once, only from a phone `known()` to the roster | broadcast asserted; guard asserted; idempotent append asserted |
+| "every task gets an M, accepted by scope of work or by team before starting task … task gets plan" | `pod-baseline.ts` `Baseline` is the **task plan**: `hours`, `m`, `yug = m × hours`, `source: predetermined \| pod`, all inside the hash; a pod cannot open without one; each member approves "intent, outcome and plan (h × M)"; Back to edit clears every approval; `const M = lock?.m ?? bandM`; the audit-phase picker is gone; the plan rides the brief with its hash and is read back on reopen | changed M or 웃 fails `verifyBaseline`; `band-select` absent; receipt shows plan → actual |
+| "allow for outcomes inputs by 3 members" | `Member.outcome`, own-seat-only, required ×3 before audit, never erased by an empty merge, not cleared by Reset; both AI payloads and backend `PodFacts` carry `member_outcomes`, `segments`, `witnessed_for` | asserted; the sim's contract check kept exact against `pod_router.py` |
+| Feedback intake — "unread inputs related to min wage per regions" | `pod-rates.ts` merges `min-wage.ts` (50 US states + 9 countries, `hi_rates.py` — "the live settlement table", `fund.token`) as jurisdictions tagged by source; Cambodia in and flagged; `settleD9()` pays the greater of vintage and current from the same jurisdiction, relocation is an election onto the new schedule; detection (`/api/geo`, reused) only **suggests**; D1/D2 shown as the register's unsettled proposals | 106 + 51 reconcile with none lost; California is $16.00; D9 all three branches; no cross-currency max; detection never sets the election |
+| "showcase … input in time and authorize local min wage for value" | `scripts/pod-live-run-2026-09-11.mjs` — three real phones, **65 steps, 0 failures**, `docs/assessments/pod-live-run-2026-09-11/`; `scripts/pod-time-report.mjs` → `docs/assessments/2026-09-11_pod_time_volunteer_vs_paid.md` | the closed receipt carries `receipt-each` (each at their own floor) and the D9 line |
+
+**A class defect the button exposed, and closed the same day.** Clock events lived per phone. With the side-effect start
+every phone had roughly the same span; with a button only the presser's ledger had events, and the joiners' claims would
+have capped to zero. The `clock` message is the class fix — every press, every phone, once. Ana's phone in the run shows
+*segment 1 · segment 2 · running* while Lea holds the button.
+
+**A second one, seen only because the showcase ran to the receipt.** Per-member settlement in each currency lived on the
+audit panel and vanished at close; the one screen a person keeps showed no naira and no pesos. Line 5b now carries it.
+
+Gate: 253 → 310. Shipped: `edba186` (clock, plan, outcomes) · `baa6017` (regions, D9) · `55a636d` (showcase, time
+document, clock replication, receipt-each) · `a4d1eb4` (fleet builder). All LIVE.
+
+**Still the operator's, unchanged:** D1 and D2 (open since r57, "blocks operation"); Cambodia absent from the 103; Mexico's
+two figures; the backend mint without M or locality (pod-only ruling); the join-code defects. And one wording gap noticed
+in the time document: "planned hours" are **person-hours** summed across the trio (that is what `accelerate()` and
+`stand.earned` compare against), and the compose panel should say so.

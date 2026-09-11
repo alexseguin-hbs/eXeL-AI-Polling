@@ -57,7 +57,7 @@ import {
 } from "@/lib/pod-rates";
 import { detectRegion } from "@/lib/min-wage";
 import { aiPodSummary } from "@/lib/ai";
-import { lockBaseline, accelerate, noConditions, CONDITION_IDS, split, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
+import { lockBaseline, verifyBaseline, accelerate, noConditions, CONDITION_IDS, split, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
 import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoiGlobe } from "@/components/soi-globe";
@@ -209,6 +209,9 @@ export default function SoISessionPage() {
   // revised — deferral changes WHEN a 웃 settles, never what it recorded. No rate and no currency: the pod mints
   // currency-free, and a rate entering here is the published defect that made the ceiling cost 47.9× more in Lagos.
   const [vintage, setVintage] = useState<Vintage | null>(null);
+  // One vintage PER NATURAL PERSON (fleet review — Odin, Pangu, Sofia, Thoth): each member's hours at their own elected
+  // floor, stamped once at settlement, replicated to every phone, persisted. The pod-level vintage stays as the envelope.
+  const [memberVintages, setMemberVintages] = useState<Vintage[]>([]);
   const [bandM, setBandM] = useState(1);                                  // unit.multiples — published bands only
   const [carriedIn, setCarriedIn] = useState("");                         // 웃 already recognised, for the carry maths
   const [regionIdSel, setRegionIdSel] = useState(DEFAULT_REGION_ID);      // the region whose floor this pod settles at
@@ -331,14 +334,25 @@ export default function SoISessionPage() {
       if (brief.plan && typeof brief.plan.hours === "number" && typeof brief.plan.m === "number") {
         setBaselineHrs(String(brief.plan.hours)); setBandM(brief.plan.m);   // what this seat is being asked to accept
       }
-      if (brief.lock && typeof brief.lock.hash === "string") setLock(brief.lock);   // the ACCEPTED plan, same hash on every phone
+      if (brief.lock && typeof brief.lock.hash === "string") {
+        const incoming = brief.lock;                           // verified before it is trusted (fleet review, Thor/Odin)
+        void verifyBaseline(incoming).then((okHash) => { if (okHash) setLock(incoming); });
+      }
     }
     // THE CLOCK IS ONE FOR THE POD: a Start/Stop/Add-time pressed on any seated phone lands in every ledger, once.
     if (msg.kind === "clock") {
       if (!known(podRef.current, msg.from)) return;          // the roster's own guard: the lead, or a seated phone
-      const ev = msg.event;
-      setClockEvents((e) => (e.some((x) => x.kind === ev.kind && x.at === ev.at) ? e : [...e, { kind: ev.kind, at: ev.at, by: ev.by }]));
+      const ev = msg.event as ClockEvent;
+      // Bound at acceptance (Thor/Odin): a press whose wall-clock is more than five minutes from this phone's is a forged or
+      // broken clock and is refused; an accepted press is appended ONCE, keeping the presser's seq so every phone folds the
+      // same order regardless of skew.
+      if (!Number.isFinite(ev.at) || Math.abs(ev.at - Date.now()) > 300_000) return;
+      setClockEvents((e) => (e.some((x) => x.kind === ev.kind && (x.seq != null && ev.seq != null ? x.seq === ev.seq : x.at === ev.at)) ? e : [...e, { kind: ev.kind, at: ev.at, by: ev.by, seq: ev.seq }]));
       return;
+    }
+    const settleMsg = (p as { settle?: { vintage?: Vintage; memberVintages?: Vintage[] } }).settle;
+    if (settleMsg && settleMsg.vintage && Array.isArray(settleMsg.memberVintages) && known(podRef.current, msg.from)) {
+      setVintage((v) => v ?? settleMsg.vintage!); setMemberVintages((m) => (m.length ? m : settleMsg.memberVintages!));
     }
     const record = (p as { record?: { method?: RecordMethod; value?: string } }).record;
     if (record && typeof record.value === "string" && record.value.trim() && record.value !== recordRef.current.value) {
@@ -403,7 +417,8 @@ export default function SoISessionPage() {
   })();
   const canOpen = !!(intent.trim() && outcome.trim() && members[0].name.trim() && (parseFloat(baselineHrs) || 0) > 0);
   const allJoined = members.every((m) => m.name.trim());
-  const allAgreed = allJoined && members.every((m) => m.agreed);
+  // Acceptance is bound to the plan it accepted: every seat must have ticked THIS lock (fleet review, Christo).
+  const allAgreed = allJoined && !!lock && members.every((m) => m.agreed && m.agreedTo === lock.hash);
   const recommendations = members.filter((m) => !m.agreed && m.recommend.trim());
 
   // One seat's change, applied here and sent to the other phones (the pure module decides
@@ -426,13 +441,16 @@ export default function SoISessionPage() {
   // measured span is the sum (pod-clock.ts). ONE handler for every route — the desktop button and the phone strip both
   // call it, so no route can move the phase and leave a segment open, which the strip used to do.
   const pressClock = (kind: ClockEvent["kind"]) => {
-    const ev: ClockEvent = { kind, at: Date.now(), by: "pod" };
+    const seq = clockEvents.reduce((n, e) => Math.max(n, e.seq ?? -1), -1) + 1;   // the order this press is accepted in
+    const ev: ClockEvent = { kind, at: Date.now(), by: "pod", seq };
     setClockEvents((e) => [...e, ev]);
     if (connectedRef.current) broadcastRef.current("session_update", { pod: { kind: "clock", from: clientId.current, event: ev } }).catch(() => {});
   };
   const toggleClock = () => pressClock(measure(clockEvents, Date.now()).running ? "stop" : "start");
   const stopAndRecord = () => {
-    if (measure(clockEvents, Date.now()).running) pressClock("stop");
+    const m = measure(clockEvents, Date.now());
+    if (m.segments.length === 0) return;                       // fleet review (Athena): no route may record with nothing clocked
+    if (m.running) pressClock("stop");
     setPhase("record"); drive("record");
   };
   useEffect(() => {                                    // one second, and only while running
@@ -452,7 +470,7 @@ export default function SoISessionPage() {
   // have closed their phones — the record is no longer only in their memory.
   useEffect(() => {
     if (restored.current || !podCode) return;
-    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string; rung?: Rung; vintage?: Vintage | null; regionIdSel?: string; lock?: Baseline | null }>(podCode);
+    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string; rung?: Rung; vintage?: Vintage | null; memberVintages?: Vintage[]; regionIdSel?: string; lock?: Baseline | null }>(podCode);
     if (!e) return;
     restored.current = true; podRev.current = e.rev;
     setIntent(e.state.intent); setOutcome(e.state.outcome); setMembers(e.state.members);
@@ -461,7 +479,7 @@ export default function SoISessionPage() {
     setRung(e.state.rung ?? "none");
     // D9: a vintage is READ back, never re-derived. Re-deriving it on reopen would let a later band or a later hour
     // silently rewrite what a past settlement recorded, which is the one thing a stamp exists to prevent.
-    setVintage(e.state.vintage ?? null);
+    setVintage(e.state.vintage ?? null); setMemberVintages(e.state.memberVintages ?? []);
     setRegionIdSel(e.state.regionIdSel ?? DEFAULT_REGION_ID);
     // The task plan is READ BACK, never re-derived: a reopened pod keeps the M and hours its trio accepted.
     setLock(e.state.lock ?? null);
@@ -471,10 +489,10 @@ export default function SoISessionPage() {
   }, [podCode]);
   useEffect(() => {
     if (!podCode) return;
-    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage, regionIdSel, lock }, Date.now());
+    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage, memberVintages, regionIdSel, lock }, Date.now());
     if (!ok) setSaveFailed(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [podCode, phase, members, clockEvents, recordValue, rung, vintage, regionIdSel, lock]);
+  }, [podCode, phase, members, clockEvents, recordValue, rung, vintage, memberVintages, regionIdSel, lock]);
   // OPERATOR RULING 2026-09-11: "button should start and end clock". The clock is a BUTTON, not a side-effect of a
   // phase change — a person presses Start, presses Stop, and may press Add time. Nothing here starts it for them.
   // (2026-09-10's "hours is always tracked" still holds: every press is appended and never erased; what changed is
@@ -933,7 +951,7 @@ export default function SoISessionPage() {
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-baseline">
               <div className="font-medium">The plan, before the work <span className="text-xs font-normal text-muted-foreground">— required; planned 웃 = M × planned hours</span></div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Every task gets a plan: the hours and the multiple, {predeterminedPlan ? "predetermined by the task you chose" : "established by this pod"}, accepted by all three before the clock starts, then locked — signed by someone who does not gain from the result, and hashed. The receipt measures the actual time and 웃 against it.
+                Every task gets a plan: the person-hours across the trio and the multiple, {predeterminedPlan ? "predetermined by the task you chose" : "established by this pod"}, accepted by all three before the clock starts, then locked — signed by someone who does not gain from the result, and hashed. The receipt measures the actual time and 웃 against it.
                 {(parseFloat(baselineHrs) || 0) > 0 ? <> Planned: <span className="font-medium text-foreground">{parseFloat(baselineHrs)} h × {bandM} = 웃 {mint(parseFloat(baselineHrs) || 0, bandM).toFixed(3)}</span>.</> : null}
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -1055,7 +1073,7 @@ export default function SoISessionPage() {
                     </div>
                     <label className="mt-2 flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={m.agreed} disabled={!m.name.trim() || !canEdit(i)}
-                        onChange={(e) => setMember(i, { agreed: e.target.checked, recommend: e.target.checked ? "" : m.recommend })} />
+                        onChange={(e) => setMember(i, { agreed: e.target.checked, agreedTo: e.target.checked ? (lock?.hash ?? null) : null, recommend: e.target.checked ? "" : m.recommend })} />
                       <span className="font-medium">{m.name || `Member ${i + 1}`}</span> approves the intent, outcome and plan ({parseFloat(baselineHrs) || 0} h × {bandM})
                     </label>
                     {!m.agreed && m.name.trim() && canEdit(i) && (
@@ -1086,7 +1104,7 @@ export default function SoISessionPage() {
               >
                 Accepted by the trio — go to synchronized start
               </button>
-              <button onClick={() => { setMembers((ms) => ms.map((m) => ({ ...m, agreed: false }))); setPhase("compose"); }} className="rounded-md border border-border px-4 py-2 text-sm">
+              <button onClick={() => { setMembers((ms) => ms.map((m) => ({ ...m, agreed: false, agreedTo: null }))); setPhase("compose"); }} className="rounded-md border border-border px-4 py-2 text-sm">
                 Back to edit (apply recommendations — every approval is cleared, the plan is re-accepted)
               </button>
             </div>
@@ -1430,7 +1448,7 @@ export default function SoISessionPage() {
             </div>
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
-              <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· 웃 {fmtABC(witnessedHours)}</span></span>{" "}<span className="text-xs text-muted-foreground" data-testid="pod-mot">· MoT clocked <span className="font-mono">{fmtABC(measuredHours)}</span> ({hhmmss(span.ms)})</span>
+              <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· hours {fmtABC(witnessedHours)}</span></span>{" "}<span className="text-xs text-muted-foreground" data-testid="pod-mot">· MoT clocked <span className="font-mono">{fmtABC(measuredHours)}</span> ({hhmmss(span.ms)})</span>
               <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (웃 = M × T, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
             </div>
 
@@ -1439,7 +1457,13 @@ export default function SoISessionPage() {
               onClick={() => {
                 // D9 — written ONCE. `v ?? …` is the whole rule: a second settlement of the same pod cannot overwrite
                 // what the first one recorded, so re-opening and re-settling changes nothing about the past.
-                setVintage((v) => v ?? stamp(witnessedHours, M, new Date().toISOString(), podJuris?.rate ?? null, podJuris?.currency ?? null));
+                const at = new Date().toISOString();
+                const pod = vintage ?? stamp(witnessedHours, M, at, podJuris?.rate ?? null, podJuris?.currency ?? null);
+                const each = memberVintages.length ? memberVintages
+                  : members.map((_, i) => { const j = localityOf(i); return stamp(claimOf(i).hours, M, at, j?.rate ?? null, j?.currency ?? null); });
+                setVintage(pod); setMemberVintages(each);
+                // The settlement travels with the phase move, so every phone's receipt stamps identically (Krishna/Odin).
+                if (connectedRef.current) broadcastRef.current("session_update", { pod: { kind: "phase", from: clientId.current, phase: "closed" }, settle: { vintage: pod, memberVintages: each } }).catch(() => {});
                 setPhase("closed"); drive("closed");
               }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
@@ -1462,21 +1486,26 @@ export default function SoISessionPage() {
                 <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
                 {lock && (
                   <li data-testid="receipt-plan"><span className="font-medium text-foreground">Plan → actual</span>{" "}
-                    {lock.hours} h planned <span className="font-mono text-xs text-muted-foreground">{fmtABC(lock.hours)}</span> · {measuredHours.toFixed(2)} h clocked in {span.segments.length} segment{span.segments.length === 1 ? "" : "s"} <span className="font-mono text-xs text-muted-foreground">{fmtABC(measuredHours)}</span> · Δ {(measuredHours - lock.hours) >= 0 ? "+" : ""}{(measuredHours - lock.hours).toFixed(2)} h
-                    {" — "}웃 {lock.yug.toFixed(3)} planned · {stand.earned.toFixed(3)} actual · Δ {(stand.earned - lock.yug) >= 0 ? "+" : ""}{(stand.earned - lock.yug).toFixed(3)} at {M}× ({lock.source})</li>
+                    {lock.hours} person-hours planned <span className="font-mono text-xs text-muted-foreground">{fmtABC(lock.hours)}</span> · {witnessedHours.toFixed(2)} person-hours counted <span className="font-mono text-xs text-muted-foreground">{fmtABC(witnessedHours)}</span> · Δ {(witnessedHours - lock.hours) >= 0 ? "+" : ""}{(witnessedHours - lock.hours).toFixed(2)} h
+                    {" — "}웃 {lock.yug.toFixed(3)} planned · {stand.earned.toFixed(3)} actual · Δ {(stand.earned - lock.yug) >= 0 ? "+" : ""}{(stand.earned - lock.yug).toFixed(3)} at {M}× ({lock.source})
+                    {" · "}<span className="text-muted-foreground">pod clock, under its own name: {hhmmss(span.ms)} in {span.segments.length} segment{span.segments.length === 1 ? "" : "s"} <span className="font-mono text-xs">{fmtABC(measuredHours)}</span></span></li>
                 )}
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
                 <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {M}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
                 <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
                 <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
+                <li data-testid="receipt-outcomes"><span className="font-medium text-foreground">5a · Outcomes, one per member</span>{" "}
+                  {members.map((m, i) => <span key={i} data-testid={`receipt-outcome-${i}`}>{i > 0 ? " · " : ""}<span className="font-medium text-foreground">{firstOf(m.name) || m.role}:</span> {m.outcome.trim() || "—"}</span>)}
+                </li>
                 {/* EACH CONTRIBUTOR AT THEIR OWN FLOOR, ON THE RECEIPT ITSELF (unit.regional; operator 2026-09-11 showcase): the
                     same hours minted the same 웃; only the currency differs, and no currency is ever summed with another. */}
                 <li data-testid="receipt-each"><span className="font-medium text-foreground">5b · Each at their own floor</span>{" "}
                   {members.map((m, i) => {
-                    const j = localityOf(i); const own = mint(claimOf(i).hours, M); const cash = settleInRegion(own, j);
-                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {claimOf(i).hours.toFixed(2)} h → 웃 {own.toFixed(3)}{j ? <> → {cash !== null ? formatLocal(cash, j.currency) : "no rate published"} ({j.name}{electedOwn(i) ? "" : ", inherited"})</> : null}</span>;
+                    const j = localityOf(i); const v = memberVintages[i]; const own = v ? v.yug : mint(claimOf(i).hours, M);
+                    const d9m = settleD9(Math.min(own, YUG_CEILING), v ? { rate: v.rate, currency: v.currency } : null, j);   // ceiling per natural person; D9 with THIS person's vintage
+                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {(v ? v.hours : claimOf(i).hours).toFixed(2)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"} ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""})</> : null}</span>;
                   })}
-                  {vintage && d9.which !== "none" && d9.amount !== null && d9.currency ? <> — D9: the pod&rsquo;s own floor paid the <span className="font-medium text-foreground">{d9.which}</span> rate, {d9.rate} {d9.currency}/h; a settlement figure moves only because a statutory wage moved.</> : null}
+                  {memberVintages.length ? <> — D9 per person: each settles at the greater of the rate stamped at earning and the rate current now, from their own jurisdiction; a settlement figure moves only because a statutory wage moved.</> : null}
                 </li>
                 {vintage ? (
                   <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>

@@ -1,65 +1,77 @@
-  1802ms  lead   OK  opened /soi-session
-  1928ms  lead   OK  plan set: 2 h at 3× (planned 6 웃)
-  1938ms  lead   OK  pod default place: United States (Austin, Texas — 7.25 USD/h)
-  2040ms  lead   OK  open button enabled (plan present)
-  2161ms  lead   OK  pod code issued  JA9QVJ
-  2170ms  lead   OK  live channel subscribed (relay)
-  4113ms  ana    OK  opened join link ?pod=JA9QVJ
-  6404ms  bo     OK  typed the code and joined
-  6411ms  ana    OK  assigned seat 2
-  6452ms  bo     OK  assigned seat 3
-  6458ms  lead   OK  lead sees 3 in the pod
-  6464ms  ana    OK  name input is own seat only
-  6498ms  bo     OK  name input is own seat only
-  6548ms  ana    OK  locality select is own seat only
-  6564ms  ana    OK  elected Nigeria — 402.739 NGN/h
-  6594ms  bo     OK  locality select is own seat only
-  6608ms  bo     OK  elected Philippines — Metro Manila — 86.875 PHP/h
-  6641ms  lead   OK  approval checkbox is own seat only
-  6685ms  lead   OK  approved intent, outcome AND the plan (2 h × 3)
-  6696ms  ana    OK  approval checkbox is own seat only
-  7103ms  ana    OK  approved intent, outcome AND the plan (2 h × 3)
-  7120ms  bo     OK  approval checkbox is own seat only
-  7210ms  bo     OK  approved intent, outcome AND the plan (2 h × 3)
-  7214ms  lead   OK  all three approved → sync unlocked
-  7218ms  lead   OK  lead sees Ana in NGN and Bo in PHP (elections replicated)
-  7422ms  lead   OK  pressed ready (own seat)
-  7470ms  ana    OK  pressed ready (own seat)
-  7539ms  bo     OK  pressed ready (own seat)
-  8394ms  lead   OK  ACTIVE — the clock button is on screen, not yet running
-  8398ms  ana    OK  ACTIVE — the clock button is on screen, not yet running
-  8401ms  bo     OK  ACTIVE — the clock button is on screen, not yet running
-  8540ms  lead   OK  START the clock (segment 1)
- 20789ms  lead   OK  STOP the clock (segment 1 closed)
- 21189ms  lead   OK  ADD TIME (segment 2 opened)
- 33195ms  lead   OK  sees segment 2 (clock events replicated)
- 33198ms  ana    OK  sees segment 2 (clock events replicated)
- 33201ms  bo     OK  sees segment 2 (clock events replicated)
- 33317ms  ana    OK  a JOINER pressed Stop & record — one route, segment 2 closed for everyone
- 33320ms  lead   OK  reached RECORD
- 33322ms  ana    OK  reached RECORD
- 33328ms  bo     OK  reached RECORD
- 33345ms  lead   OK  outcome input is own seat only
- 33367ms  ana    OK  outcome input is own seat only
- 33392ms  bo     OK  outcome input is own seat only
- 33413ms  ana    OK  all three outcomes in → audit unlocked
- 33578ms  lead   OK  reached AUDIT
- 33580ms  ana    OK  reached AUDIT
- 33584ms  bo     OK  reached AUDIT
- 33633ms  lead   OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
- 33724ms  ana    OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
- 33810ms  bo     OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
- 34837ms  lead   OK  witnessed the other two  clicked 2 of 2
- 35864ms  ana    OK  witnessed the other two  clicked 2 of 2
- 36888ms  bo     OK  witnessed the other two  clicked 2 of 2
- 36892ms  lead   OK  all witnessed + all self-audited → settle unlocked
- 36899ms  lead   OK  M is locked on the audit screen (no picker)
- 37096ms  lead   OK  CLOSED — receipt on this phone
- 37101ms  ana    OK  CLOSED — receipt on this phone
- 37106ms  bo     OK  CLOSED — receipt on this phone
- 37222ms  lead   OK  receipt shows PLAN → ACTUAL
- 37222ms  lead   OK  receipt shows two segments summed
- 37222ms  lead   OK  receipt shows the ledger grammar
- 37222ms  lead   OK  receipt settles Ana in naira and Bo in pesos beside Lea in dollars — each at their own floor
- 37222ms  lead   OK  receipt names the D9 rate that paid
- 37222ms  lead   OK  receipt shows the three outcomes and M locked at 3×
+  2611ms  lead   OK  opened /soi-session
+  2736ms  lead   OK  plan set: 2 h at 3× (planned 6 웃)
+  2746ms  lead   OK  pod default place: United States (Austin, Texas — 7.25 USD/h)
+  2867ms  lead   OK  open button enabled (plan present)
+  3049ms  lead   OK  pod code issued  2YN463
+  3063ms  lead   OK  live channel subscribed (relay)
+  6168ms  ana    OK  opened join link ?pod=2YN463
+  8134ms  bo     OK  typed the code and joined
+  8142ms  ana    OK  assigned seat 2
+  8151ms  bo     OK  assigned seat 3
+  8158ms  lead   OK  lead sees 3 in the pod
+  8163ms  ana    OK  name input is own seat only
+  8209ms  bo     OK  name input is own seat only
+  8256ms  ana    OK  locality select is own seat only
+  8268ms  ana    OK  elected Nigeria — 402.739 NGN/h
+  8300ms  bo     OK  locality select is own seat only
+  8312ms  bo     OK  elected Philippines — Metro Manila — 86.875 PHP/h
+  8335ms  lead   OK  approval checkbox is own seat only
+  8392ms  lead   OK  approved intent, outcome AND the plan (2 h × 3)
+  8399ms  ana    OK  approval checkbox is own seat only
+  8811ms  ana    OK  approved intent, outcome AND the plan (2 h × 3)
+  8823ms  bo     OK  approval checkbox is own seat only
+  8881ms  bo     OK  approved intent, outcome AND the plan (2 h × 3)
+  8885ms  lead   OK  all three approved → sync unlocked
+  8888ms  lead   OK  lead sees Ana in NGN and Bo in PHP (elections replicated)
+  9042ms  lead   OK  pressed ready (own seat)
+  9089ms  ana    OK  pressed ready (own seat)
+  9142ms  bo     OK  pressed ready (own seat)
+  9966ms  lead   OK  ACTIVE — the clock button is on screen, not yet running
+  9969ms  ana    OK  ACTIVE — the clock button is on screen, not yet running
+  9972ms  bo     OK  ACTIVE — the clock button is on screen, not yet running
+ 10137ms  lead   OK  START the clock (segment 1)
+ 22380ms  lead   OK  STOP the clock (segment 1 closed)
+ 22781ms  lead   OK  ADD TIME (segment 2 opened)
+ 34786ms  lead   OK  sees segment 2 (clock events replicated)
+ 34790ms  ana    OK  sees segment 2 (clock events replicated)
+ 34794ms  bo     OK  sees segment 2 (clock events replicated)
+ 34939ms  ana    OK  a JOINER pressed Stop & record — one route, segment 2 closed for everyone
+ 34951ms  lead   OK  reached RECORD
+ 34955ms  ana    OK  reached RECORD
+ 34958ms  bo     OK  reached RECORD
+ 34978ms  lead   OK  outcome input is own seat only
+ 35001ms  ana    OK  outcome input is own seat only
+ 35022ms  bo     OK  outcome input is own seat only
+ 35052ms  ana    OK  all three outcomes in → audit unlocked
+ 35214ms  lead   OK  reached AUDIT
+ 35218ms  ana    OK  reached AUDIT
+ 35222ms  bo     OK  reached AUDIT
+ 35273ms  lead   OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 35361ms  ana    OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 35448ms  bo     OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 36475ms  lead   OK  witnessed the other two  clicked 2 of 2
+ 37499ms  ana    OK  witnessed the other two  clicked 2 of 2
+ 38523ms  bo     OK  witnessed the other two  clicked 2 of 2
+ 38527ms  lead   OK  all witnessed + all self-audited → settle unlocked
+ 38529ms  lead   OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 38531ms  ana    OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 38533ms  bo     OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 38536ms  lead   OK  M is locked on the audit screen (no picker)
+ 38722ms  lead   OK  CLOSED — receipt on this phone
+ 38726ms  ana    OK  CLOSED — receipt on this phone
+ 38730ms  bo     OK  CLOSED — receipt on this phone
+ 38837ms  lead   OK  receipt shows PLAN → ACTUAL
+ 38837ms  lead   OK  receipt shows two segments summed
+ 38837ms  lead   OK  receipt shows the ledger grammar
+ 38837ms  lead   OK  receipt settles Ana in naira and Bo in pesos beside Lea in dollars — each at their own floor
+ 38837ms  lead   OK  receipt names the D9 rate that paid
+ 38838ms  lead   OK  receipt renders each member's OWN outcome text
+ 38839ms  lead   OK  receipt shows M locked at 3× and the plan line
+ 38840ms  ana    OK  receipt renders each member's OWN outcome text
+ 38840ms  ana    OK  receipt shows M locked at 3× and the plan line
+ 38842ms  bo     OK  receipt renders each member's OWN outcome text
+ 38842ms  bo     OK  receipt shows M locked at 3× and the plan line
+ 38843ms  lead   OK  this phone's receipt carries the per-person vintage settlement (naira · pesos · dollars)
+ 38844ms  ana    OK  this phone's receipt carries the per-person vintage settlement (naira · pesos · dollars)
+ 38846ms  bo     OK  this phone's receipt carries the per-person vintage settlement (naira · pesos · dollars)
+ 38848ms  lead   OK  THE THREE RECEIPTS SETTLE IDENTICALLY — the same per-person figures on every phone  5b · Each at their own floor Lea 0.01 h → 웃 0.020 → $0.15 (U

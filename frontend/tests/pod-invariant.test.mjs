@@ -240,13 +240,14 @@ ok(/heartsFor\(\{ settles/.test(page), '♡ comes from the ladder via heartsFor(
 ok(/data-testid="rung-select"/.test(page), 'the pod asks what the outcome became — a question no clock can answer');
 ok(/setRung\(/.test(page) && /useState<Rung>\("none"\)/.test(page), 'nothing awarded is the honest default');
 // F · the vintage stamp, written once
-ok(/setVintage\(\(v\) => v \?\? stamp\(/.test(page), 'a vintage is written ONCE — a second settlement cannot overwrite the first');
+ok(/const pod = vintage \?\? stamp\(witnessedHours, M, at,/.test(page) && /setVintage\(\(v\) => v \?\? settleMsg\.vintage!\)/.test(page),
+   'a vintage is written ONCE — a second settlement, local or received, cannot overwrite the first');
 ok(/setVintage\(e\.state\.vintage \?\? null\)/.test(page), 'a reopened pod READS its vintage back rather than re-deriving it');
-ok(/vintage, regionIdSel, lock \}, Date\.now\(\)\)/.test(page), 'the vintage is appended to the pod ledger, so it survives the phone');
+ok(/vintage, memberVintages, regionIdSel, lock \}, Date\.now\(\)\)/.test(page), 'the vintage — and every member\'s — is appended to the pod ledger, so it survives the phone');
 // D9, the vintage rule: the stamp records the rate BESIDE the 웃 — "hours, the multiple M, and the local minimum-wage
 // rate on its earning date, written once and never revised". The pod used to pass null here, which was the gap. The
 // currency-free rule is about the MINT, asserted directly on mint() below; a stamp that records a rate is the point.
-ok(/stamp\(witnessedHours, M, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
+ok(/stamp\(witnessedHours, M, at, podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
    'the stamp carries the hours, the ACCEPTED multiple and the elected rate on the earning date (D9)');
 // C · hours are always tracked (operator ruling 2026-09-10)
 
@@ -356,7 +357,7 @@ if (RATES.REGION_RATES) {
   // The pod screen: a region can be chosen, and the rate is stamped rather than looked up later (D9).
   ok(/testid="region-select"/.test(page), 'the pod offers a region picker');
   ok(/data-testid="pod-settle"/.test(page), 'and says what the 웃 settle as there');
-  ok(/stamp\(witnessedHours, M, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
+  ok(/stamp\(witnessedHours, M, at, podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
      'D9 — the vintage stamps the elected rate and currency at settlement, instead of the nulls it used to write');
   ok(/regionIdSel, lock \}, Date\.now\(\)\)/.test(page), 'and the chosen region is appended to the pod ledger, so a reopen reads it back');
 } else ok(false, 'lib/pod-rates.ts could not be imported');
@@ -489,11 +490,11 @@ ok(/broadcastRef\.current\("session_update", \{ pod: \{ kind: "clock", from: cli
    'a Start/Stop/Add-time pressed on one phone is broadcast to the pod');
 ok(/if \(msg\.kind === "clock"\) \{/.test(page) && /if \(!known\(podRef\.current, msg\.from\)\) return;/.test(page),
    'and accepted only from a phone the roster knows — the roster\'s own guard');
-ok(/e\.some\(\(x\) => x\.kind === ev\.kind && x\.at === ev\.at\) \? e : \[\.\.\.e, /.test(page), 'appended ONCE — a replayed press changes nothing');
+ok(/x\.seq != null && ev\.seq != null \? x\.seq === ev\.seq : x\.at === ev\.at\)\) \? e : \[\.\.\.e, /.test(page), 'appended ONCE — a replayed press changes nothing');
 ok(/\| \{ kind: "clock";  from: string; event: \{ kind: "start" \| "stop"; at: number; by: string \} \};/.test(read('../lib/pod-roster.ts')) && /if \(msg\.kind === "clock"\) return \{ state, send: \[\] \};/.test(read('../lib/pod-roster.ts')),
    'the protocol names the clock message and the reducer never mistakes it for a phase');
-ok(/if \(brief\.lock && typeof brief\.lock\.hash === "string"\) setLock\(brief\.lock\);/.test(page),
-   'the ACCEPTED plan reaches every phone with its hash, so every receipt measures against the same lock');
+ok(/void verifyBaseline\(incoming\)\.then\(\(okHash\) => \{ if \(okHash\) setLock\(incoming\); \}\);/.test(page),
+   'the ACCEPTED plan reaches every phone with its hash — and is VERIFIED against that hash before it is trusted');
 ok(/onClick=\{stopAndRecord\}/.test(page) && (page.match(/onClick=\{stopAndRecord\}/g) || []).length >= 2,
    'the phone strip and the desktop button call the SAME stop — no route can leave a segment open');
 ok(!/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEvents/.test(page),
@@ -531,7 +532,7 @@ ok(/\(parseFloat\(baselineHrs\) \|\| 0\) > 0\);/.test(page.slice(page.indexOf('c
    'a pod cannot open without a plan — every task gets one');
 ok(/m: bandM,\s*\n\s*source: predeterminedPlan/.test(page), 'the multiple is locked WITH the hours when the pod opens');
 ok(/approves the intent, outcome and plan/.test(page), 'each member approves the plan, not only the words');
-ok(/setMembers\(\(ms\) => ms\.map\(\(m\) => \(\{ \.\.\.m, agreed: false \}\)\)\); setPhase\("compose"\)/.test(page),
+ok(/setMembers\(\(ms\) => ms\.map\(\(m\) => \(\{ \.\.\.m, agreed: false, agreedTo: null \}\)\)\); setPhase\("compose"\)/.test(page),
    'Back to edit clears every approval, so a changed plan is re-accepted by all three');
 ok(/setLock\(e\.state\.lock \?\? null\)/.test(page), 'a reopened pod READS its plan back, never re-derives it');
 ok(/data-testid="receipt-plan"/.test(page) && /lock\.yug\.toFixed\(3\)\} planned · \{stand\.earned\.toFixed\(3\)\} actual/.test(page),
@@ -588,5 +589,54 @@ ok(/Each at their own floor/.test(page) && /electedOwn\(i\) \? "" : ", inherited
    'and says which floor was elected and which was inherited');
 ok(/scripts\/pod-time-report\.mjs/.test(read('../scripts/pod-time-report.mjs')) && /heartsFor\(\{ settles웃: false/.test(read('../scripts/pod-time-report.mjs')),
    'the volunteer-vs-paid document runs the shipped clock and mint, and prints the volunteer counterfactual beside the paid pod');
+
+// ── THE CLASS THE 48-AGENT FLEET NAMED (2026-09-11): "what the receipt asserts is single-phone state, not the pod's
+//    replicated record" and "one plan quantity with three definitions". Every member, gated. ────────────────────────
+const rosterNow = read('../lib/pod-roster.ts');
+const baseNow = read('../lib/pod-baseline.ts');
+// 1 · one plan, one actual — person-hours across the trio, the clock span under its own name
+ok(/PERSON-HOURS ACROSS THE TRIO/.test(baseNow), 'the unit of the plan\'s hours is stated where the lock is defined');
+ok(/person-hours planned/.test(page) && /person-hours counted/.test(page) && /pod clock, under its own name:/.test(page),
+   'the receipt compares planned and counted PERSON-HOURS and prints the clock span separately, under its own name');
+ok(/Δ \{\(witnessedHours - lock\.hours\) >= 0/.test(page) && !/Δ \{\(measuredHours - lock\.hours\)/.test(page),
+   'Δ h and Δ 웃 on the receipt derive from the SAME quantity');
+ok(/· hours \{fmtABC\(witnessedHours\)\}/.test(page) && !/· 웃 \{fmtABC\(witnessedHours\)\}/.test(page),
+   'hours are never printed under a coin glyph (Aset)');
+// 2 · one vintage per natural person, replicated, persisted, settled through D9 with a per-person ceiling
+ok(/const \[memberVintages, setMemberVintages\] = useState<Vintage\[\]>\(\[\]\);/.test(page), 'the pod holds one vintage per member');
+ok(/members\.map\(\(_, i\) => \{ const j = localityOf\(i\); return stamp\(claimOf\(i\)\.hours, M, at, j\?\.rate \?\? null, j\?\.currency \?\? null\); \}\)/.test(page),
+   'each member is stamped at settlement with THEIR elected floor and the accepted M');
+ok(/settle: \{ vintage: pod, memberVintages: each \}/.test(page) && /const settleMsg = \(p as \{ settle\?:/.test(page) && /known\(podRef\.current, msg\.from\)\) \{\n\s*setVintage\(\(v\) => v \?\? settleMsg\.vintage!\)/.test(page),
+   'the settlement travels with the phase move, and is accepted once, only from a known phone — three identical receipts');
+ok(/const d9m = settleD9\(Math\.min\(own, YUG_CEILING\), v \? \{ rate: v\.rate, currency: v\.currency \} : null, j\);/.test(page),
+   'each member settles through D9 with THEIR vintage, under a ceiling applied per natural person');
+ok(/setMemberVintages\(e\.state\.memberVintages \?\? \[\]\)/.test(page), 'and a reopened pod reads every member\'s vintage back');
+// 3 · money-moving inputs bound at acceptance
+ok(/agreedTo: string \| null;/.test(rosterNow) && /agreedTo: incoming\.agreedTo \?\? local\.agreedTo/.test(rosterNow),
+   'each seat\'s approval records the plan hash it approved, and a merge keeps the newest');
+ok(/const allAgreed = allJoined && !!lock && members\.every\(\(m\) => m\.agreed && m\.agreedTo === lock\.hash\);/.test(page),
+   'the Start gate requires every seat to have approved THIS lock — a re-lock invalidates every approval by construction');
+ok(/agreedTo: e\.target\.checked \? \(lock\?\.hash \?\? null\) : null/.test(page), 'ticking approval records the hash being approved');
+ok(/seq\?: number/.test(clock) && /a\.seq != null && b\.seq != null \? a\.seq - b\.seq : a\.at - b\.at/.test(read('../lib/pod-clock.ts')),
+   'the clock folds by the ORDER a press was accepted in, not by each phone\'s wall clock');
+ok(/const seq = clockEvents\.reduce\(\(n, e\) => Math\.max\(n, e\.seq \?\? -1\), -1\) \+ 1;/.test(page), 'the presser assigns the sequence');
+ok(/Math\.abs\(ev\.at - Date\.now\(\)\) > 300_000\) return;/.test(page), 'a received press more than five minutes from this phone\'s clock is refused (Thor)');
+if (measure) {
+  const t0 = 1_700_000_000_000;
+  const skewed = [{ kind: 'start', at: t0, by: 'pod', seq: 0 }, { kind: 'stop', at: t0 - 30_000, by: 'pod', seq: 1 }];
+  const m = measure(skewed, t0 + 999_999);
+  ok(!m.running && m.segments.length === 1 && m.ms === 0, 'a joiner whose Stop is 30 s "before" the Start by its own clock still CLOSES the segment (Odin) — nothing runs forever');
+  const late = [{ kind: 'start', at: t0, by: 'pod', seq: 0 }, { kind: 'stop', at: t0 + 90_000, by: 'pod', seq: 1 }];
+  ok(measure(late, t0 + 999_999).ms === 90_000, 'and a +30 s skewed Stop counts what its clock says — at is the evidence of when, seq is the order');
+}
+ok(/if \(m\.segments\.length === 0\) return;/.test(page), 'no route can leave ACTIVE with nothing clocked (Athena) — the strip included');
+// 4 · carriers say only what happened
+ok(/data-testid="receipt-outcomes"/.test(page) && /data-testid=\{`receipt-outcome-\$\{i\}`\}/.test(page), 'the closed receipt renders the three outcomes it claims (Asar)');
+const router = read('../../backend/app/cubes/cube6_ai/pod_router.py');
+ok(/OUTCOMES, ONE PER MEMBER/.test(router) && /POD CLOCK, UNDER ITS OWN NAME/.test(router) && /웃 = M × T, M=\{f\.m\} accepted by the trio/.test(router),
+   'the backend prompt renders the clock, the segments and the three outcomes it accepts (Krishna/Enlil) and says 웃 = M × T');
+ok(/three EMULATED phones/.test(read('../scripts/pod-live-run-2026-09-11.mjs')), 'the showcase header says what it is: emulated phones on one host (Odin)');
+ok(/COMPUTED SCENARIO/.test(read('../scripts/pod-time-report.mjs')) && /PERSON-HOURS across the trio/.test(read('../scripts/pod-time-report.mjs')),
+   'the time document says it is a computed scenario and names the plan\'s unit (Asar/Sofia)');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

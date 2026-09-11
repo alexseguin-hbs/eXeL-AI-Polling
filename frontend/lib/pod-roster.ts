@@ -50,6 +50,13 @@ export type Member = {
    * required before the pod may audit. The lead's shared record stays as the pod's summary beside these.
    */
   outcome: string;
+  /**
+   * ACCEPTANCE BOUND TO WHAT WAS ACCEPTED (fleet review 2026-09-11, Christo/Thor/Odin). `agreed` alone is a sticky
+   * boolean: a lead could re-open with a different M and the old ticks would still count. `agreedTo` is the hash of the
+   * plan lock this seat approved; the Start gate requires it to equal the CURRENT lock's hash, so any re-lock — new hours,
+   * new M — invalidates every approval on every phone by construction, not by a clear that may not replicate.
+   */
+  agreedTo: string | null;
 };
 
 export const PHASE_ORDER: Record<Phase, number> =
@@ -95,6 +102,7 @@ export const mkMember = (role: string, podSize: number): Member => ({
   hours: "", did: "", witnessedBy: Array.from({ length: podSize }, () => false),
   region: null,   // unelected — inherits the pod's default until this person chooses their own
   outcome: "",    // written by this seat after the clock stops
+  agreedTo: null, // the plan hash this seat approved — none yet
 });
 
 export const initialMembers = (podSize: number): Member[] =>
@@ -109,7 +117,7 @@ export const initialPod = (podSize: number, ctx?: Pick<PodCtx, "role" | "clientI
 export const RESET_PATCH = (podSize: number): Partial<Member> =>
   // `region` and `outcome` are deliberately absent: a Reset returns a seat to "not started, not audited"; where a person
   // lives is neither, and what they recorded the work produced is evidence, which is never erased (unit.ceiling).
-  ({ agreed: false, recommend: "", startedAt: null, hours: "", did: "", witnessedBy: Array.from({ length: podSize }, () => false) });
+  ({ agreed: false, agreedTo: null, recommend: "", startedAt: null, hours: "", did: "", witnessedBy: Array.from({ length: podSize }, () => false) });
 
 /** A pod code from real randomness, never the clock (Thor). 6 chars, no look-alikes. */
 export function randomPodCode(bytes: Uint8Array): string {
@@ -156,6 +164,7 @@ export function mergeMember(local: Member, incoming: Member): Member {
     // fields above, and here it is what stops a reloading lead from moving someone's wage floor back to the default.
     region: incoming.region ?? local.region,
     outcome: incoming.outcome || local.outcome,   // a filled outcome is never erased by an empty one
+    agreedTo: incoming.agreedTo ?? local.agreedTo,   // the newest acceptance wins; a null never erases one
   };
 }
 export const mergeRoster = (local: Member[], incoming: Member[]): Member[] =>

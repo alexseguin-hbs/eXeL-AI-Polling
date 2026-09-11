@@ -11,14 +11,22 @@
  * qualified contribution emerged through that time. The two must never be confused."
  *
  * INVARIANT (stated before the code, as the R-CORE law requires):
- *   Time already recorded is never lost or altered. The measured session is an append-only pair of platform events, the
+ *   Time already recorded is never lost or altered. The measured session is an append-only log of platform events, the
  *   claim is a separate number, and a claim may never exceed what the platform actually witnessed.
+ *   ONE PLAN, ONE ACTUAL (fleet review 2026-09-11): the plan's hours are PERSON-HOURS across the trio — the sum of each
+ *   member's counted claim — because that is the quantity the mint, the accelerator and the ceiling all read. The clock
+ *   span is a different quantity, the pod's wall time, and is always printed under its own name, never under a glyph.
  *
  * Pure: no React, no storage, no network — so the gate can read it and the simulation can drive it.
  */
 
-/** A platform event. Only two exist, and neither is ever rewritten (rcore.ledger: nothing overwritten). */
-export interface ClockEvent { kind: "start" | "stop"; at: number; by: string }
+/**
+ * A platform event. Only two exist, and neither is ever rewritten (rcore.ledger: nothing overwritten).
+ * `seq` (fleet review 2026-09-11, Odin/Enki/Thor): the ORDER a press was accepted in, assigned by the presser and carried
+ * to every phone. Folding by `seq` — not by each phone's own wall clock — means a joiner whose clock is thirty seconds
+ * behind still closes the segment its Stop was meant to close. `at` remains the evidence of WHEN; it is never the order.
+ */
+export interface ClockEvent { kind: "start" | "stop"; at: number; by: string; seq?: number }
 
 /** One run of the clock: a start and, once pressed, its stop. A pod may have several — "adding additional time". */
 export interface Segment { startedAt: number; stoppedAt: number | null }
@@ -47,7 +55,9 @@ export const POD_MIN = 3;
  */
 export function measure(events: ClockEvent[], now: number): Measured {
   const segments: Segment[] = [];
-  for (const e of [...events].sort((a, b) => a.at - b.at)) {
+  // Order by seq where every event carries one (the replicated pod log); by at only for a log that predates seq.
+  const ordered = [...events].sort((a, b) => (a.seq != null && b.seq != null ? a.seq - b.seq : a.at - b.at));
+  for (const e of ordered) {
     const open = segments.length > 0 && segments[segments.length - 1].stoppedAt === null ? segments[segments.length - 1] : null;
     if (e.kind === "start" && !open) segments.push({ startedAt: e.at, stoppedAt: null });
     else if (e.kind === "stop" && open) open.stoppedAt = e.at;

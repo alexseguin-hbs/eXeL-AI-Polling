@@ -1,4 +1,5 @@
-// pod-live-run-2026-09-11.mjs — the SoI pod as a SHOWCASE, three REAL phones, every phase, with the clock as a button.
+// pod-live-run-2026-09-11.mjs — the SoI pod as a SHOWCASE: three EMULATED phones (three Chromium mobile contexts on one host,
+// over the local Realtime relay), every phase, with the clock as a button. Not hosted Supabase, not three devices.
 //
 // Operator (2026-09-11): "use POD SOI-2525 and vision-2525 as a test to showcase the first universal system that
 // highlights input in time and authorize local min wage for value". Two claims are made visible here:
@@ -99,7 +100,8 @@ for (const [who, p] of ALL) {
   step(who, 'witnessed the other two', n === 2, `clicked ${n} of 2`);
 }
 await L.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /Settle/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 25000 }); step('lead', 'all witnessed + all self-audited → settle unlocked');
-await L.waitForFunction(() => /claim-capped|counted as/.test(document.body.innerHTML), null, { timeout: 10000 }).catch(() => {}); 
+for (const [who, p] of ALL) { const capped = await p.locator('[data-testid^="claim-capped-"]').count(); step(who, 'the 1 h claim is CAPPED to the clock on this phone', capped >= 1, `${capped} capped rows`); }
+
 step('lead', 'M is locked on the audit screen (no picker)', await L.getByTestId('band-locked').count() === 1 && await L.locator('[data-testid="band-select"]').count() === 0);
 await shotAll('7-audit-witness');
 await L.getByRole('button', { name: /Settle/ }).click();
@@ -111,6 +113,9 @@ step('lead', 'receipt shows two segments summed', /in 2 segments/.test(body));
 step('lead', 'receipt shows the ledger grammar', /\d+\.\d{4}\.\.\d{4}/.test(body));
 step('lead', 'receipt settles Ana in naira and Bo in pesos beside Lea in dollars — each at their own floor', /(NGN|₦)/.test(body) && /(PHP|₱)/.test(body) && /\$/.test(body) && /Each at their own floor/.test(body));
 step('lead', 'receipt names the D9 rate that paid', /D9/.test(body) && /statutory wage moved/.test(body));
-step('lead', 'receipt shows the three outcomes and M locked at 3×', /at 3×/.test(body));
+for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'receipt renders each member\'s OWN outcome text', /framed the plan and ran the clock/.test(b) && /elected Lagos and stopped the clock/.test(b) && /elected Manila and witnessed/.test(b)); step(who, 'receipt shows M locked at 3× and the plan line', /at 3×/.test(b) && /person-hours planned/.test(b)); }
+for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'this phone\'s receipt carries the per-person vintage settlement (naira · pesos · dollars)', /(NGN|₦)/.test(b) && /(PHP|₱)/.test(b) && /\$/.test(b) && /rate\)/.test(b)); }
+const rec = await Promise.all(ALL.map(([, p]) => p.evaluate(() => (document.querySelector('[data-testid="receipt-each"]') || {}).innerText || '')));
+step('lead', 'THE THREE RECEIPTS SETTLE IDENTICALLY — the same per-person figures on every phone', rec[0].length > 40 && rec[0] === rec[1] && rec[1] === rec[2], rec[0].slice(0, 60));
 fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
 await browser.close(); console.log('\nPOD 3-PHONE SHOWCASE RUN: ' + log.length + ' steps, 0 failures');

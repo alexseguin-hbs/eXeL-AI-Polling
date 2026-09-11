@@ -3,6 +3,10 @@
 *Generated 2026-09-11 by `frontend/scripts/pod-time-report.mjs` from the shipped functions — `pod-clock.ts`,
 `pod-yug.ts`, `pod-baseline.ts`, `pod-rates.ts`, `abc-3600.ts`. Fixed timestamps; reproducible; nothing restated.*
 
+*This is a COMPUTED SCENARIO — fixed inputs through the shipped code — not the live run. The three-phone run's own
+numbers (24 seconds of clocked segments, claims capped to 0.01 h) are in `docs/assessments/pod-live-run-2026-09-11/log.txt`.
+"Planned hours" here and in the pod are PERSON-HOURS across the trio, the quantity the mint and the accelerator read.*
+
 ## 1 · The agreed task, and its plan — accepted by all three before the clock
 
 | | |
@@ -32,9 +36,9 @@ The same hours mint the same 웃 everywhere; **only what a 웃 settles as is loc
 
 | Member | Elected place | Claimed | Counted | Capped? | 웃 = 3 × counted | Settles as | D9 |
 |---|---|---:|---:|:--:|---:|---|---|
-| Lea | United States — Austin, Texas (7.25 USD/h) | 1.25 h | 1.2500 h | no | **3.750** `3.2700..0000` | **$27.19** | equal rate |
-| Ana | Nigeria (402.739 NGN/h) | 1.50 h | 1.2500 h | **yes** | **3.750** `3.2700..0000` | **NGN 1,510.27** | equal rate |
-| Bo | Philippines — Metro Manila (86.875 PHP/h) | 1.00 h | 1.0000 h | no | **3.000** `3.0000..0000` | **₱260.63** | equal rate |
+| Lea | United States — Austin, Texas (7.25 USD/h) | 1.25 h | 1.2500 h | no | **3.750** `3.2700..0000` | **$27.19** | vintage = current |
+| Ana | Nigeria (402.739 NGN/h) | 1.50 h | 1.2500 h | **yes** | **3.750** `3.2700..0000` | **NGN 1,510.27** | vintage = current |
+| Bo | Philippines — Metro Manila (86.875 PHP/h) | 1.00 h | 1.0000 h | no | **3.000** `3.0000..0000` | **₱260.63** | vintage = current |
 
 Ana claimed 1.50 h against a 1.25 h clock: counted **1.2500 h**, flagged capped. Nothing was silently trusted.
 
