@@ -62,7 +62,14 @@ export type PodMsg =
   | { kind: "member"; from: string; seat: number; patch: Partial<Member> }   // own seat only
   | { kind: "attest"; from: string; target: number; on: boolean }            // the reviewer's own bit only
   | { kind: "reset";  from: string }                                         // honoured from the pinned lead only
-  | { kind: "phase";  from: string; phase: Phase };
+  | { kind: "phase";  from: string; phase: Phase }
+  /**
+   * THE CLOCK IS ONE FOR THE POD (operator 2026-09-11, "button should start and end clock"). A Start, Stop or Add-time
+   * pressed on any seated phone is a platform event for everyone; it travels as its own message so every ledger holds the
+   * same segments. Accepted only from a phone the roster knows. The reducer does not fold it — the clock is not roster
+   * state — the page appends it, idempotently, to its own append-only event log.
+   */
+  | { kind: "clock";  from: string; event: { kind: "start" | "stop"; at: number; by: string } };
 
 export type PodState = {
   members: Member[];
@@ -164,7 +171,7 @@ const seatOf = (state: PodState, from: string): number | null =>
 const withBit = (members: Member[], target: number, j: number, on: boolean): Member[] =>
   withPatch(members, target, { witnessedBy: members[target].witnessedBy.map((w, k) => (k === j ? on : w)) });
 
-const known = (state: PodState, from: string): boolean => from === state.lead || state.seats[from] != null;
+export const known = (state: PodState, from: string): boolean => from === state.lead || state.seats[from] != null;
 
 /** A message arrived on this phone. Returns the next state and what to send back. */
 export function reducePod(state: PodState, msg: PodMsg, ctx: PodCtx): Step {
@@ -253,6 +260,7 @@ export function reducePod(state: PodState, msg: PodMsg, ctx: PodCtx): Step {
     if (ctx.role !== "joiner" || msg.from !== state.lead) return { state, send: [] };
     return { state: { ...state, phase: "invite", members: state.members.map((m) => ({ ...m, ...RESET_PATCH(ctx.podSize) })) }, send: [] };
   }
+  if (msg.kind === "clock") return { state, send: [] };   // handled by the page's clock log; never a roster change
   // phase — only from a phone the roster knows, and only FORWARD: a lagged phone's stale
   // "sync" arriving after "active" must never rewind the pod (Sofia, round 2). Going back is
   // what `reset` is for.

@@ -69,7 +69,7 @@ import {
 import {
   initialPod, reducePod, patchPod, patchAll, attest, movePhase, resetPod, randomPodCode, podPresence,
   syncVerdict, canEditSeat, canWitnessAs, witnessedCount as podWitnessedCount, isWitnessed as podIsWitnessed, WITNESS_FLOOR,
-  type Member as PodMember, type PodMsg, type PodState, type Phase as PodPhase,
+  type Member as PodMember, type PodMsg, type PodState, type Phase as PodPhase, known,
 } from "@/lib/pod-roster";
 
 /**
@@ -301,8 +301,8 @@ export default function SoISessionPage() {
   // The lead's intent + outcome ride along with every roster so the joiners review the real
   // brief, not two empty boxes (three-phone live run, 2026-09-03). Additive: `brief` beside `pod`.
   // The PLAN rides with it (operator 2026-09-11): the joiners accept hours × M, not only the words.
-  const briefRef = useRef<{ intent: string; outcome: string; plan: { hours: number; m: number } | null }>({ intent: "", outcome: "", plan: null });
-  briefRef.current = { intent, outcome, plan: lock ? { hours: lock.hours, m: lock.m } : { hours: parseFloat(baselineHrs) || 0, m: bandM } };
+  const briefRef = useRef<{ intent: string; outcome: string; plan: { hours: number; m: number } | null; lock: Baseline | null }>({ intent: "", outcome: "", plan: null, lock: null });
+  briefRef.current = { intent, outcome, plan: lock ? { hours: lock.hours, m: lock.m } : { hours: parseFloat(baselineHrs) || 0, m: bandM }, lock };
   // The recorded outcome travels the same way: the phone that recorded it sends it with its
   // phase move, the lead's rosters carry it on, and every receipt shows the same words — the
   // three-phone live run found the other two receipts empty (2026-09-03).
@@ -324,13 +324,21 @@ export default function SoISessionPage() {
   const onStatus = useCallback((p: SessionBroadcastPayload) => {
     const msg = (p as { pod?: unknown })?.pod as PodMsg | undefined;
     if (!msg) return;                                          // a poll frame — never ours
-    const brief = (p as { brief?: { intent?: string; outcome?: string; plan?: { hours?: number; m?: number } | null } }).brief;
+    const brief = (p as { brief?: { intent?: string; outcome?: string; plan?: { hours?: number; m?: number } | null; lock?: Baseline | null } }).brief;
     if (brief && isJoinerRef.current) {                        // the lead's brief, for review
       if (typeof brief.intent === "string") setIntent(brief.intent);
       if (typeof brief.outcome === "string") setOutcome(brief.outcome);
       if (brief.plan && typeof brief.plan.hours === "number" && typeof brief.plan.m === "number") {
         setBaselineHrs(String(brief.plan.hours)); setBandM(brief.plan.m);   // what this seat is being asked to accept
       }
+      if (brief.lock && typeof brief.lock.hash === "string") setLock(brief.lock);   // the ACCEPTED plan, same hash on every phone
+    }
+    // THE CLOCK IS ONE FOR THE POD: a Start/Stop/Add-time pressed on any seated phone lands in every ledger, once.
+    if (msg.kind === "clock") {
+      if (!known(podRef.current, msg.from)) return;          // the roster's own guard: the lead, or a seated phone
+      const ev = msg.event;
+      setClockEvents((e) => (e.some((x) => x.kind === ev.kind && x.at === ev.at) ? e : [...e, { kind: ev.kind, at: ev.at, by: ev.by }]));
+      return;
     }
     const record = (p as { record?: { method?: RecordMethod; value?: string } }).record;
     if (record && typeof record.value === "string" && record.value.trim() && record.value !== recordRef.current.value) {
@@ -417,12 +425,14 @@ export default function SoISessionPage() {
   // THE CLOCK IS A BUTTON (operator 2026-09-11). Start opens a segment, Stop closes it, Add time opens another, and the
   // measured span is the sum (pod-clock.ts). ONE handler for every route — the desktop button and the phone strip both
   // call it, so no route can move the phase and leave a segment open, which the strip used to do.
-  const toggleClock = () => setClockEvents((e) => {
-    const kind: ClockEvent["kind"] = measure(e, Date.now()).running ? "stop" : "start";
-    return [...e, { kind, at: Date.now(), by: "pod" }];
-  });
+  const pressClock = (kind: ClockEvent["kind"]) => {
+    const ev: ClockEvent = { kind, at: Date.now(), by: "pod" };
+    setClockEvents((e) => [...e, ev]);
+    if (connectedRef.current) broadcastRef.current("session_update", { pod: { kind: "clock", from: clientId.current, event: ev } }).catch(() => {});
+  };
+  const toggleClock = () => pressClock(measure(clockEvents, Date.now()).running ? "stop" : "start");
   const stopAndRecord = () => {
-    setClockEvents((e) => (measure(e, Date.now()).running ? [...e, { kind: "stop", at: Date.now(), by: "pod" }] : e));
+    if (measure(clockEvents, Date.now()).running) pressClock("stop");
     setPhase("record"); drive("record");
   };
   useEffect(() => {                                    // one second, and only while running
@@ -1459,6 +1469,15 @@ export default function SoISessionPage() {
                 <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {M}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
                 <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
                 <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
+                {/* EACH CONTRIBUTOR AT THEIR OWN FLOOR, ON THE RECEIPT ITSELF (unit.regional; operator 2026-09-11 showcase): the
+                    same hours minted the same 웃; only the currency differs, and no currency is ever summed with another. */}
+                <li data-testid="receipt-each"><span className="font-medium text-foreground">5b · Each at their own floor</span>{" "}
+                  {members.map((m, i) => {
+                    const j = localityOf(i); const own = mint(claimOf(i).hours, M); const cash = settleInRegion(own, j);
+                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {claimOf(i).hours.toFixed(2)} h → 웃 {own.toFixed(3)}{j ? <> → {cash !== null ? formatLocal(cash, j.currency) : "no rate published"} ({j.name}{electedOwn(i) ? "" : ", inherited"})</> : null}</span>;
+                  })}
+                  {vintage && d9.which !== "none" && d9.amount !== null && d9.currency ? <> — D9: the pod&rsquo;s own floor paid the <span className="font-medium text-foreground">{d9.which}</span> rate, {d9.rate} {d9.currency}/h; a settlement figure moves only because a statutory wage moved.</> : null}
+                </li>
                 {vintage ? (
                   <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
                 ) : null}

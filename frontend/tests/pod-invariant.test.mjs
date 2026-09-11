@@ -482,8 +482,18 @@ if (measure) {
 ok(/data-testid="pod-clock-toggle"/.test(page), 'ONE BUTTON starts and ends the clock');
 ok(/\{span\.segments\.length === 0 \? "Start the clock" : span\.running \? "Stop the clock" : "Add time"\}/.test(page),
    'it reads Start → Stop → Add time');
-ok(/const toggleClock = \(\) => setClockEvents/.test(page) && /const stopAndRecord = \(\) =>/.test(page),
+ok(/const pressClock = \(kind: ClockEvent\["kind"\]\) =>/.test(page) && /const toggleClock = \(\) => pressClock\(/.test(page) && /const stopAndRecord = \(\) =>/.test(page),
    'one handler for every route');
+// THE CLOCK IS ONE FOR THE POD: every press is broadcast, and a press received from a known phone is appended once.
+ok(/broadcastRef\.current\("session_update", \{ pod: \{ kind: "clock", from: clientId\.current, event: ev \} \}\)/.test(page),
+   'a Start/Stop/Add-time pressed on one phone is broadcast to the pod');
+ok(/if \(msg\.kind === "clock"\) \{/.test(page) && /if \(!known\(podRef\.current, msg\.from\)\) return;/.test(page),
+   'and accepted only from a phone the roster knows — the roster\'s own guard');
+ok(/e\.some\(\(x\) => x\.kind === ev\.kind && x\.at === ev\.at\) \? e : \[\.\.\.e, /.test(page), 'appended ONCE — a replayed press changes nothing');
+ok(/\| \{ kind: "clock";  from: string; event: \{ kind: "start" \| "stop"; at: number; by: string \} \};/.test(read('../lib/pod-roster.ts')) && /if \(msg\.kind === "clock"\) return \{ state, send: \[\] \};/.test(read('../lib/pod-roster.ts')),
+   'the protocol names the clock message and the reducer never mistakes it for a phase');
+ok(/if \(brief\.lock && typeof brief\.lock\.hash === "string"\) setLock\(brief\.lock\);/.test(page),
+   'the ACCEPTED plan reaches every phone with its hash, so every receipt measures against the same lock');
 ok(/onClick=\{stopAndRecord\}/.test(page) && (page.match(/onClick=\{stopAndRecord\}/g) || []).length >= 2,
    'the phone strip and the desktop button call the SAME stop — no route can leave a segment open');
 ok(!/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEvents/.test(page),
@@ -568,5 +578,15 @@ if (RATES.JURISDICTIONS && RATES.settleD9) {
   ok(/data-testid="pod-settle-d9"/.test(page) && /A settlement figure moves only because a statutory wage moved/.test(page),
      'the receipt names which rate paid and why (Grok #15)');
 }
+
+// ── THE CLOSED RECEIPT SETTLES EACH CONTRIBUTOR AT THEIR OWN FLOOR (three-phone showcase, 2026-09-11) ────────────
+// The per-member settlement used to live only on the AUDIT panel, so the receipt itself never showed Ana's naira or
+// Bo's pesos. A showcase that stops at the audit screen shows nothing to the person holding the receipt.
+ok(/data-testid="receipt-each"/.test(page) && /data-testid=\{`receipt-member-\$\{i\}`\}/.test(page),
+   'the CLOSED receipt carries one settlement line per contributor, in their own currency');
+ok(/Each at their own floor/.test(page) && /electedOwn\(i\) \? "" : ", inherited"/.test(page),
+   'and says which floor was elected and which was inherited');
+ok(/scripts\/pod-time-report\.mjs/.test(read('../scripts/pod-time-report.mjs')) && /heartsFor\(\{ settles웃: false/.test(read('../scripts/pod-time-report.mjs')),
+   'the volunteer-vs-paid document runs the shipped clock and mint, and prints the volunteer counterfactual beside the paid pod');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
