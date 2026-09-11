@@ -53,8 +53,9 @@ import { BANDS, bandFor, standing, hoursToCeiling, YUG_CEILING, mint, stamp, typ
 import {
   REGION_RATES, regionId, findRegion, tierOf, TIER_REASON, settleInRegion, formatLocal, DEFAULT_REGION_ID,
   JURISDICTIONS, findJurisdiction, localitiesOf, defaultForCountry, COUNTRIES_BY_TIER, BY_TIER,
-  TIER_ORDER, TIER_LABEL, type Jurisdiction,
+  TIER_ORDER, TIER_LABEL, type Jurisdiction, settleD9, OPEN_DECISION, jurisdictionFromResolved,
 } from "@/lib/pod-rates";
+import { detectRegion } from "@/lib/min-wage";
 import { aiPodSummary } from "@/lib/ai";
 import { lockBaseline, accelerate, noConditions, CONDITION_IDS, split, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -211,6 +212,14 @@ export default function SoISessionPage() {
   const [bandM, setBandM] = useState(1);                                  // unit.multiples — published bands only
   const [carriedIn, setCarriedIn] = useState("");                         // 웃 already recognised, for the carry maths
   const [regionIdSel, setRegionIdSel] = useState(DEFAULT_REGION_ID);      // the region whose floor this pod settles at
+  // AUTO-DETECT AS A SUGGESTION, NEVER APPLIED (Q2: no floor is ever assumed for a person; D9: the rate is theirs).
+  // The detector already exists — lib/min-wage.ts over the Cloudflare /api/geo function — and is reused, not rebuilt.
+  const [suggestedRegion, setSuggestedRegion] = useState<Jurisdiction | null>(null);
+  useEffect(() => {
+    const ac = new AbortController();
+    detectRegion(ac.signal).then((r) => { const j = r.detected ? jurisdictionFromResolved(r) : undefined; if (j) setSuggestedRegion(j); }).catch(() => {});
+    return () => ac.abort();
+  }, []);
 
   // Real session over the poll's own live channel (session:<code>), scoped to a pod
   // of 3 (operator: same code+login method as the poll, one is lead). A joiner opens
@@ -582,6 +591,9 @@ export default function SoISessionPage() {
   const regionTier = region ? tierOf(region) : "pending";
   const settlesTo = settleInRegion(stand.payableThisYear, region);
   const ceilingSettlesTo = settleInRegion(YUG_CEILING, region);
+  // D9 at settlement: the greater of the stamped vintage and the current rate, same jurisdiction; a changed region after
+  // the stamp is a relocation election onto the new schedule (pod-rates.ts settleD9).
+  const d9 = settleD9(stand.payableThisYear, vintage ? { rate: vintage.rate, currency: vintage.currency } : null, podJuris);
   const accelRead = accelerate(lock, witnessedHours, conds);
   const accelDelta = lock ? Math.max(0, accelRead.delta) : (baseline > 0 ? Math.max(0, baseline - witnessedHours) : 0);
   const yaTriangle = lock ? accelRead.earned : accelDelta * M;   // ◬ recognised
@@ -857,6 +869,12 @@ export default function SoISessionPage() {
                   {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.atMost ? "≤ " : ""}{b.hours.toLocaleString()} h to 9,999 웃</option>)}
                 </select>
                 <LocalityElect value={regionIdSel} onChange={setRegionIdSel} testid="anchor-region" />
+                {suggestedRegion && suggestedRegion.id !== regionIdSel && (
+                  <button type="button" onClick={() => setRegionIdSel(suggestedRegion.id)} data-testid="anchor-region-suggest"
+                    className="min-h-[44px] rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:border-cyan-400">
+                    Detected {suggestedRegion.name}{suggestedRegion.rate !== null ? ` — ${suggestedRegion.rate} ${suggestedRegion.currency}/h` : ""} · use it?
+                  </button>
+                )}
               </div>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="anchor-preview">
                 {region && region.rate !== null ? (
@@ -1314,6 +1332,19 @@ export default function SoISessionPage() {
                 )}
                 <br />The rate is stamped at settlement and never looked up again, and it takes no part in the mint:
                 the same hour mints the same 웃 in every region on this list.
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-settle-d9">
+                {vintage && d9.which !== "none" && d9.amount !== null && d9.currency ? (
+                  <>D9 — pays <span className="font-medium text-foreground">{formatLocal(d9.amount, d9.currency)}</span> at {d9.rate} {d9.currency} an hour:{" "}
+                    {d9.which === "relocated" ? <>a relocation election onto {podJuris?.name}&rsquo;s schedule at its current rate — never a cross-currency maximum.</>
+                     : d9.which === "equal" ? <>the vintage and the current rate are the same.</>
+                     : <>the <span className="font-medium text-foreground">{d9.which}</span> rate is the greater of the two, from the same jurisdiction&rsquo;s table — a floor, never a ceiling.</>}
+                    {" "}A settlement figure moves only because a statutory wage moved.</>
+                ) : (
+                  <>D9 — at settlement the payout takes the greater of the rate stamped at earning and the rate current then, from the same jurisdiction&rsquo;s table; a contributor who relocates keeps the earning vintage unless they elect the new schedule.</>
+                )}
+                {podJuris && OPEN_DECISION[podJuris.tier] ? <> <span className="opacity-80" data-testid="pod-open-decision">{OPEN_DECISION[podJuris.tier]}</span></> : null}
+                {podJuris?.source === "hi_rates.py" ? <> <span className="opacity-80">Source: hi_rates.py, the live settlement table the paper names.</span></> : null}
               </p>
               {/* EACH CONTRIBUTOR AT THEIR OWN FLOOR (unit.regional). The 웃 are identical for identical work; only the
                   currency differs. Never summed across currencies — no exchange rate is published, so none is used. */}

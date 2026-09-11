@@ -21,6 +21,8 @@
  * shows no figure at all and says which of the three reasons applies.
  */
 
+import { US_STATE_RATES, COUNTRY_RATES, type ResolvedRegion } from "@/lib/min-wage";
+
 /** One row of the operator's table. `rate` is the hourly minimum wage in `currency`; null where none is published. */
 export interface RegionRate {
   lang: string;          // Language
@@ -202,6 +204,14 @@ export interface Jurisdiction {
   tier: SettleTier;
   note: string;
   langs: string[];         // every language this jurisdiction is published under
+  /**
+   * Where the figure comes from. The operator's 2026-09-10 table is the reference; `hi_rates.py` is the table the paper
+   * itself names as "the live settlement table" (fund.token), mirrored in lib/min-wage.ts — 50 US states and 9 countries
+   * in USD. Both are kept verbatim; neither is edited to agree with the other.
+   */
+  source: "operator-2026-09-10" | "hi_rates.py";
+  /** The USD figure hi_rates.py holds for the same country, where the operator's row is in local currency. Never converted. */
+  usdMirror: number | null;
 }
 
 /** "Canada — Québec" → ["Canada", "Québec"]. The em dash is the paper's own separator. */
@@ -220,10 +230,39 @@ export const JURISDICTIONS: Jurisdiction[] = (() => {
     byName.set(key, {
       id: regionId(r), cc: r.cc, name: r.name, country, locality,
       currency: r.currency, rate: r.rate, tier: tierOf(r), note: r.note, langs: [r.lang],
+      source: "operator-2026-09-10", usdMirror: COUNTRY_RATES[country] ?? null,
     });
   }
-  return Array.from(byName.values());
+  const out = Array.from(byName.values());
+  // THE REGION, NOT THE WIDER COUNTRY (fund.token): "The anchor is always the posted minimum wage of the region the
+  // contributor lives in." hi_rates.py carries the 50 US state floors the operator's table does not — a Californian's
+  // posted floor is $16.00, not Texas's $7.25 — so each state is a locality of the United States, tagged with its source.
+  for (const [state, rate] of Object.entries(US_STATE_RATES)) {
+    out.push({
+      id: `hi_rates:US-${state.replace(/\s+/g, "_")}`, cc: "US", name: `United States — ${state}`, country: "United States",
+      locality: state, currency: "USD", rate, tier: "published", note: "State rate — hi_rates.py (the live settlement table)",
+      langs: ["English"], source: "hi_rates.py", usdMirror: rate,
+    });
+  }
+  // Cambodia is in both existing tables and absent from the operator's 103 — merged in with its source, and flagged.
+  for (const [country, rate] of Object.entries(COUNTRY_RATES)) {
+    if (out.some((j) => j.country === country)) continue;
+    const cc = country === "Cambodia" ? "KH" : country.slice(0, 2).toUpperCase();
+    out.push({
+      id: `hi_rates:${cc}`, cc, name: country, country, locality: null, currency: "USD", rate, tier: "published",
+      note: "Country rate — hi_rates.py; not in the operator's 2026-09-10 table (flagged)", langs: ["English"],
+      source: "hi_rates.py", usdMirror: rate,
+    });
+  }
+  return out;
 })();
+
+/** The pre-existing region detector's result → the jurisdiction it names here, or undefined when it names none. */
+export function jurisdictionFromResolved(r: ResolvedRegion | null | undefined): Jurisdiction | undefined {
+  if (!r) return undefined;
+  if (r.state) return JURISDICTIONS.find((j) => j.cc === "US" && j.locality === r.state);
+  return JURISDICTIONS.find((j) => j.country === r.country && j.rate !== null) ?? JURISDICTIONS.find((j) => j.country === r.country);
+}
 
 const JURIS_INDEX: ReadonlyMap<string, Jurisdiction> = new Map(JURISDICTIONS.map((j) => [j.id, j]));
 export const findJurisdiction = (id: string): Jurisdiction | undefined => JURIS_INDEX.get(id);
@@ -277,6 +316,41 @@ export const COUNTRIES_BY_TIER: Readonly<Record<SettleTier, Jurisdiction[]>> = (
   for (const j of COUNTRIES) g[j.tier].push(j);
   return g;
 })();
+
+/**
+ * D9 IN FULL (unit.regional, r272): "At settlement the payout takes the greater of two values from the same jurisdiction's
+ * table: the vintage-locked rate at earning, or the current rate at settlement — a floor, never a ceiling, so time can only
+ * preserve or improve real buying power … A contributor who relocates keeps the earning jurisdiction's vintage by
+ * default; converting to the new schedule at settlement is an explicit election, closing jurisdiction-shopping."
+ *
+ * Grok, open.external #15: the figure moves only because a statutory wage moved. No conversion between currencies —
+ * a relocation election settles on the NEW schedule at its current rate; it is never a max across two currencies.
+ */
+export interface D9Settlement { amount: number | null; rate: number | null; which: "vintage" | "current" | "equal" | "relocated" | "none"; currency: string | null }
+export function settleD9(yug: number, vintage: { rate: number | null; currency: string | null } | null, current: Jurisdiction | undefined): D9Settlement {
+  if (!(yug > 0)) return { amount: null, rate: null, which: "none", currency: null };
+  const cur = current && current.rate !== null ? current.rate : null;
+  const vin = vintage && vintage.rate !== null ? vintage.rate : null;
+  if (vin !== null && vintage?.currency && current && current.currency !== vintage.currency) {
+    // relocation: an explicit election onto another schedule — its current rate, never a cross-currency max
+    return cur === null ? { amount: null, rate: null, which: "none", currency: current.currency }
+                        : { amount: yug * cur, rate: cur, which: "relocated", currency: current.currency };
+  }
+  if (vin === null && cur === null) return { amount: null, rate: null, which: "none", currency: current?.currency ?? vintage?.currency ?? null };
+  const rate = Math.max(vin ?? -Infinity, cur ?? -Infinity);
+  const which = vin === null ? "current" : cur === null ? "vintage" : vin === cur ? "equal" : vin > cur ? "vintage" : "current";
+  return { amount: yug * rate, rate, which, currency: current?.currency ?? vintage?.currency ?? null };
+}
+
+/**
+ * The two decisions only the operator can take, exactly as the register records them (open.decisions, open since r57,
+ * both "Blocks operation"). Shown as PROPOSALS on the rows they govern; nothing settles under them until ruled.
+ */
+export const OPEN_DECISION: Partial<Record<SettleTier, string>> = {
+  no_single_rate: "D1, open since r57 — recommended default: the lowest generally-applicable adult rate in the contributor's own region, published with its source. Unsettled until the operator rules; blocks operation.",
+  no_official_rate: "D2, open since r57 — the Global Agreed Standard: pegged to a published international reference, peg Stable, value Adaptive, reviewed annually. Unsettled until the operator rules; blocks operation.",
+  pending: "Recoverable by data entry: a national rate exists and is not yet loaded here.",
+};
 
 /**
  * Settlement — `$ = 웃 × the region's hourly minimum wage`, in that region's own currency.

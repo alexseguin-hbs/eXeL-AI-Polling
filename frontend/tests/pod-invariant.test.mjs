@@ -406,9 +406,12 @@ if (ABC.format) {
 if (RATES.JURISDICTIONS) {
   // 114 rows collapse to 106 PLACES with no row lost — six countries were repeated once per language, same rate each
   // time, which made a person choose a language in order to be given a wage.
-  ok(RATES.JURISDICTIONS.length === 106, `114 rows are 106 distinct places — got ${RATES.JURISDICTIONS.length}`);
-  ok(RATES.JURISDICTIONS.reduce((n, j) => n + j.langs.length, 0) === 114, 'and every one of the 114 rows is still accounted for');
-  ok(RATES.COUNTRIES.length === 103, 'across the paper\'s 103 countries');
+  // The operator's table is one SOURCE among the jurisdictions now; scope these to it (the merge is gated further down).
+  const opJ = RATES.JURISDICTIONS.filter((j) => j.source === 'operator-2026-09-10');
+  ok(opJ.length === 106, `114 rows are 106 distinct places — got ${opJ.length}`);
+  ok(opJ.reduce((n, j) => n + j.langs.length, 0) === 114, 'and every one of the 114 rows is still accounted for');
+  ok(new Set(opJ.map((j) => j.cc)).size === 103, 'across the paper\'s 103 countries');
+  ok(RATES.COUNTRIES.length === 104, 'the country list is the paper\'s 103 plus Cambodia from hi_rates.py, flagged');
   const ch = RATES.JURISDICTIONS.filter((j) => j.cc === 'CH');
   ok(ch.length === 1 && ch[0].langs.length === 3,
      'Switzerland is ONE place published in three languages, not three places');
@@ -420,8 +423,8 @@ if (RATES.JURISDICTIONS) {
   const ca = RATES.localitiesOf('CA');
   ok(ca[0].rate === 18.15 && ca[1].rate === null,
      'and the locality CHANGES the floor: Canada Federal is 18.150 CAD, Québec publishes none');
-  ok(RATES.JURISDICTIONS.filter((j) => j.locality !== null).length === 13,
-     'thirteen rows name a locality, parsed off the paper\'s own em dash');
+  ok(opJ.filter((j) => j.locality !== null).length === 13,
+     'thirteen of the operator\'s rows name a locality, parsed off the paper\'s own em dash');
   ok(RATES.findJurisdiction('English:US').locality === 'Austin, Texas', 'including the Texas vintage itself');
 
   // OPTIMIZATION, asserted rather than claimed.
@@ -434,7 +437,7 @@ if (RATES.JURISDICTIONS) {
      'the four tier groups are computed ONCE at module load');
   ok(!/REGION_RATES\.filter\(/.test(page),
      'and the page no longer re-filters 114 rows four times per picker per render');
-  ok(RATES.TIER_ORDER.reduce((n, t) => n + RATES.BY_TIER[t].length, 0) === 106, 'the tier groups cover every place');
+  ok(RATES.TIER_ORDER.reduce((n, t) => n + RATES.BY_TIER[t].length, 0) === RATES.JURISDICTIONS.length, 'the tier groups cover every place');
 
   // The election on screen: own seat only, elected before the work, inherited when unelected — never assumed.
   ok(/function LocalityElect\(/.test(page), 'one control serves the pod default and every member');
@@ -526,5 +529,44 @@ ok(/data-testid="receipt-plan"/.test(page) && /lock\.yug\.toFixed\(3\)\} planned
 ok(/plan\?: \{ hours: number; m: number \};/.test(read('../lib/pod-projects.ts')), 'a task may ship with a predetermined plan');
 ok(/witnessed_for: hhmmss\(span\.ms\)/.test(page) && /member_outcomes: members\.map/.test(page),
    'the backend record now carries the clock and the three outcomes');
+
+// ── THE REGION RECORD, RECONCILED (feedback intake 2026-09-11) ───────────────────────────────────────────────────────
+if (RATES.JURISDICTIONS && RATES.settleD9) {
+  const ops = RATES.JURISDICTIONS.filter((j) => j.source === 'operator-2026-09-10');
+  const hi = RATES.JURISDICTIONS.filter((j) => j.source === 'hi_rates.py');
+  ok(ops.length === 106 && ops.reduce((n, j) => n + j.langs.length, 0) === 114,
+     'the operator\'s 114 rows are still 106 places, none lost, none edited');
+  ok(hi.length === 51 && hi.filter((j) => j.cc === 'US').length === 50,
+     'hi_rates.py — "the live settlement table" (fund.token) — adds the 50 US state floors and Cambodia, each tagged with its source');
+  ok(RATES.localitiesOf('US').length === 51, 'a US contributor elects their STATE, not the wider country');
+  const ca = RATES.JURISDICTIONS.find((j) => j.locality === 'California');
+  ok(ca && ca.rate === 16 && ca.currency === 'USD', 'a Californian\'s posted floor is $16.00, not Texas\'s $7.25');
+  const kh = RATES.JURISDICTIONS.find((j) => j.country === 'Cambodia');
+  ok(kh && kh.rate === 1.04 && kh.source === 'hi_rates.py' && /flagged/.test(kh.note),
+     'Cambodia is in, from hi_rates.py, and flagged as absent from the operator\'s 103');
+  ok(RATES.JURISDICTIONS.find((j) => j.cc === 'BR' && j.source === 'operator-2026-09-10').usdMirror === 1.58,
+     'the USD mirror sits BESIDE the operator\'s local-currency row, never converted into it');
+  // D9 — greater of vintage and current, same jurisdiction; relocation is an election onto the new schedule
+  const tx = RATES.findJurisdiction('English:US');
+  ok(RATES.settleD9(100, { rate: 7.25, currency: 'USD' }, tx).which === 'equal', 'vintage == current → equal');
+  ok(RATES.settleD9(100, { rate: 6.5, currency: 'USD' }, tx).which === 'current' && RATES.settleD9(100, { rate: 6.5, currency: 'USD' }, tx).amount === 725,
+     'the wage rose since the stamp → the CURRENT rate pays: a floor, never a ceiling');
+  ok(RATES.settleD9(100, { rate: 8, currency: 'USD' }, tx).which === 'vintage' && RATES.settleD9(100, { rate: 8, currency: 'USD' }, tx).amount === 800,
+     'the wage fell since the stamp → the VINTAGE rate pays: time can only preserve or improve buying power');
+  const ng = RATES.findJurisdiction('English:NG');
+  const rel = RATES.settleD9(100, { rate: 7.25, currency: 'USD' }, ng);
+  ok(rel.which === 'relocated' && rel.currency === 'NGN' && rel.amount === 100 * 402.739,
+     'a relocation election settles on the new schedule at its current rate — never a maximum across two currencies');
+  ok(RATES.settleD9(100, null, RATES.findJurisdiction('English:IE')).which === 'none', 'no rate anywhere → no figure, not zero');
+  ok(/no_single_rate: "D1, open since r57/.test(read('../lib/pod-rates.ts')) && /no_official_rate: "D2, open since r57/.test(read('../lib/pod-rates.ts')),
+     'D1 and D2 are shown as the operator\'s open decisions, verbatim from the register, and settle nothing');
+  // auto-detect is a suggestion, never applied
+  ok(/import \{ detectRegion \} from "@\/lib\/min-wage";/.test(page), 'the existing detector is REUSED, not rebuilt');
+  ok(/setSuggestedRegion\(j\)/.test(page) && !/detectRegion\([^)]*\)\.then\([^)]*setRegionIdSel/.test(page),
+     'detection only SUGGESTS — it never sets the election by itself');
+  ok(/data-testid="anchor-region-suggest"/.test(page), 'the person is offered the detected place and chooses');
+  ok(/data-testid="pod-settle-d9"/.test(page) && /A settlement figure moves only because a statutory wage moved/.test(page),
+     'the receipt names which rate paid and why (Grok #15)');
+}
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
