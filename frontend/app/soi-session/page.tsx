@@ -761,6 +761,69 @@ export default function SoISessionPage() {
                 </div>
               </div>
             )}
+            {/* REGION AND MULTIPLE, DECLARED BEFORE THE WORK. D9, the vintage rule: a 웃 is stamped with the local
+                minimum-wage rate ON ITS EARNING DATE. A rate discovered at settlement is a rate looked up afterwards,
+                which is the thing the stamp exists to prevent — so both are chosen here, where the pod is opened. */}
+            <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-anchor">
+              <div className="font-medium">Where these hours are anchored <span className="text-xs font-normal text-muted-foreground">— 웃 = M × T (Multiple × Time)</span></div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The region sets no part of the mint. The same hour mints the same 웃 in all 114 regions below; the region
+                decides only what that 웃 settles as, in its own currency, at the rate stamped when the work is done.
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} data-testid="anchor-multiple"
+                  className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
+                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.atMost ? "≤ " : ""}{b.hours.toLocaleString()} h to 9,999 웃</option>)}
+                </select>
+                <select value={regionIdSel} onChange={(e) => setRegionIdSel(e.target.value)} data-testid="anchor-region"
+                  className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm">
+                  {([["published", "Published rate"], ["pending", "Rate exists, not yet loaded"],
+                     ["no_single_rate", "No single national rate"], ["no_official_rate", "No official rate"]] as const).map(([tier, heading]) => (
+                    <optgroup key={tier} label={heading}>
+                      {REGION_RATES.filter((r) => tierOf(r) === tier).map((r) => (
+                        <option key={regionId(r)} value={regionId(r)}>{r.name} · {r.lang}{r.rate !== null ? ` — ${r.rate} ${r.currency}/h` : ""}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground" data-testid="anchor-preview">
+                {region && region.rate !== null ? (
+                  <>One witnessed hour at {bandM}× mints <span className="font-medium text-foreground">{mint(1, bandM).toFixed(3)} 웃</span>, settling
+                    at <span className="font-medium text-foreground">{formatLocal(settleInRegion(mint(1, bandM), region)!, region.currency)}</span> in {region.name}.
+                    A full ceiling year is {formatLocal(settleInRegion(YUG_CEILING, region)!, region.currency)}.</>
+                ) : (
+                  <>One witnessed hour at {bandM}× mints <span className="font-medium text-foreground">{mint(1, bandM).toFixed(3)} 웃</span>. {region ? region.name : "This region"} publishes
+                    no rate, so no figure is shown and none is guessed — {TIER_REASON[regionTier]} The 웃 are earned and recorded either way.</>
+                )}
+              </p>
+              <details className="mt-2">
+                <summary className="cursor-pointer text-xs text-muted-foreground">All {REGION_RATES.length} regions · {REGION_RATES.filter((r) => r.rate !== null).length} with a published rate</summary>
+                <div className="mt-2 max-h-64 overflow-auto rounded border border-border" data-testid="rate-table">
+                  <table className="w-full text-left text-[11px]">
+                    <thead className="sticky top-0 bg-muted"><tr>
+                      <th className="px-2 py-1 font-medium">Country / Jurisdiction</th>
+                      <th className="px-2 py-1 font-medium">Lang</th>
+                      <th className="px-2 py-1 text-right font-medium">Rate / h</th>
+                      <th className="px-2 py-1 font-medium">Cur</th>
+                      <th className="px-2 py-1 font-medium">Notes</th>
+                    </tr></thead>
+                    <tbody>
+                      {REGION_RATES.map((r) => (
+                        <tr key={regionId(r)} className={regionId(r) === regionIdSel ? "bg-primary/10" : undefined}>
+                          <td className="px-2 py-1">{r.name}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{r.lang}</td>
+                          <td className="px-2 py-1 text-right tabular-nums">{r.rate !== null ? r.rate.toFixed(3) : "—"}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{r.currency}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{r.note}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            </div>
+
             {/* §14 unit.accel · the estimate is frozen HERE, before the clock, or there is no accelerator at all. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-baseline">
               <div className="font-medium">Estimate, before the work <span className="text-xs font-normal text-muted-foreground">— optional; ◬ is read against it</span></div>

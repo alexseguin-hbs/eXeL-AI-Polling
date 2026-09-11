@@ -347,6 +347,16 @@ if (RATES.REGION_RATES) {
   ok(!/\* *[0-9.]+ *\/ *[0-9.]+ *\/\/ *(fx|exchange)/i.test(rates) && !/exchangeRate|toUSD|convertCurrency/.test(rates),
      'there is no exchange rate anywhere — the paper publishes none, so none is invented');
 
+  // REACHABILITY. A control nobody can reach is not built in. The region, the multiple and the table used to render
+  // ONLY in the audit phase — the last stage — so seeing any of it meant running a whole three-person pod to the end.
+  // D9 wants the choice made before the work anyway: a rate discovered at settlement is a rate looked up afterwards.
+  const composeBlock = page.slice(page.indexOf('{phase === "compose" && ('), page.indexOf('{phase === "invite" && ('));
+  ok(/data-testid="pod-anchor"/.test(composeBlock), 'the region and the multiple are chosen where the pod is OPENED, not at settlement');
+  ok(/data-testid="anchor-region"/.test(composeBlock) && /data-testid="anchor-multiple"/.test(composeBlock),
+     'both pickers are on the first screen a person sees');
+  ok(/data-testid="rate-table"/.test(composeBlock), 'and all 114 rows are browsable there rather than buried in the code');
+  ok(/data-testid="anchor-preview"/.test(composeBlock),
+     'with what one hour mints and settles as, shown before anyone works an hour');
   // The pod screen: a region can be chosen, and the rate is stamped rather than looked up later (D9).
   ok(/data-testid="region-select"/.test(page), 'the pod offers a region picker');
   ok(/data-testid="pod-settle"/.test(page), 'and says what the 웃 settle as there');
