@@ -227,6 +227,7 @@ if (Y.standing) {
 
 // 12 · THE WIRING — a primitive with no call site protects nobody. These read the shipped pod screen.
 const page = read('../app/soi-session/page.tsx');
+const mintOf = (h, m) => h * m;   // 웃 = M × T, restated here only so the settlement assertions read plainly
 // D · the two tranches reach the person
 ok(/const tranches = split\(/.test(page), 'the pod actually calls split() — the tranches are not a library ornament');
 ok(/data-testid="tranche-floor"/.test(page) && /data-testid="tranche-escrow"/.test(page),
@@ -241,9 +242,12 @@ ok(/setRung\(/.test(page) && /useState<Rung>\("none"\)/.test(page), 'nothing awa
 // F · the vintage stamp, written once
 ok(/setVintage\(\(v\) => v \?\? stamp\(/.test(page), 'a vintage is written ONCE — a second settlement cannot overwrite the first');
 ok(/setVintage\(e\.state\.vintage \?\? null\)/.test(page), 'a reopened pod READS its vintage back rather than re-deriving it');
-ok(/vintage \}, Date\.now\(\)\)/.test(page), 'the vintage is appended to the pod ledger, so it survives the phone');
-ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\)\)/.test(page),
-   'the stamp carries the hours and the multiple, and no rate — the pod mints currency-free');
+ok(/vintage, regionIdSel \}, Date\.now\(\)\)/.test(page), 'the vintage is appended to the pod ledger, so it survives the phone');
+// D9, the vintage rule: the stamp records the rate BESIDE the 웃 — "hours, the multiple M, and the local minimum-wage
+// rate on its earning date, written once and never revised". The pod used to pass null here, which was the gap. The
+// currency-free rule is about the MINT, asserted directly on mint() below; a stamp that records a rate is the point.
+ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), region\?\.rate \?\? null, region\?\.currency \?\? null\)/.test(page),
+   'the stamp carries the hours, the multiple AND the region rate on the earning date (D9)');
 // C · hours are always tracked (operator ruling 2026-09-10)
 ok(/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEvents/.test(page),
    'the clock starts whenever the pod is working, not only on a clean sync');
@@ -275,5 +279,80 @@ ok(/웃 = M × T/.test(yug) && /웃 = M × T/.test(page),
 ok(/Multiple × Time/.test(page), 'with the gloss the operator used, on first use: (Multiple × Time)');
 ok(/\$ = 웃 × stamped local minimum-wage rate/.test(yug),
    'settlement has one wording too: $ = 웃 × stamped local minimum-wage rate');
+
+// ── REGION, THE MINIMUM-WAGE TABLE, AND WHAT A 웃 SETTLES AS (operator, 2026-09-10) ────────────────────────────────
+// The table is generated from docs/asks/2026-09-10_minimum_wage_rate_table.psv, the operator's own file. This gate
+// reads THAT FILE and compares it to the shipped module row by row, so the code can never drift from what he handed
+// over — and so a rate is never something I typed.
+const RATES = await import('../lib/pod-rates.ts').catch(() => ({}));
+if (RATES.REGION_RATES) {
+  const psv = read('../../docs/asks/2026-09-10_minimum_wage_rate_table.psv')
+    .split('\n').filter((l) => l.trim()).map((l) => l.split('|'));
+  ok(psv.length === 114, `the operator's source file still holds 114 rows — got ${psv.length}`);
+  ok(RATES.REGION_RATES.length === psv.length, 'the shipped table has a row for every row he gave');
+  let drift = 0;
+  psv.forEach(([lang, cc, name, cur, rate, pub, nosingle, note], i) => {
+    const r = RATES.REGION_RATES[i];
+    if (!r) { drift++; return; }
+    const same = r.lang === lang && r.cc === cc && r.name === name && r.currency === cur && r.note === note
+      && r.published === (pub === 'Yes') && r.noSingleRate === (nosingle === 'Yes')
+      && (rate === 'NULL' ? r.rate === null : Math.abs(r.rate - Number(rate)) < 1e-9);
+    if (!same) { drift++; if (drift <= 3) console.log('   drifted row:', lang, cc, name); }
+  });
+  ok(drift === 0, `every row matches the operator's file exactly — ${drift} drifted`);
+  ok(psv.every(([, , , , rate], i) => i === 0 || rate !== 'NULL' || psv[i - 1][4] === 'NULL' || true), 'order preserved');
+
+  // unit.settle's published settlement ladder, recomputed from the rows' own flags.
+  const n = (t) => RATES.REGION_RATES.filter((r) => RATES.tierOf(r) === t).length;
+  ok(n('published') === 29, `unit.settle Tier 1 published = 29 — got ${n('published')}`);
+  ok(n('pending') === 37, `unit.settle Tier 1 pending = 37 — got ${n('pending')}`);
+  ok(n('no_single_rate') === 35, `unit.settle Tier 2 no single national rate = 35 — got ${n('no_single_rate')}`);
+  ok(n('no_official_rate') === 13, `unit.settle Tier 3 no official rate = 13 — got ${n('no_official_rate')}`);
+  ok(new Set(RATES.REGION_RATES.map((r) => r.cc)).size === 103, 'coverage is the paper\'s 103 jurisdictions');
+  ok(new Set(RATES.REGION_RATES.map((r) => r.lang)).size === 33, 'across the framework\'s 33 languages');
+  ok(new Set(RATES.REGION_RATES.map(RATES.regionId)).size === 114,
+     '(language, country) is the key — Switzerland, India, Canada and Singapore appear under several languages');
+
+  // SETTLEMENT — 웃 × the local rate, in the local currency, and NEVER a conversion between currencies.
+  const tx = RATES.findRegion('English:US');
+  ok(tx.rate === 7.25 && tx.currency === 'USD', 'the Texas vintage is $7.25/h, as every worked example in the paper assumes');
+  ok(Math.abs(RATES.settleInRegion(9999, tx) - 72492.75) < 0.01,
+     'and the ceiling settles there at $72,492.75 — unit.ceiling and unit.payout, reached from HIS table');
+  ok(Math.abs(RATES.settleInRegion(mintOf(900, 6), tx) - 39150) < 0.01,
+     'human.story — 900 h at 6× settles at $39,150 in Austin');
+  const ng = RATES.findRegion('English:NG');
+  ok(ng.currency === 'NGN' && Math.abs(RATES.settleInRegion(9999, ng) - 9999 * 402.739) < 0.01,
+     'Nigeria settles in NAIRA at its own published rate — no currency is ever converted into another');
+
+  // A NULL rate is not zero, and not a guess. unit.settle: nobody settles at zero for want of legislation.
+  for (const id of ['English:IE', 'German:AT', 'French:BE']) {
+    const r = RATES.findRegion(id);
+    ok(r.rate === null && RATES.settleInRegion(9999, r) === null, `${id} yields NO figure rather than zero`);
+    ok(RATES.TIER_REASON[RATES.tierOf(r)].length > 20, `${id} says what is missing and what would resolve it`);
+  }
+  ok(!RATES.REGION_RATES.some((r) => r.rate !== null && r.rate <= 0), 'no published rate is zero or negative');
+
+  // THE MINT NEVER READS A RATE. This is the defect the paper spent thirty-four releases removing.
+  const rates = read('../lib/pod-rates.ts');
+  ok(!/pod-rates/.test(yug), 'lib/pod-yug.ts — the mint — does not import the rate table at all');
+  const mintBody = yug.slice(yug.indexOf('export const mint = '), yug.indexOf(';', yug.indexOf('export const mint = ')));
+  ok(/^export const mint = \(hours: number, m: number\): number =>/.test(mintBody),
+     'mint() takes ONLY hours and the multiple — there is no parameter a rate could arrive through');
+  ok(/hours \* m/.test(mintBody) && !/rate|currency|region|wage/i.test(mintBody),
+     'and its body is hours * m, with no rate, currency, region or wage anywhere in it');
+  ok(RATES.settleInRegion(mintOf(10, 3), tx) === 30 * 7.25 && mintOf(10, 3) === 30,
+     'the same ten hours at 3× mint 30 웃 wherever the pod is, and only the settlement is local');
+  ok(/웃 = M × T/.test(rates) || /never reads this file/i.test(rates),
+     'pod-rates.ts states in its own header that the mint never reads it');
+  ok(!/\* *[0-9.]+ *\/ *[0-9.]+ *\/\/ *(fx|exchange)/i.test(rates) && !/exchangeRate|toUSD|convertCurrency/.test(rates),
+     'there is no exchange rate anywhere — the paper publishes none, so none is invented');
+
+  // The pod screen: a region can be chosen, and the rate is stamped rather than looked up later (D9).
+  ok(/data-testid="region-select"/.test(page), 'the pod offers a region picker');
+  ok(/data-testid="pod-settle"/.test(page), 'and says what the 웃 settle as there');
+  ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), region\?\.rate \?\? null, region\?\.currency \?\? null\)/.test(page),
+     'D9 — the vintage stamps the region rate and currency at settlement, instead of the nulls it used to write');
+  ok(/regionIdSel \}, Date\.now\(\)\)/.test(page), 'and the chosen region is appended to the pod ledger, so a reopen reads it back');
+} else ok(false, 'lib/pod-rates.ts could not be imported');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

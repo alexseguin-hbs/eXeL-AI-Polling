@@ -50,6 +50,7 @@ import { measure, supported, witnessedHours as spanHours, hhmmss, heartsFor, RUN
 import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
 import { BANDS, bandFor, standing, hoursToCeiling, YUG_CEILING, mint, stamp, type Vintage } from "@/lib/pod-yug";
+import { REGION_RATES, regionId, findRegion, tierOf, TIER_REASON, settleInRegion, formatLocal, DEFAULT_REGION_ID } from "@/lib/pod-rates";
 import { aiPodSummary } from "@/lib/ai";
 import { lockBaseline, accelerate, noConditions, CONDITION_IDS, split, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -158,6 +159,7 @@ export default function SoISessionPage() {
   const [vintage, setVintage] = useState<Vintage | null>(null);
   const [bandM, setBandM] = useState(1);                                  // unit.multiples — published bands only
   const [carriedIn, setCarriedIn] = useState("");                         // 웃 already recognised, for the carry maths
+  const [regionIdSel, setRegionIdSel] = useState(DEFAULT_REGION_ID);      // the region whose floor this pod settles at
 
   // Real session over the poll's own live channel (session:<code>), scoped to a pod
   // of 3 (operator: same code+login method as the poll, one is lead). A joiner opens
@@ -357,7 +359,7 @@ export default function SoISessionPage() {
   // have closed their phones — the record is no longer only in their memory.
   useEffect(() => {
     if (restored.current || !podCode) return;
-    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string; rung?: Rung; vintage?: Vintage | null }>(podCode);
+    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string; rung?: Rung; vintage?: Vintage | null; regionIdSel?: string }>(podCode);
     if (!e) return;
     restored.current = true; podRev.current = e.rev;
     setIntent(e.state.intent); setOutcome(e.state.outcome); setMembers(e.state.members);
@@ -367,16 +369,17 @@ export default function SoISessionPage() {
     // D9: a vintage is READ back, never re-derived. Re-deriving it on reopen would let a later band or a later hour
     // silently rewrite what a past settlement recorded, which is the one thing a stamp exists to prevent.
     setVintage(e.state.vintage ?? null);
+    setRegionIdSel(e.state.regionIdSel ?? DEFAULT_REGION_ID);
     podRef.current = { ...podRef.current, phase: e.state.phase }; setPhase(e.state.phase);
     setResumed(`Reopened at revision ${e.rev} — everything recorded is as you left it.`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podCode]);
   useEffect(() => {
     if (!podCode) return;
-    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage }, Date.now());
+    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage, regionIdSel }, Date.now());
     if (!ok) setSaveFailed(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [podCode, phase, members, clockEvents, recordValue, rung, vintage]);
+  }, [podCode, phase, members, clockEvents, recordValue, rung, vintage, regionIdSel]);
   // OPERATOR RULING 2026-09-10: "Hours is always tracked." The clock is not a mode and not a reward for a clean sync —
   // it starts the moment the pod begins working and it starts ONCE. A pod that never reaches a synced start, or that is
   // reset and tried again, still has an honest record of the time it spent rather than nothing at all. Whether that time
@@ -499,6 +502,11 @@ export default function SoISessionPage() {
   // conditions; without one it falls back to the older typed figure so a pod opened before this change still settles.
   // OPERATOR RULING: earning is never capped, payout always is, and the excess carries to the next year and the next.
   const stand = standing(parseFloat(carriedIn) || 0, mint(witnessedHours, bandM));
+  // The region decides only what an already-minted 웃 SETTLES as. It never touches the mint (pod-rates.ts).
+  const region = findRegion(regionIdSel);
+  const regionTier = region ? tierOf(region) : "pending";
+  const settlesTo = settleInRegion(stand.payableThisYear, region);
+  const ceilingSettlesTo = settleInRegion(YUG_CEILING, region);
   const accelRead = accelerate(lock, witnessedHours, conds);
   const accelDelta = lock ? Math.max(0, accelRead.delta) : (baseline > 0 ? Math.max(0, baseline - witnessedHours) : 0);
   const yaTriangle = lock ? accelRead.earned : accelDelta * M;   // ◬ recognised
@@ -1090,6 +1098,40 @@ export default function SoISessionPage() {
                 <input type="number" min="0" step="1" value={carriedIn} onChange={(e) => setCarriedIn(e.target.value)} placeholder="웃 already earned" data-testid="carried-in"
                   className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
               </div>
+
+              {/* REGION — the local floor a 웃 settles at. 114 rows, the operator's own table, grouped by his four
+                  settlement tiers so a region that cannot settle yet says why instead of showing a number. */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <label htmlFor="pod-region" className="text-xs text-muted-foreground">Region</label>
+                <select id="pod-region" value={regionIdSel} onChange={(e) => setRegionIdSel(e.target.value)} data-testid="region-select"
+                  className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm">
+                  {([["published", "Published rate"], ["pending", "Rate exists, not yet loaded"],
+                     ["no_single_rate", "No single national rate"], ["no_official_rate", "No official rate"]] as const).map(([tier, heading]) => (
+                    <optgroup key={tier} label={heading}>
+                      {REGION_RATES.filter((r) => tierOf(r) === tier).map((r) => (
+                        <option key={regionId(r)} value={regionId(r)}>
+                          {r.name} · {r.lang}{r.rate !== null ? ` — ${r.rate} ${r.currency}/h` : ""}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-settle">
+                {region && settlesTo !== null ? (
+                  <>Settles at <span className="font-medium text-foreground">{formatLocal(settlesTo, region.currency)}</span>{" "}
+                    — 웃 × {region.rate} {region.currency} an hour in {region.name}. A full ceiling year is{" "}
+                    <span className="font-medium text-foreground">{formatLocal(ceilingSettlesTo!, region.currency)}</span>, and
+                    that figure IS the ceiling settled at the local rate, not a fraction of it.{" "}
+                    <span className="opacity-80">{region.note}</span></>
+                ) : (
+                  <>No figure is shown for {region ? region.name : "this region"}, and none is guessed.{" "}
+                    {TIER_REASON[regionTier]} Nobody settles at zero because their government has not legislated —
+                    the 웃 are earned and recorded either way.</>
+                )}
+                <br />The rate is stamped at settlement and never looked up again, and it takes no part in the mint:
+                the same hour mints the same 웃 in every region on this list.
+              </p>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-reach">
                 At {bandM}× another <span className="font-medium text-foreground">{hoursToCeiling(bandM, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃
                 {bandFor(bandM) ? <> — from nothing the published figure is {bandFor(bandM)!.atMost ? "≤ " : ""}{bandFor(bandM)!.hours.toLocaleString()} h. {bandFor(bandM)!.purpose}</> : null}
@@ -1156,7 +1198,7 @@ export default function SoISessionPage() {
               onClick={() => {
                 // D9 — written ONCE. `v ?? …` is the whole rule: a second settlement of the same pod cannot overwrite
                 // what the first one recorded, so re-opening and re-settling changes nothing about the past.
-                setVintage((v) => v ?? stamp(witnessedHours, bandM, new Date().toISOString()));
+                setVintage((v) => v ?? stamp(witnessedHours, bandM, new Date().toISOString(), region?.rate ?? null, region?.currency ?? null));
                 setPhase("closed"); drive("closed");
               }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
@@ -1182,7 +1224,7 @@ export default function SoISessionPage() {
                 <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> held at {bandM}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> held separately — recognition, not wages</> : null}</li>
                 <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
                 {vintage ? (
-                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)}</span>. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
+                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)}</span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
                 ) : null}
               </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
