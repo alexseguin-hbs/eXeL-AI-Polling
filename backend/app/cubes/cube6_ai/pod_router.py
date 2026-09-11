@@ -35,13 +35,18 @@ router = APIRouter(prefix="/pod", tags=["Cube 6 — Pod Synthesis"])
 class PodFacts(BaseModel):
     witnessed_hours: float = 0
     yug_yok: float = 0            # 웃 that settle
-    m: float = 1                  # the multiple
-    baseline_hours: float = 0
+    m: float = 1                  # the multiple — accepted by the trio before the work (operator 2026-09-11)
+    baseline_hours: float = 0     # the planned hours the actual is measured against
     accel_delta: float = 0        # hours saved vs baseline
     ya_triangle: float = 0        # ◬ recognised
     signer_name: str = ""
     member_names: list[str] = Field(default_factory=list)
     pod_code: str = ""
+    # The platform clock, so the backend record is not blind to it: the span as a person reads it, and every
+    # start/stop segment (unit.ceiling: "MoT and Replay preserve every recorded minute").
+    witnessed_for: str = ""
+    segments: list[dict] = Field(default_factory=list)   # [{start, stop, hhmmss}]
+    member_outcomes: list[str] = Field(default_factory=list)   # one outcome per member, in their own words
 
 
 class PodSynthesisRequest(BaseModel):

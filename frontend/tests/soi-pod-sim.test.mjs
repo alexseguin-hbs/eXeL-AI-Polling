@@ -269,7 +269,10 @@ ok(eq(settle(Lx), sL), "replaying the same recorded pod reproduces the identical
 const payload = {
   intent: SAMPLE_POD.intent, outcome: SAMPLE_POD.outcome, record_text: "…", provider: "openai",
   facts: { witnessed_hours: 9.5, yug_yok: 9.5, m: 1, baseline_hours: 12, accel_delta: 2.5, ya_triangle: 2.5,
-           signer_name: "MIREILLE", member_names: ["ADAEZE", "SOKHA", "MIREILLE"], pod_code: "SIM3US" },
+           signer_name: "MIREILLE", member_names: ["ADAEZE", "SOKHA", "MIREILLE"], pod_code: "SIM3US",
+           // the clock and the three outcomes now travel too (operator 2026-09-11)
+           witnessed_for: "9:30:00", segments: [{ start: 0, stop: 34200000, hhmmss: "9:30:00" }],
+           member_outcomes: ["Framed the spec", "Validated on the HAL", "Reviewed and recorded"] },
 };
 const routerSrc = fs.readFileSync(path.join(process.cwd(), "..", "backend/app/cubes/cube6_ai/pod_router.py"), "utf8");
 const fieldsOf = (cls) => {

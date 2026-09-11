@@ -15,6 +15,12 @@ export interface PodTask {
   id: string;
   title: string;
   outcome: string;      // the measurable "done" for this task
+  /**
+   * A PREDETERMINED plan (operator 2026-09-11: "This can be predetermined or established by POD upon working together").
+   * When a task ships with one, the pod opens with these figures proposed; the trio still accepts them before Start.
+   * Absent, the pod establishes the plan itself at agreement. Never a rate, never a currency — hours and the multiple.
+   */
+  plan?: { hours: number; m: number };
 }
 
 export interface PodProject {

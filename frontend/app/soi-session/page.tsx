@@ -291,8 +291,9 @@ export default function SoISessionPage() {
   // Apply a pure step: its state into React, its messages onto the channel.
   // The lead's intent + outcome ride along with every roster so the joiners review the real
   // brief, not two empty boxes (three-phone live run, 2026-09-03). Additive: `brief` beside `pod`.
-  const briefRef = useRef({ intent: "", outcome: "" });
-  briefRef.current = { intent, outcome };
+  // The PLAN rides with it (operator 2026-09-11): the joiners accept hours × M, not only the words.
+  const briefRef = useRef<{ intent: string; outcome: string; plan: { hours: number; m: number } | null }>({ intent: "", outcome: "", plan: null });
+  briefRef.current = { intent, outcome, plan: lock ? { hours: lock.hours, m: lock.m } : { hours: parseFloat(baselineHrs) || 0, m: bandM } };
   // The recorded outcome travels the same way: the phone that recorded it sends it with its
   // phase move, the lead's rosters carry it on, and every receipt shows the same words — the
   // three-phone live run found the other two receipts empty (2026-09-03).
@@ -314,10 +315,13 @@ export default function SoISessionPage() {
   const onStatus = useCallback((p: SessionBroadcastPayload) => {
     const msg = (p as { pod?: unknown })?.pod as PodMsg | undefined;
     if (!msg) return;                                          // a poll frame — never ours
-    const brief = (p as { brief?: { intent?: string; outcome?: string } }).brief;
+    const brief = (p as { brief?: { intent?: string; outcome?: string; plan?: { hours?: number; m?: number } | null } }).brief;
     if (brief && isJoinerRef.current) {                        // the lead's brief, for review
       if (typeof brief.intent === "string") setIntent(brief.intent);
       if (typeof brief.outcome === "string") setOutcome(brief.outcome);
+      if (brief.plan && typeof brief.plan.hours === "number" && typeof brief.plan.m === "number") {
+        setBaselineHrs(String(brief.plan.hours)); setBandM(brief.plan.m);   // what this seat is being asked to accept
+      }
     }
     const record = (p as { record?: { method?: RecordMethod; value?: string } }).record;
     if (record && typeof record.value === "string" && record.value.trim() && record.value !== recordRef.current.value) {
@@ -372,7 +376,15 @@ export default function SoISessionPage() {
 
   // Leader-only setup: the lead runs it once the intent + outcome are filled and
   // the lead is named. The other two join by scanning the QR.
-  const canOpen = !!(intent.trim() && outcome.trim() && members[0].name.trim());
+  // Every task gets a plan — hours × M — before it starts (operator 2026-09-11). A task the trio has not planned cannot open.
+  const predeterminedPlan = (() => {
+    for (const [pid, tid] of Object.entries(tasks)) {
+      const plan = DEFAULT_PROJECTS.find((p) => p.id === pid)?.tasks.find((t) => t.id === tid)?.plan;
+      if (plan) return plan;
+    }
+    return null;
+  })();
+  const canOpen = !!(intent.trim() && outcome.trim() && members[0].name.trim() && (parseFloat(baselineHrs) || 0) > 0);
   const allJoined = members.every((m) => m.name.trim());
   const allAgreed = allJoined && members.every((m) => m.agreed);
   const recommendations = members.filter((m) => !m.agreed && m.recommend.trim());
@@ -393,6 +405,17 @@ export default function SoISessionPage() {
   // patches, and every phone checks the spread once all three are in. Live, this is
   // the first time the 15-second window is measured across three real devices.
   const pressStart = (i: number) => setMember(i, { startedAt: Date.now() });
+  // THE CLOCK IS A BUTTON (operator 2026-09-11). Start opens a segment, Stop closes it, Add time opens another, and the
+  // measured span is the sum (pod-clock.ts). ONE handler for every route — the desktop button and the phone strip both
+  // call it, so no route can move the phase and leave a segment open, which the strip used to do.
+  const toggleClock = () => setClockEvents((e) => {
+    const kind: ClockEvent["kind"] = measure(e, Date.now()).running ? "stop" : "start";
+    return [...e, { kind, at: Date.now(), by: "pod" }];
+  });
+  const stopAndRecord = () => {
+    setClockEvents((e) => (measure(e, Date.now()).running ? [...e, { kind: "stop", at: Date.now(), by: "pod" }] : e));
+    setPhase("record"); drive("record");
+  };
   useEffect(() => {                                    // one second, and only while running
     if (phase !== "active") return;
     const id = setInterval(() => setNowTick(Date.now()), 1000);
@@ -410,7 +433,7 @@ export default function SoISessionPage() {
   // have closed their phones — the record is no longer only in their memory.
   useEffect(() => {
     if (restored.current || !podCode) return;
-    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string; rung?: Rung; vintage?: Vintage | null; regionIdSel?: string }>(podCode);
+    const e = replayPod<{ phase: Phase; intent: string; outcome: string; members: Member[]; clockEvents: ClockEvent[]; baselineHrs: string; signerIdx: number; recordMethod: RecordMethod; recordValue: string; rung?: Rung; vintage?: Vintage | null; regionIdSel?: string; lock?: Baseline | null }>(podCode);
     if (!e) return;
     restored.current = true; podRev.current = e.rev;
     setIntent(e.state.intent); setOutcome(e.state.outcome); setMembers(e.state.members);
@@ -421,34 +444,29 @@ export default function SoISessionPage() {
     // silently rewrite what a past settlement recorded, which is the one thing a stamp exists to prevent.
     setVintage(e.state.vintage ?? null);
     setRegionIdSel(e.state.regionIdSel ?? DEFAULT_REGION_ID);
+    // The task plan is READ BACK, never re-derived: a reopened pod keeps the M and hours its trio accepted.
+    setLock(e.state.lock ?? null);
     podRef.current = { ...podRef.current, phase: e.state.phase }; setPhase(e.state.phase);
     setResumed(`Reopened at revision ${e.rev} — everything recorded is as you left it.`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podCode]);
   useEffect(() => {
     if (!podCode) return;
-    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage, regionIdSel }, Date.now());
+    const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage, regionIdSel, lock }, Date.now());
     if (!ok) setSaveFailed(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [podCode, phase, members, clockEvents, recordValue, rung, vintage, regionIdSel]);
-  // OPERATOR RULING 2026-09-10: "Hours is always tracked." The clock is not a mode and not a reward for a clean sync —
-  // it starts the moment the pod begins working and it starts ONCE. A pod that never reaches a synced start, or that is
-  // reset and tried again, still has an honest record of the time it spent rather than nothing at all. Whether that time
-  // is WITNESSED is a separate question, answered by the sync verdict and by supported(), which caps every claim to the
-  // measured span. Tracking and crediting are not the same act, and conflating them is what lost the time before.
-  useEffect(() => {
-    if (phase === "compose" || phase === "invite") return;
-    setClockEvents((e) => (e.some((x) => x.kind === "start") ? e : [...e, { kind: "start", at: Date.now(), by: "pod" }]));
-  }, [phase]);
-
+  }, [podCode, phase, members, clockEvents, recordValue, rung, vintage, regionIdSel, lock]);
+  // OPERATOR RULING 2026-09-11: "button should start and end clock". The clock is a BUTTON, not a side-effect of a
+  // phase change — a person presses Start, presses Stop, and may press Add time. Nothing here starts it for them.
+  // (2026-09-10's "hours is always tracked" still holds: every press is appended and never erased; what changed is
+  // that the pressing is a human act the record can point to.)
   useEffect(() => {
     if (phase !== "sync") return;
     const v = syncVerdict(members, SYNC_START_SECONDS);
     if (v.status === "waiting") return;
     if (v.status === "synced") {
-      // §14: "the clock is a platform event" — appended once for the whole pod. The effect above has already started it
-      // on entry to sync, so this is a no-op guard kept for a pod that reaches "synced" by any other route.
-      setClockEvents((e) => (e.some((x) => x.kind === "start") ? e : [...e, { kind: "start", at: Date.now(), by: "pod" }]));
+      // The sync verdict witnesses READINESS — three people started together. It does not start the clock; the clock is
+      // the lead's explicit button on the next screen (operator 2026-09-11).
       setSyncMsg(`Synced — all three started within ${(v.spreadMs / 1000).toFixed(1)}s.`);
       const tmr = setTimeout(() => drive("active"), 400);
       return () => clearTimeout(tmr);
@@ -489,7 +507,7 @@ export default function SoISessionPage() {
   // Witnessed 웃 — the one mint, 웃 = M × T. Never re-derived here: a second copy is how a correction reaches one place and not the other.
   // OPERATOR RULING 2026-09-10: "Multiples of min wage are HI token 웃 … that way someone can earn at higher rates."
   // The band is the route to the ceiling; 1× remains the default so a pod opened before this change settles unchanged.
-  const M = bandM;
+  const M = lock?.m ?? bandM;                                   // the multiple the trio ACCEPTED, once locked; the proposal before
   // §14 unit.witness — "웃 is minted only for time CLOCKED BY THE PLATFORM", so a typed claim is bounded by the session the
   // platform witnessed. Where no clock ran the claim stands and the panel SAYS SO: silently trusting an unwitnessed claim is
   // the exact failure the rule exists to prevent.
@@ -552,7 +570,7 @@ export default function SoISessionPage() {
   // When an estimate was LOCKED before the work (§14 unit.accel) the receipt reads from the lock and honours the six
   // conditions; without one it falls back to the older typed figure so a pod opened before this change still settles.
   // OPERATOR RULING: earning is never capped, payout always is, and the excess carries to the next year and the next.
-  const stand = standing(parseFloat(carriedIn) || 0, mint(witnessedHours, bandM));
+  const stand = standing(parseFloat(carriedIn) || 0, mint(witnessedHours, M));
   // The region decides only what an already-minted 웃 SETTLES as. It never touches the mint (pod-rates.ts).
   const region = findRegion(regionIdSel);
   // ELECTION OF LOCALITY — each contributor's own floor. unit.denom: "one hour at 1x THE CONTRIBUTOR'S local minimum
@@ -570,7 +588,7 @@ export default function SoISessionPage() {
   // unit.tranche — the accrual splits BEFORE anything is drawn. The floor is wages for witnessed hours and is owed
   // whatever the outcome; everything the band adds above it is held until the work qualifies. A person must be able to
   // see which part of their number can never be taken back, so the two are shown separately and never summed on screen.
-  const tranches = split(witnessedHours, bandM, accelRead);
+  const tranches = split(witnessedHours, M, accelRead);
   // The pod settles 웃 for its measured minutes, so settles웃 is true and heartsFor returns the ladder alone — never the
   // minutes again under a different glyph. If the pod ever stopped settling 웃, the same call would add them back.
   const hearts = heartsFor({ settles웃: totalYugYok > 0, measured: span, rung });
@@ -627,6 +645,11 @@ export default function SoISessionPage() {
         signer_name: signerName,
         member_names: members.map((m) => firstName(m.name) || m.role).filter(Boolean),
         pod_code: podCode,
+        // The clock and the three outcomes travel to the backend record too (operator 2026-09-11) — it used to be blind
+        // to both, so its synthesis could describe a longer session than the platform witnessed.
+        witnessed_for: hhmmss(span.ms),
+        segments: span.segments.map((g) => ({ start: g.startedAt, stop: g.stoppedAt, hhmmss: hhmmss((g.stoppedAt ?? nowTick) - g.startedAt) })),
+        member_outcomes: members.map((m) => m.outcome.trim()),
       },
     }).then((r) => { if (live && r) setAiSynthesis(r); }).catch(() => {});
     // The Worker path, using the provider chosen in Settings (operator 2026-09-10). It carries the MEASURED clock and any
@@ -634,7 +657,8 @@ export default function SoISessionPage() {
     // told to report an overrun plainly rather than dress it up. Whichever answers, the panel labels the text AI-written.
     void aiPodSummary({
       intent, outcome, code: podCode, witnessedFor: hhmmss(span.ms),
-      members: members.map((m, i) => ({ name: m.name.trim() || m.role, hours: claimOf(i).hours, claimed: parseFloat(m.hours) || 0, capped: claimOf(i).capped, did: m.did })),
+      segments: span.segments.map((g) => ({ start: g.startedAt, stop: g.stoppedAt, hhmmss: hhmmss((g.stoppedAt ?? nowTick) - g.startedAt) })),
+      members: members.map((m, i) => ({ name: m.name.trim() || m.role, hours: claimOf(i).hours, claimed: parseFloat(m.hours) || 0, capped: claimOf(i).capped, did: m.did, outcome: m.outcome.trim() })),
       yugYok: totalYugYok, hearts, baselineHours: lock ? lock.hours : null,
       deltaHours: lock ? accelRead.delta : null, accelEarned: yaTriangle, record: recordValue,
     }, "English", readProvider())
@@ -879,8 +903,11 @@ export default function SoISessionPage() {
 
             {/* §14 unit.accel · the estimate is frozen HERE, before the clock, or there is no accelerator at all. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-baseline">
-              <div className="font-medium">Estimate, before the work <span className="text-xs font-normal text-muted-foreground">— optional; ◬ is read against it</span></div>
-              <p className="mt-1 text-xs text-muted-foreground">Locked when the pod opens, signed by someone who does not gain from the result, and hashed. Leave it blank and this pod simply records time.</p>
+              <div className="font-medium">The plan, before the work <span className="text-xs font-normal text-muted-foreground">— required; planned 웃 = M × planned hours</span></div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Every task gets a plan: the hours and the multiple, {predeterminedPlan ? "predetermined by the task you chose" : "established by this pod"}, accepted by all three before the clock starts, then locked — signed by someone who does not gain from the result, and hashed. The receipt measures the actual time and 웃 against it.
+                {(parseFloat(baselineHrs) || 0) > 0 ? <> Planned: <span className="font-medium text-foreground">{parseFloat(baselineHrs)} h × {bandM} = 웃 {mint(parseFloat(baselineHrs) || 0, bandM).toFixed(3)}</span>.</> : null}
+              </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <input type="number" min="0" step="0.25" value={baselineHrs} onChange={(e) => setBaselineHrs(e.target.value)} placeholder="est. hours" data-testid="baseline-hours"
                   className="w-28 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
@@ -897,8 +924,12 @@ export default function SoISessionPage() {
                 if (!podCode) setPodCode(c);
                 // §14 unit.accel — "set and signed BEFORE work begins by a party with no stake in the payout", locked with a
                 // Replay hash. Typed afterwards, as this pod used to, it cannot bound anything.
+                // THE TASK PLAN (operator 2026-09-11): hours AND the multiple, locked together before the clock, either
+                // predetermined by the task or established by this pod. A re-open after "Back to edit" appends a new version.
                 const est = parseFloat(baselineHrs) || 0;
-                if (est > 0) void lockBaseline({ id: `${c}-1`, version: 1, scope: outcome.trim() || intent.trim(), hours: est,
+                const version = (lock?.version ?? 0) + 1;
+                void lockBaseline({ id: `${c}-${version}`, version, scope: outcome.trim() || intent.trim(), hours: est, m: bandM,
+                  source: predeterminedPlan && predeterminedPlan.hours === est && predeterminedPlan.m === bandM ? "predetermined" : "pod",
                   signedBy: members[signerIdx]?.name?.trim() || members[signerIdx]?.role || "—", signedAt: new Date().toISOString() }).then(setLock).catch(() => setLock(null));
                 try { const u = new URL(window.location.href); u.searchParams.set("lead", c); u.searchParams.delete("enter"); window.history.replaceState(null, "", u.toString()); } catch { /* no history */ }
                 podRef.current = { ...podRef.current, phase: "invite" }; setPhase("invite");
@@ -909,7 +940,7 @@ export default function SoISessionPage() {
             </button>
             {!canOpen && (
               <p className="mt-2 text-[11px] text-muted-foreground">
-                The lead opens it once the <strong>intent</strong> and <strong>outcome</strong> are filled and the <strong>lead is named</strong>. The other two join by scanning the QR.
+                The lead opens it once the <strong>intent</strong>, <strong>outcome</strong> and the <strong>plan</strong> (hours × M) are filled and the <strong>lead is named</strong>. The other two join by scanning the QR.
               </p>
             )}
           </>
@@ -951,7 +982,7 @@ export default function SoISessionPage() {
             <div className="mb-4 rounded-lg border border-cyan-400/30 p-3">
               <div className="mb-1 text-sm font-medium">The trio — join, comment &amp; approve</div>
               <div className="mb-3 text-xs text-muted-foreground">
-                The lead is set. The other two join by scanning; on join their email imports from their login and they enter their name. Each approves the intent &amp; outcome or comments a recommended change (to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
+                The lead is set. The other two join by scanning; on join their email imports from their login and they enter their name. Each approves the intent, the outcome and the plan — {parseFloat(baselineHrs) || 0} h at {bandM}× — or comments a recommended change (to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
               </div>
               <div className="grid gap-3">
                 {members.map((m, i) => (
@@ -997,7 +1028,7 @@ export default function SoISessionPage() {
                     <label className="mt-2 flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={m.agreed} disabled={!m.name.trim() || !canEdit(i)}
                         onChange={(e) => setMember(i, { agreed: e.target.checked, recommend: e.target.checked ? "" : m.recommend })} />
-                      <span className="font-medium">{m.name || `Member ${i + 1}`}</span> approves the intent &amp; outcome
+                      <span className="font-medium">{m.name || `Member ${i + 1}`}</span> approves the intent, outcome and plan ({parseFloat(baselineHrs) || 0} h × {bandM})
                     </label>
                     {!m.agreed && m.name.trim() && canEdit(i) && (
                       <input
@@ -1027,8 +1058,8 @@ export default function SoISessionPage() {
               >
                 Accepted by the trio — go to synchronized start
               </button>
-              <button onClick={() => setPhase("compose")} className="rounded-md border border-border px-4 py-2 text-sm">
-                Back to edit (apply recommendations)
+              <button onClick={() => { setMembers((ms) => ms.map((m) => ({ ...m, agreed: false }))); setPhase("compose"); }} className="rounded-md border border-border px-4 py-2 text-sm">
+                Back to edit (apply recommendations — every approval is cleared, the plan is re-accepted)
               </button>
             </div>
           </>
@@ -1061,18 +1092,36 @@ export default function SoISessionPage() {
           <>
             <div className="mb-4 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div className="font-medium text-cyan-500">Session running — all three started together.</div>
+                <div className="font-medium text-cyan-500">
+                  {span.segments.length === 0 ? "All three are ready. Start the clock to begin the work." : span.running ? "Clock running — the platform is witnessing this time." : "Clock stopped — add time, or record the outcome."}
+                </div>
                 {/* the platform's own reading — this, not a typed number, is what 웃 may be minted for (§14 unit.witness) */}
                 <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="pod-clock" aria-label="time this pod has been witnessed">{hhmmss(span.ms)}</div>
               </div>
               {/* The brief stays on screen while the work happens — a late third must never work blind (Sofia, wave 3). */}
               <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent || "—"}</p>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Measurable outcome:</span> {outcome || "—"}</p>
-              <p className="text-muted-foreground">When the work is done, any member stops the session for everyone and records the outcome.</p>
+              <p className="text-muted-foreground">Plan: <span className="font-medium text-foreground">{lock ? `${lock.hours} h at ${lock.m}× = 웃 ${lock.yug.toFixed(3)}` : "—"}</span> · the clock is the evidence, and only clocked time can settle.</p>
+              {span.segments.length > 0 && (
+                <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="pod-segments">
+                  {span.segments.map((g, k) => (
+                    <li key={k}>segment {k + 1} · {new Date(g.startedAt).toLocaleTimeString()} → {g.stoppedAt ? new Date(g.stoppedAt).toLocaleTimeString() : "running"} · {hhmmss((g.stoppedAt ?? nowTick) - g.startedAt)}</li>
+                  ))}
+                  <li>total · {hhmmss(span.ms)} · {fmtABC(span.ms / 3600000)}</li>
+                </ul>
+              )}
             </div>
-            <button onClick={() => { setClockEvents((e) => (e.some((x) => x.kind === "stop") ? e : [...e, { kind: "stop", at: Date.now(), by: "pod" }])); setPhase("record"); drive("record"); }} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" data-testid="pod-stop">
-              Stop &amp; record the outcome
-            </button>
+            <div className="flex flex-wrap gap-2">
+              {/* ONE BUTTON starts and ends the clock (operator 2026-09-11); after a stop it adds time. */}
+              <button onClick={toggleClock} disabled={!lock} title={lock ? undefined : "The plan must be accepted before the clock can start"}
+                className={`rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${span.running ? "border border-red-500 text-red-500" : "bg-cyan-500 text-black"}`} data-testid="pod-clock-toggle">
+                {span.segments.length === 0 ? "Start the clock" : span.running ? "Stop the clock" : "Add time"}
+              </button>
+              <button onClick={stopAndRecord} disabled={span.segments.length === 0}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="pod-stop">
+                {span.running ? "Stop & record the outcome" : "Record the outcome"}
+              </button>
+            </div>
           </>
         )}
 
@@ -1136,8 +1185,25 @@ export default function SoISessionPage() {
                 <div className="mb-4" />
               </>
             )}
+            {/* OUTCOMES BY ALL THREE (operator 2026-09-11): after the clock stops, each member records what the work
+                produced, own seat only. The shared record above is the pod's summary; these are the three voices. */}
+            <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-outcomes">
+              <div className="font-medium">Each member records the outcome <span className="text-xs font-normal text-muted-foreground">— all three, before the hours are witnessed</span></div>
+              <div className="mt-2 grid gap-2">
+                {members.map((m, i) => (
+                  <div key={i} className="flex flex-wrap items-center gap-2">
+                    <span className="w-28 shrink-0 text-xs text-muted-foreground">{m.name.trim() || m.role}</span>
+                    <input
+                      value={m.outcome} onChange={(e) => setMember(i, { outcome: e.target.value })} disabled={!canEdit(i)}
+                      placeholder="what the work produced, in your words" data-testid={`member-outcome-${i}`}
+                      className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
             <button
-              disabled={!recordValue.trim()}
+              disabled={!recordValue.trim() || !members.every((m) => m.outcome.trim())}
               onClick={() => { setPhase("audit"); drive("audit"); }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
@@ -1219,12 +1285,11 @@ export default function SoISessionPage() {
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-band">
               <div className="font-medium">Multiple <span className="text-xs font-normal text-muted-foreground">— 웃 = M × T (Multiple × Time), currency-free at mint</span></div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} data-testid="band-select"
-                  className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
-                  {/* The PUBLISHED figures, read from unit.multiples — never Math.round(9,999 ÷ M), which prints 1,667 where the
-                      paper prints 1,666 (docs/asks/2026-09-10_published_band_table_verbatim.md). */}
-                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.atMost ? "≤ " : ""}{b.hours.toLocaleString()} h to 9,999 웃 · {b.atMost ? "≤ " : ""}{b.years} full-time years</option>)}
-                </select>
+                {/* M IS NOT A DIAL AT SETTLEMENT (operator 2026-09-11): it was accepted by the trio before the clock and locked
+                    with the plan. unit.guard: published in advance, never retroactively reclassified. */}
+                <div className="min-h-[44px] rounded-md border border-border bg-muted px-2 py-1.5 text-sm" data-testid="band-locked">
+                  {M}× — {bandFor(M)?.purpose ?? "a published multiple"}{lock ? ` · accepted before the work, ${lock.source}, locked ${new Date(lock.signedAt).toLocaleString()}` : " · proposal (no lock)"}
+                </div>
                 <input type="number" min="0" step="1" value={carriedIn} onChange={(e) => setCarriedIn(e.target.value)} placeholder="웃 already earned" data-testid="carried-in"
                   className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
               </div>
@@ -1255,12 +1320,12 @@ export default function SoISessionPage() {
               <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground" data-testid="pod-settle-each">
                 {members.map((m, i) => {
                   const j = localityOf(i);
-                  const own = mint(claimOf(i).hours, bandM);
+                  const own = mint(claimOf(i).hours, M);
                   const cash = settleInRegion(own, j);
                   return (
                     <li key={i} data-testid={`settle-member-${i}`}>
                       <span className="font-medium text-foreground">{m.name.trim() || m.role}</span>
-                      {" — "}{claimOf(i).hours} h at {bandM}× = 웃 {own.toFixed(3)}
+                      {" — "}{claimOf(i).hours} h at {M}× = 웃 {own.toFixed(3)}
                       <span className="font-mono"> · {fmtABC(own)}</span>
                       {j ? <> · {j.name}{electedOwn(i) ? "" : " (inherited)"}: {cash !== null ? formatLocal(cash, j.currency) : "no rate published"}</> : null}
                     </li>
@@ -1268,8 +1333,8 @@ export default function SoISessionPage() {
                 })}
               </ul>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-reach">
-                At {bandM}× another <span className="font-medium text-foreground">{hoursToCeiling(bandM, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃
-                {bandFor(bandM) ? <> — from nothing the published figure is {bandFor(bandM)!.atMost ? "≤ " : ""}{bandFor(bandM)!.hours.toLocaleString()} h. {bandFor(bandM)!.purpose}</> : null}
+                At {M}× another <span className="font-medium text-foreground">{hoursToCeiling(M, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃
+                {bandFor(M) ? <> — from nothing the published figure is {bandFor(M)!.atMost ? "≤ " : ""}{bandFor(M)!.hours.toLocaleString()} h. {bandFor(M)!.purpose}</> : null}
                 <br />One 웃 is one hour at 1× your local minimum wage, so the multiple is simply the 웃-per-hour rate.
                 M is unbounded; what is bound is the 9,999 웃 <span className="font-medium text-foreground">payment</span> each
                 year, with the excess rolling forward.
@@ -1333,7 +1398,7 @@ export default function SoISessionPage() {
               onClick={() => {
                 // D9 — written ONCE. `v ?? …` is the whole rule: a second settlement of the same pod cannot overwrite
                 // what the first one recorded, so re-opening and re-settling changes nothing about the past.
-                setVintage((v) => v ?? stamp(witnessedHours, bandM, new Date().toISOString(), podJuris?.rate ?? null, podJuris?.currency ?? null));
+                setVintage((v) => v ?? stamp(witnessedHours, M, new Date().toISOString(), podJuris?.rate ?? null, podJuris?.currency ?? null));
                 setPhase("closed"); drive("closed");
               }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
@@ -1354,9 +1419,14 @@ export default function SoISessionPage() {
               {/* The three lines a person reads first — what was recorded, who witnessed whom, what settles. */}
               <ol className="mb-3 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
                 <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
+                {lock && (
+                  <li data-testid="receipt-plan"><span className="font-medium text-foreground">Plan → actual</span>{" "}
+                    {lock.hours} h planned <span className="font-mono text-xs text-muted-foreground">{fmtABC(lock.hours)}</span> · {measuredHours.toFixed(2)} h clocked in {span.segments.length} segment{span.segments.length === 1 ? "" : "s"} <span className="font-mono text-xs text-muted-foreground">{fmtABC(measuredHours)}</span> · Δ {(measuredHours - lock.hours) >= 0 ? "+" : ""}{(measuredHours - lock.hours).toFixed(2)} h
+                    {" — "}웃 {lock.yug.toFixed(3)} planned · {stand.earned.toFixed(3)} actual · Δ {(stand.earned - lock.yug) >= 0 ? "+" : ""}{(stand.earned - lock.yug).toFixed(3)} at {M}× ({lock.source})</li>
+                )}
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
-                <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {bandM}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
-                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {bandM}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
+                <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {M}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
+                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
                 <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
                 {vintage ? (
                   <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
@@ -1444,7 +1514,7 @@ export default function SoISessionPage() {
         <div className="fixed inset-x-0 bottom-14 z-[60] mx-auto flex max-w-3xl items-center gap-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden" data-testid="pod-strip">
           <span className="min-w-0 flex-1 truncate">{intent || t("soi.pod.strip.no_intent")}</span>
           <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}</span>
-          {phase === "active" && <button type="button" onClick={() => { setPhase("record"); drive("record"); }} className="min-h-[36px] rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("soi.pod.strip.stop")}</button>}
+          {phase === "active" && <button type="button" onClick={stopAndRecord} className="min-h-[36px] rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("soi.pod.strip.stop")}</button>}
         </div>
       )}
 

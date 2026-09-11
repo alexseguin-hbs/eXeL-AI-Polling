@@ -20,8 +20,15 @@
 /** A platform event. Only two exist, and neither is ever rewritten (rcore.ledger: nothing overwritten). */
 export interface ClockEvent { kind: "start" | "stop"; at: number; by: string }
 
-/** The session's measured span, derived from the events — never stored as a mutable total. */
-export interface Measured { startedAt: number | null; stoppedAt: number | null; ms: number; running: boolean }
+/** One run of the clock: a start and, once pressed, its stop. A pod may have several — "adding additional time". */
+export interface Segment { startedAt: number; stoppedAt: number | null }
+
+/**
+ * The session's measured span, derived from the events — never stored as a mutable total.
+ * `ms` is the SUM of every segment; `startedAt`/`stoppedAt` are the first start and the last stop, kept for callers
+ * that only need the envelope. `running` is true iff the last segment is still open.
+ */
+export interface Measured { startedAt: number | null; stoppedAt: number | null; ms: number; running: boolean; segments: Segment[] }
 
 /** 9,999 웃 ÷ 525,600 minutes in a year — the ceiling expressed as a rate (unit.ceiling). */
 export const MAX_YUG_PER_MIN = 9999 / 525600;          // 0.0190239726…
@@ -31,18 +38,24 @@ export const YUG_CEILING = 9999;
 export const POD_MIN = 3;
 
 /**
- * Fold the event log into the measured span. Later events never erase earlier ones; a second "start" is ignored while
- * running, and a "stop" before any "start" is ignored — the log is append-only, so it must tolerate being appended to.
+ * Fold the event log into the measured span. Later events never erase earlier ones; a "start" while a segment is open is
+ * ignored, a "stop" while none is open is ignored — the log is append-only, so it must tolerate being appended to.
+ *
+ * OPERATOR RULING 2026-09-11 — "button should start and end clock … adding additional time": a stop no longer ends the
+ * pod's time for good. A later start opens a NEW segment and the span is the sum of all of them. unit.ceiling: "MoT and
+ * Replay preserve every recorded minute." A segment once closed is never reopened, shortened or merged.
  */
 export function measure(events: ClockEvent[], now: number): Measured {
-  let startedAt: number | null = null, stoppedAt: number | null = null;
+  const segments: Segment[] = [];
   for (const e of [...events].sort((a, b) => a.at - b.at)) {
-    if (e.kind === "start" && startedAt === null) startedAt = e.at;
-    else if (e.kind === "stop" && startedAt !== null && stoppedAt === null) stoppedAt = e.at;
+    const open = segments.length > 0 && segments[segments.length - 1].stoppedAt === null ? segments[segments.length - 1] : null;
+    if (e.kind === "start" && !open) segments.push({ startedAt: e.at, stoppedAt: null });
+    else if (e.kind === "stop" && open) open.stoppedAt = e.at;
   }
-  if (startedAt === null) return { startedAt: null, stoppedAt: null, ms: 0, running: false };
-  const end = stoppedAt ?? now;
-  return { startedAt, stoppedAt, ms: Math.max(0, end - startedAt), running: stoppedAt === null };
+  if (segments.length === 0) return { startedAt: null, stoppedAt: null, ms: 0, running: false, segments };
+  const last = segments[segments.length - 1];
+  const ms = segments.reduce((sum, g) => sum + Math.max(0, (g.stoppedAt ?? now) - g.startedAt), 0);
+  return { startedAt: segments[0].startedAt, stoppedAt: last.stoppedAt, ms, running: last.stoppedAt === null, segments };
 }
 
 /** Whole minutes the platform witnessed. ♡ is one minute given (unit.heart), so this is also the ♡ the session can carry. */

@@ -44,6 +44,12 @@ export type Member = {
    * can set another person's wage floor.
    */
   region: string | null;
+  /**
+   * OUTCOME BY EACH MEMBER (operator 2026-09-11: "allow for outcomes inputs by 3 members"). What THIS person records the
+   * work produced, in their own words, after the clock stops. Own-seat-only like every other field here; all three are
+   * required before the pod may audit. The lead's shared record stays as the pod's summary beside these.
+   */
+  outcome: string;
 };
 
 export const PHASE_ORDER: Record<Phase, number> =
@@ -81,6 +87,7 @@ export const mkMember = (role: string, podSize: number): Member => ({
   role, name: "", contact: "", agreed: false, recommend: "", startedAt: null,
   hours: "", did: "", witnessedBy: Array.from({ length: podSize }, () => false),
   region: null,   // unelected — inherits the pod's default until this person chooses their own
+  outcome: "",    // written by this seat after the clock stops
 });
 
 export const initialMembers = (podSize: number): Member[] =>
@@ -93,8 +100,8 @@ export const initialPod = (podSize: number, ctx?: Pick<PodCtx, "role" | "clientI
 
 /** The patch that returns every seat to "not started, not audited" — the lead's Reset. */
 export const RESET_PATCH = (podSize: number): Partial<Member> =>
-  // `region` is deliberately absent: a Reset returns a seat to "not started, not audited", and where a person lives
-  // is neither. Clearing an elected locality would silently move someone's wage floor.
+  // `region` and `outcome` are deliberately absent: a Reset returns a seat to "not started, not audited"; where a person
+  // lives is neither, and what they recorded the work produced is evidence, which is never erased (unit.ceiling).
   ({ agreed: false, recommend: "", startedAt: null, hours: "", did: "", witnessedBy: Array.from({ length: podSize }, () => false) });
 
 /** A pod code from real randomness, never the clock (Thor). 6 chars, no look-alikes. */
@@ -141,6 +148,7 @@ export function mergeMember(local: Member, incoming: Member): Member {
     // An unelected locality never erases an elected one — the same "empty does not overwrite filled" rule as the
     // fields above, and here it is what stops a reloading lead from moving someone's wage floor back to the default.
     region: incoming.region ?? local.region,
+    outcome: incoming.outcome || local.outcome,   // a filled outcome is never erased by an empty one
   };
 }
 export const mergeRoster = (local: Member[], incoming: Member[]): Member[] =>

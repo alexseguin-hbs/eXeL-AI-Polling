@@ -22,8 +22,9 @@ export async function aiDraft(prompt: string, lang: string, provider: AiProvider
 /** Facts the pod hands the model. Everything here was measured or witnessed; nothing is inferred. */
 export interface PodFactsForAi {
   intent: string; outcome: string; code: string;
-  witnessedFor: string;            // the platform clock, as a person reads it
-  members: { name: string; hours: number; claimed: number; capped: boolean; did: string }[];
+  witnessedFor: string;            // the platform clock, as a person reads it — the SUM of every segment
+  segments: { start: number; stop: number | null; hhmmss: string }[];   // every Start→Stop the pod pressed
+  members: { name: string; hours: number; claimed: number; capped: boolean; did: string; outcome: string }[];
   yugYok: number; hearts: number; baselineHours: number | null; deltaHours: number | null; accelEarned: number;
   record: string;
 }

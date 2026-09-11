@@ -242,17 +242,13 @@ ok(/setRung\(/.test(page) && /useState<Rung>\("none"\)/.test(page), 'nothing awa
 // F · the vintage stamp, written once
 ok(/setVintage\(\(v\) => v \?\? stamp\(/.test(page), 'a vintage is written ONCE — a second settlement cannot overwrite the first');
 ok(/setVintage\(e\.state\.vintage \?\? null\)/.test(page), 'a reopened pod READS its vintage back rather than re-deriving it');
-ok(/vintage, regionIdSel \}, Date\.now\(\)\)/.test(page), 'the vintage is appended to the pod ledger, so it survives the phone');
+ok(/vintage, regionIdSel, lock \}, Date\.now\(\)\)/.test(page), 'the vintage is appended to the pod ledger, so it survives the phone');
 // D9, the vintage rule: the stamp records the rate BESIDE the 웃 — "hours, the multiple M, and the local minimum-wage
 // rate on its earning date, written once and never revised". The pod used to pass null here, which was the gap. The
 // currency-free rule is about the MINT, asserted directly on mint() below; a stamp that records a rate is the point.
-ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
-   'the stamp carries the hours, the multiple AND the elected rate on the earning date (D9)');
+ok(/stamp\(witnessedHours, M, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
+   'the stamp carries the hours, the ACCEPTED multiple and the elected rate on the earning date (D9)');
 // C · hours are always tracked (operator ruling 2026-09-10)
-ok(/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEvents/.test(page),
-   'the clock starts whenever the pod is working, not only on a clean sync');
-ok((page.match(/kind: "start"/g) || []).length >= 2 && /e\.some\(\(x\) => x\.kind === "start"\)/.test(page),
-   'and it starts exactly once, however many routes reach it');
 
 // ── ONE NOMENCLATURE (operator, 2026-09-10: "Ensure the same nomenclature for global payment system is used") ──
 // The mechanical half. A nomenclature defended only by taste is already lost: within a week someone restates the mint
@@ -360,9 +356,9 @@ if (RATES.REGION_RATES) {
   // The pod screen: a region can be chosen, and the rate is stamped rather than looked up later (D9).
   ok(/testid="region-select"/.test(page), 'the pod offers a region picker');
   ok(/data-testid="pod-settle"/.test(page), 'and says what the 웃 settle as there');
-  ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
+  ok(/stamp\(witnessedHours, M, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
      'D9 — the vintage stamps the elected rate and currency at settlement, instead of the nulls it used to write');
-  ok(/regionIdSel \}, Date\.now\(\)\)/.test(page), 'and the chosen region is appended to the pod ledger, so a reopen reads it back');
+  ok(/regionIdSel, lock \}, Date\.now\(\)\)/.test(page), 'and the chosen region is appended to the pod ledger, so a reopen reads it back');
 } else ok(false, 'lib/pod-rates.ts could not be imported');
 
 // ── THE A.B..C LEDGER GRAMMAR, and the ELECTION OF LOCALITY (operator 2026-09-11) ─────────────────────────────────
@@ -454,8 +450,81 @@ if (RATES.JURISDICTIONS) {
   ok(/region: incoming\.region \?\? local\.region/.test(roster),
      'a merge never erases an election — a reloading lead cannot move someone back to the default');
   ok(!/region/.test(roster.slice(roster.indexOf('RESET_PATCH'), roster.indexOf('randomPodCode'))) ||
-     /`region` is deliberately absent/.test(roster),
+     /`region` and `outcome` are deliberately absent/.test(roster),
      'and a Reset does not clear it — where a person lives is not "not started, not audited"');
 }
+
+// ── THE CLOCK IS A BUTTON, TIME IS SEGMENTS, OUTCOMES BY THREE, THE TASK PLAN (operator 2026-09-11) ──────────────
+// "button should start and end clock, and then allow for outcomes inputs by 3 members … adding additional time";
+// "every task gets an M, accepted by scope of work or by team before starting task … task gets plan so we can
+//  measure plans actual in time and HI TOKEN."
+if (measure) {
+  const t0 = 1_700_000_000_000;
+  const two = [
+    { kind: 'start', at: t0,               by: 'pod' }, { kind: 'stop', at: t0 + 1_800_000, by: 'pod' },   // 30 min
+    { kind: 'start', at: t0 + 3_600_000,   by: 'pod' }, { kind: 'stop', at: t0 + 5_400_000, by: 'pod' },   // + 30 min
+  ];
+  const m2 = measure(two, t0 + 9_999_999);
+  ok(m2.segments.length === 2 && m2.ms === 3_600_000 && !m2.running,
+     'ADDING TIME: two Start→Stop segments sum to one hour, and the gap between them is not counted');
+  ok(m2.startedAt === t0 && m2.stoppedAt === t0 + 5_400_000, 'the envelope is the first start and the last stop');
+  const open = measure(two.slice(0, 3), t0 + 3_600_000 + 600_000);
+  ok(open.running && open.ms === 1_800_000 + 600_000, 'a third segment still running counts up to now');
+  ok(measure([...two, { kind: 'stop', at: t0 + 9_000_000, by: 'pod' }], t0 + 9_999_999).ms === 3_600_000,
+     'a Stop while stopped is ignored — a closed segment is never reopened, shortened or merged');
+  ok(measure([two[0], { kind: 'start', at: t0 + 60_000, by: 'pod' }, two[1]], t0 + 9_999_999).ms === 1_800_000,
+     'a Start while running is ignored — time already recorded is never altered');
+  ok(hhmmss(m2.ms) === '1:00:00', 'and the person reads 1:00:00');
+}
+ok(/data-testid="pod-clock-toggle"/.test(page), 'ONE BUTTON starts and ends the clock');
+ok(/\{span\.segments\.length === 0 \? "Start the clock" : span\.running \? "Stop the clock" : "Add time"\}/.test(page),
+   'it reads Start → Stop → Add time');
+ok(/const toggleClock = \(\) => setClockEvents/.test(page) && /const stopAndRecord = \(\) =>/.test(page),
+   'one handler for every route');
+ok(/onClick=\{stopAndRecord\}/.test(page) && (page.match(/onClick=\{stopAndRecord\}/g) || []).length >= 2,
+   'the phone strip and the desktop button call the SAME stop — no route can leave a segment open');
+ok(!/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEvents/.test(page),
+   'the clock no longer starts by side-effect of a phase change');
+ok(!/synced.*setClockEvents/s.test(page.slice(page.indexOf('if (phase !== "sync") return;'), page.indexOf('if (phase !== "sync") return;') + 900)),
+   'and the sync verdict witnesses readiness, not time — it does not start the clock');
+ok(/data-testid="pod-segments"/.test(page), 'every segment is shown with its own reading and the total');
+// outcomes by three
+const rosterSrc = read('../lib/pod-roster.ts');
+ok(/outcome: string;/.test(rosterSrc) && /outcome: "",/.test(rosterSrc) && /outcome: incoming\.outcome \|\| local\.outcome/.test(rosterSrc),
+   'each member carries their own outcome; a filled one is never erased by an empty one');
+ok(/data-testid=\{`member-outcome-\$\{i\}`\}/.test(page) && /setMember\(i, \{ outcome: e\.target\.value \}\)/.test(page),
+   'the record phase takes an outcome from each of the three, own seat only');
+ok(/disabled=\{!recordValue\.trim\(\) \|\| !members\.every\(\(m\) => m\.outcome\.trim\(\)\)\}/.test(page),
+   'and the hours cannot be witnessed until all three outcomes are in');
+// the task plan
+const baseSrc = read('../lib/pod-baseline.ts');
+ok(/m: number;/.test(baseSrc) && /yug: number;/.test(baseSrc) && /source: "predetermined" \| "pod";/.test(baseSrc),
+   'the baseline is the TASK PLAN: hours, the multiple, the planned 웃, and whether the task or the pod set it');
+ok(/const yug = m \* input\.hours;/.test(baseSrc), 'planned 웃 = M × planned hours — derived, never typed');
+ok(/\$\{m\}\|\$\{yug\}\|\$\{source\}/.test(baseSrc), 'and all three are inside the hash, so an edited plan is no longer a plan');
+if (B.lockBaseline) {
+  const plan = await B.lockBaseline({ id: 'P1', version: 1, scope: 's', hours: 10, m: 3, source: 'pod', signedBy: 'Dana', signedAt: '2026-09-11T00:00:00Z' });
+  ok(plan.m === 3 && plan.yug === 30, 'ten planned hours at 3× is a planned 30 웃');
+  ok(await B.verifyBaseline(plan), 'a fresh plan verifies');
+  ok(!(await B.verifyBaseline({ ...plan, m: 6 })), 'changing M after the lock FAILS verification');
+  ok(!(await B.verifyBaseline({ ...plan, yug: 60 })), 'and so does changing the planned 웃');
+  const legacy = await B.lockBaseline({ id: 'P0', version: 1, scope: 's', hours: 12, signedBy: 'Dana', signedAt: '2026-09-11T00:00:00Z' });
+  ok(legacy.m === 1 && legacy.yug === 12 && legacy.source === 'pod', 'a lock without a multiple is 1× — the floor of the scale');
+}
+ok(/const M = lock\?\.m \?\? bandM;/.test(page), 'the M that mints is the ACCEPTED one once locked; the proposal only before');
+ok(/data-testid="band-locked"/.test(page) && !/data-testid="band-select"/.test(page),
+   'the audit-phase M picker is GONE — M is not a dial at settlement');
+ok(/\(parseFloat\(baselineHrs\) \|\| 0\) > 0\);/.test(page.slice(page.indexOf('const canOpen'), page.indexOf('const canOpen') + 400)),
+   'a pod cannot open without a plan — every task gets one');
+ok(/m: bandM,\s*\n\s*source: predeterminedPlan/.test(page), 'the multiple is locked WITH the hours when the pod opens');
+ok(/approves the intent, outcome and plan/.test(page), 'each member approves the plan, not only the words');
+ok(/setMembers\(\(ms\) => ms\.map\(\(m\) => \(\{ \.\.\.m, agreed: false \}\)\)\); setPhase\("compose"\)/.test(page),
+   'Back to edit clears every approval, so a changed plan is re-accepted by all three');
+ok(/setLock\(e\.state\.lock \?\? null\)/.test(page), 'a reopened pod READS its plan back, never re-derives it');
+ok(/data-testid="receipt-plan"/.test(page) && /lock\.yug\.toFixed\(3\)\} planned · \{stand\.earned\.toFixed\(3\)\} actual/.test(page),
+   'the receipt shows planned vs actual, in time and in 웃');
+ok(/plan\?: \{ hours: number; m: number \};/.test(read('../lib/pod-projects.ts')), 'a task may ship with a predetermined plan');
+ok(/witnessed_for: hhmmss\(span\.ms\)/.test(page) && /member_outcomes: members\.map/.test(page),
+   'the backend record now carries the clock and the three outcomes');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

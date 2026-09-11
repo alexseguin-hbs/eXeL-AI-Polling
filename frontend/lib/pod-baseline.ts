@@ -21,7 +21,16 @@ export interface Baseline {
   id: string;               // pod code + sequence — the lock's own name
   version: number;          // a re-lock appends; it never overwrites
   scope: string;            // what was to be done, in the pod's words
-  hours: number;            // the estimated duration
+  hours: number;            // the estimated duration — the PLANNED time
+  /**
+   * THE TASK PLAN (operator 2026-09-11): "every task gets an M, accepted by scope of work or by team before starting
+   * task … task gets plan so we can measure plans actual in time and HI TOKEN. This can be predetermined or established
+   * by POD upon working together on a project." The multiple is part of the plan, locked with the hours before the clock,
+   * and the planned 웃 = M × planned hours is derived from both — never typed, never edited afterwards.
+   */
+  m: number;                // the multiple this scope of work is accepted at (unit.multiples; M is unbounded)
+  yug: number;              // planned 웃 = m × hours — the figure the actual is measured against
+  source: "predetermined" | "pod";   // shipped with the task, or set by the trio when it convened
   signedBy: string;         // the signing authority — a party with no stake in the payout
   signedAt: string;         // ISO instant, frozen
   hash: string;             // the Replay hash of everything above
@@ -39,14 +48,18 @@ export const noConditions = (): AccelConditions =>
 export const allConditionsMet = (c: AccelConditions): boolean => CONDITION_IDS.every((k) => c[k]);
 
 /** Lock an estimate. The hash covers every field, so a later edit is detectable rather than deniable. */
-export async function lockBaseline(input: Omit<Baseline, "hash">): Promise<Baseline> {
-  const body = `${input.id}|${input.version}|${input.scope}|${input.hours}|${input.signedBy}|${input.signedAt}`;
-  return { ...input, hash: await sha256Hex(new TextEncoder().encode(body)) };
+export type BaselineInput = Omit<Baseline, "hash" | "yug" | "m" | "source"> & { m?: number; source?: Baseline["source"] };
+export async function lockBaseline(input: BaselineInput): Promise<Baseline> {
+  const m = input.m != null && input.m > 0 ? input.m : 1;      // 1x is the floor of the scale, never a working band
+  const source = input.source ?? "pod";
+  const yug = m * input.hours;                                  // planned 웃 = M × T, the one mint, restated nowhere else
+  const body = `${input.id}|${input.version}|${input.scope}|${input.hours}|${m}|${yug}|${source}|${input.signedBy}|${input.signedAt}`;
+  return { ...input, m, yug, source, hash: await sha256Hex(new TextEncoder().encode(body)) };
 }
 /** Re-check a lock. A baseline whose hash does not match its fields has been edited and is no longer a baseline. */
 export async function verifyBaseline(b: Baseline): Promise<boolean> {
-  const again = await lockBaseline({ id: b.id, version: b.version, scope: b.scope, hours: b.hours, signedBy: b.signedBy, signedAt: b.signedAt });
-  return again.hash === b.hash;
+  const again = await lockBaseline({ id: b.id, version: b.version, scope: b.scope, hours: b.hours, m: b.m, source: b.source, signedBy: b.signedBy, signedAt: b.signedAt });
+  return again.hash === b.hash && again.yug === b.yug;
 }
 
 /**

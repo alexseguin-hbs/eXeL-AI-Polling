@@ -185,6 +185,10 @@ export const api = {
       witnessed_hours: number; yug_yok: number; m: number; baseline_hours: number;
       accel_delta: number; ya_triangle: number; signer_name: string;
       member_names: string[]; pod_code: string;
+      // the clock and the three outcomes (operator 2026-09-11) — additive, mirrored on PodFacts in pod_router.py
+      witnessed_for?: string;
+      segments?: { start: number; stop: number | null; hhmmss: string }[];
+      member_outcomes?: string[];
     };
   }): Promise<{ results: string; changed: string; next: string } | null> => {
     if (MOCK_MODE) return null;                       // Manual mode → deterministic synthesis
