@@ -425,13 +425,13 @@ export default function SoISessionPage() {
   // whether this phone may, and what travels).
   const setMember = (i: number, patch: Partial<Member>) => apply(patchPod(podRef.current, i, patch, ctx()));
 
-  const toggleProject = (id: string) =>
-    setProjects((s) => {
-      const n = new Set(s);
-      if (n.has(id)) { n.delete(id); }
-      else if (n.size < 3) { n.add(id); }
-      return n;
-    });
+  // ONE PROJECT PER POD (operator 2026-09-11: "one can only select one project"). A plan is for one task in one project,
+  // accepted by the trio before Start; three tagged projects has no single plan to lock. Open topic is the default;
+  // choosing a Domain Play replaces it; choosing the selected one again returns to Open topic. Never empty.
+  const toggleProject = (id: string) => {
+    setProjects((s) => (s.has(id) && id !== OPEN_TOPIC.id ? new Set([OPEN_TOPIC.id]) : new Set([id])));
+    setTasks((t) => (t[id] ? { [id]: t[id] } : {}));           // a task belongs to the one project chosen
+  };
 
   // Synchronized start — each phone presses its OWN seat; the presses travel as member
   // patches, and every phone checks the spread once all three are in. Live, this is
@@ -821,7 +821,7 @@ export default function SoISessionPage() {
             <div className="mb-5">
               <div className="mb-1 flex items-baseline justify-between gap-2">
                 <label className="text-sm font-medium">{t("soi.pod.topic.label")}</label>
-                <span className="whitespace-nowrap text-[11px] text-muted-foreground">{projects.size}/3 selected</span>
+                <span className="whitespace-nowrap text-[11px] text-muted-foreground" data-testid="project-selected">one project per pod · {findProject(Array.from(projects)[0] ?? OPEN_TOPIC.id)?.name ?? "Open topic"}</span>
               </div>
               <p className="mb-2 text-[11px] text-muted-foreground">{t("soi.pod.topic.hint")}</p>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -830,7 +830,7 @@ export default function SoISessionPage() {
                   return (
                     <button
                       key={p.id} type="button" onClick={() => toggleProject(p.id)}
-                      className={`rounded-lg border p-3 text-left transition ${on ? "border-cyan-400 bg-cyan-400/10" : "border-border hover:border-cyan-400/50"} ${!on && projects.size >= 3 ? "opacity-40" : ""}`}
+                      className={`rounded-lg border p-3 text-left transition ${on ? "border-cyan-400 bg-cyan-400/10" : "border-border hover:border-cyan-400/50"} `}
                     >
                       <div className="text-sm font-semibold">{p.name}</div>
                       <div className="mt-0.5 text-xs text-muted-foreground">{p.blurb}</div>
@@ -839,7 +839,7 @@ export default function SoISessionPage() {
                 })}
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                &plus; New Project — register another Domain Play (wires into the Level-3 substrate). Coming from the pod&rsquo;s brainstorm below.
+                + New Project — register another Domain Play (wires into the Level-3 substrate). Coming from the pod&rsquo;s brainstorm below.
               </p>
 
               {/* Task menu per selected project (defaults + brainstorm) */}

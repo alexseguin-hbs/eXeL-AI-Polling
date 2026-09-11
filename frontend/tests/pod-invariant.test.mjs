@@ -639,4 +639,12 @@ ok(/three EMULATED phones/.test(read('../scripts/pod-live-run-2026-09-11.mjs')),
 ok(/COMPUTED SCENARIO/.test(read('../scripts/pod-time-report.mjs')) && /PERSON-HOURS across the trio/.test(read('../scripts/pod-time-report.mjs')),
    'the time document says it is a computed scenario and names the plan\'s unit (Asar/Sofia)');
 
+// ── ONE PROJECT PER POD (operator 2026-09-11: "one can only select one project") ────────────────────────────────────
+ok(/setProjects\(\(s\) => \(s\.has\(id\) && id !== OPEN_TOPIC\.id \? new Set\(\[OPEN_TOPIC\.id\]\) : new Set\(\[id\]\)\)\);/.test(page),
+   'choosing a project selects ONLY it; choosing it again returns to Open topic — never empty, never three');
+ok(!/n\.size < 3/.test(page) && !/projects\.size >= 3/.test(page) && !/\/3 selected/.test(page), 'the up-to-three cap is gone from the code and the label');
+ok(/setTasks\(\(t\) => \(t\[id\] \? \{ \[id\]: t\[id\] \} : \{\}\)\);/.test(page), 'a task belongs to the one project chosen');
+ok(!/&plus;/.test(page), 'no HTML entity is written into JSX text — the screen showed a literal "&plus;"');
+ok(/or choose one Domain Play/.test(read('../lib/lexicon-data.ts')) && !/tag up to 3/.test(read('../lib/lexicon-data.ts')), 'the picker\'s label says one Domain Play');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

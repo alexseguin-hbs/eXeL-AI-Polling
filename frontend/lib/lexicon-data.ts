@@ -758,7 +758,7 @@ const cube8: TranslationEntry[] = [
   { key: "soi.pod.join.placeholder", englishDefault: "POD CODE", context: "Pod page: placeholder in the code input (6 characters, uppercase)", cubeId: 8 },
   { key: "soi.pod.join.button", englishDefault: "Join", context: "Pod page: join-by-code submit button", cubeId: 8 },
   { key: "soi.pod.join.or_lead", englishDefault: "No code? Start one below — any topic — and share the code or QR with two others.", context: "Pod page: line under the join panel pointing to the lead flow", cubeId: 8 },
-  { key: "soi.pod.topic.label", englishDefault: "Topic — open by default; tag up to 3 Domain Plays if you like", context: "Pod page compose: label of the topic/project picker (Open topic is pre-selected)", cubeId: 8 },
+  { key: "soi.pod.topic.label", englishDefault: "Topic — open by default; or choose one Domain Play", context: "Pod page compose: label of the topic/project picker (Open topic is pre-selected; one project per pod, operator 2026-09-11)", cubeId: 8 },
   { key: "soi.pod.topic.hint", englishDefault: "Your intent and outcome are the topic. A pod can be about anything.", context: "Pod page compose: hint under the topic picker", cubeId: 8 },
   { key: "soi.pod.sample", englishDefault: "Use a sample topic", context: "Pod page compose: button that fills a ready test intent + outcome so a trio can try the flow", cubeId: 8 },
   { key: "soi.pod.seat.waiting", englishDefault: "joined — waiting for the lead to seat you", context: "Pod page invite: joiner status before the lead's roster assigns their seat", cubeId: 8 },
