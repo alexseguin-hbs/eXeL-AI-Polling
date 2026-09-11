@@ -284,3 +284,12 @@ document, clock replication, receipt-each) · `a4d1eb4` (fleet builder). All LIV
 two figures; the backend mint without M or locality (pod-only ruling); the join-code defects. And one wording gap noticed
 in the time document: "planned hours" are **person-hours** summed across the trio (that is what `accelerate()` and
 `stand.earned` compare against), and the compose panel should say so.
+
+---
+
+## Standing direction (operator, 2026-09-11) — $/min first, $/second eventually, one universal token
+
+Verbatim and unpacked in `docs/asks/2026-09-11_dollars_per_minute_universal_token_direction.md`. In one line for the
+next session: **think in $/min; lay the foundation to track to $/second in `A.B..3600` for any planet and time zone;
+every 웃 reads out as minutes, local wage and USD, but the universal token comes first; plan vs actual is the frame for
+◬ on tasks and on projects — nine months in six.** The accrual ledger `(unit, Start, Duration)` is the next stone.
