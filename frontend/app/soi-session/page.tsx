@@ -882,51 +882,54 @@ export default function SoISessionPage() {
                 </div>
               </div>
             )}
-            {/* REGION AND MULTIPLE, DECLARED BEFORE THE WORK. D9, the vintage rule: a 웃 is stamped with the local
-                minimum-wage rate ON ITS EARNING DATE. A rate discovered at settlement is a rate looked up afterwards,
-                which is the thing the stamp exists to prevent — so both are chosen here, where the pod is opened. */}
+            {/* THE PLAN — one panel, four controls, one line (operator 2026-09-11: "Stop confusing USERS unnecessary UI/UX").
+                Hours, multiple, place, signer: what the trio accepts before the clock (D9 stamps the rate on the earning
+                date; the plan is locked and hashed when the pod opens). The reasoning lives behind ONE collapsed line. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-anchor">
-              <div className="font-medium">Where these hours are anchored <span className="text-xs font-normal text-muted-foreground">— 웃 = M × T (Multiple × Time)</span></div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                The region sets no part of the mint. The same hour mints the same 웃 in all 114 regions below; the region
-                decides only what that 웃 settles as, in its own currency, at the rate stamped when the work is done.
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} data-testid="anchor-multiple"
+              <div className="font-medium">Plan</div>
+              <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="pod-baseline">
+                <input type="number" min="0" step="0.25" value={baselineHrs} onChange={(e) => setBaselineHrs(e.target.value)} placeholder="hours" aria-label="planned hours" data-testid="baseline-hours"
+                  className="w-24 min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
+                <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} aria-label="multiple" data-testid="anchor-multiple"
                   className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
-                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.atMost ? "≤ " : ""}{b.hours.toLocaleString()} h to 9,999 웃</option>)}
+                  {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label}</option>)}
                 </select>
                 <LocalityElect value={regionIdSel} onChange={setRegionIdSel} testid="anchor-region" />
                 {suggestedRegion && suggestedRegion.id !== regionIdSel && (
                   <button type="button" onClick={() => setRegionIdSel(suggestedRegion.id)} data-testid="anchor-region-suggest"
                     className="min-h-[44px] rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:border-cyan-400">
-                    Detected {suggestedRegion.name}{suggestedRegion.rate !== null ? ` — ${suggestedRegion.rate} ${suggestedRegion.currency}/h` : ""} · use it?
+                    Use {suggestedRegion.name}?
                   </button>
                 )}
+                <select value={signerIdx} onChange={(e) => setSignerIdx(Number(e.target.value))} aria-label="signed by" data-testid="baseline-signer" className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
+                  {members.map((m, i) => <option key={i} value={i}>signed by {m.name.trim() || m.role}</option>)}
+                </select>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground" data-testid="anchor-preview">
-                {region && region.rate !== null ? (
-                  <>One witnessed hour at {bandM}× mints <span className="font-medium text-foreground">{mint(1, bandM).toFixed(3)} 웃</span>, settling
-                    at <span className="font-medium text-foreground">{formatLocal(settleInRegion(mint(1, bandM), region)!, region.currency)}</span> in {region.name}.
-                    A full ceiling year is {formatLocal(settleInRegion(YUG_CEILING, region)!, region.currency)}.</>
-                ) : (
-                  <>One witnessed hour at {bandM}× mints <span className="font-medium text-foreground">{mint(1, bandM).toFixed(3)} 웃</span>. {region ? region.name : "This region"} publishes
-                    no rate, so no figure is shown and none is guessed — {TIER_REASON[regionTier]} The 웃 are earned and recorded either way.</>
-                )}
-              </p>
-              <p className="mt-2 text-[11px] text-muted-foreground" data-testid="pod-grammar">
-                Figures carry the ledger grammar beside the plain number: <span className="font-mono">N.mmmm..ssss</span> —
-                whole units, then two Base-3600 groups running 0000–3599, 3600 rolling to the next whole. Half a unit is{" "}
-                <span className="font-mono">{fmtABC(0.5)}</span>. The annual ceiling spread over a year is{" "}
-                <span className="font-mono">{fmtABC(YUG_CEILING / 525600)}</span> 웃 a minute — 9,999 ÷ 525,600.
+              <p className="mt-2 text-sm" data-testid="anchor-preview">
+                {(parseFloat(baselineHrs) || 0) > 0
+                  ? <><span className="font-medium text-foreground">{parseFloat(baselineHrs)} h × {bandM} = 웃 {mint(parseFloat(baselineHrs) || 0, bandM).toFixed(3)}</span>
+                      {region && region.rate !== null
+                        ? <> · settles at <span className="font-medium text-foreground">{formatLocal(settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)!, region.currency)}</span> in {region.name}</>
+                        : <> · {region ? region.name : "this place"} has no published rate yet, so no figure is shown</>}</>
+                  : <span className="text-muted-foreground">Enter the planned hours. All three accept the plan before the clock starts.</span>}
               </p>
               <details className="mt-2">
-                <summary className="cursor-pointer text-xs text-muted-foreground">All {JURISDICTIONS.length} places · {BY_TIER.published.length} with a published rate · {REGION_RATES.length} rows across 33 languages</summary>
+                <summary className="cursor-pointer text-xs text-muted-foreground">Why these four, and every place</summary>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  웃 = M × T: the same hour mints the same 웃 everywhere; the place decides only what a 웃 settles as, in its own
+                  currency, at the rate stamped when the work is done. The plan is locked and hashed when the pod opens, signed by
+                  someone who does not gain from the result; the receipt measures the actual time and 웃 against it.
+                  {predeterminedPlan ? " This task ships with its plan; the trio still accepts it." : ""}
+                </p>
+                <p className="mt-2 text-[11px] text-muted-foreground" data-testid="pod-grammar">
+                  Figures on the receipt carry the ledger grammar <span className="font-mono">N.mmmm..ssss</span> beside the plain number —
+                  Base-3600, 0000–3599, 3600 rolling to the next whole; half a unit is <span className="font-mono">{fmtABC(0.5)}</span>; the
+                  ceiling spread over a year is <span className="font-mono">{fmtABC(YUG_CEILING / 525600)}</span> 웃 a minute.
+                </p>
                 <div className="mt-2 max-h-64 overflow-auto rounded border border-border" data-testid="rate-table">
                   <table className="w-full text-left text-[11px]">
                     <thead className="sticky top-0 bg-muted"><tr>
-                      <th className="px-2 py-1 font-medium">Country / Jurisdiction</th>
-                      <th className="px-2 py-1 font-medium">Lang</th>
+                      <th className="px-2 py-1 font-medium">Place</th>
                       <th className="px-2 py-1 text-right font-medium">Rate / h</th>
                       <th className="px-2 py-1 font-medium">Cur</th>
                       <th className="px-2 py-1 font-medium">Notes</th>
@@ -935,7 +938,6 @@ export default function SoISessionPage() {
                       {JURISDICTIONS.map((j) => (
                         <tr key={j.id} className={j.id === regionIdSel ? "bg-primary/10" : undefined}>
                           <td className="px-2 py-1">{j.name}</td>
-                          <td className="px-2 py-1 text-muted-foreground">{j.langs.join(" · ")}</td>
                           <td className="px-2 py-1 text-right tabular-nums">{j.rate !== null ? j.rate.toFixed(3) : "—"}</td>
                           <td className="px-2 py-1 text-muted-foreground">{j.currency}</td>
                           <td className="px-2 py-1 text-muted-foreground">{j.note}</td>
@@ -945,22 +947,6 @@ export default function SoISessionPage() {
                   </table>
                 </div>
               </details>
-            </div>
-
-            {/* §14 unit.accel · the estimate is frozen HERE, before the clock, or there is no accelerator at all. */}
-            <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-baseline">
-              <div className="font-medium">The plan, before the work <span className="text-xs font-normal text-muted-foreground">— required; planned 웃 = M × planned hours</span></div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Every task gets a plan: the person-hours across the trio and the multiple, {predeterminedPlan ? "predetermined by the task you chose" : "established by this pod"}, accepted by all three before the clock starts, then locked — signed by someone who does not gain from the result, and hashed. The receipt measures the actual time and 웃 against it.
-                {(parseFloat(baselineHrs) || 0) > 0 ? <> Planned: <span className="font-medium text-foreground">{parseFloat(baselineHrs)} h × {bandM} = 웃 {mint(parseFloat(baselineHrs) || 0, bandM).toFixed(3)}</span>.</> : null}
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <input type="number" min="0" step="0.25" value={baselineHrs} onChange={(e) => setBaselineHrs(e.target.value)} placeholder="est. hours" data-testid="baseline-hours"
-                  className="w-28 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
-                <select value={signerIdx} onChange={(e) => setSignerIdx(Number(e.target.value))} data-testid="baseline-signer" className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
-                  {members.map((m, i) => <option key={i} value={i}>signed by {m.name.trim() || m.role}</option>)}
-                </select>
-              </div>
             </div>
 
             <button
@@ -986,7 +972,7 @@ export default function SoISessionPage() {
             </button>
             {!canOpen && (
               <p className="mt-2 text-[11px] text-muted-foreground">
-                The lead opens it once the <strong>intent</strong>, <strong>outcome</strong> and the <strong>plan</strong> (hours × M) are filled and the <strong>lead is named</strong>. The other two join by scanning the QR.
+                Fill the intent, the outcome, your name and the planned hours to open. The other two join by scanning the QR.
               </p>
             )}
           </>
