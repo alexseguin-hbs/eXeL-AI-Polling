@@ -2,11 +2,18 @@
  * A.B..C — Base-3600 tokenomics notation (Master of Thought spec, 2026-08-19).
  *
  * Every tokenomics quantity, detail and calculation is expressed in A.B..C:
- *   A = hour (whole units)
- *   B = minute-EQUIVALENT (NOT minutes) — a sub-unit, 0..3599
- *   C = second-EQUIVALENT (NOT seconds) — a sub-sub-unit, 0..3599
+ *   A = the whole unit — an hour, a token, a currency amount
+ *   B = the major sub-unit, 0..3599. unit.ceiling names it exactly: for 웃, whose whole unit is an hour, this IS THE
+ *       SECOND — "an hour holds exactly 3,600, so Base-3600 nests the hour directly into seconds, NO SEPARATE
+ *       SIXTY-MINUTE LEVEL". (This comment previously called it a "minute-equivalent", which is the same number under
+ *       a name for a level that does not exist.)
+ *   C = the minor sub-unit, 0..3599 — one part in 3,600 of B
  * Uniform Base-3600, exactly like the celestial UCRS-2525 (lib/ucrs-2525.ts):
  *   1 A = 3600 B · 1 B = 3600 C · 1 A = 12,960,000 C.
+ *
+ * The paper writes the same grammar as `N.mmmm..ssss` (r156, generalised from r154's time-only `HHH.mmmm..ssss`).
+ * N is UNPADDED in the current spec — `format(0.5)` is `0.1800..0000`, and r154's `000.1800..0000` was the older
+ * three-digit-hours form. That is correct as it stands; do not "fix" it.
  *
  * DISPLAY: `A.BBBB..CCCC` — single dot before B, double dot before C; B and C are
  * ALWAYS 4-digit zero-padded integers (0000..3599). e.g. 0.0190239726 A → "0.0068..1751".

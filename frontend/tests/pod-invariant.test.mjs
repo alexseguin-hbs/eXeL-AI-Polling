@@ -246,8 +246,8 @@ ok(/vintage, regionIdSel \}, Date\.now\(\)\)/.test(page), 'the vintage is append
 // D9, the vintage rule: the stamp records the rate BESIDE the 웃 — "hours, the multiple M, and the local minimum-wage
 // rate on its earning date, written once and never revised". The pod used to pass null here, which was the gap. The
 // currency-free rule is about the MINT, asserted directly on mint() below; a stamp that records a rate is the point.
-ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), region\?\.rate \?\? null, region\?\.currency \?\? null\)/.test(page),
-   'the stamp carries the hours, the multiple AND the region rate on the earning date (D9)');
+ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
+   'the stamp carries the hours, the multiple AND the elected rate on the earning date (D9)');
 // C · hours are always tracked (operator ruling 2026-09-10)
 ok(/if \(phase === "compose" \|\| phase === "invite"\) return;\s*\n\s*setClockEvents/.test(page),
    'the clock starts whenever the pod is working, not only on a clean sync');
@@ -352,17 +352,110 @@ if (RATES.REGION_RATES) {
   // D9 wants the choice made before the work anyway: a rate discovered at settlement is a rate looked up afterwards.
   const composeBlock = page.slice(page.indexOf('{phase === "compose" && ('), page.indexOf('{phase === "invite" && ('));
   ok(/data-testid="pod-anchor"/.test(composeBlock), 'the region and the multiple are chosen where the pod is OPENED, not at settlement');
-  ok(/data-testid="anchor-region"/.test(composeBlock) && /data-testid="anchor-multiple"/.test(composeBlock),
+  ok(/testid="anchor-region"/.test(composeBlock) && /data-testid="anchor-multiple"/.test(composeBlock),
      'both pickers are on the first screen a person sees');
   ok(/data-testid="rate-table"/.test(composeBlock), 'and all 114 rows are browsable there rather than buried in the code');
   ok(/data-testid="anchor-preview"/.test(composeBlock),
      'with what one hour mints and settles as, shown before anyone works an hour');
   // The pod screen: a region can be chosen, and the rate is stamped rather than looked up later (D9).
-  ok(/data-testid="region-select"/.test(page), 'the pod offers a region picker');
+  ok(/testid="region-select"/.test(page), 'the pod offers a region picker');
   ok(/data-testid="pod-settle"/.test(page), 'and says what the 웃 settle as there');
-  ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), region\?\.rate \?\? null, region\?\.currency \?\? null\)/.test(page),
-     'D9 — the vintage stamps the region rate and currency at settlement, instead of the nulls it used to write');
+  ok(/stamp\(witnessedHours, bandM, new Date\(\)\.toISOString\(\), podJuris\?\.rate \?\? null, podJuris\?\.currency \?\? null\)/.test(page),
+     'D9 — the vintage stamps the elected rate and currency at settlement, instead of the nulls it used to write');
   ok(/regionIdSel \}, Date\.now\(\)\)/.test(page), 'and the chosen region is appended to the pod ledger, so a reopen reads it back');
 } else ok(false, 'lib/pod-rates.ts could not be imported');
+
+// ── THE A.B..C LEDGER GRAMMAR, and the ELECTION OF LOCALITY (operator 2026-09-11) ─────────────────────────────────
+const ABC = await import('../lib/abc-3600.ts').catch(() => ({}));
+if (ABC.format) {
+  // The notation's FIRST test. It shipped 2026-08-19 and nothing has ever asserted it; the paper's worked example
+  // lived only in a code comment. Every figure here is unit.ceiling's or r154's, not mine.
+  ok(ABC.format(9999 / 525600) === '0.0068..1751',
+     'unit.ceiling — 9,999 ÷ 525,600 = 0.0190239726 웃/min shows as 0.0068..1751');
+  ok(ABC.format(0.5) === '0.1800..0000', 'r154 — half an hour reads #.1800');
+  ok(ABC.format(1) === '1.0000..0000', 'r154 — a full hour completes at 3600 and ROLLS to the next whole');
+  ok(ABC.format(9.5) === '9.1800..0000', 'and 9.5 witnessed hours read 9.1800..0000');
+  // "each fractional group running 0000 to 3599, 3600 reserved as rollover to the next whole"
+  const shape = /^-?\d+\.\d{4}\.\.\d{4}$/;
+  let bad = 0;
+  for (const v of [0, 1e-9, 0.00027, 0.5, 0.99999, 1, 1.5, 9.5, 30, 2080, 9999, 72492.75, 0.0190239726]) {
+    const out = ABC.format(v);
+    const [, mmmm, ssss] = out.match(/^-?\d+\.(\d{4})\.\.(\d{4})$/) || [];
+    if (!shape.test(out) || Number(mmmm) > 3599 || Number(ssss) > 3599) { bad++; console.log('   bad:', v, out); }
+  }
+  ok(bad === 0, 'B and C are ALWAYS four digits and NEVER 3600 — 3600 is reserved as the rollover');
+  ok(ABC.resolveSubUnit('.5') === 1800, 'unit.example — #.1800 is half a whole unit, exactly as #.5 reads in decimals');
+  ok(ABC.abcToValue(ABC.parseABC('0.1800..0000')) === 0.5, 'and it round-trips back to a half');
+  const rt = Math.abs(ABC.abcToValue(ABC.toABC(9999 / 525600)) - 9999 / 525600);
+  ok(rt < 1 / 12960000, `round-trip is exact to one part in 12,960,000 — off by ${rt.toExponential(2)}`);
+  ok(ABC.SUB === 3600, '1 A = 3600 B · 1 B = 3600 C');
+
+  // The pod SHOWS it, beside the plain figure — "the contributor always sees a plain local-currency figure beside
+  // this ledger form". A notation nobody sees is the state this was in for three weeks.
+  ok(/fmtABC\(stand\.earned\)/.test(page) && /fmtABC\(stand\.payableThisYear\)/.test(page),
+     'the 웃 earned and payable carry the ledger form beside the plain number');
+  ok(/fmtABC\(tranches\.floor\)/.test(page) && /fmtABC\(tranches\.escrow\)/.test(page), 'and both tranches');
+  ok(/fmtABC\(hearts\)/.test(page), 'and ♡ — unit.ceiling says every coin, not only 웃');
+  ok(/fmtABC\(vintage\.yug\)/.test(page), 'and the vintage stamp, which is the thing "settled and stored" in it');
+  ok(/data-testid="pod-grammar"/.test(page), 'the grammar is explained once, so a person meeting 9.1800..0000 is not lost');
+
+  // MoT IS THE CLOCK. This label used to sit on witnessedHours — the sum of HAND-TYPED claims — while unit.ceiling
+  // defines MoT as the separate record: "Actual time is recorded separately, minute by minute, by Measurement of Time".
+  ok(/MoT clocked <span className="font-mono">\{fmtABC\(measuredHours\)\}<\/span>/.test(page),
+     'MoT reads the MEASURED span, not the typed claim');
+  ok(!/MoT \{fmtABC\(witnessedHours\)\}/.test(page), 'and the old label on the typed claim is gone');
+} else ok(false, 'lib/abc-3600.ts could not be imported');
+
+// ── ELECTION OF LOCALITY ──────────────────────────────────────────────────────────────────────────────────────────
+if (RATES.JURISDICTIONS) {
+  // 114 rows collapse to 106 PLACES with no row lost — six countries were repeated once per language, same rate each
+  // time, which made a person choose a language in order to be given a wage.
+  ok(RATES.JURISDICTIONS.length === 106, `114 rows are 106 distinct places — got ${RATES.JURISDICTIONS.length}`);
+  ok(RATES.JURISDICTIONS.reduce((n, j) => n + j.langs.length, 0) === 114, 'and every one of the 114 rows is still accounted for');
+  ok(RATES.COUNTRIES.length === 103, 'across the paper\'s 103 countries');
+  const ch = RATES.JURISDICTIONS.filter((j) => j.cc === 'CH');
+  ok(ch.length === 1 && ch[0].langs.length === 3,
+     'Switzerland is ONE place published in three languages, not three places');
+  // The locality election, step two — only where the paper publishes more than one jurisdiction in a country.
+  ok(RATES.localitiesOf('CA').length === 2, 'Canada offers a locality election: Federal or Québec');
+  ok(RATES.localitiesOf('IN').length === 3, 'India offers three: national, West Bengal, Punjab');
+  ok(RATES.localitiesOf('CH').length === 0 && RATES.localitiesOf('NG').length === 0,
+     'a country the paper publishes once offers no second step — the election stays one click');
+  const ca = RATES.localitiesOf('CA');
+  ok(ca[0].rate === 18.15 && ca[1].rate === null,
+     'and the locality CHANGES the floor: Canada Federal is 18.150 CAD, Québec publishes none');
+  ok(RATES.JURISDICTIONS.filter((j) => j.locality !== null).length === 13,
+     'thirteen rows name a locality, parsed off the paper\'s own em dash');
+  ok(RATES.findJurisdiction('English:US').locality === 'Austin, Texas', 'including the Texas vintage itself');
+
+  // OPTIMIZATION, asserted rather than claimed.
+  const rates = read('../lib/pod-rates.ts');
+  ok(/const REGION_INDEX: ReadonlyMap/.test(rates) && /REGION_INDEX\.get\(id\)/.test(rates),
+     'findRegion is a Map lookup, not a 114-row scan run on every render');
+  ok(!rates.split('\n').some((l) => /REGION_RATES\.find\(/.test(l) && !/^\s*\*/.test(l)),
+     'and no linear scan survives in the code — the only mention left is the comment recording its removal');
+  ok(/export const BY_TIER: Readonly<Record<SettleTier, Jurisdiction\[\]>>/.test(rates),
+     'the four tier groups are computed ONCE at module load');
+  ok(!/REGION_RATES\.filter\(/.test(page),
+     'and the page no longer re-filters 114 rows four times per picker per render');
+  ok(RATES.TIER_ORDER.reduce((n, t) => n + RATES.BY_TIER[t].length, 0) === 106, 'the tier groups cover every place');
+
+  // The election on screen: own seat only, elected before the work, inherited when unelected — never assumed.
+  ok(/function LocalityElect\(/.test(page), 'one control serves the pod default and every member');
+  ok(/testid=\{`member-locality-\$\{i\}`\}/.test(page), 'each member elects their own locality');
+  ok(/onChange=\{\(id\) => setMember\(i, \{ region: id \}\)\}/.test(page),
+     'through setMember — the own-seat-only path, so nobody sets another person\'s wage floor');
+  ok(/disabled=\{!canEdit\(i\)\}/.test(page), 'and a seat you do not hold is not editable');
+  ok(/\(inherited\)|inherits \$\{/.test(page) || /inherited from the pod/.test(page),
+     'an unelected member is shown as INHERITING, never as having chosen');
+  ok(/data-testid="pod-settle-each"/.test(page), 'the receipt settles each contributor at their own floor');
+  const roster = read('../lib/pod-roster.ts');
+  ok(/region: string \| null;/.test(roster), 'Member carries the elected locality');
+  ok(/region: incoming\.region \?\? local\.region/.test(roster),
+     'a merge never erases an election — a reloading lead cannot move someone back to the default');
+  ok(!/region/.test(roster.slice(roster.indexOf('RESET_PATCH'), roster.indexOf('randomPodCode'))) ||
+     /`region` is deliberately absent/.test(roster),
+     'and a Reset does not clear it — where a person lives is not "not started, not audited"');
+}
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

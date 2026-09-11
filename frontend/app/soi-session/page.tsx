@@ -50,7 +50,11 @@ import { measure, supported, witnessedHours as spanHours, hhmmss, heartsFor, RUN
 import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
 import { BANDS, bandFor, standing, hoursToCeiling, YUG_CEILING, mint, stamp, type Vintage } from "@/lib/pod-yug";
-import { REGION_RATES, regionId, findRegion, tierOf, TIER_REASON, settleInRegion, formatLocal, DEFAULT_REGION_ID } from "@/lib/pod-rates";
+import {
+  REGION_RATES, regionId, findRegion, tierOf, TIER_REASON, settleInRegion, formatLocal, DEFAULT_REGION_ID,
+  JURISDICTIONS, findJurisdiction, localitiesOf, defaultForCountry, COUNTRIES_BY_TIER, BY_TIER,
+  TIER_ORDER, TIER_LABEL, type Jurisdiction,
+} from "@/lib/pod-rates";
 import { aiPodSummary } from "@/lib/ai";
 import { lockBaseline, accelerate, noConditions, CONDITION_IDS, split, type Baseline, type AccelConditions } from "@/lib/pod-baseline";
 import { useThemeHue } from "@/lib/theme-hue";
@@ -66,6 +70,53 @@ import {
   syncVerdict, canEditSeat, canWitnessAs, witnessedCount as podWitnessedCount, isWitnessed as podIsWitnessed, WITNESS_FLOOR,
   type Member as PodMember, type PodMsg, type PodState, type Phase as PodPhase,
 } from "@/lib/pod-roster";
+
+/**
+ * ELECTION OF LOCALITY (operator 2026-09-11) — the two-step control, used for the pod's default and for each member.
+ *
+ * Step one is the PLACE: 103 countries, grouped by the paper's four settlement tiers. Step two appears only where the
+ * paper publishes more than one jurisdiction in that country — today Canada (Federal · Québec) and India (national ·
+ * West Bengal · Punjab). Everywhere else a country is one place and the election is a single click.
+ *
+ * A person elects a place, never a language: Switzerland used to appear three times, once per language, with the same
+ * rate each time. The language comes from the app's own 33-language selector.
+ */
+function LocalityElect({ value, onChange, disabled, testid, inherited }: {
+  value: string | null; onChange: (id: string) => void; disabled?: boolean; testid: string; inherited?: Jurisdiction;
+}) {
+  const chosen = value ? findJurisdiction(value) : undefined;
+  const shown = chosen ?? inherited;
+  const locs = shown ? localitiesOf(shown.cc) : [];
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <select
+        value={shown?.cc ?? ""} disabled={disabled} data-testid={testid}
+        onChange={(e) => { const d = defaultForCountry(e.target.value); if (d) onChange(d.id); }}
+        className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-50"
+      >
+        {!chosen && <option value={shown?.cc ?? ""}>{inherited ? `inherits ${inherited.country}` : "choose your place"}</option>}
+        {TIER_ORDER.map((tier) => (
+          <optgroup key={tier} label={TIER_LABEL[tier]}>
+            {COUNTRIES_BY_TIER[tier].map((j) => (
+              <option key={j.cc} value={j.cc}>{j.country}{j.rate !== null ? ` — ${j.rate} ${j.currency}/h` : ""}</option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+      {locs.length > 1 && (
+        <select
+          value={chosen?.id ?? shown?.id ?? ""} disabled={disabled} data-testid={`${testid}-locality`}
+          onChange={(e) => onChange(e.target.value)}
+          className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-50"
+        >
+          {locs.map((j) => (
+            <option key={j.id} value={j.id}>{j.locality ?? "national"}{j.rate !== null ? ` — ${j.rate} ${j.currency}/h` : " — no rate published"}</option>
+          ))}
+        </select>
+      )}
+    </div>
+  );
+}
 
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
@@ -504,6 +555,12 @@ export default function SoISessionPage() {
   const stand = standing(parseFloat(carriedIn) || 0, mint(witnessedHours, bandM));
   // The region decides only what an already-minted 웃 SETTLES as. It never touches the mint (pod-rates.ts).
   const region = findRegion(regionIdSel);
+  // ELECTION OF LOCALITY — each contributor's own floor. unit.denom: "one hour at 1x THE CONTRIBUTOR'S local minimum
+  // wage". A member who has not elected inherits the pod's default, and is shown as inheriting, never as having chosen.
+  const podJuris = findJurisdiction(regionIdSel);
+  const localityOf = (i: number): Jurisdiction | undefined =>
+    (members[i]?.region ? findJurisdiction(members[i].region!) : undefined) ?? podJuris;
+  const electedOwn = (i: number): boolean => !!members[i]?.region;
   const regionTier = region ? tierOf(region) : "pending";
   const settlesTo = settleInRegion(stand.payableThisYear, region);
   const ceilingSettlesTo = settleInRegion(YUG_CEILING, region);
@@ -775,17 +832,7 @@ export default function SoISessionPage() {
                   className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
                   {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label} — {b.atMost ? "≤ " : ""}{b.hours.toLocaleString()} h to 9,999 웃</option>)}
                 </select>
-                <select value={regionIdSel} onChange={(e) => setRegionIdSel(e.target.value)} data-testid="anchor-region"
-                  className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm">
-                  {([["published", "Published rate"], ["pending", "Rate exists, not yet loaded"],
-                     ["no_single_rate", "No single national rate"], ["no_official_rate", "No official rate"]] as const).map(([tier, heading]) => (
-                    <optgroup key={tier} label={heading}>
-                      {REGION_RATES.filter((r) => tierOf(r) === tier).map((r) => (
-                        <option key={regionId(r)} value={regionId(r)}>{r.name} · {r.lang}{r.rate !== null ? ` — ${r.rate} ${r.currency}/h` : ""}</option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                <LocalityElect value={regionIdSel} onChange={setRegionIdSel} testid="anchor-region" />
               </div>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="anchor-preview">
                 {region && region.rate !== null ? (
@@ -797,8 +844,14 @@ export default function SoISessionPage() {
                     no rate, so no figure is shown and none is guessed — {TIER_REASON[regionTier]} The 웃 are earned and recorded either way.</>
                 )}
               </p>
+              <p className="mt-2 text-[11px] text-muted-foreground" data-testid="pod-grammar">
+                Figures carry the ledger grammar beside the plain number: <span className="font-mono">N.mmmm..ssss</span> —
+                whole units, then two Base-3600 groups running 0000–3599, 3600 rolling to the next whole. Half a unit is{" "}
+                <span className="font-mono">{fmtABC(0.5)}</span>. The annual ceiling spread over a year is{" "}
+                <span className="font-mono">{fmtABC(YUG_CEILING / 525600)}</span> 웃 a minute — 9,999 ÷ 525,600.
+              </p>
               <details className="mt-2">
-                <summary className="cursor-pointer text-xs text-muted-foreground">All {REGION_RATES.length} regions · {REGION_RATES.filter((r) => r.rate !== null).length} with a published rate</summary>
+                <summary className="cursor-pointer text-xs text-muted-foreground">All {JURISDICTIONS.length} places · {BY_TIER.published.length} with a published rate · {REGION_RATES.length} rows across 33 languages</summary>
                 <div className="mt-2 max-h-64 overflow-auto rounded border border-border" data-testid="rate-table">
                   <table className="w-full text-left text-[11px]">
                     <thead className="sticky top-0 bg-muted"><tr>
@@ -809,13 +862,13 @@ export default function SoISessionPage() {
                       <th className="px-2 py-1 font-medium">Notes</th>
                     </tr></thead>
                     <tbody>
-                      {REGION_RATES.map((r) => (
-                        <tr key={regionId(r)} className={regionId(r) === regionIdSel ? "bg-primary/10" : undefined}>
-                          <td className="px-2 py-1">{r.name}</td>
-                          <td className="px-2 py-1 text-muted-foreground">{r.lang}</td>
-                          <td className="px-2 py-1 text-right tabular-nums">{r.rate !== null ? r.rate.toFixed(3) : "—"}</td>
-                          <td className="px-2 py-1 text-muted-foreground">{r.currency}</td>
-                          <td className="px-2 py-1 text-muted-foreground">{r.note}</td>
+                      {JURISDICTIONS.map((j) => (
+                        <tr key={j.id} className={j.id === regionIdSel ? "bg-primary/10" : undefined}>
+                          <td className="px-2 py-1">{j.name}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{j.langs.join(" · ")}</td>
+                          <td className="px-2 py-1 text-right tabular-nums">{j.rate !== null ? j.rate.toFixed(3) : "—"}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{j.currency}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{j.note}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -927,6 +980,20 @@ export default function SoISessionPage() {
                         />
                       </div>
                     )}
+                    {/* ELECTION OF LOCALITY — own seat only, so nobody sets another person's wage floor. Elected
+                        BEFORE the work, because D9 stamps the rate on the earning date. */}
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                      <span>Settles at</span>
+                      <LocalityElect
+                        value={m.region} disabled={!canEdit(i)} testid={`member-locality-${i}`}
+                        inherited={podJuris} onChange={(id) => setMember(i, { region: id })}
+                      />
+                      <span data-testid={`member-floor-${i}`}>
+                        {localityOf(i)?.rate != null
+                          ? <>{localityOf(i)!.rate} {localityOf(i)!.currency} an hour{electedOwn(i) ? "" : " · inherited from the pod"}</>
+                          : <>no rate published{electedOwn(i) ? "" : " · inherited from the pod"}</>}
+                      </span>
+                    </div>
                     <label className="mt-2 flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={m.agreed} disabled={!m.name.trim() || !canEdit(i)}
                         onChange={(e) => setMember(i, { agreed: e.target.checked, recommend: e.target.checked ? "" : m.recommend })} />
@@ -1166,19 +1233,7 @@ export default function SoISessionPage() {
                   settlement tiers so a region that cannot settle yet says why instead of showing a number. */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <label htmlFor="pod-region" className="text-xs text-muted-foreground">Region</label>
-                <select id="pod-region" value={regionIdSel} onChange={(e) => setRegionIdSel(e.target.value)} data-testid="region-select"
-                  className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm">
-                  {([["published", "Published rate"], ["pending", "Rate exists, not yet loaded"],
-                     ["no_single_rate", "No single national rate"], ["no_official_rate", "No official rate"]] as const).map(([tier, heading]) => (
-                    <optgroup key={tier} label={heading}>
-                      {REGION_RATES.filter((r) => tierOf(r) === tier).map((r) => (
-                        <option key={regionId(r)} value={regionId(r)}>
-                          {r.name} · {r.lang}{r.rate !== null ? ` — ${r.rate} ${r.currency}/h` : ""}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                <LocalityElect value={regionIdSel} onChange={setRegionIdSel} testid="region-select" />
               </div>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-settle">
                 {region && settlesTo !== null ? (
@@ -1195,6 +1250,23 @@ export default function SoISessionPage() {
                 <br />The rate is stamped at settlement and never looked up again, and it takes no part in the mint:
                 the same hour mints the same 웃 in every region on this list.
               </p>
+              {/* EACH CONTRIBUTOR AT THEIR OWN FLOOR (unit.regional). The 웃 are identical for identical work; only the
+                  currency differs. Never summed across currencies — no exchange rate is published, so none is used. */}
+              <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground" data-testid="pod-settle-each">
+                {members.map((m, i) => {
+                  const j = localityOf(i);
+                  const own = mint(claimOf(i).hours, bandM);
+                  const cash = settleInRegion(own, j);
+                  return (
+                    <li key={i} data-testid={`settle-member-${i}`}>
+                      <span className="font-medium text-foreground">{m.name.trim() || m.role}</span>
+                      {" — "}{claimOf(i).hours} h at {bandM}× = 웃 {own.toFixed(3)}
+                      <span className="font-mono"> · {fmtABC(own)}</span>
+                      {j ? <> · {j.name}{electedOwn(i) ? "" : " (inherited)"}: {cash !== null ? formatLocal(cash, j.currency) : "no rate published"}</> : null}
+                    </li>
+                  );
+                })}
+              </ul>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-reach">
                 At {bandM}× another <span className="font-medium text-foreground">{hoursToCeiling(bandM, stand.cumulative).toFixed(0)} h</span> reaches 9,999 웃
                 {bandFor(bandM) ? <> — from nothing the published figure is {bandFor(bandM)!.atMost ? "≤ " : ""}{bandFor(bandM)!.hours.toLocaleString()} h. {bandFor(bandM)!.purpose}</> : null}
@@ -1247,12 +1319,12 @@ export default function SoISessionPage() {
                 {RUNGS.map((r) => <option key={r.id} value={r.id}>{RUNG_LABEL[r.id]}</option>)}
               </select>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-hearts">
-                ♡ <span className="font-medium text-foreground">{hearts}</span> from the outcome{totalYugYok > 0 ? <> · none from the {witnessedHours} h, which settle as 웃</> : null}.
+                ♡ <span className="font-medium text-foreground">{hearts}</span> <span className="font-mono">{fmtABC(hearts)}</span> from the outcome{totalYugYok > 0 ? <> · none from the {witnessedHours} h, which settle as 웃</> : null}.
               </p>
             </div>
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
-              <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· MoT {fmtABC(witnessedHours)}</span></span>
+              <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· 웃 {fmtABC(witnessedHours)}</span></span>{" "}<span className="text-xs text-muted-foreground" data-testid="pod-mot">· MoT clocked <span className="font-mono">{fmtABC(measuredHours)}</span> ({hhmmss(span.ms)})</span>
               <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (웃 = M × T, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
             </div>
 
@@ -1261,7 +1333,7 @@ export default function SoISessionPage() {
               onClick={() => {
                 // D9 — written ONCE. `v ?? …` is the whole rule: a second settlement of the same pod cannot overwrite
                 // what the first one recorded, so re-opening and re-settling changes nothing about the past.
-                setVintage((v) => v ?? stamp(witnessedHours, bandM, new Date().toISOString(), region?.rate ?? null, region?.currency ?? null));
+                setVintage((v) => v ?? stamp(witnessedHours, bandM, new Date().toISOString(), podJuris?.rate ?? null, podJuris?.currency ?? null));
                 setPhase("closed"); drive("closed");
               }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
@@ -1283,11 +1355,11 @@ export default function SoISessionPage() {
               <ol className="mb-3 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
                 <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
-                <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} earned at {bandM}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year</> : null}</li>
-                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> held at {bandM}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> held separately — recognition, not wages</> : null}</li>
+                <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {bandM}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
+                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {bandM}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
                 <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
                 {vintage ? (
-                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)}</span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
+                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
                 ) : null}
               </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>

@@ -151,9 +151,15 @@ export const REGION_RATES: RegionRate[] = [
   { lang: "Nepali", cc: "NP", name: "Nepal", currency: "NPR", rate: null, published: true, noSingleRate: false, note: "Not Published" },
 ]
 
-/** (language, country) is the key — the same country appears under several languages as distinct jurisdictions. */
+/** (language, country) is the key of a ROW — the same country appears under several languages. */
 export const regionId = (r: Pick<RegionRate, "lang" | "cc">): string => `${r.lang}:${r.cc}`;
-export const findRegion = (id: string): RegionRate | undefined => REGION_RATES.find((r) => regionId(r) === id);
+
+/**
+ * O(1) row lookup. This was `REGION_RATES.find(r => regionId(r) === id)` — a 114-row scan building a string per row,
+ * on every render, and now called once per pod member. Built once at module load instead.
+ */
+const REGION_INDEX: ReadonlyMap<string, RegionRate> = new Map(REGION_RATES.map((r) => [regionId(r), r]));
+export const findRegion = (id: string): RegionRate | undefined => REGION_INDEX.get(id);
 
 /**
  * unit.settle's settlement ladder, derived from each row's own two flags. Counting the table this way reproduces the
@@ -175,10 +181,108 @@ export const TIER_REASON: Record<SettleTier, string> = {
 };
 
 /**
+ * JURISDICTIONS — the 106 distinct PLACES behind the 114 rows.
+ *
+ * OPERATOR RULING, 2026-09-11 (docs/asks/2026-09-11_election_of_locality.md): "ensure optimized and includes
+ * election of locality and regional min wage." Six countries appear more than once as the SAME jurisdiction under
+ * different languages — Switzerland three times, Belgium, the DRC, Cyprus, Finland and Singapore twice — every one
+ * with the same rate. Offering those repeatedly makes a person choose a LANGUAGE in order to be given a WAGE. They
+ * elect a place; the language comes from the app's own 33-language selector.
+ *
+ * No row is lost: a jurisdiction keeps every language it is published under, and the gate reconciles 106 back to 114.
+ */
+export interface Jurisdiction {
+  id: string;              // the canonical row's regionId — what a member elects
+  cc: string;              // ISO 3166-1 alpha-2
+  name: string;            // the full published name, e.g. "Canada — Québec"
+  country: string;         // the part before the em dash, e.g. "Canada"
+  locality: string | null; // the part after it, e.g. "Québec" — null where the row names no locality
+  currency: string;
+  rate: number | null;
+  tier: SettleTier;
+  note: string;
+  langs: string[];         // every language this jurisdiction is published under
+}
+
+/** "Canada — Québec" → ["Canada", "Québec"]. The em dash is the paper's own separator. */
+const splitName = (name: string): [string, string | null] => {
+  const i = name.indexOf(" — ");
+  return i < 0 ? [name, null] : [name.slice(0, i), name.slice(i + 3)];
+};
+
+export const JURISDICTIONS: Jurisdiction[] = (() => {
+  const byName = new Map<string, Jurisdiction>();
+  for (const r of REGION_RATES) {
+    const key = `${r.cc}|${r.name}`;
+    const found = byName.get(key);
+    if (found) { found.langs.push(r.lang); continue; }
+    const [country, locality] = splitName(r.name);
+    byName.set(key, {
+      id: regionId(r), cc: r.cc, name: r.name, country, locality,
+      currency: r.currency, rate: r.rate, tier: tierOf(r), note: r.note, langs: [r.lang],
+    });
+  }
+  return Array.from(byName.values());
+})();
+
+const JURIS_INDEX: ReadonlyMap<string, Jurisdiction> = new Map(JURISDICTIONS.map((j) => [j.id, j]));
+export const findJurisdiction = (id: string): Jurisdiction | undefined => JURIS_INDEX.get(id);
+
+/**
+ * The four settlement tiers, grouped ONCE at module load. This was four `.filter(r => tierOf(r) === tier)` passes
+ * rebuilt on every render in two places — 456 tierOf calls per render per picker, about to be tripled by per-member
+ * election. Now it is a lookup.
+ */
+export const BY_TIER: Readonly<Record<SettleTier, Jurisdiction[]>> = (() => {
+  const g: Record<SettleTier, Jurisdiction[]> = { published: [], pending: [], no_single_rate: [], no_official_rate: [] };
+  for (const j of JURISDICTIONS) g[j.tier].push(j);
+  return g;
+})();
+
+/** The tier headings, in the paper's own order. */
+export const TIER_ORDER: readonly SettleTier[] = ["published", "pending", "no_single_rate", "no_official_rate"];
+export const TIER_LABEL: Record<SettleTier, string> = {
+  published: "Published rate",
+  pending: "Rate exists, not yet loaded",
+  no_single_rate: "No single national rate",
+  no_official_rate: "No official rate",
+};
+
+/**
+ * ELECTION OF LOCALITY, step two. The jurisdictions within one country, when the paper publishes more than one.
+ * Today that is Canada (Federal · Québec) and India (national · West Bengal · Punjab) — everywhere else a country is
+ * one place and the election is a single click. Derived, so a locality row added later just works.
+ */
+const BY_COUNTRY: ReadonlyMap<string, Jurisdiction[]> = (() => {
+  const m = new Map<string, Jurisdiction[]>();
+  for (const j of JURISDICTIONS) (m.get(j.cc) ?? m.set(j.cc, []).get(j.cc)!).push(j);
+  return m;
+})();
+export const localitiesOf = (cc: string): Jurisdiction[] => {
+  const all = BY_COUNTRY.get(cc) ?? [];
+  return all.length > 1 ? all : [];
+};
+
+/** One entry per country for the first step of the election — the jurisdiction that carries a rate, where one does. */
+export const COUNTRIES: Jurisdiction[] = Array.from(BY_COUNTRY.values())
+  .map((js) => js.find((j) => j.rate !== null) ?? js[0]);
+
+/** The jurisdiction a country resolves to before any locality is chosen — the one that publishes a rate, if any. */
+const COUNTRY_DEFAULT: ReadonlyMap<string, Jurisdiction> = new Map(COUNTRIES.map((j) => [j.cc, j]));
+export const defaultForCountry = (cc: string): Jurisdiction | undefined => COUNTRY_DEFAULT.get(cc);
+
+/** Countries grouped by settlement tier, for the first step of the election. Precomputed, like BY_TIER. */
+export const COUNTRIES_BY_TIER: Readonly<Record<SettleTier, Jurisdiction[]>> = (() => {
+  const g: Record<SettleTier, Jurisdiction[]> = { published: [], pending: [], no_single_rate: [], no_official_rate: [] };
+  for (const j of COUNTRIES) g[j.tier].push(j);
+  return g;
+})();
+
+/**
  * Settlement — `$ = 웃 × the region's hourly minimum wage`, in that region's own currency.
  * Returns null when the region publishes no rate: no contributor settles at zero, and no figure is guessed.
  */
-export function settleInRegion(yug: number, r: RegionRate | undefined): number | null {
+export function settleInRegion(yug: number, r: { rate: number | null } | undefined): number | null {
   if (!r || r.rate === null || !(yug > 0)) return null;
   return yug * r.rate;
 }
