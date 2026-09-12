@@ -896,6 +896,8 @@ const cube8: TranslationEntry[] = [
   { key: "soi.pod.ui.copy_link", englishDefault: "Copy link", context: "Pod page invite: copies the join link shown under the QR", cubeId: 8 },
   { key: "soi.pod.ui.link_copied", englishDefault: "Link copied", context: "Pod page invite: the copy-link button after a copy", cubeId: 8 },
   { key: "soi.pod.guide.a.agree_first", englishDefault: "Approve the plan — the other two can join meanwhile", context: "Pod page: guide action for the lead before the other seats are filled", cubeId: 8 },
+  { key: "soi.pod.ui.max_screen", englishDefault: "Max screen", context: "Pod page invite: opens the QR, code and link at full screen (the Divinity Guide's overlay)", cubeId: 8 },
+  { key: "soi.pod.ui.max_close", englishDefault: "Close", context: "Pod page invite: closes the full-screen QR", cubeId: 8 },
   // ◬ ♡ 웃 landing — three doors before any session (operator 2026-09-07): Session (♡ top) · Sign Doc (웃 bottom-right) · Create Doc (◬ bottom-left).
   { key: "soi.landing.language", englishDefault: "Language", context: "Session pages: the globe language switch (same as Settings and Vision 2525)", cubeId: 8 },
   { key: "soi.landing.title", englishDefault: "Session", context: "Landing + pod header: the single word under the three glyphs", cubeId: 8 },

@@ -848,4 +848,11 @@ ok(/"soi\.pod\.guide\.a\.agree_first" : "soi\.pod\.guide\.a\.agree"/.test(page) 
 ok(/\{!\(guide\.state === "turn" && \/\^Waiting\/\.test\(explain\)\) && <p className="mt-1 text-xs text-cyan-400" data-testid="pod-explain">/.test(page), 'the phase line is dropped when it would contradict the card');
 ok(/<span className="shrink-0 rounded-full border px-2 py-0\.5 text-\[10px\] uppercase"/.test(page), 'the strip\'s phase pill cannot be clipped (shrink-0)');
 
+// ── MAX SCREEN, like the Divinity Guide (operator 2026-09-12) ────────────────────────────────────────────────────────
+const qrMax = read('../components/qr-max-screen.tsx');
+ok(/data-testid="pod-qr-max"/.test(page) && /data-testid="pod-qr-max-btn"/.test(page) && /<QrMaxScreen url=\{joinUrl\} code=\{podCode/.test(page), 'the QR itself and a Max screen button open the overlay');
+ok(/fixed inset-0 z-\[60\]/.test(qrMax) && /<QRCodeSVG value=\{url\} size=\{Math\.min\(320/.test(qrMax) && /data-testid=\{`\$\{testid\}-link`\}/.test(qrMax) && /data-testid=\{`\$\{testid\}-copy`\}/.test(qrMax) && /role="dialog" aria-modal="true"/.test(qrMax),
+   'the overlay is the whole screen: QR large, code large, the link as text with Copy, a close control — one shared component, the dashboard\'s pattern');
+ok(!/[>"](Max screen|Close)[<"]/.test(qrMax) && /t\("soi\.pod\.ui\.max_close"\)/.test(qrMax) && /t\("soi\.pod\.ui\.max_screen"\)/.test(page), 'its strings go through the lexicon');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

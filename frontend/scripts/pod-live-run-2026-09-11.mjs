@@ -104,6 +104,11 @@ await crop(L, 'lead', '02-invite', L.locator('code').first().locator('xpath=ance
 const shownLink = (await L.getByTestId('pod-join-link').innerText()).trim();
 step('lead', 'the join link is shown under the QR and ends in ?pod=<code>', shownLink.endsWith(`/soi-session?pod=${code}`), shownLink);
 step('lead', 'Copy link and Share sit beside it', (await L.getByTestId('pod-copy-link').count()) === 1);
+// MAX SCREEN (operator 2026-09-12: "like divinity guide"): the QR opens the whole screen with the code and the link; close returns.
+await L.getByTestId('pod-qr-max-btn').click(); await L.getByTestId('pod-qr-overlay').waitFor({ timeout: 10000 });
+step('lead', 'Max screen: the overlay shows the code and the same link', (await L.getByTestId('pod-qr-overlay-code').innerText()).trim() === code && (await L.getByTestId('pod-qr-overlay-link').innerText()).trim() === shownLink);
+await L.screenshot({ path: `${OUT}/step-02b-maxscreen-lead.jpg`, type: 'jpeg', quality: 70 });
+await L.getByTestId('pod-qr-overlay-close').click(); await L.getByTestId('pod-qr-overlay').waitFor({ state: 'detached', timeout: 10000 }); step('lead', 'Max screen closes');
 await A.goto(shownLink, { waitUntil: 'domcontentloaded' }); await ready(A); step('ana', 'opened the link exactly as shown on the lead\'s phone');
 await B.goto(BASE + '?enter=session', { waitUntil: 'domcontentloaded' }); await ready(B);
 await B.getByPlaceholder(/code/i).first().fill(code); await B.getByRole('button', { name: /join/i }).first().click(); step('bo', 'typed the code and joined');

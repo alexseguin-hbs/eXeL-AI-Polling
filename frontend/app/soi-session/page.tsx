@@ -38,6 +38,7 @@ import { SeedMembership } from "@/components/seed-membership";
 import { SoiLanding } from "@/components/soi-landing";
 import { SoITrinity } from "@/components/soi-trinity";
 import { PodRosterList, type PodRosterRow } from "@/components/pod-roster-list";
+import { QrMaxScreen } from "@/components/qr-max-screen";
 import { PodPhaseRail } from "@/components/pod-phase-rail";
 import { POD_PHASES, phaseIndex } from "@/lib/pod-phases";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -727,6 +728,7 @@ export default function SoISessionPage() {
   const [copyState, setCopyState] = useState<"" | "copied" | "failed">("");
   // The join link's Copy and Share — every action reports what happened, in one word (the receipt copy's own rule).
   const [linkState, setLinkState] = useState<"" | "copied" | "failed">("");
+  const [qrMax, setQrMax] = useState(false);   // the QR at max screen (the Divinity Guide's expandable overlay)
   const canShare = typeof navigator !== "undefined" && typeof (navigator as Navigator & { share?: unknown }).share === "function";
   const copyLink = () => {
     const done = (ok: boolean) => { setLinkState(ok ? "copied" : "failed"); setTimeout(() => setLinkState(""), 4000); };
@@ -1169,7 +1171,10 @@ export default function SoISessionPage() {
               <div className="text-center text-xs text-muted-foreground">
                 The other two scan to join — their info imports from their login (email / OAuth); they enter their name.
               </div>
-              <div className="rounded-md bg-white p-2"><QRCodeSVG value={joinUrl} size={140} level="M" /></div>
+              <button type="button" onClick={() => setQrMax(true)} data-testid="pod-qr-max" aria-label={t("soi.pod.ui.max_screen")} title={t("soi.pod.ui.max_screen")}
+                className="rounded-md bg-white p-2"><QRCodeSVG value={joinUrl} size={140} level="M" /></button>
+              <button type="button" onClick={() => setQrMax(true)} data-testid="pod-qr-max-btn" className="min-h-[44px] rounded-md border border-border px-3 py-1.5 text-xs">⛶ {t("soi.pod.ui.max_screen")}</button>
+              {qrMax && <QrMaxScreen url={joinUrl} code={podCode || "…"} title={intent || t("soi.pod.ui.share_qr")} subtitle={t("cube1.moderator.scan_join")} onClose={() => setQrMax(false)} onCopyLink={copyLink} copyLabel={linkState === "copied" ? t("soi.pod.ui.link_copied") : t("soi.pod.ui.copy_link")} testid="pod-qr-overlay" />}
               <code className="text-sm tracking-widest">{podCode || "…"}</code>
               {/* THE LINK BESIDE EVERY QR (operator 2026-09-12: "ensure link is also provided similar to all times we have
                   shown QR CODE") — the dashboard's pattern: the URL as selectable text, Copy, and the phone's share sheet. */}
