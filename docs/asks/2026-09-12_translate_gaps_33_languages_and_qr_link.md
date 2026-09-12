@@ -30,3 +30,16 @@ Received 2026-09-12 ~10:32 CST. Persisted before any code (PERSIST FIRST, AAR 20
 
 The pod page gets the Divinity Guide's "max screen" mode — the same control, the same behaviour, reused not rebuilt.
 Persisted before any code.
+
+## Addendum, same morning (2)
+
+> Clean up to step by step so UX goes through screens as unlocked teams join etc. Use term: GPS Location or Signal
+> Location (of IP Address). Overall UX needs clean simple enough for child or grandmother.
+
+1. One screen per step: the page shows the current step's controls and nothing else that is not needed for it; the next
+   step unlocks when its condition is met (the others join, all approve, all start …). Everything else folds — never
+   removed.
+2. The two location terms, verbatim: **GPS Location** (the phone's fix) and **Signal Location (of IP Address)** (the
+   suggestion from the connection).
+3. Every sentence a member reads is short enough for a child or a grandmother; explanations fold under Details.
+Persisted before any code.
