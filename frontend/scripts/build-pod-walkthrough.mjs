@@ -6,7 +6,10 @@
 import fs from 'fs'; import path from 'path';
 const ROOT = path.resolve(process.cwd(), '..');
 const RUN = process.env.RUN || path.join(ROOT, 'docs/assessments/pod-live-run-2026-09-12');
-const OUT = path.join(ROOT, 'docs/feedback/POD_Walkthrough_3_Users_2026.09.12.html');
+const OUT = path.join(ROOT, process.env.OUT_HTML || 'docs/feedback/POD_Walkthrough_3_Users_2026.09.12.html');
+// ASSIST (operator 2026-09-12: "have 4AsM assist each of the 3 members"): the validated inputs file carries, per seat,
+// the three drafts and the reconciler — shown beside the screenshots so the reader sees who advised what.
+const ASSIST = process.env.INPUTS ? JSON.parse(fs.readFileSync(process.env.INPUTS, 'utf8')).seats : null;
 const W = JSON.parse(fs.readFileSync(path.join(RUN, 'walkthrough.json'), 'utf8'));
 const log = fs.readFileSync(path.join(RUN, 'log.txt'), 'utf8').split('\n').filter(Boolean);
 const steps = log.length, fails = log.filter((l) => / FAIL /.test(l)).length;
@@ -18,7 +21,7 @@ const WHO = [['lead', 'Lea', 'the lead'], ['ana', 'Ana', 'seat 2'], ['bo', 'Bo',
 // The nine steps. `press` is what the person does on THEIR phone; `expect` is what they should see before moving on.
 const STEPS = [
   { key: '01-plan', title: 'Open the pod with a plan', screen: 'Brief',
-    lead: { press: 'Open /soi-session. Type the Intent and the Measurable outcome, your name and email. In Plan: hours 2, multiple 3×, then the place — United States, then "New York · Remainder of state". Press "Share QR & open the pod".', expect: 'The preview reads "2 h × 3 = 웃 6.000 · settles at $96.00 · ≈ $96.00".' },
+    lead: { press: ASSIST ? `Open /soi-session. Type the Intent ("${ASSIST.lead.intent}") and the Measurable outcome ("${ASSIST.lead.outcome}"), your name and email. In Plan: hours ${ASSIST.lead.plan.hours}, multiple ${ASSIST.lead.plan.m}×, then the place — ${ASSIST.lead.podPlace?.name}. Press "Share QR & open the pod".` : 'Open /soi-session. Type the Intent and the Measurable outcome, your name and email. In Plan: hours 2, multiple 3×, then the place — United States, then "New York · Remainder of state". Press "Share QR & open the pod".', expect: ASSIST ? `The preview reads "${ASSIST.lead.plan.hours} h × ${ASSIST.lead.plan.m} = 웃 ${(ASSIST.lead.plan.hours * ASSIST.lead.plan.m).toFixed(3)}" and the settlement in ${ASSIST.lead.podPlace?.currency}.` : 'The preview reads "2 h × 3 = 웃 6.000 · settles at $96.00 · ≈ $96.00".' },
     ana: { press: 'Nothing yet — wait for the lead\'s code or QR.', expect: '' }, bo: { press: 'Nothing yet — wait for the lead\'s code or QR.', expect: '' } },
   { key: '02-invite', title: 'Two join by code or QR', screen: 'Invite',
     lead: { press: 'Show the QR, or read the six-character code aloud.', expect: '"● live · 3 in the pod" once both have joined.' },
@@ -26,8 +29,8 @@ const STEPS = [
     bo: { press: 'Open /soi-session, type the code into POD CODE, press Join.', expect: '"you are seat 3".' } },
   { key: '03-seat', title: 'Name your seat, elect your place, approve the plan', screen: 'Invite → agreed',
     lead: { press: 'Your seat is set from the brief. Tick "Lea approves the intent, outcome and plan". When all three ticks are in, press "Accepted by the trio — go to synchronized start".', expect: 'Your place reads "inherited from the pod" — the pod default is yours unless you elect another.' },
-    ana: { press: 'Type your name. Under "Settles at" choose your country (Brazil), and a locality if one is offered. Optional: press "Add my position" to record your phone\'s GPS fix beside the place. Tick approval.', expect: '"7.37 BRL an hour" and, after the fix, "GPS -23.5505, -46.6333 ±25 m".' },
-    bo: { press: 'Type your name. Choose Philippines, then the locality "Metro Manila". Tick approval.', expect: '"86.875 PHP an hour".' } },
+    ana: { press: `Type your name. Under "Settles at" choose your country (${ASSIST ? ASSIST.ana.place?.name : 'Brazil'}), and a locality if one is offered. Optional: press "Add my position" to record your phone's GPS fix beside the place. Tick approval.`, expect: ASSIST ? `"${ASSIST.ana.place?.rate ?? 'no rate published'} ${ASSIST.ana.place?.currency ?? ''} an hour"${ASSIST.ana.gps ? ` and, after the fix, "GPS ${ASSIST.ana.gps.lat}, ${ASSIST.ana.gps.lon}"` : ''}.` : '"7.37 BRL an hour" and, after the fix, "GPS -23.5505, -46.6333 ±25 m".' },
+    bo: { press: `Type your name. Choose ${ASSIST ? ASSIST.bo.place?.name : 'Philippines, then the locality "Metro Manila"'}. Tick approval.`, expect: ASSIST ? `"${ASSIST.bo.place?.rate ?? 'no rate published'} ${ASSIST.bo.place?.currency ?? ''} an hour".` : '"86.875 PHP an hour".' } },
   { key: '04-clock', title: 'Synchronized start', screen: 'Start → Active',
     lead: { press: 'Press "tap to start" within 15 seconds of the other two.', expect: 'The clock button appears on every phone, not yet running.' },
     ana: { press: 'Press "tap to start".', expect: 'Same clock button.' }, bo: { press: 'Press "tap to start".', expect: 'Same clock button.' } },
@@ -59,14 +62,26 @@ const phone = (w, name, seat, s, key) => {
     ${src ? `<img src="${src}" alt="${esc(name)} — ${esc(key)}" loading="lazy">` : `<p class="missing">no screenshot for ${name} at this step — this phone did nothing here</p>`}
   </div>`;
 };
+const assistHtml = (key) => {
+  if (!ASSIST || !ASSIST[key]) return '';
+  const a = ASSIST[key];
+  const lines = [key === 'lead' ? `<li><b>Intent</b> ${esc(a.intent)}</li><li><b>Measurable outcome</b> ${esc(a.outcome)}</li><li><b>Plan</b> ${a.plan.hours} h × ${a.plan.m} — ${esc(a.plan.reason)}</li><li><b>Pod place</b> ${esc(a.podPlace?.name || '')}</li>` : '',
+    `<li><b>Own place</b> ${esc(a.place?.name || '')}${a.gps ? ` · GPS ${a.gps.lat}, ${a.gps.lon}` : ''}</li><li><b>Own outcome</b> ${esc(a.ownOutcome)}</li><li><b>Self-audit</b> ${a.audit.hours} h — ${esc(a.audit.did)}</li>`].join('');
+  const four = [...a.assist.drafts.map((d) => ({ ...d, role: 'drafted' })), { ...a.assist.reconciler, role: 'reconciled' }];
+  return `<details class="assist"><summary>Assisted by four reviewers — ${four.map((d) => d.asm).join(' · ')}</summary>
+    <ul class="inputs">${lines}</ul>
+    ${four.map((d) => `<div class="adv"><h4>${esc(d.asm)} <span>${esc(d.lens)} · ${d.role} · ${d.words} words</span></h4><p>${esc(d.comment)}</p></div>`).join('')}
+  </details>`;
+};
 const stepHtml = (s, i) => `<section class="step" id="step-${i + 1}">
   <header><span class="n">${i + 1}</span><div><h2>${esc(s.title)}</h2><p class="screen">Screen: ${esc(s.screen)}</p></div></header>
   <div class="phones">${WHO.map(([w, name, seat]) => phone(w, name, seat, s[w], s.key)).join('')}</div>
+  ${i === 2 ? WHO.map(([w]) => assistHtml(w)).join('') : ''}
   <label class="comment"><span>Operator comment — step ${i + 1}</span><textarea id="comment-${i + 1}" rows="2" placeholder="what is wrong, what is missing, what to change"></textarea></label>
 </section>`;
 
 const synth = W.synthesis.lead;
-const html = `<title>Pod Walkthrough — Three Phones</title>
+const html = `<title>${ASSIST ? 'Pod Walkthrough — Advised Members' : 'Pod Walkthrough — Three Phones'}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{--bg:#f3f6f6;--surface:#ffffff;--ink:#12201f;--muted:#5b6d6f;--line:#d3dcdc;--accent:#0b8fa3;--press:#b7791f;--press-bg:#fbf3e3;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--body:'IBM Plex Sans',system-ui,sans-serif;--display:'IBM Plex Sans Condensed','IBM Plex Sans',system-ui,sans-serif}
@@ -88,11 +103,12 @@ textarea{width:100%;background:var(--surface);color:var(--ink);border:1px solid 
 .synth{border-top:1px solid var(--line);padding-block:22px}.synth .para{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:12px;max-width:72ch}
 .synth .para h3{font:600 15px var(--display);margin:0 0 6px;display:flex;justify-content:space-between}.synth .para h3 span{font:12px var(--mono);color:var(--muted)}.synth p{margin:0}
 .tot{font:500 13px var(--mono);color:var(--muted);margin:6px 0 0}.receipt{font:12.5px/1.55 var(--mono);white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;margin-top:12px}
+.assist{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px}.assist summary{cursor:pointer;font:600 14px var(--display)}.inputs{margin:8px 0;padding-left:18px;font-size:13px}.inputs b{font-weight:600}.adv{border-top:1px solid var(--line);padding:8px 0}.adv h4{font:600 14px var(--display);margin:0 0 4px}.adv h4 span{font:12px var(--mono);color:var(--muted);font-weight:400}.adv p{margin:0;max-width:72ch;font-size:13.5px}
 .outcomes{margin:12px 0 0;padding-left:18px}.outcomes li{margin:2px 0}.foot{color:var(--muted);font-size:13px;margin-top:30px;max-width:70ch}
 </style>
 <div class="wrap">
-<h1>Pod Walkthrough — Three Phones</h1>
-<p class="lede">How three people take one task from a plan to a receipt and its 333-word synthesis on the SoI pod. Every screenshot below is one person's own phone at that step, from a real run over the app's live channel; nothing is a mock-up.</p>
+<h1>${ASSIST ? 'Pod Walkthrough — Advised Members' : 'Pod Walkthrough — Three Phones'}</h1>
+<p class="lede">How three people take one task from a plan to a receipt and its 333-word synthesis on the SoI pod. Every screenshot below is one person's own phone at that step, from a real run over the app's live channel; nothing is a mock-up.${ASSIST ? ' The three members are simulated: each was advised by four reviewers whose drafts and reconciliation are shown under step 3, and whose words the phones typed.' : ''}</p>
 <div class="meta"><span>run <b>2026-09-12</b></span><span>pod code <b>${esc(W.code)}</b></span><span>steps <b>${steps}</b> · failures <b>${fails}</b></span><span>build <b>${sha}</b></span><span>phones <b>Lea · Ana · Bo</b> (375×812, emulated)</span></div>
 ${STEPS.map(stepHtml).join('\n')}
 <section class="synth" id="synthesis">

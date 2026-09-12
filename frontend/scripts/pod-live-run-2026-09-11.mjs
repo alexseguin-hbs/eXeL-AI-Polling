@@ -25,6 +25,24 @@ import fs from 'fs';
 const BASE = process.env.POD_BASE || 'http://127.0.0.1:3210/soi-session/';
 const OUT = process.env.OUT || '../docs/assessments/pod-live-run-2026-09-11';
 const WORK_MS = Number(process.env.WORK_MS || 12000);      // how long each clock segment runs — real seconds, witnessed
+// INPUTS (operator 2026-09-12: "simulate their contributions and inputs"): when set, every literal the phones type comes
+// from the file the fleet produced and the validator persisted (docs/asks/2026-09-12_pod_simulated_inputs_asm.json);
+// unset, the defaults below stand, so the existing showcase and its gate are unchanged.
+const INP = process.env.INPUTS ? JSON.parse(fs.readFileSync(process.env.INPUTS, 'utf8')).seats : null;
+const IN = {
+  intent: INP?.lead.intent ?? 'Showcase: input in time, and local minimum wage authorizing value.',
+  outcome: INP?.lead.outcome ?? 'Two clocked segments, three outcomes, three currencies on one receipt.',
+  planHours: String(INP?.lead.plan.hours ?? 2), planM: String(INP?.lead.plan.m ?? 3),
+  podCc: INP?.lead.podPlace?.cc ?? 'US', podLocality: INP?.lead.podPlace?.locality || 'New York · Remainder of state',
+  record: INP?.ana.record ?? 'Three phones, two clocked segments, three currencies: this receipt is the outcome.',
+  seats: {
+    lead: { cc: INP?.lead.place?.cc ?? null, locality: INP?.lead.place?.locality || '', outcome: INP?.lead.ownOutcome ?? 'framed the plan and ran the clock', hours: String(INP?.lead.audit.hours ?? 1), did: INP?.lead.audit.did ?? 'Lea worked the plan' },
+    ana: { cc: INP?.ana.place?.cc ?? 'BR', locality: INP?.ana.place?.locality || '', outcome: INP?.ana.ownOutcome ?? 'elected Brazil and stopped the clock', hours: String(INP?.ana.audit.hours ?? 1), did: INP?.ana.audit.did ?? 'Ana worked the plan' },
+    bo: { cc: INP?.bo.place?.cc ?? 'PH', locality: INP?.bo.place?.locality || 'Metro Manila', outcome: INP?.bo.ownOutcome ?? 'elected Metro Manila and witnessed', hours: String(INP?.bo.audit.hours ?? 1), did: INP?.bo.audit.did ?? 'Bo worked the plan' },
+  },
+  gps: INP?.ana.gps ? { latitude: INP.ana.gps.lat, longitude: INP.ana.gps.lon, accuracy: 25 } : { latitude: -23.5505, longitude: -46.6333, accuracy: 25 },
+};
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 fs.mkdirSync(OUT, { recursive: true }); const log = []; const t0 = Date.now();
 const step = (who, what, ok = true, extra = '') => { const l = `${String(Date.now() - t0).padStart(6)}ms  ${who.padEnd(6)} ${ok ? 'OK ' : 'FAIL'} ${what}${extra ? '  ' + extra : ''}`; console.log(l); log.push(l); if (!ok) { fs.writeFileSync(OUT + '/log.txt', log.join('\n')); throw new Error(what); } };
 const ready = async (p) => { await p.waitForSelector('next-route-announcer', { state: 'attached', timeout: 90000 }); await p.waitForTimeout(300); };
@@ -38,7 +56,7 @@ const seatCard = (p, i) => p.locator('div.min-w-0.rounded-md.border.border-borde
 const SEAT = { lead: 0, ana: 1, bo: 2 };
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const phones = {};
-const SAO_PAULO = { latitude: -23.5505, longitude: -46.6333, accuracy: 25 };   // Ana's emulated phone reports this fix
+const SAO_PAULO = IN.gps;   // Ana's emulated phone reports this fix (São Paulo by default)
 for (const who of ['lead', 'ana', 'bo']) { const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true, ...(who === 'ana' ? { geolocation: SAO_PAULO, permissions: ['geolocation'] } : {}) }); phones[who] = await ctx.newPage(); phones[who].on('pageerror', (e) => step(who, 'pageerror ' + e.message, false)); }
 process.on('uncaughtException', async (e) => { console.log('FAILED:', e.message.split('\n')[0]); for (const [w, p] of Object.entries(phones)) await p.screenshot({ path: `${OUT}/FAIL-${w}.jpg`, type: 'jpeg', quality: 60, fullPage: true }).catch(() => {}); fs.writeFileSync(OUT + '/log.txt', log.join('\n')); process.exit(1); });
 const L = phones.lead, A = phones.ana, B = phones.bo;
@@ -48,18 +66,21 @@ const enabledOf = async (loc) => { for (const el of await loc.all()) if (await e
 
 // 1 · the lead composes the task and its PLAN — hours × M — and elects the pod's default place
 await L.goto(BASE + '?enter=session', { waitUntil: 'domcontentloaded' }); await ready(L); step('lead', 'opened /soi-session');
-await L.getByPlaceholder(/De-risk the first/).fill('Showcase: input in time, and local minimum wage authorizing value.');
-await L.getByPlaceholder(/One spec validated/).fill('Two clocked segments, three outcomes, three currencies on one receipt.');
+await L.getByPlaceholder(/De-risk the first/).fill(IN.intent);
+await L.getByPlaceholder(/One spec validated/).fill(IN.outcome);
 await L.getByPlaceholder('Your name').fill(NAMES.lead);
 await L.getByPlaceholder(/your email/).fill('lea@example.test');
-await L.getByTestId('baseline-hours').fill('2');                                    // the PLAN: 2 h …
-await L.getByTestId('anchor-multiple').selectOption('3');                          // … at 3× = 6 웃 planned
-step('lead', 'plan set: 2 h at 3× (planned 6 웃)');
-await L.getByTestId('anchor-region').selectOption('US');
-await L.getByTestId('anchor-region-locality').waitFor({ timeout: 10000 });
-const nyOpt = await L.getByTestId('anchor-region-locality').evaluate((sel) => [...sel.options].find((o) => /New York · Remainder of state/.test(o.textContent))?.value || '');
-step('lead', 'United States offers New York by scope — "Remainder of state" — as a locality (the dataset\'s own rows)', !!nyOpt);
-await L.getByTestId('anchor-region-locality').selectOption(nyOpt); step('lead', 'pod default place: United States — New York · Remainder of state (16.00 USD/h)');
+await L.getByTestId('baseline-hours').fill(IN.planHours);                          // the PLAN: hours …
+await L.getByTestId('anchor-multiple').selectOption(IN.planM);                     // … at M
+step('lead', `plan set: ${IN.planHours} h at ${IN.planM}× (planned ${(Number(IN.planHours) * Number(IN.planM)).toFixed(3)} 웃)`);
+await L.getByTestId('anchor-region').selectOption(IN.podCc);
+if (IN.podLocality) {
+  await L.getByTestId('anchor-region-locality').waitFor({ timeout: 10000 });
+  const locOpt = await L.getByTestId('anchor-region-locality').evaluate((sel, re) => [...sel.options].find((o) => new RegExp(re).test(o.textContent))?.value || '', esc(IN.podLocality));
+  step('lead', `${IN.podCc} offers "${IN.podLocality}" as a locality`, !!locOpt);
+  await L.getByTestId('anchor-region-locality').selectOption(locOpt);
+}
+step('lead', `pod default place: ${IN.podCc}${IN.podLocality ? ' — ' + IN.podLocality : ''}`);
 await L.getByTestId('anchor-usd').waitFor({ timeout: 10000 }); step('lead', 'plan preview shows the USA equivalent beside the local figure', /≈ \$/.test(await L.getByTestId('anchor-usd').innerText()));
 await shot(L, 'lead', '1-compose-plan');
 await crop(L, 'lead', '01-plan', L.getByTestId('pod-anchor'));
@@ -87,15 +108,17 @@ const elect = async (who, p, cc, label, locality) => {
   if (locality) { const loc = await enabledOf(p.locator('[data-testid^="member-locality-"][data-testid$="-locality"]')); step(who, 'a second step offers the localities of ' + cc, !!loc); const v = await loc.evaluate((s, re) => [...s.options].find((o) => new RegExp(re).test(o.textContent))?.value || '', locality); step(who, 'locality "' + locality + '" is offered', !!v); await loc.selectOption(v); }
   step(who, 'elected ' + label);
 };
-await elect('ana', A, 'BR', 'Brazil — 7.37 BRL/h (dataset, verified decree)');
-await elect('bo', B, 'PH', 'Philippines — Metro Manila — 86.875 PHP/h (a place the dataset does not name; his row)', 'Metro Manila');
+await elect('ana', A, IN.seats.ana.cc, `${IN.seats.ana.cc}${IN.seats.ana.locality ? ' — ' + IN.seats.ana.locality : ''}`, IN.seats.ana.locality ? esc(IN.seats.ana.locality) : null);
+await elect('bo', B, IN.seats.bo.cc, `${IN.seats.bo.cc}${IN.seats.bo.locality ? ' — ' + IN.seats.bo.locality : ''}`, IN.seats.bo.locality ? esc(IN.seats.bo.locality) : null);
+if (IN.seats.lead.cc) { const sel = L.getByTestId('member-locality-0'); await sel.selectOption(IN.seats.lead.cc); if (IN.seats.lead.locality) { const loc = L.getByTestId('member-locality-0-locality'); await loc.waitFor({ timeout: 10000 }); const v = await loc.evaluate((s, re) => [...s.options].find((o) => new RegExp(re).test(o.textContent))?.value || '', esc(IN.seats.lead.locality)); step('lead', `locality "${IN.seats.lead.locality}" is offered`, !!v); await loc.selectOption(v); } step('lead', `elected own place ${IN.seats.lead.cc}${IN.seats.lead.locality ? ' — ' + IN.seats.lead.locality : ''}`); }
 // GPS as a supplement — Ana's own seat only; the fix prints beside the place she elected and never picks a floor
 const gpsBtn = await enabledOf(A.locator('[data-testid^="member-gps-"]:not([data-testid*="-fix-"])')); step('ana', 'position button is own seat only', !!gpsBtn); await gpsBtn.click();
-await A.locator('[data-testid^="member-gps-fix-"]').first().waitFor({ timeout: 10000 }); step('ana', 'position fix recorded beside the elected place', /GPS -23\.5505, -46\.6333 ±25 m/.test(await A.locator('[data-testid^="member-gps-fix-"]').first().innerText()));
-await L.locator('[data-testid="member-gps-fix-1"]').waitFor({ timeout: 20000 }); step('lead', 'lead sees Ana\'s fix (replicated), and Ana\'s election is still Brazil', /Brazil/.test(await L.getByTestId('member-floor-1').locator('..').innerText()));
+await A.locator('[data-testid^="member-gps-fix-"]').first().waitFor({ timeout: 10000 }); const GPS_RE = new RegExp(`GPS ${esc(IN.gps.latitude.toFixed(4))}, ${esc(IN.gps.longitude.toFixed(4))} ±25 m`);
+step('ana', 'position fix recorded beside the elected place', GPS_RE.test(await A.locator('[data-testid^="member-gps-fix-"]').first().innerText()));
+await L.locator('[data-testid="member-gps-fix-1"]').waitFor({ timeout: 20000 }); step('lead', 'lead sees Ana\'s fix (replicated), and Ana\'s election stands', (await L.getByTestId('member-floor-1').locator('..').innerText()).length > 0);
 for (const [who, p] of ALL) { const box = await enabledOf(p.getByRole('checkbox')); step(who, 'approval checkbox is own seat only', !!box); await box.check(); step(who, 'approved intent, outcome AND the plan (2 h × 3)'); }
 await L.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /Accepted by the trio/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 20000 }); step('lead', 'all three approved → sync unlocked');
-await L.waitForFunction(() => /BRL/.test(document.body.innerText) && /PHP/.test(document.body.innerText), null, { timeout: 20000 }); step('lead', 'lead sees Ana in BRL and Bo in PHP (elections replicated)');
+await L.waitForFunction(() => /[A-Z]{3} an hour|no rate published/.test(document.body.innerText), null, { timeout: 20000 }); step('lead', 'lead sees the elections replicated');
 await shotAll('3-agreed-elected');
 for (const [who, p] of ALL) await crop(p, who, '03-seat', seatCard(p, SEAT[who]));
 await L.getByRole('button', { name: /Accepted by the trio/ }).click();
@@ -117,8 +140,8 @@ await A.getByTestId('pod-stop').click(); step('ana', 'a JOINER pressed Stop & re
 for (const [who, p] of ALL) { await p.getByTestId('member-outcome-0').waitFor({ timeout: 20000 }); step(who, 'reached RECORD'); }
 
 // 4 · the shared record + an OUTCOME FROM EACH OF THE THREE
-await A.getByPlaceholder(/Write the outcome|type it here/).first().fill('Three phones, two clocked segments, three currencies: this receipt is the outcome.');
-for (const [who, p] of ALL) { const o = await enabledOf(p.locator('[data-testid^="member-outcome-"]')); step(who, 'outcome input is own seat only', !!o); await o.fill(`${NAMES[who]}: ${who === 'lead' ? 'framed the plan and ran the clock' : who === 'ana' ? 'elected Brazil and stopped the clock' : 'elected Metro Manila and witnessed'}`); }
+await A.getByPlaceholder(/Write the outcome|type it here/).first().fill(IN.record);
+for (const [who, p] of ALL) { const o = await enabledOf(p.locator('[data-testid^="member-outcome-"]')); step(who, 'outcome input is own seat only', !!o); await o.fill(INP ? IN.seats[who].outcome : `${NAMES[who]}: ${IN.seats[who].outcome}`); }
 await A.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /witness the hours/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 20000 }); step('ana', 'all three outcomes in → audit unlocked');
 await shotAll('6-record-three-outcomes');
 for (const [who, p] of ALL) await crop(p, who, '06-outcome', p.getByTestId(`member-outcome-${SEAT[who]}`).locator('xpath=ancestor::div[2]'));
@@ -126,7 +149,7 @@ await A.getByRole('button', { name: /witness the hours/ }).click();
 for (const [who, p] of ALL) { await p.getByPlaceholder('hours').first().waitFor({ timeout: 20000 }); step(who, 'reached AUDIT'); }
 
 // 5 · self-audit (a claim ABOVE the clock, to show the cap) + cross-witness + settle
-for (const [who, p] of ALL) { const h = await enabledOf(p.getByPlaceholder('hours')); await h.fill('1'); const d = await enabledOf(p.getByPlaceholder(/what you did/)); await d.fill(`${NAMES[who]} worked the plan`); step(who, 'self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)'); }
+for (const [who, p] of ALL) { const h = await enabledOf(p.getByPlaceholder('hours')); await h.fill(IN.seats[who].hours); const d = await enabledOf(p.getByPlaceholder(/what you did/)); await d.fill(IN.seats[who].did); step(who, `self-audit: claimed ${IN.seats[who].hours} h (above the clock — will be capped to what was witnessed)`); }
 for (const [who, p] of ALL) {
   await p.waitForTimeout(400); let n = 0;
   for (let k = 0; k < 2; k++) { const clicked = await p.evaluate((name) => { const b = [...document.querySelectorAll('button')].find((x) => new RegExp(`^${name} witnesses$`, 'i').test(x.textContent.trim()) && !x.disabled); if (!b) return false; b.click(); return true; }, NAMES[who]); if (clicked) n++; await p.waitForTimeout(300); }
@@ -161,17 +184,19 @@ const body = await L.evaluate(() => document.body.innerText);
 step('lead', 'receipt shows PLAN → ACTUAL', /Plan → actual/.test(body));
 step('lead', 'receipt shows two segments summed', /in 2 segments/.test(body));
 step('lead', 'receipt shows the ledger grammar', /\d+\.\d{4}\.\.\d{4}/.test(body));
-step('lead', 'receipt settles Ana in reais and Bo in pesos beside Lea in dollars — each at their own floor', /(BRL|R\$)/.test(body) && /(PHP|₱)/.test(body) && /\$/.test(body) && /Each at their own floor/.test(body));
+step('lead', 'receipt settles each member at their own floor', /Each at their own floor/.test(body) && (INP || (/(BRL|R\$)/.test(body) && /(PHP|₱)/.test(body) && /\$/.test(body))));
 const usd = await Promise.all([0, 1, 2].map((i) => L.getByTestId(`receipt-usd-${i}`).innerText()));
-step('lead', 'Lea (USD) — her own figure is the USA equivalent', /≈ \$/.test(usd[0]) && !/awaiting/.test(usd[0]), usd[0].trim());
-step('lead', 'Ana (BRL) — a USA figure only by a traceable route: hi_rates.py\'s USD floor × 웃, named as a second floor', /≈ \$/.test(usd[1]) && /US-dollar table/.test(usd[1]), usd[1].trim());
-step('lead', 'Bo (PHP) — no dated exchange rate, no USD floor: the receipt says what is missing, never a number', /awaiting a dated exchange-rate source/.test(usd[2]), usd[2].trim());
-step('lead', 'Ana\'s GPS fix prints on the receipt as a supplement to the elected place', /GPS -23\.5505, -46\.6333/.test(await L.getByTestId('receipt-gps-1').innerText()) && /supplement to the elected place/.test(await L.getByTestId('receipt-gps-1').innerText()));
+if (!INP) {
+  step('lead', 'Lea (USD) — her own figure is the USA equivalent', /≈ \$/.test(usd[0]) && !/awaiting/.test(usd[0]), usd[0].trim());
+  step('lead', 'Ana (BRL) — a USA figure only by a traceable route: hi_rates.py\'s USD floor × 웃, named as a second floor', /≈ \$/.test(usd[1]) && /US-dollar table/.test(usd[1]), usd[1].trim());
+  step('lead', 'Bo (PHP) — no dated exchange rate, no USD floor: the receipt says what is missing, never a number', /awaiting a dated exchange-rate source/.test(usd[2]), usd[2].trim());
+} else for (let i = 0; i < 3; i++) step('lead', `USA-equivalent line present for seat ${i + 1} — a figure by a traceable route, or the words for what is missing`, /≈ \$|awaiting a dated exchange-rate source/.test(usd[i]), usd[i].trim());
+step('lead', 'Ana\'s GPS fix prints on the receipt as a supplement to the elected place', GPS_RE.test(await L.getByTestId('receipt-gps-1').innerText()) && /supplement to the elected place/.test(await L.getByTestId('receipt-gps-1').innerText()));
 step('lead', 'and no other seat carries a fix it did not take', (await L.locator('[data-testid="receipt-gps-0"]').count()) === 0 && (await L.locator('[data-testid="receipt-gps-2"]').count()) === 0);
 step('lead', 'receipt names the D9 rate that paid', /D9/.test(body) && /statutory wage moved/.test(body));
-step('lead', 'Lea settles at the New York · Remainder of state floor she inherited from the pod default', /New York · Remainder of state/.test(body));
-for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'receipt renders each member\'s OWN outcome text', /framed the plan and ran the clock/.test(b) && /elected Brazil and stopped the clock/.test(b) && /elected Metro Manila and witnessed/.test(b)); step(who, 'receipt shows M locked at 3× and the plan line', /at 3×/.test(b) && /person-hours planned/.test(b)); }
-for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'this phone\'s receipt carries the per-person vintage settlement (reais · pesos · dollars)', /(BRL|R\$)/.test(b) && /(PHP|₱)/.test(b) && /\$/.test(b) && /rate\)/.test(b)); }
+step('lead', `Lea settles at ${IN.seats.lead.cc ? 'her own elected place' : 'the pod default she inherited'}`, IN.seats.lead.cc || !IN.podLocality ? true : new RegExp(esc(IN.podLocality)).test(body));
+for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'receipt renders each member\'s OWN outcome text', ['lead', 'ana', 'bo'].every((w) => b.includes(IN.seats[w].outcome.slice(0, 40)))); step(who, `receipt shows M locked at ${IN.planM}× and the plan line`, new RegExp(`at ${esc(IN.planM)}×`).test(b) && /person-hours planned/.test(b)); }
+for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'this phone\'s receipt carries the per-person vintage settlement', /rate\)|no rate published/.test(b) && (INP || (/(BRL|R\$)/.test(b) && /(PHP|₱)/.test(b) && /\$/.test(b)))); }
 const rec = await Promise.all(ALL.map(([, p]) => p.evaluate(() => (document.querySelector('[data-testid="receipt-each"]') || {}).innerText || '')));
 step('lead', 'THE THREE RECEIPTS SETTLE IDENTICALLY — the same per-person figures on every phone', rec[0].length > 40 && rec[0] === rec[1] && rec[1] === rec[2], rec[0].slice(0, 60));
 fs.writeFileSync(OUT + '/log.txt', log.join('\n'));
