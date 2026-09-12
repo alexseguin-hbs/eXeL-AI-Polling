@@ -49,6 +49,7 @@
     "pod:relay": "node scripts/realtime-relay.mjs",
     "test:soi-pod-live": "node scripts/pod-live-run.mjs",
     "pod:showcase": "node scripts/pod-live-run-2026-09-11.mjs",
+    "pod:walkthrough": "node scripts/build-pod-walkthrough.mjs",
     "pod:time-report": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/pod-time-report.mjs",
     "pod:fleet48": "node scripts/build-fleet48-review.mjs",
     "test:soi-sign-offline": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/sign-offline-run.mjs",

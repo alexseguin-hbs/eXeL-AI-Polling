@@ -30,6 +30,12 @@ const step = (who, what, ok = true, extra = '') => { const l = `${String(Date.no
 const ready = async (p) => { await p.waitForSelector('next-route-announcer', { state: 'attached', timeout: 90000 }); await p.waitForTimeout(300); };
 const shot = async (p, who, name) => p.screenshot({ path: `${OUT}/${name}-${who}.jpg`, type: 'jpeg', quality: 60, fullPage: true });
 const shotAll = (name) => Promise.all([shot(L, 'lead', name), shot(A, 'ana', name), shot(B, 'bo', name)]);
+// WALKTHROUGH CROPS (operator 2026-09-12: "individual screenshots of 3 users with step by step instructions"): one
+// element-sized image per user per step, so the thing to press is readable on a phone-width page. A crop that cannot be
+// taken is reported, never faked.
+const crop = async (p, who, name, loc) => { try { await loc.scrollIntoViewIfNeeded(); await loc.screenshot({ path: `${OUT}/step-${name}-${who}.jpg`, type: 'jpeg', quality: 70 }); } catch (e) { step(who, `crop ${name} not captured: ${e.message.split('\n')[0]}`, true); } };
+const seatCard = (p, i) => p.locator('div.min-w-0.rounded-md.border.border-border.p-2').nth(i);
+const SEAT = { lead: 0, ana: 1, bo: 2 };
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const phones = {};
 const SAO_PAULO = { latitude: -23.5505, longitude: -46.6333, accuracy: 25 };   // Ana's emulated phone reports this fix
@@ -56,18 +62,22 @@ step('lead', 'United States offers New York by scope — "Remainder of state" �
 await L.getByTestId('anchor-region-locality').selectOption(nyOpt); step('lead', 'pod default place: United States — New York · Remainder of state (16.00 USD/h)');
 await L.getByTestId('anchor-usd').waitFor({ timeout: 10000 }); step('lead', 'plan preview shows the USA equivalent beside the local figure', /≈ \$/.test(await L.getByTestId('anchor-usd').innerText()));
 await shot(L, 'lead', '1-compose-plan');
+await crop(L, 'lead', '01-plan', L.getByTestId('pod-anchor'));
 const open = L.getByRole('button', { name: /Share QR/ }); await open.waitFor(); step('lead', 'open button enabled (plan present)', await open.isEnabled());
 await open.click();
 await L.locator('code').first().waitFor();
 const code = (await L.locator('code').first().innerText()).trim(); step('lead', 'pod code issued', /^[A-Z0-9]{4,8}$/.test(code), code);
 await L.getByText('● live').waitFor({ timeout: 20000 }); step('lead', 'live channel subscribed (relay)');
 await shot(L, 'lead', '2-invite');
+await crop(L, 'lead', '02-invite', L.locator('code').first().locator('xpath=ancestor::div[2]'));
 
 // 2 · two joiners dial in; each names their seat, ELECTS THEIR OWN LOCALITY, and approves the plan
 await A.goto(`${BASE}?pod=${code}`, { waitUntil: 'domcontentloaded' }); await ready(A); step('ana', 'opened join link ?pod=' + code);
 await B.goto(BASE + '?enter=session', { waitUntil: 'domcontentloaded' }); await ready(B);
 await B.getByPlaceholder(/code/i).first().fill(code); await B.getByRole('button', { name: /join/i }).first().click(); step('bo', 'typed the code and joined');
 await A.getByText(/you are seat 2/).waitFor({ timeout: 20000 }); step('ana', 'assigned seat 2');
+await shot(A, 'ana', '2b-joined'); await shot(B, 'bo', '2b-joined');
+await crop(A, 'ana', '02-invite', A.getByText(/you are seat 2/).locator('xpath=ancestor::div[2]')); await crop(B, 'bo', '02-invite', B.getByText(/you are seat 3/).locator('xpath=ancestor::div[2]'));
 await B.getByText(/you are seat 3/).waitFor({ timeout: 20000 }); step('bo', 'assigned seat 3');
 await L.getByText(/3 in the pod/).waitFor({ timeout: 20000 }); step('lead', 'lead sees 3 in the pod');
 for (const [who, p] of [['ana', A], ['bo', B]]) { const inp = await enabledOf(p.getByPlaceholder('enter your name')); step(who, 'name input is own seat only', !!inp); await inp.fill(NAMES[who]); }
@@ -87,12 +97,14 @@ for (const [who, p] of ALL) { const box = await enabledOf(p.getByRole('checkbox'
 await L.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /Accepted by the trio/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 20000 }); step('lead', 'all three approved → sync unlocked');
 await L.waitForFunction(() => /BRL/.test(document.body.innerText) && /PHP/.test(document.body.innerText), null, { timeout: 20000 }); step('lead', 'lead sees Ana in BRL and Bo in PHP (elections replicated)');
 await shotAll('3-agreed-elected');
+for (const [who, p] of ALL) await crop(p, who, '03-seat', seatCard(p, SEAT[who]));
 await L.getByRole('button', { name: /Accepted by the trio/ }).click();
 
 // 3 · synchronized readiness — three presses within 15 s — then ACTIVE, where the clock is a BUTTON
 for (const [who, p] of ALL) { await p.getByText(/tap to start/).first().waitFor({ timeout: 20000 }); const b = await enabledOf(p.getByRole('button', { name: /tap to start/ })); step(who, 'pressed ready (own seat)', !!b); await b.click(); }
 for (const [who, p] of ALL) { await p.getByTestId('pod-clock-toggle').waitFor({ timeout: 25000 }); step(who, 'ACTIVE — the clock button is on screen, not yet running'); }
 await shotAll('4-active-ready');
+for (const [who, p] of ALL) await crop(p, who, '04-clock', p.getByTestId('pod-clock-toggle').locator('xpath=ancestor::div[2]'));
 await L.getByTestId('pod-clock-toggle').click(); step('lead', 'START the clock (segment 1)');
 await L.waitForTimeout(WORK_MS);
 await L.getByTestId('pod-clock-toggle').click(); step('lead', 'STOP the clock (segment 1 closed)');
@@ -100,6 +112,7 @@ await L.getByTestId('pod-clock-toggle').click(); step('lead', 'ADD TIME (segment
 await L.waitForTimeout(WORK_MS);
 for (const [who, p] of ALL) { await p.waitForFunction(() => /segment 2/.test(document.body.innerText), null, { timeout: 20000 }); step(who, 'sees segment 2 (clock events replicated)'); }
 await shotAll('5-active-two-segments');
+for (const [who, p] of ALL) await crop(p, who, '05-segments', p.getByTestId('pod-clock-toggle').locator('xpath=ancestor::div[2]'));
 await A.getByTestId('pod-stop').click(); step('ana', 'a JOINER pressed Stop & record — one route, segment 2 closed for everyone');
 for (const [who, p] of ALL) { await p.getByTestId('member-outcome-0').waitFor({ timeout: 20000 }); step(who, 'reached RECORD'); }
 
@@ -108,6 +121,7 @@ await A.getByPlaceholder(/Write the outcome|type it here/).first().fill('Three p
 for (const [who, p] of ALL) { const o = await enabledOf(p.locator('[data-testid^="member-outcome-"]')); step(who, 'outcome input is own seat only', !!o); await o.fill(`${NAMES[who]}: ${who === 'lead' ? 'framed the plan and ran the clock' : who === 'ana' ? 'elected Brazil and stopped the clock' : 'elected Metro Manila and witnessed'}`); }
 await A.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /witness the hours/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 20000 }); step('ana', 'all three outcomes in → audit unlocked');
 await shotAll('6-record-three-outcomes');
+for (const [who, p] of ALL) await crop(p, who, '06-outcome', p.getByTestId(`member-outcome-${SEAT[who]}`).locator('xpath=ancestor::div[2]'));
 await A.getByRole('button', { name: /witness the hours/ }).click();
 for (const [who, p] of ALL) { await p.getByPlaceholder('hours').first().waitFor({ timeout: 20000 }); step(who, 'reached AUDIT'); }
 
@@ -123,9 +137,26 @@ for (const [who, p] of ALL) { const capped = await p.locator('[data-testid^="cla
 
 step('lead', 'M is locked on the audit screen (no picker)', await L.getByTestId('band-locked').count() === 1 && await L.locator('[data-testid="band-select"]').count() === 0);
 await shotAll('7-audit-witness');
+for (const [who, p] of ALL) await crop(p, who, '07-audit', p.getByPlaceholder('hours').nth(SEAT[who]).locator('xpath=ancestor::div[2]'));
 await L.getByRole('button', { name: /Settle/ }).click();
 for (const [who, p] of ALL) { await p.getByText(/Settled & receipted by the pod|Settled &amp; receipted/).waitFor({ timeout: 25000 }); step(who, 'CLOSED — receipt on this phone'); }
 await shotAll('8-closed-receipt');
+for (const [who, p] of ALL) await crop(p, who, '08-receipt', p.getByTestId('receipt-3'));
+// THE 333-WORD SYNTHESIS — three paragraphs on every phone; counted here, not trusted from the label
+const synth = {};
+for (const [who, p] of ALL) {
+  const block = p.locator('div.rounded-lg.border.border-border.p-4', { hasText: '333-word synthesis' }).first();
+  await block.waitFor({ timeout: 10000 });
+  await crop(p, who, '09-synthesis', block);
+  const paras = await block.locator('div.space-y-2 p').allInnerTexts();   // the three paragraphs, not the footer note
+  const counts = paras.map((t) => t.trim().split(/\s+/).filter(Boolean).length);
+  synth[who] = { paragraphs: paras, counts, total: counts.reduce((a, b) => a + b, 0), source: /Manual mode/.test(await block.innerText()) ? 'local (deterministic)' : 'ai' };
+  // Operator 2026-08-19 (lib/pod-synthesis.ts): three paragraphs summing to ~333 — "need NOT be exactly 111 words per
+  // paragraph"; the builder stops within +8 of 333. Counted here from the screen, never read off the label.
+  step(who, `333-word synthesis on this phone: ${counts.join(' + ')} = ${synth[who].total} words (${synth[who].source})`, counts.length === 3 && synth[who].total >= 333 && synth[who].total <= 341);
+}
+step('lead', 'the three phones carry the SAME synthesis, word for word', JSON.stringify(synth.lead.paragraphs) === JSON.stringify(synth.ana.paragraphs) && JSON.stringify(synth.ana.paragraphs) === JSON.stringify(synth.bo.paragraphs));
+fs.writeFileSync(OUT + '/walkthrough.json', JSON.stringify({ code, names: NAMES, synthesis: synth, receipt: await L.getByTestId('receipt-3').innerText(), outcomes: await Promise.all([0, 1, 2].map((i) => L.getByTestId(`receipt-outcome-${i}`).innerText())) }, null, 2));
 const body = await L.evaluate(() => document.body.innerText);
 step('lead', 'receipt shows PLAN → ACTUAL', /Plan → actual/.test(body));
 step('lead', 'receipt shows two segments summed', /in 2 segments/.test(body));
