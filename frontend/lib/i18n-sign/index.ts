@@ -39,7 +39,7 @@ const LOADERS: Record<SignLocale, () => Promise<{ default: Record<string, string
   vi: () => import("./vi"),
   zh: () => import("./zh"),
 };
-/** the language's Sign Doc strings, or null when the code has no file (en, es, unknown) */
+/** the language's strings from this store, or null when the code has no file */
 export async function loadSignLocale(code: string): Promise<Record<string, string> | null> {
   const l = (LOADERS as Record<string, (() => Promise<{ default: Record<string, string> }>) | undefined>)[code];
   if (!l) return null;
