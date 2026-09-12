@@ -49,7 +49,7 @@ export const SESSION_TYPES = [
   },
 ] as const;
 
-// Supported languages — 34 languages matching backend master table
+// Supported languages — 33 languages (EN + 32) matching the backend master table
 export const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", native: "English" },
   { code: "fr", name: "French", native: "Fran\u00e7ais" },
