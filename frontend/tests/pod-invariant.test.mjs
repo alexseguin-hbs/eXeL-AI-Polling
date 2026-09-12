@@ -838,4 +838,14 @@ ok(/if \(joinFull\) return wait\("soi\.pod\.seat\.full"\)/.test(page), 'a fourth
 ok(/data-testid="tranche-escrow">\{\(Number\(stand\.earned\.toFixed\(3\)\) - Number\(tranches\.floor\.toFixed\(3\)\)\)\.toFixed\(3\)\}/.test(page), 'the receipt adds up at the precision it is printed: held = printed earned − printed floor');
 ok(/SOURCE_LABEL\[j\.source\] \?\? "the platform table"/.test(page) && !visible.some((x) => /hi_rates/.test(x)), 'a place\'s source is a phrase, never a file name — the file name occurs in no visible string');
 
+// ── THE LINK BESIDE EVERY QR (operator 2026-09-12) — and one voice at invite; the strip's pill never clipped ─────────
+ok((page.match(/<QRCodeSVG /g) || []).length === (page.match(/data-testid="pod-join-link"/g) || []).length && (page.match(/data-testid="pod-copy-link"/g) || []).length === (page.match(/<QRCodeSVG /g) || []).length,
+   'every QR on the pod page is followed by its join link as text and a Copy button (the dashboard\'s pattern)');
+ok(/data-testid="pod-share-link"/.test(page) && /nav\.share\(\{ title: intent \|\| "eXeL pod", text: podCode, url: joinUrl \}\)/.test(page), 'and the phone\'s share sheet when the browser has one');
+ok(/data-testid="pod-copy-link-failed"/.test(page), 'a failed copy of the link says so');
+ok(/"soi\.pod\.guide\.a\.agree_first" : "soi\.pod\.guide\.a\.agree"/.test(page) && /englishDefault: "Approve the plan — the other two can join meanwhile"/.test(read('../lib/lexicon-data.ts')),
+   'the lead approving before the seats are filled reads ONE sentence — never "Your turn" over "Waiting" (his screenshot 2026-09-12)');
+ok(/\{!\(guide\.state === "turn" && \/\^Waiting\/\.test\(explain\)\) && <p className="mt-1 text-xs text-cyan-400" data-testid="pod-explain">/.test(page), 'the phase line is dropped when it would contradict the card');
+ok(/<span className="shrink-0 rounded-full border px-2 py-0\.5 text-\[10px\] uppercase"/.test(page), 'the strip\'s phase pill cannot be clipped (shrink-0)');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

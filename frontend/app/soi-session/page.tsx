@@ -655,7 +655,8 @@ export default function SoISessionPage() {
         const unnamed = mySeats.find((i) => !members[i].name.trim());
         if (unnamed !== undefined) return turn("soi.pod.guide.a.name", `member-name-${unnamed}`);
         const unapproved = mySeats.find((i) => !approvedOf(members[i]));
-        if (unapproved !== undefined) return turn("soi.pod.guide.a.agree", `member-agree-${unapproved}`);
+        // the lead approving before the other two have joined: ONE sentence says both (never "Your turn" over "Waiting")
+        if (unapproved !== undefined) return turn(members.some((m) => !m.name.trim()) && isLead ? "soi.pod.guide.a.agree_first" : "soi.pod.guide.a.agree", `member-agree-${unapproved}`);
         if (allAgreed) return isLead ? turn("soi.pod.guide.a.accept", "pod-accept") : wait("soi.pod.guide.w.lead", firstOf(members[0].name) || members[0].role);
         return wait("soi.pod.guide.w.who", pending(approvedOf));
       }
@@ -724,6 +725,19 @@ export default function SoISessionPage() {
   // WHAT A PERSON CARRIES AWAY IS THE WHOLE RECEIPT THEY WERE SHOWN (Enlil/Thoth/Odin): the entire settled section, as
   // text, including the full record and the four artefacts — and a copy that fails says so in one sentence.
   const [copyState, setCopyState] = useState<"" | "copied" | "failed">("");
+  // The join link's Copy and Share — every action reports what happened, in one word (the receipt copy's own rule).
+  const [linkState, setLinkState] = useState<"" | "copied" | "failed">("");
+  const canShare = typeof navigator !== "undefined" && typeof (navigator as Navigator & { share?: unknown }).share === "function";
+  const copyLink = () => {
+    const done = (ok: boolean) => { setLinkState(ok ? "copied" : "failed"); setTimeout(() => setLinkState(""), 4000); };
+    if (!navigator.clipboard) { done(false); return; }
+    navigator.clipboard.writeText(joinUrl).then(() => done(true), () => done(false));
+  };
+  const shareLink = () => {
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (!nav.share) return;
+    nav.share({ title: intent || "eXeL pod", text: podCode, url: joinUrl }).catch(() => { /* the person closed the sheet */ });
+  };
   const copyReceipt = () => {
     const text = (document.querySelector<HTMLElement>('[data-testid="pod-receipt"]')?.innerText ?? "").trim();
     const done = (ok: boolean) => { setCopyState(ok ? "copied" : "failed"); setTimeout(() => setCopyState(""), 4000); };
@@ -881,7 +895,7 @@ export default function SoISessionPage() {
             </span>
             <p className="min-w-0 flex-1 text-sm text-foreground" data-testid="guide-sentence" aria-live="polite">{guide.state === "turn" ? guide.label : guide.state === "done" ? t("soi.pod.guide.completed") : guide.why}</p>
           </div>
-          <p className="mt-1 text-xs text-cyan-400" data-testid="pod-explain">{explain}</p>
+          {!(guide.state === "turn" && /^Waiting/.test(explain)) && <p className="mt-1 text-xs text-cyan-400" data-testid="pod-explain">{explain}</p>}
           {guide.target && guide.label && (
             <button type="button" onClick={() => goTo(guide.target!)} data-testid="your-turn-action"
               className="mt-2 min-h-[44px] rounded-md bg-amber-400 px-4 py-2 text-sm font-semibold text-black">
@@ -1157,6 +1171,20 @@ export default function SoISessionPage() {
               </div>
               <div className="rounded-md bg-white p-2"><QRCodeSVG value={joinUrl} size={140} level="M" /></div>
               <code className="text-sm tracking-widest">{podCode || "…"}</code>
+              {/* THE LINK BESIDE EVERY QR (operator 2026-09-12: "ensure link is also provided similar to all times we have
+                  shown QR CODE") — the dashboard's pattern: the URL as selectable text, Copy, and the phone's share sheet. */}
+              <p className="max-w-full break-all text-center text-xs text-muted-foreground" data-testid="pod-join-link">{joinUrl}</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <button type="button" onClick={copyLink} data-testid="pod-copy-link" className="min-h-[44px] rounded-md border border-border px-3 py-1.5 text-xs">
+                  {linkState === "copied" ? t("soi.pod.ui.link_copied") : t("soi.pod.ui.copy_link")}
+                </button>
+                {canShare && (
+                  <button type="button" onClick={shareLink} data-testid="pod-share-link" className="min-h-[44px] rounded-md border border-border px-3 py-1.5 text-xs">
+                    {t("cube1.moderator.share_link")}
+                  </button>
+                )}
+              </div>
+              {linkState === "failed" && <span className="text-xs text-amber-500" data-testid="pod-copy-link-failed">{t("soi.pod.guide.copy_failed")}</span>}
               <div className="text-[11px] text-muted-foreground">
                 {connected
                   ? <span className="text-cyan-400">● live</span>
@@ -1757,7 +1785,7 @@ export default function SoISessionPage() {
       {phase !== "compose" && (
         <div className="fixed inset-x-0 bottom-14 z-[60] mx-auto flex max-w-3xl items-center gap-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden" data-testid="pod-strip">
           <span className="min-w-0 flex-1 truncate">{intent || t("soi.pod.strip.no_intent")}</span>
-          <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}</span>
+          <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}</span>
           {phase === "active" && <button type="button" onClick={stopAndRecord} disabled={span.segments.length === 0} className="min-h-[36px] disabled:opacity-50 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("soi.pod.strip.stop")}</button>}
         </div>
       )}
