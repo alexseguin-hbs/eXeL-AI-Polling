@@ -116,7 +116,7 @@ const gpsBtn = await enabledOf(A.locator('[data-testid^="member-gps-"]:not([data
 await A.locator('[data-testid^="member-gps-fix-"]').first().waitFor({ timeout: 10000 }); const GPS_RE = new RegExp(`GPS ${esc(IN.gps.latitude.toFixed(4))}, ${esc(IN.gps.longitude.toFixed(4))} ±25 m`);
 step('ana', 'position fix recorded beside the elected place', GPS_RE.test(await A.locator('[data-testid^="member-gps-fix-"]').first().innerText()));
 await L.locator('[data-testid="member-gps-fix-1"]').waitFor({ timeout: 20000 }); step('lead', 'lead sees Ana\'s fix (replicated), and Ana\'s election stands', (await L.getByTestId('member-floor-1').locator('..').innerText()).length > 0);
-for (const [who, p] of ALL) { const box = await enabledOf(p.getByRole('checkbox')); step(who, 'approval checkbox is own seat only', !!box); await box.check(); step(who, 'approved intent, outcome AND the plan (2 h × 3)'); }
+for (const [who, p] of ALL) { const box = await enabledOf(p.getByRole('checkbox')); step(who, 'approval checkbox is own seat only', !!box); await box.check(); step(who, `approved intent, outcome AND the plan (${IN.planHours} h × ${IN.planM})`); }
 await L.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /Accepted by the trio/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 20000 }); step('lead', 'all three approved → sync unlocked');
 await L.waitForFunction(() => /[A-Z]{3} an hour|no rate published/.test(document.body.innerText), null, { timeout: 20000 }); step('lead', 'lead sees the elections replicated');
 await shotAll('3-agreed-elected');
@@ -168,7 +168,7 @@ for (const [who, p] of ALL) await crop(p, who, '08-receipt', p.getByTestId('rece
 // THE 333-WORD SYNTHESIS — three paragraphs on every phone; counted here, not trusted from the label
 const synth = {};
 for (const [who, p] of ALL) {
-  const block = p.locator('div.rounded-lg.border.border-border.p-4', { hasText: '333-word synthesis' }).first();
+  const block = p.locator('div.rounded-lg.border.border-border.p-4', { hasText: 'about 333 words' }).first();
   await block.waitFor({ timeout: 10000 });
   await crop(p, who, '09-synthesis', block);
   const paras = await block.locator('div.space-y-2 p').allInnerTexts();   // the three paragraphs, not the footer note

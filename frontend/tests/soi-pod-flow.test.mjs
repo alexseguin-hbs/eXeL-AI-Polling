@@ -74,8 +74,8 @@ ok(words(synth.results) >= 30 && words(synth.changed) >= 30 && words(synth.next)
 // grounded: names, the outcome, the settled 웃, and the ◬ appear in the prose
 ok(/Adaeze/.test(synth.results), "synthesis names the pod members");
 const yfmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, ""));
-ok(synth.changed.includes(`${yfmt(mint(9.5, 1))} 웃`), "synthesis states the settled 웃");
-ok(/2\.5 ◬/.test(synth.changed), "synthesis states the ◬ recognised (2.5)");
+ok(synth.changed.includes(`${mint(9.5, 1).toFixed(3)} 웃`), "synthesis states the settled 웃 at the receipt's precision");
+ok(/2\.500 ◬/.test(synth.changed), "synthesis states the ◬ recognised (2.500, the receipt's precision)");
 ok(/9,999/.test(synth.changed), "synthesis states the annual ceiling");
 ok(/AB12CD/.test(synth.results), "synthesis references the pod code");
 ok(!/Cube 6 writes the full/.test(synth.results + synth.changed + synth.next), "no stub placeholder text remains");

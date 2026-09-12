@@ -602,12 +602,12 @@ export default function SoISessionPage() {
         if (joinFull) return t("soi.pod.seat.full");
         const missing = members.filter((m) => !m.name.trim());
         if (missing.length) return t("soi.pod.x.invite_join").replace("{n}", String(missing.length));
-        const notAgreed = members.filter((m) => !m.agreed);
+        const notAgreed = members.filter((m) => !(m.agreed && m.agreedTo === lock?.hash));
         if (notAgreed.length) return t("soi.pod.x.invite_agree").replace("{who}", names(notAgreed));
         return t("soi.pod.x.invite_ready");
       }
       case "sync": { const left = members.filter((m) => m.startedAt == null); return left.length ? t("soi.pod.x.sync").replace("{who}", names(left)) : t("soi.pod.x.sync_ready"); }
-      case "active": return t("soi.pod.x.active");
+      case "active": return span.running ? t("soi.pod.x.active") : span.segments.length === 0 ? t("soi.pod.x.active_idle") : t("soi.pod.x.active_paused");
       case "record": return t("soi.pod.x.record");
       case "audit": {
         if (!allSelfAudited) return t("soi.pod.x.audit_self");
@@ -615,7 +615,7 @@ export default function SoISessionPage() {
         if (unwitnessed.length) return t("soi.pod.x.audit_witness").replace("{who}", names(unwitnessed));
         return t("soi.pod.x.audit_ready");
       }
-      case "closed": return t("soi.pod.x.closed").replace("{h}", witnessedHours.toFixed(2)).replace("{y}", totalYugYok.toFixed(3));
+      case "closed": return t("soi.pod.x.closed").replace("{h}", witnessedHours.toFixed(4)).replace("{y}", totalYugYok.toFixed(3));
       default: return "";
     }
   })();
@@ -624,42 +624,69 @@ export default function SoISessionPage() {
   // who must act, the ONE action in plain words, and a button that takes this person to the real control. Derived from
   // state the page already holds — nothing new is decided here; the guide only points. The control it points at is
   // marked (data-next) the way an envelope marks its next field.
-  const me = members.findIndex((_, i) => canEdit(i));
-  const isLead = me === 0;
-  const guide = ((): { state: "turn" | "waiting" | "done"; label: string; target: string | null } => {
-    const turn = (key: string, target: string, who = "") => ({ state: "turn" as const, label: t(key).replace("{who}", who), target });
-    const wait = { state: "waiting" as const, label: "", target: null };
+  // Every seat this phone may edit (a lead with no connection edits all three) — the guide looks for work left on
+  // ANY of them (Krishna/Odin), and "me" is the first for the "you" tag.
+  const mySeats = members.map((_, i) => i).filter((i) => canEdit(i));
+  const me = mySeats[0] ?? -1;
+  const isLead = ctx().role === "lead";
+  const joining = ctx().role === "joiner";
+  const fmtH = (h: number): string => h.toFixed(4);   // ONE precision for every hours figure a person reads (Thoth/Sofia/Enki)
+  const guide = ((): { state: "turn" | "waiting" | "done"; label: string; target: string | null; why: string } => {
+    const turn = (key: string, target: string, who = "") => ({ state: "turn" as const, label: t(key).replace("{who}", who), target, why: "" });
+    // A WAIT ALWAYS NAMES WHO IS PENDING (Athena/Thor/Enlil): a person is never left with a blank card.
+    const wait = (key: string, who = "") => ({ state: "waiting" as const, label: "", target: null, why: t(key).replace("{who}", who) });
+    const pending = (pred: (m: Member) => boolean) => names(members.filter((m) => !pred(m)));
     switch (phase) {
       case "compose":
+        if (joining) return wait("soi.pod.guide.w.seat");
         if (!intent.trim()) return turn("soi.pod.guide.a.intent", "pod-intent");
         if (!outcome.trim()) return turn("soi.pod.guide.a.outcome", "pod-outcome");
         if (!members[0].name.trim()) return turn("soi.pod.guide.a.name", "pod-name");
         if (!((parseFloat(baselineHrs) || 0) > 0)) return turn("soi.pod.guide.a.hours", "baseline-hours");
-        return canOpen ? turn("soi.pod.guide.a.open", "pod-open") : wait;
-      case "invite":
-        if (me < 0) return wait;
-        if (!members[me].name.trim()) return turn("soi.pod.guide.a.name", `member-name-${me}`);
-        if (!members[me].agreed) return turn("soi.pod.guide.a.agree", `member-agree-${me}`);
-        return isLead && allAgreed ? turn("soi.pod.guide.a.accept", "pod-accept") : wait;
-      case "sync":
-        return me >= 0 && members[me].startedAt == null ? turn("soi.pod.guide.a.start", `pod-ready-${me}`) : wait;
-      case "active":
-        if (isLead) return turn(span.running ? "soi.pod.guide.a.clock_stop" : "soi.pod.guide.a.clock_start", "pod-clock-toggle");
-        return span.segments.length ? turn("soi.pod.guide.a.stop", "pod-stop") : wait;
-      case "record":
-        if (me >= 0 && !members[me].outcome.trim()) return turn("soi.pod.guide.a.own_outcome", `member-outcome-${me}`);
-        if (!recordValue.trim()) return turn("soi.pod.guide.a.record", "pod-record");
-        return members.every((m) => m.outcome.trim()) ? turn("soi.pod.guide.a.next", "pod-next") : wait;
-      case "audit": {
-        if (me >= 0 && !((parseFloat(members[me].hours) || 0) > 0 && members[me].did.trim())) return turn("soi.pod.guide.a.audit", `audit-hours-${me}`);
-        const j = me >= 0 && canWitness(me) ? members.findIndex((m, k) => k !== me && !m.witnessedBy[me]) : -1;
-        if (j >= 0) return turn("soi.pod.guide.a.witness", `witness-${j}-by-${me}`, firstOf(members[j].name) || members[j].role);
-        return isLead && allWitnessed && allSelfAudited ? turn("soi.pod.guide.a.settle", "pod-settle-btn") : wait;
+        return canOpen ? turn("soi.pod.guide.a.open", "pod-open") : wait("soi.pod.guide.w.fields");
+      case "invite": {
+        if (me < 0) return wait("soi.pod.guide.w.seat");
+        const unnamed = mySeats.find((i) => !members[i].name.trim());
+        if (unnamed !== undefined) return turn("soi.pod.guide.a.name", `member-name-${unnamed}`);
+        const unapproved = mySeats.find((i) => !(members[i].agreed && members[i].agreedTo === lock?.hash));
+        if (unapproved !== undefined) return turn("soi.pod.guide.a.agree", `member-agree-${unapproved}`);
+        if (allAgreed) return isLead ? turn("soi.pod.guide.a.accept", "pod-accept") : wait("soi.pod.guide.w.lead", firstOf(members[0].name) || members[0].role);
+        return wait("soi.pod.guide.w.who", pending((m) => !!m.name.trim() && m.agreed && m.agreedTo === lock?.hash));
       }
-      case "closed": return { state: "done", label: t("soi.pod.guide.a.copy"), target: "pod-copy" };
-      default: return wait;
+      case "sync": {
+        const notReady = mySeats.find((i) => members[i].startedAt == null);
+        if (notReady !== undefined) return turn("soi.pod.guide.a.start", `pod-ready-${notReady}`);
+        return wait("soi.pod.guide.w.who", pending((m) => m.startedAt != null));
+      }
+      case "active":
+        if (span.running) return turn(isLead ? "soi.pod.guide.a.clock_stop" : "soi.pod.guide.a.stop", isLead ? "pod-clock-toggle" : "pod-stop");
+        if (span.segments.length === 0) return isLead ? turn("soi.pod.guide.a.clock_start", "pod-clock-toggle") : wait("soi.pod.guide.w.lead", firstOf(members[0].name) || members[0].role);
+        return turn("soi.pod.guide.a.record_now", "pod-stop");   // stopped: the control that ENDS the phase, for everyone (Thor)
+      case "record": {
+        const noOutcome = mySeats.find((i) => !members[i].outcome.trim());
+        if (noOutcome !== undefined) return turn("soi.pod.guide.a.own_outcome", `member-outcome-${noOutcome}`);
+        if (!recordValue.trim()) return turn("soi.pod.guide.a.record", "pod-record");
+        if (members.every((m) => m.outcome.trim())) return turn("soi.pod.guide.a.next", "pod-next");
+        return wait("soi.pod.guide.w.who", pending((m) => !!m.outcome.trim()));
+      }
+      case "audit": {
+        const noAudit = mySeats.find((i) => !((parseFloat(members[i].hours) || 0) > 0 && members[i].did.trim()));
+        if (noAudit !== undefined) return turn("soi.pod.guide.a.audit", `audit-hours-${noAudit}`);
+        for (const r of mySeats) {
+          if (!canWitness(r)) continue;
+          const j = members.findIndex((m, k) => k !== r && !m.witnessedBy[r]);
+          if (j >= 0) return turn("soi.pod.guide.a.witness", `witness-${j}-by-${r}`, firstOf(members[j].name) || members[j].role);
+        }
+        if (allWitnessed && allSelfAudited) return isLead ? turn("soi.pod.guide.a.settle", "pod-settle-btn") : wait("soi.pod.guide.w.settle", firstOf(members[0].name) || members[0].role);
+        return wait("soi.pod.guide.w.who", pending((m, ) => (parseFloat(m.hours) || 0) > 0 && !!m.did.trim() && isWitnessed(members.indexOf(m))));
+      }
+      case "closed": return { state: "done", label: t("soi.pod.guide.a.copy"), target: "pod-copy", why: "" };
+      default: return wait("soi.pod.guide.w.who");
     }
   })();
+  // THE SHARED CONTROLS OBEY THE SAME DERIVATION (Christo/Athena): what the card withholds from this phone is disabled
+  // on this phone. Accept, the clock and Settle are the lead's; Stop & record is everyone's by doctrine.
+  const leadOnly = !isLead;
   const goTo = (target: string) => {
     const el = document.querySelector<HTMLElement>(`[data-testid="${target}"]`);
     if (!el) return;
@@ -672,23 +699,28 @@ export default function SoISessionPage() {
     if (el) el.setAttribute("data-next", "1");
   }, [guide.target, phase]);
   // Who has done what — one line per person, the state of THIS step (the envelope's recipient list).
+  const seatName = (i: number) => firstOf(members[i].name) || t("soi.pod.guide.member").replace("{n}", String(i + 1));   // one name per seat on every carrier (Aset)
   const rosterRows: PodRosterRow[] = members.map((m, i) => {
-    const name = firstOf(m.name) || m.role;
-    const row = (done: boolean, key: string): PodRosterRow => ({ name, me: i === me, state: done ? "done" : "pending", label: t(done ? key : "soi.pod.guide.s.pending") });
+    const name = seatName(i);
+    const row = (done: boolean, key: string): PodRosterRow => ({ name, me: mySeats.includes(i), state: done ? "done" : "pending", label: t(done ? key : "soi.pod.guide.s.pending") });
     switch (phase) {
       case "invite": return row(!!m.name.trim() && m.agreed, "soi.pod.guide.s.approved");
       case "sync": return row(m.startedAt != null, "soi.pod.guide.s.ready");
       case "active": return row(m.startedAt != null, "soi.pod.guide.s.ready");
       case "record": return row(!!m.outcome.trim(), "soi.pod.guide.s.outcome");
       case "audit": return row(isWitnessed(i) && (parseFloat(m.hours) || 0) > 0 && !!m.did.trim(), "soi.pod.guide.s.witnessed");
-      case "closed": return row(true, "soi.pod.guide.s.settled");
+      case "closed": return row(!!(memberVintages[i] ?? vintage), "soi.pod.guide.s.settled");   // settled means stamped, not merely closed
       default: return row(false, "soi.pod.guide.s.pending");
     }
   });
-  const [copied, setCopied] = useState(false);
+  // WHAT A PERSON CARRIES AWAY IS THE WHOLE RECEIPT THEY WERE SHOWN (Enlil/Thoth/Odin): the entire settled section, as
+  // text, including the full record and the four artefacts — and a copy that fails says so in one sentence.
+  const [copyState, setCopyState] = useState<"" | "copied" | "failed">("");
   const copyReceipt = () => {
-    const text = [document.querySelector('[data-testid="receipt-3"]')?.textContent ?? "", shownSynthesis.results, shownSynthesis.changed, shownSynthesis.next].filter(Boolean).join("\n\n");
-    void navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {});
+    const text = (document.querySelector<HTMLElement>('[data-testid="pod-receipt"]')?.innerText ?? "").trim();
+    const done = (ok: boolean) => { setCopyState(ok ? "copied" : "failed"); setTimeout(() => setCopyState(""), 4000); };
+    if (!text || !navigator.clipboard) { done(false); return; }
+    navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
   };
 
   // The lead's brief prefilled from the login (name + e-mail) — once, only while the seat is blank.
@@ -759,14 +791,14 @@ export default function SoISessionPage() {
 
   // The 333-word (3 × 111) synthesis. Cube 6 (the AI pipeline) writes these tiers
   // from the recording in production; this is the local-first deterministic fallback
-  // (same pod → same synthesis, so it replays) — each paragraph is EXACTLY 111 words,
+  // (same pod → same synthesis, so it replays) — three paragraphs summing to about 333 words (operator 2026-08-19: not exactly 111 each),
   // grounded in this pod's own intent, outcome, recording, witnessed hours, and tokens.
   const synthesis: Synthesis333 = useMemo(() => buildSynthesis333({
     intent, outcome, recordMethod, recordValue,
     members: members.map((m, i) => ({
       name: m.name, role: m.role, hours: parseFloat(m.hours) || 0, did: m.did, witnessed: isWitnessed(i),
     })),
-    witnessedHours, totalYugYok, M, baseline, accelDelta, yaTriangle, signerName, podCode,
+    witnessedHours, totalYugYok, M, baseline, accelDelta, yaTriangle, signerName, podCode, accelReason: accelRead.reason,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [intent, outcome, recordMethod, recordValue, members, witnessedHours, totalYugYok, M, baseline, accelDelta, yaTriangle, signerName, podCode]);
   const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
@@ -839,8 +871,9 @@ export default function SoISessionPage() {
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${guide.state === "turn" ? "bg-amber-400 text-black" : guide.state === "done" ? "bg-green-500 text-black" : "border border-border text-muted-foreground"}`}>
               {guide.state === "turn" ? t("soi.pod.guide.your_turn") : guide.state === "done" ? t("soi.pod.guide.done") : t("soi.pod.guide.waiting")}
             </span>
-            <p className="min-w-0 flex-1 text-sm text-cyan-400" data-testid="pod-explain" aria-live="polite">{explain}</p>
+            <p className="min-w-0 flex-1 text-sm text-foreground" data-testid="guide-sentence" aria-live="polite">{guide.state === "turn" ? guide.label : guide.state === "done" ? t("soi.pod.guide.completed") : guide.why}</p>
           </div>
+          <p className="mt-1 text-xs text-cyan-400" data-testid="pod-explain">{explain}</p>
           {guide.target && guide.label && (
             <button type="button" onClick={() => goTo(guide.target!)} data-testid="your-turn-action"
               className="mt-2 min-h-[44px] rounded-md bg-amber-400 px-4 py-2 text-sm font-semibold text-black">
@@ -1119,7 +1152,7 @@ export default function SoISessionPage() {
               <div className="text-[11px] text-muted-foreground">
                 {connected
                   ? <span className="text-cyan-400">● live</span>
-                  : <span>○ local (live sync when Supabase is reachable)</span>}
+                  : <span>○ this phone only — live sync when the connection returns</span>}
                 {connected && liveCount > 1 ? ` · ${liveCount} in the pod` : ""}
                 {isJoiner
                   ? (mySeat > 0 ? ` · you are seat ${mySeat + 1}` : connected ? ` · ${t("soi.pod.seat.waiting")}` : " · you joined by code")
@@ -1212,7 +1245,7 @@ export default function SoISessionPage() {
 
             <div className="flex flex-wrap gap-2">
               <button
-                disabled={!allAgreed}
+                disabled={!allAgreed || leadOnly}
                 onClick={() => { setSyncMsg(""); setPhase("sync"); drive("sync"); }}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="pod-accept"
               >
@@ -1273,7 +1306,7 @@ export default function SoISessionPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               {/* ONE BUTTON starts and ends the clock (operator 2026-09-11); after a stop it adds time. */}
-              <button onClick={toggleClock} disabled={!lock} title={lock ? undefined : "The plan must be accepted before the clock can start"}
+              <button onClick={toggleClock} disabled={!lock || leadOnly} title={lock ? undefined : "The plan must be accepted before the clock can start"}
                 className={`rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${span.running ? "border border-red-500 text-red-500" : "bg-cyan-500 text-black"}`} data-testid="pod-clock-toggle">
                 {span.segments.length === 0 ? "Start the clock" : span.running ? "Stop the clock" : "Add time"}
               </button>
@@ -1378,7 +1411,7 @@ export default function SoISessionPage() {
             {/* §14 unit.witness — what the PLATFORM measured, stated before any claim is read. */}
             <div className="mb-3 rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm" data-testid="pod-measured">
               {span.startedAt !== null
-                ? <><span className="font-medium text-cyan-500">The platform witnessed this pod for {hhmmss(span.ms)}</span><span className="text-muted-foreground"> — {measuredHours.toFixed(2)} h. A claim above that is counted at the witnessed figure.</span></>
+                ? <><span className="font-medium text-cyan-500">The platform witnessed this pod for {hhmmss(span.ms)}</span><span className="text-muted-foreground"> — {fmtH(measuredHours)} h. A claim above that is counted at the witnessed figure.</span></>
                 : <span className="text-amber-500">No session was clocked, so the hours below are claims this device cannot vouch for. They settle only on the pod&apos;s witness.</span>}
             </div>
             {/* the eight-step evidence chain, with progress — folded: an explanation, not an action (operator 2026-09-12) */}
@@ -1418,7 +1451,7 @@ export default function SoISessionPage() {
                       placeholder="hours" data-testid={`audit-hours-${i}`} className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                     />
                     {claimOf(i).capped && (
-                      <span className="text-[11px] text-amber-500" data-testid={`claim-capped-${i}`}>counted as {claimOf(i).hours.toFixed(2)} h — the pod was witnessed for {hhmmss(span.ms)}</span>
+                      <span className="text-[11px] text-amber-500" data-testid={`claim-capped-${i}`}>counted as {fmtH(claimOf(i).hours)} h — the pod was witnessed for {hhmmss(span.ms)}</span>
                     )}
                     <input
                       value={m.did} onChange={(e) => setMember(i, { did: e.target.value })} disabled={!canEdit(i)}
@@ -1483,13 +1516,13 @@ export default function SoISessionPage() {
                   <>D9 — pays <span className="font-medium text-foreground">{formatLocal(d9.amount, d9.currency)}</span> at {d9.rate} {d9.currency} an hour:{" "}
                     {d9.which === "relocated" ? <>a relocation election onto {podJuris?.name}&rsquo;s schedule at its current rate — never a cross-currency maximum.</>
                      : d9.which === "equal" ? <>the vintage and the current rate are the same.</>
-                     : <>the <span className="font-medium text-foreground">{d9.which}</span> rate is the greater of the two, from the same jurisdiction&rsquo;s table — a floor, never a ceiling.</>}
+                     : <>the <span className="font-medium text-foreground">{d9.which}</span> rate is the greater of the two, from the same place&rsquo;s published rates — a floor, never a ceiling.</>}
                     {" "}A settlement figure moves only because a statutory wage moved.</>
                 ) : (
-                  <>D9 — at settlement the payout takes the greater of the rate stamped at earning and the rate current then, from the same jurisdiction&rsquo;s table; a contributor who relocates keeps the earning vintage unless they elect the new schedule.</>
+                  <>D9 — at settlement the payout takes the greater of the rate stamped at earning and the rate current then, from the same place&rsquo;s published rates; a contributor who relocates keeps the earning vintage unless they elect the new schedule.</>
                 )}
                 {podJuris && OPEN_DECISION[podJuris.tier] ? <> <span className="opacity-80" data-testid="pod-open-decision">{OPEN_DECISION[podJuris.tier]}</span></> : null}
-                {podJuris?.source === "hi_rates.py" ? <> <span className="opacity-80">Source: hi_rates.py, the live settlement table the paper names.</span></> : null}
+                {podJuris?.source === "hi_rates.py" ? <> <span className="opacity-80">Source: the platform&rsquo;s own settlement table.</span></> : null}
               </p>
               </details>
               {/* EACH CONTRIBUTOR AT THEIR OWN FLOOR (unit.regional). The 웃 are identical for identical work; only the
@@ -1502,7 +1535,7 @@ export default function SoISessionPage() {
                   return (
                     <li key={i} data-testid={`settle-member-${i}`}>
                       <span className="font-medium text-foreground">{m.name.trim() || m.role}</span>
-                      {" — "}{claimOf(i).hours.toFixed(2)} h at {M}× = 웃 {own.toFixed(3)}
+                      {" — "}{fmtH(claimOf(i).hours)} h at {M}× = 웃 {own.toFixed(3)}
                       <span className="font-mono"> · {fmtABC(own)}</span>
                       {j ? <> · {j.name}{electedOwn(i) ? "" : " (inherited)"}: {cash !== null ? formatLocal(cash, j.currency) : "no rate published"}<UsdBeside amount={cash} currency={j.currency} yug={own} place={j} testid={`settle-usd-${i}`} /></> : null}
                       {m.gps ? <span className="font-mono" data-testid={`settle-gps-${i}`}> · {fmtGps(m.gps)}</span> : null}
@@ -1530,8 +1563,8 @@ export default function SoISessionPage() {
                 const a = accelerate(lock, witnessedHours, conds);
                 return (
                   <>
-                    <p className="text-xs text-muted-foreground">Locked at <span className="font-medium text-foreground">{lock.hours} h</span> by <span className="font-medium text-foreground">{lock.signedBy}</span>, hash <span className="font-mono">{lock.hash.slice(0, 8)}</span>. Witnessed: <span className="font-medium text-foreground">{witnessedHours.toFixed(2)} h</span>.</p>
-                    <p className={`mt-1 text-sm font-medium ${a.delta > 0 ? "text-cyan-500" : "text-amber-500"}`} data-testid="accel-delta">{a.delta > 0 ? `${a.delta.toFixed(2)} h earlier than the estimate` : a.delta < 0 ? `${Math.abs(a.delta).toFixed(2)} h longer than the estimate — recorded, not hidden` : "exactly the estimate"}</p>
+                    <p className="text-xs text-muted-foreground">Locked at <span className="font-medium text-foreground">{lock.hours} h</span> by <span className="font-medium text-foreground">{lock.signedBy}</span>, reference <span className="font-mono">{lock.hash.slice(0, 8)}</span>. Witnessed: <span className="font-medium text-foreground">{fmtH(witnessedHours)} h</span>.</p>
+                    <p className={`mt-1 text-sm font-medium ${a.delta > 0 ? "text-cyan-500" : "text-amber-500"}`} data-testid="accel-delta">{a.delta > 0 ? `${fmtH(a.delta)} h earlier than the estimate` : a.delta < 0 ? `${fmtH(Math.abs(a.delta))} h longer than the estimate — recorded, not hidden` : "exactly the estimate"}</p>
                     <div className="mt-2 grid gap-1">
                       {CONDITION_IDS.map((k) => (
                         <label key={k} className="flex items-center gap-2 text-xs">
@@ -1572,7 +1605,7 @@ export default function SoISessionPage() {
             </div>
 
             <button
-              disabled={!allWitnessed || !allSelfAudited}
+              disabled={!allWitnessed || !allSelfAudited || leadOnly}
               onClick={() => {
                 // D9 — written ONCE. `v ?? …` is the whole rule: a second settlement of the same pod cannot overwrite
                 // what the first one recorded, so re-opening and re-settling changes nothing about the past.
@@ -1597,10 +1630,11 @@ export default function SoISessionPage() {
 
         {/* ── CLOSED — TOK-26 four-artefact receipt + 333 synthesis ─── */}
         {phase === "closed" && (
-          <div className="space-y-4 text-sm">
+          <div className="space-y-4 text-sm" data-testid="pod-receipt">
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-green-500/50 bg-green-500/5 p-3" data-testid="completed">
               <span className="font-medium text-green-500">✓ {t("soi.pod.guide.completed")}</span>
-              <button type="button" onClick={copyReceipt} data-testid="pod-copy" className="min-h-[44px] rounded-md border border-border px-3 py-1.5 text-sm">{copied ? t("soi.pod.guide.copied") : t("soi.pod.guide.copy")}</button>
+              <button type="button" onClick={copyReceipt} data-testid="pod-copy" className="min-h-[44px] rounded-md border border-border px-3 py-1.5 text-sm">{copyState === "copied" ? t("soi.pod.guide.copied") : t("soi.pod.guide.copy")}</button>
+              {copyState === "failed" && <span className="w-full text-xs text-amber-500" data-testid="pod-copy-failed">{t("soi.pod.guide.copy_failed")}</span>}
             </div>
             <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-4">
               <div className="mb-1 font-medium text-cyan-500">Settled &amp; receipted by the pod.</div>
@@ -1609,7 +1643,7 @@ export default function SoISessionPage() {
                 <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
                 {lock && (
                   <li data-testid="receipt-plan"><span className="font-medium text-foreground">Plan → actual</span>{" "}
-                    {lock.hours} person-hours planned <span className="font-mono text-xs text-muted-foreground">{fmtABC(lock.hours)}</span> · {witnessedHours.toFixed(2)} person-hours counted <span className="font-mono text-xs text-muted-foreground">{fmtABC(witnessedHours)}</span> · Δ {(witnessedHours - lock.hours) >= 0 ? "+" : ""}{(witnessedHours - lock.hours).toFixed(2)} h
+                    {fmtH(lock.hours)} person-hours planned <span className="font-mono text-xs text-muted-foreground">{fmtABC(lock.hours)}</span> · {fmtH(witnessedHours)} person-hours counted <span className="font-mono text-xs text-muted-foreground">{fmtABC(witnessedHours)}</span> · Δ {(witnessedHours - lock.hours) >= 0 ? "+" : ""}{fmtH(witnessedHours - lock.hours)} h
                     {" — "}웃 {lock.yug.toFixed(3)} planned · {stand.earned.toFixed(3)} actual · Δ {(stand.earned - lock.yug) >= 0 ? "+" : ""}{(stand.earned - lock.yug).toFixed(3)} at {M}× ({lock.source})
                     {" · "}<span className="text-muted-foreground">pod clock, under its own name: {hhmmss(span.ms)} in {span.segments.length} segment{span.segments.length === 1 ? "" : "s"} <span className="font-mono text-xs">{fmtABC(measuredHours)}</span></span></li>
                 )}
@@ -1626,12 +1660,12 @@ export default function SoISessionPage() {
                   {members.map((m, i) => {
                     const j = localityOf(i); const v = memberVintages[i]; const own = v ? v.yug : mint(claimOf(i).hours, M);
                     const d9m = settleD9(Math.min(own, YUG_CEILING), v ? { rate: v.rate, currency: v.currency } : null, j);   // ceiling per natural person; D9 with THIS person's vintage
-                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {(v ? v.hours : claimOf(i).hours).toFixed(2)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"}<UsdBeside amount={d9m.amount} currency={d9m.currency} yug={Math.min(own, YUG_CEILING)} place={j} testid={`receipt-usd-${i}`} /> ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""}{m.gps ? <span className="font-mono" data-testid={`receipt-gps-${i}`}>; {fmtGps(m.gps)}, a supplement to the elected place</span> : null})</> : null}</span>;
+                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {fmtH(v ? v.hours : claimOf(i).hours)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"}<UsdBeside amount={d9m.amount} currency={d9m.currency} yug={Math.min(own, YUG_CEILING)} place={j} testid={`receipt-usd-${i}`} /> ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""}{m.gps ? <span className="font-mono" data-testid={`receipt-gps-${i}`}>; {fmtGps(m.gps)}, a supplement to the elected place</span> : null})</> : null}</span>;
                   })}
                   {memberVintages.length ? <> — D9 per person: each settles at the greater of the rate stamped at earning and the rate current now, from their own jurisdiction; a settlement figure moves only because a statutory wage moved.</> : null}
                 </li>
                 {vintage ? (
-                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours.toFixed(4)} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
+                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{fmtH(vintage.hours)} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
                 ) : null}
               </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
@@ -1660,7 +1694,7 @@ export default function SoISessionPage() {
             {/* the 333-word (3 × 111) synthesis, in the operator's three sections */}
             <div className="rounded-lg border border-border p-4">
               <div className="mb-2 flex items-baseline justify-between gap-2">
-                <div className="text-sm font-medium">333-word synthesis <span className="text-xs font-normal text-muted-foreground">— 3 paragraphs: Results · What changed · What next</span></div>
+                <div className="text-sm font-medium">Synthesis <span className="text-xs font-normal text-muted-foreground">— three paragraphs, about 333 words: Results · What changed · What next</span></div>
                 <span className="font-mono text-[11px] text-muted-foreground">
                   {wordCount(shownSynthesis.results) + wordCount(shownSynthesis.changed) + wordCount(shownSynthesis.next)} words
                 </span>

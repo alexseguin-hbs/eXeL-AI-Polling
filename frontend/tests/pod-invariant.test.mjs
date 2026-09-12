@@ -779,13 +779,14 @@ ok(/<div key=\{i\} className="min-w-0 rounded-md border border-border p-2">/.tes
 const rail = read('../components/pod-phase-rail.tsx');
 ok(/data-testid="phase-step"/.test(rail) && /soi\.pod\.guide\.step/.test(rail), 'the rail says "Step N of 7 · <name>" — the existing PodPhaseRail extended, not a second stepper');
 ok(/data-testid="your-turn" data-state=\{guide\.state\}/.test(page) && /data-testid="your-turn-action"/.test(page), 'one guide card on every phase: who acts, the one action, a button to the control');
-ok(/data-testid="pod-explain" aria-live="polite">\{explain\}/.test(page), 'the existing per-phase explainer line IS the card\'s sentence — reused, not rewritten');
+ok(/data-testid="guide-sentence" aria-live="polite">\{guide\.state === "turn" \? guide\.label : guide\.state === "done" \? t\("soi\.pod\.guide\.completed"\) : guide\.why\}/.test(page) && /data-testid="pod-explain">\{explain\}/.test(page),
+   'ONE derivation speaks: the card\'s sentence is the action when it is your turn and the named reason when it is not; the phase line stays beneath it (fleet 2026-09-12: "three voices")');
 for (const t of ['pod-intent', 'pod-outcome', 'pod-name', 'pod-open', 'pod-accept', 'pod-record', 'pod-next', 'pod-settle-btn', 'pod-copy'])
   ok(page.includes(`data-testid="${t}"`), `the guide can reach ${t}`);
 for (const t of ['member-name-', 'member-agree-', 'pod-ready-', 'audit-hours-', 'audit-did-', 'witness-'])
   ok(page.includes('data-testid={`' + t), `the guide can reach ${t}\${i} on the person\'s own seat`);
 ok(/el\.setAttribute\("data-next", "1"\)/.test(page) && /\[data-next="1"\]\{outline:2px solid #f0b429/.test(page), 'the control the guide points at is marked — the envelope\'s next-field tag');
-ok(/case "audit": \{[\s\S]*?canWitness\(me\)[\s\S]*?witness-\$\{j\}-by-\$\{me\}/.test(page), 'at witnessing the guide names WHO this person still has to witness and points at that button');
+ok(/case "audit": \{[\s\S]*?for \(const r of mySeats\)[\s\S]*?canWitness\(r\)[\s\S]*?witness-\$\{j\}-by-\$\{r\}/.test(page), 'at witnessing the guide names WHO this person still has to witness and points at that button — for EVERY seat this phone holds (Krishna/Odin)');
 ok(/case "closed": return \{ state: "done"/.test(page), 'once settled the card reads Done and offers the copy');
 const rosterList = read('../components/pod-roster-list.tsx');
 ok(/data-testid="pod-roster"/.test(rosterList) && /data-state=\{r\.state\}/.test(rosterList) && /<PodRosterList rows=\{rosterRows\}/.test(page), 'who has done what — the signing flow\'s Roster pattern, one line per person, state in colour');
@@ -799,7 +800,25 @@ ok(guideKeys >= 34, `every new guide string is a lexicon key — ${guideKeys} so
 ok(!/hi_rates\.py/.test(page.slice(page.indexOf('function UsdBeside'), page.indexOf('const WHITE_PAPER'))), 'the USD line a person reads names no source file (signer voice) — the provenance stays in the module');
 
 // ── EVERY HOURS FIGURE A PERSON READS IS FORMATTED (found on the advised run: "0.013793333333333333 h" on receipt line 6)
-ok(!/\{vintage\.hours\} h/.test(page) && !/\{claimOf\(i\)\.hours\} h/.test(page) && /\{vintage\.hours\.toFixed\(4\)\} h/.test(page),
-   'no raw floating-point hours reach the screen — the stamped hours and each claim are rounded where they are printed');
+ok(!/\{vintage\.hours\} h/.test(page) && !/\{claimOf\(i\)\.hours\} h/.test(page) && !/\.toFixed\(2\)\} h\b/.test(page) && (page.match(/fmtH\(/g) || []).length >= 8 && !/witnessedHours\.toFixed\(2\)/.test(page),
+   'ONE precision for every hours figure a person reads (fmtH, four decimals) — no site rounds on its own, so 0.00 h can never sit beside a payment (Thoth/Sofia/Enki/Asar)');
+ok(/const numH = \(n: number\) => n\.toFixed\(4\)/.test(read('../lib/pod-synthesis.ts')) && /const num3 = \(n: number\) => n\.toFixed\(3\)/.test(read('../lib/pod-synthesis.ts')), 'and the synthesis prints hours and 웃 at the receipt\'s own precisions');
+// ── THE CARD, THE CONTROLS AND THE SYNTHESIS OBEY ONE DERIVATION (fleet 2026-09-12) ─────────────────────────────────
+ok(/disabled=\{!allAgreed \|\| leadOnly\}/.test(page) && /disabled=\{!lock \|\| leadOnly\}/.test(page) && /disabled=\{!allWitnessed \|\| !allSelfAudited \|\| leadOnly\}/.test(page),
+   'what the card withholds from a phone is disabled on that phone: Accept, the clock and Settle are the lead\'s (Christo/Athena); Stop & record stays everyone\'s by doctrine');
+ok(/const wait = \(key: string, who = ""\) => \(\{ state: "waiting" as const, label: "", target: null, why: t\(key\)/.test(page) && (page.match(/soi\.pod\.guide\.w\./g) || []).length >= 8,
+   'a wait always names who is pending — no phone ever reads a blank card (Athena/Thor)');
+ok(/if \(joining\) return wait\("soi\.pod\.guide\.w\.seat"\)/.test(page), 'a person who came to join is never told to write the lead\'s intent (Aset/Pangu)');
+ok(/return turn\("soi\.pod\.guide\.a\.record_now", "pod-stop"\)/.test(page), 'once the clock is stopped the guide points every seat at the control that ends the phase (Thor)');
+ok(/const mySeats = members\.map\(\(_, i\) => i\)\.filter\(\(i\) => canEdit\(i\)\)/.test(page) && /mySeats\.find\(/.test(page), 'the guide looks for work on EVERY seat this phone holds (Krishna/Odin)');
+ok(/const seatName = \(i: number\) => firstOf\(members\[i\]\.name\) \|\| t\("soi\.pod\.guide\.member"\)/.test(page), 'one name per seat on every carrier (Aset)');
+ok(/case "closed": return row\(!!\(memberVintages\[i\] \?\? vintage\), "soi\.pod\.guide\.s\.settled"\)/.test(page), 'the roster says settled only when a stamp exists');
+ok(/querySelector<HTMLElement>\('\[data-testid="pod-receipt"\]'\)\?\.innerText/.test(page) && /data-testid="pod-copy-failed"/.test(page) && /data-testid="pod-receipt"/.test(page),
+   'the copy carries the WHOLE settled section and a failed copy says so (Enlil/Thoth/Odin/Krishna/Sofia)');
+ok(!/333-word synthesis/.test(page) && /about 333 words/.test(page), 'the synthesis heading claims no count the counter beside it can disprove (Sofia/Enki/Thoth/Thor)');
+ok(/accelReason: accelRead\.reason,/.test(page) && /inp\.accelReason === "conditions_unmet"/.test(read('../lib/pod-synthesis.ts')) && /Whether it was met is for the record and the witnesses/.test(read('../lib/pod-synthesis.ts')),
+   'the synthesis says why ◬ were not recognised with the panel\'s own reason code, and never asserts the typed outcome as achieved (Aset/Asar/Odin/Thoth/Enlil)');
+ok(!/Supabase/.test(page.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '').split('\n').filter((l) => />[^<{]*Supabase/.test(l)).join('')),
+   'no visible pod string names the vendor (signer voice; the gate scans JSX text, not comments)');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

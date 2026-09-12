@@ -38,6 +38,9 @@ export interface SynthesisInput {
   members: SynthesisMember[];
   witnessedHours: number;
   totalYugYok: number;   // 웃 that settle
+  /** The accelerator's own reason code, from lib/pod-baseline accelerate() — the synthesis says WHY ◬ were or were not
+   *  recognised with the same word the panel shows, never a sentence of its own (fleet review 2026-09-12, Aset/Asar). */
+  accelReason?: string;   // "" | "no_locked_baseline" | "no_time_saved" | "conditions_unmet"
   M: number;
   baseline: number;      // frozen-baseline hours (0 = none set)
   accelDelta: number;    // hours saved vs baseline
@@ -65,6 +68,8 @@ const firstWords = (s: string, n: number) => {
 const firstName = (full: string) => (full.trim().split(/\s+/)[0] || "").trim();
 
 const num = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, ""));
+const numH = (n: number) => n.toFixed(4);   // hours: the same precision as every hours figure on the receipt
+const num3 = (n: number) => n.toFixed(3);   // 웃: the same precision as the receipt
 
 const methodPhrase = (m: string) =>
   m === "video" ? "as an unlisted video link"
@@ -123,7 +128,7 @@ export function buildSynthesis333(inp: SynthesisInput): Synthesis333 {
 
   // ── 1. Results ──────────────────────────────────────────────────────────
   const resultsCore = [
-    `In ${podLabel}, ${nameList} set out to ${frag(inp.intent) || "advance a shared task"}, and closed one synchronized session on a single measurable outcome: ${frag(inp.outcome) || "the result they agreed to prove"}.`,
+    `In ${podLabel}, ${nameList} set out to ${frag(inp.intent) || "advance a shared task"}, and closed one synchronized session against the measurable outcome they set: ${frag(inp.outcome) || "the result they agreed to prove"}. Whether it was met is for the record and the witnesses below, not for this summary.`,
     `They recorded it ${methodPhrase(inp.recordMethod)}, so the outcome is evidence a settlement can stand on, not a claim taken on trust.`,
     inp.recordValue.trim()
       ? `In their own words, the pod noted: "${firstWords(inp.recordValue, 16)}".`
@@ -132,10 +137,14 @@ export function buildSynthesis333(inp: SynthesisInput): Synthesis333 {
 
   // ── 2. What changed ─────────────────────────────────────────────────────
   const changedCore = [
-    `Because the work was witnessed, ${num(inp.witnessedHours)} cross-reviewed hours settled as ${num(inp.totalYugYok)} 웃, computed as M times hours, with M of ${num(inp.M)}, and each person is bound by the 9,999-per-year ceiling with the rest rolling forward.`,
+    `Because the work was witnessed, ${numH(inp.witnessedHours)} cross-reviewed hours settled as ${num3(inp.totalYugYok)} 웃, computed as M times hours, with M of ${num(inp.M)}, and each person is bound by the 9,999-per-year ceiling with the rest rolling forward.`,
     inp.yaTriangle > 0
-      ? `The pod also landed ${num(inp.accelDelta)} hours ahead of its ${num(inp.baseline)}-hour frozen baseline, so ${num(inp.yaTriangle)} ◬ were recognised — the hours delta alone, signed by ${inp.signerName || "the conflict-excluded signer"}, never a profit metric — which keeps the accelerator outside the securities perimeter.`
-      : `No time was saved against the frozen baseline, so no ◬ were recognised for this task; the accelerator reads the hours delta only, never a profit metric.`,
+      ? `The pod also landed ${numH(inp.accelDelta)} hours ahead of its ${numH(inp.baseline)}-hour frozen baseline, so ${num3(inp.yaTriangle)} ◬ were recognised — the hours delta alone, signed by ${inp.signerName || "the conflict-excluded signer"}, never a profit metric — which keeps the accelerator outside the securities perimeter.`
+      : inp.accelReason === "conditions_unmet"
+        ? `The pod finished ${numH(inp.accelDelta)} hours inside its ${numH(inp.baseline)}-hour frozen baseline, but the conditions for a bonus were not all confirmed, so no ◬ were recognised; the accelerator reads the hours delta only, never a profit metric.`
+        : inp.accelReason === "no_locked_baseline"
+          ? `No baseline was locked before the clock, so no ◬ could be recognised for this task; the accelerator reads the hours delta only, never a profit metric.`
+          : `No time was saved against the frozen baseline, so no ◬ were recognised for this task; the accelerator reads the hours delta only, never a profit metric.`,
     "Nothing new was minted; the pod only gated ♡, 웃, and ◬ that already exist.",
   ];
 
