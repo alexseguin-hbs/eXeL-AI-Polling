@@ -10,7 +10,7 @@ pushed to both refs as it landed; Verify Live ran green for every commit on `mai
 **Correction.** The first version of this report said round 3's `test:ci` had passed. It had not: the run had been
 started from the wrong directory and never ran; the real run failed on `sign-i18n` (Spanish must cover every
 `soi.pod.*` key — 92 new keys had none). Spanish was written (fed42ae) and that gate is green; the 31-language gate
-(`sign-i18n-all`) needed a translation pass, recorded below. `next build` exit 0 at 8b3a53d is real.
+(`sign-i18n-all`) needed a translation pass, recorded in the closing section: done, 2,852 entries, both gates green, `test:ci` rerun at the end of this report's commit. `next build` exit 0 at 8b3a53d is real.
 
 ## What you will find when you wake
 
@@ -70,8 +70,11 @@ two lexicon-coverage gates until the translations landed (see the correction abo
 
 ## What remains — yours, or larger than a night
 
-1. **Translations.** The 82 new keys have English defaults and reach 33 languages through the fallback chain; no
-   translated strings were written into the 32 language files (the AI-verified + approval gate is yours).
+1. **Translations — done, pending your approval.** The 92 new keys are translated into all 32 other languages: Spanish
+   by hand (fed42ae); the 31 others by a translation fleet (8 agents, 4 languages each; raw JSON at
+   `docs/asks/2026-09-12_pod_i18n_31_languages.fleet.json`), applied by a script that refuses a dropped placeholder, an
+   empty or an untranslated entry — 2,852 entries, 0 refusals; `sign-i18n-all` 125/125. The AI-verified + one-approval
+   gate for new languages is yours (CLAUDE.md, Translation).
 2. **The build strip** (SHA · date · time) above every screen is app-wide and is the operator's own status line; the
    reviewers count it as machine language on a member's screen. Your call.
 3. **~70 English literals** remain on the pod page outside the guided path (section prose, the CRS demo list, the four
