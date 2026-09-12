@@ -89,12 +89,15 @@ function LocalityElect({ value, onChange, disabled, testid, inherited }: {
   const chosen = value ? findJurisdiction(value) : undefined;
   const shown = chosen ?? inherited;
   const locs = shown ? localitiesOf(shown.cc) : [];
+  // A flex item's minimum width is its content, so a select whose longest option is "New York · Remainder of state —
+  // 16 USD/h" made the whole page 702px wide on a 375px phone and every button below it unclickable. min-w-0 + max-w-full
+  // on the item, and on each select, keeps the election inside the screen at every width (mobile-first, 375px).
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1.5">
       <select
         value={shown?.cc ?? ""} disabled={disabled} data-testid={testid}
         onChange={(e) => { const d = defaultForCountry(e.target.value); if (d) onChange(d.id); }}
-        className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-50"
+        className="min-h-[44px] min-w-0 max-w-full rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-50"
       >
         {!chosen && <option value={shown?.cc ?? ""}>{inherited ? `inherits ${inherited.country}` : "choose your place"}</option>}
         {TIER_ORDER.map((tier) => (
@@ -109,7 +112,7 @@ function LocalityElect({ value, onChange, disabled, testid, inherited }: {
         <select
           value={chosen?.id ?? shown?.id ?? ""} disabled={disabled} data-testid={`${testid}-locality`}
           onChange={(e) => onChange(e.target.value)}
-          className="min-h-[44px] max-w-full rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-50"
+          className="min-h-[44px] min-w-0 max-w-full rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-50"
         >
           {locs.map((j) => (
             <option key={j.id} value={j.id}>{j.locality ?? "national"}{j.rate !== null ? ` — ${j.rate} ${j.currency}/h` : " — no rate published"}</option>
@@ -1047,7 +1050,7 @@ export default function SoISessionPage() {
               </div>
               <div className="grid gap-3">
                 {members.map((m, i) => (
-                  <div key={i} className="rounded-md border border-border p-2">
+                  <div key={i} className="min-w-0 rounded-md border border-border p-2">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-cyan-400">
                         {i === 0 ? "Lead" : `Member ${i + 1}`}

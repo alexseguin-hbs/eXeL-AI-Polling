@@ -1,0 +1,90 @@
+  2262ms  lead   OK  opened /soi-session
+  2501ms  lead   OK  plan set: 2 h at 3× (planned 6 웃)
+  2552ms  lead   OK  United States offers New York by scope — "Remainder of state" — as a locality (the dataset's own rows)
+  2577ms  lead   OK  pod default place: United States — New York · Remainder of state (16.00 USD/h)
+  2591ms  lead   OK  plan preview shows the USA equivalent beside the local figure
+  2707ms  lead   OK  open button enabled (plan present)
+  2890ms  lead   OK  pod code issued  HJHFPE
+  2901ms  lead   OK  live channel subscribed (relay)
+  4623ms  ana    OK  opened join link ?pod=HJHFPE
+  6870ms  bo     OK  typed the code and joined
+  6911ms  ana    OK  assigned seat 2
+  6922ms  bo     OK  assigned seat 3
+  6931ms  lead   OK  lead sees 3 in the pod
+  6937ms  ana    OK  name input is own seat only
+  7007ms  bo     OK  name input is own seat only
+  7087ms  ana    OK  locality select is own seat only
+  7112ms  ana    OK  elected Brazil — 7.37 BRL/h (dataset, verified decree)
+  7150ms  bo     OK  locality select is own seat only
+  7215ms  bo     OK  a second step offers the localities of PH
+  7222ms  bo     OK  locality "Metro Manila" is offered
+  7244ms  bo     OK  elected Philippines — Metro Manila — 86.875 PHP/h (a place the dataset does not name; his row)
+  7281ms  ana    OK  position button is own seat only
+  8289ms  ana    OK  position fix recorded beside the elected place
+  8297ms  lead   OK  lead sees Ana's fix (replicated), and Ana's election is still Brazil
+  8307ms  lead   OK  approval checkbox is own seat only
+  8367ms  lead   OK  approved intent, outcome AND the plan (2 h × 3)
+  8380ms  ana    OK  approval checkbox is own seat only
+  8809ms  ana    OK  approved intent, outcome AND the plan (2 h × 3)
+  8837ms  bo     OK  approval checkbox is own seat only
+  8889ms  bo     OK  approved intent, outcome AND the plan (2 h × 3)
+  8903ms  lead   OK  all three approved → sync unlocked
+  8913ms  lead   OK  lead sees Ana in BRL and Bo in PHP (elections replicated)
+  9267ms  lead   OK  pressed ready (own seat)
+  9313ms  ana    OK  pressed ready (own seat)
+  9380ms  bo     OK  pressed ready (own seat)
+ 10232ms  lead   OK  ACTIVE — the clock button is on screen, not yet running
+ 10236ms  ana    OK  ACTIVE — the clock button is on screen, not yet running
+ 10239ms  bo     OK  ACTIVE — the clock button is on screen, not yet running
+ 10345ms  lead   OK  START the clock (segment 1)
+ 18603ms  lead   OK  STOP the clock (segment 1 closed)
+ 18995ms  lead   OK  ADD TIME (segment 2 opened)
+ 27002ms  lead   OK  sees segment 2 (clock events replicated)
+ 27005ms  ana    OK  sees segment 2 (clock events replicated)
+ 27008ms  bo     OK  sees segment 2 (clock events replicated)
+ 27148ms  ana    OK  a JOINER pressed Stop & record — one route, segment 2 closed for everyone
+ 27157ms  lead   OK  reached RECORD
+ 27168ms  ana    OK  reached RECORD
+ 27172ms  bo     OK  reached RECORD
+ 27191ms  lead   OK  outcome input is own seat only
+ 27214ms  ana    OK  outcome input is own seat only
+ 27242ms  bo     OK  outcome input is own seat only
+ 27272ms  ana    OK  all three outcomes in → audit unlocked
+ 27479ms  lead   OK  reached AUDIT
+ 27483ms  ana    OK  reached AUDIT
+ 27487ms  bo     OK  reached AUDIT
+ 27581ms  lead   OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 27651ms  ana    OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 27741ms  bo     OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 28773ms  lead   OK  witnessed the other two  clicked 2 of 2
+ 29816ms  ana    OK  witnessed the other two  clicked 2 of 2
+ 30857ms  bo     OK  witnessed the other two  clicked 2 of 2
+ 30861ms  lead   OK  all witnessed + all self-audited → settle unlocked
+ 30863ms  lead   OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 30866ms  ana    OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 30868ms  bo     OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 30871ms  lead   OK  M is locked on the audit screen (no picker)
+ 31122ms  lead   OK  CLOSED — receipt on this phone
+ 31127ms  ana    OK  CLOSED — receipt on this phone
+ 31134ms  bo     OK  CLOSED — receipt on this phone
+ 31362ms  lead   OK  receipt shows PLAN → ACTUAL
+ 31362ms  lead   OK  receipt shows two segments summed
+ 31362ms  lead   OK  receipt shows the ledger grammar
+ 31362ms  lead   OK  receipt settles Ana in reais and Bo in pesos beside Lea in dollars — each at their own floor
+ 31366ms  lead   OK  Lea (USD) — her own figure is the USA equivalent  · ≈ $0.22
+ 31366ms  lead   OK  Ana (BRL) — a USA figure only by a traceable route: hi_rates.py's USD floor × 웃, named as a second floor  · ≈ $0.02 (hi_rates.py USD floor × 웃 — a second floor, not a conversion)
+ 31366ms  lead   OK  Bo (PHP) — no dated exchange rate, no USD floor: the receipt says what is missing, never a number  · USD equivalent: awaiting a dated exchange-rate source for this currency
+ 31369ms  lead   OK  Ana's GPS fix prints on the receipt as a supplement to the elected place
+ 31372ms  lead   OK  and no other seat carries a fix it did not take
+ 31372ms  lead   OK  receipt names the D9 rate that paid
+ 31372ms  lead   OK  Lea settles at the New York · Remainder of state floor she inherited from the pod default
+ 31374ms  lead   OK  receipt renders each member's OWN outcome text
+ 31374ms  lead   OK  receipt shows M locked at 3× and the plan line
+ 31376ms  ana    OK  receipt renders each member's OWN outcome text
+ 31376ms  ana    OK  receipt shows M locked at 3× and the plan line
+ 31378ms  bo     OK  receipt renders each member's OWN outcome text
+ 31378ms  bo     OK  receipt shows M locked at 3× and the plan line
+ 31379ms  lead   OK  this phone's receipt carries the per-person vintage settlement (reais · pesos · dollars)
+ 31381ms  ana    OK  this phone's receipt carries the per-person vintage settlement (reais · pesos · dollars)
+ 31383ms  bo     OK  this phone's receipt carries the per-person vintage settlement (reais · pesos · dollars)
+ 31385ms  lead   OK  THE THREE RECEIPTS SETTLE IDENTICALLY — the same per-person figures on every phone  5b · Each at their own floor Lea 0.00 h → 웃 0.014 → $0.22 · 

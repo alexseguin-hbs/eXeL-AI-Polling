@@ -769,4 +769,10 @@ ok(/testid=\{`member-gps-\$\{i\}`\}/.test(page) && /testid=\{`member-gps-fix-\$\
 ok(/a supplement to the elected place/.test(page), 'and the receipt says what it is');
 ok(!/reverse|geocod/i.test(page), 'no reverse geocoder — coordinates stay coordinates');
 
+// ── MOBILE-FIRST, 375px (release rule 9): a long option label must never widen the page ─────────────────────────────
+ok(/<div className="flex min-w-0 max-w-full flex-wrap items-center gap-1\.5">/.test(page) && (page.match(/min-h-\[44px\] min-w-0 max-w-full rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-50/g) || []).length === 2,
+   'the election control and both its selects are min-w-0 max-w-full — "New York · Remainder of state — 16 USD/h" made the page 702px wide on a 375px phone and the open button unclickable');
+ok(/<div key=\{i\} className="min-w-0 rounded-md border border-border p-2">/.test(page),
+   'and each seat card, a grid item, is min-w-0 — a grid item\'s minimum width is its content, so the same select stretched the seat cards to 670px on a 375px phone');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
