@@ -137,8 +137,8 @@ function UsdBeside({ amount, currency, yug, place, testid }: { amount: number | 
 }
 
 /** A position fix as a person reads it: two decimals of a degree, the accuracy, the time — never a country name. */
-const fmtGps = (g: { lat: number; lon: number; acc: number; at: string }): string =>
-  `GPS ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)} ±${Math.round(g.acc)} m at ${new Date(g.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+const fmtGps = (g: { lat: number; lon: number; acc: number; at: string }, label = "GPS Location"): string =>
+  `${label} ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)} ±${Math.round(g.acc)} m at ${new Date(g.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
@@ -907,17 +907,21 @@ export default function SoISessionPage() {
         </div>
         {phase !== "compose" && <PodRosterList rows={rosterRows} title={t("soi.pod.guide.who")} you={t("soi.pod.guide.you")} />}
 
-        {/* Trinity logo — auto-drawn from the three leads' first names */}
-        <div className="mb-5 flex flex-col items-center gap-1">
-          <SoITrinity
-            labels={trinityLabels}
-            color={hue.bright}
-            colors={[hue.bright, hue.bright, hue.bright]}   /* all cyan (operator): the black edges separate the rings */
-            textColor={hue.ink}
-            size={190}
-          />
-          <span className="text-[11px] text-muted-foreground">{t("soi.pod.ui.trinity")}</span>
-        </div>
+        {/* Trinity logo — auto-drawn from the three leads' first names. ONE SCREEN PER STEP (operator 2026-09-12): it stays on
+            the first screen and the receipt; on the working screens it folds, so each screen holds only that step. */}
+        {(() => { const logo = (
+          <div className="mb-5 flex flex-col items-center gap-1">
+            <SoITrinity
+              labels={trinityLabels}
+              color={hue.bright}
+              colors={[hue.bright, hue.bright, hue.bright]}   /* all cyan (operator): the black edges separate the rings */
+              textColor={hue.ink}
+              size={190}
+            />
+            <span className="text-[11px] text-muted-foreground">{t("soi.pod.ui.trinity")}</span>
+          </div>);
+          return phase === "compose" || phase === "closed" ? logo
+            : <details className="mb-4" data-testid="details-trinity"><summary className="cursor-pointer text-xs text-muted-foreground">{t("soi.pod.guide.details")} — {t("soi.pod.ui.trinity")}</summary>{logo}</details>; })()}
 
         {/* ── COMPOSE ─────────────────────────────────────────────── */}
         {phase === "compose" && (
@@ -942,9 +946,11 @@ export default function SoISessionPage() {
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">{t("soi.pod.join.or_lead")}</p>
             </form>
-            <p className="mb-4 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground">
+            <details className="mb-4 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground" data-testid="details-why-three"><summary className="cursor-pointer">{t("soi.pod.ui.why_three")}</summary>
+            <p className="mt-2">
               A pod is <span className="font-medium text-foreground">exactly three</span> — one lead + two invited. Three is the minimum that lets two people witness a third, so no one settles their own hours.
             </p>
+            </details>
             <div className="mb-1 flex items-baseline justify-between gap-2">
               <label className="block text-sm font-medium">{t("soi.pod.ui.intent")}</label>
               <button
@@ -987,9 +993,7 @@ export default function SoISessionPage() {
                 inputMode="email"
                 className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
               />
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Your email imports from your OAuth login. You share the QR next — the other two scan to join, their info imports, and they enter their name.
-              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{t("soi.pod.ui.lead_hint")}</p>
             </div>
 
             {/* Projects — pick 1–3, then a task each */}
@@ -1073,7 +1077,7 @@ export default function SoISessionPage() {
                 {suggestedRegion && suggestedRegion.id !== regionIdSel && (
                   <button type="button" onClick={() => setRegionIdSel(suggestedRegion.id)} data-testid="anchor-region-suggest"
                     className="min-h-[44px] rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:border-cyan-400">
-                    Use {suggestedRegion.name}?
+                    {t("soi.pod.ui.signal_location")}: {suggestedRegion.name} — {t("soi.pod.ui.use_it")}
                   </button>
                 )}
                 <select value={signerIdx} onChange={(e) => setSignerIdx(Number(e.target.value))} aria-label={t("soi.pod.ph.signed_by")} data-testid="baseline-signer" className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
@@ -1168,9 +1172,7 @@ export default function SoISessionPage() {
             {/* Leader shares the QR; the other two scan to join. */}
             <div className="mb-4 flex flex-col items-center gap-2 rounded-lg border border-cyan-400/40 bg-background p-4">
               <div className="text-sm font-medium text-cyan-400">{t("soi.pod.ui.share_qr")}</div>
-              <div className="text-center text-xs text-muted-foreground">
-                The other two scan to join — their info imports from their login (email / OAuth); they enter their name.
-              </div>
+              <div className="text-center text-xs text-muted-foreground">{t("soi.pod.ui.scan_hint")}</div>
               <button type="button" onClick={() => setQrMax(true)} data-testid="pod-qr-max" aria-label={t("soi.pod.ui.max_screen")} title={t("soi.pod.ui.max_screen")}
                 className="rounded-md bg-white p-2"><QRCodeSVG value={joinUrl} size={140} level="M" /></button>
               <button type="button" onClick={() => setQrMax(true)} data-testid="pod-qr-max-btn" className="min-h-[44px] rounded-md border border-border px-3 py-1.5 text-xs">⛶ {t("soi.pod.ui.max_screen")}</button>
@@ -1207,9 +1209,12 @@ export default function SoISessionPage() {
             {/* The trio — lead is set; the other two join, then all comment & approve. */}
             <div className="mb-4 rounded-lg border border-cyan-400/30 p-3">
               <div className="mb-1 text-sm font-medium">{t("soi.pod.ui.trio")}</div>
-              <div className="mb-3 text-xs text-muted-foreground">
+              <div className="mb-2 text-xs text-muted-foreground">{t("soi.pod.ui.trio_hint")}</div>
+              <details className="mb-3 text-xs text-muted-foreground" data-testid="details-trio"><summary className="cursor-pointer">{t("soi.pod.guide.details")}</summary>
+              <div className="mt-2">
                 The lead is set. The other two join by scanning; on join their email imports from their login and they enter their name. Each approves the intent, the outcome and the plan — {parseFloat(baselineHrs) || 0} h at {bandM}× — or comments a recommended change (to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
               </div>
+              </details>
               <div className="grid gap-3">
                 {members.map((m, i) => (
                   <div key={i} className="min-w-0 rounded-md border border-border p-2">
@@ -1253,10 +1258,10 @@ export default function SoISessionPage() {
                       {/* GPS AS A SUPPLEMENT (operator 2026-09-12): this person's own position fix, with permission, recorded
                           beside the place they elected. It is evidence on the receipt; it never picks the floor. */}
                       {m.gps
-                        ? <span data-testid={`member-gps-fix-${i}`} className="font-mono">{fmtGps(m.gps)}</span>
+                        ? <span data-testid={`member-gps-fix-${i}`} className="font-mono">{fmtGps(m.gps, t("soi.pod.ui.gps_location"))}</span>
                         : canEdit(i) && <button type="button" data-testid={`member-gps-${i}`} onClick={() => takeGps(i)}
                             className="min-h-[44px] rounded-md border border-dashed border-border px-2 py-1 text-xs hover:border-cyan-400">
-                            Add my position
+                            {t("soi.pod.ui.gps_location")}
                           </button>}
                     </div>
                     <label className="mt-2 flex items-center gap-2 text-sm">
@@ -1579,7 +1584,7 @@ export default function SoISessionPage() {
                       {" — "}{fmtH(claimOf(i).hours)} h at {M}× = 웃 {own.toFixed(3)}
                       <span className="font-mono"> · {fmtABC(own)}</span>
                       {j ? <> · {j.name}{electedOwn(i) ? "" : " (inherited)"}: {cash !== null ? formatLocal(cash, j.currency) : "no rate published"}<UsdBeside amount={cash} currency={j.currency} yug={own} place={j} testid={`settle-usd-${i}`} /></> : null}
-                      {m.gps ? <span className="font-mono" data-testid={`settle-gps-${i}`}> · {fmtGps(m.gps)}</span> : null}
+                      {m.gps ? <span className="font-mono" data-testid={`settle-gps-${i}`}> · {fmtGps(m.gps, t("soi.pod.ui.gps_location"))}</span> : null}
                     </li>
                   );
                 })}
@@ -1701,7 +1706,7 @@ export default function SoISessionPage() {
                   {members.map((m, i) => {
                     const j = localityOf(i); const v = memberVintages[i]; const own = v ? v.yug : mint(claimOf(i).hours, M);
                     const d9m = settleD9(Math.min(own, YUG_CEILING), v ? { rate: v.rate, currency: v.currency } : null, j);   // ceiling per natural person; D9 with THIS person's vintage
-                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {fmtH(v ? v.hours : claimOf(i).hours)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"}<UsdBeside amount={d9m.amount} currency={d9m.currency} yug={Math.min(own, YUG_CEILING)} place={j} testid={`receipt-usd-${i}`} /> ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""}{m.gps ? <span className="font-mono" data-testid={`receipt-gps-${i}`}>; {fmtGps(m.gps)}, a supplement to the elected place</span> : null})</> : null}</span>;
+                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {fmtH(v ? v.hours : claimOf(i).hours)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"}<UsdBeside amount={d9m.amount} currency={d9m.currency} yug={Math.min(own, YUG_CEILING)} place={j} testid={`receipt-usd-${i}`} /> ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""}{m.gps ? <span className="font-mono" data-testid={`receipt-gps-${i}`}>; {fmtGps(m.gps, t("soi.pod.ui.gps_location"))}, a supplement to the elected place</span> : null})</> : null}</span>;
                   })}
                   {memberVintages.length ? <> — D9 per person: each settles at the greater of the rate stamped at earning and the rate current now, from their own jurisdiction; a settlement figure moves only because a statutory wage moved.</> : null}
                 </li>
@@ -1795,6 +1800,10 @@ export default function SoISessionPage() {
         </div>
       )}
 
+      {/* Everything below the pod folds under one More (operator 2026-09-12: one screen per step): the entry credential
+          and the CRS demo list are still here, one tap away, never in the way. */}
+      <details className="mt-6" data-testid="details-more">
+      <summary className="cursor-pointer text-xs text-muted-foreground">{t("soi.pod.guide.details")} — {t("soi.pod.ui.more")}</summary>
       {/* Seed membership — the entry credential, collapsed below the pod (moved 2026-09-07) */}
       <div className="mt-6"><SeedMembership /></div>
 
@@ -1831,6 +1840,7 @@ export default function SoISessionPage() {
           </>
         )}
       </section>
+      </details>
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
         Prototype · {connected ? "live — one roster across the pod" : "local state"} · <TrinityGlyphs inline size="text-[11px]" /> mint nothing new here — the pod is a gate on the

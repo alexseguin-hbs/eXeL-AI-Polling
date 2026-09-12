@@ -855,4 +855,13 @@ ok(/fixed inset-0 z-\[70\] [^"]*bg-background /.test(qrMax) && !/bg-background\/
    'the overlay is the whole screen — OPAQUE and above the phone strip — QR large, code large, the link as text with Copy, a close control; one shared component, the dashboard\'s pattern');
 ok(!/[>"](Max screen|Close)[<"]/.test(qrMax) && /t\("soi\.pod\.ui\.max_close"\)/.test(qrMax) && /t\("soi\.pod\.ui\.max_screen"\)/.test(page), 'its strings go through the lexicon');
 
+// ── ONE SCREEN PER STEP · the two location terms · a child can read it (operator 2026-09-12) ──────────────────────────
+ok(/return phase === "compose" \|\| phase === "closed" \? logo/.test(page) && /data-testid="details-trinity"/.test(page), 'the logo stays on the first screen and the receipt; on the working screens it folds');
+ok(/data-testid="details-why-three"/.test(page) && /data-testid="details-trio"/.test(page) && /data-testid="details-more"/.test(page), 'the long notes and everything below the pod fold under Details — nothing removed');
+ok(/t\("soi\.pod\.ui\.lead_hint"\)/.test(page) && /t\("soi\.pod\.ui\.scan_hint"\)/.test(page) && /t\("soi\.pod\.ui\.trio_hint"\)/.test(page), 'the three sentences a person reads first are one line each, through the lexicon');
+const lex2 = read('../lib/lexicon-data.ts');
+ok(/englishDefault: "GPS Location"/.test(lex2) && /englishDefault: "Signal Location \(of IP Address\)"/.test(lex2) && /t\("soi\.pod\.ui\.gps_location"\)/.test(page) && /t\("soi\.pod\.ui\.signal_location"\)/.test(page) && !/Add my position/.test(page) && !/Use \{suggestedRegion\.name\}\?/.test(page),
+   'the operator\'s two terms, verbatim: GPS Location (the phone\'s fix) and Signal Location (of IP Address) (the suggestion)');
+ok(/fmtGps\(m\.gps, t\("soi\.pod\.ui\.gps_location"\)\)/.test(page), 'the fix is labelled with the term wherever it prints');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
