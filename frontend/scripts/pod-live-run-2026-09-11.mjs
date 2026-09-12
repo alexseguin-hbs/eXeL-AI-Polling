@@ -44,7 +44,8 @@ const IN = {
 };
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 fs.mkdirSync(OUT, { recursive: true }); const log = []; const t0 = Date.now();
-const step = (who, what, ok = true, extra = '') => { const l = `${String(Date.now() - t0).padStart(6)}ms  ${who.padEnd(6)} ${ok ? 'OK ' : 'FAIL'} ${what}${extra ? '  ' + extra : ''}`; console.log(l); log.push(l); if (!ok) { fs.writeFileSync(OUT + '/log.txt', log.join('\n')); throw new Error(what); } };
+// A line without a predicate is NARRATION and says so (fleet 2026-09-12: "OK" must mean something was checked).
+const step = (who, what, ok, extra = '') => { const l = `${String(Date.now() - t0).padStart(6)}ms  ${who.padEnd(6)} ${ok === undefined ? '·  ' : ok ? 'OK ' : 'FAIL'} ${what}${extra ? '  ' + extra : ''}`; console.log(l); log.push(l); if (ok === false) { fs.writeFileSync(OUT + '/log.txt', log.join('\n')); throw new Error(what); } };
 const ready = async (p) => { await p.waitForSelector('next-route-announcer', { state: 'attached', timeout: 90000 }); await p.waitForTimeout(300); };
 const shot = async (p, who, name) => p.screenshot({ path: `${OUT}/${name}-${who}.jpg`, type: 'jpeg', quality: 60, fullPage: true });
 const shotAll = (name) => Promise.all([shot(L, 'lead', name), shot(A, 'ana', name), shot(B, 'bo', name)]);
@@ -133,7 +134,7 @@ for (const [who, p] of ALL) await crop(p, who, '03-seat', seatCard(p, SEAT[who])
 await L.getByRole('button', { name: /Accepted by the trio/ }).click();
 
 // 3 · synchronized readiness — three presses within 15 s — then ACTIVE, where the clock is a BUTTON
-for (const [who, p] of ALL) { await p.getByText(/tap to start/).first().waitFor({ timeout: 20000 }); const b = await enabledOf(p.getByRole('button', { name: /tap to start/ })); step(who, 'pressed ready (own seat)', !!b); await b.click(); }
+for (const [who, p] of ALL) { await p.getByText(/tap to start/).first().waitFor({ timeout: 20000 }); await guideIs(who, p, 'turn', 'Tap Start'); const b = await enabledOf(p.getByRole('button', { name: /tap to start/ })); step(who, 'pressed ready (own seat)', !!b); await b.click(); }
 for (const [who, p] of ALL) { await p.getByTestId('pod-clock-toggle').waitFor({ timeout: 25000 }); step(who, 'ACTIVE — the clock button is on screen, not yet running'); }
 await guideIs('lead', L, 'turn', 'Start the clock'); await guideIs('ana', A, 'waiting', 'waiting for Lea'); step('ana', 'the clock is disabled on a joiner\'s phone', !(await A.getByTestId('pod-clock-toggle').isEnabled()));
 await shotAll('4-active-ready');
@@ -191,7 +192,7 @@ for (const [who, p] of ALL) {
   synth[who] = { paragraphs: paras, counts, total: counts.reduce((a, b) => a + b, 0), source: /Manual mode/.test(await block.innerText()) ? 'local (deterministic)' : 'ai' };
   // Operator 2026-08-19 (lib/pod-synthesis.ts): three paragraphs summing to ~333 — "need NOT be exactly 111 words per
   // paragraph"; the builder stops within +8 of 333. Counted here from the screen, never read off the label.
-  step(who, `333-word synthesis on this phone: ${counts.join(' + ')} = ${synth[who].total} words (${synth[who].source})`, counts.length === 3 && synth[who].total >= 333 && synth[who].total <= 341);
+  step(who, `synthesis on this phone (about 333 words): ${counts.join(' + ')} = ${synth[who].total} words (${synth[who].source})`, counts.length === 3 && synth[who].total >= 333 && synth[who].total <= 341);
 }
 step('lead', 'the three phones carry the SAME synthesis, word for word', JSON.stringify(synth.lead.paragraphs) === JSON.stringify(synth.ana.paragraphs) && JSON.stringify(synth.ana.paragraphs) === JSON.stringify(synth.bo.paragraphs));
 fs.writeFileSync(OUT + '/walkthrough.json', JSON.stringify({ code, names: NAMES, synthesis: synth, receipt: await L.getByTestId('receipt-3').innerText(), outcomes: await Promise.all([0, 1, 2].map((i) => L.getByTestId(`receipt-outcome-${i}`).innerText())) }, null, 2));

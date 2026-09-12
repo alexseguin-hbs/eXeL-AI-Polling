@@ -419,8 +419,8 @@ if (ABC.format) {
 
   // MoT IS THE CLOCK. This label used to sit on witnessedHours — the sum of HAND-TYPED claims — while unit.ceiling
   // defines MoT as the separate record: "Actual time is recorded separately, minute by minute, by Measurement of Time".
-  ok(/MoT clocked <span className="font-mono">\{fmtABC\(measuredHours\)\}<\/span>/.test(page),
-     'MoT reads the MEASURED span, not the typed claim');
+  ok(/the platform clocked <span className="font-mono">\{fmtABC\(measuredHours\)\}<\/span>/.test(page),
+     'the platform clock reads the MEASURED span, not the typed claim (named for the person as "the platform", not "MoT")');
   ok(!/MoT \{fmtABC\(witnessedHours\)\}/.test(page), 'and the old label on the typed claim is gone');
 } else ok(false, 'lib/abc-3600.ts could not be imported');
 
@@ -820,5 +820,22 @@ ok(/accelReason: accelRead\.reason,/.test(page) && /inp\.accelReason === "condit
    'the synthesis says why ◬ were not recognised with the panel\'s own reason code, and never asserts the typed outcome as achieved (Aset/Asar/Odin/Thoth/Enlil)');
 ok(!/Supabase/.test(page.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '').split('\n').filter((l) => />[^<{]*Supabase/.test(l)).join('')),
    'no visible pod string names the vendor (signer voice; the gate scans JSX text, not comments)');
+
+// ── ROUND 3 (fleet 2026-09-12): gates by FORM, so a member nobody listed still fails ─────────────────────────────────
+const code = page.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+ok(!/(?<!value=)[{$]\{?\s*(witnessedHours|measuredHours|accelDelta|baseline|lock\.hours|vintage\.hours|v\.hours|claimOf\(i\)\.hours|m\.hours|a\.delta)\s*\}/.test(code) && !/\$\{(witnessedHours|accelDelta|measuredHours)\}/.test(code),
+   'NO HOURS QUANTITY IS INTERPOLATED RAW anywhere on the page — every one passes through fmtH, fmtABC or hhmmss (a scan by form, not a list of sites)');
+const visible = [...code.matchAll(/>([^<>{}]+)</g)].map((m) => m[1]).concat([...code.matchAll(/(?:placeholder|aria-label|title)="([^"]+)"/g)].map((m) => m[1])).concat([...code.matchAll(/"([^"\n]{12,})"/g)].map((m) => m[1]).filter((x) => /[a-z] [a-z]/.test(x) && !/^[a-z0-9.\-_/]+$/.test(x)));
+const lexPod = [...read('../lib/lexicon-data.ts').matchAll(/key: "soi\.pod\.[^"]+", englishDefault: "([^"]*)"/g)].map((m) => m[1]);
+const MACHINE = /supabase|migration|\bsql\b|\brpc\b|localstorage|sessionstorage|\bquota\b|backend|NEXT_PUBLIC|\bschema\b|\bendpoint\b|postgres|hi_rates|\.py\b|\bhash\b|Cube \d|Gemini|OpenAI|TOK-\d+|\bD5\b|\.tsx?\b|\.mjs\b/i;
+const machineHits = visible.concat(lexPod).filter((x) => MACHINE.test(x));
+ok(machineHits.length === 0, `THE SIGNER NEVER MEETS THE MACHINE, on the pod: no visible string or soi.pod.* value names a vendor, a file, a hash, a cube, a spec number or a runtime — ${machineHits.length} hit(s): ${machineHits.slice(0, 3).map((x) => JSON.stringify(x.slice(0, 60))).join(' · ')}`);
+ok(!/placeholder="[^"]/.test(code) && !/aria-label="[^"]/.test(code), 'every placeholder and aria-label on the page goes through t() — the field the guide lands in speaks the instruction\'s language');
+ok(/const approvedOf = \(m: Member\): boolean =>/.test(page) && (page.match(/approvedOf\b/g) || []).length >= 6, 'ONE predicate for "approved" on the rail, the explainer, the roster and the guide');
+ok(/disabled=\{span\.segments\.length === 0\} className="min-h-\[36px\] disabled:opacity-50/.test(page), 'the phone strip\'s Stop obeys the same predicate as Stop & record (no live control that does nothing)');
+ok(/<button disabled=\{leadOnly\} onClick=\{\(\) => \{ setMembers\(\(ms\) => ms\.map\(\(m\) => \(\{ \.\.\.m, agreed: false, agreedTo: null \}\)\)\); setPhase\("compose"\); \}\}/.test(page), 'Back to edit — the destructive control — is the lead\'s only');
+ok(/if \(joinFull\) return wait\("soi\.pod\.seat\.full"\)/.test(page), 'a fourth phone reads that the pod is full, not that it is waiting for a seat');
+ok(/data-testid="tranche-escrow">\{\(Number\(stand\.earned\.toFixed\(3\)\) - Number\(tranches\.floor\.toFixed\(3\)\)\)\.toFixed\(3\)\}/.test(page), 'the receipt adds up at the precision it is printed: held = printed earned − printed floor');
+ok(/SOURCE_LABEL\[j\.source\] \?\? "the platform table"/.test(page) && !visible.some((x) => /hi_rates/.test(x)), 'a place\'s source is a phrase, never a file name — the file name occurs in no visible string');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

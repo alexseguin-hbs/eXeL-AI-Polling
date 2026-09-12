@@ -141,6 +141,9 @@ const fmtGps = (g: { lat: number; lon: number; acc: number; at: string }): strin
 
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
+/** What a person reads for a place's source — a phrase, never a file name (signer voice). */
+const SOURCE_LABEL: Record<string, string> = { "dataset-2026-09-12": "the dataset", "operator-2026-09-10": "the operator’s table", "approved-2026-09-11": "approved rows" };
+
 // The pod's types and its whole protocol live in lib/pod-roster.ts (pure; simulated in
 // tests/soi-pod-sim.test.mjs). This page holds React state and the channel, nothing more.
 type Phase = PodPhase;
@@ -158,7 +161,7 @@ const CRS_FROM_VISION: { id: string; title: string; source: string; spec: string
   { id: "CRS-V04", title: "◬ A.I. = witnessed acceleration, delinked from profit", source: "§14/§18 / unit.accel (D4/D11)",
     spec: "◬ recognizes independently witnessed AI acceleration vs a frozen baseline. The accelerator's only input is the task-scoped hours delta — never Revenue/Gross Profit/Operating Income/R&D Spend — so it sits outside the securities perimeter." },
   { id: "CRS-V05", title: "Pod-of-3 Task • Outcome", source: "open.proposed → frame.pod (this prototype)",
-    spec: "A lead + two invited lock a shared start time; every task carries an intent and a measurable outcome; a series of tasks is a Pod Project that auto-writes a 333-word (3×111) summary on close. Mints nothing new." },
+    spec: "A lead + two invited lock a shared start time; every task carries an intent and a measurable outcome; a series of tasks is a Pod Project that auto-writes a synthesis of about 333 words on close. Mints nothing new." },
   { id: "CRS-V06", title: "Not-a-security by construction", source: "§ legal / coin.family · legal.resilience (D8)",
     spec: "No expectation of profit from the efforts of others; no common enterprise; nothing trades or appreciates idle. The 웃 rail is a Marketplace Escrow Settlement under a per-task Independent Contributor Agreement, not employment." },
   { id: "CRS-V07", title: "Jurisdictional resilience & lawful portability", source: "§16 / legal.sovereign_ledger · legal.iran_workaround (D6/D8)",
@@ -586,9 +589,11 @@ export default function SoISessionPage() {
   const allWitnessed = members.every((_, i) => isWitnessed(i));
 
   // ── One look: the rail's counts and the one line that says what to do next (R-CORE gate) ──
+  // ONE predicate for "approved" on every carrier — the rail count, the explainer, the roster, the guide (Enlil).
+  const approvedOf = (m: Member): boolean => !!m.name.trim() && m.agreed && m.agreedTo === lock?.hash;
   const counts = {
     joined: members.filter((m) => m.name.trim()).length,
-    agreed: members.filter((m) => m.name.trim() && m.agreed).length,
+    agreed: members.filter(approvedOf).length,
     started: members.filter((m) => m.startedAt != null).length,
     witnessed: members.filter((_, i) => isWitnessed(i)).length,
     size: POD_SIZE,
@@ -602,7 +607,7 @@ export default function SoISessionPage() {
         if (joinFull) return t("soi.pod.seat.full");
         const missing = members.filter((m) => !m.name.trim());
         if (missing.length) return t("soi.pod.x.invite_join").replace("{n}", String(missing.length));
-        const notAgreed = members.filter((m) => !(m.agreed && m.agreedTo === lock?.hash));
+        const notAgreed = members.filter((m) => !approvedOf(m));
         if (notAgreed.length) return t("soi.pod.x.invite_agree").replace("{who}", names(notAgreed));
         return t("soi.pod.x.invite_ready");
       }
@@ -645,13 +650,14 @@ export default function SoISessionPage() {
         if (!((parseFloat(baselineHrs) || 0) > 0)) return turn("soi.pod.guide.a.hours", "baseline-hours");
         return canOpen ? turn("soi.pod.guide.a.open", "pod-open") : wait("soi.pod.guide.w.fields");
       case "invite": {
+        if (joinFull) return wait("soi.pod.seat.full");
         if (me < 0) return wait("soi.pod.guide.w.seat");
         const unnamed = mySeats.find((i) => !members[i].name.trim());
         if (unnamed !== undefined) return turn("soi.pod.guide.a.name", `member-name-${unnamed}`);
-        const unapproved = mySeats.find((i) => !(members[i].agreed && members[i].agreedTo === lock?.hash));
+        const unapproved = mySeats.find((i) => !approvedOf(members[i]));
         if (unapproved !== undefined) return turn("soi.pod.guide.a.agree", `member-agree-${unapproved}`);
         if (allAgreed) return isLead ? turn("soi.pod.guide.a.accept", "pod-accept") : wait("soi.pod.guide.w.lead", firstOf(members[0].name) || members[0].role);
-        return wait("soi.pod.guide.w.who", pending((m) => !!m.name.trim() && m.agreed && m.agreedTo === lock?.hash));
+        return wait("soi.pod.guide.w.who", pending(approvedOf));
       }
       case "sync": {
         const notReady = mySeats.find((i) => members[i].startedAt == null);
@@ -706,7 +712,7 @@ export default function SoISessionPage() {
     const name = seatName(i);
     const row = (done: boolean, key: string): PodRosterRow => ({ name, me: mySeats.includes(i), state: done ? "done" : "pending", label: t(done ? key : "soi.pod.guide.s.pending") });
     switch (phase) {
-      case "invite": return row(!!m.name.trim() && m.agreed, "soi.pod.guide.s.approved");
+      case "invite": return row(approvedOf(m), "soi.pod.guide.s.approved");
       case "sync": return row(m.startedAt != null, "soi.pod.guide.s.ready");
       case "active": return row(m.startedAt != null, "soi.pod.guide.s.ready");
       case "record": return row(!!m.outcome.trim(), "soi.pod.guide.s.outcome");
@@ -777,10 +783,10 @@ export default function SoISessionPage() {
       `Pod ${podCode || "(local)"} — ${members.map((m) => firstName(m.name) || m.role).join(" · ")}. ` +
       `Intent: ${intent || "—"}. Outcome: ${outcome || "—"}. ` +
       `Recorded (${recordMethod}): ${recordValue || "—"}. Self-audited hours: ` +
-      members.map((m) => `${firstName(m.name) || m.role} ${parseFloat(m.hours) || 0}h`).join(", ") + ".",
+      members.map((m) => `${firstName(m.name) || m.role} ${fmtH(parseFloat(m.hours) || 0)} h`).join(", ") + ".",
     portfolio:
       `Contributed to "${outcome || intent || "a pod task"}" in a witnessed pod of three, ` +
-      `${witnessedHours}h cross-reviewed` + (yaTriangle > 0 ? `, ${accelDelta}h ahead of a frozen baseline.` : "."),
+      `${fmtH(witnessedHours)} h cross-reviewed` + (yaTriangle > 0 ? `, ${fmtH(accelDelta)} h ahead of a frozen baseline.` : "."),
     governance:
       `Witnessed by the pod: ${members.filter((_, i) => isWitnessed(i)).length}/${POD_SIZE} claims cross-reviewed. ` +
       `Accelerator signed by ${signerName} (conflict-excluded). ` +
@@ -921,7 +927,7 @@ export default function SoISessionPage() {
               <p className="mt-2 text-[11px] text-muted-foreground">{t("soi.pod.join.or_lead")}</p>
             </form>
             <p className="mb-4 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground">
-              A pod is <span className="font-medium text-foreground">exactly three</span> — one lead + two invited. Three is the minimum that lets two people witness a third, so no one settles their own hours (TOK-17 · D5 anti-sybil).
+              A pod is <span className="font-medium text-foreground">exactly three</span> — one lead + two invited. Three is the minimum that lets two people witness a third, so no one settles their own hours.
             </p>
             <div className="mb-1 flex items-baseline justify-between gap-2">
               <label className="block text-sm font-medium">{t("soi.pod.ui.intent")}</label>
@@ -935,13 +941,13 @@ export default function SoISessionPage() {
             </div>
             <textarea
               value={intent} onChange={(e) => setIntent(e.target.value)} rows={2} data-testid="pod-intent"
-              placeholder="e.g. De-risk the first Architect-2525 modular spec."
+              placeholder={t("soi.pod.ph.intent")}
               className="mb-4 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
             <label className="mb-1 block text-sm font-medium">{t("soi.pod.ui.outcome")}</label>
             <input
               value={outcome} onChange={(e) => setOutcome(e.target.value)} data-testid="pod-outcome"
-              placeholder="e.g. One spec validated on the baseline HAL, reviewed by all 3."
+              placeholder={t("soi.pod.ph.outcome")}
               className="mb-5 w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
 
@@ -956,12 +962,12 @@ export default function SoISessionPage() {
               <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">Lead</div>
               <input
                 value={members[0].name} onChange={(e) => setMember(0, { name: e.target.value })} data-testid="pod-name"
-                placeholder="Your name"
+                placeholder={t("soi.pod.ph.name")}
                 className="mb-2 w-full rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
               />
               <input
                 value={members[0].contact} onChange={(e) => setMember(0, { contact: e.target.value })}
-                placeholder="your email (imports from your login)"
+                placeholder={t("soi.pod.ph.email_lead")}
                 inputMode="email"
                 className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
               />
@@ -1041,9 +1047,9 @@ export default function SoISessionPage() {
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-anchor">
               <div className="font-medium">Plan</div>
               <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="pod-baseline">
-                <input type="number" min="0" step="0.25" value={baselineHrs} onChange={(e) => setBaselineHrs(e.target.value)} placeholder="hours" aria-label="planned hours" data-testid="baseline-hours"
+                <input type="number" min="0" step="0.25" value={baselineHrs} onChange={(e) => setBaselineHrs(e.target.value)} placeholder={t("soi.pod.ph.hours")} aria-label={t("soi.pod.ph.planned_hours")} data-testid="baseline-hours"
                   className="w-24 min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
-                <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} aria-label="multiple" data-testid="anchor-multiple"
+                <select value={bandM} onChange={(e) => setBandM(Number(e.target.value))} aria-label={t("soi.pod.ph.multiple")} data-testid="anchor-multiple"
                   className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
                   {BANDS.map((b) => <option key={b.m} value={b.m}>{b.label}</option>)}
                 </select>
@@ -1054,7 +1060,7 @@ export default function SoISessionPage() {
                     Use {suggestedRegion.name}?
                   </button>
                 )}
-                <select value={signerIdx} onChange={(e) => setSignerIdx(Number(e.target.value))} aria-label="signed by" data-testid="baseline-signer" className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
+                <select value={signerIdx} onChange={(e) => setSignerIdx(Number(e.target.value))} aria-label={t("soi.pod.ph.signed_by")} data-testid="baseline-signer" className="min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm">
                   {members.map((m, i) => <option key={i} value={i}>signed by {m.name.trim() || m.role}</option>)}
                 </select>
               </div>
@@ -1094,7 +1100,7 @@ export default function SoISessionPage() {
                           <td className="px-2 py-1">{j.name}</td>
                           <td className="px-2 py-1 text-right tabular-nums">{j.rate !== null ? j.rate.toFixed(3) : "—"}</td>
                           <td className="px-2 py-1 text-muted-foreground">{j.currency}</td>
-                          <td className="px-2 py-1 text-muted-foreground">{j.dataset ? <>dataset {j.dataset.asOf} · {j.dataset.verified ? "verified" : "unverified"} · {j.dataset.scope}{j.dataset.effective ? ` · from ${j.dataset.effective}` : ""}</> : j.source}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{j.dataset ? <>dataset {j.dataset.asOf} · {j.dataset.verified ? "verified" : "unverified"} · {j.dataset.scope}{j.dataset.effective ? ` · from ${j.dataset.effective}` : ""}</> : SOURCE_LABEL[j.source] ?? "the platform table"}</td>
                           <td className="px-2 py-1 text-muted-foreground">{j.note}{j.history.length ? <> <span className="opacity-70">{j.history.join(" ")}</span></> : null}</td>
                         </tr>
                       ))}
@@ -1188,12 +1194,12 @@ export default function SoISessionPage() {
                       <div className="grid gap-2 sm:grid-cols-2">
                         <input
                           value={m.contact} onChange={(e) => setMember(i, { contact: e.target.value })}
-                          placeholder="email (imports from login)" inputMode="email"
+                          placeholder={t("soi.pod.ph.email")} inputMode="email"
                           className="rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
                         />
                         <input
                           value={m.name} onChange={(e) => setMember(i, { name: e.target.value })}
-                          placeholder="enter your name" data-testid={`member-name-${i}`}
+                          placeholder={t("soi.pod.ph.seat_name")} data-testid={`member-name-${i}`}
                           className="rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
                         />
                       </div>
@@ -1228,7 +1234,7 @@ export default function SoISessionPage() {
                     {!m.agreed && m.name.trim() && canEdit(i) && (
                       <input
                         value={m.recommend} onChange={(e) => setMember(i, { recommend: e.target.value })}
-                        placeholder="…or comment a change (goes to the lead)"
+                        placeholder={t("soi.pod.ph.comment")}
                         className="mt-2 w-full rounded-md border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-ring"
                       />
                     )}
@@ -1253,7 +1259,7 @@ export default function SoISessionPage() {
               >
                 {t("soi.pod.ui.accept")}
               </button>
-              <button onClick={() => { setMembers((ms) => ms.map((m) => ({ ...m, agreed: false, agreedTo: null }))); setPhase("compose"); }} className="rounded-md border border-border px-4 py-2 text-sm">
+              <button disabled={leadOnly} onClick={() => { setMembers((ms) => ms.map((m) => ({ ...m, agreed: false, agreedTo: null }))); setPhase("compose"); }} className="disabled:opacity-50 rounded-md border border-border px-4 py-2 text-sm">
                 Back to edit (apply recommendations — every approval is cleared, the plan is re-accepted)
               </button>
             </div>
@@ -1291,12 +1297,12 @@ export default function SoISessionPage() {
                   {span.segments.length === 0 ? "All three are ready. Start the clock to begin the work." : span.running ? "Clock running — the platform is witnessing this time." : "Clock stopped — add time, or record the outcome."}
                 </div>
                 {/* the platform's own reading — this, not a typed number, is what 웃 may be minted for (§14 unit.witness) */}
-                <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="pod-clock" aria-label="time this pod has been witnessed">{hhmmss(span.ms)}</div>
+                <div className="font-mono text-2xl tabular-nums text-cyan-500" data-testid="pod-clock" aria-label={t("soi.pod.ph.clock")}>{hhmmss(span.ms)}</div>
               </div>
               {/* The brief stays on screen while the work happens — a late third must never work blind (Sofia, wave 3). */}
               <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent || "—"}</p>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Measurable outcome:</span> {outcome || "—"}</p>
-              <p className="text-muted-foreground">Plan: <span className="font-medium text-foreground">{lock ? `${lock.hours} h at ${lock.m}× = 웃 ${lock.yug.toFixed(3)}` : "—"}</span> · the clock is the evidence, and only clocked time can settle.</p>
+              <p className="text-muted-foreground">Plan: <span className="font-medium text-foreground">{lock ? `${fmtH(lock.hours)} h at ${lock.m}× = 웃 ${lock.yug.toFixed(3)}` : "—"}</span> · the clock is the evidence, and only clocked time can settle.</p>
               {span.segments.length > 0 && (
                 <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground" data-testid="pod-segments">
                   {span.segments.map((g, k) => (
@@ -1337,7 +1343,7 @@ export default function SoISessionPage() {
             {recordMethod === "video" ? (
               <input
                 value={recordValue} onChange={(e) => setRecordValue(e.target.value)}
-                placeholder="https://youtu.be/…  (unlisted)"
+                placeholder={t("soi.pod.ph.video")}
                 className="mb-4 w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
               />
             ) : (
@@ -1368,7 +1374,7 @@ export default function SoISessionPage() {
                 )}
                 <textarea
                   value={recordValue} onChange={(e) => setRecordValue(e.target.value)} rows={3} data-testid="pod-record"
-                  placeholder={recordMethod === "voice" ? "Tap “Speak the outcome”, or type it here…" : "Write the outcome…"}
+                  placeholder={recordMethod === "voice" ? t("soi.pod.ph.record_voice") : t("soi.pod.ph.record")}
                   className="mb-1 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
                 />
                 {recordMethod === "voice" && voice.interim && (
@@ -1390,7 +1396,7 @@ export default function SoISessionPage() {
                     <span className="w-28 shrink-0 text-xs text-muted-foreground">{m.name.trim() || m.role}</span>
                     <input
                       value={m.outcome} onChange={(e) => setMember(i, { outcome: e.target.value })} disabled={!canEdit(i)}
-                      placeholder="what the work produced, in your words" data-testid={`member-outcome-${i}`}
+                      placeholder={t("soi.pod.ph.own_outcome")} data-testid={`member-outcome-${i}`}
                       className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                     />
                   </div>
@@ -1419,7 +1425,7 @@ export default function SoISessionPage() {
             {/* the eight-step evidence chain, with progress — folded: an explanation, not an action (operator 2026-09-12) */}
             <details className="mb-4 rounded-lg border border-border p-3" data-testid="details-evidence"><summary className="cursor-pointer text-xs text-muted-foreground">{t("soi.pod.guide.details")} — the evidence chain</summary>
             <div className="mt-2">
-              <div className="mb-2 text-sm font-medium">{t("soi.pod.ui.evidence")} <span className="text-xs font-normal text-muted-foreground">— clock-in → cross-review (TOK-17)</span></div>
+              <div className="mb-2 text-sm font-medium">{t("soi.pod.ui.evidence")} <span className="text-xs font-normal text-muted-foreground">— clock-in → cross-review</span></div>
               <ol className="grid gap-1.5 sm:grid-cols-2">
                 {EVIDENCE_CHAIN.map((s) => {
                   const done = s.step <= 5 || (s.key === "selfaudit" && allSelfAudited) || (s.key === "crossreview" && allWitnessed) || (s.key === "mint" && allWitnessed);
@@ -1450,14 +1456,14 @@ export default function SoISessionPage() {
                     <input
                       type="number" min="0" step="0.25" value={m.hours} disabled={!canEdit(i)}
                       onChange={(e) => setMember(i, { hours: e.target.value })}
-                      placeholder="hours" data-testid={`audit-hours-${i}`} className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                      placeholder={t("soi.pod.ph.hours")} data-testid={`audit-hours-${i}`} className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                     />
                     {claimOf(i).capped && (
                       <span className="text-[11px] text-amber-500" data-testid={`claim-capped-${i}`}>counted as {fmtH(claimOf(i).hours)} h — the pod was witnessed for {hhmmss(span.ms)}</span>
                     )}
                     <input
                       value={m.did} onChange={(e) => setMember(i, { did: e.target.value })} disabled={!canEdit(i)}
-                      placeholder="what you did (one line)" data-testid={`audit-did-${i}`}
+                      placeholder={t("soi.pod.ph.did")} data-testid={`audit-did-${i}`}
                       className="min-w-[10rem] flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
@@ -1487,7 +1493,7 @@ export default function SoISessionPage() {
                 <div className="min-h-[44px] rounded-md border border-border bg-muted px-2 py-1.5 text-sm" data-testid="band-locked">
                   {M}× — {bandFor(M)?.purpose ?? "a published multiple"}{lock ? ` · accepted before the work, ${lock.source}, locked ${new Date(lock.signedAt).toLocaleString()}` : " · proposal (no lock)"}
                 </div>
-                <input type="number" min="0" step="1" value={carriedIn} onChange={(e) => setCarriedIn(e.target.value)} placeholder="웃 already earned" data-testid="carried-in"
+                <input type="number" min="0" step="1" value={carriedIn} onChange={(e) => setCarriedIn(e.target.value)} placeholder={t("soi.pod.ph.carried")} data-testid="carried-in"
                   className="w-40 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring" />
               </div>
 
@@ -1565,7 +1571,7 @@ export default function SoISessionPage() {
                 const a = accelerate(lock, witnessedHours, conds);
                 return (
                   <>
-                    <p className="text-xs text-muted-foreground">Locked at <span className="font-medium text-foreground">{lock.hours} h</span> by <span className="font-medium text-foreground">{lock.signedBy}</span>, reference <span className="font-mono">{lock.hash.slice(0, 8)}</span>. Witnessed: <span className="font-medium text-foreground">{fmtH(witnessedHours)} h</span>.</p>
+                    <p className="text-xs text-muted-foreground">Locked at <span className="font-medium text-foreground">{fmtH(lock.hours)} h</span> by <span className="font-medium text-foreground">{lock.signedBy}</span>. Witnessed: <span className="font-medium text-foreground">{fmtH(witnessedHours)} h</span>.</p>
                     <p className={`mt-1 text-sm font-medium ${a.delta > 0 ? "text-cyan-500" : "text-amber-500"}`} data-testid="accel-delta">{a.delta > 0 ? `${fmtH(a.delta)} h earlier than the estimate` : a.delta < 0 ? `${fmtH(Math.abs(a.delta))} h longer than the estimate — recorded, not hidden` : "exactly the estimate"}</p>
                     <div className="mt-2 grid gap-1">
                       {CONDITION_IDS.map((k) => (
@@ -1597,12 +1603,12 @@ export default function SoISessionPage() {
                 {RUNGS.map((r) => <option key={r.id} value={r.id}>{RUNG_LABEL[r.id]}</option>)}
               </select>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-hearts">
-                ♡ <span className="font-medium text-foreground">{hearts}</span> <span className="font-mono">{fmtABC(hearts)}</span> from the outcome{totalYugYok > 0 ? <> · none from the {witnessedHours} h, which settle as 웃</> : null}.
+                ♡ <span className="font-medium text-foreground">{hearts}</span> <span className="font-mono">{fmtABC(hearts)}</span> from the outcome{totalYugYok > 0 ? <> · none from the {fmtH(witnessedHours)} h, which settle as 웃</> : null}.
               </p>
             </div>
 
             <div className="mb-3 rounded-md border border-border p-3 text-sm">
-              <span className="font-medium text-foreground">{witnessedHours} witnessed hours <span className="font-mono text-xs text-muted-foreground">· hours {fmtABC(witnessedHours)}</span></span>{" "}<span className="text-xs text-muted-foreground" data-testid="pod-mot">· MoT clocked <span className="font-mono">{fmtABC(measuredHours)}</span> ({hhmmss(span.ms)})</span>
+              <span className="font-medium text-foreground">{fmtH(witnessedHours)} witnessed hours <span className="font-mono text-xs text-muted-foreground">· hours {fmtABC(witnessedHours)}</span></span>{" "}<span className="text-xs text-muted-foreground" data-testid="pod-mot">· the platform clocked <span className="font-mono">{fmtABC(measuredHours)}</span> ({hhmmss(span.ms)})</span>
               <span className="text-muted-foreground"> → {totalYugYok.toFixed(3)} &#50883; would settle (웃 = M × T, M={M}), each capped at 9,999/yr with rollforward. Only witnessed hours count.</span>
             </div>
 
@@ -1651,7 +1657,7 @@ export default function SoISessionPage() {
                 )}
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
                 <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {M}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
-                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · {t("soi.pod.ui.r_drawn")}</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
+                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · {t("soi.pod.ui.r_drawn")}</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{(Number(stand.earned.toFixed(3)) - Number(tranches.floor.toFixed(3))).toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
                 <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
                 <li data-testid="receipt-outcomes"><span className="font-medium text-foreground">5a · {t("soi.pod.ui.r_outcomes")}</span>{" "}
                   {members.map((m, i) => <span key={i} data-testid={`receipt-outcome-${i}`}>{i > 0 ? " · " : ""}<span className="font-medium text-foreground">{firstOf(m.name) || m.role}:</span> {m.outcome.trim() || "—"}</span>)}
@@ -1677,7 +1683,7 @@ export default function SoISessionPage() {
 
             {/* TOK-26 — one record, four artefacts */}
             <div className="rounded-lg border border-border p-4">
-              <div className="mb-2 text-sm font-medium">The receipt <span className="text-xs font-normal text-muted-foreground">— one ledger record, read four ways (TOK-26)</span></div>
+              <div className="mb-2 text-sm font-medium">The receipt <span className="text-xs font-normal text-muted-foreground">— one ledger record, read four ways</span></div>
               <dl className="space-y-2 text-xs">
                 {([
                   ["Transcript", receipt.transcript],
@@ -1718,8 +1724,8 @@ export default function SoISessionPage() {
               </div>
               <p className="mt-2 text-[10px] text-muted-foreground">
                 {synthesisSource === "ai"
-                  ? "Written by Cube 6 (Gemini/OpenAI) from the recorded outcome."
-                  : "Manual mode — deterministic synthesis grounded in the pod’s own record. Cube 6 (Gemini/OpenAI) writes these tiers once the AI backend is online (Semi-Automated → Autonomous)."}
+                  ? t("soi.pod.ui.synth_ai")
+                  : t("soi.pod.ui.synth_local")}
               </p>
             </div>
 
@@ -1752,7 +1758,7 @@ export default function SoISessionPage() {
         <div className="fixed inset-x-0 bottom-14 z-[60] mx-auto flex max-w-3xl items-center gap-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden" data-testid="pod-strip">
           <span className="min-w-0 flex-1 truncate">{intent || t("soi.pod.strip.no_intent")}</span>
           <span className="rounded-full border px-2 py-0.5 text-[10px] uppercase" style={{ borderColor: hue.bright, color: hue.bright }}>{t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}</span>
-          {phase === "active" && <button type="button" onClick={stopAndRecord} className="min-h-[36px] rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("soi.pod.strip.stop")}</button>}
+          {phase === "active" && <button type="button" onClick={stopAndRecord} disabled={span.segments.length === 0} className="min-h-[36px] disabled:opacity-50 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">{t("soi.pod.strip.stop")}</button>}
         </div>
       )}
 

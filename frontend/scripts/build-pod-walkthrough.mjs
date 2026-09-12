@@ -50,8 +50,8 @@ const STEPS = [
     lead: { press: 'Read lines 1–6: Recorded · Plan → actual · Witnessed · Settles · Drawn & held · ♡ · 5a outcomes · 5b each at their own floor (local currency, USA equivalent, GPS) · Stamped.', expect: 'Lea $ · Ana R$ with a hi_rates.py USD floor beside · Bo ₱ with "awaiting a dated exchange-rate source".' },
     ana: { press: 'Same receipt, your own line in reais, your GPS fix as "a supplement to the elected place".', expect: '' },
     bo: { press: 'Same receipt, your line in pesos.', expect: '' } },
-  { key: '09-synthesis', title: 'The 333-word synthesis', screen: 'Closed',
-    lead: { press: 'Scroll to "333-word synthesis — Results · What changed · What next". Nothing to press: it is written from the pod\'s own record the moment the receipt issues.', expect: `${W.synthesis.lead.counts.join(' + ')} = ${W.synthesis.lead.total} words on this phone.` },
+  { key: '09-synthesis', title: 'The synthesis', screen: 'Closed',
+    lead: { press: 'Scroll to "Synthesis — Results · What changed · What next". Nothing to press: it is written from the pod\'s own record the moment the receipt issues.', expect: `${W.synthesis.lead.counts.join(' + ')} = ${W.synthesis.lead.total} words on this phone.` },
     ana: { press: 'Same three paragraphs, word for word.', expect: `${W.synthesis.ana.total} words.` }, bo: { press: 'Same three paragraphs, word for word.', expect: `${W.synthesis.bo.total} words.` } },
 ];
 
@@ -108,11 +108,11 @@ textarea{width:100%;background:var(--surface);color:var(--ink);border:1px solid 
 </style>
 <div class="wrap">
 <h1>${ASSIST ? 'Pod Walkthrough — Advised Members' : 'Pod Walkthrough — Three Phones'}</h1>
-<p class="lede">How three people take one task from a plan to a receipt and its 333-word synthesis on the SoI pod. Every screenshot below is one person's own phone at that step, from a real run over the app's live channel; nothing is a mock-up.${ASSIST ? ' The three members are simulated: each was advised by four reviewers whose drafts and reconciliation are shown under step 3, and whose words the phones typed.' : ''}</p>
+<p class="lede">How three people take one task from a plan to a receipt and its synthesis (about 333 words) on the SoI pod. Every screenshot below is one person's own phone at that step, from a real run over the app's live channel; nothing is a mock-up.${ASSIST ? ' The three members are simulated: each was advised by four reviewers whose drafts and reconciliation are shown under step 3, and whose words the phones typed.' : ''}</p>
 <div class="meta"><span>run <b>2026-09-12</b></span><span>pod code <b>${esc(W.code)}</b></span><span>steps <b>${steps}</b> · failures <b>${fails}</b></span><span>build <b>${sha}</b></span><span>phones <b>Lea · Ana · Bo</b> (375×812, emulated)</span></div>
 ${STEPS.map(stepHtml).join('\n')}
 <section class="synth" id="synthesis">
-  <h2>The 333-word synthesis, as issued</h2>
+  <h2>The synthesis, as issued (about 333 words)</h2>
   <p class="tot">Counted from the screen on each phone: Lea ${W.synthesis.lead.counts.join(' + ')} = ${W.synthesis.lead.total} · Ana ${W.synthesis.ana.total} · Bo ${W.synthesis.bo.total} — identical word for word. Three paragraphs summing to about 333 (the ruling of 2026-08-19: not exactly 111 each). Source: ${esc(synth.source)} — Cube 6 writes it once the AI backend is online.</p>
   ${[['Results', 0], ['What changed', 1], ['What next', 2]].map(([h, i]) => `<div class="para"><h3>${h}<span>${synth.counts[i]} words</span></h3><p>${esc(synth.paragraphs[i])}</p></div>`).join('')}
   <h2 style="margin-top:26px">The three outcomes, one per member</h2>
