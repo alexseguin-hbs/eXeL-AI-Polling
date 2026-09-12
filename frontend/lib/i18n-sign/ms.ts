@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Salin pautan",
   "soi.pod.ui.link_copied": "Pautan disalin",
   "soi.pod.guide.a.agree_first": "Luluskan rancangan — dua yang lain boleh menyertai sementara itu",
+  "soi.pod.ui.max_screen": "Skrin penuh",
+  "soi.pod.ui.max_close": "Tutup",
+  "soi.pod.ui.lead_hint": "Dua yang lain mengimbas QR dan menaip nama mereka.",
+  "soi.pod.ui.scan_hint": "Minta dua orang mengimbas ini, atau hantar pautan kepada mereka.",
+  "soi.pod.ui.trio_hint": "Setiap seorang: taip nama anda, pilih di mana anda berada, dan tandakan Setuju.",
+  "soi.pod.ui.why_three": "Mengapa tiga?",
+  "soi.pod.ui.gps_location": "Lokasi GPS",
+  "soi.pod.ui.signal_location": "Lokasi Isyarat (bagi Alamat IP)",
+  "soi.pod.ui.use_it": "guna",
+  "soi.pod.ui.more": "keahlian dan senarai CRS",
 };
 export default T;

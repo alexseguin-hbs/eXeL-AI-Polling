@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "ਲਿੰਕ ਕਾਪੀ ਕਰੋ",
   "soi.pod.ui.link_copied": "ਲਿੰਕ ਕਾਪੀ ਹੋ ਗਿਆ",
   "soi.pod.guide.a.agree_first": "ਯੋਜਨਾ ਮਨਜ਼ੂਰ ਕਰੋ — ਇਸੇ ਦੌਰਾਨ ਬਾਕੀ ਦੋ ਸ਼ਾਮਲ ਹੋ ਸਕਦੇ ਹਨ",
+  "soi.pod.ui.max_screen": "ਪੂਰੀ ਸਕਰੀਨ",
+  "soi.pod.ui.max_close": "ਬੰਦ ਕਰੋ",
+  "soi.pod.ui.lead_hint": "ਬਾਕੀ ਦੋ QR ਸਕੈਨ ਕਰਦੇ ਹਨ ਤੇ ਆਪਣਾ ਨਾਂ ਲਿਖਦੇ ਹਨ।",
+  "soi.pod.ui.scan_hint": "ਦੋ ਜਣਿਆਂ ਨੂੰ ਇਹ ਸਕੈਨ ਕਰਨ ਲਈ ਕਹੋ, ਜਾਂ ਉਨ੍ਹਾਂ ਨੂੰ ਲਿੰਕ ਭੇਜੋ।",
+  "soi.pod.ui.trio_hint": "ਤੁਹਾਡੇ ਵਿੱਚੋਂ ਹਰ ਕੋਈ: ਆਪਣਾ ਨਾਂ ਲਿਖੋ, ਨਿਪਟਾਰੇ ਦੀ ਥਾਂ ਚੁਣੋ, ਤੇ ਸਹਿਮਤੀ ’ਤੇ ਨਿਸ਼ਾਨ ਲਾਓ।",
+  "soi.pod.ui.why_three": "ਤਿੰਨ ਹੀ ਕਿਉਂ?",
+  "soi.pod.ui.gps_location": "GPS ਟਿਕਾਣਾ",
+  "soi.pod.ui.signal_location": "ਸਿਗਨਲ ਟਿਕਾਣਾ (IP ਪਤੇ ਦਾ)",
+  "soi.pod.ui.use_it": "ਇਹ ਵਰਤੋ",
+  "soi.pod.ui.more": "ਮੈਂਬਰ ਅਤੇ CRS ਸੂਚੀ",
 };
 export default T;

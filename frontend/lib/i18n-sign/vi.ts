@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Sao chép liên kết",
   "soi.pod.ui.link_copied": "Đã sao chép liên kết",
   "soi.pod.guide.a.agree_first": "Đồng ý với kế hoạch — trong lúc đó hai người kia có thể tham gia",
+  "soi.pod.ui.max_screen": "Toàn màn hình",
+  "soi.pod.ui.max_close": "Đóng",
+  "soi.pod.ui.lead_hint": "Hai người kia quét QR và nhập tên của mình.",
+  "soi.pod.ui.scan_hint": "Nhờ hai người quét mã này, hoặc gửi liên kết cho họ.",
+  "soi.pod.ui.trio_hint": "Mỗi người: nhập tên bạn, chọn nơi bạn quyết toán, và tích Đồng ý.",
+  "soi.pod.ui.why_three": "Vì sao là ba?",
+  "soi.pod.ui.gps_location": "Vị trí GPS",
+  "soi.pod.ui.signal_location": "Vị trí tín hiệu (của địa chỉ IP)",
+  "soi.pod.ui.use_it": "dùng vị trí này",
+  "soi.pod.ui.more": "thành viên và danh sách CRS",
 };
 export default T;

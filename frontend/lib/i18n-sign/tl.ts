@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Kopyahin ang link",
   "soi.pod.ui.link_copied": "Nakopya ang link",
   "soi.pod.guide.a.agree_first": "Aprubahan ang plano — makakasali ang dalawa pa habang naghihintay",
+  "soi.pod.ui.max_screen": "Buong screen",
+  "soi.pod.ui.max_close": "Isara",
+  "soi.pod.ui.lead_hint": "Ang dalawa pa ay mag-i-scan ng QR at magta-type ng pangalan nila.",
+  "soi.pod.ui.scan_hint": "Pakiusapan ang dalawang tao na i-scan ito, o ipadala sa kanila ang link.",
+  "soi.pod.ui.trio_hint": "Bawat isa sa inyo: i-type ang pangalan mo, piliin kung saan ka naroroon, at tsekan ang Aprubahan.",
+  "soi.pod.ui.why_three": "Bakit tatlo?",
+  "soi.pod.ui.gps_location": "Lokasyon ng GPS",
+  "soi.pod.ui.signal_location": "Lokasyon ng Signal (ng IP Address)",
+  "soi.pod.ui.use_it": "gamitin ito",
+  "soi.pod.ui.more": "kasapian at ang listahan ng CRS",
 };
 export default T;

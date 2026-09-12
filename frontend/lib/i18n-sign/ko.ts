@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "링크 복사",
   "soi.pod.ui.link_copied": "링크 복사됨",
   "soi.pod.guide.a.agree_first": "계획을 승인하세요 — 그동안 나머지 두 사람이 참여할 수 있습니다",
+  "soi.pod.ui.max_screen": "전체 화면",
+  "soi.pod.ui.max_close": "닫기",
+  "soi.pod.ui.lead_hint": "나머지 두 사람은 QR을 스캔하고 자기 이름을 입력합니다.",
+  "soi.pod.ui.scan_hint": "두 사람에게 이걸 스캔해 달라고 하거나, 링크를 보내세요.",
+  "soi.pod.ui.trio_hint": "각자: 이름을 입력하고, 정산할 곳을 고르고, 동의에 체크하세요.",
+  "soi.pod.ui.why_three": "왜 셋인가요?",
+  "soi.pod.ui.gps_location": "GPS 위치",
+  "soi.pod.ui.signal_location": "신호 위치(IP 주소 기준)",
+  "soi.pod.ui.use_it": "이 위치 쓰기",
+  "soi.pod.ui.more": "구성원과 CRS 목록",
 };
 export default T;

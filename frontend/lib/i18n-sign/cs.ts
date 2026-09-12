@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Kopírovat odkaz",
   "soi.pod.ui.link_copied": "Odkaz zkopírován",
   "soi.pod.guide.a.agree_first": "Schvalte plán — další dva se zatím mohou připojit",
+  "soi.pod.ui.max_screen": "Celá obrazovka",
+  "soi.pod.ui.max_close": "Zavřít",
+  "soi.pod.ui.lead_hint": "Zbylí dva naskenují QR a napíšou své jméno.",
+  "soi.pod.ui.scan_hint": "Požádejte dva lidi, ať to naskenují, nebo jim pošlete odkaz.",
+  "soi.pod.ui.trio_hint": "Každý z vás: napište své jméno, zvolte, kde vypořádáváte, a zaškrtněte souhlas.",
+  "soi.pod.ui.why_three": "Proč tři?",
+  "soi.pod.ui.gps_location": "Poloha GPS",
+  "soi.pod.ui.signal_location": "Poloha signálu (IP adresy)",
+  "soi.pod.ui.use_it": "použít",
+  "soi.pod.ui.more": "členství a seznam CRS",
 };
 export default T;

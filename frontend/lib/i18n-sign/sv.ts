@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Kopiera länk",
   "soi.pod.ui.link_copied": "Länk kopierad",
   "soi.pod.guide.a.agree_first": "Godkänn planen – de andra två kan gå med under tiden",
+  "soi.pod.ui.max_screen": "Helskärm",
+  "soi.pod.ui.max_close": "Stäng",
+  "soi.pod.ui.lead_hint": "De två andra skannar QR-koden och skriver sitt namn.",
+  "soi.pod.ui.scan_hint": "Be två personer skanna den här, eller skicka dem länken.",
+  "soi.pod.ui.trio_hint": "Var och en av er: skriv ditt namn, välj var du reglerar och kryssa i godkännandet.",
+  "soi.pod.ui.why_three": "Varför tre?",
+  "soi.pod.ui.gps_location": "GPS-plats",
+  "soi.pod.ui.signal_location": "Signalplats (för IP-adressen)",
+  "soi.pod.ui.use_it": "använd den",
+  "soi.pod.ui.more": "medlemskap och CRS-listan",
 };
 export default T;

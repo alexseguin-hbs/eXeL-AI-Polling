@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Bağlantıyı kopyala",
   "soi.pod.ui.link_copied": "Bağlantı kopyalandı",
   "soi.pod.guide.a.agree_first": "Planı onayla — diğer ikisi bu arada katılabilir",
+  "soi.pod.ui.max_screen": "Tam ekran",
+  "soi.pod.ui.max_close": "Kapat",
+  "soi.pod.ui.lead_hint": "Diğer ikisi QR'ı tarar ve adını yazar.",
+  "soi.pod.ui.scan_hint": "İki kişiden bunu taramasını iste ya da onlara bağlantıyı gönder.",
+  "soi.pod.ui.trio_hint": "Her biriniz: adını yaz, nerede olduğunu seç ve Onayla'yı işaretle.",
+  "soi.pod.ui.why_three": "Neden üç?",
+  "soi.pod.ui.gps_location": "GPS Konumu",
+  "soi.pod.ui.signal_location": "Sinyal Konumu (IP Adresinin)",
+  "soi.pod.ui.use_it": "kullan",
+  "soi.pod.ui.more": "üyelik ve CRS listesi",
 };
 export default T;

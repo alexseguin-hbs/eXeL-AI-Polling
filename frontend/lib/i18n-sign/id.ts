@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Salin tautan",
   "soi.pod.ui.link_copied": "Tautan tersalin",
   "soi.pod.guide.a.agree_first": "Setujui rencananya — dua orang lain bisa bergabung sementara itu",
+  "soi.pod.ui.max_screen": "Layar penuh",
+  "soi.pod.ui.max_close": "Tutup",
+  "soi.pod.ui.lead_hint": "Dua orang lainnya memindai QR dan mengetik nama mereka.",
+  "soi.pod.ui.scan_hint": "Minta dua orang memindai ini, atau kirimkan tautannya kepada mereka.",
+  "soi.pod.ui.trio_hint": "Masing-masing: ketik nama Anda, pilih di mana Anda berada, lalu centang Setujui.",
+  "soi.pod.ui.why_three": "Mengapa tiga?",
+  "soi.pod.ui.gps_location": "Lokasi GPS",
+  "soi.pod.ui.signal_location": "Lokasi Sinyal (dari Alamat IP)",
+  "soi.pod.ui.use_it": "gunakan",
+  "soi.pod.ui.more": "keanggotaan dan daftar CRS",
 };
 export default T;

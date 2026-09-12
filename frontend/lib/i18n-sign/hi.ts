@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "लिंक कॉपी करें",
   "soi.pod.ui.link_copied": "लिंक कॉपी हो गया",
   "soi.pod.guide.a.agree_first": "योजना को मंज़ूरी दें — बाकी दो इस बीच जुड़ सकते हैं",
+  "soi.pod.ui.max_screen": "पूरी स्क्रीन",
+  "soi.pod.ui.max_close": "बंद करें",
+  "soi.pod.ui.lead_hint": "बाकी दो QR स्कैन करते हैं और अपना नाम लिखते हैं।",
+  "soi.pod.ui.scan_hint": "दो लोगों से इसे स्कैन करने को कहें, या उन्हें लिंक भेजें।",
+  "soi.pod.ui.trio_hint": "आप में से हर कोई: अपना नाम लिखें, निपटान की जगह चुनें, और सहमति पर निशान लगाएँ।",
+  "soi.pod.ui.why_three": "तीन ही क्यों?",
+  "soi.pod.ui.gps_location": "GPS स्थान",
+  "soi.pod.ui.signal_location": "सिग्नल स्थान (IP पते का)",
+  "soi.pod.ui.use_it": "इसे इस्तेमाल करें",
+  "soi.pod.ui.more": "सदस्य और CRS सूची",
 };
 export default T;

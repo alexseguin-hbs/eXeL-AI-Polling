@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Copiază linkul",
   "soi.pod.ui.link_copied": "Link copiat",
   "soi.pod.guide.a.agree_first": "Acceptă planul — ceilalți doi se pot alătura între timp",
+  "soi.pod.ui.max_screen": "Ecran complet",
+  "soi.pod.ui.max_close": "Închide",
+  "soi.pod.ui.lead_hint": "Ceilalți doi scanează QR-ul și își scriu numele.",
+  "soi.pod.ui.scan_hint": "Roagă două persoane să scaneze asta sau trimite-le linkul.",
+  "soi.pod.ui.trio_hint": "Fiecare dintre voi: scrie-ți numele, alege unde te afli și bifează Aprobă.",
+  "soi.pod.ui.why_three": "De ce trei?",
+  "soi.pod.ui.gps_location": "Locație GPS",
+  "soi.pod.ui.signal_location": "Locația semnalului (a adresei IP)",
+  "soi.pod.ui.use_it": "folosește-o",
+  "soi.pod.ui.more": "componența și lista CRS",
 };
 export default T;

@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Nakili kiungo",
   "soi.pod.ui.link_copied": "Kiungo kimenakiliwa",
   "soi.pod.guide.a.agree_first": "Kubali mpango — wale wengine wawili wanaweza kujiunga wakati huohuo",
+  "soi.pod.ui.max_screen": "Skrini nzima",
+  "soi.pod.ui.max_close": "Funga",
+  "soi.pod.ui.lead_hint": "Wale wengine wawili wanaskani QR na kuandika jina lao.",
+  "soi.pod.ui.scan_hint": "Waombe watu wawili waiskani hii, au watumie kiungo.",
+  "soi.pod.ui.trio_hint": "Kila mmoja wenu: andika jina lako, chagua mahali unapomaliza, na tiki kibali.",
+  "soi.pod.ui.why_three": "Kwa nini watatu?",
+  "soi.pod.ui.gps_location": "Mahali pa GPS",
+  "soi.pod.ui.signal_location": "Mahali pa Ishara (ya Anwani ya IP)",
+  "soi.pod.ui.use_it": "itumie",
+  "soi.pod.ui.more": "uanachama na orodha ya CRS",
 };
 export default T;

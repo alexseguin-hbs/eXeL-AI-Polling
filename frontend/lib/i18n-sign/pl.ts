@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Skopiuj link",
   "soi.pod.ui.link_copied": "Skopiowano link",
   "soi.pod.guide.a.agree_first": "Zatwierdź plan — pozostała dwójka może w tym czasie dołączyć",
+  "soi.pod.ui.max_screen": "Pełny ekran",
+  "soi.pod.ui.max_close": "Zamknij",
+  "soi.pod.ui.lead_hint": "Pozostała dwójka skanuje QR i wpisuje swoje imię.",
+  "soi.pod.ui.scan_hint": "Poproś dwie osoby, żeby to zeskanowały, albo wyślij im link.",
+  "soi.pod.ui.trio_hint": "Każde z was: wpisz swoje imię, wybierz, gdzie jesteś, i zaznacz Zatwierdź.",
+  "soi.pod.ui.why_three": "Dlaczego trzy osoby?",
+  "soi.pod.ui.gps_location": "Lokalizacja GPS",
+  "soi.pod.ui.signal_location": "Lokalizacja sygnału (adresu IP)",
+  "soi.pod.ui.use_it": "użyj",
+  "soi.pod.ui.more": "członkostwo i lista CRS",
 };
 export default T;

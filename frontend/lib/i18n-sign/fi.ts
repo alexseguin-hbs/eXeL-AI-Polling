@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Kopioi linkki",
   "soi.pod.ui.link_copied": "Linkki kopioitu",
   "soi.pod.guide.a.agree_first": "Hyväksy suunnitelma – kaksi muuta voi liittyä sillä välin",
+  "soi.pod.ui.max_screen": "Koko näyttö",
+  "soi.pod.ui.max_close": "Sulje",
+  "soi.pod.ui.lead_hint": "Kaksi muuta skannaavat QR-koodin ja kirjoittavat nimensä.",
+  "soi.pod.ui.scan_hint": "Pyydä kahta ihmistä skannaamaan tämä tai lähetä heille linkki.",
+  "soi.pod.ui.trio_hint": "Jokainen teistä: kirjoita nimesi, valitse missä selvität, ja rastita hyväksyntä.",
+  "soi.pod.ui.why_three": "Miksi kolme?",
+  "soi.pod.ui.gps_location": "GPS-sijainti",
+  "soi.pod.ui.signal_location": "Signaalisijainti (IP-osoitteen)",
+  "soi.pod.ui.use_it": "käytä sitä",
+  "soi.pod.ui.more": "jäsenyys ja CRS-luettelo",
 };
 export default T;

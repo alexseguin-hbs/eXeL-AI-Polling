@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "リンクをコピー",
   "soi.pod.ui.link_copied": "リンクをコピーしました",
   "soi.pod.guide.a.agree_first": "計画を承認してください — その間にほかの 2 人が参加できます",
+  "soi.pod.ui.max_screen": "全画面",
+  "soi.pod.ui.max_close": "閉じる",
+  "soi.pod.ui.lead_hint": "ほかの 2 人は QR をスキャンして名前を入力します。",
+  "soi.pod.ui.scan_hint": "2 人にこれをスキャンしてもらうか、リンクを送ってください。",
+  "soi.pod.ui.trio_hint": "各自：名前を入力し、精算先を選び、「同意」にチェックを入れてください。",
+  "soi.pod.ui.why_three": "なぜ 3 人？",
+  "soi.pod.ui.gps_location": "GPS 位置情報",
+  "soi.pod.ui.signal_location": "信号位置（IP アドレスによる）",
+  "soi.pod.ui.use_it": "これを使う",
+  "soi.pod.ui.more": "メンバー構成と CRS 一覧",
 };
 export default T;

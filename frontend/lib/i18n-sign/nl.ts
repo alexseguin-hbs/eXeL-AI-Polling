@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Link kopiëren",
   "soi.pod.ui.link_copied": "Link gekopieerd",
   "soi.pod.guide.a.agree_first": "Keur het plan goed — de andere twee kunnen ondertussen aansluiten",
+  "soi.pod.ui.max_screen": "Volledig scherm",
+  "soi.pod.ui.max_close": "Sluiten",
+  "soi.pod.ui.lead_hint": "De andere twee scannen de QR en typen hun naam.",
+  "soi.pod.ui.scan_hint": "Vraag twee mensen dit te scannen, of stuur ze de link.",
+  "soi.pod.ui.trio_hint": "Ieder van jullie: typ je naam, kies waar je je bevindt en vink Instemmen aan.",
+  "soi.pod.ui.why_three": "Waarom drie?",
+  "soi.pod.ui.gps_location": "GPS-locatie",
+  "soi.pod.ui.signal_location": "Signaallocatie (van het IP-adres)",
+  "soi.pod.ui.use_it": "gebruiken",
+  "soi.pod.ui.more": "de leden en de CRS-lijst",
 };
 export default T;

@@ -473,5 +473,15 @@ const T: Record<string, string> = {
   "soi.pod.ui.copy_link": "Αντιγραφή συνδέσμου",
   "soi.pod.ui.link_copied": "Ο σύνδεσμος αντιγράφηκε",
   "soi.pod.guide.a.agree_first": "Εγκρίνετε το σχέδιο — οι άλλοι δύο μπορούν να μπουν στο μεταξύ",
+  "soi.pod.ui.max_screen": "Πλήρης οθόνη",
+  "soi.pod.ui.max_close": "Κλείσιμο",
+  "soi.pod.ui.lead_hint": "Οι άλλοι δύο σαρώνουν το QR και γράφουν το όνομά τους.",
+  "soi.pod.ui.scan_hint": "Ζητήστε από δύο άτομα να το σαρώσουν ή στείλτε τους τον σύνδεσμο.",
+  "soi.pod.ui.trio_hint": "Ο καθένας σας: γράψτε το όνομά σας, επιλέξτε πού βρίσκεστε και τσεκάρετε το Έγκριση.",
+  "soi.pod.ui.why_three": "Γιατί τρεις;",
+  "soi.pod.ui.gps_location": "Τοποθεσία GPS",
+  "soi.pod.ui.signal_location": "Τοποθεσία σήματος (της διεύθυνσης IP)",
+  "soi.pod.ui.use_it": "χρησιμοποιήστε την",
+  "soi.pod.ui.more": "τα μέλη και η λίστα CRS",
 };
 export default T;
