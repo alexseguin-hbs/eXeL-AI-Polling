@@ -514,7 +514,7 @@ if (measure) {
   ok(hhmmss(m2.ms) === '1:00:00', 'and the person reads 1:00:00');
 }
 ok(/data-testid="pod-clock-toggle"/.test(page), 'ONE BUTTON starts and ends the clock');
-ok(/\{span\.segments\.length === 0 \? "Start the clock" : span\.running \? "Stop the clock" : "Add time"\}/.test(page),
+ok(/\{span\.segments\.length === 0 \? t\("soi\.pod\.guide\.a\.clock_start"\) : span\.running \? t\("soi\.pod\.guide\.a\.clock_stop"\) : t\("soi\.pod\.ui\.add_time"\)\}/.test(page),
    'it reads Start → Stop → Add time');
 ok(/const pressClock = \(kind: ClockEvent\["kind"\]\) =>/.test(page) && /const toggleClock = \(\) => pressClock\(/.test(page) && /const stopAndRecord = \(\) =>/.test(page),
    'one handler for every route');
@@ -564,7 +564,7 @@ ok(/data-testid="band-locked"/.test(page) && !/data-testid="band-select"/.test(p
 ok(/\(parseFloat\(baselineHrs\) \|\| 0\) > 0\);/.test(page.slice(page.indexOf('const canOpen'), page.indexOf('const canOpen') + 400)),
    'a pod cannot open without a plan — every task gets one');
 ok(/m: bandM,\s*\n\s*source: predeterminedPlan/.test(page), 'the multiple is locked WITH the hours when the pod opens');
-ok(/approves the intent, outcome and plan/.test(page), 'each member approves the plan, not only the words');
+ok(/t\("soi\.pod\.ui\.approves"\)/.test(page) && /englishDefault: "approves the intent, outcome and plan"/.test(read('../lib/lexicon-data.ts')), 'each member approves the plan, not only the words — through the lexicon');
 ok(/setMembers\(\(ms\) => ms\.map\(\(m\) => \(\{ \.\.\.m, agreed: false, agreedTo: null \}\)\)\); setPhase\("compose"\)/.test(page),
    'Back to edit clears every approval, so a changed plan is re-accepted by all three');
 ok(/setLock\(e\.state\.lock \?\? null\)/.test(page), 'a reopened pod READS its plan back, never re-derives it');
@@ -636,7 +636,7 @@ if (RATES.JURISDICTIONS && RATES.settleD9) {
 // Bo's pesos. A showcase that stops at the audit screen shows nothing to the person holding the receipt.
 ok(/data-testid="receipt-each"/.test(page) && /data-testid=\{`receipt-member-\$\{i\}`\}/.test(page),
    'the CLOSED receipt carries one settlement line per contributor, in their own currency');
-ok(/Each at their own floor/.test(page) && /electedOwn\(i\) \? "" : ", inherited"/.test(page),
+ok(/t\("soi\.pod\.ui\.r_each"\)/.test(page) && /englishDefault: "Each at their own floor"/.test(read('../lib/lexicon-data.ts')) && /electedOwn\(i\) \? "" : ", inherited"/.test(page),
    'and says which floor was elected and which was inherited');
 ok(/scripts\/pod-time-report\.mjs/.test(read('../scripts/pod-time-report.mjs')) && /heartsFor\(\{ settles웃: false/.test(read('../scripts/pod-time-report.mjs')),
    'the volunteer-vs-paid document runs the shipped clock and mint, and prints the volunteer counterfactual beside the paid pod');

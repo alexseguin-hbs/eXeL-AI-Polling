@@ -9,7 +9,7 @@
 //
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/build-pod-asm-inputs.mjs <fleet.json>
 import fs from 'fs'; import path from 'path';
-import { COUNTRIES, localitiesOf, defaultForCountry } from '../lib/pod-rates.ts';
+import { COUNTRIES, localitiesOf, defaultForCountry, usdEquivalent, findJurisdiction } from '../lib/pod-rates.ts';
 import { BANDS } from '../lib/pod-yug.ts';
 const ROOT = path.resolve(process.cwd(), '..');
 const IN = process.argv[2]; if (!IN) { console.error('usage: build-pod-asm-inputs.mjs <fleet.json>'); process.exit(1); }
@@ -57,6 +57,9 @@ for (const seat of fleet.seats) {
     const podPlace = resolvePlace(`${who} pod place`, f.podPlaceCc, f.podPlaceLocality);
     Object.assign(out, { intent: String(f.intent).trim(), outcome: String(f.outcome).trim(), plan: { hours: f.planHours, m: f.planM, reason: String(f.planReason || '').trim() }, podPlace });
   } else if (seat.key === 'lead' ? false : (f.gpsLat || f.gpsLon) && seat.key !== 'ana') refuse(who, 'only Ana takes a GPS fix');
+  // THE EXPECTED USD ROUTE (fleet 2026-09-12, Odin/Thoth/Aset: an assertion must be able to fail): same-currency, a dated
+  // exchange-rate row, the platform's own USD floor, or none — decided here from the record, asserted exactly by the run.
+  if (place) { const j = findJurisdiction(place.id); const u = usdEquivalent(place.rate === null ? null : place.rate, place.currency, 1, j); out.usdRoute = u ? u.via : 'none'; }
   seats[seat.key] = out;
   seats[seat.key].assist = { drafts: drafts.map((d) => ({ asm: d.asm, lens: d.power, comment: d.comment, words: wc(d.comment), proposed: { place: `${d.placeCc}${d.placeLocality ? ' · ' + d.placeLocality : ''}`, ownOutcome: d.ownOutcome, auditHours: d.auditHours, ...(seat.key === 'lead' ? { intent: d.intent, plan: `${d.planHours} h × ${d.planM}`, podPlace: `${d.podPlaceCc}${d.podPlaceLocality ? ' · ' + d.podPlaceLocality : ''}` } : {}) } })), reconciler: { asm: f.asm, lens: f.power, comment: f.comment, words: wc(f.comment) } };
 }

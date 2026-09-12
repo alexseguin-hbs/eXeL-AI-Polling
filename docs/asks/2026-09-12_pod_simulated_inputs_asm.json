@@ -34,6 +34,7 @@
         "rate": 14.15,
         "currency": "EUR"
       },
+      "usdRoute": "same-currency",
       "assist": {
         "drafts": [
           {
@@ -107,6 +108,7 @@
         "did": "Sourced and dated the BRL row against the file's four-column rule, walked the four screens where a USD figure appears to confirm they now read alike, re-ran my own settlement to prove the awaiting line flips, and witnessed Lea and Bo."
       },
       "record": "Dated exchange-rate file drafted — currency, units per USD, as-of date, named source — stamped 2026-09-12. Rows for the three currencies our seats use: USD identity, BRL and PHP, each proven on tonight's receipt. Every other currency still reads awaiting.",
+      "usdRoute": "hi_rates",
       "assist": {
         "drafts": [
           {
@@ -168,6 +170,7 @@
         "did": "Elected Metro Manila, the seat that reads awaiting; traced the USD identity row from the file through the generator to receipt line 5b, confirmed my peso line still refuses to print an unsourced number, and witnessed Lea's and Ana's claims."
       },
       "record": "The pod drafted the dated exchange-rate file: four columns, the signed USD identity row, and a peg rule. No figure prints without a date and a source; Bo's Manila line still reads awaiting.",
+      "usdRoute": "none",
       "assist": {
         "drafts": [
           {

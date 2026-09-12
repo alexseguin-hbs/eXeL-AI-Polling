@@ -693,11 +693,13 @@ export default function SoISessionPage() {
     el.scrollIntoView({ block: "center", behavior: "smooth" });
     el.focus({ preventScroll: true });
   };
+  // After EVERY render, not only when the target changes: the control can appear a render later than the card (the
+  // brief mounts after the door is chosen), and a mark that never lands is a mark that was never made.
   useEffect(() => {
     document.querySelectorAll("[data-next]").forEach((e) => e.removeAttribute("data-next"));
     const el = guide.target ? document.querySelector(`[data-testid="${guide.target}"]`) : null;
     if (el) el.setAttribute("data-next", "1");
-  }, [guide.target, phase]);
+  });
   // Who has done what — one line per person, the state of THIS step (the envelope's recipient list).
   const seatName = (i: number) => firstOf(members[i].name) || t("soi.pod.guide.member").replace("{n}", String(i + 1));   // one name per seat on every carrier (Aset)
   const rosterRows: PodRosterRow[] = members.map((m, i) => {
@@ -858,7 +860,7 @@ export default function SoISessionPage() {
       {/* Task • Outcome POD flow ────────────────────────────────────────── */}
       <section className="mt-8 rounded-xl border border-border bg-card p-5">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Task • Outcome</h2>
+          <h2 className="text-lg font-semibold">{t("soi.pod.ui.title")}</h2>
           <span className="rounded-full border border-border px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
             {t(POD_PHASES[Math.max(phaseIndex(phase), 0)].labelKey)}
           </span>
@@ -892,7 +894,7 @@ export default function SoISessionPage() {
             textColor={hue.ink}
             size={190}
           />
-          <span className="text-[11px] text-muted-foreground">Your Trinity — the three leads who gather the pod&rsquo;s feedback</span>
+          <span className="text-[11px] text-muted-foreground">{t("soi.pod.ui.trinity")}</span>
         </div>
 
         {/* ── COMPOSE ─────────────────────────────────────────────── */}
@@ -922,7 +924,7 @@ export default function SoISessionPage() {
               A pod is <span className="font-medium text-foreground">exactly three</span> — one lead + two invited. Three is the minimum that lets two people witness a third, so no one settles their own hours (TOK-17 · D5 anti-sybil).
             </p>
             <div className="mb-1 flex items-baseline justify-between gap-2">
-              <label className="block text-sm font-medium">Intent — what the pod is trying to do</label>
+              <label className="block text-sm font-medium">{t("soi.pod.ui.intent")}</label>
               <button
                 type="button"
                 onClick={() => { setIntent(SAMPLE_POD.intent); setOutcome(SAMPLE_POD.outcome); }}
@@ -936,7 +938,7 @@ export default function SoISessionPage() {
               placeholder="e.g. De-risk the first Architect-2525 modular spec."
               className="mb-4 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
-            <label className="mb-1 block text-sm font-medium">Measurable outcome — how we know it is done</label>
+            <label className="mb-1 block text-sm font-medium">{t("soi.pod.ui.outcome")}</label>
             <input
               value={outcome} onChange={(e) => setOutcome(e.target.value)} data-testid="pod-outcome"
               placeholder="e.g. One spec validated on the baseline HAL, reviewed by all 3."
@@ -947,8 +949,8 @@ export default function SoISessionPage() {
                 OAuth login; the other two JOIN by scanning the QR — their info
                 imports and they enter their name (operator, 2026-08-13). */}
             <div className="mb-2 flex items-baseline justify-between">
-              <label className="text-sm font-medium">You — the lead</label>
-              <span className="text-[11px] text-muted-foreground">the other two join by QR</span>
+              <label className="text-sm font-medium">{t("soi.pod.ui.you_lead")}</label>
+              <span className="text-[11px] text-muted-foreground">{t("soi.pod.ui.others_join")}</span>
             </div>
             <div className="mb-5 rounded-lg border border-cyan-400/40 p-3">
               <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-400">Lead</div>
@@ -1121,7 +1123,7 @@ export default function SoISessionPage() {
               }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="pod-open"
             >
-              Share QR &amp; open the pod
+              {t("soi.pod.ui.open")}
             </button>
             {!canOpen && (
               <p className="mt-2 text-[11px] text-muted-foreground">
@@ -1143,7 +1145,7 @@ export default function SoISessionPage() {
 
             {/* Leader shares the QR; the other two scan to join. */}
             <div className="mb-4 flex flex-col items-center gap-2 rounded-lg border border-cyan-400/40 bg-background p-4">
-              <div className="text-sm font-medium text-cyan-400">Share this QR</div>
+              <div className="text-sm font-medium text-cyan-400">{t("soi.pod.ui.share_qr")}</div>
               <div className="text-center text-xs text-muted-foreground">
                 The other two scan to join — their info imports from their login (email / OAuth); they enter their name.
               </div>
@@ -1165,7 +1167,7 @@ export default function SoISessionPage() {
 
             {/* The trio — lead is set; the other two join, then all comment & approve. */}
             <div className="mb-4 rounded-lg border border-cyan-400/30 p-3">
-              <div className="mb-1 text-sm font-medium">The trio — join, comment &amp; approve</div>
+              <div className="mb-1 text-sm font-medium">{t("soi.pod.ui.trio")}</div>
               <div className="mb-3 text-xs text-muted-foreground">
                 The lead is set. The other two join by scanning; on join their email imports from their login and they enter their name. Each approves the intent, the outcome and the plan — {parseFloat(baselineHrs) || 0} h at {bandM}× — or comments a recommended change (to the lead). The pod proceeds only when <strong>accepted by all three</strong>.
               </div>
@@ -1199,7 +1201,7 @@ export default function SoISessionPage() {
                     {/* ELECTION OF LOCALITY — own seat only, so nobody sets another person's wage floor. Elected
                         BEFORE the work, because D9 stamps the rate on the earning date. */}
                     <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                      <span>Settles at</span>
+                      <span>{t("soi.pod.ui.settles_at")}</span>
                       <LocalityElect
                         value={m.region} disabled={!canEdit(i)} testid={`member-locality-${i}`}
                         inherited={podJuris} onChange={(id) => setMember(i, { region: id })}
@@ -1221,7 +1223,7 @@ export default function SoISessionPage() {
                     <label className="mt-2 flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={m.agreed} disabled={!m.name.trim() || !canEdit(i)} data-testid={`member-agree-${i}`}
                         onChange={(e) => setMember(i, { agreed: e.target.checked, agreedTo: e.target.checked ? (lock?.hash ?? null) : null, recommend: e.target.checked ? "" : m.recommend })} />
-                      <span className="font-medium">{m.name || `Member ${i + 1}`}</span> approves the intent, outcome and plan ({parseFloat(baselineHrs) || 0} h × {bandM})
+                      <span className="font-medium">{m.name || t("soi.pod.guide.member").replace("{n}", String(i + 1))}</span> {t("soi.pod.ui.approves")} ({parseFloat(baselineHrs) || 0} h × {bandM})
                     </label>
                     {!m.agreed && m.name.trim() && canEdit(i) && (
                       <input
@@ -1249,7 +1251,7 @@ export default function SoISessionPage() {
                 onClick={() => { setSyncMsg(""); setPhase("sync"); drive("sync"); }}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="pod-accept"
               >
-                Accepted by the trio — go to synchronized start
+                {t("soi.pod.ui.accept")}
               </button>
               <button onClick={() => { setMembers((ms) => ms.map((m) => ({ ...m, agreed: false, agreedTo: null }))); setPhase("compose"); }} className="rounded-md border border-border px-4 py-2 text-sm">
                 Back to edit (apply recommendations — every approval is cleared, the plan is re-accepted)
@@ -1271,7 +1273,7 @@ export default function SoISessionPage() {
                   className={`rounded-lg border p-3 text-sm font-medium transition ${m.startedAt != null ? "border-cyan-500 bg-cyan-500/10 text-cyan-500" : "border-border hover:border-cyan-500/60"}`}
                 >
                   {m.name || m.role}
-                  <span className="mt-1 block text-xs font-normal">{m.startedAt != null ? "started ✓" : "tap to start"}</span>
+                  <span className="mt-1 block text-xs font-normal">{m.startedAt != null ? t("soi.pod.ui.started") : t("soi.pod.ui.tap_start")}</span>
                 </button>
               ))}
             </div>
@@ -1308,11 +1310,11 @@ export default function SoISessionPage() {
               {/* ONE BUTTON starts and ends the clock (operator 2026-09-11); after a stop it adds time. */}
               <button onClick={toggleClock} disabled={!lock || leadOnly} title={lock ? undefined : "The plan must be accepted before the clock can start"}
                 className={`rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 ${span.running ? "border border-red-500 text-red-500" : "bg-cyan-500 text-black"}`} data-testid="pod-clock-toggle">
-                {span.segments.length === 0 ? "Start the clock" : span.running ? "Stop the clock" : "Add time"}
+                {span.segments.length === 0 ? t("soi.pod.guide.a.clock_start") : span.running ? t("soi.pod.guide.a.clock_stop") : t("soi.pod.ui.add_time")}
               </button>
               <button onClick={stopAndRecord} disabled={span.segments.length === 0}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="pod-stop">
-                {span.running ? "Stop & record the outcome" : "Record the outcome"}
+                {span.running ? t("soi.pod.ui.stop_record") : t("soi.pod.guide.a.record_now")}
               </button>
             </div>
           </>
@@ -1381,7 +1383,7 @@ export default function SoISessionPage() {
             {/* OUTCOMES BY ALL THREE (operator 2026-09-11): after the clock stops, each member records what the work
                 produced, own seat only. The shared record above is the pod's summary; these are the three voices. */}
             <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-outcomes">
-              <div className="font-medium">Each member records the outcome <span className="text-xs font-normal text-muted-foreground">— all three, before the hours are witnessed</span></div>
+              <div className="font-medium">{t("soi.pod.ui.each_records")} <span className="text-xs font-normal text-muted-foreground">— all three, before the hours are witnessed</span></div>
               <div className="mt-2 grid gap-2">
                 {members.map((m, i) => (
                   <div key={i} className="flex flex-wrap items-center gap-2">
@@ -1400,7 +1402,7 @@ export default function SoISessionPage() {
               onClick={() => { setPhase("audit"); drive("audit"); }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="pod-next"
             >
-              Next — witness the hours
+              {t("soi.pod.ui.next_witness")}
             </button>
           </>
         )}
@@ -1417,7 +1419,7 @@ export default function SoISessionPage() {
             {/* the eight-step evidence chain, with progress — folded: an explanation, not an action (operator 2026-09-12) */}
             <details className="mb-4 rounded-lg border border-border p-3" data-testid="details-evidence"><summary className="cursor-pointer text-xs text-muted-foreground">{t("soi.pod.guide.details")} — the evidence chain</summary>
             <div className="mt-2">
-              <div className="mb-2 text-sm font-medium">The evidence chain <span className="text-xs font-normal text-muted-foreground">— clock-in → cross-review (TOK-17)</span></div>
+              <div className="mb-2 text-sm font-medium">{t("soi.pod.ui.evidence")} <span className="text-xs font-normal text-muted-foreground">— clock-in → cross-review (TOK-17)</span></div>
               <ol className="grid gap-1.5 sm:grid-cols-2">
                 {EVIDENCE_CHAIN.map((s) => {
                   const done = s.step <= 5 || (s.key === "selfaudit" && allSelfAudited) || (s.key === "crossreview" && allWitnessed) || (s.key === "mint" && allWitnessed);
@@ -1461,7 +1463,7 @@ export default function SoISessionPage() {
                   </div>
                   {/* the other two attest */}
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="text-muted-foreground">Cross-review:</span>
+                    <span className="text-muted-foreground">{t("soi.pod.ui.cross_review")}</span>
                     {members.map((r, j) => j === i ? null : (
                       <button
                         key={j} onClick={() => toggleWitness(i, j)} disabled={!canWitness(j)} data-testid={`witness-${i}-by-${j}`}
@@ -1556,7 +1558,7 @@ export default function SoISessionPage() {
                 automatically better; cheaper is not automatically better; and more AI is certainly not automatically better."
                 A negative delta is shown, never hidden: the hypothesis is allowed to fail honestly. */}
             <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3" data-testid="pod-accel">
-              <div className="mb-2 text-sm font-medium text-cyan-500">Accelerator <span className="text-xs font-normal text-muted-foreground">— ◬ read against the estimate locked before the work</span></div>
+              <div className="mb-2 text-sm font-medium text-cyan-500">{t("soi.pod.ui.accelerator")} <span className="text-xs font-normal text-muted-foreground">— ◬ read against the estimate locked before the work</span></div>
               {!lock ? (
                 <p className="text-xs text-muted-foreground" data-testid="accel-nolock">No estimate was locked before this pod opened, so there is no ◬ to read. The hours still settle.</p>
               ) : (() => {
@@ -1620,7 +1622,7 @@ export default function SoISessionPage() {
               }}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" data-testid="pod-settle-btn"
             >
-              Settle &amp; issue the receipt
+              {t("soi.pod.ui.settle")}
             </button>
             {(!allWitnessed || !allSelfAudited) && (
               <p className="mt-2 text-xs text-muted-foreground">Every member self-audits their hours, and both others must witness each claim, before settlement.</p>
@@ -1637,26 +1639,26 @@ export default function SoISessionPage() {
               {copyState === "failed" && <span className="w-full text-xs text-amber-500" data-testid="pod-copy-failed">{t("soi.pod.guide.copy_failed")}</span>}
             </div>
             <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-4">
-              <div className="mb-1 font-medium text-cyan-500">Settled &amp; receipted by the pod.</div>
+              <div className="mb-1 font-medium text-cyan-500">{t("soi.pod.ui.settled")}</div>
               {/* The three lines a person reads first — what was recorded, who witnessed whom, what settles. */}
               <ol className="mb-3 grid gap-1 rounded-md border border-border bg-background p-2 text-xs" data-testid="receipt-3">
                 <li><span className="font-medium text-foreground">1 · {t("soi.pod.receipt.recorded")}</span> {recordMethod} — {recordValue ? recordValue.slice(0, 80) + (recordValue.length > 80 ? "…" : "") : "—"}</li>
                 {lock && (
-                  <li data-testid="receipt-plan"><span className="font-medium text-foreground">Plan → actual</span>{" "}
+                  <li data-testid="receipt-plan"><span className="font-medium text-foreground">{t("soi.pod.ui.r_plan")}</span>{" "}
                     {fmtH(lock.hours)} person-hours planned <span className="font-mono text-xs text-muted-foreground">{fmtABC(lock.hours)}</span> · {fmtH(witnessedHours)} person-hours counted <span className="font-mono text-xs text-muted-foreground">{fmtABC(witnessedHours)}</span> · Δ {(witnessedHours - lock.hours) >= 0 ? "+" : ""}{fmtH(witnessedHours - lock.hours)} h
                     {" — "}웃 {lock.yug.toFixed(3)} planned · {stand.earned.toFixed(3)} actual · Δ {(stand.earned - lock.yug) >= 0 ? "+" : ""}{(stand.earned - lock.yug).toFixed(3)} at {M}× ({lock.source})
                     {" · "}<span className="text-muted-foreground">pod clock, under its own name: {hhmmss(span.ms)} in {span.segments.length} segment{span.segments.length === 1 ? "" : "s"} <span className="font-mono text-xs">{fmtABC(measuredHours)}</span></span></li>
                 )}
                 <li><span className="font-medium text-foreground">2 · {t("soi.pod.receipt.witnessed")}</span> {members.map((m, i) => `${firstOf(m.name) || m.role}${isWitnessed(i) ? " ✓" : " ✗"}`).join(" · ")}</li>
                 <li><span className="font-medium text-foreground">3 · {t("soi.pod.receipt.settles")}</span> 웃 {stand.earned.toFixed(3)} <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.earned)}</span> earned at {M}× · <span className="font-medium text-foreground">{stand.payableThisYear.toFixed(3)} payable this year</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.payableThisYear)}</span>{stand.carried > 0 ? <> · {stand.carried.toFixed(3)} carried to next year <span className="font-mono text-xs text-muted-foreground">{fmtABC(stand.carried)}</span></> : null}</li>
-                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · Drawn &amp; held</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
+                <li data-testid="receipt-tranches"><span className="font-medium text-foreground">4 · {t("soi.pod.ui.r_drawn")}</span> 웃 <span className="font-medium text-foreground" data-testid="tranche-floor">{tranches.floor.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.floor)}</span> draws now and is never clawed back — wages for witnessed hours, owed whatever the outcome{tranches.escrow > 0 ? <> · 웃 <span className="font-medium text-foreground" data-testid="tranche-escrow">{tranches.escrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.escrow)}</span> held at {M}× until the work qualifies</> : null}{tranches.accelEscrow > 0 ? <> · ◬ <span className="font-medium text-foreground" data-testid="tranche-accel">{tranches.accelEscrow.toFixed(3)}</span> <span className="font-mono text-xs text-muted-foreground">{fmtABC(tranches.accelEscrow)}</span> held separately — recognition, not wages</> : null}</li>
                 <li data-testid="receipt-hearts"><span className="font-medium text-foreground">5 · ♡</span> <span className="font-medium text-foreground" data-testid="hearts-total">{hearts}</span> — {rung === "none" ? "the outcome has not been taken up yet, so none is awarded" : RUNG_LABEL[rung].split(" — ")[0].toLowerCase() + ", awarded for what the outcome became"}{totalYugYok > 0 ? <>, never for the hours — those settle as 웃</> : null}</li>
-                <li data-testid="receipt-outcomes"><span className="font-medium text-foreground">5a · Outcomes, one per member</span>{" "}
+                <li data-testid="receipt-outcomes"><span className="font-medium text-foreground">5a · {t("soi.pod.ui.r_outcomes")}</span>{" "}
                   {members.map((m, i) => <span key={i} data-testid={`receipt-outcome-${i}`}>{i > 0 ? " · " : ""}<span className="font-medium text-foreground">{firstOf(m.name) || m.role}:</span> {m.outcome.trim() || "—"}</span>)}
                 </li>
                 {/* EACH CONTRIBUTOR AT THEIR OWN FLOOR, ON THE RECEIPT ITSELF (unit.regional; operator 2026-09-11 showcase): the
                     same hours minted the same 웃; only the currency differs, and no currency is ever summed with another. */}
-                <li data-testid="receipt-each"><span className="font-medium text-foreground">5b · Each at their own floor</span>{" "}
+                <li data-testid="receipt-each"><span className="font-medium text-foreground">5b · {t("soi.pod.ui.r_each")}</span>{" "}
                   {members.map((m, i) => {
                     const j = localityOf(i); const v = memberVintages[i]; const own = v ? v.yug : mint(claimOf(i).hours, M);
                     const d9m = settleD9(Math.min(own, YUG_CEILING), v ? { rate: v.rate, currency: v.currency } : null, j);   // ceiling per natural person; D9 with THIS person's vintage
@@ -1665,7 +1667,7 @@ export default function SoISessionPage() {
                   {memberVintages.length ? <> — D9 per person: each settles at the greater of the rate stamped at earning and the rate current now, from their own jurisdiction; a settlement figure moves only because a statutory wage moved.</> : null}
                 </li>
                 {vintage ? (
-                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{fmtH(vintage.hours)} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
+                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · {t("soi.pod.ui.r_stamped")}</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{fmtH(vintage.hours)} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
                 ) : null}
               </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>
