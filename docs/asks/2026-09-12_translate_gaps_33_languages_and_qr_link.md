@@ -43,3 +43,10 @@ Persisted before any code.
    suggestion from the connection).
 3. Every sentence a member reads is short enough for a child or a grandmother; explanations fold under Details.
 Persisted before any code.
+
+## Addendum (3)
+
+> test for cambodia and honduras
+
+Run the three-phone pod with a member settling in Cambodia and one in Honduras; report what the receipt shows for each
+from the shipped record (no figure is invented). Persisted before the run.
