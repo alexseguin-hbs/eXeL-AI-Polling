@@ -100,7 +100,11 @@ await shot(L, 'lead', '2-invite');
 await crop(L, 'lead', '02-invite', L.locator('code').first().locator('xpath=ancestor::div[2]'));
 
 // 2 · two joiners dial in; each names their seat, ELECTS THEIR OWN LOCALITY, and approves the plan
-await A.goto(`${BASE}?pod=${code}`, { waitUntil: 'domcontentloaded' }); await ready(A); step('ana', 'opened join link ?pod=' + code);
+// THE LINK BESIDE THE QR (operator 2026-09-12): the lead's phone shows the join URL as text; Ana opens EXACTLY that text.
+const shownLink = (await L.getByTestId('pod-join-link').innerText()).trim();
+step('lead', 'the join link is shown under the QR and ends in ?pod=<code>', shownLink.endsWith(`/soi-session?pod=${code}`), shownLink);
+step('lead', 'Copy link and Share sit beside it', (await L.getByTestId('pod-copy-link').count()) === 1);
+await A.goto(shownLink, { waitUntil: 'domcontentloaded' }); await ready(A); step('ana', 'opened the link exactly as shown on the lead\'s phone');
 await B.goto(BASE + '?enter=session', { waitUntil: 'domcontentloaded' }); await ready(B);
 await B.getByPlaceholder(/code/i).first().fill(code); await B.getByRole('button', { name: /join/i }).first().click(); step('bo', 'typed the code and joined');
 await A.getByText(/you are seat 2/).waitFor({ timeout: 20000 }); step('ana', 'assigned seat 2');

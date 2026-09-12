@@ -1,127 +1,129 @@
-  2158ms  lead   ·   opened /soi-session
-  2171ms  lead   OK  guide reads TURN — Write the intent  "Write the intent"
-  2513ms  lead   OK  guide button marks and scrolls to pod-intent  pod-intent
-  2854ms  lead   ·   plan set: 2 h at 3× (planned 6.000 웃)
-  2918ms  lead   OK  US offers "New York · Remainder of state" as a locality
-  2956ms  lead   ·   pod default place: US — New York · Remainder of state
-  2977ms  lead   OK  plan preview shows the USA-equivalent line beside the local figure — a figure by a traceable route, or the words for what is missing
-  2986ms  lead   OK  guide reads TURN — Share the QR and open the pod  "Share the QR and open the pod"
-  3689ms  lead   OK  guide button marks and scrolls to pod-open  pod-open
-  3946ms  lead   OK  open button enabled (plan present)
-  4152ms  lead   OK  pod code issued  WPR5SB
-  4167ms  lead   ·   live channel subscribed (relay)
-  6831ms  ana    ·   opened join link ?pod=WPR5SB
-  9151ms  bo     ·   typed the code and joined
-  9170ms  ana    ·   assigned seat 2
-  9867ms  bo     ·   assigned seat 3
-  9893ms  lead   ·   lead sees 3 in the pod
-  9906ms  ana    OK  guide reads TURN — Enter your name  "Enter your name"
-  9913ms  bo     OK  guide reads TURN — Enter your name  "Enter your name"
-  9921ms  lead   OK  guide reads TURN — Approve the plan  "Approve the plan"
-  9930ms  ana    OK  name input is own seat only
- 10008ms  bo     OK  name input is own seat only
- 10100ms  ana    OK  locality select is own seat only
- 10130ms  ana    ·   elected BR
- 10168ms  bo     OK  locality select is own seat only
- 10237ms  bo     OK  a second step offers the localities of PH
- 10252ms  bo     OK  locality "Metro Manila" is offered
- 10283ms  bo     ·   elected PH — Metro Manila
- 10314ms  ana    OK  position button is own seat only
- 11281ms  ana    OK  position fix recorded beside the elected place
- 11293ms  lead   OK  lead sees Ana's fix (replicated), and Ana's election stands
- 11301ms  lead   OK  approval checkbox is own seat only
- 11373ms  lead   ·   approved intent, outcome AND the plan (2 h × 3)
- 11388ms  ana    OK  approval checkbox is own seat only
- 11811ms  ana    ·   approved intent, outcome AND the plan (2 h × 3)
- 11832ms  bo     OK  approval checkbox is own seat only
- 11900ms  bo     ·   approved intent, outcome AND the plan (2 h × 3)
- 11908ms  lead   ·   all three approved → sync unlocked
- 11913ms  lead   OK  guide reads TURN — Go to synchronized start  "Go to synchronized start"
- 12254ms  lead   OK  guide button marks and scrolls to pod-accept  pod-accept
- 12262ms  ana    OK  guide reads WAITING — waiting for Lea  "Nothing for you here — waiting for Lea (the lead)."
- 12268ms  bo     OK  guide reads WAITING — waiting for Lea  "Nothing for you here — waiting for Lea (the lead)."
- 12271ms  bo     OK  the control the card withholds is disabled on this phone (Accept)
- 12276ms  lead   ·   lead sees the elections replicated
- 12908ms  lead   OK  guide reads TURN — Tap Start  "Tap Start"
- 12916ms  lead   OK  pressed ready (own seat)
- 12992ms  ana    OK  guide reads TURN — Tap Start  "Tap Start"
- 13002ms  ana    OK  pressed ready (own seat)
- 13068ms  bo     OK  guide reads TURN — Tap Start  "Tap Start"
- 13077ms  bo     OK  pressed ready (own seat)
- 13938ms  lead   ·   ACTIVE — the clock button is on screen, not yet running
- 13942ms  ana    ·   ACTIVE — the clock button is on screen, not yet running
- 13947ms  bo     ·   ACTIVE — the clock button is on screen, not yet running
- 13952ms  lead   OK  guide reads TURN — Start the clock  "Start the clock"
- 13958ms  ana    OK  guide reads WAITING — waiting for Lea  "Nothing for you here — waiting for Lea (the lead)."
- 13960ms  ana    OK  the clock is disabled on a joiner's phone
- 14412ms  lead   ·   START the clock (segment 1)
- 22455ms  lead   ·   STOP the clock (segment 1 closed)
- 22506ms  lead   ·   ADD TIME (segment 2 opened)
- 30515ms  lead   ·   sees segment 2 (clock events replicated)
- 30520ms  ana    ·   sees segment 2 (clock events replicated)
- 30525ms  bo     ·   sees segment 2 (clock events replicated)
- 30537ms  ana    OK  guide reads TURN — Stop and record the outcome  "Stop and record the outcome"
- 30565ms  lead   OK  guide reads TURN — Stop the clock  "Stop the clock"
- 31049ms  ana    ·   a JOINER pressed Stop & record — one route, segment 2 closed for everyone
- 31055ms  lead   ·   reached RECORD
- 31058ms  ana    ·   reached RECORD
- 31061ms  bo     ·   reached RECORD
- 31066ms  lead   OK  guide reads TURN — Write your outcome  "Write your outcome"
- 31071ms  ana    OK  guide reads TURN — Write your outcome  "Write your outcome"
- 31076ms  bo     OK  guide reads TURN — Write your outcome  "Write your outcome"
- 31100ms  lead   OK  outcome input is own seat only
- 31131ms  ana    OK  outcome input is own seat only
- 31176ms  bo     OK  outcome input is own seat only
- 31205ms  ana    ·   all three outcomes in → audit unlocked
- 31734ms  lead   ·   reached AUDIT
- 31740ms  ana    ·   reached AUDIT
- 31745ms  bo     ·   reached AUDIT
- 31752ms  lead   OK  guide reads TURN — Enter your hours  "Enter your hours and what you did"
- 31757ms  ana    OK  guide reads TURN — Enter your hours  "Enter your hours and what you did"
- 31769ms  bo     OK  guide reads TURN — Enter your hours  "Enter your hours and what you did"
- 31876ms  lead   ·   self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
- 31970ms  ana    ·   self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
- 32054ms  bo     ·   self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
- 33095ms  lead   OK  witnessed the other two  clicked 2 of 2
- 34129ms  ana    OK  witnessed the other two  clicked 2 of 2
- 35166ms  bo     OK  witnessed the other two  clicked 2 of 2
- 35172ms  lead   ·   all witnessed + all self-audited → settle unlocked
- 35178ms  lead   OK  guide reads TURN — Issue the receipt  "Issue the receipt"
- 35519ms  lead   OK  guide button marks and scrolls to pod-settle-btn  pod-settle-btn
- 35526ms  bo     OK  guide reads WAITING — Your part is done  "Your part is done — waiting for Lea to issue the receipt."
- 35529ms  bo     OK  Settle is disabled on a joiner's phone
- 35531ms  lead   OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
- 35534ms  ana    OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
- 35536ms  bo     OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
- 35542ms  lead   OK  M is locked on the audit screen (no picker)
- 36121ms  lead   ·   CLOSED — receipt on this phone
- 36134ms  ana    ·   CLOSED — receipt on this phone
- 36144ms  bo     ·   CLOSED — receipt on this phone
- 36149ms  lead   OK  guide reads DONE — Completed  "Completed — the three of you settled this."
- 36154ms  ana    OK  guide reads DONE — Completed  "Completed — the three of you settled this."
- 36159ms  bo     OK  guide reads DONE — Completed  "Completed — the three of you settled this."
- 36730ms  lead   OK  synthesis on this phone (about 333 words): 114 + 112 + 115 = 341 words (ai)
- 36841ms  ana    OK  synthesis on this phone (about 333 words): 114 + 112 + 115 = 341 words (ai)
- 36959ms  bo     OK  synthesis on this phone (about 333 words): 114 + 112 + 115 = 341 words (ai)
- 36960ms  lead   OK  the three phones carry the SAME synthesis, word for word
- 36969ms  lead   OK  receipt shows PLAN → ACTUAL
- 36970ms  lead   OK  receipt shows two segments summed
- 36970ms  lead   OK  receipt shows the ledger grammar
- 36970ms  lead   OK  receipt settles each member at their own floor
- 36974ms  lead   OK  Lea (USD) — her own figure is the USA equivalent  · ≈ $0.22
- 36974ms  lead   OK  Ana (BRL) — a USA figure only by a traceable route: hi_rates.py's USD floor × 웃, named as a second floor  · ≈ $0.02 (a second floor from the platform's own US-dollar table, not a conversion)
- 36974ms  lead   OK  Bo (PHP) — no dated exchange rate, no USD floor: the receipt says what is missing, never a number  · USD equivalent: awaiting a dated exchange-rate source for this currency
- 36978ms  lead   OK  Ana's GPS fix prints on the receipt as a supplement to the elected place
- 36983ms  lead   OK  and no other seat carries a fix it did not take
- 36983ms  lead   OK  receipt names the D9 rate that paid
- 36983ms  lead   OK  Lea settles at the pod default she inherited
- 36985ms  lead   OK  receipt renders each member's OWN outcome text
- 36986ms  lead   OK  receipt shows M locked at 3× and the plan line
- 36988ms  ana    OK  receipt renders each member's OWN outcome text
- 36988ms  ana    OK  receipt shows M locked at 3× and the plan line
- 36992ms  bo     OK  receipt renders each member's OWN outcome text
- 36992ms  bo     OK  receipt shows M locked at 3× and the plan line
- 36994ms  lead   OK  this phone's receipt carries the per-person vintage settlement
- 36996ms  ana    OK  this phone's receipt carries the per-person vintage settlement
- 36998ms  bo     OK  this phone's receipt carries the per-person vintage settlement
- 37000ms  lead   OK  THE THREE RECEIPTS SETTLE IDENTICALLY — the same per-person figures on every phone  5b · Each at their own floor Lea 0.0046 h → 웃 0.014 → $0.22 
+  3087ms  lead   ·   opened /soi-session
+  3105ms  lead   OK  guide reads TURN — Write the intent  "Write the intent"
+  3452ms  lead   OK  guide button marks and scrolls to pod-intent  pod-intent
+  3772ms  lead   ·   plan set: 2 h at 3× (planned 6.000 웃)
+  3835ms  lead   OK  US offers "New York · Remainder of state" as a locality
+  3874ms  lead   ·   pod default place: US — New York · Remainder of state
+  3888ms  lead   OK  plan preview shows the USA-equivalent line beside the local figure — a figure by a traceable route, or the words for what is missing
+  3895ms  lead   OK  guide reads TURN — Share the QR and open the pod  "Share the QR and open the pod"
+  4597ms  lead   OK  guide button marks and scrolls to pod-open  pod-open
+  4894ms  lead   OK  open button enabled (plan present)
+  5126ms  lead   OK  pod code issued  XXAMMV
+  5140ms  lead   ·   live channel subscribed (relay)
+  5533ms  lead   OK  the join link is shown under the QR and ends in ?pod=<code>  http://127.0.0.1:3210/soi-session?pod=XXAMMV
+  5537ms  lead   OK  Copy link and Share sit beside it
+  8009ms  ana    ·   opened the link exactly as shown on the lead's phone
+ 10886ms  bo     ·   typed the code and joined
+ 10902ms  ana    ·   assigned seat 2
+ 11725ms  bo     ·   assigned seat 3
+ 11744ms  lead   ·   lead sees 3 in the pod
+ 11753ms  ana    OK  guide reads TURN — Enter your name  "Enter your name"
+ 11761ms  bo     OK  guide reads TURN — Enter your name  "Enter your name"
+ 11776ms  lead   OK  guide reads TURN — Approve the plan  "Approve the plan — the other two can join meanwhile"
+ 11784ms  ana    OK  name input is own seat only
+ 11854ms  bo     OK  name input is own seat only
+ 11964ms  ana    OK  locality select is own seat only
+ 11996ms  ana    ·   elected BR
+ 12051ms  bo     OK  locality select is own seat only
+ 12128ms  bo     OK  a second step offers the localities of PH
+ 12142ms  bo     OK  locality "Metro Manila" is offered
+ 12171ms  bo     ·   elected PH — Metro Manila
+ 12209ms  ana    OK  position button is own seat only
+ 13200ms  ana    OK  position fix recorded beside the elected place
+ 13213ms  lead   OK  lead sees Ana's fix (replicated), and Ana's election stands
+ 13222ms  lead   OK  approval checkbox is own seat only
+ 13302ms  lead   ·   approved intent, outcome AND the plan (2 h × 3)
+ 13320ms  ana    OK  approval checkbox is own seat only
+ 13773ms  ana    ·   approved intent, outcome AND the plan (2 h × 3)
+ 13822ms  bo     OK  approval checkbox is own seat only
+ 13910ms  bo     ·   approved intent, outcome AND the plan (2 h × 3)
+ 13928ms  lead   ·   all three approved → sync unlocked
+ 13943ms  lead   OK  guide reads TURN — Go to synchronized start  "Go to synchronized start"
+ 14330ms  lead   OK  guide button marks and scrolls to pod-accept  pod-accept
+ 14340ms  ana    OK  guide reads WAITING — waiting for Lea  "Nothing for you here — waiting for Lea (the lead)."
+ 14347ms  bo     OK  guide reads WAITING — waiting for Lea  "Nothing for you here — waiting for Lea (the lead)."
+ 14351ms  bo     OK  the control the card withholds is disabled on this phone (Accept)
+ 14355ms  lead   ·   lead sees the elections replicated
+ 15301ms  lead   OK  guide reads TURN — Tap Start  "Tap Start"
+ 15329ms  lead   OK  pressed ready (own seat)
+ 15442ms  ana    OK  guide reads TURN — Tap Start  "Tap Start"
+ 15455ms  ana    OK  pressed ready (own seat)
+ 15609ms  bo     OK  guide reads TURN — Tap Start  "Tap Start"
+ 15622ms  bo     OK  pressed ready (own seat)
+ 16554ms  lead   ·   ACTIVE — the clock button is on screen, not yet running
+ 16560ms  ana    ·   ACTIVE — the clock button is on screen, not yet running
+ 16569ms  bo     ·   ACTIVE — the clock button is on screen, not yet running
+ 16574ms  lead   OK  guide reads TURN — Start the clock  "Start the clock"
+ 16579ms  ana    OK  guide reads WAITING — waiting for Lea  "Nothing for you here — waiting for Lea (the lead)."
+ 16581ms  ana    OK  the clock is disabled on a joiner's phone
+ 17386ms  lead   ·   START the clock (segment 1)
+ 25415ms  lead   ·   STOP the clock (segment 1 closed)
+ 25463ms  lead   ·   ADD TIME (segment 2 opened)
+ 33470ms  lead   ·   sees segment 2 (clock events replicated)
+ 33474ms  ana    ·   sees segment 2 (clock events replicated)
+ 33478ms  bo     ·   sees segment 2 (clock events replicated)
+ 33484ms  ana    OK  guide reads TURN — Stop and record the outcome  "Stop and record the outcome"
+ 33489ms  lead   OK  guide reads TURN — Stop the clock  "Stop the clock"
+ 33970ms  ana    ·   a JOINER pressed Stop & record — one route, segment 2 closed for everyone
+ 33989ms  lead   ·   reached RECORD
+ 33993ms  ana    ·   reached RECORD
+ 33997ms  bo     ·   reached RECORD
+ 34002ms  lead   OK  guide reads TURN — Write your outcome  "Write your outcome"
+ 34007ms  ana    OK  guide reads TURN — Write your outcome  "Write your outcome"
+ 34011ms  bo     OK  guide reads TURN — Write your outcome  "Write your outcome"
+ 34034ms  lead   OK  outcome input is own seat only
+ 34073ms  ana    OK  outcome input is own seat only
+ 34119ms  bo     OK  outcome input is own seat only
+ 34155ms  ana    ·   all three outcomes in → audit unlocked
+ 34661ms  lead   ·   reached AUDIT
+ 34686ms  ana    ·   reached AUDIT
+ 34696ms  bo     ·   reached AUDIT
+ 34708ms  lead   OK  guide reads TURN — Enter your hours  "Enter your hours and what you did"
+ 34734ms  ana    OK  guide reads TURN — Enter your hours  "Enter your hours and what you did"
+ 34740ms  bo     OK  guide reads TURN — Enter your hours  "Enter your hours and what you did"
+ 34821ms  lead   ·   self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 34919ms  ana    ·   self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 35043ms  bo     ·   self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 36093ms  lead   OK  witnessed the other two  clicked 2 of 2
+ 37141ms  ana    OK  witnessed the other two  clicked 2 of 2
+ 38192ms  bo     OK  witnessed the other two  clicked 2 of 2
+ 38196ms  lead   ·   all witnessed + all self-audited → settle unlocked
+ 38202ms  lead   OK  guide reads TURN — Issue the receipt  "Issue the receipt"
+ 38529ms  lead   OK  guide button marks and scrolls to pod-settle-btn  pod-settle-btn
+ 38535ms  bo     OK  guide reads WAITING — Your part is done  "Your part is done — waiting for Lea to issue the receipt."
+ 38538ms  bo     OK  Settle is disabled on a joiner's phone
+ 38540ms  lead   OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 38543ms  ana    OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 38545ms  bo     OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 38549ms  lead   OK  M is locked on the audit screen (no picker)
+ 39086ms  lead   ·   CLOSED — receipt on this phone
+ 39100ms  ana    ·   CLOSED — receipt on this phone
+ 39107ms  bo     ·   CLOSED — receipt on this phone
+ 39111ms  lead   OK  guide reads DONE — Completed  "Completed — the three of you settled this."
+ 39116ms  ana    OK  guide reads DONE — Completed  "Completed — the three of you settled this."
+ 39121ms  bo     OK  guide reads DONE — Completed  "Completed — the three of you settled this."
+ 39739ms  lead   OK  synthesis on this phone (about 333 words): 114 + 112 + 115 = 341 words (ai)
+ 39854ms  ana    OK  synthesis on this phone (about 333 words): 114 + 112 + 115 = 341 words (ai)
+ 39974ms  bo     OK  synthesis on this phone (about 333 words): 114 + 112 + 115 = 341 words (ai)
+ 39975ms  lead   OK  the three phones carry the SAME synthesis, word for word
+ 39985ms  lead   OK  receipt shows PLAN → ACTUAL
+ 39985ms  lead   OK  receipt shows two segments summed
+ 39985ms  lead   OK  receipt shows the ledger grammar
+ 39985ms  lead   OK  receipt settles each member at their own floor
+ 39989ms  lead   OK  Lea (USD) — her own figure is the USA equivalent  · ≈ $0.22
+ 39989ms  lead   OK  Ana (BRL) — a USA figure only by a traceable route: hi_rates.py's USD floor × 웃, named as a second floor  · ≈ $0.02 (a second floor from the platform's own US-dollar table, not a conversion)
+ 39989ms  lead   OK  Bo (PHP) — no dated exchange rate, no USD floor: the receipt says what is missing, never a number  · USD equivalent: awaiting a dated exchange-rate source for this currency
+ 39993ms  lead   OK  Ana's GPS fix prints on the receipt as a supplement to the elected place
+ 39996ms  lead   OK  and no other seat carries a fix it did not take
+ 39996ms  lead   OK  receipt names the D9 rate that paid
+ 39996ms  lead   OK  Lea settles at the pod default she inherited
+ 39998ms  lead   OK  receipt renders each member's OWN outcome text
+ 39998ms  lead   OK  receipt shows M locked at 3× and the plan line
+ 40001ms  ana    OK  receipt renders each member's OWN outcome text
+ 40001ms  ana    OK  receipt shows M locked at 3× and the plan line
+ 40003ms  bo     OK  receipt renders each member's OWN outcome text
+ 40003ms  bo     OK  receipt shows M locked at 3× and the plan line
+ 40005ms  lead   OK  this phone's receipt carries the per-person vintage settlement
+ 40007ms  ana    OK  this phone's receipt carries the per-person vintage settlement
+ 40009ms  bo     OK  this phone's receipt carries the per-person vintage settlement
+ 40011ms  lead   OK  THE THREE RECEIPTS SETTLE IDENTICALLY — the same per-person figures on every phone  5b · Each at their own floor Lea 0.0046 h → 웃 0.014 → $0.22 
