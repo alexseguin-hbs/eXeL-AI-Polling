@@ -107,6 +107,7 @@ step('lead', 'Copy link and Share sit beside it', (await L.getByTestId('pod-copy
 // MAX SCREEN (operator 2026-09-12: "like divinity guide"): the QR opens the whole screen with the code and the link; close returns.
 await L.getByTestId('pod-qr-max-btn').click(); await L.getByTestId('pod-qr-overlay').waitFor({ timeout: 10000 });
 step('lead', 'Max screen: the overlay shows the code and the same link', (await L.getByTestId('pod-qr-overlay-code').innerText()).trim() === code && (await L.getByTestId('pod-qr-overlay-link').innerText()).trim() === shownLink);
+await L.waitForTimeout(500);   // after the 200 ms fade-in — a screenshot mid-fade shows the page bleeding through and is not the screen a person sees
 await L.screenshot({ path: `${OUT}/step-02b-maxscreen-lead.jpg`, type: 'jpeg', quality: 70 });
 await L.getByTestId('pod-qr-overlay-close').click(); await L.getByTestId('pod-qr-overlay').waitFor({ state: 'detached', timeout: 10000 }); step('lead', 'Max screen closes');
 await A.goto(shownLink, { waitUntil: 'domcontentloaded' }); await ready(A); step('ana', 'opened the link exactly as shown on the lead\'s phone');
