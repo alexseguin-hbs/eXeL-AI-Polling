@@ -43,7 +43,11 @@ await L.getByPlaceholder(/your email/).fill('lea@example.test');
 await L.getByTestId('baseline-hours').fill('2');                                    // the PLAN: 2 h …
 await L.getByTestId('anchor-multiple').selectOption('3');                          // … at 3× = 6 웃 planned
 step('lead', 'plan set: 2 h at 3× (planned 6 웃)');
-await L.getByTestId('anchor-region').selectOption('US'); step('lead', 'pod default place: United States (Austin, Texas — 7.25 USD/h)');
+await L.getByTestId('anchor-region').selectOption('US');
+await L.getByTestId('anchor-region-locality').waitFor({ timeout: 10000 });
+const prOpt = await L.getByTestId('anchor-region-locality').evaluate((sel) => [...sel.options].find((o) => /Puerto Rico/.test(o.textContent))?.value || '');
+step('lead', 'United States offers Puerto Rico as a locality (approved from the fleet proposal)', !!prOpt);
+await L.getByTestId('anchor-region-locality').selectOption(prOpt); step('lead', 'pod default place: United States — Puerto Rico (10.50 USD/h)');
 await shot(L, 'lead', '1-compose-plan');
 const open = L.getByRole('button', { name: /Share QR/ }); await open.waitFor(); step('lead', 'open button enabled (plan present)', await open.isEnabled());
 await open.click();
@@ -113,6 +117,7 @@ step('lead', 'receipt shows two segments summed', /in 2 segments/.test(body));
 step('lead', 'receipt shows the ledger grammar', /\d+\.\d{4}\.\.\d{4}/.test(body));
 step('lead', 'receipt settles Ana in naira and Bo in pesos beside Lea in dollars — each at their own floor', /(NGN|₦)/.test(body) && /(PHP|₱)/.test(body) && /\$/.test(body) && /Each at their own floor/.test(body));
 step('lead', 'receipt names the D9 rate that paid', /D9/.test(body) && /statutory wage moved/.test(body));
+step('lead', 'Lea settles at the Puerto Rico floor she inherited from the pod default', /Puerto Rico/.test(body));
 for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'receipt renders each member\'s OWN outcome text', /framed the plan and ran the clock/.test(b) && /elected Lagos and stopped the clock/.test(b) && /elected Manila and witnessed/.test(b)); step(who, 'receipt shows M locked at 3× and the plan line', /at 3×/.test(b) && /person-hours planned/.test(b)); }
 for (const [who, p] of ALL) { const b = await p.evaluate(() => document.body.innerText); step(who, 'this phone\'s receipt carries the per-person vintage settlement (naira · pesos · dollars)', /(NGN|₦)/.test(b) && /(PHP|₱)/.test(b) && /\$/.test(b) && /rate\)/.test(b)); }
 const rec = await Promise.all(ALL.map(([, p]) => p.evaluate(() => (document.querySelector('[data-testid="receipt-each"]') || {}).innerText || '')));

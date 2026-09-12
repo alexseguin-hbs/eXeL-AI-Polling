@@ -282,11 +282,24 @@ ok(/\$ = 웃 × stamped local minimum-wage rate/.test(yug),
 // reads THAT FILE and compares it to the shipped module row by row, so the code can never drift from what he handed
 // over — and so a rate is never something I typed.
 const RATES = await import('../lib/pod-rates.ts').catch(() => ({}));
+const opPsvTop = read('../../docs/asks/2026-09-10_minimum_wage_rate_table.psv').split('\n').filter((l) => l.trim()).map((l) => l.split('|'));
+const approvedPsv = read('../../docs/asks/2026-09-11_minimum_wage_rate_table_approved.psv').split('\n').filter((l) => l.trim()).slice(1).map((l) => l.split('|'));
 if (RATES.REGION_RATES) {
   const psv = read('../../docs/asks/2026-09-10_minimum_wage_rate_table.psv')
     .split('\n').filter((l) => l.trim()).map((l) => l.split('|'));
   ok(psv.length === 114, `the operator's source file still holds 114 rows — got ${psv.length}`);
-  ok(RATES.REGION_RATES.length === psv.length, 'the shipped table has a row for every row he gave');
+  // The rows he APPROVED from the fleet's proposal (Rule B, docs/asks/2026-09-11_rule_b_approved.md) follow his 114.
+  ok(RATES.REGION_RATES.length === psv.length + approvedPsv.length, `the shipped table is his 114 plus the ${approvedPsv.length} he approved — got ${RATES.REGION_RATES.length}`);
+  let adrift = 0;
+  approvedPsv.forEach(([lang, cc, name, cur, rate, pub, nosingle, note], i) => {
+    const r = RATES.REGION_RATES[psv.length + i];
+    const same = r && r.lang === lang && r.cc === cc && r.name === name && r.currency === cur && r.note === note && r.approved === '2026-09-11'
+      && r.published === (pub === 'Yes') && r.noSingleRate === (nosingle === 'Yes') && (rate === 'NULL' ? r.rate === null : Math.abs(r.rate - Number(rate)) < 1e-9);
+    if (!same) adrift++;
+  });
+  ok(adrift === 0, `every approved row matches the approved file exactly and carries its approval date — ${adrift} drifted`);
+  ok(!approvedPsv.some((r) => r[4] === 'NULL'), 'no approved row is NULL — Rule B loads figures only');
+  ok(approvedPsv.every((r) => /^(high|medium)$/.test(r[12]) && /approved under Rule B/.test(r[13])), 'every approved row is high/medium confidence and says it was approved under the rule, not verified live');
   let drift = 0;
   psv.forEach(([lang, cc, name, cur, rate, pub, nosingle, note], i) => {
     const r = RATES.REGION_RATES[i];
@@ -300,15 +313,23 @@ if (RATES.REGION_RATES) {
   ok(psv.every(([, , , , rate], i) => i === 0 || rate !== 'NULL' || psv[i - 1][4] === 'NULL' || true), 'order preserved');
 
   // unit.settle's published settlement ladder, recomputed from the rows' own flags.
-  const n = (t) => RATES.REGION_RATES.filter((r) => RATES.tierOf(r) === t).length;
+  const opRows = RATES.REGION_RATES.filter((r) => !r.approved);
+  const n = (t) => opRows.filter((r) => RATES.tierOf(r) === t).length;
   ok(n('published') === 29, `unit.settle Tier 1 published = 29 — got ${n('published')}`);
   ok(n('pending') === 37, `unit.settle Tier 1 pending = 37 — got ${n('pending')}`);
   ok(n('no_single_rate') === 35, `unit.settle Tier 2 no single national rate = 35 — got ${n('no_single_rate')}`);
   ok(n('no_official_rate') === 13, `unit.settle Tier 3 no official rate = 13 — got ${n('no_official_rate')}`);
-  ok(new Set(RATES.REGION_RATES.map((r) => r.cc)).size === 103, 'coverage is the paper\'s 103 jurisdictions');
-  ok(new Set(RATES.REGION_RATES.map((r) => r.lang)).size === 33, 'across the framework\'s 33 languages');
-  ok(new Set(RATES.REGION_RATES.map(RATES.regionId)).size === 114,
-     '(language, country) is the key — Switzerland, India, Canada and Singapore appear under several languages');
+  ok(new Set(opRows.map((r) => r.cc)).size === 103, 'coverage of HIS table is the paper\'s 103 jurisdictions');
+  ok(new Set(opRows.map((r) => r.lang)).size === 33, 'across the framework\'s 33 languages');
+  ok(new Set(opRows.map(RATES.regionId)).size === 114,
+     '(language, country) is the key of his rows — Switzerland, India, Canada and Singapore appear under several languages');
+  ok(new Set(RATES.REGION_RATES.map(RATES.regionId)).size === RATES.REGION_RATES.length,
+     'and every row in the record, his and approved, has a UNIQUE key — an approved row can never overwrite one of his');
+  ok(RATES.findRegion('English:US').name === 'United States — Austin, Texas' && RATES.findRegion('English:IE').rate === null,
+     'his ids still resolve to HIS rows: English:US is Austin, English:IE is his NULL row');
+  const iePlace = RATES.JURISDICTIONS.find((j) => j.cc === 'IE');
+  ok(iePlace && iePlace.rate !== null && iePlace.source === 'approved-2026-09-11',
+     'but the PLACE Ireland now settles — the approved fill replaced his NULL for settlement, his row untouched');
 
   // SETTLEMENT — 웃 × the local rate, in the local currency, and NEVER a conversion between currencies.
   const tx = RATES.findRegion('English:US');
@@ -408,19 +429,25 @@ if (RATES.JURISDICTIONS) {
   // 114 rows collapse to 106 PLACES with no row lost — six countries were repeated once per language, same rate each
   // time, which made a person choose a language in order to be given a wage.
   // The operator's table is one SOURCE among the jurisdictions now; scope these to it (the merge is gated further down).
-  const opJ = RATES.JURISDICTIONS.filter((j) => j.source === 'operator-2026-09-10');
+  const opJ = RATES.JURISDICTIONS.filter((j) => j.fromOperator);
   ok(opJ.length === 106, `114 rows are 106 distinct places — got ${opJ.length}`);
-  ok(opJ.reduce((n, j) => n + j.langs.length, 0) === 114, 'and every one of the 114 rows is still accounted for');
+  const opRowsAll = RATES.REGION_RATES.filter((r) => !r.approved);
+  ok(opRowsAll.every((r) => RATES.JURISDICTIONS.some((j) => j.cc === r.cc && j.name === r.name)), 'and every one of the 114 rows maps to a place');
   ok(new Set(opJ.map((j) => j.cc)).size === 103, 'across the paper\'s 103 countries');
-  ok(RATES.COUNTRIES.length === 104, 'the country list is the paper\'s 103 plus Cambodia from hi_rates.py, flagged');
-  const ch = RATES.JURISDICTIONS.filter((j) => j.cc === 'CH');
-  ok(ch.length === 1 && ch[0].langs.length === 3,
-     'Switzerland is ONE place published in three languages, not three places');
+  const approvedNewCc = new Set(approvedPsv.map((r) => r[1]).filter((cc) => !opPsvTop.some((o) => o[1] === cc) && cc !== 'US' && cc !== 'KH'));
+  ok(RATES.COUNTRIES.length === 104 + approvedNewCc.size, `the country list is 104 plus the ${approvedNewCc.size} countries he approved — got ${RATES.COUNTRIES.length}`);
+  const chNat = RATES.JURISDICTIONS.find((j) => j.cc === 'CH' && j.locality === null);
+  ok(chNat && chNat.langs.length === 3 && RATES.JURISDICTIONS.filter((j) => j.cc === 'CH' && j.locality === null).length === 1,
+     'Switzerland the country is ONE place published in three languages, not three places');
+  ok(RATES.JURISDICTIONS.some((j) => j.cc === 'CH' && j.locality === 'Geneva' && j.rate !== null && j.source === 'approved-2026-09-11'),
+     'and Geneva, a cantonal floor, is a locality of it from the approved file');
   // The locality election, step two — only where the paper publishes more than one jurisdiction in a country.
-  ok(RATES.localitiesOf('CA').length === 2, 'Canada offers a locality election: Federal or Québec');
+  const caLoc = RATES.localitiesOf('CA');
+  ok(caLoc.length === 14 && caLoc.some((j) => j.locality === 'Federal') && caLoc.some((j) => j.locality === 'Québec') && caLoc.filter((j) => j.source === 'approved-2026-09-11').length === 12,
+     'Canada offers a locality election: Federal, Québec, and the twelve approved provinces and territories');
   ok(RATES.localitiesOf('IN').length === 3, 'India offers three: national, West Bengal, Punjab');
-  ok(RATES.localitiesOf('CH').length === 0 && RATES.localitiesOf('NG').length === 0,
-     'a country the paper publishes once offers no second step — the election stays one click');
+  ok(RATES.localitiesOf('NG').length === 0 && RATES.localitiesOf('GB').length === 0 && RATES.localitiesOf('ES').length === 0,
+     'a country published as one place offers no second step — the election stays one click');
   const ca = RATES.localitiesOf('CA');
   ok(ca[0].rate === 18.15 && ca[1].rate === null,
      'and the locality CHANGES the floor: Canada Federal is 18.150 CAD, Québec publishes none');
@@ -543,18 +570,23 @@ ok(/witnessed_for: hhmmss\(span\.ms\)/.test(page) && /member_outcomes: members\.
 
 // ── THE REGION RECORD, RECONCILED (feedback intake 2026-09-11) ───────────────────────────────────────────────────────
 if (RATES.JURISDICTIONS && RATES.settleD9) {
-  const ops = RATES.JURISDICTIONS.filter((j) => j.source === 'operator-2026-09-10');
+  const ops = RATES.JURISDICTIONS.filter((j) => j.fromOperator);
   const hi = RATES.JURISDICTIONS.filter((j) => j.source === 'hi_rates.py');
-  ok(ops.length === 106 && ops.reduce((n, j) => n + j.langs.length, 0) === 114,
+  ok(ops.length === 106 && RATES.REGION_RATES.filter((r) => !r.approved).length === 114,
      'the operator\'s 114 rows are still 106 places, none lost, none edited');
-  ok(hi.length === 51 && hi.filter((j) => j.cc === 'US').length === 50,
-     'hi_rates.py — "the live settlement table" (fund.token) — adds the 50 US state floors and Cambodia, each tagged with its source');
-  ok(RATES.localitiesOf('US').length === 51, 'a US contributor elects their STATE, not the wider country');
+  ok(hi.length === 50 && hi.filter((j) => j.cc === 'US').length === 50,
+     'hi_rates.py — "the live settlement table" (fund.token) — adds the 50 US state floors, each tagged with its source (its Cambodia row is superseded by the approved one)');
+  ok(RATES.localitiesOf('US').length === 57, 'a US contributor elects their STATE — 50 states, Austin, DC, the federal floor, and the four rated territories');
+  for (const [loc, rate] of [['District of Columbia', 17.95], ['Puerto Rico', 10.5], ['Guam', 9.25], ['U.S. Virgin Islands', 10.5], ['Northern Mariana Islands', 7.25]]) {
+    const j = RATES.localitiesOf('US').find((x) => x.locality === loc);
+    ok(j && j.rate === rate && j.currency === 'USD' && j.source === 'approved-2026-09-11', `${loc} is a US locality at ${rate} USD/h, from the approved file`);
+  }
+  ok(!RATES.JURISDICTIONS.some((j) => j.locality === 'American Samoa' && j.rate !== null), 'American Samoa carries no single figure — industry rates; nothing was guessed');
   const ca = RATES.JURISDICTIONS.find((j) => j.locality === 'California');
   ok(ca && ca.rate === 16 && ca.currency === 'USD', 'a Californian\'s posted floor is $16.00, not Texas\'s $7.25');
   const kh = RATES.JURISDICTIONS.find((j) => j.country === 'Cambodia');
-  ok(kh && kh.rate === 1.04 && kh.source === 'hi_rates.py' && /flagged/.test(kh.note),
-     'Cambodia is in, from hi_rates.py, and flagged as absent from the operator\'s 103');
+  ok(kh && kh.rate === 1.01 && kh.currency === 'USD' && kh.source === 'approved-2026-09-11' && kh.langs.includes('Khmer'),
+     'Cambodia is in from the approved file — its statutory minimum is set in USD, and the hi_rates.py row no longer stands in for it');
   ok(RATES.JURISDICTIONS.find((j) => j.cc === 'BR' && j.source === 'operator-2026-09-10').usdMirror === 1.58,
      'the USD mirror sits BESIDE the operator\'s local-currency row, never converted into it');
   // D9 — greater of vintage and current, same jurisdiction; relocation is an election onto the new schedule

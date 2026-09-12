@@ -304,8 +304,8 @@ export default function SoISessionPage() {
   // The lead's intent + outcome ride along with every roster so the joiners review the real
   // brief, not two empty boxes (three-phone live run, 2026-09-03). Additive: `brief` beside `pod`.
   // The PLAN rides with it (operator 2026-09-11): the joiners accept hours × M, not only the words.
-  const briefRef = useRef<{ intent: string; outcome: string; plan: { hours: number; m: number } | null; lock: Baseline | null }>({ intent: "", outcome: "", plan: null, lock: null });
-  briefRef.current = { intent, outcome, plan: lock ? { hours: lock.hours, m: lock.m } : { hours: parseFloat(baselineHrs) || 0, m: bandM }, lock };
+  const briefRef = useRef<{ intent: string; outcome: string; plan: { hours: number; m: number } | null; lock: Baseline | null; regionIdSel: string }>({ intent: "", outcome: "", plan: null, lock: null, regionIdSel: DEFAULT_REGION_ID });
+  briefRef.current = { intent, outcome, plan: lock ? { hours: lock.hours, m: lock.m } : { hours: parseFloat(baselineHrs) || 0, m: bandM }, lock, regionIdSel };
   // The recorded outcome travels the same way: the phone that recorded it sends it with its
   // phase move, the lead's rosters carry it on, and every receipt shows the same words — the
   // three-phone live run found the other two receipts empty (2026-09-03).
@@ -327,13 +327,15 @@ export default function SoISessionPage() {
   const onStatus = useCallback((p: SessionBroadcastPayload) => {
     const msg = (p as { pod?: unknown })?.pod as PodMsg | undefined;
     if (!msg) return;                                          // a poll frame — never ours
-    const brief = (p as { brief?: { intent?: string; outcome?: string; plan?: { hours?: number; m?: number } | null; lock?: Baseline | null } }).brief;
+    const brief = (p as { brief?: { intent?: string; outcome?: string; plan?: { hours?: number; m?: number } | null; lock?: Baseline | null; regionIdSel?: string } }).brief;
     if (brief && isJoinerRef.current) {                        // the lead's brief, for review
       if (typeof brief.intent === "string") setIntent(brief.intent);
       if (typeof brief.outcome === "string") setOutcome(brief.outcome);
       if (brief.plan && typeof brief.plan.hours === "number" && typeof brief.plan.m === "number") {
         setBaselineHrs(String(brief.plan.hours)); setBandM(brief.plan.m);   // what this seat is being asked to accept
       }
+      // The pod's DEFAULT place is the lead's election and reaches every phone; a member's own election still overrides it.
+      if (typeof brief.regionIdSel === "string" && findJurisdiction(brief.regionIdSel)) setRegionIdSel(brief.regionIdSel);
       if (brief.lock && typeof brief.lock.hash === "string") {
         const incoming = brief.lock;                           // verified before it is trusted (fleet review, Thor/Odin)
         void verifyBaseline(incoming).then((okHash) => { if (okHash) setLock(incoming); });
