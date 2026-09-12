@@ -25,6 +25,7 @@ export function PodPhaseRail({ phase, counts }: { phase: string; counts: PodCoun
   };
   return (
     <div className="mb-3" data-testid="phase-rail">
+      {cur >= 0 && <p className="mb-1 text-xs font-medium" data-testid="phase-step"><span style={{ color: hue.bright }}>{t("soi.pod.guide.step").replace("{n}", String(cur + 1)).replace("{m}", String(POD_PHASES.length))}</span> · {t(POD_PHASES[cur].labelKey)}</p>}
       <ol className="flex flex-wrap gap-1" aria-label={t("soi.pod.rail.aria")}>
         {POD_PHASES.map((p, i) => {
           const on = i === cur, past = i < cur, c = countFor(p.key);

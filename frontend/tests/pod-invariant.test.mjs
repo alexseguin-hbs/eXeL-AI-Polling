@@ -775,4 +775,27 @@ ok(/<div className="flex min-w-0 max-w-full flex-wrap items-center gap-1\.5">/.t
 ok(/<div key=\{i\} className="min-w-0 rounded-md border border-border p-2">/.test(page),
    'and each seat card, a grid item, is min-w-0 — a grid item\'s minimum width is its content, so the same select stretched the seat cards to 670px on a 375px phone');
 
+// ── SUPER SIMPLE TO FOLLOW (operator 2026-09-12: DocuSign as the model) — extended, nothing removed ───────────────
+const rail = read('../components/pod-phase-rail.tsx');
+ok(/data-testid="phase-step"/.test(rail) && /soi\.pod\.guide\.step/.test(rail), 'the rail says "Step N of 7 · <name>" — the existing PodPhaseRail extended, not a second stepper');
+ok(/data-testid="your-turn" data-state=\{guide\.state\}/.test(page) && /data-testid="your-turn-action"/.test(page), 'one guide card on every phase: who acts, the one action, a button to the control');
+ok(/data-testid="pod-explain" aria-live="polite">\{explain\}/.test(page), 'the existing per-phase explainer line IS the card\'s sentence — reused, not rewritten');
+for (const t of ['pod-intent', 'pod-outcome', 'pod-name', 'pod-open', 'pod-accept', 'pod-record', 'pod-next', 'pod-settle-btn', 'pod-copy'])
+  ok(page.includes(`data-testid="${t}"`), `the guide can reach ${t}`);
+for (const t of ['member-name-', 'member-agree-', 'pod-ready-', 'audit-hours-', 'audit-did-', 'witness-'])
+  ok(page.includes('data-testid={`' + t), `the guide can reach ${t}\${i} on the person\'s own seat`);
+ok(/el\.setAttribute\("data-next", "1"\)/.test(page) && /\[data-next="1"\]\{outline:2px solid #f0b429/.test(page), 'the control the guide points at is marked — the envelope\'s next-field tag');
+ok(/case "audit": \{[\s\S]*?canWitness\(me\)[\s\S]*?witness-\$\{j\}-by-\$\{me\}/.test(page), 'at witnessing the guide names WHO this person still has to witness and points at that button');
+ok(/case "closed": return \{ state: "done"/.test(page), 'once settled the card reads Done and offers the copy');
+const rosterList = read('../components/pod-roster-list.tsx');
+ok(/data-testid="pod-roster"/.test(rosterList) && /data-state=\{r\.state\}/.test(rosterList) && /<PodRosterList rows=\{rosterRows\}/.test(page), 'who has done what — the signing flow\'s Roster pattern, one line per person, state in colour');
+ok(/data-testid="completed"/.test(page) && /soi\.pod\.guide\.completed/.test(page) && /copyReceipt/.test(page), 'the settled screen opens with Completed and a copy of the receipt');
+ok(/data-testid="details-settle"/.test(page) && /data-testid="details-evidence"/.test(page) && /data-testid="pod-settle"/.test(page) && /data-testid="pod-settle-d9"/.test(page),
+   'the settlement prose and the evidence chain are FOLDED under Details — still there, still gated, no longer in the way');
+ok(!/\{phase\}\n\s*<\/span>/.test(page), 'the header pill shows the phase\'s name, not its internal key');
+const lex = read('../lib/lexicon-data.ts');
+const guideKeys = (lex.match(/key: "soi\.pod\.guide\./g) || []).length;
+ok(guideKeys >= 34, `every new guide string is a lexicon key — ${guideKeys} soi.pod.guide.* keys`);
+ok(!/hi_rates\.py/.test(page.slice(page.indexOf('function UsdBeside'), page.indexOf('const WHITE_PAPER'))), 'the USD line a person reads names no source file (signer voice) — the provenance stays in the module');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

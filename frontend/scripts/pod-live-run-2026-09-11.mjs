@@ -164,7 +164,7 @@ step('lead', 'receipt shows the ledger grammar', /\d+\.\d{4}\.\.\d{4}/.test(body
 step('lead', 'receipt settles Ana in reais and Bo in pesos beside Lea in dollars — each at their own floor', /(BRL|R\$)/.test(body) && /(PHP|₱)/.test(body) && /\$/.test(body) && /Each at their own floor/.test(body));
 const usd = await Promise.all([0, 1, 2].map((i) => L.getByTestId(`receipt-usd-${i}`).innerText()));
 step('lead', 'Lea (USD) — her own figure is the USA equivalent', /≈ \$/.test(usd[0]) && !/awaiting/.test(usd[0]), usd[0].trim());
-step('lead', 'Ana (BRL) — a USA figure only by a traceable route: hi_rates.py\'s USD floor × 웃, named as a second floor', /≈ \$/.test(usd[1]) && /hi_rates\.py USD floor/.test(usd[1]), usd[1].trim());
+step('lead', 'Ana (BRL) — a USA figure only by a traceable route: hi_rates.py\'s USD floor × 웃, named as a second floor', /≈ \$/.test(usd[1]) && /US-dollar table/.test(usd[1]), usd[1].trim());
 step('lead', 'Bo (PHP) — no dated exchange rate, no USD floor: the receipt says what is missing, never a number', /awaiting a dated exchange-rate source/.test(usd[2]), usd[2].trim());
 step('lead', 'Ana\'s GPS fix prints on the receipt as a supplement to the elected place', /GPS -23\.5505, -46\.6333/.test(await L.getByTestId('receipt-gps-1').innerText()) && /supplement to the elected place/.test(await L.getByTestId('receipt-gps-1').innerText()));
 step('lead', 'and no other seat carries a fix it did not take', (await L.locator('[data-testid="receipt-gps-0"]').count()) === 0 && (await L.locator('[data-testid="receipt-gps-2"]').count()) === 0);
