@@ -1502,7 +1502,7 @@ export default function SoISessionPage() {
                   return (
                     <li key={i} data-testid={`settle-member-${i}`}>
                       <span className="font-medium text-foreground">{m.name.trim() || m.role}</span>
-                      {" — "}{claimOf(i).hours} h at {M}× = 웃 {own.toFixed(3)}
+                      {" — "}{claimOf(i).hours.toFixed(2)} h at {M}× = 웃 {own.toFixed(3)}
                       <span className="font-mono"> · {fmtABC(own)}</span>
                       {j ? <> · {j.name}{electedOwn(i) ? "" : " (inherited)"}: {cash !== null ? formatLocal(cash, j.currency) : "no rate published"}<UsdBeside amount={cash} currency={j.currency} yug={own} place={j} testid={`settle-usd-${i}`} /></> : null}
                       {m.gps ? <span className="font-mono" data-testid={`settle-gps-${i}`}> · {fmtGps(m.gps)}</span> : null}
@@ -1631,7 +1631,7 @@ export default function SoISessionPage() {
                   {memberVintages.length ? <> — D9 per person: each settles at the greater of the rate stamped at earning and the rate current now, from their own jurisdiction; a settlement figure moves only because a statutory wage moved.</> : null}
                 </li>
                 {vintage ? (
-                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
+                  <li data-testid="receipt-vintage"><span className="font-medium text-foreground">6 · Stamped</span> {new Date(vintage.earnedAt).toLocaleDateString()} — <span data-testid="vintage-line">{vintage.hours.toFixed(4)} h at {vintage.m}× = 웃 {vintage.yug.toFixed(3)} <span className="font-mono">{fmtABC(vintage.yug)}</span></span>{vintage.rate !== null && vintage.currency ? <> · stamped at {vintage.rate} {vintage.currency} an hour</> : null}. Written once and never revised; waiting to be paid changes when this settles, never what it says.</li>
                 ) : null}
               </ol>
               <p className="text-muted-foreground"><span className="font-medium text-foreground">Intent:</span> {intent}</p>

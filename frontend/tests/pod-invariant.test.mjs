@@ -798,4 +798,8 @@ const guideKeys = (lex.match(/key: "soi\.pod\.guide\./g) || []).length;
 ok(guideKeys >= 34, `every new guide string is a lexicon key — ${guideKeys} soi.pod.guide.* keys`);
 ok(!/hi_rates\.py/.test(page.slice(page.indexOf('function UsdBeside'), page.indexOf('const WHITE_PAPER'))), 'the USD line a person reads names no source file (signer voice) — the provenance stays in the module');
 
+// ── EVERY HOURS FIGURE A PERSON READS IS FORMATTED (found on the advised run: "0.013793333333333333 h" on receipt line 6)
+ok(!/\{vintage\.hours\} h/.test(page) && !/\{claimOf\(i\)\.hours\} h/.test(page) && /\{vintage\.hours\.toFixed\(4\)\} h/.test(page),
+   'no raw floating-point hours reach the screen — the stamped hours and each claim are rounded where they are printed');
+
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
