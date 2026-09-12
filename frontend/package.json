@@ -74,6 +74,8 @@
     "test:sign-invariant": "node tests/sign-invariant.test.mjs",
     "test:sign-voice": "node tests/sign-lexicon-voice.test.mjs",
     "test:pod-invariant": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/pod-invariant.test.mjs",
+    "test:lexicon-coverage": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/lexicon-coverage.test.mjs",
+    "lexicon:gaps": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/lexicon-gaps.mjs",
     "test:sign": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/sign-envelope.test.mjs",
     "test:auth-return": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/auth-return.test.mjs",
     "test:soi-pod-sim": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-pod-sim.test.mjs",
