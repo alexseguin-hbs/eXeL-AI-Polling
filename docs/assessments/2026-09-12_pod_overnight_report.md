@@ -5,7 +5,12 @@
 Three instructions were persisted first (`docs/asks/2026-09-12_pod_simple_ux_and_asm_simulation.md`, commit 254ef2e,
 sha256 `a7a6088a96e64a11`), then executed as three tracks and three spiral rounds. Every change was committed and
 pushed to both refs as it landed; Verify Live ran green for every commit on `main` up to and including 32cde38
-(the round-3 run for 8b3a53d was still in progress when this report was written). Round 3 locally: `test:ci` exit 0, `next build` exit 0.
+(the round-3 run for 8b3a53d was still in progress when this report was written).
+
+**Correction.** The first version of this report said round 3's `test:ci` had passed. It had not: the run had been
+started from the wrong directory and never ran; the real run failed on `sign-i18n` (Spanish must cover every
+`soi.pod.*` key — 92 new keys had none). Spanish was written (fed42ae) and that gate is green; the 31-language gate
+(`sign-i18n-all`) needed a translation pass, recorded below. `next build` exit 0 at 8b3a53d is real.
 
 ## What you will find when you wake
 
@@ -60,7 +65,8 @@ identical on three phones. The app takes no AI input; the phones type the review
 | 3 | (gates by form) | no raw hours anywhere · no machine word in any visible string · every placeholder through t() · the strip and Back-to-edit obey the derivation · a full pod says so · the receipt adds up · one "approved" predicate · narration marked as narration | 8b3a53d |
 
 Each round ended with the three-phone runs green (default 124→127 steps, advised 125→128), `pod-invariant` green
-(396 → 447 assertions), `test:ci` exit 0 and `next build` exit 0.
+(396 → 447 assertions) and `next build` exit 0. `test:ci` was green for rounds 1 and 2 and RED for round 3 on the
+two lexicon-coverage gates until the translations landed (see the correction above and the closing section).
 
 ## What remains — yours, or larger than a night
 
