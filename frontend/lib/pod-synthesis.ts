@@ -128,7 +128,9 @@ export function buildSynthesis333(inp: SynthesisInput): Synthesis333 {
 
   // ── 1. Results ──────────────────────────────────────────────────────────
   const resultsCore = [
-    `In ${podLabel}, ${nameList} set out to ${frag(inp.intent) || "advance a shared task"}, and closed one synchronized session against the measurable outcome they set: ${frag(inp.outcome) || "the result they agreed to prove"}. Whether it was met is for the record and the witnesses below, not for this summary.`,
+    // THE TOTAL HOLDS WHATEVER THE POD TYPED (fleet 2026-09-12): the pod's own intent and outcome are quoted at most 24
+    // words each, so the three core sentences can never carry the total past the target on their own.
+    `In ${podLabel}, ${nameList} set out to ${firstWords(frag(inp.intent), 24) || "advance a shared task"}, and closed one synchronized session against the measurable outcome they set: ${firstWords(frag(inp.outcome), 24) || "the result they agreed to prove"}. Whether it was met is for the record and the witnesses below, not for this summary.`,
     `They recorded it ${methodPhrase(inp.recordMethod)}, so the outcome is evidence a settlement can stand on, not a claim taken on trust.`,
     inp.recordValue.trim()
       ? `In their own words, the pod noted: "${firstWords(inp.recordValue, 16)}".`
