@@ -23,3 +23,10 @@ existing lexicon key that lacks a translation in any of the 33 languages and fil
 ## Provenance
 Received 2026-09-12 ~10:32 CST. Persisted before any code (PERSIST FIRST, AAR 2026-08-28). Plan:
 `/root/.claude/plans/do-me-a-fsvor-pure-wirth.md` at the time of writing.
+
+## Addendum, same morning
+
+> also enable max screen like divinity guide
+
+The pod page gets the Divinity Guide's "max screen" mode — the same control, the same behaviour, reused not rebuilt.
+Persisted before any code.
