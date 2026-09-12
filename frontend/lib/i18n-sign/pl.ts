@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "planowane godziny",
   "soi.pod.ph.signed_by": "podpisano przez",
   "soi.pod.ph.clock": "czas poświadczony w tym podzie",
+  "soi.pod.ui.copy_link": "Skopiuj link",
+  "soi.pod.ui.link_copied": "Skopiowano link",
+  "soi.pod.guide.a.agree_first": "Zatwierdź plan — pozostała dwójka może w tym czasie dołączyć",
 };
 export default T;

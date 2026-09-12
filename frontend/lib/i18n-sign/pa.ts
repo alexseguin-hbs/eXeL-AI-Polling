@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "ਯੋਜਨਾਬੱਧ ਘੰਟੇ",
   "soi.pod.ph.signed_by": "ਕਿਸ ਵੱਲੋਂ ਸਾਈਨ",
   "soi.pod.ph.clock": "ਇਸ ਪੌਡ ਦਾ ਗਵਾਹੀ-ਪ੍ਰਾਪਤ ਸਮਾਂ",
+  "soi.pod.ui.copy_link": "ਲਿੰਕ ਕਾਪੀ ਕਰੋ",
+  "soi.pod.ui.link_copied": "ਲਿੰਕ ਕਾਪੀ ਹੋ ਗਿਆ",
+  "soi.pod.guide.a.agree_first": "ਯੋਜਨਾ ਮਨਜ਼ੂਰ ਕਰੋ — ਇਸੇ ਦੌਰਾਨ ਬਾਕੀ ਦੋ ਸ਼ਾਮਲ ਹੋ ਸਕਦੇ ਹਨ",
 };
 export default T;

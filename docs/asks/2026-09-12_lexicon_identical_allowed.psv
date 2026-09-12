@@ -1,0 +1,17 @@
+Scope|Key|Reason
+*|soi.qis.spine|a formula: R | GP | OI | QRD → ERD → QIS → ΔQIS — symbols, not words
+*|soi.qis.equation|a formula: QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS — 19 languages translated "growth"; the rest kept the formula
+*|innovation.gate.eyebrow|names only: Vision • 2525 · Harmattan AI
+*|innovation.dogtag.load|glyph string AI·SI·HI
+*|innovation.dep.load|glyph string AI·SI·HI
+*|soi.tricoin|a product name: Tri-Coin
+*|innovation.alloc.perMin|a unit: $/min
+fr|innovation.header.title|System of Innovation is the product's name in the French app too
+pt|innovation.role.editor|Editor is the Portuguese word
+cs|innovation.role.editor|Editor is the Czech word
+id|cube10.sim.tier_manual|Manual is the Indonesian word
+ms|cube10.sim.tier_manual|Manual is the Malay word
+tr|innovation.notes.risk|Risk is the Turkish word
+sv|innovation.veq.colDriver|Differentiator is used as-is in Swedish business language
+da|cube10.sim.ssses_stability|Stab is an abbreviation shown as a column head
+da|cube10.sim.ssses_efficiency|Eff is an abbreviation shown as a column head

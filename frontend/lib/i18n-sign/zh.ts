@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "计划工时",
   "soi.pod.ph.signed_by": "签署人",
   "soi.pod.ph.clock": "此 Pod 已被见证的时间",
+  "soi.pod.ui.copy_link": "复制链接",
+  "soi.pod.ui.link_copied": "链接已复制",
+  "soi.pod.guide.a.agree_first": "先同意计划——另外两人可以同时加入",
 };
 export default T;

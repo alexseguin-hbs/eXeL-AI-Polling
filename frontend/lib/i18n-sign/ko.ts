@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "계획 시간",
   "soi.pod.ph.signed_by": "서명자",
   "soi.pod.ph.clock": "이 포드가 증언된 시간",
+  "soi.pod.ui.copy_link": "링크 복사",
+  "soi.pod.ui.link_copied": "링크 복사됨",
+  "soi.pod.guide.a.agree_first": "계획을 승인하세요 — 그동안 나머지 두 사람이 참여할 수 있습니다",
 };
 export default T;

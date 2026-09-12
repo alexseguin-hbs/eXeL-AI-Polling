@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "ore planificate",
   "soi.pod.ph.signed_by": "semnat de",
   "soi.pod.ph.clock": "timpul cât acest pod a fost atestat",
+  "soi.pod.ui.copy_link": "Copiază linkul",
+  "soi.pod.ui.link_copied": "Link copiat",
+  "soi.pod.guide.a.agree_first": "Acceptă planul — ceilalți doi se pot alătura între timp",
 };
 export default T;

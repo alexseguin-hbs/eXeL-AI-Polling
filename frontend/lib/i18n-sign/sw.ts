@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "saa zilizopangwa",
   "soi.pod.ph.signed_by": "imesainiwa na",
   "soi.pod.ph.clock": "muda ambao pod hii imeshuhudiwa",
+  "soi.pod.ui.copy_link": "Nakili kiungo",
+  "soi.pod.ui.link_copied": "Kiungo kimenakiliwa",
+  "soi.pod.guide.a.agree_first": "Kubali mpango — wale wengine wawili wanaweza kujiunga wakati huohuo",
 };
 export default T;

@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "заплановані години",
   "soi.pod.ph.signed_by": "підписує",
   "soi.pod.ph.clock": "час, засвідчений у цьому поді",
+  "soi.pod.ui.copy_link": "Копіювати посилання",
+  "soi.pod.ui.link_copied": "Посилання скопійовано",
+  "soi.pod.guide.a.agree_first": "Погодьте план — двоє інших тим часом можуть приєднатися",
 };
 export default T;

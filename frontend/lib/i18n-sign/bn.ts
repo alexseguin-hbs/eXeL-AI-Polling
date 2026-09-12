@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "পরিকল্পিত ঘণ্টা",
   "soi.pod.ph.signed_by": "স্বাক্ষরকারী",
   "soi.pod.ph.clock": "এই পডের যত সময় সাক্ষ্য দেওয়া হয়েছে",
+  "soi.pod.ui.copy_link": "লিংক কপি করুন",
+  "soi.pod.ui.link_copied": "লিংক কপি হয়েছে",
+  "soi.pod.guide.a.agree_first": "পরিকল্পনা অনুমোদন করুন — এর মধ্যে বাকি দুজন যোগ দিতে পারেন",
 };
 export default T;

@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "planong oras",
   "soi.pod.ph.signed_by": "nilagdaan ni",
   "soi.pod.ph.clock": "oras na nasaksihan ang pod na ito",
+  "soi.pod.ui.copy_link": "Kopyahin ang link",
+  "soi.pod.ui.link_copied": "Nakopya ang link",
+  "soi.pod.guide.a.agree_first": "Aprubahan ang plano — makakasali ang dalawa pa habang naghihintay",
 };
 export default T;

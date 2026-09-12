@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "jam yang dirancang",
   "soi.pod.ph.signed_by": "ditandatangani oleh",
   "soi.pod.ph.clock": "masa pod ini telah disaksikan",
+  "soi.pod.ui.copy_link": "Salin pautan",
+  "soi.pod.ui.link_copied": "Pautan disalin",
+  "soi.pod.guide.a.agree_first": "Luluskan rancangan — dua yang lain boleh menyertai sementara itu",
 };
 export default T;

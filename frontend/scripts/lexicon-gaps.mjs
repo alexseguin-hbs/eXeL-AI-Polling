@@ -16,7 +16,7 @@ const lazy = async (dir, code) => { const f = path.join(process.cwd(), 'lib', di
 const gaps = {}; const rows = [];
 for (const code of codes) {
   const merged = { ...(SEEDED_TRANSLATIONS[code] ?? {}), ...(SOI_R228_TRANSLATIONS[code] ?? {}), ...(SIGN_TRANSLATIONS[code] ?? {}), ...(code === 'es' ? ES_SIGN : {}), ...(await lazy('i18n-sign', code)), ...(await lazy('i18n-app', code)) };
-  const missing = keys.filter((k) => !String(merged[k] ?? '').trim());
+  const missing = keys.filter((k) => String(en[k].englishDefault ?? '').trim() && !String(merged[k] ?? '').trim());   // an empty English default is not a gap
   gaps[code] = missing.map((k) => ({ key: k, en: en[k].englishDefault, context: en[k].context ?? '' }));
   rows.push([code, keys.length - missing.length, missing.length]);
 }

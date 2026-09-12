@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "suunnitellut tunnit",
   "soi.pod.ph.signed_by": "allekirjoittaja",
   "soi.pod.ph.clock": "aika, jonka tätä podia on todistettu",
+  "soi.pod.ui.copy_link": "Kopioi linkki",
+  "soi.pod.ui.link_copied": "Linkki kopioitu",
+  "soi.pod.guide.a.agree_first": "Hyväksy suunnitelma – kaksi muuta voi liittyä sillä välin",
 };
 export default T;

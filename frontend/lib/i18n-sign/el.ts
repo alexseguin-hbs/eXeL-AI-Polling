@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "προγραμματισμένες ώρες",
   "soi.pod.ph.signed_by": "υπογράφεται από",
   "soi.pod.ph.clock": "χρόνος που έχει μαρτυρηθεί αυτό το pod",
+  "soi.pod.ui.copy_link": "Αντιγραφή συνδέσμου",
+  "soi.pod.ui.link_copied": "Ο σύνδεσμος αντιγράφηκε",
+  "soi.pod.guide.a.agree_first": "Εγκρίνετε το σχέδιο — οι άλλοι δύο μπορούν να μπουν στο μεταξύ",
 };
 export default T;

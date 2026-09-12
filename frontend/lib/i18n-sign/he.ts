@@ -470,5 +470,8 @@ const T: Record<string, string> = {
   "soi.pod.ph.planned_hours": "שעות מתוכננות",
   "soi.pod.ph.signed_by": "נחתם על ידי",
   "soi.pod.ph.clock": "הזמן שהעידו עליו בפוד הזה",
+  "soi.pod.ui.copy_link": "העתקת קישור",
+  "soi.pod.ui.link_copied": "הקישור הועתק",
+  "soi.pod.guide.a.agree_first": "אשרו את התוכנית — השניים האחרים יכולים להצטרף בינתיים",
 };
 export default T;
