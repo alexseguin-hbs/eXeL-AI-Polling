@@ -63,9 +63,14 @@ const L = phones.lead, A = phones.ana, B = phones.bo;
 const NAMES = { lead: 'Lea', ana: 'Ana', bo: 'Bo' };
 const ALL = [['lead', L], ['ana', A], ['bo', B]];
 const enabledOf = async (loc) => { for (const el of await loc.all()) if (await el.isEnabled()) return el; return null; };
+// THE GUIDE IS EXERCISED, NOT ASSUMED (fleet 2026-09-12, Enlil/Pangu/Thoth): at every phase, every phone's card must be in
+// the expected state; a "turn" card's button is pressed once and must mark the control it names.
+const guideIs = async (who, p, state, re) => { const card = p.getByTestId('your-turn'); const st = await card.getAttribute('data-state'); const txt = await p.getByTestId('guide-sentence').innerText(); step(who, `guide reads ${state.toUpperCase()}${re ? ' — ' + re : ''}`, st === state && (!re || new RegExp(re).test(txt)), `"${txt.trim().slice(0, 70)}"`); };
+const guideGo = async (who, p, target) => { await p.getByTestId('your-turn-action').click(); await p.waitForTimeout(300); const marked = await p.evaluate(() => document.querySelector('[data-next="1"]')?.getAttribute('data-testid') || ''); step(who, `guide button marks and scrolls to ${target}`, marked === target, marked); };
 
 // 1 · the lead composes the task and its PLAN — hours × M — and elects the pod's default place
 await L.goto(BASE + '?enter=session', { waitUntil: 'domcontentloaded' }); await ready(L); step('lead', 'opened /soi-session');
+await guideIs('lead', L, 'turn', 'Write the intent'); await guideGo('lead', L, 'pod-intent');
 await L.getByPlaceholder(/De-risk the first/).fill(IN.intent);
 await L.getByPlaceholder(/One spec validated/).fill(IN.outcome);
 await L.getByPlaceholder('Your name').fill(NAMES.lead);
@@ -82,6 +87,7 @@ if (IN.podLocality) {
 }
 step('lead', `pod default place: ${IN.podCc}${IN.podLocality ? ' — ' + IN.podLocality : ''}`);
 await L.getByTestId('anchor-usd').waitFor({ timeout: 10000 }); step('lead', 'plan preview shows the USA-equivalent line beside the local figure — a figure by a traceable route, or the words for what is missing', new RegExp(INP ? '≈ \\$|awaiting a dated exchange-rate source' : '≈ \\$').test(await L.getByTestId('anchor-usd').innerText()));
+await guideIs('lead', L, 'turn', 'Share the QR and open the pod'); await guideGo('lead', L, 'pod-open');
 await shot(L, 'lead', '1-compose-plan');
 await crop(L, 'lead', '01-plan', L.getByTestId('pod-anchor'));
 const open = L.getByRole('button', { name: /Share QR/ }); await open.waitFor(); step('lead', 'open button enabled (plan present)', await open.isEnabled());
@@ -101,6 +107,7 @@ await shot(A, 'ana', '2b-joined'); await shot(B, 'bo', '2b-joined');
 await crop(A, 'ana', '02-invite', A.getByText(/you are seat 2/).locator('xpath=ancestor::div[2]')); await crop(B, 'bo', '02-invite', B.getByText(/you are seat 3/).locator('xpath=ancestor::div[2]'));
 await B.getByText(/you are seat 3/).waitFor({ timeout: 20000 }); step('bo', 'assigned seat 3');
 await L.getByText(/3 in the pod/).waitFor({ timeout: 20000 }); step('lead', 'lead sees 3 in the pod');
+await guideIs('ana', A, 'turn', 'Enter your name'); await guideIs('bo', B, 'turn', 'Enter your name'); await guideIs('lead', L, 'turn', 'Approve the plan');
 for (const [who, p] of [['ana', A], ['bo', B]]) { const inp = await enabledOf(p.getByPlaceholder('enter your name')); step(who, 'name input is own seat only', !!inp); await inp.fill(NAMES[who]); }
 // ELECTION OF LOCALITY — own seat only. Ana: Brazil (BRL, dataset). Bo: Philippines — Metro Manila (PHP, his row). Lea inherits the pod default (New York · Remainder of state).
 const elect = async (who, p, cc, label, locality) => {
@@ -118,6 +125,8 @@ step('ana', 'position fix recorded beside the elected place', GPS_RE.test(await 
 await L.locator('[data-testid="member-gps-fix-1"]').waitFor({ timeout: 20000 }); step('lead', 'lead sees Ana\'s fix (replicated), and Ana\'s election stands', (await L.getByTestId('member-floor-1').locator('..').innerText()).length > 0);
 for (const [who, p] of ALL) { const box = await enabledOf(p.getByRole('checkbox')); step(who, 'approval checkbox is own seat only', !!box); await box.check(); step(who, `approved intent, outcome AND the plan (${IN.planHours} h × ${IN.planM})`); }
 await L.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /Accepted by the trio/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 20000 }); step('lead', 'all three approved → sync unlocked');
+await guideIs('lead', L, 'turn', 'Go to synchronized start'); await guideGo('lead', L, 'pod-accept'); await guideIs('ana', A, 'waiting', 'waiting for Lea'); await guideIs('bo', B, 'waiting', 'waiting for Lea');
+step('bo', 'the control the card withholds is disabled on this phone (Accept)', !(await B.getByTestId('pod-accept').isEnabled()));
 await L.waitForFunction(() => /[A-Z]{3} an hour|no rate published/.test(document.body.innerText), null, { timeout: 20000 }); step('lead', 'lead sees the elections replicated');
 await shotAll('3-agreed-elected');
 for (const [who, p] of ALL) await crop(p, who, '03-seat', seatCard(p, SEAT[who]));
@@ -126,6 +135,7 @@ await L.getByRole('button', { name: /Accepted by the trio/ }).click();
 // 3 · synchronized readiness — three presses within 15 s — then ACTIVE, where the clock is a BUTTON
 for (const [who, p] of ALL) { await p.getByText(/tap to start/).first().waitFor({ timeout: 20000 }); const b = await enabledOf(p.getByRole('button', { name: /tap to start/ })); step(who, 'pressed ready (own seat)', !!b); await b.click(); }
 for (const [who, p] of ALL) { await p.getByTestId('pod-clock-toggle').waitFor({ timeout: 25000 }); step(who, 'ACTIVE — the clock button is on screen, not yet running'); }
+await guideIs('lead', L, 'turn', 'Start the clock'); await guideIs('ana', A, 'waiting', 'waiting for Lea'); step('ana', 'the clock is disabled on a joiner\'s phone', !(await A.getByTestId('pod-clock-toggle').isEnabled()));
 await shotAll('4-active-ready');
 for (const [who, p] of ALL) await crop(p, who, '04-clock', p.getByTestId('pod-clock-toggle').locator('xpath=ancestor::div[2]'));
 await L.getByTestId('pod-clock-toggle').click(); step('lead', 'START the clock (segment 1)');
@@ -134,10 +144,12 @@ await L.getByTestId('pod-clock-toggle').click(); step('lead', 'STOP the clock (s
 await L.getByTestId('pod-clock-toggle').click(); step('lead', 'ADD TIME (segment 2 opened)');
 await L.waitForTimeout(WORK_MS);
 for (const [who, p] of ALL) { await p.waitForFunction(() => /segment 2/.test(document.body.innerText), null, { timeout: 20000 }); step(who, 'sees segment 2 (clock events replicated)'); }
+await guideIs('ana', A, 'turn', 'Stop and record the outcome'); await guideIs('lead', L, 'turn', 'Stop the clock');
 await shotAll('5-active-two-segments');
 for (const [who, p] of ALL) await crop(p, who, '05-segments', p.getByTestId('pod-clock-toggle').locator('xpath=ancestor::div[2]'));
 await A.getByTestId('pod-stop').click(); step('ana', 'a JOINER pressed Stop & record — one route, segment 2 closed for everyone');
 for (const [who, p] of ALL) { await p.getByTestId('member-outcome-0').waitFor({ timeout: 20000 }); step(who, 'reached RECORD'); }
+for (const [who, p] of ALL) await guideIs(who, p, 'turn', 'Write your outcome');
 
 // 4 · the shared record + an OUTCOME FROM EACH OF THE THREE
 await A.getByPlaceholder(/Write the outcome|type it here/).first().fill(IN.record);
@@ -147,6 +159,7 @@ await shotAll('6-record-three-outcomes');
 for (const [who, p] of ALL) await crop(p, who, '06-outcome', p.getByTestId(`member-outcome-${SEAT[who]}`).locator('xpath=ancestor::div[2]'));
 await A.getByRole('button', { name: /witness the hours/ }).click();
 for (const [who, p] of ALL) { await p.getByPlaceholder('hours').first().waitFor({ timeout: 20000 }); step(who, 'reached AUDIT'); }
+for (const [who, p] of ALL) await guideIs(who, p, 'turn', 'Enter your hours');
 
 // 5 · self-audit (a claim ABOVE the clock, to show the cap) + cross-witness + settle
 for (const [who, p] of ALL) { const h = await enabledOf(p.getByPlaceholder('hours')); await h.fill(IN.seats[who].hours); const d = await enabledOf(p.getByPlaceholder(/what you did/)); await d.fill(IN.seats[who].did); step(who, `self-audit: claimed ${IN.seats[who].hours} h (above the clock — will be capped to what was witnessed)`); }
@@ -156,6 +169,7 @@ for (const [who, p] of ALL) {
   step(who, 'witnessed the other two', n === 2, `clicked ${n} of 2`);
 }
 await L.waitForFunction(() => { const b = [...document.querySelectorAll('button')].find((x) => /Settle/.test(x.textContent)); return b && !b.disabled; }, null, { timeout: 25000 }); step('lead', 'all witnessed + all self-audited → settle unlocked');
+await guideIs('lead', L, 'turn', 'Issue the receipt'); await guideGo('lead', L, 'pod-settle-btn'); await guideIs('bo', B, 'waiting', 'Your part is done'); step('bo', 'Settle is disabled on a joiner\'s phone', !(await B.getByTestId('pod-settle-btn').isEnabled()));
 for (const [who, p] of ALL) { const capped = await p.locator('[data-testid^="claim-capped-"]').count(); step(who, 'the 1 h claim is CAPPED to the clock on this phone', capped >= 1, `${capped} capped rows`); }
 
 step('lead', 'M is locked on the audit screen (no picker)', await L.getByTestId('band-locked').count() === 1 && await L.locator('[data-testid="band-select"]').count() === 0);
@@ -163,6 +177,7 @@ await shotAll('7-audit-witness');
 for (const [who, p] of ALL) await crop(p, who, '07-audit', p.getByPlaceholder('hours').nth(SEAT[who]).locator('xpath=ancestor::div[2]'));
 await L.getByRole('button', { name: /Settle/ }).click();
 for (const [who, p] of ALL) { await p.getByText(/Settled & receipted by the pod|Settled &amp; receipted/).waitFor({ timeout: 25000 }); step(who, 'CLOSED — receipt on this phone'); }
+for (const [who, p] of ALL) await guideIs(who, p, 'done', 'Completed');
 await shotAll('8-closed-receipt');
 for (const [who, p] of ALL) await crop(p, who, '08-receipt', p.getByTestId('receipt-3'));
 // THE 333-WORD SYNTHESIS — three paragraphs on every phone; counted here, not trusted from the label
@@ -190,7 +205,11 @@ if (!INP) {
   step('lead', 'Lea (USD) — her own figure is the USA equivalent', /≈ \$/.test(usd[0]) && !/awaiting/.test(usd[0]), usd[0].trim());
   step('lead', 'Ana (BRL) — a USA figure only by a traceable route: hi_rates.py\'s USD floor × 웃, named as a second floor', /≈ \$/.test(usd[1]) && /US-dollar table/.test(usd[1]), usd[1].trim());
   step('lead', 'Bo (PHP) — no dated exchange rate, no USD floor: the receipt says what is missing, never a number', /awaiting a dated exchange-rate source/.test(usd[2]), usd[2].trim());
-} else for (let i = 0; i < 3; i++) step('lead', `USA-equivalent line present for seat ${i + 1} — a figure by a traceable route, or the words for what is missing`, /≈ \$|awaiting a dated exchange-rate source/.test(usd[i]), usd[i].trim());
+} else for (const [i, who] of [[0, 'lead'], [1, 'ana'], [2, 'bo']]) {
+  const route = INP[who].usdRoute;   // decided by the validator from the record — the assertion can fail
+  const want = route === 'same-currency' ? /≈ \$(?!.*table)/ : route === 'hi_rates' ? /≈ \$.*US-dollar table/ : route === 'fx' ? /≈ \$.*rate of \d{4}-\d{2}-\d{2}/ : /^·?\s*USD equivalent: awaiting a dated exchange-rate source/;
+  step('lead', `USA-equivalent line for ${NAMES[who]} takes the ${route} route the record prescribes`, want.test(usd[i].trim()), usd[i].trim());
+}
 step('lead', 'Ana\'s GPS fix prints on the receipt as a supplement to the elected place', GPS_RE.test(await L.getByTestId('receipt-gps-1').innerText()) && /supplement to the elected place/.test(await L.getByTestId('receipt-gps-1').innerText()));
 step('lead', 'and no other seat carries a fix it did not take', (await L.locator('[data-testid="receipt-gps-0"]').count()) === 0 && (await L.locator('[data-testid="receipt-gps-2"]').count()) === 0);
 step('lead', 'receipt names the D9 rate that paid', /D9/.test(body) && /statutory wage moved/.test(body));
