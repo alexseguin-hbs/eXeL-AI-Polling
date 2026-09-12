@@ -13,7 +13,7 @@ export function QrMaxScreen({ url, code, title, subtitle, onClose, onCopyLink, c
 }) {
   const { t } = useLexicon();
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center overflow-y-auto bg-background/95 px-4 backdrop-blur-sm animate-in fade-in duration-200" data-testid={testid} role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center overflow-y-auto bg-background px-4 animate-in fade-in duration-200" data-testid={testid} role="dialog" aria-modal="true">
       <button type="button" onClick={onClose} aria-label={t("soi.pod.ui.max_close")} data-testid={`${testid}-close`}
         className="absolute right-4 top-4 min-h-[44px] min-w-[44px] rounded-full p-2 transition-colors hover:bg-accent">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>

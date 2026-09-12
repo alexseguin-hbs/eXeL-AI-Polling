@@ -851,8 +851,8 @@ ok(/<span className="shrink-0 rounded-full border px-2 py-0\.5 text-\[10px\] upp
 // ── MAX SCREEN, like the Divinity Guide (operator 2026-09-12) ────────────────────────────────────────────────────────
 const qrMax = read('../components/qr-max-screen.tsx');
 ok(/data-testid="pod-qr-max"/.test(page) && /data-testid="pod-qr-max-btn"/.test(page) && /<QrMaxScreen url=\{joinUrl\} code=\{podCode/.test(page), 'the QR itself and a Max screen button open the overlay');
-ok(/fixed inset-0 z-\[60\]/.test(qrMax) && /<QRCodeSVG value=\{url\} size=\{Math\.min\(320/.test(qrMax) && /data-testid=\{`\$\{testid\}-link`\}/.test(qrMax) && /data-testid=\{`\$\{testid\}-copy`\}/.test(qrMax) && /role="dialog" aria-modal="true"/.test(qrMax),
-   'the overlay is the whole screen: QR large, code large, the link as text with Copy, a close control — one shared component, the dashboard\'s pattern');
+ok(/fixed inset-0 z-\[70\] [^"]*bg-background /.test(qrMax) && !/bg-background\/\d/.test(qrMax) && /<QRCodeSVG value=\{url\} size=\{Math\.min\(320/.test(qrMax) && /data-testid=\{`\$\{testid\}-link`\}/.test(qrMax) && /data-testid=\{`\$\{testid\}-copy`\}/.test(qrMax) && /role="dialog" aria-modal="true"/.test(qrMax),
+   'the overlay is the whole screen — OPAQUE and above the phone strip — QR large, code large, the link as text with Copy, a close control; one shared component, the dashboard\'s pattern');
 ok(!/[>"](Max screen|Close)[<"]/.test(qrMax) && /t\("soi\.pod\.ui\.max_close"\)/.test(qrMax) && /t\("soi\.pod\.ui\.max_screen"\)/.test(page), 'its strings go through the lexicon');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
