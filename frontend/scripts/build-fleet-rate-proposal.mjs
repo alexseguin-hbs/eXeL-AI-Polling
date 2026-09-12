@@ -53,10 +53,18 @@ const members = new Map();
 for (const p of fleet.packs || []) for (const m of p.region_members || []) if (/^[A-Z]{2}$/.test(m.cc || '')) members.set(m.cc, m.name);
 const covered = new Set(rows.map((r) => r.cc));
 const missingCountries = [...members.entries()].filter(([cc]) => !covered.has(cc) && !opCountries.has(cc));
-const usCovered = new Set(rows.filter((r) => r.cc === 'US').map((r) => r.jurisdiction));
+const usCovered = new Set(rows.filter((r) => ['US', 'PR', 'GU', 'VI', 'AS', 'MP'].includes(r.cc)).map((r) => r.jurisdiction));   // territories carry their own ISO codes
 const usMissing = US_EXTRA.filter(([, name]) => ![...usCovered].some((j) => j.includes(name)));
 const disputed = rows.filter((r) => r.agents_agreed === 'disputed');
 const byCc = new Map(); for (const r of rows) byCc.set(r.cc, (byCc.get(r.cc) || 0) + 1);
+
+// ── CROSS-REGION AGREEMENT: the same jurisdiction researched by two regions is extra validation — show both when they differ ──
+const byJur = new Map();
+for (const r of rows) { const k = `${r.cc}|${r.jurisdiction}`; (byJur.get(k) || byJur.set(k, []).get(k)).push(r); }
+const crossDiffer = [...byJur.values()].filter((v) => v.length > 1 && new Set(v.map((x) => `${x.rate}|${x.currency}`)).size > 1);
+const crossAgree = [...byJur.values()].filter((v) => v.length > 1 && new Set(v.map((x) => `${x.rate}|${x.currency}`)).size === 1).length;
+// ── DIFFERS FROM THE OPERATOR: his figure stands; the difference is shown for him to see ──
+const differsFromOperator = rows.map((r) => { const o = opByKey.get(`${r.cc}|${r.jurisdiction}`); return o && o[4] !== 'NULL' && r.rate !== null && Math.abs(r.rate - Number(o[4])) / Number(o[4]) > 0.02 ? { r, o } : null; }).filter(Boolean);
 
 // ── EMIT the .psv (operator columns first, provenance after) ──────────────────────────────────────────────────────
 const yn = (b) => (b ? 'Yes' : 'No');
@@ -114,9 +122,20 @@ ${table(sec('blocked-D1'))}
 
 ${table(sec('blocked-D2'))}
 
+## 6 · Two regions researched the same place and DISAGREE — both figures, for the operator to decide
+
+${crossAgree} such places agree exactly (extra validation); these ${crossDiffer.length} do not:
+
+${crossDiffer.length ? `| CC | Jurisdiction | Region · rate · confidence · as of | Region · rate · confidence · as of |\n|---|---|---|---|\n` + crossDiffer.map((v) => `| ${v[0].cc} | ${esc(v[0].jurisdiction)} | ${v.map((x) => `${x.region}: ${x.rate === null ? '—' : x.rate} ${x.currency} (${x.confidence}, ${esc(x.as_of)})`).join(' | ')} |`).join('\n') : '_none_'}
+
+## 7 · The fleet's figure differs from one of the operator's published rates — his figure STANDS; shown for his eye
+
+${differsFromOperator.length ? `| CC | Jurisdiction | Operator | Fleet | Fleet instrument · as of | Conversion | Conf |\n|---|---|---:|---:|---|---|:-:|\n` + differsFromOperator.map(({ r, o }) => `| ${r.cc} | ${esc(r.jurisdiction)} | ${o[4]} ${o[3]} | ${r.rate.toFixed(3)} ${r.currency} | ${esc(r.statutory_instrument)} · ${esc(r.as_of)} | ${esc(r.conversion_shown)} | ${r.confidence} |`).join('\n') : '_none_'}
+
 ## Coordinators' completeness notes
 
 ${(fleet.packs || []).map((p) => `- **${p.region.name}** (${p.region.pod}): ${esc(p.coord?.note ?? '')}${p.coord?.rows_without_instrument?.length ? ` · rows without an instrument: ${p.coord.rows_without_instrument.join(', ')}` : ''}`).join('\n')}
 `;
 fs.writeFileSync(OUT_MD, md);
+console.log(`cross-region: ${crossAgree} agree, ${crossDiffer.length} differ · differs from operator: ${differsFromOperator.length}`);
 console.log(`written ${OUT_PSV}\nwritten ${OUT_MD}\nrows ${rows.length} · countries ${byCc.size} · new ${sec('new').length} · fill ${sec('fill').length} · cross-check ${sec('cross-check').length} · blocked ${sec('blocked-D1').length + sec('blocked-D2').length} · disputed ${disputed.length} · target ${members.size} · missing ${missingCountries.length} · US extra missing ${usMissing.length}`);
