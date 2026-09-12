@@ -14,7 +14,7 @@ numbers (24 seconds of clocked segments, claims capped to 0.01 h) are in `docs/a
 | Intent | Showcase: input in time, and local minimum wage authorizing value. |
 | Measurable outcome | Two clocked segments, three outcomes, three currencies on one receipt. |
 | **Plan** | **2 h at 3× = 웃 6.000** (`6.0000..0000`), set by the pod, signed by Bo at 2026-09-11 08:55:00Z, hash `8f68f4a5d3104310…` |
-| Outcomes, one per member | **Lea:** Framed the plan and ran the clock · **Ana:** Elected Lagos and stopped the clock · **Bo:** Elected Manila and witnessed |
+| Outcomes, one per member | **Lea:** Framed the plan and ran the clock · **Ana:** Elected Brazil and stopped the clock · **Bo:** Elected Metro Manila and witnessed |
 
 ## 2 · Input in time — the clock, from Start to Stop, every segment
 
@@ -34,11 +34,11 @@ Clocked: **1.2500 h · 75 whole minutes**. The gap between the segments (09:40 �
 웃 = M × T with the accepted M = 3. A claim can never exceed what the platform witnessed (`supported()`).
 The same hours mint the same 웃 everywhere; **only what a 웃 settles as is local** — each member's own elected floor, in their own currency, never converted.
 
-| Member | Elected place | Claimed | Counted | Capped? | 웃 = 3 × counted | Settles as | D9 |
-|---|---|---:|---:|:--:|---:|---|---|
-| Lea | United States — Austin, Texas (7.25 USD/h) | 1.25 h | 1.2500 h | no | **3.750** `3.2700..0000` | **$27.19** | vintage = current |
-| Ana | Nigeria (402.739 NGN/h) | 1.50 h | 1.2500 h | **yes** | **3.750** `3.2700..0000` | **NGN 1,510.27** | vintage = current |
-| Bo | Philippines — Metro Manila (86.875 PHP/h) | 1.00 h | 1.0000 h | no | **3.000** `3.0000..0000` | **₱260.63** | vintage = current |
+| Member | Elected place | Claimed | Counted | Capped? | 웃 = 3 × counted | Settles as | USA equivalent | D9 |
+|---|---|---:|---:|:--:|---:|---|---|---|
+| Lea | United States — Austin, Texas (7.25 USD/h) | 1.25 h | 1.2500 h | no | **3.750** `3.2700..0000` | **$27.19** | $27.19 (same currency) | vintage = current |
+| Ana | Brazil (7.37 BRL/h) | 1.50 h | 1.2500 h | **yes** | **3.750** `3.2700..0000` | **R$27.64** | $5.93 (hi_rates.py USD floor × 웃, a second floor) | vintage = current |
+| Bo | Philippines — Metro Manila (86.875 PHP/h) | 1.00 h | 1.0000 h | no | **3.000** `3.0000..0000` | **₱260.63** | USD equivalent: awaiting a dated exchange-rate source for this currency | vintage = current |
 
 Ana claimed 1.50 h against a 1.25 h clock: counted **1.2500 h**, flagged capped. Nothing was silently trusted.
 
@@ -64,7 +64,8 @@ The same 75 clocked minutes, counted the two ways the paper allows. The outcome 
 | ♡ from those minutes | **0** — they settled as 웃 | **75** — one ♡ per witnessed minute |
 | ♡ from the outcome ladder (adopted) | 3 | 3 |
 | **♡ total** | **3** | **78** |
-| Settles as (Lea · Ana · Bo) | $27.19 · NGN 1,510.27 · ₱260.63 | — |
+| Settles as (Lea · Ana · Bo) | $27.19 · R$27.64 · ₱260.63 | — |
+| USA equivalent (Lea · Ana · Bo) | $27.19 · $5.93 · awaiting a dated rate — only by a traceable route | — |
 
 No minute appears in both columns. `heartsFor({ settles웃 })` is the single switch, and the gate asserts it.
 
@@ -73,5 +74,5 @@ No minute appears in both columns. `heartsFor({ settles웃 })` is the single swi
 1. **Input in time.** Every minute from Start to Stop, across two segments, is on the record in `h:mm:ss` and in
    `N.mmmm..ssss`; a claim above the clock was capped and said so.
 2. **Local minimum wage authorizes value.** Lea, Ana and Bo minted the same 웃 for the same counted hours (M × T,
-   currency-free); each settled at their own elected floor in their own currency — USD, NGN, PHP — never converted, and
+   currency-free); each settled at their own elected floor in their own currency — USD, BRL, PHP — never converted, and
    D9 paid the greater of the vintage and the current rate from the same jurisdiction's table.

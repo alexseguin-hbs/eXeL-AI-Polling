@@ -10,7 +10,7 @@ import fs from 'fs';
 import { measure, supported, witnessedMinutes, witnessedHours, hhmmss, heartsFor } from '../lib/pod-clock.ts';
 import { mint, standing, YUG_CEILING } from '../lib/pod-yug.ts';
 import { lockBaseline } from '../lib/pod-baseline.ts';
-import { findJurisdiction, settleInRegion, settleD9, formatLocal } from '../lib/pod-rates.ts';
+import { findJurisdiction, settleInRegion, settleD9, formatLocal, usdEquivalent, formatUsd, USD_MISSING } from '../lib/pod-rates.ts';
 import { format as abc } from '../lib/abc-3600.ts';
 import { split, accelerate, noConditions } from '../lib/pod-baseline.ts';
 
@@ -35,8 +35,8 @@ const span = measure(events, T(11, 0));
 // ── THE THREE — each claims, each is witnessed, each elects their own floor ─────────────────────────────────────────
 const members = [
   { name: 'Lea', region: 'English:US',  claim: 1.25, outcome: 'Framed the plan and ran the clock' },
-  { name: 'Ana', region: 'English:NG',  claim: 1.50, outcome: 'Elected Lagos and stopped the clock' },      // above the clock → capped
-  { name: 'Bo',  region: 'Filipino:PH', claim: 1.00, outcome: 'Elected Manila and witnessed' },
+  { name: 'Ana', region: 'Portuguese:BR', claim: 1.50, outcome: 'Elected Brazil and stopped the clock' },    // above the clock → capped
+  { name: 'Bo',  region: 'Filipino:PH', claim: 1.00, outcome: 'Elected Metro Manila and witnessed' },
 ];
 const rows = members.map((m) => {
   const sup = supported(m.claim, span); const j = findJurisdiction(m.region);
@@ -44,7 +44,10 @@ const rows = members.map((m) => {
   // The vintage is stamped at EARNING with this person's elected floor; the current rate here is the same table at settlement,
   // so in this scenario the two are equal — the D9 column says so plainly rather than implying a comparison happened.
   const d9 = settleD9(yug, { rate: j?.rate ?? null, currency: j?.currency ?? null }, j);
-  return { ...m, sup, j, yug, cash, d9 };
+  // THE USA EQUIVALENT, by a traceable route or not at all (operator 2026-09-12): same currency; a dated FX row; or
+  // hi_rates.py's own USD floor × 웃 — named as a second floor, never as a conversion of the local amount.
+  const usd = usdEquivalent(cash, j?.currency ?? null, yug, j);
+  return { ...m, sup, j, yug, cash, d9, usd };
 });
 const witnessedTotal = rows.reduce((s, r) => s + r.sup.hours, 0);
 const actualYug = mint(witnessedTotal, plan.m);
@@ -93,9 +96,9 @@ Clocked: **${witnessedHours(span).toFixed(4)} h · ${minutes} whole minutes**. T
 웃 = M × T with the accepted M = ${plan.m}. A claim can never exceed what the platform witnessed (\`supported()\`).
 The same hours mint the same 웃 everywhere; **only what a 웃 settles as is local** — each member's own elected floor, in their own currency, never converted.
 
-| Member | Elected place | Claimed | Counted | Capped? | 웃 = ${plan.m} × counted | Settles as | D9 |
-|---|---|---:|---:|:--:|---:|---|---|
-${rows.map((r) => `| ${r.name} | ${r.j.name} (${r.j.rate} ${r.j.currency}/h) | ${r.claim.toFixed(2)} h | ${r.sup.hours.toFixed(4)} h | ${r.sup.capped ? '**yes**' : 'no'} | **${r.yug.toFixed(3)}** \`${abc(r.yug)}\` | **${formatLocal(r.cash, r.j.currency)}** | ${r.d9.which === 'equal' ? 'vintage = current' : r.d9.which} |`).join('\n')}
+| Member | Elected place | Claimed | Counted | Capped? | 웃 = ${plan.m} × counted | Settles as | USA equivalent | D9 |
+|---|---|---:|---:|:--:|---:|---|---|---|
+${rows.map((r) => `| ${r.name} | ${r.j.name} (${r.j.rate} ${r.j.currency}/h) | ${r.claim.toFixed(2)} h | ${r.sup.hours.toFixed(4)} h | ${r.sup.capped ? '**yes**' : 'no'} | **${r.yug.toFixed(3)}** \`${abc(r.yug)}\` | **${formatLocal(r.cash, r.j.currency)}** | ${r.usd ? `${formatUsd(r.usd.usd)} (${r.usd.via === 'same-currency' ? 'same currency' : r.usd.via === 'fx' ? `rate of ${r.usd.asOf}` : 'hi_rates.py USD floor × 웃, a second floor'})` : USD_MISSING} | ${r.d9.which === 'equal' ? 'vintage = current' : r.d9.which} |`).join('\n')}
 
 Ana claimed 1.50 h against a 1.25 h clock: counted **${rows[1].sup.hours.toFixed(4)} h**, flagged capped. Nothing was silently trusted.
 
@@ -122,6 +125,7 @@ The same ${minutes} clocked minutes, counted the two ways the paper allows. The 
 | ♡ from the outcome ladder (${rung}) | ${heartsFor({ settles웃: true, measured: span, rung })} | ${heartsFor({ settles웃: true, measured: span, rung })} |
 | **♡ total** | **${heartsPaid}** | **${heartsVolunteer}** |
 | Settles as (Lea · Ana · Bo) | ${rows.map((r) => formatLocal(r.cash, r.j.currency)).join(' · ')} | — |
+| USA equivalent (Lea · Ana · Bo) | ${rows.map((r) => (r.usd ? formatUsd(r.usd.usd) : 'awaiting a dated rate')).join(' · ')} — only by a traceable route | — |
 
 No minute appears in both columns. \`heartsFor({ settles웃 })\` is the single switch, and the gate asserts it.
 
@@ -130,7 +134,7 @@ No minute appears in both columns. \`heartsFor({ settles웃 })\` is the single s
 1. **Input in time.** Every minute from Start to Stop, across two segments, is on the record in \`h:mm:ss\` and in
    \`N.mmmm..ssss\`; a claim above the clock was capped and said so.
 2. **Local minimum wage authorizes value.** Lea, Ana and Bo minted the same 웃 for the same counted hours (M × T,
-   currency-free); each settled at their own elected floor in their own currency — USD, NGN, PHP — never converted, and
+   currency-free); each settled at their own elected floor in their own currency — USD, BRL, PHP — never converted, and
    D9 paid the greater of the vintage and the current rate from the same jurisdiction's table.
 `;
 fs.writeFileSync(OUT, md);

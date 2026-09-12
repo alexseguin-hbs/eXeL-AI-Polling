@@ -51,9 +51,10 @@ import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
 import { BANDS, bandFor, standing, hoursToCeiling, YUG_CEILING, mint, stamp, type Vintage } from "@/lib/pod-yug";
 import {
-  REGION_RATES, regionId, findRegion, tierOf, TIER_REASON, settleInRegion, formatLocal, DEFAULT_REGION_ID,
+  TIER_REASON, settleInRegion, formatLocal, DEFAULT_REGION_ID,
   JURISDICTIONS, findJurisdiction, localitiesOf, defaultForCountry, COUNTRIES_BY_TIER, BY_TIER,
   TIER_ORDER, TIER_LABEL, type Jurisdiction, settleD9, OPEN_DECISION, jurisdictionFromResolved,
+  usdEquivalent, USD_MISSING, formatUsd,
 } from "@/lib/pod-rates";
 import { detectRegion } from "@/lib/min-wage";
 import { aiPodSummary } from "@/lib/ai";
@@ -118,6 +119,21 @@ function LocalityElect({ value, onChange, disabled, testid, inherited }: {
     </div>
   );
 }
+
+/**
+ * THE USA EQUIVALENT BESIDE EVERY LOCAL FIGURE (operator 2026-09-12: "ensure all can be local currency and also be shown
+ * in USA equivalent"). One component so no settlement line can omit it. It prints a figure only by a route a person can
+ * trace — same currency, a dated exchange-rate row, or hi_rates.py's own USD floor — and otherwise says what is missing.
+ */
+function UsdBeside({ amount, currency, yug, place, testid }: { amount: number | null; currency: string | null; yug: number; place?: Pick<Jurisdiction, "usdMirror"> | null; testid?: string }) {
+  const u = usdEquivalent(amount, currency, yug, place);
+  if (!u) return <span className="text-muted-foreground" data-testid={testid}> · {USD_MISSING}</span>;
+  return <span data-testid={testid}> · ≈ <span className="font-medium text-foreground">{formatUsd(u.usd)}</span>{u.via === "same-currency" ? "" : u.via === "fx" ? ` (rate of ${u.asOf}, ${u.source})` : ` (${u.source})`}</span>;
+}
+
+/** A position fix as a person reads it: two decimals of a degree, the accuracy, the time — never a country name. */
+const fmtGps = (g: { lat: number; lon: number; acc: number; at: string }): string =>
+  `GPS ${g.lat.toFixed(4)}, ${g.lon.toFixed(4)} ±${Math.round(g.acc)} m at ${new Date(g.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 
 const WHITE_PAPER = "https://exel-ai-polling.explore-096.workers.dev/whitepaper/vision-2525";
 
@@ -426,6 +442,15 @@ export default function SoISessionPage() {
   // One seat's change, applied here and sent to the other phones (the pure module decides
   // whether this phone may, and what travels).
   const setMember = (i: number, patch: Partial<Member>) => apply(patchPod(podRef.current, i, patch, ctx()));
+  // The browser's position, with this person's permission, on THEIR seat only. A refusal or a device without a fix
+  // leaves the seat as it was — the elected place stands on its own; the fix only ever adds evidence beside it.
+  const takeGps = (i: number) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setMember(i, { gps: { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy, at: new Date(pos.timestamp).toISOString() } }),
+      () => {}, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
+    );
+  };
 
   // ONE PROJECT PER POD (operator 2026-09-11: "one can only select one project"). A plan is for one task in one project,
   // accepted by the trio before Start; three tagged projects has no single plan to lock. Open topic is the default;
@@ -611,14 +636,14 @@ export default function SoISessionPage() {
   // OPERATOR RULING: earning is never capped, payout always is, and the excess carries to the next year and the next.
   const stand = standing(parseFloat(carriedIn) || 0, mint(witnessedHours, M));
   // The region decides only what an already-minted 웃 SETTLES as. It never touches the mint (pod-rates.ts).
-  const region = findRegion(regionIdSel);
+  const region = findJurisdiction(regionIdSel);
   // ELECTION OF LOCALITY — each contributor's own floor. unit.denom: "one hour at 1x THE CONTRIBUTOR'S local minimum
   // wage". A member who has not elected inherits the pod's default, and is shown as inheriting, never as having chosen.
   const podJuris = findJurisdiction(regionIdSel);
   const localityOf = (i: number): Jurisdiction | undefined =>
     (members[i]?.region ? findJurisdiction(members[i].region!) : undefined) ?? podJuris;
   const electedOwn = (i: number): boolean => !!members[i]?.region;
-  const regionTier = region ? tierOf(region) : "pending";
+  const regionTier = region ? region.tier : "pending";
   const settlesTo = settleInRegion(stand.payableThisYear, region);
   const ceilingSettlesTo = settleInRegion(YUG_CEILING, region);
   // D9 at settlement: the greater of the stamped vintage and the current rate, same jurisdiction; a changed region after
@@ -911,7 +936,7 @@ export default function SoISessionPage() {
                 {(parseFloat(baselineHrs) || 0) > 0
                   ? <><span className="font-medium text-foreground">{parseFloat(baselineHrs)} h × {bandM} = 웃 {mint(parseFloat(baselineHrs) || 0, bandM).toFixed(3)}</span>
                       {region && region.rate !== null
-                        ? <> · settles at <span className="font-medium text-foreground">{formatLocal(settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)!, region.currency)}</span> in {region.name}</>
+                        ? <> · settles at <span className="font-medium text-foreground">{formatLocal(settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)!, region.currency)}</span> in {region.name}<UsdBeside amount={settleInRegion(mint(parseFloat(baselineHrs) || 0, bandM), region)} currency={region.currency} yug={mint(parseFloat(baselineHrs) || 0, bandM)} place={region} testid="anchor-usd" /></>
                         : <> · {region ? region.name : "this place"} has no published rate yet, so no figure is shown</>}</>
                   : <span className="text-muted-foreground">Enter the planned hours. All three accept the plan before the clock starts.</span>}
               </p>
@@ -934,6 +959,7 @@ export default function SoISessionPage() {
                       <th className="px-2 py-1 font-medium">Place</th>
                       <th className="px-2 py-1 text-right font-medium">Rate / h</th>
                       <th className="px-2 py-1 font-medium">Cur</th>
+                      <th className="px-2 py-1 font-medium">Source</th>
                       <th className="px-2 py-1 font-medium">Notes</th>
                     </tr></thead>
                     <tbody>
@@ -942,7 +968,8 @@ export default function SoISessionPage() {
                           <td className="px-2 py-1">{j.name}</td>
                           <td className="px-2 py-1 text-right tabular-nums">{j.rate !== null ? j.rate.toFixed(3) : "—"}</td>
                           <td className="px-2 py-1 text-muted-foreground">{j.currency}</td>
-                          <td className="px-2 py-1 text-muted-foreground">{j.note}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{j.dataset ? <>dataset {j.dataset.asOf} · {j.dataset.verified ? "verified" : "unverified"} · {j.dataset.scope}{j.dataset.effective ? ` · from ${j.dataset.effective}` : ""}</> : j.source}</td>
+                          <td className="px-2 py-1 text-muted-foreground">{j.note}{j.history.length ? <> <span className="opacity-70">{j.history.join(" ")}</span></> : null}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1058,6 +1085,14 @@ export default function SoISessionPage() {
                           ? <>{localityOf(i)!.rate} {localityOf(i)!.currency} an hour{electedOwn(i) ? "" : " · inherited from the pod"}</>
                           : <>no rate published{electedOwn(i) ? "" : " · inherited from the pod"}</>}
                       </span>
+                      {/* GPS AS A SUPPLEMENT (operator 2026-09-12): this person's own position fix, with permission, recorded
+                          beside the place they elected. It is evidence on the receipt; it never picks the floor. */}
+                      {m.gps
+                        ? <span data-testid={`member-gps-fix-${i}`} className="font-mono">{fmtGps(m.gps)}</span>
+                        : canEdit(i) && <button type="button" data-testid={`member-gps-${i}`} onClick={() => takeGps(i)}
+                            className="min-h-[44px] rounded-md border border-dashed border-border px-2 py-1 text-xs hover:border-cyan-400">
+                            Add my position
+                          </button>}
                     </div>
                     <label className="mt-2 flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={m.agreed} disabled={!m.name.trim() || !canEdit(i)}
@@ -1336,7 +1371,7 @@ export default function SoISessionPage() {
               </div>
               <p className="mt-2 text-xs text-muted-foreground" data-testid="pod-settle">
                 {region && settlesTo !== null ? (
-                  <>Settles at <span className="font-medium text-foreground">{formatLocal(settlesTo, region.currency)}</span>{" "}
+                  <>Settles at <span className="font-medium text-foreground">{formatLocal(settlesTo, region.currency)}</span><UsdBeside amount={settlesTo} currency={region.currency} yug={stand.payableThisYear} place={region} testid="pod-settle-usd" />{" "}
                     — 웃 × {region.rate} {region.currency} an hour in {region.name}. A full ceiling year is{" "}
                     <span className="font-medium text-foreground">{formatLocal(ceilingSettlesTo!, region.currency)}</span>, and
                     that figure IS the ceiling settled at the local rate, not a fraction of it.{" "}
@@ -1374,7 +1409,8 @@ export default function SoISessionPage() {
                       <span className="font-medium text-foreground">{m.name.trim() || m.role}</span>
                       {" — "}{claimOf(i).hours} h at {M}× = 웃 {own.toFixed(3)}
                       <span className="font-mono"> · {fmtABC(own)}</span>
-                      {j ? <> · {j.name}{electedOwn(i) ? "" : " (inherited)"}: {cash !== null ? formatLocal(cash, j.currency) : "no rate published"}</> : null}
+                      {j ? <> · {j.name}{electedOwn(i) ? "" : " (inherited)"}: {cash !== null ? formatLocal(cash, j.currency) : "no rate published"}<UsdBeside amount={cash} currency={j.currency} yug={own} place={j} testid={`settle-usd-${i}`} /></> : null}
+                      {m.gps ? <span className="font-mono" data-testid={`settle-gps-${i}`}> · {fmtGps(m.gps)}</span> : null}
                     </li>
                   );
                 })}
@@ -1491,7 +1527,7 @@ export default function SoISessionPage() {
                   {members.map((m, i) => {
                     const j = localityOf(i); const v = memberVintages[i]; const own = v ? v.yug : mint(claimOf(i).hours, M);
                     const d9m = settleD9(Math.min(own, YUG_CEILING), v ? { rate: v.rate, currency: v.currency } : null, j);   // ceiling per natural person; D9 with THIS person's vintage
-                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {(v ? v.hours : claimOf(i).hours).toFixed(2)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"} ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""})</> : null}</span>;
+                    return <span key={i} data-testid={`receipt-member-${i}`}>{i > 0 ? " · " : ""}{firstOf(m.name) || m.role} {(v ? v.hours : claimOf(i).hours).toFixed(2)} h → 웃 {own.toFixed(3)}{j ? <> → {d9m.amount !== null && d9m.currency ? formatLocal(d9m.amount, d9m.currency) : "no rate published"}<UsdBeside amount={d9m.amount} currency={d9m.currency} yug={Math.min(own, YUG_CEILING)} place={j} testid={`receipt-usd-${i}`} /> ({j.name}{electedOwn(i) ? "" : ", inherited"}{v && d9m.which !== "none" ? `, ${d9m.which} rate` : ""}{m.gps ? <span className="font-mono" data-testid={`receipt-gps-${i}`}>; {fmtGps(m.gps)}, a supplement to the elected place</span> : null})</> : null}</span>;
                   })}
                   {memberVintages.length ? <> — D9 per person: each settles at the greater of the rate stamped at earning and the rate current now, from their own jurisdiction; a settlement figure moves only because a statutory wage moved.</> : null}
                 </li>

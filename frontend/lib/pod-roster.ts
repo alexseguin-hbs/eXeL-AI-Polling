@@ -57,7 +57,15 @@ export type Member = {
    * new M — invalidates every approval on every phone by construction, not by a clear that may not replicate.
    */
   agreedTo: string | null;
+  /**
+   * GPS AS A SUPPLEMENT, NEVER THE ELECTION (operator 2026-09-12: "USE GPS LOCATION as a supplement to manual (agreed to
+   * POD location)"). The browser's own position fix, taken with this person's permission, recorded beside the place they
+   * elected — evidence of where the work was done, on the receipt. It never chooses a floor: no country is inferred from
+   * coordinates (no reverse geocoder is trusted here), and Q2 stands — no floor is ever assumed for a person.
+   */
+  gps: GpsFix | null;
 };
+export type GpsFix = { lat: number; lon: number; acc: number; at: string };
 
 export const PHASE_ORDER: Record<Phase, number> =
   { compose: 0, invite: 1, sync: 2, active: 3, record: 4, audit: 5, closed: 6 };
@@ -103,6 +111,7 @@ export const mkMember = (role: string, podSize: number): Member => ({
   region: null,   // unelected — inherits the pod's default until this person chooses their own
   outcome: "",    // written by this seat after the clock stops
   agreedTo: null, // the plan hash this seat approved — none yet
+  gps: null,      // no position fix until this person takes one
 });
 
 export const initialMembers = (podSize: number): Member[] =>
@@ -165,6 +174,7 @@ export function mergeMember(local: Member, incoming: Member): Member {
     region: incoming.region ?? local.region,
     outcome: incoming.outcome || local.outcome,   // a filled outcome is never erased by an empty one
     agreedTo: incoming.agreedTo ?? local.agreedTo,   // the newest acceptance wins; a null never erases one
+    gps: incoming.gps ?? local.gps,                  // a fix, once taken, is evidence — an empty seat never erases it
   };
 }
 export const mergeRoster = (local: Member[], incoming: Member[]): Member[] =>

@@ -328,8 +328,8 @@ if (RATES.REGION_RATES) {
   ok(RATES.findRegion('English:US').name === 'United States — Austin, Texas' && RATES.findRegion('English:IE').rate === null,
      'his ids still resolve to HIS rows: English:US is Austin, English:IE is his NULL row');
   const iePlace = RATES.JURISDICTIONS.find((j) => j.cc === 'IE');
-  ok(iePlace && iePlace.rate !== null && iePlace.source === 'approved-2026-09-11',
-     'but the PLACE Ireland now settles — the approved fill replaced his NULL for settlement, his row untouched');
+  ok(iePlace && iePlace.rate === 14.15 && iePlace.source === 'dataset-2026-09-12',
+     'but the PLACE Ireland settles — at the dataset\'s verified 14.15 EUR, his NULL row untouched and the approved fill recorded as history');
 
   // SETTLEMENT — 웃 × the local rate, in the local currency, and NEVER a conversion between currencies.
   const tx = RATES.findRegion('English:US');
@@ -432,27 +432,33 @@ if (RATES.JURISDICTIONS) {
   const opJ = RATES.JURISDICTIONS.filter((j) => j.fromOperator);
   ok(opJ.length === 106, `114 rows are 106 distinct places — got ${opJ.length}`);
   const opRowsAll = RATES.REGION_RATES.filter((r) => !r.approved);
-  ok(opRowsAll.every((r) => RATES.JURISDICTIONS.some((j) => j.cc === r.cc && j.name === r.name)), 'and every one of the 114 rows maps to a place');
+  ok(opRowsAll.every((r) => RATES.findJurisdiction(RATES.regionId(r))), 'and every one of the 114 rows maps to a place — its id still resolves after the dataset took over the country rows');
   ok(new Set(opJ.map((j) => j.cc)).size === 103, 'across the paper\'s 103 countries');
-  const approvedNewCc = new Set(approvedPsv.map((r) => r[1]).filter((cc) => !opPsvTop.some((o) => o[1] === cc) && cc !== 'US' && cc !== 'KH'));
-  ok(RATES.COUNTRIES.length === 104 + approvedNewCc.size, `the country list is 104 plus the ${approvedNewCc.size} countries he approved — got ${RATES.COUNTRIES.length}`);
+  const dsCc = new Set(RATES.DATASET_ROWS.map((d) => d.cc));
+  const territories = ['PR', 'GU', 'VI', 'MP', 'AS'];
+  const historyOnlyCc = new Set(RATES.REGION_RATES.map((r) => r.cc).filter((cc) => !dsCc.has(cc)));
+  ok(RATES.COUNTRIES.length === dsCc.size - territories.length + historyOnlyCc.size,
+     `the country list is the dataset's ${dsCc.size} codes less the ${territories.length} US territories (localities of the United States) plus ${[...historyOnlyCc].join(',')} — got ${RATES.COUNTRIES.length}`);
+  ok(RATES.COUNTRIES.every((c, i, a) => i === 0 || a[i - 1].country.localeCompare(c.country) <= 0), 'in alphabetical order');
   const chNat = RATES.JURISDICTIONS.find((j) => j.cc === 'CH' && j.locality === null);
   ok(chNat && chNat.langs.length === 3 && RATES.JURISDICTIONS.filter((j) => j.cc === 'CH' && j.locality === null).length === 1,
      'Switzerland the country is ONE place published in three languages, not three places');
   ok(RATES.JURISDICTIONS.some((j) => j.cc === 'CH' && j.locality === 'Geneva' && j.rate !== null && j.source === 'approved-2026-09-11'),
-     'and Geneva, a cantonal floor, is a locality of it from the approved file');
-  // The locality election, step two — only where the paper publishes more than one jurisdiction in a country.
+     'and Geneva, a cantonal floor the dataset does not name, is a locality of it from the approved file');
+  // The locality election, step two — only where a source publishes more than one jurisdiction in a country.
   const caLoc = RATES.localitiesOf('CA');
-  ok(caLoc.length === 14 && caLoc.some((j) => j.locality === 'Federal') && caLoc.some((j) => j.locality === 'Québec') && caLoc.filter((j) => j.source === 'approved-2026-09-11').length === 12,
-     'Canada offers a locality election: Federal, Québec, and the twelve approved provinces and territories');
+  ok(caLoc.length === 14 && caLoc[0].locality === null && caLoc[0].source === 'dataset-2026-09-12' && caLoc.some((j) => j.locality === 'Québec') && caLoc.filter((j) => j.source === 'approved-2026-09-11').length === 12,
+     'Canada offers a locality election: the country (the dataset\'s federal row), Québec, and the twelve approved provinces and territories');
+  ok(RATES.findJurisdiction('English:CA') === caLoc[0] && !caLoc.some((j) => j.locality === 'Federal'),
+     'his "Canada — Federal" row IS the dataset\'s federal-jurisdiction row — one place, his id resolving to it, not a duplicate beside it');
   ok(RATES.localitiesOf('IN').length === 3, 'India offers three: national, West Bengal, Punjab');
   ok(RATES.localitiesOf('NG').length === 0 && RATES.localitiesOf('GB').length === 0 && RATES.localitiesOf('ES').length === 0,
      'a country published as one place offers no second step — the election stays one click');
-  const ca = RATES.localitiesOf('CA');
-  ok(ca[0].rate === 18.15 && ca[1].rate === null,
-     'and the locality CHANGES the floor: Canada Federal is 18.150 CAD, Québec publishes none');
-  ok(opJ.filter((j) => j.locality !== null).length === 13,
-     'thirteen of the operator\'s rows name a locality, parsed off the paper\'s own em dash');
+  ok(caLoc[0].rate === 18.15 && caLoc.find((j) => j.locality === 'Québec').rate === null,
+     'and the locality CHANGES the floor: Canada is 18.150 CAD, Québec publishes none');
+  ok(caLoc.slice(1).every((j, i, a) => i === 0 || a[i - 1].locality.localeCompare(j.locality) <= 0), 'localities are listed in alphabetical order after the country itself');
+  ok(opJ.filter((j) => j.locality !== null).length === 12,
+     'twelve of the operator\'s rows name a locality of their own, parsed off the paper\'s own em dash (the thirteenth, Canada — Federal, is the country row)');
   ok(RATES.findJurisdiction('English:US').locality === 'Austin, Texas', 'including the Texas vintage itself');
 
   // OPTIMIZATION, asserted rather than claimed.
@@ -571,24 +577,37 @@ ok(/witnessed_for: hhmmss\(span\.ms\)/.test(page) && /member_outcomes: members\.
 // ── THE REGION RECORD, RECONCILED (feedback intake 2026-09-11) ───────────────────────────────────────────────────────
 if (RATES.JURISDICTIONS && RATES.settleD9) {
   const ops = RATES.JURISDICTIONS.filter((j) => j.fromOperator);
-  const hi = RATES.JURISDICTIONS.filter((j) => j.source === 'hi_rates.py');
   ok(ops.length === 106 && RATES.REGION_RATES.filter((r) => !r.approved).length === 114,
      'the operator\'s 114 rows are still 106 places, none lost, none edited');
-  ok(hi.length === 50 && hi.filter((j) => j.cc === 'US').length === 50,
-     'hi_rates.py — "the live settlement table" (fund.token) — adds the 50 US state floors, each tagged with its source (its Cambodia row is superseded by the approved one)');
-  ok(RATES.localitiesOf('US').length === 57, 'a US contributor elects their STATE — 50 states, Austin, DC, the federal floor, and the four rated territories');
-  for (const [loc, rate] of [['District of Columbia', 17.95], ['Puerto Rico', 10.5], ['Guam', 9.25], ['U.S. Virgin Islands', 10.5], ['Northern Mariana Islands', 7.25]]) {
-    const j = RATES.localitiesOf('US').find((x) => x.locality === loc);
-    ok(j && j.rate === rate && j.currency === 'USD' && j.source === 'approved-2026-09-11', `${loc} is a US locality at ${rate} USD/h, from the approved file`);
+  ok(!RATES.JURISDICTIONS.some((j) => j.source === 'hi_rates.py'),
+     'hi_rates.py — "the live settlement table" (fund.token) — no longer creates a place: every state it held is a dataset row now, and its figure sits beside as usdMirror');
+  const us = RATES.localitiesOf('US');
+  const STATES = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'];
+  ok(STATES.every((st) => us.some((j) => j.locality === st || (j.locality || '').startsWith(st + ' · '))), 'a US contributor elects their STATE — all 50 are localities of the United States, from the dataset');
+  ok(us.length === 65, `the United States offers 65 places: the federal floor, 50 states (six of them by scope: 6 extra rows), DC, Austin, and the five territories — got ${us.length}`);
+  ok(us[0].locality === null && us[0].rate === 7.25 && us[0].dataset.scope === 'Federal FLSA', 'the country itself is the dataset\'s federal FLSA row, 7.25');
+  ok(RATES.findJurisdiction('English:US:united-states-federal-flsa-floor') === us[0], 'and the approved "Federal (FLSA floor)" row resolves to that same place, not a duplicate');
+  for (const [loc, rate, src] of [['District of Columbia', 18.4, 'dataset-2026-09-12'], ['California', 16.9, 'dataset-2026-09-12'], ['Texas', 7.25, 'dataset-2026-09-12'], ['Georgia', 7.25, 'dataset-2026-09-12'], ['Alabama', 7.25, 'dataset-2026-09-12']]) {
+    const j = us.find((x) => x.locality === loc);
+    ok(j && j.rate === rate && j.currency === 'USD' && j.source === src, `${loc} settles at ${rate} USD/h from the dataset`);
   }
+  const ga = us.find((x) => x.locality === 'Georgia');
+  ok(ga.dataset.hourly === 5.15 && ga.dataset.floor === 7.25 && /effective floor 7.25 settles/.test(ga.note), 'Georgia: the published 5.15 is kept and the dataset\'s effective floor 7.25 is what settles — both stated');
+  ok(us.find((x) => x.locality === 'Alabama').dataset.hourly === null, 'Alabama has no state law; the dataset\'s effective floor settles');
+  ok(us.filter((x) => (x.locality || '').startsWith('New York · ')).length === 2 && us.filter((x) => (x.locality || '').startsWith('Oregon · ')).length === 3,
+     'a state the dataset publishes by scope is elected by scope — New York twice, Oregon three times');
+  ok(new Set(us.map((x) => x.id)).size === us.length, 'every scope has its own id — "< $405,000" and ">= $405,000" do not collide');
+  ok(us.find((x) => x.locality === 'District of Columbia').history.some((h) => /approved 2026-09-11.*17\.95.*governs/.test(h)), 'DC: the approved 17.95 is recorded as history; the dataset\'s 18.40 governs');
+  const pr = us.find((x) => x.locality === 'Puerto Rico');
+  ok(pr && pr.rate === null && pr.tier === 'pending' && pr.history.some((h) => /approved 2026-09-11.*10\.5.*not settled.*verification pending/.test(h)),
+     'Puerto Rico: the dataset names it as "verification pending", so the approved 10.50 does NOT settle — shown as history, nothing guessed');
   ok(!RATES.JURISDICTIONS.some((j) => j.locality === 'American Samoa' && j.rate !== null), 'American Samoa carries no single figure — industry rates; nothing was guessed');
-  const ca = RATES.JURISDICTIONS.find((j) => j.locality === 'California');
-  ok(ca && ca.rate === 16 && ca.currency === 'USD', 'a Californian\'s posted floor is $16.00, not Texas\'s $7.25');
+  ok(us.find((x) => x.locality === 'California').usdMirror === 16, 'hi_rates.py\'s 16.00 for California sits beside the dataset\'s 16.90 as usdMirror, never merged');
   const kh = RATES.JURISDICTIONS.find((j) => j.country === 'Cambodia');
-  ok(kh && kh.rate === 1.01 && kh.currency === 'USD' && kh.source === 'approved-2026-09-11' && kh.langs.includes('Khmer'),
-     'Cambodia is in from the approved file — its statutory minimum is set in USD, and the hi_rates.py row no longer stands in for it');
-  ok(RATES.JURISDICTIONS.find((j) => j.cc === 'BR' && j.source === 'operator-2026-09-10').usdMirror === 1.58,
-     'the USD mirror sits BESIDE the operator\'s local-currency row, never converted into it');
+  ok(kh && kh.source === 'dataset-2026-09-12' && kh.currency === 'KHR' && kh.rate === null && kh.langs.includes('Khmer') && kh.history.some((h) => /approved 2026-09-11: 1\.01 USD\/h — not settled/.test(h)),
+     'Cambodia is the dataset\'s place (KHR, candidate only, nothing settles); the approved 1.01 USD attaches as history under it');
+  ok(RATES.findJurisdiction('Portuguese:BR').rate === 7.37 && RATES.findJurisdiction('Portuguese:BR').usdMirror === 1.58 && RATES.findJurisdiction('Portuguese:BR').history.some((h) => /operator 2026-09-10: 9\.326 BRL\/h; the dataset's 7\.37 BRL\/h governs/.test(h)),
+     'Brazil: the dataset\'s verified 7.37 governs his 9.326, which is recorded beside it, and the USD mirror sits beside both');
   // D9 — greater of vintage and current, same jurisdiction; relocation is an election onto the new schedule
   const tx = RATES.findJurisdiction('English:US');
   ok(RATES.settleD9(100, { rate: 7.25, currency: 'USD' }, tx).which === 'equal', 'vintage == current → equal');
@@ -596,11 +615,11 @@ if (RATES.JURISDICTIONS && RATES.settleD9) {
      'the wage rose since the stamp → the CURRENT rate pays: a floor, never a ceiling');
   ok(RATES.settleD9(100, { rate: 8, currency: 'USD' }, tx).which === 'vintage' && RATES.settleD9(100, { rate: 8, currency: 'USD' }, tx).amount === 800,
      'the wage fell since the stamp → the VINTAGE rate pays: time can only preserve or improve buying power');
-  const ng = RATES.findJurisdiction('English:NG');
-  const rel = RATES.settleD9(100, { rate: 7.25, currency: 'USD' }, ng);
-  ok(rel.which === 'relocated' && rel.currency === 'NGN' && rel.amount === 100 * 402.739,
+  const br = RATES.findJurisdiction('Portuguese:BR');
+  const rel = RATES.settleD9(100, { rate: 7.25, currency: 'USD' }, br);
+  ok(rel.which === 'relocated' && rel.currency === 'BRL' && rel.amount === 100 * 7.37,
      'a relocation election settles on the new schedule at its current rate — never a maximum across two currencies');
-  ok(RATES.settleD9(100, null, RATES.findJurisdiction('English:IE')).which === 'none', 'no rate anywhere → no figure, not zero');
+  ok(RATES.settleD9(100, null, RATES.findJurisdiction('English:NG')).which === 'none', 'no rate anywhere (Nigeria: candidate only) → no figure, not zero');
   ok(/no_single_rate: "D1, open since r57/.test(read('../lib/pod-rates.ts')) && /no_official_rate: "D2, open since r57/.test(read('../lib/pod-rates.ts')),
      'D1 and D2 are shown as the operator\'s open decisions, verbatim from the register, and settle nothing');
   // auto-detect is a suggestion, never applied
@@ -678,5 +697,76 @@ ok(!/n\.size < 3/.test(page) && !/projects\.size >= 3/.test(page) && !/\/3 selec
 ok(/setTasks\(\(t\) => \(t\[id\] \? \{ \[id\]: t\[id\] \} : \{\}\)\);/.test(page), 'a task belongs to the one project chosen');
 ok(!/&plus;/.test(page), 'no HTML entity is written into JSX text — the screen showed a literal "&plus;"');
 ok(/or choose one Domain Play/.test(read('../lib/lexicon-data.ts')) && !/tag up to 3/.test(read('../lib/lexicon-data.ts')), 'the picker\'s label says one Domain Play');
+
+// ── THE TRACEABLE DATASET GOVERNS (operator 2026-09-12: "use this traceable data set") ─────────────────────────────
+// The gate parses the CSV itself — the same dialect, independently — and reconciles every row to the shipped module
+// and every module row to a place. A figure that is not in the file cannot be in the record.
+const csvText = read('../../docs/asks/2026-09-12_exel_ai_global_minimum_wage_master_2026.csv').replace(/^﻿/, '');
+const csvRows = (() => { const rows = []; let row = [], f = '', q = false; for (let i = 0; i < csvText.length; i++) { const c = csvText[i]; if (q) { if (c === '"') { if (csvText[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; continue; } if (c === '"') q = true; else if (c === ';') { row.push(f); f = ''; } else if (c === '\n') { row.push(f); rows.push(row); row = []; f = ''; } else if (c !== '\r') f += c; } if (f || row.length) { row.push(f); rows.push(row); } return rows; })();
+const csvH = csvRows[0]; const csv = csvRows.slice(1).map((r) => Object.fromEntries(csvH.map((k, i) => [k, r[i]])));
+if (RATES.DATASET_ROWS) {
+  ok(csv.length === 307 && RATES.DATASET_ROWS.length === 307, `the dataset is 307 rows in the file and 307 in the module — got ${csv.length} / ${RATES.DATASET_ROWS.length}`);
+  let dsDrift = 0;
+  csv.forEach((c, i) => {
+    const d = RATES.DATASET_ROWS[i]; const n = (v) => (v === '' ? null : Number(v));
+    const same = d && d.type === c.record_type && d.cc === c.country_code && d.sub === c.subdivision_code && d.name === c.jurisdiction
+      && d.langs.join('|') === c.exel_languages && d.currency === (c.currency_code || null) && d.hourly === n(c.hourly_wage_rate) && d.floor === n(c.effective_floor_hourly)
+      && d.candidate === n(c.candidate_hourly_rate) && d.verified === (c.source_verified === 'Yes') && d.effective === c.effective_date && d.scope === c.rate_scope
+      && d.sourceUrl === c.source_url && d.note === c.notes && d.asOf === c.as_of_date;
+    if (!same) { dsDrift++; if (dsDrift <= 3) console.log('   dataset drift:', c.jurisdiction); }
+  });
+  ok(dsDrift === 0, `every dataset row matches the file field for field — ${dsDrift} drifted`);
+  ok(RATES.DATASET_ROWS.every((d) => RATES.JURISDICTIONS.some((j) => j.dataset === d)), 'every dataset row is exactly one place');
+  ok(RATES.JURISDICTIONS.filter((j) => j.dataset).length === 307, 'and no place carries two dataset rows');
+  ok(RATES.DATASET_ROWS.every((d) => d.floor === null || d.verified), 'no floor without a verified source (the generator refuses one)');
+  ok(RATES.DATASET_ROWS.every((d) => d.candidate === null || (d.floor === null && d.hourly === null)), 'a row is a floor or a candidate, never both');
+  ok(RATES.JURISDICTIONS.every((j) => !j.dataset || j.rate === j.dataset.floor), 'THE DATASET GOVERNS: wherever it names a place, the settling rate is its effective floor — or nothing');
+  ok(RATES.JURISDICTIONS.every((j) => !j.dataset || j.dataset.floor !== null || j.rate === null), 'a history figure never settles a place the dataset marks candidate or pending');
+  ok(RATES.JURISDICTIONS.filter((j) => j.dataset && j.dataset.candidate !== null).every((j) => j.rate === null && /Candidate .* shown, never settled/.test(j.note)), 'the 53 candidates are shown as candidates and settle nothing');
+  ok(RATES.JURISDICTIONS.filter((j) => j.rate !== null).length === 120, `120 places settle: 83 dataset floors + 37 places the dataset does not name (Austin, Beijing, Geneva, the provinces …) — got ${RATES.JURISDICTIONS.filter((j) => j.rate !== null).length}`);
+  ok(RATES.JURISDICTIONS.filter((j) => j.rate !== null && j.source !== 'dataset-2026-09-12').every((j) => !j.dataset), 'and every non-dataset settlement is a place the dataset has no row for');
+  const ng = RATES.findJurisdiction('English:NG');
+  ok(ng.id === 'ds:NG' && ng.rate === null && ng.dataset.candidate === 402.739 && ng.history.some((h) => /operator 2026-09-10: 402\.739 NGN\/h — not settled: dataset 2026-09-12 says "Secondary candidate only"/.test(h)),
+     'Nigeria: his 402.739 is the dataset\'s own candidate; it is shown, and nothing settles until the dataset verifies it');
+  ok(RATES.DATASET_ROWS.every((d) => d.type === 'Country' || /^US-[A-Z]{2}$/.test(d.sub)), 'every US row carries its subdivision code');
+  ok(new Set(RATES.DATASET_ROWS.map((d) => d.asOf)).size === 1 && RATES.DATASET_ROWS[0].asOf === '2026-09-11', 'one as-of date across the dataset, carried on every place');
+  const rates2 = read('../lib/pod-rates.ts');
+  ok(/export const DATASET_ROWS: DatasetRow\[\] = \[/.test(rates2) && /DATASET_ROWS regenerated/.test(read('../scripts/gen-pod-rates.mjs')), 'the block is generated by the same script as his 114 — never typed');
+  ok(/refuse\(`a floor without a verified source would settle people on a guess/.test(read('../scripts/gen-pod-rates.mjs')), 'and the generator refuses a floor without a verified source');
+  // the rate table on screen carries the provenance a person can follow
+  ok(/j\.dataset\.verified \? "verified" : "unverified"/.test(page) && /j\.dataset\.scope/.test(page) && /j\.history\.join/.test(page), 'the Plan panel\'s table shows the dataset\'s verification, scope and history beside every place');
+}
+
+// ── A USA EQUIVALENT BESIDE EVERY LOCAL FIGURE (operator 2026-09-12) — by a traceable route only ──────────────────
+if (RATES.usdEquivalent) {
+  const fxPsv = read('../../docs/asks/2026-09-12_fx_to_usd.psv').split('\n').filter((l) => l.trim()).slice(1).map((l) => l.split('|'));
+  ok(RATES.FX_TO_USD.length === fxPsv.length && fxPsv.every(([cur, per, asOf, src], i) => RATES.FX_TO_USD[i].currency === cur && RATES.FX_TO_USD[i].perUsd === Number(per) && RATES.FX_TO_USD[i].asOf === asOf && RATES.FX_TO_USD[i].source === src),
+     'every exchange rate in the module is a row of docs/asks/2026-09-12_fx_to_usd.psv — dated and sourced, never typed');
+  ok(RATES.FX_TO_USD.every((f) => /^\d{4}-\d{2}-\d{2}$/.test(f.asOf) && f.source.length > 0 && f.perUsd > 0), 'and every row carries a date and a source');
+  ok(!/perUsd: [0-9.]+, asOf: "[^"]+", source: "[^"]+" \}/.test(read('../lib/pod-rates.ts').replace(/export const FX_TO_USD: FxRow\[\] = \[[\s\S]*?\n\]/, '')), 'no exchange rate exists outside the generated block');
+  const same = RATES.usdEquivalent(72.5, 'USD', 10, null);
+  ok(same && same.via === 'same-currency' && same.usd === 72.5, 'a USD settlement is its own equivalent');
+  const mirror = RATES.usdEquivalent(null, 'NGN', 10, RATES.findJurisdiction('English:NG'));
+  ok(mirror && mirror.via === 'hi_rates' && Math.abs(mirror.usd - 3.4) < 1e-9 && /not a conversion/.test(mirror.source), 'where hi_rates.py holds a USD floor for the country, 웃 × that floor is shown as a second floor — named as such');
+  ok(RATES.usdEquivalent(868.75, 'PHP', 10, RATES.findJurisdiction('Filipino:PH')) === null && /awaiting a dated exchange-rate source/.test(RATES.USD_MISSING),
+     'with no dated rate and no USD floor, no figure — the screen says what is missing');
+  ok(/function UsdBeside\(/.test(page) && (page.match(/<UsdBeside /g) || []).length >= 4,
+     'ONE component prints the USD line, and it stands beside the plan preview, the pod settlement, each member\'s settlement and each member\'s receipt line');
+  ok(/testid="pod-settle-usd"/.test(page) && /testid=\{`settle-usd-\$\{i\}`\}/.test(page) && /testid=\{`receipt-usd-\$\{i\}`\}/.test(page) && /testid="anchor-usd"/.test(page), 'each carrier is addressable');
+  ok(!/usdMirror \* [^웃]/.test(page.replace(/yug \* place\.usdMirror/g, '')), 'the page never multiplies a local amount by anything — the module owns the only route');
+}
+
+// ── GPS AS A SUPPLEMENT, NEVER THE ELECTION (operator 2026-09-12) ──────────────────────────────────────────────────
+const rosterSrc2 = read('../lib/pod-roster.ts');
+ok(/gps: GpsFix \| null;/.test(rosterSrc2) && /export type GpsFix = \{ lat: number; lon: number; acc: number; at: string \}/.test(rosterSrc2), 'a seat carries its own position fix');
+ok(/gps: incoming\.gps \?\? local\.gps/.test(rosterSrc2), 'a fix, once taken, is never erased by an empty seat');
+ok(!/gps/.test(rosterSrc2.slice(rosterSrc2.indexOf('RESET_PATCH'), rosterSrc2.indexOf('randomPodCode'))), 'a Reset does not erase a fix — where the work was done is evidence');
+ok(/navigator\.geolocation\.getCurrentPosition\(/.test(page) && /setMember\(i, \{ gps: \{ lat: pos\.coords\.latitude, lon: pos\.coords\.longitude, acc: pos\.coords\.accuracy/.test(page),
+   'the fix comes from the browser, with permission, and lands on THIS person\'s seat only');
+ok(!/geolocation[\s\S]{0,400}(setRegionIdSel|region:)/.test(page), 'a fix never sets an election — no country is inferred from coordinates');
+ok(/testid=\{`member-gps-\$\{i\}`\}/.test(page) && /testid=\{`member-gps-fix-\$\{i\}`\}/.test(page) && /testid=\{`receipt-gps-\$\{i\}`\}/.test(page) && /testid=\{`settle-gps-\$\{i\}`\}/.test(page),
+   'the fix is offered on the seat, shown beside the elected place, and printed on the settlement and the receipt');
+ok(/a supplement to the elected place/.test(page), 'and the receipt says what it is');
+ok(!/reverse|geocod/i.test(page), 'no reverse geocoder — coordinates stay coordinates');
 
 console.log(`pod-invariant: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
