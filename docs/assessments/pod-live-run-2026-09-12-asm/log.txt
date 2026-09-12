@@ -1,0 +1,95 @@
+  2017ms  lead   OK  opened /soi-session
+  2255ms  lead   OK  plan set: 3 h at 4.807× (planned 14.421 웃)
+  2283ms  lead   OK  pod default place: IE
+  2299ms  lead   OK  plan preview shows the USA-equivalent line beside the local figure — a figure by a traceable route, or the words for what is missing
+  2546ms  lead   OK  open button enabled (plan present)
+  2720ms  lead   OK  pod code issued  MYSHBA
+  2730ms  lead   OK  live channel subscribed (relay)
+  4693ms  ana    OK  opened join link ?pod=MYSHBA
+  7003ms  bo     OK  typed the code and joined
+  7023ms  ana    OK  assigned seat 2
+  7686ms  bo     OK  assigned seat 3
+  7700ms  lead   OK  lead sees 3 in the pod
+  7710ms  ana    OK  name input is own seat only
+  7769ms  bo     OK  name input is own seat only
+  7845ms  ana    OK  locality select is own seat only
+  7875ms  ana    OK  elected BR
+  7917ms  bo     OK  locality select is own seat only
+  7990ms  bo     OK  a second step offers the localities of PH
+  8005ms  bo     OK  locality "Metro Manila" is offered
+  8028ms  bo     OK  elected PH — Metro Manila
+  8104ms  lead   OK  locality "Washington" is offered
+  8146ms  lead   OK  elected own place US — Washington
+  8168ms  ana    OK  position button is own seat only
+  9142ms  ana    OK  position fix recorded beside the elected place
+  9153ms  lead   OK  lead sees Ana's fix (replicated), and Ana's election stands
+  9162ms  lead   OK  approval checkbox is own seat only
+  9252ms  lead   OK  approved intent, outcome AND the plan (2 h × 3)
+  9271ms  ana    OK  approval checkbox is own seat only
+  9713ms  ana    OK  approved intent, outcome AND the plan (2 h × 3)
+  9730ms  bo     OK  approval checkbox is own seat only
+  9783ms  bo     OK  approved intent, outcome AND the plan (2 h × 3)
+  9789ms  lead   OK  all three approved → sync unlocked
+  9794ms  lead   OK  lead sees the elections replicated
+ 10365ms  lead   OK  pressed ready (own seat)
+ 10409ms  ana    OK  pressed ready (own seat)
+ 10494ms  bo     OK  pressed ready (own seat)
+ 11412ms  lead   OK  ACTIVE — the clock button is on screen, not yet running
+ 11418ms  ana    OK  ACTIVE — the clock button is on screen, not yet running
+ 11423ms  bo     OK  ACTIVE — the clock button is on screen, not yet running
+ 11901ms  lead   OK  START the clock (segment 1)
+ 19948ms  lead   OK  STOP the clock (segment 1 closed)
+ 19997ms  lead   OK  ADD TIME (segment 2 opened)
+ 28004ms  lead   OK  sees segment 2 (clock events replicated)
+ 28008ms  ana    OK  sees segment 2 (clock events replicated)
+ 28012ms  bo     OK  sees segment 2 (clock events replicated)
+ 28502ms  ana    OK  a JOINER pressed Stop & record — one route, segment 2 closed for everyone
+ 28514ms  lead   OK  reached RECORD
+ 28526ms  ana    OK  reached RECORD
+ 28530ms  bo     OK  reached RECORD
+ 28560ms  lead   OK  outcome input is own seat only
+ 28591ms  ana    OK  outcome input is own seat only
+ 28641ms  bo     OK  outcome input is own seat only
+ 28671ms  ana    OK  all three outcomes in → audit unlocked
+ 29257ms  lead   OK  reached AUDIT
+ 29262ms  ana    OK  reached AUDIT
+ 29267ms  bo     OK  reached AUDIT
+ 29358ms  lead   OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 29451ms  ana    OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 29558ms  bo     OK  self-audit: claimed 1 h (above the clock — will be capped to what was witnessed)
+ 30594ms  lead   OK  witnessed the other two  clicked 2 of 2
+ 31628ms  ana    OK  witnessed the other two  clicked 2 of 2
+ 32661ms  bo     OK  witnessed the other two  clicked 2 of 2
+ 32667ms  lead   OK  all witnessed + all self-audited → settle unlocked
+ 32671ms  lead   OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 32674ms  ana    OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 32677ms  bo     OK  the 1 h claim is CAPPED to the clock on this phone  3 capped rows
+ 32682ms  lead   OK  M is locked on the audit screen (no picker)
+ 33378ms  lead   OK  CLOSED — receipt on this phone
+ 33418ms  ana    OK  CLOSED — receipt on this phone
+ 33432ms  bo     OK  CLOSED — receipt on this phone
+ 34301ms  lead   OK  333-word synthesis on this phone: 164 + 94 + 82 = 340 words (local (deterministic))
+ 34431ms  ana    OK  333-word synthesis on this phone: 164 + 94 + 82 = 340 words (local (deterministic))
+ 34558ms  bo     OK  333-word synthesis on this phone: 164 + 94 + 82 = 340 words (local (deterministic))
+ 34558ms  lead   OK  the three phones carry the SAME synthesis, word for word
+ 34569ms  lead   OK  receipt shows PLAN → ACTUAL
+ 34569ms  lead   OK  receipt shows two segments summed
+ 34569ms  lead   OK  receipt shows the ledger grammar
+ 34569ms  lead   OK  receipt settles each member at their own floor
+ 34573ms  lead   OK  USA-equivalent line present for seat 1 — a figure by a traceable route, or the words for what is missing  · ≈ $0.38
+ 34573ms  lead   OK  USA-equivalent line present for seat 2 — a figure by a traceable route, or the words for what is missing  · ≈ $0.03 (a second floor from the platform's own US-dollar table, not a conversion)
+ 34573ms  lead   OK  USA-equivalent line present for seat 3 — a figure by a traceable route, or the words for what is missing  · USD equivalent: awaiting a dated exchange-rate source for this currency
+ 34578ms  lead   OK  Ana's GPS fix prints on the receipt as a supplement to the elected place
+ 34582ms  lead   OK  and no other seat carries a fix it did not take
+ 34582ms  lead   OK  receipt names the D9 rate that paid
+ 34582ms  lead   OK  Lea settles at her own elected place
+ 34584ms  lead   OK  receipt renders each member's OWN outcome text
+ 34585ms  lead   OK  receipt shows M locked at 4.807× and the plan line
+ 34587ms  ana    OK  receipt renders each member's OWN outcome text
+ 34588ms  ana    OK  receipt shows M locked at 4.807× and the plan line
+ 34590ms  bo     OK  receipt renders each member's OWN outcome text
+ 34590ms  bo     OK  receipt shows M locked at 4.807× and the plan line
+ 34593ms  lead   OK  this phone's receipt carries the per-person vintage settlement
+ 34595ms  ana    OK  this phone's receipt carries the per-person vintage settlement
+ 34598ms  bo     OK  this phone's receipt carries the per-person vintage settlement
+ 34601ms  lead   OK  THE THREE RECEIPTS SETTLE IDENTICALLY — the same per-person figures on every phone  5b · Each at their own floor Lea 0.00 h → 웃 0.022 → $0.38 · 

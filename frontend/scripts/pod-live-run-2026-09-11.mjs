@@ -33,12 +33,12 @@ const IN = {
   intent: INP?.lead.intent ?? 'Showcase: input in time, and local minimum wage authorizing value.',
   outcome: INP?.lead.outcome ?? 'Two clocked segments, three outcomes, three currencies on one receipt.',
   planHours: String(INP?.lead.plan.hours ?? 2), planM: String(INP?.lead.plan.m ?? 3),
-  podCc: INP?.lead.podPlace?.cc ?? 'US', podLocality: INP?.lead.podPlace?.locality || 'New York · Remainder of state',
+  podCc: INP?.lead.podPlace?.cc ?? 'US', podLocality: INP ? (INP.lead.podPlace?.locality ?? '') : 'New York · Remainder of state',   // an EMPTY locality from the file means the country itself — never the default
   record: INP?.ana.record ?? 'Three phones, two clocked segments, three currencies: this receipt is the outcome.',
   seats: {
-    lead: { cc: INP?.lead.place?.cc ?? null, locality: INP?.lead.place?.locality || '', outcome: INP?.lead.ownOutcome ?? 'framed the plan and ran the clock', hours: String(INP?.lead.audit.hours ?? 1), did: INP?.lead.audit.did ?? 'Lea worked the plan' },
-    ana: { cc: INP?.ana.place?.cc ?? 'BR', locality: INP?.ana.place?.locality || '', outcome: INP?.ana.ownOutcome ?? 'elected Brazil and stopped the clock', hours: String(INP?.ana.audit.hours ?? 1), did: INP?.ana.audit.did ?? 'Ana worked the plan' },
-    bo: { cc: INP?.bo.place?.cc ?? 'PH', locality: INP?.bo.place?.locality || 'Metro Manila', outcome: INP?.bo.ownOutcome ?? 'elected Metro Manila and witnessed', hours: String(INP?.bo.audit.hours ?? 1), did: INP?.bo.audit.did ?? 'Bo worked the plan' },
+    lead: { cc: INP?.lead.place?.cc ?? null, locality: INP ? (INP.lead.place?.locality ?? '') : '', outcome: INP?.lead.ownOutcome ?? 'framed the plan and ran the clock', hours: String(INP?.lead.audit.hours ?? 1), did: INP?.lead.audit.did ?? 'Lea worked the plan' },
+    ana: { cc: INP?.ana.place?.cc ?? 'BR', locality: INP ? (INP.ana.place?.locality ?? '') : '', outcome: INP?.ana.ownOutcome ?? 'elected Brazil and stopped the clock', hours: String(INP?.ana.audit.hours ?? 1), did: INP?.ana.audit.did ?? 'Ana worked the plan' },
+    bo: { cc: INP?.bo.place?.cc ?? 'PH', locality: INP ? (INP.bo.place?.locality ?? '') : 'Metro Manila', outcome: INP?.bo.ownOutcome ?? 'elected Metro Manila and witnessed', hours: String(INP?.bo.audit.hours ?? 1), did: INP?.bo.audit.did ?? 'Bo worked the plan' },
   },
   gps: INP?.ana.gps ? { latitude: INP.ana.gps.lat, longitude: INP.ana.gps.lon, accuracy: 25 } : { latitude: -23.5505, longitude: -46.6333, accuracy: 25 },
 };
@@ -81,7 +81,7 @@ if (IN.podLocality) {
   await L.getByTestId('anchor-region-locality').selectOption(locOpt);
 }
 step('lead', `pod default place: ${IN.podCc}${IN.podLocality ? ' — ' + IN.podLocality : ''}`);
-await L.getByTestId('anchor-usd').waitFor({ timeout: 10000 }); step('lead', 'plan preview shows the USA equivalent beside the local figure', /≈ \$/.test(await L.getByTestId('anchor-usd').innerText()));
+await L.getByTestId('anchor-usd').waitFor({ timeout: 10000 }); step('lead', 'plan preview shows the USA-equivalent line beside the local figure — a figure by a traceable route, or the words for what is missing', new RegExp(INP ? '≈ \\$|awaiting a dated exchange-rate source' : '≈ \\$').test(await L.getByTestId('anchor-usd').innerText()));
 await shot(L, 'lead', '1-compose-plan');
 await crop(L, 'lead', '01-plan', L.getByTestId('pod-anchor'));
 const open = L.getByRole('button', { name: /Share QR/ }); await open.waitFor(); step('lead', 'open button enabled (plan present)', await open.isEnabled());
