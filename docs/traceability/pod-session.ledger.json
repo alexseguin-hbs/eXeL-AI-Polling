@@ -1,0 +1,29 @@
+{
+  "section": "POD session",
+  "route": "/soi-session",
+  "note": "Append-only Vision 2525 traceability for the Innovation Pod. Each entry is an ask (operator words), a decision, or a release (with the commit that shipped it). rev is monotonic; a new edition APPENDS, never edits (docs/VISION2525_DOCUMENT_SPEC.md). Replay to any rev = every entry with e.rev <= rev; compare(A,B) = the entries between them.",
+  "entries": [
+    { "rev": 1,  "date": "2026-09-10", "kind": "decision", "text": "웃 = M × T (Multiple × Time), currency-free at mint; the mint never sees a wage, region or currency.", "commit": "" },
+    { "rev": 2,  "date": "2026-09-10", "kind": "ask", "text": "Tokenomics rulings: earning is never capped, payout is (9,999 웃/yr) with rollforward; the region only decides what an already-minted 웃 settles as.", "commit": "" },
+    { "rev": 3,  "date": "2026-09-10", "kind": "ask", "text": "The signer never meets the machine — no screen a member reads names a vendor, file, hash, migration or table.", "commit": "" },
+    { "rev": 4,  "date": "2026-09-11", "kind": "ask", "text": "Election of locality and regional minimum wage; one project per pod; stop confusing users.", "commit": "" },
+    { "rev": 5,  "date": "2026-09-11", "kind": "decision", "text": "Rule B — load the agreed high/medium minimum-wage rows from the fleet proposal; everything else stays on the sheet.", "commit": "" },
+    { "rev": 6,  "date": "2026-09-12", "kind": "ask", "text": "Use the traceable dataset as the source of floors; GPS Location as a supplement to the agreed pod location; every settlement in local currency AND a USA equivalent.", "commit": "8446bba" },
+    { "rev": 7,  "date": "2026-09-12", "kind": "release", "text": "The dataset governs every place it names (307 rows); a USA equivalent beside every local figure by a traceable route only; GPS as a supplement on the seat.", "commit": "9b7315e" },
+    { "rev": 8,  "date": "2026-09-12", "kind": "ask", "text": "Simulate the three members' contributions with four Ascended Masters assisting each seat.", "commit": "7078d8a" },
+    { "rev": 9,  "date": "2026-09-12", "kind": "ask", "text": "Make the UI/UX super simple to follow — DocuSign as the model.", "commit": "0088fa4" },
+    { "rev": 10, "date": "2026-09-12", "kind": "release", "text": "Guided pod: Step N of 7, one 'Your turn' card with the single action, who-has-done-what, folded detail, Completed + copy.", "commit": "0088fa4" },
+    { "rev": 11, "date": "2026-09-12", "kind": "ask", "text": "Spiral overnight: update, assess (12 lenses), test, fix discrepancies at the class.", "commit": "8b3a53d" },
+    { "rev": 12, "date": "2026-09-12", "kind": "release", "text": "Three review rounds; fixes at the class (one derivation, one precision, no machine words, receipt adds up); gates by form.", "commit": "8b3a53d" },
+    { "rev": 13, "date": "2026-09-12", "kind": "ask", "text": "One screen per step; the terms GPS Location and Signal Location (of IP Address); simple enough for a child or a grandmother.", "commit": "4f746a3" },
+    { "rev": 14, "date": "2026-09-12", "kind": "release", "text": "One screen per step: the logo and long notes fold; three one-line sentences; the operator's two location terms.", "commit": "4f746a3" },
+    { "rev": 15, "date": "2026-09-12", "kind": "ask", "text": "Provide the join link beside the QR, like every time we have shown a QR code; add Max screen like the Divinity Guide.", "commit": "43e415e" },
+    { "rev": 16, "date": "2026-09-12", "kind": "release", "text": "Join link with Copy and Share beside the QR; Max screen overlay (shared component) with the code and link.", "commit": "3c553a3" },
+    { "rev": 17, "date": "2026-09-12", "kind": "ask", "text": "Test the pod for Cambodia and Honduras.", "commit": "8446bba" },
+    { "rev": 18, "date": "2026-09-13", "kind": "decision", "text": "Only updating the Innovation Pod governs FEATURES; UX language lexicons are the exception — all UX in all 33 languages.", "commit": "915ed53" },
+    { "rev": 19, "date": "2026-09-13", "kind": "release", "text": "The Innovation Pod (soi.pod.*) fully translated in all 33 languages, gated with zero placeholders.", "commit": "70ed4e9" },
+    { "rev": 20, "date": "2026-09-13", "kind": "ask", "text": "The Seed of Life mini-SVG before the Vision • 2525 wordmark, all languages; the symbol is not a word and does not count against word count.", "commit": "b9a92c3" },
+    { "rev": 21, "date": "2026-09-13", "kind": "release", "text": "Vision2525Mark: the Seed mark before the wordmark at every visible site; symbol-only, contributes 0 to word counts.", "commit": "b9a92c3" },
+    { "rev": 22, "date": "2026-09-13", "kind": "ask", "text": "From here on, Vision 2525 traceability for each section (POD session, Create Doc, Sign Doc) with revisions and comparisons — so we don't do stupid ship.", "commit": "" }
+  ]
+}

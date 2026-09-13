@@ -1,0 +1,11 @@
+{
+  "section": "Sign Doc",
+  "route": "/soi-session/sign",
+  "note": "Append-only Vision 2525 traceability for the Sign Doc flow. rev monotonic; append, never edit.",
+  "entries": [
+    { "rev": 1, "date": "2026-09-09", "kind": "release", "text": "Sign Doc · Session UX in all 33 languages; the countersigner reads a document and their next action, never the machine.", "commit": "1bc6cc7" },
+    { "rev": 2, "date": "2026-09-10", "kind": "ask", "text": "The signer never meets the machine — a person signing on their phone must never be shown a database, migration, RPC, quota or vendor.", "commit": "" },
+    { "rev": 3, "date": "2026-09-10", "kind": "decision", "text": "One sentence for every infrastructure failure; the operator's door is ?diag=1; enforced mechanically in all 33 languages by tests/sign-lexicon-voice.test.mjs in test:ci.", "commit": "" },
+    { "rev": 4, "date": "2026-09-09", "kind": "decision", "text": "A completed signature is never discarded — the finished file survives any backend failure (FIX THE CLASS, docs/AAR_2026-09-09_THREE_DEAD_ENDS.md).", "commit": "" }
+  ]
+}
