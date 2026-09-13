@@ -50,3 +50,13 @@ Persisted before any code.
 
 Run the three-phone pod with a member settling in Cambodia and one in Honduras; report what the receipt shows for each
 from the shipped record (no figure is invented). Persisted before the run.
+
+## Addendum (4) — 2026-09-13
+
+> dont use place holders translate
+
+Yesterday's fill counted only EMPTY slots as gaps. The old seeded store had put the English string itself as the value
+for ~1,248 keys across the 32 languages, so they read as filled while being English placeholders; the coverage gate
+allowed ≤10% identical, so they passed. Translate every real word; keep only true proper nouns, brands, product names,
+titles/IDs, formulas, glyphs and bare acronyms (operator decision: keep proper nouns as-is, translate all real words).
+Tighten the gate to forbid any translatable-identical value outside the reviewed allow-list. Persisted before any code.
