@@ -264,5 +264,13 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "임무 계획",
+  "trinity.ooda.title": "OODA 루프",
+  "soi.landing.ring.session": "POD 세션",
+  "soi.landing.btn.session": "POD 세션",
+  "soi.coin.SI.law": "제공한 1분 = 1 ♡",
+  "cube12.arx.token_id": "토큰 ID",
+  "vision.view.voxel": "복셀",
+  "experiences.card.resume1.badge": "국방 • 시스템",
 };
 export default T;

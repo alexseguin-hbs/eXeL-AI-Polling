@@ -264,5 +264,18 @@ const T: Record<string, string> = {
   "innovation.alloc.perMin": "$/min",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.nav.soi": "SoI-raamwerk",
+  "shared.landing.security2525_link": "Missieplanning",
+  "trinity.ooda.title": "OODA-lus",
+  "cube1.session.polling": "Peiling",
+  "cube1.session.ranking": "Ranglijst",
+  "cube1.timer.seconds": "s",
+  "sdk.embed.headless": "Hoofdloze API",
+  "api.page.title": "Governance-engine-API",
+  "soi.landing.btn.session": "POD-sessie",
+  "cube10.challenger.arena": "Code-uitdagingsarena",
+  "cube12.arx.divinity_guide": "Goddelijkheidsgids",
+  "experiences.card.resume1.badge": "Defensie • Systemen",
+  "experiences.card.vig6.title": "DARPA-luchtgevecht · AI",
 };
 export default T;

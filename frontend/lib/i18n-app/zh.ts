@@ -264,5 +264,14 @@ const T: Record<string, string> = {
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
   "soi.qis.equation": "QIS = (R + GP + OI + ERD) ÷ 4 · growth = ΔQIS",
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "shared.landing.security2525_link": "任务规划",
+  "trinity.ooda.title": "OODA 循环",
+  "sdk.embed.headless": "无头 API",
+  "soi.landing.ring.session": "POD 会话",
+  "soi.landing.btn.session": "POD 会话",
+  "soi.coin.SI.law": "给出 1 分钟 = 1 ♡",
+  "cube12.arx.token_id": "代币 ID",
+  "vision.view.voxel": "体素",
+  "experiences.card.resume1.badge": "国防 • 系统",
 };
 export default T;

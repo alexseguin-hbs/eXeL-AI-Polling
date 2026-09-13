@@ -264,5 +264,17 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.tokens.heart": "♡ Tokeni",
+  "shared.tokens.unity": "◬ Tokeni",
+  "shared.tokens.human": "웃 Tokeni",
+  "shared.landing.security2525_link": "Upangaji wa Misheni",
+  "trinity.ooda.title": "Kitanzi cha OODA",
+  "cube1.moderator.qr_code": "Msimbo wa QR",
+  "sdk.embed.headless": "API Isiyo na Kichwa",
+  "soi.landing.ring.session": "KIKAO CHA POD",
+  "soi.landing.btn.session": "Kikao cha POD",
+  "cube9.results.cqs_dashboard": "Dashibodi ya CQS",
+  "cube12.arx.token_id": "Kitambulisho cha Tokeni",
+  "experiences.card.resume1.badge": "Ulinzi • Mifumo",
 };
 export default T;

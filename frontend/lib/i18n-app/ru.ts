@@ -264,5 +264,12 @@ const T: Record<string, string> = {
   "innovation.notes.cm": "Контрмера",
   "soi.qis.spine": "R | GP | OI | QRD → ERD → QIS → ΔQIS",
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
+  "shared.landing.security2525_link": "Планирование миссии",
+  "trinity.ooda.title": "Цикл OODA",
+  "sdk.embed.headless": "Безголовый API",
+  "soi.landing.btn.session": "Сессия POD",
+  "cube12.arx.token_id": "ID токена",
+  "vision.view.voxel": "Воксель",
+  "experiences.card.resume1.badge": "Оборона • Системы",
 };
 export default T;

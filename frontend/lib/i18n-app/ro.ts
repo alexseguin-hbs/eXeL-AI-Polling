@@ -264,5 +264,15 @@ const T: Record<string, string> = {
   "innovation.alloc.perMin": "$/min",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Planificarea misiunii",
+  "trinity.ooda.title": "Bucla OODA",
+  "cube1.moderator.mode_live": "În direct",
+  "cube4.presence.online": "Conectat",
+  "cube4.presence.offline": "Deconectat",
+  "sdk.embed.headless": "API fără cap",
+  "soi.pod.phase.compose": "Rezumat",
+  "soi.landing.btn.session": "Sesiune POD",
+  "cube12.arx.token_id": "Identificator token",
+  "experiences.card.resume1.badge": "Apărare • Sisteme",
 };
 export default T;

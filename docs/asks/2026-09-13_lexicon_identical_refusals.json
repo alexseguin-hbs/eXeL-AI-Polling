@@ -1,0 +1,3473 @@
+{
+"refusals": {
+"ja": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"ko": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"ar": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"hi": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"bn": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"pa": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"th": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"vi": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"fr": [
+{
+"key": "cube1.settings.cost_total",
+"en": "Total",
+"context": "Cost table column header — total cost"
+},
+{
+"key": "shared.sim.volume",
+"en": "Volume",
+"context": "Volume slider title"
+},
+{
+"key": "shared.nav.participants",
+"en": "participants",
+"context": "Participant count suffix"
+},
+{
+"key": "shared.atlantis.sections",
+"en": "sections",
+"context": "Section count suffix, e.g. '7 sections'"
+},
+{
+"key": "shared.atlantis.signature",
+"en": "Signature",
+"context": "Signature line label"
+},
+{
+"key": "shared.atlantis.role_innovation",
+"en": "Innovation",
+"context": "Signatory role — innovation office"
+},
+{
+"key": "cube1.session.participants",
+"en": "Participants",
+"context": "Participant count label"
+},
+{
+"key": "cube1.session.question_prefix",
+"en": "Question",
+"context": "Question N of M prefix"
+},
+{
+"key": "cube1.moderator.configuration",
+"en": "Configuration",
+"context": "Config section heading"
+},
+{
+"key": "cube1.moderator.type_label",
+"en": "Type",
+"context": "Config type label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.votes",
+"en": "Votes",
+"context": "Vote count column header"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.tokens.heart_total",
+"en": "Total ♡",
+"context": "♡ total label"
+},
+{
+"key": "cube8.tokens.unity_total",
+"en": "Total ◬",
+"context": "◬ total label"
+},
+{
+"key": "cube8.tokens.human_total",
+"en": "Total 웃",
+"context": "웃 total label"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "cube9.ranking_summary.participants",
+"en": "Participants",
+"context": "Participant count label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.sign.pages",
+"en": "{n} pages",
+"context": "Sign Doc: Upload step: page count after a file name ({n} = the number; keep the placeholder)"
+},
+{
+"key": "soi.sign.mark.sig",
+"en": "signature",
+"context": "Sign Doc: toolbar chip: the selected box is the signature"
+},
+{
+"key": "soi.sign.mark.date",
+"en": "date",
+"context": "Sign Doc: toolbar chip: the selected box is a date"
+},
+{
+"key": "soi.sign.add_date",
+"en": "Date",
+"context": "Sign Doc: toolbar: adds a text mark with today's date"
+},
+{
+"key": "soi.sign.page",
+"en": "Page",
+"context": "Sign Doc: Page view: 'Page 1 / 3'"
+},
+{
+"key": "soi.sign.signatures",
+"en": "{n} signatures",
+"context": "Sign Doc receipt line 3: '웃 {n} signatures' ({n} = the count; keep the placeholder)"
+},
+{
+"key": "soi.codex.message",
+"en": "Message",
+"context": "Light Codex panel"
+},
+{
+"key": "soi.doc.col.date",
+"en": "Date",
+"context": "Create Doc: schedule column"
+},
+{
+"key": "soi.nose.solution.k",
+"en": "Solution",
+"context": "SoI NOSE frame label"
+},
+{
+"key": "cube10.sim.title",
+"en": "Simulation",
+"context": "Simulation page heading"
+},
+{
+"key": "cube10.sim.ssses_stability",
+"en": "Stab",
+"context": "SSSES pillar — Stability (short)"
+},
+{
+"key": "cube10.sim.ssses_efficiency",
+"en": "Eff",
+"context": "SSSES pillar — Efficiency (short)"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube12.arx.description_label",
+"en": "Description",
+"context": "Description input label"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.neptune",
+"en": "Neptune",
+"context": "Celestial body name: Neptune"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"es": [
+{
+"key": "shared.tokens.heart",
+"en": "♡ Tokens",
+"context": "♡ token label"
+},
+{
+"key": "shared.tokens.unity",
+"en": "◬ Tokens",
+"context": "◬ token label"
+},
+{
+"key": "shared.tokens.human",
+"en": "웃 Tokens",
+"context": "웃 token label"
+},
+{
+"key": "cube1.settings.cost_total",
+"en": "Total",
+"context": "Cost table column header — total cost"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.tokens.heart_total",
+"en": "Total ♡",
+"context": "♡ total label"
+},
+{
+"key": "cube8.tokens.unity_total",
+"en": "Total ◬",
+"context": "◬ total label"
+},
+{
+"key": "cube8.tokens.human_total",
+"en": "Total 웃",
+"context": "웃 total label"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.industrial.eyebrow",
+"en": "Industrial",
+"context": "Section head eyebrow: Industrial"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"de": [
+{
+"key": "shared.feedback.fab",
+"en": "Feedback",
+"context": "Compact feedback FAB label (pill matches the eXeL badge size)"
+},
+{
+"key": "shared.landing.hero_title_primary",
+"en": "Governance",
+"context": "Landing hero heading — primary color word"
+},
+{
+"key": "shared.atlantis.role_innovation",
+"en": "Innovation",
+"context": "Signatory role — innovation office"
+},
+{
+"key": "cube1.session.step_feedback",
+"en": "Feedback",
+"context": "Polling step label"
+},
+{
+"key": "cube1.moderator.dashboard_title",
+"en": "Dashboard",
+"context": "Dashboard page heading"
+},
+{
+"key": "cube1.moderator.mode_live",
+"en": "Live",
+"context": "Live Interactive polling mode badge"
+},
+{
+"key": "cube4.presence.online",
+"en": "Online",
+"context": "Presence status badge"
+},
+{
+"key": "cube4.presence.offline",
+"en": "Offline",
+"context": "Presence status badge"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "api.flower.governance",
+"en": "Governance",
+"context": "Emerald family legend"
+},
+{
+"key": "cube10.sim.title",
+"en": "Simulation",
+"context": "Simulation page heading"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.saturn",
+"en": "Saturn",
+"context": "Celestial body name: Saturn"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+},
+{
+"key": "experiences.card.vig8.title",
+"en": "Simulation & LVC",
+"context": "Vignette card title: Simulation & LVC"
+}
+],
+"it": [
+{
+"key": "shared.feedback.fab",
+"en": "Feedback",
+"context": "Compact feedback FAB label (pill matches the eXeL badge size)"
+},
+{
+"key": "shared.landing.hero_title_primary",
+"en": "Governance",
+"context": "Landing hero heading — primary color word"
+},
+{
+"key": "shared.sim.volume",
+"en": "Volume",
+"context": "Volume slider title"
+},
+{
+"key": "cube1.session.step_feedback",
+"en": "Feedback",
+"context": "Polling step label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube1.moderator.mode_live",
+"en": "Live",
+"context": "Live Interactive polling mode badge"
+},
+{
+"key": "cube4.presence.online",
+"en": "Online",
+"context": "Presence status badge"
+},
+{
+"key": "cube4.presence.offline",
+"en": "Offline",
+"context": "Presence status badge"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "api.flower.governance",
+"en": "Governance",
+"context": "Emerald family legend"
+},
+{
+"key": "soi.sign.saved.file",
+"en": "File {n}",
+"context": "Done panel: the per-file saved link row label ({n} = 1-based file number)"
+},
+{
+"key": "soi.sign.send.email",
+"en": "E-mail",
+"context": "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"pt": [
+{
+"key": "shared.tokens.heart",
+"en": "♡ Tokens",
+"context": "♡ token label"
+},
+{
+"key": "shared.tokens.unity",
+"en": "◬ Tokens",
+"context": "◬ token label"
+},
+{
+"key": "shared.tokens.human",
+"en": "웃 Tokens",
+"context": "웃 token label"
+},
+{
+"key": "shared.feedback.fab",
+"en": "Feedback",
+"context": "Compact feedback FAB label (pill matches the eXeL badge size)"
+},
+{
+"key": "cube1.settings.cost_total",
+"en": "Total",
+"context": "Cost table column header — total cost"
+},
+{
+"key": "shared.sim.volume",
+"en": "Volume",
+"context": "Volume slider title"
+},
+{
+"key": "cube1.session.step_feedback",
+"en": "Feedback",
+"context": "Polling step label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube4.presence.online",
+"en": "Online",
+"context": "Presence status badge"
+},
+{
+"key": "cube4.presence.offline",
+"en": "Offline",
+"context": "Presence status badge"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.tokens.heart_total",
+"en": "Total ♡",
+"context": "♡ total label"
+},
+{
+"key": "cube8.tokens.unity_total",
+"en": "Total ◬",
+"context": "◬ total label"
+},
+{
+"key": "cube8.tokens.human_total",
+"en": "Total 웃",
+"context": "웃 total label"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.sign.send.email",
+"en": "E-mail",
+"context": "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)"
+},
+{
+"key": "soi.doc.f.principal",
+"en": "Principal (USD)",
+"context": "Create Doc: template field"
+},
+{
+"key": "soi.doc.col.principal",
+"en": "Principal",
+"context": "Create Doc: schedule column"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.industrial.eyebrow",
+"en": "Industrial",
+"context": "Section head eyebrow: Industrial"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"nl": [
+{
+"key": "shared.tokens.heart",
+"en": "♡ Tokens",
+"context": "♡ token label"
+},
+{
+"key": "shared.tokens.unity",
+"en": "◬ Tokens",
+"context": "◬ token label"
+},
+{
+"key": "shared.tokens.human",
+"en": "웃 Tokens",
+"context": "웃 token label"
+},
+{
+"key": "shared.feedback.fab",
+"en": "Feedback",
+"context": "Compact feedback FAB label (pill matches the eXeL badge size)"
+},
+{
+"key": "shared.sim.volume",
+"en": "Volume",
+"context": "Volume slider title"
+},
+{
+"key": "cube1.session.step_feedback",
+"en": "Feedback",
+"context": "Polling step label"
+},
+{
+"key": "cube1.moderator.dashboard_title",
+"en": "Dashboard",
+"context": "Dashboard page heading"
+},
+{
+"key": "cube1.moderator.type_label",
+"en": "Type",
+"context": "Config type label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube1.moderator.mode_live",
+"en": "Live",
+"context": "Live Interactive polling mode badge"
+},
+{
+"key": "cube4.presence.online",
+"en": "Online",
+"context": "Presence status badge"
+},
+{
+"key": "cube4.presence.offline",
+"en": "Offline",
+"context": "Presence status badge"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube7.ranking.score",
+"en": "Score: {score}",
+"context": "Aggregated score display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "cube8.dispute.status_open",
+"en": "Open",
+"context": "Dispute status badge"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "api.flower.governance",
+"en": "Governance",
+"context": "Emerald family legend"
+},
+{
+"key": "cube10.sim.status_open",
+"en": "Open",
+"context": "SIM state label"
+},
+{
+"key": "soi.sign.send.email",
+"en": "E-mail",
+"context": "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"ru": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"zh": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"cs": [
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.pod.phase.sync",
+"en": "Start",
+"context": "Pod page: rail chip"
+},
+{
+"key": "soi.sign.mark.text",
+"en": "text",
+"context": "Sign Doc: toolbar chip: the selected box is a text note"
+},
+{
+"key": "soi.sign.add_text",
+"en": "Text",
+"context": "Sign Doc: toolbar: adds an editable text mark"
+},
+{
+"key": "soi.sign.text_default",
+"en": "Text",
+"context": "Sign Doc: default content of a new text mark"
+},
+{
+"key": "soi.sign.send.email",
+"en": "E-mail",
+"context": "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)"
+},
+{
+"key": "soi.doc.field.body",
+"en": "Text",
+"context": "Create Doc: write mode: body field"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.saturn",
+"en": "Saturn",
+"context": "Celestial body name: Saturn"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"sv": [
+{
+"key": "shared.atlantis.role_innovation",
+"en": "Innovation",
+"context": "Signatory role — innovation office"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.pod.phase.sync",
+"en": "Start",
+"context": "Pod page: rail chip"
+},
+{
+"key": "soi.landing.title",
+"en": "Session",
+"context": "Landing + pod header: the single word under the three glyphs"
+},
+{
+"key": "soi.sign.mark.text",
+"en": "text",
+"context": "Sign Doc: toolbar chip: the selected box is a text note"
+},
+{
+"key": "soi.sign.add_text",
+"en": "Text",
+"context": "Sign Doc: toolbar: adds an editable text mark"
+},
+{
+"key": "soi.sign.text_default",
+"en": "Text",
+"context": "Sign Doc: default content of a new text mark"
+},
+{
+"key": "soi.sign.ai.auto",
+"en": "Auto",
+"context": "provider select: first configured"
+},
+{
+"key": "soi.doc.field.body",
+"en": "Text",
+"context": "Create Doc: write mode: body field"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.writeup1.badge",
+"en": "Presentation · plan",
+"context": "Card badge: AI/ML Strategy presentation"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"da": [
+{
+"key": "shared.atlantis.role_innovation",
+"en": "Innovation",
+"context": "Signatory role — innovation office"
+},
+{
+"key": "cube1.moderator.type_label",
+"en": "Type",
+"context": "Config type label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.pod.phase.sync",
+"en": "Start",
+"context": "Pod page: rail chip"
+},
+{
+"key": "soi.pod.strip.stop",
+"en": "Stop",
+"context": "Pod page: phone strip stop button"
+},
+{
+"key": "soi.landing.title",
+"en": "Session",
+"context": "Landing + pod header: the single word under the three glyphs"
+},
+{
+"key": "soi.sign.ai.auto",
+"en": "Auto",
+"context": "provider select: first configured"
+},
+{
+"key": "soi.sign.send.email",
+"en": "E-mail",
+"context": "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)"
+},
+{
+"key": "cube9.pixelated.send_sms",
+"en": "Send via SMS",
+"context": "SMS delivery button"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.saturn",
+"en": "Saturn",
+"context": "Celestial body name: Saturn"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"fi": [
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"no": [
+{
+"key": "cube1.moderator.type_label",
+"en": "Type",
+"context": "Config type label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.pod.phase.sync",
+"en": "Start",
+"context": "Pod page: rail chip"
+},
+{
+"key": "soi.sign.ai.auto",
+"en": "Auto",
+"context": "provider select: first configured"
+},
+{
+"key": "cube9.pixelated.send_sms",
+"en": "Send via SMS",
+"context": "SMS delivery button"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.saturn",
+"en": "Saturn",
+"context": "Celestial body name: Saturn"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"he": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"sw": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.neptune",
+"en": "Neptune",
+"context": "Celestial body name: Neptune"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid1.title",
+"en": "Athena AI + Teal 2 Drone",
+"context": "Card title: Athena AI + Teal 2 demo video"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"ne": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"id": [
+{
+"key": "cube1.settings.cost_total",
+"en": "Total",
+"context": "Cost table column header — total cost"
+},
+{
+"key": "shared.sim.volume",
+"en": "Volume",
+"context": "Volume slider title"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.tokens.heart_total",
+"en": "Total ♡",
+"context": "♡ total label"
+},
+{
+"key": "cube8.tokens.unity_total",
+"en": "Total ◬",
+"context": "◬ total label"
+},
+{
+"key": "cube8.tokens.human_total",
+"en": "Total 웃",
+"context": "웃 total label"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"ms": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "cube8.pricing.minimum_note",
+"en": "(min $11.11)",
+"context": "Minimum fee note"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"tl": [
+{
+"key": "cube1.moderator.dashboard_title",
+"en": "Dashboard",
+"context": "Dashboard page heading"
+},
+{
+"key": "cube1.moderator.mode_live",
+"en": "Live",
+"context": "Live Interactive polling mode badge"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "cube8.pricing.minimum_note",
+"en": "(min $11.11)",
+"context": "Minimum fee note"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.sign.diag.build",
+"en": "Build",
+"context": "Sign Doc diag row: the build SHA this page was served from"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"tr": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"pl": [
+{
+"key": "cube1.session.ranking",
+"en": "Ranking",
+"context": "Session state label"
+},
+{
+"key": "cube1.session.step_ranking",
+"en": "Ranking",
+"context": "Polling step label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.status_ranking",
+"en": "Ranking",
+"context": "SIM state label"
+},
+{
+"key": "soi.pod.phase.sync",
+"en": "Start",
+"context": "Pod page: rail chip"
+},
+{
+"key": "soi.pod.strip.stop",
+"en": "Stop",
+"context": "Pod page: phone strip stop button"
+},
+{
+"key": "soi.sign.ai.auto",
+"en": "Auto",
+"context": "provider select: first configured"
+},
+{
+"key": "soi.sign.send.email",
+"en": "E-mail",
+"context": "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.mars",
+"en": "Mars",
+"context": "Celestial body name: Mars"
+},
+{
+"key": "celestial.body.saturn",
+"en": "Saturn",
+"context": "Celestial body name: Saturn"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.tag.portfolio",
+"en": "Portfolio",
+"context": "Header status tag (portfolio)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"uk": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"ro": [
+{
+"key": "shared.feedback.fab",
+"en": "Feedback",
+"context": "Compact feedback FAB label (pill matches the eXeL badge size)"
+},
+{
+"key": "cube1.settings.cost_total",
+"en": "Total",
+"context": "Cost table column header — total cost"
+},
+{
+"key": "cube1.session.step_feedback",
+"en": "Feedback",
+"context": "Polling step label"
+},
+{
+"key": "cube1.timer.minutes",
+"en": "min",
+"context": "Timer phase label — minutes"
+},
+{
+"key": "cube1.timer.seconds",
+"en": "sec",
+"context": "Timer phase label — seconds"
+},
+{
+"key": "cube1.moderator.mode_static",
+"en": "Static",
+"context": "Static Poll polling mode badge"
+},
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.tokens.heart_total",
+"en": "Total ♡",
+"context": "♡ total label"
+},
+{
+"key": "cube8.tokens.unity_total",
+"en": "Total ◬",
+"context": "◬ total label"
+},
+{
+"key": "cube8.tokens.human_total",
+"en": "Total 웃",
+"context": "웃 total label"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "soi.pod.phase.sync",
+"en": "Start",
+"context": "Pod page: rail chip"
+},
+{
+"key": "soi.sign.mark.text",
+"en": "text",
+"context": "Sign Doc: toolbar chip: the selected box is a text note"
+},
+{
+"key": "soi.sign.add_text",
+"en": "Text",
+"context": "Sign Doc: toolbar: adds an editable text mark"
+},
+{
+"key": "soi.sign.text_default",
+"en": "Text",
+"context": "Sign Doc: default content of a new text mark"
+},
+{
+"key": "soi.sign.diag.build",
+"en": "Build",
+"context": "Sign Doc diag row: the build SHA this page was served from"
+},
+{
+"key": "soi.sign.send.email",
+"en": "E-mail",
+"context": "Send row: e-mail button (share sheet on a phone; site mail with the PDF attached; else mail composer)"
+},
+{
+"key": "soi.doc.field.body",
+"en": "Text",
+"context": "Create Doc: write mode: body field"
+},
+{
+"key": "soi.doc.f.principal",
+"en": "Principal (USD)",
+"context": "Create Doc: template field"
+},
+{
+"key": "soi.doc.col.principal",
+"en": "Principal",
+"context": "Create Doc: schedule column"
+},
+{
+"key": "cube10.sim.original",
+"en": "Original",
+"context": "Translate button label when inactive"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "cube10.sim.split_moderator",
+"en": "Moderator",
+"context": "SIM split-screen LEFT pane header"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "celestial.body.venus",
+"en": "Venus",
+"context": "Celestial body name: Venus"
+},
+{
+"key": "celestial.body.jupiter",
+"en": "Jupiter",
+"context": "Celestial body name: Jupiter"
+},
+{
+"key": "celestial.body.saturn",
+"en": "Saturn",
+"context": "Celestial body name: Saturn"
+},
+{
+"key": "celestial.body.uranus",
+"en": "Uranus",
+"context": "Celestial body name: Uranus"
+},
+{
+"key": "celestial.body.pluto",
+"en": "Pluto",
+"context": "Celestial body name: Pluto"
+},
+{
+"key": "vision.view.voxel",
+"en": "Voxel",
+"context": "View-mode toggle: voxel"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.industrial.eyebrow",
+"en": "Industrial",
+"context": "Section head eyebrow: Industrial"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+],
+"el": [
+{
+"key": "cube7.ranking.rank_label",
+"en": "#{rank}",
+"context": "Rank position display"
+},
+{
+"key": "cube8.payment.google_pay",
+"en": "Google Pay",
+"context": "GPay label"
+},
+{
+"key": "cube8.payment.apple_pay",
+"en": "Apple Pay",
+"context": "Apple Pay label"
+},
+{
+"key": "sdk.api_key.title",
+"en": "API & SDK",
+"context": "SDK settings panel heading"
+},
+{
+"key": "cube10.sim.rank_number",
+"en": "#{0}",
+"context": "Rank badge with placeholder"
+},
+{
+"key": "celestial.product",
+"en": "Celestial-2525",
+"context": "Celestial reader product name (header)"
+},
+{
+"key": "experiences.name",
+"en": "Alex Seguin",
+"context": "Portfolio owner name (masthead / landing)"
+},
+{
+"key": "experiences.sec.edtech.eyebrow",
+"en": "EdTech · eXeL AI",
+"context": "Section head eyebrow: EdTech"
+},
+{
+"key": "experiences.card.resume2.badge",
+"en": "TPM • PdM",
+"context": "Card badge: TPM résumé"
+},
+{
+"key": "experiences.card.ind1.title",
+"en": "BD Spot · MUVE C360",
+"context": "Card title: BD Spot MUVE C360"
+},
+{
+"key": "experiences.card.ip2.title",
+"en": "Apple US 2024/0107160 A1",
+"context": "Card title: Apple citation patent"
+},
+{
+"key": "experiences.card.vid1.title",
+"en": "Athena AI + Teal 2 Drone",
+"context": "Card title: Athena AI + Teal 2 demo video"
+},
+{
+"key": "experiences.card.vid2.title",
+"en": "BD Spot + Fluke SV600",
+"context": "Card title: BD Spot + Fluke SV600 demo video"
+},
+{
+"key": "experiences.card.vig4.title",
+"en": "AlphaStar · StarCraft II",
+"context": "Vignette card title: AlphaStar StarCraft II"
+}
+]
+}
+}

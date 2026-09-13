@@ -264,5 +264,15 @@ const T: Record<string, string> = {
   "innovation.alloc.perMin": "$/min",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Tehtäväsuunnittelu",
+  "trinity.ooda.title": "OODA-silmukka",
+  "cube1.moderator.mode_live": "Suora",
+  "sdk.embed.headless": "Päätön API",
+  "soi.landing.ring.session": "POD-ISTUNTO",
+  "soi.landing.btn.session": "POD-istunto",
+  "cube9.pixelated.title": "Pikselöity poletti",
+  "cube12.arx.token_id": "Poletin tunnus",
+  "vision.view.voxel": "Vokseli",
+  "experiences.card.resume1.badge": "Puolustus • Järjestelmät",
 };
 export default T;

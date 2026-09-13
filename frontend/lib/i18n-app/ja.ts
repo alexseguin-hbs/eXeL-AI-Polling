@@ -264,5 +264,15 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.nav.soi": "SoI フレームワーク",
+  "shared.landing.security2525_link": "ミッション計画",
+  "trinity.ooda.title": "OODA ループ",
+  "soi.landing.ring.session": "POD セッション",
+  "soi.landing.btn.session": "POD セッション",
+  "soi.coin.SI.law": "提供した1分 = 1 ♡",
+  "cube12.arx.divinity_guide": "神性ガイド",
+  "cube12.arx.token_id": "トークン ID",
+  "vision.view.voxel": "ボクセル",
+  "experiences.card.resume1.badge": "防衛 • システム",
 };
 export default T;

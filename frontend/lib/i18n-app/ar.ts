@@ -264,5 +264,9 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "تخطيط المهام",
+  "trinity.ooda.title": "حلقة OODA",
+  "vision.view.voxel": "فوكسل",
+  "experiences.card.resume1.badge": "الدفاع • الأنظمة",
 };
 export default T;

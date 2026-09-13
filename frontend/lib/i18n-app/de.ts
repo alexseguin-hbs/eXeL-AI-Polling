@@ -264,5 +264,13 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Missionsplanung",
+  "trinity.ooda.title": "OODA-Schleife",
+  "cube1.session.ranking": "Rangliste",
+  "cube6.themes.cqs_label": "Beitragsqualitäts-Score",
+  "soi.landing.btn.session": "POD-Sitzung",
+  "cube9.pixelated.title": "Pixelierter Token",
+  "experiences.card.resume1.badge": "Verteidigung • Systeme",
+  "experiences.card.vig5.title": "Teamarbeit · Ender's Game",
 };
 export default T;

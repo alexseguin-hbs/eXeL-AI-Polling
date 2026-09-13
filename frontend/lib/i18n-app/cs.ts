@@ -264,5 +264,14 @@ const T: Record<string, string> = {
   "innovation.role.editor": "Editor",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Plánování misí",
+  "trinity.ooda.title": "Smyčka OODA",
+  "cube4.presence.online": "Připojeno",
+  "cube4.presence.offline": "Odpojeno",
+  "sdk.embed.headless": "Bezhlavé API",
+  "soi.pod.strip.stop": "Zastavit",
+  "soi.landing.btn.session": "Relace POD",
+  "cube12.arx.token_id": "ID tokenu",
+  "experiences.card.resume1.badge": "Obrana • Systémy",
 };
 export default T;

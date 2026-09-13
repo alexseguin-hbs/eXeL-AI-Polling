@@ -264,5 +264,16 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Lập kế hoạch nhiệm vụ",
+  "trinity.ooda.title": "Vòng lặp OODA",
+  "cube1.session.project_id": "ID Dự án",
+  "cube1.session.spec_id": "ID Đặc tả",
+  "cube1.session.diff_id": "ID Yếu tố phân biệt",
+  "sdk.embed.headless": "API không giao diện",
+  "soi.landing.ring.session": "PHIÊN POD",
+  "soi.landing.btn.session": "Phiên POD",
+  "soi.coin.SI.law": "1 phút đã trao = 1 ♡",
+  "cube12.arx.token_id": "Mã thông báo ID",
+  "experiences.card.resume1.badge": "Quốc phòng • Hệ thống",
 };
 export default T;

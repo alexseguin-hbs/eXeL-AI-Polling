@@ -264,5 +264,10 @@ const T: Record<string, string> = {
   "innovation.alloc.perMin": "$/min",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Planificación de misiones",
+  "trinity.ooda.title": "Bucle OODA",
+  "soi.pod.phase.compose": "Encuadre",
+  "vision.view.voxel": "Vóxel",
+  "experiences.card.resume1.badge": "Defensa • Sistemas",
 };
 export default T;

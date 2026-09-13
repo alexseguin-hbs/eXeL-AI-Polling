@@ -263,5 +263,12 @@ const T: Record<string, string> = {
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
   "innovation.notes.risk": "Risk",
+  "shared.landing.security2525_link": "Görev Planlama",
+  "trinity.ooda.title": "OODA Döngüsü",
+  "sdk.embed.headless": "Başsız API",
+  "cube12.arx.token_id": "Jeton Kimliği",
+  "vision.view.voxel": "Voksel",
+  "experiences.card.resume1.badge": "Savunma • Sistemler",
+  "experiences.card.vid4.title": "AI / Claude Code Demosu",
 };
 export default T;

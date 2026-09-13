@@ -264,5 +264,18 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "การวางแผนภารกิจ",
+  "trinity.ooda.title": "OODA ลูป",
+  "cube1.moderator.qr_code": "รหัส QR",
+  "sdk.embed.headless": "API แบบไร้ส่วนหน้า",
+  "soi.landing.ring.session": "POD เซสชัน",
+  "soi.landing.btn.session": "POD เซสชัน",
+  "soi.coin.SI.law": "ให้เวลา 1 นาที = 1 ♡",
+  "cube12.arx.token_id": "โทเคน ID",
+  "celestial.linkSecure": "ลิงก์: ปลอดภัย",
+  "vision.view.voxel": "วอกเซล",
+  "experiences.card.resume1.badge": "กลาโหม • ระบบ",
+  "experiences.card.edvid1.title": "eXeL AI · การหลอมรวมเซนเซอร์",
+  "experiences.card.vig6.title": "DARPA การต่อสู้ทางอากาศ · AI",
 };
 export default T;

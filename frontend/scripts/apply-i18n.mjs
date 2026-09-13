@@ -8,7 +8,7 @@ import fs from 'fs'; import path from 'path';
 const [,, fleetPath, gapsPath, dirArg] = process.argv;
 if (!fleetPath || !gapsPath || !dirArg) { console.error('usage: apply-i18n.mjs <fleet.json> <gaps.json> <store dir>'); process.exit(1); }
 const fleet = JSON.parse(fs.readFileSync(fleetPath, 'utf8'));
-const gapsAll = JSON.parse(fs.readFileSync(gapsPath, 'utf8')).gaps;
+const _gj = JSON.parse(fs.readFileSync(gapsPath, 'utf8')); const gapsAll = _gj.gaps ?? _gj.identical;   // 2026-09-12 gaps file used .gaps; 2026-09-13 identical file uses .identical
 const languages = fleet.languages ?? (fleet.groups ?? []).flatMap((g) => g.languages);
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;   // a URL, a number, a code may stay as they are

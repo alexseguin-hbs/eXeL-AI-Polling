@@ -264,5 +264,8 @@ const T: Record<string, string> = {
   "innovation.role.editor": "Editor",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Planejamento de missão",
+  "trinity.ooda.title": "Ciclo OODA",
+  "experiences.card.resume1.badge": "Defesa • Sistemas",
 };
 export default T;

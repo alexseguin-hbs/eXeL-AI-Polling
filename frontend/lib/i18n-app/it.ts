@@ -264,5 +264,13 @@ const T: Record<string, string> = {
   "innovation.alloc.perMin": "$/min",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "Pianificazione della missione",
+  "trinity.ooda.title": "Ciclo OODA",
+  "cube1.session.polling": "Sondaggio",
+  "cube1.session.ranking": "Classifica",
+  "cube1.timer.seconds": "s",
+  "cube12.arx.token_id": "ID token",
+  "experiences.card.resume1.badge": "Difesa • Sistemi",
+  "experiences.card.resume2.title": "Responsabile tecnico di prodotto",
 };
 export default T;

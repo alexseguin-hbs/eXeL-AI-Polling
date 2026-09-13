@@ -264,5 +264,13 @@ const T: Record<string, string> = {
   "innovation.gate.eyebrow": "Vision • 2525 · Harmattan AI",
   "innovation.dogtag.load": "AI·SI·HI",
   "innovation.dep.load": "AI·SI·HI",
+  "shared.landing.security2525_link": "মিশন পরিকল্পনা",
+  "trinity.ooda.title": "OODA লুপ",
+  "soi.landing.ring.session": "POD সেশন",
+  "soi.landing.btn.session": "POD সেশন",
+  "cube12.arx.divinity_guide": "ঐশ্বরিক নির্দেশিকা",
+  "cube12.arx.token_id": "টোকেন ID",
+  "vision.view.voxel": "ভক্সেল",
+  "experiences.card.resume1.badge": "প্রতিরক্ষা • সিস্টেম",
 };
 export default T;
