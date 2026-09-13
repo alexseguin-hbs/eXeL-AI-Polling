@@ -68,11 +68,12 @@ function sectionTheme(idx: number, seven: string): ThemeInfo {
 // 33/111/333/999 word counts); it must RENDER as the drawn Vision-2525 house,
 // never the emoji (operator 2026-08-20). Same paths as the living document's icon.
 function HouseIcon() {
+  const { t } = useLexicon();
   return (
     <svg
       viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"
       strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
-      role="img" aria-label="Livelihood home"
+      role="img" aria-label={t("atlantis.icon_livelihood_home")}
       style={{ display: "inline-block", verticalAlign: "-0.12em" }}
     >
       <path d="M3 11.5 12 4l9 7.5" /><path d="M5.5 10.5V20h13v-9.5" /><path d="M10 20v-5h4v5" />
@@ -85,6 +86,7 @@ function HouseIcon() {
 // follows the selected tier). "Seed" is a canon term kept in English across all
 // 33 languages, so the \bSeed\b match works in every translation.
 function SeedIcon({ color }: { color?: string }) {
+  const { t } = useLexicon();
   const pts = [0, 60, 120, 180, 240, 300].map((deg) => {
     const a = (deg * Math.PI) / 180;
     return [32 + 10 * Math.cos(a), 32 + 10 * Math.sin(a)] as const;
@@ -93,7 +95,7 @@ function SeedIcon({ color }: { color?: string }) {
     <svg
       viewBox="0 0 64 64" width="1em" height="1em" fill="none"
       stroke={color || "currentColor"} strokeWidth={2.5}
-      role="img" aria-label="Seed of Life"
+      role="img" aria-label={t("atlantis.icon_seed_of_life")}
       style={{ display: "inline-block", verticalAlign: "-0.12em", marginRight: "0.15em" }}
     >
       <circle cx={32} cy={32} r={10} />

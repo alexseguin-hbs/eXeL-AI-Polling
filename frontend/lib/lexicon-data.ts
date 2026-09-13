@@ -2785,7 +2785,19 @@ const siteUxB6: TranslationEntry[] = [
   { key: "soi2525.feedback_i_concur_risk", englishDefault: "Feedback: I concur this is a risk", context: "auto: app/SoI-2525/page.tsx:undefined", cubeId: 0 },
 ];
 
+const siteUxB7: TranslationEntry[] = [
+  { key: "arch.cmd.learning_points", englishDefault: "· Learning points", context: "architect command-ux1 economics fragment", cubeId: 0 },
+  { key: "atlantis.icon_livelihood_home", englishDefault: "Livelihood home", context: "HouseIcon aria-label", cubeId: 16 },
+  { key: "atlantis.icon_seed_of_life", englishDefault: "Seed of Life", context: "SeedIcon aria-label", cubeId: 16 },
+  { key: "crs.user_story", englishDefault: "User Story", context: "CRS edit table column header for the user story field", cubeId: 0 },
+  { key: "crs.compare_same_version", englishDefault: "Before and After are the same version — choose two different versions to see changes.", context: "CRS compare view message when both selected versions are identical", cubeId: 0 },
+  { key: "divinity.bilingual_reader_title", englishDefault: "Side-by-side bilingual reader", context: "reader tooltip", cubeId: 18 },
+  { key: "settings.ai_key_usage_note", englishDefault: "Used when Create Doc drafts a document and when a pod writes its closing summary. Anything an AI writes is shown as AI-written.", context: "auto: components/moderator-settings.tsx:329", cubeId: 0 },
+  { key: "settings.no_ai_key_fallback", englishDefault: "No AI key is set on this site yet, so drafting and summaries fall back to the built-in text.", context: "auto: components/moderator-settings.tsx:340", cubeId: 0 },
+];
+
 export const CUBE_GROUPS: CubeGroup[] = [
+  { cubeId: 76, label: "Site UX — batch 7 residual (2026-09-13)", keys: siteUxB7 },
   { cubeId: 75, label: "Site UX — batch 6 SoI-2525 (2026-09-13)", keys: siteUxB6 },
   { cubeId: 74, label: "Site UX — batch 5 security-2525 (2026-09-13)", keys: siteUxB5 },
   { cubeId: 73, label: "Site UX — batch 4 tail (2026-09-13)", keys: siteUxB4 },

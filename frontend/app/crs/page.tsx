@@ -158,6 +158,7 @@ export default function CrsMatrixPage() {
 }
 
 function EditView({ cubes, rows, onEdit }: { cubes: string[]; rows: CrsEntry[]; onEdit: (crs: string, v: string) => void }) {
+  const { t } = useLexicon();
   return (
     <div className="space-y-6">
       {cubes.map((cube) => (
@@ -168,7 +169,7 @@ function EditView({ cubes, rows, onEdit }: { cubes: string[]; rows: CrsEntry[]; 
               <thead className="bg-zinc-900/60 text-zinc-400">
                 <tr>
                   <th className="px-2 py-1.5">CRS #</th>
-                  <th className="px-2 py-1.5">User Story</th>
+                  <th className="px-2 py-1.5">{t("crs.user_story")}</th>
                   <th className="px-2 py-1.5">Output #</th>
                   <th className="px-2 py-1.5">Design Review # (timestamp)</th>
                 </tr>
@@ -201,10 +202,11 @@ function EditView({ cubes, rows, onEdit }: { cubes: string[]; rows: CrsEntry[]; 
 }
 
 function CompareView({ a, b }: { a: Version; b: Version }) {
+  const { t } = useLexicon();
   const rows = diffCollection(a.rows as unknown as Record<string, string>[], b.rows as unknown as Record<string, string>[], "crs");
   const changed = rows.filter((r) => r.kind !== "carried");
   if (a.id === b.id)
-    return <p className="text-sm italic text-zinc-500">Before and After are the same version — choose two different versions to see changes.</p>;
+    return <p className="text-sm italic text-zinc-500">{t("crs.compare_same_version")}</p>;
   if (!changed.length) return <p className="text-sm italic text-zinc-500">No changes between {a.label} and {b.label}.</p>;
 
   return (

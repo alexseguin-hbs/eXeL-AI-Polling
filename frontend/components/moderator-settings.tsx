@@ -317,6 +317,7 @@ const V2T_PROVIDERS = [
  * produces is labelled as AI-written where it is shown.
  */
 function AiProviderSelector() {
+  const { t } = useLexicon();
   const [provider, setProvider] = useState<AiProvider>("auto");
   const [have, setHave] = useState<AiConfigured | null>(null);
   useEffect(() => { setProvider(readProvider()); void aiStatus().then(setHave).catch(() => setHave(null)); }, []);
@@ -326,7 +327,7 @@ function AiProviderSelector() {
   return (
     <section data-testid="ai-provider-settings">
       <h3 className="mb-1 text-sm font-medium">Which AI writes</h3>
-      <p className="mb-2 text-xs text-muted-foreground">Used when Create Doc drafts a document and when a pod writes its closing summary. Anything an AI writes is shown as AI-written.</p>
+      <p className="mb-2 text-xs text-muted-foreground">{t("settings.ai_key_usage_note")}</p>
       <div className="space-y-1.5">
         {offered.map((p) => (
           <button key={p} type="button" onClick={() => choose(p)} disabled={!ready(p)} data-testid={`ai-provider-${p}`}
@@ -337,7 +338,7 @@ function AiProviderSelector() {
         ))}
       </div>
       {have && !have.openai && !have.gemini && !have.grok && !have.claude && (
-        <p className="mt-2 text-xs text-amber-500">No AI key is set on this site yet, so drafting and summaries fall back to the built-in text.</p>
+        <p className="mt-2 text-xs text-amber-500">{t("settings.no_ai_key_fallback")}</p>
       )}
     </section>
   );

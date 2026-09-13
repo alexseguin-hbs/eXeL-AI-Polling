@@ -384,7 +384,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                 <Tile label="웃 HI" value={fmtUsd(econ.trinity.human)} color={C.green} />
               </div>
               <div className="rounded-lg border p-2 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>
-                Time Capital <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> · Learning points <span style={{ color: C.violet }}>{econ.learningPoints}</span>. Client preview reconciles to the Cube 5/8 ledger on sync.
+                Time Capital <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> {t("arch.cmd.learning_points")} <span style={{ color: C.violet }}>{econ.learningPoints}</span>. Client preview reconciles to the Cube 5/8 ledger on sync.
               </div>
             </div>
           </div>

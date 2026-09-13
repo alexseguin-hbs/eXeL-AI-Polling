@@ -908,6 +908,7 @@ function LibraryReader({
   lang?: DivinityLang;
   onExpandBilingual?: () => void;
 }) {
+  const { t } = useLexicon();
   const touchStartX = React.useRef(0);
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -974,7 +975,7 @@ function LibraryReader({
           <button
             onClick={onExpandBilingual}
             className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-colors"
-            title="Side-by-side bilingual reader"
+            title={t("divinity.bilingual_reader_title")}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="3" width="20" height="18" rx="2" />
@@ -1139,6 +1140,7 @@ function PageReader({
   onExpandBilingual?: () => void;
   lang?: DivinityLang;
 }) {
+  const { t } = useLexicon();
   // Pinyin toggle for Chinese reading mode (reinstated — must never be removed)
   const [showPinyin, setShowPinyin] = useState(false);
   const isChinese = lang === "zh";
@@ -1193,7 +1195,7 @@ function PageReader({
             <button
               onClick={onExpandBilingual}
               className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-colors"
-              title="Side-by-side bilingual reader"
+              title={t("divinity.bilingual_reader_title")}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="3" width="20" height="18" rx="2" />
